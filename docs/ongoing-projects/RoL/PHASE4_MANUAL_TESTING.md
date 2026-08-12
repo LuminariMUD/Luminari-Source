@@ -255,6 +255,22 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   is called to hunt the attacker. Other ship navigators protect orders but have no source
   crew-call family.
 
+### Phase 6 converted guild guards
+
+- `RoL Guild Guard` is implemented for all 47 active source bindings, but the affected
+  packages are outside the five-package staged pilot. Do not assign it to an unrelated
+  mobile: its class, race, direction, and protection rules recognize converted rooms only.
+- In a later dependency-complete stage, approach a guarded entrance with an ineligible
+  character and confirm the guard humiliates the character and blocks the authored
+  direction. Repeat with the required class. Multiclass membership is accepted; the
+  Leuthilspar elf entrance at room 2008087 accepts elves and half-elves.
+- Move or transfer the guard away from its original load room and repeat. It must provide
+  no gate or protection behavior until returned home. Immortals and NPC guards pass.
+- At a protected entrance, attack the guard with a mortal character. The guard should
+  drain up to 5,000 XP per character level without reducing XP below 2, apply the source
+  dispel, curse, poison, blindness, and slow effects, reduce the attacker to 1 hit point,
+  stop the combat, and relocate the attacker to another eligible room in the same zone.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,

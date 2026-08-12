@@ -200,7 +200,7 @@ class ConstantsTests(unittest.TestCase):
 class SpecRegistryTests(unittest.TestCase):
   def test_current_registry_exposes_canonical_and_alias_names(self) -> None:
     names = extract_spec_names(default_repo_root())
-    self.assertEqual(72, len(names))
+    self.assertEqual(73, len(names))
     self.assertIn("bank", names)
     self.assertIn("guild", names)
     self.assertIn("guildmaster", names)

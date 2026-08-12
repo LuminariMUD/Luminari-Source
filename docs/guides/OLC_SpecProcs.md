@@ -31,7 +31,7 @@ callback slot or event-gateway dispatch rules.
 - Enter a number to choose a SpecProc; enter `0` to clear.
 - The current selection is shown in the menu. Save as usual to apply.
 
-Numbers are specific to the filtered editor view. The current views contain 36 mobile definitions,
+Numbers are specific to the filtered editor view. The current views contain 37 mobile definitions,
 26 object definitions, and 10 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
@@ -60,6 +60,11 @@ converted RoL boundary rooms; attaching it elsewhere turns that room into a rand
 Its source 1-in-21 trigger spooks every player and charmed pet in the room for mental damage and a
 possible short stun. Converted angel identity is retained for the source immunity list. This
 procedure is intended for the converted RoL shadow-giant family rather than general new mobiles.
+
+`RoL Guild Guard` is mobile-owned and requires `MOB_SPEC`. It preserves the converted room-specific
+class and race gates, acts only from the guard's original load room, and retaliates when protected
+guards are attacked. Its room rules are converter-owned; use the ordinary `Guild Guard` procedure
+for new Luminari guild entrances.
 
 The five `RoL Ship` definitions preserve the source system for seven converted fixed-interior
 ships. `RoL Ship` is assigned to a hull object, `RoL Ship Control` to its panel object, `RoL Ship

@@ -587,3 +587,55 @@ void Test_spec_rol_shadow_giant_preserves_spook_rules(CuTest *tc)
 
   spec_mechanics_end(&fixture);
 }
+
+void Test_spec_rol_guild_guard_preserves_active_gate_rules(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct player_special_data player_specials;
+  struct char_data *target;
+
+  spec_mechanics_begin(&fixture);
+  target = &fixture.target;
+  memset(&player_specials, 0, sizeof(player_specials));
+  REMOVE_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  target->player_specials = &player_specials;
+
+  CuAssertTrue(tc, !rol_guild_guard_allows(2004128, NORTH, target));
+  CuAssertTrue(tc, rol_guild_guard_allows(2004128, SOUTH, target));
+  CuAssertTrue(tc, !rol_guild_guard_allows(2008200, WEST, target));
+  CLASS_LEVEL(target, CLASS_ROGUE) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2008200, WEST, target));
+  CLASS_LEVEL(target, CLASS_ROGUE) = 0;
+
+  CuAssertTrue(tc, !rol_guild_guard_allows(2008113, SOUTH, target));
+  CLASS_LEVEL(target, CLASS_WIZARD) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2008113, SOUTH, target));
+  CLASS_LEVEL(target, CLASS_WIZARD) = 0;
+  CLASS_LEVEL(target, CLASS_SORCERER) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2008113, SOUTH, target));
+  CLASS_LEVEL(target, CLASS_SORCERER) = 0;
+
+  GET_REAL_RACE(target) = RACE_HUMAN;
+  CuAssertTrue(tc, !rol_guild_guard_allows(2008087, EAST, target));
+  GET_REAL_RACE(target) = RACE_ELF;
+  CuAssertTrue(tc, rol_guild_guard_allows(2008087, EAST, target));
+  GET_REAL_RACE(target) = RACE_HALF_ELF;
+  CuAssertTrue(tc, rol_guild_guard_allows(2008087, EAST, target));
+
+  CuAssertTrue(tc, !rol_guild_guard_allows(2034406, WEST, target));
+  CLASS_LEVEL(target, CLASS_ASSASSIN) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2034406, WEST, target));
+  CuAssertTrue(tc, !rol_guild_guard_allows(2034406, EAST, target));
+  CLASS_LEVEL(target, CLASS_ASSASSIN) = 0;
+  CLASS_LEVEL(target, CLASS_ROGUE) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2034406, EAST, target));
+
+  CuAssertTrue(tc, rol_guild_guard_protects(2008200));
+  CuAssertTrue(tc, rol_guild_guard_protects(2050624));
+  CuAssertTrue(tc, !rol_guild_guard_protects(2004128));
+  CuAssertTrue(tc, !rol_guild_guard_protects(9999999));
+
+  target->player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  spec_mechanics_end(&fixture);
+}

@@ -65,6 +65,7 @@ NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 ADAPTED_HANDLER_NAMES = {
     "control_panel": "RoL Ship Control",
     "devour": "RoL Corpse Devourer",
+    "guild_guard": "RoL Guild Guard",
     "navagator": "RoL Ship Navigator",
     "poison": "RoL Poison Bite",
     "shadow_giant": "RoL Shadow Giant",
@@ -734,7 +735,7 @@ def compile_special_bindings(
     source_vnum = int(row["source_vnum"])
     target_vnum = resolve(target_kind, source_vnum)
     if handler in NATIVE_HANDLERS or handler in ADAPTED_HANDLER_NAMES:
-      if handler == "navagator":
+      if handler in {"guild_guard", "navagator"}:
         required_bits = (0,)
       elif handler == "obj_drain":
         required_bits = (44,)

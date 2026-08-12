@@ -14,6 +14,7 @@
 #include "combat/fight.h"
 #include "comm.h"
 #include "db.h"
+#include "dgscript/dg_scripts.h"
 #include "handler.h"
 #include "interpreter.h"
 #include "magic/domains_schools.h"
@@ -25,6 +26,67 @@
 #include "spec_rol_conversion.h"
 
 #define ROL_GATE_MAX_SUMMONS 5
+#define ROL_GUILD_CLASS(class_id) (1ULL << (class_id))
+#define ROL_GUILD_RACE(race_id) (1ULL << (race_id))
+
+struct rol_guild_guard_rule
+{
+  int room_vnum;
+  int direction;
+  unsigned long long class_mask;
+  unsigned long long race_mask;
+  bool protects;
+};
+
+/* Only rooms reached by active converted guild_guard bindings are retained.
+ * Target VNUMs are the source room VNUMs under the Phase 4 +2,000,000 offset. */
+static const struct rol_guild_guard_rule rol_guild_guard_rules[] = {
+    {2004128, NORTH, 0, 0, false},
+    {2008014, SOUTH, ROL_GUILD_CLASS(CLASS_WARRIOR), 0, true},
+    {2008044, EAST, 0, 0, false},
+    {2008046, EAST, 0, 0, false},
+    {2008053, WEST, 0, 0, false},
+    {2008070, WEST, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
+    {2008087, EAST, 0, ROL_GUILD_RACE(RACE_ELF) | ROL_GUILD_RACE(RACE_HALF_ELF), false},
+    {2008113, SOUTH, ROL_GUILD_CLASS(CLASS_WIZARD) | ROL_GUILD_CLASS(CLASS_SORCERER), 0, true},
+    {2008137, SOUTH, ROL_GUILD_CLASS(CLASS_DRUID), 0, true},
+    {2008200, WEST, ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
+    {2008305, EAST, ROL_GUILD_CLASS(CLASS_RANGER), 0, true},
+    {2008311, SOUTH, ROL_GUILD_CLASS(CLASS_NECROMANCER), 0, true},
+    {2008318, NORTH, ROL_GUILD_CLASS(CLASS_BARD), 0, true},
+    {2011603, WEST, ROL_GUILD_CLASS(CLASS_WARRIOR), 0, true},
+    {2011633, WEST, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
+    {2011685, EAST, 0, 0, false},
+    {2011812, UP, 0, 0, false},
+    {2015314, NORTH, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
+    {2015333, NORTH, ROL_GUILD_CLASS(CLASS_WARRIOR), 0, true},
+    {2015506, NORTH, ROL_GUILD_CLASS(CLASS_BERSERKER), 0, true},
+    {2015660, SOUTH, ROL_GUILD_CLASS(CLASS_WARRIOR), 0, true},
+    {2016007, WEST, ROL_GUILD_CLASS(CLASS_WARRIOR), 0, true},
+    {2016056, NORTH, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
+    {2016145, EAST, ROL_GUILD_CLASS(CLASS_WIZARD) | ROL_GUILD_CLASS(CLASS_SORCERER), 0, true},
+    {2016192, NORTH, ROL_GUILD_CLASS(CLASS_WIZARD) | ROL_GUILD_CLASS(CLASS_SORCERER), 0, true},
+    {2016283, SOUTH, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
+    {2016383, SOUTH, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
+    {2016392, SOUTH, ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
+    {2016408, NORTH, ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
+    {2019950, SOUTH, 0, 0, false},
+    {2019951, SOUTH, 0, 0, false},
+    {2019954, SOUTH, 0, 0, false},
+    {2025001, NORTH, 0, 0, false},
+    {2025201, NORTH, 0, 0, false},
+    {2034367, SOUTH, ROL_GUILD_CLASS(CLASS_WIZARD) | ROL_GUILD_CLASS(CLASS_SORCERER), 0, true},
+    {2034406, WEST, ROL_GUILD_CLASS(CLASS_ASSASSIN) | ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
+    {2034406, EAST, ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
+    {2050624, WEST, 0, 0, true},
+    {2066028, SOUTH, ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
+    {2066065, WEST, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
+    {2066078, SOUTH, ROL_GUILD_CLASS(CLASS_WARRIOR), 0, true},
+    {2066084, NORTH, ROL_GUILD_CLASS(CLASS_WIZARD) | ROL_GUILD_CLASS(CLASS_SORCERER), 0, true},
+    {2066088, EAST, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
+    {2090847, SOUTH, 0, 0, true},
+    {2090849, EAST, 0, 0, true},
+};
 
 struct rol_gate_recipe
 {
@@ -649,6 +711,192 @@ int rol_auto_distributor(struct char_data *ch, void *me, int cmd, const char *ar
   }
   char_to_room(ch, destination);
   act("$n enters.", FALSE, ch, NULL, NULL, TO_ROOM);
+  return TRUE;
+}
+
+static bool rol_guild_guard_has_class(const struct char_data *ch, unsigned long long class_mask)
+{
+  int class_id;
+
+  if (ch == NULL || class_mask == 0)
+    return false;
+
+  if (IS_NPC(ch))
+    return GET_CLASS(ch) >= 0 && GET_CLASS(ch) < 64 &&
+           (class_mask & ROL_GUILD_CLASS(GET_CLASS(ch))) != 0;
+
+  for (class_id = 0; class_id < MAX_CLASSES && class_id < 64; class_id++)
+    if ((class_mask & ROL_GUILD_CLASS(class_id)) != 0 && CLASS_LEVEL(ch, class_id) > 0)
+      return true;
+
+  return false;
+}
+
+bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data *ch)
+{
+  const struct rol_guild_guard_rule *rule;
+  size_t rule_index;
+
+  for (rule_index = 0;
+       rule_index < sizeof(rol_guild_guard_rules) / sizeof(rol_guild_guard_rules[0]); rule_index++)
+  {
+    rule = &rol_guild_guard_rules[rule_index];
+    if (rule->room_vnum != room_vnum || rule->direction != direction)
+      continue;
+
+    if (rule->class_mask != 0)
+      return rol_guild_guard_has_class(ch, rule->class_mask);
+    if (rule->race_mask != 0)
+      return ch != NULL && GET_RACE(ch) >= 0 && GET_RACE(ch) < 64 &&
+             (rule->race_mask & ROL_GUILD_RACE(GET_RACE(ch))) != 0;
+    return false;
+  }
+
+  return true;
+}
+
+bool rol_guild_guard_protects(int room_vnum)
+{
+  size_t rule_index;
+
+  for (rule_index = 0;
+       rule_index < sizeof(rol_guild_guard_rules) / sizeof(rol_guild_guard_rules[0]); rule_index++)
+    if (rol_guild_guard_rules[rule_index].room_vnum == room_vnum &&
+        rol_guild_guard_rules[rule_index].protects)
+      return true;
+
+  return false;
+}
+
+static room_rnum rol_guild_guard_teleport_destination(struct char_data *victim)
+{
+  room_rnum room;
+  room_rnum selected = NOWHERE;
+  zone_rnum zone;
+  int eligible = 0;
+
+  if (victim == NULL || !VALID_ROOM_RNUM(IN_ROOM(victim)))
+    return NOWHERE;
+
+  zone = world[IN_ROOM(victim)].zone;
+  for (room = 0; room <= top_of_world; room++)
+  {
+    if (room == IN_ROOM(victim) || world[room].zone != zone ||
+        !valid_mortal_tele_dest(victim, room, true))
+      continue;
+
+    eligible++;
+    if (rand_number(1, eligible) == 1)
+      selected = room;
+  }
+
+  return selected;
+}
+
+static void rol_guild_guard_stop_victim_combat(struct char_data *victim)
+{
+  struct char_data *fighter;
+  struct char_data *next;
+
+  if (victim == NULL)
+    return;
+
+  if (FIGHTING(victim) != NULL)
+    stop_fighting(victim);
+
+  for (fighter = combat_list; fighter != NULL; fighter = next)
+  {
+    next = fighter->next_fighting;
+    if (FIGHTING(fighter) == victim)
+      stop_fighting(fighter);
+  }
+}
+
+static int rol_guild_guard_protection(struct char_data *guard, struct char_data *victim)
+{
+  room_rnum destination;
+  long loss;
+
+  if (guard == NULL || victim == NULL || IS_NPC(victim) ||
+      spec_context_validate_combat_target(guard, victim, true) != SPEC_CONTEXT_VALID)
+    return FALSE;
+
+  act("$n says, 'Begone from here, outlaw! None may attack guild guardians!'", FALSE, guard, NULL,
+      victim, TO_ROOM);
+  act("$n presses a small metal pin on $s chest, which flares with brilliant blue light!", FALSE,
+      guard, NULL, victim, TO_ROOM);
+  send_to_char(victim, "A wrenching pain drains your life force away!\r\n");
+
+  loss = MIN((long)GET_LEVEL(victim) * 5000L, MAX(0L, GET_EXP(victim) - 2L));
+  GET_EXP(victim) -= loss;
+
+  call_magic(guard, victim, NULL, SPELL_DISPEL_MAGIC, 0, 60, CAST_INNATE);
+  call_magic(guard, victim, NULL, SPELL_CURSE, 0, 60, CAST_INNATE);
+  if (!affected_by_spell(victim, SPELL_POISON))
+    call_magic(guard, victim, NULL, SPELL_POISON, 0, 120, CAST_INNATE);
+  call_magic(guard, victim, NULL, SPELL_BLINDNESS, 0, 60, CAST_INNATE);
+  call_magic(guard, victim, NULL, SPELL_SLOW, 0, 60, CAST_INNATE);
+
+  if (GET_POS(victim) <= POS_DEAD || !VALID_ROOM_RNUM(IN_ROOM(victim)))
+    return TRUE;
+
+  GET_HIT(victim) = 1;
+  update_pos(victim);
+  destination = rol_guild_guard_teleport_destination(victim);
+  rol_guild_guard_stop_victim_combat(victim);
+
+  if (!VALID_ROOM_RNUM(destination))
+    return TRUE;
+
+  act("$n slowly fades out of existence.", FALSE, victim, NULL, NULL, TO_ROOM);
+  char_from_room(victim);
+  if (ZONE_FLAGGED(world[destination].zone, ZONE_WILDERNESS))
+  {
+    X_LOC(victim) = world[destination].coords[0];
+    Y_LOC(victim) = world[destination].coords[1];
+  }
+  char_to_room(victim, destination);
+  act("$n slowly fades into existence.", FALSE, victim, NULL, NULL, TO_ROOM);
+  look_at_room(victim, 0);
+  entry_memory_mtrigger(victim);
+  greet_mtrigger(victim, -1);
+  greet_memory_mtrigger(victim);
+  return TRUE;
+}
+
+int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *guard = me;
+  int current_room_vnum;
+  int direction;
+
+  UNUSED(argument);
+
+  if (guard == NULL || !IS_NPC(guard) || !VALID_ROOM_RNUM(IN_ROOM(guard)) ||
+      GET_MOB_LOADROOM(guard) != IN_ROOM(guard))
+    return FALSE;
+
+  current_room_vnum = GET_ROOM_VNUM(IN_ROOM(guard));
+  if (cmd == 0)
+  {
+    if (rol_guild_guard_protects(current_room_vnum) && FIGHTING(guard) != NULL)
+      return rol_guild_guard_protection(guard, FIGHTING(guard));
+    return FALSE;
+  }
+
+  if (ch == NULL || complete_cmd_info == NULL || !IS_MOVE(cmd))
+    return FALSE;
+  if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
+    return FALSE;
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GUARD))
+    return FALSE;
+
+  direction = complete_cmd_info[cmd].subcmd;
+  if (rol_guild_guard_allows(current_room_vnum, direction, ch))
+    return FALSE;
+
+  act("$n humiliates you, and blocks your way.", FALSE, guard, NULL, ch, TO_VICT);
+  act("$n humiliates $N, and blocks $S way.", FALSE, guard, NULL, ch, TO_NOTVICT);
   return TRUE;
 }
 

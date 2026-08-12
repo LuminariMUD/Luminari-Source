@@ -1175,6 +1175,45 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("RoL Ship Navigator", result.records[0].spec_proc)
     self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
 
+  def test_guild_guard_binding_requires_mobile_spec_flag(self) -> None:
+    binding = {
+        "basename": "gloom",
+        "record_type": "mobile",
+        "source_vnum": 34261,
+        "source_handler": "guild_guard",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    native = compiled.native_bindings[0]
+    self.assertEqual("RoL Guild Guard", native.persisted_name)
+    self.assertEqual((0,), native.required_flag_bits)
+    self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[0]["strategy"])
+
+    source = self._source_record(
+        "mob",
+        b"#34261\nguild guardian~\na guild guardian~\nA guardian stands here.~\n~\n"
+        b"0 0 0 0 S\nN 0 0\n30 0 0 1d1+0 1d1+0\n0 0\n131 131 0 0\n",
+    )
+    emitted = emit_mobile(
+        source,
+        2_034_261,
+        special_proc=native.persisted_name,
+        special_resolved=True,
+        required_action_bits=native.required_flag_bits,
+    )
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20342.mob", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Guild Guard", result.records[0].spec_proc)
+    self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
+
 
 if __name__ == "__main__":
   unittest.main()

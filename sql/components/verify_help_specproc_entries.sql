@@ -41,6 +41,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'random loaded room in the same zone') > 0
   AND INSTR(entry, 'RoL Shadow Giant is mobile-owned') > 0
   AND INSTR(entry, 'one-in-21 chance') > 0
+  AND INSTR(entry, 'RoL Guild Guard is mobile-owned') > 0
+  AND INSTR(entry, 'room-specific class and race gates') > 0
   AND INSTR(entry, 'five RoL Ship procedures') > 0
   AND INSTR(entry, 'RoL Ship Control handles panel instruments') > 0
   AND INSTR(entry, 'converter-owned') > 0

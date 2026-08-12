@@ -67,6 +67,11 @@ mobile-activity pulse has the source one-in-21 chance to spook every player and
 charmed pet in the room for mental damage and a possible short stun. It is
 intended for converted RoL shadow giants.
 
+RoL Guild Guard is mobile-owned and requires MOB_SPEC. It enforces converted
+room-specific class and race gates only while the guard remains in its original
+load room. Protected guards punish and relocate mortal attackers. Use the
+ordinary Guild Guard procedure for new Luminari guild entrances.
+
 The five RoL Ship procedures preserve seven converted fixed-interior ships. RoL
 Ship boards the hull with ENTER, RoL Ship Control handles panel instruments and
 ship orders, RoL Ship Exit and RoL Ship Lookout expose the exterior, and RoL Ship
