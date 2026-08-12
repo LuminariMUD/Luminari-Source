@@ -201,6 +201,66 @@ class RolTransformTests(unittest.TestCase):
         )
     )
 
+  def test_planar_static_initializers_use_prototype_state_or_inert_dispositions(self) -> None:
+    bindings = [
+        {
+            "basename": "planar",
+            "record_type": "mobile",
+            "source_vnum": vnum,
+            "source_handler": handler,
+        }
+        for vnum, handler in (
+            (205, "demon_aluFiendRegen"),
+            (208, "demon_bar_lgura"),
+            (209, "demon_cambion"),
+            (211, "demon_dretch"),
+            (219, "demon_rutterkin"),
+            (229, "devilLemure"),
+            (230, "devilLemure"),
+            (92079, "demon_cambion"),
+        )
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+    native = {binding.source_vnum: binding for binding in compiled.native_bindings}
+    dispositions = {row["source_handler"]: row for row in compiled.dispositions}
+
+    self.assertEqual({208, 209, 229, 230, 92079}, native.keys())
+    self.assertEqual((112,), native[208].required_flag_bits)
+    self.assertEqual((20,), native[208].required_affect_bits)
+    for vnum in (209, 92079):
+      self.assertEqual((112,), native[vnum].required_flag_bits)
+      self.assertEqual((19,), native[vnum].required_affect_bits)
+    for vnum in (229, 230):
+      self.assertEqual((13,), native[vnum].required_flag_bits)
+      self.assertEqual((), native[vnum].required_affect_bits)
+    self.assertTrue(
+        all(
+            dispositions[handler]["strategy"] == "SOURCE_INERT_EXCLUDED"
+            for handler in ("demon_aluFiendRegen", "demon_dretch", "demon_rutterkin")
+        )
+    )
+
+    source = self._source_record(
+        "mob",
+        b"#208\nbar-lgura~\na bar-lgura~\nA bar-lgura waits here.~\n~\n"
+        b"0 0 0 0 S\nX 0 0\n10 0 0 1d1+0 1d1+0\n0 0\n131 131 0 0\n",
+    )
+    emitted = emit_mobile(
+        source,
+        2_000_208,
+        special_resolved=True,
+        required_action_bits=native[208].required_flag_bits,
+        required_affect_bits=native[208].required_affect_bits,
+    )
+    result = parse_mobile_file(
+        self._target_path("mob", emitted.text), "mob/20000.mob", self.manifest, set()
+    )
+
+    self.assertTrue(result.complete)
+    self.assertIn(112, decode_tokens(result.records[0].action_flags).bits)
+    self.assertIn(20, decode_tokens(result.records[0].affect_flags).bits)
+
   def test_color_and_line_endings_are_canonicalized(self) -> None:
     text, diagnostics = convert_text("&+RRed&N\r\nplain")
     self.assertEqual("@RRed@n\nplain", text)

@@ -6,10 +6,12 @@ import unittest
 
 from wtool_lib.rol_pilot_build import (
     RolPilotBuildError,
+    _native_maps,
     _patch_mobile_block,
     _pilot_runtime_contract,
     _stage_overlay,
 )
+from wtool_lib.rol_special import compile_special_bindings
 from wtool_lib.models import (
     ExitRecord,
     MobileRecord,
@@ -23,6 +25,30 @@ from wtool_lib.models import (
 
 
 class RolPilotBuildTests(unittest.TestCase):
+  def test_native_maps_merge_composable_state_for_one_mobile(self) -> None:
+    bindings = [
+        {
+            "basename": "planar",
+            "record_type": "mobile",
+            "source_vnum": 208,
+            "source_handler": handler,
+        }
+        for handler in ("abyssForgedWeapons", "demon_bar_lgura", "standardDemon")
+    ]
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: vnum + 2_000_000,
+        [],
+    )
+
+    native, _ = _native_maps(compiled)
+    merged = native[("mob", 2_000_208)]
+
+    self.assertIsNone(merged.persisted_name)
+    self.assertEqual((112, 125), merged.required_flag_bits)
+    self.assertEqual((20,), merged.required_affect_bits)
+
   def test_mobile_patch_adds_spec_flag_name_and_unique_triggers(self) -> None:
     block = [
         "#2058601\n",

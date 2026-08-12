@@ -1451,6 +1451,7 @@ def emit_mobile(
     special_resolved: bool = False,
     attachments: tuple[int, ...] = (),
     required_action_bits: tuple[int, ...] = (),
+    required_affect_bits: tuple[int, ...] = (),
 ) -> TransformResult:
   """Emit one enhanced target mobile record."""
 
@@ -1486,6 +1487,7 @@ def emit_mobile(
   target_actions.update(MOB_SOURCE_RACE_IDENTITY_ACTIONS.get(race_code, frozenset()))
   target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
   target_affects.update(automatic_affects)
+  target_affects.update(required_affect_bits)
   target_affects2 = _mapped_bits(source_affects, MOB_AFFECT2_MAP)
   missing_actions = sorted(
       source_actions

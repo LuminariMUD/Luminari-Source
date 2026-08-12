@@ -18,6 +18,7 @@ from .rol_skeleton import verify_plan_bundle
 from .rol_discovery import extract_spec_bindings
 from .rol_special import (
     ADAPTED_HANDLER_NAMES,
+    COMPOSABLE_MOBILE_HANDLER_AFFECTS,
     COMPOSABLE_MOBILE_HANDLER_FLAGS,
     COMPOSABLE_MOBILE_RUNTIME_HANDLERS,
     COMPOSABLE_ROOM_HANDLER_FLAGS,
@@ -343,11 +344,17 @@ def handler_disposition(handler: str) -> dict[str, str]:
         "strategy": "NATIVE_ADAPTED",
         "target": ADAPTED_HANDLER_NAMES[handler],
     }
-  if handler in COMPOSABLE_MOBILE_HANDLER_FLAGS:
+  if handler in COMPOSABLE_MOBILE_HANDLER_FLAGS or handler in COMPOSABLE_MOBILE_HANDLER_AFFECTS:
+    action = COMPOSABLE_MOBILE_HANDLER_FLAGS.get(handler)
+    affects = COMPOSABLE_MOBILE_HANDLER_AFFECTS.get(handler, ())
+    target_parts = []
+    if action is not None:
+      target_parts.append(f"mobile action flag {action}")
+    target_parts.extend(f"mobile affect flag {affect}" for affect in affects)
     return {
         "status": "resolved",
         "strategy": "NATIVE_ADAPTED_COMPOSABLE",
-        "target": f"mobile action flag {COMPOSABLE_MOBILE_HANDLER_FLAGS[handler]}",
+        "target": " plus ".join(target_parts),
     }
   if handler in COMPOSABLE_MOBILE_RUNTIME_HANDLERS:
     return {

@@ -436,6 +436,26 @@ class RolSpecialReconciliationTests(unittest.TestCase):
         "MOB_ROL_DEMON composition-safe runtime hook", standard_demon["target"]
     )
 
+  def test_planar_static_initializers_have_exact_prototype_or_inert_dispositions(self) -> None:
+    bar_lgura = handler_disposition("demon_bar_lgura")
+    cambion = handler_disposition("demon_cambion")
+    lemure = handler_disposition("devilLemure")
+
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", bar_lgura["strategy"])
+    self.assertEqual(
+        "mobile action flag 112 plus mobile affect flag 20", bar_lgura["target"]
+    )
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", cambion["strategy"])
+    self.assertEqual(
+        "mobile action flag 112 plus mobile affect flag 19", cambion["target"]
+    )
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", lemure["strategy"])
+    self.assertEqual("mobile action flag 13", lemure["target"])
+    for handler in ("demon_aluFiendRegen", "demon_dretch", "demon_rutterkin"):
+      disposition = handler_disposition(handler)
+      self.assertEqual("SOURCE_INERT_EXCLUDED", disposition["strategy"])
+      self.assertTrue(disposition["reason"])
+
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       source_root = Path(temporary)
@@ -642,13 +662,16 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_320, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(401, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(558, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(237, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_328, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(393, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(564, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(231, summary["source_handlers_by_status"]["pending"])
       self.assertEqual(798, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
-          198, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
+          203, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
+      )
+      self.assertEqual(
+          29, summary["direct_bindings_by_strategy"]["SOURCE_INERT_EXCLUDED"]
       )
       self.assertEqual(11, summary["direct_bindings_by_strategy"]["NATIVE_RECONCILED"])
       self.assertEqual(
@@ -664,8 +687,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       )
       self.assertEqual(2, summary["dynamic_handler_definitions_located"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(798, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(50, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(799, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(49, summary["act_spec_by_status"]["pending"])
 
       binding_rows = [
           json.loads(line)
@@ -692,6 +715,21 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           for row in automatic_rows
           if row["source_handler"] == "standardDemon"
       }
+      initializer_vnums = {
+          handler: {
+              row["source_vnum"]
+              for row in binding_rows
+              if row["source_handler"] == handler
+          }
+          for handler in (
+              "demon_aluFiendRegen",
+              "demon_bar_lgura",
+              "demon_cambion",
+              "demon_dretch",
+              "demon_rutterkin",
+              "devilLemure",
+          )
+      }
 
       self.assertEqual(
           set(range(205, 222)) | {234, 93202, 93203, 93204, 93205, 93206, 93209, 93210},
@@ -704,6 +742,12 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertTrue(
           all(automatic_demons[vnum]["race_code"] == "X" for vnum in direct_demon_vnums)
       )
+      self.assertEqual({205}, initializer_vnums["demon_aluFiendRegen"])
+      self.assertEqual({208}, initializer_vnums["demon_bar_lgura"])
+      self.assertEqual({209, 92079}, initializer_vnums["demon_cambion"])
+      self.assertEqual({211}, initializer_vnums["demon_dretch"])
+      self.assertEqual({219}, initializer_vnums["demon_rutterkin"])
+      self.assertEqual({229, 230}, initializer_vnums["devilLemure"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

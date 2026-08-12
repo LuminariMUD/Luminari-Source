@@ -358,6 +358,15 @@ ADAPTED_HANDLER_NAMES.update(
 # These callbacks return before their obsolete or apparent behavior. Binding
 # active target procedures would invent behavior that did not run in RoL.
 INERT_HANDLERS = {
+    "demon_aluFiendRegen": (
+        "source regeneration body is disabled by #if 0; the active callback registers no events "
+        "and returns without changing the mobile"
+    ),
+    "demon_dretch": (
+        "source initialization only clears ACT_WIMPY, which is absent from the authored mobile "
+        "and is not added by the automatic demon race callback"
+    ),
+    "demon_rutterkin": "source initialization registers no events and changes no mobile state",
     "blackPlagueCure": (
         "direct object callback never registers events because it does not parse the source "
         "initialization call; the separate disease callback is not an object binding"
@@ -439,6 +448,9 @@ COMPOSABLE_MOBILE_HANDLER_FLAGS = {
     "conj_familiar_die": 119,
     "conj_mount_die": 120,
     "conj_monster_die": 121,
+    "demon_bar_lgura": 112,
+    "demon_cambion": 112,
+    "devilLemure": 13,
     "spirit_wolf_die": 123,
     "spirit_bear_die": 123,
     "spirit_boar_die": 123,
@@ -460,6 +472,14 @@ COMPOSABLE_MOBILE_HANDLER_FLAGS = {
     "spirit_viper_die": 123,
     "spirit_bat_die": 123,
     "spirit_raven_die": 123,
+}
+
+# Source initialization callbacks can add persistent affects independently of
+# their mobile action roles. Keep these as prototype state so the behaviors do
+# not consume the one persisted special-procedure slot.
+COMPOSABLE_MOBILE_HANDLER_AFFECTS = {
+    "demon_bar_lgura": (20,),
+    "demon_cambion": (19,),
 }
 
 # These callbacks are composed by converted-VNUM runtime profiles. They do not
@@ -590,6 +610,7 @@ class NativeSpecialBinding:
   target_vnum: int
   persisted_name: str | None
   required_flag_bits: tuple[int, ...] = ()
+  required_affect_bits: tuple[int, ...] = ()
   value_reference_slots: tuple[tuple[int, str], ...] = ()
 
 
@@ -1308,9 +1329,10 @@ def compile_special_bindings(
       )
       strategy = "NATIVE_ADAPTED" if handler in ADAPTED_HANDLER_NAMES else "NATIVE_PERSISTED"
       dispositions.append(_disposition(row, strategy, target_vnum))
-    elif handler in COMPOSABLE_MOBILE_HANDLER_FLAGS:
+    elif handler in COMPOSABLE_MOBILE_HANDLER_FLAGS or handler in COMPOSABLE_MOBILE_HANDLER_AFFECTS:
       if record_type != "mobile":
         raise ValueError(f"composable mobile handler {handler!r} owns {record_type!r}")
+      required_action = COMPOSABLE_MOBILE_HANDLER_FLAGS.get(handler)
       native_bindings.append(
           NativeSpecialBinding(
               source_record_type=record_type,
@@ -1318,7 +1340,8 @@ def compile_special_bindings(
               target_kind=target_kind,
               target_vnum=target_vnum,
               persisted_name=None,
-              required_flag_bits=(COMPOSABLE_MOBILE_HANDLER_FLAGS[handler],),
+              required_flag_bits=(() if required_action is None else (required_action,)),
+              required_affect_bits=COMPOSABLE_MOBILE_HANDLER_AFFECTS.get(handler, ()),
           )
       )
       dispositions.append(_disposition(row, "NATIVE_ADAPTED_COMPOSABLE", target_vnum))

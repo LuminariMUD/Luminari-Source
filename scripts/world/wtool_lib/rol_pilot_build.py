@@ -585,10 +585,47 @@ def _native_maps(
     dict[tuple[str, int], NativeSpecialBinding],
     dict[tuple[str, int], list[int]],
 ]:
-  native = {
-      (binding.target_kind, binding.target_vnum): binding
-      for binding in compilation.native_bindings
-  }
+  native: dict[tuple[str, int], NativeSpecialBinding] = {}
+
+  for binding in compilation.native_bindings:
+    key = (binding.target_kind, binding.target_vnum)
+    current = native.get(key)
+    if current is None:
+      native[key] = binding
+      continue
+    if (
+        current.source_record_type != binding.source_record_type
+        or current.source_vnum != binding.source_vnum
+    ):
+      raise RolPilotBuildError(
+          f"native special target {binding.target_kind} {binding.target_vnum} has "
+          "incompatible source owners"
+      )
+    if (
+        current.persisted_name is not None
+        and binding.persisted_name is not None
+        and current.persisted_name != binding.persisted_name
+    ):
+      raise RolPilotBuildError(
+          f"native special target {binding.target_kind} {binding.target_vnum} has incompatible "
+          f"SpecProc names {current.persisted_name!r} and {binding.persisted_name!r}"
+      )
+    native[key] = NativeSpecialBinding(
+        source_record_type=current.source_record_type,
+        source_vnum=current.source_vnum,
+        target_kind=current.target_kind,
+        target_vnum=current.target_vnum,
+        persisted_name=current.persisted_name or binding.persisted_name,
+        required_flag_bits=tuple(
+            sorted(set(current.required_flag_bits) | set(binding.required_flag_bits))
+        ),
+        required_affect_bits=tuple(
+            sorted(set(current.required_affect_bits) | set(binding.required_affect_bits))
+        ),
+        value_reference_slots=tuple(
+            sorted(set(current.value_reference_slots) | set(binding.value_reference_slots))
+        ),
+    )
   return native, compilation.attachments
 
 
@@ -736,6 +773,7 @@ def write_pilot_build_bundle(
           special_resolved=("mobile", record.vnum) in inert_special_sources or binding is not None,
           attachments=owner_attachments,
           required_action_bits=(binding.required_flag_bits if binding is not None else ()),
+          required_affect_bits=(binding.required_affect_bits if binding is not None else ()),
       )
     elif kind == "obj":
       emitted = emit_object(
@@ -858,6 +896,7 @@ def write_pilot_build_bundle(
     )
     if binding is not None:
       required_actions = frozenset(required_actions) | frozenset(binding.required_flag_bits)
+      required_affects = frozenset(required_affects) | frozenset(binding.required_affect_bits)
     mobile_patches_by_file[relative][target_vnum] = (
         binding.persisted_name if binding is not None else None,
         tuple(sorted(attachments.get(("mob", target_vnum), []))),
