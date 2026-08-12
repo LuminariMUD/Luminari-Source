@@ -89,6 +89,8 @@ Phase 6 expanded-weapon-procedure commit: b1b42a5c
 Phase 6 multi-event-weapon commit: 457672d6
 Phase 6 multi-event-weapon archive commit: ec6ef4fb
 Phase 6 monster-combat commit: 5925a88f
+Phase 6 monster-combat archive commit: 33a91bf6
+Phase 6 expanded monster-zone commit: 76aaf29f
 ```
 
 The authoritative ignored runs are:
@@ -248,6 +250,9 @@ Phase 6 multi-event weapon procedures:
 Phase 6 monster-combat procedures:
   lib/rol-conversion/runs/phase6-special-20260812-monster-combat
   rol-phase6-special-66d30be39f08fcda
+Phase 6 expanded monster-zone procedures:
+  lib/rol-conversion/runs/phase6-special-20260812-monster-zones
+  rol-phase6-special-fb733f9680d8b786
 Policy:  rol-conversion-policy-2
 ```
 
@@ -276,11 +281,11 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 304 tests; the production-linked CuTest suite passes 653;
+- The world-tool suite passes 306 tests; the production-linked CuTest suite passes 653;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Forty-eight bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Forty-nine bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
-  shape exists. The measured remaining forecast is 51-82 sessions: Phase 6 is 3-6,
+  shape exists. The measured remaining forecast is 50-81 sessions: Phase 6 is 2-5,
   Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
@@ -510,25 +515,24 @@ Policy:  rol-conversion-policy-2
   object pulses, elemental summons, corpse preservation, venom and paralysis, holy
   wielder rejection and Paladin magic, dragon-scaled modifiers, and critical reverse
   swings. The converter supplies `ITEM_AUTOPROC` for the shared periodic contract.
-- Eighteen mobile-combat handler families covering 24 bindings are complete through the
-  typed, identity-profiled `RoL Monster Combat`. The shared runtime preserves plant and
-  spider poison, lycan attacks and no-corpse deaths, banshee and tentacle shockwaves,
-  four-arm extra attacks, the Rot Bringer helper, Ashentoris and winged-deva area effects,
-  three prismatic profiles, four Elemental Tower bosses, and pit-fiend bites. Elemental
-  Tower alerts compose through the same persisted procedure, preserving the single-slot
-  mobile binding contract.
+- Thirty-five mobile-combat handler families covering 49 bindings are complete through the
+  typed, identity-profiled `RoL Monster Combat`. Forty-five identity profiles preserve the
+  earlier poison, lycan, shockwave, celestial, prismatic, and Elemental Tower behavior plus
+  kobold, piercer, purple-worm, phalanx, skeleton, transformation, tree-spirit, Dranum,
+  swallow, Canthus, and Jotun mechanics. Elemental Tower alerts and pit-fiend tails compose
+  through the same persisted procedure, preserving the single-slot mobile binding contract.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,010 of 1,147 active direct bindings and 454 of
-  562 source handlers, leaving 137 bindings and 108 handlers. The independent
-  `ACT_SPEC` cross-check resolves 784 of 848 records and leaves 64 pending.
+- The current Phase 6 checkpoint resolves 1,035 of 1,147 active direct bindings and 471 of
+  562 source handlers, leaving 112 bindings and 91 handlers. The independent `ACT_SPEC`
+  cross-check resolves 801 of 848 records and leaves 47 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 137 direct bindings across 108 handlers. Classify regular
+1. Reconcile the remaining 112 direct bindings across 91 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7

@@ -816,10 +816,13 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 
 ### Phase 6 converted monster-combat procedures
 
-- Confirm these 24 mobiles use `RoL Monster Combat` and retain `MOB_SPEC`: 150772,
-  2000325-2000328, 2005023, 2014601, 2020378, 2034833, 2045116, 2045146, 2045182,
-  2051246, 2053264-2053266, 2062401, 2062402, 2062405, 2062406, 2081706,
-  2081746, 2081747, and 2083224. Identify each and confirm its profile description.
+- Confirm these 45 mobiles use `RoL Monster Combat` and retain `MOB_SPEC`: 150772,
+  196007, 196027, 196040, 196076, 2000325-2000328, 2001407, 2001437, 2004070,
+  2004480, 2004530, 2005023, 2012005, 2012006, 2012024-2012026, 2014026,
+  2014601, 2015113, 2020378, 2034833, 2041900, 2043358, 2045116, 2045146,
+  2045182, 2051246, 2051334, 2053264-2053266, 2062401, 2062402, 2062405,
+  2062406, 2081706, 2081746, 2081747, 2083224, 2092608, and 2097061. Identify
+  each and confirm its profile description.
 - Exercise both plant profiles, the four lycans, spider 2005023, banshee 2034833, and
   the four pit fiends. Confirm their source-profiled poison, tearing, venom, sonic, and
   bite cadences. Werefox 2000326 and were-tiger-profile mobiles 2000325, 2000327, and
@@ -840,6 +843,22 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   procedure. Confirm the fire room storm, earth rockfall and knockdown, air single-target
   whirlwind and forced movement, and water tidal damage and silence. Active casting
   suppresses the elemental attack but does not create a second persisted SpecProc.
+- Exercise kobold priest 2001437 in room 2001482 and elsewhere. Its north, east, and south
+  force walls and west pit route must match the source room behavior; outside that room its
+  four-in-five directional wall and five-pulse imp summoning cadence must remain active.
+  Piercers 2004070, 2004530, and 2092608 must initialize at one hit point and +100 hit roll,
+  make one hidden ambush with the source awareness save, and then remove `MOB_SPEC`.
+- Fight purple worm 2004480, phalanx 2012005, skeletons 2012006 and 2012024, and the
+  Xexos/Agthrodos pair 2012025-2012026. Confirm swallow healing and possession drops,
+  phalanx ceiling blocking/retreat/crystal drop, one-in-20 skeleton trips and three-generation
+  splitting, and equipment-preserving two-way transformation.
+- Exercise tree spirit 2014026, Dranum 2015113, swallow profiles 196007, 196076, 2041900,
+  and 2097061, movanic deva 2043358, and Canthus 2051334. Confirm root restraint and helper
+  summons, life drains, lethal and nonlethal possession transfer, holy healing/wind, pack
+  summons, and four-round elemental breath cadence.
+- Fight Thrym 196027 and Utgard-Loki 196040. Confirm the one-in-two ice restraint and
+  one-in-three room fear profiles. Fight each pit fiend and confirm its bite and independently
+  composed tail save/death/restraint behavior share the single persisted procedure.
 
 ### Phase 6 converted weapon procedures
 
@@ -996,9 +1015,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 1,010 are resolved and 137 remain. Of 562 distinct
-  source handlers, 454 are resolved and 108 remain. Of 848 `ACT_SPEC` records, 784 are
-  resolved and 64 remain. The automatic race procedures
+  of the 1,147 active direct bindings, 1,035 are resolved and 112 remain. Of 562 distinct
+  source handlers, 471 are resolved and 91 remain. Of 848 `ACT_SPEC` records, 801 are
+  resolved and 47 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

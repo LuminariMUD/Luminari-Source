@@ -35,7 +35,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'Independent compatibility hooks') > 0
   AND INSTR(entry, 'RoL death flags') > 0
   AND INSTR(entry, 'Bloodstone black-vapor') > 0
-  AND INSTR(entry, 'Forty-one converted mobiles use converter-owned death profiles') > 0
+  AND INSTR(entry, 'Forty-five converted mobiles use converter-owned death profiles') > 0
   AND INSTR(entry, 'breath_attack and breath_weapon') > 0
   AND INSTR(entry, 'RoL Bloodstone Critter is mobile-owned') > 0
   AND INSTR(entry, 'two-in-81 activity-pulse cadence') > 0
@@ -69,8 +69,9 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'RoL Major Beholder is mobile-owned') > 0
   AND INSTR(entry, 'independent three-combat-turn cooldown') > 0
   AND INSTR(entry, 'RoL Monster Combat is mobile-owned') > 0
-  AND INSTR(entry, 'Twenty-four converted') > 0
+  AND INSTR(entry, 'Forty-five converted') > 0
   AND INSTR(entry, 'four Elemental Tower bosses compose') > 0
+  AND INSTR(entry, 'pit-fiend tails compose') > 0
   AND INSTR(entry, 'one-in-20 combat-turn burst') > 0
   AND INSTR(entry, 'RoL Lich Energy Drain is mobile-owned') > 0
   AND INSTR(entry, 'one-in-five chance to lose all current hit points') > 0

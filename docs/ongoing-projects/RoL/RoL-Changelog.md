@@ -6,6 +6,70 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 expanded monster and zone procedures
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed 25 active mobile bindings across 17 additional source handler families through
+  `RoL Monster Combat`. The shared runtime now has 45 identity profiles covering 49 direct
+  bindings across 35 source families while retaining one persistent mobile procedure.
+- Added activity and command profiles for chickens, kobold priests, piercers, phalanxes,
+  skeletons, Xexos/Agthrodos transformations, and tree spirits. Preserved force walls,
+  sacrificial-pit routing, helper summons, hidden one-shot ambushes, ceiling guards,
+  equipment-preserving transformations, passage trips, and root restraint.
+- Added combat profiles for purple worms, Dranum, lethal and nonlethal swallow attacks,
+  movanic devas, Canthus, Thrym, and Utgard-Loki. The four pit-fiend tail bindings compose
+  with their existing bite profile; the source captive/charm state maps to bounded target
+  restraint without corrupting follower ownership.
+- Added four converter-owned death profiles for purple-worm possession drops, the phalanx
+  crystal spike, and three-generation splitting skeletons. The death-profile inventory is
+  now 45 mobiles.
+- Made source-definition evidence preprocessor-aware. Disabled `#if 0` decoys can no longer
+  displace the active function body or its source hash in the Phase 6 handler inventory.
+- Reconciliation now resolves 1,035 of 1,147 active direct bindings and 471 of 562 source
+  handlers; 112 bindings and 91 handlers remain. The independent `ACT_SPEC` checkpoint is
+  801 resolved / 47 pending.
+- Archived the forty-ninth Phase 6 delivery session. The remaining Phase 6 envelope is
+  2-5 sessions, leaving the Phases 6-8 forecast at 50-81 sessions, or 100-324 focused
+  engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 76aaf29f
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-monster-zones
+Reconciliation run: rol-phase6-special-fb733f9680d8b786
+Active direct bindings: 1,147
+Direct bindings resolved: 1,035
+Direct bindings pending: 112
+Source handlers resolved: 471
+Source handlers pending: 91
+Additional handler families resolved: 17
+Additional direct bindings resolved: 25
+Native adapted bindings: 581
+Native adapted composable bindings: 159
+ACT_SPEC records resolved: 801
+ACT_SPEC records pending: 47
+Converted monster-combat profiles: 45
+Converted death profiles: 45
+Special registry definitions: 103 total / 95 legacy / 8 typed
+Compatibility names: 104
+Focused world-tool suite: 77 passed
+Complete world-tool suite: 306 passed
+Production-linked CuTest suite: 653 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 112 direct bindings across 91 source handlers.
+The next wide batch should continue grouping related monster and zone mechanics behind
+existing typed gateways, with one full verification gate per pushed milestone.
+
 ## 2026-08-12 - Phase 6 converted monster-combat procedures
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

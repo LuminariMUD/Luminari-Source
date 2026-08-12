@@ -519,7 +519,7 @@ below are evidence-based planning envelopes, not delivery promises. The measured
 Phase 4 pilot replaced the provisional ranges. Completed delivery history and the
 measured reforecast basis are archived in the changelog. Forward Phase 6 batches
 conservatively target 20-45 related families where a shared shape exists. The remaining
-Phases 6-8 forecast is 51-82 sessions, or 102-328 focused engineering hours at the
+Phases 6-8 forecast is 50-81 sessions, or 100-324 focused engineering hours at the
 defined session size.
 
 Phases 0-5 are complete and have been removed from this active plan. Their delivered
@@ -527,10 +527,10 @@ scope, run identities, counts, acceptance evidence, commits, and reforecast basi
 recorded in [RoL-Changelog.md](RoL-Changelog.md). Active implementation continues with
 the remaining Phase 6 families.
 
-### Phase 6: Special-procedure reconciliation (3-6 remaining sessions)
+### Phase 6: Special-procedure reconciliation (2-5 remaining sessions)
 
-The current reconciliation leaves 137 active direct bindings across 108 source handlers
-and 64 pending `ACT_SPEC` records.
+The current reconciliation leaves 112 active direct bindings across 91 source handlers
+and 47 pending `ACT_SPEC` records.
 
 Process dependency-complete batches of roughly 20-45 related source handler families by
 shared behavior and consuming package when their mechanics permit bulk treatment. Use

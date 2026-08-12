@@ -56,13 +56,13 @@ breath_attack and breath_weapon entries are named mobile
 combat SpecProcs; attack variants affect the current opponent, while weapon
 variants affect eligible targets across the room every fourth combat turn.
 
-Forty-one converted mobiles use converter-owned death profiles. In addition to
+Forty-five converted mobiles use converter-owned death profiles. In addition to
 the tentacle, mephit, elemental, treant, phantom-steed, and dark-shade no-corpse
 profiles, they preserve source death bursts, darkness, poison gas, returned
-possessions, stone-pile inventory, replacement forms, dropped objects, and
-ordinary-corpse messages. Three replacement families also preserve source
-cleric-retargeting activity. The profiles run beside the one named SpecProc slot
-without requiring a builder-assigned flag.
+possessions, stone-pile inventory, replacement forms, dropped objects, loose
+possessions, splitting skeletons, and ordinary-corpse messages. Three replacement
+families also preserve source cleric-retargeting activity. The profiles run beside
+the one named SpecProc slot without requiring a builder-assigned flag.
 
 RoL Bloodstone Critter is mobile-owned and requires MOB_SPEC. While awake and
 idle, the four converted critters use the current snarl and growl socials with
@@ -165,15 +165,16 @@ monster, harm, and finger of death. Pet targets redirect to an eligible master
 in the room. The source-only all-eyes weapon-critical burst has no target
 combat-turn event equivalent. This procedure is converter-owned.
 
-RoL Monster Combat is mobile-owned and requires MOB_SPEC. Twenty-four converted
-mobiles across eighteen source families use identity-keyed plant poison, lycan,
-spider venom, banshee, multi-arm, tentacle, rot-bringer, celestial, prismatic,
-elemental-boss, and pit-fiend profiles. The four Elemental Tower bosses compose
-their existing alert profile through this single persisted procedure. Converted
-lycans and the small prismatic elemental also retain their source no-corpse death
-messages. The critical prismatic elemental maps its unavailable NPC-critical
-callback to a documented one-in-20 combat-turn burst. Do not assign this
-converter-owned procedure to unrelated mobiles.
+RoL Monster Combat is mobile-owned and requires MOB_SPEC. Forty-five converted
+mobiles across thirty-five source families use identity-keyed combat, activity,
+and command profiles. They cover poison, lycans, shockwaves, celestial and
+prismatic effects, four Elemental Tower bosses, kobolds, piercers, purple worms,
+phalanxes, splitting skeletons, transformations, tree spirits, Dranum, swallow
+attacks, Canthus, Jotuns, and pit fiends. The four Elemental Tower bosses compose
+their alerts, and pit-fiend tails compose through this single persisted procedure.
+The critical prismatic identity maps its unavailable NPC-critical callback to a
+documented one-in-20 combat-turn burst. This procedure is converter-owned and
+must not be assigned to unrelated mobiles.
 
 RoL Lich Energy Drain is mobile-owned and requires MOB_SPEC. On activity
 pulses and combat turns, each eligible current opponent or party member has a

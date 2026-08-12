@@ -1129,6 +1129,10 @@ int rol_monster_combat_typed(struct spec_event_context *context)
 
   switch (profile->effect)
   {
+  case ROL_MONSTER_CHICKEN:
+    if (!AWAKE(ch) && rand_number(1, 4) == 1)
+      act("$n screams and tries to run away!", TRUE, ch, NULL, NULL, TO_ROOM);
+    return FALSE;
   case ROL_MONSTER_DRANUM:
     rol_monster_dranum(ch, victim);
     return FALSE;
