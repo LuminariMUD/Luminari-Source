@@ -67,9 +67,9 @@ const char *trade_letters[] = {"Good", /* First, the alignment based ones */
                                "Duergar",
                                "\n"};
 
-const char *shop_bits[] = {
-    "WILL_FIGHT",   "USES_BANK", "UNLIMITED_CASH", "BLACK_MARKET_SHOP", "NOBLE_ONLY_SHOP",
-    "ROAMING_SHOP", "\n"};
+const char *shop_bits[] = {"WILL_FIGHT",        "USES_BANK",       "UNLIMITED_CASH",
+                           "BLACK_MARKET_SHOP", "NOBLE_ONLY_SHOP", "ROAMING_SHOP",
+                           "ROL_MAGIC_POLICY",  "ROL_ALLOW_MAGIC", "\n"};
 
 /* local (file scope) function prototypes  */
 static void push(struct stack_data *stack, int pushval); /**< @todo Move to utils.c */
@@ -197,6 +197,61 @@ bool shop_room_access_allowed(bitvector_t shop_flags, bool room_listed)
   return room_listed || IS_SET(shop_flags, ROAMING_SHOP);
 }
 
+float shop_rol_cheat_price_multiplier(bool cheated, bool buying)
+{
+  if (!cheated)
+    return 1.0f;
+  return buying ? 2.0f : 0.5f;
+}
+
+bool shop_rol_magic_allowed(bitvector_t shop_flags)
+{
+  return !IS_SET(shop_flags, ROL_SHOP_MAGIC_POLICY) || IS_SET(shop_flags, ROL_SHOP_ALLOW_MAGIC);
+}
+
+static bool shop_customer_restriction_matches(bitvector_t restrictions, struct char_data *ch)
+{
+  if (!ch)
+    return FALSE;
+  if ((IS_GOOD(ch) && IS_SET(restrictions, TRADE_NOGOOD)) ||
+      (IS_EVIL(ch) && IS_SET(restrictions, TRADE_NOEVIL)) ||
+      (IS_NEUTRAL(ch) && IS_SET(restrictions, TRADE_NONEUTRAL)))
+    return TRUE;
+  if (IS_NPC(ch) && IS_SET(restrictions, TRADE_ROL_NPC))
+    return TRUE;
+  if (IS_NPC(ch))
+    return FALSE;
+  if ((IS_WIZARD(ch) && IS_SET(restrictions, TRADE_NOWIZARD)) ||
+      (IS_CLERIC(ch) && IS_SET(restrictions, TRADE_NOCLERIC)) ||
+      (IS_ROGUE(ch) && IS_SET(restrictions, TRADE_NOROGUE)) ||
+      (IS_WARRIOR(ch) && IS_SET(restrictions, TRADE_NOWARRIOR)) ||
+      (IS_MONK(ch) && IS_SET(restrictions, TRADE_NOMONK)) ||
+      (IS_BERSERKER(ch) && IS_SET(restrictions, TRADE_NOBERSERKER)) ||
+      (IS_DRUID(ch) && IS_SET(restrictions, TRADE_NODRUID)) ||
+      (IS_SORCERER(ch) && IS_SET(restrictions, TRADE_NOSORCERER)) ||
+      (IS_PALADIN(ch) && IS_SET(restrictions, TRADE_NOPALADIN)) ||
+      (IS_RANGER(ch) && IS_SET(restrictions, TRADE_NORANGER)) ||
+      (IS_BARD(ch) && IS_SET(restrictions, TRADE_NOBARD)) ||
+      (IS_WEAPONMASTER(ch) && IS_SET(restrictions, TRADE_NOWEAPONMASTER)) ||
+      (IS_NECROMANCER(ch) && IS_SET(restrictions, TRADE_ROL_NECROMANCER)) ||
+      (IS_BLACKGUARD(ch) && IS_SET(restrictions, TRADE_ROL_BLACKGUARD)) ||
+      (CLASS_LEVEL(ch, CLASS_PSIONICIST) && IS_SET(restrictions, TRADE_ROL_PSIONICIST)))
+    return TRUE;
+  if ((IS_HUMAN(ch) && IS_SET(restrictions, TRADE_NOHUMAN)) ||
+      (IS_ELF(ch) && IS_SET(restrictions, TRADE_NOELF)) ||
+      (IS_DWARF(ch) && IS_SET(restrictions, TRADE_NODWARF)) ||
+      (IS_HALF_TROLL(ch) && IS_SET(restrictions, TRADE_NOHALFTROLL)) ||
+      (IS_HALFLING(ch) && IS_SET(restrictions, TRADE_NOHALFLING)) ||
+      (IS_H_ELF(ch) && IS_SET(restrictions, TRADE_NOH_ELF)) ||
+      (IS_H_ORC(ch) && IS_SET(restrictions, TRADE_NOH_ORC)) ||
+      (IS_GNOME(ch) && IS_SET(restrictions, TRADE_NOGNOME)) ||
+      (IS_ARCANA_GOLEM(ch) && IS_SET(restrictions, TRADE_NOARCANAGOLEM)) ||
+      (IS_DROW(ch) && IS_SET(restrictions, TRADE_NODROW)) ||
+      (IS_DUERGAR(ch) && IS_SET(restrictions, TRADE_NODUERGAR)))
+    return TRUE;
+  return FALSE;
+}
+
 static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_nr)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
@@ -236,7 +291,15 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
     return (FALSE);
   }
   if (IS_NPC(ch))
+  {
+    if (IS_SET(SHOP_TRADE_WITH(shop_nr), TRADE_ROL_NPC))
+    {
+      snprintf(buf, sizeof(buf), "%s %s", GET_NAME(ch), MSG_NO_SELL_CLASS);
+      do_tell(keeper, buf, cmd_tell, 0);
+      return (FALSE);
+    }
     return (TRUE);
+  }
 
   if ((IS_WIZARD(ch) && NOTRADE_WIZARD(shop_nr)) || (IS_CLERIC(ch) && NOTRADE_CLERIC(shop_nr)) ||
       (IS_ROGUE(ch) && NOTRADE_ROGUE(shop_nr)) || (IS_MONK(ch) && NOTRADE_MONK(shop_nr)) ||
@@ -244,7 +307,10 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
       (IS_SORCERER(ch) && NOTRADE_SORCERER(shop_nr)) ||
       (IS_BERSERKER(ch) && NOTRADE_BERSERKER(shop_nr)) ||
       (IS_WEAPONMASTER(ch) && NOTRADE_WEAPONMASTER(shop_nr)) ||
-      (IS_WARRIOR(ch) && NOTRADE_WARRIOR(shop_nr)))
+      (IS_WARRIOR(ch) && NOTRADE_WARRIOR(shop_nr)) || (IS_BARD(ch) && NOTRADE_BARD(shop_nr)) ||
+      (IS_NECROMANCER(ch) && IS_SET(SHOP_TRADE_WITH(shop_nr), TRADE_ROL_NECROMANCER)) ||
+      (IS_BLACKGUARD(ch) && IS_SET(SHOP_TRADE_WITH(shop_nr), TRADE_ROL_BLACKGUARD)) ||
+      (CLASS_LEVEL(ch, CLASS_PSIONICIST) && IS_SET(SHOP_TRADE_WITH(shop_nr), TRADE_ROL_PSIONICIST)))
   {
     snprintf(buf, sizeof(buf), "%s %s", GET_NAME(ch), MSG_NO_SELL_CLASS);
     do_tell(keeper, buf, cmd_tell, 0);
@@ -612,6 +678,8 @@ static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *seller
   price = 1.0 + modifiers / 70.0;
   price *= (float)GET_OBJ_COST(obj);
   price *= (float)SHOP_BUYPROFIT(shop_nr);
+  price *= shop_rol_cheat_price_multiplier(
+      shop_customer_restriction_matches(SHOP_ROL_CHEAT_WITH(shop_nr), buyer), TRUE);
   price *= shop_background_hometown_price_multiplier(HAS_FEAT(buyer, FEAT_BG_FOLK_HERO) ||
                                                          HAS_FEAT(buyer, FEAT_BG_NOBLE),
                                                      is_in_hometown(buyer), TRUE);
@@ -637,6 +705,8 @@ static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keepe
   price = 1.0 - modifiers / 70.0;
   price *= (float)GET_OBJ_COST(obj);
   price *= (float)SHOP_SELLPROFIT(shop_nr);
+  price *= shop_rol_cheat_price_multiplier(
+      shop_customer_restriction_matches(SHOP_ROL_CHEAT_WITH(shop_nr), seller), FALSE);
   price *= shop_background_hometown_price_multiplier(HAS_FEAT(seller, FEAT_BG_FOLK_HERO) ||
                                                          HAS_FEAT(seller, FEAT_BG_NOBLE),
                                                      is_in_hometown(seller), FALSE);
@@ -1348,6 +1418,16 @@ SPECIAL(shop_keeper)
   if (!AWAKE(keeper))
     return (FALSE);
 
+  if (!shop_rol_magic_allowed(SHOP_BITVECTOR(shop_nr)) &&
+      (CMD_IS("cast") || CMD_IS("recite") || CMD_IS("use")))
+  {
+    char magic_message[MAX_INPUT_LENGTH] = {'\0'};
+
+    snprintf(magic_message, sizeof(magic_message), "%s No magic in here!", GET_NAME(ch));
+    do_tell(keeper, magic_message, cmd_tell, 0);
+    return (TRUE);
+  }
+
   if (CMD_IS("steal"))
   {
     char argm[MAX_INPUT_LENGTH] = {'\0'};
@@ -1594,6 +1674,8 @@ static char *read_shop_message(int mnum, room_vnum shr, FILE *shop_f, const char
 void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
 {
   char *buf, buf2[MEDIUM_STRING] = {'\0'};
+  char extra;
+  unsigned long rol_cheat_with;
   int temp, count, new_format = FALSE;
   struct shop_buy_data list[MAX_SHOP_OBJ + 1];
   int done = FALSE;
@@ -1667,6 +1749,16 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
         done = TRUE;
       else if (strstr(buf, VERSION3_TAG)) /* New format marker */
         new_format = TRUE;
+      else if (!strncmp(buf, "R ", 2))
+      {
+        if (top_shop < 0 || sscanf(buf, "R %lu %c", &rol_cheat_with, &extra) != 1)
+        {
+          log("SYSERR: Invalid RoL shop extension in %s: %s", filename, buf);
+          free(buf);
+          exit(1);
+        }
+        SHOP_ROL_CHEAT_WITH(top_shop) = rol_cheat_with;
+      }
       free(buf); /* Plug memory leak! */
     }
   }

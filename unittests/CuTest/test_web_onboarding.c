@@ -443,6 +443,21 @@ void TestRoamingShopRoomAccessIsExplicit(CuTest *tc)
   CuAssertTrue(tc, shop_room_access_allowed(ROAMING_SHOP, FALSE));
 }
 
+void TestRoLShopCheatPricingIsBounded(CuTest *tc)
+{
+  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(FALSE, TRUE) == 1.0f);
+  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(FALSE, FALSE) == 1.0f);
+  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(TRUE, TRUE) == 2.0f);
+  CuAssertTrue(tc, shop_rol_cheat_price_multiplier(TRUE, FALSE) == 0.5f);
+}
+
+void TestRoLShopMagicPolicyLeavesNativeShopsUnchanged(CuTest *tc)
+{
+  CuAssertTrue(tc, shop_rol_magic_allowed(0));
+  CuAssertTrue(tc, !shop_rol_magic_allowed(ROL_SHOP_MAGIC_POLICY));
+  CuAssertTrue(tc, shop_rol_magic_allowed(ROL_SHOP_MAGIC_POLICY | ROL_SHOP_ALLOW_MAGIC));
+}
+
 void TestWebOnboardingCapabilityNegotiation(CuTest *tc)
 {
   struct descriptor_data d;

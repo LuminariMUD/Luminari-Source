@@ -165,6 +165,7 @@
       }
     ],
     "complete": true,
+    "customer_restrictions": 0,
     "keeper_vnum": 100,
     "messages": [
       "%s no item.",
@@ -224,6 +225,8 @@
     "room_vnums": [
       100
     ],
+    "rol_cheat_restrictions": 0,
+    "shop_flags": 0,
     "source_package": "1",
     "span": {
       "column": 1,
@@ -231,6 +234,7 @@
       "line": 2,
       "path": "shp/1.shp"
     },
+    "temper": 0,
     "vnum": 100
   },
   "trigger": {

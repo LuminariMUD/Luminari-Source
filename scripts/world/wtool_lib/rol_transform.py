@@ -789,6 +789,94 @@ def _shop_message(value: str, monetary: bool = False) -> tuple[str, list[str]]:
   return text, diagnostics
 
 
+SHOP_CUSTOMER_TOKEN_MAP = {
+    "GOODS": 1 << 0,
+    "EVILS": 1 << 1,
+    "CA": 1 << 6,
+    "CB": 1 << 12,
+    "CC": 1 << 8,
+    "CD": 1 << 11,
+    "CE": 1 << 28,
+    "CF": 1 << 4,
+    "CG": 1 << 7,
+    "CH": 1 << 9,
+    "CI": 1 << 4,
+    "CJ": 1 << 10,
+    "CK": 1 << 27,
+    "CL": 1 << 3,
+    "CM": 1 << 5,
+    "CN": 1 << 5,
+    "CO": 1 << 6,
+    "CP": 1 << 13,
+    "CQ": 1 << 29,
+    "PH": 1 << 15,
+    "PB": 1 << 15,
+    "PL": 1 << 24,
+    "PE": 1 << 16,
+    "PM": 1 << 17,
+    "PD": 1 << 25,
+    "PF": 1 << 19,
+    "PG": 1 << 22,
+    "PO": 1 << 18,
+    "PT": 1 << 18,
+    "P2": 1 << 20,
+    "PR": 1 << 21,
+    "NPC": 1 << 26,
+}
+
+SHOP_CUSTOMER_BOUNDED_TOKENS = {
+    "PB": "human",
+    "PE": "elf",
+    "PM": "dwarf",
+    "PO": "half-troll",
+    "PT": "half-troll",
+    "CI": "cleric",
+    "CN": "rogue",
+    "CO": "warrior",
+}
+
+# Exact active tokens accepted by the source shop_bigot_table scan. Its ALL
+# sentinel has value -1 and terminates the scan, so ALL is not a runtime token.
+SHOP_SOURCE_CUSTOMER_TOKENS = {
+    "PH", "PB", "PL", "PE", "PM", "PD", "PF", "PG", "PO", "PT", "P2", "PI", "PY",
+    "CA", "CB", "CC", "CD", "CE", "CF", "CG", "CH", "CI", "CJ", "CK", "CL", "CM", "CN",
+    "CO", "CP", "CQ", "CR", "CS", "CT", "CU", "CZ", "CV", "GOODS", "EVILS", "NPC", "OWN",
+    "PR", "ALIEN",
+}
+
+
+def _shop_customer_restrictions(
+    record: RolRecord,
+    directive_token: str,
+    diagnostics: list[str],
+    default_npc: bool = False,
+) -> int:
+  restrictions = SHOP_CUSTOMER_TOKEN_MAP["NPC"] if default_npc else 0
+  for directive in _directive_rows(record, directive_token):
+    for token in str(directive.get("text", "")).upper().split():
+      mapped = SHOP_CUSTOMER_TOKEN_MAP.get(token)
+      if mapped is None:
+        if token in SHOP_SOURCE_CUSTOMER_TOKENS:
+          diagnostics.append(
+              f"omitted source-only shop {directive_token} token {token!r} at source line "
+              f"{directive['line']}"
+          )
+        else:
+          diagnostics.append(
+              f"omitted source-inert invalid shop {directive_token} token {token!r} at source "
+              f"line {directive['line']}"
+          )
+        continue
+      restrictions |= mapped
+      if token in SHOP_CUSTOMER_BOUNDED_TOKENS:
+        diagnostics.append(
+            f"mapped source shop {directive_token} token {token} to target "
+            f"{SHOP_CUSTOMER_BOUNDED_TOKENS[token]} customer identity at source line "
+            f"{directive['line']}"
+        )
+  return restrictions
+
+
 def emit_shop(
     record: RolRecord,
     destination_vnum: int,
@@ -827,7 +915,7 @@ def emit_shop(
   greed = int(greed_rows[-1].get("arguments", [100])[0]) if greed_rows else 100
   source_profit = int(profit_rows[-1].get("arguments", [100])[0]) if profit_rows else 100
   profit_buy = max(0.01, greed / 100.0)
-  profit_sell = 100.0 / max(1, 100 + source_profit)
+  profit_sell = greed / max(1, 100 + source_profit)
 
   source_messages = {
       token: str(rows[-1].get("text", ""))
@@ -852,11 +940,18 @@ def emit_shop(
     diagnostics.extend(message_diagnostics)
     messages.append(message)
 
-  shop_flags = 0
+  shop_flags = 1 << 6
   if _directive_rows(record, "KILLABLE"):
     shop_flags |= 1
   if _directive_rows(record, "ROAMING"):
     shop_flags |= 1 << 5
+  if _directive_rows(record, "CASTING"):
+    shop_flags |= 1 << 7
+
+  customer_restrictions = _shop_customer_restrictions(
+      record, "HATES", diagnostics, default_npc=True
+  )
+  cheat_restrictions = _shop_customer_restrictions(record, "CHEATS", diagnostics)
 
   keeper = resolve("mob", record.vnum)
   rooms: list[int] = []
@@ -884,16 +979,19 @@ def emit_shop(
     intervals = [intervals[0], (intervals[1][0], intervals[-1][1])]
   intervals.extend([(0, 0)] * (2 - len(intervals)))
 
-  unsupported = sorted(
-      {
-          directive["token"]
-          for directive in record.directives
-          if directive["token"] in {"CHEATS", "HATES", "DEADBEAT", "OFFENSE", "MOPEN", "MCLOSE", "MBIGOT"}
-      }
-  )
-  if unsupported:
+  if _directive_rows(record, "DEADBEAT"):
+    diagnostics.append("omitted source-inert shop DEADBEAT value")
+  if _directive_rows(record, "OFFENSE"):
     diagnostics.append(
-        "source-only shop behavior retained as conversion evidence: " + ", ".join(unsupported)
+        "mapped source shop OFFENSE response to the target shopkeeper attack policy"
+    )
+  source_only_messages = sorted(
+      token for token in ("MOPEN", "MCLOSE", "MBIGOT") if _directive_rows(record, token)
+  )
+  if source_only_messages:
+    diagnostics.append(
+        "source-only shop behavior messages retained as conversion evidence: "
+        + ", ".join(source_only_messages)
     )
 
   lines = [f"#{destination_vnum}~\n"]
@@ -902,11 +1000,15 @@ def emit_shop(
   lines.extend(f"{value}\n" for value in buy_types)
   lines.append("-1\n")
   lines.extend(f"{message}~\n" for message in messages)
-  lines.extend(["0\n", f"{shop_flags}\n", f"{keeper}\n", "0\n"])
+  lines.extend(
+      ["0\n", f"{shop_flags}\n", f"{keeper}\n", f"{customer_restrictions}\n"]
+  )
   lines.extend(f"{value}\n" for value in rooms)
   lines.append("-1\n")
   for first, last in intervals:
     lines.extend([f"{first}\n", f"{last}\n"])
+  if cheat_restrictions:
+    lines.append(f"R {cheat_restrictions}~\n")
   return TransformResult("".join(lines), diagnostics)
 
 

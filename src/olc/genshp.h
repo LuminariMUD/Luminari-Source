@@ -35,6 +35,7 @@ shop_rnum real_shop(shop_vnum vnum);
 #define S_BROKE_TEMPER(i) ((i)->temper1)
 #define S_BITVECTOR(i) ((i)->bitvector)
 #define S_NOTRADE(i) ((i)->with_who)
+#define S_ROL_CHEAT_WITH(i) ((i)->rol_cheat_with)
 #define S_SORT(i) ((i)->lastsort)
 #define S_BUYPROFIT(i) ((i)->profit_buy)
 #define S_SELLPROFIT(i) ((i)->profit_sell)

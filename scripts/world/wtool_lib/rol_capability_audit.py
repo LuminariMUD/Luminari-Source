@@ -266,8 +266,12 @@ def classify_transform_diagnostic(message: str) -> str:
   if message.startswith(
       (
           "mapped source",
+          "mapped legacy",
           "converted source",
           "folded ",
+          "adapted legacy",
+          "approximated source",
+          "source reset mode",
           "source BREAK_CHARM",
           "source outcast aggression",
       )
@@ -277,7 +281,12 @@ def classify_transform_diagnostic(message: str) -> str:
     return "bounded-normalization"
   if "non-ASCII" in message or "embedded tilde" in message:
     return "text-normalization"
-  if "incomplete" in message or "malformed" in message or "without a staged" in message:
+  if (
+      "incomplete" in message
+      or "malformed" in message
+      or "without a staged" in message
+      or "cannot be staged" in message
+  ):
     return "source-defect"
   if message.startswith(
       (
@@ -286,6 +295,7 @@ def classify_transform_diagnostic(message: str) -> str:
           "source-only shop behavior",
           "source zone flags without target zone equivalents",
           "excluded legacy door-trap",
+          "disabled source spell",
       )
   ):
     return "source-only-symbol"

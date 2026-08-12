@@ -349,6 +349,10 @@ class ShopRecord:
   open_hours: list[int] = field(default_factory=list)
   profit_buy: float | None = None
   profit_sell: float | None = None
+  temper: int | None = None
+  shop_flags: int | None = None
+  customer_restrictions: int | None = None
+  rol_cheat_restrictions: int = 0
   messages: list[str] = field(default_factory=list)
   references: list[VnumReference] = field(default_factory=list)
   complete: bool = True

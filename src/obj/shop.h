@@ -22,6 +22,8 @@ void destroy_shops(void);
 bool shop_background_access_allowed(bitvector_t shop_flags, bool has_criminal, bool has_noble);
 float shop_background_hometown_price_multiplier(bool eligible, bool in_hometown, bool buying);
 bool shop_room_access_allowed(bitvector_t shop_flags, bool room_listed);
+float shop_rol_cheat_price_multiplier(bool cheated, bool buying);
+bool shop_rol_magic_allowed(bitvector_t shop_flags);
 
 struct shop_buy_data
 {
@@ -53,6 +55,7 @@ struct shop_data
   room_vnum *in_room;         /* Where is the shop?			*/
   int open1, open2;           /* When does the shop open?		*/
   int close1, close2;         /* When does the shop close?		*/
+  bitvector_t rol_cheat_with; /* RoL customer groups charged adverse prices */
   int bankAccount;            /* Store all gold over 15000 (disabled)	*/
   int lastsort;               /* How many items are sorted in inven?	*/
   SPECIAL_DECL(*func);        /* Runtime-only saved shopkeeper callback */
@@ -139,6 +142,7 @@ struct stack_data
 #define SHOP_BROKE_TEMPER(i) (shop_index[(i)].temper1)
 #define SHOP_BITVECTOR(i) (shop_index[(i)].bitvector)
 #define SHOP_TRADE_WITH(i) (shop_index[(i)].with_who)
+#define SHOP_ROL_CHEAT_WITH(i) (shop_index[(i)].rol_cheat_with)
 #define SHOP_SORT(i) (shop_index[(i)].lastsort)
 #define SHOP_BUYPROFIT(i) (shop_index[(i)].profit_buy)
 #define SHOP_SELLPROFIT(i) (shop_index[(i)].profit_sell)
@@ -171,15 +175,22 @@ struct stack_data
 #define NOTRADE_DROW(i) (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NODROW))
 #define NOTRADE_DUERGAR(i) (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NODUERGAR))
 
+#define TRADE_ROL_NPC (1UL << 26)
+#define TRADE_ROL_NECROMANCER (1UL << 27)
+#define TRADE_ROL_BLACKGUARD (1UL << 28)
+#define TRADE_ROL_PSIONICIST (1UL << 29)
+
 /* Shop flags */
 #define WILL_START_FIGHT (1 << 0)
 #define WILL_BANK_MONEY (1 << 1)
 #define HAS_UNLIMITED_CASH (1 << 2) /*zusuk disabled*/
 #define BLACK_MARKET_SHOP (1 << 3)
 #define NOBLE_SHOP (1 << 4)
-#define ROAMING_SHOP (1 << 5) /* RoL conversion: shop follows its keeper */
+#define ROAMING_SHOP (1 << 5)          /* RoL conversion: shop follows its keeper */
+#define ROL_SHOP_MAGIC_POLICY (1 << 6) /* RoL conversion: enforce authored magic policy */
+#define ROL_SHOP_ALLOW_MAGIC (1 << 7)  /* RoL conversion: CASTING was authored */
 /** Total number of shop flags */
-#define NUM_SHOP_FLAGS 6
+#define NUM_SHOP_FLAGS 8
 
 #define SHOP_KILL_CHARS(i) (IS_SET(SHOP_BITVECTOR(i), WILL_START_FIGHT))
 #define SHOP_USES_BANK(i) (IS_SET(SHOP_BITVECTOR(i), WILL_BANK_MONEY))

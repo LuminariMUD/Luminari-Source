@@ -32,10 +32,13 @@ CircleMUD v3.0 Shop File~
 <close time 1>
 <open time 2>
 <close time 2>
+[R <RoL adverse-price customer bitvector>~]
 $~
 ```
 
-Every string field is terminated by `~`. Numeric fields are one per line.
+Every string field is terminated by `~`. Numeric fields are one per line. The
+bracketed `R` row is an optional conversion extension and is omitted when its
+bitvector is zero.
 
 ### The version tag is load-bearing
 
@@ -175,10 +178,16 @@ A bitvector controlling shopkeeper behavior:
 | 8 | `BLACK_MARKET_SHOP` | Requires the criminal background |
 | 16 | `NOBLE_SHOP` | Requires the noble background |
 | 32 | `ROAMING_SHOP` | Operates wherever the shopkeeper currently is |
+| 64 | `ROL_SHOP_MAGIC_POLICY` | Marks a converted shop whose source magic policy must be enforced |
+| 128 | `ROL_SHOP_ALLOW_MAGIC` | Permits `cast`, `recite`, and `use` under that policy |
 
 `ROAMING_SHOP` is a conversion compatibility flag for legacy shops that follow their
 keeper instead of operating in a fixed room. Such a shop may have an empty room list;
 `sedit` displays and persists the flag like the other shop flags.
+
+The two RoL magic bits are deliberately paired. Native shops have neither bit
+and retain their existing behavior. A converted shop always has the policy bit;
+it has the allow bit only when the source `CASTING` disposition was present.
 
 ### Shopkeeper mob vnum
 
@@ -205,6 +214,11 @@ bit 1 `TRADE_NOEVIL`, bit 2 `TRADE_NONEUTRAL`, then the class restrictions from
 bit 3, then the race restrictions from bit 15. `0` means the shop trades with
 everyone.
 
+Converted RoL shops may also use bits 26 through 29 for NPC, necromancer,
+blackguard, and psionicist restrictions. These compatibility bits are loaded
+and saved by the normal shop system even though `sedit` does not expose named
+toggles for them.
+
 ### Room list
 
 The vnums of rooms this shop operates in, terminated by `-1`. In practice this
@@ -216,6 +230,21 @@ Four integers: open time 1, close time 1, open time 2, close time 2. These are
 game hours, allowing a shop to close for a midday break. A shop that is always
 open uses `0` and `28` for the first pair and `0`/`0` for the second, since the
 game day does not reach hour 28.
+
+### Optional RoL adverse-price extension
+
+The converter preserves the source `CHEATS` disposition with a record placed
+after the four hours:
+
+```
+R <customer restriction bitvector>~
+```
+
+The bit meanings match the "who not to trade with" field, including the four
+conversion compatibility bits. A matching customer pays twice the normal buy
+price and receives half the normal sell price, reproducing the bounded source
+behavior. The row is absent when no customer group is affected. The boot
+loader, `sedit` save path, and world export path all preserve this extension.
 
 ## Validation and Lookup
 

@@ -33,6 +33,23 @@ class RolCapabilityAuditTests(unittest.TestCase):
         "generic-capability-gap",
         classify_transform_diagnostic("room flags without target persistence: [13]"),
     )
+    self.assertEqual(
+        "bounded-adapter",
+        classify_transform_diagnostic("adapted legacy exit trap payload at source line 10"),
+    )
+    self.assertEqual(
+        "source-only-symbol",
+        classify_transform_diagnostic(
+            "disabled source spell 453 (mud to rock) in magic-item slot 3; "
+            "target has no equivalent"
+        ),
+    )
+    self.assertEqual(
+        "source-defect",
+        classify_transform_diagnostic(
+            "excluded completion at source line 29 because a required input cannot be staged"
+        ),
+    )
 
   def test_zone_flags_are_owned_by_room_compatibility_or_source_metadata(self) -> None:
     from wtool_lib.rol_source import RolRecord

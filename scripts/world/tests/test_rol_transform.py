@@ -472,7 +472,7 @@ class RolTransformTests(unittest.TestCase):
     source = self._source_record(
         "shp",
         b"SHOP: 300\nHOURS: 8-12 13-17 18-20\nROOM: 100\nGREED: 140\n"
-        b"PROFIT: 90\nCASTING:\nDEADBEAT: 1\nOFFENSE: 2\nCHEATS: GOODS\n"
+        b"PROFIT: 90\nCASTING:\nDEADBEAT: 1\nOFFENSE: 2\nCHEATS: GOODS PI PZ\n"
         b"HATES: NPC\nPO: 200\nBT: 5 11\nMBCASH: $n says 'No cash, $N.'\n"
         b"MBHAVE: $n says '$N does not have that.'\nMBIGOT: Go away.\n"
         b"MBUY: $n says 'Here is your %s.'\nMCLOSE: Closed.\n"
@@ -499,9 +499,15 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual([2_000_100], shop.room_vnums)
     self.assertEqual([8, 20, 0, 0], shop.open_hours)
     self.assertEqual(1.4, shop.profit_buy)
-    self.assertAlmostEqual(0.5263, shop.profit_sell or 0.0, places=4)
+    self.assertAlmostEqual(0.7368, shop.profit_sell or 0.0, places=4)
+    self.assertEqual(192, shop.shop_flags)
+    self.assertEqual(1 << 26, shop.customer_restrictions)
+    self.assertEqual(1, shop.rol_cheat_restrictions)
     self.assertIn("%d coins", shop.messages[5])
-    self.assertIn("source-only shop behavior", " ".join(emitted.diagnostics))
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertIn("source-only shop CHEATS token 'PI'", diagnostics)
+    self.assertIn("source-inert invalid shop CHEATS token 'PZ'", diagnostics)
+    self.assertIn("source-only shop behavior", diagnostics)
 
   def test_emitted_roaming_shop_sets_native_compatibility_flag(self) -> None:
     source = self._source_record(
@@ -510,7 +516,7 @@ class RolTransformTests(unittest.TestCase):
     )
     emitted = emit_shop(source, 2_000_300, _resolver)
     lines = emitted.text.splitlines()
-    self.assertEqual("32", lines[-8])
+    self.assertEqual("96", lines[-8])
 
   def test_emitted_hlquest_preserves_runtime_direction_order(self) -> None:
     source = self._source_record(

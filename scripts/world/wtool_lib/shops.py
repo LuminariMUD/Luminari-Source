@@ -339,7 +339,10 @@ def _parse_shop_record(
     if value is None:
       return
     scalar_fields.append((label, value[0]))
+  record.temper = scalar_fields[0][1]
+  record.shop_flags = scalar_fields[1][1]
   record.keeper_vnum = scalar_fields[2][1]
+  record.customer_restrictions = scalar_fields[3][1]
   if record.keeper_vnum >= 0:
     record.references.append(
         VnumReference("mobile", record.keeper_vnum, "shop keeper", record.span)
@@ -404,6 +407,29 @@ def parse_shop_file(
     if not header.startswith("#"):
       if "v3.0" in header:
         modern = True
+      elif header.startswith("R "):
+        match = re.fullmatch(r"R\s+([0-9]+)", header)
+        if not result.records or match is None:
+          result.findings.append(
+              finding("SHP021", "error", "invalid RoL shop extension", span)
+          )
+          result.complete = False
+        else:
+          parsed_restrictions = parse_c_integer_token(match.group(1), signed=False, bits=64)
+          if parsed_restrictions.error is not None or parsed_restrictions.value is None:
+            result.findings.append(
+                finding(
+                    "SHP021",
+                    "error",
+                    f"invalid RoL shop restrictions: {parsed_restrictions.error}",
+                    span,
+                    "shop",
+                    result.records[-1].vnum,
+                )
+            )
+            result.complete = False
+          else:
+            result.records[-1].rol_cheat_restrictions = parsed_restrictions.value
       continue
     match = re.match(r"^#([+-]?\d+)", header)
     if match is None:

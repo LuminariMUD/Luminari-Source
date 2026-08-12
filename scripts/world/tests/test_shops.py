@@ -40,6 +40,15 @@ class ShopParserTests(unittest.TestCase):
     self.assertEqual([20000], result.records[0].product_vnums)
     self.assertEqual("sword", result.records[0].buy_types[0].keywords)
 
+  def test_rol_cheat_extension_attaches_to_preceding_shop(self) -> None:
+    result = self.parse(modern_shop().replace("0\n28\n$~\n", "0\n28\nR 67108865~\n$~\n"))
+    self.assertEqual([], result.findings)
+    self.assertEqual(67108865, result.records[0].rol_cheat_restrictions)
+
+  def test_malformed_rol_cheat_extension_is_rejected(self) -> None:
+    result = self.parse(modern_shop().replace("0\n28\n$~\n", "0\n28\nR nope~\n$~\n"))
+    self.assertIn("SHP021", {item.code for item in result.findings})
+
   def test_legacy_fixed_lists_are_accepted_with_warning(self) -> None:
     content = (
         "Legacy Shop File~\n#10100~\n20000\n-1\n-1\n-1\n-1\n1.0\n1.0\n"

@@ -37,6 +37,7 @@ void copy_shop(struct shop_data *tshop, struct shop_data *fshop, int free_old_st
   S_BROKE_TEMPER(tshop) = S_BROKE_TEMPER(fshop);
   S_BITVECTOR(tshop) = S_BITVECTOR(fshop);
   S_NOTRADE(tshop) = S_NOTRADE(fshop);
+  S_ROL_CHEAT_WITH(tshop) = S_ROL_CHEAT_WITH(fshop);
   S_SORT(tshop) = S_SORT(fshop);
   S_BUYPROFIT(tshop) = S_BUYPROFIT(fshop);
   S_SELLPROFIT(tshop) = S_SELLPROFIT(fshop);
@@ -449,6 +450,8 @@ int save_shops(zone_rnum zone_num)
       /* Save open/closing times. */
       fprintf(shop_file, "%d\n%d\n%d\n%d\n", S_OPEN1(shop), S_CLOSE1(shop), S_OPEN2(shop),
               S_CLOSE2(shop));
+      if (S_ROL_CHEAT_WITH(shop))
+        fprintf(shop_file, "R %lu~\n", S_ROL_CHEAT_WITH(shop));
       num_shops++;
     }
   }
