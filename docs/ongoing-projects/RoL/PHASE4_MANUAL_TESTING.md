@@ -498,9 +498,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 581 are resolved and 566 remain. Of 562 distinct
-  source handlers, 96 are resolved and 466 remain. Of 848 `ACT_SPEC` records, 563 are
-  resolved and 285 remain. The automatic race procedures
+  of the 1,147 active direct bindings, 586 are resolved and 561 remain. Of 562 distinct
+  source handlers, 97 are resolved and 465 remain. Of 848 `ACT_SPEC` records, 568 are
+  resolved and 280 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

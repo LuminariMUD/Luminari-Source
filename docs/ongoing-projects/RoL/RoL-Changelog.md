@@ -6,6 +6,59 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted Icecrag designated followers
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all five active `follow_that_mob` bindings for converted Icecrag mobiles
+  2097009, 2097018-2097019, and 2097036-2097037 through the persistent, mobile-owned
+  `RoL Designated Follower` procedure and required `MOB_SPEC` activity gateway.
+- Preserved the source follower-to-leader identities: 2097009 follows 2097012,
+  2097018-2097019 follow 2097020, and 2097036-2097037 follow 2097035.
+- Preserved the awake, unassigned, and colocated attachment gates. Once attached, the
+  target follower system carries the mobile with its leader, and the adapter invokes
+  target combat assistance when the designated NPC leader is fighting.
+- Preserved source docile and no-kill suppression and inert behavior for unrelated
+  prototypes, absent leaders, sleeping followers, or followers already assigned to a
+  different master.
+- Registered the procedure and persistence/index contracts, taught the converter its
+  canonical target name and required flag, and updated builder help, database-first
+  help, manual testing, OLC inventories, converter fixtures, and characterization tests.
+- Reconciliation now resolves 586 of 1,147 active direct bindings and 97 of 562 source
+  handlers; 561 bindings and 465 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 568 resolved / 280 pending.
+- Archived the twenty-fourth bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 24-56 Phase 6 sessions and 72-132 total sessions
+  for Phases 6-8, or 144-528 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 9de8ed76
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-designated-follower
+Reconciliation run: rol-phase6-special-2c7939775b253510
+Active direct bindings: 1,147
+Direct bindings resolved: 586
+Direct bindings pending: 561
+Source handlers resolved: 97
+Source handlers pending: 465
+Designated-follower bindings resolved: 5
+Native adapted bindings: 211
+ACT_SPEC records resolved: 568
+ACT_SPEC records pending: 280
+Complete world-tool suite: 276 passed
+Production-linked CuTest suite: 635 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 561 direct bindings across 465 source handlers.
+
 ## 2026-08-12 - Phase 6 converted directional item blockers
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

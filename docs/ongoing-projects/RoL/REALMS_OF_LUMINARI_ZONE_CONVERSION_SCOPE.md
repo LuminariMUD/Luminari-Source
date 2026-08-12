@@ -28,8 +28,8 @@ walkthroughs provide acceptance evidence. Disabled, unlisted, and demonstrably
 non-working RoL content is permanently out of scope.
 
 The completed pilot measured target reuse, ambiguity, capability coverage, special
-binding density, and validation throughput. Twenty-three completed Phase 6 delivery sessions
-are now archived. The remaining evidence-based forecast is 73-133 sessions, or 146-532
+binding density, and validation throughput. Twenty-four completed Phase 6 delivery sessions
+are now archived. The remaining evidence-based forecast is 72-132 sessions, or 144-528
 focused engineering hours at 2-4 hours per session. This is a planning envelope rather
 than a calendar promise; the measured basis is recorded in
 [RoL-Changelog.md](RoL-Changelog.md).
@@ -428,11 +428,11 @@ calendar time.
 
 | Phase | Scope | Sessions |
 |------:|-------|---------:|
-| 6 | Reconcile/reuse/patch/port special procedures | 25-57 remaining |
+| 6 | Reconcile/reuse/patch/port special procedures | 24-56 remaining |
 | 7 | Action-based batches, zone QA, and validation bundles | 42-66 |
 | 8 | Isolated integration, development apply, and documentation | 6-10 |
 
-Completed Phases 0-5 and the first twenty-three Phase 6 delivery sessions have been removed from
+Completed Phases 0-5 and the first twenty-four Phase 6 delivery sessions have been removed from
 this active scope; their delivery, acceptance evidence, and reforecast basis are in
 [RoL-Changelog.md](RoL-Changelog.md). Active work continues with the remaining Phase 6
 families and must preserve the pilot's deterministic, no-clobber, structural, reset,
@@ -499,7 +499,7 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 6 with the 566 pending direct bindings and 285 pending `ACT_SPEC`
+Continue Phase 6 with the 561 pending direct bindings and 280 pending `ACT_SPEC`
 records. Process the next reusable families, then proceed by consuming package, reusing
 current target procedures before adapting or porting source behavior. Preserve the six
 explicit source-defect or ignored content rows as logged smallest-unit exclusions.

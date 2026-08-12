@@ -63,6 +63,7 @@ Phase 6 converted-Sister-Knight commit: 4fa18daf
 Phase 6 Bloodstone-undead-death commit: 27b5ba59
 Phase 6 Bloodstone-critter commit: b2e7bf40
 Phase 6 directional-item-blocker commit: acb858c1
+Phase 6 designated-follower commit: 9de8ed76
 ```
 
 The authoritative ignored runs are:
@@ -153,6 +154,8 @@ Phase 6 Bloodstone critters: lib/rol-conversion/runs/phase6-special-20260812-blo
                              rol-phase6-special-bdf567929b95b5d7
 Phase 6 directional item blockers: lib/rol-conversion/runs/phase6-special-20260812-item-blocker
                                     rol-phase6-special-d11cc60b4d4cd56e
+Phase 6 designated followers: lib/rol-conversion/runs/phase6-special-20260812-designated-follower
+                              rol-phase6-special-2c7939775b253510
 Policy:  rol-conversion-policy-1
 ```
 
@@ -181,10 +184,10 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 275 tests; the production-linked CuTest suite passes 634;
+- The world-tool suite passes 276 tests; the production-linked CuTest suite passes 635;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Twenty-three bounded Phase 6 delivery sessions are archived. The measured remaining
-  forecast is 73-133 sessions: Phase 6 is 25-57, Phase 7 is 42-66, and Phase 8 is 6-10.
+- Twenty-four bounded Phase 6 delivery sessions are archived. The measured remaining
+  forecast is 72-132 sessions: Phase 6 is 24-56, Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -307,18 +310,22 @@ Policy:  rol-conversion-policy-1
   `RoL Item Blocker` procedure. Each object preserves its authored cardinal direction
   and blocks mortal player or pet movement and matching unlock attempts only while an
   aggressive NPC occupies the room.
+- All five active `follow_that_mob` bindings are complete through the named
+  `RoL Designated Follower` procedure. Awake Icecrag guards attach to their fixed,
+  colocated NPC leader, follow its movement, and assist its fights while retaining
+  source docile and no-kill suppression.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 581 of 1,147 active direct bindings and 96 of
-  562 source handlers, leaving 566 bindings and 466 handlers. The independent
-  `ACT_SPEC` cross-check resolves 563 of 848 records and leaves 285 pending.
+- The current Phase 6 checkpoint resolves 586 of 1,147 active direct bindings and 97 of
+  562 source handlers, leaving 561 bindings and 465 handlers. The independent
+  `ACT_SPEC` cross-check resolves 568 of 848 records and leaves 280 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 566 direct bindings by shared behavior family and
+1. Reconcile the remaining 561 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7
