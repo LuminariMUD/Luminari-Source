@@ -6,6 +6,73 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 composed Waterdeep guild guards
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed seven source handler families and seven active direct bindings by composing
+  Waterdeep guild gates, guardian combat behavior, and generated state-aware flavor
+  through the existing `RoL Guild Guard` adapter.
+- Preserved the source Assassin/Rogue, Warrior/Berserker/Blackguard, Cleric, Rogue,
+  Mercenary-to-Warrior, Monk, and Invoker-to-Wizard admission rules at their exact
+  converted rooms and exits. Accepted characters retain forced passage through
+  reset-closed doors; rejected characters remain blocked, including the assassin-guild
+  guard's source trip effect mapped to the target sitting position.
+- Extended the strict source-hashed state generator from 26 direct profiles to 33 total
+  profiles. The generated table now carries 258 idle/fighting outcomes and 266 ordered
+  speech or room actions, including the seven composed guards.
+- Converted `RoL Guild Guard` to typed event dispatch so commands, mobile activity, and
+  combat retaliation route independently without duplicating flavor during protected
+  player fights.
+- Left six mechanically distinct Waterdeep guard families pending. Their proactive law
+  enforcement, multi-room bouncer expulsion, forced flee, or random teleport branches
+  require a separate dependency-complete runtime batch.
+- Extended converter persistence, registry and OLC visibility, builder and database help,
+  manual testing, focused conversion checks, and production characterization.
+- Reconciliation now resolves 838 of 1,147 active direct bindings and 309 of 562 source
+  handlers; 309 bindings and 253 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 753 resolved / 95 pending.
+- Archived the thirty-sixth Phase 6 delivery session. The remaining irregularity keeps
+  the conservative 7-14 session Phase 6 envelope and the 55-90 session forecast for
+  Phases 6-8, or 110-360 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: ef0571bd
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-waterdeep-guards-v2
+Reconciliation run: rol-phase6-special-02a63509af7e962d
+Active direct bindings: 1,147
+Direct bindings resolved: 838
+Direct bindings pending: 309
+Source handlers resolved: 309
+Source handlers pending: 253
+Additional handler families resolved: 7
+Additional direct bindings resolved: 7
+Native adapted bindings: 444
+Native adapted composable bindings: 131
+ACT_SPEC records resolved: 753
+ACT_SPEC records pending: 95
+Generated state profiles: 33
+Generated state outcomes: 258
+Generated state actions: 266
+Complete world-tool suite: 291 passed
+Focused conversion suite: 90 passed, 6 subtests passed
+Production-linked CuTest suite: 645 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 309 direct bindings across 253 source handlers.
+The bulk classifier will keep grouping compatible source mechanics into shared native or
+strict generated adapters, with focused checks inside each batch and full repository gates
+only at checkpoint boundaries.
+
 ## 2026-08-12 - Phase 6 guild-family adapters
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

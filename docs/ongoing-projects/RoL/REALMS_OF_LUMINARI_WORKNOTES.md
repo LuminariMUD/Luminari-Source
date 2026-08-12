@@ -75,6 +75,7 @@ Phase 6 generated state-periodic commit: a67c1bfa
 Phase 6 cross-zone periodic expansion commit: 2844472f
 Phase 6 high-fanout special-adapter commit: 1108fb56
 Phase 6 guild-family adapter commit: 99cb8aed
+Phase 6 Waterdeep-guard composition commit: ef0571bd
 ```
 
 The authoritative ignored runs are:
@@ -192,6 +193,9 @@ Phase 6 high-fanout special adapters:
 Phase 6 guild-family adapters:
   lib/rol-conversion/runs/phase6-special-20260812-guild-families
   rol-phase6-special-33a4bb8a0371811c
+Phase 6 Waterdeep-guard composition:
+  lib/rol-conversion/runs/phase6-special-20260812-waterdeep-guards-v2
+  rol-phase6-special-02a63509af7e962d
 Policy:  rol-conversion-policy-1
 ```
 
@@ -385,9 +389,10 @@ Policy:  rol-conversion-policy-1
   354 random outcomes and 588 ordered speech or room actions from Bloodstone, Icecrag,
   Menden, Fun, Mobile, and Realm source files. Sorted generated tables support binary
   runtime lookup, and per-profile awake and combat gates retain source behavior.
-- A second strict, source-hashed generator closes 26 state-aware Waterdeep handler
-  families and direct bindings through `RoL Stateful Periodic`. Its 26 converted mobile
-  profiles retain 206 idle/fighting outcomes and 210 ordered speech or room actions.
+- A second strict, source-hashed generator closes 26 direct state-aware Waterdeep handler
+  families through `RoL Stateful Periodic` and supplies seven composed Waterdeep guild
+  guards through `RoL Guild Guard`. Its 33 converted mobile profiles retain 258
+  idle/fighting outcomes and 266 ordered speech or room actions.
   Combat selects the explicitly authored fighting table before the target standing-state
   gate. `rogue_one` is separately excluded because its only registered event always
   triggers its source early return.
@@ -395,14 +400,14 @@ Policy:  rol-conversion-policy-1
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 831 of 1,147 active direct bindings and 302 of
-  562 source handlers, leaving 316 bindings and 260 handlers. The independent
-  `ACT_SPEC` cross-check resolves 747 of 848 records and leaves 101 pending.
+- The current Phase 6 checkpoint resolves 838 of 1,147 active direct bindings and 309 of
+  562 source handlers, leaving 309 bindings and 253 handlers. The independent
+  `ACT_SPEC` cross-check resolves 753 of 848 records and leaves 95 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 316 direct bindings across 260 handlers. Classify regular
+1. Reconcile the remaining 309 direct bindings across 253 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
