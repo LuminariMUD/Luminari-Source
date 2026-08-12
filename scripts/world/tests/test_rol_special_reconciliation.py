@@ -68,6 +68,16 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual(1_234, summary["active_direct_bindings"])
       self.assertEqual(605, summary["source_handlers"])
       self.assertEqual(605, summary["source_handler_definitions_located"])
+      self.assertEqual(247, summary["active_implicit_race_bindings"])
+      self.assertEqual(
+          {"standardDemon": 134, "standardDevil": 101, "standardUmberhulk": 12},
+          summary["implicit_race_bindings_by_handler"],
+      )
+      self.assertEqual(
+          {"alongside-direct": 23, "implicit-only": 224},
+          summary["implicit_race_bindings_by_composition"],
+      )
+      self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
       self.assertEqual(231, summary["direct_bindings_by_status"]["resolved"])
       self.assertEqual(1_003, summary["direct_bindings_by_status"]["pending"])
       self.assertEqual(848, summary["act_spec_records"])
@@ -78,6 +88,7 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       manifest = json.loads((output_dir / "run-manifest.json").read_text(encoding="ascii"))
       expected_records = {
           "act-spec-ledger.jsonl": 848,
+          "automatic-race-ledger.jsonl": 247,
           "binding-ledger.jsonl": 1_234,
           "handler-inventory.jsonl": 605,
       }

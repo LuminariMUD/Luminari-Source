@@ -17,7 +17,7 @@ from .rol_skeleton import verify_plan_bundle
 from .rol_special import ADAPTED_HANDLER_NAMES, INERT_HANDLERS, NATIVE_HANDLER_NAMES
 
 
-ROL_SPECIAL_RECONCILIATION_SCHEMA_VERSION = 1
+ROL_SPECIAL_RECONCILIATION_SCHEMA_VERSION = 2
 _SOURCE_ROOT_PREFIX = "EXAMPLE/RealmsOfLuminari"
 _RECORD_KIND = {"mobile": "mob", "object": "obj", "room": "wld"}
 _AUTO_RACE_HANDLERS = {
@@ -285,6 +285,11 @@ def handler_disposition(handler: str) -> dict[str, str]:
   return {"status": "pending", "strategy": "PENDING_TRACE", "target": "unresolved"}
 
 
+def _mobile_race_code(record: dict[str, Any]) -> str:
+  race_rows = list(record.get("values", {}).get("base_rows", []))
+  return str(race_rows[0][0]).upper() if race_rows and race_rows[0] else "N"
+
+
 def _write_jsonl(path: Path, rows: Iterable[dict[str, Any]]) -> int:
   count = 0
   with path.open("wb") as output:
@@ -341,7 +346,9 @@ def write_special_reconciliation_bundle(
   binding_input = _load_json(discovery_dir / "bindings.json")
   bindings = list(binding_input["active_binding_candidates"])
   handlers = {str(row["source_handler"]) for row in bindings}
-  definitions = source_handler_definitions(source_root, handlers)
+  definitions = source_handler_definitions(
+      source_root, handlers | set(_AUTO_RACE_HANDLERS.values())
+  )
 
   consumers: defaultdict[tuple[str, int], list[dict[str, Any]]] = defaultdict(list)
   record_by_id: dict[str, dict[str, Any]] = {}
@@ -415,6 +422,44 @@ def write_special_reconciliation_bundle(
       for handler in sorted(handlers)
   ]
 
+  automatic_race_rows: list[dict[str, Any]] = []
+  for record in sorted(record_by_id.values(), key=lambda item: str(item["record_id"])):
+    if record["kind"] != "mob":
+      continue
+    race_code = _mobile_race_code(record)
+    handler = _AUTO_RACE_HANDLERS.get(race_code)
+    if handler is None:
+      continue
+    source_vnum = int(record["vnum"])
+    linked = [binding_rows[index] for index in bindings_by_mobile.get(source_vnum, [])]
+    action = actions.get(str(record["record_id"]), {})
+    automatic_race_rows.append(
+        {
+            "binding_id": f"mobile:{source_vnum}:{handler}:source-boot",
+            "source_record_id": record["record_id"],
+            "source_vnum": source_vnum,
+            "basename": record["basename"],
+            "race_code": race_code,
+            "source_handler": handler,
+            "source_definition": definitions.get(handler),
+            "planned_action": action.get("action"),
+            "destination_vnum": action.get("destination_vnum"),
+            "direct_binding_ids": [row["binding_id"] for row in linked],
+            "composition": "alongside-direct" if linked else "implicit-only",
+            "status": "pending",
+            "strategy": "AUTOMATIC_RACE_BINDING_PENDING",
+            "target": "unresolved composition-safe runtime behavior",
+            "reason": (
+                "source db.c attaches this race procedure during every mobile load, "
+                "including prototypes with direct assignments"
+            ),
+        }
+    )
+
+  automatic_by_record = {
+      str(row["source_record_id"]): row for row in automatic_race_rows
+  }
+
   act_spec_input = [
       row
       for row in _read_jsonl(capability_audit_dir / "transform-diagnostics.jsonl")
@@ -429,17 +474,27 @@ def write_special_reconciliation_bundle(
     source_vnum = int(record["vnum"])
     binding_indexes = bindings_by_mobile.get(source_vnum, [])
     linked = [binding_rows[index] for index in binding_indexes]
-    race_rows = list(record.get("values", {}).get("base_rows", []))
-    race_code = str(race_rows[0][0]).upper() if race_rows and race_rows[0] else "N"
+    automatic = automatic_by_record.get(record_id)
+    race_code = _mobile_race_code(record)
     if linked:
-      resolved = all(row["status"] == "resolved" for row in linked)
+      resolved = all(row["status"] == "resolved" for row in linked) and (
+          automatic is None or automatic["status"] == "resolved"
+      )
       status = "resolved" if resolved else "pending"
-      strategy = "DIRECT_ASSIGNMENTS_RESOLVED" if resolved else "DIRECT_ASSIGNMENTS_PENDING"
-      reason = "source VNUM has direct assignment-table bindings"
-    elif race_code in _AUTO_RACE_HANDLERS:
-      status = "pending"
-      strategy = "AUTOMATIC_RACE_BINDING_PENDING"
-      reason = f"source boot attaches {_AUTO_RACE_HANDLERS[race_code]} before ACT_SPEC validation"
+      if automatic is not None:
+        strategy = (
+            "DIRECT_AND_AUTOMATIC_RACE_RESOLVED"
+            if resolved
+            else "DIRECT_AND_AUTOMATIC_RACE_PENDING"
+        )
+        reason = "source VNUM has direct assignments plus an implicit race procedure"
+      else:
+        strategy = "DIRECT_ASSIGNMENTS_RESOLVED" if resolved else "DIRECT_ASSIGNMENTS_PENDING"
+        reason = "source VNUM has direct assignment-table bindings"
+    elif automatic is not None:
+      status = str(automatic["status"])
+      strategy = str(automatic["strategy"])
+      reason = f"source boot attaches {automatic['source_handler']} before ACT_SPEC validation"
     else:
       status = "resolved"
       strategy = "SOURCE_BOOT_CLEARS_UNBOUND_ACT_SPEC"
@@ -451,6 +506,9 @@ def write_special_reconciliation_bundle(
             "basename": record["basename"],
             "race_code": race_code,
             "binding_ids": [row["binding_id"] for row in linked],
+            "automatic_race_binding_id": (
+                automatic["binding_id"] if automatic is not None else None
+            ),
             "status": status,
             "strategy": strategy,
             "reason": reason,
@@ -459,6 +517,9 @@ def write_special_reconciliation_bundle(
 
   binding_status = Counter(str(row["status"]) for row in binding_rows)
   handler_status = Counter(str(row["status"]) for row in handler_rows)
+  automatic_status = Counter(str(row["status"]) for row in automatic_race_rows)
+  automatic_handlers = Counter(str(row["source_handler"]) for row in automatic_race_rows)
+  automatic_composition = Counter(str(row["composition"]) for row in automatic_race_rows)
   act_spec_status = Counter(str(row["status"]) for row in act_spec_rows)
   strategy_counts = Counter(str(row["strategy"]) for row in binding_rows)
   act_spec_strategies = Counter(str(row["strategy"]) for row in act_spec_rows)
@@ -476,7 +537,18 @@ def write_special_reconciliation_bundle(
       "direct_bindings_by_strategy": dict(sorted(strategy_counts.items())),
       "source_handlers": len(handler_rows),
       "source_handlers_by_status": dict(sorted(handler_status.items())),
-      "source_handler_definitions_located": len(definitions),
+      "source_handler_definitions_located": sum(
+          1 for handler in handlers if handler in definitions
+      ),
+      "active_implicit_race_bindings": len(automatic_race_rows),
+      "implicit_race_bindings_by_status": dict(sorted(automatic_status.items())),
+      "implicit_race_bindings_by_handler": dict(sorted(automatic_handlers.items())),
+      "implicit_race_bindings_by_composition": dict(
+          sorted(automatic_composition.items())
+      ),
+      "implicit_race_handler_definitions_located": sum(
+          1 for handler in set(_AUTO_RACE_HANDLERS.values()) if handler in definitions
+      ),
       "act_spec_records": len(act_spec_rows),
       "act_spec_by_status": dict(sorted(act_spec_status.items())),
       "act_spec_by_strategy": dict(sorted(act_spec_strategies.items())),
@@ -492,6 +564,14 @@ def write_special_reconciliation_bundle(
   artifacts.append(_artifact(binding_path, output_dir, _write_jsonl(binding_path, binding_rows)))
   handler_path = output_dir / "handler-inventory.jsonl"
   artifacts.append(_artifact(handler_path, output_dir, _write_jsonl(handler_path, handler_rows)))
+  automatic_path = output_dir / "automatic-race-ledger.jsonl"
+  artifacts.append(
+      _artifact(
+          automatic_path,
+          output_dir,
+          _write_jsonl(automatic_path, automatic_race_rows),
+      )
+  )
   act_spec_path = output_dir / "act-spec-ledger.jsonl"
   artifacts.append(_artifact(act_spec_path, output_dir, _write_jsonl(act_spec_path, act_spec_rows)))
 
@@ -510,8 +590,16 @@ def write_special_reconciliation_bundle(
       "acceptance": {
           "all_direct_bindings_accounted": len(binding_rows) == len(bindings),
           "all_handlers_accounted": len(handler_rows) == len(handlers),
+          "all_automatic_race_bindings_accounted": len(automatic_race_rows)
+          == sum(
+              1
+              for record in record_by_id.values()
+              if record["kind"] == "mob"
+              and _mobile_race_code(record) in _AUTO_RACE_HANDLERS
+          ),
           "all_act_spec_records_accounted": len(act_spec_rows) == len(act_spec_input),
           "direct_bindings_pending": binding_status["pending"],
+          "automatic_race_bindings_pending": automatic_status["pending"],
           "act_spec_records_pending": act_spec_status["pending"],
           "live_target_writes": 0,
       },
@@ -530,6 +618,9 @@ def render_rol_special_reconciliation_human(summary: dict[str, Any]) -> str:
           f"Direct bindings: {summary['active_direct_bindings']}",
           f"Resolved direct bindings: {summary['direct_bindings_by_status'].get('resolved', 0)}",
           f"Pending direct bindings: {summary['direct_bindings_by_status'].get('pending', 0)}",
+          f"Implicit race bindings: {summary['active_implicit_race_bindings']}",
+          f"Pending implicit race bindings: "
+          f"{summary['implicit_race_bindings_by_status'].get('pending', 0)}",
           f"Distinct source handlers: {summary['source_handlers']}",
           f"ACT_SPEC records: {summary['act_spec_records']}",
           f"Resolved ACT_SPEC records: {summary['act_spec_by_status'].get('resolved', 0)}",
