@@ -238,7 +238,12 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
 - Flagged arena, no-precipitation, PSP-regeneration, and RoL-jail runtime support is
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.
-- The remaining 848 active source special-binding diagnostics are Phase 6 work.
+- Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
+  binding count. Of 1,234 direct bindings, 185 are resolved and 1,049 remain. Of 848
+  `ACT_SPEC` records, 455 are resolved and 393 remain, including 33 automatic race
+  procedures. The current five-zone pilot predates the newly shared guild, janitor,
+  pet-shop, and receptionist mappings, so those Phase 6 additions are automated-test
+  evidence rather than new manual-test claims for this bundle.
 - Package-wide conversion, repair, balance review, and acceptance bundles are Phase 7.
 - Development-world application and final operational documentation are Phase 8.
 

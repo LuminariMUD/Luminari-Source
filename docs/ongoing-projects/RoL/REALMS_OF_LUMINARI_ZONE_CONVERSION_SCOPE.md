@@ -498,9 +498,9 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Begin Phase 6 with the 848 active special-binding diagnostics already assigned to that
-owner. Reconcile them by shared behavior family and consuming package, reusing current
-target procedures before adapting or porting source behavior. Preserve the six explicit
-source-defect or ignored content rows as logged smallest-unit exclusions. Completed
-Phase 5 capability and shop evidence is recorded in
-[RoL-Changelog.md](RoL-Changelog.md).
+Continue Phase 6 with the 1,049 pending direct bindings and 393 pending `ACT_SPEC`
+records. Close reusable generic mobile families and the 33 automatic race procedures,
+then proceed by consuming package, reusing current target procedures before adapting
+or porting source behavior. Preserve the six explicit source-defect or ignored content
+rows as logged smallest-unit exclusions. Completed Phase 5 work and the first Phase 6
+reconciliation checkpoint are recorded in [RoL-Changelog.md](RoL-Changelog.md).

@@ -5,6 +5,64 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 inventory and shared-service reconciliation
+
+Status: Completed checkpoint; Phase 6 special-procedure reconciliation in progress
+
+### Delivered
+
+- Added a deterministic Phase 6 reconciliation bundle that verifies its Phase 1,
+  Phase 2, and Phase 5 inputs before accounting for all 1,234 active direct bindings,
+  all 605 distinct source handlers, and all 848 active `ACT_SPEC` records. Every
+  source handler definition is located and hashed; the bundle performs zero live
+  target writes.
+- Separated direct assignment-table truth from the mobile `ACT_SPEC` cross-check. Of
+  the 848 flagged mobiles, source boot clears 444 because no callback is assigned,
+  33 receive automatic demon or devil race procedures and remain Phase 6 work, and
+  371 have direct assignment-table bindings.
+- Closed 185 direct bindings: 108 native or DG bindings established by the Phase 4
+  families, 72 shared guild, janitor, pet-shop, or receptionist bindings, and five
+  source `dump` bindings whose callback returns before its unreachable behavior.
+  Binding the target's active Dump procedure would have invented behavior.
+- Added persistent named room-binding output to the converter and registered
+  `RoL Guild Room` as a room-owned canonical procedure backed by the current target
+  training service. The mobile-owned `Guild` contract remains unchanged.
+- Updated the builder guide and database-first `SPECIALS` help source with the
+  current registry counts, owner-aware selection rules, and the distinction between
+  `Guild` and `RoL Guild Room`.
+- Removed the completed Phase 6 startup instruction from the active zone scope. The
+  active plans retain only the remaining 1,049 direct bindings, 566 source handlers,
+  360 directly assigned `ACT_SPEC` mobiles, 33 automatic race procedures, and later
+  phase gates.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 368adc90
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-inventory-v3
+Reconciliation run: rol-phase6-special-7e0556903754990d
+Active direct bindings: 1,234
+Direct bindings resolved: 185
+Direct bindings pending: 1,049
+Distinct source handlers: 605
+Source handler definitions located: 605
+Source handlers resolved: 39
+Source handlers pending: 566
+ACT_SPEC records: 848
+ACT_SPEC records resolved: 455
+ACT_SPEC records pending: 393
+Complete world-tool suite: 253 passed
+Production-linked CuTest suite: 619 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Autotools build and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 is not complete. The next pass continues with reusable generic mobile
+families and the automatic race assignments before moving into consuming-package
+specific procedures.
+
 ## 2026-08-12 - Phase 5 shop compatibility and completion
 
 Status: Phase 5 completed; Phase 6 special-procedure reconciliation in progress

@@ -40,6 +40,7 @@ Phase 5 mobile-action compatibility commit: 1f6020de
 Phase 5 reset mobile-chain compatibility commit: afeea9d7
 Phase 5 exit-trap compatibility commit: c647c5f4
 Phase 5 shop compatibility commits: ec1a8cd8, fe38a56e
+Phase 6 inventory/shared-service commit: 368adc90
 ```
 
 The authoritative ignored runs are:
@@ -86,6 +87,8 @@ Phase 5 shop/final audit: lib/rol-conversion/runs/phase5-shop-20260812-audit
                            rol-phase5-audit-3fb8de2d9afd067b
 Phase 5 shop/final pilot: lib/rol-conversion/runs/phase5-shop-20260812-pilot
                            rol-phase4-build-35c9c879af63b8d1
+Phase 6 special reconciliation: lib/rol-conversion/runs/phase6-special-20260812-inventory-v3
+                                rol-phase6-special-7e0556903754990d
 Policy:  rol-conversion-policy-1
 ```
 
@@ -114,7 +117,7 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 248 tests; the production-linked CuTest suite passes 619;
+- The world-tool suite passes 253 tests; the production-linked CuTest suite passes 619;
   `make install` succeeds and leaves no root-level `circle` artifact.
 - The measured remaining forecast is 96-156 sessions: Phase 6 is 48-80, Phase 7 is
   42-66, and Phase 8 is 6-10.
@@ -165,13 +168,19 @@ Policy:  rol-conversion-policy-1
   adverse `CHEATS` pricing, and the converted `CASTING` policy. It reports zero generic
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
-- The remaining diagnostics have explicit downstream owners: 848 special-binding gaps
-  belong to Phase 6 and 804 record-specific reference gaps belong to Phase 7 batches.
+- The Phase 6 inventory accounts for 1,234 active direct bindings across 605 source
+  handlers and locates all 605 source definitions. The first checkpoint resolves 185
+  bindings and 39 handlers, leaving 1,049 bindings and 566 handlers. Its independent
+  `ACT_SPEC` cross-check resolves 455 of 848 records: source boot clears 444 unbound
+  flags and 11 directly assigned records are already resolved. The remaining 393 are
+  360 directly assigned mobiles plus 33 automatic demon or devil race procedures.
+- The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the 848 active special-binding diagnostics by shared behavior family and
-   consuming package, reusing current target procedures before adapting or porting.
+1. Reconcile the remaining 1,049 direct bindings by shared behavior family and
+   consuming package, beginning with generic mobile families and the 33 automatic
+   race procedures; reuse current target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
 3. Preserve the six locked malformed record exclusions as explicit, logged
