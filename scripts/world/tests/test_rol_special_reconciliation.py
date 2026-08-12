@@ -454,6 +454,14 @@ class RolSpecialReconciliationTests(unittest.TestCase):
         "goodberry_cure",
         "menden_figurine",
         "thp_necroChild",
+        "basilisk_leggings",
+        "basilisk_snakes",
+        "gn_dragoncultrobes",
+        "haste_sleeves",
+        "magius_staff",
+        "moonshae_earthmother_staff",
+        "nh_blueplume",
+        "nh_writhingash",
     )
 
     for handler in guild_handlers:
@@ -541,11 +549,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_085, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(62, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(512, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(50, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(628, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_093, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(54, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(520, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(42, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(636, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           159, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

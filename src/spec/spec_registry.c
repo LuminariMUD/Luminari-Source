@@ -141,6 +141,7 @@ static const struct spec_event_contract rol_room_object_pulse_events[] = {{
 static const struct spec_event_contract rol_utility_object_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
 };
 
 static const struct spec_event_contract rol_object_defense_events[] = {

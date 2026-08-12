@@ -1895,6 +1895,14 @@ class RolTransformTests(unittest.TestCase):
         (46991, "thp_necroChild", (44,), ()),
         (88825, "menden_figurine", (), ((0, "mob"),)),
         (90004, "fw_ruby_monocle", (44,), ()),
+        (47, "magius_staff", (), ()),
+        (10672, "gn_dragoncultrobes", (), ()),
+        (26260, "moonshae_earthmother_staff", (), ()),
+        (43723, "basilisk_leggings", (), ()),
+        (44019, "basilisk_snakes", (), ()),
+        (51110, "nh_blueplume", (), ()),
+        (51207, "nh_writhingash", (), ()),
+        (57236, "haste_sleeves", (), ()),
     ]
     bindings = [
         {
@@ -1913,7 +1921,7 @@ class RolTransformTests(unittest.TestCase):
         [],
     )
 
-    self.assertEqual(5, len(compiled.native_bindings))
+    self.assertEqual(len(handlers), len(compiled.native_bindings))
     by_vnum = {binding.source_vnum: binding for binding in compiled.native_bindings}
     for source_vnum, _, expected_flags, expected_slots in handlers:
       binding = by_vnum[source_vnum]

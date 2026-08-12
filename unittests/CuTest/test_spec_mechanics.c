@@ -1414,6 +1414,13 @@ void Test_spec_rol_lavatubes_profiles_preserve_source_outcomes(CuTest *tc)
 
 void Test_spec_rol_utility_object_profiles_preserve_source_boundaries(CuTest *tc)
 {
+  static const int called_vnums[] = {2000047, 2010672, 2026260, 2043723,
+                                     2044019, 2051110, 2051207, 2057236};
+  const char *description;
+  const char *phrase;
+  int cooldown_hours;
+  size_t index;
+
   CuAssertTrue(tc, rol_utility_sacrifice_command_name("get"));
   CuAssertTrue(tc, rol_utility_sacrifice_command_name("take"));
   CuAssertTrue(tc, rol_utility_sacrifice_command_name("drag"));
@@ -1436,6 +1443,60 @@ void Test_spec_rol_utility_object_profiles_preserve_source_boundaries(CuTest *tc
   CuAssertTrue(tc, rol_utility_monocle_room(2090124));
   CuAssertTrue(tc, rol_utility_monocle_room(2090142));
   CuAssertTrue(tc, !rol_utility_monocle_room(2090143));
+
+  CuAssertIntEquals(tc, (int)(sizeof(called_vnums) / sizeof(called_vnums[0])),
+                    (int)rol_utility_called_profile_count());
+  for (index = 0; index < sizeof(called_vnums) / sizeof(called_vnums[0]); index++)
+  {
+    phrase = NULL;
+    description = NULL;
+    cooldown_hours = -1;
+    CuAssertTrue(tc, rol_utility_called_profile(called_vnums[index], &phrase, &cooldown_hours,
+                                                &description));
+    CuAssertPtrNotNull(tc, phrase);
+    CuAssertTrue(tc, cooldown_hours >= 0);
+    CuAssertPtrNotNull(tc, description);
+  }
+  CuAssertTrue(tc, rol_utility_called_profile(2000047, &phrase, &cooldown_hours, &description));
+  CuAssertStrEquals(tc, "shirak", phrase);
+  CuAssertIntEquals(tc, 0, cooldown_hours);
+  CuAssertTrue(tc, rol_utility_called_profile(2057236, &phrase, &cooldown_hours, &description));
+  CuAssertStrEquals(tc, "accelerate", phrase);
+  CuAssertIntEquals(tc, 48, cooldown_hours);
+  CuAssertTrue(tc, !rol_utility_called_profile(9999999, NULL, NULL, NULL));
+}
+
+void Test_spec_rol_utility_magius_staff_toggles_light(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  struct command_info commands[3];
+  struct command_info *saved_complete_cmd_info;
+
+  spec_mechanics_begin(&fixture);
+  memset(&context, 0, sizeof(context));
+  memset(commands, 0, sizeof(commands));
+  saved_complete_cmd_info = complete_cmd_info;
+  complete_cmd_info = commands;
+  commands[1].command = "say";
+  commands[2].command = "\n";
+  fixture.object_indexes[0].vnum = 2000047;
+
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.event = SPEC_EVENT_COMMAND;
+  context.owner = &fixture.worn;
+  context.actor = &fixture.actor;
+  context.command = 1;
+  context.argument = "shirak";
+  CuAssertIntEquals(tc, TRUE, rol_utility_object_typed(&context));
+  CuAssertTrue(tc, OBJ_FLAGGED(&fixture.worn, ITEM_GLOW));
+
+  context.argument = "dulak";
+  CuAssertIntEquals(tc, TRUE, rol_utility_object_typed(&context));
+  CuAssertTrue(tc, !OBJ_FLAGGED(&fixture.worn, ITEM_GLOW));
+
+  complete_cmd_info = saved_complete_cmd_info;
+  spec_mechanics_end(&fixture);
 }
 
 void Test_spec_rol_lavatubes_automaton_preserves_exit_pair_cycle(CuTest *tc)

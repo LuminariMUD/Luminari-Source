@@ -7,6 +7,7 @@
 #define LUMINARI_SPEC_ROL_UTILITY_OBJECTS_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
 struct char_data;
 struct spec_event_context;
@@ -18,5 +19,8 @@ bool rol_utility_sacrifice_keyword(const char *argument);
 bool rol_utility_sacrifice_command_name(const char *command);
 const char *rol_utility_necro_child_message(int roll);
 bool rol_utility_monocle_room(int room_vnum);
+size_t rol_utility_called_profile_count(void);
+bool rol_utility_called_profile(int object_vnum, const char **phrase, int *cooldown_hours,
+                                const char **description);
 
 #endif /* LUMINARI_SPEC_ROL_UTILITY_OBJECTS_H */

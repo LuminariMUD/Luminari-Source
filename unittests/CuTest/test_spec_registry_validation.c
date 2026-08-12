@@ -429,7 +429,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Lavatubes Room", rol_lavatubes_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Utility Object", rol_utility_object, SPEC_OWNER_OBJECT,
-       SPEC_EVENT_COMMAND | SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_BINDING_SOURCE_WORLD},
+       SPEC_EVENT_COMMAND | SPEC_EVENT_OBJECT_AUTO_PULSE | SPEC_EVENT_ITEM_IDENTIFY,
+       SPEC_BINDING_SOURCE_WORLD},
   };
   const struct spec_definition *definition;
   size_t definition_index;
