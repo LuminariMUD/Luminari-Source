@@ -81,6 +81,7 @@ Phase 6 command-sentinel commit: 827d5f6d
 Phase 6 toll/ticket-keeper commit: cecbec9d
 Phase 6 travel-portal commit: 3c0ab331
 Phase 6 artifact-reconciliation commit: 2656b640
+Phase 6 banana/god-toy commit: 1ab77127
 ```
 
 The authoritative ignored runs are:
@@ -219,6 +220,9 @@ Phase 6 travel portals:
 Phase 6 artifact reconciliation:
   lib/rol-conversion/runs/phase6-special-20260812-artifacts
   rol-phase6-special-7e5f0048a9e4d79e
+Phase 6 banana and god-toy isolation:
+  lib/rol-conversion/runs/phase6-special-20260812-god-toys
+  rol-phase6-special-ddaefe6a4a82d922
 Policy:  rol-conversion-policy-2
 ```
 
@@ -247,11 +251,11 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 298 tests; the production-linked CuTest suite passes 648;
+- The world-tool suite passes 299 tests; the production-linked CuTest suite passes 649;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Forty-one bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Forty-two bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
-  shape exists. The measured remaining forecast is 53-87 sessions: Phase 6 is 5-11,
+  shape exists. The measured remaining forecast is 53-86 sessions: Phase 6 is 5-10,
   Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
@@ -444,18 +448,24 @@ Policy:  rol-conversion-policy-2
   emitted. The separate `NeverLooseItem` callback is excluded because it exposes unsafe
   teleport, healing, resurrection, currency, permanent-stat, forced-death, invisibility,
   and unlock commands; its ordinary Raven earring data remains eligible for conversion.
+- The two active `banana` bindings are complete through the typed, object-owned `RoL
+  Banana` procedure. Eating converted fruit 2001235 preserves the source hunger gain,
+  command delay, and temporary peel 2001234; the peel preserves the source Intelligence
+  avoidance, Dexterity outcomes, sleep, bounded self-damage, movement interruption, and
+  ten-real-minute decay. Seventeen separate destructive god-toy callbacks are excluded
+  without excluding their ordinary object data.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 903 of 1,147 active direct bindings and 361 of
-  562 source handlers, leaving 244 bindings and 201 handlers. The independent
+- The current Phase 6 checkpoint resolves 922 of 1,147 active direct bindings and 379 of
+  562 source handlers, leaving 225 bindings and 183 handlers. The independent
   `ACT_SPEC` cross-check resolves 776 of 848 records and leaves 72 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 244 direct bindings across 201 handlers. Classify regular
+1. Reconcile the remaining 225 direct bindings across 183 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7

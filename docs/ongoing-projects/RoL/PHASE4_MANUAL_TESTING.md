@@ -633,6 +633,30 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   commands and is intentionally excluded; saying its teleport, currency, stat, death,
   healing, resurrection, invisibility, or unlock words must have no special effect.
 
+### Phase 6 converted banana and isolated god toys
+
+- In a dependency-complete stage, confirm fruit 2001235 and peel 2001234 both persist
+  `RoL Banana`. Carry fruit 2001235 while hungry and use `eat banana`. The fruit should
+  disappear, its value-zero food amount should increase hunger saturation, one combat
+  round of command delay should apply, and peel 2001234 should appear in the room.
+- Leave the peel undisturbed. Its target decay flag and eight 75-second object ticks
+  should remove it after ten real minutes. Eating while already above 20 hunger
+  saturation should be blocked without consuming the fruit or creating a peel.
+- Walk a mortal repeatedly across a room containing peel 2001234. Intelligence rolls
+  above four should avoid it. Failed Intelligence followed by Dexterity 1 should stop
+  movement, remove up to 15 hit points without going below one, end non-aggressive
+  combat, and apply four to six MUD ticks of sleep. Dexterity 2-5 should stop movement,
+  deal that roll in bounded damage, sit the character, and apply one combat-round wait.
+  Dexterity 6-10 should stop movement with a one-round wait; higher rolls should allow
+  movement after the recovery message.
+- Repeat with a staff character, a mounted mortal, a flying mortal, and a levitating
+  mortal. Each should ignore the peel. Sleeping characters should not trigger it.
+- Confirm converted god-toy objects 2000005, 2000006, 2000008, 2000009, 2000013,
+  2000017, 2000021-2000025, 2000028, 2000030, 2000044-2000045, 2000050, and 2001025
+  have no special procedure. Their source teleport, remote-room relinking, shutdown,
+  reset, forced-death, character-deletion, and zone-wide destruction commands must have
+  no special effect.
+
 ### Phase 6 converted death-event profiles
 
 - Kill converted mobiles 2000202, 2000902, 2000903, 2000905-2000909, 2001250-2001253,

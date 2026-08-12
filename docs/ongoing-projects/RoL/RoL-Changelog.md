@@ -6,6 +6,71 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted banana and isolated god toys
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed nineteen active object bindings across eighteen source handler families in one
+  source-file batch. The two ordinary `banana` bindings are adapted; seventeen
+  privileged or destructive god-toy callbacks are explicitly excluded while their
+  ordinary object records remain eligible for conversion.
+- Added the typed, object-owned `RoL Banana` procedure and registered its canonical
+  persistence, owner-aware OLC view, compatibility projection, tests, and builder help.
+  Converted fruit 2001235 intercepts `eat banana`, preserves the source full-stomach
+  guard, food-value hunger gain, one-combat-round wait, and creation of peel 2001234.
+- Preserved the peel's source Intelligence avoidance and Dexterity branches: knockout
+  with four to six MUD ticks of sleep and bounded 15-hit-point loss, bounded 2-5-point
+  falls, 6-10 balance recovery with interrupted movement, and higher-roll recovery that
+  permits movement. Staff, mounted, flying, levitating, and sleeping characters remain
+  exempt. Non-aggressive attackers stop when a character is knocked out.
+- Mapped the source 2,400-pulse peel lifetime to eight target 75-second object ticks,
+  preserving the ten-real-minute decay duration exactly through the target `ITEM_DECAY`
+  system.
+- Classified `mystra`, `lloth_avatar`, `lloth`, `varon`, `zusukthing`, `mask`,
+  `kor_avatar`, `velshorn`, `caytra`, `cinandriel`, `altherogs_blackSunSword`,
+  `kelly_mirror`, `burunga`, `diinkarazan`, `erevan`, `shar`, and `azuth` as
+  `SOURCE_UNSAFE_EXCLUDED`. Their source teleport, remote-room relinking, reset,
+  shutdown, forced-death, character-deletion, and zone-wide destruction commands are
+  never persisted or reproduced.
+- Reconciliation now resolves 922 of 1,147 active direct bindings and 379 of 562 source
+  handlers; 225 bindings and 183 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 776 resolved / 72 pending because this batch is object-owned.
+- Archived the forty-second Phase 6 delivery session. At the 20-45-family bulk target,
+  the remaining Phase 6 envelope is 5-10 sessions and the Phases 6-8 forecast is 53-86
+  sessions, or 106-344 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 1ab77127
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-god-toys
+Reconciliation run: rol-phase6-special-ddaefe6a4a82d922
+Active direct bindings: 1,147
+Direct bindings resolved: 922
+Direct bindings pending: 225
+Source handlers resolved: 379
+Source handlers pending: 183
+Additional handler families resolved: 18
+Additional direct bindings resolved: 19
+Native adapted banana bindings: 2
+Unsafe source bindings excluded in this batch: 17
+Unsafe source bindings excluded total: 18
+ACT_SPEC records resolved: 776
+ACT_SPEC records pending: 72
+Special registry definitions: 99 total / 93 legacy / 6 typed
+Compatibility names: 100
+Complete world-tool suite: 299 passed
+Production-linked CuTest suite: 649 passed
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 225 direct bindings across 183 source handlers.
+The next bulk batch continues prioritizing shared mechanics and source-file families.
+
 ## 2026-08-12 - Phase 6 artifact identity reconciliation
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
