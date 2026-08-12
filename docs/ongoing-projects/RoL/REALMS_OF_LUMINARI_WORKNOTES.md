@@ -76,6 +76,7 @@ Phase 6 cross-zone periodic expansion commit: 2844472f
 Phase 6 high-fanout special-adapter commit: 1108fb56
 Phase 6 guild-family adapter commit: 99cb8aed
 Phase 6 Waterdeep-guard composition commit: ef0571bd
+Phase 6 death/periodic bulk-profile commit: 6a81b61e
 ```
 
 The authoritative ignored runs are:
@@ -196,6 +197,9 @@ Phase 6 guild-family adapters:
 Phase 6 Waterdeep-guard composition:
   lib/rol-conversion/runs/phase6-special-20260812-waterdeep-guards-v2
   rol-phase6-special-02a63509af7e962d
+Phase 6 death/periodic bulk profiles:
+  lib/rol-conversion/runs/phase6-special-20260812-death-periodic
+  rol-phase6-special-df9ed4c4ca50c8ed
 Policy:  rol-conversion-policy-1
 ```
 
@@ -224,11 +228,11 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 291 tests; the production-linked CuTest suite passes 645;
+- The world-tool suite passes 292 tests; the production-linked CuTest suite passes 645;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Thirty-five bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Thirty-seven bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
-  shape exists. The measured remaining forecast is 55-90 sessions: Phase 6 is 7-14,
+  shape exists. The measured remaining forecast is 54-88 sessions: Phase 6 is 6-12,
   Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
@@ -374,9 +378,12 @@ Policy:  rol-conversion-policy-1
 - All five active `yggdrasil_branch` bindings are complete through the named
   `RoL Yggdrasil Branch` procedure. Source target weighting, attempt/save gates, timed
   entangle, release, and current-movement halving are preserved.
-- Sixteen active tentacle, treant, phantom-steed, dark-shade, mephit, and elemental
-  death bindings are complete through converted-VNUM runtime profiles. Each preserves
-  its source-family message and no-corpse outcome without using another named slot.
+- Thirty-six active mobile death bindings are complete through converted-VNUM runtime
+  profiles. The original tentacle, treant, phantom-steed, dark-shade, mephit, and
+  elemental profiles retain their no-corpse behavior. The expanded profiles preserve
+  source bursts, darkness, poison, returned possessions, stone-pile inventory,
+  replacement forms, dropped objects, ordinary-corpse messages, and cleric retargeting
+  without using another named slot.
 - Thirty-four active Waterdeep ambient bindings across 23 source handler families are
   complete through `RoL Waterdeep Ambient`. Data-driven converted-VNUM profiles preserve
   the standing gate, two-die distributions, authored action sequences, casino
@@ -384,11 +391,12 @@ Policy:  rol-conversion-policy-1
 - A second Waterdeep ambient batch adds 22 active bindings across 21 source handler
   families to the same adapter. It preserves the source two-d5 outcome tables and
   multi-message ordering, plus the Waterdeep guards' combat-suppression gate.
-- One strict, source-hashed generator now closes 90 regular source handler families and 95
-  active bindings through `RoL Source Periodic`. Its 95 converted mobile profiles retain
-  354 random outcomes and 588 ordered speech or room actions from Bloodstone, Icecrag,
-  Menden, Fun, Mobile, and Realm source files. Sorted generated tables support binary
-  runtime lookup, and per-profile awake and combat gates retain source behavior.
+- One strict, source-hashed generator now closes 94 regular source handler families and 100
+  active bindings through `RoL Source Periodic`. Its 100 converted mobile profiles retain
+  367 random outcomes and 601 ordered speech or room actions from Bloodstone, Icecrag,
+  Menden, Fun, Mobile, Realm, Lavatubes, Tower of Sorcery, and Waterdeep source files.
+  Sorted generated tables support binary runtime lookup; random ranges, dice expressions,
+  awake or sleeping gates, and combat gates retain source behavior.
 - A second strict, source-hashed generator closes 26 direct state-aware Waterdeep handler
   families through `RoL Stateful Periodic` and supplies seven composed Waterdeep guild
   guards through `RoL Guild Guard`. Its 33 converted mobile profiles retain 258
@@ -400,14 +408,14 @@ Policy:  rol-conversion-policy-1
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 838 of 1,147 active direct bindings and 309 of
-  562 source handlers, leaving 309 bindings and 253 handlers. The independent
-  `ACT_SPEC` cross-check resolves 753 of 848 records and leaves 95 pending.
+- The current Phase 6 checkpoint resolves 863 of 1,147 active direct bindings and 332 of
+  562 source handlers, leaving 284 bindings and 230 handlers. The independent
+  `ACT_SPEC` cross-check resolves 766 of 848 records and leaves 82 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 309 direct bindings across 253 handlers. Classify regular
+1. Reconcile the remaining 284 direct bindings across 230 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7

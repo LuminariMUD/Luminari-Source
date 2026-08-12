@@ -6,6 +6,72 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 bulk death and periodic profiles
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed 25 active direct bindings across 23 source handler families in one behavior-shape
+  batch, rather than adapting each handler independently.
+- Generalized the converter-owned mobile death table for 20 bindings across 19 source
+  handlers. The 36 total converted death profiles now preserve source fire bursts and
+  heat-blindness, darkness, room poison, master-returned possessions, stone-pile
+  inventory, replacement forms, dropped objects, memory transfer, ordinary-corpse
+  policy, and no-corpse policy without consuming another persisted SpecProc slot.
+- Preserved automatic cleric retargeting for the two Halruaa replacement forms and Icecrag
+  malice. Preserved the bound black-pudding source defect as a no-split, no-corpse result
+  instead of inventing the apparent intended behavior.
+- Extended the strict source-periodic generator by five bindings across four source
+  handlers. It now parses both random ranges and dice expressions and supports exact
+  sleeping gates. The generated table covers 100 converted mobiles across 94 source
+  families, 367 outcomes, and 601 ordered actions.
+- Added production characterization, source-generator checks, reconciliation assertions,
+  manual testing, builder guidance, and idempotent database help coverage for the expanded
+  runtime.
+- Reconciliation now resolves 863 of 1,147 active direct bindings and 332 of 562 source
+  handlers; 284 bindings and 230 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 766 resolved / 82 pending.
+- Archived the thirty-seventh Phase 6 delivery session. At the measured 20-45-family bulk
+  target, the remaining Phase 6 envelope tightens to 6-12 sessions and the Phases 6-8
+  forecast to 54-88 sessions, or 108-352 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 6a81b61e
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-death-periodic
+Reconciliation run: rol-phase6-special-df9ed4c4ca50c8ed
+Active direct bindings: 1,147
+Direct bindings resolved: 863
+Direct bindings pending: 284
+Source handlers resolved: 332
+Source handlers pending: 230
+Additional handler families resolved: 23
+Additional direct bindings resolved: 25
+Native adapted bindings: 449
+Native adapted composable bindings: 151
+ACT_SPEC records resolved: 766
+ACT_SPEC records pending: 82
+Converted death profiles: 36
+Generated source-periodic profiles: 100
+Generated source-periodic families: 94
+Generated source-periodic outcomes: 367
+Generated source-periodic actions: 601
+Complete world-tool suite: 292 passed
+Focused conversion suite: 68 passed, 6 subtests passed
+Production-linked CuTest suite: 645 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 284 direct bindings across 230 source handlers.
+The bulk classifier will continue taking the largest source-compatible runtime or generated
+profile groups before any one-off handler work.
+
 ## 2026-08-12 - Phase 6 composed Waterdeep guild guards
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
