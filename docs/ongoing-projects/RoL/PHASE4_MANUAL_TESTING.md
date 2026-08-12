@@ -585,6 +585,33 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   to ENTER ship 2098451. One ticket is destroyed and boarding continues. The matching
   ship is blocked without a ticket, while ENTER for an unrelated room object is ignored.
 
+### Phase 6 converted travel portals
+
+- Build dependency-complete stages containing converted objects 2000882, 2003088,
+  2005515-2005516, 2008112-2008113, 2021500-2021501, and 2041941. Confirm all nine use
+  `RoL Travel Portal`; object values 0-3 are remapped only where the source handler uses
+  them as destination rooms.
+- At dimensional fold 2000882, `look in fold` should preview room 2003001 without moving.
+  `enter fold` should move there only when the destination passes target teleport admission
+  and has the same arena state as the origin. An unrelated entered object is ignored.
+- Enter Waterdeep portals 2005515 and 2005516. They should move to rooms 2003044 and
+  2005581. Their active value-one damage is zero; temporarily test a staged copy with
+  positive value one to confirm mortal hit points stop at zero and staff take no damage.
+- Enter fountain 2003088 as a character with a Wizard class level and as a character
+  without one. Only the Wizard, which represents the converted source Illusionist, should
+  move to room 2005582.
+- Enter elfgates 2008112 and 2008113 as a target Elf at levels 19 and 20, then as another
+  race at level 20. Only the level-20 Elf should pass. Repeated entries should use the four
+  remapped destination slots; the active objects currently repeat 2012805 or 2008001 in
+  all four slots.
+- Carry mushroom spores 2021500 or 2021501 and `use spores`. A Cleric should move to
+  2021660 or 2021550 and consume the spores. A non-Cleric should remain in place, consume
+  the spores, and be stunned for about 60 seconds. Zero charges, an invalid destination,
+  or an arena-boundary mismatch should produce no movement or consumption.
+- `enter circle` through Blip portal 2041941 from inventory, equipment, and a room. Each
+  successful trip should move to 2041914 and give badge 2041900. The active infinite
+  charge must not decrease or destroy the portal; an unrelated entered object is ignored.
+
 ### Phase 6 converted death-event profiles
 
 - Kill converted mobiles 2000202, 2000902, 2000903, 2000905-2000909, 2001250-2001253,
@@ -761,8 +788,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 882 are resolved and 265 remain. Of 562 distinct
-  source handlers, 344 are resolved and 218 remain. Of 848 `ACT_SPEC` records, 776 are
+  of the 1,147 active direct bindings, 891 are resolved and 256 remain. Of 562 distinct
+  source handlers, 350 are resolved and 212 remain. Of 848 `ACT_SPEC` records, 776 are
   resolved and 72 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

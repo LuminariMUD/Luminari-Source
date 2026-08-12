@@ -6,6 +6,72 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted travel portals
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed nine active object bindings across six source handler families through one
+  identity-keyed, object-owned `RoL Travel Portal` procedure.
+- Preserved dimensional fold 2000882 with exact room-object selection, `look in`
+  destination preview, destination value remapping, arena parity, target teleport
+  admission, and source transit messages.
+- Preserved Waterdeep portals 2005515-2005516 with remapped value-zero destinations,
+  source value-one mortal damage with a zero-hit-point floor, and staff damage immunity.
+  Preserved fountain 2003088's fixed destination 2005582 and source Illusionist gate
+  through the target Wizard mapping.
+- Preserved elfgates 2008112-2008113 with all four randomly selected destination slots,
+  level-20 admission, and the source Grey-Elf/Half-Elf gate through their shared target
+  Elf identity.
+- Preserved mushroom spores 2021500-2021501 as carried `use` objects. A target Cleric,
+  which is the source Shaman mapping, teleports to the remapped destination; another
+  actor consumes the spores and receives the source-equivalent 60-second stun. Empty
+  charges, invalid destinations, and arena-boundary mismatches safely do nothing.
+- Preserved Blip portal 2041941 in inventory, equipment, or a room, including its
+  remapped destination, active infinite charge, source fade messages, and converted
+  Badge of the Knights of Volheru reward 2041900. The adapter also preserves the
+  source positive-charge depletion path for future equivalent instances.
+- Extended the canonical registry, owner-aware OLC, persisted-name inventory,
+  converter value-reference remapping, reconciliation, mechanic characterization,
+  manual testing, builder documentation, and builder help coverage.
+- Reconciliation now resolves 891 of 1,147 active direct bindings and 350 of 562 source
+  handlers; 256 bindings and 212 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 776 resolved / 72 pending because this batch is object-owned.
+- Archived the fortieth Phase 6 delivery session. At the measured 20-45-family bulk
+  target, the remaining Phase 6 envelope remains 5-11 sessions and the Phases 6-8
+  forecast remains 53-87 sessions, or 106-348 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 3c0ab331
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-travel-portals
+Reconciliation run: rol-phase6-special-306471922b67fe8c
+Active direct bindings: 1,147
+Direct bindings resolved: 891
+Direct bindings pending: 256
+Source handlers resolved: 350
+Source handlers pending: 212
+Additional handler families resolved: 6
+Additional direct bindings resolved: 9
+Native adapted bindings: 474
+Native adapted composable bindings: 151
+DG-compiled bindings: 48
+ACT_SPEC records resolved: 776
+ACT_SPEC records pending: 72
+Complete world-tool suite: 296 passed
+Production-linked CuTest suite: 648 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 256 direct bindings across 212 source handlers.
+The next batch continues prioritizing shared behavior shapes and high binding yield.
+
 ## 2026-08-12 - Phase 6 toll and ticket keepers
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

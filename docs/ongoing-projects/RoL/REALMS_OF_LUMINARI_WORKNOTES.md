@@ -79,6 +79,7 @@ Phase 6 Waterdeep-guard composition commit: ef0571bd
 Phase 6 death/periodic bulk-profile commit: 6a81b61e
 Phase 6 command-sentinel commit: 827d5f6d
 Phase 6 toll/ticket-keeper commit: cecbec9d
+Phase 6 travel-portal commit: 3c0ab331
 ```
 
 The authoritative ignored runs are:
@@ -208,6 +209,9 @@ Phase 6 command sentinels:
 Phase 6 toll and ticket keepers:
   lib/rol-conversion/runs/phase6-special-20260812-toll-keepers
   rol-phase6-special-069b798651151c53
+Phase 6 travel portals:
+  lib/rol-conversion/runs/phase6-special-20260812-travel-portals
+  rol-phase6-special-306471922b67fe8c
 Policy:  rol-conversion-policy-1
 ```
 
@@ -236,9 +240,9 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 295 tests; the production-linked CuTest suite passes 647;
+- The world-tool suite passes 296 tests; the production-linked CuTest suite passes 648;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Thirty-nine bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Forty bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
   shape exists. The measured remaining forecast is 53-87 sessions: Phase 6 is 5-11,
   Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -421,18 +425,23 @@ Policy:  rol-conversion-policy-1
   passages, two bridge throws, four ticketed ship entries, target-currency conversion,
   underpayment retention, NPC passage, source periodic speech, exact rooms, destinations,
   ticket identities, and entered ship identities.
+- Six travel-handler families covering nine active object bindings are complete through
+  `RoL Travel Portal`. The identity-keyed profiles preserve dimensional-fold preview and
+  arena parity, Waterdeep fixed damage and fountain class admission, four-slot random
+  elfgates, carried Shaman-spore consumption and stun behavior through the target Cleric
+  mapping, and the Blip portal's converted badge reward.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 882 of 1,147 active direct bindings and 344 of
-  562 source handlers, leaving 265 bindings and 218 handlers. The independent
+- The current Phase 6 checkpoint resolves 891 of 1,147 active direct bindings and 350 of
+  562 source handlers, leaving 256 bindings and 212 handlers. The independent
   `ACT_SPEC` cross-check resolves 776 of 848 records and leaves 72 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 265 direct bindings across 218 handlers. Classify regular
+1. Reconcile the remaining 256 direct bindings across 212 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7

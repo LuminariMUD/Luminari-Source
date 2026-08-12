@@ -91,6 +91,13 @@ the loaded destination. `enter` preserves the source level-20 and arena-boundary
 target teleport-admission safety, and moves only the character selecting that exact portal object.
 The procedure and destination remapping are converter-owned.
 
+`RoL Travel Portal` is object-owned and identity-keyed to nine converted objects. It preserves a
+dimensional fold with `look in` preview, two Waterdeep portals with value-one mortal damage, a
+Wizard-only converted illusionist fountain, two level-20 Elf gates with four randomized destination
+slots, two carried Cleric spores with a non-Cleric stun path, and a Blip portal that gives converted
+badge 2041900. Destination values are remapped by the converter. Do not assign this procedure to
+unrelated objects; their identities have no travel profile.
+
 `RoL Item Blocker` is object-owned and reads the blocked cardinal direction from object value 0.
 While an aggressive NPC occupies the room, it blocks mortal players and player pets from moving
 or unlocking a door in that direction. This procedure and its six ATD objects are converter-owned.

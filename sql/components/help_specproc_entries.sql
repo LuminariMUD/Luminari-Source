@@ -95,6 +95,13 @@ source-evil races. LOOK IN previews the loaded destination. ENTER preserves the
 source level-20 and arena gates, applies target teleport-admission safety, and
 moves only a character selecting that exact portal object.
 
+RoL Travel Portal is object-owned and identity-keyed to nine converted objects.
+It preserves a dimensional fold with LOOK IN preview, two Waterdeep portals,
+a Wizard-only illusionist fountain, two level-20 Elf gates with four randomized
+destination slots, two carried Cleric spores with a non-Cleric stun path, and a
+Blip portal that gives converted badge 2041900. Do not assign it to unrelated
+objects because their identities have no travel profile.
+
 RoL Item Blocker is object-owned and reads its blocked cardinal direction from
 object value 0. While an aggressive NPC occupies the room, it blocks mortal
 players and player pets from moving or unlocking a door in that direction.

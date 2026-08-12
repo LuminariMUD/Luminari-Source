@@ -44,6 +44,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, '12 percent chance per object pulse') > 0
   AND INSTR(entry, 'RoL Bloodstone Portal is object-owned') > 0
   AND INSTR(entry, '1-20 hit points and 1-30 movement points') > 0
+  AND INSTR(entry, 'RoL Travel Portal is object-owned') > 0
+  AND INSTR(entry, 'Blip portal that gives converted badge 2041900') > 0
   AND INSTR(entry, 'RoL Item Blocker is object-owned') > 0
   AND INSTR(entry, 'six converted ATD objects') > 0
   AND INSTR(entry, 'RoL Magic Pool is object-owned') > 0
