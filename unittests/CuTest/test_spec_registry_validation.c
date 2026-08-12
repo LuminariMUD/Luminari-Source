@@ -180,8 +180,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
   CuAssertIntEquals(tc, 95, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 93, (int)spec_registry_legacy_count());
-  CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 92, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 3, (int)spec_registry_typed_count());
 
   alias_count = 0;
   for (definition_index = 0; definition_index < spec_registry_count(); definition_index++)
@@ -371,7 +371,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Shadow Giant", rol_shadow_giant, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Guild Guard", rol_guild_guard, SPEC_OWNER_MOBILE,
-       SPEC_EVENT_COMMAND | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+       SPEC_EVENT_COMMAND | SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN,
+       SPEC_BINDING_SOURCE_WORLD},
       {"RoL Major Beholder", rol_major_beholder, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Lich Energy Drain", rol_lich_energy_drain, SPEC_OWNER_MOBILE,

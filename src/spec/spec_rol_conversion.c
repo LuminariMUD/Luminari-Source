@@ -29,6 +29,7 @@
 #include "obj/shop.h"
 #include "spec_combat.h"
 #include "spec_context.h"
+#include "spec_dispatch.h"
 #include "spec_rol_conversion.h"
 #include "spec_rol_totem.h"
 
@@ -556,7 +557,17 @@ static const struct rol_ambient_action rol_ambient_actions[] = {
 /* Only rooms reached by active converted guild_guard bindings are retained.
  * Target VNUMs are the source room VNUMs under the Phase 4 +2,000,000 offset. */
 static const struct rol_guild_guard_rule rol_guild_guard_rules[] = {
+    {2002951, NORTH, ROL_GUILD_CLASS(CLASS_ASSASSIN) | ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
+    {2003055, SOUTH,
+     ROL_GUILD_CLASS(CLASS_WARRIOR) | ROL_GUILD_CLASS(CLASS_BERSERKER) |
+         ROL_GUILD_CLASS(CLASS_BLACKGUARD),
+     0, true},
+    {2003067, NORTH, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
+    {2003283, EAST, ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
     {2004128, NORTH, 0, 0, false},
+    {2005510, EAST, ROL_GUILD_CLASS(CLASS_WARRIOR), 0, true},
+    {2005520, SOUTH, ROL_GUILD_CLASS(CLASS_MONK), 0, true},
+    {2005570, EAST, ROL_GUILD_CLASS(CLASS_WIZARD), 0, true},
     {2007669, NORTH, ROL_GUILD_CLASS(CLASS_WARRIOR) | ROL_GUILD_CLASS(CLASS_BLACKGUARD), 0, true},
     {2007817, DOWN, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
     {2007837, WEST, ROL_GUILD_CLASS(CLASS_ASSASSIN) | ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
@@ -1922,6 +1933,20 @@ int rol_guild_guard_passage_destination(int room_vnum, int direction)
 {
   switch (room_vnum)
   {
+  case 2002951:
+    return direction == NORTH ? 2002952 : 0;
+  case 2003055:
+    return direction == SOUTH ? 2003056 : 0;
+  case 2003067:
+    return direction == NORTH ? 2003068 : 0;
+  case 2003283:
+    return direction == EAST ? 2003284 : 0;
+  case 2005510:
+    return direction == EAST ? 2005511 : 0;
+  case 2005520:
+    return direction == SOUTH ? 2005521 : 0;
+  case 2005570:
+    return direction == EAST ? 2005571 : 0;
   case 2007669:
     return direction == NORTH ? 2007670 : 0;
   case 2007817:
@@ -1937,6 +1962,11 @@ int rol_guild_guard_passage_destination(int room_vnum, int direction)
   default:
     return 0;
   }
+}
+
+bool rol_guild_guard_trips_rejected(int room_vnum, int direction)
+{
+  return room_vnum == 2002951 && direction == NORTH;
 }
 
 static room_rnum rol_guild_guard_teleport_destination(struct char_data *victim)
@@ -2051,11 +2081,7 @@ int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argumen
 
   current_room_vnum = GET_ROOM_VNUM(IN_ROOM(guard));
   if (cmd == 0)
-  {
-    if (rol_guild_guard_protects(current_room_vnum) && FIGHTING(guard) != NULL)
-      return rol_guild_guard_protection(guard, FIGHTING(guard));
     return FALSE;
-  }
 
   if (ch == NULL || complete_cmd_info == NULL || !IS_MOVE(cmd))
     return FALSE;
@@ -2100,7 +2126,42 @@ int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argumen
 
   act("$n humiliates you, and blocks your way.", FALSE, guard, NULL, ch, TO_VICT);
   act("$n humiliates $N, and blocks $S way.", FALSE, guard, NULL, ch, TO_NOTVICT);
+  if (rol_guild_guard_trips_rejected(current_room_vnum, direction))
+    GET_POS(ch) = POS_SITTING;
   return TRUE;
+}
+
+int rol_guild_guard_typed(struct spec_event_context *context)
+{
+  struct char_data *guard;
+  int current_room_vnum;
+
+  if (context == NULL || context->owner_type != SPEC_OWNER_MOBILE)
+    return FALSE;
+
+  guard = context->owner;
+  if (guard == NULL || !IS_NPC(guard) || !VALID_ROOM_RNUM(IN_ROOM(guard)) ||
+      GET_MOB_LOADROOM(guard) != IN_ROOM(guard))
+    return FALSE;
+
+  switch (context->event)
+  {
+  case SPEC_EVENT_COMMAND:
+    return rol_guild_guard(context->actor, guard, context->command, context->argument);
+  case SPEC_EVENT_MOBILE_ACTIVITY:
+    current_room_vnum = GET_ROOM_VNUM(IN_ROOM(guard));
+    if (rol_guild_guard_protects(current_room_vnum) && FIGHTING(guard) != NULL &&
+        !IS_NPC(FIGHTING(guard)))
+      return FALSE;
+    return rol_state_periodic(guard, guard, 0, context->argument);
+  case SPEC_EVENT_MOBILE_COMBAT_TURN:
+    current_room_vnum = GET_ROOM_VNUM(IN_ROOM(guard));
+    if (rol_guild_guard_protects(current_room_vnum) && FIGHTING(guard) != NULL)
+      return rol_guild_guard_protection(guard, FIGHTING(guard));
+    return FALSE;
+  default:
+    return FALSE;
+  }
 }
 
 int rol_major_beholder_eye_spell(int eye)

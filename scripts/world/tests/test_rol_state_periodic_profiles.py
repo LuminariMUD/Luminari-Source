@@ -4,7 +4,13 @@ import re
 import unittest
 
 from wtool_lib.constants import default_repo_root
-from wtool_lib.rol_state_periodic_profiles import STATE_PROFILE_SOURCES
+from wtool_lib.rol_state_periodic_profiles import (
+    COMPOSED_STATE_PROFILE_SOURCES,
+    STATE_PROFILE_SOURCES,
+)
+
+
+ALL_STATE_PROFILE_SOURCES = {**STATE_PROFILE_SOURCES, **COMPOSED_STATE_PROFILE_SOURCES}
 
 
 class RolStatePeriodicProfileTests(unittest.TestCase):
@@ -18,23 +24,25 @@ class RolStatePeriodicProfileTests(unittest.TestCase):
   def test_selected_manifest_has_unique_waterdeep_mobile_coverage(self) -> None:
     vnums = [
         vnum
-        for _relative, profile_vnums, _states in STATE_PROFILE_SOURCES.values()
+        for _relative, profile_vnums, _states in ALL_STATE_PROFILE_SOURCES.values()
         for vnum in profile_vnums
     ]
 
-    self.assertEqual(26, len(STATE_PROFILE_SOURCES))
-    self.assertEqual(26, len(vnums))
+    self.assertEqual(33, len(ALL_STATE_PROFILE_SOURCES))
+    self.assertEqual(33, len(vnums))
     self.assertEqual(len(vnums), len(set(vnums)))
     self.assertEqual(
         {"src/specs.waterdeep.c"},
-        {relative for relative, _vnums, _states in STATE_PROFILE_SOURCES.values()},
+        {relative for relative, _vnums, _states in ALL_STATE_PROFILE_SOURCES.values()},
     )
 
   def test_checked_in_table_covers_manifest_and_source_digest(self) -> None:
     enum_names = set(
         re.findall(r"^  ROL_STATE_PERIODIC_([A-Z0-9_]+),$", self.generated, re.MULTILINE)
     )
-    expected_names = {re.sub(r"[^A-Za-z0-9]+", "_", name).upper() for name in STATE_PROFILE_SOURCES}
+    expected_names = {
+        re.sub(r"[^A-Za-z0-9]+", "_", name).upper() for name in ALL_STATE_PROFILE_SOURCES
+    }
     generated_vnums = [
         int(value)
         for value in re.findall(
@@ -43,7 +51,7 @@ class RolStatePeriodicProfileTests(unittest.TestCase):
     ]
     expected_vnums = sorted(
         vnum
-        for _relative, profile_vnums, _states in STATE_PROFILE_SOURCES.values()
+        for _relative, profile_vnums, _states in ALL_STATE_PROFILE_SOURCES.values()
         for vnum in profile_vnums
     )
 
@@ -71,8 +79,8 @@ class RolStatePeriodicProfileTests(unittest.TestCase):
     )
 
     self.assertEqual(sorted(outcomes), outcomes)
-    self.assertEqual(206, len(outcomes))
-    self.assertEqual(210, len(actions))
+    self.assertEqual(258, len(outcomes))
+    self.assertEqual(266, len(actions))
 
 
 if __name__ == "__main__":

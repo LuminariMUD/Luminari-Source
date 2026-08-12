@@ -54,6 +54,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'one-in-21 chance') > 0
   AND INSTR(entry, 'RoL Guild Guard is mobile-owned') > 0
   AND INSTR(entry, 'Antipaladin to Blackguard') > 0
+  AND INSTR(entry, 'Seven Waterdeep guild guards') > 0
   AND INSTR(entry, 'room-specific class and race gates') > 0
   AND INSTR(entry, 'RoL Waterdeep Guild Room is room-owned') > 0
   AND INSTR(entry, 'Source Mercenary maps to target Warrior') > 0
@@ -77,7 +78,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'jester 2003069, and cricket 2014048 do not require') > 0
   AND INSTR(entry, 'Menden magus 2088806 continue') > 0
   AND INSTR(entry, 'RoL Stateful Periodic is mobile-owned') > 0
-  AND INSTR(entry, '206 source') > 0
+  AND INSTR(entry, '258 source') > 0
   AND INSTR(entry, 'Guildmaster 2003020 has no authored') > 0
   AND INSTR(entry, 'RoL Sister Knight is mobile-owned') > 0
   AND INSTR(entry, 'reachable converted sister within 100 rooms') > 0

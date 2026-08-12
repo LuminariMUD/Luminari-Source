@@ -8,7 +8,7 @@ from typing import Callable, Iterable
 
 from .flags import encode_bits
 from .rol_periodic_profiles import PROFILE_SOURCES
-from .rol_state_periodic_profiles import STATE_PROFILE_SOURCES
+from .rol_state_periodic_profiles import COMPOSED_STATE_PROFILE_SOURCES, STATE_PROFILE_SOURCES
 from .rol_source import RolRecord
 
 
@@ -167,6 +167,9 @@ ADAPTED_HANDLER_NAMES.update(
 )
 ADAPTED_HANDLER_NAMES.update(
     {handler_name: "RoL Stateful Periodic" for handler_name in STATE_PROFILE_SOURCES}
+)
+ADAPTED_HANDLER_NAMES.update(
+    {handler_name: "RoL Guild Guard" for handler_name in COMPOSED_STATE_PROFILE_SOURCES}
 )
 
 # These callbacks return before their obsolete or apparent behavior. Binding
@@ -886,6 +889,7 @@ def compile_special_bindings(
           "bs_guildguard_thief",
           "follow_that_mob",
           "guild_guard",
+          *COMPOSED_STATE_PROFILE_SOURCES,
           "lich_energy_drain",
           "major_beholder",
           "navagator",

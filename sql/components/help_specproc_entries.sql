@@ -115,7 +115,8 @@ room-specific class and race gates only while the guard remains in its original
 load room. Protected guards punish and relocate mortal attackers. Use the
 ordinary Guild Guard procedure for new Luminari guild entrances. Six converted
 Bloodstone gates map Antipaladin to Blackguard, Shaman to Cleric, and Lich to
-Necromancer.
+Necromancer. Seven Waterdeep guild guards compose their class gates and guardian
+retaliation with generated, source-hashed idle and fighting flavor tables.
 
 RoL Waterdeep Guild Room is room-owned and converter-owned. Twelve converted
 Waterdeep guild rooms retain their room-specific exact or class-family gate and
@@ -178,14 +179,16 @@ mobile. Fun mobile 2001230, jester 2003069, and Menden magus 2088806 continue
 during combat. Do not assign this converter-owned, identity-keyed procedure to
 unrelated mobiles.
 
-RoL Stateful Periodic is mobile-owned and requires MOB_SPEC. Twenty-six converted
-Waterdeep mobiles use generated idle and fighting tables containing 206 source
-outcomes and 210 ordered speech or room-visible actions. Idle tables require an
+RoL Stateful Periodic is mobile-owned and requires MOB_SPEC. Thirty-three converted
+Waterdeep mobiles have generated idle and fighting profiles containing 258 source
+outcomes and 266 ordered speech or room-visible actions. Idle tables require an
 awake, standing mobile. Fighting tables run instead whenever a mobile has a current
 opponent, making the source-authored combat tables usable even where the source
 tested standing position before fighting state. Guildmaster 2003020 has no authored
-fighting table and remains quiet in combat. Do not assign this converter-owned,
-identity-keyed procedure to unrelated mobiles.
+fighting table and remains quiet in combat. Twenty-six profiles use this procedure
+directly; seven Waterdeep guild guards compose the same generated profiles through
+RoL Guild Guard. Do not assign either converter-owned, identity-keyed procedure to
+unrelated mobiles.
 
 RoL Sister Knight is mobile-owned and requires MOB_SPEC. When one of the five
 converted Sister Knight prototypes enters combat, it shouts once across the zone

@@ -755,7 +755,28 @@ void Test_spec_rol_guild_guard_preserves_active_gate_rules(CuTest *tc)
   CLASS_LEVEL(target, CLASS_NECROMANCER) = 0;
   CLASS_LEVEL(target, CLASS_CLERIC) = 1;
   CuAssertTrue(tc, rol_guild_guard_allows(2007817, DOWN, target));
+  CuAssertTrue(tc, rol_guild_guard_allows(2003067, NORTH, target));
   CLASS_LEVEL(target, CLASS_CLERIC) = 0;
+
+  CLASS_LEVEL(target, CLASS_WARRIOR) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2005510, EAST, target));
+  CLASS_LEVEL(target, CLASS_WARRIOR) = 0;
+  CLASS_LEVEL(target, CLASS_MONK) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2005520, SOUTH, target));
+  CLASS_LEVEL(target, CLASS_MONK) = 0;
+  CLASS_LEVEL(target, CLASS_WIZARD) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2005570, EAST, target));
+  CLASS_LEVEL(target, CLASS_WIZARD) = 0;
+  CLASS_LEVEL(target, CLASS_BERSERKER) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2003055, SOUTH, target));
+  CLASS_LEVEL(target, CLASS_BERSERKER) = 0;
+  CLASS_LEVEL(target, CLASS_ROGUE) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2003283, EAST, target));
+  CuAssertTrue(tc, rol_guild_guard_allows(2002951, NORTH, target));
+  CLASS_LEVEL(target, CLASS_ROGUE) = 0;
+
+  CuAssertTrue(tc, !rol_guild_guard_allows(2005510, EAST, target));
+  CuAssertTrue(tc, !rol_guild_guard_allows(2005570, EAST, target));
 
   CuAssertTrue(tc, rol_guild_guard_protects(2008200));
   CuAssertTrue(tc, rol_guild_guard_protects(2007669));
@@ -770,8 +791,18 @@ void Test_spec_rol_guild_guard_preserves_active_gate_rules(CuTest *tc)
   CuAssertIntEquals(tc, 2007845, rol_guild_guard_passage_destination(2007844, EAST));
   CuAssertIntEquals(tc, 2007865, rol_guild_guard_passage_destination(2007864, WEST));
   CuAssertIntEquals(tc, 2007881, rol_guild_guard_passage_destination(2007880, WEST));
+  CuAssertIntEquals(tc, 2002952, rol_guild_guard_passage_destination(2002951, NORTH));
+  CuAssertIntEquals(tc, 2003056, rol_guild_guard_passage_destination(2003055, SOUTH));
+  CuAssertIntEquals(tc, 2003068, rol_guild_guard_passage_destination(2003067, NORTH));
+  CuAssertIntEquals(tc, 2003284, rol_guild_guard_passage_destination(2003283, EAST));
+  CuAssertIntEquals(tc, 2005511, rol_guild_guard_passage_destination(2005510, EAST));
+  CuAssertIntEquals(tc, 2005521, rol_guild_guard_passage_destination(2005520, SOUTH));
+  CuAssertIntEquals(tc, 2005571, rol_guild_guard_passage_destination(2005570, EAST));
   CuAssertIntEquals(tc, 0, rol_guild_guard_passage_destination(2007669, SOUTH));
   CuAssertIntEquals(tc, 0, rol_guild_guard_passage_destination(2008200, WEST));
+  CuAssertTrue(tc, rol_guild_guard_trips_rejected(2002951, NORTH));
+  CuAssertTrue(tc, !rol_guild_guard_trips_rejected(2002951, SOUTH));
+  CuAssertTrue(tc, !rol_guild_guard_trips_rejected(2005510, EAST));
 
   target->player_specials = &dummy_mob;
   SET_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
@@ -1077,7 +1108,7 @@ void Test_spec_rol_state_periodic_profiles_preserve_idle_and_fighting_tables(CuT
   int dice_count;
   int dice_sides;
 
-  CuAssertIntEquals(tc, 26, (int)rol_state_periodic_profile_count());
+  CuAssertIntEquals(tc, 33, (int)rol_state_periodic_profile_count());
 
   CuAssertTrue(tc, rol_state_periodic_dice(2003039, false, &dice_count, &dice_sides));
   CuAssertIntEquals(tc, 2, dice_count);
@@ -1092,6 +1123,12 @@ void Test_spec_rol_state_periodic_profiles_preserve_idle_and_fighting_tables(CuT
   CuAssertIntEquals(tc, 2, dice_count);
   CuAssertIntEquals(tc, 7, dice_sides);
   CuAssertTrue(tc, rol_state_periodic_dice(2005519, true, &dice_count, &dice_sides));
+  CuAssertIntEquals(tc, 1, dice_count);
+  CuAssertIntEquals(tc, 4, dice_sides);
+  CuAssertTrue(tc, rol_state_periodic_dice(2005505, false, &dice_count, &dice_sides));
+  CuAssertIntEquals(tc, 2, dice_count);
+  CuAssertIntEquals(tc, 5, dice_sides);
+  CuAssertTrue(tc, rol_state_periodic_dice(2005505, true, &dice_count, &dice_sides));
   CuAssertIntEquals(tc, 1, dice_count);
   CuAssertIntEquals(tc, 4, dice_sides);
   CuAssertTrue(tc, !rol_state_periodic_dice(9999999, false, NULL, NULL));
@@ -1109,6 +1146,12 @@ void Test_spec_rol_state_periodic_profiles_preserve_idle_and_fighting_tables(CuT
                     rol_state_periodic_outcome_action(2003039, true, 1, 0, &speech, &hide));
   CuAssertTrue(tc, !speech);
   CuAssertTrue(tc, hide);
+  CuAssertStrEquals(tc, "Wanna fight, pig? I could use some exercise..",
+                    rol_state_periodic_outcome_action(2005505, false, 3, 0, &speech, &hide));
+  CuAssertTrue(tc, speech);
+  CuAssertStrEquals(tc, "Die, worm!! I'm hungry, and you'll make a PERFECT lunchtime snack!",
+                    rol_state_periodic_outcome_action(2005505, true, 2, 0, &speech, &hide));
+  CuAssertTrue(tc, speech);
   CuAssertTrue(tc, rol_state_periodic_outcome_action(2003039, false, 4, 2, NULL, NULL) == NULL);
   CuAssertTrue(tc, rol_state_periodic_outcome_action(9999999, false, 4, 0, NULL, NULL) == NULL);
 }

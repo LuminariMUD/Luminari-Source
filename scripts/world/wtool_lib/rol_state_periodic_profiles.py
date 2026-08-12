@@ -31,3 +31,17 @@ STATE_PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...], tuple[str, ...]]] =
     "young_necro_one": ("src/specs.waterdeep.c", (2005538,), ("idle", "fighting")),
     "young_paladin_one": ("src/specs.waterdeep.c", (2005504,), ("idle", "fighting")),
 }
+
+
+# These handlers combine the same regular state-aware message tables with
+# class-gate and guardian mechanics supplied by RoL Guild Guard.  Their state
+# tables are generated here so composition does not discard source flavor.
+COMPOSED_STATE_PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...], tuple[str, ...]]] = {
+    "guild_guard_eleven": ("src/specs.waterdeep.c", (2003027,), ("idle", "fighting")),
+    "guild_guard_seven": ("src/specs.waterdeep.c", (2005535,), ("fighting",)),
+    "guild_guard_ten": ("src/specs.waterdeep.c", (2003025,), ("idle", "fighting")),
+    "guild_guard_thirteen": ("src/specs.waterdeep.c", (2002824,), ("idle", "fighting")),
+    "guild_guard_three": ("src/specs.waterdeep.c", (2005511,), ("idle", "fighting")),
+    "guild_guard_twelve": ("src/specs.waterdeep.c", (2003026,), ("idle", "fighting")),
+    "guild_guard_two": ("src/specs.waterdeep.c", (2005505,), ("idle", "fighting")),
+}

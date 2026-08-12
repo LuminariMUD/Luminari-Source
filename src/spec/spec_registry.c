@@ -92,6 +92,7 @@ static const struct spec_event_contract rol_ship_navigator_events[] = {
 
 static const struct spec_event_contract rol_guild_guard_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
 };
 
@@ -1188,8 +1189,10 @@ static const struct spec_definition spec_definitions[] = {
         .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "RoL Conversion",
-        .description = "Enforces converted RoL guild gates and retaliates against attackers.",
-        .legacy_handler = rol_guild_guard,
+        .description = "Enforces converted RoL guild gates, retaliates against attackers, and "
+                       "emits composed Waterdeep guard flavor.",
+        .typed_adapter = rol_guild_guard,
+        .typed_handler = rol_guild_guard_typed,
     },
     {
         .canonical_name = "RoL Major Beholder",
@@ -1374,7 +1377,7 @@ static const struct spec_definition spec_definitions[] = {
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "RoL Conversion",
         .description = "Emits generated source-authored idle or fighting speech and room actions "
-                       "for converted RoL mobiles.",
+                       "for converted RoL mobiles; some profiles compose through other adapters.",
         .legacy_handler = rol_state_periodic,
     },
 };

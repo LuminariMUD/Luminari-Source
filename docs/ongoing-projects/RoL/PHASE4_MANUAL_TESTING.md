@@ -350,7 +350,7 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 
 ### Phase 6 converted guild guards
 
-- `RoL Guild Guard` is implemented for all 53 active source bindings, but the affected
+- `RoL Guild Guard` is implemented for all 60 active source bindings, but the affected
   packages are outside the five-package staged pilot. Do not assign it to an unrelated
   mobile: its class, race, direction, and protection rules recognize converted rooms only.
 - In a later dependency-complete stage, approach a guarded entrance with an ineligible
@@ -367,6 +367,13 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   2007837 west, 2007844 east, 2007864 west, and 2007880 west. Their accepted target
   classes are Warrior/Blackguard, Cleric, Assassin/Rogue, Wizard/Sorcerer, Rogue, and
   Necromancer respectively.
+- Exercise the seven converted Waterdeep gates at rooms 2002951 north, 2003055 south,
+  2003067 north, 2003283 east, 2005510 east, 2005520 south, and 2005570 east. Accepted
+  target classes are Assassin/Rogue, Warrior/Berserker/Blackguard, Cleric, Rogue,
+  Warrior, Monk, and Wizard. A character rejected at 2002951 must be knocked to a
+  sitting position.
+  Accepted characters must reach the exact converted destination even when the entrance
+  is closed. The guards must also retain their generated idle and fighting flavor.
 
 ### Phase 6 converted class-family guild rooms
 
@@ -599,6 +606,9 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   `RoL Stateful Periodic` with `MOB_SPEC`: 2002823, 2003020-2003023, 2003039, 2005315,
   2005503-2005504, 2005507-2005508, 2005510, 2005513-2005521, 2005525, 2005530,
   2005533-2005534, 2005538, and 2005540.
+- Confirm seven additional Waterdeep guild guards use `RoL Guild Guard` with `MOB_SPEC`
+  while drawing from the same generated state-profile table: 2002824, 2003025-2003027,
+  2005505, 2005511, and 2005535.
 - While awake and standing but not fighting, observe representative profiles across repeated
   activity pulses. They should use their source idle speech and room actions. Most roll two-d5;
   Selune dancer 2005519 rolls two-d7. Sitting and sleeping representatives remain quiet.

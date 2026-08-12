@@ -14,7 +14,10 @@ from wtool_lib.rol_source import parse_active_rol_corpus, parse_rol_source_file
 from wtool_lib.rol_discovery import extract_source_commands
 from wtool_lib.rol_pilot import PILOT_BASENAMES
 from wtool_lib.rol_periodic_profiles import PROFILE_SOURCES
-from wtool_lib.rol_state_periodic_profiles import STATE_PROFILE_SOURCES
+from wtool_lib.rol_state_periodic_profiles import (
+    COMPOSED_STATE_PROFILE_SOURCES,
+    STATE_PROFILE_SOURCES,
+)
 from wtool_lib.rol_soc import build_soc_prototype_comparison, compile_soc_records
 from wtool_lib.rol_special import compile_special_bindings
 from wtool_lib.rol_transform import (
@@ -1481,6 +1484,7 @@ class RolTransformTests(unittest.TestCase):
         "bs_guildguard_necro",
         "bs_guildguard_sorcconj",
         "bs_guildguard_thief",
+        *COMPOSED_STATE_PROFILE_SOURCES,
     ]
     bindings = [
         {
@@ -1500,7 +1504,7 @@ class RolTransformTests(unittest.TestCase):
     )
 
     native = compiled.native_bindings[0]
-    self.assertEqual(7, len(compiled.native_bindings))
+    self.assertEqual(14, len(compiled.native_bindings))
     self.assertTrue(
         all(binding.persisted_name == "RoL Guild Guard" for binding in compiled.native_bindings)
     )

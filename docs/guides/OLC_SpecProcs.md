@@ -110,7 +110,9 @@ procedure is intended for the converted RoL shadow-giant family rather than gene
 class and race gates, acts only from the guard's original load room, and retaliates when protected
 guards are attacked. Its room rules are converter-owned; use the ordinary `Guild Guard` procedure
 for new Luminari guild entrances. The converted rules include six Bloodstone class entrances;
-source Antipaladin maps to Blackguard, Shaman to Cleric, and Lich to Necromancer.
+source Antipaladin maps to Blackguard, Shaman to Cleric, and Lich to Necromancer. Seven Waterdeep
+guild guards also compose their class gate and guardian retaliation with generated, source-hashed
+idle and fighting flavor tables.
 
 `RoL Waterdeep Guild Room` is room-owned and converter-owned. Twelve converted Waterdeep guild
 rooms retain their exact or class-family admission gate while delegating accepted `practice`,
@@ -172,13 +174,15 @@ require an awake mobile. Fun mobile 2001230, jester 2003069, and Menden magus 20
 source profiles that continue during combat. The profiles are keyed to converted mobile identity;
 do not assign this converter-owned procedure to unrelated mobiles.
 
-`RoL Stateful Periodic` is mobile-owned and requires `MOB_SPEC`. Twenty-six converted Waterdeep
-mobiles use generated idle and fighting tables containing 206 source outcomes and 210 ordered
+`RoL Stateful Periodic` is mobile-owned and requires `MOB_SPEC`. Thirty-three converted Waterdeep
+mobiles have generated idle and fighting profiles containing 258 source outcomes and 266 ordered
 speech or room-visible actions. Idle tables require an awake, standing mobile. Fighting tables run
 instead whenever a mobile has a current opponent; this makes the source-authored combat tables
 usable even where the source tested standing position before fighting state. Guildmaster 2003020
-has no authored fighting table and remains quiet in combat. The profiles are keyed to converted
-mobile identity; do not assign this converter-owned procedure to unrelated mobiles.
+has no authored fighting table and remains quiet in combat. Twenty-six profiles use this procedure
+directly; seven Waterdeep guild guards compose the same generated tables through `RoL Guild Guard`.
+The profiles are keyed to converted mobile identity; do not assign either converter-owned
+procedure to unrelated mobiles.
 
 `RoL Shaman Totem` is object-owned and must be held or wielded. It preserves the 21 converted
 totem identities, permanent player/object bonding, source-race gating, three summon attempts per

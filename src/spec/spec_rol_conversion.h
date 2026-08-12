@@ -11,6 +11,7 @@
 
 struct char_data;
 struct obj_data;
+struct spec_event_context;
 
 enum rol_bandit_demand
 {
@@ -48,6 +49,7 @@ int rol_cleric_guild_room(struct char_data *ch, void *me, int cmd, const char *a
 int rol_bard_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_waterdeep_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_guild_guard_typed(struct spec_event_context *context);
 int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -77,6 +79,7 @@ bool rol_waterdeep_guild_allows(int room_vnum, const struct char_data *ch);
 bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data *ch);
 bool rol_guild_guard_protects(int room_vnum);
 int rol_guild_guard_passage_destination(int room_vnum, int direction);
+bool rol_guild_guard_trips_rejected(int room_vnum, int direction);
 int rol_major_beholder_eye_spell(int eye);
 int rol_major_beholder_eye_cooldown(int state, int eye);
 int rol_major_beholder_advance_cooldowns(int state, unsigned int fired_eye_mask);

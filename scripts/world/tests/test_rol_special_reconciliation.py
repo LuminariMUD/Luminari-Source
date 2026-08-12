@@ -7,7 +7,10 @@ import unittest
 
 from wtool_lib.constants import default_repo_root
 from wtool_lib.rol_periodic_profiles import PROFILE_SOURCES
-from wtool_lib.rol_state_periodic_profiles import STATE_PROFILE_SOURCES
+from wtool_lib.rol_state_periodic_profiles import (
+    COMPOSED_STATE_PROFILE_SOURCES,
+    STATE_PROFILE_SOURCES,
+)
 from wtool_lib.rol_special_reconciliation import (
     handler_disposition,
     source_handler_definitions,
@@ -141,6 +144,9 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     ]
     source_periodic = [handler_disposition(name) for name in PROFILE_SOURCES]
     state_periodic = [handler_disposition(name) for name in STATE_PROFILE_SOURCES]
+    composed_state_periodic = [
+        handler_disposition(name) for name in COMPOSED_STATE_PROFILE_SOURCES
+    ]
     rogue = handler_disposition("rogue_one")
     major_beholder = handler_disposition("major_beholder")
     lich_energy_drain = handler_disposition("lich_energy_drain")
@@ -252,6 +258,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
             for row in state_periodic
         )
     )
+    self.assertTrue(
+        all(
+            row["target"] == "RoL Guild Guard"
+            and row["strategy"] == "NATIVE_ADAPTED"
+            for row in composed_state_periodic
+        )
+    )
     self.assertEqual("SOURCE_INERT_EXCLUDED", rogue["strategy"])
     self.assertIn("NPC_HIT", rogue["reason"])
     self.assertIn("victim", rogue["reason"])
@@ -338,17 +351,17 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(831, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(316, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(302, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(260, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(437, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(838, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(309, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(309, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(253, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(444, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           131, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(747, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(101, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(753, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(95, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

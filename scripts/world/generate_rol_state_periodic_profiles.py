@@ -19,7 +19,10 @@ from generate_rol_periodic_profiles import (
     _parse_actions,
     _source_social_rooms,
 )
-from wtool_lib.rol_state_periodic_profiles import STATE_PROFILE_SOURCES
+from wtool_lib.rol_state_periodic_profiles import (
+    COMPOSED_STATE_PROFILE_SOURCES,
+    STATE_PROFILE_SOURCES,
+)
 
 
 @dataclass(frozen=True)
@@ -51,6 +54,10 @@ def _parse_switch(segment: str, name: str,
   opening = segment.find("{", switch.start())
   closing = _matching_brace(segment, opening)
   switch_body = segment[opening + 1 : closing]
+  calls = set(re.findall(r"\b([a-z][A-Za-z0-9_]*)\s*\(", switch_body))
+  allowed_calls = {"act", "dice", "do_action", "mobsay", "switch"}
+  if not calls.issubset(allowed_calls):
+    raise ValueError(f"{name}: unsupported state-table calls: {sorted(calls - allowed_calls)}")
   labels = list(re.finditer(r"\b(case\s+(-?\d+)\s*:|default\s*:)", switch_body))
   outcomes: list[Outcome] = []
   pending_rolls: list[int] = []
@@ -91,12 +98,14 @@ def _parse_switch(segment: str, name: str,
 
 def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int, ...],
                    states: tuple[str, ...],
-                   socials: dict[str, tuple[bool, str] | None]) -> StateProfile:
+                   socials: dict[str, tuple[bool, str] | None],
+                   composed: bool = False) -> StateProfile:
   body = _function_body((source_root / relative).read_text(encoding="ascii"), name)
   calls = set(re.findall(r"\b([a-z][A-Za-z0-9_]*)\s*\(", _strip_comments(body)))
   calls.difference_update({"if", "return", "switch"})
   allowed_calls = {name, "act", "mobsay", "dice"}
-  if not calls.issubset(allowed_calls) or "dice" not in calls or "act" not in calls:
+  if ((not composed and not calls.issubset(allowed_calls)) or "dice" not in calls or
+      "act" not in calls):
     raise ValueError(f"{name}: unsupported calls: {sorted(calls - allowed_calls)}")
 
   tables: list[StateTable] = []
@@ -119,10 +128,15 @@ def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int
 
 def load_profiles(source_root: Path) -> tuple[StateProfile, ...]:
   socials = _source_social_rooms(source_root)
-  return tuple(
+  direct = tuple(
       _parse_profile(source_root, name, relative, vnums, states, socials)
       for name, (relative, vnums, states) in sorted(STATE_PROFILE_SOURCES.items())
   )
+  composed = tuple(
+      _parse_profile(source_root, name, relative, vnums, states, socials, composed=True)
+      for name, (relative, vnums, states) in sorted(COMPOSED_STATE_PROFILE_SOURCES.items())
+  )
+  return tuple(sorted((*direct, *composed), key=lambda profile: profile.name))
 
 
 def _identifier(name: str) -> str:
@@ -131,7 +145,8 @@ def _identifier(name: str) -> str:
 
 def render(source_root: Path) -> str:
   profiles = load_profiles(source_root)
-  source_paths = sorted({relative for relative, _vnums, _states in STATE_PROFILE_SOURCES.values()})
+  all_sources = {**STATE_PROFILE_SOURCES, **COMPOSED_STATE_PROFILE_SOURCES}
+  source_paths = sorted({relative for relative, _vnums, _states in all_sources.values()})
   source_paths.extend(["src/interp.h", "lib/misc/actions"])
   digest = hashlib.sha256()
   for relative in source_paths:
