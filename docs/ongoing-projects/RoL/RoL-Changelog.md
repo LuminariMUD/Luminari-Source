@@ -6,6 +6,55 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 Bloodstone critter behavior
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all four active `bs_critter` bindings for converted Bloodstone mobiles
+  2007110-2007112 and 2007141 through the persistent, mobile-owned
+  `RoL Bloodstone Critter` procedure and required `MOB_SPEC` activity gateway.
+- Preserved the source 2-in-81 ambient cadence: roll zero uses the current target
+  `snarl` social, roll one uses `growl`, and all other outcomes are inert.
+- Preserved the awake-and-idle boundary. Sleeping or fighting critters do not run the
+  ambient behavior, and the normal loaded target socials provide current presentation.
+- Registered the procedure and persistence/index contracts, taught the converter its
+  canonical target name and required flag, and updated builder help, database-first
+  help, manual testing, OLC inventories, converter fixtures, and characterization tests.
+- Reconciliation now resolves 575 of 1,147 active direct bindings and 95 of 562 source
+  handlers; 572 bindings and 467 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 563 resolved / 285 pending.
+- Archived the twenty-second bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 26-58 Phase 6 sessions and 74-134 total sessions
+  for Phases 6-8, or 148-536 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: b2e7bf40
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-bloodstone-critter
+Reconciliation run: rol-phase6-special-bdf567929b95b5d7
+Active direct bindings: 1,147
+Direct bindings resolved: 575
+Direct bindings pending: 572
+Source handlers resolved: 95
+Source handlers pending: 467
+Bloodstone critter bindings resolved: 4
+Native adapted bindings: 200
+ACT_SPEC records resolved: 563
+ACT_SPEC records pending: 285
+Complete world-tool suite: 274 passed
+Production-linked CuTest suite: 633 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 572 direct bindings across 467 source handlers.
+
 ## 2026-08-12 - Phase 6 Bloodstone undead death behavior
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
