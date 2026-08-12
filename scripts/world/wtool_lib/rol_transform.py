@@ -157,6 +157,8 @@ SECTOR_MAP = {
 MOB_ACTION_MAP = {
     2: 1,   # SENTINEL
     3: 2,   # SCAVENGER
+    4: 3,   # ISNPC -> target's required mobile marker
+    5: 105, # NICE_THIEF -> retain theft without automatic retaliation
     6: 5,   # AGGRESSIVE
     7: 6,   # STAY_ZONE
     8: 7,   # WIMPY
@@ -164,12 +166,49 @@ MOB_ACTION_MAP = {
     10: 9,  # AGGRESSIVE_GOOD
     11: 10, # AGGRESSIVE_NEUTRAL
     12: 11, # MEMORY
+    13: 106,# STAY_SECTOR
     15: 12, # HELPER
+    16: 107,# DELAY_HUNTER
+    17: 108,# ARCHER
     18: 18, # NOKILL
+    19: 109,# HAS_PS
+    20: 110,# HAS_CL
+    21: 111,# HAS_MU
+    22: 112,# HAS_TH
+    23: 113,# HAS_WA
     25: 32, # CITIZEN/WITNESS
+    26: 13, # BREAK_CHARM -> target uncharmable behavior
+    27: 12, # PROTECTOR -> helper plus adjacent-combat listener
     28: 21, # MOUNTABLE
+    29: 114,# AGG_RACEEVIL
+    30: 115,# AGG_RACEGOOD
     31: 33, # HUNTER
+    32: 31, # AGG_OUTCAST -> bounded target guard behavior
 }
+
+# One source identity expands into more than one existing target behavior.
+MOB_ACTION_EXPANSIONS = {
+    27: frozenset({34}), # PROTECTOR also responds to adjacent combat
+}
+
+# ACT_SPEC is implemented by the binding inventory in Phase 6. Emission adds
+# MOB_SPEC only when a resolved native/adapted procedure is supplied.
+MOB_DEFERRED_ACTIONS = frozenset({1})
+
+# ACT_SAVE is a runtime owner/follower relationship, not a prototype property
+# in the target. ACT_SPEC_DIE has no source runtime consumer.
+MOB_SOURCE_ONLY_ACTIONS = frozenset({14, 24})
+
+# RoL can grant several class behavior roles independently of its single class
+# field. The target retains every role as a mobile flag and selects one primary
+# class for its single-class mobile spell/skill AI.
+MOB_PRIMARY_CLASS_BY_ACTION = (
+    (19, 21), # psionicist
+    (21, 0),  # wizard
+    (20, 1),  # cleric
+    (22, 2),  # rogue
+    (23, 3),  # warrior
+)
 
 MOB_AFFECT_MAP = {
     1: 1,   # BLIND
@@ -454,7 +493,7 @@ EQUIPMENT_POSITION_MAP = {
 }
 
 CLASS_MAP = {
-    0: 0,
+    0: 3, # no source class -> target warrior baseline unless a role flag infers one
     1: 3,
     2: 9,
     3: 6,
@@ -1269,11 +1308,19 @@ def emit_mobile(
       affect_mask2, 33
   )
   target_actions = _mapped_bits(source_actions, MOB_ACTION_MAP) | {3}
+  for source_action, expanded_actions in MOB_ACTION_EXPANSIONS.items():
+    if source_action in source_actions:
+      target_actions.update(expanded_actions)
   if special_proc is not None:
     target_actions.add(0)
   target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
   target_affects2 = _mapped_bits(source_affects, MOB_AFFECT2_MAP)
-  missing_actions = _unmapped(source_actions, MOB_ACTION_MAP)
+  missing_actions = sorted(
+      source_actions
+      - MOB_ACTION_MAP.keys()
+      - MOB_DEFERRED_ACTIONS
+      - MOB_SOURCE_ONLY_ACTIONS
+  )
   missing_affects = sorted(
       source_affects
       - MOB_AFFECT_MAP.keys()
@@ -1282,6 +1329,17 @@ def emit_mobile(
   )
   if missing_actions:
     diagnostics.append(f"mobile action flags requiring behavior reconciliation: {missing_actions}")
+  if 1 in source_actions and special_proc is None:
+    diagnostics.append("source ACT_SPEC deferred to Phase 6 binding reconciliation")
+  if source_actions & MOB_SOURCE_ONLY_ACTIONS:
+    diagnostics.append(
+        "omitted source relationship/inert mobile actions: "
+        f"{sorted(source_actions & MOB_SOURCE_ONLY_ACTIONS)}"
+    )
+  if 26 in source_actions:
+    diagnostics.append("source BREAK_CHARM uses bounded target uncharmable behavior")
+  if 32 in source_actions:
+    diagnostics.append("source outcast aggression uses bounded target guard behavior")
   if missing_affects:
     diagnostics.append(f"mobile affect flags without persistent equivalents: {missing_affects}")
   if source_affects & MOB_SOURCE_ONLY_AFFECTS:
@@ -1308,6 +1366,11 @@ def emit_mobile(
 
   source_class = int(position_row[3]) if len(position_row) > 3 else 0
   target_class = CLASS_MAP.get(source_class, 0)
+  if source_class == 0:
+    for action, inferred_class in MOB_PRIMARY_CLASS_BY_ACTION:
+      if action in source_actions:
+        target_class = inferred_class
+        break
   race_code = race_row[0].upper() if race_row else "N"
   target_race = RACE_CODE_MAP.get(race_code, 0)
   if race_code not in RACE_CODE_MAP:

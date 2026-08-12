@@ -1247,6 +1247,17 @@ const char *action_bits[] = {"<spec>", // 0
                              "No-Block-Bypass",
                              "Golem",
                              "No-Teleport",
+                             "RoL-Nice-Thief",
+                             "RoL-Stay-Sector",
+                             "RoL-Delay-Hunter",
+                             "RoL-Archer",
+                             "RoL-Psionic",
+                             "RoL-Cleric",
+                             "RoL-Mage",
+                             "RoL-Thief",
+                             "RoL-Warrior",
+                             "RoL-Aggro-Evil-Race",
+                             "RoL-Aggro-Good-Race",
                              "\n"};
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
 

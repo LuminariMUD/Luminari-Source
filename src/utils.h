@@ -1000,11 +1000,14 @@ void char_from_furniture(struct char_data *ch);
        ? GET_LEVEL(ch)                                                                             \
        : (CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_NECROMANCER)))
 #define GET_PSIONIC_LEVEL(ch)                                                                      \
-  (((IS_NPC(ch) && GET_CLASS(ch) == CLASS_PSIONICIST) || GET_LEVEL(ch) >= LVL_IMMORT)              \
+  (((IS_NPC(ch) &&                                                                                 \
+     (GET_CLASS(ch) == CLASS_PSIONICIST || MOB_FLAGGED(ch, MOB_ROL_HAS_PS))) ||                    \
+    GET_LEVEL(ch) >= LVL_IMMORT)                                                                   \
        ? GET_LEVEL(ch)                                                                             \
        : CLASS_LEVEL(ch, CLASS_PSIONICIST))
 #define IS_PSIONIC(ch)                                                                             \
-  (GET_PSIONIC_LEVEL(ch) > 0 || (IS_NPC(ch) && GET_CLASS(ch) == CLASS_PSIONICIST))
+  (GET_PSIONIC_LEVEL(ch) > 0 ||                                                                    \
+   (IS_NPC(ch) && (GET_CLASS(ch) == CLASS_PSIONICIST || MOB_FLAGGED(ch, MOB_ROL_HAS_PS))))
 #define PSIONIC_LEVEL(ch)                                                                          \
   (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST), LVL_IMMORT - 1))
 #define IS_SPELLCASTER_CLASS(c)                                                                    \
@@ -2205,20 +2208,24 @@ int ACTUAL_BAB(struct char_data *ch);
 //#define IS_SOULKNIFE(ch)	     (CLASS_LEVEL(ch, CLASS_SOULKNIFE))
 //#define IS_WILDER(ch)	     (CLASS_LEVEL(ch, CLASS_WILDER))
 //#define IS_PSI(ch) (IS_PSION(ch) || IS_PSY_WARR(ch) || IS_SOULKNIFE(ch) || IS_WILDER(ch))
-#define IS_WIZARD(ch) (CLASS_LEVEL(ch, CLASS_WIZARD))
+#define IS_WIZARD(ch)                                                                              \
+  (CLASS_LEVEL(ch, CLASS_WIZARD) || (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ROL_HAS_MU)))
 #define IS_SORCERER(ch) (CLASS_LEVEL(ch, CLASS_SORCERER))
 #define IS_BARD(ch) (CLASS_LEVEL(ch, CLASS_BARD))
-#define IS_CLERIC(ch) (CLASS_LEVEL(ch, CLASS_CLERIC))
+#define IS_CLERIC(ch)                                                                              \
+  (CLASS_LEVEL(ch, CLASS_CLERIC) || (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ROL_HAS_CL)))
 #define IS_INQUISITOR(ch) (CLASS_LEVEL(ch, CLASS_INQUISITOR))
 #define IS_DRUID(ch) (CLASS_LEVEL(ch, CLASS_DRUID))
-#define IS_ROGUE(ch) (CLASS_LEVEL(ch, CLASS_ROGUE))
+#define IS_ROGUE(ch)                                                                                \
+  (CLASS_LEVEL(ch, CLASS_ROGUE) || (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ROL_HAS_TH)))
 #define IS_ROGUE_TYPE(ch)                                                                          \
-  (CLASS_LEVEL(ch, CLASS_ROGUE) + CLASS_LEVEL(ch, CLASS_DUELIST) +                                 \
+  (IS_ROGUE(ch) + CLASS_LEVEL(ch, CLASS_DUELIST) +                                                 \
    CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + CLASS_LEVEL(ch, CLASS_ASSASSIN) +                        \
    CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_RANGER) +                          \
    CLASS_LEVEL(ch, CLASS_BARD))
 #define IS_PSI_TYPE(ch) (CLASS_LEVEL(ch, CLASS_PSIONICIST)) /* for expansion! */
-#define IS_WARRIOR(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR))
+#define IS_WARRIOR(ch)                                                                              \
+  (CLASS_LEVEL(ch, CLASS_WARRIOR) || (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ROL_HAS_WA)))
 #define IS_WEAPONMASTER(ch) (CLASS_LEVEL(ch, CLASS_WEAPON_MASTER))
 #define IS_STALWARTDEFENDER(ch) (CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER))
 #define IS_DUELIST(ch) (CLASS_LEVEL(ch, CLASS_DUELIST))
@@ -2261,7 +2268,8 @@ int ACTUAL_BAB(struct char_data *ch);
    CLASS_LEVEL(ch, CLASS_RANGER))
 
 #define IS_NPC_CASTER(ch)                                                                          \
-  (GET_CLASS(ch) == CLASS_CLERIC || GET_CLASS(ch) == CLASS_WIZARD ||                               \
+  (MOB_FLAGGED(ch, MOB_ROL_HAS_CL) || MOB_FLAGGED(ch, MOB_ROL_HAS_MU) ||                           \
+   GET_CLASS(ch) == CLASS_CLERIC || GET_CLASS(ch) == CLASS_WIZARD ||                               \
    GET_CLASS(ch) == CLASS_DRUID || GET_CLASS(ch) == CLASS_SORCERER ||                              \
    GET_CLASS(ch) == CLASS_PALADIN || GET_CLASS(ch) == CLASS_RANGER ||                              \
    GET_CLASS(ch) == CLASS_ALCHEMIST || GET_CLASS(ch) == CLASS_MYSTIC_THEURGE ||                    \

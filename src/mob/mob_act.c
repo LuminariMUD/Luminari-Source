@@ -22,6 +22,7 @@
 #include "constants.h"
 #include "act.h"
 #include "graph.h"
+#include "combat/assign_wpn_armor.h"
 #include "combat/fight.h"
 #include "mud_event.h" /* for eSTUNNED */
 #include "modify.h"
@@ -225,7 +226,10 @@ void mobile_activity(void)
         if (room_is_singlefile && (ch->next_in_room != vict && vict->next_in_room != ch))
           continue;
 
-        if (MOB_FLAGGED(ch, MOB_AGGRESSIVE) || (MOB_FLAGGED(ch, MOB_AGGR_EVIL) && IS_EVIL(vict)) ||
+        if (MOB_FLAGGED(ch, MOB_AGGRESSIVE) ||
+            (MOB_FLAGGED(ch, MOB_ROL_AGGR_RACE_EVIL) && rol_race_is_evil(GET_RACE(vict))) ||
+            (MOB_FLAGGED(ch, MOB_ROL_AGGR_RACE_GOOD) && rol_race_is_good(GET_RACE(vict))) ||
+            (MOB_FLAGGED(ch, MOB_AGGR_EVIL) && IS_EVIL(vict)) ||
             (MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(vict)) ||
             (MOB_FLAGGED(ch, MOB_AGGR_GOOD) && IS_GOOD(vict)))
         {
@@ -379,6 +383,29 @@ void mobile_activity(void)
     if (MOB_FLAGGED(ch, MOB_HUNTER))
       hunt_victim(ch);
 
+    /* RoL archers fire one room away when their converted equipment provides
+     * a usable ranged weapon and ammunition. */
+    if (MOB_FLAGGED(ch, MOB_ROL_ARCHER) && !FIGHTING(ch) && !ch->master && can_fire_ammo(ch, TRUE))
+    {
+      found = FALSE;
+      for (door = 0; door < DIR_COUNT && !found; door++)
+      {
+        if (!CAN_GO(ch, door) || ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_PEACEFUL))
+          continue;
+        for (vict = world[EXIT(ch, door)->to_room].people; vict; vict = vict->next_in_room)
+        {
+          if ((IS_NPC(vict) && !IS_PET(vict)) || !CAN_SEE(ch, vict) ||
+              (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_NOHASSLE)))
+            continue;
+          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
+          found = TRUE;
+          break;
+        }
+      }
+      if (found)
+        continue;
+    }
+
     /* (mob-listen) is mob interested in fights nearby*/
     if (MOB_FLAGGED(ch, MOB_LISTEN) && !ch->master)
     {
@@ -407,7 +434,9 @@ void mobile_activity(void)
           !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&
           !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_DEATH) &&
           (!MOB_FLAGGED(ch, MOB_STAY_ZONE) ||
-           (world[EXIT(ch, door)->to_room].zone == world[IN_ROOM(ch)].zone)))
+           (world[EXIT(ch, door)->to_room].zone == world[IN_ROOM(ch)].zone)) &&
+          (!MOB_FLAGGED(ch, MOB_ROL_STAY_SECTOR) ||
+           world[EXIT(ch, door)->to_room].sector_type == world[IN_ROOM(ch)].sector_type))
       {
         /* If the mob is charmed, do not move the mob. */
         if (ch->master == NULL)

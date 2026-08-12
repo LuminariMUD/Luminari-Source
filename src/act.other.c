@@ -6660,7 +6660,7 @@ ACMD(do_steal)
     }
   }
 
-  if (ohoh && IS_NPC(vict) && AWAKE(vict))
+  if (ohoh && IS_NPC(vict) && AWAKE(vict) && !MOB_FLAGGED(vict, MOB_ROL_NICE_THIEF))
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
   if (affected_by_spell(ch, PSIONIC_BREACH))

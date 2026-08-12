@@ -2607,6 +2607,83 @@
           "macro": "MOB_NOTELEPORT",
           "name": "No-Teleport",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 105,
+          "macro": "MOB_ROL_NICE_THIEF",
+          "name": "RoL-Nice-Thief",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 106,
+          "macro": "MOB_ROL_STAY_SECTOR",
+          "name": "RoL-Stay-Sector",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 107,
+          "macro": "MOB_ROL_DELAY_HUNTER",
+          "name": "RoL-Delay-Hunter",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 108,
+          "macro": "MOB_ROL_ARCHER",
+          "name": "RoL-Archer",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 109,
+          "macro": "MOB_ROL_HAS_PS",
+          "name": "RoL-Psionic",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 110,
+          "macro": "MOB_ROL_HAS_CL",
+          "name": "RoL-Cleric",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 111,
+          "macro": "MOB_ROL_HAS_MU",
+          "name": "RoL-Mage",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 112,
+          "macro": "MOB_ROL_HAS_TH",
+          "name": "RoL-Thief",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 113,
+          "macro": "MOB_ROL_HAS_WA",
+          "name": "RoL-Warrior",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 114,
+          "macro": "MOB_ROL_AGGR_RACE_EVIL",
+          "name": "RoL-Aggro-Evil-Race",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 115,
+          "macro": "MOB_ROL_AGGR_RACE_GOOD",
+          "name": "RoL-Aggro-Good-Race",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,

@@ -5770,6 +5770,17 @@ static int cap_combat_damage(struct char_data *ch, int dam, int w_type)
 #endif
 }
 
+bool activate_rol_delayed_hunter(struct char_data *victim, int damage)
+{
+  if (!victim || damage <= 0 || !IS_NPC(victim) || !MOB_FLAGGED(victim, MOB_ROL_DELAY_HUNTER) ||
+      GET_MAX_HIT(victim) <= 0 || GET_HIT(victim) >= (GET_MAX_HIT(victim) * 9 / 10))
+    return false;
+
+  SET_BIT_AR(MOB_FLAGS(victim), MOB_HUNTER);
+  REMOVE_BIT_AR(MOB_FLAGS(victim), MOB_ROL_DELAY_HUNTER);
+  return true;
+}
+
 // death < 0, no dam = 0, damage done > 0
 /* ALLLLLL damage goes through this function */
 /* probably need to bring in another variable letting us know our source, like:
@@ -6096,6 +6107,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
   }
 
   GET_HIT(victim) -= dam;
+
+  activate_rol_delayed_hunter(victim, dam);
 
   /* Blackguard: Soul Carapace - convert portion of incoming damage to temp HP */
   if (dam > 0 && !IS_NPC(victim))

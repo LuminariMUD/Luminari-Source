@@ -158,6 +158,36 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual({3, 4}, decode_tokens(mobile.affect2_flags).bits)
     self.assertIn("omitted source transient/inert mobile affects: [48]", emitted.diagnostics)
 
+  def test_emitted_mobile_maps_all_action_dispositions_and_infers_primary_class(self) -> None:
+    source_actions = (1, 4, 5, 13, 14, 16, 17, 19, 20, 21, 22, 23, 24, 26, 27, 29, 30, 32)
+    action_mask = sum(1 << (flag - 1) for flag in source_actions)
+    source = self._source_record(
+        "mob",
+        (
+            "<*> File Version 1 <*>\n#300\ncompatibility mobile~\n"
+            "a compatibility mobile~\nA compatibility mobile waits.\n~\n"
+            "A compatibility mobile.\n~\n"
+            f"{action_mask} 0 0 0 S\n"
+            "H 0 0\n10 0 50 2d8+5 1d4+1\n0 0\n131 131 0 0\n"
+        ).encode("ascii"),
+    )
+
+    emitted = emit_mobile(source, 2_000_300)
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20001.mob", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    mobile = result.records[0]
+    self.assertEqual(21, int(mobile.enhanced["Class"][0]))
+    self.assertTrue(
+        {3, 12, 13, 31, 34, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115}
+        <= decode_tokens(mobile.action_flags).bits
+    )
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertNotIn("requiring behavior reconciliation", diagnostics)
+    self.assertIn("deferred to Phase 6", diagnostics)
+    self.assertIn("relationship/inert mobile actions: [14, 24]", diagnostics)
+
   def test_emitted_object_maps_extended_stats_and_repairs_source_defects(self) -> None:
     wear_mask = sum(1 << bit for bit in (0, 14, 25, 27))
     source = self._source_record(

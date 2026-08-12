@@ -33,6 +33,40 @@ void Test_rol_slow_poison_reduces_target_poison_damage(CuTest *tc)
   CuAssertIntEquals(tc, 0, apply_slow_poison_reduction(&ch, 0));
 }
 
+void Test_rol_mobile_action_runtime_roles_and_delayed_hunter(CuTest *tc)
+{
+  struct char_data ch;
+  struct char_data *mob;
+  struct player_special_data player_specials;
+
+  clear_char(&ch);
+  mob = &ch;
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ROL_HAS_PS);
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ROL_HAS_CL);
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ROL_HAS_MU);
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ROL_HAS_TH);
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ROL_HAS_WA);
+
+  CuAssertTrue(tc, IS_PSIONIC(mob));
+  CuAssertTrue(tc, IS_CLERIC(mob));
+  CuAssertTrue(tc, IS_WIZARD(mob));
+  CuAssertTrue(tc, IS_ROGUE(mob));
+  CuAssertTrue(tc, IS_WARRIOR(mob));
+  CuAssertTrue(tc, IS_NPC_CASTER(mob));
+
+  GET_MAX_HIT(&ch) = 100;
+  GET_HIT(&ch) = 90;
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ROL_DELAY_HUNTER);
+  CuAssertTrue(tc, !activate_rol_delayed_hunter(&ch, 10));
+  GET_HIT(&ch) = 89;
+  CuAssertTrue(tc, activate_rol_delayed_hunter(&ch, 1));
+  CuAssertTrue(tc, MOB_FLAGGED(&ch, MOB_HUNTER));
+  CuAssertTrue(tc, !MOB_FLAGGED(&ch, MOB_ROL_DELAY_HUNTER));
+}
+
 void Test_rol_room_flags_drive_arena_and_weather_compatibility(CuTest *tc)
 {
   struct char_data ch;

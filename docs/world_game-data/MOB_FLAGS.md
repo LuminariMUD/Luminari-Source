@@ -18,7 +18,7 @@ This document provides comprehensive information about all mobile flags (MOB_*) 
 
 ## Overview
 
-Mobile flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **105 mobile flags** (indices 0-104, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
+Mobile flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **116 mobile flags** (indices 0-115, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
 
 **Usage Pattern:**
 ```c
@@ -39,7 +39,7 @@ identifiers that happen to share the prefix:
 | `MOB_DIRE_RAT` | 9400 | A mobile vnum |
 | `MOB_MOUNT_SPELL` | 101320 | A summon identifier |
 
-Because bit numbers only run 0-104, values above that range are a reliable
+Because bit numbers only run 0-115, values above that range are a reliable
 tell - but the ranges also **collide**. `MOB_BLOCK_E` is bit 46 and
 `MOB_DIRE_SPIDER` is vnum 46; nothing in the name distinguishes them.
 
@@ -725,6 +725,25 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - `src/magic/spells.c` - Teleport target check (`spell_teleport()`)
 - `src/magic/magic.c` - Creation placement (`mag_creations()`)
 
+### RoL compatibility flags (Indices: 105-115)
+**Effect:** Preserve shared Realms of Luminari mobile behaviors during deterministic conversion.
+- `MOB_ROL_NICE_THIEF` allows stealing but suppresses automatic retaliation when caught
+- `MOB_ROL_STAY_SECTOR` restricts random wandering to the mobile's current sector
+- `MOB_ROL_DELAY_HUNTER` becomes `MOB_HUNTER` after the mobile falls below 90 percent HP
+- `MOB_ROL_ARCHER` lets an equipped mobile fire at a valid target one room away
+- `MOB_ROL_HAS_PS`, `MOB_ROL_HAS_CL`, `MOB_ROL_HAS_MU`, `MOB_ROL_HAS_TH`, and
+  `MOB_ROL_HAS_WA` retain independent source class-behavior roles
+- `MOB_ROL_AGGR_RACE_EVIL` and `MOB_ROL_AGGR_RACE_GOOD` use the converted source race
+  groups rather than current character alignment
+- These flags are converter-owned compatibility data; builders should use native flags
+  and classes for new content unless reproducing converted RoL behavior
+
+**Code References:**
+- `src/mob/mob_act.c` - Movement, archery, and race aggression
+- `src/combat/fight.c` - Delayed hunter activation
+- `src/act.other.c` - Caught-theft response
+- `src/utils.h` - Class-role queries
+
 ### MOB_BUFF_OUTSIDE_COMBAT (Index: 96)
 **Effect:** UNUSED - Kept for backward compatibility.
 - No longer functional
@@ -844,6 +863,17 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 | 102 | MOB_NO_BLOCK_BYPASS | No-Block-Bypass | Combat | Blocking cannot be bypassed |
 | 103 | MOB_GOLEM | Golem | System | Constructed golem, for follower tracking |
 | 104 | MOB_NOTELEPORT | No-Teleport | System | Cannot be teleported |
+| 105 | MOB_ROL_NICE_THIEF | RoL-Nice-Thief | Compatibility | Does not retaliate against caught theft |
+| 106 | MOB_ROL_STAY_SECTOR | RoL-Stay-Sector | Compatibility | Random movement stays in sector |
+| 107 | MOB_ROL_DELAY_HUNTER | RoL-Delay-Hunter | Compatibility | Starts hunting after material damage |
+| 108 | MOB_ROL_ARCHER | RoL-Archer | Compatibility | Fires into an adjacent room |
+| 109 | MOB_ROL_HAS_PS | RoL-Psionic | Compatibility | Has psionic behavior role |
+| 110 | MOB_ROL_HAS_CL | RoL-Cleric | Compatibility | Has divine-caster behavior role |
+| 111 | MOB_ROL_HAS_MU | RoL-Mage | Compatibility | Has arcane-caster behavior role |
+| 112 | MOB_ROL_HAS_TH | RoL-Thief | Compatibility | Has rogue behavior role |
+| 113 | MOB_ROL_HAS_WA | RoL-Warrior | Compatibility | Has warrior behavior role |
+| 114 | MOB_ROL_AGGR_RACE_EVIL | RoL-Aggro-Evil-Race | Compatibility | Attacks evil source races |
+| 115 | MOB_ROL_AGGR_RACE_GOOD | RoL-Aggro-Good-Race | Compatibility | Attacks good source races |
 
 ---
 

@@ -26,9 +26,11 @@ from .rol_transform import (
     APPLY_MAP,
     CLASS_MAP,
     MOB_ACTION_MAP,
+    MOB_DEFERRED_ACTIONS,
     MOB_AFFECT_MAP,
     MOB_AFFECT2_MAP,
     MOB_SOURCE_ONLY_AFFECTS,
+    MOB_SOURCE_ONLY_ACTIONS,
     OBJECT_EXTRA_MAP,
     OBJECT_SOURCE_ONLY_FLAGS,
     OBJECT_TYPE_MAP,
@@ -205,7 +207,9 @@ def build_symbolic_inventory(records: Iterable[RolRecord]) -> list[dict[str, Any
   mapped: dict[str, set[int | str]] = {
       "room_flag": set(ROOM_FLAG_MAP) | set(ROOM_TRANSFORMED_FLAGS),
       "sector": set(SECTOR_MAP),
-      "mobile_action_flag": set(MOB_ACTION_MAP),
+      "mobile_action_flag": (
+          set(MOB_ACTION_MAP) | set(MOB_DEFERRED_ACTIONS) | set(MOB_SOURCE_ONLY_ACTIONS)
+      ),
       "mobile_affect_flag": (
           set(MOB_AFFECT_MAP) | set(MOB_AFFECT2_MAP) | set(MOB_SOURCE_ONLY_AFFECTS)
       ),
@@ -248,11 +252,26 @@ def build_symbolic_inventory(records: Iterable[RolRecord]) -> list[dict[str, Any
 def classify_transform_diagnostic(message: str) -> str:
   """Classify one transform diagnostic by the owner needed to resolve it."""
 
+  if "deferred to Phase 6 binding reconciliation" in message:
+    return "special-binding-gap"
   if "no identity for" in message or "unresolved" in message:
     return "reference-gap"
-  if "source-inert" in message or "obsolete source" in message:
+  if (
+      "source-inert" in message
+      or "obsolete source" in message
+      or "relationship/inert" in message
+      or "transient/inert" in message
+  ):
     return "inert-omission"
-  if message.startswith(("mapped source", "converted source", "folded ")):
+  if message.startswith(
+      (
+          "mapped source",
+          "converted source",
+          "folded ",
+          "source BREAK_CHARM",
+          "source outcast aggression",
+      )
+  ):
     return "bounded-adapter"
   if message.startswith(("capped ", "normalized ")):
     return "bounded-normalization"
@@ -260,7 +279,15 @@ def classify_transform_diagnostic(message: str) -> str:
     return "text-normalization"
   if "incomplete" in message or "malformed" in message or "without a staged" in message:
     return "source-defect"
-  if message.startswith("omitted source-only quest reward"):
+  if message.startswith(
+      (
+          "omitted source-only",
+          "preserved source-only",
+          "source-only shop behavior",
+          "source zone flags without target zone equivalents",
+          "excluded legacy door-trap",
+      )
+  ):
     return "source-only-symbol"
   return "generic-capability-gap"
 
