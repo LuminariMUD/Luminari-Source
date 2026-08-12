@@ -5,6 +5,57 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 shared mobile procedures
+
+Status: Completed checkpoint; Phase 6 special-procedure reconciliation in progress
+
+### Delivered
+
+- Traced and closed 46 direct bindings across four reusable mobile families. The
+  reconciliation now resolves 231 of 1,234 direct bindings and 43 of 605 handlers;
+  1,003 bindings and 562 handlers remain.
+- Classified all 17 source `cityguard` bindings as source-inert. The callback returns
+  before its disabled aggression code, so conversion emits neither an active target
+  city guard nor `MOB_SPEC`. Mapping it to the target's active city guard would have
+  invented behavior.
+- Added a shared RoL corpse-devourer adapter for 11 bindings. It consumes food and
+  non-player corpses, preserves player corpses, and spills corpse contents before
+  extraction as the source does.
+- Added a shared RoL poison-bite adapter for 15 bindings. It preserves the source
+  level-scaled `1 / (62 - level)` proc chance rather than using the target snake's
+  different `1 / (level + 1)` chance.
+- Added a shared RoL thief adapter for three bindings. It attempts the source theft
+  path for every eligible mortal player on each activity call, respects peaceful
+  rooms, and uses the converted target gold economy.
+- Registered all three adapters as owner-aware, world-persistable mobile procedures,
+  added them to both supported build manifests, and documented the expanded registry.
+  The `ACT_SPEC` cross-check now resolves 462 of 848 records and leaves 386 pending.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 960f5602
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-shared-mobile
+Reconciliation run: rol-phase6-special-0f4f1274d95a2941
+Active direct bindings: 1,234
+Direct bindings resolved: 231
+Direct bindings pending: 1,003
+Distinct source handlers: 605
+Source handlers resolved: 43
+Source handlers pending: 562
+ACT_SPEC records resolved: 462
+ACT_SPEC records pending: 386
+Complete world-tool suite: 254 passed
+Production-linked CuTest suite: 620 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Autotools build and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+The next pass continues with automatic demon/devil race procedures and the next
+high-reuse shared families.
+
 ## 2026-08-12 - Phase 6 inventory and shared-service reconciliation
 
 Status: Completed checkpoint; Phase 6 special-procedure reconciliation in progress
