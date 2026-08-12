@@ -109,7 +109,8 @@ procedure is intended for the converted RoL shadow-giant family rather than gene
 `RoL Guild Guard` is mobile-owned and requires `MOB_SPEC`. It preserves the converted room-specific
 class and race gates, acts only from the guard's original load room, and retaliates when protected
 guards are attacked. Its room rules are converter-owned; use the ordinary `Guild Guard` procedure
-for new Luminari guild entrances.
+for new Luminari guild entrances. The converted rules include six Bloodstone class entrances;
+source Antipaladin maps to Blackguard, Shaman to Cleric, and Lich to Necromancer.
 
 `RoL Waterdeep Guild Room` is room-owned and converter-owned. Twelve converted Waterdeep guild
 rooms retain their exact or class-family admission gate while delegating accepted `practice`,
@@ -335,10 +336,10 @@ production-linked evidence, see
   compatibility but does not create a duplicate menu row; selecting the entry saves `Guild`.
 - `Guild` is the mobile-owned training procedure. `RoL Guild Room` exposes the same current
   training service through an unrestricted converted room binding. `RoL Mage Guild Room`,
-  `RoL Thief Guild Room`, `RoL Warrior Guild Room`, and `RoL Cleric Guild Room` expose it only
-  to matching class families; any qualifying class in a multiclass build is sufficient. `RoL
-  Waterdeep Guild Room` applies the room-specific gate for twelve converted Waterdeep guilds. All
-  six room procedures are available only in `redit`.
+  `RoL Thief Guild Room`, `RoL Warrior Guild Room`, `RoL Cleric Guild Room`, and `RoL Bard Guild
+  Room` expose it only to matching class families; any qualifying class in a multiclass build is
+  sufficient. `RoL Waterdeep Guild Room` applies the room-specific gate for twelve converted
+  Waterdeep guilds. All seven room procedures are available only in `redit`.
 - A procedure hidden from builders, disallowed for world binding, or incompatible with the edited
   owner is not selectable. Invalid and out-of-range input leaves the current selection unchanged.
 - Registry metadata is validated before world parsing. An invalid registry is a programmer error

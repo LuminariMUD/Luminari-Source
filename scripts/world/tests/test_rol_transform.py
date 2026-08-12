@@ -1473,24 +1473,41 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
 
   def test_guild_guard_binding_requires_mobile_spec_flag(self) -> None:
-    binding = {
-        "basename": "gloom",
-        "record_type": "mobile",
-        "source_vnum": 34261,
-        "source_handler": "guild_guard",
-    }
+    handlers = [
+        "guild_guard",
+        "bs_guildguard_antiwar",
+        "bs_guildguard_assassin",
+        "bs_guildguard_clersham",
+        "bs_guildguard_necro",
+        "bs_guildguard_sorcconj",
+        "bs_guildguard_thief",
+    ]
+    bindings = [
+        {
+            "basename": "gloom",
+            "record_type": "mobile",
+            "source_vnum": 34261 + index,
+            "source_handler": handler,
+        }
+        for index, handler in enumerate(handlers)
+    ]
 
     compiled = compile_special_bindings(
-        [binding],
+        bindings,
         2_100_000,
         lambda kind, vnum: 2_000_000 + vnum,
         [],
     )
 
     native = compiled.native_bindings[0]
-    self.assertEqual("RoL Guild Guard", native.persisted_name)
-    self.assertEqual((0,), native.required_flag_bits)
-    self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[0]["strategy"])
+    self.assertEqual(7, len(compiled.native_bindings))
+    self.assertTrue(
+        all(binding.persisted_name == "RoL Guild Guard" for binding in compiled.native_bindings)
+    )
+    self.assertTrue(all(binding.required_flag_bits == (0,) for binding in compiled.native_bindings))
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
 
     source = self._source_record(
         "mob",
@@ -1517,6 +1534,8 @@ class RolTransformTests(unittest.TestCase):
         "guild_classtype_thief": "RoL Thief Guild Room",
         "guild_classtype_warrior": "RoL Warrior Guild Room",
         "guild_classtype_cleric": "RoL Cleric Guild Room",
+        "guild_bard": "RoL Bard Guild Room",
+        "guild_battlechanter": "RoL Bard Guild Room",
     }
     bindings = [
         {
@@ -1536,7 +1555,7 @@ class RolTransformTests(unittest.TestCase):
     )
 
     self.assertEqual([], compiled.triggers)
-    self.assertEqual(4, len(compiled.native_bindings))
+    self.assertEqual(6, len(compiled.native_bindings))
     self.assertEqual(
         sorted(expected.values()),
         sorted(binding.persisted_name for binding in compiled.native_bindings),

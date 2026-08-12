@@ -36,6 +36,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     thief_guild = handler_disposition("guild_classtype_thief")
     warrior_guild = handler_disposition("guild_classtype_warrior")
     cleric_guild = handler_disposition("guild_classtype_cleric")
+    bard_guilds = [
+        handler_disposition(name) for name in ("guild_bard", "guild_battlechanter")
+    ]
+    bloodstone_guild_guards = [
+        handler_disposition(f"bs_guildguard_{name}")
+        for name in ("antiwar", "assassin", "clersham", "necro", "sorcconj", "thief")
+    ]
     waterdeep_guilds = [
         handler_disposition(f"waterdeep_guild_{name}")
         for name in (
@@ -187,6 +194,20 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("RoL Cleric Guild Room", cleric_guild["target"])
     self.assertTrue(
         all(
+            row["target"] == "RoL Bard Guild Room"
+            and row["strategy"] == "NATIVE_ADAPTED"
+            for row in bard_guilds
+        )
+    )
+    self.assertTrue(
+        all(
+            row["target"] == "RoL Guild Guard"
+            and row["strategy"] == "NATIVE_ADAPTED"
+            for row in bloodstone_guild_guards
+        )
+    )
+    self.assertTrue(
+        all(
             row["strategy"] == "NATIVE_ADAPTED"
             for row in (mage_guild, thief_guild, warrior_guild, cleric_guild)
         )
@@ -317,17 +338,17 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(823, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(324, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(294, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(268, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(429, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(831, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(316, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(302, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(260, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(437, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           131, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(741, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(107, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(747, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(101, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

@@ -557,6 +557,12 @@ static const struct rol_ambient_action rol_ambient_actions[] = {
  * Target VNUMs are the source room VNUMs under the Phase 4 +2,000,000 offset. */
 static const struct rol_guild_guard_rule rol_guild_guard_rules[] = {
     {2004128, NORTH, 0, 0, false},
+    {2007669, NORTH, ROL_GUILD_CLASS(CLASS_WARRIOR) | ROL_GUILD_CLASS(CLASS_BLACKGUARD), 0, true},
+    {2007817, DOWN, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
+    {2007837, WEST, ROL_GUILD_CLASS(CLASS_ASSASSIN) | ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
+    {2007844, EAST, ROL_GUILD_CLASS(CLASS_WIZARD) | ROL_GUILD_CLASS(CLASS_SORCERER), 0, true},
+    {2007864, WEST, ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
+    {2007880, WEST, ROL_GUILD_CLASS(CLASS_NECROMANCER), 0, true},
     {2008014, SOUTH, ROL_GUILD_CLASS(CLASS_WARRIOR), 0, true},
     {2008044, EAST, 0, 0, false},
     {2008046, EAST, 0, 0, false},
@@ -1773,6 +1779,8 @@ bool rol_class_guild_allows(const struct char_data *ch, enum rol_guild_family fa
   case ROL_GUILD_FAMILY_CLERIC:
     return CLASS_LEVEL(ch, CLASS_CLERIC) > 0 || CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
            CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0;
+  case ROL_GUILD_FAMILY_BARD:
+    return CLASS_LEVEL(ch, CLASS_BARD) > 0;
   default:
     return false;
   }
@@ -1850,6 +1858,11 @@ int rol_cleric_guild_room(struct char_data *ch, void *me, int cmd, const char *a
   return rol_class_guild_room(ch, me, cmd, argument, ROL_GUILD_FAMILY_CLERIC);
 }
 
+int rol_bard_guild_room(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  return rol_class_guild_room(ch, me, cmd, argument, ROL_GUILD_FAMILY_BARD);
+}
+
 int rol_waterdeep_guild_room(struct char_data *ch, void *me, int cmd, const char *argument)
 {
   struct room_data *room = me;
@@ -1903,6 +1916,27 @@ bool rol_guild_guard_protects(int room_vnum)
       return true;
 
   return false;
+}
+
+int rol_guild_guard_passage_destination(int room_vnum, int direction)
+{
+  switch (room_vnum)
+  {
+  case 2007669:
+    return direction == NORTH ? 2007670 : 0;
+  case 2007817:
+    return direction == DOWN ? 2007818 : 0;
+  case 2007837:
+    return direction == WEST ? 2007843 : 0;
+  case 2007844:
+    return direction == EAST ? 2007845 : 0;
+  case 2007864:
+    return direction == WEST ? 2007865 : 0;
+  case 2007880:
+    return direction == WEST ? 2007881 : 0;
+  default:
+    return 0;
+  }
 }
 
 static room_rnum rol_guild_guard_teleport_destination(struct char_data *victim)
@@ -2004,8 +2038,10 @@ static int rol_guild_guard_protection(struct char_data *guard, struct char_data 
 int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argument)
 {
   struct char_data *guard = me;
+  room_rnum destination;
   int current_room_vnum;
   int direction;
+  int passage_vnum;
 
   UNUSED(argument);
 
@@ -2023,14 +2059,44 @@ int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argumen
 
   if (ch == NULL || complete_cmd_info == NULL || !IS_MOVE(cmd))
     return FALSE;
-  if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
-    return FALSE;
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GUARD))
     return FALSE;
 
   direction = complete_cmd_info[cmd].subcmd;
-  if (rol_guild_guard_allows(current_room_vnum, direction, ch))
-    return FALSE;
+  if ((!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT) ||
+      rol_guild_guard_allows(current_room_vnum, direction, ch))
+  {
+    passage_vnum = rol_guild_guard_passage_destination(current_room_vnum, direction);
+    if (passage_vnum == 0)
+      return FALSE;
+
+    destination = real_room(passage_vnum);
+    if (!VALID_ROOM_RNUM(destination) || !valid_mortal_tele_dest(ch, destination, false))
+    {
+      send_to_char(ch, "The guarded passage leads nowhere. Please tell a staff member.\r\n");
+      log("SYSERR: RoL guild guard in room %d has invalid passage destination %d",
+          current_room_vnum, passage_vnum);
+      return TRUE;
+    }
+
+    act("$n steps aside and ushers you through the guarded passage.", FALSE, guard, NULL, ch,
+        TO_VICT);
+    act("$n steps aside and ushers $N through the guarded passage.", FALSE, guard, NULL, ch,
+        TO_NOTVICT);
+    char_from_room(ch);
+    if (ZONE_FLAGGED(world[destination].zone, ZONE_WILDERNESS))
+    {
+      X_LOC(ch) = world[destination].coords[0];
+      Y_LOC(ch) = world[destination].coords[1];
+    }
+    char_to_room(ch, destination);
+    act("$n arrives through the guarded passage.", FALSE, ch, NULL, NULL, TO_ROOM);
+    look_at_room(ch, 0);
+    entry_memory_mtrigger(ch);
+    greet_mtrigger(ch, -1);
+    greet_memory_mtrigger(ch);
+    return TRUE;
+  }
 
   act("$n humiliates you, and blocks your way.", FALSE, guard, NULL, ch, TO_VICT);
   act("$n humiliates $N, and blocks $S way.", FALSE, guard, NULL, ch, TO_NOTVICT);

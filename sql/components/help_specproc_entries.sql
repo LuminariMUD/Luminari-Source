@@ -113,7 +113,9 @@ intended for converted RoL shadow giants.
 RoL Guild Guard is mobile-owned and requires MOB_SPEC. It enforces converted
 room-specific class and race gates only while the guard remains in its original
 load room. Protected guards punish and relocate mortal attackers. Use the
-ordinary Guild Guard procedure for new Luminari guild entrances.
+ordinary Guild Guard procedure for new Luminari guild entrances. Six converted
+Bloodstone gates map Antipaladin to Blackguard, Shaman to Cleric, and Lich to
+Necromancer.
 
 RoL Waterdeep Guild Room is room-owned and converter-owned. Twelve converted
 Waterdeep guild rooms retain their room-specific exact or class-family gate and
@@ -209,9 +211,10 @@ new ships.
 Guild is the mobile-owned training procedure. RoL Guild Room provides the
 same current training service for unrestricted converted room-owned guild
 bindings. RoL Mage Guild Room, RoL Thief Guild Room, RoL Warrior Guild Room,
-and RoL Cleric Guild Room preserve source class-family admission while using
-the target multiclass model; any matching class level is sufficient. All six
-procedures are available only in redit, including RoL Waterdeep Guild Room.
+RoL Cleric Guild Room, and RoL Bard Guild Room preserve source class-family
+admission while using the target multiclass model; any matching class level is
+sufficient. All seven procedures are available only in redit, including RoL
+Waterdeep Guild Room.
 Pet Shop is room-owned,
 Postmaster is mobile-owned, and Bank is available for compatible mobile and
 object prototypes.

@@ -24,7 +24,8 @@ enum rol_guild_family
   ROL_GUILD_FAMILY_MAGE = 0,
   ROL_GUILD_FAMILY_THIEF,
   ROL_GUILD_FAMILY_WARRIOR,
-  ROL_GUILD_FAMILY_CLERIC
+  ROL_GUILD_FAMILY_CLERIC,
+  ROL_GUILD_FAMILY_BARD
 };
 
 int rol_corpse_devourer(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -44,6 +45,7 @@ int rol_mage_guild_room(struct char_data *ch, void *me, int cmd, const char *arg
 int rol_thief_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_warrior_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_cleric_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_bard_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_waterdeep_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -74,6 +76,7 @@ bool rol_class_guild_allows(const struct char_data *ch, enum rol_guild_family fa
 bool rol_waterdeep_guild_allows(int room_vnum, const struct char_data *ch);
 bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data *ch);
 bool rol_guild_guard_protects(int room_vnum);
+int rol_guild_guard_passage_destination(int room_vnum, int direction);
 int rol_major_beholder_eye_spell(int eye);
 int rol_major_beholder_eye_cooldown(int state, int eye);
 int rol_major_beholder_advance_cooldowns(int state, unsigned int fired_eye_mask);

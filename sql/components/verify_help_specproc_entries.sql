@@ -53,6 +53,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'RoL Shadow Giant is mobile-owned') > 0
   AND INSTR(entry, 'one-in-21 chance') > 0
   AND INSTR(entry, 'RoL Guild Guard is mobile-owned') > 0
+  AND INSTR(entry, 'Antipaladin to Blackguard') > 0
   AND INSTR(entry, 'room-specific class and race gates') > 0
   AND INSTR(entry, 'RoL Waterdeep Guild Room is room-owned') > 0
   AND INSTR(entry, 'Source Mercenary maps to target Warrior') > 0
@@ -92,6 +93,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'converter-owned') > 0
   AND INSTR(entry, 'RoL Guild Room') > 0
   AND INSTR(entry, 'RoL Mage Guild Room') > 0
+  AND INSTR(entry, 'RoL Bard Guild Room') > 0
   AND INSTR(entry, 'target multiclass model') > 0
   AND INSTR(entry, 'available only in redit') > 0;
 

@@ -350,7 +350,7 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 
 ### Phase 6 converted guild guards
 
-- `RoL Guild Guard` is implemented for all 47 active source bindings, but the affected
+- `RoL Guild Guard` is implemented for all 53 active source bindings, but the affected
   packages are outside the five-package staged pilot. Do not assign it to an unrelated
   mobile: its class, race, direction, and protection rules recognize converted rooms only.
 - In a later dependency-complete stage, approach a guarded entrance with an ineligible
@@ -363,12 +363,17 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   drain up to 5,000 XP per character level without reducing XP below 2, apply the source
   dispel, curse, poison, blindness, and slow effects, reduce the attacker to 1 hit point,
   stop the combat, and relocate the attacker to another eligible room in the same zone.
+- Exercise the six converted Bloodstone gates at rooms 2007669 north, 2007817 down,
+  2007837 west, 2007844 east, 2007864 west, and 2007880 west. Their accepted target
+  classes are Warrior/Blackguard, Cleric, Assassin/Rogue, Wizard/Sorcerer, Rogue, and
+  Necromancer respectively.
 
 ### Phase 6 converted class-family guild rooms
 
-- Ten converted rooms use `RoL Mage Guild Room`, `RoL Thief Guild Room`, `RoL Warrior
-  Guild Room`, or `RoL Cleric Guild Room`. These procedures retain the source family gate
-  while delegating accepted commands to Luminari's current training service.
+- Twelve converted rooms use `RoL Mage Guild Room`, `RoL Thief Guild Room`, `RoL Warrior
+  Guild Room`, `RoL Cleric Guild Room`, or `RoL Bard Guild Room`. These procedures retain
+  the source family gate while delegating accepted commands to Luminari's current training
+  service.
 - In converted rooms 2005583, 2020963, 2034494, or 2034495, try `practice`, `train`, and
   `boosts` with a character that has no mage-family levels. Each command should be refused.
   Repeat with a Wizard, Sorcerer, Summoner, Warlock, or Necromancer level; the ordinary
@@ -377,6 +382,8 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   2094948, warrior rooms 2020958 and 2094953, and cleric rooms 2020965 and 2094933.
   Multiclass characters pass when any class belongs to the room's family. NPC commands and
   unrelated commands retain the ordinary guild procedure behavior.
+- Repeat in Bard rooms 2020957 and 2094961. A Bard level is required; source Battlechanter
+  maps to the target Bard class.
 
 ### Phase 6 converted Waterdeep guild rooms
 

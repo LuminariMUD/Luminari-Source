@@ -742,11 +742,36 @@ void Test_spec_rol_guild_guard_preserves_active_gate_rules(CuTest *tc)
   CLASS_LEVEL(target, CLASS_ASSASSIN) = 0;
   CLASS_LEVEL(target, CLASS_ROGUE) = 1;
   CuAssertTrue(tc, rol_guild_guard_allows(2034406, EAST, target));
+  CuAssertTrue(tc, rol_guild_guard_allows(2007837, WEST, target));
+  CuAssertTrue(tc, rol_guild_guard_allows(2007864, WEST, target));
+  CLASS_LEVEL(target, CLASS_ROGUE) = 0;
+
+  CuAssertTrue(tc, !rol_guild_guard_allows(2007669, NORTH, target));
+  CLASS_LEVEL(target, CLASS_BLACKGUARD) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2007669, NORTH, target));
+  CLASS_LEVEL(target, CLASS_BLACKGUARD) = 0;
+  CLASS_LEVEL(target, CLASS_NECROMANCER) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2007880, WEST, target));
+  CLASS_LEVEL(target, CLASS_NECROMANCER) = 0;
+  CLASS_LEVEL(target, CLASS_CLERIC) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2007817, DOWN, target));
+  CLASS_LEVEL(target, CLASS_CLERIC) = 0;
 
   CuAssertTrue(tc, rol_guild_guard_protects(2008200));
+  CuAssertTrue(tc, rol_guild_guard_protects(2007669));
+  CuAssertTrue(tc, rol_guild_guard_protects(2007880));
   CuAssertTrue(tc, rol_guild_guard_protects(2050624));
   CuAssertTrue(tc, !rol_guild_guard_protects(2004128));
   CuAssertTrue(tc, !rol_guild_guard_protects(9999999));
+
+  CuAssertIntEquals(tc, 2007670, rol_guild_guard_passage_destination(2007669, NORTH));
+  CuAssertIntEquals(tc, 2007818, rol_guild_guard_passage_destination(2007817, DOWN));
+  CuAssertIntEquals(tc, 2007843, rol_guild_guard_passage_destination(2007837, WEST));
+  CuAssertIntEquals(tc, 2007845, rol_guild_guard_passage_destination(2007844, EAST));
+  CuAssertIntEquals(tc, 2007865, rol_guild_guard_passage_destination(2007864, WEST));
+  CuAssertIntEquals(tc, 2007881, rol_guild_guard_passage_destination(2007880, WEST));
+  CuAssertIntEquals(tc, 0, rol_guild_guard_passage_destination(2007669, SOUTH));
+  CuAssertIntEquals(tc, 0, rol_guild_guard_passage_destination(2008200, WEST));
 
   target->player_specials = &dummy_mob;
   SET_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
@@ -769,12 +794,14 @@ void Test_spec_rol_class_guilds_preserve_family_gates_for_multiclass_players(CuT
   CuAssertTrue(tc, !rol_class_guild_allows(target, ROL_GUILD_FAMILY_THIEF));
   CuAssertTrue(tc, !rol_class_guild_allows(target, ROL_GUILD_FAMILY_WARRIOR));
   CuAssertTrue(tc, !rol_class_guild_allows(target, ROL_GUILD_FAMILY_CLERIC));
+  CuAssertTrue(tc, !rol_class_guild_allows(target, ROL_GUILD_FAMILY_BARD));
 
   CLASS_LEVEL(target, CLASS_WIZARD) = 1;
   CuAssertTrue(tc, rol_class_guild_allows(target, ROL_GUILD_FAMILY_MAGE));
   CuAssertTrue(tc, !rol_class_guild_allows(target, ROL_GUILD_FAMILY_CLERIC));
   CLASS_LEVEL(target, CLASS_BARD) = 1;
   CuAssertTrue(tc, rol_class_guild_allows(target, ROL_GUILD_FAMILY_THIEF));
+  CuAssertTrue(tc, rol_class_guild_allows(target, ROL_GUILD_FAMILY_BARD));
   CLASS_LEVEL(target, CLASS_PALADIN) = 1;
   CuAssertTrue(tc, rol_class_guild_allows(target, ROL_GUILD_FAMILY_WARRIOR));
   CLASS_LEVEL(target, CLASS_DRUID) = 1;

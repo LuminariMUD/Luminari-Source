@@ -123,6 +123,7 @@ static const char *const spec_room_names[] = {
     "RoL Thief Guild Room",
     "RoL Warrior Guild Room",
     "RoL Cleric Guild Room",
+    "RoL Bard Guild Room",
     "RoL Waterdeep Guild Room",
     "RoL Auto Distributor",
     "RoL Ship Exit",
@@ -250,6 +251,7 @@ static bool spec_owner_render_scenario(const char *sandbox, char *error, size_t 
       "RoL Guild Room [RoL Conversion]",
       "RoL Mage Guild Room [RoL Conversion]",
       "RoL Cleric Guild Room [RoL Conversion]",
+      "RoL Bard Guild Room [RoL Conversion]",
       "RoL Waterdeep Guild Room [RoL Conversion]",
       "prerequisites: none",
   };

@@ -179,8 +179,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 94, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 92, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 95, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 93, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -339,6 +339,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Warrior Guild Room", rol_warrior_guild_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Cleric Guild Room", rol_cleric_guild_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Bard Guild Room", rol_bard_guild_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Waterdeep Guild Room", rol_waterdeep_guild_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
