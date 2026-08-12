@@ -161,6 +161,15 @@ text, and visibility setting. All profiles require an awake mobile and an
 activity pulse. Every profile except Menden magus 2088806 pauses during combat.
 Do not assign this converter-owned, identity-keyed procedure to unrelated mobiles.
 
+RoL Stateful Periodic is mobile-owned and requires MOB_SPEC. Twenty-six converted
+Waterdeep mobiles use generated idle and fighting tables containing 206 source
+outcomes and 210 ordered speech or room-visible actions. Idle tables require an
+awake, standing mobile. Fighting tables run instead whenever a mobile has a current
+opponent, making the source-authored combat tables usable even where the source
+tested standing position before fighting state. Guildmaster 2003020 has no authored
+fighting table and remains quiet in combat. Do not assign this converter-owned,
+identity-keyed procedure to unrelated mobiles.
+
 RoL Sister Knight is mobile-owned and requires MOB_SPEC. When one of the five
 converted Sister Knight prototypes enters combat, it shouts once across the zone
 and sends every awake, idle, reachable converted sister within 100 rooms to pursue

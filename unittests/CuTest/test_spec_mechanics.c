@@ -986,6 +986,49 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
   CuAssertTrue(tc, rol_source_periodic_outcome_action(2007220, 2, 2, NULL, NULL) == NULL);
 }
 
+void Test_spec_rol_state_periodic_profiles_preserve_idle_and_fighting_tables(CuTest *tc)
+{
+  bool hide;
+  bool speech;
+  int dice_count;
+  int dice_sides;
+
+  CuAssertIntEquals(tc, 26, (int)rol_state_periodic_profile_count());
+
+  CuAssertTrue(tc, rol_state_periodic_dice(2003039, false, &dice_count, &dice_sides));
+  CuAssertIntEquals(tc, 2, dice_count);
+  CuAssertIntEquals(tc, 5, dice_sides);
+  CuAssertTrue(tc, rol_state_periodic_dice(2003039, true, &dice_count, &dice_sides));
+  CuAssertIntEquals(tc, 1, dice_count);
+  CuAssertIntEquals(tc, 4, dice_sides);
+
+  CuAssertTrue(tc, rol_state_periodic_dice(2003020, false, &dice_count, &dice_sides));
+  CuAssertTrue(tc, !rol_state_periodic_dice(2003020, true, &dice_count, &dice_sides));
+  CuAssertTrue(tc, rol_state_periodic_dice(2005519, false, &dice_count, &dice_sides));
+  CuAssertIntEquals(tc, 2, dice_count);
+  CuAssertIntEquals(tc, 7, dice_sides);
+  CuAssertTrue(tc, rol_state_periodic_dice(2005519, true, &dice_count, &dice_sides));
+  CuAssertIntEquals(tc, 1, dice_count);
+  CuAssertIntEquals(tc, 4, dice_sides);
+  CuAssertTrue(tc, !rol_state_periodic_dice(9999999, false, NULL, NULL));
+
+  CuAssertIntEquals(tc, 2, (int)rol_state_periodic_outcome_action_count(2003039, false, 4));
+  CuAssertStrEquals(tc, "Have you seen a small boy, around eight years old, with red hair?",
+                    rol_state_periodic_outcome_action(2003039, false, 4, 0, &speech, &hide));
+  CuAssertTrue(tc, speech);
+  CuAssertTrue(tc, !hide);
+  CuAssertStrEquals(tc, "I can't find him anywhere!",
+                    rol_state_periodic_outcome_action(2003039, false, 4, 1, &speech, &hide));
+  CuAssertTrue(tc, speech);
+  CuAssertTrue(tc, !hide);
+  CuAssertStrEquals(tc, "$n screams, 'Someone help me!'",
+                    rol_state_periodic_outcome_action(2003039, true, 1, 0, &speech, &hide));
+  CuAssertTrue(tc, !speech);
+  CuAssertTrue(tc, hide);
+  CuAssertTrue(tc, rol_state_periodic_outcome_action(2003039, false, 4, 2, NULL, NULL) == NULL);
+  CuAssertTrue(tc, rol_state_periodic_outcome_action(9999999, false, 4, 0, NULL, NULL) == NULL);
+}
+
 void Test_spec_rol_bloodstone_critter_preserves_social_cadence(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

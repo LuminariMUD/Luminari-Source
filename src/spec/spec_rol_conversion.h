@@ -55,6 +55,7 @@ int rol_yggdrasil_branch(struct char_data *ch, void *me, int cmd, const char *ar
 int rol_waterdeep_ambient(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_state_periodic(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_designated_follower(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_floating_pool(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -100,6 +101,11 @@ bool rol_source_periodic_profile_bounds(int mobile_vnum, int *roll_min, int *rol
 size_t rol_source_periodic_outcome_action_count(int mobile_vnum, int roll);
 const char *rol_source_periodic_outcome_action(int mobile_vnum, int roll, size_t action_index,
                                                bool *speech, bool *hide);
+size_t rol_state_periodic_profile_count(void);
+bool rol_state_periodic_dice(int mobile_vnum, bool fighting, int *dice_count, int *dice_sides);
+size_t rol_state_periodic_outcome_action_count(int mobile_vnum, bool fighting, int roll);
+const char *rol_state_periodic_outcome_action(int mobile_vnum, bool fighting, int roll,
+                                              size_t action_index, bool *speech, bool *hide);
 bool rol_bloodstone_portal_survives(int current_hit, int hit_loss);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);
 bool rol_automatic_race_activity(struct char_data *ch);

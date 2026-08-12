@@ -1328,6 +1328,19 @@ static const struct spec_definition spec_definitions[] = {
                        "converted RoL mobiles.",
         .legacy_handler = rol_source_periodic,
     },
+    {
+        .canonical_name = "RoL Stateful Periodic",
+        .display_name = "RoL Stateful Periodic",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = janitor_events,
+        .event_count = SPEC_ARRAY_SIZE(janitor_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Emits generated source-authored idle or fighting speech and room actions "
+                       "for converted RoL mobiles.",
+        .legacy_handler = rol_state_periodic,
+    },
 };
 
 enum
@@ -1423,6 +1436,7 @@ enum
   SPEC_DEFINITION_ROL_YGGDRASIL_BRANCH,
   SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT,
   SPEC_DEFINITION_ROL_SOURCE_PERIODIC,
+  SPEC_DEFINITION_ROL_STATEFUL_PERIODIC,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -1528,6 +1542,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_YGGDRASIL_BRANCH, -1},
     {SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT, -1},
     {SPEC_DEFINITION_ROL_SOURCE_PERIODIC, -1},
+    {SPEC_DEFINITION_ROL_STATEFUL_PERIODIC, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,

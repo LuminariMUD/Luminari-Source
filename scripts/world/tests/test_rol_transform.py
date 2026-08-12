@@ -14,6 +14,7 @@ from wtool_lib.rol_source import parse_active_rol_corpus, parse_rol_source_file
 from wtool_lib.rol_discovery import extract_source_commands
 from wtool_lib.rol_pilot import PILOT_BASENAMES
 from wtool_lib.rol_periodic_profiles import PROFILE_SOURCES
+from wtool_lib.rol_state_periodic_profiles import STATE_PROFILE_SOURCES
 from wtool_lib.rol_soc import build_soc_prototype_comparison, compile_soc_records
 from wtool_lib.rol_special import compile_special_bindings
 from wtool_lib.rol_transform import (
@@ -883,6 +884,12 @@ class RolTransformTests(unittest.TestCase):
             "source_vnum": 40,
             "source_handler": "poison",
         },
+        {
+            "basename": "sample",
+            "record_type": "mobile",
+            "source_vnum": 50,
+            "source_handler": "rogue_one",
+        },
     ]
 
     compiled = compile_special_bindings(
@@ -897,12 +904,15 @@ class RolTransformTests(unittest.TestCase):
         sorted(binding.persisted_name for binding in compiled.native_bindings),
     )
     self.assertEqual([], compiled.triggers)
-    self.assertEqual(4, len(compiled.dispositions))
+    self.assertEqual(5, len(compiled.dispositions))
     inert = next(row for row in compiled.dispositions if row["source_handler"] == "dump")
     self.assertEqual("SOURCE_INERT_EXCLUDED", inert["strategy"])
     self.assertIn("returns before", inert["reason"])
     adapted = next(row for row in compiled.dispositions if row["source_handler"] == "poison")
     self.assertEqual("NATIVE_ADAPTED", adapted["strategy"])
+    rogue = next(row for row in compiled.dispositions if row["source_handler"] == "rogue_one")
+    self.assertEqual("SOURCE_INERT_EXCLUDED", rogue["strategy"])
+    self.assertIn("NPC_HIT", rogue["reason"])
 
   def test_conjured_death_binding_uses_composable_mobile_flag(self) -> None:
     binding = {
@@ -1042,6 +1052,36 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(
         all(
             binding.persisted_name == "RoL Source Periodic"
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
+  def test_state_periodic_handlers_share_generated_persistent_adapter(self) -> None:
+    handlers = tuple(STATE_PROFILE_SOURCES)[:6]
+    bindings = [
+        {
+            "basename": "state-periodic",
+            "record_type": "mobile",
+            "source_vnum": 5500 + index,
+            "source_handler": handler,
+        }
+        for index, handler in enumerate(handlers)
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(6, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Stateful Periodic"
             for binding in compiled.native_bindings
         )
     )

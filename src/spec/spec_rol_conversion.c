@@ -159,6 +159,33 @@ struct rol_source_periodic_action
 
 #include "spec_rol_periodic_profiles.inc"
 
+enum rol_state_periodic_state
+{
+  ROL_STATE_PERIODIC_IDLE = 0,
+  ROL_STATE_PERIODIC_FIGHTING
+};
+
+struct rol_state_periodic_profile
+{
+  int mobile_vnum;
+  int profile_id;
+  int idle_dice_count;
+  int idle_dice_sides;
+  int fighting_dice_count;
+  int fighting_dice_sides;
+};
+
+struct rol_state_periodic_outcome
+{
+  int profile_id;
+  enum rol_state_periodic_state state;
+  int roll;
+  size_t first_action;
+  size_t action_count;
+};
+
+#include "spec_rol_state_periodic_profiles.inc"
+
 static const int rol_demogorgon_helpers[] = {2019830, 2019850, 2019880};
 static const int rol_drisinil_helpers[] = {2059812, 2059815, 2059814};
 static const int rol_tukra_helpers[] = {2059832, 2059833, 2059834};
@@ -2699,6 +2726,163 @@ int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *arg
   }
 
   return TRUE;
+}
+
+static const struct rol_state_periodic_profile *rol_state_periodic_profile_for(int mobile_vnum)
+{
+  size_t high = sizeof(rol_state_periodic_profiles) / sizeof(rol_state_periodic_profiles[0]);
+  size_t low = 0;
+  size_t middle;
+
+  while (low < high)
+  {
+    middle = low + (high - low) / 2;
+    if (rol_state_periodic_profiles[middle].mobile_vnum < mobile_vnum)
+      low = middle + 1;
+    else
+      high = middle;
+  }
+
+  if (low < sizeof(rol_state_periodic_profiles) / sizeof(rol_state_periodic_profiles[0]) &&
+      rol_state_periodic_profiles[low].mobile_vnum == mobile_vnum)
+    return &rol_state_periodic_profiles[low];
+  return NULL;
+}
+
+static const struct rol_state_periodic_outcome *
+rol_state_periodic_outcome_for(int profile_id, enum rol_state_periodic_state state, int roll)
+{
+  size_t high = sizeof(rol_state_periodic_outcomes) / sizeof(rol_state_periodic_outcomes[0]);
+  size_t low = 0;
+  size_t middle;
+  const struct rol_state_periodic_outcome *outcome;
+
+  while (low < high)
+  {
+    middle = low + (high - low) / 2;
+    outcome = &rol_state_periodic_outcomes[middle];
+    if (outcome->profile_id < profile_id ||
+        (outcome->profile_id == profile_id && outcome->state < state) ||
+        (outcome->profile_id == profile_id && outcome->state == state && outcome->roll < roll))
+      low = middle + 1;
+    else
+      high = middle;
+  }
+
+  if (low < sizeof(rol_state_periodic_outcomes) / sizeof(rol_state_periodic_outcomes[0]))
+  {
+    outcome = &rol_state_periodic_outcomes[low];
+    if (outcome->profile_id == profile_id && outcome->state == state && outcome->roll == roll)
+      return outcome;
+  }
+  return NULL;
+}
+
+size_t rol_state_periodic_profile_count(void)
+{
+  return sizeof(rol_state_periodic_profiles) / sizeof(rol_state_periodic_profiles[0]);
+}
+
+bool rol_state_periodic_dice(int mobile_vnum, bool fighting, int *dice_count, int *dice_sides)
+{
+  const struct rol_state_periodic_profile *profile = rol_state_periodic_profile_for(mobile_vnum);
+  int count;
+  int sides;
+
+  if (profile == NULL)
+    return false;
+  count = fighting ? profile->fighting_dice_count : profile->idle_dice_count;
+  sides = fighting ? profile->fighting_dice_sides : profile->idle_dice_sides;
+  if (count == 0 || sides == 0)
+    return false;
+  if (dice_count != NULL)
+    *dice_count = count;
+  if (dice_sides != NULL)
+    *dice_sides = sides;
+  return true;
+}
+
+size_t rol_state_periodic_outcome_action_count(int mobile_vnum, bool fighting, int roll)
+{
+  const struct rol_state_periodic_profile *profile = rol_state_periodic_profile_for(mobile_vnum);
+  const struct rol_state_periodic_outcome *outcome;
+  enum rol_state_periodic_state state =
+      fighting ? ROL_STATE_PERIODIC_FIGHTING : ROL_STATE_PERIODIC_IDLE;
+
+  if (profile == NULL)
+    return 0;
+  outcome = rol_state_periodic_outcome_for(profile->profile_id, state, roll);
+  return outcome != NULL ? outcome->action_count : 0;
+}
+
+const char *rol_state_periodic_outcome_action(int mobile_vnum, bool fighting, int roll,
+                                              size_t action_index, bool *speech, bool *hide)
+{
+  const struct rol_state_periodic_profile *profile = rol_state_periodic_profile_for(mobile_vnum);
+  const struct rol_state_periodic_outcome *outcome;
+  const struct rol_source_periodic_action *action;
+  enum rol_state_periodic_state state =
+      fighting ? ROL_STATE_PERIODIC_FIGHTING : ROL_STATE_PERIODIC_IDLE;
+
+  if (profile == NULL)
+    return NULL;
+  outcome = rol_state_periodic_outcome_for(profile->profile_id, state, roll);
+  if (outcome == NULL || action_index >= outcome->action_count)
+    return NULL;
+  action = &rol_state_periodic_actions[outcome->first_action + action_index];
+  if (speech != NULL)
+    *speech = action->kind == ROL_SOURCE_PERIODIC_SPEECH;
+  if (hide != NULL)
+    *hide = action->hide;
+  return action->message;
+}
+
+int rol_state_periodic(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *speaker = me;
+  const struct rol_state_periodic_profile *profile;
+  const struct rol_state_periodic_outcome *outcome;
+  const struct rol_source_periodic_action *action;
+  enum rol_state_periodic_state state;
+  bool fighting;
+  int dice_count;
+  int dice_sides;
+  int roll;
+  size_t index;
+
+  (void)argument;
+
+  if (speaker == NULL && cmd == 0)
+    speaker = ch;
+  if (speaker == NULL || cmd != 0 || !IS_NPC(speaker) || !AWAKE(speaker) ||
+      IN_ROOM(speaker) == NOWHERE)
+    return FALSE;
+
+  profile = rol_state_periodic_profile_for(GET_MOB_VNUM(speaker));
+  fighting = FIGHTING(speaker) != NULL;
+  if (profile == NULL || (!fighting && GET_POS(speaker) < POS_STANDING))
+    return FALSE;
+
+  dice_count = fighting ? profile->fighting_dice_count : profile->idle_dice_count;
+  dice_sides = fighting ? profile->fighting_dice_sides : profile->idle_dice_sides;
+  if (dice_count == 0 || dice_sides == 0)
+    return FALSE;
+
+  state = fighting ? ROL_STATE_PERIODIC_FIGHTING : ROL_STATE_PERIODIC_IDLE;
+  roll = dice(dice_count, dice_sides);
+  outcome = rol_state_periodic_outcome_for(profile->profile_id, state, roll);
+  if (outcome == NULL)
+    return FALSE;
+
+  for (index = 0; index < outcome->action_count; index++)
+  {
+    action = &rol_state_periodic_actions[outcome->first_action + index];
+    if (action->kind == ROL_SOURCE_PERIODIC_SPEECH)
+      do_say(speaker, action->message, 0, 0);
+    else
+      act(action->message, action->hide, speaker, NULL, NULL, TO_ROOM);
+  }
+  return FALSE;
 }
 
 static mob_vnum rol_designated_follower_leader_vnum(mob_vnum follower_vnum)

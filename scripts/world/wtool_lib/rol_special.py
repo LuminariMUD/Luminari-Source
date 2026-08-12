@@ -8,6 +8,7 @@ from typing import Callable, Iterable
 
 from .flags import encode_bits
 from .rol_periodic_profiles import PROFILE_SOURCES
+from .rol_state_periodic_profiles import STATE_PROFILE_SOURCES
 from .rol_source import RolRecord
 
 
@@ -153,12 +154,18 @@ ADAPTED_HANDLER_NAMES = {
 ADAPTED_HANDLER_NAMES.update(
     {handler_name: "RoL Source Periodic" for handler_name in PROFILE_SOURCES}
 )
+ADAPTED_HANDLER_NAMES.update(
+    {handler_name: "RoL Stateful Periodic" for handler_name in STATE_PROFILE_SOURCES}
+)
 
 # These callbacks return before their obsolete or apparent behavior. Binding
 # active target procedures would invent behavior that did not run in RoL.
 INERT_HANDLERS = {
     "cityguard": "source cityguard callback returns before its obsolete aggression code",
     "dump": "source dump callback returns before its command behavior",
+    "rogue_one": (
+        "source callback registers only NPC_HIT but returns whenever that event supplies its victim"
+    ),
 }
 
 # These source death callbacks coexist with other mobile behavior. Dedicated

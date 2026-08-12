@@ -558,6 +558,26 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   source behavior during combat. Unrelated mobiles must not receive any of these identity-keyed
   profiles.
 
+### Phase 6 generated state-aware Waterdeep profiles
+
+- Build a dependency-complete Waterdeep stage and confirm these 26 mobiles use
+  `RoL Stateful Periodic` with `MOB_SPEC`: 2002823, 2003020-2003023, 2003039, 2005315,
+  2005503-2005504, 2005507-2005508, 2005510, 2005513-2005521, 2005525, 2005530,
+  2005533-2005534, 2005538, and 2005540.
+- While awake and standing but not fighting, observe representative profiles across repeated
+  activity pulses. They should use their source idle speech and room actions. Most roll two-d5;
+  Selune dancer 2005519 rolls two-d7. Sitting and sleeping representatives remain quiet.
+- Start combat with representative mobiles. Each should switch to its one-d4 fighting table
+  instead of emitting idle text. This intentionally makes the explicitly authored combat branch
+  usable where the source tested standing position first. Guildmaster 2003020 has no fighting
+  table and must remain quiet in combat.
+- For commoner 2003039, confirm idle outcomes include the ordered two-line missing-child speech,
+  while fighting outcomes include calls for help and other combat reactions. Unrelated mobiles
+  must not receive any of these identity-keyed profiles.
+- Confirm converted rogue 2005509 has no named procedure from `rogue_one`: its source callback
+  registered only for `NPC_HIT` but returned whenever that event supplied its victim, so adapting
+  the unreachable body would invent behavior.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,
