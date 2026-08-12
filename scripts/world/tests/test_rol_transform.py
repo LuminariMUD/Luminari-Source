@@ -1336,6 +1336,7 @@ class RolTransformTests(unittest.TestCase):
         "kor_only_sword",
         "md_darken_aura",
         "md_gleaming_burst",
+        "hellish_fury_bow",
     )
     bindings = [
         {
@@ -1903,6 +1904,10 @@ class RolTransformTests(unittest.TestCase):
         (51110, "nh_blueplume", (), ()),
         (51207, "nh_writhingash", (), ()),
         (57236, "haste_sleeves", (), ()),
+        (19932, "lathander_disc", (), ()),
+        (19988, "tiamat_crescent_moon", (), ()),
+        (57003, "smoke_stun_shield", (), ()),
+        (88830, "llyms_altar", (), ()),
     ]
     bindings = [
         {
@@ -1945,6 +1950,12 @@ class RolTransformTests(unittest.TestCase):
             "record_type": "object",
             "source_vnum": 19985,
             "source_handler": "craine_serpent",
+        },
+        {
+            "basename": "inert-objects",
+            "record_type": "object",
+            "source_vnum": 1019,
+            "source_handler": "nuclear_bomb",
         },
     ]
 

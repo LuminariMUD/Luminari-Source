@@ -97,7 +97,8 @@ enum rol_weapon_effect
   ROL_WEAPON_HALRUAA_NECROMANCER,
   ROL_WEAPON_HIVE_GYTHKA,
   ROL_WEAPON_HOLY,
-  ROL_WEAPON_KOR_BATTLEAXE
+  ROL_WEAPON_KOR_BATTLEAXE,
+  ROL_WEAPON_HELLISH_FURY_BOW
 };
 
 struct rol_weapon_profile
@@ -111,6 +112,8 @@ struct rol_weapon_profile
 
 static const struct rol_weapon_profile rol_weapon_profiles[] = {
     {2004505, ROL_WEAPON_HAMMER, 22, false, "Chain-lightning proc."},
+    {2004797, ROL_WEAPON_HELLISH_FURY_BOW, 26, false,
+     "Ranged shots burn with flame and may erupt for heavy fire damage."},
     {2013307, ROL_WEAPON_ICY_DAGGER, 1, true,
      "Critical cold burst; berserkers may invoke an ice storm."},
     {2014837, ROL_WEAPON_GLIMMERING_BURST, 28, false,
@@ -6971,6 +6974,19 @@ static int rol_weapon_hit(struct spec_event_context *context,
     return rol_weapon_holy_hit(ch, obj, slot);
   case ROL_WEAPON_KOR_BATTLEAXE:
     return rol_weapon_kor(context, ch, obj, victim, slot);
+  case ROL_WEAPON_HELLISH_FURY_BOW:
+    if (context->attack_type != ATTACK_TYPE_RANGED)
+      return FALSE;
+    if (rand_number(0, 25) != 0)
+    {
+      act("Flames surround the missile as it leaps from your $p!", FALSE, ch, obj, victim, TO_CHAR);
+      return FALSE;
+    }
+    act("Your $p erupts with fiery energy that crashes into $N!", FALSE, ch, obj, victim, TO_CHAR);
+    result = rol_weapon_damage(ch, victim, rand_number(150, 250), DAM_FIRE);
+    if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED)
+      context->invalidation |= SPEC_INVALIDATE_TARGET;
+    return TRUE;
   default:
     return FALSE;
   }

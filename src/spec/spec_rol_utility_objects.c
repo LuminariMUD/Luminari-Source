@@ -17,6 +17,8 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "magic/spells.h"
+#include "mud_event.h"
+#include "spec_combat.h"
 #include "spec_context.h"
 #include "spec_cooldown.h"
 #include "spec_dispatch.h"
@@ -31,18 +33,28 @@
 #define ROL_RUBY_MONOCLE_ROOM_MAX 2090142
 #define ROL_MAGIUS_STAFF_VNUM 2000047
 #define ROL_BASILISK_SNAKE_VNUM 2000412
+#define ROL_LATHANDER_DISC_VNUM 2019932
 #define ROL_DRAGONCULT_ROBES_VNUM 2010672
+#define ROL_CRESCENT_MOON_VNUM 2019988
 #define ROL_EARTHMOTHER_STAFF_VNUM 2026260
 #define ROL_BASILISK_LEGGINGS_VNUM 2043723
 #define ROL_BASILISK_SNAKES_VNUM 2044019
 #define ROL_BLUEPLUME_VNUM 2051110
 #define ROL_WRITHING_ASH_VNUM 2051207
 #define ROL_HASTE_SLEEVES_VNUM 2057236
+#define ROL_SMOKE_STUN_SHIELD_VNUM 2057003
+#define ROL_LLYMS_ALTAR_VNUM 2088830
+#define ROL_LLYMS_SERVANT_ONE_VNUM 2088814
+#define ROL_LLYMS_SERVANT_TWO_VNUM 2088815
+#define ROL_LLYMS_REWARD_ONE_VNUM 2088831
+#define ROL_LLYMS_REWARD_TWO_VNUM 2088832
+#define ROL_LLYMS_REWARD_THREE_VNUM 2088833
 
 enum rol_utility_called_effect
 {
   ROL_UTILITY_MAGIUS_STAFF = 0,
   ROL_UTILITY_DRAGONCULT_ROBES,
+  ROL_UTILITY_CRESCENT_MOON,
   ROL_UTILITY_EARTHMOTHER_STAFF,
   ROL_UTILITY_BASILISK_LEGGINGS,
   ROL_UTILITY_BASILISK_SNAKES,
@@ -66,6 +78,8 @@ static const struct rol_utility_called_profile rol_utility_called_profiles[] = {
      "Say 'shirak' to light the staff or 'dulak' to darken it."},
     {ROL_DRAGONCULT_ROBES_VNUM, ROL_UTILITY_DRAGONCULT_ROBES, "draconian protection", 72,
      "Say 'draconian protection' while worn for elemental resistance every three MUD days."},
+    {ROL_CRESCENT_MOON_VNUM, ROL_UTILITY_CRESCENT_MOON, "Crescent Moon", 0,
+     "Say 'Crescent Moon' while worn for invisibility once per combat round."},
     {ROL_EARTHMOTHER_STAFF_VNUM, ROL_UTILITY_EARTHMOTHER_STAFF, "aid me earthmother", 72,
      "Say 'aid me earthmother' while worn for random elemental aid every three MUD days."},
     {ROL_BASILISK_LEGGINGS_VNUM, ROL_UTILITY_BASILISK_LEGGINGS, "petrify", 48,
@@ -121,6 +135,25 @@ bool rol_utility_called_profile(int object_vnum, const char **phrase, int *coold
   return true;
 }
 
+static const char *rol_utility_description_for(int object_vnum)
+{
+  const struct rol_utility_called_profile *profile = rol_utility_called_profile_for(object_vnum);
+
+  if (profile != NULL)
+    return profile->description;
+  switch (object_vnum)
+  {
+  case ROL_LATHANDER_DISC_VNUM:
+    return "Rub the disc to become young again; the disc is consumed and leaves you unconscious.";
+  case ROL_SMOKE_STUN_SHIELD_VNUM:
+    return "May discharge electricity on a shield block or shield punch.";
+  case ROL_LLYMS_ALTAR_VNUM:
+    return "Offer a valuable held treasure to the altar for Llym's favor.";
+  default:
+    return NULL;
+  }
+}
+
 static const char *rol_utility_command_name(int cmd)
 {
   if (cmd <= 0 || complete_cmd_info == NULL)
@@ -149,6 +182,21 @@ static int rol_utility_held_slot(const struct char_data *ch, const struct obj_da
     if (GET_EQ(ch, slots[index]) == obj)
       return slots[index];
 
+  return -1;
+}
+
+static int rol_utility_treasure_slot(const struct char_data *ch, const char *keyword)
+{
+  static const int slots[] = {WEAR_HOLD_1, WEAR_HOLD_2, WEAR_HOLD_2H};
+  size_t index;
+
+  if (ch == NULL || keyword == NULL)
+    return -1;
+  for (index = 0; index < sizeof(slots) / sizeof(slots[0]); index++)
+    if (GET_EQ(ch, slots[index]) != NULL &&
+        GET_OBJ_TYPE(GET_EQ(ch, slots[index])) == ITEM_TREASURE &&
+        isname(keyword, GET_EQ(ch, slots[index])->name))
+      return slots[index];
   return -1;
 }
 
@@ -427,6 +475,167 @@ static void rol_utility_earthmother_aid(struct char_data *ch)
   (void)call_magic(ch, ch, NULL, spell, 0, 35, CAST_INNATE);
 }
 
+static int rol_utility_lathander_disc(struct spec_event_context *context, struct char_data *ch,
+                                      struct obj_data *obj)
+{
+  char keyword[MAX_INPUT_LENGTH];
+
+  if (!rol_utility_command_is(context->command, "rub") || IS_NPC(ch) || context->argument == NULL)
+    return FALSE;
+  one_argument(context->argument, keyword, sizeof(keyword));
+  if (*keyword == '\0' || !isname(keyword, obj->name))
+    return FALSE;
+
+  act("Your $p glows and dissolves into a white cloud that tears through your body.", FALSE, ch,
+      obj, NULL, TO_CHAR);
+  act("$n's $p glows and dissolves as a white cloud surrounds $m.", FALSE, ch, obj, NULL, TO_ROOM);
+  ch->player.time.birth = time(NULL);
+  GET_POS(ch) = POS_SLEEPING;
+  if (!char_has_mud_event(ch, eSTUNNED))
+    attach_mud_event(new_mud_event(eSTUNNED, ch, NULL), PULSE_VIOLENCE * rand_number(5, 8));
+  SET_WAIT(ch, PULSE_VIOLENCE);
+  extract_obj(obj);
+  context->invalidation |= SPEC_INVALIDATE_OWNER;
+  return TRUE;
+}
+
+static void rol_utility_llyms_summon(struct char_data *ch, int mobile_vnum)
+{
+  struct char_data *summoned;
+
+  summoned = read_mobile(mobile_vnum, VIRTUAL);
+  if (summoned == NULL)
+  {
+    log("SYSERR: RoL Llym altar cannot load mobile %d", mobile_vnum);
+    send_to_char(ch, "Llym's promised servant fails to appear. Please tell a staff member.\r\n");
+    return;
+  }
+  char_to_room(summoned, IN_ROOM(ch));
+  SET_BIT_AR(AFF_FLAGS(summoned), AFF_CHARM);
+  add_follower(summoned, ch);
+  act("$n appears in a flash of blue light!", TRUE, summoned, NULL, NULL, TO_ROOM);
+  load_mtrigger(summoned);
+}
+
+static void rol_utility_llyms_reward(struct char_data *ch, int object_vnum)
+{
+  struct obj_data *reward;
+
+  reward = read_object(object_vnum, VIRTUAL);
+  if (reward == NULL)
+  {
+    log("SYSERR: RoL Llym altar cannot load object %d", object_vnum);
+    send_to_char(ch, "Llym's promised reward fails to appear. Please tell a staff member.\r\n");
+    return;
+  }
+  obj_to_room(reward, IN_ROOM(ch));
+  act("$p appears before you in a flash of blue light!", TRUE, ch, reward, NULL, TO_CHAR);
+  act("$p appears in a flash of blue light!", TRUE, ch, reward, NULL, TO_ROOM);
+  load_otrigger(reward);
+}
+
+static int rol_utility_llyms_altar(struct spec_event_context *context, struct char_data *ch,
+                                   struct obj_data *obj)
+{
+  struct obj_data *treasure;
+  char altar_name[MAX_INPUT_LENGTH];
+  char treasure_name[MAX_INPUT_LENGTH];
+  int bonus;
+  int slot;
+
+  if (!rol_utility_command_is(context->command, "offer") || !AWAKE(ch) ||
+      context->argument == NULL || !VALID_ROOM_RNUM(IN_ROOM(obj)) || IN_ROOM(obj) != IN_ROOM(ch))
+    return FALSE;
+  two_arguments(context->argument, treasure_name, sizeof(treasure_name), altar_name,
+                sizeof(altar_name));
+  if (*treasure_name == '\0' || *altar_name == '\0' || !isname(altar_name, obj->name) ||
+      (slot = rol_utility_treasure_slot(ch, treasure_name)) < 0)
+    return FALSE;
+  treasure = GET_EQ(ch, slot);
+
+  act("You offer $p to $P.", TRUE, ch, treasure, obj, TO_CHAR);
+  act("$n offers $p to $P.", TRUE, ch, treasure, obj, TO_ROOM);
+  if (GET_OBJ_COST(treasure) < 10000)
+  {
+    act("$P rumbles briefly, rejecting the inadequate offering.", TRUE, ch, treasure, obj, TO_CHAR);
+    return TRUE;
+  }
+
+  treasure = unequip_char(ch, slot);
+  if (treasure == NULL)
+    return TRUE;
+  extract_obj(treasure);
+  if (!affected_by_spell(ch, SPELL_BLESS))
+    (void)call_magic(ch, ch, NULL, SPELL_BLESS, 0, 50, CAST_INNATE);
+  else
+  {
+    GET_GOLD(ch) += rand_number(1, 100);
+    send_to_char(ch, "Your purse suddenly feels heavier!\r\n");
+  }
+
+  bonus = rand_number(1, 50);
+  switch (bonus)
+  {
+  case 1:
+    rol_utility_llyms_summon(ch, ROL_LLYMS_SERVANT_ONE_VNUM);
+    break;
+  case 2:
+    rol_utility_llyms_summon(ch, ROL_LLYMS_SERVANT_TWO_VNUM);
+    break;
+  case 3:
+    rol_utility_llyms_reward(ch, ROL_LLYMS_REWARD_ONE_VNUM);
+    break;
+  case 4:
+    rol_utility_llyms_reward(ch, ROL_LLYMS_REWARD_TWO_VNUM);
+    break;
+  case 5:
+    rol_utility_llyms_reward(ch, ROL_LLYMS_REWARD_THREE_VNUM);
+    break;
+  case 6:
+    if (!affected_by_spell(ch, SPELL_AID))
+      (void)call_magic(ch, ch, NULL, SPELL_AID, 0, 60, CAST_INNATE);
+    break;
+  default:
+    break;
+  }
+  return TRUE;
+}
+
+static int rol_utility_smoke_shield(struct spec_event_context *context, struct char_data *ch,
+                                    struct obj_data *obj)
+{
+  struct char_data *victim = FIGHTING(ch);
+  struct spec_damage_result result;
+  int amount;
+
+  if (victim == NULL || GET_EQ(ch, WEAR_SHIELD) != obj ||
+      spec_context_validate_combat_target(ch, victim, true) != SPEC_CONTEXT_VALID)
+    return FALSE;
+  context->target = victim;
+  if (context->event == SPEC_EVENT_COMBAT_MANEUVER && context->argument != NULL &&
+      !strcmp(context->argument, "shieldpunch") && rand_number(0, 9) == 0)
+  {
+    act("A crackling bolt leaps from your $p and violently jolts $N!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    if (can_stun(victim) && !char_has_mud_event(victim, eSTUNNED))
+      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), PULSE_VIOLENCE * 2);
+    SET_WAIT(ch, PULSE_VIOLENCE * 2);
+    return TRUE;
+  }
+  if (context->event != SPEC_EVENT_DEFENSE_REACTION || context->argument == NULL ||
+      strcmp(context->argument, "shieldblock") || rand_number(0, 9) != 0)
+    return FALSE;
+
+  act("Your $p discharges a violent arc of electricity into $N!", FALSE, ch, obj, victim, TO_CHAR);
+  amount = affected_by_spell(victim, SPELL_RESIST_ENERGY) ? dice(3, 10) : dice(6, 10);
+  if (GET_HIT(victim) < amount)
+    return FALSE;
+  result = spec_damage_current_target(ch, victim, amount, -1, DAM_ELECTRIC, FALSE);
+  if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED)
+    context->invalidation |= SPEC_INVALIDATE_TARGET;
+  return TRUE;
+}
+
 static int rol_utility_called_effect(struct spec_event_context *context,
                                      const struct rol_utility_called_profile *profile,
                                      struct char_data *ch, struct obj_data *obj)
@@ -471,6 +680,11 @@ static int rol_utility_called_effect(struct spec_event_context *context,
     act("Five spectral dragons rise from $p and surround you with elemental protection.", FALSE, ch,
         obj, NULL, TO_CHAR);
     (void)call_magic(ch, ch, NULL, SPELL_RESIST_ENERGY, 0, 35, CAST_INNATE);
+    break;
+  case ROL_UTILITY_CRESCENT_MOON:
+    act("Moonlight spills from your $p as shadows wrap around you.", FALSE, ch, obj, NULL, TO_CHAR);
+    (void)call_magic(ch, ch, NULL, SPELL_INVISIBLE, 0, 51, CAST_INNATE);
+    SET_WAIT(ch, PULSE_VIOLENCE);
     break;
   case ROL_UTILITY_HASTE_SLEEVES:
     act("Your $p vibrates with power and every motion accelerates.", FALSE, ch, obj, NULL, TO_CHAR);
@@ -533,11 +747,18 @@ int rol_utility_object_typed(struct spec_event_context *context)
   profile = rol_utility_called_profile_for(GET_OBJ_VNUM(obj));
   if (context->event == SPEC_EVENT_ITEM_IDENTIFY)
   {
-    if (profile == NULL || context->actor == NULL)
+    const char *description = rol_utility_description_for(GET_OBJ_VNUM(obj));
+
+    if (description == NULL || context->actor == NULL)
       return FALSE;
-    send_to_char(context->actor, "Special Effects: %s\r\n", profile->description);
+    send_to_char(context->actor, "Special Effects: %s\r\n", description);
     return TRUE;
   }
+
+  if ((context->event == SPEC_EVENT_DEFENSE_REACTION ||
+       context->event == SPEC_EVENT_COMBAT_MANEUVER) &&
+      GET_OBJ_VNUM(obj) == ROL_SMOKE_STUN_SHIELD_VNUM && context->actor != NULL)
+    return rol_utility_smoke_shield(context, context->actor, obj);
 
   if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
   {
@@ -566,6 +787,10 @@ int rol_utility_object_typed(struct spec_event_context *context)
     return rol_utility_child_sacrifice(context, ch, obj);
   case ROL_MENDEN_FIGURINE_VNUM:
     return rol_utility_menden_figurine(context, ch, obj);
+  case ROL_LATHANDER_DISC_VNUM:
+    return rol_utility_lathander_disc(context, ch, obj);
+  case ROL_LLYMS_ALTAR_VNUM:
+    return rol_utility_llyms_altar(context, ch, obj);
   default:
     return FALSE;
   }

@@ -3693,6 +3693,7 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL},
     {"rsay", "rs", POS_RECLINING, do_rsay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rub", "rub", POS_RESTING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"salvage", "salv", POS_RECLINING, do_salvage, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

@@ -125,6 +125,11 @@ ADAPTED_HANDLER_NAMES = {
     "moonshae_earthmother_staff": "RoL Utility Object",
     "nh_blueplume": "RoL Utility Object",
     "nh_writhingash": "RoL Utility Object",
+    "lathander_disc": "RoL Utility Object",
+    "llyms_altar": "RoL Utility Object",
+    "smoke_stun_shield": "RoL Utility Object",
+    "tiamat_crescent_moon": "RoL Utility Object",
+    "hellish_fury_bow": "RoL Weapon Proc",
     "baker_one": "RoL Waterdeep Ambient",
     "baker_two": "RoL Waterdeep Ambient",
     "casino_one": "RoL Waterdeep Ambient",
@@ -332,6 +337,10 @@ INERT_HANDLERS = {
     "clock_tower": (
         "direct object callback returns no event bits during initialization; the source tree "
         "contains no separate clock-tower event registration"
+    ),
+    "nuclear_bomb": (
+        "direct object callback returns no event bits during initialization, so its destructive "
+        "missile-hit body is unreachable through the assigned binding"
     ),
     "craine_serpent": (
         "source callback never parses its encoded call type, so initialization registers no "

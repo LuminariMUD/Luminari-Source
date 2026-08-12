@@ -1414,7 +1414,7 @@ void Test_spec_rol_lavatubes_profiles_preserve_source_outcomes(CuTest *tc)
 
 void Test_spec_rol_utility_object_profiles_preserve_source_boundaries(CuTest *tc)
 {
-  static const int called_vnums[] = {2000047, 2010672, 2026260, 2043723,
+  static const int called_vnums[] = {2000047, 2010672, 2019988, 2026260, 2043723,
                                      2044019, 2051110, 2051207, 2057236};
   const char *description;
   const char *phrase;
@@ -1463,6 +1463,9 @@ void Test_spec_rol_utility_object_profiles_preserve_source_boundaries(CuTest *tc
   CuAssertTrue(tc, rol_utility_called_profile(2057236, &phrase, &cooldown_hours, &description));
   CuAssertStrEquals(tc, "accelerate", phrase);
   CuAssertIntEquals(tc, 48, cooldown_hours);
+  CuAssertTrue(tc, rol_utility_called_profile(2019988, &phrase, &cooldown_hours, &description));
+  CuAssertStrEquals(tc, "Crescent Moon", phrase);
+  CuAssertIntEquals(tc, 0, cooldown_hours);
   CuAssertTrue(tc, !rol_utility_called_profile(9999999, NULL, NULL, NULL));
 }
 
@@ -1653,11 +1656,12 @@ void Test_spec_rol_waterdeep_bouncer_routes_preserve_source_paths(CuTest *tc)
 void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
 {
   static const int vnums[] = {
-      2004505, 2013307, 2014837, 2019886, 2019900, 2019912, 2020075, 2026014, 2034840, 2038025,
-      2038095, 2040135, 2080547, 2089462, 2091305, 2095776, 2095851, 2095876, 2095878, 2098330,
-      2019933, 2025030, 2009054, 2025018, 2001010, 2080034, 2080038, 2026233, 2026248, 2015116,
-      2013308, 2097117, 2001005, 2014023, 2024405, 2053266, 2053263, 2053259, 2053289, 2053290,
-      2053291, 2053292, 2053243, 2083238, 2083235, 2053250, 2053271, 2043741, 2008000, 2001057,
+      2004505, 2013307, 2014837, 2019886, 2019900, 2019912, 2020075, 2026014, 2034840,
+      2038025, 2038095, 2040135, 2080547, 2089462, 2091305, 2095776, 2095851, 2095876,
+      2095878, 2098330, 2019933, 2025030, 2009054, 2025018, 2001010, 2080034, 2080038,
+      2026233, 2026248, 2015116, 2013308, 2097117, 2001005, 2014023, 2024405, 2053266,
+      2053263, 2053259, 2053289, 2053290, 2053291, 2053292, 2053243, 2083238, 2083235,
+      2053250, 2053271, 2043741, 2008000, 2001057, 2004797,
   };
   const char *description;
   bool critical_only;
