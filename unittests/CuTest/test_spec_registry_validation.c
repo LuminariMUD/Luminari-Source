@@ -179,8 +179,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 83, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 81, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 84, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 82, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -347,6 +347,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Thief", rol_thief, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Bloodstone Critter", rol_bloodstone_critter, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_ACTIVITY, SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Designated Follower", rol_designated_follower, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_ACTIVITY, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Item Blocker", rol_item_blocker, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},

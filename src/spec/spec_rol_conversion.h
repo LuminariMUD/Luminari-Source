@@ -49,6 +49,7 @@ int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *a
 int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_sister_knight(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_designated_follower(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_item_blocker(struct char_data *ch, void *me, int cmd, const char *argument);
 
 bool rol_corpse_devourer_can_consume(const struct obj_data *obj);

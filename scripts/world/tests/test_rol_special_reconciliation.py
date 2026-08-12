@@ -38,6 +38,7 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     lich_energy_drain = handler_disposition("lich_energy_drain")
     bandit = handler_disposition("bandit")
     bloodstone_critter = handler_disposition("bs_critter")
+    designated_follower = handler_disposition("follow_that_mob")
     item_blocker = handler_disposition("item_block")
     sister_knight = handler_disposition("sister_knight")
     shaman_totem = handler_disposition("shaman_totem")
@@ -86,6 +87,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("NATIVE_ADAPTED", bandit["strategy"])
     self.assertEqual("RoL Bloodstone Critter", bloodstone_critter["target"])
     self.assertEqual("NATIVE_ADAPTED", bloodstone_critter["strategy"])
+    self.assertEqual("RoL Designated Follower", designated_follower["target"])
+    self.assertEqual("NATIVE_ADAPTED", designated_follower["strategy"])
     self.assertEqual("RoL Item Blocker", item_blocker["target"])
     self.assertEqual("NATIVE_ADAPTED", item_blocker["strategy"])
     self.assertEqual("RoL Sister Knight", sister_knight["target"])
@@ -148,17 +151,17 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(581, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(566, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(96, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(466, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(206, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(586, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(561, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(97, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(465, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(211, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           113, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(563, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(285, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(568, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(280, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

@@ -72,6 +72,7 @@ ADAPTED_HANDLER_NAMES = {
     "guild_classtype_thief": "RoL Thief Guild Room",
     "guild_classtype_warrior": "RoL Warrior Guild Room",
     "guild_classtype_cleric": "RoL Cleric Guild Room",
+    "follow_that_mob": "RoL Designated Follower",
     "lich_energy_drain": "RoL Lich Energy Drain",
     "item_block": "RoL Item Blocker",
     "major_beholder": "RoL Major Beholder",
@@ -771,6 +772,7 @@ def compile_special_bindings(
       if handler in {
           "bandit",
           "bs_critter",
+          "follow_that_mob",
           "guild_guard",
           "lich_energy_drain",
           "major_beholder",

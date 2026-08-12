@@ -31,7 +31,7 @@ callback slot or event-gateway dispatch rules.
 - Enter a number to choose a SpecProc; enter `0` to clear.
 - The current selection is shown in the menu. Save as usual to apply.
 
-Numbers are specific to the filtered editor view. The current views contain 42 mobile definitions,
+Numbers are specific to the filtered editor view. The current views contain 43 mobile definitions,
 28 object definitions, and 14 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
@@ -57,6 +57,10 @@ converter-owned and should not be assigned to unrelated mobiles.
 `RoL Bloodstone Critter` is mobile-owned and requires `MOB_SPEC`. While awake and idle, the four
 converted Bloodstone critters use Luminari's current `snarl` and `growl` socials at the source
 two-in-81 activity-pulse cadence. This procedure is converter-owned.
+
+`RoL Designated Follower` is mobile-owned and requires `MOB_SPEC`. Five converted Icecrag guards
+find their fixed NPC leaders when awake and colocated, then use the target follower system to move
+with them and participate in their fights. The mapping and procedure are converter-owned.
 
 `RoL Item Blocker` is object-owned and reads the blocked cardinal direction from object value 0.
 While an aggressive NPC occupies the room, it blocks mortal players and player pets from moving

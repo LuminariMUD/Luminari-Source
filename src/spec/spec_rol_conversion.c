@@ -1639,6 +1639,65 @@ int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *
   return TRUE;
 }
 
+static mob_vnum rol_designated_follower_leader_vnum(mob_vnum follower_vnum)
+{
+  switch (follower_vnum)
+  {
+  case 2097009:
+    return 2097012;
+  case 2097018:
+  case 2097019:
+    return 2097020;
+  case 2097036:
+  case 2097037:
+    return 2097035;
+  default:
+    return NOBODY;
+  }
+}
+
+int rol_designated_follower(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *follower = me;
+  struct char_data *leader;
+  mob_vnum leader_vnum;
+
+  (void)ch;
+  (void)argument;
+
+  if (follower == NULL || !IS_NPC(follower) || cmd != 0 || !AWAKE(follower) ||
+      !VALID_ROOM_RNUM(IN_ROOM(follower)))
+    return FALSE;
+
+  leader_vnum = rol_designated_follower_leader_vnum(GET_MOB_VNUM(follower));
+  if (leader_vnum == NOBODY)
+    return FALSE;
+
+  if (follower->master != NULL)
+  {
+    leader = follower->master;
+    if (IS_NPC(leader) && IN_ROOM(leader) == IN_ROOM(follower) && GET_POS(follower) > POS_SITTING &&
+        FIGHTING(follower) == NULL && FIGHTING(leader) != NULL &&
+        !AFF2_FLAGGED(follower, AFF2_ROL_DOCILE) && !MOB_FLAGGED(follower, MOB_NOKILL))
+    {
+      perform_assist(follower, leader);
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  for (leader = world[IN_ROOM(follower)].people; leader != NULL; leader = leader->next_in_room)
+  {
+    if (leader != follower && IS_NPC(leader) && GET_MOB_VNUM(leader) == leader_vnum)
+    {
+      add_follower(follower, leader);
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
 static int rol_item_blocker_unlock_direction(struct char_data *ch, const char *argument)
 {
   char type[MAX_INPUT_LENGTH];

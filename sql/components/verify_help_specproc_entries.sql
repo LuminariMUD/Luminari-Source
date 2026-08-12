@@ -38,6 +38,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'breath_attack and breath_weapon') > 0
   AND INSTR(entry, 'RoL Bloodstone Critter is mobile-owned') > 0
   AND INSTR(entry, 'two-in-81 activity-pulse cadence') > 0
+  AND INSTR(entry, 'RoL Designated Follower is mobile-owned') > 0
   AND INSTR(entry, 'RoL Item Blocker is object-owned') > 0
   AND INSTR(entry, 'six converted ATD objects') > 0
   AND INSTR(entry, 'RoL Magic Pool is object-owned') > 0

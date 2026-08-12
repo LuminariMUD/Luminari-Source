@@ -1552,6 +1552,45 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("RoL Item Blocker", result.records[0].spec_proc)
     self.assertEqual(0, result.records[0].values[0])
 
+  def test_designated_follower_binding_requires_mobile_activity_gateway(self) -> None:
+    binding = {
+        "basename": "icecrag",
+        "record_type": "mobile",
+        "source_vnum": 97009,
+        "source_handler": "follow_that_mob",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    native = compiled.native_bindings[0]
+    self.assertEqual("RoL Designated Follower", native.persisted_name)
+    self.assertEqual((0,), native.required_flag_bits)
+    self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[0]["strategy"])
+
+    source = self._source_record(
+        "mob",
+        b"#97009\nvault sentinel~\na vault sentinel~\nA sentinel waits here.~\n~\n"
+        b"0 0 0 0 S\nN 0 0\n20 0 0 1d1+0 1d1+0\n0 0\n131 131 0 0\n",
+    )
+    emitted = emit_mobile(
+        source,
+        2_097_009,
+        special_proc=native.persisted_name,
+        special_resolved=True,
+        required_action_bits=native.required_flag_bits,
+    )
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20970.mob", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Designated Follower", result.records[0].spec_proc)
+    self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
+
   def test_lich_energy_drain_binding_requires_mobile_activity_gateway(self) -> None:
     binding = {
         "basename": "rib",

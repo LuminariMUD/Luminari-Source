@@ -790,6 +790,41 @@ void Test_spec_rol_item_blocker_preserves_direction_and_aggressor_gate(CuTest *t
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_designated_follower_requires_matching_awake_leader(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct index_data indexes[2];
+  struct index_data *fixture_indexes;
+  mob_rnum fixture_top_of_mobt;
+
+  spec_mechanics_begin(&fixture);
+  memset(indexes, 0, sizeof(indexes));
+  fixture_indexes = mob_index;
+  fixture_top_of_mobt = top_of_mobt;
+  mob_index = indexes;
+  top_of_mobt = 1;
+  indexes[0].vnum = 2097009;
+  indexes[1].vnum = 2097011;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  GET_MOB_RNUM(&fixture.target) = 1;
+
+  CuAssertIntEquals(tc, FALSE, rol_designated_follower(&fixture.actor, &fixture.actor, 0, ""));
+  indexes[1].vnum = 2097012;
+  GET_POS(&fixture.actor) = POS_SLEEPING;
+  CuAssertIntEquals(tc, FALSE, rol_designated_follower(&fixture.actor, &fixture.actor, 0, ""));
+  GET_POS(&fixture.actor) = POS_STANDING;
+  CuAssertIntEquals(tc, TRUE, rol_designated_follower(&fixture.actor, &fixture.actor, 0, ""));
+  CuAssertPtrEquals(tc, &fixture.target, fixture.actor.master);
+  CuAssertPtrNotNull(tc, fixture.target.followers);
+  CuAssertPtrEquals(tc, &fixture.actor, fixture.target.followers->follower);
+  CuAssertIntEquals(tc, FALSE, rol_designated_follower(&fixture.actor, &fixture.actor, 0, ""));
+
+  stop_follower(&fixture.actor);
+  mob_index = fixture_indexes;
+  top_of_mobt = fixture_top_of_mobt;
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_major_beholder_preserves_eye_mapping_and_cooldowns(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

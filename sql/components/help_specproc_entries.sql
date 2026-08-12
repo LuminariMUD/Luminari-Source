@@ -60,6 +60,11 @@ RoL Bloodstone Critter is mobile-owned and requires MOB_SPEC. While awake and
 idle, the four converted critters use the current snarl and growl socials with
 the source two-in-81 activity-pulse cadence. This procedure is converter-owned.
 
+RoL Designated Follower is mobile-owned and requires MOB_SPEC. Five converted
+Icecrag guards find their fixed NPC leaders when awake and colocated, then use
+the target follower system for movement and combat assistance. This procedure
+and its follower-to-leader mapping are converter-owned.
+
 RoL Item Blocker is object-owned and reads its blocked cardinal direction from
 object value 0. While an aggressive NPC occupies the room, it blocks mortal
 players and player pets from moving or unlocking a door in that direction.

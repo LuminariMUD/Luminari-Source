@@ -240,6 +240,17 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   blocker must refuse the attempt. An unlock aimed at another direction, a hidden or blocked
   exit, or a room with no aggressive NPC must retain normal target behavior.
 
+### Phase 6 converted designated followers
+
+- `RoL Designated Follower` is implemented for converted Icecrag mobiles 2097009,
+  2097018-2097019, and 2097036-2097037. Their designated leaders are 2097012, 2097020,
+  and 2097035 respectively. Icecrag remains outside the five-package staged pilot, so
+  test this only in a later dependency-complete stage.
+- Load a follower without its designated leader and observe activity pulses; it must
+  remain unassigned. Load the matching leader in the same room and verify that an awake
+  follower attaches, follows the leader through movement, and assists when the leader
+  fights. A sleeping follower must wait until it wakes before attaching.
+
 ### Phase 6 converted transport procedures
 
 - `RoL Magic Pool` and `RoL Auto Distributor` are implemented and
