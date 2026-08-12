@@ -612,6 +612,27 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   successful trip should move to 2041914 and give badge 2041900. The active infinite
   charge must not decrease or destroy the portal; an unrelated entered object is ignored.
 
+### Phase 6 reconciled artifact identities
+
+- Confirm the conversion identity map uses the existing artifacts rather than creating
+  offset duplicates: Trorxek 1043 -> 169901, Amaukekel 1044 -> 169902, Fade 1042 ->
+  169903, Henekar 1046 -> 169904, Doombringer 1050 -> 169905, both Kelrarin variants
+  1007/1009 -> 169906, Kelrom 1048 -> 169907, Gesen 5343 -> 169908, Tiamat's Stinger
+  1008 -> 169909, and Avernus 19730 -> 169910.
+- Run `artifact list`, then `artifact info <item>` for each mapped artifact. The canonical
+  target system should report its ownership rule, class oath where applicable, passive
+  powers, called phrases, active ability, and signature combat behavior. No converted
+  `2001007`-style artifact prototype or second named SpecProc should be staged.
+- Exercise representative source contracts through the modern system: say a listed
+  Trorxek, Amaukekel, Fade, Henekar, or Doombringer phrase while holding or wearing the
+  item; use `soulstrike`, `divineward`, or `doomblast` when the matching artifact grants
+  it; and fight eligible NPCs with Fade, Doombringer, Kelrarin, Kelrom, Gesen, Tiamat's
+  Stinger, and Avernus. Use `artifact info` for the exact target odds and eligibility.
+- When source Raven earring 1045 is staged as 2001045 in Phase 7, confirm it has no
+  special procedure. Its source `NeverLooseItem` callback exposed unrestricted debug
+  commands and is intentionally excluded; saying its teleport, currency, stat, death,
+  healing, resurrection, invisibility, or unlock words must have no special effect.
+
 ### Phase 6 converted death-event profiles
 
 - Kill converted mobiles 2000202, 2000902, 2000903, 2000905-2000909, 2001250-2001253,
@@ -788,8 +809,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 891 are resolved and 256 remain. Of 562 distinct
-  source handlers, 350 are resolved and 212 remain. Of 848 `ACT_SPEC` records, 776 are
+  of the 1,147 active direct bindings, 903 are resolved and 244 remain. Of 562 distinct
+  source handlers, 361 are resolved and 201 remain. Of 848 `ACT_SPEC` records, 776 are
   resolved and 72 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

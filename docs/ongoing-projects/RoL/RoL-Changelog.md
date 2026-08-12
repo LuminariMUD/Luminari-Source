@@ -6,6 +6,81 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 artifact identity reconciliation
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed twelve active object bindings across eleven source handler families without
+  adding another artifact runtime. Ten RoL artifact handlers are already represented by
+  the target's modern artifact subsystem; the eleventh handler is an unsafe source
+  backdoor and is explicitly excluded.
+- Advanced the locked conversion policy to `rol-conversion-policy-2` and added eleven
+  evidence-backed identity aliases. Trorxek, Amaukekel, Fade, Horn of Henekar,
+  Doombringer, Kelrom, Gesen, Tiamat's Stinger, and Avernus map to canonical target
+  objects 169901-169905 and 169907-169910. RoL objects 1007 and 1009 both map to the
+  target's reconciled Kelrarin artifact 169906.
+- Extended the planner to validate policy-confirmed equivalents, select `KEEP`, preserve
+  the authoritative target record, and allow explicitly reviewed many-source aliases to
+  converge on one target identity. The refreshed Phase 2 plan changes eleven proposed
+  duplicate `ADD` actions into `KEEP` actions and remaps later references through the
+  canonical artifact VNUMs.
+- Classified the artifact callbacks as `NATIVE_RECONCILED`. Special compilation verifies
+  the target VNUM for each handler, emits no duplicate object, persists no second special
+  procedure, and leaves the modern target artifact system responsible for ownership,
+  leveling, passives, called effects, active abilities, and combat procs.
+- Classified source `NeverLooseItem` as `SOURCE_UNSAFE_EXCLUDED`. The callback exposes
+  unrestricted teleport, healing, resurrection, currency creation, permanent stat
+  changes, forced death, invisibility, and unlocking. Those commands are never reproduced;
+  the ordinary Raven earring prototype remains eligible for data conversion without a
+  procedure.
+- Regenerated Phase 1, Phase 2, full-corpus Phase 5, and Phase 6 evidence under policy 2.
+  The full-corpus audit emits no duplicate artifact records, has zero transform
+  exceptions, and performs zero live target writes.
+- Reconciliation now resolves 903 of 1,147 active direct bindings and 361 of 562 source
+  handlers; 244 bindings and 201 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 776 resolved / 72 pending because this batch is object-owned.
+- Archived the forty-first Phase 6 delivery session. The remaining Phase 6 envelope
+  remains 5-11 sessions and the Phases 6-8 forecast remains 53-87 sessions, or 106-348
+  focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 2656b640
+Phase 1 path: lib/rol-conversion/runs/phase1-policy2-20260812-artifacts
+Phase 1 run: rol-phase1-8581306fe5e5260f
+Phase 2 path: lib/rol-conversion/runs/phase2-policy2-20260812-artifacts
+Phase 2 run: rol-phase2-46e2fa650302e980
+Phase 5 path: lib/rol-conversion/runs/phase5-policy2-20260812-artifacts-audit
+Phase 5 run: rol-phase5-audit-99818c5e2897b1d8
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-artifacts
+Reconciliation run: rol-phase6-special-7e5f0048a9e4d79e
+Policy version: rol-conversion-policy-2
+Record actions: 68,135 ADD / 2,469 KEEP / 1,070 MERGE / 6 EXCLUDE
+Active direct bindings: 1,147
+Direct bindings resolved: 903
+Direct bindings pending: 244
+Source handlers resolved: 361
+Source handlers pending: 201
+Additional handler families resolved: 11
+Additional direct bindings resolved: 12
+Native reconciled bindings: 11
+Unsafe source bindings excluded: 1
+ACT_SPEC records resolved: 776
+ACT_SPEC records pending: 72
+Complete world-tool suite: 298 passed
+Production-linked CuTest suite: 648 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 244 direct bindings across 201 source handlers.
+The next batch continues prioritizing shared behavior shapes and existing target systems.
+
 ## 2026-08-12 - Phase 6 converted travel portals
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
