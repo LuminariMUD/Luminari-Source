@@ -1,0 +1,111 @@
+{
+  "act_spec_by_status": {
+    "pending": 327,
+    "resolved": 521
+  },
+  "act_spec_by_strategy": {
+    "AUTOMATIC_RACE_BINDING_RESOLVED": 33,
+    "DIRECT_AND_AUTOMATIC_RACE_PENDING": 10,
+    "DIRECT_ASSIGNMENTS_PENDING": 317,
+    "DIRECT_ASSIGNMENTS_RESOLVED": 36,
+    "SOURCE_BOOT_CLEARS_UNBOUND_ACT_SPEC": 452
+  },
+  "act_spec_records": 848,
+  "active_direct_bindings": 1147,
+  "active_implicit_race_bindings": 247,
+  "capability_audit_run_id": "rol-phase5-audit-3fb8de2d9afd067b",
+  "direct_bindings_by_owner": {
+    "mobile": 715,
+    "object": 213,
+    "room": 219
+  },
+  "direct_bindings_by_status": {
+    "pending": 705,
+    "resolved": 442
+  },
+  "direct_bindings_by_strategy": {
+    "DG_COMPILED": 45,
+    "NATIVE_ADAPTED": 92,
+    "NATIVE_ADAPTED_COMPOSABLE": 88,
+    "NATIVE_PERSISTED": 196,
+    "PENDING_TRACE": 705,
+    "SOURCE_INERT_EXCLUDED": 21
+  },
+  "discovered_direct_binding_candidates": 1234,
+  "discovery_run_id": "rol-phase1-1c287d5073293f7c",
+  "implicit_race_bindings_by_composition": {
+    "alongside-direct": 22,
+    "implicit-only": 225
+  },
+  "implicit_race_bindings_by_handler": {
+    "standardDemon": 134,
+    "standardDevil": 101,
+    "standardUmberhulk": 12
+  },
+  "implicit_race_bindings_by_status": {
+    "resolved": 247
+  },
+  "implicit_race_handler_definitions_located": 3,
+  "live_target_writes": 0,
+  "plan_run_id": "rol-phase2-39a6d6d253950dff",
+  "schema_version": 3,
+  "source_handler_definitions_located": 562,
+  "source_handlers": 562,
+  "source_handlers_by_status": {
+    "pending": 500,
+    "resolved": 62
+  },
+  "source_preprocessor_excluded_bindings": 87,
+  "source_preprocessor_excluded_bindings_by_handler": {
+    "Evil_Invader": 2,
+    "Invader_Repulser": 4,
+    "apprehender": 6,
+    "cc_female_ffolk": 1,
+    "cc_fisherffolk": 1,
+    "cc_warehouse_foreman": 1,
+    "cc_warehouse_man": 1,
+    "cell_drunk": 1,
+    "cityguard": 1,
+    "dragonhide_drum": 1,
+    "home_reset": 1,
+    "item_switch": 8,
+    "jailkeeper": 3,
+    "jailtally": 3,
+    "magetower_sunblade": 1,
+    "nw_agatha": 1,
+    "nw_ammaster": 1,
+    "nw_ansal": 1,
+    "nw_brock": 1,
+    "nw_builder": 1,
+    "nw_carpen": 1,
+    "nw_chicken": 1,
+    "nw_chief": 1,
+    "nw_cow": 1,
+    "nw_cutter": 1,
+    "nw_diamaster": 1,
+    "nw_elfhealer": 1,
+    "nw_emmaster": 1,
+    "nw_farmer": 1,
+    "nw_foreman": 1,
+    "nw_golem": 1,
+    "nw_hafbreed": 1,
+    "nw_human": 1,
+    "nw_logger": 1,
+    "nw_malchor": 1,
+    "nw_merthol": 1,
+    "nw_mirroid": 1,
+    "nw_owl": 1,
+    "nw_pig": 1,
+    "nw_rubmaster": 1,
+    "nw_sapmaster": 1,
+    "nw_vitnor": 1,
+    "nw_woodelf": 1,
+    "pet_shops": 1,
+    "poison": 2,
+    "ship_look_out_room": 4,
+    "waterdeep_guard_three": 1,
+    "waterdeep_witness": 1,
+    "witness": 15
+  },
+  "tool_version": "0.6.0"
+}

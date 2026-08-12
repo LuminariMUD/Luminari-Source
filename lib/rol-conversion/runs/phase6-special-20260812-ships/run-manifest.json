@@ -1,0 +1,55 @@
+{
+  "acceptance": {
+    "act_spec_records_pending": 327,
+    "all_act_spec_records_accounted": true,
+    "all_automatic_race_bindings_accounted": true,
+    "all_direct_bindings_accounted": true,
+    "all_handlers_accounted": true,
+    "automatic_race_bindings_pending": 0,
+    "direct_bindings_pending": 705,
+    "live_target_writes": 0
+  },
+  "artifacts": [
+    {
+      "byte_size": 267419,
+      "path": "act-spec-ledger.jsonl",
+      "records": 848,
+      "sha256": "40e4583e24b3796ddadd509551152fe2040d6bc02b28351bed72db7ced0f4d07"
+    },
+    {
+      "byte_size": 213094,
+      "path": "automatic-race-ledger.jsonl",
+      "records": 247,
+      "sha256": "e68dfc705da29823da46660ff45c3937679bee35eea8fb080382f698c833e0dd"
+    },
+    {
+      "byte_size": 693000,
+      "path": "binding-ledger.jsonl",
+      "records": 1147,
+      "sha256": "fa0f846a37d5b74258449f577076f96c9adf5d8ce740e2054ce075dd6ab8aa53"
+    },
+    {
+      "byte_size": 200637,
+      "path": "handler-inventory.jsonl",
+      "records": 562,
+      "sha256": "5a8ff66146de6abbe204845ccd43b8914d860c216efab40f45630c79e8367252"
+    },
+    {
+      "byte_size": 62001,
+      "path": "preprocessor-excluded-binding-ledger.jsonl",
+      "records": 87,
+      "sha256": "a2ccbca6f6556bbfc76b069c862d272387ade629929d07686626361e4ecac6a3"
+    },
+    {
+      "byte_size": 2771,
+      "path": "reconciliation-summary.json",
+      "sha256": "a00f51210baf7f09b8f50c4777488b9592f279dc0186171b716ca366c3d1663d"
+    }
+  ],
+  "creation_time": "2026-08-12T07:45:00Z",
+  "phase": 6,
+  "run_id": "rol-phase6-special-490933ef03fa1db0",
+  "schema_version": 3,
+  "stage": "special-procedure-reconciliation",
+  "tool_version": "0.6.0"
+}

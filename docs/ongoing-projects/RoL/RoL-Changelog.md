@@ -5,6 +5,62 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted ship system
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all 57 active bindings for the shared RoL ship subsystem: seven hull objects,
+  seven control panels, seven exit rooms, 29 lookout rooms, and seven navigators across
+  Chionthar, Realms Master, Silver Lady, Gloom, Mirar, Captain's Fancy, and Spirit Raven.
+- Added a bounded fixed-interior adapter rather than forcing the converted 37-room ships
+  through the target Greyhawk system's 20-room interior limit. Boarding, capacity,
+  instruments, speed, directional sailing and repeat movement, firing, ramming, ship
+  docking, lookout, disembarking, hull damage, and sinking retain the source contracts.
+- Preserved all seven two-way authored routes at the source 2.5-second cadence, including
+  game-hour departure windows, navigator presence requirements, and departure, arrival,
+  lost-route, and blocked-route announcements.
+- Added navigator order protection and composition-safe combat-turn crew calls. Repaired
+  the source Silver Lady helper list, which incorrectly named the Realms Master crew, to
+  use the corresponding Silver Lady mobile family.
+- Registered five persistent owner-aware procedures, taught the converter their canonical
+  target names, and made the converter add `MOB_SPEC` to all seven navigators because the
+  target combat-turn gateway requires it.
+- Updated database-first help, builder and manual-test references, both build manifests,
+  converter fixtures, registry persistence and OLC inventories, and production-linked
+  tests. Reconciliation now resolves 442 of 1,147 active direct bindings and 62 of 562
+  handlers; 705 bindings and 500 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 521 resolved / 327 pending.
+- Archived the thirteenth bounded Phase 6 delivery session since the Phase 5 closeout. The
+  forward-looking estimate is now 35-67 Phase 6 sessions and 83-143 total sessions for
+  Phases 6-8, or 166-572 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 215c0f13
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-ships
+Reconciliation run: rol-phase6-special-490933ef03fa1db0
+Active direct bindings: 1,147
+Direct bindings resolved: 442
+Direct bindings pending: 705
+Source handlers resolved: 62
+Source handlers pending: 500
+Ship-family bindings resolved: 57
+ACT_SPEC records resolved: 521
+ACT_SPEC records pending: 327
+Complete world-tool suite: 264 passed
+Production-linked CuTest suite: 625 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL idempotency checks: 4 passed twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 705 direct bindings across 500 source handlers.
+
 ## 2026-08-12 - Phase 6 shadow-giant procedure
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
