@@ -108,6 +108,14 @@ RoL Auto Distributor is room-owned. Any command by a non-staff character is
 intercepted and moves that character to a random loaded room in the same zone.
 It is intended only for converted RoL boundary rooms.
 
+RoL Command Sentinel is mobile- or room-owned. Four converter-owned mobile
+profiles enforce their exact room, direction, race, level, and chance gates;
+mobile owners require MOB_SPEC. Two room profiles preserve the cage command
+ward and the Necromancer passage glyph. The glyph deliberately preserves the
+source behavior of dealing 25 damage through Minor Globe or Globe of
+Invulnerability, versus one damage otherwise, and never lowers hit points below
+one. Do not assign this identity-keyed procedure to unrelated prototypes.
+
 RoL Shadow Giant is mobile-owned and requires MOB_SPEC. While fighting, each
 mobile-activity pulse has the source one-in-21 chance to spook every player and
 charmed pet in the room for mental damage and a possible short stun. It is

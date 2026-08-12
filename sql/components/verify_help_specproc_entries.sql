@@ -50,6 +50,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'fixed entry damage') > 0
   AND INSTR(entry, 'RoL Auto Distributor is room-owned') > 0
   AND INSTR(entry, 'random loaded room in the same zone') > 0
+  AND INSTR(entry, 'RoL Command Sentinel is mobile- or room-owned') > 0
+  AND INSTR(entry, '25 damage through Minor Globe') > 0
   AND INSTR(entry, 'RoL Shadow Giant is mobile-owned') > 0
   AND INSTR(entry, 'one-in-21 chance') > 0
   AND INSTR(entry, 'RoL Guild Guard is mobile-owned') > 0

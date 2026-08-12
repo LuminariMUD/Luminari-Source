@@ -6,6 +6,70 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 command sentinels and entry warnings
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed nine active direct bindings across seven source handler families as one
+  command-and-entry batch.
+- Added the typed, owner-aware `RoL Command Sentinel` procedure for four mobile passage
+  guards and two room wards. The adapter preserves each exact converted owner and room,
+  command direction, staff exemption, race or class admission, level threshold, and
+  source probability rather than exposing generic builder configuration.
+- Preserved the stone golem's 80 percent westward block, the Splitshield source-Orc gate
+  through the target Half-Orc mapping, the shady man's above-level-20 gate, and the
+  Ancient One's above-level-10 source-good-race gate.
+- Preserved cage room 2000001's SAY, apostrophe, PETITION, PROJECT, HELP, and staff
+  exceptions. Preserved the necromancer glyph's down-passage rule, one-hit-point floor,
+  and counterintuitive source damage of 25 through Minor Globe or Globe of Invulnerability
+  versus one otherwise.
+- Compiled the three Foggy Woods warning rooms into one shared enter-room DG trigger.
+  All three converted rooms receive the complete source warning sequence without a named
+  procedure or duplicated trigger body.
+- Extended canonical registry, owner-aware OLC, persistence, typed-dispatch, converter,
+  reconciliation, source-generator, manual-test, builder-help, and production
+  characterization coverage.
+- Reconciliation now resolves 872 of 1,147 active direct bindings and 339 of 562 source
+  handlers; 275 bindings and 223 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 770 resolved / 78 pending.
+- Archived the thirty-eighth Phase 6 delivery session. At the measured 20-45-family bulk
+  target, the remaining Phase 6 envelope is 5-12 sessions and the Phases 6-8 forecast is
+  53-88 sessions, or 106-352 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 827d5f6d
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-command-sentinels
+Reconciliation run: rol-phase6-special-ab673270b393501a
+Active direct bindings: 1,147
+Direct bindings resolved: 872
+Direct bindings pending: 275
+Source handlers resolved: 339
+Source handlers pending: 223
+Additional handler families resolved: 7
+Additional direct bindings resolved: 9
+Native adapted bindings: 455
+Native adapted composable bindings: 151
+DG-compiled bindings: 48
+ACT_SPEC records resolved: 770
+ACT_SPEC records pending: 78
+Complete world-tool suite: 294 passed
+Focused conversion suite: 66 passed
+Production-linked CuTest suite: 646 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 275 direct bindings across 223 source handlers.
+The bulk classifier will continue taking the largest source-compatible runtime or generated
+profile groups before any one-off handler work.
+
 ## 2026-08-12 - Phase 6 bulk death and periodic profiles
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

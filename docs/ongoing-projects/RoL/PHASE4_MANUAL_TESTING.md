@@ -541,6 +541,31 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - On timed release, confirm the entangle is removed, the release message appears, and the
   target's current movement points are halved using integer truncation.
 
+### Phase 6 converted command sentinels and Foggy Woods warnings
+
+- Build dependency-complete stages containing the four mobile-owned passage sentinels,
+  both room-owned command wards, and the three Foggy Woods warning rooms. Confirm the
+  six native bindings use `RoL Command Sentinel`; mobile owners also require `MOB_SPEC`.
+- In target room 2001483, repeatedly attempt west past stone golem 2001438 as a mortal.
+  Roughly 80 percent of attempts should be blocked. Staff should always pass.
+- In target room 2010320, attempt south past Splitshield guard 2010301 as a Half-Orc
+  and as another race. The Half-Orc should pass and the other mortal should be blocked.
+  In room 2010302, shady man 2010302 should block south only above level 20. Staff pass
+  both guards.
+- In target room 2081596, attempt south past Ancient One 2081508 with a source-good race
+  at levels 10 and 11, then with a source-evil race above level 10. Only the level-11
+  source-good character should be blocked; staff should pass.
+- In cage room 2000001, confirm a mortal may use SAY (including the apostrophe alias),
+  PETITION, PROJECT, and HELP, while another ordinary command is blocked. Staff commands
+  should remain unrestricted.
+- In glyph room 2046990, confirm a character with any Necromancer class level can move
+  down after the tingle message. A non-Necromancer should be knocked back and remain in
+  the room at no less than one hit point. The source behavior deals one hit point
+  normally but 25 while Minor Globe or Globe of Invulnerability is active.
+- Enter target rooms 2090107, 2090112, and 2090114. Each should deliver the same complete
+  Foggy Woods barbarian warning through one shared entry trigger; unrelated rooms should
+  not deliver it.
+
 ### Phase 6 converted death-event profiles
 
 - Kill converted mobiles 2000202, 2000902, 2000903, 2000905-2000909, 2001250-2001253,
@@ -717,9 +742,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 594 are resolved and 553 remain. Of 562 distinct
-  source handlers, 99 are resolved and 463 remain. Of 848 `ACT_SPEC` records, 568 are
-  resolved and 280 remain. The automatic race procedures
+  of the 1,147 active direct bindings, 872 are resolved and 275 remain. Of 562 distinct
+  source handlers, 339 are resolved and 223 remain. Of 848 `ACT_SPEC` records, 770 are
+  resolved and 78 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
