@@ -971,6 +971,17 @@ void Test_spec_rol_toll_keeper_preserves_fees_destinations_and_tickets(CuTest *t
   CuAssertTrue(tc, !rol_toll_keeper_payment_syntax_valid(999999, "20 gold nobody"));
 }
 
+void Test_rol_banana_peel_outcomes_preserve_source_branches(CuTest *tc)
+{
+  CuAssertIntEquals(tc, ROL_BANANA_PEEL_AVOID, rol_banana_peel_classify(5, 1));
+  CuAssertIntEquals(tc, ROL_BANANA_PEEL_KNOCKOUT, rol_banana_peel_classify(4, 1));
+  CuAssertIntEquals(tc, ROL_BANANA_PEEL_FALL, rol_banana_peel_classify(1, 2));
+  CuAssertIntEquals(tc, ROL_BANANA_PEEL_FALL, rol_banana_peel_classify(1, 5));
+  CuAssertIntEquals(tc, ROL_BANANA_PEEL_STUMBLE, rol_banana_peel_classify(1, 6));
+  CuAssertIntEquals(tc, ROL_BANANA_PEEL_STUMBLE, rol_banana_peel_classify(1, 10));
+  CuAssertIntEquals(tc, ROL_BANANA_PEEL_DANCE, rol_banana_peel_classify(1, 11));
+}
+
 void Test_spec_rol_class_guilds_preserve_family_gates_for_multiclass_players(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

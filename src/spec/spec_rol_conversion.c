@@ -36,6 +36,9 @@
 #include <limits.h>
 
 #define ROL_GATE_MAX_SUMMONS 5
+#define ROL_BANANA_PEEL_VNUM 2001234
+#define ROL_BANANA_FRUIT_VNUM 2001235
+#define ROL_BANANA_PEEL_DECAY_TICKS 8
 #define ROL_GUILD_CLASS(class_id) (1ULL << (class_id))
 #define ROL_GUILD_RACE(race_id) (1ULL << (race_id))
 #define ROL_MAJOR_BEHOLDER_EYES 10
@@ -4788,6 +4791,187 @@ int rol_toll_keeper_typed(struct spec_event_context *context)
     return rol_toll_keeper_activity(context->owner);
 
   return FALSE;
+}
+
+enum rol_banana_peel_outcome rol_banana_peel_classify(int intelligence_roll, int dexterity_roll)
+{
+  if (intelligence_roll > 4)
+    return ROL_BANANA_PEEL_AVOID;
+  if (dexterity_roll == 1)
+    return ROL_BANANA_PEEL_KNOCKOUT;
+  if (dexterity_roll >= 2 && dexterity_roll <= 5)
+    return ROL_BANANA_PEEL_FALL;
+  if (dexterity_roll >= 6 && dexterity_roll <= 10)
+    return ROL_BANANA_PEEL_STUMBLE;
+  return ROL_BANANA_PEEL_DANCE;
+}
+
+static bool rol_banana_attacker_is_aggressive(struct char_data *attacker, struct char_data *victim)
+{
+  if (!IS_NPC(attacker))
+    return false;
+
+  return MOB_FLAGGED(attacker, MOB_AGGRESSIVE) ||
+         (MOB_FLAGGED(attacker, MOB_ROL_AGGR_RACE_EVIL) && rol_race_is_evil(GET_RACE(victim))) ||
+         (MOB_FLAGGED(attacker, MOB_ROL_AGGR_RACE_GOOD) && rol_race_is_good(GET_RACE(victim))) ||
+         (MOB_FLAGGED(attacker, MOB_AGGR_EVIL) && IS_EVIL(victim)) ||
+         (MOB_FLAGGED(attacker, MOB_AGGR_NEUTRAL) && IS_NEUTRAL(victim)) ||
+         (MOB_FLAGGED(attacker, MOB_AGGR_GOOD) && IS_GOOD(victim));
+}
+
+static void rol_banana_stop_merciful_attackers(struct char_data *ch)
+{
+  struct char_data *attacker;
+  struct char_data *next_attacker;
+
+  for (attacker = combat_list; attacker != NULL; attacker = next_attacker)
+  {
+    next_attacker = attacker->next_fighting;
+    if (FIGHTING(attacker) == ch && !rol_banana_attacker_is_aggressive(attacker, ch))
+      stop_fighting(attacker);
+  }
+}
+
+static void rol_banana_apply_sleep(struct char_data *ch)
+{
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = SPELL_SLEEP;
+  af.duration = rand_number(4, 6);
+  SET_BIT_AR(af.bitvector, AFF_SLEEP);
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+  if (FIGHTING(ch) != NULL)
+    stop_fighting(ch);
+  rol_banana_stop_merciful_attackers(ch);
+  if (GET_POS(ch) > POS_SLEEPING)
+    change_position(ch, POS_SLEEPING);
+}
+
+static int rol_banana_eat(struct spec_event_context *context, struct obj_data *obj,
+                          struct char_data *ch, const char *argument)
+{
+  struct obj_data *peel;
+  char name[MAX_INPUT_LENGTH];
+
+  if (GET_OBJ_VNUM(obj) != ROL_BANANA_FRUIT_VNUM || IS_NPC(ch))
+    return FALSE;
+
+  one_argument(argument, name, sizeof(name));
+  if (strcasecmp(name, "banana") != 0)
+    return FALSE;
+
+  if (GET_COND(ch, HUNGER) > 20)
+  {
+    send_to_char(ch, "No thanks, you are absolutely stuffed and cannot eat another bite.\r\n");
+    return TRUE;
+  }
+
+  act("$n eats $p, then arrogantly tosses the peel on the ground to rot.", TRUE, ch, obj, 0,
+      TO_ROOM);
+  act("You eat $p, then arrogantly toss the peel on the ground to rot.", FALSE, ch, obj, 0,
+      TO_CHAR);
+  gain_condition(ch, HUNGER, GET_OBJ_VAL(obj, 0));
+  WAIT_STATE(ch, PULSE_VIOLENCE);
+  if (GET_COND(ch, HUNGER) > 20)
+    send_to_char(ch, "You feel comfortably sated.\r\n");
+
+  extract_obj(obj);
+  context->invalidation |= SPEC_INVALIDATE_OWNER;
+
+  peel = read_object(ROL_BANANA_PEEL_VNUM, VIRTUAL);
+  if (peel == NULL)
+    return TRUE;
+  SET_BIT_AR(GET_OBJ_EXTRA(peel), ITEM_DECAY);
+  GET_OBJ_TIMER(peel) = ROL_BANANA_PEEL_DECAY_TICKS;
+  obj_to_room(peel, IN_ROOM(ch));
+  return TRUE;
+}
+
+static int rol_banana_move(struct obj_data *obj, struct char_data *ch, int cmd)
+{
+  enum rol_banana_peel_outcome outcome;
+  int intelligence_roll;
+  int dexterity_roll;
+
+  if (GET_OBJ_VNUM(obj) != ROL_BANANA_PEEL_VNUM || complete_cmd_info == NULL || !IS_MOVE(cmd) ||
+      GET_LEVEL(ch) >= LVL_IMMORT || RIDING(ch) != NULL || is_flying(ch) ||
+      AFF_FLAGGED(ch, AFF_LEVITATE))
+    return FALSE;
+
+  intelligence_roll = rand_number(1, MAX(1, GET_INT(ch)));
+  if (intelligence_roll > 4)
+    return FALSE;
+  dexterity_roll = rand_number(1, MAX(1, GET_DEX(ch)));
+  outcome = rol_banana_peel_classify(intelligence_roll, dexterity_roll);
+
+  switch (outcome)
+  {
+  case ROL_BANANA_PEEL_AVOID:
+    return FALSE;
+  case ROL_BANANA_PEEL_KNOCKOUT:
+    act("You slip on a banana peel, fall, and pass out when your head hits the ground!", FALSE, ch,
+        0, 0, TO_CHAR);
+    act("$n slips on a banana peel, falls, and passes out when $s head hits the ground!", TRUE, ch,
+        0, 0, TO_ROOM);
+    rol_banana_apply_sleep(ch);
+    GET_HIT(ch) = MAX(1, GET_HIT(ch) - 15);
+    return TRUE;
+  case ROL_BANANA_PEEL_FALL:
+    GET_HIT(ch) = MAX(1, GET_HIT(ch) - dexterity_roll);
+    act("You slip on a banana peel and fall over with a shriek and a thump!", TRUE, ch, 0, 0,
+        TO_CHAR);
+    act("$n slips on a banana peel, shrieks, and falls over!", TRUE, ch, 0, 0, TO_ROOM);
+    change_position(ch, POS_SITTING);
+    WAIT_STATE(ch, PULSE_VIOLENCE);
+    return TRUE;
+  case ROL_BANANA_PEEL_STUMBLE:
+    send_to_char(ch, "You step on a banana peel!\r\n"
+                     "Arms flailing, you barely maintain your balance.\r\n");
+    act("$n steps on a banana peel and, arms flailing wildly, barely maintains $s balance.", TRUE,
+        ch, 0, 0, TO_ROOM);
+    WAIT_STATE(ch, PULSE_VIOLENCE);
+    return TRUE;
+  case ROL_BANANA_PEEL_DANCE:
+    send_to_char(ch, "You step on a banana peel, but dance your way out of danger.\r\n");
+    act("$n steps on a banana peel, but with a quick smirk resumes $s travel.", TRUE, ch, 0, 0,
+        TO_ROOM);
+    return FALSE;
+  default:
+    return FALSE;
+  }
+}
+
+int rol_banana(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  (void)ch;
+  (void)me;
+  (void)cmd;
+  (void)argument;
+
+  /* Typed dispatch supplies exact owner identity and invalidation. */
+  return FALSE;
+}
+
+int rol_banana_typed(struct spec_event_context *context)
+{
+  struct char_data *ch;
+  struct obj_data *obj;
+  int cmd;
+
+  if (context == NULL || context->owner_type != SPEC_OWNER_OBJECT ||
+      context->event != SPEC_EVENT_COMMAND)
+    return FALSE;
+
+  ch = context->actor;
+  obj = context->owner;
+  cmd = context->command;
+  if (ch == NULL || obj == NULL || !AWAKE(ch) || cmd <= 0 || complete_cmd_info == NULL)
+    return FALSE;
+
+  if (CMD_IS("eat"))
+    return rol_banana_eat(context, obj, ch, context->argument);
+  return rol_banana_move(obj, ch, cmd);
 }
 
 int rol_shadow_giant_spook_damage(bool save_succeeded)

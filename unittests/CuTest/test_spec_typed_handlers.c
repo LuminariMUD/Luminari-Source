@@ -162,6 +162,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   const struct spec_definition *guild_guard_definition;
   const struct spec_definition *command_sentinel_definition;
   const struct spec_definition *toll_keeper_definition;
+  const struct spec_definition *banana_definition;
   struct spec_binding *binding;
   char error[256];
 
@@ -170,16 +171,19 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   guild_guard_definition = spec_registry_find_by_name("RoL Guild Guard");
   command_sentinel_definition = spec_registry_find_by_name("RoL Command Sentinel");
   toll_keeper_definition = spec_registry_find_by_name("RoL Toll Keeper");
+  banana_definition = spec_registry_find_by_name("RoL Banana");
   CuAssertPtrNotNull(tc, bank_definition);
   CuAssertPtrNotNull(tc, cloak_definition);
   CuAssertPtrNotNull(tc, guild_guard_definition);
   CuAssertPtrNotNull(tc, command_sentinel_definition);
   CuAssertPtrNotNull(tc, toll_keeper_definition);
+  CuAssertPtrNotNull(tc, banana_definition);
   if (bank_definition == NULL || cloak_definition == NULL || guild_guard_definition == NULL ||
-      command_sentinel_definition == NULL || toll_keeper_definition == NULL)
+      command_sentinel_definition == NULL || toll_keeper_definition == NULL ||
+      banana_definition == NULL)
     return;
 
-  CuAssertIntEquals(tc, 5, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 6, (int)spec_registry_typed_count());
   CuAssertIntEquals(tc, 93, (int)spec_registry_legacy_count());
   CuAssertPtrEquals(tc, NULL, (void *)bank_definition->legacy_handler);
   CuAssertPtrEquals(tc, NULL, (void *)cloak_definition->legacy_handler);
@@ -188,11 +192,13 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   CuAssertPtrNotNull(tc, (void *)guild_guard_definition->typed_handler);
   CuAssertPtrNotNull(tc, (void *)command_sentinel_definition->typed_handler);
   CuAssertPtrNotNull(tc, (void *)toll_keeper_definition->typed_handler);
+  CuAssertPtrNotNull(tc, (void *)banana_definition->typed_handler);
   CuAssertTrue(tc, spec_definition_callback(bank_definition) == bank);
   CuAssertTrue(tc, spec_definition_callback(cloak_definition) == vampire_cloak);
   CuAssertTrue(tc, spec_definition_callback(guild_guard_definition) == rol_guild_guard);
   CuAssertTrue(tc, spec_definition_callback(command_sentinel_definition) == rol_command_sentinel);
   CuAssertTrue(tc, spec_definition_callback(toll_keeper_definition) == rol_toll_keeper);
+  CuAssertTrue(tc, spec_definition_callback(banana_definition) == rol_banana);
   CuAssertTrue(tc, spec_registry_find_by_handler(bank) == bank_definition);
   CuAssertTrue(tc, spec_registry_find_by_handler(vampire_cloak) == cloak_definition);
   CuAssertTrue(tc, spec_registry_find_by_handler(rol_guild_guard) == guild_guard_definition);

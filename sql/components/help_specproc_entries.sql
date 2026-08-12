@@ -111,6 +111,14 @@ RoL Magic Pool is object-owned. Converted pools keep their fixed entry damage
 and remapped destination in object values; builders should not assign it to an
 ordinary object without configuring both values deliberately.
 
+RoL Banana is object-owned and converter-owned. Converted object 2001235 is
+eaten with EAT BANANA, restores its food value, and leaves temporary peel
+2001234 in the room. Awake mortals moving over the peel may avoid it through
+Intelligence, fall or pass out based on Dexterity, or recover and continue.
+Flying, levitating, mounted, and staff characters ignore the peel. The peel
+decays after ten real minutes. Do not assign this identity-keyed procedure to
+unrelated objects.
+
 RoL Auto Distributor is room-owned. Any command by a non-staff character is
 intercepted and moves that character to a random loaded room in the same zone.
 It is intended only for converted RoL boundary rooms.

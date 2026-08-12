@@ -50,6 +50,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'six converted ATD objects') > 0
   AND INSTR(entry, 'RoL Magic Pool is object-owned') > 0
   AND INSTR(entry, 'fixed entry damage') > 0
+  AND INSTR(entry, 'RoL Banana is object-owned') > 0
+  AND INSTR(entry, 'decays after ten real minutes') > 0
   AND INSTR(entry, 'RoL Auto Distributor is room-owned') > 0
   AND INSTR(entry, 'random loaded room in the same zone') > 0
   AND INSTR(entry, 'RoL Command Sentinel is mobile- or room-owned') > 0

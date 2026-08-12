@@ -484,6 +484,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Floating Pool",
                                                "RoL Item Blocker",
                                                "RoL Magic Pool",
+                                               "RoL Banana",
                                                "RoL Auto Distributor",
                                                "RoL Command Sentinel",
                                                "RoL Toll Keeper",
@@ -508,7 +509,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 99, expected_count);
+  CuAssertIntEquals(tc, 100, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)

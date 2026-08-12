@@ -179,9 +179,9 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 98, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 99, (int)spec_registry_count());
   CuAssertIntEquals(tc, 93, (int)spec_registry_legacy_count());
-  CuAssertIntEquals(tc, 5, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 6, (int)spec_registry_typed_count());
 
   alias_count = 0;
   for (definition_index = 0; definition_index < spec_registry_count(); definition_index++)
@@ -368,6 +368,7 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Magic Pool", rol_magic_pool, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Banana", rol_banana, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Auto Distributor", rol_auto_distributor, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Command Sentinel", rol_command_sentinel, SPEC_OWNER_MOBILE | SPEC_OWNER_ROOM,

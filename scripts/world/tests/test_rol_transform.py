@@ -978,6 +978,67 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("SOURCE_UNSAFE_EXCLUDED", unsafe["strategy"])
     self.assertIn("currency", unsafe["reason"])
 
+  def test_banana_is_adapted_and_destructive_god_toys_are_excluded(self) -> None:
+    unsafe_handlers = {
+        "mystra",
+        "lloth_avatar",
+        "lloth",
+        "varon",
+        "zusukthing",
+        "mask",
+        "kor_avatar",
+        "velshorn",
+        "caytra",
+        "cinandriel",
+        "altherogs_blackSunSword",
+        "kelly_mirror",
+        "burunga",
+        "diinkarazan",
+        "erevan",
+        "shar",
+        "azuth",
+    }
+    bindings = [
+        {
+            "basename": "misc_code2",
+            "record_type": "object",
+            "source_vnum": 1234,
+            "source_handler": "banana",
+        },
+        {
+            "basename": "misc_code2",
+            "record_type": "object",
+            "source_vnum": 1235,
+            "source_handler": "banana",
+        },
+    ]
+    bindings.extend(
+        {
+            "basename": "god_toys",
+            "record_type": "object",
+            "source_vnum": index,
+            "source_handler": handler,
+        }
+        for index, handler in enumerate(sorted(unsafe_handlers), start=1)
+    )
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(
+        ["RoL Banana", "RoL Banana"],
+        sorted(binding.persisted_name for binding in compiled.native_bindings),
+    )
+    unsafe = [
+        row for row in compiled.dispositions if row["strategy"] == "SOURCE_UNSAFE_EXCLUDED"
+    ]
+    self.assertEqual(17, len(unsafe))
+    self.assertEqual(unsafe_handlers, {row["source_handler"] for row in unsafe})
+
   def test_conjured_death_binding_uses_composable_mobile_flag(self) -> None:
     binding = {
         "basename": "misc_code",

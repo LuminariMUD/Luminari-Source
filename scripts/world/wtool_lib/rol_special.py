@@ -69,6 +69,7 @@ ADAPTED_HANDLER_NAMES = {
     "av_drisinil_shout": "RoL Alert Caller",
     "av_tukra_shout": "RoL Alert Caller",
     "bandit": "RoL Trade Bandit",
+    "banana": "RoL Banana",
     "bs_critter": "RoL Bloodstone Critter",
     "bs_guildguard_antiwar": "RoL Guild Guard",
     "bs_guildguard_assassin": "RoL Guild Guard",
@@ -206,6 +207,29 @@ UNSAFE_HANDLERS = {
     "NeverLooseItem": (
         "source callback exposes unrestricted teleport, healing, resurrection, currency, "
         "permanent-stat, forced-death, invisibility, and unlock commands"
+    ),
+    "altherogs_blackSunSword": (
+        "source name-locked god toy exposes unrestricted teleport, reset, and shutdown commands"
+    ),
+    "azuth": "source name-locked god toy exposes destructive staff commands",
+    "burunga": "source name-locked god toy exposes destructive staff commands",
+    "caytra": "source name-locked god toy exposes destructive staff commands",
+    "cinandriel": "source name-locked god toy exposes destructive staff commands",
+    "diinkarazan": "source name-locked god toy exposes destructive staff commands",
+    "erevan": "source name-locked god toy exposes destructive staff commands",
+    "kelly_mirror": (
+        "source name-locked god toy dynamically relinks rooms for unrestricted remote viewing"
+    ),
+    "kor_avatar": "source god toy exposes unrestricted teleport commands while worn",
+    "lloth": "source name-locked god toy exposes destructive staff commands",
+    "lloth_avatar": "source name-locked god toy exposes destructive staff commands",
+    "mask": "source name-locked god toy exposes destructive staff commands",
+    "mystra": "source name-locked god toy exposes destructive staff commands",
+    "shar": "source name-locked god toy exposes destructive staff commands",
+    "varon": "source level-gated god toy exposes an unrestricted forced-death command",
+    "velshorn": "source name-locked god toy exposes destructive staff commands",
+    "zusukthing": (
+        "source name-locked god toy exposes zone-wide forced death, reset, and deletion commands"
     ),
 }
 
