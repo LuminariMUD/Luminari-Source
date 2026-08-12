@@ -1605,6 +1605,38 @@ int rol_sister_knight(struct char_data *ch, void *me, int cmd, const char *argum
   return TRUE;
 }
 
+const char *rol_bloodstone_critter_social(int roll)
+{
+  switch (roll)
+  {
+  case 0:
+    return "snarl";
+  case 1:
+    return "growl";
+  default:
+    return NULL;
+  }
+}
+
+int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  const char *social;
+  int social_command;
+
+  UNUSED(me);
+  UNUSED(argument);
+
+  if (ch == NULL || !IS_NPC(ch) || cmd || !AWAKE(ch) || FIGHTING(ch) != NULL)
+    return FALSE;
+
+  social = rol_bloodstone_critter_social(rand_number(0, 80));
+  if (social == NULL || (social_command = find_command(social)) < 0)
+    return FALSE;
+
+  do_action(ch, "", social_command, 0);
+  return TRUE;
+}
+
 int rol_shadow_giant_spook_damage(bool save_succeeded)
 {
   int amount = dice(25, 8);

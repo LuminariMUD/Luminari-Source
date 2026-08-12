@@ -64,6 +64,7 @@ NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 # legacy target callbacks have different eligibility or probability rules.
 ADAPTED_HANDLER_NAMES = {
     "bandit": "RoL Trade Bandit",
+    "bs_critter": "RoL Bloodstone Critter",
     "control_panel": "RoL Ship Control",
     "devour": "RoL Corpse Devourer",
     "guild_guard": "RoL Guild Guard",
@@ -768,6 +769,7 @@ def compile_special_bindings(
     if handler in NATIVE_HANDLERS or handler in ADAPTED_HANDLER_NAMES:
       if handler in {
           "bandit",
+          "bs_critter",
           "guild_guard",
           "lich_energy_drain",
           "major_beholder",

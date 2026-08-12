@@ -31,8 +31,8 @@ callback slot or event-gateway dispatch rules.
 - Enter a number to choose a SpecProc; enter `0` to clear.
 - The current selection is shown in the menu. Save as usual to apply.
 
-Numbers are specific to the filtered editor view. The current views contain 37 mobile definitions,
-26 object definitions, and 10 room definitions in canonical registry order. The saved world record
+Numbers are specific to the filtered editor view. The current views contain 42 mobile definitions,
+27 object definitions, and 14 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
 Prerequisites describe runtime scheduling; selecting a procedure does not set them automatically:
@@ -53,6 +53,10 @@ summoned-monster, and shaman-spirit flags provide their source fade messages and
 `MOB_ROL_BLACK_VAPOR_DEATH` replaces Luminari's generic undead crumble message with the source
 Bloodstone vapor message while retaining the target's no-corpse policy. These flags are
 converter-owned and should not be assigned to unrelated mobiles.
+
+`RoL Bloodstone Critter` is mobile-owned and requires `MOB_SPEC`. While awake and idle, the four
+converted Bloodstone critters use Luminari's current `snarl` and `growl` socials at the source
+two-in-81 activity-pulse cadence. This procedure is converter-owned.
 
 `RoL Magic Pool` is an object-owned conversion procedure. Its object value 0 is the destination
 room VNUM and value 1 is fixed entry damage. The converter remaps the destination; builders should

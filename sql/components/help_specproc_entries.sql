@@ -56,6 +56,10 @@ breath_attack and breath_weapon entries are named mobile
 combat SpecProcs; attack variants affect the current opponent, while weapon
 variants affect eligible targets across the room every fourth combat turn.
 
+RoL Bloodstone Critter is mobile-owned and requires MOB_SPEC. While awake and
+idle, the four converted critters use the current snarl and growl socials with
+the source two-in-81 activity-pulse cadence. This procedure is converter-owned.
+
 RoL Magic Pool is object-owned. Converted pools keep their fixed entry damage
 and remapped destination in object values; builders should not assign it to an
 ordinary object without configuring both values deliberately.

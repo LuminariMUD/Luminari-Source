@@ -725,6 +725,27 @@ void Test_spec_rol_sister_knight_preserves_family_identity_and_alert_guard(CuTes
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_bloodstone_critter_preserves_social_cadence(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+
+  spec_mechanics_begin(&fixture);
+
+  CuAssertStrEquals(tc, "snarl", rol_bloodstone_critter_social(0));
+  CuAssertStrEquals(tc, "growl", rol_bloodstone_critter_social(1));
+  CuAssertTrue(tc, rol_bloodstone_critter_social(-1) == NULL);
+  CuAssertTrue(tc, rol_bloodstone_critter_social(2) == NULL);
+  CuAssertTrue(tc, rol_bloodstone_critter_social(80) == NULL);
+  CuAssertTrue(tc, rol_bloodstone_critter_social(81) == NULL);
+
+  GET_POS(&fixture.actor) = POS_SLEEPING;
+  CuAssertIntEquals(tc, FALSE, rol_bloodstone_critter(&fixture.actor, &fixture.actor, 0, ""));
+  GET_POS(&fixture.actor) = POS_STANDING;
+  CuAssertIntEquals(tc, FALSE, rol_bloodstone_critter(&fixture.actor, &fixture.actor, 1, ""));
+
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_major_beholder_preserves_eye_mapping_and_cooldowns(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

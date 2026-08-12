@@ -36,6 +36,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'RoL death flags') > 0
   AND INSTR(entry, 'Bloodstone black-vapor') > 0
   AND INSTR(entry, 'breath_attack and breath_weapon') > 0
+  AND INSTR(entry, 'RoL Bloodstone Critter is mobile-owned') > 0
+  AND INSTR(entry, 'two-in-81 activity-pulse cadence') > 0
   AND INSTR(entry, 'RoL Magic Pool is object-owned') > 0
   AND INSTR(entry, 'fixed entry damage') > 0
   AND INSTR(entry, 'RoL Auto Distributor is room-owned') > 0

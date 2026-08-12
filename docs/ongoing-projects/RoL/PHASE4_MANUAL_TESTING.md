@@ -217,6 +217,17 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - Use `stat mobile` before combat to confirm `RoL-Black-Vapor-Death`. Mobiles 2007119, 2007162,
   and 2007167 must retain their independent named Bloodstone procedure beside this flag.
 
+### Phase 6 Bloodstone critter procedure
+
+- `RoL Bloodstone Critter` is implemented for converted Bloodstone mobiles 2007110-2007112 and
+  2007141. The package remains outside the five-package staged pilot, so test this only in a later
+  dependency-complete Bloodstone stage.
+- Use `stat mobile` to confirm each prototype has `MOB_SPEC` and the named procedure. While it is
+  awake and idle, observe repeated activity pulses; the mobile should occasionally use the current
+  `snarl` or `growl` social at the source two-in-81 cadence.
+- Put the mobile to sleep or start combat and continue observing activity pulses. It must not run
+  this ambient social behavior until it is both awake and idle again.
+
 ### Phase 6 converted transport procedures
 
 - `RoL Magic Pool` and `RoL Auto Distributor` are implemented and
