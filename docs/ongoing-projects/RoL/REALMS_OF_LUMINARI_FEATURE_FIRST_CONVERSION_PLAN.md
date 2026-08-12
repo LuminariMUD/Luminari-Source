@@ -516,20 +516,25 @@ the supporting runtime lands.
 
 One session is one 2-4 hour spec with one objective and 12-25 tasks. Session ranges
 below are evidence-based planning envelopes, not delivery promises. The measured
-Phase 4 pilot replaced the provisional ranges. Twenty-seven completed Phase 6 delivery
-sessions are archived in the changelog. The remaining Phases 6-8 forecast is 69-129
-sessions, or 138-516 focused engineering hours at the defined session size.
+Phase 4 pilot replaced the provisional ranges. Twenty-eight completed Phase 6 delivery
+sessions are archived in the changelog. Dependency-complete batches now target 15-30
+source handler families per checkpoint. The remaining Phases 6-8 forecast is 63-105
+sessions, or 126-420 focused engineering hours at the defined session size.
 
 Phases 0-5 are complete and have been removed from this active plan. Their delivered
 scope, run identities, counts, acceptance evidence, commits, and reforecast basis are
 recorded in [RoL-Changelog.md](RoL-Changelog.md). Active implementation continues with
 the remaining Phase 6 families.
 
-### Phase 6: Special-procedure reconciliation (21-53 remaining sessions)
+### Phase 6: Special-procedure reconciliation (15-29 remaining sessions)
 
-Process by shared behavior family and consuming package. Reuse equivalent target ports,
-patch bounded differences, adapt native systems, and port only remaining selected
-behavior. A new source file must be added to both `Makefile.am` and `CMakeLists.txt`.
+Process dependency-complete batches of roughly 15-30 related source handler families by
+shared behavior and consuming package. Prefer reusable data-driven profiles when only
+identities, messages, destinations, or bounded parameters vary. Reuse equivalent target
+ports, patch bounded differences, adapt native systems, and port only remaining selected
+behavior. Run focused checks inside each batch and the full build/test/install gate once
+at the batch boundary. A new source file must be added to both `Makefile.am` and
+`CMakeLists.txt`.
 
 Exit gate: every active binding is kept, patched, adapted, ported, or minimally excluded
 under the locked malformed-content rule, with behavioral evidence.

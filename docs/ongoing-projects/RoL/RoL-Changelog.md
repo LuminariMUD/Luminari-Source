@@ -6,6 +6,73 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 batched combat and death procedures
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Replaced the one-family delivery cadence with dependency-complete procedure batches.
+  This first wider batch closed 19 source handler families and 28 active bindings in one
+  reviewable checkpoint, using shared data-driven profiles where behavior differed only
+  by caller, helper set, message, or converted mobile identity.
+- Closed seven alert bindings across Demogorgon, Drisinil, Tukra, Imix, the Imix pet,
+  and Yancbin. Five callers use the persistent `RoL Alert Caller` procedure; Imix and
+  Yancbin compose the alert beside their existing fire and lightning breath procedures.
+  Each caller shouts once per fight and sends only its eligible same-zone helpers after
+  the source sound, state, reachability, and damage gates. One inactive Demogorgon helper
+  reference absent from the active source map was omitted.
+- Closed all five active `yggdrasil_branch` bindings with the persistent
+  `RoL Yggdrasil Branch` procedure. The adapter preserves the source target weighting,
+  50 percent attempt cadence, Reflex save with the source -10 modifier, four-to-twelve
+  round entangle, timed release, and current-movement halving.
+- Closed 16 no-corpse bindings across tentacle, treant, phantom-steed, dark-shade,
+  mephit, and elemental death handlers. Converted-VNUM death profiles preserve the
+  source-family messages and suppress ordinary corpses without consuming a named
+  procedure slot or adding family-specific flags.
+- Registered the two builder-visible procedures, retained stable existing event IDs,
+  taught conversion and reconciliation about all composable profiles, and updated
+  builder help, database-first help, manual tests, registry inventories, converter
+  fixtures, and production-linked characterization tests.
+- Reconciliation now resolves 634 of 1,147 active direct bindings and 130 of 562 source
+  handlers; 513 bindings and 432 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 568 resolved / 280 pending because these records were resolved through
+  companion direct bindings and runtime composition.
+- Archived the twenty-eighth bounded Phase 6 delivery session since the Phase 5
+  closeout. At a target throughput of 15-30 handler families per dependency-complete
+  batch, the forward-looking estimate is now 15-29 Phase 6 sessions and 63-105 total
+  sessions for Phases 6-8, or 126-420 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 03111649
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-batched-combat-death
+Reconciliation run: rol-phase6-special-bcb867fc0cb376eb
+Active direct bindings: 1,147
+Direct bindings resolved: 634
+Direct bindings pending: 513
+Source handlers resolved: 130
+Source handlers pending: 432
+Selected handler families resolved: 19
+Selected direct bindings resolved: 28
+Native adapted bindings: 241
+Native adapted composable bindings: 131
+ACT_SPEC records resolved: 568
+ACT_SPEC records pending: 280
+Complete world-tool suite: 281 passed
+Focused reconciliation suite: 60 passed
+Production-linked CuTest suite: 640 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Clean Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 513 direct bindings across 432 source handlers,
+using dependency-complete batches and shared data-driven adapters.
+
 ## 2026-08-12 - Phase 6 converted Waterdeep guild rooms
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

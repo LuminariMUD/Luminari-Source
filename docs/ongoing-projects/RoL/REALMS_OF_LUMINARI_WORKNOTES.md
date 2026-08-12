@@ -67,6 +67,7 @@ Phase 6 designated-follower commit: 9de8ed76
 Phase 6 floating-pool commit: e3600f16
 Phase 6 Bloodstone-portal commit: 2635c21c
 Phase 6 Waterdeep-guild-room commit: 08fcf107
+Phase 6 batched combat/death commit: 03111649
 ```
 
 The authoritative ignored runs are:
@@ -165,6 +166,8 @@ Phase 6 Bloodstone portals: lib/rol-conversion/runs/phase6-special-20260812-bloo
                             rol-phase6-special-f629c37b68cdad7d
 Phase 6 Waterdeep guild rooms: lib/rol-conversion/runs/phase6-special-20260812-waterdeep-guild
                                   rol-phase6-special-667bf4274a2fd6dd
+Phase 6 batched combat/death: lib/rol-conversion/runs/phase6-special-20260812-batched-combat-death
+                              rol-phase6-special-bcb867fc0cb376eb
 Policy:  rol-conversion-policy-1
 ```
 
@@ -193,10 +196,12 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 279 tests; the production-linked CuTest suite passes 638;
+- The world-tool suite passes 281 tests; the production-linked CuTest suite passes 640;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Twenty-seven bounded Phase 6 delivery sessions are archived. The measured remaining
-  forecast is 69-129 sessions: Phase 6 is 21-53, Phase 7 is 42-66, and Phase 8 is 6-10.
+- Twenty-eight bounded Phase 6 delivery sessions are archived. Dependency-complete
+  batches now target 15-30 source handler families per checkpoint. The measured
+  remaining forecast is 63-105 sessions: Phase 6 is 15-29, Phase 7 is 42-66, and
+  Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -334,20 +339,30 @@ Policy:  rol-conversion-policy-1
   `RoL Waterdeep Guild Room` procedure. Exact and family class gates use the target
   multiclass model, accepted commands delegate to the current guild service, and the
   source Mercenary gate maps explicitly to target Warrior.
+- Seven alert bindings are complete through `RoL Alert Caller` or composition with the
+  existing Imix/Yancbin breath procedure. The converted callers preserve their
+  source-specific messages, helper identities, once-per-fight gate, and same-zone
+  reachability and state checks.
+- All five active `yggdrasil_branch` bindings are complete through the named
+  `RoL Yggdrasil Branch` procedure. Source target weighting, attempt/save gates, timed
+  entangle, release, and current-movement halving are preserved.
+- Sixteen active tentacle, treant, phantom-steed, dark-shade, mephit, and elemental
+  death bindings are complete through converted-VNUM runtime profiles. Each preserves
+  its source-family message and no-corpse outcome without using another named slot.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 606 of 1,147 active direct bindings and 111 of
-  562 source handlers, leaving 541 bindings and 451 handlers. The independent
+- The current Phase 6 checkpoint resolves 634 of 1,147 active direct bindings and 130 of
+  562 source handlers, leaving 513 bindings and 432 handlers. The independent
   `ACT_SPEC` cross-check resolves 568 of 848 records and leaves 280 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 541 direct bindings by shared behavior family and
-   consuming package; continue with the next high-reuse families and reuse current
-   target procedures before adapting or porting.
+1. Reconcile the remaining 513 direct bindings across 432 handlers in
+   dependency-complete batches of 15-30 related families. Use shared data-driven
+   profiles and current target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
 3. Preserve the six locked malformed record exclusions as explicit, logged
