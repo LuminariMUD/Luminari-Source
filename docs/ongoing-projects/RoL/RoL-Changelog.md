@@ -6,6 +6,58 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted class-family guild rooms
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all ten active `guild_classtype_mage`, `guild_classtype_thief`,
+  `guild_classtype_warrior`, and `guild_classtype_cleric` room bindings through four
+  persistent, room-owned RoL class-family guild procedures.
+- Preserved the source rule that a mismatched class family cannot use the guild while
+  adapting its single-class check to the target multiclass model. Any matching class
+  level admits the character; NPCs and unrelated commands retain ordinary current
+  guild behavior.
+- Delegated accepted `practice`, `train`, and `boosts` commands to Luminari's current
+  training service instead of reviving the source's obsolete skill-practice and spell
+  copying implementation.
+- Registered the four procedures and their command contracts, taught the converter
+  their canonical target names, and updated builder help, database-first help, manual
+  testing, converter fixtures, registry persistence and OLC inventories, and
+  production-linked characterization tests.
+- Reconciliation now resolves 562 of 1,147 active direct bindings and 92 of 562 source
+  handlers; 585 bindings and 470 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 554 resolved / 294 pending.
+- Archived the nineteenth bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 29-61 Phase 6 sessions and 77-137 total sessions
+  for Phases 6-8, or 154-548 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: f4eefda6
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-class-guilds
+Reconciliation run: rol-phase6-special-607369f4f87e0a4a
+Active direct bindings: 1,147
+Direct bindings resolved: 562
+Direct bindings pending: 585
+Source handlers resolved: 92
+Source handlers pending: 470
+Class-family guild bindings resolved: 10
+ACT_SPEC records resolved: 554
+ACT_SPEC records pending: 294
+Complete world-tool suite: 271 passed, 52 subtests passed
+Production-linked CuTest suite: 631 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 585 direct bindings across 470 source handlers.
+
 ## 2026-08-12 - Phase 6 converted lich energy drain
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
