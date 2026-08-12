@@ -2,8 +2,8 @@
 
 - Status: Phase 4 complete
 - Environment: disposable development runtime only
-- Staged world: `lib/rol-conversion/runs/phase5-object-flags-e5b998bd-pilot/staging/world`
-- Runtime contract: `lib/rol-conversion/runs/phase5-object-flags-e5b998bd-pilot/validation/pilot-runtime-contract.json`
+- Staged world: `lib/rol-conversion/runs/phase5-object-applies-affects-20260812-pilot/staging/world`
+- Runtime contract: `lib/rol-conversion/runs/phase5-object-applies-affects-20260812-pilot/validation/pilot-runtime-contract.json`
 - Live target writes: zero
 
 ## Safety Boundary
@@ -111,6 +111,28 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   converter uses traced RoL identities rather than treating those source values as
   target numeric positions.
 
+### RoL apply and affect compatibility
+
+- Use `stat mobile` on Muspel mobiles 2058604, 2058608, 2058621, 2058706, 2058911,
+  2059005, 2059012, 2059017, 2059027, or 2059028. Each must show the RoL slow-poison
+  secondary affect. Apply poison and compare a positive damage tick with an otherwise
+  equivalent unprotected test mobile; the protected result must be half, rounded down,
+  with a minimum of one.
+- Muspel mobiles 2058604, 2058911, 2059012, 2059027, and 2059028 also carry the
+  converted meditation/rapid-preparation affect. Confirm it appears independently of
+  slow poison in `stat mobile`.
+- Use `stat object` on Cemetery objects 2055306, 2055311, or 2055312 and Theswamp
+  objects 2040911, 2040915, 2040916, 2040926, or 2040927. Their source agility applies
+  must be target Dexterity applies with the same signed modifier.
+- Use `stat object` on representative maximum-stat conversions such as Hulburg object
+  159175 or 159356 and Muspel objects 2058707, 2058751, 2058803, or 2058905. The
+  converted apply must name the corresponding target attribute rather than expose an
+  unknown source apply. Equip an obtainable example and confirm the displayed stat
+  changes by the listed modifier.
+- The docile secondary affect and bounded race-factor applies are built and
+  production-tested, but the five pilot packages contain no converted `ADD` example
+  suitable for manual exercise. Do not hand-edit the staged pilot to create one.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,
@@ -146,9 +168,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
 
 - The pilot is not installed into the normal development world.
 - The remaining 247 source packages have not completed conversion.
-- Remaining mobile actions, object applies/types/wear flags, the malformed sector, and
-  transient-affect dispositions are Phase 5 work in progress. The active quest corpus
-  uses fixed item rewards; no random item-reward range remains to implement.
+- Mobile actions are the only remaining unmapped symbolic family in Phase 5. The active
+  quest corpus uses fixed item rewards; no random item-reward range remains to
+  implement.
 - Flagged arena, no-precipitation, PSP-regeneration, and RoL-jail runtime support is
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.

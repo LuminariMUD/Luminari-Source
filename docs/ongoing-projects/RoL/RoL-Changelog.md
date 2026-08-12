@@ -5,6 +5,64 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 5 object-apply and affect compatibility
+
+Status: Completed sub-milestone; Phase 5 implementation in progress
+
+### Delivered
+
+- Completed dispositions for every active object apply, object item type, object wear
+  flag, mobile affect, object affect, and sector value. The full-corpus audit now has
+  only mobile-action observations remaining in its unmapped symbolic inventory.
+- Mapped source agility and power applies to target Dexterity and Wisdom. Mapped the
+  six maximum-stat apply identities to their target attributes and converted the four
+  active multiplicative race-factor tuples to bounded D20-scale stat modifiers.
+- Traced source Karma and Luck apply fields and confirmed that no active source mechanic
+  consumes their modified values; they are now omitted with explicit source-only
+  diagnostics.
+- Corrected object grammar ownership so only the two numeric rows immediately before
+  object extensions can be affect masks. Numeric content following an extension is
+  diagnosed and ignored instead of becoming a false object affect.
+- Added target secondary affects for RoL slow poison and docile behavior. Slow poison
+  halves positive poison damage with a minimum of one; docile mobiles no longer assist
+  as helpers or guards. Source meditation maps to the bounded rapid-preparation affect.
+- Explicitly omitted transient or source-inert prototype affects after tracing their
+  source call sites. Repaired the single malformed mountain sector, one shifted object
+  type, and two source-corrupt wear bits with record-specific diagnostics.
+- Rebuilt the five-zone staged pilot without live target writes. All 3,001 selected
+  actions remain disposed, generated syntax is complete, and reset-reference and
+  walkthrough gates still pass.
+
+### Acceptance evidence
+
+```text
+Delivery commit: f7eabca4
+Full-corpus audit path: lib/rol-conversion/runs/phase5-object-applies-affects-20260812
+Full-corpus audit run: rol-phase5-audit-ae0fdf51ee3707ee
+Pilot build path: lib/rol-conversion/runs/phase5-object-applies-affects-20260812-pilot
+Pilot build run: rol-phase4-build-87b9c7b1b8e214bd
+Previous unmapped symbolic observations: 15,731
+Current unmapped symbolic observations: 15,243
+Reduction: 488
+Remaining unmapped symbolic families: mobile action only
+Convertible records emitted: 69,920
+Emitted target bytes: 42,083,358
+Converter exceptions: 0
+Pilot selected actions: 3,001
+Pilot active staged errors: 79 inherited, 0 new
+Pilot retained native/adapted specials: 46/45
+Pilot reset-reference and walkthrough gates: passed
+Complete world-tool suite: 241 passed
+Production-linked CuTest suite: 613 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Autotools build and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+The next Phase 5 pass resolves the measured mobile-action family, then continues with
+reset, shop, and other shared capability gaps.
+
 ## 2026-08-12 - Phase 5 object-property compatibility
 
 Status: Completed sub-milestone; Phase 5 implementation in progress
