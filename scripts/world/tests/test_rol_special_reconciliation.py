@@ -503,6 +503,20 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("SOURCE_INERT_EXCLUDED", bomb["strategy"])
     self.assertIn("no event bits", bomb["reason"])
 
+  def test_scheduled_mobile_batch_has_explicit_dispositions(self) -> None:
+    handlers = (
+        "gloomhaven_gate_guard",
+        "lighthouse_one",
+        "naval_three",
+        "waterdeep_guard_three",
+    )
+
+    for handler in handlers:
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Scheduled Mobile", disposition["target"])
+
   def test_residual_monster_combat_batch_has_explicit_dispositions(self) -> None:
     handlers = (
         "Tiamat_Crimson_Fury",
@@ -569,11 +583,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_103, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(44, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(530, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(32, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(645, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_107, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(40, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(534, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(28, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(649, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           159, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -582,8 +596,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           18, summary["direct_bindings_by_strategy"]["SOURCE_UNSAFE_EXCLUDED"]
       )
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(824, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(24, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(827, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(21, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

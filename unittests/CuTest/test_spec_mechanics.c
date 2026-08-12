@@ -1508,6 +1508,43 @@ void Test_spec_rol_utility_service_batch_preserves_source_boundaries(CuTest *tc)
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_scheduled_mobile_preserves_time_and_state_boundaries(CuTest *tc)
+{
+  bool active = false;
+  int counter = 77;
+  int index;
+
+  CuAssertIntEquals(tc, ROL_SCHEDULED_GATE_CLOSE, rol_scheduled_gate_state_for_hour(0));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_GATE_CLOSE, rol_scheduled_gate_state_for_hour(5));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_GATE_OPEN, rol_scheduled_gate_state_for_hour(6));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_GATE_OPEN, rol_scheduled_gate_state_for_hour(18));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_GATE_NONE, rol_scheduled_gate_state_for_hour(19));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_GATE_NONE, rol_scheduled_gate_state_for_hour(21));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_GATE_CLOSE, rol_scheduled_gate_state_for_hour(22));
+
+  CuAssertIntEquals(tc, ROL_SCHEDULED_NAVAL_IDLE, rol_scheduled_naval_branch_for(true, true));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_NAVAL_FIGHTING, rol_scheduled_naval_branch_for(false, true));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_NAVAL_NONE, rol_scheduled_naval_branch_for(false, false));
+
+  index = rol_scheduled_lighthouse_step(8, true, &active, &counter);
+  CuAssertIntEquals(tc, 0, index);
+  CuAssertTrue(tc, active);
+  CuAssertIntEquals(tc, 1, counter);
+  index = rol_scheduled_lighthouse_step(9, true, &active, &counter);
+  CuAssertIntEquals(tc, 1, index);
+  CuAssertIntEquals(tc, 2, counter);
+  counter = 25;
+  index = rol_scheduled_lighthouse_step(9, true, &active, &counter);
+  CuAssertIntEquals(tc, 25, index);
+  CuAssertIntEquals(tc, 26, counter);
+  counter = 30;
+  index = rol_scheduled_lighthouse_step(9, true, &active, &counter);
+  CuAssertIntEquals(tc, -1, index);
+  CuAssertTrue(tc, !active);
+  CuAssertIntEquals(tc, 1, counter);
+  CuAssertIntEquals(tc, -1, rol_scheduled_lighthouse_step(8, true, NULL, &counter));
+}
+
 void Test_spec_rol_utility_magius_staff_toggles_light(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

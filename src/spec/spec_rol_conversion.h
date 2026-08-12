@@ -38,6 +38,20 @@ enum rol_banana_peel_outcome
   ROL_BANANA_PEEL_DANCE
 };
 
+enum rol_scheduled_gate_state
+{
+  ROL_SCHEDULED_GATE_NONE = 0,
+  ROL_SCHEDULED_GATE_OPEN,
+  ROL_SCHEDULED_GATE_CLOSE
+};
+
+enum rol_scheduled_naval_branch
+{
+  ROL_SCHEDULED_NAVAL_NONE = 0,
+  ROL_SCHEDULED_NAVAL_IDLE,
+  ROL_SCHEDULED_NAVAL_FIGHTING
+};
+
 int rol_corpse_devourer(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_poison_bite(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_thief(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -69,6 +83,7 @@ int rol_waterdeep_ambient(struct char_data *ch, void *me, int cmd, const char *a
 int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_state_periodic(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_scheduled_mobile(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_waterdeep_peacekeeper(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_weapon_proc(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_weapon_proc_typed(struct spec_event_context *context);
@@ -91,6 +106,10 @@ int rol_monster_combat_typed(struct spec_event_context *context);
 int rol_residual_mobile_typed(struct spec_event_context *context);
 int rol_utility_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_utility_room_typed(struct spec_event_context *context);
+
+enum rol_scheduled_gate_state rol_scheduled_gate_state_for_hour(int hour);
+enum rol_scheduled_naval_branch rol_scheduled_naval_branch_for(bool standing, bool fighting);
+int rol_scheduled_lighthouse_step(int hour, bool standing, bool *active, int *counter);
 
 bool rol_corpse_devourer_can_consume(const struct obj_data *obj);
 int rol_poison_bite_roll_ceiling(int level);

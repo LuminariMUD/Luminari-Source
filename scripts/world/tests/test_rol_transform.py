@@ -1966,6 +1966,38 @@ class RolTransformTests(unittest.TestCase):
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
     )
 
+  def test_scheduled_mobile_batch_persists_shared_adapter(self) -> None:
+    handlers = (
+        (3082, "waterdeep_guard_three"),
+        (5311, "naval_three"),
+        (5313, "lighthouse_one"),
+        (34274, "gloomhaven_gate_guard"),
+    )
+    bindings = [
+        {
+            "basename": "scheduled-mobiles",
+            "record_type": "mobile",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in handlers
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(4, len(compiled.native_bindings))
+    for binding in compiled.native_bindings:
+      self.assertEqual("RoL Scheduled Mobile", binding.persisted_name)
+      self.assertEqual((0,), binding.required_flag_bits)
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_inert_object_callbacks_emit_no_target_binding(self) -> None:
     bindings = [
         {

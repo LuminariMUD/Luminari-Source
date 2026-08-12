@@ -81,6 +81,7 @@ static const char *const spec_mobile_names[] = {
     "RoL Source Periodic",
     "RoL Stateful Periodic",
     "RoL Lavatubes Mobile",
+    "RoL Scheduled Mobile",
 };
 
 static const char *const spec_object_names[] = {

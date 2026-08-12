@@ -4327,6 +4327,370 @@ int rol_state_periodic(struct char_data *ch, void *me, int cmd, const char *argu
   return FALSE;
 }
 
+struct rol_scheduled_gate_profile
+{
+  int mobile_vnum;
+  const int *room_vnums;
+  size_t room_count;
+  const char *open_speech[2];
+  const char *open_action;
+  const char *opened_action;
+  const char *already_open_action;
+  const char *unlock_failed_action[2];
+};
+
+static const int rol_waterdeep_gate_rooms[] = {2003023, 2003025, 2003161, 2002896};
+static const int rol_gloomhaven_gate_rooms[] = {2034468, 2034455};
+
+static const struct rol_scheduled_gate_profile rol_scheduled_gate_profiles[] = {
+    {2003082,
+     rol_waterdeep_gate_rooms,
+     sizeof(rol_waterdeep_gate_rooms) / sizeof(rol_waterdeep_gate_rooms[0]),
+     {"The gates of Waterdeep are now open!", "Be advised, they will close again at dusk."},
+     "$n walks up to the gates to operate the opening mechanism..",
+     "$n fumbles with the lock, then shoves the gates open quickly.",
+     "$n stands gaping at the open gates for a moment.",
+     {"$n fumbles with the lock, then looks embarrassed.",
+      "$n mumbles something about is there a thief in the house?"}},
+    {2034274,
+     rol_gloomhaven_gate_rooms,
+     sizeof(rol_gloomhaven_gate_rooms) / sizeof(rol_gloomhaven_gate_rooms[0]),
+     {"The gates of Gloomhaven are open now!",
+      "Farewell on yer travels, come back soon, preferably in one piece."},
+     "$n slowly walks up to the gates..",
+     "$n unlocks the gates and shoves them open.",
+     "$n scratches his head and looks at the open gates.",
+     {"$n tries to unlock the gates with an embarrassed look.",
+      "$n throws you a sour look, wondering who stole his key."}},
+};
+
+static const char *const rol_lighthouse_messages[] = {
+    "$n stares long across ocean, taking a deep breath.",
+    "$n says, 'Beautiful view, isn't it?",
+    "$n says, 'Been workin' here 30 years and never got over how lovely it is.'",
+    "$n smiles at you with warm eyes.",
+    "$n says, 'Only thing needs doin' now is to rebuild this old place.'",
+    "$n says, 'Been here for a good hundred years, I reckin.'",
+    "$n says, 'Hehe.  Sometimes I'm surprised it's still standin.'\r\n$n giggles softly.",
+    "$n says, 'This one used to be just fine, till they dug it all out.'",
+    "$n grumbles, 'God knows what they were doin' down there..'\r\n$n chuckles.",
+    "$n says, 'Course the military never tells us common folk what's really goin' on.'",
+    "$n says, 'Aahhhh well, 'tis just the same anyway.\r\n"
+    "$n says, 'If they don't wanna tell us, it probably isn't important.",
+    "$n says, 'You hear about the pirate traffic?'",
+    "$n says, 'I heard it's gettin' worse, just what we need.'",
+    "$n snarls, 'More jackass brigands to deal with.'",
+    "$n says, 'Ahh well, I'll shut up and enjoy the view.'\r\n$n smiles.",
+    "$n stares long across ocean, taking a deep breath.",
+};
+
+enum rol_scheduled_gate_state rol_scheduled_gate_state_for_hour(int hour)
+{
+  if (hour >= 6 && hour < 19)
+    return ROL_SCHEDULED_GATE_OPEN;
+  if (hour > 21 || hour < 6)
+    return ROL_SCHEDULED_GATE_CLOSE;
+  return ROL_SCHEDULED_GATE_NONE;
+}
+
+enum rol_scheduled_naval_branch rol_scheduled_naval_branch_for(bool standing, bool fighting)
+{
+  if (standing)
+    return ROL_SCHEDULED_NAVAL_IDLE;
+  if (fighting)
+    return ROL_SCHEDULED_NAVAL_FIGHTING;
+  return ROL_SCHEDULED_NAVAL_NONE;
+}
+
+int rol_scheduled_lighthouse_step(int hour, bool standing, bool *active, int *counter)
+{
+  int message_index = -1;
+
+  if (active == NULL || counter == NULL)
+    return -1;
+  if (hour == 8)
+  {
+    *active = true;
+    *counter = 0;
+  }
+  if (*active && standing && ((*counter >= 0 && *counter <= 15) || *counter == 25))
+    message_index = *counter;
+  if (*counter == 30)
+  {
+    *counter = 0;
+    *active = false;
+  }
+  (*counter)++;
+  return message_index;
+}
+
+static const struct rol_scheduled_gate_profile *rol_scheduled_gate_profile_for(int mobile_vnum)
+{
+  size_t index;
+
+  for (index = 0;
+       index < sizeof(rol_scheduled_gate_profiles) / sizeof(rol_scheduled_gate_profiles[0]);
+       index++)
+    if (rol_scheduled_gate_profiles[index].mobile_vnum == mobile_vnum)
+      return &rol_scheduled_gate_profiles[index];
+  return NULL;
+}
+
+static bool rol_scheduled_gate_room_matches(const struct rol_scheduled_gate_profile *profile,
+                                            int room_vnum)
+{
+  size_t index;
+
+  for (index = 0; index < profile->room_count; index++)
+    if (profile->room_vnums[index] == room_vnum)
+      return true;
+  return false;
+}
+
+static int rol_scheduled_gate_direction(struct char_data *ch)
+{
+  int direction;
+
+  for (direction = NORTH; direction <= WEST; direction++)
+    if (EXIT(ch, direction) != NULL && EXIT(ch, direction)->keyword != NULL &&
+        strstr(EXIT(ch, direction)->keyword, "gates") != NULL)
+      return direction;
+  return NOWHERE;
+}
+
+static void rol_scheduled_gate_social(struct char_data *ch, const char *social)
+{
+  int command;
+
+  if ((command = find_command(social)) >= 0)
+    do_action(ch, "", command, 0);
+}
+
+static void rol_scheduled_gate_ambient(struct char_data *ch, int mobile_vnum)
+{
+  int roll;
+
+  if (GET_POS(ch) < POS_STANDING)
+    return;
+  if (mobile_vnum == 2003082)
+  {
+    roll = dice(2, 5);
+    if (roll == 2)
+      do_say(ch, "Hell of a day, isn't it?", 0, 0);
+    else if (roll == 3)
+      act("$n looks you up and down for a moment, then goes back to $s duties.", TRUE, ch, NULL,
+          NULL, TO_ROOM);
+    else if (roll == 4)
+      act("$n stands tall and proud.", TRUE, ch, NULL, NULL, TO_ROOM);
+    else if (roll == 5)
+      act("$n scans the area of signs of trouble.", TRUE, ch, NULL, NULL, TO_ROOM);
+    return;
+  }
+
+  roll = dice(2, 6);
+  if (roll == 2)
+    do_say(ch, "Get away kid, you are bothering me.", 0, 0);
+  else if (roll == 3)
+    act("$n peers around intently looking for trouble.", TRUE, ch, NULL, NULL, TO_ROOM);
+  else if (roll == 4)
+    act("$n examines the head of $s axe.", TRUE, ch, NULL, NULL, TO_ROOM);
+  else if (roll == 5)
+    act("$n examines the gate's hinges.", TRUE, ch, NULL, NULL, TO_ROOM);
+  else if (roll == 6)
+    act("$n checks the area for intruders.", TRUE, ch, NULL, NULL, TO_ROOM);
+}
+
+static int rol_scheduled_gate(struct char_data *ch,
+                              const struct rol_scheduled_gate_profile *profile)
+{
+  enum rol_scheduled_gate_state state;
+  int direction;
+  char gates[] = "gates";
+
+  if (!AWAKE(ch) || FIGHTING(ch) != NULL)
+    return FALSE;
+
+  rol_scheduled_gate_ambient(ch, profile->mobile_vnum);
+  if (!rol_scheduled_gate_room_matches(profile, GET_ROOM_VNUM(IN_ROOM(ch))))
+    return FALSE;
+  direction = rol_scheduled_gate_direction(ch);
+  if (direction < 0)
+    return TRUE;
+
+  state = rol_scheduled_gate_state_for_hour(time_info.hours);
+  if (state == ROL_SCHEDULED_GATE_OPEN && time_info.hours == 6)
+  {
+    do_say(ch, profile->open_speech[0], 0, 0);
+    do_say(ch, profile->open_speech[1], 0, 0);
+    act(profile->open_action, TRUE, ch, NULL, NULL, TO_ROOM);
+    if (!EXIT_FLAGGED(EXIT(ch, direction), EX_LOCKED))
+    {
+      if (EXIT_FLAGGED(EXIT(ch, direction), EX_CLOSED))
+      {
+        act(profile->opened_action, FALSE, ch, NULL, NULL, TO_ROOM);
+        do_gen_door(ch, gates, 0, SCMD_OPEN);
+      }
+      else
+        act(profile->already_open_action, FALSE, ch, NULL, NULL, TO_ROOM);
+    }
+    else
+    {
+      do_gen_door(ch, gates, 0, SCMD_UNLOCK);
+      if (EXIT_FLAGGED(EXIT(ch, direction), EX_LOCKED))
+      {
+        act(profile->unlock_failed_action[0], FALSE, ch, NULL, NULL, TO_ROOM);
+        act(profile->unlock_failed_action[1], FALSE, ch, NULL, NULL, TO_ROOM);
+        return TRUE;
+      }
+      do_gen_door(ch, gates, 0, SCMD_OPEN);
+    }
+    act("$n steps back to his post at the side of the road.", TRUE, ch, NULL, NULL, TO_ROOM);
+    return TRUE;
+  }
+  if (state == ROL_SCHEDULED_GATE_OPEN && (EXIT_FLAGGED(EXIT(ch, direction), EX_LOCKED) ||
+                                           EXIT_FLAGGED(EXIT(ch, direction), EX_CLOSED)))
+  {
+    if (EXIT_FLAGGED(EXIT(ch, direction), EX_LOCKED))
+      do_gen_door(ch, gates, 0, SCMD_UNLOCK);
+    if (EXIT_FLAGGED(EXIT(ch, direction), EX_CLOSED))
+      do_gen_door(ch, gates, 0, SCMD_OPEN);
+    rol_scheduled_gate_social(ch, "glare");
+    return TRUE;
+  }
+  if (state == ROL_SCHEDULED_GATE_CLOSE && (!EXIT_FLAGGED(EXIT(ch, direction), EX_LOCKED) ||
+                                            !EXIT_FLAGGED(EXIT(ch, direction), EX_CLOSED)))
+  {
+    if (!EXIT_FLAGGED(EXIT(ch, direction), EX_CLOSED))
+      do_gen_door(ch, gates, 0, SCMD_CLOSE);
+    if (!EXIT_FLAGGED(EXIT(ch, direction), EX_LOCKED))
+      do_gen_door(ch, gates, 0, SCMD_LOCK);
+    rol_scheduled_gate_social(ch, "peer");
+    return TRUE;
+  }
+  return FALSE;
+}
+
+static int rol_scheduled_lighthouse(struct char_data *ch)
+{
+  static bool active;
+  static int counter;
+  int message_index;
+
+  message_index = rol_scheduled_lighthouse_step(time_info.hours, GET_POS(ch) >= POS_STANDING,
+                                                &active, &counter);
+  if (message_index >= 0 &&
+      message_index < (int)(sizeof(rol_lighthouse_messages) / sizeof(rol_lighthouse_messages[0])))
+    act(rol_lighthouse_messages[message_index], FALSE, ch, NULL, NULL, TO_ROOM);
+  else if (message_index == 25)
+    act("$n stares long across ocean, looking for ships.", FALSE, ch, NULL, NULL, TO_ROOM);
+  return FALSE;
+}
+
+static void rol_scheduled_naval_stoneskin(struct char_data *ch)
+{
+  struct char_data *victim;
+
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = victim->next_in_room)
+  {
+    if (victim == ch || GET_LEVEL(victim) >= LVL_IMMORT || rand_number(0, 8) != 0 ||
+        !affected_by_spell(victim, SPELL_STONESKIN))
+      continue;
+    act("$n makes a powerful magical gesture.", TRUE, ch, NULL, NULL, TO_ROOM);
+    act("A bolt of pure energy streaks out from $s fingertips!", TRUE, ch, NULL, NULL, TO_ROOM);
+    if (savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), ABJURATION))
+    {
+      act("$n fails in the attempt to dispel $N's stone-skin spell!.", TRUE, ch, NULL, victim,
+          TO_NOTVICT);
+      act("$n fails in the attempt to dispel your stone-skin!", TRUE, ch, NULL, victim, TO_VICT);
+      continue;
+    }
+    affect_from_char(victim, SPELL_STONESKIN);
+    if (rand_number(0, 4) != 0)
+    {
+      act("Your skin starts to soften, then regains its hard form.", TRUE, ch, NULL, victim,
+          TO_VICT);
+      act("$N's skin starts to soften, then firms up again.", TRUE, ch, NULL, victim, TO_NOTVICT);
+      (void)call_magic(ch, victim, NULL, SPELL_STONESKIN, 0, 1, CAST_INNATE);
+    }
+    else
+    {
+      act("You feel your flesh soften and return to normal.", TRUE, ch, NULL, victim, TO_VICT);
+      act("$N's skin loses its stone-like apperance.", TRUE, ch, NULL, victim, TO_NOTVICT);
+    }
+  }
+}
+
+static int rol_scheduled_naval(struct char_data *ch)
+{
+  enum rol_scheduled_naval_branch branch;
+  int roll;
+
+  branch = rol_scheduled_naval_branch_for(GET_POS(ch) >= POS_STANDING, FIGHTING(ch) != NULL);
+  if (branch == ROL_SCHEDULED_NAVAL_IDLE)
+  {
+    roll = dice(2, 7);
+    switch (roll)
+    {
+    case 2:
+      do_say(ch, "What are you doing here?", 0, 0);
+      break;
+    case 3:
+      act("$n looks out the window, across the harbor.", TRUE, ch, NULL, NULL, TO_ROOM);
+      break;
+    case 4:
+      do_say(ch, "Do you have business here? I'm really quite busy.", 0, 0);
+      break;
+    case 5:
+      act("$n files some paperwork away.", TRUE, ch, NULL, NULL, TO_ROOM);
+      break;
+    case 6:
+      act("$n gives you a stern glance.", TRUE, ch, NULL, NULL, TO_ROOM);
+      break;
+    case 7:
+      act("$n goes over some paperwork.", TRUE, ch, NULL, NULL, TO_ROOM);
+      break;
+    default:
+      break;
+    }
+  }
+  else if (branch == ROL_SCHEDULED_NAVAL_FIGHTING)
+  {
+    roll = dice(1, 4);
+    if (roll == 1)
+      act("$n glares at you, putting more weight into $s swing.", TRUE, ch, NULL, NULL, TO_ROOM);
+    else if (roll == 2)
+      do_say(ch, "You have met your match, ignorant fool!", 0, 0);
+    else if (roll == 3)
+      act("$n dances and twists about, showing amazing grace in combat.", TRUE, ch, NULL, NULL,
+          TO_ROOM);
+    else
+      rol_scheduled_naval_stoneskin(ch);
+  }
+  return FALSE;
+}
+
+int rol_scheduled_mobile(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  const struct rol_scheduled_gate_profile *gate_profile;
+  struct char_data *speaker = me;
+
+  UNUSED(argument);
+
+  if (speaker == NULL && cmd == 0)
+    speaker = ch;
+  if (speaker == NULL || cmd != 0 || !IS_NPC(speaker) || !VALID_ROOM_RNUM(IN_ROOM(speaker)))
+    return FALSE;
+
+  gate_profile = rol_scheduled_gate_profile_for(GET_MOB_VNUM(speaker));
+  if (gate_profile != NULL)
+    return rol_scheduled_gate(speaker, gate_profile);
+  if (GET_MOB_VNUM(speaker) == 2005313)
+    return rol_scheduled_lighthouse(speaker);
+  if (GET_MOB_VNUM(speaker) == 2005311)
+    return rol_scheduled_naval(speaker);
+  return FALSE;
+}
+
 static const struct rol_waterdeep_bouncer_profile *
 rol_waterdeep_bouncer_profile_for(int mobile_vnum)
 {
