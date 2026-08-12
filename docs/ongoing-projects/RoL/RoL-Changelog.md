@@ -6,6 +6,64 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 scheduled-mobile batch
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Converted four scheduled-mobile handlers through one shared, builder-visible legacy `RoL
+  Scheduled Mobile` gateway. No storage schema changed.
+- Preserved the Waterdeep and Gloomhaven gate guards' distinct opening, repair, and closing
+  windows, gate-state correction, speeches, glare, and ambient tables. The inactive 19-21 hour
+  interval is retained because neither source handler performs a corrective transition there.
+- Preserved the lighthouse keeper's shared counter and the source hour-eight reset behavior,
+  including its repeated first line during that hour and its later staged announcements.
+- Preserved the naval combatant's source standing-before-fighting branch order and idle table.
+  Its reachable defensive helper maps to the source helper's actual stoneskin operation; the
+  post-loop disarm remains excluded because the source victim loop makes it unreachable.
+- Added converter dispositions, exact reconciliation expectations, required mobile activity bits,
+  registry coverage, public behavior helpers, and production-linked regressions.
+- Reconciliation now resolves 1,107 of 1,147 active direct bindings and 534 of 562 source handlers;
+  40 bindings and 28 handlers remain. The independent `ACT_SPEC` checkpoint resolves 827 records
+  and leaves 21 pending.
+- Archived the fifty-eighth Phase 6 delivery session. The remaining Phase 6 envelope remains 1-3
+  sessions, leaving the Phases 6-8 forecast at 49-79 sessions, or 98-316 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: c8704d86
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-scheduled-mobiles
+Reconciliation run: rol-phase6-special-c447dd6b4665cb7a
+Active direct bindings: 1,147
+Direct bindings resolved: 1,107
+Direct bindings pending: 40
+Source handlers resolved: 534
+Source handlers pending: 28
+Additional handler families resolved: 4
+Additional direct bindings resolved: 4
+Native adapted bindings: 649
+Native adapted composable bindings: 159
+Source-inert excluded bindings: 26
+Source-unsafe excluded bindings: 18
+ACT_SPEC records resolved: 827
+ACT_SPEC records pending: 21
+Special registry definitions: 109 total / 96 legacy / 13 typed
+Compatibility names: 110
+Complete world-tool suite: 314 passed
+Production-linked CuTest suite: 660 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 40 direct bindings across 28 source handlers. Continue
+grouping compatible irregular mechanics behind shared gateways, and preserve the full
+build/test/install gate at each substantial commit boundary.
+
 ## 2026-08-12 - Phase 6 utility-service batch
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
