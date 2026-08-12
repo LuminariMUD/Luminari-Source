@@ -228,8 +228,9 @@ random-hit, periodic, wielder-restriction, charge, extra-swing, damage, spell,
 and summon behavior. The hit gateway supplies exact damage, attack type, and
 critical state. Object 2095878 accepts SAY LABELAS for weekly group barkskin;
 the Halruaan staves accept their documented summon and corpse-preservation SAY
-phrases. This procedure is converter-owned and should not be assigned to
-unrelated objects.
+phrases, and Kor's lethal damage leaves converted severed-head object 2001058.
+This procedure is converter-owned and should not be assigned to unrelated
+objects.
 
 RoL Source Periodic is mobile-owned and requires MOB_SPEC. One hundred converted
 Bloodstone, Icecrag, Menden, Fun, Mobile, Realm, Lavatubes, Tower of Sorcery, and

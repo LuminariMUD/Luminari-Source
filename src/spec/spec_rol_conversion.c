@@ -50,6 +50,7 @@
 #define ROL_GITH_RECLAIMER_VNUM 2019790
 #define ROL_GITH_CHARGE_TIMER_SLOT 3
 #define ROL_HALRUAA_PRISMATIC_HELPER_VNUM 2053264
+#define ROL_KOR_SEVERED_HEAD_VNUM 2001058
 #define ROL_WEAPON_CALLED_COOLDOWN_HOURS 72
 
 enum rol_weapon_effect
@@ -6012,9 +6013,33 @@ static void rol_weapon_kor_update(struct char_data *ch, struct obj_data *obj,
     affect_total(ch);
 }
 
+static void rol_weapon_kor_make_head(struct char_data *ch, const char *victim_name)
+{
+  struct obj_data *head;
+  char short_description[MAX_INPUT_LENGTH];
+  char description[MAX_INPUT_LENGTH];
+
+  if (ch == NULL || victim_name == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return;
+  if ((head = read_object(ROL_KOR_SEVERED_HEAD_VNUM, VIRTUAL)) == NULL)
+  {
+    log("SYSERR: RoL Kor battleaxe cannot find severed-head object %d", ROL_KOR_SEVERED_HEAD_VNUM);
+    return;
+  }
+
+  snprintf(short_description, sizeof(short_description), "the severed head of %s", victim_name);
+  snprintf(description, sizeof(description), "The severed head of %s lies here.", victim_name);
+  head->short_description = strdup(short_description);
+  head->description = strdup(description);
+  obj_to_room(head, IN_ROOM(ch));
+}
+
 static int rol_weapon_kor(struct spec_event_context *context, struct char_data *ch,
                           struct obj_data *obj, struct char_data *victim, int slot)
 {
+  struct spec_damage_result result;
+  char victim_name[256];
+
   rol_weapon_kor_update(ch, obj, victim);
   if (context->critical)
   {
@@ -6033,9 +6058,12 @@ static int rol_weapon_kor(struct spec_event_context *context, struct char_data *
   }
   if (rand_number(0, 25) != 0)
     return context->critical ? TRUE : FALSE;
+  strlcpy(victim_name, GET_NAME(victim), sizeof(victim_name));
   act("Bellowing a war chant to Tempus, you drive your $p through $N!", FALSE, ch, obj, victim,
       TO_CHAR);
-  (void)rol_weapon_damage(ch, victim, dice(12, 10), DAM_SLASHING);
+  result = rol_weapon_damage(ch, victim, dice(12, 10), DAM_SLASHING);
+  if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED)
+    rol_weapon_kor_make_head(ch, victim_name);
   return TRUE;
 }
 

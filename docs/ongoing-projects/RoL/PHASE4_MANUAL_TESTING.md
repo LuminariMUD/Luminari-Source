@@ -901,7 +901,8 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - Fight a dragon and a non-dragon with Kor battleaxe 2001057. Its periodic modifiers must
   switch between +8 hit/+6 damage and +4 hit/+3 damage. Criticals add one nonrecursive
   reverse swing; the independent Tempus heal and 12d10 damage procs retain their source
-  cadence.
+  cadence. When that damage kills the target, converted head object 2001058 must appear
+  in the room with the victim's name.
 
 ### RoL object-property compatibility
 
@@ -968,8 +969,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 981 are resolved and 166 remain. Of 562 distinct
-  source handlers, 431 are resolved and 131 remain. Of 848 `ACT_SPEC` records, 783 are
+  of the 1,147 active direct bindings, 986 are resolved and 161 remain. Of 562 distinct
+  source handlers, 436 are resolved and 126 remain. Of 848 `ACT_SPEC` records, 783 are
   resolved and 65 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

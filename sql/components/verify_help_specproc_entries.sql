@@ -92,6 +92,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'exact damage, attack type, and critical') > 0
   AND INSTR(entry, 'SAY LABELAS') > 0
   AND INSTR(entry, 'corpse-preservation SAY') > 0
+  AND INSTR(entry, 'severed-head object 2001058') > 0
   AND INSTR(entry, 'RoL Source Periodic is mobile-owned') > 0
   AND INSTR(entry, '94 source') > 0
   AND INSTR(entry, 'Waterdeep guard 2003212 runs only while sleeping') > 0

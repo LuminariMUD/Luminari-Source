@@ -6,6 +6,70 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 multi-event weapon procedures
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed five active object bindings and source handlers: `halruaa_elemstaff`,
+  `halruaa_necrostaff`, `hive_gythka`, `holy_weapon`, and `kor_only_sword`.
+- Expanded the identity-profiled `RoL Weapon Proc` from 45 to 50 converted objects and
+  added its equipped object-pulse contract. The converter supplies `ITEM_AUTOPROC` to
+  every shared weapon binding so periodic profiles run through the typed gateway.
+- Preserved the elemental staff's elemental-only disruption, combat-only prismatic
+  helper summon, charm/follow/attack behavior, and three-day cooldown. Preserved the
+  necromancer staff's 100-point life drain, bounded 25-point heal, named room-corpse
+  preservation, and separate three-day cooldown.
+- Preserved the gythka's critical slow and paralysis progression, dragon and converted
+  demon/devil immunity, one-in-24 40d10 venom, and a target-native Fortitude half save.
+  Lethal effects use the typed damage invalidation contract.
+- Preserved holy-weapon alignment rejection, transfer to the most worthy good room
+  recipient, evil-wielder harm, ordinary good use, Paladin combat dispels and holy
+  strikes, and periodic stoneskin/armor/bless/heal progression.
+- Preserved Kor battleaxe dragon-scaled hit/damage modifiers, periodic modifier refresh,
+  nonrecursive critical reverse swing, non-good Tempus healing, 12d10 damage, and
+  converted severed-head object 2001058 on a lethal proc. The source's commented-out
+  player-name restriction remains disabled.
+- Reconciliation now resolves 986 of 1,147 active direct bindings and 436 of 562 source
+  handlers; 161 bindings and 126 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 783 resolved / 65 pending.
+- Archived the forty-seventh Phase 6 delivery session. The remaining Phase 6 envelope is
+  3-7 sessions, leaving the Phases 6-8 forecast at 51-83 sessions, or 102-332 focused
+  engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 457672d6
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-weapon-multievent
+Reconciliation run: rol-phase6-special-5850783628391c08
+Active direct bindings: 1,147
+Direct bindings resolved: 986
+Direct bindings pending: 161
+Source handlers resolved: 436
+Source handlers pending: 126
+Additional handler families resolved: 5
+Additional direct bindings resolved: 5
+Native adapted bindings: 540
+ACT_SPEC records resolved: 783
+ACT_SPEC records pending: 65
+Converted weapon profiles: 50
+Special registry definitions: 102 total / 95 legacy / 7 typed
+Compatibility names: 103
+Focused world-tool suite: 73 passed
+Complete world-tool suite: 302 passed
+Production-linked CuTest suite: 652 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 161 direct bindings across 126 source handlers.
+The next bulk batch keeps prioritizing strict generated shapes and shared mechanics.
+
 ## 2026-08-12 - Phase 6 expanded converted weapon procedures
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
