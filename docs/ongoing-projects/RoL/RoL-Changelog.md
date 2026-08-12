@@ -36,7 +36,7 @@ Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progre
 ### Acceptance evidence
 
 ```text
-Delivery commit: PENDING_DELIVERY_COMMIT
+Delivery commit: b0e924b8
 Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-exact-class-guilds
 Reconciliation run: rol-phase6-special-be53e38737ea4fc8
 Active direct bindings: 1,721
