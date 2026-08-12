@@ -50,6 +50,7 @@ Phase 6 shared combat/conjured-death commit: d447a10b
 Phase 6 home-reset compatibility commit: 2849e0a7
 Phase 6 magic-pool conversion commit: 4c084ea1
 Phase 6 auto-distributor conversion commit: ee096702
+Phase 6 source-preprocessor correction commit: 47d12583
 ```
 
 The authoritative ignored runs are:
@@ -114,6 +115,8 @@ Phase 6 magic pool: lib/rol-conversion/runs/phase6-special-20260812-magic-pool
                     rol-phase6-special-1b3f0ef7ec095814
 Phase 6 auto distributor: lib/rol-conversion/runs/phase6-special-20260812-auto-distributor
                           rol-phase6-special-053b6c0d19db7fdc
+Phase 6 source preprocessor: lib/rol-conversion/runs/phase6-special-20260812-preprocessor
+                             rol-phase6-special-bbb3db160a0636aa
 Policy:  rol-conversion-policy-1
 ```
 
@@ -144,8 +147,8 @@ Policy:  rol-conversion-policy-1
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
 - The world-tool suite passes 257 tests; the production-linked CuTest suite passes 620;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Ten bounded Phase 6 delivery sessions are archived. The measured remaining forecast
-  is 86-146 sessions: Phase 6 is 38-70, Phase 7 is 42-66, and Phase 8 is 6-10.
+- Eleven bounded Phase 6 delivery sessions are archived. The measured remaining
+  forecast is 85-145 sessions: Phase 6 is 37-69, Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -221,14 +224,18 @@ Policy:  rol-conversion-policy-1
   `RoL Auto Distributor` procedure. Mortal commands move the actor to a random loaded
   room in the same zone, staff are exempt, and the source's inert periodic callbacks
   are not reproduced as unnecessary scheduling work.
-- The current Phase 6 checkpoint resolves 382 of 1,234 direct bindings and 56 of 605
-  source handlers, leaving 852 bindings and 549 handlers. The independent `ACT_SPEC`
-  cross-check resolves 500 of 848 records and leaves 348 pending.
+- The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
+  the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
+  handlers; a separate ledger preserves every exclusion, and none affected the current
+  five-package staged pilot.
+- The current Phase 6 checkpoint resolves 377 of 1,147 active direct bindings and 56 of
+  562 source handlers, leaving 770 bindings and 506 handlers. The independent
+  `ACT_SPEC` cross-check resolves 517 of 848 records and leaves 331 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 852 direct bindings by shared behavior family and
+1. Reconcile the remaining 770 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7

@@ -5,6 +5,57 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 source-preprocessor binding correction
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Corrected the Phase 6 denominator by running the source assignment table through the
+  C preprocessor with RoL's checked-in configuration. Of 1,234 discovered candidates,
+  87 are compiled out; the active inventory is 1,147 direct bindings across 562 source
+  handlers.
+- Added a separate immutable ledger for every preprocessor exclusion. It accounts for
+  disabled jail and witness systems, `#if 0` item switches and experiments, inactive
+  alternate branches, and five bindings previously counted as resolved.
+- Updated Phase 1 discovery to apply the same preprocessor gate on future runs. This
+  prevents disabled assignments from entering pilot selection or later corpus builds;
+  all 91 bindings in the existing five-package pilot were independently confirmed
+  active, so its staged output is unchanged.
+- Recomputed composition and `ACT_SPEC` evidence from active assignments only. The
+  direct ledger is 377 resolved / 770 pending, automatic-race composition is 22 beside
+  direct procedures / 225 implicit-only, and `ACT_SPEC` is 517 resolved / 331 pending.
+- Archived the eleventh bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 37-69 Phase 6 sessions and 85-145 total sessions
+  for Phases 6-8, or 170-580 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 47d12583
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-preprocessor
+Reconciliation run: rol-phase6-special-bbb3db160a0636aa
+Discovered direct-binding candidates: 1,234
+Source-preprocessor exclusions: 87
+Active direct bindings: 1,147
+Direct bindings resolved: 377
+Direct bindings pending: 770
+Source handlers resolved: 56
+Source handlers pending: 506
+Automatic-race bindings resolved: 247
+ACT_SPEC records resolved: 517
+ACT_SPEC records pending: 331
+Complete world-tool suite: 261 passed
+Production-linked CuTest suite: 623 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Existing pilot inactive bindings: 0 of 91
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 770 direct bindings across 506 source handlers.
+
 ## 2026-08-12 - Phase 6 auto-distributor room procedure
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
