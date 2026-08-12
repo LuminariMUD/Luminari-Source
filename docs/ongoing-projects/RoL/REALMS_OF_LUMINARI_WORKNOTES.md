@@ -71,6 +71,7 @@ Phase 6 batched combat/death commit: 03111649
 Phase 6 Waterdeep-ambient commit: 27bad343
 Phase 6 expanded-Waterdeep-ambient commit: 30132767
 Phase 6 generated source-periodic commit: c16e0fe9
+Phase 6 generated state-periodic commit: a67c1bfa
 ```
 
 The authoritative ignored runs are:
@@ -177,6 +178,8 @@ Phase 6 expanded Waterdeep ambient: lib/rol-conversion/runs/phase6-special-20260
                                     rol-phase6-special-af17e0481a21298e
 Phase 6 generated source periodic: lib/rol-conversion/runs/phase6-special-20260812-source-periodic
                                    rol-phase6-special-5d67954ff0a9adbc
+Phase 6 generated state periodic: lib/rol-conversion/runs/phase6-special-20260812-state-periodic
+                                  rol-phase6-special-cb19c31118c1ce47
 Policy:  rol-conversion-policy-1
 ```
 
@@ -205,13 +208,12 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 286 tests; the production-linked CuTest suite passes 642;
+- The world-tool suite passes 290 tests; the production-linked CuTest suite passes 643;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Thirty-one bounded Phase 6 delivery sessions are archived. The generated regular-profile
-  checkpoint closed 82 source families in one workstream; the more varied remainder is
-  forecast at 20-45 related families per batch where a shared shape exists. The measured
-  remaining forecast is 55-92 sessions: Phase 6 is 7-16, Phase 7 is 42-66, and Phase 8
-  is 6-10.
+- Thirty-two bounded Phase 6 delivery sessions are archived. The generated regular-profile
+  checkpoints support a forward target of 20-45 related families per batch where a shared
+  shape exists. The measured remaining forecast is 55-90 sessions: Phase 6 is 7-14,
+  Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -370,18 +372,24 @@ Policy:  rol-conversion-policy-1
   active bindings through `RoL Source Periodic`. Its 86 converted mobile profiles retain
   327 random outcomes and 561 ordered speech or room actions from Bloodstone, Icecrag,
   and Menden source files. Sorted generated tables support binary runtime lookup.
+- A second strict, source-hashed generator closes 26 state-aware Waterdeep handler
+  families and direct bindings through `RoL Stateful Periodic`. Its 26 converted mobile
+  profiles retain 206 idle/fighting outcomes and 210 ordered speech or room actions.
+  Combat selects the explicitly authored fighting table before the target standing-state
+  gate. `rogue_one` is separately excluded because its only registered event always
+  triggers its source early return.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 776 of 1,147 active direct bindings and 256 of
-  562 source handlers, leaving 371 bindings and 306 handlers. The independent
-  `ACT_SPEC` cross-check resolves 703 of 848 records and leaves 145 pending.
+- The current Phase 6 checkpoint resolves 803 of 1,147 active direct bindings and 283 of
+  562 source handlers, leaving 344 bindings and 279 handlers. The independent
+  `ACT_SPEC` cross-check resolves 730 of 848 records and leaves 118 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 371 direct bindings across 306 handlers. Classify regular
+1. Reconcile the remaining 344 direct bindings across 279 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7

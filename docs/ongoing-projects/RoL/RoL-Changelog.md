@@ -6,6 +6,73 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 generated state-aware Waterdeep profiles
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed 26 state-aware Waterdeep source handler families and direct bindings in one
+  bulk-generated workstream through the persistent, mobile-owned
+  `RoL Stateful Periodic` procedure.
+- Added an explicit source manifest and strict generator for idle and fighting tables in
+  `specs.waterdeep.c`. The checked-in table carries a digest of its assessed source inputs,
+  and sorted mobile and outcome tables support binary runtime lookup.
+- Preserved 206 source random outcomes and 210 ordered speech or room-visible actions,
+  including per-state dice distributions, fall-through, action order, source text, and
+  visibility settings.
+- Repaired an obvious source branch-ordering defect: while a converted mobile is fighting,
+  the explicitly authored fighting table is selected before the target standing-position
+  gate. Idle tables still require an awake, standing mobile. Guildmaster 2003020 remains
+  quiet in combat because it has no authored fighting table.
+- Classified `rogue_one` as source-inert rather than inventing behavior: it registered only
+  for `NPC_HIT`, whose supplied victim caused its immediate source return. Mixed-mechanics
+  guards and the independently rolled `casino_four` callback remain pending for faithful
+  treatment.
+- Extended conversion persistence, the builder registry, both build manifests, builder and
+  database help, manual testing, focused generator checks, converter fixtures, and
+  production-linked characterization tests.
+- Reconciliation now resolves 803 of 1,147 active direct bindings and 283 of 562 source
+  handlers; 344 bindings and 279 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 730 resolved / 118 pending.
+- Archived the thirty-second Phase 6 delivery session. At the forward bulk target of 20-45
+  related families, the 279 remaining handlers give a 7-14 session Phase 6 envelope and a
+  55-90 session forecast for Phases 6-8, or 110-360 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: a67c1bfa
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-state-periodic
+Reconciliation run: rol-phase6-special-cb19c31118c1ce47
+Active direct bindings: 1,147
+Direct bindings resolved: 803
+Direct bindings pending: 344
+Source handlers resolved: 283
+Source handlers pending: 279
+Selected generated handler families resolved: 26
+Selected source-inert handler families resolved: 1
+Generated outcomes: 206
+Generated room-visible actions: 210
+Native adapted bindings: 409
+Native adapted composable bindings: 131
+ACT_SPEC records resolved: 730
+ACT_SPEC records pending: 118
+Complete world-tool suite: 290 passed
+Focused conversion/generator suite: 66 passed
+Production-linked CuTest suite: 643 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Clean Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 344 direct bindings across 279 source handlers.
+Regular shapes will continue through bulk classification and generation; irregular
+mechanics remain dependency-complete shared-runtime workstreams with full gates only at
+substantial checkpoints.
+
 ## 2026-08-12 - Phase 6 generated source-periodic profiles
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
