@@ -5543,6 +5543,13 @@
           "macro": "ZONE_RANDOM_ENCOUNTERS",
           "name": "Random-Encounters",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 18,
+          "macro": "ZONE_ROL_RESET_COMPAT",
+          "name": "RoL-Reset-Compat",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,

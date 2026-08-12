@@ -112,6 +112,12 @@ usual "no flags" value.
 | 15 | Hunts-Can-Load |
 | 16 | Missions-Can-Load |
 | 17 | Random-Encounters |
+| 18 | RoL-Reset-Compat |
+
+`RoL-Reset-Compat` is written by the Realms of Luminari converter. In those
+zones, `E` and `G` resets bind to the most recent successful `M` reset, matching
+the source world's equipment-chain behavior. Other zones continue to use the
+normal result-queue dependency rules.
 
 ## Reset Commands
 

@@ -330,8 +330,9 @@
 #define ZONE_HUNTS 15             // zone can allow hunts to load within
 #define ZONE_MISSIONS 16          // zone can allow missions to load within
 #define ZONE_RANDOM_ENCOUNTERS 17 // zone can allow random encounters to load within
+#define ZONE_ROL_RESET_COMPAT 18  // zone uses Realms of Luminari reset dependency semantics
 /** The total number of Zone Flags */
-#define NUM_ZONE_FLAGS 18
+#define NUM_ZONE_FLAGS 19
 
 /* Goto Zones: Used by the goto command to quickly go to specific zones on the worldmap */
 #define NUM_GOTO_ZONES 10

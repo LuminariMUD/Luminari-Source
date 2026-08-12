@@ -5065,6 +5065,14 @@ bitvector_t rol_reset_legacy_door_flags(bitvector_t flags, int state)
   return flags;
 }
 
+bool rol_reset_command_ready(bool source_compat, char command, bool dependency_result,
+                             bool last_mob_load)
+{
+  if (source_compat && (command == 'E' || command == 'G'))
+    return last_mob_load;
+  return dependency_result;
+}
+
 static bool rol_reset_calendar_matches(int hour, int day, int weekday, int month)
 {
   return rol_reset_calendar_matches_at(hour, day, weekday, month, time_info.hours, time_info.day,
@@ -5251,7 +5259,8 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
 void reset_zone(zone_rnum zone)
 {
   int cmd_no = 0, jump = 0, total_rooms = 0, num_chests = 0, max_chests = 0;
-  bool has_random_chests = false, has_random_traps = false;
+  bool has_random_chests = false, has_random_traps = false, rol_last_mob_load = false;
+  bool rol_reset_compat = ZONE_FLAGGED(zone, ZONE_ROL_RESET_COMPAT);
   struct char_data *mob = NULL;
   struct obj_data *obj = NULL, *obj_to = NULL;
   room_vnum rvnum = 0;
@@ -5274,6 +5283,8 @@ void reset_zone(zone_rnum zone)
 
   for (cmd_no = 0; ZCMD.command != 'S'; cmd_no++)
   {
+    bool dependency_result = true;
+
     if (jump > 0)
     {
       jump--;
@@ -5281,9 +5292,15 @@ void reset_zone(zone_rnum zone)
       continue;
     }
 
-    /* checking our if_flag if we need to jump around */
-    if (ZCMD.command != 'F' && !test_result(ZCMD.if_flag, zone, cmd_no))
+    /* RoL E/G commands ignore if-flags and use the latest M result instead. */
+    if (ZCMD.command != 'F' && (!rol_reset_compat || (ZCMD.command != 'E' && ZCMD.command != 'G')))
+      dependency_result = test_result(ZCMD.if_flag, zone, cmd_no);
+
+    if (!rol_reset_command_ready(rol_reset_compat, ZCMD.command, dependency_result,
+                                 rol_last_mob_load))
     {
+      if (rol_reset_compat && ZCMD.command != 'E' && ZCMD.command != 'G')
+        rol_last_mob_load = false;
       push_result(0);
       continue;
     }
@@ -5327,11 +5344,13 @@ void reset_zone(zone_rnum zone)
         GET_MOB_LOADROOM(mob) = IN_ROOM(mob);
 
         push_result(1);
+        rol_last_mob_load = true;
       }
       else
       {
         push_result(0);
         mob = NULL; /* Clear mob pointer when load fails */
+        rol_last_mob_load = false;
       }
       tobj = NULL;
       break;

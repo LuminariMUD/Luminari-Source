@@ -1629,6 +1629,15 @@ def _emit_reset(
   line = int(directive["line"])
   diagnostics: list[str] = []
 
+  if command != "F" and arguments:
+    source_dependency = arguments[0]
+    arguments[0] = 1 if source_dependency else 0
+    if source_dependency not in {0, 1}:
+      diagnostics.append(
+          f"normalized source boolean dependency {source_dependency} to "
+          f"{arguments[0]} at source line {line}"
+      )
+
   try:
     if command in {"M", "O", "P", "E"}:
       if len(arguments) < 4:
@@ -1752,20 +1761,19 @@ def emit_zone(
         f"source reset mode {source_reset_mode} mapped to target occupied-zone mode 1"
     )
   source_flags = int(header[3])
-  target_flags = {5} if source_flags & (16 | 64 | 128) else set()
+  target_flags = {18}
+  if source_flags & (16 | 64 | 128):
+    target_flags.add(5)
   if source_flags & ~(16 | 64 | 128):
     diagnostics.append(
         f"source zone flags without target zone equivalents: {source_flags & ~(16 | 64 | 128)}"
     )
 
   lines = [f"#{destination_vnum}\n", "RoL conversion~\n", f"{name}~\n"]
-  if target_flags:
-    lines.append(
-        f"{destination_bottom} {destination_top} {lifespan} {reset_mode} "
-        f"{_encoded(target_flags)} -1 -1 1 0 0 0\n"
-    )
-  else:
-    lines.append(f"{destination_bottom} {destination_top} {lifespan} {reset_mode}\n")
+  lines.append(
+      f"{destination_bottom} {destination_top} {lifespan} {reset_mode} "
+      f"{_encoded(target_flags)} -1 -1 1 0 0 0\n"
+  )
 
   current_mobile = False
   for directive in record.directives:

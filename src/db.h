@@ -396,6 +396,8 @@ void reset_zone(zone_rnum zone);
 bool rol_reset_calendar_matches_at(int hour, int day, int weekday, int month, int current_hour,
                                    int current_day, int current_month);
 bitvector_t rol_reset_legacy_door_flags(bitvector_t flags, int state);
+bool rol_reset_command_ready(bool source_compat, char command, bool dependency_result,
+                             bool last_mob_load);
 void reboot_wizlists(void);
 void boot_world(void);
 int count_hash_records(FILE *fl);

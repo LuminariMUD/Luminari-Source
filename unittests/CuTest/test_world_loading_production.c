@@ -136,6 +136,18 @@ void Test_world_loading_production_rol_legacy_door_flags(CuTest *tc)
   CuAssertTrue(tc, !IS_SET(flags, EX_HIDDEN));
 }
 
+void Test_world_loading_production_rol_reset_mobile_chain(CuTest *tc)
+{
+  CuAssertTrue(tc, rol_reset_command_ready(true, 'E', false, true));
+  CuAssertTrue(tc, rol_reset_command_ready(true, 'G', false, true));
+  CuAssertTrue(tc, !rol_reset_command_ready(true, 'E', true, false));
+  CuAssertTrue(tc, !rol_reset_command_ready(true, 'G', true, false));
+  CuAssertTrue(tc, rol_reset_command_ready(false, 'E', true, false));
+  CuAssertTrue(tc, !rol_reset_command_ready(false, 'E', false, true));
+  CuAssertTrue(tc, rol_reset_command_ready(true, 'O', true, false));
+  CuAssertTrue(tc, !rol_reset_command_ready(true, 'O', false, true));
+}
+
 void Test_world_loading_production_room_level_entry_contract(CuTest *tc)
 {
   struct room_data fixture[1];

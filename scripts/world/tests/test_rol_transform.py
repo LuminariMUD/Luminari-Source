@@ -413,7 +413,28 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(35, result.records[0].commands[2].probability)
     self.assertEqual(2, result.records[0].commands[3].dependency)
     self.assertEqual(25, result.records[0].commands[6].probability)
+    self.assertIn(18, decode_tokens(result.records[0].flags).bits)
     self.assertIn("unsupported equipment position 24", " ".join(emitted.diagnostics))
+
+  def test_emitted_zone_normalizes_source_boolean_dependencies(self) -> None:
+    source = self._source_record(
+        "zon",
+        b"#100\nfile~\nPilot~\n199 30 2 0\n"
+        b"0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n"
+        b"M 0 300 1 100\nG 2 200 1\nE -4 200 1 1\nS\n",
+    )
+    emitted = emit_zone(source, 20_100, 2_000_100, _resolver)
+    temporary = tempfile.TemporaryDirectory()
+    self.addCleanup(temporary.cleanup)
+    path = Path(temporary.name) / "20100.zon"
+    path.write_text(emitted.text, encoding="ascii", newline="\n")
+    result = parse_zone_file(path, "zon/20100.zon", self.manifest, 6)
+
+    self.assertTrue(result.complete)
+    self.assertEqual([0, 1, 1], [command.dependency for command in result.records[0].commands])
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertIn("normalized source boolean dependency 2 to 1", diagnostics)
+    self.assertIn("normalized source boolean dependency -4 to 1", diagnostics)
 
   def test_emitted_shop_maps_products_prices_hours_and_roaming(self) -> None:
     source = self._source_record(

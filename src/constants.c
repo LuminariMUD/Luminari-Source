@@ -947,6 +947,7 @@ const char *zone_bits[] = {"Closed",
                            "Hunts-Can-Load",
                            "Missions-Can-Load",
                            "Random-Encounters",
+                           "RoL-Reset-Compat",
                            "\n"};
 CHECK_TABLE_SIZE(zone_bits, NUM_ZONE_FLAGS + 1);
 
