@@ -6094,6 +6094,9 @@ struct obj_data
   /* Trap system - trap attached to this object (container/door) */
   struct trap_data *trap; // Trap on this object
 
+  /* Non-persistent Realms of Luminari runtime state. */
+  time_t rol_loot_sweep_at; /* Next corpse-protection sweep. */
+
   /* Hash table support for fast rnum lookups */
   struct obj_data *next_in_hash; // Next object in hash bucket
   struct obj_data *prev_in_hash; // Previous object in hash bucket

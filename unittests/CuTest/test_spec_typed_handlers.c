@@ -167,6 +167,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   const struct spec_definition *weapon_definition;
   const struct spec_definition *monster_combat_definition;
   const struct spec_definition *utility_object_definition;
+  const struct spec_definition *utility_room_definition;
   struct spec_binding *binding;
   char error[256];
 
@@ -179,6 +180,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   weapon_definition = spec_registry_find_by_name("RoL Weapon Proc");
   monster_combat_definition = spec_registry_find_by_name("RoL Monster Combat");
   utility_object_definition = spec_registry_find_by_name("RoL Utility Object");
+  utility_room_definition = spec_registry_find_by_name("RoL Utility Room");
   CuAssertPtrNotNull(tc, bank_definition);
   CuAssertPtrNotNull(tc, cloak_definition);
   CuAssertPtrNotNull(tc, guild_guard_definition);
@@ -188,13 +190,14 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   CuAssertPtrNotNull(tc, weapon_definition);
   CuAssertPtrNotNull(tc, monster_combat_definition);
   CuAssertPtrNotNull(tc, utility_object_definition);
+  CuAssertPtrNotNull(tc, utility_room_definition);
   if (bank_definition == NULL || cloak_definition == NULL || guild_guard_definition == NULL ||
       command_sentinel_definition == NULL || toll_keeper_definition == NULL ||
       banana_definition == NULL || weapon_definition == NULL || monster_combat_definition == NULL ||
-      utility_object_definition == NULL)
+      utility_object_definition == NULL || utility_room_definition == NULL)
     return;
 
-  CuAssertIntEquals(tc, 12, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 13, (int)spec_registry_typed_count());
   CuAssertIntEquals(tc, 95, (int)spec_registry_legacy_count());
   CuAssertPtrEquals(tc, NULL, (void *)bank_definition->legacy_handler);
   CuAssertPtrEquals(tc, NULL, (void *)cloak_definition->legacy_handler);
@@ -207,6 +210,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   CuAssertPtrNotNull(tc, (void *)weapon_definition->typed_handler);
   CuAssertPtrNotNull(tc, (void *)monster_combat_definition->typed_handler);
   CuAssertPtrNotNull(tc, (void *)utility_object_definition->typed_handler);
+  CuAssertPtrNotNull(tc, (void *)utility_room_definition->typed_handler);
   CuAssertTrue(tc, spec_definition_callback(bank_definition) == bank);
   CuAssertTrue(tc, spec_definition_callback(cloak_definition) == vampire_cloak);
   CuAssertTrue(tc, spec_definition_callback(guild_guard_definition) == rol_guild_guard);
@@ -216,10 +220,12 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   CuAssertTrue(tc, spec_definition_callback(weapon_definition) == rol_weapon_proc);
   CuAssertTrue(tc, spec_definition_callback(monster_combat_definition) == rol_monster_combat);
   CuAssertTrue(tc, spec_definition_callback(utility_object_definition) == rol_utility_object);
+  CuAssertTrue(tc, spec_definition_callback(utility_room_definition) == rol_utility_room);
   CuAssertTrue(tc, spec_registry_find_by_handler(bank) == bank_definition);
   CuAssertTrue(tc, spec_registry_find_by_handler(vampire_cloak) == cloak_definition);
   CuAssertTrue(tc, spec_registry_find_by_handler(rol_guild_guard) == guild_guard_definition);
   CuAssertTrue(tc, spec_registry_find_by_handler(rol_utility_object) == utility_object_definition);
+  CuAssertTrue(tc, spec_registry_find_by_handler(rol_utility_room) == utility_room_definition);
   CuAssertTrue(tc,
                spec_registry_find_by_handler(rol_command_sentinel) == command_sentinel_definition);
   CuAssertStrEquals(tc, "Bank", get_spec_func_name(bank));

@@ -1556,10 +1556,24 @@ static const struct spec_definition spec_definitions[] = {
         .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "RoL Conversion",
-        .description = "Runs converted goodberry, altar-child, figurine, captive-child, and "
-                       "ruby-monocle behavior by exact object identity.",
+        .description = "Runs converted utility-object services by exact object identity, "
+                       "including disease reservoirs and protected loot.",
         .typed_adapter = rol_utility_object,
         .typed_handler = rol_utility_object_typed,
+    },
+    {
+        .canonical_name = "RoL Utility Room",
+        .display_name = "RoL Utility Room",
+        .owner_mask = SPEC_OWNER_ROOM,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Runs converted newbie routing and room-weight threshold behavior by "
+                       "exact room identity.",
+        .typed_adapter = rol_utility_room,
+        .typed_handler = rol_utility_room_typed,
     },
 };
 
@@ -1672,6 +1686,7 @@ enum
   SPEC_DEFINITION_ROL_LAVATUBES_OBJECT,
   SPEC_DEFINITION_ROL_LAVATUBES_ROOM,
   SPEC_DEFINITION_ROL_UTILITY_OBJECT,
+  SPEC_DEFINITION_ROL_UTILITY_ROOM,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -1793,6 +1808,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_LAVATUBES_OBJECT, -1},
     {SPEC_DEFINITION_ROL_LAVATUBES_ROOM, -1},
     {SPEC_DEFINITION_ROL_UTILITY_OBJECT, -1},
+    {SPEC_DEFINITION_ROL_UTILITY_ROOM, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,

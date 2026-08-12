@@ -15,6 +15,10 @@ struct spec_event_context;
 int rol_utility_object(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_utility_object_typed(struct spec_event_context *context);
 
+bool rol_utility_loot_blockable_container(const struct obj_data *obj);
+bool rol_utility_plague_eligible(struct char_data *ch, const struct obj_data *obj);
+int rol_utility_loot_sweep_interval_seconds(void);
+
 bool rol_utility_sacrifice_keyword(const char *argument);
 bool rol_utility_sacrifice_command_name(const char *command);
 const char *rol_utility_necro_child_message(int roll);

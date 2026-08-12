@@ -1469,6 +1469,45 @@ void Test_spec_rol_utility_object_profiles_preserve_source_boundaries(CuTest *tc
   CuAssertTrue(tc, !rol_utility_called_profile(9999999, NULL, NULL, NULL));
 }
 
+void Test_spec_rol_utility_service_batch_preserves_source_boundaries(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct obj_data container;
+
+  memset(&container, 0, sizeof(container));
+  GET_OBJ_TYPE(&container) = ITEM_CONTAINER;
+  CuAssertTrue(tc, rol_utility_loot_blockable_container(&container));
+  GET_OBJ_VAL(&container, 3) = 1;
+  GET_OBJ_VAL(&container, 4) = 0;
+  CuAssertTrue(tc, rol_utility_loot_blockable_container(&container));
+  GET_OBJ_VAL(&container, 4) = 42;
+  CuAssertTrue(tc, !rol_utility_loot_blockable_container(&container));
+  CuAssertTrue(tc, !rol_utility_loot_blockable_container(NULL));
+  CuAssertIntEquals(tc, 120, rol_utility_loot_sweep_interval_seconds());
+
+  CuAssertIntEquals(tc, 2023000, rol_utility_newbie_east_destination_vnum(RACE_HUMAN));
+  CuAssertIntEquals(tc, 2023399, rol_utility_newbie_east_destination_vnum(RACE_DROW));
+  CuAssertIntEquals(tc, 0, rol_utility_weight_transition(false, 4999));
+  CuAssertIntEquals(tc, 1, rol_utility_weight_transition(false, 5000));
+  CuAssertIntEquals(tc, 0, rol_utility_weight_transition(true, 5000));
+  CuAssertIntEquals(tc, -1, rol_utility_weight_transition(true, 4999));
+
+  spec_mechanics_begin(&fixture);
+  fixture.rooms[0].number = 2003001;
+  IN_ROOM(&fixture.worn) = 0;
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  GET_LEVEL(&fixture.actor) = 14;
+  CuAssertTrue(tc, !rol_utility_plague_eligible(&fixture.actor, &fixture.worn));
+  GET_LEVEL(&fixture.actor) = 15;
+  CuAssertTrue(tc, rol_utility_plague_eligible(&fixture.actor, &fixture.worn));
+  SET_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_DISEASE);
+  CuAssertTrue(tc, !rol_utility_plague_eligible(&fixture.actor, &fixture.worn));
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_DISEASE);
+  IN_ROOM(&fixture.worn) = 1;
+  CuAssertTrue(tc, !rol_utility_plague_eligible(&fixture.actor, &fixture.worn));
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_utility_magius_staff_toggles_light(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

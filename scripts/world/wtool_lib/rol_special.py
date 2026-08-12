@@ -129,6 +129,10 @@ ADAPTED_HANDLER_NAMES = {
     "llyms_altar": "RoL Utility Object",
     "smoke_stun_shield": "RoL Utility Object",
     "tiamat_crescent_moon": "RoL Utility Object",
+    "blackPlagueReservoir": "RoL Utility Object",
+    "item_loot_block": "RoL Utility Object",
+    "newbieLoadRoom": "RoL Utility Room",
+    "weight_trigger": "RoL Utility Room",
     "hellish_fury_bow": "RoL Weapon Proc",
     "baker_one": "RoL Waterdeep Ambient",
     "baker_two": "RoL Waterdeep Ambient",
@@ -1225,7 +1229,13 @@ def compile_special_bindings(
           "undead_wraith",
       }:
         required_bits = (0,)
-      elif handler in {"floating_pool", "fw_ruby_monocle", "obj_drain", "thp_necroChild"} or (
+      elif handler in {
+          "floating_pool",
+          "fw_ruby_monocle",
+          "item_loot_block",
+          "obj_drain",
+          "thp_necroChild",
+      } or (
           persisted_name == "RoL Weapon Proc"
       ):
         required_bits = (44,)

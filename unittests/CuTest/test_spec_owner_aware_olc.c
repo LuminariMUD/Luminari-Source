@@ -141,6 +141,7 @@ static const char *const spec_room_names[] = {
     "RoL Ship Exit",
     "RoL Ship Lookout",
     "RoL Lavatubes Room",
+    "RoL Utility Room",
 };
 
 static const struct spec_owner_expected_view spec_expected_views[] = {

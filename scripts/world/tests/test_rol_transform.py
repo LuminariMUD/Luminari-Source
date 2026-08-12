@@ -1908,6 +1908,8 @@ class RolTransformTests(unittest.TestCase):
         (19988, "tiamat_crescent_moon", (), ()),
         (57003, "smoke_stun_shield", (), ()),
         (88830, "llyms_altar", (), ()),
+        (897, "item_loot_block", (44,), ()),
+        (3088, "blackPlagueReservoir", (), ()),
     ]
     bindings = [
         {
@@ -1933,6 +1935,33 @@ class RolTransformTests(unittest.TestCase):
       self.assertEqual("RoL Utility Object", binding.persisted_name)
       self.assertEqual(expected_flags, binding.required_flag_bits)
       self.assertEqual(expected_slots, binding.value_reference_slots)
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
+  def test_utility_room_batch_persists_shared_typed_adapter(self) -> None:
+    handlers = [(101, "newbieLoadRoom"), (51400, "weight_trigger")]
+    bindings = [
+        {
+            "basename": "utility-rooms",
+            "record_type": "room",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in handlers
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(2, len(compiled.native_bindings))
+    for binding in compiled.native_bindings:
+      self.assertEqual("RoL Utility Room", binding.persisted_name)
+      self.assertEqual((), binding.required_flag_bits)
     self.assertTrue(
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
     )

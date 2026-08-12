@@ -52,6 +52,11 @@
 #define ROL_HALRUAA_PRISMATIC_HELPER_VNUM 2053264
 #define ROL_KOR_SEVERED_HEAD_VNUM 2001058
 #define ROL_WEAPON_CALLED_COOLDOWN_HOURS 72
+#define ROL_NEWBIE_LOAD_ROOM_VNUM 2000101
+#define ROL_NEWBIE_GOOD_DESTINATION_VNUM 2023000
+#define ROL_NEWBIE_EVIL_DESTINATION_VNUM 2023399
+#define ROL_WEIGHT_TRIGGER_ROOM_VNUM 2051400
+#define ROL_WEIGHT_TRIGGER_THRESHOLD 5000ULL
 
 enum rol_weapon_effect
 {
@@ -7067,6 +7072,154 @@ int rol_weapon_proc_typed(struct spec_event_context *context)
 
   victim = context->target;
   return rol_weapon_hit(context, profile, ch, obj, victim, slot);
+}
+
+int rol_utility_newbie_east_destination_vnum(int race)
+{
+  return rol_race_is_evil(race) ? ROL_NEWBIE_EVIL_DESTINATION_VNUM
+                                : ROL_NEWBIE_GOOD_DESTINATION_VNUM;
+}
+
+int rol_utility_weight_transition(bool triggered, unsigned long long weight)
+{
+  if (!triggered && weight >= ROL_WEIGHT_TRIGGER_THRESHOLD)
+    return 1;
+  if (triggered && weight < ROL_WEIGHT_TRIGGER_THRESHOLD)
+    return -1;
+  return 0;
+}
+
+static bool rol_utility_room_command_is(int cmd, const char *name)
+{
+  return cmd > 0 && name != NULL && complete_cmd_info != NULL &&
+         complete_cmd_info[cmd].command != NULL && !strcmp(complete_cmd_info[cmd].command, name);
+}
+
+static int rol_utility_newbie_room(struct char_data *ch, struct room_data *room, int cmd)
+{
+  room_rnum destination;
+  int destination_vnum;
+
+  if (ch == NULL || room == NULL || room->number != ROL_NEWBIE_LOAD_ROOM_VNUM ||
+      !VALID_ROOM_RNUM(IN_ROOM(ch)) || IN_ROOM(ch) != real_room(room->number) ||
+      (!rol_utility_room_command_is(cmd, "east") && !rol_utility_room_command_is(cmd, "enter")))
+    return FALSE;
+
+  if (rol_utility_room_command_is(cmd, "enter"))
+  {
+    destination_vnum = !IS_NPC(ch) ? GET_LOADROOM(ch) : NOWHERE;
+    destination = destination_vnum > 0 ? real_room(destination_vnum) : r_mortal_start_room;
+    if (!VALID_ROOM_RNUM(destination))
+    {
+      send_to_char(ch, "Bug! Newbie room destination is invalid - tell an admin!\r\n");
+      log("SYSERR: rol_utility_newbie_room(): invalid native load-room destination");
+      return TRUE;
+    }
+
+    act("$n slowly fades away.", TRUE, ch, NULL, NULL, TO_ROOM);
+    send_to_char(ch, "The world goes dark.  When you can see again, you are in your guild.\r\n");
+    char_from_room(ch);
+    char_to_room(ch, destination);
+    act("$n slowly fades into view.", TRUE, ch, NULL, NULL, TO_ROOM);
+    return TRUE;
+  }
+
+  destination_vnum = rol_utility_newbie_east_destination_vnum(GET_RACE(ch));
+  destination = real_room(destination_vnum);
+  if (!VALID_ROOM_RNUM(destination))
+  {
+    send_to_char(ch, "Bug! Newbie room east destination is invalid. Tell someone.\r\n");
+    log("SYSERR: rol_utility_newbie_room(): invalid east destination %d", destination_vnum);
+    return TRUE;
+  }
+
+  act("$n seems to shimmer as $e heads east.", TRUE, ch, NULL, NULL, TO_ROOM);
+  send_to_char(ch, "The world shimmers ever so slightly as you head east.\r\n");
+  char_from_room(ch);
+  char_to_room(ch, destination);
+  act("$n shimmers slightly as $e enters from the west.", TRUE, ch, NULL, NULL, TO_ROOM);
+  return TRUE;
+}
+
+static unsigned long long rol_utility_character_weight(const struct char_data *ch)
+{
+  unsigned long long weight;
+  int slot;
+
+  if (ch == NULL || GET_LEVEL(ch) >= LVL_IMMORT)
+    return 0;
+
+  weight = GET_WEIGHT(ch) > 0 ? (unsigned long long)GET_WEIGHT(ch) : 0;
+  if (IS_CARRYING_W(ch) > 0)
+    weight += (unsigned long long)IS_CARRYING_W(ch);
+  for (slot = 0; slot < NUM_WEARS; slot++)
+    if (GET_EQ(ch, slot) != NULL && GET_OBJ_WEIGHT(GET_EQ(ch, slot)) > 0)
+      weight += (unsigned long long)GET_OBJ_WEIGHT(GET_EQ(ch, slot));
+  return weight;
+}
+
+static int rol_utility_weight_trigger(struct char_data *ch, struct room_data *room)
+{
+  static bool triggered_weight;
+  struct char_data *person;
+  struct obj_data *obj;
+  unsigned long long weight;
+  int transition;
+
+  if (ch == NULL || room == NULL || room->number != ROL_WEIGHT_TRIGGER_ROOM_VNUM ||
+      !VALID_ROOM_RNUM(IN_ROOM(ch)) || IN_ROOM(ch) != real_room(room->number))
+    return FALSE;
+
+  weight = 0;
+  for (obj = room->contents; obj != NULL; obj = obj->next_content)
+    if (GET_OBJ_WEIGHT(obj) > 0)
+      weight += (unsigned long long)GET_OBJ_WEIGHT(obj);
+  for (person = room->people; person != NULL; person = person->next_in_room)
+    weight += rol_utility_character_weight(person);
+
+  transition = rol_utility_weight_transition(triggered_weight, weight);
+  if (transition > 0)
+  {
+    triggered_weight = true;
+    act("You here a strange click off in the distance.", TRUE, ch, NULL, NULL, TO_ROOM);
+  }
+  else if (transition < 0)
+  {
+    triggered_weight = false;
+    act("You here a strange thump off in the distance.", TRUE, ch, NULL, NULL, TO_ROOM);
+  }
+  return FALSE;
+}
+
+int rol_utility_room(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  UNUSED(ch);
+  UNUSED(me);
+  UNUSED(cmd);
+  UNUSED(argument);
+
+  /* Typed dispatch supplies the exact room owner and command event. */
+  return FALSE;
+}
+
+int rol_utility_room_typed(struct spec_event_context *context)
+{
+  struct room_data *room;
+
+  if (context == NULL || context->owner_type != SPEC_OWNER_ROOM || context->owner == NULL ||
+      context->event != SPEC_EVENT_COMMAND)
+    return FALSE;
+
+  room = context->owner;
+  switch (room->number)
+  {
+  case ROL_NEWBIE_LOAD_ROOM_VNUM:
+    return rol_utility_newbie_room(context->actor, room, context->command);
+  case ROL_WEIGHT_TRIGGER_ROOM_VNUM:
+    return rol_utility_weight_trigger(context->actor, room);
+  default:
+    return FALSE;
+  }
 }
 
 bool rol_update_mobile_home_after_move(struct char_data *ch, int source_room, int destination_room)

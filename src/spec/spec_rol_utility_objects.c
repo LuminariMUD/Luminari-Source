@@ -25,6 +25,12 @@
 #include "spec_rol_utility_objects.h"
 
 #define ROL_GOODBERRY_VNUM 2000876
+#define ROL_LOOT_BLOCKER_VNUM 2000897
+#define ROL_PLAGUE_RESERVOIR_VNUM 2003088
+#define ROL_PLAGUE_RESERVOIR_ROOM_VNUM 2003001
+#define ROL_PLAGUE_MINIMUM_LEVEL 15
+#define ROL_LOOT_SWEEP_SECONDS 120
+#define ROL_LOOT_DECAY_TICKS 1
 #define ROL_BLOODSTONE_CHILD_VNUM 2007151
 #define ROL_NECROMANCER_CHILD_VNUM 2046991
 #define ROL_MENDEN_FIGURINE_VNUM 2088825
@@ -149,6 +155,12 @@ static const char *rol_utility_description_for(int object_vnum)
     return "May discharge electricity on a shield block or shield punch.";
   case ROL_LLYMS_ALTAR_VNUM:
     return "Offer a valuable held treasure to the altar for Llym's favor.";
+  case ROL_LOOT_BLOCKER_VNUM:
+    return "Aggressive creatures protect room containers and non-player corpses; unclaimed "
+           "non-player corpses decay promptly.";
+  case ROL_PLAGUE_RESERVOIR_VNUM:
+    return "Drinking from or filling a container at this reservoir can infect experienced "
+           "mortals with disease.";
   default:
     return NULL;
   }
@@ -167,6 +179,122 @@ static bool rol_utility_command_is(int cmd, const char *name)
 
   command = rol_utility_command_name(cmd);
   return command != NULL && name != NULL && !strcmp(command, name);
+}
+
+int rol_utility_loot_sweep_interval_seconds(void)
+{
+  return ROL_LOOT_SWEEP_SECONDS;
+}
+
+bool rol_utility_loot_blockable_container(const struct obj_data *obj)
+{
+  if (obj == NULL)
+    return false;
+  if (IS_CORPSE(obj))
+    return GET_OBJ_VAL(obj, 4) == 0;
+  return GET_OBJ_TYPE(obj) == ITEM_CONTAINER;
+}
+
+bool rol_utility_plague_eligible(struct char_data *ch, const struct obj_data *obj)
+{
+  if (ch == NULL || obj == NULL || IS_NPC(ch) || GET_LEVEL(ch) < ROL_PLAGUE_MINIMUM_LEVEL ||
+      !VALID_ROOM_RNUM(IN_ROOM(ch)) || IN_ROOM(obj) != IN_ROOM(ch) ||
+      GET_ROOM_VNUM(IN_ROOM(ch)) != ROL_PLAGUE_RESERVOIR_ROOM_VNUM)
+    return false;
+
+  return !AFF_FLAGGED(ch, AFF_DISEASE) && !affected_by_spell(ch, SPELL_CONTAGION);
+}
+
+static int rol_utility_plague_reservoir(struct char_data *ch, struct obj_data *obj, int cmd)
+{
+  if (!rol_utility_command_is(cmd, "drink") && !rol_utility_command_is(cmd, "fill"))
+    return FALSE;
+  if (!rol_utility_plague_eligible(ch, obj))
+    return FALSE;
+
+  (void)call_magic(ch, ch, NULL, SPELL_CONTAGION, 0, MAX(GET_LEVEL(ch), 15), CAST_INNATE);
+  return FALSE;
+}
+
+static int rol_utility_loot_sweep(struct obj_data *obj)
+{
+  struct obj_data *corpse;
+  time_t now;
+
+  if (obj == NULL || !VALID_ROOM_RNUM(IN_ROOM(obj)))
+    return FALSE;
+
+  now = time(NULL);
+  if (obj->rol_loot_sweep_at == 0)
+  {
+    obj->rol_loot_sweep_at = now + ROL_LOOT_SWEEP_SECONDS;
+    return FALSE;
+  }
+  if (obj->rol_loot_sweep_at > now)
+    return FALSE;
+  obj->rol_loot_sweep_at = now + ROL_LOOT_SWEEP_SECONDS;
+
+  for (corpse = world[IN_ROOM(obj)].contents; corpse != NULL; corpse = corpse->next_content)
+  {
+    if (!IS_CORPSE(corpse) || GET_OBJ_VAL(corpse, 4) != 0 || OBJ_FLAGGED(corpse, ITEM_MAGIC))
+      continue;
+
+    if (GET_OBJ_TIMER(corpse) <= 0 || GET_OBJ_TIMER(corpse) > ROL_LOOT_DECAY_TICKS)
+      GET_OBJ_TIMER(corpse) = ROL_LOOT_DECAY_TICKS;
+    SET_BIT_AR(GET_OBJ_EXTRA(corpse), ITEM_MAGIC);
+  }
+
+  return TRUE;
+}
+
+static struct char_data *rol_utility_loot_aggressor(room_rnum room)
+{
+  struct char_data *candidate;
+
+  if (!VALID_ROOM_RNUM(room))
+    return NULL;
+  for (candidate = world[room].people; candidate != NULL; candidate = candidate->next_in_room)
+    if (IS_NPC(candidate) && MOB_FLAGGED(candidate, MOB_AGGRESSIVE))
+      return candidate;
+  return NULL;
+}
+
+static int rol_utility_loot_block(struct char_data *ch, struct obj_data *obj, int cmd,
+                                  const char *argument)
+{
+  struct char_data *aggressor;
+  struct obj_data *container;
+  char first[MAX_INPUT_LENGTH];
+  char second[MAX_INPUT_LENGTH];
+
+  if (ch == NULL || obj == NULL || argument == NULL ||
+      (!rol_utility_command_is(cmd, "get") && !rol_utility_command_is(cmd, "take") &&
+       !rol_utility_command_is(cmd, "drag")) ||
+      (IS_NPC(ch) && !IS_PET(ch)) || !VALID_ROOM_RNUM(IN_ROOM(ch)) || IN_ROOM(obj) != IN_ROOM(ch))
+    return FALSE;
+
+  aggressor = rol_utility_loot_aggressor(IN_ROOM(ch));
+  if (aggressor == NULL)
+    return FALSE;
+
+  two_arguments(argument, first, sizeof(first), second, sizeof(second));
+  if (first[0] == '\0' || second[0] == '\0')
+    return FALSE;
+
+  if (rol_utility_command_is(cmd, "drag"))
+    container = get_obj_in_list_vis(ch, first, NULL, world[IN_ROOM(ch)].contents);
+  else
+  {
+    if (get_obj_in_list_vis(ch, second, NULL, ch->carrying) != NULL)
+      return FALSE;
+    container = get_obj_in_list_vis(ch, second, NULL, world[IN_ROOM(ch)].contents);
+  }
+  if (!rol_utility_loot_blockable_container(container) ||
+      (rol_utility_command_is(cmd, "drag") && !IS_CORPSE(container)))
+    return FALSE;
+
+  act("$n stands protectively over $p, blocking you!", TRUE, aggressor, container, ch, TO_VICT);
+  return TRUE;
 }
 
 static int rol_utility_held_slot(const struct char_data *ch, const struct obj_data *obj)
@@ -764,6 +892,8 @@ int rol_utility_object_typed(struct spec_event_context *context)
   {
     switch (GET_OBJ_VNUM(obj))
     {
+    case ROL_LOOT_BLOCKER_VNUM:
+      return rol_utility_loot_sweep(obj);
     case ROL_NECROMANCER_CHILD_VNUM:
       return rol_utility_necro_child(context->actor, obj);
     case ROL_RUBY_MONOCLE_VNUM:
@@ -783,6 +913,10 @@ int rol_utility_object_typed(struct spec_event_context *context)
   {
   case ROL_GOODBERRY_VNUM:
     return rol_utility_goodberry(ch, obj, context->command, context->argument);
+  case ROL_LOOT_BLOCKER_VNUM:
+    return rol_utility_loot_block(ch, obj, context->command, context->argument);
+  case ROL_PLAGUE_RESERVOIR_VNUM:
+    return rol_utility_plague_reservoir(ch, obj, context->command);
   case ROL_BLOODSTONE_CHILD_VNUM:
     return rol_utility_child_sacrifice(context, ch, obj);
   case ROL_MENDEN_FIGURINE_VNUM:

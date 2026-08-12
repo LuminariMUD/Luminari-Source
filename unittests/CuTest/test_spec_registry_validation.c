@@ -181,9 +181,9 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 107, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 108, (int)spec_registry_count());
   CuAssertIntEquals(tc, 95, (int)spec_registry_legacy_count());
-  CuAssertIntEquals(tc, 12, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 13, (int)spec_registry_typed_count());
 
   alias_count = 0;
   for (definition_index = 0; definition_index < spec_registry_count(); definition_index++)
@@ -431,6 +431,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Utility Object", rol_utility_object, SPEC_OWNER_OBJECT,
        SPEC_EVENT_COMMAND | SPEC_EVENT_OBJECT_AUTO_PULSE | SPEC_EVENT_ITEM_IDENTIFY |
            SPEC_EVENT_DEFENSE_REACTION | SPEC_EVENT_COMBAT_MANEUVER,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Utility Room", rol_utility_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
   };
   const struct spec_definition *definition;

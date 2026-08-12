@@ -514,12 +514,13 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Lavatubes Mobile",
                                                "RoL Lavatubes Object",
                                                "RoL Lavatubes Room",
-                                               "RoL Utility Object"};
+                                               "RoL Utility Object",
+                                               "RoL Utility Room"};
   int expected_count;
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 108, expected_count);
+  CuAssertIntEquals(tc, 109, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)
@@ -559,8 +560,8 @@ void Test_spec_registry_legacy_accessor_boundaries(CuTest *tc)
   CuAssertTrue(tc, get_spec_func_by_index(-1) == NULL);
   CuAssertTrue(tc, get_spec_func_name_by_index(count) == NULL);
   CuAssertTrue(tc, get_spec_func_by_index(count) == NULL);
-  CuAssertStrEquals(tc, "RoL Utility Object", get_spec_func_name_by_index(count - 1));
-  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_utility_object);
+  CuAssertStrEquals(tc, "RoL Utility Room", get_spec_func_name_by_index(count - 1));
+  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_utility_room);
   CuAssertTrue(tc, get_spec_func_name(NULL) == NULL);
 }
 
