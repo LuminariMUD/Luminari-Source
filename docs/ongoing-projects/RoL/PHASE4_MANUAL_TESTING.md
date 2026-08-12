@@ -510,6 +510,15 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - Kill each available spirit family and confirm its animal-specific fade message appears and no
   corpse is created. The spirit mobile must retain its other converted behavior beside the
   `RoL-Totem-Spirit` compatibility flag.
+- Converted Outpost mobile 2020971 owns `RoL Totem Restorer` and must retain
+  `MOB_SPEC`. With a level-21-or-higher Cleric who has a saved spirit bond but no
+  totem, give the restorer 10,000 target gold and say `spiritworld`. Confirm the
+  exact good or evil totem selected by the saved bond appears in the Cleric's inventory, is bound
+  to that character, and the restorer disappears.
+- Repeat with a non-Cleric, a Cleric below level 21, no saved spirit bond, 9,999 gold, and an
+  invalid saved choice. Each attempt must refuse without consuming the restorer. If the mapped
+  totem prototype is unavailable, the restorer must remain and the player must receive a staff
+  escalation message.
 
 ### Phase 6 converted Sister Knights
 

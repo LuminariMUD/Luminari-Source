@@ -231,6 +231,7 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     item_blocker = handler_disposition("item_block")
     sister_knight = handler_disposition("sister_knight")
     shaman_totem = handler_disposition("shaman_totem")
+    totem_restorer = handler_disposition("lostTotemRestorer")
     spirit_wolf = handler_disposition("spirit_wolf_die")
     ship = handler_disposition("ship")
     navigator = handler_disposition("navagator")
@@ -401,6 +402,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("NATIVE_ADAPTED", sister_knight["strategy"])
     self.assertEqual("RoL Shaman Totem", shaman_totem["target"])
     self.assertEqual("NATIVE_ADAPTED", shaman_totem["strategy"])
+    self.assertEqual("RoL Totem Restorer", totem_restorer["target"])
+    self.assertEqual("NATIVE_ADAPTED", totem_restorer["strategy"])
     self.assertEqual("mobile action flag 123", spirit_wolf["target"])
     self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", spirit_wolf["strategy"])
     self.assertEqual("RoL Ship", ship["target"])
@@ -583,11 +586,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_108, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(39, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(535, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(27, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(650, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_109, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(38, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(536, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(26, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(651, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           159, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

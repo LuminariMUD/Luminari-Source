@@ -73,6 +73,7 @@ static const char *const spec_mobile_names[] = {
     "RoL Undead Drain",
     "RoL Trade Bandit",
     "RoL Sister Knight",
+    "RoL Totem Restorer",
     "RoL Ship Navigator",
     "RoL Alert Caller",
     "RoL Yggdrasil Branch",

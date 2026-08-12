@@ -2135,6 +2135,7 @@ void Test_spec_rol_shaman_totem_preserves_identity_gating_and_usage(CuTest *tc)
   struct command_info commands[2];
   struct command_info *saved_complete_cmd_info;
   time_t first_window;
+  int restored_vnum;
 
   spec_mechanics_begin(&fixture);
   actor = &fixture.actor;
@@ -2200,6 +2201,25 @@ void Test_spec_rol_shaman_totem_preserves_identity_gating_and_usage(CuTest *tc)
   CuAssertStrEquals(tc, "$n quickly fades away to the sound of a fading caw...",
                     rol_totem_spirit_death_message(2000742));
   CuAssertTrue(tc, rol_totem_spirit_death_message(9999999) == NULL);
+
+  commands[1].command = "say";
+  CLASS_LEVEL(actor, CLASS_CLERIC) = 21;
+  GET_ROL_TOTEM_CHOICE(actor) = 1;
+  GET_GOLD(&fixture.target) = 9999;
+  restored_vnum = 0;
+  CuAssertTrue(tc,
+               !rol_totem_restorer_requirements(actor, GET_GOLD(&fixture.target), &restored_vnum));
+  CuAssertIntEquals(tc, -1, restored_vnum);
+  GET_GOLD(&fixture.target) = 10000;
+  CuAssertTrue(tc,
+               rol_totem_restorer_requirements(actor, GET_GOLD(&fixture.target), &restored_vnum));
+  CuAssertIntEquals(tc, 2000716, restored_vnum);
+  CuAssertIntEquals(tc, FALSE, rol_totem_restorer(actor, &fixture.target, 1, "elsewhere"));
+  GET_GOLD(&fixture.target) = 9999;
+  CuAssertIntEquals(tc, TRUE, rol_totem_restorer(actor, &fixture.target, 1, " spiritworld"));
+  GET_ROL_TOTEM_CHOICE(actor) = 16;
+  CuAssertTrue(tc, !rol_totem_restorer_requirements(actor, 10000, &restored_vnum));
+  CuAssertTrue(tc, !rol_totem_restorer_requirements(NULL, 10000, &restored_vnum));
 
   actor->player_specials = &dummy_mob;
   SET_BIT_AR(MOB_FLAGS(actor), MOB_ISNPC);

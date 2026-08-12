@@ -2211,6 +2211,12 @@ class RolTransformTests(unittest.TestCase):
             "source_vnum": 716,
             "source_handler": "spirit_wolf_die",
         },
+        {
+            "basename": "outpost",
+            "record_type": "mobile",
+            "source_vnum": 20971,
+            "source_handler": "lostTotemRestorer",
+        },
     ]
 
     compiled = compile_special_bindings(
@@ -2223,14 +2229,20 @@ class RolTransformTests(unittest.TestCase):
         binding for binding in compiled.native_bindings
         if binding.source_record_type == "object"
     )
-    mobile_binding = next(
+    spirit_binding = next(
         binding for binding in compiled.native_bindings
-        if binding.source_record_type == "mobile"
+        if binding.source_vnum == 716 and binding.source_record_type == "mobile"
+    )
+    restorer_binding = next(
+        binding for binding in compiled.native_bindings
+        if binding.source_vnum == 20971
     )
     self.assertEqual("RoL Shaman Totem", object_binding.persisted_name)
     self.assertEqual((), object_binding.required_flag_bits)
-    self.assertIsNone(mobile_binding.persisted_name)
-    self.assertEqual((123,), mobile_binding.required_flag_bits)
+    self.assertIsNone(spirit_binding.persisted_name)
+    self.assertEqual((123,), spirit_binding.required_flag_bits)
+    self.assertEqual("RoL Totem Restorer", restorer_binding.persisted_name)
+    self.assertEqual((0,), restorer_binding.required_flag_bits)
 
     source_object = self._source_record(
         "obj",
@@ -2257,7 +2269,7 @@ class RolTransformTests(unittest.TestCase):
         source_mobile,
         2_000_716,
         special_resolved=True,
-        required_action_bits=mobile_binding.required_flag_bits,
+        required_action_bits=spirit_binding.required_flag_bits,
     )
     mobile_path = self._target_path("mob", emitted_mobile.text)
     mobile_result = parse_mobile_file(mobile_path, "mob/20000.mob", self.manifest, set())

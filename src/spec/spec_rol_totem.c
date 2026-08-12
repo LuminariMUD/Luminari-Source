@@ -21,6 +21,7 @@
 #define ROL_TOTEM_MIN_CLERIC_LEVEL 21
 #define ROL_TOTEM_WEEK_DAYS 7
 #define ROL_TOTEM_WEEKLY_USES 3
+#define ROL_TOTEM_RESTORER_GOLD 10000
 #define ROL_TOTEM_END_VNUM (-1)
 
 struct rol_totem_definition
@@ -90,6 +91,26 @@ int rol_shaman_totem_vnum(int choice)
   const struct rol_totem_definition *totem = rol_totem_by_choice(choice);
 
   return totem != NULL ? totem->target_vnum : ROL_TOTEM_END_VNUM;
+}
+
+bool rol_totem_restorer_requirements(const struct char_data *ch, int keeper_gold, int *totem_vnum)
+{
+  int restored_vnum = ROL_TOTEM_END_VNUM;
+
+  if (totem_vnum != NULL)
+    *totem_vnum = ROL_TOTEM_END_VNUM;
+  if (ch == NULL || IS_NPC(ch) || ch->player_specials == NULL ||
+      CLASS_LEVEL(ch, CLASS_CLERIC) < ROL_TOTEM_MIN_CLERIC_LEVEL ||
+      keeper_gold < ROL_TOTEM_RESTORER_GOLD)
+    return false;
+
+  restored_vnum = rol_shaman_totem_vnum(GET_ROL_TOTEM_CHOICE(ch));
+  if (restored_vnum == ROL_TOTEM_END_VNUM)
+    return false;
+
+  if (totem_vnum != NULL)
+    *totem_vnum = restored_vnum;
+  return true;
 }
 
 bool rol_shaman_totem_race_allowed(int target_vnum, int race)
@@ -294,5 +315,61 @@ int rol_shaman_totem(struct char_data *ch, void *me, int cmd, const char *argume
   }
 
   rol_totem_summon(ch, totem);
+  return TRUE;
+}
+
+int rol_totem_restorer(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *keeper = me;
+  struct obj_data *totem;
+  int totem_vnum;
+
+  if (ch == NULL || keeper == NULL || cmd <= 0 || argument == NULL ||
+      (!CMD_IS("say") && !CMD_IS("'")))
+    return FALSE;
+
+  skip_spaces_c(&argument);
+  if (str_cmp(argument, "spiritworld"))
+    return FALSE;
+
+  if (IS_NPC(ch) || ch->player_specials == NULL || CLASS_LEVEL(ch, CLASS_CLERIC) <= 0)
+  {
+    send_to_char(ch, "The shaman says, 'What do you know of the spirit world?'\r\n");
+    return TRUE;
+  }
+  if (CLASS_LEVEL(ch, CLASS_CLERIC) < ROL_TOTEM_MIN_CLERIC_LEVEL)
+  {
+    send_to_char(ch, "The shaman says, 'Return when you are truly worthy.'\r\n");
+    return TRUE;
+  }
+  if (GET_ROL_TOTEM_CHOICE(ch) == 0)
+  {
+    send_to_char(ch, "The shaman says, 'But you have never had a spirit companion!'\r\n");
+    return TRUE;
+  }
+  if (GET_GOLD(keeper) < ROL_TOTEM_RESTORER_GOLD)
+  {
+    send_to_char(ch, "The shaman says, 'Bring me the 10,000 gold I requested first.'\r\n");
+    return TRUE;
+  }
+  if (!rol_totem_restorer_requirements(ch, GET_GOLD(keeper), &totem_vnum))
+  {
+    log("SYSERR: RoL totem restorer received invalid choice %d for %s", GET_ROL_TOTEM_CHOICE(ch),
+        GET_NAME(ch));
+    send_to_char(ch, "The shaman cannot recover your former spirit bond. Tell a staff member.\r\n");
+    return TRUE;
+  }
+  if ((totem = read_object(totem_vnum, VIRTUAL)) == NULL)
+  {
+    log("SYSERR: RoL totem restorer cannot load object %d", totem_vnum);
+    send_to_char(ch, "The shaman cannot recover your totem. Tell a staff member.\r\n");
+    return TRUE;
+  }
+
+  GET_OBJ_BOUND_ID(totem) = GET_IDNUM(ch);
+  obj_to_char(totem, ch);
+  send_to_char(ch, "The shaman mutters over a wooden figure, then grins and hands your newly bound "
+                   "totem to you before hurrying toward the tavern.\r\n");
+  extract_char(keeper);
   return TRUE;
 }
