@@ -6,6 +6,67 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 utility-service batch
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Converted four utility-service handlers through typed `RoL Utility Object` and `RoL Utility
+  Room` gateways. The room gateway adds one builder-visible registry and persistence name; the
+  object gateway remains shared.
+- Preserved the Black Plague reservoir's level gate, exact room ownership, drink/fill exposure,
+  and disease immunity through target-native contagion. The source global plague toggle has no
+  target equivalent and is recorded as an explicit compatibility boundary.
+- Preserved the loot blocker's aggressive-NPC interception for room containers and non-player
+  corpses while allowing carried containers and player corpses. Its exact 120-second corpse sweep
+  maps the source 60-second decay request to one target MUD tick without adding persistent state.
+- Preserved newbie-room east routing by converted source-race alignment and mapped the unavailable
+  source birthplace model to the target saved load room with the mortal start as fallback.
+- Preserved the weight trigger's 5,000-unit threshold, immortal exemption, transition state, and
+  source messages. The source callback's door-effect branch is itself unimplemented.
+- Added converter dispositions, exact reconciliation expectations, registry and profile coverage,
+  item identification text, and production-linked behavior regressions.
+- Reconciliation now resolves 1,103 of 1,147 active direct bindings and 530 of 562 source handlers;
+  44 bindings and 32 handlers remain. The independent `ACT_SPEC` checkpoint remains 824 resolved /
+  24 pending.
+- Archived the fifty-seventh Phase 6 delivery session. The remaining Phase 6 envelope remains 1-3
+  sessions, leaving the Phases 6-8 forecast at 49-79 sessions, or 98-316 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 9d40694b
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-utility-services
+Reconciliation run: rol-phase6-special-2c12ac866ad07db2
+Active direct bindings: 1,147
+Direct bindings resolved: 1,103
+Direct bindings pending: 44
+Source handlers resolved: 530
+Source handlers pending: 32
+Additional handler families resolved: 4
+Additional direct bindings resolved: 4
+Native adapted bindings: 645
+Native adapted composable bindings: 159
+Source-inert excluded bindings: 26
+Source-unsafe excluded bindings: 18
+ACT_SPEC records resolved: 824
+ACT_SPEC records pending: 24
+Special registry definitions: 108 total / 95 legacy / 13 typed
+Compatibility names: 109
+Complete world-tool suite: 312 passed
+Production-linked CuTest suite: 659 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 44 direct bindings across 32 source handlers. Continue
+grouping compatible irregular mechanics behind shared typed gateways, and preserve the full
+build/test/install gate at each substantial commit boundary.
+
 ## 2026-08-12 - Phase 6 object-service batch
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
