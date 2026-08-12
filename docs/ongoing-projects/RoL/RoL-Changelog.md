@@ -6,6 +6,58 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted Sister Knight reinforcements
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all five active `sister_knight` mobile bindings in the Moonshae package
+  through the persistent, mobile-owned `RoL Sister Knight` procedure and the required
+  `MOB_SPEC` activity and combat-turn gateways.
+- Preserved the source zone-wide attack shout and bounded helper family. Awake, idle,
+  reachable converted Sisters within 100 rooms in the same zone begin pursuing the
+  caller's opponent; fighting, hunting, charmed, protected, unreachable, out-of-range,
+  and cross-zone candidates remain ineligible.
+- Preserved soundproof-room, silence, paralysis, sleep, and casting suppression. The
+  source justice witness guard maps to the target's per-combat `PROC_FIRED` state so a
+  caller shouts once during an encounter and resets after combat ends.
+- Registered the procedure and event contract, taught the converter its canonical
+  target name and required action flag, and updated builder help, database-first help,
+  manual testing, converter fixtures, registry persistence and OLC inventories, and
+  production-linked characterization tests.
+- Reconciliation now resolves 567 of 1,147 active direct bindings and 93 of 562 source
+  handlers; 580 bindings and 469 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 559 resolved / 289 pending.
+- Archived the twentieth bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 28-60 Phase 6 sessions and 76-136 total sessions
+  for Phases 6-8, or 152-544 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 4fa18daf
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-sister-knight
+Reconciliation run: rol-phase6-special-3aa909fd9793606b
+Active direct bindings: 1,147
+Direct bindings resolved: 567
+Direct bindings pending: 580
+Source handlers resolved: 93
+Source handlers pending: 469
+Sister Knight bindings resolved: 5
+ACT_SPEC records resolved: 559
+ACT_SPEC records pending: 289
+Complete world-tool suite: 272 passed, 52 subtests passed
+Production-linked CuTest suite: 632 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 580 direct bindings across 469 source handlers.
+
 ## 2026-08-12 - Phase 6 converted class-family guild rooms
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
