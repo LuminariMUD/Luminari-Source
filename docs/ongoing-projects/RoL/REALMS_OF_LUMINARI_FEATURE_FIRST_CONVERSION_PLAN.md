@@ -1,8 +1,8 @@
 # RealmsOfLuminari Reconciliation-First, Feature-First Conversion Plan
 
-- Status: Phase 6 special-procedure reconciliation in progress
+- Status: Phase 6 special-procedure discovery repair in progress
 - Plan date: 2026-08-11
-- Evidence audit: 2026-08-12
+- Evidence audit: 2026-08-13
 - Companion scope:
   [REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md)
 - Source corpus root:
@@ -518,19 +518,39 @@ One session is one 2-4 hour spec with one objective and 12-25 tasks. Session ran
 below are evidence-based planning envelopes, not delivery promises. The measured
 Phase 4 pilot replaced the provisional ranges. Completed delivery history and the
 measured reforecast basis are archived in the changelog. Forward Phase 6 batches
-conservatively target 20-45 related families where a shared shape exists. The remaining
-Phases 6-8 forecast is 49-79 sessions, or 98-316 focused engineering hours at the
-defined session size.
+conservatively target 20-45 related families where a shared shape exists. The previous
+remaining-Phases 6-8 forecast is not authoritative while the Phase 6 binding inventory is
+being repaired. Reforecast only after all active registration wrappers and dynamic
+registration paths have been reconciled.
 
 Phases 0-5 are complete and have been removed from this active plan. Their delivered
 scope, run identities, counts, acceptance evidence, commits, and reforecast basis are
 recorded in [RoL-Changelog.md](RoL-Changelog.md). Active implementation continues with
 the remaining Phase 6 families.
 
-### Phase 6: Special-procedure reconciliation (1-3 remaining sessions)
+### Phase 6: Special-procedure reconciliation (inventory repair in progress)
 
-The current reconciliation leaves 35 active direct bindings across 24 source handlers
-and 18 pending `ACT_SPEC` records.
+The most recent generated ledger covers only direct `AddProc*` registrations written in
+`src/specs.assign.c`. It does not follow the active registration-wrapper calls made by
+that file. A static, preprocessed audit located 53 active wrappers and at least 574 live
+bindings with active source consumers that are absent from the ledger: 383 mobile, 110
+object, and 81 room bindings across 496 bound records. Those bindings expose 233 handler
+names absent from the current inventory, raising the measured minimum from 1,147 to
+1,721 bindings and from 562 to 795 handlers. The omitted set includes both Tarrasque
+mobile procedures and both Tarrasque object procedures.
+
+The audit resolved the 38 active numeric VNUM macros manually. These figures remain lower
+bounds until the extractor reproduces that resolution and the dynamic
+`assign_the_shopkeepers()` and `assign_the_questers()` paths have explicit dispositions.
+The earlier 1,112/1,147 binding and 538/562 handler split is retained only as historical
+checkpoint evidence and must not be used as the Phase 6 completion denominator.
+
+Repair discovery before implementing another handler batch. The repaired extractor must
+follow only registration functions reachable from the active source boot path, respect
+the checked-in preprocessor configuration, resolve numeric VNUM macros, retain source
+path and line evidence, and regression-test direct, wrapped, symbolic, excluded, and
+dynamic registration cases. Regenerate the dependent Phase 1, Phase 2, Phase 5, and
+Phase 6 evidence before reforecasting or claiming completion.
 
 Process dependency-complete batches of roughly 20-45 related source handler families by
 shared behavior and consuming package when their mechanics permit bulk treatment. Use

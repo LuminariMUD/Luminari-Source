@@ -1,9 +1,9 @@
 # Realms of Luminari Conversion Worknotes
 
-- Updated: 2026-08-12
+- Updated: 2026-08-13
 - Environment: development
 - Branch: `master`
-- Current task: Phase 6 special-procedure reconciliation
+- Current task: repair Phase 6 special-procedure discovery coverage
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 - Phase 4 manual test matrix: [PHASE4_MANUAL_TESTING.md](PHASE4_MANUAL_TESTING.md)
 
@@ -652,42 +652,60 @@ Policy:  rol-conversion-policy-2
   gates, both keeper-held offerings, the full rite narrative, and helper consumption. Equipped
   offerings now retain safe concrete pointers, and the irreversible transformation uses the
   target's established no-group/follower preflight and Lich-to-Wizard respec contract.
-- The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
-  the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
-  handlers; a separate ledger preserves every exclusion, and none affected the current
-  five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,112 of 1,147 active direct bindings and 538 of
-  562 source handlers, leaving 35 bindings and 24 handlers. The independent `ACT_SPEC`
-  cross-check resolves 830 of 848 records and leaves 18 pending.
+- The source C preprocessor removes 87 of the 1,234 binding candidates discovered directly
+  in `src/specs.assign.c`. The resulting 1,147-binding and 562-handler denominator is now
+  known to be incomplete because discovery did not follow active registration wrappers.
+- A 2026-08-13 static, preprocessed call-path audit located 53 active registration wrappers.
+  After resolving the 38 numeric VNUM macros in `assignExtraPlanarMobiles()`, those wrappers
+  contribute at least 574 live bindings omitted from the generated ledger: 383 mobile,
+  110 object, and 81 room bindings across 496 bound records. The omitted bindings contain
+  259 handler names, 233 of which do not occur in the current handler inventory. The
+  corrected measured minimum is therefore 1,721 bindings across 795 handlers.
+- The omitted set includes `tarrasque_swallow_smack` and `tarrasque_die` on source mobile
+  2601, `tarrasque_corpse_enter` on source object 2604, and `tarrasque_stomache` on source
+  object 2610. None has a target adapter, converted binding, or Phase 6 test yet.
+- The prior 1,112/1,147 binding, 538/562 handler, and 830/848 `ACT_SPEC` split remains valid
+  only for the direct-only historical ledger. It is not a valid Phase 6 completion measure.
+  Dynamic shopkeeper and quester registration paths still require explicit audit, so the
+  corrected figures remain lower bounds until discovery and all dependent evidence are
+  regenerated.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 35 direct bindings across 24 handlers. Classify regular
-   shapes in bulk, then use strict generated profiles or dependency-complete shared
-   runtime batches before individual adaptations.
-2. Preserve record-specific missing-reference repairs for their Phase 7
+1. Extend special-procedure discovery from direct `src/specs.assign.c` statements through
+   every active reachable registration wrapper, including numeric macro resolution and
+   explicit dynamic-registration dispositions. Add regression fixtures for direct,
+   wrapped, symbolic, excluded, and dynamic paths.
+2. Regenerate and verify the dependent Phase 1, Phase 2, Phase 5, and Phase 6 evidence.
+   Recompute binding, handler, and `ACT_SPEC` completion denominators before selecting the
+   next implementation batch or publishing a new session forecast.
+3. Reconcile the corrected pending inventory in dependency-complete shared-runtime batches.
+   Treat the Tarrasque mobile, stomach, corpse, portal, and death behavior as one encounter
+   dependency closure rather than four isolated callbacks.
+4. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
-3. Preserve the six locked malformed record exclusions as explicit, logged
+5. Preserve the six locked malformed record exclusions as explicit, logged
    smallest-unit exclusions.
-4. Regenerate the special-binding inventory after each shared-family checkpoint and
+6. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
 
 ## Latest session handoff
 
-- Completed implementation commit `6c64fba1`, resolving the active `crier_one` binding for
-  Waterdeep mobile 2003008 through the existing `RoL Scheduled Mobile` procedure.
-- Preserved the standing-gated 2d42 ambient distribution, all authored action sequences, shared
-  hour-state reset quirks, ship and shop warnings, zone shouts, combat alarm, and outdoor-only
-  housewife and cheering responses. The converter supplies the required `MOB_SPEC` flag.
-- Ran all 316 world-tool tests and all 661 production-linked CuTests. The warning-free
-  `make test && make install` gate passed and removed the root-level `circle` artifact.
-- Regenerated and hash-verified the ignored Phase 6 ledger as
-  `rol-phase6-special-e0e90cdd3f12895e`; it records zero live target writes and the
-  1,112/35 direct-binding, 538/24 handler, and 830/18 `ACT_SPEC` split.
-- Next, trace the remaining Waterdeep civic or service candidate against target-native behavior;
-  `piergeiron_guard` is compact but its source follower charm and force-drop disarm need an exact
-  target mapping. Wolflike infection still lacks persistent target lycanthropy state, while tithe
-  still lacks a defined prestige map. No lossy stand-in was introduced.
-- Unresolved blockers: none. Continue with another dependency-complete family, retaining the
-  accelerated focused-check-per-batch and full-gate-per-published-checkpoint cadence.
+- Paused handler conversion after tracing the Tarrasque source registration path exposed a
+  discovery defect. `src/specs.assign.c` calls `assignTarrasqueMobiles()` and
+  `assignTarrasqueObjects()`, but the extractor reads only direct `AddProc*` statements in
+  `src/specs.assign.c`.
+- Preprocessed all `specs*.c` files, resolved the active zero-argument registration calls from
+  `src/specs.assign.c`, located all 53 called wrapper definitions, restricted results to active
+  source records, and resolved the 38 numeric planar VNUM macros. The measured omitted minimum is
+  574 bindings, 496 bound records, and 233 newly absent handler names.
+- No runtime, converter, world, generated-evidence, or `.spec_system` file changed during the
+  audit. The last fully tested and pushed implementation remains the Waterdeep town-crier
+  checkpoint at `6c64fba1`, archived by `e38a1248`.
+- Next, repair `extract_spec_bindings()` and the Phase 6 reconciler, add discovery regression
+  coverage, audit dynamic shopkeeper and quester assignment, and regenerate all dependent
+  evidence. Do not resume handler conversion or use the previous completion percentage before
+  that gate passes.
+- Unresolved blocker: the authoritative Phase 6 denominator is unavailable until discovery
+  repair and evidence regeneration complete.
