@@ -68,6 +68,7 @@ Phase 6 floating-pool commit: e3600f16
 Phase 6 Bloodstone-portal commit: 2635c21c
 Phase 6 Waterdeep-guild-room commit: 08fcf107
 Phase 6 batched combat/death commit: 03111649
+Phase 6 Waterdeep-ambient commit: 27bad343
 ```
 
 The authoritative ignored runs are:
@@ -168,6 +169,8 @@ Phase 6 Waterdeep guild rooms: lib/rol-conversion/runs/phase6-special-20260812-w
                                   rol-phase6-special-667bf4274a2fd6dd
 Phase 6 batched combat/death: lib/rol-conversion/runs/phase6-special-20260812-batched-combat-death
                               rol-phase6-special-bcb867fc0cb376eb
+Phase 6 Waterdeep ambient: lib/rol-conversion/runs/phase6-special-20260812-waterdeep-ambient
+                           rol-phase6-special-7d3a624a62a104e5
 Policy:  rol-conversion-policy-1
 ```
 
@@ -196,11 +199,11 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 281 tests; the production-linked CuTest suite passes 640;
+- The world-tool suite passes 282 tests; the production-linked CuTest suite passes 641;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Twenty-eight bounded Phase 6 delivery sessions are archived. Dependency-complete
+- Twenty-nine bounded Phase 6 delivery sessions are archived. Dependency-complete
   batches now target 15-30 source handler families per checkpoint. The measured
-  remaining forecast is 63-105 sessions: Phase 6 is 15-29, Phase 7 is 42-66, and
+  remaining forecast is 62-104 sessions: Phase 6 is 14-28, Phase 7 is 42-66, and
   Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
@@ -349,18 +352,22 @@ Policy:  rol-conversion-policy-1
 - Sixteen active tentacle, treant, phantom-steed, dark-shade, mephit, and elemental
   death bindings are complete through converted-VNUM runtime profiles. Each preserves
   its source-family message and no-corpse outcome without using another named slot.
+- Thirty-four active Waterdeep ambient bindings across 23 source handler families are
+  complete through `RoL Waterdeep Ambient`. Data-driven converted-VNUM profiles preserve
+  the standing gate, two-die distributions, authored action sequences, casino
+  fall-through, and merchant 2005310's converted harbor-room restriction.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 634 of 1,147 active direct bindings and 130 of
-  562 source handlers, leaving 513 bindings and 432 handlers. The independent
-  `ACT_SPEC` cross-check resolves 568 of 848 records and leaves 280 pending.
+- The current Phase 6 checkpoint resolves 668 of 1,147 active direct bindings and 153 of
+  562 source handlers, leaving 479 bindings and 409 handlers. The independent
+  `ACT_SPEC` cross-check resolves 600 of 848 records and leaves 248 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 513 direct bindings across 432 handlers in
+1. Reconcile the remaining 479 direct bindings across 409 handlers in
    dependency-complete batches of 15-30 related families. Use shared data-driven
    profiles and current target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7

@@ -516,17 +516,17 @@ the supporting runtime lands.
 
 One session is one 2-4 hour spec with one objective and 12-25 tasks. Session ranges
 below are evidence-based planning envelopes, not delivery promises. The measured
-Phase 4 pilot replaced the provisional ranges. Twenty-eight completed Phase 6 delivery
+Phase 4 pilot replaced the provisional ranges. Twenty-nine completed Phase 6 delivery
 sessions are archived in the changelog. Dependency-complete batches now target 15-30
-source handler families per checkpoint. The remaining Phases 6-8 forecast is 63-105
-sessions, or 126-420 focused engineering hours at the defined session size.
+source handler families per checkpoint. The remaining Phases 6-8 forecast is 62-104
+sessions, or 124-416 focused engineering hours at the defined session size.
 
 Phases 0-5 are complete and have been removed from this active plan. Their delivered
 scope, run identities, counts, acceptance evidence, commits, and reforecast basis are
 recorded in [RoL-Changelog.md](RoL-Changelog.md). Active implementation continues with
 the remaining Phase 6 families.
 
-### Phase 6: Special-procedure reconciliation (15-29 remaining sessions)
+### Phase 6: Special-procedure reconciliation (14-28 remaining sessions)
 
 Process dependency-complete batches of roughly 15-30 related source handler families by
 shared behavior and consuming package. Prefer reusable data-driven profiles when only

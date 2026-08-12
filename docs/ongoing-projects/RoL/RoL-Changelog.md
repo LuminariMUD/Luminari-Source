@@ -6,6 +6,68 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 batched Waterdeep ambient citizens
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed 23 source handler families and 34 active direct bindings in one
+  dependency-complete batch through the persistent, mobile-owned
+  `RoL Waterdeep Ambient` procedure.
+- Added data-driven profiles for the active wanderer, drunk, homeless, cat, merchant,
+  farmer, baker, mage, cleric, artillery, warrior, mercenary, casino-player, and youth
+  families. Multiple converted mobiles share a profile without duplicating runtime
+  code, while the target VNUM table prevents the procedure from affecting unrelated
+  mobiles.
+- Preserved the source two-die outcome distributions: most profiles use two-d5,
+  casino player 2003204 uses two-d7, and casino player 2003205 uses two-d6. Authored
+  speech and room actions retain their outcome ordering, including multi-message rolls
+  and the source switch fall-through on casino player 2003205.
+- Preserved the source standing-position gate and the special harbor-room restriction
+  for merchant 2005310, whose dialog runs only in converted room 2005400.
+- Registered the procedure and persistence/index contracts, taught conversion and
+  reconciliation all 23 canonical mappings, and updated builder help, database-first
+  help, manual testing, OLC inventories, converter fixtures, and production-linked
+  characterization tests.
+- Reconciliation now resolves 668 of 1,147 active direct bindings and 153 of 562 source
+  handlers; 479 bindings and 409 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 600 resolved / 248 pending.
+- Archived the twenty-ninth bounded Phase 6 delivery session since the Phase 5
+  closeout. At the current target throughput of 15-30 handler families per batch, the
+  forward-looking estimate is now 14-28 Phase 6 sessions and 62-104 total sessions for
+  Phases 6-8, or 124-416 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 27bad343
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-waterdeep-ambient
+Reconciliation run: rol-phase6-special-7d3a624a62a104e5
+Active direct bindings: 1,147
+Direct bindings resolved: 668
+Direct bindings pending: 479
+Source handlers resolved: 153
+Source handlers pending: 409
+Selected handler families resolved: 23
+Selected direct bindings resolved: 34
+Native adapted bindings: 275
+Native adapted composable bindings: 131
+ACT_SPEC records resolved: 600
+ACT_SPEC records pending: 248
+Complete world-tool suite: 282 passed
+Focused conversion/reconciliation suite: 84 passed
+Production-linked CuTest suite: 641 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Clean Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 479 direct bindings across 409 source handlers,
+using dependency-complete batches and shared data-driven adapters.
+
 ## 2026-08-12 - Phase 6 batched combat and death procedures
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
