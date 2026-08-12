@@ -760,6 +760,9 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   - Black pudding 2092613 leaves no corpse and does not split. This deliberately
     preserves the bound source branch's malformed real-mobile comparison rather than
     inventing the intended split behavior.
+  - Darkhold fire, air, water, and earth elementals 2094501-2094504 emit their authored
+    crumbling messages and drop objects 2094508-2094511 respectively: ruby, diamond,
+    aquamarine, and golden nugget. Each retains the ordinary corpse path.
 - Confirm these VNUM-owned profiles coexist with any other converted direct or automatic
   behavior on the same mobile and do not require a new mobile flag or second persisted
   SpecProc. An unrelated mobile must retain the ordinary target death/corpse path.
@@ -1186,8 +1189,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,328 are resolved and 393 remain. Of 795 distinct
-  direct source handlers, 564 are resolved and 231 remain. Of 848 `ACT_SPEC` records, 799
+  of the 1,721 active direct bindings, 1,332 are resolved and 389 remain. Of 795 distinct
+  direct source handlers, 568 are resolved and 227 remain. Of 848 `ACT_SPEC` records, 799
   are resolved and 49 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

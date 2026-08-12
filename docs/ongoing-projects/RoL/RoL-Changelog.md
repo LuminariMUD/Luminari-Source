@@ -9,6 +9,61 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Darkhold elemental deaths
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled the `fire_die`, `air_die`, `water_die`, and `earth_die` callbacks on Darkhold
+  source mobiles 94501-94504 through the existing composable death-profile runtime. The
+  callbacks consume no persistent special-procedure slot and add no prototype flag.
+- Preserved each authored crumbling message and mapped reward dependency: converted mobiles
+  2094501-2094504 drop objects 2094508-2094511, respectively a ruby, diamond, aquamarine, and
+  golden nugget. All four callbacks return to normal death handling, so ordinary corpses remain.
+- Added exact transformation, handler-disposition, source-VNUM, message, reward-object, and
+  corpse-policy regressions plus a production-linked end-to-end drop test for all four profiles.
+  No player helpfile changed because the batch adds no command or syntax; the staff manual
+  matrix records the death behavior.
+- Regenerated the corrected Phase 6 evidence. Resolution increases from 1,328 to 1,332 static
+  bindings and from 564 to 568 direct handlers, leaving 389 bindings across 227 handlers in 34
+  source files. The independent `ACT_SPEC` cross-check remains 799 resolved and 49 pending.
+- Reforecast the five corrected batches, which closed 86 bindings across 30 handlers. The
+  binding-count projection is about 23 sessions and the handler-diversity projection about 38;
+  the measured Phase 6 envelope is therefore 24-38 sessions, or 48-152 focused engineering
+  hours. The full remaining project envelope is 80-122 sessions, or 160-488 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 41ba7cea
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-darkhold-elemental-deaths
+Reconciliation run: rol-phase6-special-cc108f5e1415f677
+Active direct bindings: 1,721
+Direct bindings resolved: 1,332
+Direct bindings pending: 389
+Source handlers resolved: 568
+Source handlers pending: 227
+Additional handler families resolved: 4
+Additional direct bindings resolved: 4
+Native adapted composable bindings: 207
+ACT_SPEC records resolved: 799
+ACT_SPEC records pending: 49
+Complete world-tool suite: 328 passed
+Production-linked CuTest suite: 665 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 5d7ea680d07384ff360d8d36354b42aaf9dd1fda
+Installed SHA-256: d81c639065cf56913f175dc0ae46cf1cbfb7d488810d9bb4c26d6d0d24d0b4d0
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with corrected batch six from a dependency-complete shared-runtime family.
+Perform the scheduled forecast recalibration after that delivery.
+
 ## 2026-08-13 - Phase 6 planar mobile initializers
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
@@ -32,9 +87,9 @@ Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progre
 - Regenerated the corrected Phase 6 evidence. Resolution increases from 1,320 to 1,328 static
   bindings and from 558 to 564 direct handlers, leaving 393 bindings across 231 handlers in 34
   source files. The independent `ACT_SPEC` cross-check is now 799 resolved and 49 pending.
-- Retained the measured 24-36-session Phase 6 envelope. The first four corrected batches have
-  closed 82 bindings across 26 handlers, which still projects an approximately 16-session
-  binding floor and 36-session handler-diversity ceiling.
+- Retained the measured 24-36-session Phase 6 envelope. The first four corrected batches closed
+  82 bindings across 26 handlers, which projected approximately 19 binding-count sessions and
+  36 handler-diversity sessions from the then-current remaining inventory.
 
 ### Acceptance evidence
 
