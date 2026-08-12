@@ -9,7 +9,7 @@
 
 ## Current committed checkpoint
 
-Phases 0-4 are implemented, committed, and pushed:
+Phases 0-5 and the listed Phase 6 checkpoints are implemented, committed, and pushed:
 
 ```text
 Phase 0 baseline commit: 1619ccd8
@@ -42,6 +42,7 @@ Phase 5 exit-trap compatibility commit: c647c5f4
 Phase 5 shop compatibility commits: ec1a8cd8, fe38a56e
 Phase 6 inventory/shared-service commit: 368adc90
 Phase 6 shared-mobile commit: 960f5602
+Phase 6 implicit-race evidence commit: ae867c47
 ```
 
 The authoritative ignored runs are:
@@ -92,6 +93,8 @@ Phase 6 special reconciliation: lib/rol-conversion/runs/phase6-special-20260812-
                                 rol-phase6-special-7e0556903754990d
 Phase 6 shared mobile: lib/rol-conversion/runs/phase6-special-20260812-shared-mobile
                        rol-phase6-special-0f4f1274d95a2941
+Phase 6 implicit race: lib/rol-conversion/runs/phase6-special-20260812-race-composition
+                       rol-phase6-special-caf72346b7ac8119
 Policy:  rol-conversion-policy-1
 ```
 
@@ -178,14 +181,21 @@ Policy:  rol-conversion-policy-1
   22; bounded corpse-devourer, poison-bite, and thief adapters account for 29.
 - The independent `ACT_SPEC` cross-check resolves 462 of 848 records: source boot
   clears 444 unbound flags and 18 directly assigned records are resolved. The remaining
-  386 are 353 directly assigned mobiles plus 33 automatic demon or devil procedures.
+  386 are 343 direct-only mobiles, 10 mobiles combining direct and implicit race
+  procedures, and 33 implicit-race-only records.
+- Source boot attaches race procedures to 247 active prototypes independently of the
+  authored `ACT_SPEC` flag: 134 demons, 101 devils, and 12 umber hulks. Twenty-three
+  also have direct assignments and 224 are implicit-only. All 247 remain pending a
+  composition-safe runtime port; the earlier 33 count covered only the `ACT_SPEC`
+  subset.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
 1. Reconcile the remaining 1,003 direct bindings by shared behavior family and
-   consuming package, beginning with the 33 automatic race procedures and the next
-   high-reuse families; reuse current target procedures before adapting or porting.
+   consuming package, while porting the 247 implicit race procedures through a path
+   that composes with direct assignments; continue with the next high-reuse families
+   and reuse current target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
 3. Preserve the six locked malformed record exclusions as explicit, logged

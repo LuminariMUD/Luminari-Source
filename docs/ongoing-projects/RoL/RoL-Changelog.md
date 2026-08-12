@@ -5,6 +5,52 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 implicit race-binding correction
+
+Status: Completed evidence checkpoint; Phase 6 runtime reconciliation in progress
+
+### Delivered
+
+- Corrected the Phase 6 evidence model to inventory source boot-time race procedures
+  independently of `ACT_SPEC` and direct assignment tables. The active corpus has 247
+  implicit bindings: 134 `standardDemon`, 101 `standardDevil`, and 12
+  `standardUmberhulk` bindings.
+- Proved that 23 implicit race bindings coexist with direct mobile assignments; the
+  other 224 are implicit-only. The source supports both callbacks on one prototype, so
+  the target port must use a composition-safe runtime path rather than consuming or
+  replacing the target's single persistent special-procedure slot.
+- Added a deterministic `automatic-race-ledger.jsonl` artifact with source definition
+  hashes, record and destination identities, direct-binding relationships, dispositions,
+  and explicit pending status for all 247 bindings.
+- Corrected the `ACT_SPEC` cross-check without changing its total status counts. Of the
+  386 pending records, 343 have direct assignments only, 10 combine direct and implicit
+  race procedures, and 33 expose an implicit race procedure without a direct assignment.
+  The remaining 214 implicit race procedures are active despite lacking `ACT_SPEC` in
+  authored source data.
+- Bumped the reconciliation evidence schema to version 2 and added production-corpus
+  regression coverage for the race, composition, definition, and artifact counts.
+
+### Acceptance evidence
+
+```text
+Delivery commit: ae867c47
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-race-composition
+Reconciliation run: rol-phase6-special-caf72346b7ac8119
+Active direct bindings: 1,234
+Active implicit race bindings: 247
+Implicit bindings alongside direct assignments: 23
+Implicit-only bindings: 224
+Implicit race handlers located: 3 of 3
+ACT_SPEC records resolved: 462
+ACT_SPEC records pending: 386
+Complete world-tool suite: 254 passed
+Live target writes: 0
+```
+
+The earlier Phase 6 checkpoints' count of 33 automatic procedures described only the
+pending `ACT_SPEC` subset. This checkpoint supersedes that count for full active-binding
+coverage; their direct-binding and handler counts remain valid.
+
 ## 2026-08-12 - Phase 6 shared mobile procedures
 
 Status: Completed checkpoint; Phase 6 special-procedure reconciliation in progress
