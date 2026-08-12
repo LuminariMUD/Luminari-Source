@@ -2174,6 +2174,22 @@ class RolTransformTests(unittest.TestCase):
         "et_airBoss",
         "et_waterBoss",
         "devil_pitFiendBite",
+        "chicken",
+        "kobold_priest",
+        "piercer",
+        "purple_worm",
+        "phalanx",
+        "skeleton",
+        "xexos",
+        "agthrodos",
+        "tree_spirit",
+        "dranum_lifesuck",
+        "swallow_whole",
+        "swallow_whole_spit",
+        "movanic_deva",
+        "ilshazone_canthus",
+        "jotun_thrym",
+        "jotun_utgard_loki",
     )
     bindings = [
         {
@@ -2233,6 +2249,37 @@ class RolTransformTests(unittest.TestCase):
         "NATIVE_ADAPTED_COMPOSABLE", compiled.dispositions[0]["strategy"]
     )
     self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[1]["strategy"])
+
+  def test_pit_fiend_composes_bite_and_tail_with_monster_combat(self) -> None:
+    bindings = [
+        {
+            "basename": "devil",
+            "record_type": "mobile",
+            "source_vnum": 81706,
+            "source_handler": "devil_pitFiendTail",
+        },
+        {
+            "basename": "devil",
+            "record_type": "mobile",
+            "source_vnum": 81706,
+            "source_handler": "devil_pitFiendBite",
+        },
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(2, len(compiled.native_bindings))
+    self.assertIsNone(compiled.native_bindings[0].persisted_name)
+    self.assertEqual("RoL Monster Combat", compiled.native_bindings[1].persisted_name)
+    self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[0]["strategy"])
+    self.assertEqual(
+        "NATIVE_ADAPTED_COMPOSABLE", compiled.dispositions[1]["strategy"]
+    )
 
   def test_trade_bandit_binding_requires_mobile_activity_gateway(self) -> None:
     binding = {

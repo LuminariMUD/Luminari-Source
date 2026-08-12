@@ -334,7 +334,9 @@ enum rol_death_effect
   ROL_DEATH_EFFECT_SHADOW_DARKNESS,
   ROL_DEATH_EFFECT_SPORE_POISON,
   ROL_DEATH_EFFECT_BALOR_BURST,
-  ROL_DEATH_EFFECT_STONE_CRUMBLE
+  ROL_DEATH_EFFECT_STONE_CRUMBLE,
+  ROL_DEATH_EFFECT_DROP_POSSESSIONS,
+  ROL_DEATH_EFFECT_SPLIT_SKELETON
 };
 
 struct rol_death_profile
@@ -610,10 +612,18 @@ static const struct rol_death_profile rol_death_profiles[] = {
      "With a splash, the water elemental crashes to the ground leaving only a puddle "
      "behind.",
      NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2004480, "$n falls to the ground and dissolves into nothing.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_DROP_POSSESSIONS, true},
+    {2012005, "$n explodes, leaving a crystal spike sparkling on the ground.", NULL, 0, 2012000,
+     ROL_DEATH_EFFECT_DROP_OBJECT, false},
+    {2012006, "The bones of $n split apart and reform into two new skeletons.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_SPLIT_SKELETON, false},
     {2012022, "$n crumples, a noxious gas escaping its interior.", NULL, 0, 0,
      ROL_DEATH_EFFECT_SPORE_POISON, false},
     {2012023, "$n crumples, a noxious gas escaping its interior.", NULL, 0, 0,
      ROL_DEATH_EFFECT_SPORE_POISON, false},
+    {2012024, "The bones of $n split apart and reform into two new skeletons.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_SPLIT_SKELETON, false},
     {2053264, "The small elemental vanishes in a swirl of color.", NULL, 0, 0,
      ROL_DEATH_EFFECT_NONE, true},
     {2053268, "$n's form shimmers and changes. A mighty demonic creature appears in $s place.",
@@ -1951,6 +1961,56 @@ static void rol_death_stone_crumble(struct char_data *ch, int object_vnum)
   obj_to_room(pile, IN_ROOM(ch));
 }
 
+static void rol_death_drop_possessions(struct char_data *ch)
+{
+  struct obj_data *item;
+  struct obj_data *next_item;
+  struct obj_data *money;
+  int wear;
+
+  for (item = ch->carrying; item != NULL; item = next_item)
+  {
+    next_item = item->next_content;
+    obj_from_char(item);
+    obj_to_room(item, IN_ROOM(ch));
+  }
+  for (wear = 0; wear < NUM_WEARS; wear++)
+    if (GET_EQ(ch, wear) != NULL)
+      obj_to_room(unequip_char(ch, wear), IN_ROOM(ch));
+  if (GET_GOLD(ch) > 0)
+  {
+    money = create_money(GET_GOLD(ch));
+    GET_GOLD(ch) = 0;
+    obj_to_room(money, IN_ROOM(ch));
+  }
+}
+
+static void rol_death_split_skeleton(struct char_data *ch)
+{
+  struct char_data *replacement;
+  int generation;
+  int index;
+
+  generation = PROC_FIRED(ch);
+  if (generation == 0)
+    generation = 3;
+  else if (--generation == 0)
+    return;
+
+  for (index = 0; index < 2; index++)
+  {
+    replacement = read_mobile(GET_MOB_VNUM(ch), VIRTUAL);
+    if (replacement == NULL)
+    {
+      log("SYSERR: RoL splitting skeleton cannot load mobile %d", GET_MOB_VNUM(ch));
+      return;
+    }
+    char_to_room(replacement, IN_ROOM(ch));
+    GET_MOB_LOADROOM(replacement) = IN_ROOM(ch);
+    PROC_FIRED(replacement) = generation;
+  }
+}
+
 static void rol_apply_death_effect(struct char_data *ch, const struct rol_death_profile *profile)
 {
   switch (profile->effect)
@@ -1976,6 +2036,12 @@ static void rol_apply_death_effect(struct char_data *ch, const struct rol_death_
     break;
   case ROL_DEATH_EFFECT_STONE_CRUMBLE:
     rol_death_stone_crumble(ch, profile->object_vnum);
+    break;
+  case ROL_DEATH_EFFECT_DROP_POSSESSIONS:
+    rol_death_drop_possessions(ch);
+    break;
+  case ROL_DEATH_EFFECT_SPLIT_SKELETON:
+    rol_death_split_skeleton(ch);
     break;
   case ROL_DEATH_EFFECT_NONE:
     break;

@@ -1256,6 +1256,13 @@ void Test_spec_rol_yggdrasil_release_and_death_profiles_preserve_source_outcomes
   CuAssertIntEquals(tc, 2053269, rol_conversion_death_replacement_vnum(2053268));
   CuAssertIntEquals(tc, 2053254, rol_conversion_death_object_vnum(2053270));
   CuAssertIntEquals(tc, 2001438, rol_conversion_death_object_vnum(2001433));
+  CuAssertStrEquals(tc, "$n falls to the ground and dissolves into nothing.",
+                    rol_conversion_death_message(2004480));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2004480));
+  CuAssertIntEquals(tc, 2012000, rol_conversion_death_object_vnum(2012005));
+  CuAssertTrue(tc, !rol_conversion_death_suppresses_corpse(2012005));
+  CuAssertPtrNotNull(tc, rol_conversion_death_message(2012006));
+  CuAssertPtrNotNull(tc, rol_conversion_death_message(2012024));
   CuAssertTrue(tc, rol_conversion_death_retargets_clerics(2053268));
   CuAssertTrue(tc, rol_conversion_death_retargets_clerics(2053269));
   CuAssertTrue(tc, rol_conversion_death_retargets_clerics(2097003));
@@ -1468,9 +1475,11 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
 void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
 {
   static const int vnums[] = {
-      150772,  2000325, 2000326, 2000327, 2000328, 2005023, 2014601, 2020378,
-      2034833, 2045116, 2045146, 2045182, 2051246, 2053264, 2053265, 2053266,
-      2062401, 2062402, 2062405, 2062406, 2081706, 2081746, 2081747, 2083224,
+      150772,  196007,  196027,  196040,  196076,  2000325, 2000326, 2000327, 2000328,
+      2001407, 2001437, 2004070, 2004480, 2004530, 2005023, 2012005, 2012006, 2012024,
+      2012025, 2012026, 2014026, 2014601, 2015113, 2020378, 2034833, 2041900, 2043358,
+      2045116, 2045146, 2045182, 2051246, 2051334, 2053264, 2053265, 2053266, 2062401,
+      2062402, 2062405, 2062406, 2081706, 2081746, 2081747, 2083224, 2092608, 2097061,
   };
   const char *description;
   int denominator;
@@ -1492,6 +1501,8 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertStrEquals(tc, "Prismatic burst adapted from a source critical event.", description);
   CuAssertTrue(tc, rol_monster_combat_profile(2045116, &denominator, &description));
   CuAssertIntEquals(tc, 1, denominator);
+  CuAssertTrue(tc, rol_monster_combat_profile(2004480, &denominator, &description));
+  CuAssertIntEquals(tc, 5, denominator);
   CuAssertTrue(tc, !rol_monster_combat_profile(9999999, NULL, NULL));
 }
 

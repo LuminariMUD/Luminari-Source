@@ -8,6 +8,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import subprocess
 from typing import Any, Iterable
 
 from .constants import default_repo_root
@@ -252,16 +253,47 @@ def source_handler_definitions(
   for path in sorted((source_root / "src").glob("*.c")):
     text = path.read_text(encoding="utf-8")
     masked = _mask_non_code(text)
-    for match in _FUNCTION_HEADER.finditer(masked):
+    matches = [
+        match
+        for match in _FUNCTION_HEADER.finditer(masked)
+        if match.group("name") in handlers
+    ]
+    if not matches:
+      continue
+    completed = subprocess.run(
+        ["cc", "-E", f"-I{source_root / 'src'}", str(path)],
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    if completed.returncode != 0:
+      detail = completed.stderr.strip().splitlines()
+      raise RolSpecialReconciliationError(
+          f"source preprocessor failed for {path.relative_to(source_root)}: "
+          f"{detail[-1] if detail else 'unknown error'}"
+      )
+    active_lines: set[int] = set()
+    current_path: Path | None = None
+    current_line = 0
+    for preprocessed_line in completed.stdout.splitlines():
+      marker = re.match(r'^#\s+(\d+)\s+"([^"]+)"', preprocessed_line)
+      if marker is not None:
+        current_path = Path(marker.group(2)).resolve()
+        current_line = int(marker.group(1))
+        continue
+      if current_path == path.resolve() and preprocessed_line.strip():
+        active_lines.add(current_line)
+      current_line += 1
+    for match in matches:
       name = match.group("name")
-      if name not in handlers or name in definitions:
+      line = text.count("\n", 0, match.start()) + 1
+      if line not in active_lines or name in definitions:
         continue
       brace = masked.find("{", match.start(), match.end())
       end = _matching_brace(text, brace)
       if end is None:
         continue
       body = text[match.start() : end]
-      line = text.count("\n", 0, match.start()) + 1
       end_line = line + body.count("\n")
       definitions[name] = {
           "path": path.relative_to(source_root).as_posix(),

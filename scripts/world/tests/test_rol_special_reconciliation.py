@@ -189,8 +189,25 @@ class RolSpecialReconciliationTests(unittest.TestCase):
             "et_airBoss",
             "et_waterBoss",
             "devil_pitFiendBite",
+            "chicken",
+            "kobold_priest",
+            "piercer",
+            "purple_worm",
+            "phalanx",
+            "skeleton",
+            "xexos",
+            "agthrodos",
+            "tree_spirit",
+            "dranum_lifesuck",
+            "swallow_whole",
+            "swallow_whole_spit",
+            "movanic_deva",
+            "ilshazone_canthus",
+            "jotun_thrym",
+            "jotun_utgard_loki",
         )
     ]
+    pit_fiend_tail = handler_disposition("devil_pitFiendTail")
     lich_energy_drain = handler_disposition("lich_energy_drain")
     undead_drains = [
         handler_disposition(name)
@@ -357,6 +374,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
             for row in monster_combat
         )
     )
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", pit_fiend_tail["strategy"])
+    self.assertIn("pit-fiend tail", pit_fiend_tail["target"])
     self.assertEqual("RoL Lich Energy Drain", lich_energy_drain["target"])
     self.assertEqual("NATIVE_ADAPTED", lich_energy_drain["strategy"])
     self.assertTrue(
@@ -420,6 +439,14 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual(3, definitions["actual"]["line"])
     self.assertEqual(4, definitions["actual"]["lines"])
 
+  def test_source_definition_scanner_ignores_preprocessor_disabled_decoy(self) -> None:
+    definitions = source_handler_definitions(
+        self.root / "EXAMPLE/RealmsOfLuminari", {"tree_spirit"}
+    )
+
+    self.assertEqual("src/specs.realm.c", definitions["tree_spirit"]["path"])
+    self.assertEqual(188, definitions["tree_spirit"]["line"])
+
   def test_production_inputs_generate_complete_progress_ledgers(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       summary = write_special_reconciliation_bundle(
@@ -446,21 +473,21 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_010, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(137, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(454, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(108, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(560, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_035, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(112, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(471, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(91, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(581, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
-          155, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
+          159, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(11, summary["direct_bindings_by_strategy"]["NATIVE_RECONCILED"])
       self.assertEqual(
           18, summary["direct_bindings_by_strategy"]["SOURCE_UNSAFE_EXCLUDED"]
       )
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(784, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(64, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(801, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(47, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

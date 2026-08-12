@@ -85,6 +85,12 @@ static const struct spec_event_contract rol_mobile_activity_combat_events[] = {
     {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
 };
 
+static const struct spec_event_contract rol_monster_events[] = {
+    {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
+};
+
 static const struct spec_event_contract rol_ship_navigator_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
@@ -1268,8 +1274,8 @@ static const struct spec_definition spec_definitions[] = {
         .canonical_name = "RoL Monster Combat",
         .display_name = "RoL Monster Combat",
         .owner_mask = SPEC_OWNER_MOBILE,
-        .events = rol_mobile_activity_combat_events,
-        .event_count = SPEC_ARRAY_SIZE(rol_mobile_activity_combat_events),
+        .events = rol_monster_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_monster_events),
         .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "RoL Conversion",
