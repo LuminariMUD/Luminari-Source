@@ -91,6 +91,7 @@ Phase 6 multi-event-weapon archive commit: ec6ef4fb
 Phase 6 monster-combat commit: 5925a88f
 Phase 6 monster-combat archive commit: 33a91bf6
 Phase 6 expanded monster-zone commit: 76aaf29f
+Phase 6 composed-periodic commit: 079ca263
 ```
 
 The authoritative ignored runs are:
@@ -253,6 +254,9 @@ Phase 6 monster-combat procedures:
 Phase 6 expanded monster-zone procedures:
   lib/rol-conversion/runs/phase6-special-20260812-monster-zones
   rol-phase6-special-fb733f9680d8b786
+Phase 6 composed periodic profiles:
+  lib/rol-conversion/runs/phase6-special-20260812-periodic-composition
+  rol-phase6-special-d1472a439e2e94b8
 Policy:  rol-conversion-policy-2
 ```
 
@@ -281,11 +285,11 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 306 tests; the production-linked CuTest suite passes 653;
+- The world-tool suite passes 307 tests; the production-linked CuTest suite passes 653;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Forty-nine bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Fifty bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
-  shape exists. The measured remaining forecast is 50-81 sessions: Phase 6 is 2-5,
+  shape exists. The measured remaining forecast is 49-80 sessions: Phase 6 is 1-4,
   Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
@@ -444,12 +448,14 @@ Policy:  rol-conversion-policy-2
 - A second Waterdeep ambient batch adds 22 active bindings across 21 source handler
   families to the same adapter. It preserves the source two-d5 outcome tables and
   multi-message ordering, plus the Waterdeep guards' combat-suppression gate.
-- One strict, source-hashed generator now closes 94 regular source handler families and 100
-  active bindings through `RoL Source Periodic`. Its 100 converted mobile profiles retain
-  367 random outcomes and 601 ordered speech or room actions from Bloodstone, Icecrag,
+- One strict, source-hashed generator now closes 98 regular source handler families and 104
+  active bindings through `RoL Source Periodic`. Its 104 converted mobile profiles retain
+  380 random outcomes and 621 ordered speech or room actions from Bloodstone, Icecrag,
   Menden, Fun, Mobile, Realm, Lavatubes, Tower of Sorcery, and Waterdeep source files.
   Sorted generated tables support binary runtime lookup; random ranges, dice expressions,
-  awake or sleeping gates, and combat gates retain source behavior.
+  awake or sleeping gates, and combat gates retain source behavior. Bloodstone wolf and
+  Waterdeep dog profiles explicitly compose the existing corpse/food devourer before or
+  after their generated action tables in the source-authored order.
 - A second strict, source-hashed generator closes 27 direct state-aware Waterdeep handler
   families through `RoL Stateful Periodic` and supplies seven composed Waterdeep guild
   guards through `RoL Guild Guard`. Its 34 converted mobile profiles retain 266
@@ -525,14 +531,14 @@ Policy:  rol-conversion-policy-2
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,035 of 1,147 active direct bindings and 471 of
-  562 source handlers, leaving 112 bindings and 91 handlers. The independent `ACT_SPEC`
-  cross-check resolves 801 of 848 records and leaves 47 pending.
+- The current Phase 6 checkpoint resolves 1,039 of 1,147 active direct bindings and 475 of
+  562 source handlers, leaving 108 bindings and 87 handlers. The independent `ACT_SPEC`
+  cross-check resolves 805 of 848 records and leaves 43 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 112 direct bindings across 91 handlers. Classify regular
+1. Reconcile the remaining 108 direct bindings across 87 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
@@ -541,3 +547,23 @@ Policy:  rol-conversion-policy-2
    smallest-unit exclusions.
 4. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
+
+## Latest session handoff
+
+- Completed and pushed implementation commit `079ca263`, expanding the generated
+  source-periodic family and adding ordered devour composition for `bs_wolf` and
+  `dog_one`.
+- Changed the periodic generator, manifest, checked-in table, runtime adapter/header,
+  world-tool assertions, reconciliation assertions, and production-linked CuTest
+  coverage. No source file was added or removed, so build manifests did not change.
+- Regenerated `src/spec/spec_rol_periodic_profiles.inc` and verified it byte-for-byte
+  with the generator's `--check` mode.
+- Ran all 307 world-tool tests and all 653 production-linked CuTests. The first build
+  attempt caught two declarations in the wrong helper; after moving them into the
+  runtime callback, the warning-free `make test && make install` rerun passed and
+  removed the root-level `circle` artifact.
+- Regenerated the ignored Phase 6 ledger as
+  `rol-phase6-special-d1472a439e2e94b8`; it records zero live target writes and the
+  1,039/108 direct-binding, 475/87 handler, and 805/43 `ACT_SPEC` split.
+- Unresolved blockers: none. Continue with the remaining irregular mobile
+  combat/activity family or a dependency-complete object/room command batch.

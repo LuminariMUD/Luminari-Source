@@ -6,6 +6,66 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 composed periodic profiles
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Expanded the strict source-hashed periodic generator from 94 handler families and 100
+  bindings to 98 families and 104 bindings. The generated tables now preserve 380 random
+  outcomes and 621 ordered speech or room actions.
+- Converted `bs_banker` and `ice_masha` through their registered periodic behavior. Their
+  command branches are not reproduced because each source initializer registers only
+  `IDX_PERIODIC`, making those branches unreachable in the assessed runtime.
+- Composed `bs_wolf` and `dog_one` with the existing source-equivalent corpse/food
+  devourer without consuming a second named procedure. The generated profile records
+  preserve the source order: the wolf devours before its random action, while the dog
+  performs its random action before devouring.
+- Made devour composition an explicit generator contract. Generation fails unless a
+  selected source body contains exactly one traced helper-based or inline devour shape,
+  preventing an unreviewed behavior from entering the shared profile table.
+- Reconciliation now resolves 1,039 of 1,147 active direct bindings and 475 of 562 source
+  handlers; 108 bindings and 87 handlers remain. The independent `ACT_SPEC` checkpoint is
+  805 resolved / 43 pending.
+- Archived the fiftieth Phase 6 delivery session. The remaining Phase 6 envelope is 1-4
+  sessions, leaving the Phases 6-8 forecast at 49-80 sessions, or 98-320 focused
+  engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 079ca263
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-periodic-composition
+Reconciliation run: rol-phase6-special-d1472a439e2e94b8
+Active direct bindings: 1,147
+Direct bindings resolved: 1,039
+Direct bindings pending: 108
+Source handlers resolved: 475
+Source handlers pending: 87
+Additional handler families resolved: 4
+Additional direct bindings resolved: 4
+Native adapted bindings: 585
+Native adapted composable bindings: 159
+ACT_SPEC records resolved: 805
+ACT_SPEC records pending: 43
+Generated source-periodic families: 98
+Generated source-periodic mobile profiles: 104
+Generated source-periodic outcomes: 380
+Generated source-periodic actions: 621
+Complete world-tool suite: 307 passed
+Production-linked CuTest suite: 653 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 108 direct bindings across 87 source handlers. The
+next batch should group the remaining irregular mobile combat/activity mechanics or the
+small object/room command procedures behind an owner-specific typed gateway.
+
 ## 2026-08-12 - Phase 6 expanded monster and zone procedures
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
