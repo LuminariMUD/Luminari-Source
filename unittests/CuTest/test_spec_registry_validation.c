@@ -24,6 +24,7 @@
 #include "../../src/spec/spec_mobiles.h"
 #include "../../src/spec/spec_registry.h"
 #include "../../src/spec/spec_rol_conversion.h"
+#include "../../src/spec/spec_rol_lavatubes.h"
 #include "../../src/spec/spec_rol_pilot.h"
 #include "../../src/spec/spec_rol_totem.h"
 #include "../../src/spec/spec_rooms.h"
@@ -179,9 +180,9 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 103, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 106, (int)spec_registry_count());
   CuAssertIntEquals(tc, 95, (int)spec_registry_legacy_count());
-  CuAssertIntEquals(tc, 8, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 11, (int)spec_registry_typed_count());
 
   alias_count = 0;
   for (definition_index = 0; definition_index < spec_registry_count(); definition_index++)
@@ -419,6 +420,12 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Source Periodic", rol_source_periodic, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Stateful Periodic", rol_state_periodic, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Lavatubes Mobile", rol_lavatubes_mobile, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Lavatubes Object", rol_lavatubes_object, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Lavatubes Room", rol_lavatubes_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
   };
   const struct spec_definition *definition;

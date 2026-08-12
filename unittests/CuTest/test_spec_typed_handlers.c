@@ -189,7 +189,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
       banana_definition == NULL || weapon_definition == NULL || monster_combat_definition == NULL)
     return;
 
-  CuAssertIntEquals(tc, 8, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 11, (int)spec_registry_typed_count());
   CuAssertIntEquals(tc, 95, (int)spec_registry_legacy_count());
   CuAssertPtrEquals(tc, NULL, (void *)bank_definition->legacy_handler);
   CuAssertPtrEquals(tc, NULL, (void *)cloak_definition->legacy_handler);

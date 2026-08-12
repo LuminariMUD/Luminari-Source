@@ -80,6 +80,7 @@ static const char *const spec_mobile_names[] = {
     "RoL Waterdeep Peacekeeper",
     "RoL Source Periodic",
     "RoL Stateful Periodic",
+    "RoL Lavatubes Mobile",
 };
 
 static const char *const spec_object_names[] = {
@@ -117,6 +118,7 @@ static const char *const spec_object_names[] = {
     "RoL Ship",
     "RoL Ship Control",
     "RoL Weapon Proc",
+    "RoL Lavatubes Object",
 };
 
 static const char *const spec_room_names[] = {
@@ -137,6 +139,7 @@ static const char *const spec_room_names[] = {
     "RoL Command Sentinel",
     "RoL Ship Exit",
     "RoL Ship Lookout",
+    "RoL Lavatubes Room",
 };
 
 static const struct spec_owner_expected_view spec_expected_views[] = {

@@ -268,6 +268,12 @@ ADAPTED_HANDLER_NAMES = {
     "stone_golem": "RoL Command Sentinel",
     "bridge_troll": "RoL Toll Keeper",
     "ticket_taker": "RoL Toll Keeper",
+    "automaton_unblock": "RoL Lavatubes Mobile",
+    "snowvulture": "RoL Lavatubes Mobile",
+    "automaton_lever": "RoL Lavatubes Object",
+    "crystal_spike": "RoL Lavatubes Object",
+    "skeleton_key": "RoL Lavatubes Object",
+    "automaton_trapdoor": "RoL Lavatubes Room",
 }
 ADAPTED_HANDLER_NAMES.update(
     {handler_name: "RoL Source Periodic" for handler_name in PROFILE_SOURCES}

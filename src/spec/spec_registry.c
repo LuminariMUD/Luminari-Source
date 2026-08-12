@@ -27,6 +27,7 @@
 #include "spec/spec_mobile_archetypes.h"
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rol_conversion.h"
+#include "spec/spec_rol_lavatubes.h"
 #include "spec/spec_rol_pilot.h"
 #include "spec/spec_rol_totem.h"
 #include "spec/spec_rooms.h"
@@ -1496,6 +1497,45 @@ static const struct spec_definition spec_definitions[] = {
                        "for converted RoL mobiles; some profiles compose through other adapters.",
         .legacy_handler = rol_state_periodic,
     },
+    {
+        .canonical_name = "RoL Lavatubes Mobile",
+        .display_name = "RoL Lavatubes Mobile",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = janitor_events,
+        .event_count = SPEC_ARRAY_SIZE(janitor_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Runs converted snow-vulture activity and the cellar automaton reset.",
+        .typed_adapter = rol_lavatubes_mobile,
+        .typed_handler = rol_lavatubes_mobile_typed,
+    },
+    {
+        .canonical_name = "RoL Lavatubes Object",
+        .display_name = "RoL Lavatubes Object",
+        .owner_mask = SPEC_OWNER_OBJECT,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Runs the converted crystal spike, skeleton key, and automaton lever.",
+        .typed_adapter = rol_lavatubes_object,
+        .typed_handler = rol_lavatubes_object_typed,
+    },
+    {
+        .canonical_name = "RoL Lavatubes Room",
+        .display_name = "RoL Lavatubes Room",
+        .owner_mask = SPEC_OWNER_ROOM,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Closes and blocks the converted automaton-cellar trapdoor after descent.",
+        .typed_adapter = rol_lavatubes_room,
+        .typed_handler = rol_lavatubes_room_typed,
+    },
 };
 
 enum
@@ -1603,6 +1643,9 @@ enum
   SPEC_DEFINITION_ROL_WEAPON_PROC,
   SPEC_DEFINITION_ROL_SOURCE_PERIODIC,
   SPEC_DEFINITION_ROL_STATEFUL_PERIODIC,
+  SPEC_DEFINITION_ROL_LAVATUBES_MOBILE,
+  SPEC_DEFINITION_ROL_LAVATUBES_OBJECT,
+  SPEC_DEFINITION_ROL_LAVATUBES_ROOM,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -1720,6 +1763,9 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_WEAPON_PROC, -1},
     {SPEC_DEFINITION_ROL_SOURCE_PERIODIC, -1},
     {SPEC_DEFINITION_ROL_STATEFUL_PERIODIC, -1},
+    {SPEC_DEFINITION_ROL_LAVATUBES_MOBILE, -1},
+    {SPEC_DEFINITION_ROL_LAVATUBES_OBJECT, -1},
+    {SPEC_DEFINITION_ROL_LAVATUBES_ROOM, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,

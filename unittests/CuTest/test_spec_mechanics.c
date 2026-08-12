@@ -16,6 +16,7 @@
 #include "../../src/interpreter.h"
 #include "../../src/magic/spells.h"
 #include "../../src/mud_event.h"
+#include "../../src/movement/movement.h"
 #include "../../src/spec/spec_combat.h"
 #include "../../src/spec/spec_context.h"
 #include "../../src/spec/spec_cooldown.h"
@@ -24,6 +25,7 @@
 #include "../../src/spec/spec_objects.h"
 #include "../../src/spec/spec_phrase.h"
 #include "../../src/spec/spec_rol_conversion.h"
+#include "../../src/spec/spec_rol_lavatubes.h"
 #include "../../src/spec/spec_rol_totem.h"
 
 #include <limits.h>
@@ -1358,6 +1360,94 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
   CuAssertTrue(tc, !speech);
   CuAssertTrue(tc, !hide);
   CuAssertTrue(tc, rol_source_periodic_outcome_action(2007220, 2, 2, NULL, NULL) == NULL);
+}
+
+void Test_spec_rol_lavatubes_profiles_preserve_source_outcomes(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 100, rol_lavatubes_skeleton_key_break_chance(-10));
+  CuAssertIntEquals(tc, 50, rol_lavatubes_skeleton_key_break_chance(0));
+  CuAssertIntEquals(tc, 30, rol_lavatubes_skeleton_key_break_chance(4));
+  CuAssertIntEquals(tc, 0, rol_lavatubes_skeleton_key_break_chance(10));
+  CuAssertIntEquals(tc, 0, rol_lavatubes_skeleton_key_break_chance(30));
+
+  CuAssertIntEquals(tc, ROL_LAVATUBES_SNOWVULTURE_NONE, rol_lavatubes_snowvulture_outcome(2));
+  CuAssertIntEquals(tc, ROL_LAVATUBES_SNOWVULTURE_SQUEAK, rol_lavatubes_snowvulture_outcome(3));
+  CuAssertIntEquals(tc, ROL_LAVATUBES_SNOWVULTURE_FLAP, rol_lavatubes_snowvulture_outcome(4));
+  CuAssertIntEquals(tc, ROL_LAVATUBES_SNOWVULTURE_DEVOUR, rol_lavatubes_snowvulture_outcome(5));
+  CuAssertIntEquals(tc, ROL_LAVATUBES_SNOWVULTURE_NONE, rol_lavatubes_snowvulture_outcome(6));
+}
+
+void Test_spec_rol_lavatubes_automaton_preserves_exit_pair_cycle(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct command_info commands[3];
+  struct command_info *saved_complete_cmd_info;
+  struct room_direction_data upper_down;
+  struct room_direction_data lower_up;
+
+  spec_mechanics_begin(&fixture);
+  memset(commands, 0, sizeof(commands));
+  memset(&upper_down, 0, sizeof(upper_down));
+  memset(&lower_up, 0, sizeof(lower_up));
+
+  saved_complete_cmd_info = complete_cmd_info;
+  commands[1].command = "pull";
+  commands[2].command = "down";
+  commands[2].command_pointer = do_move;
+  commands[2].subcmd = DOWN;
+  complete_cmd_info = commands;
+
+  fixture.rooms[0].number = 2012158;
+  fixture.rooms[1].number = 2012159;
+  upper_down.to_room = 1;
+  lower_up.to_room = 0;
+  upper_down.exit_info = EX_ISDOOR | EX_BLOCKED;
+  lower_up.exit_info = EX_ISDOOR | EX_BLOCKED;
+  fixture.rooms[0].dir_option[DOWN] = &upper_down;
+  fixture.rooms[1].dir_option[UP] = &lower_up;
+
+  fixture.mobile_indexes[0].vnum = 2012027;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  fixture.rooms[0].people = NULL;
+  IN_ROOM(&fixture.target) = NOWHERE;
+  fixture.actor.next_in_room = NULL;
+  IN_ROOM(&fixture.actor) = 1;
+  fixture.rooms[1].people = &fixture.actor;
+
+  fixture.object_indexes[0].vnum = 2012027;
+  fixture.object_indexes[0].func = rol_lavatubes_object;
+  fixture.worn.name = "lever";
+  fixture.worn.in_room = 1;
+  GET_OBJ_TYPE(&fixture.worn) = ITEM_SWITCH;
+  GET_OBJ_VAL(&fixture.worn, 1) = 2012158;
+  fixture.rooms[1].contents = &fixture.worn;
+
+  CuAssertIntEquals(tc, TRUE,
+                    spec_gateway_command_object(&fixture.actor, &fixture.worn, 1, "lever"));
+  CuAssertTrue(tc, !EXIT_FLAGGED(&upper_down, EX_BLOCKED));
+  CuAssertTrue(tc, !EXIT_FLAGGED(&lower_up, EX_BLOCKED));
+
+  SET_BIT(upper_down.exit_info, EX_BLOCKED);
+  SET_BIT(lower_up.exit_info, EX_BLOCKED);
+  CuAssertIntEquals(tc, TRUE, spec_gateway_mobile_activity(&fixture.actor, rol_lavatubes_mobile));
+  CuAssertTrue(tc, !EXIT_FLAGGED(&upper_down, EX_BLOCKED));
+  CuAssertTrue(tc, !EXIT_FLAGGED(&lower_up, EX_BLOCKED));
+
+  fixture.rooms[1].people = NULL;
+  IN_ROOM(&fixture.actor) = 0;
+  fixture.rooms[0].people = &fixture.actor;
+  fixture.rooms[0].func = rol_lavatubes_room;
+  CuAssertIntEquals(tc, TRUE, spec_gateway_command_room(&fixture.actor, &fixture.rooms[0], 2, ""));
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.actor));
+  CuAssertTrue(tc, EXIT_FLAGGED(&upper_down, EX_CLOSED));
+  CuAssertTrue(tc, EXIT_FLAGGED(&lower_up, EX_CLOSED));
+  CuAssertTrue(tc, EXIT_FLAGGED(&upper_down, EX_BLOCKED));
+  CuAssertTrue(tc, EXIT_FLAGGED(&lower_up, EX_BLOCKED));
+
+  fixture.rooms[1].contents = NULL;
+  fixture.worn.in_room = NOWHERE;
+  complete_cmd_info = saved_complete_cmd_info;
+  spec_mechanics_end(&fixture);
 }
 
 void Test_spec_rol_state_periodic_profiles_preserve_idle_and_fighting_tables(CuTest *tc)
