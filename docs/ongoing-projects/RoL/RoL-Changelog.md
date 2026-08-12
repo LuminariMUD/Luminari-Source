@@ -9,6 +9,62 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 exact-class guild family
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled all 37 active room bindings across the 14 exact-class source guild callbacks.
+  Each source wrapper delegates to the same source training engine, so the conversion reuses the
+  already production-tested target mage, thief, cleric, and warrior family room adapters.
+- Mapped Conjurer, Elementalist, and Necromancer to the mage family; Thief and Assassin to the
+  thief family; Cleric, Druid, and Shaman to the cleric family; and Warrior, Antipaladin,
+  Mercenary, Monk, Paladin, and Ranger to the warrior family. This retains the authored role
+  boundary while honoring the target multiclass model.
+- Added exact transformation and reconciliation coverage for every callback. Room bindings add
+  no prototype flag, no new persistent procedure identity, and no new runtime code.
+- Expanded the manual guild matrix with all 37 converted destination rooms and their target
+  family expectations. No player helpfile changed because the existing `practice`, `train`, and
+  `boosts` commands and responses are unchanged.
+- Regenerated the corrected Phase 6 evidence. Resolution increases from 1,250 to 1,287 static
+  bindings and from 542 to 556 direct handlers, leaving 434 bindings across 239 handlers in 34
+  source files. The independent `ACT_SPEC` cross-check remains 798 resolved and 50 pending.
+- Retained the 18-30-session Phase 6 envelope. This is the first regular corrected-denominator
+  family sample; reforecast follows corrected batch three.
+
+### Acceptance evidence
+
+```text
+Delivery commit: PENDING_DELIVERY_COMMIT
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-exact-class-guilds
+Reconciliation run: rol-phase6-special-be53e38737ea4fc8
+Active direct bindings: 1,721
+Direct bindings resolved: 1,287
+Direct bindings pending: 434
+Source handlers resolved: 556
+Source handlers pending: 239
+Additional handler families resolved: 14
+Additional direct bindings resolved: 37
+Native adapted bindings: 798
+Native adapted composable bindings: 165
+ACT_SPEC records resolved: 798
+ACT_SPEC records pending: 50
+Complete world-tool suite: 321 passed
+Production-linked CuTest suite: 663 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: cd432fd38de79f5d39d8ca25b8426bf99d91a418
+Installed SHA-256: 19c9f96768f9cce85e9129f3ccf5ce1c57a87ea14a09d4cf500da25d314f09de
+Evidence artifact hashes: 7 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with corrected batch three from a source-local or behavior-shared family. The
+estimate will then be recalibrated from the first three corrected-denominator samples.
+
 ## 2026-08-13 - Phase 6 Tarrasque encounter
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

@@ -3,7 +3,7 @@
 - Updated: 2026-08-13
 - Environment: development
 - Branch: `master`
-- Current task: reconcile the corrected Phase 6 pending inventory; shared-family batch two next
+- Current task: reconcile the corrected Phase 6 pending inventory; corrected batch three next
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 - Phase 4 manual test matrix: [PHASE4_MANUAL_TESTING.md](PHASE4_MANUAL_TESTING.md)
 
@@ -106,6 +106,7 @@ Phase 6 scheduled-mobile commit: c8704d86
 Phase 6 Menden-fisherman commit: 33965efc
 Phase 6 special-discovery-repair commit: c2a677a8
 Phase 6 Tarrasque-encounter commit: bbdf893a
+Phase 6 exact-class-guild commit: PENDING_DELIVERY_COMMIT
 ```
 
 The authoritative ignored runs are:
@@ -156,8 +157,8 @@ Phase 5 policy-2 full audit:
   lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit
   rol-phase5-audit-cec58661a4f21a2a
 Phase 6 special reconciliation:
-  lib/rol-conversion/runs/phase6-special-20260813-tarrasque
-  rol-phase6-special-de980a28a3be846e
+  lib/rol-conversion/runs/phase6-special-20260813-exact-class-guilds
+  rol-phase6-special-be53e38737ea4fc8
 Phase 6 shared mobile: lib/rol-conversion/runs/phase6-special-20260812-shared-mobile
                        rol-phase6-special-0f4f1274d95a2941
 Phase 6 implicit race: lib/rol-conversion/runs/phase6-special-20260812-race-composition
@@ -663,9 +664,9 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,250 static bindings and leaves 471 pending. It resolves
-  542 direct handler names and leaves 253 pending across 35 source files. The pending set has
-  186 singleton handlers, 67 multi-binding handlers, and seven handlers with at least ten
+- The corrected reconciler resolves 1,287 static bindings and leaves 434 pending. It resolves
+  556 direct handler names and leaves 239 pending across 34 source files. The pending set has
+  185 singleton handlers, 54 multi-binding handlers, and seven handlers with at least ten
   bindings.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
@@ -692,41 +693,44 @@ Policy:  rol-conversion-policy-2
 - The Tarrasque batch closes four direct bindings and four handler names. It is the first
   corrected-denominator closure, but one encounter-specific sample is not enough to revise the
   18-30-session estimate; reforecast after at least three corrected batches.
+- The exact-class guild batch closes 37 room bindings across 14 source callbacks by reusing the
+  already production-tested mage, thief, cleric, and warrior family adapters. It introduces no
+  new runtime surface, procedure identity, or prototype flag and preserves target multiclass
+  admission for the migrated source roles.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
 1. Reconcile the corrected pending inventory in dependency-complete shared-runtime batches.
-2. Select the next source-local or behavior-shared group from Undermountain, planar, Avernus,
-   guild, Scornubel, and Darkhold; do not batch merely by handler name or VNUM proximity.
+2. Select corrected batch three from Undermountain, planar, Avernus, Scornubel, or Darkhold;
+   do not batch merely by handler name or VNUM proximity.
 3. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
 4. Preserve the six locked malformed record exclusions as explicit, logged
    smallest-unit exclusions.
 5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the corrected 18-30-session Phase 6 envelope and reforecast
-   when completed corrected-family batches provide stronger evidence.
+6. Measure throughput against the corrected 18-30-session Phase 6 envelope and reforecast after
+   corrected batch three provides the minimum three-sample evidence.
 
 ## Latest session handoff
 
-- Added the typed `RoL Tarrasque Encounter` procedure and the narrowly advertised mobile-death
-  gateway. The implementation covers source mobile activity/combat/death, object auto-pulse and
-  corpse-entry command behavior, full dependency validation, and ordinary-corpse suppression.
-- Added converter dispositions and required prototype flags for all four Tarrasque callbacks;
-  registry, owner-aware OLC, persistence, event-contract, loot-weight, corpse-alias, gateway,
-  typed-handler, transformation, and reconciliation tests cover the new paths.
+- Mapped all 14 pending exact-class guild callbacks onto the four existing target class-family
+  room adapters. The 37 source room bindings retain source role boundaries after migration to
+  the target multiclass model and require no prototype flags or new runtime surface.
+- Added exact transformation and reconciliation coverage for every callback and retained the
+  existing production-linked family-admission coverage for the reused runtime procedures.
 - Regenerated and hash-verified the authoritative Phase 6 bundle at
-  `lib/rol-conversion/runs/phase6-special-20260813-tarrasque`. A same-timestamp repeat was
-  byte-identical and reproduced run ID `rol-phase6-special-de980a28a3be846e`.
+  `lib/rol-conversion/runs/phase6-special-20260813-exact-class-guilds`. A same-timestamp repeat
+  was byte-identical and reproduced run ID `rol-phase6-special-be53e38737ea4fc8`.
 - The corrected Phase 6 denominator remains 1,721 live static plus 5,531 resolved dynamic
-  binding instances. The Tarrasque closure raises static resolution to 1,250 and handler
-  resolution to 542, leaving 471 bindings across 253 handlers in 35 source files.
-- Final validation passed: 319 world-tool tests, 663 production-linked CuTests, zero
+  binding instances. This closure raises static resolution to 1,287 and handler resolution to
+  556, leaving 434 bindings across 239 handlers in 34 source files.
+- Final validation passed: 321 world-tool tests, 663 production-linked CuTests, zero
   documentation findings, a warning-free Autotools build/test/install, and no root-level
-  `circle`. Installed build ID `1735ea1cadc25a1776aa09ec56f0ef3c6afde2e6`; SHA-256
-  `e303a922907e55964b8cde3d596fccff509d6f9cdf809c6224c4c31377f6c89e`.
-- No player helpfile changed: the batch adds no new player command or syntax; the encounter's
-  existing `enter` behavior and staff verification contract are documented in the manual matrix.
-- Next, select and implement the second corrected-denominator source-local or behavior-shared
-  batch, then reforecast only after at least three corrected batches provide measured throughput.
+  `circle`. Installed build ID `cd432fd38de79f5d39d8ca25b8426bf99d91a418`; SHA-256
+  `19c9f96768f9cce85e9129f3ccf5ce1c57a87ea14a09d4cf500da25d314f09de`.
+- No player helpfile changed: the batch adds no command, syntax, or player-visible runtime;
+  the existing guild commands and expanded staff verification matrix cover the reused adapters.
+- Next, complete corrected batch three and use the Tarrasque, exact-class-guild, and third-batch
+  samples to reforecast the remaining Phase 6 work.

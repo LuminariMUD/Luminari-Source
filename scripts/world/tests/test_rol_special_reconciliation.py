@@ -538,6 +538,30 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual("RoL Tarrasque Encounter", disposition["target"])
 
+  def test_exact_class_guild_family_has_explicit_dispositions(self) -> None:
+    expected_targets = {
+        "guild_antipaladin": "RoL Warrior Guild Room",
+        "guild_assassin": "RoL Thief Guild Room",
+        "guild_cleric": "RoL Cleric Guild Room",
+        "guild_conjurer": "RoL Mage Guild Room",
+        "guild_druid": "RoL Cleric Guild Room",
+        "guild_elementalist": "RoL Mage Guild Room",
+        "guild_mercenary": "RoL Warrior Guild Room",
+        "guild_monk": "RoL Warrior Guild Room",
+        "guild_necromancer": "RoL Mage Guild Room",
+        "guild_paladin": "RoL Warrior Guild Room",
+        "guild_ranger": "RoL Warrior Guild Room",
+        "guild_shaman": "RoL Cleric Guild Room",
+        "guild_thief": "RoL Thief Guild Room",
+        "guild_warrior": "RoL Warrior Guild Room",
+    }
+
+    for handler, target in expected_targets.items():
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual(target, disposition["target"])
+
   def test_residual_monster_combat_batch_has_explicit_dispositions(self) -> None:
     handlers = (
         "Tiamat_Crimson_Fury",
@@ -604,11 +628,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_250, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(471, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(542, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(253, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(761, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_287, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(434, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(556, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(239, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(798, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           165, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

@@ -377,7 +377,7 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 
 ### Phase 6 converted class-family guild rooms
 
-- Twelve converted rooms use `RoL Mage Guild Room`, `RoL Thief Guild Room`, `RoL Warrior
+- Forty-nine converted rooms use `RoL Mage Guild Room`, `RoL Thief Guild Room`, `RoL Warrior
   Guild Room`, `RoL Cleric Guild Room`, or `RoL Bard Guild Room`. These procedures retain
   the source family gate while delegating accepted commands to Luminari's current training
   service.
@@ -391,6 +391,18 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   unrelated commands retain the ordinary guild procedure behavior.
 - Repeat in Bard rooms 2020957 and 2094961. A Bard level is required; source Battlechanter
   maps to the target Bard class.
+- Verify the 37 exact-class source guild bindings through the same target multiclass families.
+  Mage-family rooms are 2010691, 2035348, 2035362, 2046057, 2046082, and 2091723;
+  thief-family rooms are 2035331, 2035341, 2081044, 2081274, 2091647, and 2091648;
+  cleric-family rooms are 2010698, 2021869, 2035302, 2046062, 2046069, 2046071,
+  2091707, 2091714, and 2091730; and warrior-family rooms are 2010696, 2010719,
+  2021800, 2035319, 2046067, 2046073, 2046081, 2046248, 2046259, 2046298,
+  2091373, 2091462, 2091695, 2091702, 2091717, and 2091726.
+- The mapping preserves the source role after the target class-model migration: Conjurer,
+  Elementalist, and Necromancer use the mage family; Thief and Assassin use the thief family;
+  Cleric, Druid, and Shaman use the cleric family; and Warrior, Antipaladin, Mercenary, Monk,
+  Paladin, and Ranger use the warrior family. Confirm an unrelated family is refused and each
+  listed target family is accepted. No room procedure flag is required.
 
 ### Phase 6 converted Waterdeep guild rooms
 
@@ -1133,8 +1145,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,250 are resolved and 471 remain. Of 795 distinct
-  direct source handlers, 542 are resolved and 253 remain. Of 848 `ACT_SPEC` records, 798
+  of the 1,721 active direct bindings, 1,287 are resolved and 434 remain. Of 795 distinct
+  direct source handlers, 556 are resolved and 239 remain. Of 848 `ACT_SPEC` records, 798
   are resolved and 50 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

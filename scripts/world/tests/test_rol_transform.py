@@ -120,6 +120,51 @@ class RolTransformTests(unittest.TestCase):
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
     )
 
+  def test_exact_class_guild_bindings_reuse_target_family_adapters(self) -> None:
+    expected_names = {
+        "guild_antipaladin": "RoL Warrior Guild Room",
+        "guild_assassin": "RoL Thief Guild Room",
+        "guild_cleric": "RoL Cleric Guild Room",
+        "guild_conjurer": "RoL Mage Guild Room",
+        "guild_druid": "RoL Cleric Guild Room",
+        "guild_elementalist": "RoL Mage Guild Room",
+        "guild_mercenary": "RoL Warrior Guild Room",
+        "guild_monk": "RoL Warrior Guild Room",
+        "guild_necromancer": "RoL Mage Guild Room",
+        "guild_paladin": "RoL Warrior Guild Room",
+        "guild_ranger": "RoL Warrior Guild Room",
+        "guild_shaman": "RoL Cleric Guild Room",
+        "guild_thief": "RoL Thief Guild Room",
+        "guild_warrior": "RoL Warrior Guild Room",
+    }
+    bindings = [
+        {
+            "basename": "guild-family",
+            "record_type": "room",
+            "source_vnum": 46_000 + index,
+            "source_handler": handler,
+        }
+        for index, handler in enumerate(expected_names)
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+    handlers_by_vnum = {
+        46_000 + index: handler for index, handler in enumerate(expected_names)
+    }
+    compiled_by_handler = {
+        handlers_by_vnum[binding.source_vnum]: binding for binding in compiled.native_bindings
+    }
+
+    self.assertEqual(14, len(compiled.native_bindings))
+    self.assertEqual(expected_names.keys(), compiled_by_handler.keys())
+    for handler, persisted_name in expected_names.items():
+      binding = compiled_by_handler[handler]
+      self.assertEqual(persisted_name, binding.persisted_name)
+      self.assertEqual((), binding.required_flag_bits)
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_color_and_line_endings_are_canonicalized(self) -> None:
     text, diagnostics = convert_text("&+RRed&N\r\nplain")
     self.assertEqual("@RRed@n\nplain", text)
