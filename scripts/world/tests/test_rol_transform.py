@@ -917,6 +917,67 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("SOURCE_INERT_EXCLUDED", rogue["strategy"])
     self.assertIn("NPC_HIT", rogue["reason"])
 
+  def test_artifact_handlers_reuse_modern_targets_and_unsafe_backdoor_is_excluded(self) -> None:
+    artifact_targets = {
+        1043: 169901,
+        1044: 169902,
+        1042: 169903,
+        1046: 169904,
+        1050: 169905,
+        1007: 169906,
+        1009: 169906,
+        1048: 169907,
+        5343: 169908,
+        1008: 169909,
+        19730: 169910,
+    }
+    handlers = {
+        1043: "OakenDefender",
+        1044: "Amaukekel",
+        1042: "Fade2",
+        1046: "HornOfHenekar",
+        1050: "Doombringer",
+        1007: "Kelrarin",
+        1009: "Kelrarin",
+        1048: "Kelrom",
+        5343: "Gesen",
+        1008: "tiamat_stinger",
+        19730: "New_Avernus",
+        1045: "NeverLooseItem",
+    }
+    bindings = [
+        {
+            "basename": "artifacts",
+            "record_type": "object",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in handlers.items()
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: artifact_targets.get(vnum, 2_000_000 + vnum),
+        [],
+    )
+
+    self.assertEqual([], compiled.native_bindings)
+    self.assertEqual([], compiled.triggers)
+    reconciled = [
+        row for row in compiled.dispositions if row["strategy"] == "NATIVE_RECONCILED"
+    ]
+    self.assertEqual(11, len(reconciled))
+    self.assertEqual(
+        sorted(artifact_targets.values()),
+        sorted(row["target_vnum"] for row in reconciled),
+    )
+    unsafe = next(
+        row for row in compiled.dispositions if row["source_handler"] == "NeverLooseItem"
+    )
+    self.assertEqual("SOURCE_UNSAFE_EXCLUDED", unsafe["strategy"])
+    self.assertIn("currency", unsafe["reason"])
+
   def test_conjured_death_binding_uses_composable_mobile_flag(self) -> None:
     binding = {
         "basename": "misc_code",

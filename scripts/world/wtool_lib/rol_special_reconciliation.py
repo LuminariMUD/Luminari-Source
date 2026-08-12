@@ -22,6 +22,8 @@ from .rol_special import (
     COMPOSABLE_ROOM_HANDLER_FLAGS,
     INERT_HANDLERS,
     NATIVE_HANDLER_NAMES,
+    RECONCILED_OBJECT_RUNTIME_HANDLERS,
+    UNSAFE_HANDLERS,
 )
 
 
@@ -307,12 +309,26 @@ def handler_disposition(handler: str) -> dict[str, str]:
         "strategy": "NATIVE_ADAPTED_COMPOSABLE",
         "target": f"room flag {COMPOSABLE_ROOM_HANDLER_FLAGS[handler]}",
     }
+  if handler in RECONCILED_OBJECT_RUNTIME_HANDLERS:
+    _, target = RECONCILED_OBJECT_RUNTIME_HANDLERS[handler]
+    return {
+        "status": "resolved",
+        "strategy": "NATIVE_RECONCILED",
+        "target": target,
+    }
   if handler in INERT_HANDLERS:
     return {
         "status": "resolved",
         "strategy": "SOURCE_INERT_EXCLUDED",
         "target": "none",
         "reason": INERT_HANDLERS[handler],
+    }
+  if handler in UNSAFE_HANDLERS:
+    return {
+        "status": "resolved",
+        "strategy": "SOURCE_UNSAFE_EXCLUDED",
+        "target": "none",
+        "reason": UNSAFE_HANDLERS[handler],
     }
   return {"status": "pending", "strategy": "PENDING_TRACE", "target": "unresolved"}
 

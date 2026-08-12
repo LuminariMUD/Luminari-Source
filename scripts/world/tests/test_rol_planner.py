@@ -75,6 +75,35 @@ class RolPlannerTests(unittest.TestCase):
     self.assertIn("lineage", confirmed)
     self.assertEqual(1.0, confirmed["lineage"]["legacy_formula_ratio"])
 
+  def test_policy_confirmed_equivalents_reuse_one_authoritative_target(self) -> None:
+    first = source_record("obj:1007:x:1", "obj", 1007, "artifacts")
+    second = source_record("obj:1009:x:2", "obj", 1009, "artifacts")
+    self.policy["identity"]["confirmed_target_equivalents"] = [
+        {
+            "source_kind": "obj",
+            "source_vnum": source_vnum,
+            "target_type": "object",
+            "target_vnum": 169906,
+            "evidence": ["reviewed artifact contract"],
+        }
+        for source_vnum in (1007, 1009)
+    ]
+
+    actions, identities, _ = build_record_actions(
+        [first, second],
+        [candidate_row(first), candidate_row(second)],
+        self.policy,
+        defaultdict(dict),
+    )
+
+    self.assertEqual(["KEEP", "KEEP"], [row["action"] for row in actions])
+    self.assertEqual([169906, 169906], [row["destination_vnum"] for row in actions])
+    self.assertTrue(all(row["emission_ready"] for row in actions))
+    self.assertTrue(
+        all(row["selected_target"]["policy_equivalent"] for row in actions)
+    )
+    self.assertEqual([169906, 169906], [row["destination_vnum"] for row in identities])
+
 
 if __name__ == "__main__":
   unittest.main()

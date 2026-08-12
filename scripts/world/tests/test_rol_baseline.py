@@ -95,7 +95,8 @@ class RolBaselineTests(unittest.TestCase):
 
   def test_versioned_policy_is_ascii_and_locked(self) -> None:
     policy = load_rol_policy(self.repo_root)
-    self.assertEqual("rol-conversion-policy-1", policy["policy_version"])
+    self.assertEqual("rol-conversion-policy-2", policy["policy_version"])
+    self.assertEqual(11, len(policy["identity"]["confirmed_target_equivalents"]))
     self.assertEqual("!", policy["quest"]["approval_marker"])
     self.assertFalse(policy["apply"]["implicit_overwrite"])
 

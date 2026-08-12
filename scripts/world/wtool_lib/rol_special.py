@@ -199,6 +199,32 @@ INERT_HANDLERS = {
     ),
 }
 
+# This source callback exposes unrestricted staff/debug commands through an
+# ordinary wearable object. The object data remains convertible, but the
+# callback must never be reproduced or attached in the target.
+UNSAFE_HANDLERS = {
+    "NeverLooseItem": (
+        "source callback exposes unrestricted teleport, healing, resurrection, currency, "
+        "permanent-stat, forced-death, invisibility, and unlock commands"
+    ),
+}
+
+# These source object callbacks are already represented by the target artifact
+# subsystem. Their source identities resolve to these canonical target objects,
+# so conversion neither emits a duplicate prototype nor persists a second proc.
+RECONCILED_OBJECT_RUNTIME_HANDLERS = {
+    "OakenDefender": (169901, "modern artifact subsystem: Trorxek"),
+    "Amaukekel": (169902, "modern artifact subsystem: Amaukekel"),
+    "Fade2": (169903, "modern artifact subsystem: Fade"),
+    "HornOfHenekar": (169904, "modern artifact subsystem: Horn of Henekar"),
+    "Doombringer": (169905, "modern artifact subsystem: Doombringer"),
+    "Kelrarin": (169906, "modern artifact subsystem: Kelrarin's Hammer"),
+    "Kelrom": (169907, "modern artifact subsystem: Kelrom"),
+    "Gesen": (169908, "modern artifact subsystem: Gesen"),
+    "tiamat_stinger": (169909, "modern artifact subsystem: Tiamat's Stinger"),
+    "New_Avernus": (169910, "modern artifact subsystem: Avernus"),
+}
+
 # These source death callbacks coexist with other mobile behavior. Dedicated
 # target flags preserve their death messaging and corpse policy without consuming
 # the ordinary persisted special-procedure slot.
@@ -1063,6 +1089,18 @@ def compile_special_bindings(
       disposition = _disposition(row, "NATIVE_ADAPTED_COMPOSABLE", target_vnum)
       disposition["target"] = COMPOSABLE_MOBILE_RUNTIME_HANDLERS[handler]
       dispositions.append(disposition)
+    elif handler in RECONCILED_OBJECT_RUNTIME_HANDLERS:
+      if record_type != "object":
+        raise ValueError(f"reconciled object handler {handler!r} owns {record_type!r}")
+      expected_vnum, target = RECONCILED_OBJECT_RUNTIME_HANDLERS[handler]
+      if target_vnum != expected_vnum:
+        raise ValueError(
+            f"reconciled object handler {handler!r} resolved to {target_vnum}, "
+            f"expected {expected_vnum}"
+        )
+      disposition = _disposition(row, "NATIVE_RECONCILED", target_vnum)
+      disposition["target"] = target
+      dispositions.append(disposition)
     elif handler in COMPOSABLE_ROOM_HANDLER_FLAGS:
       if record_type != "room":
         raise ValueError(f"composable room handler {handler!r} owns {record_type!r}")
@@ -1080,6 +1118,10 @@ def compile_special_bindings(
     elif handler in INERT_HANDLERS:
       disposition = _disposition(row, "SOURCE_INERT_EXCLUDED", target_vnum)
       disposition["reason"] = INERT_HANDLERS[handler]
+      dispositions.append(disposition)
+    elif handler in UNSAFE_HANDLERS:
+      disposition = _disposition(row, "SOURCE_UNSAFE_EXCLUDED", target_vnum)
+      disposition["reason"] = UNSAFE_HANDLERS[handler]
       dispositions.append(disposition)
     else:
       grouped[handler].append(row)

@@ -185,6 +185,40 @@ def _seed_candidate(row: dict[str, Any]) -> dict[str, Any] | None:
   )
 
 
+def _policy_equivalents(policy: dict[str, Any]) -> dict[tuple[str, int], dict[str, Any]]:
+  """Return validated, evidence-backed source-to-target identity aliases."""
+
+  equivalents: dict[tuple[str, int], dict[str, Any]] = {}
+  for item in policy.get("identity", {}).get("confirmed_target_equivalents", []):
+    try:
+      source_kind = str(item["source_kind"])
+      source_vnum = int(item["source_vnum"])
+      target_type = str(item["target_type"])
+      target_vnum = int(item["target_vnum"])
+      evidence = [str(value) for value in item["evidence"]]
+    except (KeyError, TypeError, ValueError) as error:
+      raise RolPlanError(f"invalid confirmed target equivalent: {item!r}") from error
+    if source_kind not in _ENTITY_KINDS | {"zon"}:
+      raise RolPlanError(f"unsupported equivalent source kind: {source_kind}")
+    if target_type != _TARGET_TYPES[source_kind]:
+      raise RolPlanError(
+          f"equivalent target type {target_type!r} does not match {source_kind!r}"
+      )
+    if source_vnum < 0 or target_vnum < 0 or not evidence:
+      raise RolPlanError("confirmed target equivalents require non-negative VNUMs and evidence")
+    key = (source_kind, source_vnum)
+    if key in equivalents:
+      raise RolPlanError(f"duplicate confirmed target equivalent for {source_kind} {source_vnum}")
+    equivalents[key] = {
+        "target_type": target_type,
+        "target_vnum": target_vnum,
+        "evidence": evidence,
+        "confirmed_seed": True,
+        "policy_equivalent": True,
+    }
+  return equivalents
+
+
 def _zone_allocations(
     records: list[dict[str, Any]], policy: dict[str, Any]
 ) -> dict[int, int]:
@@ -241,6 +275,7 @@ def build_record_actions(
   if len(candidates) != len(records):
     raise RolPlanError("source record and candidate counts differ")
   confirmed_packages = confirmed_lineage_packages(records, candidates)
+  policy_equivalents = _policy_equivalents(policy)
   zone_allocations = _zone_allocations(records, policy)
   duplicate_qst: Counter[int] = Counter(
       record["vnum"] for record in records if record["kind"] == "qst"
@@ -255,12 +290,18 @@ def build_record_actions(
     row = candidates[record["record_id"]]
     selected = _seed_candidate(row)
     formula = _formula_candidate(row)
+    equivalent = policy_equivalents.get((record["kind"], record["vnum"]))
     source_excluded = record.get("values", {}).get("source_disposition") == "EXCLUDE"
     if source_excluded:
       action = "EXCLUDE"
       destination = None
       rationale = record["values"]["source_exclusion_reason"]
       selected = None
+    elif equivalent is not None:
+      action = "KEEP"
+      selected = equivalent
+      destination = equivalent["target_vnum"]
+      rationale = "policy-confirmed target equivalent; preserve authoritative target behavior"
     elif duplicate_source[(record["kind"], record["vnum"])] > 1:
       action = "MERGE"
       selected = selected or formula
@@ -397,6 +438,13 @@ def _validate_actions(actions: list[dict[str, Any]], policy: dict[str, Any]) -> 
       continue
     source_keys = {(item["source_kind"], item["source_vnum"]) for item in colliding}
     if len(source_keys) == 1 and all(item["action"] in {"KEEP", "MERGE"} for item in colliding):
+      continue
+    if all(
+        item["action"] in {"KEEP", "MERGE"}
+        and item["selected_target"] is not None
+        and item["selected_target"].get("policy_equivalent")
+        for item in colliding
+    ):
       continue
     raise RolPlanError(
         f"identity collision at {key[0]} {key[1]} across {len(colliding)} source records"

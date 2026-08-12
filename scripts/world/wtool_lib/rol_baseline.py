@@ -247,7 +247,7 @@ def load_rol_policy(repo_root: Path) -> dict[str, Any]:
     policy = json.loads(path.read_text(encoding="ascii"))
   except (OSError, UnicodeError, json.JSONDecodeError) as error:
     raise RolBaselineError(f"cannot load versioned RoL conversion policy: {error}") from error
-  if policy.get("policy_version") != "rol-conversion-policy-1":
+  if policy.get("policy_version") != "rol-conversion-policy-2":
     raise RolBaselineError("unsupported RoL conversion policy version")
   return policy
 

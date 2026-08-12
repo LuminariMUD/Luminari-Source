@@ -40,6 +40,107 @@
     "serialization": "canonical_sorted_json"
   },
   "identity": {
+    "confirmed_target_equivalents": [
+      {
+        "evidence": [
+          "target artifact subsystem explicitly ports and modernizes the RoL Trorxek contract"
+        ],
+        "source_kind": "obj",
+        "source_vnum": 1043,
+        "target_type": "object",
+        "target_vnum": 169901
+      },
+      {
+        "evidence": [
+          "target artifact subsystem explicitly ports and modernizes the RoL Amaukekel contract"
+        ],
+        "source_kind": "obj",
+        "source_vnum": 1044,
+        "target_type": "object",
+        "target_vnum": 169902
+      },
+      {
+        "evidence": [
+          "target artifact subsystem explicitly ports and modernizes the RoL Fade contract"
+        ],
+        "source_kind": "obj",
+        "source_vnum": 1042,
+        "target_type": "object",
+        "target_vnum": 169903
+      },
+      {
+        "evidence": [
+          "target artifact subsystem explicitly ports and modernizes the RoL Horn of Henekar contract"
+        ],
+        "source_kind": "obj",
+        "source_vnum": 1046,
+        "target_type": "object",
+        "target_vnum": 169904
+      },
+      {
+        "evidence": [
+          "target artifact subsystem explicitly ports and modernizes the RoL Doombringer contract"
+        ],
+        "source_kind": "obj",
+        "source_vnum": 1050,
+        "target_type": "object",
+        "target_vnum": 169905
+      },
+      {
+        "evidence": [
+          "target artifact subsystem reconciles both RoL Kelrarin prototype variants"
+        ],
+        "source_kind": "obj",
+        "source_vnum": 1007,
+        "target_type": "object",
+        "target_vnum": 169906
+      },
+      {
+        "evidence": [
+          "target artifact subsystem reconciles both RoL Kelrarin prototype variants"
+        ],
+        "source_kind": "obj",
+        "source_vnum": 1009,
+        "target_type": "object",
+        "target_vnum": 169906
+      },
+      {
+        "evidence": [
+          "target artifact subsystem explicitly ports and modernizes the RoL Kelrom contract"
+        ],
+        "source_kind": "obj",
+        "source_vnum": 1048,
+        "target_type": "object",
+        "target_vnum": 169907
+      },
+      {
+        "evidence": [
+          "target artifact subsystem explicitly ports and modernizes the RoL Gesen contract"
+        ],
+        "source_kind": "obj",
+        "source_vnum": 5343,
+        "target_type": "object",
+        "target_vnum": 169908
+      },
+      {
+        "evidence": [
+          "target artifact subsystem explicitly ports and modernizes the RoL Tiamat's Stinger contract"
+        ],
+        "source_kind": "obj",
+        "source_vnum": 1008,
+        "target_type": "object",
+        "target_vnum": 169909
+      },
+      {
+        "evidence": [
+          "target artifact subsystem explicitly ports and modernizes the RoL Avernus contract"
+        ],
+        "source_kind": "obj",
+        "source_vnum": 19730,
+        "target_type": "object",
+        "target_vnum": 169910
+      }
+    ],
     "new_entity_range": {
       "end": 2999999,
       "offset": 2000000,
@@ -57,7 +158,7 @@
       "smallest_unit_exclusion"
     ]
   },
-  "policy_version": "rol-conversion-policy-1",
+  "policy_version": "rol-conversion-policy-2",
   "quest": {
     "approval_marker": "!",
     "builder_approval_required": false
