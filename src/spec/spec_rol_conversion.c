@@ -19,6 +19,7 @@
 #include "interpreter.h"
 #include "magic/domains_schools.h"
 #include "magic/spells.h"
+#include "mob/mob_utils.h"
 #include "mud_event.h"
 #include "mudlim.h"
 #include "spec_combat.h"
@@ -29,6 +30,10 @@
 #define ROL_GATE_MAX_SUMMONS 5
 #define ROL_GUILD_CLASS(class_id) (1ULL << (class_id))
 #define ROL_GUILD_RACE(race_id) (1ULL << (race_id))
+#define ROL_MAJOR_BEHOLDER_EYES 10
+#define ROL_MAJOR_BEHOLDER_COOLDOWN_BITS 2
+#define ROL_MAJOR_BEHOLDER_COOLDOWN_MASK 3U
+#define ROL_MAJOR_BEHOLDER_COOLDOWN_ROUNDS 3
 
 struct rol_guild_guard_rule
 {
@@ -905,6 +910,154 @@ int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argumen
   act("$n humiliates you, and blocks your way.", FALSE, guard, NULL, ch, TO_VICT);
   act("$n humiliates $N, and blocks $S way.", FALSE, guard, NULL, ch, TO_NOTVICT);
   return TRUE;
+}
+
+int rol_major_beholder_eye_spell(int eye)
+{
+  static const int eye_spells[ROL_MAJOR_BEHOLDER_EYES] = {
+      SPELL_FIREBALL,
+      SPELL_ACID_ARROW,
+      SPELL_SLOW,
+      SPELL_RAY_OF_ENFEEBLEMENT,
+      PSIONIC_WITHER,
+      SPELL_DISPEL_MAGIC,
+      SPELL_PRISMATIC_SPRAY,
+      SPELL_HOLD_MONSTER,
+      SPELL_HARM,
+      SPELL_FINGER_OF_DEATH,
+  };
+
+  if (eye < 0 || eye >= ROL_MAJOR_BEHOLDER_EYES)
+    return -1;
+  return eye_spells[eye];
+}
+
+int rol_major_beholder_eye_cooldown(int state, int eye)
+{
+  unsigned int shift;
+
+  if (eye < 0 || eye >= ROL_MAJOR_BEHOLDER_EYES)
+    return -1;
+  shift = (unsigned int)eye * ROL_MAJOR_BEHOLDER_COOLDOWN_BITS;
+  return (int)(((unsigned int)state >> shift) & ROL_MAJOR_BEHOLDER_COOLDOWN_MASK);
+}
+
+static int rol_major_beholder_set_cooldown(int state, int eye, int rounds)
+{
+  unsigned int encoded;
+  unsigned int shift;
+
+  if (eye < 0 || eye >= ROL_MAJOR_BEHOLDER_EYES)
+    return state;
+
+  shift = (unsigned int)eye * ROL_MAJOR_BEHOLDER_COOLDOWN_BITS;
+  encoded = (unsigned int)state & ~(ROL_MAJOR_BEHOLDER_COOLDOWN_MASK << shift);
+  encoded |= ((unsigned int)MIN(ROL_MAJOR_BEHOLDER_COOLDOWN_ROUNDS, MAX(0, rounds)) << shift);
+  return (int)encoded;
+}
+
+int rol_major_beholder_advance_cooldowns(int state, unsigned int fired_eye_mask)
+{
+  int cooldown;
+  int eye;
+
+  for (eye = 0; eye < ROL_MAJOR_BEHOLDER_EYES; eye++)
+  {
+    cooldown = rol_major_beholder_eye_cooldown(state, eye);
+    if ((fired_eye_mask & (1U << eye)) != 0)
+      cooldown = ROL_MAJOR_BEHOLDER_COOLDOWN_ROUNDS;
+    else if (cooldown > 0)
+      cooldown--;
+    state = rol_major_beholder_set_cooldown(state, eye, cooldown);
+  }
+  return state;
+}
+
+static struct char_data *rol_major_beholder_target(struct char_data *ch)
+{
+  struct char_data *target;
+  int target_count = 0;
+
+  target = npc_find_target(ch, &target_count);
+  if (target == NULL)
+    target = FIGHTING(ch);
+
+  if (target != NULL && IS_PET(target) && target->master != NULL &&
+      IN_ROOM(target->master) == IN_ROOM(target))
+    target = target->master;
+
+  if (spec_context_validate_combat_target(ch, target, false) != SPEC_CONTEXT_VALID)
+    return NULL;
+  return target;
+}
+
+static bool rol_major_beholder_mass_dispel(struct char_data *ch)
+{
+  struct char_data *target;
+  struct char_data *next;
+  bool cast = false;
+
+  for (target = world[IN_ROOM(ch)].people; target != NULL; target = next)
+  {
+    next = target->next_in_room;
+    if (target == ch || (IS_NPC(target) && !IS_PET(target)))
+      continue;
+    call_magic(ch, target, NULL, SPELL_DISPEL_MAGIC, 0, GET_LEVEL(ch), CAST_INNATE);
+    cast = true;
+  }
+  return cast;
+}
+
+static bool rol_major_beholder_cast_eye(struct char_data *ch, struct char_data *target, int eye)
+{
+  static const char *ordinals[ROL_MAJOR_BEHOLDER_EYES] = {
+      "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth",
+  };
+  char message[MAX_INPUT_LENGTH];
+
+  snprintf(message, sizeof(message), "$n fixes $s %s eyestalk upon $N!", ordinals[eye]);
+  act(message, FALSE, ch, NULL, target, TO_NOTVICT);
+  snprintf(message, sizeof(message), "$n fixes $s %s eyestalk upon you!", ordinals[eye]);
+  act(message, FALSE, ch, NULL, target, TO_VICT);
+
+  if (eye == 5)
+    return rol_major_beholder_mass_dispel(ch);
+
+  call_magic(ch, target, NULL, rol_major_beholder_eye_spell(eye), 0, GET_LEVEL(ch), CAST_INNATE);
+  if (eye == 3 && spec_context_validate_combat_target(ch, target, false) == SPEC_CONTEXT_VALID)
+    call_magic(ch, target, NULL, SPELL_FEEBLEMIND, 0, GET_LEVEL(ch), CAST_INNATE);
+  return true;
+}
+
+int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *target;
+  bool fired = false;
+  int eye;
+  int state;
+
+  UNUSED(me);
+  UNUSED(argument);
+
+  if (ch == NULL || !IS_NPC(ch) || cmd || FIGHTING(ch) == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return FALSE;
+
+  state = rol_major_beholder_advance_cooldowns(ch->mob_specials.proc_fired, 0);
+  for (eye = 0; eye < ROL_MAJOR_BEHOLDER_EYES; eye++)
+  {
+    if (rol_major_beholder_eye_cooldown(state, eye) != 0 || rand_number(0, 2) != 0)
+      continue;
+    if ((target = rol_major_beholder_target(ch)) == NULL)
+      break;
+    if (rol_major_beholder_cast_eye(ch, target, eye))
+    {
+      state = rol_major_beholder_set_cooldown(state, eye, ROL_MAJOR_BEHOLDER_COOLDOWN_ROUNDS);
+      fired = true;
+    }
+  }
+
+  ch->mob_specials.proc_fired = state;
+  return fired;
 }
 
 int rol_shadow_giant_spook_damage(bool save_succeeded)

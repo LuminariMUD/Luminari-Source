@@ -179,8 +179,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 73, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 71, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 74, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 72, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -346,6 +346,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Guild Guard", rol_guild_guard, SPEC_OWNER_MOBILE,
        SPEC_EVENT_COMMAND | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Major Beholder", rol_major_beholder, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN,
+       SPEC_BINDING_SOURCE_WORLD},
       {"RoL Shaman Totem", rol_shaman_totem, SPEC_OWNER_OBJECT,
        SPEC_EVENT_COMMAND | SPEC_EVENT_ITEM_IDENTIFY, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Ship", rol_ship, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND, SPEC_BINDING_SOURCE_WORLD},

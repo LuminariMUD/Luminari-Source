@@ -25,6 +25,7 @@ int rol_magic_pool(struct char_data *ch, void *me, int cmd, const char *argument
 int rol_auto_distributor(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_shadow_giant(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argument);
 
 bool rol_corpse_devourer_can_consume(const struct obj_data *obj);
 int rol_poison_bite_roll_ceiling(int level);
@@ -34,6 +35,9 @@ bool rol_shadow_giant_spook_immune(struct char_data *target);
 bool rol_shadow_giant_stun_succeeds(int level, int chance_roll, int penalty_roll);
 bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data *ch);
 bool rol_guild_guard_protects(int room_vnum);
+int rol_major_beholder_eye_spell(int eye);
+int rol_major_beholder_eye_cooldown(int state, int eye);
+int rol_major_beholder_advance_cooldowns(int state, unsigned int fired_eye_mask);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);
 bool rol_automatic_race_activity(struct char_data *ch);
 void rol_automatic_race_combat_turn(struct char_data *ch);

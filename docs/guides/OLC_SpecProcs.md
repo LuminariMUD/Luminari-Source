@@ -66,6 +66,14 @@ class and race gates, acts only from the guard's original load room, and retalia
 guards are attacked. Its room rules are converter-owned; use the ordinary `Guild Guard` procedure
 for new Luminari guild entrances.
 
+`RoL Major Beholder` is mobile-owned and requires `MOB_SPEC`. Its ten source eye identities each
+have an independent three-combat-turn cooldown and a one-in-three chance to fire while ready. The
+target-native mappings cover fire, acid, slow, enfeeblement/feeblemind, wither, room-wide dispel,
+prismatic spray, hold monster, harm, and finger of death. Pet targets redirect to an eligible master
+in the room. The source engine's critical-hit callback has no target combat-turn equivalent, so its
+all-unused-eyes critical burst is not available. Use this converter-owned procedure only for the
+converted `major_beholder` family.
+
 `RoL Shaman Totem` is object-owned and must be held or wielded. It preserves the 21 converted
 totem identities, permanent player/object bonding, source-race gating, three summon attempts per
 seven MUD days, and a single active spirit. Because the source Shaman class maps to Cleric, a

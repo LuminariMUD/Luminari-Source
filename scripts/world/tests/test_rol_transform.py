@@ -1282,6 +1282,46 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn(123, decode_tokens(mobile_result.records[0].action_flags).bits)
     self.assertNotIn(0, decode_tokens(mobile_result.records[0].action_flags).bits)
 
+  def test_major_beholder_binding_requires_mobile_combat_gateway(self) -> None:
+    binding = {
+        "basename": "caves",
+        "record_type": "mobile",
+        "source_vnum": 80013,
+        "source_handler": "major_beholder",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    native = compiled.native_bindings[0]
+    self.assertEqual("RoL Major Beholder", native.persisted_name)
+    self.assertEqual((0,), native.required_flag_bits)
+    self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[0]["strategy"])
+
+    source = self._source_record(
+        "mob",
+        b"#80013\nmajor beholder~\na major beholder~\n"
+        b"A major beholder floats here.~\n~\n"
+        b"0 0 0 0 S\nN 0 0\n40 0 0 1d1+0 1d1+0\n0 0\n131 131 0 0\n",
+    )
+    emitted = emit_mobile(
+        source,
+        2_080_013,
+        special_proc=native.persisted_name,
+        special_resolved=True,
+        required_action_bits=native.required_flag_bits,
+    )
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20800.mob", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Major Beholder", result.records[0].spec_proc)
+    self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
+
 
 if __name__ == "__main__":
   unittest.main()

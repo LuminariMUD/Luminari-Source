@@ -72,6 +72,14 @@ room-specific class and race gates only while the guard remains in its original
 load room. Protected guards punish and relocate mortal attackers. Use the
 ordinary Guild Guard procedure for new Luminari guild entrances.
 
+RoL Major Beholder is mobile-owned and requires MOB_SPEC. Each of its ten eye
+rays has an independent three-combat-turn cooldown and a one-in-three chance to
+fire while ready. Target-native effects cover fire, acid, slow,
+enfeeblement/feeblemind, wither, room-wide dispel, prismatic spray, hold
+monster, harm, and finger of death. Pet targets redirect to an eligible master
+in the room. The source-only all-eyes weapon-critical burst has no target
+combat-turn event equivalent. This procedure is converter-owned.
+
 RoL Shaman Totem is object-owned and must be held or wielded. It permanently
 bonds one of 21 converted totem identities to a Cleric and its original object.
 Summoning unlocks at Cleric level 21, uses a Cleric-level and Wisdom success

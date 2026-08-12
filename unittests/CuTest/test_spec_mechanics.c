@@ -641,6 +641,46 @@ void Test_spec_rol_guild_guard_preserves_active_gate_rules(CuTest *tc)
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_major_beholder_preserves_eye_mapping_and_cooldowns(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  int state;
+
+  spec_mechanics_begin(&fixture);
+
+  CuAssertIntEquals(tc, SPELL_FIREBALL, rol_major_beholder_eye_spell(0));
+  CuAssertIntEquals(tc, SPELL_ACID_ARROW, rol_major_beholder_eye_spell(1));
+  CuAssertIntEquals(tc, SPELL_SLOW, rol_major_beholder_eye_spell(2));
+  CuAssertIntEquals(tc, SPELL_RAY_OF_ENFEEBLEMENT, rol_major_beholder_eye_spell(3));
+  CuAssertIntEquals(tc, PSIONIC_WITHER, rol_major_beholder_eye_spell(4));
+  CuAssertIntEquals(tc, SPELL_DISPEL_MAGIC, rol_major_beholder_eye_spell(5));
+  CuAssertIntEquals(tc, SPELL_PRISMATIC_SPRAY, rol_major_beholder_eye_spell(6));
+  CuAssertIntEquals(tc, SPELL_HOLD_MONSTER, rol_major_beholder_eye_spell(7));
+  CuAssertIntEquals(tc, SPELL_HARM, rol_major_beholder_eye_spell(8));
+  CuAssertIntEquals(tc, SPELL_FINGER_OF_DEATH, rol_major_beholder_eye_spell(9));
+  CuAssertIntEquals(tc, -1, rol_major_beholder_eye_spell(-1));
+  CuAssertIntEquals(tc, -1, rol_major_beholder_eye_spell(10));
+
+  state = rol_major_beholder_advance_cooldowns(0, (1U << 0) | (1U << 9));
+  CuAssertIntEquals(tc, 3, rol_major_beholder_eye_cooldown(state, 0));
+  CuAssertIntEquals(tc, 0, rol_major_beholder_eye_cooldown(state, 1));
+  CuAssertIntEquals(tc, 3, rol_major_beholder_eye_cooldown(state, 9));
+  state = rol_major_beholder_advance_cooldowns(state, 0);
+  CuAssertIntEquals(tc, 2, rol_major_beholder_eye_cooldown(state, 0));
+  CuAssertIntEquals(tc, 2, rol_major_beholder_eye_cooldown(state, 9));
+  CuAssertIntEquals(tc, -1, rol_major_beholder_eye_cooldown(state, 10));
+
+  FIGHTING(&fixture.actor) = &fixture.target;
+  FIGHTING(&fixture.target) = &fixture.actor;
+  GET_POS(&fixture.actor) = POS_FIGHTING;
+  GET_POS(&fixture.target) = POS_FIGHTING;
+  fixture.actor.mob_specials.proc_fired = 0xFFFFF;
+  CuAssertIntEquals(tc, FALSE, rol_major_beholder(&fixture.actor, &fixture.actor, 0, ""));
+  CuAssertIntEquals(tc, 0xAAAAA, fixture.actor.mob_specials.proc_fired);
+
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_shaman_totem_preserves_identity_gating_and_usage(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

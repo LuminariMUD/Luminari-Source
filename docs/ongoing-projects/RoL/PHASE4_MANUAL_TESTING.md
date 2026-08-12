@@ -271,6 +271,24 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   dispel, curse, poison, blindness, and slow effects, reduce the attacker to 1 hit point,
   stop the combat, and relocate the attacker to another eligible room in the same zone.
 
+### Phase 6 converted major beholders
+
+- `RoL Major Beholder` is implemented for all eight active source bindings. The affected
+  packages remain outside the five-package staged pilot; do not assign this converter-owned
+  procedure to unrelated mobiles.
+- In a later dependency-complete stage, fight converted mobile 2043310, 2052365, 2080013,
+  2080014, 2080018-2080020, or 2081029. Confirm the mobile has `MOB_SPEC` and can fire
+  several independently selected eye rays in one combat turn.
+- Across repeated turns, confirm a fired eye remains unavailable for the next two turns and
+  becomes eligible again on the third. Ready eyes have independent one-in-three checks.
+- Exercise the ten target-native effects: fireball, acid arrow, slow, ray of enfeeblement plus
+  feeblemind, wither, room-wide dispel against players and charmed pets, prismatic spray, hold
+  monster, harm, and finger of death. When its selected opponent is a charmed pet whose master
+  is present, confirm the eye rays can redirect to that master.
+- The source engine's all-unused-eyes weapon-critical burst is intentionally absent because the
+  target special-procedure gateway provides combat-turn events, not source weapon-critical
+  callbacks.
+
 ### Phase 6 converted shaman totems
 
 - `RoL Shaman Totem` is implemented for all 21 active object bindings, with matching

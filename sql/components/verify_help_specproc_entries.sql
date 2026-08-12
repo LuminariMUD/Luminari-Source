@@ -43,6 +43,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'one-in-21 chance') > 0
   AND INSTR(entry, 'RoL Guild Guard is mobile-owned') > 0
   AND INSTR(entry, 'room-specific class and race gates') > 0
+  AND INSTR(entry, 'RoL Major Beholder is mobile-owned') > 0
+  AND INSTR(entry, 'independent three-combat-turn cooldown') > 0
   AND INSTR(entry, 'RoL Shaman Totem is object-owned') > 0
   AND INSTR(entry, 'three attempts per seven MUD days') > 0
   AND INSTR(entry, 'RoL-Totem-Spirit') > 0

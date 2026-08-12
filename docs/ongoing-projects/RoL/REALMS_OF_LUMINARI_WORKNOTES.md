@@ -129,6 +129,8 @@ Phase 6 converted guild guards: lib/rol-conversion/runs/phase6-special-20260812-
                                  rol-phase6-special-082fb35d02d05212
 Phase 6 converted shaman totems: lib/rol-conversion/runs/phase6-special-20260812-shaman-totem
                                  rol-phase6-special-5b3c2b758537ad3a
+Phase 6 converted major beholders: lib/rol-conversion/runs/phase6-special-20260812-major-beholder
+                                   rol-phase6-special-e2050f070b43faf9
 Policy:  rol-conversion-policy-1
 ```
 
@@ -157,10 +159,11 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 265 tests; the production-linked CuTest suite passes 626;
+- The world-tool suite passes 268 tests plus 52 subtests; the production-linked CuTest suite
+  passes 628;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Fifteen bounded Phase 6 delivery sessions are archived. The measured remaining
-  forecast is 81-141 sessions: Phase 6 is 33-65, Phase 7 is 42-66, and Phase 8 is 6-10.
+- Sixteen bounded Phase 6 delivery sessions are archived. The measured remaining
+  forecast is 80-140 sessions: Phase 6 is 32-64, Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -252,18 +255,23 @@ Policy:  rol-conversion-policy-1
   are complete. The object adapter preserves permanent totem/player bonding, good/evil
   source-race gating, the Cleric-21 mapped unlock, three attempts per seven MUD days,
   bounded spirit scaling, follower assistance, and animal-specific corpse-free deaths.
+- All eight active `major_beholder` bindings are complete through a mobile-owned combat
+  adapter. It preserves ten independent eye identities, one-in-three ready-eye checks,
+  three-turn per-eye cooldowns, player/pet targeting, and target-native spell mappings.
+  The source-only all-unused-eyes critical burst is explicitly unavailable because the
+  target gateway has no source weapon-critical event.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 531 of 1,147 active direct bindings and 85 of
-  562 source handlers, leaving 616 bindings and 477 handlers. The independent
+- The current Phase 6 checkpoint resolves 539 of 1,147 active direct bindings and 86 of
+  562 source handlers, leaving 608 bindings and 476 handlers. The independent
   `ACT_SPEC` cross-check resolves 552 of 848 records and leaves 296 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 616 direct bindings by shared behavior family and
+1. Reconcile the remaining 608 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7
