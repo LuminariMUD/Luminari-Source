@@ -47,6 +47,74 @@
 #define ROL_MAJOR_BEHOLDER_COOLDOWN_BITS 2
 #define ROL_MAJOR_BEHOLDER_COOLDOWN_MASK 3U
 #define ROL_MAJOR_BEHOLDER_COOLDOWN_ROUNDS 3
+#define ROL_GITH_RECLAIMER_VNUM 2019790
+#define ROL_GITH_CHARGE_TIMER_SLOT 3
+
+enum rol_weapon_effect
+{
+  ROL_WEAPON_HAMMER = 0,
+  ROL_WEAPON_ICY_DAGGER,
+  ROL_WEAPON_GLIMMERING_BURST,
+  ROL_WEAPON_GITHYANKI_TWO_HANDED,
+  ROL_WEAPON_GITHYANKI_CHARGED,
+  ROL_WEAPON_VALHALLA_SCEPTER,
+  ROL_WEAPON_SLENDER_ELVEN,
+  ROL_WEAPON_NIGHTBRINGER,
+  ROL_WEAPON_KIRIN_HORN,
+  ROL_WEAPON_WINDSONG,
+  ROL_WEAPON_SHADOW_DAGGER,
+  ROL_WEAPON_FIRE_GIANT_SWORD,
+  ROL_WEAPON_ACID_LONGSWORD,
+  ROL_WEAPON_BARBED_SWORD,
+  ROL_WEAPON_RIPPLING_FLAMES,
+  ROL_WEAPON_JEWELED_FANG,
+  ROL_WEAPON_BLACK_FLAMES,
+  ROL_WEAPON_MOONBLADE_STARSONG,
+  ROL_WEAPON_CRIMSON_DAGGER
+};
+
+struct rol_weapon_profile
+{
+  int object_vnum;
+  enum rol_weapon_effect effect;
+  int proc_denominator;
+  bool critical_only;
+  const char *description;
+};
+
+static const struct rol_weapon_profile rol_weapon_profiles[] = {
+    {2004505, ROL_WEAPON_HAMMER, 22, false, "Chain-lightning proc."},
+    {2013307, ROL_WEAPON_ICY_DAGGER, 1, true,
+     "Critical cold burst; berserkers may invoke an ice storm."},
+    {2014837, ROL_WEAPON_GLIMMERING_BURST, 28, false,
+     "Glimmering mental burst with a chance to stun."},
+    {2019886, ROL_WEAPON_GITHYANKI_TWO_HANDED, 23, false,
+     "Silver-sword severing strike with a rare Gith reclaimer."},
+    {2019900, ROL_WEAPON_GITHYANKI_CHARGED, 101, false,
+     "Charged vorpal strike or Gith reclaimer; ten activations destroy the blade."},
+    {2019912, ROL_WEAPON_VALHALLA_SCEPTER, 29, false,
+     "Ancestral reverse swings and ranger or troll healing."},
+    {2020075, ROL_WEAPON_SLENDER_ELVEN, 1, true,
+     "Critical elven wound; incorporeal targets are immune."},
+    {2026014, ROL_WEAPON_NIGHTBRINGER, 26, false, "Drowsing sleep proc."},
+    {2034840, ROL_WEAPON_KIRIN_HORN, 26, false, "Lightning energy pulse."},
+    {2038025, ROL_WEAPON_WINDSONG, 33, false,
+     "Ranger-only blur flurry; rejects an ineligible wielder."},
+    {2038095, ROL_WEAPON_WINDSONG, 33, false,
+     "Ranger-only blur flurry; rejects an ineligible wielder."},
+    {2040135, ROL_WEAPON_SHADOW_DAGGER, 1, true, "Critical shadow damage and a backstab burst."},
+    {2080547, ROL_WEAPON_FIRE_GIANT_SWORD, 36, false, "Burning fire-giant flare."},
+    {2089462, ROL_WEAPON_ACID_LONGSWORD, 1, true, "Critical acid spray."},
+    {2091305, ROL_WEAPON_BARBED_SWORD, 22, false, "Freezing waves of torment."},
+    {2095776, ROL_WEAPON_RIPPLING_FLAMES, 1, true,
+     "Critical white-hot flare that heals fire creatures."},
+    {2095851, ROL_WEAPON_JEWELED_FANG, 1, true, "Critical heart-piercing strike."},
+    {2095876, ROL_WEAPON_BLACK_FLAMES, 26, false, "Engulfing black-flame cold burst."},
+    {2095878, ROL_WEAPON_MOONBLADE_STARSONG, 31, false,
+     "Nighttime star flare; say 'labelas' for weekly group barkskin."},
+    {2098330, ROL_WEAPON_CRIMSON_DAGGER, 11, false,
+     "Crimson critical strike or strength and agility drain."},
+};
 
 struct rol_undead_drain_profile
 {
@@ -5499,6 +5567,562 @@ int rol_shadow_giant(struct char_data *ch, void *me, int cmd, const char *argume
   }
 
   return FALSE;
+}
+
+static const struct rol_weapon_profile *rol_weapon_profile_for(int object_vnum)
+{
+  size_t index;
+
+  for (index = 0; index < sizeof(rol_weapon_profiles) / sizeof(rol_weapon_profiles[0]); index++)
+    if (rol_weapon_profiles[index].object_vnum == object_vnum)
+      return &rol_weapon_profiles[index];
+
+  return NULL;
+}
+
+size_t rol_weapon_profile_count(void)
+{
+  return sizeof(rol_weapon_profiles) / sizeof(rol_weapon_profiles[0]);
+}
+
+bool rol_weapon_profile(int object_vnum, int *proc_denominator, bool *critical_only,
+                        const char **description)
+{
+  const struct rol_weapon_profile *profile = rol_weapon_profile_for(object_vnum);
+
+  if (profile == NULL)
+    return false;
+  if (proc_denominator != NULL)
+    *proc_denominator = profile->proc_denominator;
+  if (critical_only != NULL)
+    *critical_only = profile->critical_only;
+  if (description != NULL)
+    *description = profile->description;
+  return true;
+}
+
+static int rol_weapon_slot(const struct char_data *ch, const struct obj_data *obj)
+{
+  int wear;
+
+  if (ch == NULL || obj == NULL)
+    return -1;
+  for (wear = 0; wear < NUM_WEARS; wear++)
+    if (GET_EQ(ch, wear) == obj)
+      return wear;
+  return -1;
+}
+
+static bool rol_weapon_primary_slot(int slot)
+{
+  return slot == WEAR_WIELD_1 || slot == WEAR_WIELD_2H;
+}
+
+static bool rol_weapon_sneak_attack(int attack_type)
+{
+  return attack_type == ATTACK_TYPE_PRIMARY_SNEAK || attack_type == ATTACK_TYPE_OFFHAND_SNEAK;
+}
+
+static struct spec_damage_result rol_weapon_damage(struct char_data *ch, struct char_data *victim,
+                                                   int amount, int damage_type)
+{
+  return spec_damage_current_target(ch, victim, MAX(0, amount), -1, damage_type, FALSE);
+}
+
+static void rol_weapon_cast(struct char_data *ch, struct obj_data *obj, struct char_data *victim,
+                            int spell, int level)
+{
+  if (ch == NULL || victim == NULL)
+    return;
+  call_magic(ch, victim, obj, spell, 0, MAX(1, level), CAST_WEAPON_SPELL);
+}
+
+static void rol_weapon_summon_reclaimer(struct char_data *ch, struct obj_data *obj)
+{
+  struct char_data *summoned;
+  mob_rnum rnum;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+  if ((rnum = real_mobile(ROL_GITH_RECLAIMER_VNUM)) == NOBODY)
+  {
+    log("SYSERR: RoL weapon proc cannot find Gith reclaimer mobile %d", ROL_GITH_RECLAIMER_VNUM);
+    return;
+  }
+  if ((summoned = read_mobile(rnum, REAL)) == NULL)
+    return;
+
+  char_to_room(summoned, IN_ROOM(ch));
+  act("A thunderclap announces a Githyanki knight arriving to reclaim $p!", FALSE, summoned, obj,
+      NULL, TO_ROOM);
+  if (FIGHTING(summoned) == NULL)
+    set_fighting(summoned, ch);
+}
+
+static int rol_weapon_hammer(struct char_data *ch, struct obj_data *obj, struct char_data *victim)
+{
+  struct char_data *next;
+  struct char_data *target;
+
+  if (rand_number(0, 21) != 0)
+    return FALSE;
+
+  act("Your $p glows brightly as lightning bolts streak from it!", FALSE, ch, obj, victim, TO_CHAR);
+  act("$n's $p glows brightly as lightning bolts streak from it!", FALSE, ch, obj, victim, TO_ROOM);
+  rol_weapon_cast(ch, obj, victim, SPELL_LIGHTNING_BOLT, 51);
+
+  if (!VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return TRUE;
+  for (target = world[IN_ROOM(ch)].people; target != NULL; target = next)
+  {
+    next = target->next_in_room;
+    if (target == victim || target == ch || rand_number(0, 3) != 0 || !CAN_SEE(ch, target) ||
+        !aoeOK(ch, target, SPELL_LIGHTNING_BOLT))
+      continue;
+    rol_weapon_cast(ch, obj, target, SPELL_LIGHTNING_BOLT, 51);
+  }
+  return TRUE;
+}
+
+static int rol_weapon_githyanki_two_handed(struct char_data *ch, struct obj_data *obj,
+                                           struct char_data *victim)
+{
+  struct spec_damage_result result;
+  bool instant = false;
+  int amount = 0;
+
+  if (rand_number(0, 22) == 0)
+    amount = MIN(100, GET_LEVEL(ch) * 2) + GET_LEVEL(ch);
+  if (amount == 0 && rand_number(0, 99) == 0)
+  {
+    if (GET_LEVEL(victim) < 51)
+    {
+      instant = true;
+      amount = MAX(1000, GET_MAX_HIT(victim) * 2);
+    }
+    else
+      amount = MIN(200, GET_LEVEL(ch) * 4) + GET_LEVEL(ch);
+  }
+  if (amount == 0)
+    return FALSE;
+
+  act("The silver nimbus around your $p flares and cuts deeply into $N!", FALSE, ch, obj, victim,
+      TO_CHAR);
+  result = rol_weapon_damage(ch, victim, amount, DAM_SLASHING);
+  if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED && !IS_NPC(ch) &&
+      rand_number(0, instant ? 9 : 99) == 0)
+    rol_weapon_summon_reclaimer(ch, obj);
+  return TRUE;
+}
+
+static int rol_weapon_githyanki_charged(struct spec_event_context *context, struct char_data *ch,
+                                        struct obj_data *obj, struct char_data *victim)
+{
+  int slot;
+  int choice;
+
+  if (rand_number(0, 100) != 0)
+    return FALSE;
+
+  if (GET_OBJ_SPECTIMER(obj, ROL_GITH_CHARGE_TIMER_SLOT) == 0)
+    GET_OBJ_SPECTIMER(obj, ROL_GITH_CHARGE_TIMER_SLOT) = -10;
+  GET_OBJ_SPECTIMER(obj, ROL_GITH_CHARGE_TIMER_SLOT)++;
+  if (GET_OBJ_SPECTIMER(obj, ROL_GITH_CHARGE_TIMER_SLOT) == 0)
+  {
+    act("A booming voice condemns your attempt to contain Gith's power!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    act("$n's $p explodes into a thousand pieces and knocks $m flat!", FALSE, ch, obj, victim,
+        TO_ROOM);
+    change_position(ch, POS_SITTING);
+    slot = rol_weapon_slot(ch, obj);
+    if (slot >= 0)
+      extract_obj(unequip_char(ch, slot));
+    context->invalidation |= SPEC_INVALIDATE_OWNER;
+    return TRUE;
+  }
+
+  choice = rand_number(1, 5);
+  if (choice <= 3 && GET_LEVEL(victim) < 51)
+  {
+    act("Your Silver Sword sings through the air and seeks $N's neck!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    (void)rol_weapon_damage(ch, victim, MAX(1000, GET_MAX_HIT(victim) * 2), DAM_SLASHING);
+  }
+  else if (choice >= 4 && !IS_NPC(ch))
+    rol_weapon_summon_reclaimer(ch, obj);
+  return TRUE;
+}
+
+static struct obj_data *rol_weapon_extra_attack_owner;
+
+static void rol_weapon_extra_attacks(struct char_data *ch, struct obj_data *obj,
+                                     struct char_data *victim, int count, int attack_type)
+{
+  int swing;
+
+  rol_weapon_extra_attack_owner = obj;
+  for (swing = 0; swing < count && GET_POS(ch) > POS_DEAD && FIGHTING(ch) == victim; swing++)
+    hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, attack_type);
+  rol_weapon_extra_attack_owner = NULL;
+}
+
+static int rol_weapon_valhalla(struct char_data *ch, struct obj_data *obj, struct char_data *victim,
+                               int slot)
+{
+  bool offhand = slot == WEAR_WIELD_OFFHAND;
+  bool troll = IS_HALF_TROLL(ch);
+  int extra_swings = 0;
+
+  if (rand_number(0, 28) == 0)
+  {
+    if (offhand)
+      extra_swings = 1 + (rand_number(0, 2) == 0);
+    else if (troll)
+      extra_swings = 1;
+    else
+      extra_swings = 2 + (rand_number(0, 2) == 0);
+
+    act("Ancestral power makes your $p reverse its swing and strike again!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    rol_weapon_extra_attacks(ch, obj, victim, extra_swings,
+                             offhand ? ATTACK_TYPE_OFFHAND : ATTACK_TYPE_PRIMARY);
+  }
+
+  if (((offhand && IS_RANGER(ch)) || (!offhand && troll)) && rand_number(0, 23) == 0)
+  {
+    act("Ancestral power pours through your $p and restores your vitality.", FALSE, ch, obj, NULL,
+        TO_CHAR);
+    if (!AFF_FLAGGED(ch, AFF_BLACKMANTLE))
+      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + 50);
+  }
+  return extra_swings > 0;
+}
+
+static int rol_weapon_windsong(struct char_data *ch, struct obj_data *obj, struct char_data *victim,
+                               int slot)
+{
+  int extra_swings;
+
+  if (!IS_RANGER(ch))
+  {
+    act("Your $p sends waves of pain through you, forcing you to drop it!", FALSE, ch, obj, NULL,
+        TO_CHAR);
+    act("$n shrieks and drops $p!", FALSE, ch, obj, NULL, TO_ROOM);
+    if (GET_HIT(ch) > 50)
+      GET_HIT(ch) = 1;
+    obj_to_room(unequip_char(ch, slot), IN_ROOM(ch));
+    return TRUE;
+  }
+  if (rand_number(0, 32) != 0)
+    return FALSE;
+
+  extra_swings = 0;
+  if (GET_RACE(ch) == RACE_ELF || GET_RACE(ch) == RACE_HIGH_ELF)
+    extra_swings = 3;
+  else if (GET_RACE(ch) == RACE_HALF_ELF)
+    extra_swings = 2;
+  if (rand_number(0, 2) == 0)
+    extra_swings++;
+  if (rand_number(0, 2) == 0)
+    extra_swings++;
+  if (rand_number(0, 3) == 0)
+    extra_swings++;
+
+  act("Your $p blurs as it comes to life and lashes repeatedly at $N!", FALSE, ch, obj, victim,
+      TO_CHAR);
+  rol_weapon_extra_attacks(ch, obj, victim, extra_swings,
+                           slot == WEAR_WIELD_OFFHAND ? ATTACK_TYPE_OFFHAND : ATTACK_TYPE_PRIMARY);
+  return TRUE;
+}
+
+static int rol_weapon_shadow_dagger(struct spec_event_context *context, struct char_data *ch,
+                                    struct obj_data *obj, struct char_data *victim)
+{
+  struct spec_damage_result result;
+  int amount;
+
+  if (context->critical)
+  {
+    amount = MAX(1, (context->damage * 15) / 100);
+    act("Dark shadowy tendrils flow from your $p and burrow into $N's wounds.", FALSE, ch, obj,
+        victim, TO_CHAR);
+    (void)rol_weapon_damage(ch, victim, amount, DAM_NEGATIVE);
+    return TRUE;
+  }
+  if (!rol_weapon_sneak_attack(context->attack_type) || rand_number(0, 3) != 0)
+    return FALSE;
+
+  act("Swirling shadows lift your $p and drive it repeatedly into $N!", FALSE, ch, obj, victim,
+      TO_CHAR);
+  if (can_stun(victim) && !char_has_mud_event(victim, eSTUNNED))
+    attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), PULSE_VIOLENCE * 2);
+  amount = rand_number(150, 200);
+  result = rol_weapon_damage(ch, victim, amount, DAM_PUNCTURE);
+  if (result.status != SPEC_DAMAGE_TARGET_INVALIDATED && !affected_by_spell(ch, SPELL_MAGE_ARMOR) &&
+      !affected_by_spell(ch, SPELL_SHIELD))
+    rol_weapon_cast(ch, obj, ch, SPELL_MAGE_ARMOR, 35);
+  return TRUE;
+}
+
+static int rol_weapon_cold_burst(struct char_data *ch, struct obj_data *obj,
+                                 struct char_data *victim, int dice_count, int dice_sides,
+                                 const char *message)
+{
+  int amount = dice(dice_count, dice_sides);
+
+  if (savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, MIN(30, GET_LEVEL(ch)), EVOCATION))
+    amount /= 2;
+  act(message, FALSE, ch, obj, victim, TO_CHAR);
+  (void)rol_weapon_damage(ch, victim, amount, DAM_COLD);
+  return TRUE;
+}
+
+static int rol_weapon_moonblade_command(struct char_data *ch, struct obj_data *obj, int cmd,
+                                        const char *argument)
+{
+  struct char_data *target;
+
+  if (cmd <= 0 || argument == NULL || (!CMD_IS("say") && !CMD_IS("'")))
+    return FALSE;
+  skip_spaces_c(&argument);
+  if (str_cmp(argument, "labelas"))
+    return FALSE;
+  if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID)
+    return FALSE;
+
+  if (GET_OBJ_SPECTIMER(obj, 0) > 0)
+  {
+    send_to_char(ch, "The trees do not answer your call.\r\n");
+    return TRUE;
+  }
+
+  act("You invoke Labelas, and protective bark flows toward your companions.", FALSE, ch, obj, NULL,
+      TO_CHAR);
+  for (target = world[IN_ROOM(ch)].people; target != NULL; target = target->next_in_room)
+    if (target == ch || (GROUP(ch) != NULL && GROUP(target) == GROUP(ch)))
+      rol_weapon_cast(ch, obj, target, SPELL_BARKSKIN, 30);
+  GET_OBJ_SPECTIMER(obj, 0) = 168;
+  return TRUE;
+}
+
+static int rol_weapon_crimson_drain(struct char_data *ch, struct obj_data *obj,
+                                    struct char_data *victim)
+{
+  bool landed;
+  int choice = rand_number(1, 3);
+
+  if (choice == 1)
+  {
+    landed = !affected_by_spell(victim, SPELL_RAY_OF_ENFEEBLEMENT);
+    rol_weapon_cast(ch, obj, victim, SPELL_RAY_OF_ENFEEBLEMENT, 30);
+    landed = landed && affected_by_spell(victim, SPELL_RAY_OF_ENFEEBLEMENT);
+    if (landed)
+      rol_weapon_cast(ch, obj, ch, SPELL_STRENGTH, 10);
+  }
+  else
+  {
+    landed = !affected_by_spell(victim, SPELL_SLOW);
+    rol_weapon_cast(ch, obj, victim, SPELL_SLOW, 30);
+    landed = landed && affected_by_spell(victim, SPELL_SLOW);
+    if (landed)
+      rol_weapon_cast(ch, obj, ch, SPELL_GRACE, 10);
+  }
+  return TRUE;
+}
+
+static int rol_weapon_hit(struct spec_event_context *context,
+                          const struct rol_weapon_profile *profile, struct char_data *ch,
+                          struct obj_data *obj, struct char_data *victim, int slot)
+{
+  struct spec_damage_result result;
+  int amount;
+
+  if (rol_weapon_extra_attack_owner == obj)
+    return FALSE;
+
+  switch (profile->effect)
+  {
+  case ROL_WEAPON_HAMMER:
+    return rol_weapon_hammer(ch, obj, victim);
+  case ROL_WEAPON_ICY_DAGGER:
+    if (!affected_by_spell(ch, SPELL_RESIST_ENERGY))
+      rol_weapon_cast(ch, obj, ch, SPELL_RESIST_ENERGY, 30);
+    if (!context->critical)
+      return FALSE;
+    if (IS_BERSERKER(ch) && rand_number(0, 9) == 0)
+    {
+      act("Your icy dagger calls down a violent storm of ice and hail!", FALSE, ch, obj, victim,
+          TO_CHAR);
+      rol_weapon_cast(ch, obj, victim, SPELL_ICE_STORM, 30);
+      return TRUE;
+    }
+    return rol_weapon_cold_burst(ch, obj, victim, 10, IS_BERSERKER(ch) ? 20 : 10,
+                                 "Icy particles from your $p form a spear that impales $N!");
+  case ROL_WEAPON_GLIMMERING_BURST:
+    if (rand_number(0, 27) != 0)
+      return FALSE;
+    act("Dazzling patterns from your $p tear at $N's mind!", FALSE, ch, obj, victim, TO_CHAR);
+    result = rol_weapon_damage(ch, victim, dice(8, 10), DAM_MENTAL);
+    if (result.status != SPEC_DAMAGE_TARGET_INVALIDATED && rand_number(0, 5) == 0 &&
+        can_stun(victim) && !char_has_mud_event(victim, eSTUNNED))
+      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), PULSE_VIOLENCE);
+    return TRUE;
+  case ROL_WEAPON_GITHYANKI_TWO_HANDED:
+    return rol_weapon_githyanki_two_handed(ch, obj, victim);
+  case ROL_WEAPON_GITHYANKI_CHARGED:
+    return rol_weapon_githyanki_charged(context, ch, obj, victim);
+  case ROL_WEAPON_VALHALLA_SCEPTER:
+    return rol_weapon_valhalla(ch, obj, victim, slot);
+  case ROL_WEAPON_SLENDER_ELVEN:
+    if (!context->critical)
+      return FALSE;
+    if (IS_INCORPOREAL(victim))
+    {
+      act("Your $p passes harmlessly through $N's immaterial form.", FALSE, ch, obj, victim,
+          TO_CHAR);
+      return TRUE;
+    }
+    amount = rand_number(50, 150);
+    if (savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, MIN(30, GET_LEVEL(ch)),
+                    EVOCATION))
+      amount /= 2;
+    act("Your slender elven blade plunges deeply into $N!", FALSE, ch, obj, victim, TO_CHAR);
+    (void)rol_weapon_damage(ch, victim, amount, DAM_SLASHING);
+    return TRUE;
+  case ROL_WEAPON_NIGHTBRINGER:
+    if (rand_number(0, 25) != 0)
+      return FALSE;
+    act("Your $p glows as it strikes $N, leaving $M woozy.", FALSE, ch, obj, victim, TO_CHAR);
+    rol_weapon_cast(ch, obj, victim, SPELL_SLEEP, 30);
+    return TRUE;
+  case ROL_WEAPON_KIRIN_HORN:
+    if (rand_number(0, 25) != 0)
+      return FALSE;
+    act("Your $p flares white and unleashes a bolt of pure energy!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    rol_weapon_cast(ch, obj, victim, SPELL_LIGHTNING_BOLT, 51);
+    return TRUE;
+  case ROL_WEAPON_WINDSONG:
+    return rol_weapon_windsong(ch, obj, victim, slot);
+  case ROL_WEAPON_SHADOW_DAGGER:
+    return rol_weapon_shadow_dagger(context, ch, obj, victim);
+  case ROL_WEAPON_FIRE_GIANT_SWORD:
+    if (rand_number(0, 35) != 0)
+      return FALSE;
+    amount = MIN(100, MAX(0, GET_LEVEL(ch) * 2));
+    act("Your great red-steel longsword blazes and severely burns $N!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    (void)rol_weapon_damage(ch, victim, amount, DAM_FIRE);
+    return TRUE;
+  case ROL_WEAPON_ACID_LONGSWORD:
+    if (!context->critical)
+      return FALSE;
+    act("Acid erupts along your $p and sprays toward $N!", FALSE, ch, obj, victim, TO_CHAR);
+    rol_weapon_cast(ch, obj, victim, SPELL_ACID_ARROW, 30);
+    return TRUE;
+  case ROL_WEAPON_BARBED_SWORD:
+    if (rand_number(0, 21) != 0)
+      return FALSE;
+    return rol_weapon_cold_burst(ch, obj, victim, 35, 10,
+                                 "Green freezing waves from your $p engulf $N!");
+  case ROL_WEAPON_RIPPLING_FLAMES:
+    if (!context->critical)
+      return FALSE;
+    amount = rand_number(100, 200);
+    if (GET_RACE(victim) == RACE_FIRE_ELEMENTAL || GET_RACE(victim) == RACE_EFREETI)
+    {
+      act("Your $p flares white hot, and $N smiles as the flames restore $S vitality.", FALSE, ch,
+          obj, victim, TO_CHAR);
+      GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + amount);
+      return TRUE;
+    }
+    act("Your $p flares white hot and scars $N!", FALSE, ch, obj, victim, TO_CHAR);
+    (void)rol_weapon_damage(ch, victim, amount, DAM_FIRE);
+    return TRUE;
+  case ROL_WEAPON_JEWELED_FANG:
+    if (!context->critical)
+      return FALSE;
+    act("Your jeweled fang plunges into $N's chest with a sickening thud!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    (void)rol_weapon_damage(ch, victim, rand_number(75, 100), DAM_PUNCTURE);
+    return TRUE;
+  case ROL_WEAPON_BLACK_FLAMES:
+    if (rand_number(0, 25) != 0)
+      return FALSE;
+    return rol_weapon_cold_burst(ch, obj, victim, 37, 9,
+                                 "Black flames from your $p engulf $N and drain away heat!");
+  case ROL_WEAPON_MOONBLADE_STARSONG:
+    if (!((time_info.hours < 6 || time_info.hours > 18) && OUTSIDE(ch)) || rand_number(0, 30) != 0)
+      return FALSE;
+    act("The stars brighten as your moonblade envelops $N in faerie magic!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    rol_weapon_cast(ch, obj, victim, SPELL_FAERIE_FIRE, 30);
+    return TRUE;
+  case ROL_WEAPON_CRIMSON_DAGGER:
+    if (rand_number(0, 10) != 0)
+      return FALSE;
+    if (context->critical && rol_weapon_primary_slot(slot))
+    {
+      act("Your crimson dagger flares and burrows into $N's forehead!", FALSE, ch, obj, victim,
+          TO_CHAR);
+      rol_weapon_cast(ch, obj, victim, SPELL_BLINDNESS, 20);
+      (void)rol_weapon_damage(ch, victim, dice(50, 4), DAM_PUNCTURE);
+      return TRUE;
+    }
+    if (!context->critical && rand_number(0, 2) == 0)
+      return rol_weapon_crimson_drain(ch, obj, victim);
+    return FALSE;
+  default:
+    return FALSE;
+  }
+}
+
+int rol_weapon_proc(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  UNUSED(ch);
+  UNUSED(me);
+  UNUSED(cmd);
+  UNUSED(argument);
+
+  /* Typed dispatch supplies the hit target, damage, attack kind, and invalidation contract. */
+  return FALSE;
+}
+
+int rol_weapon_proc_typed(struct spec_event_context *context)
+{
+  const struct rol_weapon_profile *profile;
+  struct char_data *ch;
+  struct char_data *victim;
+  struct obj_data *obj;
+  int slot;
+
+  if (context == NULL || context->owner_type != SPEC_OWNER_OBJECT || context->owner == NULL)
+    return FALSE;
+  obj = context->owner;
+  ch = context->actor;
+  profile = rol_weapon_profile_for(GET_OBJ_VNUM(obj));
+  if (profile == NULL || ch == NULL)
+    return FALSE;
+
+  if (context->event == SPEC_EVENT_ITEM_IDENTIFY)
+  {
+    send_to_char(ch, "Special Effects: %s\r\n", profile->description);
+    return TRUE;
+  }
+  if (context->event == SPEC_EVENT_COMMAND)
+  {
+    if (profile->effect != ROL_WEAPON_MOONBLADE_STARSONG)
+      return FALSE;
+    return rol_weapon_moonblade_command(ch, obj, context->command, context->argument);
+  }
+  if (context->event != SPEC_EVENT_WEAPON_HIT ||
+      spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID ||
+      spec_context_validate_combat_target(ch, context->target, false) != SPEC_CONTEXT_VALID ||
+      (slot = rol_weapon_slot(ch, obj)) < 0)
+    return FALSE;
+
+  victim = context->target;
+  return rol_weapon_hit(context, profile, ch, obj, victim, slot);
 }
 
 bool rol_update_mobile_home_after_move(struct char_data *ch, int source_room, int destination_room)

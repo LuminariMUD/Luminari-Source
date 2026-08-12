@@ -25,8 +25,8 @@
 #define SPEC_COMBAT_MAX_CALLS 8
 #define SPEC_COMBAT_SOURCE_LIMIT (1024L * 1024L)
 
-int weapon_special(struct obj_data *wpn, struct char_data *ch, struct char_data *target,
-                   char *hit_msg);
+int weapon_special(struct obj_data *wpn, struct char_data *ch, struct char_data *target, int damage,
+                   int attack_type, bool critical, char *hit_msg);
 
 struct spec_combat_call
 {
@@ -431,13 +431,14 @@ void Test_spec_weapon_special_forwards_token_and_callback_return(CuTest *tc)
   fixture.recorder.callback_return = 37;
   no_specials = 1;
 
-  callback_result = weapon_special(weapon, actor, target, hit_token);
+  callback_result =
+      weapon_special(weapon, actor, target, 17, ATTACK_TYPE_PRIMARY, false, hit_token);
   payload_matches = callback_result == 37 && fixture.recorder.call_count == 1 &&
                     spec_combat_call_matches(&fixture, 0, actor, weapon, 0, hit_token);
 
   fixture.obj_indexes[0].func = NULL;
-  missing_result = weapon_special(weapon, actor, target, hit_token);
-  null_result = weapon_special(NULL, actor, target, hit_token);
+  missing_result = weapon_special(weapon, actor, target, 17, ATTACK_TYPE_PRIMARY, false, hit_token);
+  null_result = weapon_special(NULL, actor, target, 17, ATTACK_TYPE_PRIMARY, false, hit_token);
   pointer_gates_match = missing_result == 0 && null_result == 0 && fixture.recorder.call_count == 1;
   spec_combat_fixture_end(&fixture);
 
@@ -457,11 +458,15 @@ void Test_spec_weapon_hit_caller_discards_wrapper_return(CuTest *tc)
       "src/combat/fight.c",
       "int handle_successful_attack(struct char_data *ch, struct char_data *victim,",
       "#ifdef LUMINARI_CUTEST", &region);
-  wielded_ignored = source_loaded && spec_combat_region_has_statement(
-                                         &region, "weapon_special(wielded, ch, victim, hit_msg);");
+  wielded_ignored =
+      source_loaded &&
+      spec_combat_region_has_statement(
+          &region, "weapon_special(wielded, ch, victim, dam, attack_type, is_critical, hit_msg);");
   gloves_ignored =
-      source_loaded && spec_combat_region_has_statement(
-                           &region, "weapon_special(GET_EQ(ch, WEAR_HANDS), ch, victim, hit_msg);");
+      source_loaded &&
+      spec_combat_region_has_statement(
+          &region, "weapon_special(GET_EQ(ch, WEAR_HANDS), ch, victim, dam, attack_type, "
+                   "is_critical, hit_msg);");
   no_specials_absent = source_loaded && spec_combat_region_find(&region, "no_specials") == NULL;
   if (source_loaded)
     spec_combat_release_region(&region);

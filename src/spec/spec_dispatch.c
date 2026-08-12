@@ -360,7 +360,7 @@ void spec_gateway_item_identify(struct char_data *ch, struct obj_data *obj)
 }
 
 int spec_gateway_weapon_hit(struct char_data *ch, struct obj_data *weapon, struct char_data *target,
-                            const char *hit_token)
+                            int damage, int attack_type, bool critical, const char *hit_token)
 {
   struct spec_event_context context;
   spec_legacy_handler handler = NULL;
@@ -374,6 +374,9 @@ int spec_gateway_weapon_hit(struct char_data *ch, struct obj_data *weapon, struc
 
   spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_WEAPON_HIT, weapon, ch, 0, hit_token);
   context.target = target;
+  context.damage = MAX(0, damage);
+  context.attack_type = attack_type;
+  context.critical = critical;
 
   return spec_dispatch(&context, handler);
 }

@@ -62,6 +62,7 @@ struct spec_event_context
   /* Combat payloads */
   struct char_data *target;
   int damage;
+  int attack_type;
   bool critical;
 
   /* Moving-room payload */
@@ -132,7 +133,7 @@ void spec_gateway_moving_room(struct room_data *room, struct moving_room_data *m
 
 void spec_gateway_item_identify(struct char_data *ch, struct obj_data *obj);
 int spec_gateway_weapon_hit(struct char_data *ch, struct obj_data *weapon, struct char_data *target,
-                            const char *hit_token);
+                            int damage, int attack_type, bool critical, const char *hit_token);
 void spec_gateway_defense_reaction(struct char_data *defender, struct obj_data *obj,
                                    struct char_data *attacker, const char *reaction_token);
 void spec_gateway_combat_maneuver(struct char_data *ch, struct obj_data *shield,

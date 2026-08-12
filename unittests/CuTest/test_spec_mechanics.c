@@ -1421,6 +1421,34 @@ void Test_spec_rol_waterdeep_bouncer_routes_preserve_source_paths(CuTest *tc)
   CuAssertIntEquals(tc, 0, (int)rol_waterdeep_bouncer_route_length(9999999));
 }
 
+void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
+{
+  static const int vnums[] = {
+      2004505, 2013307, 2014837, 2019886, 2019900, 2019912, 2020075, 2026014, 2034840, 2038025,
+      2038095, 2040135, 2080547, 2089462, 2091305, 2095776, 2095851, 2095876, 2095878, 2098330,
+  };
+  const char *description;
+  bool critical_only;
+  int denominator;
+  size_t index;
+
+  CuAssertIntEquals(tc, (int)(sizeof(vnums) / sizeof(vnums[0])), (int)rol_weapon_profile_count());
+  for (index = 0; index < sizeof(vnums) / sizeof(vnums[0]); index++)
+  {
+    denominator = 0;
+    critical_only = false;
+    description = NULL;
+    CuAssertTrue(tc, rol_weapon_profile(vnums[index], &denominator, &critical_only, &description));
+    CuAssertTrue(tc, denominator > 0);
+    CuAssertPtrNotNull(tc, description);
+  }
+
+  CuAssertTrue(tc, rol_weapon_profile(2040135, &denominator, &critical_only, &description));
+  CuAssertTrue(tc, critical_only);
+  CuAssertIntEquals(tc, 1, denominator);
+  CuAssertTrue(tc, !rol_weapon_profile(9999999, NULL, NULL, NULL));
+}
+
 void Test_spec_rol_bloodstone_critter_preserves_social_cadence(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

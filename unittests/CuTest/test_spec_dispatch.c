@@ -435,7 +435,8 @@ void Test_spec_dispatch_internal_events_use_exact_legacy_tokens(CuTest *tc)
       spec_dispatch_call_is(&fixture, 2, &fixture.actor, &fixture.objects[0], 0, "identify");
 
   weapon_hit_token =
-      spec_gateway_weapon_hit(&fixture.actor, &fixture.objects[0], &fixture.target, "hit") == 0 &&
+      spec_gateway_weapon_hit(&fixture.actor, &fixture.objects[0], &fixture.target, 17,
+                              ATTACK_TYPE_PRIMARY, false, "hit") == 0 &&
       spec_dispatch_call_is(&fixture, 3, &fixture.actor, &fixture.objects[0], 0, "hit");
 
   spec_gateway_defense_reaction(&fixture.actor, &fixture.objects[0], &fixture.target,
@@ -479,10 +480,13 @@ void Test_spec_dispatch_weapon_hit_returns_raw_legacy_value(CuTest *tc)
   fixture.returns[0] = 9;
 
   raw_value_preserved =
-      spec_gateway_weapon_hit(&fixture.actor, &fixture.objects[0], &fixture.target, "hit") == 9;
+      spec_gateway_weapon_hit(&fixture.actor, &fixture.objects[0], &fixture.target, 17,
+                              ATTACK_TYPE_PRIMARY, false, "hit") == 9;
   missing_weapon_returns_zero =
-      spec_gateway_weapon_hit(&fixture.actor, NULL, &fixture.target, "hit") == 0 &&
-      spec_gateway_weapon_hit(&fixture.actor, &fixture.objects[1], &fixture.target, "hit") == 0;
+      spec_gateway_weapon_hit(&fixture.actor, NULL, &fixture.target, 17, ATTACK_TYPE_PRIMARY, false,
+                              "hit") == 0 &&
+      spec_gateway_weapon_hit(&fixture.actor, &fixture.objects[1], &fixture.target, 17,
+                              ATTACK_TYPE_PRIMARY, false, "hit") == 0;
 
   spec_dispatch_end(&fixture);
 

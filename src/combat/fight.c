@@ -9997,13 +9997,13 @@ void idle_weapon_spells(struct char_data *ch)
 
 /* weapon spell function for random weapon procs,
  *  modified from original source - Iyachtu */
-int weapon_special(struct obj_data *wpn, struct char_data *ch, struct char_data *target,
-                   char *hit_msg)
+int weapon_special(struct obj_data *wpn, struct char_data *ch, struct char_data *target, int damage,
+                   int attack_type, bool critical, char *hit_msg)
 {
   if (!wpn)
     return 0;
 
-  return spec_gateway_weapon_hit(ch, wpn, target, hit_msg);
+  return spec_gateway_weapon_hit(ch, wpn, target, damage, attack_type, critical, hit_msg);
 }
 
 /* Return the wielded weapon based on the attack type.
@@ -13778,9 +13778,9 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */
   if (ch && victim && wielded && !victim_is_dead)
-    weapon_special(wielded, ch, victim, hit_msg);
+    weapon_special(wielded, ch, victim, dam, attack_type, is_critical, hit_msg);
   else if (ch && victim && GET_EQ(ch, WEAR_HANDS) && !victim_is_dead && is_bare_handed(ch))
-    weapon_special(GET_EQ(ch, WEAR_HANDS), ch, victim, hit_msg);
+    weapon_special(GET_EQ(ch, WEAR_HANDS), ch, victim, dam, attack_type, is_critical, hit_msg);
 
   /* vampiric curse will do some minor healing to attacker */
   if (!IS_UNDEAD(victim) && IS_AFFECTED(victim, AFF_VAMPIRIC_CURSE))

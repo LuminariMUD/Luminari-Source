@@ -222,6 +222,14 @@ retains its drunken ambient table and joins eligible fights against the
 aggressor. This procedure is converter-owned and should not be assigned to
 unrelated mobiles.
 
+RoL Weapon Proc is object-owned and must be equipped. Twenty converted weapon
+objects use identity-keyed profiles for their source critical, sneak-attack,
+random-hit, wielder-restriction, charge, extra-swing, damage, spell, and summon
+behavior. The hit gateway supplies exact damage, attack type, and critical
+state. Object 2095878 also accepts SAY LABELAS while equipped for its weekly
+group barkskin invocation. This procedure is converter-owned and should not be
+assigned to unrelated objects.
+
 RoL Source Periodic is mobile-owned and requires MOB_SPEC. One hundred converted
 Bloodstone, Icecrag, Menden, Fun, Mobile, Realm, Lavatubes, Tower of Sorcery, and
 Waterdeep mobiles across 94 source families use 367 source random outcomes

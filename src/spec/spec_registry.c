@@ -106,6 +106,12 @@ static const struct spec_event_contract rol_object_hit_events[] = {
     {SPEC_EVENT_WEAPON_HIT, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
 };
 
+static const struct spec_event_contract rol_weapon_events[] = {
+    {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED},
+    {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_WEAPON_HIT, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
+};
+
 static const struct spec_event_contract rol_object_command_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED},
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
@@ -1431,6 +1437,20 @@ static const struct spec_definition spec_definitions[] = {
         .legacy_handler = rol_waterdeep_peacekeeper,
     },
     {
+        .canonical_name = "RoL Weapon Proc",
+        .display_name = "RoL Weapon Proc",
+        .owner_mask = SPEC_OWNER_OBJECT,
+        .events = rol_weapon_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_weapon_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Dispatches converted RoL weapon behavior by exact object identity, "
+                       "including critical and attack payloads.",
+        .typed_adapter = rol_weapon_proc,
+        .typed_handler = rol_weapon_proc_typed,
+    },
+    {
         .canonical_name = "RoL Source Periodic",
         .display_name = "RoL Source Periodic",
         .owner_mask = SPEC_OWNER_MOBILE,
@@ -1559,6 +1579,7 @@ enum
   SPEC_DEFINITION_ROL_YGGDRASIL_BRANCH,
   SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT,
   SPEC_DEFINITION_ROL_WATERDEEP_PEACEKEEPER,
+  SPEC_DEFINITION_ROL_WEAPON_PROC,
   SPEC_DEFINITION_ROL_SOURCE_PERIODIC,
   SPEC_DEFINITION_ROL_STATEFUL_PERIODIC,
   SPEC_DEFINITION_INDEX_COUNT
@@ -1674,6 +1695,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_YGGDRASIL_BRANCH, -1},
     {SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT, -1},
     {SPEC_DEFINITION_ROL_WATERDEEP_PEACEKEEPER, -1},
+    {SPEC_DEFINITION_ROL_WEAPON_PROC, -1},
     {SPEC_DEFINITION_ROL_SOURCE_PERIODIC, -1},
     {SPEC_DEFINITION_ROL_STATEFUL_PERIODIC, -1},
 };

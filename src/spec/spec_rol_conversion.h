@@ -70,6 +70,8 @@ int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *
 int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_state_periodic(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_waterdeep_peacekeeper(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_weapon_proc(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_weapon_proc_typed(struct spec_event_context *context);
 int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_portal_door(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_travel_portal(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -141,6 +143,9 @@ const char *rol_state_periodic_outcome_action(int mobile_vnum, bool fighting, in
                                               size_t action_index, bool *speech, bool *hide);
 int rol_waterdeep_bouncer_home_vnum(int mobile_vnum);
 size_t rol_waterdeep_bouncer_route_length(int mobile_vnum);
+size_t rol_weapon_profile_count(void);
+bool rol_weapon_profile(int object_vnum, int *proc_denominator, bool *critical_only,
+                        const char **description);
 bool rol_bloodstone_portal_survives(int current_hit, int hit_loss);
 bool rol_portal_door_race_allows(bool rejects_good, int race);
 int rol_travel_portal_destination_slot(int object_vnum, int roll);

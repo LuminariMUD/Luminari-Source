@@ -1288,6 +1288,57 @@ class RolTransformTests(unittest.TestCase):
         )
     )
     self.assertTrue(
+      all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
+  def test_weapon_handlers_share_one_payload_aware_adapter(self) -> None:
+    handlers = (
+        "hammer",
+        "proc_icydagger",
+        "sf_glimmering_burst",
+        "githyanki2",
+        "githyanki",
+        "valhalla_scepter",
+        "longsword_slenderelven",
+        "nightbringer",
+        "kirinHorn",
+        "windsong",
+        "shadow_dagger",
+        "swordOfFireGiants",
+        "longsword_acid",
+        "sword_wickedly_barbed",
+        "longsword_rippling_flames",
+        "jeweled_fang",
+        "longsword_black_flames",
+        "moonblade_starsong",
+        "glowing_crimson_dagger",
+    )
+    bindings = [
+        {
+            "basename": "weapon-procs",
+            "record_type": "object",
+            "source_vnum": 4500 + index,
+            "source_handler": handler,
+        }
+        for index, handler in enumerate(handlers)
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(len(handlers), len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Weapon Proc"
+            and binding.required_flag_bits == ()
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
     )
 

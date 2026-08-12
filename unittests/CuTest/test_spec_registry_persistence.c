@@ -505,13 +505,14 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Yggdrasil Branch",
                                                "RoL Waterdeep Ambient",
                                                "RoL Waterdeep Peacekeeper",
+                                               "RoL Weapon Proc",
                                                "RoL Source Periodic",
                                                "RoL Stateful Periodic"};
   int expected_count;
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 102, expected_count);
+  CuAssertIntEquals(tc, 103, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)
