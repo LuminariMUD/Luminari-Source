@@ -60,6 +60,7 @@ Phase 6 converted-trade-bandit commit: 7693ce00
 Phase 6 converted-lich-energy-drain commit: 72ba7c8e
 Phase 6 converted-class-family-guild commit: f4eefda6
 Phase 6 converted-Sister-Knight commit: 4fa18daf
+Phase 6 Bloodstone-undead-death commit: 27b5ba59
 ```
 
 The authoritative ignored runs are:
@@ -144,6 +145,8 @@ Phase 6 converted class-family guilds: lib/rol-conversion/runs/phase6-special-20
                                        rol-phase6-special-607369f4f87e0a4a
 Phase 6 converted Sister Knights: lib/rol-conversion/runs/phase6-special-20260812-sister-knight
                                   rol-phase6-special-3aa909fd9793606b
+Phase 6 Bloodstone undead death: lib/rol-conversion/runs/phase6-special-20260812-bloodstone-vapor
+                                 rol-phase6-special-fffdce44e3e15b73
 Policy:  rol-conversion-policy-1
 ```
 
@@ -172,11 +175,10 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 272 tests plus 52 subtests; the production-linked CuTest suite
-  passes 632;
+- The world-tool suite passes 273 tests; the production-linked CuTest suite passes 632;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Twenty bounded Phase 6 delivery sessions are archived. The measured remaining
-  forecast is 76-136 sessions: Phase 6 is 28-60, Phase 7 is 42-66, and Phase 8 is 6-10.
+- Twenty-one bounded Phase 6 delivery sessions are archived. The measured remaining
+  forecast is 75-135 sessions: Phase 6 is 27-59, Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -228,11 +230,10 @@ Policy:  rol-conversion-policy-1
   handlers and locates all 605 source definitions. Shared service reuse accounts for
   72 bindings; source-inert dump and cityguard callbacks account for 22; bounded
   corpse-devourer, poison-bite, and thief adapters account for 29.
-- The independent `ACT_SPEC` cross-check resolves 500 of 848 records. Source boot clears
-  444 unbound flags, 23 direct assignments are resolved, and all 33 `ACT_SPEC` records
-  whose remaining behavior was an automatic race procedure are resolved. The 348
-  pending records are 338 direct-only mobiles and 10 mobiles whose automatic race
-  behavior is complete but whose direct procedure remains pending.
+- The independent `ACT_SPEC` cross-check resolves 559 of 848 records and leaves 289
+  pending. It remains a scheduling cross-check rather than the direct-binding denominator;
+  composition-safe flags and room or object procedures can resolve source handlers without
+  changing this mobile-only count.
 - All 247 source boot-time race procedures are complete through composition-safe mobile
   flags and activity/combat hooks: 134 demons, 101 devils, and 12 umber hulks. The
   converter emits the flags on 239 `ADD` records and deterministically patches the eight
@@ -290,18 +291,21 @@ Policy:  rol-conversion-policy-1
   `RoL Sister Knight` procedure. An attacked Sister shouts once per combat encounter
   and sends awake, idle, reachable converted sisters in the same zone to pursue the
   attacker, while preserving source sound, casting, paralysis, and distance gates.
+- All four active `bs_undead_die` bindings are complete through the composition-safe
+  `RoL-Black-Vapor-Death` mobile flag. The converted undead retain their source vapor
+  message and target-native no-corpse policy without consuming their named SpecProc slot.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 567 of 1,147 active direct bindings and 93 of
-  562 source handlers, leaving 580 bindings and 469 handlers. The independent
+- The current Phase 6 checkpoint resolves 571 of 1,147 active direct bindings and 94 of
+  562 source handlers, leaving 576 bindings and 468 handlers. The independent
   `ACT_SPEC` cross-check resolves 559 of 848 records and leaves 289 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 580 direct bindings by shared behavior family and
+1. Reconcile the remaining 576 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7

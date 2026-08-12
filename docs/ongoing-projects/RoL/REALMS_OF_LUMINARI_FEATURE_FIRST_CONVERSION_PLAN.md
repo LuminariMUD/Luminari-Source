@@ -516,16 +516,16 @@ the supporting runtime lands.
 
 One session is one 2-4 hour spec with one objective and 12-25 tasks. Session ranges
 below are evidence-based planning envelopes, not delivery promises. The measured
-Phase 4 pilot replaced the provisional ranges. Twenty completed Phase 6 delivery
-sessions are archived in the changelog. The remaining Phases 6-8 forecast is 76-136
-sessions, or 152-544 focused engineering hours at the defined session size.
+Phase 4 pilot replaced the provisional ranges. Twenty-one completed Phase 6 delivery
+sessions are archived in the changelog. The remaining Phases 6-8 forecast is 75-135
+sessions, or 150-540 focused engineering hours at the defined session size.
 
 Phases 0-5 are complete and have been removed from this active plan. Their delivered
 scope, run identities, counts, acceptance evidence, commits, and reforecast basis are
 recorded in [RoL-Changelog.md](RoL-Changelog.md). Active implementation continues with
 the remaining Phase 6 families.
 
-### Phase 6: Special-procedure reconciliation (28-60 remaining sessions)
+### Phase 6: Special-procedure reconciliation (27-59 remaining sessions)
 
 Process by shared behavior family and consuming package. Reuse equivalent target ports,
 patch bounded differences, adapt native systems, and port only remaining selected

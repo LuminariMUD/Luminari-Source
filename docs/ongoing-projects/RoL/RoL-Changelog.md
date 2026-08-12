@@ -6,6 +6,55 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 Bloodstone undead death behavior
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all four active `bs_undead_die` bindings for Bloodstone mobiles 7119, 7162,
+  7167, and 7197 through the converter-owned `RoL-Black-Vapor-Death` mobile flag.
+- Preserved composition with each mobile's other source procedure instead of consuming
+  or replacing the target's single named SpecProc slot.
+- Replaced Luminari's generic undead crumble presentation with the source black-vapor
+  message while retaining the target's native no-corpse policy for converted undead.
+- Extended the mobile-flag constants manifest, converter, runtime death hook, builder
+  documentation, generated web guide, database-first help, manual test matrix, and
+  production-linked characterization coverage.
+- Reconciliation now resolves 571 of 1,147 active direct bindings and 94 of 562 source
+  handlers; 576 bindings and 468 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 559 resolved / 289 pending because these composable bindings do not consume
+  the named-procedure gateway.
+- Archived the twenty-first bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 27-59 Phase 6 sessions and 75-135 total sessions
+  for Phases 6-8, or 150-540 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 27b5ba59
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-bloodstone-vapor
+Reconciliation run: rol-phase6-special-fffdce44e3e15b73
+Active direct bindings: 1,147
+Direct bindings resolved: 571
+Direct bindings pending: 576
+Source handlers resolved: 94
+Source handlers pending: 468
+Bloodstone undead death bindings resolved: 4
+Native adapted composable bindings: 113
+ACT_SPEC records resolved: 559
+ACT_SPEC records pending: 289
+Complete world-tool suite: 273 passed
+Production-linked CuTest suite: 632 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 576 direct bindings across 468 source handlers.
+
 ## 2026-08-12 - Phase 6 converted Sister Knight reinforcements
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
