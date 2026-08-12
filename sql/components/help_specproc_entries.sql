@@ -80,6 +80,14 @@ monster, harm, and finger of death. Pet targets redirect to an eligible master
 in the room. The source-only all-eyes weapon-critical burst has no target
 combat-turn event equivalent. This procedure is converter-owned.
 
+RoL Trade Bandit is mobile-owned and requires MOB_SPEC. It intercepts movement,
+FLEE, and GET when a merchant carries converted resources or owns a loaded wagon.
+Seven converter-owned VNUMs select fixed, cargo-relative, all-gold-and-wagon,
+alignment-sensitive, or immediate-attack demands. Source platinum maps to ten
+target gold. Pay with GIVE <amount> GOLD <bandit>. Underpayment starts combat;
+sufficient payment lets the bandit disappear. Do not assign this procedure to
+unrelated mobiles.
+
 RoL Shaman Totem is object-owned and must be held or wielded. It permanently
 bonds one of 21 converted totem identities to a Cleric and its original object.
 Summoning unlocks at Cleric level 21, uses a Cleric-level and Wisdom success

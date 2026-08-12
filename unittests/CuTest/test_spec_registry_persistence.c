@@ -474,6 +474,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Shadow Giant",
                                                "RoL Guild Guard",
                                                "RoL Major Beholder",
+                                               "RoL Trade Bandit",
                                                "RoL Shaman Totem",
                                                "RoL Ship",
                                                "RoL Ship Control",
@@ -484,7 +485,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 75, expected_count);
+  CuAssertIntEquals(tc, 76, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)

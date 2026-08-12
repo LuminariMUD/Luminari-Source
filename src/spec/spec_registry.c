@@ -95,6 +95,11 @@ static const struct spec_event_contract rol_guild_guard_events[] = {
     {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
 };
 
+static const struct spec_event_contract rol_bandit_events[] = {
+    {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
+};
+
 static const struct spec_event_contract rol_object_hit_events[] = {
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_WEAPON_HIT, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
@@ -1037,6 +1042,18 @@ static const struct spec_definition spec_definitions[] = {
         .legacy_handler = rol_major_beholder,
     },
     {
+        .canonical_name = "RoL Trade Bandit",
+        .display_name = "RoL Trade Bandit",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = rol_bandit_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_bandit_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Extorts converted wagon cargo through seven source-specific tolls.",
+        .legacy_handler = rol_bandit,
+    },
+    {
         .canonical_name = "RoL Shaman Totem",
         .display_name = "RoL Shaman Totem",
         .owner_mask = SPEC_OWNER_OBJECT,
@@ -1181,6 +1198,7 @@ enum
   SPEC_DEFINITION_ROL_SHADOW_GIANT,
   SPEC_DEFINITION_ROL_GUILD_GUARD,
   SPEC_DEFINITION_ROL_MAJOR_BEHOLDER,
+  SPEC_DEFINITION_ROL_TRADE_BANDIT,
   SPEC_DEFINITION_ROL_SHAMAN_TOTEM,
   SPEC_DEFINITION_ROL_SHIP,
   SPEC_DEFINITION_ROL_SHIP_CONTROL,
@@ -1269,6 +1287,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_SHADOW_GIANT, -1},
     {SPEC_DEFINITION_ROL_GUILD_GUARD, -1},
     {SPEC_DEFINITION_ROL_MAJOR_BEHOLDER, -1},
+    {SPEC_DEFINITION_ROL_TRADE_BANDIT, -1},
     {SPEC_DEFINITION_ROL_SHAMAN_TOTEM, -1},
     {SPEC_DEFINITION_ROL_SHIP, -1},
     {SPEC_DEFINITION_ROL_SHIP_CONTROL, -1},

@@ -7209,6 +7209,9 @@ struct mob_special_data
   time_t rol_gate_cooldown_until; /* RoL demon/devil gate-attempt cooldown */
   time_t rol_gate_expire_at;      /* RoL gated-creature extraction deadline */
   bool rol_gated_creature;        /* RoL gate result; cannot recursively gate */
+  long rol_bandit_victim_id;      /* RoL trade-bandit toll target */
+  int rol_bandit_fee_gold;        /* RoL trade-bandit toll in target gold */
+  time_t rol_bandit_expire_at;    /* RoL trade-bandit one-shot cleanup deadline */
 };
 
 /** An affect structure. */

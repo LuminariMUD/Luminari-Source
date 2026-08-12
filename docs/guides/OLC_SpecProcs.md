@@ -74,6 +74,14 @@ in the room. The source engine's critical-hit callback has no target combat-turn
 all-unused-eyes critical burst is not available. Use this converter-owned procedure only for the
 converted `major_beholder` family.
 
+`RoL Trade Bandit` is mobile-owned and requires `MOB_SPEC`. It intercepts movement, `flee`, and
+`get` for a merchant carrying converted resources or owning a loaded wagon, then applies one of
+seven converter-owned toll personalities. Source platinum tolls use ten target gold per platinum;
+resource and wagon-content costs retain their source copper-scale threshold. Payment uses the
+ordinary `give <amount> gold <bandit>` command. Some variants demand all carried gold and the
+owned wagon, vary by alignment, or attack immediately. Do not assign this procedure to unrelated
+mobiles: its behavior is keyed to converted mobile VNUMs 2099501-2099507.
+
 `RoL Shaman Totem` is object-owned and must be held or wielded. It preserves the 21 converted
 totem identities, permanent player/object bonding, source-race gating, three summon attempts per
 seven MUD days, and a single active spirit. Because the source Shaman class maps to Cleric, a

@@ -27,6 +27,8 @@
 #include "spec_rol_conversion.h"
 #include "spec_rol_totem.h"
 
+#include <limits.h>
+
 #define ROL_GATE_MAX_SUMMONS 5
 #define ROL_GUILD_CLASS(class_id) (1ULL << (class_id))
 #define ROL_GUILD_RACE(race_id) (1ULL << (race_id))
@@ -1058,6 +1060,290 @@ int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argu
 
   ch->mob_specials.proc_fired = state;
   return fired;
+}
+
+static struct obj_data *rol_bandit_owned_wagon(struct char_data *ch)
+{
+  struct obj_data *obj;
+
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return NULL;
+
+  for (obj = world[IN_ROOM(ch)].contents; obj != NULL; obj = obj->next_content)
+    if (GET_OBJ_TYPE(obj) == ITEM_WAGON && GET_OBJ_VAL(obj, 3) == GET_IDNUM(ch))
+      return obj;
+
+  return NULL;
+}
+
+int rol_bandit_cargo_value(struct char_data *ch)
+{
+  struct obj_data *obj;
+  struct obj_data *wagon;
+  long long total = 0;
+
+  if (ch == NULL)
+    return 0;
+
+  for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
+    if (GET_OBJ_TYPE(obj) == ITEM_RESOURCE)
+      total += GET_OBJ_COST(obj);
+
+  wagon = rol_bandit_owned_wagon(ch);
+  if (wagon != NULL)
+    for (obj = wagon->contains; obj != NULL; obj = obj->next_content)
+      total += GET_OBJ_COST(obj);
+
+  return (int)MIN((long long)INT_MAX, MAX(0LL, total));
+}
+
+int rol_bandit_fee_gold(int target_vnum, int cargo_value, int alignment, int carried_gold)
+{
+  long long base_platinum;
+
+  base_platinum = MAX(0, cargo_value) / 1000;
+  if (base_platinum == 0)
+    return ROL_BANDIT_DEMAND_PASS;
+
+  switch (target_vnum)
+  {
+  case 2099501:
+    return 50;
+  case 2099502:
+    return (int)MIN((long long)INT_MAX, (base_platinum / 3) * 10);
+  case 2099503:
+    return (int)MIN((long long)INT_MAX, (base_platinum / 2) * 10);
+  case 2099504:
+    return (int)MIN((long long)INT_MAX, base_platinum * 10);
+  case 2099505:
+    return carried_gold > 0 ? carried_gold : ROL_BANDIT_DEMAND_TAKE_WAGON;
+  case 2099506:
+    if (alignment >= 350)
+      return 100;
+    if (alignment <= -350)
+      return ROL_BANDIT_DEMAND_ATTACK;
+    return carried_gold > 0 ? carried_gold : 100;
+  case 2099507:
+    return ROL_BANDIT_DEMAND_ATTACK;
+  default:
+    return ROL_BANDIT_DEMAND_PASS;
+  }
+}
+
+static bool rol_bandit_is_alone(struct char_data *bandit)
+{
+  if (bandit == NULL || !VALID_ROOM_RNUM(IN_ROOM(bandit)))
+    return true;
+
+  return world[IN_ROOM(bandit)].people == bandit && bandit->next_in_room == NULL;
+}
+
+static void rol_bandit_vanish(struct char_data *bandit)
+{
+  rol_purge_gated_inventory(bandit);
+  extract_char(bandit);
+}
+
+static void rol_bandit_attack(struct char_data *bandit, struct char_data *victim,
+                              const char *message)
+{
+  if (message != NULL)
+    do_say(bandit, message, 0, 0);
+  hit(bandit, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+}
+
+static bool rol_bandit_take_wagon(struct char_data *bandit, struct char_data *victim)
+{
+  struct obj_data *wagon;
+
+  wagon = rol_bandit_owned_wagon(victim);
+  if (wagon == NULL)
+    return false;
+
+  act("$n grabs your wagon.", FALSE, bandit, NULL, victim, TO_VICT);
+  act("$n grabs $N's wagon.", TRUE, bandit, NULL, victim, TO_NOTVICT);
+  extract_obj(wagon);
+  return true;
+}
+
+static void rol_bandit_announce_demand(struct char_data *bandit, int target_vnum, int fee_gold)
+{
+  char message[MAX_INPUT_LENGTH];
+
+  switch (target_vnum)
+  {
+  case 2099501:
+    do_say(bandit, "You have to pay to pass. The toll is 50 gold coins.", 0, 0);
+    break;
+  case 2099502:
+    do_say(bandit, "You had better pay, or your head will fall from your neck!", 0, 0);
+    snprintf(message, sizeof(message), "The price for your life is %d gold coins.", fee_gold);
+    do_say(bandit, message, 0, 0);
+    break;
+  case 2099503:
+    do_say(bandit, "Have you ever experienced a blade in your belly?", 0, 0);
+    snprintf(message, sizeof(message), "If you do not want to, pay me %d gold coins.", fee_gold);
+    do_say(bandit, message, 0, 0);
+    break;
+  case 2099504:
+    do_say(bandit, "Life is so dangerous today!", 0, 0);
+    snprintf(message, sizeof(message),
+             "For example, you will die if you do not hand me %d gold coins.", fee_gold);
+    do_say(bandit, message, 0, 0);
+    break;
+  case 2099505:
+    do_say(bandit, "It is a hard life being a merchant!", 0, 0);
+    do_say(bandit, "But it is an even worse life being a bandit.", 0, 0);
+    do_say(bandit, "Give me all your gold coins and leave your wagon to me.", 0, 0);
+    break;
+  case 2099506:
+    if (fee_gold == 100)
+    {
+      do_say(bandit, "Poor people need your money more than you do.", 0, 0);
+      do_say(bandit, "Pay a 100 gold toll and you will be free.", 0, 0);
+    }
+    else
+    {
+      do_say(bandit, "I really dislike people who refuse to take a side.", 0, 0);
+      snprintf(message, sizeof(message), "A donation of %d gold coins could redeem you.", fee_gold);
+      do_say(bandit, message, 0, 0);
+    }
+    break;
+  }
+}
+
+static bool rol_bandit_blocks_command(int cmd)
+{
+  if (cmd <= 0 || complete_cmd_info == NULL)
+    return false;
+
+  return IS_MOVE(cmd) || CMD_IS("flee") || CMD_IS("get");
+}
+
+int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *bandit = me;
+  long long paid;
+  int before_gold;
+  int cargo_value;
+  int fee_gold;
+  int target_vnum;
+  time_t now;
+
+  if (bandit == NULL && cmd == 0)
+    bandit = ch;
+  if (bandit == NULL || !IS_NPC(bandit))
+    return FALSE;
+
+  now = time(NULL);
+  if (bandit->mob_specials.rol_bandit_expire_at == 0)
+    bandit->mob_specials.rol_bandit_expire_at = now + (10 * SECS_PER_MUD_HOUR);
+
+  if (cmd == 0)
+  {
+    if (bandit->mob_specials.rol_bandit_expire_at > 0 &&
+        now >= bandit->mob_specials.rol_bandit_expire_at)
+    {
+      bandit->mob_specials.rol_bandit_expire_at = (time_t)-1;
+      if (rol_bandit_is_alone(bandit))
+        rol_bandit_vanish(bandit);
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  if (ch == NULL || IS_NPC(ch) || !AWAKE(bandit) || FIGHTING(bandit) != NULL ||
+      complete_cmd_info == NULL)
+    return FALSE;
+
+  if (bandit->mob_specials.rol_bandit_victim_id == GET_IDNUM(ch))
+  {
+    if (CMD_IS("camp") || CMD_IS("leavecart"))
+    {
+      rol_bandit_attack(bandit, ch, "Are you trying to swindle me?");
+      return TRUE;
+    }
+
+    if (CMD_IS("give"))
+    {
+      before_gold = GET_GOLD(bandit);
+      do_give(ch, argument, cmd, 0);
+      paid = (long long)GET_GOLD(bandit) - before_gold;
+      if (paid < bandit->mob_specials.rol_bandit_fee_gold)
+      {
+        rol_bandit_attack(bandit, ch, "You are REALLY foolish. Die!");
+        return TRUE;
+      }
+
+      if (GET_MOB_VNUM(bandit) == 2099505 && !rol_bandit_take_wagon(bandit, ch))
+      {
+        rol_bandit_attack(bandit, ch, "You promised me a wagon. Die!");
+        return TRUE;
+      }
+
+      if (GET_MOB_VNUM(bandit) == 2099506)
+      {
+        do_say(bandit, "That was very nice of you.", 0, 0);
+        act("$n bows deeply, then disappears.", FALSE, bandit, NULL, ch, TO_ROOM);
+      }
+      else
+      {
+        do_say(bandit, "That was wise of you.", 0, 0);
+        act("$n quickly disappears.", FALSE, bandit, NULL, ch, TO_ROOM);
+      }
+      rol_bandit_vanish(bandit);
+      return TRUE;
+    }
+
+    if (!rol_bandit_blocks_command(cmd))
+      return FALSE;
+
+    if (rand_number(1, 5) == 5)
+      rol_bandit_attack(bandit, ch, "I am tired of you. Die!");
+    else
+    {
+      act("$n stops you.", FALSE, bandit, NULL, ch, TO_VICT);
+      act("$n stops $N.", TRUE, bandit, NULL, ch, TO_NOTVICT);
+    }
+    return TRUE;
+  }
+
+  if (bandit->mob_specials.rol_bandit_victim_id != 0 || !rol_bandit_blocks_command(cmd))
+    return FALSE;
+
+  target_vnum = GET_MOB_VNUM(bandit);
+  cargo_value = rol_bandit_cargo_value(ch);
+  fee_gold = rol_bandit_fee_gold(target_vnum, cargo_value, GET_ALIGNMENT(ch), GET_GOLD(ch));
+  if (fee_gold == ROL_BANDIT_DEMAND_PASS)
+    return FALSE;
+
+  act("$n stops you.", FALSE, bandit, NULL, ch, TO_VICT);
+  act("$n stops $N.", TRUE, bandit, NULL, ch, TO_NOTVICT);
+  bandit->mob_specials.rol_bandit_victim_id = GET_IDNUM(ch);
+  bandit->mob_specials.rol_bandit_fee_gold = MAX(0, fee_gold);
+
+  if (fee_gold == ROL_BANDIT_DEMAND_ATTACK)
+  {
+    rol_bandit_attack(bandit, ch,
+                      target_vnum == 2099506 ? "Evil is a malady, and I am the cure." : NULL);
+    return TRUE;
+  }
+
+  if (fee_gold == ROL_BANDIT_DEMAND_TAKE_WAGON)
+  {
+    do_say(bandit, "You are terribly poor. I will take your wagon instead.", 0, 0);
+    if (!rol_bandit_take_wagon(bandit, ch))
+    {
+      rol_bandit_attack(bandit, ch, "No wagon either? Die!");
+      return TRUE;
+    }
+    act("$n quickly disappears.", FALSE, bandit, NULL, ch, TO_ROOM);
+    rol_bandit_vanish(bandit);
+    return TRUE;
+  }
+
+  rol_bandit_announce_demand(bandit, target_vnum, fee_gold);
+  return TRUE;
 }
 
 int rol_shadow_giant_spook_damage(bool save_succeeded)

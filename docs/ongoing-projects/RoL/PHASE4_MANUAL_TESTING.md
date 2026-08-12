@@ -289,6 +289,34 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   target special-procedure gateway provides combat-turn events, not source weapon-critical
   callbacks.
 
+### Phase 6 converted trade bandits
+
+- `RoL Trade Bandit` is implemented for all seven active source bindings. The affected
+  trade package remains outside the five-package staged pilot; do not assign this
+  converter-owned procedure to unrelated mobiles.
+- In a later dependency-complete stage, place converted mobiles 2099501-2099507 in a
+  room with `MOB_SPEC`. Carry converted `ITEM_RESOURCE` cargo, or own a room wagon whose
+  value 3 is your character ID and which contains cargo. Confirm movement, `flee`, and
+  `get` trigger the toll while other commands and players without at least 1,000 cargo
+  cost pass normally.
+- Confirm 2099501 demands 50 gold; 2099502 and 2099503 demand one third and one half of
+  cargo value respectively; 2099504 demands full cargo value; and source platinum maps
+  to ten target gold. Fractions are truncated before the currency conversion, matching
+  the source.
+- Confirm 2099505 demands all carried gold plus the owned wagon. A player with no gold
+  loses the wagon immediately; a player who pays but has no owned wagon is attacked.
+  Mobile 2099506 demands 100 gold from good characters, all carried gold (or 100 when
+  broke) from neutral characters, and attacks evil characters. Mobile 2099507 attacks
+  immediately.
+- After a demand, repeated attempts to move, flee, or get are blocked, with a one-in-five
+  chance that the bandit attacks. Another player is not captured by that bandit's current
+  demand. Use `give <amount> gold <bandit>`; underpayment transfers the offered gold and
+  starts combat, while sufficient payment makes the bandit purge its possessions and
+  disappear. Variant 2099505 also takes the wagon.
+- Leave a non-fighting bandit alone for ten MUD hours and confirm it disappears. If
+  another character is present at that one-shot deadline, it remains and does not retry
+  the cleanup, matching the source event contract.
+
 ### Phase 6 converted shaman totems
 
 - `RoL Shaman Totem` is implemented for all 21 active object bindings, with matching

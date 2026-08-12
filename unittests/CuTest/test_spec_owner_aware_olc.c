@@ -63,6 +63,7 @@ static const char *const spec_mobile_names[] = {
     "RoL Shadow Giant",
     "RoL Guild Guard",
     "RoL Major Beholder",
+    "RoL Trade Bandit",
     "RoL Ship Navigator",
 };
 
@@ -370,7 +371,7 @@ void Test_spec_owner_olc_selection_parser_is_strict_and_bounded(CuTest *tc)
     return;
   CuAssertStrEquals(tc, "Greyhawk Ship Commands", definition->canonical_name);
 
-  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "39", &definition);
+  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "40", &definition);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID, result);
   CuAssertTrue(tc, definition == NULL);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID,

@@ -681,6 +681,88 @@ void Test_spec_rol_major_beholder_preserves_eye_mapping_and_cooldowns(CuTest *tc
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_trade_bandit_preserves_cargo_tolls_and_cleanup_timer(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct player_special_data player_specials;
+  struct command_info commands[2];
+  struct command_info *saved_complete_cmd_info;
+  struct obj_data wagon_load;
+  time_t before;
+
+  spec_mechanics_begin(&fixture);
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(commands, 0, sizeof(commands));
+  clear_object(&wagon_load);
+  GET_OBJ_RNUM(&wagon_load) = 0;
+
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
+  fixture.target.player_specials = &player_specials;
+  GET_IDNUM(&fixture.target) = 4242;
+
+  GET_OBJ_TYPE(&fixture.worn) = ITEM_RESOURCE;
+  GET_OBJ_COST(&fixture.worn) = 1500;
+  fixture.worn.carried_by = &fixture.target;
+  fixture.target.carrying = &fixture.worn;
+  GET_OBJ_TYPE(&fixture.copy) = ITEM_WAGON;
+  GET_OBJ_VAL(&fixture.copy, 3) = 4242;
+  IN_ROOM(&fixture.copy) = 0;
+  fixture.rooms[0].contents = &fixture.copy;
+  GET_OBJ_TYPE(&wagon_load) = ITEM_RESOURCE;
+  GET_OBJ_COST(&wagon_load) = 2500;
+  wagon_load.in_obj = &fixture.copy;
+  fixture.copy.contains = &wagon_load;
+
+  CuAssertIntEquals(tc, 4000, rol_bandit_cargo_value(&fixture.target));
+  GET_OBJ_VAL(&fixture.copy, 3) = 9999;
+  CuAssertIntEquals(tc, 1500, rol_bandit_cargo_value(&fixture.target));
+  CuAssertIntEquals(tc, 0, rol_bandit_cargo_value(NULL));
+
+  CuAssertIntEquals(tc, ROL_BANDIT_DEMAND_PASS, rol_bandit_fee_gold(2099501, 999, 0, 10));
+  CuAssertIntEquals(tc, ROL_BANDIT_DEMAND_PASS, rol_bandit_fee_gold(2999999, 5000, 0, 10));
+  CuAssertIntEquals(tc, 50, rol_bandit_fee_gold(2099501, 5000, 0, 10));
+  CuAssertIntEquals(tc, 10, rol_bandit_fee_gold(2099502, 5000, 0, 10));
+  CuAssertIntEquals(tc, 20, rol_bandit_fee_gold(2099503, 5000, 0, 10));
+  CuAssertIntEquals(tc, 50, rol_bandit_fee_gold(2099504, 5000, 0, 10));
+  CuAssertIntEquals(tc, 73, rol_bandit_fee_gold(2099505, 5000, 0, 73));
+  CuAssertIntEquals(tc, ROL_BANDIT_DEMAND_TAKE_WAGON, rol_bandit_fee_gold(2099505, 5000, 0, 0));
+  CuAssertIntEquals(tc, 100, rol_bandit_fee_gold(2099506, 5000, 350, 73));
+  CuAssertIntEquals(tc, 73, rol_bandit_fee_gold(2099506, 5000, 0, 73));
+  CuAssertIntEquals(tc, 100, rol_bandit_fee_gold(2099506, 5000, 0, 0));
+  CuAssertIntEquals(tc, ROL_BANDIT_DEMAND_ATTACK, rol_bandit_fee_gold(2099506, 5000, -350, 73));
+  CuAssertIntEquals(tc, ROL_BANDIT_DEMAND_ATTACK, rol_bandit_fee_gold(2099507, 5000, 0, 73));
+
+  fixture.mobile_indexes[0].vnum = 2099501;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  commands[1].command = "get";
+  saved_complete_cmd_info = complete_cmd_info;
+  complete_cmd_info = commands;
+  CuAssertIntEquals(tc, TRUE, rol_bandit(&fixture.target, &fixture.actor, 1, ""));
+  CuAssertTrue(tc, fixture.actor.mob_specials.rol_bandit_victim_id == 4242);
+  CuAssertIntEquals(tc, 50, fixture.actor.mob_specials.rol_bandit_fee_gold);
+  complete_cmd_info = saved_complete_cmd_info;
+  fixture.actor.mob_specials.rol_bandit_victim_id = 0;
+  fixture.actor.mob_specials.rol_bandit_fee_gold = 0;
+
+  before = time(NULL);
+  CuAssertIntEquals(tc, FALSE, rol_bandit(&fixture.actor, &fixture.actor, 0, ""));
+  CuAssertTrue(tc, fixture.actor.mob_specials.rol_bandit_expire_at >=
+                       before + (10 * SECS_PER_MUD_HOUR));
+  fixture.actor.mob_specials.rol_bandit_expire_at = before - 1;
+  CuAssertIntEquals(tc, TRUE, rol_bandit(&fixture.actor, &fixture.actor, 0, ""));
+  CuAssertTrue(tc, fixture.actor.mob_specials.rol_bandit_expire_at == (time_t)-1);
+  CuAssertTrue(tc, !MOB_FLAGGED(&fixture.actor, MOB_NOTDEADYET));
+
+  fixture.target.carrying = NULL;
+  fixture.worn.carried_by = NULL;
+  fixture.copy.contains = NULL;
+  wagon_load.in_obj = NULL;
+  fixture.rooms[0].contents = NULL;
+  fixture.target.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_shaman_totem_preserves_identity_gating_and_usage(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

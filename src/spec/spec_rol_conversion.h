@@ -11,6 +11,13 @@
 struct char_data;
 struct obj_data;
 
+enum rol_bandit_demand
+{
+  ROL_BANDIT_DEMAND_PASS = -1,
+  ROL_BANDIT_DEMAND_ATTACK = -2,
+  ROL_BANDIT_DEMAND_TAKE_WAGON = -3
+};
+
 int rol_corpse_devourer(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_poison_bite(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_thief(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -26,6 +33,7 @@ int rol_auto_distributor(struct char_data *ch, void *me, int cmd, const char *ar
 int rol_shadow_giant(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument);
 
 bool rol_corpse_devourer_can_consume(const struct obj_data *obj);
 int rol_poison_bite_roll_ceiling(int level);
@@ -38,6 +46,8 @@ bool rol_guild_guard_protects(int room_vnum);
 int rol_major_beholder_eye_spell(int eye);
 int rol_major_beholder_eye_cooldown(int state, int eye);
 int rol_major_beholder_advance_cooldowns(int state, unsigned int fired_eye_mask);
+int rol_bandit_cargo_value(struct char_data *ch);
+int rol_bandit_fee_gold(int target_vnum, int cargo_value, int alignment, int carried_gold);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);
 bool rol_automatic_race_activity(struct char_data *ch);
 void rol_automatic_race_combat_turn(struct char_data *ch);
