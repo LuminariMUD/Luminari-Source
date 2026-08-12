@@ -27,10 +27,14 @@ from .rol_transform import (
     CLASS_MAP,
     MOB_ACTION_MAP,
     MOB_AFFECT_MAP,
+    MOB_AFFECT2_MAP,
+    MOB_SOURCE_ONLY_AFFECTS,
     OBJECT_EXTRA_MAP,
     OBJECT_SOURCE_ONLY_FLAGS,
     OBJECT_TYPE_MAP,
     OBJECT_WEAR_MAP,
+    OBJECT_SOURCE_ONLY_APPLIES,
+    OBJECT_SOURCE_ONLY_WEAR_FLAGS,
     RACE_CODE_MAP,
     ROOM_FLAG_MAP,
     ROOM_TRANSFORMED_FLAGS,
@@ -202,14 +206,18 @@ def build_symbolic_inventory(records: Iterable[RolRecord]) -> list[dict[str, Any
       "room_flag": set(ROOM_FLAG_MAP) | set(ROOM_TRANSFORMED_FLAGS),
       "sector": set(SECTOR_MAP),
       "mobile_action_flag": set(MOB_ACTION_MAP),
-      "mobile_affect_flag": set(MOB_AFFECT_MAP),
+      "mobile_affect_flag": (
+          set(MOB_AFFECT_MAP) | set(MOB_AFFECT2_MAP) | set(MOB_SOURCE_ONLY_AFFECTS)
+      ),
       "mobile_race_code": set(RACE_CODE_MAP),
       "mobile_class": set(CLASS_MAP),
       "object_type": set(OBJECT_TYPE_MAP),
       "object_extra_flag": set(OBJECT_EXTRA_MAP) | set(OBJECT_SOURCE_ONLY_FLAGS),
-      "object_wear_flag": set(OBJECT_WEAR_MAP),
-      "object_affect_flag": set(MOB_AFFECT_MAP),
-      "object_apply": set(APPLY_MAP),
+      "object_wear_flag": set(OBJECT_WEAR_MAP) | set(OBJECT_SOURCE_ONLY_WEAR_FLAGS),
+      "object_affect_flag": (
+          set(MOB_AFFECT_MAP) | set(MOB_AFFECT2_MAP) | set(MOB_SOURCE_ONLY_AFFECTS)
+      ),
+      "object_apply": set(APPLY_MAP) | set(OBJECT_SOURCE_ONLY_APPLIES),
       "zone_flag": set(ZONE_ROOM_FLAG_MAP) | set(ZONE_SOURCE_ONLY_FLAGS),
   }
   rows = [

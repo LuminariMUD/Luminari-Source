@@ -151,6 +151,7 @@ SECTOR_MAP = {
     29: 35,
     30: 18,
     31: 25,
+    100: 5,  # malformed room 50537 omitted its mountain-road sector value
 }
 
 MOB_ACTION_MAP = {
@@ -192,6 +193,7 @@ MOB_AFFECT_MAP = {
     21: 20, # HIDE
     22: 30, # FEAR
     23: 22, # CHARM
+    24: 121, # MEDITATE -> RAPID_BUFF (bounded spell-preparation equivalent)
     25: 97,  # BARKSKIN -> WARDED
     26: 11, # INFRAVISION
     27: 103,# LEVITATE
@@ -252,6 +254,19 @@ MOB_AFFECT_MAP = {
     129: 8, # SANCTUARY
 }
 
+# The primary target affect bitset is full. These source behaviors use the
+# extensible secondary bitset and small runtime adapters instead.
+MOB_AFFECT2_MAP = {
+    16: 3, # SLOW_POISON
+    61: 4, # DOCILE
+}
+
+# These bits are transient engine state in RoL, or are never consumed by the
+# source runtime. Persisting them on prototypes would invent behavior.
+MOB_SOURCE_ONLY_AFFECTS = frozenset(
+    {10, 47, 48, 53, 54, 55, 56, 57, 58, 59, 62, 63, 67, 97}
+)
+
 OBJECT_TYPE_MAP = {
     0: 12,
     1: 1,
@@ -294,6 +309,7 @@ OBJECT_TYPE_MAP = {
     38: 12,
     39: 42,
     40: 12,
+    8388672: 12, # malformed object 34864 shifted its extra flags into item type
 }
 
 OBJECT_EXTRA_MAP = {
@@ -364,6 +380,10 @@ OBJECT_WEAR_MAP = {
     22: 10,
 }
 
+# Object 10455 is one playing card among an otherwise identical deck. Its two
+# high wear bits are source corruption, not axe/pickaxe crafting slots.
+OBJECT_SOURCE_ONLY_WEAR_FLAGS = frozenset({25, 27})
+
 APPLY_MAP = {
     0: 0,
     1: 1,
@@ -391,9 +411,36 @@ APPLY_MAP = {
     23: 21,
     24: 22,
     25: 28,
+    26: 2,  # AGI -> DEX
+    27: 4,  # POW -> WIS
     28: 6,
+    31: 1,  # STR_MAX -> STR
+    32: 2,  # DEX_MAX -> DEX
+    33: 3,  # INT_MAX -> INT
+    34: 4,  # WIS_MAX -> WIS
+    35: 5,  # CON_MAX -> CON
+    36: 2,  # AGI_MAX -> DEX
+    37: 4,  # POW_MAX -> WIS
+    38: 6,  # CHA_MAX -> CHA
+    41: 1,  # STR_RACE -> bounded fixed STR equivalent
+    43: 3,  # INT_RACE -> bounded fixed INT equivalent
+    45: 5,  # CON_RACE -> bounded fixed CON equivalent
+    48: 6,  # CHA_RACE -> bounded fixed CHA equivalent
     51: 25,
     52: 13,
+}
+
+# Karma and Luck are displayed source statistics with no target attribute and
+# no active source mechanic consuming their modified values.
+OBJECT_SOURCE_ONLY_APPLIES = frozenset({29, 30, 39, 40, 49, 50})
+
+# Active race-factor applies are multiplicative in RoL. Convert their observed
+# factors into fixed D20-scale modifiers around a baseline score of 10.
+OBJECT_RACE_APPLY_MODIFIERS = {
+    (41, 4): -2, # elven STR factor 85 percent
+    (43, 9): -4, # ogre INT factor 60 percent
+    (45, 5): 3,  # dwarven CON factor 130 percent
+    (48, 5): -2, # dwarven CHA factor 85 percent
 }
 
 EQUIPMENT_POSITION_MAP = {
@@ -559,6 +606,14 @@ def _unmapped(source_bits: set[int], mapping: dict[int, int]) -> list[int]:
 
 def _encoded(bits: set[int]) -> str:
   return " ".join(encode_bits(bits))
+
+
+def _numeric_bitarray(bits: set[int], width: int = 4) -> str:
+  values = [0] * width
+  for bit in bits:
+    if 0 <= bit < width * 32:
+      values[bit // 32] |= 1 << (bit % 32)
+  return " ".join(str(value) for value in values)
 
 
 def _room_size_bits(base: list[int]) -> set[int]:
@@ -1217,12 +1272,23 @@ def emit_mobile(
   if special_proc is not None:
     target_actions.add(0)
   target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
+  target_affects2 = _mapped_bits(source_affects, MOB_AFFECT2_MAP)
   missing_actions = _unmapped(source_actions, MOB_ACTION_MAP)
-  missing_affects = _unmapped(source_affects, MOB_AFFECT_MAP)
+  missing_affects = sorted(
+      source_affects
+      - MOB_AFFECT_MAP.keys()
+      - MOB_AFFECT2_MAP.keys()
+      - MOB_SOURCE_ONLY_AFFECTS
+  )
   if missing_actions:
     diagnostics.append(f"mobile action flags requiring behavior reconciliation: {missing_actions}")
   if missing_affects:
     diagnostics.append(f"mobile affect flags without persistent equivalents: {missing_affects}")
+  if source_affects & MOB_SOURCE_ONLY_AFFECTS:
+    diagnostics.append(
+        "omitted source transient/inert mobile affects: "
+        f"{sorted(source_affects & MOB_SOURCE_ONLY_AFFECTS)}"
+    )
   lines.append(f"{_encoded(target_actions)} {_encoded(target_affects)} {alignment} E\n")
 
   rows = record.values.get("base_rows", [])
@@ -1247,6 +1313,8 @@ def emit_mobile(
   if race_code not in RACE_CODE_MAP:
     diagnostics.append(f"unknown source race code {race_code!r}; used target human")
   lines.extend([f"Class: {target_class}\n", f"Race: {target_race}\n"])
+  if target_affects2:
+    lines.append(f"Aff2: {_numeric_bitarray(target_affects2)}\n")
   if special_proc is not None:
     lines.append(f"SpecProc: {special_proc}\n")
   lines.append("E\n")
@@ -1373,13 +1441,20 @@ def emit_object(
       for flag in _unmapped(source_extra, OBJECT_EXTRA_MAP)
       if flag not in OBJECT_SOURCE_ONLY_FLAGS
   ]
-  missing_wear = _unmapped(source_wear, OBJECT_WEAR_MAP)
+  missing_wear = sorted(
+      source_wear - OBJECT_WEAR_MAP.keys() - OBJECT_SOURCE_ONLY_WEAR_FLAGS
+  )
   if missing_extra:
     diagnostics.append(f"object extra flags without direct equivalents: {missing_extra}")
   if source_extra & OBJECT_SOURCE_ONLY_FLAGS:
     diagnostics.append("omitted source-inert object DARK flag")
   if missing_wear:
     diagnostics.append(f"object wear flags without direct equivalents: {missing_wear}")
+  if source_wear & OBJECT_SOURCE_ONLY_WEAR_FLAGS:
+    diagnostics.append(
+        "omitted malformed source object wear flags: "
+        f"{sorted(source_wear & OBJECT_SOURCE_ONLY_WEAR_FLAGS)}"
+    )
 
   source_affects: set[int] = set()
   for directive in record.directives:
@@ -1388,9 +1463,20 @@ def emit_object(
     for ordinal, mask in enumerate(directive.get("arguments", [])):
       source_affects.update(_source_mask_bits(mask, ordinal * 32 + 1))
   target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
-  missing_affects = _unmapped(source_affects, MOB_AFFECT_MAP)
+  target_affects2 = _mapped_bits(source_affects, MOB_AFFECT2_MAP)
+  missing_affects = sorted(
+      source_affects
+      - MOB_AFFECT_MAP.keys()
+      - MOB_AFFECT2_MAP.keys()
+      - MOB_SOURCE_ONLY_AFFECTS
+  )
   if missing_affects:
     diagnostics.append(f"object affect flags without persistent equivalents: {missing_affects}")
+  if source_affects & MOB_SOURCE_ONLY_AFFECTS:
+    diagnostics.append(
+        "omitted source transient/inert object affects: "
+        f"{sorted(source_affects & MOB_SOURCE_ONLY_AFFECTS)}"
+    )
   values = _object_values(record, source_type, target_type, resolve, diagnostics)
   trap_values = _object_trap_values(record, values, diagnostics)
   if trap_values is not None:
@@ -1398,7 +1484,7 @@ def emit_object(
     values[ROL_OBJECT_TRAP_VALUE_OFFSET:ROL_OBJECT_TRAP_VALUE_OFFSET + 6] = trap_values
   lines.append(
       f"{target_type} {_encoded(target_extra)} {_encoded(target_wear)} "
-      f"{_encoded(target_affects)} {_encoded(set())}\n"
+      f"{_encoded(target_affects)} {_encoded(target_affects2)}\n"
   )
   lines.append(" ".join(str(value) for value in values) + "\n")
   economy = list(record.values.get("economy", []))
@@ -1425,14 +1511,36 @@ def emit_object(
       if len(arguments) < 2:
         diagnostics.append(f"excluded incomplete object affect at source line {directive['line']}")
         continue
-      location = APPLY_MAP.get(arguments[0])
+      source_location = arguments[0]
+      if source_location in OBJECT_SOURCE_ONLY_APPLIES:
+        diagnostics.append(
+            f"omitted source-only object apply {source_location} at source line "
+            f"{directive['line']}"
+        )
+        continue
+      location = APPLY_MAP.get(source_location)
       if location is None or location == 0 and arguments[0] != 0:
         diagnostics.append(
-            f"excluded unsupported object apply {arguments[0]} at source line {directive['line']}"
+            f"excluded unsupported object apply {source_location} at source line {directive['line']}"
         )
         continue
       modifier = arguments[1]
-      if 1 <= arguments[0] <= 5:
+      if source_location in {41, 43, 45, 48}:
+        race_modifier = OBJECT_RACE_APPLY_MODIFIERS.get(
+            (source_location, modifier)
+        )
+        if race_modifier is None:
+          diagnostics.append(
+              f"excluded unsupported race-factor object apply {source_location} "
+              f"modifier {modifier} at source line {directive['line']}"
+          )
+          continue
+        modifier = race_modifier
+        diagnostics.append(
+            f"approximated source race-factor apply {source_location} as fixed "
+            f"target modifier {modifier} at source line {directive['line']}"
+        )
+      elif source_location in {1, 2, 3, 4, 5, 26, 27, 31, 32, 33, 34, 35, 36, 37, 38}:
         modifier = (modifier * 45) // 10
       lines.extend(["A\n", f"{location} {modifier} 0 0\n"])
   if special_proc is not None:

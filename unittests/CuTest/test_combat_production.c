@@ -20,6 +20,19 @@
 
 bool sect_no_weather(struct char_data *ch);
 
+void Test_rol_slow_poison_reduces_target_poison_damage(CuTest *tc)
+{
+  struct char_data ch;
+
+  clear_char(&ch);
+  CuAssertIntEquals(tc, 9, apply_slow_poison_reduction(&ch, 9));
+
+  SET_BIT_AR(AFF2_FLAGS(&ch), AFF2_ROL_SLOW_POISON);
+  CuAssertIntEquals(tc, 4, apply_slow_poison_reduction(&ch, 9));
+  CuAssertIntEquals(tc, 1, apply_slow_poison_reduction(&ch, 1));
+  CuAssertIntEquals(tc, 0, apply_slow_poison_reduction(&ch, 0));
+}
+
 void Test_rol_room_flags_drive_arena_and_weather_compatibility(CuTest *tc)
 {
   struct char_data ch;

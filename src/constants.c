@@ -1609,7 +1609,11 @@ CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *affected2_bits[] = {"\0", /* DO NOT REMOVE!! */
-                                "Magic-Attacks", "Cowering", "\n"};
+                                "Magic-Attacks",
+                                "Cowering",
+                                "RoL-Slow-Poison",
+                                "RoL-Docile",
+                                "\n"};
 
 CHECK_TABLE_SIZE(affected2_bits, NUM_AFF2_FLAGS + 1);
 
@@ -1621,7 +1625,9 @@ CHECK_TABLE_SIZE(affected2_bits, NUM_AFF2_FLAGS + 1);
 const char *affected2_bit_descs[] = {"\0", /* DO NOT REMOVE!! */
                                      //|---------------------------------------------------------|
                                      "Attacks you make can bypass magic resistant damage reduction",
-                                     "You are cowering in fear.", "\n"};
+                                     "You are cowering in fear.",
+                                     "Poison running through you has reduced intensity.",
+                                     "You will not join allies in combat.", "\n"};
 CHECK_TABLE_SIZE(affected2_bit_descs, NUM_AFF2_FLAGS + 1);
 
 /** Connection type descriptions.

@@ -135,6 +135,73 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(15, int(mobile.enhanced["Race"][0]))
     self.assertEqual(4321, mobile.gold)
 
+  def test_emitted_mobile_maps_rol_secondary_and_source_only_affects(self) -> None:
+    first_affects = (1 << (16 - 1)) | (1 << (24 - 1))
+    second_affects = (1 << (48 - 33)) | (1 << (61 - 33))
+    source = self._source_record(
+        "mob",
+        (
+            "<*> File Version 1 <*>\n#300\nmeditator~\na meditator~\n"
+            "A meditator waits.\n~\nA quiet meditator.\n~\n"
+            f"0 {first_affects} {second_affects} 0 S\n"
+            "PH 0 0\n10 0 50 2d8+5 1d4+1\n0 0\n131 131 0 0\n"
+        ).encode("ascii"),
+    )
+
+    emitted = emit_mobile(source, 2_000_300)
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20001.mob", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    mobile = result.records[0]
+    self.assertEqual({121}, decode_tokens(mobile.affect_flags).bits)
+    self.assertEqual({3, 4}, decode_tokens(mobile.affect2_flags).bits)
+    self.assertIn("omitted source transient/inert mobile affects: [48]", emitted.diagnostics)
+
+  def test_emitted_object_maps_extended_stats_and_repairs_source_defects(self) -> None:
+    wear_mask = sum(1 << bit for bit in (0, 14, 25, 27))
+    source = self._source_record(
+        "obj",
+        (
+            "#200\ncompatibility relic~\na compatibility relic~\n"
+            "A compatibility relic is here.~\n~\n"
+            f"8388672 64 {wear_mask}\n0 0 0 0\n1 1 0\n"
+            "A\n26 2\nA\n27 1\nA\n31 2\nA\n41 4\nA\n29 5\n"
+        ).encode("ascii"),
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    obj = result.records[0]
+    self.assertEqual(12, obj.item_type)
+    self.assertEqual({0, 14}, decode_tokens(obj.wear_flags).bits)
+    self.assertEqual(
+        [(2, 9), (4, 4), (1, 9), (1, -2)],
+        [(affect.location, affect.modifier) for affect in obj.affects],
+    )
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertIn("omitted malformed source object wear flags: [25, 27]", diagnostics)
+    self.assertIn("omitted source-only object apply 29", diagnostics)
+    self.assertIn("approximated source race-factor apply 41", diagnostics)
+    self.assertNotIn("unknown source item type", diagnostics)
+
+  def test_emitted_room_repairs_missing_mountain_sector(self) -> None:
+    source = self._source_record(
+        "wld",
+        b"<*> File Version 1 <*>\n#50537\nMountain road~\nDescription~\n"
+        b"505 4194304 100 150 500\nS\n",
+    )
+
+    emitted = emit_room(source, 2_050_537, 20_505, _resolver)
+    path = self._target_path("wld", emitted.text)
+    result = parse_room_file(path, "wld/20505.wld", self.manifest, False, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(5, result.records[0].sector)
+
   def test_emitted_object_maps_container_key_affects_and_apply(self) -> None:
     source = self._source_record(
         "obj",

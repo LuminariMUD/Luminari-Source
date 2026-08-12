@@ -1156,6 +1156,20 @@
           "macro": "AFF2_COWERING",
           "name": "Cowering",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "AFF2_ROL_SLOW_POISON",
+          "name": "RoL-Slow-Poison",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "AFF2_ROL_DOCILE",
+          "name": "RoL-Docile",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,

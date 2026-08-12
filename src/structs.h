@@ -1677,11 +1677,13 @@
 
 // we've run out of AFF_ flag slots, caps at 128, so time to make AFF2_ flags
 /* Affect2 bits: used in char_data.char_specials.saved.affected2_by */
-#define AFF2_DONTUSE 0       /**< DON'T USE! */
-#define AFF2_MAGIC_ATTACKS 1 // summon/creature attacks count as magic for DR purposes
-#define AFF2_COWERING 2      // One fear step more grave than frightened
+#define AFF2_DONTUSE 0         /**< DON'T USE! */
+#define AFF2_MAGIC_ATTACKS 1   // summon/creature attacks count as magic for DR purposes
+#define AFF2_COWERING 2        // One fear step more grave than frightened
+#define AFF2_ROL_SLOW_POISON 3 // RoL compatibility: reduced poison intensity
+#define AFF2_ROL_DOCILE 4      // RoL compatibility: does not assist allies
 
-#define NUM_AFF2_FLAGS 3
+#define NUM_AFF2_FLAGS 5
 
 /********************************/
 /* add aff_ flag?  don't forget to add to:

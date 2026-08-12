@@ -645,6 +645,8 @@ def _parse_obj(
       elif item_type == 29 and len(values) >= 2:
         _reference(record, "room", values[1], "switch_room", rows[1])
 
+    affect_flag_rows = 0
+    saw_extension = False
     while position < end:
       position, line = _next_content(source.lines, position, end)
       if line is None:
@@ -655,6 +657,7 @@ def _parse_obj(
         corpus.file_terminators[("obj", "present")] += 1
         break
       if token == "E":
+        saw_extension = True
         position, keyword, first_ok = _read_tilde(source.lines, position, end)
         position, description, second_ok = _read_tilde(
             source.lines, position, end
@@ -679,12 +682,14 @@ def _parse_obj(
               vnum,
           )
       elif token == "A":
+        saw_extension = True
         values = _integers(line)
         position, values, _ = _collect_numeric_lines(
             source.lines, position, end, values, 2
         )
         record.directives.append({"token": "A", "line": line.number, "arguments": values})
       elif token == "T":
+        saw_extension = True
         values = _integers(line)
         position, values, _ = _collect_numeric_lines(
             source.lines, position, end, values, 6
@@ -692,15 +697,32 @@ def _parse_obj(
         record.directives.append({"token": "T", "line": line.number, "arguments": values})
       elif re.fullmatch(br"[+-]?\d+(?:\s+[+-]?\d+)*", stripped):
         values = _integers(line)
-        record.directives.append(
-            {
-                "token": "AFFECT_FLAGS",
-                "line": line.number,
-                "field_count": len(values),
-                "arguments": values,
-            }
-        )
+        if not saw_extension and affect_flag_rows < 2:
+          affect_flag_rows += 1
+          record.directives.append(
+              {
+                  "token": "AFFECT_FLAGS",
+                  "line": line.number,
+                  "field_count": len(values),
+                  "arguments": values,
+              }
+          )
+        else:
+          saw_extension = True
+          record.directives.append(
+              {"token": "IGNORED_SOURCE_CONTENT", "line": line.number}
+          )
+          _diagnostic(
+              corpus,
+              "ROLOBJ004",
+              "warning",
+              "source object loader ignores numeric content after extensions",
+              line,
+              "obj",
+              vnum,
+          )
       else:
+        saw_extension = True
         record.directives.append(
             {"token": "IGNORED_SOURCE_CONTENT", "line": line.number}
         )

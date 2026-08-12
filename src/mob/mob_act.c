@@ -288,6 +288,7 @@ void mobile_activity(void)
 
     /* Helper Mobs */
     if ((MOB_FLAGGED(ch, MOB_HELPER) || MOB_FLAGGED(ch, MOB_GUARD)) &&
+        !AFF2_FLAGGED(ch, AFF2_ROL_DOCILE) &&
         (!AFF_FLAGGED(ch, AFF_BLIND) || !AFF_FLAGGED(ch, AFF_CHARM)))
     {
       found = FALSE;

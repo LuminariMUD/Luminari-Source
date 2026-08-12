@@ -68,6 +68,30 @@ class RolSourceTests(unittest.TestCase):
     self.assertEqual([15, 0, 1], records[0].values["flags"])
     self.assertEqual([1, 2, 3], records[0].values["economy"])
 
+  def test_object_affect_masks_are_only_read_before_extensions(self) -> None:
+    records, corpus = parse_fixture(
+        "obj",
+        b"#200\nodd mace~\nan odd mace~\nAn odd mace lies here.~\n~\n"
+        b"5 0 8193\n0 1 6 7\n10 100 1\n32768\n0\n"
+        b"E\nmace~\nIt is odd.~\nA\n1 1\n18 -3\n",
+    )
+
+    affect_rows = [
+        directive
+        for directive in records[0].directives
+        if directive["token"] == "AFFECT_FLAGS"
+    ]
+    self.assertEqual([[32768], [0]], [row["arguments"] for row in affect_rows])
+    self.assertEqual(
+        1,
+        sum(
+            directive["token"] == "IGNORED_SOURCE_CONTENT"
+            for directive in records[0].directives
+        ),
+    )
+    self.assertTrue(corpus.complete)
+    self.assertIn("ignores numeric content after extensions", corpus.diagnostics[-1].message)
+
   def test_zone_parser_rejects_false_a_and_preserves_source_defects(self) -> None:
     records, corpus = parse_fixture(
         "zon",

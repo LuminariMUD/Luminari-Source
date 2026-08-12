@@ -650,6 +650,14 @@ int regen_hps(struct char_data *ch)
   return hp;
 }
 
+int apply_slow_poison_reduction(struct char_data *ch, int damage)
+{
+  if (!ch || damage <= 0 || !AFF2_FLAGGED(ch, AFF2_ROL_SLOW_POISON))
+    return damage;
+
+  return MAX(1, damage / 2);
+}
+
 /* this function handles poison, entry point for hps rege, and movement regen */
 void regen_update(struct char_data *ch)
 {
@@ -704,7 +712,7 @@ void regen_update(struct char_data *ch)
       {
         if (!IS_NPC(tch) && FIGHTING(tch) == ch)
         {
-          damage(tch, ch, dice(1, 4), SPELL_POISON,
+          damage(tch, ch, apply_slow_poison_reduction(ch, dice(1, 4)), SPELL_POISON,
                  KNOWS_DISCOVERY(tch, ALC_DISC_CELESTIAL_POISONS) ? DAM_CELESTIAL_POISON
                                                                   : DAM_POISON,
                  FALSE);
@@ -721,7 +729,7 @@ void regen_update(struct char_data *ch)
       }
 
       if (!found)
-        damage(ch, ch, 1, SPELL_POISON, DAM_POISON, FALSE);
+        damage(ch, ch, apply_slow_poison_reduction(ch, 1), SPELL_POISON, DAM_POISON, FALSE);
       update_pos(ch);
       return;
     }
