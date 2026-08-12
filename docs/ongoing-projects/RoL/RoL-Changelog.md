@@ -9,6 +9,63 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 planar demon base behavior
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled all 25 active `abyssForgedWeapons` bindings. The converter marks only those
+  prototypes with `MOB_ROL_ABYSS_FORGED`; their primary, off-hand, and two-handed wield slots
+  dissolve before either special-death dispatch or ordinary corpse creation.
+- Reconciled all eight directly authored `standardDemon` bindings. Each source mobile is already
+  race X and therefore receives the complete composition-safe `MOB_ROL_DEMON` runtime through
+  automatic race conversion; no duplicate persistent procedure or `MOB_SPEC` ownership is added.
+- Added production-linked coverage for all three wield slots, unmarked-mobile exclusion,
+  idempotence, and pre-corpse extraction. Added exact converter and reconciliation invariants for
+  the 25 abyss-forged VNUMs and eight directly authored demon VNUMs.
+- Added builder documentation for the conversion-only flag and a staff manual matrix for the
+  death behavior. No player helpfile changed because this batch adds no command or syntax.
+- Regenerated the corrected Phase 6 evidence. Resolution increases from 1,287 to 1,320 static
+  bindings and from 556 to 558 direct handlers, leaving 401 bindings across 237 handlers in 34
+  source files. The independent `ACT_SPEC` cross-check remains 798 resolved and 50 pending.
+- Reforecast the remaining Phase 6 work from the first three corrected batches. They closed 74
+  bindings across 20 handlers; the measured envelope is now 24-36 sessions, or 48-144 focused
+  engineering hours. This replaces the provisional 18-30-session range and recognizes that 185
+  of the remaining handlers are singletons.
+
+### Acceptance evidence
+
+```text
+Delivery commit: c90ced37
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-planar-base
+Reconciliation run: rol-phase6-special-55c1c510a1bc029d
+Active direct bindings: 1,721
+Direct bindings resolved: 1,320
+Direct bindings pending: 401
+Source handlers resolved: 558
+Source handlers pending: 237
+Additional handler families resolved: 2
+Additional direct bindings resolved: 33
+Native adapted bindings: 798
+Native adapted composable bindings: 198
+ACT_SPEC records resolved: 798
+ACT_SPEC records pending: 50
+Complete world-tool suite: 323 passed
+Production-linked CuTest suite: 664 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 9717d20af0483684f7ca51ea93ba49390637b8ff
+Installed SHA-256: 46d5ae2f8f717a89447ab0835d32705932d899ffc1471a3cf7bb4c43f9d33203
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining planar-specific handlers and behavior-identical cross-zone
+aliases. Reforecast again after another three corrected batches or a material inventory change.
+
 ## 2026-08-13 - Phase 6 exact-class guild family
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

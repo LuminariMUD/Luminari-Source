@@ -3,7 +3,7 @@
 - Updated: 2026-08-13
 - Environment: development
 - Branch: `master`
-- Current task: reconcile the corrected Phase 6 pending inventory; corrected batch three next
+- Current task: reconcile the remaining planar and shared-runtime Phase 6 families
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 - Phase 4 manual test matrix: [PHASE4_MANUAL_TESTING.md](PHASE4_MANUAL_TESTING.md)
 
@@ -107,6 +107,7 @@ Phase 6 Menden-fisherman commit: 33965efc
 Phase 6 special-discovery-repair commit: c2a677a8
 Phase 6 Tarrasque-encounter commit: bbdf893a
 Phase 6 exact-class-guild commit: b0e924b8
+Phase 6 planar-demon-base commit: c90ced37
 ```
 
 The authoritative ignored runs are:
@@ -309,6 +310,9 @@ Phase 6 lich rite:
 Phase 6 Waterdeep town crier:
   lib/rol-conversion/runs/phase6-special-20260812-waterdeep-crier
   rol-phase6-special-e0e90cdd3f12895e
+Phase 6 planar demon base:
+  lib/rol-conversion/runs/phase6-special-20260813-planar-base
+  rol-phase6-special-55c1c510a1bc029d
 Policy:  rol-conversion-policy-2
 ```
 
@@ -339,10 +343,10 @@ Policy:  rol-conversion-policy-2
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
 - The world-tool suite passes 316 tests; the production-linked CuTest suite passes 661;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Sixty-two bounded Phase 6 delivery sessions are archived. The generated regular-profile
-  checkpoints support a forward target of 20-45 related families per batch where a shared
-  shape exists. The measured remaining forecast is 49-79 sessions: Phase 6 is 1-3,
-  Phase 7 is 42-66, and Phase 8 is 6-10.
+- The corrected discovery repair and three subsequent denominator-bearing batches are archived.
+  Those batches closed 74 bindings across 20 source handlers. The measured remaining Phase 6
+  forecast is 24-36 sessions, or 48-144 focused engineering hours; the full remaining project
+  range is 80-120 sessions, or 160-480 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -390,11 +394,10 @@ Policy:  rol-conversion-policy-2
   adverse `CHEATS` pricing, and the converted `CASTING` policy. It reports zero generic
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
-- The Phase 6 inventory accounts for 1,234 active direct bindings across 605 source
-  handlers and locates all 605 source definitions. Shared service reuse accounts for
-  72 bindings; source-inert dump and cityguard callbacks account for 22; bounded
-  corpse-devourer, poison-bite, and thief adapters account for 29.
-- The independent `ACT_SPEC` cross-check resolves 563 of 848 records and leaves 285
+- The repaired Phase 6 inventory accounts for 1,721 active direct bindings across 795 source
+  handlers and locates all 795 source definitions. The current reconciliation resolves 1,320
+  bindings across 558 handlers and leaves 401 bindings across 237 handlers.
+- The independent `ACT_SPEC` cross-check resolves 798 of 848 records and leaves 50
   pending. It remains a scheduling cross-check rather than the direct-binding denominator;
   composition-safe flags and room or object procedures can resolve source handlers without
   changing this mobile-only count.
@@ -664,10 +667,10 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,287 static bindings and leaves 434 pending. It resolves
-  556 direct handler names and leaves 239 pending across 34 source files. The pending set has
-  185 singleton handlers, 54 multi-binding handlers, and seven handlers with at least ten
-  bindings.
+- The corrected reconciler resolves 1,320 static bindings and leaves 401 pending. It resolves
+  558 direct handler names and leaves 237 pending across 34 source files. The pending set has
+  185 singleton handlers, 39 handlers with two to four bindings, seven with five to nine, and
+  six with at least ten bindings.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
   shopkeeper path accounts for 453 active shops and hosts. Both are resolved through the target
@@ -691,46 +694,57 @@ Policy:  rol-conversion-policy-2
   random `teleport` spell meaning is preserved by bounded destination selection because the
   target spell now teleports its caster to a target character instead.
 - The Tarrasque batch closes four direct bindings and four handler names. It is the first
-  corrected-denominator closure, but one encounter-specific sample is not enough to revise the
-  18-30-session estimate; reforecast after at least three corrected batches.
+  corrected-denominator closure and supplies the encounter-specific end of the measured sample.
 - The exact-class guild batch closes 37 room bindings across 14 source callbacks by reusing the
   already production-tested mage, thief, cleric, and warrior family adapters. It introduces no
   new runtime surface, procedure identity, or prototype flag and preserves target multiclass
   admission for the migrated source roles.
+- The planar demon base batch closes 33 bindings across two source handlers. All 25 explicit
+  `abyssForgedWeapons` bindings receive `MOB_ROL_ABYSS_FORGED`, which dissolves the three wield
+  slots before either typed special-death or ordinary corpse handling. The eight directly
+  authored `standardDemon` bindings compose with their existing race-X `MOB_ROL_DEMON` runtime
+  and consume no persistent procedure slot.
+- The three corrected batches close 74 bindings across 20 handlers. That measured throughput
+  puts the binding-count floor near 16 sessions and the handler-diversity projection near 36.
+  Because 185 remaining handlers are singletons, the published Phase 6 envelope is 24-36
+  sessions, or 48-144 focused engineering hours. Reforecast after another three batches or a
+  material inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
 1. Reconcile the corrected pending inventory in dependency-complete shared-runtime batches.
-2. Select corrected batch three from Undermountain, planar, Avernus, Scornubel, or Darkhold;
-   do not batch merely by handler name or VNUM proximity.
+2. Trace the remaining planar-specific handlers together with behavior-identical aliases in
+   Undermountain, Avernus, Scornubel, or Darkhold; do not batch merely by name or VNUM proximity.
 3. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
 4. Preserve the six locked malformed record exclusions as explicit, logged
    smallest-unit exclusions.
 5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the corrected 18-30-session Phase 6 envelope and reforecast after
-   corrected batch three provides the minimum three-sample evidence.
+6. Measure throughput against the 24-36-session Phase 6 envelope and reforecast after another
+   three corrected batches or a material inventory correction.
 
 ## Latest session handoff
 
-- Mapped all 14 pending exact-class guild callbacks onto the four existing target class-family
-  room adapters. The 37 source room bindings retain source role boundaries after migration to
-  the target multiclass model and require no prototype flags or new runtime surface.
-- Added exact transformation and reconciliation coverage for every callback and retained the
-  existing production-linked family-admission coverage for the reused runtime procedures.
+- Reconciled 25 explicit `abyssForgedWeapons` bindings and eight direct `standardDemon`
+  bindings. The former use one conversion-only mobile flag; the latter reuse automatic race-X
+  demon composition without creating a duplicate persistent procedure.
+- Added the pre-corpse dissolution hook and production-linked coverage for primary, off-hand,
+  and two-handed wield slots. The hook runs before special-death dispatch, so special and
+  ordinary death paths enforce the same source subset.
 - Regenerated and hash-verified the authoritative Phase 6 bundle at
-  `lib/rol-conversion/runs/phase6-special-20260813-exact-class-guilds`. A same-timestamp repeat
-  was byte-identical and reproduced run ID `rol-phase6-special-be53e38737ea4fc8`.
+  `lib/rol-conversion/runs/phase6-special-20260813-planar-base`. A same-timestamp repeat was
+  byte-identical and reproduced run ID `rol-phase6-special-55c1c510a1bc029d`.
 - The corrected Phase 6 denominator remains 1,721 live static plus 5,531 resolved dynamic
-  binding instances. This closure raises static resolution to 1,287 and handler resolution to
-  556, leaving 434 bindings across 239 handlers in 34 source files.
-- Final validation passed: 321 world-tool tests, 663 production-linked CuTests, zero
+  binding instances. This closure raises static resolution to 1,320 and handler resolution to
+  558, leaving 401 bindings across 237 handlers in 34 source files.
+- Final validation passed: 323 world-tool tests, 664 production-linked CuTests, zero
   documentation findings, a warning-free Autotools build/test/install, and no root-level
-  `circle`. Installed build ID `cd432fd38de79f5d39d8ca25b8426bf99d91a418`; SHA-256
-  `19c9f96768f9cce85e9129f3ccf5ce1c57a87ea14a09d4cf500da25d314f09de`.
-- No player helpfile changed: the batch adds no command, syntax, or player-visible runtime;
-  the existing guild commands and expanded staff verification matrix cover the reused adapters.
-- Next, complete corrected batch three and use the Tarrasque, exact-class-guild, and third-batch
-  samples to reforecast the remaining Phase 6 work.
+  `circle`. Installed build ID `9717d20af0483684f7ca51ea93ba49390637b8ff`; SHA-256
+  `46d5ae2f8f717a89447ab0835d32705932d899ffc1471a3cf7bb4c43f9d33203`.
+- No player helpfile changed: the batch adds no command or syntax. Builder mobile-flag
+  documentation and the staff manual matrix now cover the conversion-only death behavior.
+- The measured three-batch sample revises the remaining Phase 6 estimate to 24-36 sessions,
+  or 48-144 focused engineering hours. Next, trace the remaining planar-specific family and
+  behavior-identical cross-zone aliases.

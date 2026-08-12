@@ -251,7 +251,7 @@ ledger measures:
 
 - 1,813 static candidates, of which 92 are preprocessor-excluded and 1,721 are live;
 - 1,098 mobile, 323 object, and 300 room bindings across 795 direct handler names;
-- 1,287 resolved and 434 pending live static bindings, with 556 resolved and 239 pending
+- 1,320 resolved and 401 pending live static bindings, with 558 resolved and 237 pending
   direct handler names;
 - two resolved dynamic paths representing 5,078 quest and 453 shop binding instances;
 - 7,252 total active static and dynamic binding instances across 797 handler names; and
@@ -261,7 +261,7 @@ ledger measures:
 The corrected dependent evidence is Phase 1 run `rol-phase1-237602d3ade48138`, Phase 2
 run `rol-phase2-c93b8c4610b36d1e`, Phase 5 run
 `rol-phase5-audit-cec58661a4f21a2a`, and Phase 6 run
-`rol-phase6-special-be53e38737ea4fc8`. The older 1,112/1,147 binding, 538/562 handler,
+`rol-phase6-special-55c1c510a1bc029d`. The older 1,112/1,147 binding, 538/562 handler,
 and 830/848 `ACT_SPEC` counts are historical checkpoints only.
 
 ## 4. Canonical identity and rehome contract
@@ -721,12 +721,14 @@ forecasts are in [RoL-Changelog.md](RoL-Changelog.md).
 
 The call-path-aware extractor, macro resolution, dynamic shop/quest dispositions,
 regression fixtures, and dependent Phase 1, 2, 5, and 6 regeneration are complete. The
-remaining measured scope is 434 live static bindings across 239 direct handler names in
+remaining measured scope is 401 live static bindings across 237 direct handler names in
 34 source files. The first corrected-denominator closure completed the four-handler,
 four-binding Tarrasque encounter and added the missing typed mobile-death gateway. The second
 reused the established target class-family guild adapters for 14 source callbacks and 37 room
-bindings. Next, group the large Undermountain, planar, Avernus, Scornubel, and Darkhold families
-by shared runtime behavior.
+bindings. The third reconciled the planar demon base layer: 25 explicitly abyss-forged mobiles
+now dissolve their wielded weapons before death handling, while eight direct `standardDemon`
+bindings compose with the already complete race-driven demon runtime. Next, group the remaining
+Undermountain, planar, Avernus, Scornubel, and Darkhold families by shared runtime behavior.
 
 Preserve the six already locked malformed or ignored rows as explicit, logged
 smallest-unit exclusions when regenerating the evidence.
@@ -737,14 +739,13 @@ gate at substantial checkpoints. Add a new source file to both `Makefile.am` and
 `CMakeLists.txt`.
 
 **Exit gate:** every active binding is kept, patched, adapted, ported, or minimally
-excluded with behavior evidence. The corrected Phase 6 planning envelope is 18-30
-sessions: the six-to-thirteen-session arithmetic minimum assumes every batch sustains
-20-45 related families, while the published range allows the 185 singleton handlers and
-encounter-specific closures to require smaller batches. Replace this envelope with
-measured throughput as the corrected families close. The Tarrasque encounter is the
-first measured closure and the exact-class guild group is the first regular shared-family
-sample, so the 18-30-session envelope remains unchanged until at least three corrected batches
-are complete.
+excluded with behavior evidence. The measured remaining Phase 6 planning envelope is 24-36
+sessions, or 48-144 focused engineering hours. The first three corrected batches closed 74
+bindings across 20 handlers, leaving an arithmetic binding floor near 16 sessions and a
+handler-diversity projection near 36. The published range allows shared runtime families to
+outperform the handler projection while recognizing that 185 of the remaining 237 handlers are
+singletons and many require source-specific tracing. Reforecast again after another three
+corrected batches or any material inventory correction.
 
 ### 8.2 Phase 6.5: Canonical VNUM rebase and reference closure
 
@@ -974,10 +975,10 @@ canonical identities, applied to development, functionally playable, and support
 all evidence in the Definition of Done.
 
 **Estimate:** 6-10 sessions. The combined post-Phase-6 envelope is therefore initially
-56-84 sessions for Phases 6.5-8 (112-336 focused hours). With the corrected Phase 6
-envelope, the current remaining project range is 74-114 sessions, or 148-456 focused
-hours. This supersedes the old 49-79-session and 98-316-hour forecast. Replace the
-post-rebase envelope after the Phase 6.5 measured reforecast.
+56-84 sessions for Phases 6.5-8 (112-336 focused hours). With the measured Phase 6
+envelope, the current remaining project range is 80-120 sessions, or 160-480 focused
+hours. This supersedes the old 49-79-session, 74-114-session, and corresponding hour
+forecasts. Replace the post-rebase envelope after the Phase 6.5 measured reforecast.
 
 ## 9. Validation and application gates
 

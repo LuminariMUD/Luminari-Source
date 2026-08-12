@@ -1080,6 +1080,28 @@ This encounter is production-tested and reconciled, but the current five-zone pi
 not contain its source package or dependencies. Exercise it only after a Phase 7 stage
 supplies the converted room, mobile, corpse, loot, acid, and portal records.
 
+### Phase 6 planar demon base behavior
+
+- In a dependency-complete planar stage, inspect source mobiles 205-221, 234, 93202-93206,
+  93209, and 93210 at their converted identities. All 25 must have `RoL-Abyss-Forged` without
+  consuming the persistent SpecProc slot.
+- Confirm direct `standardDemon` source bindings 92079, 93202-93206, 93209, and 93210 are race X
+  and receive `RoL-Demon` through automatic race conversion. They must not gain a second
+  persistent procedure, and any independently converted direct procedure must remain intact.
+- Equip a marked disposable mobile with test weapons in the primary and off-hand slots, then
+  kill it. Both weapons must show the dissolution message and neither may enter the corpse.
+  Repeat with a two-handed weapon and confirm the same result.
+- After the remaining Balor death handler is reconciled, repeat with marked source mobile 207
+  or 93204. Its wielded weapons must dissolve before the typed handler suppresses or replaces
+  ordinary corpse creation.
+- Kill an otherwise comparable demon without `RoL-Abyss-Forged`. Its ordinary wielded weapons
+  must follow the native corpse path, proving the dissolution applies only to the authored
+  source subset.
+
+This behavior is production-tested and reconciled, but the current five-zone pilot contains no
+planar demon package. Exercise it only after a Phase 7 stage supplies the converted prototypes;
+do not add the compatibility flag to unrelated demons by hand.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,
@@ -1145,8 +1167,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,287 are resolved and 434 remain. Of 795 distinct
-  direct source handlers, 556 are resolved and 239 remain. Of 848 `ACT_SPEC` records, 798
+  of the 1,721 active direct bindings, 1,320 are resolved and 401 remain. Of 795 distinct
+  direct source handlers, 558 are resolved and 237 remain. Of 848 `ACT_SPEC` records, 798
   are resolved and 50 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
