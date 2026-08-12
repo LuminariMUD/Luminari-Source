@@ -853,6 +853,40 @@ bool rol_class_guild_allows(const struct char_data *ch, enum rol_guild_family fa
   }
 }
 
+bool rol_waterdeep_guild_allows(int room_vnum, const struct char_data *ch)
+{
+  if (ch == NULL || IS_NPC(ch))
+    return false;
+
+  switch (room_vnum)
+  {
+  case 2005505:
+    return CLASS_LEVEL(ch, CLASS_PALADIN) > 0;
+  case 2005512:
+    return CLASS_LEVEL(ch, CLASS_WARRIOR) > 0;
+  case 2005524:
+    return CLASS_LEVEL(ch, CLASS_MONK) > 0;
+  case 2005537:
+    return CLASS_LEVEL(ch, CLASS_BARD) > 0;
+  case 2005544:
+    return CLASS_LEVEL(ch, CLASS_RANGER) > 0;
+  case 2005568:
+    return CLASS_LEVEL(ch, CLASS_DRUID) > 0;
+  case 2005581:
+  case 2003044:
+    return rol_class_guild_allows(ch, ROL_GUILD_FAMILY_MAGE);
+  case 2003073:
+    return rol_class_guild_allows(ch, ROL_GUILD_FAMILY_CLERIC);
+  case 2003061:
+    return rol_class_guild_allows(ch, ROL_GUILD_FAMILY_WARRIOR);
+  case 2003289:
+  case 2002956:
+    return CLASS_LEVEL(ch, CLASS_ROGUE) > 0;
+  default:
+    return false;
+  }
+}
+
 static int rol_class_guild_room(struct char_data *ch, void *me, int cmd, const char *argument,
                                 enum rol_guild_family family)
 {
@@ -889,6 +923,25 @@ int rol_warrior_guild_room(struct char_data *ch, void *me, int cmd, const char *
 int rol_cleric_guild_room(struct char_data *ch, void *me, int cmd, const char *argument)
 {
   return rol_class_guild_room(ch, me, cmd, argument, ROL_GUILD_FAMILY_CLERIC);
+}
+
+int rol_waterdeep_guild_room(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct room_data *room = me;
+
+  if (ch == NULL)
+    return FALSE;
+
+  if (IS_NPC(ch) || cmd == 0 || (!CMD_IS("practice") && !CMD_IS("train") && !CMD_IS("boosts")))
+    return guild(ch, me, cmd, argument);
+
+  if (room == NULL || !rol_waterdeep_guild_allows(room->number, ch))
+  {
+    send_to_char(ch, "You cannot practice here!\r\n");
+    return TRUE;
+  }
+
+  return guild(ch, me, cmd, argument);
 }
 
 bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data *ch)

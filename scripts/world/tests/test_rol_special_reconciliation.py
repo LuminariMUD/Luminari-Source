@@ -34,6 +34,23 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     thief_guild = handler_disposition("guild_classtype_thief")
     warrior_guild = handler_disposition("guild_classtype_warrior")
     cleric_guild = handler_disposition("guild_classtype_cleric")
+    waterdeep_guilds = [
+        handler_disposition(f"waterdeep_guild_{name}")
+        for name in (
+            "one",
+            "two",
+            "three",
+            "four",
+            "five",
+            "six",
+            "seven",
+            "eight",
+            "nine",
+            "ten",
+            "eleven",
+            "twelve",
+        )
+    ]
     major_beholder = handler_disposition("major_beholder")
     lich_energy_drain = handler_disposition("lich_energy_drain")
     bandit = handler_disposition("bandit")
@@ -79,6 +96,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
         all(
             row["strategy"] == "NATIVE_ADAPTED"
             for row in (mage_guild, thief_guild, warrior_guild, cleric_guild)
+        )
+    )
+    self.assertTrue(
+        all(
+            row["target"] == "RoL Waterdeep Guild Room"
+            and row["strategy"] == "NATIVE_ADAPTED"
+            for row in waterdeep_guilds
         )
     )
     self.assertEqual("RoL Major Beholder", major_beholder["target"])
@@ -157,11 +181,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(594, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(553, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(99, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(463, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(219, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(606, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(541, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(111, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(451, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(231, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           113, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

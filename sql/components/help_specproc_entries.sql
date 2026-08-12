@@ -99,6 +99,12 @@ room-specific class and race gates only while the guard remains in its original
 load room. Protected guards punish and relocate mortal attackers. Use the
 ordinary Guild Guard procedure for new Luminari guild entrances.
 
+RoL Waterdeep Guild Room is room-owned and converter-owned. Twelve converted
+Waterdeep guild rooms retain their room-specific exact or class-family gate and
+delegate accepted PRACTICE, TRAIN, and BOOSTS commands to the current target
+guild service. Source Mercenary maps to target Warrior, and any matching class
+in a multiclass build is sufficient.
+
 RoL Major Beholder is mobile-owned and requires MOB_SPEC. Each of its ten eye
 rays has an independent three-combat-turn cooldown and a one-in-three chance to
 fire while ready. Target-native effects cover fire, acid, slow,
@@ -148,8 +154,9 @@ Guild is the mobile-owned training procedure. RoL Guild Room provides the
 same current training service for unrestricted converted room-owned guild
 bindings. RoL Mage Guild Room, RoL Thief Guild Room, RoL Warrior Guild Room,
 and RoL Cleric Guild Room preserve source class-family admission while using
-the target multiclass model; any matching class level is sufficient. These
-five procedures are available only in redit. Pet Shop is room-owned,
+the target multiclass model; any matching class level is sufficient. All six
+procedures are available only in redit, including RoL Waterdeep Guild Room.
+Pet Shop is room-owned,
 Postmaster is mobile-owned, and Bank is available for compatible mobile and
 object prototypes.
 

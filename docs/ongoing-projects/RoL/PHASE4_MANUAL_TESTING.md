@@ -356,6 +356,20 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   Multiclass characters pass when any class belongs to the room's family. NPC commands and
   unrelated commands retain the ordinary guild procedure behavior.
 
+### Phase 6 converted Waterdeep guild rooms
+
+- Twelve converted rooms use `RoL Waterdeep Guild Room`. They are outside the five-package
+  staged pilot, so test them only after building a dependency-complete Waterdeep stage.
+- Verify the exact-class rooms with both an ineligible and an eligible mortal: Paladin 2005505,
+  Warrior 2005512 (the target mapping for source Mercenary), Monk 2005524, Bard 2005537,
+  Ranger 2005544, Druid 2005568, and Rogue 2003289 and 2002956.
+- Verify mage-family admission in rooms 2005581 and 2003044, cleric-family admission in room
+  2003073, and warrior-family admission in room 2003061. A multiclass character passes when any
+  target class matches the gate.
+- In every room, an ineligible mortal's `practice`, `train`, and `boosts` command must be refused.
+  An eligible mortal must receive the current target guild response. Unrelated commands and NPC
+  commands retain the ordinary guild procedure behavior.
+
 ### Phase 6 converted major beholders
 
 - `RoL Major Beholder` is implemented for all eight active source bindings. The affected

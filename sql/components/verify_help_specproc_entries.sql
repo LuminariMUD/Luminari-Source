@@ -53,6 +53,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'one-in-21 chance') > 0
   AND INSTR(entry, 'RoL Guild Guard is mobile-owned') > 0
   AND INSTR(entry, 'room-specific class and race gates') > 0
+  AND INSTR(entry, 'RoL Waterdeep Guild Room is room-owned') > 0
+  AND INSTR(entry, 'Source Mercenary maps to target Warrior') > 0
   AND INSTR(entry, 'RoL Major Beholder is mobile-owned') > 0
   AND INSTR(entry, 'independent three-combat-turn cooldown') > 0
   AND INSTR(entry, 'RoL Lich Energy Drain is mobile-owned') > 0

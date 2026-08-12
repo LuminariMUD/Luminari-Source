@@ -32,7 +32,7 @@ callback slot or event-gateway dispatch rules.
 - The current selection is shown in the menu. Save as usual to apply.
 
 Numbers are specific to the filtered editor view. The current views contain 43 mobile definitions,
-30 object definitions, and 14 room definitions in canonical registry order. The saved world record
+30 object definitions, and 15 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
 Prerequisites describe runtime scheduling; selecting a procedure does not set them automatically:
@@ -94,6 +94,11 @@ procedure is intended for the converted RoL shadow-giant family rather than gene
 class and race gates, acts only from the guard's original load room, and retaliates when protected
 guards are attacked. Its room rules are converter-owned; use the ordinary `Guild Guard` procedure
 for new Luminari guild entrances.
+
+`RoL Waterdeep Guild Room` is room-owned and converter-owned. Twelve converted Waterdeep guild
+rooms retain their exact or class-family admission gate while delegating accepted `practice`,
+`train`, and `boosts` commands to the current target guild service. The source mercenary room maps
+to the target Warrior class, and any qualifying class in a multiclass build is sufficient.
 
 `RoL Major Beholder` is mobile-owned and requires `MOB_SPEC`. Its ten source eye identities each
 have an independent three-combat-turn cooldown and a one-in-three chance to fire while ready. The
@@ -244,7 +249,7 @@ saved-secondary behavior.
 
 Typed dispatch is an engine-side implementation detail: nothing a builder selects, sees, or saves in
 OLC changed. Bank and Vampire Cloak retain their canonical rows and callback-slot identities while
-their behavior receives explicit event context. The other 64 registered definitions use
+their behavior receives explicit event context. The other 65 registered definitions use
 compatibility dispatch; across the source tree, 204 legacy behavior implementations remain. A
 validated declarative table owns the two Luminari assignments whose handlers are registered and
 whose VNUMs are symbolic. Converted RoL definitions use explicit world-authored names.
@@ -276,8 +281,9 @@ production-linked evidence, see
 - `Guild` is the mobile-owned training procedure. `RoL Guild Room` exposes the same current
   training service through an unrestricted converted room binding. `RoL Mage Guild Room`,
   `RoL Thief Guild Room`, `RoL Warrior Guild Room`, and `RoL Cleric Guild Room` expose it only
-  to matching class families; any qualifying class in a multiclass build is sufficient. All five
-  room procedures are available only in `redit`.
+  to matching class families; any qualifying class in a multiclass build is sufficient. `RoL
+  Waterdeep Guild Room` applies the room-specific gate for twelve converted Waterdeep guilds. All
+  six room procedures are available only in `redit`.
 - A procedure hidden from builders, disallowed for world binding, or incompatible with the edited
   owner is not selectable. Invalid and out-of-range input leaves the current selection unchanged.
 - Registry metadata is validated before world parsing. An invalid registry is a programmer error

@@ -43,6 +43,7 @@ int rol_mage_guild_room(struct char_data *ch, void *me, int cmd, const char *arg
 int rol_thief_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_warrior_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_cleric_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_waterdeep_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -62,6 +63,7 @@ bool rol_shadow_giant_spook_immune(struct char_data *target);
 bool rol_shadow_giant_stun_succeeds(int level, int chance_roll, int penalty_roll);
 bool rol_floating_pool_should_move(int roll);
 bool rol_class_guild_allows(const struct char_data *ch, enum rol_guild_family family);
+bool rol_waterdeep_guild_allows(int room_vnum, const struct char_data *ch);
 bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data *ch);
 bool rol_guild_guard_protects(int room_vnum);
 int rol_major_beholder_eye_spell(int eye);

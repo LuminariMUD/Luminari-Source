@@ -738,6 +738,49 @@ void Test_spec_rol_class_guilds_preserve_family_gates_for_multiclass_players(CuT
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_waterdeep_guilds_preserve_room_class_gates(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct player_special_data player_specials;
+  struct char_data *target;
+
+  spec_mechanics_begin(&fixture);
+  target = &fixture.target;
+  memset(&player_specials, 0, sizeof(player_specials));
+  REMOVE_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  target->player_specials = &player_specials;
+
+  CuAssertTrue(tc, !rol_waterdeep_guild_allows(2005505, target));
+  CuAssertTrue(tc, !rol_waterdeep_guild_allows(9999999, target));
+  CuAssertTrue(tc, !rol_waterdeep_guild_allows(2005505, NULL));
+
+  CLASS_LEVEL(target, CLASS_PALADIN) = 1;
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2005505, target));
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2003061, target));
+  CLASS_LEVEL(target, CLASS_WARRIOR) = 1;
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2005512, target));
+  CLASS_LEVEL(target, CLASS_MONK) = 1;
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2005524, target));
+  CLASS_LEVEL(target, CLASS_BARD) = 1;
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2005537, target));
+  CLASS_LEVEL(target, CLASS_RANGER) = 1;
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2005544, target));
+  CLASS_LEVEL(target, CLASS_DRUID) = 1;
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2005568, target));
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2003073, target));
+  CLASS_LEVEL(target, CLASS_WIZARD) = 1;
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2005581, target));
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2003044, target));
+  CLASS_LEVEL(target, CLASS_ROGUE) = 1;
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2003289, target));
+  CuAssertTrue(tc, rol_waterdeep_guild_allows(2002956, target));
+
+  target->player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  CuAssertTrue(tc, !rol_waterdeep_guild_allows(2005505, target));
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_sister_knight_preserves_family_identity_and_alert_guard(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;
