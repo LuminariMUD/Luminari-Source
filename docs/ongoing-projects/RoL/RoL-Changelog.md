@@ -5,6 +5,50 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 magic-pool conversion
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all 13 active direct bindings for the shared `magic_pool` object handler.
+  Reconciliation now resolves 360 of 1,234 direct bindings and 55 of 605 handlers;
+  874 bindings and 550 handlers remain.
+- Added the object-owned `RoL Magic Pool` named procedure. Entering a matching pool
+  preserves its authored fixed damage, transition messages, and destination transport;
+  invalid destinations stop safely and identify the object in the server log.
+- Extended native-binding metadata with explicit object-value references. The converter
+  now remaps each pool's room destination in value 0 while retaining fixed damage in
+  value 1; all 12 distinct active destinations have Phase 2 identity mappings.
+- Updated registry, OLC, database-first help, converter, reconciliation, and runtime
+  tests. The independent `ACT_SPEC` cross-check remains at 500 of 848 resolved because
+  magic pools are object procedures rather than mobile flags.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 4c084ea1
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-magic-pool
+Reconciliation run: rol-phase6-special-1b3f0ef7ec095814
+Direct bindings resolved: 360
+Direct bindings pending: 874
+Source handlers resolved: 55
+Source handlers pending: 550
+Magic-pool bindings resolved: 13
+Distinct destination identities resolved: 12 of 12
+ACT_SPEC records resolved: 500
+ACT_SPEC records pending: 348
+Complete world-tool suite: 259 passed
+Production-linked CuTest suite: 622 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL idempotency checks: 4 passed twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 874 direct bindings across 550 source handlers.
+
 ## 2026-08-12 - Phase 6 home-reset room behavior
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
