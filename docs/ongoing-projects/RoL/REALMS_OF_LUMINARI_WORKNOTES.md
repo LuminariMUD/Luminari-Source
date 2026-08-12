@@ -86,6 +86,9 @@ Phase 6 undead-drain-family commit: 1f3e5172
 Phase 6 Waterdeep-peacekeeper commit: 526b99cb
 Phase 6 weapon-procedure commit: 5e4dc1a8
 Phase 6 expanded-weapon-procedure commit: b1b42a5c
+Phase 6 multi-event-weapon commit: 457672d6
+Phase 6 multi-event-weapon archive commit: ec6ef4fb
+Phase 6 monster-combat commit: 5925a88f
 ```
 
 The authoritative ignored runs are:
@@ -242,6 +245,9 @@ Phase 6 expanded weapon procedures:
 Phase 6 multi-event weapon procedures:
   lib/rol-conversion/runs/phase6-special-20260812-weapon-multievent
   rol-phase6-special-5850783628391c08
+Phase 6 monster-combat procedures:
+  lib/rol-conversion/runs/phase6-special-20260812-monster-combat
+  rol-phase6-special-66d30be39f08fcda
 Policy:  rol-conversion-policy-2
 ```
 
@@ -270,11 +276,11 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 302 tests; the production-linked CuTest suite passes 652;
+- The world-tool suite passes 304 tests; the production-linked CuTest suite passes 653;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Forty-seven bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Forty-eight bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
-  shape exists. The measured remaining forecast is 51-83 sessions: Phase 6 is 3-7,
+  shape exists. The measured remaining forecast is 51-82 sessions: Phase 6 is 3-6,
   Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
@@ -504,18 +510,25 @@ Policy:  rol-conversion-policy-2
   object pulses, elemental summons, corpse preservation, venom and paralysis, holy
   wielder rejection and Paladin magic, dragon-scaled modifiers, and critical reverse
   swings. The converter supplies `ITEM_AUTOPROC` for the shared periodic contract.
+- Eighteen mobile-combat handler families covering 24 bindings are complete through the
+  typed, identity-profiled `RoL Monster Combat`. The shared runtime preserves plant and
+  spider poison, lycan attacks and no-corpse deaths, banshee and tentacle shockwaves,
+  four-arm extra attacks, the Rot Bringer helper, Ashentoris and winged-deva area effects,
+  three prismatic profiles, four Elemental Tower bosses, and pit-fiend bites. Elemental
+  Tower alerts compose through the same persisted procedure, preserving the single-slot
+  mobile binding contract.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 986 of 1,147 active direct bindings and 436 of
-  562 source handlers, leaving 161 bindings and 126 handlers. The independent
-  `ACT_SPEC` cross-check resolves 783 of 848 records and leaves 65 pending.
+- The current Phase 6 checkpoint resolves 1,010 of 1,147 active direct bindings and 454 of
+  562 source handlers, leaving 137 bindings and 108 handlers. The independent
+  `ACT_SPEC` cross-check resolves 784 of 848 records and leaves 64 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 161 direct bindings across 126 handlers. Classify regular
+1. Reconcile the remaining 137 direct bindings across 108 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7

@@ -6,6 +6,70 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted monster-combat procedures
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed 24 active mobile bindings across 18 source handler families through the new
+  typed, identity-profiled `RoL Monster Combat` procedure. The converter supplies
+  `MOB_SPEC` and persists one canonical procedure for each converted identity.
+- Preserved source-profiled plant and spider poison, lycan tearing attacks, banshee and
+  tentacle shockwaves, four-arm extra attacks, the Rot Bringer helper, Ashentoris and
+  winged-deva area effects, three prismatic profiles, four Elemental Tower bosses, and
+  pit-fiend bites. Target-safe damage and invalidation replace direct hit-point mutation.
+- Added exact no-corpse death profiles for the four converted lycans and small prismatic
+  elemental. The small elemental also follows its master into combat and disappears when
+  abandoned. The source NPC-critical callback for critical prismatic elemental 2053265
+  has no target registry event and is explicitly adapted to a one-in-20 combat-turn burst.
+- Composed the four Elemental Tower alert assignments inside the monster-combat runtime.
+  Each boss retains its source warning and helper pursuit without attempting to persist a
+  second mobile procedure.
+- Added the source file to both build systems, expanded exact registry and owner-aware OLC
+  inventories, added production-linked profile/death coverage, and characterized all 18
+  converter mappings plus the Elemental Tower single-slot composition.
+- Reconciliation now resolves 1,010 of 1,147 active direct bindings and 454 of 562 source
+  handlers; 137 bindings and 108 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 784 resolved / 64 pending.
+- Archived the forty-eighth Phase 6 delivery session. The remaining Phase 6 envelope is
+  3-6 sessions, leaving the Phases 6-8 forecast at 51-82 sessions, or 102-328 focused
+  engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 5925a88f
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-monster-combat
+Reconciliation run: rol-phase6-special-66d30be39f08fcda
+Active direct bindings: 1,147
+Direct bindings resolved: 1,010
+Direct bindings pending: 137
+Source handlers resolved: 454
+Source handlers pending: 108
+Additional handler families resolved: 18
+Additional direct bindings resolved: 24
+Native adapted bindings: 560
+Native adapted composable bindings: 155
+ACT_SPEC records resolved: 784
+ACT_SPEC records pending: 64
+Converted monster-combat profiles: 24
+Special registry definitions: 103 total / 95 legacy / 8 typed
+Compatibility names: 104
+Focused world-tool suite: 75 passed
+Complete world-tool suite: 304 passed
+Production-linked CuTest suite: 653 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 137 direct bindings across 108 source handlers.
+The next wider batch prioritizes related monster and zone-mechanic families while keeping
+one full verification gate per pushed milestone.
+
 ## 2026-08-12 - Phase 6 multi-event weapon procedures
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

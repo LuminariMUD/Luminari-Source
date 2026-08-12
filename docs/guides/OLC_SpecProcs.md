@@ -31,8 +31,8 @@ callback slot or event-gateway dispatch rules.
 - Enter a number to choose a SpecProc; enter `0` to clear.
 - The current selection is shown in the menu. Save as usual to apply.
 
-Numbers are specific to the filtered editor view. The current views contain 48 mobile definitions,
-30 object definitions, and 15 room definitions in canonical registry order. The saved world record
+Numbers are specific to the filtered editor view. The current views contain 54 mobile definitions,
+34 object definitions, and 17 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
 Prerequisites describe runtime scheduling; selecting a procedure does not set them automatically:
@@ -54,7 +54,7 @@ summoned-monster, and shaman-spirit flags provide their source fade messages and
 Bloodstone vapor message while retaining the target's no-corpse policy. These flags are
 converter-owned and should not be assigned to unrelated mobiles.
 
-Thirty-six converted mobiles use VNUM-owned death profiles rather than flags. In addition to the
+Forty-one converted mobiles use VNUM-owned death profiles rather than flags. In addition to the
 tentacle, mephit, elemental, treant, phantom-steed, and dark-shade no-corpse profiles, the table
 preserves source death bursts, darkness, poison gas, returned possessions, stone-pile inventory,
 replacement forms, dropped objects, and ordinary-corpse messages. Three replacement families also
@@ -135,6 +135,15 @@ prismatic spray, hold monster, harm, and finger of death. Pet targets redirect t
 in the room. The source engine's critical-hit callback has no target combat-turn equivalent, so its
 all-unused-eyes critical burst is not available. Use this converter-owned procedure only for the
 converted `major_beholder` family.
+
+`RoL Monster Combat` is mobile-owned and requires `MOB_SPEC`. Twenty-four converted mobile
+identities across eighteen source families share identity-keyed plant poison, lycan, spider venom,
+banshee, multi-arm, tentacle, rot-bringer, celestial, prismatic, Elemental Tower, and pit-fiend
+combat profiles. The four Elemental Tower bosses compose their source alert behavior through this
+single persisted procedure. Converted lycans and the small prismatic elemental also retain their
+source no-corpse death messages. The critical prismatic elemental maps its source NPC-critical
+callback, which has no target registry event, to a documented one-in-20 combat-turn burst. Do not
+assign this converter-owned procedure to unrelated mobiles.
 
 `RoL Lich Energy Drain` is mobile-owned and requires `MOB_SPEC`. On both activity pulses and
 combat turns, each eligible current opponent or party member has the source one-in-five chance to

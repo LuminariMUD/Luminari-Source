@@ -814,6 +814,33 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   join against the selected aggressor, and stop scanning once already fighting. Unrelated
   mobiles must not receive any peacekeeper behavior.
 
+### Phase 6 converted monster-combat procedures
+
+- Confirm these 24 mobiles use `RoL Monster Combat` and retain `MOB_SPEC`: 150772,
+  2000325-2000328, 2005023, 2014601, 2020378, 2034833, 2045116, 2045146, 2045182,
+  2051246, 2053264-2053266, 2062401, 2062402, 2062405, 2062406, 2081706,
+  2081746, 2081747, and 2083224. Identify each and confirm its profile description.
+- Exercise both plant profiles, the four lycans, spider 2005023, banshee 2034833, and
+  the four pit fiends. Confirm their source-profiled poison, tearing, venom, sonic, and
+  bite cadences. Werefox 2000326 and were-tiger-profile mobiles 2000325, 2000327, and
+  2000328 must display their source fade messages and leave no corpse.
+- Fight four-arm mobile 2045116 and tentacled mobile 2045146. The first receives one
+  nonrecursive extra swing per combat turn and a rare Fortitude shockwave; the second
+  produces its rarer Reflex shockwave. Failed saves sit and briefly stun eligible room
+  targets. Rot Bringer 2045182 must summon helper 2045193 exactly once after falling
+  below 40 percent hit points.
+- Exercise Ashentoris 2020378, winged deva 2051246, and prismatic elementals
+  2053264-2053266. Confirm the life-drain/lava, healing-lightning/earthquake, and
+  level-specific prismatic profiles. Small elemental 2053264 must follow its master,
+  join the master's fight, and vanish without a corpse when abandoned. Critical
+  elemental 2053265 uses the documented one-in-20 combat-turn approximation because
+  the target registry has no source NPC-critical event.
+- Fight Elemental Tower bosses 2062401, 2062402, 2062405, and 2062406. Each must retain
+  its one-time source alert and helper pursuit while using the single persisted monster
+  procedure. Confirm the fire room storm, earth rockfall and knockdown, air single-target
+  whirlwind and forced movement, and water tidal damage and silence. Active casting
+  suppresses the elemental attack but does not create a second persisted SpecProc.
+
 ### Phase 6 converted weapon procedures
 
 - In dependency-complete stages, confirm these 50 objects use `RoL Weapon Proc`:
@@ -969,9 +996,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 986 are resolved and 161 remain. Of 562 distinct
-  source handlers, 436 are resolved and 126 remain. Of 848 `ACT_SPEC` records, 783 are
-  resolved and 65 remain. The automatic race procedures
+  of the 1,147 active direct bindings, 1,010 are resolved and 137 remain. Of 562 distinct
+  source handlers, 454 are resolved and 108 remain. Of 848 `ACT_SPEC` records, 784 are
+  resolved and 64 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

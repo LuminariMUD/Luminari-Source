@@ -56,7 +56,7 @@ breath_attack and breath_weapon entries are named mobile
 combat SpecProcs; attack variants affect the current opponent, while weapon
 variants affect eligible targets across the room every fourth combat turn.
 
-Thirty-six converted mobiles use converter-owned death profiles. In addition to
+Forty-one converted mobiles use converter-owned death profiles. In addition to
 the tentacle, mephit, elemental, treant, phantom-steed, and dark-shade no-corpse
 profiles, they preserve source death bursts, darkness, poison gas, returned
 possessions, stone-pile inventory, replacement forms, dropped objects, and
@@ -164,6 +164,16 @@ enfeeblement/feeblemind, wither, room-wide dispel, prismatic spray, hold
 monster, harm, and finger of death. Pet targets redirect to an eligible master
 in the room. The source-only all-eyes weapon-critical burst has no target
 combat-turn event equivalent. This procedure is converter-owned.
+
+RoL Monster Combat is mobile-owned and requires MOB_SPEC. Twenty-four converted
+mobiles across eighteen source families use identity-keyed plant poison, lycan,
+spider venom, banshee, multi-arm, tentacle, rot-bringer, celestial, prismatic,
+elemental-boss, and pit-fiend profiles. The four Elemental Tower bosses compose
+their existing alert profile through this single persisted procedure. Converted
+lycans and the small prismatic elemental also retain their source no-corpse death
+messages. The critical prismatic elemental maps its unavailable NPC-critical
+callback to a documented one-in-20 combat-turn burst. Do not assign this
+converter-owned procedure to unrelated mobiles.
 
 RoL Lich Energy Drain is mobile-owned and requires MOB_SPEC. On activity
 pulses and combat turns, each eligible current opponent or party member has a
