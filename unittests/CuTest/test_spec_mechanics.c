@@ -1518,6 +1518,8 @@ void Test_spec_rol_utility_service_batch_preserves_source_boundaries(CuTest *tc)
 void Test_spec_rol_scheduled_mobile_preserves_time_and_state_boundaries(CuTest *tc)
 {
   bool active = false;
+  bool ship_notice_sent = false;
+  bool shop_notice_sent = false;
   int counter = 77;
   int index;
 
@@ -1532,6 +1534,27 @@ void Test_spec_rol_scheduled_mobile_preserves_time_and_state_boundaries(CuTest *
   CuAssertIntEquals(tc, ROL_SCHEDULED_NAVAL_IDLE, rol_scheduled_naval_branch_for(true, true));
   CuAssertIntEquals(tc, ROL_SCHEDULED_NAVAL_FIGHTING, rol_scheduled_naval_branch_for(false, true));
   CuAssertIntEquals(tc, ROL_SCHEDULED_NAVAL_NONE, rol_scheduled_naval_branch_for(false, false));
+
+  CuAssertIntEquals(tc, ROL_SCHEDULED_CRIER_MOONSHAE_SHIP,
+                    rol_scheduled_crier_notice_for_hour(3, &shop_notice_sent, &ship_notice_sent));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_CRIER_NONE,
+                    rol_scheduled_crier_notice_for_hour(3, &shop_notice_sent, &ship_notice_sent));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_CRIER_NONE,
+                    rol_scheduled_crier_notice_for_hour(4, &shop_notice_sent, &ship_notice_sent));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_CRIER_SHOPS_OPENING,
+                    rol_scheduled_crier_notice_for_hour(5, &shop_notice_sent, &ship_notice_sent));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_CRIER_NONE,
+                    rol_scheduled_crier_notice_for_hour(9, &shop_notice_sent, &ship_notice_sent));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_CRIER_CALIMPORT_SHIP,
+                    rol_scheduled_crier_notice_for_hour(10, &shop_notice_sent, &ship_notice_sent));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_CRIER_NONE,
+                    rol_scheduled_crier_notice_for_hour(18, &shop_notice_sent, &ship_notice_sent));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_CRIER_NONE,
+                    rol_scheduled_crier_notice_for_hour(19, &shop_notice_sent, &ship_notice_sent));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_CRIER_SHOPS_CLOSING,
+                    rol_scheduled_crier_notice_for_hour(18, &shop_notice_sent, &ship_notice_sent));
+  CuAssertIntEquals(tc, ROL_SCHEDULED_CRIER_NONE,
+                    rol_scheduled_crier_notice_for_hour(3, NULL, &ship_notice_sent));
 
   index = rol_scheduled_lighthouse_step(8, true, &active, &counter);
   CuAssertIntEquals(tc, 0, index);

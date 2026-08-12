@@ -536,6 +536,22 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   the keeper refuses without attacking or consuming anything. Do not perform this irreversible
   walkthrough on a persistent character that should retain its current build.
 
+### Phase 6 converted Waterdeep town crier
+
+- Converted northern Waterdeep mobile 2003008 owns `RoL Scheduled Mobile` and retains
+  `MOB_SPEC`. Observe it while standing through repeated activity pulses. Confirm its source
+  2d42 table produces both single and ordered multi-line room actions, speech, and zone-wide
+  shouts, while rolls 43-84 remain silent.
+- Observe the hour changes around 3-5 and 9-10. Confirm the Moonshae warning fires once at hour 3,
+  its shared ship gate resets at hour 4, and the Calimport warning fires once at hour 10 after the
+  hour-9 reset. Confirm the shop-opening warning fires once at hour 5. The source shared shop gate
+  normally suppresses the hour-18 closing warning until its hour-19 reset; a crier first loaded at
+  hour 18 may issue that warning once.
+- Trigger ambient outcome 39 and confirm the two welcome shouts are followed by the housewife
+  response only for connected players in outdoor rooms of the crier's current zone. Attack the
+  crier and confirm each activity pulse retains the source help shout and outdoor city-cheering
+  response in addition to the ordinary ambient and scheduled processing.
+
 ### Phase 6 converted Sister Knights
 
 - `RoL Sister Knight` is implemented for all five active source bindings in the
@@ -1084,9 +1100,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 1,045 are resolved and 102 remain. Of 562 distinct
-  source handlers, 481 are resolved and 81 remain. Of 848 `ACT_SPEC` records, 807 are
-  resolved and 41 remain. The automatic race procedures
+  of the 1,147 active direct bindings, 1,112 are resolved and 35 remain. Of 562 distinct
+  source handlers, 538 are resolved and 24 remain. Of 848 `ACT_SPEC` records, 830 are
+  resolved and 18 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

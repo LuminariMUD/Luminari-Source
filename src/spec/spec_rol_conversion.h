@@ -52,6 +52,15 @@ enum rol_scheduled_naval_branch
   ROL_SCHEDULED_NAVAL_FIGHTING
 };
 
+enum rol_scheduled_crier_notice
+{
+  ROL_SCHEDULED_CRIER_NONE = 0,
+  ROL_SCHEDULED_CRIER_MOONSHAE_SHIP,
+  ROL_SCHEDULED_CRIER_CALIMPORT_SHIP,
+  ROL_SCHEDULED_CRIER_SHOPS_OPENING,
+  ROL_SCHEDULED_CRIER_SHOPS_CLOSING
+};
+
 enum rol_lich_rite_status
 {
   ROL_LICH_RITE_INVALID = 0,
@@ -120,6 +129,8 @@ int rol_utility_room_typed(struct spec_event_context *context);
 
 enum rol_scheduled_gate_state rol_scheduled_gate_state_for_hour(int hour);
 enum rol_scheduled_naval_branch rol_scheduled_naval_branch_for(bool standing, bool fighting);
+enum rol_scheduled_crier_notice
+rol_scheduled_crier_notice_for_hour(int hour, bool *shop_notice_sent, bool *ship_notice_sent);
 int rol_scheduled_lighthouse_step(int hour, bool standing, bool *active, int *counter);
 
 bool rol_corpse_devourer_can_consume(const struct obj_data *obj);

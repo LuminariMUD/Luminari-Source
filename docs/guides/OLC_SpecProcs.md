@@ -173,6 +173,14 @@ the player to the target Lich race, rebuilds the character as a Wizard through t
 safe-respec path, clears experience, and sets evil alignment. Do not assign this irreversible,
 converter-owned procedure to unrelated mobiles.
 
+`RoL Scheduled Mobile` is mobile-owned and requires `MOB_SPEC`. It provides exact-identity
+profiles for converted Waterdeep and Gloomhaven gate guards, the lighthouse keeper, the naval
+combatant, and town crier 2003008. The crier retains its source 2d42 ambient table, once-per-hour
+ship and shop announcements, zone shouts, fighting alarm, and outdoor-only zone responses. Its
+shared hour gates intentionally preserve the source reset ordering, including the normally
+suppressed hour-18 shop-closing notice. Do not assign this converter-owned procedure to unrelated
+mobiles.
+
 `RoL Trade Bandit` is mobile-owned and requires `MOB_SPEC`. It intercepts movement, `flee`, and
 `get` for a merchant carrying converted resources or owning a loaded wagon, then applies one of
 seven converter-owned toll personalities. Source platinum tolls use ten target gold per platinum;

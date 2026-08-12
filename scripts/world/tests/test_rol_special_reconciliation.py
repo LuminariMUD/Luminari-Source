@@ -511,6 +511,7 @@ class RolSpecialReconciliationTests(unittest.TestCase):
 
   def test_scheduled_mobile_batch_has_explicit_dispositions(self) -> None:
     handlers = (
+        "crier_one",
         "gloomhaven_gate_guard",
         "lighthouse_one",
         "naval_three",
@@ -589,11 +590,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_111, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(36, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(537, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(25, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(653, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_112, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(35, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(538, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(24, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(654, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           159, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -602,8 +603,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           18, summary["direct_bindings_by_strategy"]["SOURCE_UNSAFE_EXCLUDED"]
       )
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(829, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(19, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(830, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(18, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

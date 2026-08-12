@@ -1611,8 +1611,8 @@ static const struct spec_definition spec_definitions[] = {
         .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "RoL Conversion",
-        .description = "Runs converted timed gate, lighthouse, and naval behavior by exact "
-                       "mobile identity.",
+        .description = "Runs converted timed gate, lighthouse, naval, and Waterdeep town-crier "
+                       "behavior by exact mobile identity.",
         .legacy_handler = rol_scheduled_mobile,
     },
 };

@@ -1968,6 +1968,7 @@ class RolTransformTests(unittest.TestCase):
 
   def test_scheduled_mobile_batch_persists_shared_adapter(self) -> None:
     handlers = (
+        (3008, "crier_one"),
         (3082, "waterdeep_guard_three"),
         (5311, "naval_three"),
         (5313, "lighthouse_one"),
@@ -1990,7 +1991,7 @@ class RolTransformTests(unittest.TestCase):
         [],
     )
 
-    self.assertEqual(4, len(compiled.native_bindings))
+    self.assertEqual(5, len(compiled.native_bindings))
     for binding in compiled.native_bindings:
       self.assertEqual("RoL Scheduled Mobile", binding.persisted_name)
       self.assertEqual((0,), binding.required_flag_bits)

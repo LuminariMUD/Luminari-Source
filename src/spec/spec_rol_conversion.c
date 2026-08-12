@@ -4577,6 +4577,40 @@ enum rol_scheduled_naval_branch rol_scheduled_naval_branch_for(bool standing, bo
   return ROL_SCHEDULED_NAVAL_NONE;
 }
 
+enum rol_scheduled_crier_notice
+rol_scheduled_crier_notice_for_hour(int hour, bool *shop_notice_sent, bool *ship_notice_sent)
+{
+  if (shop_notice_sent == NULL || ship_notice_sent == NULL)
+    return ROL_SCHEDULED_CRIER_NONE;
+
+  if (hour == 4 || hour == 19)
+    *shop_notice_sent = false;
+  if (hour == 4 || hour == 9)
+    *ship_notice_sent = false;
+
+  if (hour == 3 && !*ship_notice_sent)
+  {
+    *ship_notice_sent = true;
+    return ROL_SCHEDULED_CRIER_MOONSHAE_SHIP;
+  }
+  if (hour == 10 && !*ship_notice_sent)
+  {
+    *ship_notice_sent = true;
+    return ROL_SCHEDULED_CRIER_CALIMPORT_SHIP;
+  }
+  if (hour == 5 && !*shop_notice_sent)
+  {
+    *shop_notice_sent = true;
+    return ROL_SCHEDULED_CRIER_SHOPS_OPENING;
+  }
+  if (hour == 18 && !*shop_notice_sent)
+  {
+    *shop_notice_sent = true;
+    return ROL_SCHEDULED_CRIER_SHOPS_CLOSING;
+  }
+  return ROL_SCHEDULED_CRIER_NONE;
+}
+
 int rol_scheduled_lighthouse_step(int hour, bool standing, bool *active, int *counter)
 {
   int message_index = -1;
@@ -4844,6 +4878,263 @@ static int rol_scheduled_naval(struct char_data *ch)
   return FALSE;
 }
 
+static void rol_scheduled_crier_zone_echo(struct char_data *ch, const char *message)
+{
+  struct descriptor_data *descriptor;
+  zone_rnum zone;
+
+  if (ch == NULL || message == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return;
+  zone = GET_ROOM_ZONE(IN_ROOM(ch));
+  for (descriptor = descriptor_list; descriptor != NULL; descriptor = descriptor->next)
+  {
+    if (STATE(descriptor) != CON_PLAYING || descriptor->character == NULL ||
+        !VALID_ROOM_RNUM(IN_ROOM(descriptor->character)) ||
+        GET_ROOM_ZONE(IN_ROOM(descriptor->character)) != zone ||
+        ROOM_FLAGGED(IN_ROOM(descriptor->character), ROOM_INDOORS))
+      continue;
+    write_to_output(descriptor, "%s\r\n", message);
+  }
+}
+
+static void rol_scheduled_crier_yell(struct char_data *ch, const char *message)
+{
+  do_gen_comm(ch, message, 0, SCMD_SHOUT);
+}
+
+static void rol_scheduled_crier_ambient(struct char_data *ch)
+{
+  int roll;
+
+  if (GET_POS(ch) < POS_STANDING)
+    return;
+  roll = dice(2, 42);
+  switch (roll)
+  {
+  case 2:
+    act("$n gets ready for another bout of shouting.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 3:
+    act("$n clears his throat.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 4:
+    do_say(ch, "Farmers east of Waterdeep be advised!", 0, 0);
+    do_say(ch, "Orc raiding parties have been spotted.", 0, 0);
+    break;
+  case 5:
+    act("$n looks at you for a moment, seeing if his audience is listening.", TRUE, ch, NULL, NULL,
+        TO_ROOM);
+    break;
+  case 6:
+    act("$n paces back and forth, apparently excited about his work.", TRUE, ch, NULL, NULL,
+        TO_ROOM);
+    break;
+  case 7:
+    do_say(ch, "City officials report that unknown tunnels have been discovered in the graveyard!",
+           0, 0);
+    do_say(ch, "Best to be careful where you step there.", 0, 0);
+    break;
+  case 8:
+    do_say(ch, "I hear Gelian has the best deal in town for precious gemstones!", 0, 0);
+    break;
+  case 9:
+    act("$n says softly, 'Rumor has it Kalara and Lord Piergeiron are an item!'", TRUE, ch, NULL,
+        NULL, TO_ROOM);
+    act("$n giggles evilly.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 10:
+    do_say(ch, "Lord Piergeiron is looking for volunteers to join the city's militia!", 0, 0);
+    do_say(ch, "Mostly for when we get hit by goblin raids and whatnot.", 0, 0);
+    break;
+  case 11:
+    rol_scheduled_crier_yell(ch, "If you're headin' south to Calimport, beware!");
+    rol_scheduled_crier_yell(
+        ch, "Trolls, Giants, and many dangers may threaten your lives, go with caution.");
+    break;
+  case 12:
+    act("$n nearly trips over his own feet.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 13:
+    do_say(ch, "Rumor has it that tunnels have been dug out beneath the city!", 0, 0);
+    do_say(ch, "Some say smugglers use it to traffic stolen goods.", 0, 0);
+    break;
+  case 14:
+    act("The town crier burps loudly.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 15:
+    rol_scheduled_crier_yell(
+        ch, "Lord Piergeiron is looking for brave adventurers to fight off the trolls!");
+    rol_scheduled_crier_yell(ch, "If you can help, form a group and head south.");
+    break;
+  case 16:
+    do_say(ch, "The druids expect a storm sometime soon, look out for it!", 0, 0);
+    break;
+  case 17:
+    do_say(ch, "Hey, folks, I hear there are good things for sale in the bazaar!", 0, 0);
+    break;
+  case 18:
+    do_say(ch, "Announcement! Jakar has made a new secret formula for his ribs!", 0, 0);
+    do_say(ch, "Last one there is starving pig!", 0, 0);
+    break;
+  case 19:
+    do_say(ch, "There is rumor that burglars are wandering the rooftops of southern Waterdeep!", 0,
+           0);
+    do_say(ch, "Be careful up there, I hear they're mighty tough!", 0, 0);
+    break;
+  case 20:
+    do_say(ch, "I hear the call girls south of here will show you a good time for 500 coins.", 0,
+           0);
+    act("$n winks knowingly.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 21:
+    rol_scheduled_crier_yell(
+        ch, "Arena contests! All contenders report to the arena for a good fight!");
+    act("$n cackles with anticipation of the blood feast.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 22:
+    do_say(ch, "Hey, folks! Need adventuring supplies?", 0, 0);
+    do_say(ch, "I hear Zakara has all you need at good prices..", 0, 0);
+    break;
+  case 23:
+    do_say(ch, "Remember to fill your barrels and ration up before leaving town!", 0, 0);
+    do_say(ch, "It's a hard and dangerous world out there.", 0, 0);
+    break;
+  case 24:
+    act("$n says softly, 'I hear the old fisherman out on Deepwater Isle has discount tickets "
+        "to the Moonshaes!'",
+        TRUE, ch, NULL, NULL, TO_ROOM);
+    act("The guard glares at the town crier.", TRUE, ch, NULL, NULL, TO_ROOM);
+    act("$n blushes, and backs off.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 25:
+    do_say(ch, "Rumor has it that there is woodsman east of Waterdeep who has a tale to tell.", 0,
+           0);
+    do_say(ch, "People say it's important.", 0, 0);
+    break;
+  case 26:
+    do_say(ch, "Warning to all traveling south!", 0, 0);
+    do_say(ch, "The old ruin is said to be hollow..", 0, 0);
+    do_say(ch, "From what I hear, there is a portal to hell there!", 0, 0);
+    act("$n shivers uncomfortably.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 27:
+    do_say(ch, "Be Warned!", 0, 0);
+    do_say(ch, "The Brotherhood of the Black Fire reports the end of the world is at hand!", 0, 0);
+    do_say(ch, "Looks like they're predicting earlier this year..", 0, 0);
+    break;
+  case 28:
+    do_say(ch,
+           "Lord Piergeiron is asking for the return of the jewels stolen from his home recently.",
+           0, 0);
+    do_say(ch, "He promises that no harsh action will be taken against the thief.", 0, 0);
+    do_say(ch,
+           "Which translates to: You wont be burned at the stake instantly, he'll give you a "
+           "week and then cook ya.",
+           0, 0);
+    do_say(ch, "Anyone foolish enough to turn em in, inquire at the jail house.", 0, 0);
+    break;
+  case 29:
+    do_say(ch, "Oh! And one important thing I have to tell..", 0, 0);
+    act("$n is struck in the back of the head by an airborne tomato, though his assailant cannot "
+        "be seen.",
+        TRUE, ch, NULL, NULL, TO_ROOM);
+    do_say(ch, "HEY! That hurt!", 0, 0);
+    break;
+  case 30:
+    do_say(ch, "I hear the Tower of High Sorcery in the woods to the north is haunted.", 0, 0);
+    do_say(ch, "Many an adventurer is said to have entered, but few live to tell the tale.", 0, 0);
+    break;
+  case 31:
+    do_say(ch, "It's a long way to the Moonshaes!", 0, 0);
+    do_say(ch, "Only way to go is by ship, and even that takes a while.", 0, 0);
+    break;
+  case 32:
+    do_say(ch, "Scouts have reported a strange finding while at sea last week.", 0, 0);
+    do_say(ch, "A large rectangular object was discovered standing on top of the water!", 0, 0);
+    do_say(ch, "It's nature was unknown, though it was definitely magical.", 0, 0);
+    break;
+  case 33:
+    rol_scheduled_crier_yell(ch, "Bars are open all night boys!");
+    break;
+  case 34:
+    do_say(ch, "People say southern Waterdeep, ", 0, 0);
+    do_say(ch, "is the roughest part of town..", 0, 0);
+    break;
+  case 35:
+    do_say(ch, "I hear a brothel is opening in southern Waterdeep soon.", 0, 0);
+    act("$n winks knowingly.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 36:
+    do_say(ch, "Oooo, I haven't seen someone as ugly as you in a LONG time!", 0, 0);
+    act("$n falls down laughing.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 37:
+    do_say(ch,
+           "The sages of Waterdeep have sometimes spoken of travelers who wander the land "
+           "with great knowledge of the world..",
+           0, 0);
+    do_say(ch,
+           "Some are great wizards who can teach rare and strange magic, while others know "
+           "the way to hidden treasures.",
+           0, 0);
+    do_say(ch, "Seek them out, for they carry ancient wisdom.", 0, 0);
+    break;
+  case 38:
+    do_say(ch, "Oh! Lord Piergeiron wanted me to tell you.", 0, 0);
+    do_say(ch,
+           "Make sure you give donations to the soup kitchen south of town, the poor need "
+           "your help.",
+           0, 0);
+    break;
+  case 39:
+    rol_scheduled_crier_yell(ch, "Welcome merchants, welcome travelers!");
+    rol_scheduled_crier_yell(ch, "Welcome to Waterdeep, City of Splendors!");
+    rol_scheduled_crier_zone_echo(ch, "A housewife screams, 'Shut up, you bloody idiot!'");
+    break;
+  case 40:
+    act("$n drinks some water to clear his throat.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 41:
+    do_say(ch, "The Gods have brought good weather to the farmers again this year!", 0, 0);
+    do_say(ch, "They must be smiling upon us.", 0, 0);
+    break;
+  case 42:
+    act("A boy runs through the room, hitting the crier and knocking him over.", TRUE, ch, NULL,
+        NULL, TO_ROOM);
+    act("A boy says, 'Shut your stupid hole, fool!', and runs off", TRUE, ch, NULL, NULL, TO_ROOM);
+    act("$n screams, 'Hey!  Stop that little brat!'", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  default:
+    break;
+  }
+}
+
+static int rol_scheduled_crier(struct char_data *ch)
+{
+  static bool shop_notice_sent;
+  static bool ship_notice_sent;
+  enum rol_scheduled_crier_notice notice;
+
+  rol_scheduled_crier_ambient(ch);
+  notice =
+      rol_scheduled_crier_notice_for_hour(time_info.hours, &shop_notice_sent, &ship_notice_sent);
+  if (notice == ROL_SCHEDULED_CRIER_MOONSHAE_SHIP)
+    rol_scheduled_crier_yell(ch, "The ship heading to the Moonshaes leaves in three hours, folks!");
+  else if (notice == ROL_SCHEDULED_CRIER_CALIMPORT_SHIP)
+    rol_scheduled_crier_yell(ch, "The ship heading for Calimport leaves in two hours, folks!");
+  else if (notice == ROL_SCHEDULED_CRIER_SHOPS_OPENING)
+    rol_scheduled_crier_yell(ch, "The shops start opening in one hour, folks!");
+  else if (notice == ROL_SCHEDULED_CRIER_SHOPS_CLOSING)
+    rol_scheduled_crier_yell(ch, "Be advised, the shops will start closing soon!");
+
+  if (FIGHTING(ch) != NULL)
+  {
+    rol_scheduled_crier_yell(ch, "Help, help!  I'm being attacked!");
+    rol_scheduled_crier_zone_echo(ch, "People all over the city can be heard cheering.");
+  }
+  return FALSE;
+}
+
 int rol_scheduled_mobile(struct char_data *ch, void *me, int cmd, const char *argument)
 {
   const struct rol_scheduled_gate_profile *gate_profile;
@@ -4863,6 +5154,8 @@ int rol_scheduled_mobile(struct char_data *ch, void *me, int cmd, const char *ar
     return rol_scheduled_lighthouse(speaker);
   if (GET_MOB_VNUM(speaker) == 2005311)
     return rol_scheduled_naval(speaker);
+  if (GET_MOB_VNUM(speaker) == 2003008)
+    return rol_scheduled_crier(speaker);
   return FALSE;
 }
 
