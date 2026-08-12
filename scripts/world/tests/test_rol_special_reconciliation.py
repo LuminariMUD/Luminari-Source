@@ -39,6 +39,7 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     bandit = handler_disposition("bandit")
     bloodstone_critter = handler_disposition("bs_critter")
     designated_follower = handler_disposition("follow_that_mob")
+    floating_pool = handler_disposition("floating_pool")
     item_blocker = handler_disposition("item_block")
     sister_knight = handler_disposition("sister_knight")
     shaman_totem = handler_disposition("shaman_totem")
@@ -89,6 +90,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("NATIVE_ADAPTED", bloodstone_critter["strategy"])
     self.assertEqual("RoL Designated Follower", designated_follower["target"])
     self.assertEqual("NATIVE_ADAPTED", designated_follower["strategy"])
+    self.assertEqual("RoL Floating Pool", floating_pool["target"])
+    self.assertEqual("NATIVE_ADAPTED", floating_pool["strategy"])
     self.assertEqual("RoL Item Blocker", item_blocker["target"])
     self.assertEqual("NATIVE_ADAPTED", item_blocker["strategy"])
     self.assertEqual("RoL Sister Knight", sister_knight["target"])
@@ -151,11 +154,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(586, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(561, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(97, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(465, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(211, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(590, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(557, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(98, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(464, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(215, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           113, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

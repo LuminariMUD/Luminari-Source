@@ -116,6 +116,12 @@ static const struct spec_event_contract rol_object_pulse_events[] = {{
     SPEC_PLACEMENT_EQUIPPED,
 }};
 
+static const struct spec_event_contract rol_room_object_pulse_events[] = {{
+    SPEC_EVENT_OBJECT_AUTO_PULSE,
+    SPEC_PROTOTYPE_ITEM_AUTOPROC,
+    SPEC_PLACEMENT_NONE,
+}};
+
 static const struct spec_event_contract rol_object_defense_events[] = {
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_DEFENSE_REACTION, SPEC_PROTOTYPE_NONE,
@@ -1054,6 +1060,18 @@ static const struct spec_definition spec_definitions[] = {
         .legacy_handler = rol_designated_follower,
     },
     {
+        .canonical_name = "RoL Floating Pool",
+        .display_name = "RoL Floating Pool",
+        .owner_mask = SPEC_OWNER_OBJECT,
+        .events = rol_room_object_pulse_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_room_object_pulse_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Moves a converted ethereal pool through eligible exits on auto-pulses.",
+        .legacy_handler = rol_floating_pool,
+    },
+    {
         .canonical_name = "RoL Item Blocker",
         .display_name = "RoL Item Blocker",
         .owner_mask = SPEC_OWNER_OBJECT,
@@ -1307,6 +1325,7 @@ enum
   SPEC_DEFINITION_ROL_THIEF,
   SPEC_DEFINITION_ROL_BLOODSTONE_CRITTER,
   SPEC_DEFINITION_ROL_DESIGNATED_FOLLOWER,
+  SPEC_DEFINITION_ROL_FLOATING_POOL,
   SPEC_DEFINITION_ROL_ITEM_BLOCKER,
   SPEC_DEFINITION_ROL_MAGIC_POOL,
   SPEC_DEFINITION_ROL_AUTO_DISTRIBUTOR,
@@ -1405,6 +1424,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_THIEF, -1},
     {SPEC_DEFINITION_ROL_BLOODSTONE_CRITTER, -1},
     {SPEC_DEFINITION_ROL_DESIGNATED_FOLLOWER, -1},
+    {SPEC_DEFINITION_ROL_FLOATING_POOL, -1},
     {SPEC_DEFINITION_ROL_ITEM_BLOCKER, -1},
     {SPEC_DEFINITION_ROL_MAGIC_POOL, -1},
     {SPEC_DEFINITION_ROL_AUTO_DISTRIBUTOR, -1},

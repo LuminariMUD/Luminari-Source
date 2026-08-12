@@ -1698,6 +1698,63 @@ int rol_designated_follower(struct char_data *ch, void *me, int cmd, const char 
   return FALSE;
 }
 
+bool rol_floating_pool_should_move(int roll)
+{
+  return roll >= 1 && roll <= 12;
+}
+
+static bool rol_floating_pool_exit_is_eligible(room_rnum room, int direction)
+{
+  struct room_direction_data *exit;
+  room_rnum destination;
+
+  if (!VALID_ROOM_RNUM(room) || direction < NORTH || direction > DOWN)
+    return false;
+
+  exit = world[room].dir_option[direction];
+  if (exit == NULL)
+    return false;
+
+  destination = exit->to_room;
+  return VALID_ROOM_RNUM(destination) &&
+         !EXIT_FLAGGED(exit, EX_CLOSED | EX_HIDDEN | EX_HIDDEN_MEDIUM | EX_HIDDEN_HARD |
+                                 EX_HIDDEN_EASY | EX_BLOCKED) &&
+         !ROOM_FLAGGED(destination, ROOM_NOMOB);
+}
+
+int rol_floating_pool(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct obj_data *obj = me;
+  int directions[NUM_OF_DIRS];
+  room_rnum destination;
+  room_rnum origin;
+  int direction;
+  int direction_count = 0;
+
+  (void)ch;
+  (void)argument;
+
+  if (obj == NULL || cmd != 0 || !VALID_ROOM_RNUM(IN_ROOM(obj)) ||
+      !rol_floating_pool_should_move(rand_number(1, 100)))
+    return FALSE;
+
+  origin = IN_ROOM(obj);
+  for (direction = NORTH; direction <= DOWN; direction++)
+    if (rol_floating_pool_exit_is_eligible(origin, direction))
+      directions[direction_count++] = direction;
+
+  if (direction_count == 0)
+    return FALSE;
+
+  direction = directions[rand_number(0, direction_count - 1)];
+  destination = world[origin].dir_option[direction]->to_room;
+  send_to_room(origin, "\tLThe pool floats silently away through the swirling ether...\tn\r\n");
+  obj_from_room(obj);
+  obj_to_room(obj, destination);
+  send_to_room(destination, "\tLA smoky pool floats into the area.\tn\r\n");
+  return TRUE;
+}
+
 static int rol_item_blocker_unlock_direction(struct char_data *ch, const char *argument)
 {
   char type[MAX_INPUT_LENGTH];

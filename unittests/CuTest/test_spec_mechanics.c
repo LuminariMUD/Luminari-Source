@@ -825,6 +825,15 @@ void Test_spec_rol_designated_follower_requires_matching_awake_leader(CuTest *tc
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_floating_pool_uses_documented_movement_chance(CuTest *tc)
+{
+  CuAssertTrue(tc, rol_floating_pool_should_move(1));
+  CuAssertTrue(tc, rol_floating_pool_should_move(12));
+  CuAssertTrue(tc, !rol_floating_pool_should_move(0));
+  CuAssertTrue(tc, !rol_floating_pool_should_move(13));
+  CuAssertTrue(tc, !rol_floating_pool_should_move(100));
+}
+
 void Test_spec_rol_major_beholder_preserves_eye_mapping_and_cooldowns(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

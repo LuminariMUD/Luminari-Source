@@ -645,7 +645,7 @@ void Test_spec_proc_update_carried_object_uses_null_then_carrier(CuTest *tc)
   bool setup_ok;
   bool fallback_matches;
   bool handled_null_stops;
-  bool unowned_repeats_null;
+  bool unowned_runs_once;
 
   setup_ok = spec_pulse_fixture_begin(&fixture);
   if (!setup_ok)
@@ -679,14 +679,12 @@ void Test_spec_proc_update_carried_object_uses_null_then_carrier(CuTest *tc)
   spec_pulse_recorder_reset(&fixture);
   object->carried_by = NULL;
   proc_update();
-  unowned_repeats_null = fixture.recorder.call_count == 2 &&
-                         fixture.recorder.calls[0].actor == NULL &&
-                         fixture.recorder.calls[1].actor == NULL;
+  unowned_runs_once = fixture.recorder.call_count == 1 && fixture.recorder.calls[0].actor == NULL;
   spec_pulse_fixture_end(&fixture);
 
   CuAssertTrue(tc, fallback_matches);
   CuAssertTrue(tc, handled_null_stops);
-  CuAssertTrue(tc, unowned_repeats_null);
+  CuAssertTrue(tc, unowned_runs_once);
 }
 
 void Test_spec_proc_update_gates_and_ignores_no_specials(CuTest *tc)

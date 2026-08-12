@@ -664,10 +664,10 @@ void Test_spec_proc_update_caches_successor_before_callback(CuTest *tc)
   object_list = &fixture.objects[0];
 
   proc_update();
-  /* Two owners, each invoked worn-then-carried with both pointers null. */
-  both_objects_pulsed = fixture.call_count == 4 &&
+  /* Two unowned objects, each invoked exactly once with a null actor. */
+  both_objects_pulsed = fixture.call_count == 2 &&
                         spec_dispatch_call_is(&fixture, 0, NULL, &fixture.objects[0], 0, "") &&
-                        spec_dispatch_call_is(&fixture, 2, NULL, &fixture.objects[1], 0, "");
+                        spec_dispatch_call_is(&fixture, 1, NULL, &fixture.objects[1], 0, "");
 
   object_list = NULL;
   spec_dispatch_end(&fixture);

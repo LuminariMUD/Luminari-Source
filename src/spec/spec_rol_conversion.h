@@ -50,6 +50,7 @@ int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_sister_knight(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_designated_follower(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_floating_pool(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_item_blocker(struct char_data *ch, void *me, int cmd, const char *argument);
 
 bool rol_corpse_devourer_can_consume(const struct obj_data *obj);
@@ -58,6 +59,7 @@ int rol_umberhulk_proc_chance(int level);
 int rol_shadow_giant_spook_damage(bool save_succeeded);
 bool rol_shadow_giant_spook_immune(struct char_data *target);
 bool rol_shadow_giant_stun_succeeds(int level, int chance_roll, int penalty_roll);
+bool rol_floating_pool_should_move(int roll);
 bool rol_class_guild_allows(const struct char_data *ch, enum rol_guild_family family);
 bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data *ch);
 bool rol_guild_guard_protects(int room_vnum);

@@ -296,6 +296,15 @@ void spec_gateway_object_auto_pulse(struct obj_data *obj)
   if (handler == NULL)
     return;
 
+  /* Room and contained objects have no actor; dispatch them once per pulse. */
+  if (obj->worn_by == NULL && obj->carried_by == NULL)
+  {
+    spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE, obj, NULL, 0,
+                      spec_empty_argument);
+    (void)spec_dispatch(&context, handler);
+    return;
+  }
+
   /* Worn invocation first; a nonzero result skips the carried fallback. */
   spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE, obj, obj->worn_by, 0,
                     spec_empty_argument);

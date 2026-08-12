@@ -1552,6 +1552,45 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("RoL Item Blocker", result.records[0].spec_proc)
     self.assertEqual(0, result.records[0].values[0])
 
+  def test_floating_pool_binding_requires_room_object_pulse_gateway(self) -> None:
+    binding = {
+        "basename": "ethereal",
+        "record_type": "object",
+        "source_vnum": 22706,
+        "source_handler": "floating_pool",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    native = compiled.native_bindings[0]
+    self.assertEqual("RoL Floating Pool", native.persisted_name)
+    self.assertEqual((44,), native.required_flag_bits)
+    self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[0]["strategy"])
+
+    source = self._source_record(
+        "obj",
+        b"#22706\nfloating pool~\na floating pool~\nA floating pool is here.~\n~\n"
+        b"12 0 0\n0 0 0 0\n100 0 0\n",
+    )
+    emitted = emit_object(
+        source,
+        2_022_706,
+        _resolver,
+        special_proc=native.persisted_name,
+        required_extra_bits=native.required_flag_bits,
+    )
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20227.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Floating Pool", result.records[0].spec_proc)
+    self.assertIn(44, decode_tokens(result.records[0].extra_flags).bits)
+
   def test_designated_follower_binding_requires_mobile_activity_gateway(self) -> None:
     binding = {
         "basename": "icecrag",

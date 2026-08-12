@@ -73,6 +73,7 @@ ADAPTED_HANDLER_NAMES = {
     "guild_classtype_warrior": "RoL Warrior Guild Room",
     "guild_classtype_cleric": "RoL Cleric Guild Room",
     "follow_that_mob": "RoL Designated Follower",
+    "floating_pool": "RoL Floating Pool",
     "lich_energy_drain": "RoL Lich Energy Drain",
     "item_block": "RoL Item Blocker",
     "major_beholder": "RoL Major Beholder",
@@ -780,7 +781,7 @@ def compile_special_bindings(
           "sister_knight",
       }:
         required_bits = (0,)
-      elif handler == "obj_drain":
+      elif handler in {"floating_pool", "obj_drain"}:
         required_bits = (44,)
       else:
         required_bits = ()

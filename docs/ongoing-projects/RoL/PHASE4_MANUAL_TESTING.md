@@ -251,6 +251,18 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   follower attaches, follows the leader through movement, and assists when the leader
   fights. A sleeping follower must wait until it wakes before attaching.
 
+### Phase 6 converted floating pools
+
+- `RoL Floating Pool` is implemented for converted Ethereal objects 2022706,
+  2022707, 2022710, and 2022711. Ethereal remains outside the five-package staged
+  pilot, so test this only in a later dependency-complete stage.
+- Confirm each pool has `ITEM_AUTOPROC` and is left in a room. Over repeated object
+  pulses, it should have a 12 percent chance per pulse to display departure and arrival
+  messages and move through one random open north, east, south, west, up, or down exit.
+- Close, hide, or block an exit, or mark its destination `ROOM_NOMOB`; the pool must
+  exclude that direction. It must remain in place when no eligible exit exists and
+  must receive no more than one movement roll per object pulse.
+
 ### Phase 6 converted transport procedures
 
 - `RoL Magic Pool` and `RoL Auto Distributor` are implemented and
@@ -498,15 +510,15 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 586 are resolved and 561 remain. Of 562 distinct
-  source handlers, 97 are resolved and 465 remain. Of 848 `ACT_SPEC` records, 568 are
+  of the 1,147 active direct bindings, 590 are resolved and 557 remain. Of 562 distinct
+  source handlers, 98 are resolved and 464 remain. Of 848 `ACT_SPEC` records, 568 are
   resolved and 280 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
-  it also has no selected `home_reset` room, `magic_pool` object, or `autoDistributor`
-  room. Those additions remain automated evidence rather than manual-test claims for
-  this bundle.
+  it also has no selected `home_reset` room, `magic_pool` or `floating_pool` object,
+  or `autoDistributor` room. Those additions remain automated evidence rather than
+  manual-test claims for this bundle.
 - Package-wide conversion, repair, balance review, and acceptance bundles are Phase 7.
 - Development-world application and final operational documentation are Phase 8.
 

@@ -65,6 +65,11 @@ Icecrag guards find their fixed NPC leaders when awake and colocated, then use
 the target follower system for movement and combat assistance. This procedure
 and its follower-to-leader mapping are converter-owned.
 
+RoL Floating Pool is object-owned and requires ITEM_AUTOPROC. Four converted
+Ethereal pools left in rooms have a 12 percent chance per object pulse to move
+through one random open cardinal exit. Closed, hidden, blocked, invalid, and
+ROOM_NOMOB destinations are excluded. This procedure is converter-owned.
+
 RoL Item Blocker is object-owned and reads its blocked cardinal direction from
 object value 0. While an aggressive NPC occupies the room, it blocks mortal
 players and player pets from moving or unlocking a door in that direction.

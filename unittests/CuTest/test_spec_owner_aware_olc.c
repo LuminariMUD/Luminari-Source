@@ -95,6 +95,7 @@ static const char *const spec_object_names[] = {
     "muspel_spider_dagger",
     "obj_drain",
     "thorn_shield",
+    "RoL Floating Pool",
     "RoL Item Blocker",
     "RoL Magic Pool",
     "RoL Shaman Totem",
