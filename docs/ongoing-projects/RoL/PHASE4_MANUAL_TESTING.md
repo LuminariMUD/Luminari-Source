@@ -767,8 +767,9 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 
 ### Phase 6 generated state-aware Waterdeep profiles
 
-- Build a dependency-complete Waterdeep stage and confirm these 26 mobiles use
-  `RoL Stateful Periodic` with `MOB_SPEC`: 2002823, 2003020-2003023, 2003039, 2005315,
+- Build a dependency-complete Waterdeep stage and confirm these 27 mobiles use
+  `RoL Stateful Periodic` with `MOB_SPEC`: 2002823, 2003020-2003023, 2003039, 2003206,
+  2005315,
   2005503-2005504, 2005507-2005508, 2005510, 2005513-2005521, 2005525, 2005530,
   2005533-2005534, 2005538, and 2005540.
 - Confirm seven additional Waterdeep guild guards use `RoL Guild Guard` with `MOB_SPEC`
@@ -777,16 +778,41 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - While awake and standing but not fighting, observe representative profiles across repeated
   activity pulses. They should use their source idle speech and room actions. Most roll two-d5;
   Selune dancer 2005519 rolls two-d7. Sitting and sleeping representatives remain quiet.
-- Start combat with representative mobiles. Each should switch to its one-d4 fighting table
-  instead of emitting idle text. This intentionally makes the explicitly authored combat branch
-  usable where the source tested standing position first. Guildmaster 2003020 has no fighting
-  table and must remain quiet in combat.
+- Start combat with representative ordinary profiles. Each should switch to its one-d4
+  fighting table instead of emitting idle text. This intentionally makes the explicitly authored
+  combat branch usable where the source tested standing position first. Guildmaster 2003020 has
+  no fighting table and must remain quiet in combat.
+- Start combat with casino owner 2003206. It must independently roll its two-d5 fighting
+  table and then its two-d5 standing table on the same activity pulse, preserving the source
+  callback's two separate conditions rather than selecting only one table.
 - For commoner 2003039, confirm idle outcomes include the ordered two-line missing-child speech,
   while fighting outcomes include calls for help and other combat reactions. Unrelated mobiles
   must not receive any of these identity-keyed profiles.
 - Confirm converted rogue 2005509 has no named procedure from `rogue_one`: its source callback
   registered only for `NPC_HIT` but returned whenever that event supplied its victim, so adapting
   the unreachable body would invent behavior.
+
+### Phase 6 converted Waterdeep peacekeepers
+
+- Build dependency-complete Waterdeep stages and confirm tavern bouncers 2005523 and
+  2005541-2005543, casino bouncer 2003207, and off-duty militia guard 2003229 use
+  `RoL Waterdeep Peacekeeper` with `MOB_SPEC`.
+- Move each tavern bouncer away from its assigned post without charming it. On an activity
+  pulse it must fade out and return to its profile home: 2005523 to 2005532, 2005541 to
+  2005531, 2005542 to 2005530, and 2005543 to 2005533. A charmed tavern bouncer must not
+  return or eject anyone.
+- At each bouncer post, start a visible fight in which the lower-alignment participant is
+  fighting a neutral or good NPC. The bouncer must stop the selected offender and everyone
+  attacking that offender, drag both characters along the source route, leave the offender
+  sitting in room 2003258, and return to its post. With multiple eligible fights, the visible
+  participant with the lowest alignment must be selected.
+- Move casino bouncer 2003207 away from its load room and confirm it returns on an activity
+  pulse. Start an eligible fight at its post and confirm the offender is removed from combat,
+  thrown into room 2003254, and left sitting while the bouncer remains at its post.
+- Observe off-duty guard 2003229 while standing. It must retain the source two-d6 drunken
+  ambient table. Start an eligible fight while the room is not peaceful; the guard must speak,
+  join against the selected aggressor, and stop scanning once already fighting. Unrelated
+  mobiles must not receive any peacekeeper behavior.
 
 ### RoL object-property compatibility
 

@@ -83,6 +83,7 @@ Phase 6 travel-portal commit: 3c0ab331
 Phase 6 artifact-reconciliation commit: 2656b640
 Phase 6 banana/god-toy commit: 1ab77127
 Phase 6 undead-drain-family commit: 1f3e5172
+Phase 6 Waterdeep-peacekeeper commit: 526b99cb
 ```
 
 The authoritative ignored runs are:
@@ -227,6 +228,9 @@ Phase 6 banana and god-toy isolation:
 Phase 6 undead drain family:
   lib/rol-conversion/runs/phase6-special-20260812-undead-drain
   rol-phase6-special-3571b059181f795c
+Phase 6 Waterdeep peacekeepers:
+  lib/rol-conversion/runs/phase6-special-20260812-waterdeep-peacekeepers
+  rol-phase6-special-2d173c6ee61f4ba1
 Policy:  rol-conversion-policy-2
 ```
 
@@ -255,9 +259,9 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 300 tests; the production-linked CuTest suite passes 650;
+- The world-tool suite passes 301 tests; the production-linked CuTest suite passes 651;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Forty-three bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Forty-four bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
   shape exists. The measured remaining forecast is 53-86 sessions: Phase 6 is 5-10,
   Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -424,10 +428,11 @@ Policy:  rol-conversion-policy-2
   Menden, Fun, Mobile, Realm, Lavatubes, Tower of Sorcery, and Waterdeep source files.
   Sorted generated tables support binary runtime lookup; random ranges, dice expressions,
   awake or sleeping gates, and combat gates retain source behavior.
-- A second strict, source-hashed generator closes 26 direct state-aware Waterdeep handler
+- A second strict, source-hashed generator closes 27 direct state-aware Waterdeep handler
   families through `RoL Stateful Periodic` and supplies seven composed Waterdeep guild
-  guards through `RoL Guild Guard`. Its 33 converted mobile profiles retain 258
-  idle/fighting outcomes and 266 ordered speech or room actions.
+  guards through `RoL Guild Guard`. Its 34 converted mobile profiles retain 266
+  idle/fighting outcomes and 274 ordered speech or room actions. Casino owner 2003206
+  preserves the source's independent fighting and standing rolls during combat.
   Combat selects the explicitly authored fighting table before the target standing-state
   gate. `rogue_one` is separately excluded because its only registered event always
   triggers its source early return.
@@ -464,18 +469,24 @@ Policy:  rol-conversion-policy-2
   armor, Dexterity, Strength, save, and slow profiles, failed-Will gate, and immunity for
   undead or Death-Warded victims. The source NPC-hit/critical callback cadence maps to
   the available target combat-turn event.
+- Four tavern bouncer handlers, the casino bouncer, and the off-duty militia guard are
+  complete through `RoL Waterdeep Peacekeeper`. Tavern bouncers 2005523 and
+  2005541-2005543 preserve their converted return routes and drag eligible aggressors to
+  2003258; casino bouncer 2003207 returns to its load room and ejects aggressors to
+  2003254. Off-duty guard 2003229 retains its drunken ambient table and joins eligible
+  fights. The target-required `MOB_SPEC` flag is supplied for all six bindings.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 929 of 1,147 active direct bindings and 386 of
-  562 source handlers, leaving 218 bindings and 176 handlers. The independent
-  `ACT_SPEC` cross-check resolves 776 of 848 records and leaves 72 pending.
+- The current Phase 6 checkpoint resolves 936 of 1,147 active direct bindings and 393 of
+  562 source handlers, leaving 211 bindings and 169 handlers. The independent
+  `ACT_SPEC` cross-check resolves 783 of 848 records and leaves 65 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 218 direct bindings across 176 handlers. Classify regular
+1. Reconcile the remaining 211 direct bindings across 169 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7

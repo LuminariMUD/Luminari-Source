@@ -6,6 +6,72 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted Waterdeep peacekeepers
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed seven active Waterdeep mobile bindings across `bouncer_one`, `bouncer_two`,
+  `bouncer_three`, `bouncer_four`, `casino_three`, `guard_one`, and `casino_four`.
+- Added the mobile-owned, builder-visible `RoL Waterdeep Peacekeeper` procedure for four
+  tavern bouncers, the casino bouncer, and the off-duty militia guard. The converter
+  persists the shared canonical name and supplies the target-required `MOB_SPEC` flag.
+- Preserved the tavern bouncers' converted multi-room routes, displaced-bouncer return,
+  visible lowest-alignment offender selection, combat shutdown for the offender and all
+  attackers, final sitting position, and return to post. Profiles 2005523 and
+  2005541-2005543 eject to room 2003258 from four distinct source-authored routes.
+- Preserved casino bouncer 2003207 returning to its load room and ejecting an eligible
+  offender to room 2003254. Off-duty guard 2003229 retains its source two-d6 drunken
+  ambient table and joins eligible non-peaceful-room fights against the selected aggressor.
+- Extended the strict state-aware profile generator for casino owner 2003206. Its two-d5
+  fighting table and two-d5 standing table roll independently during combat, preserving
+  the source callback's two separate conditions. The generated corpus now contains 34
+  profiles, 266 outcomes, and 274 ordered actions across 27 direct and seven composed
+  Waterdeep handler families.
+- Reconciliation now resolves 936 of 1,147 active direct bindings and 393 of 562 source
+  handlers; 211 bindings and 169 handlers remain. The `ACT_SPEC` checkpoint advances to
+  783 resolved / 65 pending because all seven converted mobiles are now gateway-complete.
+- Added exact route, profile, registry, OLC, converter, generated-table, and help coverage.
+  The full world-tool and production-linked suites pass, and install leaves no root-level
+  binary artifact.
+- Archived the forty-fourth Phase 6 delivery session. The remaining bulk envelope stays
+  at 5-10 sessions, leaving the Phases 6-8 forecast at 53-86 sessions, or 106-344 focused
+  engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 526b99cb
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-waterdeep-peacekeepers
+Reconciliation run: rol-phase6-special-2d173c6ee61f4ba1
+Active direct bindings: 1,147
+Direct bindings resolved: 936
+Direct bindings pending: 211
+Source handlers resolved: 393
+Source handlers pending: 169
+Additional handler families resolved: 7
+Additional direct bindings resolved: 7
+Native adapted bindings: 490
+ACT_SPEC records resolved: 783
+ACT_SPEC records pending: 65
+Generated state-aware profiles: 34
+Generated state-aware outcomes: 266
+Generated state-aware actions: 274
+Special registry definitions: 101 total / 95 legacy / 6 typed
+Compatibility names: 102
+Focused world-tool suite: 75 passed
+Complete world-tool suite: 301 passed
+Production-linked CuTest suite: 651 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 211 direct bindings across 169 source handlers.
+The next bulk batch continues prioritizing strict generated shapes and shared mechanics.
+
 ## 2026-08-12 - Phase 6 converted undead drain family
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
