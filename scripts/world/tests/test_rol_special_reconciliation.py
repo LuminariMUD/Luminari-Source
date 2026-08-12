@@ -456,6 +456,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("SOURCE_INERT_EXCLUDED", disposition["strategy"])
       self.assertTrue(disposition["reason"])
 
+  def test_darkhold_elemental_deaths_share_composable_profile_runtime(self) -> None:
+    for handler in ("fire_die", "air_die", "water_die", "earth_die"):
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", disposition["strategy"])
+      self.assertEqual("converted mobile death profile", disposition["target"])
+
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       source_root = Path(temporary)
@@ -662,13 +669,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_328, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(393, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(564, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(231, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_332, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(389, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(568, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(227, summary["source_handlers_by_status"]["pending"])
       self.assertEqual(798, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
-          203, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
+          207, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(
           29, summary["direct_bindings_by_strategy"]["SOURCE_INERT_EXCLUDED"]
@@ -730,6 +737,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
               "devilLemure",
           )
       }
+      darkhold_death_vnums = {
+          row["source_handler"]: row["source_vnum"]
+          for row in binding_rows
+          if row["source_handler"] in {"fire_die", "air_die", "water_die", "earth_die"}
+      }
 
       self.assertEqual(
           set(range(205, 222)) | {234, 93202, 93203, 93204, 93205, 93206, 93209, 93210},
@@ -748,6 +760,10 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual({211}, initializer_vnums["demon_dretch"])
       self.assertEqual({219}, initializer_vnums["demon_rutterkin"])
       self.assertEqual({229, 230}, initializer_vnums["devilLemure"])
+      self.assertEqual(
+          {"fire_die": 94501, "air_die": 94502, "water_die": 94503, "earth_die": 94504},
+          darkhold_death_vnums,
+      )
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

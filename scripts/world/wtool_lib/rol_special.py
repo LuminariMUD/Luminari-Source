@@ -488,13 +488,17 @@ COMPOSABLE_MOBILE_HANDLER_AFFECTS = {
 # the death callbacks run from make_corpse() before the ordinary corpse path.
 COMPOSABLE_MOBILE_RUNTIME_HANDLERS = {
     "standardDemon": "MOB_ROL_DEMON composition-safe runtime hook",
+    "air_die": "converted mobile death profile",
+    "earth_die": "converted mobile death profile",
     "elemental_tower_shout": "RoL Monster Combat plus RoL alert runtime profile",
     "devil_pitFiendTail": "RoL Monster Combat plus pit-fiend tail runtime profile",
     "imix_shout": "breath_weapon_fire plus RoL alert runtime profile",
     "yancbin_shout": "breath_weapon_lightning plus RoL alert runtime profile",
     "tentacle_die": "converted mobile death profile",
     "fire_mephit_die": "converted mobile death profile",
+    "fire_die": "converted mobile death profile",
     "water_mephit_die": "converted mobile death profile",
+    "water_die": "converted mobile death profile",
     "air_mephit_die": "converted mobile death profile",
     "earth_mephit_die": "converted mobile death profile",
     "fire_mental_die": "converted mobile death profile",

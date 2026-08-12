@@ -261,6 +261,41 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn(112, decode_tokens(result.records[0].action_flags).bits)
     self.assertIn(20, decode_tokens(result.records[0].affect_flags).bits)
 
+  def test_darkhold_elemental_deaths_use_composable_runtime_profiles(self) -> None:
+    bindings = [
+        {
+            "basename": "darkhold",
+            "record_type": "mobile",
+            "source_vnum": vnum,
+            "source_handler": handler,
+        }
+        for vnum, handler in (
+            (94501, "fire_die"),
+            (94502, "air_die"),
+            (94503, "water_die"),
+            (94504, "earth_die"),
+        )
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+
+    self.assertEqual(4, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name is None
+            and binding.required_flag_bits == ()
+            and binding.required_affect_bits == ()
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(
+            row["strategy"] == "NATIVE_ADAPTED_COMPOSABLE"
+            and row["target"] == "converted mobile death profile"
+            for row in compiled.dispositions
+        )
+    )
+
   def test_color_and_line_endings_are_canonicalized(self) -> None:
     text, diagnostics = convert_text("&+RRed&N\r\nplain")
     self.assertEqual("@RRed@n\nplain", text)

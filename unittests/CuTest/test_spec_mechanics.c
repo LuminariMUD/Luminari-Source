@@ -1319,6 +1319,22 @@ void Test_spec_rol_yggdrasil_release_and_death_profiles_preserve_source_outcomes
   CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2004480));
   CuAssertIntEquals(tc, 2012000, rol_conversion_death_object_vnum(2012005));
   CuAssertTrue(tc, !rol_conversion_death_suppresses_corpse(2012005));
+  CuAssertStrEquals(tc, "As $n crumples to ashes, a \trruby gem\tn appears.",
+                    rol_conversion_death_message(2094501));
+  CuAssertStrEquals(tc, "As $n crumples to ashes, a \tcdiamond\tn appears.",
+                    rol_conversion_death_message(2094502));
+  CuAssertStrEquals(tc, "As $n crumples to ashes, an \tBaquamarine stone\tn appears.",
+                    rol_conversion_death_message(2094503));
+  CuAssertStrEquals(tc, "As $n crumples to ashes, a \tYgolden nugget\tn appears.",
+                    rol_conversion_death_message(2094504));
+  CuAssertIntEquals(tc, 2094508, rol_conversion_death_object_vnum(2094501));
+  CuAssertIntEquals(tc, 2094509, rol_conversion_death_object_vnum(2094502));
+  CuAssertIntEquals(tc, 2094510, rol_conversion_death_object_vnum(2094503));
+  CuAssertIntEquals(tc, 2094511, rol_conversion_death_object_vnum(2094504));
+  CuAssertTrue(tc, !rol_conversion_death_suppresses_corpse(2094501));
+  CuAssertTrue(tc, !rol_conversion_death_suppresses_corpse(2094502));
+  CuAssertTrue(tc, !rol_conversion_death_suppresses_corpse(2094503));
+  CuAssertTrue(tc, !rol_conversion_death_suppresses_corpse(2094504));
   CuAssertPtrNotNull(tc, rol_conversion_death_message(2012006));
   CuAssertPtrNotNull(tc, rol_conversion_death_message(2012024));
   CuAssertTrue(tc, rol_conversion_death_retargets_clerics(2053268));
@@ -1377,6 +1393,50 @@ void Test_spec_rol_abyss_forged_weapons_dissolve_before_corpse_creation(CuTest *
   CuAssertPtrEquals(tc, NULL, object_list);
   CuAssertIntEquals(tc, 0, rol_dissolve_abyss_forged_weapons(&fixture.actor));
 
+  object_list = saved_object_list;
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_darkhold_elemental_deaths_drop_mapped_objects_and_keep_corpses(CuTest *tc)
+{
+  static const int mobile_vnums[] = {2094501, 2094502, 2094503, 2094504};
+  static const int object_vnums[] = {2094508, 2094509, 2094510, 2094511};
+  struct spec_mechanics_fixture fixture;
+  struct obj_data prototype;
+  struct obj_data *dropped;
+  struct obj_data *saved_obj_proto;
+  struct obj_data *saved_object_list;
+  size_t index;
+
+  spec_mechanics_begin(&fixture);
+  saved_obj_proto = obj_proto;
+  saved_object_list = object_list;
+  object_list = NULL;
+  clear_object(&prototype);
+  GET_OBJ_RNUM(&prototype) = 0;
+  prototype.name = "darkhold elemental reward";
+  prototype.short_description = "a Darkhold elemental reward";
+  prototype.description = "A Darkhold elemental reward lies here.";
+  obj_proto = &prototype;
+  top_of_objt = 0;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+
+  for (index = 0; index < sizeof(mobile_vnums) / sizeof(mobile_vnums[0]); index++)
+  {
+    fixture.mobile_indexes[0].vnum = mobile_vnums[index];
+    fixture.object_indexes[0].vnum = object_vnums[index];
+    fixture.object_indexes[0].number = 0;
+    CuAssertTrue(tc, !rol_handle_conjured_death(&fixture.actor));
+    dropped = fixture.rooms[0].contents;
+    CuAssertPtrNotNull(tc, dropped);
+    CuAssertIntEquals(tc, object_vnums[index], GET_OBJ_VNUM(dropped));
+    CuAssertPtrEquals(tc, dropped, object_list);
+    extract_obj(dropped);
+    CuAssertPtrEquals(tc, NULL, fixture.rooms[0].contents);
+    CuAssertPtrEquals(tc, NULL, object_list);
+  }
+
+  obj_proto = saved_obj_proto;
   object_list = saved_object_list;
   spec_mechanics_end(&fixture);
 }

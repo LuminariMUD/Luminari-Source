@@ -672,6 +672,14 @@ static const struct rol_death_profile rol_death_profiles[] = {
     {2090866, "The pure blood sorcerer screams as $e transforms into a lich!", NULL, 2090917, 0,
      ROL_DEATH_EFFECT_REPLACE, true},
     {2092613, NULL, NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2094501, "As $n crumples to ashes, a \trruby gem\tn appears.", NULL, 0, 2094508,
+     ROL_DEATH_EFFECT_DROP_OBJECT, false},
+    {2094502, "As $n crumples to ashes, a \tcdiamond\tn appears.", NULL, 0, 2094509,
+     ROL_DEATH_EFFECT_DROP_OBJECT, false},
+    {2094503, "As $n crumples to ashes, an \tBaquamarine stone\tn appears.", NULL, 0, 2094510,
+     ROL_DEATH_EFFECT_DROP_OBJECT, false},
+    {2094504, "As $n crumples to ashes, a \tYgolden nugget\tn appears.", NULL, 0, 2094511,
+     ROL_DEATH_EFFECT_DROP_OBJECT, false},
     {2097003, NULL, NULL, 2097056, 0, ROL_DEATH_EFFECT_REPLACE, true},
 };
 
