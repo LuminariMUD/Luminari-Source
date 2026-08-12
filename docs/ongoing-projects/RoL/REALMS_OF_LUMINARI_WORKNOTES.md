@@ -53,6 +53,7 @@ Phase 6 auto-distributor conversion commit: ee096702
 Phase 6 source-preprocessor correction commit: 47d12583
 Phase 6 shadow-giant conversion commit: 96785da1
 Phase 6 converted-ship system commit: 215c0f13
+Phase 6 converted-guild-guard commit: 7102d82d
 ```
 
 The authoritative ignored runs are:
@@ -123,6 +124,8 @@ Phase 6 shadow giant: lib/rol-conversion/runs/phase6-special-20260812-shadow-gia
                       rol-phase6-special-989f5d0c8b5ac5c6
 Phase 6 converted ships: lib/rol-conversion/runs/phase6-special-20260812-ships
                          rol-phase6-special-490933ef03fa1db0
+Phase 6 converted guild guards: lib/rol-conversion/runs/phase6-special-20260812-guild-guard
+                                 rol-phase6-special-082fb35d02d05212
 Policy:  rol-conversion-policy-1
 ```
 
@@ -151,10 +154,10 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 264 tests; the production-linked CuTest suite passes 625;
+- The world-tool suite passes 265 tests; the production-linked CuTest suite passes 626;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Thirteen bounded Phase 6 delivery sessions are archived. The measured remaining
-  forecast is 83-143 sessions: Phase 6 is 35-67, Phase 7 is 42-66, and Phase 8 is 6-10.
+- Fourteen bounded Phase 6 delivery sessions are archived. The measured remaining
+  forecast is 82-142 sessions: Phase 6 is 34-66, Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -238,18 +241,22 @@ Policy:  rol-conversion-policy-1
   shared fixed-interior runtime adapter. The seven hulls retain boarding, controls,
   combat, lookout, disembarking, navigator protection, crew calls, and their original
   two-way scheduled routes without exceeding the target Greyhawk interior limit.
+- All 47 active `guild_guard` bindings are complete through the named `RoL Guild Guard`
+  procedure. It preserves the 45 active gate rules across 44 converted load rooms,
+  multiclass and race admission, protected-guard retaliation, combat cleanup, and
+  same-zone safe relocation while adding the target-required `MOB_SPEC` flag.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 442 of 1,147 active direct bindings and 62 of
-  562 source handlers, leaving 705 bindings and 500 handlers. The independent
-  `ACT_SPEC` cross-check resolves 521 of 848 records and leaves 327 pending.
+- The current Phase 6 checkpoint resolves 489 of 1,147 active direct bindings and 63 of
+  562 source handlers, leaving 658 bindings and 499 handlers. The independent
+  `ACT_SPEC` cross-check resolves 552 of 848 records and leaves 296 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 705 direct bindings by shared behavior family and
+1. Reconcile the remaining 658 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7

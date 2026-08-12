@@ -5,6 +5,62 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted guild guards
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all 47 active `guild_guard` mobile bindings through the persistent,
+  mobile-owned `RoL Guild Guard` procedure.
+- Reduced the source's 710-line global room switch to the 45 gate rules reached by
+  active converted guards. The adapter covers 44 distinct converted load rooms, one
+  two-direction entrance, class and race admission, unconditional barriers, and the
+  source rule that a displaced guard no longer controls its entrance.
+- Mapped the active source class families onto the target's multiclass model and mapped
+  Grey Elf/Half-Elf admission onto target Elf/Half-Elf identities. Immortals and target
+  town guards keep their movement bypasses.
+- Preserved protection behavior in all 33 active protected-room rules: mortal attackers
+  lose at most level times 5,000 experience without falling below two experience, take
+  the source dispel/curse/poison/blind/slow suite, are reduced to one hit point, leave
+  combat, and move to a safe random loaded room in the same zone.
+- Registered the procedure with command and mobile-combat contracts, taught the
+  converter its canonical target name, and made conversion add `MOB_SPEC`, which the
+  target combat-turn gateway requires.
+- Updated database-first help, builder and manual-test references, converter fixtures,
+  registry persistence and OLC inventories, and production-linked tests. Reconciliation
+  now resolves 489 of 1,147 active direct bindings and 63 of 562 handlers; 658 bindings
+  and 499 handlers remain. The independent `ACT_SPEC` checkpoint advances to 552
+  resolved / 296 pending.
+- Archived the fourteenth bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 34-66 Phase 6 sessions and 82-142 total sessions
+  for Phases 6-8, or 164-568 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 7102d82d
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-guild-guard
+Reconciliation run: rol-phase6-special-082fb35d02d05212
+Active direct bindings: 1,147
+Direct bindings resolved: 489
+Direct bindings pending: 658
+Source handlers resolved: 63
+Source handlers pending: 499
+Guild-guard bindings resolved: 47
+ACT_SPEC records resolved: 552
+ACT_SPEC records pending: 296
+Complete world-tool suite: 265 passed
+Production-linked CuTest suite: 626 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 658 direct bindings across 499 source handlers.
+
 ## 2026-08-12 - Phase 6 converted ship system
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
