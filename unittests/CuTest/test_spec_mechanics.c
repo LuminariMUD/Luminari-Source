@@ -1335,6 +1335,52 @@ void Test_spec_rol_yggdrasil_release_and_death_profiles_preserve_source_outcomes
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_abyss_forged_weapons_dissolve_before_corpse_creation(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct obj_data *primary;
+  struct obj_data *offhand;
+  struct obj_data *twohand;
+  struct obj_data *saved_object_list;
+
+  spec_mechanics_begin(&fixture);
+  saved_object_list = object_list;
+  object_list = NULL;
+
+  primary = create_obj();
+  offhand = create_obj();
+  twohand = create_obj();
+  primary->name = strdup("abyss forged primary weapon");
+  primary->short_description = strdup("an abyss-forged primary weapon");
+  offhand->name = strdup("abyss forged offhand weapon");
+  offhand->short_description = strdup("an abyss-forged offhand weapon");
+  twohand->name = strdup("abyss forged two handed weapon");
+  twohand->short_description = strdup("an abyss-forged two-handed weapon");
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = primary;
+  primary->worn_by = &fixture.actor;
+  primary->worn_on = WEAR_WIELD_1;
+  GET_EQ(&fixture.actor, WEAR_WIELD_OFFHAND) = offhand;
+  offhand->worn_by = &fixture.actor;
+  offhand->worn_on = WEAR_WIELD_OFFHAND;
+  GET_EQ(&fixture.actor, WEAR_WIELD_2H) = twohand;
+  twohand->worn_by = &fixture.actor;
+  twohand->worn_on = WEAR_WIELD_2H;
+
+  CuAssertIntEquals(tc, 0, rol_dissolve_abyss_forged_weapons(&fixture.actor));
+  CuAssertPtrEquals(tc, primary, GET_EQ(&fixture.actor, WEAR_WIELD_1));
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ROL_ABYSS_FORGED);
+  CuAssertIntEquals(tc, 3, rol_dissolve_abyss_forged_weapons(&fixture.actor));
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.actor, WEAR_WIELD_1));
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.actor, WEAR_WIELD_OFFHAND));
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&fixture.actor, WEAR_WIELD_2H));
+  CuAssertPtrEquals(tc, NULL, object_list);
+  CuAssertIntEquals(tc, 0, rol_dissolve_abyss_forged_weapons(&fixture.actor));
+
+  object_list = saved_object_list;
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_waterdeep_ambient_profiles_preserve_source_rolls_and_sequences(CuTest *tc)
 {
   bool speech = false;

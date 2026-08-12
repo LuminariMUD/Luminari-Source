@@ -1393,6 +1393,28 @@ void rol_automatic_race_combat_turn(struct char_data *ch)
   }
 }
 
+int rol_dissolve_abyss_forged_weapons(struct char_data *ch)
+{
+  static const int weapon_slots[] = {WEAR_WIELD_1, WEAR_WIELD_OFFHAND, WEAR_WIELD_2H};
+  struct obj_data *weapon;
+  size_t index;
+  int dissolved = 0;
+
+  if (ch == NULL || !IS_NPC(ch) || !MOB_FLAGGED(ch, MOB_ROL_ABYSS_FORGED))
+    return 0;
+
+  for (index = 0; index < sizeof(weapon_slots) / sizeof(weapon_slots[0]); index++)
+  {
+    if ((weapon = GET_EQ(ch, weapon_slots[index])) == NULL)
+      continue;
+    act("$p dissolves as $n perishes.", TRUE, ch, weapon, NULL, TO_ROOM);
+    extract_obj(weapon);
+    dissolved++;
+  }
+
+  return dissolved;
+}
+
 static const struct rol_alert_profile *rol_alert_profile_for(int caller_vnum)
 {
   size_t index;

@@ -165,6 +165,42 @@ class RolTransformTests(unittest.TestCase):
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
     )
 
+  def test_planar_base_bindings_use_composable_runtime_contracts(self) -> None:
+    bindings = [
+        {
+            "basename": "planar",
+            "record_type": "mobile",
+            "source_vnum": 205,
+            "source_handler": "abyssForgedWeapons",
+        },
+        {
+            "basename": "undermountain",
+            "record_type": "mobile",
+            "source_vnum": 92079,
+            "source_handler": "standardDemon",
+        },
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+    native = {binding.source_vnum: binding for binding in compiled.native_bindings}
+    dispositions = {row["source_handler"]: row for row in compiled.dispositions}
+
+    self.assertEqual(2, len(native))
+    self.assertIsNone(native[205].persisted_name)
+    self.assertEqual((125,), native[205].required_flag_bits)
+    self.assertIsNone(native[92079].persisted_name)
+    self.assertEqual((), native[92079].required_flag_bits)
+    self.assertEqual(
+        "MOB_ROL_DEMON composition-safe runtime hook",
+        dispositions["standardDemon"]["target"],
+    )
+    self.assertTrue(
+        all(
+            row["strategy"] == "NATIVE_ADAPTED_COMPOSABLE"
+            for row in compiled.dispositions
+        )
+    )
+
   def test_color_and_line_endings_are_canonicalized(self) -> None:
     text, diagnostics = convert_text("&+RRed&N\r\nplain")
     self.assertEqual("@RRed@n\nplain", text)

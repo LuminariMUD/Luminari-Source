@@ -434,6 +434,7 @@ RECONCILED_OBJECT_RUNTIME_HANDLERS = {
 # target flags preserve their death messaging and corpse policy without consuming
 # the ordinary persisted special-procedure slot.
 COMPOSABLE_MOBILE_HANDLER_FLAGS = {
+    "abyssForgedWeapons": 125,
     "bs_undead_die": 124,
     "conj_familiar_die": 119,
     "conj_mount_die": 120,
@@ -466,6 +467,7 @@ COMPOSABLE_MOBILE_HANDLER_FLAGS = {
 # The two shout callbacks share mobiles with already-persisted breath weapons;
 # the death callbacks run from make_corpse() before the ordinary corpse path.
 COMPOSABLE_MOBILE_RUNTIME_HANDLERS = {
+    "standardDemon": "MOB_ROL_DEMON composition-safe runtime hook",
     "elemental_tower_shout": "RoL Monster Combat plus RoL alert runtime profile",
     "devil_pitFiendTail": "RoL Monster Combat plus pit-fiend tail runtime profile",
     "imix_shout": "breath_weapon_fire plus RoL alert runtime profile",

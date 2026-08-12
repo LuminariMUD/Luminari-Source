@@ -423,6 +423,19 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertIn("permanent-stat", unsafe_backdoor["reason"])
     self.assertEqual("pending", unknown["status"])
 
+  def test_planar_base_handlers_use_independent_composable_hooks(self) -> None:
+    abyss_forged = handler_disposition("abyssForgedWeapons")
+    standard_demon = handler_disposition("standardDemon")
+
+    self.assertEqual("resolved", abyss_forged["status"])
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", abyss_forged["strategy"])
+    self.assertEqual("mobile action flag 125", abyss_forged["target"])
+    self.assertEqual("resolved", standard_demon["status"])
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", standard_demon["strategy"])
+    self.assertEqual(
+        "MOB_ROL_DEMON composition-safe runtime hook", standard_demon["target"]
+    )
+
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       source_root = Path(temporary)
@@ -604,12 +617,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
 
   def test_production_inputs_generate_complete_progress_ledgers(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
+      output_dir = Path(temporary) / "phase6"
       summary = write_special_reconciliation_bundle(
           self.root / "lib/rol-conversion/runs/phase1-policy2-20260813-special-discovery",
           self.root / "lib/rol-conversion/runs/phase2-policy2-20260813-special-discovery",
           self.root / "lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit",
           self.root / "EXAMPLE/RealmsOfLuminari",
-          Path(temporary) / "phase6",
+          output_dir,
           created_at="2026-08-12T02:05:00Z",
       )
 
@@ -628,13 +642,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_287, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(434, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(556, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(239, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_320, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(401, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(558, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(237, summary["source_handlers_by_status"]["pending"])
       self.assertEqual(798, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
-          165, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
+          198, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(11, summary["direct_bindings_by_strategy"]["NATIVE_RECONCILED"])
       self.assertEqual(
@@ -652,11 +666,48 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual(848, summary["act_spec_records"])
       self.assertEqual(798, summary["act_spec_by_status"]["resolved"])
       self.assertEqual(50, summary["act_spec_by_status"]["pending"])
+
+      binding_rows = [
+          json.loads(line)
+          for line in (output_dir / "binding-ledger.jsonl").read_text(encoding="ascii").splitlines()
+      ]
+      automatic_rows = [
+          json.loads(line)
+          for line in (output_dir / "automatic-race-ledger.jsonl")
+          .read_text(encoding="ascii")
+          .splitlines()
+      ]
+      abyss_vnums = {
+          row["source_vnum"]
+          for row in binding_rows
+          if row["source_handler"] == "abyssForgedWeapons"
+      }
+      direct_demon_vnums = {
+          row["source_vnum"]
+          for row in binding_rows
+          if row["source_handler"] == "standardDemon"
+      }
+      automatic_demons = {
+          row["source_vnum"]: row
+          for row in automatic_rows
+          if row["source_handler"] == "standardDemon"
+      }
+
+      self.assertEqual(
+          set(range(205, 222)) | {234, 93202, 93203, 93204, 93205, 93206, 93209, 93210},
+          abyss_vnums,
+      )
+      self.assertEqual(
+          {92079, 93202, 93203, 93204, 93205, 93206, 93209, 93210},
+          direct_demon_vnums,
+      )
+      self.assertTrue(
+          all(automatic_demons[vnum]["race_code"] == "X" for vnum in direct_demon_vnums)
+      )
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )
 
-      output_dir = Path(temporary) / "phase6"
       manifest = json.loads((output_dir / "run-manifest.json").read_text(encoding="ascii"))
       expected_records = {
           "act-spec-ledger.jsonl": 848,

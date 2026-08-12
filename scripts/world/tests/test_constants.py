@@ -107,11 +107,13 @@ class ConstantsTests(unittest.TestCase):
 
   def test_rol_death_flags_match_runtime_contract(self) -> None:
     entries = self.manifest["tables"]["mob"]["entries"]
-    self.assertEqual(125, len(entries))
+    self.assertEqual(126, len(entries))
     self.assertEqual("MOB_ROL_TOTEM_SPIRIT", entries[123]["macro"])
     self.assertEqual("RoL-Totem-Spirit", entries[123]["name"])
     self.assertEqual("MOB_ROL_BLACK_VAPOR_DEATH", entries[124]["macro"])
     self.assertEqual("RoL-Black-Vapor-Death", entries[124]["name"])
+    self.assertEqual("MOB_ROL_ABYSS_FORGED", entries[125]["macro"])
+    self.assertEqual("RoL-Abyss-Forged", entries[125]["name"])
 
   def test_luminari_campaign_filter_selects_non_campaign_branch(self) -> None:
     source = "#ifdef CAMPAIGN_FR\nfr\n#else\nluminari\n#endif\n"

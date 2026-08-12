@@ -213,8 +213,8 @@ Flags</a></li>
 <h2 id="overview">Overview</h2>
 <p>Mobile flags are bitflags defined in <code>src/structs.h</code> and
 are checked throughout the codebase using the <code>MOB_FLAGGED()</code>
-macro. There are currently <strong>125 mobile flags</strong> (indices
-0-124, <code>NUM_MOB_FLAGS</code>) that control everything from basic AI
+macro. There are currently <strong>126 mobile flags</strong> (indices
+0-125, <code>NUM_MOB_FLAGS</code>) that control everything from basic AI
 behavior to special monster abilities.</p>
 <p><strong>Usage Pattern:</strong></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>MOB_FLAGGED<span class="op">(</span>mob<span class="op">,</span> MOB_FLAGNAME<span class="op">))</span> <span class="op">{</span></span>
@@ -773,8 +773,8 @@ zone reset assumes stays put</p>
 Teleport target check (<code>spell_teleport()</code>) -
 <code>src/magic/magic.c</code> - Creation placement
 (<code>mag_creations()</code>)</p>
-<h3 id="rol-compatibility-flags-indices-105-124">RoL compatibility flags
-(Indices: 105-124)</h3>
+<h3 id="rol-compatibility-flags-indices-105-125">RoL compatibility flags
+(Indices: 105-125)</h3>
 <p><strong>Effect:</strong> Preserve shared Realms of Luminari mobile
 behaviors during deterministic conversion. -
 <code>MOB_ROL_NICE_THIEF</code> allows stealing but suppresses automatic
@@ -815,9 +815,13 @@ slot, and newly summoned spirits receive the same flag at runtime. -
 <code>MOB_ROL_BLACK_VAPOR_DEATH</code> preserves the Bloodstone undead
 death message while retaining Luminari’s native no-corpse policy for the
 converted undead. It does not consume the mobile’s persistent SpecProc
-slot. - These flags are converter-owned compatibility data; builders
-should use native flags and classes for new content unless reproducing
-converted RoL behavior</p>
+slot. - <code>MOB_ROL_ABYSS_FORGED</code> marks only the source demon
+prototypes whose primary and secondary weapons dissolve on death. In the
+target it removes one-handed, off-hand, and two-handed wielded weapons
+before either special death handling or ordinary corpse creation,
+without consuming the persistent SpecProc slot. - These flags are
+converter-owned compatibility data; builders should use native flags and
+classes for new content unless reproducing converted RoL behavior</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
 Movement, archery, and race aggression - <code>src/combat/fight.c</code>
 - Delayed hunter activation -
@@ -1723,6 +1727,13 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>RoL-Black-Vapor-Death</td>
 <td>Compatibility</td>
 <td>Bloodstone undead becomes black vapor without a corpse</td>
+</tr>
+<tr class="even">
+<td>125</td>
+<td>MOB_ROL_ABYSS_FORGED</td>
+<td>RoL-Abyss-Forged</td>
+<td>Compatibility</td>
+<td>Wielded abyss-forged weapons dissolve on death</td>
 </tr>
 </tbody>
 </table>

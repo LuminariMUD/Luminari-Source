@@ -2747,6 +2747,13 @@
           "macro": "MOB_ROL_BLACK_VAPOR_DEATH",
           "name": "RoL-Black-Vapor-Death",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 125,
+          "macro": "MOB_ROL_ABYSS_FORGED",
+          "name": "RoL-Abyss-Forged",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,

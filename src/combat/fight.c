@@ -2458,6 +2458,8 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   /* final handling, primary difference between npc/pc death */
   if (IS_NPC(ch))
   {
+    rol_dissolve_abyss_forged_weapons(ch);
+
     if (spec_gateway_mobile_death(ch, killer))
     {
       extract_char(ch);

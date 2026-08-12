@@ -1269,6 +1269,7 @@ const char *action_bits[] = {"<spec>", // 0
                              "RoL-Angel",
                              "RoL-Totem-Spirit",
                              "RoL-Black-Vapor-Death",
+                             "RoL-Abyss-Forged",
                              "\n"};
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
 

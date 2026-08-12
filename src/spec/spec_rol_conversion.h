@@ -224,6 +224,7 @@ bool rol_residual_mobile_profile(int mobile_vnum, const char **description);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);
 bool rol_automatic_race_activity(struct char_data *ch);
 void rol_automatic_race_combat_turn(struct char_data *ch);
+int rol_dissolve_abyss_forged_weapons(struct char_data *ch);
 bool rol_handle_conjured_death(struct char_data *ch);
 bool rol_update_mobile_home_after_move(struct char_data *ch, int source_room, int destination_room);
 int rol_utility_newbie_east_destination_vnum(int race);
