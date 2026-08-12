@@ -1,5 +1,8 @@
 # RealmsOfLuminari Reconciliation-First, Feature-First Conversion Plan
 
+> Archived on 2026-08-13. Superseded by the
+> [canonical conversion plan](../REALMS_OF_LUMINARI_CANONICAL_CONVERSION_PLAN.md).
+
 - Status: Phase 6 special-procedure discovery repair in progress
 - Plan date: 2026-08-11
 - Evidence audit: 2026-08-13
@@ -525,7 +528,7 @@ registration paths have been reconciled.
 
 Phases 0-5 are complete and have been removed from this active plan. Their delivered
 scope, run identities, counts, acceptance evidence, commits, and reforecast basis are
-recorded in [RoL-Changelog.md](RoL-Changelog.md). Active implementation continues with
+recorded in [RoL-Changelog.md](../RoL-Changelog.md). Active implementation continues with
 the remaining Phase 6 families.
 
 ### Phase 6: Special-procedure reconciliation (inventory repair in progress)

@@ -14,13 +14,12 @@ deleted.
 
 ## Current contents
 
-Statuses below were re-verified against the source tree on 2026-08-12.
+Statuses below were re-verified against the source tree on 2026-08-13.
 
 | Document | Status | What remains |
 |----------|--------|--------------|
-| [REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md](RoL/REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md) | Phases 0-5 complete; Phase 6 active | Reconcile active special procedures before action-based corpus batches. |
-| [REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md](RoL/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) | Phases 0-5 complete; Phase 6 active | Convert active working content only, preserve equivalent Luminari/OLC work, and retain deterministic validation gates. |
-| [RoL-Changelog.md](RoL/RoL-Changelog.md) | Completed milestone record | Preserve delivered RoL inventory and Phase 0-5 behavior, acceptance evidence, run identities, delivery commits, and measured reforecasts outside the active plans. |
+| [REALMS_OF_LUMINARI_CANONICAL_CONVERSION_PLAN.md](RoL/REALMS_OF_LUMINARI_CANONICAL_CONVERSION_PLAN.md) | Phases 0-5 complete; Phase 6 active | Repair and complete Phase 6, execute the Phase 6.5 canonical rebase, then deliver Phase 7 batches and Phase 8 integration. |
+| [RoL-Changelog.md](RoL/RoL-Changelog.md) | Completed milestone record | Preserve delivered RoL inventory and Phase 0-5 behavior, acceptance evidence, run identities, delivery commits, and measured reforecasts outside the active plan. |
 | [REALMS_OF_LUMINARI_WORKNOTES.md](RoL/REALMS_OF_LUMINARI_WORKNOTES.md) | Active handoff log | Preserve the current run identity, verification state, checkpoints, and immediate continuation steps. |
 | [PET_SYSTEM_COMPARISON_LUMINARI_CHRONICLES_OF_KRYNN.md](PET_SYSTEM_COMPARISON_LUMINARI_CHRONICLES_OF_KRYNN.md) | Comparison complete; P0 persistence repaired | Luminari now has fail-closed migrations and atomic snapshots. Admission policy, temporary lifetime, stable ownership, and full schema-source unification remain design work; the Chronicles sample is still reference-only. |
 | [artifact-placement-plan.md](artifact-placement-plan.md) | Handoff | Content brief for a world builder: acquisition routes for all seventeen artifacts, the single-instance reset contract, and verification steps. No code work outstanding. The artifact project's engineering sections are complete and its working notes have been retired; enduring content moved to [ARTIFACT_SYSTEM.md](../systems/ARTIFACT_SYSTEM.md). |

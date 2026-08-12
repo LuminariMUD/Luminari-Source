@@ -1,5 +1,8 @@
 # Phase 6.5: Canonical RoL VNUM Rebase and Reference Closure
 
+> Archived on 2026-08-13. Superseded by the
+> [canonical conversion plan](../REALMS_OF_LUMINARI_CANONICAL_CONVERSION_PLAN.md).
+
 - Status: Planned, not started
 - Plan date: 2026-08-12
 - Placement: after Phase 6 and before Phase 7
@@ -748,9 +751,9 @@ session must reconcile at least:
 
 - `REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md`;
 - `REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md`;
-- `REALMS_OF_LUMINARI_WORKNOTES.md`;
-- `PHASE4_MANUAL_TESTING.md`;
-- `RoL-Changelog.md`;
+- `../REALMS_OF_LUMINARI_WORKNOTES.md`;
+- `../PHASE4_MANUAL_TESTING.md`;
+- `../RoL-Changelog.md`;
 - artifact system and placement documentation;
 - relevant builder/player help; and
 - any generated documentation or tests that expose legacy RoL identities.

@@ -1,8 +1,8 @@
 # Realms of Luminari Project Changelog
 
 This file records completed milestones removed from the active
-[feature-first conversion plan](REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md)
-and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
+[feature-first conversion plan](../plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md)
+and [zone conversion scope](../plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
 ## 2026-08-12 - Phase 5 shop compatibility and completion
