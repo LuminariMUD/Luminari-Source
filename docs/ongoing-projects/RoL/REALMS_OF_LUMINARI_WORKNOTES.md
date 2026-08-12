@@ -104,6 +104,7 @@ Phase 6 object-service commit: 1849d9ad
 Phase 6 utility-service commit: 9d40694b
 Phase 6 scheduled-mobile commit: c8704d86
 Phase 6 Menden-fisherman commit: 33965efc
+Phase 6 special-discovery-repair commit: c2a677a8
 ```
 
 The authoritative ignored runs are:
@@ -714,5 +715,7 @@ Policy:  rol-conversion-policy-2
   `circle` remains.
 - The discovery blocker is closed. The corrected Phase 6 denominator is 1,721 live static plus
   5,531 resolved dynamic binding instances; 475 static bindings across 257 handlers remain.
+- The repair is committed at `c2a677a8`; the archive/documentation checkpoint that records this
+  immutable delivery hash is the only expected follow-up before the Tarrasque batch begins.
 - Next, implement and behavior-test the dependency-complete Tarrasque encounter, regenerate the
   corrected Phase 6 ledger, and publish the first handler checkpoint against the new denominator.

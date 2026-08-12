@@ -9,6 +9,71 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 special discovery repair
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Replaced the direct-file-only special extractor with active boot call-path traversal through
+  all 53 reachable registration wrappers. Every emitted row retains its wrapper path, source
+  line, original VNUM token, and literal or preprocessor resolution evidence.
+- Resolved all 38 active numeric planar macros automatically and added regression fixtures for
+  direct, wrapped, symbolic, preprocessor-excluded, and dynamic registrations.
+- Added explicit dynamic ledgers for `assign_the_questers()` and
+  `assign_the_shopkeepers()`. Their 5,078 quest and 453 shop binding instances are resolved
+  through the target data-driven HLQuest and shop services rather than misclassified as unknown
+  numeric bindings.
+- Regenerated the dependent Phase 1, Phase 2, Phase 5, and Phase 6 ignored evidence chain. The
+  corrected static denominator is 1,721 live bindings across 795 direct handlers; 1,246 bindings
+  and 538 handlers are resolved, leaving 475 bindings across 257 handlers.
+- Recomputed the independent `ACT_SPEC` cross-check to 798 resolved and 50 pending records.
+  Automatic race reconciliation remains complete for all 247 implicit bindings.
+- Reforecast the remaining Phase 6 work at 18-30 sessions from the corrected pending inventory,
+  its 36 source files, 190 singleton handlers, and 67 multi-binding handlers. The previous
+  1-3-session estimate is retired.
+
+### Acceptance evidence
+
+```text
+Delivery commit: c2a677a8
+Phase 1 path: lib/rol-conversion/runs/phase1-policy2-20260813-special-discovery
+Phase 1 run: rol-phase1-237602d3ade48138
+Phase 2 path: lib/rol-conversion/runs/phase2-policy2-20260813-special-discovery
+Phase 2 run: rol-phase2-c93b8c4610b36d1e
+Phase 5 path: lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit
+Phase 5 run: rol-phase5-audit-cec58661a4f21a2a
+Phase 6 path: lib/rol-conversion/runs/phase6-special-20260813-discovery-repair
+Phase 6 run: rol-phase6-special-df585be75f0574e3
+Static binding candidates: 1,813
+Preprocessor-excluded bindings: 92
+Active static bindings: 1,721
+Static bindings resolved: 1,246
+Static bindings pending: 475
+Direct source handlers: 795
+Direct source handlers resolved: 538
+Direct source handlers pending: 257
+Dynamic registration paths: 2
+Active dynamic binding instances: 5,531
+Total active binding instances: 7,252
+Total source handlers: 797
+ACT_SPEC records resolved: 798
+ACT_SPEC records pending: 50
+Complete world-tool suite: 317 passed
+Production-linked CuTest suite: 661 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 232dd588da93e455de32b496c2ed5a92efa08951
+Installed SHA-256: 59f8510f6e1379df99e6e4fef44745397bdc735f8a512c6bed7c07a3bc5c4a3f
+Evidence artifact hashes: 30 verified
+Repeat Phase 6 generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the dependency-complete Tarrasque encounter, then source-local and
+behavior-shared batches from the corrected 475-binding pending inventory.
+
 ## 2026-08-12 - Phase 6 Waterdeep town crier
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
