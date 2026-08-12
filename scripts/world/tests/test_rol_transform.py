@@ -517,6 +517,7 @@ class RolTransformTests(unittest.TestCase):
     emitted = emit_shop(source, 2_000_300, _resolver)
     lines = emitted.text.splitlines()
     self.assertEqual("96", lines[-8])
+    self.assertEqual("0", lines[-6])
 
   def test_emitted_hlquest_preserves_runtime_direction_order(self) -> None:
     source = self._source_record(

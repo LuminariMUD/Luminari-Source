@@ -849,9 +849,8 @@ def _shop_customer_restrictions(
     record: RolRecord,
     directive_token: str,
     diagnostics: list[str],
-    default_npc: bool = False,
 ) -> int:
-  restrictions = SHOP_CUSTOMER_TOKEN_MAP["NPC"] if default_npc else 0
+  restrictions = 0
   for directive in _directive_rows(record, directive_token):
     for token in str(directive.get("text", "")).upper().split():
       mapped = SHOP_CUSTOMER_TOKEN_MAP.get(token)
@@ -948,9 +947,7 @@ def emit_shop(
   if _directive_rows(record, "CASTING"):
     shop_flags |= 1 << 7
 
-  customer_restrictions = _shop_customer_restrictions(
-      record, "HATES", diagnostics, default_npc=True
-  )
+  customer_restrictions = _shop_customer_restrictions(record, "HATES", diagnostics)
   cheat_restrictions = _shop_customer_restrictions(record, "CHEATS", diagnostics)
 
   keeper = resolve("mob", record.vnum)
