@@ -542,11 +542,10 @@ Phase 5.
 
 Expand by frequency, pilot blockers, and reuse:
 
-1. remaining mobile-action dispositions;
-2. reset transforms and required missing reset mechanics;
-3. reconciled core and extended shop behavior;
-4. other shared gaps; and
-5. remaining color, command, spell, skill, and symbolic mappings.
+1. reset transforms and required missing reset mechanics;
+2. reconciled core and extended shop behavior;
+3. other shared gaps; and
+4. remaining color, command, spell, skill, and symbolic mappings.
 
 Exit gate: no active record is blocked by an unowned generic data/runtime capability.
 

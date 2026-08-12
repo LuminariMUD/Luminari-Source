@@ -521,10 +521,9 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 5 with the remaining measured mobile-action dispositions, then the
-reset, shop, and other shared capability gaps. The completed quest/SOC, rare room,
-object-trap, object-property, room/zone/affect, object-apply/affect, and audit
-checkpoints are recorded in
+Continue Phase 5 with reset transforms, reconciled shop behavior, and the other shared
+capability gaps. The completed quest/SOC, rare room, object-trap, object-property,
+room/zone/affect, object-apply/affect, mobile-action, and audit checkpoints are recorded in
 [RoL-Changelog.md](RoL-Changelog.md).
 Preserve the six explicit source-defect or ignored content rows as logged smallest-unit
 exclusions, then regenerate a capability-complete bundle and repeat the pilot's

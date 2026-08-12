@@ -2,8 +2,8 @@
 
 - Status: Phase 4 complete
 - Environment: disposable development runtime only
-- Staged world: `lib/rol-conversion/runs/phase5-object-applies-affects-20260812-pilot/staging/world`
-- Runtime contract: `lib/rol-conversion/runs/phase5-object-applies-affects-20260812-pilot/validation/pilot-runtime-contract.json`
+- Staged world: `lib/rol-conversion/runs/phase5-mobile-actions-20260812-pilot/staging/world`
+- Runtime contract: `lib/rol-conversion/runs/phase5-mobile-actions-20260812-pilot/validation/pilot-runtime-contract.json`
 - Live target writes: zero
 
 ## Safety Boundary
@@ -133,6 +133,33 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   production-tested, but the five pilot packages contain no converted `ADD` example
   suitable for manual exercise. Do not hand-edit the staged pilot to create one.
 
+### RoL mobile-action compatibility
+
+- Use `stat mobile` on Muspel mobile 2058809. It must show `RoL-Archer`, `Helper`, and
+  `Listen`. With its ranged weapon and ammunition available, a valid player or pet in
+  an adjacent non-peaceful room is a one-room ranged target; removing usable ammunition
+  must prevent that shot.
+- Use `stat mobile` on Muspel mobiles 2058702-2058705, 2058707-2058709, 2058711,
+  2058717, 2058718, 2058721, or 2058722. Their source protector role must appear as
+  `Helper` plus `Listen`; they should assist eligible allies in the same room and react
+  to eligible combat in an adjacent room through the existing target behaviors.
+- Inspect class-role flags independently of the mobile's primary class. Cemetery mobile
+  2055315 must show `RoL-Cleric`; 2055317 must show `RoL-Mage`; 2055328 must show all
+  five RoL class roles. Muspel 2059001 must show `RoL-Thief`. These flags participate in
+  the matching target caster, psionic, rogue, or warrior role checks.
+- Muspel mobile 2059008 and Theswamp mobile 2040928 must show
+  `RoL-Aggro-Evil-Race`; Muspel mobile 2059013 and Swamp Two mobile 2026102 must show
+  `RoL-Aggro-Good-Race`. In a non-peaceful room, compare a test character from the
+  matching source-race alignment family with one from the opposite family and confirm
+  only the matching family triggers this aggression rule.
+- Muspel mobile 2058610 or 2058623 and Muspel mobile 2058906, 2058907, 2058952, or
+  2059016 must show `RoL-Nice-Thief`. A failed theft from one of these awake mobiles
+  must not by itself start its automatic retaliation path; unrelated aggression and
+  scripted behavior remain independent.
+- Stay-sector and delayed-hunter behavior are implemented and production-tested, but
+  the five pilot packages contain no converted `ADD` example. Do not hand-edit the
+  staged pilot to create one.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,
@@ -168,9 +195,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
 
 - The pilot is not installed into the normal development world.
 - The remaining 247 source packages have not completed conversion.
-- Mobile actions are the only remaining unmapped symbolic family in Phase 5. The active
-  quest corpus uses fixed item rewards; no random item-reward range remains to
-  implement.
+- All active symbolic families, including mobile actions, have explicit dispositions.
+  Phase 5 still has reset, shop, and other shared capability work. The active quest
+  corpus uses fixed item rewards; no random item-reward range remains to implement.
 - Flagged arena, no-precipitation, PSP-regeneration, and RoL-jail runtime support is
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.

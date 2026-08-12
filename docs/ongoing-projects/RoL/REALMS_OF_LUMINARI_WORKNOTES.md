@@ -36,6 +36,7 @@ Phase 5 full-corpus audit commit: 51b7bd13
 Phase 5 room/zone/affect compatibility commit: f0fb9d8f
 Phase 5 object-property compatibility commit: ca037b15
 Phase 5 object-apply/affect compatibility commit: f7eabca4
+Phase 5 mobile-action compatibility commit: 1f6020de
 ```
 
 The authoritative ignored runs are:
@@ -66,6 +67,10 @@ Phase 5 object-apply/affect audit: lib/rol-conversion/runs/phase5-object-applies
                                     rol-phase5-audit-ae0fdf51ee3707ee
 Phase 5 object-apply/affect pilot: lib/rol-conversion/runs/phase5-object-applies-affects-20260812-pilot
                                     rol-phase4-build-87b9c7b1b8e214bd
+Phase 5 mobile-action audit: lib/rol-conversion/runs/phase5-mobile-actions-20260812-v2
+                               rol-phase5-audit-fc1c1ddc402d3800
+Phase 5 mobile-action pilot: lib/rol-conversion/runs/phase5-mobile-actions-20260812-pilot
+                               rol-phase4-build-f11ba7e2f3909645
 Policy:  rol-conversion-policy-1
 ```
 
@@ -94,7 +99,7 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 241 tests; the production-linked CuTest suite passes 613;
+- The world-tool suite passes 242 tests; the production-linked CuTest suite passes 614;
   `make install` succeeds and leaves no root-level `circle` artifact.
 - The measured remaining forecast is 104-170 sessions: Phase 5 is 8-14, Phase 6 is
   48-80, Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -109,10 +114,10 @@ Policy:  rol-conversion-policy-1
   The five pilots contain no active object traps; the trap-only checkpoint's restage
   was byte-identical with run ID `rol-phase4-build-1dc8a681fa1595d5`.
 - The current Phase 5 full-corpus audit emits all 69,920 convertible active records,
-  totaling 42,083,358 bytes, with zero transform exceptions and zero writes. Complete
-  ownership of room, zone, sector, object type, object wear, object extra, object apply,
-  and mobile/object affect values reduces unmapped symbolic observations from 26,006
-  to 15,243. Every remaining unmapped symbolic observation is a mobile action.
+  totaling 42,089,791 bytes, with zero transform exceptions and zero writes. Complete
+  ownership of room, zone, sector, mobile action, object type, object wear, object extra,
+  object apply, and mobile/object affect values reduces unmapped symbolic observations
+  from 26,006 to zero.
 - Nine appended object flags preserve RoL identify, summon, sleep, charm, two-handed,
   race-restriction, whole-body, and whole-head behavior. Source `NOSHOW` maps to hidden;
   source-inert `DARK` is explicitly omitted. The refreshed five-zone pilot exposes five
@@ -124,14 +129,19 @@ Policy:  rol-conversion-policy-1
 - RoL slow poison and docile behavior now use extensible target secondary affects;
   meditation uses the target rapid-preparation affect. Transient/inert prototype
   affects and three malformed source rows have explicit, reproducible dispositions.
+- All 15,243 active mobile-action observations now have an explicit disposition. New
+  compatibility flags preserve nice-thief, stay-sector, delayed-hunter, archer,
+  independent class-role, and race-aggression behavior; protector expands to existing
+  helper/listener behavior. `ACT_SPEC` is explicitly owned by Phase 6 binding
+  reconciliation, while relationship-only or source-inert flags are logged omissions.
 - All 1,467 active quest item-reward directions carry one fixed object VNUM. The source
   engine's optional random-range upper bound is unused by active content and blocks no
   record.
 
 ## Immediate next actions
 
-1. Resolve the measured mobile-action gaps by traced equivalence, bounded adapters, or
-   explicit dispositions.
+1. Resolve reset transforms, reconciled shop behavior, and remaining reusable shared
+   capability gaps.
 2. Separate record-specific missing-reference repairs from reusable capability work and
    attach those repairs to their Phase 7 dependency-closure batches.
 3. Preserve the six locked malformed record exclusions as explicit, logged

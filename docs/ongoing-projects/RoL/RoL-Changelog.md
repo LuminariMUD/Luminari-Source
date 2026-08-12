@@ -5,6 +5,60 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 5 mobile-action compatibility
+
+Status: Completed sub-milestone; Phase 5 implementation in progress
+
+### Delivered
+
+- Completed explicit dispositions for all 15,243 active mobile-action observations.
+  The full-corpus audit now reports zero unmapped symbolic observations across all
+  71,680 active source records.
+- Added target behavior for nice thieves, same-sector wandering, delayed hunting,
+  one-room archery, independent psionic/divine/arcane/rogue/warrior roles, and
+  aggression toward source-good or source-evil races.
+- Converted source protector behavior to the existing helper plus adjacent-combat
+  listener behaviors. Converted break-charm and outcast aggression to documented
+  bounded target equivalents.
+- Corrected class-zero conversion to a warrior baseline and inferred the primary target
+  class from source role flags while retaining every independent role as a flag.
+- Assigned source `ACT_SPEC` to the Phase 6 special-binding reconciler instead of
+  treating it as an unowned generic gap. Source relationship-only `ACT_SAVE` and the
+  unconsumed `ACT_SPEC_DIE` now have explicit logged source-only dispositions.
+- Rebuilt the five-zone staged pilot with zero live target writes. The pilot provides
+  concrete archer, protector, class-role, race-aggression, and nice-thief test
+  candidates while preserving its structural, reset-reference, and walkthrough gates.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 1f6020de
+Full-corpus audit path: lib/rol-conversion/runs/phase5-mobile-actions-20260812-v2
+Full-corpus audit run: rol-phase5-audit-fc1c1ddc402d3800
+Pilot build path: lib/rol-conversion/runs/phase5-mobile-actions-20260812-pilot
+Pilot build run: rol-phase4-build-f11ba7e2f3909645
+Active source records: 71,680
+Convertible records emitted: 69,920
+Emitted target bytes: 42,089,791
+Converter exceptions: 0
+Previous unmapped symbolic observations: 15,243
+Current unmapped symbolic observations: 0
+Reduction: 15,243
+Pilot selected actions: 3,001
+Pilot active staged errors: 79 inherited, 0 new
+Pilot retained native/adapted specials: 46/45
+Pilot reset-reference and walkthrough gates: passed
+Complete world-tool suite: 242 passed
+Production-linked CuTest suite: 614 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Autotools build and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+The next Phase 5 pass addresses reset transforms, reconciled shop behavior, and the
+remaining reusable shared capability gaps.
+
 ## 2026-08-12 - Phase 5 object-apply and affect compatibility
 
 Status: Completed sub-milestone; Phase 5 implementation in progress
