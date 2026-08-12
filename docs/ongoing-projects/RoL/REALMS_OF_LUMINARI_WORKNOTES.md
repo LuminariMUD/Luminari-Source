@@ -38,6 +38,7 @@ Phase 5 object-property compatibility commit: ca037b15
 Phase 5 object-apply/affect compatibility commit: f7eabca4
 Phase 5 mobile-action compatibility commit: 1f6020de
 Phase 5 reset mobile-chain compatibility commit: afeea9d7
+Phase 5 exit-trap compatibility commit: c647c5f4
 ```
 
 The authoritative ignored runs are:
@@ -76,6 +77,10 @@ Phase 5 reset-chain audit: lib/rol-conversion/runs/phase5-reset-chain-20260812-a
                            rol-phase5-audit-ed84cba825215e4f
 Phase 5 reset-chain pilot: lib/rol-conversion/runs/phase5-reset-chain-20260812-pilot
                            rol-phase4-build-0036becbb939e3ad
+Phase 5 exit-trap audit: lib/rol-conversion/runs/phase5-exit-traps-20260812-audit
+                         rol-phase5-audit-c6c7050ef434f7b8
+Phase 5 exit-trap pilot: lib/rol-conversion/runs/phase5-exit-traps-20260812-pilot
+                         rol-phase4-build-7e8fa263dff52098
 Policy:  rol-conversion-policy-1
 ```
 
@@ -143,14 +148,17 @@ Policy:  rol-conversion-policy-1
   to the most recent successful `M`, matching the source even after an intermediate
   equipment failure. Native zones retain result-offset behavior, and the three active
   non-boolean source dependencies are normalized to the source's actual boolean rule.
+- All 34 valid active exit-trap payloads now use a persistent target room record and
+  runtime adapter. Blade, poison, rock, fire, lightning, random, falling, area, boot
+  load, detection, disabling, open/pick triggering, and reset rearming are preserved.
+  The one malformed source row is excluded with a source-located diagnostic.
 - All 1,467 active quest item-reward directions carry one fixed object VNUM. The source
   engine's optional random-range upper bound is unused by active content and blocks no
   record.
 
 ## Immediate next actions
 
-1. Persist the 34 valid active exit-trap payloads and reset rearming behavior, then
-   resolve reconciled shop behavior and remaining reusable shared capability gaps.
+1. Resolve reconciled shop behavior and remaining reusable shared capability gaps.
 2. Separate record-specific missing-reference repairs from reusable capability work and
    attach those repairs to their Phase 7 dependency-closure batches.
 3. Preserve the six locked malformed record exclusions as explicit, logged

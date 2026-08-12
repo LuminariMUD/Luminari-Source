@@ -5,6 +5,61 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 5 exit-trap compatibility
+
+Status: Completed sub-milestone; Phase 5 implementation in progress
+
+### Delivered
+
+- Added a strict persistent room record for all 34 valid active RoL exit-trap payloads,
+  including direction, state, source type, damage range, area behavior, hardness, and
+  load percentage. The one malformed `scorn_fe` row is excluded with a source-located
+  diagnostic rather than guessed into target data.
+- Added loader, writer, room-copy, OLC-copy, free, validation, and lookup support for the
+  record so converted traps survive normal world-data lifecycles.
+- Adapted the source blade, poison, rock, fire, lightning, random, and falling families.
+  Runtime behavior preserves flat damage ranges, area targeting, poison, and falling
+  characters and non-floating room objects through a valid down exit.
+- Integrated mortal detection and disabling plus open and lock-pick triggering without
+  changing native close, unlock, object-trap, NPC, or immortal behavior. Source exit
+  traps remain reusable rather than becoming one-shot target traps.
+- Preserved boot load probability and mapped the source door-reset rearm bit. Rearming
+  clears detected, disarmed, and triggered state before rerolling the authored load
+  percentage.
+- Rebuilt the full-corpus audit and five-zone pilot with zero live target writes. The
+  pilot contains an actual converted area rock trap in room 2026051 and continues to
+  add zero active staged errors while passing reset and walkthrough gates.
+
+### Acceptance evidence
+
+```text
+Delivery commit: c647c5f4
+Full-corpus audit path: lib/rol-conversion/runs/phase5-exit-traps-20260812-audit
+Full-corpus audit run: rol-phase5-audit-c6c7050ef434f7b8
+Pilot build path: lib/rol-conversion/runs/phase5-exit-traps-20260812-pilot
+Pilot build run: rol-phase4-build-7e8fa263dff52098
+Active source records: 71,680
+Convertible records emitted: 69,920
+Emitted target bytes: 42,095,793
+Converter exceptions: 0
+Unmapped symbolic observations: 0
+Valid exit-trap payloads adapted: 34
+Malformed exit-trap payloads excluded: 1
+Door-reset rearm rows mapped: 33
+Pilot selected actions: 3,001
+Pilot active staged errors: 79 inherited, 0 new
+Pilot reset-reference and walkthrough gates: passed
+Complete world-tool suite: 246 passed
+Production-linked CuTest suite: 617 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Autotools build and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+The next Phase 5 pass resolves reconciled shop behavior and remaining reusable shared
+capability gaps.
+
 ## 2026-08-12 - Phase 5 reset mobile-chain compatibility
 
 Status: Completed sub-milestone; Phase 5 implementation in progress

@@ -2,8 +2,8 @@
 
 - Status: Phase 4 complete
 - Environment: disposable development runtime only
-- Staged world: `lib/rol-conversion/runs/phase5-mobile-actions-20260812-pilot/staging/world`
-- Runtime contract: `lib/rol-conversion/runs/phase5-mobile-actions-20260812-pilot/validation/pilot-runtime-contract.json`
+- Staged world: `lib/rol-conversion/runs/phase5-exit-traps-20260812-pilot/staging/world`
+- Runtime contract: `lib/rol-conversion/runs/phase5-exit-traps-20260812-pilot/validation/pilot-runtime-contract.json`
 - Live target writes: zero
 
 ## Safety Boundary
@@ -194,14 +194,35 @@ use `detecttrap <object>` and `disabletrap <object>`. None of the five Phase 4 p
 packages contains an active source object trap, so test these commands only after a
 later staged batch includes one; do not invent or hand-edit a trap into this pilot.
 
+### RoL exit-trap compatibility
+
+- Swamp Two room 2026051 contains the pilot's converted exit trap on the down exit. It
+  is a reusable, area-effect falling-rock trap that deals 30-70 damage, uses source
+  hardness 50 for its target DCs, and has a 75 percent chance to arm at boot.
+- Use a mortal test character with Perception and Disable Device. Exit traps deliberately
+  exempt NPCs and immortals, so use the staff character only to prepare the door state.
+- Run `detecttrap` with no object argument in room 2026051. On a successful check, run
+  `disabletrap`, again with no object argument, and confirm that opening or picking the
+  down exit no longer triggers the trap for that boot.
+- To test triggering on a fresh armed boot, force zone 20261 to reset, have staff unlock
+  the down exit if needed, and have the mortal run `open down`. Alternatively, leave it
+  locked and use `pick down`. A failed Reflex save must apply the 30-70 bludgeoning
+  damage to mortal characters in the room; a successful save avoids the effect.
+- The source trap is reusable: after an armed trigger, it remains present and can fire
+  on a later open or pick attempt. This pilot's door reset does not carry the source
+  rearm bit, so a successfully disabled pilot trap is restored by a fresh isolated boot,
+  not by that zone reset. Full-corpus converted resets that do carry the bit clear
+  detected, disabled, and triggered state and reroll the authored load percentage.
+- If the 75 percent boot roll leaves the pilot trap unarmed, restart the disposable
+  runtime instead of editing the staged world.
+
 ## What Is Not Ready Yet
 
 - The pilot is not installed into the normal development world.
 - The remaining 247 source packages have not completed conversion.
 - All active symbolic families, including mobile actions, have explicit dispositions.
-  Phase 5 still has exit-trap persistence, shop, and other shared capability work. The
-  active quest corpus uses fixed item rewards; no random item-reward range remains to
-  implement.
+  Phase 5 still has shop and other shared capability work. The active quest corpus uses
+  fixed item rewards; no random item-reward range remains to implement.
 - Flagged arena, no-precipitation, PSP-regeneration, and RoL-jail runtime support is
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.

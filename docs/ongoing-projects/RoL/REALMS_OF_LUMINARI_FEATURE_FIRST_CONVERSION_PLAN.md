@@ -390,9 +390,7 @@ argument positions. In particular:
 - source `R` may be chance-qualified, while target `R` is unconditional;
 - source `F` overloads the source `if_flag` field as follow mode;
 - source `X` removes mobiles in a room or globally and has combat/chance behavior;
-- source `T` is a calendar predicate, not trigger attachment; and
-- active exit-trap payloads and their reset rearming behavior still require a
-  persistent target representation.
+- source `T` is a calendar predicate, not trigger attachment.
 
 Every used variant needs an executable source fixture and expected target outcome.
 
@@ -542,10 +540,9 @@ Phase 5.
 
 Expand by frequency, pilot blockers, and reuse:
 
-1. exit-trap persistence and any remaining reset mechanics;
-2. reconciled core and extended shop behavior;
-3. other shared gaps; and
-4. remaining color, command, spell, skill, and symbolic mappings.
+1. reconciled core and extended shop behavior;
+2. other shared gaps; and
+3. remaining color, command, spell, skill, and symbolic mappings.
 
 Exit gate: no active record is blocked by an unowned generic data/runtime capability.
 
