@@ -55,6 +55,7 @@ Phase 6 shadow-giant conversion commit: 96785da1
 Phase 6 converted-ship system commit: 215c0f13
 Phase 6 converted-guild-guard commit: 7102d82d
 Phase 6 converted-shaman-totem commit: 8159562d
+Phase 6 converted-major-beholder commit: 5536e463
 ```
 
 The authoritative ignored runs are:

@@ -6,6 +6,59 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted major beholders
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all eight active `major_beholder` mobile bindings through the persistent,
+  mobile-owned `RoL Major Beholder` procedure and the required `MOB_SPEC` combat-turn
+  gateway.
+- Preserved all ten independent eye identities, the source one-in-three check for every
+  ready eye, three-combat-turn per-eye cooldowns, multiple rays in one turn, room combat
+  retargeting, and redirection from a selected charmed pet to its present master.
+- Mapped the eye suite onto target-native fireball, acid arrow, slow, ray of
+  enfeeblement plus feeblemind, wither, room-wide dispel, prismatic spray, hold monster,
+  harm, and finger of death effects. The source-only all-unused-eyes weapon-critical
+  burst is explicitly unavailable because the target special gateway does not expose a
+  source weapon-critical event.
+- Registered the procedure and combat contract, taught the converter its canonical
+  target name and required action flag, and updated builder help, database-first help,
+  manual testing, converter fixtures, registry persistence and OLC inventories, and
+  production-linked characterization tests.
+- Reconciliation now resolves 539 of 1,147 active direct bindings and 86 of 562 source
+  handlers; 608 bindings and 476 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 552 resolved / 296 pending.
+- Archived the sixteenth bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 32-64 Phase 6 sessions and 80-140 total sessions
+  for Phases 6-8, or 160-560 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 5536e463
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-major-beholder
+Reconciliation run: rol-phase6-special-e2050f070b43faf9
+Active direct bindings: 1,147
+Direct bindings resolved: 539
+Direct bindings pending: 608
+Source handlers resolved: 86
+Source handlers pending: 476
+Major-beholder bindings resolved: 8
+ACT_SPEC records resolved: 552
+ACT_SPEC records pending: 296
+Complete world-tool suite: 268 passed, 52 subtests passed
+Production-linked CuTest suite: 628 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 608 direct bindings across 476 source handlers.
+
 ## 2026-08-12 - Phase 6 converted shaman totems
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
