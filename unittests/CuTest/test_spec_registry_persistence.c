@@ -13,6 +13,7 @@
 #include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/spec/spec_rol_pilot.h"
 #include "../../src/vessels/vessels_legacy.h"
+#include "../../src/vessels/vessels_rol.h"
 #include "test_spec_fixtures.h"
 
 #include <dirent.h>
@@ -469,12 +470,17 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Thief",
                                                "RoL Magic Pool",
                                                "RoL Auto Distributor",
-                                               "RoL Shadow Giant"};
+                                               "RoL Shadow Giant",
+                                               "RoL Ship",
+                                               "RoL Ship Control",
+                                               "RoL Ship Exit",
+                                               "RoL Ship Lookout",
+                                               "RoL Ship Navigator"};
   int expected_count;
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 67, expected_count);
+  CuAssertIntEquals(tc, 72, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)
@@ -514,8 +520,8 @@ void Test_spec_registry_legacy_accessor_boundaries(CuTest *tc)
   CuAssertTrue(tc, get_spec_func_by_index(-1) == NULL);
   CuAssertTrue(tc, get_spec_func_name_by_index(count) == NULL);
   CuAssertTrue(tc, get_spec_func_by_index(count) == NULL);
-  CuAssertStrEquals(tc, "RoL Shadow Giant", get_spec_func_name_by_index(count - 1));
-  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_shadow_giant);
+  CuAssertStrEquals(tc, "RoL Ship Navigator", get_spec_func_name_by_index(count - 1));
+  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_ship_navigator);
   CuAssertTrue(tc, get_spec_func_name(NULL) == NULL);
 }
 

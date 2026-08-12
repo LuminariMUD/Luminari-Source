@@ -232,6 +232,29 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   pet. Those targets should laugh off the effect and take no damage or stun. Ordinary
   non-pet NPCs in the room are never targeted.
 
+### Phase 6 converted ship procedures
+
+- The five `RoL Ship` procedures are implemented and production-tested for all 57 active
+  bindings across seven ships, but those packages are outside the five-package staged
+  pilot. Do not attach the procedures by hand: the adapter deliberately recognizes only
+  the converted hulls, interiors, navigators, and routes.
+- In a later dependency-complete ship stage, use `enter <hull>` on converted hull objects
+  2005731, 2011100, 2011300, 2034249, 2090391, 2046610, and 2098451. Confirm boarding
+  enters the associated fixed interior, respects capacity, and rejects duplicate or
+  unavailable hulls.
+- From an exit or lookout room, use `look out`. At a dock, use `disembark`; while sailing,
+  a mortal must be refused. From a panel room, inspect `look panel` and exercise `order
+  speed`, `order sail <direction> [repeat]`, `order fire`, `order ram`, and `order board`
+  where the world state supplies a valid target.
+- A route navigator blocks player-issued `order` commands. With the correct navigator in
+  its control room, observe the original 2.5-second route cadence and the departure and
+  arrival announcements. The Chionthar, Gloom, Mirar, Captain's Fancy, and Spirit Raven
+  routes depart every four game hours; Realms Master and Silver Lady depart at game hour
+  6 and every twelve hours thereafter.
+- Attack the Realms Master or Silver Lady navigator and confirm its converted crew family
+  is called to hunt the attacker. Other ship navigators protect orders but have no source
+  crew-call family.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,

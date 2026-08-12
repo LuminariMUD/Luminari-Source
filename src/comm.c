@@ -113,6 +113,7 @@
 #include "net/i3_client.h"             /* Intermud3 client */
 #include "vessels/vessels.h"           /* Vessel persistence */
 #include "vessels/vessels_moving_rooms.h"
+#include "vessels/vessels_rol.h"
 #include "asciimap.h"
 #include "obj/spec_artifacts.h"
 
@@ -1526,6 +1527,10 @@ void heartbeat(int heart_pulse)
   {
     regen_psp();
   }
+
+  /* Converted RoL ships retain their original 2.5-second movement cadence. */
+  if (!(heart_pulse % (PASSES_PER_SEC * 5 / 2)))
+    rol_ship_activity();
 
   /* Autopilot vessel movement tick - every AUTOPILOT_TICK_INTERVAL pulses (0.5 sec) */
   if (CONFIG_VESSEL_SYSTEM && !(heart_pulse % AUTOPILOT_TICK_INTERVAL))

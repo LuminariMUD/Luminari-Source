@@ -67,6 +67,14 @@ mobile-activity pulse has the source one-in-21 chance to spook every player and
 charmed pet in the room for mental damage and a possible short stun. It is
 intended for converted RoL shadow giants.
 
+The five RoL Ship procedures preserve seven converted fixed-interior ships. RoL
+Ship boards the hull with ENTER, RoL Ship Control handles panel instruments and
+ship orders, RoL Ship Exit and RoL Ship Lookout expose the exterior, and RoL Ship
+Navigator protects orders and supports scheduled routes. The navigator requires
+MOB_SPEC for its combat-turn crew response. These procedures use converter-owned
+hull, interior, route, and navigator associations and do not configure arbitrary
+new ships.
+
 Guild is the mobile-owned training procedure. RoL Guild Room provides the
 same current training service for converted room-owned guild bindings and is
 available only in redit. Pet Shop is room-owned, Postmaster is mobile-owned,

@@ -27,6 +27,7 @@
 #include "../../src/spec/spec_rol_pilot.h"
 #include "../../src/spec/spec_rooms.h"
 #include "../../src/vessels/vessels_legacy.h"
+#include "../../src/vessels/vessels_rol.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -177,8 +178,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 66, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 64, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 71, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 69, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -342,6 +343,15 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Shadow Giant", rol_shadow_giant, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
        SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Ship", rol_ship, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND, SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Ship Control", rol_ship_control, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Ship Exit", rol_ship_exit, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Ship Lookout", rol_ship_lookout, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Ship Navigator", rol_ship_navigator, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_COMMAND | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
   };
   const struct spec_definition *definition;
   size_t definition_index;
@@ -362,6 +372,24 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
     CuAssertIntEquals(tc, (int)expected[definition_index].binding_source_mask,
                       (int)definition->binding_source_mask);
   }
+}
+
+void Test_rol_ship_definition_contract(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 7, rol_ship_definition_count());
+  CuAssertTrue(tc, rol_ship_interior_contains(0, 2005998));
+  CuAssertTrue(tc, rol_ship_interior_contains(0, 2005999));
+  CuAssertTrue(tc, !rol_ship_interior_contains(0, 2006000));
+  CuAssertTrue(tc, rol_ship_interior_contains(1, 2011136));
+  CuAssertTrue(tc, !rol_ship_interior_contains(-1, 2005998));
+  CuAssertIntEquals(tc, 30, rol_ship_move_delay_for_speed(0));
+  CuAssertIntEquals(tc, 15, rol_ship_move_delay_for_speed(15));
+  CuAssertIntEquals(tc, 0, rol_ship_move_delay_for_speed(30));
+  CuAssertIntEquals(tc, 0, rol_ship_move_delay_for_speed(50));
+  CuAssertTrue(tc, rol_ship_can_enter_sector(SECT_OCEAN, false));
+  CuAssertTrue(tc, rol_ship_can_enter_sector(SECT_RIVER, false));
+  CuAssertTrue(tc, rol_ship_can_enter_sector(SECT_FIELD, true));
+  CuAssertTrue(tc, !rol_ship_can_enter_sector(SECT_FIELD, false));
 }
 
 void Test_spec_registry_alias_owner_and_reverse_lookup(CuTest *tc)

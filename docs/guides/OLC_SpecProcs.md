@@ -31,8 +31,8 @@ callback slot or event-gateway dispatch rules.
 - Enter a number to choose a SpecProc; enter `0` to clear.
 - The current selection is shown in the menu. Save as usual to apply.
 
-Numbers are specific to the filtered editor view. The current views contain 28 mobile definitions,
-24 object definitions, and 8 room definitions in canonical registry order. The saved world record
+Numbers are specific to the filtered editor view. The current views contain 36 mobile definitions,
+26 object definitions, and 10 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
 Prerequisites describe runtime scheduling; selecting a procedure does not set them automatically:
@@ -60,6 +60,13 @@ converted RoL boundary rooms; attaching it elsewhere turns that room into a rand
 Its source 1-in-21 trigger spooks every player and charmed pet in the room for mental damage and a
 possible short stun. Converted angel identity is retained for the source immunity list. This
 procedure is intended for the converted RoL shadow-giant family rather than general new mobiles.
+
+The five `RoL Ship` definitions preserve the source system for seven converted fixed-interior
+ships. `RoL Ship` is assigned to a hull object, `RoL Ship Control` to its panel object, `RoL Ship
+Exit` and `RoL Ship Lookout` to interior rooms, and `RoL Ship Navigator` to the route mobile. The
+navigator requires `MOB_SPEC` for its combat-turn crew response. The converter owns the hull,
+interior, route, and navigator associations; assigning one of these procedures to unrelated content
+does not create a new operable ship.
 
 ## File Format Persistence
 

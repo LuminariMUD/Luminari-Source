@@ -61,6 +61,7 @@ static const char *const spec_mobile_names[] = {
     "RoL Poison Bite",
     "RoL Thief",
     "RoL Shadow Giant",
+    "RoL Ship Navigator",
 };
 
 static const char *const spec_object_names[] = {
@@ -88,11 +89,14 @@ static const char *const spec_object_names[] = {
     "obj_drain",
     "thorn_shield",
     "RoL Magic Pool",
+    "RoL Ship",
+    "RoL Ship Control",
 };
 
 static const char *const spec_room_names[] = {
     "Bazaar",         "Crafting Quest",         "Dump",           "Pet Shop",
     "Wizard Library", "Greyhawk Ship Commands", "RoL Guild Room", "RoL Auto Distributor",
+    "RoL Ship Exit",  "RoL Ship Lookout",
 };
 
 static const struct spec_owner_expected_view spec_expected_views[] = {
@@ -363,7 +367,7 @@ void Test_spec_owner_olc_selection_parser_is_strict_and_bounded(CuTest *tc)
     return;
   CuAssertStrEquals(tc, "Greyhawk Ship Commands", definition->canonical_name);
 
-  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "36", &definition);
+  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "37", &definition);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID, result);
   CuAssertTrue(tc, definition == NULL);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID,

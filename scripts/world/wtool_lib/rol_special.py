@@ -63,9 +63,14 @@ NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 # These shared source families need bounded target adapters because the nearest
 # legacy target callbacks have different eligibility or probability rules.
 ADAPTED_HANDLER_NAMES = {
+    "control_panel": "RoL Ship Control",
     "devour": "RoL Corpse Devourer",
+    "navagator": "RoL Ship Navigator",
     "poison": "RoL Poison Bite",
     "shadow_giant": "RoL Shadow Giant",
+    "ship": "RoL Ship",
+    "ship_exit_room": "RoL Ship Exit",
+    "ship_look_out_room": "RoL Ship Lookout",
     "thief": "RoL Thief",
 }
 
@@ -729,7 +734,12 @@ def compile_special_bindings(
     source_vnum = int(row["source_vnum"])
     target_vnum = resolve(target_kind, source_vnum)
     if handler in NATIVE_HANDLERS or handler in ADAPTED_HANDLER_NAMES:
-      required_bits = (44,) if handler == "obj_drain" else ()
+      if handler == "navagator":
+        required_bits = (0,)
+      elif handler == "obj_drain":
+        required_bits = (44,)
+      else:
+        required_bits = ()
       persisted_name = (
           NATIVE_HANDLER_NAMES[handler]
           if handler in NATIVE_HANDLER_NAMES

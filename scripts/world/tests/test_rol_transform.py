@@ -1095,6 +1095,86 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(result.complete)
     self.assertEqual("RoL Shadow Giant", result.records[0].spec_proc)
 
+  def test_ship_family_bindings_persist_adapted_procedures(self) -> None:
+    bindings = [
+        {
+            "basename": "ships",
+            "record_type": "object",
+            "source_vnum": 5731,
+            "source_handler": "ship",
+        },
+        {
+            "basename": "ships",
+            "record_type": "object",
+            "source_vnum": 5732,
+            "source_handler": "control_panel",
+        },
+        {
+            "basename": "ships",
+            "record_type": "room",
+            "source_vnum": 5999,
+            "source_handler": "ship_exit_room",
+        },
+        {
+            "basename": "ships",
+            "record_type": "room",
+            "source_vnum": 5998,
+            "source_handler": "ship_look_out_room",
+        },
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(
+        ["RoL Ship", "RoL Ship Control", "RoL Ship Lookout", "RoL Ship Exit"],
+        [binding.persisted_name for binding in compiled.native_bindings],
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
+  def test_ship_navigator_binding_requires_mobile_spec_flag(self) -> None:
+    binding = {
+        "basename": "ships",
+        "record_type": "mobile",
+        "source_vnum": 5739,
+        "source_handler": "navagator",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    native = compiled.native_bindings[0]
+    self.assertEqual("RoL Ship Navigator", native.persisted_name)
+    self.assertEqual((0,), native.required_flag_bits)
+    source = self._source_record(
+        "mob",
+        b"#5739\nnavigator~\na navigator~\nA navigator stands here.~\n~\n"
+        b"0 0 0 0 S\nN 0 0\n10 0 0 1d1+0 1d1+0\n0 0\n131 131 0 0\n",
+    )
+    emitted = emit_mobile(
+        source,
+        2_005_739,
+        special_proc=native.persisted_name,
+        special_resolved=True,
+        required_action_bits=native.required_flag_bits,
+    )
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20057.mob", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Ship Navigator", result.records[0].spec_proc)
+    self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
+
 
 if __name__ == "__main__":
   unittest.main()

@@ -37,6 +37,7 @@
 #include "spec/spec_zone_mad_drow.h"
 #include "spec/spec_zone_prisoner.h"
 #include "vessels/vessels_legacy.h"
+#include "vessels/vessels_rol.h"
 
 #include <ctype.h>
 #include <limits.h>
@@ -80,6 +81,11 @@ static const struct spec_event_contract rol_mobile_combat_events[] = {{
 
 static const struct spec_event_contract rol_mobile_activity_combat_events[] = {
     {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
+};
+
+static const struct spec_event_contract rol_ship_navigator_events[] = {
+    {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
 };
 
@@ -1000,6 +1006,67 @@ static const struct spec_definition spec_definitions[] = {
         .description = "Periodically spooks every eligible player and pet while fighting.",
         .legacy_handler = rol_shadow_giant,
     },
+    {
+        .canonical_name = "RoL Ship",
+        .display_name = "RoL Ship",
+        .owner_mask = SPEC_OWNER_OBJECT,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Boards one of the seven converted RoL fixed-interior ships.",
+        .legacy_handler = rol_ship,
+    },
+    {
+        .canonical_name = "RoL Ship Control",
+        .display_name = "RoL Ship Control",
+        .owner_mask = SPEC_OWNER_OBJECT,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Provides instruments, steering, speed, combat, and docking orders.",
+        .legacy_handler = rol_ship_control,
+    },
+    {
+        .canonical_name = "RoL Ship Exit",
+        .display_name = "RoL Ship Exit",
+        .owner_mask = SPEC_OWNER_ROOM,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Lets passengers look outside and disembark from a converted RoL ship.",
+        .legacy_handler = rol_ship_exit,
+    },
+    {
+        .canonical_name = "RoL Ship Lookout",
+        .display_name = "RoL Ship Lookout",
+        .owner_mask = SPEC_OWNER_ROOM,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Shows the exterior room from converted RoL ship lookout rooms.",
+        .legacy_handler = rol_ship_lookout,
+    },
+    {
+        .canonical_name = "RoL Ship Navigator",
+        .display_name = "RoL Ship Navigator",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = rol_ship_navigator_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_ship_navigator_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description =
+            "Protects ship orders, drives scheduled routes, and calls crew during combat.",
+        .legacy_handler = rol_ship_navigator,
+    },
 };
 
 enum
@@ -1070,6 +1137,11 @@ enum
   SPEC_DEFINITION_ROL_MAGIC_POOL,
   SPEC_DEFINITION_ROL_AUTO_DISTRIBUTOR,
   SPEC_DEFINITION_ROL_SHADOW_GIANT,
+  SPEC_DEFINITION_ROL_SHIP,
+  SPEC_DEFINITION_ROL_SHIP_CONTROL,
+  SPEC_DEFINITION_ROL_SHIP_EXIT,
+  SPEC_DEFINITION_ROL_SHIP_LOOKOUT,
+  SPEC_DEFINITION_ROL_SHIP_NAVIGATOR,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -1150,6 +1222,11 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_MAGIC_POOL, -1},
     {SPEC_DEFINITION_ROL_AUTO_DISTRIBUTOR, -1},
     {SPEC_DEFINITION_ROL_SHADOW_GIANT, -1},
+    {SPEC_DEFINITION_ROL_SHIP, -1},
+    {SPEC_DEFINITION_ROL_SHIP_CONTROL, -1},
+    {SPEC_DEFINITION_ROL_SHIP_EXIT, -1},
+    {SPEC_DEFINITION_ROL_SHIP_LOOKOUT, -1},
+    {SPEC_DEFINITION_ROL_SHIP_NAVIGATOR, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,
