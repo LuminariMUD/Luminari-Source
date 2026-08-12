@@ -105,7 +105,7 @@ Phase 6 utility-service commit: 9d40694b
 Phase 6 scheduled-mobile commit: c8704d86
 Phase 6 Menden-fisherman commit: 33965efc
 Phase 6 special-discovery-repair commit: c2a677a8
-Phase 6 Tarrasque-encounter commit: PENDING_DELIVERY_COMMIT
+Phase 6 Tarrasque-encounter commit: bbdf893a
 ```
 
 The authoritative ignored runs are:

@@ -45,7 +45,7 @@ Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progre
 ### Acceptance evidence
 
 ```text
-Delivery commit: PENDING_DELIVERY_COMMIT
+Delivery commit: bbdf893a
 Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-tarrasque
 Reconciliation run: rol-phase6-special-de980a28a3be846e
 Active direct bindings: 1,721
