@@ -91,7 +91,7 @@ static const char *const spec_object_names[] = {
 
 static const char *const spec_room_names[] = {
     "Bazaar",         "Crafting Quest",         "Dump",           "Pet Shop",
-    "Wizard Library", "Greyhawk Ship Commands", "RoL Guild Room",
+    "Wizard Library", "Greyhawk Ship Commands", "RoL Guild Room", "RoL Auto Distributor",
 };
 
 static const struct spec_owner_expected_view spec_expected_views[] = {

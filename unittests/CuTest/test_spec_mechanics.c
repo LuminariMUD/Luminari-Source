@@ -539,3 +539,22 @@ void Test_spec_rol_magic_pool_damages_and_transports_matching_entry(CuTest *tc)
   complete_cmd_info = saved_complete_cmd_info;
   spec_mechanics_end(&fixture);
 }
+
+void Test_spec_rol_auto_distributor_moves_mortal_within_zone(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+
+  spec_mechanics_begin(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, rol_auto_distributor(&fixture.actor, &fixture.rooms[0], 1, "look"));
+  CuAssertTrue(tc, IN_ROOM(&fixture.actor) == 0 || IN_ROOM(&fixture.actor) == 1);
+  char_from_room(&fixture.actor);
+  char_to_room(&fixture.actor, 0);
+
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  GET_LEVEL(&fixture.actor) = LVL_IMMORT;
+  CuAssertIntEquals(tc, FALSE, rol_auto_distributor(&fixture.actor, &fixture.rooms[0], 1, "look"));
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.actor));
+
+  spec_mechanics_end(&fixture);
+}

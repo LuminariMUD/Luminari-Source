@@ -585,6 +585,70 @@ int rol_magic_pool(struct char_data *ch, void *me, int cmd, const char *argument
   return TRUE;
 }
 
+static room_rnum rol_random_room_in_zone(zone_rnum zone)
+{
+  room_rnum room;
+  int room_count = 0;
+  int selected;
+
+  if (zone == NOWHERE || zone > top_of_zone_table)
+    return NOWHERE;
+
+  for (room = 0; room <= top_of_world; room++)
+    if (world[room].zone == zone)
+      room_count++;
+
+  if (room_count == 0)
+    return NOWHERE;
+
+  selected = rand_number(0, room_count - 1);
+  for (room = 0; room <= top_of_world; room++)
+  {
+    if (world[room].zone != zone)
+      continue;
+    if (selected-- == 0)
+      return room;
+  }
+
+  return NOWHERE;
+}
+
+int rol_auto_distributor(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct room_data *room = me;
+  room_rnum destination;
+  zone_rnum zone;
+
+  UNUSED(cmd);
+  UNUSED(argument);
+
+  if (ch == NULL || room == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return FALSE;
+  if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
+    return FALSE;
+
+  zone = world[IN_ROOM(ch)].zone;
+  destination = rol_random_room_in_zone(zone);
+  if (!VALID_ROOM_RNUM(destination))
+  {
+    send_to_char(ch, "The distributing magic fails. Please tell a staff member.\r\n");
+    log("SYSERR: RoL auto distributor room %d has no valid destination in zone %d", room->number,
+        zone);
+    return TRUE;
+  }
+
+  act("$n slowly fades out of existence.", FALSE, ch, NULL, NULL, TO_ROOM);
+  char_from_room(ch);
+  if (ZONE_FLAGGED(world[destination].zone, ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[destination].coords[0];
+    Y_LOC(ch) = world[destination].coords[1];
+  }
+  char_to_room(ch, destination);
+  act("$n enters.", FALSE, ch, NULL, NULL, TO_ROOM);
+  return TRUE;
+}
+
 bool rol_update_mobile_home_after_move(struct char_data *ch, int source_room, int destination_room)
 {
   if (ch == NULL || !IS_NPC(ch) || !VALID_ROOM_RNUM(source_room) ||

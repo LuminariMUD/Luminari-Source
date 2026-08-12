@@ -1021,6 +1021,43 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(2_019_946, result.records[0].values[0])
     self.assertEqual(200, result.records[0].values[1])
 
+  def test_auto_distributor_binding_persists_room_procedure(self) -> None:
+    binding = {
+        "basename": "wilderness-08",
+        "record_type": "room",
+        "source_vnum": 820196,
+        "source_handler": "autoDistributor",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    native = compiled.native_bindings[0]
+    self.assertEqual("RoL Auto Distributor", native.persisted_name)
+    self.assertEqual((), native.required_flag_bits)
+    self.assertEqual("NATIVE_PERSISTED", compiled.dispositions[0]["strategy"])
+
+    source = self._source_record(
+        "wld",
+        b"#820196\nA planar boundary~\nThe boundary flickers here.~\n1 0 0\nS\n",
+    )
+    emitted = emit_room(
+        source,
+        2_820_196,
+        28_201,
+        _resolver,
+        special_proc=native.persisted_name,
+    )
+    path = self._target_path("wld", emitted.text)
+    result = parse_room_file(path, "wld/28201.wld", self.manifest, False, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Auto Distributor", result.records[0].spec_proc)
+
 
 if __name__ == "__main__":
   unittest.main()

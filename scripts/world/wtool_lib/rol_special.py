@@ -56,6 +56,7 @@ NATIVE_HANDLER_NAMES = {
     "breath_weapon_gas": "breath_weapon_gas",
     "breath_weapon_lightning": "breath_weapon_lightning",
     "magic_pool": "RoL Magic Pool",
+    "autoDistributor": "RoL Auto Distributor",
 }
 NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 

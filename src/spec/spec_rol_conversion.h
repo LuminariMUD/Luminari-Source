@@ -22,6 +22,7 @@ int rol_breath_weapon_lightning(struct char_data *ch, void *me, int cmd, const c
 int rol_breath_attack_acid(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_breath_attack_lightning(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_magic_pool(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_auto_distributor(struct char_data *ch, void *me, int cmd, const char *argument);
 
 bool rol_corpse_devourer_can_consume(const struct obj_data *obj);
 int rol_poison_bite_roll_ceiling(int level);

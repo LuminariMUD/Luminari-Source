@@ -976,6 +976,18 @@ static const struct spec_definition spec_definitions[] = {
         .description = "Damages and transports characters that enter a converted RoL magic pool.",
         .legacy_handler = rol_magic_pool,
     },
+    {
+        .canonical_name = "RoL Auto Distributor",
+        .display_name = "RoL Auto Distributor",
+        .owner_mask = SPEC_OWNER_ROOM,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Randomly redistributes non-staff characters within the current zone.",
+        .legacy_handler = rol_auto_distributor,
+    },
 };
 
 enum
@@ -1044,6 +1056,7 @@ enum
   SPEC_DEFINITION_ROL_POISON_BITE,
   SPEC_DEFINITION_ROL_THIEF,
   SPEC_DEFINITION_ROL_MAGIC_POOL,
+  SPEC_DEFINITION_ROL_AUTO_DISTRIBUTOR,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -1122,6 +1135,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_POISON_BITE, -1},
     {SPEC_DEFINITION_ROL_THIEF, -1},
     {SPEC_DEFINITION_ROL_MAGIC_POOL, -1},
+    {SPEC_DEFINITION_ROL_AUTO_DISTRIBUTOR, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,

@@ -58,6 +58,10 @@ RoL Magic Pool is object-owned. Converted pools keep their fixed entry damage
 and remapped destination in object values; builders should not assign it to an
 ordinary object without configuring both values deliberately.
 
+RoL Auto Distributor is room-owned. Any command by a non-staff character is
+intercepted and moves that character to a random loaded room in the same zone.
+It is intended only for converted RoL boundary rooms.
+
 Guild is the mobile-owned training procedure. RoL Guild Room provides the
 same current training service for converted room-owned guild bindings and is
 available only in redit. Pet Shop is room-owned, Postmaster is mobile-owned,

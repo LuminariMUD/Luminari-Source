@@ -32,7 +32,7 @@ callback slot or event-gateway dispatch rules.
 - The current selection is shown in the menu. Save as usual to apply.
 
 Numbers are specific to the filtered editor view. The current views contain 27 mobile definitions,
-24 object definitions, and 7 room definitions in canonical registry order. The saved world record
+24 object definitions, and 8 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
 Prerequisites describe runtime scheduling; selecting a procedure does not set them automatically:
@@ -51,6 +51,10 @@ authored SpecProcs and should not be added to unrelated new mobiles.
 `RoL Magic Pool` is an object-owned conversion procedure. Its object value 0 is the destination
 room VNUM and value 1 is fixed entry damage. The converter remaps the destination; builders should
 not assign the procedure to an unrelated object without configuring both values deliberately.
+
+`RoL Auto Distributor` is room-owned. Any command from a non-staff character is intercepted and
+moves that character to a randomly selected loaded room in the same zone. It is intended only for
+converted RoL boundary rooms; attaching it elsewhere turns that room into a randomizing trap.
 
 ## File Format Persistence
 
@@ -162,8 +166,8 @@ saved-secondary behavior.
 
 Typed dispatch is an engine-side implementation detail: nothing a builder selects, sees, or saves in
 OLC changed. Bank and Vampire Cloak retain their canonical rows and callback-slot identities while
-their behavior receives explicit event context. The other 62 registered definitions use
-compatibility dispatch; across the source tree, 202 legacy behavior implementations remain. A
+their behavior receives explicit event context. The other 63 registered definitions use
+compatibility dispatch; across the source tree, 203 legacy behavior implementations remain. A
 validated declarative table owns the two Luminari assignments whose handlers are registered and
 whose VNUMs are symbolic. Converted RoL definitions use explicit world-authored names.
 Unsupported numeric, computed, and campaign-compatibility assignments remain visible through the
