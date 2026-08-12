@@ -487,3 +487,27 @@ void Test_spec_rol_shared_mobile_adapters_preserve_source_boundaries(CuTest *tc)
 
   spec_mechanics_end(&fixture);
 }
+
+void Test_spec_rol_home_reset_updates_only_mobile_home_from_marked_room(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+
+  spec_mechanics_begin(&fixture);
+  GET_MOB_LOADROOM(&fixture.actor) = 0;
+
+  CuAssertTrue(tc, !rol_update_mobile_home_after_move(&fixture.actor, 0, 1));
+  CuAssertIntEquals(tc, 0, GET_MOB_LOADROOM(&fixture.actor));
+
+  SET_BIT_AR(ROOM_FLAGS(0), ROOM_ROL_HOME_RESET);
+  CuAssertTrue(tc, rol_update_mobile_home_after_move(&fixture.actor, 0, 1));
+  CuAssertIntEquals(tc, 1, GET_MOB_LOADROOM(&fixture.actor));
+
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  CuAssertTrue(tc, !rol_update_mobile_home_after_move(&fixture.actor, 0, 1));
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  CuAssertTrue(tc, !rol_update_mobile_home_after_move(&fixture.actor, NOWHERE, 1));
+  CuAssertTrue(tc, !rol_update_mobile_home_after_move(&fixture.actor, 0, NOWHERE));
+  CuAssertTrue(tc, !rol_update_mobile_home_after_move(NULL, 0, 1));
+
+  spec_mechanics_end(&fixture);
+}

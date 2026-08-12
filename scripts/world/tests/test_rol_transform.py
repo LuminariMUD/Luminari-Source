@@ -943,6 +943,45 @@ class RolTransformTests(unittest.TestCase):
     self.assertNotIn(0, decode_tokens(result.records[0].action_flags).bits)
     self.assertNotIn("source ACT_SPEC deferred", " ".join(emitted.diagnostics))
 
+  def test_home_reset_binding_uses_composable_room_flag(self) -> None:
+    binding = {
+        "basename": "gen-obj",
+        "record_type": "room",
+        "source_vnum": 7909,
+        "source_handler": "home_reset",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(1, len(compiled.native_bindings))
+    native = compiled.native_bindings[0]
+    self.assertIsNone(native.persisted_name)
+    self.assertEqual((46,), native.required_flag_bits)
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", compiled.dispositions[0]["strategy"])
+
+    source = self._source_record(
+        "wld",
+        b"#7909\nA patrol route~\nA patrol route continues here.~\n1 0 0\nS\n",
+    )
+    emitted = emit_room(
+        source,
+        2_007_909,
+        20_079,
+        _resolver,
+        required_flag_bits=native.required_flag_bits,
+    )
+    path = self._target_path("wld", emitted.text)
+    result = parse_room_file(path, "wld/20079.wld", self.manifest, False, set())
+
+    self.assertTrue(result.complete)
+    self.assertIn(46, decode_tokens(result.records[0].flags).bits)
+    self.assertIsNone(result.records[0].spec_proc)
+
 
 if __name__ == "__main__":
   unittest.main()

@@ -210,7 +210,7 @@ Flags</a></li>
 <h2 id="overview">Overview</h2>
 <p>Room flags are bitflags defined in <code>src/structs.h</code> and are
 checked throughout the codebase using the <code>ROOM_FLAGGED()</code>
-macro. There are currently 46 room flags (indices 0-45) that control
+macro. There are currently 47 room flags (indices 0-46) that control
 everything from movement restrictions to magical effects.</p>
 <p><strong>Usage Pattern:</strong></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>ROOM_FLAGGED<span class="op">(</span>room_rnum<span class="op">,</span> ROOM_FLAGNAME<span class="op">))</span> <span class="op">{</span></span>
@@ -441,6 +441,19 @@ character’s maximum - Used by converted Realms of Luminari
 <code>PSPREGEN</code> rooms</p>
 <p><strong>Code References:</strong> - <code>src/limits.c</code> - PSP
 tick acceleration (<code>regen_psp()</code>)</p>
+<h3 id="room_rol_home_reset-index-46">ROOM_ROL_HOME_RESET (Index:
+46)</h3>
+<p><strong>Effect:</strong> Updates an NPC’s remembered home room after
+it successfully walks out of the marked room. - Preserves converted RoL
+<code>home_reset</code> behavior without occupying the room’s
+special-procedure slot - Applies only to NPCs and only after successful
+movement - Failed or trigger-rejected movement does not retarget the
+NPC’s home</p>
+<p><strong>Code References:</strong> -
+<code>src/movement/movement.c</code> - Successful-movement integration
+(<code>do_simple_move()</code>) -
+<code>src/spec/spec_rol_conversion.c</code> - RoL home update
+(<code>rol_update_mobile_home_after_move()</code>)</p>
 <h3 id="room_noheal-index-25">ROOM_NOHEAL (Index: 25)</h3>
 <p><strong>Effect:</strong> Prevents natural healing and regeneration. -
 Blocks HP regeneration tick - Similar to Blackmantle spell effect - Used
@@ -1025,6 +1038,13 @@ feature for vessel system expansion.</p>
 <td>Double PSP tick gain</td>
 <td>Environment</td>
 </tr>
+<tr class="odd">
+<td>46</td>
+<td>ROOM_ROL_HOME_RESET</td>
+<td>RoL-Home-Reset</td>
+<td>Retarget NPC home after successful exit</td>
+<td>System</td>
+</tr>
 </tbody>
 </table>
 <hr />
@@ -1081,8 +1101,8 @@ shutdown - ROOM_NOTELEPORT = prevents teleportation only - ROOM_NOSUMMON
 <h2 id="code-references">Code References</h2>
 <p><strong>Primary Files:</strong> - <code>src/structs.h</code> - Flag
 definitions (the <code>ROOM_*</code> define block ending at
-<code>ROOM_PSP_REGEN</code>) - <code>src/movement/movement.c</code> -
-Movement restriction checks - <code>src/magic/spell_parser.c</code> -
+<code>ROOM_ROL_HOME_RESET</code>) - <code>src/movement/movement.c</code>
+- Movement restriction checks - <code>src/magic/spell_parser.c</code> -
 Magic restriction checks - <code>src/combat/fight.c</code> - Combat
 restriction checks - <code>src/utils.c</code> - Light and vision
 calculations - <code>src/act.informative.c</code> - Room description

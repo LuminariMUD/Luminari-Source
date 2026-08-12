@@ -1230,6 +1230,7 @@ def emit_room(
     special_proc: str | None = None,
     attachments: tuple[int, ...] = (),
     source_zone_flags: int = 0,
+    required_flag_bits: tuple[int, ...] = (),
 ) -> TransformResult:
   """Emit one modern target room record."""
 
@@ -1244,6 +1245,7 @@ def emit_room(
   second_mask = base[6] if len(base) > 6 else 0
   source_flags = _source_mask_bits(first_mask, 1) | _source_mask_bits(second_mask, 33)
   target_flags = _mapped_bits(source_flags, ROOM_FLAG_MAP) | _room_size_bits(base)
+  target_flags.update(required_flag_bits)
   source_zone_bits = _source_mask_bits(source_zone_flags, 0)
   target_flags.update(_mapped_bits(source_zone_bits, ZONE_ROOM_FLAG_MAP))
   if 32 in source_flags:

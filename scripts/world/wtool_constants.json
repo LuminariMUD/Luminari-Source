@@ -4468,6 +4468,13 @@
           "macro": "ROOM_PSP_REGEN",
           "name": "Psionic-Regeneration",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 46,
+          "macro": "ROOM_ROL_HOME_RESET",
+          "name": "RoL-Home-Reset",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,

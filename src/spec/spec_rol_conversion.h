@@ -29,5 +29,6 @@ int rol_planar_gate_cooldown_seconds(const struct char_data *ch);
 bool rol_automatic_race_activity(struct char_data *ch);
 void rol_automatic_race_combat_turn(struct char_data *ch);
 bool rol_handle_conjured_death(struct char_data *ch);
+bool rol_update_mobile_home_after_move(struct char_data *ch, int source_room, int destination_room);
 
 #endif /* LUMINARI_SPEC_ROL_CONVERSION_H */

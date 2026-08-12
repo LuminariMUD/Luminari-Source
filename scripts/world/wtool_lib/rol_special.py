@@ -82,6 +82,13 @@ COMPOSABLE_MOBILE_HANDLER_FLAGS = {
     "conj_monster_die": 121,
 }
 
+# Room-owned movement behavior also needs to coexist with ordinary persisted
+# room procedures, so conversion marks the source room instead of consuming
+# its one special-procedure slot.
+COMPOSABLE_ROOM_HANDLER_FLAGS = {
+    "home_reset": 46,
+}
+
 _OWNER_KIND = {"mobile": "mob", "object": "obj", "room": "wld"}
 _DIRECTIONS = (
     "north",
@@ -747,6 +754,20 @@ def compile_special_bindings(
               target_vnum=target_vnum,
               persisted_name=None,
               required_flag_bits=(COMPOSABLE_MOBILE_HANDLER_FLAGS[handler],),
+          )
+      )
+      dispositions.append(_disposition(row, "NATIVE_ADAPTED_COMPOSABLE", target_vnum))
+    elif handler in COMPOSABLE_ROOM_HANDLER_FLAGS:
+      if record_type != "room":
+        raise ValueError(f"composable room handler {handler!r} owns {record_type!r}")
+      native_bindings.append(
+          NativeSpecialBinding(
+              source_record_type=record_type,
+              source_vnum=source_vnum,
+              target_kind=target_kind,
+              target_vnum=target_vnum,
+              persisted_name=None,
+              required_flag_bits=(COMPOSABLE_ROOM_HANDLER_FLAGS[handler],),
           )
       )
       dispositions.append(_disposition(row, "NATIVE_ADAPTED_COMPOSABLE", target_vnum))

@@ -17,6 +17,7 @@ from .rol_skeleton import verify_plan_bundle
 from .rol_special import (
     ADAPTED_HANDLER_NAMES,
     COMPOSABLE_MOBILE_HANDLER_FLAGS,
+    COMPOSABLE_ROOM_HANDLER_FLAGS,
     INERT_HANDLERS,
     NATIVE_HANDLER_NAMES,
 )
@@ -290,6 +291,12 @@ def handler_disposition(handler: str) -> dict[str, str]:
         "status": "resolved",
         "strategy": "NATIVE_ADAPTED_COMPOSABLE",
         "target": f"mobile action flag {COMPOSABLE_MOBILE_HANDLER_FLAGS[handler]}",
+    }
+  if handler in COMPOSABLE_ROOM_HANDLER_FLAGS:
+    return {
+        "status": "resolved",
+        "strategy": "NATIVE_ADAPTED_COMPOSABLE",
+        "target": f"room flag {COMPOSABLE_ROOM_HANDLER_FLAGS[handler]}",
     }
   if handler in INERT_HANDLERS:
     return {

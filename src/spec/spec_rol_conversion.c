@@ -544,3 +544,13 @@ int rol_thief(struct char_data *ch, void *me, int cmd, const char *argument)
 
   return TRUE;
 }
+
+bool rol_update_mobile_home_after_move(struct char_data *ch, int source_room, int destination_room)
+{
+  if (ch == NULL || !IS_NPC(ch) || !VALID_ROOM_RNUM(source_room) ||
+      !VALID_ROOM_RNUM(destination_room) || !ROOM_FLAGGED(source_room, ROOM_ROL_HOME_RESET))
+    return false;
+
+  GET_MOB_LOADROOM(ch) = destination_room;
+  return true;
+}

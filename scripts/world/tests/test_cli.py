@@ -74,9 +74,10 @@ class CliTests(unittest.TestCase):
   def test_flags_list_has_source_derived_room_count(self) -> None:
     status, stdout, stderr = run_cli(["flags", "list", "room"])
     self.assertEqual(0, status)
-    self.assertEqual(46, len(stdout.splitlines()))
+    self.assertEqual(47, len(stdout.splitlines()))
     self.assertIn("ROOM_DOCKABLE", stdout)
     self.assertIn("ROOM_PSP_REGEN", stdout)
+    self.assertIn("ROOM_ROL_HOME_RESET", stdout)
     self.assertEqual("", stderr)
 
   def test_json_flag_output_is_clean_stdout(self) -> None:

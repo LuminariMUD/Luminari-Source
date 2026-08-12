@@ -19,7 +19,7 @@ This document provides comprehensive information about all room flags (ROOM_*) u
 
 ## Overview
 
-Room flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `ROOM_FLAGGED()` macro. There are currently 46 room flags (indices 0-45) that control everything from movement restrictions to magical effects.
+Room flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `ROOM_FLAGGED()` macro. There are currently 47 room flags (indices 0-46) that control everything from movement restrictions to magical effects.
 
 **Usage Pattern:**
 ```c
@@ -256,6 +256,16 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 **Code References:**
 - `src/limits.c` - PSP tick acceleration (`regen_psp()`)
+
+### ROOM_ROL_HOME_RESET (Index: 46)
+**Effect:** Updates an NPC's remembered home room after it successfully walks out of the marked room.
+- Preserves converted RoL `home_reset` behavior without occupying the room's special-procedure slot
+- Applies only to NPCs and only after successful movement
+- Failed or trigger-rejected movement does not retarget the NPC's home
+
+**Code References:**
+- `src/movement/movement.c` - Successful-movement integration (`do_simple_move()`)
+- `src/spec/spec_rol_conversion.c` - RoL home update (`rol_update_mobile_home_after_move()`)
 
 ### ROOM_NOHEAL (Index: 25)
 **Effect:** Prevents natural healing and regeneration.
@@ -582,6 +592,7 @@ code, so do not expect to find it there.
 | 43 | ROOM_ARENA | Arena | Arena combat and death rules | Combat |
 | 44 | ROOM_ROL_JAIL | RoL-Jail | RoL justice compatibility marker | System |
 | 45 | ROOM_PSP_REGEN | Psionic-Regeneration | Double PSP tick gain | Environment |
+| 46 | ROOM_ROL_HOME_RESET | RoL-Home-Reset | Retarget NPC home after successful exit | System |
 
 ---
 
@@ -634,7 +645,7 @@ code, so do not expect to find it there.
 ## Code References
 
 **Primary Files:**
-- `src/structs.h` - Flag definitions (the `ROOM_*` define block ending at `ROOM_PSP_REGEN`)
+- `src/structs.h` - Flag definitions (the `ROOM_*` define block ending at `ROOM_ROL_HOME_RESET`)
 - `src/movement/movement.c` - Movement restriction checks
 - `src/magic/spell_parser.c` - Magic restriction checks
 - `src/combat/fight.c` - Combat restriction checks

@@ -36,6 +36,7 @@
 #include "combat/encounters.h"
 #include "quest/hunts.h"
 #include "character/class.h"
+#include "spec/spec_rol_conversion.h"
 #include "vessels/transport.h"
 #include "vessels/routing.h"
 #include "character/perks.h"
@@ -1015,6 +1016,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   }
 
   /* At this point, the character is safe and in the room. */
+  rol_update_mobile_home_after_move(ch, was_in, going_to);
 
   return (1);
 }
