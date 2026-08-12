@@ -71,8 +71,9 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'RoL Waterdeep Ambient is mobile-owned') > 0
   AND INSTR(entry, 'casino-player fall-through') > 0
   AND INSTR(entry, 'RoL Source Periodic is mobile-owned') > 0
-  AND INSTR(entry, '82 source families use 327 source') > 0
-  AND INSTR(entry, 'except Menden magus 2088806 pauses during combat') > 0
+  AND INSTR(entry, '90 source') > 0
+  AND INSTR(entry, 'jester 2003069, and cricket 2014048 do not require') > 0
+  AND INSTR(entry, 'Menden magus 2088806 continue') > 0
   AND INSTR(entry, 'RoL Stateful Periodic is mobile-owned') > 0
   AND INSTR(entry, '206 source') > 0
   AND INSTR(entry, 'Guildmaster 2003020 has no authored') > 0

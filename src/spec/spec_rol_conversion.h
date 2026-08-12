@@ -97,7 +97,7 @@ long event_rol_yggdrasil_release(void *event_obj);
 const char *rol_bloodstone_critter_social(int roll);
 size_t rol_source_periodic_profile_count(void);
 bool rol_source_periodic_profile_bounds(int mobile_vnum, int *roll_min, int *roll_max,
-                                        bool *suppresses_fighting);
+                                        bool *requires_awake, bool *suppresses_fighting);
 size_t rol_source_periodic_outcome_action_count(int mobile_vnum, int roll);
 const char *rol_source_periodic_outcome_action(int mobile_vnum, int roll, size_t action_index,
                                                bool *speech, bool *hide);

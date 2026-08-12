@@ -41,6 +41,7 @@ class Profile:
   vnums: tuple[int, ...]
   roll_min: int
   roll_max: int
+  require_awake: bool
   suppress_fighting: bool
   outcomes: tuple[Outcome, ...]
 
@@ -185,6 +186,7 @@ def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int
       vnums,
       roll_min,
       roll_max,
+      "AWAKE(ch)" in body,
       "IS_FIGHTING(ch)" in body,
       tuple(sorted(outcomes, key=lambda outcome: outcome.roll)),
   )
@@ -233,9 +235,11 @@ def render(source_root: Path) -> str:
       for vnum in profile.vnums
   )
   for vnum, profile in profile_rows:
+    require_awake = "true" if profile.require_awake else "false"
     suppress = "true" if profile.suppress_fighting else "false"
     output.append(
-        f"    {{{vnum}, {_identifier(profile.name)}, {profile.roll_min}, {profile.roll_max}, {suppress}}},"
+        f"    {{{vnum}, {_identifier(profile.name)}, {profile.roll_min}, {profile.roll_max}, "
+        f"{require_awake}, {suppress}}},"
     )
   output.extend(["};", "", "static const struct rol_source_periodic_outcome rol_source_periodic_outcomes[] = {"])
 

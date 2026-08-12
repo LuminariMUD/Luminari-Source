@@ -150,13 +150,14 @@ only in room 2005400; converted guards 2003035, 2003059, and 2003070 remain quie
 The profiles are keyed to converted mobile identity; do not assign this procedure to unrelated
 mobiles.
 
-`RoL Source Periodic` is mobile-owned and requires `MOB_SPEC`. Eighty-six converted Bloodstone,
-Icecrag, and Menden mobiles across 82 source families use 327 source random outcomes containing
-561 ordered speech or room-visible actions. The generated profiles preserve each source random
-range, fall-through order, room text, and visibility setting. All profiles require an awake mobile
-and an activity pulse. Every profile except Menden magus 2088806 pauses during combat, matching
-the source gates. The profiles are keyed to converted mobile identity; do not assign this
-converter-owned procedure to unrelated mobiles.
+`RoL Source Periodic` is mobile-owned and requires `MOB_SPEC`. Ninety-five converted Bloodstone,
+Icecrag, Menden, Fun, Mobile, and Realm mobiles across 90 source families use 354 source random
+outcomes containing 588 ordered speech or room-visible actions. The generated profiles preserve
+each source random range, fall-through order, room text, visibility setting, awake gate, and combat
+gate. Fun mobile 2001230, jester 2003069, and cricket 2014048 retain source profiles that do not
+require an awake mobile. Fun mobile 2001230, jester 2003069, and Menden magus 2088806 also retain
+source profiles that continue during combat. The profiles are keyed to converted mobile identity;
+do not assign this converter-owned procedure to unrelated mobiles.
 
 `RoL Stateful Periodic` is mobile-owned and requires `MOB_SPEC`. Twenty-six converted Waterdeep
 mobiles use generated idle and fighting tables containing 206 source outcomes and 210 ordered

@@ -139,6 +139,7 @@ struct rol_source_periodic_profile
   int profile_id;
   int roll_min;
   int roll_max;
+  bool require_awake;
   bool suppress_fighting;
 };
 
@@ -2644,7 +2645,7 @@ size_t rol_source_periodic_profile_count(void)
 }
 
 bool rol_source_periodic_profile_bounds(int mobile_vnum, int *roll_min, int *roll_max,
-                                        bool *suppresses_fighting)
+                                        bool *requires_awake, bool *suppresses_fighting)
 {
   const struct rol_source_periodic_profile *profile = rol_source_periodic_profile_for(mobile_vnum);
 
@@ -2654,6 +2655,8 @@ bool rol_source_periodic_profile_bounds(int mobile_vnum, int *roll_min, int *rol
     *roll_min = profile->roll_min;
   if (roll_max != NULL)
     *roll_max = profile->roll_max;
+  if (requires_awake != NULL)
+    *requires_awake = profile->require_awake;
   if (suppresses_fighting != NULL)
     *suppresses_fighting = profile->suppress_fighting;
   return true;
@@ -2703,12 +2706,12 @@ int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *arg
 
   if (speaker == NULL && cmd == 0)
     speaker = ch;
-  if (speaker == NULL || cmd != 0 || !IS_NPC(speaker) || !AWAKE(speaker) ||
-      IN_ROOM(speaker) == NOWHERE)
+  if (speaker == NULL || cmd != 0 || !IS_NPC(speaker) || IN_ROOM(speaker) == NOWHERE)
     return FALSE;
 
   profile = rol_source_periodic_profile_for(GET_MOB_VNUM(speaker));
-  if (profile == NULL || (profile->suppress_fighting && FIGHTING(speaker) != NULL))
+  if (profile == NULL || (profile->require_awake && !AWAKE(speaker)) ||
+      (profile->suppress_fighting && FIGHTING(speaker) != NULL))
     return FALSE;
 
   roll = rand_number(profile->roll_min, profile->roll_max);

@@ -16,11 +16,18 @@ class RolPeriodicProfileTests(unittest.TestCase):
   def test_selected_manifest_has_unique_converted_mobile_coverage(self) -> None:
     vnums = [vnum for _relative, handler_vnums in PROFILE_SOURCES.values() for vnum in handler_vnums]
 
-    self.assertEqual(82, len(PROFILE_SOURCES))
-    self.assertEqual(86, len(vnums))
+    self.assertEqual(90, len(PROFILE_SOURCES))
+    self.assertEqual(95, len(vnums))
     self.assertEqual(len(vnums), len(set(vnums)))
     self.assertEqual(
-        {"src/specs.bloodstone.c", "src/specs.icecrag.c", "src/specs.menden.c"},
+        {
+            "src/specs.bloodstone.c",
+            "src/specs.fun.c",
+            "src/specs.icecrag.c",
+            "src/specs.menden.c",
+            "src/specs.mobile.c",
+            "src/specs.realm.c",
+        },
         {relative for relative, _vnums in PROFILE_SOURCES.values()},
     )
 
@@ -72,8 +79,8 @@ class RolPeriodicProfileTests(unittest.TestCase):
 
     self.assertEqual(sorted(profile_vnums), profile_vnums)
     self.assertEqual(sorted(outcomes), outcomes)
-    self.assertEqual(327, len(outcomes))
-    self.assertEqual(561, len(actions))
+    self.assertEqual(354, len(outcomes))
+    self.assertEqual(588, len(actions))
 
 
 if __name__ == "__main__":
