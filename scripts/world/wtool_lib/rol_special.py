@@ -73,6 +73,7 @@ ADAPTED_HANDLER_NAMES = {
     "guild_classtype_warrior": "RoL Warrior Guild Room",
     "guild_classtype_cleric": "RoL Cleric Guild Room",
     "lich_energy_drain": "RoL Lich Energy Drain",
+    "item_block": "RoL Item Blocker",
     "major_beholder": "RoL Major Beholder",
     "navagator": "RoL Ship Navigator",
     "poison": "RoL Poison Bite",

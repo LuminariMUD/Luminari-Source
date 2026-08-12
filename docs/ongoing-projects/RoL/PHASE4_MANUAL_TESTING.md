@@ -228,6 +228,18 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - Put the mobile to sleep or start combat and continue observing activity pulses. It must not run
   this ambient social behavior until it is both awake and idle again.
 
+### Phase 6 converted item blockers
+
+- `RoL Item Blocker` is implemented for converted ATD objects 2000891-2000896, which block north,
+  east, south, west, up, and down respectively. The `misc_code` dependency remains outside the
+  five-package staged pilot, so test this only in a later dependency-complete stage.
+- Load one blocker in a room with an aggressive NPC. A mortal player and a player-controlled pet
+  must be refused when moving in the configured direction; movement in other directions must
+  proceed normally. A non-pet NPC and non-morphed staff character are exempt.
+- Put a locked door in the configured direction and try `unlock <keyword> <direction>`. The
+  blocker must refuse the attempt. An unlock aimed at another direction, a hidden or blocked
+  exit, or a room with no aggressive NPC must retain normal target behavior.
+
 ### Phase 6 converted transport procedures
 
 - `RoL Magic Pool` and `RoL Auto Distributor` are implemented and

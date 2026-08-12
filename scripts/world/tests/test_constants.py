@@ -208,7 +208,7 @@ class ConstantsTests(unittest.TestCase):
 class SpecRegistryTests(unittest.TestCase):
   def test_current_registry_exposes_canonical_and_alias_names(self) -> None:
     names = extract_spec_names(default_repo_root())
-    self.assertEqual(83, len(names))
+    self.assertEqual(84, len(names))
     self.assertIn("bank", names)
     self.assertIn("guild", names)
     self.assertIn("guildmaster", names)
@@ -219,6 +219,7 @@ class SpecRegistryTests(unittest.TestCase):
     self.assertIn("rol warrior guild room", names)
     self.assertIn("rol cleric guild room", names)
     self.assertIn("rol bloodstone critter", names)
+    self.assertIn("rol item blocker", names)
     self.assertIn("rol corpse devourer", names)
     self.assertIn("rol poison bite", names)
     self.assertIn("rol thief", names)

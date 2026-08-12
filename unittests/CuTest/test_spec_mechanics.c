@@ -746,6 +746,50 @@ void Test_spec_rol_bloodstone_critter_preserves_social_cadence(CuTest *tc)
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_item_blocker_preserves_direction_and_aggressor_gate(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct command_info commands[2];
+  struct command_info *saved_complete_cmd_info;
+  struct player_special_data player_specials;
+  struct room_direction_data north_exit;
+
+  spec_mechanics_begin(&fixture);
+  memset(commands, 0, sizeof(commands));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&north_exit, 0, sizeof(north_exit));
+  saved_complete_cmd_info = complete_cmd_info;
+  complete_cmd_info = commands;
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player.name = "blocked traveler";
+  fixture.actor.player_specials = &player_specials;
+  SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_AGGRESSIVE);
+
+  commands[1].command = "north";
+  GET_OBJ_VAL(&fixture.worn, 0) = NORTH;
+  CuAssertIntEquals(tc, TRUE, rol_item_blocker(&fixture.actor, &fixture.worn, 1, ""));
+  GET_OBJ_VAL(&fixture.worn, 0) = EAST;
+  CuAssertIntEquals(tc, FALSE, rol_item_blocker(&fixture.actor, &fixture.worn, 1, ""));
+
+  commands[1].command = "unlock";
+  GET_OBJ_VAL(&fixture.worn, 0) = NORTH;
+  north_exit.keyword = "gate";
+  fixture.rooms[0].dir_option[NORTH] = &north_exit;
+  CuAssertIntEquals(tc, TRUE, rol_item_blocker(&fixture.actor, &fixture.worn, 1, "gate north"));
+  SET_BIT(north_exit.exit_info, EX_HIDDEN);
+  CuAssertIntEquals(tc, FALSE, rol_item_blocker(&fixture.actor, &fixture.worn, 1, "gate north"));
+
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.target), MOB_AGGRESSIVE);
+  commands[1].command = "north";
+  CuAssertIntEquals(tc, FALSE, rol_item_blocker(&fixture.actor, &fixture.worn, 1, ""));
+
+  fixture.rooms[0].dir_option[NORTH] = NULL;
+  fixture.actor.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  complete_cmd_info = saved_complete_cmd_info;
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_major_beholder_preserves_eye_mapping_and_cooldowns(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

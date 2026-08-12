@@ -60,6 +60,11 @@ RoL Bloodstone Critter is mobile-owned and requires MOB_SPEC. While awake and
 idle, the four converted critters use the current snarl and growl socials with
 the source two-in-81 activity-pulse cadence. This procedure is converter-owned.
 
+RoL Item Blocker is object-owned and reads its blocked cardinal direction from
+object value 0. While an aggressive NPC occupies the room, it blocks mortal
+players and player pets from moving or unlocking a door in that direction.
+The procedure and its six converted ATD objects are converter-owned.
+
 RoL Magic Pool is object-owned. Converted pools keep their fixed entry damage
 and remapped destination in object values; builders should not assign it to an
 ordinary object without configuring both values deliberately.

@@ -32,7 +32,7 @@ callback slot or event-gateway dispatch rules.
 - The current selection is shown in the menu. Save as usual to apply.
 
 Numbers are specific to the filtered editor view. The current views contain 42 mobile definitions,
-27 object definitions, and 14 room definitions in canonical registry order. The saved world record
+28 object definitions, and 14 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
 Prerequisites describe runtime scheduling; selecting a procedure does not set them automatically:
@@ -57,6 +57,10 @@ converter-owned and should not be assigned to unrelated mobiles.
 `RoL Bloodstone Critter` is mobile-owned and requires `MOB_SPEC`. While awake and idle, the four
 converted Bloodstone critters use Luminari's current `snarl` and `growl` socials at the source
 two-in-81 activity-pulse cadence. This procedure is converter-owned.
+
+`RoL Item Blocker` is object-owned and reads the blocked cardinal direction from object value 0.
+While an aggressive NPC occupies the room, it blocks mortal players and player pets from moving
+or unlocking a door in that direction. This procedure and its six ATD objects are converter-owned.
 
 `RoL Magic Pool` is an object-owned conversion procedure. Its object value 0 is the destination
 room VNUM and value 1 is fixed entry damage. The converter remaps the destination; builders should

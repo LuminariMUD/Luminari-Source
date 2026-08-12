@@ -14,10 +14,12 @@
 #include "character/evolutions.h"
 #include "combat/fight.h"
 #include "comm.h"
+#include "constants.h"
 #include "db.h"
 #include "dgscript/dg_scripts.h"
 #include "graph.h"
 #include "handler.h"
+#include "helpers.h"
 #include "interpreter.h"
 #include "magic/domains_schools.h"
 #include "magic/spells.h"
@@ -1634,6 +1636,88 @@ int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *
     return FALSE;
 
   do_action(ch, "", social_command, 0);
+  return TRUE;
+}
+
+static int rol_item_blocker_unlock_direction(struct char_data *ch, const char *argument)
+{
+  char type[MAX_INPUT_LENGTH];
+  char direction[MAX_INPUT_LENGTH];
+  int door;
+
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return NOWHERE;
+
+  two_arguments(argument, type, sizeof(type), direction, sizeof(direction));
+  if (direction[0] != '\0')
+  {
+    door = search_block(direction, dirs, FALSE);
+    if (door < NORTH || door > DOWN || EXIT(ch, door) == NULL ||
+        EXIT_FLAGGED(EXIT(ch, door),
+                     EX_HIDDEN | EX_HIDDEN_MEDIUM | EX_HIDDEN_HARD | EX_HIDDEN_EASY | EX_BLOCKED))
+      return NOWHERE;
+    if (EXIT(ch, door)->keyword != NULL && !isname(type, EXIT(ch, door)->keyword))
+      return NOWHERE;
+    return door;
+  }
+
+  for (door = NORTH; door <= DOWN; door++)
+    if (EXIT(ch, door) != NULL && EXIT(ch, door)->keyword != NULL &&
+        !EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN | EX_HIDDEN_MEDIUM | EX_HIDDEN_HARD |
+                                          EX_HIDDEN_EASY | EX_BLOCKED) &&
+        isname(type, EXIT(ch, door)->keyword))
+      return door;
+
+  return NOWHERE;
+}
+
+int rol_item_blocker(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct obj_data *obj = me;
+  struct char_data *aggressor;
+  const char *command;
+  bool morphed;
+  int block_direction;
+  int attempted_direction = NOWHERE;
+  char message[MAX_STRING_LENGTH];
+
+  if (ch == NULL || obj == NULL || cmd <= 0 || complete_cmd_info == NULL ||
+      complete_cmd_info[cmd].command == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return FALSE;
+
+  morphed = !IS_NPC(ch) && ch->player_specials != NULL && IS_MORPHED(ch);
+  if (!morphed && ((IS_NPC(ch) && !IS_PET(ch)) || GET_LEVEL(ch) >= LVL_IMMORT))
+    return FALSE;
+
+  for (aggressor = world[IN_ROOM(ch)].people; aggressor != NULL;
+       aggressor = aggressor->next_in_room)
+    if (IS_NPC(aggressor) && MOB_FLAGGED(aggressor, MOB_AGGRESSIVE))
+      break;
+  if (aggressor == NULL)
+    return FALSE;
+
+  block_direction = GET_OBJ_VAL(obj, 0);
+  if (block_direction < NORTH || block_direction > DOWN)
+    return FALSE;
+
+  command = complete_cmd_info[cmd].command;
+  for (attempted_direction = NORTH; attempted_direction <= DOWN; attempted_direction++)
+    if (!strcmp(command, dirs[attempted_direction]))
+      break;
+  if (attempted_direction > DOWN)
+  {
+    if (strcmp(command, "unlock"))
+      return FALSE;
+    attempted_direction = rol_item_blocker_unlock_direction(ch, argument);
+  }
+  if (attempted_direction != block_direction)
+    return FALSE;
+
+  snprintf(message, sizeof(message), "%s is blocking your path%s%s!\r\n", GET_NAME(aggressor),
+           !strcmp(command, "unlock") ? " to the " : "",
+           !strcmp(command, "unlock") ? dirs[block_direction] : "");
+  CAP(message);
+  send_to_char(ch, "%s", message);
   return TRUE;
 }
 
