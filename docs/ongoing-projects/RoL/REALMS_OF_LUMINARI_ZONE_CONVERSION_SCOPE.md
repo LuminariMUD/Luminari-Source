@@ -498,11 +498,9 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 6 with the 1,003 pending direct bindings and 386 pending `ACT_SPEC`
-records. In parallel, close all 247 implicit race procedures (134 demon, 101 devil,
-and 12 umber hulk) through a runtime path that composes with the 23 affected prototypes
-that also have direct assignments. Continue with the next reusable families, then
-proceed by consuming package, reusing current target procedures before adapting or
-porting source behavior. Preserve the six explicit source-defect or ignored content
-rows as logged smallest-unit exclusions. Completed Phase 5 work and Phase 6 evidence
-checkpoints are recorded in [RoL-Changelog.md](RoL-Changelog.md).
+Continue Phase 6 with the 1,003 pending direct bindings and 353 pending `ACT_SPEC`
+records. Process the next reusable families, then proceed by consuming package, reusing
+current target procedures before adapting or porting source behavior. Preserve the six
+explicit source-defect or ignored content rows as logged smallest-unit exclusions.
+Completed Phase 5 work and Phase 6 evidence checkpoints are recorded in
+[RoL-Changelog.md](RoL-Changelog.md).

@@ -43,6 +43,9 @@ Phase 5 shop compatibility commits: ec1a8cd8, fe38a56e
 Phase 6 inventory/shared-service commit: 368adc90
 Phase 6 shared-mobile commit: 960f5602
 Phase 6 implicit-race evidence commit: ae867c47
+Phase 6 automatic-race metadata commit: b58faaea
+Phase 6 automatic-race runtime commit: e5b81b14
+Phase 6 preserved-race patch commit: 2b55b265
 ```
 
 The authoritative ignored runs are:
@@ -95,6 +98,10 @@ Phase 6 shared mobile: lib/rol-conversion/runs/phase6-special-20260812-shared-mo
                        rol-phase6-special-0f4f1274d95a2941
 Phase 6 implicit race: lib/rol-conversion/runs/phase6-special-20260812-race-composition
                        rol-phase6-special-caf72346b7ac8119
+Phase 6 automatic race: lib/rol-conversion/runs/phase6-special-20260812-automatic-race
+                         rol-phase6-special-519936c88c94c0da
+Phase 6 race KEEP stage: lib/rol-conversion/runs/phase6-special-20260812-race-keep-stage
+                         rol-phase4-build-174249e9cd9cc337
 Policy:  rol-conversion-policy-1
 ```
 
@@ -179,23 +186,23 @@ Policy:  rol-conversion-policy-1
   bindings and 43 handlers, leaving 1,003 bindings and 562 handlers. Shared service
   reuse accounts for 72 bindings; source-inert dump and cityguard callbacks account for
   22; bounded corpse-devourer, poison-bite, and thief adapters account for 29.
-- The independent `ACT_SPEC` cross-check resolves 462 of 848 records: source boot
-  clears 444 unbound flags and 18 directly assigned records are resolved. The remaining
-  386 are 343 direct-only mobiles, 10 mobiles combining direct and implicit race
-  procedures, and 33 implicit-race-only records.
-- Source boot attaches race procedures to 247 active prototypes independently of the
-  authored `ACT_SPEC` flag: 134 demons, 101 devils, and 12 umber hulks. Twenty-three
-  also have direct assignments and 224 are implicit-only. All 247 remain pending a
-  composition-safe runtime port; the earlier 33 count covered only the `ACT_SPEC`
-  subset.
+- The independent `ACT_SPEC` cross-check resolves 495 of 848 records. Source boot clears
+  444 unbound flags, 18 direct assignments are resolved, and all 33 `ACT_SPEC` records
+  whose remaining behavior was an automatic race procedure are resolved. The 353
+  pending records are 343 direct-only mobiles and 10 mobiles whose automatic race
+  behavior is complete but whose direct procedure remains pending.
+- All 247 source boot-time race procedures are complete through composition-safe mobile
+  flags and activity/combat hooks: 134 demons, 101 devils, and 12 umber hulks. The
+  converter emits the flags on 239 `ADD` records and deterministically patches the eight
+  preserved target prototypes. A refreshed pilot proves all six Hulburg `KEEP` patches
+  with zero new staged errors.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
 1. Reconcile the remaining 1,003 direct bindings by shared behavior family and
-   consuming package, while porting the 247 implicit race procedures through a path
-   that composes with direct assignments; continue with the next high-reuse families
-   and reuse current target procedures before adapting or porting.
+   consuming package; continue with the next high-reuse families and reuse current
+   target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
 3. Preserve the six locked malformed record exclusions as explicit, logged

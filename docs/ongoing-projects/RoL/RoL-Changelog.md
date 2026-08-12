@@ -5,6 +5,68 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 automatic race procedures
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Implemented all 247 active boot-time race procedures independently of the ordinary
+  persisted special-procedure slot: 134 demons, 101 devils, and 12 umber hulks. This
+  preserves composition for the 23 prototypes that also have a direct assignment.
+- Added persistent `RoL-Demon`, `RoL-Devil`, and `RoL-Umberhulk` mobile flags and
+  converter-owned initialization affects. Demon and devil prototypes receive
+  infravision and aggregate elemental protection; umber hulks receive aggregate
+  elemental protection.
+- Added composition-safe activity and combat hooks. Recognized demons and devils use
+  source-derived gate chances, cooldowns, follower rules, control restrictions,
+  `nogate` templates, temporary followers, combat joining, and four-game-hour expiry.
+  Complex source branches that could create several independent groups are represented
+  by one bounded mixed group of at most five creatures.
+- Added the umber-hulk claw initialization, level-scaled combat chance, confusion gaze,
+  and extra mandible attack. The canonical claw prototype is found by its exact source
+  alias rather than a hard-coded converted VNUM.
+- Extended preserved-mobile staging so all four action-flag and all four affect-flag
+  chunks can be merged without clobbering existing flags, named procedures, trigger
+  attachments, or local content. This closes the eight automatic-race records whose
+  record action is `KEEP`; the refreshed Hulburg pilot proves six of those patches.
+- Reconciled all 247 implicit bindings to `NATIVE_ADAPTED_COMPOSABLE`. The independent
+  `ACT_SPEC` cross-check now resolves 495 of 848 records and leaves 353 records, all of
+  which are tied to still-pending direct assignments.
+- Documented the new builder-visible flags and automatic behavior in the mobile flag,
+  OLC special-procedure, generated web, and database-first help sources.
+
+### Acceptance evidence
+
+```text
+Delivery commits: b58faaea, e5b81b14, 2b55b265
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-automatic-race
+Reconciliation run: rol-phase6-special-519936c88c94c0da
+KEEP-patch stage: lib/rol-conversion/runs/phase6-special-20260812-race-keep-stage
+KEEP-patch run: rol-phase4-build-174249e9cd9cc337
+Active implicit race bindings: 247
+Implicit race bindings resolved: 247
+Implicit race bindings pending: 0
+Preserved automatic-race prototypes: 8
+Refreshed pilot preserved-mobile patches: 79
+Direct bindings resolved: 231
+Direct bindings pending: 1,003
+ACT_SPEC records resolved: 495
+ACT_SPEC records pending: 353
+Complete world-tool suite: 256 passed
+Production-linked CuTest suite: 620 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL idempotency checks: 4 passed
+Autotools build and install: passed
+Root-level circle artifact: absent
+Staged new active errors: 0
+Reset observations: passed
+Walkthroughs: passed
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 1,003 direct bindings across 562 source handlers.
+
 ## 2026-08-12 - Phase 6 implicit race-binding correction
 
 Status: Completed evidence checkpoint; Phase 6 runtime reconciliation in progress

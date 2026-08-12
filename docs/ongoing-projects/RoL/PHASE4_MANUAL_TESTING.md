@@ -2,8 +2,8 @@
 
 - Status: Phases 4-5 complete; Phase 6 in progress
 - Environment: disposable development runtime only
-- Staged world: `lib/rol-conversion/runs/phase5-shop-20260812-pilot/staging/world`
-- Runtime contract: `lib/rol-conversion/runs/phase5-shop-20260812-pilot/validation/pilot-runtime-contract.json`
+- Staged world: `lib/rol-conversion/runs/phase6-special-20260812-race-keep-stage/staging/world`
+- Runtime contract: `lib/rol-conversion/runs/phase6-special-20260812-race-keep-stage/validation/pilot-runtime-contract.json`
 - Live target writes: zero
 
 ## Safety Boundary
@@ -175,6 +175,24 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   the five pilot packages contain no converted `ADD` example. Do not hand-edit the
   staged pilot to create one.
 
+### Phase 6 automatic race procedures
+
+- The refreshed staged world patches all six preserved Hulburg prototypes that use a
+  source boot-time race procedure. `stat mobile` on 159118, 159204, 159246, 159309, or
+  159341 must show `RoL-Umberhulk` and aggregate elemental protection. Mobile 159211
+  must show `RoL-Demon`, infravision, and aggregate elemental protection.
+- Fight one of the five flagged umber hulks using a disposable mortal character. Its
+  level-scaled combat proc must periodically produce either the many-eyes confusion
+  message/effect or the extra crushing-mandibles attack. This hook operates without a
+  named `SpecProc` and therefore does not consume that persistent slot.
+- The source claw object maps to target object 2001230, which is outside the current
+  five-package stage. Automatic claw equipment therefore becomes manually testable in
+  a Phase 7 batch containing that dependency; do not hand-create the object here.
+- The Hulburg marilith exposes the demon flag and initialization affects, but its
+  `nogate` summon templates are also outside this pilot. Test planar gating only in a
+  later dependency-complete stage. The runtime and its recipe/cooldown helpers already
+  have production-linked automated coverage.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,
@@ -240,11 +258,11 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 direct bindings, 231 are resolved and 1,003 remain. Of 848
-  `ACT_SPEC` records, 462 are resolved and 386 remain, including 33 automatic race
-  procedures. The current five-zone pilot predates the newly shared guild, janitor,
-  pet-shop, receptionist, corpse-devourer, poison-bite, and thief mappings and has no
-  selected source example from these families. Those Phase 6 additions are automated
-  evidence rather than new manual-test claims for this bundle.
+  `ACT_SPEC` records, 495 are resolved and 353 remain. The automatic race procedures
+  are complete and the Hulburg subset is exposed above. The current five-zone pilot
+  still has no selected source example from the newly shared guild, janitor, pet-shop,
+  receptionist, corpse-devourer, poison-bite, or thief families; those additions remain
+  automated evidence rather than manual-test claims for this bundle.
 - Package-wide conversion, repair, balance review, and acceptance bundles are Phase 7.
 - Development-world application and final operational documentation are Phase 8.
 
