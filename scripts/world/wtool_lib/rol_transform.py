@@ -209,6 +209,19 @@ MOB_AUTOMATIC_RACE_AFFECTS = {
     "MH": frozenset({28}),
 }
 
+
+def mobile_automatic_race_flags(
+    record: RolRecord,
+) -> tuple[frozenset[int], frozenset[int]]:
+  """Return target prototype flags required by source boot-time race procedures."""
+
+  rows = record.values.get("base_rows", [])
+  race_row = rows[0] if len(rows) > 0 else ["N", "0", "0"]
+  race_code = race_row[0].upper() if race_row else "N"
+  action = MOB_AUTOMATIC_RACE_ACTION.get(race_code)
+  actions = frozenset() if action is None else frozenset({action})
+  return actions, MOB_AUTOMATIC_RACE_AFFECTS.get(race_code, frozenset())
+
 # ACT_SPEC is implemented by the binding inventory in Phase 6. Emission adds
 # MOB_SPEC only when a resolved native/adapted procedure is supplied.
 MOB_DEFERRED_ACTIONS = frozenset({1})
@@ -1457,10 +1470,10 @@ def emit_mobile(
       target_actions.update(expanded_actions)
   if special_proc is not None:
     target_actions.add(0)
-  if race_code in MOB_AUTOMATIC_RACE_ACTION:
-    target_actions.add(MOB_AUTOMATIC_RACE_ACTION[race_code])
+  automatic_actions, automatic_affects = mobile_automatic_race_flags(record)
+  target_actions.update(automatic_actions)
   target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
-  target_affects.update(MOB_AUTOMATIC_RACE_AFFECTS.get(race_code, ()))
+  target_affects.update(automatic_affects)
   target_affects2 = _mapped_bits(source_affects, MOB_AFFECT2_MAP)
   missing_actions = sorted(
       source_actions

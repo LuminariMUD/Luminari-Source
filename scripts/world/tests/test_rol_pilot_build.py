@@ -47,6 +47,28 @@ class RolPilotBuildTests(unittest.TestCase):
     self.assertEqual(1, patched.count("T 2026100\n"))
     self.assertEqual(1, patched.count("T 2026101\n"))
 
+  def test_mobile_patch_adds_composable_race_action_and_affect_flags(self) -> None:
+    block = [
+        "#159118\n",
+        "keywords~\n",
+        "a mobile~\n",
+        "A mobile stands here.~\n",
+        "Description.~\n",
+        "0 0 0 0 0 0 0 0 0 E\n",
+        "E\n",
+    ]
+
+    patched = _patch_mobile_block(
+        block,
+        159_118,
+        None,
+        (),
+        (118,),
+        (28,),
+    )
+
+    self.assertIn("0 0 0 w C 0 0 0 0 E\n", patched)
+
   def test_mobile_patch_rejects_incompatible_existing_spec(self) -> None:
     block = [
         "#2058601\n",

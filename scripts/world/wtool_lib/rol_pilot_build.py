@@ -30,6 +30,7 @@ from .rol_transform import (
     emit_room,
     emit_shop,
     emit_zone,
+    mobile_automatic_race_flags,
 )
 from .world import load_indexed_world_data, validate_explicit_paths, validate_indexed_world
 
@@ -266,10 +267,12 @@ def _file_payload(kind: str, records: list[tuple[int, str]]) -> str:
   return ordered + "$~\n"
 
 
-def _decode_first_flag(token: str) -> set[int]:
-  decoded = decode_tokens([token], serialized_chunks=1)
+def _decode_flag_chunks(tokens: list[str]) -> set[int]:
+  decoded = decode_tokens(tokens)
   if decoded.issues:
-    raise RolPilotBuildError(f"cannot decode existing mobile action flag {token!r}")
+    raise RolPilotBuildError(
+        f"cannot decode existing mobile flag chunks {tokens!r}"
+    )
   return set(decoded.bits)
 
 
@@ -278,9 +281,15 @@ def _patch_mobile_block(
     vnum: int,
     special_proc: str | None,
     attachments: Iterable[int],
+    required_action_bits: Iterable[int] = (),
+    required_affect_bits: Iterable[int] = (),
 ) -> list[str]:
   result = list(block)
+  action_bits = set(required_action_bits)
+  affect_bits = set(required_affect_bits)
   if special_proc is not None:
+    action_bits.add(0)
+  if action_bits or affect_bits:
     flag_index = next(
         (
             index
@@ -292,11 +301,13 @@ def _patch_mobile_block(
     if flag_index is None:
       raise RolPilotBuildError(f"mobile {vnum} has no enhanced action-flag row")
     tokens = result[flag_index].strip().split()
-    first_flags = _decode_first_flag(tokens[0])
-    first_flags.add(0)
-    tokens[0] = encode_bits(first_flags, serialized_chunks=1)[0]
+    existing_actions = _decode_flag_chunks(tokens[:4])
+    existing_affects = _decode_flag_chunks(tokens[4:8])
+    tokens[:4] = encode_bits(existing_actions | action_bits)
+    tokens[4:8] = encode_bits(existing_affects | affect_bits)
     result[flag_index] = " ".join(tokens) + "\n"
 
+  if special_proc is not None:
     existing = [
         line.partition(":")[2].strip()
         for line in result
@@ -324,7 +335,10 @@ def _patch_mobile_block(
 
 def _patch_mobile_file(
     path: Path,
-    patches: dict[int, tuple[str | None, tuple[int, ...]]],
+    patches: dict[
+        int,
+        tuple[str | None, tuple[int, ...], tuple[int, ...], tuple[int, ...]],
+    ],
 ) -> None:
   lines = path.read_text(encoding="ascii").splitlines(keepends=True)
   headers = [
@@ -343,9 +357,14 @@ def _patch_mobile_file(
     raise RolPilotBuildError(f"mobile patch target {missing[0]} is absent from {path}")
   for vnum in sorted(patches, key=lambda item: bounds[item][0], reverse=True):
     start, end = bounds[vnum]
-    special_proc, attachments = patches[vnum]
+    special_proc, attachments, required_action_bits, required_affect_bits = patches[vnum]
     lines[start:end] = _patch_mobile_block(
-        lines[start:end], vnum, special_proc, attachments
+        lines[start:end],
+        vnum,
+        special_proc,
+        attachments,
+        required_action_bits,
+        required_affect_bits,
     )
   path.write_text("".join(lines), encoding="ascii", newline="\n")
 
@@ -383,7 +402,10 @@ def _stage_overlay(
     target_world: Path,
     staging_world: Path,
     generated_files: dict[str, bytes],
-    mobile_patches: dict[str, dict[int, tuple[str | None, tuple[int, ...]]]],
+    mobile_patches: dict[
+        str,
+        dict[int, tuple[str | None, tuple[int, ...], tuple[int, ...], tuple[int, ...]]],
+    ],
     shop_appends: dict[str, str],
 ) -> dict[str, Any]:
   shutil.copytree(target_world, staging_world, copy_function=shutil.copy2)
@@ -789,7 +811,8 @@ def write_pilot_build_bundle(
     generated_files[relative] = _file_payload(kind, records).encode("ascii")
 
   mobile_patches_by_file: defaultdict[
-      str, dict[int, tuple[str | None, tuple[int, ...]]]
+      str,
+      dict[int, tuple[str | None, tuple[int, ...], tuple[int, ...], tuple[int, ...]]],
   ] = defaultdict(dict)
   action_by_target = {
       (str(action["source_kind"]), action["destination_vnum"]): action
@@ -803,6 +826,17 @@ def write_pilot_build_bundle(
   } | {
       target_vnum for kind, target_vnum in native if kind == "mob"
   }
+  automatic_race_flags_by_target = {
+      int(action["destination_vnum"]): mobile_automatic_race_flags(
+          source_records[action["source_record_id"]]
+      )
+      for action in actions
+      if action["source_kind"] == "mob"
+      and action["action"] != "ADD"
+      and action["destination_vnum"] is not None
+      and any(mobile_automatic_race_flags(source_records[action["source_record_id"]]))
+  }
+  patched_mobile_targets.update(automatic_race_flags_by_target)
   added_mobile_targets = {
       int(action["destination_vnum"])
       for action in actions
@@ -814,9 +848,14 @@ def write_pilot_build_bundle(
       raise RolPilotBuildError(f"no preserved target evidence for mobile patch {target_vnum}")
     relative = str(action["selected_target"]["path"])
     binding = native.get(("mob", target_vnum))
+    required_actions, required_affects = automatic_race_flags_by_target.get(
+        target_vnum, (frozenset(), frozenset())
+    )
     mobile_patches_by_file[relative][target_vnum] = (
         binding.persisted_name if binding is not None else None,
         tuple(sorted(attachments.get(("mob", target_vnum), []))),
+        tuple(sorted(required_actions)),
+        tuple(sorted(required_affects)),
     )
 
   output_dir.mkdir(parents=True)
