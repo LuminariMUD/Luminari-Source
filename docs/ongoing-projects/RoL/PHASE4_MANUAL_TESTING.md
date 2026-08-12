@@ -271,6 +271,26 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   dispel, curse, poison, blindness, and slow effects, reduce the attacker to 1 hit point,
   stop the combat, and relocate the attacker to another eligible room in the same zone.
 
+### Phase 6 converted shaman totems
+
+- `RoL Shaman Totem` is implemented for all 21 active object bindings, with matching
+  corpse-free spirit death behavior on all 21 mobile families. These packages remain outside
+  the five-package staged pilot; do not attach the procedure or compatibility flag by hand.
+- With any Cleric, wield or hold a converted totem and use `use totem`; the first valid use
+  permanently bonds the character and that object but does not summon. Below Cleric level 21,
+  later uses must refuse the summon. A different totem or a copy of the bonded totem must refuse.
+- Good spirit totems 2000716-2000725 accept non-evil source races and reject evil source races.
+  Evil spirit totems 2000732-2000742 do the reverse. The check uses converted source race, not
+  the character's current alignment.
+- On later valid uses, confirm the prayer consumes one of three attempts even when the summon
+  check fails. A successful spirit is ten Cleric levels lower, bounded to levels 1-40, gains a
+  25 percent HP increase, follows and assists its owner, and prevents a second spirit summon.
+- Confirm a peaceful room blocks summoning without consuming an attempt. After three attempts,
+  additional uses refuse until seven MUD days after the first attempt window.
+- Kill each available spirit family and confirm its animal-specific fade message appears and no
+  corpse is created. The spirit mobile must retain its other converted behavior beside the
+  `RoL-Totem-Spirit` compatibility flag.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,

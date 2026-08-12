@@ -24,6 +24,7 @@
 #include "spec_combat.h"
 #include "spec_context.h"
 #include "spec_rol_conversion.h"
+#include "spec_rol_totem.h"
 
 #define ROL_GATE_MAX_SUMMONS 5
 #define ROL_GUILD_CLASS(class_id) (1ULL << (class_id))
@@ -412,6 +413,12 @@ bool rol_handle_conjured_death(struct char_data *ch)
     message = "$n vanishes in a puff of white smoke!";
   else if (MOB_FLAGGED(ch, MOB_ROL_FADE_MONSTER))
     message = "$n disappears in a flash of bright light!";
+  else if (MOB_FLAGGED(ch, MOB_ROL_TOTEM_SPIRIT))
+  {
+    message = rol_totem_spirit_death_message(GET_MOB_VNUM(ch));
+    if (message == NULL)
+      message = "$n quickly fades back into the spirit world...";
+  }
 
   if (message == NULL)
     return false;

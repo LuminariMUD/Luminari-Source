@@ -66,6 +66,14 @@ class and race gates, acts only from the guard's original load room, and retalia
 guards are attacked. Its room rules are converter-owned; use the ordinary `Guild Guard` procedure
 for new Luminari guild entrances.
 
+`RoL Shaman Totem` is object-owned and must be held or wielded. It preserves the 21 converted
+totem identities, permanent player/object bonding, source-race gating, three summon attempts per
+seven MUD days, and a single active spirit. Because the source Shaman class maps to Cleric, a
+Cleric can bond at any class level, but summoning requires Cleric level 21. Cleric level and
+Wisdom replace the unavailable source trainable skill.
+The procedure and `MOB_ROL_TOTEM_SPIRIT` flag are converter-owned and should not be assigned to
+unrelated objects or mobiles.
+
 The five `RoL Ship` definitions preserve the source system for seven converted fixed-interior
 ships. `RoL Ship` is assigned to a hull object, `RoL Ship Control` to its panel object, `RoL Ship
 Exit` and `RoL Ship Lookout` to interior rooms, and `RoL Ship Navigator` to the route mobile. The

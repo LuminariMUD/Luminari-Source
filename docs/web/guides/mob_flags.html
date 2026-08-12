@@ -213,8 +213,8 @@ Flags</a></li>
 <h2 id="overview">Overview</h2>
 <p>Mobile flags are bitflags defined in <code>src/structs.h</code> and
 are checked throughout the codebase using the <code>MOB_FLAGGED()</code>
-macro. There are currently <strong>123 mobile flags</strong> (indices
-0-122, <code>NUM_MOB_FLAGS</code>) that control everything from basic AI
+macro. There are currently <strong>124 mobile flags</strong> (indices
+0-123, <code>NUM_MOB_FLAGS</code>) that control everything from basic AI
 behavior to special monster abilities.</p>
 <p><strong>Usage Pattern:</strong></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>MOB_FLAGGED<span class="op">(</span>mob<span class="op">,</span> MOB_FLAGNAME<span class="op">))</span> <span class="op">{</span></span>
@@ -773,8 +773,8 @@ zone reset assumes stays put</p>
 Teleport target check (<code>spell_teleport()</code>) -
 <code>src/magic/magic.c</code> - Creation placement
 (<code>mag_creations()</code>)</p>
-<h3 id="rol-compatibility-flags-indices-105-121">RoL compatibility flags
-(Indices: 105-121)</h3>
+<h3 id="rol-compatibility-flags-indices-105-123">RoL compatibility flags
+(Indices: 105-123)</h3>
 <p><strong>Effect:</strong> Preserve shared Realms of Luminari mobile
 behaviors during deterministic conversion. -
 <code>MOB_ROL_NICE_THIEF</code> allows stealing but suppresses automatic
@@ -808,9 +808,13 @@ safely compose with other behavior. - <code>MOB_ROL_ANGEL</code> retains
 source angel identity after conversion collapses that race into the
 target outsider category. The RoL shadow-giant adapter uses it to
 preserve the source <code>spook</code> immunity list; it does not
-schedule behavior on its own. - These flags are converter-owned
-compatibility data; builders should use native flags and classes for new
-content unless reproducing converted RoL behavior</p>
+schedule behavior on its own. - <code>MOB_ROL_TOTEM_SPIRIT</code> marks
+the 21 converted shaman spirit families. Their source-specific fade
+messages suppress corpses without consuming the persistent SpecProc
+slot, and newly summoned spirits receive the same flag at runtime. -
+These flags are converter-owned compatibility data; builders should use
+native flags and classes for new content unless reproducing converted
+RoL behavior</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
 Movement, archery, and race aggression - <code>src/combat/fight.c</code>
 - Delayed hunter activation -
@@ -1702,6 +1706,13 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>RoL-Angel</td>
 <td>Compatibility</td>
 <td>Preserves source angel identity</td>
+</tr>
+<tr class="even">
+<td>123</td>
+<td>MOB_ROL_TOTEM_SPIRIT</td>
+<td>RoL-Totem-Spirit</td>
+<td>Compatibility</td>
+<td>Totem spirit fades without a corpse</td>
 </tr>
 </tbody>
 </table>

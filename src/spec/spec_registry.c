@@ -28,6 +28,7 @@
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rol_conversion.h"
 #include "spec/spec_rol_pilot.h"
+#include "spec/spec_rol_totem.h"
 #include "spec/spec_rooms.h"
 #include "spec/spec_zone_abyss.h"
 #include "spec/spec_zone_celestial_leviathan.h"
@@ -1024,6 +1025,18 @@ static const struct spec_definition spec_definitions[] = {
         .legacy_handler = rol_guild_guard,
     },
     {
+        .canonical_name = "RoL Shaman Totem",
+        .display_name = "RoL Shaman Totem",
+        .owner_mask = SPEC_OWNER_OBJECT,
+        .events = rol_object_command_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_object_command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Bonds a Cleric to one converted RoL spirit totem and summons its spirit.",
+        .legacy_handler = rol_shaman_totem,
+    },
+    {
         .canonical_name = "RoL Ship",
         .display_name = "RoL Ship",
         .owner_mask = SPEC_OWNER_OBJECT,
@@ -1155,6 +1168,7 @@ enum
   SPEC_DEFINITION_ROL_AUTO_DISTRIBUTOR,
   SPEC_DEFINITION_ROL_SHADOW_GIANT,
   SPEC_DEFINITION_ROL_GUILD_GUARD,
+  SPEC_DEFINITION_ROL_SHAMAN_TOTEM,
   SPEC_DEFINITION_ROL_SHIP,
   SPEC_DEFINITION_ROL_SHIP_CONTROL,
   SPEC_DEFINITION_ROL_SHIP_EXIT,
@@ -1241,6 +1255,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_AUTO_DISTRIBUTOR, -1},
     {SPEC_DEFINITION_ROL_SHADOW_GIANT, -1},
     {SPEC_DEFINITION_ROL_GUILD_GUARD, -1},
+    {SPEC_DEFINITION_ROL_SHAMAN_TOTEM, -1},
     {SPEC_DEFINITION_ROL_SHIP, -1},
     {SPEC_DEFINITION_ROL_SHIP_CONTROL, -1},
     {SPEC_DEFINITION_ROL_SHIP_EXIT, -1},

@@ -608,6 +608,7 @@ set(SRC_C_FILES
     src/spec/spec_phrase.c
     src/spec/spec_rol_conversion.c
     src/spec/spec_rol_pilot.c
+    src/spec/spec_rol_totem.c
     src/spec/spec_rooms.c
     src/spec/spec_zone_abyss.c
     src/spec/spec_zone_abyssal_vortex.c

@@ -105,6 +105,12 @@ class ConstantsTests(unittest.TestCase):
     self.assertIn("POS_CRAWLING", positions[5]["aliases"])
     self.assertNotIn("MOB_DIRE_SPIDER", mob_macros)
 
+  def test_rol_totem_spirit_flag_matches_runtime_contract(self) -> None:
+    entries = self.manifest["tables"]["mob"]["entries"]
+    self.assertEqual(124, len(entries))
+    self.assertEqual("MOB_ROL_TOTEM_SPIRIT", entries[123]["macro"])
+    self.assertEqual("RoL-Totem-Spirit", entries[123]["name"])
+
   def test_luminari_campaign_filter_selects_non_campaign_branch(self) -> None:
     source = "#ifdef CAMPAIGN_FR\nfr\n#else\nluminari\n#endif\n"
     self.assertEqual("luminari\n", _filter_luminari_branch(source))
@@ -200,7 +206,7 @@ class ConstantsTests(unittest.TestCase):
 class SpecRegistryTests(unittest.TestCase):
   def test_current_registry_exposes_canonical_and_alias_names(self) -> None:
     names = extract_spec_names(default_repo_root())
-    self.assertEqual(73, len(names))
+    self.assertEqual(74, len(names))
     self.assertIn("bank", names)
     self.assertIn("guild", names)
     self.assertIn("guildmaster", names)
@@ -212,6 +218,7 @@ class SpecRegistryTests(unittest.TestCase):
     self.assertIn("rol magic pool", names)
     self.assertIn("rol auto distributor", names)
     self.assertIn("rol shadow giant", names)
+    self.assertIn("rol shaman totem", names)
     self.assertIn("rol ship", names)
     self.assertIn("rol ship control", names)
     self.assertIn("rol ship exit", names)

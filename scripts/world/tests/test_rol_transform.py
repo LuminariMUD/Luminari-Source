@@ -1214,6 +1214,74 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("RoL Guild Guard", result.records[0].spec_proc)
     self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
 
+  def test_shaman_totem_and_spirit_death_bindings_share_converted_identity(self) -> None:
+    bindings = [
+        {
+            "basename": "misc_code",
+            "record_type": "object",
+            "source_vnum": 716,
+            "source_handler": "shaman_totem",
+        },
+        {
+            "basename": "misc_code",
+            "record_type": "mobile",
+            "source_vnum": 716,
+            "source_handler": "spirit_wolf_die",
+        },
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+    object_binding = next(
+        binding for binding in compiled.native_bindings
+        if binding.source_record_type == "object"
+    )
+    mobile_binding = next(
+        binding for binding in compiled.native_bindings
+        if binding.source_record_type == "mobile"
+    )
+    self.assertEqual("RoL Shaman Totem", object_binding.persisted_name)
+    self.assertEqual((), object_binding.required_flag_bits)
+    self.assertIsNone(mobile_binding.persisted_name)
+    self.assertEqual((123,), mobile_binding.required_flag_bits)
+
+    source_object = self._source_record(
+        "obj",
+        b"#716\nwooden wolf totem~\na wooden wolf totem~\n"
+        b"A wooden wolf totem lies here.~\n~\n5 0 0\n0 0 0 0\n1 1 1\n",
+    )
+    emitted_object = emit_object(
+        source_object,
+        2_000_716,
+        _resolver,
+        special_proc=object_binding.persisted_name,
+    )
+    object_path = self._target_path("obj", emitted_object.text)
+    object_result = parse_object_file(object_path, "obj/20000.obj", self.manifest, set())
+    self.assertTrue(object_result.complete)
+    self.assertEqual("RoL Shaman Totem", object_result.records[0].spec_proc)
+
+    source_mobile = self._source_record(
+        "mob",
+        b"#716\nspirit wolf~\na spirit wolf~\nA spirit wolf waits here.~\n~\n"
+        b"0 0 0 0 S\nN 0 0\n10 0 0 1d1+0 1d1+0\n0 0\n131 131 0 0\n",
+    )
+    emitted_mobile = emit_mobile(
+        source_mobile,
+        2_000_716,
+        special_resolved=True,
+        required_action_bits=mobile_binding.required_flag_bits,
+    )
+    mobile_path = self._target_path("mob", emitted_mobile.text)
+    mobile_result = parse_mobile_file(mobile_path, "mob/20000.mob", self.manifest, set())
+    self.assertTrue(mobile_result.complete)
+    self.assertIn(123, decode_tokens(mobile_result.records[0].action_flags).bits)
+    self.assertNotIn(0, decode_tokens(mobile_result.records[0].action_flags).bits)
+
 
 if __name__ == "__main__":
   unittest.main()

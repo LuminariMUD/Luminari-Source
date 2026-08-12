@@ -90,6 +90,7 @@ static const char *const spec_object_names[] = {
     "obj_drain",
     "thorn_shield",
     "RoL Magic Pool",
+    "RoL Shaman Totem",
     "RoL Ship",
     "RoL Ship Control",
 };

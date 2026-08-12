@@ -23,6 +23,7 @@
 #include "../../src/spec/spec_objects.h"
 #include "../../src/spec/spec_phrase.h"
 #include "../../src/spec/spec_rol_conversion.h"
+#include "../../src/spec/spec_rol_totem.h"
 
 #include <string.h>
 
@@ -637,5 +638,90 @@ void Test_spec_rol_guild_guard_preserves_active_gate_rules(CuTest *tc)
 
   target->player_specials = &dummy_mob;
   SET_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_shaman_totem_preserves_identity_gating_and_usage(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct player_special_data player_specials;
+  struct char_data *actor;
+  struct command_info commands[2];
+  struct command_info *saved_complete_cmd_info;
+  time_t first_window;
+
+  spec_mechanics_begin(&fixture);
+  actor = &fixture.actor;
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(commands, 0, sizeof(commands));
+  commands[1].command = "use";
+  saved_complete_cmd_info = complete_cmd_info;
+  complete_cmd_info = commands;
+  REMOVE_BIT_AR(MOB_FLAGS(actor), MOB_ISNPC);
+  actor->player_specials = &player_specials;
+
+  CuAssertIntEquals(tc, 1, rol_shaman_totem_choice(2000716));
+  CuAssertIntEquals(tc, 10, rol_shaman_totem_choice(2000725));
+  CuAssertIntEquals(tc, 17, rol_shaman_totem_choice(2000732));
+  CuAssertIntEquals(tc, 27, rol_shaman_totem_choice(2000742));
+  CuAssertIntEquals(tc, 0, rol_shaman_totem_choice(9999999));
+  CuAssertIntEquals(tc, 2000716, rol_shaman_totem_vnum(1));
+  CuAssertIntEquals(tc, 2000742, rol_shaman_totem_vnum(27));
+  CuAssertIntEquals(tc, -1, rol_shaman_totem_vnum(16));
+
+  CuAssertTrue(tc, rol_shaman_totem_race_allowed(2000716, RACE_HUMAN));
+  CuAssertTrue(tc, !rol_shaman_totem_race_allowed(2000716, RACE_DROW));
+  CuAssertTrue(tc, rol_shaman_totem_race_allowed(2000732, RACE_DROW));
+  CuAssertTrue(tc, !rol_shaman_totem_race_allowed(2000732, RACE_HUMAN));
+  CuAssertTrue(tc, !rol_shaman_totem_race_allowed(9999999, RACE_HUMAN));
+
+  fixture.object_indexes[0].vnum = 2000716;
+  fixture.worn.worn_by = actor;
+  fixture.worn.worn_on = WEAR_HOLD_1;
+  GET_OBJ_BOUND_ID(&fixture.worn) = NOBODY;
+  GET_IDNUM(actor) = 4242;
+  GET_REAL_RACE(actor) = RACE_HUMAN;
+  CLASS_LEVEL(actor, CLASS_CLERIC) = 1;
+  CuAssertIntEquals(tc, TRUE, rol_shaman_totem(actor, &fixture.worn, 1, "totem"));
+  CuAssertIntEquals(tc, 1, GET_ROL_TOTEM_CHOICE(actor));
+  CuAssertIntEquals(tc, 4242, GET_OBJ_BOUND_ID(&fixture.worn));
+  CuAssertIntEquals(tc, TRUE, rol_shaman_totem(actor, &fixture.worn, 1, "totem"));
+  CuAssertIntEquals(tc, 0, GET_ROL_TOTEM_USES(actor));
+
+  GET_REAL_WIS(actor) = 18;
+  GET_WIS(actor) = 18;
+  CLASS_LEVEL(actor, CLASS_CLERIC) = 20;
+  CuAssertIntEquals(tc, 0, rol_shaman_totem_success_chance(actor));
+  CLASS_LEVEL(actor, CLASS_CLERIC) = 21;
+  CuAssertIntEquals(tc, 58, rol_shaman_totem_success_chance(actor));
+  CLASS_LEVEL(actor, CLASS_CLERIC) = 30;
+  CuAssertIntEquals(tc, 100, rol_shaman_totem_success_chance(actor));
+  CuAssertIntEquals(tc, 0, rol_shaman_totem_success_chance(NULL));
+
+  first_window = (time_t)100 * SECS_PER_MUD_DAY;
+  CuAssertTrue(tc, rol_shaman_totem_consume_weekly_use(actor, first_window));
+  CuAssertTrue(tc, rol_shaman_totem_consume_weekly_use(actor, first_window + 1));
+  CuAssertTrue(tc, rol_shaman_totem_consume_weekly_use(actor, first_window + 2));
+  CuAssertTrue(tc, !rol_shaman_totem_consume_weekly_use(actor, first_window + 3));
+  CuAssertIntEquals(tc, 3, GET_ROL_TOTEM_USES(actor));
+  CuAssertIntEquals(tc, 107, GET_ROL_TOTEM_WINDOW(actor));
+  CuAssertTrue(tc, rol_shaman_totem_consume_weekly_use(actor, (time_t)107 * SECS_PER_MUD_DAY));
+  CuAssertIntEquals(tc, 1, GET_ROL_TOTEM_USES(actor));
+  CuAssertTrue(tc, !rol_shaman_totem_consume_weekly_use(NULL, first_window));
+
+  CuAssertStrEquals(tc, "$n quickly fades away to the sound of a long mournful howl...",
+                    rol_totem_spirit_death_message(2000716));
+  CuAssertStrEquals(tc, "$n quickly fades away to the sound of a fading caw...",
+                    rol_totem_spirit_death_message(2000742));
+  CuAssertTrue(tc, rol_totem_spirit_death_message(9999999) == NULL);
+
+  actor->player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(actor), MOB_ISNPC);
+  GET_MOB_RNUM(actor) = 0;
+  fixture.mobile_indexes[0].vnum = 2000716;
+  SET_BIT_AR(MOB_FLAGS(actor), MOB_ROL_TOTEM_SPIRIT);
+  CuAssertTrue(tc, rol_handle_conjured_death(actor));
+
+  complete_cmd_info = saved_complete_cmd_info;
   spec_mechanics_end(&fixture);
 }

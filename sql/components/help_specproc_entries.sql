@@ -72,6 +72,13 @@ room-specific class and race gates only while the guard remains in its original
 load room. Protected guards punish and relocate mortal attackers. Use the
 ordinary Guild Guard procedure for new Luminari guild entrances.
 
+RoL Shaman Totem is object-owned and must be held or wielded. It permanently
+bonds one of 21 converted totem identities to a Cleric and its original object.
+Summoning unlocks at Cleric level 21, uses a Cleric-level and Wisdom success
+curve, permits three attempts per seven MUD days, and allows one active spirit.
+Converted source-race gating and corpse-free spirit deaths are preserved. The
+procedure and RoL-Totem-Spirit flag are converter-owned.
+
 The five RoL Ship procedures preserve seven converted fixed-interior ships. RoL
 Ship boards the hull with ENTER, RoL Ship Control handles panel instruments and
 ship orders, RoL Ship Exit and RoL Ship Lookout expose the exterior, and RoL Ship

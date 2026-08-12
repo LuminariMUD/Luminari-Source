@@ -678,9 +678,12 @@
 #define TRLX_PSN_SPELL_HIT 16 // poison weapon data for trelux
 #define CLOUD_K 17            /* cloud kill spells bursts remaining */
 #define C_TENACIOUS_PLAGUE 18 // tenacious plague
+#define CALL_ROL_TOTEM 19     /* converted RoL shaman totem choice */
+#define ROL_TOTEM_USES 20     /* converted RoL shaman totem uses in current window */
+#define ROL_TOTEM_WINDOW 21   /* converted RoL shaman totem window expiry, in MUD days */
 /* -- */
 /*---------------*/
-#define NUM_SPEC_ABIL 19
+#define NUM_SPEC_ABIL 22
 #define MAX_SPEC_ABIL MAX_CLASSES
 /* max = MAX_CLASSES right now, which was 30 last time i checked  */
 
@@ -1313,8 +1316,9 @@
 #define MOB_ROL_FADE_MOUNT 120     /**< RoL: conjured mount fades without a corpse */
 #define MOB_ROL_FADE_MONSTER 121   /**< RoL: conjured monster fades without a corpse */
 #define MOB_ROL_ANGEL 122          /**< RoL: preserves source angel identity */
+#define MOB_ROL_TOTEM_SPIRIT 123   /**< RoL: shaman totem spirit fades without a corpse */
 /**********************/
-#define NUM_MOB_FLAGS 123
+#define NUM_MOB_FLAGS 124
 /**********************/
 /**********************/
 

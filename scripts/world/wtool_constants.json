@@ -2733,6 +2733,13 @@
           "macro": "MOB_ROL_ANGEL",
           "name": "RoL-Angel",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 123,
+          "macro": "MOB_ROL_TOTEM_SPIRIT",
+          "name": "RoL-Totem-Spirit",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,
