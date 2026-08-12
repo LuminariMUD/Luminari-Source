@@ -2684,6 +2684,27 @@
           "macro": "MOB_ROL_AGGR_RACE_GOOD",
           "name": "RoL-Aggro-Good-Race",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 116,
+          "macro": "MOB_ROL_DEMON",
+          "name": "RoL-Demon",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 117,
+          "macro": "MOB_ROL_DEVIL",
+          "name": "RoL-Devil",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 118,
+          "macro": "MOB_ROL_UMBERHULK",
+          "name": "RoL-Umberhulk",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,

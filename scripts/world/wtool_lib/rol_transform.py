@@ -191,6 +191,24 @@ MOB_ACTION_EXPANSIONS = {
     27: frozenset({34}), # PROTECTOR also responds to adjacent combat
 }
 
+# The source attaches these procedures at boot from the authored race code,
+# independently of ACT_SPEC and any direct assignment-table procedures. Target
+# action flags route them through a composition-safe runtime hook.
+MOB_AUTOMATIC_RACE_ACTION = {
+    "X": 116,  # standardDemon
+    "Y": 117,  # standardDevil
+    "MH": 118, # standardUmberhulk
+}
+
+# Source initialization affects are prototype properties in the target. Its
+# individual elemental protections collapse to the target's aggregate
+# ELEMENT_PROT flag.
+MOB_AUTOMATIC_RACE_AFFECTS = {
+    "X": frozenset({11, 28}),
+    "Y": frozenset({11, 28}),
+    "MH": frozenset({28}),
+}
+
 # ACT_SPEC is implemented by the binding inventory in Phase 6. Emission adds
 # MOB_SPEC only when a resolved native/adapted procedure is supplied.
 MOB_DEFERRED_ACTIONS = frozenset({1})
@@ -1430,13 +1448,19 @@ def emit_mobile(
   source_affects = _source_mask_bits(affect_mask1, 1) | _source_mask_bits(
       affect_mask2, 33
   )
+  rows = record.values.get("base_rows", [])
+  race_row = rows[0] if len(rows) > 0 else ["N", "0", "0"]
+  race_code = race_row[0].upper() if race_row else "N"
   target_actions = _mapped_bits(source_actions, MOB_ACTION_MAP) | {3}
   for source_action, expanded_actions in MOB_ACTION_EXPANSIONS.items():
     if source_action in source_actions:
       target_actions.update(expanded_actions)
   if special_proc is not None:
     target_actions.add(0)
+  if race_code in MOB_AUTOMATIC_RACE_ACTION:
+    target_actions.add(MOB_AUTOMATIC_RACE_ACTION[race_code])
   target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
+  target_affects.update(MOB_AUTOMATIC_RACE_AFFECTS.get(race_code, ()))
   target_affects2 = _mapped_bits(source_affects, MOB_AFFECT2_MAP)
   missing_actions = sorted(
       source_actions
@@ -1472,8 +1496,6 @@ def emit_mobile(
     )
   lines.append(f"{_encoded(target_actions)} {_encoded(target_affects)} {alignment} E\n")
 
-  rows = record.values.get("base_rows", [])
-  race_row = rows[0] if len(rows) > 0 else ["N", "0", "0"]
   combat_row = rows[1] if len(rows) > 1 else ["1", "0", "0", "1d1+0", "1d1+0"]
   money_row = rows[2] if len(rows) > 2 else ["0", "0"]
   position_row = rows[3] if len(rows) > 3 else ["131", "131", "0", "0"]
@@ -1494,7 +1516,6 @@ def emit_mobile(
       if action in source_actions:
         target_class = inferred_class
         break
-  race_code = race_row[0].upper() if race_row else "N"
   target_race = RACE_CODE_MAP.get(race_code, 0)
   if race_code not in RACE_CODE_MAP:
     diagnostics.append(f"unknown source race code {race_code!r}; used target human")

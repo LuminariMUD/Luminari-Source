@@ -225,6 +225,34 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual({3, 4}, decode_tokens(mobile.affect2_flags).bits)
     self.assertIn("omitted source transient/inert mobile affects: [48]", emitted.diagnostics)
 
+  def test_emitted_mobile_persists_composable_automatic_race_behavior(self) -> None:
+    cases = {
+        "X": ({116}, {11, 28}),
+        "Y": ({117}, {11, 28}),
+        "MH": ({118}, {28}),
+    }
+    for race_code, (expected_actions, expected_affects) in cases.items():
+      with self.subTest(race_code=race_code):
+        source = self._source_record(
+            "mob",
+            (
+                "<*> File Version 1 <*>\n#300\nplanar mobile~\na planar mobile~\n"
+                "A planar mobile waits.\n~\nA planar mobile.\n~\n"
+                f"0 0 0 0 S\n{race_code} 0 0\n"
+                "10 0 50 2d8+5 1d4+1\n0 0\n131 131 0 0\n"
+            ).encode("ascii"),
+        )
+
+        emitted = emit_mobile(source, 2_000_300, special_proc="RoL Thief")
+        path = self._target_path("mob", emitted.text)
+        result = parse_mobile_file(path, "mob/20001.mob", self.manifest, set())
+
+        self.assertTrue(result.complete)
+        mobile = result.records[0]
+        self.assertTrue(expected_actions <= decode_tokens(mobile.action_flags).bits)
+        self.assertTrue(expected_affects <= decode_tokens(mobile.affect_flags).bits)
+        self.assertEqual("RoL Thief", mobile.spec_proc)
+
   def test_emitted_mobile_maps_all_action_dispositions_and_infers_primary_class(self) -> None:
     source_actions = (1, 4, 5, 13, 14, 16, 17, 19, 20, 21, 22, 23, 24, 26, 27, 29, 30, 32)
     action_mask = sum(1 << (flag - 1) for flag in source_actions)

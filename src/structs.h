@@ -1305,8 +1305,11 @@
 #define MOB_ROL_HAS_WA 113         /**< RoL: warrior mobile behavior role */
 #define MOB_ROL_AGGR_RACE_EVIL 114 /**< RoL: aggressive toward evil source races */
 #define MOB_ROL_AGGR_RACE_GOOD 115 /**< RoL: aggressive toward good source races */
+#define MOB_ROL_DEMON 116          /**< RoL: implicit standard demon behavior */
+#define MOB_ROL_DEVIL 117          /**< RoL: implicit standard devil behavior */
+#define MOB_ROL_UMBERHULK 118      /**< RoL: implicit standard umber-hulk behavior */
 /**********************/
-#define NUM_MOB_FLAGS 116
+#define NUM_MOB_FLAGS 119
 /**********************/
 /**********************/
 
@@ -7193,6 +7196,10 @@ struct mob_special_data
   /* Known spell slot system for mobs (max 2 slots per known spell, regenerate 1 per minute) */
   byte known_spell_slots[MAX_SPELLS]; /* Current slots per known spell (max 2) */
   time_t last_known_slot_regen;       /* Timestamp of last known spell slot regeneration */
+
+  time_t rol_gate_cooldown_until; /* RoL demon/devil gate-attempt cooldown */
+  time_t rol_gate_expire_at;      /* RoL gated-creature extraction deadline */
+  bool rol_gated_creature;        /* RoL gate result; cannot recursively gate */
 };
 
 /** An affect structure. */
