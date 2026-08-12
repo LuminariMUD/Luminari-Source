@@ -66,6 +66,7 @@ Phase 6 directional-item-blocker commit: acb858c1
 Phase 6 designated-follower commit: 9de8ed76
 Phase 6 floating-pool commit: e3600f16
 Phase 6 Bloodstone-portal commit: 2635c21c
+Phase 6 Waterdeep-guild-room commit: 08fcf107
 ```
 
 The authoritative ignored runs are:
@@ -162,6 +163,8 @@ Phase 6 floating pools: lib/rol-conversion/runs/phase6-special-20260812-floating
                         rol-phase6-special-c7ae6f16963a5f16
 Phase 6 Bloodstone portals: lib/rol-conversion/runs/phase6-special-20260812-bloodstone-portal
                             rol-phase6-special-f629c37b68cdad7d
+Phase 6 Waterdeep guild rooms: lib/rol-conversion/runs/phase6-special-20260812-waterdeep-guild
+                                  rol-phase6-special-667bf4274a2fd6dd
 Policy:  rol-conversion-policy-1
 ```
 
@@ -190,10 +193,10 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 278 tests; the production-linked CuTest suite passes 637;
+- The world-tool suite passes 279 tests; the production-linked CuTest suite passes 638;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Twenty-six bounded Phase 6 delivery sessions are archived. The measured remaining
-  forecast is 70-130 sessions: Phase 6 is 22-54, Phase 7 is 42-66, and Phase 8 is 6-10.
+- Twenty-seven bounded Phase 6 delivery sessions are archived. The measured remaining
+  forecast is 69-129 sessions: Phase 6 is 21-53, Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -327,18 +330,22 @@ Policy:  rol-conversion-policy-1
   `RoL Bloodstone Portal` procedure. Exact visible-object entry remaps each destination,
   applies target-safe admission, preserves mortal hit-point and movement stress, exempts
   staff, and retains the source's below-negative-ten death threshold.
+- All twelve active Waterdeep guild wrappers are complete through the named
+  `RoL Waterdeep Guild Room` procedure. Exact and family class gates use the target
+  multiclass model, accepted commands delegate to the current guild service, and the
+  source Mercenary gate maps explicitly to target Warrior.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 594 of 1,147 active direct bindings and 99 of
-  562 source handlers, leaving 553 bindings and 463 handlers. The independent
+- The current Phase 6 checkpoint resolves 606 of 1,147 active direct bindings and 111 of
+  562 source handlers, leaving 541 bindings and 451 handlers. The independent
   `ACT_SPEC` cross-check resolves 568 of 848 records and leaves 280 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 553 direct bindings by shared behavior family and
+1. Reconcile the remaining 541 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7

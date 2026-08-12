@@ -6,6 +6,61 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted Waterdeep guild rooms
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all twelve active `waterdeep_guild_one` through
+  `waterdeep_guild_twelve` room bindings with the persistent, room-owned
+  `RoL Waterdeep Guild Room` procedure.
+- Preserved each source wrapper's exact-class or class-family admission gate for
+  target rooms 2002956, 2003044, 2003061, 2003073, 2003289, 2005505, 2005512,
+  2005524, 2005537, 2005544, 2005568, and 2005581. Any matching class in a target
+  multiclass build is sufficient.
+- Delegated accepted `practice`, `train`, and `boosts` commands to the current target
+  guild service instead of restoring obsolete source practice mechanics. Unrelated
+  commands remain available to the room's ordinary command flow.
+- Adapted the source-only Mercenary guild at room 2005512 to the target Warrior class;
+  Paladin, Monk, Bard, Ranger, Druid, Rogue, mage-family, warrior-family, and
+  cleric-family rooms retain their corresponding target gates.
+- Registered the procedure and persistence/index contracts, taught the converter all
+  twelve canonical mappings, and updated builder help, database-first help, manual
+  testing, OLC inventories, converter fixtures, and characterization tests.
+- Reconciliation now resolves 606 of 1,147 active direct bindings and 111 of 562 source
+  handlers; 541 bindings and 451 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 568 resolved / 280 pending because these are room-owned bindings.
+- Archived the twenty-seventh bounded Phase 6 delivery session since the Phase 5
+  closeout. The forward-looking estimate is now 21-53 Phase 6 sessions and 69-129 total
+  sessions for Phases 6-8, or 138-516 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 08fcf107
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-waterdeep-guild
+Reconciliation run: rol-phase6-special-667bf4274a2fd6dd
+Active direct bindings: 1,147
+Direct bindings resolved: 606
+Direct bindings pending: 541
+Source handlers resolved: 111
+Source handlers pending: 451
+Waterdeep-guild bindings resolved: 12
+Native adapted bindings: 231
+ACT_SPEC records resolved: 568
+ACT_SPEC records pending: 280
+Complete world-tool suite: 279 passed
+Production-linked CuTest suite: 638 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Clean Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 541 direct bindings across 451 source handlers.
+
 ## 2026-08-12 - Phase 6 converted Bloodstone portals
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
