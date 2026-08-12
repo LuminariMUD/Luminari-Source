@@ -73,6 +73,7 @@ Phase 6 expanded-Waterdeep-ambient commit: 30132767
 Phase 6 generated source-periodic commit: c16e0fe9
 Phase 6 generated state-periodic commit: a67c1bfa
 Phase 6 cross-zone periodic expansion commit: 2844472f
+Phase 6 high-fanout special-adapter commit: 1108fb56
 ```
 
 The authoritative ignored runs are:
@@ -184,6 +185,9 @@ Phase 6 generated state periodic: lib/rol-conversion/runs/phase6-special-2026081
 Phase 6 cross-zone periodic expansion:
   lib/rol-conversion/runs/phase6-special-20260812-periodic-expansion
   rol-phase6-special-ebf492f80a4ac682
+Phase 6 high-fanout special adapters:
+  lib/rol-conversion/runs/phase6-special-20260812-high-fanout
+  rol-phase6-special-cedd3394da53d442
 Policy:  rol-conversion-policy-1
 ```
 
@@ -212,9 +216,9 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 290 tests; the production-linked CuTest suite passes 643;
+- The world-tool suite passes 291 tests; the production-linked CuTest suite passes 645;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Thirty-two bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Thirty-four bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
   shape exists. The measured remaining forecast is 55-90 sessions: Phase 6 is 7-14,
   Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -387,14 +391,14 @@ Policy:  rol-conversion-policy-1
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 812 of 1,147 active direct bindings and 291 of
-  562 source handlers, leaving 335 bindings and 271 handlers. The independent
-  `ACT_SPEC` cross-check resolves 738 of 848 records and leaves 110 pending.
+- The current Phase 6 checkpoint resolves 823 of 1,147 active direct bindings and 294 of
+  562 source handlers, leaving 324 bindings and 268 handlers. The independent
+  `ACT_SPEC` cross-check resolves 741 of 848 records and leaves 107 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 335 direct bindings across 271 handlers. Classify regular
+1. Reconcile the remaining 324 direct bindings across 268 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7

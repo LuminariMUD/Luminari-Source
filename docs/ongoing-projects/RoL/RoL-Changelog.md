@@ -6,6 +6,65 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 high-fanout special adapters
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed three source handler families and 11 active direct bindings selected from the
+  pending inventory by binding fan-out and compatible source shape.
+- Reused `RoL Alert Caller` for four Elemental Tower callers. Converted-VNUM profiles
+  preserve each caller's authored message, three designated helper identities,
+  same-zone helper checks, and once-per-fight behavior.
+- Added the object-owned `RoL Portal Door` for four converted portals. It preserves
+  `LOOK IN`, exact-object selection, destination remapping, the player level-20 gate,
+  good/evil race rejection, immortal bypass, arena-boundary parity, and room-visible
+  transport. Target destination safety replaces the source death-room extraction path,
+  and invalid destinations remain explicit staff-visible diagnostics.
+- Added the mobile-owned `RoL Fixed Bodyguard` for three Icecrag bodyguards. Converted
+  profiles preserve the exact protected-mobile assignments and rescue an assigned,
+  colocated mobile when it has an attacker.
+- Extended converter persistence, registry and OLC visibility, builder and database
+  help, manual testing, focused conversion checks, and production characterization.
+- Reconciliation now resolves 823 of 1,147 active direct bindings and 294 of 562 source
+  handlers; 324 bindings and 268 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 741 resolved / 107 pending.
+- Archived the thirty-fourth Phase 6 delivery session. The remaining irregularity keeps
+  the conservative 7-14 session Phase 6 envelope and the 55-90 session forecast for
+  Phases 6-8, or 110-360 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 1108fb56
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-high-fanout
+Reconciliation run: rol-phase6-special-cedd3394da53d442
+Active direct bindings: 1,147
+Direct bindings resolved: 823
+Direct bindings pending: 324
+Source handlers resolved: 294
+Source handlers pending: 268
+Additional handler families resolved: 3
+Additional direct bindings resolved: 11
+Native adapted bindings: 429
+Native adapted composable bindings: 131
+ACT_SPEC records resolved: 741
+ACT_SPEC records pending: 107
+Complete world-tool suite: 291 passed
+Focused conversion suite: 87 passed
+Production-linked CuTest suite: 645 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 324 direct bindings across 268 source handlers.
+The bulk classifier will keep prioritizing high-fanout compatible shapes, with focused
+checks inside each batch and full repository gates only at checkpoint boundaries.
+
 ## 2026-08-12 - Phase 6 cross-zone source-periodic expansion
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
