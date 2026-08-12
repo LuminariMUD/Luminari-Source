@@ -96,6 +96,7 @@ Phase 6 Lavatubes commit: 17013cd0
 Phase 6 named-guild/utility-object commit: a13f74f7
 Phase 6 residual-monster-combat commit: 2c44bf14
 Phase 6 residual-mobile-procedure commit: 0c545b1c
+Phase 6 called-effect object commit: c334a648
 ```
 
 The authoritative ignored runs are:
@@ -273,6 +274,9 @@ Phase 6 residual monster-combat procedures:
 Phase 6 residual mobile procedures:
   lib/rol-conversion/runs/phase6-special-20260812-residual-mobiles
   rol-phase6-special-c60c0d2b988fd49f
+Phase 6 called-effect objects:
+  lib/rol-conversion/runs/phase6-special-20260812-called-objects
+  rol-phase6-special-abe9fabc332abee0
 Policy:  rol-conversion-policy-2
 ```
 
@@ -301,9 +305,9 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 311 tests; the production-linked CuTest suite passes 657;
+- The world-tool suite passes 311 tests; the production-linked CuTest suite passes 658;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Fifty-four bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Fifty-five bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
   shape exists. The measured remaining forecast is 49-79 sessions: Phase 6 is 1-3,
   Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -571,18 +575,23 @@ Policy:  rol-conversion-policy-2
   without restoring unsafe direct state mutation. The assigned `clock_tower` object callback
   is separately source-inert: initialization returns no event bits, and the source tree has
   no separate clock-tower event registration.
+- Eight called-effect object handlers are complete through the existing typed `RoL Utility
+  Object` gateway. Exact source phrases, worn-item gates, instance cooldowns, target-native
+  spell mappings, combat targeting, a charmed basilisk-snake summon, and the Staff of Magius
+  light toggle are preserved through identity profiles. Item identification now exposes each
+  invocation contract without adding a registry definition or changing persistence.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,085 of 1,147 active direct bindings and 512 of
-  562 source handlers, leaving 62 bindings and 50 handlers. The independent `ACT_SPEC`
+- The current Phase 6 checkpoint resolves 1,093 of 1,147 active direct bindings and 520 of
+  562 source handlers, leaving 54 bindings and 42 handlers. The independent `ACT_SPEC`
   cross-check resolves 824 of 848 records and leaves 24 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 62 direct bindings across 50 handlers. Classify regular
+1. Reconcile the remaining 54 direct bindings across 42 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
@@ -594,18 +603,18 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Completed and pushed implementation commit `0c545b1c`, resolving seven residual mobile
-  handlers and 13 active bindings through 13 new `RoL Monster Combat` identity profiles,
-  plus one source-inert `clock_tower` binding.
-- Preserved delayed vanishing, ambient and combat speech, social activity, faerie theft,
-  cast interception, counterstrikes, and ancient-brownie combat through target-safe event,
-  damage, immunity, and casting paths. Added converter dispositions, required `MOB_SPEC`
-  flags, profile coverage, and explicit reconciliation tests.
-- Ran all 311 world-tool tests and all 657 production-linked CuTests. The warning-free
+- Completed and pushed implementation commit `c334a648`, resolving eight called-effect object
+  handlers and eight active bindings through identity profiles in the existing typed `RoL
+  Utility Object` gateway.
+- Preserved exact spoken invocations, worn-item validation, source cooldowns, target-native
+  spell effects, safe combat-target invalidation, the charmed basilisk-snake summon, the Staff
+  of Magius light toggle, and identify-time usage text. Added converter dispositions, profile
+  coverage, an identify-event registry contract, and a behavior regression.
+- Ran all 311 world-tool tests and all 658 production-linked CuTests. The warning-free
   `make test && make install` gate passed and removed the root-level `circle` artifact;
   the documentation checker reported zero findings.
 - Regenerated and hash-verified the ignored Phase 6 ledger as
-  `rol-phase6-special-c60c0d2b988fd49f`; it records zero live target writes and the
-  1,085/62 direct-binding, 512/50 handler, and 824/24 `ACT_SPEC` split.
+  `rol-phase6-special-abe9fabc332abee0`; it records zero live target writes and the
+  1,093/54 direct-binding, 520/42 handler, and 824/24 `ACT_SPEC` split.
 - Unresolved blockers: none. Continue by grouping the largest compatible remaining
   irregular mechanics into another dependency-complete shared typed batch.

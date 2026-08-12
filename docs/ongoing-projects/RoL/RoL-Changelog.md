@@ -6,6 +6,65 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 called-effect object batch
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Converted eight called-effect object handlers through the existing typed, object-owned
+  `RoL Utility Object` gateway. Identity profiles keep all behavior behind the single existing
+  registry and persistence name.
+- Preserved exact, case-sensitive source phrases; worn-item validation; 24-, 48-, and 72-hour
+  instance cooldowns; target-native spell effects; combat target validation; and the Staff of
+  Magius `shirak` and `dulak` light toggle.
+- Preserved the basilisk legging stoneskin, charmed basilisk-snake summon, Dragon Cult elemental
+  protection, Earthmother random elemental aid, Tyr favor, Ashentoris combat aid, and haste
+  sleeves. Summon ownership is complete before load triggers that may extract the mobile.
+- Extended item identification for this gateway so each converted item describes its invocation
+  and cooldown. No registry definition, persisted procedure name, or storage schema was added.
+- Added converter dispositions, exact reconciliation expectations, profile coverage, registry
+  event-contract coverage, and a production-linked light-toggle behavior regression.
+- Reconciliation now resolves 1,093 of 1,147 active direct bindings and 520 of 562 source
+  handlers; 54 bindings and 42 handlers remain. The independent `ACT_SPEC` checkpoint remains
+  824 resolved / 24 pending.
+- Archived the fifty-fifth Phase 6 delivery session. The remaining Phase 6 envelope remains
+  1-3 sessions, leaving the Phases 6-8 forecast at 49-79 sessions, or 98-316 focused engineering
+  hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: c334a648
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-called-objects
+Reconciliation run: rol-phase6-special-abe9fabc332abee0
+Active direct bindings: 1,147
+Direct bindings resolved: 1,093
+Direct bindings pending: 54
+Source handlers resolved: 520
+Source handlers pending: 42
+Additional handler families resolved: 8
+Additional direct bindings resolved: 8
+Native adapted bindings: 636
+Native adapted composable bindings: 159
+Source-inert excluded bindings: 25
+ACT_SPEC records resolved: 824
+ACT_SPEC records pending: 24
+Special registry definitions: 107 total / 95 legacy / 12 typed
+Compatibility names: 108
+Complete world-tool suite: 311 passed
+Production-linked CuTest suite: 658 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 54 direct bindings across 42 source handlers. Continue
+grouping compatible irregular mechanics behind shared typed gateways, and preserve the full
+build/test/install gate at each substantial commit boundary.
+
 ## 2026-08-12 - Phase 6 residual mobile-procedure batch
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
