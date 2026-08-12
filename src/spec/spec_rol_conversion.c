@@ -51,6 +51,8 @@
 #define ROL_GITH_CHARGE_TIMER_SLOT 3
 #define ROL_HALRUAA_PRISMATIC_HELPER_VNUM 2053264
 #define ROL_KOR_SEVERED_HEAD_VNUM 2001058
+#define ROL_LICH_RITE_FIRST_OFFERING_VNUM 2089471
+#define ROL_LICH_RITE_SECOND_OFFERING_VNUM 2046999
 #define ROL_WEAPON_CALLED_COOLDOWN_HOURS 72
 #define ROL_NEWBIE_LOAD_ROOM_VNUM 2000101
 #define ROL_NEWBIE_GOOD_DESTINATION_VNUM 2023000
@@ -3582,6 +3584,155 @@ int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *a
 
   /* The source callback deliberately allows the ordinary NPC action to continue. */
   return FALSE;
+}
+
+static const char rol_lich_rite_message[] =
+    "With a voice as cold as ice, the figure whispers into your ear '\tLImmortality\r\n"
+    "\tLis what you seek, Immortality is what you shall have. You are a fool and will\r\n"
+    "\tLcurse this day for all eternity, but you have proven yourself resourceful,\tn\r\n"
+    "\tLevil, and ruthless. Henceforth all will despise you on sight and run from you\r\n"
+    "\tLin terror. Children will have nightmares about you, and armed men will hunt\r\n"
+    "\tLyou down in your places of hiding. Your flesh will rot from your bones, and\r\n"
+    "\tLonly undead creatures will be comfortable in your horrid presence.\tn'\r\n\r\n"
+    "'\tLMost importantly you will lose your soul and all semblances of mercy,\r\n"
+    "\tLcharity, joy, pleasure, and the ability to love. May the dark gods laugh at\r\n"
+    "\tLyour plight, and may you ever recall this day with terror.\tn'\r\n\r\n"
+    "\trThe demi-lich rises high above you and plunges the dagger into your breast.\r\n"
+    "\trHe holds you tightly with an ethereal hand and twists the dagger deeper into\r\n"
+    "\tryour chest as you feel all heat draining from your body in a rush. A horrid\r\n"
+    "\trsound assails your ears, and you finally realize it is your own screaming as\r\n"
+    "\tryou begin to slowly die. Your last mortal image is that of a dark shadow\r\n"
+    "\trlaughing in derision as your vision tunnels to nothingness.\r\n\r\n"
+    "\tLYou awake to the sensation of your flesh melting off of your torso and limbs,\r\n"
+    "\tLand your eyes falling out of your head. Your armor and clothing shifts and\r\n"
+    "\tLa foul stench fills what is left of your nostrils. Your vision begins to\r\n"
+    "\tLreturn with a dim purple glow, and you feel a new strength filling the\r\n"
+    "\tLremains of your body. You feel a sudden overwhelming sense of loss and\r\n"
+    "\tLrealize that you are now a lich, damned to immortality and misery...\tn\r\n\r\n";
+
+static struct obj_data *rol_lich_rite_find_offering(struct char_data *keeper, obj_vnum vnum)
+{
+  struct obj_data *obj;
+  int wear;
+
+  if (keeper == NULL)
+    return NULL;
+
+  for (wear = 0; wear < NUM_WEARS; wear++)
+    if ((obj = GET_EQ(keeper, wear)) != NULL && GET_OBJ_VNUM(obj) == vnum)
+      return obj;
+
+  for (obj = keeper->carrying; obj != NULL; obj = obj->next_content)
+    if (GET_OBJ_VNUM(obj) == vnum)
+      return obj;
+
+  return NULL;
+}
+
+enum rol_lich_rite_status rol_lich_rite_requirements(const struct char_data *ch,
+                                                     struct char_data *keeper,
+                                                     struct obj_data **first_offering,
+                                                     struct obj_data **second_offering)
+{
+  struct obj_data *first = NULL;
+  struct obj_data *second = NULL;
+
+  if (first_offering != NULL)
+    *first_offering = NULL;
+  if (second_offering != NULL)
+    *second_offering = NULL;
+  if (ch == NULL || keeper == NULL || ch->player_specials == NULL || IS_NPC(ch) || !IS_NPC(keeper))
+    return ROL_LICH_RITE_INVALID;
+  if (CLASS_LEVEL(ch, CLASS_NECROMANCER) <= 0)
+    return ROL_LICH_RITE_WRONG_CLASS;
+  if (GET_LEVEL(ch) != LVL_IMMORT - 1)
+    return ROL_LICH_RITE_INELIGIBLE_LEVEL;
+  if (GROUP(ch) != NULL || ch->master != NULL || ch->followers != NULL)
+    return ROL_LICH_RITE_UNSAFE_FOLLOWERS;
+
+  first = rol_lich_rite_find_offering(keeper, ROL_LICH_RITE_FIRST_OFFERING_VNUM);
+  second = rol_lich_rite_find_offering(keeper, ROL_LICH_RITE_SECOND_OFFERING_VNUM);
+  if (first == NULL || second == NULL)
+    return ROL_LICH_RITE_MISSING_OFFERINGS;
+
+  if (first_offering != NULL)
+    *first_offering = first;
+  if (second_offering != NULL)
+    *second_offering = second;
+  return ROL_LICH_RITE_READY;
+}
+
+static void rol_lich_rite_transform(struct char_data *ch)
+{
+  struct descriptor_data *descriptor;
+
+  GET_REAL_RACE(ch) = RACE_LICH;
+  respec_engine(ch, CLASS_WIZARD, NULL, TRUE);
+  GET_EXP(ch) = 0;
+  GET_ALIGNMENT(ch) = -1000;
+
+  for (descriptor = descriptor_list; descriptor != NULL; descriptor = descriptor->next)
+  {
+    if (!IS_PLAYING(descriptor) || descriptor->character == NULL || descriptor->character == ch)
+      continue;
+    send_to_char(descriptor->character,
+                 "\tL%s's \tWlife force\tL is ripped apart. %s becomes a \tYLICH\tn!\r\n",
+                 GET_NAME(ch), GET_NAME(ch));
+  }
+
+  send_to_char(ch, "\tLYour \tWlife force\tL is ripped apart, and your body becomes a vessel "
+                   "for your power.\tn\r\n"
+                   "You are now a \tLLICH\tn!\r\n");
+  log("RoL conversion: %s completed the lich rite", GET_NAME(ch));
+  save_char(ch, 1);
+}
+
+int rol_lich_rite(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *keeper = me;
+  struct obj_data *first_offering;
+  struct obj_data *second_offering;
+  enum rol_lich_rite_status status;
+
+  if (ch == NULL || keeper == NULL || cmd <= 0 || argument == NULL ||
+      (!CMD_IS("say") && !CMD_IS("'")))
+    return FALSE;
+
+  skip_spaces_c(&argument);
+  if (strcmp(argument, "immortality"))
+    return FALSE;
+
+  status = rol_lich_rite_requirements(ch, keeper, &first_offering, &second_offering);
+  switch (status)
+  {
+  case ROL_LICH_RITE_WRONG_CLASS:
+    send_to_char(ch, "Immortality you want? Death you will get...\r\n");
+    hit(keeper, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+    return TRUE;
+  case ROL_LICH_RITE_INELIGIBLE_LEVEL:
+    send_to_char(ch, "Come back later, when you are truly worthy...\r\n");
+    return TRUE;
+  case ROL_LICH_RITE_UNSAFE_FOLLOWERS:
+    send_to_char(ch, "You cannot complete the rite while grouped, following someone, or leading "
+                     "followers. Leave your group and dismiss your followers first.\r\n");
+    return TRUE;
+  case ROL_LICH_RITE_MISSING_OFFERINGS:
+    send_to_char(ch, "Bring me the things I requested, then we will talk again...\r\n");
+    return TRUE;
+  case ROL_LICH_RITE_READY:
+    break;
+  case ROL_LICH_RITE_INVALID:
+  default:
+    log("SYSERR: RoL lich rite received an invalid actor or keeper");
+    return FALSE;
+  }
+
+  extract_obj(first_offering);
+  extract_obj(second_offering);
+  extract_char(keeper);
+  send_to_char(ch, "%s", rol_lich_rite_message);
+  rol_lich_rite_transform(ch);
+  return TRUE;
 }
 
 static struct obj_data *rol_bandit_owned_wagon(struct char_data *ch)

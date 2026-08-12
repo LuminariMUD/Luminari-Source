@@ -52,6 +52,16 @@ enum rol_scheduled_naval_branch
   ROL_SCHEDULED_NAVAL_FIGHTING
 };
 
+enum rol_lich_rite_status
+{
+  ROL_LICH_RITE_INVALID = 0,
+  ROL_LICH_RITE_WRONG_CLASS,
+  ROL_LICH_RITE_INELIGIBLE_LEVEL,
+  ROL_LICH_RITE_UNSAFE_FOLLOWERS,
+  ROL_LICH_RITE_MISSING_OFFERINGS,
+  ROL_LICH_RITE_READY
+};
+
 int rol_corpse_devourer(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_poison_bite(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_thief(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -75,6 +85,7 @@ int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argumen
 int rol_guild_guard_typed(struct spec_event_context *context);
 int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_lich_rite(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_sister_knight(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_alert_caller(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -132,6 +143,10 @@ bool rol_lich_energy_drain_together(const struct char_data *candidate,
 int rol_lich_energy_drain_victim_hit(int current_hit, bool death_warded);
 int rol_lich_energy_drain_healer_hit(int current_hit, int drained_hit, bool blackmantled);
 long rol_lich_energy_drain_stun_duration(long remaining);
+enum rol_lich_rite_status rol_lich_rite_requirements(const struct char_data *ch,
+                                                     struct char_data *keeper,
+                                                     struct obj_data **first_offering,
+                                                     struct obj_data **second_offering);
 int rol_bandit_cargo_value(struct char_data *ch);
 int rol_bandit_fee_gold(int target_vnum, int cargo_value, int alignment, int carried_gold);
 bool rol_sister_knight_vnum(int vnum);

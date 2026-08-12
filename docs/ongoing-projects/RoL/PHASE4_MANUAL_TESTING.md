@@ -520,6 +520,22 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   totem prototype is unavailable, the restorer must remain and the player must receive a staff
   escalation message.
 
+### Phase 6 converted lich rite
+
+- Converted mobiles 2000009 and 2046990 own `RoL Lich Rite` and retain `MOB_SPEC`. Give either
+  keeper converted objects 2089471 and 2046999, using one carried and one worn offering to cover
+  both source locations. With an ungrouped level-30 Necromancer, enter the exact lowercase phrase
+  `say immortality` and confirm the full source rite narrative appears.
+- Confirm both offerings and the keeper disappear only after both offerings validate. The player
+  must become the target Lich race, rebuild as a Wizard through the normal respec path, have zero
+  experience and -1000 alignment, retain the target Lich size, and save the resulting state.
+- Repeat while one offering is absent. Also repeat while grouped, following another character, or
+  leading a follower. Every attempt must refuse without consuming either available offering or the
+  keeper. An uppercase `say Immortality` must not trigger the source case-sensitive phrase.
+- Repeat with a non-Necromancer and confirm the keeper attacks. Repeat below level 30 and confirm
+  the keeper refuses without attacking or consuming anything. Do not perform this irreversible
+  walkthrough on a persistent character that should retain its current build.
+
 ### Phase 6 converted Sister Knights
 
 - `RoL Sister Knight` is implemented for all five active source bindings in the

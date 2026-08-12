@@ -2197,6 +2197,40 @@ class RolTransformTests(unittest.TestCase):
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
     )
 
+  def test_lich_rite_bindings_require_mobile_spec_and_share_adapter(self) -> None:
+    bindings = [
+        {
+            "basename": "misc_code",
+            "record_type": "mobile",
+            "source_vnum": 9,
+            "source_handler": "lichConverter",
+        },
+        {
+            "basename": "necro",
+            "record_type": "mobile",
+            "source_vnum": 46990,
+            "source_handler": "lichConverter",
+        },
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(2, len(compiled.native_bindings))
+    self.assertTrue(
+        all(binding.persisted_name == "RoL Lich Rite" for binding in compiled.native_bindings)
+    )
+    self.assertTrue(
+        all(binding.required_flag_bits == (0,) for binding in compiled.native_bindings)
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_shaman_totem_and_spirit_death_bindings_share_converted_identity(self) -> None:
     bindings = [
         {

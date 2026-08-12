@@ -37,7 +37,7 @@ struct spec_mechanics_fixture
   struct room_data rooms[2];
   struct zone_data zones[1];
   struct index_data mobile_indexes[2];
-  struct index_data object_indexes[1];
+  struct index_data object_indexes[2];
   struct char_data actor;
   struct char_data target;
   struct obj_data worn;
@@ -97,6 +97,7 @@ static void spec_mechanics_begin(struct spec_mechanics_fixture *fixture)
   fixture->mobile_indexes[0].vnum = 6200;
   fixture->mobile_indexes[1].vnum = 6201;
   fixture->object_indexes[0].vnum = 6300;
+  fixture->object_indexes[1].vnum = 6301;
 
   world = fixture->rooms;
   zone_table = fixture->zones;
@@ -105,7 +106,7 @@ static void spec_mechanics_begin(struct spec_mechanics_fixture *fixture)
   top_of_world = 1;
   top_of_zone_table = 0;
   top_of_mobt = 1;
-  top_of_objt = 0;
+  top_of_objt = 1;
 
   spec_mechanics_initialize_npc(&fixture->actor, "special mechanic actor", 0);
   spec_mechanics_initialize_npc(&fixture->target, "special mechanic target", 0);
@@ -2228,6 +2229,79 @@ void Test_spec_rol_shaman_totem_preserves_identity_gating_and_usage(CuTest *tc)
   SET_BIT_AR(MOB_FLAGS(actor), MOB_ROL_TOTEM_SPIRIT);
   CuAssertTrue(tc, rol_handle_conjured_death(actor));
 
+  complete_cmd_info = saved_complete_cmd_info;
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_lich_rite_validates_irreversible_conversion_preflight(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct player_special_data player_specials;
+  struct command_info commands[2];
+  struct command_info *saved_complete_cmd_info;
+  struct char_data *actor;
+  struct char_data *keeper;
+  struct obj_data *first_offering;
+  struct obj_data *second_offering;
+
+  spec_mechanics_begin(&fixture);
+  actor = &fixture.actor;
+  keeper = &fixture.target;
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(commands, 0, sizeof(commands));
+  commands[1].command = "say";
+  saved_complete_cmd_info = complete_cmd_info;
+  complete_cmd_info = commands;
+  REMOVE_BIT_AR(MOB_FLAGS(actor), MOB_ISNPC);
+  actor->player_specials = &player_specials;
+
+  first_offering = &fixture.worn;
+  second_offering = &fixture.copy;
+  CuAssertIntEquals(tc, ROL_LICH_RITE_INVALID,
+                    rol_lich_rite_requirements(NULL, keeper, &first_offering, &second_offering));
+  CuAssertTrue(tc, first_offering == NULL);
+  CuAssertTrue(tc, second_offering == NULL);
+  CuAssertIntEquals(tc, ROL_LICH_RITE_WRONG_CLASS,
+                    rol_lich_rite_requirements(actor, keeper, NULL, NULL));
+
+  CLASS_LEVEL(actor, CLASS_NECROMANCER) = 1;
+  CuAssertIntEquals(tc, ROL_LICH_RITE_INELIGIBLE_LEVEL,
+                    rol_lich_rite_requirements(actor, keeper, NULL, NULL));
+  GET_LEVEL(actor) = LVL_IMMORT - 1;
+  actor->master = keeper;
+  CuAssertIntEquals(tc, ROL_LICH_RITE_UNSAFE_FOLLOWERS,
+                    rol_lich_rite_requirements(actor, keeper, NULL, NULL));
+  actor->master = NULL;
+  CuAssertIntEquals(tc, ROL_LICH_RITE_MISSING_OFFERINGS,
+                    rol_lich_rite_requirements(actor, keeper, NULL, NULL));
+  CuAssertIntEquals(tc, FALSE, rol_lich_rite(actor, keeper, 1, "something else"));
+  CuAssertIntEquals(tc, FALSE, rol_lich_rite(actor, keeper, 1, "Immortality"));
+  CuAssertIntEquals(tc, TRUE, rol_lich_rite(actor, keeper, 1, " immortality"));
+  CuAssertTrue(tc, !MOB_FLAGGED(keeper, MOB_NOTDEADYET));
+
+  fixture.object_indexes[0].vnum = 2089471;
+  fixture.object_indexes[1].vnum = 2046999;
+  GET_OBJ_RNUM(&fixture.worn) = 0;
+  GET_OBJ_RNUM(&fixture.copy) = 1;
+  GET_EQ(keeper, WEAR_HOLD_1) = &fixture.worn;
+  fixture.worn.worn_by = keeper;
+  fixture.worn.worn_on = WEAR_HOLD_1;
+  keeper->carrying = &fixture.copy;
+  fixture.copy.carried_by = keeper;
+
+  first_offering = NULL;
+  second_offering = NULL;
+  CuAssertIntEquals(tc, ROL_LICH_RITE_READY,
+                    rol_lich_rite_requirements(actor, keeper, &first_offering, &second_offering));
+  CuAssertPtrEquals(tc, &fixture.worn, first_offering);
+  CuAssertPtrEquals(tc, &fixture.copy, second_offering);
+
+  GET_EQ(keeper, WEAR_HOLD_1) = NULL;
+  fixture.worn.worn_by = NULL;
+  keeper->carrying = NULL;
+  fixture.copy.carried_by = NULL;
+  actor->player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(actor), MOB_ISNPC);
   complete_cmd_info = saved_complete_cmd_info;
   spec_mechanics_end(&fixture);
 }

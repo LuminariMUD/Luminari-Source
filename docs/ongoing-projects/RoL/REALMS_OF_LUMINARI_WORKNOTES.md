@@ -297,6 +297,9 @@ Phase 6 Menden fisherman:
 Phase 6 lost totem restorer:
   lib/rol-conversion/runs/phase6-special-20260812-totem-restorer
   rol-phase6-special-9139221a800d60a0
+Phase 6 lich rite:
+  lib/rol-conversion/runs/phase6-special-20260812-lich-rite
+  rol-phase6-special-ded69599851e733e
 Policy:  rol-conversion-policy-2
 ```
 
@@ -636,18 +639,23 @@ Policy:  rol-conversion-policy-2
   level-21 and saved-choice gates, source-equivalent 10,000-gold payment, exact persistent totem
   identity, and character binding. The helper is consumed only after the mapped object validates
   and loads.
+- Both active `lichConverter` bindings are complete through the builder-visible `RoL Lich Rite`
+  mobile procedure. It preserves the exact case-sensitive phrase, Necromancer and maximum-mortal
+  gates, both keeper-held offerings, the full rite narrative, and helper consumption. Equipped
+  offerings now retain safe concrete pointers, and the irreversible transformation uses the
+  target's established no-group/follower preflight and Lich-to-Wizard respec contract.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,109 of 1,147 active direct bindings and 536 of
-  562 source handlers, leaving 38 bindings and 26 handlers. The independent `ACT_SPEC`
-  cross-check resolves 828 of 848 records and leaves 20 pending.
+- The current Phase 6 checkpoint resolves 1,111 of 1,147 active direct bindings and 537 of
+  562 source handlers, leaving 36 bindings and 25 handlers. The independent `ACT_SPEC`
+  cross-check resolves 829 of 848 records and leaves 19 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 38 direct bindings across 26 handlers. Classify regular
+1. Reconcile the remaining 36 direct bindings across 25 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
@@ -659,20 +667,19 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Completed and pushed implementation commit `3f773d78`, resolving the Outpost
-  `lostTotemRestorer` binding through `RoL Totem Restorer` in the existing totem subsystem.
-- Preserved the exact phrase, established Cleric mapping, level and persistent-choice gates,
-  source-equivalent payment, exact totem identity, player binding, and helper consumption order.
-  The converter also enforces `MOB_SPEC` for the persisted mobile procedure.
-- Ran all 315 world-tool tests and all 660 production-linked CuTests. The warning-free
-  `make test && make install` gate passed and removed the root-level `circle` artifact;
-  the documentation checker reported zero findings.
+- Completed the two active `lichConverter` bindings through the new `RoL Lich Rite` procedure;
+  the checkpoint commit and push follow this worknote update.
+- Preserved the exact lowercase phrase, mapped maximum-mortal and Necromancer gates, two converted
+  offerings, source narrative, and helper consumption. Both offerings validate before mutation,
+  including when worn, and the irreversible change uses the target's established Lich race,
+  Wizard respec, zero-experience, evil-alignment, and no-group/follower contract.
+- Ran all 316 world-tool tests and all 661 production-linked CuTests. The warning-free
+  `make test && make install` gate passed and removed the root-level `circle` artifact.
 - Regenerated and hash-verified the ignored Phase 6 ledger as
-  `rol-phase6-special-9139221a800d60a0`; it records zero live target writes and the
-  1,109/38 direct-binding, 536/26 handler, and 828/20 `ACT_SPEC` split.
-- Traced the short transformation/restoration candidates before implementation. Wolfsbane and
-  lycan infection require a persistent lycanthropy state the target does not have; tithe requires
-  a defined source-prestige mapping; lich conversion requires a reviewed irreversible respec
-  contract. None were represented by lossy stand-ins.
+  `rol-phase6-special-ded69599851e733e`; it records zero live target writes and the
+  1,111/36 direct-binding, 537/25 handler, and 829/19 `ACT_SPEC` split.
+- Remaining short candidates still need dependency-complete mechanics: wolfsbane and lycan
+  infection lack target persistent lycanthropy state, while tithe lacks a defined prestige map.
+  No lossy stand-in was introduced.
 - Unresolved blockers: none. Continue with another dependency-complete family, retaining the
   accelerated focused-check-per-batch and full-gate-per-published-checkpoint cadence.

@@ -1308,6 +1308,20 @@ static const struct spec_definition spec_definitions[] = {
         .legacy_handler = rol_lich_energy_drain,
     },
     {
+        .canonical_name = "RoL Lich Rite",
+        .display_name = "RoL Lich Rite",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description =
+            "Consumes the converted offerings and safely rebuilds a level-30 Necromancer as a "
+            "Lich.",
+        .legacy_handler = rol_lich_rite,
+    },
+    {
         .canonical_name = "RoL Undead Drain",
         .display_name = "RoL Undead Drain",
         .owner_mask = SPEC_OWNER_MOBILE,
@@ -1692,6 +1706,7 @@ enum
   SPEC_DEFINITION_ROL_MAJOR_BEHOLDER,
   SPEC_DEFINITION_ROL_MONSTER_COMBAT,
   SPEC_DEFINITION_ROL_LICH_ENERGY_DRAIN,
+  SPEC_DEFINITION_ROL_LICH_RITE,
   SPEC_DEFINITION_ROL_UNDEAD_DRAIN,
   SPEC_DEFINITION_ROL_TRADE_BANDIT,
   SPEC_DEFINITION_ROL_SISTER_KNIGHT,
@@ -1816,6 +1831,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_MAJOR_BEHOLDER, -1},
     {SPEC_DEFINITION_ROL_MONSTER_COMBAT, -1},
     {SPEC_DEFINITION_ROL_LICH_ENERGY_DRAIN, -1},
+    {SPEC_DEFINITION_ROL_LICH_RITE, -1},
     {SPEC_DEFINITION_ROL_UNDEAD_DRAIN, -1},
     {SPEC_DEFINITION_ROL_TRADE_BANDIT, -1},
     {SPEC_DEFINITION_ROL_SISTER_KNIGHT, -1},

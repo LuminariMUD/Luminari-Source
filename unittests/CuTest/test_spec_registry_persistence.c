@@ -495,6 +495,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Major Beholder",
                                                "RoL Monster Combat",
                                                "RoL Lich Energy Drain",
+                                               "RoL Lich Rite",
                                                "RoL Undead Drain",
                                                "RoL Trade Bandit",
                                                "RoL Sister Knight",
@@ -522,7 +523,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 111, expected_count);
+  CuAssertIntEquals(tc, 112, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)

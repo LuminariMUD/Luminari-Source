@@ -164,6 +164,15 @@ points unless Blackmantled, and each drain adds two combat rounds of stun. The c
 not fire while the lich is casting. Use this converter-owned procedure only for the converted
 `lich_energy_drain` family.
 
+`RoL Lich Rite` is mobile-owned and requires `MOB_SPEC`. Converted mobiles 2000009 and 2046990
+intercept the exact lowercase phrase `say immortality`. A level-30 player with at least one
+Necromancer level may complete the rite only while ungrouped, neither following nor leading, and
+only when the keeper carries or wears converted offerings 2089471 and 2046999. Both offerings are
+validated before either is consumed. A successful rite consumes the offerings and keeper, changes
+the player to the target Lich race, rebuilds the character as a Wizard through the established
+safe-respec path, clears experience, and sets evil alignment. Do not assign this irreversible,
+converter-owned procedure to unrelated mobiles.
+
 `RoL Trade Bandit` is mobile-owned and requires `MOB_SPEC`. It intercepts movement, `flee`, and
 `get` for a merchant carrying converted resources or owning a loaded wagon, then applies one of
 seven converter-owned toll personalities. Source platinum tolls use ten target gold per platinum;
