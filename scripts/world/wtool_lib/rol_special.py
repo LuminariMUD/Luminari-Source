@@ -295,6 +295,13 @@ ADAPTED_HANDLER_NAMES = {
     "robyn_summon_wisp": "RoL Monster Combat",
     "tako_demon": "RoL Monster Combat",
     "werewolf_lycan": "RoL Monster Combat",
+    "av_vanish": "RoL Monster Combat",
+    "beavis": "RoL Monster Combat",
+    "butthead": "RoL Monster Combat",
+    "faerie": "RoL Monster Combat",
+    "finn": "RoL Monster Combat",
+    "ilshazone_roll_with_it": "RoL Monster Combat",
+    "wr_ancientBrownie": "RoL Monster Combat",
 }
 ADAPTED_HANDLER_NAMES.update(
     {handler_name: "RoL Source Periodic" for handler_name in PROFILE_SOURCES}
@@ -314,6 +321,10 @@ INERT_HANDLERS = {
         "initialization call; the separate disease callback is not an object binding"
     ),
     "cityguard": "source cityguard callback returns before its obsolete aggression code",
+    "clock_tower": (
+        "direct object callback returns no event bits during initialization; the source tree "
+        "contains no separate clock-tower event registration"
+    ),
     "craine_serpent": (
         "source callback never parses its encoded call type, so initialization registers no "
         "command, weapon-hit, periodic, or identify events"

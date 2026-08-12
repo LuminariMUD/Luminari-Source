@@ -1630,11 +1630,13 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
 void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
 {
   static const int vnums[] = {
-      150772,  196007,  196013,  196027,  196040,  196076,  2000325, 2000326, 2000327, 2000328,
-      2000525, 2001407, 2001436, 2001437, 2004070, 2004480, 2004530, 2005023, 2012005, 2012006,
-      2012024, 2012025, 2012026, 2014026, 2014601, 2014605, 2015113, 2015125, 2019701, 2019750,
-      2020378, 2026225, 2026238, 2026241, 2026242, 2026243, 2034833, 2041900, 2043358, 2045116,
-      2045146, 2045182, 2051246, 2051333, 2051334, 2053264, 2053265, 2053266, 2062401, 2062402,
+      150772,  196007,  196013,  196027,  196040,  196076,  2000325, 2000326, 2000327,
+      2000328, 2000525, 2001228, 2001229, 2001407, 2001436, 2001437, 2004070, 2004480,
+      2004530, 2005023, 2005718, 2012005, 2012006, 2012024, 2012025, 2012026, 2014015,
+      2014026, 2014029, 2014601, 2014605, 2015113, 2015125, 2019701, 2019750, 2020247,
+      2020378, 2026208, 2026216, 2026225, 2026236, 2026238, 2026241, 2026242, 2026243,
+      2026244, 2026245, 2034833, 2041900, 2043358, 2045116, 2045146, 2045182, 2051246,
+      2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401, 2062402,
       2062405, 2062406, 2081706, 2081746, 2081747, 2083224, 2092608, 2097061,
   };
   const char *description;
@@ -1666,6 +1668,26 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertTrue(tc, rol_monster_combat_profile(2026238, &denominator, &description));
   CuAssertIntEquals(tc, 4, denominator);
   CuAssertTrue(tc, !rol_monster_combat_profile(9999999, NULL, NULL));
+}
+
+void Test_spec_rol_residual_mobile_profiles_cover_converted_bindings(CuTest *tc)
+{
+  static const int vnums[] = {
+      2001228, 2001229, 2005718, 2014015, 2014029, 2020247, 2026208,
+      2026216, 2026236, 2026244, 2026245, 2059815, 2059835,
+  };
+  const char *description;
+  size_t index;
+
+  CuAssertIntEquals(tc, (int)(sizeof(vnums) / sizeof(vnums[0])),
+                    (int)rol_residual_mobile_profile_count());
+  for (index = 0; index < sizeof(vnums) / sizeof(vnums[0]); index++)
+  {
+    description = NULL;
+    CuAssertTrue(tc, rol_residual_mobile_profile(vnums[index], &description));
+    CuAssertPtrNotNull(tc, description);
+  }
+  CuAssertTrue(tc, !rol_residual_mobile_profile(9999999, NULL));
 }
 
 void Test_spec_rol_bloodstone_critter_preserves_social_cadence(CuTest *tc)

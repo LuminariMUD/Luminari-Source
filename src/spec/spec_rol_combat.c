@@ -70,7 +70,8 @@ enum rol_monster_combat_effect
   ROL_MONSTER_BARBARIAN_SPIRITIST,
   ROL_MONSTER_TAKO_DEMON,
   ROL_MONSTER_WEREWOLF,
-  ROL_MONSTER_JOTUN_MIMER
+  ROL_MONSTER_JOTUN_MIMER,
+  ROL_MONSTER_RESIDUAL_MOBILE
 };
 
 struct rol_monster_combat_profile
@@ -96,6 +97,8 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2000327, ROL_MONSTER_LYCAN_TIGER, 11, "Were-tiger tearing attack."},
     {2000328, ROL_MONSTER_LYCAN_TIGER, 11, "Were-tiger tearing attack."},
     {2000525, ROL_MONSTER_WEREWOLF, 1, "Werewolf idle aggression and social activity."},
+    {2001228, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Beavis ambient activity."},
+    {2001229, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Butthead ambient activity."},
     {2001407, ROL_MONSTER_CHICKEN, 25, "Source-exact chicken nest activity."},
     {2001436, ROL_MONSTER_TAKO_DEMON, 1, "Tako's pit ambush and escape interception."},
     {2001437, ROL_MONSTER_KOBOLD_PRIEST, 5, "Kobold-priest force wall and imp summoning."},
@@ -103,24 +106,33 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2004480, ROL_MONSTER_PURPLE_WORM, 5, "Purple-worm whole-swallow attack."},
     {2004530, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
     {2005023, ROL_MONSTER_SPIDER_VENOM, 15, "Random-player venom bite."},
+    {2005718, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Ancient brownie ankle attack."},
     {2012005, ROL_MONSTER_PHALANX, 1, "Phalanx retreat, reconfiguration, and exit guard."},
     {2012006, ROL_MONSTER_SKELETON, 20, "Splitting skeleton and rare passage trip."},
     {2012024, ROL_MONSTER_SKELETON, 20, "Splitting skeleton and rare passage trip."},
     {2012025, ROL_MONSTER_XEXOS, 1, "Xexos combat transformation."},
     {2012026, ROL_MONSTER_AGTHRODOS, 1, "Agthrodos idle reversion."},
+    {2014015, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Finn ambient and combat speech."},
     {2014026, ROL_MONSTER_TREE_SPIRIT, 1, "Root entanglement and child-root summons."},
+    {2014029, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Faerie mischief activity."},
     {2014601, ROL_MONSTER_PLANT_POISON, 3, "Barbed-thorn poison volley."},
     {2014605, ROL_MONSTER_BARBARIAN_SPIRITIST, 1, "Spirit curse, disarm, and cyclone."},
     {2015113, ROL_MONSTER_DRANUM, 9, "Dranum life-force drain."},
     {2015125, ROL_MONSTER_JURTREM, 20, "Jurtrem's sanctuary-dispelling gaze."},
     {2019701, ROL_MONSTER_CRIMSON_FURY, 11, "Crimson Fury minion purge and fire blast."},
     {2019750, ROL_MONSTER_CRIMSON_FURY, 11, "Crimson Fury minion purge and fire blast."},
+    {2020247, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
     {2020378, ROL_MONSTER_ASHENTORIS, 11, "Life drain and lava storm."},
+    {2026208, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
+    {2026216, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
     {2026225, ROL_MONSTER_SUMMON_ROBYN_SERVANT, 4, "Robyn's bounded servant summon."},
+    {2026236, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
     {2026238, ROL_MONSTER_SUMMON_JESSICA_WISP, 4, "Jessica's bounded wisp summon."},
     {2026241, ROL_MONSTER_SUMMON_ROBYN_WISP, 4, "Robyn's bounded wisp summon."},
     {2026242, ROL_MONSTER_SUMMON_ROBYN_WISP, 4, "Robyn's bounded wisp summon."},
     {2026243, ROL_MONSTER_SUMMON_ROBYN_WISP, 4, "Robyn's bounded wisp summon."},
+    {2026244, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
+    {2026245, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
     {2034833, ROL_MONSTER_BANSHEE_WAIL, 3, "Room-wide sonic wail."},
     {2041900, ROL_MONSTER_SWALLOW_SPIT, 6, "Nonlethal whole-swallow and spit attack."},
     {2043358, ROL_MONSTER_MOVANIC_DEVA, 1, "Movanic-deva healing and wind assault."},
@@ -134,6 +146,8 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2053265, ROL_MONSTER_CRITICAL_PRISMATIC, 20,
      "Prismatic burst adapted from a source critical event."},
     {2053266, ROL_MONSTER_UBER_PRISMATIC, 3, "Frequent prismatic spray."},
+    {2059815, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Delayed extraplanar vanishing."},
+    {2059835, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Delayed extraplanar vanishing."},
     {2062401, ROL_MONSTER_FIRE_BOSS, 2, "Room-wide elemental fire storm."},
     {2062402, ROL_MONSTER_EARTH_BOSS, 2, "Room-wide falling-rock assault."},
     {2062405, ROL_MONSTER_AIR_BOSS, 2, "Whirlwind strike and forced movement."},
@@ -1406,6 +1420,9 @@ int rol_monster_combat_typed(struct spec_event_context *context)
       (profile = rol_monster_combat_profile_for(GET_MOB_VNUM(ch))) == NULL)
     return FALSE;
 
+  if (profile->effect == ROL_MONSTER_RESIDUAL_MOBILE)
+    return rol_residual_mobile_typed(context);
+
   if (context->event == SPEC_EVENT_COMMAND)
     return rol_monster_command(context, profile, ch);
   if (context->event == SPEC_EVENT_MOBILE_ACTIVITY)
@@ -1544,6 +1561,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_TAKO_DEMON:
   case ROL_MONSTER_WEREWOLF:
   case ROL_MONSTER_JOTUN_MIMER:
+  case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }
   return FALSE;

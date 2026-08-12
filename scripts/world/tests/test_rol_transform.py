@@ -2271,6 +2271,13 @@ class RolTransformTests(unittest.TestCase):
         "robyn_summon_wisp",
         "tako_demon",
         "werewolf_lycan",
+        "av_vanish",
+        "beavis",
+        "butthead",
+        "faerie",
+        "finn",
+        "ilshazone_roll_with_it",
+        "wr_ancientBrownie",
     )
     bindings = [
         {
