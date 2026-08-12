@@ -950,6 +950,28 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   cadence. When that damage kills the target, converted head object 2001058 must appear
   in the room with the victim's name.
 
+### Phase 6 converted Lavatubes procedures
+
+- Observe snow vulture 2012001 while it is idle and while it is fighting. Only the idle
+  state may produce its squeak, flap, or corpse-devouring outcomes.
+- Hold crystal spike 2012000 and cast until its authored charge count reaches zero. Each
+  cast must consume one charge; the zero-charge cast must show the fade messages and
+  safely extract the held spike.
+- Hold skeleton key 2012025 and try to unlock a locked container or door whose proper key
+  is absent. Pickproof targets must always break the skeleton key. Other targets use the
+  converted Dexterity-based break chance; success unlocks both sides of a paired door.
+  Carrying the proper key must leave the command to native unlock handling.
+- In rooms 2012158 and 2012159, descend through an open trapdoor while switch object
+  2012027 is in the cellar. The move must complete, both exits must close, and the paired
+  exits must become blocked. Pulling the lever below must clear both blocked flags.
+- Reset the blocked pair with automaton 2012027 alone in the cellar; its activity must
+  clear both blocked flags. Repeat with another character present and confirm that the
+  automatic unblock does not occur until the automaton is alone.
+
+These procedures are production-tested and reconciled, but the current five-zone pilot
+does not contain their Lavatubes package. Exercise them only after a Phase 7 staged batch
+supplies the converted records; do not hand-edit them into the pilot.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,
@@ -1015,9 +1037,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 1,035 are resolved and 112 remain. Of 562 distinct
-  source handlers, 471 are resolved and 91 remain. Of 848 `ACT_SPEC` records, 801 are
-  resolved and 47 remain. The automatic race procedures
+  of the 1,147 active direct bindings, 1,045 are resolved and 102 remain. Of 562 distinct
+  source handlers, 481 are resolved and 81 remain. Of 848 `ACT_SPEC` records, 807 are
+  resolved and 41 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

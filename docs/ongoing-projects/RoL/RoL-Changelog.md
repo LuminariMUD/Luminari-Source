@@ -6,6 +6,64 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 Lavatubes procedure batch
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Converted all six active Lavatubes bindings through three owner-specific typed
+  procedures: `RoL Lavatubes Mobile`, `RoL Lavatubes Object`, and
+  `RoL Lavatubes Room`.
+- Preserved snow-vulture ambient activity and corpse devouring, crystal-spike cast
+  charges, the held skeleton key's source unlock and break rules, and the automaton
+  cellar's paired trapdoor, lever, and alone-reset cycle.
+- Replaced source crash behavior for missing or mismatched paired exits with bounded
+  diagnostics. The source Dexterity table is translated to a clamped target bonus
+  calculation, and ordinary key detection avoids the target prisoner's consumable-key
+  side effect while deciding whether native unlock handling should take precedence.
+- Added production-linked tests for the random-outcome table, skeleton-key probability,
+  owner-aware registry and OLC exposure, and the complete two-room automaton cycle.
+- Reconciliation now resolves 1,045 of 1,147 active direct bindings and 481 of 562
+  source handlers; 102 bindings and 81 handlers remain. The independent `ACT_SPEC`
+  checkpoint is 807 resolved / 41 pending.
+- Archived the fifty-first Phase 6 delivery session. Larger cohesive irregular batches
+  keep the remaining Phase 6 envelope at 1-3 sessions, leaving the Phases 6-8 forecast
+  at 49-79 sessions, or 98-316 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 17013cd0
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-lavatubes
+Reconciliation run: rol-phase6-special-9969533324d768ef
+Active direct bindings: 1,147
+Direct bindings resolved: 1,045
+Direct bindings pending: 102
+Source handlers resolved: 481
+Source handlers pending: 81
+Additional handler families resolved: 6
+Additional direct bindings resolved: 6
+Native adapted bindings: 591
+Native adapted composable bindings: 159
+ACT_SPEC records resolved: 807
+ACT_SPEC records pending: 41
+Special registry definitions: 106 total / 95 legacy / 11 typed
+Compatibility names: 107
+Complete world-tool suite: 307 passed
+Production-linked CuTest suite: 655 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 102 direct bindings across 81 source handlers. The
+next batch should group the largest compatible irregular mechanics behind shared typed
+gateways while retaining focused checks within the batch and the full gate at its commit
+boundary.
+
 ## 2026-08-12 - Phase 6 composed periodic profiles
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

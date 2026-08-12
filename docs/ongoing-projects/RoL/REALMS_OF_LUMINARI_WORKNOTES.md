@@ -92,6 +92,7 @@ Phase 6 monster-combat commit: 5925a88f
 Phase 6 monster-combat archive commit: 33a91bf6
 Phase 6 expanded monster-zone commit: 76aaf29f
 Phase 6 composed-periodic commit: 079ca263
+Phase 6 Lavatubes commit: 17013cd0
 ```
 
 The authoritative ignored runs are:
@@ -257,6 +258,9 @@ Phase 6 expanded monster-zone procedures:
 Phase 6 composed periodic profiles:
   lib/rol-conversion/runs/phase6-special-20260812-periodic-composition
   rol-phase6-special-d1472a439e2e94b8
+Phase 6 Lavatubes procedures:
+  lib/rol-conversion/runs/phase6-special-20260812-lavatubes
+  rol-phase6-special-9969533324d768ef
 Policy:  rol-conversion-policy-2
 ```
 
@@ -285,11 +289,11 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 307 tests; the production-linked CuTest suite passes 653;
+- The world-tool suite passes 307 tests; the production-linked CuTest suite passes 655;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Fifty bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Fifty-one bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
-  shape exists. The measured remaining forecast is 49-80 sessions: Phase 6 is 1-4,
+  shape exists. The measured remaining forecast is 49-79 sessions: Phase 6 is 1-3,
   Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
@@ -527,18 +531,23 @@ Policy:  rol-conversion-policy-2
   kobold, piercer, purple-worm, phalanx, skeleton, transformation, tree-spirit, Dranum,
   swallow, Canthus, and Jotun mechanics. Elemental Tower alerts and pit-fiend tails compose
   through the same persisted procedure, preserving the single-slot mobile binding contract.
+- All six active Lavatubes handlers are complete through three typed, owner-specific
+  procedures. The mobile adapter preserves snow-vulture activity and the automaton's
+  alone reset; the object adapter preserves crystal-spike charges, skeleton-key unlocks,
+  and the cellar lever; the room adapter preserves the paired trapdoor close, move, and
+  block cycle. Invalid room pairs now log and fail safely instead of crashing the server.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,039 of 1,147 active direct bindings and 475 of
-  562 source handlers, leaving 108 bindings and 87 handlers. The independent `ACT_SPEC`
-  cross-check resolves 805 of 848 records and leaves 43 pending.
+- The current Phase 6 checkpoint resolves 1,045 of 1,147 active direct bindings and 481 of
+  562 source handlers, leaving 102 bindings and 81 handlers. The independent `ACT_SPEC`
+  cross-check resolves 807 of 848 records and leaves 41 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 108 direct bindings across 87 handlers. Classify regular
+1. Reconcile the remaining 102 direct bindings across 81 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
@@ -550,20 +559,16 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Completed and pushed implementation commit `079ca263`, expanding the generated
-  source-periodic family and adding ordered devour composition for `bs_wolf` and
-  `dog_one`.
-- Changed the periodic generator, manifest, checked-in table, runtime adapter/header,
-  world-tool assertions, reconciliation assertions, and production-linked CuTest
-  coverage. No source file was added or removed, so build manifests did not change.
-- Regenerated `src/spec/spec_rol_periodic_profiles.inc` and verified it byte-for-byte
-  with the generator's `--check` mode.
-- Ran all 307 world-tool tests and all 653 production-linked CuTests. The first build
-  attempt caught two declarations in the wrong helper; after moving them into the
-  runtime callback, the warning-free `make test && make install` rerun passed and
-  removed the root-level `circle` artifact.
-- Regenerated the ignored Phase 6 ledger as
-  `rol-phase6-special-d1472a439e2e94b8`; it records zero live target writes and the
-  1,039/108 direct-binding, 475/87 handler, and 805/43 `ACT_SPEC` split.
-- Unresolved blockers: none. Continue with the remaining irregular mobile
-  combat/activity family or a dependency-complete object/room command batch.
+- Completed and pushed implementation commit `17013cd0`, converting all six active
+  Lavatubes handlers behind three typed owner-specific procedures.
+- Added the runtime source/header to both build manifests, registered mobile, object,
+  and room identities, extended owner-aware OLC and registry coverage, and mapped all
+  six handler names in the reconciler.
+- Ran all 307 world-tool tests and all 655 production-linked CuTests. The warning-free
+  `make test && make install` gate passed and removed the root-level `circle` artifact;
+  the documentation checker reported zero findings.
+- Regenerated and hash-verified the ignored Phase 6 ledger as
+  `rol-phase6-special-9969533324d768ef`; it records zero live target writes and the
+  1,045/102 direct-binding, 481/81 handler, and 807/41 `ACT_SPEC` split.
+- Unresolved blockers: none. Continue by grouping the largest compatible remaining
+  irregular mechanics into another dependency-complete shared typed batch.
