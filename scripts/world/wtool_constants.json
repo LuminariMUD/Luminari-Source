@@ -2726,6 +2726,13 @@
           "macro": "MOB_ROL_FADE_MONSTER",
           "name": "RoL-Fade-Monster",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 122,
+          "macro": "MOB_ROL_ANGEL",
+          "name": "RoL-Angel",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,

@@ -558,3 +558,32 @@ void Test_spec_rol_auto_distributor_moves_mortal_within_zone(CuTest *tc)
 
   spec_mechanics_end(&fixture);
 }
+
+void Test_spec_rol_shadow_giant_preserves_spook_rules(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  int amount;
+
+  spec_mechanics_begin(&fixture);
+
+  amount = rol_shadow_giant_spook_damage(false);
+  CuAssertTrue(tc, amount >= 25 && amount <= 200);
+  amount = rol_shadow_giant_spook_damage(true);
+  CuAssertTrue(tc, amount >= 12 && amount <= 100);
+
+  CuAssertTrue(tc, rol_shadow_giant_stun_succeeds(30, 54, 5));
+  CuAssertTrue(tc, !rol_shadow_giant_stun_succeeds(30, 55, 5));
+  CuAssertTrue(tc, !rol_shadow_giant_spook_immune(&fixture.target));
+  CuAssertTrue(tc, rol_shadow_giant_spook_immune(NULL));
+
+  SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ROL_DEMON);
+  CuAssertTrue(tc, rol_shadow_giant_spook_immune(&fixture.target));
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ROL_DEMON);
+  SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ROL_ANGEL);
+  CuAssertTrue(tc, rol_shadow_giant_spook_immune(&fixture.target));
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ROL_ANGEL);
+  fixture.target.player.race = RACE_TYPE_DRAGON;
+  CuAssertTrue(tc, rol_shadow_giant_spook_immune(&fixture.target));
+
+  spec_mechanics_end(&fixture);
+}

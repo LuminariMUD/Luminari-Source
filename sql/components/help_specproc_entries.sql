@@ -62,6 +62,11 @@ RoL Auto Distributor is room-owned. Any command by a non-staff character is
 intercepted and moves that character to a random loaded room in the same zone.
 It is intended only for converted RoL boundary rooms.
 
+RoL Shadow Giant is mobile-owned and requires MOB_SPEC. While fighting, each
+mobile-activity pulse has the source one-in-21 chance to spook every player and
+charmed pet in the room for mental damage and a possible short stun. It is
+intended for converted RoL shadow giants.
+
 Guild is the mobile-owned training procedure. RoL Guild Room provides the
 same current training service for converted room-owned guild bindings and is
 available only in redit. Pet Shop is room-owned, Postmaster is mobile-owned,

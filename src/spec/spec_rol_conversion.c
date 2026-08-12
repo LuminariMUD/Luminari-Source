@@ -10,12 +10,15 @@
 #include "utils.h"
 
 #include "act.h"
+#include "character/evolutions.h"
 #include "combat/fight.h"
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
 #include "interpreter.h"
+#include "magic/domains_schools.h"
 #include "magic/spells.h"
+#include "mud_event.h"
 #include "mudlim.h"
 #include "spec_combat.h"
 #include "spec_context.h"
@@ -647,6 +650,81 @@ int rol_auto_distributor(struct char_data *ch, void *me, int cmd, const char *ar
   char_to_room(ch, destination);
   act("$n enters.", FALSE, ch, NULL, NULL, TO_ROOM);
   return TRUE;
+}
+
+int rol_shadow_giant_spook_damage(bool save_succeeded)
+{
+  int amount = dice(25, 8);
+
+  return save_succeeded ? amount / 2 : amount;
+}
+
+bool rol_shadow_giant_spook_immune(struct char_data *target)
+{
+  if (target == NULL)
+    return true;
+
+  if (IS_UNDEAD(target) || IS_DRAGON(target))
+    return true;
+
+  return IS_NPC(target) &&
+         (MOB_FLAGGED(target, MOB_ROL_DEMON) || MOB_FLAGGED(target, MOB_ROL_DEVIL) ||
+          MOB_FLAGGED(target, MOB_ROL_ANGEL) || HAS_SUBRACE(target, SUBRACE_ANGEL));
+}
+
+bool rol_shadow_giant_stun_succeeds(int level, int chance_roll, int penalty_roll)
+{
+  return chance_roll < (level * 2) - penalty_roll;
+}
+
+static void rol_shadow_giant_spook(struct char_data *ch, struct char_data *target)
+{
+  bool saved;
+  int amount;
+
+  if (rol_shadow_giant_spook_immune(target))
+  {
+    act("$N laughs as you attempt to spook $M.", TRUE, ch, NULL, target, TO_CHAR);
+    return;
+  }
+
+  saved = savingthrow(ch, target, SAVING_WILL, 0, CAST_INNATE, 30, ILLUSION);
+  amount = rol_shadow_giant_spook_damage(saved);
+  damage(ch, target, amount, -1, DAM_MENTAL, FALSE);
+
+  if (GET_POS(target) <= POS_DEAD || !can_stun(target) || char_has_mud_event(target, eSTUNNED) ||
+      !rol_shadow_giant_stun_succeeds(GET_LEVEL(ch), rand_number(1, 100), rand_number(1, 5)))
+    return;
+
+  attach_mud_event(new_mud_event(eSTUNNED, target, NULL), PULSE_VIOLENCE * rand_number(1, 3));
+}
+
+int rol_shadow_giant(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *target;
+  struct char_data *next;
+
+  UNUSED(me);
+  UNUSED(argument);
+
+  if (ch == NULL || !IS_NPC(ch) || cmd || FIGHTING(ch) == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) ||
+      rand_number(0, 20) != 0)
+    return FALSE;
+
+  act("You pull your face off and scare the bejezus out of $N.", FALSE, ch, NULL, FIGHTING(ch),
+      TO_CHAR);
+  act("The Shadow Giant reaches up and pulls his face off.", FALSE, ch, NULL, FIGHTING(ch),
+      TO_ROOM);
+
+  for (target = world[IN_ROOM(ch)].people; target != NULL; target = next)
+  {
+    next = target->next_in_room;
+    if (IS_NPC(target) && !IS_PET(target))
+      continue;
+    rol_shadow_giant_spook(ch, target);
+  }
+
+  return FALSE;
 }
 
 bool rol_update_mobile_home_after_move(struct char_data *ch, int source_room, int destination_room)

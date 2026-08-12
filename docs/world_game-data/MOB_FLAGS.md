@@ -18,7 +18,7 @@ This document provides comprehensive information about all mobile flags (MOB_*) 
 
 ## Overview
 
-Mobile flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **122 mobile flags** (indices 0-121, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
+Mobile flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **123 mobile flags** (indices 0-122, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
 
 **Usage Pattern:**
 ```c
@@ -748,6 +748,9 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - `MOB_ROL_FADE_FAMILIAR`, `MOB_ROL_FADE_MOUNT`, and `MOB_ROL_FADE_MONSTER` preserve
   the three source conjured-creature death messages and suppress corpse creation. They
   are independent of the persisted SpecProc slot and safely compose with other behavior.
+- `MOB_ROL_ANGEL` retains source angel identity after conversion collapses that race into
+  the target outsider category. The RoL shadow-giant adapter uses it to preserve the
+  source `spook` immunity list; it does not schedule behavior on its own.
 - These flags are converter-owned compatibility data; builders should use native flags
   and classes for new content unless reproducing converted RoL behavior
 
@@ -894,6 +897,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 | 119 | MOB_ROL_FADE_FAMILIAR | RoL-Fade-Familiar | Compatibility | Familiar fades without a corpse |
 | 120 | MOB_ROL_FADE_MOUNT | RoL-Fade-Mount | Compatibility | Conjured mount fades without a corpse |
 | 121 | MOB_ROL_FADE_MONSTER | RoL-Fade-Monster | Compatibility | Conjured monster fades without a corpse |
+| 122 | MOB_ROL_ANGEL | RoL-Angel | Compatibility | Preserves source angel identity |
 
 ---
 

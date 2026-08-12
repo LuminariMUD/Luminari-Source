@@ -213,8 +213,8 @@ Flags</a></li>
 <h2 id="overview">Overview</h2>
 <p>Mobile flags are bitflags defined in <code>src/structs.h</code> and
 are checked throughout the codebase using the <code>MOB_FLAGGED()</code>
-macro. There are currently <strong>122 mobile flags</strong> (indices
-0-121, <code>NUM_MOB_FLAGS</code>) that control everything from basic AI
+macro. There are currently <strong>123 mobile flags</strong> (indices
+0-122, <code>NUM_MOB_FLAGS</code>) that control everything from basic AI
 behavior to special monster abilities.</p>
 <p><strong>Usage Pattern:</strong></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>MOB_FLAGGED<span class="op">(</span>mob<span class="op">,</span> MOB_FLAGNAME<span class="op">))</span> <span class="op">{</span></span>
@@ -804,7 +804,11 @@ same mobile. - <code>MOB_ROL_FADE_FAMILIAR</code>,
 <code>MOB_ROL_FADE_MOUNT</code>, and <code>MOB_ROL_FADE_MONSTER</code>
 preserve the three source conjured-creature death messages and suppress
 corpse creation. They are independent of the persisted SpecProc slot and
-safely compose with other behavior. - These flags are converter-owned
+safely compose with other behavior. - <code>MOB_ROL_ANGEL</code> retains
+source angel identity after conversion collapses that race into the
+target outsider category. The RoL shadow-giant adapter uses it to
+preserve the source <code>spook</code> immunity list; it does not
+schedule behavior on its own. - These flags are converter-owned
 compatibility data; builders should use native flags and classes for new
 content unless reproducing converted RoL behavior</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
@@ -1691,6 +1695,13 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>RoL-Fade-Monster</td>
 <td>Compatibility</td>
 <td>Conjured monster fades without a corpse</td>
+</tr>
+<tr class="odd">
+<td>122</td>
+<td>MOB_ROL_ANGEL</td>
+<td>RoL-Angel</td>
+<td>Compatibility</td>
+<td>Preserves source angel identity</td>
 </tr>
 </tbody>
 </table>

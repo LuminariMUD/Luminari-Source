@@ -65,6 +65,7 @@ NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 ADAPTED_HANDLER_NAMES = {
     "devour": "RoL Corpse Devourer",
     "poison": "RoL Poison Bite",
+    "shadow_giant": "RoL Shadow Giant",
     "thief": "RoL Thief",
 }
 

@@ -39,6 +39,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'fixed entry damage') > 0
   AND INSTR(entry, 'RoL Auto Distributor is room-owned') > 0
   AND INSTR(entry, 'random loaded room in the same zone') > 0
+  AND INSTR(entry, 'RoL Shadow Giant is mobile-owned') > 0
+  AND INSTR(entry, 'one-in-21 chance') > 0
   AND INSTR(entry, 'RoL Guild Room') > 0
   AND INSTR(entry, 'available only in redit') > 0;
 

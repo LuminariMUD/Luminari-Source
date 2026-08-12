@@ -219,6 +219,19 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   authored damage and destination object values, and distributor rooms deliberately
   intercept every mortal command.
 
+### Phase 6 shadow-giant procedure
+
+- `RoL Shadow Giant` is implemented and production-tested for all eight active source
+  bindings, but the `abandon` package is outside the five staged pilot packages.
+- In a later dependency-complete `abandon` stage, fight any of converted mobiles
+  2090855, 2090856, 2090858, 2090862-2090865, or 2090869. Over repeated activity
+  pulses, the face-removal message should appear at the source 1-in-21 rate. Every
+  player and charmed pet in the room should take 25d8 mental damage, halved by a level
+  30 Will save, and may be stunned for one to three rounds.
+- Repeat with an undead or dragon character and with a converted angel, demon, or devil
+  pet. Those targets should laugh off the effect and take no damage or stun. Ordinary
+  non-pet NPCs in the room are never targeted.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,

@@ -209,6 +209,13 @@ MOB_AUTOMATIC_RACE_AFFECTS = {
     "MH": frozenset({28}),
 }
 
+# RoL's angel race is otherwise collapsed into the target outsider category.
+# Retain its identity for source mechanics whose immunity lists distinguish
+# angels from other outsiders.
+MOB_SOURCE_RACE_IDENTITY_ACTIONS = {
+    "Z": frozenset({122}), # RACE_ANGEL
+}
+
 
 def mobile_automatic_race_flags(
     record: RolRecord,
@@ -1476,6 +1483,7 @@ def emit_mobile(
   target_actions.update(required_action_bits)
   automatic_actions, automatic_affects = mobile_automatic_race_flags(record)
   target_actions.update(automatic_actions)
+  target_actions.update(MOB_SOURCE_RACE_IDENTITY_ACTIONS.get(race_code, frozenset()))
   target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
   target_affects.update(automatic_affects)
   target_affects2 = _mapped_bits(source_affects, MOB_AFFECT2_MAP)

@@ -1312,8 +1312,9 @@
 #define MOB_ROL_FADE_FAMILIAR 119  /**< RoL: familiar fades without a corpse */
 #define MOB_ROL_FADE_MOUNT 120     /**< RoL: conjured mount fades without a corpse */
 #define MOB_ROL_FADE_MONSTER 121   /**< RoL: conjured monster fades without a corpse */
+#define MOB_ROL_ANGEL 122          /**< RoL: preserves source angel identity */
 /**********************/
-#define NUM_MOB_FLAGS 122
+#define NUM_MOB_FLAGS 123
 /**********************/
 /**********************/
 

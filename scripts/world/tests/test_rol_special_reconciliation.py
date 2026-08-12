@@ -27,6 +27,7 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     home_reset = handler_disposition("home_reset")
     magic_pool = handler_disposition("magic_pool")
     auto_distributor = handler_disposition("autoDistributor")
+    shadow_giant = handler_disposition("shadow_giant")
     unknown = handler_disposition("not_reviewed")
 
     self.assertEqual("RoL Guild Room", guild["target"])
@@ -45,6 +46,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("NATIVE_PERSISTED", magic_pool["strategy"])
     self.assertEqual("RoL Auto Distributor", auto_distributor["target"])
     self.assertEqual("NATIVE_PERSISTED", auto_distributor["strategy"])
+    self.assertEqual("RoL Shadow Giant", shadow_giant["target"])
+    self.assertEqual("NATIVE_ADAPTED", shadow_giant["strategy"])
     self.assertEqual("pending", unknown["status"])
 
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
@@ -95,8 +98,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(377, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(770, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(385, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(762, summary["direct_bindings_by_status"]["pending"])
       self.assertEqual(848, summary["act_spec_records"])
       self.assertEqual(517, summary["act_spec_by_status"]["resolved"])
       self.assertEqual(331, summary["act_spec_by_status"]["pending"])

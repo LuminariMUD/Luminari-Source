@@ -177,8 +177,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 65, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 63, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 66, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 64, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -339,6 +339,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Magic Pool", rol_magic_pool, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Auto Distributor", rol_auto_distributor, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Shadow Giant", rol_shadow_giant, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
        SPEC_BINDING_SOURCE_WORLD},
   };
   const struct spec_definition *definition;

@@ -225,11 +225,12 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual({3, 4}, decode_tokens(mobile.affect2_flags).bits)
     self.assertIn("omitted source transient/inert mobile affects: [48]", emitted.diagnostics)
 
-  def test_emitted_mobile_persists_composable_automatic_race_behavior(self) -> None:
+  def test_emitted_mobile_persists_composable_race_behavior_and_identity(self) -> None:
     cases = {
         "X": ({116}, {11, 28}),
         "Y": ({117}, {11, 28}),
         "MH": ({118}, {28}),
+        "Z": ({122}, set()),
     }
     for race_code, (expected_actions, expected_affects) in cases.items():
       with self.subTest(race_code=race_code):
@@ -1057,6 +1058,42 @@ class RolTransformTests(unittest.TestCase):
 
     self.assertTrue(result.complete)
     self.assertEqual("RoL Auto Distributor", result.records[0].spec_proc)
+
+  def test_shadow_giant_binding_persists_adapted_mobile_procedure(self) -> None:
+    binding = {
+        "basename": "abandon",
+        "record_type": "mobile",
+        "source_vnum": 90855,
+        "source_handler": "shadow_giant",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    native = compiled.native_bindings[0]
+    self.assertEqual("RoL Shadow Giant", native.persisted_name)
+    self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[0]["strategy"])
+
+    source = self._source_record(
+        "mob",
+        b"#90855\nshadow giant~\na shadow giant~\nA shadow giant waits.~\n~\n"
+        b"1 0 0 0 S\nN 0 0\n30 0 0 25d8+0 1d1+0\n0 0\n131 131 0 0\n",
+    )
+    emitted = emit_mobile(
+        source,
+        2_090_855,
+        special_proc=native.persisted_name,
+        special_resolved=True,
+    )
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20908.mob", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Shadow Giant", result.records[0].spec_proc)
 
 
 if __name__ == "__main__":

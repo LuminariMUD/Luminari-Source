@@ -31,7 +31,7 @@ callback slot or event-gateway dispatch rules.
 - Enter a number to choose a SpecProc; enter `0` to clear.
 - The current selection is shown in the menu. Save as usual to apply.
 
-Numbers are specific to the filtered editor view. The current views contain 27 mobile definitions,
+Numbers are specific to the filtered editor view. The current views contain 28 mobile definitions,
 24 object definitions, and 8 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
@@ -55,6 +55,11 @@ not assign the procedure to an unrelated object without configuring both values 
 `RoL Auto Distributor` is room-owned. Any command from a non-staff character is intercepted and
 moves that character to a randomly selected loaded room in the same zone. It is intended only for
 converted RoL boundary rooms; attaching it elsewhere turns that room into a randomizing trap.
+
+`RoL Shadow Giant` is mobile-owned and runs on mobile-activity pulses while the giant is fighting.
+Its source 1-in-21 trigger spooks every player and charmed pet in the room for mental damage and a
+possible short stun. Converted angel identity is retained for the source immunity list. This
+procedure is intended for the converted RoL shadow-giant family rather than general new mobiles.
 
 ## File Format Persistence
 
@@ -166,8 +171,8 @@ saved-secondary behavior.
 
 Typed dispatch is an engine-side implementation detail: nothing a builder selects, sees, or saves in
 OLC changed. Bank and Vampire Cloak retain their canonical rows and callback-slot identities while
-their behavior receives explicit event context. The other 63 registered definitions use
-compatibility dispatch; across the source tree, 203 legacy behavior implementations remain. A
+their behavior receives explicit event context. The other 64 registered definitions use
+compatibility dispatch; across the source tree, 204 legacy behavior implementations remain. A
 validated declarative table owns the two Luminari assignments whose handlers are registered and
 whose VNUMs are symbolic. Converted RoL definitions use explicit world-authored names.
 Unsupported numeric, computed, and campaign-compatibility assignments remain visible through the

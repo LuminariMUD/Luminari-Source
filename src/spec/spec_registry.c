@@ -988,6 +988,18 @@ static const struct spec_definition spec_definitions[] = {
         .description = "Randomly redistributes non-staff characters within the current zone.",
         .legacy_handler = rol_auto_distributor,
     },
+    {
+        .canonical_name = "RoL Shadow Giant",
+        .display_name = "RoL Shadow Giant",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = janitor_events,
+        .event_count = SPEC_ARRAY_SIZE(janitor_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Periodically spooks every eligible player and pet while fighting.",
+        .legacy_handler = rol_shadow_giant,
+    },
 };
 
 enum
@@ -1057,6 +1069,7 @@ enum
   SPEC_DEFINITION_ROL_THIEF,
   SPEC_DEFINITION_ROL_MAGIC_POOL,
   SPEC_DEFINITION_ROL_AUTO_DISTRIBUTOR,
+  SPEC_DEFINITION_ROL_SHADOW_GIANT,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -1136,6 +1149,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_THIEF, -1},
     {SPEC_DEFINITION_ROL_MAGIC_POOL, -1},
     {SPEC_DEFINITION_ROL_AUTO_DISTRIBUTOR, -1},
+    {SPEC_DEFINITION_ROL_SHADOW_GIANT, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,
