@@ -42,6 +42,12 @@ Prerequisites describe runtime scheduling; selecting a procedure does not set th
 - `carried`, `equipped`, and `combat` state describe where an event can run.
 - `prerequisites: none` means that event has no registry-level flag or placement requirement.
 
+Converted RoL demon, devil, and umber-hulk prototypes are a deliberate exception to the
+single-SpecProc scheduling model. The converter writes `RoL-Demon`, `RoL-Devil`, or
+`RoL-Umberhulk` mobile flags, and independent runtime hooks preserve their source boot and combat
+behavior beside any ordinary persistent SpecProc. These converter-owned flags are not additional
+authored SpecProcs and should not be added to unrelated new mobiles.
+
 ## File Format Persistence
 
 The selected SpecProc is stored by name and resolved at boot.

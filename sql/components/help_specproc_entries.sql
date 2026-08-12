@@ -44,6 +44,11 @@ A moving room cannot also have a named room SpecProc. Both features own the
 same callback slot, so redit refuses that selection and zone saving or boot
 rejects a room containing both forms of data.
 
+Converted RoL-Demon, RoL-Devil, and RoL-Umberhulk mobile flags are not
+additional authored SpecProcs. Independent compatibility hooks run their
+source race behavior beside the one persistent mobile SpecProc slot. These
+flags are converter-owned and should not be added to unrelated new mobiles.
+
 Guild is the mobile-owned training procedure. RoL Guild Room provides the
 same current training service for converted room-owned guild bindings and is
 available only in redit. Pet Shop is room-owned, Postmaster is mobile-owned,

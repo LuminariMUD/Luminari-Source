@@ -25,6 +25,11 @@ _AUTO_RACE_HANDLERS = {
     "Y": "standardDevil",
     "MH": "standardUmberhulk",
 }
+_AUTO_RACE_TARGETS = {
+    "X": "MOB_ROL_DEMON composition-safe runtime hook",
+    "Y": "MOB_ROL_DEVIL composition-safe runtime hook",
+    "MH": "MOB_ROL_UMBERHULK composition-safe runtime hook",
+}
 _DG_HANDLERS = frozenset(
     {
         "cemetary_instrument_rub",
@@ -446,12 +451,13 @@ def write_special_reconciliation_bundle(
             "destination_vnum": action.get("destination_vnum"),
             "direct_binding_ids": [row["binding_id"] for row in linked],
             "composition": "alongside-direct" if linked else "implicit-only",
-            "status": "pending",
-            "strategy": "AUTOMATIC_RACE_BINDING_PENDING",
-            "target": "unresolved composition-safe runtime behavior",
+            "status": "resolved",
+            "strategy": "NATIVE_ADAPTED_COMPOSABLE",
+            "target": _AUTO_RACE_TARGETS[race_code],
             "reason": (
                 "source db.c attaches this race procedure during every mobile load, "
-                "including prototypes with direct assignments"
+                "including prototypes with direct assignments; a dedicated target flag "
+                "runs beside the ordinary persistent special-procedure slot"
             ),
         }
     )
@@ -493,7 +499,7 @@ def write_special_reconciliation_bundle(
         reason = "source VNUM has direct assignment-table bindings"
     elif automatic is not None:
       status = str(automatic["status"])
-      strategy = str(automatic["strategy"])
+      strategy = "AUTOMATIC_RACE_BINDING_RESOLVED"
       reason = f"source boot attaches {automatic['source_handler']} before ACT_SPEC validation"
     else:
       status = "resolved"

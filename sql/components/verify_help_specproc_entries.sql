@@ -31,6 +31,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'SPECBIND is read-only') > 0
   AND INSTR(entry, 'not a persisted multiple-procedure dispatch chain') > 0
   AND INSTR(entry, '-s is not a global callback-disable switch') > 0
+  AND INSTR(entry, 'RoL-Demon') > 0
+  AND INSTR(entry, 'Independent compatibility hooks') > 0
   AND INSTR(entry, 'RoL Guild Room') > 0
   AND INSTR(entry, 'available only in redit') > 0;
 

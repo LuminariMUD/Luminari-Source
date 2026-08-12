@@ -1,0 +1,57 @@
+{
+  "act_spec_by_status": {
+    "pending": 353,
+    "resolved": 495
+  },
+  "act_spec_by_strategy": {
+    "AUTOMATIC_RACE_BINDING_RESOLVED": 33,
+    "DIRECT_AND_AUTOMATIC_RACE_PENDING": 10,
+    "DIRECT_ASSIGNMENTS_PENDING": 343,
+    "DIRECT_ASSIGNMENTS_RESOLVED": 18,
+    "SOURCE_BOOT_CLEARS_UNBOUND_ACT_SPEC": 444
+  },
+  "act_spec_records": 848,
+  "active_direct_bindings": 1234,
+  "active_implicit_race_bindings": 247,
+  "capability_audit_run_id": "rol-phase5-audit-3fb8de2d9afd067b",
+  "direct_bindings_by_owner": {
+    "mobile": 783,
+    "object": 226,
+    "room": 225
+  },
+  "direct_bindings_by_status": {
+    "pending": 1003,
+    "resolved": 231
+  },
+  "direct_bindings_by_strategy": {
+    "DG_COMPILED": 45,
+    "NATIVE_ADAPTED": 29,
+    "NATIVE_PERSISTED": 135,
+    "PENDING_TRACE": 1003,
+    "SOURCE_INERT_EXCLUDED": 22
+  },
+  "discovery_run_id": "rol-phase1-1c287d5073293f7c",
+  "implicit_race_bindings_by_composition": {
+    "alongside-direct": 23,
+    "implicit-only": 224
+  },
+  "implicit_race_bindings_by_handler": {
+    "standardDemon": 134,
+    "standardDevil": 101,
+    "standardUmberhulk": 12
+  },
+  "implicit_race_bindings_by_status": {
+    "resolved": 247
+  },
+  "implicit_race_handler_definitions_located": 3,
+  "live_target_writes": 0,
+  "plan_run_id": "rol-phase2-39a6d6d253950dff",
+  "schema_version": 2,
+  "source_handler_definitions_located": 605,
+  "source_handlers": 605,
+  "source_handlers_by_status": {
+    "pending": 562,
+    "resolved": 43
+  },
+  "tool_version": "0.6.0"
+}

@@ -15,6 +15,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "spec/spec_dispatch.h"
+#include "spec/spec_rol_conversion.h"
 #include "comm.h"
 #include "handler.h"
 #include "interpreter.h"
@@ -16672,6 +16673,9 @@ void perform_violence(struct char_data *ch, int phase)
   if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) && !MOB_FLAGGED(ch, MOB_NOTDEADYET) &&
       GET_HIT(ch) > 0)
     spec_gateway_mobile_combat_turn(ch);
+
+  if (IS_NPC(ch) && !MOB_FLAGGED(ch, MOB_NOTDEADYET) && GET_HIT(ch) > 0)
+    rol_automatic_race_combat_turn(ch);
 
   // the mighty awesome fear code
   if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0, 2))

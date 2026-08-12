@@ -1,0 +1,49 @@
+{
+  "acceptance": {
+    "act_spec_records_pending": 353,
+    "all_act_spec_records_accounted": true,
+    "all_automatic_race_bindings_accounted": true,
+    "all_direct_bindings_accounted": true,
+    "all_handlers_accounted": true,
+    "automatic_race_bindings_pending": 0,
+    "direct_bindings_pending": 1003,
+    "live_target_writes": 0
+  },
+  "artifacts": [
+    {
+      "byte_size": 267993,
+      "path": "act-spec-ledger.jsonl",
+      "records": 848,
+      "sha256": "23af72f1eec12ccbe5e1278d8e543b42db863ac332d518861907ab7d7e55c588"
+    },
+    {
+      "byte_size": 213125,
+      "path": "automatic-race-ledger.jsonl",
+      "records": 247,
+      "sha256": "cbdc0aa1245ef7131b6ecb74b59fc767682d7173a630dc8b18857dd88cb81a1d"
+    },
+    {
+      "byte_size": 741583,
+      "path": "binding-ledger.jsonl",
+      "records": 1234,
+      "sha256": "059f766f13d556ae7ed943b9b345e00b22457cda5c75b767c87944fc21ec250e"
+    },
+    {
+      "byte_size": 215365,
+      "path": "handler-inventory.jsonl",
+      "records": 605,
+      "sha256": "cfcdbf7e6973c015e81fd4676077dbbd3ca481b00c04d96171a4c724be7d068e"
+    },
+    {
+      "byte_size": 1504,
+      "path": "reconciliation-summary.json",
+      "sha256": "cb720b09cbce47c7883fe153f262f089811893bcfb0220506fe1a49d75086154"
+    }
+  ],
+  "creation_time": "2026-08-12T09:00:00Z",
+  "phase": 6,
+  "run_id": "rol-phase6-special-519936c88c94c0da",
+  "schema_version": 2,
+  "stage": "special-procedure-reconciliation",
+  "tool_version": "0.6.0"
+}

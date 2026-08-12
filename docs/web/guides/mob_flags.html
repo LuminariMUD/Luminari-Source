@@ -773,8 +773,8 @@ zone reset assumes stays put</p>
 Teleport target check (<code>spell_teleport()</code>) -
 <code>src/magic/magic.c</code> - Creation placement
 (<code>mag_creations()</code>)</p>
-<h3 id="rol-compatibility-flags-indices-105-115">RoL compatibility flags
-(Indices: 105-115)</h3>
+<h3 id="rol-compatibility-flags-indices-105-118">RoL compatibility flags
+(Indices: 105-118)</h3>
 <p><strong>Effect:</strong> Preserve shared Realms of Luminari mobile
 behaviors during deterministic conversion. -
 <code>MOB_ROL_NICE_THIEF</code> allows stealing but suppresses automatic
@@ -788,14 +788,27 @@ an equipped mobile fire at a valid target one room away -
 <code>MOB_ROL_HAS_WA</code> retain independent source class-behavior
 roles - <code>MOB_ROL_AGGR_RACE_EVIL</code> and
 <code>MOB_ROL_AGGR_RACE_GOOD</code> use the converted source race groups
-rather than current character alignment - These flags are
-converter-owned compatibility data; builders should use native flags and
-classes for new content unless reproducing converted RoL behavior</p>
+rather than current character alignment - <code>MOB_ROL_DEMON</code> and
+<code>MOB_ROL_DEVIL</code> preserve the source boot-time planar
+behavior: infravision and aggregate elemental protection are emitted on
+the prototype, while recognized combat aliases can gate a bounded
+source-equivalent group on their authored cooldown. Player-controlled
+creatures cannot gate; gated followers cannot recursively gate and
+disappear after four game hours. - <code>MOB_ROL_UMBERHULK</code> equips
+the converted canonical claws when available and retains the
+level-scaled confusion or extra mandible attack during combat. - The
+three automatic-race flags use independent activity and combat hooks.
+They do not consume <code>MOB_SPEC</code> or the prototype’s persistent
+SpecProc slot, so an authored direct procedure continues to run on the
+same mobile. - These flags are converter-owned compatibility data;
+builders should use native flags and classes for new content unless
+reproducing converted RoL behavior</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
 Movement, archery, and race aggression - <code>src/combat/fight.c</code>
-- Delayed hunter activation - <code>src/act.other.c</code> -
-Caught-theft response - <code>src/utils.h</code> - Class-role
-queries</p>
+- Delayed hunter activation -
+<code>src/spec/spec_rol_conversion.c</code> - Automatic demon, devil,
+and umber-hulk behavior - <code>src/act.other.c</code> - Caught-theft
+response - <code>src/utils.h</code> - Class-role queries</p>
 <h3 id="mob_buff_outside_combat-index-96">MOB_BUFF_OUTSIDE_COMBAT
 (Index: 96)</h3>
 <p><strong>Effect:</strong> UNUSED - Kept for backward compatibility. -
@@ -1632,6 +1645,27 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>RoL-Aggro-Good-Race</td>
 <td>Compatibility</td>
 <td>Attacks good source races</td>
+</tr>
+<tr class="odd">
+<td>116</td>
+<td>MOB_ROL_DEMON</td>
+<td>RoL-Demon</td>
+<td>Compatibility</td>
+<td>Runs implicit source demon behavior</td>
+</tr>
+<tr class="even">
+<td>117</td>
+<td>MOB_ROL_DEVIL</td>
+<td>RoL-Devil</td>
+<td>Compatibility</td>
+<td>Runs implicit source devil behavior</td>
+</tr>
+<tr class="odd">
+<td>118</td>
+<td>MOB_ROL_UMBERHULK</td>
+<td>RoL-Umberhulk</td>
+<td>Compatibility</td>
+<td>Runs implicit source umber-hulk behavior</td>
 </tr>
 </tbody>
 </table>

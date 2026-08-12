@@ -81,8 +81,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual(231, summary["direct_bindings_by_status"]["resolved"])
       self.assertEqual(1_003, summary["direct_bindings_by_status"]["pending"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(462, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(386, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(495, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(353, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(
+          {"resolved": 247}, summary["implicit_race_bindings_by_status"]
+      )
 
       output_dir = Path(temporary) / "phase6"
       manifest = json.loads((output_dir / "run-manifest.json").read_text(encoding="ascii"))

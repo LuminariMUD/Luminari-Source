@@ -725,7 +725,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - `src/magic/spells.c` - Teleport target check (`spell_teleport()`)
 - `src/magic/magic.c` - Creation placement (`mag_creations()`)
 
-### RoL compatibility flags (Indices: 105-115)
+### RoL compatibility flags (Indices: 105-118)
 **Effect:** Preserve shared Realms of Luminari mobile behaviors during deterministic conversion.
 - `MOB_ROL_NICE_THIEF` allows stealing but suppresses automatic retaliation when caught
 - `MOB_ROL_STAY_SECTOR` restricts random wandering to the mobile's current sector
@@ -735,12 +735,23 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
   `MOB_ROL_HAS_WA` retain independent source class-behavior roles
 - `MOB_ROL_AGGR_RACE_EVIL` and `MOB_ROL_AGGR_RACE_GOOD` use the converted source race
   groups rather than current character alignment
+- `MOB_ROL_DEMON` and `MOB_ROL_DEVIL` preserve the source boot-time planar behavior:
+  infravision and aggregate elemental protection are emitted on the prototype, while
+  recognized combat aliases can gate a bounded source-equivalent group on their
+  authored cooldown. Player-controlled creatures cannot gate; gated followers cannot
+  recursively gate and disappear after four game hours.
+- `MOB_ROL_UMBERHULK` equips the converted canonical claws when available and retains
+  the level-scaled confusion or extra mandible attack during combat.
+- The three automatic-race flags use independent activity and combat hooks. They do not
+  consume `MOB_SPEC` or the prototype's persistent SpecProc slot, so an authored direct
+  procedure continues to run on the same mobile.
 - These flags are converter-owned compatibility data; builders should use native flags
   and classes for new content unless reproducing converted RoL behavior
 
 **Code References:**
 - `src/mob/mob_act.c` - Movement, archery, and race aggression
 - `src/combat/fight.c` - Delayed hunter activation
+- `src/spec/spec_rol_conversion.c` - Automatic demon, devil, and umber-hulk behavior
 - `src/act.other.c` - Caught-theft response
 - `src/utils.h` - Class-role queries
 
@@ -874,6 +885,9 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 | 113 | MOB_ROL_HAS_WA | RoL-Warrior | Compatibility | Has warrior behavior role |
 | 114 | MOB_ROL_AGGR_RACE_EVIL | RoL-Aggro-Evil-Race | Compatibility | Attacks evil source races |
 | 115 | MOB_ROL_AGGR_RACE_GOOD | RoL-Aggro-Good-Race | Compatibility | Attacks good source races |
+| 116 | MOB_ROL_DEMON | RoL-Demon | Compatibility | Runs implicit source demon behavior |
+| 117 | MOB_ROL_DEVIL | RoL-Devil | Compatibility | Runs implicit source devil behavior |
+| 118 | MOB_ROL_UMBERHULK | RoL-Umberhulk | Compatibility | Runs implicit source umber-hulk behavior |
 
 ---
 

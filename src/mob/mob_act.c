@@ -14,6 +14,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "spec/spec_dispatch.h"
+#include "spec/spec_rol_conversion.h"
 #include "db.h"
 #include "comm.h"
 #include "interpreter.h"
@@ -67,6 +68,9 @@ void mobile_activity(void)
       continue;
 
     if (!IS_MOB(ch))
+      continue;
+
+    if (rol_automatic_race_activity(ch))
       continue;
 
     if (MOB_FLAGGED(ch, MOB_NO_AI))
