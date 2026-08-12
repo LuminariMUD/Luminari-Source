@@ -6,6 +6,58 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted Bloodstone portals
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all four active `bs_portal` bindings through the persistent, object-owned
+  `RoL Bloodstone Portal` procedure: objects 2007147 and 2007148 lead to room 2007250,
+  object 2007149 leads to room 2007109, and object 2022491 leads to room 2022569.
+- Preserved the awake-only, exact visible-object `enter` command contract and taught
+  the converter to remap each source destination in object value 0 through its Phase 2
+  room identity.
+- Adapted source admission to the target's safe teleport checks. Invalid, forbidden,
+  or unloaded destinations consume the matched portal command without moving the actor.
+- Preserved mortal portal stress: 1-20 hit points and 1-30 movement points, with movement
+  floored at zero. Staff are immune, exactly -10 hit points survives, and only a result
+  below -10 is fatal.
+- Registered the procedure and persistence/index contracts, and updated builder help,
+  database-first help, manual testing, converter fixtures, and characterization tests.
+- Reconciliation now resolves 594 of 1,147 active direct bindings and 99 of 562 source
+  handlers; 553 bindings and 463 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 568 resolved / 280 pending because these are object-owned bindings.
+- Archived the twenty-sixth bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 22-54 Phase 6 sessions and 70-130 total sessions
+  for Phases 6-8, or 140-520 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 2635c21c
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-bloodstone-portal
+Reconciliation run: rol-phase6-special-f629c37b68cdad7d
+Active direct bindings: 1,147
+Direct bindings resolved: 594
+Direct bindings pending: 553
+Source handlers resolved: 99
+Source handlers pending: 463
+Bloodstone-portal bindings resolved: 4
+Native adapted bindings: 219
+ACT_SPEC records resolved: 568
+ACT_SPEC records pending: 280
+Complete world-tool suite: 278 passed
+Production-linked CuTest suite: 637 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Clean Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 553 direct bindings across 463 source handlers.
+
 ## 2026-08-12 - Phase 6 converted Ethereal floating pools
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
