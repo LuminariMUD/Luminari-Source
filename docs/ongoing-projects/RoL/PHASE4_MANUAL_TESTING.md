@@ -814,6 +814,45 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   join against the selected aggressor, and stop scanning once already fighting. Unrelated
   mobiles must not receive any peacekeeper behavior.
 
+### Phase 6 converted weapon procedures
+
+- In dependency-complete stages, confirm these 20 objects use `RoL Weapon Proc`:
+  2004505, 2013307, 2014837, 2019886, 2019900, 2019912, 2020075, 2026014,
+  2034840, 2038025, 2038095, 2040135, 2080547, 2089462, 2091305, 2095776,
+  2095851, 2095876, 2095878, and 2098330. Identify each object and confirm its
+  identity-specific special-effect description appears.
+- Fight with hammer 2004505 until its chain lightning fires and confirm the primary
+  target is struck before eligible visible enemies. Exercise glimmering sword 2014837,
+  Nightbringer 2026014, Kirin horn 2034840, fire-giant sword 2080547, barbed sword
+  2091305, and black-flame longsword 2095876 until each produces its documented random
+  hit effect. Normal weapon damage must still occur.
+- Force or repeatedly produce critical hits with icy dagger 2013307, slender elven
+  longsword 2020075, acid longsword 2089462, rippling-flame longsword 2095776, and
+  jeweled fang 2095851. Confirm the cold, elven-wound, acid, fire/healing, and piercing
+  profiles fire only on critical hits. Fire Elementals and Efreeti must be healed by
+  2095776 instead of damaged; incorporeal targets must ignore 2020075.
+- Critical hits with shadow dagger 2040135 must add damage based on the exact completed
+  hit payload. Sneak attacks have a separate one-in-four shadow flurry that can stun the
+  victim and armor the wielder. Ordinary noncritical, non-sneak hits must not use either
+  branch.
+- Give Windsong 2038025 or 2038095 to a non-Ranger and land a hit. The weapon must reduce
+  a healthy wielder to one hit point, unequip, and fall into the room without being
+  destroyed. A Ranger keeps the weapon and can trigger its extra-swing flurry; Elf,
+  High-Elf, and Half-Elf profiles receive their mapped race weighting.
+- Exercise Gith swords 2019886 and 2019900 against eligible sub-level-51 targets. Confirm
+  severing and charged-vorpal outcomes use target-safe damage, a summoned reclaimer is
+  hostile to a player wielder, and the charged blade destroys itself on its tenth
+  activation. Exercise Valhalla scepter 2019912 in primary and offhand slots and confirm
+  its extra swings do not recursively trigger another scepter proc.
+- Wield moonblade 2095878 outside at night and confirm its random star flare applies
+  faerie fire. While it is equipped, `say labelas` must apply barkskin to the wielder and
+  grouped room companions, then refuse another invocation until its 168-MUD-hour
+  cooldown expires.
+- Exercise crimson dagger 2098330 in primary and offhand slots. Confirm its random
+  noncritical branch drains Strength or agility through the mapped target effects, while
+  a primary-slot critical can blind and add crimson damage. Unrelated objects must not
+  receive any identity-keyed weapon behavior.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,

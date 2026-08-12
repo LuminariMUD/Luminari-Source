@@ -84,6 +84,7 @@ Phase 6 artifact-reconciliation commit: 2656b640
 Phase 6 banana/god-toy commit: 1ab77127
 Phase 6 undead-drain-family commit: 1f3e5172
 Phase 6 Waterdeep-peacekeeper commit: 526b99cb
+Phase 6 weapon-procedure commit: 5e4dc1a8
 ```
 
 The authoritative ignored runs are:
@@ -231,6 +232,9 @@ Phase 6 undead drain family:
 Phase 6 Waterdeep peacekeepers:
   lib/rol-conversion/runs/phase6-special-20260812-waterdeep-peacekeepers
   rol-phase6-special-2d173c6ee61f4ba1
+Phase 6 weapon procedures:
+  lib/rol-conversion/runs/phase6-special-20260812-weapon-procs
+  rol-phase6-special-8183ba9f3e112f6c
 Policy:  rol-conversion-policy-2
 ```
 
@@ -259,11 +263,11 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 301 tests; the production-linked CuTest suite passes 651;
+- The world-tool suite passes 302 tests; the production-linked CuTest suite passes 652;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Forty-four bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Forty-five bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
-  shape exists. The measured remaining forecast is 53-86 sessions: Phase 6 is 5-10,
+  shape exists. The measured remaining forecast is 52-85 sessions: Phase 6 is 4-9,
   Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
@@ -475,18 +479,24 @@ Policy:  rol-conversion-policy-2
   2003258; casino bouncer 2003207 returns to its load room and ejects aggressors to
   2003254. Off-duty guard 2003229 retains its drunken ambient table and joins eligible
   fights. The target-required `MOB_SPEC` flag is supplied for all six bindings.
+- All 19 active `specs.weapons.c` handler families covering 20 object bindings are
+  complete through the typed, identity-profiled `RoL Weapon Proc`. The weapon-hit
+  gateway now supplies exact damage, attack type, and critical state. Converted profiles
+  preserve critical and sneak payloads, random hit procs, typed energy damage, spell
+  effects, extra swings, wielder rejection, Gith charges and reclaimers, and Starsong's
+  equipped `say labelas` weekly group barkskin invocation.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 936 of 1,147 active direct bindings and 393 of
-  562 source handlers, leaving 211 bindings and 169 handlers. The independent
+- The current Phase 6 checkpoint resolves 956 of 1,147 active direct bindings and 412 of
+  562 source handlers, leaving 191 bindings and 150 handlers. The independent
   `ACT_SPEC` cross-check resolves 783 of 848 records and leaves 65 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 211 direct bindings across 169 handlers. Classify regular
+1. Reconcile the remaining 191 direct bindings across 150 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7

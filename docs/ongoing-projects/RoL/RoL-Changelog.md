@@ -6,6 +6,76 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted weapon procedures
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all 20 active object bindings across the 19 handlers in source
+  `specs.weapons.c`: `hammer`, `proc_icydagger`, `sf_glimmering_burst`, `githyanki2`,
+  `githyanki`, `valhalla_scepter`, `longsword_slenderelven`, `nightbringer`,
+  `kirinHorn`, `windsong`, `shadow_dagger`, `swordOfFireGiants`, `longsword_acid`,
+  `sword_wickedly_barbed`, `longsword_rippling_flames`, `jeweled_fang`,
+  `longsword_black_flames`, `moonblade_starsong`, and `glowing_crimson_dagger`.
+- Added the object-owned, builder-visible, typed `RoL Weapon Proc`. Twenty exact
+  converted object identities share one profile table rather than 19 one-off registry
+  callbacks, and the converter persists the shared canonical name on every binding.
+- Extended the weapon-hit gateway with exact completed-hit damage, attack type, and
+  critical state. This enables the shadow dagger's 15 percent critical payload, distinct
+  sneak-attack branch, and all source critical-only profiles without parsing legacy hit
+  tokens or guessing combat state.
+- Preserved the source weapon families' chain lightning, sleep, mental burst and stun,
+  Gith severing and hostile reclaimers, charged-blade depletion, Valhalla extra swings
+  and healing, Windsong Ranger rejection and race-weighted flurry, typed cold/fire/acid
+  damage, elemental fire healing, incorporeal immunity, spell effects, stat drains, and
+  crimson critical strike. Recursive extra-swing procs are explicitly suppressed.
+- Added equipped command handling for moonblade 2095878. `say labelas` applies the
+  target-native barkskin effect to the wielder and grouped room companions, then starts
+  a 168-MUD-hour cooldown; its nighttime outdoor hit proc applies faerie fire.
+- Extended registry persistence, owner-aware OLC, converter mappings, builder help,
+  database-first help, manual tests, generated constants, dispatch characterization,
+  and production-linked mechanics coverage. The registry now exposes 102 definitions:
+  95 legacy and seven typed, with 103 compatible persisted names.
+- Reconciliation now resolves 956 of 1,147 active direct bindings and 412 of 562 source
+  handlers; 191 bindings and 150 handlers remain. The object-only batch leaves the
+  independent `ACT_SPEC` checkpoint at 783 resolved / 65 pending.
+- Archived the forty-fifth Phase 6 delivery session. The remaining Phase 6 envelope is
+  4-9 sessions, leaving the Phases 6-8 forecast at 52-85 sessions, or 104-340 focused
+  engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 5e4dc1a8
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-weapon-procs
+Reconciliation run: rol-phase6-special-8183ba9f3e112f6c
+Active direct bindings: 1,147
+Direct bindings resolved: 956
+Direct bindings pending: 191
+Source handlers resolved: 412
+Source handlers pending: 150
+Additional handler families resolved: 19
+Additional direct bindings resolved: 20
+Native adapted bindings: 510
+ACT_SPEC records resolved: 783
+ACT_SPEC records pending: 65
+Converted weapon profiles: 20
+Special registry definitions: 102 total / 95 legacy / 7 typed
+Compatibility names: 103
+Focused world-tool suite: 77 passed
+Complete world-tool suite: 302 passed
+Production-linked CuTest suite: 652 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 191 direct bindings across 150 source handlers.
+The next bulk batch continues prioritizing strict generated shapes and shared mechanics.
+
 ## 2026-08-12 - Phase 6 converted Waterdeep peacekeepers
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
