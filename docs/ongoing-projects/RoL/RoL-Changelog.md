@@ -6,6 +6,67 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 expanded Waterdeep ambient batch
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed 21 additional source handler families and 22 active direct bindings through
+  the existing persistent, mobile-owned `RoL Waterdeep Ambient` procedure.
+- Added data-driven profiles for tailor, shopper, assassin, brigand, fisherman, sailor,
+  seaman, naval-worker, seabird, commoner, and Waterdeep-guard families. The runtime
+  remains one reusable adapter keyed by converted mobile VNUM rather than one procedure
+  per source function.
+- Preserved the source two-d5 outcome distributions, authored speech and room-action
+  ordering, and multi-message outcomes. Source text is retained exactly, including its
+  original spelling and punctuation.
+- Preserved the standing-position gate for every added profile and the source combat
+  suppression for Waterdeep guard profiles. The first guard family covers converted
+  mobiles 2003059 and 2003070; the second covers 2003035.
+- Extended conversion/reconciliation mappings, builder help, database-first help,
+  manual test coverage, converter fixtures, and production-linked characterization
+  tests without adding another registry entry or source file.
+- Reconciliation now resolves 690 of 1,147 active direct bindings and 174 of 562 source
+  handlers; 457 bindings and 388 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 622 resolved / 226 pending.
+- Archived the thirtieth bounded Phase 6 delivery session since the Phase 5 closeout.
+  At the measured throughput of 15-30 handler families per batch, the conservative
+  forward-looking estimate is now 13-26 Phase 6 sessions and 61-102 total sessions for
+  Phases 6-8, or 122-408 focused engineering hours at 2-4 hours per session. The next
+  workstream will measure a larger bulk-conversion cadence before replacing this basis.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 30132767
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-waterdeep-ambient-2
+Reconciliation run: rol-phase6-special-af17e0481a21298e
+Active direct bindings: 1,147
+Direct bindings resolved: 690
+Direct bindings pending: 457
+Source handlers resolved: 174
+Source handlers pending: 388
+Selected handler families resolved: 21
+Selected direct bindings resolved: 22
+Native adapted bindings: 297
+Native adapted composable bindings: 131
+ACT_SPEC records resolved: 622
+ACT_SPEC records pending: 226
+Complete world-tool suite: 282 passed
+Focused conversion/reconciliation suite: 84 passed
+Production-linked CuTest suite: 641 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Clean Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 457 direct bindings across 388 source handlers,
+using larger dependency-complete workstreams, shared data-driven adapters, focused
+checks during implementation, and full release gates only at substantial milestones.
+
 ## 2026-08-12 - Phase 6 batched Waterdeep ambient citizens
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
