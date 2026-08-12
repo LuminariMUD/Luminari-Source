@@ -108,6 +108,22 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(result.complete)
     self.assertEqual("Guild", result.records[0].spec_proc)
 
+  def test_inert_mobile_special_does_not_emit_flag_or_pending_diagnostic(self) -> None:
+    source = self._source_record(
+        "mob",
+        b"<*> File Version 1 <*>\n#100\ncity guard~\na city guard~\n"
+        b"A city guard stands here.\n~\nA watchful city guard.\n~\n"
+        b"1 0 0 0 S\nH 0 0\n1 0 10 1d1+0 1d1+0\n0 0\n131 131 0 0\n",
+    )
+
+    emitted = emit_mobile(source, 2_000_100, special_resolved=True)
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20001.mob", self.manifest, set())
+
+    self.assertNotIn("source ACT_SPEC deferred", "\n".join(emitted.diagnostics))
+    self.assertTrue(result.complete)
+    self.assertNotIn(0, decode_tokens(result.records[0].action_flags).bits)
+
   def test_emitted_room_adapts_valid_exit_trap_payload(self) -> None:
     source = self._source_record(
         "wld",
@@ -831,6 +847,12 @@ class RolTransformTests(unittest.TestCase):
             "source_vnum": 30,
             "source_handler": "dump",
         },
+        {
+            "basename": "sample",
+            "record_type": "mobile",
+            "source_vnum": 40,
+            "source_handler": "poison",
+        },
     ]
 
     compiled = compile_special_bindings(
@@ -841,14 +863,16 @@ class RolTransformTests(unittest.TestCase):
     )
 
     self.assertEqual(
-        ["Janitor", "RoL Guild Room"],
+        ["Janitor", "RoL Guild Room", "RoL Poison Bite"],
         sorted(binding.persisted_name for binding in compiled.native_bindings),
     )
     self.assertEqual([], compiled.triggers)
-    self.assertEqual(3, len(compiled.dispositions))
+    self.assertEqual(4, len(compiled.dispositions))
     inert = next(row for row in compiled.dispositions if row["source_handler"] == "dump")
     self.assertEqual("SOURCE_INERT_EXCLUDED", inert["strategy"])
     self.assertIn("returns before", inert["reason"])
+    adapted = next(row for row in compiled.dispositions if row["source_handler"] == "poison")
+    self.assertEqual("NATIVE_ADAPTED", adapted["strategy"])
 
 
 if __name__ == "__main__":

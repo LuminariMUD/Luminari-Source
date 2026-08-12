@@ -51,10 +51,18 @@ NATIVE_HANDLER_NAMES = {
 }
 NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 
-# The source dump callback returns immediately after initialization, leaving
-# all of its apparent object-destruction code unreachable.  Binding the active
-# target Dump procedure would invent behavior that did not run in RoL.
+# These shared source families need bounded target adapters because the nearest
+# legacy target callbacks have different eligibility or probability rules.
+ADAPTED_HANDLER_NAMES = {
+    "devour": "RoL Corpse Devourer",
+    "poison": "RoL Poison Bite",
+    "thief": "RoL Thief",
+}
+
+# These callbacks return before their obsolete or apparent behavior. Binding
+# active target procedures would invent behavior that did not run in RoL.
 INERT_HANDLERS = {
+    "cityguard": "source cityguard callback returns before its obsolete aggression code",
     "dump": "source dump callback returns before its command behavior",
 }
 
@@ -693,19 +701,25 @@ def compile_special_bindings(
       raise ValueError(f"unsupported special owner type {record_type!r}") from error
     source_vnum = int(row["source_vnum"])
     target_vnum = resolve(target_kind, source_vnum)
-    if handler in NATIVE_HANDLERS:
+    if handler in NATIVE_HANDLERS or handler in ADAPTED_HANDLER_NAMES:
       required_bits = (44,) if handler == "obj_drain" else ()
+      persisted_name = (
+          NATIVE_HANDLER_NAMES[handler]
+          if handler in NATIVE_HANDLER_NAMES
+          else ADAPTED_HANDLER_NAMES[handler]
+      )
       native_bindings.append(
           NativeSpecialBinding(
               source_record_type=record_type,
               source_vnum=source_vnum,
               target_kind=target_kind,
               target_vnum=target_vnum,
-              persisted_name=NATIVE_HANDLER_NAMES[handler],
+              persisted_name=persisted_name,
               required_flag_bits=required_bits,
           )
       )
-      dispositions.append(_disposition(row, "NATIVE_PERSISTED", target_vnum))
+      strategy = "NATIVE_ADAPTED" if handler in ADAPTED_HANDLER_NAMES else "NATIVE_PERSISTED"
+      dispositions.append(_disposition(row, strategy, target_vnum))
     elif handler in INERT_HANDLERS:
       disposition = _disposition(row, "SOURCE_INERT_EXCLUDED", target_vnum)
       disposition["reason"] = INERT_HANDLERS[handler]

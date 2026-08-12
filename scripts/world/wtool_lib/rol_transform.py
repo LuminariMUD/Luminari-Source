@@ -1408,6 +1408,7 @@ def emit_mobile(
     record: RolRecord,
     destination_vnum: int,
     special_proc: str | None = None,
+    special_resolved: bool = False,
     attachments: tuple[int, ...] = (),
 ) -> TransformResult:
   """Emit one enhanced target mobile record."""
@@ -1451,7 +1452,7 @@ def emit_mobile(
   )
   if missing_actions:
     diagnostics.append(f"mobile action flags requiring behavior reconciliation: {missing_actions}")
-  if 1 in source_actions and special_proc is None:
+  if 1 in source_actions and special_proc is None and not special_resolved:
     diagnostics.append("source ACT_SPEC deferred to Phase 6 binding reconciliation")
   if source_actions & MOB_SOURCE_ONLY_ACTIONS:
     diagnostics.append(

@@ -23,6 +23,7 @@
 #include "../../src/spec/spec_mobile_archetypes.h"
 #include "../../src/spec/spec_mobiles.h"
 #include "../../src/spec/spec_registry.h"
+#include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/spec/spec_rol_pilot.h"
 #include "../../src/spec/spec_rooms.h"
 #include "../../src/vessels/vessels_legacy.h"
@@ -176,8 +177,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 53, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 51, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 56, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 54, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -315,6 +316,12 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"thorn_shield", rol_thorn_shield, SPEC_OWNER_OBJECT,
        SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_DEFENSE_REACTION, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Guild Room", guild, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND, SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Corpse Devourer", rol_corpse_devourer, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Poison Bite", rol_poison_bite, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Thief", rol_thief, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
+       SPEC_BINDING_SOURCE_WORLD},
   };
   const struct spec_definition *definition;
   size_t definition_index;

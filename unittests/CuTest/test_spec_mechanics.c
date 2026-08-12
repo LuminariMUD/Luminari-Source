@@ -22,6 +22,7 @@
 #include "../../src/spec/spec_effects.h"
 #include "../../src/spec/spec_objects.h"
 #include "../../src/spec/spec_phrase.h"
+#include "../../src/spec/spec_rol_conversion.h"
 
 #include <string.h>
 
@@ -434,4 +435,41 @@ void Test_spec_invoked_objects_share_exact_phrase_and_cooldown_contracts(CuTest 
   CuAssertTrue(tc, trailing_space_rejected);
   CuAssertTrue(tc, tab_rejected);
   CuAssertTrue(tc, copied_instance_rejected);
+}
+
+void Test_spec_rol_shared_mobile_adapters_preserve_source_boundaries(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct obj_data food;
+  struct obj_data npc_corpse;
+  struct obj_data player_corpse;
+
+  spec_mechanics_begin(&fixture);
+  clear_object(&food);
+  clear_object(&npc_corpse);
+  clear_object(&player_corpse);
+
+  GET_OBJ_TYPE(&food) = ITEM_FOOD;
+  GET_OBJ_TYPE(&npc_corpse) = ITEM_CONTAINER;
+  GET_OBJ_VAL(&npc_corpse, 3) = 1;
+  GET_OBJ_TYPE(&player_corpse) = ITEM_CONTAINER;
+  GET_OBJ_VAL(&player_corpse, 3) = 1;
+  GET_OBJ_VAL(&player_corpse, 4) = 42;
+
+  CuAssertTrue(tc, rol_corpse_devourer_can_consume(&food));
+  CuAssertTrue(tc, rol_corpse_devourer_can_consume(&npc_corpse));
+  CuAssertTrue(tc, !rol_corpse_devourer_can_consume(&player_corpse));
+  CuAssertTrue(tc, !rol_corpse_devourer_can_consume(NULL));
+
+  CuAssertIntEquals(tc, 61, rol_poison_bite_roll_ceiling(0));
+  CuAssertIntEquals(tc, 51, rol_poison_bite_roll_ceiling(10));
+  CuAssertIntEquals(tc, 27, rol_poison_bite_roll_ceiling(34));
+  CuAssertIntEquals(tc, 0, rol_poison_bite_roll_ceiling(70));
+
+  CuAssertIntEquals(tc, TRUE, rol_thief(&fixture.actor, &fixture.actor, 0, ""));
+  CuAssertIntEquals(tc, FALSE, rol_thief(&fixture.actor, &fixture.actor, 1, ""));
+  GET_POS(&fixture.actor) = POS_SITTING;
+  CuAssertIntEquals(tc, FALSE, rol_thief(&fixture.actor, &fixture.actor, 0, ""));
+
+  spec_mechanics_end(&fixture);
 }

@@ -14,7 +14,7 @@ from .constants import default_repo_root
 from .models import TOOL_VERSION
 from .rol_planner import verify_discovery_bundle
 from .rol_skeleton import verify_plan_bundle
-from .rol_special import INERT_HANDLERS, NATIVE_HANDLER_NAMES
+from .rol_special import ADAPTED_HANDLER_NAMES, INERT_HANDLERS, NATIVE_HANDLER_NAMES
 
 
 ROL_SPECIAL_RECONCILIATION_SCHEMA_VERSION = 1
@@ -269,6 +269,12 @@ def handler_disposition(handler: str) -> dict[str, str]:
     }
   if handler in _DG_HANDLERS:
     return {"status": "resolved", "strategy": "DG_COMPILED", "target": "DG trigger"}
+  if handler in ADAPTED_HANDLER_NAMES:
+    return {
+        "status": "resolved",
+        "strategy": "NATIVE_ADAPTED",
+        "target": ADAPTED_HANDLER_NAMES[handler],
+    }
   if handler in INERT_HANDLERS:
     return {
         "status": "resolved",

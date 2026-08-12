@@ -21,12 +21,15 @@ class RolSpecialReconciliationTests(unittest.TestCase):
   def test_reviewed_handler_dispositions_do_not_rely_on_matching_names(self) -> None:
     guild = handler_disposition("guild")
     dump = handler_disposition("dump")
+    poison = handler_disposition("poison")
     unknown = handler_disposition("not_reviewed")
 
     self.assertEqual("RoL Guild Room", guild["target"])
     self.assertEqual("NATIVE_PERSISTED", guild["strategy"])
     self.assertEqual("SOURCE_INERT_EXCLUDED", dump["strategy"])
     self.assertIn("returns before", dump["reason"])
+    self.assertEqual("RoL Poison Bite", poison["target"])
+    self.assertEqual("NATIVE_ADAPTED", poison["strategy"])
     self.assertEqual("pending", unknown["status"])
 
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
@@ -65,11 +68,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual(1_234, summary["active_direct_bindings"])
       self.assertEqual(605, summary["source_handlers"])
       self.assertEqual(605, summary["source_handler_definitions_located"])
-      self.assertEqual(185, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(1_049, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(231, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(1_003, summary["direct_bindings_by_status"]["pending"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(455, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(393, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(462, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(386, summary["act_spec_by_status"]["pending"])
 
       output_dir = Path(temporary) / "phase6"
       manifest = json.loads((output_dir / "run-manifest.json").read_text(encoding="ascii"))

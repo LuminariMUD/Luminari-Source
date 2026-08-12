@@ -683,6 +683,11 @@ def write_pilot_build_bundle(
   for owner, trigger_vnums in specials.attachments.items():
     attachments[owner].extend(trigger_vnums)
   native, _ = _native_maps(specials)
+  inert_special_sources = {
+      (str(row["source_record_type"]), int(row["source_vnum"]))
+      for row in specials.dispositions
+      if row["strategy"] == "SOURCE_INERT_EXCLUDED"
+  }
   zone_by_basename = _target_zone_by_basename(actions)
   source_zone_flags = _source_zone_flags_by_basename(selected_records)
   generated: defaultdict[tuple[str, int], list[tuple[int, str]]] = defaultdict(list)
@@ -706,6 +711,7 @@ def write_pilot_build_bundle(
           record,
           destination,
           special_proc=binding.persisted_name if binding is not None else None,
+          special_resolved=("mobile", record.vnum) in inert_special_sources,
           attachments=owner_attachments,
       )
     elif kind == "obj":

@@ -50,6 +50,9 @@ static const char *const spec_mobile_names[] = {
     "money_changer",
     "plant_attacks_blindness",
     "plant_attacks_paralysis",
+    "RoL Corpse Devourer",
+    "RoL Poison Bite",
+    "RoL Thief",
 };
 
 static const char *const spec_object_names[] = {
@@ -166,8 +169,17 @@ static bool spec_owner_output_contains_none(const char *output, const char *cons
 static bool spec_owner_render_scenario(const char *sandbox, char *error, size_t error_size)
 {
   static const char *const mobile_required[] = {
-      "Mobile Prototypes", "Janitor [World]", "Picks up low-value trash", "mobile activity",
-      "flags MOB_SPEC",    "Practice Dummy",  "mobile combat turn",       "placement combat",
+      "Mobile Prototypes",
+      "Janitor [World]",
+      "Picks up low-value trash",
+      "mobile activity",
+      "flags MOB_SPEC",
+      "Practice Dummy",
+      "mobile combat turn",
+      "placement combat",
+      "RoL Corpse Devourer [RoL Conversion]",
+      "RoL Poison Bite [RoL Conversion]",
+      "RoL Thief [RoL Conversion]",
   };
   static const char *const mobile_forbidden[] = {
       "Crafting Kit",
@@ -342,7 +354,7 @@ void Test_spec_owner_olc_selection_parser_is_strict_and_bounded(CuTest *tc)
     return;
   CuAssertStrEquals(tc, "Greyhawk Ship Commands", definition->canonical_name);
 
-  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "25", &definition);
+  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "28", &definition);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID, result);
   CuAssertTrue(tc, definition == NULL);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID,

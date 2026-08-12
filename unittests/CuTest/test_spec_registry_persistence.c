@@ -10,6 +10,7 @@
 #include "../../src/obj/vendor.h"
 #include "../../src/olc/spec_menu.h"
 #include "../../src/spec/spec_registry.h"
+#include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/spec/spec_rol_pilot.h"
 #include "../../src/vessels/vessels_legacy.h"
 #include "test_spec_fixtures.h"
@@ -455,12 +456,15 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "muspel_spider_dagger",
                                                "obj_drain",
                                                "thorn_shield",
-                                               "RoL Guild Room"};
+                                               "RoL Guild Room",
+                                               "RoL Corpse Devourer",
+                                               "RoL Poison Bite",
+                                               "RoL Thief"};
   int expected_count;
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 54, expected_count);
+  CuAssertIntEquals(tc, 57, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)
@@ -500,8 +504,8 @@ void Test_spec_registry_legacy_accessor_boundaries(CuTest *tc)
   CuAssertTrue(tc, get_spec_func_by_index(-1) == NULL);
   CuAssertTrue(tc, get_spec_func_name_by_index(count) == NULL);
   CuAssertTrue(tc, get_spec_func_by_index(count) == NULL);
-  CuAssertStrEquals(tc, "RoL Guild Room", get_spec_func_name_by_index(count - 1));
-  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == guild);
+  CuAssertStrEquals(tc, "RoL Thief", get_spec_func_name_by_index(count - 1));
+  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_thief);
   CuAssertTrue(tc, get_spec_func_name(NULL) == NULL);
 }
 

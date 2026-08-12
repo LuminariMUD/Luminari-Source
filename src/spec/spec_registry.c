@@ -26,6 +26,7 @@
 #include "quest/quest.h"
 #include "spec/spec_mobile_archetypes.h"
 #include "spec/spec_mobiles.h"
+#include "spec/spec_rol_conversion.h"
 #include "spec/spec_rol_pilot.h"
 #include "spec/spec_rooms.h"
 #include "spec/spec_zone_abyss.h"
@@ -76,6 +77,11 @@ static const struct spec_event_contract rol_mobile_combat_events[] = {{
     SPEC_PROTOTYPE_MOB_SPEC,
     SPEC_PLACEMENT_COMBAT,
 }};
+
+static const struct spec_event_contract rol_mobile_activity_combat_events[] = {
+    {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
+};
 
 static const struct spec_event_contract rol_object_hit_events[] = {
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
@@ -837,6 +843,42 @@ static const struct spec_definition spec_definitions[] = {
         .description = "Provides current training services from a converted RoL guild room.",
         .legacy_handler = guild,
     },
+    {
+        .canonical_name = "RoL Corpse Devourer",
+        .display_name = "RoL Corpse Devourer",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = janitor_events,
+        .event_count = SPEC_ARRAY_SIZE(janitor_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Consumes food and non-player corpses while preserving corpse contents.",
+        .legacy_handler = rol_corpse_devourer,
+    },
+    {
+        .canonical_name = "RoL Poison Bite",
+        .display_name = "RoL Poison Bite",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = rol_mobile_activity_combat_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_mobile_activity_combat_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Uses the RoL level-scaled chance to poison the current opponent.",
+        .legacy_handler = rol_poison_bite,
+    },
+    {
+        .canonical_name = "RoL Thief",
+        .display_name = "RoL Thief",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = janitor_events,
+        .event_count = SPEC_ARRAY_SIZE(janitor_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Attempts the RoL theft behavior against every eligible player each pulse.",
+        .legacy_handler = rol_thief,
+    },
 };
 
 enum
@@ -894,6 +936,9 @@ enum
   SPEC_DEFINITION_ROL_OBJ_DRAIN,
   SPEC_DEFINITION_ROL_THORN_SHIELD,
   SPEC_DEFINITION_ROL_GUILD_ROOM,
+  SPEC_DEFINITION_ROL_CORPSE_DEVOURER,
+  SPEC_DEFINITION_ROL_POISON_BITE,
+  SPEC_DEFINITION_ROL_THIEF,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -961,6 +1006,9 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_OBJ_DRAIN, -1},
     {SPEC_DEFINITION_ROL_THORN_SHIELD, -1},
     {SPEC_DEFINITION_ROL_GUILD_ROOM, -1},
+    {SPEC_DEFINITION_ROL_CORPSE_DEVOURER, -1},
+    {SPEC_DEFINITION_ROL_POISON_BITE, -1},
+    {SPEC_DEFINITION_ROL_THIEF, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,
