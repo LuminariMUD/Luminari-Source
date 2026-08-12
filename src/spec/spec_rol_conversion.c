@@ -423,7 +423,8 @@ struct rol_ambient_action
 enum rol_source_periodic_action_kind
 {
   ROL_SOURCE_PERIODIC_ROOM_ACTION = 0,
-  ROL_SOURCE_PERIODIC_SPEECH
+  ROL_SOURCE_PERIODIC_SPEECH,
+  ROL_SOURCE_PERIODIC_TARGET_ACTION
 };
 
 enum rol_source_periodic_devour_order
@@ -460,6 +461,8 @@ struct rol_source_periodic_action
   enum rol_source_periodic_action_kind kind;
   bool hide;
   const char *message;
+  const char *target;
+  const char *victim_message;
 };
 
 #include "spec_rol_periodic_profiles.inc"
@@ -4094,12 +4097,14 @@ const char *rol_source_periodic_outcome_action(int mobile_vnum, int roll, size_t
 
 int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *argument)
 {
+  struct char_data *target;
   struct char_data *speaker = me;
   const struct rol_source_periodic_profile *profile;
   const struct rol_source_periodic_outcome *outcome;
   const struct rol_source_periodic_action *action;
   bool emitted = false;
   bool devoured = false;
+  char target_name[MAX_INPUT_LENGTH];
   int roll;
   size_t index;
 
@@ -4130,6 +4135,25 @@ int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *arg
       action = &rol_source_periodic_actions[outcome->first_action + index];
       if (action->kind == ROL_SOURCE_PERIODIC_SPEECH)
         do_say(speaker, action->message, 0, 0);
+      else if (action->kind == ROL_SOURCE_PERIODIC_TARGET_ACTION)
+      {
+        if (!strcmp(action->target, "$self"))
+          target = speaker;
+        else
+        {
+          snprintf(target_name, sizeof(target_name), "%s", action->target);
+          target = get_char_vis(speaker, target_name, NULL, FIND_CHAR_ROOM);
+        }
+        if (target != NULL && target == speaker)
+          act(action->message, action->hide, speaker, NULL, NULL, TO_ROOM);
+        else if (target != NULL)
+        {
+          if (action->message[0] != '\0')
+            act(action->message, action->hide, speaker, NULL, target, TO_NOTVICT);
+          if (action->victim_message != NULL)
+            act(action->victim_message, action->hide, speaker, NULL, target, TO_VICT);
+        }
+      }
       else
         act(action->message, action->hide, speaker, NULL, NULL, TO_ROOM);
     }

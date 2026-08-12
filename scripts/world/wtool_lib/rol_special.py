@@ -1191,7 +1191,7 @@ def compile_special_bindings(
           if handler in NATIVE_HANDLER_NAMES
           else ADAPTED_HANDLER_NAMES[handler]
       )
-      if persisted_name == "RoL Monster Combat" or handler in {
+      if persisted_name in {"RoL Monster Combat", "RoL Source Periodic"} or handler in {
           "bandit",
           "bouncer_four",
           "bouncer_one",

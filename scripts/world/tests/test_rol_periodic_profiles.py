@@ -16,8 +16,8 @@ class RolPeriodicProfileTests(unittest.TestCase):
   def test_selected_manifest_has_unique_converted_mobile_coverage(self) -> None:
     vnums = [vnum for _relative, handler_vnums in PROFILE_SOURCES.values() for vnum in handler_vnums]
 
-    self.assertEqual(98, len(PROFILE_SOURCES))
-    self.assertEqual(104, len(vnums))
+    self.assertEqual(99, len(PROFILE_SOURCES))
+    self.assertEqual(105, len(vnums))
     self.assertEqual(len(vnums), len(set(vnums)))
     self.assertEqual(
         {
@@ -77,27 +77,48 @@ class RolPeriodicProfileTests(unittest.TestCase):
         )
     ]
     actions = re.findall(
-        r"^    \{ROL_SOURCE_PERIODIC_(?:SPEECH|ROOM_ACTION),", generated, re.MULTILINE
+        r"^    \{ROL_SOURCE_PERIODIC_(?:SPEECH|ROOM_ACTION|TARGET_ACTION),",
+        generated,
+        re.MULTILINE,
     )
 
     self.assertEqual(sorted(profile_vnums), profile_vnums)
     self.assertEqual(sorted(outcomes), outcomes)
-    self.assertEqual(380, len(outcomes))
-    self.assertEqual(621, len(actions))
+    self.assertEqual(401, len(outcomes))
+    self.assertEqual(661, len(actions))
+
+  def test_targeted_socials_preserve_source_targets_and_messages(self) -> None:
+    generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
+        encoding="ascii"
+    )
+    compact = " ".join(generated.split())
+
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_TARGET_ACTION, false, "$n pinches $N\'s cheeks, leaving a '
+        'bright-red blemish there.", "wench", "$n pinches your cheeks, and you reflexively '
+        'jump up in the air."}',
+        compact,
+    )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_TARGET_ACTION, false, "$n pokes $N in the ribs.", "magus", '
+        '"$n pokes you in the ribs. What!?"}',
+        compact,
+    )
 
   def test_devour_composition_is_explicit_and_ordered(self) -> None:
     generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
         encoding="ascii"
     )
+    compact = " ".join(generated.split())
 
     self.assertEqual({"bs_wolf": "before", "dog_one": "after"}, DEVOUR_PROFILE_ORDER)
     self.assertRegex(
-        generated,
+        compact,
         r"\{2007140, ROL_SOURCE_PERIODIC_BS_WOLF, 0, 100, 0, 0, true, false, true, "
         r"ROL_SOURCE_PERIODIC_DEVOUR_BEFORE\}",
     )
     self.assertRegex(
-        generated,
+        compact,
         r"\{2003062, ROL_SOURCE_PERIODIC_DOG_ONE, 2, 8, 2, 4, true, false, false, "
         r"ROL_SOURCE_PERIODIC_DEVOUR_AFTER\}",
     )
@@ -106,14 +127,15 @@ class RolPeriodicProfileTests(unittest.TestCase):
     generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
         encoding="ascii"
     )
+    compact = " ".join(generated.split())
 
     self.assertRegex(
-        generated,
+        compact,
         r"\{2003212, ROL_SOURCE_PERIODIC_GUARD_TWO, 2, 8, 2, 4, false, true, false, "
         r"ROL_SOURCE_PERIODIC_DEVOUR_NONE\}",
     )
     self.assertRegex(
-        generated,
+        compact,
         r"\{2012000, ROL_SOURCE_PERIODIC_SNOWBEAST, 3, 18, 3, 6, false, false, true, "
         r"ROL_SOURCE_PERIODIC_DEVOUR_NONE\}",
     )

@@ -104,6 +104,7 @@ PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...]]] = {
     "ice_tubby_merchant": ("src/specs.icecrag.c", (2097007,)),
     "ice_viscount": ("src/specs.icecrag.c", (2097023,)),
     "jester": ("src/specs.mobile.c", (2003069,)),
+    "menden_fisherman": ("src/specs.menden.c", (2088805,)),
     "menden_magus": ("src/specs.menden.c", (2088806,)),
     "guard_two": ("src/specs.waterdeep.c", (2003212,)),
     "snowbeast": ("src/specs.lavatubes.c", (2012000,)),

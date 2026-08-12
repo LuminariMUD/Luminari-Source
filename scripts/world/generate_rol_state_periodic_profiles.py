@@ -12,12 +12,13 @@ import re
 from generate_rol_periodic_profiles import (
     Action,
     Outcome,
+    SourceSocial,
     _ACTION_CALL,
     _c_string,
     _function_body,
     _matching_brace,
     _parse_actions,
-    _source_social_rooms,
+    _source_socials,
 )
 from wtool_lib.rol_state_periodic_profiles import (
     COMPOSED_STATE_PROFILE_SOURCES,
@@ -47,7 +48,7 @@ def _strip_comments(text: str) -> str:
 
 
 def _parse_switch(segment: str, name: str,
-                  socials: dict[str, tuple[bool, str] | None]) -> tuple[StateTable, int]:
+                  socials: dict[str, SourceSocial | None]) -> tuple[StateTable, int]:
   switch = re.search(
       r"switch\s*\(\s*dice\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*\)\s*\{", segment
   )
@@ -100,7 +101,7 @@ def _parse_switch(segment: str, name: str,
 
 def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int, ...],
                    states: tuple[str, ...],
-                   socials: dict[str, tuple[bool, str] | None],
+                   socials: dict[str, SourceSocial | None],
                    composed: bool = False) -> StateProfile:
   body = _function_body((source_root / relative).read_text(encoding="ascii"), name)
   calls = set(re.findall(r"\b([a-z][A-Za-z0-9_]*)\s*\(", _strip_comments(body)))
@@ -136,7 +137,7 @@ def load_profiles(source_root: Path) -> tuple[StateProfile, ...]:
     raise ValueError(
         f"cumulative state profiles are not selected: {sorted(unknown_cumulative)}"
     )
-  socials = _source_social_rooms(source_root)
+  socials = _source_socials(source_root)
   direct = tuple(
       _parse_profile(source_root, name, relative, vnums, states, socials)
       for name, (relative, vnums, states) in sorted(STATE_PROFILE_SOURCES.items())
@@ -228,9 +229,20 @@ def render(source_root: Path) -> str:
       ]
   )
   for action in actions:
-    kind = "ROL_SOURCE_PERIODIC_SPEECH" if action.speech else "ROL_SOURCE_PERIODIC_ROOM_ACTION"
+    if action.speech:
+      kind = "ROL_SOURCE_PERIODIC_SPEECH"
+    elif action.target is not None:
+      kind = "ROL_SOURCE_PERIODIC_TARGET_ACTION"
+    else:
+      kind = "ROL_SOURCE_PERIODIC_ROOM_ACTION"
     hide = "true" if action.hide else "false"
-    output.append(f"    {{{kind}, {hide}, {_c_string(action.message)}}},")
+    target = "NULL" if action.target is None else _c_string(action.target)
+    victim_message = (
+        "NULL" if action.victim_message is None else _c_string(action.victim_message)
+    )
+    output.append(
+        f"    {{{kind}, {hide}, {_c_string(action.message)}, {target}, {victim_message}}},"
+    )
   output.extend(["};", ""])
   return "\n".join(output)
 

@@ -18,7 +18,9 @@ _ACTION_CALL = re.compile(
     rf"mobsay\s*\(\s*ch\s*,\s*(?P<say>{_C_STRING})\s*\)"
     rf"|act\s*\(\s*(?P<act>{_C_STRING})\s*,\s*(?P<hide>TRUE|FALSE|1|0)\s*,"
     rf"[\s\S]*?\bTO_ROOM\s*\)"
-    r"|do_action\s*\(\s*ch\s*,\s*(?:0|NULL)\s*,\s*CMD_(?P<social>[A-Za-z0-9_]+)\s*\)"
+    rf"|(?:strcpy\s*\(\s*buf\s*,\s*(?P<target>{_C_STRING})\s*\)\s*;\s*)?"
+    r"do_action\s*\(\s*ch\s*,\s*(?P<social_arg>0|NULL|buf)\s*,\s*"
+    r"CMD_(?P<social>[A-Za-z0-9_]+)\s*\)"
 )
 
 
@@ -27,6 +29,17 @@ class Action:
   speech: bool
   hide: bool
   message: str
+  target: str | None = None
+  victim_message: str | None = None
+
+
+@dataclass(frozen=True)
+class SourceSocial:
+  hide: bool
+  room_no_arg: str | None
+  room_found: str | None
+  victim_found: str | None
+  room_auto: str | None
 
 
 @dataclass(frozen=True)
@@ -107,13 +120,19 @@ def _decode_c_strings(source: str) -> str:
   return "".join(ast.literal_eval(token) for token in tokens)
 
 
-def _source_social_rooms(source_root: Path) -> dict[str, tuple[bool, str] | None]:
+def _social_message(lines: list[str], index: int) -> str | None:
+  if index >= len(lines) or lines[index] == "#":
+    return None
+  return lines[index]
+
+
+def _source_socials(source_root: Path) -> dict[str, SourceSocial | None]:
   command_numbers: dict[str, int] = {}
   header = (source_root / "src/interp.h").read_text(encoding="ascii")
   for name, value in re.findall(r"^#define\s+CMD_([A-Za-z0-9_]+)\s+(\d+)\s*$", header, re.MULTILINE):
     command_numbers[name] = int(value)
 
-  messages: dict[int, tuple[bool, str] | None] = {}
+  messages: dict[int, SourceSocial | None] = {}
   actions = (source_root / "lib/misc/actions").read_text(encoding="ascii")
   for block in re.split(r"\n\s*\n", actions):
     lines = block.splitlines()
@@ -124,12 +143,18 @@ def _source_social_rooms(source_root: Path) -> dict[str, tuple[bool, str] | None
       continue
     command = int(match.group(1))
     room_message = lines[2]
-    messages[command] = None if room_message == "#" else (bool(int(match.group(2))), room_message)
+    messages[command] = SourceSocial(
+        bool(int(match.group(2))),
+        None if room_message == "#" else room_message,
+        _social_message(lines, 4),
+        _social_message(lines, 5),
+        _social_message(lines, 8),
+    )
 
   return {name: messages.get(value) for name, value in command_numbers.items()}
 
 
-def _parse_actions(segment: str, socials: dict[str, tuple[bool, str] | None]) -> tuple[Action, ...]:
+def _parse_actions(segment: str, socials: dict[str, SourceSocial | None]) -> tuple[Action, ...]:
   actions: list[Action] = []
   for match in _ACTION_CALL.finditer(segment):
     if match.group("say") is not None:
@@ -140,13 +165,33 @@ def _parse_actions(segment: str, socials: dict[str, tuple[bool, str] | None]) ->
       )
     else:
       social = socials.get(match.group("social"))
-      if social is not None:
-        actions.append(Action(False, social[0], social[1]))
+      if social is None:
+        continue
+      if match.group("social_arg") in {"0", "NULL"}:
+        if social.room_no_arg is not None:
+          actions.append(Action(False, social.hide, social.room_no_arg))
+        continue
+      if match.group("target") is None:
+        raise ValueError(f"missing target assignment for {match.group('social')}")
+      target = _decode_c_strings(match.group("target"))
+      if target == "me":
+        if social.room_auto is not None:
+          actions.append(Action(False, social.hide, social.room_auto, "$self"))
+      elif social.room_found is not None or social.victim_found is not None:
+        actions.append(
+            Action(
+                False,
+                social.hide,
+                social.room_found or "",
+                target,
+                social.victim_found,
+            )
+        )
   return tuple(actions)
 
 
 def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int, ...],
-                   socials: dict[str, tuple[bool, str] | None]) -> Profile:
+                   socials: dict[str, SourceSocial | None]) -> Profile:
   body = _function_body((source_root / relative).read_text(encoding="ascii"), name)
   devour_calls = len(re.findall(r"\bdevour\s*\(", body))
   inline_devour = all(
@@ -231,7 +276,7 @@ def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int
 
 
 def load_profiles(source_root: Path) -> tuple[Profile, ...]:
-  socials = _source_social_rooms(source_root)
+  socials = _source_socials(source_root)
   return tuple(
       _parse_profile(source_root, name, relative, vnums, socials)
       for name, (relative, vnums) in sorted(PROFILE_SOURCES.items())
@@ -300,9 +345,20 @@ def render(source_root: Path) -> str:
       action_index += len(outcome.actions)
   output.extend(["};", "", "static const struct rol_source_periodic_action rol_source_periodic_actions[] = {"])
   for action in flattened_actions:
-    kind = "ROL_SOURCE_PERIODIC_SPEECH" if action.speech else "ROL_SOURCE_PERIODIC_ROOM_ACTION"
+    if action.speech:
+      kind = "ROL_SOURCE_PERIODIC_SPEECH"
+    elif action.target is not None:
+      kind = "ROL_SOURCE_PERIODIC_TARGET_ACTION"
+    else:
+      kind = "ROL_SOURCE_PERIODIC_ROOM_ACTION"
     hide = "true" if action.hide else "false"
-    output.append(f"    {{{kind}, {hide}, {_c_string(action.message)}}},")
+    row = f"    {{{kind}, {hide}, {_c_string(action.message)}"
+    if action.target is not None:
+      victim_message = "NULL" if action.victim_message is None else _c_string(action.victim_message)
+      row += f", {_c_string(action.target)}, {victim_message}"
+    else:
+      row += ", NULL, NULL"
+    output.append(row + "},")
   output.extend(["};", ""])
   return "\n".join(output)
 
