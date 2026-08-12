@@ -439,6 +439,42 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual(3, definitions["actual"]["line"])
     self.assertEqual(4, definitions["actual"]["lines"])
 
+  def test_named_guild_and_utility_object_batch_has_explicit_dispositions(self) -> None:
+    guild_handlers = (
+        "guild_guard_one",
+        "guild_guard_four",
+        "guild_guard_five",
+        "guild_guard_six",
+        "guild_guard_eight",
+        "guild_guard_nine",
+    )
+    utility_handlers = (
+        "bs_child_sacrifice",
+        "fw_ruby_monocle",
+        "goodberry_cure",
+        "menden_figurine",
+        "thp_necroChild",
+    )
+
+    for handler in guild_handlers:
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Guild Guard", disposition["target"])
+
+    for handler in utility_handlers:
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Utility Object", disposition["target"])
+
+    plague = handler_disposition("blackPlagueCure")
+    serpent = handler_disposition("craine_serpent")
+    self.assertEqual("SOURCE_INERT_EXCLUDED", plague["strategy"])
+    self.assertIn("never registers", plague["reason"])
+    self.assertEqual("SOURCE_INERT_EXCLUDED", serpent["strategy"])
+    self.assertIn("registers no", serpent["reason"])
+
   def test_source_definition_scanner_ignores_preprocessor_disabled_decoy(self) -> None:
     definitions = source_handler_definitions(
         self.root / "EXAMPLE/RealmsOfLuminari", {"tree_spirit"}
@@ -473,11 +509,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_045, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(102, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(481, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(81, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(591, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_058, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(89, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(494, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(68, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(602, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           159, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -486,8 +522,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           18, summary["direct_bindings_by_strategy"]["SOURCE_UNSAFE_EXCLUDED"]
       )
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(807, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(41, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(813, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(35, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

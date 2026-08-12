@@ -959,6 +959,10 @@ static const struct rol_ambient_action rol_ambient_actions[] = {
  * Target VNUMs are the source room VNUMs under the Phase 4 +2,000,000 offset. */
 static const struct rol_guild_guard_rule rol_guild_guard_rules[] = {
     {2002951, NORTH, ROL_GUILD_CLASS(CLASS_ASSASSIN) | ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
+    {2003038, SOUTH,
+     ROL_GUILD_CLASS(CLASS_WIZARD) | ROL_GUILD_CLASS(CLASS_SORCERER) |
+         ROL_GUILD_CLASS(CLASS_SUMMONER),
+     0, true},
     {2003055, SOUTH,
      ROL_GUILD_CLASS(CLASS_WARRIOR) | ROL_GUILD_CLASS(CLASS_BERSERKER) |
          ROL_GUILD_CLASS(CLASS_BLACKGUARD),
@@ -966,9 +970,14 @@ static const struct rol_guild_guard_rule rol_guild_guard_rules[] = {
     {2003067, NORTH, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
     {2003283, EAST, ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
     {2004128, NORTH, 0, 0, false},
+    {2005500, EAST, ROL_GUILD_CLASS(CLASS_PALADIN), 0, true},
     {2005510, EAST, ROL_GUILD_CLASS(CLASS_WARRIOR), 0, true},
     {2005520, SOUTH, ROL_GUILD_CLASS(CLASS_MONK), 0, true},
+    {2005534, UP, ROL_GUILD_CLASS(CLASS_BARD), 0, true},
+    {2005540, SOUTH, ROL_GUILD_CLASS(CLASS_RANGER), 0, true},
+    {2005560, EAST, ROL_GUILD_CLASS(CLASS_DRUID), 0, true},
     {2005570, EAST, ROL_GUILD_CLASS(CLASS_WIZARD), 0, true},
+    {2005572, EAST, ROL_GUILD_CLASS(CLASS_WIZARD), 0, true},
     {2007669, NORTH, ROL_GUILD_CLASS(CLASS_WARRIOR) | ROL_GUILD_CLASS(CLASS_BLACKGUARD), 0, true},
     {2007817, DOWN, ROL_GUILD_CLASS(CLASS_CLERIC), 0, true},
     {2007837, WEST, ROL_GUILD_CLASS(CLASS_ASSASSIN) | ROL_GUILD_CLASS(CLASS_ROGUE), 0, true},
@@ -3029,18 +3038,30 @@ int rol_guild_guard_passage_destination(int room_vnum, int direction)
   {
   case 2002951:
     return direction == NORTH ? 2002952 : 0;
+  case 2003038:
+    return direction == SOUTH ? 2003039 : 0;
   case 2003055:
     return direction == SOUTH ? 2003056 : 0;
   case 2003067:
     return direction == NORTH ? 2003068 : 0;
   case 2003283:
     return direction == EAST ? 2003284 : 0;
+  case 2005500:
+    return direction == EAST ? 2005501 : 0;
   case 2005510:
     return direction == EAST ? 2005511 : 0;
   case 2005520:
     return direction == SOUTH ? 2005521 : 0;
+  case 2005534:
+    return direction == UP ? 2005535 : 0;
+  case 2005540:
+    return direction == SOUTH ? 2005541 : 0;
+  case 2005560:
+    return direction == EAST ? 2005561 : 0;
   case 2005570:
     return direction == EAST ? 2005571 : 0;
+  case 2005572:
+    return direction == EAST ? 2005573 : 0;
   case 2007669:
     return direction == NORTH ? 2007670 : 0;
   case 2007817:
@@ -3225,6 +3246,32 @@ int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argumen
   return TRUE;
 }
 
+static int rol_named_guild_guard_activity(struct char_data *guard, int room_vnum)
+{
+  if (room_vnum != 2005500 || !AWAKE(guard) || FIGHTING(guard) != NULL)
+    return FALSE;
+
+  switch (dice(2, 5))
+  {
+  case 2:
+    act("$n smiles warmly at you.", TRUE, guard, NULL, NULL, TO_ROOM);
+    break;
+  case 3:
+    do_say(guard, "Greetings, brethren! Welcome to the temple of Paladins.", 0, 0);
+    break;
+  case 4:
+    act("The holy warriors change positions at their post.", TRUE, guard, NULL, NULL, TO_ROOM);
+    break;
+  case 5:
+    act("$n looks at you curiously for a moment.", TRUE, guard, NULL, NULL, TO_ROOM);
+    break;
+  default:
+    break;
+  }
+
+  return FALSE;
+}
+
 int rol_guild_guard_typed(struct spec_event_context *context)
 {
   struct char_data *guard;
@@ -3247,6 +3294,8 @@ int rol_guild_guard_typed(struct spec_event_context *context)
     if (rol_guild_guard_protects(current_room_vnum) && FIGHTING(guard) != NULL &&
         !IS_NPC(FIGHTING(guard)))
       return FALSE;
+    if (current_room_vnum == 2005500)
+      return rol_named_guild_guard_activity(guard, current_room_vnum);
     return rol_state_periodic(guard, guard, 0, context->argument);
   case SPEC_EVENT_MOBILE_COMBAT_TURN:
     current_room_vnum = GET_ROOM_VNUM(IN_ROOM(guard));

@@ -85,6 +85,12 @@ ADAPTED_HANDLER_NAMES = {
     "control_panel": "RoL Ship Control",
     "devour": "RoL Corpse Devourer",
     "guild_guard": "RoL Guild Guard",
+    "guild_guard_one": "RoL Guild Guard",
+    "guild_guard_four": "RoL Guild Guard",
+    "guild_guard_five": "RoL Guild Guard",
+    "guild_guard_six": "RoL Guild Guard",
+    "guild_guard_eight": "RoL Guild Guard",
+    "guild_guard_nine": "RoL Guild Guard",
     "guild_classtype_mage": "RoL Mage Guild Room",
     "guild_classtype_thief": "RoL Thief Guild Room",
     "guild_classtype_warrior": "RoL Warrior Guild Room",
@@ -106,6 +112,11 @@ ADAPTED_HANDLER_NAMES = {
     "follow_that_mob": "RoL Designated Follower",
     "ice_bodyguards": "RoL Fixed Bodyguard",
     "floating_pool": "RoL Floating Pool",
+    "bs_child_sacrifice": "RoL Utility Object",
+    "fw_ruby_monocle": "RoL Utility Object",
+    "goodberry_cure": "RoL Utility Object",
+    "menden_figurine": "RoL Utility Object",
+    "thp_necroChild": "RoL Utility Object",
     "baker_one": "RoL Waterdeep Ambient",
     "baker_two": "RoL Waterdeep Ambient",
     "casino_one": "RoL Waterdeep Ambient",
@@ -288,7 +299,15 @@ ADAPTED_HANDLER_NAMES.update(
 # These callbacks return before their obsolete or apparent behavior. Binding
 # active target procedures would invent behavior that did not run in RoL.
 INERT_HANDLERS = {
+    "blackPlagueCure": (
+        "direct object callback never registers events because it does not parse the source "
+        "initialization call; the separate disease callback is not an object binding"
+    ),
     "cityguard": "source cityguard callback returns before its obsolete aggression code",
+    "craine_serpent": (
+        "source callback never parses its encoded call type, so initialization registers no "
+        "command, weapon-hit, periodic, or identify events"
+    ),
     "dump": "source dump callback returns before its command behavior",
     "rogue_one": (
         "source callback registers only NPC_HIT but returns whenever that event supplies its victim"
@@ -1146,6 +1165,12 @@ def compile_special_bindings(
           "follow_that_mob",
           "ghore_paradise",
           "guild_guard",
+          "guild_guard_one",
+          "guild_guard_four",
+          "guild_guard_five",
+          "guild_guard_six",
+          "guild_guard_eight",
+          "guild_guard_nine",
           "guard_one",
           *COMPOSED_STATE_PROFILE_SOURCES,
           "lich_energy_drain",
@@ -1162,7 +1187,9 @@ def compile_special_bindings(
           "undead_wraith",
       }:
         required_bits = (0,)
-      elif handler in {"floating_pool", "obj_drain"} or persisted_name == "RoL Weapon Proc":
+      elif handler in {"floating_pool", "fw_ruby_monocle", "obj_drain", "thp_necroChild"} or (
+          persisted_name == "RoL Weapon Proc"
+      ):
         required_bits = (44,)
       else:
         required_bits = ()
@@ -1188,6 +1215,8 @@ def compile_special_bindings(
                       "shaman_quest_teleport",
                       "waterdeep_portal",
                   }
+                  else ((0, "mob"),)
+                  if handler == "menden_figurine"
                   else ()
               ),
           )

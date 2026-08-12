@@ -27,6 +27,7 @@
 #include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/spec/spec_rol_lavatubes.h"
 #include "../../src/spec/spec_rol_totem.h"
+#include "../../src/spec/spec_rol_utility_objects.h"
 
 #include <limits.h>
 #include <string.h>
@@ -842,7 +843,23 @@ void Test_spec_rol_guild_guard_preserves_active_gate_rules(CuTest *tc)
   CLASS_LEVEL(target, CLASS_MONK) = 0;
   CLASS_LEVEL(target, CLASS_WIZARD) = 1;
   CuAssertTrue(tc, rol_guild_guard_allows(2005570, EAST, target));
+  CuAssertTrue(tc, rol_guild_guard_allows(2005572, EAST, target));
   CLASS_LEVEL(target, CLASS_WIZARD) = 0;
+  CLASS_LEVEL(target, CLASS_PALADIN) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2005500, EAST, target));
+  CLASS_LEVEL(target, CLASS_PALADIN) = 0;
+  CLASS_LEVEL(target, CLASS_BARD) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2005534, UP, target));
+  CLASS_LEVEL(target, CLASS_BARD) = 0;
+  CLASS_LEVEL(target, CLASS_RANGER) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2005540, SOUTH, target));
+  CLASS_LEVEL(target, CLASS_RANGER) = 0;
+  CLASS_LEVEL(target, CLASS_DRUID) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2005560, EAST, target));
+  CLASS_LEVEL(target, CLASS_DRUID) = 0;
+  CLASS_LEVEL(target, CLASS_SUMMONER) = 1;
+  CuAssertTrue(tc, rol_guild_guard_allows(2003038, SOUTH, target));
+  CLASS_LEVEL(target, CLASS_SUMMONER) = 0;
   CLASS_LEVEL(target, CLASS_BERSERKER) = 1;
   CuAssertTrue(tc, rol_guild_guard_allows(2003055, SOUTH, target));
   CLASS_LEVEL(target, CLASS_BERSERKER) = 0;
@@ -853,11 +870,23 @@ void Test_spec_rol_guild_guard_preserves_active_gate_rules(CuTest *tc)
 
   CuAssertTrue(tc, !rol_guild_guard_allows(2005510, EAST, target));
   CuAssertTrue(tc, !rol_guild_guard_allows(2005570, EAST, target));
+  CuAssertTrue(tc, !rol_guild_guard_allows(2005500, EAST, target));
+  CuAssertTrue(tc, !rol_guild_guard_allows(2005534, UP, target));
+  CuAssertTrue(tc, !rol_guild_guard_allows(2005540, SOUTH, target));
+  CuAssertTrue(tc, !rol_guild_guard_allows(2005560, EAST, target));
+  CuAssertTrue(tc, !rol_guild_guard_allows(2005572, EAST, target));
+  CuAssertTrue(tc, !rol_guild_guard_allows(2003038, SOUTH, target));
 
   CuAssertTrue(tc, rol_guild_guard_protects(2008200));
   CuAssertTrue(tc, rol_guild_guard_protects(2007669));
   CuAssertTrue(tc, rol_guild_guard_protects(2007880));
   CuAssertTrue(tc, rol_guild_guard_protects(2050624));
+  CuAssertTrue(tc, rol_guild_guard_protects(2005500));
+  CuAssertTrue(tc, rol_guild_guard_protects(2005534));
+  CuAssertTrue(tc, rol_guild_guard_protects(2005540));
+  CuAssertTrue(tc, rol_guild_guard_protects(2005560));
+  CuAssertTrue(tc, rol_guild_guard_protects(2005572));
+  CuAssertTrue(tc, rol_guild_guard_protects(2003038));
   CuAssertTrue(tc, !rol_guild_guard_protects(2004128));
   CuAssertTrue(tc, !rol_guild_guard_protects(9999999));
 
@@ -874,6 +903,12 @@ void Test_spec_rol_guild_guard_preserves_active_gate_rules(CuTest *tc)
   CuAssertIntEquals(tc, 2005511, rol_guild_guard_passage_destination(2005510, EAST));
   CuAssertIntEquals(tc, 2005521, rol_guild_guard_passage_destination(2005520, SOUTH));
   CuAssertIntEquals(tc, 2005571, rol_guild_guard_passage_destination(2005570, EAST));
+  CuAssertIntEquals(tc, 2005501, rol_guild_guard_passage_destination(2005500, EAST));
+  CuAssertIntEquals(tc, 2005535, rol_guild_guard_passage_destination(2005534, UP));
+  CuAssertIntEquals(tc, 2005541, rol_guild_guard_passage_destination(2005540, SOUTH));
+  CuAssertIntEquals(tc, 2005561, rol_guild_guard_passage_destination(2005560, EAST));
+  CuAssertIntEquals(tc, 2005573, rol_guild_guard_passage_destination(2005572, EAST));
+  CuAssertIntEquals(tc, 2003039, rol_guild_guard_passage_destination(2003038, SOUTH));
   CuAssertIntEquals(tc, 0, rol_guild_guard_passage_destination(2007669, SOUTH));
   CuAssertIntEquals(tc, 0, rol_guild_guard_passage_destination(2008200, WEST));
   CuAssertTrue(tc, rol_guild_guard_trips_rejected(2002951, NORTH));
@@ -1375,6 +1410,32 @@ void Test_spec_rol_lavatubes_profiles_preserve_source_outcomes(CuTest *tc)
   CuAssertIntEquals(tc, ROL_LAVATUBES_SNOWVULTURE_FLAP, rol_lavatubes_snowvulture_outcome(4));
   CuAssertIntEquals(tc, ROL_LAVATUBES_SNOWVULTURE_DEVOUR, rol_lavatubes_snowvulture_outcome(5));
   CuAssertIntEquals(tc, ROL_LAVATUBES_SNOWVULTURE_NONE, rol_lavatubes_snowvulture_outcome(6));
+}
+
+void Test_spec_rol_utility_object_profiles_preserve_source_boundaries(CuTest *tc)
+{
+  CuAssertTrue(tc, rol_utility_sacrifice_command_name("get"));
+  CuAssertTrue(tc, rol_utility_sacrifice_command_name("take"));
+  CuAssertTrue(tc, rol_utility_sacrifice_command_name("drag"));
+  CuAssertTrue(tc, !rol_utility_sacrifice_command_name("drop"));
+  CuAssertTrue(tc, !rol_utility_sacrifice_command_name(NULL));
+
+  CuAssertTrue(tc, rol_utility_sacrifice_keyword("child"));
+  CuAssertTrue(tc, rol_utility_sacrifice_keyword("  ALL remaining"));
+  CuAssertTrue(tc, !rol_utility_sacrifice_keyword("children"));
+  CuAssertTrue(tc, !rol_utility_sacrifice_keyword(NULL));
+
+  CuAssertStrEquals(tc, "The necromancer's child screams at the top of his lungs!\r\n",
+                    rol_utility_necro_child_message(0));
+  CuAssertStrEquals(tc, "The necromancer's child tries to bite you!\r\n",
+                    rol_utility_necro_child_message(6));
+  CuAssertTrue(tc, rol_utility_necro_child_message(7) == NULL);
+  CuAssertTrue(tc, rol_utility_necro_child_message(10) == NULL);
+
+  CuAssertTrue(tc, !rol_utility_monocle_room(2090123));
+  CuAssertTrue(tc, rol_utility_monocle_room(2090124));
+  CuAssertTrue(tc, rol_utility_monocle_room(2090142));
+  CuAssertTrue(tc, !rol_utility_monocle_room(2090143));
 }
 
 void Test_spec_rol_lavatubes_automaton_preserves_exit_pair_cycle(CuTest *tc)

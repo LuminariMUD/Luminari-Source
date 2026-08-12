@@ -30,6 +30,7 @@
 #include "spec/spec_rol_lavatubes.h"
 #include "spec/spec_rol_pilot.h"
 #include "spec/spec_rol_totem.h"
+#include "spec/spec_rol_utility_objects.h"
 #include "spec/spec_rooms.h"
 #include "spec/spec_zone_abyss.h"
 #include "spec/spec_zone_celestial_leviathan.h"
@@ -136,6 +137,11 @@ static const struct spec_event_contract rol_room_object_pulse_events[] = {{
     SPEC_PROTOTYPE_ITEM_AUTOPROC,
     SPEC_PLACEMENT_NONE,
 }};
+
+static const struct spec_event_contract rol_utility_object_events[] = {
+    {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+};
 
 static const struct spec_event_contract rol_object_defense_events[] = {
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
@@ -1536,6 +1542,20 @@ static const struct spec_definition spec_definitions[] = {
         .typed_adapter = rol_lavatubes_room,
         .typed_handler = rol_lavatubes_room_typed,
     },
+    {
+        .canonical_name = "RoL Utility Object",
+        .display_name = "RoL Utility Object",
+        .owner_mask = SPEC_OWNER_OBJECT,
+        .events = rol_utility_object_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_utility_object_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Runs converted goodberry, altar-child, figurine, captive-child, and "
+                       "ruby-monocle behavior by exact object identity.",
+        .typed_adapter = rol_utility_object,
+        .typed_handler = rol_utility_object_typed,
+    },
 };
 
 enum
@@ -1646,6 +1666,7 @@ enum
   SPEC_DEFINITION_ROL_LAVATUBES_MOBILE,
   SPEC_DEFINITION_ROL_LAVATUBES_OBJECT,
   SPEC_DEFINITION_ROL_LAVATUBES_ROOM,
+  SPEC_DEFINITION_ROL_UTILITY_OBJECT,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -1766,6 +1787,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_LAVATUBES_MOBILE, -1},
     {SPEC_DEFINITION_ROL_LAVATUBES_OBJECT, -1},
     {SPEC_DEFINITION_ROL_LAVATUBES_ROOM, -1},
+    {SPEC_DEFINITION_ROL_UTILITY_OBJECT, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,

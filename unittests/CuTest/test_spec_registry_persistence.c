@@ -14,6 +14,7 @@
 #include "../../src/spec/spec_rol_lavatubes.h"
 #include "../../src/spec/spec_rol_pilot.h"
 #include "../../src/spec/spec_rol_totem.h"
+#include "../../src/spec/spec_rol_utility_objects.h"
 #include "../../src/vessels/vessels_legacy.h"
 #include "../../src/vessels/vessels_rol.h"
 #include "test_spec_fixtures.h"
@@ -512,12 +513,13 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Stateful Periodic",
                                                "RoL Lavatubes Mobile",
                                                "RoL Lavatubes Object",
-                                               "RoL Lavatubes Room"};
+                                               "RoL Lavatubes Room",
+                                               "RoL Utility Object"};
   int expected_count;
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 107, expected_count);
+  CuAssertIntEquals(tc, 108, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)
@@ -557,8 +559,8 @@ void Test_spec_registry_legacy_accessor_boundaries(CuTest *tc)
   CuAssertTrue(tc, get_spec_func_by_index(-1) == NULL);
   CuAssertTrue(tc, get_spec_func_name_by_index(count) == NULL);
   CuAssertTrue(tc, get_spec_func_by_index(count) == NULL);
-  CuAssertStrEquals(tc, "RoL Lavatubes Room", get_spec_func_name_by_index(count - 1));
-  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_lavatubes_room);
+  CuAssertStrEquals(tc, "RoL Utility Object", get_spec_func_name_by_index(count - 1));
+  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_utility_object);
   CuAssertTrue(tc, get_spec_func_name(NULL) == NULL);
 }
 

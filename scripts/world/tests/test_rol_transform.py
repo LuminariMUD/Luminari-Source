@@ -1834,6 +1834,12 @@ class RolTransformTests(unittest.TestCase):
         "bs_guildguard_necro",
         "bs_guildguard_sorcconj",
         "bs_guildguard_thief",
+        "guild_guard_one",
+        "guild_guard_four",
+        "guild_guard_five",
+        "guild_guard_six",
+        "guild_guard_eight",
+        "guild_guard_nine",
         *COMPOSED_STATE_PROFILE_SOURCES,
     ]
     bindings = [
@@ -1854,7 +1860,7 @@ class RolTransformTests(unittest.TestCase):
     )
 
     native = compiled.native_bindings[0]
-    self.assertEqual(14, len(compiled.native_bindings))
+    self.assertEqual(20, len(compiled.native_bindings))
     self.assertTrue(
         all(binding.persisted_name == "RoL Guild Guard" for binding in compiled.native_bindings)
     )
@@ -1881,6 +1887,71 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(result.complete)
     self.assertEqual("RoL Guild Guard", result.records[0].spec_proc)
     self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
+
+  def test_utility_object_batch_preserves_pulse_flags_and_figurine_reference(self) -> None:
+    handlers = [
+        (876, "goodberry_cure", (), ()),
+        (7151, "bs_child_sacrifice", (), ()),
+        (46991, "thp_necroChild", (44,), ()),
+        (88825, "menden_figurine", (), ((0, "mob"),)),
+        (90004, "fw_ruby_monocle", (44,), ()),
+    ]
+    bindings = [
+        {
+            "basename": "utility-objects",
+            "record_type": "object",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler, _, _ in handlers
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(5, len(compiled.native_bindings))
+    by_vnum = {binding.source_vnum: binding for binding in compiled.native_bindings}
+    for source_vnum, _, expected_flags, expected_slots in handlers:
+      binding = by_vnum[source_vnum]
+      self.assertEqual("RoL Utility Object", binding.persisted_name)
+      self.assertEqual(expected_flags, binding.required_flag_bits)
+      self.assertEqual(expected_slots, binding.value_reference_slots)
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
+  def test_inert_object_callbacks_emit_no_target_binding(self) -> None:
+    bindings = [
+        {
+            "basename": "inert-objects",
+            "record_type": "object",
+            "source_vnum": 91248,
+            "source_handler": "blackPlagueCure",
+        },
+        {
+            "basename": "inert-objects",
+            "record_type": "object",
+            "source_vnum": 19985,
+            "source_handler": "craine_serpent",
+        },
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual([], compiled.native_bindings)
+    self.assertEqual([], compiled.triggers)
+    self.assertTrue(
+        all(row["strategy"] == "SOURCE_INERT_EXCLUDED" for row in compiled.dispositions)
+    )
 
   def test_toll_keeper_handlers_share_mobile_adapter(self) -> None:
     handlers = [
