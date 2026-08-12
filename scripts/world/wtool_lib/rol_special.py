@@ -77,6 +77,7 @@ ADAPTED_HANDLER_NAMES = {
     "bs_guildguard_sorcconj": "RoL Guild Guard",
     "bs_guildguard_thief": "RoL Guild Guard",
     "bs_portal": "RoL Bloodstone Portal",
+    "cage_command_block": "RoL Command Sentinel",
     "control_panel": "RoL Ship Control",
     "devour": "RoL Corpse Devourer",
     "elemental_tower_shout": "RoL Alert Caller",
@@ -161,6 +162,11 @@ ADAPTED_HANDLER_NAMES = {
     "tailor_one": "RoL Waterdeep Ambient",
     "waterdeep_guard_one": "RoL Waterdeep Ambient",
     "waterdeep_guard_two": "RoL Waterdeep Ambient",
+    "ancient_man": "RoL Command Sentinel",
+    "gate_guard": "RoL Command Sentinel",
+    "necro_passing_glyph": "RoL Command Sentinel",
+    "shady_man": "RoL Command Sentinel",
+    "stone_golem": "RoL Command Sentinel",
 }
 ADAPTED_HANDLER_NAMES.update(
     {handler_name: "RoL Source Periodic" for handler_name in PROFILE_SOURCES}
@@ -863,6 +869,66 @@ def _compile_ice_river(
   return trigger_vnum + 1
 
 
+def _compile_fogwoods_warning(
+    rows: list[dict[str, object]],
+    trigger_vnum: int,
+    resolve: IdentityResolver,
+    triggers: list[SpecialTrigger],
+    attachments: defaultdict[tuple[str, int], list[int]],
+    dispositions: list[dict[str, object]],
+) -> int:
+  """Compile the shared source enter-room warning as one room DG trigger."""
+
+  if not rows:
+    return trigger_vnum
+
+  owners = [resolve("wld", int(row["source_vnum"])) for row in rows]
+  body = [
+      "* RoL Foggy Woods entry warning.",
+      "wsend %actor% @nAs you enter this section of the forest,",
+      "wsend %actor% a shimmering form coalesces into existence!",
+      "wsend %actor% The form appears to be that of a wild barbaric man,",
+      "wsend %actor% wearing thick furs and wielding a spear inlaid with glowing runes.",
+      "wsend %actor% As your body prepares for an attack, a voice sounds inside your head:",
+      (
+          "wsend %actor% 'Puny intruders! Begone from this wood of mine, a place you do "
+          "not belong."
+      ),
+      (
+          "wsend %actor% For this is my home, and I care not for trespassers. You have "
+          "been WARNED!'"
+      ),
+      "wsend %actor% When the figure has finished speaking, he raises his spear on high,",
+      "wsend %actor% and you see a vision of a human head impaled upon it.",
+      (
+          "wsend %actor% Moments later, you gather your senses as you shake off a feeling "
+          "of dizziness."
+      ),
+      "return 1",
+  ]
+  text = _trigger_text(
+      trigger_vnum,
+      "RoL Foggy Woods entry warning",
+      2,
+      {6},
+      100,
+      "",
+      body,
+  )
+  _add_trigger(
+      triggers,
+      attachments,
+      "wld",
+      owners,
+      ("fw_warning_room",),
+      text,
+      trigger_vnum,
+  )
+  for row, owner in zip(rows, owners):
+    dispositions.append(_disposition(row, "DG_ENTRY_WARNING", owner, trigger_vnum))
+  return trigger_vnum + 1
+
+
 def compile_special_bindings(
     binding_rows: Iterable[dict[str, object]],
     trigger_start: int,
@@ -1052,6 +1118,14 @@ def compile_special_bindings(
         dispositions,
         diagnostics,
     )
+  next_trigger = _compile_fogwoods_warning(
+      grouped.pop("fw_warning_room", []),
+      next_trigger,
+      resolve,
+      triggers,
+      attachments,
+      dispositions,
+  )
 
   if grouped:
     names = ", ".join(sorted(grouped))

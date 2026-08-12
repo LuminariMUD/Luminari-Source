@@ -160,31 +160,39 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   const struct spec_definition *bank_definition;
   const struct spec_definition *cloak_definition;
   const struct spec_definition *guild_guard_definition;
+  const struct spec_definition *command_sentinel_definition;
   struct spec_binding *binding;
   char error[256];
 
   bank_definition = spec_registry_find_by_name("Bank");
   cloak_definition = spec_registry_find_by_name("Vampire Cloak");
   guild_guard_definition = spec_registry_find_by_name("RoL Guild Guard");
+  command_sentinel_definition = spec_registry_find_by_name("RoL Command Sentinel");
   CuAssertPtrNotNull(tc, bank_definition);
   CuAssertPtrNotNull(tc, cloak_definition);
   CuAssertPtrNotNull(tc, guild_guard_definition);
-  if (bank_definition == NULL || cloak_definition == NULL || guild_guard_definition == NULL)
+  CuAssertPtrNotNull(tc, command_sentinel_definition);
+  if (bank_definition == NULL || cloak_definition == NULL || guild_guard_definition == NULL ||
+      command_sentinel_definition == NULL)
     return;
 
-  CuAssertIntEquals(tc, 3, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 4, (int)spec_registry_typed_count());
   CuAssertIntEquals(tc, 92, (int)spec_registry_legacy_count());
   CuAssertPtrEquals(tc, NULL, (void *)bank_definition->legacy_handler);
   CuAssertPtrEquals(tc, NULL, (void *)cloak_definition->legacy_handler);
   CuAssertPtrNotNull(tc, (void *)bank_definition->typed_handler);
   CuAssertPtrNotNull(tc, (void *)cloak_definition->typed_handler);
   CuAssertPtrNotNull(tc, (void *)guild_guard_definition->typed_handler);
+  CuAssertPtrNotNull(tc, (void *)command_sentinel_definition->typed_handler);
   CuAssertTrue(tc, spec_definition_callback(bank_definition) == bank);
   CuAssertTrue(tc, spec_definition_callback(cloak_definition) == vampire_cloak);
   CuAssertTrue(tc, spec_definition_callback(guild_guard_definition) == rol_guild_guard);
+  CuAssertTrue(tc, spec_definition_callback(command_sentinel_definition) == rol_command_sentinel);
   CuAssertTrue(tc, spec_registry_find_by_handler(bank) == bank_definition);
   CuAssertTrue(tc, spec_registry_find_by_handler(vampire_cloak) == cloak_definition);
   CuAssertTrue(tc, spec_registry_find_by_handler(rol_guild_guard) == guild_guard_definition);
+  CuAssertTrue(tc,
+               spec_registry_find_by_handler(rol_command_sentinel) == command_sentinel_definition);
   CuAssertStrEquals(tc, "Bank", get_spec_func_name(bank));
   CuAssertStrEquals(tc, "Vampire Cloak", get_spec_func_name(vampire_cloak));
 

@@ -1395,6 +1395,82 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(result.complete)
     self.assertEqual("RoL Shadow Giant", result.records[0].spec_proc)
 
+  def test_command_sentinel_family_shares_owner_aware_adapter(self) -> None:
+    handlers = [
+        ("mobile", 1438, "stone_golem"),
+        ("mobile", 10301, "gate_guard"),
+        ("mobile", 10302, "shady_man"),
+        ("mobile", 81508, "ancient_man"),
+        ("room", 1, "cage_command_block"),
+        ("room", 46990, "necro_passing_glyph"),
+    ]
+    bindings = [
+        {
+            "basename": "sentinel",
+            "record_type": record_type,
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for record_type, source_vnum, handler in handlers
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual([], compiled.triggers)
+    self.assertEqual(6, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Command Sentinel"
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
+  def test_foggy_woods_warning_rooms_share_one_entry_trigger(self) -> None:
+    bindings = [
+        {
+            "basename": "foggy_woods",
+            "record_type": "room",
+            "source_vnum": source_vnum,
+            "source_handler": "fw_warning_room",
+        }
+        for source_vnum in (90107, 90112, 90114)
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual([], compiled.native_bindings)
+    self.assertEqual(1, len(compiled.triggers))
+    trigger = compiled.triggers[0]
+    self.assertEqual("wld", trigger.owner_kind)
+    self.assertEqual((2_090_107, 2_090_112, 2_090_114), trigger.owner_vnums)
+    self.assertEqual(("fw_warning_room",), trigger.source_handlers)
+    self.assertIn("RoL Foggy Woods entry warning", trigger.text)
+    self.assertIn("wsend %actor%", trigger.text)
+    self.assertEqual(
+        {
+            ("wld", 2_090_107): [2_100_000],
+            ("wld", 2_090_112): [2_100_000],
+            ("wld", 2_090_114): [2_100_000],
+        },
+        compiled.attachments,
+    )
+    self.assertTrue(
+        all(row["strategy"] == "DG_ENTRY_WARNING" for row in compiled.dispositions)
+    )
+
   def test_ship_family_bindings_persist_adapted_procedures(self) -> None:
     bindings = [
         {

@@ -809,6 +809,61 @@ void Test_spec_rol_guild_guard_preserves_active_gate_rules(CuTest *tc)
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_command_sentinel_preserves_passage_and_glyph_rules(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct player_special_data player_specials;
+  struct char_data *target;
+
+  spec_mechanics_begin(&fixture);
+  target = &fixture.target;
+  memset(&player_specials, 0, sizeof(player_specials));
+  REMOVE_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  target->player_specials = &player_specials;
+
+  GET_LEVEL(target) = 11;
+  GET_REAL_RACE(target) = RACE_HUMAN;
+  CuAssertTrue(tc, rol_command_sentinel_blocks_passage(2081508, 2081596, SOUTH, target, 0));
+  GET_LEVEL(target) = 10;
+  CuAssertTrue(tc, !rol_command_sentinel_blocks_passage(2081508, 2081596, SOUTH, target, 0));
+  GET_LEVEL(target) = 30;
+  GET_REAL_RACE(target) = RACE_DROW;
+  CuAssertTrue(tc, !rol_command_sentinel_blocks_passage(2081508, 2081596, SOUTH, target, 0));
+
+  GET_REAL_RACE(target) = RACE_HUMAN;
+  CuAssertTrue(tc, rol_command_sentinel_blocks_passage(2010301, 2010320, SOUTH, target, 0));
+  GET_REAL_RACE(target) = RACE_HALF_ORC;
+  CuAssertTrue(tc, !rol_command_sentinel_blocks_passage(2010301, 2010320, SOUTH, target, 0));
+
+  GET_LEVEL(target) = 21;
+  CuAssertTrue(tc, rol_command_sentinel_blocks_passage(2010302, 2010302, SOUTH, target, 0));
+  GET_LEVEL(target) = 20;
+  CuAssertTrue(tc, !rol_command_sentinel_blocks_passage(2010302, 2010302, SOUTH, target, 0));
+
+  CuAssertTrue(tc, !rol_command_sentinel_blocks_passage(2001438, 2001483, WEST, target, 20));
+  CuAssertTrue(tc, rol_command_sentinel_blocks_passage(2001438, 2001483, WEST, target, 21));
+  CuAssertTrue(tc, !rol_command_sentinel_blocks_passage(2001438, 2001483, EAST, target, 100));
+
+  GET_LEVEL(target) = LVL_IMMORT;
+  CuAssertTrue(tc, !rol_command_sentinel_blocks_passage(2001438, 2001483, WEST, target, 100));
+
+  GET_LEVEL(target) = 20;
+  CuAssertTrue(tc, !rol_command_sentinel_is_necromancer(target));
+  CLASS_LEVEL(target, CLASS_NECROMANCER) = 1;
+  CuAssertTrue(tc, rol_command_sentinel_is_necromancer(target));
+  CuAssertIntEquals(tc, 1, rol_command_sentinel_glyph_damage(target));
+  SET_BIT_AR(AFF_FLAGS(target), AFF_MINOR_GLOBE);
+  CuAssertIntEquals(tc, 25, rol_command_sentinel_glyph_damage(target));
+  REMOVE_BIT_AR(AFF_FLAGS(target), AFF_MINOR_GLOBE);
+  SET_BIT_AR(AFF_FLAGS(target), AFF_GLOBE_OF_INVULN);
+  CuAssertIntEquals(tc, 25, rol_command_sentinel_glyph_damage(target));
+  REMOVE_BIT_AR(AFF_FLAGS(target), AFF_GLOBE_OF_INVULN);
+
+  target->player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_class_guilds_preserve_family_gates_for_multiclass_players(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

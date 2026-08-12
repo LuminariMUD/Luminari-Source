@@ -66,6 +66,25 @@ struct rol_fixed_bodyguard_profile
   int protected_vnum;
 };
 
+enum rol_command_sentinel_rule
+{
+  ROL_SENTINEL_GOOD_RACE_OVER_LEVEL = 0,
+  ROL_SENTINEL_NON_ORC,
+  ROL_SENTINEL_OVER_LEVEL,
+  ROL_SENTINEL_CHANCE
+};
+
+struct rol_command_sentinel_profile
+{
+  int mobile_vnum;
+  int room_vnum;
+  int direction;
+  int threshold;
+  enum rol_command_sentinel_rule rule;
+  const char *victim_message;
+  const char *room_message;
+};
+
 enum rol_death_effect
 {
   ROL_DEATH_EFFECT_NONE = 0,
@@ -257,6 +276,21 @@ static const struct rol_fixed_bodyguard_profile rol_fixed_bodyguard_profiles[] =
     {2097040, 2097023},
     {2097041, 2097029},
     {2097042, 2097008},
+};
+
+static const struct rol_command_sentinel_profile rol_command_sentinel_profiles[] = {
+    {2001438, 2001483, WEST, 20, ROL_SENTINEL_CHANCE,
+     "You try to leave the room but are shoved back by $n!",
+     "$N tries to leave the room but is shoved back by $n!"},
+    {2010301, 2010320, SOUTH, 0, ROL_SENTINEL_NON_ORC,
+     "$n whispers, 'We don't want your type here. Get lost.'",
+     "$n whispers something to $N, stopping $M with one hand."},
+    {2010302, 2010302, SOUTH, 20, ROL_SENTINEL_OVER_LEVEL,
+     "$n whispers, 'This area is far below you, unless you wish to fight me.'",
+     "$n whispers something to $N, stopping $M with one hand."},
+    {2081508, 2081596, SOUTH, 10, ROL_SENTINEL_GOOD_RACE_OVER_LEVEL,
+     "$n lays a hand upon your shoulder and says, 'Ye may not pass.'",
+     "$n lays a hand upon $N's shoulder and says, 'Ye may not pass.'"},
 };
 
 static const struct rol_death_profile rol_death_profiles[] = {
@@ -3779,6 +3813,159 @@ int rol_item_blocker(struct char_data *ch, void *me, int cmd, const char *argume
   CAP(message);
   send_to_char(ch, "%s", message);
   return TRUE;
+}
+
+static const struct rol_command_sentinel_profile *
+rol_command_sentinel_profile_for(int mobile_vnum, int room_vnum, int direction)
+{
+  size_t index;
+
+  for (index = 0;
+       index < sizeof(rol_command_sentinel_profiles) / sizeof(rol_command_sentinel_profiles[0]);
+       index++)
+    if (rol_command_sentinel_profiles[index].mobile_vnum == mobile_vnum &&
+        rol_command_sentinel_profiles[index].room_vnum == room_vnum &&
+        rol_command_sentinel_profiles[index].direction == direction)
+      return &rol_command_sentinel_profiles[index];
+
+  return NULL;
+}
+
+bool rol_command_sentinel_blocks_passage(int mobile_vnum, int room_vnum, int direction,
+                                         const struct char_data *ch, int chance_roll)
+{
+  const struct rol_command_sentinel_profile *profile;
+
+  if (ch == NULL || (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT) ||
+      (profile = rol_command_sentinel_profile_for(mobile_vnum, room_vnum, direction)) == NULL)
+    return false;
+
+  switch (profile->rule)
+  {
+  case ROL_SENTINEL_GOOD_RACE_OVER_LEVEL:
+    return GET_LEVEL(ch) > profile->threshold && rol_race_is_good(GET_RACE(ch));
+  case ROL_SENTINEL_NON_ORC:
+    return GET_RACE(ch) != RACE_HALF_ORC;
+  case ROL_SENTINEL_OVER_LEVEL:
+    return GET_LEVEL(ch) > profile->threshold;
+  case ROL_SENTINEL_CHANCE:
+    return chance_roll > profile->threshold;
+  default:
+    return false;
+  }
+}
+
+bool rol_command_sentinel_is_necromancer(const struct char_data *ch)
+{
+  if (ch == NULL)
+    return false;
+
+  if (IS_NPC(ch))
+    return GET_CLASS(ch) == CLASS_NECROMANCER;
+
+  return ch->player_specials != NULL && CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0;
+}
+
+int rol_command_sentinel_glyph_damage(const struct char_data *ch)
+{
+  if (ch != NULL && (AFF_FLAGGED(ch, AFF_MINOR_GLOBE) || AFF_FLAGGED(ch, AFF_GLOBE_OF_INVULN)))
+    return 25;
+
+  return 1;
+}
+
+static int rol_command_sentinel_mobile(struct char_data *ch, struct char_data *sentinel, int cmd)
+{
+  const struct rol_command_sentinel_profile *profile;
+  int direction;
+  int current_room_vnum;
+  int chance_roll = 0;
+
+  if (ch == NULL || sentinel == NULL || !IS_NPC(sentinel) || cmd <= 0 ||
+      complete_cmd_info == NULL || !IS_MOVE(cmd) || !VALID_ROOM_RNUM(IN_ROOM(sentinel)))
+    return FALSE;
+
+  direction = complete_cmd_info[cmd].subcmd;
+  current_room_vnum = GET_ROOM_VNUM(IN_ROOM(sentinel));
+  profile = rol_command_sentinel_profile_for(GET_MOB_VNUM(sentinel), current_room_vnum, direction);
+  if (profile == NULL)
+    return FALSE;
+
+  if (profile->rule == ROL_SENTINEL_CHANCE)
+    chance_roll = rand_number(1, 100);
+  if (!rol_command_sentinel_blocks_passage(GET_MOB_VNUM(sentinel), current_room_vnum, direction, ch,
+                                           chance_roll))
+    return FALSE;
+
+  act(profile->victim_message, FALSE, sentinel, NULL, ch, TO_VICT);
+  act(profile->room_message, FALSE, sentinel, NULL, ch, TO_NOTVICT);
+  return TRUE;
+}
+
+static bool rol_command_sentinel_cage_allows(int cmd)
+{
+  if (cmd <= 0 || complete_cmd_info == NULL || complete_cmd_info[cmd].command == NULL)
+    return true;
+
+  return CMD_IS("say") || CMD_IS("'") || CMD_IS("petition") || CMD_IS("project") || CMD_IS("help");
+}
+
+static int rol_command_sentinel_room(struct char_data *ch, struct room_data *room, int cmd)
+{
+  int damage_amount;
+
+  if (ch == NULL || room == NULL || cmd <= 0 || complete_cmd_info == NULL)
+    return FALSE;
+
+  switch (room->number)
+  {
+  case 2000001:
+    if ((!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT) || rol_command_sentinel_cage_allows(cmd))
+      return FALSE;
+    send_to_char(ch, "The wardens of the cage disallow all commands except say, petition, project, "
+                     "and help.\r\n");
+    return TRUE;
+  case 2046990:
+    if (!IS_MOVE(cmd) || complete_cmd_info[cmd].subcmd != DOWN)
+      return FALSE;
+    if (rol_command_sentinel_is_necromancer(ch))
+    {
+      send_to_char(ch, "You feel the slight tingle of magic from the glyph as you descend.\r\n");
+      return FALSE;
+    }
+    act("$n is blasted by a bright red bolt of magical energy from the glyph of warding!", FALSE,
+        ch, NULL, NULL, TO_ROOM);
+    send_to_char(ch, "A powerful bolt of bright red energy blasts you backwards several feet!\r\n");
+    damage_amount = rol_command_sentinel_glyph_damage(ch);
+    GET_HIT(ch) = MAX(1, GET_HIT(ch) - damage_amount);
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+
+int rol_command_sentinel(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  (void)ch;
+  (void)me;
+  (void)cmd;
+  (void)argument;
+
+  /* Owner type is required, so direct legacy calls fail safely. */
+  return FALSE;
+}
+
+int rol_command_sentinel_typed(struct spec_event_context *context)
+{
+  if (context == NULL || context->event != SPEC_EVENT_COMMAND)
+    return FALSE;
+
+  if (context->owner_type == SPEC_OWNER_MOBILE)
+    return rol_command_sentinel_mobile(context->actor, context->owner, context->command);
+  if (context->owner_type == SPEC_OWNER_ROOM)
+    return rol_command_sentinel_room(context->actor, context->owner, context->command);
+
+  return FALSE;
 }
 
 int rol_shadow_giant_spook_damage(bool save_succeeded)

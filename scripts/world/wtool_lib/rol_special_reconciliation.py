@@ -41,6 +41,7 @@ _AUTO_RACE_TARGETS = {
 _DG_HANDLERS = frozenset(
     {
         "cemetary_instrument_rub",
+        "fw_warning_room",
         "muspel_chieftain_open",
         "muspel_chimney_pour",
         "muspel_giant_shout_m58708_m58709",
