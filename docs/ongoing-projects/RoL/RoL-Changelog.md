@@ -6,6 +6,77 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 expanded converted weapon procedures
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed 25 additional active object bindings across 19 source handler families:
+  `mielikki_scimitar`, `flamberge`, `orb`, `doombringer`, `tahlshara`,
+  `rockcrusher`, `cymric_hugh`, `torment`, `pahlurukroot`,
+  `proc_dirk_reversehit`, `frulghiem`, `sphere_lightning_weapon`,
+  `halruaa_enchanterstaff`, `halruaa_illusionstaff`, `halruaa_invokerstaff`,
+  `halruaa_magebane`, `halruaa_dwarven_hammer`, `md_darken_aura`, and
+  `md_gleaming_burst`.
+- Expanded the typed, identity-profiled `RoL Weapon Proc` from 20 to 45 converted
+  objects. The converter now persists the shared canonical procedure for every object
+  in this batch without adding another registry definition or one-off callback.
+- Preserved Mielikki class rejection and creeping doom, Flamberge fire damage and fire
+  creature healing, the Orb's class-weighted cold burst and arcane cold shield, the
+  Doombringer and dirk nonrecursive extra swings, and Tahlshara's bladesong recovery,
+  knockdown, and healing.
+- Preserved grounded Rockcrusher knockdowns, Cymric harm beams, Torment poison and
+  blindness, Pahluruk timed entanglement, Frulghiem clenched fist, double sphere
+  lightning, Halruaan damage and debuff staves, Magebane NPC arcane-caster disruption,
+  and the alignment-gated Myth Drannor dark and gleaming bursts.
+- Mapped unavailable source effects to explicit target-native intent: stumble and
+  fumble to slow, shadow flux to slow, scarlet outline to faerie fire, and wither to ray
+  of enfeeblement. Source instant-death presentation uses the target's safe typed damage
+  path; invalid targets are never reused after lethal damage.
+- Added exact converter, reconciliation, help, verification, and production-linked
+  profile coverage. The shared adapter now contains 45 profile identities while the
+  registry remains at 102 definitions: 95 legacy and seven typed, with 103 compatible
+  persisted names.
+- Reconciliation now resolves 981 of 1,147 active direct bindings and 431 of 562 source
+  handlers; 166 bindings and 131 handlers remain. The object-only batch leaves the
+  independent `ACT_SPEC` checkpoint at 783 resolved / 65 pending.
+- Archived the forty-sixth Phase 6 delivery session. The remaining Phase 6 envelope is
+  3-8 sessions, leaving the Phases 6-8 forecast at 51-84 sessions, or 102-336 focused
+  engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: b1b42a5c
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-weapon-procs-2
+Reconciliation run: rol-phase6-special-9aa7a0cdaab7a9d1
+Active direct bindings: 1,147
+Direct bindings resolved: 981
+Direct bindings pending: 166
+Source handlers resolved: 431
+Source handlers pending: 131
+Additional handler families resolved: 19
+Additional direct bindings resolved: 25
+Native adapted bindings: 535
+ACT_SPEC records resolved: 783
+ACT_SPEC records pending: 65
+Converted weapon profiles: 45
+Special registry definitions: 102 total / 95 legacy / 7 typed
+Compatibility names: 103
+Focused world-tool suite: 96 passed
+Complete world-tool suite: 302 passed
+Production-linked CuTest suite: 652 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 166 direct bindings across 131 source handlers.
+The next bulk batch keeps prioritizing strict generated shapes and shared mechanics.
+
 ## 2026-08-12 - Phase 6 converted weapon procedures
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

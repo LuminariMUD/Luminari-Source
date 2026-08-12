@@ -816,10 +816,13 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 
 ### Phase 6 converted weapon procedures
 
-- In dependency-complete stages, confirm these 20 objects use `RoL Weapon Proc`:
-  2004505, 2013307, 2014837, 2019886, 2019900, 2019912, 2020075, 2026014,
-  2034840, 2038025, 2038095, 2040135, 2080547, 2089462, 2091305, 2095776,
-  2095851, 2095876, 2095878, and 2098330. Identify each object and confirm its
+- In dependency-complete stages, confirm these 45 objects use `RoL Weapon Proc`:
+  2001005, 2001010, 2004505, 2009054, 2013307-2013308, 2014023, 2014837,
+  2015116, 2019886, 2019900, 2019912, 2019933, 2020075, 2024405, 2025018,
+  2025030, 2026014, 2026233, 2026248, 2034840, 2038025, 2038095, 2040135,
+  2053243, 2053259, 2053263, 2053266, 2053289-2053292, 2080034, 2080038,
+  2080547, 2083235, 2083238, 2089462, 2091305, 2095776, 2095851, 2095876,
+  2095878, 2097117, and 2098330. Identify each object and confirm its
   identity-specific special-effect description appears.
 - Fight with hammer 2004505 until its chain lightning fires and confirm the primary
   target is struck before eligible visible enemies. Exercise glimmering sword 2014837,
@@ -850,8 +853,35 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   cooldown expires.
 - Exercise crimson dagger 2098330 in primary and offhand slots. Confirm its random
   noncritical branch drains Strength or agility through the mapped target effects, while
-  a primary-slot critical can blind and add crimson damage. Unrelated objects must not
-  receive any identity-keyed weapon behavior.
+  a primary-slot critical can blind and add crimson damage.
+- Give Mielikki scimitar 2019933 to a Ranger or Druid and confirm its random creeping-doom
+  strike. Give it to an ineligible class and land a hit; it must reduce a healthy wielder
+  to one hit point, unequip, and fall into the room. Exercise Flamberge 2025030 against an
+  ordinary target and against a Fire Elemental or Efreeti; the first takes fire damage and
+  the latter two heal.
+- Exercise Orb 2009054 with an arcane caster, Bard, and noncaster. Confirm the documented
+  class-weighted cold-burst cadence. Arcane criticals can add cold shield when it is absent;
+  Bards and noncasters must not receive that critical shield.
+- Exercise Doombringer 2025018 and dirk 2097117 in valid weapon slots. Their five and one
+  extra swings respectively must not recursively trigger the same weapon procedure. While
+  using Tahlshara 2001010, start below standing position and confirm the next hit restores a
+  fighting stance; its random main proc can sit/stun the target and heal the wielder.
+- Exercise Rockcrusher 2080034 or 2080038 on a grounded corporeal non-dragon and confirm its
+  localized earthquake can sit/stun the target. Repeat against a dragon, incorporeal or
+  flying target, and in water, flying, underwater, ocean, river, or no-ground terrain; no
+  earthquake effect should apply.
+- Exercise Cymric weapons 2026233 and 2026248 for their harm beam, Torment 2015116 for
+  poison and blindness against a non-dragon, Pahluruk root 2013308 for a timed entangle,
+  Frulghiem 2001005 for clenched fist, and sphere weapons 2014023 and 2024405 for two
+  sequential lightning bolts. A lethal first bolt must not attempt the second bolt.
+- Exercise Halruaan staves 2053259, 2053263, and 2053266 for flameheart damage and their
+  target-native illusion/enchantment debuffs. Magebane objects 2053289-2053292 must affect
+  only NPC arcane casters and can interrupt an active cast; dwarven hammer 2053243 produces
+  its freezing-cold burst.
+- Give dark-aura sword 2083238 to an evil wielder and gleaming sword 2083235 to a good
+  wielder. Confirm their negative/blind/weakening and faerie-fire/blind progressions.
+  Ineligible alignments must not trigger them. Unrelated objects must not receive any
+  identity-keyed weapon behavior.
 
 ### RoL object-property compatibility
 
@@ -918,9 +948,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 929 are resolved and 218 remain. Of 562 distinct
-  source handlers, 386 are resolved and 176 remain. Of 848 `ACT_SPEC` records, 776 are
-  resolved and 72 remain. The automatic race procedures
+  of the 1,147 active direct bindings, 981 are resolved and 166 remain. Of 562 distinct
+  source handlers, 431 are resolved and 131 remain. Of 848 `ACT_SPEC` records, 783 are
+  resolved and 65 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

@@ -31,7 +31,7 @@ The completed pilot measured target reuse, ambiguity, capability coverage, speci
 binding density, and validation throughput. Completed delivery history and the measured
 reforecast basis are archived in [RoL-Changelog.md](RoL-Changelog.md). Remaining Phase 6
 batches conservatively target 20-45 related families where a shared shape exists. The
-remaining evidence-based forecast is 52-85 sessions, or 104-340 focused engineering
+remaining evidence-based forecast is 51-84 sessions, or 102-336 focused engineering
 hours at 2-4 hours per session. This is a planning envelope rather than a calendar
 promise.
 
@@ -429,7 +429,7 @@ calendar time.
 
 | Phase | Scope | Sessions |
 |------:|-------|---------:|
-| 6 | Reconcile/reuse/patch/port special procedures | 4-9 remaining |
+| 6 | Reconcile/reuse/patch/port special procedures | 3-8 remaining |
 | 7 | Action-based batches, zone QA, and validation bundles | 42-66 |
 | 8 | Isolated integration, development apply, and documentation | 6-10 |
 
@@ -499,7 +499,7 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 6 with the 191 pending direct bindings across 150 source handlers and 65
+Continue Phase 6 with the 166 pending direct bindings across 131 source handlers and 65
 pending `ACT_SPEC` records. Classify regular source shapes in bulk and process related
 families through strict generated profiles where possible; keep irregular mechanics in
 dependency-complete shared-runtime batches. Preserve the six explicit source-defect or

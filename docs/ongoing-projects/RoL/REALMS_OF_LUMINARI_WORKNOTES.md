@@ -85,6 +85,7 @@ Phase 6 banana/god-toy commit: 1ab77127
 Phase 6 undead-drain-family commit: 1f3e5172
 Phase 6 Waterdeep-peacekeeper commit: 526b99cb
 Phase 6 weapon-procedure commit: 5e4dc1a8
+Phase 6 expanded-weapon-procedure commit: b1b42a5c
 ```
 
 The authoritative ignored runs are:
@@ -235,6 +236,9 @@ Phase 6 Waterdeep peacekeepers:
 Phase 6 weapon procedures:
   lib/rol-conversion/runs/phase6-special-20260812-weapon-procs
   rol-phase6-special-8183ba9f3e112f6c
+Phase 6 expanded weapon procedures:
+  lib/rol-conversion/runs/phase6-special-20260812-weapon-procs-2
+  rol-phase6-special-9aa7a0cdaab7a9d1
 Policy:  rol-conversion-policy-2
 ```
 
@@ -265,9 +269,9 @@ Policy:  rol-conversion-policy-2
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
 - The world-tool suite passes 302 tests; the production-linked CuTest suite passes 652;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Forty-five bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Forty-six bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
-  shape exists. The measured remaining forecast is 52-85 sessions: Phase 6 is 4-9,
+  shape exists. The measured remaining forecast is 51-84 sessions: Phase 6 is 3-8,
   Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
@@ -485,18 +489,24 @@ Policy:  rol-conversion-policy-2
   preserve critical and sneak payloads, random hit procs, typed energy damage, spell
   effects, extra swings, wielder rejection, Gith charges and reclaimers, and Starsong's
   equipped `say labelas` weekly group barkskin invocation.
+- Another 19 weapon-hit handler families covering 25 object bindings are complete through
+  the same adapter. The 45 total profiles now include Mielikki, Flamberge, Orb,
+  Doombringer, Tahlshara, Rockcrusher, Cymric, Torment, Pahluruk, dirk, Frulghiem,
+  sphere-lightning, Halruaan staff, Magebane, dwarven-hammer, and Myth Drannor effects.
+  Unavailable source debuffs map explicitly to target-native slow, faerie fire, and ray
+  of enfeeblement behavior.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 956 of 1,147 active direct bindings and 412 of
-  562 source handlers, leaving 191 bindings and 150 handlers. The independent
+- The current Phase 6 checkpoint resolves 981 of 1,147 active direct bindings and 431 of
+  562 source handlers, leaving 166 bindings and 131 handlers. The independent
   `ACT_SPEC` cross-check resolves 783 of 848 records and leaves 65 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 191 direct bindings across 150 handlers. Classify regular
+1. Reconcile the remaining 166 direct bindings across 131 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
