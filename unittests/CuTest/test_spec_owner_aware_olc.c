@@ -76,6 +76,7 @@ static const char *const spec_mobile_names[] = {
     "RoL Alert Caller",
     "RoL Yggdrasil Branch",
     "RoL Waterdeep Ambient",
+    "RoL Waterdeep Peacekeeper",
     "RoL Source Periodic",
     "RoL Stateful Periodic",
 };

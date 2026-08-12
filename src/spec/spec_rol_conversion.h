@@ -69,6 +69,7 @@ int rol_waterdeep_ambient(struct char_data *ch, void *me, int cmd, const char *a
 int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_state_periodic(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_waterdeep_peacekeeper(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_portal_door(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_travel_portal(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -134,9 +135,12 @@ const char *rol_source_periodic_outcome_action(int mobile_vnum, int roll, size_t
                                                bool *speech, bool *hide);
 size_t rol_state_periodic_profile_count(void);
 bool rol_state_periodic_dice(int mobile_vnum, bool fighting, int *dice_count, int *dice_sides);
+bool rol_state_periodic_runs_idle_while_fighting(int mobile_vnum);
 size_t rol_state_periodic_outcome_action_count(int mobile_vnum, bool fighting, int roll);
 const char *rol_state_periodic_outcome_action(int mobile_vnum, bool fighting, int roll,
                                               size_t action_index, bool *speech, bool *hide);
+int rol_waterdeep_bouncer_home_vnum(int mobile_vnum);
+size_t rol_waterdeep_bouncer_route_length(int mobile_vnum);
 bool rol_bloodstone_portal_survives(int current_hit, int hit_loss);
 bool rol_portal_door_race_allows(bool rejects_good, int race);
 int rol_travel_portal_destination_slot(int object_vnum, int roll);

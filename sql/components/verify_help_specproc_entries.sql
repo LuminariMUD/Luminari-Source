@@ -84,13 +84,17 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'four to twelve combat rounds') > 0
   AND INSTR(entry, 'RoL Waterdeep Ambient is mobile-owned') > 0
   AND INSTR(entry, 'casino-player fall-through') > 0
+  AND INSTR(entry, 'RoL Waterdeep Peacekeeper is mobile-owned') > 0
+  AND INSTR(entry, 'drag the lowest-alignment aggressor') > 0
+  AND INSTR(entry, 'Off-duty guard 2003229') > 0
   AND INSTR(entry, 'RoL Source Periodic is mobile-owned') > 0
   AND INSTR(entry, '94 source') > 0
   AND INSTR(entry, 'Waterdeep guard 2003212 runs only while sleeping') > 0
   AND INSTR(entry, 'jester 2003069, and cricket 2014048 do not require') > 0
   AND INSTR(entry, 'Menden magus 2088806 continue') > 0
   AND INSTR(entry, 'RoL Stateful Periodic is mobile-owned') > 0
-  AND INSTR(entry, '258 source') > 0
+  AND INSTR(entry, '266 source') > 0
+  AND INSTR(entry, 'Casino owner 2003206 independently rolls both') > 0
   AND INSTR(entry, 'Guildmaster 2003020 has no authored') > 0
   AND INSTR(entry, 'RoL Sister Knight is mobile-owned') > 0
   AND INSTR(entry, 'reachable converted sister within 100 rooms') > 0

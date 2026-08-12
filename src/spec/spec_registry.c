@@ -1418,6 +1418,19 @@ static const struct spec_definition spec_definitions[] = {
         .legacy_handler = rol_waterdeep_ambient,
     },
     {
+        .canonical_name = "RoL Waterdeep Peacekeeper",
+        .display_name = "RoL Waterdeep Peacekeeper",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = janitor_events,
+        .event_count = SPEC_ARRAY_SIZE(janitor_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Returns displaced Waterdeep bouncers home, ejects aggressors, and lets "
+                       "off-duty guards intervene in fights.",
+        .legacy_handler = rol_waterdeep_peacekeeper,
+    },
+    {
         .canonical_name = "RoL Source Periodic",
         .display_name = "RoL Source Periodic",
         .owner_mask = SPEC_OWNER_MOBILE,
@@ -1545,6 +1558,7 @@ enum
   SPEC_DEFINITION_ROL_ALERT_CALLER,
   SPEC_DEFINITION_ROL_YGGDRASIL_BRANCH,
   SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT,
+  SPEC_DEFINITION_ROL_WATERDEEP_PEACEKEEPER,
   SPEC_DEFINITION_ROL_SOURCE_PERIODIC,
   SPEC_DEFINITION_ROL_STATEFUL_PERIODIC,
   SPEC_DEFINITION_INDEX_COUNT
@@ -1659,6 +1673,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_ALERT_CALLER, -1},
     {SPEC_DEFINITION_ROL_YGGDRASIL_BRANCH, -1},
     {SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT, -1},
+    {SPEC_DEFINITION_ROL_WATERDEEP_PEACEKEEPER, -1},
     {SPEC_DEFINITION_ROL_SOURCE_PERIODIC, -1},
     {SPEC_DEFINITION_ROL_STATEFUL_PERIODIC, -1},
 };

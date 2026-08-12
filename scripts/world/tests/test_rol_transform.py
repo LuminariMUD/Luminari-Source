@@ -1253,6 +1253,44 @@ class RolTransformTests(unittest.TestCase):
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
     )
 
+  def test_waterdeep_peacekeepers_share_one_persistent_adapter(self) -> None:
+    handlers = (
+        "bouncer_one",
+        "bouncer_two",
+        "bouncer_three",
+        "bouncer_four",
+        "casino_three",
+        "guard_one",
+    )
+    bindings = [
+        {
+            "basename": "waterdeep-peacekeepers",
+            "record_type": "mobile",
+            "source_vnum": 5520 + index,
+            "source_handler": handler,
+        }
+        for index, handler in enumerate(handlers)
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(6, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Waterdeep Peacekeeper"
+            and binding.required_flag_bits == (0,)
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_composed_alert_keeps_existing_breath_binding(self) -> None:
     bindings = [
         {

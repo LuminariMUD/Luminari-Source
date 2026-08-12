@@ -1350,7 +1350,16 @@ void Test_spec_rol_state_periodic_profiles_preserve_idle_and_fighting_tables(CuT
   int dice_count;
   int dice_sides;
 
-  CuAssertIntEquals(tc, 33, (int)rol_state_periodic_profile_count());
+  CuAssertIntEquals(tc, 34, (int)rol_state_periodic_profile_count());
+
+  CuAssertTrue(tc, rol_state_periodic_dice(2003206, false, &dice_count, &dice_sides));
+  CuAssertIntEquals(tc, 2, dice_count);
+  CuAssertIntEquals(tc, 5, dice_sides);
+  CuAssertTrue(tc, rol_state_periodic_dice(2003206, true, &dice_count, &dice_sides));
+  CuAssertIntEquals(tc, 2, dice_count);
+  CuAssertIntEquals(tc, 5, dice_sides);
+  CuAssertTrue(tc, rol_state_periodic_runs_idle_while_fighting(2003206));
+  CuAssertTrue(tc, !rol_state_periodic_runs_idle_while_fighting(2003039));
 
   CuAssertTrue(tc, rol_state_periodic_dice(2003039, false, &dice_count, &dice_sides));
   CuAssertIntEquals(tc, 2, dice_count);
@@ -1396,6 +1405,20 @@ void Test_spec_rol_state_periodic_profiles_preserve_idle_and_fighting_tables(CuT
   CuAssertTrue(tc, speech);
   CuAssertTrue(tc, rol_state_periodic_outcome_action(2003039, false, 4, 2, NULL, NULL) == NULL);
   CuAssertTrue(tc, rol_state_periodic_outcome_action(9999999, false, 4, 0, NULL, NULL) == NULL);
+}
+
+void Test_spec_rol_waterdeep_bouncer_routes_preserve_source_paths(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 2005532, rol_waterdeep_bouncer_home_vnum(2005523));
+  CuAssertIntEquals(tc, 4, (int)rol_waterdeep_bouncer_route_length(2005523));
+  CuAssertIntEquals(tc, 2005531, rol_waterdeep_bouncer_home_vnum(2005541));
+  CuAssertIntEquals(tc, 3, (int)rol_waterdeep_bouncer_route_length(2005541));
+  CuAssertIntEquals(tc, 2005530, rol_waterdeep_bouncer_home_vnum(2005542));
+  CuAssertIntEquals(tc, 2, (int)rol_waterdeep_bouncer_route_length(2005542));
+  CuAssertIntEquals(tc, 2005533, rol_waterdeep_bouncer_home_vnum(2005543));
+  CuAssertIntEquals(tc, 4, (int)rol_waterdeep_bouncer_route_length(2005543));
+  CuAssertIntEquals(tc, 0, rol_waterdeep_bouncer_home_vnum(9999999));
+  CuAssertIntEquals(tc, 0, (int)rol_waterdeep_bouncer_route_length(9999999));
 }
 
 void Test_spec_rol_bloodstone_critter_preserves_social_cadence(CuTest *tc)

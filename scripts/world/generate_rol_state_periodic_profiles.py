@@ -21,6 +21,7 @@ from generate_rol_periodic_profiles import (
 )
 from wtool_lib.rol_state_periodic_profiles import (
     COMPOSED_STATE_PROFILE_SOURCES,
+    CUMULATIVE_IDLE_STATE_PROFILES,
     STATE_PROFILE_SOURCES,
 )
 
@@ -38,6 +39,7 @@ class StateProfile:
   name: str
   vnums: tuple[int, ...]
   tables: tuple[StateTable, ...]
+  cumulative_idle_while_fighting: bool
 
 
 def _strip_comments(text: str) -> str:
@@ -123,10 +125,17 @@ def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int
           StateTable(state, table.dice_count, table.dice_sides, table.outcomes)
           for state, table in zip(states, tables, strict=True)
       ),
+      name in CUMULATIVE_IDLE_STATE_PROFILES,
   )
 
 
 def load_profiles(source_root: Path) -> tuple[StateProfile, ...]:
+  all_profile_names = set(STATE_PROFILE_SOURCES) | set(COMPOSED_STATE_PROFILE_SOURCES)
+  unknown_cumulative = CUMULATIVE_IDLE_STATE_PROFILES - all_profile_names
+  if unknown_cumulative:
+    raise ValueError(
+        f"cumulative state profiles are not selected: {sorted(unknown_cumulative)}"
+    )
   socials = _source_social_rooms(source_root)
   direct = tuple(
       _parse_profile(source_root, name, relative, vnums, states, socials)
@@ -181,7 +190,8 @@ def render(source_root: Path) -> str:
     output.append(
         f"    {{{vnum}, {_identifier(profile.name)}, "
         f"{idle.dice_count if idle else 0}, {idle.dice_sides if idle else 0}, "
-        f"{fighting.dice_count if fighting else 0}, {fighting.dice_sides if fighting else 0}}},"
+        f"{fighting.dice_count if fighting else 0}, {fighting.dice_sides if fighting else 0}, "
+        f"{'true' if profile.cumulative_idle_while_fighting else 'false'}}},"
     )
   output.extend(
       [

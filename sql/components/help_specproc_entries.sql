@@ -212,6 +212,16 @@ Merchant 2005310 emits its harbor dialog only in room 2005400. Do not assign thi
 converter-owned, identity-keyed procedure to unrelated mobiles. Converted guards
 2003035, 2003059, and 2003070 remain quiet while fighting.
 
+RoL Waterdeep Peacekeeper is mobile-owned and requires MOB_SPEC. Converted
+tavern bouncers 2005523 and 2005541-2005543 return to their assigned posts and
+drag the lowest-alignment aggressor through their source-authored tavern route
+to room 2003258. Casino bouncer 2003207 returns to its load room and throws the
+same kind of aggressor into room 2003254. Both variants stop the offender and
+everyone attacking the offender before moving them. Off-duty guard 2003229
+retains its drunken ambient table and joins eligible fights against the
+aggressor. This procedure is converter-owned and should not be assigned to
+unrelated mobiles.
+
 RoL Source Periodic is mobile-owned and requires MOB_SPEC. One hundred converted
 Bloodstone, Icecrag, Menden, Fun, Mobile, Realm, Lavatubes, Tower of Sorcery, and
 Waterdeep mobiles across 94 source families use 367 source random outcomes
@@ -223,16 +233,17 @@ Waterdeep guard 2003212 runs only while sleeping. Fun mobile 2001230, jester
 2003069, and Menden magus 2088806 continue during combat. Do not assign this
 converter-owned, identity-keyed procedure to unrelated mobiles.
 
-RoL Stateful Periodic is mobile-owned and requires MOB_SPEC. Thirty-three converted
-Waterdeep mobiles have generated idle and fighting profiles containing 258 source
-outcomes and 266 ordered speech or room-visible actions. Idle tables require an
-awake, standing mobile. Fighting tables run instead whenever a mobile has a current
-opponent, making the source-authored combat tables usable even where the source
-tested standing position before fighting state. Guildmaster 2003020 has no authored
-fighting table and remains quiet in combat. Twenty-six profiles use this procedure
-directly; seven Waterdeep guild guards compose the same generated profiles through
-RoL Guild Guard. Do not assign either converter-owned, identity-keyed procedure to
-unrelated mobiles.
+RoL Stateful Periodic is mobile-owned and requires MOB_SPEC. Thirty-four converted
+Waterdeep mobiles have generated idle and fighting profiles containing 266 source
+outcomes and 274 ordered speech or room-visible actions. Idle tables require an
+awake, standing mobile. Fighting tables run whenever a mobile has a current opponent,
+making the source-authored combat tables usable even where the source tested standing
+position before fighting state. Casino owner 2003206 independently rolls both its
+fighting and standing tables during combat, as in the source. Guildmaster 2003020 has
+no authored fighting table and remains quiet in combat. Twenty-seven profiles use
+this procedure directly; seven Waterdeep guild guards compose the same generated
+profiles through RoL Guild Guard. Do not assign either converter-owned,
+identity-keyed procedure to unrelated mobiles.
 
 RoL Sister Knight is mobile-owned and requires MOB_SPEC. When one of the five
 converted Sister Knight prototypes enters combat, it shouts once across the zone

@@ -6,6 +6,7 @@ import unittest
 from wtool_lib.constants import default_repo_root
 from wtool_lib.rol_state_periodic_profiles import (
     COMPOSED_STATE_PROFILE_SOURCES,
+    CUMULATIVE_IDLE_STATE_PROFILES,
     STATE_PROFILE_SOURCES,
 )
 
@@ -28,13 +29,14 @@ class RolStatePeriodicProfileTests(unittest.TestCase):
         for vnum in profile_vnums
     ]
 
-    self.assertEqual(33, len(ALL_STATE_PROFILE_SOURCES))
-    self.assertEqual(33, len(vnums))
+    self.assertEqual(34, len(ALL_STATE_PROFILE_SOURCES))
+    self.assertEqual(34, len(vnums))
     self.assertEqual(len(vnums), len(set(vnums)))
     self.assertEqual(
         {"src/specs.waterdeep.c"},
         {relative for relative, _vnums, _states in ALL_STATE_PROFILE_SOURCES.values()},
     )
+    self.assertEqual({"casino_four"}, set(CUMULATIVE_IDLE_STATE_PROFILES))
 
   def test_checked_in_table_covers_manifest_and_source_digest(self) -> None:
     enum_names = set(
@@ -79,8 +81,8 @@ class RolStatePeriodicProfileTests(unittest.TestCase):
     )
 
     self.assertEqual(sorted(outcomes), outcomes)
-    self.assertEqual(258, len(outcomes))
-    self.assertEqual(266, len(actions))
+    self.assertEqual(266, len(outcomes))
+    self.assertEqual(274, len(actions))
 
 
 if __name__ == "__main__":

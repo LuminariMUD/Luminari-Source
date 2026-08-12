@@ -39,6 +39,8 @@
 #define ROL_BANANA_PEEL_VNUM 2001234
 #define ROL_BANANA_FRUIT_VNUM 2001235
 #define ROL_BANANA_PEEL_DECAY_TICKS 8
+#define ROL_WATERDEEP_CASINO_EXIT_VNUM 2003254
+#define ROL_WATERDEEP_BOUNCER_MAX_ROUTE 4
 #define ROL_GUILD_CLASS(class_id) (1ULL << (class_id))
 #define ROL_GUILD_RACE(race_id) (1ULL << (race_id))
 #define ROL_MAJOR_BEHOLDER_EYES 10
@@ -60,6 +62,20 @@ struct rol_undead_drain_profile
   const char *victim_message;
   const char *room_message;
   const char *attacker_message;
+};
+
+struct rol_waterdeep_bouncer_profile
+{
+  int mobile_vnum;
+  size_t route_length;
+  int route[ROL_WATERDEEP_BOUNCER_MAX_ROUTE];
+};
+
+static const struct rol_waterdeep_bouncer_profile rol_waterdeep_bouncer_profiles[] = {
+    {2005523, 4, {2005532, 2005531, 2005530, 2003258}},
+    {2005541, 3, {2005531, 2005530, 2003258, 0}},
+    {2005542, 2, {2005530, 2003258, 0, 0}},
+    {2005543, 4, {2005533, 2005531, 2005530, 2003258}},
 };
 
 static const struct rol_undead_drain_profile rol_undead_drain_profiles[] = {
@@ -304,6 +320,7 @@ struct rol_state_periodic_profile
   int idle_dice_sides;
   int fighting_dice_count;
   int fighting_dice_sides;
+  bool cumulative_idle_while_fighting;
 };
 
 struct rol_state_periodic_outcome
@@ -3903,6 +3920,13 @@ bool rol_state_periodic_dice(int mobile_vnum, bool fighting, int *dice_count, in
   return true;
 }
 
+bool rol_state_periodic_runs_idle_while_fighting(int mobile_vnum)
+{
+  const struct rol_state_periodic_profile *profile = rol_state_periodic_profile_for(mobile_vnum);
+
+  return profile != NULL && profile->cumulative_idle_while_fighting;
+}
+
 size_t rol_state_periodic_outcome_action_count(int mobile_vnum, bool fighting, int roll)
 {
   const struct rol_state_periodic_profile *profile = rol_state_periodic_profile_for(mobile_vnum);
@@ -3938,18 +3962,50 @@ const char *rol_state_periodic_outcome_action(int mobile_vnum, bool fighting, in
   return action->message;
 }
 
-int rol_state_periodic(struct char_data *ch, void *me, int cmd, const char *argument)
+static void rol_state_periodic_emit(struct char_data *speaker,
+                                    const struct rol_state_periodic_profile *profile,
+                                    enum rol_state_periodic_state state)
 {
-  struct char_data *speaker = me;
-  const struct rol_state_periodic_profile *profile;
   const struct rol_state_periodic_outcome *outcome;
   const struct rol_source_periodic_action *action;
-  enum rol_state_periodic_state state;
-  bool fighting;
   int dice_count;
   int dice_sides;
   int roll;
   size_t index;
+
+  if (state == ROL_STATE_PERIODIC_FIGHTING)
+  {
+    dice_count = profile->fighting_dice_count;
+    dice_sides = profile->fighting_dice_sides;
+  }
+  else
+  {
+    dice_count = profile->idle_dice_count;
+    dice_sides = profile->idle_dice_sides;
+  }
+  if (dice_count == 0 || dice_sides == 0)
+    return;
+
+  roll = dice(dice_count, dice_sides);
+  outcome = rol_state_periodic_outcome_for(profile->profile_id, state, roll);
+  if (outcome == NULL)
+    return;
+
+  for (index = 0; index < outcome->action_count; index++)
+  {
+    action = &rol_state_periodic_actions[outcome->first_action + index];
+    if (action->kind == ROL_SOURCE_PERIODIC_SPEECH)
+      do_say(speaker, action->message, 0, 0);
+    else
+      act(action->message, action->hide, speaker, NULL, NULL, TO_ROOM);
+  }
+}
+
+int rol_state_periodic(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *speaker = me;
+  const struct rol_state_periodic_profile *profile;
+  bool fighting;
 
   (void)argument;
 
@@ -3964,25 +4020,266 @@ int rol_state_periodic(struct char_data *ch, void *me, int cmd, const char *argu
   if (profile == NULL || (!fighting && GET_POS(speaker) < POS_STANDING))
     return FALSE;
 
-  dice_count = fighting ? profile->fighting_dice_count : profile->idle_dice_count;
-  dice_sides = fighting ? profile->fighting_dice_sides : profile->idle_dice_sides;
-  if (dice_count == 0 || dice_sides == 0)
-    return FALSE;
-
-  state = fighting ? ROL_STATE_PERIODIC_FIGHTING : ROL_STATE_PERIODIC_IDLE;
-  roll = dice(dice_count, dice_sides);
-  outcome = rol_state_periodic_outcome_for(profile->profile_id, state, roll);
-  if (outcome == NULL)
-    return FALSE;
-
-  for (index = 0; index < outcome->action_count; index++)
+  if (fighting)
   {
-    action = &rol_state_periodic_actions[outcome->first_action + index];
-    if (action->kind == ROL_SOURCE_PERIODIC_SPEECH)
-      do_say(speaker, action->message, 0, 0);
-    else
-      act(action->message, action->hide, speaker, NULL, NULL, TO_ROOM);
+    rol_state_periodic_emit(speaker, profile, ROL_STATE_PERIODIC_FIGHTING);
+    if (profile->cumulative_idle_while_fighting)
+      rol_state_periodic_emit(speaker, profile, ROL_STATE_PERIODIC_IDLE);
   }
+  else
+    rol_state_periodic_emit(speaker, profile, ROL_STATE_PERIODIC_IDLE);
+  return FALSE;
+}
+
+static const struct rol_waterdeep_bouncer_profile *
+rol_waterdeep_bouncer_profile_for(int mobile_vnum)
+{
+  size_t index;
+
+  for (index = 0;
+       index < sizeof(rol_waterdeep_bouncer_profiles) / sizeof(rol_waterdeep_bouncer_profiles[0]);
+       index++)
+  {
+    if (rol_waterdeep_bouncer_profiles[index].mobile_vnum == mobile_vnum)
+      return &rol_waterdeep_bouncer_profiles[index];
+  }
+  return NULL;
+}
+
+int rol_waterdeep_bouncer_home_vnum(int mobile_vnum)
+{
+  const struct rol_waterdeep_bouncer_profile *profile =
+      rol_waterdeep_bouncer_profile_for(mobile_vnum);
+
+  return profile != NULL ? profile->route[0] : 0;
+}
+
+size_t rol_waterdeep_bouncer_route_length(int mobile_vnum)
+{
+  const struct rol_waterdeep_bouncer_profile *profile =
+      rol_waterdeep_bouncer_profile_for(mobile_vnum);
+
+  return profile != NULL ? profile->route_length : 0;
+}
+
+static struct char_data *rol_waterdeep_peacekeeper_offender(struct char_data *keeper)
+{
+  struct char_data *candidate;
+  struct char_data *offender = NULL;
+  int lowest_alignment = 1000;
+
+  if (keeper == NULL || !VALID_ROOM_RNUM(IN_ROOM(keeper)))
+    return NULL;
+
+  for (candidate = world[IN_ROOM(keeper)].people; candidate != NULL;
+       candidate = candidate->next_in_room)
+  {
+    if (FIGHTING(candidate) == NULL || !CAN_SEE(keeper, candidate) ||
+        (!IS_NPC(candidate) && !IS_NPC(FIGHTING(candidate))) ||
+        GET_ALIGNMENT(candidate) >= lowest_alignment)
+      continue;
+    lowest_alignment = GET_ALIGNMENT(candidate);
+    offender = candidate;
+  }
+
+  if (offender == NULL || FIGHTING(offender) == NULL || GET_ALIGNMENT(FIGHTING(offender)) < 0)
+    return NULL;
+  return offender;
+}
+
+static void rol_waterdeep_peacekeeper_return_home(struct char_data *keeper, room_rnum home)
+{
+  if (keeper == NULL || !VALID_ROOM_RNUM(home) || IN_ROOM(keeper) == home)
+    return;
+
+  act("$n looks around dazedly and realizes $e must get back to work.", FALSE, keeper, NULL, NULL,
+      TO_ROOM);
+  act("$n slowly fades from view.", TRUE, keeper, NULL, NULL, TO_ROOM);
+  char_from_room(keeper);
+  char_to_room(keeper, home);
+  act("$n pops into view with a sulphurous bang.", FALSE, keeper, NULL, NULL, TO_ROOM);
+}
+
+static int rol_waterdeep_bouncer(struct char_data *keeper,
+                                 const struct rol_waterdeep_bouncer_profile *profile)
+{
+  struct char_data *offender;
+  room_rnum route[ROL_WATERDEEP_BOUNCER_MAX_ROUTE];
+  size_t index;
+
+  for (index = 0; index < profile->route_length; index++)
+  {
+    route[index] = real_room(profile->route[index]);
+    if (!VALID_ROOM_RNUM(route[index]))
+    {
+      log("SYSERR: RoL Waterdeep bouncer %d has invalid route room %d", GET_MOB_VNUM(keeper),
+          profile->route[index]);
+      return FALSE;
+    }
+  }
+
+  offender = rol_waterdeep_peacekeeper_offender(keeper);
+  if (offender == NULL || IN_ROOM(keeper) != route[0])
+  {
+    rol_waterdeep_peacekeeper_return_home(keeper, route[0]);
+    return FALSE;
+  }
+
+  rol_guild_guard_stop_victim_combat(offender);
+  act("$n yells, 'HEY! No fighting in here, dead beat!'", FALSE, keeper, NULL, offender, TO_ROOM);
+  act("The bouncer grabs you by the collar and drags you out of the tavern!", FALSE, offender, NULL,
+      keeper, TO_CHAR);
+  act("$n grabs $N by the collar and drags $M out of the tavern!", FALSE, keeper, NULL, offender,
+      TO_NOTVICT);
+
+  for (index = 1; index < profile->route_length; index++)
+  {
+    char_from_room(keeper);
+    char_to_room(keeper, route[index]);
+    char_from_room(offender);
+    char_to_room(offender, route[index]);
+
+    if (index + 1 < profile->route_length)
+    {
+      act("A bouncer storms into the room, dragging $N by the collar!", FALSE, keeper, NULL,
+          offender, TO_NOTVICT);
+      act("$N kicks and flails around as $E is dragged out.", FALSE, keeper, NULL, offender,
+          TO_NOTVICT);
+      send_to_char(offender, "You are dragged through the tavern kicking and screaming.\r\n");
+    }
+    else
+    {
+      act("A bouncer throws $N from the tavern, and $E lands in a heap!", FALSE, keeper, NULL,
+          offender, TO_NOTVICT);
+      act("The bouncer throws you onto the ground. You land in a heap.", FALSE, offender, NULL,
+          keeper, TO_CHAR);
+      act("The bouncer snarls, 'Next time I'll break your neck, punk!'", FALSE, offender, NULL,
+          keeper, TO_CHAR);
+    }
+  }
+
+  GET_POS(offender) = POS_SITTING;
+  char_from_room(keeper);
+  char_to_room(keeper, route[0]);
+  act("A bouncer walks back in, smiling smugly.", TRUE, keeper, NULL, NULL, TO_ROOM);
+  return TRUE;
+}
+
+static int rol_waterdeep_casino_bouncer(struct char_data *keeper)
+{
+  struct char_data *offender;
+  room_rnum destination;
+  room_rnum home = GET_MOB_LOADROOM(keeper);
+
+  if (!VALID_ROOM_RNUM(home))
+  {
+    log("SYSERR: RoL casino bouncer %d has no valid load room", GET_MOB_VNUM(keeper));
+    return FALSE;
+  }
+  if (IN_ROOM(keeper) != home)
+  {
+    rol_waterdeep_peacekeeper_return_home(keeper, home);
+    return FALSE;
+  }
+
+  offender = rol_waterdeep_peacekeeper_offender(keeper);
+  if (offender == NULL)
+    return FALSE;
+  destination = real_room(ROL_WATERDEEP_CASINO_EXIT_VNUM);
+  if (!VALID_ROOM_RNUM(destination))
+  {
+    log("SYSERR: RoL casino bouncer %d has invalid exit room %d", GET_MOB_VNUM(keeper),
+        ROL_WATERDEEP_CASINO_EXIT_VNUM);
+    return FALSE;
+  }
+
+  rol_guild_guard_stop_victim_combat(offender);
+  act("$n yells, 'HEY! No fighting in here, dead beat!'", FALSE, keeper, NULL, offender, TO_ROOM);
+  act("The bouncer picks you up and tosses you out of the bar!", FALSE, offender, NULL, keeper,
+      TO_CHAR);
+  act("$n throws $N out into the street!", FALSE, keeper, NULL, offender, TO_NOTVICT);
+  char_from_room(offender);
+  char_to_room(offender, destination);
+  GET_POS(offender) = POS_SITTING;
+  act("$n lands in a heap after being thrown from the tavern!", FALSE, offender, NULL, NULL,
+      TO_ROOM);
+  send_to_char(offender, "The bouncer snarls, 'Next time I'll break your neck, punk!'\r\n");
+  return TRUE;
+}
+
+static void rol_waterdeep_off_duty_guard_ambient(struct char_data *guard)
+{
+  switch (dice(2, 6))
+  {
+  case 2:
+    do_say(guard, "How's about some entertainment, bartender! Where's that dancer.", 0, 0);
+    act("$n grins evilly.", TRUE, guard, NULL, NULL, TO_ROOM);
+    break;
+  case 3:
+    act("$n sways slightly from being drunk.", TRUE, guard, NULL, NULL, TO_ROOM);
+    break;
+  case 4:
+    act("$n says, 'Hey, bartender! Bring me another, dammit.'", TRUE, guard, NULL, NULL, TO_ROOM);
+    break;
+  case 5:
+    act("$n laughs heartily, nearly falling off the barstool.", TRUE, guard, NULL, NULL, TO_ROOM);
+    break;
+  case 6:
+    act("$n drinks deeply from a bottle, then lets out a roaring belch.", TRUE, guard, NULL, NULL,
+        TO_ROOM);
+    break;
+  default:
+    break;
+  }
+}
+
+static int rol_waterdeep_off_duty_guard(struct char_data *guard)
+{
+  struct char_data *offender;
+
+  if (FIGHTING(guard) != NULL || GET_POS(guard) >= POS_STANDING)
+    rol_waterdeep_off_duty_guard_ambient(guard);
+  if (FIGHTING(guard) != NULL || ROOM_FLAGGED(IN_ROOM(guard), ROOM_PEACEFUL))
+    return FALSE;
+
+  offender = rol_waterdeep_peacekeeper_offender(guard);
+  if (offender == NULL)
+    return FALSE;
+
+  do_say(guard, "Heeey! You c-can't do that, I'm a guard of Waterdeep!", 0, 0);
+  act("$n jumps off the stool and joins the fight with a drunken grin.", FALSE, guard, NULL, NULL,
+      TO_ROOM);
+  return set_fighting(guard, offender) ? TRUE : FALSE;
+}
+
+int rol_waterdeep_peacekeeper(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *keeper = me;
+  const struct rol_waterdeep_bouncer_profile *profile;
+
+  (void)argument;
+
+  if (keeper == NULL && cmd == 0)
+    keeper = ch;
+  if (keeper == NULL || cmd != 0 || !IS_NPC(keeper) || !AWAKE(keeper) ||
+      !VALID_ROOM_RNUM(IN_ROOM(keeper)))
+    return FALSE;
+
+  profile = rol_waterdeep_bouncer_profile_for(GET_MOB_VNUM(keeper));
+  if (profile != NULL)
+  {
+    if (FIGHTING(keeper) != NULL || AFF_FLAGGED(keeper, AFF_CHARM))
+      return FALSE;
+    return rol_waterdeep_bouncer(keeper, profile);
+  }
+  if (GET_MOB_VNUM(keeper) == 2003207)
+  {
+    if (FIGHTING(keeper) != NULL)
+      return FALSE;
+    return rol_waterdeep_casino_bouncer(keeper);
+  }
+  if (GET_MOB_VNUM(keeper) == 2003229)
+    return rol_waterdeep_off_duty_guard(keeper);
   return FALSE;
 }
 

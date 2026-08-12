@@ -4,6 +4,7 @@ from __future__ import annotations
 
 
 STATE_PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...], tuple[str, ...]]] = {
+    "casino_four": ("src/specs.waterdeep.c", (2003206,), ("fighting", "idle")),
     "commoner_two": ("src/specs.waterdeep.c", (2003039,), ("idle", "fighting")),
     "guildmaster_eight": ("src/specs.waterdeep.c", (2003020,), ("idle",)),
     "guildmaster_eleven": ("src/specs.waterdeep.c", (2003022,), ("idle", "fighting")),
@@ -31,6 +32,11 @@ STATE_PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...], tuple[str, ...]]] =
     "young_necro_one": ("src/specs.waterdeep.c", (2005538,), ("idle", "fighting")),
     "young_paladin_one": ("src/specs.waterdeep.c", (2005504,), ("idle", "fighting")),
 }
+
+
+# casino_four uses two independent source conditions: its fighting table runs
+# first, then its standing table also runs during a normal combat pulse.
+CUMULATIVE_IDLE_STATE_PROFILES = frozenset({"casino_four"})
 
 
 # These handlers combine the same regular state-aware message tables with
