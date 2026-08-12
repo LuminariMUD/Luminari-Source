@@ -6,6 +6,68 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 named guild and utility-object batch
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Converted the six remaining named Waterdeep guild-guard bindings through the existing typed
+  `RoL Guild Guard` gateway. Their exact class gates, destinations, protected-guard retaliation,
+  and required `MOB_SPEC` flags are retained. The Paladin guard preserves its reachable idle
+  table; the other five source periodic branches are excluded because their callbacks return
+  before those branches when no player event is present.
+- Added the typed, object-owned `RoL Utility Object` gateway for five otherwise unrelated active
+  bindings. It preserves goodberry healing beside native eating, altar-child pickup rejection and
+  damage, carried necromancer-child messages, held figurine summoning and consumption, and the
+  ruby monocle's freshly-reset-zone movement.
+- Added `ITEM_AUTOPROC` only for the necromancer child and ruby monocle, remapped the figurine's
+  summoned-mobile value, and registered the new procedure for owner-aware persistence and OLC.
+- Excluded `blackPlagueCure` and `craine_serpent` as source-inert direct callbacks after tracing
+  their initialization paths: neither registers a runtime event for its assigned object.
+- Added production-linked behavior, registry, persistence, OLC, converter, and reconciliation
+  tests. The altar-child command boundary explicitly covers both source pickup aliases, `get` and
+  `take`, plus `drag`.
+- Reconciliation now resolves 1,058 of 1,147 active direct bindings and 494 of 562 source
+  handlers; 89 bindings and 68 handlers remain. The independent `ACT_SPEC` checkpoint is
+  813 resolved / 35 pending.
+- Archived the fifty-second Phase 6 delivery session. The remaining Phase 6 envelope remains
+  1-3 sessions, leaving the Phases 6-8 forecast at 49-79 sessions, or 98-316 focused engineering
+  hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: a13f74f7
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-utility-objects-v2
+Reconciliation run: rol-phase6-special-35cfdfe1d528d25f
+Active direct bindings: 1,147
+Direct bindings resolved: 1,058
+Direct bindings pending: 89
+Source handlers resolved: 494
+Source handlers pending: 68
+Additional handler families resolved: 13
+Additional direct bindings resolved: 13
+Native adapted bindings: 602
+Native adapted composable bindings: 159
+Source-inert excluded bindings: 24
+ACT_SPEC records resolved: 813
+ACT_SPEC records pending: 35
+Special registry definitions: 107 total / 95 legacy / 12 typed
+Compatibility names: 108
+Complete world-tool suite: 310 passed
+Production-linked CuTest suite: 656 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 89 direct bindings across 68 source handlers. Continue
+grouping compatible irregular mechanics behind shared typed gateways, and preserve the full
+build/test/install gate at each substantial commit boundary.
+
 ## 2026-08-12 - Phase 6 Lavatubes procedure batch
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

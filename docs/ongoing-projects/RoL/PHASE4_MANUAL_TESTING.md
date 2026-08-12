@@ -792,6 +792,28 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   registered only for `NPC_HIT` but returned whenever that event supplied its victim, so adapting
   the unreachable body would invent behavior.
 
+### Phase 6 remaining named guild guards and utility objects
+
+- Confirm converted guild guards 2003024, 2005500, 2005524, 2005528, 2005531, and 2005537 use
+  `RoL Guild Guard` with `MOB_SPEC`. Exercise their Wizard/Sorcerer/Summoner, Paladin, Bard,
+  Ranger, Druid, and Wizard gates at rooms 2003038, 2005500, 2005534, 2005540, 2005560, and
+  2005572 respectively. Rejected characters must remain outside; an admitted matching class must
+  move through the configured exit. Attacking the protected guard must trigger retaliation.
+- Observe guard 2005500 while awake, idle, and at its load room. Its source two-d5 Paladin greeting
+  table must remain active. Moving it, putting it to sleep, or starting combat must suppress that
+  table. The other five named guards must not gain unreachable source periodic behavior.
+- Confirm objects 2000876, 2007151, 2046991, 2088825, and 2090004 use `RoL Utility Object`.
+  Eating the selected carried goodberry while hungry must preserve native eating and cure light
+  wounds. `get child`, `take child`, and `drag child` against the altar child must be blocked and
+  cause one to nine hit points of source damage.
+- Carry necromancer child 2046991 through repeated object pulses and confirm only source messages
+  appear; soundproof rooms and silence suppress them. Hold or wield figurine 2088825, then
+  `flex <figurine>` and confirm its remapped mobile appears charmed, follows the user, and consumes
+  the figurine. Leave monocle 2090004 in rooms 2090124-2090142 and confirm it moves within that
+  range only while the zone age is zero.
+- Confirm objects converted from source handlers `blackPlagueCure` and `craine_serpent` have no
+  named procedure. Their direct callbacks register no runtime events in the assessed source.
+
 ### Phase 6 converted Waterdeep peacekeepers
 
 - Build dependency-complete Waterdeep stages and confirm tavern bouncers 2005523 and

@@ -120,9 +120,17 @@ procedure is intended for the converted RoL shadow-giant family rather than gene
 class and race gates, acts only from the guard's original load room, and retaliates when protected
 guards are attacked. Its room rules are converter-owned; use the ordinary `Guild Guard` procedure
 for new Luminari guild entrances. The converted rules include six Bloodstone class entrances;
-source Antipaladin maps to Blackguard, Shaman to Cleric, and Lich to Necromancer. Seven Waterdeep
-guild guards also compose their class gate and guardian retaliation with generated, source-hashed
-idle and fighting flavor tables.
+source Antipaladin maps to Blackguard, Shaman to Cleric, and Lich to Necromancer. Thirteen
+Waterdeep guild guards preserve their class gates and guardian retaliation. Seven also compose
+generated, source-hashed idle and fighting flavor tables; the Paladin guard among the remaining six
+retains its separately authored idle table.
+
+`RoL Utility Object` is object-owned and converter-owned. Exact converted identities preserve five
+unrelated source callbacks behind one typed gateway: goodberry healing on `eat`, Bloodstone altar
+child rejection on `get`, `take`, or `drag`, carried necromancer-child cries, Menden figurine
+summoning on `flex`, and ruby-monocle movement while its zone is freshly reset. The converter adds
+`ITEM_AUTOPROC` only to the two pulse-driven objects and remaps the figurine's summoned-mobile
+reference. Do not assign this identity-keyed procedure to unrelated objects.
 
 `RoL Waterdeep Guild Room` is room-owned and converter-owned. Twelve converted Waterdeep guild
 rooms retain their exact or class-family admission gate while delegating accepted `practice`,

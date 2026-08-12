@@ -93,6 +93,7 @@ Phase 6 monster-combat archive commit: 33a91bf6
 Phase 6 expanded monster-zone commit: 76aaf29f
 Phase 6 composed-periodic commit: 079ca263
 Phase 6 Lavatubes commit: 17013cd0
+Phase 6 named-guild/utility-object commit: a13f74f7
 ```
 
 The authoritative ignored runs are:
@@ -261,6 +262,9 @@ Phase 6 composed periodic profiles:
 Phase 6 Lavatubes procedures:
   lib/rol-conversion/runs/phase6-special-20260812-lavatubes
   rol-phase6-special-9969533324d768ef
+Phase 6 named guild and utility objects:
+  lib/rol-conversion/runs/phase6-special-20260812-utility-objects-v2
+  rol-phase6-special-35cfdfe1d528d25f
 Policy:  rol-conversion-policy-2
 ```
 
@@ -289,9 +293,9 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 307 tests; the production-linked CuTest suite passes 655;
+- The world-tool suite passes 310 tests; the production-linked CuTest suite passes 656;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Fifty-one bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Fifty-two bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
   shape exists. The measured remaining forecast is 49-79 sessions: Phase 6 is 1-3,
   Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -536,18 +540,27 @@ Policy:  rol-conversion-policy-2
   alone reset; the object adapter preserves crystal-spike charges, skeleton-key unlocks,
   and the cellar lever; the room adapter preserves the paired trapdoor close, move, and
   block cycle. Invalid room pairs now log and fail safely instead of crashing the server.
+- Six remaining named Waterdeep guild-guard handlers are complete through `RoL Guild Guard`.
+  Their converted class gates, destinations, protection behavior, and `MOB_SPEC` flags are
+  preserved; the Paladin guard retains its reachable idle table without inventing the five
+  other source-unreachable periodic branches.
+- Five active utility-object handlers are complete through the typed `RoL Utility Object`
+  gateway. Converted goodberry, altar child, necromancer child, figurine, and ruby-monocle
+  identities retain their source command or pulse behavior, with `ITEM_AUTOPROC` and the
+  figurine mobile reference supplied only where required. `blackPlagueCure` and
+  `craine_serpent` are source-inert because neither assigned callback registers an event.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,045 of 1,147 active direct bindings and 481 of
-  562 source handlers, leaving 102 bindings and 81 handlers. The independent `ACT_SPEC`
-  cross-check resolves 807 of 848 records and leaves 41 pending.
+- The current Phase 6 checkpoint resolves 1,058 of 1,147 active direct bindings and 494 of
+  562 source handlers, leaving 89 bindings and 68 handlers. The independent `ACT_SPEC`
+  cross-check resolves 813 of 848 records and leaves 35 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 102 direct bindings across 81 handlers. Classify regular
+1. Reconcile the remaining 89 direct bindings across 68 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
@@ -559,16 +572,16 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Completed and pushed implementation commit `17013cd0`, converting all six active
-  Lavatubes handlers behind three typed owner-specific procedures.
-- Added the runtime source/header to both build manifests, registered mobile, object,
-  and room identities, extended owner-aware OLC and registry coverage, and mapped all
-  six handler names in the reconciler.
-- Ran all 307 world-tool tests and all 655 production-linked CuTests. The warning-free
+- Completed and pushed implementation commit `a13f74f7`, resolving six named Waterdeep
+  guild-guard handlers, five active utility-object handlers, and two source-inert callbacks.
+- Added `RoL Utility Object` to both build manifests and the typed registry, extended the
+  existing guild-guard rules, and covered converter flags, references, persistence, OLC,
+  source-inert dispositions, and command boundaries.
+- Ran all 310 world-tool tests and all 656 production-linked CuTests. The warning-free
   `make test && make install` gate passed and removed the root-level `circle` artifact;
   the documentation checker reported zero findings.
 - Regenerated and hash-verified the ignored Phase 6 ledger as
-  `rol-phase6-special-9969533324d768ef`; it records zero live target writes and the
-  1,045/102 direct-binding, 481/81 handler, and 807/41 `ACT_SPEC` split.
+  `rol-phase6-special-35cfdfe1d528d25f`; it records zero live target writes and the
+  1,058/89 direct-binding, 494/68 handler, and 813/35 `ACT_SPEC` split.
 - Unresolved blockers: none. Continue by grouping the largest compatible remaining
   irregular mechanics into another dependency-complete shared typed batch.
