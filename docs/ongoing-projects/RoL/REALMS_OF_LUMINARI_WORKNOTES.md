@@ -94,6 +94,7 @@ Phase 6 expanded monster-zone commit: 76aaf29f
 Phase 6 composed-periodic commit: 079ca263
 Phase 6 Lavatubes commit: 17013cd0
 Phase 6 named-guild/utility-object commit: a13f74f7
+Phase 6 residual-monster-combat commit: 2c44bf14
 ```
 
 The authoritative ignored runs are:
@@ -298,7 +299,7 @@ Policy:  rol-conversion-policy-2
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
 - The world-tool suite passes 311 tests; the production-linked CuTest suite passes 656;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Fifty-two bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Fifty-three bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
   shape exists. The measured remaining forecast is 49-79 sessions: Phase 6 is 1-3,
   Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -581,16 +582,16 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Completed the residual monster-combat batch in the working tree, resolving ten handlers
-  and 13 active bindings through 13 new `RoL Monster Combat` identity profiles.
+- Completed and committed implementation commit `2c44bf14`, resolving ten handlers and 13
+  active bindings through 13 new `RoL Monster Combat` identity profiles.
 - Preserved bounded summons, dispel, teleport, area damage, curse/disarm/cyclone, pit,
   werewolf, and Jotun mechanics; added converter dispositions, required `MOB_SPEC` flags,
   profile coverage, and explicit reconciliation tests.
 - Ran all 311 world-tool tests and all 656 production-linked CuTests. The warning-free
   `make test && make install` gate passed and removed the root-level `circle` artifact;
   the documentation checker reported zero findings.
-- Regenerated the ignored Phase 6 ledger as `rol-phase6-special-162570d805f14abd`; it
-  records zero live target writes and the 1,071/76 direct-binding, 504/58 handler, and
-  819/29 `ACT_SPEC` split.
+- Regenerated and hash-verified the ignored Phase 6 ledger as
+  `rol-phase6-special-162570d805f14abd`; it records zero live target writes and the
+  1,071/76 direct-binding, 504/58 handler, and 819/29 `ACT_SPEC` split.
 - Unresolved blockers: none. Continue by grouping the largest compatible remaining
   irregular mechanics into another dependency-complete shared typed batch.
