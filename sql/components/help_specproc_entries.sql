@@ -70,6 +70,11 @@ Icecrag guards find their fixed NPC leaders when awake and colocated, then use
 the target follower system for movement and combat assistance. This procedure
 and its follower-to-leader mapping are converter-owned.
 
+RoL Fixed Bodyguard is mobile-owned and requires MOB_SPEC. Converted Icecrag
+bodyguards 2097040-2097042 rescue assigned mobiles 2097023, 2097029, and 2097008
+respectively when awake, colocated, and the assigned mobile has an attacker.
+The fixed mapping and procedure are converter-owned.
+
 RoL Floating Pool is object-owned and requires ITEM_AUTOPROC. Four converted
 Ethereal pools left in rooms have a 12 percent chance per object pulse to move
 through one random open cardinal exit. Closed, hidden, blocked, invalid, and
@@ -80,6 +85,12 @@ value 0 to the target destination room. Awake characters can enter the exact
 portal object when the destination passes target teleport admission. Mortals
 lose 1-20 hit points and 1-30 movement points after arrival and die only when
 the hit-point loss would leave them below -10. Staff are immune to this stress.
+
+RoL Portal Door is object-owned. Four converted miscellaneous portals remap
+object value 0 to the destination room and use value 3 to reject source-good or
+source-evil races. LOOK IN previews the loaded destination. ENTER preserves the
+source level-20 and arena gates, applies target teleport-admission safety, and
+moves only a character selecting that exact portal object.
 
 RoL Item Blocker is object-owned and reads its blocked cardinal direction from
 object value 0. While an aggressive NPC occupies the room, it blocks mortal
@@ -134,11 +145,13 @@ target gold. Pay with GIVE <amount> GOLD <bandit>. Underpayment starts combat;
 sufficient payment lets the bandit disappear. Do not assign this procedure to
 unrelated mobiles.
 
-RoL Alert Caller is mobile-owned and requires MOB_SPEC. Seven converted callers
+RoL Alert Caller is mobile-owned and requires MOB_SPEC. Eleven converted callers
 shout their source warning once per fight and send only configured awake, idle,
 same-zone helpers within 100 reachable rooms to pursue the attacker. Soundproof
 rooms, silence, paralysis, casting, and sleep suppress the call. The Imix and
 Yancbin callers compose this alert beside their existing breath procedure.
+Elemental Tower callers 2062401, 2062402, 2062405, and 2062406 use the same
+adapter with their source-specific helper groups.
 
 RoL Yggdrasil Branch is mobile-owned and requires MOB_SPEC. Converted mobiles
 2062800-2062804 make a 50 percent entangle attempt against the current opponent

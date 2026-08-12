@@ -604,6 +604,55 @@ void Test_spec_rol_bloodstone_portal_transports_and_applies_stress(CuTest *tc)
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_portal_door_preserves_destination_and_race_gates(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct command_info commands[2];
+  struct command_info *saved_complete_cmd_info;
+
+  spec_mechanics_begin(&fixture);
+  memset(commands, 0, sizeof(commands));
+  commands[1].command = "enter";
+  saved_complete_cmd_info = complete_cmd_info;
+  complete_cmd_info = commands;
+
+  fixture.worn.name = "rainbow portal";
+  fixture.worn.short_description = "a rainbow portal";
+  IN_ROOM(&fixture.worn) = 0;
+  fixture.rooms[0].contents = &fixture.worn;
+  GET_OBJ_VAL(&fixture.worn, 0) = 6101;
+
+  CuAssertTrue(tc, rol_portal_door_race_allows(false, RACE_HUMAN));
+  CuAssertTrue(tc, !rol_portal_door_race_allows(false, RACE_DROW));
+  CuAssertTrue(tc, !rol_portal_door_race_allows(true, RACE_HUMAN));
+  CuAssertTrue(tc, rol_portal_door_race_allows(true, RACE_DROW));
+  CuAssertIntEquals(tc, FALSE, rol_portal_door(&fixture.actor, &fixture.worn, 1, "door"));
+  CuAssertIntEquals(tc, TRUE, rol_portal_door(&fixture.actor, &fixture.worn, 1, "portal"));
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.actor));
+
+  char_from_room(&fixture.actor);
+  char_to_room(&fixture.actor, 0);
+  GET_REAL_RACE(&fixture.actor) = RACE_DROW;
+  CuAssertIntEquals(tc, TRUE, rol_portal_door(&fixture.actor, &fixture.worn, 1, "portal"));
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.actor));
+  GET_LEVEL(&fixture.actor) = LVL_IMMORT;
+  CuAssertIntEquals(tc, TRUE, rol_portal_door(&fixture.actor, &fixture.worn, 1, "portal"));
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.actor));
+
+  char_from_room(&fixture.actor);
+  char_to_room(&fixture.actor, 0);
+  GET_REAL_RACE(&fixture.actor) = RACE_HUMAN;
+  SET_BIT_AR(ROOM_FLAGS(1), ROOM_ARENA);
+  CuAssertIntEquals(tc, TRUE, rol_portal_door(&fixture.actor, &fixture.worn, 1, "portal"));
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.actor));
+  REMOVE_BIT_AR(ROOM_FLAGS(1), ROOM_ARENA);
+
+  fixture.rooms[0].contents = NULL;
+  IN_ROOM(&fixture.worn) = NOWHERE;
+  complete_cmd_info = saved_complete_cmd_info;
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_auto_distributor_moves_mortal_within_zone(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;
@@ -854,6 +903,9 @@ void Test_spec_rol_alert_callers_share_profiles_without_losing_composed_breaths(
       rol_alert_message(2019920));
   CuAssertTrue(tc, rol_alert_helper_matches(2019920, 2019830));
   CuAssertTrue(tc, !rol_alert_helper_matches(2019920, 2019860));
+  CuAssertStrEquals(tc, "Come to my aid!", rol_alert_message(2062401));
+  CuAssertTrue(tc, rol_alert_helper_matches(2062401, 2062421));
+  CuAssertTrue(tc, !rol_alert_helper_matches(2062401, 2062422));
   CuAssertTrue(tc, rol_alert_message(9999999) == NULL);
   CuAssertIntEquals(tc, TRUE, rol_alert_caller(&fixture.actor, &fixture.actor, 0, ""));
   CuAssertTrue(tc, fixture.actor.mob_specials.rol_alert_fired);
@@ -1131,6 +1183,27 @@ void Test_spec_rol_designated_follower_requires_matching_awake_leader(CuTest *tc
   stop_follower(&fixture.actor);
   mob_index = fixture_indexes;
   top_of_mobt = fixture_top_of_mobt;
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_fixed_bodyguard_profiles_match_only_assigned_mobile(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+
+  CuAssertTrue(tc, rol_fixed_bodyguard_protects(2097040, 2097023));
+  CuAssertTrue(tc, rol_fixed_bodyguard_protects(2097041, 2097029));
+  CuAssertTrue(tc, rol_fixed_bodyguard_protects(2097042, 2097008));
+  CuAssertTrue(tc, !rol_fixed_bodyguard_protects(2097040, 2097029));
+  CuAssertTrue(tc, !rol_fixed_bodyguard_protects(9999999, 2097023));
+
+  spec_mechanics_begin(&fixture);
+  fixture.mobile_indexes[0].vnum = 2097040;
+  fixture.mobile_indexes[1].vnum = 2097023;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  GET_MOB_RNUM(&fixture.target) = 1;
+  CuAssertIntEquals(tc, FALSE, rol_fixed_bodyguard(&fixture.actor, &fixture.actor, 0, ""));
+  GET_POS(&fixture.actor) = POS_SLEEPING;
+  CuAssertIntEquals(tc, FALSE, rol_fixed_bodyguard(&fixture.actor, &fixture.actor, 0, ""));
   spec_mechanics_end(&fixture);
 }
 

@@ -67,6 +67,11 @@ two-in-81 activity-pulse cadence. This procedure is converter-owned.
 find their fixed NPC leaders when awake and colocated, then use the target follower system to move
 with them and participate in their fights. The mapping and procedure are converter-owned.
 
+`RoL Fixed Bodyguard` is mobile-owned and requires `MOB_SPEC`. Converted Icecrag bodyguards
+2097040-2097042 watch for attacks against their assigned mobiles 2097023, 2097029, and 2097008
+respectively. While awake and colocated, they use the target rescue mechanic when the assigned
+mobile has an attacker. The fixed mapping and procedure are converter-owned.
+
 `RoL Floating Pool` is object-owned and requires `ITEM_AUTOPROC`. Four converted Ethereal objects
 left in rooms have the source-documented 12 percent chance per object pulse to float through one
 random open cardinal exit. Closed, hidden, blocked, invalid, and `ROOM_NOMOB` destinations are
@@ -77,6 +82,12 @@ destination room and intercept `enter` when an awake character selects that exac
 mortal that passes target teleport-admission checks moves to the destination, loses 1-20 hit points
 and 1-30 movement points, and dies only when the hit-point loss would leave them below -10. Staff
 retain the source stress immunity. The procedure and value remapping are converter-owned.
+
+`RoL Portal Door` is object-owned. Four converted miscellaneous portals remap object value 0 to
+the destination room and use value 3 to reject source-good or source-evil races. `look in` previews
+the loaded destination. `enter` preserves the source level-20 and arena-boundary gates, applies
+target teleport-admission safety, and moves only the character selecting that exact portal object.
+The procedure and destination remapping are converter-owned.
 
 `RoL Item Blocker` is object-owned and reads the blocked cardinal direction from object value 0.
 While an aggressive NPC occupies the room, it blocks mortal players and player pets from moving
@@ -129,12 +140,13 @@ ordinary `give <amount> gold <bandit>` command. Some variants demand all carried
 owned wagon, vary by alignment, or attack immediately. Do not assign this procedure to unrelated
 mobiles: its behavior is keyed to converted mobile VNUMs 2099501-2099507.
 
-`RoL Alert Caller` is mobile-owned and requires `MOB_SPEC`. Seven converted callers broadcast their
+`RoL Alert Caller` is mobile-owned and requires `MOB_SPEC`. Eleven converted callers broadcast their
 source-specific combat warning once per fight and send only their configured awake, idle helpers in
 the same zone to pursue a reachable attacker within 100 rooms. Soundproof rooms, silence,
 paralysis, casting, and sleep suppress the call. The Imix and Yancbin callers compose the same alert
 profile beside their existing fire or lightning breath procedure, so they retain both behaviors
-without a second persisted SpecProc.
+without a second persisted SpecProc. Elemental Tower callers 2062401, 2062402, 2062405, and 2062406
+use the same adapter with their source-specific helper groups.
 
 `RoL Yggdrasil Branch` is mobile-owned and requires `MOB_SPEC`. Converted mobiles 2062800-2062804
 make a 50 percent entangle attempt against either the current opponent or the source-style

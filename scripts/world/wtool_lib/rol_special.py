@@ -73,6 +73,7 @@ ADAPTED_HANDLER_NAMES = {
     "bs_portal": "RoL Bloodstone Portal",
     "control_panel": "RoL Ship Control",
     "devour": "RoL Corpse Devourer",
+    "elemental_tower_shout": "RoL Alert Caller",
     "guild_guard": "RoL Guild Guard",
     "guild_classtype_mage": "RoL Mage Guild Room",
     "guild_classtype_thief": "RoL Thief Guild Room",
@@ -91,6 +92,7 @@ ADAPTED_HANDLER_NAMES = {
     "waterdeep_guild_eleven": "RoL Waterdeep Guild Room",
     "waterdeep_guild_twelve": "RoL Waterdeep Guild Room",
     "follow_that_mob": "RoL Designated Follower",
+    "ice_bodyguards": "RoL Fixed Bodyguard",
     "floating_pool": "RoL Floating Pool",
     "baker_one": "RoL Waterdeep Ambient",
     "baker_two": "RoL Waterdeep Ambient",
@@ -117,6 +119,7 @@ ADAPTED_HANDLER_NAMES = {
     "merchant_two": "RoL Waterdeep Ambient",
     "navagator": "RoL Ship Navigator",
     "poison": "RoL Poison Bite",
+    "portal_door": "RoL Portal Door",
     "shadow_giant": "RoL Shadow Giant",
     "sister_knight": "RoL Sister Knight",
     "shaman_totem": "RoL Shaman Totem",
@@ -893,7 +896,9 @@ def compile_special_bindings(
               persisted_name=persisted_name,
               required_flag_bits=required_bits,
               value_reference_slots=(
-                  ((0, "wld"),) if handler in {"bs_portal", "magic_pool"} else ()
+                  ((0, "wld"),)
+                  if handler in {"bs_portal", "magic_pool", "portal_door"}
+                  else ()
               ),
           )
       )

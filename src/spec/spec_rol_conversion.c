@@ -59,6 +59,12 @@ struct rol_alert_profile
   size_t helper_count;
 };
 
+struct rol_fixed_bodyguard_profile
+{
+  int bodyguard_vnum;
+  int protected_vnum;
+};
+
 struct rol_death_profile
 {
   int mobile_vnum;
@@ -193,6 +199,10 @@ static const int rol_tukra_helpers[] = {2059832, 2059833, 2059834};
 static const int rol_imix_helpers[] = {2025402, 2025404, 2025405, 2025408};
 static const int rol_imix_pet_helpers[] = {2025410, 2025405, 2025404};
 static const int rol_yancbin_helpers[] = {2024410, 2024415, 2024420, 2024450};
+static const int rol_xzix_helpers[] = {2062421, 2062444, 2062433};
+static const int rol_drgun_helpers[] = {2062422, 2062442, 2062434};
+static const int rol_limj_helpers[] = {2062420, 2062443, 2062432};
+static const int rol_duyrn_helpers[] = {2062423, 2062441, 2062335};
 
 static const struct rol_alert_profile rol_alert_profiles[] = {
     {2019920,
@@ -211,6 +221,20 @@ static const struct rol_alert_profile rol_alert_profiles[] = {
      sizeof(rol_drisinil_helpers) / sizeof(rol_drisinil_helpers[0])},
     {2059830, "(%s!! Ut baruk KneeCappers Ai-Menu!!", rol_tukra_helpers,
      sizeof(rol_tukra_helpers) / sizeof(rol_tukra_helpers[0])},
+    {2062401, "Come to my aid!", rol_xzix_helpers,
+     sizeof(rol_xzix_helpers) / sizeof(rol_xzix_helpers[0])},
+    {2062402, "Come to my aid my minions!", rol_drgun_helpers,
+     sizeof(rol_drgun_helpers) / sizeof(rol_drgun_helpers[0])},
+    {2062405, "Come protect me my pets!", rol_limj_helpers,
+     sizeof(rol_limj_helpers) / sizeof(rol_limj_helpers[0])},
+    {2062406, "Protect me my minions!", rol_duyrn_helpers,
+     sizeof(rol_duyrn_helpers) / sizeof(rol_duyrn_helpers[0])},
+};
+
+static const struct rol_fixed_bodyguard_profile rol_fixed_bodyguard_profiles[] = {
+    {2097040, 2097023},
+    {2097041, 2097029},
+    {2097042, 2097008},
 };
 
 static const struct rol_death_profile rol_death_profiles[] = {
@@ -1466,6 +1490,76 @@ int rol_thief(struct char_data *ch, void *me, int cmd, const char *argument)
 bool rol_bloodstone_portal_survives(int current_hit, int hit_loss)
 {
   return current_hit - MAX(0, hit_loss) >= -10;
+}
+
+bool rol_portal_door_race_allows(bool rejects_good, int race)
+{
+  return rejects_good ? !rol_race_is_good(race) : !rol_race_is_evil(race);
+}
+
+int rol_portal_door(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct obj_data *obj = me;
+  struct obj_data *selected;
+  const char *name_argument = argument;
+  room_rnum destination;
+  char name[MAX_INPUT_LENGTH];
+  bool looking;
+
+  if (ch == NULL || obj == NULL || argument == NULL || !cmd || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return FALSE;
+
+  looking = CMD_IS("look");
+  if (!looking && !CMD_IS("enter"))
+    return FALSE;
+  if (looking)
+  {
+    skip_spaces_c(&name_argument);
+    if (strn_cmp(name_argument, "in ", 3) != 0)
+      return FALSE;
+    name_argument += 3;
+  }
+
+  one_argument(name_argument, name, sizeof(name));
+  if (!*name)
+    return FALSE;
+  selected = get_obj_in_list_vis(ch, name, NULL, world[IN_ROOM(ch)].contents);
+  if (selected != obj)
+    return FALSE;
+
+  destination = real_room(GET_OBJ_VAL(obj, 0));
+  if (!VALID_ROOM_RNUM(destination))
+  {
+    send_to_char(ch, "The portal leads nowhere. Please tell a staff member.\r\n");
+    log("SYSERR: RoL portal door object %d has invalid destination %d", GET_OBJ_VNUM(obj),
+        GET_OBJ_VAL(obj, 0));
+    return TRUE;
+  }
+  if (looking)
+  {
+    act("You peer into $p and see...", FALSE, ch, obj, NULL, TO_CHAR);
+    look_at_room_number(ch, 0, destination);
+    return TRUE;
+  }
+
+  if ((!IS_NPC(ch) && GET_LEVEL(ch) < 20) ||
+      ROOM_FLAGGED(IN_ROOM(ch), ROOM_ARENA) != ROOM_FLAGGED(destination, ROOM_ARENA) ||
+      (GET_LEVEL(ch) < LVL_IMMORT &&
+       !rol_portal_door_race_allows(GET_OBJ_VAL(obj, 3) != 0, GET_RACE(ch))) ||
+      !valid_mortal_tele_dest(ch, destination, false))
+  {
+    send_to_char(ch, "A strong force pushes you back!\r\n");
+    return TRUE;
+  }
+
+  act("$p suddenly glows brightly!", FALSE, ch, obj, NULL, TO_ROOM);
+  act("$n enters $p and disappears among the mist.", FALSE, ch, obj, NULL, TO_ROOM);
+  char_from_room(ch);
+  send_to_char(ch, "You enter the portal and reappear elsewhere...\r\n");
+  char_to_room(ch, destination);
+  act("$n steps out of a shimmering portal.", FALSE, ch, NULL, NULL, TO_ROOM);
+  look_at_room(ch, 0);
+  return TRUE;
 }
 
 int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *argument)
@@ -2941,6 +3035,53 @@ int rol_designated_follower(struct char_data *ch, void *me, int cmd, const char 
     {
       add_follower(follower, leader);
       return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+bool rol_fixed_bodyguard_protects(int bodyguard_vnum, int protected_vnum)
+{
+  size_t index;
+
+  for (index = 0;
+       index < sizeof(rol_fixed_bodyguard_profiles) / sizeof(rol_fixed_bodyguard_profiles[0]);
+       index++)
+    if (rol_fixed_bodyguard_profiles[index].bodyguard_vnum == bodyguard_vnum)
+      return rol_fixed_bodyguard_profiles[index].protected_vnum == protected_vnum;
+
+  return false;
+}
+
+int rol_fixed_bodyguard(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *bodyguard = me;
+  struct char_data *candidate;
+  struct char_data *protected;
+
+  (void)ch;
+  (void)argument;
+
+  if (bodyguard == NULL || !IS_NPC(bodyguard) || cmd != 0 || !AWAKE(bodyguard) ||
+      !VALID_ROOM_RNUM(IN_ROOM(bodyguard)))
+    return FALSE;
+
+  for (protected = world[IN_ROOM(bodyguard)].people; protected != NULL;
+       protected = protected->next_in_room)
+  {
+    if (protected == bodyguard || !IS_NPC(protected) ||
+        !rol_fixed_bodyguard_protects(GET_MOB_VNUM(bodyguard), GET_MOB_VNUM(protected)))
+      continue;
+
+    for (candidate = world[IN_ROOM(bodyguard)].people; candidate != NULL;
+         candidate = candidate->next_in_room)
+    {
+      if (candidate != bodyguard && FIGHTING(candidate) == protected)
+      {
+        perform_rescue(bodyguard, protected);
+        return TRUE;
+      }
     }
   }
 

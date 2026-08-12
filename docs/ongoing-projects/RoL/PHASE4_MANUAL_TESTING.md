@@ -251,6 +251,14 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   follower attaches, follows the leader through movement, and assists when the leader
   fights. A sleeping follower must wait until it wakes before attaching.
 
+### Phase 6 converted fixed bodyguards
+
+- `RoL Fixed Bodyguard` is implemented for converted Icecrag mobiles 2097040-2097042.
+  Their assigned protected mobiles are 2097023, 2097029, and 2097008 respectively.
+- Load each pair in the same room and attack the protected mobile. On an activity pulse,
+  an awake bodyguard should attempt the target rescue mechanic. A sleeping bodyguard, a
+  mismatched protected mobile, or an assigned mobile without an attacker must remain idle.
+
 ### Phase 6 converted floating pools
 
 - `RoL Floating Pool` is implemented for converted Ethereal objects 2022706,
@@ -276,6 +284,20 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - Confirm an invalid or target-forbidden destination consumes the matching command
   without moving. At the low-hit boundary, a loss leaving exactly -10 hit points
   survives; a loss leaving less than -10 invokes the normal target death path.
+
+### Phase 6 converted portal doors
+
+- `RoL Portal Door` is implemented for converted objects 2000751-2000753 and 2000883.
+  Their converted destination value is remapped from source room 3001 to 2003001 where
+  authored; object 2000753 retains its source zero destination and must report as broken.
+- `look in <portal>` should preview a loaded destination without moving. `enter <portal>`
+  should require source level 20 for a player, preserve arena-boundary equivalence, and
+  reject source-evil races when value 3 is zero or source-good races when it is nonzero.
+  Target teleport-admission safety must reject private, death, staff-only, closed, or
+  otherwise forbidden destinations.
+- A permitted character selecting the exact object should see departure and arrival
+  messages and move to the converted destination. Unrelated objects and commands must
+  retain normal behavior.
 
 ### Phase 6 converted transport procedures
 
@@ -476,13 +498,17 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 ### Phase 6 converted alert callers
 
 - Build dependency-complete stages for callers 2019920, 2019921, 2024440, 2025406,
-  2025409, 2059810, and 2059830. Confirm the five callers without an existing direct
+  2025409, 2059810, 2059830, 2062401, 2062402, 2062405, and 2062406. Confirm the nine
+  callers without an existing direct
   procedure use `RoL Alert Caller`; 2024440 retains `breath_weapon_lightning`, and
   2025406 retains `breath_weapon_fire` while both still alert.
 - Attack each caller and confirm one zone-wide, source-specific shout. Eligible helpers
   are 2019830/2019850/2019880 for either Demogorgon caller, 2024410/2024415/2024420/2024450
   for Yancbin, 2025402/2025404/2025405/2025408 for Imix, 2025410/2025405/2025404 for the
   Imix pet, 2059812/2059815/2059814 for Drisinil, and 2059832/2059833/2059834 for Tukra.
+  Elemental Tower helpers are 2062421/2062444/2062433 for Xzix,
+  2062422/2062442/2062434 for Drgun, 2062420/2062443/2062432 for Limj, and
+  2062423/2062441/2062335 for Duyrn.
 - Confirm helpers must be awake, idle, uncharmed, in the same zone, reachable within 100
   rooms, and able to damage the attacker. End combat and allow an activity pulse before
   attacking again; the caller should shout once in the new fight.

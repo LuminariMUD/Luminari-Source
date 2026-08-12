@@ -1280,6 +1280,45 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("RoL Bloodstone Portal", result.records[0].spec_proc)
     self.assertEqual(2_007_250, result.records[0].values[0])
 
+  def test_portal_door_binding_remaps_destination_value(self) -> None:
+    binding = {
+        "basename": "misc_code",
+        "record_type": "object",
+        "source_vnum": 751,
+        "source_handler": "portal_door",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    native = compiled.native_bindings[0]
+    self.assertEqual("RoL Portal Door", native.persisted_name)
+    self.assertEqual(((0, "wld"),), native.value_reference_slots)
+    self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[0]["strategy"])
+
+    source = self._source_record(
+        "obj",
+        b"#751\nportal~\na rainbow portal~\nA portal is here.~\n~\n"
+        b"13 0 0\n3001 0 0 0\n0 0 0\n",
+    )
+    emitted = emit_object(
+        source,
+        2_000_751,
+        _resolver,
+        special_proc=native.persisted_name,
+        required_value_references=native.value_reference_slots,
+    )
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20007.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Portal Door", result.records[0].spec_proc)
+    self.assertEqual(2_003_001, result.records[0].values[0])
+
   def test_auto_distributor_binding_persists_room_procedure(self) -> None:
     binding = {
         "basename": "wilderness-08",

@@ -62,6 +62,7 @@ static const char *const spec_mobile_names[] = {
     "RoL Thief",
     "RoL Bloodstone Critter",
     "RoL Designated Follower",
+    "RoL Fixed Bodyguard",
     "RoL Shadow Giant",
     "RoL Guild Guard",
     "RoL Major Beholder",
@@ -101,6 +102,7 @@ static const char *const spec_object_names[] = {
     "obj_drain",
     "thorn_shield",
     "RoL Bloodstone Portal",
+    "RoL Portal Door",
     "RoL Floating Pool",
     "RoL Item Blocker",
     "RoL Magic Pool",
@@ -398,7 +400,7 @@ void Test_spec_owner_olc_selection_parser_is_strict_and_bounded(CuTest *tc)
     return;
   CuAssertStrEquals(tc, "Greyhawk Ship Commands", definition->canonical_name);
 
-  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "49", &definition);
+  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "50", &definition);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID, result);
   CuAssertTrue(tc, definition == NULL);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID,

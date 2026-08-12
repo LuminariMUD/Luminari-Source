@@ -66,6 +66,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'target gold. Pay with GIVE') > 0
   AND INSTR(entry, 'RoL Alert Caller is mobile-owned') > 0
   AND INSTR(entry, 'compose this alert beside their existing breath procedure') > 0
+  AND INSTR(entry, 'Elemental Tower callers 2062401') > 0
   AND INSTR(entry, 'RoL Yggdrasil Branch is mobile-owned') > 0
   AND INSTR(entry, 'four to twelve combat rounds') > 0
   AND INSTR(entry, 'RoL Waterdeep Ambient is mobile-owned') > 0
@@ -82,6 +83,10 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'RoL Shaman Totem is object-owned') > 0
   AND INSTR(entry, 'three attempts per seven MUD days') > 0
   AND INSTR(entry, 'RoL-Totem-Spirit') > 0
+  AND INSTR(entry, 'RoL Fixed Bodyguard is mobile-owned') > 0
+  AND INSTR(entry, 'assigned mobiles 2097023, 2097029, and 2097008') > 0
+  AND INSTR(entry, 'RoL Portal Door is object-owned') > 0
+  AND INSTR(entry, 'LOOK IN previews the loaded destination') > 0
   AND INSTR(entry, 'five RoL Ship procedures') > 0
   AND INSTR(entry, 'RoL Ship Control handles panel instruments') > 0
   AND INSTR(entry, 'converter-owned') > 0
