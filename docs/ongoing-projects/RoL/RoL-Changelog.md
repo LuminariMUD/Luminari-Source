@@ -9,6 +9,65 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 planar mobile initializers
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled eight bindings across six planar initializer handlers. Bar-lgura gains the existing
+  converted rogue-role action plus permanent hide; both Cambions gain that role plus permanent
+  sneak; and Lemure and Nupperibo gain target-native charm immunity. These are prototype
+  properties and consume no persistent special-procedure slot.
+- Recorded three source-inert callbacks with code and prototype evidence. Alu-fiend regeneration
+  is disabled by `#if 0`; Dretch only clears an absent wimpy action that automatic demon setup
+  does not add; and Rutterkin registers no events and changes no state.
+- Extended mobile conversion bindings with required affect bits. Fixed owner-level staging so
+  multiple composable callbacks on one mobile union their action flags, affect flags, value
+  references, and compatible persistent procedure instead of allowing the last callback to
+  overwrite earlier requirements. Conflicting owners or procedure names now fail closed.
+- Added exact transformation, emission, owner-composition, handler-disposition, source-VNUM, and
+  production-ledger regression coverage. No player helpfile changed because the batch adds no
+  command or syntax; the staff manual matrix covers prototype verification.
+- Regenerated the corrected Phase 6 evidence. Resolution increases from 1,320 to 1,328 static
+  bindings and from 558 to 564 direct handlers, leaving 393 bindings across 231 handlers in 34
+  source files. The independent `ACT_SPEC` cross-check is now 799 resolved and 49 pending.
+- Retained the measured 24-36-session Phase 6 envelope. The first four corrected batches have
+  closed 82 bindings across 26 handlers, which still projects an approximately 16-session
+  binding floor and 36-session handler-diversity ceiling.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 66c3d7a1
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-planar-initializers
+Reconciliation run: rol-phase6-special-49b79534c90b09d7
+Active direct bindings: 1,721
+Direct bindings resolved: 1,328
+Direct bindings pending: 393
+Source handlers resolved: 564
+Source handlers pending: 231
+Additional handler families resolved: 6
+Additional direct bindings resolved: 8
+Native adapted composable bindings: 203
+Source-inert excluded bindings: 29
+ACT_SPEC records resolved: 799
+ACT_SPEC records pending: 49
+Complete world-tool suite: 326 passed
+Production-linked CuTest suite: 664 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 8f263159cbe2b8bbf676a2634c7b770acfe51a27
+Installed SHA-256: e99271feb0b795f94ba24a3e0b29b43adb439fd4f9fb8f27a98f470950068bd2
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with a dependency-complete planar combat or death family and its
+Undermountain aliases. Reforecast after corrected batch six or a material inventory change.
+
 ## 2026-08-13 - Phase 6 planar demon base behavior
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

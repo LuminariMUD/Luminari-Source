@@ -1102,6 +1102,25 @@ This behavior is production-tested and reconciled, but the current five-zone pil
 planar demon package. Exercise it only after a Phase 7 stage supplies the converted prototypes;
 do not add the compatibility flag to unrelated demons by hand.
 
+### Phase 6 planar mobile initializers
+
+- In a dependency-complete planar stage, inspect converted Bar-lgura source mobile 208. It must
+  have `RoL-Has-Th` and the permanent hide affect in addition to its automatic demon state.
+- Inspect converted Cambion source mobiles 209 and 92079. Both must have `RoL-Has-Th` and the
+  permanent sneak affect. Mobile 92079 must also retain every other independently converted
+  callback requirement; no composable flag or affect may disappear because of binding order.
+- Attempt to charm converted Lemure 229 and Nupperibo 230. Both must use target-native
+  `MOB_NOCHARM` behavior and must not consume the persistent SpecProc slot.
+- Confirm converted Dretch 211 lacks the wimpy action. Its source callback only removes that
+  already absent property, so no replacement procedure should be attached.
+- Confirm Alu-fiend 205 and Rutterkin 219 gain no procedure for `demon_aluFiendRegen` or
+  `demon_rutterkin`. The first behavior is disabled in active source code and the second changes
+  no state; automatic demon behavior and independently converted callbacks must remain intact.
+
+These initializer dispositions are conversion-tested and reconciled, but the current five-zone
+pilot contains no planar package. Exercise them only after a Phase 7 stage supplies the converted
+prototypes; do not hand-edit flags or affects into the pilot.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,
@@ -1167,9 +1186,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,320 are resolved and 401 remain. Of 795 distinct
-  direct source handlers, 558 are resolved and 237 remain. Of 848 `ACT_SPEC` records, 798
-  are resolved and 50 remain. The automatic race procedures
+  of the 1,721 active direct bindings, 1,328 are resolved and 393 remain. Of 795 distinct
+  direct source handlers, 564 are resolved and 231 remain. Of 848 `ACT_SPEC` records, 799
+  are resolved and 49 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
