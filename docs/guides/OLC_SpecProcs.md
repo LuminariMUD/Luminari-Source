@@ -31,7 +31,7 @@ callback slot or event-gateway dispatch rules.
 - Enter a number to choose a SpecProc; enter `0` to clear.
 - The current selection is shown in the menu. Save as usual to apply.
 
-Numbers are specific to the filtered editor view. The current views contain 45 mobile definitions,
+Numbers are specific to the filtered editor view. The current views contain 46 mobile definitions,
 30 object definitions, and 15 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
@@ -141,6 +141,13 @@ make a 50 percent entangle attempt against either the current opponent or the so
 vulnerable group target. A failed Reflex save with the source -10 modifier entangles the target for
 four to twelve combat rounds. Release removes the entangle and halves current movement. The timed
 effect and its mobile association are converter-owned.
+
+`RoL Waterdeep Ambient` is mobile-owned and requires `MOB_SPEC`. Thirty-four converted citizens
+across 23 source families emit their authored speech and room actions on the original two-die
+periodic distributions while standing. Multi-line outcomes retain their ordering and the casino
+player retains its source fall-through outcome. Converted merchant 2005310 emits its harbor dialog
+only in room 2005400. The profiles are keyed to converted mobile identity; do not assign this
+procedure to unrelated mobiles.
 
 `RoL Shaman Totem` is object-owned and must be held or wielded. It preserves the 21 converted
 totem identities, permanent player/object bonding, source-race gating, three summon attempts per
@@ -267,7 +274,7 @@ saved-secondary behavior.
 
 Typed dispatch is an engine-side implementation detail: nothing a builder selects, sees, or saves in
 OLC changed. Bank and Vampire Cloak retain their canonical rows and callback-slot identities while
-their behavior receives explicit event context. The other 87 registered definitions use
+their behavior receives explicit event context. The other 88 registered definitions use
 compatibility dispatch; across the source tree, 204 legacy behavior implementations remain. A
 validated declarative table owns the two Luminari assignments whose handlers are registered and
 whose VNUMs are symbolic. Converted RoL definitions use explicit world-authored names.

@@ -980,6 +980,37 @@ class RolTransformTests(unittest.TestCase):
     self.assertNotIn(0, decode_tokens(result.records[0].action_flags).bits)
     self.assertNotIn("source ACT_SPEC deferred", " ".join(emitted.diagnostics))
 
+  def test_waterdeep_ambient_handlers_share_one_persistent_adapter(self) -> None:
+    handlers = ("wanderer", "drunk_one", "casino_two", "youth_two")
+    bindings = [
+        {
+            "basename": "waterdeep",
+            "record_type": "mobile",
+            "source_vnum": 3000 + index,
+            "source_handler": handler,
+        }
+        for index, handler in enumerate(handlers)
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(4, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Waterdeep Ambient"
+            and binding.required_flag_bits == ()
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_composed_alert_keeps_existing_breath_binding(self) -> None:
     bindings = [
         {

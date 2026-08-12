@@ -65,6 +65,47 @@ struct rol_death_profile
   const char *message;
 };
 
+enum rol_ambient_profile_id
+{
+  ROL_AMBIENT_WANDERER = 0,
+  ROL_AMBIENT_DRUNK_ONE,
+  ROL_AMBIENT_DRUNK_TWO,
+  ROL_AMBIENT_DRUNK_THREE,
+  ROL_AMBIENT_HOMELESS_ONE,
+  ROL_AMBIENT_HOMELESS_TWO,
+  ROL_AMBIENT_CAT_ONE,
+  ROL_AMBIENT_MERCHANT_ONE,
+  ROL_AMBIENT_MERCHANT_TWO,
+  ROL_AMBIENT_FARMER_ONE,
+  ROL_AMBIENT_BAKER_ONE,
+  ROL_AMBIENT_BAKER_TWO,
+  ROL_AMBIENT_MAGE_ONE,
+  ROL_AMBIENT_CLERIC_ONE,
+  ROL_AMBIENT_ARTILLERY_ONE,
+  ROL_AMBIENT_WARRIOR_ONE,
+  ROL_AMBIENT_MERCENARY_ONE,
+  ROL_AMBIENT_MERCENARY_TWO,
+  ROL_AMBIENT_MERCENARY_THREE,
+  ROL_AMBIENT_CASINO_ONE,
+  ROL_AMBIENT_CASINO_TWO,
+  ROL_AMBIENT_YOUTH_ONE,
+  ROL_AMBIENT_YOUTH_TWO,
+};
+
+struct rol_ambient_mobile_profile
+{
+  int mobile_vnum;
+  enum rol_ambient_profile_id profile_id;
+};
+
+struct rol_ambient_action
+{
+  enum rol_ambient_profile_id profile_id;
+  int roll;
+  bool speech;
+  const char *message;
+};
+
 static const int rol_demogorgon_helpers[] = {2019830, 2019850, 2019880};
 static const int rol_drisinil_helpers[] = {2059812, 2059815, 2059814};
 static const int rol_tukra_helpers[] = {2059832, 2059833, 2059834};
@@ -112,6 +153,158 @@ static const struct rol_death_profile rol_death_profiles[] = {
     {2003052, "With a gentle swooshing sound, the air elemental simply disappears."},
     {2003053, "With a splash, the water elemental crashes to the ground leaving only a puddle "
               "behind."},
+};
+
+static const struct rol_ambient_mobile_profile rol_ambient_mobile_profiles[] = {
+    {2004830, ROL_AMBIENT_WANDERER},        {2003064, ROL_AMBIENT_DRUNK_ONE},
+    {2066037, ROL_AMBIENT_DRUNK_ONE},       {2002836, ROL_AMBIENT_DRUNK_TWO},
+    {2003006, ROL_AMBIENT_DRUNK_TWO},       {2003203, ROL_AMBIENT_DRUNK_THREE},
+    {2003236, ROL_AMBIENT_DRUNK_THREE},     {2002816, ROL_AMBIENT_HOMELESS_ONE},
+    {2003007, ROL_AMBIENT_HOMELESS_ONE},    {2003065, ROL_AMBIENT_HOMELESS_ONE},
+    {2002815, ROL_AMBIENT_HOMELESS_TWO},    {2003066, ROL_AMBIENT_CAT_ONE},
+    {2003090, ROL_AMBIENT_CAT_ONE},         {2003009, ROL_AMBIENT_MERCHANT_ONE},
+    {2005310, ROL_AMBIENT_MERCHANT_TWO},    {2003010, ROL_AMBIENT_FARMER_ONE},
+    {2003011, ROL_AMBIENT_BAKER_ONE},       {2003012, ROL_AMBIENT_BAKER_TWO},
+    {2003014, ROL_AMBIENT_MAGE_ONE},        {2003030, ROL_AMBIENT_CLERIC_ONE},
+    {2005321, ROL_AMBIENT_ARTILLERY_ONE},   {2003018, ROL_AMBIENT_WARRIOR_ONE},
+    {2003201, ROL_AMBIENT_MERCENARY_ONE},   {2003210, ROL_AMBIENT_MERCENARY_ONE},
+    {2002812, ROL_AMBIENT_MERCENARY_TWO},   {2003242, ROL_AMBIENT_MERCENARY_TWO},
+    {2002827, ROL_AMBIENT_MERCENARY_THREE}, {2002835, ROL_AMBIENT_MERCENARY_THREE},
+    {2003243, ROL_AMBIENT_MERCENARY_THREE}, {2003204, ROL_AMBIENT_CASINO_ONE},
+    {2003205, ROL_AMBIENT_CASINO_TWO},      {2002813, ROL_AMBIENT_YOUTH_ONE},
+    {2003232, ROL_AMBIENT_YOUTH_ONE},       {2002829, ROL_AMBIENT_YOUTH_TWO},
+};
+
+static const struct rol_ambient_action rol_ambient_actions[] = {
+    {ROL_AMBIENT_WANDERER, 2, false, "$n examines the animal tracks on the ground."},
+    {ROL_AMBIENT_WANDERER, 3, true, "God, I love the outdoors!"},
+    {ROL_AMBIENT_WANDERER, 4, false, "$n looks at you with a curious expression."},
+    {ROL_AMBIENT_WANDERER, 5, false, "$n gazes off onto the horizon, looking for something."},
+    {ROL_AMBIENT_DRUNK_ONE, 2, true, "Heeeeyyyy, matie, got any whiskey?"},
+    {ROL_AMBIENT_DRUNK_ONE, 3, false, "$n mumbles something incoherent."},
+    {ROL_AMBIENT_DRUNK_ONE, 4, false, "$n turns green and nearly hurls, but amazingly recovers."},
+    {ROL_AMBIENT_DRUNK_ONE, 5, false, "$n stumbles and nearly falls, lost in his drunken stupor."},
+    {ROL_AMBIENT_DRUNK_TWO, 2, true,
+     "OOoohhh! Loookie what weee have  here, a worthless ball offf horse manuure.."},
+    {ROL_AMBIENT_DRUNK_TWO, 3, false,
+     "$n points at you and laughs uncontrollably for several minutes.."},
+    {ROL_AMBIENT_DRUNK_TWO, 4, false,
+     "$n flips you the bird and mumbles something incoherent under his breath."},
+    {ROL_AMBIENT_DRUNK_TWO, 5, false,
+     "$n begins singing loudly, though his awful tone makes you cringe."},
+    {ROL_AMBIENT_DRUNK_TWO, 5, false, "Dogs can be heard howling in the distance."},
+    {ROL_AMBIENT_DRUNK_THREE, 2, true, "Hey, pssssst, you. Yeah, you."},
+    {ROL_AMBIENT_DRUNK_THREE, 2, true, "Know of any good places to gamble around here?"},
+    {ROL_AMBIENT_DRUNK_THREE, 3, false,
+     "$n loses his balance and falls to the ground, cursing all the while."},
+    {ROL_AMBIENT_DRUNK_THREE, 4, false,
+     "$n stares off into space, seemingly lost in some mindless thought."},
+    {ROL_AMBIENT_DRUNK_THREE, 5, false, "$n shouts annoyingly, 'Where is that damn bartender!'"},
+    {ROL_AMBIENT_HOMELESS_ONE, 2, true, "Alms for the poor?"},
+    {ROL_AMBIENT_HOMELESS_ONE, 3, true, "Could you spare a few coins?"},
+    {ROL_AMBIENT_HOMELESS_ONE, 4, false, "$n looks at you pleadingly."},
+    {ROL_AMBIENT_HOMELESS_ONE, 5, false, "$n sniffs sadly, looking depressed."},
+    {ROL_AMBIENT_HOMELESS_TWO, 2, true,
+     "Could ya spare a few coins? Just a few? I gots nuttin' ta eat tonight.."},
+    {ROL_AMBIENT_HOMELESS_TWO, 2, false, "$n whimpers quietly."},
+    {ROL_AMBIENT_HOMELESS_TWO, 3, false,
+     "$n is overcome with a fit of coughing. He doesn't look well."},
+    {ROL_AMBIENT_HOMELESS_TWO, 4, false, "$n looks utterly miserable."},
+    {ROL_AMBIENT_HOMELESS_TWO, 5, false, "$n holds out his hands, begging for food."},
+    {ROL_AMBIENT_CAT_ONE, 2, false, "$n scratches at an itch."},
+    {ROL_AMBIENT_CAT_ONE, 3, false, "$n dives at something on the ground, playing."},
+    {ROL_AMBIENT_CAT_ONE, 4, false, "$n looks at you and mews, purring for attention."},
+    {ROL_AMBIENT_CAT_ONE, 5, false, "$n approaches and bumps your leg, looking for attention."},
+    {ROL_AMBIENT_MERCHANT_ONE, 2, true,
+     "You wouldn't happen to know where the bazaar is, would you?"},
+    {ROL_AMBIENT_MERCHANT_ONE, 3, false,
+     "$n looks condescendingly at you, as if you're less than scum."},
+    {ROL_AMBIENT_MERCHANT_ONE, 4, false,
+     "$n looks you up and down, probably sizing up whether or not you're worth the effort."},
+    {ROL_AMBIENT_MERCHANT_ONE, 5, false, "$n smirks arrogantly."},
+    {ROL_AMBIENT_MERCHANT_TWO, 2, true, "GOD, where is that blasted ship!"},
+    {ROL_AMBIENT_MERCHANT_TWO, 3, false,
+     "$n stares out the door, scanning the harbor for his ship."},
+    {ROL_AMBIENT_MERCHANT_TWO, 4, true,
+     "Receptionist! Get that damn ship here! I've been waiting forever!"},
+    {ROL_AMBIENT_MERCHANT_TWO, 5, false,
+     "$n looks impatient, as if he's waited years for his ship to come in."},
+    {ROL_AMBIENT_FARMER_ONE, 2, true, "I hate these big cities."},
+    {ROL_AMBIENT_FARMER_ONE, 2, false, "$n frowns."},
+    {ROL_AMBIENT_FARMER_ONE, 3, false, "$n smiles warmly at you."},
+    {ROL_AMBIENT_FARMER_ONE, 4, false, "$n looks a bit lost."},
+    {ROL_AMBIENT_FARMER_ONE, 5, false, "$n looks a bit timid in this huge city."},
+    {ROL_AMBIENT_BAKER_ONE, 2, true, "Do you have a reason to be here? Not that I mind."},
+    {ROL_AMBIENT_BAKER_ONE, 3, false, "$n looks around for something to clean."},
+    {ROL_AMBIENT_BAKER_ONE, 4, false, "$n looks out the window at the glorious city."},
+    {ROL_AMBIENT_BAKER_ONE, 5, false, "$n smiles warmly at you."},
+    {ROL_AMBIENT_BAKER_TWO, 2, true, "Hey, ma! Can we go outside and play?"},
+    {ROL_AMBIENT_BAKER_TWO, 3, false, "$n crashes into a table while running around."},
+    {ROL_AMBIENT_BAKER_TWO, 4, false, "$n looks around for something to play with."},
+    {ROL_AMBIENT_BAKER_TWO, 5, false, "$n runs around the room, playing wildly."},
+    {ROL_AMBIENT_MAGE_ONE, 2, false, "$n attempts a spell."},
+    {ROL_AMBIENT_MAGE_ONE, 2, true, "Tass Mohjak Tamarilon Deiliak!"},
+    {ROL_AMBIENT_MAGE_ONE, 2, false, "$n frowns in frustration."},
+    {ROL_AMBIENT_MAGE_ONE, 3, false, "$n stares blankly into space, contemplating something."},
+    {ROL_AMBIENT_MAGE_ONE, 4, false, "$n looks at you curiously."},
+    {ROL_AMBIENT_MAGE_ONE, 5, false, "$n studies his spellbook intently."},
+    {ROL_AMBIENT_CLERIC_ONE, 2, true, "Go in peace, friend, all are welcome here."},
+    {ROL_AMBIENT_CLERIC_ONE, 2, false, "$n smiles warmly at you."},
+    {ROL_AMBIENT_CLERIC_ONE, 3, false, "$n bows before you in reverence."},
+    {ROL_AMBIENT_CLERIC_ONE, 4, false, "$n performs a magical gesture of some kind."},
+    {ROL_AMBIENT_CLERIC_ONE, 5, false,
+     "$n sings a hymn in praise to the Gods. It is quite beautiful."},
+    {ROL_AMBIENT_ARTILLERY_ONE, 2, false,
+     "$n takes a long, deep breath as a cool breeze blows by."},
+    {ROL_AMBIENT_ARTILLERY_ONE, 2, true, "Hell of a day, isn't it.."},
+    {ROL_AMBIENT_ARTILLERY_ONE, 3, false, "$n checks the readiness of the catapult."},
+    {ROL_AMBIENT_ARTILLERY_ONE, 4, true,
+     "You should consider a career in the navy, strong as you are."},
+    {ROL_AMBIENT_ARTILLERY_ONE, 5, false, "$n scans the horizon line intently."},
+    {ROL_AMBIENT_WARRIOR_ONE, 2, true, "Don't you wish you were as strong and mighty as I?"},
+    {ROL_AMBIENT_WARRIOR_ONE, 3, false,
+     "$n sizes you up, as if considering your battle capabilities."},
+    {ROL_AMBIENT_WARRIOR_ONE, 4, false, "$n screws up a sword maneuver, blushing furiously."},
+    {ROL_AMBIENT_WARRIOR_ONE, 5, false, "$n shadow boxes, showing off his battle prowess."},
+    {ROL_AMBIENT_MERCENARY_ONE, 2, true, "If ya need a hired hand, I'm yer man."},
+    {ROL_AMBIENT_MERCENARY_ONE, 3, false,
+     "$n keeps his hand on the hilt of his weapon while near you."},
+    {ROL_AMBIENT_MERCENARY_ONE, 4, false, "$n stops suddenly as if having heard something odd."},
+    {ROL_AMBIENT_MERCENARY_ONE, 4, false, "After a few moments, $n continues on his way."},
+    {ROL_AMBIENT_MERCENARY_ONE, 5, false, "$n eyes you suspiciously."},
+    {ROL_AMBIENT_MERCENARY_TWO, 2, true,
+     "Get lost, kid, or I might decide to relieve you of your pathetic existence."},
+    {ROL_AMBIENT_MERCENARY_TWO, 3, false,
+     "$n growls as you, resembling a not-so-trained Doberman."},
+    {ROL_AMBIENT_MERCENARY_TWO, 4, false, "$n glares icily at you."},
+    {ROL_AMBIENT_MERCENARY_TWO, 5, false, "$n casts you a wary glance."},
+    {ROL_AMBIENT_MERCENARY_THREE, 2, true, "Hey, waiter, bring me another when you come around."},
+    {ROL_AMBIENT_MERCENARY_THREE, 3, false,
+     "$n lets off a roaring belch that echoes around the room."},
+    {ROL_AMBIENT_MERCENARY_THREE, 4, false, "$n gives you a casual glance."},
+    {ROL_AMBIENT_MERCENARY_THREE, 5, false, "$n takes a long draught from his mug."},
+    {ROL_AMBIENT_CASINO_ONE, 2, false,
+     "$n moves some gambling chips around so fast you almost can't follow his movements."},
+    {ROL_AMBIENT_CASINO_ONE, 3, false, "$n shuffles the cards with the ease of a skilled pro."},
+    {ROL_AMBIENT_CASINO_ONE, 4, true, "Dealer raises 20."},
+    {ROL_AMBIENT_CASINO_ONE, 5, false, "$n deals out a card to one of the gamblers."},
+    {ROL_AMBIENT_CASINO_ONE, 6, true, "Feel lucky tonight, boys?"},
+    {ROL_AMBIENT_CASINO_ONE, 7, false,
+     "$n makes a perfect poker face, looking as rigid as a board.."},
+    {ROL_AMBIENT_CASINO_TWO, 2, true, "I'll raise 20."},
+    {ROL_AMBIENT_CASINO_TWO, 2, false, "$n studies his cards carefully."},
+    {ROL_AMBIENT_CASINO_TWO, 3, false, "$n studies his cards carefully."},
+    {ROL_AMBIENT_CASINO_TWO, 4, true, "C'mon, lady luck don't let me down!"},
+    {ROL_AMBIENT_CASINO_TWO, 5, false, "$n makes an admirable poker face."},
+    {ROL_AMBIENT_CASINO_TWO, 6, false, "$n nods his head."},
+    {ROL_AMBIENT_YOUTH_ONE, 2, true, "Piss off, ya big pile of horse dung."},
+    {ROL_AMBIENT_YOUTH_ONE, 3, false, "$n looks at you with eyes both angry and hateful."},
+    {ROL_AMBIENT_YOUTH_ONE, 4, false, "$n spits at the ground in front of you."},
+    {ROL_AMBIENT_YOUTH_ONE, 5, false, "$n glares at you with contempt."},
+    {ROL_AMBIENT_YOUTH_TWO, 2, true, "Do-do you have anything I could eat?"},
+    {ROL_AMBIENT_YOUTH_TWO, 3, false, "$n looks at you pleadingly."},
+    {ROL_AMBIENT_YOUTH_TWO, 4, false, "$n holds out a feeble hand."},
+    {ROL_AMBIENT_YOUTH_TWO, 5, false, "$n shivers in fear."},
 };
 
 /* Only rooms reached by active converted guild_guard bindings are retained.
@@ -484,6 +677,100 @@ static const struct rol_alert_profile *rol_alert_profile_for(int caller_vnum)
       return &rol_alert_profiles[index];
 
   return NULL;
+}
+
+static const struct rol_ambient_mobile_profile *rol_ambient_profile_for(int mobile_vnum)
+{
+  size_t index;
+
+  for (index = 0;
+       index < sizeof(rol_ambient_mobile_profiles) / sizeof(rol_ambient_mobile_profiles[0]);
+       index++)
+    if (rol_ambient_mobile_profiles[index].mobile_vnum == mobile_vnum)
+      return &rol_ambient_mobile_profiles[index];
+
+  return NULL;
+}
+
+int rol_waterdeep_ambient_roll_sides(int mobile_vnum)
+{
+  const struct rol_ambient_mobile_profile *profile = rol_ambient_profile_for(mobile_vnum);
+
+  if (profile == NULL)
+    return 0;
+  if (profile->profile_id == ROL_AMBIENT_CASINO_ONE)
+    return 7;
+  if (profile->profile_id == ROL_AMBIENT_CASINO_TWO)
+    return 6;
+
+  return 5;
+}
+
+bool rol_waterdeep_ambient_room_allows(int mobile_vnum, int room_vnum)
+{
+  const struct rol_ambient_mobile_profile *profile = rol_ambient_profile_for(mobile_vnum);
+
+  if (profile == NULL)
+    return false;
+
+  return profile->profile_id != ROL_AMBIENT_MERCHANT_TWO || room_vnum == 2005400;
+}
+
+const char *rol_waterdeep_ambient_message(int mobile_vnum, int roll, int message_index,
+                                          bool *speech)
+{
+  const struct rol_ambient_mobile_profile *profile = rol_ambient_profile_for(mobile_vnum);
+  size_t index;
+
+  if (profile == NULL || message_index < 0)
+    return NULL;
+
+  for (index = 0; index < sizeof(rol_ambient_actions) / sizeof(rol_ambient_actions[0]); index++)
+  {
+    if (rol_ambient_actions[index].profile_id != profile->profile_id ||
+        rol_ambient_actions[index].roll != roll)
+      continue;
+    if (message_index-- != 0)
+      continue;
+    if (speech != NULL)
+      *speech = rol_ambient_actions[index].speech;
+    return rol_ambient_actions[index].message;
+  }
+
+  return NULL;
+}
+
+int rol_waterdeep_ambient(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *speaker = me;
+  const char *message;
+  int message_index;
+  int roll;
+  int sides;
+  bool speech;
+
+  (void)argument;
+
+  if (speaker == NULL && cmd == 0)
+    speaker = ch;
+  if (speaker == NULL || cmd != 0 || !IS_NPC(speaker) || IN_ROOM(speaker) == NOWHERE ||
+      GET_POS(speaker) < POS_STANDING ||
+      !rol_waterdeep_ambient_room_allows(GET_MOB_VNUM(speaker), GET_ROOM_VNUM(IN_ROOM(speaker))) ||
+      (sides = rol_waterdeep_ambient_roll_sides(GET_MOB_VNUM(speaker))) == 0)
+    return FALSE;
+
+  roll = dice(2, sides);
+  for (message_index = 0; (message = rol_waterdeep_ambient_message(GET_MOB_VNUM(speaker), roll,
+                                                                   message_index, &speech)) != NULL;
+       message_index++)
+  {
+    if (speech)
+      do_say(speaker, message, 0, 0);
+    else
+      act(message, TRUE, speaker, NULL, NULL, TO_ROOM);
+  }
+
+  return FALSE;
 }
 
 const char *rol_alert_message(int caller_vnum)

@@ -68,6 +68,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'compose this alert beside their existing breath procedure') > 0
   AND INSTR(entry, 'RoL Yggdrasil Branch is mobile-owned') > 0
   AND INSTR(entry, 'four to twelve combat rounds') > 0
+  AND INSTR(entry, 'RoL Waterdeep Ambient is mobile-owned') > 0
+  AND INSTR(entry, 'casino-player fall-through') > 0
   AND INSTR(entry, 'RoL Sister Knight is mobile-owned') > 0
   AND INSTR(entry, 'reachable converted sister within 100 rooms') > 0
   AND INSTR(entry, 'RoL Shaman Totem is object-owned') > 0

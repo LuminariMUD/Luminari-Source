@@ -511,6 +511,26 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   behavior on the same mobile and do not require a new mobile flag or second persisted
   SpecProc. An unrelated mobile must retain the ordinary target death/corpse path.
 
+### Phase 6 converted Waterdeep ambient citizens
+
+- Build dependency-complete stages containing the 34 converted ambient citizens:
+  2002812-2002813, 2002815-2002816, 2002827, 2002829, 2002835-2002836,
+  2003006-2003007, 2003009-2003012, 2003014, 2003018, 2003030,
+  2003064-2003066, 2003090,
+  2003201, 2003203-2003205, 2003210, 2003232, 2003236, 2003242-2003243,
+  2004830, 2005310, 2005321, and 2066037. Confirm each uses
+  `RoL Waterdeep Ambient` with `MOB_SPEC`.
+- While each mobile is standing, observe repeated activity pulses. Wanderer, drunk,
+  homeless, cat, merchant, farmer, baker, mage, cleric, artillery, warrior, mercenary,
+  casino, and youth profiles should emit their source-authored speech and room actions;
+  most use a two-d5 roll, mobile 2003204 uses two-d7, and 2003205 uses two-d6.
+- Confirm multi-message rolls remain ordered. In particular, a roll of 2 for casino
+  player 2003205 says the raise and then studies the cards, preserving the source
+  switch fall-through. Nonmatching rolls produce no output.
+- Move merchant 2005310 between target harbor room 2005400 and another room. Its
+  ambient dialog should run only in 2005400. Sitting or sleeping ambient citizens and
+  unrelated mobiles must not emit these profiles.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,

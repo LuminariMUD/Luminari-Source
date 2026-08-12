@@ -51,6 +51,7 @@ int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_sister_knight(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_alert_caller(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_yggdrasil_branch(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_waterdeep_ambient(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_designated_follower(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -83,6 +84,10 @@ const char *rol_alert_message(int caller_vnum);
 bool rol_alert_helper_matches(int caller_vnum, int helper_vnum);
 bool rol_yggdrasil_vnum(int vnum);
 int rol_yggdrasil_release_move(int current_move);
+int rol_waterdeep_ambient_roll_sides(int mobile_vnum);
+bool rol_waterdeep_ambient_room_allows(int mobile_vnum, int room_vnum);
+const char *rol_waterdeep_ambient_message(int mobile_vnum, int roll, int message_index,
+                                          bool *speech);
 const char *rol_conversion_death_message(int vnum);
 long event_rol_yggdrasil_release(void *event_obj);
 const char *rol_bloodstone_critter_social(int roll);

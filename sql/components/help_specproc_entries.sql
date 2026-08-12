@@ -145,6 +145,13 @@ RoL Yggdrasil Branch is mobile-owned and requires MOB_SPEC. Converted mobiles
 or a vulnerable group target. A failed Reflex save at the source -10 modifier
 entangles for four to twelve combat rounds; release halves current movement.
 
+RoL Waterdeep Ambient is mobile-owned and requires MOB_SPEC. Thirty-four
+converted citizens across 23 source families emit their authored speech and
+room actions on the original two-die periodic distributions while standing.
+Multi-line outcomes retain their order, including the casino-player fall-through.
+Merchant 2005310 emits its harbor dialog only in room 2005400. Do not assign this
+converter-owned, identity-keyed procedure to unrelated mobiles.
+
 RoL Sister Knight is mobile-owned and requires MOB_SPEC. When one of the five
 converted Sister Knight prototypes enters combat, it shouts once across the zone
 and sends every awake, idle, reachable converted sister within 100 rooms to pursue

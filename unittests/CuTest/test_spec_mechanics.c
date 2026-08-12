@@ -918,6 +918,32 @@ void Test_spec_rol_yggdrasil_release_and_death_profiles_preserve_source_outcomes
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_waterdeep_ambient_profiles_preserve_source_rolls_and_sequences(CuTest *tc)
+{
+  bool speech = false;
+
+  CuAssertIntEquals(tc, 5, rol_waterdeep_ambient_roll_sides(2004830));
+  CuAssertIntEquals(tc, 7, rol_waterdeep_ambient_roll_sides(2003204));
+  CuAssertIntEquals(tc, 6, rol_waterdeep_ambient_roll_sides(2003205));
+  CuAssertIntEquals(tc, 0, rol_waterdeep_ambient_roll_sides(9999999));
+
+  CuAssertTrue(tc, rol_waterdeep_ambient_room_allows(2004830, 6100));
+  CuAssertTrue(tc, rol_waterdeep_ambient_room_allows(2005310, 2005400));
+  CuAssertTrue(tc, !rol_waterdeep_ambient_room_allows(2005310, 2005401));
+  CuAssertTrue(tc, !rol_waterdeep_ambient_room_allows(9999999, 2005400));
+
+  CuAssertStrEquals(tc, "I'll raise 20.", rol_waterdeep_ambient_message(2003205, 2, 0, &speech));
+  CuAssertTrue(tc, speech);
+  CuAssertStrEquals(tc, "$n studies his cards carefully.",
+                    rol_waterdeep_ambient_message(2003205, 2, 1, &speech));
+  CuAssertTrue(tc, !speech);
+  CuAssertTrue(tc, rol_waterdeep_ambient_message(2003205, 2, 2, &speech) == NULL);
+  CuAssertStrEquals(tc, "Know of any good places to gamble around here?",
+                    rol_waterdeep_ambient_message(2003236, 2, 1, &speech));
+  CuAssertTrue(tc, speech);
+  CuAssertTrue(tc, rol_waterdeep_ambient_message(9999999, 2, 0, &speech) == NULL);
+}
+
 void Test_spec_rol_bloodstone_critter_preserves_social_cadence(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;
