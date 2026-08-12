@@ -516,25 +516,28 @@ the supporting runtime lands.
 
 One session is one 2-4 hour spec with one objective and 12-25 tasks. Session ranges
 below are evidence-based planning envelopes, not delivery promises. The measured
-Phase 4 pilot replaced the provisional ranges. Thirty completed Phase 6 delivery
-sessions are archived in the changelog. Dependency-complete batches now target 15-30
-source handler families per checkpoint. The remaining Phases 6-8 forecast is 61-102
-sessions, or 122-408 focused engineering hours at the defined session size.
+Phase 4 pilot replaced the provisional ranges. Thirty-one completed Phase 6 delivery
+sessions are archived in the changelog. The latest generated profile batch closed 82
+regular source handler families in one checkpoint. Because the remaining handlers have
+more varied mechanics, forward batches conservatively target 20-45 related families
+where a shared shape exists. The remaining Phases 6-8 forecast is 55-92 sessions, or
+110-368 focused engineering hours at the defined session size.
 
 Phases 0-5 are complete and have been removed from this active plan. Their delivered
 scope, run identities, counts, acceptance evidence, commits, and reforecast basis are
 recorded in [RoL-Changelog.md](RoL-Changelog.md). Active implementation continues with
 the remaining Phase 6 families.
 
-### Phase 6: Special-procedure reconciliation (13-26 remaining sessions)
+### Phase 6: Special-procedure reconciliation (7-16 remaining sessions)
 
-Process dependency-complete batches of roughly 15-30 related source handler families by
-shared behavior and consuming package. Prefer reusable data-driven profiles when only
-identities, messages, destinations, or bounded parameters vary. Reuse equivalent target
-ports, patch bounded differences, adapt native systems, and port only remaining selected
-behavior. Run focused checks inside each batch and the full build/test/install gate once
-at the batch boundary. A new source file must be added to both `Makefile.am` and
-`CMakeLists.txt`.
+Process dependency-complete batches of roughly 20-45 related source handler families by
+shared behavior and consuming package when their mechanics permit bulk treatment. Use
+strict source parsers and generated, source-hashed profiles for regular families; keep
+irregular mechanics in dependency-complete shared-runtime batches. Reuse equivalent
+target ports, patch bounded differences, adapt native systems, and port only remaining
+selected behavior. Run focused checks inside each workstream and the full
+build/test/install gate only at a substantial checkpoint boundary. A new source file
+must be added to both `Makefile.am` and `CMakeLists.txt`.
 
 Exit gate: every active binding is kept, patched, adapted, ported, or minimally excluded
 under the locked malformed-content rule, with behavioral evidence.

@@ -6,6 +6,68 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 generated source-periodic profiles
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed 82 source handler families and 86 active direct bindings in one bulk-generated
+  workstream through the persistent, mobile-owned `RoL Source Periodic` procedure.
+- Added an explicit source manifest and strict generator for the regular awake activity
+  profiles in `specs.bloodstone.c`, `specs.icecrag.c`, and `specs.menden.c`. The checked-in
+  table carries a digest of its assessed source inputs and a reproducibility check.
+- Preserved all 327 selected random outcomes and 561 ordered speech or room-visible
+  actions, including source random bounds, case fall-through, social room text, direct
+  action visibility, and per-profile combat gates. Menden magus 2088806 deliberately
+  remains active in combat; all other selected profiles pause while fighting.
+- Sorted the generated mobile and outcome tables and used binary runtime lookup, avoiding
+  linear scans on each mobile activity pulse.
+- Extended conversion persistence, the builder registry, both build manifests, OLC/help
+  documentation, manual testing, focused generator checks, converter fixtures, and
+  production-linked characterization tests.
+- Reconciliation now resolves 776 of 1,147 active direct bindings and 256 of 562 source
+  handlers; 371 bindings and 306 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 703 resolved / 145 pending.
+- Archived the thirty-first Phase 6 delivery session. This batch proved an 82-family
+  mechanically regular workstream; discounting the remaining mixed mechanics to a
+  conservative 20-45 related families per batch gives 7-16 remaining Phase 6 sessions
+  and 55-92 total sessions for Phases 6-8, or 110-368 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: c16e0fe9
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-source-periodic
+Reconciliation run: rol-phase6-special-5d67954ff0a9adbc
+Active direct bindings: 1,147
+Direct bindings resolved: 776
+Direct bindings pending: 371
+Source handlers resolved: 256
+Source handlers pending: 306
+Selected handler families resolved: 82
+Selected direct bindings resolved: 86
+Generated outcomes: 327
+Generated room-visible actions: 561
+Native adapted bindings: 383
+Native adapted composable bindings: 131
+ACT_SPEC records resolved: 703
+ACT_SPEC records pending: 145
+Complete world-tool suite: 286 passed
+Focused conversion/generator suite: 88 passed
+Production-linked CuTest suite: 642 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Clean Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 371 direct bindings across 306 source handlers.
+Regular shapes will be classified and generated in bulk; irregular mechanics remain
+dependency-complete shared-runtime workstreams with full gates only at substantial
+checkpoints.
+
 ## 2026-08-12 - Phase 6 expanded Waterdeep ambient batch
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
