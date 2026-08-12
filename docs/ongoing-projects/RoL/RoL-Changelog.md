@@ -6,6 +6,66 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 guild-family adapters
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed eight source handler families and eight active direct bindings in one shared-system
+  batch.
+- Reused `RoL Guild Guard` for six Bloodstone class guards. Converted room rules preserve
+  the source warrior/Antipaladin, cleric/Shaman, assassin/rogue, sorcerer/specialist mage,
+  thief/rogue, and necromancer/lich admission groups through target class identities.
+- Preserved Bloodstone's active-passage behavior: accepted characters are moved to the
+  exact converted destination even when the reset-controlled entrance door is closed.
+  Rejected classes remain blocked, and all six guards retain guild-guardian combat
+  protection.
+- Added the room-owned `RoL Bard Guild Room` and reused it for `guild_bard` and
+  `guild_battlechanter`. Both source families map to target Bard eligibility under the
+  multiclass model while delegating practice, training, and boosts to the native guild
+  service.
+- Extended converter persistence, registry and OLC visibility, builder and database help,
+  manual testing, focused conversion checks, and production characterization.
+- Reconciliation now resolves 831 of 1,147 active direct bindings and 302 of 562 source
+  handlers; 316 bindings and 260 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 747 resolved / 101 pending.
+- Archived the thirty-fifth Phase 6 delivery session. The remaining irregularity keeps the
+  conservative 7-14 session Phase 6 envelope and the 55-90 session forecast for Phases
+  6-8, or 110-360 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 99cb8aed
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-guild-families
+Reconciliation run: rol-phase6-special-33a4bb8a0371811c
+Active direct bindings: 1,147
+Direct bindings resolved: 831
+Direct bindings pending: 316
+Source handlers resolved: 302
+Source handlers pending: 260
+Additional handler families resolved: 8
+Additional direct bindings resolved: 8
+Native adapted bindings: 437
+Native adapted composable bindings: 131
+ACT_SPEC records resolved: 747
+ACT_SPEC records pending: 101
+Complete world-tool suite: 291 passed
+Focused conversion suite: 87 passed
+Production-linked CuTest suite: 645 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 316 direct bindings across 260 source handlers.
+The bulk classifier will keep grouping compatible source mechanics into shared native or
+strict generated adapters, with focused checks inside each batch and full repository gates
+only at checkpoint boundaries.
+
 ## 2026-08-12 - Phase 6 high-fanout special adapters
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
