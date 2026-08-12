@@ -410,7 +410,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Waterdeep Peacekeeper", rol_waterdeep_peacekeeper, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_ACTIVITY, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Weapon Proc", rol_weapon_proc, SPEC_OWNER_OBJECT,
-       SPEC_EVENT_COMMAND | SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT,
+       SPEC_EVENT_COMMAND | SPEC_EVENT_OBJECT_AUTO_PULSE | SPEC_EVENT_ITEM_IDENTIFY |
+           SPEC_EVENT_WEAPON_HIT,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Source Periodic", rol_source_periodic, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
        SPEC_BINDING_SOURCE_WORLD},

@@ -49,6 +49,8 @@
 #define ROL_MAJOR_BEHOLDER_COOLDOWN_ROUNDS 3
 #define ROL_GITH_RECLAIMER_VNUM 2019790
 #define ROL_GITH_CHARGE_TIMER_SLOT 3
+#define ROL_HALRUAA_PRISMATIC_HELPER_VNUM 2053264
+#define ROL_WEAPON_CALLED_COOLDOWN_HOURS 72
 
 enum rol_weapon_effect
 {
@@ -89,7 +91,12 @@ enum rol_weapon_effect
   ROL_WEAPON_HALRUAA_MAGEBANE,
   ROL_WEAPON_HALRUAA_DWARVEN_HAMMER,
   ROL_WEAPON_MYTH_DARKEN_AURA,
-  ROL_WEAPON_MYTH_GLEAMING_BURST
+  ROL_WEAPON_MYTH_GLEAMING_BURST,
+  ROL_WEAPON_HALRUAA_ELEMENTAL,
+  ROL_WEAPON_HALRUAA_NECROMANCER,
+  ROL_WEAPON_HIVE_GYTHKA,
+  ROL_WEAPON_HOLY,
+  ROL_WEAPON_KOR_BATTLEAXE
 };
 
 struct rol_weapon_profile
@@ -168,6 +175,16 @@ static const struct rol_weapon_profile rol_weapon_profiles[] = {
      "Evil-wielder negative burst, blindness, and withering."},
     {2083235, ROL_WEAPON_MYTH_GLEAMING_BURST, 23, false,
      "Good-wielder faerie outline and blindness burst."},
+    {2053250, ROL_WEAPON_HALRUAA_ELEMENTAL, 15, false,
+     "Disrupts Elementals; say 'summon prismatic helper' in combat once per three days."},
+    {2053271, ROL_WEAPON_HALRUAA_NECROMANCER, 29, false,
+     "Life-draining strike; say 'preserve corpse of <name>' once per three days."},
+    {2043741, ROL_WEAPON_HIVE_GYTHKA, 24, false,
+     "Venom damage; criticals may slow or briefly paralyze eligible targets."},
+    {2008000, ROL_WEAPON_HOLY, 21, false,
+     "Rejects unworthy wielders and grants Paladins holy combat and periodic magic."},
+    {2001057, ROL_WEAPON_KOR_BATTLEAXE, 26, false,
+     "Dragon-scaled bonuses, a critical reverse swing, healing, and Tempus damage."},
 };
 
 struct rol_undead_drain_profile
@@ -5820,6 +5837,208 @@ static void rol_weapon_extra_attacks(struct char_data *ch, struct obj_data *obj,
   rol_weapon_extra_attack_owner = NULL;
 }
 
+static int rol_weapon_gythka(struct spec_event_context *context, struct char_data *ch,
+                             struct obj_data *obj, struct char_data *victim)
+{
+  struct affected_type affect;
+  int amount;
+
+  if (context->critical)
+  {
+    if (IS_DRAGON(victim) || (IS_NPC(victim) && (MOB_FLAGGED(victim, MOB_ROL_DEMON) ||
+                                                 MOB_FLAGGED(victim, MOB_ROL_DEVIL))))
+      return FALSE;
+
+    if (rand_number(0, 3) == 0 && !affected_by_spell(victim, SPELL_SLOW) &&
+        !AFF_FLAGGED(victim, AFF_SLOW))
+    {
+      new_affect(&affect);
+      affect.spell = SPELL_SLOW;
+      affect.duration = 1;
+      SET_BIT_AR(affect.bitvector, AFF_SLOW);
+      affect_to_char(victim, &affect);
+      act("Caustic goo flies from your $p and $N begins to slow down!", FALSE, ch, obj, victim,
+          TO_CHAR);
+      return TRUE;
+    }
+    if (rand_number(0, 9) == 0 && !AFF_FLAGGED(victim, AFF_PARALYZED) &&
+        !paralysis_immunity(victim))
+    {
+      new_affect(&affect);
+      affect.spell = SPELL_HOLD_MONSTER;
+      affect.duration = 2;
+      SET_BIT_AR(affect.bitvector, AFF_PARALYZED);
+      affect_to_char(victim, &affect);
+      act("Green goo from your $p hardens into a shell around $N!", FALSE, ch, obj, victim,
+          TO_CHAR);
+      return TRUE;
+    }
+    act("A spray of caustic goo flies from your $p and splashes across $N.", FALSE, ch, obj, victim,
+        TO_CHAR);
+    return TRUE;
+  }
+
+  if (rand_number(0, 23) != 0)
+    return FALSE;
+  amount = dice(40, 10);
+  if (savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, MIN(30, GET_LEVEL(ch)),
+                  NECROMANCY))
+    amount /= 2;
+  act("Venomous toxins ooze from your $p and flood $N's wounds!", FALSE, ch, obj, victim, TO_CHAR);
+  (void)rol_weapon_damage(ch, victim, amount, DAM_POISON);
+  return TRUE;
+}
+
+static struct char_data *rol_weapon_holy_recipient(struct char_data *ch)
+{
+  struct char_data *candidate;
+  struct char_data *best = NULL;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return NULL;
+  for (candidate = world[IN_ROOM(ch)].people; candidate != NULL;
+       candidate = candidate->next_in_room)
+    if (candidate != ch && GET_ALIGNMENT(candidate) >= 350 &&
+        (best == NULL || GET_ALIGNMENT(candidate) > GET_ALIGNMENT(best)))
+      best = candidate;
+  return best;
+}
+
+static int rol_weapon_holy_reject(struct char_data *ch, struct obj_data *obj, int slot)
+{
+  struct char_data *recipient = rol_weapon_holy_recipient(ch);
+  struct obj_data *removed;
+  room_rnum source_room = IN_ROOM(ch);
+
+  if (!VALID_ROOM_RNUM(source_room) || (IS_EVIL(ch) && IS_NPC(ch)))
+    return FALSE;
+
+  removed = unequip_char(ch, slot);
+  if (recipient != NULL)
+  {
+    obj_to_char(removed, recipient);
+    act("$p shimmers and leaps from $n into your inventory!", FALSE, ch, obj, recipient, TO_VICT);
+  }
+  else if (IS_EVIL(ch))
+  {
+    obj_to_room(removed, rand_number(0, top_of_world));
+  }
+  else
+  {
+    obj_to_room(removed, source_room);
+  }
+
+  if (IS_EVIL(ch))
+  {
+    act("$p screams in outrage at your evil abuse and blasts you with holy power!", FALSE, ch, obj,
+        NULL, TO_CHAR);
+    rol_weapon_cast(ch, obj, ch, SPELL_HARM, 51);
+  }
+  return TRUE;
+}
+
+static bool rol_weapon_holy_target(struct char_data *ch, struct char_data *target)
+{
+  return target != NULL && target != ch && aoeOK(ch, target, -1) &&
+         (target == FIGHTING(ch) || (!IS_GOOD(target) && FIGHTING(target) == ch) ||
+          IS_EVIL(target));
+}
+
+static int rol_weapon_holy_hit(struct char_data *ch, struct obj_data *obj, int slot)
+{
+  struct char_data *target;
+  struct char_data *next;
+  bool dispel_magic = false;
+
+  if (IS_EVIL(ch) || IS_NEUTRAL(ch))
+    return rol_weapon_holy_reject(ch, obj, slot);
+  if (!IS_PALADIN(ch) || rand_number(0, 20) != 0)
+    return FALSE;
+
+  for (target = world[IN_ROOM(ch)].people; target != NULL; target = target->next_in_room)
+    if (rol_weapon_holy_target(ch, target) && target->affected != NULL)
+    {
+      dispel_magic = true;
+      break;
+    }
+
+  act(dispel_magic ? "Your $p flares brightly and attacks your foes' magic!"
+                   : "Your $p sings and smites your foes with holy wrath!",
+      FALSE, ch, obj, NULL, TO_CHAR);
+  for (target = world[IN_ROOM(ch)].people; target != NULL; target = next)
+  {
+    next = target->next_in_room;
+    if (!rol_weapon_holy_target(ch, target))
+      continue;
+    rol_weapon_cast(ch, obj, target, dispel_magic ? SPELL_DISPEL_MAGIC : SPELL_DISPEL_EVIL, 51);
+    if (target == FIGHTING(ch) && !DEAD(target) && IN_ROOM(target) == IN_ROOM(ch))
+      rol_weapon_cast(ch, obj, target, SPELL_DISPEL_EVIL, 51);
+  }
+  return TRUE;
+}
+
+static int rol_weapon_holy_pulse(struct char_data *ch, struct obj_data *obj, int slot)
+{
+  if (IS_EVIL(ch) || IS_NEUTRAL(ch))
+    return rol_weapon_holy_reject(ch, obj, slot);
+  if (!IS_PALADIN(ch) || rand_number(0, 7) != 0)
+    return FALSE;
+
+  if (!affected_by_spell(ch, SPELL_STONESKIN))
+    rol_weapon_cast(ch, obj, ch, SPELL_STONESKIN, 51);
+  else if (!affected_by_spell(ch, SPELL_ARMOR))
+    rol_weapon_cast(ch, obj, ch, SPELL_ARMOR, 51);
+  else if (!affected_by_spell(ch, SPELL_BLESS) && FIGHTING(ch) == NULL)
+    rol_weapon_cast(ch, obj, ch, SPELL_BLESS, 51);
+  else if (GET_HIT(ch) < GET_MAX_HIT(ch))
+    rol_weapon_cast(ch, obj, ch, SPELL_HEAL, 51);
+  else
+    return FALSE;
+  act("Your $p hums quietly as holy magic flows through you.", FALSE, ch, obj, NULL, TO_CHAR);
+  return TRUE;
+}
+
+static void rol_weapon_kor_update(struct char_data *ch, struct obj_data *obj,
+                                  struct char_data *victim)
+{
+  int hit_bonus = victim != NULL && IS_DRAGON(victim) ? 8 : 4;
+  int damage_bonus = victim != NULL && IS_DRAGON(victim) ? 6 : 3;
+
+  if (obj->affected[0].modifier == hit_bonus && obj->affected[1].modifier == damage_bonus)
+    return;
+  obj->affected[0].modifier = hit_bonus;
+  obj->affected[1].modifier = damage_bonus;
+  if (ch != NULL && obj->worn_by == ch)
+    affect_total(ch);
+}
+
+static int rol_weapon_kor(struct spec_event_context *context, struct char_data *ch,
+                          struct obj_data *obj, struct char_data *victim, int slot)
+{
+  rol_weapon_kor_update(ch, obj, victim);
+  if (context->critical)
+  {
+    act("You reverse your $p with a masterful turn and cut a second wound into $N!", FALSE, ch, obj,
+        victim, TO_CHAR);
+    rol_weapon_extra_attacks(
+        ch, obj, victim, 1, slot == WEAR_WIELD_OFFHAND ? ATTACK_TYPE_OFFHAND : ATTACK_TYPE_PRIMARY);
+  }
+  if (!IS_GOOD(victim) && rand_number(0, 35) == 0)
+  {
+    act("The power of Tempus flows from your $p and restores your vitality.", FALSE, ch, obj,
+        victim, TO_CHAR);
+    if (!AFF_FLAGGED(ch, AFF_BLACKMANTLE))
+      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + 35);
+    return TRUE;
+  }
+  if (rand_number(0, 25) != 0)
+    return context->critical ? TRUE : FALSE;
+  act("Bellowing a war chant to Tempus, you drive your $p through $N!", FALSE, ch, obj, victim,
+      TO_CHAR);
+  (void)rol_weapon_damage(ch, victim, dice(12, 10), DAM_SLASHING);
+  return TRUE;
+}
+
 static int rol_weapon_valhalla(struct char_data *ch, struct obj_data *obj, struct char_data *victim,
                                int slot)
 {
@@ -5956,6 +6175,101 @@ static int rol_weapon_moonblade_command(struct char_data *ch, struct obj_data *o
     if (target == ch || (GROUP(ch) != NULL && GROUP(target) == GROUP(ch)))
       rol_weapon_cast(ch, obj, target, SPELL_BARKSKIN, 30);
   GET_OBJ_SPECTIMER(obj, 0) = 168;
+  return TRUE;
+}
+
+static int rol_weapon_elemental_command(struct char_data *ch, struct obj_data *obj, int cmd,
+                                        const char *argument)
+{
+  struct char_data *summoned;
+  struct char_data *victim;
+  mob_rnum rnum;
+
+  if (cmd <= 0 || argument == NULL || (!CMD_IS("say") && !CMD_IS("'")))
+    return FALSE;
+  skip_spaces_c(&argument);
+  if (str_cmp(argument, "summon prismatic helper"))
+    return FALSE;
+  if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID)
+    return FALSE;
+  if ((victim = FIGHTING(ch)) == NULL)
+  {
+    send_to_char(ch, "You must be fighting to call upon the elemental's aid.\r\n");
+    return TRUE;
+  }
+  if (GET_OBJ_SPECTIMER(obj, 0) > 0)
+  {
+    send_to_char(ch, "Your elemental friend is not yet strong enough to join you.\r\n");
+    return TRUE;
+  }
+  if ((rnum = real_mobile(ROL_HALRUAA_PRISMATIC_HELPER_VNUM)) == NOBODY ||
+      (summoned = read_mobile(rnum, REAL)) == NULL)
+  {
+    log("SYSERR: RoL elemental staff cannot find helper mobile %d",
+        ROL_HALRUAA_PRISMATIC_HELPER_VNUM);
+    send_to_char(ch, "The elemental plane does not answer your call.\r\n");
+    return TRUE;
+  }
+
+  char_to_room(summoned, IN_ROOM(ch));
+  SET_BIT_AR(AFF_FLAGS(summoned), AFF_CHARM);
+  add_follower(summoned, ch);
+  act("You speak words of power to $p, and a small prismatic elemental swirls into being!", FALSE,
+      ch, obj, victim, TO_CHAR);
+  act("$n speaks words of power to $p, and a small prismatic elemental swirls into being!", FALSE,
+      ch, obj, victim, TO_ROOM);
+  set_fighting(summoned, victim);
+  GET_OBJ_SPECTIMER(obj, 0) = ROL_WEAPON_CALLED_COOLDOWN_HOURS;
+  return TRUE;
+}
+
+static int rol_weapon_necromancer_command(struct char_data *ch, struct obj_data *obj, int cmd,
+                                          const char *argument)
+{
+  static const char phrase[] = "preserve corpse of";
+  struct obj_data *corpse;
+  char corpse_name[MAX_INPUT_LENGTH];
+
+  if (cmd <= 0 || argument == NULL || (!CMD_IS("say") && !CMD_IS("'")))
+    return FALSE;
+  skip_spaces_c(&argument);
+  if (strn_cmp(argument, phrase, (int)strlen(phrase)))
+    return FALSE;
+  argument += strlen(phrase);
+  skip_spaces_c(&argument);
+  if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID)
+    return FALSE;
+  if (GET_OBJ_SPECTIMER(obj, 0) > 0)
+  {
+    send_to_char(ch, "The skullstaff has not yet recovered its preserving magic.\r\n");
+    return TRUE;
+  }
+  if (*argument == '\0')
+  {
+    send_to_char(ch, "What did you wish to preserve?\r\n");
+    return TRUE;
+  }
+
+  strlcpy(corpse_name, argument, sizeof(corpse_name));
+  corpse = get_obj_in_list_vis(ch, corpse_name, NULL, world[IN_ROOM(ch)].contents);
+  if (corpse == NULL)
+  {
+    send_to_char(ch, "What did you wish to preserve?\r\n");
+    return TRUE;
+  }
+  if (!IS_CORPSE(corpse))
+  {
+    send_to_char(ch, "That is not something worth preserving.\r\n");
+    return TRUE;
+  }
+
+  act("You point your $p at $P and whisper words of preserving power.", FALSE, ch, obj, corpse,
+      TO_CHAR);
+  act("$n points $p at $P and whispers words of preserving power.", FALSE, ch, obj, corpse,
+      TO_ROOM);
+  GET_OBJ_TIMER(corpse) =
+      GET_OBJ_TIMER(corpse) > INT_MAX - 1000 ? INT_MAX : GET_OBJ_TIMER(corpse) + 1000;
+  GET_OBJ_SPECTIMER(obj, 0) = ROL_WEAPON_CALLED_COOLDOWN_HOURS;
   return TRUE;
 }
 
@@ -6460,6 +6774,27 @@ static int rol_weapon_hit(struct spec_event_context *context,
     return rol_weapon_darken_aura(ch, obj, victim);
   case ROL_WEAPON_MYTH_GLEAMING_BURST:
     return rol_weapon_gleaming_burst(ch, obj, victim);
+  case ROL_WEAPON_HALRUAA_ELEMENTAL:
+    if (!IS_ELEMENTAL(victim) || rand_number(0, 14) != 0)
+      return FALSE;
+    act("You channel disruptive energy through your $p and tear at $N's planar link!", FALSE, ch,
+        obj, victim, TO_CHAR);
+    (void)rol_weapon_damage(ch, victim, dice(20, 10), DAM_FORCE);
+    return TRUE;
+  case ROL_WEAPON_HALRUAA_NECROMANCER:
+    if (rand_number(0, 28) != 0)
+      return FALSE;
+    act("Warmth surges through you as your $p drains $N's life force!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    (void)rol_weapon_damage(ch, victim, 100, DAM_NEGATIVE);
+    GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + 25);
+    return TRUE;
+  case ROL_WEAPON_HIVE_GYTHKA:
+    return rol_weapon_gythka(context, ch, obj, victim);
+  case ROL_WEAPON_HOLY:
+    return rol_weapon_holy_hit(ch, obj, slot);
+  case ROL_WEAPON_KOR_BATTLEAXE:
+    return rol_weapon_kor(context, ch, obj, victim, slot);
   default:
     return FALSE;
   }
@@ -6489,21 +6824,50 @@ int rol_weapon_proc_typed(struct spec_event_context *context)
   obj = context->owner;
   ch = context->actor;
   profile = rol_weapon_profile_for(GET_OBJ_VNUM(obj));
-  if (profile == NULL || ch == NULL)
+  if (profile == NULL)
     return FALSE;
 
   if (context->event == SPEC_EVENT_ITEM_IDENTIFY)
   {
+    if (ch == NULL)
+      return FALSE;
     send_to_char(ch, "Special Effects: %s\r\n", profile->description);
     return TRUE;
   }
   if (context->event == SPEC_EVENT_COMMAND)
   {
-    if (profile->effect != ROL_WEAPON_MOONBLADE_STARSONG)
+    if (ch == NULL)
       return FALSE;
-    return rol_weapon_moonblade_command(ch, obj, context->command, context->argument);
+    switch (profile->effect)
+    {
+    case ROL_WEAPON_MOONBLADE_STARSONG:
+      return rol_weapon_moonblade_command(ch, obj, context->command, context->argument);
+    case ROL_WEAPON_HALRUAA_ELEMENTAL:
+      return rol_weapon_elemental_command(ch, obj, context->command, context->argument);
+    case ROL_WEAPON_HALRUAA_NECROMANCER:
+      return rol_weapon_necromancer_command(ch, obj, context->command, context->argument);
+    default:
+      return FALSE;
+    }
   }
-  if (context->event != SPEC_EVENT_WEAPON_HIT ||
+  if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
+  {
+    if (ch == NULL || spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID ||
+        (slot = rol_weapon_slot(ch, obj)) < 0)
+      return FALSE;
+    if (profile->effect == ROL_WEAPON_HOLY)
+    {
+      (void)rol_weapon_holy_pulse(ch, obj, slot);
+      return TRUE;
+    }
+    if (profile->effect == ROL_WEAPON_KOR_BATTLEAXE)
+    {
+      rol_weapon_kor_update(ch, obj, FIGHTING(ch));
+      return TRUE;
+    }
+    return TRUE;
+  }
+  if (ch == NULL || context->event != SPEC_EVENT_WEAPON_HIT ||
       spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID ||
       spec_context_validate_combat_target(ch, context->target, false) != SPEC_CONTEXT_VALID ||
       (slot = rol_weapon_slot(ch, obj)) < 0)

@@ -816,11 +816,11 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 
 ### Phase 6 converted weapon procedures
 
-- In dependency-complete stages, confirm these 45 objects use `RoL Weapon Proc`:
-  2001005, 2001010, 2004505, 2009054, 2013307-2013308, 2014023, 2014837,
+- In dependency-complete stages, confirm these 50 objects use `RoL Weapon Proc`:
+  2001005, 2001010, 2001057, 2004505, 2008000, 2009054, 2013307-2013308, 2014023, 2014837,
   2015116, 2019886, 2019900, 2019912, 2019933, 2020075, 2024405, 2025018,
-  2025030, 2026014, 2026233, 2026248, 2034840, 2038025, 2038095, 2040135,
-  2053243, 2053259, 2053263, 2053266, 2053289-2053292, 2080034, 2080038,
+  2025030, 2026014, 2026233, 2026248, 2034840, 2038025, 2038095, 2040135, 2043741,
+  2053243, 2053250, 2053259, 2053263, 2053266, 2053271, 2053289-2053292, 2080034, 2080038,
   2080547, 2083235, 2083238, 2089462, 2091305, 2095776, 2095851, 2095876,
   2095878, 2097117, and 2098330. Identify each object and confirm its
   identity-specific special-effect description appears.
@@ -882,6 +882,26 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   wielder. Confirm their negative/blind/weakening and faerie-fire/blind progressions.
   Ineligible alignments must not trigger them. Unrelated objects must not receive any
   identity-keyed weapon behavior.
+- Exercise elemental staff 2053250 against an Elemental and a non-Elemental. Only the
+  Elemental may receive its 20d10 disruption proc. While fighting, `say summon prismatic
+  helper` must load charmed helper 2053264, engage the current opponent, and start a
+  72-MUD-hour cooldown; the same phrase outside combat or during cooldown must not summon.
+- Put a corpse and a non-corpse in the room while wielding necrostaff 2053271. `say preserve
+  corpse of <name>` must add 1,000 decay ticks only to the named corpse and start a
+  72-MUD-hour cooldown. Its random hit proc must deal 100 negative damage and heal the
+  wielder by 25 without exceeding maximum hit points.
+- Force critical hits with dread gythka 2043741. Eligible targets can receive one tick of
+  slow or two ticks of paralysis; dragons and converted demons/devils are immune. Ordinary
+  hits retain the one-in-24 40d10 poison payload with a target-native Fortitude half save.
+- Give holy weapon 2008000 to evil, neutral, good non-Paladin, and Paladin wielders. Evil
+  players must be blasted and lose the weapon, neutral wielders must silently lose it, and
+  a worthy good room recipient takes precedence over room relocation. Good non-Paladins
+  use it normally. Paladins receive the one-in-21 combat dispel/smite and one-in-eight
+  periodic stoneskin, armor, bless, or heal sequence.
+- Fight a dragon and a non-dragon with Kor battleaxe 2001057. Its periodic modifiers must
+  switch between +8 hit/+6 damage and +4 hit/+3 damage. Criticals add one nonrecursive
+  reverse swing; the independent Tempus heal and 12d10 damage procs retain their source
+  cadence.
 
 ### RoL object-property compatibility
 

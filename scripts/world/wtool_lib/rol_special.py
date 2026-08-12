@@ -192,13 +192,16 @@ ADAPTED_HANDLER_NAMES = {
     "githyanki": "RoL Weapon Proc",
     "githyanki2": "RoL Weapon Proc",
     "halruaa_dwarven_hammer": "RoL Weapon Proc",
+    "halruaa_elemstaff": "RoL Weapon Proc",
     "halruaa_enchanterstaff": "RoL Weapon Proc",
     "halruaa_illusionstaff": "RoL Weapon Proc",
     "halruaa_invokerstaff": "RoL Weapon Proc",
     "halruaa_magebane": "RoL Weapon Proc",
+    "halruaa_necrostaff": "RoL Weapon Proc",
     "hammer": "RoL Weapon Proc",
     "jeweled_fang": "RoL Weapon Proc",
     "kirinHorn": "RoL Weapon Proc",
+    "kor_only_sword": "RoL Weapon Proc",
     "longsword_acid": "RoL Weapon Proc",
     "longsword_black_flames": "RoL Weapon Proc",
     "longsword_rippling_flames": "RoL Weapon Proc",
@@ -220,6 +223,8 @@ ADAPTED_HANDLER_NAMES = {
     "sword_wickedly_barbed": "RoL Weapon Proc",
     "tahlshara": "RoL Weapon Proc",
     "torment": "RoL Weapon Proc",
+    "hive_gythka": "RoL Weapon Proc",
+    "holy_weapon": "RoL Weapon Proc",
     "valhalla_scepter": "RoL Weapon Proc",
     "windsong": "RoL Weapon Proc",
     "ancient_man": "RoL Command Sentinel",
@@ -1075,6 +1080,11 @@ def compile_special_bindings(
     source_vnum = int(row["source_vnum"])
     target_vnum = resolve(target_kind, source_vnum)
     if handler in NATIVE_HANDLERS or handler in ADAPTED_HANDLER_NAMES:
+      persisted_name = (
+          NATIVE_HANDLER_NAMES[handler]
+          if handler in NATIVE_HANDLER_NAMES
+          else ADAPTED_HANDLER_NAMES[handler]
+      )
       if handler in {
           "bandit",
           "bouncer_four",
@@ -1111,15 +1121,10 @@ def compile_special_bindings(
           "undead_wraith",
       }:
         required_bits = (0,)
-      elif handler in {"floating_pool", "obj_drain"}:
+      elif handler in {"floating_pool", "obj_drain"} or persisted_name == "RoL Weapon Proc":
         required_bits = (44,)
       else:
         required_bits = ()
-      persisted_name = (
-          NATIVE_HANDLER_NAMES[handler]
-          if handler in NATIVE_HANDLER_NAMES
-          else ADAPTED_HANDLER_NAMES[handler]
-      )
       native_bindings.append(
           NativeSpecialBinding(
               source_record_type=record_type,

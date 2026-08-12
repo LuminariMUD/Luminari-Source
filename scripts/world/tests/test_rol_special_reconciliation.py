@@ -413,11 +413,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(981, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(166, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(431, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(131, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(535, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(986, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(161, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(436, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(126, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(540, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           151, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

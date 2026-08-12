@@ -1329,6 +1329,11 @@ class RolTransformTests(unittest.TestCase):
         "halruaa_invokerstaff",
         "halruaa_magebane",
         "halruaa_dwarven_hammer",
+        "halruaa_elemstaff",
+        "halruaa_necrostaff",
+        "hive_gythka",
+        "holy_weapon",
+        "kor_only_sword",
         "md_darken_aura",
         "md_gleaming_burst",
     )
@@ -1353,7 +1358,7 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(
         all(
             binding.persisted_name == "RoL Weapon Proc"
-            and binding.required_flag_bits == ()
+            and binding.required_flag_bits == (44,)
             for binding in compiled.native_bindings
         )
     )
