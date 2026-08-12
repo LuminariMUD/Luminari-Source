@@ -97,6 +97,7 @@ Phase 6 named-guild/utility-object commit: a13f74f7
 Phase 6 residual-monster-combat commit: 2c44bf14
 Phase 6 residual-mobile-procedure commit: 0c545b1c
 Phase 6 called-effect object commit: c334a648
+Phase 6 object-service commit: 1849d9ad
 ```
 
 The authoritative ignored runs are:
@@ -277,6 +278,9 @@ Phase 6 residual mobile procedures:
 Phase 6 called-effect objects:
   lib/rol-conversion/runs/phase6-special-20260812-called-objects
   rol-phase6-special-abe9fabc332abee0
+Phase 6 object services:
+  lib/rol-conversion/runs/phase6-special-20260812-object-services
+  rol-phase6-special-e50685fc20cfaf75
 Policy:  rol-conversion-policy-2
 ```
 
@@ -307,7 +311,7 @@ Policy:  rol-conversion-policy-2
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
 - The world-tool suite passes 311 tests; the production-linked CuTest suite passes 658;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Fifty-five bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Fifty-six bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
   shape exists. The measured remaining forecast is 49-79 sessions: Phase 6 is 1-3,
   Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -580,18 +584,28 @@ Policy:  rol-conversion-policy-2
   spell mappings, combat targeting, a charmed basilisk-snake summon, and the Staff of Magius
   light toggle are preserved through identity profiles. Item identification now exposes each
   invocation contract without adding a registry definition or changing persistence.
+- Five more object-service handlers are complete through the existing typed `RoL Utility Object`
+  and `RoL Weapon Proc` gateways. Lathander's disc preserves its exact rub-and-consume renewal,
+  sleep, and stun contract; Llym's altar preserves held-treasure valuation, consumption, favor,
+  summons, and rewards; the smoke shield preserves its block and punch discharges; the Crescent
+  Moon preserves exact-case invocation and invisibility; and the Hellish Fury bow preserves its
+  ranged fire payload. The source `FIREWEAPON` event maps to the target ranged-hit gateway, the
+  Crescent Moon's pulse recharge maps to one actor combat-round wait, source vitality maps to
+  target aid, and source coin types map to unified target gold. The assigned `nuclear_bomb`
+  callback is source-inert because initialization returns no event bits, leaving its destructive
+  missile-hit body unreachable.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,093 of 1,147 active direct bindings and 520 of
-  562 source handlers, leaving 54 bindings and 42 handlers. The independent `ACT_SPEC`
+- The current Phase 6 checkpoint resolves 1,099 of 1,147 active direct bindings and 526 of
+  562 source handlers, leaving 48 bindings and 36 handlers. The independent `ACT_SPEC`
   cross-check resolves 824 of 848 records and leaves 24 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 54 direct bindings across 42 handlers. Classify regular
+1. Reconcile the remaining 48 direct bindings across 36 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
@@ -603,18 +617,18 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Completed and pushed implementation commit `c334a648`, resolving eight called-effect object
-  handlers and eight active bindings through identity profiles in the existing typed `RoL
-  Utility Object` gateway.
-- Preserved exact spoken invocations, worn-item validation, source cooldowns, target-native
-  spell effects, safe combat-target invalidation, the charmed basilisk-snake summon, the Staff
-  of Magius light toggle, and identify-time usage text. Added converter dispositions, profile
-  coverage, an identify-event registry contract, and a behavior regression.
+- Completed and pushed implementation commit `1849d9ad`, resolving six object-service handler
+  families and six active bindings through the existing typed `RoL Utility Object` and `RoL
+  Weapon Proc` gateways, including one source-inert callback.
+- Preserved the Lathander disc, Llym altar, smoke shield, Crescent Moon, and Hellish Fury bow
+  contracts through source-traced command, combat, summon, reward, cooldown, and damage paths.
+  Added the target `rub` gateway command, converter dispositions, reconciliation expectations,
+  registry-event coverage, and identity-profile tests without adding a persistence name.
 - Ran all 311 world-tool tests and all 658 production-linked CuTests. The warning-free
   `make test && make install` gate passed and removed the root-level `circle` artifact;
   the documentation checker reported zero findings.
 - Regenerated and hash-verified the ignored Phase 6 ledger as
-  `rol-phase6-special-abe9fabc332abee0`; it records zero live target writes and the
-  1,093/54 direct-binding, 520/42 handler, and 824/24 `ACT_SPEC` split.
+  `rol-phase6-special-e50685fc20cfaf75`; it records zero live target writes and the
+  1,099/48 direct-binding, 526/36 handler, and 824/24 `ACT_SPEC` split.
 - Unresolved blockers: none. Continue by grouping the largest compatible remaining
   irregular mechanics into another dependency-complete shared typed batch.

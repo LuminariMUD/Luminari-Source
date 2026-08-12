@@ -6,6 +6,68 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 object-service batch
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Converted five object-service handlers through the existing typed `RoL Utility Object` and
+  `RoL Weapon Proc` gateways. No registry definition, persisted procedure name, or storage schema
+  was added.
+- Preserved Lathander's disc renewal, consumption, sleep, and stun behavior behind a new target
+  `rub` gateway command. Preserved Llym's held-treasure offering, valuation, consumption, blessing,
+  gold, summon, and object-reward paths with all Phase 2 identities verified by source kind.
+- Preserved the smoke shield's one-in-ten punch stun and block discharge, including the source
+  nonlethal guard and target-safe invalidation. Preserved the Crescent Moon's exact-case invocation
+  and invisibility, and the Hellish Fury bow's ranged fire message and one-in-26 heavy fire proc.
+- Mapped the source bow `FIREWEAPON` callback to the available successful ranged-hit gateway, the
+  Crescent Moon's pulse object recharge to one actor combat-round wait, source vitality to target
+  aid, and source coin varieties to the target's unified gold field.
+- Classified `nuclear_bomb` as source-inert: its assigned initializer returns no event bits, so the
+  destructive missile-hit body is unreachable through the active binding.
+- Added converter dispositions, exact reconciliation expectations, utility registry-event coverage,
+  object and weapon profile coverage, identify text, and the target command boundary.
+- Reconciliation now resolves 1,099 of 1,147 active direct bindings and 526 of 562 source handlers;
+  48 bindings and 36 handlers remain. The independent `ACT_SPEC` checkpoint remains 824 resolved /
+  24 pending.
+- Archived the fifty-sixth Phase 6 delivery session. The remaining Phase 6 envelope remains 1-3
+  sessions, leaving the Phases 6-8 forecast at 49-79 sessions, or 98-316 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 1849d9ad
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-object-services
+Reconciliation run: rol-phase6-special-e50685fc20cfaf75
+Active direct bindings: 1,147
+Direct bindings resolved: 1,099
+Direct bindings pending: 48
+Source handlers resolved: 526
+Source handlers pending: 36
+Additional handler families resolved: 6
+Additional direct bindings resolved: 6
+Native adapted bindings: 641
+Native adapted composable bindings: 159
+Source-inert excluded bindings: 26
+Source-unsafe excluded bindings: 18
+ACT_SPEC records resolved: 824
+ACT_SPEC records pending: 24
+Special registry definitions: 107 total / 95 legacy / 12 typed
+Compatibility names: 108
+Complete world-tool suite: 311 passed
+Production-linked CuTest suite: 658 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 48 direct bindings across 36 source handlers. Continue
+grouping compatible irregular mechanics behind shared typed gateways, and preserve the full
+build/test/install gate at each substantial commit boundary.
+
 ## 2026-08-12 - Phase 6 called-effect object batch
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
