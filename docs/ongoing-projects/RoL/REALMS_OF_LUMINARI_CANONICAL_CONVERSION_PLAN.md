@@ -1,6 +1,6 @@
 # Realms of Luminari Canonical Conversion Plan
 
-- Status: Phase 6 discovery repair in progress; Phase 6.5 is planned
+- Status: Phase 6 corrected binding reconciliation in progress; Phase 6.5 is planned
 - Consolidated: 2026-08-13
 - Source corpus: `EXAMPLE/RealmsOfLuminari/`
 - Target: this writable development checkout and its current `lib/world/`
@@ -244,24 +244,25 @@ assignments plus helper-driven registrations, and about 2,769 three-to-six digit
 numeric literals requiring type classification. These figures show scale, not active
 completion denominators.
 
-The latest Phase 6 special-binding ledger follows direct `AddProc*` registrations in
-`src/specs.assign.c` but not its active registration wrappers. A static preprocessed
-audit found:
+The repaired Phase 1 extractor follows the active boot path through all 53 reachable
+registration wrappers, preserves each call path, honors the checked-in preprocessor
+configuration, and resolves all 38 active numeric VNUM macros. The regenerated Phase 6
+ledger measures:
 
-- 53 active wrappers;
-- at least 574 omitted live bindings across 496 bound records: 383 mobile, 110 object,
-  and 81 room bindings;
-- 233 handler names absent from the current inventory; and
-- corrected minimums of 1,721 bindings and 795 handlers, including both Tarrasque mobile
-  and both Tarrasque object procedures.
+- 1,813 static candidates, of which 92 are preprocessor-excluded and 1,721 are live;
+- 1,098 mobile, 323 object, and 300 room bindings across 795 direct handler names;
+- 1,246 resolved and 475 pending live static bindings, with 538 resolved and 257 pending
+  direct handler names;
+- two resolved dynamic paths representing 5,078 quest and 453 shop binding instances;
+- 7,252 total active static and dynamic binding instances across 797 handler names; and
+- 798 resolved and 50 pending records in the independent 848-record `ACT_SPEC`
+  cross-check.
 
-The audit manually resolved 38 active numeric VNUM macros. These remain lower bounds
-until the extractor reproduces that resolution and explicitly handles dynamic
-`assign_the_shopkeepers()` and `assign_the_questers()` registrations. The older
-1,112/1,147 binding and 538/562 handler counts are historical checkpoints only.
-
-Repair discovery and regenerate dependent Phase 1, 2, 5, and 6 evidence before another
-handler batch, reforecast, or Phase 6 completion claim.
+The corrected dependent evidence is Phase 1 run `rol-phase1-237602d3ade48138`, Phase 2
+run `rol-phase2-c93b8c4610b36d1e`, Phase 5 run
+`rol-phase5-audit-cec58661a4f21a2a`, and Phase 6 run
+`rol-phase6-special-df585be75f0574e3`. The older 1,112/1,147 binding, 538/562 handler,
+and 830/848 `ACT_SPEC` counts are historical checkpoints only.
 
 ## 4. Canonical identity and rehome contract
 
@@ -716,17 +717,15 @@ forecasts are in [RoL-Changelog.md](RoL-Changelog.md).
 
 ### 8.1 Phase 6: Special-procedure reconciliation
 
-**Status:** discovery repair in progress.
+**Status:** discovery repair complete; corrected binding reconciliation in progress.
 
-Before more handler conversion:
-
-1. make the extractor follow registration functions reachable from the active boot path;
-2. honor the checked-in preprocessor configuration and resolve numeric VNUM macros;
-3. represent direct, wrapped, symbolic, excluded, and dynamic registration cases in
-   regression fixtures;
-4. explicitly classify shopkeeper and quester dynamic paths;
-5. regenerate dependent Phase 1, 2, 5, and 6 artifacts; and
-6. reforecast from the corrected denominator.
+The call-path-aware extractor, macro resolution, dynamic shop/quest dispositions,
+regression fixtures, and dependent Phase 1, 2, 5, and 6 regeneration are complete. The
+remaining measured scope is 475 live static bindings across 257 direct handler names in
+36 source files. Of those handlers, 190 have one binding, 67 have multiple bindings, and
+seven have at least ten bindings. Start with the Tarrasque encounter closure, then group
+the large Undermountain, planar, Avernus, guild, Scornubel, and Darkhold families by
+shared runtime behavior.
 
 Preserve the six already locked malformed or ignored rows as explicit, logged
 smallest-unit exclusions when regenerating the evidence.
@@ -737,8 +736,11 @@ gate at substantial checkpoints. Add a new source file to both `Makefile.am` and
 `CMakeLists.txt`.
 
 **Exit gate:** every active binding is kept, patched, adapted, ported, or minimally
-excluded with behavior evidence. The earlier 1-3-session estimate is withdrawn until
-discovery repair produces a trustworthy denominator.
+excluded with behavior evidence. The corrected Phase 6 planning envelope is 18-30
+sessions: the six-to-thirteen-session arithmetic minimum assumes every batch sustains
+20-45 related families, while the published range allows the 190 singleton handlers and
+encounter-specific closures to require smaller batches. Replace this envelope with
+measured throughput as the corrected families close.
 
 ### 8.2 Phase 6.5: Canonical VNUM rebase and reference closure
 
@@ -968,10 +970,10 @@ canonical identities, applied to development, functionally playable, and support
 all evidence in the Definition of Done.
 
 **Estimate:** 6-10 sessions. The combined post-Phase-6 envelope is therefore initially
-56-84 sessions for Phases 6.5-8 (112-336 focused hours). Phase 6 is additional and
-unforecast until its discovery repair completes. This supersedes the old 49-79-session
-and 98-316-hour forecast. Replace the new envelope after the Phase 6.5 measured
-reforecast.
+56-84 sessions for Phases 6.5-8 (112-336 focused hours). With the corrected Phase 6
+envelope, the current remaining project range is 74-114 sessions, or 148-456 focused
+hours. This supersedes the old 49-79-session and 98-316-hour forecast. Replace the
+post-rebase envelope after the Phase 6.5 measured reforecast.
 
 ## 9. Validation and application gates
 

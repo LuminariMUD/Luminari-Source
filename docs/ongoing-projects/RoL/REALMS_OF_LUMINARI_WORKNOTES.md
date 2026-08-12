@@ -3,7 +3,7 @@
 - Updated: 2026-08-13
 - Environment: development
 - Branch: `master`
-- Current task: repair Phase 6 special-procedure discovery coverage
+- Current task: reconcile the corrected Phase 6 pending inventory; Tarrasque closure first
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 - Phase 4 manual test matrix: [PHASE4_MANUAL_TESTING.md](PHASE4_MANUAL_TESTING.md)
 
@@ -111,10 +111,10 @@ The authoritative ignored runs are:
 ```text
 Phase 0: lib/rol-conversion/runs/phase0-1619ccd8
          rol-phase0-02a84b2da28503c1
-Phase 1: lib/rol-conversion/runs/phase1-policy2-20260812-artifacts
-         rol-phase1-8581306fe5e5260f
-Phase 2: lib/rol-conversion/runs/phase2-policy2-20260812-artifacts
-         rol-phase2-46e2fa650302e980
+Phase 1: lib/rol-conversion/runs/phase1-policy2-20260813-special-discovery
+         rol-phase1-237602d3ade48138
+Phase 2: lib/rol-conversion/runs/phase2-policy2-20260813-special-discovery
+         rol-phase2-c93b8c4610b36d1e
 Phase 3: lib/rol-conversion/runs/phase3-a5419818-a
          lib/rol-conversion/runs/phase3-a5419818-b
          rol-phase3-11336f1832d8765c
@@ -151,10 +151,11 @@ Phase 5 shop/final audit: lib/rol-conversion/runs/phase5-shop-20260812-audit
 Phase 5 shop/final pilot: lib/rol-conversion/runs/phase5-shop-20260812-pilot
                            rol-phase4-build-35c9c879af63b8d1
 Phase 5 policy-2 full audit:
-  lib/rol-conversion/runs/phase5-policy2-20260812-artifacts-audit
-  rol-phase5-audit-99818c5e2897b1d8
-Phase 6 special reconciliation: lib/rol-conversion/runs/phase6-special-20260812-inventory-v3
-                                rol-phase6-special-7e0556903754990d
+  lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit
+  rol-phase5-audit-cec58661a4f21a2a
+Phase 6 special reconciliation:
+  lib/rol-conversion/runs/phase6-special-20260813-discovery-repair
+  rol-phase6-special-df585be75f0574e3
 Phase 6 shared mobile: lib/rol-conversion/runs/phase6-special-20260812-shared-mobile
                        rol-phase6-special-0f4f1274d95a2941
 Phase 6 implicit race: lib/rol-conversion/runs/phase6-special-20260812-race-composition
@@ -652,60 +653,66 @@ Policy:  rol-conversion-policy-2
   gates, both keeper-held offerings, the full rite narrative, and helper consumption. Equipped
   offerings now retain safe concrete pointers, and the irreversible transformation uses the
   target's established no-group/follower preflight and Lich-to-Wizard respec contract.
-- The source C preprocessor removes 87 of the 1,234 binding candidates discovered directly
-  in `src/specs.assign.c`. The resulting 1,147-binding and 562-handler denominator is now
-  known to be incomplete because discovery did not follow active registration wrappers.
-- A 2026-08-13 static, preprocessed call-path audit located 53 active registration wrappers.
-  After resolving the 38 numeric VNUM macros in `assignExtraPlanarMobiles()`, those wrappers
-  contribute at least 574 live bindings omitted from the generated ledger: 383 mobile,
-  110 object, and 81 room bindings across 496 bound records. The omitted bindings contain
-  259 handler names, 233 of which do not occur in the current handler inventory. The
-  corrected measured minimum is therefore 1,721 bindings across 795 handlers.
-- The omitted set includes `tarrasque_swallow_smack` and `tarrasque_die` on source mobile
-  2601, `tarrasque_corpse_enter` on source object 2604, and `tarrasque_stomache` on source
-  object 2610. None has a target adapter, converted binding, or Phase 6 test yet.
-- The prior 1,112/1,147 binding, 538/562 handler, and 830/848 `ACT_SPEC` split remains valid
-  only for the direct-only historical ledger. It is not a valid Phase 6 completion measure.
-  Dynamic shopkeeper and quester registration paths still require explicit audit, so the
-  corrected figures remain lower bounds until discovery and all dependent evidence are
-  regenerated.
+- Phase 6 discovery now follows every active zero-argument registration call from
+  `assign_mobiles()`, `assign_objects()`, and `assign_rooms()` through 53 reachable wrappers.
+  Each binding retains its boot call path, original VNUM token, and literal or preprocessor
+  resolution evidence. All 38 active planar macros resolve without a manual exception.
+- The corrected static inventory contains 1,813 active-record candidates: the checked-in source
+  preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
+  323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
+  located.
+- The corrected reconciler resolves 1,246 static bindings and leaves 475 pending. It resolves
+  538 direct handler names and leaves 257 pending across 36 source files. The pending set has
+  190 singleton handlers, 67 multi-binding handlers, and seven handlers with at least ten
+  bindings.
+- Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
+  quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
+  shopkeeper path accounts for 453 active shops and hosts. Both are resolved through the target
+  data-driven HLQuest and shop services. Static and dynamic paths total 7,252 active binding
+  instances across 797 handler names.
+- The regenerated `ACT_SPEC` cross-check resolves 798 of 848 records and leaves 50 pending.
+  Automatic race composition still resolves all 247 implicit bindings; 85 now compose with a
+  direct binding and 162 are implicit-only.
+- The prior 1,112/1,147 binding, 538/562 handler, and 830/848 `ACT_SPEC` split is historical
+  direct-only evidence and must not be used for progress or forecast claims.
+- The Tarrasque closure is now visible as four pending callbacks:
+  `tarrasque_swallow_smack` and `tarrasque_die` on source mobile 2601,
+  `tarrasque_corpse_enter` on object 2604, and `tarrasque_stomache` on object 2610.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Extend special-procedure discovery from direct `src/specs.assign.c` statements through
-   every active reachable registration wrapper, including numeric macro resolution and
-   explicit dynamic-registration dispositions. Add regression fixtures for direct,
-   wrapped, symbolic, excluded, and dynamic paths.
-2. Regenerate and verify the dependent Phase 1, Phase 2, Phase 5, and Phase 6 evidence.
-   Recompute binding, handler, and `ACT_SPEC` completion denominators before selecting the
-   next implementation batch or publishing a new session forecast.
-3. Reconcile the corrected pending inventory in dependency-complete shared-runtime batches.
+1. Reconcile the corrected pending inventory in dependency-complete shared-runtime batches.
    Treat the Tarrasque mobile, stomach, corpse, portal, and death behavior as one encounter
    dependency closure rather than four isolated callbacks.
-4. Preserve record-specific missing-reference repairs for their Phase 7
+2. Follow with source-local or behavior-shared groups from Undermountain, planar, Avernus,
+   guild, Scornubel, and Darkhold; do not batch merely by handler name or VNUM proximity.
+3. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
-5. Preserve the six locked malformed record exclusions as explicit, logged
+4. Preserve the six locked malformed record exclusions as explicit, logged
    smallest-unit exclusions.
-6. Regenerate the special-binding inventory after each shared-family checkpoint and
+5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
+6. Measure throughput against the corrected 18-30-session Phase 6 envelope and reforecast
+   when completed corrected-family batches provide stronger evidence.
 
 ## Latest session handoff
 
-- Paused handler conversion after tracing the Tarrasque source registration path exposed a
-  discovery defect. `src/specs.assign.c` calls `assignTarrasqueMobiles()` and
-  `assignTarrasqueObjects()`, but the extractor reads only direct `AddProc*` statements in
-  `src/specs.assign.c`.
-- Preprocessed all `specs*.c` files, resolved the active zero-argument registration calls from
-  `src/specs.assign.c`, located all 53 called wrapper definitions, restricted results to active
-  source records, and resolved the 38 numeric planar VNUM macros. The measured omitted minimum is
-  574 bindings, 496 bound records, and 233 newly absent handler names.
-- No runtime, converter, world, generated-evidence, or `.spec_system` file changed during the
-  audit. The last fully tested and pushed implementation remains the Waterdeep town-crier
-  checkpoint at `6c64fba1`, archived by `e38a1248`.
-- Next, repair `extract_spec_bindings()` and the Phase 6 reconciler, add discovery regression
-  coverage, audit dynamic shopkeeper and quester assignment, and regenerate all dependent
-  evidence. Do not resume handler conversion or use the previous completion percentage before
-  that gate passes.
-- Unresolved blocker: the authoritative Phase 6 denominator is unavailable until discovery
-  repair and evidence regeneration complete.
+- Repaired `extract_spec_bindings()` with active call-graph traversal, source-line preservation,
+  macro resolution, cycle-safe wrapper following, and explicit dynamic registrations. Added
+  direct, wrapped, symbolic, excluded, and dynamic regression coverage.
+- Regenerated and hash-verified the authoritative Phase 1, Phase 2, Phase 5, and Phase 6 ignored
+  bundles listed above. All reconciliation accounting gates pass and live target writes remain
+  zero.
+- Repeated the final Phase 6 reconciliation with the same inputs and timestamp; every artifact
+  and the run manifest are byte-identical and reproduce run ID
+  `rol-phase6-special-df585be75f0574e3`.
+- `make test-world-tools` passes 317 tests with zero documentation findings, `make test` passes
+  661 production-linked CuTests, and `make install` succeeds without warnings. The installed
+  binary has ELF build ID `232dd588da93e455de32b496c2ed5a92efa08951` and SHA-256
+  `59f8510f6e1379df99e6e4fef44745397bdc735f8a512c6bed7c07a3bc5c4a3f`; no root-level
+  `circle` remains.
+- The discovery blocker is closed. The corrected Phase 6 denominator is 1,721 live static plus
+  5,531 resolved dynamic binding instances; 475 static bindings across 257 handlers remain.
+- Next, implement and behavior-test the dependency-complete Tarrasque encounter, regenerate the
+  corrected Phase 6 ledger, and publish the first handler checkpoint against the new denominator.

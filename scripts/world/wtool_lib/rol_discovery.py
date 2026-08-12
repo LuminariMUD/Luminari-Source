@@ -50,7 +50,7 @@ from .rol_source import (
 from .world import load_indexed_world_data
 
 
-ROL_DISCOVERY_SCHEMA_VERSION = 1
+ROL_DISCOVERY_SCHEMA_VERSION = 2
 _HEADER = re.compile(br"#(\d+)\s*$")
 _C_STRING = re.compile(r'"(?:\\.|[^"\\])*"')
 _SOURCE_TO_TARGET = {
@@ -63,6 +63,16 @@ _SOURCE_TO_TARGET = {
     "soc": "mobile",
 }
 _DEFINITION_TYPE = {"wld": "room", "mob": "mobile", "obj": "object"}
+_SPEC_BINDING_PATTERN = re.compile(
+    r"\b(?P<api>AddProc(?P<add_kind>Mob|Obj|Room)|"
+    r"ASSIGN(?P<assign_kind>MOB|OBJ|ROOM))\s*\(\s*"
+    r"(?P<vnum>[^,]+?)\s*,\s*(?P<handler>[A-Za-z_]\w*)"
+)
+_FUNCTION_HEADER = re.compile(
+    r"(?m)^[ \t]*(?:(?:[A-Za-z_][A-Za-z0-9_]*|\*)[ \t]+)*"
+    r"(?P<name>[A-Za-z_][A-Za-z0-9_]*)[ \t]*\([^;{}]*?\)[ \t\r\n]*\{"
+)
+_ZERO_ARGUMENT_CALL = re.compile(r"\b(?P<name>[A-Za-z_]\w*)\s*\(\s*\)\s*;")
 _DOCUMENTED_SEEDS = {
     ("zon", 507, "zone", 1507),
     ("mob", 50789, "mobile", 150789),
@@ -351,13 +361,336 @@ def _strip_code_comments(lines: list[str]) -> Iterator[tuple[int, str]]:
     yield line_number, "".join(output)
 
 
+def _matching_brace(text: str, start: int) -> int | None:
+  depth = 0
+  index = start
+  state = "code"
+  while index < len(text):
+    char = text[index]
+    pair = text[index : index + 2]
+    if state == "block":
+      if pair == "*/":
+        state = "code"
+        index += 2
+        continue
+    elif state == "line":
+      if char == "\n":
+        state = "code"
+    elif state in {"string", "character"}:
+      if char == "\\":
+        index += 2
+        continue
+      if (state == "string" and char == '"') or (state == "character" and char == "'"):
+        state = "code"
+    elif pair == "/*":
+      state = "block"
+      index += 2
+      continue
+    elif pair == "//":
+      state = "line"
+      index += 2
+      continue
+    elif char == '"':
+      state = "string"
+    elif char == "'":
+      state = "character"
+    elif char == "{":
+      depth += 1
+    elif char == "}":
+      depth -= 1
+      if depth == 0:
+        return index + 1
+    index += 1
+  return None
+
+
+def _mask_non_code(text: str) -> str:
+  """Replace comments and literals with spaces while preserving offsets and lines."""
+
+  output = list(text)
+  index = 0
+  state = "code"
+  while index < len(text):
+    char = text[index]
+    pair = text[index : index + 2]
+    if state == "block":
+      if pair == "*/":
+        output[index] = output[index + 1] = " "
+        state = "code"
+        index += 2
+        continue
+      if char != "\n":
+        output[index] = " "
+    elif state == "line":
+      if char == "\n":
+        state = "code"
+      else:
+        output[index] = " "
+    elif state in {"string", "character"}:
+      if char == "\\" and index + 1 < len(text):
+        output[index] = " "
+        if text[index + 1] != "\n":
+          output[index + 1] = " "
+        index += 2
+        continue
+      if (state == "string" and char == '"') or (state == "character" and char == "'"):
+        state = "code"
+      if char != "\n":
+        output[index] = " "
+    elif pair == "/*":
+      output[index] = output[index + 1] = " "
+      state = "block"
+      index += 2
+      continue
+    elif pair == "//":
+      output[index] = output[index + 1] = " "
+      state = "line"
+      index += 2
+      continue
+    elif char == '"':
+      output[index] = " "
+      state = "string"
+    elif char == "'":
+      output[index] = " "
+      state = "character"
+    index += 1
+  return "".join(output)
+
+
+def _function_regions(path: Path) -> list[dict[str, Any]]:
+  text = path.read_text(encoding="utf-8")
+  masked = _mask_non_code(text)
+  regions: list[dict[str, Any]] = []
+  for match in _FUNCTION_HEADER.finditer(masked):
+    opening = masked.find("{", match.start(), match.end())
+    ending = _matching_brace(masked, opening)
+    if ending is None:
+      continue
+    regions.append(
+        {
+            "name": match.group("name"),
+            "path": path,
+            "start": match.start(),
+            "end": ending,
+            "start_line": text.count("\n", 0, match.start()) + 1,
+            "end_line": text.count("\n", 0, ending) + 1,
+            "masked": masked[match.start() : ending],
+        }
+    )
+  return regions
+
+
+def _preprocessed_lines(root: Path, path: Path) -> dict[int, list[str]]:
+  command = ["cc", "-E", f"-I{root / 'src'}", str(path)]
+  completed = subprocess.run(command, capture_output=True, check=False, text=True)
+  if completed.returncode != 0:
+    detail = completed.stderr.strip().splitlines()
+    raise RolDiscoveryError(
+        f"source preprocessor failed for {path.relative_to(root)}: "
+        f"{detail[-1] if detail else 'unknown error'}"
+    )
+  result: defaultdict[int, list[str]] = defaultdict(list)
+  current_path: Path | None = None
+  current_line = 0
+  resolved_path = path.resolve()
+  for preprocessed_line in completed.stdout.splitlines():
+    marker = re.match(r'^#\s+(\d+)\s+"([^"]+)"', preprocessed_line)
+    if marker is not None:
+      current_path = Path(marker.group(2)).resolve()
+      current_line = int(marker.group(1))
+      continue
+    if current_path == resolved_path:
+      result[current_line].append(preprocessed_line)
+    current_line += 1
+  return dict(result)
+
+
+def _region_code(
+    region: dict[str, Any], active_lines: dict[int, list[str]] | None
+) -> str:
+  if active_lines is None:
+    return str(region["masked"])
+  output: list[str] = []
+  for line_number in range(int(region["start_line"]), int(region["end_line"]) + 1):
+    output.append(" ".join(active_lines.get(line_number, [])))
+  return "\n".join(output)
+
+
+def _binding_kind(match: re.Match[str]) -> str:
+  token = match.group("add_kind") or match.group("assign_kind")
+  return {"mob": "mobile", "obj": "object", "room": "room"}[token.lower()]
+
+
+def _numeric_vnum(expression: str) -> int | None:
+  match = re.fullmatch(r"\s*\(*\s*(\d+)[uUlL]*\s*\)*\s*", expression)
+  return int(match.group(1)) if match is not None else None
+
+
+def _registration_kind(expression: str) -> str:
+  if _numeric_vnum(expression) is not None:
+    return "static"
+  if re.fullmatch(r"[A-Za-z_]\w*", expression) is not None:
+    return "symbolic"
+  return "dynamic"
+
+
+def _reachable_spec_bindings(
+    root: Path,
+    relative_path: str,
+    runtime: str,
+    preprocess: bool,
+) -> list[dict[str, Any]]:
+  root_path = root / relative_path
+  if not root_path.is_file():
+    raise RolDiscoveryError(f"source assignment root is missing: {relative_path}")
+  all_regions: list[dict[str, Any]] = []
+  regions_by_name: defaultdict[str, list[dict[str, Any]]] = defaultdict(list)
+  for path in sorted((root / "src").glob("*.c")):
+    for region in _function_regions(path):
+      all_regions.append(region)
+      regions_by_name[str(region["name"])].append(region)
+
+  root_names = {"assign_groups", "assign_mobiles", "assign_objects", "assign_rooms"}
+  roots = [
+      region
+      for region in all_regions
+      if Path(region["path"]) == root_path and str(region["name"]) in root_names
+  ]
+  found_root_names = {str(region["name"]) for region in roots}
+  required_root_names = {"assign_mobiles", "assign_objects", "assign_rooms"}
+  if found_root_names & required_root_names != required_root_names:
+    raise RolDiscoveryError(
+        "source assignment root is missing active entry definitions: "
+        f"{sorted(required_root_names - found_root_names)}"
+    )
+  active_cache: dict[Path, dict[int, list[str]]] = {}
+
+  def active_lines(path: Path) -> dict[int, list[str]] | None:
+    if not preprocess:
+      return None
+    if path not in active_cache:
+      active_cache[path] = _preprocessed_lines(root, path)
+    return active_cache[path]
+
+  queue: list[tuple[dict[str, Any], tuple[str, ...], frozenset[tuple[Path, int]]]] = [
+      (
+          region,
+          (str(region["name"]),),
+          frozenset({(Path(region["path"]), int(region["start_line"]))}),
+      )
+      for region in roots
+  ]
+  bindings: list[dict[str, Any]] = []
+  while queue:
+    region, registration_path, ancestors = queue.pop(0)
+    lines = active_lines(Path(region["path"]))
+    code = _region_code(region, lines)
+    if preprocess and not code.strip():
+      continue
+    scannable = _mask_non_code(code)
+    for match in _SPEC_BINDING_PATTERN.finditer(scannable):
+      expression = " ".join(match.group("vnum").split())
+      line = int(region["start_line"]) + code.count("\n", 0, match.start())
+      bindings.append(
+          {
+              "runtime": runtime,
+              "record_type": _binding_kind(match),
+              "vnum": _numeric_vnum(expression),
+              "vnum_token": expression,
+              "handler": match.group("handler"),
+              "path": Path(region["path"]).relative_to(root).as_posix(),
+              "line": line,
+              "registration_kind": _registration_kind(expression),
+              "registration_path": list(registration_path),
+          }
+      )
+    for match in _ZERO_ARGUMENT_CALL.finditer(scannable):
+      called_name = match.group("name")
+      called_regions = regions_by_name.get(called_name, [])
+      if called_name.casefold().startswith("assign") and not called_regions:
+        raise RolDiscoveryError(
+            f"active registration wrapper {called_name} has no source definition"
+        )
+      for called in called_regions:
+        called_key = (Path(called["path"]), int(called["start_line"]))
+        if called_key in ancestors:
+          continue
+        called_lines = active_lines(Path(called["path"]))
+        called_code = _region_code(called, called_lines)
+        if not called_code.strip():
+          continue
+        if not (
+            called_name.casefold().startswith("assign")
+            or _SPEC_BINDING_PATTERN.search(called_code) is not None
+        ):
+          continue
+        queue.append(
+            (
+                called,
+                registration_path + (called_name,),
+                ancestors | {called_key},
+            )
+        )
+  return bindings
+
+
 def extract_spec_bindings(
     root: Path,
     relative_glob: str,
     runtime: str,
     preprocess: bool = False,
+    follow_registration_wrappers: bool = False,
 ) -> list[dict[str, Any]]:
   """Extract numeric and symbolic room/mobile/object special-procedure bindings."""
+
+  if follow_registration_wrappers:
+    bindings = _reachable_spec_bindings(root, relative_glob, runtime, preprocess)
+    if preprocess:
+      raw_bindings = _reachable_spec_bindings(root, relative_glob, runtime, False)
+      raw_by_key = {
+          (
+              row["record_type"],
+              row["handler"],
+              row["path"],
+              row["line"],
+              tuple(row["registration_path"]),
+          ): row
+          for row in raw_bindings
+      }
+      for row in bindings:
+        key = (
+            row["record_type"],
+            row["handler"],
+            row["path"],
+            row["line"],
+            tuple(row["registration_path"]),
+        )
+        raw = raw_by_key.get(key)
+        if raw is not None:
+          row["vnum_token"] = raw["vnum_token"]
+        row["vnum_resolution"] = (
+            "dynamic"
+            if row["vnum"] is None
+            else "literal"
+            if raw is None or raw["vnum"] is not None
+            else "preprocessor"
+        )
+    else:
+      for row in bindings:
+        row["vnum_resolution"] = (
+            "literal" if row["vnum"] is not None else "unresolved"
+        )
+    return sorted(
+        bindings,
+        key=lambda item: (
+            item["record_type"],
+            item["vnum"] if item["vnum"] is not None else -1,
+            item["vnum_token"],
+            item["handler"],
+            item["path"],
+            item["line"],
+        ),
+    )
 
   patterns = (
       re.compile(r"AddProc(?P<kind>Mob|Obj|Room)\s*\(\s*(?P<vnum>[A-Za-z_]\w*|\d+)\s*,\s*(?P<handler>[A-Za-z_]\w*)"),
@@ -411,6 +744,45 @@ def extract_spec_bindings(
           )
   return sorted(
       bindings,
+      key=lambda item: (
+          item["record_type"],
+          item["vnum"] if item["vnum"] is not None else -1,
+          item["vnum_token"],
+          item["handler"],
+          item["path"],
+          item["line"],
+      ),
+  )
+
+
+def merge_source_spec_binding_candidates(
+    raw_bindings: list[dict[str, Any]], active_bindings: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+  """Carry preprocessor-resolved VNUMs into the raw binding candidate inventory."""
+
+  def key(row: dict[str, Any]) -> tuple[Any, ...]:
+    return (
+        row["record_type"],
+        row["handler"],
+        row["path"],
+        row["line"],
+        tuple(row.get("registration_path", [])),
+    )
+
+  active_by_key = {key(row): row for row in active_bindings}
+  result: list[dict[str, Any]] = []
+  for raw in raw_bindings:
+    row = dict(raw)
+    active = active_by_key.get(key(raw))
+    if active is not None and active["vnum"] is not None:
+      row["vnum"] = active["vnum"]
+      row["registration_kind"] = "static"
+      row["vnum_resolution"] = (
+          "literal" if raw["vnum"] is not None else "preprocessor"
+      )
+    result.append(row)
+  return sorted(
+      result,
       key=lambda item: (
           item["record_type"],
           item["vnum"] if item["vnum"] is not None else -1,
@@ -515,6 +887,9 @@ def build_binding_candidates(
             "source_handler": binding["handler"],
             "source_path": binding["path"],
             "source_line": binding["line"],
+            "source_vnum_token": binding.get("vnum_token"),
+            "source_vnum_resolution": binding.get("vnum_resolution"),
+            "source_registration_path": binding.get("registration_path", []),
             "candidate_state": "candidates" if matches else "explicit_absence",
             "target_candidates": sorted(
                 matches,
@@ -882,8 +1257,21 @@ def write_discovery_bundle(
   catalog = build_target_catalog(world, world_root)
   host_identities = _source_host_identities(corpus)
   commands = extract_source_commands(source_root)
-  source_bindings = extract_spec_bindings(
-      source_root, "src/specs.assign.c", "source", preprocess=True
+  raw_source_bindings = extract_spec_bindings(
+      source_root,
+      "src/specs.assign.c",
+      "source",
+      follow_registration_wrappers=True,
+  )
+  active_source_bindings = extract_spec_bindings(
+      source_root,
+      "src/specs.assign.c",
+      "source",
+      preprocess=True,
+      follow_registration_wrappers=True,
+  )
+  source_bindings = merge_source_spec_binding_candidates(
+      raw_source_bindings, active_source_bindings
   )
   target_bindings = extract_spec_bindings(repo_root, "src/spec/spec_assign_*.c", "target")
   binding_candidates = build_binding_candidates(
@@ -906,6 +1294,7 @@ def write_discovery_bundle(
           "schema_version": ROL_DISCOVERY_SCHEMA_VERSION,
           "tool_version": TOOL_VERSION,
           "source_special_bindings": source_bindings,
+          "active_source_special_bindings": active_source_bindings,
           "target_special_bindings": target_bindings,
           "active_binding_candidates": binding_candidates,
           "source_commands": commands,

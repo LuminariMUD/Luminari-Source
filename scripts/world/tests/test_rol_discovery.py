@@ -40,6 +40,73 @@ class RolDiscoveryTests(unittest.TestCase):
     self.assertEqual(["active_handler", "disabled_handler"], [row["handler"] for row in raw])
     self.assertEqual(["active_handler"], [row["handler"] for row in active])
 
+  def test_source_binding_extraction_follows_active_registration_wrappers(self) -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+      root = Path(temporary)
+      (root / "src").mkdir()
+      (root / "src/specs.assign.c").write_text(
+          "void assignWrapped(void);\n"
+          "void assignDynamic(void);\n"
+          "void assign_mobiles(void)\n"
+          "{\n"
+          '  AddProcMob(100, direct_handler, "direct");\n'
+          "  assignWrapped();\n"
+          "  assignDynamic();\n"
+          "}\n"
+          "void assign_objects(void) {}\n"
+          "void assign_rooms(void) {}\n",
+          encoding="ascii",
+      )
+      (root / "src/specs.wrapped.c").write_text(
+          "#define WRAPPED_VNUM 200\n"
+          "void assignWrapped(void)\n"
+          "{\n"
+          '  AddProcObj(WRAPPED_VNUM, wrapped_handler, "wrapped");\n'
+          "#if 0\n"
+          '  AddProcObj(201, disabled_handler, "disabled");\n'
+          "#endif\n"
+          "}\n",
+          encoding="ascii",
+      )
+      (root / "src/shop.c").write_text(
+          "void assignDynamic(void)\n"
+          "{\n"
+          '  AddProcMob(mob_index[keeper].virtual, shop_keeper, "shopkeep");\n'
+          "}\n",
+          encoding="ascii",
+      )
+
+      raw = extract_spec_bindings(
+          root,
+          "src/specs.assign.c",
+          "source",
+          follow_registration_wrappers=True,
+      )
+      active = extract_spec_bindings(
+          root,
+          "src/specs.assign.c",
+          "source",
+          preprocess=True,
+          follow_registration_wrappers=True,
+      )
+
+    self.assertEqual(
+        {"direct_handler", "shop_keeper", "wrapped_handler", "disabled_handler"},
+        {row["handler"] for row in raw},
+    )
+    self.assertEqual(
+        {"direct_handler", "shop_keeper", "wrapped_handler"},
+        {row["handler"] for row in active},
+    )
+    wrapped = next(row for row in active if row["handler"] == "wrapped_handler")
+    dynamic = next(row for row in active if row["handler"] == "shop_keeper")
+    self.assertEqual(200, wrapped["vnum"])
+    self.assertEqual("WRAPPED_VNUM", wrapped["vnum_token"])
+    self.assertEqual("preprocessor", wrapped["vnum_resolution"])
+    self.assertEqual(["assign_mobiles", "assignWrapped"], wrapped["registration_path"])
+    self.assertIsNone(dynamic["vnum"])
+    self.assertEqual("dynamic", dynamic["registration_kind"])
+
   def test_documented_formula_and_identity_seed_is_confirmed(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       world_root = Path(temporary)

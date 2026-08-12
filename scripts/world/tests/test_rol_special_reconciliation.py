@@ -567,44 +567,53 @@ class RolSpecialReconciliationTests(unittest.TestCase):
   def test_production_inputs_generate_complete_progress_ledgers(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       summary = write_special_reconciliation_bundle(
-          self.root / "lib/rol-conversion/runs/phase1-e6ea7982",
-          self.root / "lib/rol-conversion/runs/phase2-e6ea7982",
-          self.root / "lib/rol-conversion/runs/phase5-shop-20260812-audit",
+          self.root / "lib/rol-conversion/runs/phase1-policy2-20260813-special-discovery",
+          self.root / "lib/rol-conversion/runs/phase2-policy2-20260813-special-discovery",
+          self.root / "lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit",
           self.root / "EXAMPLE/RealmsOfLuminari",
           Path(temporary) / "phase6",
           created_at="2026-08-12T02:05:00Z",
       )
 
-      self.assertEqual(1_234, summary["discovered_direct_binding_candidates"])
-      self.assertEqual(87, summary["source_preprocessor_excluded_bindings"])
-      self.assertEqual(1_147, summary["active_direct_bindings"])
-      self.assertEqual(562, summary["source_handlers"])
-      self.assertEqual(562, summary["source_handler_definitions_located"])
+      self.assertEqual(1_813, summary["discovered_direct_binding_candidates"])
+      self.assertEqual(92, summary["source_preprocessor_excluded_bindings"])
+      self.assertEqual(1_721, summary["active_direct_bindings"])
+      self.assertEqual(795, summary["source_handlers"])
+      self.assertEqual(795, summary["source_handler_definitions_located"])
       self.assertEqual(247, summary["active_implicit_race_bindings"])
       self.assertEqual(
           {"standardDemon": 134, "standardDevil": 101, "standardUmberhulk": 12},
           summary["implicit_race_bindings_by_handler"],
       )
       self.assertEqual(
-          {"alongside-direct": 22, "implicit-only": 225},
+          {"alongside-direct": 85, "implicit-only": 162},
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_112, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(35, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(1_246, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(475, summary["direct_bindings_by_status"]["pending"])
       self.assertEqual(538, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(24, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(654, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(257, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(757, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
-          159, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
+          165, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(11, summary["direct_bindings_by_strategy"]["NATIVE_RECONCILED"])
       self.assertEqual(
           18, summary["direct_bindings_by_strategy"]["SOURCE_UNSAFE_EXCLUDED"]
       )
+      self.assertEqual(2, summary["dynamic_registration_paths"])
+      self.assertEqual(5_531, summary["active_dynamic_bindings"])
+      self.assertEqual(7_252, summary["total_active_bindings"])
+      self.assertEqual(797, summary["total_source_handlers"])
+      self.assertEqual(
+          {"quester": 5_078, "shop_keeper": 453},
+          summary["dynamic_bindings_by_handler"],
+      )
+      self.assertEqual(2, summary["dynamic_handler_definitions_located"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(830, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(18, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(798, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(50, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )
@@ -614,9 +623,10 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       expected_records = {
           "act-spec-ledger.jsonl": 848,
           "automatic-race-ledger.jsonl": 247,
-          "binding-ledger.jsonl": 1_147,
-          "handler-inventory.jsonl": 562,
-          "preprocessor-excluded-binding-ledger.jsonl": 87,
+          "binding-ledger.jsonl": 1_721,
+          "dynamic-registration-ledger.jsonl": 2,
+          "handler-inventory.jsonl": 795,
+          "preprocessor-excluded-binding-ledger.jsonl": 92,
       }
       for artifact in manifest["artifacts"]:
         if artifact["path"] in expected_records:

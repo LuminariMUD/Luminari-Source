@@ -28,7 +28,7 @@ from .rol_special import (
 )
 
 
-ROL_SPECIAL_RECONCILIATION_SCHEMA_VERSION = 3
+ROL_SPECIAL_RECONCILIATION_SCHEMA_VERSION = 4
 _SOURCE_ROOT_PREFIX = "EXAMPLE/RealmsOfLuminari"
 _RECORD_KIND = {"mobile": "mob", "object": "obj", "room": "wld"}
 _AUTO_RACE_HANDLERS = {
@@ -40,6 +40,26 @@ _AUTO_RACE_TARGETS = {
     "X": "MOB_ROL_DEMON composition-safe runtime hook",
     "Y": "MOB_ROL_DEVIL composition-safe runtime hook",
     "MH": "MOB_ROL_UMBERHULK composition-safe runtime hook",
+}
+_DYNAMIC_REGISTRATION_DISPOSITIONS = {
+    "quester": {
+        "record_kind": "qst",
+        "strategy": "TARGET_DATA_DRIVEN_SERVICE",
+        "target": "target HLQuest loader and quester service",
+        "reason": (
+            "source boot attaches one quester callback per active quest block; the target "
+            "HLQuest loader owns the same host-driven behavior without a persisted named binding"
+        ),
+    },
+    "shop_keeper": {
+        "record_kind": "shp",
+        "strategy": "TARGET_DATA_DRIVEN_SERVICE",
+        "target": "target shop loader and shopkeeper service",
+        "reason": (
+            "source boot attaches one shop callback per active shop block; the target shop "
+            "loader owns the same keeper-driven behavior and composes authored named bindings"
+        ),
+    },
 }
 _DG_HANDLERS = frozenset(
     {
@@ -425,6 +445,13 @@ def write_special_reconciliation_bundle(
 
   binding_input = _load_json(discovery_dir / "bindings.json")
   discovered_bindings = list(binding_input["active_binding_candidates"])
+  live_source_bindings = extract_spec_bindings(
+      source_root,
+      "src/specs.assign.c",
+      "source",
+      preprocess=True,
+      follow_registration_wrappers=True,
+  )
   active_source_bindings = {
       (
           str(row["record_type"]),
@@ -433,11 +460,19 @@ def write_special_reconciliation_bundle(
           str(row["path"]),
           int(row["line"]),
       )
-      for row in extract_spec_bindings(
-          source_root, "src/specs.assign.c", "source", preprocess=True
-      )
+      for row in live_source_bindings
       if row["vnum"] is not None
   }
+  dynamic_registrations = [row for row in live_source_bindings if row["vnum"] is None]
+  dynamic_handlers = {str(row["handler"]) for row in dynamic_registrations}
+  unexpected_dynamic_handlers = dynamic_handlers - set(_DYNAMIC_REGISTRATION_DISPOSITIONS)
+  missing_dynamic_handlers = set(_DYNAMIC_REGISTRATION_DISPOSITIONS) - dynamic_handlers
+  if unexpected_dynamic_handlers or missing_dynamic_handlers:
+    raise RolSpecialReconciliationError(
+        "dynamic source registration inventory changed: "
+        f"unexpected={sorted(unexpected_dynamic_handlers)}, "
+        f"missing={sorted(missing_dynamic_handlers)}"
+    )
   bindings = [
       row
       for row in discovered_bindings
@@ -456,17 +491,26 @@ def write_special_reconciliation_bundle(
       source_root,
       handlers
       | {str(row["source_handler"]) for row in excluded_bindings}
+      | dynamic_handlers
       | set(_AUTO_RACE_HANDLERS.values()),
   )
 
   consumers: defaultdict[tuple[str, int], list[dict[str, Any]]] = defaultdict(list)
   record_by_id: dict[str, dict[str, Any]] = {}
+  dynamic_instance_counts: Counter[str] = Counter()
+  dynamic_hosts: defaultdict[str, set[int]] = defaultdict(set)
   relevant_keys = {
       (_RECORD_KIND[str(row["record_type"])], int(row["source_vnum"]))
       for row in discovered_bindings
   }
   for record in _read_jsonl(discovery_dir / "source-records.jsonl"):
     key = (str(record["kind"]), int(record["vnum"]))
+    if str(record["kind"]) in {
+        disposition["record_kind"]
+        for disposition in _DYNAMIC_REGISTRATION_DISPOSITIONS.values()
+    }:
+      dynamic_instance_counts[str(record["kind"])] += 1
+      dynamic_hosts[str(record["kind"])].add(int(record["vnum"]))
     if key in relevant_keys or record["kind"] == "mob":
       record_by_id[str(record["record_id"])] = record
     if key in relevant_keys:
@@ -509,6 +553,9 @@ def write_special_reconciliation_bundle(
         "source_handler": binding["source_handler"],
         "source_path": binding["source_path"],
         "source_line": binding["source_line"],
+        "source_vnum_token": binding.get("source_vnum_token"),
+        "source_vnum_resolution": binding.get("source_vnum_resolution"),
+        "source_registration_path": binding.get("source_registration_path", []),
         "source_definition": definitions.get(str(binding["source_handler"])),
         "consumers": consumer_rows,
         **disposition,
@@ -545,6 +592,9 @@ def write_special_reconciliation_bundle(
             "source_handler": binding["source_handler"],
             "source_path": binding["source_path"],
             "source_line": binding["source_line"],
+            "source_vnum_token": binding.get("source_vnum_token"),
+            "source_vnum_resolution": binding.get("source_vnum_resolution"),
+            "source_registration_path": binding.get("source_registration_path", []),
             "source_definition": definitions.get(str(binding["source_handler"])),
             "consumers": consumer_rows,
             "status": "excluded",
@@ -571,6 +621,33 @@ def write_special_reconciliation_bundle(
       }
       for handler in sorted(handlers)
   ]
+
+  dynamic_rows: list[dict[str, Any]] = []
+  for registration in sorted(
+      dynamic_registrations,
+      key=lambda item: (str(item["handler"]), str(item["path"]), int(item["line"])),
+  ):
+    handler = str(registration["handler"])
+    disposition = _DYNAMIC_REGISTRATION_DISPOSITIONS[handler]
+    record_kind = str(disposition["record_kind"])
+    dynamic_rows.append(
+        {
+            "registration_id": f"dynamic:{handler}:{registration['path']}:{registration['line']}",
+            "source_handler": handler,
+            "source_path": registration["path"],
+            "source_line": registration["line"],
+            "source_vnum_expression": registration["vnum_token"],
+            "registration_path": registration["registration_path"],
+            "source_definition": definitions.get(handler),
+            "source_record_kind": record_kind,
+            "active_binding_instances": dynamic_instance_counts[record_kind],
+            "unique_source_hosts": len(dynamic_hosts[record_kind]),
+            "status": "resolved",
+            "strategy": disposition["strategy"],
+            "target": disposition["target"],
+            "reason": disposition["reason"],
+        }
+    )
 
   automatic_race_rows: list[dict[str, Any]] = []
   for record in sorted(record_by_id.values(), key=lambda item: str(item["record_id"])):
@@ -673,6 +750,8 @@ def write_special_reconciliation_bundle(
   automatic_composition = Counter(str(row["composition"]) for row in automatic_race_rows)
   act_spec_status = Counter(str(row["status"]) for row in act_spec_rows)
   strategy_counts = Counter(str(row["strategy"]) for row in binding_rows)
+  dynamic_status = Counter(str(row["status"]) for row in dynamic_rows)
+  dynamic_strategy = Counter(str(row["strategy"]) for row in dynamic_rows)
   act_spec_strategies = Counter(str(row["strategy"]) for row in act_spec_rows)
   summary = {
       "schema_version": ROL_SPECIAL_RECONCILIATION_SCHEMA_VERSION,
@@ -696,6 +775,22 @@ def write_special_reconciliation_bundle(
       "source_handler_definitions_located": sum(
           1 for handler in handlers if handler in definitions
       ),
+      "active_dynamic_bindings": sum(
+          int(row["active_binding_instances"]) for row in dynamic_rows
+      ),
+      "dynamic_registration_paths": len(dynamic_rows),
+      "dynamic_bindings_by_handler": {
+          str(row["source_handler"]): int(row["active_binding_instances"])
+          for row in dynamic_rows
+      },
+      "dynamic_registrations_by_status": dict(sorted(dynamic_status.items())),
+      "dynamic_registrations_by_strategy": dict(sorted(dynamic_strategy.items())),
+      "dynamic_handler_definitions_located": sum(
+          1 for handler in dynamic_handlers if handler in definitions
+      ),
+      "total_active_bindings": len(binding_rows)
+      + sum(int(row["active_binding_instances"]) for row in dynamic_rows),
+      "total_source_handlers": len(handlers | dynamic_handlers),
       "active_implicit_race_bindings": len(automatic_race_rows),
       "implicit_race_bindings_by_status": dict(sorted(automatic_status.items())),
       "implicit_race_bindings_by_handler": dict(sorted(automatic_handlers.items())),
@@ -728,6 +823,10 @@ def write_special_reconciliation_bundle(
   )
   handler_path = output_dir / "handler-inventory.jsonl"
   artifacts.append(_artifact(handler_path, output_dir, _write_jsonl(handler_path, handler_rows)))
+  dynamic_path = output_dir / "dynamic-registration-ledger.jsonl"
+  artifacts.append(
+      _artifact(dynamic_path, output_dir, _write_jsonl(dynamic_path, dynamic_rows))
+  )
   automatic_path = output_dir / "automatic-race-ledger.jsonl"
   artifacts.append(
       _artifact(
@@ -756,6 +855,11 @@ def write_special_reconciliation_bundle(
               len(binding_rows) + len(excluded_binding_rows) == len(discovered_bindings)
           ),
           "all_handlers_accounted": len(handler_rows) == len(handlers),
+          "all_dynamic_registrations_accounted": (
+              len(dynamic_rows) == len(_DYNAMIC_REGISTRATION_DISPOSITIONS)
+              and all(row["status"] == "resolved" for row in dynamic_rows)
+              and all(int(row["active_binding_instances"]) > 0 for row in dynamic_rows)
+          ),
           "all_automatic_race_bindings_accounted": len(automatic_race_rows)
           == sum(
               1
@@ -788,10 +892,14 @@ def render_rol_special_reconciliation_human(summary: dict[str, Any]) -> str:
           f"Direct bindings: {summary['active_direct_bindings']}",
           f"Resolved direct bindings: {summary['direct_bindings_by_status'].get('resolved', 0)}",
           f"Pending direct bindings: {summary['direct_bindings_by_status'].get('pending', 0)}",
+          f"Dynamic registration paths: {summary['dynamic_registration_paths']}",
+          f"Active dynamic bindings: {summary['active_dynamic_bindings']}",
+          f"Total active bindings: {summary['total_active_bindings']}",
           f"Implicit race bindings: {summary['active_implicit_race_bindings']}",
           f"Pending implicit race bindings: "
           f"{summary['implicit_race_bindings_by_status'].get('pending', 0)}",
           f"Distinct source handlers: {summary['source_handlers']}",
+          f"Total source handlers: {summary['total_source_handlers']}",
           f"ACT_SPEC records: {summary['act_spec_records']}",
           f"Resolved ACT_SPEC records: {summary['act_spec_by_status'].get('resolved', 0)}",
           f"Pending ACT_SPEC records: {summary['act_spec_by_status'].get('pending', 0)}",
