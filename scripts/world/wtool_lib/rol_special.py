@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Iterable
 
 from .flags import encode_bits
-from .rol_periodic_profiles import PROFILE_SOURCES
+from .rol_periodic_profiles import COMPOSED_PROFILE_TARGETS, PROFILE_SOURCES
 from .rol_state_periodic_profiles import COMPOSED_STATE_PROFILE_SOURCES, STATE_PROFILE_SOURCES
 from .rol_source import RolRecord
 
@@ -153,6 +153,7 @@ ADAPTED_HANDLER_NAMES = {
     "waterdeep_guard_three": "RoL Scheduled Mobile",
     "crier_one": "RoL Scheduled Mobile",
     "hellish_fury_bow": "RoL Weapon Proc",
+    "sc_fieryMace": "RoL Weapon Proc",
     "baker_one": "RoL Waterdeep Ambient",
     "baker_two": "RoL Waterdeep Ambient",
     "casino_one": "RoL Waterdeep Ambient",
@@ -391,7 +392,10 @@ ADAPTED_HANDLER_NAMES = {
     "wr_ancientBrownie": "RoL Monster Combat",
 }
 ADAPTED_HANDLER_NAMES.update(
-    {handler_name: "RoL Source Periodic" for handler_name in PROFILE_SOURCES}
+    {
+        handler_name: COMPOSED_PROFILE_TARGETS.get(handler_name, "RoL Source Periodic")
+        for handler_name in PROFILE_SOURCES
+    }
 )
 ADAPTED_HANDLER_NAMES.update(
     {handler_name: "RoL Stateful Periodic" for handler_name in STATE_PROFILE_SOURCES}
@@ -1294,7 +1298,11 @@ def compile_special_bindings(
           if handler in NATIVE_HANDLER_NAMES
           else ADAPTED_HANDLER_NAMES[handler]
       )
-      if persisted_name in {"RoL Monster Combat", "RoL Source Periodic"} or handler in {
+      if persisted_name in {
+          "RoL Guild Guard",
+          "RoL Monster Combat",
+          "RoL Source Periodic",
+      } or handler in {
           "bandit",
           "bouncer_four",
           "bouncer_one",

@@ -9,6 +9,14 @@ DEVOUR_PROFILE_ORDER: dict[str, str] = {
 }
 
 
+# These profiles share a mobile with another persisted target procedure. The
+# target procedure dispatches their generated table directly so conversion
+# keeps one persisted mobile procedure while preserving both source callbacks.
+COMPOSED_PROFILE_TARGETS: dict[str, str] = {
+    "sc_parchimil": "RoL Guild Guard",
+}
+
+
 PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...]]] = {
     "billthecat": ("src/specs.fun.c", (2001230,)),
     "bulette": ("src/specs.towerofsorc.c", (2015901,)),
@@ -109,4 +117,17 @@ PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...]]] = {
     "guard_two": ("src/specs.waterdeep.c", (2003212,)),
     "snowbeast": ("src/specs.lavatubes.c", (2012000,)),
     "spiny": ("src/specs.lavatubes.c", (2012002, 2012003)),
+    "sc_angryMan": ("src/specs.scornubel.c", (2006072,)),
+    "sc_butler": ("src/specs.scornubel.c", (2006106,)),
+    "sc_chansrin": ("src/specs.scornubel.c", (2006111,)),
+    "sc_clerk": ("src/specs.scornubel.c", (2006029,)),
+    "sc_commoner": ("src/specs.scornubel.c", (2006051, 2006109)),
+    "sc_guardsman": ("src/specs.scornubel.c", (2006001,)),
+    "sc_karlyn": ("src/specs.scornubel.c", (2006140,)),
+    "sc_ladyRhessajan": ("src/specs.scornubel.c", (2006006,)),
+    "sc_loudPeddler": ("src/specs.scornubel.c", (2006064,)),
+    "sc_maid": ("src/specs.scornubel.c", (2006141,)),
+    "sc_mercenary": ("src/specs.scornubel.c", (2006067,)),
+    "sc_merchant": ("src/specs.scornubel.c", (2006002, 2006058, 2006113, 2006132)),
+    "sc_parchimil": ("src/specs.scornubel.c", (2006061,)),
 }

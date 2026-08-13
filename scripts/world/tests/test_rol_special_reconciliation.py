@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from wtool_lib.constants import default_repo_root
-from wtool_lib.rol_periodic_profiles import PROFILE_SOURCES
+from wtool_lib.rol_periodic_profiles import COMPOSED_PROFILE_TARGETS, PROFILE_SOURCES
 from wtool_lib.rol_state_periodic_profiles import (
     COMPOSED_STATE_PROFILE_SOURCES,
     STATE_PROFILE_SOURCES,
@@ -161,7 +161,12 @@ class RolSpecialReconciliationTests(unittest.TestCase):
             "waterdeep_guard_two",
         )
     ]
-    source_periodic = [handler_disposition(name) for name in PROFILE_SOURCES]
+    source_periodic = [
+        handler_disposition(name) for name in PROFILE_SOURCES if name not in COMPOSED_PROFILE_TARGETS
+    ]
+    composed_source_periodic = [
+        handler_disposition(name) for name in COMPOSED_PROFILE_TARGETS
+    ]
     state_periodic = [handler_disposition(name) for name in STATE_PROFILE_SOURCES]
     composed_state_periodic = [
         handler_disposition(name) for name in COMPOSED_STATE_PROFILE_SOURCES
@@ -341,6 +346,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
             row["target"] == "RoL Source Periodic"
             and row["strategy"] == "NATIVE_ADAPTED"
             for row in source_periodic
+        )
+    )
+    self.assertTrue(
+        all(
+            row["target"] == COMPOSED_PROFILE_TARGETS[name]
+            and row["strategy"] == "NATIVE_ADAPTED"
+            for name, row in zip(COMPOSED_PROFILE_TARGETS, composed_source_periodic)
         )
     )
     self.assertTrue(
@@ -739,11 +751,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_466, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(255, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(616, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(179, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(928, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_484, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(237, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(630, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(165, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(946, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           208, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -854,6 +866,48 @@ class RolSpecialReconciliationTests(unittest.TestCase):
               for row in binding_rows
               if row["source_handler"] == "skriaxit_sandstorm"
           },
+      )
+      scornubel_vnums = {
+          handler: {
+              row["source_vnum"]
+              for row in binding_rows
+              if row["source_handler"] == handler
+          }
+          for handler in (
+              "sc_angryMan",
+              "sc_butler",
+              "sc_chansrin",
+              "sc_clerk",
+              "sc_commoner",
+              "sc_fieryMace",
+              "sc_guardsman",
+              "sc_karlyn",
+              "sc_ladyRhessajan",
+              "sc_loudPeddler",
+              "sc_maid",
+              "sc_mercenary",
+              "sc_merchant",
+              "sc_parchimil",
+          )
+      }
+      self.assertEqual(
+          {
+              "sc_angryMan": {6072},
+              "sc_butler": {6106},
+              "sc_chansrin": {6111},
+              "sc_clerk": {6029},
+              "sc_commoner": {6051, 6109},
+              "sc_fieryMace": {6084},
+              "sc_guardsman": {6001},
+              "sc_karlyn": {6140},
+              "sc_ladyRhessajan": {6006},
+              "sc_loudPeddler": {6064},
+              "sc_maid": {6141},
+              "sc_mercenary": {6067},
+              "sc_merchant": {6002, 6058, 6113, 6132},
+              "sc_parchimil": {6061},
+          },
+          scornubel_vnums,
       )
       automatic_rows = [
           json.loads(line)

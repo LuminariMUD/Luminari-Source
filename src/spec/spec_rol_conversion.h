@@ -210,6 +210,8 @@ size_t rol_waterdeep_bouncer_route_length(int mobile_vnum);
 size_t rol_weapon_profile_count(void);
 bool rol_weapon_profile(int object_vnum, int *proc_denominator, bool *critical_only,
                         const char **description);
+bool rol_scornubel_fiery_mace_roll_fires(int roll);
+int rol_scornubel_fiery_mace_damage(void);
 bool rol_balor_weapon_profile(int object_vnum, int *dice_count, int *dice_size, int *damage_type);
 bool rol_balor_weapon_owner_allowed(const struct char_data *ch, bool allow_pet);
 bool rol_avernus_weapon_profile(int object_vnum, bool *barbazu_glaive, bool *gelugon_freeze_spear);

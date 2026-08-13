@@ -13,7 +13,7 @@ from wtool_lib.objects import parse_object_file
 from wtool_lib.rol_source import parse_active_rol_corpus, parse_rol_source_file
 from wtool_lib.rol_discovery import extract_source_commands
 from wtool_lib.rol_pilot import PILOT_BASENAMES
-from wtool_lib.rol_periodic_profiles import PROFILE_SOURCES
+from wtool_lib.rol_periodic_profiles import COMPOSED_PROFILE_TARGETS, PROFILE_SOURCES
 from wtool_lib.rol_state_periodic_profiles import (
     COMPOSED_STATE_PROFILE_SOURCES,
     STATE_PROFILE_SOURCES,
@@ -1622,6 +1622,85 @@ class RolTransformTests(unittest.TestCase):
     )
     self.assertTrue(
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
+  def test_scornubel_periodic_and_fiery_mace_bindings_preserve_composition(self) -> None:
+    mobile_rows = (
+        (6001, "sc_guardsman"),
+        (6002, "sc_merchant"),
+        (6006, "sc_ladyRhessajan"),
+        (6029, "sc_clerk"),
+        (6051, "sc_commoner"),
+        (6058, "sc_merchant"),
+        (6061, "sc_parchimil"),
+        (6064, "sc_loudPeddler"),
+        (6067, "sc_mercenary"),
+        (6072, "sc_angryMan"),
+        (6106, "sc_butler"),
+        (6109, "sc_commoner"),
+        (6111, "sc_chansrin"),
+        (6113, "sc_merchant"),
+        (6132, "sc_merchant"),
+        (6140, "sc_karlyn"),
+        (6141, "sc_maid"),
+    )
+    bindings = [
+        {
+            "basename": "scorn",
+            "record_type": "mobile",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in mobile_rows
+    ]
+    bindings.append(
+        {
+            "basename": "scorn",
+            "record_type": "object",
+            "source_vnum": 6084,
+            "source_handler": "sc_fieryMace",
+        }
+    )
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(18, len(compiled.native_bindings))
+    for binding in compiled.native_bindings:
+      if binding.source_record_type == "object":
+        self.assertEqual("RoL Weapon Proc", binding.persisted_name)
+        self.assertEqual((44,), binding.required_flag_bits)
+      elif binding.source_vnum == 6061:
+        self.assertEqual(COMPOSED_PROFILE_TARGETS["sc_parchimil"], binding.persisted_name)
+        self.assertEqual((0,), binding.required_flag_bits)
+      else:
+        self.assertEqual("RoL Source Periodic", binding.persisted_name)
+        self.assertEqual((0,), binding.required_flag_bits)
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
+    composed = compile_special_bindings(
+        [
+            {
+                "basename": "scorn",
+                "record_type": "mobile",
+                "source_vnum": 6061,
+                "source_handler": handler,
+            }
+            for handler in ("guild_guard", "sc_parchimil")
+        ],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+    self.assertEqual(
+        ["RoL Guild Guard", "RoL Guild Guard"],
+        sorted(binding.persisted_name for binding in composed.native_bindings),
     )
 
   def test_state_periodic_handlers_share_generated_persistent_adapter(self) -> None:

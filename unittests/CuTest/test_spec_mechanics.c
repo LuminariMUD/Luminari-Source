@@ -1503,7 +1503,7 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
   int roll_max;
   int roll_min;
 
-  CuAssertIntEquals(tc, 105, (int)rol_source_periodic_profile_count());
+  CuAssertIntEquals(tc, 122, (int)rol_source_periodic_profile_count());
   CuAssertIntEquals(tc, 1, rol_source_periodic_devour_order(2007140));
   CuAssertIntEquals(tc, 2, rol_source_periodic_devour_order(2003062));
   CuAssertIntEquals(tc, 0, rol_source_periodic_devour_order(2097006));
@@ -1546,6 +1546,48 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
   CuAssertTrue(tc, !speech);
   CuAssertTrue(tc, !hide);
   CuAssertTrue(tc, rol_source_periodic_outcome_action(2007220, 2, 2, NULL, NULL) == NULL);
+}
+
+void Test_spec_rol_scornubel_profiles_preserve_source_behavior(CuTest *tc)
+{
+  const char *description;
+  bool critical_only;
+  bool hide;
+  bool requires_awake;
+  bool speech;
+  bool suppresses_fighting;
+  int denominator;
+  int roll_max;
+  int roll_min;
+
+  CuAssertTrue(tc, rol_source_periodic_profile_bounds(2006002, &roll_min, &roll_max,
+                                                      &requires_awake, &suppresses_fighting));
+  CuAssertIntEquals(tc, 0, roll_min);
+  CuAssertIntEquals(tc, 20, roll_max);
+  CuAssertTrue(tc, requires_awake);
+  CuAssertTrue(tc, suppresses_fighting);
+  CuAssertTrue(tc, rol_source_periodic_profile_bounds(2006061, &roll_min, &roll_max,
+                                                      &requires_awake, &suppresses_fighting));
+  CuAssertIntEquals(tc, 0, roll_min);
+  CuAssertIntEquals(tc, 50, roll_max);
+  CuAssertIntEquals(tc, 2, (int)rol_source_periodic_outcome_action_count(2006111, 0));
+  CuAssertStrEquals(tc, "$n says: 'You may plead your case now.'",
+                    rol_source_periodic_outcome_action(2006111, 0, 0, &speech, &hide));
+  CuAssertTrue(tc, !speech);
+  CuAssertTrue(tc, hide);
+  CuAssertStrEquals(tc, "$n says: 'Can we get on with this?'",
+                    rol_source_periodic_outcome_action(2006111, 0, 1, &speech, &hide));
+  CuAssertTrue(tc, !speech);
+  CuAssertTrue(tc, hide);
+
+  CuAssertTrue(tc, rol_weapon_profile(2006084, &denominator, &critical_only, &description));
+  CuAssertTrue(tc, !critical_only);
+  CuAssertIntEquals(tc, 36, denominator);
+  CuAssertStrEquals(tc, "One-in-36 fixed 100-point source-untyped fiery burst.", description);
+  CuAssertTrue(tc, rol_scornubel_fiery_mace_roll_fires(0));
+  CuAssertTrue(tc, !rol_scornubel_fiery_mace_roll_fires(1));
+  CuAssertTrue(tc, !rol_scornubel_fiery_mace_roll_fires(35));
+  CuAssertIntEquals(tc, 100, rol_scornubel_fiery_mace_damage());
 }
 
 void Test_spec_rol_lavatubes_profiles_preserve_source_outcomes(CuTest *tc)
@@ -1911,7 +1953,7 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
       2019933, 2025030, 2009054, 2025018, 2001010, 2080034, 2080038, 2026233, 2026248, 2015116,
       2013308, 2097117, 2001005, 2014023, 2024405, 2053266, 2053263, 2053259, 2053289, 2053290,
       2053291, 2053292, 2053243, 2083238, 2083235, 2053250, 2053271, 2043741, 2008000, 2001057,
-      2004797, 2093227, 2093228, 2032602, 2033001, 2033012,
+      2004797, 2093227, 2093228, 2032602, 2033001, 2033012, 2006084,
   };
   const char *description;
   bool critical_only;

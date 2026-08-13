@@ -109,7 +109,8 @@ enum rol_weapon_effect
   ROL_WEAPON_BALOR_WHIP,
   ROL_WEAPON_BALOR_LIGHTNING_SWORD,
   ROL_WEAPON_BARBAZU_GLAIVE,
-  ROL_WEAPON_GELUGON_FREEZE_SPEAR
+  ROL_WEAPON_GELUGON_FREEZE_SPEAR,
+  ROL_WEAPON_SCORNUBEL_FIERY_MACE
 };
 
 struct rol_weapon_profile
@@ -210,6 +211,8 @@ static const struct rol_weapon_profile rol_weapon_profiles[] = {
      "Barbazu critical wound causing recurring nonlethal blood loss."},
     {2033012, ROL_WEAPON_GELUGON_FREEZE_SPEAR, 3, false,
      "One-in-three freezing bolt that slows its victim."},
+    {2006084, ROL_WEAPON_SCORNUBEL_FIERY_MACE, 36, false,
+     "One-in-36 fixed 100-point source-untyped fiery burst."},
 };
 
 struct rol_undead_drain_profile
@@ -3367,8 +3370,12 @@ int rol_guild_guard_typed(struct spec_event_context *context)
     return FALSE;
 
   guard = context->owner;
-  if (guard == NULL || !IS_NPC(guard) || !VALID_ROOM_RNUM(IN_ROOM(guard)) ||
-      (context->event != SPEC_EVENT_MOBILE_HIT && GET_MOB_LOADROOM(guard) != IN_ROOM(guard)))
+  if (guard == NULL || !IS_NPC(guard) || !VALID_ROOM_RNUM(IN_ROOM(guard)))
+    return FALSE;
+  if (context->event == SPEC_EVENT_MOBILE_ACTIVITY &&
+      rol_source_periodic_profile_bounds(GET_MOB_VNUM(guard), NULL, NULL, NULL, NULL))
+    return rol_source_periodic(guard, guard, 0, context->argument);
+  if (context->event != SPEC_EVENT_MOBILE_HIT && GET_MOB_LOADROOM(guard) != IN_ROOM(guard))
     return FALSE;
 
   switch (context->event)
@@ -6738,6 +6745,16 @@ bool rol_weapon_profile(int object_vnum, int *proc_denominator, bool *critical_o
   return true;
 }
 
+bool rol_scornubel_fiery_mace_roll_fires(int roll)
+{
+  return roll == 0;
+}
+
+int rol_scornubel_fiery_mace_damage(void)
+{
+  return 100;
+}
+
 bool rol_balor_weapon_owner_allowed(const struct char_data *ch, bool allow_pet)
 {
   return ch != NULL && IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ROL_DEMON) && (allow_pet || !IS_PET(ch));
@@ -7877,6 +7894,23 @@ static int rol_weapon_hit(struct spec_event_context *context,
     return rol_barbazu_glaive(ch, obj, victim, context->critical);
   case ROL_WEAPON_GELUGON_FREEZE_SPEAR:
     return rol_gelugon_freeze_spear(ch, obj, victim);
+  case ROL_WEAPON_SCORNUBEL_FIERY_MACE:
+    if ((!rol_weapon_primary_slot(slot) && slot != WEAR_WIELD_OFFHAND) ||
+        !rol_scornubel_fiery_mace_roll_fires(rand_number(0, 35)))
+      return FALSE;
+    act("$n's $p envelops $N in a corona of fire. Flames explode around $M as the "
+        "white-hot mace makes contact.",
+        TRUE, ch, obj, victim, TO_NOTVICT);
+    act("Your $p envelops $N in a corona of fire. Flames explode around $M as your "
+        "white-hot mace makes contact.",
+        TRUE, ch, obj, victim, TO_CHAR);
+    act("You suffer as $n's $p envelops you in fire. Flames explode around you as the "
+        "white-hot mace makes contact.",
+        TRUE, ch, obj, victim, TO_VICT);
+    result = rol_weapon_damage(ch, victim, rol_scornubel_fiery_mace_damage(), DAM_RESERVED_DBC);
+    if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED)
+      context->invalidation |= SPEC_INVALIDATE_TARGET;
+    return FALSE;
   case ROL_WEAPON_BALOR_WHIP:
     return rol_balor_whip(context, ch, obj, victim);
   case ROL_WEAPON_BALOR_LIGHTNING_SWORD:

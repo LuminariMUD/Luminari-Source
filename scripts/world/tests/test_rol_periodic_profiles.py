@@ -5,7 +5,11 @@ import re
 import unittest
 
 from wtool_lib.constants import default_repo_root
-from wtool_lib.rol_periodic_profiles import DEVOUR_PROFILE_ORDER, PROFILE_SOURCES
+from wtool_lib.rol_periodic_profiles import (
+    COMPOSED_PROFILE_TARGETS,
+    DEVOUR_PROFILE_ORDER,
+    PROFILE_SOURCES,
+)
 
 
 class RolPeriodicProfileTests(unittest.TestCase):
@@ -16,8 +20,8 @@ class RolPeriodicProfileTests(unittest.TestCase):
   def test_selected_manifest_has_unique_converted_mobile_coverage(self) -> None:
     vnums = [vnum for _relative, handler_vnums in PROFILE_SOURCES.values() for vnum in handler_vnums]
 
-    self.assertEqual(99, len(PROFILE_SOURCES))
-    self.assertEqual(105, len(vnums))
+    self.assertEqual(112, len(PROFILE_SOURCES))
+    self.assertEqual(122, len(vnums))
     self.assertEqual(len(vnums), len(set(vnums)))
     self.assertEqual(
         {
@@ -28,6 +32,7 @@ class RolPeriodicProfileTests(unittest.TestCase):
             "src/specs.menden.c",
             "src/specs.mobile.c",
             "src/specs.realm.c",
+            "src/specs.scornubel.c",
             "src/specs.towerofsorc.c",
             "src/specs.waterdeep.c",
         },
@@ -84,8 +89,36 @@ class RolPeriodicProfileTests(unittest.TestCase):
 
     self.assertEqual(sorted(profile_vnums), profile_vnums)
     self.assertEqual(sorted(outcomes), outcomes)
-    self.assertEqual(401, len(outcomes))
-    self.assertEqual(661, len(actions))
+    self.assertEqual(452, len(outcomes))
+    self.assertEqual(713, len(actions))
+
+  def test_scornubel_profiles_preserve_composition_and_source_ranges(self) -> None:
+    generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
+        encoding="ascii"
+    )
+    compact = " ".join(generated.split())
+
+    self.assertEqual({"sc_parchimil": "RoL Guild Guard"}, COMPOSED_PROFILE_TARGETS)
+    self.assertRegex(
+        compact,
+        r"\{2006002, ROL_SOURCE_PERIODIC_SC_MERCHANT, 0, 20, 0, 0, true, false, true, "
+        r"ROL_SOURCE_PERIODIC_DEVOUR_NONE\}",
+    )
+    self.assertRegex(
+        compact,
+        r"\{2006051, ROL_SOURCE_PERIODIC_SC_COMMONER, 0, 15, 0, 0, true, false, true, "
+        r"ROL_SOURCE_PERIODIC_DEVOUR_NONE\}",
+    )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_ROOM_ACTION, true, "$n says: \'You may plead your case now.\'", '
+        "NULL, NULL}",
+        compact,
+    )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_ROOM_ACTION, true, "$n says: \'Can we get on with this?\'", '
+        "NULL, NULL}",
+        compact,
+    )
 
   def test_targeted_socials_preserve_source_targets_and_messages(self) -> None:
     generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
