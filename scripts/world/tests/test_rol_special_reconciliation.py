@@ -667,6 +667,12 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual("RoL Monster Combat", disposition["target"])
 
+  def test_hive_skriaxit_sandstorm_has_explicit_disposition(self) -> None:
+    disposition = handler_disposition("skriaxit_sandstorm")
+    self.assertEqual("resolved", disposition["status"])
+    self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+    self.assertEqual("RoL Monster Combat", disposition["target"])
+
   def test_source_definition_scanner_ignores_preprocessor_disabled_decoy(self) -> None:
     definitions = source_handler_definitions(
         self.root / "EXAMPLE/RealmsOfLuminari", {"tree_spirit"}
@@ -702,11 +708,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_392, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(329, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(581, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(214, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(858, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_394, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(327, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(582, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(213, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(860, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           207, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -809,6 +815,14 @@ class RolSpecialReconciliationTests(unittest.TestCase):
               "gc_urguthaForka": 96670,
           },
           successful_hit_vnums,
+      )
+      self.assertEqual(
+          {43741, 43742},
+          {
+              row["source_vnum"]
+              for row in binding_rows
+              if row["source_handler"] == "skriaxit_sandstorm"
+          },
       )
       automatic_rows = [
           json.loads(line)

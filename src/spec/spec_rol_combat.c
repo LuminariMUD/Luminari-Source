@@ -79,6 +79,7 @@ enum rol_monster_combat_effect
   ROL_MONSTER_DOBLUTH_BANSHEE_WAIL,
   ROL_MONSTER_DOBLUTH_BLADESTORM,
   ROL_MONSTER_HIVE_SANDSTORM_BEAST,
+  ROL_MONSTER_HIVE_SKRIAXIT_SANDSTORM,
   ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL,
   ROL_MONSTER_GREYCLOAK_FUMES,
   ROL_MONSTER_GREYCLOAK_ARALESH,
@@ -166,6 +167,10 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2043703, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
     {2043705, ROL_MONSTER_HIVE_SANDSTORM_BEAST, 16, "Room-wide sandstorm damage and blindness."},
     {2043728, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
+    {2043741, ROL_MONSTER_HIVE_SKRIAXIT_SANDSTORM, 1,
+     "Three-round sandstorm through open adjacent rooms."},
+    {2043742, ROL_MONSTER_HIVE_SKRIAXIT_SANDSTORM, 1,
+     "Three-round sandstorm through open adjacent rooms."},
     {2043744, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
     {2043745, ROL_MONSTER_MANSCORPION_VENOM_MEDIUM, 7, "Four-tick manscorpion venom."},
     {2043746, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
@@ -333,6 +338,42 @@ bool rol_monster_successful_hit_profile(int mobile_vnum, struct rol_monster_hit_
 bool rol_monster_successful_hit_roll_fires(int mobile_vnum, int roll)
 {
   return roll == 1 && rol_monster_successful_hit_profile(mobile_vnum, NULL);
+}
+
+bool rol_skriaxit_sandstorm_profile(int mobile_vnum, int *round_interval,
+                                    bool *reaches_open_adjacent_rooms)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+
+  if (profile == NULL || profile->effect != ROL_MONSTER_HIVE_SKRIAXIT_SANDSTORM)
+    return false;
+  if (round_interval != NULL)
+    *round_interval = 3;
+  if (reaches_open_adjacent_rooms != NULL)
+    *reaches_open_adjacent_rooms = true;
+  return true;
+}
+
+int rol_skriaxit_sandstorm_source_damage(int skriaxit_count)
+{
+  /* The bound source room loop resets this count before evaluating 3 * num. */
+  (void)skriaxit_count;
+  return 0;
+}
+
+int rol_skriaxit_sandstorm_advance_round(int current_round, bool *fires)
+{
+  bool result = false;
+
+  current_round = MAX(0, current_round) + 1;
+  if (current_round >= 3)
+  {
+    current_round = 0;
+    result = true;
+  }
+  if (fires != NULL)
+    *fires = result;
+  return current_round;
 }
 
 bool rol_manscorpion_venom_profile(int mobile_vnum, int *proc_denominator, int *duration,
@@ -2058,6 +2099,92 @@ static int rol_monster_command(struct spec_event_context *context,
   }
 }
 
+static bool rol_skriaxit_sandstorm_target(struct char_data *ch, struct char_data *victim)
+{
+  struct char_data *owner;
+
+  if (ch == NULL || victim == NULL || victim == ch || !VALID_ROOM_RNUM(IN_ROOM(victim)) ||
+      ROOM_FLAGGED(IN_ROOM(victim), ROOM_PEACEFUL) || IS_INCORPOREAL(victim) ||
+      (IS_ELEMENTAL(victim) &&
+       (HAS_SUBRACE(victim, SUBRACE_AIR) || HAS_SUBRACE(victim, SUBRACE_EARTH))))
+    return false;
+  if (!IS_NPC(victim))
+    return GET_LEVEL(victim) < LVL_IMMORT && aoeOK(ch, victim, -1);
+  if (!IS_PET(victim) || (owner = victim->master) == NULL || IS_NPC(owner) ||
+      GET_LEVEL(owner) >= LVL_IMMORT)
+    return false;
+  return aoeOK(ch, owner, -1);
+}
+
+static bool rol_skriaxit_sandstorm_resisted(struct char_data *ch, struct char_data *victim)
+{
+  int resistance = compute_spell_res(ch, victim, 0);
+
+  return resistance > 0 && d20(ch) + 48 < resistance;
+}
+
+static void rol_skriaxit_sandstorm_dispel(struct char_data *ch, struct char_data *victim)
+{
+  struct affected_type *af;
+  const char *wearoff;
+
+  if (rol_skriaxit_sandstorm_resisted(ch, victim))
+    return;
+  for (af = victim->affected; af != NULL; af = af->next)
+  {
+    if (af->spell < 1 || af->spell > TOP_SPELL_DEFINE ||
+        savingthrow(ch, victim, SAVING_WILL, 0, CAST_INNATE, 48, NOSCHOOL))
+      continue;
+    wearoff = get_wearoff(af->spell);
+    if (wearoff != NULL && wearoff[0] != '\0' && wearoff[0] != '!')
+      send_to_char(victim, "%s\r\n", wearoff);
+    affect_remove(victim, af);
+    return;
+  }
+}
+
+static void rol_skriaxit_sandstorm_room(struct char_data *ch, room_rnum room)
+{
+  struct char_data *victim;
+  struct char_data *next;
+
+  if (ch == NULL || !VALID_ROOM_RNUM(room))
+    return;
+  send_to_room(room, "\tyA violent sandstorm blasts through the area.\tn\r\n");
+  for (victim = world[room].people; victim != NULL; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!rol_skriaxit_sandstorm_target(ch, victim))
+      continue;
+
+    /* Source damage is zero because its room loop resets the passed Skriaxit count. */
+    rol_skriaxit_sandstorm_dispel(ch, victim);
+  }
+}
+
+static int rol_skriaxit_sandstorm_activity(struct char_data *ch)
+{
+  struct room_direction_data *exit;
+  bool fires;
+  int direction;
+
+  ch->mob_specials.proc_fired =
+      rol_skriaxit_sandstorm_advance_round(ch->mob_specials.proc_fired, &fires);
+  if (!fires || ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+    return FALSE;
+
+  rol_skriaxit_sandstorm_room(ch, IN_ROOM(ch));
+  for (direction = NORTH; direction <= DOWN; direction++)
+  {
+    exit = world[IN_ROOM(ch)].dir_option[direction];
+    if (exit == NULL || exit->to_room == NOWHERE || IS_SET(exit->exit_info, EX_CLOSED) ||
+        !VALID_ROOM_RNUM(exit->to_room) || world[exit->to_room].people == NULL)
+      continue;
+    rol_skriaxit_sandstorm_room(ch, exit->to_room);
+  }
+  return FALSE;
+}
+
 static int rol_monster_activity(struct spec_event_context *context,
                                 const struct rol_monster_combat_profile *profile,
                                 struct char_data *ch)
@@ -2066,6 +2193,8 @@ static int rol_monster_activity(struct spec_event_context *context,
 
   switch (profile->effect)
   {
+  case ROL_MONSTER_HIVE_SKRIAXIT_SANDSTORM:
+    return rol_skriaxit_sandstorm_activity(ch);
   case ROL_MONSTER_SMALL_PRISMATIC:
     return rol_monster_small_prismatic_activity(context, ch);
   case ROL_MONSTER_CHICKEN:
@@ -2214,6 +2343,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_DOBLUTH_BANSHEE_WAIL:
   case ROL_MONSTER_DOBLUTH_BLADESTORM:
   case ROL_MONSTER_HIVE_SANDSTORM_BEAST:
+  case ROL_MONSTER_HIVE_SKRIAXIT_SANDSTORM:
   case ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL:
   case ROL_MONSTER_GREYCLOAK_FUMES:
   case ROL_MONSTER_GREYCLOAK_ARALESH:
@@ -2316,6 +2446,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_DOBLUTH_BANSHEE_WAIL:
   case ROL_MONSTER_DOBLUTH_BLADESTORM:
   case ROL_MONSTER_HIVE_SANDSTORM_BEAST:
+  case ROL_MONSTER_HIVE_SKRIAXIT_SANDSTORM:
   case ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL:
   case ROL_MONSTER_GREYCLOAK_FUMES:
   case ROL_MONSTER_GREYCLOAK_ARALESH:

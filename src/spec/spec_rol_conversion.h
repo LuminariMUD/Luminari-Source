@@ -232,6 +232,10 @@ size_t rol_monster_combat_profile_count(void);
 bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const char **description);
 bool rol_monster_successful_hit_profile(int mobile_vnum, struct rol_monster_hit_profile_view *view);
 bool rol_monster_successful_hit_roll_fires(int mobile_vnum, int roll);
+bool rol_skriaxit_sandstorm_profile(int mobile_vnum, int *round_interval,
+                                    bool *reaches_open_adjacent_rooms);
+int rol_skriaxit_sandstorm_source_damage(int skriaxit_count);
+int rol_skriaxit_sandstorm_advance_round(int current_round, bool *fires);
 bool rol_seelie_faerie_profile(int mobile_vnum, bool *faerie_fire, bool *prismatic, bool *search);
 bool rol_seelie_faerie_runs_while_disabled(int mobile_vnum);
 int rol_seelie_prismatic_beam_count(int roll);

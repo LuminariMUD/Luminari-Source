@@ -215,6 +215,7 @@ ADAPTED_HANDLER_NAMES = {
     "dk_bansheeWail": "RoL Monster Combat",
     "dk_bladestorm": "RoL Monster Combat",
     "ms_sandstorm_beast": "RoL Monster Combat",
+    "skriaxit_sandstorm": "RoL Monster Combat",
     "gc_araleshTandar": "RoL Monster Combat",
     "gc_bansheWail": "RoL Monster Combat",
     "gc_urguthaForka": "RoL Monster Combat",

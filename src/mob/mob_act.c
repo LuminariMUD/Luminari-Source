@@ -105,7 +105,8 @@ void mobile_activity(void)
       else
       {
         if ((!disabled || (spec_func == rol_monster_combat &&
-                           rol_seelie_faerie_runs_while_disabled(GET_MOB_VNUM(ch)))) &&
+                           (rol_seelie_faerie_runs_while_disabled(GET_MOB_VNUM(ch)) ||
+                            rol_skriaxit_sandstorm_profile(GET_MOB_VNUM(ch), NULL, NULL)))) &&
             spec_gateway_mobile_activity(ch, spec_func))
           continue; /* go to next char */
       }

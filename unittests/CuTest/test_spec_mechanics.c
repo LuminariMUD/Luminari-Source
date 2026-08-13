@@ -1940,13 +1940,13 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
       2005718, 2012005, 2012006, 2012024, 2012025, 2012026, 2014015, 2014026, 2014029, 2014601,
       2014605, 2015113, 2015125, 2019701, 2019750, 2020247, 2020378, 2021786, 2021820, 2026208,
       2026216, 2026225, 2026236, 2026238, 2026241, 2026242, 2026243, 2026244, 2026245, 2034833,
-      2041900, 2043358, 2043702, 2043703, 2043705, 2043728, 2043744, 2043745, 2043746, 2043756,
-      2043758, 2043759, 2043761, 2043767, 2043768, 2043769, 2043770, 2043778, 2043780, 2045116,
-      2045146, 2045182, 2051246, 2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835,
-      2062401, 2062402, 2062405, 2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706,
-      2062707, 2062708, 2062710, 2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717,
-      2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2092608, 2096631, 2096670, 2096672,
-      2097061,
+      2041900, 2043358, 2043702, 2043703, 2043705, 2043728, 2043741, 2043742, 2043744, 2043745,
+      2043746, 2043756, 2043758, 2043759, 2043761, 2043767, 2043768, 2043769, 2043770, 2043778,
+      2043780, 2045116, 2045146, 2045182, 2051246, 2051333, 2051334, 2053264, 2053265, 2053266,
+      2059815, 2059835, 2062401, 2062402, 2062405, 2062406, 2062701, 2062702, 2062703, 2062704,
+      2062705, 2062706, 2062707, 2062708, 2062710, 2062711, 2062712, 2062713, 2062714, 2062715,
+      2062716, 2062717, 2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2092608, 2096631,
+      2096670, 2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2101,6 +2101,59 @@ void Test_spec_rol_successful_hit_area_profiles(CuTest *tc)
   CuAssertTrue(tc, !rol_monster_successful_hit_roll_fires(2096672, 2));
   CuAssertTrue(tc, !rol_monster_successful_hit_profile(2096671, NULL));
   CuAssertTrue(tc, !rol_monster_successful_hit_roll_fires(2096671, 1));
+}
+
+void Test_spec_rol_skriaxit_sandstorm_profiles_and_cadence(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  struct player_special_data player_specials;
+  bool adjacent;
+  bool fires;
+  int interval;
+  int round;
+
+  CuAssertTrue(tc, rol_skriaxit_sandstorm_profile(2043741, &interval, &adjacent));
+  CuAssertIntEquals(tc, 3, interval);
+  CuAssertTrue(tc, adjacent);
+  CuAssertTrue(tc, rol_skriaxit_sandstorm_profile(2043742, NULL, NULL));
+  CuAssertTrue(tc, !rol_skriaxit_sandstorm_profile(2043740, NULL, NULL));
+  CuAssertIntEquals(tc, 0, rol_skriaxit_sandstorm_source_damage(0));
+  CuAssertIntEquals(tc, 0, rol_skriaxit_sandstorm_source_damage(7));
+
+  round = rol_skriaxit_sandstorm_advance_round(0, &fires);
+  CuAssertIntEquals(tc, 1, round);
+  CuAssertTrue(tc, !fires);
+  round = rol_skriaxit_sandstorm_advance_round(round, &fires);
+  CuAssertIntEquals(tc, 2, round);
+  CuAssertTrue(tc, !fires);
+  round = rol_skriaxit_sandstorm_advance_round(round, &fires);
+  CuAssertIntEquals(tc, 0, round);
+  CuAssertTrue(tc, fires);
+  CuAssertIntEquals(tc, 1, rol_skriaxit_sandstorm_advance_round(-1, NULL));
+
+  spec_mechanics_begin(&fixture);
+  memset(&context, 0, sizeof(context));
+  memset(&player_specials, 0, sizeof(player_specials));
+  fixture.mobile_indexes[0].vnum = 2043741;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
+  fixture.target.player_specials = &player_specials;
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_MOBILE_ACTIVITY;
+  context.owner = &fixture.actor;
+  context.actor = &fixture.actor;
+
+  CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
+  CuAssertIntEquals(tc, 1, fixture.actor.mob_specials.proc_fired);
+  CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
+  CuAssertIntEquals(tc, 2, fixture.actor.mob_specials.proc_fired);
+  CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
+  CuAssertIntEquals(tc, 0, fixture.actor.mob_specials.proc_fired);
+
+  fixture.target.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
+  spec_mechanics_end(&fixture);
 }
 
 void Test_spec_rol_seelie_search_reveals_first_hidden_target(CuTest *tc)

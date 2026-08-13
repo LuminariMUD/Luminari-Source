@@ -2629,6 +2629,7 @@ class RolTransformTests(unittest.TestCase):
         "dk_bansheeWail",
         "dk_bladestorm",
         "ms_sandstorm_beast",
+        "skriaxit_sandstorm",
         "gc_araleshTandar",
         "gc_bansheWail",
         "gc_urguthaForka",
