@@ -9,6 +9,72 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Trahern Erinyes charm lifecycle
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled the active `erinyesCharm` and `erinyesCharmed` bindings on converted mobile
+  2020246 through one exact identity profile in the existing typed `RoL Monster Combat` runtime.
+  The converter merges both source callbacks into one persisted procedure and `ACT_SPEC` flag.
+- Preserved either-sex mortal targeting, awake and out-of-combat gates, one-in-four attempts,
+  telepathy, the source command whitelist, both restraint lines, follower state, and the
+  one-to-four-MUD-hour delayed heart-ripping execution. Combat and a new charm attempt defer a
+  due execution by one MUD hour, and followers die one at a time.
+- Translated the source `-1` save modifier to target `+1` because source `NewSaves` treats lower
+  values as stronger saves while the target treats higher values as stronger saves. Corrected
+  the shared planar Succubus adapter from target `-2` to `+2` for the same source `-2` contract.
+- Retained target-native spell resistance, mind blank, no-charm equipment, charm immunity, and
+  Will-save protections without adding the Succubus-only sex or Blackguard-service gates to the
+  Trahern identity.
+- Added deterministic profile, target eligibility, source-to-target save translation, live charm
+  and deadline, command interception, converter, explicit-disposition, and ledger-count
+  regressions.
+- Regenerated deterministic evidence. Resolution increases from 1,596 to 1,598 static bindings
+  and from 688 to 690 direct handlers, leaving 123 bindings across 105 handlers in 26 source
+  files. The independent `ACT_SPEC` cross-check remains 819 resolved and 29 pending because the
+  source Erinyes prototype does not carry that independent record flag.
+- Reforecast twenty-nine corrected batches covering 352 bindings across 152 handlers. The
+  remaining Phase 6 envelope stays 10-20 sessions, or 20-80 focused engineering hours; the full
+  remaining project envelope stays 66-104 sessions, or 132-416 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: cabd6bfc
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-trahern-erinyes
+Reconciliation run: rol-phase6-special-f01d2b62f6185eea
+Evidence tree SHA-256: a56d8ccbd906b2ca32569977581b29327a3798078dab47781aadd8572d270c87
+Active direct bindings: 1,721
+Direct bindings resolved: 1,598
+Direct bindings pending: 123
+Source handlers resolved: 690
+Source handlers pending: 105
+Additional handler families resolved: 2
+Additional direct bindings resolved: 2
+Native adapted bindings: 1,043
+Native adapted composable bindings: 219
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 819
+ACT_SPEC records pending: 29
+Complete world-tool suite: 364 passed
+Production-linked CuTest suite: 692 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 066556515b8fd25334296448fdd6acd1a0c331b5
+Installed SHA-256: b6edd047785afbe954964e46e15c6d61ffa6158d20dc192d711429e68bee108f
+Evidence artifact hashes: 7 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+No player helpfile changed because this checkpoint adds no player command or syntax. The staff
+manual records eligibility, defenses, save translation, command restraint, deadlines, combat and
+attempt deferral, one-at-a-time execution, and the dependency-stage boundary.
+
 ## 2026-08-13 - Phase 6 Trahern combat handlers
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

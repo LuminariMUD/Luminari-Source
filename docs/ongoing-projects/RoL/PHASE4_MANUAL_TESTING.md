@@ -1873,6 +1873,34 @@ These handlers are production-tested and reconciled, but the current five-zone p
 Trahern package. Exercise them only after a Phase 7 stage supplies all three mobiles and the exact
 Kazgoroth destination; do not substitute an arbitrary room for 2020237.
 
+### Phase 6 Trahern Erinyes charm lifecycle
+
+- In a dependency-complete Trahern stage, confirm Erinyes 2020246 persists one merged `RoL
+  Monster Combat` procedure and `ACT_SPEC` despite its two source callbacks. It must not initiate
+  ordinary aggressive combat; test the charm while it is awake and not already fighting.
+- Place eligible mortal PCs of each sex in the room. Each is eligible, unlike the separate planar
+  Succubus identity, which remains sex-selective. On roughly one-fourth of activity pulses, the
+  Erinyes must send its telepathic invitation and make the source-equivalent Will save. Verify the
+  source `-1` modifier is represented as target `+1`, and that spell resistance, mind blank,
+  no-charm equipment, charm immunity, existing charm, NPC status, and immortality prevent charm.
+- After a failed save, verify the PC follows the Erinyes with charm state and sees the source
+  success message. The room must see the matching helplessness message. A successful save must
+  show the source resistance line without creating follower or deadline state.
+- While charmed, verify only `score`, `tell`, `shout`, `look`, `help`, `who`, `weather`, `save`,
+  `quit`, `time`, `toggle`, `ooc`, `commands`, `attributes`, and `petition` pass. Every other
+  command must be stopped with both source restraint lines.
+- Advance the deadline through its one-to-four-MUD-hour range. If the Erinyes is fighting or a new
+  charm attempt occurs when the deadline is due, execution must defer one MUD hour. Otherwise it
+  must approach the first charmed follower, emit the murderous-grin and heart-ripping messages,
+  kill that follower, and schedule the next follower one hour later rather than killing all at
+  once.
+- Recheck planar Succubus charm saves. Their source `-2` modifier must now be target `+2`; this is
+  the correct translation between source lower-is-better and target higher-is-better save APIs.
+
+This lifecycle is production-tested and reconciled, but the current five-zone pilot contains no
+Trahern Erinyes. Exercise it only after a Phase 7 stage supplies mobile 2020246 and its surrounding
+package; do not substitute the distinct planar Succubus identity.
+
 ### RoL exit-trap compatibility
 
 - Swamp Two room 2026051 contains the pilot's converted exit trap on the down exit. It
@@ -1907,8 +1935,8 @@ Kazgoroth destination; do not substitute an arbitrary room for 2020237.
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,596 are resolved and 125 remain. Of 795 distinct
-  direct source handlers, 688 are resolved and 107 remain. Of 848 `ACT_SPEC` records, 819
+  of the 1,721 active direct bindings, 1,598 are resolved and 123 remain. Of 795 distinct
+  direct source handlers, 690 are resolved and 105 remain. Of 848 `ACT_SPEC` records, 819
   are resolved and 29 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
