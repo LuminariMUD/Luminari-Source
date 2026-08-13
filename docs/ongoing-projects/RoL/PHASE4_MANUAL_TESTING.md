@@ -767,6 +767,33 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   behavior on the same mobile and do not require a new mobile flag or second persisted
   SpecProc. An unrelated mobile must retain the ordinary target death/corpse path.
 
+### Phase 6 converted Seelie faerie profiles
+
+- Build a dependency-complete Seelie Court stage containing mobiles 2062701-2062708,
+  2062710-2062717, and 2062721-2062722. Confirm all 18 use `RoL Monster Combat` with
+  `MOB_SPEC`; mobile 2062709 is not part of this family.
+- Confirm the exact capability combinations shown by `medit`: 2062701, 2062703-2062705,
+  2062707, and 2062712-2062713 have prism, faerie fire, and search; 2062706, 2062711,
+  and 2062717 have prism and search; 2062708, 2062714, and 2062721 have prism and faerie
+  fire; 2062702, 2062710, and 2062715-2062716 have search only; 2062722 has faerie fire only.
+- Fight a prism-capable faerie and observe multiple activity pulses. About one pulse in three
+  should form a rainbow. Each eligible PC or pet receives independently one or two distinct
+  colored beams: red, orange, and yellow deal 420, 280, and 140 illusion damage before a Will
+  save halves the result; blue, indigo, green, violet, and azure invoke hold monster,
+  feeblemind, poison, dispel magic, and blindness through target-native spell safety.
+- Stun or knock down a prism-capable faerie while it remains in combat. Its special procedure
+  must still run; on an eligible prism pulse it has the authored 22 percent chance to recover to
+  standing and fire, otherwise it reports that it cannot gather its strength. Unrelated disabled
+  mobiles must remain blocked by the ordinary activity gate.
+- Fight a faerie-fire-capable mobile. About one eligible pulse in six should outline every valid
+  PC or pet target in purplish flames for duration three, apply target AC modifier -2, and remove
+  invisibility or hiding. The caster must then respect the dedicated three-MUD-day recovery
+  event before using faerie fire again.
+- Hide a mortal or pet as the first eligible room target near a search-capable mobile. Search
+  must reveal it, interrupt casting, move it to reclining, and apply a safe three-round stun;
+  illusionist 2062707 uses six rounds. The source event is consumed after the first eligible
+  target, even when that target is not hidden.
+
 ### Phase 6 converted Waterdeep ambient citizens
 
 - Build dependency-complete stages containing the first 34 converted ambient citizens:
@@ -1189,8 +1216,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,332 are resolved and 389 remain. Of 795 distinct
-  direct source handlers, 568 are resolved and 227 remain. Of 848 `ACT_SPEC` records, 799
+  of the 1,721 active direct bindings, 1,370 are resolved and 351 remain. Of 795 distinct
+  direct source handlers, 571 are resolved and 224 remain. Of 848 `ACT_SPEC` records, 799
   are resolved and 49 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

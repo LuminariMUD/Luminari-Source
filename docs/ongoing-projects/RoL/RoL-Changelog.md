@@ -9,6 +9,64 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Seelie faerie family
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled 38 Seelie Court bindings across `standard_faerie_prism`,
+  `standard_faerie_ff`, and `faerie_search` on 18 converted mobiles. All use the persistent
+  `RoL Monster Combat` mobile procedure with exact identity-owned capability profiles.
+- Preserved the source prismatic cadence and beam multiplicity, eight distinct color outcomes,
+  target-native saves and safety checks, faerie-fire cadence and cooldown, and hidden-target
+  search/reveal/stun behavior. Seelie profiles retain their authored chance to act and recover
+  while disabled without relaxing the disabled gate for unrelated mobiles.
+- Added exact profile, binding-set, helper, gateway, and production-linked behavioral coverage.
+  No player helpfile changed because the batch adds no command or syntax; the staff manual now
+  covers the converted Seelie behaviors.
+- Regenerated the corrected Phase 6 evidence. Resolution increases from 1,332 to 1,370 static
+  bindings and from 568 to 571 direct handlers, leaving 351 bindings across 224 handlers in 34
+  source files. The independent `ACT_SPEC` cross-check remains 799 resolved and 49 pending.
+- Reforecast the six corrected batches, which closed 124 bindings across 33 handlers. The
+  binding-count projection is about 17 additional batches and the handler-diversity projection
+  about 41; the measured Phase 6 envelope is therefore 18-41 sessions, or 36-164 focused
+  engineering hours. The full remaining project envelope is 74-125 sessions, or 148-500
+  focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commits: f945051b, f40a5e48
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-seelie-faerie
+Reconciliation run: rol-phase6-special-66858c11e3301a3e
+Evidence tree SHA-256: c52763d7c464a3b18ac97026a9462e79d8b510a1c44cfc95b2757bf38033f2c8
+Active direct bindings: 1,721
+Direct bindings resolved: 1,370
+Direct bindings pending: 351
+Source handlers resolved: 571
+Source handlers pending: 224
+Additional handler families resolved: 3
+Additional direct bindings resolved: 38
+Native adapted bindings: 836
+Native adapted composable bindings: 207
+ACT_SPEC records resolved: 799
+ACT_SPEC records pending: 49
+Complete world-tool suite: 330 passed
+Production-linked CuTest suite: 666 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 7e5309c5e4da2c8daa72dd579d14fbf2ded461c4
+Installed SHA-256: 30b3c1ce894fa329aa183d41c626076da859d16cea9161a75b70f5eb0e28a387
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with another dependency-complete shared-runtime family. Reforecast after
+another material batch or any inventory correction.
+
 ## 2026-08-13 - Phase 6 Darkhold elemental deaths
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

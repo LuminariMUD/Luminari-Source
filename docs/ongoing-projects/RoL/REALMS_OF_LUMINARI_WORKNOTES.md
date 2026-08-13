@@ -347,10 +347,10 @@ Policy:  rol-conversion-policy-2
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
 - The world-tool suite passes 316 tests; the production-linked CuTest suite passes 661;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The corrected discovery repair and five subsequent denominator-bearing batches are archived.
-  Those batches closed 86 bindings across 30 source handlers. The measured remaining Phase 6
-  forecast is 24-38 sessions, or 48-152 focused engineering hours; the full remaining project
-  range is 80-122 sessions, or 160-488 focused hours.
+- The corrected discovery repair and six subsequent denominator-bearing batches are archived.
+  Those batches closed 124 bindings across 33 source handlers. The measured remaining Phase 6
+  forecast is 18-41 sessions, or 36-164 focused engineering hours; the full remaining project
+  range is 74-125 sessions, or 148-500 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -399,8 +399,8 @@ Policy:  rol-conversion-policy-2
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
 - The repaired Phase 6 inventory accounts for 1,721 active direct bindings across 795 source
-  handlers and locates all 795 source definitions. The current reconciliation resolves 1,332
-  bindings across 568 handlers and leaves 389 bindings across 227 handlers.
+  handlers and locates all 795 source definitions. The current reconciliation resolves 1,370
+  bindings across 571 handlers and leaves 351 bindings across 224 handlers.
 - The independent `ACT_SPEC` cross-check resolves 799 of 848 records and leaves 49
   pending. It remains a scheduling cross-check rather than the direct-binding denominator;
   composition-safe flags and room or object procedures can resolve source handlers without
@@ -671,10 +671,10 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,332 static bindings and leaves 389 pending. It resolves
-  568 direct handler names and leaves 227 pending across 34 source files. The pending set has
+- The corrected reconciler resolves 1,370 static bindings and leaves 351 pending. It resolves
+  571 direct handler names and leaves 224 pending across 34 source files. The pending set has
   177 singleton handlers, 37 handlers with two to four bindings, seven with five to nine, and
-  six with at least ten bindings.
+  three with at least ten bindings.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
   shopkeeper path accounts for 453 active shops and hosts. Both are resolved through the target
@@ -718,48 +718,54 @@ Policy:  rol-conversion-policy-2
   existing composable death-profile runtime. Converted fire, air, water, and earth elementals
   drop their mapped ruby, diamond, aquamarine, or golden nugget while retaining the source's
   ordinary-corpse path.
-- The five corrected batches close 86 bindings across 30 handlers. That measured throughput
-  puts the binding-count projection near 23 sessions and the handler-diversity projection near
-  38. Because 177 remaining handlers are singletons, the published Phase 6 envelope is 24-38
-  sessions, or 48-152 focused engineering hours. Reforecast after corrected batch six or a
-  material inventory correction.
+- The Seelie faerie batch closes 38 bindings across three handlers on 18 converted mobiles.
+  Exact identity profiles compose the source prismatic, faerie-fire, and hidden-target search
+  capabilities through `RoL Monster Combat`; the gateway also preserves the source chance to
+  act and recover while disabled without changing unrelated mobiles.
+- The six corrected batches close 124 bindings across 33 handlers. That measured throughput
+  puts the binding-count projection near 17 sessions and the handler-diversity projection near
+  41. Because 177 remaining handlers are singletons, the published Phase 6 envelope is 18-41
+  sessions, or 36-164 focused engineering hours. Reforecast after another material batch or an
+  inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
 1. Reconcile the corrected pending inventory in dependency-complete shared-runtime batches.
-2. Trace the remaining planar combat and death handlers together with behavior-identical aliases
-   in Undermountain or Avernus; do not batch merely by name or VNUM proximity.
+2. Trace the next dependency-complete combat, death, or utility family together with
+   behavior-identical aliases; do not batch merely by name or VNUM proximity.
 3. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
 4. Preserve the six locked malformed record exclusions as explicit, logged
    smallest-unit exclusions.
 5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the 24-38-session Phase 6 envelope and reforecast after corrected
-   batch six or a material inventory correction.
+6. Measure throughput against the 18-41-session Phase 6 envelope and reforecast after another
+   material batch or an inventory correction.
 
 ## Latest session handoff
 
-- Reconciled the four Darkhold elemental death handlers and bindings through the existing
-  composable death-profile runtime. Each converted mobile drops its exact mapped reward object,
-  emits its authored message, and returns to the ordinary corpse path.
-- Added production-linked end-to-end coverage for all four mapped object drops, message and
-  corpse-policy assertions, exact converter dispositions, source VNUM ownership, and production
-  reconciliation totals.
+- Reconciled 38 Seelie Court bindings across `standard_faerie_prism`,
+  `standard_faerie_ff`, and `faerie_search` on 18 converted mobiles through exact capability
+  profiles owned by the persistent `RoL Monster Combat` procedure.
+- Preserved the prismatic cadence, beam multiplicity and eight color outcomes, faerie-fire
+  cadence and cooldown, hidden-target search/reveal/stun behavior, and the source ability to act
+  while disabled. Added exact profile, binding-set, helper, gateway, and production-linked
+  behavioral coverage.
 - Regenerated and hash-verified the authoritative Phase 6 bundle at
-  `lib/rol-conversion/runs/phase6-special-20260813-darkhold-elemental-deaths`. A same-timestamp
-  repeat was byte-identical and reproduced run ID `rol-phase6-special-cc108f5e1415f677`.
+  `lib/rol-conversion/runs/phase6-special-20260813-seelie-faerie`. A same-timestamp repeat was
+  byte-identical and reproduced run ID `rol-phase6-special-66858c11e3301a3e` and tree digest
+  `c52763d7c464a3b18ac97026a9462e79d8b510a1c44cfc95b2757bf38033f2c8`.
 - The corrected Phase 6 denominator remains 1,721 live static plus 5,531 resolved dynamic
-  binding instances. This closure raises static resolution to 1,332 and handler resolution to
-  568, leaving 389 bindings across 227 handlers in 34 source files. The `ACT_SPEC` cross-check
+  binding instances. This closure raises static resolution to 1,370 and handler resolution to
+  571, leaving 351 bindings across 224 handlers in 34 source files. The `ACT_SPEC` cross-check
   is 799 resolved and 49 pending.
-- Final validation passed: 328 world-tool tests, 665 production-linked CuTests, zero
+- Final validation passed: 330 world-tool tests, 666 production-linked CuTests, zero
   documentation findings, a warning-free Autotools build/test/install, and no root-level
-  `circle`. Installed build ID `5d7ea680d07384ff360d8d36354b42aaf9dd1fda`; SHA-256
-  `d81c639065cf56913f175dc0ae46cf1cbfb7d488810d9bb4c26d6d0d24d0b4d0`.
+  `circle`. Installed build ID `7e5309c5e4da2c8daa72dd579d14fbf2ded461c4`; SHA-256
+  `30b3c1ce894fa329aa183d41c626076da859d16cea9161a75b70f5eb0e28a387`.
 - No player helpfile changed: the batch adds no command or syntax. The staff manual matrix now
-  covers the four mapped death drops and corpse expectations.
-- The five-batch sample sets the Phase 6 envelope at 24-38 sessions. Next, complete corrected
-  batch six from a dependency-complete shared-runtime family and perform the scheduled
-  reforecast.
+  covers the 18 Seelie mobiles and their combat, reveal, disabled-state, and cooldown behavior.
+- The six-batch sample sets the Phase 6 envelope at 18-41 sessions, or 36-164 focused hours.
+  Next, complete another dependency-complete shared-runtime family and reforecast after a
+  material batch or inventory correction.
