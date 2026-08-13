@@ -1983,6 +1983,8 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertTrue(tc, !prismatic);
   CuAssertTrue(tc, !search);
   CuAssertTrue(tc, !rol_seelie_faerie_profile(2062709, NULL, NULL, NULL));
+  CuAssertTrue(tc, rol_seelie_faerie_runs_while_disabled(2062701));
+  CuAssertTrue(tc, !rol_seelie_faerie_runs_while_disabled(2062709));
   CuAssertIntEquals(tc, 0, rol_seelie_prismatic_beam_count(1));
   CuAssertIntEquals(tc, 1, rol_seelie_prismatic_beam_count(2));
   CuAssertIntEquals(tc, 1, rol_seelie_prismatic_beam_count(3));

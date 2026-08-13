@@ -51,6 +51,7 @@ void mobile_activity(void)
   struct char_data *room_people = NULL; /* Cache for room occupants */
   SPECIAL_DECL(*spec_func);             /* Cache for spec proc function */
   int mob_rnum = 0;                     /* Cache for mob rnum */
+  bool disabled = false;
 
   for (ch = character_list; ch; ch = next_ch)
   {
@@ -76,12 +77,9 @@ void mobile_activity(void)
     if (MOB_FLAGGED(ch, MOB_NO_AI))
       continue;
 
-    if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) || AFF_FLAGGED(ch, AFF_DAZED) ||
-        char_has_mud_event(ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED))
-    {
-      send_to_char(ch, "You are unable to move!\r\n");
-      continue;
-    }
+    disabled = AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
+               AFF_FLAGGED(ch, AFF_DAZED) || char_has_mud_event(ch, eSTUNNED) ||
+               AFF_FLAGGED(ch, AFF_NAUSEATED);
 
     /* Examine call for special procedure */
     /* not the AWAKE() type of checks are inside the spec_procs */
@@ -106,9 +104,17 @@ void mobile_activity(void)
       }
       else
       {
-        if (spec_gateway_mobile_activity(ch, spec_func))
+        if ((!disabled || (spec_func == rol_monster_combat &&
+                           rol_seelie_faerie_runs_while_disabled(GET_MOB_VNUM(ch)))) &&
+            spec_gateway_mobile_activity(ch, spec_func))
           continue; /* go to next char */
       }
+    }
+
+    if (disabled)
+    {
+      send_to_char(ch, "You are unable to move!\r\n");
+      continue;
     }
 
     /* can't do any of the following if not at least AWAKE() and not casting */

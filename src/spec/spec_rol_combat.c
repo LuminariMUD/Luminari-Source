@@ -289,6 +289,11 @@ bool rol_seelie_faerie_profile(int mobile_vnum, bool *faerie_fire, bool *prismat
   return true;
 }
 
+bool rol_seelie_faerie_runs_while_disabled(int mobile_vnum)
+{
+  return rol_seelie_faerie_profile_for(mobile_vnum) != NULL;
+}
+
 int rol_seelie_prismatic_beam_count(int roll)
 {
   if (roll < 2 || roll > 5)

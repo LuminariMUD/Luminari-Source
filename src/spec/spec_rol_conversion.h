@@ -220,6 +220,7 @@ bool rol_undead_drain_profile(int mobile_vnum, int *chance_sides, int *marker_af
 size_t rol_monster_combat_profile_count(void);
 bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const char **description);
 bool rol_seelie_faerie_profile(int mobile_vnum, bool *faerie_fire, bool *prismatic, bool *search);
+bool rol_seelie_faerie_runs_while_disabled(int mobile_vnum);
 int rol_seelie_prismatic_beam_count(int roll);
 int rol_seelie_prismatic_damage(int color);
 int rol_seelie_search_stun_rounds(int mobile_vnum);
