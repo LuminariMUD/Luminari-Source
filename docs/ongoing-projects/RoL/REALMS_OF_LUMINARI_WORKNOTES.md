@@ -342,6 +342,9 @@ Phase 6 Hive Skriaxit sandstorm:
 Phase 6 planar death, bursts, and Balor weapons:
   lib/rol-conversion/runs/phase6-special-20260813-planar-death-bursts-weapons
   rol-phase6-special-1f5bf8c5d82f76a4
+Phase 6 planar capture, charm, and Vrock dance:
+  lib/rol-conversion/runs/phase6-special-20260813-planar-capture-charm-dance
+  rol-phase6-special-dd88e66849111ed1
 Policy:  rol-conversion-policy-2
 ```
 
@@ -370,12 +373,12 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 335 tests; the production-linked CuTest suite passes 672;
+- The world-tool suite passes 335 tests; the production-linked CuTest suite passes 673;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The corrected discovery repair and ten subsequent denominator-bearing batches are archived.
-  Those batches closed 166 bindings across 52 source handlers. The measured remaining Phase 6
-  forecast is 19-40 sessions, or 38-160 focused engineering hours; the full remaining project
-  range is 75-124 sessions, or 150-496 focused hours.
+- The corrected discovery repair and eleven subsequent denominator-bearing batches are archived.
+  Those batches closed 177 bindings across 57 source handlers. The measured remaining Phase 6
+  forecast is 19-39 sessions, or 38-156 focused engineering hours; the full remaining project
+  range is 75-123 sessions, or 150-492 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -424,9 +427,9 @@ Policy:  rol-conversion-policy-2
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
 - The repaired Phase 6 inventory accounts for 1,721 active direct bindings across 795 source
-  handlers and locates all 795 source definitions. The current reconciliation resolves 1,412
-  bindings across 590 handlers and leaves 309 bindings across 205 handlers.
-- The independent `ACT_SPEC` cross-check resolves 801 of 848 records and leaves 47
+  handlers and locates all 795 source definitions. The current reconciliation resolves 1,423
+  bindings across 595 handlers and leaves 298 bindings across 200 handlers.
+- The independent `ACT_SPEC` cross-check resolves 805 of 848 records and leaves 43
   pending. It remains a scheduling cross-check rather than the direct-binding denominator;
   composition-safe flags and room or object procedures can resolve source handlers without
   changing this mobile-only count.
@@ -696,16 +699,16 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,412 static bindings and leaves 309 pending. It resolves
-  590 direct handler names and leaves 205 pending across 34 source files. The pending set has
-  167 singleton handlers, 31 handlers with two to four bindings, four with five to nine, and
+- The corrected reconciler resolves 1,423 static bindings and leaves 298 pending. It resolves
+  595 direct handler names and leaves 200 pending across 33 source files. The pending set has
+  167 singleton handlers, 26 handlers with two to four bindings, four with five to nine, and
   three with at least ten bindings.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
   shopkeeper path accounts for 453 active shops and hosts. Both are resolved through the target
   data-driven HLQuest and shop services. Static and dynamic paths total 7,252 active binding
   instances across 797 handler names.
-- The regenerated `ACT_SPEC` cross-check resolves 801 of 848 records and leaves 47 pending.
+- The regenerated `ACT_SPEC` cross-check resolves 805 of 848 records and leaves 43 pending.
   Automatic race composition still resolves all 247 implicit bindings; 85 now compose with a
   direct binding and 162 are implicit-only.
 - The prior 1,112/1,147 binding, 538/562 handler, and 830/848 `ACT_SPEC` split is historical
@@ -771,68 +774,78 @@ Policy:  rol-conversion-policy-2
   source code's actual 20d2 spike damage, five-in-six trigger, 2-5 targets, save bonus, and
   three-round cooldown. Chasme buzz is explicitly source-inert because its callback tests the
   demon owner rather than the victim.
-- The ten corrected batches close 166 bindings across 52 handlers. That measured throughput
+- The planar capture, charm, and Vrock-dance batch closes 11 bindings across five handlers.
+  Glabrezus and Mariliths preserve their one-in-11 capture, strict raw-stat escape and death
+  thresholds, captive command whitelist, and delayed ordinary-combat attack. Succubi preserve
+  male targeting, one-in-four charm attempts, the source -2 save pressure, higher-level
+  Blackguard service, captive commands, and one-to-four-hour lethal kisses while adding native
+  charm immunity and resistance gates. Five active Vrocks now perform three timed dance stages,
+  deal one shared 20d10 lightning roll with a Reflex save for half, and cool down for one MUD
+  day. Cohort completion and abort repair the source's wrong-variable flag-clear defect.
+- The eleven corrected batches close 177 bindings across 57 handlers. That measured throughput
   puts the binding-count projection near 19 sessions and the handler-diversity projection near
-  40. Because 167 remaining handlers are singletons, the published Phase 6 envelope is 19-40
-  sessions, or 38-160 focused engineering hours. Reforecast after another material batch or an
+  39. Because 167 remaining handlers are singletons, the published Phase 6 envelope is 19-39
+  sessions, or 38-156 focused engineering hours. Reforecast after another material batch or an
   inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
 1. Reconcile the corrected pending inventory in dependency-complete shared-runtime batches.
-2. Trace the remaining planar capture, charm, and Vrock-dance handlers as one coherent group,
-   then select the next dependency-complete combat, death, or utility family; do not batch
-   merely by name or VNUM proximity.
+2. Trace and select the highest-value dependency-complete combat, death, or utility family; do
+   not batch merely by name or VNUM proximity.
 3. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
 4. Preserve the six locked malformed record exclusions as explicit, logged
    smallest-unit exclusions.
 5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the 19-40-session Phase 6 envelope and reforecast after another
+6. Measure throughput against the 19-39-session Phase 6 envelope and reforecast after another
    material batch or an inventory correction.
 
 ## Latest session handoff
 
-- Reconciled 18 planar bindings across eight source handlers. Manes, Balors, Vrocks, and
-  Spinagons use exact profiles on `RoL Monster Combat`; Balor whip 2093227 and lightning sword
-  2093228 use `RoL Weapon Proc`. Both Chasme buzz bindings are recorded as source-inert because
-  their callback tests the demon owner's race and therefore cannot enter its sleep branch.
-- Added the typed mobile-death contract to the shared monster procedure. Manes emit a native-safe
-  4d6 acid burst with demon immunity and a Fortitude save while retaining their ordinary corpse.
-  Balors retain elemental protection, provision missing sword and whip slots, dissolve
-  abyss-forged weapons through the existing death hook, and suppress their ordinary corpse.
-- Preserved independent Vrock screech and spore cooldowns, including the <=15-percent-health,
-  mortal-PC Constitution check, silence and soundproof gates, one-round stun, one-MUD-day
-  screech cooldown, five-in-six spore trigger, 10d2 poison damage, and three-round spore cooldown.
-- Preserved the Spinagon's five-in-six trigger, 2-5 native-safe targets, elemental-protection
-  Reflex bonus, and three-round cooldown. The port intentionally uses the active source code's
-  `20d2` fire roll rather than its contradictory `2d20` comment.
-- Added demon-only Balor weapon ownership, automatic destruction for invalid carried or worn
-  owners, and pet-safe combat suppression. The whip deals 8d6 unavoidable force damage on each
-  qualifying hit. Sword criticals deal 20d10 negative energy and choose between a one-in-five
-  safe room burst and a direct branch with four Constitution plus four Strength penalties.
-- Regenerated and hash-verified the authoritative Phase 6 bundle at
-  `lib/rol-conversion/runs/phase6-special-20260813-planar-death-bursts-weapons`. A same-timestamp
-  repeat was byte-identical and reproduced run ID `rol-phase6-special-1f5bf8c5d82f76a4` and
-  standard path-and-content tree digest
-  `677be3adf7d8dae6bb3123e8ac9646effc9597ca31970861d4c1224e4c0b5a46`.
+- Implementation and evidence commit `ba20b88a` reconciles 11 planar bindings across five source
+  handlers. Glabrezus 2000212 and 2093205, Mariliths 2000215 and 2093206, Succubi 2000220 and
+  2093202, and Vrocks 2000221, 2093209, and 2093210 use exact profiles on the persistent
+  `RoL Monster Combat` procedure.
+- Glabrezu pincers and Marilith tails preserve the source one-in-11 trigger, strict raw-Dexterity
+  half-stat evasion, 1-85 raw-Constitution survival check, lethal crush, charmed-follower
+  captivity, source command whitelist, and delayed ordinary combat. The one-captive state clears
+  safely when its source conditions no longer hold.
+- Succubi preserve male mortal targeting, one-in-four attempts, the source -2 save pressure,
+  charmed-follower commands, one-to-four-MUD-hour lethal kiss, combat deferral, and one-at-a-time
+  captive deaths. The source Antipaladin role maps to the target Blackguard class. Native mind
+  blank, no-charm equipment, charm immunity, spell resistance, and Will saves remain effective.
+- Five eligible fighting Vrocks now enter a three-stage dance on violence-pulse timing, continue
+  progression while disabled, recover from a lost timer leader, abort below five dancers, and
+  explode for one shared 20d10 lightning roll with target-native area safety and a Reflex save
+  for half. Every completing dancer receives the source one-MUD-day cooldown.
+- The port repairs the source dance's wrong-variable defect: abort and completion clear the full
+  cohort instead of repeatedly clearing only the callback owner and leaving peer Vrocks
+  permanently disabled. The converter and active-source inventory tests cover all 11 bindings.
+- The authoritative evidence is
+  `lib/rol-conversion/runs/phase6-special-20260813-planar-capture-charm-dance`, run
+  `rol-phase6-special-dd88e66849111ed1`. A same-timestamp repeat was byte-identical. The standard
+  path-and-content tree digest is
+  `d48594262af67ecc335a571ad43da69325523c44490e9c5c278ef2929c841b53`.
 - The binding ledger SHA-256 is
-  `bc9e0d8e7901db7f536de9f7e119752dfaed606d27e9694d9f117f68341f933f`; the handler inventory
-  SHA-256 is `a43576faa3b95e6df7bd3bf00ae76f4a44a54ca24662831cd1908b81186c0424`; and the summary
-  SHA-256 is `42e38b32c482ea7b6ee81dcb52484b9ee6bf6ecc77c8c40d4ec0edd01dcce2b4`.
-- The corrected Phase 6 denominator remains 1,721 live static plus 5,531 resolved dynamic
-  binding instances. This closure raises static resolution to 1,412 and handler resolution to
-  590, leaving 309 bindings across 205 handlers in 34 source files. The `ACT_SPEC` cross-check
-  is 801 resolved and 47 pending.
-- Final validation passed: 335 world-tool tests, 672 production-linked CuTests, zero
+  `4edb4cd1662797201a75f83886807292ad5a7c7c13c7dbdaefa460beb7d27c16`; the handler inventory
+  SHA-256 is `4d1336698e034b28c71a70fb7514c2543b7bdddee5d5e00ee6dcf990fad75d6e`; and the summary
+  SHA-256 is `336dfd0c3b87a576601ed6e78782b28fa93f939ccf93037d5ac402deb625939b`.
+- The denominator remains 1,721 live static plus 5,531 resolved dynamic binding instances.
+  Resolution is now 1,423 static bindings across 595 handlers, leaving 298 bindings across 200
+  handlers in 33 source files. The independent `ACT_SPEC` cross-check is 805 resolved and 43
+  pending; all automatic race and dynamic paths remain complete, with zero live target writes.
+- Final validation passed: 335 world-tool tests, 673 production-linked CuTests, zero
   documentation findings, a warning-free Autotools build/test/install, and no root-level
-  `circle`. Installed build ID `1cf293861de5d4835aef3e2879252d332bacd337`; SHA-256
-  `d87dbdd1c7ef5641ca35e0baef6f54da63960b43be52b9da5648fa87199619cb`.
-- No player helpfile changed because the batch adds no command or syntax. The staff manual matrix
-  covers every converted identity, death path, cooldown, save, ownership rule, weapon branch,
-  safe area selection, source-inert exclusion, and the Spinagon source/comment mismatch.
-- The ten-batch sample sets the Phase 6 envelope at 19-40 sessions, or 38-160 focused hours.
-  Next, close the remaining planar capture, charm, and Vrock-dance group before selecting the
-  next dependency-complete family.
+  `circle`. Installed build ID `a164aca4acd785fb02a4eb3a4ae262cf086efb09`; SHA-256
+  `c5a0b194c45fc2f9ac1d2e5b56b84818ec397b843cf50f6e18ef3904449aa83f`.
+- No player helpfile changed because the batch adds no player command or syntax. The staff manual
+  now covers every converted identity, capture threshold, captive command, charm defense, timed
+  kiss, dance stage, abort, leader recovery, shared damage roll, save, cooldown, and source-bug
+  repair.
+- Eleven measured batches have closed 177 bindings across 57 handlers. The remaining Phase 6
+  envelope is 19-39 sessions, or 38-156 focused hours; the full remaining project envelope is
+  75-123 sessions, or 150-492 focused hours. Next, trace the highest-value dependency-complete
+  pending family.

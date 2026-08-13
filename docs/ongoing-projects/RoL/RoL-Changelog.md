@@ -9,6 +9,71 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 planar capture, charm, and Vrock dance
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled 11 bindings across five planar handlers on exact `RoL Monster Combat` identity
+  profiles: Glabrezu grab, Marilith tail, Succubus charm, Succubus captive commands, and Vrock
+  dance of ruin.
+- Preserved the Glabrezu and Marilith one-in-11 trigger, strict raw-Dexterity half-stat evasion,
+  1-85 raw-Constitution survival check, lethal crush, charmed-follower captivity, source command
+  whitelist, and delayed ordinary-combat attack.
+- Preserved male mortal targeting, one-in-four charm attempts, the source -2 save pressure,
+  one-to-four-MUD-hour lethal kisses, combat deferral, and one-at-a-time captive deaths for
+  Succubi. The source Antipaladin role maps to target Blackguards; target-native mind blank,
+  no-charm equipment, charm immunity, spell resistance, and Will saves protect eligible PCs.
+- Added the full five-member Vrock dance: three violence-pulse stages, disabled-state timer
+  progress, leader recovery, below-five abort, one shared 20d10 lightning roll, target-native
+  Reflex saves and area safety, and a one-MUD-day cohort cooldown.
+- Repaired the source dance's wrong-variable defect. Abort and completion now clear all dancers
+  instead of repeatedly clearing the callback owner and leaving peers permanently disabled.
+- Added exact converter, source-inventory, profile, threshold, command, delay, dance, and typed
+  command-gateway coverage. No player helpfile changed because the batch adds no player command
+  or syntax; the staff manual records the dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,412 to 1,423 static bindings
+  and from 590 to 595 direct handlers, leaving 298 bindings across 200 handlers in 33 source
+  files. The independent `ACT_SPEC` cross-check moves to 805 resolved and 43 pending.
+- Reforecast eleven corrected batches covering 177 bindings across 57 handlers. The remaining
+  Phase 6 envelope is 19-39 sessions, or 38-156 focused engineering hours; the full remaining
+  project envelope is 75-123 sessions, or 150-492 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: ba20b88a
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-planar-capture-charm-dance
+Reconciliation run: rol-phase6-special-dd88e66849111ed1
+Evidence tree SHA-256: d48594262af67ecc335a571ad43da69325523c44490e9c5c278ef2929c841b53
+Active direct bindings: 1,721
+Direct bindings resolved: 1,423
+Direct bindings pending: 298
+Source handlers resolved: 595
+Source handlers pending: 200
+Additional handler families resolved: 5
+Additional direct bindings resolved: 11
+Native adapted bindings: 887
+Native adapted composable bindings: 207
+Source-inert exclusions: 31
+ACT_SPEC records resolved: 805
+ACT_SPEC records pending: 43
+Complete world-tool suite: 335 passed
+Production-linked CuTest suite: 673 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: a164aca4acd785fb02a4eb3a4ae262cf086efb09
+Installed SHA-256: c5a0b194c45fc2f9ac1d2e5b56b84818ec397b843cf50f6e18ef3904449aa83f
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the highest-value dependency-complete pending combat, death, or utility
+family selected through source and target call-path tracing.
+
 ## 2026-08-13 - Phase 6 planar deaths, bursts, and Balor weapons
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

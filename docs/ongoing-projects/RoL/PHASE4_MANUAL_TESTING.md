@@ -925,6 +925,49 @@ These profiles are automated and reconciled but are absent from the current five
 Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
 into the pilot.
 
+### Phase 6 converted planar capture, charm, and Vrock dance profiles
+
+- Build dependency-complete planar stages containing Glabrezus 2000212 and 2093205, Mariliths
+  2000215 and 2093206, Succubi 2000220 and 2093202, and at least five instances drawn from
+  Vrocks 2000221, 2093209, and 2093210. Confirm each uses `RoL Monster Combat`; unrelated
+  identities must not receive these profiles.
+- Land repeated qualifying hits with each Glabrezu and Marilith. About one in 11 attempts must
+  test the current opponent's raw Dexterity against the source strict-less-than half-stat rule.
+  A failed evasion then compares a 1-85 roll to raw Constitution: a higher roll kills the target,
+  while a surviving target becomes a charmed follower held by pincers or tail.
+- While held, try movement, combat, inventory, and other commands. They must be blocked. The
+  source whitelist remains available: score, tell, shout, look, help, who, weather, save, quit,
+  time, toggle, ooc, commands, attributes, and petition. When the captor is no longer fighting,
+  its next activity pulse must begin ordinary combat with the captive. If it is already fighting
+  or the captive is gone, the one-captive state clears safely.
+- Put eligible male mortal players with each Succubus and observe idle activity. Charm attempts
+  occur on about one in four eligible scans. Mind blank, no-charm equipment, native charm
+  immunity, spell resistance, or the target-native Will save at the source -2 modifier must
+  prevent control. A failed defense makes the player a charmed follower and schedules the
+  lethal kiss one to four MUD hours later.
+- Put a higher-level male Blackguard in the room. An unbound Succubus must recognize the target
+  equivalent of the source Antipaladin and become his charmed follower instead. A bound
+  Succubus must not create a follow loop with her master.
+- Confirm Succubus captives receive the same command whitelist and hazy-thought restriction.
+  When the kiss deadline arrives out of combat, the first captive dies. A deadline reached
+  during combat moves one MUD hour later; additional captives are handled one at a time.
+- Start five eligible fighting Vrocks in one room and land a hit. The whole eligible cohort must
+  enter the dance, suppress ordinary Vrock burst handling while dancing, and advance through
+  two escalating chants and an explosion at intervals of one violence pulse. Disabled dancers
+  must still advance because the source used timer events.
+- Remove a dancer from combat before a stage. With fewer than five active dancers, the dance
+  must abort and clear every remaining cohort member. Kill or move the timer leader and confirm
+  another dancer takes over. This intentionally repairs the source's wrong-variable defect,
+  which otherwise leaves peer Vrocks permanently marked as dancing.
+- Let the dance complete. Roll one shared 20d10 lightning amount for eligible mortal PCs in the
+  room; each target receives a target-native Reflex save for half and native area safety excludes
+  protected targets. Every dancer then enters a one-MUD-day cooldown and may resume its ordinary
+  screech and spore paths but cannot start another dance until the cooldown expires.
+
+These profiles are automated and reconciled but are absent from the current five-zone pilot.
+Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
+into the pilot.
+
 ### Phase 6 converted Waterdeep ambient citizens
 
 - Build dependency-complete stages containing the first 34 converted ambient citizens:
@@ -1347,9 +1390,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,412 are resolved and 309 remain. Of 795 distinct
-  direct source handlers, 590 are resolved and 205 remain. Of 848 `ACT_SPEC` records, 801
-  are resolved and 47 remain. The automatic race procedures
+  of the 1,721 active direct bindings, 1,423 are resolved and 298 remain. Of 795 distinct
+  direct source handlers, 595 are resolved and 200 remain. Of 848 `ACT_SPEC` records, 805
+  are resolved and 43 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
