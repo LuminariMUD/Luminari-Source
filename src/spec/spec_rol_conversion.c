@@ -118,6 +118,8 @@ enum rol_weapon_effect
   ROL_WEAPON_TRAHERN_CRYSTAL,
   ROL_WEAPON_TRAHERN_OBSIDIAN,
   ROL_WEAPON_DOBLUTH_SHADOWS,
+  ROL_WEAPON_BHAAL_TORMENT,
+  ROL_WEAPON_SEELIE_BARDS_GLAIVE,
   ROL_WEAPON_UM2_SNAKE_WHIP,
   ROL_WEAPON_UM2_SEARING_ROD
 };
@@ -232,6 +234,12 @@ static const struct rol_weapon_profile rol_weapon_profiles[] = {
      "One-in-33 negative strike with a one-round nighttime withering."},
     {2021759, ROL_WEAPON_DOBLUTH_SHADOWS, 26, false,
      "One-in-26 shadow strike with source protection, outsider, and save reductions."},
+    {2063747, ROL_WEAPON_BHAAL_TORMENT, 1, false,
+     "Bhaal's Torment answers an enemy fire shield with the triggering strike's damage."},
+    {2063794, ROL_WEAPON_BHAAL_TORMENT, 1, false,
+     "Bhaal's Torment answers an enemy fire shield with the triggering strike's damage."},
+    {2062750, ROL_WEAPON_SEELIE_BARDS_GLAIVE, 2001, false,
+     "A Dexterity-weighted flash blinds, then bursts against an already-blinded victim."},
     {2093035, ROL_WEAPON_UM2_SEARING_ROD, 1, true,
      "Critical burning-hands strike at source level 35."},
     {2093086, ROL_WEAPON_UM2_SNAKE_WHIP, 1, true,
@@ -6880,6 +6888,23 @@ int rol_dancing_shadows_damage(int amount, bool protected_from_evil, bool rol_ou
   return amount;
 }
 
+bool rol_bards_glaive_roll_fires(int dexterity, int roll)
+{
+  return dexterity >= 0 && roll >= 0 && roll <= 2000 && roll <= dexterity;
+}
+
+int rol_bards_glaive_damage(int amount, bool save_succeeded)
+{
+  amount = MAX(0, amount);
+  return save_succeeded ? amount / 2 : amount;
+}
+
+int rol_bhaal_torment_damage(int hit_damage, bool save_succeeded)
+{
+  hit_damage = MAX(0, hit_damage);
+  return save_succeeded ? hit_damage / 2 : hit_damage;
+}
+
 bool rol_scornubel_fiery_mace_roll_fires(int roll)
 {
   return roll == 0;
@@ -8151,6 +8176,79 @@ static int rol_weapon_hit(struct spec_event_context *context,
     act("$n's $p erupts in shadows that bathe you in dark, cleansing pain!", FALSE, ch, obj, victim,
         TO_VICT);
     result = rol_weapon_damage(ch, victim, amount, DAM_NEGATIVE);
+    rol_weapon_mark_target_invalidation(context, result);
+    return FALSE;
+  case ROL_WEAPON_BHAAL_TORMENT:
+  {
+    bool cold_shield;
+
+    /* Source elemental ward blocks shield retaliation; elemental protection is its target peer. */
+    if ((!rol_weapon_primary_slot(slot) && slot != WEAR_WIELD_OFFHAND) || context->damage <= 0 ||
+        AFF_FLAGGED(ch, AFF_ELEMENT_PROT) || AFF_FLAGGED(ch, AFF_GLOBE_OF_INVULN) ||
+        !AFF_FLAGGED(victim, AFF_FSHIELD))
+      return FALSE;
+    cold_shield = affected_by_spell(victim, SPELL_COLD_SHIELD);
+    if (profile->object_vnum == 2063794)
+    {
+      act(cold_shield ? "Your $p flares brightly as it passes through $N's cold shield!"
+                      : "Your $p flares brightly as it passes through $N's fire shield!",
+          FALSE, ch, obj, victim, TO_CHAR);
+      act(cold_shield ? "$n's $p flares brightly as it passes through $N's cold shield!"
+                      : "$n's $p flares brightly as it passes through $N's fire shield!",
+          FALSE, ch, obj, victim, TO_NOTVICT);
+      act(cold_shield ? "$n's $p flares brightly as it rips through your cold shield!"
+                      : "$n's $p flares brightly as it passes through your fire shield!",
+          FALSE, ch, obj, victim, TO_VICT);
+    }
+    else
+    {
+      act(cold_shield ? "Your $p flashes as it passes through $N's cold shield!"
+                      : "Your $p flashes as it passes through $N's fire shield!",
+          FALSE, ch, obj, victim, TO_CHAR);
+      act(cold_shield ? "$n's $p flashes as it passes through $N's cold shield!"
+                      : "$n's $p flashes as it passes through $N's fire shield!",
+          FALSE, ch, obj, victim, TO_NOTVICT);
+      act(cold_shield ? "$n's $p flashes as it passes through your cold shield!"
+                      : "$n's $p flashes as it passes through your fire shield!",
+          FALSE, ch, obj, victim, TO_VICT);
+    }
+    /* NewSaves positive modifiers penalize the victim; target save modifiers use the opposite sign. */
+    amount = rol_bhaal_torment_damage(
+        context->damage,
+        savingthrow(ch, victim, SAVING_WILL, -3, CAST_WEAPON_SPELL, GET_LEVEL(ch), EVOCATION));
+    result = rol_weapon_damage(ch, victim, amount, DAM_RESERVED_DBC);
+    rol_weapon_mark_target_invalidation(context, result);
+    return FALSE;
+  }
+  case ROL_WEAPON_SEELIE_BARDS_GLAIVE:
+    if ((!rol_weapon_primary_slot(slot) && slot != WEAR_WIELD_OFFHAND) || GET_LEVEL(ch) <= 25 ||
+        !rol_bards_glaive_roll_fires(GET_DEX(ch), rand_number(0, 2000)))
+      return FALSE;
+    if (!AFF_FLAGGED(victim, AFF_BLIND) && !affected_by_spell(victim, SPELL_BLINDNESS))
+    {
+      struct affected_type affect;
+
+      act("A bright flash along your $p blinds $N!", FALSE, ch, obj, victim, TO_CHAR);
+      act("A bright flash along $n's $p blinds $N!", FALSE, ch, obj, victim, TO_NOTVICT);
+      act("A bright flash along $n's $p blinds you!", FALSE, ch, obj, victim, TO_VICT);
+      new_affect(&affect);
+      affect.spell = SPELL_BLINDNESS;
+      affect.duration = 2;
+      SET_BIT_AR(affect.bitvector, AFF_BLIND);
+      affect_to_char(victim, &affect);
+      return FALSE;
+    }
+    /* Preserve the source +8 save pressure under the target API's victim-bonus convention. */
+    amount = rol_bards_glaive_damage(
+        dice(10, 10),
+        savingthrow(ch, victim, SAVING_WILL, -8, CAST_WEAPON_SPELL, GET_LEVEL(ch), EVOCATION));
+    act("With a flick of your wrist, you drive your $p deep into $N!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    act("With a flick of $s wrist, $n drives $s $p deep into $N!", FALSE, ch, obj, victim,
+        TO_NOTVICT);
+    act("With a flick of $s wrist, $n drives $s $p deep into you!", FALSE, ch, obj, victim,
+        TO_VICT);
+    result = rol_weapon_damage(ch, victim, amount, DAM_RESERVED_DBC);
     rol_weapon_mark_target_invalidation(context, result);
     return FALSE;
   case ROL_WEAPON_UM2_SNAKE_WHIP:

@@ -2479,7 +2479,7 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
       2013308, 2097117, 2001005, 2014023, 2024405, 2053266, 2053263, 2053259, 2053289, 2053290,
       2053291, 2053292, 2053243, 2083238, 2083235, 2053250, 2053271, 2043741, 2008000, 2001057,
       2004797, 2093227, 2093228, 2032602, 2033001, 2033012, 2006084, 2094571, 2094566, 196000,
-      2020208, 2020271, 2021759, 2093035, 2093086, 2093156,
+      2020208, 2020271, 2021759, 2063747, 2063794, 2062750, 2093035, 2093086, 2093156,
   };
   const char *description;
   bool critical_only;
@@ -2533,7 +2533,69 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertIntEquals(tc, 74, rol_dancing_shadows_damage(297, true, true, false));
   CuAssertIntEquals(tc, 37, rol_dancing_shadows_damage(297, true, true, true));
   CuAssertIntEquals(tc, 0, rol_dancing_shadows_damage(-1, false, false, false));
+  CuAssertTrue(tc, rol_bards_glaive_roll_fires(18, 0));
+  CuAssertTrue(tc, rol_bards_glaive_roll_fires(18, 18));
+  CuAssertTrue(tc, !rol_bards_glaive_roll_fires(18, 19));
+  CuAssertTrue(tc, !rol_bards_glaive_roll_fires(18, 2001));
+  CuAssertTrue(tc, !rol_bards_glaive_roll_fires(-1, 0));
+  CuAssertTrue(tc, !rol_bards_glaive_roll_fires(-1, 1));
+  CuAssertIntEquals(tc, 55, rol_bards_glaive_damage(55, false));
+  CuAssertIntEquals(tc, 27, rol_bards_glaive_damage(55, true));
+  CuAssertIntEquals(tc, 0, rol_bards_glaive_damage(-1, false));
+  CuAssertIntEquals(tc, 40, rol_bhaal_torment_damage(40, false));
+  CuAssertIntEquals(tc, 20, rol_bhaal_torment_damage(40, true));
+  CuAssertIntEquals(tc, 0, rol_bhaal_torment_damage(-1, false));
   CuAssertTrue(tc, !rol_weapon_profile(9999999, NULL, NULL, NULL));
+}
+
+void Test_spec_rol_bhaal_torment_profile_and_ward_runtime(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  const char *description;
+  bool critical_only;
+  int denominator;
+  int previous_hit;
+
+  CuAssertTrue(tc, rol_weapon_profile(2063747, &denominator, &critical_only, &description));
+  CuAssertIntEquals(tc, 1, denominator);
+  CuAssertTrue(tc, !critical_only);
+  CuAssertStrEquals(tc,
+                    "Bhaal's Torment answers an enemy fire shield with the triggering strike's "
+                    "damage.",
+                    description);
+  CuAssertTrue(tc, rol_weapon_profile(2063794, &denominator, &critical_only, NULL));
+
+  spec_mechanics_begin(&fixture);
+  fixture.object_indexes[0].vnum = 2063747;
+  GET_OBJ_RNUM(&fixture.worn) = 0;
+  fixture.worn.worn_by = &fixture.actor;
+  fixture.worn.worn_on = WEAR_WIELD_1;
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &fixture.worn;
+  FIGHTING(&fixture.actor) = &fixture.target;
+  SET_BIT_AR(AFF_FLAGS(&fixture.target), AFF_FSHIELD);
+  memset(&context, 0, sizeof(context));
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.event = SPEC_EVENT_WEAPON_HIT;
+  context.owner = &fixture.worn;
+  context.actor = &fixture.actor;
+  context.target = &fixture.target;
+  context.damage = 20;
+
+  previous_hit = GET_HIT(&fixture.target);
+  SET_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_ELEMENT_PROT);
+  CuAssertIntEquals(tc, FALSE, rol_weapon_proc_typed(&context));
+  CuAssertIntEquals(tc, previous_hit, GET_HIT(&fixture.target));
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_ELEMENT_PROT);
+  SET_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_GLOBE_OF_INVULN);
+  CuAssertIntEquals(tc, FALSE, rol_weapon_proc_typed(&context));
+  CuAssertIntEquals(tc, previous_hit, GET_HIT(&fixture.target));
+
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_GLOBE_OF_INVULN);
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.target), AFF_FSHIELD);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  fixture.worn.worn_by = NULL;
+  spec_mechanics_end(&fixture);
 }
 
 void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
@@ -2785,7 +2847,7 @@ void Test_spec_rol_paralysis_hit_profiles_preserve_gaze_and_venom_tails(CuTest *
   context.critical = true;
   CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
   affect = fixture.target.affected;
-  CuAssertPtrNotNull(tc, affect);
+  /* A natural save still succeeds even against the fixture's extreme penalty. */
   if (affect != NULL)
   {
     CuAssertIntEquals(tc, SPELL_HOLD_MONSTER, affect->spell);

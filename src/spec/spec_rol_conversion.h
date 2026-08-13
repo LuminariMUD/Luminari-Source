@@ -217,6 +217,9 @@ bool rol_obsidian_sword_nighttime(int hour);
 int rol_obsidian_sword_ac_penalty(void);
 int rol_dancing_shadows_damage(int amount, bool protected_from_evil, bool rol_outsider,
                                bool save_succeeded);
+bool rol_bards_glaive_roll_fires(int dexterity, int roll);
+int rol_bards_glaive_damage(int amount, bool save_succeeded);
+int rol_bhaal_torment_damage(int hit_damage, bool save_succeeded);
 bool rol_scornubel_fiery_mace_roll_fires(int roll);
 int rol_scornubel_fiery_mace_damage(void);
 bool rol_balor_weapon_profile(int object_vnum, int *dice_count, int *dice_size, int *damage_type);
