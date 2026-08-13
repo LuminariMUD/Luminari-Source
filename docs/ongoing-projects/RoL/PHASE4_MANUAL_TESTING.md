@@ -1849,6 +1849,30 @@ These deaths are production-tested and reconciled, but the current five-zone pil
 Vortex Knight package. Exercise them only after a Phase 7 stage supplies all three Knights, all
 three portals, and all three destination rooms; do not hand-create only one side of a portal.
 
+### Phase 6 Trahern combat handlers
+
+- In a dependency-complete Trahern stage, confirm Gakarak 2020217, Kazgoroth 2020234, and Slothen
+  2020248 persist `RoL Monster Combat` and `ACT_SPEC`. Kazgoroth also requires destination room
+  2020237; an unavailable destination must log an explicit error without moving or damaging the
+  target.
+- Fight Gakarak with multiple standing occupants in the room. On roughly one-third of successful
+  hits, the root-quake message must appear. Each occupant whose `1..101` roll exceeds half current
+  Dexterity must sit and receive one violence pulse of wait; the attacker, already sitting or
+  lower occupants, and targets that pass the threshold must remain in place.
+- Fight Kazgoroth until the toss fires on a successful hit. Its current opponent must move to room
+  2020237, take typed `10d10` bludgeoning damage, leave combat on both sides, recline, and receive
+  a three-round stun if it survives. Verify bludgeoning defenses apply and a lethal toss does not
+  access an extracted target or create a combat event between different rooms.
+- Fight Slothen with an ordinary player opponent, grouped allies, uninvolved NPCs, and a hostile
+  eligible bystander present. On a proc, the opponent must take typed `10d15` acid. The room burst
+  must spare the attacker, group-safe targets, and unrelated protected NPCs; eligible targets that
+  fail the source-equivalent Fortitude save take typed `20d15` acid. Acid resistance must reduce
+  both damage paths, and lethal primary or area damage must invalidate targets safely.
+
+These handlers are production-tested and reconciled, but the current five-zone pilot contains no
+Trahern package. Exercise them only after a Phase 7 stage supplies all three mobiles and the exact
+Kazgoroth destination; do not substitute an arbitrary room for 2020237.
+
 ### RoL exit-trap compatibility
 
 - Swamp Two room 2026051 contains the pilot's converted exit trap on the down exit. It
@@ -1883,8 +1907,8 @@ three portals, and all three destination rooms; do not hand-create only one side
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,593 are resolved and 128 remain. Of 795 distinct
-  direct source handlers, 685 are resolved and 110 remain. Of 848 `ACT_SPEC` records, 819
+  of the 1,721 active direct bindings, 1,596 are resolved and 125 remain. Of 795 distinct
+  direct source handlers, 688 are resolved and 107 remain. Of 848 `ACT_SPEC` records, 819
   are resolved and 29 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

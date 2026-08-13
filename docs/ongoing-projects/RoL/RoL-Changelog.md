@@ -9,6 +9,69 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Trahern combat handlers
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled the three active `gakarakQuake`, `kazgorothToss`, and `slothenEngorge`
+  bindings through the existing typed `RoL Monster Combat` runtime. Converted mobiles
+  2020217, 2020234, and 2020248 persist the named procedure together with `ACT_SPEC`.
+- Preserved Gakarak's one-in-three successful-hit quake, room message, standing-target gate,
+  current-Dexterity threshold, forced sitting position, and one-violence-pulse wait.
+- Preserved Kazgoroth's one-in-three toss to converted room 2020237, `10d10` damage, reclining
+  survivor position, and three-round stun. The adapter uses typed bludgeoning damage and clears
+  both combat sides after movement so the native damage path cannot create cross-room combat.
+- Preserved Slothen's one-in-three engorge, typed `10d15` acid strike, and target-safe room burst.
+  Eligible targets that fail the source-equivalent Fortitude save take typed `20d15` acid;
+  target-native acid defenses and hit-context invalidation cover lethal paths.
+- Added deterministic profile, roll-boundary, destination, knockdown, stun, live toss-runtime,
+  converter, explicit-disposition, and ledger-count regressions. The toss adapter logs an
+  explicit error and makes no partial move when destination room 2020237 is unavailable.
+- Regenerated deterministic evidence. Resolution increases from 1,593 to 1,596 static bindings
+  and from 685 to 688 direct handlers, leaving 125 bindings across 107 handlers in 27 source
+  files. The independent `ACT_SPEC` cross-check remains 819 resolved and 29 pending.
+- Reforecast twenty-eight corrected batches covering 350 bindings across 150 handlers. The
+  remaining Phase 6 envelope stays 10-20 sessions, or 20-80 focused engineering hours; the full
+  remaining project envelope stays 66-104 sessions, or 132-416 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: d16c042a
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-trahern-combat
+Reconciliation run: rol-phase6-special-1b80d31d5e9aa8ba
+Evidence tree SHA-256: 66cb1a7c027bb55cec79726c6eab0aff8e91e44f780f60c7fe9a9b9ac404f0cb
+Active direct bindings: 1,721
+Direct bindings resolved: 1,596
+Direct bindings pending: 125
+Source handlers resolved: 688
+Source handlers pending: 107
+Additional handler families resolved: 3
+Additional direct bindings resolved: 3
+Native adapted bindings: 1,041
+Native adapted composable bindings: 219
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 819
+ACT_SPEC records pending: 29
+Complete world-tool suite: 364 passed
+Production-linked CuTest suite: 692 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 5fa752fd49bd94d2d5137c4b952865b3365553b7
+Installed SHA-256: 2c52f25d64d71e62193a633e3e68dd53c02f678b664b0844cbd5e95d32490777
+Evidence artifact hashes: 7 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+No player helpfile changed because this checkpoint adds no player command or syntax. The staff
+manual records the quake threshold, toss destination and combat cleanup, acid target-safety and
+save behavior, typed defenses, missing-destination diagnostic, and dependency-stage boundary.
+
 ## 2026-08-13 - Phase 6 Undermountain Vortex Knights
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
