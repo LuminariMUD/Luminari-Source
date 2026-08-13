@@ -1065,6 +1065,39 @@ These profiles are automated and reconciled but are absent from the current five
 Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
 into the pilot.
 
+### Phase 6 converted Darkhold special profiles
+
+- Build a dependency-complete Darkhold stage containing musical skulls and passage gems
+  2094501-2094511, bastard sword 2094566, warhammer 2094571, shadow fiend 2094505, and shadow
+  dragon 2094506. Confirm the skulls and gems use `RoL Darkhold Object`, both weapons use `RoL
+  Weapon Proc`, and both mobiles use `RoL Monster Combat` with `MOB_SPEC`. Unrelated identities
+  must not receive these profiles.
+- While awake, push summon skulls 2094501-2094503 and 2094505-2094507 by name from inventory,
+  equipment, and the ground. Each successful push must create mobile 2094500 in the actor's room,
+  emit the note and coalescing-mist messages, and retain the skull. Sleeping actors and unrelated
+  object names must not trigger the summon.
+- Put passage skull 2094504 on the ground and push it by name. It must remove `EX_BLOCKED` from
+  the north exit of room 2094666 and announce the revealed passage there. A repeated push must
+  say that nothing happens, and a carried skull must not open the passage.
+- Attempt to drop ruby/aquamarine objects 2094508 or 2094510 in room 2094667. The action must be
+  intercepted, retain the object, and route the south exit to 2094673. Repeat with gold/diamond
+  objects 2094509 or 2094511 in room 2094668 and confirm the north exit routes to 2094674. The
+  objects must drop normally outside their exact source rooms.
+- Kill shadow dragon 2094506 and confirm the north exit of room 2094675 becomes visible and
+  unlocked. On successful hits by shadow fiend 2094505 in a lit room, darkness may fire at most
+  once per MUD day. Its independent one-in-six mind steal may fire at most once per four violence
+  pulses, exempts staff, permits the source-pressure Will save, deals 45d10 source-untyped damage
+  on failure, and heals the fiend by the raw roll unless blackmantled.
+- Land repeated primary and two-handed hits with warhammer 2094571. About one in 21 must deal
+  30d10 source-untyped damage and preserve the ice-hammer messages; offhand hits must not proc.
+  Critical primary or two-handed hits with bastard sword 2094566 must add paired zero-duration
+  `SPELL_RAINBOW_PATTERN` hit/damage penalties of 4-7 for NPC victims or 2-5 for PCs. Repeated
+  criticals while marked must only emit the continuing-lights message and must not stack.
+
+These profiles are automated and reconciled but are absent from the current five-zone pilot.
+Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
+into the pilot.
+
 ### Phase 6 converted Scornubel profiles
 
 - Build a dependency-complete Scornubel stage containing mobiles 2006001, 2006002, 2006006,
@@ -1541,9 +1574,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,490 are resolved and 231 remain. Of 795 distinct
-  direct source handlers, 636 are resolved and 159 remain. Of 848 `ACT_SPEC` records, 805
-  are resolved and 43 remain. The automatic race procedures
+  of the 1,721 active direct bindings, 1,506 are resolved and 215 remain. Of 795 distinct
+  direct source handlers, 645 are resolved and 150 remain. Of 848 `ACT_SPEC` records, 806
+  are resolved and 42 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

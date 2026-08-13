@@ -9,6 +9,70 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Darkhold special family
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled all 16 active Darkhold bindings across nine source handlers: six summon-skull
+  assignments, one passage skull, four passage gems, two weapon procs, two shadow-fiend hit
+  callbacks, and one shadow-dragon death callback.
+- Added the typed `RoL Darkhold Object` procedure for 11 exact object identities. The six summon
+  skulls create mobile 2094500 without consumption; passage skull 2094504 opens the blocked north
+  passage in room 2094666; and the four gems intercept exact-room drops to repair the authored
+  south or north destinations.
+- Extended `RoL Monster Combat` for shadow fiend 2094505 and shadow dragon 2094506. The fiend
+  preserves independently cooling lit-room darkness and one-in-six mind steal, including staff
+  exemption, source-pressure Will save, 45d10 source-untyped damage, and blackmantle-aware healing.
+  The dragon reveals and unlocks the north exit of room 2094675 on death.
+- Extended `RoL Weapon Proc` for warhammer 2094571 and bastard sword 2094566. The warhammer keeps
+  its primary/two-handed one-in-21 30d10 ice proc; the sword keeps its critical-only paired
+  zero-duration hit/damage penalties, exact NPC and PC ranges, and nonstacking continuation path.
+- Added exact-profile, registry, conversion, passage, death, weapon-payload, reconciliation, and
+  production-runtime coverage. No player helpfile changed because this batch adds no player
+  command or syntax; the staff manual records the dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,490 to 1,506 static bindings
+  and from 636 to 645 direct handlers, leaving 215 bindings across 150 handlers in 30 source
+  files. The independent `ACT_SPEC` cross-check advances to 806 resolved and 42 pending.
+- Reforecast sixteen corrected batches covering 260 bindings across 107 handlers. The remaining
+  Phase 6 envelope is 14-23 sessions, or 28-92 focused engineering hours; the full remaining
+  project envelope is 70-107 sessions, or 140-428 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 90adccdb
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-darkhold
+Reconciliation run: rol-phase6-special-2b80ad51d6738778
+Evidence tree SHA-256: dfba4dbd1356e111bb74af08f7ca7734fd26fbc08b585238fa01d78350d5cd21
+Active direct bindings: 1,721
+Direct bindings resolved: 1,506
+Direct bindings pending: 215
+Source handlers resolved: 645
+Source handlers pending: 150
+Additional handler families resolved: 9
+Additional direct bindings resolved: 16
+Native adapted bindings: 968
+Native adapted composable bindings: 208
+Source-inert exclusions: 32
+ACT_SPEC records resolved: 806
+ACT_SPEC records pending: 42
+Complete world-tool suite: 343 passed
+Production-linked CuTest suite: 680 passed
+CMake build: passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: f674ff2371169a399a43a36bc2410681ccdff5bb
+Installed SHA-256: 8d46eea11db53ab58e7952aa1500aea97776dcefe71a06ab5b16e2d22106eb8d
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat, death, or utility family.
+
 ## 2026-08-13 - Phase 6 Zhentil periodic family
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
