@@ -26,6 +26,7 @@
 #include "../../src/spec/spec_phrase.h"
 #include "../../src/spec/spec_rol_avernus.h"
 #include "../../src/spec/spec_rol_conversion.h"
+#include "../../src/spec/spec_rol_darkhold.h"
 #include "../../src/spec/spec_rol_lavatubes.h"
 #include "../../src/spec/spec_rol_tarrasque.h"
 #include "../../src/spec/spec_rol_totem.h"
@@ -1459,6 +1460,196 @@ void Test_spec_rol_darkhold_elemental_deaths_drop_mapped_objects_and_keep_corpse
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_darkhold_profiles_preserve_source_identities_and_timing(CuTest *tc)
+{
+  static const int summon_skulls[] = {2094501, 2094502, 2094503, 2094505, 2094506, 2094507};
+  const char *description;
+  enum rol_darkhold_object_kind kind;
+  bool critical_only;
+  bool shadow_dragon;
+  bool shadow_fiend;
+  int denominator;
+  int destination_vnum;
+  int room_vnum;
+  size_t index;
+
+  CuAssertIntEquals(tc, 11, (int)rol_darkhold_object_profile_count());
+  for (index = 0; index < sizeof(summon_skulls) / sizeof(summon_skulls[0]); index++)
+  {
+    CuAssertTrue(tc, rol_darkhold_object_profile(summon_skulls[index], &kind, &room_vnum,
+                                                 &destination_vnum));
+    CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_SUMMON_SKULL, kind);
+    CuAssertIntEquals(tc, -1, room_vnum);
+    CuAssertIntEquals(tc, 2094500, destination_vnum);
+  }
+  CuAssertTrue(tc, rol_darkhold_object_profile(2094504, &kind, &room_vnum, &destination_vnum));
+  CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_PASSAGE_SKULL, kind);
+  CuAssertIntEquals(tc, 2094666, room_vnum);
+  CuAssertIntEquals(tc, -1, destination_vnum);
+  CuAssertTrue(tc, rol_darkhold_object_profile(2094508, &kind, &room_vnum, &destination_vnum));
+  CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_SOUTH_GEM, kind);
+  CuAssertIntEquals(tc, 2094667, room_vnum);
+  CuAssertIntEquals(tc, 2094673, destination_vnum);
+  CuAssertTrue(tc, rol_darkhold_object_profile(2094509, &kind, &room_vnum, &destination_vnum));
+  CuAssertIntEquals(tc, ROL_DARKHOLD_OBJECT_NORTH_GEM, kind);
+  CuAssertIntEquals(tc, 2094668, room_vnum);
+  CuAssertIntEquals(tc, 2094674, destination_vnum);
+  CuAssertTrue(tc, !rol_darkhold_object_profile(2094512, NULL, NULL, NULL));
+
+  CuAssertTrue(tc, rol_darkhold_monster_profile(2094505, &shadow_fiend, &shadow_dragon));
+  CuAssertTrue(tc, shadow_fiend);
+  CuAssertTrue(tc, !shadow_dragon);
+  CuAssertTrue(tc, rol_darkhold_monster_profile(2094506, &shadow_fiend, &shadow_dragon));
+  CuAssertTrue(tc, !shadow_fiend);
+  CuAssertTrue(tc, shadow_dragon);
+  CuAssertTrue(tc, !rol_darkhold_monster_profile(2094507, NULL, NULL));
+  CuAssertIntEquals(tc, SECS_PER_MUD_DAY, rol_darkhold_shadow_fiend_cooldown_seconds(true));
+  CuAssertIntEquals(tc, PULSE_VIOLENCE * 4, rol_darkhold_shadow_fiend_cooldown_seconds(false));
+  CuAssertTrue(tc, rol_darkhold_shadow_fiend_steal_roll_fires(0));
+  CuAssertTrue(tc, !rol_darkhold_shadow_fiend_steal_roll_fires(1));
+  CuAssertTrue(tc, rol_darkhold_warhammer_roll_fires(0));
+  CuAssertTrue(tc, !rol_darkhold_warhammer_roll_fires(20));
+  CuAssertIntEquals(tc, 4, rol_darkhold_bastard_modifier(true, 1));
+  CuAssertIntEquals(tc, 7, rol_darkhold_bastard_modifier(true, 4));
+  CuAssertIntEquals(tc, 2, rol_darkhold_bastard_modifier(false, 2));
+  CuAssertIntEquals(tc, 5, rol_darkhold_bastard_modifier(false, 5));
+  CuAssertIntEquals(tc, 0, rol_darkhold_bastard_modifier(true, 5));
+
+  CuAssertTrue(tc, rol_weapon_profile(2094571, &denominator, &critical_only, &description));
+  CuAssertIntEquals(tc, 21, denominator);
+  CuAssertTrue(tc, !critical_only);
+  CuAssertStrEquals(tc, "Ice Hammer", description);
+  CuAssertTrue(tc, rol_weapon_profile(2094566, &denominator, &critical_only, &description));
+  CuAssertIntEquals(tc, 1, denominator);
+  CuAssertTrue(tc, critical_only);
+  CuAssertStrEquals(tc, "Dancing Lights", description);
+  CuAssertTrue(tc, rol_monster_combat_profile(2094505, &denominator, &description));
+  CuAssertIntEquals(tc, 1, denominator);
+  CuAssertTrue(tc, rol_monster_combat_profile(2094506, &denominator, &description));
+}
+
+void Test_spec_rol_darkhold_objects_open_source_profiled_passages(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  struct room_direction_data exit;
+  struct command_info commands[3];
+  struct command_info *saved_complete_cmd_info;
+
+  spec_mechanics_begin(&fixture);
+  memset(&context, 0, sizeof(context));
+  memset(&exit, 0, sizeof(exit));
+  memset(commands, 0, sizeof(commands));
+  commands[1].command = "push";
+  commands[2].command = "drop";
+  saved_complete_cmd_info = complete_cmd_info;
+  complete_cmd_info = commands;
+
+  fixture.rooms[0].number = 2094666;
+  fixture.rooms[1].number = 2094673;
+  fixture.object_indexes[0].vnum = 2094504;
+  fixture.worn.name = "crystalline musical skull";
+  fixture.worn.short_description = "a crystalline musical skull";
+  IN_ROOM(&fixture.worn) = 0;
+  fixture.rooms[0].contents = &fixture.worn;
+  exit.exit_info = EX_ISDOOR | EX_BLOCKED;
+  fixture.rooms[0].dir_option[NORTH] = &exit;
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.event = SPEC_EVENT_COMMAND;
+  context.owner = &fixture.worn;
+  context.actor = &fixture.actor;
+  context.command = 1;
+  context.argument = "skull";
+  CuAssertIntEquals(tc, TRUE, rol_darkhold_object_typed(&context));
+  CuAssertTrue(tc, !EXIT_FLAGGED(&exit, EX_BLOCKED));
+
+  fixture.rooms[0].number = 2094667;
+  fixture.rooms[1].number = 2094673;
+  fixture.object_indexes[0].vnum = 2094508;
+  fixture.worn.name = "ruby aquamarine gem";
+  fixture.worn.short_description = "an aquamarine gem";
+  IN_ROOM(&fixture.worn) = NOWHERE;
+  fixture.rooms[0].contents = NULL;
+  fixture.worn.carried_by = &fixture.actor;
+  fixture.actor.carrying = &fixture.worn;
+  memset(&exit, 0, sizeof(exit));
+  exit.to_room = NOWHERE;
+  fixture.rooms[0].dir_option[NORTH] = NULL;
+  fixture.rooms[0].dir_option[SOUTH] = &exit;
+  context.command = 2;
+  context.argument = "aquamarine";
+  CuAssertIntEquals(tc, TRUE, rol_darkhold_object_typed(&context));
+  CuAssertIntEquals(tc, 1, exit.to_room);
+
+  fixture.actor.carrying = NULL;
+  fixture.worn.carried_by = NULL;
+  fixture.rooms[0].dir_option[SOUTH] = NULL;
+  complete_cmd_info = saved_complete_cmd_info;
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_darkhold_dragon_and_bastard_sword_preserve_event_payloads(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  struct room_direction_data exit;
+  struct affected_type *affect;
+  int affect_count;
+
+  spec_mechanics_begin(&fixture);
+  memset(&context, 0, sizeof(context));
+  memset(&exit, 0, sizeof(exit));
+  fixture.rooms[0].number = 2094675;
+  fixture.rooms[1].number = 2094676;
+  fixture.mobile_indexes[0].vnum = 2094506;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  exit.exit_info = EX_ISDOOR | EX_HIDDEN | EX_LOCKED;
+  fixture.rooms[0].dir_option[NORTH] = &exit;
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_MOBILE_DEATH;
+  context.owner = &fixture.actor;
+  context.actor = &fixture.actor;
+  CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
+  CuAssertTrue(tc, !EXIT_FLAGGED(&exit, EX_HIDDEN));
+  CuAssertTrue(tc, !EXIT_FLAGGED(&exit, EX_LOCKED));
+
+  fixture.object_indexes[0].vnum = 2094566;
+  fixture.worn.name = "great platinum hilted bastard sword";
+  fixture.worn.short_description = "a great bastard sword";
+  fixture.worn.worn_by = &fixture.actor;
+  fixture.worn.worn_on = WEAR_WIELD_1;
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &fixture.worn;
+  FIGHTING(&fixture.actor) = &fixture.target;
+  FIGHTING(&fixture.target) = &fixture.actor;
+  memset(&context, 0, sizeof(context));
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.event = SPEC_EVENT_WEAPON_HIT;
+  context.owner = &fixture.worn;
+  context.actor = &fixture.actor;
+  context.target = &fixture.target;
+  context.critical = true;
+  CuAssertIntEquals(tc, FALSE, rol_weapon_proc_typed(&context));
+  CuAssertTrue(tc, affected_by_spell(&fixture.target, SPELL_RAINBOW_PATTERN));
+  affect_count = 0;
+  for (affect = fixture.target.affected; affect != NULL; affect = affect->next)
+  {
+    if (affect->spell != SPELL_RAINBOW_PATTERN)
+      continue;
+    affect_count++;
+    CuAssertTrue(tc, affect->location == APPLY_HITROLL || affect->location == APPLY_DAMROLL);
+    CuAssertTrue(tc, affect->modifier >= -7 && affect->modifier <= -4);
+    CuAssertIntEquals(tc, 0, affect->duration);
+  }
+  CuAssertIntEquals(tc, 2, affect_count);
+  CuAssertIntEquals(tc, FALSE, rol_weapon_proc_typed(&context));
+  affect_from_char(&fixture.target, SPELL_RAINBOW_PATTERN);
+
+  fixture.rooms[0].dir_option[NORTH] = NULL;
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  fixture.worn.worn_by = NULL;
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_waterdeep_ambient_profiles_preserve_source_rolls_and_sequences(CuTest *tc)
 {
   bool speech = false;
@@ -1988,7 +2179,7 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
       2019933, 2025030, 2009054, 2025018, 2001010, 2080034, 2080038, 2026233, 2026248, 2015116,
       2013308, 2097117, 2001005, 2014023, 2024405, 2053266, 2053263, 2053259, 2053289, 2053290,
       2053291, 2053292, 2053243, 2083238, 2083235, 2053250, 2053271, 2043741, 2008000, 2001057,
-      2004797, 2093227, 2093228, 2032602, 2033001, 2033012, 2006084,
+      2004797, 2093227, 2093228, 2032602, 2033001, 2033012, 2006084, 2094571, 2094566,
   };
   const char *description;
   bool critical_only;
@@ -2037,7 +2228,7 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
       2062405, 2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706, 2062707, 2062708,
       2062710, 2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717, 2062721, 2062722,
       2081706, 2081746, 2081747, 2083224, 2092608, 2093202, 2093204, 2093205, 2093206, 2093209,
-      2093210, 2096631, 2096670, 2096672, 2097061,
+      2093210, 2094505, 2094506, 2096631, 2096670, 2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;

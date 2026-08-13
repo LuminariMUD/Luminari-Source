@@ -28,6 +28,7 @@
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rol_avernus.h"
 #include "spec/spec_rol_conversion.h"
+#include "spec/spec_rol_darkhold.h"
 #include "spec/spec_rol_lavatubes.h"
 #include "spec/spec_rol_pilot.h"
 #include "spec/spec_rol_tarrasque.h"
@@ -1521,6 +1522,20 @@ static const struct spec_definition spec_definitions[] = {
         .legacy_handler = rol_waterdeep_peacekeeper,
     },
     {
+        .canonical_name = "RoL Darkhold Object",
+        .display_name = "RoL Darkhold Object",
+        .owner_mask = SPEC_OWNER_OBJECT,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Runs the converted Darkhold musical skulls and passage gems by exact "
+                       "object identity.",
+        .typed_adapter = rol_darkhold_object,
+        .typed_handler = rol_darkhold_object_typed,
+    },
+    {
         .canonical_name = "RoL Weapon Proc",
         .display_name = "RoL Weapon Proc",
         .owner_mask = SPEC_OWNER_OBJECT,
@@ -1788,6 +1803,7 @@ enum
   SPEC_DEFINITION_ROL_YGGDRASIL_BRANCH,
   SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT,
   SPEC_DEFINITION_ROL_WATERDEEP_PEACEKEEPER,
+  SPEC_DEFINITION_ROL_DARKHOLD_OBJECT,
   SPEC_DEFINITION_ROL_WEAPON_PROC,
   SPEC_DEFINITION_ROL_AVERNUS_OBJECT,
   SPEC_DEFINITION_ROL_AVERNUS_GARDEN,
@@ -1916,6 +1932,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_YGGDRASIL_BRANCH, -1},
     {SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT, -1},
     {SPEC_DEFINITION_ROL_WATERDEEP_PEACEKEEPER, -1},
+    {SPEC_DEFINITION_ROL_DARKHOLD_OBJECT, -1},
     {SPEC_DEFINITION_ROL_WEAPON_PROC, -1},
     {SPEC_DEFINITION_ROL_AVERNUS_OBJECT, -1},
     {SPEC_DEFINITION_ROL_AVERNUS_GARDEN, -1},

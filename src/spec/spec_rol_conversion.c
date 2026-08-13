@@ -30,6 +30,7 @@
 #include "spec_combat.h"
 #include "spec_context.h"
 #include "spec_dispatch.h"
+#include "spec_rol_darkhold.h"
 #include "spec_rol_conversion.h"
 #include "spec_rol_totem.h"
 
@@ -110,7 +111,9 @@ enum rol_weapon_effect
   ROL_WEAPON_BALOR_LIGHTNING_SWORD,
   ROL_WEAPON_BARBAZU_GLAIVE,
   ROL_WEAPON_GELUGON_FREEZE_SPEAR,
-  ROL_WEAPON_SCORNUBEL_FIERY_MACE
+  ROL_WEAPON_SCORNUBEL_FIERY_MACE,
+  ROL_WEAPON_DARKHOLD_WARHAMMER,
+  ROL_WEAPON_DARKHOLD_BASTARD
 };
 
 struct rol_weapon_profile
@@ -213,6 +216,8 @@ static const struct rol_weapon_profile rol_weapon_profiles[] = {
      "One-in-three freezing bolt that slows its victim."},
     {2006084, ROL_WEAPON_SCORNUBEL_FIERY_MACE, 36, false,
      "One-in-36 fixed 100-point source-untyped fiery burst."},
+    {2094571, ROL_WEAPON_DARKHOLD_WARHAMMER, 21, false, "Ice Hammer"},
+    {2094566, ROL_WEAPON_DARKHOLD_BASTARD, 1, true, "Dancing Lights"},
 };
 
 struct rol_undead_drain_profile
@@ -7911,6 +7916,10 @@ static int rol_weapon_hit(struct spec_event_context *context,
     if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED)
       context->invalidation |= SPEC_INVALIDATE_TARGET;
     return FALSE;
+  case ROL_WEAPON_DARKHOLD_WARHAMMER:
+    return rol_darkhold_weapon_hit(context, ch, obj, victim, slot, true);
+  case ROL_WEAPON_DARKHOLD_BASTARD:
+    return rol_darkhold_weapon_hit(context, ch, obj, victim, slot, false);
   case ROL_WEAPON_BALOR_WHIP:
     return rol_balor_whip(context, ch, obj, victim);
   case ROL_WEAPON_BALOR_LIGHTNING_SWORD:

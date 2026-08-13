@@ -296,6 +296,52 @@ class RolTransformTests(unittest.TestCase):
         )
     )
 
+  def test_darkhold_specials_use_exact_composable_runtime_profiles(self) -> None:
+    bindings = [
+        {
+            "basename": "darkhold",
+            "record_type": record_type,
+            "source_vnum": vnum,
+            "source_handler": handler,
+        }
+        for record_type, vnum, handler in (
+            ("object", 94501, "musical_skull_1"),
+            ("object", 94502, "musical_skull_1"),
+            ("object", 94503, "musical_skull_1"),
+            ("object", 94505, "musical_skull_1"),
+            ("object", 94506, "musical_skull_1"),
+            ("object", 94507, "musical_skull_1"),
+            ("object", 94504, "musical_skull_2"),
+            ("object", 94508, "ruby_aquamarine"),
+            ("object", 94509, "gold_diamond"),
+            ("object", 94510, "ruby_aquamarine"),
+            ("object", 94511, "gold_diamond"),
+            ("object", 94571, "proc_darkhold_warhammer"),
+            ("object", 94566, "proc_darkhold_bastard"),
+            ("mobile", 94505, "shadow_fiendDarkness"),
+            ("mobile", 94505, "shadow_fiendSteal"),
+            ("mobile", 94506, "shadow_dragon_die"),
+        )
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+    self.assertEqual(16, len(compiled.native_bindings))
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+    persisted_names = [binding.persisted_name for binding in compiled.native_bindings]
+    self.assertEqual(11, persisted_names.count("RoL Darkhold Object"))
+    self.assertEqual(2, persisted_names.count("RoL Weapon Proc"))
+    self.assertEqual(3, persisted_names.count("RoL Monster Combat"))
+
+    for binding in compiled.native_bindings:
+      if binding.persisted_name == "RoL Weapon Proc":
+        self.assertEqual((44,), binding.required_flag_bits)
+      elif binding.persisted_name == "RoL Monster Combat":
+        self.assertEqual((0,), binding.required_flag_bits)
+      else:
+        self.assertEqual((), binding.required_flag_bits)
+
   def test_planar_death_burst_and_balor_weapon_bindings_are_explicit(self) -> None:
     bindings = [
         {

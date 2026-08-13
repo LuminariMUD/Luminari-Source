@@ -7211,24 +7211,26 @@ struct mob_special_data
   byte known_spell_slots[MAX_SPELLS]; /* Current slots per known spell (max 2) */
   time_t last_known_slot_regen;       /* Timestamp of last known spell slot regeneration */
 
-  time_t rol_gate_cooldown_until;     /* RoL demon/devil gate-attempt cooldown */
-  time_t rol_gate_expire_at;          /* RoL gated-creature extraction deadline */
-  time_t rol_planar_screech_ready_at; /* RoL Vrock screech cooldown */
-  time_t rol_planar_spore_ready_at;   /* RoL Vrock spore cooldown */
-  time_t rol_planar_spike_ready_at;   /* RoL Spinagon spike cooldown */
-  time_t rol_planar_captive_kill_at;  /* RoL Succubus delayed kiss deadline */
-  time_t rol_planar_dance_step_at;    /* RoL Vrock dance stage deadline */
-  time_t rol_planar_dance_reset_at;   /* RoL Vrock dance reuse deadline */
-  byte rol_planar_dance_stage;        /* RoL Vrock dance stage, zero when idle */
-  bool rol_planar_dance_leader;       /* RoL Vrock dance cohort timer owner */
-  bool rol_planar_captive_active;     /* RoL Glabrezu/Marilith captive state */
-  bool rol_gated_creature;            /* RoL gate result; cannot recursively gate */
-  long rol_bandit_victim_id;          /* RoL trade-bandit toll target */
-  int rol_bandit_fee_gold;            /* RoL trade-bandit toll in target gold */
-  time_t rol_bandit_expire_at;        /* RoL trade-bandit one-shot cleanup deadline */
-  bool rol_alert_fired;               /* Converted alert caller has shouted this fight */
-  long rol_dancing_dagger_owner_id;   /* RoL dancing-dagger player owner */
-  int rol_dancing_dagger_object_vnum; /* RoL dancing-dagger hidden object */
+  time_t rol_gate_cooldown_until;        /* RoL demon/devil gate-attempt cooldown */
+  time_t rol_gate_expire_at;             /* RoL gated-creature extraction deadline */
+  time_t rol_planar_screech_ready_at;    /* RoL Vrock screech cooldown */
+  time_t rol_planar_spore_ready_at;      /* RoL Vrock spore cooldown */
+  time_t rol_planar_spike_ready_at;      /* RoL Spinagon spike cooldown */
+  time_t rol_planar_captive_kill_at;     /* RoL Succubus delayed kiss deadline */
+  time_t rol_planar_dance_step_at;       /* RoL Vrock dance stage deadline */
+  time_t rol_planar_dance_reset_at;      /* RoL Vrock dance reuse deadline */
+  time_t rol_darkhold_darkness_ready_at; /* RoL shadow-fiend darkness cooldown */
+  time_t rol_darkhold_steal_ready_at;    /* RoL shadow-fiend mind-steal cooldown */
+  byte rol_planar_dance_stage;           /* RoL Vrock dance stage, zero when idle */
+  bool rol_planar_dance_leader;          /* RoL Vrock dance cohort timer owner */
+  bool rol_planar_captive_active;        /* RoL Glabrezu/Marilith captive state */
+  bool rol_gated_creature;               /* RoL gate result; cannot recursively gate */
+  long rol_bandit_victim_id;             /* RoL trade-bandit toll target */
+  int rol_bandit_fee_gold;               /* RoL trade-bandit toll in target gold */
+  time_t rol_bandit_expire_at;           /* RoL trade-bandit one-shot cleanup deadline */
+  bool rol_alert_fired;                  /* Converted alert caller has shouted this fight */
+  long rol_dancing_dagger_owner_id;      /* RoL dancing-dagger player owner */
+  int rol_dancing_dagger_object_vnum;    /* RoL dancing-dagger hidden object */
 };
 
 /** An affect structure. */

@@ -25,6 +25,7 @@
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_avernus.h"
 #include "spec/spec_rol_conversion.h"
+#include "spec/spec_rol_darkhold.h"
 
 #define ROL_BALOR_WHIP_VNUM 2093227
 #define ROL_BALOR_SWORD_VNUM 2093228
@@ -100,6 +101,8 @@ enum rol_monster_combat_effect
   ROL_MONSTER_AVERNUS_GELUGON_HANARIEL,
   ROL_MONSTER_AVERNUS_BEL,
   ROL_MONSTER_AVERNUS_AUXILIARY,
+  ROL_MONSTER_DARKHOLD_SHADOW_FIEND,
+  ROL_MONSTER_DARKHOLD_SHADOW_DRAGON,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -315,6 +318,10 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
      "Screech, spore burst, and five-Vrock dance of ruin."},
     {2093210, ROL_MONSTER_PLANAR_VROCK_BURSTS, 1,
      "Screech, spore burst, and five-Vrock dance of ruin."},
+    {2094505, ROL_MONSTER_DARKHOLD_SHADOW_FIEND, 1,
+     "Successful-hit darkness and mind-steal attacks with independent cooldowns."},
+    {2094506, ROL_MONSTER_DARKHOLD_SHADOW_DRAGON, 1,
+     "Death unlocks and reveals the nearby northern passage."},
     {2096631, ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL, 6, "Room-wide Greycloak banshee wail."},
     {2096670, ROL_MONSTER_GREYCLOAK_FUMES, 11, "Room-wide noxious fumes."},
     {2096672, ROL_MONSTER_GREYCLOAK_ARALESH, 11, "Lethal blazing-eye beam."},
@@ -3169,6 +3176,8 @@ int rol_monster_combat_typed(struct spec_event_context *context)
 
   if (context->event == SPEC_EVENT_MOBILE_DEATH)
   {
+    if (profile->effect == ROL_MONSTER_DARKHOLD_SHADOW_DRAGON)
+      return rol_darkhold_mobile_death(context, ch);
     avernus_result = rol_avernus_mobile_event(context, ch);
     if (avernus_result != FALSE)
       return avernus_result;
@@ -3196,6 +3205,8 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   {
     if (spec_context_validate_combat_target(ch, context->target, false) != SPEC_CONTEXT_VALID)
       return FALSE;
+    if (profile->effect == ROL_MONSTER_DARKHOLD_SHADOW_FIEND)
+      return rol_darkhold_mobile_hit(context, ch);
     if (profile->effect == ROL_MONSTER_PLANAR_VROCK_BURSTS)
       return rol_planar_vrock_hit(context, ch);
     if (profile->effect == ROL_MONSTER_PLANAR_GLABREZU_GRAB)
@@ -3280,6 +3291,8 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL:
   case ROL_MONSTER_GREYCLOAK_FUMES:
   case ROL_MONSTER_GREYCLOAK_ARALESH:
+  case ROL_MONSTER_DARKHOLD_SHADOW_FIEND:
+  case ROL_MONSTER_DARKHOLD_SHADOW_DRAGON:
     return FALSE;
   default:
     break;
@@ -3395,6 +3408,8 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_AVERNUS_BARBAZU_BERSERK:
   case ROL_MONSTER_AVERNUS_GELUGON_MERITOS:
   case ROL_MONSTER_AVERNUS_GELUGON_HANARIEL:
+  case ROL_MONSTER_DARKHOLD_SHADOW_FIEND:
+  case ROL_MONSTER_DARKHOLD_SHADOW_DRAGON:
   case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }
