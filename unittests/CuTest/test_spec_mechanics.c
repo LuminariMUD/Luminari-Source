@@ -1372,6 +1372,12 @@ void Test_spec_rol_yggdrasil_release_and_death_profiles_preserve_source_outcomes
                     rol_conversion_death_message(2020267));
   CuAssertIntEquals(tc, 2021820, rol_conversion_death_replacement_vnum(2021783));
   CuAssertIntEquals(tc, 2092091, rol_conversion_death_object_vnum(2092062));
+  CuAssertIntEquals(tc, 2093006, rol_conversion_death_object_vnum(2093003));
+  CuAssertIntEquals(tc, 2093007, rol_conversion_death_object_vnum(2093004));
+  CuAssertIntEquals(tc, 2093008, rol_conversion_death_object_vnum(2093005));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2093003));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2093004));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2093005));
   CuAssertIntEquals(tc, 2093048, rol_conversion_death_object_vnum(2093017));
   CuAssertStrEquals(tc, "As $n dies, it shatters into several large chunks of granite.",
                     rol_conversion_death_message(2093018));
@@ -1394,6 +1400,55 @@ void Test_spec_rol_yggdrasil_release_and_death_profiles_preserve_source_outcomes
   GET_MOB_RNUM(&fixture.actor) = 0;
   CuAssertTrue(tc, rol_handle_conjured_death(&fixture.actor));
 
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_vortex_knight_last_peer_creates_timed_portal(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct obj_data prototype;
+  struct obj_data *portal;
+  struct obj_data *saved_obj_proto;
+  struct obj_data *saved_object_list;
+
+  spec_mechanics_begin(&fixture);
+  saved_obj_proto = obj_proto;
+  saved_object_list = object_list;
+  object_list = NULL;
+  clear_object(&prototype);
+  GET_OBJ_RNUM(&prototype) = 0;
+  GET_OBJ_TYPE(&prototype) = ITEM_PORTAL;
+  prototype.name = "silver portal";
+  prototype.short_description = "a silver portal";
+  prototype.description = "A silver portal lies upon the western wall.";
+  obj_proto = &prototype;
+  top_of_objt = 0;
+  fixture.mobile_indexes[0].vnum = 2093003;
+  fixture.mobile_indexes[1].vnum = 2093003;
+  fixture.object_indexes[0].vnum = 2093006;
+  fixture.object_indexes[0].number = 0;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  GET_MOB_RNUM(&fixture.target) = 1;
+
+  CuAssertTrue(tc, rol_handle_conjured_death(&fixture.actor));
+  CuAssertPtrEquals(tc, NULL, fixture.rooms[0].contents);
+  CuAssertPtrEquals(tc, NULL, object_list);
+
+  fixture.mobile_indexes[1].vnum = 9999999;
+  CuAssertTrue(tc, rol_handle_conjured_death(&fixture.actor));
+  portal = fixture.rooms[0].contents;
+  CuAssertPtrNotNull(tc, portal);
+  if (portal != NULL)
+  {
+    CuAssertIntEquals(tc, 2093006, GET_OBJ_VNUM(portal));
+    CuAssertIntEquals(tc, 1, GET_OBJ_TIMER(portal));
+    CuAssertTrue(tc, OBJ_FLAGGED(portal, ITEM_DECAY));
+    CuAssertPtrEquals(tc, portal, object_list);
+    extract_obj(portal);
+  }
+
+  obj_proto = saved_obj_proto;
+  object_list = saved_object_list;
   spec_mechanics_end(&fixture);
 }
 

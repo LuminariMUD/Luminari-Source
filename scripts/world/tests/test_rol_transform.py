@@ -509,6 +509,34 @@ class RolTransformTests(unittest.TestCase):
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
     )
 
+  def test_undermountain_vortex_knights_use_composable_death_profiles(self) -> None:
+    bindings = [
+        {
+            "basename": "undermountain-vortex-knights",
+            "record_type": "mobile",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in (
+            (93003, "um2_silverKnight"),
+            (93004, "um2_goldenKnight"),
+            (93005, "um2_platinumKnight"),
+        )
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+
+    self.assertEqual(3, len(compiled.native_bindings))
+    self.assertTrue(all(binding.persisted_name is None for binding in compiled.native_bindings))
+    self.assertTrue(all(binding.required_flag_bits == () for binding in compiled.native_bindings))
+    self.assertTrue(
+        all(
+            row["strategy"] == "NATIVE_ADAPTED_COMPOSABLE"
+            and row["target"] == "converted mobile death profile"
+            for row in compiled.dispositions
+        )
+    )
+
   def test_planar_death_burst_and_balor_weapon_bindings_are_explicit(self) -> None:
     bindings = [
         {

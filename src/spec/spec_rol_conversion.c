@@ -412,7 +412,8 @@ enum rol_death_effect
   ROL_DEATH_EFFECT_DROP_POSSESSIONS,
   ROL_DEATH_EFFECT_SPLIT_SKELETON,
   ROL_DEATH_EFFECT_SPLIT_MAPPED,
-  ROL_DEATH_EFFECT_WEEVIL_FIRE
+  ROL_DEATH_EFFECT_WEEVIL_FIRE,
+  ROL_DEATH_EFFECT_LAST_PEER_PORTAL
 };
 
 struct rol_death_profile
@@ -750,6 +751,9 @@ static const struct rol_death_profile rol_death_profiles[] = {
     {2092062, "A final blow, and $n drops to the floor, an empty suit.", NULL, 0, 2092091,
      ROL_DEATH_EFFECT_DROP_OBJECT, true},
     {2092613, NULL, NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2093003, NULL, NULL, 0, 2093006, ROL_DEATH_EFFECT_LAST_PEER_PORTAL, true},
+    {2093004, NULL, NULL, 0, 2093007, ROL_DEATH_EFFECT_LAST_PEER_PORTAL, true},
+    {2093005, NULL, NULL, 0, 2093008, ROL_DEATH_EFFECT_LAST_PEER_PORTAL, true},
     {2093017, "A final blow, and $n moves no more.", NULL, 0, 2093048, ROL_DEATH_EFFECT_DROP_OBJECT,
      true},
     {2093018, "As $n dies, it shatters into several large chunks of granite.", NULL, 0, 0,
@@ -2233,6 +2237,37 @@ static void rol_death_weevil_fire(struct char_data *ch)
   }
 }
 
+static void rol_death_last_peer_portal(struct char_data *ch,
+                                       const struct rol_death_profile *profile)
+{
+  struct char_data *candidate;
+  struct obj_data *portal;
+  const char *message;
+
+  if (ch == NULL || profile == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return;
+  for (candidate = world[IN_ROOM(ch)].people; candidate != NULL;
+       candidate = candidate->next_in_room)
+    if (candidate != ch && IS_NPC(candidate) &&
+        (int)GET_MOB_VNUM(candidate) == profile->mobile_vnum)
+      return;
+
+  portal = read_object(profile->object_vnum, VIRTUAL);
+  if (portal == NULL)
+  {
+    log("SYSERR: RoL Vortex Knight portal %d for mobile %d is unavailable", profile->object_vnum,
+        profile->mobile_vnum);
+    return;
+  }
+  SET_BIT_AR(GET_OBJ_EXTRA(portal), ITEM_DECAY);
+  GET_OBJ_TIMER(portal) = 1;
+  obj_to_room(portal, IN_ROOM(ch));
+  message = profile->mobile_vnum == 2093005
+                ? "With a final blow, $n dissolves and coellesces into\r\n$p."
+                : "With a final blow, $n dissolves and coallesces into\r\n$p.";
+  act(message, FALSE, ch, portal, NULL, TO_ROOM);
+}
+
 static void rol_apply_death_effect(struct char_data *ch, const struct rol_death_profile *profile)
 {
   switch (profile->effect)
@@ -2270,6 +2305,9 @@ static void rol_apply_death_effect(struct char_data *ch, const struct rol_death_
     break;
   case ROL_DEATH_EFFECT_WEEVIL_FIRE:
     rol_death_weevil_fire(ch);
+    break;
+  case ROL_DEATH_EFFECT_LAST_PEER_PORTAL:
+    rol_death_last_peer_portal(ch, profile);
     break;
   case ROL_DEATH_EFFECT_NONE:
     break;
