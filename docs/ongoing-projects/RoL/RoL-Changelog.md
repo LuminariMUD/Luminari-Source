@@ -9,6 +9,67 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 source death-effects family
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled eight active death bindings across seven source handlers from Trahern, Dobluth,
+  and Undermountain through the existing composition-safe mobile-death gateway.
+- Added exact converted profiles for both elemental-fire weevils 2020221 and 2020267, Lady
+  Aleanrahel 2021783, Helmed Horror 2092062, Butcher Knife 2093017, gargoyle 2093018, crystal
+  golem 2093020, and white pudding 2093301.
+- Preserved each authored corpse outcome and death message. Lady Aleanrahel becomes banshee
+  2021820 with carried and equipped items transferred; the horror and butcher drop mapped
+  objects 2092091 and 2093048; the gargoyle and golem shatter without corpses; and the active
+  white-pudding generation splits into exactly two mobiles 2093330.
+- Preserved the weevil source's one shared `25d2` fire roll, ordinary corpse, area eligibility,
+  and cumulative room-order protection halving rather than normalizing the mutable damage value.
+- Added converter, reconciliation, exact-profile, damage-order, mapped-split, and production
+  runtime coverage. No player helpfile changed because this batch adds no player command or
+  syntax; the staff manual records the dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,536 to 1,544 static bindings
+  and from 655 to 662 direct handlers, leaving 177 bindings across 133 handlers in 29 source
+  files. The independent `ACT_SPEC` cross-check advances to 809 resolved and 39 pending.
+- Reforecast nineteen corrected batches covering 298 bindings across 124 handlers. The
+  remaining Phase 6 envelope is 12-21 sessions, or 24-84 focused engineering hours; the full
+  remaining project envelope is 68-105 sessions, or 136-420 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 53b6a3e4
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-source-death-effects
+Reconciliation run: rol-phase6-special-59a0f3f782fc7f30
+Evidence tree SHA-256: 3566db472325a01673827d7125561cec023d299d7248d3ac7bb568cba1ae9fcc
+Active direct bindings: 1,721
+Direct bindings resolved: 1,544
+Direct bindings pending: 177
+Source handlers resolved: 662
+Source handlers pending: 133
+Additional handler families resolved: 7
+Additional direct bindings resolved: 8
+Native adapted bindings: 992
+Native adapted composable bindings: 216
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 809
+ACT_SPEC records pending: 39
+Complete world-tool suite: 349 passed
+Production-linked CuTest suite: 683 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 7ef432a8e35171926abd0b8def3677b31b80f863
+Installed SHA-256: d2762087bdb743df847c69bd4e02aed1d0215b3fd4cc6d477418ce8b6f504f65
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat or utility family.
+
 ## 2026-08-13 - Phase 6 Undermountain ambient and inert-stench family
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

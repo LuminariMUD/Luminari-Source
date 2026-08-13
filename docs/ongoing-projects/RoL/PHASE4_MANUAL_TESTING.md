@@ -1153,6 +1153,34 @@ These profiles and inert dispositions are automated and reconciled but are absen
 current five-zone pilot. Exercise them only in a disposable Phase 7 dependency-complete stage;
 do not hand-edit them into the pilot.
 
+### Phase 6 converted source death effects
+
+- Build dependency-complete Trahern, Dobluth, and Undermountain stages containing mobiles
+  2020221, 2020267, 2021783, 2092062, 2093017, 2093018, 2093020, and 2093301. Confirm the
+  composable death profiles do not consume or replace an independently persisted mobile
+  procedure.
+- Kill weevils 2020221 and 2020267 with multiple eligible victims present. The source message
+  must appear, an ordinary corpse must remain, and one shared `25d2` roll must damage the room.
+  Fire-protected victims halve the current shared amount, including the source's cumulative
+  halving for later victims in room order. Peaceful rooms and target-native area safety must
+  prevent damage.
+- Kill Lady Aleanrahel 2021783 while she carries and wears disposable objects. Her ordinary
+  corpse must be suppressed; Dobluth banshee 2021820 must appear in the same room and inherit
+  both carried and equipped objects in their original slots.
+- Kill Helmed Horror 2092062 and Butcher Knife 2093017. Their source death messages must appear,
+  ordinary corpses must be suppressed, and exactly one mapped reward must load: helmet 2092091
+  for the horror and knife 2093048 for the butcher.
+- Kill gargoyle 2093018 and crystal golem 2093020. Each must emit its exact granite or crystal
+  shatter message and suppress the ordinary corpse without creating a reward object.
+- Kill level-50 white pudding 2093301. The ordinary corpse must be suppressed and exactly two
+  smaller white puddings 2093330 must appear in the death room. The source assignment activates
+  only this first split generation; the smaller identities must not acquire an invented death
+  callback.
+
+These death effects are production-tested and reconciled but are absent from the current
+five-zone pilot. Exercise them only in disposable Phase 7 dependency-complete stages; do not
+hand-edit their mobiles or reward dependencies into the pilot.
+
 ### Phase 6 converted Scornubel profiles
 
 - Build a dependency-complete Scornubel stage containing mobiles 2006001, 2006002, 2006006,
@@ -1629,9 +1657,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,536 are resolved and 185 remain. Of 795 distinct
-  direct source handlers, 655 are resolved and 140 remain. Of 848 `ACT_SPEC` records, 808
-  are resolved and 40 remain. The automatic race procedures
+  of the 1,721 active direct bindings, 1,544 are resolved and 177 remain. Of 795 distinct
+  direct source handlers, 662 are resolved and 133 remain. Of 848 `ACT_SPEC` records, 809
+  are resolved and 39 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
