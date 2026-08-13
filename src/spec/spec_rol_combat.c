@@ -77,6 +77,9 @@ enum rol_monster_combat_effect
   ROL_MONSTER_SUMMON_JESSICA_WISP,
   ROL_MONSTER_SUMMON_ROBYN_WISP,
   ROL_MONSTER_SUMMON_ROBYN_SERVANT,
+  ROL_MONSTER_TRAHERN_QUAKE,
+  ROL_MONSTER_TRAHERN_TOSS,
+  ROL_MONSTER_TRAHERN_ENGORGE,
   ROL_MONSTER_JURTREM,
   ROL_MONSTER_KAMERYNN,
   ROL_MONSTER_CRIMSON_FURY,
@@ -209,7 +212,10 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2015125, ROL_MONSTER_JURTREM, 20, "Jurtrem's sanctuary-dispelling gaze."},
     {2019701, ROL_MONSTER_CRIMSON_FURY, 11, "Crimson Fury minion purge and fire blast."},
     {2019750, ROL_MONSTER_CRIMSON_FURY, 11, "Crimson Fury minion purge and fire blast."},
+    {2020217, ROL_MONSTER_TRAHERN_QUAKE, 3, "Gakarak's room-wide root quake."},
+    {2020234, ROL_MONSTER_TRAHERN_TOSS, 3, "Kazgoroth's damaging body toss."},
     {2020247, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
+    {2020248, ROL_MONSTER_TRAHERN_ENGORGE, 3, "Slothen's engorge and acidic ooze burst."},
     {2020378, ROL_MONSTER_ASHENTORIS, 11, "Life drain and lava storm."},
     {2021786, ROL_MONSTER_DOBLUTH_BLADESTORM, 5, "Room-wide animated bladestorm."},
     {2021820, ROL_MONSTER_DOBLUTH_BANSHEE_WAIL, 4, "Room-wide painful wail and paralysis."},
@@ -437,6 +443,36 @@ bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const ch
   if (description != NULL)
     *description = profile->description;
   return true;
+}
+
+bool rol_trahern_combat_profile(int mobile_vnum, int *destination_vnum)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+
+  if (profile == NULL || (profile->effect != ROL_MONSTER_TRAHERN_QUAKE &&
+                          profile->effect != ROL_MONSTER_TRAHERN_TOSS &&
+                          profile->effect != ROL_MONSTER_TRAHERN_ENGORGE))
+    return false;
+  if (destination_vnum != NULL)
+    *destination_vnum = profile->effect == ROL_MONSTER_TRAHERN_TOSS ? 2020237 : NOWHERE;
+  return true;
+}
+
+bool rol_trahern_proc_roll_fires(int roll)
+{
+  return roll == 0;
+}
+
+bool rol_trahern_quake_knocks_down(int dexterity, int roll)
+{
+  return roll >= 1 && roll <= 101 && roll > dexterity / 2;
+}
+
+int rol_trahern_toss_stun_rounds(int mobile_vnum)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+
+  return profile != NULL && profile->effect == ROL_MONSTER_TRAHERN_TOSS ? 3 : 0;
 }
 
 bool rol_griffon_guard_target_allowed(const struct char_data *target)
@@ -1198,6 +1234,107 @@ static int rol_monster_successful_hit_damage(struct spec_event_context *context,
   if (result < 0 && is_hit_target)
     context->invalidation |= SPEC_INVALIDATE_TARGET;
   return result;
+}
+
+static int rol_monster_trahern_quake(struct char_data *ch)
+{
+  struct char_data *victim;
+
+  act("$n flexes all of $s roots at once, sending tremors through the ground.", FALSE, ch, NULL,
+      NULL, TO_ROOM);
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = victim->next_in_room)
+  {
+    if (victim == ch || GET_POS(victim) <= POS_SITTING ||
+        !rol_trahern_quake_knocks_down(GET_DEX(victim), rand_number(1, 101)))
+      continue;
+    send_to_char(victim, "You lose your balance and fall down!\r\n");
+    act("$n loses $s balance and falls down!", FALSE, victim, NULL, NULL, TO_ROOM);
+    change_position(victim, POS_SITTING);
+    SET_WAIT(victim, PULSE_VIOLENCE);
+  }
+  return FALSE;
+}
+
+static int rol_monster_trahern_toss(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *victim = FIGHTING(ch);
+  room_rnum destination = real_room(2020237);
+  int result;
+
+  if (victim == NULL || destination == NOWHERE)
+  {
+    if (destination == NOWHERE)
+      log("SYSERR: RoL Kazgoroth toss destination room 2020237 is unavailable");
+    return FALSE;
+  }
+
+  act("$n rears $s horned head and charges, slamming you out of the room!", FALSE, ch, NULL, victim,
+      TO_VICT);
+  act("$n rears $s horned head and charges, slamming $N out of the room!", FALSE, ch, NULL, victim,
+      TO_NOTVICT);
+  char_from_room(victim);
+  char_to_room(victim, destination);
+  act("$n comes flying into the room and lands with a sickening thud.", FALSE, victim, NULL, NULL,
+      TO_ROOM);
+  send_to_char(victim, "You land painfully on the ground!\r\n");
+
+  /* char_from_room() stops the victim's side of combat.  Keep damage() from
+   * starting a new cross-room combat event before both sides are cleared. */
+  change_position(victim, POS_STUNNED);
+  result = rol_monster_successful_hit_damage(context, ch, victim, dice(10, 10), DAM_BLUDGEON);
+  if (result >= 0)
+  {
+    rol_monster_stop_combat(victim);
+    change_position(victim, POS_RECLINING);
+    rol_monster_stun(victim, rol_trahern_toss_stun_rounds(GET_MOB_VNUM(ch)));
+  }
+  return TRUE;
+}
+
+static int rol_monster_trahern_engorge(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *victim = FIGHTING(ch);
+  struct char_data *area_victim;
+  struct char_data *next;
+
+  if (victim == NULL)
+    return FALSE;
+  act("$n's vast body lashes tendrils of ooze around you and drags you into its mass!", FALSE, ch,
+      NULL, victim, TO_VICT);
+  act("$n's vast body lashes tendrils of ooze around $N and drags $M into its mass!", FALSE, ch,
+      NULL, victim, TO_NOTVICT);
+  send_to_char(victim, "The slime burns you!\r\n");
+  (void)rol_monster_successful_hit_damage(context, ch, victim, dice(10, 15), DAM_ACID);
+
+  for (area_victim = world[IN_ROOM(ch)].people; area_victim != NULL; area_victim = next)
+  {
+    next = area_victim->next_in_room;
+    if (!rol_monster_hit_area_target(ch, area_victim) ||
+        savingthrow(ch, area_victim, SAVING_FORT, 1, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+      continue;
+    send_to_char(area_victim, "Some ooze lands on you and burns you!\r\n");
+    (void)rol_monster_successful_hit_damage(context, ch, area_victim, dice(20, 15), DAM_ACID);
+  }
+  return FALSE;
+}
+
+static int rol_monster_trahern_hit(struct spec_event_context *context,
+                                   const struct rol_monster_combat_profile *profile,
+                                   struct char_data *ch)
+{
+  if (!rol_trahern_proc_roll_fires(rand_number(0, 2)))
+    return FALSE;
+  switch (profile->effect)
+  {
+  case ROL_MONSTER_TRAHERN_QUAKE:
+    return rol_monster_trahern_quake(ch);
+  case ROL_MONSTER_TRAHERN_TOSS:
+    return rol_monster_trahern_toss(context, ch);
+  case ROL_MONSTER_TRAHERN_ENGORGE:
+    return rol_monster_trahern_engorge(context, ch);
+  default:
+    return FALSE;
+  }
 }
 
 static int rol_monster_bladestorm_weapon_damage(const struct obj_data *obj)
@@ -3675,6 +3812,10 @@ int rol_monster_combat_typed(struct spec_event_context *context)
     if (profile->effect == ROL_MONSTER_UM2_MANSCORPION_TAIL ||
         profile->effect == ROL_MONSTER_UM2_WYVERN_TAIL)
       return rol_monster_venom_tail_hit(context, ch);
+    if (profile->effect == ROL_MONSTER_TRAHERN_QUAKE ||
+        profile->effect == ROL_MONSTER_TRAHERN_TOSS ||
+        profile->effect == ROL_MONSTER_TRAHERN_ENGORGE)
+      return rol_monster_trahern_hit(context, profile, ch);
     if (rol_manscorpion_venom_profile(GET_MOB_VNUM(ch), NULL, NULL, NULL))
       return rol_monster_manscorpion_hit(context, profile, ch);
     return rol_monster_successful_hit(context, profile, ch);
@@ -3837,6 +3978,9 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_SUMMON_JESSICA_WISP:
   case ROL_MONSTER_SUMMON_ROBYN_WISP:
   case ROL_MONSTER_SUMMON_ROBYN_SERVANT:
+  case ROL_MONSTER_TRAHERN_QUAKE:
+  case ROL_MONSTER_TRAHERN_TOSS:
+  case ROL_MONSTER_TRAHERN_ENGORGE:
   case ROL_MONSTER_JURTREM:
   case ROL_MONSTER_CRIMSON_FURY:
   case ROL_MONSTER_BARBARIAN_SPIRITIST:

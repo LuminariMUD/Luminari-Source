@@ -537,6 +537,36 @@ class RolTransformTests(unittest.TestCase):
         )
     )
 
+  def test_trahern_combat_bindings_share_typed_monster_runtime(self) -> None:
+    bindings = [
+        {
+            "basename": "trahern-combat",
+            "record_type": "mobile",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in (
+            (20217, "gakarakQuake"),
+            (20234, "kazgorothToss"),
+            (20248, "slothenEngorge"),
+        )
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+
+    self.assertEqual(3, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Monster Combat"
+            and binding.required_flag_bits == (0,)
+            and binding.required_affect_bits == ()
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_planar_death_burst_and_balor_weapon_bindings_are_explicit(self) -> None:
     bindings = [
         {

@@ -2757,20 +2757,20 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
       2001407, 2001436, 2001437, 2004070, 2004480, 2004530, 2005023, 2005718, 2010661, 2010744,
       2010745, 2010749, 2010750, 2010754, 2010755, 2010756, 2010757, 2010758, 2010759, 2010760,
       2010761, 2010762, 2010763, 2012005, 2012006, 2012024, 2012025, 2012026, 2014015, 2014026,
-      2014029, 2014601, 2014605, 2015113, 2015125, 2019701, 2019750, 2020247, 2020378, 2021786,
-      2021820, 2026208, 2026216, 2026225, 2026236, 2026238, 2026241, 2026242, 2026243, 2026244,
-      2026245, 2032623, 2032629, 2032632, 2032640, 2032641, 2032642, 2032643, 2032644, 2032645,
-      2032646, 2032654, 2032659, 2032660, 2033000, 2033001, 2033003, 2033004, 2033005, 2033008,
-      2033009, 2033011, 2033014, 2033015, 2033016, 2033020, 2033021, 2033022, 2033026, 2033027,
-      2034833, 2041900, 2043358, 2043702, 2043703, 2043705, 2043728, 2043741, 2043742, 2043744,
-      2043745, 2043746, 2043756, 2043758, 2043759, 2043761, 2043767, 2043768, 2043769, 2043770,
-      2043778, 2043780, 2045116, 2045146, 2045182, 2051246, 2051333, 2051334, 2053264, 2053265,
-      2053266, 2059815, 2059835, 2062401, 2062402, 2062405, 2062406, 2062701, 2062702, 2062703,
-      2062704, 2062705, 2062706, 2062707, 2062708, 2062710, 2062711, 2062712, 2062713, 2062714,
-      2062715, 2062716, 2062717, 2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2089793,
-      2089794, 2092608, 2093061, 2093102, 2093108, 2093109, 2093110, 2093111, 2093112, 2093202,
-      2093204, 2093205, 2093206, 2093209, 2093210, 2093219, 2094505, 2094506, 2094563, 2096631,
-      2096670, 2096672, 2097061,
+      2014029, 2014601, 2014605, 2015113, 2015125, 2019701, 2019750, 2020217, 2020234, 2020247,
+      2020248, 2020378, 2021786, 2021820, 2026208, 2026216, 2026225, 2026236, 2026238, 2026241,
+      2026242, 2026243, 2026244, 2026245, 2032623, 2032629, 2032632, 2032640, 2032641, 2032642,
+      2032643, 2032644, 2032645, 2032646, 2032654, 2032659, 2032660, 2033000, 2033001, 2033003,
+      2033004, 2033005, 2033008, 2033009, 2033011, 2033014, 2033015, 2033016, 2033020, 2033021,
+      2033022, 2033026, 2033027, 2034833, 2041900, 2043358, 2043702, 2043703, 2043705, 2043728,
+      2043741, 2043742, 2043744, 2043745, 2043746, 2043756, 2043758, 2043759, 2043761, 2043767,
+      2043768, 2043769, 2043770, 2043778, 2043780, 2045116, 2045146, 2045182, 2051246, 2051333,
+      2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401, 2062402, 2062405, 2062406,
+      2062701, 2062702, 2062703, 2062704, 2062705, 2062706, 2062707, 2062708, 2062710, 2062711,
+      2062712, 2062713, 2062714, 2062715, 2062716, 2062717, 2062721, 2062722, 2081706, 2081746,
+      2081747, 2083224, 2089793, 2089794, 2092608, 2093061, 2093102, 2093108, 2093109, 2093110,
+      2093111, 2093112, 2093202, 2093204, 2093205, 2093206, 2093209, 2093210, 2093219, 2094505,
+      2094506, 2094563, 2096631, 2096670, 2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2835,6 +2835,92 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertIntEquals(tc, 3, rol_seelie_search_stun_rounds(2062701));
   CuAssertIntEquals(tc, 6, rol_seelie_search_stun_rounds(2062707));
   CuAssertIntEquals(tc, 0, rol_seelie_search_stun_rounds(2062708));
+}
+
+void Test_spec_rol_trahern_combat_profiles_preserve_quake_toss_and_engorge(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  bool actor_stopped;
+  bool target_stopped;
+  struct char_data *saved_combat_list;
+  int denominator;
+  int destination;
+  int previous_hit;
+  int result;
+  int target_position;
+  int target_room;
+
+  destination = 0;
+  CuAssertTrue(tc, rol_trahern_combat_profile(2020217, &destination));
+  CuAssertIntEquals(tc, NOWHERE, destination);
+  CuAssertTrue(tc, rol_monster_combat_profile(2020217, &denominator, NULL));
+  CuAssertIntEquals(tc, 3, denominator);
+  CuAssertTrue(tc, rol_trahern_combat_profile(2020234, &destination));
+  CuAssertIntEquals(tc, 2020237, destination);
+  CuAssertTrue(tc, rol_trahern_combat_profile(2020248, &destination));
+  CuAssertIntEquals(tc, NOWHERE, destination);
+  CuAssertTrue(tc, !rol_trahern_combat_profile(2020247, NULL));
+  CuAssertIntEquals(tc, 3, rol_trahern_toss_stun_rounds(2020234));
+  CuAssertIntEquals(tc, 0, rol_trahern_toss_stun_rounds(2020217));
+  CuAssertIntEquals(tc, 0, rol_trahern_toss_stun_rounds(2020248));
+  CuAssertTrue(tc, rol_trahern_proc_roll_fires(0));
+  CuAssertTrue(tc, !rol_trahern_proc_roll_fires(1));
+  CuAssertTrue(tc, !rol_trahern_proc_roll_fires(2));
+  CuAssertTrue(tc, !rol_trahern_quake_knocks_down(20, 0));
+  CuAssertTrue(tc, !rol_trahern_quake_knocks_down(20, 10));
+  CuAssertTrue(tc, rol_trahern_quake_knocks_down(20, 11));
+  CuAssertTrue(tc, rol_trahern_quake_knocks_down(20, 101));
+  CuAssertTrue(tc, !rol_trahern_quake_knocks_down(20, 102));
+
+  spec_mechanics_begin(&fixture);
+  memset(&context, 0, sizeof(context));
+  fixture.rooms[1].number = 2020237;
+  fixture.mobile_indexes[0].vnum = 2020234;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  GET_HIT(&fixture.target) = 1000;
+  GET_MAX_HIT(&fixture.target) = 1000;
+  SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_NOPARALYZE);
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_MOBILE_HIT;
+  context.owner = &fixture.actor;
+  context.actor = &fixture.actor;
+  context.target = &fixture.target;
+
+  saved_combat_list = combat_list;
+  combat_list = &fixture.actor;
+  fixture.actor.next_fighting = &fixture.target;
+  fixture.target.next_fighting = saved_combat_list;
+  FIGHTING(&fixture.actor) = &fixture.target;
+  FIGHTING(&fixture.target) = &fixture.actor;
+  previous_hit = GET_HIT(&fixture.target);
+  circle_srandom(3);
+  result = rol_monster_combat_typed(&context);
+  target_room = IN_ROOM(&fixture.target);
+  target_position = GET_POS(&fixture.target);
+  actor_stopped = FIGHTING(&fixture.actor) == NULL;
+  target_stopped = FIGHTING(&fixture.target) == NULL;
+
+  if (FIGHTING(&fixture.actor) != NULL)
+    stop_fighting(&fixture.actor);
+  if (FIGHTING(&fixture.target) != NULL)
+    stop_fighting(&fixture.target);
+  combat_list = saved_combat_list;
+  if (IN_ROOM(&fixture.target) != 0)
+  {
+    char_from_room(&fixture.target);
+    char_to_room(&fixture.target, 0);
+  }
+  circle_srandom((unsigned long)time(NULL));
+  spec_mechanics_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, result);
+  CuAssertIntEquals(tc, 1, target_room);
+  CuAssertTrue(tc, GET_HIT(&fixture.target) < previous_hit);
+  CuAssertIntEquals(tc, POS_RECLINING, target_position);
+  CuAssertTrue(tc, char_has_mud_event(&fixture.target, eSTUNNED) == NULL);
+  CuAssertTrue(tc, actor_stopped);
+  CuAssertTrue(tc, target_stopped);
 }
 
 void Test_spec_rol_drow_conclave_alarm_profiles_and_redeployment(CuTest *tc)

@@ -251,6 +251,10 @@ bool rol_undead_drain_profile(int mobile_vnum, int *chance_sides, int *marker_af
                               int *will_penalty, int *fortitude_penalty, int *slow_duration);
 size_t rol_monster_combat_profile_count(void);
 bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const char **description);
+bool rol_trahern_combat_profile(int mobile_vnum, int *destination_vnum);
+bool rol_trahern_proc_roll_fires(int roll);
+bool rol_trahern_quake_knocks_down(int dexterity, int roll);
+int rol_trahern_toss_stun_rounds(int mobile_vnum);
 bool rol_griffon_guard_target_allowed(const struct char_data *target);
 bool rol_drow_conclave_guard_profile(int mobile_vnum);
 bool rol_drow_conclave_detect_guard_profile(int mobile_vnum);

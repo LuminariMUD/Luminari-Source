@@ -632,6 +632,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", disposition["strategy"])
       self.assertEqual("converted mobile death profile", disposition["target"])
 
+  def test_trahern_combat_handlers_use_typed_monster_runtime(self) -> None:
+    for handler in ("gakarakQuake", "kazgorothToss", "slothenEngorge"):
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Monster Combat", disposition["target"])
+
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       source_root = Path(temporary)
@@ -897,11 +904,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_593, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(128, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(685, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(110, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(1_038, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_596, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(125, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(688, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(107, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_041, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           219, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
