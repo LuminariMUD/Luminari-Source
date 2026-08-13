@@ -277,6 +277,8 @@ ADAPTED_HANDLER_NAMES = {
     "gakarakQuake": "RoL Monster Combat",
     "kazgorothToss": "RoL Monster Combat",
     "slothenEngorge": "RoL Monster Combat",
+    "erinyesCharm": "RoL Monster Combat",
+    "erinyesCharmed": "RoL Monster Combat",
     "dk_bansheeWail": "RoL Monster Combat",
     "dk_bladestorm": "RoL Monster Combat",
     "ms_sandstorm_beast": "RoL Monster Combat",

@@ -548,13 +548,15 @@ class RolTransformTests(unittest.TestCase):
         for source_vnum, handler in (
             (20217, "gakarakQuake"),
             (20234, "kazgorothToss"),
+            (20246, "erinyesCharm"),
+            (20246, "erinyesCharmed"),
             (20248, "slothenEngorge"),
         )
     ]
 
     compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
 
-    self.assertEqual(3, len(compiled.native_bindings))
+    self.assertEqual(5, len(compiled.native_bindings))
     self.assertTrue(
         all(
             binding.persisted_name == "RoL Monster Combat"

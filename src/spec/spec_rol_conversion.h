@@ -288,6 +288,9 @@ bool rol_planar_captive_command_allowed(const char *command);
 bool rol_planar_restrain_agility_evades(int agility, int roll);
 bool rol_planar_restrain_constitution_survives(int constitution, int roll);
 bool rol_planar_succubus_charm_roll_fires(int roll);
+int rol_planar_charm_target_save_modifier(int mobile_vnum);
+bool rol_planar_charm_target_allowed(int mobile_vnum, struct char_data *ch,
+                                     struct char_data *victim);
 int rol_planar_succubus_kiss_delay_seconds(int hours);
 bool rol_planar_vrock_dance_profile(int mobile_vnum);
 int rol_planar_vrock_dance_required_count(void);

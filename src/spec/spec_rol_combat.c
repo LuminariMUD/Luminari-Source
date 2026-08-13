@@ -77,6 +77,7 @@ enum rol_monster_combat_effect
   ROL_MONSTER_SUMMON_JESSICA_WISP,
   ROL_MONSTER_SUMMON_ROBYN_WISP,
   ROL_MONSTER_SUMMON_ROBYN_SERVANT,
+  ROL_MONSTER_TRAHERN_ERINYES_CHARM,
   ROL_MONSTER_TRAHERN_QUAKE,
   ROL_MONSTER_TRAHERN_TOSS,
   ROL_MONSTER_TRAHERN_ENGORGE,
@@ -214,6 +215,8 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2019750, ROL_MONSTER_CRIMSON_FURY, 11, "Crimson Fury minion purge and fire blast."},
     {2020217, ROL_MONSTER_TRAHERN_QUAKE, 3, "Gakarak's room-wide root quake."},
     {2020234, ROL_MONSTER_TRAHERN_TOSS, 3, "Kazgoroth's damaging body toss."},
+    {2020246, ROL_MONSTER_TRAHERN_ERINYES_CHARM, 4,
+     "Room-wide mortal charm, command restraint, and delayed follower execution."},
     {2020247, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
     {2020248, ROL_MONSTER_TRAHERN_ENGORGE, 3, "Slothen's engorge and acidic ooze burst."},
     {2020378, ROL_MONSTER_ASHENTORIS, 11, "Life drain and lava storm."},
@@ -696,6 +699,7 @@ bool rol_planar_control_profile(int mobile_vnum, enum rol_planar_control_kind *k
     result = ROL_PLANAR_CONTROL_MARILITH;
     break;
   case ROL_MONSTER_PLANAR_SUCCUBUS_CHARM:
+  case ROL_MONSTER_TRAHERN_ERINYES_CHARM:
     result = ROL_PLANAR_CONTROL_SUCCUBUS;
     break;
   default:
@@ -739,6 +743,19 @@ bool rol_planar_restrain_constitution_survives(int constitution, int roll)
 bool rol_planar_succubus_charm_roll_fires(int roll)
 {
   return roll == 0;
+}
+
+int rol_planar_charm_target_save_modifier(int mobile_vnum)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+
+  if (profile == NULL)
+    return 0;
+  if (profile->effect == ROL_MONSTER_TRAHERN_ERINYES_CHARM)
+    return 1;
+  if (profile->effect == ROL_MONSTER_PLANAR_SUCCUBUS_CHARM)
+    return 2;
+  return 0;
 }
 
 int rol_planar_succubus_kiss_delay_seconds(int hours)
@@ -1635,29 +1652,61 @@ static int rol_planar_restrain_activity(struct char_data *ch)
   return FALSE;
 }
 
-static bool rol_planar_succubus_target(struct char_data *ch, struct char_data *victim)
+static bool rol_planar_charm_target(struct char_data *ch, struct char_data *victim,
+                                    enum rol_monster_combat_effect effect)
 {
-  return victim != ch && victim != ch->master && !IS_NPC(victim) && GET_SEX(victim) == SEX_MALE &&
+  return victim != ch && victim != ch->master && !IS_NPC(victim) &&
+         (effect == ROL_MONSTER_TRAHERN_ERINYES_CHARM || GET_SEX(victim) == SEX_MALE) &&
          GET_LEVEL(victim) < LVL_IMMORT && !AFF_FLAGGED(victim, AFF_CHARM) &&
          !AFF_FLAGGED(victim, AFF_MIND_BLANK) && !char_has_object_flag(victim, ITEM_ROL_NO_CHARM) &&
          !is_immune_charm(ch, victim, FALSE);
 }
 
-static bool rol_planar_succubus_apply_charm(struct char_data *ch, struct char_data *victim)
+bool rol_planar_charm_target_allowed(int mobile_vnum, struct char_data *ch,
+                                     struct char_data *victim)
 {
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+
+  if (profile == NULL || ch == NULL || victim == NULL ||
+      (profile->effect != ROL_MONSTER_PLANAR_SUCCUBUS_CHARM &&
+       profile->effect != ROL_MONSTER_TRAHERN_ERINYES_CHARM))
+    return false;
+  return rol_planar_charm_target(ch, victim, profile->effect);
+}
+
+static bool rol_planar_apply_charm(struct char_data *ch, struct char_data *victim,
+                                   enum rol_monster_combat_effect effect)
+{
+  int save_modifier = rol_planar_charm_target_save_modifier(GET_MOB_VNUM(ch));
+
+  if (effect == ROL_MONSTER_TRAHERN_ERINYES_CHARM)
+    act("$n speaks to you with telepathy, 'Come, join me in my cause!'", FALSE, ch, NULL, victim,
+        TO_VICT);
   if (mag_resistance(ch, victim, 0) ||
-      savingthrow(ch, victim, SAVING_WILL, -2, CAST_INNATE, GET_LEVEL(ch), ENCHANTMENT))
+      savingthrow(ch, victim, SAVING_WILL, save_modifier, CAST_INNATE, GET_LEVEL(ch), ENCHANTMENT))
   {
-    send_to_char(victim, "You shake off a wave of beguiling desire.\r\n");
+    if (effect == ROL_MONSTER_TRAHERN_ERINYES_CHARM)
+      act("You long to join up with $n, but somehow resist!", FALSE, ch, NULL, victim, TO_VICT);
+    else
+      send_to_char(victim, "You shake off a wave of beguiling desire.\r\n");
     return false;
   }
-  act("$n gazes into your eyes, and your will melts away.", FALSE, ch, NULL, victim, TO_VICT);
-  act("$n gazes into $N's eyes, captivating $M completely.", FALSE, ch, NULL, victim, TO_NOTVICT);
+  if (effect == ROL_MONSTER_TRAHERN_ERINYES_CHARM)
+  {
+    act("You are helpless under the wiles of $n.", FALSE, ch, NULL, victim, TO_VICT);
+    act("$N falls helpless under the wiles of $n!", FALSE, ch, NULL, victim, TO_ROOM);
+  }
+  else
+  {
+    act("$n gazes into your eyes, and your will melts away.", FALSE, ch, NULL, victim, TO_VICT);
+    act("$n gazes into $N's eyes, captivating $M completely.", FALSE, ch, NULL, victim, TO_NOTVICT);
+  }
   rol_planar_make_follower(victim, ch);
   return true;
 }
 
-static int rol_planar_succubus_activity(struct char_data *ch)
+static int rol_planar_charm_activity(const struct rol_monster_combat_profile *profile,
+                                     struct char_data *ch)
 {
   struct char_data *victim;
   struct char_data *next;
@@ -1677,9 +1726,10 @@ static int rol_planar_succubus_activity(struct char_data *ch)
   for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next)
   {
     next = victim->next_in_room;
-    if (!rol_planar_succubus_target(ch, victim))
+    if (!rol_planar_charm_target(ch, victim, profile->effect))
       continue;
-    if (CLASS_LEVEL(victim, CLASS_BLACKGUARD) > 0 && GET_LEVEL(victim) > GET_LEVEL(ch) &&
+    if (profile->effect == ROL_MONSTER_PLANAR_SUCCUBUS_CHARM &&
+        CLASS_LEVEL(victim, CLASS_BLACKGUARD) > 0 && GET_LEVEL(victim) > GET_LEVEL(ch) &&
         ch->master == NULL)
     {
       act("$n recognizes your dark authority and kneels to serve you.", FALSE, ch, NULL, victim,
@@ -1690,7 +1740,7 @@ static int rol_planar_succubus_activity(struct char_data *ch)
     if (!rol_planar_succubus_charm_roll_fires(rand_number(0, 3)))
       continue;
     attempted = true;
-    if (rol_planar_succubus_apply_charm(ch, victim))
+    if (rol_planar_apply_charm(ch, victim, profile->effect))
     {
       time_t deadline = now + rol_planar_succubus_kiss_delay_seconds(rand_number(1, 4));
 
@@ -1714,10 +1764,22 @@ static int rol_planar_succubus_activity(struct char_data *ch)
     ch->mob_specials.rol_planar_captive_kill_at = 0;
     return TRUE;
   }
-  act("$n draws $N into a final kiss and drains away $S life.", FALSE, ch, NULL, captive,
-      TO_NOTVICT);
-  act("$n draws you into a final kiss, and the world goes black.", FALSE, ch, NULL, captive,
-      TO_VICT);
+  if (profile->effect == ROL_MONSTER_TRAHERN_ERINYES_CHARM)
+  {
+    act("$n approaches $N with a murderous grin.", FALSE, ch, NULL, captive, TO_NOTVICT);
+    act("$n approaches you with a murderous grin.", FALSE, ch, NULL, captive, TO_VICT);
+    act("$n suddenly thrusts $s claw into $N's chest and rips out $S heart!", FALSE, ch, NULL,
+        captive, TO_NOTVICT);
+    act("$n suddenly thrusts $s claw into your chest and rips out your heart!", FALSE, ch, NULL,
+        captive, TO_VICT);
+  }
+  else
+  {
+    act("$n draws $N into a final kiss and drains away $S life.", FALSE, ch, NULL, captive,
+        TO_NOTVICT);
+    act("$n draws you into a final kiss, and the world goes black.", FALSE, ch, NULL, captive,
+        TO_VICT);
+  }
   die(captive, ch);
   ch->mob_specials.rol_planar_captive_kill_at =
       rol_planar_first_captive(ch) != NULL ? now + SECS_PER_MUD_HOUR : 0;
@@ -3426,6 +3488,12 @@ static int rol_monster_command(struct spec_event_context *context,
       send_to_char(actor, "The crushing pincers leave you unable to do that.\r\n");
     else if (control_kind == ROL_PLANAR_CONTROL_MARILITH)
       send_to_char(actor, "The coiling tail leaves you unable to do that.\r\n");
+    else if (profile->effect == ROL_MONSTER_TRAHERN_ERINYES_CHARM)
+    {
+      send_to_char(actor,
+                   "Your thoughts are too hazy, soley focused on this seductive creature.\r\n");
+      send_to_char(actor, "You can do nothing but stand here and tend to its every whim ..\r\n");
+    }
     else
       send_to_char(actor, "Your thoughts are too hazy with devotion to do that.\r\n");
     return TRUE;
@@ -3666,7 +3734,8 @@ static int rol_monster_activity(struct spec_event_context *context,
   case ROL_MONSTER_PLANAR_MARILITH_TAIL:
     return rol_planar_restrain_activity(ch);
   case ROL_MONSTER_PLANAR_SUCCUBUS_CHARM:
-    return rol_planar_succubus_activity(ch);
+  case ROL_MONSTER_TRAHERN_ERINYES_CHARM:
+    return rol_planar_charm_activity(profile, ch);
   case ROL_MONSTER_PLANAR_VROCK_BURSTS:
     return rol_planar_vrock_dance_activity(context, ch);
   case ROL_MONSTER_HIVE_SKRIAXIT_SANDSTORM:
@@ -4004,6 +4073,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_PLANAR_GLABREZU_GRAB:
   case ROL_MONSTER_PLANAR_MARILITH_TAIL:
   case ROL_MONSTER_PLANAR_SUCCUBUS_CHARM:
+  case ROL_MONSTER_TRAHERN_ERINYES_CHARM:
   case ROL_MONSTER_PLANAR_VROCK_BURSTS:
   case ROL_MONSTER_PLANAR_SPINAGON_SPIKES:
   case ROL_MONSTER_AVERNUS_BARBAZU_BERSERK:

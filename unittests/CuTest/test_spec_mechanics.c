@@ -2757,20 +2757,20 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
       2001407, 2001436, 2001437, 2004070, 2004480, 2004530, 2005023, 2005718, 2010661, 2010744,
       2010745, 2010749, 2010750, 2010754, 2010755, 2010756, 2010757, 2010758, 2010759, 2010760,
       2010761, 2010762, 2010763, 2012005, 2012006, 2012024, 2012025, 2012026, 2014015, 2014026,
-      2014029, 2014601, 2014605, 2015113, 2015125, 2019701, 2019750, 2020217, 2020234, 2020247,
-      2020248, 2020378, 2021786, 2021820, 2026208, 2026216, 2026225, 2026236, 2026238, 2026241,
-      2026242, 2026243, 2026244, 2026245, 2032623, 2032629, 2032632, 2032640, 2032641, 2032642,
-      2032643, 2032644, 2032645, 2032646, 2032654, 2032659, 2032660, 2033000, 2033001, 2033003,
-      2033004, 2033005, 2033008, 2033009, 2033011, 2033014, 2033015, 2033016, 2033020, 2033021,
-      2033022, 2033026, 2033027, 2034833, 2041900, 2043358, 2043702, 2043703, 2043705, 2043728,
-      2043741, 2043742, 2043744, 2043745, 2043746, 2043756, 2043758, 2043759, 2043761, 2043767,
-      2043768, 2043769, 2043770, 2043778, 2043780, 2045116, 2045146, 2045182, 2051246, 2051333,
-      2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401, 2062402, 2062405, 2062406,
-      2062701, 2062702, 2062703, 2062704, 2062705, 2062706, 2062707, 2062708, 2062710, 2062711,
-      2062712, 2062713, 2062714, 2062715, 2062716, 2062717, 2062721, 2062722, 2081706, 2081746,
-      2081747, 2083224, 2089793, 2089794, 2092608, 2093061, 2093102, 2093108, 2093109, 2093110,
-      2093111, 2093112, 2093202, 2093204, 2093205, 2093206, 2093209, 2093210, 2093219, 2094505,
-      2094506, 2094563, 2096631, 2096670, 2096672, 2097061,
+      2014029, 2014601, 2014605, 2015113, 2015125, 2019701, 2019750, 2020217, 2020234, 2020246,
+      2020247, 2020248, 2020378, 2021786, 2021820, 2026208, 2026216, 2026225, 2026236, 2026238,
+      2026241, 2026242, 2026243, 2026244, 2026245, 2032623, 2032629, 2032632, 2032640, 2032641,
+      2032642, 2032643, 2032644, 2032645, 2032646, 2032654, 2032659, 2032660, 2033000, 2033001,
+      2033003, 2033004, 2033005, 2033008, 2033009, 2033011, 2033014, 2033015, 2033016, 2033020,
+      2033021, 2033022, 2033026, 2033027, 2034833, 2041900, 2043358, 2043702, 2043703, 2043705,
+      2043728, 2043741, 2043742, 2043744, 2043745, 2043746, 2043756, 2043758, 2043759, 2043761,
+      2043767, 2043768, 2043769, 2043770, 2043778, 2043780, 2045116, 2045146, 2045182, 2051246,
+      2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401, 2062402, 2062405,
+      2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706, 2062707, 2062708, 2062710,
+      2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717, 2062721, 2062722, 2081706,
+      2081746, 2081747, 2083224, 2089793, 2089794, 2092608, 2093061, 2093102, 2093108, 2093109,
+      2093110, 2093111, 2093112, 2093202, 2093204, 2093205, 2093206, 2093209, 2093210, 2093219,
+      2094505, 2094506, 2094563, 2096631, 2096670, 2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2858,6 +2858,7 @@ void Test_spec_rol_trahern_combat_profiles_preserve_quake_toss_and_engorge(CuTes
   CuAssertIntEquals(tc, 3, denominator);
   CuAssertTrue(tc, rol_trahern_combat_profile(2020234, &destination));
   CuAssertIntEquals(tc, 2020237, destination);
+  CuAssertTrue(tc, !rol_trahern_combat_profile(2020246, NULL));
   CuAssertTrue(tc, rol_trahern_combat_profile(2020248, &destination));
   CuAssertIntEquals(tc, NOWHERE, destination);
   CuAssertTrue(tc, !rol_trahern_combat_profile(2020247, NULL));
@@ -3261,8 +3262,11 @@ void Test_spec_rol_planar_control_and_vrock_dance_profiles(CuTest *tc)
   struct spec_event_context context;
   struct command_info commands[3];
   struct command_info *saved_complete_cmd_info;
+  struct player_special_data player_specials;
   enum rol_planar_control_kind kind;
   int denominator;
+  int seed;
+  time_t deadline_start;
 
   CuAssertTrue(tc, rol_planar_control_profile(2000212, &kind, &denominator));
   CuAssertIntEquals(tc, ROL_PLANAR_CONTROL_GLABREZU, kind);
@@ -3271,6 +3275,9 @@ void Test_spec_rol_planar_control_and_vrock_dance_profiles(CuTest *tc)
   CuAssertIntEquals(tc, ROL_PLANAR_CONTROL_MARILITH, kind);
   CuAssertIntEquals(tc, 11, denominator);
   CuAssertTrue(tc, rol_planar_control_profile(2000220, &kind, &denominator));
+  CuAssertIntEquals(tc, ROL_PLANAR_CONTROL_SUCCUBUS, kind);
+  CuAssertIntEquals(tc, 4, denominator);
+  CuAssertTrue(tc, rol_planar_control_profile(2020246, &kind, &denominator));
   CuAssertIntEquals(tc, ROL_PLANAR_CONTROL_SUCCUBUS, kind);
   CuAssertIntEquals(tc, 4, denominator);
   CuAssertTrue(tc, !rol_planar_control_profile(2000221, NULL, NULL));
@@ -3286,6 +3293,9 @@ void Test_spec_rol_planar_control_and_vrock_dance_profiles(CuTest *tc)
   CuAssertTrue(tc, rol_planar_restrain_constitution_survives(90, 85));
   CuAssertTrue(tc, rol_planar_succubus_charm_roll_fires(0));
   CuAssertTrue(tc, !rol_planar_succubus_charm_roll_fires(1));
+  CuAssertIntEquals(tc, 2, rol_planar_charm_target_save_modifier(2000220));
+  CuAssertIntEquals(tc, 1, rol_planar_charm_target_save_modifier(2020246));
+  CuAssertIntEquals(tc, 0, rol_planar_charm_target_save_modifier(2020247));
   CuAssertIntEquals(tc, SECS_PER_MUD_HOUR, rol_planar_succubus_kiss_delay_seconds(1));
   CuAssertIntEquals(tc, SECS_PER_MUD_HOUR * 4, rol_planar_succubus_kiss_delay_seconds(4));
   CuAssertIntEquals(tc, 0, rol_planar_succubus_kiss_delay_seconds(5));
@@ -3300,23 +3310,62 @@ void Test_spec_rol_planar_control_and_vrock_dance_profiles(CuTest *tc)
   spec_mechanics_begin(&fixture);
   memset(&context, 0, sizeof(context));
   memset(commands, 0, sizeof(commands));
+  memset(&player_specials, 0, sizeof(player_specials));
   saved_complete_cmd_info = complete_cmd_info;
   complete_cmd_info = commands;
   commands[1].command = "kill";
   commands[2].command = "look";
   fixture.mobile_indexes[0].vnum = 2000212;
   GET_MOB_RNUM(&fixture.actor) = 0;
-  fixture.target.master = &fixture.actor;
-  SET_BIT_AR(AFF_FLAGS(&fixture.target), AFF_CHARM);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
+  fixture.target.player_specials = &player_specials;
+  GET_SEX(&fixture.target) = SEX_FEMALE;
+  CuAssertTrue(tc, rol_planar_charm_target_allowed(2020246, &fixture.actor, &fixture.target));
+  CuAssertTrue(tc, !rol_planar_charm_target_allowed(2000220, &fixture.actor, &fixture.target));
+  GET_SEX(&fixture.target) = SEX_MALE;
+  CuAssertTrue(tc, rol_planar_charm_target_allowed(2000220, &fixture.actor, &fixture.target));
+  SET_BIT_AR(AFF_FLAGS(&fixture.target), AFF_MIND_BLANK);
+  CuAssertTrue(tc, !rol_planar_charm_target_allowed(2020246, &fixture.actor, &fixture.target));
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.target), AFF_MIND_BLANK);
+  CuAssertTrue(tc, !rol_planar_charm_target_allowed(2020247, &fixture.actor, &fixture.target));
+  CuAssertTrue(tc, !rol_planar_charm_target_allowed(2020246, NULL, &fixture.target));
+
+  fixture.mobile_indexes[0].vnum = 2020246;
+  GET_LEVEL(&fixture.actor) = 56;
   context.owner_type = SPEC_OWNER_MOBILE;
-  context.event = SPEC_EVENT_COMMAND;
+  context.event = SPEC_EVENT_MOBILE_ACTIVITY;
   context.owner = &fixture.actor;
+  context.actor = &fixture.actor;
+  GET_SEX(&fixture.target) = SEX_FEMALE;
+  deadline_start = time(NULL);
+  for (seed = 0; seed < 20 && fixture.target.master == NULL; seed++)
+  {
+    circle_srandom((unsigned long)seed);
+    (void)rol_monster_combat_typed(&context);
+  }
+  CuAssertPtrEquals(tc, &fixture.actor, fixture.target.master);
+  CuAssertTrue(tc, AFF_FLAGGED(&fixture.target, AFF_CHARM));
+  CuAssertTrue(tc, fixture.actor.mob_specials.rol_planar_captive_kill_at >=
+                       deadline_start + SECS_PER_MUD_HOUR);
+  CuAssertTrue(tc, fixture.actor.mob_specials.rol_planar_captive_kill_at <=
+                       time(NULL) + 4 * SECS_PER_MUD_HOUR);
+  circle_srandom((unsigned long)time(NULL));
+
+  context.event = SPEC_EVENT_COMMAND;
   context.actor = &fixture.target;
   context.command = 1;
   CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
   context.command = 2;
   CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
+  fixture.mobile_indexes[0].vnum = 2000212;
+  context.command = 1;
+  CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
+  context.command = 2;
+  CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
   complete_cmd_info = saved_complete_cmd_info;
+  stop_follower(&fixture.target);
+  fixture.target.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
   spec_mechanics_end(&fixture);
 }
 

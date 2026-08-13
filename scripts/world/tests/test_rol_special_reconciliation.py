@@ -633,7 +633,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("converted mobile death profile", disposition["target"])
 
   def test_trahern_combat_handlers_use_typed_monster_runtime(self) -> None:
-    for handler in ("gakarakQuake", "kazgorothToss", "slothenEngorge"):
+    for handler in (
+        "erinyesCharm",
+        "erinyesCharmed",
+        "gakarakQuake",
+        "kazgorothToss",
+        "slothenEngorge",
+    ):
       disposition = handler_disposition(handler)
       self.assertEqual("resolved", disposition["status"])
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
@@ -904,11 +910,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_596, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(125, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(688, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(107, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(1_041, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_598, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(123, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(690, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(105, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_043, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           219, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
