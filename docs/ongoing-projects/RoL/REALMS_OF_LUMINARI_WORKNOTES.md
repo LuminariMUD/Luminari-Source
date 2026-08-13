@@ -115,6 +115,7 @@ Phase 6 Seelie-disabled-state compatibility commit: f40a5e48
 Phase 6 Hive-manscorpion-venom commit: 236296dd
 Phase 6 successful-hit-area commit: 3c9f0afe
 Phase 6 Hive-Skriaxit-sandstorm commit: cb964e66
+Phase 6 planar-death/burst/weapon commit: 336ee930
 ```
 
 The authoritative ignored runs are:
@@ -338,6 +339,9 @@ Phase 6 successful-hit area:
 Phase 6 Hive Skriaxit sandstorm:
   lib/rol-conversion/runs/phase6-special-20260813-hive-skriaxit-sandstorm
   rol-phase6-special-337e1c4ccb66c3bc
+Phase 6 planar death, bursts, and Balor weapons:
+  lib/rol-conversion/runs/phase6-special-20260813-planar-death-bursts-weapons
+  rol-phase6-special-1f5bf8c5d82f76a4
 Policy:  rol-conversion-policy-2
 ```
 
@@ -366,12 +370,12 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 333 tests; the production-linked CuTest suite passes 670;
+- The world-tool suite passes 335 tests; the production-linked CuTest suite passes 672;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The corrected discovery repair and nine subsequent denominator-bearing batches are archived.
-  Those batches closed 148 bindings across 44 source handlers. The measured remaining Phase 6
-  forecast is 20-44 sessions, or 40-176 focused engineering hours; the full remaining project
-  range is 76-128 sessions, or 152-512 focused hours.
+- The corrected discovery repair and ten subsequent denominator-bearing batches are archived.
+  Those batches closed 166 bindings across 52 source handlers. The measured remaining Phase 6
+  forecast is 19-40 sessions, or 38-160 focused engineering hours; the full remaining project
+  range is 75-124 sessions, or 150-496 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -420,9 +424,9 @@ Policy:  rol-conversion-policy-2
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
 - The repaired Phase 6 inventory accounts for 1,721 active direct bindings across 795 source
-  handlers and locates all 795 source definitions. The current reconciliation resolves 1,394
-  bindings across 582 handlers and leaves 327 bindings across 213 handlers.
-- The independent `ACT_SPEC` cross-check resolves 799 of 848 records and leaves 49
+  handlers and locates all 795 source definitions. The current reconciliation resolves 1,412
+  bindings across 590 handlers and leaves 309 bindings across 205 handlers.
+- The independent `ACT_SPEC` cross-check resolves 801 of 848 records and leaves 47
   pending. It remains a scheduling cross-check rather than the direct-binding denominator;
   composition-safe flags and room or object procedures can resolve source handlers without
   changing this mobile-only count.
@@ -692,16 +696,16 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,394 static bindings and leaves 327 pending. It resolves
-  582 direct handler names and leaves 213 pending across 34 source files. The pending set has
-  170 singleton handlers, 35 handlers with two to four bindings, five with five to nine, and
+- The corrected reconciler resolves 1,412 static bindings and leaves 309 pending. It resolves
+  590 direct handler names and leaves 205 pending across 34 source files. The pending set has
+  167 singleton handlers, 31 handlers with two to four bindings, four with five to nine, and
   three with at least ten bindings.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
   shopkeeper path accounts for 453 active shops and hosts. Both are resolved through the target
   data-driven HLQuest and shop services. Static and dynamic paths total 7,252 active binding
   instances across 797 handler names.
-- The regenerated `ACT_SPEC` cross-check resolves 799 of 848 records and leaves 49 pending.
+- The regenerated `ACT_SPEC` cross-check resolves 801 of 848 records and leaves 47 pending.
   Automatic race composition still resolves all 247 implicit bindings; 85 now compose with a
   direct binding and 162 are implicit-only.
 - The prior 1,112/1,147 binding, 538/562 handler, and 830/848 `ACT_SPEC` split is historical
@@ -758,60 +762,77 @@ Policy:  rol-conversion-policy-2
   reaching the current and open orthogonally adjacent rooms. The target preserves source
   eligibility, immunity, resistance, and first-failed-affect dispel behavior without inventing
   damage: the bound source room loop resets its counted Skriaxits before calculating `3 * num`.
-- The nine corrected batches close 148 bindings across 44 handlers. That measured throughput
-  puts the binding-count projection near 20 sessions and the handler-diversity projection near
-  44. Because 170 remaining handlers are singletons, the published Phase 6 envelope is 20-44
-  sessions, or 40-176 focused engineering hours. Reforecast after another material batch or an
+- The planar death, burst, and Balor weapon batch closes 18 bindings across eight handlers.
+  Manes retain their save-gated acidic death burst and ordinary corpse; Balors preserve
+  elemental protection, weapon provisioning, and corpse suppression. The Balor whip and sword
+  enforce demon ownership and preserve direct force damage, critical negative-energy area or
+  ability-penalty branches, pet suppression, and safe object invalidation. Vrocks retain
+  independently cooling low-health screeches and spore bursts, while Spinagons retain the
+  source code's actual 20d2 spike damage, five-in-six trigger, 2-5 targets, save bonus, and
+  three-round cooldown. Chasme buzz is explicitly source-inert because its callback tests the
+  demon owner rather than the victim.
+- The ten corrected batches close 166 bindings across 52 handlers. That measured throughput
+  puts the binding-count projection near 19 sessions and the handler-diversity projection near
+  40. Because 167 remaining handlers are singletons, the published Phase 6 envelope is 19-40
+  sessions, or 38-160 focused engineering hours. Reforecast after another material batch or an
   inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
 1. Reconcile the corrected pending inventory in dependency-complete shared-runtime batches.
-2. Trace the next dependency-complete combat, death, or utility family together with
-   behavior-identical aliases; do not batch merely by name or VNUM proximity.
+2. Trace the remaining planar capture, charm, and Vrock-dance handlers as one coherent group,
+   then select the next dependency-complete combat, death, or utility family; do not batch
+   merely by name or VNUM proximity.
 3. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
 4. Preserve the six locked malformed record exclusions as explicit, logged
    smallest-unit exclusions.
 5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the 20-44-session Phase 6 envelope and reforecast after another
+6. Measure throughput against the 19-40-session Phase 6 envelope and reforecast after another
    material batch or an inventory correction.
 
 ## Latest session handoff
 
-- Reconciled both `skriaxit_sandstorm` bindings on converted Hive mobiles 2043741 and 2043742
-  through exact profiles owned by the persistent `RoL Monster Combat` procedure.
-- Preserved the source three-round schedule on the target's equal six-second mobile pulse. The
-  storm advances while the mobile is idle, fighting, or disabled and reaches the current room
-  plus populated rooms through open north, east, south, west, up, and down exits.
-- Preserved mortal-player and PC-pet targeting, incorporeal and air/earth elemental immunity,
-  peaceful-room and native area safety, target spell resistance, level-48 Will saves, and removal
-  of at most the first eligible spell affect that fails its save.
-- Preserved actual bound source behavior instead of the source comment's apparent intent. The
-  source room loop resets the passed Skriaxit count to zero before evaluating `3 * num`, so the
-  scheduled storm displays and attempts its dispel but never changes hit points.
+- Reconciled 18 planar bindings across eight source handlers. Manes, Balors, Vrocks, and
+  Spinagons use exact profiles on `RoL Monster Combat`; Balor whip 2093227 and lightning sword
+  2093228 use `RoL Weapon Proc`. Both Chasme buzz bindings are recorded as source-inert because
+  their callback tests the demon owner's race and therefore cannot enter its sleep branch.
+- Added the typed mobile-death contract to the shared monster procedure. Manes emit a native-safe
+  4d6 acid burst with demon immunity and a Fortitude save while retaining their ordinary corpse.
+  Balors retain elemental protection, provision missing sword and whip slots, dissolve
+  abyss-forged weapons through the existing death hook, and suppress their ordinary corpse.
+- Preserved independent Vrock screech and spore cooldowns, including the <=15-percent-health,
+  mortal-PC Constitution check, silence and soundproof gates, one-round stun, one-MUD-day
+  screech cooldown, five-in-six spore trigger, 10d2 poison damage, and three-round spore cooldown.
+- Preserved the Spinagon's five-in-six trigger, 2-5 native-safe targets, elemental-protection
+  Reflex bonus, and three-round cooldown. The port intentionally uses the active source code's
+  `20d2` fire roll rather than its contradictory `2d20` comment.
+- Added demon-only Balor weapon ownership, automatic destruction for invalid carried or worn
+  owners, and pet-safe combat suppression. The whip deals 8d6 unavoidable force damage on each
+  qualifying hit. Sword criticals deal 20d10 negative energy and choose between a one-in-five
+  safe room burst and a direct branch with four Constitution plus four Strength penalties.
 - Regenerated and hash-verified the authoritative Phase 6 bundle at
-  `lib/rol-conversion/runs/phase6-special-20260813-hive-skriaxit-sandstorm`. A same-timestamp
-  repeat was byte-identical and reproduced run ID `rol-phase6-special-337e1c4ccb66c3bc` and
+  `lib/rol-conversion/runs/phase6-special-20260813-planar-death-bursts-weapons`. A same-timestamp
+  repeat was byte-identical and reproduced run ID `rol-phase6-special-1f5bf8c5d82f76a4` and
   standard path-and-content tree digest
-  `a7c8ef2f7abfa6b8358ee8aaa1d2f2f33c96b6489785ac98a2f827caa0dbdcfe`.
+  `677be3adf7d8dae6bb3123e8ac9646effc9597ca31970861d4c1224e4c0b5a46`.
 - The binding ledger SHA-256 is
-  `61e7175a1649585e81eca1d719df5179a600405fada0dc03f9dc1921165b9999`; the handler inventory
-  SHA-256 is `91c3e7c1ee9ce53d96088baa4cfaef2fc2ec2412f8ca1869af6b12f276dfc142`; and the summary
-  SHA-256 is `7c26466116d76e2af663ab24d082333ba9b5d960b4963d959d245abb5ddf3c1e`.
+  `bc9e0d8e7901db7f536de9f7e119752dfaed606d27e9694d9f117f68341f933f`; the handler inventory
+  SHA-256 is `a43576faa3b95e6df7bd3bf00ae76f4a44a54ca24662831cd1908b81186c0424`; and the summary
+  SHA-256 is `42e38b32c482ea7b6ee81dcb52484b9ee6bf6ecc77c8c40d4ec0edd01dcce2b4`.
 - The corrected Phase 6 denominator remains 1,721 live static plus 5,531 resolved dynamic
-  binding instances. This closure raises static resolution to 1,394 and handler resolution to
-  582, leaving 327 bindings across 213 handlers in 34 source files. The `ACT_SPEC` cross-check
-  is 799 resolved and 49 pending.
-- Final validation passed: 333 world-tool tests, 670 production-linked CuTests, zero
+  binding instances. This closure raises static resolution to 1,412 and handler resolution to
+  590, leaving 309 bindings across 205 handlers in 34 source files. The `ACT_SPEC` cross-check
+  is 801 resolved and 47 pending.
+- Final validation passed: 335 world-tool tests, 672 production-linked CuTests, zero
   documentation findings, a warning-free Autotools build/test/install, and no root-level
-  `circle`. Installed build ID `98acdd1ad145d505b9a9d0c9ce94d6968c434a66`; SHA-256
-  `d87d807bf5bd9f8a6234ace2e4ac1169a2a8c752f064c08432c686c2cafd0205`.
-- No player helpfile changed: the batch adds no command or syntax. The staff manual matrix covers
-  both converted mobiles, cadence, disabled execution, open adjacency, safety, immunity,
-  resistance, dispel, and source-zero-damage behavior.
-- The nine-batch sample sets the Phase 6 envelope at 20-44 sessions, or 40-176 focused hours.
-  Next, complete another dependency-complete shared-runtime family and reforecast after a
-  material batch or inventory correction.
+  `circle`. Installed build ID `1cf293861de5d4835aef3e2879252d332bacd337`; SHA-256
+  `d87dbdd1c7ef5641ca35e0baef6f54da63960b43be52b9da5648fa87199619cb`.
+- No player helpfile changed because the batch adds no command or syntax. The staff manual matrix
+  covers every converted identity, death path, cooldown, save, ownership rule, weapon branch,
+  safe area selection, source-inert exclusion, and the Spinagon source/comment mismatch.
+- The ten-batch sample sets the Phase 6 envelope at 19-40 sessions, or 38-160 focused hours.
+  Next, close the remaining planar capture, charm, and Vrock-dance group before selecting the
+  next dependency-complete family.

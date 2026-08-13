@@ -9,6 +9,74 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 planar deaths, bursts, and Balor weapons
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled 18 planar bindings across eight source handlers. Manes, Balors, Vrocks, and
+  Spinagons use exact identity profiles on `RoL Monster Combat`; Balor whip 2093227 and
+  lightning sword 2093228 use `RoL Weapon Proc`.
+- Preserved the Manes' 4d6 save-gated acid death burst and ordinary corpse, and the Balors'
+  elemental protection, missing-weapon provisioning, abyss-forged weapon dissolution, and
+  ordinary-corpse suppression through the typed mobile-death gateway.
+- Preserved independent Vrock screech and spore paths: low-health PC-only Constitution checks,
+  silence and soundproof gates, one-round stun, one-MUD-day screech cooldown, five-in-six 10d2
+  poison spores, and a separate three-round spore cooldown.
+- Preserved the Spinagon's five-in-six trigger, 2-5 target-native safe area targets, elemental
+  protection save bonus, and three-round cooldown. The port uses the active source code's actual
+  `20d2` fire roll instead of its contradictory `2d20` comment.
+- Added demon-only Balor weapon ownership and automatic destruction for invalid carried or worn
+  owners. Pets may retain the objects but cannot trigger their combat procs. The whip adds 8d6
+  unavoidable force damage on each qualifying hit; sword criticals add 20d10 negative energy
+  through either a one-in-five safe room burst or a direct eight-affect ability-penalty branch.
+- Recorded both Chasme buzz bindings as source-inert. The callback tests the Chasme owner's demon
+  race rather than the victim, so the authored sleep branch cannot run for either bound mobile.
+- Added exact converter, reconciliation, profile, roll, cooldown, ownership, death, and weapon
+  coverage. No player helpfile changed because the batch introduces no player command or syntax;
+  the staff manual records the complete dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,394 to 1,412 static bindings
+  and from 582 to 590 direct handlers, leaving 309 bindings across 205 handlers in 34 source
+  files. The independent `ACT_SPEC` cross-check moves to 801 resolved and 47 pending.
+- Reforecast ten corrected batches covering 166 bindings across 52 handlers. The remaining
+  Phase 6 envelope is 19-40 sessions, or 38-160 focused engineering hours; the full remaining
+  project envelope is 75-124 sessions, or 150-496 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 336ee930
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-planar-death-bursts-weapons
+Reconciliation run: rol-phase6-special-1f5bf8c5d82f76a4
+Evidence tree SHA-256: 677be3adf7d8dae6bb3123e8ac9646effc9597ca31970861d4c1224e4c0b5a46
+Active direct bindings: 1,721
+Direct bindings resolved: 1,412
+Direct bindings pending: 309
+Source handlers resolved: 590
+Source handlers pending: 205
+Additional handler families resolved: 8
+Additional direct bindings resolved: 18
+Native adapted bindings: 876
+Native adapted composable bindings: 207
+Source-inert exclusions: 31
+ACT_SPEC records resolved: 801
+ACT_SPEC records pending: 47
+Complete world-tool suite: 335 passed
+Production-linked CuTest suite: 672 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 1cf293861de5d4835aef3e2879252d332bacd337
+Installed SHA-256: d87dbdd1c7ef5641ca35e0baef6f54da63960b43be52b9da5648fa87199619cb
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining planar capture, charm, and Vrock-dance group, followed by
+the next dependency-complete shared-runtime family.
+
 ## 2026-08-13 - Phase 6 Hive Skriaxit sandstorm
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

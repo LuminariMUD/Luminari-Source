@@ -881,6 +881,50 @@ These profiles are production-tested and reconciled, but the current five-zone p
 contain their Hive package. Exercise them only after a Phase 7 stage supplies the converted
 mobiles, rooms, exits, and spell-bearing targets; do not hand-edit them into the pilot.
 
+### Phase 6 converted planar death, burst, and Balor weapon profiles
+
+- Build dependency-complete planar stages containing Manes 2000214; Balors 2000207 and
+  2093204; Vrocks 2000221, 2093209, and 2093210; Spinagons 2000233, 2032632, 2032645,
+  2032646, and 2033020; and Balor weapons 2093227 and 2093228. Confirm the mobiles use
+  `RoL Monster Combat`, the weapons use `RoL Weapon Proc`, and unrelated identities do not
+  receive these profiles.
+- Kill Manes 2000214 with eligible mortal players, unrelated NPCs, demons, allies, and protected
+  targets in the room. It must leave its ordinary corpse and emit an acidic-vapor burst. Safe
+  non-demon area targets that fail a Fortitude save take 4d6 acid damage; demon NPCs and targets
+  rejected by native area safety take none.
+- Observe Balors 2000207 and 2093204 through mobile activity. Each must retain permanent
+  elemental protection and fill an empty primary slot with sword 2093228 and an empty offhand
+  slot with whip 2093227 when those prototypes are staged. Existing weapons are not replaced.
+  On death, abyss-forged weapons dissolve first and the ordinary NPC corpse is suppressed.
+- Give either Balor weapon to a non-demon NPC or player, both carried and worn. Its automatic
+  pulse must make it erupt and vanish safely. A demon NPC may retain it; a demon pet may carry
+  or wear it but must not trigger its combat proc.
+- Strike an eligible opponent with whip 2093227. Every qualifying successful hit deals an
+  additional 8d6 force damage with no save, preserving the source's unavoidable magical-fire
+  intent through the target's non-elemental damage path.
+- Score repeated critical hits with sword 2093228. Each qualifying critical deals 20d10
+  negative-energy damage. About one in five criticals must produce a native-safe room burst
+  against eligible PCs and player-owned pets. Other criticals apply four Constitution and four
+  Strength penalties lasting 2, 4, 6, and 8 ticks before damage; while the marker remains,
+  later direct criticals deal damage without stacking another penalty package.
+- Reduce each Vrock below or equal to 15 percent health and land successful hits. If the Vrock
+  is neither silenced nor in a soundproof room, its screech checks mortal PCs against raw
+  Constitution and stuns failures for one combat round. It cannot screech again for one MUD day.
+  Its separate spore branch fires on about five of six eligible hits, deals 10d2 poison damage
+  without a save to its current opponent, and cools down for three combat rounds. A screech and
+  spore cloud may occur on the same hit because their cooldowns are independent.
+- Land repeated hits with each Spinagon. About five of six ready hits launch 2-5 spikes at safe
+  area targets, then start a three-round cooldown. Each target receives a Reflex save with a +4
+  bonus from elemental protection; a failed save takes the source code's actual 20d2 fire
+  damage. Do not substitute the contradictory source comment's 2d20 roll.
+- Observe Chasmes 2000210 and 2093203 through repeated activity pulses. No buzz-induced sleep
+  should occur: the active source callback tests the Chasme owner's demon race rather than the
+  victim, so its sleep branch cannot run for either automatically demon-bound prototype.
+
+These profiles are automated and reconciled but are absent from the current five-zone pilot.
+Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
+into the pilot.
+
 ### Phase 6 converted Waterdeep ambient citizens
 
 - Build dependency-complete stages containing the first 34 converted ambient citizens:
@@ -1303,9 +1347,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,394 are resolved and 327 remain. Of 795 distinct
-  direct source handlers, 582 are resolved and 213 remain. Of 848 `ACT_SPEC` records, 799
-  are resolved and 49 remain. The automatic race procedures
+  of the 1,721 active direct bindings, 1,412 are resolved and 309 remain. Of 795 distinct
+  direct source handlers, 590 are resolved and 205 remain. Of 848 `ACT_SPEC` records, 801
+  are resolved and 47 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
