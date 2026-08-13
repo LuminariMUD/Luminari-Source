@@ -2478,7 +2478,8 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
       2019933, 2025030, 2009054, 2025018, 2001010, 2080034, 2080038, 2026233, 2026248, 2015116,
       2013308, 2097117, 2001005, 2014023, 2024405, 2053266, 2053263, 2053259, 2053289, 2053290,
       2053291, 2053292, 2053243, 2083238, 2083235, 2053250, 2053271, 2043741, 2008000, 2001057,
-      2004797, 2093227, 2093228, 2032602, 2033001, 2033012, 2006084, 2094571, 2094566,
+      2004797, 2093227, 2093228, 2032602, 2033001, 2033012, 2006084, 2094571, 2094566, 196000,
+      2020208, 2020271, 2021759, 2093035, 2093086, 2093156,
   };
   const char *description;
   bool critical_only;
@@ -2506,6 +2507,32 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertTrue(tc, rol_weapon_profile(2053292, &denominator, &critical_only, &description));
   CuAssertIntEquals(tc, 22, denominator);
   CuAssertStrEquals(tc, "NPC arcane-caster damage and casting interruption.", description);
+  CuAssertTrue(tc, rol_weapon_profile(2093086, &denominator, &critical_only, &description));
+  CuAssertTrue(tc, critical_only);
+  CuAssertIntEquals(tc, 1, denominator);
+  CuAssertTrue(tc, rol_weapon_profile(196000, &denominator, &critical_only, &description));
+  CuAssertTrue(tc, !critical_only);
+  CuAssertIntEquals(tc, 22, denominator);
+  CuAssertTrue(tc, rol_weapon_profile(2021759, &denominator, &critical_only, &description));
+  CuAssertIntEquals(tc, 26, denominator);
+  CuAssertIntEquals(tc, 0, rol_trahern_weapon_dice_count(-1));
+  CuAssertIntEquals(tc, 0, rol_trahern_weapon_dice_count(4));
+  CuAssertIntEquals(tc, 1, rol_trahern_weapon_dice_count(5));
+  CuAssertIntEquals(tc, 10, rol_trahern_weapon_dice_count(51));
+  CuAssertTrue(tc, !rol_crystal_sword_daylight(5));
+  CuAssertTrue(tc, rol_crystal_sword_daylight(6));
+  CuAssertTrue(tc, rol_crystal_sword_daylight(17));
+  CuAssertTrue(tc, !rol_crystal_sword_daylight(18));
+  CuAssertTrue(tc, rol_obsidian_sword_nighttime(5));
+  CuAssertTrue(tc, !rol_obsidian_sword_nighttime(6));
+  CuAssertTrue(tc, !rol_obsidian_sword_nighttime(17));
+  CuAssertTrue(tc, rol_obsidian_sword_nighttime(18));
+  CuAssertIntEquals(tc, -4, rol_obsidian_sword_ac_penalty());
+  CuAssertIntEquals(tc, 297, rol_dancing_shadows_damage(297, false, false, false));
+  CuAssertIntEquals(tc, 148, rol_dancing_shadows_damage(297, true, false, false));
+  CuAssertIntEquals(tc, 74, rol_dancing_shadows_damage(297, true, true, false));
+  CuAssertIntEquals(tc, 37, rol_dancing_shadows_damage(297, true, true, true));
+  CuAssertIntEquals(tc, 0, rol_dancing_shadows_damage(-1, false, false, false));
   CuAssertTrue(tc, !rol_weapon_profile(9999999, NULL, NULL, NULL));
 }
 

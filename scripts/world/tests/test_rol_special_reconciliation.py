@@ -577,6 +577,22 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual("RoL Death's Head", disposition["target"])
 
+  def test_remaining_hit_weapon_handlers_use_typed_weapon_runtime(self) -> None:
+    handlers = (
+        "broadsword_dancing_shadows",
+        "crystalSword",
+        "obsidianSword",
+        "proc_frostbite_cold",
+        "um2_drowSnakeWhip",
+        "um2_searingRod",
+    )
+
+    for handler in handlers:
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Weapon Proc", disposition["target"])
+
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       source_root = Path(temporary)
@@ -842,11 +858,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_575, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(146, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(670, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(125, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(1_023, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_582, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(139, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(676, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(119, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_030, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           216, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

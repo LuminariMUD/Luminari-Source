@@ -423,6 +423,61 @@ class RolTransformTests(unittest.TestCase):
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
     )
 
+  def test_remaining_hit_weapon_bindings_share_typed_weapon_runtime(self) -> None:
+    handlers = (
+        (96000, "proc_frostbite_cold"),
+        (20208, "crystalSword"),
+        (20271, "obsidianSword"),
+        (21759, "broadsword_dancing_shadows"),
+        (93035, "um2_searingRod"),
+        (93086, "um2_drowSnakeWhip"),
+        (93156, "um2_drowSnakeWhip"),
+    )
+    bindings = [
+        {
+            "basename": "hit-weapons",
+            "record_type": "object",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in handlers
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+
+    self.assertEqual(7, len(compiled.native_bindings))
+    self.assertTrue(
+        all(binding.persisted_name == "RoL Weapon Proc" for binding in compiled.native_bindings)
+    )
+    self.assertTrue(
+        all(binding.required_flag_bits == (44,) for binding in compiled.native_bindings)
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
+    source = self._source_record(
+        "obj",
+        b"#93086\nsnake whip~\na snake whip~\nA snake whip lies here.~\n~\n"
+        b"5 0 0\n0 1 5 2\n2 10000 0\n",
+    )
+    native = next(
+        binding for binding in compiled.native_bindings if binding.source_vnum == 93086
+    )
+    emitted = emit_object(
+        source,
+        2_093_086,
+        _resolver,
+        special_proc=native.persisted_name,
+        required_extra_bits=native.required_flag_bits,
+    )
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20930.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Weapon Proc", result.records[0].spec_proc)
+    self.assertIn(44, decode_tokens(result.records[0].extra_flags).bits)
+
   def test_planar_death_burst_and_balor_weapon_bindings_are_explicit(self) -> None:
     bindings = [
         {

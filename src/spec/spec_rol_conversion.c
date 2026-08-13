@@ -113,7 +113,13 @@ enum rol_weapon_effect
   ROL_WEAPON_GELUGON_FREEZE_SPEAR,
   ROL_WEAPON_SCORNUBEL_FIERY_MACE,
   ROL_WEAPON_DARKHOLD_WARHAMMER,
-  ROL_WEAPON_DARKHOLD_BASTARD
+  ROL_WEAPON_DARKHOLD_BASTARD,
+  ROL_WEAPON_JOTUN_FROSTBITE,
+  ROL_WEAPON_TRAHERN_CRYSTAL,
+  ROL_WEAPON_TRAHERN_OBSIDIAN,
+  ROL_WEAPON_DOBLUTH_SHADOWS,
+  ROL_WEAPON_UM2_SNAKE_WHIP,
+  ROL_WEAPON_UM2_SEARING_ROD
 };
 
 struct rol_weapon_profile
@@ -218,6 +224,20 @@ static const struct rol_weapon_profile rol_weapon_profiles[] = {
      "One-in-36 fixed 100-point source-untyped fiery burst."},
     {2094571, ROL_WEAPON_DARKHOLD_WARHAMMER, 21, false, "Ice Hammer"},
     {2094566, ROL_WEAPON_DARKHOLD_BASTARD, 1, true, "Dancing Lights"},
+    {196000, ROL_WEAPON_JOTUN_FROSTBITE, 22, false,
+     "One-in-22 burst of thirty ten-sided dice of cold damage."},
+    {2020208, ROL_WEAPON_TRAHERN_CRYSTAL, 33, false,
+     "One-in-33 natural-energy strike with a daytime scorching ray."},
+    {2020271, ROL_WEAPON_TRAHERN_OBSIDIAN, 33, false,
+     "One-in-33 negative strike with a one-round nighttime withering."},
+    {2021759, ROL_WEAPON_DOBLUTH_SHADOWS, 26, false,
+     "One-in-26 shadow strike with source protection, outsider, and save reductions."},
+    {2093035, ROL_WEAPON_UM2_SEARING_ROD, 1, true,
+     "Critical burning-hands strike at source level 35."},
+    {2093086, ROL_WEAPON_UM2_SNAKE_WHIP, 1, true,
+     "Critical five-headed snake-whip poison at source level 40."},
+    {2093156, ROL_WEAPON_UM2_SNAKE_WHIP, 1, true,
+     "Critical nine-pronged snake-whip poison at source level 40."},
 };
 
 struct rol_undead_drain_profile
@@ -6827,6 +6847,39 @@ bool rol_weapon_profile(int object_vnum, int *proc_denominator, bool *critical_o
   return true;
 }
 
+int rol_trahern_weapon_dice_count(int level)
+{
+  return MAX(0, level / 5);
+}
+
+bool rol_crystal_sword_daylight(int hour)
+{
+  return hour > 5 && hour < 18;
+}
+
+bool rol_obsidian_sword_nighttime(int hour)
+{
+  return hour < 6 || hour > 17;
+}
+
+int rol_obsidian_sword_ac_penalty(void)
+{
+  return -4;
+}
+
+int rol_dancing_shadows_damage(int amount, bool protected_from_evil, bool rol_outsider,
+                               bool save_succeeded)
+{
+  amount = MAX(0, amount);
+  if (protected_from_evil)
+    amount /= 2;
+  if (rol_outsider)
+    amount /= 2;
+  if (save_succeeded)
+    amount /= 2;
+  return amount;
+}
+
 bool rol_scornubel_fiery_mace_roll_fires(int roll)
 {
   return roll == 0;
@@ -7394,6 +7447,40 @@ static int rol_weapon_cold_burst(struct char_data *ch, struct obj_data *obj,
   act(message, FALSE, ch, obj, victim, TO_CHAR);
   (void)rol_weapon_damage(ch, victim, amount, DAM_COLD);
   return TRUE;
+}
+
+static void rol_weapon_mark_target_invalidation(struct spec_event_context *context,
+                                                struct spec_damage_result result)
+{
+  if (context != NULL && result.status == SPEC_DAMAGE_TARGET_INVALIDATED)
+    context->invalidation |= SPEC_INVALIDATE_TARGET;
+}
+
+static bool rol_weapon_rol_outsider(const struct char_data *victim)
+{
+  return victim != NULL && IS_NPC(victim) &&
+         (MOB_FLAGGED(victim, MOB_ROL_DEMON) || MOB_FLAGGED(victim, MOB_ROL_DEVIL));
+}
+
+static void rol_weapon_obsidian_wither(struct char_data *victim)
+{
+  struct affected_type affect;
+
+  new_affect(&affect);
+  affect.spell = PSIONIC_WITHER;
+  affect.duration = 1;
+  affect.location = APPLY_MOVE;
+  affect.modifier = -50;
+  affect.bonus_type = BONUS_TYPE_UNIVERSAL;
+  affect_to_char(victim, &affect);
+
+  new_affect(&affect);
+  affect.spell = PSIONIC_WITHER;
+  affect.duration = 1;
+  affect.location = APPLY_AC_NEW;
+  affect.modifier = rol_obsidian_sword_ac_penalty();
+  affect.bonus_type = BONUS_TYPE_UNIVERSAL;
+  affect_to_char(victim, &affect);
 }
 
 static int rol_weapon_moonblade_command(struct char_data *ch, struct obj_data *obj, int cmd,
@@ -7997,6 +8084,93 @@ static int rol_weapon_hit(struct spec_event_context *context,
     return rol_darkhold_weapon_hit(context, ch, obj, victim, slot, true);
   case ROL_WEAPON_DARKHOLD_BASTARD:
     return rol_darkhold_weapon_hit(context, ch, obj, victim, slot, false);
+  case ROL_WEAPON_JOTUN_FROSTBITE:
+    if (!rol_weapon_primary_slot(slot) || rand_number(0, 21) != 0)
+      return FALSE;
+    act("With a mighty swing, ice shards fly from your $p and bury themselves in $N!", FALSE, ch,
+        obj, victim, TO_CHAR);
+    act("Ice shards fly from $n's $p and bury themselves in $N!", FALSE, ch, obj, victim,
+        TO_NOTVICT);
+    act("Ice shards fly from $n's $p and bury themselves in you!", FALSE, ch, obj, victim, TO_VICT);
+    result = rol_weapon_damage(ch, victim, dice(30, 10), DAM_COLD);
+    rol_weapon_mark_target_invalidation(context, result);
+    return FALSE;
+  case ROL_WEAPON_TRAHERN_CRYSTAL:
+    if ((!rol_weapon_primary_slot(slot) && slot != WEAR_WIELD_OFFHAND) || rand_number(0, 32) != 0)
+      return FALSE;
+    act("Blue-white tendrils of natural energy leap from your $p toward $N!", FALSE, ch, obj,
+        victim, TO_CHAR);
+    act("Blue-white tendrils of natural energy leap from $n's $p toward $N!", FALSE, ch, obj,
+        victim, TO_NOTVICT);
+    act("Blue-white tendrils of natural energy leap from $n's $p toward you!", FALSE, ch, obj,
+        victim, TO_VICT);
+    result = rol_weapon_damage(ch, victim, dice(rol_trahern_weapon_dice_count(GET_LEVEL(ch)), 10),
+                               DAM_RESERVED_DBC);
+    if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED)
+    {
+      rol_weapon_mark_target_invalidation(context, result);
+      return FALSE;
+    }
+    if (rol_crystal_sword_daylight(time_info.hours))
+      rol_weapon_cast(ch, obj, victim, SPELL_SCORCHING_RAY, GET_LEVEL(ch));
+    return TRUE;
+  case ROL_WEAPON_TRAHERN_OBSIDIAN:
+    if ((!rol_weapon_primary_slot(slot) && slot != WEAR_WIELD_OFFHAND) || rand_number(0, 32) != 0)
+      return FALSE;
+    act("Black-gray tendrils of chilling force leap from your $p toward $N!", FALSE, ch, obj,
+        victim, TO_CHAR);
+    act("Black-gray tendrils of chilling force leap from $n's $p toward $N!", FALSE, ch, obj,
+        victim, TO_NOTVICT);
+    act("Black-gray tendrils of chilling force leap from $n's $p toward you!", FALSE, ch, obj,
+        victim, TO_VICT);
+    result = rol_weapon_damage(ch, victim, dice(rol_trahern_weapon_dice_count(GET_LEVEL(ch)), 10),
+                               DAM_RESERVED_DBC);
+    if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED)
+    {
+      rol_weapon_mark_target_invalidation(context, result);
+      return FALSE;
+    }
+    if (rol_obsidian_sword_nighttime(time_info.hours))
+    {
+      act("$n seems withered!", TRUE, victim, NULL, NULL, TO_ROOM);
+      send_to_char(victim, "The obsidian blade withers your vitality!\r\n");
+      rol_weapon_obsidian_wither(victim);
+    }
+    return TRUE;
+  case ROL_WEAPON_DOBLUTH_SHADOWS:
+    if (!rol_weapon_primary_slot(slot) || rand_number(0, 25) != 0)
+      return FALSE;
+    amount = rol_dancing_shadows_damage(
+        dice(37, 9), AFF_FLAGGED(victim, AFF_PROTECT_EVIL), rol_weapon_rol_outsider(victim),
+        savingthrow(ch, victim, SAVING_WILL, affected_by_spell(victim, SPELL_FIRE_SHIELD) ? -2 : 0,
+                    CAST_WEAPON_SPELL, GET_LEVEL(ch), NECROMANCY));
+    act("Your $p erupts in shadows that bathe $N in dark, cleansing pain!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    act("$n's $p erupts in shadows that bathe $N in dark, cleansing pain!", FALSE, ch, obj, victim,
+        TO_NOTVICT);
+    act("$n's $p erupts in shadows that bathe you in dark, cleansing pain!", FALSE, ch, obj, victim,
+        TO_VICT);
+    result = rol_weapon_damage(ch, victim, amount, DAM_NEGATIVE);
+    rol_weapon_mark_target_invalidation(context, result);
+    return FALSE;
+  case ROL_WEAPON_UM2_SNAKE_WHIP:
+    if (!context->critical)
+      return FALSE;
+    act("One of the snake heads of your $p latches onto $N and injects poison!", FALSE, ch, obj,
+        victim, TO_CHAR);
+    act("One of the snake heads of $n's $p latches onto $N!", FALSE, ch, obj, victim, TO_NOTVICT);
+    act("One of the snake heads of $n's $p latches onto you and injects poison!", FALSE, ch, obj,
+        victim, TO_VICT);
+    rol_weapon_cast(ch, obj, victim, SPELL_POISON, 40);
+    return FALSE;
+  case ROL_WEAPON_UM2_SEARING_ROD:
+    if (!context->critical)
+      return FALSE;
+    act("Deadly flames streak from your $p and strike $N!", FALSE, ch, obj, victim, TO_CHAR);
+    act("Deadly flames streak from $n's $p and strike $N!", FALSE, ch, obj, victim, TO_NOTVICT);
+    act("Deadly flames streak from $n's $p and strike you!", FALSE, ch, obj, victim, TO_VICT);
+    rol_weapon_cast(ch, obj, victim, SPELL_BURNING_HANDS, 35);
+    return TRUE;
   case ROL_WEAPON_BALOR_WHIP:
     return rol_balor_whip(context, ch, obj, victim);
   case ROL_WEAPON_BALOR_LIGHTNING_SWORD:
