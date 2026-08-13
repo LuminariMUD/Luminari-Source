@@ -762,6 +762,111 @@ void Test_inquisitor_domain_feats_reconcile_and_restore_on_class_init(CuTest *tc
   CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_EMPOWERED_HEALING));
 }
 
+void Test_inquisitor_receives_every_selected_domain_power_feat(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  int actual_feat_count;
+  int domain;
+  int expected_feat_count;
+  int feat;
+  int power;
+  int slot;
+
+  if (feat_list[FEAT_HEALING_TOUCH].name == NULL)
+    assign_feats();
+  assign_domains();
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  CLASS_LEVEL((&ch), CLASS_INQUISITOR) = 1;
+
+  for (domain = 1; domain < NUM_DOMAINS; domain++)
+  {
+    clear_domain_feats(&ch);
+    GET_1ST_DOMAIN(&ch) = domain;
+    add_domain_feats(&ch);
+    expected_feat_count = 0;
+
+    for (slot = 0; slot < MAX_GRANTED_POWERS; slot++)
+    {
+      power = domain_list[domain].granted_powers[slot];
+      if (power == DOMAIN_POWER_UNDEFINED)
+        continue;
+
+      feat = domain_power_to_feat(power);
+      CuAssert(tc, domain_list[domain].name, feat != FEAT_UNDEFINED);
+      CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, feat));
+      expected_feat_count++;
+    }
+
+    actual_feat_count = 0;
+    for (feat = 1; feat < NUM_FEATS; feat++)
+    {
+      if (feat_list[feat].feat_type == FEAT_TYPE_DOMAIN_ABILITY && HAS_REAL_FEAT(&ch, feat))
+        actual_feat_count++;
+    }
+    CuAssertIntEquals(tc, expected_feat_count, actual_feat_count);
+  }
+}
+
+void Test_inquisitor_healing_touch_uses_reconciled_domain_feat(CuTest *tc)
+{
+  struct char_data ch;
+  struct list_data list_registry;
+  struct list_data *saved_global_lists;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int starting_hit_points;
+
+  if (feat_list[FEAT_HEALING_TOUCH].name == NULL)
+    assign_feats();
+  assign_domains();
+  event_init();
+
+  clear_char(&ch);
+  memset(&list_registry, 0, sizeof(list_registry));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+  ch.player_specials = &player_specials;
+  ch.player.name = "inquisitor healing touch test character";
+  CLASS_LEVEL((&ch), CLASS_INQUISITOR) = 10;
+  GET_LEVEL(&ch) = 10;
+  GET_1ST_DOMAIN(&ch) = DOMAIN_HEALING;
+  GET_REAL_WIS(&ch) = 14;
+  GET_WIS(&ch) = 14;
+  GET_REAL_MAX_HIT(&ch) = 100;
+  GET_MAX_HIT(&ch) = 100;
+  GET_HIT(&ch) = 10;
+  GET_POS(&ch) = POS_STANDING;
+  IN_ROOM(&ch) = 0;
+  init_class(&ch, CLASS_INQUISITOR, CLASS_LEVEL((&ch), CLASS_INQUISITOR));
+
+  saved_global_lists = global_lists;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  global_lists = &list_registry;
+  world = &room;
+  top_of_world = 0;
+  room.people = &ch;
+  starting_hit_points = GET_HIT(&ch);
+
+  do_healingtouch(&ch, "", 0, 0);
+
+  room.people = NULL;
+  clear_char_event_list(&ch);
+  event_free_all();
+  global_lists = saved_global_lists;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_HEALING_TOUCH));
+  CuAssertTrue(tc, GET_HIT(&ch) > starting_hit_points);
+}
+
 void Test_inquisitor_domain_power_level_drives_passive_bonuses(CuTest *tc)
 {
   struct char_data ch;
