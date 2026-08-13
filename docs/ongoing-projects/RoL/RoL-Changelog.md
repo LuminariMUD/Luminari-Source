@@ -9,6 +9,66 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Griffon's Nest non-Berserker aggression
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled all 15 active Griffon's Nest `aggroNonBarbarian` bindings through the existing
+  exact-identity `RoL Monster Combat` runtime.
+- Added profiles for converted guards 2010661, 2010744, 2010745, 2010749, 2010750, and
+  2010754-2010763. Source Barbarian player-race eligibility maps to the target's multiclass
+  Berserker role, so any Berserker level grants the authored exemption.
+- Preserved command and periodic registration, first-visible-eligible room-list selection,
+  immortal and NPC exemptions, immediate battle-cry attack, source visibility, and the false
+  callback return that permits the incoming command to continue.
+- Preserved occupied-guard behavior: a guard already fighting remembers an eligible target when
+  `MOB_MEMORY` is set instead of switching opponents or repeating the battle cry.
+- Added reconciliation, profile, eligibility, and production-runtime memory regressions. No
+  player helpfile changed because the batch adds no player command or syntax; the staff manual
+  records the complete dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,544 to 1,559 static bindings
+  and from 662 to 663 direct handlers, leaving 162 bindings across 132 handlers in 28 source
+  files. The independent `ACT_SPEC` cross-check advances to 811 resolved and 37 pending.
+- Reforecast twenty corrected batches covering 313 bindings across 125 handlers. The remaining
+  Phase 6 envelope is 11-22 sessions, or 22-88 focused engineering hours; the full remaining
+  project envelope is 67-106 sessions, or 134-424 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 5fb8b1cb
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-griffon-nonbarbarian
+Reconciliation run: rol-phase6-special-443dfa53de680c8e
+Evidence tree SHA-256: b9e0ce05e388a9cd5322310cb33e9d5036024d64e72f6981b79a50af85810737
+Active direct bindings: 1,721
+Direct bindings resolved: 1,559
+Direct bindings pending: 162
+Source handlers resolved: 663
+Source handlers pending: 132
+Additional handler families resolved: 1
+Additional direct bindings resolved: 15
+Native adapted bindings: 1,007
+Native adapted composable bindings: 216
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 811
+ACT_SPEC records pending: 37
+Complete world-tool suite: 350 passed
+Production-linked CuTest suite: 684 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 3576341236ba90626de888c84de55c187865fc51
+Installed SHA-256: 5514c62e61baa53032b27753e7cf1f44778f234261981c4f7cafbedf6f6ebfa4
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat or utility family.
+
 ## 2026-08-13 - Phase 6 source death-effects family
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

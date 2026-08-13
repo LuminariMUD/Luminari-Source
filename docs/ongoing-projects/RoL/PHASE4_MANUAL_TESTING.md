@@ -1181,6 +1181,29 @@ These death effects are production-tested and reconciled but are absent from the
 five-zone pilot. Exercise them only in disposable Phase 7 dependency-complete stages; do not
 hand-edit their mobiles or reward dependencies into the pilot.
 
+### Phase 6 converted Griffon's Nest non-Berserker aggression
+
+- Build a dependency-complete Griffon's Nest stage containing converted guards 2010661,
+  2010744, 2010745, 2010749, 2010750, and 2010754-2010763. Confirm every identity retains
+  `MOB_SPEC` and uses `RoL Monster Combat`; unrelated mobiles must not receive the profile.
+- With an idle guard, issue an ordinary command as a visible mortal with no Berserker levels.
+  The guard must bellow its battle cry and immediately attack, but the incoming command must
+  continue because the source callback returns false after reacting.
+- Repeat as a character with at least one Berserker level, including a multiclass character.
+  The guard must not react. Staff at or above immortal level and NPC command actors are also
+  exempt. An invisible or otherwise unseen mortal must not trigger the guard.
+- Leave several eligible and excluded characters in the room and allow the mobile activity
+  pulse to run. The guard must select the first visible eligible mortal in room-list order;
+  excluded characters must be skipped without changing the ordering rule.
+- While the guard is already fighting and has `MOB_MEMORY`, let another visible eligible mortal
+  issue a command or be selected by the activity scan. The guard must remember that mortal
+  without switching opponents or repeating the battle cry. A Berserker, staff member, NPC, or
+  unseen character must not enter memory.
+
+These profiles are production-tested and reconciled but are absent from the current five-zone
+pilot. Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit
+them into the pilot.
+
 ### Phase 6 converted Scornubel profiles
 
 - Build a dependency-complete Scornubel stage containing mobiles 2006001, 2006002, 2006006,
@@ -1657,9 +1680,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,544 are resolved and 177 remain. Of 795 distinct
-  direct source handlers, 662 are resolved and 133 remain. Of 848 `ACT_SPEC` records, 809
-  are resolved and 39 remain. The automatic race procedures
+  of the 1,721 active direct bindings, 1,559 are resolved and 162 remain. Of 795 distinct
+  direct source handlers, 663 are resolved and 132 remain. Of 848 `ACT_SPEC` records, 811
+  are resolved and 37 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

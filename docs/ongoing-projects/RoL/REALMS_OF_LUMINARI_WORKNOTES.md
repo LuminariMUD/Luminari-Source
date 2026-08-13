@@ -125,6 +125,7 @@ Phase 6 Darkhold-special commit: 90adccdb
 Phase 6 drow-equipment commit: be32b3d3
 Phase 6 Undermountain-ambient commit: fcfd2be6
 Phase 6 source-death-effects commit: 53b6a3e4
+Phase 6 Griffon-non-Berserker-aggression commit: 5fb8b1cb
 ```
 
 The authoritative ignored runs are:
@@ -175,8 +176,8 @@ Phase 5 policy-2 full audit:
   lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit
   rol-phase5-audit-cec58661a4f21a2a
 Phase 6 special reconciliation:
-  lib/rol-conversion/runs/phase6-special-20260813-exact-class-guilds
-  rol-phase6-special-be53e38737ea4fc8
+  lib/rol-conversion/runs/phase6-special-20260813-griffon-nonbarbarian
+  rol-phase6-special-443dfa53de680c8e
 Phase 6 shared mobile: lib/rol-conversion/runs/phase6-special-20260812-shared-mobile
                        rol-phase6-special-0f4f1274d95a2941
 Phase 6 implicit race: lib/rol-conversion/runs/phase6-special-20260812-race-composition
@@ -378,6 +379,9 @@ Phase 6 Undermountain ambient and inert-stench family:
 Phase 6 source death-effects family:
   lib/rol-conversion/runs/phase6-special-20260813-source-death-effects
   rol-phase6-special-59a0f3f782fc7f30
+Phase 6 Griffon's Nest non-Berserker aggression family:
+  lib/rol-conversion/runs/phase6-special-20260813-griffon-nonbarbarian
+  rol-phase6-special-443dfa53de680c8e
 Policy:  rol-conversion-policy-2
 ```
 
@@ -406,12 +410,12 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 349 tests; the production-linked CuTest suite passes 683;
+- The world-tool suite passes 350 tests; the production-linked CuTest suite passes 684;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The corrected discovery repair and nineteen subsequent denominator-bearing batches are
-  archived. Those batches closed 298 bindings across 124 source handlers. The measured remaining
-  Phase 6 forecast is 12-21 sessions, or 24-84 focused engineering hours; the full remaining
-  project range is 68-105 sessions, or 136-420 focused hours.
+- The corrected discovery repair and twenty subsequent denominator-bearing batches are
+  archived. Those batches closed 313 bindings across 125 source handlers. The measured remaining
+  Phase 6 forecast is 11-22 sessions, or 22-88 focused engineering hours; the full remaining
+  project range is 67-106 sessions, or 134-424 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -460,9 +464,9 @@ Policy:  rol-conversion-policy-2
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
 - The repaired Phase 6 inventory accounts for 1,721 active direct bindings across 795 source
-  handlers and locates all 795 source definitions. The current reconciliation resolves 1,544
-  bindings across 662 handlers and leaves 177 bindings across 133 handlers.
-- The independent `ACT_SPEC` cross-check resolves 809 of 848 records and leaves 39
+  handlers and locates all 795 source definitions. The current reconciliation resolves 1,559
+  bindings across 663 handlers and leaves 162 bindings across 132 handlers.
+- The independent `ACT_SPEC` cross-check resolves 811 of 848 records and leaves 37
   pending. It remains a scheduling cross-check rather than the direct-binding denominator;
   composition-safe flags and room or object procedures can resolve source handlers without
   changing this mobile-only count.
@@ -732,16 +736,16 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,544 static bindings and leaves 177 pending. It resolves
-  662 direct handler names and leaves 133 pending across 29 source files. The pending set has
+- The corrected reconciler resolves 1,559 static bindings and leaves 162 pending. It resolves
+  663 direct handler names and leaves 132 pending across 28 source files. The pending set has
   114 singleton handlers, 17 handlers with two to four bindings, one with five to nine, and
-  one with at least ten bindings.
+  no handler with at least ten bindings.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
   shopkeeper path accounts for 453 active shops and hosts. Both are resolved through the target
   data-driven HLQuest and shop services. Static and dynamic paths total 7,252 active binding
   instances across 797 handler names.
-- The regenerated `ACT_SPEC` cross-check resolves 809 of 848 records and leaves 39 pending.
+- The regenerated `ACT_SPEC` cross-check resolves 811 of 848 records and leaves 37 pending.
   Automatic race composition still resolves all 247 implicit bindings; 85 now compose with a
   direct binding and 162 are implicit-only.
 - The prior 1,112/1,147 binding, 538/562 handler, and 830/848 `ACT_SPEC` split is historical
@@ -860,10 +864,15 @@ Policy:  rol-conversion-policy-2
   mapped Helmed Horror and Butcher Knife drops, two shatter deaths, and the active white-pudding
   split. The weevil effect retains one shared `25d2` roll and source-order cumulative protection
   halving; all authored corpse dispositions remain exact.
-- The nineteen corrected batches close 298 bindings across 124 handlers. That measured
-  throughput puts the binding-count projection near 12 sessions and the handler-diversity
-  projection near 21. Because 114 remaining handlers are singletons, the published Phase 6
-  envelope is 12-21 sessions, or 24-84 focused engineering hours. Reforecast after another
+- The Griffon's Nest batch closes all 15 active `aggroNonBarbarian` bindings through one exact
+  monster-combat family. Eligible visible mortals without any Berserker level trigger an
+  immediate battle cry and attack while their command continues; staff, NPCs, Berserkers, and
+  unseen targets are exempt. An occupied memory-enabled guard remembers an eligible target
+  without switching opponents, and periodic scans preserve source room-list order.
+- The twenty corrected batches close 313 bindings across 125 handlers. That measured
+  throughput puts the binding-count projection near 11 sessions and the handler-diversity
+  projection near 22. Because 114 remaining handlers are singletons, the published Phase 6
+  envelope is 11-22 sessions, or 22-88 focused engineering hours. Reforecast after another
   material batch or an inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
@@ -878,41 +887,40 @@ Policy:  rol-conversion-policy-2
    smallest-unit exclusions.
 5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the 12-21-session Phase 6 envelope and reforecast after another
+6. Measure throughput against the 11-22-session Phase 6 envelope and reforecast after another
    material batch or an inventory correction.
 
 ## Latest session handoff
 
-- Implementation commit `53b6a3e4` reconciles eight active death bindings across seven handlers
-  from Trahern, Dobluth, and Undermountain. All use the existing composition-safe death gateway,
-  so no independently persisted mobile procedure is consumed.
-- Converted weevils 2020221 and 2020267 retain their shared `25d2` room burst, cumulative
-  fire-protection halving, and ordinary corpse. Lady Aleanrahel 2021783 becomes banshee 2021820
-  and transfers inventory and equipment. Helmed Horror 2092062 and Butcher Knife 2093017 drop
-  objects 2092091 and 2093048. Gargoyle 2093018 and crystal golem 2093020 shatter without
-  corpses, and white pudding 2093301 splits into two 2093330 mobiles.
+- Implementation commit `5fb8b1cb` reconciles all 15 active Griffon's Nest
+  `aggroNonBarbarian` bindings through the existing `RoL Monster Combat` procedure.
+- Converted guards 2010661, 2010744, 2010745, 2010749, 2010750, and 2010754-2010763 attack the
+  first visible non-Berserker mortal in room-list order. Berserker multiclasses, immortals,
+  NPCs, and unseen actors are exempt. Command-triggered aggression returns false so the source
+  command continues; an occupied memory-enabled guard remembers eligible targets instead of
+  switching opponents or repeating the battle cry.
 - The authoritative evidence is
-  `lib/rol-conversion/runs/phase6-special-20260813-source-death-effects`, run
-  `rol-phase6-special-59a0f3f782fc7f30`. A same-timestamp repeat was byte-identical. The standard
+  `lib/rol-conversion/runs/phase6-special-20260813-griffon-nonbarbarian`, run
+  `rol-phase6-special-443dfa53de680c8e`. A same-timestamp repeat was byte-identical. The standard
   path-and-content tree digest is
-  `3566db472325a01673827d7125561cec023d299d7248d3ac7bb568cba1ae9fcc`.
+  `b9e0ce05e388a9cd5322310cb33e9d5036024d64e72f6981b79a50af85810737`.
 - The binding ledger SHA-256 is
-  `1fd407d21251aa5015de2c5f168c33613bf846d7a425a03fc22d3635187b6e46`; the handler inventory
-  SHA-256 is `d87537e3e40234bc94e52e207cbdc923cf7019d23658a7669015a64b201b0087`; and the summary
-  SHA-256 is `8fc677aff6231aac24a66d791f3a275cb9d6b128c701e8c0a91bc5634532a627`.
+  `aac6e370a7fe3921f36bf572c6f78d947073b59cc68cd4ee3ce8c87e6024a9e9`; the handler inventory
+  SHA-256 is `5cdf2ef3d5c882753e6a272aac4f4a4f720add47282f1a4a9ffde368cec1cc8f`; and the summary
+  SHA-256 is `2f458f28db3c827b542e94d8598d69753efc7a51caf084f58ac13f8aef955f02`.
 - The denominator remains 1,721 live static plus 5,531 resolved dynamic binding instances.
-  Resolution is now 1,544 static bindings across 662 handlers, leaving 177 bindings across 133
-  handlers in 29 source files. The independent `ACT_SPEC` cross-check is 809 resolved and 39
+  Resolution is now 1,559 static bindings across 663 handlers, leaving 162 bindings across 132
+  handlers in 28 source files. The independent `ACT_SPEC` cross-check is 811 resolved and 37
   pending; all automatic race and dynamic paths remain complete, with zero live target writes.
-- Final validation passed: 349 world-tool tests, 683 production-linked CuTests, a complete CMake
+- Final validation passed: 350 world-tool tests, 684 production-linked CuTests, a complete CMake
   build and all 12 CTest targets, zero documentation findings, a warning-free Autotools
   build/test/install, and no root-level `circle`. Installed build ID
-  `7ef432a8e35171926abd0b8def3677b31b80f863`; SHA-256
-  `d2762087bdb743df847c69bd4e02aed1d0215b3fd4cc6d477418ce8b6f504f65`.
+  `3576341236ba90626de888c84de55c187865fc51`; SHA-256
+  `5514c62e61baa53032b27753e7cf1f44778f234261981c4f7cafbedf6f6ebfa4`.
 - No player helpfile changed because the batch adds no player command or syntax. The staff manual
-  covers all eight converted identities, their exact corpse dispositions, rewards, replacement,
-  split, and area-damage ordering.
-- Nineteen measured batches have closed 298 bindings across 124 handlers. The remaining Phase 6
-  envelope is 12-21 sessions, or 24-84 focused hours; the full remaining project envelope is
-  68-105 sessions, or 136-420 focused hours. Next, select the highest-value dependency-complete
+  covers all 15 converted identities, command and activity paths, exclusions, room-order
+  selection, and occupied-memory behavior.
+- Twenty measured batches have closed 313 bindings across 125 handlers. The remaining Phase 6
+  envelope is 11-22 sessions, or 22-88 focused hours; the full remaining project envelope is
+  67-106 sessions, or 134-424 focused hours. Next, select the highest-value dependency-complete
   pending combat or utility family.

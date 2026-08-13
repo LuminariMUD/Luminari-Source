@@ -251,17 +251,17 @@ ledger measures:
 
 - 1,813 static candidates, of which 92 are preprocessor-excluded and 1,721 are live;
 - 1,098 mobile, 323 object, and 300 room bindings across 795 direct handler names;
-- 1,544 resolved and 177 pending live static bindings, with 662 resolved and 133 pending
+- 1,559 resolved and 162 pending live static bindings, with 663 resolved and 132 pending
   direct handler names;
 - two resolved dynamic paths representing 5,078 quest and 453 shop binding instances;
 - 7,252 total active static and dynamic binding instances across 797 handler names; and
-- 809 resolved and 39 pending records in the independent 848-record `ACT_SPEC`
+- 811 resolved and 37 pending records in the independent 848-record `ACT_SPEC`
   cross-check.
 
 The corrected dependent evidence is Phase 1 run `rol-phase1-237602d3ade48138`, Phase 2
 run `rol-phase2-c93b8c4610b36d1e`, Phase 5 run
 `rol-phase5-audit-cec58661a4f21a2a`, and Phase 6 run
-`rol-phase6-special-59a0f3f782fc7f30`. The older 1,112/1,147 binding, 538/562 handler,
+`rol-phase6-special-443dfa53de680c8e`. The older 1,112/1,147 binding, 538/562 handler,
 and 830/848 `ACT_SPEC` counts are historical checkpoints only.
 
 ## 4. Canonical identity and rehome contract
@@ -721,8 +721,8 @@ forecasts are in [RoL-Changelog.md](RoL-Changelog.md).
 
 The call-path-aware extractor, macro resolution, dynamic shop/quest dispositions,
 regression fixtures, and dependent Phase 1, 2, 5, and 6 regeneration are complete. The
-remaining measured scope is 177 live static bindings across 133 direct handler names in
-29 source files. The first corrected-denominator closure completed the four-handler,
+remaining measured scope is 162 live static bindings across 132 direct handler names in
+28 source files. The first corrected-denominator closure completed the four-handler,
 four-binding Tarrasque encounter and added the missing typed mobile-death gateway. The second
 reused the established target class-family guild adapters for 14 source callbacks and 37 room
 bindings. The third reconciled the planar demon base layer: 25 explicitly abyss-forged mobiles
@@ -796,7 +796,11 @@ The nineteenth reconciled eight death bindings across seven handlers from Traher
 Undermountain. The shared death-profile runtime now preserves both elemental-fire weevils, Lady
 Aleanrahel's replacement and item transfer, Helmed Horror and Butcher Knife reward drops, two
 corpse-suppressing shatter deaths, and the active white-pudding split. The source's single
-`25d2` weevil roll and cumulative protection halving remain explicit. Next, select the
+`25d2` weevil roll and cumulative protection halving remain explicit. The twentieth reconciled
+all 15 active Griffon's Nest `aggroNonBarbarian` bindings through the existing monster-combat
+runtime. Exact converted guards attack the first visible mortal without a Berserker level,
+remember eligible targets instead of changing opponents while occupied, exempt staff and NPCs,
+and preserve the source contract that an intercepted command continues. Next, select the
 highest-value dependency-complete pending combat or utility group.
 
 Preserve the six already locked malformed or ignored rows as explicit, logged
@@ -808,11 +812,11 @@ gate at substantial checkpoints. Add a new source file to both `Makefile.am` and
 `CMakeLists.txt`.
 
 **Exit gate:** every active binding is kept, patched, adapted, ported, or minimally
-excluded with behavior evidence. The measured remaining Phase 6 planning envelope is 12-21
-sessions, or 24-84 focused engineering hours. The first nineteen corrected batches closed 298
-bindings across 124 handlers, leaving an arithmetic binding projection near 12 sessions and a
-handler-diversity projection near 21. The published range allows shared runtime families to
-outperform the handler projection while recognizing that 114 of the remaining 133 handlers are
+excluded with behavior evidence. The measured remaining Phase 6 planning envelope is 11-22
+sessions, or 22-88 focused engineering hours. The first twenty corrected batches closed 313
+bindings across 125 handlers, leaving an arithmetic binding projection near 11 sessions and a
+handler-diversity projection near 22. The published range allows shared runtime families to
+outperform the handler projection while recognizing that 114 of the remaining 132 handlers are
 singletons and many require source-specific tracing. Reforecast after another material batch or
 any inventory correction.
 
@@ -1045,7 +1049,7 @@ all evidence in the Definition of Done.
 
 **Estimate:** 6-10 sessions. The combined post-Phase-6 envelope is therefore initially
 56-84 sessions for Phases 6.5-8 (112-336 focused hours). With the measured Phase 6
-envelope, the current remaining project range is 68-105 sessions, or 136-420 focused
+envelope, the current remaining project range is 67-106 sessions, or 134-424 focused
 hours. This supersedes the old 49-79-session, 74-114-session, and corresponding hour
 forecasts. Replace the post-rebase envelope after the Phase 6.5 measured reforecast.
 
