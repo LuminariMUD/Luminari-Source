@@ -7211,13 +7211,16 @@ struct mob_special_data
   byte known_spell_slots[MAX_SPELLS]; /* Current slots per known spell (max 2) */
   time_t last_known_slot_regen;       /* Timestamp of last known spell slot regeneration */
 
-  time_t rol_gate_cooldown_until; /* RoL demon/devil gate-attempt cooldown */
-  time_t rol_gate_expire_at;      /* RoL gated-creature extraction deadline */
-  bool rol_gated_creature;        /* RoL gate result; cannot recursively gate */
-  long rol_bandit_victim_id;      /* RoL trade-bandit toll target */
-  int rol_bandit_fee_gold;        /* RoL trade-bandit toll in target gold */
-  time_t rol_bandit_expire_at;    /* RoL trade-bandit one-shot cleanup deadline */
-  bool rol_alert_fired;           /* Converted alert caller has shouted this fight */
+  time_t rol_gate_cooldown_until;     /* RoL demon/devil gate-attempt cooldown */
+  time_t rol_gate_expire_at;          /* RoL gated-creature extraction deadline */
+  time_t rol_planar_screech_ready_at; /* RoL Vrock screech cooldown */
+  time_t rol_planar_spore_ready_at;   /* RoL Vrock spore cooldown */
+  time_t rol_planar_spike_ready_at;   /* RoL Spinagon spike cooldown */
+  bool rol_gated_creature;            /* RoL gate result; cannot recursively gate */
+  long rol_bandit_victim_id;          /* RoL trade-bandit toll target */
+  int rol_bandit_fee_gold;            /* RoL trade-bandit toll in target gold */
+  time_t rol_bandit_expire_at;        /* RoL trade-bandit one-shot cleanup deadline */
+  bool rol_alert_fired;               /* Converted alert caller has shouted this fight */
 };
 
 /** An affect structure. */

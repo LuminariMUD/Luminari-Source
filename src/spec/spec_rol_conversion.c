@@ -105,7 +105,9 @@ enum rol_weapon_effect
   ROL_WEAPON_HIVE_GYTHKA,
   ROL_WEAPON_HOLY,
   ROL_WEAPON_KOR_BATTLEAXE,
-  ROL_WEAPON_HELLISH_FURY_BOW
+  ROL_WEAPON_HELLISH_FURY_BOW,
+  ROL_WEAPON_BALOR_WHIP,
+  ROL_WEAPON_BALOR_LIGHTNING_SWORD
 };
 
 struct rol_weapon_profile
@@ -196,6 +198,10 @@ static const struct rol_weapon_profile rol_weapon_profiles[] = {
      "Rejects unworthy wielders and grants Paladins holy combat and periodic magic."},
     {2001057, ROL_WEAPON_KOR_BATTLEAXE, 26, false,
      "Dragon-scaled bonuses, a critical reverse swing, healing, and Tempus damage."},
+    {2093227, ROL_WEAPON_BALOR_WHIP, 1, false,
+     "Demon-only hit proc dealing 8d6 unavoidable magical force damage."},
+    {2093228, ROL_WEAPON_BALOR_LIGHTNING_SWORD, 1, true,
+     "Demon-only critical proc dealing 20d10 negative energy with a one-in-five area burst."},
 };
 
 struct rol_undead_drain_profile
@@ -6691,6 +6697,27 @@ bool rol_weapon_profile(int object_vnum, int *proc_denominator, bool *critical_o
   return true;
 }
 
+bool rol_balor_weapon_owner_allowed(const struct char_data *ch, bool allow_pet)
+{
+  return ch != NULL && IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ROL_DEMON) && (allow_pet || !IS_PET(ch));
+}
+
+bool rol_balor_weapon_profile(int object_vnum, int *dice_count, int *dice_size, int *damage_type)
+{
+  const struct rol_weapon_profile *profile = rol_weapon_profile_for(object_vnum);
+
+  if (profile == NULL || (profile->effect != ROL_WEAPON_BALOR_WHIP &&
+                          profile->effect != ROL_WEAPON_BALOR_LIGHTNING_SWORD))
+    return false;
+  if (dice_count != NULL)
+    *dice_count = profile->effect == ROL_WEAPON_BALOR_WHIP ? 8 : 20;
+  if (dice_size != NULL)
+    *dice_size = profile->effect == ROL_WEAPON_BALOR_WHIP ? 6 : 10;
+  if (damage_type != NULL)
+    *damage_type = profile->effect == ROL_WEAPON_BALOR_WHIP ? DAM_FORCE : DAM_NEGATIVE;
+  return true;
+}
+
 static int rol_weapon_slot(const struct char_data *ch, const struct obj_data *obj)
 {
   int wear;
@@ -7600,6 +7627,104 @@ static int rol_weapon_gleaming_burst(struct char_data *ch, struct obj_data *obj,
   return TRUE;
 }
 
+static struct spec_damage_result rol_balor_weapon_damage(struct spec_event_context *context,
+                                                         struct char_data *ch,
+                                                         struct char_data *victim, int amount,
+                                                         int damage_type)
+{
+  struct spec_damage_result result = rol_weapon_damage(ch, victim, amount, damage_type);
+
+  if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED && context != NULL &&
+      victim == context->target)
+    context->invalidation |= SPEC_INVALIDATE_TARGET;
+  return result;
+}
+
+static void rol_balor_sword_affect(struct char_data *victim, int location, int modifier,
+                                   int duration, bool marker)
+{
+  struct affected_type affect;
+
+  new_affect(&affect);
+  affect.spell = marker ? SPELL_RAY_OF_ENFEEBLEMENT : ABILITY_SCORE_DAMAGE;
+  affect.duration = duration;
+  affect.location = location;
+  affect.modifier = modifier;
+  affect.bonus_type = BONUS_TYPE_UNIVERSAL;
+  affect_to_char(victim, &affect);
+}
+
+static void rol_balor_sword_penalties(struct char_data *victim)
+{
+  static const int durations[] = {2, 4, 6, 8};
+  int con_penalty = -MAX(1, GET_CON(victim) / 4);
+  int str_penalty = -MAX(1, GET_STR(victim) / 4);
+  size_t index;
+
+  for (index = 0; index < sizeof(durations) / sizeof(durations[0]); index++)
+    rol_balor_sword_affect(victim, APPLY_CON, con_penalty, durations[index], index == 3);
+  for (index = 0; index < sizeof(durations) / sizeof(durations[0]); index++)
+    rol_balor_sword_affect(victim, APPLY_STR, str_penalty, durations[index], false);
+}
+
+static int rol_balor_lightning_sword(struct spec_event_context *context, struct char_data *ch,
+                                     struct obj_data *obj, struct char_data *victim)
+{
+  struct char_data *target;
+  struct char_data *next;
+  int amount;
+
+  if (!context->critical || !rol_balor_weapon_owner_allowed(ch, false))
+    return FALSE;
+  amount = dice(20, 10);
+  if (rand_number(0, 4) == 0)
+  {
+    act("Your $p explodes into an electrical storm of negative energy!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    act("$n's $p explodes into an electrical storm of negative energy!", FALSE, ch, obj, victim,
+        TO_ROOM);
+    for (target = world[IN_ROOM(ch)].people; target != NULL; target = next)
+    {
+      next = target->next_in_room;
+      if (!aoeOK(ch, target, -1) || target == ch || GET_POS(target) <= POS_DEAD ||
+          GET_LEVEL(target) >= LVL_IMMORT || (IS_NPC(target) && !IS_PET(target)))
+        continue;
+      act("Negative energy from $p tears at your life force!", FALSE, ch, obj, target, TO_VICT);
+      (void)rol_balor_weapon_damage(context, ch, target, amount, DAM_NEGATIVE);
+    }
+    return TRUE;
+  }
+
+  act("Your $p surges through $N, making $M weaken and shudder!", FALSE, ch, obj, victim, TO_CHAR);
+  if (!affected_by_spell(victim, SPELL_RAY_OF_ENFEEBLEMENT))
+    rol_balor_sword_penalties(victim);
+  (void)rol_balor_weapon_damage(context, ch, victim, amount, DAM_NEGATIVE);
+  return TRUE;
+}
+
+static int rol_balor_whip(struct spec_event_context *context, struct char_data *ch,
+                          struct obj_data *obj, struct char_data *victim)
+{
+  if (!rol_balor_weapon_owner_allowed(ch, false))
+    return FALSE;
+  act("Your $p reels $N into your bodily flames, bathing $M in unholy fire!", FALSE, ch, obj,
+      victim, TO_CHAR);
+  (void)rol_balor_weapon_damage(context, ch, victim, dice(8, 6), DAM_FORCE);
+  return TRUE;
+}
+
+static int rol_balor_weapon_pulse(struct spec_event_context *context, struct char_data *ch,
+                                  struct obj_data *obj)
+{
+  if (rol_balor_weapon_owner_allowed(ch, true))
+    return TRUE;
+  act("$p erupts in a blast of planar fire and vanishes!", FALSE, ch, obj, NULL, TO_CHAR);
+  act("$n's $p erupts in a blast of planar fire and vanishes!", FALSE, ch, obj, NULL, TO_ROOM);
+  extract_obj(obj);
+  context->invalidation |= SPEC_INVALIDATE_OWNER;
+  return TRUE;
+}
+
 static int rol_weapon_hit(struct spec_event_context *context,
                           const struct rol_weapon_profile *profile, struct char_data *ch,
                           struct obj_data *obj, struct char_data *victim, int slot)
@@ -7612,6 +7737,10 @@ static int rol_weapon_hit(struct spec_event_context *context,
 
   switch (profile->effect)
   {
+  case ROL_WEAPON_BALOR_WHIP:
+    return rol_balor_whip(context, ch, obj, victim);
+  case ROL_WEAPON_BALOR_LIGHTNING_SWORD:
+    return rol_balor_lightning_sword(context, ch, obj, victim);
   case ROL_WEAPON_HAMMER:
     return rol_weapon_hammer(ch, obj, victim);
   case ROL_WEAPON_ICY_DAGGER:
@@ -7911,7 +8040,16 @@ int rol_weapon_proc_typed(struct spec_event_context *context)
   }
   if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
   {
-    if (ch == NULL || spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID ||
+    if (ch == NULL)
+      return FALSE;
+    if (profile->effect == ROL_WEAPON_BALOR_WHIP ||
+        profile->effect == ROL_WEAPON_BALOR_LIGHTNING_SWORD)
+    {
+      if (obj->worn_by != ch && obj->carried_by != ch)
+        return FALSE;
+      return rol_balor_weapon_pulse(context, ch, obj);
+    }
+    if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID ||
         (slot = rol_weapon_slot(ch, obj)) < 0)
       return FALSE;
     if (profile->effect == ROL_WEAPON_HOLY)

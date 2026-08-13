@@ -296,6 +296,57 @@ class RolTransformTests(unittest.TestCase):
         )
     )
 
+  def test_planar_death_burst_and_balor_weapon_bindings_are_explicit(self) -> None:
+    bindings = [
+        {
+            "basename": "planar",
+            "record_type": record_type,
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for record_type, source_vnum, handler in (
+            ("mobile", 207, "demon_balorDeath"),
+            ("mobile", 210, "demon_chasmeBuzz"),
+            ("mobile", 214, "demon_manesDeath"),
+            ("mobile", 221, "demon_vrockScreech"),
+            ("mobile", 221, "demon_vrockSpores"),
+            ("mobile", 233, "devil_spinagonFlameSpike"),
+            ("object", 93227, "demon_balorWhip"),
+            ("object", 93228, "demon_balorLightningSword"),
+        )
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+    native = {
+        (binding.source_record_type, binding.source_vnum, binding.persisted_name): binding
+        for binding in compiled.native_bindings
+    }
+    dispositions = {row["source_handler"]: row for row in compiled.dispositions}
+
+    self.assertEqual(7, len(compiled.native_bindings))
+    self.assertEqual("SOURCE_INERT_EXCLUDED", dispositions["demon_chasmeBuzz"]["strategy"])
+    self.assertIn("cannot run", dispositions["demon_chasmeBuzz"]["reason"])
+    balor = native[("mobile", 207, "RoL Monster Combat")]
+    self.assertEqual((0,), balor.required_flag_bits)
+    self.assertEqual((28,), balor.required_affect_bits)
+    for source_vnum in (214, 221, 233):
+      binding = native[("mobile", source_vnum, "RoL Monster Combat")]
+      self.assertEqual((0,), binding.required_flag_bits)
+    for source_vnum in (93227, 93228):
+      binding = native[("object", source_vnum, "RoL Weapon Proc")]
+      self.assertEqual((2, 7, 16, 44), binding.required_flag_bits)
+      self.assertEqual((), binding.required_affect_bits)
+    for handler in (
+        "demon_balorDeath",
+        "demon_manesDeath",
+        "demon_vrockScreech",
+        "demon_vrockSpores",
+        "devil_spinagonFlameSpike",
+        "demon_balorWhip",
+        "demon_balorLightningSword",
+    ):
+      self.assertEqual("NATIVE_ADAPTED", dispositions[handler]["strategy"])
+
   def test_color_and_line_endings_are_canonicalized(self) -> None:
     text, diagnostics = convert_text("&+RRed&N\r\nplain")
     self.assertEqual("@RRed@n\nplain", text)

@@ -387,7 +387,7 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Monster Combat", rol_monster_combat, SPEC_OWNER_MOBILE,
        SPEC_EVENT_COMMAND | SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN |
-           SPEC_EVENT_MOBILE_HIT,
+           SPEC_EVENT_MOBILE_DEATH | SPEC_EVENT_MOBILE_HIT,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Lich Energy Drain", rol_lich_energy_drain, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},

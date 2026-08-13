@@ -25,6 +25,10 @@
 #include "spec/spec_dispatch.h"
 #include "spec/spec_rol_conversion.h"
 
+#define ROL_BALOR_WHIP_VNUM 2093227
+#define ROL_BALOR_SWORD_VNUM 2093228
+#define ROL_PLANAR_HIT_BURST_COOLDOWN (PULSE_VIOLENCE * 3)
+
 enum rol_monster_combat_effect
 {
   ROL_MONSTER_PLANT_POISON = 0,
@@ -83,6 +87,10 @@ enum rol_monster_combat_effect
   ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL,
   ROL_MONSTER_GREYCLOAK_FUMES,
   ROL_MONSTER_GREYCLOAK_ARALESH,
+  ROL_MONSTER_PLANAR_MANES_DEATH,
+  ROL_MONSTER_PLANAR_BALOR,
+  ROL_MONSTER_PLANAR_VROCK_BURSTS,
+  ROL_MONSTER_PLANAR_SPINAGON_SPIKES,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -117,6 +125,13 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {196027, ROL_MONSTER_JOTUN_THRYM, 2, "Thrym's freezing paralysis bolt."},
     {196040, ROL_MONSTER_JOTUN_LOKI, 3, "Utgard-Loki's room-wide fear visions."},
     {196076, ROL_MONSTER_SWALLOW_WHOLE, 10, "Rhemorhaz bite and whole-swallow attack."},
+    {2000207, ROL_MONSTER_PLANAR_BALOR, 1,
+     "Balor equipment upkeep, elemental protection, and corpse suppression."},
+    {2000214, ROL_MONSTER_PLANAR_MANES_DEATH, 1, "Manes death burst of acidic vapor."},
+    {2000221, ROL_MONSTER_PLANAR_VROCK_BURSTS, 1,
+     "Low-health screech and independently cooling spore burst."},
+    {2000233, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
+     "Five-in-six flaming-spike volley with a three-round cooldown."},
     {2000325, ROL_MONSTER_LYCAN_TIGER, 11, "Were-tiger tearing attack."},
     {2000326, ROL_MONSTER_LYCAN_FOX, 6, "Were-fox slashing attack."},
     {2000327, ROL_MONSTER_LYCAN_TIGER, 11, "Were-tiger tearing attack."},
@@ -160,6 +175,14 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2026243, ROL_MONSTER_SUMMON_ROBYN_WISP, 4, "Robyn's bounded wisp summon."},
     {2026244, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
     {2026245, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
+    {2032632, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
+     "Five-in-six flaming-spike volley with a three-round cooldown."},
+    {2032645, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
+     "Five-in-six flaming-spike volley with a three-round cooldown."},
+    {2032646, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
+     "Five-in-six flaming-spike volley with a three-round cooldown."},
+    {2033020, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
+     "Five-in-six flaming-spike volley with a three-round cooldown."},
     {2034833, ROL_MONSTER_BANSHEE_WAIL, 3, "Room-wide sonic wail."},
     {2041900, ROL_MONSTER_SWALLOW_SPIT, 6, "Nonlethal whole-swallow and spit attack."},
     {2043358, ROL_MONSTER_MOVANIC_DEVA, 1, "Movanic-deva healing and wind assault."},
@@ -223,6 +246,12 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2081747, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2083224, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2092608, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
+    {2093204, ROL_MONSTER_PLANAR_BALOR, 1,
+     "Balor equipment upkeep, elemental protection, and corpse suppression."},
+    {2093209, ROL_MONSTER_PLANAR_VROCK_BURSTS, 1,
+     "Low-health screech and independently cooling spore burst."},
+    {2093210, ROL_MONSTER_PLANAR_VROCK_BURSTS, 1,
+     "Low-health screech and independently cooling spore burst."},
     {2096631, ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL, 6, "Room-wide Greycloak banshee wail."},
     {2096670, ROL_MONSTER_GREYCLOAK_FUMES, 11, "Room-wide noxious fumes."},
     {2096672, ROL_MONSTER_GREYCLOAK_ARALESH, 11, "Lethal blazing-eye beam."},
@@ -288,6 +317,66 @@ bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const ch
   if (description != NULL)
     *description = profile->description;
   return true;
+}
+
+bool rol_planar_death_profile(int mobile_vnum, bool *suppresses_corpse)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+
+  if (profile == NULL || (profile->effect != ROL_MONSTER_PLANAR_MANES_DEATH &&
+                          profile->effect != ROL_MONSTER_PLANAR_BALOR))
+    return false;
+  if (suppresses_corpse != NULL)
+    *suppresses_corpse = profile->effect == ROL_MONSTER_PLANAR_BALOR;
+  return true;
+}
+
+bool rol_planar_burst_profile(int mobile_vnum, bool *screech, bool *spores, bool *flame_spikes)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+  bool is_vrock;
+  bool is_spinagon;
+
+  if (profile == NULL)
+    return false;
+  is_vrock = profile->effect == ROL_MONSTER_PLANAR_VROCK_BURSTS;
+  is_spinagon = profile->effect == ROL_MONSTER_PLANAR_SPINAGON_SPIKES;
+  if (!is_vrock && !is_spinagon)
+    return false;
+  if (screech != NULL)
+    *screech = is_vrock;
+  if (spores != NULL)
+    *spores = is_vrock;
+  if (flame_spikes != NULL)
+    *flame_spikes = is_spinagon;
+  return true;
+}
+
+bool rol_planar_five_in_six_roll_fires(int roll)
+{
+  return roll >= 1 && roll <= 5;
+}
+
+bool rol_planar_screech_health_allows(int hit, int max_hit)
+{
+  if (max_hit <= 0)
+    return false;
+  return ((long long)hit * 100LL) / max_hit <= 15;
+}
+
+int rol_planar_screech_cooldown_seconds(int mobile_vnum)
+{
+  return rol_planar_burst_profile(mobile_vnum, NULL, NULL, NULL) &&
+                 rol_monster_combat_profile_for(mobile_vnum)->effect ==
+                     ROL_MONSTER_PLANAR_VROCK_BURSTS
+             ? SECS_PER_MUD_DAY
+             : 0;
+}
+
+int rol_planar_hit_burst_cooldown_seconds(int mobile_vnum)
+{
+  return rol_planar_burst_profile(mobile_vnum, NULL, NULL, NULL) ? ROL_PLANAR_HIT_BURST_COOLDOWN
+                                                                 : 0;
 }
 
 bool rol_monster_successful_hit_profile(int mobile_vnum, struct rol_monster_hit_profile_view *view)
@@ -823,6 +912,107 @@ static int rol_monster_successful_hit(struct spec_event_context *context,
   default:
     return FALSE;
   }
+}
+
+static bool rol_planar_cooldown_ready(time_t ready_at, time_t now)
+{
+  return ready_at <= 0 || ready_at <= now;
+}
+
+static int rol_planar_vrock_screech(struct char_data *ch, time_t now)
+{
+  struct char_data *victim;
+  struct char_data *next;
+
+  if (!rol_planar_cooldown_ready(ch->mob_specials.rol_planar_screech_ready_at, now) ||
+      !rol_planar_screech_health_allows(GET_HIT(ch), GET_MAX_HIT(ch)) ||
+      AFF_FLAGGED(ch, AFF_SILENCED) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF))
+    return FALSE;
+
+  act("$n abruptly makes a terrifying screeching noise!", FALSE, ch, NULL, NULL, TO_ROOM);
+  send_to_char(ch, "You abruptly make a terrifying screeching noise!\r\n");
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!rol_monster_hit_area_target(ch, victim) || IS_NPC(victim) ||
+        rand_number(1, 100) <= GET_CON(victim))
+      continue;
+    rol_monster_stun(victim, 1);
+  }
+  ch->mob_specials.rol_planar_screech_ready_at = now + SECS_PER_MUD_DAY;
+  return TRUE;
+}
+
+static int rol_planar_vrock_spores(struct spec_event_context *context, struct char_data *ch,
+                                   time_t now)
+{
+  struct char_data *victim = FIGHTING(ch);
+
+  if (!rol_planar_cooldown_ready(ch->mob_specials.rol_planar_spore_ready_at, now) ||
+      !rol_planar_five_in_six_roll_fires(rand_number(0, 5)) || victim == NULL ||
+      spec_context_validate_combat_target(ch, victim, false) != SPEC_CONTEXT_VALID)
+    return FALSE;
+
+  act("$n raises $s wings and showers $N with a cloud of spores.", FALSE, ch, NULL, victim,
+      TO_NOTVICT);
+  act("You raise your wings and shower $N with a cloud of spores.", FALSE, ch, NULL, victim,
+      TO_CHAR);
+  act("$n raises $s wings and showers you with a cloud of spores.", FALSE, ch, NULL, victim,
+      TO_VICT);
+  ch->mob_specials.rol_planar_spore_ready_at = now + ROL_PLANAR_HIT_BURST_COOLDOWN;
+  (void)rol_monster_successful_hit_damage(context, ch, victim, dice(10, 2), DAM_POISON);
+  return TRUE;
+}
+
+static int rol_planar_vrock_bursts(struct spec_event_context *context, struct char_data *ch)
+{
+  time_t now = time(NULL);
+  int result = FALSE;
+
+  if (rol_planar_vrock_screech(ch, now))
+    result = TRUE;
+  if (rol_planar_vrock_spores(context, ch, now))
+    result = TRUE;
+  return result;
+}
+
+static int rol_planar_spinagon_spikes(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *victim;
+  struct char_data *next;
+  time_t now = time(NULL);
+  int spikes;
+  int save_bonus;
+
+  if (FIGHTING(ch) == NULL ||
+      !rol_planar_cooldown_ready(ch->mob_specials.rol_planar_spike_ready_at, now) ||
+      !rol_planar_five_in_six_roll_fires(rand_number(0, 5)))
+    return FALSE;
+
+  send_to_char(ch, "You shoot several flaming spikes out of your tail!\r\n");
+  act("$n shoots several flaming spikes out of $s tail!", FALSE, ch, NULL, NULL, TO_ROOM);
+  spikes = rand_number(2, 5);
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL && spikes > 0; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!rol_monster_hit_area_target(ch, victim))
+      continue;
+    spikes--;
+    save_bonus = AFF_FLAGGED(victim, AFF_ELEMENT_PROT) ? 4 : 0;
+    if (savingthrow(ch, victim, SAVING_REFL, save_bonus, CAST_INNATE, GET_LEVEL(ch), EVOCATION))
+    {
+      act("$N ducks as one of the spikes sizzles past $S head!", FALSE, ch, NULL, victim,
+          TO_NOTVICT);
+      send_to_char(victim, "You duck as a spike goes sizzling past your head!\r\n");
+      continue;
+    }
+    act("$N screams as one of the flaming spikes slams into $S chest!", FALSE, ch, NULL, victim,
+        TO_NOTVICT);
+    send_to_char(victim, "You scream as a flaming spike slams into your chest!\r\n");
+    (void)rol_monster_successful_hit_damage(context, ch, victim, dice(20, 2), DAM_FIRE);
+  }
+  ch->mob_specials.rol_planar_spike_ready_at = now + ROL_PLANAR_HIT_BURST_COOLDOWN;
+  return TRUE;
 }
 
 static void rol_monster_prismatic(struct char_data *ch, int level)
@@ -2185,6 +2375,49 @@ static int rol_skriaxit_sandstorm_activity(struct char_data *ch)
   return FALSE;
 }
 
+static void rol_balor_equip_weapon(struct char_data *ch, int object_vnum, int wear_slot)
+{
+  struct obj_data *weapon;
+
+  if (GET_EQ(ch, wear_slot) != NULL || real_object(object_vnum) == NOTHING)
+    return;
+  weapon = read_object(object_vnum, VIRTUAL);
+  if (weapon != NULL)
+    equip_char(ch, weapon, wear_slot);
+}
+
+static void rol_balor_ensure_weapons(struct char_data *ch)
+{
+  rol_balor_equip_weapon(ch, ROL_BALOR_SWORD_VNUM, WEAR_WIELD_1);
+  rol_balor_equip_weapon(ch, ROL_BALOR_WHIP_VNUM, WEAR_WIELD_OFFHAND);
+}
+
+static int rol_monster_planar_death(struct spec_event_context *context,
+                                    const struct rol_monster_combat_profile *profile,
+                                    struct char_data *ch)
+{
+  struct char_data *victim;
+  struct char_data *next;
+
+  if (profile->effect == ROL_MONSTER_PLANAR_BALOR)
+    return TRUE;
+  if (profile->effect != ROL_MONSTER_PLANAR_MANES_DEATH)
+    return FALSE;
+
+  act("$n dissolves into a cloud of stinking acidic vapor!", FALSE, ch, NULL, NULL, TO_ROOM);
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!rol_monster_hit_area_target(ch, victim) ||
+        (IS_NPC(victim) && MOB_FLAGGED(victim, MOB_ROL_DEMON)) ||
+        savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), CONJURATION))
+      continue;
+    send_to_char(victim, "The acidic vapor sears your skin and lungs!\r\n");
+    (void)rol_monster_successful_hit_damage(context, ch, victim, dice(4, 6), DAM_ACID);
+  }
+  return FALSE;
+}
+
 static int rol_monster_activity(struct spec_event_context *context,
                                 const struct rol_monster_combat_profile *profile,
                                 struct char_data *ch)
@@ -2193,6 +2426,9 @@ static int rol_monster_activity(struct spec_event_context *context,
 
   switch (profile->effect)
   {
+  case ROL_MONSTER_PLANAR_BALOR:
+    rol_balor_ensure_weapons(ch);
+    return FALSE;
   case ROL_MONSTER_HIVE_SKRIAXIT_SANDSTORM:
     return rol_skriaxit_sandstorm_activity(ch);
   case ROL_MONSTER_SMALL_PRISMATIC:
@@ -2277,6 +2513,9 @@ int rol_monster_combat_typed(struct spec_event_context *context)
       (profile = rol_monster_combat_profile_for(GET_MOB_VNUM(ch))) == NULL)
     return FALSE;
 
+  if (context->event == SPEC_EVENT_MOBILE_DEATH)
+    return rol_monster_planar_death(context, profile, ch);
+
   if (profile->effect == ROL_MONSTER_RESIDUAL_MOBILE)
     return rol_residual_mobile_typed(context);
 
@@ -2288,6 +2527,10 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   {
     if (spec_context_validate_combat_target(ch, context->target, false) != SPEC_CONTEXT_VALID)
       return FALSE;
+    if (profile->effect == ROL_MONSTER_PLANAR_VROCK_BURSTS)
+      return rol_planar_vrock_bursts(context, ch);
+    if (profile->effect == ROL_MONSTER_PLANAR_SPINAGON_SPIKES)
+      return rol_planar_spinagon_spikes(context, ch);
     if (rol_manscorpion_venom_profile(GET_MOB_VNUM(ch), NULL, NULL, NULL))
       return rol_monster_manscorpion_hit(context, profile, ch);
     return rol_monster_successful_hit(context, profile, ch);
@@ -2450,6 +2693,10 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL:
   case ROL_MONSTER_GREYCLOAK_FUMES:
   case ROL_MONSTER_GREYCLOAK_ARALESH:
+  case ROL_MONSTER_PLANAR_MANES_DEATH:
+  case ROL_MONSTER_PLANAR_BALOR:
+  case ROL_MONSTER_PLANAR_VROCK_BURSTS:
+  case ROL_MONSTER_PLANAR_SPINAGON_SPIKES:
   case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }

@@ -1901,7 +1901,7 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
       2095878, 2098330, 2019933, 2025030, 2009054, 2025018, 2001010, 2080034, 2080038,
       2026233, 2026248, 2015116, 2013308, 2097117, 2001005, 2014023, 2024405, 2053266,
       2053263, 2053259, 2053289, 2053290, 2053291, 2053292, 2053243, 2083238, 2083235,
-      2053250, 2053271, 2043741, 2008000, 2001057, 2004797,
+      2053250, 2053271, 2043741, 2008000, 2001057, 2004797, 2093227, 2093228,
   };
   const char *description;
   bool critical_only;
@@ -1935,18 +1935,19 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
 void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
 {
   static const int vnums[] = {
-      150772,  196007,  196013,  196027,  196040,  196076,  2000325, 2000326, 2000327, 2000328,
-      2000525, 2001228, 2001229, 2001407, 2001436, 2001437, 2004070, 2004480, 2004530, 2005023,
-      2005718, 2012005, 2012006, 2012024, 2012025, 2012026, 2014015, 2014026, 2014029, 2014601,
-      2014605, 2015113, 2015125, 2019701, 2019750, 2020247, 2020378, 2021786, 2021820, 2026208,
-      2026216, 2026225, 2026236, 2026238, 2026241, 2026242, 2026243, 2026244, 2026245, 2034833,
-      2041900, 2043358, 2043702, 2043703, 2043705, 2043728, 2043741, 2043742, 2043744, 2043745,
-      2043746, 2043756, 2043758, 2043759, 2043761, 2043767, 2043768, 2043769, 2043770, 2043778,
-      2043780, 2045116, 2045146, 2045182, 2051246, 2051333, 2051334, 2053264, 2053265, 2053266,
-      2059815, 2059835, 2062401, 2062402, 2062405, 2062406, 2062701, 2062702, 2062703, 2062704,
-      2062705, 2062706, 2062707, 2062708, 2062710, 2062711, 2062712, 2062713, 2062714, 2062715,
-      2062716, 2062717, 2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2092608, 2096631,
-      2096670, 2096672, 2097061,
+      150772,  196007,  196013,  196027,  196040,  196076,  2000207, 2000214, 2000221, 2000233,
+      2000325, 2000326, 2000327, 2000328, 2000525, 2001228, 2001229, 2001407, 2001436, 2001437,
+      2004070, 2004480, 2004530, 2005023, 2005718, 2012005, 2012006, 2012024, 2012025, 2012026,
+      2014015, 2014026, 2014029, 2014601, 2014605, 2015113, 2015125, 2019701, 2019750, 2020247,
+      2020378, 2021786, 2021820, 2026208, 2026216, 2026225, 2026236, 2026238, 2026241, 2026242,
+      2026243, 2026244, 2026245, 2032632, 2032645, 2032646, 2033020, 2034833, 2041900, 2043358,
+      2043702, 2043703, 2043705, 2043728, 2043741, 2043742, 2043744, 2043745, 2043746, 2043756,
+      2043758, 2043759, 2043761, 2043767, 2043768, 2043769, 2043770, 2043778, 2043780, 2045116,
+      2045146, 2045182, 2051246, 2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835,
+      2062401, 2062402, 2062405, 2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706,
+      2062707, 2062708, 2062710, 2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717,
+      2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2092608, 2093204, 2093209, 2093210,
+      2096631, 2096670, 2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2057,6 +2058,117 @@ void Test_spec_rol_manscorpion_venom_profiles_and_affect(CuTest *tc)
   CuAssertTrue(tc, !rol_manscorpion_apply_venom(&fixture.target, 2));
   CuAssertTrue(tc, !rol_manscorpion_apply_venom(NULL, 2));
   CuAssertTrue(tc, !rol_manscorpion_apply_venom(&fixture.actor, 0));
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_planar_death_and_burst_profiles(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  bool flame_spikes;
+  bool screech;
+  bool spores;
+  bool suppresses_corpse;
+
+  CuAssertTrue(tc, rol_planar_death_profile(2000207, &suppresses_corpse));
+  CuAssertTrue(tc, suppresses_corpse);
+  CuAssertTrue(tc, rol_planar_death_profile(2093204, &suppresses_corpse));
+  CuAssertTrue(tc, suppresses_corpse);
+  CuAssertTrue(tc, rol_planar_death_profile(2000214, &suppresses_corpse));
+  CuAssertTrue(tc, !suppresses_corpse);
+  CuAssertTrue(tc, !rol_planar_death_profile(2000213, NULL));
+
+  CuAssertTrue(tc, rol_planar_burst_profile(2000221, &screech, &spores, &flame_spikes));
+  CuAssertTrue(tc, screech);
+  CuAssertTrue(tc, spores);
+  CuAssertTrue(tc, !flame_spikes);
+  CuAssertTrue(tc, rol_planar_burst_profile(2032645, &screech, &spores, &flame_spikes));
+  CuAssertTrue(tc, !screech);
+  CuAssertTrue(tc, !spores);
+  CuAssertTrue(tc, flame_spikes);
+  CuAssertTrue(tc, !rol_planar_burst_profile(2032644, NULL, NULL, NULL));
+  CuAssertTrue(tc, !rol_planar_five_in_six_roll_fires(0));
+  CuAssertTrue(tc, rol_planar_five_in_six_roll_fires(1));
+  CuAssertTrue(tc, rol_planar_five_in_six_roll_fires(5));
+  CuAssertTrue(tc, !rol_planar_five_in_six_roll_fires(6));
+  CuAssertTrue(tc, rol_planar_screech_health_allows(15, 100));
+  CuAssertTrue(tc, !rol_planar_screech_health_allows(16, 100));
+  CuAssertTrue(tc, !rol_planar_screech_health_allows(1, 0));
+  CuAssertIntEquals(tc, SECS_PER_MUD_DAY, rol_planar_screech_cooldown_seconds(2093209));
+  CuAssertIntEquals(tc, 0, rol_planar_screech_cooldown_seconds(2032632));
+  CuAssertIntEquals(tc, PULSE_VIOLENCE * 3, rol_planar_hit_burst_cooldown_seconds(2000221));
+  CuAssertIntEquals(tc, PULSE_VIOLENCE * 3, rol_planar_hit_burst_cooldown_seconds(2033020));
+
+  spec_mechanics_begin(&fixture);
+  memset(&context, 0, sizeof(context));
+  fixture.mobile_indexes[0].vnum = 2000207;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_MOBILE_DEATH;
+  context.owner = &fixture.actor;
+  context.actor = &fixture.target;
+  context.target = &fixture.target;
+  CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_balor_weapon_profiles_and_whip_proc(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  bool critical_only;
+  int damage_type;
+  int denominator;
+  int dice_count;
+  int dice_size;
+  int previous_hit;
+
+  CuAssertTrue(tc, rol_balor_weapon_profile(2093227, &dice_count, &dice_size, &damage_type));
+  CuAssertIntEquals(tc, 8, dice_count);
+  CuAssertIntEquals(tc, 6, dice_size);
+  CuAssertIntEquals(tc, DAM_FORCE, damage_type);
+  CuAssertTrue(tc, rol_weapon_profile(2093227, &denominator, &critical_only, NULL));
+  CuAssertIntEquals(tc, 1, denominator);
+  CuAssertTrue(tc, !critical_only);
+  CuAssertTrue(tc, rol_balor_weapon_profile(2093228, &dice_count, &dice_size, &damage_type));
+  CuAssertIntEquals(tc, 20, dice_count);
+  CuAssertIntEquals(tc, 10, dice_size);
+  CuAssertIntEquals(tc, DAM_NEGATIVE, damage_type);
+  CuAssertTrue(tc, rol_weapon_profile(2093228, &denominator, &critical_only, NULL));
+  CuAssertTrue(tc, critical_only);
+  CuAssertTrue(tc, !rol_balor_weapon_profile(2093226, NULL, NULL, NULL));
+
+  spec_mechanics_begin(&fixture);
+  CuAssertTrue(tc, !rol_balor_weapon_owner_allowed(&fixture.actor, false));
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ROL_DEMON);
+  CuAssertTrue(tc, rol_balor_weapon_owner_allowed(&fixture.actor, false));
+  fixture.actor.master = &fixture.target;
+  SET_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_CHARM);
+  CuAssertTrue(tc, !rol_balor_weapon_owner_allowed(&fixture.actor, false));
+  CuAssertTrue(tc, rol_balor_weapon_owner_allowed(&fixture.actor, true));
+  fixture.actor.master = NULL;
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_CHARM);
+
+  fixture.object_indexes[0].vnum = 2093227;
+  GET_OBJ_RNUM(&fixture.worn) = 0;
+  fixture.worn.worn_by = &fixture.actor;
+  fixture.worn.worn_on = WEAR_WIELD_1;
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &fixture.worn;
+  FIGHTING(&fixture.actor) = &fixture.target;
+  FIGHTING(&fixture.target) = &fixture.actor;
+  memset(&context, 0, sizeof(context));
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.event = SPEC_EVENT_WEAPON_HIT;
+  context.owner = &fixture.worn;
+  context.actor = &fixture.actor;
+  context.target = &fixture.target;
+  previous_hit = GET_HIT(&fixture.target);
+  CuAssertIntEquals(tc, TRUE, rol_weapon_proc_typed(&context));
+  CuAssertTrue(tc, GET_HIT(&fixture.target) <= previous_hit - 8);
+  CuAssertTrue(tc, GET_HIT(&fixture.target) >= previous_hit - 48);
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  fixture.worn.worn_by = NULL;
   spec_mechanics_end(&fixture);
 }
 

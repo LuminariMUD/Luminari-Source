@@ -208,6 +208,8 @@ size_t rol_waterdeep_bouncer_route_length(int mobile_vnum);
 size_t rol_weapon_profile_count(void);
 bool rol_weapon_profile(int object_vnum, int *proc_denominator, bool *critical_only,
                         const char **description);
+bool rol_balor_weapon_profile(int object_vnum, int *dice_count, int *dice_size, int *damage_type);
+bool rol_balor_weapon_owner_allowed(const struct char_data *ch, bool allow_pet);
 bool rol_bloodstone_portal_survives(int current_hit, int hit_loss);
 bool rol_portal_door_race_allows(bool rejects_good, int race);
 int rol_travel_portal_destination_slot(int object_vnum, int roll);
@@ -230,6 +232,12 @@ bool rol_undead_drain_profile(int mobile_vnum, int *chance_sides, int *marker_af
                               int *will_penalty, int *fortitude_penalty, int *slow_duration);
 size_t rol_monster_combat_profile_count(void);
 bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const char **description);
+bool rol_planar_death_profile(int mobile_vnum, bool *suppresses_corpse);
+bool rol_planar_burst_profile(int mobile_vnum, bool *screech, bool *spores, bool *flame_spikes);
+bool rol_planar_five_in_six_roll_fires(int roll);
+bool rol_planar_screech_health_allows(int hit, int max_hit);
+int rol_planar_screech_cooldown_seconds(int mobile_vnum);
+int rol_planar_hit_burst_cooldown_seconds(int mobile_vnum);
 bool rol_monster_successful_hit_profile(int mobile_vnum, struct rol_monster_hit_profile_view *view);
 bool rol_monster_successful_hit_roll_fires(int mobile_vnum, int roll);
 bool rol_skriaxit_sandstorm_profile(int mobile_vnum, int *round_interval,

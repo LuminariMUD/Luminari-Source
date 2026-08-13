@@ -189,6 +189,13 @@ ADAPTED_HANDLER_NAMES = {
     "et_airBoss": "RoL Monster Combat",
     "et_waterBoss": "RoL Monster Combat",
     "devil_pitFiendBite": "RoL Monster Combat",
+    "devil_spinagonFlameSpike": "RoL Monster Combat",
+    "demon_balorDeath": "RoL Monster Combat",
+    "demon_balorLightningSword": "RoL Weapon Proc",
+    "demon_balorWhip": "RoL Weapon Proc",
+    "demon_manesDeath": "RoL Monster Combat",
+    "demon_vrockScreech": "RoL Monster Combat",
+    "demon_vrockSpores": "RoL Monster Combat",
     "chicken": "RoL Monster Combat",
     "kobold_priest": "RoL Monster Combat",
     "piercer": "RoL Monster Combat",
@@ -381,6 +388,10 @@ INERT_HANDLERS = {
         "and is not added by the automatic demon race callback"
     ),
     "demon_rutterkin": "source initialization registers no events and changes no mobile state",
+    "demon_chasmeBuzz": (
+        "source periodic callback tests the Chasme owner's demon race instead of the victim; "
+        "both bound Chasmes receive that race automatically, so the sleep branch cannot run"
+    ),
     "blackPlagueCure": (
         "direct object callback never registers events because it does not parse the source "
         "initialization call; the separate disease callback is not an object binding"
@@ -492,6 +503,7 @@ COMPOSABLE_MOBILE_HANDLER_FLAGS = {
 # their mobile action roles. Keep these as prototype state so the behaviors do
 # not consume the one persisted special-procedure slot.
 COMPOSABLE_MOBILE_HANDLER_AFFECTS = {
+    "demon_balorDeath": (28,),
     "demon_bar_lgura": (20,),
     "demon_cambion": (19,),
 }
@@ -1304,6 +1316,8 @@ def compile_special_bindings(
           "undead_wraith",
       }:
         required_bits = (0,)
+      elif handler in {"demon_balorLightningSword", "demon_balorWhip"}:
+        required_bits = (2, 7, 16, 44)
       elif handler in {
           "floating_pool",
           "fw_ruby_monocle",
@@ -1325,6 +1339,7 @@ def compile_special_bindings(
               target_vnum=target_vnum,
               persisted_name=persisted_name,
               required_flag_bits=required_bits,
+              required_affect_bits=COMPOSABLE_MOBILE_HANDLER_AFFECTS.get(handler, ()),
               value_reference_slots=(
                   tuple((slot, "wld") for slot in range(4))
                   if handler == "elfgate"

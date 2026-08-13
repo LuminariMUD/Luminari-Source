@@ -456,6 +456,32 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("SOURCE_INERT_EXCLUDED", disposition["strategy"])
       self.assertTrue(disposition["reason"])
 
+  def test_planar_death_burst_and_balor_weapon_handlers_have_explicit_dispositions(self) -> None:
+    combat_handlers = (
+        "demon_balorDeath",
+        "demon_manesDeath",
+        "demon_vrockScreech",
+        "demon_vrockSpores",
+        "devil_spinagonFlameSpike",
+    )
+    weapon_handlers = ("demon_balorWhip", "demon_balorLightningSword")
+
+    for handler in combat_handlers:
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Monster Combat", disposition["target"])
+    for handler in weapon_handlers:
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Weapon Proc", disposition["target"])
+
+    chasme = handler_disposition("demon_chasmeBuzz")
+    self.assertEqual("resolved", chasme["status"])
+    self.assertEqual("SOURCE_INERT_EXCLUDED", chasme["strategy"])
+    self.assertIn("cannot run", chasme["reason"])
+
   def test_darkhold_elemental_deaths_share_composable_profile_runtime(self) -> None:
     for handler in ("fire_die", "air_die", "water_die", "earth_die"):
       disposition = handler_disposition(handler)
@@ -708,16 +734,16 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_394, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(327, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(582, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(213, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(860, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_412, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(309, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(590, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(205, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(876, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           207, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(
-          29, summary["direct_bindings_by_strategy"]["SOURCE_INERT_EXCLUDED"]
+          31, summary["direct_bindings_by_strategy"]["SOURCE_INERT_EXCLUDED"]
       )
       self.assertEqual(11, summary["direct_bindings_by_strategy"]["NATIVE_RECONCILED"])
       self.assertEqual(
@@ -733,8 +759,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       )
       self.assertEqual(2, summary["dynamic_handler_definitions_located"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(799, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(49, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(801, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(47, summary["act_spec_by_status"]["pending"])
 
       binding_rows = [
           json.loads(line)
@@ -860,6 +886,23 @@ class RolSpecialReconciliationTests(unittest.TestCase):
               "devilLemure",
           )
       }
+      planar_runtime_vnums = {
+          handler: {
+              row["source_vnum"]
+              for row in binding_rows
+              if row["source_handler"] == handler
+          }
+          for handler in (
+              "demon_balorDeath",
+              "demon_balorLightningSword",
+              "demon_balorWhip",
+              "demon_chasmeBuzz",
+              "demon_manesDeath",
+              "demon_vrockScreech",
+              "demon_vrockSpores",
+              "devil_spinagonFlameSpike",
+          )
+      }
       darkhold_death_vnums = {
           row["source_handler"]: row["source_vnum"]
           for row in binding_rows
@@ -883,6 +926,17 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual({211}, initializer_vnums["demon_dretch"])
       self.assertEqual({219}, initializer_vnums["demon_rutterkin"])
       self.assertEqual({229, 230}, initializer_vnums["devilLemure"])
+      self.assertEqual({207, 93204}, planar_runtime_vnums["demon_balorDeath"])
+      self.assertEqual({93228}, planar_runtime_vnums["demon_balorLightningSword"])
+      self.assertEqual({93227}, planar_runtime_vnums["demon_balorWhip"])
+      self.assertEqual({210, 93203}, planar_runtime_vnums["demon_chasmeBuzz"])
+      self.assertEqual({214}, planar_runtime_vnums["demon_manesDeath"])
+      self.assertEqual({221, 93209, 93210}, planar_runtime_vnums["demon_vrockScreech"])
+      self.assertEqual({221, 93209, 93210}, planar_runtime_vnums["demon_vrockSpores"])
+      self.assertEqual(
+          {233, 32632, 32645, 32646, 33020},
+          planar_runtime_vnums["devil_spinagonFlameSpike"],
+      )
       self.assertEqual(
           {"fire_die": 94501, "air_die": 94502, "water_die": 94503, "earth_die": 94504},
           darkhold_death_vnums,
