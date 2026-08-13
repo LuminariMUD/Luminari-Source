@@ -19,8 +19,13 @@ _ACTION_CALL = re.compile(
     rf"|act\s*\(\s*(?P<act>{_C_STRING})\s*,\s*(?P<hide>TRUE|FALSE|1|0)\s*,"
     rf"[\s\S]*?\bTO_ROOM\s*\)"
     rf"|(?:strcpy\s*\(\s*buf\s*,\s*(?P<target>{_C_STRING})\s*\)\s*;\s*)?"
-    r"do_action\s*\(\s*ch\s*,\s*(?P<social_arg>0|NULL|buf)\s*,\s*"
+    r"do_action\s*\(\s*ch\s*,\s*(?P<social_arg>0|NULL|[A-Za-z_][A-Za-z0-9_]*)\s*,\s*"
     r"CMD_(?P<social>[A-Za-z0-9_]+)\s*\)"
+)
+
+_NAMED_TARGET = re.compile(
+    rf"\bchar\s+(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*\[\s*\]\s*=\s*"
+    rf"(?P<target>{_C_STRING})\s*;"
 )
 
 
@@ -135,7 +140,7 @@ def _source_socials(source_root: Path) -> dict[str, SourceSocial | None]:
   messages: dict[int, SourceSocial | None] = {}
   actions = (source_root / "lib/misc/actions").read_text(encoding="ascii")
   for block in re.split(r"\n\s*\n", actions):
-    lines = block.splitlines()
+    lines = block.lstrip("\n").splitlines()
     if not lines:
       continue
     match = re.fullmatch(r"(\d+)\s+(\d+)\s+\d+", lines[0])
@@ -154,7 +159,8 @@ def _source_socials(source_root: Path) -> dict[str, SourceSocial | None]:
   return {name: messages.get(value) for name, value in command_numbers.items()}
 
 
-def _parse_actions(segment: str, socials: dict[str, SourceSocial | None]) -> tuple[Action, ...]:
+def _parse_actions(segment: str, socials: dict[str, SourceSocial | None],
+                   named_targets: dict[str, str]) -> tuple[Action, ...]:
   actions: list[Action] = []
   for match in _ACTION_CALL.finditer(segment):
     if match.group("say") is not None:
@@ -171,9 +177,16 @@ def _parse_actions(segment: str, socials: dict[str, SourceSocial | None]) -> tup
         if social.room_no_arg is not None:
           actions.append(Action(False, social.hide, social.room_no_arg))
         continue
-      if match.group("target") is None:
-        raise ValueError(f"missing target assignment for {match.group('social')}")
-      target = _decode_c_strings(match.group("target"))
+      if match.group("target") is not None:
+        target = _decode_c_strings(match.group("target"))
+      else:
+        social_arg = match.group("social_arg")
+        try:
+          target = named_targets[social_arg]
+        except KeyError as error:
+          raise ValueError(
+              f"missing target assignment for {match.group('social')}: {social_arg}"
+          ) from error
       if target == "me":
         if social.room_auto is not None:
           actions.append(Action(False, social.hide, social.room_auto, "$self"))
@@ -193,6 +206,10 @@ def _parse_actions(segment: str, socials: dict[str, SourceSocial | None]) -> tup
 def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int, ...],
                    socials: dict[str, SourceSocial | None]) -> Profile:
   body = _function_body((source_root / relative).read_text(encoding="ascii"), name)
+  named_targets = {
+      match.group("name"): _decode_c_strings(match.group("target"))
+      for match in _NAMED_TARGET.finditer(body)
+  }
   devour_calls = len(re.findall(r"\bdevour\s*\(", body))
   inline_devour = all(
       marker in body
@@ -229,7 +246,7 @@ def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int
     opening = body.find("{", chance.start())
     segment = body[opening + 1 : _matching_brace(body, opening)]
     raw_calls = len(re.findall(r"\b(?:act|mobsay|do_action)\s*\(", segment))
-    parsed_actions = _parse_actions(segment, socials)
+    parsed_actions = _parse_actions(segment, socials, named_targets)
     if raw_calls != len(list(_ACTION_CALL.finditer(segment))):
       raise ValueError(f"{name}: unsupported action expression in zero-roll conditional")
     if raw_calls == 0 or "return TRUE" not in segment:
@@ -252,7 +269,7 @@ def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int
       segment_end = labels[index + 1].start() if index + 1 < len(labels) else len(switch_body)
       segment = switch_body[label.end() : segment_end]
       raw_calls = len(re.findall(r"\b(?:act|mobsay|do_action)\s*\(", segment))
-      parsed_actions = _parse_actions(segment, socials)
+      parsed_actions = _parse_actions(segment, socials, named_targets)
       if raw_calls == 0 and "return TRUE" not in segment:
         pending_rolls.append(roll)
         continue

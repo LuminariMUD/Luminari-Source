@@ -2029,7 +2029,7 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
   int roll_max;
   int roll_min;
 
-  CuAssertIntEquals(tc, 136, (int)rol_source_periodic_profile_count());
+  CuAssertIntEquals(tc, 141, (int)rol_source_periodic_profile_count());
   CuAssertIntEquals(tc, 1, rol_source_periodic_devour_order(2007140));
   CuAssertIntEquals(tc, 2, rol_source_periodic_devour_order(2003062));
   CuAssertIntEquals(tc, 0, rol_source_periodic_devour_order(2097006));
@@ -2091,6 +2091,26 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
                     rol_source_periodic_outcome_action(2093304, 0, 0, &speech, &hide));
   CuAssertTrue(tc, !speech);
   CuAssertTrue(tc, !hide);
+
+  CuAssertTrue(tc, rol_source_periodic_profile_bounds(2092003, &roll_min, &roll_max,
+                                                      &requires_awake, &suppresses_fighting));
+  CuAssertIntEquals(tc, 1, roll_min);
+  CuAssertIntEquals(tc, 30, roll_max);
+  CuAssertTrue(tc, requires_awake);
+  CuAssertTrue(tc, suppresses_fighting);
+  CuAssertStrEquals(tc, "$n flirts with $N.",
+                    rol_source_periodic_outcome_action(2092003, 4, 0, &speech, &hide));
+  CuAssertTrue(tc, !speech);
+  CuAssertTrue(tc, !hide);
+  CuAssertIntEquals(tc, 3, (int)rol_source_periodic_outcome_action_count(2092021, 1));
+  CuAssertStrEquals(tc, "$n pokes $N in the ribs.",
+                    rol_source_periodic_outcome_action(2092021, 1, 0, &speech, &hide));
+  CuAssertStrEquals(tc, "Lets go! I'm tired of standing here.",
+                    rol_source_periodic_outcome_action(2092021, 1, 1, &speech, &hide));
+  CuAssertTrue(tc, speech);
+  CuAssertStrEquals(tc, "$n taps $s foot impatiently.",
+                    rol_source_periodic_outcome_action(2092021, 1, 2, &speech, &hide));
+  CuAssertTrue(tc, !speech);
 }
 
 void Test_spec_rol_scornubel_profiles_preserve_source_behavior(CuTest *tc)

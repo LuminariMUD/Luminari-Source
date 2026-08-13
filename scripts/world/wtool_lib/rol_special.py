@@ -484,6 +484,18 @@ INERT_HANDLERS = {
         "source stench implementation and event registration are disabled by #if 0; the active "
         "callback returns without changing the mobile or nearby characters"
     ),
+    "um_bladeOfPaladins": (
+        "source object callback contains only design comments, registers no events, and returns "
+        "without changing the object, wielder, or victim"
+    ),
+    "um_goblinLeader": (
+        "source mobile callback contains only a mimic note, registers no events, and returns "
+        "without changing the mobile or nearby characters"
+    ),
+    "um_highDukeSword": (
+        "source object callback contains only design comments, registers no events, and returns "
+        "without changing the object, wielder, or victim"
+    ),
 }
 
 # This source callback exposes unrestricted staff/debug commands through an

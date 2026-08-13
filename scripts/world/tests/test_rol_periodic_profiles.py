@@ -20,8 +20,8 @@ class RolPeriodicProfileTests(unittest.TestCase):
   def test_selected_manifest_has_unique_converted_mobile_coverage(self) -> None:
     vnums = [vnum for _relative, handler_vnums in PROFILE_SOURCES.values() for vnum in handler_vnums]
 
-    self.assertEqual(126, len(PROFILE_SOURCES))
-    self.assertEqual(136, len(vnums))
+    self.assertEqual(131, len(PROFILE_SOURCES))
+    self.assertEqual(141, len(vnums))
     self.assertEqual(len(vnums), len(set(vnums)))
     self.assertEqual(
         {
@@ -91,8 +91,8 @@ class RolPeriodicProfileTests(unittest.TestCase):
 
     self.assertEqual(sorted(profile_vnums), profile_vnums)
     self.assertEqual(sorted(outcomes), outcomes)
-    self.assertEqual(527, len(outcomes))
-    self.assertEqual(790, len(actions))
+    self.assertEqual(556, len(outcomes))
+    self.assertEqual(825, len(actions))
 
   def test_scornubel_profiles_preserve_composition_and_source_ranges(self) -> None:
     generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
@@ -185,6 +185,49 @@ class RolPeriodicProfileTests(unittest.TestCase):
     self.assertIn(
         "{ROL_SOURCE_PERIODIC_ROOM_ACTION, false, \"$n rasps, 'So you've come to torment "
         "Bhara'Tir!'\", NULL, NULL}",
+        compact,
+    )
+
+  def test_undermountain_yawning_portal_profiles_preserve_source_behavior(self) -> None:
+    generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
+        encoding="ascii"
+    )
+    compact = " ".join(generated.split())
+
+    for vnum, handler, roll_max in (
+        (2092001, "UM_TAMSIL", 10),
+        (2092003, "UM_MHAERE", 30),
+        (2092004, "UM_REGULAR", 100),
+        (2092006, "UM_GAMBLER", 100),
+        (2092021, "UM_THORN", 20),
+    ):
+      self.assertRegex(
+          compact,
+          rf"\{{{vnum}, ROL_SOURCE_PERIODIC_{handler}, 1, {roll_max}, 0, 0, true, false, "
+          r"true, ROL_SOURCE_PERIODIC_DEVOUR_NONE\}",
+      )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_TARGET_ACTION, false, "$n flirts with $N.", "durnan", '
+        '"$n starts flirting outrageously with you! Isn\'t $e cute?"}',
+        compact,
+    )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_TARGET_ACTION, false, "$n gives $N a gentle kiss.", "durnan", '
+        '"$n gives you a gentle kiss on the lips."}',
+        compact,
+    )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_TARGET_ACTION, false, "$n pokes $N in the ribs.", "kevlar", '
+        '"$n pokes you in the ribs. What!?"}',
+        compact,
+    )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_SPEECH, false, "I never cheat, I\'m just lucky.", NULL, NULL}',
+        compact,
+    )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_SPEECH, false, "Daddy used to lead the group \'A Company\\nof '
+        'Crazed Adventurers.\'", NULL, NULL}',
         compact,
     )
 

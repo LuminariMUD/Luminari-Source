@@ -469,6 +469,19 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("SOURCE_INERT_EXCLUDED", stench["strategy"])
     self.assertIn("disabled by #if 0", stench["reason"])
 
+  def test_undermountain_yawning_portal_and_inert_handlers_are_resolved(self) -> None:
+    for handler in ("um_gambler", "um_mhaere", "um_regular", "um_tamsil", "um_thorn"):
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Source Periodic", disposition["target"])
+
+    for handler in ("um_bladeOfPaladins", "um_goblinLeader", "um_highDukeSword"):
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("SOURCE_INERT_EXCLUDED", disposition["strategy"])
+      self.assertIn("registers no events", disposition["reason"])
+
   def test_planar_static_initializers_have_exact_prototype_or_inert_dispositions(self) -> None:
     bar_lgura = handler_disposition("demon_bar_lgura")
     cambion = handler_disposition("demon_cambion")
@@ -910,16 +923,16 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_598, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(123, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(690, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(105, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(1_043, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_606, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(115, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(698, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(97, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_048, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           219, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(
-          38, summary["direct_bindings_by_strategy"]["SOURCE_INERT_EXCLUDED"]
+          41, summary["direct_bindings_by_strategy"]["SOURCE_INERT_EXCLUDED"]
       )
       self.assertEqual(11, summary["direct_bindings_by_strategy"]["NATIVE_RECONCILED"])
       self.assertEqual(
@@ -935,8 +948,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       )
       self.assertEqual(2, summary["dynamic_handler_definitions_located"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(819, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(29, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(820, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(28, summary["act_spec_by_status"]["pending"])
 
       binding_rows = [
           json.loads(line)
