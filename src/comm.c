@@ -65,6 +65,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "spec/spec_dispatch.h"
+#include "spec/spec_rol_avernus.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
@@ -1468,6 +1469,7 @@ void proc_update()
 
     spec_gateway_object_auto_pulse(obj);
   }
+  rol_avernus_room_pulse();
 }
 
 /* here she is, heartbeat function - called every 1/10th of a second */

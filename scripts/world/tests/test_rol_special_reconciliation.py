@@ -739,16 +739,16 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_445, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(276, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(602, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(193, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(908, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_466, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(255, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(616, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(179, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(928, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           208, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(
-          31, summary["direct_bindings_by_strategy"]["SOURCE_INERT_EXCLUDED"]
+          32, summary["direct_bindings_by_strategy"]["SOURCE_INERT_EXCLUDED"]
       )
       self.assertEqual(11, summary["direct_bindings_by_strategy"]["NATIVE_RECONCILED"])
       self.assertEqual(

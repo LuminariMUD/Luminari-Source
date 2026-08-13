@@ -24,6 +24,7 @@
 #include "../../src/spec/spec_effects.h"
 #include "../../src/spec/spec_objects.h"
 #include "../../src/spec/spec_phrase.h"
+#include "../../src/spec/spec_rol_avernus.h"
 #include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/spec/spec_rol_lavatubes.h"
 #include "../../src/spec/spec_rol_tarrasque.h"
@@ -1949,16 +1950,17 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
       2001407, 2001436, 2001437, 2004070, 2004480, 2004530, 2005023, 2005718, 2012005, 2012006,
       2012024, 2012025, 2012026, 2014015, 2014026, 2014029, 2014601, 2014605, 2015113, 2015125,
       2019701, 2019750, 2020247, 2020378, 2021786, 2021820, 2026208, 2026216, 2026225, 2026236,
-      2026238, 2026241, 2026242, 2026243, 2026244, 2026245, 2032629, 2032632, 2032640, 2032641,
-      2032642, 2032643, 2032644, 2032645, 2032646, 2033000, 2033001, 2033004, 2033008, 2033009,
-      2033011, 2033015, 2033016, 2033020, 2033021, 2033022, 2034833, 2041900, 2043358, 2043702,
-      2043703, 2043705, 2043728, 2043741, 2043742, 2043744, 2043745, 2043746, 2043756, 2043758,
-      2043759, 2043761, 2043767, 2043768, 2043769, 2043770, 2043778, 2043780, 2045116, 2045146,
-      2045182, 2051246, 2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401,
-      2062402, 2062405, 2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706, 2062707,
-      2062708, 2062710, 2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717, 2062721,
-      2062722, 2081706, 2081746, 2081747, 2083224, 2092608, 2093202, 2093204, 2093205, 2093206,
-      2093209, 2093210, 2096631, 2096670, 2096672, 2097061,
+      2026238, 2026241, 2026242, 2026243, 2026244, 2026245, 2032623, 2032629, 2032632, 2032640,
+      2032641, 2032642, 2032643, 2032644, 2032645, 2032646, 2032654, 2032659, 2032660, 2033000,
+      2033001, 2033003, 2033004, 2033005, 2033008, 2033009, 2033011, 2033014, 2033015, 2033016,
+      2033020, 2033021, 2033022, 2033026, 2033027, 2034833, 2041900, 2043358, 2043702, 2043703,
+      2043705, 2043728, 2043741, 2043742, 2043744, 2043745, 2043746, 2043756, 2043758, 2043759,
+      2043761, 2043767, 2043768, 2043769, 2043770, 2043778, 2043780, 2045116, 2045146, 2045182,
+      2051246, 2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401, 2062402,
+      2062405, 2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706, 2062707, 2062708,
+      2062710, 2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717, 2062721, 2062722,
+      2081706, 2081746, 2081747, 2083224, 2092608, 2093202, 2093204, 2093205, 2093206, 2093209,
+      2093210, 2096631, 2096670, 2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2231,6 +2233,51 @@ void Test_spec_rol_avernus_devil_profiles_preserve_source_rolls(CuTest *tc)
   CuAssertIntEquals(tc, -9, rol_barbazu_bloodloss_next_hit(20));
   CuAssertIntEquals(tc, -9, rol_barbazu_bloodloss_next_hit(-9));
   CuAssertIntEquals(tc, -5, rol_barbazu_bloodloss_next_hit(-5));
+}
+
+void Test_spec_rol_avernus_remaining_profiles_cover_lifecycle_and_routes(CuTest *tc)
+{
+  const char *description = NULL;
+  bool commands = false;
+  bool activity = false;
+  bool death = false;
+  bool pulse = false;
+  bool weapon_hit = false;
+
+  CuAssertIntEquals(tc, 15, (int)rol_avernus_mobile_profile_count());
+  CuAssertTrue(tc, rol_avernus_mobile_profile(2032623, &commands, &activity, &death));
+  CuAssertTrue(tc, !commands);
+  CuAssertTrue(tc, !activity);
+  CuAssertTrue(tc, death);
+  CuAssertTrue(tc, rol_avernus_mobile_profile(2033014, &commands, &activity, &death));
+  CuAssertTrue(tc, commands);
+  CuAssertTrue(tc, activity);
+  CuAssertTrue(tc, death);
+  CuAssertTrue(tc, rol_avernus_mobile_profile(2033027, &commands, &activity, &death));
+  CuAssertTrue(tc, commands && activity && death);
+  CuAssertTrue(tc, !rol_avernus_mobile_profile(2033013, NULL, NULL, NULL));
+
+  CuAssertIntEquals(tc, 4, (int)rol_avernus_object_profile_count());
+  CuAssertTrue(tc, rol_avernus_object_profile(2032631, &commands, &pulse, &weapon_hit));
+  CuAssertTrue(tc, commands && pulse && !weapon_hit);
+  CuAssertTrue(tc, rol_avernus_object_profile(2033011, &commands, &pulse, &weapon_hit));
+  CuAssertTrue(tc, !commands && pulse && weapon_hit);
+  CuAssertTrue(tc, rol_avernus_object_profile(2033021, &commands, &pulse, &weapon_hit));
+  CuAssertTrue(tc, commands && pulse && weapon_hit);
+  CuAssertTrue(tc, !rol_avernus_object_profile(2033006, NULL, NULL, NULL));
+
+  CuAssertIntEquals(tc, EAST, rol_avernus_patrol_direction(2032641, 2032908));
+  CuAssertIntEquals(tc, WEST, rol_avernus_patrol_direction(2032643, 2032908));
+  CuAssertIntEquals(tc, NORTH, rol_avernus_patrol_direction(2033008, 2033028));
+  CuAssertIntEquals(tc, WEST, rol_avernus_patrol_direction(2033021, 2033028));
+  CuAssertIntEquals(tc, -1, rol_avernus_patrol_direction(2033000, 2033001));
+
+  CuAssertTrue(tc, rol_avernus_garden_room_vnum(2032672));
+  CuAssertTrue(tc, rol_avernus_garden_room_vnum(2032687));
+  CuAssertTrue(tc, !rol_avernus_garden_room_vnum(2032671));
+  CuAssertTrue(tc, !rol_avernus_garden_room_vnum(2032688));
+  CuAssertTrue(tc, rol_monster_combat_profile(2033014, NULL, &description));
+  CuAssertPtrNotNull(tc, description);
 }
 
 void Test_spec_rol_balor_weapon_profiles_and_whip_proc(CuTest *tc)

@@ -44,6 +44,7 @@ static bool spec_context_owner_supports_event(spec_owner_mask owner_type, spec_e
   case SPEC_EVENT_COMBAT_MANEUVER:
     return owner_type == SPEC_OWNER_OBJECT;
   case SPEC_EVENT_MOVING_ROOM_RELOCATION:
+  case SPEC_EVENT_ROOM_ACTIVITY:
     return owner_type == SPEC_OWNER_ROOM;
   default:
     return false;
@@ -53,7 +54,7 @@ static bool spec_context_owner_supports_event(spec_owner_mask owner_type, spec_e
 static bool spec_context_event_requires_actor(spec_event_mask event)
 {
   return event != SPEC_EVENT_OBJECT_AUTO_PULSE && event != SPEC_EVENT_MOVING_ROOM_RELOCATION &&
-         event != SPEC_EVENT_MOBILE_DEATH;
+         event != SPEC_EVENT_MOBILE_DEATH && event != SPEC_EVENT_ROOM_ACTIVITY;
 }
 
 static bool spec_context_event_requires_target(spec_event_mask event)

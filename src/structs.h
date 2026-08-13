@@ -7227,6 +7227,8 @@ struct mob_special_data
   int rol_bandit_fee_gold;            /* RoL trade-bandit toll in target gold */
   time_t rol_bandit_expire_at;        /* RoL trade-bandit one-shot cleanup deadline */
   bool rol_alert_fired;               /* Converted alert caller has shouted this fight */
+  long rol_dancing_dagger_owner_id;   /* RoL dancing-dagger player owner */
+  int rol_dancing_dagger_object_vnum; /* RoL dancing-dagger hidden object */
 };
 
 /** An affect structure. */

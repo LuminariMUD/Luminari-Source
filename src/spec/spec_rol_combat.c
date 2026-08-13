@@ -23,6 +23,7 @@
 #include "spec/spec_combat.h"
 #include "spec/spec_context.h"
 #include "spec/spec_dispatch.h"
+#include "spec/spec_rol_avernus.h"
 #include "spec/spec_rol_conversion.h"
 
 #define ROL_BALOR_WHIP_VNUM 2093227
@@ -97,6 +98,8 @@ enum rol_monster_combat_effect
   ROL_MONSTER_AVERNUS_BARBAZU_BERSERK,
   ROL_MONSTER_AVERNUS_GELUGON_MERITOS,
   ROL_MONSTER_AVERNUS_GELUGON_HANARIEL,
+  ROL_MONSTER_AVERNUS_BEL,
+  ROL_MONSTER_AVERNUS_AUXILIARY,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -187,6 +190,7 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2026243, ROL_MONSTER_SUMMON_ROBYN_WISP, 4, "Robyn's bounded wisp summon."},
     {2026244, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
     {2026245, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
+    {2032623, ROL_MONSTER_AVERNUS_AUXILIARY, 1, "Kri'ik's mortal-shape death transition."},
     {2032629, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
      "One-in-twenty reactive Barbazu blood rage."},
     {2032632, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
@@ -205,18 +209,25 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
      "Five-in-six flaming-spike volley with a three-round cooldown."},
     {2032646, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
      "Five-in-six flaming-spike volley with a three-round cooldown."},
+    {2032654, ROL_MONSTER_AVERNUS_AUXILIARY, 1, "Periodic rogue concealment."},
+    {2032659, ROL_MONSTER_AVERNUS_AUXILIARY, 1, "Periodic rogue concealment."},
+    {2032660, ROL_MONSTER_AVERNUS_AUXILIARY, 1, "Prisoner escort reward and return."},
     {2033000, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
      "One-in-twenty reactive Barbazu blood rage."},
     {2033001, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
      "One-in-twenty reactive Barbazu blood rage."},
+    {2033003, ROL_MONSTER_AVERNUS_AUXILIARY, 1, "Erinyes death-illusion room transition."},
     {2033004, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
      "One-in-twenty reactive Barbazu blood rage."},
+    {2033005, ROL_MONSTER_AVERNUS_AUXILIARY, 1, "Alignment-sensitive captive-deva echoes."},
     {2033008, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
      "One-in-twenty reactive Barbazu blood rage."},
     {2033009, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
      "One-in-twenty reactive Barbazu blood rage."},
     {2033011, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
      "One-in-twenty reactive Barbazu blood rage."},
+    {2033014, ROL_MONSTER_AVERNUS_BEL, 16,
+     "Bel's pit-fiend attacks, guard sacrifice, pet purge, wards, and shield counter."},
     {2033015, ROL_MONSTER_AVERNUS_GELUGON_MERITOS, 7,
      "Freezing tail and one-in-four caster-silencing bolt."},
     {2033016, ROL_MONSTER_AVERNUS_GELUGON_HANARIEL, 7,
@@ -227,6 +238,8 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
      "One-in-twenty reactive Barbazu blood rage."},
     {2033022, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
      "One-in-twenty reactive Barbazu blood rage."},
+    {2033026, ROL_MONSTER_AVERNUS_AUXILIARY, 1, "Black-altar healing and corpse suppression."},
+    {2033027, ROL_MONSTER_AVERNUS_AUXILIARY, 1, "Dancing-dagger helper lifecycle."},
     {2034833, ROL_MONSTER_BANSHEE_WAIL, 3, "Room-wide sonic wail."},
     {2041900, ROL_MONSTER_SWALLOW_SPIT, 6, "Nonlethal whole-swallow and spit attack."},
     {2043358, ROL_MONSTER_MOVANIC_DEVA, 1, "Movanic-deva healing and wind assault."},
@@ -3145,6 +3158,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   const struct rol_monster_combat_profile *profile;
   struct char_data *ch;
   struct char_data *victim;
+  int avernus_result;
 
   if (context == NULL || context->owner_type != SPEC_OWNER_MOBILE || context->owner == NULL)
     return FALSE;
@@ -3154,15 +3168,30 @@ int rol_monster_combat_typed(struct spec_event_context *context)
     return FALSE;
 
   if (context->event == SPEC_EVENT_MOBILE_DEATH)
+  {
+    avernus_result = rol_avernus_mobile_event(context, ch);
+    if (avernus_result != FALSE)
+      return avernus_result;
     return rol_monster_planar_death(context, profile, ch);
+  }
 
   if (profile->effect == ROL_MONSTER_RESIDUAL_MOBILE)
     return rol_residual_mobile_typed(context);
 
   if (context->event == SPEC_EVENT_COMMAND)
+  {
+    avernus_result = rol_avernus_mobile_event(context, ch);
+    if (avernus_result != FALSE)
+      return avernus_result;
     return rol_monster_command(context, profile, ch);
+  }
   if (context->event == SPEC_EVENT_MOBILE_ACTIVITY)
+  {
+    avernus_result = rol_avernus_mobile_event(context, ch);
+    if (avernus_result != FALSE)
+      return avernus_result;
     return rol_monster_activity(context, profile, ch);
+  }
   if (context->event == SPEC_EVENT_MOBILE_HIT)
   {
     if (spec_context_validate_combat_target(ch, context->target, false) != SPEC_CONTEXT_VALID)
@@ -3228,6 +3257,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
     rol_monster_purple_worm(context, ch, victim);
     return FALSE;
   case ROL_MONSTER_PIT_FIEND_BITE_TAIL:
+  case ROL_MONSTER_AVERNUS_BEL:
     if (rand_number(1, 16) == 1)
       rol_monster_pit_fiend_bite(ch, victim);
     if ((context->invalidation & SPEC_INVALIDATE_TARGET) == 0)
@@ -3318,6 +3348,8 @@ int rol_monster_combat_typed(struct spec_event_context *context)
     rol_monster_kamerynn(ch, victim);
     break;
   case ROL_MONSTER_PIT_FIEND_BITE_TAIL:
+  case ROL_MONSTER_AVERNUS_BEL:
+  case ROL_MONSTER_AVERNUS_AUXILIARY:
   case ROL_MONSTER_CHICKEN:
   case ROL_MONSTER_KOBOLD_PRIEST:
   case ROL_MONSTER_PIERCER:

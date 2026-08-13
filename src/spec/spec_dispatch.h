@@ -131,6 +131,8 @@ spec_invalidate_mask spec_gateway_mobile_was_hit(struct char_data *mob, struct c
 int spec_gateway_mobile_death(struct char_data *mob, struct char_data *killer);
 /** STOP skips the carried-object fallback invocation. */
 void spec_gateway_object_auto_pulse(struct obj_data *obj);
+/** Notification-only periodic activity for an explicitly scheduled room binding. */
+void spec_gateway_room_activity(struct room_data *room);
 /** Notification only; relocation state travels through the owner slot. */
 void spec_gateway_moving_room(struct room_data *room, struct moving_room_data *mover,
                               int destination_vnum);

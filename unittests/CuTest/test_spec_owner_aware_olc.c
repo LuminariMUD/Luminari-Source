@@ -122,6 +122,7 @@ static const char *const spec_object_names[] = {
     "RoL Ship",
     "RoL Ship Control",
     "RoL Weapon Proc",
+    "RoL Avernus Object",
     "RoL Lavatubes Object",
     "RoL Tarrasque Encounter",
     "RoL Utility Object",
@@ -145,6 +146,7 @@ static const char *const spec_room_names[] = {
     "RoL Command Sentinel",
     "RoL Ship Exit",
     "RoL Ship Lookout",
+    "RoL Avernus Garden",
     "RoL Lavatubes Room",
     "RoL Utility Room",
 };

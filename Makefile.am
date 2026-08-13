@@ -212,6 +212,7 @@ circle_SOURCES = \
 	src/spec/spec_mobiles.c \
 	src/spec/spec_objects.c \
 	src/spec/spec_phrase.c \
+	src/spec/spec_rol_avernus.c \
 	src/spec/spec_rol_combat.c \
 	src/spec/spec_rol_residual_mobile.c \
 	src/spec/spec_rol_conversion.c \

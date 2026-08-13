@@ -194,6 +194,19 @@ ADAPTED_HANDLER_NAMES = {
     "gelugon_tail_freeze": "RoL Monster Combat",
     "avernus_gelugon_meritos": "RoL Monster Combat",
     "avernus_gelugon_hanariel": "RoL Monster Combat",
+    "avernus_man": "RoL Monster Combat",
+    "mob_patrol": "RoL Monster Combat",
+    "rehide": "RoL Monster Combat",
+    "avernus_prisoner_return": "RoL Monster Combat",
+    "erinyes_death": "RoL Monster Combat",
+    "avernus_deva_echos": "RoL Monster Combat",
+    "bel": "RoL Monster Combat",
+    "avernus_black_altar": "RoL Monster Combat",
+    "dancing_dagger_mob": "RoL Monster Combat",
+    "avernus_Rod": "RoL Avernus Object",
+    "bel_flaming_sword": "RoL Avernus Object",
+    "dancing_dagger_obj": "RoL Avernus Object",
+    "garden_room": "RoL Avernus Garden",
     "demon_balorDeath": "RoL Monster Combat",
     "demon_balorLightningSword": "RoL Weapon Proc",
     "demon_balorWhip": "RoL Weapon Proc",
@@ -419,6 +432,10 @@ INERT_HANDLERS = {
     "craine_serpent": (
         "source callback never parses its encoded call type, so initialization registers no "
         "command, weapon-hit, periodic, or identify events"
+    ),
+    "avernus_seal_unload": (
+        "source callback never parses its encoded call type, so initialization registers no "
+        "object-extraction event and its diagnostic body is unreachable"
     ),
     "dump": "source dump callback returns before its command behavior",
     "rogue_one": (
@@ -1338,7 +1355,7 @@ def compile_special_bindings(
           "tarrasque_stomache",
           "thp_necroChild",
       } or (
-          persisted_name == "RoL Weapon Proc"
+          persisted_name in {"RoL Weapon Proc", "RoL Avernus Object"}
       ):
         required_bits = (44,)
       else:

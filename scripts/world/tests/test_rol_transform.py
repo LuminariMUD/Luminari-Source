@@ -406,6 +406,66 @@ class RolTransformTests(unittest.TestCase):
     ):
       self.assertEqual("NATIVE_ADAPTED", dispositions[handler]["strategy"])
 
+  def test_remaining_avernus_bindings_use_composed_runtime_profiles(self) -> None:
+    rows = [
+        ("mobile", 32623, "avernus_man"),
+        ("mobile", 32641, "mob_patrol"),
+        ("mobile", 32643, "mob_patrol"),
+        ("mobile", 32654, "rehide"),
+        ("mobile", 32659, "rehide"),
+        ("mobile", 32660, "avernus_prisoner_return"),
+        ("mobile", 33000, "mob_patrol"),
+        ("mobile", 33003, "erinyes_death"),
+        ("mobile", 33005, "avernus_deva_echos"),
+        ("mobile", 33008, "mob_patrol"),
+        ("mobile", 33014, "bel"),
+        ("mobile", 33020, "rehide"),
+        ("mobile", 33021, "mob_patrol"),
+        ("mobile", 33026, "avernus_black_altar"),
+        ("mobile", 33027, "dancing_dagger_mob"),
+        ("object", 32631, "avernus_Rod"),
+        ("object", 33006, "avernus_seal_unload"),
+        ("object", 33011, "bel_flaming_sword"),
+        ("object", 33021, "dancing_dagger_obj"),
+        ("object", 33025, "dancing_dagger_obj"),
+        ("room", 32672, "garden_room"),
+    ]
+    bindings = [
+        {
+            "basename": "avernus",
+            "record_type": record_type,
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for record_type, source_vnum, handler in rows
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+    dispositions = compiled.dispositions
+
+    self.assertEqual(20, len(compiled.native_bindings))
+    self.assertEqual(0, len(compiled.triggers))
+    for binding in compiled.native_bindings:
+      if binding.source_record_type == "mobile":
+        self.assertEqual("RoL Monster Combat", binding.persisted_name)
+        self.assertEqual((0,), binding.required_flag_bits)
+      elif binding.source_record_type == "object":
+        self.assertEqual("RoL Avernus Object", binding.persisted_name)
+        self.assertEqual((44,), binding.required_flag_bits)
+      else:
+        self.assertEqual("RoL Avernus Garden", binding.persisted_name)
+        self.assertEqual((), binding.required_flag_bits)
+
+    inert = [
+        row for row in dispositions if row["source_handler"] == "avernus_seal_unload"
+    ]
+    self.assertEqual(1, len(inert))
+    self.assertEqual("SOURCE_INERT_EXCLUDED", inert[0]["strategy"])
+    self.assertIn("never parses", inert[0]["reason"])
+    for row in dispositions:
+      if row["source_handler"] != "avernus_seal_unload":
+        self.assertEqual("NATIVE_ADAPTED", row["strategy"])
+
   def test_color_and_line_endings_are_canonicalized(self) -> None:
     text, diagnostics = convert_text("&+RRed&N\r\nplain")
     self.assertEqual("@RRed@n\nplain", text)

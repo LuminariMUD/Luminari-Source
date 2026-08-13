@@ -396,6 +396,17 @@ void spec_gateway_object_auto_pulse(struct obj_data *obj)
   (void)spec_dispatch(&context, handler);
 }
 
+void spec_gateway_room_activity(struct room_data *room)
+{
+  struct spec_event_context context;
+
+  if (room == NULL || room->func == NULL)
+    return;
+  spec_context_init(&context, SPEC_OWNER_ROOM, SPEC_EVENT_ROOM_ACTIVITY, room, NULL, 0,
+                    spec_empty_argument);
+  (void)spec_dispatch(&context, room->func);
+}
+
 void spec_gateway_moving_room(struct room_data *room, struct moving_room_data *mover,
                               int destination_vnum)
 {

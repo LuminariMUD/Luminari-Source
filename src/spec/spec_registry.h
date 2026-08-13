@@ -45,7 +45,8 @@ enum spec_event_flag
   SPEC_EVENT_MOVING_ROOM_RELOCATION = (1U << 9),
   SPEC_EVENT_MOBILE_DEATH = (1U << 10),
   SPEC_EVENT_MOBILE_HIT = (1U << 11),
-  SPEC_EVENT_MOBILE_WAS_HIT = (1U << 12)
+  SPEC_EVENT_MOBILE_WAS_HIT = (1U << 12),
+  SPEC_EVENT_ROOM_ACTIVITY = (1U << 13)
 };
 
 #define SPEC_EVENT_ALL                                                                             \
@@ -53,7 +54,7 @@ enum spec_event_flag
    SPEC_EVENT_OBJECT_AUTO_PULSE | SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT |               \
    SPEC_EVENT_DEFENSE_REACTION | SPEC_EVENT_COMBAT_MANEUVER | SPEC_EVENT_MOUNT_CHARGE |            \
    SPEC_EVENT_MOVING_ROOM_RELOCATION | SPEC_EVENT_MOBILE_DEATH | SPEC_EVENT_MOBILE_HIT |           \
-   SPEC_EVENT_MOBILE_WAS_HIT)
+   SPEC_EVENT_MOBILE_WAS_HIT | SPEC_EVENT_ROOM_ACTIVITY)
 
 typedef uint32_t spec_prototype_flag_mask;
 enum spec_prototype_flag

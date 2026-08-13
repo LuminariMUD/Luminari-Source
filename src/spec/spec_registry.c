@@ -26,6 +26,7 @@
 #include "quest/quest.h"
 #include "spec/spec_mobile_archetypes.h"
 #include "spec/spec_mobiles.h"
+#include "spec/spec_rol_avernus.h"
 #include "spec/spec_rol_conversion.h"
 #include "spec/spec_rol_lavatubes.h"
 #include "spec/spec_rol_pilot.h"
@@ -124,6 +125,17 @@ static const struct spec_event_contract rol_weapon_events[] = {
     {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_EQUIPPED},
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_WEAPON_HIT, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
+};
+
+static const struct spec_event_contract rol_avernus_object_events[] = {
+    {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_WEAPON_HIT, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
+};
+
+static const struct spec_event_contract rol_avernus_garden_events[] = {
+    {SPEC_EVENT_ROOM_ACTIVITY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
 };
 
 static const struct spec_event_contract rol_object_command_events[] = {
@@ -1523,6 +1535,34 @@ static const struct spec_definition spec_definitions[] = {
         .typed_handler = rol_weapon_proc_typed,
     },
     {
+        .canonical_name = "RoL Avernus Object",
+        .display_name = "RoL Avernus Object",
+        .owner_mask = SPEC_OWNER_OBJECT,
+        .events = rol_avernus_object_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_avernus_object_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Runs the converted Avernus rod, dancing daggers, and Bel's flaming sword "
+                       "by exact object identity.",
+        .typed_adapter = rol_avernus_object,
+        .typed_handler = rol_avernus_object_typed,
+    },
+    {
+        .canonical_name = "RoL Avernus Garden",
+        .display_name = "RoL Avernus Garden",
+        .owner_mask = SPEC_OWNER_ROOM,
+        .events = rol_avernus_garden_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_avernus_garden_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Calms combatants and sleeps vulnerable visitors throughout the converted "
+                       "Avernus garden.",
+        .typed_adapter = rol_avernus_garden,
+        .typed_handler = rol_avernus_garden_typed,
+    },
+    {
         .canonical_name = "RoL Source Periodic",
         .display_name = "RoL Source Periodic",
         .owner_mask = SPEC_OWNER_MOBILE,
@@ -1749,6 +1789,8 @@ enum
   SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT,
   SPEC_DEFINITION_ROL_WATERDEEP_PEACEKEEPER,
   SPEC_DEFINITION_ROL_WEAPON_PROC,
+  SPEC_DEFINITION_ROL_AVERNUS_OBJECT,
+  SPEC_DEFINITION_ROL_AVERNUS_GARDEN,
   SPEC_DEFINITION_ROL_SOURCE_PERIODIC,
   SPEC_DEFINITION_ROL_STATEFUL_PERIODIC,
   SPEC_DEFINITION_ROL_LAVATUBES_MOBILE,
@@ -1875,6 +1917,8 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT, -1},
     {SPEC_DEFINITION_ROL_WATERDEEP_PEACEKEEPER, -1},
     {SPEC_DEFINITION_ROL_WEAPON_PROC, -1},
+    {SPEC_DEFINITION_ROL_AVERNUS_OBJECT, -1},
+    {SPEC_DEFINITION_ROL_AVERNUS_GARDEN, -1},
     {SPEC_DEFINITION_ROL_SOURCE_PERIODIC, -1},
     {SPEC_DEFINITION_ROL_STATEFUL_PERIODIC, -1},
     {SPEC_DEFINITION_ROL_LAVATUBES_MOBILE, -1},
@@ -1984,6 +2028,7 @@ static spec_owner_mask spec_event_owner_mask(spec_event_mask event)
   case SPEC_EVENT_COMBAT_MANEUVER:
     return SPEC_OWNER_OBJECT;
   case SPEC_EVENT_MOVING_ROOM_RELOCATION:
+  case SPEC_EVENT_ROOM_ACTIVITY:
     return SPEC_OWNER_ROOM;
   default:
     return SPEC_OWNER_NONE;
@@ -2479,6 +2524,8 @@ const char *spec_event_name(spec_event_mask event)
     return "mobile hit";
   case SPEC_EVENT_MOBILE_WAS_HIT:
     return "mobile was hit";
+  case SPEC_EVENT_ROOM_ACTIVITY:
+    return "room activity";
   default:
     return NULL;
   }
