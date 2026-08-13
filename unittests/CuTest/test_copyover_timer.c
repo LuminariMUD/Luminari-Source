@@ -8,15 +8,15 @@
 
 #include <string.h>
 
-void Test_copyover_reexecs_the_running_release(CuTest *tc)
+void Test_copyover_executes_the_installed_release(CuTest *tc)
 {
   char line[1024];
   char source_path[4096];
   const char *test_root;
   FILE *source_file;
   bool found_exact_exec = FALSE;
+  bool found_installed_resolution = FALSE;
   bool found_proc_resolution = FALSE;
-  bool found_mutable_exec = FALSE;
 
   test_root = getenv("LUMINARI_TEST_ROOT");
   if (test_root == NULL || *test_root == '\0')
@@ -31,18 +31,18 @@ void Test_copyover_reexecs_the_running_release(CuTest *tc)
 
   while (fgets(line, sizeof(line), source_file) != NULL)
   {
+    if (strstr(line, "realpath(\"../\" EXE_FILE, copyover_executable)") != NULL)
+      found_installed_resolution = TRUE;
     if (strstr(line, "readlink(\"/proc/self/exe\"") != NULL)
       found_proc_resolution = TRUE;
     if (strstr(line, "execl(copyover_executable") != NULL)
       found_exact_exec = TRUE;
-    if (strstr(line, "execl(EXE_FILE") != NULL)
-      found_mutable_exec = TRUE;
   }
   fclose(source_file);
 
-  CuAssertTrue(tc, found_proc_resolution);
+  CuAssertTrue(tc, found_installed_resolution);
   CuAssertTrue(tc, found_exact_exec);
-  CuAssertTrue(tc, !found_mutable_exec);
+  CuAssertTrue(tc, !found_proc_resolution);
 }
 
 void Test_copyover_checkpoint_timer_is_suspended_and_restored(CuTest *tc)

@@ -6495,29 +6495,15 @@ void perform_do_copyover()
   char buf[100], buf2[100];
   char copyover_executable[4096];
   char temp_file[256];
-#if defined(__linux__)
-  ssize_t executable_length;
-#endif
   int playing_count = 0, total_count = 0, saved_count = 0;
   int exec_errno = 0;
   bool exec_attempted = FALSE;
 
-#if defined(__linux__)
-  executable_length =
-      readlink("/proc/self/exe", copyover_executable, sizeof(copyover_executable) - 1);
-  if (executable_length < 1 || (size_t)executable_length >= sizeof(copyover_executable) - 1)
-  {
-    log("SYSERR: copyover: Cannot resolve the running executable: %s", strerror(errno));
-    return;
-  }
-  copyover_executable[executable_length] = '\0';
-#else
   if (realpath("../" EXE_FILE, copyover_executable) == NULL)
   {
-    log("SYSERR: copyover: Cannot resolve the running executable: %s", strerror(errno));
+    log("SYSERR: copyover: Cannot resolve the installed executable: %s", strerror(errno));
     return;
   }
-#endif
 
   COPYOVER_DEBUG("perform_do_copyover() called - starting copyover process");
 
@@ -7061,7 +7047,7 @@ void perform_do_copyover()
 
   /* Update state to executing */
   copyover_status = COPYOVER_EXECUTING;
-  COPYOVER_DEBUG("copyover: Executing running binary %s", copyover_executable);
+  COPYOVER_DEBUG("copyover: Executing installed binary %s", copyover_executable);
   log_copyover_phase("PRE_EXECL", "About to execute new binary");
 
   /* Check system state before execl */
