@@ -348,6 +348,9 @@ Phase 6 planar capture, charm, and Vrock dance:
 Phase 6 Avernus devil combat:
   lib/rol-conversion/runs/phase6-special-20260813-avernus-devil-combat
   rol-phase6-special-bc771a97be7031ca
+Phase 6 Avernus lifecycle:
+  lib/rol-conversion/runs/phase6-special-20260813-avernus-lifecycle
+  rol-phase6-special-80e5cc527bee919a
 Policy:  rol-conversion-policy-2
 ```
 
@@ -376,12 +379,12 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 336 tests; the production-linked CuTest suite passes 674;
+- The world-tool suite passes 337 tests; the production-linked CuTest suite passes 675;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The corrected discovery repair and twelve subsequent denominator-bearing batches are archived.
-  Those batches closed 199 bindings across 64 source handlers. The measured remaining Phase 6
-  forecast is 17-37 sessions, or 34-148 focused engineering hours; the full remaining project
-  range is 73-121 sessions, or 146-484 focused hours.
+- The corrected discovery repair and thirteen subsequent denominator-bearing batches are
+  archived. Those batches closed 220 bindings across 78 source handlers. The measured remaining
+  Phase 6 forecast is 16-30 sessions, or 32-120 focused engineering hours; the full remaining
+  project range is 72-114 sessions, or 144-456 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -430,8 +433,8 @@ Policy:  rol-conversion-policy-2
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
 - The repaired Phase 6 inventory accounts for 1,721 active direct bindings across 795 source
-  handlers and locates all 795 source definitions. The current reconciliation resolves 1,445
-  bindings across 602 handlers and leaves 276 bindings across 193 handlers.
+  handlers and locates all 795 source definitions. The current reconciliation resolves 1,466
+  bindings across 616 handlers and leaves 255 bindings across 179 handlers.
 - The independent `ACT_SPEC` cross-check resolves 805 of 848 records and leaves 43
   pending. It remains a scheduling cross-check rather than the direct-binding denominator;
   composition-safe flags and room or object procedures can resolve source handlers without
@@ -702,9 +705,9 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,445 static bindings and leaves 276 pending. It resolves
-  602 direct handler names and leaves 193 pending across 33 source files. The pending set has
-  163 singleton handlers, 24 handlers with two to four bindings, four with five to nine, and
+- The corrected reconciler resolves 1,466 static bindings and leaves 255 pending. It resolves
+  616 direct handler names and leaves 179 pending across 32 source files. The pending set has
+  152 singleton handlers, 22 handlers with two to four bindings, three with five to nine, and
   two with at least ten bindings.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
@@ -793,68 +796,73 @@ Policy:  rol-conversion-policy-2
   Hanariel intercepts disarm. Spear 2033012 preserves one-in-three slow and its devil-owner
   penalty. The port adds the typed mobile-was-hit gateway and uses target-native damage, saves,
   immunity, resistance, affect state, waits, and event lifecycle.
-- The twelve corrected batches close 199 bindings across 64 handlers. That measured throughput
-  puts the binding-count projection near 17 sessions and the handler-diversity projection near
-  37. Because 163 remaining handlers are singletons, the published Phase 6 envelope is 17-37
-  sessions, or 34-148 focused engineering hours. Reforecast after another material batch or an
+- The Avernus lifecycle batch closes 21 bindings across 14 handlers. Fifteen exact mobile
+  profiles preserve Kri'ik transformation, forward and reverse ring and citadel patrols,
+  per-mobile prison patrol state, rehiding, prisoner return, the Erinyes room illusion, deva
+  echoes, Bel's chamber and guard lifecycle, the black altar, and dancing-dagger helpers. Four
+  exact object profiles preserve the Kri'ik rod bargain, Bel's returning fire sword, and both
+  dancing daggers. One typed room profile schedules the 16-room garden from its authored start
+  room without scanning the world. `avernus_seal_unload` is source-inert because it never parses
+  an event and therefore never registers its extraction callback.
+- The thirteen corrected batches close 220 bindings across 78 handlers. That measured throughput
+  puts the binding-count projection near 16 sessions and the handler-diversity projection near
+  30. Because 152 remaining handlers are singletons, the published Phase 6 envelope is 16-30
+  sessions, or 32-120 focused engineering hours. Reforecast after another material batch or an
   inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
 1. Reconcile the corrected pending inventory in dependency-complete shared-runtime batches.
-2. Finish the remaining 13 Avernus bindings across 12 stateful handlers, then select the
-   highest-value dependency-complete combat, death, or utility family; do not batch merely by
-   name or VNUM proximity.
+2. Select the highest-value dependency-complete combat, death, or utility family; do not batch
+   merely by name or VNUM proximity.
 3. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
 4. Preserve the six locked malformed record exclusions as explicit, logged
    smallest-unit exclusions.
 5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the 17-37-session Phase 6 envelope and reforecast after another
+6. Measure throughput against the 16-30-session Phase 6 envelope and reforecast after another
    material batch or an inventory correction.
 
 ## Latest session handoff
 
-- Implementation and evidence commit `31282808` reconciles 22 Avernus bindings across seven
-  source handlers. Dragon 2032622 composes `RoL Guild Guard` with its alert profile; fourteen
-  Barbazu and Gelugons 2033015-2033016 use exact profiles on `RoL Monster Combat`; Barbazu
-  glaives 2032602 and 2033001 and Gelugon spear 2033012 use `RoL Weapon Proc`.
-- The new typed mobile-was-hit gateway preserves the Barbazu one-in-20 reactive rage. A dedicated
-  five-tick affect adds the current hitroll and damroll again, adds half maximum hit points, and
-  prevents stacking. The dragon's successful-hit alert calls helper 2036180 within the source
-  30-room limit once per fight and resets safely after combat.
-- Barbazu glaive criticals preserve the immediate 100-point NPC wound and independently stack
-  recurring player wounds. Each event removes 40 hit points every three violence pulses, floors
-  at -9, persists at or below -5, and resumes after healing. Gelugon tails use the source code's
-  actual one-in-seven chance, native paralysis immunity and Fortitude saves, and a one-to-two-tick
-  paralysis affect.
-- Meritos preserves one-in-four first-eligible caster targeting, native resistance, the source +5
-  Will save, and four-tick silence without the source null-target crash. Hanariel preserves the
-  mortal disarm interception, sitting trip, and three-round wait. The Gelugon spear preserves
-  one-in-three, 2d4-tick slow and its recurring devil-owner burn and weapon-degradation penalty.
+- Implementation and evidence commit `c15a7aa9` reconciles the remaining 21 active Avernus
+  lifecycle bindings across 14 source handlers. Twenty bindings map to exact native profiles;
+  object 2033006 is a documented source-inert exclusion because `avernus_seal_unload` never
+  parses an event and therefore never registers its extraction callback.
+- Fifteen mobile identities compose `RoL Monster Combat`. They preserve Kri'ik transformation,
+  ring, prison, and citadel routes, per-mobile door state, patrol recovery, rehiding, prisoner
+  reward and departure, the Erinyes room illusion, alignment-aware deva echoes, black-altar
+  healing, Bel's pet purge, door lock, shieldpunch block and guard replacement, and the complete
+  dancing-dagger helper lifecycle.
+- Rod 2032631, Bel sword 2033011, and dancing daggers 2033021 and 2033025 use the typed
+  `RoL Avernus Object` handler. The rod preserves its home and exact bargain phrase; the sword
+  preserves owner return, punishment, restriction, and corona fire; each dagger preserves exact
+  object-to-helper ownership, hidden return, helper weapon, order rejection, continual light,
+  and release chance. Room 2032672 uses `RoL Avernus Garden` to schedule rooms 2032672-2032687
+  without scanning unrelated rooms.
 - The authoritative evidence is
-  `lib/rol-conversion/runs/phase6-special-20260813-avernus-devil-combat`, run
-  `rol-phase6-special-bc771a97be7031ca`. A same-timestamp repeat was byte-identical. The standard
+  `lib/rol-conversion/runs/phase6-special-20260813-avernus-lifecycle`, run
+  `rol-phase6-special-80e5cc527bee919a`. A same-timestamp repeat was byte-identical. The standard
   path-and-content tree digest is
-  `88783b6e1f1dd358077f3e05643b552ade2994f47bc20637ad2b8d6e80bde3ed`.
+  `b5772333c34736713da2df0ddd84a548efdad7e86a69f66634844700f7b1d446`.
 - The binding ledger SHA-256 is
-  `53a3c9d1438fea754573fd7378dd135d93b68a4cd98360bd80f62124da958edf`; the handler inventory
-  SHA-256 is `0eea1115cae1312af413f4cacfafce1e45b33d3e5cc37681452110f2b1dd1f51`; and the summary
-  SHA-256 is `a3f3b58107f43aac5c70a0c62a6327c26bb39b1d537274024829e99332cfe7a8`.
+  `fc65b01f40cea640dfb0d93ac2ec70eba41cf43c68fcc2d97fb498d29806f961`; the handler inventory
+  SHA-256 is `491bb49c4fc10df015e9d1c409d9ebe8f6c7dbd37a84f2dcadd273bbfec4cc92`; and the summary
+  SHA-256 is `591ec9c643d331cf3ada25836cf876c367fdd966ad46337579e4f64de7cb60a4`.
 - The denominator remains 1,721 live static plus 5,531 resolved dynamic binding instances.
-  Resolution is now 1,445 static bindings across 602 handlers, leaving 276 bindings across 193
-  handlers in 33 source files. The independent `ACT_SPEC` cross-check remains 805 resolved and 43
+  Resolution is now 1,466 static bindings across 616 handlers, leaving 255 bindings across 179
+  handlers in 32 source files. The independent `ACT_SPEC` cross-check remains 805 resolved and 43
   pending; all automatic race and dynamic paths remain complete, with zero live target writes.
-- Final validation passed: 336 world-tool tests, 674 production-linked CuTests, zero
+- Final validation passed: 337 world-tool tests, 675 production-linked CuTests, zero
   documentation findings, a warning-free Autotools build/test/install, and no root-level
-  `circle`. Installed build ID `083d8d74db9e0c4dc5fbbd964af10140c29785da`; SHA-256
-  `0b84821aade13cddb8443dfc244154f283407c69fdbf2661930fb5ebc6ed35b3`.
+  `circle`. Installed build ID `96df5ad9fa3f6d1ac2bc3534ea06cce66078d441`; SHA-256
+  `077e66321f6cd4d42ce8cc385161a6ad8af8dc59303353664f918874e454ef21`.
 - No player helpfile changed because the batch adds no player command or syntax. The staff manual
-  covers every converted identity, event chance, defense, duration, owner restriction, stacked
-  blood-loss lifecycle, alert range and reset, disarm wait, and source-comment discrepancy.
-- Twelve measured batches have closed 199 bindings across 64 handlers. The remaining Phase 6
-  envelope is 17-37 sessions, or 34-148 focused hours; the full remaining project envelope is
-  73-121 sessions, or 146-484 focused hours. Next, finish the remaining 13 Avernus bindings
-  across 12 stateful handlers before selecting the next dependency-complete family.
+  covers all converted identities, routes, state transitions, event chances, object ownership,
+  command phrases, owner restrictions, saves, room range, and source-inert seal behavior.
+- Thirteen measured batches have closed 220 bindings across 78 handlers. The remaining Phase 6
+  envelope is 16-30 sessions, or 32-120 focused hours; the full remaining project envelope is
+  72-114 sessions, or 144-456 focused hours. Next, select the highest-value dependency-complete
+  pending combat, death, or utility family.

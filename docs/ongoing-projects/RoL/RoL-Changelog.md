@@ -9,6 +9,82 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Avernus lifecycle
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled the remaining 21 active Avernus lifecycle bindings across 14 source handlers.
+  Twenty bindings now use exact native mobile, object, or room profiles; object 2033006 is an
+  explicit source-inert exclusion because `avernus_seal_unload` never parses an event and never
+  registers its extraction callback.
+- Added 15 exact Avernus mobile profiles through the persistent `RoL Monster Combat` procedure.
+  Man 2032623 transforms into Kri'ik with his possessions; the Erinyes owns and restores its
+  room-illusion text safely; prisoner 2032660 rewards its leader and departs at Coidon; deva
+  2033005 delivers alignment-aware echoes; three Rogues rehide; and black altar 2033026 heals,
+  removes blindness, and suppresses its corpse.
+- Preserved the forward and reverse ring and citadel patrol tables and the prison patrol's door
+  sequence. Unsafe source-global prison state is now per mobile, patrols recover toward their
+  load room when displaced, and citadel patrols retain their intruder response.
+- Preserved Bel 2033014's regeneration and bless maintenance, pet purge, combat door lock,
+  shieldpunch interception, and guard-sacrifice replacement. The replacement inherits Bel's
+  possessions at full health and reclaims the surviving guards.
+- Added the typed `RoL Avernus Object` procedure. Rod 2032631 preserves its held-only exact
+  bargain phrase, home restriction, Kri'ik, Cornugon, green orb, and self-destruction. Bel's
+  sword 2033011 preserves return, punishment, devil restriction, damage degradation, and its
+  one-in-six fire corona with native area safety and saves.
+- Preserved both dancing daggers' one-in-ten high-level release, hidden object state, exact
+  object-to-helper identity, helper weapon, owner combat, mortal order rejection, one-in-five
+  return, loss recovery, and staff continual-light phrase. Owner identity is stable across
+  simultaneous daggers rather than relying on an ambiguous follower VNUM.
+- Added a typed room-activity gateway and the `RoL Avernus Garden` procedure. Only authored room
+  2032672 is scheduled, and it scans the 16 authored garden rooms for save-gated calm or sleep,
+  rage, escape-pool, no-sleep, pet, and staff exceptions without a world-wide room scan.
+- Added converter, reconciliation, profile, route, event-contract, object-autoproc, garden-range,
+  and lifecycle coverage for all 21 source bindings. No player helpfile changed because the
+  batch adds no player command or syntax; the staff manual records the full dependency-stage
+  test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,445 to 1,466 static bindings
+  and from 602 to 616 direct handlers, leaving 255 bindings across 179 handlers in 32 source
+  files. The independent `ACT_SPEC` cross-check remains 805 resolved and 43 pending.
+- Reforecast thirteen corrected batches covering 220 bindings across 78 handlers. The remaining
+  Phase 6 envelope is 16-30 sessions, or 32-120 focused engineering hours; the full remaining
+  project envelope is 72-114 sessions, or 144-456 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: c15a7aa9
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-avernus-lifecycle
+Reconciliation run: rol-phase6-special-80e5cc527bee919a
+Evidence tree SHA-256: b5772333c34736713da2df0ddd84a548efdad7e86a69f66634844700f7b1d446
+Active direct bindings: 1,721
+Direct bindings resolved: 1,466
+Direct bindings pending: 255
+Source handlers resolved: 616
+Source handlers pending: 179
+Additional handler families resolved: 14
+Additional direct bindings resolved: 21
+Native adapted bindings: 928
+Native adapted composable bindings: 208
+Source-inert exclusions: 32
+ACT_SPEC records resolved: 805
+ACT_SPEC records pending: 43
+Complete world-tool suite: 337 passed
+Production-linked CuTest suite: 675 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 96df5ad9fa3f6d1ac2bc3534ea06cce66078d441
+Installed SHA-256: 077e66321f6cd4d42ce8cc385161a6ad8af8dc59303353664f918874e454ef21
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat, death, or utility family.
+
 ## 2026-08-13 - Phase 6 Avernus devil combat
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

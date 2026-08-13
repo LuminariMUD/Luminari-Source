@@ -1007,6 +1007,64 @@ These profiles are automated and reconciled but are absent from the current five
 Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
 into the pilot.
 
+### Phase 6 converted Avernus lifecycle profiles
+
+- Build a dependency-complete Avernus stage containing mobiles 2032623, 2032641, 2032643,
+  2032654, 2032659, 2032660, 2033000, 2033003, 2033005, 2033008, 2033014, 2033020,
+  2033021, 2033026, and 2033027; objects 2032631, 2033011, 2033021, and 2033025; and
+  garden rooms 2032672-2032687. Confirm the mobiles compose `RoL Monster Combat`, the four
+  objects use `RoL Avernus Object`, and room 2032672 uses `RoL Avernus Garden`. Unrelated
+  identities must not receive these profiles. Object 2033006 must have no native binding because
+  its source callback never parses an event and cannot register its unload handler.
+- Kill man 2032623. Kri'ik 2032624 must replace him in the same room and inherit his carried and
+  equipped possessions. Kill Erinyes 2033003 and confirm the apparent chamber melts into its
+  ruined description; after the Erinyes lifecycle is restored, its next activity must restore
+  the saved authored description without retaining a dangling string.
+- Observe patrols 2032641, 2032643, 2033000, 2033008, and 2033021 while idle and uncharmed. The
+  two ring and two citadel patrols must follow their authored forward or reverse routes, recover
+  toward their load room when displaced, and stop for an eligible citadel intruder. The prison
+  patrol must keep its door and direction state independently per mobile and close and lock the
+  authored doors behind it. Fighting or pet patrols must not move.
+- Reveal hidden Rogues 2032654, 2032659, and 2033020, then leave them idle; they must use the
+  native hide command again. Lead prisoner 2032660 away from its load room and back to Coidon
+  2032606; its leader must receive object 2032649 and the prisoner must depart only after the
+  meeting. Missing reward data must log an error without dereferencing a null object.
+- Place good and evil PCs with deva 2033005 and observe repeated activity pulses. Its two-in-three
+  echo attempt must deliver the alignment-appropriate source message only to each PC. Neutral
+  characters and NPCs receive no echo.
+- Damage eligible non-pet NPCs beside black altar 2033026. About one in three activity pulses
+  must heal each by up to 1,000 hit points and remove blindness. The altar's death must suppress
+  an ordinary corpse.
+- Exercise Bel 2033014 in room 2033073. He must maintain long regeneration and bless effects,
+  destroy pets in his room, close and lock the south door after combat begins, and consume a
+  mortal `shieldpunch` attempt with one round of wait. A lethal blow while guard 2033019 or
+  2033020 survives must sacrifice a guard, replace Bel at full health with his possessions, and
+  transfer the remaining guards to the replacement.
+- Hold rod 2032631 and shout the exact phrase `Kri'ik` in room 2092338. It must create Kri'ik,
+  green orb 2032633, and flying Cornugon follower 2032661, start Kri'ik against the caller, and
+  destroy the rod. A mortal holding it elsewhere must see it return home. An unheld rod, an NPC,
+  or a different phrase must not trigger the bargain.
+- Give Bel's flaming sword 2033011 to Bel, staff, a mortal, a pet, and a non-pet devil. While Bel
+  exists, it must return to him and kill a mortal or pet holder; without Bel, an unauthorized
+  owner must take 5-50 fire damage and the sword must degrade to 1d1. About one in six valid hits
+  must emit the 50d8+1d50 fire corona, apply a native Reflex save for half, respect area safety,
+  and ignite surviving eligible targets for three ticks.
+- Score repeated hits with dancing dagger 2033021 or 2033025 while wielded by a level-46-or-higher
+  character. About one in ten hits must hide the object and create helper 2033027 with weapon
+  2033033, the owner's level and damage bonus, and the current opponent. The helper must ignore
+  mortal `order`, join its owner's fight, and have a one-in-five chance each activity pulse to
+  return the exact originating dagger. Lost, separated, or idle helpers must also return it;
+  simultaneous dagger identities must not satisfy each other's ownership check. Staff saying
+  `darkness to light` while carrying either dagger must invoke continual light.
+- In rooms 2032672-2032687, confirm the one authored room scheduler scans the whole garden without
+  a world-wide special-procedure scan. Mortal combatants that fail the level-30 Will save at -3
+  must calm unless raging. Idle PCs and pets that fail must sleep for five ticks unless an escape
+  pool 2032613-2032616 is present or native no-sleep protection applies. Staff remain exempt.
+
+These profiles are automated and reconciled but are absent from the current five-zone pilot.
+Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
+into the pilot.
+
 ### Phase 6 converted Waterdeep ambient citizens
 
 - Build dependency-complete stages containing the first 34 converted ambient citizens:
@@ -1429,8 +1487,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,445 are resolved and 276 remain. Of 795 distinct
-  direct source handlers, 602 are resolved and 193 remain. Of 848 `ACT_SPEC` records, 805
+  of the 1,721 active direct bindings, 1,466 are resolved and 255 remain. Of 795 distinct
+  direct source handlers, 616 are resolved and 179 remain. Of 848 `ACT_SPEC` records, 805
   are resolved and 43 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
