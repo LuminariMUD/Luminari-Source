@@ -129,6 +129,8 @@ Phase 6 Griffon-non-Berserker-aggression commit: 5fb8b1cb
 Phase 6 paralysis-gaze-and-venom-tail commit: 04d8d449
 Phase 6 drow-conclave-guard commit: eb084a07
 Phase 6 Death's-Head-lifecycle commit: 55a19242
+Phase 6 remaining-hit-weapons commit: f78984d3
+Phase 6 Bhaal/Seelie-hit-weapons commit: 86f8420f
 ```
 
 The authoritative ignored runs are:
@@ -179,8 +181,8 @@ Phase 5 policy-2 full audit:
   lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit
   rol-phase5-audit-cec58661a4f21a2a
 Phase 6 special reconciliation:
-  lib/rol-conversion/runs/phase6-special-20260813-drow-conclave
-  rol-phase6-special-1b44c259bece3bf6
+  lib/rol-conversion/runs/phase6-special-20260813-bhaal-bards
+  rol-phase6-special-003a15934c33cde5
 Phase 6 shared mobile: lib/rol-conversion/runs/phase6-special-20260812-shared-mobile
                        rol-phase6-special-0f4f1274d95a2941
 Phase 6 implicit race: lib/rol-conversion/runs/phase6-special-20260812-race-composition
@@ -397,6 +399,9 @@ Phase 6 Undermountain Death's Head lifecycle:
 Phase 6 remaining hit-only weapons:
   lib/rol-conversion/runs/phase6-special-20260813-hit-weapons
   rol-phase6-special-db296ed8ac49dda1
+Phase 6 Bhaal and Seelie hit weapons:
+  lib/rol-conversion/runs/phase6-special-20260813-bhaal-bards
+  rol-phase6-special-003a15934c33cde5
 Policy:  rol-conversion-policy-2
 ```
 
@@ -425,10 +430,10 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 356 tests; the production-linked CuTest suite passes 688;
+- The world-tool suite passes 357 tests; the production-linked CuTest suite passes 689;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The corrected discovery repair and twenty-four subsequent denominator-bearing batches are
-  archived. Those batches closed 336 bindings across 138 source handlers. The measured remaining
+- The corrected discovery repair and twenty-five subsequent denominator-bearing batches are
+  archived. Those batches closed 339 bindings across 141 source handlers. The measured remaining
   Phase 6 forecast is 10-21 sessions, or 20-84 focused engineering hours; the full remaining
   project range is 66-105 sessions, or 132-420 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
@@ -479,13 +484,13 @@ Policy:  rol-conversion-policy-2
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
 - The repaired Phase 6 inventory accounts for 1,721 active direct bindings across 795 source
-  handlers and locates all 795 source definitions. The current reconciliation resolves 1,575
-  bindings across 670 handlers and leaves 146 bindings across 125 handlers.
+  handlers and locates all 795 source definitions. The current reconciliation resolves 1,585
+  bindings across 679 handlers and leaves 136 bindings across 116 handlers.
 - The independent `ACT_SPEC` cross-check resolves 816 of 848 records and leaves 32
   pending. It remains a scheduling cross-check rather than the direct-binding denominator;
   composition-safe flags and room or object procedures can resolve source handlers without
   changing this mobile-only count.
-- The 125 pending handlers comprise 111 singletons and 14 families with two to four bindings;
+- The 116 pending handlers comprise 103 singletons and 13 families with two to four bindings;
   no family with five or more bindings remains.
 - All 247 source boot-time race procedures are complete through composition-safe mobile
   flags and activity/combat hooks: 134 demons, 101 devils, and 12 umber hulks. The
@@ -753,9 +758,9 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,575 static bindings and leaves 146 pending. It resolves
-  670 direct handler names and leaves 125 pending across 27 source files. The pending set has
-  111 singleton handlers and 14 handlers with two to four bindings; no handler with five or more
+- The corrected reconciler resolves 1,585 static bindings and leaves 136 pending. It resolves
+  679 direct handler names and leaves 116 pending across 27 source files. The pending set has
+  103 singleton handlers and 13 handlers with two to four bindings; no handler with five or more
   bindings remains.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
@@ -910,9 +915,15 @@ Policy:  rol-conversion-policy-2
   one-in-26 `37d9` strike and sequential protection, demon/devil, and save reductions. The two
   snake whips retain critical level-40 poison and the searing rod retains critical level-35
   burning hands. Converter output adds the automatic-procedure flag with the persisted binding.
-- The twenty-four corrected batches close 336 bindings across 138 handlers. That measured
+- The Bhaal and Seelie hit-weapon batch closes three bindings across three handlers through `RoL
+  Weapon Proc`. Warrior weapon 2063747 and rogue weapon 2063794 answer a target fire or cold
+  shield with the triggering strike's damage, translate the source save pressure, and remain
+  blocked by elemental protection or Globe of Invulnerability. Bard's glaive 2062750 preserves
+  its level and Dexterity gates, two-round blindness, and saved `10d10` burst against an
+  already-blinded target. All three retain source primary/offhand gating and typed invalidation.
+- The twenty-five corrected batches close 339 bindings across 141 handlers. That measured
   throughput puts the binding-count projection near 10 sessions and the handler-diversity
-  projection near 21. Because 106 of 119 remaining handlers are singletons, the published Phase 6
+  projection near 21. Because 103 of 116 remaining handlers are singletons, the published Phase 6
   envelope is 10-21 sessions, or 20-84 focused engineering hours. Reforecast after another
   material batch or an inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
@@ -937,49 +948,50 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Implementation commit `f78984d3` reconciles seven active hit-only weapon bindings across six
-  handlers through the existing typed `RoL Weapon Proc` definition: objects 196000, 2020208,
-  2020271, 2021759, 2093035, 2093086, and 2093156.
-- Frostbite retains primary-slot gating, a one-in-22 chance, and `30d10` cold damage. The crystal
-  and obsidian swords retain primary/offhand gating, a one-in-33 chance, `(level / 5)d10`
-  source-untyped damage, and exact hour boundaries. Crystal adds daytime Scorching Ray; obsidian
-  adds a one-round nighttime -50 movement and -4 target-AC penalty, translating the old model's
-  `APPLY_AC +40` sign rather than turning the debuff into a bonus.
-- Dancing Shadows retains primary-slot gating, a one-in-26 `37d9` negative strike, sequential
-  halving for protection from evil, source demons/devils, and a successful Will save, plus the
-  source fire-shield save modifier. Both snake whips retain critical level-40 poison and the
-  searing rod retains critical level-35 Burning Hands. Native damage and context invalidation
-  make lethal paths safe.
-- Reconciliation maps all six handler names to the exact identity runtime. Compiled object output
-  persists `RoL Weapon Proc` and required extra-flag bit 44 together. No registry definition was
-  added. The separate Jotun object-passive family remains pending because this batch changes no
-  object apply slot.
+- Implementation commit `86f8420f` reconciles three active hit-weapon bindings through the
+  existing typed `RoL Weapon Proc` definition: Bhaal warrior weapon 2063747, Bhaal rogue weapon
+  2063794, and the ordinary Seelie bard's glaive 2062750.
+- Both Torment weapons retain primary/offhand gating and answer a target fire or cold shield with
+  the triggering strike's damage. A successful translated save halves the extra strike;
+  elemental protection and Globe of Invulnerability on the wielder block it. Rogue and warrior
+  flare wording, including the source cold-shield distinction, remains identity-specific.
+- The bard's glaive retains its level-above-25 gate and exact Dexterity-weighted `0..2000` roll.
+  Its first proc directly applies two rounds of blindness; a proc against an already-blinded
+  target rolls `10d10` source-untyped damage, halved by a successful translated save. Typed
+  damage and context invalidation protect lethal paths.
+- Reconciliation maps all three handler names to `RoL Weapon Proc`; no registry definition or
+  player command was added. The Spider venom pouch, Jotun skull, and master bard's glaive remain
+  pending because their source callbacks can suppress or replace the triggering hit before base
+  damage, while the current target weapon gateway is post-damage. The Bhaal mage and priest
+  callbacks remain pending until their periodic cadence and missing Agility/Farsee dependencies
+  can be ported together.
 - The authoritative evidence is
-  `lib/rol-conversion/runs/phase6-special-20260813-hit-weapons`, run
-  `rol-phase6-special-db296ed8ac49dda1`. A same-timestamp repeat was byte-identical. The standard
+  `lib/rol-conversion/runs/phase6-special-20260813-bhaal-bards`, run
+  `rol-phase6-special-003a15934c33cde5`. A same-timestamp repeat was byte-identical. The standard
   path-and-content tree digest is
-  `5dbad7b2c97abbfbb5e8b54abd312003347028cfb30eed515faffe1bf61f12ca`.
+  `cffb149c90f72be5d493db5eaed59d36b22fda776f80f9faf937c89e3fca42cd`.
 - The binding ledger SHA-256 is
-  `a4e496c766dc910d22ba8077127797e4281e854442540ec25df3c0aad11e84f5`; the handler inventory
-  SHA-256 is `fdf513aab70706d7487023d78ed51cc328394b690f2227887275357cd9a10ce5`; and the summary
-  SHA-256 is `8b6b4828d667cefeb0369ba1fc051d7ae8230783bb8d23ac48584544eec4c5cc`.
+  `0819a1aa9c464f401f4e541988ccb4e317fba1a1accf85ef477e9e1f7c5e586c`; the handler inventory
+  SHA-256 is `82901f913db4cccc3a652fab376fdb11bc1e28a6bd2e8320849aa14a30eba028`;
+  and the summary SHA-256 is
+  `73bfb7bfe0ce2db6912040b39a583ca1c5b6a9fbfac088ee385a2c56a4de60d5`.
 - The denominator remains 1,721 live static plus 5,531 resolved dynamic binding instances.
-  Resolution is now 1,582 static bindings across 676 handlers, leaving 139 bindings across 119
+  Resolution is now 1,585 static bindings across 679 handlers, leaving 136 bindings across 116
   handlers in 27 source files. The independent `ACT_SPEC` cross-check remains 816 resolved and 32
-  pending. The pending shape is 106 singletons, seven two-binding, five three-binding, and one
+  pending. The pending shape is 103 singletons, seven two-binding, five three-binding, and one
   four-binding family. All automatic race and dynamic paths remain complete, with zero live
   target writes.
 - The target registry remains 117 definitions: 98 legacy and 19 typed, with 118 persisted
-  compatibility names. Final validation passed: 356 world-tool tests, 688 production-linked
+  compatibility names. Final validation passed: 357 world-tool tests, 689 production-linked
   CuTests, a complete CMake build and all 12 CTest targets, zero documentation findings, a
   warning-free Autotools build/test/install, and no root-level `circle`. Installed build ID
-  `9fa0289f1b4925c85e2b0a096f4b04b2b6019109`; SHA-256
-  `fe7bd2a11aaf50ca9625722e1a46c4f1b7efe21db0fc73c89048e531069d831d`.
+  `b05bb4ab67c100c4461503ceb2bd2a791982f784`; SHA-256
+  `06e1f58c43f25ef552ea9ef13ae4b1b6a9e7da5785636015b91e68b5d7c4d685`.
 - No player helpfile changed because the batch adds no player command or syntax. The staff manual
-  covers all seven bound identities, slots, chances, critical effects, hour boundaries, layered
-  reductions, converter persistence, source quirks, and the dependency-stage boundary.
-- Twenty-four measured batches have closed 336 bindings across 138 handlers. The remaining Phase
-  6 envelope is 10-21 sessions, or 20-84 focused hours; the full remaining project envelope is
-  66-105 sessions, or 132-420 focused hours. Next, select the highest-value dependency-complete
-  pending combat or utility family while leaving the Jotun apply-slot and Acheron return
+  covers all three identities, slot and level gates, shield and ward interactions, save
+  translation, blindness progression, and the dependency-stage boundary.
+- Twenty-five measured batches have closed 339 bindings across 141 handlers. The remaining Phase
+  6 envelope stays 10-21 sessions, or 20-84 focused hours; the full remaining project envelope
+  stays 66-105 sessions, or 132-420 focused hours. Next, select the highest-value
+  dependency-complete combat or utility family while leaving pre-damage weapon and Acheron return
   lifecycle dependencies explicit.

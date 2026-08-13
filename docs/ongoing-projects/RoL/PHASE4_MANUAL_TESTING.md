@@ -1763,6 +1763,38 @@ contain all seven prototypes. Exercise each only after a Phase 7 stage supplies 
 package. This checkpoint resolves hit and critical callbacks only: do not treat it as approval to
 rewrite Frostbite's separate Jotun passive apply slots.
 
+### Phase 6 Bhaal and Seelie hit weapons
+
+- In dependency-complete stages, confirm Bhaal warrior weapon 2063747, Bhaal rogue weapon
+  2063794, and Seelie bard's glaive 2062750 persist `RoL Weapon Proc` and object extra-flag bit 44.
+  `stat object` must show `Bhaal's Torment` behavior on the two Bhaal identities and the
+  Dexterity-weighted blinding-light behavior on the glaive.
+- Wield either Bhaal weapon in a primary or offhand slot and strike a target without Fire Shield
+  or Cold Shield. No Torment rider must fire. Add either shield and verify that every positive
+  triggering hit repeats its encoded damage, or half that damage after a successful translated
+  save. The rogue blade uses flare wording and the warrior blade uses flash wording; cold and
+  fire shields retain distinct messages.
+- Repeat the shielded strike while the wielder has elemental protection, then Globe of
+  Invulnerability. Both defenses must suppress the Torment rider. Remove the defenses and confirm
+  the rider resumes. A zero-damage hit and a Bhaal weapon outside the primary/offhand slots must
+  not fire it.
+- Give glaive 2062750 to a level-25 wielder and confirm that repeated hits never proc. At level 26
+  or higher, its exact chance is `(current Dexterity + 1) / 2001` for a nonnegative Dexterity.
+  Use a controlled roll fixture where practical: rolls zero through Dexterity fire, and the next
+  roll does not.
+- On the first qualifying glaive proc against a sighted target, confirm two rounds of blindness
+  with no damage rider. While the target is already blind or has Blindness, the next qualifying
+  proc must instead roll `10d10` source-untyped damage, halved after a successful translated save.
+  Primary and offhand slots are valid; other slots are not.
+- Kill a target with each direct-damage branch and confirm no later hit rider dereferences the
+  extracted target. Regenerate each staged object and confirm the persisted procedure and required
+  automatic-procedure flag are emitted together.
+
+These weapons are production-tested and reconciled, but the current five-zone pilot does not
+contain all three prototypes. Exercise them only after a Phase 7 stage supplies their owning
+packages. The master bard's glaive, Spider venom pouch, and Jotun skull remain pending because
+their source callbacks can suppress or replace base-hit damage before the current target gateway.
+
 ### RoL exit-trap compatibility
 
 - Swamp Two room 2026051 contains the pilot's converted exit trap on the down exit. It
@@ -1797,8 +1829,8 @@ rewrite Frostbite's separate Jotun passive apply slots.
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,575 are resolved and 146 remain. Of 795 distinct
-  direct source handlers, 670 are resolved and 125 remain. Of 848 `ACT_SPEC` records, 816
+  of the 1,721 active direct bindings, 1,585 are resolved and 136 remain. Of 795 distinct
+  direct source handlers, 679 are resolved and 116 remain. Of 848 `ACT_SPEC` records, 816
   are resolved and 32 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

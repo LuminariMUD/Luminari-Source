@@ -9,6 +9,73 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Bhaal and Seelie hit weapons
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled three active object bindings through the existing typed `RoL Weapon Proc` runtime:
+  Bhaal warrior weapon 2063747, Bhaal rogue weapon 2063794, and the ordinary Seelie bard's
+  glaive 2062750.
+- Preserved both Torment weapons' primary/offhand gating and source rule that a target fire or
+  cold shield repeats the triggering strike's damage, halved after a successful save. Elemental
+  protection and Globe of Invulnerability on the wielder suppress the rider; rogue and warrior
+  flare wording and the cold/fire shield distinction remain identity-specific.
+- Preserved the bard's level-above-25 gate, exact Dexterity-weighted `0..2000` roll, direct
+  two-round blindness, and saved `10d10` source-untyped burst against an already-blinded target.
+  Source save pressure is translated to the target API's opposite modifier convention, and typed
+  damage invalidation protects lethal paths.
+- Added deterministic profile, roll-boundary, damage-halving, ward/globe suppression,
+  disposition, and converter-count regressions. Stabilized the older venom-tail runtime check so
+  a valid natural save no longer makes the full suite nondeterministic. No player helpfile changed
+  because the batch adds no player command or syntax; the staff manual records the dependency-stage
+  test matrix.
+- Left the master bard's glaive, Spider venom pouch, and Jotun skull pending because their source
+  callbacks can suppress or replace the triggering hit before base damage, whereas the current
+  target weapon gateway is post-damage. Bhaal mage and priest remain pending for their periodic
+  cadence and missing Agility/Farsee dependencies.
+- Regenerated deterministic evidence. Resolution increases from 1,582 to 1,585 static bindings
+  and from 676 to 679 direct handlers, leaving 136 bindings across 116 handlers in 27 source
+  files. The independent `ACT_SPEC` cross-check remains 816 resolved and 32 pending.
+- Reforecast twenty-five corrected batches covering 339 bindings across 141 handlers. The
+  remaining Phase 6 envelope stays 10-21 sessions, or 20-84 focused engineering hours; the full
+  remaining project envelope stays 66-105 sessions, or 132-420 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 86f8420f
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-bhaal-bards
+Reconciliation run: rol-phase6-special-003a15934c33cde5
+Evidence tree SHA-256: cffb149c90f72be5d493db5eaed59d36b22fda776f80f9faf937c89e3fca42cd
+Active direct bindings: 1,721
+Direct bindings resolved: 1,585
+Direct bindings pending: 136
+Source handlers resolved: 679
+Source handlers pending: 116
+Additional handler families resolved: 3
+Additional direct bindings resolved: 3
+Native adapted bindings: 1,033
+Native adapted composable bindings: 216
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 816
+ACT_SPEC records pending: 32
+Complete world-tool suite: 357 passed
+Production-linked CuTest suite: 689 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: b05bb4ab67c100c4461503ceb2bd2a791982f784
+Installed SHA-256: 06e1f58c43f25ef552ea9ef13ae4b1b6a9e7da5785636015b91e68b5d7c4d685
+Evidence artifact hashes: 7 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat or utility family.
+
 ## 2026-08-13 - Phase 6 remaining hit-only weapons
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
