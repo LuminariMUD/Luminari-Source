@@ -709,6 +709,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual(target, disposition["target"])
 
+  def test_griffon_nonbarbarian_family_has_explicit_disposition(self) -> None:
+    disposition = handler_disposition("aggroNonBarbarian")
+
+    self.assertEqual("resolved", disposition["status"])
+    self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+    self.assertEqual("RoL Monster Combat", disposition["target"])
+
   def test_residual_monster_combat_batch_has_explicit_dispositions(self) -> None:
     handlers = (
         "Tiamat_Crimson_Fury",
@@ -815,11 +822,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_544, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(177, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(662, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(133, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(992, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_559, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(162, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(663, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(132, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_007, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           216, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -840,8 +847,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       )
       self.assertEqual(2, summary["dynamic_handler_definitions_located"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(809, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(39, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(811, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(37, summary["act_spec_by_status"]["pending"])
 
       binding_rows = [
           json.loads(line)

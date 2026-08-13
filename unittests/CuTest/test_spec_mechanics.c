@@ -2367,20 +2367,22 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
   static const int vnums[] = {
       150772,  196007,  196013,  196027,  196040,  196076,  2000207, 2000212, 2000214, 2000215,
       2000220, 2000221, 2000233, 2000325, 2000326, 2000327, 2000328, 2000525, 2001228, 2001229,
-      2001407, 2001436, 2001437, 2004070, 2004480, 2004530, 2005023, 2005718, 2012005, 2012006,
-      2012024, 2012025, 2012026, 2014015, 2014026, 2014029, 2014601, 2014605, 2015113, 2015125,
-      2019701, 2019750, 2020247, 2020378, 2021786, 2021820, 2026208, 2026216, 2026225, 2026236,
-      2026238, 2026241, 2026242, 2026243, 2026244, 2026245, 2032623, 2032629, 2032632, 2032640,
-      2032641, 2032642, 2032643, 2032644, 2032645, 2032646, 2032654, 2032659, 2032660, 2033000,
-      2033001, 2033003, 2033004, 2033005, 2033008, 2033009, 2033011, 2033014, 2033015, 2033016,
-      2033020, 2033021, 2033022, 2033026, 2033027, 2034833, 2041900, 2043358, 2043702, 2043703,
-      2043705, 2043728, 2043741, 2043742, 2043744, 2043745, 2043746, 2043756, 2043758, 2043759,
-      2043761, 2043767, 2043768, 2043769, 2043770, 2043778, 2043780, 2045116, 2045146, 2045182,
-      2051246, 2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401, 2062402,
-      2062405, 2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706, 2062707, 2062708,
-      2062710, 2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717, 2062721, 2062722,
-      2081706, 2081746, 2081747, 2083224, 2092608, 2093202, 2093204, 2093205, 2093206, 2093209,
-      2093210, 2094505, 2094506, 2096631, 2096670, 2096672, 2097061,
+      2001407, 2001436, 2001437, 2004070, 2004480, 2004530, 2005023, 2005718, 2010661, 2010744,
+      2010745, 2010749, 2010750, 2010754, 2010755, 2010756, 2010757, 2010758, 2010759, 2010760,
+      2010761, 2010762, 2010763, 2012005, 2012006, 2012024, 2012025, 2012026, 2014015, 2014026,
+      2014029, 2014601, 2014605, 2015113, 2015125, 2019701, 2019750, 2020247, 2020378, 2021786,
+      2021820, 2026208, 2026216, 2026225, 2026236, 2026238, 2026241, 2026242, 2026243, 2026244,
+      2026245, 2032623, 2032629, 2032632, 2032640, 2032641, 2032642, 2032643, 2032644, 2032645,
+      2032646, 2032654, 2032659, 2032660, 2033000, 2033001, 2033003, 2033004, 2033005, 2033008,
+      2033009, 2033011, 2033014, 2033015, 2033016, 2033020, 2033021, 2033022, 2033026, 2033027,
+      2034833, 2041900, 2043358, 2043702, 2043703, 2043705, 2043728, 2043741, 2043742, 2043744,
+      2043745, 2043746, 2043756, 2043758, 2043759, 2043761, 2043767, 2043768, 2043769, 2043770,
+      2043778, 2043780, 2045116, 2045146, 2045182, 2051246, 2051333, 2051334, 2053264, 2053265,
+      2053266, 2059815, 2059835, 2062401, 2062402, 2062405, 2062406, 2062701, 2062702, 2062703,
+      2062704, 2062705, 2062706, 2062707, 2062708, 2062710, 2062711, 2062712, 2062713, 2062714,
+      2062715, 2062716, 2062717, 2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2092608,
+      2093202, 2093204, 2093205, 2093206, 2093209, 2093210, 2094505, 2094506, 2096631, 2096670,
+      2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2445,6 +2447,65 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertIntEquals(tc, 3, rol_seelie_search_stun_rounds(2062701));
   CuAssertIntEquals(tc, 6, rol_seelie_search_stun_rounds(2062707));
   CuAssertIntEquals(tc, 0, rol_seelie_search_stun_rounds(2062708));
+}
+
+void Test_spec_rol_griffon_guard_preserves_nonbarbarian_targeting(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct player_special_data player_specials;
+  struct spec_event_context context;
+  struct char_data *target;
+  const char *description;
+  int denominator;
+
+  spec_mechanics_begin(&fixture);
+  memset(&player_specials, 0, sizeof(player_specials));
+  target = &fixture.target;
+  REMOVE_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  target->player_specials = &player_specials;
+
+  CuAssertTrue(tc, rol_griffon_guard_target_allowed(target));
+  CLASS_LEVEL(target, CLASS_BERSERKER) = 1;
+  CuAssertTrue(tc, !rol_griffon_guard_target_allowed(target));
+  CLASS_LEVEL(target, CLASS_BERSERKER) = 0;
+  GET_LEVEL(target) = LVL_IMMORT;
+  CuAssertTrue(tc, !rol_griffon_guard_target_allowed(target));
+  GET_LEVEL(target) = 10;
+  CuAssertTrue(tc, !rol_griffon_guard_target_allowed(NULL));
+
+  CuAssertTrue(tc, rol_monster_combat_profile(2010661, &denominator, &description));
+  CuAssertIntEquals(tc, 1, denominator);
+  CuAssertStrEquals(tc, "Attacks visible non-Berserker mortals and remembers them while occupied.",
+                    description);
+  CuAssertTrue(tc, rol_monster_combat_profile(2010763, NULL, NULL));
+
+  memset(&context, 0, sizeof(context));
+  fixture.mobile_indexes[0].vnum = 2010661;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  GET_IDNUM(target) = 4242;
+  FIGHTING(&fixture.actor) = target;
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_MEMORY);
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_MOBILE_ACTIVITY;
+  context.owner = &fixture.actor;
+  context.actor = &fixture.actor;
+
+  CLASS_LEVEL(target, CLASS_BERSERKER) = 1;
+  CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
+  CuAssertPtrEquals(tc, NULL, MEMORY(&fixture.actor));
+  CLASS_LEVEL(target, CLASS_BERSERKER) = 0;
+  CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
+  CuAssertPtrNotNull(tc, MEMORY(&fixture.actor));
+  CuAssertTrue(tc, MEMORY(&fixture.actor)->id == 4242);
+  clearMemory(&fixture.actor);
+  FIGHTING(&fixture.actor) = NULL;
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_MEMORY);
+
+  SET_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  CuAssertTrue(tc, !rol_griffon_guard_target_allowed(target));
+
+  target->player_specials = &dummy_mob;
+  spec_mechanics_end(&fixture);
 }
 
 void Test_spec_rol_manscorpion_venom_profiles_and_affect(CuTest *tc)

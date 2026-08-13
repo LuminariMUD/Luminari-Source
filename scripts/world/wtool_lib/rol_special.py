@@ -65,6 +65,7 @@ NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 # These shared source families need bounded target adapters because the nearest
 # legacy target callbacks have different eligibility or probability rules.
 ADAPTED_HANDLER_NAMES = {
+    "aggroNonBarbarian": "RoL Monster Combat",
     "artillery_one": "RoL Waterdeep Ambient",
     "av_drisinil_shout": "RoL Alert Caller",
     "av_tukra_shout": "RoL Alert Caller",

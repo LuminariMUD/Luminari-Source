@@ -103,6 +103,7 @@ enum rol_monster_combat_effect
   ROL_MONSTER_AVERNUS_AUXILIARY,
   ROL_MONSTER_DARKHOLD_SHADOW_FIEND,
   ROL_MONSTER_DARKHOLD_SHADOW_DRAGON,
+  ROL_MONSTER_GRIFFON_NONBARBARIAN,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -128,6 +129,9 @@ struct rol_seelie_faerie_profile
 };
 
 static void rol_monster_stop_combat(struct char_data *victim);
+
+static const char rol_griffon_guard_description[] =
+    "Attacks visible non-Berserker mortals and remembers them while occupied.";
 
 /* Keep this table sorted by converted mobile VNUM for binary lookup. */
 static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
@@ -165,6 +169,21 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2004530, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
     {2005023, ROL_MONSTER_SPIDER_VENOM, 15, "Random-player venom bite."},
     {2005718, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Ancient brownie ankle attack."},
+    {2010661, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010744, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010745, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010749, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010750, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010754, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010755, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010756, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010757, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010758, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010759, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010760, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010761, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010762, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
+    {2010763, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
     {2012005, ROL_MONSTER_PHALANX, 1, "Phalanx retreat, reconfiguration, and exit guard."},
     {2012006, ROL_MONSTER_SKELETON, 20, "Splitting skeleton and rare passage trip."},
     {2012024, ROL_MONSTER_SKELETON, 20, "Splitting skeleton and rare passage trip."},
@@ -387,6 +406,16 @@ bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const ch
   if (description != NULL)
     *description = profile->description;
   return true;
+}
+
+bool rol_griffon_guard_target_allowed(const struct char_data *target)
+{
+  if (target == NULL || IS_NPC(target) || target->player_specials == NULL ||
+      GET_LEVEL(target) >= LVL_IMMORT)
+    return false;
+
+  /* RoL's Barbarian player race became the target's multiclass Berserker role. */
+  return CLASS_LEVEL(target, CLASS_BERSERKER) <= 0;
 }
 
 bool rol_planar_death_profile(int mobile_vnum, bool *suppresses_corpse)
@@ -2812,6 +2841,39 @@ static int rol_monster_small_prismatic_activity(struct spec_event_context *conte
   return FALSE;
 }
 
+static int rol_griffon_guard_react(struct char_data *guard, struct char_data *target)
+{
+  if (guard == NULL || target == NULL || !rol_griffon_guard_target_allowed(target) ||
+      !VALID_ROOM_RNUM(IN_ROOM(guard)) || IN_ROOM(target) != IN_ROOM(guard) ||
+      !CAN_SEE(guard, target))
+    return FALSE;
+
+  if (FIGHTING(guard) != NULL)
+  {
+    if (MOB_FLAGGED(guard, MOB_MEMORY))
+      remember(guard, target);
+    return FALSE;
+  }
+
+  act("$n bellows a fierce battle cry and attacks $N!", TRUE, guard, NULL, target, TO_NOTVICT);
+  act("$n bellows a fierce battle cry and attacks you!", TRUE, guard, NULL, target, TO_VICT);
+  (void)hit(guard, target, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  return FALSE;
+}
+
+static int rol_griffon_guard_activity(struct char_data *guard)
+{
+  struct char_data *target;
+
+  for (target = world[IN_ROOM(guard)].people; target != NULL; target = target->next_in_room)
+  {
+    if (!rol_griffon_guard_target_allowed(target) || !CAN_SEE(guard, target))
+      continue;
+    return rol_griffon_guard_react(guard, target);
+  }
+  return FALSE;
+}
+
 static int rol_monster_command(struct spec_event_context *context,
                                const struct rol_monster_combat_profile *profile,
                                struct char_data *ch)
@@ -2826,6 +2888,9 @@ static int rol_monster_command(struct spec_event_context *context,
   if (actor == NULL || actor == ch || context->command <= 0 || !VALID_ROOM_RNUM(IN_ROOM(actor)) ||
       IN_ROOM(actor) != IN_ROOM(ch))
     return FALSE;
+
+  if (profile->effect == ROL_MONSTER_GRIFFON_NONBARBARIAN)
+    return rol_griffon_guard_react(ch, actor);
 
   command = complete_cmd_info != NULL ? complete_cmd_info[context->command].command : NULL;
   if (profile->effect == ROL_MONSTER_AVERNUS_GELUGON_HANARIEL && command != NULL &&
@@ -3145,6 +3210,8 @@ static int rol_monster_activity(struct spec_event_context *context,
     return FALSE;
   case ROL_MONSTER_SEELIE_FAERIE:
     return rol_seelie_faerie_activity(ch);
+  case ROL_MONSTER_GRIFFON_NONBARBARIAN:
+    return rol_griffon_guard_activity(ch);
   default:
     return FALSE;
   }
@@ -3293,6 +3360,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_GREYCLOAK_ARALESH:
   case ROL_MONSTER_DARKHOLD_SHADOW_FIEND:
   case ROL_MONSTER_DARKHOLD_SHADOW_DRAGON:
+  case ROL_MONSTER_GRIFFON_NONBARBARIAN:
     return FALSE;
   default:
     break;
@@ -3410,6 +3478,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_AVERNUS_GELUGON_HANARIEL:
   case ROL_MONSTER_DARKHOLD_SHADOW_FIEND:
   case ROL_MONSTER_DARKHOLD_SHADOW_DRAGON:
+  case ROL_MONSTER_GRIFFON_NONBARBARIAN:
   case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }

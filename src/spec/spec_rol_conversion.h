@@ -240,6 +240,7 @@ bool rol_undead_drain_profile(int mobile_vnum, int *chance_sides, int *marker_af
                               int *will_penalty, int *fortitude_penalty, int *slow_duration);
 size_t rol_monster_combat_profile_count(void);
 bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const char **description);
+bool rol_griffon_guard_target_allowed(const struct char_data *target);
 bool rol_planar_death_profile(int mobile_vnum, bool *suppresses_corpse);
 bool rol_planar_burst_profile(int mobile_vnum, bool *screech, bool *spores, bool *flame_spikes);
 bool rol_avernus_barbazu_profile(int mobile_vnum);
