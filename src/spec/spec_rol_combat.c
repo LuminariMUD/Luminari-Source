@@ -94,6 +94,9 @@ enum rol_monster_combat_effect
   ROL_MONSTER_PLANAR_SUCCUBUS_CHARM,
   ROL_MONSTER_PLANAR_VROCK_BURSTS,
   ROL_MONSTER_PLANAR_SPINAGON_SPIKES,
+  ROL_MONSTER_AVERNUS_BARBAZU_BERSERK,
+  ROL_MONSTER_AVERNUS_GELUGON_MERITOS,
+  ROL_MONSTER_AVERNUS_GELUGON_HANARIEL,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -184,14 +187,46 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2026243, ROL_MONSTER_SUMMON_ROBYN_WISP, 4, "Robyn's bounded wisp summon."},
     {2026244, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
     {2026245, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
+    {2032629, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
     {2032632, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
      "Five-in-six flaming-spike volley with a three-round cooldown."},
+    {2032640, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
+    {2032641, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
+    {2032642, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
+    {2032643, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
+    {2032644, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
     {2032645, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
      "Five-in-six flaming-spike volley with a three-round cooldown."},
     {2032646, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
      "Five-in-six flaming-spike volley with a three-round cooldown."},
+    {2033000, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
+    {2033001, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
+    {2033004, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
+    {2033008, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
+    {2033009, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
+    {2033011, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
+    {2033015, ROL_MONSTER_AVERNUS_GELUGON_MERITOS, 7,
+     "Freezing tail and one-in-four caster-silencing bolt."},
+    {2033016, ROL_MONSTER_AVERNUS_GELUGON_HANARIEL, 7,
+     "Freezing tail and disarm-intercepting spear trip."},
     {2033020, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
      "Five-in-six flaming-spike volley with a three-round cooldown."},
+    {2033021, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
+    {2033022, ROL_MONSTER_AVERNUS_BARBAZU_BERSERK, 20,
+     "One-in-twenty reactive Barbazu blood rage."},
     {2034833, ROL_MONSTER_BANSHEE_WAIL, 3, "Room-wide sonic wail."},
     {2041900, ROL_MONSTER_SWALLOW_SPIT, 6, "Nonlethal whole-swallow and spit attack."},
     {2043358, ROL_MONSTER_MOVANIC_DEVA, 1, "Movanic-deva healing and wind assault."},
@@ -365,6 +400,50 @@ bool rol_planar_burst_profile(int mobile_vnum, bool *screech, bool *spores, bool
   if (flame_spikes != NULL)
     *flame_spikes = is_spinagon;
   return true;
+}
+
+bool rol_avernus_barbazu_profile(int mobile_vnum)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+
+  return profile != NULL && profile->effect == ROL_MONSTER_AVERNUS_BARBAZU_BERSERK;
+}
+
+bool rol_avernus_gelugon_profile(int mobile_vnum, bool *freezing_tail, bool *silencing_bolt,
+                                 bool *blocks_disarm)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+  bool is_hanariel;
+  bool is_meritos;
+
+  if (profile == NULL)
+    return false;
+  is_meritos = profile->effect == ROL_MONSTER_AVERNUS_GELUGON_MERITOS;
+  is_hanariel = profile->effect == ROL_MONSTER_AVERNUS_GELUGON_HANARIEL;
+  if (!is_meritos && !is_hanariel)
+    return false;
+  if (freezing_tail != NULL)
+    *freezing_tail = true;
+  if (silencing_bolt != NULL)
+    *silencing_bolt = is_meritos;
+  if (blocks_disarm != NULL)
+    *blocks_disarm = is_hanariel;
+  return true;
+}
+
+bool rol_avernus_barbazu_berserk_roll_fires(int roll)
+{
+  return roll == 0;
+}
+
+bool rol_avernus_gelugon_tail_roll_fires(int roll)
+{
+  return roll == 0;
+}
+
+bool rol_avernus_meritos_silence_roll_fires(int roll)
+{
+  return roll == 0;
 }
 
 bool rol_planar_control_profile(int mobile_vnum, enum rol_planar_control_kind *kind,
@@ -1448,6 +1527,99 @@ static int rol_planar_spinagon_spikes(struct spec_event_context *context, struct
     (void)rol_monster_successful_hit_damage(context, ch, victim, dice(20, 2), DAM_FIRE);
   }
   ch->mob_specials.rol_planar_spike_ready_at = now + ROL_PLANAR_HIT_BURST_COOLDOWN;
+  return TRUE;
+}
+
+static int rol_avernus_barbazu_berserk(struct char_data *ch, struct char_data *attacker)
+{
+  struct affected_type affect;
+
+  if (ch == NULL || attacker == NULL || FIGHTING(ch) == NULL ||
+      affected_by_spell(ch, AFFECT_ROL_BARBAZU_BERSERK) ||
+      !rol_avernus_barbazu_berserk_roll_fires(rand_number(0, 19)))
+    return FALSE;
+
+  new_affect(&affect);
+  affect.spell = AFFECT_ROL_BARBAZU_BERSERK;
+  affect.duration = 5;
+  affect.modifier = GET_HITROLL(ch);
+  affect.location = APPLY_HITROLL;
+  affect_to_char(ch, &affect);
+
+  new_affect(&affect);
+  affect.spell = AFFECT_ROL_BARBAZU_BERSERK;
+  affect.duration = 5;
+  affect.modifier = GET_DAMROLL(ch);
+  affect.location = APPLY_DAMROLL;
+  affect_to_char(ch, &affect);
+  GET_HIT(ch) += GET_MAX_HIT(ch) / 2;
+
+  act("$N's hit causes $n's eyes to turn bloodshot and fill with rage!", TRUE, ch, NULL, attacker,
+      TO_NOTVICT);
+  act("Your hit causes $n's eyes to fill with rage!", TRUE, ch, NULL, attacker, TO_VICT);
+  act("$N causes your blood to boil as you enter a bloodlust-filled rage!", TRUE, ch, NULL,
+      attacker, TO_CHAR);
+  return TRUE;
+}
+
+static int rol_avernus_gelugon_tail(struct char_data *ch, struct char_data *victim)
+{
+  struct affected_type affect;
+
+  if (ch == NULL || victim == NULL || !rol_avernus_gelugon_tail_roll_fires(rand_number(0, 6)) ||
+      paralysis_immunity(victim) ||
+      savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+    return FALSE;
+
+  new_affect(&affect);
+  affect.spell = SPELL_HOLD_MONSTER;
+  affect.duration = rand_number(1, 2);
+  SET_BIT_AR(affect.bitvector, AFF_PARALYZED);
+  affect_to_char(victim, &affect);
+
+  act("Your tail radiates freezing cold that freezes $N.", FALSE, ch, NULL, victim, TO_CHAR);
+  act("$n's tail radiates freezing cold, causing your bones to lock up.", FALSE, ch, NULL, victim,
+      TO_VICT);
+  act("$n's tail radiates freezing cold, causing $N to slow to a complete halt.", FALSE, ch, NULL,
+      victim, TO_NOTVICT);
+  return TRUE;
+}
+
+static bool rol_avernus_meritos_target(const struct char_data *candidate)
+{
+  return candidate != NULL && !IS_NPC(candidate) && GET_LEVEL(candidate) < LVL_IMMORT &&
+         !AFF_FLAGGED(candidate, AFF_SILENCED) &&
+         (IS_WIZARD(candidate) || IS_CLERIC(candidate) || IS_BARD(candidate));
+}
+
+static int rol_avernus_meritos_silence(struct char_data *ch)
+{
+  struct affected_type affect;
+  struct char_data *target;
+
+  if (ch == NULL || !rol_avernus_meritos_silence_roll_fires(rand_number(0, 3)))
+    return FALSE;
+  for (target = world[IN_ROOM(ch)].people; target != NULL; target = target->next_in_room)
+    if (rol_avernus_meritos_target(target))
+      break;
+
+  /* The source called its save routine before checking target and could dereference NULL. */
+  if (target == NULL || !can_silence(target) || mag_resistance(ch, target, 0) ||
+      savingthrow(ch, target, SAVING_WILL, 5, CAST_INNATE, GET_LEVEL(ch), ILLUSION))
+    return FALSE;
+
+  new_affect(&affect);
+  affect.spell = SPELL_SILENCE;
+  affect.duration = 4;
+  SET_BIT_AR(affect.bitvector, AFF_SILENCED);
+  affect_to_char(target, &affect);
+
+  act("$n sends an icy bolt that worms its way into $N's mouth.", FALSE, ch, NULL, target,
+      TO_NOTVICT);
+  act("$n sends an icy bolt into your mouth, causing your tongue to freeze and go numb!", FALSE, ch,
+      NULL, target, TO_VICT);
+  act("An icy bolt leaves your hand and streaks toward $N's mouth.", FALSE, ch, NULL, target,
+      TO_CHAR);
   return TRUE;
 }
 
@@ -2636,6 +2808,17 @@ static int rol_monster_command(struct spec_event_context *context,
     return FALSE;
 
   command = complete_cmd_info != NULL ? complete_cmd_info[context->command].command : NULL;
+  if (profile->effect == ROL_MONSTER_AVERNUS_GELUGON_HANARIEL && command != NULL &&
+      !str_cmp(command, "disarm") && GET_LEVEL(actor) < LVL_IMMORT)
+  {
+    change_position(actor, POS_SITTING);
+    SET_WAIT(actor, PULSE_VIOLENCE * 3);
+    act("As you attempt a disarm, $n slides by and trips you with $s spear!", FALSE, ch, NULL,
+        actor, TO_VICT);
+    act("As $N attempts a disarm, $n slides by and flicks $N to the ground with $s spear!", FALSE,
+        ch, NULL, actor, TO_NOTVICT);
+    return TRUE;
+  }
   if (rol_planar_control_profile(GET_MOB_VNUM(ch), &control_kind, NULL) && actor->master == ch &&
       AFF_FLAGGED(actor, AFF_CHARM) && !rol_planar_captive_command_allowed(command))
   {
@@ -2992,9 +3175,25 @@ int rol_monster_combat_typed(struct spec_event_context *context)
       return rol_planar_restrain_hit(context, ch, ROL_PLANAR_CONTROL_MARILITH);
     if (profile->effect == ROL_MONSTER_PLANAR_SPINAGON_SPIKES)
       return rol_planar_spinagon_spikes(context, ch);
+    if (profile->effect == ROL_MONSTER_AVERNUS_GELUGON_MERITOS ||
+        profile->effect == ROL_MONSTER_AVERNUS_GELUGON_HANARIEL)
+    {
+      (void)rol_avernus_gelugon_tail(ch, context->target);
+      if (profile->effect == ROL_MONSTER_AVERNUS_GELUGON_MERITOS)
+        (void)rol_avernus_meritos_silence(ch);
+      return FALSE;
+    }
     if (rol_manscorpion_venom_profile(GET_MOB_VNUM(ch), NULL, NULL, NULL))
       return rol_monster_manscorpion_hit(context, profile, ch);
     return rol_monster_successful_hit(context, profile, ch);
+  }
+  if (context->event == SPEC_EVENT_MOBILE_WAS_HIT)
+  {
+    if (spec_context_validate_combat_target(ch, context->target, false) != SPEC_CONTEXT_VALID)
+      return FALSE;
+    if (profile->effect == ROL_MONSTER_AVERNUS_BARBAZU_BERSERK)
+      return rol_avernus_barbazu_berserk(ch, FIGHTING(ch));
+    return FALSE;
   }
   if (context->event != SPEC_EVENT_MOBILE_COMBAT_TURN || (victim = FIGHTING(ch)) == NULL ||
       spec_context_validate_combat_target(ch, victim, true) != SPEC_CONTEXT_VALID)
@@ -3161,6 +3360,9 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_PLANAR_SUCCUBUS_CHARM:
   case ROL_MONSTER_PLANAR_VROCK_BURSTS:
   case ROL_MONSTER_PLANAR_SPINAGON_SPIKES:
+  case ROL_MONSTER_AVERNUS_BARBAZU_BERSERK:
+  case ROL_MONSTER_AVERNUS_GELUGON_MERITOS:
+  case ROL_MONSTER_AVERNUS_GELUGON_HANARIEL:
   case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }

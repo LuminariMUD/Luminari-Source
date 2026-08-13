@@ -224,6 +224,8 @@ void Test_spec_context_validates_event_payload_shape(CuTest *tc)
   CuAssertIntEquals(tc, SPEC_CONTEXT_MISSING_TARGET, spec_context_validate_event(&context));
   context.target = &actor;
   CuAssertIntEquals(tc, SPEC_CONTEXT_VALID, spec_context_validate_event(&context));
+  context.event = SPEC_EVENT_MOBILE_WAS_HIT;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_VALID, spec_context_validate_event(&context));
 
   memset(&context, 0, sizeof(context));
   context.owner_type = SPEC_OWNER_ROOM;
@@ -1253,6 +1255,13 @@ void Test_spec_rol_alert_callers_share_profiles_without_losing_composed_breaths(
   CuAssertStrEquals(tc, "Come to my aid!", rol_alert_message(2062401));
   CuAssertTrue(tc, rol_alert_helper_matches(2062401, 2062421));
   CuAssertTrue(tc, !rol_alert_helper_matches(2062401, 2062422));
+  CuAssertStrEquals(tc, "Children of Tiamat, come defend me from these intruders!",
+                    rol_alert_message(2032622));
+  CuAssertTrue(tc, rol_alert_helper_matches(2032622, 2036180));
+  CuAssertTrue(tc, !rol_alert_helper_matches(2032622, 2036181));
+  CuAssertIntEquals(tc, 30, rol_alert_max_distance(2032622));
+  CuAssertIntEquals(tc, 100, rol_alert_max_distance(2019920));
+  CuAssertIntEquals(tc, 0, rol_alert_max_distance(9999999));
   CuAssertTrue(tc, rol_alert_message(9999999) == NULL);
   CuAssertIntEquals(tc, TRUE, rol_alert_caller(&fixture.actor, &fixture.actor, 0, ""));
   CuAssertTrue(tc, fixture.actor.mob_specials.rol_alert_fired);
@@ -1896,12 +1905,12 @@ void Test_spec_rol_waterdeep_bouncer_routes_preserve_source_paths(CuTest *tc)
 void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
 {
   static const int vnums[] = {
-      2004505, 2013307, 2014837, 2019886, 2019900, 2019912, 2020075, 2026014, 2034840,
-      2038025, 2038095, 2040135, 2080547, 2089462, 2091305, 2095776, 2095851, 2095876,
-      2095878, 2098330, 2019933, 2025030, 2009054, 2025018, 2001010, 2080034, 2080038,
-      2026233, 2026248, 2015116, 2013308, 2097117, 2001005, 2014023, 2024405, 2053266,
-      2053263, 2053259, 2053289, 2053290, 2053291, 2053292, 2053243, 2083238, 2083235,
-      2053250, 2053271, 2043741, 2008000, 2001057, 2004797, 2093227, 2093228,
+      2004505, 2013307, 2014837, 2019886, 2019900, 2019912, 2020075, 2026014, 2034840, 2038025,
+      2038095, 2040135, 2080547, 2089462, 2091305, 2095776, 2095851, 2095876, 2095878, 2098330,
+      2019933, 2025030, 2009054, 2025018, 2001010, 2080034, 2080038, 2026233, 2026248, 2015116,
+      2013308, 2097117, 2001005, 2014023, 2024405, 2053266, 2053263, 2053259, 2053289, 2053290,
+      2053291, 2053292, 2053243, 2083238, 2083235, 2053250, 2053271, 2043741, 2008000, 2001057,
+      2004797, 2093227, 2093228, 2032602, 2033001, 2033012,
   };
   const char *description;
   bool critical_only;
@@ -1940,14 +1949,16 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
       2001407, 2001436, 2001437, 2004070, 2004480, 2004530, 2005023, 2005718, 2012005, 2012006,
       2012024, 2012025, 2012026, 2014015, 2014026, 2014029, 2014601, 2014605, 2015113, 2015125,
       2019701, 2019750, 2020247, 2020378, 2021786, 2021820, 2026208, 2026216, 2026225, 2026236,
-      2026238, 2026241, 2026242, 2026243, 2026244, 2026245, 2032632, 2032645, 2032646, 2033020,
-      2034833, 2041900, 2043358, 2043702, 2043703, 2043705, 2043728, 2043741, 2043742, 2043744,
-      2043745, 2043746, 2043756, 2043758, 2043759, 2043761, 2043767, 2043768, 2043769, 2043770,
-      2043778, 2043780, 2045116, 2045146, 2045182, 2051246, 2051333, 2051334, 2053264, 2053265,
-      2053266, 2059815, 2059835, 2062401, 2062402, 2062405, 2062406, 2062701, 2062702, 2062703,
-      2062704, 2062705, 2062706, 2062707, 2062708, 2062710, 2062711, 2062712, 2062713, 2062714,
-      2062715, 2062716, 2062717, 2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2092608,
-      2093202, 2093204, 2093205, 2093206, 2093209, 2093210, 2096631, 2096670, 2096672, 2097061,
+      2026238, 2026241, 2026242, 2026243, 2026244, 2026245, 2032629, 2032632, 2032640, 2032641,
+      2032642, 2032643, 2032644, 2032645, 2032646, 2033000, 2033001, 2033004, 2033008, 2033009,
+      2033011, 2033015, 2033016, 2033020, 2033021, 2033022, 2034833, 2041900, 2043358, 2043702,
+      2043703, 2043705, 2043728, 2043741, 2043742, 2043744, 2043745, 2043746, 2043756, 2043758,
+      2043759, 2043761, 2043767, 2043768, 2043769, 2043770, 2043778, 2043780, 2045116, 2045146,
+      2045182, 2051246, 2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401,
+      2062402, 2062405, 2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706, 2062707,
+      2062708, 2062710, 2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717, 2062721,
+      2062722, 2081706, 2081746, 2081747, 2083224, 2092608, 2093202, 2093204, 2093205, 2093206,
+      2093209, 2093210, 2096631, 2096670, 2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2175,6 +2186,51 @@ void Test_spec_rol_planar_control_and_vrock_dance_profiles(CuTest *tc)
   CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
   complete_cmd_info = saved_complete_cmd_info;
   spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_avernus_devil_profiles_preserve_source_rolls(CuTest *tc)
+{
+  bool blocks_disarm;
+  bool freezing_tail;
+  bool glaive;
+  bool silence;
+  bool spear;
+
+  CuAssertTrue(tc, rol_avernus_barbazu_profile(2032629));
+  CuAssertTrue(tc, rol_avernus_barbazu_profile(2033022));
+  CuAssertTrue(tc, !rol_avernus_barbazu_profile(2033020));
+  CuAssertTrue(tc, rol_avernus_barbazu_berserk_roll_fires(0));
+  CuAssertTrue(tc, !rol_avernus_barbazu_berserk_roll_fires(1));
+  CuAssertTrue(tc, !rol_avernus_barbazu_berserk_roll_fires(20));
+
+  CuAssertTrue(tc, rol_avernus_gelugon_profile(2033015, &freezing_tail, &silence, &blocks_disarm));
+  CuAssertTrue(tc, freezing_tail);
+  CuAssertTrue(tc, silence);
+  CuAssertTrue(tc, !blocks_disarm);
+  CuAssertTrue(tc, rol_avernus_gelugon_profile(2033016, &freezing_tail, &silence, &blocks_disarm));
+  CuAssertTrue(tc, freezing_tail);
+  CuAssertTrue(tc, !silence);
+  CuAssertTrue(tc, blocks_disarm);
+  CuAssertTrue(tc, !rol_avernus_gelugon_profile(2033014, NULL, NULL, NULL));
+  CuAssertTrue(tc, rol_avernus_gelugon_tail_roll_fires(0));
+  CuAssertTrue(tc, !rol_avernus_gelugon_tail_roll_fires(1));
+  CuAssertTrue(tc, rol_avernus_meritos_silence_roll_fires(0));
+  CuAssertTrue(tc, !rol_avernus_meritos_silence_roll_fires(1));
+
+  CuAssertTrue(tc, rol_avernus_weapon_profile(2032602, &glaive, &spear));
+  CuAssertTrue(tc, glaive);
+  CuAssertTrue(tc, !spear);
+  CuAssertTrue(tc, rol_avernus_weapon_profile(2033012, &glaive, &spear));
+  CuAssertTrue(tc, !glaive);
+  CuAssertTrue(tc, spear);
+  CuAssertTrue(tc, !rol_avernus_weapon_profile(2033013, NULL, NULL));
+  CuAssertTrue(tc, rol_gelugon_freeze_spear_roll_fires(0));
+  CuAssertTrue(tc, !rol_gelugon_freeze_spear_roll_fires(1));
+
+  CuAssertIntEquals(tc, 60, rol_barbazu_bloodloss_next_hit(100));
+  CuAssertIntEquals(tc, -9, rol_barbazu_bloodloss_next_hit(20));
+  CuAssertIntEquals(tc, -9, rol_barbazu_bloodloss_next_hit(-9));
+  CuAssertIntEquals(tc, -5, rol_barbazu_bloodloss_next_hit(-5));
 }
 
 void Test_spec_rol_balor_weapon_profiles_and_whip_proc(CuTest *tc)

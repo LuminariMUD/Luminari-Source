@@ -13802,6 +13802,19 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   else if (ch && victim && GET_EQ(ch, WEAR_HANDS) && !victim_is_dead && is_bare_handed(ch))
     weapon_special(GET_EQ(ch, WEAR_HANDS), ch, victim, dam, attack_type, is_critical, hit_msg);
 
+  if (IS_NPC(victim) && !victim_is_dead && GET_POS(victim) > POS_DEAD && !DEAD(victim) &&
+      MOB_FLAGGED(victim, MOB_SPEC) && GET_MOB_SPEC(victim) != NULL)
+  {
+    spec_invalidation =
+        spec_gateway_mobile_was_hit(victim, ch, dam, attack_type, is_critical != FALSE);
+    if (spec_invalidation != SPEC_INVALIDATE_NONE)
+    {
+      if (attack_context_invalidated)
+        *attack_context_invalidated = TRUE;
+      return dam;
+    }
+  }
+
   /* vampiric curse will do some minor healing to attacker */
   if (!IS_UNDEAD(victim) && IS_AFFECTED(victim, AFF_VAMPIRIC_CURSE))
   {

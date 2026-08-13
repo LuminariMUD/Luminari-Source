@@ -256,6 +256,7 @@ typedef enum
   eAASIMAR_LIGHT_BEARER,        /* Aasimar Light Bearer daily uses */
   eROL_YGGDRASIL_RELEASE,       /* Converted Yggdrasil branch entangle release */
   eROL_SEELIE_FAERIE_FIRE,      /* Converted Seelie faerie-fire cooldown */
+  eROL_BARBAZU_BLOODLOSS,       /* Converted Barbazu glaive recurring blood loss */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

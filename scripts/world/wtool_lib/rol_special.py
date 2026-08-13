@@ -190,9 +190,15 @@ ADAPTED_HANDLER_NAMES = {
     "et_waterBoss": "RoL Monster Combat",
     "devil_pitFiendBite": "RoL Monster Combat",
     "devil_spinagonFlameSpike": "RoL Monster Combat",
+    "barbazu_berserk": "RoL Monster Combat",
+    "gelugon_tail_freeze": "RoL Monster Combat",
+    "avernus_gelugon_meritos": "RoL Monster Combat",
+    "avernus_gelugon_hanariel": "RoL Monster Combat",
     "demon_balorDeath": "RoL Monster Combat",
     "demon_balorLightningSword": "RoL Weapon Proc",
     "demon_balorWhip": "RoL Weapon Proc",
+    "barbazu_glaive": "RoL Weapon Proc",
+    "gelugon_freeze_spear": "RoL Weapon Proc",
     "demon_glabrezuGrab": "RoL Monster Combat",
     "demon_manesDeath": "RoL Monster Combat",
     "demon_marilithTail": "RoL Monster Combat",
@@ -519,6 +525,7 @@ COMPOSABLE_MOBILE_HANDLER_AFFECTS = {
 # the death callbacks run from make_corpse() before the ordinary corpse path.
 COMPOSABLE_MOBILE_RUNTIME_HANDLERS = {
     "standardDemon": "MOB_ROL_DEMON composition-safe runtime hook",
+    "dragon_shout": "RoL Guild Guard plus RoL alert runtime profile",
     "air_die": "converted mobile death profile",
     "earth_die": "converted mobile death profile",
     "elemental_tower_shout": "RoL Monster Combat plus RoL alert runtime profile",

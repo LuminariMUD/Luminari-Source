@@ -357,6 +357,55 @@ class RolTransformTests(unittest.TestCase):
     ):
       self.assertEqual("NATIVE_ADAPTED", dispositions[handler]["strategy"])
 
+  def test_avernus_devil_combat_bindings_compose_by_mobile_identity(self) -> None:
+    bindings = [
+        {
+            "basename": "avernus",
+            "record_type": record_type,
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for record_type, source_vnum, handler in (
+            ("mobile", 32622, "dragon_shout"),
+            ("mobile", 32622, "guild_guard"),
+            ("mobile", 32629, "barbazu_berserk"),
+            ("mobile", 33015, "gelugon_tail_freeze"),
+            ("mobile", 33015, "avernus_gelugon_meritos"),
+            ("mobile", 33016, "gelugon_tail_freeze"),
+            ("mobile", 33016, "avernus_gelugon_hanariel"),
+            ("object", 32602, "barbazu_glaive"),
+            ("object", 33012, "gelugon_freeze_spear"),
+        )
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+    dispositions = {row["source_handler"]: row for row in compiled.dispositions}
+
+    self.assertEqual(9, len(compiled.native_bindings))
+    self.assertIsNone(compiled.native_bindings[0].persisted_name)
+    self.assertEqual("RoL Guild Guard", compiled.native_bindings[1].persisted_name)
+    for binding in compiled.native_bindings[2:7]:
+      self.assertEqual("RoL Monster Combat", binding.persisted_name)
+      self.assertEqual((0,), binding.required_flag_bits)
+    for binding in compiled.native_bindings[7:]:
+      self.assertEqual("RoL Weapon Proc", binding.persisted_name)
+      self.assertEqual((44,), binding.required_flag_bits)
+
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", dispositions["dragon_shout"]["strategy"])
+    self.assertEqual(
+        "RoL Guild Guard plus RoL alert runtime profile",
+        dispositions["dragon_shout"]["target"],
+    )
+    for handler in (
+        "barbazu_berserk",
+        "gelugon_tail_freeze",
+        "avernus_gelugon_meritos",
+        "avernus_gelugon_hanariel",
+        "barbazu_glaive",
+        "gelugon_freeze_spear",
+    ):
+      self.assertEqual("NATIVE_ADAPTED", dispositions[handler]["strategy"])
+
   def test_color_and_line_endings_are_canonicalized(self) -> None:
     text, diagnostics = convert_text("&+RRed&N\r\nplain")
     self.assertEqual("@RRed@n\nplain", text)

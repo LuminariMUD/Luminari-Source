@@ -107,7 +107,9 @@ enum rol_weapon_effect
   ROL_WEAPON_KOR_BATTLEAXE,
   ROL_WEAPON_HELLISH_FURY_BOW,
   ROL_WEAPON_BALOR_WHIP,
-  ROL_WEAPON_BALOR_LIGHTNING_SWORD
+  ROL_WEAPON_BALOR_LIGHTNING_SWORD,
+  ROL_WEAPON_BARBAZU_GLAIVE,
+  ROL_WEAPON_GELUGON_FREEZE_SPEAR
 };
 
 struct rol_weapon_profile
@@ -202,6 +204,12 @@ static const struct rol_weapon_profile rol_weapon_profiles[] = {
      "Demon-only hit proc dealing 8d6 unavoidable magical force damage."},
     {2093228, ROL_WEAPON_BALOR_LIGHTNING_SWORD, 1, true,
      "Demon-only critical proc dealing 20d10 negative energy with a one-in-five area burst."},
+    {2032602, ROL_WEAPON_BARBAZU_GLAIVE, 1, true,
+     "Barbazu critical wound causing recurring nonlethal blood loss."},
+    {2033001, ROL_WEAPON_BARBAZU_GLAIVE, 1, true,
+     "Barbazu critical wound causing recurring nonlethal blood loss."},
+    {2033012, ROL_WEAPON_GELUGON_FREEZE_SPEAR, 3, false,
+     "One-in-three freezing bolt that slows its victim."},
 };
 
 struct rol_undead_drain_profile
@@ -275,6 +283,7 @@ struct rol_alert_profile
   const char *message;
   const int *helper_vnums;
   size_t helper_count;
+  int max_distance;
 };
 
 struct rol_fixed_bodyguard_profile
@@ -513,32 +522,37 @@ static const int rol_xzix_helpers[] = {2062421, 2062444, 2062433};
 static const int rol_drgun_helpers[] = {2062422, 2062442, 2062434};
 static const int rol_limj_helpers[] = {2062420, 2062443, 2062432};
 static const int rol_duyrn_helpers[] = {2062423, 2062441, 2062335};
+static const int rol_tiamat_dragon_helpers[] = {2036180};
 
 static const struct rol_alert_profile rol_alert_profiles[] = {
     {2019920,
      "You will pay for attacking me mortal worms!  Denizens of Darkness, Come and Feast upon %s!",
-     rol_demogorgon_helpers, sizeof(rol_demogorgon_helpers) / sizeof(rol_demogorgon_helpers[0])},
+     rol_demogorgon_helpers, sizeof(rol_demogorgon_helpers) / sizeof(rol_demogorgon_helpers[0]),
+     100},
     {2019921,
      "You will pay for attacking me mortal worms!  Denizens of Darkness, Come and Feast upon %s!",
-     rol_demogorgon_helpers, sizeof(rol_demogorgon_helpers) / sizeof(rol_demogorgon_helpers[0])},
+     rol_demogorgon_helpers, sizeof(rol_demogorgon_helpers) / sizeof(rol_demogorgon_helpers[0]),
+     100},
     {2024440, "Denizens of air!  Come and destroy %s!", rol_yancbin_helpers,
-     sizeof(rol_yancbin_helpers) / sizeof(rol_yancbin_helpers[0])},
+     sizeof(rol_yancbin_helpers) / sizeof(rol_yancbin_helpers[0]), 100},
     {2025406, "Denizens of fire!  Come and destroy %s!", rol_imix_helpers,
-     sizeof(rol_imix_helpers) / sizeof(rol_imix_helpers[0])},
+     sizeof(rol_imix_helpers) / sizeof(rol_imix_helpers[0]), 100},
     {2025409, "Those loyal to Imix!  Come and destroy %s!", rol_imix_pet_helpers,
-     sizeof(rol_imix_pet_helpers) / sizeof(rol_imix_pet_helpers[0])},
+     sizeof(rol_imix_pet_helpers) / sizeof(rol_imix_pet_helpers[0]), 100},
     {2059810, "Ssussun pholor dos %s!!  A'Quarthus Velg'Larn ulu ussa!!", rol_drisinil_helpers,
-     sizeof(rol_drisinil_helpers) / sizeof(rol_drisinil_helpers[0])},
+     sizeof(rol_drisinil_helpers) / sizeof(rol_drisinil_helpers[0]), 100},
     {2059830, "(%s!! Ut baruk KneeCappers Ai-Menu!!", rol_tukra_helpers,
-     sizeof(rol_tukra_helpers) / sizeof(rol_tukra_helpers[0])},
+     sizeof(rol_tukra_helpers) / sizeof(rol_tukra_helpers[0]), 100},
     {2062401, "Come to my aid!", rol_xzix_helpers,
-     sizeof(rol_xzix_helpers) / sizeof(rol_xzix_helpers[0])},
+     sizeof(rol_xzix_helpers) / sizeof(rol_xzix_helpers[0]), 100},
     {2062402, "Come to my aid my minions!", rol_drgun_helpers,
-     sizeof(rol_drgun_helpers) / sizeof(rol_drgun_helpers[0])},
+     sizeof(rol_drgun_helpers) / sizeof(rol_drgun_helpers[0]), 100},
     {2062405, "Come protect me my pets!", rol_limj_helpers,
-     sizeof(rol_limj_helpers) / sizeof(rol_limj_helpers[0])},
+     sizeof(rol_limj_helpers) / sizeof(rol_limj_helpers[0]), 100},
     {2062406, "Protect me my minions!", rol_duyrn_helpers,
-     sizeof(rol_duyrn_helpers) / sizeof(rol_duyrn_helpers[0])},
+     sizeof(rol_duyrn_helpers) / sizeof(rol_duyrn_helpers[0]), 100},
+    {2032622, "Children of Tiamat, come defend me from these intruders!", rol_tiamat_dragon_helpers,
+     sizeof(rol_tiamat_dragon_helpers) / sizeof(rol_tiamat_dragon_helpers[0]), 30},
 };
 
 static const struct rol_fixed_bodyguard_profile rol_fixed_bodyguard_profiles[] = {
@@ -1571,8 +1585,15 @@ bool rol_alert_helper_matches(int caller_vnum, int helper_vnum)
   return false;
 }
 
+int rol_alert_max_distance(int caller_vnum)
+{
+  const struct rol_alert_profile *profile = rol_alert_profile_for(caller_vnum);
+
+  return profile != NULL ? profile->max_distance : 0;
+}
+
 static bool rol_alert_helper_can_answer(struct char_data *helper, struct char_data *caller,
-                                        struct char_data *victim)
+                                        struct char_data *victim, int max_distance)
 {
   int distance;
 
@@ -1585,7 +1606,7 @@ static bool rol_alert_helper_can_answer(struct char_data *helper, struct char_da
     return false;
 
   distance = count_rooms_between(IN_ROOM(helper), IN_ROOM(caller));
-  return distance >= 0 && distance <= 100;
+  return distance >= 0 && distance <= max_distance;
 }
 
 static int rol_alert_combat_turn(struct char_data *caller)
@@ -1618,7 +1639,7 @@ static int rol_alert_combat_turn(struct char_data *caller)
   send_to_zone(alert, GET_ROOM_ZONE(IN_ROOM(caller)));
 
   for (helper = character_list; helper != NULL; helper = helper->next)
-    if (rol_alert_helper_can_answer(helper, caller, victim))
+    if (rol_alert_helper_can_answer(helper, caller, victim, profile->max_distance))
       HUNTING(helper) = victim;
 
   caller->mob_specials.rol_alert_fired = true;
@@ -1713,6 +1734,22 @@ EVENTFUNC(event_rol_yggdrasil_release)
     affect_from_char(victim, SPELL_ENTANGLE);
   GET_MOVE(victim) = rol_yggdrasil_release_move(GET_MOVE(victim));
   return 0;
+}
+
+EVENTFUNC(event_rol_barbazu_bloodloss)
+{
+  struct mud_event_data *event = event_obj;
+  struct char_data *victim;
+
+  if (event == NULL || (victim = event->pStruct) == NULL)
+    return 0;
+  if (IS_NPC(victim) || GET_LEVEL(victim) >= LVL_IMMORT || GET_HIT(victim) <= -5)
+    return PULSE_VIOLENCE * 3;
+
+  send_to_char(victim, "\trYour wounds continue to bleed out of control!\tn\r\n");
+  GET_HIT(victim) = rol_barbazu_bloodloss_next_hit(GET_HIT(victim));
+  update_pos(victim);
+  return PULSE_VIOLENCE * 3;
 }
 
 int rol_yggdrasil_branch(struct char_data *ch, void *me, int cmd, const char *argument)
@@ -3331,7 +3368,7 @@ int rol_guild_guard_typed(struct spec_event_context *context)
 
   guard = context->owner;
   if (guard == NULL || !IS_NPC(guard) || !VALID_ROOM_RNUM(IN_ROOM(guard)) ||
-      GET_MOB_LOADROOM(guard) != IN_ROOM(guard))
+      (context->event != SPEC_EVENT_MOBILE_HIT && GET_MOB_LOADROOM(guard) != IN_ROOM(guard)))
     return FALSE;
 
   switch (context->event)
@@ -3339,6 +3376,8 @@ int rol_guild_guard_typed(struct spec_event_context *context)
   case SPEC_EVENT_COMMAND:
     return rol_guild_guard(context->actor, guard, context->command, context->argument);
   case SPEC_EVENT_MOBILE_ACTIVITY:
+    if (FIGHTING(guard) == NULL && rol_alert_profile_for(GET_MOB_VNUM(guard)) != NULL)
+      guard->mob_specials.rol_alert_fired = false;
     current_room_vnum = GET_ROOM_VNUM(IN_ROOM(guard));
     if (rol_guild_guard_protects(current_room_vnum) && FIGHTING(guard) != NULL &&
         !IS_NPC(FIGHTING(guard)))
@@ -3351,6 +3390,8 @@ int rol_guild_guard_typed(struct spec_event_context *context)
     if (rol_guild_guard_protects(current_room_vnum) && FIGHTING(guard) != NULL)
       return rol_guild_guard_protection(guard, FIGHTING(guard));
     return FALSE;
+  case SPEC_EVENT_MOBILE_HIT:
+    return rol_alert_combat_turn(guard);
   default:
     return FALSE;
   }
@@ -6718,6 +6759,39 @@ bool rol_balor_weapon_profile(int object_vnum, int *dice_count, int *dice_size, 
   return true;
 }
 
+bool rol_avernus_weapon_profile(int object_vnum, bool *barbazu_glaive, bool *gelugon_freeze_spear)
+{
+  const struct rol_weapon_profile *profile = rol_weapon_profile_for(object_vnum);
+  bool is_glaive;
+  bool is_spear;
+
+  if (profile == NULL)
+    return false;
+  is_glaive = profile->effect == ROL_WEAPON_BARBAZU_GLAIVE;
+  is_spear = profile->effect == ROL_WEAPON_GELUGON_FREEZE_SPEAR;
+  if (!is_glaive && !is_spear)
+    return false;
+  if (barbazu_glaive != NULL)
+    *barbazu_glaive = is_glaive;
+  if (gelugon_freeze_spear != NULL)
+    *gelugon_freeze_spear = is_spear;
+  return true;
+}
+
+bool rol_gelugon_freeze_spear_roll_fires(int roll)
+{
+  return roll == 0;
+}
+
+int rol_barbazu_bloodloss_next_hit(int current_hit)
+{
+  if (current_hit <= -5)
+    return current_hit;
+  if (current_hit - 40 <= -10)
+    return -9;
+  return current_hit - 40;
+}
+
 static int rol_weapon_slot(const struct char_data *ch, const struct obj_data *obj)
 {
   int wear;
@@ -7725,6 +7799,68 @@ static int rol_balor_weapon_pulse(struct spec_event_context *context, struct cha
   return TRUE;
 }
 
+static int rol_barbazu_glaive(struct char_data *ch, struct obj_data *obj, struct char_data *victim,
+                              bool critical)
+{
+  if (!critical || ch == NULL || victim == NULL || !IS_NPC(ch) || IS_PET(ch) ||
+      FIGHTING(ch) == NULL)
+    return FALSE;
+  if (IS_NPC(victim))
+  {
+    (void)rol_weapon_damage(ch, victim, 100, DAM_BLEEDING);
+    return FALSE;
+  }
+
+  act("You send a wicked slash across $N, opening a deep wound.", FALSE, ch, obj, victim, TO_CHAR);
+  act("$n's glaive cuts open a wicked wound that bleeds uncontrollably.", FALSE, ch, obj, victim,
+      TO_VICT);
+  act("$n sends a wicked slash across $N, opening a deep wound.", FALSE, ch, obj, victim,
+      TO_NOTVICT);
+  attach_mud_event(new_mud_event(eROL_BARBAZU_BLOODLOSS, victim, NULL), PULSE_VIOLENCE * 3);
+  return TRUE;
+}
+
+static int rol_gelugon_freeze_spear(struct char_data *ch, struct obj_data *obj,
+                                    struct char_data *victim)
+{
+  struct affected_type affect;
+
+  if (!rol_gelugon_freeze_spear_roll_fires(rand_number(0, 2)) ||
+      affected_by_spell(victim, SPELL_SLOW) || AFF_FLAGGED(victim, AFF_SLOW) ||
+      savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), NOSCHOOL))
+    return FALSE;
+
+  new_affect(&affect);
+  affect.spell = SPELL_SLOW;
+  affect.duration = dice(2, 4);
+  SET_BIT_AR(affect.bitvector, AFF_SLOW);
+  affect_to_char(victim, &affect);
+  act("Your $p glows ice blue and sends a freezing bolt toward $N!", TRUE, ch, obj, victim,
+      TO_CHAR);
+  act("$n's $p glows ice blue and sends a freezing bolt toward $N!", TRUE, ch, obj, victim,
+      TO_NOTVICT);
+  act("$n's $p sends a freezing bolt toward you. Your joints go numb as the cold takes hold!", TRUE,
+      ch, obj, victim, TO_VICT);
+  return TRUE;
+}
+
+static int rol_gelugon_freeze_spear_pulse(struct spec_event_context *context, struct char_data *ch,
+                                          struct obj_data *obj)
+{
+  if (ch == NULL || (obj->worn_by != ch && obj->carried_by != ch))
+    return FALSE;
+  if ((IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ROL_DEVIL) && !IS_PET(ch)) || GET_LEVEL(ch) >= LVL_IMMORT)
+    return TRUE;
+
+  act("$p flashes with intense light, burning you severely.", FALSE, ch, obj, NULL, TO_CHAR);
+  act("$n winces as intense light surrounds $m.", FALSE, ch, obj, NULL, TO_ROOM);
+  GET_OBJ_VAL(obj, 1) = 1;
+  GET_OBJ_VAL(obj, 2) = 1;
+  if (damage(ch, ch, rand_number(5, 50), -1, DAM_FIRE, FALSE) < 0)
+    context->invalidation |= SPEC_INVALIDATE_ACTOR;
+  return TRUE;
+}
+
 static int rol_weapon_hit(struct spec_event_context *context,
                           const struct rol_weapon_profile *profile, struct char_data *ch,
                           struct obj_data *obj, struct char_data *victim, int slot)
@@ -7737,6 +7873,10 @@ static int rol_weapon_hit(struct spec_event_context *context,
 
   switch (profile->effect)
   {
+  case ROL_WEAPON_BARBAZU_GLAIVE:
+    return rol_barbazu_glaive(ch, obj, victim, context->critical);
+  case ROL_WEAPON_GELUGON_FREEZE_SPEAR:
+    return rol_gelugon_freeze_spear(ch, obj, victim);
   case ROL_WEAPON_BALOR_WHIP:
     return rol_balor_whip(context, ch, obj, victim);
   case ROL_WEAPON_BALOR_LIGHTNING_SWORD:
@@ -8049,6 +8189,8 @@ int rol_weapon_proc_typed(struct spec_event_context *context)
         return FALSE;
       return rol_balor_weapon_pulse(context, ch, obj);
     }
+    if (profile->effect == ROL_WEAPON_GELUGON_FREEZE_SPEAR)
+      return rol_gelugon_freeze_spear_pulse(context, ch, obj);
     if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID ||
         (slot = rol_weapon_slot(ch, obj)) < 0)
       return FALSE;

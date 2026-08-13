@@ -174,6 +174,7 @@ int rol_bandit_fee_gold(int target_vnum, int cargo_value, int alignment, int car
 bool rol_sister_knight_vnum(int vnum);
 const char *rol_alert_message(int caller_vnum);
 bool rol_alert_helper_matches(int caller_vnum, int helper_vnum);
+int rol_alert_max_distance(int caller_vnum);
 bool rol_yggdrasil_vnum(int vnum);
 int rol_yggdrasil_release_move(int current_move);
 int rol_waterdeep_ambient_roll_sides(int mobile_vnum);
@@ -187,6 +188,7 @@ int rol_conversion_death_replacement_vnum(int vnum);
 int rol_conversion_death_object_vnum(int vnum);
 bool rol_conversion_death_retargets_clerics(int vnum);
 long event_rol_yggdrasil_release(void *event_obj);
+long event_rol_barbazu_bloodloss(void *event_obj);
 const char *rol_bloodstone_critter_social(int roll);
 size_t rol_source_periodic_profile_count(void);
 bool rol_source_periodic_profile_bounds(int mobile_vnum, int *roll_min, int *roll_max,
@@ -210,6 +212,9 @@ bool rol_weapon_profile(int object_vnum, int *proc_denominator, bool *critical_o
                         const char **description);
 bool rol_balor_weapon_profile(int object_vnum, int *dice_count, int *dice_size, int *damage_type);
 bool rol_balor_weapon_owner_allowed(const struct char_data *ch, bool allow_pet);
+bool rol_avernus_weapon_profile(int object_vnum, bool *barbazu_glaive, bool *gelugon_freeze_spear);
+bool rol_gelugon_freeze_spear_roll_fires(int roll);
+int rol_barbazu_bloodloss_next_hit(int current_hit);
 bool rol_bloodstone_portal_survives(int current_hit, int hit_loss);
 bool rol_portal_door_race_allows(bool rejects_good, int race);
 int rol_travel_portal_destination_slot(int object_vnum, int roll);
@@ -234,6 +239,12 @@ size_t rol_monster_combat_profile_count(void);
 bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const char **description);
 bool rol_planar_death_profile(int mobile_vnum, bool *suppresses_corpse);
 bool rol_planar_burst_profile(int mobile_vnum, bool *screech, bool *spores, bool *flame_spikes);
+bool rol_avernus_barbazu_profile(int mobile_vnum);
+bool rol_avernus_gelugon_profile(int mobile_vnum, bool *freezing_tail, bool *silencing_bolt,
+                                 bool *blocks_disarm);
+bool rol_avernus_barbazu_berserk_roll_fires(int roll);
+bool rol_avernus_gelugon_tail_roll_fires(int roll);
+bool rol_avernus_meritos_silence_roll_fires(int roll);
 enum rol_planar_control_kind
 {
   ROL_PLANAR_CONTROL_NONE = 0,

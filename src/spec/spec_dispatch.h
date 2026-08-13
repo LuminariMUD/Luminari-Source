@@ -124,6 +124,9 @@ void spec_gateway_mobile_combat_turn(struct char_data *mob);
 /** Notification only; returns pointers invalidated by an on-hit handler. */
 spec_invalidate_mask spec_gateway_mobile_hit(struct char_data *mob, struct char_data *target,
                                              int damage, int attack_type, bool critical);
+/** Notification only; returns pointers invalidated after an NPC receives a successful hit. */
+spec_invalidate_mask spec_gateway_mobile_was_hit(struct char_data *mob, struct char_data *attacker,
+                                                 int damage, int attack_type, bool critical);
 /** STOP suppresses the ordinary NPC corpse after the handler replaces it. */
 int spec_gateway_mobile_death(struct char_data *mob, struct char_data *killer);
 /** STOP skips the carried-object fallback invocation. */

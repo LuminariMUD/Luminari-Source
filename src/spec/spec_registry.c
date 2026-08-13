@@ -94,6 +94,7 @@ static const struct spec_event_contract rol_monster_events[] = {
     {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
     {SPEC_EVENT_MOBILE_DEATH, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_MOBILE_HIT, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
+    {SPEC_EVENT_MOBILE_WAS_HIT, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
 };
 
 static const struct spec_event_contract rol_ship_navigator_events[] = {
@@ -105,6 +106,7 @@ static const struct spec_event_contract rol_guild_guard_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
+    {SPEC_EVENT_MOBILE_HIT, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
 };
 
 static const struct spec_event_contract rol_bandit_events[] = {
@@ -1972,6 +1974,7 @@ static spec_owner_mask spec_event_owner_mask(spec_event_mask event)
   case SPEC_EVENT_MOBILE_COMBAT_TURN:
   case SPEC_EVENT_MOBILE_DEATH:
   case SPEC_EVENT_MOBILE_HIT:
+  case SPEC_EVENT_MOBILE_WAS_HIT:
   case SPEC_EVENT_MOUNT_CHARGE:
     return SPEC_OWNER_MOBILE;
   case SPEC_EVENT_OBJECT_AUTO_PULSE:
@@ -1995,6 +1998,7 @@ static spec_prototype_flag_mask spec_event_required_prototype_flags(spec_event_m
   case SPEC_EVENT_MOBILE_COMBAT_TURN:
   case SPEC_EVENT_MOBILE_DEATH:
   case SPEC_EVENT_MOBILE_HIT:
+  case SPEC_EVENT_MOBILE_WAS_HIT:
     return SPEC_PROTOTYPE_MOB_SPEC;
   case SPEC_EVENT_OBJECT_AUTO_PULSE:
     return SPEC_PROTOTYPE_ITEM_AUTOPROC;
@@ -2009,6 +2013,7 @@ static spec_placement_mask spec_event_required_placement(spec_event_mask event)
   {
   case SPEC_EVENT_MOBILE_COMBAT_TURN:
   case SPEC_EVENT_MOBILE_HIT:
+  case SPEC_EVENT_MOBILE_WAS_HIT:
     return SPEC_PLACEMENT_COMBAT;
   case SPEC_EVENT_WEAPON_HIT:
   case SPEC_EVENT_DEFENSE_REACTION:
@@ -2472,6 +2477,8 @@ const char *spec_event_name(spec_event_mask event)
     return "mobile death";
   case SPEC_EVENT_MOBILE_HIT:
     return "mobile hit";
+  case SPEC_EVENT_MOBILE_WAS_HIT:
+    return "mobile was hit";
   default:
     return NULL;
   }

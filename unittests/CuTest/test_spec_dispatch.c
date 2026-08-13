@@ -200,6 +200,7 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   bool identify_continues;
   bool weapon_hit_continues;
   bool mobile_hit_continues;
+  bool mobile_was_hit_continues;
 
   if (!spec_dispatch_begin(&fixture))
   {
@@ -215,6 +216,7 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   fixture.returns[4] = 1;
   fixture.returns[5] = 1;
   fixture.returns[6] = 1;
+  fixture.returns[7] = 1;
 
   memset(&context, 0, sizeof(context));
   context.owner_type = SPEC_OWNER_OBJECT;
@@ -262,6 +264,10 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   (void)spec_dispatch_legacy(&context, spec_dispatch_record);
   mobile_hit_continues = context.flow == SPEC_FLOW_CONTINUE && context.legacy_return == 1;
 
+  context.event = SPEC_EVENT_MOBILE_WAS_HIT;
+  (void)spec_dispatch_legacy(&context, spec_dispatch_record);
+  mobile_was_hit_continues = context.flow == SPEC_FLOW_CONTINUE && context.legacy_return == 1;
+
   spec_dispatch_end(&fixture);
 
   CuAssertTrue(tc, command_stops);
@@ -271,6 +277,7 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   CuAssertTrue(tc, identify_continues);
   CuAssertTrue(tc, weapon_hit_continues);
   CuAssertTrue(tc, mobile_hit_continues);
+  CuAssertTrue(tc, mobile_was_hit_continues);
 }
 
 void Test_spec_dispatch_mobile_death_skips_unadvertised_handlers(CuTest *tc)

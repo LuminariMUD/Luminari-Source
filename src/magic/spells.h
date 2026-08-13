@@ -767,6 +767,7 @@
 #define AFFECT_ROL_UNDEAD_MELEE_DRAIN 1337
 #define AFFECT_ROL_UNDEAD_SPELL_DRAIN 1338
 #define AFFECT_ROL_MANSCORPION_VENOM 1339
+#define AFFECT_ROL_BARBAZU_BERSERK 1340
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
