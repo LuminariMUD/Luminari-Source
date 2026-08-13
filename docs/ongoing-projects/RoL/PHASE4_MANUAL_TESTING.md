@@ -794,6 +794,30 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   illusionist 2062707 uses six rounds. The source event is consumed after the first eligible
   target, even when that target is not hidden.
 
+### Phase 6 converted Hive manscorpion venom profiles
+
+- Build a dependency-complete Hive stage containing light-venom mobiles 2043703, 2043728,
+  2043744, 2043746, and 2043761; medium-venom mobiles 2043702, 2043745, 2043759, and
+  2043780; heavy-venom mobiles 2043756, 2043758, 2043768-2043770, and 2043778; and king
+  2043767. Confirm all 16 use `RoL Monster Combat` with `MOB_SPEC` and identify with the
+  matching venom profile.
+- Repeatedly land successful attacks with each tier. Light, medium, heavy, and king profiles
+  should trigger about once per 31, 7, 11, and 25 qualifying hits respectively. On a trigger,
+  confirm the venom chooses a random mortal PC in the room rather than always choosing the
+  character struck by the attack. Pets and NPCs must not be selected.
+- For light, medium, and heavy venom, confirm target-native poison immunity prevents the affect
+  and a successful Fortitude save dissolves it. A failed save applies -2 Constitution for six,
+  four, or two ticks respectively. A target already carrying manscorpion venom must not receive
+  a second copy or have its existing duration replaced.
+- Without RoL slow poison, allow king venom to trigger and confirm the selected mortal dies
+  immediately through the source lethal branch. With RoL slow poison active, confirm the king
+  instead follows the ordinary poison-immunity and Fortitude-save path and applies the same
+  nonstacking -2 Constitution affect for one tick on a failed save.
+- When king venom kills its selected target, including when that target was the character
+  struck, confirm the remaining hit sequence stops cleanly: no later critical-hit, artifact, or
+  weapon riders may access the extracted character. Unrelated mobiles must receive no
+  successful-hit callback.
+
 ### Phase 6 converted Waterdeep ambient citizens
 
 - Build dependency-complete stages containing the first 34 converted ambient citizens:
@@ -1216,8 +1240,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,370 are resolved and 351 remain. Of 795 distinct
-  direct source handlers, 571 are resolved and 224 remain. Of 848 `ACT_SPEC` records, 799
+  of the 1,721 active direct bindings, 1,386 are resolved and 335 remain. Of 795 distinct
+  direct source handlers, 575 are resolved and 220 remain. Of 848 `ACT_SPEC` records, 799
   are resolved and 49 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

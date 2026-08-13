@@ -9,6 +9,67 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Hive manscorpion venom family
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled 16 Hive manscorpion bindings across `manscorpion_venom_light`,
+  `manscorpion_venom_medium`, `manscorpion_venom_heavy`, and `manscorpion_king` through exact
+  identity-owned profiles on the persistent `RoL Monster Combat` mobile procedure.
+- Added the typed successful-mobile-hit gateway and invoked it only after a completed damaging
+  hit. The gateway validates the attacker and randomly selected mortal room target, and it
+  invalidates the remaining attack context if lethal king venom extracts that target.
+- Preserved the source one-in-31, one-in-7, one-in-11, and one-in-25 trigger chances. Nonfatal
+  venom uses target-native poison immunity and Fortitude saves, applies nonstacking -2
+  Constitution for six, four, or two ticks, and king venom kills immediately unless RoL slow
+  poison is active, in which case it follows the one-tick nonfatal path.
+- Added exact binding-set, profile, affect, event-dispatch, gateway, registry, and
+  production-linked behavioral coverage. No player helpfile changed because the batch adds no
+  command or syntax; the staff manual now covers the converted Hive behaviors.
+- Regenerated the corrected Phase 6 evidence. Resolution increases from 1,370 to 1,386 static
+  bindings and from 571 to 575 direct handlers, leaving 335 bindings across 220 handlers in 34
+  source files. The independent `ACT_SPEC` cross-check remains 799 resolved and 49 pending.
+- Reforecast the seven corrected batches, which closed 140 bindings across 37 handlers. The
+  binding-count projection is about 17 additional batches and the handler-diversity projection
+  about 42; the measured Phase 6 envelope is therefore 18-42 sessions, or 36-168 focused
+  engineering hours. The full remaining project envelope is 74-126 sessions, or 148-504
+  focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 236296dd
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-hive-manscorpion-venom
+Reconciliation run: rol-phase6-special-6cfc16c58f7802e2
+Evidence tree SHA-256: 3e600d5c5515e2e09ec64f882a98f2d647459466cbc7d44987381484319df8f1
+Active direct bindings: 1,721
+Direct bindings resolved: 1,386
+Direct bindings pending: 335
+Source handlers resolved: 575
+Source handlers pending: 220
+Additional handler families resolved: 4
+Additional direct bindings resolved: 16
+Native adapted bindings: 852
+Native adapted composable bindings: 207
+ACT_SPEC records resolved: 799
+ACT_SPEC records pending: 49
+Complete world-tool suite: 331 passed
+Production-linked CuTest suite: 668 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 7f003f9fda14f34566f8e5fcca02f0284bb16829
+Installed SHA-256: 3ba54e3be21f60f0abed6a608e838ebe41e76f7ae7afce72685f9c127044e65d
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with another dependency-complete shared-runtime family. Reforecast after
+another material batch or any inventory correction.
+
 ## 2026-08-13 - Phase 6 Seelie faerie family
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

@@ -3,7 +3,7 @@
 - Updated: 2026-08-13
 - Environment: development
 - Branch: `master`
-- Current task: reconcile the remaining planar combat and death Phase 6 families
+- Current task: reconcile the remaining dependency-complete Phase 6 special families
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 - Phase 4 manual test matrix: [PHASE4_MANUAL_TESTING.md](PHASE4_MANUAL_TESTING.md)
 
@@ -109,6 +109,10 @@ Phase 6 Tarrasque-encounter commit: bbdf893a
 Phase 6 exact-class-guild commit: b0e924b8
 Phase 6 planar-demon-base commit: c90ced37
 Phase 6 planar-mobile-initializer commit: 66c3d7a1
+Phase 6 Darkhold-elemental-death commit: 41ba7cea
+Phase 6 Seelie-faerie commit: f945051b
+Phase 6 Seelie-disabled-state compatibility commit: f40a5e48
+Phase 6 Hive-manscorpion-venom commit: 236296dd
 ```
 
 The authoritative ignored runs are:
@@ -317,6 +321,15 @@ Phase 6 planar demon base:
 Phase 6 planar mobile initializers:
   lib/rol-conversion/runs/phase6-special-20260813-planar-initializers
   rol-phase6-special-49b79534c90b09d7
+Phase 6 Darkhold elemental deaths:
+  lib/rol-conversion/runs/phase6-special-20260813-darkhold-elemental-deaths
+  rol-phase6-special-cc108f5e1415f677
+Phase 6 Seelie faeries:
+  lib/rol-conversion/runs/phase6-special-20260813-seelie-faerie
+  rol-phase6-special-66858c11e3301a3e
+Phase 6 Hive manscorpion venom:
+  lib/rol-conversion/runs/phase6-special-20260813-hive-manscorpion-venom
+  rol-phase6-special-6cfc16c58f7802e2
 Policy:  rol-conversion-policy-2
 ```
 
@@ -347,10 +360,10 @@ Policy:  rol-conversion-policy-2
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
 - The world-tool suite passes 316 tests; the production-linked CuTest suite passes 661;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The corrected discovery repair and six subsequent denominator-bearing batches are archived.
-  Those batches closed 124 bindings across 33 source handlers. The measured remaining Phase 6
-  forecast is 18-41 sessions, or 36-164 focused engineering hours; the full remaining project
-  range is 74-125 sessions, or 148-500 focused hours.
+- The corrected discovery repair and seven subsequent denominator-bearing batches are archived.
+  Those batches closed 140 bindings across 37 source handlers. The measured remaining Phase 6
+  forecast is 18-42 sessions, or 36-168 focused engineering hours; the full remaining project
+  range is 74-126 sessions, or 148-504 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -399,8 +412,8 @@ Policy:  rol-conversion-policy-2
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
 - The repaired Phase 6 inventory accounts for 1,721 active direct bindings across 795 source
-  handlers and locates all 795 source definitions. The current reconciliation resolves 1,370
-  bindings across 571 handlers and leaves 351 bindings across 224 handlers.
+  handlers and locates all 795 source definitions. The current reconciliation resolves 1,386
+  bindings across 575 handlers and leaves 335 bindings across 220 handlers.
 - The independent `ACT_SPEC` cross-check resolves 799 of 848 records and leaves 49
   pending. It remains a scheduling cross-check rather than the direct-binding denominator;
   composition-safe flags and room or object procedures can resolve source handlers without
@@ -671,9 +684,9 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,370 static bindings and leaves 351 pending. It resolves
-  571 direct handler names and leaves 224 pending across 34 source files. The pending set has
-  177 singleton handlers, 37 handlers with two to four bindings, seven with five to nine, and
+- The corrected reconciler resolves 1,386 static bindings and leaves 335 pending. It resolves
+  575 direct handler names and leaves 220 pending across 34 source files. The pending set has
+  176 singleton handlers, 36 handlers with two to four bindings, five with five to nine, and
   three with at least ten bindings.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
@@ -722,10 +735,14 @@ Policy:  rol-conversion-policy-2
   Exact identity profiles compose the source prismatic, faerie-fire, and hidden-target search
   capabilities through `RoL Monster Combat`; the gateway also preserves the source chance to
   act and recover while disabled without changing unrelated mobiles.
-- The six corrected batches close 124 bindings across 33 handlers. That measured throughput
+- The Hive manscorpion-venom batch closes 16 bindings across four handlers. A typed
+  successful-mobile-hit gateway preserves the source one-in-31, one-in-7, one-in-11, and
+  one-in-25 chances, random mortal targeting, poison eligibility and saves, nonstacking
+  Constitution loss, and the king's slow-poison-dependent lethal branch.
+- The seven corrected batches close 140 bindings across 37 handlers. That measured throughput
   puts the binding-count projection near 17 sessions and the handler-diversity projection near
-  41. Because 177 remaining handlers are singletons, the published Phase 6 envelope is 18-41
-  sessions, or 36-164 focused engineering hours. Reforecast after another material batch or an
+  42. Because 176 remaining handlers are singletons, the published Phase 6 envelope is 18-42
+  sessions, or 36-168 focused engineering hours. Reforecast after another material batch or an
   inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
@@ -740,32 +757,34 @@ Policy:  rol-conversion-policy-2
    smallest-unit exclusions.
 5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the 18-41-session Phase 6 envelope and reforecast after another
+6. Measure throughput against the 18-42-session Phase 6 envelope and reforecast after another
    material batch or an inventory correction.
 
 ## Latest session handoff
 
-- Reconciled 38 Seelie Court bindings across `standard_faerie_prism`,
-  `standard_faerie_ff`, and `faerie_search` on 18 converted mobiles through exact capability
-  profiles owned by the persistent `RoL Monster Combat` procedure.
-- Preserved the prismatic cadence, beam multiplicity and eight color outcomes, faerie-fire
-  cadence and cooldown, hidden-target search/reveal/stun behavior, and the source ability to act
-  while disabled. Added exact profile, binding-set, helper, gateway, and production-linked
-  behavioral coverage.
+- Reconciled 16 Hive bindings across `manscorpion_venom_light`,
+  `manscorpion_venom_medium`, `manscorpion_venom_heavy`, and `manscorpion_king` through exact
+  capability profiles owned by the persistent `RoL Monster Combat` procedure.
+- Added a typed successful-mobile-hit event after completed damage and weapon poison handling.
+  Preserved the source random mortal target, tier-specific chances and durations, native poison
+  immunity and Fortitude saves, nonstacking -2 Constitution, and the king's immediate-death
+  branch when RoL slow poison is absent. Lethal extraction invalidates the remaining hit context
+  so later critical-hit riders cannot touch a relocated victim.
 - Regenerated and hash-verified the authoritative Phase 6 bundle at
-  `lib/rol-conversion/runs/phase6-special-20260813-seelie-faerie`. A same-timestamp repeat was
-  byte-identical and reproduced run ID `rol-phase6-special-66858c11e3301a3e` and tree digest
-  `c52763d7c464a3b18ac97026a9462e79d8b510a1c44cfc95b2757bf38033f2c8`.
+  `lib/rol-conversion/runs/phase6-special-20260813-hive-manscorpion-venom`. A same-timestamp
+  repeat was byte-identical and reproduced run ID `rol-phase6-special-6cfc16c58f7802e2` and
+  tree digest `3e600d5c5515e2e09ec64f882a98f2d647459466cbc7d44987381484319df8f1`.
 - The corrected Phase 6 denominator remains 1,721 live static plus 5,531 resolved dynamic
-  binding instances. This closure raises static resolution to 1,370 and handler resolution to
-  571, leaving 351 bindings across 224 handlers in 34 source files. The `ACT_SPEC` cross-check
+  binding instances. This closure raises static resolution to 1,386 and handler resolution to
+  575, leaving 335 bindings across 220 handlers in 34 source files. The `ACT_SPEC` cross-check
   is 799 resolved and 49 pending.
-- Final validation passed: 330 world-tool tests, 666 production-linked CuTests, zero
+- Final validation passed: 331 world-tool tests, 668 production-linked CuTests, zero
   documentation findings, a warning-free Autotools build/test/install, and no root-level
-  `circle`. Installed build ID `7e5309c5e4da2c8daa72dd579d14fbf2ded461c4`; SHA-256
-  `30b3c1ce894fa329aa183d41c626076da859d16cea9161a75b70f5eb0e28a387`.
-- No player helpfile changed: the batch adds no command or syntax. The staff manual matrix now
-  covers the 18 Seelie mobiles and their combat, reveal, disabled-state, and cooldown behavior.
-- The six-batch sample sets the Phase 6 envelope at 18-41 sessions, or 36-164 focused hours.
+  `circle`. Installed build ID `7f003f9fda14f34566f8e5fcca02f0284bb16829`; SHA-256
+  `3ba54e3be21f60f0abed6a608e838ebe41e76f7ae7afce72685f9c127044e65d`.
+- No player helpfile changed: the batch adds no command or syntax. The staff manual matrix covers
+  all 16 mobiles, chance tiers, save and immunity paths, nonstacking affect behavior, and lethal
+  attack-context invalidation.
+- The seven-batch sample sets the Phase 6 envelope at 18-42 sessions, or 36-168 focused hours.
   Next, complete another dependency-complete shared-runtime family and reforecast after a
   material batch or inventory correction.
