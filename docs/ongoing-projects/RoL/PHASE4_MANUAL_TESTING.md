@@ -849,6 +849,38 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   confirm target-native area safety chooses only eligible opponents. Unprofiled mobiles must
   receive no successful-hit behavior.
 
+### Phase 6 converted Hive Skriaxit sandstorm profiles
+
+- Build a dependency-complete Hive stage containing converted Skriaxits 2043741 and 2043742.
+  Confirm both use `RoL Monster Combat` with `MOB_SPEC` and identify with the three-round
+  scheduled sandstorm profile. Unprofiled mobiles must receive no such scheduled behavior.
+- Observe at least six mobile activity pulses while a Skriaxit is idle, then while it is
+  fighting. A violent sandstorm must appear exactly every third pulse in both states. Repeat
+  while the Skriaxit is stunned or otherwise disabled; its source timer behavior must continue
+  even though ordinary disabled mobiles do not run activity procedures.
+- Put eligible mortal players or PC-owned pets in the Skriaxit's room and in populated rooms
+  through open north, east, south, west, up, and down exits. One firing must reach all of those
+  rooms. Close an exit and confirm the room beyond is excluded; a room reachable only through a
+  second step or a non-orthogonal connection must also be excluded.
+- Put the Skriaxit in a peaceful room and confirm a due firing is suppressed. Put targets in a
+  peaceful adjacent room and confirm that room receives no effect. Native area safety must also
+  exclude protected allies and other invalid targets.
+- Compare a mortal player, a PC-owned pet, an unrelated NPC, an incorporeal target, and air and
+  earth elementals. Only the eligible mortal and pet may receive the dispel attempt; the others
+  retain the source immunity or other-NPC exclusion.
+- Give an eligible target several ordinary spell affects. Without spell resistance, each affect
+  receives a level-48 target-native Will save in list order; the storm removes at most the first
+  affect that fails and emits its normal wear-off message. Successful spell resistance prevents
+  the whole dispel attempt. Repeated firings may remove later affects independently.
+- Record hit points before and after several firings, including with both Skriaxits present. Hit
+  points must not change. The bound source room loop resets its counted Skriaxits before
+  evaluating `3 * num`, so zero direct damage is required source fidelity rather than a missing
+  target damage implementation.
+
+These profiles are production-tested and reconciled, but the current five-zone pilot does not
+contain their Hive package. Exercise them only after a Phase 7 stage supplies the converted
+mobiles, rooms, exits, and spell-bearing targets; do not hand-edit them into the pilot.
+
 ### Phase 6 converted Waterdeep ambient citizens
 
 - Build dependency-complete stages containing the first 34 converted ambient citizens:
@@ -1271,8 +1303,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,392 are resolved and 329 remain. Of 795 distinct
-  direct source handlers, 581 are resolved and 214 remain. Of 848 `ACT_SPEC` records, 799
+  of the 1,721 active direct bindings, 1,394 are resolved and 327 remain. Of 795 distinct
+  direct source handlers, 582 are resolved and 213 remain. Of 848 `ACT_SPEC` records, 799
   are resolved and 49 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

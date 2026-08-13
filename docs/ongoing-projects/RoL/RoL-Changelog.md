@@ -9,6 +9,69 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Hive Skriaxit sandstorm
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled both `skriaxit_sandstorm` bindings on converted Hive mobiles 2043741 and
+  2043742 through exact identity-owned profiles on the persistent `RoL Monster Combat`
+  mobile procedure.
+- Preserved the source three-round schedule while the mobile is idle, fighting, or disabled.
+  Each eligible pulse reaches the current room and populated rooms through open north, east,
+  south, west, up, and down exits; closed exits, invalid rooms, and peaceful rooms are skipped.
+- Preserved mortal-player and player-pet targeting, incorporeal and air/earth elemental
+  immunity, native area safety, spell resistance, a level-48 Will-save dispel attempt against
+  each eligible spell affect, and removal of at most the first failed affect.
+- Preserved the bound source's actual zero-damage behavior. Its room loop resets the counted
+  Skriaxits before evaluating `3 * num`, so the target does not invent the scaling damage
+  suggested by the source comments.
+- Added exact binding-set, profile, cadence, source-damage, disabled-activity, converter,
+  reconciler, and production-linked coverage. No player helpfile changed because the batch adds
+  no command or syntax; the staff manual records the two profiles and their scheduled behavior.
+- Regenerated the corrected Phase 6 evidence. Resolution increases from 1,392 to 1,394 static
+  bindings and from 581 to 582 direct handlers, leaving 327 bindings across 213 handlers in 34
+  source files. The independent `ACT_SPEC` cross-check remains 799 resolved and 49 pending.
+- Reforecast the nine corrected batches, which closed 148 bindings across 44 handlers. The
+  binding-count projection is about 20 additional batches and the handler-diversity projection
+  about 44; the measured Phase 6 envelope is therefore 20-44 sessions, or 40-176 focused
+  engineering hours. The full remaining project envelope is 76-128 sessions, or 152-512
+  focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: cb964e66
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-hive-skriaxit-sandstorm
+Reconciliation run: rol-phase6-special-337e1c4ccb66c3bc
+Evidence tree SHA-256: a7c8ef2f7abfa6b8358ee8aaa1d2f2f33c96b6489785ac98a2f827caa0dbdcfe
+Active direct bindings: 1,721
+Direct bindings resolved: 1,394
+Direct bindings pending: 327
+Source handlers resolved: 582
+Source handlers pending: 213
+Additional handler families resolved: 1
+Additional direct bindings resolved: 2
+Native adapted bindings: 860
+Native adapted composable bindings: 207
+ACT_SPEC records resolved: 799
+ACT_SPEC records pending: 49
+Complete world-tool suite: 333 passed
+Production-linked CuTest suite: 670 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 98acdd1ad145d505b9a9d0c9ce94d6968c434a66
+Installed SHA-256: d87d807bf5bd9f8a6234ace2e4ac1169a2a8c752f064c08432c686c2cafd0205
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with another dependency-complete shared-runtime family. Reforecast after
+another material batch or any inventory correction.
+
 ## 2026-08-13 - Phase 6 successful-hit area family
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
