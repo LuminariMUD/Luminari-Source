@@ -514,6 +514,7 @@ struct mud_event_list mud_event_index[] = {
      "One of your Light Bearer uses has recovered.", FEAT_AASIMAR_LIGHT_BEARER, 0},
     {"RoL Yggdrasil Release", event_rol_yggdrasil_release, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED,
      0},
+    {"RoL Seelie Faerie Fire", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

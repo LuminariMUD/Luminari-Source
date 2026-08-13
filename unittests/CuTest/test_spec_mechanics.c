@@ -1927,16 +1927,20 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
 void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
 {
   static const int vnums[] = {
-      150772,  196007,  196013,  196027,  196040,  196076,  2000325, 2000326, 2000327,
-      2000328, 2000525, 2001228, 2001229, 2001407, 2001436, 2001437, 2004070, 2004480,
-      2004530, 2005023, 2005718, 2012005, 2012006, 2012024, 2012025, 2012026, 2014015,
-      2014026, 2014029, 2014601, 2014605, 2015113, 2015125, 2019701, 2019750, 2020247,
-      2020378, 2026208, 2026216, 2026225, 2026236, 2026238, 2026241, 2026242, 2026243,
-      2026244, 2026245, 2034833, 2041900, 2043358, 2045116, 2045146, 2045182, 2051246,
-      2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401, 2062402,
-      2062405, 2062406, 2081706, 2081746, 2081747, 2083224, 2092608, 2097061,
+      150772,  196007,  196013,  196027,  196040,  196076,  2000325, 2000326, 2000327, 2000328,
+      2000525, 2001228, 2001229, 2001407, 2001436, 2001437, 2004070, 2004480, 2004530, 2005023,
+      2005718, 2012005, 2012006, 2012024, 2012025, 2012026, 2014015, 2014026, 2014029, 2014601,
+      2014605, 2015113, 2015125, 2019701, 2019750, 2020247, 2020378, 2026208, 2026216, 2026225,
+      2026236, 2026238, 2026241, 2026242, 2026243, 2026244, 2026245, 2034833, 2041900, 2043358,
+      2045116, 2045146, 2045182, 2051246, 2051333, 2051334, 2053264, 2053265, 2053266, 2059815,
+      2059835, 2062401, 2062402, 2062405, 2062406, 2062701, 2062702, 2062703, 2062704, 2062705,
+      2062706, 2062707, 2062708, 2062710, 2062711, 2062712, 2062713, 2062714, 2062715, 2062716,
+      2062717, 2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2092608, 2097061,
   };
   const char *description;
+  bool faerie_fire;
+  bool prismatic;
+  bool search;
   int denominator;
   size_t index;
 
@@ -1965,6 +1969,63 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertTrue(tc, rol_monster_combat_profile(2026238, &denominator, &description));
   CuAssertIntEquals(tc, 4, denominator);
   CuAssertTrue(tc, !rol_monster_combat_profile(9999999, NULL, NULL));
+
+  CuAssertTrue(tc, rol_seelie_faerie_profile(2062701, &faerie_fire, &prismatic, &search));
+  CuAssertTrue(tc, faerie_fire);
+  CuAssertTrue(tc, prismatic);
+  CuAssertTrue(tc, search);
+  CuAssertTrue(tc, rol_seelie_faerie_profile(2062702, &faerie_fire, &prismatic, &search));
+  CuAssertTrue(tc, !faerie_fire);
+  CuAssertTrue(tc, !prismatic);
+  CuAssertTrue(tc, search);
+  CuAssertTrue(tc, rol_seelie_faerie_profile(2062722, &faerie_fire, &prismatic, &search));
+  CuAssertTrue(tc, faerie_fire);
+  CuAssertTrue(tc, !prismatic);
+  CuAssertTrue(tc, !search);
+  CuAssertTrue(tc, !rol_seelie_faerie_profile(2062709, NULL, NULL, NULL));
+  CuAssertIntEquals(tc, 0, rol_seelie_prismatic_beam_count(1));
+  CuAssertIntEquals(tc, 1, rol_seelie_prismatic_beam_count(2));
+  CuAssertIntEquals(tc, 1, rol_seelie_prismatic_beam_count(3));
+  CuAssertIntEquals(tc, 2, rol_seelie_prismatic_beam_count(4));
+  CuAssertIntEquals(tc, 2, rol_seelie_prismatic_beam_count(5));
+  CuAssertIntEquals(tc, 0, rol_seelie_prismatic_beam_count(6));
+  CuAssertIntEquals(tc, 0, rol_seelie_prismatic_damage(-1));
+  CuAssertIntEquals(tc, 420, rol_seelie_prismatic_damage(0));
+  CuAssertIntEquals(tc, 280, rol_seelie_prismatic_damage(1));
+  CuAssertIntEquals(tc, 140, rol_seelie_prismatic_damage(2));
+  CuAssertIntEquals(tc, 0, rol_seelie_prismatic_damage(3));
+  CuAssertIntEquals(tc, 0, rol_seelie_prismatic_damage(8));
+  CuAssertIntEquals(tc, 3, rol_seelie_search_stun_rounds(2062701));
+  CuAssertIntEquals(tc, 6, rol_seelie_search_stun_rounds(2062707));
+  CuAssertIntEquals(tc, 0, rol_seelie_search_stun_rounds(2062708));
+}
+
+void Test_spec_rol_seelie_search_reveals_first_hidden_target(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+
+  spec_mechanics_begin(&fixture);
+  memset(&context, 0, sizeof(context));
+  fixture.mobile_indexes[0].vnum = 2062707;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  fixture.target.master = &fixture.actor;
+  SET_BIT_AR(AFF_FLAGS(&fixture.target), AFF_CHARM);
+  SET_BIT_AR(AFF_FLAGS(&fixture.target), AFF_HIDE);
+  SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_NOPARALYZE);
+
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_MOBILE_ACTIVITY;
+  context.owner = &fixture.actor;
+  context.actor = &fixture.actor;
+  CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
+  CuAssertTrue(tc, !AFF_FLAGGED(&fixture.target, AFF_HIDE));
+  CuAssertIntEquals(tc, POS_RECLINING, GET_POS(&fixture.target));
+  CuAssertTrue(tc, char_has_mud_event(&fixture.target, eSTUNNED) == NULL);
+
+  fixture.target.master = NULL;
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.target), AFF_CHARM);
+  spec_mechanics_end(&fixture);
 }
 
 void Test_spec_rol_residual_mobile_profiles_cover_converted_bindings(CuTest *tc)

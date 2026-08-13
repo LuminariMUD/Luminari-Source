@@ -255,6 +255,7 @@ typedef enum
   eAASIMAR_HEALING_HANDS,       /* Aasimar Healing Hands daily uses */
   eAASIMAR_LIGHT_BEARER,        /* Aasimar Light Bearer daily uses */
   eROL_YGGDRASIL_RELEASE,       /* Converted Yggdrasil branch entangle release */
+  eROL_SEELIE_FAERIE_FIRE,      /* Converted Seelie faerie-fire cooldown */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

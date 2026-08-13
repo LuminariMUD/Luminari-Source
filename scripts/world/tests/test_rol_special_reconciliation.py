@@ -634,6 +634,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("SOURCE_INERT_EXCLUDED", clock_tower["strategy"])
     self.assertIn("no event bits", clock_tower["reason"])
 
+  def test_seelie_faerie_family_has_explicit_dispositions(self) -> None:
+    for handler in ("standard_faerie_ff", "standard_faerie_prism", "faerie_search"):
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Monster Combat", disposition["target"])
+
   def test_source_definition_scanner_ignores_preprocessor_disabled_decoy(self) -> None:
     definitions = source_handler_definitions(
         self.root / "EXAMPLE/RealmsOfLuminari", {"tree_spirit"}
@@ -669,11 +676,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_332, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(389, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(568, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(227, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(798, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_370, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(351, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(571, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(224, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(836, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           207, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -701,6 +708,32 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           json.loads(line)
           for line in (output_dir / "binding-ledger.jsonl").read_text(encoding="ascii").splitlines()
       ]
+      seelie_vnums = {
+          handler: {
+              row["source_vnum"]
+              for row in binding_rows
+              if row["source_handler"] == handler
+          }
+          for handler in ("standard_faerie_ff", "standard_faerie_prism", "faerie_search")
+      }
+      self.assertEqual(
+          {62701, 62703, 62704, 62705, 62707, 62708, 62712, 62713, 62714, 62721, 62722},
+          seelie_vnums["standard_faerie_ff"],
+      )
+      self.assertEqual(
+          {
+              62701, 62703, 62704, 62705, 62706, 62707, 62708,
+              62711, 62712, 62713, 62714, 62717, 62721,
+          },
+          seelie_vnums["standard_faerie_prism"],
+      )
+      self.assertEqual(
+          {
+              62701, 62702, 62703, 62704, 62705, 62706, 62707,
+              62710, 62711, 62712, 62713, 62715, 62716, 62717,
+          },
+          seelie_vnums["faerie_search"],
+      )
       automatic_rows = [
           json.loads(line)
           for line in (output_dir / "automatic-race-ledger.jsonl")

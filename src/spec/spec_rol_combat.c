@@ -71,6 +71,7 @@ enum rol_monster_combat_effect
   ROL_MONSTER_TAKO_DEMON,
   ROL_MONSTER_WEREWOLF,
   ROL_MONSTER_JOTUN_MIMER,
+  ROL_MONSTER_SEELIE_FAERIE,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -80,6 +81,19 @@ struct rol_monster_combat_profile
   enum rol_monster_combat_effect effect;
   int proc_denominator;
   const char *description;
+};
+
+enum rol_seelie_faerie_ability
+{
+  ROL_SEELIE_FAERIE_FIRE = (1U << 0),
+  ROL_SEELIE_PRISMATIC = (1U << 1),
+  ROL_SEELIE_SEARCH = (1U << 2)
+};
+
+struct rol_seelie_faerie_profile
+{
+  int mobile_vnum;
+  unsigned int abilities;
 };
 
 static void rol_monster_stop_combat(struct char_data *victim);
@@ -152,12 +166,52 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2062402, ROL_MONSTER_EARTH_BOSS, 2, "Room-wide falling-rock assault."},
     {2062405, ROL_MONSTER_AIR_BOSS, 2, "Whirlwind strike and forced movement."},
     {2062406, ROL_MONSTER_WATER_BOSS, 2, "Room-wide tidal assault and silence."},
+    {2062701, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism, fire, and search."},
+    {2062702, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie search."},
+    {2062703, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism, fire, and search."},
+    {2062704, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism, fire, and search."},
+    {2062705, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism, fire, and search."},
+    {2062706, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism and search."},
+    {2062707, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie illusionist prism, fire, and search."},
+    {2062708, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism and fire."},
+    {2062710, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie search."},
+    {2062711, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism and search."},
+    {2062712, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism, fire, and search."},
+    {2062713, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism, fire, and search."},
+    {2062714, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism and fire."},
+    {2062715, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie search."},
+    {2062716, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie search."},
+    {2062717, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism and search."},
+    {2062721, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism and fire."},
+    {2062722, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie fire."},
     {2081706, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2081746, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2081747, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2083224, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2092608, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
     {2097061, ROL_MONSTER_SWALLOW_WHOLE, 10, "Rhemorhaz bite and whole-swallow attack."},
+};
+
+/* Keep this table sorted by converted mobile VNUM for binary lookup. */
+static const struct rol_seelie_faerie_profile rol_seelie_faerie_profiles[] = {
+    {2062701, ROL_SEELIE_FAERIE_FIRE | ROL_SEELIE_PRISMATIC | ROL_SEELIE_SEARCH},
+    {2062702, ROL_SEELIE_SEARCH},
+    {2062703, ROL_SEELIE_FAERIE_FIRE | ROL_SEELIE_PRISMATIC | ROL_SEELIE_SEARCH},
+    {2062704, ROL_SEELIE_FAERIE_FIRE | ROL_SEELIE_PRISMATIC | ROL_SEELIE_SEARCH},
+    {2062705, ROL_SEELIE_FAERIE_FIRE | ROL_SEELIE_PRISMATIC | ROL_SEELIE_SEARCH},
+    {2062706, ROL_SEELIE_PRISMATIC | ROL_SEELIE_SEARCH},
+    {2062707, ROL_SEELIE_FAERIE_FIRE | ROL_SEELIE_PRISMATIC | ROL_SEELIE_SEARCH},
+    {2062708, ROL_SEELIE_FAERIE_FIRE | ROL_SEELIE_PRISMATIC},
+    {2062710, ROL_SEELIE_SEARCH},
+    {2062711, ROL_SEELIE_PRISMATIC | ROL_SEELIE_SEARCH},
+    {2062712, ROL_SEELIE_FAERIE_FIRE | ROL_SEELIE_PRISMATIC | ROL_SEELIE_SEARCH},
+    {2062713, ROL_SEELIE_FAERIE_FIRE | ROL_SEELIE_PRISMATIC | ROL_SEELIE_SEARCH},
+    {2062714, ROL_SEELIE_FAERIE_FIRE | ROL_SEELIE_PRISMATIC},
+    {2062715, ROL_SEELIE_SEARCH},
+    {2062716, ROL_SEELIE_SEARCH},
+    {2062717, ROL_SEELIE_PRISMATIC | ROL_SEELIE_SEARCH},
+    {2062721, ROL_SEELIE_FAERIE_FIRE | ROL_SEELIE_PRISMATIC},
+    {2062722, ROL_SEELIE_FAERIE_FIRE},
 };
 
 static const struct rol_monster_combat_profile *rol_monster_combat_profile_for(int mobile_vnum)
@@ -197,6 +251,67 @@ bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const ch
   if (description != NULL)
     *description = profile->description;
   return true;
+}
+
+static const struct rol_seelie_faerie_profile *rol_seelie_faerie_profile_for(int mobile_vnum)
+{
+  size_t high = sizeof(rol_seelie_faerie_profiles) / sizeof(rol_seelie_faerie_profiles[0]);
+  size_t low = 0;
+  size_t middle;
+
+  while (low < high)
+  {
+    middle = low + (high - low) / 2;
+    if (rol_seelie_faerie_profiles[middle].mobile_vnum < mobile_vnum)
+      low = middle + 1;
+    else
+      high = middle;
+  }
+  if (low < sizeof(rol_seelie_faerie_profiles) / sizeof(rol_seelie_faerie_profiles[0]) &&
+      rol_seelie_faerie_profiles[low].mobile_vnum == mobile_vnum)
+    return &rol_seelie_faerie_profiles[low];
+
+  return NULL;
+}
+
+bool rol_seelie_faerie_profile(int mobile_vnum, bool *faerie_fire, bool *prismatic, bool *search)
+{
+  const struct rol_seelie_faerie_profile *profile = rol_seelie_faerie_profile_for(mobile_vnum);
+
+  if (profile == NULL)
+    return false;
+  if (faerie_fire != NULL)
+    *faerie_fire = (profile->abilities & ROL_SEELIE_FAERIE_FIRE) != 0;
+  if (prismatic != NULL)
+    *prismatic = (profile->abilities & ROL_SEELIE_PRISMATIC) != 0;
+  if (search != NULL)
+    *search = (profile->abilities & ROL_SEELIE_SEARCH) != 0;
+  return true;
+}
+
+int rol_seelie_prismatic_beam_count(int roll)
+{
+  if (roll < 2 || roll > 5)
+    return 0;
+  return roll / 2;
+}
+
+int rol_seelie_prismatic_damage(int color)
+{
+  static const int damage_by_color[] = {420, 280, 140, 0, 0, 0, 0, 0};
+
+  if (color < 0 || color >= (int)(sizeof(damage_by_color) / sizeof(damage_by_color[0])))
+    return 0;
+  return damage_by_color[color];
+}
+
+int rol_seelie_search_stun_rounds(int mobile_vnum)
+{
+  const struct rol_seelie_faerie_profile *profile = rol_seelie_faerie_profile_for(mobile_vnum);
+
+  if (profile == NULL || (profile->abilities & ROL_SEELIE_SEARCH) == 0)
+    return 0;
+  return mobile_vnum == 2062707 ? 6 : 3;
 }
 
 static bool rol_monster_fires(const struct rol_monster_combat_profile *profile)
@@ -873,6 +988,192 @@ static void rol_monster_jotun_mimer_activity(struct char_data *ch)
   act("$n appears in a puff of smoke and resumes $s post.", TRUE, ch, NULL, NULL, TO_ROOM);
 }
 
+static bool rol_seelie_prismatic_apply_beam(struct char_data *ch, struct char_data *target,
+                                            int color)
+{
+  static const char *color_names[] = {"red",    "orange", "yellow", "blue",
+                                      "indigo", "green",  "violet", "azure"};
+  int amount;
+  int spell;
+
+  if (!rol_monster_room_target(ch, target) || color < 0 ||
+      color >= (int)(sizeof(color_names) / sizeof(color_names[0])))
+    return false;
+  send_to_char(target, "A %s beam from the prismatic rainbow strikes you!\r\n", color_names[color]);
+  act("A beam from the prismatic rainbow strikes $n!", FALSE, target, NULL, NULL, TO_ROOM);
+
+  amount = rol_seelie_prismatic_damage(color);
+  if (amount > 0)
+  {
+    if (savingthrow(ch, target, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), ILLUSION))
+      amount /= 2;
+    return damage(ch, target, amount, SPELL_PRISMATIC_SPRAY, DAM_ILLUSION, FALSE) >= 0;
+  }
+
+  switch (color)
+  {
+  case 3:
+    spell = SPELL_HOLD_MONSTER;
+    break;
+  case 4:
+    spell = SPELL_FEEBLEMIND;
+    break;
+  case 5:
+    spell = SPELL_POISON;
+    break;
+  case 6:
+    spell = SPELL_DISPEL_MAGIC;
+    break;
+  case 7:
+    spell = SPELL_BLINDNESS;
+    break;
+  default:
+    return true;
+  }
+  call_magic(ch, target, NULL, spell, 0, GET_LEVEL(ch), CAST_INNATE);
+  return rol_monster_room_target(ch, target);
+}
+
+static int rol_seelie_prismatic_activity(struct char_data *ch)
+{
+  struct char_data *next;
+  struct char_data *target;
+  struct char_data *victim;
+  int beams;
+  int color;
+  int index;
+  int previous_color;
+
+  victim = FIGHTING(ch);
+  if (victim == NULL || IS_CASTING(ch) || rand_number(0, 2) != 0)
+    return FALSE;
+
+  if (GET_POS(ch) < POS_STANDING || AFF_FLAGGED(ch, AFF_STUN) ||
+      char_has_mud_event(ch, eSTUNNED) != NULL)
+  {
+    if (rand_number(0, 100) >= 22)
+    {
+      send_to_char(ch, "You are too stunned to gather your strength.\r\n");
+      act("$n tries to gather $s strength, but fails.", FALSE, ch, NULL, NULL, TO_ROOM);
+      return FALSE;
+    }
+    change_position(ch, POS_STANDING);
+    send_to_char(ch, "You gather your strength and flutter high into the air.\r\n");
+    act("$n gathers $s strength and flutters high into the air.", FALSE, ch, NULL, NULL, TO_ROOM);
+  }
+
+  send_to_char(ch, "A rainbow of colors forms as your wings beat wildly.\r\n");
+  act("A rainbow of colors forms as $n's wings beat wildly.", FALSE, ch, NULL, NULL, TO_ROOM);
+  for (target = world[IN_ROOM(ch)].people; target != NULL; target = next)
+  {
+    next = target->next_in_room;
+    if (!rol_monster_room_target(ch, target))
+      continue;
+    beams = rol_seelie_prismatic_beam_count(rand_number(2, 5));
+    previous_color = -1;
+    for (index = 0; index < beams; index++)
+    {
+      do
+      {
+        color = rand_number(0, 7);
+      } while (color == previous_color);
+      previous_color = color;
+      if (!rol_seelie_prismatic_apply_beam(ch, target, color))
+        break;
+    }
+  }
+  return FALSE;
+}
+
+static int rol_seelie_faerie_fire_activity(struct char_data *ch)
+{
+  struct affected_type af;
+  struct char_data *target;
+  struct char_data *next;
+  bool was_hidden;
+
+  if (FIGHTING(ch) == NULL || IS_CASTING(ch) ||
+      char_has_mud_event(ch, eROL_SEELIE_FAERIE_FIRE) != NULL || rand_number(0, 5) != 0)
+    return FALSE;
+
+  send_to_char(ch, "You utter a magical word, and the area glows with purplish light.\r\n");
+  act("$n utters a magical word, and the area glows with purplish light.", FALSE, ch, NULL, NULL,
+      TO_ROOM);
+  attach_mud_event(new_mud_event(eROL_SEELIE_FAERIE_FIRE, ch, NULL), (3 * SECS_PER_MUD_DAY) RL_SEC);
+
+  for (target = world[IN_ROOM(ch)].people; target != NULL; target = next)
+  {
+    next = target->next_in_room;
+    if (!rol_monster_room_target(ch, target) || affected_by_spell(target, SPELL_FAERIE_FIRE))
+      continue;
+
+    was_hidden = AFF_FLAGGED(target, AFF_HIDE);
+    if (AFF_FLAGGED(target, AFF_INVISIBLE))
+      appear(target, true);
+    if (AFF_FLAGGED(target, AFF_HIDE))
+      REMOVE_BIT_AR(AFF_FLAGS(target), AFF_HIDE);
+    if (was_hidden)
+      send_to_char(target, "The purplish light ruins your hiding place.\r\n");
+
+    new_affect(&af);
+    af.spell = SPELL_FAERIE_FIRE;
+    af.duration = 3;
+    af.location = APPLY_AC_NEW;
+    af.modifier = -2;
+    SET_BIT_AR(af.bitvector, AFF_FAERIE_FIRE);
+    affect_to_char(target, &af);
+    send_to_char(target, "You are surrounded by an outline of purplish flames!\r\n");
+    act("$n is surrounded by an outline of purplish flames!", TRUE, target, NULL, NULL, TO_ROOM);
+  }
+  return TRUE;
+}
+
+static int rol_seelie_search_activity(struct char_data *ch)
+{
+  struct char_data *target;
+  int rounds;
+
+  if (IS_CASTING(ch))
+    return FALSE;
+  for (target = world[IN_ROOM(ch)].people; target != NULL; target = target->next_in_room)
+  {
+    if (!rol_monster_room_target(ch, target))
+      continue;
+    if (AFF_FLAGGED(target, AFF_HIDE))
+    {
+      act("Sparkling lights reveal $n's hiding spot as a faerie knocks $m to the ground!", FALSE,
+          target, NULL, NULL, TO_ROOM);
+      send_to_char(target, "Sparkling lights reveal your hiding spot as a faerie knocks you to the "
+                           "ground!\r\n");
+      REMOVE_BIT_AR(AFF_FLAGS(target), AFF_HIDE);
+      change_position(target, POS_RECLINING);
+      resetCastingData(target);
+      rounds = rol_seelie_search_stun_rounds(GET_MOB_VNUM(ch));
+      if (rounds > 0 && can_stun(target) && char_has_mud_event(target, eSTUNNED) == NULL)
+        attach_mud_event(new_mud_event(eSTUNNED, target, NULL), PULSE_VIOLENCE * rounds);
+    }
+    /* The source procedure consumes its event after the first eligible target. */
+    return TRUE;
+  }
+  return FALSE;
+}
+
+static int rol_seelie_faerie_activity(struct char_data *ch)
+{
+  const struct rol_seelie_faerie_profile *profile;
+
+  profile = rol_seelie_faerie_profile_for(GET_MOB_VNUM(ch));
+  if (profile == NULL)
+    return FALSE;
+  if ((profile->abilities & ROL_SEELIE_PRISMATIC) != 0)
+    (void)rol_seelie_prismatic_activity(ch);
+  if ((profile->abilities & ROL_SEELIE_FAERIE_FIRE) != 0 && rol_seelie_faerie_fire_activity(ch))
+    return TRUE;
+  if ((profile->abilities & ROL_SEELIE_SEARCH) != 0)
+    return rol_seelie_search_activity(ch);
+  return FALSE;
+}
+
 static void rol_monster_swallow(struct spec_event_context *context, struct char_data *ch,
                                 struct char_data *victim, bool spits)
 {
@@ -1392,6 +1693,8 @@ static int rol_monster_activity(struct spec_event_context *context,
   case ROL_MONSTER_JOTUN_MIMER:
     rol_monster_jotun_mimer_activity(ch);
     return FALSE;
+  case ROL_MONSTER_SEELIE_FAERIE:
+    return rol_seelie_faerie_activity(ch);
   default:
     return FALSE;
   }
@@ -1561,6 +1864,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_TAKO_DEMON:
   case ROL_MONSTER_WEREWOLF:
   case ROL_MONSTER_JOTUN_MIMER:
+  case ROL_MONSTER_SEELIE_FAERIE:
   case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }

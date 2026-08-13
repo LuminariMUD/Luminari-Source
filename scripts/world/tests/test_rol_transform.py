@@ -2619,6 +2619,9 @@ class RolTransformTests(unittest.TestCase):
         "ilshazone_canthus",
         "jotun_thrym",
         "jotun_utgard_loki",
+        "standard_faerie_ff",
+        "standard_faerie_prism",
+        "faerie_search",
         "Tiamat_Crimson_Fury",
         "barbarian_spiritist",
         "dranum_jurtrem",
@@ -2695,6 +2698,34 @@ class RolTransformTests(unittest.TestCase):
         "NATIVE_ADAPTED_COMPOSABLE", compiled.dispositions[0]["strategy"]
     )
     self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[1]["strategy"])
+
+  def test_seelie_faerie_bindings_share_one_mobile_procedure(self) -> None:
+    bindings = [
+        {
+            "basename": "seeliecourt",
+            "record_type": "mobile",
+            "source_vnum": 62701,
+            "source_handler": handler,
+        }
+        for handler in ("standard_faerie_ff", "standard_faerie_prism", "faerie_search")
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(3, len(compiled.native_bindings))
+    self.assertEqual({2_062_701}, {row.target_vnum for row in compiled.native_bindings})
+    self.assertTrue(
+        all(row.persisted_name == "RoL Monster Combat" for row in compiled.native_bindings)
+    )
+    self.assertTrue(all(row.required_flag_bits == (0,) for row in compiled.native_bindings))
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
 
   def test_pit_fiend_composes_bite_and_tail_with_monster_combat(self) -> None:
     bindings = [
