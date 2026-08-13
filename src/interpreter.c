@@ -4964,6 +4964,7 @@ cpp_extern const struct command_info cmd_info[] = {
      NULL},
     {"wield", "wie", POS_RESTING, do_wield, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"withdraw", "withdraw", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"worship", "worship", POS_SITTING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rollingearth",
      "rollingearth",
      POS_FIGHTING,

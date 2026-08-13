@@ -41,6 +41,11 @@
 #define ROL_SHRIEKER_ATTRACT_MAX_VNUM 2093065
 #define ROL_GHERIAS_HAMMER_HEAD_VNUM 2093325
 #define ROL_RUST_SOURCE_MAX_WEAR 32
+#define ROL_CALIMSHAN_DIADEM_VNUM 2046035
+#define ROL_CALIMSHAN_DUNGEON_VNUM 2046546
+#define ROL_RENDER_BERSERK (1U << 0)
+#define ROL_RENDER_DEVOUR_USED (1U << 1)
+#define ROL_RENDER_EXTRA_HIT (1U << 2)
 
 static bool rol_drow_conclave_alarm_sounding = false;
 
@@ -122,6 +127,8 @@ enum rol_monster_combat_effect
   ROL_MONSTER_DARKHOLD_SHADOW_DRAGON,
   ROL_MONSTER_GRIFFON_NONBARBARIAN,
   ROL_MONSTER_DUSK_PARALYSIS_GAZE,
+  ROL_MONSTER_SPIDERHAUNT_PARALYSIS,
+  ROL_MONSTER_SPIDERHAUNT_CREEPING_DOOM,
   ROL_MONSTER_UM2_MANSCORPION_TAIL,
   ROL_MONSTER_UM2_WYVERN_TAIL,
   ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD,
@@ -132,6 +139,27 @@ enum rol_monster_combat_effect
   ROL_MONSTER_UM2_SHRIEKER,
   ROL_MONSTER_UM2_GHERIAS_TUK,
   ROL_MONSTER_UM2_RUST_MONSTER,
+  ROL_MONSTER_BOULDER_PUSHER,
+  ROL_MONSTER_TIAMAT,
+  ROL_MONSTER_CALIMSHAN_PASHA,
+  ROL_MONSTER_HYSSK_SLAVE_TAKER,
+  ROL_MONSTER_TF_RENDER,
+  ROL_MONSTER_TF_JABBERWOCK,
+  ROL_MONSTER_UM2_BOOKWORM,
+  ROL_MONSTER_UM2_BEHOLDER,
+  ROL_MONSTER_WARHORSE,
+  ROL_MONSTER_PROSTITUTE,
+  ROL_MONSTER_PIERGEIRON_GUARD,
+  ROL_MONSTER_DRYAD,
+  ROL_MONSTER_DOPPELGANGER,
+  ROL_MONSTER_UM_KEVLAR,
+  ROL_MONSTER_UM_KORELAR,
+  ROL_MONSTER_UM_MEZZOLOTH,
+  ROL_MONSTER_UM_ZOMBIE_LORD,
+  ROL_MONSTER_UM_MALODIN_ONE,
+  ROL_MONSTER_UM_MALODIN_TWO,
+  ROL_MONSTER_UM_MALODIN_THREE,
+  ROL_MONSTER_ICE_WOLF,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -189,14 +217,21 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2000525, ROL_MONSTER_WEREWOLF, 1, "Werewolf idle aggression and social activity."},
     {2001228, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Beavis ambient activity."},
     {2001229, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Butthead ambient activity."},
+    {2001232, ROL_MONSTER_WARHORSE, 3, "Warhorse overrun, trample, and mule kick."},
     {2001407, ROL_MONSTER_CHICKEN, 25, "Source-exact chicken nest activity."},
     {2001436, ROL_MONSTER_TAKO_DEMON, 1, "Tako's pit ambush and escape interception."},
     {2001437, ROL_MONSTER_KOBOLD_PRIEST, 5, "Kobold-priest force wall and imp summoning."},
+    {2002818, ROL_MONSTER_PROSTITUTE, 1, "Paid follower service and street activity."},
+    {2003244, ROL_MONSTER_PIERGEIRON_GUARD, 4, "Piergeiron escort, combat warnings, and disarm."},
     {2004070, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
     {2004480, ROL_MONSTER_PURPLE_WORM, 5, "Purple-worm whole-swallow attack."},
     {2004530, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
     {2005023, ROL_MONSTER_SPIDER_VENOM, 15, "Random-player venom bite."},
+    {2005527, ROL_MONSTER_PROSTITUTE, 1, "Paid follower service and street activity."},
+    {2005701, ROL_MONSTER_DRYAD, 1, "Male-target charm, slave defense, and forest retreat."},
+    {2005702, ROL_MONSTER_DRYAD, 1, "Princess charm, slave defense, and forest retreat."},
     {2005718, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Ancient brownie ankle attack."},
+    {2007180, ROL_MONSTER_PROSTITUTE, 1, "Paid follower service and street activity."},
     {2010661, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
     {2010744, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
     {2010745, ROL_MONSTER_GRIFFON_NONBARBARIAN, 1, rol_griffon_guard_description},
@@ -224,10 +259,18 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2014605, ROL_MONSTER_BARBARIAN_SPIRITIST, 1, "Spirit curse, disarm, and cyclone."},
     {2015113, ROL_MONSTER_DRANUM, 9, "Dranum life-force drain."},
     {2015125, ROL_MONSTER_JURTREM, 20, "Jurtrem's sanctuary-dispelling gaze."},
+    {2015204, ROL_MONSTER_BOULDER_PUSHER, 5,
+     "Remote boulder warning against non-evil visitors below."},
+    {2019700, ROL_MONSTER_TIAMAT, 9,
+     "Treasure guard, combat regeneration, breath, and dracolich transition."},
     {2019701, ROL_MONSTER_CRIMSON_FURY, 11, "Crimson Fury minion purge and fire blast."},
     {2019750, ROL_MONSTER_CRIMSON_FURY, 11, "Crimson Fury minion purge and fire blast."},
+    {2020038, ROL_MONSTER_DOPPELGANGER, 26, "Victim mimicry, terror roar, and retreat."},
+    {2020207, ROL_MONSTER_DRYAD, 1, "Male-target charm, slave defense, and forest retreat."},
     {2020217, ROL_MONSTER_TRAHERN_QUAKE, 3, "Gakarak's room-wide root quake."},
     {2020234, ROL_MONSTER_TRAHERN_TOSS, 3, "Kazgoroth's damaging body toss."},
+    {2020235, ROL_MONSTER_UM2_BEHOLDER, 3,
+     "Ten eye rays with independent cooldowns and charmed-thrall restraint."},
     {2020246, ROL_MONSTER_TRAHERN_ERINYES_CHARM, 4,
      "Room-wide mortal charm, command restraint, and delayed follower execution."},
     {2020247, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
@@ -322,6 +365,10 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2045116, ROL_MONSTER_FOUR_ARMS, 1, "Extra swing and crushing shockwave."},
     {2045146, ROL_MONSTER_TENTACLE_SLAM, 11, "Room-wide tentacle shockwave."},
     {2045182, ROL_MONSTER_ROT_BRINGER, 1, "One-time flesh helper below forty percent health."},
+    {2046504, ROL_MONSTER_CALIMSHAN_PASHA, 1,
+     "Consumes the recovered diadem and imprisons its bearer."},
+    {2046699, ROL_MONSTER_HYSSK_SLAVE_TAKER, 1,
+     "Requires a captive slave before dragon-turtle entry."},
     {2051246, ROL_MONSTER_WINGED_DEVA, 11, "Healing lightning burst and earthquake."},
     {2051333, ROL_MONSTER_KAMERYNN, 3, "Kamerynn's damaging teleport strike."},
     {2051334, ROL_MONSTER_CANTHUS, 1, "Canthus pack summons and elemental breath."},
@@ -353,19 +400,35 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2062717, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism and search."},
     {2062721, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie prism and fire."},
     {2062722, ROL_MONSTER_SEELIE_FAERIE, 1, "Seelie faerie fire."},
+    {2080220, ROL_MONSTER_SPIDERHAUNT_PARALYSIS, 6,
+     "Successful-hit major paralysis against the first mortal in the room."},
+    {2080240, ROL_MONSTER_SPIDERHAUNT_CREEPING_DOOM, 13, "Three-round creeping-doom swarm."},
     {2081706, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2081746, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2081747, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2083224, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
+    {2089485, ROL_MONSTER_TF_RENDER, 1,
+     "Berserk regeneration, stoneskin, extra attacks, and one devouring strike."},
+    {2089498, ROL_MONSTER_TF_JABBERWOCK, 6, "Fear roar, burbling slow, and tail knockback."},
     {2089793, ROL_MONSTER_DUSK_PARALYSIS_GAZE, 4,
      "Baleful gaze that turns the first failed room target to stone."},
     {2089794, ROL_MONSTER_DUSK_PARALYSIS_GAZE, 2,
      "Baleful gaze that turns the first failed room target to stone."},
+    {2092020, ROL_MONSTER_UM_KEVLAR, 1,
+     "Party escape, weapon invocation, support magic, and locked-door traversal."},
+    {2092022, ROL_MONSTER_UM_KORELAR, 1,
+     "Woundhealer and Flame of the North invocation with party activity."},
     {2092043, ROL_MONSTER_UM_ESSRA, 10, "Successful-hit drow battle speech and socials."},
     {2092047, ROL_MONSTER_UM_FLYING_DAGGER, 1,
      "Critical heart strike and golden-dagger death transition."},
+    {2092052, ROL_MONSTER_UM_MALODIN_ONE, 1,
+     "Demilich wraith release followed by a lethal tooth ray."},
     {2092058, ROL_MONSTER_UM_OCHRE_JELLY, 101,
      "Corpse cleanup and one-in-101 ground-object consumption."},
+    {2092081, ROL_MONSTER_UM_MEZZOLOTH, 1, "Paid mercenary service and hiring activity."},
+    {2092084, ROL_MONSTER_UM_ZOMBIE_LORD, 1, "Undead Trident army invocation."},
+    {2092095, ROL_MONSTER_UM_MALODIN_TWO, 1, "Wraith attachment and ghost death transition."},
+    {2092096, ROL_MONSTER_UM_MALODIN_THREE, 3, "Ghost attachment and supernatural aging attack."},
     {2092608, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
     {2093002, ROL_MONSTER_UM2_VORTEX_GUARDIAN, 10,
      "Vortex warnings and blocked-exit portal death transition."},
@@ -397,11 +460,14 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
      "Screech, spore burst, and five-Vrock dance of ruin."},
     {2093210, ROL_MONSTER_PLANAR_VROCK_BURSTS, 1,
      "Screech, spore burst, and five-Vrock dance of ruin."},
+    {2093217, ROL_MONSTER_UM2_BOOKWORM, 1, "Dexterity-checked spellbook devouring."},
     {2093219, ROL_MONSTER_UM2_WYVERN_TAIL, 1, "Critical venom tail with a fatal paralysis save."},
     {2093303, ROL_MONSTER_UM2_RUST_MONSTER, 33,
      "Critical hammer-tail strike that can destroy worn non-containers."},
     {2093310, ROL_MONSTER_UM2_GHERIAS_TUK, 10,
      "Torin hammer-head invocation and one-in-ten vampire drain."},
+    {2093410, ROL_MONSTER_UM2_BEHOLDER, 3,
+     "Ten eye rays with independent cooldowns and charmed-thrall restraint."},
     {2094505, ROL_MONSTER_DARKHOLD_SHADOW_FIEND, 1,
      "Successful-hit darkness and mind-steal attacks with independent cooldowns."},
     {2094506, ROL_MONSTER_DARKHOLD_SHADOW_DRAGON, 1,
@@ -410,6 +476,8 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2096631, ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL, 6, "Room-wide Greycloak banshee wail."},
     {2096670, ROL_MONSTER_GREYCLOAK_FUMES, 11, "Room-wide noxious fumes."},
     {2096672, ROL_MONSTER_GREYCLOAK_ARALESH, 11, "Lethal blazing-eye beam."},
+    {2097030, ROL_MONSTER_ICE_WOLF, 1,
+     "Battle transformation, paralysis retaliation, howl, and pack summons."},
     {2097061, ROL_MONSTER_SWALLOW_WHOLE, 10, "Rhemorhaz bite and whole-swallow attack."},
 };
 
@@ -639,6 +707,12 @@ bool rol_paralysis_hit_profile(int mobile_vnum, bool *critical_only, bool *fatal
     result_fatal = false;
     result_duration_min = 10;
     result_duration_max = 10;
+    break;
+  case ROL_MONSTER_SPIDERHAUNT_PARALYSIS:
+    result_critical = false;
+    result_fatal = false;
+    result_duration_min = 4;
+    result_duration_max = 4;
     break;
   case ROL_MONSTER_UM2_MANSCORPION_TAIL:
     result_critical = true;
@@ -1168,6 +1242,45 @@ static bool rol_monster_apply_paralysis(struct char_data *victim, int duration)
   SET_BIT_AR(affect.bitvector, AFF_PARALYZED);
   affect_to_char(victim, &affect);
   return true;
+}
+
+static int rol_monster_spiderhaunt_paralysis_hit(const struct rol_monster_combat_profile *profile,
+                                                 struct char_data *ch)
+{
+  struct char_data *victim;
+
+  if (profile == NULL || ch == NULL || !AWAKE(ch) || FIGHTING(ch) == NULL ||
+      !rol_monster_fires(profile))
+    return FALSE;
+
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = victim->next_in_room)
+  {
+    if (IS_NPC(victim) || GET_LEVEL(victim) >= LVL_IMMORT ||
+        affected_by_spell(victim, SPELL_HOLD_MONSTER))
+      continue;
+    if (paralysis_immunity(victim) || mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, 55, NOSCHOOL))
+      return FALSE;
+
+    act("$n ceases to move, still and lifeless.", FALSE, victim, NULL, NULL, TO_ROOM);
+    send_to_char(victim, "Your body becomes like stone as paralysis takes effect.\r\n");
+    (void)rol_monster_apply_paralysis(victim, 4);
+    rol_monster_stop_combat(victim);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+static int rol_monster_spiderhaunt_creeping_doom(struct char_data *ch)
+{
+  if (ch == NULL || CLOUDKILL(ch) || INCENDIARY(ch))
+    return FALSE;
+
+  act("$n summons a horrible horde of small biting and stinging insects!", TRUE, ch, NULL, NULL,
+      TO_ROOM);
+  send_to_char(ch, "You summon forth a horrible horde of biting and stinging insects!\r\n");
+  DOOM(ch) = 3;
+  return TRUE;
 }
 
 static int rol_monster_dusk_paralysis_hit(struct spec_event_context *context, struct char_data *ch)
@@ -3525,6 +3638,458 @@ static int rol_drow_conclave_guard_activity(struct char_data *guard)
   return TRUE;
 }
 
+static int rol_monster_calimshan_pasha_command(struct spec_event_context *context,
+                                               struct char_data *pasha)
+{
+  struct char_data *actor = context->actor;
+  struct char_data *recipient;
+  struct obj_data *diadem;
+  room_rnum destination;
+  char object_name[MAX_INPUT_LENGTH];
+  char target_name[MAX_INPUT_LENGTH];
+
+  if (actor == NULL || context->argument == NULL ||
+      str_cmp(complete_cmd_info[context->command].command, "give"))
+    return FALSE;
+  two_arguments(context->argument, object_name, sizeof(object_name), target_name,
+                sizeof(target_name));
+  diadem = get_obj_in_list_vis(actor, object_name, NULL, actor->carrying);
+  recipient = get_char_vis(actor, target_name, NULL, FIND_CHAR_ROOM);
+  if (diadem == NULL || GET_OBJ_VNUM(diadem) != ROL_CALIMSHAN_DIADEM_VNUM || recipient != pasha)
+    return FALSE;
+
+  destination = real_room(ROL_CALIMSHAN_DUNGEON_VNUM);
+  if (!VALID_ROOM_RNUM(destination) || !valid_mortal_tele_dest(actor, destination, false))
+  {
+    log("SYSERR: RoL Calimshan Pasha dungeon %d is unavailable", ROL_CALIMSHAN_DUNGEON_VNUM);
+    return TRUE;
+  }
+
+  act("$n's eyes brim with tears as $e takes $p from $N, then harden as $e orders $M thrown "
+      "in prison.",
+      FALSE, pasha, diadem, actor, TO_NOTVICT);
+  act("$n's eyes brim with tears as $e takes $p from you, then $e orders the guards to haul "
+      "you away!",
+      FALSE, pasha, diadem, actor, TO_VICT);
+  act("$N gives you $p, and you order $M thrown in prison.", FALSE, pasha, diadem, actor, TO_CHAR);
+  obj_from_char(diadem);
+  extract_obj(diadem);
+
+  send_to_char(actor, "Guards seize you, hustle you through an arch, and throw you onto a dungeon "
+                      "floor. The door slams behind you.\r\n");
+  char_from_room(actor);
+  char_to_room(actor, destination);
+  act("$n is tossed into the room and lands sprawling.", FALSE, actor, NULL, NULL, TO_ROOM);
+  rol_monster_stun(actor, 8);
+  look_at_room(actor, 0);
+  return TRUE;
+}
+
+static int rol_monster_hyssk_slave_command(struct spec_event_context *context,
+                                           struct char_data *taker)
+{
+  struct char_data *actor = context->actor;
+  struct char_data *slave;
+  struct char_data *next;
+  struct obj_data *entered;
+  char name[MAX_INPUT_LENGTH];
+
+  if (actor == NULL || context->argument == NULL ||
+      str_cmp(complete_cmd_info[context->command].command, "enter") || !AWAKE(taker) ||
+      !CAN_SEE(taker, actor))
+    return FALSE;
+  one_argument(context->argument, name, sizeof(name));
+  entered = get_obj_in_list_vis(actor, name, NULL, world[IN_ROOM(actor)].contents);
+  if (entered == NULL)
+    return FALSE;
+
+  for (slave = world[IN_ROOM(actor)].people; slave != NULL; slave = next)
+  {
+    next = slave->next_in_room;
+    if (!IS_NPC(slave) || slave->master != actor || GET_MOB_VNUM(slave) < 2035333 ||
+        GET_MOB_VNUM(slave) > 2035337)
+      continue;
+    act("$n says, 'Your contribution has been accepted. You may proceed.' With startling "
+        "speed, $e cuts the slave's throat and casts the body into the dragon turtle's jaws.",
+        FALSE, taker, NULL, actor, TO_ROOM);
+    extract_char(slave);
+    return FALSE;
+  }
+
+  act("$n says, 'Bring me a slave if you wish to pass!'", FALSE, taker, NULL, actor, TO_ROOM);
+  return TRUE;
+}
+
+static int rol_monster_beholder_thrall_command(struct spec_event_context *context,
+                                               struct char_data *beholder)
+{
+  struct char_data *actor = context->actor;
+  const char *command;
+
+  if (actor == NULL || actor->master != beholder || !AFF_FLAGGED(actor, AFF_CHARM))
+    return FALSE;
+  command = complete_cmd_info[context->command].command;
+  if (rol_planar_captive_command_allowed(command))
+    return FALSE;
+  act("Your thoughts are too hazy, focused solely on $n.", FALSE, beholder, NULL, actor, TO_VICT);
+  act("You feel compelled to do nothing but obey $s commands.", FALSE, beholder, NULL, actor,
+      TO_VICT);
+  return TRUE;
+}
+
+static int rol_monster_bookworm_activity(struct char_data *bookworm)
+{
+  struct char_data *victim;
+  struct obj_data *spellbook = NULL;
+  int wear;
+  bool worn = false;
+
+  for (victim = world[IN_ROOM(bookworm)].people; victim != NULL; victim = victim->next_in_room)
+  {
+    if (victim == bookworm || IS_NPC(victim) || GET_LEVEL(victim) >= LVL_IMMORT ||
+        !CAN_SEE(bookworm, victim))
+      continue;
+    for (spellbook = victim->carrying; spellbook != NULL; spellbook = spellbook->next_content)
+      if (GET_OBJ_TYPE(spellbook) == ITEM_SPELLBOOK)
+        break;
+    if (spellbook != NULL)
+      break;
+    for (wear = 0; wear < NUM_WEARS; wear++)
+      if (GET_EQ(victim, wear) != NULL && GET_OBJ_TYPE(GET_EQ(victim, wear)) == ITEM_SPELLBOOK)
+      {
+        spellbook = GET_EQ(victim, wear);
+        worn = true;
+        break;
+      }
+    if (spellbook != NULL)
+      break;
+  }
+  if (victim == NULL || spellbook == NULL)
+    return FALSE;
+
+  act("$n notices $p among your possessions and leaps toward it!", FALSE, bookworm, spellbook,
+      victim, TO_VICT);
+  act("$n leaps toward $N's spellbook.", FALSE, bookworm, spellbook, victim, TO_NOTVICT);
+  if (rand_number(0, 99) < GET_REAL_DEX(victim))
+  {
+    act("You nimbly step aside as $n jumps past harmlessly!", FALSE, bookworm, spellbook, victim,
+        TO_VICT);
+    return TRUE;
+  }
+
+  act("You watch in horror as $n devours $p!", FALSE, bookworm, spellbook, victim, TO_VICT);
+  act("$N is helpless as $n devours $p!", FALSE, bookworm, spellbook, victim, TO_NOTVICT);
+  if (worn)
+  {
+    spellbook = unequip_char(victim, wear);
+    obj_to_char(spellbook, victim);
+  }
+  obj_from_char(spellbook);
+  extract_obj(spellbook);
+  return TRUE;
+}
+
+static bool rol_monster_boulder_exempt_race(const struct char_data *victim)
+{
+  return GET_RACE(victim) == RACE_DROW || GET_RACE(victim) == RACE_DUERGAR ||
+         GET_RACE(victim) == RACE_HALF_OGRE || GET_RACE(victim) == RACE_HALF_TROLL;
+}
+
+static int rol_monster_boulder_activity(struct char_data *pusher)
+{
+  struct char_data *victim;
+  room_rnum watched_room;
+  int current_room_vnum;
+  int destination_vnum;
+  int amount;
+
+  if (!AWAKE(pusher) || FIGHTING(pusher) != NULL)
+    return FALSE;
+  current_room_vnum = GET_ROOM_VNUM(IN_ROOM(pusher));
+  if (current_room_vnum >= 2015354 && current_room_vnum <= 2015356)
+    destination_vnum = 2015302;
+  else if (current_room_vnum >= 2015393 && current_room_vnum <= 2015396)
+    destination_vnum = 2015256;
+  else
+    return FALSE;
+  watched_room = real_room(destination_vnum);
+  if (!VALID_ROOM_RNUM(watched_room))
+    return FALSE;
+  for (victim = world[watched_room].people; victim != NULL; victim = victim->next_in_room)
+    if (!rol_monster_boulder_exempt_race(victim) && GET_LEVEL(victim) < LVL_IMMORT &&
+        CAN_SEE(pusher, victim))
+      break;
+  if (victim == NULL || rand_number(1, 100) >= 20)
+    return FALSE;
+
+  act("$n suddenly pushes a nearby boulder off the ledge with a roar!", FALSE, pusher, NULL, NULL,
+      TO_ROOM);
+  send_to_char(victim, "You hear a mighty roar overhead and feel a sudden chill!\r\n");
+  if (rand_number(1, 100) + GET_REAL_DEX(victim) >= 50)
+    return TRUE;
+  send_to_char(victim, "A boulder hurtles down from overhead and strikes you soundly!\r\n");
+  amount = rand_number(1, 50) + GET_REAL_STR(pusher);
+  if (damage(pusher, victim, amount, -1, DAM_BLUDGEON, FALSE) >= 0 && rand_number(1, 100) < 10)
+    rol_monster_stun(victim, rand_number(2, 10));
+  return TRUE;
+}
+
+static int rol_monster_tiamat_death(struct char_data *tiamat, struct char_data *killer)
+{
+  struct char_data *lich;
+
+  lich = read_mobile(2019701, VIRTUAL);
+  if (lich == NULL)
+  {
+    log("SYSERR: RoL Tiamat cannot load dracolich 2019701");
+    return FALSE;
+  }
+  char_to_room(lich, IN_ROOM(tiamat));
+  GET_MOB_LOADROOM(lich) = IN_ROOM(tiamat);
+  GET_MAX_HIT(lich) = 30000;
+  GET_HIT(lich) = 30000;
+  rol_monster_transfer_possessions(tiamat, lich, true);
+  act("The mighty Tiamat screams with all five heads as a blinding flash tears her flesh away. "
+      "Her blackened bones rise again as a terrible dracolich!",
+      FALSE, tiamat, NULL, NULL, TO_ROOM);
+  if (killer != NULL && GET_POS(killer) > POS_DEAD && IN_ROOM(killer) == IN_ROOM(lich))
+    (void)set_fighting(lich, killer);
+  load_mtrigger(lich);
+  return TRUE;
+}
+
+static int rol_monster_tiamat_activity(struct char_data *tiamat)
+{
+  struct char_data *victim;
+  struct char_data *next;
+  int healing;
+
+  if (GET_MAX_HIT(tiamat) != 29999)
+  {
+    GET_MAX_HIT(tiamat) = 29999;
+    GET_HIT(tiamat) = 29999;
+  }
+  if (AFF_FLAGGED(tiamat, AFF_BLIND))
+  {
+    affect_from_char(tiamat, SPELL_BLINDNESS);
+    REMOVE_BIT_AR(AFF_FLAGS(tiamat), AFF_BLIND);
+  }
+  if (AFF_FLAGGED(tiamat, AFF_BLACKMANTLE))
+    REMOVE_BIT_AR(AFF_FLAGS(tiamat), AFF_BLACKMANTLE);
+  if (AFF_FLAGGED(tiamat, AFF_SILENCED))
+  {
+    affect_from_char(tiamat, SPELL_SILENCE);
+    REMOVE_BIT_AR(AFF_FLAGS(tiamat), AFF_SILENCED);
+    act("With a mighty roar, $n shreds the blanket of silence!", FALSE, tiamat, NULL, NULL,
+        TO_ROOM);
+  }
+  if (FIGHTING(tiamat) == NULL)
+    return FALSE;
+
+  if (rand_number(0, 8) == 0)
+  {
+    act("$n raises all five heads and unleashes a single cataclysmic breath!", TRUE, tiamat, NULL,
+        NULL, TO_ROOM);
+    for (victim = world[IN_ROOM(tiamat)].people; victim != NULL; victim = next)
+    {
+      next = victim->next_in_room;
+      if (!rol_monster_room_target(tiamat, victim))
+        continue;
+      (void)damage(tiamat, victim, rand_number(200, 800), -1, DAM_FIRE, FALSE);
+    }
+  }
+  if (rand_number(0, 15) != 8 || GET_HIT(tiamat) >= GET_MAX_HIT(tiamat))
+    return FALSE;
+  if (GET_HIT(tiamat) < 10000)
+    healing = 1500;
+  else if (GET_HIT(tiamat) < 20000)
+    healing = 1000;
+  else
+    healing = 500;
+  GET_HIT(tiamat) = MIN(GET_MAX_HIT(tiamat), GET_HIT(tiamat) + healing);
+  act("White tendrils of power flow into $n as $s wounds begin to close.", TRUE, tiamat, NULL, NULL,
+      TO_ROOM);
+  return TRUE;
+}
+
+static int rol_monster_jabberwock_activity(struct char_data *jabberwock)
+{
+  struct char_data *victim;
+  struct char_data *next;
+
+  if (FIGHTING(jabberwock) == NULL || rand_number(0, 9) != 0)
+    return FALSE;
+  act("$n rears up and ROARS in anger!", TRUE, jabberwock, NULL, NULL, TO_ROOM);
+  for (victim = world[IN_ROOM(jabberwock)].people; victim != NULL; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!rol_monster_room_target(jabberwock, victim) ||
+        savingthrow(jabberwock, victim, SAVING_WILL, -2, CAST_INNATE, GET_LEVEL(jabberwock),
+                    NOSCHOOL))
+      continue;
+    perform_flee(victim);
+  }
+  return TRUE;
+}
+
+static int rol_monster_jabberwock_hit(struct char_data *jabberwock)
+{
+  struct char_data *victim;
+  struct char_data *next;
+  struct char_data *target = NULL;
+  struct affected_type affect;
+  room_rnum destination;
+  int checked;
+  int direction;
+  int priority;
+  int target_priority = 0;
+
+  if (rand_number(0, 5) != 0)
+    return FALSE;
+  if (rand_number(1, 2) == 1)
+  {
+    act("$n begins burbling something incomprehensible and strangely enthralling.", TRUE,
+        jabberwock, NULL, NULL, TO_ROOM);
+    for (victim = world[IN_ROOM(jabberwock)].people; victim != NULL; victim = next)
+    {
+      next = victim->next_in_room;
+      if (!rol_monster_room_target(jabberwock, victim))
+        continue;
+      if (!AFF_FLAGGED(victim, AFF_SLOW))
+      {
+        new_affect(&affect);
+        affect.spell = SPELL_SLOW;
+        affect.duration = 2;
+        SET_BIT_AR(affect.bitvector, AFF_SLOW);
+        affect_to_char(victim, &affect);
+      }
+      if (!savingthrow(jabberwock, victim, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(jabberwock),
+                       ENCHANTMENT))
+        rol_monster_stun(victim, 5);
+    }
+    return TRUE;
+  }
+
+  for (victim = world[IN_ROOM(jabberwock)].people; victim != NULL; victim = victim->next_in_room)
+  {
+    if (!rol_monster_room_target(jabberwock, victim))
+      continue;
+    priority = IS_WIZARD(victim) ? 4 : (IS_CLERIC(victim) ? 2 : 1);
+    if (priority > target_priority)
+    {
+      target = victim;
+      target_priority = priority;
+    }
+  }
+  if (target == NULL)
+    return FALSE;
+  direction = rand_number(0, NUM_OF_DIRS - 1);
+  destination = NOWHERE;
+  for (checked = 0; checked < NUM_OF_DIRS; checked++)
+  {
+    if (direction >= NUM_OF_DIRS)
+      direction = 0;
+    if (CAN_GO(target, direction) &&
+        valid_mortal_tele_dest(target, EXIT(target, direction)->to_room, false))
+    {
+      destination = EXIT(target, direction)->to_room;
+      break;
+    }
+    direction++;
+  }
+  if (!VALID_ROOM_RNUM(destination))
+    return FALSE;
+  act("$n swings $s mighty tail, hurling you out of the room!", FALSE, jabberwock, NULL, target,
+      TO_VICT);
+  act("$n's gigantic tail smashes into $N and hurls $M away!", FALSE, jabberwock, NULL, target,
+      TO_NOTVICT);
+  rol_monster_stop_combat(target);
+  char_from_room(target);
+  char_to_room(target, destination);
+  rol_monster_stun(target, 1);
+  look_at_room(target, 0);
+  return TRUE;
+}
+
+static int rol_monster_render_hit(struct spec_event_context *context, struct char_data *render)
+{
+  struct char_data *victim = FIGHTING(render);
+  unsigned int state = (unsigned int)PROC_FIRED(render);
+
+  if (victim == NULL || (state & ROL_RENDER_EXTRA_HIT) != 0)
+    return FALSE;
+  if ((state & ROL_RENDER_BERSERK) == 0)
+  {
+    if (GET_HIT(render) >= GET_MAX_HIT(render) / 2)
+      return FALSE;
+    state |= ROL_RENDER_BERSERK;
+    act("$n screams in rage and goes utterly berserk!", TRUE, render, NULL, NULL, TO_ROOM);
+  }
+  if (context->critical &&
+      !savingthrow(render, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(render), NOSCHOOL))
+    rol_monster_stun(victim, 2);
+
+  if (!AFF_FLAGGED(render, AFF_BLACKMANTLE))
+    GET_HIT(render) = MIN(GET_MAX_HIT(render), GET_HIT(render) + 10);
+  if (!affected_by_spell(render, SPELL_STONESKIN))
+    (void)call_magic(render, render, NULL, SPELL_STONESKIN, 0, GET_LEVEL(render), CAST_INNATE);
+
+  PROC_FIRED(render) = (int)(state | ROL_RENDER_EXTRA_HIT);
+  (void)hit(render, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  state = (unsigned int)PROC_FIRED(render) & ~ROL_RENDER_EXTRA_HIT;
+  PROC_FIRED(render) = (int)state;
+  if (DEAD(victim) || GET_POS(victim) <= POS_DEAD || IN_ROOM(victim) != IN_ROOM(render) ||
+      (state & ROL_RENDER_DEVOUR_USED) != 0 || IS_NPC(victim) ||
+      GET_HIT(victim) >= GET_MAX_HIT(victim) / 10)
+    return FALSE;
+
+  act("$n tears open your abdomen, swats you down, and begins devouring you!", FALSE, render, NULL,
+      victim, TO_VICT);
+  act("$n tears open $N's abdomen and devours $M!", FALSE, render, NULL, victim, TO_NOTVICT);
+  PROC_FIRED(render) = (int)(state | ROL_RENDER_DEVOUR_USED);
+  if (!AFF_FLAGGED(render, AFF_BLACKMANTLE))
+    GET_HIT(render) = GET_MAX_HIT(render);
+  (void)damage(render, victim, GET_HIT(victim) + 1000, -1, DAM_SLASHING, FALSE);
+  context->invalidation |= SPEC_INVALIDATE_TARGET;
+  return TRUE;
+}
+
+static int rol_monster_paid_follower(struct spec_event_context *context, struct char_data *seller,
+                                     int fee_gold, bool charm)
+{
+  struct char_data *actor;
+  int before_gold;
+  int paid;
+
+  actor = context->actor;
+  if (actor == NULL || IS_NPC(actor) || context->command <= 0 || context->argument == NULL ||
+      complete_cmd_info == NULL || str_cmp(complete_cmd_info[context->command].command, "give"))
+    return FALSE;
+  before_gold = GET_GOLD(seller);
+  do_give(actor, context->argument, context->command, 0);
+  paid = GET_GOLD(seller) - before_gold;
+  if (paid < fee_gold)
+  {
+    do_say(seller,
+           charm ? "You still need to pay me five gold coins."
+                 : "A generous offer, but my services are worth one thousand gold.",
+           0, 0);
+    return TRUE;
+  }
+  if (seller->master != NULL)
+    stop_follower(seller);
+  add_follower(seller, actor);
+  if (charm)
+  {
+    SET_BIT_AR(AFF_FLAGS(seller), AFF_CHARM);
+    act("$n gives you a passionate kiss and promises to follow.", FALSE, seller, NULL, actor,
+        TO_VICT);
+  }
+  else
+    do_say(seller, "Excellent! I shall serve thee well.", 0, 0);
+  return TRUE;
+}
+
 static int rol_monster_command(struct spec_event_context *context,
                                const struct rol_monster_combat_profile *profile,
                                struct char_data *ch)
@@ -3544,6 +4109,22 @@ static int rol_monster_command(struct spec_event_context *context,
     return rol_griffon_guard_react(ch, actor);
 
   command = complete_cmd_info != NULL ? complete_cmd_info[context->command].command : NULL;
+  if (profile->effect == ROL_MONSTER_CALIMSHAN_PASHA)
+    return rol_monster_calimshan_pasha_command(context, ch);
+  if (profile->effect == ROL_MONSTER_HYSSK_SLAVE_TAKER)
+    return rol_monster_hyssk_slave_command(context, ch);
+  if (profile->effect == ROL_MONSTER_UM2_BEHOLDER)
+    return rol_monster_beholder_thrall_command(context, ch);
+  if (profile->effect == ROL_MONSTER_PROSTITUTE)
+    return rol_monster_paid_follower(context, ch, 5, true);
+  if (profile->effect == ROL_MONSTER_UM_MEZZOLOTH)
+    return rol_monster_paid_follower(context, ch, 1000, false);
+  if (profile->effect == ROL_MONSTER_DRYAD && actor->master == ch &&
+      AFF_FLAGGED(actor, AFF_CHARM) && !rol_planar_captive_command_allowed(command))
+  {
+    send_to_char(actor, "Your thoughts are too hazy, focused solely on the forest maiden.\r\n");
+    return TRUE;
+  }
   if (profile->effect == ROL_MONSTER_AVERNUS_GELUGON_HANARIEL && command != NULL &&
       !str_cmp(command, "disarm") && GET_LEVEL(actor) < LVL_IMMORT)
   {
@@ -3580,6 +4161,14 @@ static int rol_monster_command(struct spec_event_context *context,
 
   switch (profile->effect)
   {
+  case ROL_MONSTER_TIAMAT:
+    if (direction != SOUTH || GET_ROOM_VNUM(IN_ROOM(ch)) != 2019952 ||
+        GET_LEVEL(actor) >= LVL_IMMORT)
+      return FALSE;
+    act("$n growls in anger as you approach $s treasure!", FALSE, ch, NULL, actor, TO_VICT);
+    if (FIGHTING(ch) == NULL)
+      (void)set_fighting(ch, actor);
+    return TRUE;
   case ROL_MONSTER_KOBOLD_PRIEST:
     if (GET_LEVEL(actor) >= LVL_IMMORT)
       return FALSE;
@@ -4104,6 +4693,468 @@ static int rol_monster_planar_death(struct spec_event_context *context,
   return FALSE;
 }
 
+static struct obj_data *rol_monster_equipped_vnum(struct char_data *ch, int object_vnum)
+{
+  struct obj_data *obj;
+  int wear;
+
+  for (wear = 0; wear < NUM_WEARS; wear++)
+    if ((obj = GET_EQ(ch, wear)) != NULL && (int)GET_OBJ_VNUM(obj) == object_vnum)
+      return obj;
+  return NULL;
+}
+
+static int rol_monster_warhorse_turn(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *victim;
+  struct spec_damage_result result;
+  int amount;
+  int attack;
+  int roll;
+
+  victim = FIGHTING(ch);
+  if (victim == NULL || ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+    return FALSE;
+  roll = rand_number(1, 3);
+  if (roll == 3)
+    return FALSE;
+  if (roll == 1 && !savingthrow(ch, victim, SAVING_REFL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+  {
+    act("$n charges you, knocks you flat, and tramples you!", FALSE, ch, NULL, victim, TO_VICT);
+    act("$n charges $N, knocks $M flat, and tramples $M!", FALSE, ch, NULL, victim, TO_NOTVICT);
+    change_position(victim, POS_RECLINING);
+    SET_WAIT(victim, PULSE_VIOLENCE * 3);
+    for (attack = 0; attack < 3; attack++)
+    {
+      amount = dice(MAX(1, GET_LEVEL(ch) / 10), 8) + GET_DAMROLL(ch) + 5;
+      result = spec_damage_current_target(ch, victim, amount, SKILL_BASH, DAM_BLUDGEON, FALSE);
+      if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED)
+      {
+        context->invalidation |= SPEC_INVALIDATE_TARGET;
+        return TRUE;
+      }
+    }
+    return TRUE;
+  }
+  if (savingthrow(ch, victim, SAVING_REFL, -2, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+  {
+    act("$n's rear hooves whistle past your head!", FALSE, ch, NULL, victim, TO_VICT);
+    return TRUE;
+  }
+  act("$n lashes out with both rear hooves, striking you with crushing force!", FALSE, ch, NULL,
+      victim, TO_VICT);
+  result = spec_damage_current_target(ch, victim, MAX(1, GET_LEVEL(ch)), -1, DAM_BLUDGEON, FALSE);
+  if (result.status == SPEC_DAMAGE_TARGET_INVALIDATED)
+    context->invalidation |= SPEC_INVALIDATE_TARGET;
+  else
+    SET_WAIT(victim, PULSE_VIOLENCE * 2);
+  return TRUE;
+}
+
+static int rol_monster_prostitute_activity(struct char_data *ch)
+{
+  int roll;
+
+  if (!AWAKE(ch) || FIGHTING(ch) != NULL || ch->master != NULL)
+    return FALSE;
+  roll = dice(2, 7);
+  if (roll == 2)
+    act("$n winks suggestively at you.", TRUE, ch, NULL, NULL, TO_ROOM);
+  else if (roll == 3)
+    do_say(ch, "Hi there, honey. Wanna have some fun?", 0, 0);
+  else if (roll == 4)
+    act("$n struts around in front of you.", TRUE, ch, NULL, NULL, TO_ROOM);
+  else if (roll == 5)
+    act("$n looks around for an interesting prospect.", TRUE, ch, NULL, NULL, TO_ROOM);
+  else if (roll == 6)
+    do_say(ch, "They say I'm the best around.", 0, 0);
+  else if (roll == 7)
+    act("$n adjusts $s stockings.", TRUE, ch, NULL, NULL, TO_ROOM);
+  return FALSE;
+}
+
+static int rol_monster_piergeiron_guard_activity(struct char_data *ch)
+{
+  struct char_data *lord;
+  int roll;
+
+  for (lord = world[IN_ROOM(ch)].people; lord != NULL; lord = lord->next_in_room)
+    if (lord != ch && IS_NPC(lord) && GET_MOB_VNUM(lord) == 2003211)
+      break;
+  if (lord != NULL && ch->master != lord)
+  {
+    if (ch->master != NULL)
+      stop_follower(ch);
+    add_follower(ch, lord);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_CHARM);
+  }
+  if (FIGHTING(ch) != NULL)
+  {
+    roll = rand_number(1, 4);
+    if (roll == 1)
+      act("$n fights with amazing skill and grace.", TRUE, ch, NULL, NULL, TO_ROOM);
+    else if (roll == 2)
+      do_say(ch, "You will pay for this, outlaw!", 0, 0);
+    else if (roll == 3)
+      act("$n yells, 'An outlaw has attacked me! Help lay this villain low!'", TRUE, ch, NULL, NULL,
+          TO_ROOM);
+    else if (rand_number(0, 3) == 0)
+      do_disarm(ch, GET_NAME(FIGHTING(ch)), 0, 0);
+  }
+  else if (rand_number(0, 4) == 0)
+    act("$n scans the area for threats to the Lord of Waterdeep.", TRUE, ch, NULL, NULL, TO_ROOM);
+  return FALSE;
+}
+
+static struct char_data *rol_monster_first_charmed_follower(struct char_data *ch)
+{
+  struct follow_type *link;
+
+  for (link = ch->followers; link != NULL; link = link->next)
+    if (link->follower != NULL && link->follower->master == ch &&
+        AFF_FLAGGED(link->follower, AFF_CHARM))
+      return link->follower;
+  return NULL;
+}
+
+static int rol_monster_dryad_activity(struct char_data *ch)
+{
+  struct char_data *follower;
+  struct char_data *victim;
+  struct follow_type *link;
+  room_rnum destination;
+  int destination_vnum;
+
+  if (!AWAKE(ch))
+    return FALSE;
+  follower = rol_monster_first_charmed_follower(ch);
+  victim = FIGHTING(ch);
+  if (victim != NULL && follower != NULL && IN_ROOM(follower) == IN_ROOM(ch) &&
+      FIGHTING(follower) == NULL)
+  {
+    do_say(ch, "Protect me, slave!", 0, 0);
+    (void)set_fighting(follower, victim);
+    return TRUE;
+  }
+  if (victim != NULL && GET_SEX(victim) == SEX_MALE &&
+      rol_planar_charm_target(ch, victim, ROL_MONSTER_DRYAD) &&
+      rol_planar_apply_charm(ch, victim, ROL_MONSTER_DRYAD))
+  {
+    rol_monster_stop_combat(ch);
+    rol_monster_stop_combat(victim);
+    return TRUE;
+  }
+  if (victim != NULL || follower == NULL)
+  {
+    if (victim == NULL && rand_number(0, 8) == 0)
+      act("$n sings a beautiful song filled with soft forest tones.", TRUE, ch, NULL, NULL,
+          TO_ROOM);
+    return FALSE;
+  }
+
+  destination_vnum = GET_MOB_VNUM(ch) == 2005702 ? 2005744 : 2005739;
+  destination = real_room(destination_vnum);
+  if (!VALID_ROOM_RNUM(destination) || IN_ROOM(ch) == destination)
+    return FALSE;
+  do_say(ch, "Come, my slave. Let us go to my hidden abode.", 0, 0);
+  act("$n disappears in a blinding flash of light!", FALSE, ch, NULL, NULL, TO_ROOM);
+  for (link = ch->followers; link != NULL; link = link->next)
+    if ((follower = link->follower) != NULL && follower->master == ch &&
+        AFF_FLAGGED(follower, AFF_CHARM) && IN_ROOM(follower) == IN_ROOM(ch))
+    {
+      char_from_room(follower);
+      char_to_room(follower, destination);
+    }
+  char_from_room(ch);
+  char_to_room(ch, destination);
+  act("$n slowly fades into existence with $s enthralled followers.", FALSE, ch, NULL, NULL,
+      TO_ROOM);
+  return TRUE;
+}
+
+static void rol_monster_replace_string(char **field, const char *prototype, const char *value)
+{
+  char *replacement;
+
+  replacement = value != NULL ? strdup(value) : NULL;
+  if (value != NULL && replacement == NULL)
+    return;
+  if (*field != NULL && *field != prototype)
+    free(*field);
+  *field = replacement;
+}
+
+static void rol_monster_doppelganger_reset(struct char_data *ch)
+{
+  mob_rnum rnum;
+
+  rnum = GET_MOB_RNUM(ch);
+  if (rnum == NOBODY || rnum > top_of_mobt)
+    return;
+  if (ch->player.name != mob_proto[rnum].player.name)
+    free(ch->player.name);
+  if (ch->player.short_descr != mob_proto[rnum].player.short_descr)
+    free(ch->player.short_descr);
+  if (ch->player.long_descr != mob_proto[rnum].player.long_descr)
+    free(ch->player.long_descr);
+  ch->player.name = mob_proto[rnum].player.name;
+  ch->player.short_descr = mob_proto[rnum].player.short_descr;
+  ch->player.long_descr = mob_proto[rnum].player.long_descr;
+}
+
+static int rol_monster_doppelganger_activity(struct char_data *ch)
+{
+  if (FIGHTING(ch) != NULL || ch->mob_specials.proc_fired <= 0)
+    return FALSE;
+  ch->mob_specials.proc_fired--;
+  if (ch->mob_specials.proc_fired == 0)
+    rol_monster_doppelganger_reset(ch);
+  return FALSE;
+}
+
+static int rol_monster_doppelganger_hit(struct char_data *ch)
+{
+  struct char_data *candidate;
+  struct char_data *next;
+  struct char_data *victim;
+  mob_rnum rnum;
+  char long_description[MAX_STRING_LENGTH];
+
+  victim = FIGHTING(ch);
+  if (victim == NULL)
+    return FALSE;
+  rnum = GET_MOB_RNUM(ch);
+  if (rnum != NOBODY && rnum <= top_of_mobt)
+  {
+    snprintf(long_description, sizeof(long_description), "%s stands here with a cold smile.\r\n",
+             GET_NAME(victim));
+    rol_monster_replace_string(&ch->player.name, mob_proto[rnum].player.name, GET_NAME(victim));
+    rol_monster_replace_string(&ch->player.short_descr, mob_proto[rnum].player.short_descr,
+                               GET_NAME(victim));
+    rol_monster_replace_string(&ch->player.long_descr, mob_proto[rnum].player.long_descr,
+                               long_description);
+    ch->mob_specials.proc_fired = 10;
+  }
+  if (rand_number(0, 25) > 1)
+    return FALSE;
+  act("$n roars with a voice that shakes the room!", TRUE, ch, NULL, NULL, TO_ROOM);
+  for (candidate = world[IN_ROOM(ch)].people; candidate != NULL; candidate = next)
+  {
+    next = candidate->next_in_room;
+    if (candidate == ch || candidate == ch->master || GET_LEVEL(candidate) >= LVL_IMMORT)
+      continue;
+    do_flee(candidate, "", 0, 0);
+  }
+  do_flee(ch, "", 0, 0);
+  return TRUE;
+}
+
+static struct char_data *rol_monster_room_mobile(struct char_data *ch, int mobile_vnum)
+{
+  struct char_data *candidate;
+
+  for (candidate = world[IN_ROOM(ch)].people; candidate != NULL;
+       candidate = candidate->next_in_room)
+    if (IS_NPC(candidate) && (int)GET_MOB_VNUM(candidate) == mobile_vnum)
+      return candidate;
+  return NULL;
+}
+
+static void rol_monster_move_to_vnum(struct char_data *ch, int room_vnum)
+{
+  room_rnum destination = real_room(room_vnum);
+
+  if (!VALID_ROOM_RNUM(destination) || ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return;
+  act("$n slowly fades from view.", TRUE, ch, NULL, NULL, TO_ROOM);
+  char_from_room(ch);
+  char_to_room(ch, destination);
+  act("$n slowly fades into view.", TRUE, ch, NULL, NULL, TO_ROOM);
+}
+
+static int rol_monster_kevlar_activity(struct char_data *ch)
+{
+  struct char_data *candidate;
+  struct char_data *korelar;
+  struct char_data *thorn;
+  struct obj_data *obj;
+  int mortals = 0;
+
+  thorn = rol_monster_room_mobile(ch, 2092021);
+  korelar = rol_monster_room_mobile(ch, 2092022);
+  for (candidate = world[IN_ROOM(ch)].people; candidate != NULL;
+       candidate = candidate->next_in_room)
+    if (!IS_NPC(candidate) && GET_LEVEL(candidate) < LVL_IMMORT)
+      mortals++;
+  if (mortals > 5 && thorn != NULL && korelar != NULL)
+  {
+    do_say(ch, "I don't like these odds!", 0, 0);
+    rol_monster_move_to_vnum(thorn, 2092196);
+    rol_monster_move_to_vnum(korelar, 2092196);
+    rol_monster_move_to_vnum(ch, 2092196);
+    return TRUE;
+  }
+  if (FIGHTING(ch) != NULL)
+    return FALSE;
+  if ((obj = rol_monster_equipped_vnum(ch, 2092117)) != NULL && !AFF_FLAGGED(ch, AFF_INVISIBLE))
+    (void)call_magic(ch, ch, obj, SPELL_INVISIBLE, 0, 35, CAST_INNATE);
+  if ((obj = rol_monster_equipped_vnum(ch, 2092118)) != NULL &&
+      !affected_by_spell(ch, SPELL_GLOBE_OF_INVULN))
+    (void)call_magic(ch, ch, obj, SPELL_GLOBE_OF_INVULN, 0, 35, CAST_INNATE);
+  if (thorn != NULL)
+  {
+    if (!AFF_FLAGGED(thorn, AFF_DETECT_INVIS))
+      (void)call_magic(ch, thorn, NULL, SPELL_DETECT_INVIS, 0, GET_LEVEL(ch), CAST_INNATE);
+    if (!AFF_FLAGGED(thorn, AFF_INVISIBLE))
+      (void)call_magic(ch, thorn, NULL, SPELL_INVISIBLE, 0, GET_LEVEL(ch), CAST_INNATE);
+  }
+  if (rand_number(1, 20) == 1)
+    do_say(ch, "Be careful. Undermountain is a dangerous place!", 0, 0);
+  return FALSE;
+}
+
+static int rol_monster_korelar_activity(struct char_data *ch)
+{
+  struct obj_data *obj;
+
+  if ((obj = rol_monster_equipped_vnum(ch, 2092120)) != NULL && GET_HIT(ch) < GET_MAX_HIT(ch) / 5)
+    (void)call_magic(ch, ch, obj, SPELL_HEAL, 0, 35, CAST_INNATE);
+  if ((obj = rol_monster_equipped_vnum(ch, 2092121)) != NULL && !OBJ_FLAGGED(obj, ITEM_GLOW))
+  {
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_GLOW);
+    act("Blue flame races along $n's secondary weapon.", TRUE, ch, obj, NULL, TO_ROOM);
+  }
+  if (FIGHTING(ch) == NULL && rand_number(1, 20) == 1)
+    do_say(ch, "That dragon armor was some of my best work.", 0, 0);
+  return FALSE;
+}
+
+static int rol_monster_mezzoloth_activity(struct char_data *ch)
+{
+  if (ch->master != NULL || FIGHTING(ch) != NULL || rand_number(1, 20) > 5)
+    return FALSE;
+  if (rand_number(0, 1) == 0)
+    do_say(ch, "I am for hire, for the right price.", 0, 0);
+  else
+    do_say(ch, "For one thousand gold, I will aid you in exploring Undermountain.", 0, 0);
+  return FALSE;
+}
+
+static int rol_monster_zombie_lord_hit(struct char_data *ch)
+{
+  struct char_data *zombie;
+  struct obj_data *trident;
+
+  trident = rol_monster_equipped_vnum(ch, 2092090);
+  if (trident == NULL || GET_OBJ_SPECTIMER(trident, 0) > 0)
+    return FALSE;
+  zombie = read_mobile(2092097, VIRTUAL);
+  if (zombie == NULL)
+    return FALSE;
+  char_to_room(zombie, IN_ROOM(ch));
+  GET_MOB_LOADROOM(zombie) = IN_ROOM(ch);
+  add_follower(zombie, ch);
+  SET_BIT_AR(AFF_FLAGS(zombie), AFF_CHARM);
+  GET_OBJ_SPECTIMER(trident, 0) = 168;
+  act("$n raises $p and summons an undead warrior!", TRUE, ch, trident, NULL, TO_ROOM);
+  return TRUE;
+}
+
+static int rol_monster_malodin_one_turn(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *victim;
+  struct char_data *wraith;
+
+  victim = FIGHTING(ch);
+  if (victim == NULL)
+    return FALSE;
+  if ((ch->mob_specials.proc_fired & 1) == 0)
+  {
+    wraith = read_mobile(2092095, VIRTUAL);
+    if (wraith == NULL)
+      return FALSE;
+    ch->mob_specials.proc_fired |= 1;
+    REMOVE_BIT_AR(MOB_FLAGS(ch), MOB_AGGRESSIVE);
+    char_to_room(wraith, IN_ROOM(ch));
+    GET_MOB_LOADROOM(wraith) = IN_ROOM(ch);
+    act("The dust of $n coalesces into a wraith that takes up the battle!", TRUE, ch, NULL, NULL,
+        TO_ROOM);
+    rol_monster_stop_combat(ch);
+    rol_monster_stop_combat(victim);
+    (void)set_fighting(wraith, victim);
+    return TRUE;
+  }
+  if (GET_LEVEL(victim) >= LVL_IMMORT ||
+      savingthrow(ch, victim, SAVING_WILL, -5, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
+    return FALSE;
+  act("A gem in $n's jaw blazes and a ray tears away your life!", FALSE, ch, NULL, victim, TO_VICT);
+  GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + GET_MAX_HIT(victim));
+  context->invalidation |= SPEC_INVALIDATE_TARGET;
+  die(victim, ch);
+  rol_monster_stop_combat(ch);
+  return TRUE;
+}
+
+static int rol_monster_malodin_companion_activity(struct char_data *ch, bool ghost)
+{
+  struct char_data *skull;
+
+  skull = rol_monster_room_mobile(ch, 2092052);
+  if (skull == NULL)
+  {
+    extract_char(ch);
+    return TRUE;
+  }
+  if (ch->master != skull)
+  {
+    if (ch->master != NULL)
+      stop_follower(ch);
+    add_follower(ch, skull);
+  }
+  if (ghost && FIGHTING(ch) != NULL && rand_number(0, 2) == 0 &&
+      GET_LEVEL(FIGHTING(ch)) < LVL_IMMORT)
+  {
+    FIGHTING(ch)->player.time.birth -= (time_t)dice(2, 20) * SECS_PER_MUD_YEAR;
+    send_to_char(FIGHTING(ch), "You feel decades older all of a sudden!\r\n");
+  }
+  return FALSE;
+}
+
+static int rol_monster_ice_wolf_transform(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *leader;
+  struct char_data *pack;
+  struct char_data *victim;
+  int index;
+
+  victim = FIGHTING(ch);
+  if (victim == NULL)
+    return FALSE;
+  leader = read_mobile(2097054, VIRTUAL);
+  if (leader == NULL)
+    return FALSE;
+  char_to_room(leader, IN_ROOM(ch));
+  GET_MOB_LOADROOM(leader) = IN_ROOM(ch);
+  rol_monster_transfer_possessions(ch, leader, true);
+  act("$n drops to the floor howling, then transforms into $N!", TRUE, ch, NULL, leader, TO_ROOM);
+  extract_char(ch);
+  context->invalidation |= SPEC_INVALIDATE_OWNER | SPEC_INVALIDATE_ACTOR;
+  (void)set_fighting(leader, victim);
+  for (index = 0; index < 6; index++)
+  {
+    pack = read_mobile(2097055, VIRTUAL);
+    if (pack == NULL)
+      break;
+    char_to_room(pack, IN_ROOM(leader));
+    GET_MOB_LOADROOM(pack) = IN_ROOM(leader);
+    add_follower(pack, leader);
+    act("$n fades in and lets out a bloodcurdling howl!", TRUE, pack, NULL, NULL, TO_ROOM);
+    if (GET_POS(victim) > POS_DEAD && IN_ROOM(victim) == IN_ROOM(pack))
+      (void)set_fighting(pack, victim);
+  }
+  return TRUE;
+}
+
 static int rol_monster_activity(struct spec_event_context *context,
                                 const struct rol_monster_combat_profile *profile,
                                 struct char_data *ch)
@@ -4191,6 +5242,36 @@ static int rol_monster_activity(struct spec_event_context *context,
     return rol_monster_shrieker_activity(ch);
   case ROL_MONSTER_UM2_GHERIAS_TUK:
     return rol_monster_gherias_activity(context, ch);
+  case ROL_MONSTER_BOULDER_PUSHER:
+    return rol_monster_boulder_activity(ch);
+  case ROL_MONSTER_TIAMAT:
+    return rol_monster_tiamat_activity(ch);
+  case ROL_MONSTER_TF_JABBERWOCK:
+    return rol_monster_jabberwock_activity(ch);
+  case ROL_MONSTER_UM2_BOOKWORM:
+    return rol_monster_bookworm_activity(ch);
+  case ROL_MONSTER_PROSTITUTE:
+    return rol_monster_prostitute_activity(ch);
+  case ROL_MONSTER_PIERGEIRON_GUARD:
+    return rol_monster_piergeiron_guard_activity(ch);
+  case ROL_MONSTER_DRYAD:
+    return rol_monster_dryad_activity(ch);
+  case ROL_MONSTER_DOPPELGANGER:
+    return rol_monster_doppelganger_activity(ch);
+  case ROL_MONSTER_UM_KEVLAR:
+    return rol_monster_kevlar_activity(ch);
+  case ROL_MONSTER_UM_KORELAR:
+    return rol_monster_korelar_activity(ch);
+  case ROL_MONSTER_UM_MEZZOLOTH:
+    return rol_monster_mezzoloth_activity(ch);
+  case ROL_MONSTER_UM_MALODIN_TWO:
+    return rol_monster_malodin_companion_activity(ch, false);
+  case ROL_MONSTER_UM_MALODIN_THREE:
+    return rol_monster_malodin_companion_activity(ch, true);
+  case ROL_MONSTER_ICE_WOLF:
+    if (FIGHTING(ch) != NULL)
+      return rol_monster_ice_wolf_transform(context, ch);
+    return FALSE;
   default:
     return FALSE;
   }
@@ -4222,12 +5303,28 @@ int rol_monster_combat_typed(struct spec_event_context *context)
 
   if (context->event == SPEC_EVENT_MOBILE_DEATH)
   {
+    struct char_data *ghost;
+
+    if (profile->effect == ROL_MONSTER_TIAMAT)
+      return rol_monster_tiamat_death(ch, context->target);
     if (profile->effect == ROL_MONSTER_UM_FLYING_DAGGER)
       return rol_monster_flying_dagger_death(ch);
     if (profile->effect == ROL_MONSTER_UM2_VORTEX_GUARDIAN)
       return rol_monster_vortex_guardian_death(ch);
     if (profile->effect == ROL_MONSTER_DARKHOLD_SHADOW_DRAGON)
       return rol_darkhold_mobile_death(context, ch);
+    if (profile->effect == ROL_MONSTER_UM_MALODIN_TWO)
+    {
+      ghost = read_mobile(2092096, VIRTUAL);
+      if (ghost != NULL)
+      {
+        char_to_room(ghost, IN_ROOM(ch));
+        GET_MOB_LOADROOM(ghost) = IN_ROOM(ch);
+        act("As $n disperses, the dust coalesces into a sinister ghost.", TRUE, ch, NULL, NULL,
+            TO_ROOM);
+      }
+      return TRUE;
+    }
     avernus_result = rol_avernus_mobile_event(context, ch);
     if (avernus_result != FALSE)
       return avernus_result;
@@ -4275,6 +5372,8 @@ int rol_monster_combat_typed(struct spec_event_context *context)
     }
     if (profile->effect == ROL_MONSTER_DUSK_PARALYSIS_GAZE)
       return rol_monster_dusk_paralysis_hit(context, ch);
+    if (profile->effect == ROL_MONSTER_SPIDERHAUNT_PARALYSIS)
+      return rol_monster_spiderhaunt_paralysis_hit(profile, ch);
     if (profile->effect == ROL_MONSTER_UM2_MANSCORPION_TAIL ||
         profile->effect == ROL_MONSTER_UM2_WYVERN_TAIL)
       return rol_monster_venom_tail_hit(context, ch);
@@ -4287,6 +5386,18 @@ int rol_monster_combat_typed(struct spec_event_context *context)
       return rol_monster_flying_dagger_hit(context, ch);
     if (profile->effect == ROL_MONSTER_UM2_RUST_MONSTER)
       return rol_monster_rust_hit(context, ch);
+    if (profile->effect == ROL_MONSTER_UM2_BEHOLDER)
+      return rol_major_beholder(ch, NULL, 0, context->argument);
+    if (profile->effect == ROL_MONSTER_TF_JABBERWOCK)
+      return rol_monster_jabberwock_hit(ch);
+    if (profile->effect == ROL_MONSTER_TF_RENDER)
+      return rol_monster_render_hit(context, ch);
+    if (profile->effect == ROL_MONSTER_DOPPELGANGER)
+      return rol_monster_doppelganger_hit(ch);
+    if (profile->effect == ROL_MONSTER_UM_ZOMBIE_LORD)
+      return rol_monster_zombie_lord_hit(ch);
+    if (profile->effect == ROL_MONSTER_ICE_WOLF)
+      return rol_monster_ice_wolf_transform(context, ch);
     if (profile->effect == ROL_MONSTER_TRAHERN_QUAKE ||
         profile->effect == ROL_MONSTER_TRAHERN_TOSS ||
         profile->effect == ROL_MONSTER_TRAHERN_ENGORGE)
@@ -4301,6 +5412,12 @@ int rol_monster_combat_typed(struct spec_event_context *context)
       return FALSE;
     if (profile->effect == ROL_MONSTER_AVERNUS_BARBAZU_BERSERK)
       return rol_avernus_barbazu_berserk(ch, FIGHTING(ch));
+    if (profile->effect == ROL_MONSTER_ICE_WOLF && FIGHTING(ch) == NULL)
+    {
+      (void)call_magic(ch, context->target, NULL, SPELL_HOLD_PERSON, 0, GET_LEVEL(ch), CAST_INNATE);
+      (void)set_fighting(ch, context->target);
+      return TRUE;
+    }
     return FALSE;
   }
   if (context->event != SPEC_EVENT_MOBILE_COMBAT_TURN || (victim = FIGHTING(ch)) == NULL ||
@@ -4348,6 +5465,10 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_BARBARIAN_SPIRITIST:
     rol_monster_spiritist(ch);
     return FALSE;
+  case ROL_MONSTER_WARHORSE:
+    return rol_monster_warhorse_turn(context, ch);
+  case ROL_MONSTER_UM_MALODIN_ONE:
+    return rol_monster_malodin_one_turn(context, ch);
   case ROL_MONSTER_MANSCORPION_VENOM_LIGHT:
   case ROL_MONSTER_MANSCORPION_VENOM_MEDIUM:
   case ROL_MONSTER_MANSCORPION_VENOM_HEAVY:
@@ -4363,6 +5484,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_DARKHOLD_SHADOW_DRAGON:
   case ROL_MONSTER_GRIFFON_NONBARBARIAN:
   case ROL_MONSTER_DUSK_PARALYSIS_GAZE:
+  case ROL_MONSTER_SPIDERHAUNT_PARALYSIS:
   case ROL_MONSTER_UM2_MANSCORPION_TAIL:
   case ROL_MONSTER_UM2_WYVERN_TAIL:
   case ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD:
@@ -4370,6 +5492,25 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_UM_OCHRE_JELLY:
   case ROL_MONSTER_UM2_VORTEX_GUARDIAN:
   case ROL_MONSTER_UM2_SHRIEKER:
+  case ROL_MONSTER_BOULDER_PUSHER:
+  case ROL_MONSTER_TIAMAT:
+  case ROL_MONSTER_CALIMSHAN_PASHA:
+  case ROL_MONSTER_HYSSK_SLAVE_TAKER:
+  case ROL_MONSTER_TF_RENDER:
+  case ROL_MONSTER_TF_JABBERWOCK:
+  case ROL_MONSTER_UM2_BOOKWORM:
+  case ROL_MONSTER_UM2_BEHOLDER:
+  case ROL_MONSTER_PROSTITUTE:
+  case ROL_MONSTER_PIERGEIRON_GUARD:
+  case ROL_MONSTER_DRYAD:
+  case ROL_MONSTER_DOPPELGANGER:
+  case ROL_MONSTER_UM_KEVLAR:
+  case ROL_MONSTER_UM_KORELAR:
+  case ROL_MONSTER_UM_MEZZOLOTH:
+  case ROL_MONSTER_UM_ZOMBIE_LORD:
+  case ROL_MONSTER_UM_MALODIN_TWO:
+  case ROL_MONSTER_UM_MALODIN_THREE:
+  case ROL_MONSTER_ICE_WOLF:
     return FALSE;
   default:
     break;
@@ -4437,6 +5578,9 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_KAMERYNN:
     rol_monster_kamerynn(ch, victim);
     break;
+  case ROL_MONSTER_SPIDERHAUNT_CREEPING_DOOM:
+    (void)rol_monster_spiderhaunt_creeping_doom(ch);
+    break;
   case ROL_MONSTER_PIT_FIEND_BITE_TAIL:
   case ROL_MONSTER_AVERNUS_BEL:
   case ROL_MONSTER_AVERNUS_AUXILIARY:
@@ -4493,6 +5637,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_DARKHOLD_SHADOW_DRAGON:
   case ROL_MONSTER_GRIFFON_NONBARBARIAN:
   case ROL_MONSTER_DUSK_PARALYSIS_GAZE:
+  case ROL_MONSTER_SPIDERHAUNT_PARALYSIS:
   case ROL_MONSTER_UM2_MANSCORPION_TAIL:
   case ROL_MONSTER_UM2_WYVERN_TAIL:
   case ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD:
@@ -4503,6 +5648,27 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_UM2_SHRIEKER:
   case ROL_MONSTER_UM2_GHERIAS_TUK:
   case ROL_MONSTER_UM2_RUST_MONSTER:
+  case ROL_MONSTER_BOULDER_PUSHER:
+  case ROL_MONSTER_TIAMAT:
+  case ROL_MONSTER_CALIMSHAN_PASHA:
+  case ROL_MONSTER_HYSSK_SLAVE_TAKER:
+  case ROL_MONSTER_TF_RENDER:
+  case ROL_MONSTER_TF_JABBERWOCK:
+  case ROL_MONSTER_UM2_BOOKWORM:
+  case ROL_MONSTER_UM2_BEHOLDER:
+  case ROL_MONSTER_WARHORSE:
+  case ROL_MONSTER_PROSTITUTE:
+  case ROL_MONSTER_PIERGEIRON_GUARD:
+  case ROL_MONSTER_DRYAD:
+  case ROL_MONSTER_DOPPELGANGER:
+  case ROL_MONSTER_UM_KEVLAR:
+  case ROL_MONSTER_UM_KORELAR:
+  case ROL_MONSTER_UM_MEZZOLOTH:
+  case ROL_MONSTER_UM_ZOMBIE_LORD:
+  case ROL_MONSTER_UM_MALODIN_ONE:
+  case ROL_MONSTER_UM_MALODIN_TWO:
+  case ROL_MONSTER_UM_MALODIN_THREE:
+  case ROL_MONSTER_ICE_WOLF:
   case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }

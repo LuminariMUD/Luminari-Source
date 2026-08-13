@@ -147,9 +147,20 @@ ADAPTED_HANDLER_NAMES = {
     "tiamat_crescent_moon": "RoL Utility Object",
     "blackPlagueReservoir": "RoL Utility Object",
     "item_loot_block": "RoL Utility Object",
+    "shw_maggots": "RoL Utility Object",
+    "shw_cyricsAltar": "RoL Utility Object",
+    "acheronEntrancePortal": "RoL Utility Object",
+    "acheronPlatformPortal": "RoL Utility Object",
+    "acheronRoamingPortal": "RoL Utility Object",
+    "proximity_explosion": "RoL Utility Object",
+    "hyssk_skeleton_teleport": "RoL Utility Object",
+    "um2_tatteredCloak": "RoL Utility Object",
+    "um2_qogekStaff": "RoL Utility Object",
     "newbieLoadRoom": "RoL Utility Room",
     "weight_trigger": "RoL Utility Room",
     "gloomhaven_gate_guard": "RoL Scheduled Mobile",
+    "piergeiron": "RoL Scheduled Mobile",
+    "zk_gate_guard": "RoL Scheduled Mobile",
     "lighthouse_one": "RoL Scheduled Mobile",
     "naval_three": "RoL Scheduled Mobile",
     "waterdeep_guard_three": "RoL Scheduled Mobile",
@@ -158,6 +169,23 @@ ADAPTED_HANDLER_NAMES = {
     "sc_fieryMace": "RoL Weapon Proc",
     "proc_darkhold_warhammer": "RoL Weapon Proc",
     "proc_darkhold_bastard": "RoL Weapon Proc",
+    "shw_spiderVenomPouch": "RoL Weapon Proc",
+    "seelie_staff": "RoL Weapon Proc",
+    "master_bards_glaive": "RoL Weapon Proc",
+    "bhaal_priest_weapon": "RoL Weapon Proc",
+    "bhaal_mage_weapon": "RoL Weapon Proc",
+    "md_enchanted_khanjari": "RoL Weapon Proc",
+    "tf_dagger_oblivion": "RoL Weapon Proc",
+    "um_ironFlindbar": "RoL Weapon Proc",
+    "um_undeadTrident": "RoL Weapon Proc",
+    "um_fadeDrusus": "RoL Weapon Proc",
+    "um_magebaneFalchion": "RoL Weapon Proc",
+    "um_lightningSword": "RoL Weapon Proc",
+    "um_woundhealerScimitar": "RoL Weapon Proc",
+    "um_flameOfNorthSword": "RoL Weapon Proc",
+    "gc_swiftWind": "RoL Weapon Proc",
+    "gc_pestilenceSword": "RoL Weapon Proc",
+    "gc_deathKnell": "RoL Weapon Proc",
     "musical_skull_1": "RoL Darkhold Object",
     "musical_skull_2": "RoL Darkhold Object",
     "gold_diamond": "RoL Darkhold Object",
@@ -191,6 +219,7 @@ ADAPTED_HANDLER_NAMES = {
     "homeless_one": "RoL Waterdeep Ambient",
     "homeless_two": "RoL Waterdeep Ambient",
     "lich_energy_drain": "RoL Lich Energy Drain",
+    "dk_lich_energy_drain": "RoL Lich Energy Drain",
     "lichConverter": "RoL Lich Rite",
     "item_block": "RoL Item Blocker",
     "demogorgon_shout": "RoL Alert Caller",
@@ -200,6 +229,8 @@ ADAPTED_HANDLER_NAMES = {
     "conj_lycan_tiger": "RoL Monster Combat",
     "conj_lycan_fox": "RoL Monster Combat",
     "spider_venom_medium": "RoL Monster Combat",
+    "shw_hugeWhiteSpider": "RoL Monster Combat",
+    "shw_frailDruid": "RoL Monster Combat",
     "ashentoris": "RoL Monster Combat",
     "ryo_bansheeWail": "RoL Monster Combat",
     "ttf_fourarms": "RoL Monster Combat",
@@ -281,6 +312,28 @@ ADAPTED_HANDLER_NAMES = {
     "um2_shrieker": "RoL Monster Combat",
     "um2_gheriasTukCombat": "RoL Monster Combat",
     "um2_rustMonster": "RoL Monster Combat",
+    "boulder_pusher": "RoL Monster Combat",
+    "Tiamat": "RoL Monster Combat",
+    "calimshan_pasha_teleport": "RoL Monster Combat",
+    "hyssk_slave_taker": "RoL Monster Combat",
+    "tf_render": "RoL Monster Combat",
+    "tf_jabberwock": "RoL Monster Combat",
+    "um2_bookworm": "RoL Monster Combat",
+    "um2_beholder": "RoL Monster Combat",
+    "warhorse": "RoL Monster Combat",
+    "prostitute_one": "RoL Monster Combat",
+    "piergeiron_guard": "RoL Monster Combat",
+    "dryad": "RoL Monster Combat",
+    "doppelganger_switch": "RoL Monster Combat",
+    "um_kevlar": "RoL Monster Combat",
+    "um_korelar": "RoL Monster Combat",
+    "um_mezzoloth": "RoL Monster Combat",
+    "um_zombieLord": "RoL Monster Combat",
+    "um_malodinOne": "RoL Monster Combat",
+    "um_malodinTwo": "RoL Monster Combat",
+    "um_malodinThree": "RoL Monster Combat",
+    "ice_wolf": "RoL Monster Combat",
+    "um_entranceFee": "RoL Toll Keeper",
     "um2_orchidDecay": "RoL Utility Object",
     "gakarakQuake": "RoL Monster Combat",
     "kazgorothToss": "RoL Monster Combat",
@@ -400,6 +453,7 @@ ADAPTED_HANDLER_NAMES = {
     "windsong": "RoL Weapon Proc",
     "ancient_man": "RoL Command Sentinel",
     "gate_guard": "RoL Command Sentinel",
+    "calimshan_pashasGuard": "RoL Command Sentinel",
     "ghore_paradise": "RoL Toll Keeper",
     "necro_passing_glyph": "RoL Command Sentinel",
     "shady_man": "RoL Command Sentinel",
@@ -504,6 +558,10 @@ INERT_HANDLERS = {
         "source object callback contains only design comments, registers no events, and returns "
         "without changing the object, wielder, or victim"
     ),
+    "gc_necromancerStone": (
+        "source initialization registers only command events, but the active body runs only for "
+        "PROC_EVENT; no source path schedules that event, so the bound callback is unreachable"
+    ),
 }
 
 # This source callback exposes unrestricted staff/debug commands through an
@@ -539,6 +597,102 @@ UNSAFE_HANDLERS = {
     ),
 }
 
+# Active source callbacks whose smallest functional unit depends on a removed
+# subsystem, an unavailable typed gateway, or unsafe process-global quest state.
+# Excluding the callback preserves its ordinary world prototype without inventing
+# partial mechanics or importing the retired dependency.
+MINIMAL_DEPENDENCY_EXCLUSIONS = {
+    "ammo_repair_shopkeeper": (
+        "source reconstructs obsolete hardcoded missile prototypes 150 through 160; target "
+        "missiles use destructible instances and no compatible repair recipe identity"
+    ),
+    "justice_clerk": (
+        "source requires the compile-time NEWJUSTICE crime database, warrants, sentences, "
+        "and commands; target has no compatible justice subsystem"
+    ),
+    "sales_spec": (
+        "source is a process-global wandering vendor over a hardcoded source-only inventory and "
+        "multi-coin pricing model; target commerce is data-driven through shop records"
+    ),
+    "tithe_collector": (
+        "source charges platinum against a persistent prestige field that does not exist in the "
+        "target character model"
+    ),
+    "lycan_wolf_infect": (
+        "source dynamically attaches a persistent player procedure that is absent from the "
+        "target save schema and special registry"
+    ),
+    "wolfsbane_potion": (
+        "source only removes the excluded dynamic lycanthropy player procedure; attaching a "
+        "potion callback without that state would consume the object without a cure"
+    ),
+    "slot_machine_new": (
+        "source requires retired four-denomination wallets, bank balances, and a shared jackpot "
+        "file; target has only the unified gold economy and no compatible jackpot store"
+    ),
+    "cart_shops": (
+        "source requires the retired character-cart pointer and legacy commodity objects; target "
+        "cargo is vessel-owned and cannot be driven by a room callback"
+    ),
+    "trade_center": (
+        "source requires the retired cart economy, fixed commodity prototype range, and legacy "
+        "trade-center persistence; target uses the vessel-trade SQL schema"
+    ),
+    "calimshan_hydra": (
+        "source is enter-room-only behavior, but the target special registry has no typed room "
+        "entry gateway; a command or periodic substitute would change its trigger"
+    ),
+    "um2_battleSelf": (
+        "source is enter-room-only encounter cloning, but the target special registry has no "
+        "typed room entry gateway"
+    ),
+    "um2_explodingRoom": (
+        "source combines enter-room and room-timer state, but the target registry exposes neither "
+        "typed room entry nor per-room timer ownership for converted procedures"
+    ),
+    "um2_murialSacrifice": (
+        "source entry callback mutates process-global Malana ritual state; the target has no typed "
+        "room entry gateway or instance-safe ritual owner"
+    ),
+    "um2_malana": (
+        "source's 63-step ritual uses shared process-global counters and assumes source-only room, "
+        "door, desk, key, bowl, and dagger choreography"
+    ),
+    "um2_murialProne": (
+        "source is coupled to the excluded process-global Malana ritual and source-only shackles "
+        "key lifecycle"
+    ),
+    "um2_gateGuardian": (
+        "source scatters quest stones using process-global requestor and class buffers shared by "
+        "all players; target quests require per-player persistent state"
+    ),
+    "um2_selfShadow": (
+        "source death rewards consume the excluded Gate Guardian's process-global requestor and "
+        "class buffers, so an isolated death callback cannot identify the recipient safely"
+    ),
+    "succubus": (
+        "source uses shared counters across all three bound mobiles, forcibly drives player "
+        "commands, and reads a victim after death; no instance-safe target state exists"
+    ),
+    "bhaal_enter": (
+        "source destructively clears every prepared spell and depends on the retired source "
+        "memorization list and class spellbook population routine"
+    ),
+    "bhaal_res": (
+        "source purges player equipment and inventory before applying a resurrection penalty that "
+        "does not exist in the target character model"
+    ),
+    "havenport_lorde_blindproc": (
+        "source suppresses each incoming combat command, calls its legacy command implementation "
+        "directly, then applies retaliation only after that nested command succeeds; the target "
+        "typed command gateway is pre-command and cannot safely re-enter or observe those commands"
+    ),
+    "basilisk_drop": (
+        "source invocation mutates source-only per-zone precipitation and sky fields; target "
+        "weather is region/global state with no compatible zone-owned precipitation contract"
+    ),
+}
+
 # These source object callbacks are already represented by the target artifact
 # subsystem. Their source identities resolve to these canonical target objects,
 # so conversion neither emits a duplicate prototype nor persists a second proc.
@@ -553,6 +707,30 @@ RECONCILED_OBJECT_RUNTIME_HANDLERS = {
     "Gesen": (169908, "modern artifact subsystem: Gesen"),
     "tiamat_stinger": (169909, "modern artifact subsystem: Tiamat's Stinger"),
     "New_Avernus": (169910, "modern artifact subsystem: Avernus"),
+    "jotun_adamantiumMaceMistweave": (196012, "hardwired target callback: mistweave"),
+    "jotun_flamingSwordValkyrie": (196056, "hardwired target callback: valkyrie_sword"),
+    "jotun_cloakIcicles": (196059, "hardwired target callback: ymir_cloak"),
+    "jotun_clawsDestroyer": (196062, "hardwired target callback: vaprak_claws"),
+    "jotun_doubleAxeGiantbane": (196066, "hardwired target callback: giantslayer"),
+    "jotun_holySwordFaith": (196073, "hardwired target callback: planetar_sword"),
+    "jotun_twilight": (196081, "hardwired target callback: twilight"),
+    "jotun_skullSmasher": (196087, "hardwired target callback: skullsmasher"),
+}
+
+# These source assignments are represented by owner-independent target services.
+# The converted data remains present, but persisting an owner callback would run a
+# duplicate implementation alongside the target service.
+RECONCILED_RUNTIME_HANDLERS = {
+    "petRent": (
+        "mobile",
+        (2001200,),
+        "automatic transactional pet persistence on login, logout, save, and pet changes",
+    ),
+    "auctioneer": (
+        "mobile",
+        (2001263,),
+        "global target auction command and heartbeat-driven auction lifecycle",
+    ),
 }
 
 # These source death callbacks coexist with other mobile behavior. Dedicated
@@ -606,6 +784,8 @@ COMPOSABLE_MOBILE_HANDLER_AFFECTS = {
 COMPOSABLE_MOBILE_RUNTIME_HANDLERS = {
     "standardDemon": "MOB_ROL_DEMON composition-safe runtime hook",
     "dragon_shout": "RoL Guild Guard plus RoL alert runtime profile",
+    "um2_beholderThrall": "RoL Monster Combat beholder command restraint",
+    "um_durnan": "RoL Toll Keeper Undermountain entrance and Durnan ambient composition",
     "dk_aleanrahel": "converted mobile death profile",
     "air_die": "converted mobile death profile",
     "earth_die": "converted mobile death profile",
@@ -1402,6 +1582,7 @@ def compile_special_bindings(
           "guard_one",
           *COMPOSED_STATE_PROFILE_SOURCES,
           "lich_energy_drain",
+          "dk_lich_energy_drain",
           "lichConverter",
           "major_beholder",
           "navagator",
@@ -1436,6 +1617,10 @@ def compile_special_bindings(
           "thp_necroChild",
           "um2_deathsHeadSeed",
           "um2_orchidDecay",
+          "acheronPlatformPortal",
+          "acheronRoamingPortal",
+          "proximity_explosion",
+          "um2_tatteredCloak",
       } or (
           persisted_name in {"RoL Weapon Proc", "RoL Avernus Object"}
       ):
@@ -1457,6 +1642,9 @@ def compile_special_bindings(
                   else ((0, "wld"),)
                   if handler
                   in {
+                      "acheronEntrancePortal",
+                      "acheronPlatformPortal",
+                      "acheronRoamingPortal",
                       "blip_portal",
                       "bs_portal",
                       "dim_fold",
@@ -1516,6 +1704,21 @@ def compile_special_bindings(
       disposition = _disposition(row, "NATIVE_RECONCILED", target_vnum)
       disposition["target"] = target
       dispositions.append(disposition)
+    elif handler in RECONCILED_RUNTIME_HANDLERS:
+      expected_owner, expected_vnums, target = RECONCILED_RUNTIME_HANDLERS[handler]
+      if record_type != expected_owner:
+        raise ValueError(
+            f"reconciled runtime handler {handler!r} owns {record_type!r}, "
+            f"expected {expected_owner!r}"
+        )
+      if target_vnum not in expected_vnums:
+        raise ValueError(
+            f"reconciled runtime handler {handler!r} resolved to {target_vnum}, "
+            f"expected one of {expected_vnums}"
+        )
+      disposition = _disposition(row, "NATIVE_RECONCILED", target_vnum)
+      disposition["target"] = target
+      dispositions.append(disposition)
     elif handler in COMPOSABLE_ROOM_HANDLER_FLAGS:
       if record_type != "room":
         raise ValueError(f"composable room handler {handler!r} owns {record_type!r}")
@@ -1533,6 +1736,10 @@ def compile_special_bindings(
     elif handler in INERT_HANDLERS:
       disposition = _disposition(row, "SOURCE_INERT_EXCLUDED", target_vnum)
       disposition["reason"] = INERT_HANDLERS[handler]
+      dispositions.append(disposition)
+    elif handler in MINIMAL_DEPENDENCY_EXCLUSIONS:
+      disposition = _disposition(row, "SOURCE_DEPENDENCY_EXCLUDED", target_vnum)
+      disposition["reason"] = MINIMAL_DEPENDENCY_EXCLUSIONS[handler]
       dispositions.append(disposition)
     elif handler in UNSAFE_HANDLERS:
       disposition = _disposition(row, "SOURCE_UNSAFE_EXCLUDED", target_vnum)

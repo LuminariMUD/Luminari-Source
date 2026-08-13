@@ -751,8 +751,8 @@ session must reconcile at least:
 
 - `REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md`;
 - `REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md`;
-- `../REALMS_OF_LUMINARI_WORKNOTES.md`;
-- `../PHASE4_MANUAL_TESTING.md`;
+- `REALMS_OF_LUMINARI_WORKNOTES.md`;
+- `PHASE4_MANUAL_TESTING.md`;
 - `../RoL-Changelog.md`;
 - artifact system and placement documentation;
 - relevant builder/player help; and

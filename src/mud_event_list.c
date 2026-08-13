@@ -48,6 +48,7 @@ extern EVENTFUNC(event_rol_yggdrasil_release);
 extern EVENTFUNC(event_rol_barbazu_bloodloss);
 extern EVENTFUNC(event_rol_drow_decay);
 extern EVENTFUNC(event_rol_deaths_head_seed);
+extern EVENTFUNC(event_rol_spiderhaunt_maggots);
 
 /* The mud_event_index[] with extended data for table-driven handling
  * Format: {name, func, type, completion_msg, recovery_msg, feat, daily_uses} */
@@ -523,6 +524,8 @@ struct mud_event_list mud_event_index[] = {
     {"RoL Drow Equipment Decay", event_rol_drow_decay, EVENT_OBJECT, NULL, NULL, FEAT_UNDEFINED, 0},
     {"RoL Death's Head Seed", event_rol_deaths_head_seed, EVENT_OBJECT, NULL, NULL, FEAT_UNDEFINED,
      0},
+    {"RoL Spiderhaunt Maggots", event_rol_spiderhaunt_maggots, EVENT_CHAR, NULL, NULL,
+     FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

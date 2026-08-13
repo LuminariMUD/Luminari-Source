@@ -22,6 +22,7 @@
 #include "helpers.h"
 #include "interpreter.h"
 #include "magic/domains_schools.h"
+#include "magic/spell_prep.h"
 #include "magic/spells.h"
 #include "mob/mob_utils.h"
 #include "mud_event.h"
@@ -120,11 +121,27 @@ enum rol_weapon_effect
   ROL_WEAPON_DOBLUTH_SHADOWS,
   ROL_WEAPON_BHAAL_TORMENT,
   ROL_WEAPON_SEELIE_BARDS_GLAIVE,
+  ROL_WEAPON_SPIDERHAUNT_VENOM_POUCH,
   ROL_WEAPON_UM2_SNAKE_WHIP,
   ROL_WEAPON_UM2_SEARING_ROD,
   ROL_WEAPON_UM2_ASTRAL_FORGED,
   ROL_WEAPON_UM2_TORIN_GENERAL,
-  ROL_WEAPON_UM2_TORIN_CHAIN_LIGHTNING
+  ROL_WEAPON_UM2_TORIN_CHAIN_LIGHTNING,
+  ROL_WEAPON_SEELIE_STAFF,
+  ROL_WEAPON_BHAAL_MAGE,
+  ROL_WEAPON_BHAAL_PRIEST,
+  ROL_WEAPON_UM_FLINDBAR,
+  ROL_WEAPON_UM_UNDEAD_TRIDENT,
+  ROL_WEAPON_UM_FADE,
+  ROL_WEAPON_UM_MAGEBANE,
+  ROL_WEAPON_UM_LIGHTNING,
+  ROL_WEAPON_UM_WOUNDHEALER,
+  ROL_WEAPON_UM_FLAME_NORTH,
+  ROL_WEAPON_GREYCLOAK_SWIFTWIND,
+  ROL_WEAPON_GREYCLOAK_PESTILENCE,
+  ROL_WEAPON_GREYCLOAK_DEATHKNELL,
+  ROL_WEAPON_MYTH_KHANJARI,
+  ROL_WEAPON_TF_OBLIVION
 };
 
 struct rol_weapon_profile
@@ -243,6 +260,36 @@ static const struct rol_weapon_profile rol_weapon_profiles[] = {
      "Bhaal's Torment answers an enemy fire shield with the triggering strike's damage."},
     {2062750, ROL_WEAPON_SEELIE_BARDS_GLAIVE, 2001, false,
      "A Dexterity-weighted flash blinds, then bursts against an already-blinded victim."},
+    {2062751, ROL_WEAPON_SEELIE_BARDS_GLAIVE, 2001, false,
+     "A Dexterity-weighted offhand slow or primary blind, followed by a light burst."},
+    {2062728, ROL_WEAPON_SEELIE_STAFF, 26, false,
+     "Faerie radiance outlines hostile creatures and may finish one preparation."},
+    {2063763, ROL_WEAPON_BHAAL_PRIEST, 31, false,
+     "Periodic divine protection, detection, vigor, or healing."},
+    {2063778, ROL_WEAPON_BHAAL_MAGE, 31, false,
+     "Periodic arcane enhancement, detection, shielding, or far sight."},
+    {2080212, ROL_WEAPON_SPIDERHAUNT_VENOM_POUCH, 61, false,
+     "One-in-61 thorn-graze combat flourish."},
+    {2083055, ROL_WEAPON_MYTH_KHANJARI, 23, false,
+     "Rogue-only rage, power, or fury burst with race-weighted activation."},
+    {2089471, ROL_WEAPON_TF_OBLIVION, 25, false,
+     "Necromantic execution and recurring life-force or mental restoration."},
+    {2092065, ROL_WEAPON_UM_FLINDBAR, 7, true, "NPC critical disarm and knockdown."},
+    {2092090, ROL_WEAPON_UM_UNDEAD_TRIDENT, 1, true,
+     "Unholy-word critical and weekly zombie summon."},
+    {2092117, ROL_WEAPON_UM_FADE, 1, true, "Blinding critical and daily invisibility invocation."},
+    {2092118, ROL_WEAPON_UM_MAGEBANE, 1, true, "Feeblemind critical and daily globe invocation."},
+    {2092119, ROL_WEAPON_UM_LIGHTNING, 1, true, "Daily haste and lightning critical."},
+    {2092120, ROL_WEAPON_UM_WOUNDHEALER, 11, false,
+     "Daily healing invocation and vampiric combat recovery."},
+    {2092121, ROL_WEAPON_UM_FLAME_NORTH, 1, true,
+     "Toggleable flame with a daily flame-strike critical."},
+    {2096638, ROL_WEAPON_GREYCLOAK_SWIFTWIND, 1, false,
+     "Daily spoken flurry of four three-sided dice of extra attacks."},
+    {2096642, ROL_WEAPON_GREYCLOAK_PESTILENCE, 16, false,
+     "Acid blast with a secondary pestilent wound."},
+    {2096678, ROL_WEAPON_GREYCLOAK_DEATHKNELL, 25, false,
+     "Critical blindness, soulsteal, and unholy power against good targets."},
     {2093035, ROL_WEAPON_UM2_SEARING_ROD, 1, true,
      "Critical burning-hands strike at source level 35."},
     {2093086, ROL_WEAPON_UM2_SNAKE_WHIP, 1, true,
@@ -346,7 +393,8 @@ enum rol_command_sentinel_rule
   ROL_SENTINEL_GOOD_RACE_OVER_LEVEL = 0,
   ROL_SENTINEL_NON_ORC,
   ROL_SENTINEL_OVER_LEVEL,
-  ROL_SENTINEL_CHANCE
+  ROL_SENTINEL_CHANCE,
+  ROL_SENTINEL_NOT_FEMALE
 };
 
 struct rol_command_sentinel_profile
@@ -364,7 +412,8 @@ enum rol_toll_keeper_kind
 {
   ROL_TOLL_KEEPER_FEE_GATE = 0,
   ROL_TOLL_KEEPER_BRIDGE,
-  ROL_TOLL_KEEPER_TICKET
+  ROL_TOLL_KEEPER_TICKET,
+  ROL_TOLL_KEEPER_UNDERMOUNTAIN
 };
 
 struct rol_toll_keeper_profile
@@ -623,6 +672,8 @@ static const struct rol_command_sentinel_profile rol_command_sentinel_profiles[]
     {2010302, 2010302, SOUTH, 20, ROL_SENTINEL_OVER_LEVEL,
      "$n whispers, 'This area is far below you, unless you wish to fight me.'",
      "$n whispers something to $N, stopping $M with one hand."},
+    {2046501, 2046506, WEST, 0, ROL_SENTINEL_NOT_FEMALE,
+     "$n frowns at you and says, 'Ye may not pass.'", "$n frowns at $N and blocks $S way."},
     {2081508, 2081596, SOUTH, 10, ROL_SENTINEL_GOOD_RACE_OVER_LEVEL,
      "$n lays a hand upon your shoulder and says, 'Ye may not pass.'",
      "$n lays a hand upon $N's shoulder and says, 'Ye may not pass.'"},
@@ -636,6 +687,8 @@ static const struct rol_toll_keeper_profile rol_toll_keeper_profiles[] = {
     {2011306, 2005399, ROL_TOLL_KEEPER_TICKET, -1, -1, -1, 0, 2005341, 2011300},
     {2011542, 2011666, ROL_TOLL_KEEPER_FEE_GATE, UP, 2011667, -1, 500, -1, -1},
     {2014202, 2014237, ROL_TOLL_KEEPER_BRIDGE, -1, 2014236, 2014238, 5, -1, -1},
+    {2092000, -1, ROL_TOLL_KEEPER_UNDERMOUNTAIN, -1, 2092002, 2092001, 1, -1, -1},
+    {2092002, -1, ROL_TOLL_KEEPER_UNDERMOUNTAIN, -1, 2092002, 2092001, 1, -1, -1},
     {2098357, 2098425, ROL_TOLL_KEEPER_TICKET, -1, -1, -1, 0, 2000046, 2098451},
     {2098358, 2014312, ROL_TOLL_KEEPER_TICKET, -1, -1, -1, 0, 2000046, 2098451},
 };
@@ -3791,6 +3844,7 @@ int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *a
   struct char_data *primary;
   struct char_data *victim;
   int drained_hit;
+  int proc_denominator;
 
   UNUSED(me);
   UNUSED(argument);
@@ -3801,9 +3855,10 @@ int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *a
 
   for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = victim->next_in_room)
   {
+    proc_denominator = GET_MOB_VNUM(ch) == 2021784 ? 4 : 5;
     if (GET_HIT(victim) <= 0 ||
         (victim != primary && !rol_lich_energy_drain_together(victim, primary)) ||
-        rand_number(0, 4) != 0)
+        rand_number(0, proc_denominator - 1) != 0)
       continue;
 
     act("\tWYou reach out and suck the life force away from $N!\tn", TRUE, ch, NULL, victim,
@@ -4761,6 +4816,7 @@ struct rol_scheduled_gate_profile
 
 static const int rol_waterdeep_gate_rooms[] = {2003023, 2003025, 2003161, 2002896};
 static const int rol_gloomhaven_gate_rooms[] = {2034468, 2034455};
+static const int rol_zhentil_gate_rooms[] = {2081000};
 
 static const struct rol_scheduled_gate_profile rol_scheduled_gate_profiles[] = {
     {2003082,
@@ -4782,6 +4838,16 @@ static const struct rol_scheduled_gate_profile rol_scheduled_gate_profiles[] = {
      "$n scratches his head and looks at the open gates.",
      {"$n tries to unlock the gates with an embarrassed look.",
       "$n throws you a sour look, wondering who stole his key."}},
+    {2081074,
+     rol_zhentil_gate_rooms,
+     sizeof(rol_zhentil_gate_rooms) / sizeof(rol_zhentil_gate_rooms[0]),
+     {"The gates of Zhentil Keep are open now!",
+      "Farewell on yer travels, come back soon, preferably in one piece."},
+     "$n slowly walks up to the gates..",
+     "$n unlocks the gates and shoves them open.",
+     "$n scratches $s head and looks at the open gates.",
+     {"$n tries to unlock the gates with an embarrassed look.",
+      "$n throws you a sour look, wondering who stole $s key."}},
 };
 
 static const char *const rol_lighthouse_messages[] = {
@@ -5380,6 +5446,130 @@ static int rol_scheduled_crier(struct char_data *ch)
   return FALSE;
 }
 
+static void rol_piergeiron_path_action(struct char_data *ch, char action)
+{
+  char gate[] = "gate";
+
+  switch (action)
+  {
+  case 'W':
+    GET_POS(ch) = POS_STANDING;
+    act("$n awakens and stretches $s arms wide.", FALSE, ch, NULL, NULL, TO_ROOM);
+    do_say(ch, "Time to take care of business!", 0, 0);
+    break;
+  case 'S':
+  case '.':
+    ch->mob_specials.default_pos = POS_SLEEPING;
+    GET_POS(ch) = POS_SLEEPING;
+    act("$n lies down and quickly falls asleep behind $s desk.", FALSE, ch, NULL, NULL, TO_ROOM);
+    ch->mob_specials.path_reset = 0;
+    break;
+  case 'a':
+    act("$n steps in front of the watchman and salutes.", FALSE, ch, NULL, NULL, TO_ROOM);
+    do_say(ch, "Report, watchman!", 0, 0);
+    break;
+  case 'b':
+    act("$n steps in front of the guard and salutes.", FALSE, ch, NULL, NULL, TO_ROOM);
+    do_say(ch, "Report, guard. What's new this day?", 0, 0);
+    break;
+  case 'c':
+    do_say(ch, "Greetings, friends! Another fine day in Waterdeep.", 0, 0);
+    break;
+  case 'd':
+    do_say(ch, "Keep up the good work, men!", 0, 0);
+    break;
+  case 'e':
+    do_say(ch, "Looks like another busy day in the port! Keep the people in order, men.", 0, 0);
+    break;
+  case 'E':
+    do_say(ch, "My greetings, m'lady. How's business?", 0, 0);
+    break;
+  case 'k':
+    do_say(ch, "Anyone here seen Khelben? Slippery mages are impossible to find.", 0, 0);
+    break;
+  case 'l':
+    do_say(ch, "Have a good one, boys!", 0, 0);
+    break;
+  case 'q':
+    do_say(ch, "Heya, sweet thing.", 0, 0);
+    break;
+  case 'A':
+    do_say(ch, "The east gate of Waterdeep is now closed!", 0, 0);
+    break;
+  case 'B':
+    do_say(ch, "The north gate of Waterdeep is now closed!", 0, 0);
+    break;
+  case 'F':
+    do_say(ch, "The west gate of Waterdeep is now closed!", 0, 0);
+    break;
+  case 'O':
+    do_gen_door(ch, gate, 0, SCMD_UNLOCK);
+    do_gen_door(ch, gate, 0, SCMD_OPEN);
+    break;
+  case 'C':
+    do_gen_door(ch, gate, 0, SCMD_CLOSE);
+    do_gen_door(ch, gate, 0, SCMD_LOCK);
+    break;
+  default:
+    break;
+  }
+}
+
+static int rol_scheduled_piergeiron(struct char_data *ch)
+{
+  static const char open_path[] = "W0000l4mnop52333eO33221q4Egh53001O1111222S.";
+  static const char close_path[] =
+      "W0001101ai000000000bj1111111AC333333300c00000BC22222k22333333FC111111d222222222d3233222S.";
+  const char *path;
+  room_rnum home;
+  char action;
+
+  if (ch == NULL || FIGHTING(ch) != NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return FALSE;
+  home = real_room(2003306);
+  if (!VALID_ROOM_RNUM(home))
+    return FALSE;
+
+  if (time_info.hours != 8 && time_info.hours != 18)
+    ch->mob_specials.path_delay = 0;
+  if (ch->mob_specials.path_reset == 0 && IN_ROOM(ch) != home)
+  {
+    act("$n presses a small device and slowly fades out of existence.", TRUE, ch, NULL, NULL,
+        TO_ROOM);
+    char_from_room(ch);
+    char_to_room(ch, home);
+    act("$n slowly fades into existence behind $s desk.", TRUE, ch, NULL, NULL, TO_ROOM);
+    GET_POS(ch) = POS_SLEEPING;
+  }
+  if (ch->mob_specials.path_reset == 0 && (time_info.hours == 8 || time_info.hours == 18) &&
+      ch->mob_specials.path_delay != time_info.hours)
+  {
+    ch->mob_specials.path_reset = time_info.hours == 8 ? 1 : 2;
+    ch->mob_specials.path_index = 0;
+    ch->mob_specials.path_delay = time_info.hours;
+  }
+  if (ch->mob_specials.path_reset == 0)
+  {
+    if (IN_ROOM(ch) == home && rand_number(0, 5) == 0)
+      act("$n snores loudly enough to shake the walls.", TRUE, ch, NULL, NULL, TO_ROOM);
+    return FALSE;
+  }
+
+  path = ch->mob_specials.path_reset == 1 ? open_path : close_path;
+  if (ch->mob_specials.path_index < 0 || (size_t)ch->mob_specials.path_index >= strlen(path))
+  {
+    ch->mob_specials.path_reset = 0;
+    ch->mob_specials.path_index = 0;
+    return FALSE;
+  }
+  action = path[ch->mob_specials.path_index++];
+  if (action >= '0' && action <= '5')
+    (void)perform_move(ch, action - '0', 1);
+  else
+    rol_piergeiron_path_action(ch, action);
+  return TRUE;
+}
+
 int rol_scheduled_mobile(struct char_data *ch, void *me, int cmd, const char *argument)
 {
   const struct rol_scheduled_gate_profile *gate_profile;
@@ -5401,6 +5591,8 @@ int rol_scheduled_mobile(struct char_data *ch, void *me, int cmd, const char *ar
     return rol_scheduled_naval(speaker);
   if (GET_MOB_VNUM(speaker) == 2003008)
     return rol_scheduled_crier(speaker);
+  if (GET_MOB_VNUM(speaker) == 2003211)
+    return rol_scheduled_piergeiron(speaker);
   return FALSE;
 }
 
@@ -5936,6 +6128,8 @@ bool rol_command_sentinel_blocks_passage(int mobile_vnum, int room_vnum, int dir
     return GET_LEVEL(ch) > profile->threshold;
   case ROL_SENTINEL_CHANCE:
     return chance_roll > profile->threshold;
+  case ROL_SENTINEL_NOT_FEMALE:
+    return GET_SEX(ch) != SEX_FEMALE;
   default:
     return false;
   }
@@ -6129,7 +6323,7 @@ static int rol_toll_keeper_activity(struct char_data *keeper)
   if (keeper == NULL || !IS_NPC(keeper) || !AWAKE(keeper) || FIGHTING(keeper) != NULL ||
       !VALID_ROOM_RNUM(IN_ROOM(keeper)) ||
       (profile = rol_toll_keeper_profile_for(GET_MOB_VNUM(keeper))) == NULL ||
-      (int)GET_ROOM_VNUM(IN_ROOM(keeper)) != profile->room_vnum)
+      (profile->room_vnum >= 0 && (int)GET_ROOM_VNUM(IN_ROOM(keeper)) != profile->room_vnum))
     return FALSE;
 
   switch (profile->mobile_vnum)
@@ -6214,6 +6408,29 @@ static int rol_toll_keeper_activity(struct char_data *keeper)
     default:
       return FALSE;
     }
+  case 2092002:
+    roll = rand_number(1, 100);
+    switch (roll)
+    {
+    case 1:
+      do_say(keeper, "Welcome to the Yawning Portal!", 0, 0);
+      break;
+    case 2:
+      do_say(keeper, "Many have gone into Undermountain, but few return alive.", 0, 0);
+      break;
+    case 3:
+      do_say(keeper, "Undermountain is dangerous. It is best to travel in large groups.", 0, 0);
+      break;
+    case 4:
+      do_say(keeper, "Each of Halaster's apprentices designed a powerful weapon.", 0, 0);
+      break;
+    case 5:
+      act("$n wipes down the bar.", FALSE, keeper, NULL, NULL, TO_ROOM);
+      break;
+    default:
+      break;
+    }
+    return FALSE;
   default:
     return FALSE;
   }
@@ -6248,6 +6465,11 @@ static bool rol_toll_keeper_move(struct char_data *ch,
     break;
   case 2011542:
     act("$n arrives from the passage below.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 2092000:
+  case 2092002:
+    act(first_side ? "$n descends from above." : "$n climbs out of the well.", TRUE, ch, NULL, NULL,
+        TO_ROOM);
     break;
   default:
     act("$n lands in a pile here from the direction of the bridge!", TRUE, ch, NULL, NULL, TO_ROOM);
@@ -6456,6 +6678,62 @@ static int rol_toll_keeper_ticket_taker(struct char_data *ch, struct char_data *
   return FALSE;
 }
 
+static int rol_toll_keeper_undermountain(struct char_data *ch, struct char_data *keeper, int cmd,
+                                         const char *argument,
+                                         const struct rol_toll_keeper_profile *profile)
+{
+  bool first_side;
+  int before_gold;
+  int direction;
+  int paid;
+  int current_room_vnum;
+
+  if (ch == NULL || keeper == NULL || !AWAKE(keeper) || FIGHTING(keeper) != NULL)
+    return FALSE;
+  current_room_vnum = GET_ROOM_VNUM(IN_ROOM(keeper));
+  if (current_room_vnum != 2092001 && current_room_vnum != 2092002)
+    return FALSE;
+  first_side = current_room_vnum == 2092001;
+  direction = first_side ? DOWN : UP;
+
+  if (IS_MOVE(cmd) && complete_cmd_info[cmd].subcmd == direction)
+  {
+    if ((!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT) ||
+        (IS_NPC(ch) && rol_race_is_good(GET_RACE(ch))))
+    {
+      do_say(keeper, first_side ? "Good luck in Undermountain!" : "Welcome to the Yawning Portal!",
+             0, 0);
+      (void)rol_toll_keeper_move(ch, profile, first_side);
+      return TRUE;
+    }
+    act("$n stops you.", FALSE, keeper, NULL, ch, TO_VICT);
+    act("$n stops $N.", TRUE, keeper, NULL, ch, TO_NOTVICT);
+    if (!rol_race_is_good(GET_RACE(ch)))
+      do_say(keeper, "We don't want your kind here! Leave the way you came!", 0, 0);
+    else
+      do_say(keeper, "One gold to go in. One gold to get out.", 0, 0);
+    return TRUE;
+  }
+  if (!CMD_IS("give") || IS_NPC(ch) || !rol_race_is_good(GET_RACE(ch)))
+    return FALSE;
+
+  before_gold = GET_GOLD(keeper);
+  do_give(ch, argument, cmd, 0);
+  paid = GET_GOLD(keeper) - before_gold;
+  if (paid < profile->fee_gold)
+  {
+    do_say(keeper, "The cost is one gold coin! No less!", 0, 0);
+    return TRUE;
+  }
+  do_say(keeper, first_side ? "Good luck in Undermountain!" : "Welcome to the Yawning Portal!", 0,
+         0);
+  act(first_side ? "$n lowers a rope and lets you descend into the well."
+                 : "$n gives you $s hand and helps you climb out.",
+      FALSE, keeper, NULL, ch, TO_VICT);
+  (void)rol_toll_keeper_move(ch, profile, first_side);
+  return TRUE;
+}
+
 static int rol_toll_keeper_command(struct char_data *ch, struct char_data *keeper, int cmd,
                                    const char *argument)
 {
@@ -6464,7 +6742,7 @@ static int rol_toll_keeper_command(struct char_data *ch, struct char_data *keepe
   if (ch == NULL || keeper == NULL || !IS_NPC(keeper) || cmd <= 0 || argument == NULL ||
       complete_cmd_info == NULL || !VALID_ROOM_RNUM(IN_ROOM(keeper)) ||
       (profile = rol_toll_keeper_profile_for(GET_MOB_VNUM(keeper))) == NULL ||
-      (int)GET_ROOM_VNUM(IN_ROOM(keeper)) != profile->room_vnum)
+      (profile->room_vnum >= 0 && (int)GET_ROOM_VNUM(IN_ROOM(keeper)) != profile->room_vnum))
     return FALSE;
 
   switch (profile->kind)
@@ -6475,6 +6753,8 @@ static int rol_toll_keeper_command(struct char_data *ch, struct char_data *keepe
     return rol_toll_keeper_bridge(ch, keeper, cmd, argument, profile);
   case ROL_TOLL_KEEPER_TICKET:
     return rol_toll_keeper_ticket_taker(ch, keeper, cmd, argument, profile);
+  case ROL_TOLL_KEEPER_UNDERMOUNTAIN:
+    return rol_toll_keeper_undermountain(ch, keeper, cmd, argument, profile);
   default:
     return FALSE;
   }
@@ -7017,6 +7297,11 @@ bool rol_avernus_weapon_profile(int object_vnum, bool *barbazu_glaive, bool *gel
 }
 
 bool rol_gelugon_freeze_spear_roll_fires(int roll)
+{
+  return roll == 0;
+}
+
+bool rol_spiderhaunt_venom_pouch_roll_fires(int roll)
 {
   return roll == 0;
 }
@@ -8262,6 +8547,207 @@ static int rol_torin_general_pulse(struct spec_event_context *context, struct ob
   return TRUE;
 }
 
+static int rol_weapon_seelie_staff_pulse(struct char_data *ch, struct obj_data *obj)
+{
+  int threshold;
+
+  if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID)
+    return FALSE;
+  threshold = GET_LEVEL(ch) / 10;
+  if (rand_number(1, 10) > threshold || rand_number(1, 100) > 10 || star_circlet_proc(ch, 1) == 0)
+    return FALSE;
+  act("A shock races from your $p into your mind and completes one waiting preparation.", FALSE, ch,
+      obj, NULL, TO_CHAR);
+  if (GET_HIT(ch) <= 15)
+    (void)damage(ch, ch, 20, -1, DAM_MENTAL, FALSE);
+  else
+    GET_HIT(ch) -= 15;
+  return TRUE;
+}
+
+static int rol_weapon_bhaal_pulse(struct char_data *ch, struct obj_data *obj,
+                                  enum rol_weapon_effect effect)
+{
+  static const int mage_spells[] = {SPELL_STRENGTH,     SPELL_HASTE,  SPELL_DETECT_INVIS,
+                                    SPELL_DETECT_MAGIC, SPELL_SHIELD, SPELL_FLY};
+  static const int priest_spells[] = {SPELL_ARMOR,        SPELL_CURE_LIGHT, SPELL_DETECT_ALIGN,
+                                      SPELL_DETECT_MAGIC, SPELL_BLESS,      SPELL_VIGORIZE_LIGHT,
+                                      SPELL_CURE_SERIOUS};
+  const int *spells;
+  size_t count;
+  int spell;
+
+  if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID || rand_number(0, 30) != 0)
+    return FALSE;
+  if (effect == ROL_WEAPON_BHAAL_MAGE)
+  {
+    spells = mage_spells;
+    count = sizeof(mage_spells) / sizeof(mage_spells[0]);
+  }
+  else
+  {
+    spells = priest_spells;
+    count = sizeof(priest_spells) / sizeof(priest_spells[0]);
+  }
+  spell = spells[rand_number(0, (int)count - 1)];
+  act("Warmth flows through your body as your $p sparks.", FALSE, ch, obj, NULL, TO_CHAR);
+  return rol_weapon_cast(ch, obj, ch, spell, 10) >= 0;
+}
+
+static int rol_weapon_oblivion_command(struct spec_event_context *context, struct char_data *ch,
+                                       struct obj_data *obj, const char *argument)
+{
+  struct char_data *victim = FIGHTING(ch);
+  struct obj_data *corpse;
+  room_rnum room;
+
+  if (argument == NULL || (!IS_NECROMANCER(ch) && !IS_LICH(ch)) || victim == NULL)
+    return FALSE;
+  skip_spaces_c(&argument);
+  if (str_cmp(argument, "die"))
+    return FALSE;
+  if (IS_UNDEAD(victim) || GET_LEVEL(victim) < 8 || GET_HIT(victim) * 25 >= GET_MAX_HIT(victim))
+  {
+    send_to_char(ch, "The dagger refuses that victim.\r\n");
+    return TRUE;
+  }
+  room = IN_ROOM(ch);
+  act("You whisper 'die' to your $p, and blood-red tendrils smother $N's life force!", FALSE, ch,
+      obj, victim, TO_CHAR);
+  act("Blood-red tendrils from $n's $p smother $N's life force!", FALSE, ch, obj, victim,
+      TO_NOTVICT);
+  (void)damage(ch, victim, GET_HIT(victim) + 1000, -1, DAM_NEGATIVE, FALSE);
+  context->invalidation |= SPEC_INVALIDATE_TARGET;
+  for (corpse = world[room].contents; corpse != NULL; corpse = corpse->next_content)
+    if (IS_CORPSE(corpse))
+      break;
+  if (corpse != NULL)
+  {
+    (void)call_magic(ch, NULL, corpse, SPELL_EMBALM, 0, 50, CAST_INNATE);
+    (void)call_magic(ch, NULL, corpse, SPELL_ANIMATE_DEAD, 0, 60, CAST_INNATE);
+  }
+  return TRUE;
+}
+
+static int rol_weapon_phase6_command(struct spec_event_context *context,
+                                     const struct rol_weapon_profile *profile, struct char_data *ch,
+                                     struct obj_data *obj)
+{
+  struct char_data *zombie;
+  struct char_data *victim;
+  const char *argument = context->argument;
+  int attacks;
+  int cmd = context->command;
+
+  if (context->command <= 0 || argument == NULL || (!CMD_IS("say") && !CMD_IS("'")) ||
+      spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID)
+    return FALSE;
+  if (profile->effect == ROL_WEAPON_TF_OBLIVION)
+    return rol_weapon_oblivion_command(context, ch, obj, argument);
+  skip_spaces_c(&argument);
+
+  if (profile->effect == ROL_WEAPON_GREYCLOAK_SWIFTWIND && !str_cmp(argument, "swiftwind"))
+  {
+    victim = FIGHTING(ch);
+    if (victim == NULL || GET_OBJ_SPECTIMER(obj, 0) > 0)
+    {
+      send_to_char(ch, "Swiftwind does not answer your call.\r\n");
+      return TRUE;
+    }
+    attacks = dice(4, 3);
+    act("Your $p blurs into a flurry of blows against $N!", FALSE, ch, obj, victim, TO_CHAR);
+    rol_weapon_extra_attacks(ch, obj, victim, attacks,
+                             rol_weapon_slot(ch, obj) == WEAR_WIELD_OFFHAND ? ATTACK_TYPE_OFFHAND
+                                                                            : ATTACK_TYPE_PRIMARY);
+    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    return TRUE;
+  }
+  if (profile->effect == ROL_WEAPON_UM_FADE && !str_cmp(argument, "fade out"))
+  {
+    if (GET_OBJ_SPECTIMER(obj, 0) > 0)
+      return TRUE;
+    rol_weapon_cast(ch, obj, ch, SPELL_DETECT_INVIS, 35);
+    rol_weapon_cast(ch, obj, ch, SPELL_INVISIBLE, 35);
+    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    return TRUE;
+  }
+  if (profile->effect == ROL_WEAPON_UM_MAGEBANE && !str_cmp(argument, "mage defend"))
+  {
+    if (GET_OBJ_SPECTIMER(obj, 0) > 0)
+      return TRUE;
+    rol_weapon_cast(ch, obj, ch, SPELL_GLOBE_OF_INVULN, 35);
+    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    return TRUE;
+  }
+  if (profile->effect == ROL_WEAPON_UM_WOUNDHEALER && !str_cmp(argument, "wound heal"))
+  {
+    if (GET_OBJ_SPECTIMER(obj, 0) > 0)
+      return TRUE;
+    rol_weapon_cast(ch, obj, ch, SPELL_HEAL, 35);
+    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    return TRUE;
+  }
+  if (profile->effect == ROL_WEAPON_UM_UNDEAD_TRIDENT && !str_cmp(argument, "undead army"))
+  {
+    if (GET_OBJ_SPECTIMER(obj, 0) > 0)
+      return TRUE;
+    zombie = read_mobile(2092097, VIRTUAL);
+    if (zombie == NULL)
+      return TRUE;
+    char_to_room(zombie, IN_ROOM(ch));
+    GET_MOB_LOADROOM(zombie) = IN_ROOM(ch);
+    add_follower(zombie, ch);
+    SET_BIT_AR(AFF_FLAGS(zombie), AFF_CHARM);
+    load_mtrigger(zombie);
+    GET_OBJ_SPECTIMER(obj, 0) = 168;
+    return TRUE;
+  }
+  if (profile->effect == ROL_WEAPON_UM_FLAME_NORTH && !str_cmp(argument, "flame on"))
+  {
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_GLOW);
+    act("Your $p flares into flame.", FALSE, ch, obj, NULL, TO_CHAR);
+    return TRUE;
+  }
+  if (profile->effect == ROL_WEAPON_UM_FLAME_NORTH && !str_cmp(argument, "flame off"))
+  {
+    REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_GLOW);
+    act("The flames around your $p die away.", FALSE, ch, obj, NULL, TO_CHAR);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+static int rol_weapon_oblivion_pulse(struct char_data *ch, struct obj_data *obj)
+{
+  struct char_data *victim;
+  int amount;
+  int percent;
+
+  if ((!IS_NECROMANCER(ch) && !IS_LICH(ch)) ||
+      spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID)
+    return FALSE;
+  percent = GET_RACE(ch) == RACE_HUMAN ? 4 : 3;
+  if (rand_number(0, 99) > percent)
+    return FALSE;
+  victim = FIGHTING(ch);
+  amount = (GET_LEVEL(ch) / 5) + 1;
+  if (victim != NULL && IN_ROOM(victim) == IN_ROOM(ch) && !AFF_FLAGGED(ch, AFF_BLACKMANTLE) &&
+      rand_number(0, 4) <= 2)
+  {
+    (void)rol_weapon_damage(ch, victim, amount, DAM_NEGATIVE);
+    GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + amount);
+    act("Your $p leeches life from $N and pours it into you.", FALSE, ch, obj, victim, TO_CHAR);
+    return TRUE;
+  }
+  if (GET_HIT(ch) <= 15 || affected_by_spell(ch, SPELL_HEROISM))
+    return FALSE;
+  rol_weapon_cast(ch, obj, ch, SPELL_HEROISM, 60);
+  GET_HIT(ch) -= 15;
+  act("Your $p sends a shock through your arm, sharpening your thoughts.", FALSE, ch, obj, NULL,
+      TO_CHAR);
+  return TRUE;
+}
+
 static int rol_weapon_hit(struct spec_event_context *context,
                           const struct rol_weapon_profile *profile, struct char_data *ch,
                           struct obj_data *obj, struct char_data *victim, int slot)
@@ -8425,6 +8911,19 @@ static int rol_weapon_hit(struct spec_event_context *context,
     if ((!rol_weapon_primary_slot(slot) && slot != WEAR_WIELD_OFFHAND) || GET_LEVEL(ch) <= 25 ||
         !rol_bards_glaive_roll_fires(GET_DEX(ch), rand_number(0, 2000)))
       return FALSE;
+    if (profile->object_vnum == 2062751 && slot == WEAR_WIELD_OFFHAND &&
+        !AFF_FLAGGED(victim, AFF_SLOW))
+    {
+      struct affected_type affect;
+
+      act("A red flash along your $p slows $N!", FALSE, ch, obj, victim, TO_CHAR);
+      new_affect(&affect);
+      affect.spell = SPELL_SLOW;
+      affect.duration = 2;
+      SET_BIT_AR(affect.bitvector, AFF_SLOW);
+      affect_to_char(victim, &affect);
+      return FALSE;
+    }
     if (!AFF_FLAGGED(victim, AFF_BLIND) && !affected_by_spell(victim, SPELL_BLINDNESS))
     {
       struct affected_type affect;
@@ -8441,7 +8940,7 @@ static int rol_weapon_hit(struct spec_event_context *context,
     }
     /* Preserve the source +8 save pressure under the target API's victim-bonus convention. */
     amount = rol_bards_glaive_damage(
-        dice(10, 10),
+        dice(10, 10) + (profile->object_vnum == 2062751 ? GET_LEVEL(ch) : 0),
         savingthrow(ch, victim, SAVING_WILL, -8, CAST_WEAPON_SPELL, GET_LEVEL(ch), EVOCATION));
     act("With a flick of your wrist, you drive your $p deep into $N!", FALSE, ch, obj, victim,
         TO_CHAR);
@@ -8452,6 +8951,179 @@ static int rol_weapon_hit(struct spec_event_context *context,
     result = rol_weapon_damage(ch, victim, amount, DAM_RESERVED_DBC);
     rol_weapon_mark_target_invalidation(context, result);
     return FALSE;
+  case ROL_WEAPON_SEELIE_STAFF:
+  {
+    struct char_data *target;
+    struct char_data *next;
+
+    if (rand_number(0, 25) != 0)
+      return FALSE;
+    act("Your $p explodes in purplish flame, causing the area to glow!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    for (target = world[IN_ROOM(ch)].people; target != NULL; target = next)
+    {
+      next = target->next_in_room;
+      if (!IS_NPC(target) || IS_PET(target) || target == ch ||
+          affected_by_spell(target, SPELL_FAERIE_FIRE))
+        continue;
+      REMOVE_BIT_AR(AFF_FLAGS(target), AFF_HIDE);
+      REMOVE_BIT_AR(AFF_FLAGS(target), AFF_INVISIBLE);
+      rol_weapon_cast(ch, obj, target, SPELL_FAERIE_FIRE, 30);
+    }
+    return TRUE;
+  }
+  case ROL_WEAPON_UM_FLINDBAR:
+  {
+    struct obj_data *weapon;
+    int victim_slot;
+
+    if (!IS_NPC(ch) || !context->critical || rand_number(0, 6) != 0)
+      return FALSE;
+    victim_slot = GET_EQ(victim, WEAR_WIELD_1) != NULL ? WEAR_WIELD_1 : WEAR_WIELD_OFFHAND;
+    weapon = GET_EQ(victim, victim_slot);
+    if (weapon == NULL)
+      return FALSE;
+    act("Your $p vibrates against $N's weapon and knocks it from $S grasp!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    weapon = unequip_char(victim, victim_slot);
+    obj_to_room(weapon, IN_ROOM(ch));
+    change_position(victim, POS_SITTING);
+    SET_WAIT(victim, PULSE_VIOLENCE * 2);
+    SET_WAIT(ch, PULSE_VIOLENCE);
+    return TRUE;
+  }
+  case ROL_WEAPON_UM_UNDEAD_TRIDENT:
+    if (!context->critical)
+      return FALSE;
+    act("Unholy power erupts from your $p and crashes into $N!", FALSE, ch, obj, victim, TO_CHAR);
+    result = rol_weapon_damage(ch, victim, dice(10, 10), DAM_UNHOLY);
+    rol_weapon_mark_target_invalidation(context, result);
+    return TRUE;
+  case ROL_WEAPON_UM_FADE:
+    if (!context->critical || (!IS_NPC(ch) && GET_OBJ_SPECTIMER(obj, 1) > 0) || IS_UNDEAD(victim) ||
+        IS_DRAGON(victim))
+      return FALSE;
+    act("A wisp of black shadow shoots from your $p and blinds $N!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    rol_weapon_cast(ch, obj, victim, SPELL_BLINDNESS, 35);
+    if (!IS_NPC(ch))
+    {
+      result = rol_weapon_damage(ch, victim, 200, DAM_NEGATIVE);
+      rol_weapon_mark_target_invalidation(context, result);
+      GET_OBJ_SPECTIMER(obj, 1) = 24;
+    }
+    return TRUE;
+  case ROL_WEAPON_UM_MAGEBANE:
+    if (!context->critical)
+      return FALSE;
+    act("A sphere of magical energy leaps from your $p and engulfs $N!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    rol_weapon_cast(ch, obj, victim, SPELL_FEEBLEMIND, 35);
+    return TRUE;
+  case ROL_WEAPON_UM_LIGHTNING:
+    if (GET_OBJ_SPECTIMER(obj, 0) == 0 && !AFF_FLAGGED(ch, AFF_HASTE))
+    {
+      rol_weapon_cast(ch, obj, ch, SPELL_HASTE, 15);
+      GET_OBJ_SPECTIMER(obj, 0) = 24;
+    }
+    if (!context->critical || (!IS_NPC(ch) && GET_OBJ_SPECTIMER(obj, 1) > 0))
+      return FALSE;
+    rol_weapon_cast(ch, obj, victim, IS_NPC(ch) ? SPELL_CHAIN_LIGHTNING : SPELL_LIGHTNING_BOLT, 35);
+    if (!IS_NPC(ch))
+      GET_OBJ_SPECTIMER(obj, 1) = 24;
+    return TRUE;
+  case ROL_WEAPON_UM_WOUNDHEALER:
+    if (rand_number(0, 10) != 0 || (!IS_NPC(ch) && GET_OBJ_SPECTIMER(obj, 1) > 0))
+      return FALSE;
+    amount = MIN(GET_HIT(victim), dice(2, 16));
+    result = rol_weapon_damage(ch, victim, amount, DAM_NEGATIVE);
+    rol_weapon_mark_target_invalidation(context, result);
+    if (!AFF_FLAGGED(ch, AFF_BLACKMANTLE))
+      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + (IS_NPC(ch) ? amount : amount / 2));
+    if (!IS_NPC(ch))
+      GET_OBJ_SPECTIMER(obj, 1) = 1;
+    return TRUE;
+  case ROL_WEAPON_UM_FLAME_NORTH:
+    if (!OBJ_FLAGGED(obj, ITEM_GLOW) || !context->critical ||
+        (!IS_NPC(ch) && GET_OBJ_SPECTIMER(obj, 1) > 0))
+      return FALSE;
+    rol_weapon_cast(ch, obj, victim, SPELL_FLAME_STRIKE, 35);
+    if (!IS_NPC(ch))
+      GET_OBJ_SPECTIMER(obj, 1) = 24;
+    return TRUE;
+  case ROL_WEAPON_GREYCLOAK_PESTILENCE:
+    if (rand_number(0, 15) != 0)
+      return FALSE;
+    act("Your wicked $p emits a cloud of acid at $N!", FALSE, ch, obj, victim, TO_CHAR);
+    rol_weapon_cast(ch, obj, victim, SPELL_ACID_SPLASH, 50);
+    if (rand_number(0, 8) == 0)
+    {
+      result = rol_weapon_damage(ch, victim, 200, DAM_ACID);
+      rol_weapon_mark_target_invalidation(context, result);
+    }
+    return TRUE;
+  case ROL_WEAPON_GREYCLOAK_DEATHKNELL:
+    if (context->critical && !AFF_FLAGGED(victim, AFF_BLIND))
+    {
+      rol_weapon_cast(ch, obj, victim, SPELL_BLINDNESS, 30);
+      return TRUE;
+    }
+    if (rand_number(0, 24) == 0)
+    {
+      amount = 50 + MAX(0, GET_LEVEL(ch));
+      result = rol_weapon_damage(ch, victim, amount, DAM_NEGATIVE);
+      rol_weapon_mark_target_invalidation(context, result);
+      if (!AFF_FLAGGED(ch, AFF_BLACKMANTLE))
+        GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + amount);
+      return TRUE;
+    }
+    if (IS_GOOD(victim) && rand_number(0, 20) == 0)
+    {
+      result = rol_weapon_damage(ch, victim, dice(10, 10), DAM_UNHOLY);
+      rol_weapon_mark_target_invalidation(context, result);
+      return TRUE;
+    }
+    return FALSE;
+  case ROL_WEAPON_MYTH_KHANJARI:
+  {
+    struct affected_type affect;
+    int burst;
+
+    if (!IS_ROGUE(ch) || rand_number(0, profile->proc_denominator - 1) != 0)
+      return FALSE;
+    burst = rand_number(1, 3);
+    new_affect(&affect);
+    affect.spell = SPELL_HEROISM;
+    affect.duration = rand_number(4, 8);
+    affect.location = burst == 3 ? APPLY_HITROLL : APPLY_DAMROLL;
+    affect.modifier = MAX(5, MIN(10, GET_LEVEL(ch) - 40));
+    affect.bonus_type = BONUS_TYPE_UNIVERSAL;
+    affect_to_char(ch, &affect);
+    if (burst != 1)
+      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + GET_LEVEL(ch) * 3);
+    if (burst == 1)
+      rol_weapon_extra_attacks(ch, obj, victim, 1,
+                               slot == WEAR_WIELD_OFFHAND ? ATTACK_TYPE_OFFHAND
+                                                          : ATTACK_TYPE_PRIMARY);
+    act("Dark mystical power surges from your $p and consumes you.", FALSE, ch, obj, victim,
+        TO_CHAR);
+    return TRUE;
+  }
+  case ROL_WEAPON_TF_OBLIVION:
+    return FALSE;
+  case ROL_WEAPON_BHAAL_MAGE:
+  case ROL_WEAPON_BHAAL_PRIEST:
+  case ROL_WEAPON_GREYCLOAK_SWIFTWIND:
+    return FALSE;
+  case ROL_WEAPON_SPIDERHAUNT_VENOM_POUCH:
+    if (!rol_weapon_primary_slot(slot) || !AWAKE(ch) ||
+        !rol_spiderhaunt_venom_pouch_roll_fires(rand_number(0, 60)))
+      return FALSE;
+    act("$n grazes $N with a sharp thorn mounted on $s wrist pouch.", TRUE, ch, obj, victim,
+        TO_NOTVICT);
+    act("The thorn protruding from your wrist pouch grazes $N.", TRUE, ch, obj, victim, TO_CHAR);
+    act("$n grazes you with the thorn mounted on $s wrist pouch.", TRUE, ch, obj, victim, TO_VICT);
+    return TRUE;
   case ROL_WEAPON_UM2_SNAKE_WHIP:
     if (!context->critical)
       return FALSE;
@@ -8770,7 +9442,7 @@ int rol_weapon_proc_typed(struct spec_event_context *context)
     case ROL_WEAPON_HALRUAA_NECROMANCER:
       return rol_weapon_necromancer_command(ch, obj, context->command, context->argument);
     default:
-      return FALSE;
+      return rol_weapon_phase6_command(context, profile, ch, obj);
     }
   }
   if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
@@ -8782,6 +9454,12 @@ int rol_weapon_proc_typed(struct spec_event_context *context)
       return rol_torin_general_pulse(context, obj);
     if (ch == NULL)
       return FALSE;
+    if (profile->effect == ROL_WEAPON_SEELIE_STAFF)
+      return rol_weapon_seelie_staff_pulse(ch, obj);
+    if (profile->effect == ROL_WEAPON_BHAAL_MAGE || profile->effect == ROL_WEAPON_BHAAL_PRIEST)
+      return rol_weapon_bhaal_pulse(ch, obj, profile->effect);
+    if (profile->effect == ROL_WEAPON_TF_OBLIVION)
+      return rol_weapon_oblivion_pulse(ch, obj);
     if (profile->effect == ROL_WEAPON_BALOR_WHIP ||
         profile->effect == ROL_WEAPON_BALOR_LIGHTNING_SWORD)
     {

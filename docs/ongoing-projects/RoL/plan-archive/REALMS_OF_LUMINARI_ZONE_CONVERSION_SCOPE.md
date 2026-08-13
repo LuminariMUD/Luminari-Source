@@ -32,7 +32,9 @@ non-working RoL content is permanently out of scope.
 
 The completed pilot measured target reuse, ambiguity, capability coverage, special
 binding density, and validation throughput. Completed delivery history and the measured
-reforecast basis are archived in [RoL-Changelog.md](../RoL-Changelog.md). Remaining Phase 6
+reforecast basis are archived in the
+[Phase 6 changelog](../changelog-archive/archive08_13-phase6-complete-RoL-Changelog.md).
+Remaining Phase 6
 batches conservatively target 20-45 related families where a shared shape exists. The
 remaining evidence-based forecast is 49-79 sessions, or 98-316 focused engineering
 hours at 2-4 hours per session. This is a planning envelope rather than a calendar
@@ -437,7 +439,9 @@ calendar time.
 | 8 | Isolated integration, development apply, and documentation | 6-10 |
 
 Completed work has been removed from this active scope; its delivery, acceptance
-evidence, and reforecast basis are in [RoL-Changelog.md](../RoL-Changelog.md). Active work
+evidence, and reforecast basis are in the
+[Phase 6 changelog](../changelog-archive/archive08_13-phase6-complete-RoL-Changelog.md).
+Active work
 continues with the remaining Phase 6 families and must preserve the pilot's deterministic,
 no-clobber, structural, reset, walkthrough, and isolated runtime gates.
 
@@ -508,4 +512,4 @@ families through strict generated profiles where possible; keep irregular mechan
 dependency-complete shared-runtime batches. Preserve the six explicit source-defect or
 ignored content rows as logged smallest-unit exclusions.
 Completed Phase 5 work and Phase 6 evidence checkpoints are recorded in
-[RoL-Changelog.md](../RoL-Changelog.md).
+[the Phase 6 changelog](../changelog-archive/archive08_13-phase6-complete-RoL-Changelog.md).

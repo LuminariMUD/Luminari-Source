@@ -24,6 +24,10 @@ bool rol_utility_sacrifice_keyword(const char *argument);
 bool rol_utility_sacrifice_command_name(const char *command);
 const char *rol_utility_necro_child_message(int roll);
 bool rol_utility_monocle_room(int room_vnum);
+bool rol_utility_spiderhaunt_maggots_trigger(const char *argument);
+bool rol_utility_spiderhaunt_altar_trigger(const char *command, int position);
+bool rol_utility_acheron_roaming_room_allowed(int room_vnum);
+bool rol_utility_acheron_platform_room_allowed(int current_vnum, int destination_vnum);
 size_t rol_utility_called_profile_count(void);
 bool rol_utility_called_profile(int object_vnum, const char **phrase, int *cooldown_hours,
                                 const char **description);

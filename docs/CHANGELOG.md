@@ -2,6 +2,24 @@
 
 ## [Unreleased] - August 11, 2026
 
+### Realms of Luminari Phase 6 completion
+
+#### Added
+
+- Completed typed runtime coverage for every remaining active RoL special-procedure binding,
+  including Spiderhaunt, Jotun, Acheron, residual combat, weapon, scheduled-mobile, toll, portal,
+  and utility behavior families.
+- Added the contextual `WORSHIP` command and its database-authoritative help migration and
+  verifier.
+- Added deterministic reconciliation dispositions for minimal dependency exclusions whose only
+  source dependencies are outside the locked active corpus.
+
+#### Changed
+
+- Advanced the Phase 6 ledger to 1,721 of 1,721 direct bindings, 795 of 795 direct handlers, and
+  848 of 848 `ACT_SPEC` records resolved, with zero pending rows and zero live target writes.
+- Marked Phase 6 complete and unblocked the Phase 6.5 canonical VNUM rebase.
+
 ### Realms of Luminari Phase 4 pilot selection
 
 #### Added

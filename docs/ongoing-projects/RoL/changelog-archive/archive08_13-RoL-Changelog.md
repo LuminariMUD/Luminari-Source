@@ -1,13 +1,14 @@
-# Realms of Luminari Project Changelog
-**Previous Changelog entries can be found in changelog-archive/**
+# Realms of Luminari Project Changelog Archive
+
+Earlier changelog entries are in this directory.
 
 This file records completed milestones removed from the active
-[canonical conversion plan](REALMS_OF_LUMINARI_CANONICAL_CONVERSION_PLAN.md), which
+[canonical conversion plan](../REALMS_OF_LUMINARI_CANONICAL_CONVERSION_PLAN.md), which
 retains the forward-looking requirements, decisions, phases, and acceptance gates. The
-superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md),
-[Phase 6.5 plan](plan-archive/PHASE6_5_CANONICAL_VNUM_REBASE_PLAN.md), and
-[zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
-preserved in `plan-archive/`.
+superseded [feature-first plan](../plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md),
+[Phase 6.5 plan](../plan-archive/PHASE6_5_CANONICAL_VNUM_REBASE_PLAN.md), and
+[zone conversion scope](../plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
+preserved in `../plan-archive/`.
 
 
 ## 2026-08-12 - Phase 6 named guild and utility-object batch

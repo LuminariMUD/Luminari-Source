@@ -259,6 +259,7 @@ typedef enum
   eROL_BARBAZU_BLOODLOSS,       /* Converted Barbazu glaive recurring blood loss */
   eROL_DROW_DECAY,              /* Converted drow-equipment surface decay */
   eROL_DEATHS_HEAD_SEED,        /* Converted Death's Head implanted-seed growth */
+  eROL_SPIDERHAUNT_MAGGOTS,     /* Converted Spiderhaunt delayed maggot sensation */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

@@ -509,6 +509,52 @@ class RolTransformTests(unittest.TestCase):
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
     )
 
+  def test_spiderhaunt_bindings_use_typed_runtime_families(self) -> None:
+    bindings = [
+        {
+            "basename": "spiderhaunt",
+            "record_type": record_type,
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for record_type, source_vnum, handler in (
+            ("mobile", 80220, "shw_hugeWhiteSpider"),
+            ("mobile", 80240, "shw_frailDruid"),
+            ("object", 80205, "shw_maggots"),
+            ("object", 80213, "shw_cyricsAltar"),
+            ("object", 80212, "shw_spiderVenomPouch"),
+        )
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+    by_target = {
+        binding.target_vnum: binding for binding in compiled.native_bindings
+    }
+    by_handler = {
+        source["source_handler"]: by_target[
+            _resolver(
+                "mob" if source["record_type"] == "mobile" else "obj",
+                source["source_vnum"],
+            )
+        ]
+        for source in bindings
+    }
+
+    self.assertEqual(5, len(by_handler))
+    self.assertEqual("RoL Monster Combat", by_handler["shw_hugeWhiteSpider"].persisted_name)
+    self.assertEqual((0,), by_handler["shw_hugeWhiteSpider"].required_flag_bits)
+    self.assertEqual("RoL Monster Combat", by_handler["shw_frailDruid"].persisted_name)
+    self.assertEqual((0,), by_handler["shw_frailDruid"].required_flag_bits)
+    self.assertEqual("RoL Utility Object", by_handler["shw_maggots"].persisted_name)
+    self.assertEqual((), by_handler["shw_maggots"].required_flag_bits)
+    self.assertEqual("RoL Utility Object", by_handler["shw_cyricsAltar"].persisted_name)
+    self.assertEqual((), by_handler["shw_cyricsAltar"].required_flag_bits)
+    self.assertEqual("RoL Weapon Proc", by_handler["shw_spiderVenomPouch"].persisted_name)
+    self.assertEqual((44,), by_handler["shw_spiderVenomPouch"].required_flag_bits)
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_undermountain_vortex_knights_use_composable_death_profiles(self) -> None:
     bindings = [
         {

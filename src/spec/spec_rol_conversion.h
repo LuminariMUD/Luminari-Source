@@ -228,6 +228,7 @@ bool rol_balor_weapon_profile(int object_vnum, int *dice_count, int *dice_size, 
 bool rol_balor_weapon_owner_allowed(const struct char_data *ch, bool allow_pet);
 bool rol_avernus_weapon_profile(int object_vnum, bool *barbazu_glaive, bool *gelugon_freeze_spear);
 bool rol_gelugon_freeze_spear_roll_fires(int roll);
+bool rol_spiderhaunt_venom_pouch_roll_fires(int roll);
 int rol_barbazu_bloodloss_next_hit(int current_hit);
 bool rol_bloodstone_portal_survives(int current_hit, int hit_loss);
 bool rol_portal_door_race_allows(bool rejects_good, int race);

@@ -18,6 +18,7 @@ apply help_rol_object_trap_entries.sql
 apply help_specproc_entries.sql
 apply help_system_indexes.sql
 apply help_vessel_entries.sql
+apply help_worship_entries.sql
 apply insert_room_templates.sql
 skip mosswood_sample_data.sql
 skip narrative_weaver_installation.sql
@@ -39,6 +40,7 @@ skip verify_help_necromancer_entries.sql
 skip verify_help_rol_object_trap_entries.sql
 skip verify_help_specproc_entries.sql
 skip verify_help_vessel_entries.sql
+skip verify_help_worship_entries.sql
 skip verify_vessels_campaign_content.sql
 skip verify_vessels_derelict_content.sql
 skip verify_vessels_frontier_content.sql

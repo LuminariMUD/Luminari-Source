@@ -469,6 +469,56 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("SOURCE_INERT_EXCLUDED", stench["strategy"])
     self.assertIn("disabled by #if 0", stench["reason"])
 
+  def test_spiderhaunt_handlers_use_typed_runtime_families(self) -> None:
+    expected = {
+        "shw_hugeWhiteSpider": "RoL Monster Combat",
+        "shw_frailDruid": "RoL Monster Combat",
+        "shw_maggots": "RoL Utility Object",
+        "shw_cyricsAltar": "RoL Utility Object",
+        "shw_spiderVenomPouch": "RoL Weapon Proc",
+    }
+
+    for handler, target in expected.items():
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual(target, disposition["target"])
+
+  def test_phase6_final_active_handlers_have_terminal_dispositions(self) -> None:
+    expected = {
+        "warhorse": "RoL Monster Combat",
+        "prostitute_one": "RoL Monster Combat",
+        "piergeiron": "RoL Scheduled Mobile",
+        "piergeiron_guard": "RoL Monster Combat",
+        "dryad": "RoL Monster Combat",
+        "doppelganger_switch": "RoL Monster Combat",
+        "zk_gate_guard": "RoL Scheduled Mobile",
+        "um_entranceFee": "RoL Toll Keeper",
+        "um_kevlar": "RoL Monster Combat",
+        "um_korelar": "RoL Monster Combat",
+        "um_mezzoloth": "RoL Monster Combat",
+        "um_zombieLord": "RoL Monster Combat",
+        "um_malodinOne": "RoL Monster Combat",
+        "um_malodinTwo": "RoL Monster Combat",
+        "um_malodinThree": "RoL Monster Combat",
+        "ice_wolf": "RoL Monster Combat",
+    }
+
+    for handler, target in expected.items():
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual(target, disposition["target"])
+
+    durnan = handler_disposition("um_durnan")
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", durnan["strategy"])
+    self.assertIn("Durnan ambient", durnan["target"])
+
+    for handler in ("havenport_lorde_blindproc", "basilisk_drop"):
+      disposition = handler_disposition(handler)
+      self.assertEqual("SOURCE_DEPENDENCY_EXCLUDED", disposition["strategy"])
+      self.assertTrue(disposition["reason"])
+
   def test_undermountain_yawning_portal_and_inert_handlers_are_resolved(self) -> None:
     for handler in ("um_gambler", "um_mhaere", "um_regular", "um_tamsil", "um_thorn"):
       disposition = handler_disposition(handler)
@@ -951,18 +1001,21 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_614, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(107, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(706, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(89, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(1_056, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_721, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(0, summary["direct_bindings_by_status"].get("pending", 0))
+      self.assertEqual(795, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(0, summary["source_handlers_by_status"].get("pending", 0))
+      self.assertEqual(1_119, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
-          219, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
+          222, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(
-          41, summary["direct_bindings_by_strategy"]["SOURCE_INERT_EXCLUDED"]
+          42, summary["direct_bindings_by_strategy"]["SOURCE_INERT_EXCLUDED"]
       )
-      self.assertEqual(11, summary["direct_bindings_by_strategy"]["NATIVE_RECONCILED"])
+      self.assertEqual(21, summary["direct_bindings_by_strategy"]["NATIVE_RECONCILED"])
+      self.assertEqual(
+          30, summary["direct_bindings_by_strategy"]["SOURCE_DEPENDENCY_EXCLUDED"]
+      )
       self.assertEqual(
           18, summary["direct_bindings_by_strategy"]["SOURCE_UNSAFE_EXCLUDED"]
       )
@@ -976,8 +1029,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       )
       self.assertEqual(2, summary["dynamic_handler_definitions_located"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(822, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(26, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(848, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(0, summary["act_spec_by_status"].get("pending", 0))
 
       binding_rows = [
           json.loads(line)

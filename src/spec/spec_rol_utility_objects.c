@@ -57,6 +57,18 @@
 #define ROL_LLYMS_REWARD_THREE_VNUM 2088833
 #define ROL_BLACK_ORCHID_VNUM 2093243
 #define ROL_BLACK_ORCHID_DECAY_HOURS 72
+#define ROL_SPIDERHAUNT_MAGGOTS_VNUM 2080205
+#define ROL_SPIDERHAUNT_CYRICS_ALTAR_VNUM 2080213
+#define ROL_SPIDERHAUNT_MAGGOTS_DELAY (20 * PULSE_VIOLENCE)
+#define ROL_ACHERON_PLATFORM_PORTAL_VNUM 2050000
+#define ROL_ACHERON_ENTRANCE_PORTAL_VNUM 2050100
+#define ROL_ACHERON_ROAMING_PORTAL_MIN_VNUM 2050101
+#define ROL_ACHERON_ROAMING_PORTAL_MAX_VNUM 2050104
+#define ROL_PROXIMITY_EXPLOSION_VNUM 2046008
+#define ROL_HYSSK_SKELETON_VNUM 2035164
+#define ROL_HYSSK_ILLUSION_DESTINATION_VNUM 2034494
+#define ROL_UM_TATTERED_CLOAK_VNUM 2093175
+#define ROL_UM_QOGEK_STAFF_VNUM 2093179
 
 enum rol_utility_called_effect
 {
@@ -79,6 +91,8 @@ struct rol_utility_called_profile
   int cooldown_hours;
   const char *description;
 };
+
+static bool rol_utility_say_phrase(const struct spec_event_context *context, const char *phrase);
 
 /* Keep this table sorted by converted object VNUM for binary lookup. */
 static const struct rol_utility_called_profile rol_utility_called_profiles[] = {
@@ -163,6 +177,10 @@ static const char *rol_utility_description_for(int object_vnum)
   case ROL_PLAGUE_RESERVOIR_VNUM:
     return "Drinking from or filling a container at this reservoir can infect experienced "
            "mortals with disease.";
+  case ROL_SPIDERHAUNT_MAGGOTS_VNUM:
+    return "Eating while carrying these maggots may leave a delayed squirming sensation.";
+  case ROL_SPIDERHAUNT_CYRICS_ALTAR_VNUM:
+    return "Sit before the altar and WORSHIP to receive Cyric's limited blessing.";
   default:
     return NULL;
   }
@@ -181,6 +199,276 @@ static bool rol_utility_command_is(int cmd, const char *name)
 
   command = rol_utility_command_name(cmd);
   return command != NULL && name != NULL && !strcmp(command, name);
+}
+
+bool rol_utility_spiderhaunt_maggots_trigger(const char *argument)
+{
+  return argument != NULL && strcmp(argument, "maggots") != 0;
+}
+
+bool rol_utility_spiderhaunt_altar_trigger(const char *command, int position)
+{
+  return command != NULL && !strcmp(command, "worship") && position == POS_SITTING;
+}
+
+bool rol_utility_acheron_roaming_room_allowed(int room_vnum)
+{
+  return room_vnum >= 2050100 && room_vnum <= 2050184 &&
+         (room_vnum < 2050143 || room_vnum > 2050149);
+}
+
+bool rol_utility_acheron_platform_room_allowed(int current_vnum, int destination_vnum)
+{
+  return destination_vnum >= 2050000 && destination_vnum <= 2050099 &&
+         abs(destination_vnum - current_vnum) > 3;
+}
+
+EVENTFUNC(event_rol_spiderhaunt_maggots)
+{
+  struct mud_event_data *event_data;
+  struct char_data *ch;
+
+  event_data = event_obj;
+  if (event_data == NULL || event_data->pStruct == NULL)
+    return 0;
+  ch = event_data->pStruct;
+  if (!VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return 0;
+
+  if (AWAKE(ch))
+    send_to_char(ch, "You feel something squirm and wiggle inside your belly.\r\n");
+  else
+    send_to_char(ch, "You feel a vaguely disturbing sensation in your stomach.\r\n");
+  return 0;
+}
+
+static int rol_utility_spiderhaunt_maggots(struct char_data *ch, struct obj_data *obj, int cmd,
+                                           const char *argument)
+{
+  if (!AWAKE(ch) || !rol_utility_command_is(cmd, "eat") ||
+      !rol_utility_spiderhaunt_maggots_trigger(argument) || obj->carried_by != ch || IS_NPC(ch) ||
+      GET_COND(ch, HUNGER) > 20 || char_has_mud_event(ch, eROL_SPIDERHAUNT_MAGGOTS) != NULL)
+    return FALSE;
+
+  NEW_EVENT(eROL_SPIDERHAUNT_MAGGOTS, ch, NULL, ROL_SPIDERHAUNT_MAGGOTS_DELAY);
+  return FALSE;
+}
+
+static int rol_utility_spiderhaunt_altar(struct char_data *ch, struct obj_data *obj, int cmd)
+{
+  if (!AWAKE(ch) || GET_OBJ_VAL(obj, 0) <= 0 ||
+      !rol_utility_spiderhaunt_altar_trigger(rol_utility_command_name(cmd), GET_POS(ch)))
+    return FALSE;
+
+  send_to_char(ch, "As you kneel, a crimson beam erupts from the altar and strikes you. You feel a "
+                   "stronger sense of purpose as evil starts looking more appealing.\r\n");
+  act("As $n settles onto $s knees, a crimson beam erupts from the altar and envelops $m in a "
+      "red aura.",
+      TRUE, ch, NULL, NULL, TO_ROOM);
+  GET_ALIGNMENT(ch) = MAX(-1000, GET_ALIGNMENT(ch) - 1);
+  (void)call_magic(ch, ch, NULL, SPELL_HEAL, 0, 50, CAST_INNATE);
+  GET_OBJ_VAL(obj, 0)--;
+  return TRUE;
+}
+
+static bool rol_utility_acheron_portal_vnum(int vnum)
+{
+  return vnum == ROL_ACHERON_PLATFORM_PORTAL_VNUM || vnum == ROL_ACHERON_ENTRANCE_PORTAL_VNUM ||
+         (vnum >= ROL_ACHERON_ROAMING_PORTAL_MIN_VNUM &&
+          vnum <= ROL_ACHERON_ROAMING_PORTAL_MAX_VNUM);
+}
+
+static int rol_utility_acheron_enter(struct spec_event_context *context, struct char_data *ch,
+                                     struct obj_data *obj)
+{
+  room_rnum destination;
+  char keyword[MAX_INPUT_LENGTH];
+
+  if (!rol_utility_command_is(context->command, "enter") || IS_NPC(ch) ||
+      context->argument == NULL || IN_ROOM(obj) != IN_ROOM(ch) || GET_LEVEL(ch) < 15)
+    return FALSE;
+
+  one_argument(context->argument, keyword, sizeof(keyword));
+  if (*keyword == '\0' || !isname(keyword, obj->name))
+    return FALSE;
+
+  destination = real_room(GET_OBJ_VAL(obj, 0));
+  if (!VALID_ROOM_RNUM(destination))
+  {
+    log("SYSERR: RoL Acheron portal %d has unavailable destination %d", GET_OBJ_VNUM(obj),
+        GET_OBJ_VAL(obj, 0));
+    send_to_char(ch, "The portal twists away from this world. Please tell a staff member.\r\n");
+    return TRUE;
+  }
+
+  act("$n steps into $p and vanishes.", TRUE, ch, obj, NULL, TO_ROOM);
+  send_to_char(ch, "You step into the portal and the planes wrench around you.\r\n");
+  char_from_room(ch);
+  char_to_room(ch, destination);
+  GET_MOVE(ch) = MAX(0, GET_MOVE(ch) - rand_number(1, 10));
+  act("$n steps out of a tearing planar portal.", TRUE, ch, NULL, NULL, TO_ROOM);
+  look_at_room(ch, 0);
+  return TRUE;
+}
+
+static int rol_utility_acheron_relocate(struct obj_data *obj)
+{
+  room_rnum destination;
+  int candidate;
+  int current_vnum;
+  int attempts;
+
+  if (!VALID_ROOM_RNUM(IN_ROOM(obj)) || GET_OBJ_SPECTIMER(obj, 0) > 0)
+    return FALSE;
+
+  current_vnum = GET_ROOM_VNUM(IN_ROOM(obj));
+  for (attempts = 0; attempts < 100; attempts++)
+  {
+    if (GET_OBJ_VNUM(obj) == ROL_ACHERON_PLATFORM_PORTAL_VNUM)
+    {
+      candidate = rand_number(2050000, 2050099);
+      if (!rol_utility_acheron_platform_room_allowed(current_vnum, candidate))
+        continue;
+    }
+    else
+    {
+      candidate = rand_number(2050100, 2050184);
+      if (!rol_utility_acheron_roaming_room_allowed(candidate))
+        continue;
+    }
+    destination = real_room(candidate);
+    if (!VALID_ROOM_RNUM(destination))
+      continue;
+
+    send_to_room(IN_ROOM(obj), "A planar portal shimmers and slips sideways out of reality.\r\n");
+    obj_from_room(obj);
+    obj_to_room(obj, destination);
+    send_to_room(destination, "A planar portal shimmers into existence.\r\n");
+    GET_OBJ_SPECTIMER(obj, 0) = GET_OBJ_VNUM(obj) == ROL_ACHERON_PLATFORM_PORTAL_VNUM ? 3 : 1;
+    return TRUE;
+  }
+
+  log("SYSERR: RoL Acheron portal %d found no available relocation room", GET_OBJ_VNUM(obj));
+  GET_OBJ_SPECTIMER(obj, 0) = 1;
+  return FALSE;
+}
+
+static int rol_utility_proximity_explosion(struct spec_event_context *context, struct obj_data *obj)
+{
+  struct char_data *owner;
+
+  owner = context->actor;
+  if (owner == NULL || !IS_NPC(owner) || obj->worn_by != owner || owner->master == NULL ||
+      IN_ROOM(owner) == IN_ROOM(owner->master))
+    return FALSE;
+
+  act("$p crackles with magical energy before exploding and consuming $n!", FALSE, owner, obj, NULL,
+      TO_ROOM);
+  die(owner, owner);
+  context->invalidation |= SPEC_INVALIDATE_ACTOR;
+  return TRUE;
+}
+
+static int rol_utility_hyssk_skeleton(struct char_data *ch, struct obj_data *obj, int cmd,
+                                      const char *argument)
+{
+  room_rnum destination;
+  char keyword[MAX_INPUT_LENGTH];
+
+  if (!rol_utility_command_is(cmd, "bow") || IS_NPC(ch) || !IS_WIZARD(ch) || argument == NULL ||
+      IN_ROOM(obj) != IN_ROOM(ch))
+    return FALSE;
+  one_argument(argument, keyword, sizeof(keyword));
+  if (*keyword == '\0' || !isname(keyword, obj->name))
+    return FALSE;
+  destination = real_room(ROL_HYSSK_ILLUSION_DESTINATION_VNUM);
+  if (!VALID_ROOM_RNUM(destination))
+  {
+    log("SYSERR: RoL Hyssk skeleton cannot find destination %d",
+        ROL_HYSSK_ILLUSION_DESTINATION_VNUM);
+    return TRUE;
+  }
+
+  act("$n bows before $p and disappears!", TRUE, ch, obj, NULL, TO_ROOM);
+  send_to_char(ch, "The disguised illusionist allows you to pass in a burst of magic.\r\n");
+  char_from_room(ch);
+  char_to_room(ch, destination);
+  act("$n slowly fades into view.", TRUE, ch, NULL, NULL, TO_ROOM);
+  look_at_room(ch, 0);
+  return TRUE;
+}
+
+static int rol_utility_tattered_cloak(struct spec_event_context *context, struct char_data *ch,
+                                      struct obj_data *obj)
+{
+  if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
+  {
+    if (ch != NULL && obj->worn_by == ch)
+      GET_OBJ_VAL(obj, 3) = MIN(144, GET_OBJ_VAL(obj, 3) + 1);
+    else
+      GET_OBJ_VAL(obj, 3) = 0;
+    return FALSE;
+  }
+  if (ch == NULL || !rol_utility_say_phrase(context, "thief's haven") || obj->worn_by != ch)
+    return FALSE;
+  if (GET_OBJ_VAL(obj, 3) < 144)
+  {
+    send_to_char(ch, "Your cloak has not recovered yet.\r\n");
+    return TRUE;
+  }
+  act("You mutter 'thief's haven' to your $p.", FALSE, ch, obj, NULL, TO_CHAR);
+  act("$n mutters something to $s $p.", FALSE, ch, obj, NULL, TO_ROOM);
+  (void)call_magic(ch, ch, NULL, SPELL_INVISIBLE, 0, 35, CAST_INNATE);
+  (void)call_magic(ch, ch, NULL, SPELL_DETECT_INVIS, 0, 35, CAST_INNATE);
+  GET_OBJ_VAL(obj, 3) = 0;
+  return TRUE;
+}
+
+static int rol_utility_qogek_staff(struct spec_event_context *context, struct char_data *ch,
+                                   struct obj_data *obj)
+{
+  struct obj_data *corpse;
+  char command[MAX_INPUT_LENGTH];
+  char target[MAX_INPUT_LENGTH];
+
+  if (ch == NULL || obj->worn_by != ch || !rol_utility_command_is(context->command, "say") ||
+      context->argument == NULL)
+    return FALSE;
+  two_arguments(context->argument, command, sizeof(command), target, sizeof(target));
+  if (!strcmp(command, "blood"))
+  {
+    if (!IS_NECROMANCER(ch) || GET_OBJ_VAL(obj, 0) <= 0)
+    {
+      send_to_char(ch, IS_NECROMANCER(ch) ? "Your staff has run out of blood-rain charges.\r\n"
+                                          : "The staff's magic is beyond your understanding.\r\n");
+      return TRUE;
+    }
+    act("Your $p erupts in a violent torrent of caustic blood!", FALSE, ch, obj, NULL, TO_CHAR);
+    act("$n's $p erupts in a violent torrent of caustic blood!", FALSE, ch, obj, NULL, TO_ROOM);
+    (void)call_magic(ch, ch, NULL, SPELL_CAUSTIC_BLOOD, 0, 50, CAST_INNATE);
+    GET_OBJ_VAL(obj, 0)--;
+    return TRUE;
+  }
+  if (strcmp(command, "animate") || *target == '\0')
+    return FALSE;
+  if (!IS_NECROMANCER(ch) || GET_OBJ_VAL(obj, 1) <= 0)
+  {
+    send_to_char(ch, IS_NECROMANCER(ch) ? "Your staff has run out of animation charges.\r\n"
+                                        : "The staff's magic is beyond your understanding.\r\n");
+    return TRUE;
+  }
+  corpse = get_obj_in_list_vis(ch, target, NULL, world[IN_ROOM(ch)].contents);
+  if (corpse == NULL || !IS_CORPSE(corpse))
+  {
+    send_to_char(ch, "No such corpse lies here.\r\n");
+    return TRUE;
+  }
+  act("You touch $p to $P, feeding the corpse a jolt of unholy energy.", FALSE, ch, obj, corpse,
+      TO_CHAR);
+  (void)call_magic(ch, NULL, corpse, SPELL_EMBALM, 0, 50, CAST_INNATE);
+  (void)call_magic(ch, NULL, corpse, SPELL_ANIMATE_DEAD, 0, 50, CAST_INNATE);
+  GET_OBJ_VAL(obj, 1)--;
+  return TRUE;
 }
 
 int rol_utility_loot_sweep_interval_seconds(void)
@@ -894,6 +1182,11 @@ int rol_utility_object_typed(struct spec_event_context *context)
   {
     const char *description = rol_utility_description_for(GET_OBJ_VNUM(obj));
 
+    if (description == NULL && GET_OBJ_VNUM(obj) == ROL_UM_TATTERED_CLOAK_VNUM)
+      description = "Say 'thief's haven' after 144 worn pulses for invisibility and detection.";
+    if (description == NULL && GET_OBJ_VNUM(obj) == ROL_UM_QOGEK_STAFF_VNUM)
+      description = "Say 'blood' or 'animate <corpse>' to spend the corresponding charge.";
+
     if (description == NULL || context->actor == NULL)
       return FALSE;
     send_to_char(context->actor, "Special Effects: %s\r\n", description);
@@ -907,6 +1200,13 @@ int rol_utility_object_typed(struct spec_event_context *context)
 
   if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
   {
+    if (rol_utility_acheron_portal_vnum(GET_OBJ_VNUM(obj)) &&
+        GET_OBJ_VNUM(obj) != ROL_ACHERON_ENTRANCE_PORTAL_VNUM)
+      return rol_utility_acheron_relocate(obj);
+    if (GET_OBJ_VNUM(obj) == ROL_PROXIMITY_EXPLOSION_VNUM)
+      return rol_utility_proximity_explosion(context, obj);
+    if (GET_OBJ_VNUM(obj) == ROL_UM_TATTERED_CLOAK_VNUM)
+      return rol_utility_tattered_cloak(context, context->actor, obj);
     switch (GET_OBJ_VNUM(obj))
     {
     case ROL_LOOT_BLOCKER_VNUM:
@@ -926,6 +1226,14 @@ int rol_utility_object_typed(struct spec_event_context *context)
     return FALSE;
 
   ch = context->actor;
+  if (rol_utility_acheron_portal_vnum(GET_OBJ_VNUM(obj)))
+    return rol_utility_acheron_enter(context, ch, obj);
+  if (GET_OBJ_VNUM(obj) == ROL_HYSSK_SKELETON_VNUM)
+    return rol_utility_hyssk_skeleton(ch, obj, context->command, context->argument);
+  if (GET_OBJ_VNUM(obj) == ROL_UM_TATTERED_CLOAK_VNUM)
+    return rol_utility_tattered_cloak(context, ch, obj);
+  if (GET_OBJ_VNUM(obj) == ROL_UM_QOGEK_STAFF_VNUM)
+    return rol_utility_qogek_staff(context, ch, obj);
   if (profile != NULL)
     return rol_utility_called_effect(context, profile, ch, obj);
   switch (GET_OBJ_VNUM(obj))
@@ -944,6 +1252,10 @@ int rol_utility_object_typed(struct spec_event_context *context)
     return rol_utility_lathander_disc(context, ch, obj);
   case ROL_LLYMS_ALTAR_VNUM:
     return rol_utility_llyms_altar(context, ch, obj);
+  case ROL_SPIDERHAUNT_MAGGOTS_VNUM:
+    return rol_utility_spiderhaunt_maggots(ch, obj, context->command, context->argument);
+  case ROL_SPIDERHAUNT_CYRICS_ALTAR_VNUM:
+    return rol_utility_spiderhaunt_altar(ch, obj, context->command);
   default:
     return FALSE;
   }

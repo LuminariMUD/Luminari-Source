@@ -1,6 +1,6 @@
-# Realms of Luminari Staged Pilot Manual Testing
+# Realms of Luminari Staged Pilot Manual Testing - Archived
 
-- Status: Phases 4-5 complete; Phase 6 in progress
+- Status: Phases 4-6 complete; Phase 6.5 ready
 - Environment: disposable development runtime only
 - Staged world: `lib/rol-conversion/runs/phase6-special-20260812-race-keep-stage/staging/world`
 - Runtime contract: `lib/rol-conversion/runs/phase6-special-20260812-race-keep-stage/validation/pilot-runtime-contract.json`
@@ -1163,7 +1163,7 @@ do not hand-edit them into the pilot.
   through five. Observe Mhaere 2092003 on one-to-30, the regular 2092004 and gambler 2092006 on
   one-to-100, and Thorn 2092021 on one-to-20. Sleeping or fighting mobiles must remain silent.
 - Put disposable visible room occupants with the keywords `durnan` and `kevlar` in the test room;
-  do not import their still-pending source callbacks merely to exercise target selection. Mhaere's
+  their own converted callbacks do not need to fire merely to exercise target selection. Mhaere's
   fourth and fifth cases must emit the source flirt and gentle-kiss room and victim messages for
   Durnan. Her third case must retain the embedded newlines in both the room action and speech.
 - Confirm the regular's fifth case performs both the look and laugh actions. Confirm the gambler's
@@ -1379,9 +1379,10 @@ into the pilot.
 
 - Build a dependency-complete Zhentil Keep stage containing minstrel 2081021, little girl
   2081054, terrified merchant 2081059, visiting dignitary 2081066, Scornubian trader 2081067,
-  and ugly prostitute 2081068. Confirm all six use `RoL Source Periodic` with `MOB_SPEC`, while
-  gate guard 2081074 remains unconverted pending its complete command, gate-state, and event
-  lifecycle. Unrelated identities must not receive these profiles.
+  ugly prostitute 2081068, and gate guard 2081074. Confirm the first six use `RoL Source
+  Periodic` with `MOB_SPEC`, while the guard uses the scheduled-mobile adapter that composes its
+  command, gate-state, event, and ambient behavior. Unrelated identities must not receive these
+  profiles.
 - Observe the six converted mobiles while awake, idle, and not fighting. The minstrel must use
   its inclusive zero-to-20 table; the dignitary, trader, prostitute, and terrified merchant use
   zero-to-15; and the little girl uses zero-to-10. Sleeping or fighting representatives must
@@ -1852,8 +1853,8 @@ bound prototypes and their rooms; do not hand-edit the pilot.
 
 These weapons are production-tested and reconciled, but the current five-zone pilot does not
 contain all seven prototypes. Exercise each only after a Phase 7 stage supplies its owning
-package. This checkpoint resolves hit and critical callbacks only: do not treat it as approval to
-rewrite Frostbite's separate Jotun passive apply slots.
+package. Frostbite's separate Jotun passive apply slots were reconciled in the Phase 6 final
+closure; verify them with the checks in that section rather than rewriting the prototype by hand.
 
 ### Phase 6 Bhaal and Seelie hit weapons
 
@@ -1884,8 +1885,9 @@ rewrite Frostbite's separate Jotun passive apply slots.
 
 These weapons are production-tested and reconciled, but the current five-zone pilot does not
 contain all three prototypes. Exercise them only after a Phase 7 stage supplies their owning
-packages. The master bard's glaive, Spider venom pouch, and Jotun skull remain pending because
-their source callbacks can suppress or replace base-hit damage before the current target gateway.
+packages. The master bard's glaive, Spiderhaunt venom pouch, and Jotun skull were completed in the
+Phase 6 final closure with target-safe post-hit adaptations; verify them in a dependency-complete
+stage rather than importing their source callbacks.
 
 ### Phase 6 Undermountain Astral-forged and Torin weapons
 
@@ -1993,6 +1995,43 @@ This lifecycle is production-tested and reconciled, but the current five-zone pi
 Trahern Erinyes. Exercise it only after a Phase 7 stage supplies mobile 2020246 and its surrounding
 package; do not substitute the distinct planar Succubus identity.
 
+### Phase 6 final closure
+
+- Regenerate the special-procedure reconciliation inventory and confirm all 1,721 active direct
+  bindings, all 795 distinct source handlers, and all 848 `ACT_SPEC` records have explicit
+  dispositions with zero pending. Confirm the two dynamic paths account for 5,531 instances and
+  that the conversion still performs zero live-target writes.
+- In a dependency-complete Spiderhaunt stage, carry maggots 2080205 and use `eat` with an ordinary
+  food argument. The delayed infestation must be scheduled once and resolve safely even if the
+  carrier or object is no longer valid. Sit at Cyric's altar 2080213 and use `worship`; a charged
+  altar must consume one charge, heal the worshipper, and move alignment one step toward evil.
+  Standing worship, an exhausted altar, and worship away from the altar must have no blessing.
+- Wield Spiderhaunt venom pouch 2080212 and verify its one-in-61 thorn-graze flourish without
+  suppressing the ordinary hit. Exercise the master bard's glaive and Jotun skull adaptations and
+  confirm their translated riders never replace or duplicate the target's base weapon damage.
+- Equip Frostbite 196000 from a clean prototype and verify its reconciled Jotun passive apply
+  slots exactly once. Removing and re-equipping it must not stack the passive or rewrite unrelated
+  applies, while its independent one-in-22 cold hit proc remains as documented above.
+- Stage Acheron portals 2050000 and 2050100-2050104 with all authored destinations. Enter each
+  portal with and without followers, confirm valid followers travel with the leader, and verify
+  roaming relocation never leaves a one-way or invalid destination. Missing dependencies must log
+  an explicit error and leave the traveler in place.
+- Exercise the Zhentil, Waterdeep, and Gloomhaven scheduled gate guards across opening, open, and
+  closing hours. Confirm their ambient tables continue while scheduled state changes occur and
+  that repeated event scheduling neither duplicates the transition nor loses the next update.
+- Exercise Undermountain toll keepers 2092000 and 2092002 from both sides. A mortal must pay one
+  gold before passage, underpayment must leave the character in place, valid passage must use the
+  authored destination, and NPC passage must preserve the source exception without corrupting a
+  player's balance.
+- Exercise the completed Calimshan and Daggerdale lich rites only in an isolated test database.
+  Reject the wrong class, insufficient level, unsafe followers, and missing offerings. A valid
+  rite must consume only its required offerings, persist the target lich race, and avoid accessing
+  extracted objects or followers after the transformation.
+
+These closure behaviors are production-linked and unit-tested. The current five-zone pilot does
+not contain every required prototype or dependency, so their live checks belong in disposable
+Phase 7 package stages rather than in the normal development world.
+
 ### RoL exit-trap compatibility
 
 - Swamp Two room 2026051 contains the pilot's converted exit trap on the down exit. It
@@ -2025,11 +2064,10 @@ package; do not substitute the distinct planar Succubus identity.
 - Flagged arena, no-precipitation, PSP-regeneration, and RoL-jail runtime support is
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.
-- Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
-  binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,614 are resolved and 107 remain. Of 795 distinct
-  direct source handlers, 706 are resolved and 89 remain. Of 848 `ACT_SPEC` records, 822
-  are resolved and 26 remain. The automatic race procedures
+- Phase 6 has an exact inventory rather than treating `ACT_SPEC` as the direct binding count. Of
+  1,813 discovered candidates, 92 are source-preprocessor exclusions; all 1,721 active direct
+  bindings, all 795 distinct direct source handlers, and all 848 `ACT_SPEC` records are resolved
+  with zero pending. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

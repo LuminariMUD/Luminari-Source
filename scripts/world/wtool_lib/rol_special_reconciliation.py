@@ -23,8 +23,10 @@ from .rol_special import (
     COMPOSABLE_MOBILE_RUNTIME_HANDLERS,
     COMPOSABLE_ROOM_HANDLER_FLAGS,
     INERT_HANDLERS,
+    MINIMAL_DEPENDENCY_EXCLUSIONS,
     NATIVE_HANDLER_NAMES,
     RECONCILED_OBJECT_RUNTIME_HANDLERS,
+    RECONCILED_RUNTIME_HANDLERS,
     UNSAFE_HANDLERS,
 )
 
@@ -375,12 +377,26 @@ def handler_disposition(handler: str) -> dict[str, str]:
         "strategy": "NATIVE_RECONCILED",
         "target": target,
     }
+  if handler in RECONCILED_RUNTIME_HANDLERS:
+    _, _, target = RECONCILED_RUNTIME_HANDLERS[handler]
+    return {
+        "status": "resolved",
+        "strategy": "NATIVE_RECONCILED",
+        "target": target,
+    }
   if handler in INERT_HANDLERS:
     return {
         "status": "resolved",
         "strategy": "SOURCE_INERT_EXCLUDED",
         "target": "none",
         "reason": INERT_HANDLERS[handler],
+    }
+  if handler in MINIMAL_DEPENDENCY_EXCLUSIONS:
+    return {
+        "status": "resolved",
+        "strategy": "SOURCE_DEPENDENCY_EXCLUDED",
+        "target": "none",
+        "reason": MINIMAL_DEPENDENCY_EXCLUSIONS[handler],
     }
   if handler in UNSAFE_HANDLERS:
     return {

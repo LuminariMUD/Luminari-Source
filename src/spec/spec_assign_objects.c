@@ -193,6 +193,7 @@ void assign_objects(void)
   ASSIGNOBJ(196090, fake_twilight);
   ASSIGNOBJ(196066, giantslayer);
   ASSIGNOBJ(196073, planetar_sword);
+  ASSIGNOBJ(196087, skullsmasher);
 
   /* more homeland, unsorted */
   ASSIGNOBJ(100400, gen_board); /* quest board */

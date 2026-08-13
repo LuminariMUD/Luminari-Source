@@ -528,7 +528,9 @@ registration paths have been reconciled.
 
 Phases 0-5 are complete and have been removed from this active plan. Their delivered
 scope, run identities, counts, acceptance evidence, commits, and reforecast basis are
-recorded in [RoL-Changelog.md](../RoL-Changelog.md). Active implementation continues with
+recorded in the
+[Phase 6 changelog](../changelog-archive/archive08_13-phase6-complete-RoL-Changelog.md).
+Active implementation continues with
 the remaining Phase 6 families.
 
 ### Phase 6: Special-procedure reconciliation (inventory repair in progress)

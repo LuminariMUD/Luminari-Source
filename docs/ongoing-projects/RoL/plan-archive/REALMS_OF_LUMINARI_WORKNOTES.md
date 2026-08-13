@@ -1,10 +1,12 @@
-# Realms of Luminari Conversion Worknotes
+# Realms of Luminari Phase 6 Conversion Worknotes - Archived
 
 - Updated: 2026-08-13
 - Environment: development
 - Branch: `master`
-- Current task: reconcile the remaining dependency-complete Phase 6 special families
-- Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
+- Archive scope: completed Phase 6 implementation and validation handoff
+- Current task: Phase 6 complete; prepare the Phase 6.5 canonical VNUM rebase
+- Completed milestone record:
+  [Phase 6 changelog archive](../changelog-archive/archive08_13-phase6-complete-RoL-Changelog.md)
 - Phase 4 manual test matrix: [PHASE4_MANUAL_TESTING.md](PHASE4_MANUAL_TESTING.md)
 
 ## Current committed checkpoint
@@ -140,6 +142,9 @@ Phase 6 Undermountain-combat commit: 92d9cfbf
 Phase 6 Undermountain-lifecycle commit: 7be463da
 ```
 
+The current working tree completes Phase 6 after that committed checkpoint. No delivery commit
+has been created for the completion pass yet.
+
 The authoritative ignored runs are:
 
 ```text
@@ -188,8 +193,8 @@ Phase 5 policy-2 full audit:
   lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit
   rol-phase5-audit-cec58661a4f21a2a
 Phase 6 special reconciliation:
-  lib/rol-conversion/runs/phase6-special-20260813-undermountain-yawning-portal
-  rol-phase6-special-ccb5be8a975f9981
+  lib/rol-conversion/runs/phase6-special-20260813-complete
+  rol-phase6-special-49381a429d6f4224
 Phase 6 shared mobile: lib/rol-conversion/runs/phase6-special-20260812-shared-mobile
                        rol-phase6-special-0f4f1274d95a2941
 Phase 6 implicit race: lib/rol-conversion/runs/phase6-special-20260812-race-composition
@@ -993,32 +998,52 @@ Policy:  rol-conversion-policy-2
   its north-exit block, and one-hour portal transition. Shrieker 2093019 preserves its mortal-PC
   witness gate, constant shriek, and one-in-ten attracted-mobile spawn. Black orchid 2093243
   receives one nonresetting 72-hour target decay schedule through `RoL Utility Object`.
-- Thirty-two corrected batches close 368 bindings across 168 handlers. That measured
-  throughput puts the binding-count projection near 10 sessions and the handler-diversity
-  projection near 17. Because 78 of 89 remaining handlers are singletons, the published Phase 6
-  envelope is 10-20 sessions, or 20-80 focused engineering hours. Reforecast after another
-  material batch or an inventory correction.
+- The final closure resolves the remaining 107 bindings across 89 handlers. Phase 6 now accounts
+  for all 1,721 active static bindings, 5,531 dynamic binding instances, 247 implicit-race
+  bindings, 795 direct handlers, and 848 `ACT_SPEC` records with zero pending rows.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the corrected pending inventory in dependency-complete shared-runtime batches.
-2. Select the highest-value dependency-complete combat or utility family; do not batch
-   merely by name or VNUM proximity.
-   The Jotun object-passive family remains pending until source hit/damage slot mutation can be
-   mapped without overwriting or double-counting the target's distinct enhancement applies.
-   The Acheron portal family remains pending until its recorded entrance, `achexit`, logout,
-   death, follower, and delayed-return lifecycle can be ported together without a one-way trap.
-3. Preserve record-specific missing-reference repairs for their Phase 7
-   dependency-closure batches.
-4. Preserve the six locked malformed record exclusions as explicit, logged
-   smallest-unit exclusions.
-5. Regenerate the special-binding inventory after each shared-family checkpoint and
-   repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the 10-20-session Phase 6 envelope and reforecast after another
-   material batch or an inventory correction.
+1. Begin Phase 6.5 Session 1 by regenerating its dated source, target, Phase 1, and Phase 2
+   denominators from the completed Phase 6 baseline.
+2. Reserve and verify the canonical zone and entity identity ranges before any rehome writes.
+3. Keep the Phase 6 terminal dispositions and generated profiles stable while the namespace
+   migration is in progress.
+4. Preserve record-specific missing-reference repairs for their Phase 7 dependency batches.
+5. Continue to protect the six locked malformed or unsafe smallest-unit exclusions and the 30
+   minimal dependency exclusions.
+6. Repeat the full reconciliation, build, test, install, syntax-boot, and CMake gates after each
+   Phase 6.5 session that changes runtime or conversion policy.
 
-## Latest session handoff
+## Phase 6 completion handoff
+
+- The authoritative completion evidence is
+  `lib/rol-conversion/runs/phase6-special-20260813-complete`, run
+  `rol-phase6-special-49381a429d6f4224`. It resolves all 1,721 direct bindings and all 795 direct
+  handlers. Both dynamic paths, all 247 implicit-race bindings, and all 848 `ACT_SPEC` records are
+  resolved. Live target writes remain zero.
+- The final implementation pass completes the Spiderhaunt combat and object callbacks, Jotun
+  passive weapons, owner-independent pet-rent and auction services, Acheron portals, Calimshan,
+  Dark Knight lich behavior, residual monster and weapon profiles, scheduled guards, toll gates,
+  and the remaining utility callbacks. It keeps source-inert, unsafe, and dependency-only rows as
+  explicit terminal exclusions rather than inventing gameplay.
+- `WORSHIP` is registered as a contextual player command for sacred-object handlers. Its
+  maintained help source is the idempotent `help_worship_entries.sql` migration with a read-only
+  verifier and schema-manifest classification.
+- Validation passes 371 world-tool tests, 698 production-linked CuTests, a warning-free
+  Autotools build and install, syntax boot, a complete CMake build, and all 12 CTest targets. The
+  strict whole-world validator still reports the pre-existing corpus baseline of 3,849 errors and
+  38,219 warnings; Phase 6 made no live world writes. The installed binary build ID is
+  `a46cae9cccb916a3d4d65699138d0a480d54888c`, with SHA-256
+  `40e57934e70b08e600f22ce84c2ec07e14883c0963d23e8ef23d0dc38edcc6cd`.
+- The evidence binding ledger SHA-256 is
+  `a7d14edb67c6caf77a5bc8e54abb100261ec26a81574989afce674168bae086e`; the handler inventory is
+  `a18ee8b64ba50f4999dab1bb220477afaabbca87b2de42539bce1a1abe6d5e2a`; the summary is
+  `c59895909708e4ecd078423cf9a283b8d9669cd4cbbca70aa063c8cb075f1588`; and the manifest is
+  `36ed3a5f593f32d600f6986cd798602d0012b2b7fe748a8bcc17995738a6d4d1`.
+
+## Previous committed session handoff
 
 - Implementation commit `7be463da` reconciles `um_flyingDagger`, `um_ochreJelly`,
   `um2_vortexGuardian`, `um2_shrieker`, and `um2_orchidDecay`. The four mobiles use exact identity
