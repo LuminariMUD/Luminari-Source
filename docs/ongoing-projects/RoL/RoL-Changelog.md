@@ -9,6 +9,69 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Undermountain ambient and inert-stench family
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled 14 active Undermountain bindings across nine handlers. Eight exact mobile
+  identities now use generated source-periodic profiles; all six registrations of the
+  compile-disabled troglodyte stench callback are explicitly source-inert.
+- Added source-derived profiles for the Mad Mage, Juris, Deriah, Talugen, the succubus,
+  Sha'Tar, the imp, and Bhara'Tir at converted identities 2093012, 2093021-2093023,
+  2093202, 2093211, 2093225, and 2093304.
+- Preserved all 61 authored outcomes, the exact zero-to-100 random ranges, awake and
+  not-fighting gates, speech versus room-action dispatch, source strings, and Talugen's
+  expanded `frown` social. Unrelated mobile identities fail closed.
+- Recorded troglodyte source identities 2093404-2093408 and 2093426 without a replacement
+  callback because both event registration and the stench implementation are inside
+  `#if 0`; adding target behavior would contradict the active source.
+- Added generator, reconciliation, generated-table, and production-runtime coverage. No
+  player helpfile changed because this batch adds no player command or syntax; the staff
+  manual records the dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,522 to 1,536 static
+  bindings and from 646 to 655 direct handlers, leaving 185 bindings across 140 handlers in
+  29 source files. The independent `ACT_SPEC` cross-check advances to 808 resolved and 40
+  pending.
+- Reforecast eighteen corrected batches covering 290 bindings across 117 handlers. The
+  remaining Phase 6 envelope is 12-22 sessions, or 24-88 focused engineering hours; the full
+  remaining project envelope is 68-106 sessions, or 136-424 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: fcfd2be6
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-undermountain-socials
+Reconciliation run: rol-phase6-special-b66f1c18acb2ce12
+Evidence tree SHA-256: 44c456548a90cb1f09ff1264c25b37e318ce8cc9ff07e0ce9a0525f9e93a7664
+Active direct bindings: 1,721
+Direct bindings resolved: 1,536
+Direct bindings pending: 185
+Source handlers resolved: 655
+Source handlers pending: 140
+Additional handler families resolved: 9
+Additional direct bindings resolved: 14
+Native adapted bindings: 992
+Native adapted composable bindings: 208
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 808
+ACT_SPEC records pending: 40
+Complete world-tool suite: 347 passed
+Production-linked CuTest suite: 682 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 363b5b57e55c2b2b6d45ca794e58b34fdbcf3274
+Installed SHA-256: e8af98f53fc082f5d2a807f16b302fd0228d474b41ad4f8441767987b17dc784
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat, death, or utility family.
+
 ## 2026-08-13 - Phase 6 drow-equipment decay family
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

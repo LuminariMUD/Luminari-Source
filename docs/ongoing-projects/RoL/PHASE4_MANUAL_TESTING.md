@@ -1133,6 +1133,26 @@ These profiles are automated and reconciled but are absent from the current five
 Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
 into the pilot.
 
+### Phase 6 converted Undermountain ambient profiles
+
+- Build a dependency-complete Undermountain stage containing mobiles 2093012, 2093021-2093023,
+  2093202, 2093211, 2093225, and 2093304. Confirm each retains `MOB_SPEC` and uses
+  `RoL Source Periodic`; unrelated identities must not receive these profiles.
+- Observe every profile while awake and idle. Each uses the source zero-to-100 roll, so only its
+  authored low-number cases produce output. Sleeping or fighting mobiles must remain silent.
+- Confirm the Mad Mage, Juris, Deriah, Talugen, and Sha'Tar profiles preserve their exact speech
+  and room actions. Talugen's fourth case must produce the target social text `$n frowns.` rather
+  than a literal command or missing action.
+- Confirm the succubus, imp, and Bhara'Tir preserve their exact room messages, pronoun tokens,
+  visibility, and case ordering. No profile may substitute a generic ambient message.
+- Inspect troglodytes 2093404-2093408 and 2093426. They must not gain a stench procedure from
+  this source binding: both source event registration and behavior are compile-disabled. Test
+  any independent race or mobile behavior separately.
+
+These profiles and inert dispositions are automated and reconciled but are absent from the
+current five-zone pilot. Exercise them only in a disposable Phase 7 dependency-complete stage;
+do not hand-edit them into the pilot.
+
 ### Phase 6 converted Scornubel profiles
 
 - Build a dependency-complete Scornubel stage containing mobiles 2006001, 2006002, 2006006,
@@ -1609,9 +1629,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,506 are resolved and 215 remain. Of 795 distinct
-  direct source handlers, 645 are resolved and 150 remain. Of 848 `ACT_SPEC` records, 806
-  are resolved and 42 remain. The automatic race procedures
+  of the 1,721 active direct bindings, 1,536 are resolved and 185 remain. Of 795 distinct
+  direct source handlers, 655 are resolved and 140 remain. Of 848 `ACT_SPEC` records, 808
+  are resolved and 40 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
