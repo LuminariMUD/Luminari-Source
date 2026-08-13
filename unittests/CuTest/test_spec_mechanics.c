@@ -1758,7 +1758,7 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
   int roll_max;
   int roll_min;
 
-  CuAssertIntEquals(tc, 128, (int)rol_source_periodic_profile_count());
+  CuAssertIntEquals(tc, 136, (int)rol_source_periodic_profile_count());
   CuAssertIntEquals(tc, 1, rol_source_periodic_devour_order(2007140));
   CuAssertIntEquals(tc, 2, rol_source_periodic_devour_order(2003062));
   CuAssertIntEquals(tc, 0, rol_source_periodic_devour_order(2097006));
@@ -1801,6 +1801,25 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
   CuAssertTrue(tc, !speech);
   CuAssertTrue(tc, !hide);
   CuAssertTrue(tc, rol_source_periodic_outcome_action(2007220, 2, 2, NULL, NULL) == NULL);
+
+  CuAssertTrue(tc, rol_source_periodic_profile_bounds(2093012, &roll_min, &roll_max,
+                                                      &requires_awake, &suppresses_fighting));
+  CuAssertIntEquals(tc, 0, roll_min);
+  CuAssertIntEquals(tc, 100, roll_max);
+  CuAssertTrue(tc, requires_awake);
+  CuAssertTrue(tc, suppresses_fighting);
+  CuAssertStrEquals(tc, "Now where did I place that vial...",
+                    rol_source_periodic_outcome_action(2093012, 0, 0, &speech, &hide));
+  CuAssertTrue(tc, speech);
+  CuAssertTrue(tc, !hide);
+  CuAssertStrEquals(tc, "$n frowns.",
+                    rol_source_periodic_outcome_action(2093023, 4, 0, &speech, &hide));
+  CuAssertTrue(tc, !speech);
+  CuAssertTrue(tc, !hide);
+  CuAssertStrEquals(tc, "$n rasps, 'So you've come to torment Bhara'Tir!'",
+                    rol_source_periodic_outcome_action(2093304, 0, 0, &speech, &hide));
+  CuAssertTrue(tc, !speech);
+  CuAssertTrue(tc, !hide);
 }
 
 void Test_spec_rol_scornubel_profiles_preserve_source_behavior(CuTest *tc)

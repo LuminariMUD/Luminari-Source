@@ -20,8 +20,8 @@ class RolPeriodicProfileTests(unittest.TestCase):
   def test_selected_manifest_has_unique_converted_mobile_coverage(self) -> None:
     vnums = [vnum for _relative, handler_vnums in PROFILE_SOURCES.values() for vnum in handler_vnums]
 
-    self.assertEqual(118, len(PROFILE_SOURCES))
-    self.assertEqual(128, len(vnums))
+    self.assertEqual(126, len(PROFILE_SOURCES))
+    self.assertEqual(136, len(vnums))
     self.assertEqual(len(vnums), len(set(vnums)))
     self.assertEqual(
         {
@@ -34,6 +34,7 @@ class RolPeriodicProfileTests(unittest.TestCase):
             "src/specs.realm.c",
             "src/specs.scornubel.c",
             "src/specs.towerofsorc.c",
+            "src/specs.undermountain.c",
             "src/specs.waterdeep.c",
             "src/specs.zhentilkeep.c",
         },
@@ -90,8 +91,8 @@ class RolPeriodicProfileTests(unittest.TestCase):
 
     self.assertEqual(sorted(profile_vnums), profile_vnums)
     self.assertEqual(sorted(outcomes), outcomes)
-    self.assertEqual(466, len(outcomes))
-    self.assertEqual(729, len(actions))
+    self.assertEqual(527, len(outcomes))
+    self.assertEqual(790, len(actions))
 
   def test_scornubel_profiles_preserve_composition_and_source_ranges(self) -> None:
     generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
@@ -148,6 +149,42 @@ class RolPeriodicProfileTests(unittest.TestCase):
     )
     self.assertIn(
         '{ROL_SOURCE_PERIODIC_ROOM_ACTION, false, "$n scratches at an itch.", NULL, NULL}',
+        compact,
+    )
+
+  def test_undermountain_socials_preserve_source_ranges_gates_and_messages(self) -> None:
+    generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
+        encoding="ascii"
+    )
+    compact = " ".join(generated.split())
+
+    for vnum, handler in (
+        (2093012, "UM2_MADMAGESOCIALS"),
+        (2093021, "UM2_JURISSOCIALS"),
+        (2093022, "UM2_DERIAHSOCIALS"),
+        (2093023, "UM2_TALUGENSOCIALS"),
+        (2093202, "UM2_SUCCUBUSSOCIALS"),
+        (2093211, "UM2_SHATARSOCIALS"),
+        (2093225, "UM2_IMPSOCIALS"),
+        (2093304, "UM2_DEVILSOCIALS"),
+    ):
+      self.assertRegex(
+          compact,
+          rf"\{{{vnum}, ROL_SOURCE_PERIODIC_{handler}, 0, 100, 0, 0, true, false, true, "
+          r"ROL_SOURCE_PERIODIC_DEVOUR_NONE\}",
+      )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_SPEECH, false, "Now where did I place that vial...", '
+        "NULL, NULL}",
+        compact,
+    )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_ROOM_ACTION, false, "$n frowns.", NULL, NULL}',
+        compact,
+    )
+    self.assertIn(
+        "{ROL_SOURCE_PERIODIC_ROOM_ACTION, false, \"$n rasps, 'So you've come to torment "
+        "Bhara'Tir!'\", NULL, NULL}",
         compact,
     )
 

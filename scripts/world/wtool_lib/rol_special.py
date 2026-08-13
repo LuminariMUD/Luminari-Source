@@ -455,6 +455,10 @@ INERT_HANDLERS = {
     "rogue_one": (
         "source callback registers only NPC_HIT but returns whenever that event supplies its victim"
     ),
+    "um2_troglodyteStench": (
+        "source stench implementation and event registration are disabled by #if 0; the active "
+        "callback returns without changing the mobile or nearby characters"
+    ),
 }
 
 # This source callback exposes unrestricted staff/debug commands through an
