@@ -9,6 +9,73 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Undermountain combat callbacks
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled `um_essra`, `um2_gheriasTukCombat`, and `um2_rustMonster` through three identity
+  profiles in the existing typed `RoL Monster Combat` runtime. Converted mobiles 2092043,
+  2093310, and 2093303 persist the named procedure together with their automatic-procedure flag.
+- Preserved Essra's successful-hit one-to-10 roll, five active speech branches, ordered double
+  speech, `look honor`, and laugh-before-threat action. Sleeping or nonfighting instances remain
+  silent, and rolls six through ten remain no-ops.
+- Preserved Gherias'Tuk's periodic combat gate, exact 2093325 hammer-head identity, value-zero
+  `say faith` priority, and later one-in-ten lethal vampire drain against mortal PCs. An absent
+  offhand is handled safely where the source dereferences it, and the distinct crafted Torin
+  objects 2093446 and 2093447 do not satisfy the hammer-head check.
+- Preserved the rust monster's critical-only hammer-tail behavior, source slots zero through 31,
+  independent one-in-33 roll for each occupied slot, roll-before-container rejection, first-hit
+  ordering, miss output, and permanent destruction after a checked unequip. Target craft slots
+  beyond the source array are not eligible.
+- Added deterministic identity, roll-boundary, hammer-identity, source-slot, container-safety,
+  typed-event, converter-disposition, full-profile-table, and ledger-count regressions. BQC review
+  confirmed typed target validation, target invalidation semantics, and explicit unequip failure
+  logging around destructive paths.
+- Regenerated deterministic evidence. Resolution increases from 1,606 to 1,609 static bindings
+  and from 698 to 701 direct handlers, leaving 112 bindings across 94 handlers in 26 source files.
+  The independent `ACT_SPEC` cross-check remains 820 resolved and 28 pending.
+- Reforecast thirty-one corrected batches covering 363 bindings across 163 handlers. The
+  remaining Phase 6 envelope stays 10-20 sessions, or 20-80 focused engineering hours; the full
+  remaining project envelope stays 66-104 sessions, or 132-416 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 92d9cfbf
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-undermountain-combat
+Reconciliation run: rol-phase6-special-742c4dd281ad2ab4
+Evidence tree SHA-256: 628a0b1671844da2ea5822d290e9f30d67727b61331ed8ae763a3cd1334fdbe7
+Active direct bindings: 1,721
+Direct bindings resolved: 1,609
+Direct bindings pending: 112
+Source handlers resolved: 701
+Source handlers pending: 94
+Additional handler families resolved: 3
+Additional direct bindings resolved: 3
+Native adapted bindings: 1,051
+Native adapted composable bindings: 219
+Source-inert exclusions: 41
+ACT_SPEC records resolved: 820
+ACT_SPEC records pending: 28
+Complete world-tool suite: 367 passed
+Production-linked CuTest suite: 693 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 3f33ce77fe81fc6f89eb11fac27e30995c4fb813
+Installed SHA-256: 75b7ac4a0bdf2e95b40dddf3f408d73755322e27a9c2dc8d9c96f756a3569ec8
+Evidence artifact hashes: 7 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+No player helpfile changed because this checkpoint adds no player command or syntax. The staff
+manual records identity attachment, event separation, exact hammer dependency, lethal gating,
+source wear-slot bounds, container immunity, destructive selection, and miss-path checks.
+
 ## 2026-08-13 - Phase 6 Undermountain Yawning Portal callbacks
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

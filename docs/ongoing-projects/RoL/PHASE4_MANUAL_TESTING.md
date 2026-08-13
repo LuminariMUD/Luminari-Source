@@ -1182,6 +1182,34 @@ These profiles and inert dispositions are automated and reconciled but are absen
 current five-zone pilot. Exercise them only in a disposable Phase 7 dependency-complete stage;
 do not hand-edit them into the pilot.
 
+### Phase 6 converted Undermountain combat callbacks
+
+- Build a disposable dependency-complete stage containing Essra 2092043, rust monster 2093303,
+  Gherias'Tuk 2093310, and hammer head 2093325. All three mobiles must retain `MOB_SPEC`,
+  `ACT_SPEC`, and `RoL Monster Combat`; unrelated mobiles must not receive these identity
+  profiles.
+- Fight Essra and observe successful hits. Her source one-to-10 roll emits only cases one through
+  five: the two-line Salvetarm case must remain ordered, the third case must attempt to look at an
+  `honor` target before calling the guards, and the fourth must laugh before its final threat.
+  Sleeping or nonfighting Essra instances must not emit these lines.
+- Equip Gherias'Tuk with object 2093325 in the primary slot with value zero. Each combat activity
+  pulse must prioritize `say faith` and stop before the vampire roll. A different primary weapon
+  must not qualify; object 2093446 is a separate crafted Torin weapon and must not be substituted.
+- Set the hammer-head value nonzero, or remove the hammer head, and continue combat against an
+  ordinary mortal PC. Approximately one activity pulse in ten must emit the three source drain
+  messages and kill that current opponent. NPCs, staff, an opponent no longer in the room, and a
+  Gherias'Tuk unable to act or stand must survive. An empty offhand must not crash the runtime.
+- Fight rust monster 2093303 while wearing a mixture of ordinary items and containers. Only a
+  critical hit may run its hammer-tail effect. It must scan source slots zero through 31 in order,
+  roll independently one time in 33 for each occupied slot, skip containers, and destroy the first
+  eligible successful item. If no item qualifies, all three miss messages must appear and every
+  worn item must remain. Target craft slots 32 and above are outside the source array and must
+  never be selected.
+
+These callbacks are production-tested and reconciled, but the current five-zone pilot contains
+none of the three mobiles. Exercise them only after a Phase 7 stage supplies the exact identities
+and hammer-head dependency; do not substitute the later Torin craft rewards.
+
 ### Phase 6 converted source death effects
 
 - Build dependency-complete Trahern, Dobluth, and Undermountain stages containing mobiles
