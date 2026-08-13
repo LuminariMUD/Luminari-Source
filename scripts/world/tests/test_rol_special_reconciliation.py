@@ -525,6 +525,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual(target, disposition["target"])
 
+  def test_drow_equipment_decay_has_explicit_native_disposition(self) -> None:
+    disposition = handler_disposition("genericDrowEq")
+
+    self.assertEqual("resolved", disposition["status"])
+    self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+    self.assertEqual("RoL Drow Equipment", disposition["target"])
+
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       source_root = Path(temporary)
@@ -770,11 +777,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_506, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(215, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(645, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(150, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(968, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_522, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(199, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(646, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(149, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(984, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           208, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

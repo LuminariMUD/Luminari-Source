@@ -6096,7 +6096,8 @@ struct obj_data
   struct trap_data *trap; // Trap on this object
 
   /* Non-persistent Realms of Luminari runtime state. */
-  time_t rol_loot_sweep_at; /* Next corpse-protection sweep. */
+  time_t rol_loot_sweep_at;        /* Next corpse-protection sweep. */
+  bool rol_drow_decay_initialized; /* RoL drow decay event was initialized. */
 
   /* Hash table support for fast rnum lookups */
   struct obj_data *next_in_hash; // Next object in hash bucket

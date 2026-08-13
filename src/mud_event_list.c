@@ -46,6 +46,7 @@ extern EVENTFUNC(event_radiant_aura);
 extern EVENTFUNC(event_fist_of_four_thunders);
 extern EVENTFUNC(event_rol_yggdrasil_release);
 extern EVENTFUNC(event_rol_barbazu_bloodloss);
+extern EVENTFUNC(event_rol_drow_decay);
 
 /* The mud_event_index[] with extended data for table-driven handling
  * Format: {name, func, type, completion_msg, recovery_msg, feat, daily_uses} */
@@ -518,6 +519,7 @@ struct mud_event_list mud_event_index[] = {
     {"RoL Seelie Faerie Fire", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"RoL Barbazu Bloodloss", event_rol_barbazu_bloodloss, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED,
      0},
+    {"RoL Drow Equipment Decay", event_rol_drow_decay, EVENT_OBJECT, NULL, NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

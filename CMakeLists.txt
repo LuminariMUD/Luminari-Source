@@ -609,6 +609,7 @@ set(SRC_C_FILES
     src/spec/spec_rol_avernus.c
     src/spec/spec_rol_combat.c
     src/spec/spec_rol_darkhold.c
+    src/spec/spec_rol_drow.c
     src/spec/spec_rol_residual_mobile.c
     src/spec/spec_rol_conversion.c
     src/spec/spec_rol_lavatubes.c

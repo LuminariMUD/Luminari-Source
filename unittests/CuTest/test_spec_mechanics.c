@@ -27,6 +27,7 @@
 #include "../../src/spec/spec_rol_avernus.h"
 #include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/spec/spec_rol_darkhold.h"
+#include "../../src/spec/spec_rol_drow.h"
 #include "../../src/spec/spec_rol_lavatubes.h"
 #include "../../src/spec/spec_rol_tarrasque.h"
 #include "../../src/spec/spec_rol_totem.h"
@@ -1526,6 +1527,69 @@ void Test_spec_rol_darkhold_profiles_preserve_source_identities_and_timing(CuTes
   CuAssertTrue(tc, rol_monster_combat_profile(2094505, &denominator, &description));
   CuAssertIntEquals(tc, 1, denominator);
   CuAssertTrue(tc, rol_monster_combat_profile(2094506, &denominator, &description));
+}
+
+void Test_spec_rol_drow_profiles_preserve_bindings_sectors_and_cadence(CuTest *tc)
+{
+  static const int object_vnums[] = {
+      2092080, 2092081, 2092082, 2092096, 2093081, 2093082, 2093083, 2093084,
+      2093085, 2093087, 2093150, 2093151, 2093152, 2093153, 2093154, 2093155,
+  };
+  size_t index;
+
+  CuAssertIntEquals(tc, 16, (int)rol_drow_equipment_profile_count());
+  for (index = 0; index < sizeof(object_vnums) / sizeof(object_vnums[0]); index++)
+    CuAssertTrue(tc, rol_drow_equipment_profile(object_vnums[index]));
+  CuAssertTrue(tc, !rol_drow_equipment_profile(2092079));
+
+  for (index = SECT_UD_WILD; index <= SECT_UD_NOGROUND; index++)
+    CuAssertTrue(tc, !rol_drow_decayable_sector((int)index));
+  CuAssertTrue(tc, !rol_drow_decayable_sector(SECT_CAVE));
+  CuAssertTrue(tc, rol_drow_decayable_sector(SECT_INSIDE));
+  CuAssertTrue(tc, rol_drow_decayable_sector(SECT_FIELD));
+
+  CuAssertIntEquals(tc, 6, rol_drow_decay_modulus(false, 0, false));
+  CuAssertIntEquals(tc, 6, rol_drow_decay_modulus(false, 23, false));
+  CuAssertIntEquals(tc, 1, rol_drow_decay_modulus(false, 12, true));
+  CuAssertIntEquals(tc, 8, rol_drow_decay_modulus(true, 12, false));
+  CuAssertIntEquals(tc, 8, rol_drow_decay_modulus(true, 12, true));
+  CuAssertIntEquals(tc, (SECS_PER_MUD_HOUR * PASSES_PER_SEC) - PASSES_PER_SEC,
+                    (int)rol_drow_decay_delay_pulses(-4));
+  CuAssertIntEquals(tc, SECS_PER_MUD_HOUR * PASSES_PER_SEC, (int)rol_drow_decay_delay_pulses(0));
+  CuAssertIntEquals(tc, (SECS_PER_MUD_HOUR * PASSES_PER_SEC) + PASSES_PER_SEC,
+                    (int)rol_drow_decay_delay_pulses(4));
+}
+
+void Test_spec_rol_drow_decay_mutates_source_object_fields(CuTest *tc)
+{
+  struct obj_data obj;
+
+  clear_object(&obj);
+  GET_OBJ_TYPE(&obj) = ITEM_WEAPON;
+  GET_OBJ_COST(&obj) = 100;
+  GET_OBJ_WEIGHT(&obj) = 5;
+  GET_OBJ_VAL(&obj, 1) = 2;
+  GET_OBJ_VAL(&obj, 2) = 6;
+  obj.affected[0].modifier = 6;
+  obj.affected[1].modifier = -6;
+  obj.affected[2].modifier = 9;
+
+  CuAssertTrue(tc, !rol_drow_reduce_object_value(&obj, 6));
+  CuAssertTrue(tc, OBJ_FLAGGED(&obj, ITEM_NOSELL));
+  CuAssertIntEquals(tc, 84, GET_OBJ_COST(&obj));
+  CuAssertIntEquals(tc, 4, GET_OBJ_WEIGHT(&obj));
+  CuAssertIntEquals(tc, 1, GET_OBJ_VAL(&obj, 1));
+  CuAssertIntEquals(tc, 10, GET_OBJ_VAL(&obj, 2));
+  CuAssertIntEquals(tc, 5, obj.affected[0].modifier);
+  CuAssertIntEquals(tc, -5, obj.affected[1].modifier);
+  CuAssertIntEquals(tc, 9, obj.affected[2].modifier);
+
+  clear_object(&obj);
+  GET_OBJ_TYPE(&obj) = ITEM_ARMOR;
+  GET_OBJ_VAL(&obj, 0) = 1;
+  CuAssertTrue(tc, !rol_drow_reduce_object_value(&obj, 8));
+  CuAssertIntEquals(tc, 0, GET_OBJ_VAL(&obj, 0));
+  CuAssertTrue(tc, rol_drow_reduce_object_value(&obj, 8));
 }
 
 void Test_spec_rol_darkhold_objects_open_source_profiled_passages(CuTest *tc)

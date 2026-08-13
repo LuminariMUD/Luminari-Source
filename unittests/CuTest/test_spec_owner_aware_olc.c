@@ -122,6 +122,7 @@ static const char *const spec_object_names[] = {
     "RoL Ship",
     "RoL Ship Control",
     "RoL Darkhold Object",
+    "RoL Drow Equipment",
     "RoL Weapon Proc",
     "RoL Avernus Object",
     "RoL Lavatubes Object",

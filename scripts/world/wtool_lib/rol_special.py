@@ -160,6 +160,7 @@ ADAPTED_HANDLER_NAMES = {
     "musical_skull_2": "RoL Darkhold Object",
     "gold_diamond": "RoL Darkhold Object",
     "ruby_aquamarine": "RoL Darkhold Object",
+    "genericDrowEq": "RoL Drow Equipment",
     "baker_one": "RoL Waterdeep Ambient",
     "baker_two": "RoL Waterdeep Ambient",
     "casino_one": "RoL Waterdeep Ambient",
@@ -1367,6 +1368,7 @@ def compile_special_bindings(
       elif handler in {
           "floating_pool",
           "fw_ruby_monocle",
+          "genericDrowEq",
           "item_loot_block",
           "obj_drain",
           "tarrasque_stomache",

@@ -511,6 +511,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Waterdeep Ambient",
                                                "RoL Waterdeep Peacekeeper",
                                                "RoL Darkhold Object",
+                                               "RoL Drow Equipment",
                                                "RoL Weapon Proc",
                                                "RoL Avernus Object",
                                                "RoL Avernus Garden",
@@ -527,7 +528,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 116, expected_count);
+  CuAssertIntEquals(tc, 117, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)

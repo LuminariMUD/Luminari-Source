@@ -257,6 +257,7 @@ typedef enum
   eROL_YGGDRASIL_RELEASE,       /* Converted Yggdrasil branch entangle release */
   eROL_SEELIE_FAERIE_FIRE,      /* Converted Seelie faerie-fire cooldown */
   eROL_BARBAZU_BLOODLOSS,       /* Converted Barbazu glaive recurring blood loss */
+  eROL_DROW_DECAY,              /* Converted drow-equipment surface decay */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

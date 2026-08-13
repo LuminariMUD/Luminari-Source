@@ -342,6 +342,55 @@ class RolTransformTests(unittest.TestCase):
       else:
         self.assertEqual((), binding.required_flag_bits)
 
+  def test_drow_equipment_bindings_share_exact_decay_runtime(self) -> None:
+    source_vnums = (
+        92080, 92081, 92082, 92096, 93081, 93082, 93083, 93084,
+        93085, 93087, 93150, 93151, 93152, 93153, 93154, 93155,
+    )
+    bindings = [
+        {
+            "basename": "undermountain",
+            "record_type": "object",
+            "source_vnum": vnum,
+            "source_handler": "genericDrowEq",
+        }
+        for vnum in source_vnums
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+
+    self.assertEqual(16, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Drow Equipment"
+            and binding.required_flag_bits == (44,)
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
+    source = self._source_record(
+        "obj",
+        b"#92080\ndrow sword~\na drow sword~\nA drow sword lies here.~\n~\n"
+        b"5 0 8193\n0 2 6 0\n1000 5 0\n",
+    )
+    native = compiled.native_bindings[0]
+    emitted = emit_object(
+        source,
+        native.target_vnum,
+        _resolver,
+        special_proc=native.persisted_name,
+        required_extra_bits=native.required_flag_bits,
+    )
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20920.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Drow Equipment", result.records[0].spec_proc)
+    self.assertIn(44, decode_tokens(result.records[0].extra_flags).bits)
+
   def test_planar_death_burst_and_balor_weapon_bindings_are_explicit(self) -> None:
     bindings = [
         {

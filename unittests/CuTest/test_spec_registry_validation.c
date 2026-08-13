@@ -26,6 +26,7 @@
 #include "../../src/spec/spec_rol_avernus.h"
 #include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/spec/spec_rol_darkhold.h"
+#include "../../src/spec/spec_rol_drow.h"
 #include "../../src/spec/spec_rol_lavatubes.h"
 #include "../../src/spec/spec_rol_pilot.h"
 #include "../../src/spec/spec_rol_tarrasque.h"
@@ -184,9 +185,9 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 115, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 116, (int)spec_registry_count());
   CuAssertIntEquals(tc, 98, (int)spec_registry_legacy_count());
-  CuAssertIntEquals(tc, 17, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 18, (int)spec_registry_typed_count());
 
   alias_count = 0;
   for (definition_index = 0; definition_index < spec_registry_count(); definition_index++)
@@ -425,6 +426,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
        SPEC_EVENT_MOBILE_ACTIVITY, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Darkhold Object", rol_darkhold_object, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Drow Equipment", rol_drow_equipment, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_COMMAND | SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Weapon Proc", rol_weapon_proc, SPEC_OWNER_OBJECT,
        SPEC_EVENT_COMMAND | SPEC_EVENT_OBJECT_AUTO_PULSE | SPEC_EVENT_ITEM_IDENTIFY |
            SPEC_EVENT_WEAPON_HIT,

@@ -22,6 +22,7 @@
 #include "../../src/spec/spec_rol_avernus.h"
 #include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/spec/spec_rol_darkhold.h"
+#include "../../src/spec/spec_rol_drow.h"
 #include "../../src/spec/spec_rol_tarrasque.h"
 #include "../../src/spec/spec_rol_utility_objects.h"
 
@@ -168,6 +169,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   const struct spec_definition *toll_keeper_definition;
   const struct spec_definition *banana_definition;
   const struct spec_definition *darkhold_object_definition;
+  const struct spec_definition *drow_equipment_definition;
   const struct spec_definition *weapon_definition;
   const struct spec_definition *avernus_object_definition;
   const struct spec_definition *avernus_garden_definition;
@@ -185,6 +187,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   toll_keeper_definition = spec_registry_find_by_name("RoL Toll Keeper");
   banana_definition = spec_registry_find_by_name("RoL Banana");
   darkhold_object_definition = spec_registry_find_by_name("RoL Darkhold Object");
+  drow_equipment_definition = spec_registry_find_by_name("RoL Drow Equipment");
   weapon_definition = spec_registry_find_by_name("RoL Weapon Proc");
   avernus_object_definition = spec_registry_find_by_name("RoL Avernus Object");
   avernus_garden_definition = spec_registry_find_by_name("RoL Avernus Garden");
@@ -199,6 +202,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   CuAssertPtrNotNull(tc, toll_keeper_definition);
   CuAssertPtrNotNull(tc, banana_definition);
   CuAssertPtrNotNull(tc, darkhold_object_definition);
+  CuAssertPtrNotNull(tc, drow_equipment_definition);
   CuAssertPtrNotNull(tc, weapon_definition);
   CuAssertPtrNotNull(tc, avernus_object_definition);
   CuAssertPtrNotNull(tc, avernus_garden_definition);
@@ -209,13 +213,13 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   if (bank_definition == NULL || cloak_definition == NULL || guild_guard_definition == NULL ||
       command_sentinel_definition == NULL || toll_keeper_definition == NULL ||
       banana_definition == NULL || darkhold_object_definition == NULL ||
-      weapon_definition == NULL || avernus_object_definition == NULL ||
-      avernus_garden_definition == NULL || monster_combat_definition == NULL ||
-      utility_object_definition == NULL || utility_room_definition == NULL ||
-      tarrasque_definition == NULL)
+      drow_equipment_definition == NULL || weapon_definition == NULL ||
+      avernus_object_definition == NULL || avernus_garden_definition == NULL ||
+      monster_combat_definition == NULL || utility_object_definition == NULL ||
+      utility_room_definition == NULL || tarrasque_definition == NULL)
     return;
 
-  CuAssertIntEquals(tc, 17, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 18, (int)spec_registry_typed_count());
   CuAssertIntEquals(tc, 98, (int)spec_registry_legacy_count());
   CuAssertPtrEquals(tc, NULL, (void *)bank_definition->legacy_handler);
   CuAssertPtrEquals(tc, NULL, (void *)cloak_definition->legacy_handler);
@@ -226,6 +230,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   CuAssertPtrNotNull(tc, (void *)toll_keeper_definition->typed_handler);
   CuAssertPtrNotNull(tc, (void *)banana_definition->typed_handler);
   CuAssertPtrNotNull(tc, (void *)darkhold_object_definition->typed_handler);
+  CuAssertPtrNotNull(tc, (void *)drow_equipment_definition->typed_handler);
   CuAssertPtrNotNull(tc, (void *)weapon_definition->typed_handler);
   CuAssertPtrNotNull(tc, (void *)avernus_object_definition->typed_handler);
   CuAssertPtrNotNull(tc, (void *)avernus_garden_definition->typed_handler);
@@ -240,6 +245,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   CuAssertTrue(tc, spec_definition_callback(toll_keeper_definition) == rol_toll_keeper);
   CuAssertTrue(tc, spec_definition_callback(banana_definition) == rol_banana);
   CuAssertTrue(tc, spec_definition_callback(darkhold_object_definition) == rol_darkhold_object);
+  CuAssertTrue(tc, spec_definition_callback(drow_equipment_definition) == rol_drow_equipment);
   CuAssertTrue(tc, spec_definition_callback(weapon_definition) == rol_weapon_proc);
   CuAssertTrue(tc, spec_definition_callback(avernus_object_definition) == rol_avernus_object);
   CuAssertTrue(tc, spec_definition_callback(avernus_garden_definition) == rol_avernus_garden);
@@ -251,6 +257,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   CuAssertTrue(tc, spec_registry_find_by_handler(vampire_cloak) == cloak_definition);
   CuAssertTrue(tc,
                spec_registry_find_by_handler(rol_darkhold_object) == darkhold_object_definition);
+  CuAssertTrue(tc, spec_registry_find_by_handler(rol_drow_equipment) == drow_equipment_definition);
   CuAssertTrue(tc, spec_registry_find_by_handler(rol_guild_guard) == guild_guard_definition);
   CuAssertTrue(tc, spec_registry_find_by_handler(rol_avernus_object) == avernus_object_definition);
   CuAssertTrue(tc, spec_registry_find_by_handler(rol_avernus_garden) == avernus_garden_definition);
