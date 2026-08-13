@@ -89,6 +89,9 @@ enum rol_monster_combat_effect
   ROL_MONSTER_GREYCLOAK_ARALESH,
   ROL_MONSTER_PLANAR_MANES_DEATH,
   ROL_MONSTER_PLANAR_BALOR,
+  ROL_MONSTER_PLANAR_GLABREZU_GRAB,
+  ROL_MONSTER_PLANAR_MARILITH_TAIL,
+  ROL_MONSTER_PLANAR_SUCCUBUS_CHARM,
   ROL_MONSTER_PLANAR_VROCK_BURSTS,
   ROL_MONSTER_PLANAR_SPINAGON_SPIKES,
   ROL_MONSTER_RESIDUAL_MOBILE
@@ -127,9 +130,15 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {196076, ROL_MONSTER_SWALLOW_WHOLE, 10, "Rhemorhaz bite and whole-swallow attack."},
     {2000207, ROL_MONSTER_PLANAR_BALOR, 1,
      "Balor equipment upkeep, elemental protection, and corpse suppression."},
+    {2000212, ROL_MONSTER_PLANAR_GLABREZU_GRAB, 11,
+     "Pincer capture, captive command restraint, and delayed combat."},
     {2000214, ROL_MONSTER_PLANAR_MANES_DEATH, 1, "Manes death burst of acidic vapor."},
+    {2000215, ROL_MONSTER_PLANAR_MARILITH_TAIL, 11,
+     "Tail capture, captive command restraint, and delayed combat."},
+    {2000220, ROL_MONSTER_PLANAR_SUCCUBUS_CHARM, 4,
+     "Male-target charm, Blackguard service, command restraint, and delayed kiss."},
     {2000221, ROL_MONSTER_PLANAR_VROCK_BURSTS, 1,
-     "Low-health screech and independently cooling spore burst."},
+     "Screech, spore burst, and five-Vrock dance of ruin."},
     {2000233, ROL_MONSTER_PLANAR_SPINAGON_SPIKES, 1,
      "Five-in-six flaming-spike volley with a three-round cooldown."},
     {2000325, ROL_MONSTER_LYCAN_TIGER, 11, "Were-tiger tearing attack."},
@@ -246,12 +255,18 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2081747, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2083224, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2092608, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
+    {2093202, ROL_MONSTER_PLANAR_SUCCUBUS_CHARM, 4,
+     "Male-target charm, Blackguard service, command restraint, and delayed kiss."},
     {2093204, ROL_MONSTER_PLANAR_BALOR, 1,
      "Balor equipment upkeep, elemental protection, and corpse suppression."},
+    {2093205, ROL_MONSTER_PLANAR_GLABREZU_GRAB, 11,
+     "Pincer capture, captive command restraint, and delayed combat."},
+    {2093206, ROL_MONSTER_PLANAR_MARILITH_TAIL, 11,
+     "Tail capture, captive command restraint, and delayed combat."},
     {2093209, ROL_MONSTER_PLANAR_VROCK_BURSTS, 1,
-     "Low-health screech and independently cooling spore burst."},
+     "Screech, spore burst, and five-Vrock dance of ruin."},
     {2093210, ROL_MONSTER_PLANAR_VROCK_BURSTS, 1,
-     "Low-health screech and independently cooling spore burst."},
+     "Screech, spore burst, and five-Vrock dance of ruin."},
     {2096631, ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL, 6, "Room-wide Greycloak banshee wail."},
     {2096670, ROL_MONSTER_GREYCLOAK_FUMES, 11, "Room-wide noxious fumes."},
     {2096672, ROL_MONSTER_GREYCLOAK_ARALESH, 11, "Lethal blazing-eye beam."},
@@ -350,6 +365,95 @@ bool rol_planar_burst_profile(int mobile_vnum, bool *screech, bool *spores, bool
   if (flame_spikes != NULL)
     *flame_spikes = is_spinagon;
   return true;
+}
+
+bool rol_planar_control_profile(int mobile_vnum, enum rol_planar_control_kind *kind,
+                                int *proc_denominator)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+  enum rol_planar_control_kind result;
+
+  if (profile == NULL)
+    return false;
+  switch (profile->effect)
+  {
+  case ROL_MONSTER_PLANAR_GLABREZU_GRAB:
+    result = ROL_PLANAR_CONTROL_GLABREZU;
+    break;
+  case ROL_MONSTER_PLANAR_MARILITH_TAIL:
+    result = ROL_PLANAR_CONTROL_MARILITH;
+    break;
+  case ROL_MONSTER_PLANAR_SUCCUBUS_CHARM:
+    result = ROL_PLANAR_CONTROL_SUCCUBUS;
+    break;
+  default:
+    return false;
+  }
+  if (kind != NULL)
+    *kind = result;
+  if (proc_denominator != NULL)
+    *proc_denominator = profile->proc_denominator;
+  return true;
+}
+
+bool rol_planar_captive_command_allowed(const char *command)
+{
+  static const char *const allowed[] = {
+      "score", "tell", "shout",  "look", "help",     "who",        "weather",  "save",
+      "quit",  "time", "toggle", "ooc",  "commands", "attributes", "petition",
+  };
+  size_t index;
+
+  if (command == NULL || command[0] == '\0')
+    return false;
+  for (index = 0; index < sizeof(allowed) / sizeof(allowed[0]); index++)
+  {
+    if (!str_cmp(command, allowed[index]))
+      return true;
+  }
+  return false;
+}
+
+bool rol_planar_restrain_agility_evades(int agility, int roll)
+{
+  return roll >= 1 && roll <= 100 && roll < agility / 2;
+}
+
+bool rol_planar_restrain_constitution_survives(int constitution, int roll)
+{
+  return roll >= 1 && roll <= 85 && roll <= constitution;
+}
+
+bool rol_planar_succubus_charm_roll_fires(int roll)
+{
+  return roll == 0;
+}
+
+int rol_planar_succubus_kiss_delay_seconds(int hours)
+{
+  return hours >= 1 && hours <= 4 ? hours * SECS_PER_MUD_HOUR : 0;
+}
+
+bool rol_planar_vrock_dance_profile(int mobile_vnum)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+
+  return profile != NULL && profile->effect == ROL_MONSTER_PLANAR_VROCK_BURSTS;
+}
+
+int rol_planar_vrock_dance_required_count(void)
+{
+  return 5;
+}
+
+int rol_planar_vrock_dance_step_seconds(void)
+{
+  return PULSE_VIOLENCE;
+}
+
+int rol_planar_vrock_dance_cooldown_seconds(void)
+{
+  return SECS_PER_MUD_DAY;
 }
 
 bool rol_planar_five_in_six_roll_fires(int roll)
@@ -919,6 +1023,185 @@ static bool rol_planar_cooldown_ready(time_t ready_at, time_t now)
   return ready_at <= 0 || ready_at <= now;
 }
 
+static struct char_data *rol_planar_first_captive(struct char_data *ch)
+{
+  struct follow_type *follower;
+
+  for (follower = ch->followers; follower != NULL; follower = follower->next)
+  {
+    if (follower->follower != NULL && follower->follower->master == ch &&
+        AFF_FLAGGED(follower->follower, AFF_CHARM))
+      return follower->follower;
+  }
+  return NULL;
+}
+
+static void rol_planar_make_follower(struct char_data *victim, struct char_data *ch)
+{
+  if (victim->master != NULL)
+    stop_follower(victim);
+  add_follower(victim, ch);
+  SET_BIT_AR(AFF_FLAGS(victim), AFF_CHARM);
+}
+
+static int rol_planar_restrain_hit(struct spec_event_context *context, struct char_data *ch,
+                                   enum rol_planar_control_kind kind)
+{
+  struct char_data *victim = FIGHTING(ch);
+
+  if (victim == NULL || ch->mob_specials.rol_planar_captive_active ||
+      GET_LEVEL(victim) >= LVL_IMMORT || rand_number(0, 10) != 0 ||
+      spec_context_validate_combat_target(ch, victim, false) != SPEC_CONTEXT_VALID)
+    return FALSE;
+  if (rol_planar_restrain_agility_evades(GET_REAL_DEX(victim), rand_number(1, 100)))
+  {
+    if (kind == ROL_PLANAR_CONTROL_GLABREZU)
+      act("You narrowly evade $n's massive pincers!", FALSE, ch, NULL, victim, TO_VICT);
+    else
+      act("You narrowly evade $n's coiling tail!", FALSE, ch, NULL, victim, TO_VICT);
+    return TRUE;
+  }
+  if (!rol_planar_restrain_constitution_survives(GET_REAL_CON(victim), rand_number(1, 85)))
+  {
+    if (kind == ROL_PLANAR_CONTROL_GLABREZU)
+      act("$n catches you in $s massive pincers and crushes the life from you!", FALSE, ch, NULL,
+          victim, TO_VICT);
+    else
+      act("$n's tail coils around you and crushes the life from you!", FALSE, ch, NULL, victim,
+          TO_VICT);
+    act("$n crushes $N to death!", FALSE, ch, NULL, victim, TO_NOTVICT);
+    if (victim == context->target)
+      context->invalidation |= SPEC_INVALIDATE_TARGET;
+    die(victim, ch);
+    return TRUE;
+  }
+
+  if (kind == ROL_PLANAR_CONTROL_GLABREZU)
+  {
+    act("$n catches $N in $s massive pincers and holds $M helpless!", FALSE, ch, NULL, victim,
+        TO_NOTVICT);
+    act("$n catches you in $s massive pincers and holds you helpless!", FALSE, ch, NULL, victim,
+        TO_VICT);
+  }
+  else
+  {
+    act("$n's tail coils around $N and holds $M helpless!", FALSE, ch, NULL, victim, TO_NOTVICT);
+    act("$n's tail coils around you and holds you helpless!", FALSE, ch, NULL, victim, TO_VICT);
+  }
+  rol_monster_stop_combat(ch);
+  rol_monster_stop_combat(victim);
+  rol_planar_make_follower(victim, ch);
+  ch->mob_specials.rol_planar_captive_active = true;
+  return TRUE;
+}
+
+static int rol_planar_restrain_activity(struct char_data *ch)
+{
+  struct char_data *captive;
+
+  if (!ch->mob_specials.rol_planar_captive_active)
+    return FALSE;
+  captive = rol_planar_first_captive(ch);
+  if (captive != NULL && IN_ROOM(captive) == IN_ROOM(ch) && FIGHTING(ch) == NULL)
+  {
+    (void)set_fighting(ch, captive);
+    if (FIGHTING(captive) == NULL)
+      (void)set_fighting(captive, ch);
+    return TRUE;
+  }
+  ch->mob_specials.rol_planar_captive_active = false;
+  return FALSE;
+}
+
+static bool rol_planar_succubus_target(struct char_data *ch, struct char_data *victim)
+{
+  return victim != ch && victim != ch->master && !IS_NPC(victim) && GET_SEX(victim) == SEX_MALE &&
+         GET_LEVEL(victim) < LVL_IMMORT && !AFF_FLAGGED(victim, AFF_CHARM) &&
+         !AFF_FLAGGED(victim, AFF_MIND_BLANK) && !char_has_object_flag(victim, ITEM_ROL_NO_CHARM) &&
+         !is_immune_charm(ch, victim, FALSE);
+}
+
+static bool rol_planar_succubus_apply_charm(struct char_data *ch, struct char_data *victim)
+{
+  if (mag_resistance(ch, victim, 0) ||
+      savingthrow(ch, victim, SAVING_WILL, -2, CAST_INNATE, GET_LEVEL(ch), ENCHANTMENT))
+  {
+    send_to_char(victim, "You shake off a wave of beguiling desire.\r\n");
+    return false;
+  }
+  act("$n gazes into your eyes, and your will melts away.", FALSE, ch, NULL, victim, TO_VICT);
+  act("$n gazes into $N's eyes, captivating $M completely.", FALSE, ch, NULL, victim, TO_NOTVICT);
+  rol_planar_make_follower(victim, ch);
+  return true;
+}
+
+static int rol_planar_succubus_activity(struct char_data *ch)
+{
+  struct char_data *victim;
+  struct char_data *next;
+  struct char_data *captive;
+  time_t now = time(NULL);
+  bool attempted = false;
+
+  if (!AWAKE(ch))
+    return FALSE;
+  if (FIGHTING(ch) != NULL)
+  {
+    if (ch->mob_specials.rol_planar_captive_kill_at > 0 &&
+        ch->mob_specials.rol_planar_captive_kill_at <= now)
+      ch->mob_specials.rol_planar_captive_kill_at = now + SECS_PER_MUD_HOUR;
+    return FALSE;
+  }
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!rol_planar_succubus_target(ch, victim))
+      continue;
+    if (CLASS_LEVEL(victim, CLASS_BLACKGUARD) > 0 && GET_LEVEL(victim) > GET_LEVEL(ch) &&
+        ch->master == NULL)
+    {
+      act("$n recognizes your dark authority and kneels to serve you.", FALSE, ch, NULL, victim,
+          TO_VICT);
+      rol_planar_make_follower(ch, victim);
+      return TRUE;
+    }
+    if (!rol_planar_succubus_charm_roll_fires(rand_number(0, 3)))
+      continue;
+    attempted = true;
+    if (rol_planar_succubus_apply_charm(ch, victim))
+    {
+      time_t deadline = now + rol_planar_succubus_kiss_delay_seconds(rand_number(1, 4));
+
+      if (ch->mob_specials.rol_planar_captive_kill_at <= 0 ||
+          deadline < ch->mob_specials.rol_planar_captive_kill_at)
+        ch->mob_specials.rol_planar_captive_kill_at = deadline;
+    }
+    break;
+  }
+  if (ch->mob_specials.rol_planar_captive_kill_at <= 0 ||
+      ch->mob_specials.rol_planar_captive_kill_at > now)
+    return TRUE;
+  if (attempted)
+  {
+    ch->mob_specials.rol_planar_captive_kill_at = now + SECS_PER_MUD_HOUR;
+    return TRUE;
+  }
+  captive = rol_planar_first_captive(ch);
+  if (captive == NULL || IN_ROOM(captive) != IN_ROOM(ch))
+  {
+    ch->mob_specials.rol_planar_captive_kill_at = 0;
+    return TRUE;
+  }
+  act("$n draws $N into a final kiss and drains away $S life.", FALSE, ch, NULL, captive,
+      TO_NOTVICT);
+  act("$n draws you into a final kiss, and the world goes black.", FALSE, ch, NULL, captive,
+      TO_VICT);
+  die(captive, ch);
+  ch->mob_specials.rol_planar_captive_kill_at =
+      rol_planar_first_captive(ch) != NULL ? now + SECS_PER_MUD_HOUR : 0;
+  return TRUE;
+}
+
 static int rol_planar_vrock_screech(struct char_data *ch, time_t now)
 {
   struct char_data *victim;
@@ -964,6 +1247,8 @@ static int rol_planar_vrock_spores(struct spec_event_context *context, struct ch
   return TRUE;
 }
 
+static int rol_planar_vrock_start_dance(struct char_data *ch, time_t now);
+
 static int rol_planar_vrock_bursts(struct spec_event_context *context, struct char_data *ch)
 {
   time_t now = time(NULL);
@@ -974,6 +1259,157 @@ static int rol_planar_vrock_bursts(struct spec_event_context *context, struct ch
   if (rol_planar_vrock_spores(context, ch, now))
     result = TRUE;
   return result;
+}
+
+static int rol_planar_vrock_hit(struct spec_event_context *context, struct char_data *ch)
+{
+  int result;
+
+  if (ch->mob_specials.rol_planar_dance_stage != 0)
+    return TRUE;
+  result = rol_planar_vrock_bursts(context, ch);
+  if (rol_planar_vrock_start_dance(ch, time(NULL)))
+    result = TRUE;
+  return result;
+}
+
+static bool rol_planar_vrock_dance_eligible(struct char_data *vrock, time_t now)
+{
+  if (vrock == NULL || !IS_NPC(vrock) || !rol_planar_vrock_dance_profile(GET_MOB_VNUM(vrock)) ||
+      FIGHTING(vrock) == NULL || vrock->mob_specials.rol_planar_dance_stage != 0)
+    return false;
+  if (rol_planar_cooldown_ready(vrock->mob_specials.rol_planar_dance_reset_at, now))
+    vrock->mob_specials.rol_planar_dance_reset_at = 0;
+  return vrock->mob_specials.rol_planar_dance_reset_at == 0;
+}
+
+static void rol_planar_vrock_clear_dance(room_rnum room, time_t reset_at)
+{
+  struct char_data *vrock;
+
+  for (vrock = world[room].people; vrock != NULL; vrock = vrock->next_in_room)
+  {
+    if (!IS_NPC(vrock) || !rol_planar_vrock_dance_profile(GET_MOB_VNUM(vrock)) ||
+        vrock->mob_specials.rol_planar_dance_stage == 0)
+      continue;
+    vrock->mob_specials.rol_planar_dance_stage = 0;
+    vrock->mob_specials.rol_planar_dance_step_at = 0;
+    vrock->mob_specials.rol_planar_dance_reset_at = reset_at;
+    vrock->mob_specials.rol_planar_dance_leader = false;
+  }
+}
+
+static int rol_planar_vrock_start_dance(struct char_data *ch, time_t now)
+{
+  struct char_data *vrock;
+  int count = 0;
+
+  if (!rol_planar_vrock_dance_eligible(ch, now))
+    return FALSE;
+  for (vrock = world[IN_ROOM(ch)].people; vrock != NULL; vrock = vrock->next_in_room)
+  {
+    if (rol_planar_vrock_dance_eligible(vrock, now))
+      count++;
+  }
+  if (count < rol_planar_vrock_dance_required_count())
+    return FALSE;
+  act("Five or more Vrocks lock claws and begin a terrible dance!", FALSE, ch, NULL, NULL, TO_ROOM);
+  send_to_char(ch, "You lock claws with the other Vrocks and begin the dance of ruin!\r\n");
+  for (vrock = world[IN_ROOM(ch)].people; vrock != NULL; vrock = vrock->next_in_room)
+  {
+    if (!rol_planar_vrock_dance_eligible(vrock, now))
+      continue;
+    vrock->mob_specials.rol_planar_dance_stage = 1;
+    vrock->mob_specials.rol_planar_dance_step_at = now + rol_planar_vrock_dance_step_seconds();
+    vrock->mob_specials.rol_planar_dance_leader = vrock == ch;
+  }
+  return TRUE;
+}
+
+static bool rol_planar_vrock_has_dance_leader(struct char_data *ch)
+{
+  struct char_data *vrock;
+
+  for (vrock = world[IN_ROOM(ch)].people; vrock != NULL; vrock = vrock->next_in_room)
+  {
+    if (IS_NPC(vrock) && rol_planar_vrock_dance_profile(GET_MOB_VNUM(vrock)) &&
+        vrock->mob_specials.rol_planar_dance_stage != 0 &&
+        vrock->mob_specials.rol_planar_dance_leader)
+      return true;
+  }
+  return false;
+}
+
+static int rol_planar_vrock_dance_activity(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *vrock;
+  struct char_data *victim;
+  struct char_data *next;
+  time_t now = time(NULL);
+  int count = 0;
+  int damage_amount;
+  int victim_damage;
+  byte next_stage;
+
+  if (ch->mob_specials.rol_planar_dance_stage == 0)
+    return FALSE;
+  if (!ch->mob_specials.rol_planar_dance_leader)
+  {
+    if (rol_planar_vrock_has_dance_leader(ch))
+      return TRUE;
+    ch->mob_specials.rol_planar_dance_leader = true;
+  }
+  if (ch->mob_specials.rol_planar_dance_step_at > now)
+    return TRUE;
+  for (vrock = world[IN_ROOM(ch)].people; vrock != NULL; vrock = vrock->next_in_room)
+  {
+    if (IS_NPC(vrock) && rol_planar_vrock_dance_profile(GET_MOB_VNUM(vrock)) &&
+        vrock->mob_specials.rol_planar_dance_stage != 0 && FIGHTING(vrock) != NULL)
+      count++;
+  }
+  if (count < rol_planar_vrock_dance_required_count())
+  {
+    act("The Vrocks lose their rhythm, and the terrible dance collapses.", FALSE, ch, NULL, NULL,
+        TO_ROOM);
+    rol_planar_vrock_clear_dance(IN_ROOM(ch), 0);
+    return TRUE;
+  }
+
+  if (ch->mob_specials.rol_planar_dance_stage == 1)
+    act("The circling Vrocks chant faster as crackling energy gathers around them.", FALSE, ch,
+        NULL, NULL, TO_ROOM);
+  else if (ch->mob_specials.rol_planar_dance_stage == 2)
+    act("The Vrocks' wild chant rises to a deafening, ruinous crescendo!", FALSE, ch, NULL, NULL,
+        TO_ROOM);
+  else
+  {
+    act("The Vrocks' dance erupts in a devastating blast of lightning!", FALSE, ch, NULL, NULL,
+        TO_ROOM);
+    damage_amount = dice(20, 10);
+    for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next)
+    {
+      next = victim->next_in_room;
+      if (IS_NPC(victim) || !rol_monster_hit_area_target(ch, victim))
+        continue;
+      victim_damage = damage_amount;
+      if (savingthrow(ch, victim, SAVING_REFL, 0, CAST_INNATE, GET_LEVEL(ch), EVOCATION))
+        victim_damage /= 2;
+      (void)rol_monster_successful_hit_damage(context, ch, victim, victim_damage, DAM_ELECTRIC);
+    }
+    rol_planar_vrock_clear_dance(IN_ROOM(ch), now + rol_planar_vrock_dance_cooldown_seconds());
+    return TRUE;
+  }
+
+  next_stage = ch->mob_specials.rol_planar_dance_stage + 1;
+  for (vrock = world[IN_ROOM(ch)].people; vrock != NULL; vrock = vrock->next_in_room)
+  {
+    if (!IS_NPC(vrock) || !rol_planar_vrock_dance_profile(GET_MOB_VNUM(vrock)) ||
+        vrock->mob_specials.rol_planar_dance_stage == 0)
+      continue;
+    vrock->mob_specials.rol_planar_dance_stage = next_stage;
+    vrock->mob_specials.rol_planar_dance_step_at = now + rol_planar_vrock_dance_step_seconds();
+  }
+  return TRUE;
 }
 
 static int rol_planar_spinagon_spikes(struct spec_event_context *context, struct char_data *ch)
@@ -2189,6 +2625,8 @@ static int rol_monster_command(struct spec_event_context *context,
                                struct char_data *ch)
 {
   struct char_data *actor = context->actor;
+  enum rol_planar_control_kind control_kind;
+  const char *command;
   room_rnum destination;
   int direction;
   bool fleeing;
@@ -2197,8 +2635,20 @@ static int rol_monster_command(struct spec_event_context *context,
       IN_ROOM(actor) != IN_ROOM(ch))
     return FALSE;
 
-  fleeing =
-      complete_cmd_info != NULL && !str_cmp(complete_cmd_info[context->command].command, "flee");
+  command = complete_cmd_info != NULL ? complete_cmd_info[context->command].command : NULL;
+  if (rol_planar_control_profile(GET_MOB_VNUM(ch), &control_kind, NULL) && actor->master == ch &&
+      AFF_FLAGGED(actor, AFF_CHARM) && !rol_planar_captive_command_allowed(command))
+  {
+    if (control_kind == ROL_PLANAR_CONTROL_GLABREZU)
+      send_to_char(actor, "The crushing pincers leave you unable to do that.\r\n");
+    else if (control_kind == ROL_PLANAR_CONTROL_MARILITH)
+      send_to_char(actor, "The coiling tail leaves you unable to do that.\r\n");
+    else
+      send_to_char(actor, "Your thoughts are too hazy with devotion to do that.\r\n");
+    return TRUE;
+  }
+
+  fleeing = command != NULL && !str_cmp(command, "flee");
   if (!IS_MOVE(context->command) && !fleeing)
     return FALSE;
   direction = IS_MOVE(context->command) ? complete_cmd_info[context->command].subcmd : -1;
@@ -2429,6 +2879,13 @@ static int rol_monster_activity(struct spec_event_context *context,
   case ROL_MONSTER_PLANAR_BALOR:
     rol_balor_ensure_weapons(ch);
     return FALSE;
+  case ROL_MONSTER_PLANAR_GLABREZU_GRAB:
+  case ROL_MONSTER_PLANAR_MARILITH_TAIL:
+    return rol_planar_restrain_activity(ch);
+  case ROL_MONSTER_PLANAR_SUCCUBUS_CHARM:
+    return rol_planar_succubus_activity(ch);
+  case ROL_MONSTER_PLANAR_VROCK_BURSTS:
+    return rol_planar_vrock_dance_activity(context, ch);
   case ROL_MONSTER_HIVE_SKRIAXIT_SANDSTORM:
     return rol_skriaxit_sandstorm_activity(ch);
   case ROL_MONSTER_SMALL_PRISMATIC:
@@ -2528,7 +2985,11 @@ int rol_monster_combat_typed(struct spec_event_context *context)
     if (spec_context_validate_combat_target(ch, context->target, false) != SPEC_CONTEXT_VALID)
       return FALSE;
     if (profile->effect == ROL_MONSTER_PLANAR_VROCK_BURSTS)
-      return rol_planar_vrock_bursts(context, ch);
+      return rol_planar_vrock_hit(context, ch);
+    if (profile->effect == ROL_MONSTER_PLANAR_GLABREZU_GRAB)
+      return rol_planar_restrain_hit(context, ch, ROL_PLANAR_CONTROL_GLABREZU);
+    if (profile->effect == ROL_MONSTER_PLANAR_MARILITH_TAIL)
+      return rol_planar_restrain_hit(context, ch, ROL_PLANAR_CONTROL_MARILITH);
     if (profile->effect == ROL_MONSTER_PLANAR_SPINAGON_SPIKES)
       return rol_planar_spinagon_spikes(context, ch);
     if (rol_manscorpion_venom_profile(GET_MOB_VNUM(ch), NULL, NULL, NULL))
@@ -2695,6 +3156,9 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_GREYCLOAK_ARALESH:
   case ROL_MONSTER_PLANAR_MANES_DEATH:
   case ROL_MONSTER_PLANAR_BALOR:
+  case ROL_MONSTER_PLANAR_GLABREZU_GRAB:
+  case ROL_MONSTER_PLANAR_MARILITH_TAIL:
+  case ROL_MONSTER_PLANAR_SUCCUBUS_CHARM:
   case ROL_MONSTER_PLANAR_VROCK_BURSTS:
   case ROL_MONSTER_PLANAR_SPINAGON_SPIKES:
   case ROL_MONSTER_RESIDUAL_MOBILE:

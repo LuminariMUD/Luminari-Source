@@ -1,0 +1,133 @@
+{
+  "act_spec_by_status": {
+    "pending": 43,
+    "resolved": 805
+  },
+  "act_spec_by_strategy": {
+    "AUTOMATIC_RACE_BINDING_RESOLVED": 25,
+    "DIRECT_AND_AUTOMATIC_RACE_PENDING": 5,
+    "DIRECT_AND_AUTOMATIC_RACE_RESOLVED": 13,
+    "DIRECT_ASSIGNMENTS_PENDING": 38,
+    "DIRECT_ASSIGNMENTS_RESOLVED": 341,
+    "SOURCE_BOOT_CLEARS_UNBOUND_ACT_SPEC": 426
+  },
+  "act_spec_records": 848,
+  "active_direct_bindings": 1721,
+  "active_dynamic_bindings": 5531,
+  "active_implicit_race_bindings": 247,
+  "capability_audit_run_id": "rol-phase5-audit-cec58661a4f21a2a",
+  "direct_bindings_by_owner": {
+    "mobile": 1098,
+    "object": 323,
+    "room": 300
+  },
+  "direct_bindings_by_status": {
+    "pending": 298,
+    "resolved": 1423
+  },
+  "direct_bindings_by_strategy": {
+    "DG_COMPILED": 48,
+    "NATIVE_ADAPTED": 887,
+    "NATIVE_ADAPTED_COMPOSABLE": 207,
+    "NATIVE_PERSISTED": 221,
+    "NATIVE_RECONCILED": 11,
+    "PENDING_TRACE": 298,
+    "SOURCE_INERT_EXCLUDED": 31,
+    "SOURCE_UNSAFE_EXCLUDED": 18
+  },
+  "discovered_direct_binding_candidates": 1813,
+  "discovery_run_id": "rol-phase1-237602d3ade48138",
+  "dynamic_bindings_by_handler": {
+    "quester": 5078,
+    "shop_keeper": 453
+  },
+  "dynamic_handler_definitions_located": 2,
+  "dynamic_registration_paths": 2,
+  "dynamic_registrations_by_status": {
+    "resolved": 2
+  },
+  "dynamic_registrations_by_strategy": {
+    "TARGET_DATA_DRIVEN_SERVICE": 2
+  },
+  "implicit_race_bindings_by_composition": {
+    "alongside-direct": 85,
+    "implicit-only": 162
+  },
+  "implicit_race_bindings_by_handler": {
+    "standardDemon": 134,
+    "standardDevil": 101,
+    "standardUmberhulk": 12
+  },
+  "implicit_race_bindings_by_status": {
+    "resolved": 247
+  },
+  "implicit_race_handler_definitions_located": 3,
+  "live_target_writes": 0,
+  "plan_run_id": "rol-phase2-c93b8c4610b36d1e",
+  "schema_version": 4,
+  "source_handler_definitions_located": 795,
+  "source_handlers": 795,
+  "source_handlers_by_status": {
+    "pending": 200,
+    "resolved": 595
+  },
+  "source_preprocessor_excluded_bindings": 92,
+  "source_preprocessor_excluded_bindings_by_handler": {
+    "Evil_Invader": 2,
+    "Invader_Repulser": 4,
+    "apprehender": 6,
+    "cc_female_ffolk": 1,
+    "cc_fisherffolk": 1,
+    "cc_warehouse_foreman": 1,
+    "cc_warehouse_man": 1,
+    "cell_drunk": 1,
+    "cityguard": 1,
+    "dragonhide_drum": 1,
+    "genericDrowEq": 1,
+    "home_reset": 1,
+    "item_switch": 9,
+    "jailkeeper": 3,
+    "jailtally": 3,
+    "magetower_sunblade": 1,
+    "nw_agatha": 1,
+    "nw_ammaster": 1,
+    "nw_ansal": 1,
+    "nw_brock": 1,
+    "nw_builder": 1,
+    "nw_carpen": 1,
+    "nw_chicken": 1,
+    "nw_chief": 1,
+    "nw_cow": 1,
+    "nw_cutter": 1,
+    "nw_diamaster": 1,
+    "nw_elfhealer": 1,
+    "nw_emmaster": 1,
+    "nw_farmer": 1,
+    "nw_foreman": 1,
+    "nw_golem": 1,
+    "nw_hafbreed": 1,
+    "nw_human": 1,
+    "nw_logger": 1,
+    "nw_malchor": 1,
+    "nw_merthol": 1,
+    "nw_mirroid": 1,
+    "nw_owl": 1,
+    "nw_pig": 1,
+    "nw_rubmaster": 1,
+    "nw_sapmaster": 1,
+    "nw_vitnor": 1,
+    "nw_woodelf": 1,
+    "pet_shops": 1,
+    "poison": 2,
+    "ship_look_out_room": 4,
+    "um2_medusaGaze": 1,
+    "um2_oculusRoom": 1,
+    "um_cambionDemon": 1,
+    "waterdeep_guard_three": 1,
+    "waterdeep_witness": 1,
+    "witness": 15
+  },
+  "tool_version": "0.6.0",
+  "total_active_bindings": 7252,
+  "total_source_handlers": 797
+}

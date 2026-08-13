@@ -234,6 +234,24 @@ size_t rol_monster_combat_profile_count(void);
 bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const char **description);
 bool rol_planar_death_profile(int mobile_vnum, bool *suppresses_corpse);
 bool rol_planar_burst_profile(int mobile_vnum, bool *screech, bool *spores, bool *flame_spikes);
+enum rol_planar_control_kind
+{
+  ROL_PLANAR_CONTROL_NONE = 0,
+  ROL_PLANAR_CONTROL_GLABREZU,
+  ROL_PLANAR_CONTROL_MARILITH,
+  ROL_PLANAR_CONTROL_SUCCUBUS
+};
+bool rol_planar_control_profile(int mobile_vnum, enum rol_planar_control_kind *kind,
+                                int *proc_denominator);
+bool rol_planar_captive_command_allowed(const char *command);
+bool rol_planar_restrain_agility_evades(int agility, int roll);
+bool rol_planar_restrain_constitution_survives(int constitution, int roll);
+bool rol_planar_succubus_charm_roll_fires(int roll);
+int rol_planar_succubus_kiss_delay_seconds(int hours);
+bool rol_planar_vrock_dance_profile(int mobile_vnum);
+int rol_planar_vrock_dance_required_count(void);
+int rol_planar_vrock_dance_step_seconds(void);
+int rol_planar_vrock_dance_cooldown_seconds(void);
 bool rol_planar_five_in_six_roll_fires(int roll);
 bool rol_planar_screech_health_allows(int hit, int max_hit);
 int rol_planar_screech_cooldown_seconds(int mobile_vnum);

@@ -459,7 +459,12 @@ class RolSpecialReconciliationTests(unittest.TestCase):
   def test_planar_death_burst_and_balor_weapon_handlers_have_explicit_dispositions(self) -> None:
     combat_handlers = (
         "demon_balorDeath",
+        "demon_glabrezuGrab",
         "demon_manesDeath",
+        "demon_marilithTail",
+        "demon_succubusCharm",
+        "demon_succubusCharmed",
+        "demon_vrockDanceOfRuin",
         "demon_vrockScreech",
         "demon_vrockSpores",
         "devil_spinagonFlameSpike",
@@ -897,7 +902,12 @@ class RolSpecialReconciliationTests(unittest.TestCase):
               "demon_balorLightningSword",
               "demon_balorWhip",
               "demon_chasmeBuzz",
+              "demon_glabrezuGrab",
               "demon_manesDeath",
+              "demon_marilithTail",
+              "demon_succubusCharm",
+              "demon_succubusCharmed",
+              "demon_vrockDanceOfRuin",
               "demon_vrockScreech",
               "demon_vrockSpores",
               "devil_spinagonFlameSpike",
@@ -930,7 +940,12 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual({93228}, planar_runtime_vnums["demon_balorLightningSword"])
       self.assertEqual({93227}, planar_runtime_vnums["demon_balorWhip"])
       self.assertEqual({210, 93203}, planar_runtime_vnums["demon_chasmeBuzz"])
+      self.assertEqual({212, 93205}, planar_runtime_vnums["demon_glabrezuGrab"])
       self.assertEqual({214}, planar_runtime_vnums["demon_manesDeath"])
+      self.assertEqual({215, 93206}, planar_runtime_vnums["demon_marilithTail"])
+      self.assertEqual({220, 93202}, planar_runtime_vnums["demon_succubusCharm"])
+      self.assertEqual({220, 93202}, planar_runtime_vnums["demon_succubusCharmed"])
+      self.assertEqual({221, 93209, 93210}, planar_runtime_vnums["demon_vrockDanceOfRuin"])
       self.assertEqual({221, 93209, 93210}, planar_runtime_vnums["demon_vrockScreech"])
       self.assertEqual({221, 93209, 93210}, planar_runtime_vnums["demon_vrockSpores"])
       self.assertEqual(

@@ -7216,6 +7216,12 @@ struct mob_special_data
   time_t rol_planar_screech_ready_at; /* RoL Vrock screech cooldown */
   time_t rol_planar_spore_ready_at;   /* RoL Vrock spore cooldown */
   time_t rol_planar_spike_ready_at;   /* RoL Spinagon spike cooldown */
+  time_t rol_planar_captive_kill_at;  /* RoL Succubus delayed kiss deadline */
+  time_t rol_planar_dance_step_at;    /* RoL Vrock dance stage deadline */
+  time_t rol_planar_dance_reset_at;   /* RoL Vrock dance reuse deadline */
+  byte rol_planar_dance_stage;        /* RoL Vrock dance stage, zero when idle */
+  bool rol_planar_dance_leader;       /* RoL Vrock dance cohort timer owner */
+  bool rol_planar_captive_active;     /* RoL Glabrezu/Marilith captive state */
   bool rol_gated_creature;            /* RoL gate result; cannot recursively gate */
   long rol_bandit_victim_id;          /* RoL trade-bandit toll target */
   int rol_bandit_fee_gold;            /* RoL trade-bandit toll in target gold */

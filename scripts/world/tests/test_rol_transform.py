@@ -307,7 +307,12 @@ class RolTransformTests(unittest.TestCase):
         for record_type, source_vnum, handler in (
             ("mobile", 207, "demon_balorDeath"),
             ("mobile", 210, "demon_chasmeBuzz"),
+            ("mobile", 212, "demon_glabrezuGrab"),
             ("mobile", 214, "demon_manesDeath"),
+            ("mobile", 215, "demon_marilithTail"),
+            ("mobile", 220, "demon_succubusCharm"),
+            ("mobile", 220, "demon_succubusCharmed"),
+            ("mobile", 221, "demon_vrockDanceOfRuin"),
             ("mobile", 221, "demon_vrockScreech"),
             ("mobile", 221, "demon_vrockSpores"),
             ("mobile", 233, "devil_spinagonFlameSpike"),
@@ -323,13 +328,13 @@ class RolTransformTests(unittest.TestCase):
     }
     dispositions = {row["source_handler"]: row for row in compiled.dispositions}
 
-    self.assertEqual(7, len(compiled.native_bindings))
+    self.assertEqual(12, len(compiled.native_bindings))
     self.assertEqual("SOURCE_INERT_EXCLUDED", dispositions["demon_chasmeBuzz"]["strategy"])
     self.assertIn("cannot run", dispositions["demon_chasmeBuzz"]["reason"])
     balor = native[("mobile", 207, "RoL Monster Combat")]
     self.assertEqual((0,), balor.required_flag_bits)
     self.assertEqual((28,), balor.required_affect_bits)
-    for source_vnum in (214, 221, 233):
+    for source_vnum in (212, 214, 215, 220, 221, 233):
       binding = native[("mobile", source_vnum, "RoL Monster Combat")]
       self.assertEqual((0,), binding.required_flag_bits)
     for source_vnum in (93227, 93228):
@@ -338,7 +343,12 @@ class RolTransformTests(unittest.TestCase):
       self.assertEqual((), binding.required_affect_bits)
     for handler in (
         "demon_balorDeath",
+        "demon_glabrezuGrab",
         "demon_manesDeath",
+        "demon_marilithTail",
+        "demon_succubusCharm",
+        "demon_succubusCharmed",
+        "demon_vrockDanceOfRuin",
         "demon_vrockScreech",
         "demon_vrockSpores",
         "devil_spinagonFlameSpike",
