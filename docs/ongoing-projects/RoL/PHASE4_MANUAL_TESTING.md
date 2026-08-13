@@ -1210,6 +1210,41 @@ These callbacks are production-tested and reconciled, but the current five-zone 
 none of the three mobiles. Exercise them only after a Phase 7 stage supplies the exact identities
 and hammer-head dependency; do not substitute the later Torin craft rewards.
 
+### Phase 6 Undermountain lifecycle callbacks
+
+- In a dependency-complete Undermountain stage, confirm flying dagger 2092047, ochre jelly
+  2092058, Vortex Guardian 2093002, and shrieker 2093019 persist `RoL Monster Combat`; black
+  orchid 2093243 must persist `RoL Utility Object` and object extra-flag bit 44. Flying dagger,
+  Vortex Guardian, and shrieker must retain their source mobile special flag; the Guardian and
+  shrieker must also retain their separate source `ACT_SPEC` record flag.
+- Kill flying dagger 2092047. Its ordinary corpse must be suppressed, the final-blow message must
+  appear, and golden dagger 2092044 must appear in the death room. On a critical hit against its
+  current mortal opponent, verify all six source messages and immediate death. Staff targets,
+  stale targets, and targets outside the room must survive without later rider access.
+- Put an NPC corpse containing disposable objects, a player corpse, an ordinary container with
+  contents, and loose ground objects in front of ochre jelly 2092058. It must consume the first
+  NPC corpse without a roll and spill its contents, skip the player corpse without consuming a
+  random roll, and give each later ordinary object an independent one-in-101 chance in room order.
+  If an ordinary container is selected, it and its contents are consumed together.
+- Observe awake Vortex Guardian 2093002 in and out of combat. Rolls one through seven of its
+  one-to-10 periodic profile must emit the exact warning lines; rolls eight through ten are
+  silent. Kill it in a room with a north exit: its ordinary corpse must be suppressed, the north
+  exit must become blocked, and portal 2093005 must appear with target decay flag and timer one.
+  A missing exit or portal prototype must log an explicit error without crashing.
+- Place shrieker 2093019 with an ordinary mortal PC. Every eligible pulse must emit the shriek;
+  one pulse in ten must create one uniformly selected mobile from 2093050 through 2093065 and
+  emit the attraction message. A room containing only NPCs or staff must remain silent. A missing
+  selected prototype must log an explicit error and leave no partial mobile.
+- Load black orchid 2093243 on the ground, carried, contained, and worn. Its first automatic pulse
+  must set the target decay flag and timer to 72 MUD hours. Later pulses must not reset a reduced
+  timer. Confirm the object disappears through the normal target decay path after the equivalent
+  of the source three-day initialization event.
+
+These callbacks are production-tested and reconciled, but the current five-zone pilot contains
+none of their complete dependency sets. Exercise them only after a Phase 7 stage supplies golden
+dagger 2092044, portal 2093005, attracted mobiles 2093050-2093065, and the orchid prototype; do
+not hand-create only the spawned side of a lifecycle.
+
 ### Phase 6 converted source death effects
 
 - Build dependency-complete Trahern, Dobluth, and Undermountain stages containing mobiles
@@ -1992,9 +2027,9 @@ package; do not substitute the distinct planar Succubus identity.
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,598 are resolved and 123 remain. Of 795 distinct
-  direct source handlers, 690 are resolved and 105 remain. Of 848 `ACT_SPEC` records, 819
-  are resolved and 29 remain. The automatic race procedures
+  of the 1,721 active direct bindings, 1,614 are resolved and 107 remain. Of 795 distinct
+  direct source handlers, 706 are resolved and 89 remain. Of 848 `ACT_SPEC` records, 822
+  are resolved and 26 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

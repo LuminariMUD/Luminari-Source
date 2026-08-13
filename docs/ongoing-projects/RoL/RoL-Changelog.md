@@ -9,6 +9,75 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Undermountain lifecycle callbacks
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled `um_flyingDagger`, `um_ochreJelly`, `um2_vortexGuardian`, `um2_shrieker`, and
+  `um2_orchidDecay`. Mobiles 2092047, 2092058, 2093002, and 2093019 use exact profiles in the
+  typed `RoL Monster Combat` runtime; object 2093243 uses `RoL Utility Object` with its required
+  automatic-procedure flag.
+- Preserved the flying dagger's corpse-suppressing golden-dagger 2092044 transition, exact
+  critical messages, and lethal heart strike. Target validation, invalidation, and a staff safety
+  gate protect the destructive path.
+- Preserved the ochre jelly's first-corpse cleanup, player-corpse immunity, corpse-content spill,
+  room-order traversal, and independent one-in-101 chance for ordinary ground objects. Ordinary
+  selected containers are consumed intact rather than receiving corpse behavior.
+- Preserved the Vortex Guardian's seven active one-to-10 warnings and death transition: block the
+  north exit, suppress the corpse, and create portal 2093005 with one target MUD hour of decay.
+  Preserved the shrieker's mortal-PC witness gate, constant shriek, and one-in-ten uniformly
+  selected spawn from mobiles 2093050 through 2093065.
+- Translated the black orchid's source three-day initialization event into a one-time,
+  nonresetting 72-MUD-hour target decay schedule. Missing spawn prototypes and an absent north
+  exit now log explicit errors instead of dereferencing invalid state.
+- Added profile, roll-boundary, corpse-policy, portal, decay, typed-event, converter-disposition,
+  full-profile-table, and ledger-count regressions. BQC review covered destructive extraction,
+  target lifetime, spawned-object ownership, room state, and event ownership.
+- Regenerated deterministic evidence. Resolution increases from 1,609 to 1,614 static bindings
+  and from 701 to 706 direct handlers, leaving 107 bindings across 89 handlers in 26 source files.
+  The independent `ACT_SPEC` cross-check advances to 822 resolved and 26 pending.
+- Reforecast thirty-two corrected batches covering 368 bindings across 168 handlers. The
+  remaining Phase 6 envelope stays 10-20 sessions, or 20-80 focused engineering hours; the full
+  remaining project envelope stays 66-104 sessions, or 132-416 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 7be463da
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-undermountain-lifecycle
+Reconciliation run: rol-phase6-special-837b309c0b219cc5
+Evidence tree SHA-256: 99ab6defafe224bd99652b64793e827a874152b8a9ab2ba91f037adb5fac67b9
+Active direct bindings: 1,721
+Direct bindings resolved: 1,614
+Direct bindings pending: 107
+Source handlers resolved: 706
+Source handlers pending: 89
+Additional handler families resolved: 5
+Additional direct bindings resolved: 5
+Native adapted bindings: 1,056
+Native adapted composable bindings: 219
+Source-inert exclusions: 41
+ACT_SPEC records resolved: 822
+ACT_SPEC records pending: 26
+Complete world-tool suite: 368 passed
+Production-linked CuTest suite: 694 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: fbe13766b72d2141f5f20a949de7fc90d80d138e
+Installed SHA-256: 6c80c2e12e121ad7ef550e8cbef7997032f60052d3cdaa871d5af15c87c96f55
+Evidence artifact hashes: 7 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+No player helpfile changed because this checkpoint adds no player command or syntax. The staff
+manual records identity attachment, lifecycle event separation, spawned dependencies, lethal
+safety, corpse ownership, room-order selection, exit mutation, witness gating, and decay timing.
+
 ## 2026-08-13 - Phase 6 Undermountain combat callbacks
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
