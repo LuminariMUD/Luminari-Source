@@ -3864,7 +3864,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
 
   if (HAS_FEAT(ch, FEAT_RESISTANCE))
   {
-    damtype_reduction += CLASS_LEVEL(ch, CLASS_CLERIC) / 6;
+    damtype_reduction += get_domain_power_level(ch) / 6;
   }
 
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES) &&
@@ -3911,11 +3911,11 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
     if (HAS_FEAT(ch, FEAT_TIEFLING_HELLISH_RESISTANCE))
       damtype_reduction += 10;
 
-    if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
+    if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && get_domain_power_level(ch) >= 20)
       damtype_reduction += 50;
-    else if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 12)
+    else if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && get_domain_power_level(ch) >= 12)
       damtype_reduction += 20;
-    else if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
+    else if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && get_domain_power_level(ch) >= 6)
       damtype_reduction += 10;
 
     /* npc vulnerabilities/strengths */
@@ -3963,11 +3963,11 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
     if (HAS_FEAT(ch, FEAT_ONE_OF_US))
       damtype_reduction += 100;
 
-    if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
+    if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && get_domain_power_level(ch) >= 20)
       damtype_reduction += 50;
-    else if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 12)
+    else if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && get_domain_power_level(ch) >= 12)
       damtype_reduction += 20;
-    else if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
+    else if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && get_domain_power_level(ch) >= 6)
       damtype_reduction += 10;
 
     if (HAS_FEAT(ch, FEAT_MOUNTAIN_BORN))
@@ -4038,11 +4038,11 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
         draconic_heritage_energy_types[GET_DRAGON_RIDER_DRAGON_TYPE(ch)] == DAM_ACID)
       damtype_reduction += -50;
 
-    if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
+    if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && get_domain_power_level(ch) >= 20)
       damtype_reduction += 50;
-    else if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 12)
+    else if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && get_domain_power_level(ch) >= 12)
       damtype_reduction += 20;
-    else if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
+    else if (HAS_FEAT(ch, FEAT_DOMAIN_ACID_RESIST) && get_domain_power_level(ch) >= 6)
       damtype_reduction += 10;
 
     /* npc vulnerabilities/strengths */
@@ -4090,11 +4090,11 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
     if (HAS_FEAT(ch, FEAT_DRACONIC_PROTECTION) &&
         draconic_heritage_energy_types[GET_DRAGON_RIDER_DRAGON_TYPE(ch)] == DAM_ELECTRIC)
       damtype_reduction += -50;
-    if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
+    if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && get_domain_power_level(ch) >= 20)
       damtype_reduction += 50;
-    else if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 12)
+    else if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && get_domain_power_level(ch) >= 12)
       damtype_reduction += 20;
-    else if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
+    else if (HAS_FEAT(ch, FEAT_DOMAIN_ELECTRIC_RESIST) && get_domain_power_level(ch) >= 6)
       damtype_reduction += 10;
 
     /* npc vulnerabilities/strengths */

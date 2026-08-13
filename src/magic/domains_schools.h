@@ -124,6 +124,7 @@ void assign_domains(void);
 void init_domain_spell_level(void);
 void assign_domain_spells(struct char_data *ch);
 int has_domain_power(struct char_data *ch, int domain_power);
+int get_domain_power_level(const struct char_data *ch);
 void clear_domain_feats(struct char_data *ch);
 void add_domain_feats(struct char_data *ch);
 void perform_destructiveaura(struct char_data *ch);

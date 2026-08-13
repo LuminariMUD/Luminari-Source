@@ -2629,7 +2629,7 @@ static void generic_main_disp_menu(struct descriptor_data *d)
       "%s 5%s) Choose Familiar%s\r\n"
       "%s 6%s) Animal Companion%s\r\n"
       "%s 7%s) Ranger Favored Enemy%s\r\n"
-      "%s 8%s) Cleric Domain Selection%s\r\n"
+      "%s 8%s) Domain Selection%s\r\n"
       "%s 9%s) Wizard School Selection%s\r\n"
       "%s A%s) Preferred Caster Classes (Prestige)%s\r\n"
       "%s B%s) Sorcerer Bloodline Selection%s\r\n"

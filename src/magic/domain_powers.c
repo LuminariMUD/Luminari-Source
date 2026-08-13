@@ -92,7 +92,7 @@ ACMD(do_eviltouch)
     act("A \trred\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n shoots a \trred\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \trred\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-    call_magic(ch, vict, 0, SPELL_EYEBITE, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+    call_magic(ch, vict, 0, SPELL_EYEBITE, 0, get_domain_power_level(ch), CAST_INNATE);
   }
   else
   {
@@ -180,7 +180,7 @@ ACMD(do_blessedtouch)
     act("$n shoots a \tWwhite\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \tWwhite\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   }
-  call_magic(ch, vict, NULL, SPELL_AID, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, vict, NULL, SPELL_AID, 0, get_domain_power_level(ch), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_BLESSED_TOUCH);
@@ -251,9 +251,8 @@ ACMD(do_goodtouch)
     act("$n shoots a \tWwhite\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \tWwhite\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   }
-  mag_unaffects(CLASS_LEVEL(ch, CLASS_CLERIC), ch, vict, NULL, SPELL_REMOVE_POISON, 0, CAST_INNATE);
-  mag_unaffects(CLASS_LEVEL(ch, CLASS_CLERIC), ch, vict, NULL, SPELL_REMOVE_DISEASE, 0,
-                CAST_INNATE);
+  mag_unaffects(get_domain_power_level(ch), ch, vict, NULL, SPELL_REMOVE_POISON, 0, CAST_INNATE);
+  mag_unaffects(get_domain_power_level(ch), ch, vict, NULL, SPELL_REMOVE_DISEASE, 0, CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_GOOD_TOUCH);
@@ -340,7 +339,7 @@ ACMD(do_healingtouch)
     act("$n shoots a \tWwhite\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n shoots a \tWwhite\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
   }
-  GET_HIT(vict) += 20 + dice(1, 4) + CLASS_LEVEL(ch, CLASS_CLERIC) / 2;
+  GET_HIT(vict) += 20 + dice(1, 4) + get_domain_power_level(ch) / 2;
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_HEALING_TOUCH);
@@ -377,7 +376,7 @@ ACMD(do_eyeofknowledge)
     return;
   }
 
-  call_magic(ch, NULL, 0, SPELL_WIZARD_EYE, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, NULL, 0, SPELL_WIZARD_EYE, 0, get_domain_power_level(ch), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_EYE_OF_KNOWLEDGE);
@@ -414,7 +413,7 @@ ACMD(do_copycat)
     return;
   }
 
-  call_magic(ch, ch, 0, SPELL_MIRROR_IMAGE, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, ch, 0, SPELL_MIRROR_IMAGE, 0, get_domain_power_level(ch), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_COPYCAT);
@@ -457,7 +456,7 @@ ACMD(do_massinvis)
     return;
   }
 
-  call_magic(ch, ch, 0, SPELL_INVISIBILITY_SPHERE, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, ch, 0, SPELL_INVISIBILITY_SPHERE, 0, get_domain_power_level(ch), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_MASS_INVIS);
@@ -487,14 +486,14 @@ void perform_auraofprotection(struct char_data *ch)
   }
 
   af[0].location = APPLY_AC_NEW;
-  af[0].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC) / 6);
+  af[0].modifier = MAX(1, get_domain_power_level(ch) / 6);
 
   af[1].location = APPLY_SAVING_REFL;
-  af[1].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC) / 6);
+  af[1].modifier = MAX(1, get_domain_power_level(ch) / 6);
   af[2].location = APPLY_SAVING_FORT;
-  af[2].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC) / 6);
+  af[2].modifier = MAX(1, get_domain_power_level(ch) / 6);
   af[3].location = APPLY_SAVING_WILL;
-  af[3].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC) / 6);
+  af[3].modifier = MAX(1, get_domain_power_level(ch) / 6);
 
   USE_STANDARD_ACTION(ch);
 
@@ -600,11 +599,10 @@ ACMD(do_battlerage)
   duration = 5;
 
   /* bonus */
-  bonus = CLASS_LEVEL(ch, CLASS_CLERIC) / 4;
+  bonus = get_domain_power_level(ch) / 4;
   if (bonus <= 0)
   {
-    send_to_char(ch, "You are not powerful enough to battle rage! (minimum 4 levels in clerci "
-                     "class to use)\r\n");
+    send_to_char(ch, "You are not powerful enough to battle rage! (minimum domain level 4)\r\n");
     return;
   }
 
@@ -656,7 +654,7 @@ void perform_destructiveaura(struct char_data *ch)
   }
 
   af[0].location = APPLY_DAMROLL;
-  af[0].modifier = MAX(1, CLASS_LEVEL(ch, CLASS_CLERIC) / 2);
+  af[0].modifier = MAX(1, get_domain_power_level(ch) / 2);
 
   USE_STANDARD_ACTION(ch);
 
@@ -778,13 +776,6 @@ ACMD(do_lightningarc)
     return;
   }
 
-  /*
-  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) {
-    send_to_char(ch, "You do not have any clerical powers!\r\n");
-    return;
-  }
-  */
-
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_LIGHTNING_ARC)) == 0)
   {
     send_to_char(ch,
@@ -831,7 +822,7 @@ ACMD(do_lightningarc)
     return;
   }
 
-  dam = 10 + dice(1, 6) + CLASS_LEVEL(ch, CLASS_CLERIC) / 2;
+  dam = 10 + dice(1, 6) + get_domain_power_level(ch) / 2;
   act("An \tBarc of lightning\tn shoots from your fingertips towards $N!", FALSE, ch, 0, vict,
       TO_CHAR);
   act("$n shoots an \tBarc of lightning\tn towards you!", FALSE, ch, 0, vict, TO_VICT);
@@ -864,13 +855,6 @@ ACMD(do_aciddart)
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
-
-  /*
-  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) {
-    send_to_char(ch, "You do not have any clerical powers!\r\n");
-    return;
-  }
-  */
 
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_ACID_DART)) == 0)
   {
@@ -917,7 +901,7 @@ ACMD(do_aciddart)
     return;
   }
 
-  dam = 10 + dice(1, 6) + CLASS_LEVEL(ch, CLASS_CLERIC) / 2;
+  dam = 10 + dice(1, 6) + get_domain_power_level(ch) / 2;
   act("An \tGacid dart\tn shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
   act("$n shoots an \tGacid dart\tn towards you!", FALSE, ch, 0, vict, TO_VICT);
   act("$n shoots an \tGacid dart\tn towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
@@ -949,13 +933,6 @@ ACMD(do_firebolt)
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
-
-  /*
-  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) {
-    send_to_char(ch, "You do not have any clerical powers!\r\n");
-    return;
-  }
-  */
 
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_FIRE_BOLT)) == 0)
   {
@@ -1002,7 +979,7 @@ ACMD(do_firebolt)
     return;
   }
 
-  dam = 10 + dice(1, 6) + CLASS_LEVEL(ch, CLASS_CLERIC) / 2;
+  dam = 10 + dice(1, 6) + get_domain_power_level(ch) / 2;
   act("A \tRfire bolt\tn shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
   act("$n shoots a1 \tRfire bolt\tn towards you!", FALSE, ch, 0, vict, TO_VICT);
   act("$n shoots a \tRfire bolt\tn towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
@@ -1034,13 +1011,6 @@ ACMD(do_icicle)
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
-
-  /*
-  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) {
-    send_to_char(ch, "You do not have any clerical powers!\r\n");
-    return;
-  }
-  */
 
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_ICICLE)) == 0)
   {
@@ -1087,7 +1057,7 @@ ACMD(do_icicle)
     return;
   }
 
-  dam = 10 + dice(1, 6) + CLASS_LEVEL(ch, CLASS_CLERIC) / 2;
+  dam = 10 + dice(1, 6) + get_domain_power_level(ch) / 2;
   act("An \tWicicle\tn shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
   act("$n shoots an \tWicicle\tn towards you!", FALSE, ch, 0, vict, TO_VICT);
   act("$n shoots an \tWicicle\tn towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
@@ -1117,13 +1087,6 @@ ACMD(do_cursetouch)
     send_to_char(ch, "You do not have that feat!\r\n");
     return;
   }
-
-  /*
-  if (!CLASS_LEVEL(ch, CLASS_CLERIC)) {
-    send_to_char(ch, "You do not have any clerical powers!\r\n");
-    return;
-  }
-  */
 
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_CURSE_TOUCH)) == 0)
   {
@@ -1173,7 +1136,7 @@ ACMD(do_cursetouch)
   act("A \trred\tn aura shoots from your fingertips towards $N!", FALSE, ch, 0, vict, TO_CHAR);
   act("$n shoots a \trred\tn aura towards you!", FALSE, ch, 0, vict, TO_VICT);
   act("$n shoots a \trred\tn aura towards $N!", FALSE, ch, 0, vict, TO_NOTVICT);
-  call_magic(ch, vict, 0, SPELL_CURSE, 0, CLASS_LEVEL(ch, CLASS_CLERIC), CAST_INNATE);
+  call_magic(ch, vict, 0, SPELL_CURSE, 0, get_domain_power_level(ch), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_CURSE_TOUCH);

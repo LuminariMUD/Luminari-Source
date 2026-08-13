@@ -27,6 +27,7 @@ Statuses below were re-verified against the source tree on 2026-08-13.
 | [DO_SKORE_PROJECT.md](DO_SKORE_PROJECT.md) | Partial | Phase 1 and Phases 2.1-2.5 complete; Phase 3 (detailed views) and Phase 4 open. System reference: [SKORE_SYSTEM.md](../systems/SKORE_SYSTEM.md) |
 | [MERGE_MUD_EVENTS.md](MERGE_MUD_EVENTS.md) | Not started | Plan to unify the DG event queue and the MUD event layer. Both `src/dgscript/dg_event.c` and `src/mud_event.c` still exist separately. |
 | [IDEA_LIST.md](IDEA_LIST.md) | Backlog | Production in-game idea queue snapshot from 2026-08-03, plus seven earlier imported ideas no longer present in the current queue. Not a plan - a source of candidates. |
+| [INQUISITOR_DOMAIN_FINDINGS.md](INQUISITOR_DOMAIN_FINDINGS.md) | Fixed | Documents the three original blockers and the implemented feat grant, login migration, shared scaling rule, help updates, and production-linked regression coverage. |
 | [agent-playthrough.md](agent-playthrough.md) | Reference | Record of a live new-account-to-level-2 production playtest, verified 2026-07-27. An observation log, not a project - useful as a first-hour-experience baseline. |
 
 The temporary vessel workspace is retired. Durable vessel requirements and

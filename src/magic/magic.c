@@ -459,7 +459,7 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
   if (char_has_mud_event(vict, eSPELLBATTLE) && SPELLBATTLE(vict) > 0)
     saves += SPELLBATTLE(vict);
   if (HAS_FEAT(vict, FEAT_SAVES))
-    saves += CLASS_LEVEL(vict, CLASS_CLERIC) / 6;
+    saves += get_domain_power_level(vict) / 6;
   if (!IS_NPC(vict) && IS_DAYLIT(IN_ROOM(vict)) && HAS_FEAT(vict, FEAT_LIGHT_BLINDNESS))
     saves -= 1;
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_SHADOW_MASTER) && IS_SHADOW_CONDITIONS(vict))

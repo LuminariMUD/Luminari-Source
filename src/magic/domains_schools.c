@@ -207,8 +207,17 @@ int domain_power_to_feat(int domain_power)
   return featnum;
 }
 
-/* will clear all the domain feats off a character, used for clerics that
- switch their selected domains */
+/* Return the class level used to scale domain powers. Inquisitors use their
+ * full inquisitor level as their cleric level, and multiclass levels do not stack. */
+int get_domain_power_level(const struct char_data *ch)
+{
+  if (ch == NULL)
+    return 0;
+
+  return MAX(CLASS_LEVEL(ch, CLASS_CLERIC), CLASS_LEVEL(ch, CLASS_INQUISITOR));
+}
+
+/* Clear all domain feats from a character before reconciling selected domains. */
 void clear_domain_feats(struct char_data *ch)
 {
   int i = 1;
@@ -220,16 +229,14 @@ void clear_domain_feats(struct char_data *ch)
   }
 }
 
-/* this will check the two character's selected domains for domain-feats
- and add them to the character's feat list, this assumes you've already
- ran clear_domain_feats() - used for clerics selecting or switching
- their domains */
+/* Check the character's selected domains and add their domain feats. This
+ * assumes clear_domain_feats() has already run when domains are changing. */
 void add_domain_feats(struct char_data *ch)
 {
-  if (!CLASS_LEVEL(ch, CLASS_CLERIC))
-    return;
-
   int i = 0, featnum = FEAT_UNDEFINED;
+
+  if (!get_domain_power_level(ch))
+    return;
 
   for (i = 0; i < NUM_DOMAIN_POWERS; i++)
   {

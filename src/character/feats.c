@@ -3504,46 +3504,46 @@ void assign_feats(void)
   /* NOT IN GAME */ feato(FEAT_FAST_CRAFTER, "fast crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CRAFT,
                           "Reduces crafting time", "Reduces crafting time");
 
-  /* Cleric Domain (ability) Feats */
+  /* Divine domain ability feats */
   feato(FEAT_LIGHTNING_ARC, "lightning arc", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "you can unleash an arc of electricity",
         "As a standard action, you can unleash an arc of electricity. This arc of "
         "electricity deals 1d6+10 points of electric damage + 1 point for "
-        "every two cleric levels you possess. You can use this ability a number "
+        "every two domain levels you possess. You can use this ability a number "
         "of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_ACID_DART, "acid dart", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "you can unleash a dart of acid",
         "As a standard action, you can unleash a dart of acid. This dart of "
         "acid deals 1d6+10 points of acid damage + 1 point for "
-        "every two cleric levels you possess. You can use this ability a number "
+        "every two domain levels you possess. You can use this ability a number "
         "of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_FIRE_BOLT, "fire bolt", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "you can unleash a bolt of fire",
         "As a standard action, you can unleash a bolt of fire. This bolt of "
         "fire deals 1d6+10 points of fire damage + 1 point for "
-        "every two cleric levels you possess. You can use this ability a number "
+        "every two domain levels you possess. You can use this ability a number "
         "of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_ICICLE, "icicle", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "you can unleash an icicle",
         "As a standard action, you can unleash an icicle. This icicle "
         "deals 1d6+10 points of cold damage + 1 point for "
-        "every two cleric levels you possess. You can use this ability a number "
+        "every two domain levels you possess. You can use this ability a number "
         "of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_DOMAIN_ELECTRIC_RESIST, "domain electric resistance", TRUE, FALSE, FALSE,
         FEAT_TYPE_DOMAIN_ABILITY, "gain electricity resistance",
-        "At 6th cleric levels, you gain resist electricity 10. This resistance increases "
+        "At domain level 6, you gain resist electricity 10. This resistance increases "
         "to 20 at 12th level and to 50 at 20th level.");
   feato(FEAT_DOMAIN_ACID_RESIST, "domain acid resistance", TRUE, FALSE, FALSE,
         FEAT_TYPE_DOMAIN_ABILITY, "gain acid resistance",
-        "At 6th cleric levels, you gain resist acid 10. This resistance increases "
+        "At domain level 6, you gain resist acid 10. This resistance increases "
         "to 20 at 12th level and to 50 at 20th level.");
   feato(FEAT_DOMAIN_FIRE_RESIST, "domain fire resistance", TRUE, FALSE, FALSE,
         FEAT_TYPE_DOMAIN_ABILITY, "gain fire resistance",
-        "At 6th cleric levels, you gain resist fire 10. This resistance increases "
+        "At domain level 6, you gain resist fire 10. This resistance increases "
         "to 20 at 12th level and to 50 at 20th level.");
   feato(FEAT_DOMAIN_COLD_RESIST, "domain cold resistance", TRUE, FALSE, FALSE,
         FEAT_TYPE_DOMAIN_ABILITY, "gain cold resistance",
-        "At 6th cleric levels, you gain resist cold 10. This resistance increases "
+        "At domain level 6, you gain resist cold 10. This resistance increases "
         "to 20 at 12th level and to 50 at 20th level.");
   feato(FEAT_CURSE_TOUCH, "curse touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "you can unleash a curse",
@@ -3554,27 +3554,28 @@ void assign_feats(void)
         "Any weapon you wield behaves as if it is chaotic, and will do additional 2d6 "
         "damage against lawful-raced and lawful-aligned opponents.");
   feato(FEAT_DESTRUCTIVE_SMITE, "destructive smite", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-        "add 1/2 cleric level to damage",
+        "add 1/2 domain level to damage",
         "You gain the destructive smite power: the supernatural ability to make a "
         "single melee attack with a morale bonus on damage rolls equal to 1/2 your "
-        "cleric level (minimum 1). You must declare the destructive smite before "
+        "domain level (minimum 1). You must declare the destructive smite before "
         "making the attack. You can use this ability a number of times per day "
         "equal to 3 + your Wisdom modifier.");
   feato(FEAT_DESTRUCTIVE_AURA, "destructive aura", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-        "add 1/2 cleric level to group's damage",
+        "add 1/2 domain level to group's damage",
         "As a standard action, you can unleash a destructive aura which will give "
-        "all your group companions cleric-level/2 bonus damage for 1 round.  You can use "
+        "all your group companions half your domain level in bonus damage for 1 round. "
+        "You can use "
         "this ability a number of times per day equal to your Wisdom modifier.");
   feato(FEAT_EVIL_TOUCH, "evil touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "inflict disease with touch attack",
         "You can cause a creature to become sickened as a melee touch attack.  This "
         "ability lasts for a number of rounds equal to 1/2 "
-        "your cleric level (minimum 1). You can use this ability a number of times "
+        "your domain level (minimum 1). You can use this ability a number of times "
         "per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_EVIL_SCYTHE, "evil scythe", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "empower your weapon with unholy damage",
         "At 8th level, you can give a weapon touched the unholy special weapon quality "
-        "for a number of rounds equal to 1/2 your cleric level. You can use "
+        "for a number of rounds equal to 1/2 your domain level. You can use "
         "this ability once per day at 8th level, and an additional time per "
         "day for every four levels beyond 8th.");
   feato(FEAT_GOOD_TOUCH, "good touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
@@ -3585,13 +3586,13 @@ void assign_feats(void)
   feato(FEAT_GOOD_LANCE, "good lance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "empower your weapon with holy damage",
         "At 8th level, you can give a weapon you touch the holy special weapon quality "
-        "for a number of rounds equal to 1/2 your cleric level. You can use this "
+        "for a number of rounds equal to 1/2 your domain level. You can use this "
         "ability once per day at 8th level, and an additional time per day for "
         "every four levels beyond 8th.");
   feato(FEAT_HEALING_TOUCH, "healing touch", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "you can heal with your touch",
         "You can touch a living creature as a standard action, healing it for 20 + 1d4 points "
-        "of damage plus 1 for every two cleric levels you possess. You can only "
+        "of damage plus 1 for every two domain levels you possess. You can only "
         "use this ability on a creature that is below half their total hit points. You can use "
         "this ability a number of times per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_CURING_TOUCH, "curing touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -3640,12 +3641,12 @@ void assign_feats(void)
         "You can use 'mass invisibility', like the arcane spell.  You can use this ability "
         "a number of times per day equal to your Wisdom modifier.");
   feato(FEAT_RESISTANCE, "resistance", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-        "gain bonus to all resistances", "You get +1 to all your resistances per 6 cleric levels.");
+        "gain bonus to all resistances", "You get +1 to all your resistances per 6 domain levels.");
   feato(FEAT_SAVES, "saves", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
-        "gain bonus to all saves", "You get +1 to all your saves per 6 cleric levels.");
+        "gain bonus to all saves", "You get +1 to all your saves per 6 domain levels.");
   feato(FEAT_AURA_OF_PROTECTION, "aura of protection", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "grant AC/sves bonus to group",
-        "You can grant +1 to all saves and AC per 6 cleric levels to all your "
+        "You can grant +1 to all saves and AC per 6 domain levels to all your "
         "group members for 4 rounds.  You can use this ability a number of times "
         "per day equal to 3 + your Wisdom modifier.");
   feato(FEAT_ETH_SHIFT, "ethereal shift", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
@@ -3654,10 +3655,10 @@ void assign_feats(void)
         "ethereal plane and back to the prime material plane. Command is: ethshift");
   feato(FEAT_BATTLE_RAGE, "battle rage", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "bonus to hitroll/damage",
-        "You add your cleric level / 4 to both your hitroll and damroll for "
+        "You add your domain level / 4 to both your hitroll and damroll for "
         "5 rounds.  You can use this ability a number of times per day equal "
-        "to your Wisdom modifier.  Note: You need at least 4 levels in cleric "
-        "class to use this ability.");
+        "to your Wisdom modifier.  You need a domain level of at least 4 to use "
+        "this ability.");
   feato(FEAT_WEAPON_EXPERT, "weapon expert", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "+1 to attack rolls, can use all martial weapons",
         "This feat behaves like the martial weapon proficiency, granting you proficiency "

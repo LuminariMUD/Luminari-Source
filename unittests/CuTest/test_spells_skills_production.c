@@ -14,6 +14,7 @@
 #include "../../src/net/protocol.h"
 #include "../../src/character/evolutions.h"
 #include "../../src/character/feats.h"
+#include "../../src/combat/fight.h"
 #include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
@@ -728,6 +729,89 @@ void Test_domain_command_labels_granted_spell_circles(CuTest *tc)
   cleanup_test_descriptor(&descriptor);
 
   CuAssertTrue(tc, found_circle);
+}
+
+void Test_inquisitor_domain_feats_reconcile_and_restore_on_class_init(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+
+  if (feat_list[FEAT_HEALING_TOUCH].name == NULL)
+    assign_feats();
+  assign_domains();
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  CLASS_LEVEL((&ch), CLASS_INQUISITOR) = 10;
+  GET_1ST_DOMAIN(&ch) = DOMAIN_HEALING;
+  SET_FEAT(&ch, FEAT_LIGHTNING_ARC, 1);
+
+  clear_domain_feats(&ch);
+  add_domain_feats(&ch);
+
+  CuAssertIntEquals(tc, 0, HAS_REAL_FEAT(&ch, FEAT_LIGHTNING_ARC));
+  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_HEALING_TOUCH));
+  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_EMPOWERED_HEALING));
+
+  SET_FEAT(&ch, FEAT_HEALING_TOUCH, 0);
+  SET_FEAT(&ch, FEAT_EMPOWERED_HEALING, 0);
+  init_class(&ch, CLASS_INQUISITOR, CLASS_LEVEL((&ch), CLASS_INQUISITOR));
+
+  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_HEALING_TOUCH));
+  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_EMPOWERED_HEALING));
+}
+
+void Test_inquisitor_domain_power_level_drives_passive_bonuses(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int base_fire_reduction;
+  int base_fortitude;
+  int domain_fortitude;
+
+  if (feat_list[FEAT_RESISTANCE].name == NULL)
+    assign_feats();
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+  ch.player_specials = &player_specials;
+  CLASS_LEVEL((&ch), CLASS_INQUISITOR) = 12;
+  GET_REAL_CON(&ch) = 10;
+
+  CuAssertIntEquals(tc, 12, get_domain_power_level(&ch));
+  CLASS_LEVEL((&ch), CLASS_CLERIC) = 8;
+  CuAssertIntEquals(tc, 12, get_domain_power_level(&ch));
+  CLASS_LEVEL((&ch), CLASS_CLERIC) = 14;
+  CuAssertIntEquals(tc, 14, get_domain_power_level(&ch));
+  CuAssertIntEquals(tc, 0, get_domain_power_level(NULL));
+  CLASS_LEVEL((&ch), CLASS_CLERIC) = 0;
+
+  base_fire_reduction = compute_damtype_reduction(&ch, DAM_FIRE, NULL, TYPE_UNDEFINED);
+  SET_FEAT(&ch, FEAT_RESISTANCE, 1);
+  CuAssertIntEquals(tc, base_fire_reduction + 2,
+                    compute_damtype_reduction(&ch, DAM_FIRE, NULL, TYPE_UNDEFINED));
+  SET_FEAT(&ch, FEAT_RESISTANCE, 0);
+  SET_FEAT(&ch, FEAT_DOMAIN_FIRE_RESIST, 1);
+  CuAssertIntEquals(tc, base_fire_reduction + 20,
+                    compute_damtype_reduction(&ch, DAM_FIRE, NULL, TYPE_UNDEFINED));
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+  IN_ROOM(&ch) = 0;
+  base_fortitude = compute_mag_saves(&ch, SAVING_FORT, 0);
+  SET_FEAT(&ch, FEAT_SAVES, 1);
+  domain_fortitude = compute_mag_saves(&ch, SAVING_FORT, 0);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertIntEquals(tc, base_fortitude + 2, domain_fortitude);
 }
 
 void Test_internal_affects_have_registered_wearoff_messages(CuTest *tc)

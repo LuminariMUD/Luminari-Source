@@ -2837,8 +2837,10 @@ void init_class(struct char_data *ch, int class, int level __attribute__((unused
   {
   case CLASS_CLERIC:
   case CLASS_INQUISITOR:
-    /* we also have to add this to study where we set our domains */
+    /* Reapply domain access on login as well as when study finalizes. This
+     * also migrates characters whose domain feats predate domain reconciliation. */
     assign_domain_spells(ch);
+    add_domain_feats(ch);
     break;
   default:
     break;
