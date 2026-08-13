@@ -1227,6 +1227,34 @@ These profiles are production-tested and reconciled but are absent from the curr
 pilot. Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit
 them into the pilot.
 
+### Phase 6 Undermountain drow conclave guards
+
+- Build a dependency-complete Undermountain stage containing guard mobiles 2093101, 2093102,
+  2093108-2093112 and conclave rooms 2093146-2093156, including barracks 2093153. Confirm bound
+  identities 2093102 and 2093108-2093112 retain `MOB_SPEC` and use `RoL Monster Combat`;
+  unbound detection-only guard 2093101 and unrelated mobiles must not receive the profile.
+- Place a visible mortal below immortal level with an idle bound guard. The first qualifying
+  activity pulse must say `I have sounded the alarm! There is no escape!` exactly once. Repeat
+  with staff, NPCs, invisible mortals, and fighting guards; none may trigger the idle alarm.
+- After the alarm, inspect all 11 conclave rooms. Guard identities 2093101, 2093102, 2093109,
+  2093110, and 2093112 must gain detect invisibility wherever they are in that range. Mobiles
+  2093108, 2093111, and unrelated identities must not gain it from this procedure.
+- In barracks room-list order, place three 2093102 guards followed later by a 2093109 sergeant.
+  The guards must path toward rooms 2093146, 2093147, and 2093147 respectively, and the sergeant
+  toward 2093155. Interleave unrelated mobiles and verify they stay untouched. Also put an
+  unrelated mobile on the global character list outside the barracks and verify the source's
+  wrong-list defect is not reproduced.
+- Observe a bound guard while fighting over repeated activity pulses. Rolls one through six of
+  20 must produce the six exact Lloth/combat lines; other rolls must be silent. Successful hits
+  add no separate effect because the registered source callback has no NPC-hit implementation.
+- Reset the zone after the first alarm. The alarm must remain suppressed because its authored
+  lifetime is global for the process boot, not per zone. Restart the disposable server and
+  confirm a new qualifying intruder can sound it once again.
+
+These profiles are production-tested and reconciled but are absent from the current five-zone
+pilot. Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit
+them into the pilot.
+
 ### Phase 6 converted Scornubel profiles
 
 - Build a dependency-complete Scornubel stage containing mobiles 2006001, 2006002, 2006006,
@@ -1703,9 +1731,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,564 are resolved and 157 remain. Of 795 distinct
-  direct source handlers, 666 are resolved and 129 remain. Of 848 `ACT_SPEC` records, 811
-  are resolved and 37 remain. The automatic race procedures
+  of the 1,721 active direct bindings, 1,570 are resolved and 151 remain. Of 795 distinct
+  direct source handlers, 667 are resolved and 128 remain. Of 848 `ACT_SPEC` records, 812
+  are resolved and 36 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

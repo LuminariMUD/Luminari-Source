@@ -9,6 +9,67 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Undermountain drow conclave guards
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled all six active `um2_drowConclaveGuard` bindings through the existing exact-identity
+  `RoL Monster Combat` runtime: converted mobiles 2093102, 2093108-2093112.
+- Preserved the source's one-global-alarm-per-boot lifetime, visible mortal and staff gates, exact
+  alarm line, and 11-room detect-invisibility sweep for the five authored guard identities.
+- Preserved the first-three-guard deployment to converted rooms 2093146, 2093147, and 2093147,
+  followed by the first later sergeant deployment to 2093155. Target-native room-path movement
+  replaces source hunt events.
+- Preserved all six combat lines and their rolls one through six of 20. The source declares an
+  NPC-hit callback but implements no NPC-hit branch, so no unsupported hit behavior was invented.
+- Repaired the source's wrong global-character-list advance by keeping barracks selection on the
+  room list. This preserves its documented one-pass ordering without mutating unrelated rooms.
+- Added reconciliation, profile, detection, destination, combat-line, alarm, redeployment, and
+  one-shot runtime regressions. No player helpfile changed because the batch adds no player
+  command or syntax; the staff manual records the dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,564 to 1,570 static bindings
+  and from 666 to 667 direct handlers, leaving 151 bindings across 128 handlers in 27 source
+  files. The independent `ACT_SPEC` cross-check advances to 812 resolved and 36 pending.
+- Reforecast twenty-two corrected batches covering 324 bindings across 129 handlers. The
+  remaining Phase 6 envelope remains 11-22 sessions, or 22-88 focused engineering hours; the full
+  remaining project envelope remains 67-106 sessions, or 134-424 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: eb084a07
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-drow-conclave
+Reconciliation run: rol-phase6-special-1b44c259bece3bf6
+Evidence tree SHA-256: 9f4317c56c3cd001d99888ddfe4e8c6519fb1e67355ef7e7b52c54d9280ed15f
+Active direct bindings: 1,721
+Direct bindings resolved: 1,570
+Direct bindings pending: 151
+Source handlers resolved: 667
+Source handlers pending: 128
+Additional handler families resolved: 1
+Additional direct bindings resolved: 6
+Native adapted bindings: 1,018
+Native adapted composable bindings: 216
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 812
+ACT_SPEC records pending: 36
+Complete world-tool suite: 352 passed
+Production-linked CuTest suite: 686 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: c9fbcd9a13ed247d037965af399c749c94e42a49
+Installed SHA-256: baa7fc90024241d7abf37edc586d2ff08b6c7bf6bb36e8f2155307e49b14f6eb
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat or utility family.
+
 ## 2026-08-13 - Phase 6 paralysis gaze and venom tails
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
