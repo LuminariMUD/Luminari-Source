@@ -9,6 +9,68 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Zhentil periodic family
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled six active Zhentil Keep mobile bindings across six source handlers: minstrel,
+  little girl, terrified merchant, visiting dignitary, Scornubian trader, and ugly prostitute.
+- Extended `RoL Source Periodic` to 128 exact mobile identities across 118 source handlers, 466
+  outcomes, and 729 actions. The six profiles preserve the source inclusive random ranges,
+  awake and non-fighting gates, room acts, socials, hidden visibility, and ordered compound
+  outcomes.
+- Extended the source-table generator to accept a tightly validated zero-roll conditional in
+  addition to random switches. It requires exactly one random-number call, an action-bearing
+  braced branch, and a true return, preserving the one-in-11 little-girl wiggle and one-in-16
+  terrified-merchant shudder without hand-authored tables.
+- Kept gate guard 2081074 pending because its callback also delegates command handling and owns
+  time-of-day gate repair and event rescheduling; adapting only its ambient branch would be an
+  incomplete behavior port.
+- Added generator, converter, reconciliation, exact-VNUM, roll-shape, gate, visibility, action,
+  and production-runtime regression coverage. No player helpfile changed because the batch adds
+  no player command or syntax; the staff manual records the dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,484 to 1,490 static bindings
+  and from 630 to 636 direct handlers, leaving 231 bindings across 159 handlers in 31 source
+  files. The independent `ACT_SPEC` cross-check remains 805 resolved and 43 pending.
+- Reforecast fifteen corrected batches covering 244 bindings across 98 handlers. The remaining
+  Phase 6 envelope is 15-25 sessions, or 30-100 focused engineering hours; the full remaining
+  project envelope is 71-109 sessions, or 142-436 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: afe6b68d
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-zhentil-periodic
+Reconciliation run: rol-phase6-special-da5452c48ee34106
+Evidence tree SHA-256: 1959db856353624f80d24208b7620fb3cf56c250d8234fce7997ad1973d579e8
+Active direct bindings: 1,721
+Direct bindings resolved: 1,490
+Direct bindings pending: 231
+Source handlers resolved: 636
+Source handlers pending: 159
+Additional handler families resolved: 6
+Additional direct bindings resolved: 6
+Native adapted bindings: 952
+Native adapted composable bindings: 208
+Source-inert exclusions: 32
+ACT_SPEC records resolved: 805
+ACT_SPEC records pending: 43
+Complete world-tool suite: 341 passed
+Production-linked CuTest suite: 677 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: d5fd8bbb2958d56032d46f3f903f0e38a1306dfb
+Installed SHA-256: a7a0c956fe2edcee95e8ede3d7ac62f5c3149f3446338fafd33e5c49c6f586e8
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat, death, or utility family.
+
 ## 2026-08-13 - Phase 6 Scornubel family
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

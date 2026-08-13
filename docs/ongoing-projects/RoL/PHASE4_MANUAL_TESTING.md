@@ -1093,6 +1093,29 @@ These profiles are automated and reconciled but are absent from the current five
 Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
 into the pilot.
 
+### Phase 6 converted Zhentil periodic profiles
+
+- Build a dependency-complete Zhentil Keep stage containing minstrel 2081021, little girl
+  2081054, terrified merchant 2081059, visiting dignitary 2081066, Scornubian trader 2081067,
+  and ugly prostitute 2081068. Confirm all six use `RoL Source Periodic` with `MOB_SPEC`, while
+  gate guard 2081074 remains unconverted pending its complete command, gate-state, and event
+  lifecycle. Unrelated identities must not receive these profiles.
+- Observe the six converted mobiles while awake, idle, and not fighting. The minstrel must use
+  its inclusive zero-to-20 table; the dignitary, trader, prostitute, and terrified merchant use
+  zero-to-15; and the little girl uses zero-to-10. Sleeping or fighting representatives must
+  remain quiet.
+- For the little girl, about one in 11 pulses must perform the source wiggle. For the terrified
+  merchant, about one in 16 pulses must shudder. These are generated from source zero-roll
+  conditionals, not normalized or hand-authored probabilities.
+- Confirm the trader's zero outcome first emits the hidden notebook room act and then scratches,
+  preserving source order and visibility. The prostitute's roll 2 must emit her source room act
+  and then moan; the minstrel's rolls 0-4 and the dignitary's rolls 0-1 must preserve their
+  authored acts and socials. Nonmatching rolls produce no output.
+
+These profiles are automated and reconciled but are absent from the current five-zone pilot.
+Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
+into the pilot.
+
 ### Phase 6 converted Waterdeep ambient citizens
 
 - Build dependency-complete stages containing the first 34 converted ambient citizens:
@@ -1123,7 +1146,7 @@ into the pilot.
 
 ### Phase 6 generated source-periodic profiles
 
-- Build dependency-complete source-profile stages. Confirm the following 116 mobiles use
+- Build dependency-complete source-profile stages. Confirm the following 122 mobiles use
   `RoL Source Periodic` with `MOB_SPEC`: Bloodstone 2007100-2007109, 2007113-2007129,
   2007142-2007144, 2007147, 2007152-2007154, 2007156, 2007160-2007162,
   2007164-2007167, 2007170, 2007172-2007180,
@@ -1134,7 +1157,8 @@ into the pilot.
   2097028, 2097033; Menden 2088806; Tower of Sorcery 2015901; Waterdeep 2003212;
   Lavatubes 2012000, 2012002, and 2012003; and Scornubel 2006001, 2006002, 2006006,
   2006029, 2006051, 2006058, 2006064, 2006067, 2006072, 2006106, 2006109, 2006111,
-  2006113, 2006132, 2006140, and 2006141.
+  2006113, 2006132, 2006140, and 2006141; and Zhentil Keep 2081021, 2081054, 2081059,
+  2081066, 2081067, and 2081068.
 - Observe repeated activity pulses while representative profiles are idle. Their source speech,
   social room text, and direct room actions should appear at the original random cadence.
   Multi-action and fall-through outcomes must retain their source order. Nonmatching rolls must
@@ -1517,8 +1541,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,484 are resolved and 237 remain. Of 795 distinct
-  direct source handlers, 630 are resolved and 165 remain. Of 848 `ACT_SPEC` records, 805
+  of the 1,721 active direct bindings, 1,490 are resolved and 231 remain. Of 795 distinct
+  direct source handlers, 636 are resolved and 159 remain. Of 848 `ACT_SPEC` records, 805
   are resolved and 43 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
