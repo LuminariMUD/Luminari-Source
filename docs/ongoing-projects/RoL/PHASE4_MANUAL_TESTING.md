@@ -968,6 +968,45 @@ These profiles are automated and reconciled but are absent from the current five
 Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
 into the pilot.
 
+### Phase 6 converted Avernus devil combat profiles
+
+- Build a dependency-complete Avernus stage containing dragon 2032622 and helper 2036180;
+  Barbazu 2032629, 2032640-2032644, 2033000-2033001, 2033004, 2033008-2033009,
+  2033011, and 2033021-2033022; Gelugons 2033015-2033016; Barbazu glaives 2032602 and
+  2033001; and Gelugon spear 2033012. Confirm the dragon composes `RoL Guild Guard` with
+  its alert profile, the Barbazu and Gelugons use `RoL Monster Combat`, and the three weapons
+  use `RoL Weapon Proc`. Unrelated identities must not receive these profiles.
+- Have dragon 2032622 land a successful hit. It must send the Tiamat defense call to its zone
+  once per fight and make helper 2036180 hunt the current opponent when within 30 rooms. A
+  helper outside that source distance must not answer. End combat and allow an activity pulse,
+  then confirm a later fight can trigger a new call.
+- Strike each Barbazu repeatedly. About one in 20 received hits must apply a five-tick rage that
+  adds its current hitroll and damroll again and immediately adds half its maximum hit points.
+  The dedicated rage marker must prevent stacking until it expires.
+- Score critical hits on mortal PCs with each Barbazu glaive wielded by a non-pet NPC. Every
+  critical attaches an independent blood-loss event; stacked wounds each remove 40 hit points
+  every three violence pulses and stop at -9 rather than killing the PC. A wound remains
+  attached while the victim is at or below -5 and resumes after healing. Immortals take no
+  blood loss. A critical against an NPC applies the source's immediate 100-point wound instead.
+- Have Gelugons 2033015 and 2033016 land repeated hits. The active source code fires the tail
+  freeze about one in seven times despite its one-in-ten comment. Native paralysis immunity or
+  a successful Fortitude save prevents it; a failure applies one to two ticks of paralysis.
+- Keep eligible mortal Wizards, Clerics, and Bards with Meritos 2033015 during combat. About one
+  in four successful hits must select the first unsilenced eligible caster in the room. Native
+  resistance or a Will save with the source +5 modifier prevents the bolt; a failure applies
+  four ticks of silence. An empty eligible set must remain safe.
+- Attempt `disarm` in Hanariel's room as a mortal. Hanariel 2033016 must consume the command,
+  trip the actor to sitting, and impose a three-round wait. Staff commands remain exempt.
+- Land repeated hits with Gelugon spear 2033012. About one in three hits against a target not
+  already slowed must test a native Fortitude save; failure applies slow for 2d4 ticks. On
+  automatic pulses, a non-pet devil NPC or staff owner may retain the spear. An invalid mortal,
+  pet, or non-devil owner is burned for 5-50 fire damage and the weapon's damage dice become
+  1d1, preserving the source bad-owner penalty.
+
+These profiles are automated and reconciled but are absent from the current five-zone pilot.
+Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
+into the pilot.
+
 ### Phase 6 converted Waterdeep ambient citizens
 
 - Build dependency-complete stages containing the first 34 converted ambient citizens:
@@ -1390,8 +1429,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,423 are resolved and 298 remain. Of 795 distinct
-  direct source handlers, 595 are resolved and 200 remain. Of 848 `ACT_SPEC` records, 805
+  of the 1,721 active direct bindings, 1,445 are resolved and 276 remain. Of 795 distinct
+  direct source handlers, 602 are resolved and 193 remain. Of 848 `ACT_SPEC` records, 805
   are resolved and 43 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

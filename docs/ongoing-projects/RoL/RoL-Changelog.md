@@ -9,6 +9,77 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Avernus devil combat
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled 22 Avernus bindings across seven source handlers: a Tiamat dragon alert, Barbazu
+  reactive rage, Barbazu glaive wounds, Gelugon freezing tails, Meritos's caster-silencing bolt,
+  Hanariel's disarm interception, and the Gelugon freezing spear.
+- Added a typed mobile-was-hit gateway after successful weapon handling. Fourteen exact Barbazu
+  identities now retain their source one-in-20 received-hit rage, five-tick doubled current
+  hitroll and damroll, half-maximum-hit-point increase, and nonstacking affect marker.
+- Composed dragon 2032622 with `RoL Guild Guard` and an exact alert profile. Its successful hit
+  sends the Tiamat defense call once per fight, recruits helper 2036180 within the source 30-room
+  distance, and resets its alert state after combat.
+- Preserved critical-only Barbazu glaive behavior for objects 2032602 and 2033001. NPC targets
+  receive the source 100-point wound; player targets receive independently stacked blood-loss
+  events that remove 40 hit points every three violence pulses, floor at -9, persist while the
+  victim is below -5, and resume after healing.
+- Preserved both Gelugons' actual one-in-seven tail trigger despite the source's one-in-ten
+  comment, with native paralysis immunity, Fortitude saves, and one-to-two-tick paralysis.
+  Meritos preserves one-in-four first-caster targeting, resistance, the source +5 Will save, and
+  four-tick silence while repairing the source null-target crash. Hanariel preserves the mortal
+  disarm block, sitting trip, and three-round wait.
+- Preserved spear 2033012's one-in-three, 2d4-tick slow and recurring bad-owner penalty. Invalid
+  owners take 5-50 fire damage and the weapon degrades to 1d1; non-pet devil NPCs and staff are
+  exempt.
+- Added exact converter, reconciliation, event-contract, profile, probability, affect, event,
+  alert-distance, and owner-restriction coverage. No player helpfile changed because the batch
+  adds no player command or syntax; the staff manual records the dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,423 to 1,445 static bindings
+  and from 595 to 602 direct handlers, leaving 276 bindings across 193 handlers in 33 source
+  files. The independent `ACT_SPEC` cross-check remains 805 resolved and 43 pending.
+- Reforecast twelve corrected batches covering 199 bindings across 64 handlers. The remaining
+  Phase 6 envelope is 17-37 sessions, or 34-148 focused engineering hours; the full remaining
+  project envelope is 73-121 sessions, or 146-484 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 31282808
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-avernus-devil-combat
+Reconciliation run: rol-phase6-special-bc771a97be7031ca
+Evidence tree SHA-256: 88783b6e1f1dd358077f3e05643b552ade2994f47bc20637ad2b8d6e80bde3ed
+Active direct bindings: 1,721
+Direct bindings resolved: 1,445
+Direct bindings pending: 276
+Source handlers resolved: 602
+Source handlers pending: 193
+Additional handler families resolved: 7
+Additional direct bindings resolved: 22
+Native adapted bindings: 908
+Native adapted composable bindings: 208
+Source-inert exclusions: 31
+ACT_SPEC records resolved: 805
+ACT_SPEC records pending: 43
+Complete world-tool suite: 336 passed
+Production-linked CuTest suite: 674 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 083d8d74db9e0c4dc5fbbd964af10140c29785da
+Installed SHA-256: 0b84821aade13cddb8443dfc244154f283407c69fdbf2661930fb5ebc6ed35b3
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 13 Avernus bindings across 12 stateful handlers, followed
+by the next dependency-complete combat, death, or utility family.
+
 ## 2026-08-13 - Phase 6 planar capture, charm, and Vrock dance
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
