@@ -9,6 +9,71 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 successful-hit area family
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled six successful-hit area handlers on converted mobiles 2021786, 2021820,
+  2043705, 2096631, 2096670, and 2096672 through exact identity-owned profiles on the
+  persistent `RoL Monster Combat` mobile procedure.
+- Preserved Dobluth bladestorm's one-in-five weapon-damage sweep and banshee wail's one-in-four
+  damage and stun path, the Hive sandstorm beast's one-in-16 damage and independent blindness
+  path, the Greycloak banshee's one-in-six wail, Urgutha Forka's one-in-11 poison-fume attack,
+  and Aralesh Tandar's one-in-11 opponent execution with its same-room pet-owner branch.
+- Routed the source direct HP mutations through typed target damage, native saves, immunity and
+  resistance handling, safe area targeting, blindness affects, and bounded stun. Bladestorm
+  retains one aggregate weapon payload for every eligible target; successful saves cannot leak
+  a reduced amount into later targets.
+- Invalidated the remaining hit context whenever an area effect or execution removes the
+  character struck by the outer attack, including Aralesh's pet-owner branch, so later critical
+  and artifact riders cannot access an extracted target.
+- Added exact binding-set, profile, roll-boundary, gateway, invalidation, registry, converter,
+  reconciler, and production-linked behavioral coverage. No player helpfile changed because the
+  batch adds no command or syntax; the staff manual now covers all six converted behaviors.
+- Regenerated the corrected Phase 6 evidence. Resolution increases from 1,386 to 1,392 static
+  bindings and from 575 to 581 direct handlers, leaving 329 bindings across 214 handlers in 34
+  source files. The independent `ACT_SPEC` cross-check remains 799 resolved and 49 pending.
+- Reforecast the eight corrected batches, which closed 146 bindings across 43 handlers. The
+  binding-count projection is about 19 additional batches and the handler-diversity projection
+  about 40; the measured Phase 6 envelope is therefore 20-40 sessions, or 40-160 focused
+  engineering hours. The full remaining project envelope is 76-124 sessions, or 152-496
+  focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 3c9f0afe
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-successful-hit-area
+Reconciliation run: rol-phase6-special-767041a4f1ffe023
+Evidence tree SHA-256: 912ad77f9db500b0c4133a0293b2a3b0d9890337ae1fe379d7c2db7467b18c48
+Active direct bindings: 1,721
+Direct bindings resolved: 1,392
+Direct bindings pending: 329
+Source handlers resolved: 581
+Source handlers pending: 214
+Additional handler families resolved: 6
+Additional direct bindings resolved: 6
+Native adapted bindings: 858
+Native adapted composable bindings: 207
+ACT_SPEC records resolved: 799
+ACT_SPEC records pending: 49
+Complete world-tool suite: 332 passed
+Production-linked CuTest suite: 669 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 96079d64d19cdd877edc8d4e3c84e4b7899210a0
+Installed SHA-256: 033a9239a4719a688b541286d39b6680b2930a248c5fde090de867d17e187a14
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with another dependency-complete shared-runtime family. Reforecast after
+another material batch or any inventory correction.
+
 ## 2026-08-13 - Phase 6 Hive manscorpion venom family
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

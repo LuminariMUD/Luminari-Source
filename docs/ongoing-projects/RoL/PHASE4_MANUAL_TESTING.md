@@ -818,6 +818,37 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   weapon riders may access the extracted character. Unrelated mobiles must receive no
   successful-hit callback.
 
+### Phase 6 converted successful-hit area profiles
+
+- Build dependency-complete stages containing Dobluth mobiles 2021786 and 2021820, Hive
+  sandstorm beast 2043705, and Greycloak mobiles 2096631, 2096670, and 2096672. Confirm all six
+  use `RoL Monster Combat` with `MOB_SPEC` and identify with the matching successful-hit profile.
+- Repeatedly land successful attacks with Dobluth bladestorm 2021786. About one qualifying hit
+  in five should animate the room's primary, two-handed, and offhand weapons. The one aggregate
+  payload is the sum of each weapon's maximum damage and applies independently to every safe
+  area target; a successful Reflex save halves only that target's slashing damage. With no such
+  weapons in the room, the proc must produce no effect.
+- Test Dobluth banshee 2021820 over repeated successful hits. About one hit in four should deal
+  150 sound damage to each safe area target, halved by a Will save. Survivors that fail a
+  separate Fortitude save should be safely stunned for two to four rounds.
+- Test Hive sandstorm beast 2043705 over repeated successful hits. About one hit in 16 should
+  deal 10d10 earth damage without a save to each safe area target. Each eligible target has an
+  independent 50 percent chance to become blind for three ticks; blindness immunity or another
+  native blindness restriction must prevent the affect without preventing the damage.
+- Test Greycloak banshee 2096631 and Urgutha Forka 2096670. About one hit in six from the
+  banshee should deal 200 plus or minus 10 sound damage, halved by a Will save. A soundproof room
+  or silenced banshee must suppress the wail. About one hit in 11 from Urgutha should deal 300
+  plus or minus 10 poison damage, also halved by a Will save; target poison defenses apply
+  through the native damage path.
+- Fight Aralesh Tandar 2096672 and observe about one execution in 11 qualifying hits. The
+  blazing-eye branch must kill its current opponent. When that opponent is a PC-owned pet and
+  the owner remains in the same room, it must also kill the owner; an owner outside the room is
+  not affected. If either victim is the character struck by the outer hit, confirm no later
+  critical, artifact, or weapon rider accesses the extracted character.
+- For every area profile, place grouped allies, unrelated NPCs, PCs, and pets in the room and
+  confirm target-native area safety chooses only eligible opponents. Unprofiled mobiles must
+  receive no successful-hit behavior.
+
 ### Phase 6 converted Waterdeep ambient citizens
 
 - Build dependency-complete stages containing the first 34 converted ambient citizens:
@@ -1240,8 +1271,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,386 are resolved and 335 remain. Of 795 distinct
-  direct source handlers, 575 are resolved and 220 remain. Of 848 `ACT_SPEC` records, 799
+  of the 1,721 active direct bindings, 1,392 are resolved and 329 remain. Of 795 distinct
+  direct source handlers, 581 are resolved and 214 remain. Of 848 `ACT_SPEC` records, 799
   are resolved and 49 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

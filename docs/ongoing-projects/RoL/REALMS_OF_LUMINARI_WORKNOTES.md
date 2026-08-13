@@ -113,6 +113,7 @@ Phase 6 Darkhold-elemental-death commit: 41ba7cea
 Phase 6 Seelie-faerie commit: f945051b
 Phase 6 Seelie-disabled-state compatibility commit: f40a5e48
 Phase 6 Hive-manscorpion-venom commit: 236296dd
+Phase 6 successful-hit-area commit: 3c9f0afe
 ```
 
 The authoritative ignored runs are:
@@ -330,6 +331,9 @@ Phase 6 Seelie faeries:
 Phase 6 Hive manscorpion venom:
   lib/rol-conversion/runs/phase6-special-20260813-hive-manscorpion-venom
   rol-phase6-special-6cfc16c58f7802e2
+Phase 6 successful-hit area:
+  lib/rol-conversion/runs/phase6-special-20260813-successful-hit-area
+  rol-phase6-special-767041a4f1ffe023
 Policy:  rol-conversion-policy-2
 ```
 
@@ -360,10 +364,10 @@ Policy:  rol-conversion-policy-2
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
 - The world-tool suite passes 316 tests; the production-linked CuTest suite passes 661;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The corrected discovery repair and seven subsequent denominator-bearing batches are archived.
-  Those batches closed 140 bindings across 37 source handlers. The measured remaining Phase 6
-  forecast is 18-42 sessions, or 36-168 focused engineering hours; the full remaining project
-  range is 74-126 sessions, or 148-504 focused hours.
+- The corrected discovery repair and eight subsequent denominator-bearing batches are archived.
+  Those batches closed 146 bindings across 43 source handlers. The measured remaining Phase 6
+  forecast is 20-40 sessions, or 40-160 focused engineering hours; the full remaining project
+  range is 76-124 sessions, or 152-496 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -412,8 +416,8 @@ Policy:  rol-conversion-policy-2
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
 - The repaired Phase 6 inventory accounts for 1,721 active direct bindings across 795 source
-  handlers and locates all 795 source definitions. The current reconciliation resolves 1,386
-  bindings across 575 handlers and leaves 335 bindings across 220 handlers.
+  handlers and locates all 795 source definitions. The current reconciliation resolves 1,392
+  bindings across 581 handlers and leaves 329 bindings across 214 handlers.
 - The independent `ACT_SPEC` cross-check resolves 799 of 848 records and leaves 49
   pending. It remains a scheduling cross-check rather than the direct-binding denominator;
   composition-safe flags and room or object procedures can resolve source handlers without
@@ -684,9 +688,9 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,386 static bindings and leaves 335 pending. It resolves
-  575 direct handler names and leaves 220 pending across 34 source files. The pending set has
-  176 singleton handlers, 36 handlers with two to four bindings, five with five to nine, and
+- The corrected reconciler resolves 1,392 static bindings and leaves 329 pending. It resolves
+  581 direct handler names and leaves 214 pending across 34 source files. The pending set has
+  170 singleton handlers, 36 handlers with two to four bindings, five with five to nine, and
   three with at least ten bindings.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
@@ -739,10 +743,16 @@ Policy:  rol-conversion-policy-2
   successful-mobile-hit gateway preserves the source one-in-31, one-in-7, one-in-11, and
   one-in-25 chances, random mortal targeting, poison eligibility and saves, nonstacking
   Constitution loss, and the king's slow-poison-dependent lethal branch.
-- The seven corrected batches close 140 bindings across 37 handlers. That measured throughput
-  puts the binding-count projection near 17 sessions and the handler-diversity projection near
-  42. Because 176 remaining handlers are singletons, the published Phase 6 envelope is 18-42
-  sessions, or 36-168 focused engineering hours. Reforecast after another material batch or an
+- The successful-hit area batch closes six bindings across six handlers. Dobluth bladestorm and
+  wail, the Hive sandstorm beast, the Greycloak banshee and Urgutha Forka, and Aralesh Tandar
+  now use exact `RoL Monster Combat` profiles on the typed successful-hit gateway. Their source
+  chances, aggregate weapon damage, area damage, save, stun, blindness, silence, poison-fume,
+  and execution behavior route through target-native safety and invalidate an extracted outer
+  hit target before later riders can run.
+- The eight corrected batches close 146 bindings across 43 handlers. That measured throughput
+  puts the binding-count projection near 19 sessions and the handler-diversity projection near
+  40. Because 170 remaining handlers are singletons, the published Phase 6 envelope is 20-40
+  sessions, or 40-160 focused engineering hours. Reforecast after another material batch or an
   inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
@@ -757,34 +767,41 @@ Policy:  rol-conversion-policy-2
    smallest-unit exclusions.
 5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the 18-42-session Phase 6 envelope and reforecast after another
+6. Measure throughput against the 20-40-session Phase 6 envelope and reforecast after another
    material batch or an inventory correction.
 
 ## Latest session handoff
 
-- Reconciled 16 Hive bindings across `manscorpion_venom_light`,
-  `manscorpion_venom_medium`, `manscorpion_venom_heavy`, and `manscorpion_king` through exact
-  capability profiles owned by the persistent `RoL Monster Combat` procedure.
-- Added a typed successful-mobile-hit event after completed damage and weapon poison handling.
-  Preserved the source random mortal target, tier-specific chances and durations, native poison
-  immunity and Fortitude saves, nonstacking -2 Constitution, and the king's immediate-death
-  branch when RoL slow poison is absent. Lethal extraction invalidates the remaining hit context
-  so later critical-hit riders cannot touch a relocated victim.
+- Reconciled six bindings across `dk_bladestorm`, `dk_bansheeWail`,
+  `ms_sandstorm_beast`, `gc_bansheWail`, `gc_urguthaForka`, and `gc_araleshTandar` through
+  exact successful-hit profiles owned by the persistent `RoL Monster Combat` procedure.
+- Preserved the source one-in-five, one-in-four, one-in-16, one-in-six, and two one-in-11
+  trigger chances. Dobluth bladestorm retains one room-wide aggregate of primary and secondary
+  weapon damage; the two wails, sandstorm, poison fumes, and Aralesh execution retain their
+  damage, save, stun, blindness, silence, and pet-owner behavior through target-native paths.
+- Area and execution paths invalidate the outer hit context when they remove the character
+  struck by that hit. This includes Aralesh killing the same-room owner of its current pet
+  opponent and prevents later critical, artifact, or weapon riders from accessing an extracted
+  character.
 - Regenerated and hash-verified the authoritative Phase 6 bundle at
-  `lib/rol-conversion/runs/phase6-special-20260813-hive-manscorpion-venom`. A same-timestamp
-  repeat was byte-identical and reproduced run ID `rol-phase6-special-6cfc16c58f7802e2` and
-  tree digest `3e600d5c5515e2e09ec64f882a98f2d647459466cbc7d44987381484319df8f1`.
+  `lib/rol-conversion/runs/phase6-special-20260813-successful-hit-area`. A same-timestamp repeat
+  was byte-identical and reproduced run ID `rol-phase6-special-767041a4f1ffe023` and tree digest
+  `912ad77f9db500b0c4133a0293b2a3b0d9890337ae1fe379d7c2db7467b18c48`.
+- The binding ledger SHA-256 is
+  `a2766fcd0ca4ba129cd537337cd89d920deb0ee89f09b113eaa1b7980838ea7c`; the handler inventory
+  SHA-256 is `a38ec8899c6483427a63baa2e79f45dee4c4f89ea13ec18b25a3294aa9a6039e`; and the summary
+  SHA-256 is `3a236b552faea4f2af8660948795b9dc646aa37400eadf5215f6034177bdd61a`.
 - The corrected Phase 6 denominator remains 1,721 live static plus 5,531 resolved dynamic
-  binding instances. This closure raises static resolution to 1,386 and handler resolution to
-  575, leaving 335 bindings across 220 handlers in 34 source files. The `ACT_SPEC` cross-check
+  binding instances. This closure raises static resolution to 1,392 and handler resolution to
+  581, leaving 329 bindings across 214 handlers in 34 source files. The `ACT_SPEC` cross-check
   is 799 resolved and 49 pending.
-- Final validation passed: 331 world-tool tests, 668 production-linked CuTests, zero
+- Final validation passed: 332 world-tool tests, 669 production-linked CuTests, zero
   documentation findings, a warning-free Autotools build/test/install, and no root-level
-  `circle`. Installed build ID `7f003f9fda14f34566f8e5fcca02f0284bb16829`; SHA-256
-  `3ba54e3be21f60f0abed6a608e838ebe41e76f7ae7afce72685f9c127044e65d`.
+  `circle`. Installed build ID `96079d64d19cdd877edc8d4e3c84e4b7899210a0`; SHA-256
+  `033a9239a4719a688b541286d39b6680b2930a248c5fde090de867d17e187a14`.
 - No player helpfile changed: the batch adds no command or syntax. The staff manual matrix covers
-  all 16 mobiles, chance tiers, save and immunity paths, nonstacking affect behavior, and lethal
-  attack-context invalidation.
-- The seven-batch sample sets the Phase 6 envelope at 18-42 sessions, or 36-168 focused hours.
+  all six converted mobiles, chance boundaries, damage and save paths, blindness and stun,
+  silence suppression, safe area targeting, execution, and attack-context invalidation.
+- The eight-batch sample sets the Phase 6 envelope at 20-40 sessions, or 40-160 focused hours.
   Next, complete another dependency-complete shared-runtime family and reforecast after a
   material batch or inventory correction.
