@@ -527,6 +527,23 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", disposition["strategy"])
       self.assertEqual("converted mobile death profile", disposition["target"])
 
+  def test_source_death_effect_batch_shares_composable_profile_runtime(self) -> None:
+    handlers = (
+        "dk_aleanrahel",
+        "um_helmedHorror",
+        "um2_butcherKnife",
+        "um2_gargoyleDie",
+        "um2_crystalGolemDie",
+        "um2_whitePuddingSplit",
+        "weevelDeath",
+    )
+
+    for handler in handlers:
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", disposition["strategy"])
+      self.assertEqual("converted mobile death profile", disposition["target"])
+
   def test_darkhold_special_handlers_have_explicit_native_dispositions(self) -> None:
     targets = {
         "musical_skull_1": "RoL Darkhold Object",
@@ -798,13 +815,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_536, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(185, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(655, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(140, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_544, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(177, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(662, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(133, summary["source_handlers_by_status"]["pending"])
       self.assertEqual(992, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
-          208, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
+          216, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(
           38, summary["direct_bindings_by_strategy"]["SOURCE_INERT_EXCLUDED"]
@@ -823,8 +840,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       )
       self.assertEqual(2, summary["dynamic_handler_definitions_located"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(808, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(40, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(809, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(39, summary["act_spec_by_status"]["pending"])
 
       binding_rows = [
           json.loads(line)

@@ -1651,6 +1651,48 @@ class RolTransformTests(unittest.TestCase):
     self.assertNotIn(0, decode_tokens(result.records[0].action_flags).bits)
     self.assertNotIn("source ACT_SPEC deferred", " ".join(emitted.diagnostics))
 
+  def test_source_death_effect_batch_resolves_as_composable_profiles(self) -> None:
+    bindings = [
+        {
+            "basename": "source_death_effects",
+            "record_type": "mobile",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in (
+            (20221, "weevelDeath"),
+            (20267, "weevelDeath"),
+            (21783, "dk_aleanrahel"),
+            (92062, "um_helmedHorror"),
+            (93017, "um2_butcherKnife"),
+            (93018, "um2_gargoyleDie"),
+            (93020, "um2_crystalGolemDie"),
+            (93301, "um2_whitePuddingSplit"),
+        )
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(8, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name is None and binding.required_flag_bits == ()
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(
+            row["strategy"] == "NATIVE_ADAPTED_COMPOSABLE"
+            and row["target"] == "converted mobile death profile"
+            for row in compiled.dispositions
+        )
+    )
+
   def test_waterdeep_ambient_handlers_share_one_persistent_adapter(self) -> None:
     handlers = (
         "wanderer",

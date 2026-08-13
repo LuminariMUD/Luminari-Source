@@ -369,7 +369,9 @@ enum rol_death_effect
   ROL_DEATH_EFFECT_BALOR_BURST,
   ROL_DEATH_EFFECT_STONE_CRUMBLE,
   ROL_DEATH_EFFECT_DROP_POSSESSIONS,
-  ROL_DEATH_EFFECT_SPLIT_SKELETON
+  ROL_DEATH_EFFECT_SPLIT_SKELETON,
+  ROL_DEATH_EFFECT_SPLIT_MAPPED,
+  ROL_DEATH_EFFECT_WEEVIL_FIRE
 };
 
 struct rol_death_profile
@@ -673,6 +675,11 @@ static const struct rol_death_profile rol_death_profiles[] = {
      ROL_DEATH_EFFECT_SPORE_POISON, false},
     {2012024, "The bones of $n split apart and reform into two new skeletons.", NULL, 0, 0,
      ROL_DEATH_EFFECT_SPLIT_SKELETON, false},
+    {2020221, "As $n falls to the ground dead, it explodes in a shower of elemental fire.", NULL, 0,
+     0, ROL_DEATH_EFFECT_WEEVIL_FIRE, false},
+    {2020267, "As $n falls to the ground dead, it explodes in a shower of elemental fire.", NULL, 0,
+     0, ROL_DEATH_EFFECT_WEEVIL_FIRE, false},
+    {2021783, NULL, NULL, 2021820, 0, ROL_DEATH_EFFECT_REPLACE, true},
     {2053264, "The small elemental vanishes in a swirl of color.", NULL, 0, 0,
      ROL_DEATH_EFFECT_NONE, true},
     {2053268, "$n's form shimmers and changes. A mighty demonic creature appears in $s place.",
@@ -699,7 +706,16 @@ static const struct rol_death_profile rol_death_profiles[] = {
      ROL_DEATH_EFFECT_REPLACE, true},
     {2090866, "The pure blood sorcerer screams as $e transforms into a lich!", NULL, 2090917, 0,
      ROL_DEATH_EFFECT_REPLACE, true},
+    {2092062, "A final blow, and $n drops to the floor, an empty suit.", NULL, 0, 2092091,
+     ROL_DEATH_EFFECT_DROP_OBJECT, true},
     {2092613, NULL, NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2093017, "A final blow, and $n moves no more.", NULL, 0, 2093048, ROL_DEATH_EFFECT_DROP_OBJECT,
+     true},
+    {2093018, "As $n dies, it shatters into several large chunks of granite.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, true},
+    {2093020, "As $n dies, it shatters into crystal dust which quickly dissipates.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, true},
+    {2093301, NULL, NULL, 2093330, 0, ROL_DEATH_EFFECT_SPLIT_MAPPED, true},
     {2094501, "As $n crumples to ashes, a \trruby gem\tn appears.", NULL, 0, 2094508,
      ROL_DEATH_EFFECT_DROP_OBJECT, false},
     {2094502, "As $n crumples to ashes, a \tcdiamond\tn appears.", NULL, 0, 2094509,
@@ -1857,6 +1873,16 @@ int rol_conversion_death_object_vnum(int vnum)
   return profile != NULL ? profile->object_vnum : 0;
 }
 
+int rol_weevil_death_adjust_damage(int damage_amount, bool fire_protected)
+{
+  return fire_protected ? damage_amount / 2 : damage_amount;
+}
+
+static bool rol_death_hides_invisible(int vnum)
+{
+  return vnum == 2092062 || vnum == 2093017 || vnum == 2093018 || vnum == 2093020;
+}
+
 static void rol_death_transfer_to_mobile(struct char_data *source, struct char_data *replacement)
 {
   struct obj_data *item;
@@ -2122,6 +2148,50 @@ static void rol_death_split_skeleton(struct char_data *ch)
   }
 }
 
+static void rol_death_split_mapped(struct char_data *ch, int replacement_vnum)
+{
+  struct char_data *replacement;
+  int index;
+
+  for (index = 0; index < 2; index++)
+  {
+    replacement = read_mobile(replacement_vnum, VIRTUAL);
+    if (replacement == NULL)
+    {
+      log("SYSERR: RoL mapped split cannot load mobile %d for mobile %d", replacement_vnum,
+          GET_MOB_VNUM(ch));
+      return;
+    }
+    char_to_room(replacement, IN_ROOM(ch));
+    GET_MOB_LOADROOM(replacement) = IN_ROOM(ch);
+  }
+}
+
+static void rol_death_weevil_fire(struct char_data *ch)
+{
+  struct char_data *victim;
+  struct char_data *next_victim;
+  int damage_amount;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+    return;
+
+  damage_amount = dice(25, 2);
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next_victim)
+  {
+    next_victim = victim->next_in_room;
+    if (victim == ch || GET_POS(victim) <= POS_DEAD || GET_LEVEL(victim) >= LVL_IMMORT ||
+        !aoeOK(ch, victim, -1))
+      continue;
+    act("You are intensely burned by the explosion!", FALSE, victim, NULL, NULL, TO_CHAR);
+    damage_amount =
+        rol_weevil_death_adjust_damage(damage_amount, AFF_FLAGGED(victim, AFF_ELEMENT_PROT));
+    GET_HIT(victim) -= damage_amount;
+    if (GET_HIT(victim) < -10)
+      die(victim, ch);
+  }
+}
+
 static void rol_apply_death_effect(struct char_data *ch, const struct rol_death_profile *profile)
 {
   switch (profile->effect)
@@ -2154,6 +2224,12 @@ static void rol_apply_death_effect(struct char_data *ch, const struct rol_death_
   case ROL_DEATH_EFFECT_SPLIT_SKELETON:
     rol_death_split_skeleton(ch);
     break;
+  case ROL_DEATH_EFFECT_SPLIT_MAPPED:
+    rol_death_split_mapped(ch, profile->replacement_vnum);
+    break;
+  case ROL_DEATH_EFFECT_WEEVIL_FIRE:
+    rol_death_weevil_fire(ch);
+    break;
   case ROL_DEATH_EFFECT_NONE:
     break;
   }
@@ -2171,7 +2247,8 @@ bool rol_handle_conjured_death(struct char_data *ch)
   if (profile != NULL)
   {
     if (profile->message != NULL)
-      act(profile->message, FALSE, ch, NULL, NULL, TO_ROOM);
+      act(profile->message, rol_death_hides_invisible(profile->mobile_vnum), ch, NULL, NULL,
+          TO_ROOM);
     if (profile->secondary_message != NULL)
       act(profile->secondary_message, FALSE, ch, NULL, NULL, TO_ROOM);
     rol_apply_death_effect(ch, profile);

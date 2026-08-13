@@ -1362,12 +1362,81 @@ void Test_spec_rol_yggdrasil_release_and_death_profiles_preserve_source_outcomes
   CuAssertTrue(tc, rol_conversion_death_retargets_clerics(2097003));
   CuAssertTrue(tc, !rol_conversion_death_retargets_clerics(2088815));
   CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2092613));
+  CuAssertStrEquals(tc,
+                    "As $n falls to the ground dead, it explodes in a shower of elemental fire.",
+                    rol_conversion_death_message(2020221));
+  CuAssertStrEquals(tc,
+                    "As $n falls to the ground dead, it explodes in a shower of elemental fire.",
+                    rol_conversion_death_message(2020267));
+  CuAssertIntEquals(tc, 2021820, rol_conversion_death_replacement_vnum(2021783));
+  CuAssertIntEquals(tc, 2092091, rol_conversion_death_object_vnum(2092062));
+  CuAssertIntEquals(tc, 2093048, rol_conversion_death_object_vnum(2093017));
+  CuAssertStrEquals(tc, "As $n dies, it shatters into several large chunks of granite.",
+                    rol_conversion_death_message(2093018));
+  CuAssertStrEquals(tc, "As $n dies, it shatters into crystal dust which quickly dissipates.",
+                    rol_conversion_death_message(2093020));
+  CuAssertIntEquals(tc, 2093330, rol_conversion_death_replacement_vnum(2093301));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2021783));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2092062));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2093017));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2093018));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2093020));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2093301));
+  CuAssertTrue(tc, !rol_conversion_death_suppresses_corpse(2020221));
+  CuAssertIntEquals(tc, 50, rol_weevil_death_adjust_damage(50, false));
+  CuAssertIntEquals(tc, 25, rol_weevil_death_adjust_damage(50, true));
+  CuAssertIntEquals(tc, 12, rol_weevil_death_adjust_damage(25, true));
   CuAssertTrue(tc, !rol_conversion_death_suppresses_corpse(9999999));
 
   fixture.mobile_indexes[0].vnum = 2000907;
   GET_MOB_RNUM(&fixture.actor) = 0;
   CuAssertTrue(tc, rol_handle_conjured_death(&fixture.actor));
 
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_white_pudding_death_splits_into_two_mapped_mobiles(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct char_data prototypes[2];
+  struct char_data *replacement;
+  struct char_data *saved_character_list;
+  struct char_data *saved_mob_proto;
+  int replacement_count = 0;
+
+  spec_mechanics_begin(&fixture);
+  saved_character_list = character_list;
+  saved_mob_proto = mob_proto;
+  character_list = NULL;
+  memset(prototypes, 0, sizeof(prototypes));
+  spec_mechanics_initialize_npc(&prototypes[0], "white pudding", NOWHERE);
+  spec_mechanics_initialize_npc(&prototypes[1], "smaller white pudding", NOWHERE);
+  prototypes[0].player.name = "white pudding";
+  prototypes[1].player.name = "smaller white pudding";
+  GET_MOB_RNUM(&prototypes[0]) = 0;
+  GET_MOB_RNUM(&prototypes[1]) = 1;
+  mob_proto = prototypes;
+  fixture.mobile_indexes[0].vnum = 2093301;
+  fixture.mobile_indexes[1].vnum = 2093330;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+
+  CuAssertTrue(tc, rol_handle_conjured_death(&fixture.actor));
+  for (replacement = character_list; replacement != NULL; replacement = replacement->next)
+  {
+    CuAssertIntEquals(tc, 2093330, GET_MOB_VNUM(replacement));
+    CuAssertIntEquals(tc, 0, IN_ROOM(replacement));
+    CuAssertIntEquals(tc, 0, GET_MOB_LOADROOM(replacement));
+    replacement_count++;
+  }
+  CuAssertIntEquals(tc, 2, replacement_count);
+
+  while (character_list != NULL)
+  {
+    extract_char(character_list);
+    extract_pending_chars();
+  }
+  character_list = saved_character_list;
+  mob_proto = saved_mob_proto;
   spec_mechanics_end(&fixture);
 }
 

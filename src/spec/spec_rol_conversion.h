@@ -186,6 +186,7 @@ const char *rol_conversion_death_message(int vnum);
 bool rol_conversion_death_suppresses_corpse(int vnum);
 int rol_conversion_death_replacement_vnum(int vnum);
 int rol_conversion_death_object_vnum(int vnum);
+int rol_weevil_death_adjust_damage(int damage_amount, bool fire_protected);
 bool rol_conversion_death_retargets_clerics(int vnum);
 long event_rol_yggdrasil_release(void *event_obj);
 long event_rol_barbazu_bloodloss(void *event_obj);

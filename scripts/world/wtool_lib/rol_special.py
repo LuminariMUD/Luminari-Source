@@ -561,6 +561,7 @@ COMPOSABLE_MOBILE_HANDLER_AFFECTS = {
 COMPOSABLE_MOBILE_RUNTIME_HANDLERS = {
     "standardDemon": "MOB_ROL_DEMON composition-safe runtime hook",
     "dragon_shout": "RoL Guild Guard plus RoL alert runtime profile",
+    "dk_aleanrahel": "converted mobile death profile",
     "air_die": "converted mobile death profile",
     "earth_die": "converted mobile death profile",
     "elemental_tower_shout": "RoL Monster Combat plus RoL alert runtime profile",
@@ -599,7 +600,13 @@ COMPOSABLE_MOBILE_RUNTIME_HANDLERS = {
     "spore_ball": "converted mobile death profile",
     "stone_crumble": "converted mobile death profile",
     "um2_blackPuddingSplit": "converted mobile death profile",
+    "um2_butcherKnife": "converted mobile death profile",
+    "um2_crystalGolemDie": "converted mobile death profile",
+    "um2_gargoyleDie": "converted mobile death profile",
+    "um2_whitePuddingSplit": "converted mobile death profile",
+    "um_helmedHorror": "converted mobile death profile",
     "unseen_servant_die": "converted mobile death profile",
+    "weevelDeath": "converted mobile death profile",
 }
 
 # Room-owned movement behavior also needs to coexist with ordinary persisted
