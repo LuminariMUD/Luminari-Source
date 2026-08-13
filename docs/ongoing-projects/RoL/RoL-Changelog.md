@@ -9,6 +9,70 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 remaining hit-only weapons
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled seven active object bindings across six source handlers through the existing typed
+  `RoL Weapon Proc` runtime: Frostbite 196000, Trahern crystal sword 2020208, Trahern obsidian
+  sword 2020271, broadsword of dancing shadows 2021759, searing rod 2093035, and snake whips
+  2093086 and 2093156.
+- Preserved Frostbite's primary-slot one-in-22 `30d10` cold burst. Preserved primary/offhand
+  gating and one-in-33 `(level / 5)d10` source-untyped strikes for both Trahern swords, with a
+  daytime Scorching Ray for crystal and a one-round nighttime -50 movement and -4 target-AC
+  penalty for obsidian. The negative AC modifier correctly translates the old model's
+  `APPLY_AC +40` debuff sign.
+- Preserved the broadsword's primary-slot one-in-26 `37d9` negative strike and sequential
+  protection-from-evil, demon/devil, and successful-save halvings, including the source
+  fire-shield save modifier. Preserved critical-only level-40 poison on both snake whips and
+  level-35 Burning Hands on the searing rod.
+- Added deterministic profile, hour-boundary, dice-shape, reduction-order, translated-AC,
+  disposition, converter-persistence, and required-auto-flag regressions. No player helpfile
+  changed because the batch adds no player command or syntax; the staff manual records the
+  dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,575 to 1,582 static bindings
+  and from 670 to 676 direct handlers, leaving 139 bindings across 119 handlers in 27 source
+  files. The independent `ACT_SPEC` cross-check remains 816 resolved and 32 pending.
+- Reforecast twenty-four corrected batches covering 336 bindings across 138 handlers. The
+  remaining Phase 6 envelope is 10-21 sessions, or 20-84 focused engineering hours; the full
+  remaining project envelope is 66-105 sessions, or 132-420 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: f78984d3
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-hit-weapons
+Reconciliation run: rol-phase6-special-db296ed8ac49dda1
+Evidence tree SHA-256: 5dbad7b2c97abbfbb5e8b54abd312003347028cfb30eed515faffe1bf61f12ca
+Active direct bindings: 1,721
+Direct bindings resolved: 1,582
+Direct bindings pending: 139
+Source handlers resolved: 676
+Source handlers pending: 119
+Additional handler families resolved: 6
+Additional direct bindings resolved: 7
+Native adapted bindings: 1,030
+Native adapted composable bindings: 216
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 816
+ACT_SPEC records pending: 32
+Complete world-tool suite: 356 passed
+Production-linked CuTest suite: 688 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 9fa0289f1b4925c85e2b0a096f4b04b2b6019109
+Installed SHA-256: fe7bd2a11aaf50ca9625722e1a46c4f1b7efe21db0fc73c89048e531069d831d
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat or utility family.
+
 ## 2026-08-13 - Phase 6 Undermountain Death's Head lifecycle
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

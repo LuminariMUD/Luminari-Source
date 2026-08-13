@@ -394,6 +394,9 @@ Phase 6 Undermountain drow conclave guards:
 Phase 6 Undermountain Death's Head lifecycle:
   lib/rol-conversion/runs/phase6-special-20260813-deaths-head
   rol-phase6-special-cc7c00546c5db049
+Phase 6 remaining hit-only weapons:
+  lib/rol-conversion/runs/phase6-special-20260813-hit-weapons
+  rol-phase6-special-db296ed8ac49dda1
 Policy:  rol-conversion-policy-2
 ```
 
@@ -422,12 +425,12 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 354 tests; the production-linked CuTest suite passes 688;
+- The world-tool suite passes 356 tests; the production-linked CuTest suite passes 688;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The corrected discovery repair and twenty-three subsequent denominator-bearing batches are
-  archived. Those batches closed 329 bindings across 132 source handlers. The measured remaining
-  Phase 6 forecast is 11-22 sessions, or 22-88 focused engineering hours; the full remaining
-  project range is 67-106 sessions, or 134-424 focused hours.
+- The corrected discovery repair and twenty-four subsequent denominator-bearing batches are
+  archived. Those batches closed 336 bindings across 138 source handlers. The measured remaining
+  Phase 6 forecast is 10-21 sessions, or 20-84 focused engineering hours; the full remaining
+  project range is 66-105 sessions, or 132-420 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -900,10 +903,17 @@ Policy:  rol-conversion-policy-2
   identities, implanted seed, corpse-fed growth, head and fruit cycles, cries, bites, carrier
   damage, and corpse germination. The source's always-eleven mature regrowth, unreachable wood
   branch, already-seeded-corpse gate, and successful-sprout seed lifetime remain explicit.
-- The twenty-three corrected batches close 329 bindings across 132 handlers. That measured
-  throughput puts the binding-count projection near 11 sessions and the handler-diversity
-  projection near 22. Because 111 of 125 remaining handlers are singletons, the published Phase 6
-  envelope is 11-22 sessions, or 22-88 focused engineering hours. Reforecast after another
+- The remaining hit-only weapon batch closes seven bindings across six handlers through `RoL
+  Weapon Proc`. Frostbite preserves its primary-slot one-in-22 `30d10` cold burst. The Trahern
+  swords preserve primary/offhand one-in-33 level-derived damage plus a daytime scorching ray or
+  nighttime one-round movement and armor penalties. Dancing Shadows preserves its primary-slot
+  one-in-26 `37d9` strike and sequential protection, demon/devil, and save reductions. The two
+  snake whips retain critical level-40 poison and the searing rod retains critical level-35
+  burning hands. Converter output adds the automatic-procedure flag with the persisted binding.
+- The twenty-four corrected batches close 336 bindings across 138 handlers. That measured
+  throughput puts the binding-count projection near 10 sessions and the handler-diversity
+  projection near 21. Because 106 of 119 remaining handlers are singletons, the published Phase 6
+  envelope is 10-21 sessions, or 20-84 focused engineering hours. Reforecast after another
   material batch or an inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
@@ -914,55 +924,62 @@ Policy:  rol-conversion-policy-2
    merely by name or VNUM proximity.
    The Jotun object-passive family remains pending until source hit/damage slot mutation can be
    mapped without overwriting or double-counting the target's distinct enhancement applies.
+   The Acheron portal family remains pending until its recorded entrance, `achexit`, logout,
+   death, follower, and delayed-return lifecycle can be ported together without a one-way trap.
 3. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
 4. Preserve the six locked malformed record exclusions as explicit, logged
    smallest-unit exclusions.
 5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the 11-22-session Phase 6 envelope and reforecast after another
+6. Measure throughput against the 10-21-session Phase 6 envelope and reforecast after another
    material batch or an inventory correction.
 
 ## Latest session handoff
 
-- Implementation commit `55a19242` reconciles all five active Death's Head bindings through one
-  `RoL Death's Head` definition: mobiles 2093013-2093016 and seed object 2093044.
-- The tree port preserves source head-count ranges, corpse-fed sapling and young growth,
-  larger-tree suppression, mature regrowth and fruit drop cycles, directional cries, per-head
-  bite rolls, seed implantation, and corpse suppression. The active source's always-eleven
-  mature regrowth and unreachable mature-wood comparison remain unchanged.
-- Fruit 2093014 preserves its mortal-PC bite gate and the source's actual periodic rule: it adds
-  a second seed only to a corpse already containing a seed, then extracts. Tree bites preserve
-  the unrestricted source victim handling and do not deduplicate seeds.
-- The new object event translates the source four-Hz cadence to the target clock, grows and
-  damages a living carrier, and germinates a corpse-held seed when a room occupant is present.
-  A successful sprout deliberately leaves the source seed until a later auto pulse finds the
-  new tree and removes it. Event and owner invalidation make extraction paths lifecycle-safe.
+- Implementation commit `f78984d3` reconciles seven active hit-only weapon bindings across six
+  handlers through the existing typed `RoL Weapon Proc` definition: objects 196000, 2020208,
+  2020271, 2021759, 2093035, 2093086, and 2093156.
+- Frostbite retains primary-slot gating, a one-in-22 chance, and `30d10` cold damage. The crystal
+  and obsidian swords retain primary/offhand gating, a one-in-33 chance, `(level / 5)d10`
+  source-untyped damage, and exact hour boundaries. Crystal adds daytime Scorching Ray; obsidian
+  adds a one-round nighttime -50 movement and -4 target-AC penalty, translating the old model's
+  `APPLY_AC +40` sign rather than turning the debuff into a bonus.
+- Dancing Shadows retains primary-slot gating, a one-in-26 `37d9` negative strike, sequential
+  halving for protection from evil, source demons/devils, and a successful Will save, plus the
+  source fire-shield save modifier. Both snake whips retain critical level-40 poison and the
+  searing rod retains critical level-35 Burning Hands. Native damage and context invalidation
+  make lethal paths safe.
+- Reconciliation maps all six handler names to the exact identity runtime. Compiled object output
+  persists `RoL Weapon Proc` and required extra-flag bit 44 together. No registry definition was
+  added. The separate Jotun object-passive family remains pending because this batch changes no
+  object apply slot.
 - The authoritative evidence is
-  `lib/rol-conversion/runs/phase6-special-20260813-deaths-head`, run
-  `rol-phase6-special-cc7c00546c5db049`. A same-timestamp repeat was byte-identical. The standard
+  `lib/rol-conversion/runs/phase6-special-20260813-hit-weapons`, run
+  `rol-phase6-special-db296ed8ac49dda1`. A same-timestamp repeat was byte-identical. The standard
   path-and-content tree digest is
-  `8977cf28391aa44303dd9c3f73ce5e19baed8fab6a52a1befe114f3791916509`.
+  `5dbad7b2c97abbfbb5e8b54abd312003347028cfb30eed515faffe1bf61f12ca`.
 - The binding ledger SHA-256 is
-  `446c27b916f8aa5a198c363f7f993776af74fa199ca2bd915718f6e11e77cc04`; the handler inventory
-  SHA-256 is `4026ca2d6ff31ee4d415108ab19bbb7bb096b4a0fab4674fbd405cb1d129c9da`; and the summary
-  SHA-256 is `ffe29faf9dcc7345dc85bfb35d746872bd97c60ce0ec9be47992703f94bcf730`.
+  `a4e496c766dc910d22ba8077127797e4281e854442540ec25df3c0aad11e84f5`; the handler inventory
+  SHA-256 is `fdf513aab70706d7487023d78ed51cc328394b690f2227887275357cd9a10ce5`; and the summary
+  SHA-256 is `8b6b4828d667cefeb0369ba1fc051d7ae8230783bb8d23ac48584544eec4c5cc`.
 - The denominator remains 1,721 live static plus 5,531 resolved dynamic binding instances.
-  Resolution is now 1,575 static bindings across 670 handlers, leaving 146 bindings across 125
-  handlers in 27 source files. The independent `ACT_SPEC` cross-check is 816 resolved and 32
-  pending. The pending shape is 111 singletons and 14 two-to-four-binding families, with no
-  five-or-more-binding family left. All automatic race and dynamic paths remain complete, with
-  zero live target writes.
-- The target registry now exposes 117 definitions: 98 legacy and 19 typed, with 118 persisted
-  compatibility names. Final validation passed: 354 world-tool tests, 688 production-linked
+  Resolution is now 1,582 static bindings across 676 handlers, leaving 139 bindings across 119
+  handlers in 27 source files. The independent `ACT_SPEC` cross-check remains 816 resolved and 32
+  pending. The pending shape is 106 singletons, seven two-binding, five three-binding, and one
+  four-binding family. All automatic race and dynamic paths remain complete, with zero live
+  target writes.
+- The target registry remains 117 definitions: 98 legacy and 19 typed, with 118 persisted
+  compatibility names. Final validation passed: 356 world-tool tests, 688 production-linked
   CuTests, a complete CMake build and all 12 CTest targets, zero documentation findings, a
   warning-free Autotools build/test/install, and no root-level `circle`. Installed build ID
-  `4c453b2f86bffbfcd36dfdbd2ef08b840ae3b515`; SHA-256
-  `140b1cfca787d5d053f01375f95fe0d13bb83702e8217a16ce233eaaa8a8931d`.
+  `9fa0289f1b4925c85e2b0a096f4b04b2b6019109`; SHA-256
+  `fe7bd2a11aaf50ca9625722e1a46c4f1b7efe21db0fc73c89048e531069d831d`.
 - No player helpfile changed because the batch adds no player command or syntax. The staff manual
-  covers all five bound identities, growth, head and fruit cycles, bites, seed timing, corpse
-  germination, source quirks, and the dependency-stage boundary.
-- Twenty-three measured batches have closed 329 bindings across 132 handlers. The remaining Phase
-  6 envelope is 11-22 sessions, or 22-88 focused hours; the full remaining project envelope is
-  67-106 sessions, or 134-424 focused hours. Next, select the highest-value dependency-complete
-  pending combat or utility family while leaving the Jotun apply-slot mapping explicit.
+  covers all seven bound identities, slots, chances, critical effects, hour boundaries, layered
+  reductions, converter persistence, source quirks, and the dependency-stage boundary.
+- Twenty-four measured batches have closed 336 bindings across 138 handlers. The remaining Phase
+  6 envelope is 10-21 sessions, or 20-84 focused hours; the full remaining project envelope is
+  66-105 sessions, or 132-420 focused hours. Next, select the highest-value dependency-complete
+  pending combat or utility family while leaving the Jotun apply-slot and Acheron return
+  lifecycle dependencies explicit.

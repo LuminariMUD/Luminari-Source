@@ -1734,6 +1734,35 @@ This lifecycle is production-tested and reconciled, but the current five-zone pi
 Undermountain Death's Head package. Exercise it only after a Phase 7 stage supplies all five
 bound prototypes and their rooms; do not hand-edit the pilot.
 
+### Phase 6 remaining hit-only weapons
+
+- In dependency-complete stages, confirm objects 196000, 2020208, 2020271, 2021759, 2093035,
+  2093086, and 2093156 persist `RoL Weapon Proc` and object extra-flag bit 44. `stat object` must
+  show the identity-specific special-effect description rather than a generic or missing proc.
+- Wield Frostbite 196000 in a primary weapon slot and make repeated hits. Its one-in-22 proc must
+  deal `30d10` cold damage. Move it to an offhand-only slot and confirm that the burst stops.
+- Wield crystal sword 2020208 and obsidian sword 2020271 in either a primary or offhand slot.
+  Their one-in-33 procs must deal `(level / 5)d10` source-untyped damage. At source hours 6-17,
+  the crystal sword must also cast Scorching Ray; at hours 0-5 and 18-23 it must not. The
+  obsidian sword uses the inverse boundary: at night it applies one round of -50 maximum movement
+  and -4 AC, while source hours 6-17 apply neither penalty.
+- Wield broadsword of dancing shadows 2021759 in a primary slot. Its one-in-26 proc must roll
+  `37d9` negative damage. Protection from evil halves the roll; a converted demon or devil halves
+  it again; and a successful Will save halves the remainder again. Fire Shield applies the
+  source save modifier. Verify the reductions in that order with an exact test fixture if live
+  randomness makes the combined case impractical. The proc must not fire from an offhand slot.
+- Critical-hit test both snake whips, 2093086 and 2093156. Each must cast level-40 poison on the
+  struck target. Critical-hit test searing rod 2093035; it must cast level-35 Burning Hands.
+  Ordinary noncritical hits from these three identities must not fire their critical effect.
+- Kill a target with each direct-damage identity and confirm no later hit rider dereferences the
+  extracted target. Regenerate a staged object and confirm the persisted procedure and required
+  auto-procedure flag are emitted together.
+
+These weapons are production-tested and reconciled, but the current five-zone pilot does not
+contain all seven prototypes. Exercise each only after a Phase 7 stage supplies its owning
+package. This checkpoint resolves hit and critical callbacks only: do not treat it as approval to
+rewrite Frostbite's separate Jotun passive apply slots.
+
 ### RoL exit-trap compatibility
 
 - Swamp Two room 2026051 contains the pilot's converted exit trap on the down exit. It

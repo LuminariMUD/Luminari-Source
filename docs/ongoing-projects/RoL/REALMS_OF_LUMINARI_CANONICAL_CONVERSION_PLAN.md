@@ -820,6 +820,14 @@ head counts, fruit shedding, cries, bite implantation, carrier damage, and corps
 The source's always-eleven mature regrowth, unreachable wood drop, existing-seed fruit gate, and
 successful-sprout seed lifetime remain explicit, while object extraction and mobile replacement
 use target invalidation and event ownership safely.
+The twenty-fourth reconciled the seven remaining hit-only weapon bindings across six handlers.
+Frostbite, the Trahern crystal and obsidian swords, the broadsword of dancing shadows, both drow
+snake whips, and the searing rod now share the typed exact-identity weapon runtime. The port
+preserves authored slots, one-in-22, one-in-33, and one-in-26 chances, critical-only poison and
+fire, damage dice, daytime scorching ray, nighttime movement and armor penalties, layered shadow
+reductions, source fire-shield save pressure, and target invalidation. Converter output persists
+the procedure and required automatic-procedure flag together. This closes the hit callbacks only;
+the separate Jotun passive apply-slot family remains pending.
 Next, select the highest-value dependency-complete pending combat or utility group.
 
 Preserve the six already locked malformed or ignored rows as explicit, logged
@@ -831,12 +839,12 @@ gate at substantial checkpoints. Add a new source file to both `Makefile.am` and
 `CMakeLists.txt`.
 
 **Exit gate:** every active binding is kept, patched, adapted, ported, or minimally
-excluded with behavior evidence. The measured remaining Phase 6 planning envelope is 11-22
-sessions, or 22-88 focused engineering hours. The first twenty-two corrected batches closed 324
-bindings across 129 handlers, and the twenty-third raises that closure to 329 bindings across
-132 handlers, leaving an arithmetic binding projection near 11 sessions and a handler-diversity
-projection near 22. The published range allows shared runtime families to outperform the
-handler projection while recognizing that 111 of the remaining 125 handlers are
+excluded with behavior evidence. The measured remaining Phase 6 planning envelope is 10-21
+sessions, or 20-84 focused engineering hours. The first twenty-three corrected batches closed
+329 bindings across 132 handlers, and the twenty-fourth raises that closure to 336 bindings
+across 138 handlers, leaving an arithmetic binding projection near 10 sessions and a
+handler-diversity projection near 21. The published range allows shared runtime families to
+outperform the handler projection while recognizing that 106 of the remaining 119 handlers are
 singletons and many require source-specific tracing. Reforecast after another material batch or
 any inventory correction.
 
@@ -1069,7 +1077,7 @@ all evidence in the Definition of Done.
 
 **Estimate:** 6-10 sessions. The combined post-Phase-6 envelope is therefore initially
 56-84 sessions for Phases 6.5-8 (112-336 focused hours). With the measured Phase 6
-envelope, the current remaining project range is 67-106 sessions, or 134-424 focused
+envelope, the current remaining project range is 66-105 sessions, or 132-420 focused
 hours. This supersedes the old 49-79-session, 74-114-session, and corresponding hour
 forecasts. Replace the post-rebase envelope after the Phase 6.5 measured reforecast.
 
