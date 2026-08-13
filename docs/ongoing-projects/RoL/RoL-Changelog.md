@@ -9,6 +9,69 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Undermountain Death's Head lifecycle
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled all five active Undermountain Death's Head bindings through one owner-aware
+  `RoL Death's Head` runtime: sapling, fruit, young, and mature mobiles 2093013-2093016 and
+  seed object 2093044.
+- Preserved source head-count ranges, corpse-fed immature growth, larger-tree suppression,
+  mature head regrowth, fruit shedding, directional cries, per-head bite chances, and ordinary
+  corpse suppression. The source's always-eleven mature regrowth and unreachable wood drop
+  remain explicit behavior rather than silently repaired intent.
+- Preserved wandering-fruit implantation and bite behavior, including the actual source rule
+  that a fruit buries a second seed only in a corpse already containing one seed. Tree bites
+  retain the source's unrestricted victim handling; fruit bites remain limited to mortal PCs.
+- Added lifecycle-safe object events for implanted-seed growth, source-clock translation,
+  direct carrier damage, corpse germination, existing-tree cleanup, and the source quirk that a
+  successful sprout leaves its seed for the next periodic pass to remove.
+- Added reconciliation, transform, registry, OLC, persistence, profile, cadence, damage,
+  germination-pulse, and death-flow regressions. No player helpfile changed because the batch
+  adds no player command or syntax; the staff manual records the dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,570 to 1,575 static bindings
+  and from 667 to 670 direct handlers, leaving 146 bindings across 125 handlers in 27 source
+  files. The independent `ACT_SPEC` cross-check advances to 816 resolved and 32 pending.
+- Reforecast twenty-three corrected batches covering 329 bindings across 132 handlers. The
+  remaining Phase 6 envelope remains 11-22 sessions, or 22-88 focused engineering hours; the
+  full remaining project envelope remains 67-106 sessions, or 134-424 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 55a19242
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-deaths-head
+Reconciliation run: rol-phase6-special-cc7c00546c5db049
+Evidence tree SHA-256: 8977cf28391aa44303dd9c3f73ce5e19baed8fab6a52a1befe114f3791916509
+Active direct bindings: 1,721
+Direct bindings resolved: 1,575
+Direct bindings pending: 146
+Source handlers resolved: 670
+Source handlers pending: 125
+Additional handler families resolved: 3
+Additional direct bindings resolved: 5
+Native adapted bindings: 1,023
+Native adapted composable bindings: 216
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 816
+ACT_SPEC records pending: 32
+Complete world-tool suite: 354 passed
+Production-linked CuTest suite: 688 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 4c453b2f86bffbfcd36dfdbd2ef08b840ae3b515
+Installed SHA-256: 140b1cfca787d5d053f01375f95fe0d13bb83702e8217a16ce233eaaa8a8931d
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat or utility family.
+
 ## 2026-08-13 - Phase 6 Undermountain drow conclave guards
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

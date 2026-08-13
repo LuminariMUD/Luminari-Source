@@ -1697,6 +1697,43 @@ use `detecttrap <object>` and `disabletrap <object>`. None of the five Phase 4 p
 packages contains an active source object trap, so test these commands only after a
 later staged batch includes one; do not invent or hand-edit a trap into this pilot.
 
+### Phase 6 Undermountain Death's Head lifecycle
+
+- In a dependency-complete Undermountain stage, confirm mobiles 2093013-2093016 use
+  `RoL Death's Head` with `MOB_SPEC`, and seed object 2093044 uses the same owner-aware
+  procedure with its object auto-procedure flag.
+- Load sapling 2093013, young tree 2093015, and mature tree 2093016 separately. Their initial
+  head counts must fall in ranges 1-5, 6-10, and 11-16. Put a larger tree in the same room as
+  a sapling or young tree; the smaller tree must die out on its next activity pulse.
+- Leave a sapling or young tree with zero or one ordinary corpse for more than 21 activity
+  pulses; it must remain unchanged and restart its growth count. Repeat with two corpses; it
+  must replace itself with the next tree stage and suppress its ordinary corpse.
+- Observe a mature tree for 51 activity pulses. Its source-bug-compatible regrowth must set the
+  head count to exactly 11. Every 11 pulses, each current head has an independent one-in-three
+  fruit-drop chance, but the tree must retain at least one head. Its one-in-ten cry attempt must
+  send the opposite-direction line through the first valid exit in source direction order.
+- Fight each tree repeatedly. Every head has an independent one-in-21 bite chance per hit event;
+  a bite adds seed 2093044 to the current victim, including NPC or staff victims, and does not
+  deduplicate existing seeds. Killing any tree must suppress its ordinary corpse. The mature
+  tree must not drop wood because the active source compares a mobile index with an object index
+  and its wood branch is unreachable.
+- Fight fruit mobile 2093014 with a mortal player. Its one-in-11 bite chance must implant seed
+  2093044; staff and NPC victims are exempt. Killing the fruit suppresses its ordinary corpse.
+  In a tree-free room, a wandering fruit must ignore an unseeded corpse, but a corpse already
+  containing one seed causes the fruit to add a second seed and extract itself.
+- Carry seed 2093044 in a mortal. Its first growth event occurs after the source-equivalent
+  60 seconds and later events recur every 3.5-4.5 seconds. Growth increments object value zero,
+  deals one-to-two damage initially and then two-to-growth damage, and emits the wince message.
+  Staff receive the message without damage.
+- Move the seed into an ordinary corpse in a populated room above internal room index zero. With
+  no tree present, the next object pulse or seed event must create sapling 2093013. The successful
+  sprout deliberately leaves the seed in the corpse; the next pulse detects the existing tree
+  and removes it. A seed placed beside an existing tree must be removed without creating another.
+
+This lifecycle is production-tested and reconciled, but the current five-zone pilot contains no
+Undermountain Death's Head package. Exercise it only after a Phase 7 stage supplies all five
+bound prototypes and their rooms; do not hand-edit the pilot.
+
 ### RoL exit-trap compatibility
 
 - Swamp Two room 2026051 contains the pilot's converted exit trap on the down exit. It
@@ -1731,9 +1768,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,570 are resolved and 151 remain. Of 795 distinct
-  direct source handlers, 667 are resolved and 128 remain. Of 848 `ACT_SPEC` records, 812
-  are resolved and 36 remain. The automatic race procedures
+  of the 1,721 active direct bindings, 1,575 are resolved and 146 remain. Of 795 distinct
+  direct source handlers, 670 are resolved and 125 remain. Of 848 `ACT_SPEC` records, 816
+  are resolved and 32 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
