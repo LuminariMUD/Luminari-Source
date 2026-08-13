@@ -9,6 +9,68 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Undermountain Vortex Knights
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled the three active `um2_silverKnight`, `um2_goldenKnight`, and
+  `um2_platinumKnight` bindings through the existing composable mobile-death runtime. Converted
+  Knights 2093003-2093005 need no persistent special-procedure name or flag.
+- Preserved the source peer gate: every Knight death suppresses the ordinary corpse, but a portal
+  appears only when no other same-prototype Knight remains in the room. A different Knight
+  identity does not block creation.
+- Mapped the last Silver, Golden, and Platinum Knight to portals 2093006, 2093007, and 2093008.
+  Each portal receives target-native decay state and timer one. The room message remains
+  identity-exact, including `coallesces` for Silver and Golden and `coellesces` for Platinum.
+- Added deterministic profile, runtime, peer-present, last-peer, portal-mapping, decay,
+  corpse-suppression, converter, explicit-disposition, and ledger-count regressions. The runtime
+  also logs an explicit error for a missing portal prototype without changing the authored corpse
+  disposition.
+- Regenerated deterministic evidence. Resolution increases from 1,590 to 1,593 static bindings
+  and from 682 to 685 direct handlers, leaving 128 bindings across 110 handlers in 27 source
+  files. The independent `ACT_SPEC` cross-check advances from 816/32 to 819/29.
+- Reforecast twenty-seven corrected batches covering 347 bindings across 147 handlers. The
+  remaining Phase 6 envelope stays 10-20 sessions, or 20-80 focused engineering hours; the full
+  remaining project envelope stays 66-104 sessions, or 132-416 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 92297f1a
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-vortex-knights
+Reconciliation run: rol-phase6-special-a388d8f9ac2be8ec
+Evidence tree SHA-256: cc66d6a3447e67c117397e04e1322c5bbcea4b4af1a2367255baee13da78132c
+Active direct bindings: 1,721
+Direct bindings resolved: 1,593
+Direct bindings pending: 128
+Source handlers resolved: 685
+Source handlers pending: 110
+Additional handler families resolved: 3
+Additional direct bindings resolved: 3
+Native adapted bindings: 1,038
+Native adapted composable bindings: 219
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 819
+ACT_SPEC records pending: 29
+Complete world-tool suite: 362 passed
+Production-linked CuTest suite: 691 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: b89549fe7420fb472743419546073a4f51f5bb34
+Installed SHA-256: d6407eca0abd6f1a65b8d28ca429c320f34d210df2278ab643ba404b4825cdd2
+Evidence artifact hashes: 7 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+No player helpfile changed because this checkpoint adds no player command or syntax. The staff
+manual records the same-prototype peer gate, mapped portals and destinations, corpse suppression,
+source spelling, target decay behavior, and dependency-stage boundary.
+
 ## 2026-08-13 - Phase 6 Undermountain Astral-forged and Torin weapons
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

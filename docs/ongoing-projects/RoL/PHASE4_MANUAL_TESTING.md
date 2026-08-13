@@ -1827,6 +1827,28 @@ five-zone pilot does not contain their Undermountain package. Exercise them only
 stage supplies the four prototypes and the exact converted room set; do not mark an entire mixed
 zone Astral by hand.
 
+### Phase 6 Undermountain Vortex Knights
+
+- In a dependency-complete Undermountain stage, load Silver Knight 2093003 with silver portal
+  2093006 and destination room 2093097; Golden Knight 2093004 with golden portal 2093007 and
+  destination 2093098; and Platinum Knight 2093005 with platinum portal 2093008 and destination
+  2093099. The three mobiles compose their death profiles without consuming a persistent
+  special-procedure slot.
+- Put two instances of one Knight identity in the same room and kill one. The ordinary corpse
+  must be suppressed, but no portal may appear while the same-prototype peer remains. A different
+  Knight identity in the room must not block the portal.
+- Kill the last Silver, Golden, or Platinum Knight of its prototype in the room. It must suppress
+  the ordinary corpse, create exactly its mapped portal in the death room, and emit the matching
+  dissolve-and-coalesce message. Preserve the source spelling: Silver and Golden say
+  `coallesces`, while Platinum says `coellesces`.
+- Inspect each created portal. It must have the target decay flag and timer one, enter its mapped
+  destination normally, and disappear on the next target mud-hour object update. A missing portal
+  prototype must log an explicit error while the authored corpse suppression still occurs.
+
+These deaths are production-tested and reconciled, but the current five-zone pilot contains no
+Vortex Knight package. Exercise them only after a Phase 7 stage supplies all three Knights, all
+three portals, and all three destination rooms; do not hand-create only one side of a portal.
+
 ### RoL exit-trap compatibility
 
 - Swamp Two room 2026051 contains the pilot's converted exit trap on the down exit. It
@@ -1861,9 +1883,9 @@ zone Astral by hand.
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,590 are resolved and 131 remain. Of 795 distinct
-  direct source handlers, 682 are resolved and 113 remain. Of 848 `ACT_SPEC` records, 816
-  are resolved and 32 remain. The automatic race procedures
+  of the 1,721 active direct bindings, 1,593 are resolved and 128 remain. Of 795 distinct
+  direct source handlers, 685 are resolved and 110 remain. Of 848 `ACT_SPEC` records, 819
+  are resolved and 29 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

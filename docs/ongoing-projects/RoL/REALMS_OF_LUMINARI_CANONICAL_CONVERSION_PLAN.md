@@ -251,17 +251,17 @@ ledger measures:
 
 - 1,813 static candidates, of which 92 are preprocessor-excluded and 1,721 are live;
 - 1,098 mobile, 323 object, and 300 room bindings across 795 direct handler names;
-- 1,590 resolved and 131 pending live static bindings, with 682 resolved and 113 pending
+- 1,593 resolved and 128 pending live static bindings, with 685 resolved and 110 pending
   direct handler names;
 - two resolved dynamic paths representing 5,078 quest and 453 shop binding instances;
 - 7,252 total active static and dynamic binding instances across 797 handler names; and
-- 816 resolved and 32 pending records in the independent 848-record `ACT_SPEC`
+- 819 resolved and 29 pending records in the independent 848-record `ACT_SPEC`
   cross-check.
 
 The corrected dependent evidence is Phase 1 run `rol-phase1-237602d3ade48138`, Phase 2
 run `rol-phase2-c93b8c4610b36d1e`, Phase 5 run
 `rol-phase5-audit-cec58661a4f21a2a`, and Phase 6 run
-`rol-phase6-special-b7608369f0ec3ad9`. The older 1,112/1,147 binding, 538/562 handler,
+`rol-phase6-special-a388d8f9ac2be8ec`. The older 1,112/1,147 binding, 538/562 handler,
 and 830/848 `ACT_SPEC` counts are historical checkpoints only.
 
 ## 4. Canonical identity and rehome contract
@@ -721,7 +721,7 @@ forecasts are in [RoL-Changelog.md](RoL-Changelog.md).
 
 The call-path-aware extractor, macro resolution, dynamic shop/quest dispositions,
 regression fixtures, and dependent Phase 1, 2, 5, and 6 regeneration are complete. The
-remaining measured scope is 131 live static bindings across 113 direct handler names in
+remaining measured scope is 128 live static bindings across 110 direct handler names in
 27 source files. The first corrected-denominator closure completed the four-handler,
 four-binding Tarrasque encounter and added the missing typed mobile-death gateway. The second
 reused the established target class-family guild adapters for 14 source callbacks and 37 room
@@ -845,6 +845,12 @@ Warrior nor Cleric Mountain Dwarf or Duergar, and retain source identification t
 2093447 additionally casts level-40 Chain Lightning on critical hits. The shared weapon pulse
 contract now permits authored ground and contained-object events while retaining equipped/combat
 requirements for weapon-hit callbacks.
+The twenty-seventh reconciled the three Undermountain Vortex Knight death handlers through the
+existing composable mobile-death runtime. Silver, Golden, and Platinum Knights 2093003-2093005
+now suppress their ordinary corpses and create their mapped portals 2093006-2093008 only when no
+same-prototype peer remains in the room. Each portal receives target-native one-tick decay;
+the identity-specific source message, including its spelling variation, remains exact. Phase 7
+must stage the converted portal prototypes and their mapped destinations before live testing.
 Next, select the highest-value dependency-complete pending combat or utility group.
 
 Preserve the six already locked malformed or ignored rows as explicit, logged
@@ -857,11 +863,10 @@ gate at substantial checkpoints. Add a new source file to both `Makefile.am` and
 
 **Exit gate:** every active binding is kept, patched, adapted, ported, or minimally
 excluded with behavior evidence. The measured remaining Phase 6 planning envelope is 10-20
-sessions, or 20-80 focused engineering hours. The first twenty-five corrected batches closed
-339 bindings across 141 handlers, and the twenty-sixth raises that closure to 344 bindings
-across 144 handlers, leaving an arithmetic binding projection near 10 sessions and a
+sessions, or 20-80 focused engineering hours. Twenty-seven corrected batches have closed 347
+bindings across 147 handlers, leaving an arithmetic binding projection near 10 sessions and a
 handler-diversity projection near 20. The published range allows shared runtime families to
-outperform the handler projection while recognizing that 102 of the remaining 113 handlers are
+outperform the handler projection while recognizing that 99 of the remaining 110 handlers are
 singletons and many require source-specific tracing. Reforecast after another material batch or
 any inventory correction.
 
