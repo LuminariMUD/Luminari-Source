@@ -1204,6 +1204,29 @@ These profiles are production-tested and reconciled but are absent from the curr
 pilot. Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit
 them into the pilot.
 
+### Phase 6 Dusk Road paralysis gaze and Undermountain venom tails
+
+- Build a dependency-complete stage containing Dusk Road basilisks 2089793 and 2089794,
+  Undermountain manscorpion 2093061, and wyverns 2093219 and 2094563. Confirm each identity
+  retains `MOB_SPEC` and uses `RoL Monster Combat`; unrelated mobiles must not receive a profile.
+- Land successful hits with level-40 basilisk 2089793 and level-50 basilisk 2089794. Their gaze
+  checks must occur about one in four and one in two successful hits respectively. The scan must
+  skip the basilisk, staff, already-held victims, and ineligible NPCs; it must preserve room-list
+  order, require the victim to see the basilisk, continue after a successful Fortitude save, and
+  paralyze the first failed eligible target for ten rounds. Confirm the source-equivalent +1 and
+  +2 victim save modifiers for the two identities.
+- Land noncritical and critical hits with manscorpion 2093061. A noncritical hit must not invoke
+  the tail. On a critical hit, paralysis-immune or successful-save victims must survive without
+  paralysis; a failed Fortitude save must paralyze the victim for a random two to twelve rounds.
+- Repeat with wyverns 2093219 and 2094563. Noncritical hits must not invoke the tail, while a
+  failed Fortitude save after a critical hit is fatal. Paralysis immunity and a successful save
+  must prevent death, and fatal target invalidation must prevent any later hit rider from using
+  the extracted victim.
+
+These profiles are production-tested and reconciled but are absent from the current five-zone
+pilot. Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit
+them into the pilot.
+
 ### Phase 6 converted Scornubel profiles
 
 - Build a dependency-complete Scornubel stage containing mobiles 2006001, 2006002, 2006006,
@@ -1680,8 +1703,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,559 are resolved and 162 remain. Of 795 distinct
-  direct source handlers, 663 are resolved and 132 remain. Of 848 `ACT_SPEC` records, 811
+  of the 1,721 active direct bindings, 1,564 are resolved and 157 remain. Of 795 distinct
+  direct source handlers, 666 are resolved and 129 remain. Of 848 `ACT_SPEC` records, 811
   are resolved and 37 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

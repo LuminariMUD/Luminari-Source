@@ -9,6 +9,67 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 paralysis gaze and venom tails
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled five active Dusk Road and Undermountain bindings across three handlers through the
+  existing exact-identity `RoL Monster Combat` runtime.
+- Added profiles for Dusk Road basilisks 2089793 and 2089794, Undermountain manscorpion 2093061,
+  and wyverns 2093219 and 2094563.
+- Preserved the basilisk source's level-derived one-in-four and one-in-two successful-hit chances,
+  room-list scan order, victim eligibility and visibility, continue-after-resist behavior, exact
+  save pressure, first-failed-target selection, and ten-round paralysis.
+- Preserved critical-only manscorpion and wyvern tail effects, target-native paralysis immunity
+  and Fortitude saves, random two-to-twelve-round manscorpion paralysis, and fatal wyvern venom.
+  A fatal result invalidates the outer hit context so later riders cannot use the extracted target.
+- Added reconciliation, exact-profile, gaze-order, save, duration, critical-gate, fatal-result,
+  and production-runtime regressions. No player helpfile changed because the batch adds no player
+  command or syntax; the staff manual records the dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,559 to 1,564 static bindings
+  and from 663 to 666 direct handlers, leaving 157 bindings across 129 handlers in 27 source
+  files. The independent `ACT_SPEC` cross-check remains 811 resolved and 37 pending because none
+  of these five active bindings has a corresponding action-table record.
+- Reforecast twenty-one corrected batches covering 318 bindings across 128 handlers. The
+  remaining Phase 6 envelope remains 11-22 sessions, or 22-88 focused engineering hours; the full
+  remaining project envelope remains 67-106 sessions, or 134-424 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 04d8d449
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-paralysis-tails
+Reconciliation run: rol-phase6-special-869dda48a01594d1
+Evidence tree SHA-256: 000ac339b8fc6c0d040f2d98d0722f3f8fc4eab3977c9e66b2c7cd2408098bb6
+Active direct bindings: 1,721
+Direct bindings resolved: 1,564
+Direct bindings pending: 157
+Source handlers resolved: 666
+Source handlers pending: 129
+Additional handler families resolved: 3
+Additional direct bindings resolved: 5
+Native adapted bindings: 1,012
+Native adapted composable bindings: 216
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 811
+ACT_SPEC records pending: 37
+Complete world-tool suite: 351 passed
+Production-linked CuTest suite: 685 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: fa218a8ddb3eef5bab58340c15cd86c2e75de2fb
+Installed SHA-256: ea0846c3eeddc008412661e8f81e1a7ac169be57244f237997bf5ddd809a3083
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat or utility family.
+
 ## 2026-08-13 - Phase 6 Griffon's Nest non-Berserker aggression
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
