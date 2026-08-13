@@ -122,6 +122,7 @@ Phase 6 Avernus-lifecycle commit: c15a7aa9
 Phase 6 Scornubel-family commit: 8a741c3c
 Phase 6 Zhentil-periodic commit: afe6b68d
 Phase 6 Darkhold-special commit: 90adccdb
+Phase 6 drow-equipment commit: be32b3d3
 ```
 
 The authoritative ignored runs are:
@@ -366,6 +367,9 @@ Phase 6 Zhentil periodic family:
 Phase 6 Darkhold special family:
   lib/rol-conversion/runs/phase6-special-20260813-darkhold
   rol-phase6-special-2b80ad51d6738778
+Phase 6 drow-equipment decay family:
+  lib/rol-conversion/runs/phase6-special-20260813-drow-equipment
+  rol-phase6-special-477a41d7687e3e25
 Policy:  rol-conversion-policy-2
 ```
 
@@ -394,12 +398,12 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 343 tests; the production-linked CuTest suite passes 680;
+- The world-tool suite passes 345 tests; the production-linked CuTest suite passes 682;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The corrected discovery repair and sixteen subsequent denominator-bearing batches are
-  archived. Those batches closed 260 bindings across 107 source handlers. The measured remaining
-  Phase 6 forecast is 14-23 sessions, or 28-92 focused engineering hours; the full remaining
-  project range is 70-107 sessions, or 140-428 focused hours.
+- The corrected discovery repair and seventeen subsequent denominator-bearing batches are
+  archived. Those batches closed 276 bindings across 108 source handlers. The measured remaining
+  Phase 6 forecast is 13-24 sessions, or 26-96 focused engineering hours; the full remaining
+  project range is 69-108 sessions, or 138-432 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -448,8 +452,8 @@ Policy:  rol-conversion-policy-2
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
 - The repaired Phase 6 inventory accounts for 1,721 active direct bindings across 795 source
-  handlers and locates all 795 source definitions. The current reconciliation resolves 1,506
-  bindings across 645 handlers and leaves 215 bindings across 150 handlers.
+  handlers and locates all 795 source definitions. The current reconciliation resolves 1,522
+  bindings across 646 handlers and leaves 199 bindings across 149 handlers.
 - The independent `ACT_SPEC` cross-check resolves 806 of 848 records and leaves 42
   pending. It remains a scheduling cross-check rather than the direct-binding denominator;
   composition-safe flags and room or object procedures can resolve source handlers without
@@ -720,10 +724,10 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,506 static bindings and leaves 215 pending. It resolves
-  645 direct handler names and leaves 150 pending across 30 source files. The pending set has
+- The corrected reconciler resolves 1,522 static bindings and leaves 199 pending. It resolves
+  646 direct handler names and leaves 149 pending across 29 source files. The pending set has
   128 singleton handlers, 18 handlers with two to four bindings, two with five to nine, and
-  two with at least ten bindings.
+  one with at least ten bindings.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
   shopkeeper path accounts for 453 active shops and hosts. Both are resolved through the target
@@ -833,11 +837,15 @@ Policy:  rol-conversion-policy-2
   2094571 and bastard sword 2094566 extend `RoL Weapon Proc`; and the shadow fiend and shadow
   dragon extend `RoL Monster Combat`. The previously converted four elemental deaths continue
   to compose independently through death profiles.
-- The sixteen corrected batches close 260 bindings across 107 handlers. That measured throughput
-  puts the binding-count projection near 14 sessions and the handler-diversity projection near
-  23. Because 128 remaining handlers are singletons, the published Phase 6 envelope is 14-23
-  sessions, or 28-92 focused engineering hours. Reforecast after another material batch or an
-  inventory correction.
+- The drow-equipment batch closes all 16 active `genericDrowEq` bindings through one exact
+  object procedure and one lifecycle-safe object event. It preserves the source's mapped
+  Underdark stop, surface restart, hourly cadence and jitter, object-placement and sunlight
+  rates, no-sell state, source integer field reductions, messages, and terminal extraction.
+- The seventeen corrected batches close 276 bindings across 108 handlers. That measured
+  throughput puts the binding-count projection near 13 sessions and the handler-diversity
+  projection near 24. Because 128 remaining handlers are singletons, the published Phase 6
+  envelope is 13-24 sessions, or 26-96 focused engineering hours. Reforecast after another
+  material batch or an inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
@@ -851,46 +859,47 @@ Policy:  rol-conversion-policy-2
    smallest-unit exclusions.
 5. Regenerate the special-binding inventory after each shared-family checkpoint and
    repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.
-6. Measure throughput against the 14-23-session Phase 6 envelope and reforecast after another
+6. Measure throughput against the 13-24-session Phase 6 envelope and reforecast after another
    material batch or an inventory correction.
 
 ## Latest session handoff
 
-- Implementation and evidence commit `90adccdb` reconciles all 16 active Darkhold bindings across
-  nine source handlers: six summon-skull assignments, one passage skull, four passage gems, two
-  weapons, two shadow-fiend hit callbacks, and one shadow-dragon death callback.
-- `RoL Darkhold Object` profiles 11 exact object identities. The summon skulls create mobile
-  2094500 without consumption; passage skull 2094504 removes the north `EX_BLOCKED` state in room
-  2094666; and the four gems intercept exact-room drops to route south 2094667 to 2094673 or north
-  2094668 to 2094674.
-- Shadow fiend 2094505 composes lit-room darkness with a one-day cooldown and one-in-six mind
-  steal with an independent four-violence-pulse cooldown, staff exemption, source-pressure Will
-  save, 45d10 source-untyped damage, and blackmantle-aware healing. Shadow dragon 2094506 reveals
-  and unlocks the north passage in room 2094675 on death.
-- Warhammer 2094571 preserves its primary/two-handed one-in-21 30d10 ice proc. Bastard sword
-  2094566 preserves its critical-only paired zero-duration hit/damage penalties, exact NPC and PC
-  ranges, and nonstacking continuation message.
+- Implementation and evidence commit `be32b3d3` reconciles all 16 active `genericDrowEq`
+  bindings. The preprocessor-disabled assignment for source object 93111 remains explicitly
+  excluded and does not count as live progress.
+- `RoL Drow Equipment` profiles converted objects 2092080-2092082, 2092096,
+  2093081-2093085, 2093087, and 2093150-2093155. The converter adds `ITEM_AUTOPROC`, while the
+  registry exposes command and object-auto-pulse contracts only for object owners.
+- The first event starts after one MUD hour. Mapped Underdark sectors 19-24 and cave sector 29
+  stop the event; a later command on the surface restarts it. Continuing events retain the
+  source +/-4-pulse jitter after translating its four-Hz timing to the target clock.
+- Surface decay preserves the source's always-true daybreak and daytime predicates, nested-object
+  slowdown, direct-sunlight acceleration, `ITEM_NOSELL`, integer cost and weight reductions,
+  weapon-dice consolidation, armor reduction, first-two-affect arithmetic, owner-visible
+  messages, and terminal extraction. The source maintenance command required a level above 50
+  and therefore has no reachable counterpart in the target's level-34 staff model.
 - The authoritative evidence is
-  `lib/rol-conversion/runs/phase6-special-20260813-darkhold`, run
-  `rol-phase6-special-2b80ad51d6738778`. A same-timestamp repeat was byte-identical. The standard
+  `lib/rol-conversion/runs/phase6-special-20260813-drow-equipment`, run
+  `rol-phase6-special-477a41d7687e3e25`. A same-timestamp repeat was byte-identical. The standard
   path-and-content tree digest is
-  `dfba4dbd1356e111bb74af08f7ca7734fd26fbc08b585238fa01d78350d5cd21`.
+  `05194e39763ecff2fde376be041e57d02e38189ce84751d672846f10e8e71ff4`.
 - The binding ledger SHA-256 is
-  `faa21636ca3535d27ee661a830e8358c4de2f91d01bb10a388cd7b204cd2025c`; the handler inventory
-  SHA-256 is `efcd51c1e38c7f211933a57c5c6b5170b878a11dea929f68433bba512674f2d8`; and the summary
-  SHA-256 is `980c2560b4cc18a1a3ed8d5531ff4a9a14ce62b07991561f64b3bd252ad75622`.
+  `a48f04fb4d6e5b298f6bc50f876e9c5b789b3133bdda675682c39565a8a17f87`; the handler inventory
+  SHA-256 is `eb7e6661cfc9648af5e4acf1d8c67194274a4f276692de93a72c3b2ac78ae099`; and the summary
+  SHA-256 is `bc863e19d8e905cbaf038e4397d4b7cbb56661f51e1efdbe89bb414b958e4dfd`.
 - The denominator remains 1,721 live static plus 5,531 resolved dynamic binding instances.
-  Resolution is now 1,506 static bindings across 645 handlers, leaving 215 bindings across 150
-  handlers in 30 source files. The independent `ACT_SPEC` cross-check is 806 resolved and 42
-  pending; all automatic race and dynamic paths remain complete, with zero live target writes.
-- Final validation passed: 343 world-tool tests, 680 production-linked CuTests, a complete CMake
-  build, zero documentation findings, a warning-free Autotools build/test/install, and no
-  root-level `circle`. Installed build ID `f674ff2371169a399a43a36bc2410681ccdff5bb`;
-  SHA-256 `8d46eea11db53ab58e7952aa1500aea97776dcefe71a06ab5b16e2d22106eb8d`.
+  Resolution is now 1,522 static bindings across 646 handlers, leaving 199 bindings across 149
+  handlers in 29 source files. The independent `ACT_SPEC` cross-check remains 806 resolved and
+  42 pending; all automatic race and dynamic paths remain complete, with zero live target writes.
+- Final validation passed: 345 world-tool tests, 682 production-linked CuTests, a complete CMake
+  build and all 12 CTest targets, zero documentation findings, a warning-free Autotools
+  build/test/install, and no root-level `circle`. Installed build ID
+  `779abfbd60c34b72f160eb8f9505030731d13379`; SHA-256
+  `89ab7ccc83a67f014455709be4691f32632004ea2cb8beab3c909998c0b4a8ff`.
 - No player helpfile changed because the batch adds no player command or syntax. The staff manual
-  covers the converted identities, object placement and room gates, passage mutations, cooldowns,
-  saves, damage and healing, wield slots, critical payloads, and nonstacking effects.
-- Sixteen measured batches have closed 260 bindings across 107 handlers. The remaining Phase 6
-  envelope is 14-23 sessions, or 28-92 focused hours; the full remaining project envelope is
-  70-107 sessions, or 140-428 focused hours. Next, select the highest-value dependency-complete
+  covers the converted identities, required flag, event initialization and restart, mapped
+  Underdark sectors, object placement, sunlight, source arithmetic, messages, and extraction.
+- Seventeen measured batches have closed 276 bindings across 108 handlers. The remaining Phase 6
+  envelope is 13-24 sessions, or 26-96 focused hours; the full remaining project envelope is
+  69-108 sessions, or 138-432 focused hours. Next, select the highest-value dependency-complete
   pending combat, death, or utility family.

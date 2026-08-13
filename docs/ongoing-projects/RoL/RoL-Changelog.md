@@ -9,6 +9,72 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 drow-equipment decay family
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled all 16 active `genericDrowEq` object bindings in the Undermountain source family
+  through one exact target runtime. The preprocessor-disabled seventeenth assignment remains in
+  the excluded ledger and does not inflate live progress.
+- Added the typed `RoL Drow Equipment` procedure and object event for converted identities
+  2092080-2092082, 2092096, 2093081-2093085, 2093087, and 2093150-2093155. Conversion also adds
+  `ITEM_AUTOPROC`, and unrelated object identities fail closed.
+- Preserved the source hourly event lifecycle: the first event starts after one MUD hour,
+  converted Underdark sectors stop decay, a later surface command restarts a stopped event, and
+  continuing surface events retain the source +/-4-pulse jitter translated from its four-Hz
+  clock to the target pulse rate.
+- Preserved the source's always-true daybreak and daytime predicates, direct-sunlight
+  acceleration, slower nested-object decay, no-sell marking, integer reductions to cost and
+  weight, weapon-dice consolidation, armor reduction, first-two-affect mutation, owner-visible
+  messages, and terminal extraction. The unreachable source level-above-50 maintenance command
+  was not exposed in the target's level-34 staff model.
+- Added exact-profile, sector-map, cadence, arithmetic, event, registry, persistence, OLC,
+  converter, reconciliation, and production-runtime coverage. No player helpfile changed because
+  the batch adds no player command or syntax; the staff manual records the dependency-stage test
+  matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,506 to 1,522 static bindings
+  and from 645 to 646 direct handlers, leaving 199 bindings across 149 handlers in 29 source
+  files. The independent `ACT_SPEC` cross-check remains 806 resolved and 42 pending.
+- Reforecast seventeen corrected batches covering 276 bindings across 108 handlers. The remaining
+  Phase 6 envelope is 13-24 sessions, or 26-96 focused engineering hours; the full remaining
+  project envelope is 69-108 sessions, or 138-432 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: be32b3d3
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-drow-equipment
+Reconciliation run: rol-phase6-special-477a41d7687e3e25
+Evidence tree SHA-256: 05194e39763ecff2fde376be041e57d02e38189ce84751d672846f10e8e71ff4
+Active direct bindings: 1,721
+Direct bindings resolved: 1,522
+Direct bindings pending: 199
+Source handlers resolved: 646
+Source handlers pending: 149
+Additional handler families resolved: 1
+Additional direct bindings resolved: 16
+Native adapted bindings: 984
+Native adapted composable bindings: 208
+Source-inert exclusions: 32
+ACT_SPEC records resolved: 806
+ACT_SPEC records pending: 42
+Complete world-tool suite: 345 passed
+Production-linked CuTest suite: 682 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 779abfbd60c34b72f160eb8f9505030731d13379
+Installed SHA-256: 89ab7ccc83a67f014455709be4691f32632004ea2cb8beab3c909998c0b4a8ff
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat, death, or utility family.
+
 ## 2026-08-13 - Phase 6 Darkhold special family
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

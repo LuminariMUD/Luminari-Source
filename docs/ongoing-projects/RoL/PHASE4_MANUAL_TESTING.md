@@ -1098,6 +1098,41 @@ These profiles are automated and reconciled but are absent from the current five
 Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
 into the pilot.
 
+### Phase 6 converted drow-equipment decay profiles
+
+- Build a dependency-complete Undermountain stage containing objects 2092080-2092082, 2092096,
+  2093081-2093085, 2093087, and 2093150-2093155. Confirm each uses `RoL Drow Equipment` and
+  `ITEM_AUTOPROC`. Unrelated objects, including the disabled source assignment corresponding to
+  2093111, must not receive the procedure.
+- Place representative weapons and armor in target Underdark sectors 19-24 and cave sector 29.
+  Wait longer than one MUD hour and confirm no value, weight, dice, armor, affect, flag, message,
+  or extraction change occurs. Move an object to a surface sector and issue a command that reaches
+  its object procedure; its stopped event must restart without creating a duplicate event.
+- On the surface, confirm the first event fires after one MUD hour and later events retain the
+  source +/-4-pulse jitter translated from four pulses per second to the target pulse rate. Moving
+  the object back underground before an event fires must stop rescheduling until a later surface
+  command restarts it.
+- Compare identical direct, nested, and direct-sunlight objects. A direct object outside sunlight
+  must use modulus 6, a nested object modulus 8, and direct sunlight the source-clamped modulus 1.
+  The authored daybreak and daytime `OR` predicates are intentionally always true at every hour;
+  do not normalize them to conventional time ranges.
+- After each decay, confirm the object gains `ITEM_NOSELL`, cost and weight follow source integer
+  division, weapon dice collapse to one die before their face count falls, armor `value[0]` falls,
+  and only the first two affects mutate. Preserve the source signed-integer behavior for negative
+  modifiers and leave later affects unchanged.
+- Continue through exhaustion. A weapon or armor that reaches zero must survive that event and be
+  extracted on the following eligible event, matching the source threshold check. Directly owned
+  objects emit the crumble and terminal-decay messages; ground objects and objects inside another
+  object decay silently. Extraction must detach the running object event without a duplicate
+  cancellation or use-after-free diagnostic.
+- Confirm the source maintenance reset is not exposed: it required a source level above 50, while
+  the target staff range ends at level 34. Ordinary staff commands must only exercise the normal
+  event-restart path.
+
+These profiles are automated and reconciled but are absent from the current five-zone pilot.
+Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
+into the pilot.
+
 ### Phase 6 converted Scornubel profiles
 
 - Build a dependency-complete Scornubel stage containing mobiles 2006001, 2006002, 2006006,
