@@ -653,6 +653,20 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual("RoL Monster Combat", disposition["target"])
 
+  def test_successful_hit_area_family_has_explicit_dispositions(self) -> None:
+    for handler in (
+        "dk_bansheeWail",
+        "dk_bladestorm",
+        "ms_sandstorm_beast",
+        "gc_araleshTandar",
+        "gc_bansheWail",
+        "gc_urguthaForka",
+    ):
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Monster Combat", disposition["target"])
+
   def test_source_definition_scanner_ignores_preprocessor_disabled_decoy(self) -> None:
     definitions = source_handler_definitions(
         self.root / "EXAMPLE/RealmsOfLuminari", {"tree_spirit"}
@@ -688,11 +702,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_386, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(335, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(575, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(220, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(852, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_392, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(329, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(581, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(214, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(858, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           207, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -772,6 +786,30 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           manscorpion_vnums["manscorpion_venom_heavy"],
       )
       self.assertEqual({43767}, manscorpion_vnums["manscorpion_king"])
+      successful_hit_vnums = {
+          row["source_handler"]: row["source_vnum"]
+          for row in binding_rows
+          if row["source_handler"]
+          in {
+              "dk_bansheeWail",
+              "dk_bladestorm",
+              "ms_sandstorm_beast",
+              "gc_araleshTandar",
+              "gc_bansheWail",
+              "gc_urguthaForka",
+          }
+      }
+      self.assertEqual(
+          {
+              "dk_bansheeWail": 21820,
+              "dk_bladestorm": 21786,
+              "ms_sandstorm_beast": 43705,
+              "gc_araleshTandar": 96672,
+              "gc_bansheWail": 96631,
+              "gc_urguthaForka": 96670,
+          },
+          successful_hit_vnums,
+      )
       automatic_rows = [
           json.loads(line)
           for line in (output_dir / "automatic-race-ledger.jsonl")

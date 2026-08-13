@@ -13,6 +13,17 @@ struct char_data;
 struct obj_data;
 struct spec_event_context;
 
+struct rol_monster_hit_profile_view
+{
+  int proc_denominator;
+  int base_damage;
+  int damage_variance;
+  int damage_dice_count;
+  int damage_dice_size;
+  int damage_type;
+  bool fatal;
+};
+
 enum rol_bandit_demand
 {
   ROL_BANDIT_DEMAND_PASS = -1,
@@ -219,6 +230,8 @@ bool rol_undead_drain_profile(int mobile_vnum, int *chance_sides, int *marker_af
                               int *will_penalty, int *fortitude_penalty, int *slow_duration);
 size_t rol_monster_combat_profile_count(void);
 bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const char **description);
+bool rol_monster_successful_hit_profile(int mobile_vnum, struct rol_monster_hit_profile_view *view);
+bool rol_monster_successful_hit_roll_fires(int mobile_vnum, int roll);
 bool rol_seelie_faerie_profile(int mobile_vnum, bool *faerie_fire, bool *prismatic, bool *search);
 bool rol_seelie_faerie_runs_while_disabled(int mobile_vnum);
 int rol_seelie_prismatic_beam_count(int roll);

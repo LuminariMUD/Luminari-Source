@@ -76,6 +76,12 @@ enum rol_monster_combat_effect
   ROL_MONSTER_MANSCORPION_VENOM_MEDIUM,
   ROL_MONSTER_MANSCORPION_VENOM_HEAVY,
   ROL_MONSTER_MANSCORPION_VENOM_KING,
+  ROL_MONSTER_DOBLUTH_BANSHEE_WAIL,
+  ROL_MONSTER_DOBLUTH_BLADESTORM,
+  ROL_MONSTER_HIVE_SANDSTORM_BEAST,
+  ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL,
+  ROL_MONSTER_GREYCLOAK_FUMES,
+  ROL_MONSTER_GREYCLOAK_ARALESH,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -141,6 +147,8 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2019750, ROL_MONSTER_CRIMSON_FURY, 11, "Crimson Fury minion purge and fire blast."},
     {2020247, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
     {2020378, ROL_MONSTER_ASHENTORIS, 11, "Life drain and lava storm."},
+    {2021786, ROL_MONSTER_DOBLUTH_BLADESTORM, 5, "Room-wide animated bladestorm."},
+    {2021820, ROL_MONSTER_DOBLUTH_BANSHEE_WAIL, 4, "Room-wide painful wail and paralysis."},
     {2026208, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
     {2026216, ROL_MONSTER_RESIDUAL_MOBILE, 1, "Spell-casting interception and counterstrike."},
     {2026225, ROL_MONSTER_SUMMON_ROBYN_SERVANT, 4, "Robyn's bounded servant summon."},
@@ -156,6 +164,7 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2043358, ROL_MONSTER_MOVANIC_DEVA, 1, "Movanic-deva healing and wind assault."},
     {2043702, ROL_MONSTER_MANSCORPION_VENOM_MEDIUM, 7, "Four-tick manscorpion venom."},
     {2043703, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
+    {2043705, ROL_MONSTER_HIVE_SANDSTORM_BEAST, 16, "Room-wide sandstorm damage and blindness."},
     {2043728, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
     {2043744, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
     {2043745, ROL_MONSTER_MANSCORPION_VENOM_MEDIUM, 7, "Four-tick manscorpion venom."},
@@ -209,6 +218,9 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2081747, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2083224, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2092608, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
+    {2096631, ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL, 6, "Room-wide Greycloak banshee wail."},
+    {2096670, ROL_MONSTER_GREYCLOAK_FUMES, 11, "Room-wide noxious fumes."},
+    {2096672, ROL_MONSTER_GREYCLOAK_ARALESH, 11, "Lethal blazing-eye beam."},
     {2097061, ROL_MONSTER_SWALLOW_WHOLE, 10, "Rhemorhaz bite and whole-swallow attack."},
 };
 
@@ -271,6 +283,56 @@ bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const ch
   if (description != NULL)
     *description = profile->description;
   return true;
+}
+
+bool rol_monster_successful_hit_profile(int mobile_vnum, struct rol_monster_hit_profile_view *view)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+  struct rol_monster_hit_profile_view result = {0};
+
+  if (profile == NULL)
+    return false;
+  result.proc_denominator = profile->proc_denominator;
+  switch (profile->effect)
+  {
+  case ROL_MONSTER_DOBLUTH_BANSHEE_WAIL:
+    result.base_damage = 150;
+    result.damage_type = DAM_SOUND;
+    break;
+  case ROL_MONSTER_DOBLUTH_BLADESTORM:
+    result.damage_type = DAM_SLASHING;
+    break;
+  case ROL_MONSTER_HIVE_SANDSTORM_BEAST:
+    result.damage_dice_count = 10;
+    result.damage_dice_size = 10;
+    result.damage_type = DAM_EARTH;
+    break;
+  case ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL:
+    result.base_damage = 200;
+    result.damage_variance = 10;
+    result.damage_type = DAM_SOUND;
+    break;
+  case ROL_MONSTER_GREYCLOAK_FUMES:
+    result.base_damage = 300;
+    result.damage_variance = 10;
+    result.damage_type = DAM_POISON;
+    break;
+  case ROL_MONSTER_GREYCLOAK_ARALESH:
+    result.fatal = true;
+    result.damage_type = DAM_LIGHT;
+    break;
+  default:
+    return false;
+  }
+
+  if (view != NULL)
+    *view = result;
+  return true;
+}
+
+bool rol_monster_successful_hit_roll_fires(int mobile_vnum, int roll)
+{
+  return roll == 1 && rol_monster_successful_hit_profile(mobile_vnum, NULL);
 }
 
 bool rol_manscorpion_venom_profile(int mobile_vnum, int *proc_denominator, int *duration,
@@ -496,6 +558,230 @@ static int rol_monster_manscorpion_hit(struct spec_event_context *context,
     act("$n shudders in pain and looks very pale.", TRUE, victim, NULL, NULL, TO_ROOM);
   }
   return FALSE;
+}
+
+static bool rol_monster_hit_area_target(struct char_data *ch, struct char_data *victim)
+{
+  return rol_monster_room_target(ch, victim) && aoeOK(ch, victim, -1);
+}
+
+static int rol_monster_successful_hit_damage(struct spec_event_context *context,
+                                             struct char_data *ch, struct char_data *victim,
+                                             int amount, int damage_type)
+{
+  bool is_hit_target;
+  int result;
+
+  if (context == NULL || ch == NULL || victim == NULL || amount < 0)
+    return 0;
+  is_hit_target = victim == context->target;
+  result = damage(ch, victim, amount, -1, damage_type, FALSE);
+  if (result < 0 && is_hit_target)
+    context->invalidation |= SPEC_INVALIDATE_TARGET;
+  return result;
+}
+
+static int rol_monster_bladestorm_weapon_damage(const struct obj_data *obj)
+{
+  if (obj == NULL)
+    return 0;
+  return MAX(0, GET_OBJ_VAL(obj, 1)) * MAX(0, GET_OBJ_VAL(obj, 2));
+}
+
+static int rol_monster_bladestorm_damage(struct char_data *ch)
+{
+  struct char_data *victim;
+  int amount = 0;
+
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = victim->next_in_room)
+  {
+    if (victim == ch)
+      continue;
+    amount += rol_monster_bladestorm_weapon_damage(GET_EQ(victim, WEAR_WIELD_1));
+    amount += rol_monster_bladestorm_weapon_damage(GET_EQ(victim, WEAR_WIELD_2H));
+    amount += rol_monster_bladestorm_weapon_damage(GET_EQ(victim, WEAR_WIELD_OFFHAND));
+  }
+  return amount;
+}
+
+static void rol_monster_sandstorm_blind(struct char_data *ch, struct char_data *victim)
+{
+  struct affected_type af;
+
+  if (!can_blind(victim) || rand_number(0, 1) != 0)
+    return;
+  act("The swirling sands blind you!", FALSE, ch, NULL, victim, TO_VICT);
+  act("The swirling sands blind $N!", FALSE, ch, NULL, victim, TO_NOTVICT);
+  new_affect(&af);
+  af.spell = SPELL_BLINDNESS;
+  af.duration = 3;
+  SET_BIT_AR(af.bitvector, AFF_BLIND);
+  affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+}
+
+static int rol_monster_dobluth_wail_hit(struct spec_event_context *context, struct char_data *ch,
+                                        const struct rol_monster_hit_profile_view *view)
+{
+  struct char_data *victim;
+  struct char_data *next;
+  int amount;
+  int result;
+
+  act("$n wails horribly, and the shockwave fills you with pain and terror!", FALSE, ch, NULL, NULL,
+      TO_ROOM);
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!rol_monster_hit_area_target(ch, victim))
+      continue;
+    amount = view->base_damage;
+    if (savingthrow(ch, victim, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+      amount /= 2;
+    result = rol_monster_successful_hit_damage(context, ch, victim, amount, view->damage_type);
+    if (result >= 0 &&
+        !savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+      rol_monster_stun(victim, rand_number(2, 4));
+  }
+  return TRUE;
+}
+
+static int rol_monster_bladestorm_hit(struct spec_event_context *context, struct char_data *ch,
+                                      const struct rol_monster_hit_profile_view *view)
+{
+  struct char_data *victim;
+  struct char_data *next;
+  int amount = rol_monster_bladestorm_damage(ch);
+  int target_amount;
+
+  if (amount <= 0)
+    return FALSE;
+  act("Suddenly, $n raises $s arms and every weapon in the room tears free, careening through a "
+      "vicious storm of steel before returning to its owner!",
+      FALSE, ch, NULL, NULL, TO_ROOM);
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!rol_monster_hit_area_target(ch, victim))
+      continue;
+    target_amount = amount;
+    if (savingthrow(ch, victim, SAVING_REFL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+      target_amount /= 2;
+    (void)rol_monster_successful_hit_damage(context, ch, victim, target_amount, view->damage_type);
+  }
+  return TRUE;
+}
+
+static int rol_monster_sandstorm_beast_hit(struct spec_event_context *context, struct char_data *ch,
+                                           const struct rol_monster_hit_profile_view *view)
+{
+  struct char_data *victim;
+  struct char_data *next;
+
+  act("$n throws $mself into a spin, creating a tornado of sand and stones!", TRUE, ch, NULL, NULL,
+      TO_ROOM);
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!rol_monster_hit_area_target(ch, victim))
+      continue;
+    rol_monster_sandstorm_blind(ch, victim);
+    (void)rol_monster_successful_hit_damage(context, ch, victim,
+                                            dice(view->damage_dice_count, view->damage_dice_size),
+                                            view->damage_type);
+  }
+  return TRUE;
+}
+
+static int rol_monster_greycloak_area_hit(struct spec_event_context *context, struct char_data *ch,
+                                          const struct rol_monster_hit_profile_view *view,
+                                          bool wail)
+{
+  struct char_data *victim;
+  struct char_data *next;
+  int amount;
+
+  if (wail && (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) || AFF_FLAGGED(ch, AFF_SILENCED)))
+    return FALSE;
+  if (wail)
+    act("$n's wailing chills you to the bone!", FALSE, ch, NULL, NULL, TO_ROOM);
+  else
+    act("$n creates an enormous cloud of noxious fumes!", FALSE, ch, NULL, NULL, TO_ROOM);
+
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!rol_monster_hit_area_target(ch, victim))
+      continue;
+    amount = view->base_damage + rand_number(-view->damage_variance, view->damage_variance);
+    if (savingthrow(ch, victim, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+      amount /= 2;
+    if (!wail)
+      send_to_char(victim, "You suffer as the fumes engulf you.\r\n");
+    (void)rol_monster_successful_hit_damage(context, ch, victim, amount, view->damage_type);
+  }
+  return TRUE;
+}
+
+static int rol_monster_aralesh_hit(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *owner = NULL;
+  struct char_data *victim = FIGHTING(ch);
+
+  if (victim == NULL || spec_context_validate_combat_target(ch, victim, true) != SPEC_CONTEXT_VALID)
+    return FALSE;
+  if (IS_NPC(victim) && victim->master != NULL && !IS_NPC(victim->master))
+    owner = victim->master;
+
+  act("$n emits a blazing beam of light from $s eyes, turning $N to ash!", TRUE, ch, NULL, victim,
+      TO_NOTVICT);
+  act("$n emits a blazing beam of light from $s eyes. You die in agony as your body turns to ash!",
+      TRUE, ch, NULL, victim, TO_VICT);
+  if (victim == context->target)
+    context->invalidation |= SPEC_INVALIDATE_TARGET;
+  die(victim, ch);
+
+  if (owner != NULL && rol_monster_room_target(ch, owner) && !IS_NPC(owner))
+  {
+    act("$n's blazing gaze turns $N to ash beside $S fallen companion!", TRUE, ch, NULL, owner,
+        TO_NOTVICT);
+    act("$n's blazing gaze strikes you next, turning your body to ash!", TRUE, ch, NULL, owner,
+        TO_VICT);
+    if (owner == context->target)
+      context->invalidation |= SPEC_INVALIDATE_TARGET;
+    die(owner, ch);
+  }
+  return TRUE;
+}
+
+static int rol_monster_successful_hit(struct spec_event_context *context,
+                                      const struct rol_monster_combat_profile *profile,
+                                      struct char_data *ch)
+{
+  struct rol_monster_hit_profile_view view;
+
+  if (context == NULL || profile == NULL || ch == NULL || FIGHTING(ch) == NULL ||
+      !rol_monster_successful_hit_profile(GET_MOB_VNUM(ch), &view) ||
+      !rol_monster_successful_hit_roll_fires(GET_MOB_VNUM(ch),
+                                             rand_number(1, profile->proc_denominator)))
+    return FALSE;
+
+  switch (profile->effect)
+  {
+  case ROL_MONSTER_DOBLUTH_BANSHEE_WAIL:
+    return rol_monster_dobluth_wail_hit(context, ch, &view);
+  case ROL_MONSTER_DOBLUTH_BLADESTORM:
+    return rol_monster_bladestorm_hit(context, ch, &view);
+  case ROL_MONSTER_HIVE_SANDSTORM_BEAST:
+    return rol_monster_sandstorm_beast_hit(context, ch, &view);
+  case ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL:
+    return rol_monster_greycloak_area_hit(context, ch, &view, true);
+  case ROL_MONSTER_GREYCLOAK_FUMES:
+    return rol_monster_greycloak_area_hit(context, ch, &view, false);
+  case ROL_MONSTER_GREYCLOAK_ARALESH:
+    return rol_monster_aralesh_hit(context, ch);
+  default:
+    return FALSE;
+  }
 }
 
 static void rol_monster_prismatic(struct char_data *ch, int level)
@@ -1873,7 +2159,9 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   {
     if (spec_context_validate_combat_target(ch, context->target, false) != SPEC_CONTEXT_VALID)
       return FALSE;
-    return rol_monster_manscorpion_hit(context, profile, ch);
+    if (rol_manscorpion_venom_profile(GET_MOB_VNUM(ch), NULL, NULL, NULL))
+      return rol_monster_manscorpion_hit(context, profile, ch);
+    return rol_monster_successful_hit(context, profile, ch);
   }
   if (context->event != SPEC_EVENT_MOBILE_COMBAT_TURN || (victim = FIGHTING(ch)) == NULL ||
       spec_context_validate_combat_target(ch, victim, true) != SPEC_CONTEXT_VALID)
@@ -1923,6 +2211,12 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_MANSCORPION_VENOM_MEDIUM:
   case ROL_MONSTER_MANSCORPION_VENOM_HEAVY:
   case ROL_MONSTER_MANSCORPION_VENOM_KING:
+  case ROL_MONSTER_DOBLUTH_BANSHEE_WAIL:
+  case ROL_MONSTER_DOBLUTH_BLADESTORM:
+  case ROL_MONSTER_HIVE_SANDSTORM_BEAST:
+  case ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL:
+  case ROL_MONSTER_GREYCLOAK_FUMES:
+  case ROL_MONSTER_GREYCLOAK_ARALESH:
     return FALSE;
   default:
     break;
@@ -2019,6 +2313,12 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_MANSCORPION_VENOM_MEDIUM:
   case ROL_MONSTER_MANSCORPION_VENOM_HEAVY:
   case ROL_MONSTER_MANSCORPION_VENOM_KING:
+  case ROL_MONSTER_DOBLUTH_BANSHEE_WAIL:
+  case ROL_MONSTER_DOBLUTH_BLADESTORM:
+  case ROL_MONSTER_HIVE_SANDSTORM_BEAST:
+  case ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL:
+  case ROL_MONSTER_GREYCLOAK_FUMES:
+  case ROL_MONSTER_GREYCLOAK_ARALESH:
   case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }

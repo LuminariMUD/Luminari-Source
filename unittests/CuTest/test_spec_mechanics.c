@@ -1938,14 +1938,15 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
       150772,  196007,  196013,  196027,  196040,  196076,  2000325, 2000326, 2000327, 2000328,
       2000525, 2001228, 2001229, 2001407, 2001436, 2001437, 2004070, 2004480, 2004530, 2005023,
       2005718, 2012005, 2012006, 2012024, 2012025, 2012026, 2014015, 2014026, 2014029, 2014601,
-      2014605, 2015113, 2015125, 2019701, 2019750, 2020247, 2020378, 2026208, 2026216, 2026225,
-      2026236, 2026238, 2026241, 2026242, 2026243, 2026244, 2026245, 2034833, 2041900, 2043358,
-      2043702, 2043703, 2043728, 2043744, 2043745, 2043746, 2043756, 2043758, 2043759, 2043761,
-      2043767, 2043768, 2043769, 2043770, 2043778, 2043780, 2045116, 2045146, 2045182, 2051246,
-      2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401, 2062402, 2062405,
-      2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706, 2062707, 2062708, 2062710,
-      2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717, 2062721, 2062722, 2081706,
-      2081746, 2081747, 2083224, 2092608, 2097061,
+      2014605, 2015113, 2015125, 2019701, 2019750, 2020247, 2020378, 2021786, 2021820, 2026208,
+      2026216, 2026225, 2026236, 2026238, 2026241, 2026242, 2026243, 2026244, 2026245, 2034833,
+      2041900, 2043358, 2043702, 2043703, 2043705, 2043728, 2043744, 2043745, 2043746, 2043756,
+      2043758, 2043759, 2043761, 2043767, 2043768, 2043769, 2043770, 2043778, 2043780, 2045116,
+      2045146, 2045182, 2051246, 2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835,
+      2062401, 2062402, 2062405, 2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706,
+      2062707, 2062708, 2062710, 2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717,
+      2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2092608, 2096631, 2096670, 2096672,
+      2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2057,6 +2058,49 @@ void Test_spec_rol_manscorpion_venom_profiles_and_affect(CuTest *tc)
   CuAssertTrue(tc, !rol_manscorpion_apply_venom(NULL, 2));
   CuAssertTrue(tc, !rol_manscorpion_apply_venom(&fixture.actor, 0));
   spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_successful_hit_area_profiles(CuTest *tc)
+{
+  struct rol_monster_hit_profile_view view;
+
+  CuAssertTrue(tc, rol_monster_successful_hit_profile(2021820, &view));
+  CuAssertIntEquals(tc, 4, view.proc_denominator);
+  CuAssertIntEquals(tc, 150, view.base_damage);
+  CuAssertIntEquals(tc, DAM_SOUND, view.damage_type);
+  CuAssertTrue(tc, !view.fatal);
+
+  CuAssertTrue(tc, rol_monster_successful_hit_profile(2021786, &view));
+  CuAssertIntEquals(tc, 5, view.proc_denominator);
+  CuAssertIntEquals(tc, 0, view.base_damage);
+  CuAssertIntEquals(tc, DAM_SLASHING, view.damage_type);
+
+  CuAssertTrue(tc, rol_monster_successful_hit_profile(2043705, &view));
+  CuAssertIntEquals(tc, 16, view.proc_denominator);
+  CuAssertIntEquals(tc, 10, view.damage_dice_count);
+  CuAssertIntEquals(tc, 10, view.damage_dice_size);
+  CuAssertIntEquals(tc, DAM_EARTH, view.damage_type);
+
+  CuAssertTrue(tc, rol_monster_successful_hit_profile(2096631, &view));
+  CuAssertIntEquals(tc, 6, view.proc_denominator);
+  CuAssertIntEquals(tc, 200, view.base_damage);
+  CuAssertIntEquals(tc, 10, view.damage_variance);
+  CuAssertIntEquals(tc, DAM_SOUND, view.damage_type);
+
+  CuAssertTrue(tc, rol_monster_successful_hit_profile(2096670, &view));
+  CuAssertIntEquals(tc, 11, view.proc_denominator);
+  CuAssertIntEquals(tc, 300, view.base_damage);
+  CuAssertIntEquals(tc, 10, view.damage_variance);
+  CuAssertIntEquals(tc, DAM_POISON, view.damage_type);
+
+  CuAssertTrue(tc, rol_monster_successful_hit_profile(2096672, &view));
+  CuAssertIntEquals(tc, 11, view.proc_denominator);
+  CuAssertTrue(tc, view.fatal);
+  CuAssertIntEquals(tc, DAM_LIGHT, view.damage_type);
+  CuAssertTrue(tc, rol_monster_successful_hit_roll_fires(2096672, 1));
+  CuAssertTrue(tc, !rol_monster_successful_hit_roll_fires(2096672, 2));
+  CuAssertTrue(tc, !rol_monster_successful_hit_profile(2096671, NULL));
+  CuAssertTrue(tc, !rol_monster_successful_hit_roll_fires(2096671, 1));
 }
 
 void Test_spec_rol_seelie_search_reveals_first_hidden_target(CuTest *tc)
