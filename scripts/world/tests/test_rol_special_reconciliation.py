@@ -794,6 +794,12 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual("RoL Monster Combat", disposition["target"])
 
+  def test_drow_conclave_guard_has_explicit_disposition(self) -> None:
+    disposition = handler_disposition("um2_drowConclaveGuard")
+    self.assertEqual("resolved", disposition["status"])
+    self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+    self.assertEqual("RoL Monster Combat", disposition["target"])
+
   def test_source_definition_scanner_ignores_preprocessor_disabled_decoy(self) -> None:
     definitions = source_handler_definitions(
         self.root / "EXAMPLE/RealmsOfLuminari", {"tree_spirit"}
@@ -829,11 +835,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_564, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(157, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(666, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(129, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(1_012, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_570, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(151, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(667, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(128, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_018, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           216, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -854,8 +860,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       )
       self.assertEqual(2, summary["dynamic_handler_definitions_located"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(811, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(37, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(812, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(36, summary["act_spec_by_status"]["pending"])
 
       binding_rows = [
           json.loads(line)

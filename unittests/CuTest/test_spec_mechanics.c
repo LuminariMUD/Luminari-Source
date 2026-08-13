@@ -57,9 +57,9 @@ void Test_spec_rol_tarrasque_preserves_loot_weights_and_corpse_aliases(CuTest *t
 
 struct spec_mechanics_fixture
 {
-  struct room_data rooms[2];
+  struct room_data rooms[11];
   struct zone_data zones[1];
-  struct index_data mobile_indexes[2];
+  struct index_data mobile_indexes[3];
   struct index_data object_indexes[2];
   struct char_data actor;
   struct char_data target;
@@ -119,6 +119,7 @@ static void spec_mechanics_begin(struct spec_mechanics_fixture *fixture)
   fixture->zones[0].max_level = LVL_IMPL;
   fixture->mobile_indexes[0].vnum = 6200;
   fixture->mobile_indexes[1].vnum = 6201;
+  fixture->mobile_indexes[2].vnum = 6202;
   fixture->object_indexes[0].vnum = 6300;
   fixture->object_indexes[1].vnum = 6301;
 
@@ -2381,8 +2382,9 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
       2053266, 2059815, 2059835, 2062401, 2062402, 2062405, 2062406, 2062701, 2062702, 2062703,
       2062704, 2062705, 2062706, 2062707, 2062708, 2062710, 2062711, 2062712, 2062713, 2062714,
       2062715, 2062716, 2062717, 2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2089793,
-      2089794, 2092608, 2093061, 2093202, 2093204, 2093205, 2093206, 2093209, 2093210, 2093219,
-      2094505, 2094506, 2094563, 2096631, 2096670, 2096672, 2097061,
+      2089794, 2092608, 2093061, 2093102, 2093108, 2093109, 2093110, 2093111, 2093112, 2093202,
+      2093204, 2093205, 2093206, 2093209, 2093210, 2093219, 2094505, 2094506, 2094563, 2096631,
+      2096670, 2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2447,6 +2449,94 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertIntEquals(tc, 3, rol_seelie_search_stun_rounds(2062701));
   CuAssertIntEquals(tc, 6, rol_seelie_search_stun_rounds(2062707));
   CuAssertIntEquals(tc, 0, rol_seelie_search_stun_rounds(2062708));
+}
+
+void Test_spec_rol_drow_conclave_alarm_profiles_and_redeployment(CuTest *tc)
+{
+  static const int profile_vnums[] = {2093102, 2093108, 2093109, 2093110, 2093111, 2093112};
+  static const char *const combat_lines[] = {"The power of Lloth knows no equal!",
+                                             "Prepare to die infidel!",
+                                             "Guards! Help me!",
+                                             "You are no match for my superior skills!",
+                                             "You will fall before the wrath of Lloth!",
+                                             "Sound the Alarm! We are under attack!"};
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  struct char_data barracks_guards[4];
+  size_t index;
+  int room_index;
+
+  for (index = 0; index < sizeof(profile_vnums) / sizeof(profile_vnums[0]); index++)
+    CuAssertTrue(tc, rol_drow_conclave_guard_profile(profile_vnums[index]));
+  CuAssertTrue(tc, !rol_drow_conclave_guard_profile(2093101));
+  CuAssertTrue(tc, rol_drow_conclave_detect_guard_profile(2093101));
+  CuAssertTrue(tc, rol_drow_conclave_detect_guard_profile(2093102));
+  CuAssertTrue(tc, rol_drow_conclave_detect_guard_profile(2093109));
+  CuAssertTrue(tc, rol_drow_conclave_detect_guard_profile(2093110));
+  CuAssertTrue(tc, rol_drow_conclave_detect_guard_profile(2093112));
+  CuAssertTrue(tc, !rol_drow_conclave_detect_guard_profile(2093108));
+  CuAssertTrue(tc, !rol_drow_conclave_detect_guard_profile(2093111));
+  CuAssertIntEquals(tc, 2093146, rol_drow_conclave_destination_vnum(0));
+  CuAssertIntEquals(tc, 2093147, rol_drow_conclave_destination_vnum(1));
+  CuAssertIntEquals(tc, 2093147, rol_drow_conclave_destination_vnum(2));
+  CuAssertIntEquals(tc, 2093155, rol_drow_conclave_destination_vnum(3));
+  CuAssertIntEquals(tc, -1, rol_drow_conclave_destination_vnum(4));
+  CuAssertPtrEquals(tc, NULL, (void *)rol_drow_conclave_combat_line(0));
+  CuAssertPtrEquals(tc, NULL, (void *)rol_drow_conclave_combat_line(7));
+  for (index = 0; index < sizeof(combat_lines) / sizeof(combat_lines[0]); index++)
+    CuAssertStrEquals(tc, combat_lines[index], rol_drow_conclave_combat_line((int)index + 1));
+
+  spec_mechanics_begin(&fixture);
+  for (room_index = 0; room_index < 11; room_index++)
+  {
+    fixture.rooms[room_index].number = 2093146 + room_index;
+    fixture.rooms[room_index].zone = 0;
+    fixture.rooms[room_index].sector_type = SECT_INSIDE;
+    fixture.rooms[room_index].name = "Drow conclave test room";
+  }
+  fixture.zones[0].number = 20931;
+  fixture.zones[0].bot = 2093100;
+  fixture.zones[0].top = 2093199;
+  fixture.mobile_indexes[0].vnum = 2093108;
+  fixture.mobile_indexes[1].vnum = 2093102;
+  fixture.mobile_indexes[2].vnum = 2093109;
+  top_of_world = 10;
+  top_of_mobt = 2;
+
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
+  GET_LEVEL(&fixture.target) = 10;
+  for (index = 0; index < sizeof(barracks_guards) / sizeof(barracks_guards[0]); index++)
+  {
+    spec_mechanics_initialize_npc(&barracks_guards[index], "drow barracks guard", 7);
+    GET_MOB_RNUM(&barracks_guards[index]) = index < 3 ? 1 : 2;
+    if (index + 1 < sizeof(barracks_guards) / sizeof(barracks_guards[0]))
+      barracks_guards[index].next_in_room = &barracks_guards[index + 1];
+  }
+  fixture.rooms[7].people = &barracks_guards[0];
+
+  memset(&context, 0, sizeof(context));
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_MOBILE_ACTIVITY;
+  context.owner = &fixture.actor;
+  context.actor = &fixture.actor;
+  rol_drow_conclave_reset_alarm_for_tests();
+
+  CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
+  CuAssertTrue(tc, !AFF_FLAGGED(&fixture.actor, AFF_DETECT_INVIS));
+  for (index = 0; index < sizeof(barracks_guards) / sizeof(barracks_guards[0]); index++)
+    CuAssertTrue(tc, AFF_FLAGGED(&barracks_guards[index], AFF_DETECT_INVIS));
+  CuAssertIntEquals(tc, 0, GET_MOB_LOADROOM(&barracks_guards[0]));
+  CuAssertIntEquals(tc, 1, GET_MOB_LOADROOM(&barracks_guards[1]));
+  CuAssertIntEquals(tc, 1, GET_MOB_LOADROOM(&barracks_guards[2]));
+  CuAssertIntEquals(tc, 9, GET_MOB_LOADROOM(&barracks_guards[3]));
+  CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
+
+  rol_drow_conclave_reset_alarm_for_tests();
+  fixture.rooms[7].people = NULL;
+  for (index = 0; index < sizeof(barracks_guards) / sizeof(barracks_guards[0]); index++)
+    barracks_guards[index].next_in_room = NULL;
+  spec_mechanics_end(&fixture);
 }
 
 void Test_spec_rol_paralysis_hit_profiles_preserve_gaze_and_venom_tails(CuTest *tc)

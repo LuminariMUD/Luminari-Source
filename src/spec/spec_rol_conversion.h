@@ -241,6 +241,13 @@ bool rol_undead_drain_profile(int mobile_vnum, int *chance_sides, int *marker_af
 size_t rol_monster_combat_profile_count(void);
 bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const char **description);
 bool rol_griffon_guard_target_allowed(const struct char_data *target);
+bool rol_drow_conclave_guard_profile(int mobile_vnum);
+bool rol_drow_conclave_detect_guard_profile(int mobile_vnum);
+int rol_drow_conclave_destination_vnum(int deployment_index);
+const char *rol_drow_conclave_combat_line(int roll);
+#ifdef LUMINARI_CUTEST
+void rol_drow_conclave_reset_alarm_for_tests(void);
+#endif
 bool rol_paralysis_hit_profile(int mobile_vnum, bool *critical_only, bool *fatal, int *duration_min,
                                int *duration_max);
 int rol_dusk_paralysis_proc_denominator(int level);

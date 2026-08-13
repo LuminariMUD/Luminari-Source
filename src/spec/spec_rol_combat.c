@@ -14,6 +14,7 @@
 #include "comm.h"
 #include "db.h"
 #include "dgscript/dg_scripts.h"
+#include "graph.h"
 #include "handler.h"
 #include "interpreter.h"
 #include "magic/domains_schools.h"
@@ -29,7 +30,13 @@
 
 #define ROL_BALOR_WHIP_VNUM 2093227
 #define ROL_BALOR_SWORD_VNUM 2093228
+#define ROL_DROW_CONCLAVE_BASE_VNUM 2093146
+#define ROL_DROW_CONCLAVE_BARRACKS_VNUM 2093153
+#define ROL_DROW_CONCLAVE_ROOM_COUNT 11
+#define ROL_DROW_CONCLAVE_REDEPLOY (1U << 0)
 #define ROL_PLANAR_HIT_BURST_COOLDOWN (PULSE_VIOLENCE * 3)
+
+static bool rol_drow_conclave_alarm_sounding = false;
 
 enum rol_monster_combat_effect
 {
@@ -107,6 +114,7 @@ enum rol_monster_combat_effect
   ROL_MONSTER_DUSK_PARALYSIS_GAZE,
   ROL_MONSTER_UM2_MANSCORPION_TAIL,
   ROL_MONSTER_UM2_WYVERN_TAIL,
+  ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -334,6 +342,18 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2092608, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
     {2093061, ROL_MONSTER_UM2_MANSCORPION_TAIL, 1,
      "Critical venom tail that inflicts two to twelve ticks of paralysis."},
+    {2093102, ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD, 1,
+     "One-per-boot conclave alarm, redeployment, detection, and combat speech."},
+    {2093108, ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD, 1,
+     "One-per-boot conclave alarm, redeployment, detection, and combat speech."},
+    {2093109, ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD, 1,
+     "One-per-boot conclave alarm, redeployment, detection, and combat speech."},
+    {2093110, ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD, 1,
+     "One-per-boot conclave alarm, redeployment, detection, and combat speech."},
+    {2093111, ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD, 1,
+     "One-per-boot conclave alarm, redeployment, detection, and combat speech."},
+    {2093112, ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD, 1,
+     "One-per-boot conclave alarm, redeployment, detection, and combat speech."},
     {2093202, ROL_MONSTER_PLANAR_SUCCUBUS_CHARM, 4,
      "Male-target charm, Blackguard service, command restraint, and delayed kiss."},
     {2093204, ROL_MONSTER_PLANAR_BALOR, 1,
@@ -428,6 +448,65 @@ bool rol_griffon_guard_target_allowed(const struct char_data *target)
   /* RoL's Barbarian player race became the target's multiclass Berserker role. */
   return CLASS_LEVEL(target, CLASS_BERSERKER) <= 0;
 }
+
+bool rol_drow_conclave_guard_profile(int mobile_vnum)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+
+  return profile != NULL && profile->effect == ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD;
+}
+
+bool rol_drow_conclave_detect_guard_profile(int mobile_vnum)
+{
+  switch (mobile_vnum)
+  {
+  case 2093101:
+  case 2093102:
+  case 2093109:
+  case 2093110:
+  case 2093112:
+    return true;
+  default:
+    return false;
+  }
+}
+
+int rol_drow_conclave_destination_vnum(int deployment_index)
+{
+  switch (deployment_index)
+  {
+  case 0:
+    return ROL_DROW_CONCLAVE_BASE_VNUM;
+  case 1:
+  case 2:
+    return ROL_DROW_CONCLAVE_BASE_VNUM + 1;
+  case 3:
+    return ROL_DROW_CONCLAVE_BASE_VNUM + 9;
+  default:
+    return -1;
+  }
+}
+
+const char *rol_drow_conclave_combat_line(int roll)
+{
+  static const char *const lines[] = {"The power of Lloth knows no equal!",
+                                      "Prepare to die infidel!",
+                                      "Guards! Help me!",
+                                      "You are no match for my superior skills!",
+                                      "You will fall before the wrath of Lloth!",
+                                      "Sound the Alarm! We are under attack!"};
+
+  if (roll < 1 || roll > (int)(sizeof(lines) / sizeof(lines[0])))
+    return NULL;
+  return lines[roll - 1];
+}
+
+#ifdef LUMINARI_CUTEST
+void rol_drow_conclave_reset_alarm_for_tests(void)
+{
+  rol_drow_conclave_alarm_sounding = false;
+}
+#endif
 
 bool rol_paralysis_hit_profile(int mobile_vnum, bool *critical_only, bool *fatal, int *duration_min,
                                int *duration_max)
@@ -3052,6 +3131,127 @@ static int rol_griffon_guard_activity(struct char_data *guard)
   return FALSE;
 }
 
+static bool rol_drow_conclave_intruder_allowed(struct char_data *guard, struct char_data *intruder)
+{
+  return guard != NULL && intruder != NULL && !IS_NPC(intruder) &&
+         GET_LEVEL(intruder) < LVL_IMMORT && CAN_SEE(guard, intruder);
+}
+
+static void rol_drow_conclave_enable_detection(void)
+{
+  struct char_data *guard;
+  room_rnum room;
+  int room_offset;
+
+  for (room_offset = 0; room_offset < ROL_DROW_CONCLAVE_ROOM_COUNT; room_offset++)
+  {
+    room = real_room(ROL_DROW_CONCLAVE_BASE_VNUM + room_offset);
+    if (!VALID_ROOM_RNUM(room))
+    {
+      log("SYSERR: RoL drow conclave alarm room %d is missing.",
+          ROL_DROW_CONCLAVE_BASE_VNUM + room_offset);
+      continue;
+    }
+    for (guard = world[room].people; guard != NULL; guard = guard->next_in_room)
+    {
+      if (rol_drow_conclave_detect_guard_profile(GET_MOB_VNUM(guard)))
+        SET_BIT_AR(AFF_FLAGS(guard), AFF_DETECT_INVIS);
+    }
+  }
+}
+
+static bool rol_drow_conclave_assign_destination(struct char_data *guard, int deployment_index)
+{
+  int destination_vnum = rol_drow_conclave_destination_vnum(deployment_index);
+  room_rnum destination;
+
+  if (guard == NULL || destination_vnum < 0)
+    return false;
+  destination = real_room(destination_vnum);
+  if (!VALID_ROOM_RNUM(destination))
+  {
+    log("SYSERR: RoL drow conclave deployment room %d is missing.", destination_vnum);
+    return false;
+  }
+  GET_MOB_LOADROOM(guard) = destination;
+  PROC_FIRED(guard) |= (int)ROL_DROW_CONCLAVE_REDEPLOY;
+  return true;
+}
+
+static void rol_drow_conclave_deploy_barracks(void)
+{
+  struct char_data *guard;
+  room_rnum barracks;
+  int deployment_index;
+
+  barracks = real_room(ROL_DROW_CONCLAVE_BARRACKS_VNUM);
+  if (!VALID_ROOM_RNUM(barracks))
+  {
+    log("SYSERR: RoL drow conclave barracks room %d is missing.", ROL_DROW_CONCLAVE_BARRACKS_VNUM);
+    return;
+  }
+
+  /* The source begins on the barracks room list but advances through global `next` links.
+   * Keep its documented one-pass selection order without escaping into unrelated rooms. */
+  guard = world[barracks].people;
+  for (deployment_index = 0; deployment_index < 3; deployment_index++)
+  {
+    while (guard != NULL && GET_MOB_VNUM(guard) != 2093102)
+      guard = guard->next_in_room;
+    if (guard == NULL)
+      return;
+    (void)rol_drow_conclave_assign_destination(guard, deployment_index);
+    guard = guard->next_in_room;
+  }
+
+  while (guard != NULL && GET_MOB_VNUM(guard) != 2093109)
+    guard = guard->next_in_room;
+  if (guard != NULL)
+    (void)rol_drow_conclave_assign_destination(guard, 3);
+}
+
+static int rol_drow_conclave_guard_activity(struct char_data *guard)
+{
+  struct char_data *intruder;
+  const char *combat_line;
+
+  if ((unsigned int)PROC_FIRED(guard) & ROL_DROW_CONCLAVE_REDEPLOY)
+  {
+    if (GET_MOB_LOADROOM(guard) == IN_ROOM(guard))
+      PROC_FIRED(guard) &= ~(int)ROL_DROW_CONCLAVE_REDEPLOY;
+    else if (FIGHTING(guard) == NULL && GET_POS(guard) == POS_STANDING)
+    {
+      hunt_loadroom(guard);
+      return FALSE;
+    }
+  }
+
+  if (FIGHTING(guard) == NULL)
+  {
+    for (intruder = world[IN_ROOM(guard)].people; intruder != NULL;
+         intruder = intruder->next_in_room)
+    {
+      if (rol_drow_conclave_intruder_allowed(guard, intruder))
+        break;
+    }
+    if (intruder != NULL && !rol_drow_conclave_alarm_sounding)
+    {
+      rol_drow_conclave_alarm_sounding = true;
+      do_say(guard, "I have sounded the alarm! There is no escape!", 0, 0);
+      rol_drow_conclave_enable_detection();
+      rol_drow_conclave_deploy_barracks();
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  combat_line = rol_drow_conclave_combat_line(rand_number(1, 20));
+  if (combat_line == NULL)
+    return FALSE;
+  do_say(guard, combat_line, 0, 0);
+  return TRUE;
+}
+
 static int rol_monster_command(struct spec_event_context *context,
                                const struct rol_monster_combat_profile *profile,
                                struct char_data *ch)
@@ -3390,6 +3590,8 @@ static int rol_monster_activity(struct spec_event_context *context,
     return rol_seelie_faerie_activity(ch);
   case ROL_MONSTER_GRIFFON_NONBARBARIAN:
     return rol_griffon_guard_activity(ch);
+  case ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD:
+    return rol_drow_conclave_guard_activity(ch);
   default:
     return FALSE;
   }
@@ -3547,6 +3749,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_DUSK_PARALYSIS_GAZE:
   case ROL_MONSTER_UM2_MANSCORPION_TAIL:
   case ROL_MONSTER_UM2_WYVERN_TAIL:
+  case ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD:
     return FALSE;
   default:
     break;
@@ -3668,6 +3871,7 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_DUSK_PARALYSIS_GAZE:
   case ROL_MONSTER_UM2_MANSCORPION_TAIL:
   case ROL_MONSTER_UM2_WYVERN_TAIL:
+  case ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD:
   case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }

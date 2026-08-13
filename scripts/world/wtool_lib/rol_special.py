@@ -258,6 +258,7 @@ ADAPTED_HANDLER_NAMES = {
     "manscorpion_king": "RoL Monster Combat",
     "um2_manscorpionTail": "RoL Monster Combat",
     "um2_wyvernTail": "RoL Monster Combat",
+    "um2_drowConclaveGuard": "RoL Monster Combat",
     "dk_bansheeWail": "RoL Monster Combat",
     "dk_bladestorm": "RoL Monster Combat",
     "ms_sandstorm_beast": "RoL Monster Combat",
