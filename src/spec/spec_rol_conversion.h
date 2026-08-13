@@ -251,6 +251,10 @@ bool rol_undead_drain_profile(int mobile_vnum, int *chance_sides, int *marker_af
                               int *will_penalty, int *fortitude_penalty, int *slow_duration);
 size_t rol_monster_combat_profile_count(void);
 bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const char **description);
+bool rol_essra_combat_roll_has_action(int roll);
+bool rol_gherias_vampire_drain_roll_fires(int roll);
+bool rol_gherias_hammer_head_vnum(int object_vnum);
+bool rol_rust_monster_item_roll_fires(int wear_slot, int object_type, int roll);
 bool rol_trahern_combat_profile(int mobile_vnum, int *destination_vnum);
 bool rol_trahern_proc_roll_fires(int roll);
 bool rol_trahern_quake_knocks_down(int dexterity, int roll);

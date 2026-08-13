@@ -658,6 +658,17 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual("RoL Monster Combat", disposition["target"])
 
+  def test_undermountain_combat_handlers_use_typed_monster_runtime(self) -> None:
+    for handler in (
+        "um_essra",
+        "um2_gheriasTukCombat",
+        "um2_rustMonster",
+    ):
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Monster Combat", disposition["target"])
+
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       source_root = Path(temporary)
@@ -923,11 +934,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_606, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(115, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(698, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(97, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(1_048, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_609, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(112, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(701, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(94, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_051, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           219, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

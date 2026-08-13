@@ -35,6 +35,8 @@
 #define ROL_DROW_CONCLAVE_ROOM_COUNT 11
 #define ROL_DROW_CONCLAVE_REDEPLOY (1U << 0)
 #define ROL_PLANAR_HIT_BURST_COOLDOWN (PULSE_VIOLENCE * 3)
+#define ROL_GHERIAS_HAMMER_HEAD_VNUM 2093325
+#define ROL_RUST_SOURCE_MAX_WEAR 32
 
 static bool rol_drow_conclave_alarm_sounding = false;
 
@@ -119,6 +121,9 @@ enum rol_monster_combat_effect
   ROL_MONSTER_UM2_MANSCORPION_TAIL,
   ROL_MONSTER_UM2_WYVERN_TAIL,
   ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD,
+  ROL_MONSTER_UM_ESSRA,
+  ROL_MONSTER_UM2_GHERIAS_TUK,
+  ROL_MONSTER_UM2_RUST_MONSTER,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -348,6 +353,7 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
      "Baleful gaze that turns the first failed room target to stone."},
     {2089794, ROL_MONSTER_DUSK_PARALYSIS_GAZE, 2,
      "Baleful gaze that turns the first failed room target to stone."},
+    {2092043, ROL_MONSTER_UM_ESSRA, 10, "Successful-hit drow battle speech and socials."},
     {2092608, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
     {2093061, ROL_MONSTER_UM2_MANSCORPION_TAIL, 1,
      "Critical venom tail that inflicts two to twelve ticks of paralysis."},
@@ -376,6 +382,10 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2093210, ROL_MONSTER_PLANAR_VROCK_BURSTS, 1,
      "Screech, spore burst, and five-Vrock dance of ruin."},
     {2093219, ROL_MONSTER_UM2_WYVERN_TAIL, 1, "Critical venom tail with a fatal paralysis save."},
+    {2093303, ROL_MONSTER_UM2_RUST_MONSTER, 33,
+     "Critical hammer-tail strike that can destroy worn non-containers."},
+    {2093310, ROL_MONSTER_UM2_GHERIAS_TUK, 10,
+     "Torin hammer-head invocation and one-in-ten vampire drain."},
     {2094505, ROL_MONSTER_DARKHOLD_SHADOW_FIEND, 1,
      "Successful-hit darkness and mind-steal attacks with independent cooldowns."},
     {2094506, ROL_MONSTER_DARKHOLD_SHADOW_DRAGON, 1,
@@ -446,6 +456,27 @@ bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const ch
   if (description != NULL)
     *description = profile->description;
   return true;
+}
+
+bool rol_essra_combat_roll_has_action(int roll)
+{
+  return roll >= 1 && roll <= 5;
+}
+
+bool rol_gherias_vampire_drain_roll_fires(int roll)
+{
+  return roll == 0;
+}
+
+bool rol_gherias_hammer_head_vnum(int object_vnum)
+{
+  return object_vnum == ROL_GHERIAS_HAMMER_HEAD_VNUM;
+}
+
+bool rol_rust_monster_item_roll_fires(int wear_slot, int object_type, int roll)
+{
+  return wear_slot >= 0 && wear_slot < ROL_RUST_SOURCE_MAX_WEAR && object_type != ITEM_CONTAINER &&
+         roll == 0;
 }
 
 bool rol_trahern_combat_profile(int mobile_vnum, int *destination_vnum)
@@ -3693,6 +3724,144 @@ static void rol_balor_ensure_weapons(struct char_data *ch)
   rol_balor_equip_weapon(ch, ROL_BALOR_WHIP_VNUM, WEAR_WIELD_OFFHAND);
 }
 
+static void rol_monster_essra_hit(struct char_data *ch)
+{
+  int command;
+  int roll;
+
+  if (ch == NULL || !AWAKE(ch) || FIGHTING(ch) == NULL)
+    return;
+  roll = rand_number(1, 10);
+  if (!rol_essra_combat_roll_has_action(roll))
+    return;
+
+  switch (roll)
+  {
+  case 1:
+    do_say(ch, "Infidel! You will die today!", 0, 0);
+    break;
+  case 2:
+    do_say(ch, "You will see true power today!", 0, 0);
+    do_say(ch, "You will see the power of Salvetarm!", 0, 0);
+    break;
+  case 3:
+    command = find_command("look");
+    if (command >= 0)
+      do_action(ch, "honor", command, 0);
+    do_say(ch, "Guards! Kill them!", 0, 0);
+    break;
+  case 4:
+    command = find_command("laugh");
+    if (command >= 0)
+      do_action(ch, "", command, 0);
+    do_say(ch, "Your puny abilities are no match for the power of Salvetarm!", 0, 0);
+    break;
+  case 5:
+    do_say(ch, "You will fall today!", 0, 0);
+    break;
+  default:
+    break;
+  }
+}
+
+static struct obj_data *rol_gherias_hammer_head(struct char_data *ch)
+{
+  struct obj_data *primary;
+  struct obj_data *secondary;
+
+  if (ch == NULL || (primary = GET_EQ(ch, WEAR_WIELD_1)) == NULL)
+    return NULL;
+  if (rol_gherias_hammer_head_vnum(GET_OBJ_VNUM(primary)))
+    return primary;
+  secondary = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (secondary != NULL && rol_gherias_hammer_head_vnum(GET_OBJ_VNUM(secondary)))
+    return secondary;
+  return NULL;
+}
+
+static int rol_monster_gherias_activity(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *victim;
+  struct obj_data *hammer;
+  char command[] = "say faith";
+
+  if (context == NULL || ch == NULL || (victim = FIGHTING(ch)) == NULL ||
+      spec_context_validate_combat_target(ch, victim, true) != SPEC_CONTEXT_VALID)
+    return FALSE;
+
+  hammer = rol_gherias_hammer_head(ch);
+  if (hammer != NULL && GET_OBJ_VAL(hammer, 0) == 0)
+  {
+    command_interpreter(ch, command);
+    return TRUE;
+  }
+
+  if (!rol_gherias_vampire_drain_roll_fires(rand_number(0, 9)) || IS_NPC(victim) ||
+      GET_LEVEL(victim) >= LVL_IMMORT || !can_act(ch) || GET_POS(ch) < POS_STANDING)
+    return FALSE;
+
+  act("$n bears $s fangs and grabs you by the shoulders.\r\n"
+      "$n buries $s fangs into your shoulder,\r\n"
+      "drinking until your lifeforce is spent.",
+      FALSE, ch, NULL, victim, TO_VICT);
+  act("You bear your fangs and grab $N by the shoulders.\r\n"
+      "You buries your fangs into $S shoulder,\r\n"
+      "drinking until $S lifeforce is spent.",
+      FALSE, ch, NULL, victim, TO_CHAR);
+  act("$n bears $s fangs and grabs $N by the shoulders.\r\n"
+      "$n buries $s fangs into $S shoulder,\r\n"
+      "drinking until $S lifeforce is spent.",
+      FALSE, ch, NULL, victim, TO_NOTVICT);
+  die(victim, ch);
+  return TRUE;
+}
+
+static int rol_monster_rust_hit(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *victim;
+  struct obj_data *item = NULL;
+  int slot;
+
+  if (context == NULL || ch == NULL || !context->critical ||
+      spec_context_validate_combat_target(ch, context->target, true) != SPEC_CONTEXT_VALID)
+    return FALSE;
+  victim = context->target;
+
+  act("$n swings forth $s hammer-shaped tail toward $N...", FALSE, ch, NULL, victim, TO_NOTVICT);
+  act("$n swings forth $s hammer-shaped tail toward you...", FALSE, ch, NULL, victim, TO_VICT);
+  act("You swing forth your hammer-shaped tail toward $N...", FALSE, ch, NULL, victim, TO_CHAR);
+
+  for (slot = 0; slot < ROL_RUST_SOURCE_MAX_WEAR; slot++)
+  {
+    item = GET_EQ(victim, slot);
+    if (item != NULL &&
+        rol_rust_monster_item_roll_fires(slot, GET_OBJ_TYPE(item), rand_number(0, 32)))
+      break;
+    item = NULL;
+  }
+
+  if (item == NULL)
+  {
+    act("$n misses $s targeted item on $N.", FALSE, ch, NULL, victim, TO_NOTVICT);
+    act("$n misses $s targeted item on you.", FALSE, ch, NULL, victim, TO_VICT);
+    act("You miss your targeted item on $N.", FALSE, ch, NULL, victim, TO_CHAR);
+    return TRUE;
+  }
+
+  act("$n strikes $p that $N has, turning it into dust.", FALSE, ch, item, victim, TO_NOTVICT);
+  act("$n strikes $p that $N has, turning it into dust.", FALSE, ch, item, victim, TO_CHAR);
+  act("$n strikes $p that you had, turning it into dust.", FALSE, ch, item, victim, TO_VICT);
+  item = unequip_char(victim, slot);
+  if (item == NULL)
+  {
+    log("SYSERR: RoL rust monster failed to unequip target slot %d from %s.", slot,
+        GET_NAME(victim));
+    return TRUE;
+  }
+  extract_obj(item);
+  return TRUE;
+}
+
 static int rol_monster_planar_death(struct spec_event_context *context,
                                     const struct rol_monster_combat_profile *profile,
                                     struct char_data *ch)
@@ -3798,6 +3967,8 @@ static int rol_monster_activity(struct spec_event_context *context,
     return rol_griffon_guard_activity(ch);
   case ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD:
     return rol_drow_conclave_guard_activity(ch);
+  case ROL_MONSTER_UM2_GHERIAS_TUK:
+    return rol_monster_gherias_activity(context, ch);
   default:
     return FALSE;
   }
@@ -3881,6 +4052,13 @@ int rol_monster_combat_typed(struct spec_event_context *context)
     if (profile->effect == ROL_MONSTER_UM2_MANSCORPION_TAIL ||
         profile->effect == ROL_MONSTER_UM2_WYVERN_TAIL)
       return rol_monster_venom_tail_hit(context, ch);
+    if (profile->effect == ROL_MONSTER_UM_ESSRA)
+    {
+      rol_monster_essra_hit(ch);
+      return FALSE;
+    }
+    if (profile->effect == ROL_MONSTER_UM2_RUST_MONSTER)
+      return rol_monster_rust_hit(context, ch);
     if (profile->effect == ROL_MONSTER_TRAHERN_QUAKE ||
         profile->effect == ROL_MONSTER_TRAHERN_TOSS ||
         profile->effect == ROL_MONSTER_TRAHERN_ENGORGE)
@@ -4086,6 +4264,9 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_UM2_MANSCORPION_TAIL:
   case ROL_MONSTER_UM2_WYVERN_TAIL:
   case ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD:
+  case ROL_MONSTER_UM_ESSRA:
+  case ROL_MONSTER_UM2_GHERIAS_TUK:
+  case ROL_MONSTER_UM2_RUST_MONSTER:
   case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }

@@ -2788,9 +2788,9 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
       2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401, 2062402, 2062405,
       2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706, 2062707, 2062708, 2062710,
       2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717, 2062721, 2062722, 2081706,
-      2081746, 2081747, 2083224, 2089793, 2089794, 2092608, 2093061, 2093102, 2093108, 2093109,
-      2093110, 2093111, 2093112, 2093202, 2093204, 2093205, 2093206, 2093209, 2093210, 2093219,
-      2094505, 2094506, 2094563, 2096631, 2096670, 2096672, 2097061,
+      2081746, 2081747, 2083224, 2089793, 2089794, 2092043, 2092608, 2093061, 2093102, 2093108,
+      2093109, 2093110, 2093111, 2093112, 2093202, 2093204, 2093205, 2093206, 2093209, 2093210,
+      2093219, 2093303, 2093310, 2094505, 2094506, 2094563, 2096631, 2096670, 2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2855,6 +2855,67 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertIntEquals(tc, 3, rol_seelie_search_stun_rounds(2062701));
   CuAssertIntEquals(tc, 6, rol_seelie_search_stun_rounds(2062707));
   CuAssertIntEquals(tc, 0, rol_seelie_search_stun_rounds(2062708));
+}
+
+void Test_spec_rol_undermountain_combat_profiles_preserve_rolls_and_rust_safety(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  const char *description;
+  int denominator;
+
+  CuAssertTrue(tc, rol_monster_combat_profile(2092043, &denominator, &description));
+  CuAssertIntEquals(tc, 10, denominator);
+  CuAssertPtrNotNull(tc, strstr(description, "battle speech"));
+  CuAssertTrue(tc, !rol_essra_combat_roll_has_action(0));
+  CuAssertTrue(tc, rol_essra_combat_roll_has_action(1));
+  CuAssertTrue(tc, rol_essra_combat_roll_has_action(5));
+  CuAssertTrue(tc, !rol_essra_combat_roll_has_action(6));
+
+  CuAssertTrue(tc, rol_monster_combat_profile(2093310, &denominator, &description));
+  CuAssertIntEquals(tc, 10, denominator);
+  CuAssertPtrNotNull(tc, strstr(description, "vampire drain"));
+  CuAssertTrue(tc, rol_gherias_vampire_drain_roll_fires(0));
+  CuAssertTrue(tc, !rol_gherias_vampire_drain_roll_fires(1));
+  CuAssertTrue(tc, rol_gherias_hammer_head_vnum(2093325));
+  CuAssertTrue(tc, !rol_gherias_hammer_head_vnum(2093446));
+
+  CuAssertTrue(tc, rol_monster_combat_profile(2093303, &denominator, &description));
+  CuAssertIntEquals(tc, 33, denominator);
+  CuAssertTrue(tc, rol_rust_monster_item_roll_fires(0, ITEM_ARMOR, 0));
+  CuAssertTrue(tc, rol_rust_monster_item_roll_fires(31, ITEM_ARMOR, 0));
+  CuAssertTrue(tc, !rol_rust_monster_item_roll_fires(32, ITEM_ARMOR, 0));
+  CuAssertTrue(tc, !rol_rust_monster_item_roll_fires(0, ITEM_CONTAINER, 0));
+  CuAssertTrue(tc, !rol_rust_monster_item_roll_fires(0, ITEM_ARMOR, 1));
+
+  spec_mechanics_begin(&fixture);
+  fixture.mobile_indexes[0].vnum = 2093303;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  FIGHTING(&fixture.actor) = &fixture.target;
+  FIGHTING(&fixture.target) = &fixture.actor;
+  GET_OBJ_TYPE(&fixture.worn) = ITEM_CONTAINER;
+  fixture.worn.worn_by = &fixture.target;
+  fixture.worn.worn_on = WEAR_BODY;
+  GET_EQ(&fixture.target, WEAR_BODY) = &fixture.worn;
+
+  memset(&context, 0, sizeof(context));
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_MOBILE_HIT;
+  context.owner = &fixture.actor;
+  context.actor = &fixture.actor;
+  context.target = &fixture.target;
+  context.critical = false;
+  CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
+  CuAssertPtrEquals(tc, &fixture.worn, GET_EQ(&fixture.target, WEAR_BODY));
+
+  context.critical = true;
+  circle_srandom(1);
+  CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
+  CuAssertPtrEquals(tc, &fixture.worn, GET_EQ(&fixture.target, WEAR_BODY));
+
+  GET_EQ(&fixture.target, WEAR_BODY) = NULL;
+  fixture.worn.worn_by = NULL;
+  spec_mechanics_end(&fixture);
 }
 
 void Test_spec_rol_trahern_combat_profiles_preserve_quake_toss_and_engorge(CuTest *tc)
