@@ -1065,6 +1065,34 @@ These profiles are automated and reconciled but are absent from the current five
 Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
 into the pilot.
 
+### Phase 6 converted Scornubel profiles
+
+- Build a dependency-complete Scornubel stage containing mobiles 2006001, 2006002, 2006006,
+  2006029, 2006051, 2006058, 2006061, 2006064, 2006067, 2006072, 2006106, 2006109,
+  2006111, 2006113, 2006132, 2006140, and 2006141, plus fiery mace 2006084. Confirm the
+  mobiles carry `MOB_SPEC`; all but Parchimil 2006061 use `RoL Source Periodic`, Parchimil uses
+  `RoL Guild Guard`, and the mace uses `RoL Weapon Proc`. Unrelated identities must not receive
+  these profiles.
+- Observe each mobile while awake, idle, and not fighting. Guardsman, merchants, Lady Rhessajan,
+  the clerk, commoners, Parchimil, the loud peddler, mercenary, angry man, butler, Chansrin,
+  Karlyn, and maid must reproduce their source speech, socials, room acts, hidden acts, and
+  multi-action outcomes. Profiles must use their authored inclusive zero-to-15, zero-to-20, or
+  zero-to-50 roll range rather than a normalized chance. Sleeping or fighting mobiles must not
+  emit an outcome.
+- Exercise Parchimil's configured guild passage as an eligible and ineligible mortal, then
+  observe repeated idle pulses. Passage authorization and rejection must remain unchanged, and
+  the same mobile must also perform Parchimil's periodic source behavior; no second persisted
+  procedure or duplicate activity dispatch may be present.
+- Land repeated primary, two-handed, and offhand hits with fiery mace 2006084. About one in 36
+  hits must emit the source fire-corona messages and deal exactly 100 points through the source
+  untyped compatibility channel. Other equipment slots must never proc, a defeated target must
+  safely invalidate the hit context, and the ordinary weapon hit must remain consumed only by
+  the normal combat path.
+
+These profiles are automated and reconciled but are absent from the current five-zone pilot.
+Exercise them only in a disposable Phase 7 dependency-complete stage; do not hand-edit them
+into the pilot.
+
 ### Phase 6 converted Waterdeep ambient citizens
 
 - Build dependency-complete stages containing the first 34 converted ambient citizens:
@@ -1095,7 +1123,7 @@ into the pilot.
 
 ### Phase 6 generated source-periodic profiles
 
-- Build dependency-complete source-profile stages. Confirm the following 100 mobiles use
+- Build dependency-complete source-profile stages. Confirm the following 116 mobiles use
   `RoL Source Periodic` with `MOB_SPEC`: Bloodstone 2007100-2007109, 2007113-2007129,
   2007142-2007144, 2007147, 2007152-2007154, 2007156, 2007160-2007162,
   2007164-2007167, 2007170, 2007172-2007180,
@@ -1104,7 +1132,9 @@ into the pilot.
   Mobile 2003069; Realm 2014048; Icecrag 2097000-2097002,
   2097005, 2097007-2097008, 2097011, 2097014, 2097016, 2097021, 2097023, and
   2097028, 2097033; Menden 2088806; Tower of Sorcery 2015901; Waterdeep 2003212;
-  and Lavatubes 2012000, 2012002, and 2012003.
+  Lavatubes 2012000, 2012002, and 2012003; and Scornubel 2006001, 2006002, 2006006,
+  2006029, 2006051, 2006058, 2006064, 2006067, 2006072, 2006106, 2006109, 2006111,
+  2006113, 2006132, 2006140, and 2006141.
 - Observe repeated activity pulses while representative profiles are idle. Their source speech,
   social room text, and direct room actions should appear at the original random cadence.
   Multi-action and fall-through outcomes must retain their source order. Nonmatching rolls must
@@ -1487,8 +1517,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,466 are resolved and 255 remain. Of 795 distinct
-  direct source handlers, 616 are resolved and 179 remain. Of 848 `ACT_SPEC` records, 805
+  of the 1,721 active direct bindings, 1,484 are resolved and 237 remain. Of 795 distinct
+  direct source handlers, 630 are resolved and 165 remain. Of 848 `ACT_SPEC` records, 805
   are resolved and 43 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

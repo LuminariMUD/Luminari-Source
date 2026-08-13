@@ -9,6 +9,66 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Scornubel family
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled all 18 active Scornubel bindings across 14 source handlers: 17 mobile assignments
+  across 13 periodic callbacks and fiery mace object 2006084.
+- Extended the generated `RoL Source Periodic` table with 17 exact mobile identities. The
+  profiles preserve the source zero-to-15, zero-to-20, and zero-to-50 roll ranges, awake and
+  non-fighting gates, speech, socials, room acts, hidden acts, and multi-action outcomes.
+- Composed Parchimil 2006061 through the existing `RoL Guild Guard` procedure so its source
+  periodic behavior and guild passage behavior share one persistent special-procedure slot.
+  The converter also requires `MOB_SPEC` for this composed identity.
+- Added fiery mace 2006084 to `RoL Weapon Proc`. Primary, two-handed, and offhand hits preserve
+  the source one-in-36 fire-corona chance, fixed 100-point source-untyped damage, messages, and
+  target invalidation safety.
+- Added generator, converter, reconciliation, profile, composition, probability, damage, and
+  exact-VNUM regression coverage. No player helpfile changed because the batch adds no player
+  command or syntax; the staff manual records the dependency-stage test matrix.
+- Regenerated deterministic evidence. Resolution increases from 1,466 to 1,484 static bindings
+  and from 616 to 630 direct handlers, leaving 237 bindings across 165 handlers in 31 source
+  files. The independent `ACT_SPEC` cross-check remains 805 resolved and 43 pending.
+- Reforecast fourteen corrected batches covering 238 bindings across 92 handlers. The remaining
+  Phase 6 envelope is 14-26 sessions, or 28-104 focused engineering hours; the full remaining
+  project envelope is 70-110 sessions, or 140-440 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 8a741c3c
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-scornubel
+Reconciliation run: rol-phase6-special-885945d3c68756af
+Evidence tree SHA-256: 9dc278a34cede48237663907a9e32c1db067029f154513b4bc06233d38d24df1
+Active direct bindings: 1,721
+Direct bindings resolved: 1,484
+Direct bindings pending: 237
+Source handlers resolved: 630
+Source handlers pending: 165
+Additional handler families resolved: 14
+Additional direct bindings resolved: 18
+Native adapted bindings: 946
+Native adapted composable bindings: 208
+Source-inert exclusions: 32
+ACT_SPEC records resolved: 805
+ACT_SPEC records pending: 43
+Complete world-tool suite: 339 passed
+Production-linked CuTest suite: 676 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 6eabc923cb6fe47fb81084befada3e24f94df3bc
+Installed SHA-256: 1debdb362bdb492b4dc35d41cfc1b6a17a1cddfdd11246d71c680e39591c8f75
+Evidence artifact hashes: 8 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with the next dependency-complete combat, death, or utility family.
+
 ## 2026-08-13 - Phase 6 Avernus lifecycle
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
