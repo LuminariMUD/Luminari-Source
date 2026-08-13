@@ -9,6 +9,77 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Undermountain Astral-forged and Torin weapons
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled five active object bindings across `um2_astralForged`, `um2_torinGeneral`, and
+  `um2_torinChainLightning` through the existing typed `RoL Weapon Proc` runtime. Converted
+  objects 2093191, 2093195, 2093446, and 2093447 persist the named procedure together with the
+  automatic-procedure object flag.
+- Preserved Astral-forged pulses while the object is on the ground, nested in a container,
+  carried, or worn. Affect slots zero and one become +3 hitroll/damroll outside the source Astral
+  Plane and +6 within it, refreshing derived character values when a worn item changes.
+- Added persistent conversion-only `ROOM_ROL_ASTRAL` metadata for source sector 23. The target
+  still uses its generic Planes sector, while the room flag retains exact source-plane identity
+  without incorrectly marking every room in a mixed-sector zone. Updated the constants manifest,
+  builder room-flag reference, and generated web guide.
+- Preserved Torin's recursive item ownership, Warrior/Cleric and Mountain Dwarf/Duergar gate,
+  staff handling, 5-50 invalid-owner burn, early return, and restoration of source prototype
+  values one through three, wear and extra flags, weight, cost, character-affect bits, and object
+  applies while leaving value zero intact. Both identities retain the source identification
+  disclosure; object 2093447 alone casts level-40 Chain Lightning on critical hits.
+- Broadened only the automatic-pulse placement contract for `RoL Weapon Proc` so authored ground
+  and contained-object events can dispatch. Command and weapon-hit placement requirements remain
+  equipped/combat specific. Added deterministic profile, runtime, ownership-rule, restoration,
+  room-transform, registry-contract, converter, constants, and ledger-count regressions.
+- Regenerated deterministic evidence. Resolution increases from 1,585 to 1,590 static bindings
+  and from 679 to 682 direct handlers, leaving 131 bindings across 113 handlers in 27 source
+  files. The independent `ACT_SPEC` cross-check remains 816 resolved and 32 pending.
+- Reforecast twenty-six corrected batches covering 344 bindings across 144 handlers. The
+  remaining Phase 6 envelope is 10-20 sessions, or 20-80 focused engineering hours; the full
+  remaining project envelope is 66-104 sessions, or 132-416 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 4eb5976b
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-undermountain-forged
+Reconciliation run: rol-phase6-special-b7608369f0ec3ad9
+Evidence tree SHA-256: 5aa3161ab39af977df77533b46ba5a0ed89d164ac9e92d3964e71941214a9017
+Active direct bindings: 1,721
+Direct bindings resolved: 1,590
+Direct bindings pending: 131
+Source handlers resolved: 682
+Source handlers pending: 113
+Additional handler families resolved: 3
+Additional direct bindings resolved: 5
+Native adapted bindings: 1,038
+Native adapted composable bindings: 216
+Source-inert exclusions: 38
+ACT_SPEC records resolved: 816
+ACT_SPEC records pending: 32
+Complete world-tool suite: 360 passed
+Production-linked CuTest suite: 690 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 816134c623dd918b579c93b0701bd5992db33af7
+Installed SHA-256: 6d501d1acf355dab128cf8903cb778451d7673b5dcb260cdd44ec0ff241b013a
+Evidence artifact hashes: 7 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+No player helpfile changed because this checkpoint adds no player command or syntax. The staff
+manual records the exact plane-boundary, placement, owner-restriction, prototype-restoration,
+burn, identify, and critical-cast test matrix.
+
+Phase 6 continues with the next dependency-complete combat or utility family.
+
 ## 2026-08-13 - Phase 6 Bhaal and Seelie hit weapons
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

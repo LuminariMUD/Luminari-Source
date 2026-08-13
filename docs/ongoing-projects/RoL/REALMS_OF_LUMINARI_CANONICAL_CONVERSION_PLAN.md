@@ -251,7 +251,7 @@ ledger measures:
 
 - 1,813 static candidates, of which 92 are preprocessor-excluded and 1,721 are live;
 - 1,098 mobile, 323 object, and 300 room bindings across 795 direct handler names;
-- 1,585 resolved and 136 pending live static bindings, with 679 resolved and 116 pending
+- 1,590 resolved and 131 pending live static bindings, with 682 resolved and 113 pending
   direct handler names;
 - two resolved dynamic paths representing 5,078 quest and 453 shop binding instances;
 - 7,252 total active static and dynamic binding instances across 797 handler names; and
@@ -261,7 +261,7 @@ ledger measures:
 The corrected dependent evidence is Phase 1 run `rol-phase1-237602d3ade48138`, Phase 2
 run `rol-phase2-c93b8c4610b36d1e`, Phase 5 run
 `rol-phase5-audit-cec58661a4f21a2a`, and Phase 6 run
-`rol-phase6-special-003a15934c33cde5`. The older 1,112/1,147 binding, 538/562 handler,
+`rol-phase6-special-b7608369f0ec3ad9`. The older 1,112/1,147 binding, 538/562 handler,
 and 830/848 `ACT_SPEC` counts are historical checkpoints only.
 
 ## 4. Canonical identity and rehome contract
@@ -721,7 +721,7 @@ forecasts are in [RoL-Changelog.md](RoL-Changelog.md).
 
 The call-path-aware extractor, macro resolution, dynamic shop/quest dispositions,
 regression fixtures, and dependent Phase 1, 2, 5, and 6 regeneration are complete. The
-remaining measured scope is 136 live static bindings across 116 direct handler names in
+remaining measured scope is 131 live static bindings across 113 direct handler names in
 27 source files. The first corrected-denominator closure completed the four-handler,
 four-binding Tarrasque encounter and added the missing typed mobile-death gateway. The second
 reused the established target class-family guild adapters for 14 source callbacks and 37 room
@@ -835,6 +835,16 @@ or Globe of Invulnerability. The bard's glaive preserves its level gate, Dexteri
 one-in-2001 roll, direct two-round blindness, and saved `10d10` burst against an already-blinded
 target. The source save modifiers are translated to the target API's opposite sign convention;
 all three identities use the existing typed weapon gateway and target invalidation.
+The twenty-sixth reconciled five Undermountain bindings across three object handlers. Astral-forged
+weapons 2093191 and 2093195 now switch their first hitroll and damroll applies between +3 and +6
+on exact source-Astral rooms, including while carried, worn, on the ground, or inside containers.
+Room-level `ROOM_ROL_ASTRAL` conversion metadata preserves source sector 23 after its target sector
+maps to generic Planes, without overmarking mixed-sector zones. Torin objects 2093446 and 2093447
+restore source prototype state for valid owners, burn nonstaff players and pets who are neither a
+Warrior nor Cleric Mountain Dwarf or Duergar, and retain source identification text. Object
+2093447 additionally casts level-40 Chain Lightning on critical hits. The shared weapon pulse
+contract now permits authored ground and contained-object events while retaining equipped/combat
+requirements for weapon-hit callbacks.
 Next, select the highest-value dependency-complete pending combat or utility group.
 
 Preserve the six already locked malformed or ignored rows as explicit, logged
@@ -846,12 +856,12 @@ gate at substantial checkpoints. Add a new source file to both `Makefile.am` and
 `CMakeLists.txt`.
 
 **Exit gate:** every active binding is kept, patched, adapted, ported, or minimally
-excluded with behavior evidence. The measured remaining Phase 6 planning envelope is 10-21
-sessions, or 20-84 focused engineering hours. The first twenty-four corrected batches closed
-336 bindings across 138 handlers, and the twenty-fifth raises that closure to 339 bindings
-across 141 handlers, leaving an arithmetic binding projection near 10 sessions and a
-handler-diversity projection near 21. The published range allows shared runtime families to
-outperform the handler projection while recognizing that 103 of the remaining 116 handlers are
+excluded with behavior evidence. The measured remaining Phase 6 planning envelope is 10-20
+sessions, or 20-80 focused engineering hours. The first twenty-five corrected batches closed
+339 bindings across 141 handlers, and the twenty-sixth raises that closure to 344 bindings
+across 144 handlers, leaving an arithmetic binding projection near 10 sessions and a
+handler-diversity projection near 20. The published range allows shared runtime families to
+outperform the handler projection while recognizing that 102 of the remaining 113 handlers are
 singletons and many require source-specific tracing. Reforecast after another material batch or
 any inventory correction.
 
@@ -1084,7 +1094,7 @@ all evidence in the Definition of Done.
 
 **Estimate:** 6-10 sessions. The combined post-Phase-6 envelope is therefore initially
 56-84 sessions for Phases 6.5-8 (112-336 focused hours). With the measured Phase 6
-envelope, the current remaining project range is 66-105 sessions, or 132-420 focused
+envelope, the current remaining project range is 66-104 sessions, or 132-416 focused
 hours. This supersedes the old 49-79-session, 74-114-session, and corresponding hour
 forecasts. Replace the post-rebase envelope after the Phase 6.5 measured reforecast.
 

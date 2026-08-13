@@ -1795,6 +1795,38 @@ contain all three prototypes. Exercise them only after a Phase 7 stage supplies 
 packages. The master bard's glaive, Spider venom pouch, and Jotun skull remain pending because
 their source callbacks can suppress or replace base-hit damage before the current target gateway.
 
+### Phase 6 Undermountain Astral-forged and Torin weapons
+
+- In a dependency-complete stage, confirm objects 2093191, 2093195, 2093446, and 2093447 persist
+  `RoL Weapon Proc` and object extra-flag bit 44. Source rooms whose sector was 23 must map to the
+  target Planes sector and also persist `RoL-Astral`; neighboring non-Astral rooms in a mixed
+  source zone must not gain that marker.
+- Put Astral-forged object 2093191 or 2093195 on the ground, in an ordinary container, in a
+  character's inventory, and in a worn slot. On each automatic pulse, affect slots zero and one
+  must become +3 hitroll and +3 damroll outside an exact `RoL-Astral` room and +6/+6 inside one.
+  Moving a worn weapon across the boundary must immediately refresh the wearer's derived values.
+- Identify Torin object 2093446 and 2093447. Both must report that a Warrior or Cleric Mountain
+  Dwarf or Duergar may use the item and that its combat critical is Chain Lightning. This is the
+  intended source disclosure even though only object 2093447 has the separate active critical
+  callback.
+- Give either Torin object to a qualifying player, an immortal, or no owner. Its next pulse must
+  restore prototype values one through three, wear flags, extra flags, weight, cost, character
+  affect bits, and object applies without overwriting value zero. Repeat while it is nested in a
+  carried container to verify recursive owner discovery.
+- Give either Torin object to a nonqualifying mortal player or to a pet whose mortal master does
+  not qualify. Each pulse with an active descriptor must show the intense-light burn and deal
+  5-50 source-untyped damage; the early restriction path must not restore altered prototype state.
+  A qualifying master must allow a pet-held object to use the normal restoration path.
+- Critical-hit a target with object 2093447 in a primary or offhand slot. It must emit the
+  lightning-stream message and cast level-40 Chain Lightning. A noncritical hit must not cast it,
+  and lethal spell resolution must invalidate the extracted target safely. Object 2093446 must
+  never cast Chain Lightning because it has only the shared general callback.
+
+These weapons and their room metadata are production-tested and reconciled, but the current
+five-zone pilot does not contain their Undermountain package. Exercise them only after a Phase 7
+stage supplies the four prototypes and the exact converted room set; do not mark an entire mixed
+zone Astral by hand.
+
 ### RoL exit-trap compatibility
 
 - Swamp Two room 2026051 contains the pilot's converted exit trap on the down exit. It
@@ -1829,8 +1861,8 @@ their source callbacks can suppress or replace base-hit damage before the curren
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
-  of the 1,721 active direct bindings, 1,585 are resolved and 136 remain. Of 795 distinct
-  direct source handlers, 679 are resolved and 116 remain. Of 848 `ACT_SPEC` records, 816
+  of the 1,721 active direct bindings, 1,590 are resolved and 131 remain. Of 795 distinct
+  direct source handlers, 682 are resolved and 113 remain. Of 848 `ACT_SPEC` records, 816
   are resolved and 32 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
