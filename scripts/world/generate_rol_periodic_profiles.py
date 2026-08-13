@@ -213,39 +213,61 @@ def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int
       r"switch\s*\(\s*(number|dice)\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*\)\s*\{",
       body,
   )
-  if switch is None:
-    raise ValueError(f"{name}: expected one switch(number(low, high)) or switch(dice(count, sides))")
-  opening = body.find("{", switch.start())
-  switch_body = body[opening + 1 : _matching_brace(body, opening)]
-  labels = list(re.finditer(r"\b(case\s+(-?\d+)\s*:|default\s*:)", switch_body))
   outcomes: list[Outcome] = []
-  pending_rolls: list[int] = []
-
-  for index, label in enumerate(labels):
-    if label.group(2) is None:
-      if pending_rolls:
-        raise ValueError(f"{name}: unresolved fall-through before default")
-      continue
-    roll = int(label.group(2))
-    segment_end = labels[index + 1].start() if index + 1 < len(labels) else len(switch_body)
-    segment = switch_body[label.end() : segment_end]
+  random_kind = "number"
+  if switch is None:
+    chance = re.search(
+        r"if\s*\(\s*!\s*number\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*\)\s*\{",
+        body,
+    )
+    if chance is None:
+      raise ValueError(
+          f"{name}: expected one random switch or zero-roll conditional"
+      )
+    if len(re.findall(r"\bnumber\s*\(", body)) != 1:
+      raise ValueError(f"{name}: zero-roll conditional must be the only random-number call")
+    opening = body.find("{", chance.start())
+    segment = body[opening + 1 : _matching_brace(body, opening)]
     raw_calls = len(re.findall(r"\b(?:act|mobsay|do_action)\s*\(", segment))
     parsed_actions = _parse_actions(segment, socials)
-    if raw_calls == 0 and "return TRUE" not in segment:
-      pending_rolls.append(roll)
-      continue
     if raw_calls != len(list(_ACTION_CALL.finditer(segment))):
-      raise ValueError(f"{name}: unsupported action expression in case {roll}")
-    for outcome_roll in (*pending_rolls, roll):
-      outcomes.append(Outcome(outcome_roll, parsed_actions))
-    pending_rolls.clear()
+      raise ValueError(f"{name}: unsupported action expression in zero-roll conditional")
+    if raw_calls == 0 or "return TRUE" not in segment:
+      raise ValueError(f"{name}: zero-roll conditional must emit an action and return true")
+    outcomes.append(Outcome(0, parsed_actions))
+    first_value = int(chance.group(1))
+    second_value = int(chance.group(2))
+  else:
+    opening = body.find("{", switch.start())
+    switch_body = body[opening + 1 : _matching_brace(body, opening)]
+    labels = list(re.finditer(r"\b(case\s+(-?\d+)\s*:|default\s*:)", switch_body))
+    pending_rolls: list[int] = []
 
-  if pending_rolls:
-    raise ValueError(f"{name}: unresolved trailing fall-through cases")
+    for index, label in enumerate(labels):
+      if label.group(2) is None:
+        if pending_rolls:
+          raise ValueError(f"{name}: unresolved fall-through before default")
+        continue
+      roll = int(label.group(2))
+      segment_end = labels[index + 1].start() if index + 1 < len(labels) else len(switch_body)
+      segment = switch_body[label.end() : segment_end]
+      raw_calls = len(re.findall(r"\b(?:act|mobsay|do_action)\s*\(", segment))
+      parsed_actions = _parse_actions(segment, socials)
+      if raw_calls == 0 and "return TRUE" not in segment:
+        pending_rolls.append(roll)
+        continue
+      if raw_calls != len(list(_ACTION_CALL.finditer(segment))):
+        raise ValueError(f"{name}: unsupported action expression in case {roll}")
+      for outcome_roll in (*pending_rolls, roll):
+        outcomes.append(Outcome(outcome_roll, parsed_actions))
+      pending_rolls.clear()
 
-  random_kind = switch.group(1)
-  first_value = int(switch.group(2))
-  second_value = int(switch.group(3))
+    if pending_rolls:
+      raise ValueError(f"{name}: unresolved trailing fall-through cases")
+
+    random_kind = switch.group(1)
+    first_value = int(switch.group(2))
+    second_value = int(switch.group(3))
   if random_kind == "dice":
     if first_value <= 0 or second_value <= 0:
       raise ValueError(f"{name}: dice values must be positive")

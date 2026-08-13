@@ -130,4 +130,10 @@ PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...]]] = {
     "sc_mercenary": ("src/specs.scornubel.c", (2006067,)),
     "sc_merchant": ("src/specs.scornubel.c", (2006002, 2006058, 2006113, 2006132)),
     "sc_parchimil": ("src/specs.scornubel.c", (2006061,)),
+    "zk_little_girl": ("src/specs.zhentilkeep.c", (2081054,)),
+    "zk_minstrel": ("src/specs.zhentilkeep.c", (2081021,)),
+    "zk_scornubian_trader": ("src/specs.zhentilkeep.c", (2081067,)),
+    "zk_terrified_merchant": ("src/specs.zhentilkeep.c", (2081059,)),
+    "zk_ugly_prostitute": ("src/specs.zhentilkeep.c", (2081068,)),
+    "zk_visiting_dignitary": ("src/specs.zhentilkeep.c", (2081066,)),
 }

@@ -20,8 +20,8 @@ class RolPeriodicProfileTests(unittest.TestCase):
   def test_selected_manifest_has_unique_converted_mobile_coverage(self) -> None:
     vnums = [vnum for _relative, handler_vnums in PROFILE_SOURCES.values() for vnum in handler_vnums]
 
-    self.assertEqual(112, len(PROFILE_SOURCES))
-    self.assertEqual(122, len(vnums))
+    self.assertEqual(118, len(PROFILE_SOURCES))
+    self.assertEqual(128, len(vnums))
     self.assertEqual(len(vnums), len(set(vnums)))
     self.assertEqual(
         {
@@ -35,6 +35,7 @@ class RolPeriodicProfileTests(unittest.TestCase):
             "src/specs.scornubel.c",
             "src/specs.towerofsorc.c",
             "src/specs.waterdeep.c",
+            "src/specs.zhentilkeep.c",
         },
         {relative for relative, _vnums in PROFILE_SOURCES.values()},
     )
@@ -89,8 +90,8 @@ class RolPeriodicProfileTests(unittest.TestCase):
 
     self.assertEqual(sorted(profile_vnums), profile_vnums)
     self.assertEqual(sorted(outcomes), outcomes)
-    self.assertEqual(452, len(outcomes))
-    self.assertEqual(713, len(actions))
+    self.assertEqual(466, len(outcomes))
+    self.assertEqual(729, len(actions))
 
   def test_scornubel_profiles_preserve_composition_and_source_ranges(self) -> None:
     generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
@@ -117,6 +118,36 @@ class RolPeriodicProfileTests(unittest.TestCase):
     self.assertIn(
         '{ROL_SOURCE_PERIODIC_ROOM_ACTION, true, "$n says: \'Can we get on with this?\'", '
         "NULL, NULL}",
+        compact,
+    )
+
+  def test_zhentil_profiles_preserve_switch_and_zero_roll_conditionals(self) -> None:
+    generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
+        encoding="ascii"
+    )
+    compact = " ".join(generated.split())
+
+    self.assertRegex(
+        compact,
+        r"\{2081021, ROL_SOURCE_PERIODIC_ZK_MINSTREL, 0, 20, 0, 0, true, false, true, "
+        r"ROL_SOURCE_PERIODIC_DEVOUR_NONE\}",
+    )
+    self.assertRegex(
+        compact,
+        r"\{2081054, ROL_SOURCE_PERIODIC_ZK_LITTLE_GIRL, 0, 10, 0, 0, true, false, true, "
+        r"ROL_SOURCE_PERIODIC_DEVOUR_NONE\}",
+    )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_ROOM_ACTION, false, "$n wiggles $s bottom.", NULL, NULL}',
+        compact,
+    )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_ROOM_ACTION, true, "$n pauses and scribbles some figures in a '
+        'notebook.", NULL, NULL}',
+        compact,
+    )
+    self.assertIn(
+        '{ROL_SOURCE_PERIODIC_ROOM_ACTION, false, "$n scratches at an itch.", NULL, NULL}',
         compact,
     )
 

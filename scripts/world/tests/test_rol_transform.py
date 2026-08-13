@@ -1703,6 +1703,44 @@ class RolTransformTests(unittest.TestCase):
         sorted(binding.persisted_name for binding in composed.native_bindings),
     )
 
+  def test_zhentil_periodic_bindings_share_generated_persistent_adapter(self) -> None:
+    mobile_rows = (
+        (81021, "zk_minstrel"),
+        (81054, "zk_little_girl"),
+        (81059, "zk_terrified_merchant"),
+        (81066, "zk_visiting_dignitary"),
+        (81067, "zk_scornubian_trader"),
+        (81068, "zk_ugly_prostitute"),
+    )
+    bindings = [
+        {
+            "basename": "zhentilkeep",
+            "record_type": "mobile",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in mobile_rows
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(6, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Source Periodic"
+            and binding.required_flag_bits == (0,)
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_state_periodic_handlers_share_generated_persistent_adapter(self) -> None:
     handlers = tuple(STATE_PROFILE_SOURCES)[:6]
     bindings = [

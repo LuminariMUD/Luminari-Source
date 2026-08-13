@@ -1503,7 +1503,7 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
   int roll_max;
   int roll_min;
 
-  CuAssertIntEquals(tc, 122, (int)rol_source_periodic_profile_count());
+  CuAssertIntEquals(tc, 128, (int)rol_source_periodic_profile_count());
   CuAssertIntEquals(tc, 1, rol_source_periodic_devour_order(2007140));
   CuAssertIntEquals(tc, 2, rol_source_periodic_devour_order(2003062));
   CuAssertIntEquals(tc, 0, rol_source_periodic_devour_order(2097006));
@@ -1588,6 +1588,41 @@ void Test_spec_rol_scornubel_profiles_preserve_source_behavior(CuTest *tc)
   CuAssertTrue(tc, !rol_scornubel_fiery_mace_roll_fires(1));
   CuAssertTrue(tc, !rol_scornubel_fiery_mace_roll_fires(35));
   CuAssertIntEquals(tc, 100, rol_scornubel_fiery_mace_damage());
+}
+
+void Test_spec_rol_zhentil_periodic_profiles_preserve_source_behavior(CuTest *tc)
+{
+  bool hide;
+  bool requires_awake;
+  bool speech;
+  bool suppresses_fighting;
+  int roll_max;
+  int roll_min;
+
+  CuAssertTrue(tc, rol_source_periodic_profile_bounds(2081054, &roll_min, &roll_max,
+                                                      &requires_awake, &suppresses_fighting));
+  CuAssertIntEquals(tc, 0, roll_min);
+  CuAssertIntEquals(tc, 10, roll_max);
+  CuAssertTrue(tc, requires_awake);
+  CuAssertTrue(tc, suppresses_fighting);
+  CuAssertIntEquals(tc, 1, (int)rol_source_periodic_outcome_action_count(2081054, 0));
+  CuAssertStrEquals(tc, "$n wiggles $s bottom.",
+                    rol_source_periodic_outcome_action(2081054, 0, 0, &speech, &hide));
+  CuAssertTrue(tc, !speech);
+  CuAssertTrue(tc, !hide);
+
+  CuAssertTrue(tc, rol_source_periodic_profile_bounds(2081021, &roll_min, &roll_max, NULL, NULL));
+  CuAssertIntEquals(tc, 0, roll_min);
+  CuAssertIntEquals(tc, 20, roll_max);
+  CuAssertStrEquals(tc, "$n sighs loudly.",
+                    rol_source_periodic_outcome_action(2081021, 4, 0, &speech, &hide));
+  CuAssertIntEquals(tc, 2, (int)rol_source_periodic_outcome_action_count(2081067, 0));
+  CuAssertStrEquals(tc, "$n pauses and scribbles some figures in a notebook.",
+                    rol_source_periodic_outcome_action(2081067, 0, 0, &speech, &hide));
+  CuAssertTrue(tc, hide);
+  CuAssertStrEquals(tc, "$n scratches at an itch.",
+                    rol_source_periodic_outcome_action(2081067, 0, 1, &speech, &hide));
+  CuAssertTrue(tc, !hide);
 }
 
 void Test_spec_rol_lavatubes_profiles_preserve_source_outcomes(CuTest *tc)

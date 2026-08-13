@@ -751,11 +751,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_484, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(237, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(630, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(165, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(946, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_490, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(231, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(636, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(159, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(952, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           208, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -908,6 +908,31 @@ class RolSpecialReconciliationTests(unittest.TestCase):
               "sc_parchimil": {6061},
           },
           scornubel_vnums,
+      )
+      self.assertEqual(
+          {
+              "zk_little_girl": {81054},
+              "zk_minstrel": {81021},
+              "zk_scornubian_trader": {81067},
+              "zk_terrified_merchant": {81059},
+              "zk_ugly_prostitute": {81068},
+              "zk_visiting_dignitary": {81066},
+          },
+          {
+              handler: {
+                  row["source_vnum"]
+                  for row in binding_rows
+                  if row["source_handler"] == handler
+              }
+              for handler in (
+                  "zk_little_girl",
+                  "zk_minstrel",
+                  "zk_scornubian_trader",
+                  "zk_terrified_merchant",
+                  "zk_ugly_prostitute",
+                  "zk_visiting_dignitary",
+              )
+          },
       )
       automatic_rows = [
           json.loads(line)
