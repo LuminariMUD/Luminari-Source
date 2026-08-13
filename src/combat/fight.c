@@ -12345,7 +12345,7 @@ static int fist_air_callback(struct char_data *ch, struct char_data *tch, void *
 int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              struct obj_data *wielded, int dam, int w_type, int type, int diceroll,
                              int is_critical, int attack_type, int dam_type,
-                             struct obj_data *missile, bool *artifact_victim_died)
+                             struct obj_data *missile, bool *attack_context_invalidated)
 {
   struct affected_type af = {0}; /* for crippling strike */
   struct affected_type *af2;     // for hostile juxtaposition
@@ -12356,9 +12356,10 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   char hit_msg[32] = "";
   int sneakdam = 0; /* Additional sneak attack damage. */
   bool victim_is_dead = FALSE;
+  spec_invalidate_mask spec_invalidation = SPEC_INVALIDATE_NONE;
 
-  if (artifact_victim_died)
-    *artifact_victim_died = FALSE;
+  if (attack_context_invalidated)
+    *attack_context_invalidated = FALSE;
 
   GET_CONSECUTIVE_HITS(ch)++;
 
@@ -13757,6 +13758,17 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (ch && victim && (wielded || missile || IS_TRELUX(ch)) && !victim_is_dead)
     weapon_poison(ch, victim, wielded, missile);
 
+  if (IS_NPC(ch) && !victim_is_dead && MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) != NULL)
+  {
+    spec_invalidation = spec_gateway_mobile_hit(ch, victim, dam, attack_type, is_critical != FALSE);
+    if (spec_invalidation != SPEC_INVALIDATE_NONE)
+    {
+      if (attack_context_invalidated)
+        *attack_context_invalidated = TRUE;
+      return dam;
+    }
+  }
+
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ABIL_POISON))
   {
     act("The creature's \tGpoison\tn courses through you.", FALSE, victim, 0, 0, TO_ROOM);
@@ -13778,8 +13790,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (wielded && artifact_weapon_proc(ch, victim, wielded, dam, is_critical))
     {
       victim_is_dead = TRUE;
-      if (artifact_victim_died)
-        *artifact_victim_died = TRUE;
+      if (attack_context_invalidated)
+        *attack_context_invalidated = TRUE;
       return dam;
     }
   }
@@ -13844,12 +13856,12 @@ int test_handle_successful_artifact_attack(struct char_data *ch, struct char_dat
                                            struct obj_data *wielded, int dam, int is_critical,
                                            int dam_type)
 {
-  bool artifact_victim_died = FALSE;
+  bool attack_context_invalidated = FALSE;
 
   (void)handle_successful_attack(ch, victim, wielded, dam, TYPE_HIT, TYPE_UNDEFINED, 10,
                                  is_critical, ATTACK_TYPE_PRIMARY, dam_type, NULL,
-                                 &artifact_victim_died);
-  return artifact_victim_died;
+                                 &attack_context_invalidated);
+  return attack_context_invalidated;
 }
 #endif
 
@@ -14040,7 +14052,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       dam = 0;            /* Damage for the attack, with mods. */
 
   struct affected_type af = {0};
-  bool artifact_victim_died = FALSE;
+  bool attack_context_invalidated = FALSE;
 
   bool is_critical = FALSE;
 
@@ -14552,10 +14564,10 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
   {
     /* OK, attack should be a success at this stage */
     dam = handle_successful_attack(ch, victim, wielded, dam, w_type, type, diceroll, is_critical,
-                                   attack_type, dam_type, missile, &artifact_victim_died);
+                                   attack_type, dam_type, missile, &attack_context_invalidated);
   }
 
-  if (artifact_victim_died)
+  if (attack_context_invalidated)
     return dam;
 
   if (is_critical)

@@ -224,6 +224,10 @@ bool rol_seelie_faerie_runs_while_disabled(int mobile_vnum);
 int rol_seelie_prismatic_beam_count(int roll);
 int rol_seelie_prismatic_damage(int color);
 int rol_seelie_search_stun_rounds(int mobile_vnum);
+bool rol_manscorpion_venom_profile(int mobile_vnum, int *proc_denominator, int *duration,
+                                   bool *fatal_without_slow_poison);
+bool rol_manscorpion_venom_roll_fires(int mobile_vnum, int roll);
+bool rol_manscorpion_apply_venom(struct char_data *victim, int duration);
 size_t rol_residual_mobile_profile_count(void);
 bool rol_residual_mobile_profile(int mobile_vnum, const char **description);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);

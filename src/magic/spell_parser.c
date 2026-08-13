@@ -5953,6 +5953,8 @@ void mag_assign_spells(void)
           "The undead creature's sickening touch releases you.");
   affecto(AFFECT_ROL_UNDEAD_SPELL_DRAIN, "RoL undead spell drain",
           "The undead creature's weakening touch releases you.");
+  affecto(AFFECT_ROL_MANSCORPION_VENOM, "RoL manscorpion venom",
+          "The manscorpion venom leaves your bloodstream.");
 
   affecto(SKILL_BLEEDING_ATTACK, "bleeding attack", "The bleeding from the attack stops.");
   affecto(SKILL_CRIPPLING_STRIKE, "crippling strike", "Your movement is no longer crippled.");

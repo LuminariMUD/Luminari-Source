@@ -641,6 +641,18 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual("RoL Monster Combat", disposition["target"])
 
+  def test_hive_manscorpion_venom_family_has_explicit_dispositions(self) -> None:
+    for handler in (
+        "manscorpion_venom_light",
+        "manscorpion_venom_medium",
+        "manscorpion_venom_heavy",
+        "manscorpion_king",
+    ):
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Monster Combat", disposition["target"])
+
   def test_source_definition_scanner_ignores_preprocessor_disabled_decoy(self) -> None:
     definitions = source_handler_definitions(
         self.root / "EXAMPLE/RealmsOfLuminari", {"tree_spirit"}
@@ -676,11 +688,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_370, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(351, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(571, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(224, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(836, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_386, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(335, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(575, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(220, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(852, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           207, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -734,6 +746,32 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           },
           seelie_vnums["faerie_search"],
       )
+      manscorpion_vnums = {
+          handler: {
+              row["source_vnum"]
+              for row in binding_rows
+              if row["source_handler"] == handler
+          }
+          for handler in (
+              "manscorpion_venom_light",
+              "manscorpion_venom_medium",
+              "manscorpion_venom_heavy",
+              "manscorpion_king",
+          )
+      }
+      self.assertEqual(
+          {43703, 43728, 43744, 43746, 43761},
+          manscorpion_vnums["manscorpion_venom_light"],
+      )
+      self.assertEqual(
+          {43702, 43745, 43759, 43780},
+          manscorpion_vnums["manscorpion_venom_medium"],
+      )
+      self.assertEqual(
+          {43756, 43758, 43768, 43769, 43770, 43778},
+          manscorpion_vnums["manscorpion_venom_heavy"],
+      )
+      self.assertEqual({43767}, manscorpion_vnums["manscorpion_king"])
       automatic_rows = [
           json.loads(line)
           for line in (output_dir / "automatic-race-ledger.jsonl")

@@ -386,7 +386,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Major Beholder", rol_major_beholder, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Monster Combat", rol_monster_combat, SPEC_OWNER_MOBILE,
-       SPEC_EVENT_COMMAND | SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN,
+       SPEC_EVENT_COMMAND | SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN |
+           SPEC_EVENT_MOBILE_HIT,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Lich Energy Drain", rol_lich_energy_drain, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
@@ -585,6 +586,14 @@ void Test_spec_registry_event_contracts_and_prerequisites(CuTest *tc)
   CuAssertIntEquals(tc, SPEC_PROTOTYPE_MOB_SPEC, (int)event->required_prototype_flags);
   CuAssertIntEquals(tc, SPEC_PLACEMENT_NONE, (int)event->required_placement);
 
+  definition = spec_registry_find_by_name("RoL Monster Combat");
+  event = spec_definition_get_event(definition, SPEC_EVENT_MOBILE_HIT);
+  CuAssertPtrNotNull(tc, event);
+  if (event == NULL)
+    return;
+  CuAssertIntEquals(tc, SPEC_PROTOTYPE_MOB_SPEC, (int)event->required_prototype_flags);
+  CuAssertIntEquals(tc, SPEC_PLACEMENT_COMBAT, (int)event->required_placement);
+
   definition = spec_registry_find_by_name("Vampire Cloak");
   event = spec_definition_get_event(definition, SPEC_EVENT_COMMAND);
   CuAssertPtrNotNull(tc, event);
@@ -608,6 +617,7 @@ void Test_spec_registry_event_and_owner_names_cover_contract(CuTest *tc)
       SPEC_EVENT_MOUNT_CHARGE,
       SPEC_EVENT_MOVING_ROOM_RELOCATION,
       SPEC_EVENT_MOBILE_DEATH,
+      SPEC_EVENT_MOBILE_HIT,
   };
   size_t event_index;
 

@@ -72,6 +72,10 @@ enum rol_monster_combat_effect
   ROL_MONSTER_WEREWOLF,
   ROL_MONSTER_JOTUN_MIMER,
   ROL_MONSTER_SEELIE_FAERIE,
+  ROL_MONSTER_MANSCORPION_VENOM_LIGHT,
+  ROL_MONSTER_MANSCORPION_VENOM_MEDIUM,
+  ROL_MONSTER_MANSCORPION_VENOM_HEAVY,
+  ROL_MONSTER_MANSCORPION_VENOM_KING,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -150,6 +154,22 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2034833, ROL_MONSTER_BANSHEE_WAIL, 3, "Room-wide sonic wail."},
     {2041900, ROL_MONSTER_SWALLOW_SPIT, 6, "Nonlethal whole-swallow and spit attack."},
     {2043358, ROL_MONSTER_MOVANIC_DEVA, 1, "Movanic-deva healing and wind assault."},
+    {2043702, ROL_MONSTER_MANSCORPION_VENOM_MEDIUM, 7, "Four-tick manscorpion venom."},
+    {2043703, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
+    {2043728, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
+    {2043744, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
+    {2043745, ROL_MONSTER_MANSCORPION_VENOM_MEDIUM, 7, "Four-tick manscorpion venom."},
+    {2043746, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
+    {2043756, ROL_MONSTER_MANSCORPION_VENOM_HEAVY, 11, "Two-tick manscorpion venom."},
+    {2043758, ROL_MONSTER_MANSCORPION_VENOM_HEAVY, 11, "Two-tick manscorpion venom."},
+    {2043759, ROL_MONSTER_MANSCORPION_VENOM_MEDIUM, 7, "Four-tick manscorpion venom."},
+    {2043761, ROL_MONSTER_MANSCORPION_VENOM_LIGHT, 31, "Six-tick manscorpion venom."},
+    {2043767, ROL_MONSTER_MANSCORPION_VENOM_KING, 25, "Lethal manscorpion-king venom."},
+    {2043768, ROL_MONSTER_MANSCORPION_VENOM_HEAVY, 11, "Two-tick manscorpion venom."},
+    {2043769, ROL_MONSTER_MANSCORPION_VENOM_HEAVY, 11, "Two-tick manscorpion venom."},
+    {2043770, ROL_MONSTER_MANSCORPION_VENOM_HEAVY, 11, "Two-tick manscorpion venom."},
+    {2043778, ROL_MONSTER_MANSCORPION_VENOM_HEAVY, 11, "Two-tick manscorpion venom."},
+    {2043780, ROL_MONSTER_MANSCORPION_VENOM_MEDIUM, 7, "Four-tick manscorpion venom."},
     {2045116, ROL_MONSTER_FOUR_ARMS, 1, "Extra swing and crushing shockwave."},
     {2045146, ROL_MONSTER_TENTACLE_SLAM, 11, "Room-wide tentacle shockwave."},
     {2045182, ROL_MONSTER_ROT_BRINGER, 1, "One-time flesh helper below forty percent health."},
@@ -250,6 +270,68 @@ bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const ch
     *proc_denominator = profile->proc_denominator;
   if (description != NULL)
     *description = profile->description;
+  return true;
+}
+
+bool rol_manscorpion_venom_profile(int mobile_vnum, int *proc_denominator, int *duration,
+                                   bool *fatal_without_slow_poison)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+  int venom_duration;
+  bool fatal;
+
+  if (profile == NULL)
+    return false;
+  fatal = false;
+  switch (profile->effect)
+  {
+  case ROL_MONSTER_MANSCORPION_VENOM_LIGHT:
+    venom_duration = 6;
+    break;
+  case ROL_MONSTER_MANSCORPION_VENOM_MEDIUM:
+    venom_duration = 4;
+    break;
+  case ROL_MONSTER_MANSCORPION_VENOM_HEAVY:
+    venom_duration = 2;
+    break;
+  case ROL_MONSTER_MANSCORPION_VENOM_KING:
+    venom_duration = 1;
+    fatal = true;
+    break;
+  default:
+    return false;
+  }
+
+  if (proc_denominator != NULL)
+    *proc_denominator = profile->proc_denominator;
+  if (duration != NULL)
+    *duration = venom_duration;
+  if (fatal_without_slow_poison != NULL)
+    *fatal_without_slow_poison = fatal;
+  return true;
+}
+
+bool rol_manscorpion_venom_roll_fires(int mobile_vnum, int roll)
+{
+  if (!rol_manscorpion_venom_profile(mobile_vnum, NULL, NULL, NULL))
+    return false;
+  return roll == 1;
+}
+
+bool rol_manscorpion_apply_venom(struct char_data *victim, int duration)
+{
+  struct affected_type af;
+
+  if (victim == NULL || duration <= 0 || !can_poison(victim) ||
+      affected_by_spell(victim, AFFECT_ROL_MANSCORPION_VENOM))
+    return false;
+
+  new_affect(&af);
+  af.spell = AFFECT_ROL_MANSCORPION_VENOM;
+  af.duration = duration;
+  af.location = APPLY_CON;
+  af.modifier = -2;
+  affect_to_char(victim, &af);
   return true;
 }
 
@@ -362,6 +444,58 @@ static struct char_data *rol_monster_random_player(struct char_data *ch)
       selected = candidate;
   }
   return selected;
+}
+
+static int rol_monster_manscorpion_hit(struct spec_event_context *context,
+                                       const struct rol_monster_combat_profile *profile,
+                                       struct char_data *ch)
+{
+  struct char_data *victim;
+  bool fatal_without_slow_poison;
+  int duration;
+  int roll;
+
+  if (context == NULL || profile == NULL || ch == NULL || FIGHTING(ch) == NULL ||
+      !rol_manscorpion_venom_profile(GET_MOB_VNUM(ch), NULL, &duration, &fatal_without_slow_poison))
+    return FALSE;
+
+  roll = rand_number(1, profile->proc_denominator);
+  if (!rol_manscorpion_venom_roll_fires(GET_MOB_VNUM(ch), roll))
+    return FALSE;
+  victim = rol_monster_random_player(ch);
+  if (victim == NULL)
+    return FALSE;
+
+  act("$n whips $s massive tail into $N, flooding the wound with venom!", FALSE, ch, NULL, victim,
+      TO_NOTVICT);
+  act("$n whips $s massive tail into you, flooding the wound with venom!", FALSE, ch, NULL, victim,
+      TO_VICT);
+
+  if (fatal_without_slow_poison && !AFF2_FLAGGED(victim, AFF2_ROL_SLOW_POISON))
+  {
+    act("The venom overwhelms you; your body blackens and collapses!", FALSE, ch, NULL, victim,
+        TO_VICT);
+    act("$N falls, $S body blackened and contorted by the venom!", FALSE, ch, NULL, victim,
+        TO_NOTVICT);
+    if (victim == context->target)
+      context->invalidation |= SPEC_INVALIDATE_TARGET;
+    die(victim, ch);
+    return FALSE;
+  }
+
+  if (!can_poison(victim) || affected_by_spell(victim, AFFECT_ROL_MANSCORPION_VENOM))
+    return FALSE;
+  if (savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(victim), NOSCHOOL))
+  {
+    send_to_char(victim, "The toxins dissolve harmlessly in your bloodstream!\r\n");
+    return FALSE;
+  }
+  if (rol_manscorpion_apply_venom(victim, duration))
+  {
+    send_to_char(victim, "You shudder in pain as the toxins flow through you.\r\n");
+    act("$n shudders in pain and looks very pale.", TRUE, victim, NULL, NULL, TO_ROOM);
+  }
+  return FALSE;
 }
 
 static void rol_monster_prismatic(struct char_data *ch, int level)
@@ -1735,6 +1869,12 @@ int rol_monster_combat_typed(struct spec_event_context *context)
     return rol_monster_command(context, profile, ch);
   if (context->event == SPEC_EVENT_MOBILE_ACTIVITY)
     return rol_monster_activity(context, profile, ch);
+  if (context->event == SPEC_EVENT_MOBILE_HIT)
+  {
+    if (spec_context_validate_combat_target(ch, context->target, false) != SPEC_CONTEXT_VALID)
+      return FALSE;
+    return rol_monster_manscorpion_hit(context, profile, ch);
+  }
   if (context->event != SPEC_EVENT_MOBILE_COMBAT_TURN || (victim = FIGHTING(ch)) == NULL ||
       spec_context_validate_combat_target(ch, victim, true) != SPEC_CONTEXT_VALID)
     return FALSE;
@@ -1778,6 +1918,11 @@ int rol_monster_combat_typed(struct spec_event_context *context)
     return FALSE;
   case ROL_MONSTER_BARBARIAN_SPIRITIST:
     rol_monster_spiritist(ch);
+    return FALSE;
+  case ROL_MONSTER_MANSCORPION_VENOM_LIGHT:
+  case ROL_MONSTER_MANSCORPION_VENOM_MEDIUM:
+  case ROL_MONSTER_MANSCORPION_VENOM_HEAVY:
+  case ROL_MONSTER_MANSCORPION_VENOM_KING:
     return FALSE;
   default:
     break;
@@ -1870,6 +2015,10 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_WEREWOLF:
   case ROL_MONSTER_JOTUN_MIMER:
   case ROL_MONSTER_SEELIE_FAERIE:
+  case ROL_MONSTER_MANSCORPION_VENOM_LIGHT:
+  case ROL_MONSTER_MANSCORPION_VENOM_MEDIUM:
+  case ROL_MONSTER_MANSCORPION_VENOM_HEAVY:
+  case ROL_MONSTER_MANSCORPION_VENOM_KING:
   case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }

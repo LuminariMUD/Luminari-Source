@@ -121,6 +121,9 @@ int spec_gateway_command_mobile(struct char_data *ch, struct char_data *mob, int
 int spec_gateway_mobile_activity(struct char_data *mob, spec_legacy_handler handler);
 /** Notification only; the legacy return is discarded by the combat caller. */
 void spec_gateway_mobile_combat_turn(struct char_data *mob);
+/** Notification only; returns pointers invalidated by an on-hit handler. */
+spec_invalidate_mask spec_gateway_mobile_hit(struct char_data *mob, struct char_data *target,
+                                             int damage, int attack_type, bool critical);
 /** STOP suppresses the ordinary NPC corpse after the handler replaces it. */
 int spec_gateway_mobile_death(struct char_data *mob, struct char_data *killer);
 /** STOP skips the carried-object fallback invocation. */

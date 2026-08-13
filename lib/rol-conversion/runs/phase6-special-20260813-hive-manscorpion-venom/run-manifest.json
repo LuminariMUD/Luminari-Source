@@ -1,0 +1,62 @@
+{
+  "acceptance": {
+    "act_spec_records_pending": 49,
+    "all_act_spec_records_accounted": true,
+    "all_automatic_race_bindings_accounted": true,
+    "all_direct_bindings_accounted": true,
+    "all_dynamic_registrations_accounted": true,
+    "all_handlers_accounted": true,
+    "automatic_race_bindings_pending": 0,
+    "direct_bindings_pending": 335,
+    "live_target_writes": 0
+  },
+  "artifacts": [
+    {
+      "byte_size": 269545,
+      "path": "act-spec-ledger.jsonl",
+      "records": 848,
+      "sha256": "988591da9cce18b7cfd9b60e43e206a70f3fb7ab6e51e8af7f4a0e947145f66d"
+    },
+    {
+      "byte_size": 217161,
+      "path": "automatic-race-ledger.jsonl",
+      "records": 247,
+      "sha256": "8d24f7d9abba33cc48cd97de072a5c5d407cd48ed0455bb557585ca6caf53488"
+    },
+    {
+      "byte_size": 1258584,
+      "path": "binding-ledger.jsonl",
+      "records": 1721,
+      "sha256": "86cbe401808820cda5bbebfac779ac1934e6e9fb9ab4b49d1ea204e302f5e5ac"
+    },
+    {
+      "byte_size": 1687,
+      "path": "dynamic-registration-ledger.jsonl",
+      "records": 2,
+      "sha256": "cf49a76d2f7795f0fc72645a45066a65e8cc47a33be2e4e5c5911799e218a6ec"
+    },
+    {
+      "byte_size": 294938,
+      "path": "handler-inventory.jsonl",
+      "records": 795,
+      "sha256": "c8ae242615376d1cb2c47865cf8dc20fc55ac371d40ff77325ce66d24eb4ab18"
+    },
+    {
+      "byte_size": 69697,
+      "path": "preprocessor-excluded-binding-ledger.jsonl",
+      "records": 92,
+      "sha256": "22168353ef207681de720a516b582e09f81d951f49838a011c3cd85bc72a4dad"
+    },
+    {
+      "byte_size": 3390,
+      "path": "reconciliation-summary.json",
+      "sha256": "769369867243b3b40178068bd37a6d234de586757ecfd0013491db62cacc96ed"
+    }
+  ],
+  "creation_time": "2026-08-13T00:00:00Z",
+  "phase": 6,
+  "run_id": "rol-phase6-special-6cfc16c58f7802e2",
+  "schema_version": 4,
+  "stage": "special-procedure-reconciliation",
+  "tool_version": "0.6.0"
+}
