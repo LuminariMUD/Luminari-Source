@@ -2788,9 +2788,10 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
       2051333, 2051334, 2053264, 2053265, 2053266, 2059815, 2059835, 2062401, 2062402, 2062405,
       2062406, 2062701, 2062702, 2062703, 2062704, 2062705, 2062706, 2062707, 2062708, 2062710,
       2062711, 2062712, 2062713, 2062714, 2062715, 2062716, 2062717, 2062721, 2062722, 2081706,
-      2081746, 2081747, 2083224, 2089793, 2089794, 2092043, 2092608, 2093061, 2093102, 2093108,
-      2093109, 2093110, 2093111, 2093112, 2093202, 2093204, 2093205, 2093206, 2093209, 2093210,
-      2093219, 2093303, 2093310, 2094505, 2094506, 2094563, 2096631, 2096670, 2096672, 2097061,
+      2081746, 2081747, 2083224, 2089793, 2089794, 2092043, 2092047, 2092058, 2092608, 2093002,
+      2093019, 2093061, 2093102, 2093108, 2093109, 2093110, 2093111, 2093112, 2093202, 2093204,
+      2093205, 2093206, 2093209, 2093210, 2093219, 2093303, 2093310, 2094505, 2094506, 2094563,
+      2096631, 2096670, 2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2915,6 +2916,114 @@ void Test_spec_rol_undermountain_combat_profiles_preserve_rolls_and_rust_safety(
 
   GET_EQ(&fixture.target, WEAR_BODY) = NULL;
   fixture.worn.worn_by = NULL;
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_undermountain_lifecycle_profiles_preserve_source_contracts(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  struct room_direction_data north_exit;
+  struct obj_data prototype;
+  struct obj_data *spawned;
+  struct obj_data *saved_obj_proto;
+  struct obj_data *saved_object_list;
+  const char *description;
+  int denominator;
+
+  CuAssertTrue(tc, rol_monster_combat_profile(2092047, &denominator, &description));
+  CuAssertIntEquals(tc, 1, denominator);
+  CuAssertPtrNotNull(tc, strstr(description, "golden-dagger"));
+  CuAssertIntEquals(tc, 2092044, rol_flying_dagger_death_object_vnum());
+
+  CuAssertTrue(tc, rol_monster_combat_profile(2092058, &denominator, &description));
+  CuAssertIntEquals(tc, 101, denominator);
+  CuAssertTrue(tc, rol_ochre_jelly_consumes_object(true, false, -1));
+  CuAssertTrue(tc, !rol_ochre_jelly_consumes_object(true, true, -1));
+  CuAssertTrue(tc, rol_ochre_jelly_consumes_object(false, false, 0));
+  CuAssertTrue(tc, !rol_ochre_jelly_consumes_object(false, false, 1));
+
+  CuAssertTrue(tc, rol_monster_combat_profile(2093002, &denominator, &description));
+  CuAssertIntEquals(tc, 10, denominator);
+  CuAssertTrue(tc, !rol_vortex_guardian_roll_has_action(0));
+  CuAssertTrue(tc, rol_vortex_guardian_roll_has_action(1));
+  CuAssertTrue(tc, rol_vortex_guardian_roll_has_action(7));
+  CuAssertTrue(tc, !rol_vortex_guardian_roll_has_action(8));
+  CuAssertIntEquals(tc, 2093005, rol_vortex_guardian_portal_vnum());
+
+  CuAssertTrue(tc, rol_monster_combat_profile(2093019, &denominator, &description));
+  CuAssertIntEquals(tc, 10, denominator);
+  CuAssertTrue(tc, rol_shrieker_attract_roll_fires(0));
+  CuAssertTrue(tc, !rol_shrieker_attract_roll_fires(1));
+  CuAssertIntEquals(tc, 72, rol_utility_orchid_decay_hours());
+
+  spec_mechanics_begin(&fixture);
+  saved_obj_proto = obj_proto;
+  saved_object_list = object_list;
+  object_list = NULL;
+  clear_object(&prototype);
+  GET_OBJ_RNUM(&prototype) = 0;
+  GET_OBJ_TYPE(&prototype) = ITEM_WEAPON;
+  prototype.name = "golden dagger";
+  prototype.short_description = "a golden dagger";
+  prototype.description = "A golden dagger lies here.";
+  obj_proto = &prototype;
+  top_of_objt = 0;
+
+  memset(&context, 0, sizeof(context));
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_MOBILE_DEATH;
+  context.owner = &fixture.actor;
+  context.actor = &fixture.actor;
+
+  fixture.mobile_indexes[0].vnum = 2092047;
+  fixture.object_indexes[0].vnum = 2092044;
+  fixture.object_indexes[0].number = 0;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
+  spawned = fixture.rooms[0].contents;
+  CuAssertPtrNotNull(tc, spawned);
+  if (spawned != NULL)
+  {
+    CuAssertIntEquals(tc, 2092044, GET_OBJ_VNUM(spawned));
+    extract_obj(spawned);
+  }
+
+  memset(&north_exit, 0, sizeof(north_exit));
+  fixture.rooms[0].dir_option[NORTH] = &north_exit;
+  fixture.mobile_indexes[0].vnum = 2093002;
+  fixture.object_indexes[0].vnum = 2093005;
+  prototype.name = "vortex";
+  prototype.short_description = "a vortex";
+  prototype.description = "A vortex spins here.";
+  CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
+  CuAssertTrue(tc, IS_SET(north_exit.exit_info, EX_BLOCKED));
+  spawned = fixture.rooms[0].contents;
+  CuAssertPtrNotNull(tc, spawned);
+  if (spawned != NULL)
+  {
+    CuAssertIntEquals(tc, 2093005, GET_OBJ_VNUM(spawned));
+    CuAssertIntEquals(tc, 1, GET_OBJ_TIMER(spawned));
+    CuAssertTrue(tc, OBJ_FLAGGED(spawned, ITEM_DECAY));
+    extract_obj(spawned);
+  }
+  fixture.rooms[0].dir_option[NORTH] = NULL;
+
+  fixture.object_indexes[0].vnum = 2093243;
+  GET_OBJ_RNUM(&fixture.copy) = 0;
+  memset(&context, 0, sizeof(context));
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
+  context.owner = &fixture.copy;
+  CuAssertIntEquals(tc, FALSE, rol_utility_object_typed(&context));
+  CuAssertTrue(tc, OBJ_FLAGGED(&fixture.copy, ITEM_DECAY));
+  CuAssertIntEquals(tc, 72, GET_OBJ_TIMER(&fixture.copy));
+  GET_OBJ_TIMER(&fixture.copy) = 71;
+  CuAssertIntEquals(tc, FALSE, rol_utility_object_typed(&context));
+  CuAssertIntEquals(tc, 71, GET_OBJ_TIMER(&fixture.copy));
+
+  obj_proto = saved_obj_proto;
+  object_list = saved_object_list;
   spec_mechanics_end(&fixture);
 }
 

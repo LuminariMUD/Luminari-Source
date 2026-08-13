@@ -275,8 +275,13 @@ ADAPTED_HANDLER_NAMES = {
     "um2_wyvernTail": "RoL Monster Combat",
     "um2_drowConclaveGuard": "RoL Monster Combat",
     "um_essra": "RoL Monster Combat",
+    "um_flyingDagger": "RoL Monster Combat",
+    "um_ochreJelly": "RoL Monster Combat",
+    "um2_vortexGuardian": "RoL Monster Combat",
+    "um2_shrieker": "RoL Monster Combat",
     "um2_gheriasTukCombat": "RoL Monster Combat",
     "um2_rustMonster": "RoL Monster Combat",
+    "um2_orchidDecay": "RoL Utility Object",
     "gakarakQuake": "RoL Monster Combat",
     "kazgorothToss": "RoL Monster Combat",
     "slothenEngorge": "RoL Monster Combat",
@@ -1430,6 +1435,7 @@ def compile_special_bindings(
           "tarrasque_stomache",
           "thp_necroChild",
           "um2_deathsHeadSeed",
+          "um2_orchidDecay",
       } or (
           persisted_name in {"RoL Weapon Proc", "RoL Avernus Object"}
       ):

@@ -252,6 +252,11 @@ bool rol_undead_drain_profile(int mobile_vnum, int *chance_sides, int *marker_af
 size_t rol_monster_combat_profile_count(void);
 bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const char **description);
 bool rol_essra_combat_roll_has_action(int roll);
+int rol_flying_dagger_death_object_vnum(void);
+bool rol_ochre_jelly_consumes_object(bool corpse, bool player_corpse, int roll);
+bool rol_vortex_guardian_roll_has_action(int roll);
+int rol_vortex_guardian_portal_vnum(void);
+bool rol_shrieker_attract_roll_fires(int roll);
 bool rol_gherias_vampire_drain_roll_fires(int roll);
 bool rol_gherias_hammer_head_vnum(int object_vnum);
 bool rol_rust_monster_item_roll_fires(int wear_slot, int object_type, int roll);

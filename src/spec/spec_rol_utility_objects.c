@@ -55,6 +55,8 @@
 #define ROL_LLYMS_REWARD_ONE_VNUM 2088831
 #define ROL_LLYMS_REWARD_TWO_VNUM 2088832
 #define ROL_LLYMS_REWARD_THREE_VNUM 2088833
+#define ROL_BLACK_ORCHID_VNUM 2093243
+#define ROL_BLACK_ORCHID_DECAY_HOURS 72
 
 enum rol_utility_called_effect
 {
@@ -186,6 +188,11 @@ int rol_utility_loot_sweep_interval_seconds(void)
   return ROL_LOOT_SWEEP_SECONDS;
 }
 
+int rol_utility_orchid_decay_hours(void)
+{
+  return ROL_BLACK_ORCHID_DECAY_HOURS;
+}
+
 bool rol_utility_loot_blockable_container(const struct obj_data *obj)
 {
   if (obj == NULL)
@@ -245,6 +252,16 @@ static int rol_utility_loot_sweep(struct obj_data *obj)
   }
 
   return TRUE;
+}
+
+static int rol_utility_orchid_decay(struct obj_data *obj)
+{
+  if (obj == NULL || OBJ_FLAGGED(obj, ITEM_DECAY))
+    return FALSE;
+
+  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_DECAY);
+  GET_OBJ_TIMER(obj) = ROL_BLACK_ORCHID_DECAY_HOURS;
+  return FALSE;
 }
 
 static struct char_data *rol_utility_loot_aggressor(room_rnum room)
@@ -898,6 +915,8 @@ int rol_utility_object_typed(struct spec_event_context *context)
       return rol_utility_necro_child(context->actor, obj);
     case ROL_RUBY_MONOCLE_VNUM:
       return rol_utility_ruby_monocle(obj);
+    case ROL_BLACK_ORCHID_VNUM:
+      return rol_utility_orchid_decay(obj);
     default:
       return FALSE;
     }

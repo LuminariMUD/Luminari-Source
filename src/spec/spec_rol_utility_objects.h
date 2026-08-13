@@ -18,6 +18,7 @@ int rol_utility_object_typed(struct spec_event_context *context);
 bool rol_utility_loot_blockable_container(const struct obj_data *obj);
 bool rol_utility_plague_eligible(struct char_data *ch, const struct obj_data *obj);
 int rol_utility_loot_sweep_interval_seconds(void);
+int rol_utility_orchid_decay_hours(void);
 
 bool rol_utility_sacrifice_keyword(const char *argument);
 bool rol_utility_sacrifice_command_name(const char *command);

@@ -35,6 +35,10 @@
 #define ROL_DROW_CONCLAVE_ROOM_COUNT 11
 #define ROL_DROW_CONCLAVE_REDEPLOY (1U << 0)
 #define ROL_PLANAR_HIT_BURST_COOLDOWN (PULSE_VIOLENCE * 3)
+#define ROL_FLYING_DAGGER_OBJECT_VNUM 2092044
+#define ROL_VORTEX_GUARDIAN_PORTAL_VNUM 2093005
+#define ROL_SHRIEKER_ATTRACT_MIN_VNUM 2093050
+#define ROL_SHRIEKER_ATTRACT_MAX_VNUM 2093065
 #define ROL_GHERIAS_HAMMER_HEAD_VNUM 2093325
 #define ROL_RUST_SOURCE_MAX_WEAR 32
 
@@ -122,6 +126,10 @@ enum rol_monster_combat_effect
   ROL_MONSTER_UM2_WYVERN_TAIL,
   ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD,
   ROL_MONSTER_UM_ESSRA,
+  ROL_MONSTER_UM_FLYING_DAGGER,
+  ROL_MONSTER_UM_OCHRE_JELLY,
+  ROL_MONSTER_UM2_VORTEX_GUARDIAN,
+  ROL_MONSTER_UM2_SHRIEKER,
   ROL_MONSTER_UM2_GHERIAS_TUK,
   ROL_MONSTER_UM2_RUST_MONSTER,
   ROL_MONSTER_RESIDUAL_MOBILE
@@ -354,7 +362,15 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2089794, ROL_MONSTER_DUSK_PARALYSIS_GAZE, 2,
      "Baleful gaze that turns the first failed room target to stone."},
     {2092043, ROL_MONSTER_UM_ESSRA, 10, "Successful-hit drow battle speech and socials."},
+    {2092047, ROL_MONSTER_UM_FLYING_DAGGER, 1,
+     "Critical heart strike and golden-dagger death transition."},
+    {2092058, ROL_MONSTER_UM_OCHRE_JELLY, 101,
+     "Corpse cleanup and one-in-101 ground-object consumption."},
     {2092608, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
+    {2093002, ROL_MONSTER_UM2_VORTEX_GUARDIAN, 10,
+     "Vortex warnings and blocked-exit portal death transition."},
+    {2093019, ROL_MONSTER_UM2_SHRIEKER, 10,
+     "Player-triggered shriek with a one-in-ten Undermountain attraction."},
     {2093061, ROL_MONSTER_UM2_MANSCORPION_TAIL, 1,
      "Critical venom tail that inflicts two to twelve ticks of paralysis."},
     {2093102, ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD, 1,
@@ -461,6 +477,33 @@ bool rol_monster_combat_profile(int mobile_vnum, int *proc_denominator, const ch
 bool rol_essra_combat_roll_has_action(int roll)
 {
   return roll >= 1 && roll <= 5;
+}
+
+int rol_flying_dagger_death_object_vnum(void)
+{
+  return ROL_FLYING_DAGGER_OBJECT_VNUM;
+}
+
+bool rol_ochre_jelly_consumes_object(bool corpse, bool player_corpse, int roll)
+{
+  if (corpse)
+    return !player_corpse;
+  return roll == 0;
+}
+
+bool rol_vortex_guardian_roll_has_action(int roll)
+{
+  return roll >= 1 && roll <= 7;
+}
+
+int rol_vortex_guardian_portal_vnum(void)
+{
+  return ROL_VORTEX_GUARDIAN_PORTAL_VNUM;
+}
+
+bool rol_shrieker_attract_roll_fires(int roll)
+{
+  return roll == 0;
 }
 
 bool rol_gherias_vampire_drain_roll_fires(int roll)
@@ -3724,6 +3767,179 @@ static void rol_balor_ensure_weapons(struct char_data *ch)
   rol_balor_equip_weapon(ch, ROL_BALOR_WHIP_VNUM, WEAR_WIELD_OFFHAND);
 }
 
+static int rol_monster_flying_dagger_death(struct char_data *ch)
+{
+  struct obj_data *dagger;
+
+  act("A final blow, and $n spins no more.", TRUE, ch, NULL, NULL, TO_ROOM);
+  dagger = read_object(ROL_FLYING_DAGGER_OBJECT_VNUM, VIRTUAL);
+  if (dagger == NULL)
+  {
+    log("SYSERR: RoL flying dagger cannot load death object %d", ROL_FLYING_DAGGER_OBJECT_VNUM);
+    return TRUE;
+  }
+  obj_to_room(dagger, IN_ROOM(ch));
+  return TRUE;
+}
+
+static int rol_monster_flying_dagger_hit(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *victim;
+
+  if (context == NULL || ch == NULL || !context->critical ||
+      spec_context_validate_combat_target(ch, context->target, true) != SPEC_CONTEXT_VALID)
+    return FALSE;
+  victim = context->target;
+  if (GET_LEVEL(victim) >= LVL_IMMORT)
+    return FALSE;
+
+  act("You score a CRITICAL HIT!!!!!", FALSE, ch, NULL, NULL, TO_CHAR);
+  act("\trYou begin to spin in a blinding arc...", FALSE, ch, NULL, NULL, TO_CHAR);
+  act("\trYou move with lightning speed as you bury yourself into the\r\n"
+      "\trheart of $N!",
+      FALSE, ch, NULL, victim, TO_CHAR);
+  act("$n \trbegins to spin in a blinding arc...", FALSE, ch, NULL, NULL, TO_ROOM);
+  act("$n \trmoves with lightning speed as it buries itself into the\r\n"
+      "\trheart of $N!",
+      FALSE, ch, NULL, victim, TO_NOTVICT);
+  act("$n \trmoves with lightning speed as it buries itself into your\r\n"
+      "\trchest and pierces your heart!",
+      FALSE, ch, NULL, victim, TO_VICT);
+  context->invalidation |= SPEC_INVALIDATE_TARGET;
+  die(victim, ch);
+  return TRUE;
+}
+
+static int rol_monster_ochre_jelly_activity(struct char_data *ch)
+{
+  struct obj_data *content;
+  struct obj_data *obj;
+  bool corpse;
+  bool player_corpse;
+  int roll;
+
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return FALSE;
+
+  for (obj = world[IN_ROOM(ch)].contents; obj != NULL; obj = obj->next_content)
+  {
+    corpse = IS_CORPSE(obj);
+    player_corpse = corpse && GET_OBJ_VAL(obj, 4) != 0;
+    roll = corpse ? -1 : rand_number(0, 100);
+    if (!rol_ochre_jelly_consumes_object(corpse, player_corpse, roll))
+      continue;
+
+    while (corpse && (content = obj->contains) != NULL)
+    {
+      obj_from_obj(content);
+      obj_to_room(content, IN_ROOM(ch));
+    }
+    act("$n cleans the area.", FALSE, ch, obj, NULL, TO_ROOM);
+    extract_obj(obj);
+    return FALSE;
+  }
+  return FALSE;
+}
+
+static int rol_monster_vortex_guardian_activity(struct char_data *ch)
+{
+  int roll;
+
+  if (ch == NULL || !AWAKE(ch))
+    return FALSE;
+  roll = rand_number(1, 10);
+  if (!rol_vortex_guardian_roll_has_action(roll))
+    return FALSE;
+
+  switch (roll)
+  {
+  case 1:
+    do_say(ch, "If you wish to enter the Vortex, you must defeat me!", 0, 0);
+    break;
+  case 2:
+    do_say(ch, "Be forewarned! The Vortex holds dangers far worse than me!", 0, 0);
+    break;
+  case 3:
+    do_say(ch, "I am but a shadow of the danger that lies ahead!", 0, 0);
+    break;
+  case 4:
+    do_say(ch,
+           "Be aware! Once you enter the Vortex, you cannot leave until you have finished the "
+           "tasks set out before you!",
+           0, 0);
+    break;
+  case 5:
+    do_say(ch, "He who knows himself, knows his enemy!", 0, 0);
+    break;
+  case 6:
+    do_say(ch, "Take only what you need...", 0, 0);
+    break;
+  case 7:
+    do_say(ch, "As long as I remain, an exit exists, but the Vortex is hidden.", 0, 0);
+    break;
+  default:
+    break;
+  }
+  return FALSE;
+}
+
+static int rol_monster_vortex_guardian_death(struct char_data *ch)
+{
+  struct obj_data *vortex;
+  struct room_direction_data *north_exit;
+
+  north_exit = world[IN_ROOM(ch)].dir_option[NORTH];
+  if (north_exit == NULL)
+    log("SYSERR: RoL Vortex Guardian has no northern exit to block in room %d",
+        GET_ROOM_VNUM(IN_ROOM(ch)));
+  else
+    SET_BIT(north_exit->exit_info, EX_BLOCKED);
+
+  vortex = read_object(ROL_VORTEX_GUARDIAN_PORTAL_VNUM, VIRTUAL);
+  if (vortex == NULL)
+  {
+    log("SYSERR: RoL Vortex Guardian cannot load portal %d", ROL_VORTEX_GUARDIAN_PORTAL_VNUM);
+    return TRUE;
+  }
+  SET_BIT_AR(GET_OBJ_EXTRA(vortex), ITEM_DECAY);
+  GET_OBJ_TIMER(vortex) = 1;
+  obj_to_room(vortex, IN_ROOM(ch));
+  act("With a final blow, $n dissolves and coallesces into\r\n$p.", FALSE, ch, vortex, NULL,
+      TO_ROOM);
+  return TRUE;
+}
+
+static int rol_monster_shrieker_activity(struct char_data *ch)
+{
+  struct char_data *attracted;
+  struct char_data *victim;
+  int mobile_vnum;
+
+  if (ch == NULL || !AWAKE(ch))
+    return FALSE;
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = victim->next_in_room)
+    if (!IS_NPC(victim) && GET_LEVEL(victim) < LVL_IMMORT)
+      break;
+  if (victim == NULL)
+    return FALSE;
+
+  act("A shrill shrieking noise emminates from $n.", FALSE, ch, NULL, NULL, TO_ROOM);
+  if (!rol_shrieker_attract_roll_fires(rand_number(0, 9)))
+    return TRUE;
+
+  mobile_vnum = rand_number(ROL_SHRIEKER_ATTRACT_MIN_VNUM, ROL_SHRIEKER_ATTRACT_MAX_VNUM);
+  attracted = read_mobile(mobile_vnum, VIRTUAL);
+  if (attracted == NULL)
+  {
+    log("SYSERR: RoL shrieker cannot load attracted mobile %d", mobile_vnum);
+    return FALSE;
+  }
+  char_to_room(attracted, IN_ROOM(ch));
+  GET_MOB_LOADROOM(attracted) = IN_ROOM(ch);
+  act("The piercing noise appears to have attracted something!", FALSE, ch, NULL, NULL, TO_ROOM);
+  return TRUE;
+}
+
 static void rol_monster_essra_hit(struct char_data *ch)
 {
   int command;
@@ -3967,6 +4183,12 @@ static int rol_monster_activity(struct spec_event_context *context,
     return rol_griffon_guard_activity(ch);
   case ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD:
     return rol_drow_conclave_guard_activity(ch);
+  case ROL_MONSTER_UM_OCHRE_JELLY:
+    return rol_monster_ochre_jelly_activity(ch);
+  case ROL_MONSTER_UM2_VORTEX_GUARDIAN:
+    return rol_monster_vortex_guardian_activity(ch);
+  case ROL_MONSTER_UM2_SHRIEKER:
+    return rol_monster_shrieker_activity(ch);
   case ROL_MONSTER_UM2_GHERIAS_TUK:
     return rol_monster_gherias_activity(context, ch);
   default:
@@ -4000,6 +4222,10 @@ int rol_monster_combat_typed(struct spec_event_context *context)
 
   if (context->event == SPEC_EVENT_MOBILE_DEATH)
   {
+    if (profile->effect == ROL_MONSTER_UM_FLYING_DAGGER)
+      return rol_monster_flying_dagger_death(ch);
+    if (profile->effect == ROL_MONSTER_UM2_VORTEX_GUARDIAN)
+      return rol_monster_vortex_guardian_death(ch);
     if (profile->effect == ROL_MONSTER_DARKHOLD_SHADOW_DRAGON)
       return rol_darkhold_mobile_death(context, ch);
     avernus_result = rol_avernus_mobile_event(context, ch);
@@ -4057,6 +4283,8 @@ int rol_monster_combat_typed(struct spec_event_context *context)
       rol_monster_essra_hit(ch);
       return FALSE;
     }
+    if (profile->effect == ROL_MONSTER_UM_FLYING_DAGGER)
+      return rol_monster_flying_dagger_hit(context, ch);
     if (profile->effect == ROL_MONSTER_UM2_RUST_MONSTER)
       return rol_monster_rust_hit(context, ch);
     if (profile->effect == ROL_MONSTER_TRAHERN_QUAKE ||
@@ -4138,6 +4366,10 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_UM2_MANSCORPION_TAIL:
   case ROL_MONSTER_UM2_WYVERN_TAIL:
   case ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD:
+  case ROL_MONSTER_UM_FLYING_DAGGER:
+  case ROL_MONSTER_UM_OCHRE_JELLY:
+  case ROL_MONSTER_UM2_VORTEX_GUARDIAN:
+  case ROL_MONSTER_UM2_SHRIEKER:
     return FALSE;
   default:
     break;
@@ -4265,6 +4497,10 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_UM2_WYVERN_TAIL:
   case ROL_MONSTER_UM2_DROW_CONCLAVE_GUARD:
   case ROL_MONSTER_UM_ESSRA:
+  case ROL_MONSTER_UM_FLYING_DAGGER:
+  case ROL_MONSTER_UM_OCHRE_JELLY:
+  case ROL_MONSTER_UM2_VORTEX_GUARDIAN:
+  case ROL_MONSTER_UM2_SHRIEKER:
   case ROL_MONSTER_UM2_GHERIAS_TUK:
   case ROL_MONSTER_UM2_RUST_MONSTER:
   case ROL_MONSTER_RESIDUAL_MOBILE:

@@ -669,6 +669,23 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual("RoL Monster Combat", disposition["target"])
 
+  def test_undermountain_lifecycle_handlers_use_typed_runtimes(self) -> None:
+    for handler in (
+        "um_flyingDagger",
+        "um_ochreJelly",
+        "um2_vortexGuardian",
+        "um2_shrieker",
+    ):
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Monster Combat", disposition["target"])
+
+    disposition = handler_disposition("um2_orchidDecay")
+    self.assertEqual("resolved", disposition["status"])
+    self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+    self.assertEqual("RoL Utility Object", disposition["target"])
+
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       source_root = Path(temporary)
@@ -934,11 +951,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_609, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(112, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(701, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(94, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(1_051, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_614, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(107, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(706, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(89, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_056, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           219, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -959,8 +976,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       )
       self.assertEqual(2, summary["dynamic_handler_definitions_located"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(820, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(28, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(822, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(26, summary["act_spec_by_status"]["pending"])
 
       binding_rows = [
           json.loads(line)
