@@ -570,6 +570,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
     self.assertEqual("RoL Drow Equipment", disposition["target"])
 
+  def test_deaths_head_lifecycle_has_one_owner_aware_disposition(self) -> None:
+    for handler in ("um2_deathsHead", "um2_deathsHeadSeed", "um2_deathsHeadTree"):
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Death's Head", disposition["target"])
+
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       source_root = Path(temporary)
@@ -835,11 +842,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_570, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(151, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(667, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(128, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(1_018, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_575, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(146, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(670, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(125, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_023, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           216, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -860,8 +867,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       )
       self.assertEqual(2, summary["dynamic_handler_definitions_located"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(812, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(36, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(816, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(32, summary["act_spec_by_status"]["pending"])
 
       binding_rows = [
           json.loads(line)

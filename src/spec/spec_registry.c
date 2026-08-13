@@ -29,6 +29,7 @@
 #include "spec/spec_rol_avernus.h"
 #include "spec/spec_rol_conversion.h"
 #include "spec/spec_rol_darkhold.h"
+#include "spec/spec_rol_deaths_head.h"
 #include "spec/spec_rol_drow.h"
 #include "spec/spec_rol_lavatubes.h"
 #include "spec/spec_rol_pilot.h"
@@ -138,6 +139,13 @@ static const struct spec_event_contract rol_avernus_object_events[] = {
 
 static const struct spec_event_contract rol_drow_equipment_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+};
+
+static const struct spec_event_contract rol_deaths_head_events[] = {
+    {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_DEATH, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_HIT, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
     {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
 };
 
@@ -1542,6 +1550,20 @@ static const struct spec_definition spec_definitions[] = {
         .typed_handler = rol_darkhold_object_typed,
     },
     {
+        .canonical_name = "RoL Death's Head",
+        .display_name = "RoL Death's Head",
+        .owner_mask = SPEC_OWNER_MOBILE | SPEC_OWNER_OBJECT,
+        .events = rol_deaths_head_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_deaths_head_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Runs the converted Death's Head tree, fruit, and implanted-seed lifecycle "
+                       "by exact mobile and object identity.",
+        .typed_adapter = rol_deaths_head,
+        .typed_handler = rol_deaths_head_typed,
+    },
+    {
         .canonical_name = "RoL Drow Equipment",
         .display_name = "RoL Drow Equipment",
         .owner_mask = SPEC_OWNER_OBJECT,
@@ -1824,6 +1846,7 @@ enum
   SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT,
   SPEC_DEFINITION_ROL_WATERDEEP_PEACEKEEPER,
   SPEC_DEFINITION_ROL_DARKHOLD_OBJECT,
+  SPEC_DEFINITION_ROL_DEATHS_HEAD,
   SPEC_DEFINITION_ROL_DROW_EQUIPMENT,
   SPEC_DEFINITION_ROL_WEAPON_PROC,
   SPEC_DEFINITION_ROL_AVERNUS_OBJECT,
@@ -1954,6 +1977,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_WATERDEEP_AMBIENT, -1},
     {SPEC_DEFINITION_ROL_WATERDEEP_PEACEKEEPER, -1},
     {SPEC_DEFINITION_ROL_DARKHOLD_OBJECT, -1},
+    {SPEC_DEFINITION_ROL_DEATHS_HEAD, -1},
     {SPEC_DEFINITION_ROL_DROW_EQUIPMENT, -1},
     {SPEC_DEFINITION_ROL_WEAPON_PROC, -1},
     {SPEC_DEFINITION_ROL_AVERNUS_OBJECT, -1},

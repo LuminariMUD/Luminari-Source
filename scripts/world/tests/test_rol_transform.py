@@ -391,6 +391,38 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("RoL Drow Equipment", result.records[0].spec_proc)
     self.assertIn(44, decode_tokens(result.records[0].extra_flags).bits)
 
+  def test_deaths_head_bindings_share_mobile_and_object_runtime(self) -> None:
+    bindings = [
+        {
+            "basename": "undermountain2",
+            "record_type": record_type,
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for record_type, source_vnum, handler in (
+            ("mobile", 93013, "um2_deathsHeadTree"),
+            ("mobile", 93014, "um2_deathsHead"),
+            ("mobile", 93015, "um2_deathsHeadTree"),
+            ("mobile", 93016, "um2_deathsHeadTree"),
+            ("object", 93044, "um2_deathsHeadSeed"),
+        )
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+
+    self.assertEqual(5, len(compiled.native_bindings))
+    self.assertTrue(
+        all(binding.persisted_name == "RoL Death's Head" for binding in compiled.native_bindings)
+    )
+    for binding in compiled.native_bindings:
+      self.assertEqual(
+          (44,) if binding.source_record_type == "object" else (0,),
+          binding.required_flag_bits,
+      )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_planar_death_burst_and_balor_weapon_bindings_are_explicit(self) -> None:
     bindings = [
         {

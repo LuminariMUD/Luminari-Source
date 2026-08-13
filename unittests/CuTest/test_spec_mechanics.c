@@ -27,6 +27,7 @@
 #include "../../src/spec/spec_rol_avernus.h"
 #include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/spec/spec_rol_darkhold.h"
+#include "../../src/spec/spec_rol_deaths_head.h"
 #include "../../src/spec/spec_rol_drow.h"
 #include "../../src/spec/spec_rol_lavatubes.h"
 #include "../../src/spec/spec_rol_tarrasque.h"
@@ -1660,6 +1661,151 @@ void Test_spec_rol_drow_decay_mutates_source_object_fields(CuTest *tc)
   CuAssertTrue(tc, !rol_drow_reduce_object_value(&obj, 8));
   CuAssertIntEquals(tc, 0, GET_OBJ_VAL(&obj, 0));
   CuAssertTrue(tc, rol_drow_reduce_object_value(&obj, 8));
+}
+
+void Test_spec_rol_deaths_head_profiles_preserve_source_quirks_and_cadence(CuTest *tc)
+{
+  static const struct
+  {
+    int vnum;
+    enum rol_deaths_head_kind kind;
+    int minimum_heads;
+    int maximum_heads;
+  } expected[] = {
+      {2093013, ROL_DEATHS_HEAD_SAPLING, 1, 5},
+      {2093014, ROL_DEATHS_HEAD_FRUIT, 0, 0},
+      {2093015, ROL_DEATHS_HEAD_YOUNG, 6, 10},
+      {2093016, ROL_DEATHS_HEAD_MATURE, 11, 16},
+  };
+  enum rol_deaths_head_kind kind;
+  size_t index;
+
+  CuAssertIntEquals(tc, 4, (int)rol_deaths_head_mobile_profile_count());
+  for (index = 0; index < sizeof(expected) / sizeof(expected[0]); index++)
+  {
+    CuAssertTrue(tc, rol_deaths_head_mobile_profile(expected[index].vnum, &kind));
+    CuAssertIntEquals(tc, expected[index].kind, kind);
+    CuAssertIntEquals(tc, expected[index].minimum_heads, rol_deaths_head_initial_head_min(kind));
+    CuAssertIntEquals(tc, expected[index].maximum_heads, rol_deaths_head_initial_head_max(kind));
+  }
+  CuAssertTrue(tc, !rol_deaths_head_mobile_profile(2093012, &kind));
+  CuAssertIntEquals(tc, ROL_DEATHS_HEAD_NONE, kind);
+  CuAssertTrue(tc, rol_deaths_head_seed_profile(2093044));
+  CuAssertTrue(tc, !rol_deaths_head_seed_profile(2093043));
+
+  CuAssertTrue(tc, rol_deaths_head_larger_tree(ROL_DEATHS_HEAD_SAPLING, ROL_DEATHS_HEAD_YOUNG));
+  CuAssertTrue(tc, rol_deaths_head_larger_tree(ROL_DEATHS_HEAD_SAPLING, ROL_DEATHS_HEAD_MATURE));
+  CuAssertTrue(tc, rol_deaths_head_larger_tree(ROL_DEATHS_HEAD_YOUNG, ROL_DEATHS_HEAD_MATURE));
+  CuAssertTrue(tc, !rol_deaths_head_larger_tree(ROL_DEATHS_HEAD_MATURE, ROL_DEATHS_HEAD_SAPLING));
+  CuAssertIntEquals(tc, 11, rol_deaths_head_mature_regrowth_count(16, 15));
+  CuAssertIntEquals(tc, 11, rol_deaths_head_mature_regrowth_count(1, 1));
+  CuAssertTrue(tc, !rol_deaths_head_mature_wood_drop_enabled());
+
+  CuAssertIntEquals(tc, 240 * PASSES_PER_SEC / 4, (int)rol_deaths_head_source_delay_pulses(240));
+  CuAssertIntEquals(tc, 14 * PASSES_PER_SEC / 4, (int)rol_deaths_head_source_delay_pulses(14));
+  CuAssertIntEquals(tc, 18 * PASSES_PER_SEC / 4, (int)rol_deaths_head_source_delay_pulses(18));
+  CuAssertIntEquals(tc, 1, rol_deaths_head_seed_damage_min(1));
+  CuAssertIntEquals(tc, 2, rol_deaths_head_seed_damage_max(1));
+  CuAssertIntEquals(tc, 2, rol_deaths_head_seed_damage_min(5));
+  CuAssertIntEquals(tc, 5, rol_deaths_head_seed_damage_max(5));
+}
+
+void Test_spec_rol_deaths_head_initializes_tree_and_grows_carried_seed(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  struct mud_event_data event;
+  struct char_data prototypes[2];
+  struct char_data *saved_character_list;
+  struct char_data *saved_mob_proto;
+  struct char_data *sprout;
+  struct obj_data seed;
+  long delay;
+
+  spec_mechanics_begin(&fixture);
+  saved_character_list = character_list;
+  saved_mob_proto = mob_proto;
+  character_list = NULL;
+  spec_mechanics_initialize_npc(&prototypes[0], "ordinary fixture mobile", NOWHERE);
+  spec_mechanics_initialize_npc(&prototypes[1], "Death's Head sapling", NOWHERE);
+  prototypes[0].player.name = "ordinary fixture mobile";
+  prototypes[1].player.name = "death head sapling";
+  GET_MOB_RNUM(&prototypes[0]) = 0;
+  GET_MOB_RNUM(&prototypes[1]) = 1;
+  mob_proto = prototypes;
+  fixture.mobile_indexes[0].vnum = 6200;
+  fixture.mobile_indexes[1].vnum = 2093013;
+  fixture.object_indexes[0].vnum = 2093044;
+  GET_MOB_RNUM(&fixture.actor) = 1;
+
+  memset(&context, 0, sizeof(context));
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_MOBILE_ACTIVITY;
+  context.owner = &fixture.actor;
+  context.actor = &fixture.actor;
+  context.argument = "";
+
+  CuAssertIntEquals(tc, TRUE, rol_deaths_head_typed(&context));
+  CuAssertTrue(tc, fixture.actor.mob_specials.rol_deaths_head_initialized);
+  CuAssertTrue(tc, fixture.actor.mob_specials.rol_deaths_head_count >= 1);
+  CuAssertTrue(tc, fixture.actor.mob_specials.rol_deaths_head_count <= 5);
+  CuAssertIntEquals(tc, 1, fixture.actor.mob_specials.rol_deaths_head_cycle);
+  context.event = SPEC_EVENT_MOBILE_DEATH;
+  CuAssertIntEquals(tc, TRUE, rol_deaths_head_typed(&context));
+
+  clear_object(&seed);
+  GET_OBJ_RNUM(&seed) = 0;
+  seed.short_description = "a Death's Head seed";
+  seed.carried_by = &fixture.target;
+  fixture.target.carrying = &seed;
+  memset(&event, 0, sizeof(event));
+  event.iId = eROL_DEATHS_HEAD_SEED;
+  event.pStruct = &seed;
+
+  GET_HIT(&fixture.target) = 100;
+  delay = event_rol_deaths_head_seed(&event);
+  CuAssertTrue(tc, delay >= rol_deaths_head_source_delay_pulses(14));
+  CuAssertTrue(tc, delay <= rol_deaths_head_source_delay_pulses(18));
+  CuAssertIntEquals(tc, 1, GET_OBJ_VAL(&seed, 0));
+  CuAssertTrue(tc, GET_HIT(&fixture.target) >= 98);
+  CuAssertTrue(tc, GET_HIT(&fixture.target) <= 99);
+
+  fixture.target.carrying = NULL;
+  seed.carried_by = NULL;
+  clear_object(&fixture.worn);
+  GET_OBJ_TYPE(&fixture.worn) = ITEM_CONTAINER;
+  GET_OBJ_VAL(&fixture.worn, 3) = 1;
+  IN_ROOM(&fixture.worn) = 1;
+  fixture.rooms[0].people = NULL;
+  fixture.rooms[1].people = &fixture.actor;
+  IN_ROOM(&fixture.actor) = 1;
+  IN_ROOM(&fixture.target) = 1;
+  fixture.rooms[1].contents = &fixture.worn;
+  seed.in_obj = &fixture.worn;
+  fixture.worn.contains = &seed;
+  seed.rol_deaths_head_seed_initialized = true;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  GET_MOB_RNUM(&fixture.target) = 0;
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
+  context.owner = &seed;
+  context.actor = NULL;
+  CuAssertIntEquals(tc, FALSE, rol_deaths_head_typed(&context));
+  sprout = character_list;
+  CuAssertPtrNotNull(tc, sprout);
+  CuAssertIntEquals(tc, 2093013, GET_MOB_VNUM(sprout));
+  CuAssertIntEquals(tc, 1, IN_ROOM(sprout));
+  CuAssertPtrEquals(tc, &seed, fixture.worn.contains);
+
+  extract_char(sprout);
+  extract_pending_chars();
+  fixture.rooms[1].people = NULL;
+  fixture.rooms[1].contents = NULL;
+  fixture.worn.contains = NULL;
+  seed.in_obj = NULL;
+  character_list = saved_character_list;
+  mob_proto = saved_mob_proto;
+  spec_mechanics_end(&fixture);
 }
 
 void Test_spec_rol_darkhold_objects_open_source_profiled_passages(CuTest *tc)

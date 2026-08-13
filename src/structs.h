@@ -6096,8 +6096,9 @@ struct obj_data
   struct trap_data *trap; // Trap on this object
 
   /* Non-persistent Realms of Luminari runtime state. */
-  time_t rol_loot_sweep_at;        /* Next corpse-protection sweep. */
-  bool rol_drow_decay_initialized; /* RoL drow decay event was initialized. */
+  time_t rol_loot_sweep_at;              /* Next corpse-protection sweep. */
+  bool rol_drow_decay_initialized;       /* RoL drow decay event was initialized. */
+  bool rol_deaths_head_seed_initialized; /* RoL Death's Head seed event initialized. */
 
   /* Hash table support for fast rnum lookups */
   struct obj_data *next_in_hash; // Next object in hash bucket
@@ -7232,6 +7233,10 @@ struct mob_special_data
   bool rol_alert_fired;                  /* Converted alert caller has shouted this fight */
   long rol_dancing_dagger_owner_id;      /* RoL dancing-dagger player owner */
   int rol_dancing_dagger_object_vnum;    /* RoL dancing-dagger hidden object */
+  unsigned short rol_deaths_head_cycle;  /* RoL Death's Head growth/germination cycle */
+  unsigned short rol_deaths_head_drop;   /* RoL Death's Head fruit-drop cycle */
+  byte rol_deaths_head_count;            /* RoL Death's Head attack/fruit count */
+  bool rol_deaths_head_initialized;      /* RoL Death's Head instance state initialized */
 };
 
 /** An affect structure. */

@@ -163,6 +163,9 @@ ADAPTED_HANDLER_NAMES = {
     "gold_diamond": "RoL Darkhold Object",
     "ruby_aquamarine": "RoL Darkhold Object",
     "genericDrowEq": "RoL Drow Equipment",
+    "um2_deathsHead": "RoL Death's Head",
+    "um2_deathsHeadSeed": "RoL Death's Head",
+    "um2_deathsHeadTree": "RoL Death's Head",
     "baker_one": "RoL Waterdeep Ambient",
     "baker_two": "RoL Waterdeep Ambient",
     "casino_one": "RoL Waterdeep Ambient",
@@ -1369,6 +1372,8 @@ def compile_special_bindings(
           "tarrasque_die",
           "tarrasque_swallow_smack",
           "ticket_taker",
+          "um2_deathsHead",
+          "um2_deathsHeadTree",
           "waterdeep_guard_three",
           "undead_ghast",
           "undead_ghost",
@@ -1389,6 +1394,7 @@ def compile_special_bindings(
           "obj_drain",
           "tarrasque_stomache",
           "thp_necroChild",
+          "um2_deathsHeadSeed",
       } or (
           persisted_name in {"RoL Weapon Proc", "RoL Avernus Object"}
       ):
