@@ -66,6 +66,7 @@ NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 # legacy target callbacks have different eligibility or probability rules.
 ADAPTED_HANDLER_NAMES = {
     "aggroNonBarbarian": "RoL Monster Combat",
+    "dr_majorParalyze": "RoL Monster Combat",
     "artillery_one": "RoL Waterdeep Ambient",
     "av_drisinil_shout": "RoL Alert Caller",
     "av_tukra_shout": "RoL Alert Caller",
@@ -255,6 +256,8 @@ ADAPTED_HANDLER_NAMES = {
     "manscorpion_venom_medium": "RoL Monster Combat",
     "manscorpion_venom_heavy": "RoL Monster Combat",
     "manscorpion_king": "RoL Monster Combat",
+    "um2_manscorpionTail": "RoL Monster Combat",
+    "um2_wyvernTail": "RoL Monster Combat",
     "dk_bansheeWail": "RoL Monster Combat",
     "dk_bladestorm": "RoL Monster Combat",
     "ms_sandstorm_beast": "RoL Monster Combat",

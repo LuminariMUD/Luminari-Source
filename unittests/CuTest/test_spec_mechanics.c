@@ -2380,9 +2380,9 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
       2043778, 2043780, 2045116, 2045146, 2045182, 2051246, 2051333, 2051334, 2053264, 2053265,
       2053266, 2059815, 2059835, 2062401, 2062402, 2062405, 2062406, 2062701, 2062702, 2062703,
       2062704, 2062705, 2062706, 2062707, 2062708, 2062710, 2062711, 2062712, 2062713, 2062714,
-      2062715, 2062716, 2062717, 2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2092608,
-      2093202, 2093204, 2093205, 2093206, 2093209, 2093210, 2094505, 2094506, 2096631, 2096670,
-      2096672, 2097061,
+      2062715, 2062716, 2062717, 2062721, 2062722, 2081706, 2081746, 2081747, 2083224, 2089793,
+      2089794, 2092608, 2093061, 2093202, 2093204, 2093205, 2093206, 2093209, 2093210, 2093219,
+      2094505, 2094506, 2094563, 2096631, 2096670, 2096672, 2097061,
   };
   const char *description;
   bool faerie_fire;
@@ -2447,6 +2447,90 @@ void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertIntEquals(tc, 3, rol_seelie_search_stun_rounds(2062701));
   CuAssertIntEquals(tc, 6, rol_seelie_search_stun_rounds(2062707));
   CuAssertIntEquals(tc, 0, rol_seelie_search_stun_rounds(2062708));
+}
+
+void Test_spec_rol_paralysis_hit_profiles_preserve_gaze_and_venom_tails(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  struct affected_type *affect;
+  bool critical_only;
+  bool fatal;
+  int duration_min;
+  int duration_max;
+  int result;
+
+  CuAssertTrue(
+      tc, rol_paralysis_hit_profile(2089793, &critical_only, &fatal, &duration_min, &duration_max));
+  CuAssertTrue(tc, !critical_only);
+  CuAssertTrue(tc, !fatal);
+  CuAssertIntEquals(tc, 10, duration_min);
+  CuAssertIntEquals(tc, 10, duration_max);
+  CuAssertTrue(tc, rol_paralysis_hit_profile(2089794, NULL, NULL, NULL, NULL));
+  CuAssertTrue(
+      tc, rol_paralysis_hit_profile(2093061, &critical_only, &fatal, &duration_min, &duration_max));
+  CuAssertTrue(tc, critical_only);
+  CuAssertTrue(tc, !fatal);
+  CuAssertIntEquals(tc, 2, duration_min);
+  CuAssertIntEquals(tc, 12, duration_max);
+  CuAssertTrue(
+      tc, rol_paralysis_hit_profile(2093219, &critical_only, &fatal, &duration_min, &duration_max));
+  CuAssertTrue(tc, critical_only);
+  CuAssertTrue(tc, fatal);
+  CuAssertIntEquals(tc, 0, duration_min);
+  CuAssertIntEquals(tc, 0, duration_max);
+  CuAssertTrue(tc, rol_paralysis_hit_profile(2094563, NULL, NULL, NULL, NULL));
+  CuAssertTrue(tc, !rol_paralysis_hit_profile(2094562, NULL, NULL, NULL, NULL));
+
+  CuAssertIntEquals(tc, 4, rol_dusk_paralysis_proc_denominator(40));
+  CuAssertIntEquals(tc, 2, rol_dusk_paralysis_proc_denominator(50));
+  CuAssertIntEquals(tc, 1, rol_dusk_paralysis_proc_denominator(61));
+  CuAssertIntEquals(tc, 1, rol_dusk_paralysis_proc_denominator(80));
+  CuAssertIntEquals(tc, 1, rol_dusk_paralysis_save_bonus(40));
+  CuAssertIntEquals(tc, 2, rol_dusk_paralysis_save_bonus(50));
+
+  spec_mechanics_begin(&fixture);
+  memset(&context, 0, sizeof(context));
+  fixture.mobile_indexes[0].vnum = 2089793;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  GET_LEVEL(&fixture.actor) = 61;
+  GET_SAVE(&fixture.target, SAVING_FORT) = -100;
+  FIGHTING(&fixture.actor) = &fixture.target;
+  FIGHTING(&fixture.target) = &fixture.actor;
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_MOBILE_HIT;
+  context.owner = &fixture.actor;
+  context.actor = &fixture.actor;
+  context.target = &fixture.target;
+
+  result = rol_monster_combat_typed(&context);
+  CuAssertIntEquals(tc, TRUE, result);
+  affect = fixture.target.affected;
+  CuAssertPtrNotNull(tc, affect);
+  if (affect != NULL)
+  {
+    CuAssertIntEquals(tc, SPELL_HOLD_MONSTER, affect->spell);
+    CuAssertIntEquals(tc, 10, affect->duration);
+    CuAssertTrue(tc, AFF_FLAGGED(&fixture.target, AFF_PARALYZED));
+  }
+  affect_from_char(&fixture.target, SPELL_HOLD_MONSTER);
+
+  fixture.mobile_indexes[0].vnum = 2093061;
+  context.critical = false;
+  CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
+  CuAssertPtrEquals(tc, NULL, fixture.target.affected);
+  context.critical = true;
+  CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
+  affect = fixture.target.affected;
+  CuAssertPtrNotNull(tc, affect);
+  if (affect != NULL)
+  {
+    CuAssertIntEquals(tc, SPELL_HOLD_MONSTER, affect->spell);
+    CuAssertTrue(tc, affect->duration >= 2);
+    CuAssertTrue(tc, affect->duration <= 12);
+    CuAssertTrue(tc, AFF_FLAGGED(&fixture.target, AFF_PARALYZED));
+  }
+  spec_mechanics_end(&fixture);
 }
 
 void Test_spec_rol_griffon_guard_preserves_nonbarbarian_targeting(CuTest *tc)

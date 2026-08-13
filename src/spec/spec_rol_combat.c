@@ -104,6 +104,9 @@ enum rol_monster_combat_effect
   ROL_MONSTER_DARKHOLD_SHADOW_FIEND,
   ROL_MONSTER_DARKHOLD_SHADOW_DRAGON,
   ROL_MONSTER_GRIFFON_NONBARBARIAN,
+  ROL_MONSTER_DUSK_PARALYSIS_GAZE,
+  ROL_MONSTER_UM2_MANSCORPION_TAIL,
+  ROL_MONSTER_UM2_WYVERN_TAIL,
   ROL_MONSTER_RESIDUAL_MOBILE
 };
 
@@ -324,7 +327,13 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2081746, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2081747, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
     {2083224, ROL_MONSTER_PIT_FIEND_BITE_TAIL, 16, "Venomous bite and crushing tail."},
+    {2089793, ROL_MONSTER_DUSK_PARALYSIS_GAZE, 4,
+     "Baleful gaze that turns the first failed room target to stone."},
+    {2089794, ROL_MONSTER_DUSK_PARALYSIS_GAZE, 2,
+     "Baleful gaze that turns the first failed room target to stone."},
     {2092608, ROL_MONSTER_PIERCER, 1, "One-shot hidden piercer ambush."},
+    {2093061, ROL_MONSTER_UM2_MANSCORPION_TAIL, 1,
+     "Critical venom tail that inflicts two to twelve ticks of paralysis."},
     {2093202, ROL_MONSTER_PLANAR_SUCCUBUS_CHARM, 4,
      "Male-target charm, Blackguard service, command restraint, and delayed kiss."},
     {2093204, ROL_MONSTER_PLANAR_BALOR, 1,
@@ -337,10 +346,12 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
      "Screech, spore burst, and five-Vrock dance of ruin."},
     {2093210, ROL_MONSTER_PLANAR_VROCK_BURSTS, 1,
      "Screech, spore burst, and five-Vrock dance of ruin."},
+    {2093219, ROL_MONSTER_UM2_WYVERN_TAIL, 1, "Critical venom tail with a fatal paralysis save."},
     {2094505, ROL_MONSTER_DARKHOLD_SHADOW_FIEND, 1,
      "Successful-hit darkness and mind-steal attacks with independent cooldowns."},
     {2094506, ROL_MONSTER_DARKHOLD_SHADOW_DRAGON, 1,
      "Death unlocks and reveals the nearby northern passage."},
+    {2094563, ROL_MONSTER_UM2_WYVERN_TAIL, 1, "Critical venom tail with a fatal paralysis save."},
     {2096631, ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL, 6, "Room-wide Greycloak banshee wail."},
     {2096670, ROL_MONSTER_GREYCLOAK_FUMES, 11, "Room-wide noxious fumes."},
     {2096672, ROL_MONSTER_GREYCLOAK_ARALESH, 11, "Lethal blazing-eye beam."},
@@ -416,6 +427,64 @@ bool rol_griffon_guard_target_allowed(const struct char_data *target)
 
   /* RoL's Barbarian player race became the target's multiclass Berserker role. */
   return CLASS_LEVEL(target, CLASS_BERSERKER) <= 0;
+}
+
+bool rol_paralysis_hit_profile(int mobile_vnum, bool *critical_only, bool *fatal, int *duration_min,
+                               int *duration_max)
+{
+  const struct rol_monster_combat_profile *profile = rol_monster_combat_profile_for(mobile_vnum);
+  bool result_critical;
+  bool result_fatal;
+  int result_duration_min;
+  int result_duration_max;
+
+  if (profile == NULL)
+    return false;
+  switch (profile->effect)
+  {
+  case ROL_MONSTER_DUSK_PARALYSIS_GAZE:
+    result_critical = false;
+    result_fatal = false;
+    result_duration_min = 10;
+    result_duration_max = 10;
+    break;
+  case ROL_MONSTER_UM2_MANSCORPION_TAIL:
+    result_critical = true;
+    result_fatal = false;
+    result_duration_min = 2;
+    result_duration_max = 12;
+    break;
+  case ROL_MONSTER_UM2_WYVERN_TAIL:
+    result_critical = true;
+    result_fatal = true;
+    result_duration_min = 0;
+    result_duration_max = 0;
+    break;
+  default:
+    return false;
+  }
+
+  if (critical_only != NULL)
+    *critical_only = result_critical;
+  if (fatal != NULL)
+    *fatal = result_fatal;
+  if (duration_min != NULL)
+    *duration_min = result_duration_min;
+  if (duration_max != NULL)
+    *duration_max = result_duration_max;
+  return true;
+}
+
+int rol_dusk_paralysis_proc_denominator(int level)
+{
+  int frequency = (61 - level) / 7;
+
+  return MAX(0, frequency) + 1;
+}
+
+int rol_dusk_paralysis_save_bonus(int level)
+{
+  return -((30 - level) / 10);
 }
 
 bool rol_planar_death_profile(int mobile_vnum, bool *suppresses_corpse)
@@ -868,6 +937,115 @@ static struct char_data *rol_monster_random_player(struct char_data *ch)
       selected = candidate;
   }
   return selected;
+}
+
+static bool rol_dusk_paralysis_target_allowed(struct char_data *ch, struct char_data *victim)
+{
+  if (ch == NULL || victim == NULL || victim == ch || IN_ROOM(ch) == NOWHERE ||
+      IN_ROOM(victim) != IN_ROOM(ch) || GET_LEVEL(victim) >= LVL_IMMORT ||
+      affected_by_spell(victim, SPELL_HOLD_MONSTER) || !CAN_SEE(victim, ch))
+    return false;
+  if (!IS_NPC(victim))
+    return true;
+  return AFF_FLAGGED(victim, AFF_CHARM) || FIGHTING(victim) == ch;
+}
+
+static bool rol_monster_apply_paralysis(struct char_data *victim, int duration)
+{
+  struct affected_type affect;
+
+  if (victim == NULL || duration <= 0)
+    return false;
+  new_affect(&affect);
+  affect.spell = SPELL_HOLD_MONSTER;
+  affect.duration = duration;
+  SET_BIT_AR(affect.bitvector, AFF_PARALYZED);
+  affect_to_char(victim, &affect);
+  return true;
+}
+
+static int rol_monster_dusk_paralysis_hit(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *victim;
+  struct char_data *next;
+  int denominator;
+
+  if (context == NULL || ch == NULL || FIGHTING(ch) == NULL)
+    return FALSE;
+  denominator = rol_dusk_paralysis_proc_denominator(GET_LEVEL(ch));
+  if (rand_number(1, denominator) != 1)
+    return FALSE;
+
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!rol_dusk_paralysis_target_allowed(ch, victim))
+      continue;
+    if (paralysis_immunity(victim) ||
+        savingthrow(ch, victim, SAVING_FORT, rol_dusk_paralysis_save_bonus(GET_LEVEL(ch)),
+                    CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+    {
+      act("You manage to avoid $n's baleful gaze!", TRUE, ch, NULL, victim, TO_VICT);
+      continue;
+    }
+
+    act("$N's body turns to stone as $n stares at $M!", TRUE, ch, NULL, victim, TO_NOTVICT);
+    act("Your body turns to stone as $n stares at you!", FALSE, ch, NULL, victim, TO_VICT);
+    (void)rol_monster_apply_paralysis(victim, 10);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+static int rol_monster_venom_tail_hit(struct spec_event_context *context, struct char_data *ch)
+{
+  struct char_data *victim;
+  bool critical_only;
+  bool fatal;
+  int duration_min;
+  int duration_max;
+  int duration;
+
+  if (context == NULL || ch == NULL ||
+      !rol_paralysis_hit_profile(GET_MOB_VNUM(ch), &critical_only, &fatal, &duration_min,
+                                 &duration_max) ||
+      (critical_only && !context->critical) || FIGHTING(ch) != context->target)
+    return FALSE;
+  victim = context->target;
+
+  act("$n swings $s tail toward $N, stinging $M with it.", FALSE, ch, NULL, victim, TO_NOTVICT);
+  act("You swing your tail toward $N, stinging $M with it.", FALSE, ch, NULL, victim, TO_CHAR);
+  act("$n swings $s tail toward you, stinging you with it.", FALSE, ch, NULL, victim, TO_VICT);
+
+  if (GET_LEVEL(victim) >= LVL_IMMORT || paralysis_immunity(victim) ||
+      savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+  {
+    act("You feel slightly sick, but the feeling quickly subsides.", FALSE, ch, NULL, victim,
+        TO_VICT);
+    act("$N looks a bit pale, but fights on.", FALSE, ch, NULL, victim, TO_NOTVICT);
+    act("$N looks a bit pale, but fights on.", FALSE, ch, NULL, victim, TO_CHAR);
+    return TRUE;
+  }
+
+  if (fatal)
+  {
+    act("The poison takes effect quickly, seizing your nervous system. You go into convulsions.",
+        FALSE, ch, NULL, victim, TO_VICT);
+    act("$N looks slightly pale as $E goes into convulsions.", FALSE, ch, NULL, victim, TO_NOTVICT);
+    act("$N looks slightly pale as $E goes into convulsions.", FALSE, ch, NULL, victim, TO_CHAR);
+    context->invalidation |= SPEC_INVALIDATE_TARGET;
+    die(victim, ch);
+    return TRUE;
+  }
+
+  act("The poison takes effect quickly, seizing your nervous system. You stiffen up and cease "
+      "to move.",
+      FALSE, ch, NULL, victim, TO_VICT);
+  act("$N looks slightly stiff and ceases to move.", FALSE, ch, NULL, victim, TO_NOTVICT);
+  act("$N looks slightly stiff and ceases to move.", FALSE, ch, NULL, victim, TO_CHAR);
+  duration = rand_number(duration_min, duration_max);
+  (void)rol_monster_apply_paralysis(victim, duration);
+  return TRUE;
 }
 
 static int rol_monster_manscorpion_hit(struct spec_event_context *context,
@@ -3290,6 +3468,11 @@ int rol_monster_combat_typed(struct spec_event_context *context)
         (void)rol_avernus_meritos_silence(ch);
       return FALSE;
     }
+    if (profile->effect == ROL_MONSTER_DUSK_PARALYSIS_GAZE)
+      return rol_monster_dusk_paralysis_hit(context, ch);
+    if (profile->effect == ROL_MONSTER_UM2_MANSCORPION_TAIL ||
+        profile->effect == ROL_MONSTER_UM2_WYVERN_TAIL)
+      return rol_monster_venom_tail_hit(context, ch);
     if (rol_manscorpion_venom_profile(GET_MOB_VNUM(ch), NULL, NULL, NULL))
       return rol_monster_manscorpion_hit(context, profile, ch);
     return rol_monster_successful_hit(context, profile, ch);
@@ -3361,6 +3544,9 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_DARKHOLD_SHADOW_FIEND:
   case ROL_MONSTER_DARKHOLD_SHADOW_DRAGON:
   case ROL_MONSTER_GRIFFON_NONBARBARIAN:
+  case ROL_MONSTER_DUSK_PARALYSIS_GAZE:
+  case ROL_MONSTER_UM2_MANSCORPION_TAIL:
+  case ROL_MONSTER_UM2_WYVERN_TAIL:
     return FALSE;
   default:
     break;
@@ -3479,6 +3665,9 @@ int rol_monster_combat_typed(struct spec_event_context *context)
   case ROL_MONSTER_DARKHOLD_SHADOW_FIEND:
   case ROL_MONSTER_DARKHOLD_SHADOW_DRAGON:
   case ROL_MONSTER_GRIFFON_NONBARBARIAN:
+  case ROL_MONSTER_DUSK_PARALYSIS_GAZE:
+  case ROL_MONSTER_UM2_MANSCORPION_TAIL:
+  case ROL_MONSTER_UM2_WYVERN_TAIL:
   case ROL_MONSTER_RESIDUAL_MOBILE:
     break;
   }

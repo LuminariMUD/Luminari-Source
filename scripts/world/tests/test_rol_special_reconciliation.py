@@ -787,6 +787,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
     self.assertEqual("RoL Monster Combat", disposition["target"])
 
+  def test_paralysis_hit_handlers_have_explicit_dispositions(self) -> None:
+    for handler in ("dr_majorParalyze", "um2_manscorpionTail", "um2_wyvernTail"):
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Monster Combat", disposition["target"])
+
   def test_source_definition_scanner_ignores_preprocessor_disabled_decoy(self) -> None:
     definitions = source_handler_definitions(
         self.root / "EXAMPLE/RealmsOfLuminari", {"tree_spirit"}
@@ -822,11 +829,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_559, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(162, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(663, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(132, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(1_007, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_564, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(157, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(666, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(129, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_012, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           216, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
