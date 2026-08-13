@@ -185,8 +185,8 @@ Phase 5 policy-2 full audit:
   lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit
   rol-phase5-audit-cec58661a4f21a2a
 Phase 6 special reconciliation:
-  lib/rol-conversion/runs/phase6-special-20260813-trahern-erinyes
-  rol-phase6-special-f01d2b62f6185eea
+  lib/rol-conversion/runs/phase6-special-20260813-undermountain-yawning-portal
+  rol-phase6-special-ccb5be8a975f9981
 Phase 6 shared mobile: lib/rol-conversion/runs/phase6-special-20260812-shared-mobile
                        rol-phase6-special-0f4f1274d95a2941
 Phase 6 implicit race: lib/rol-conversion/runs/phase6-special-20260812-race-composition
@@ -418,6 +418,9 @@ Phase 6 Trahern combat handlers:
 Phase 6 Trahern Erinyes charm lifecycle:
   lib/rol-conversion/runs/phase6-special-20260813-trahern-erinyes
   rol-phase6-special-f01d2b62f6185eea
+Phase 6 Undermountain Yawning Portal periodic and inert callbacks:
+  lib/rol-conversion/runs/phase6-special-20260813-undermountain-yawning-portal
+  rol-phase6-special-ccb5be8a975f9981
 Policy:  rol-conversion-policy-2
 ```
 
@@ -446,10 +449,10 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 364 tests; the production-linked CuTest suite passes 692;
+- The world-tool suite passes 366 tests; the production-linked CuTest suite passes 692;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The corrected discovery repair and twenty-nine subsequent denominator-bearing batches are
-  archived. Those batches closed 352 bindings across 152 source handlers. The measured remaining
+- The corrected discovery repair and thirty subsequent denominator-bearing batches are
+  archived. Those batches closed 360 bindings across 160 source handlers. The measured remaining
   Phase 6 forecast is 10-20 sessions, or 20-80 focused engineering hours; the full remaining
   project range is 66-104 sessions, or 132-416 focused hours.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
@@ -500,13 +503,13 @@ Policy:  rol-conversion-policy-2
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
 - The repaired Phase 6 inventory accounts for 1,721 active direct bindings across 795 source
-  handlers and locates all 795 source definitions. The current reconciliation resolves 1,598
-  bindings across 690 handlers and leaves 123 bindings across 105 handlers.
-- The independent `ACT_SPEC` cross-check resolves 819 of 848 records and leaves 29
+  handlers and locates all 795 source definitions. The current reconciliation resolves 1,606
+  bindings across 698 handlers and leaves 115 bindings across 97 handlers.
+- The independent `ACT_SPEC` cross-check resolves 820 of 848 records and leaves 28
   pending. It remains a scheduling cross-check rather than the direct-binding denominator;
   composition-safe flags and room or object procedures can resolve source handlers without
   changing this mobile-only count.
-- The 105 pending handlers comprise 94 singletons and 11 families with two to four bindings;
+- The 97 pending handlers comprise 86 singletons and 11 families with two to four bindings;
   no family with five or more bindings remains.
 - All 247 source boot-time race procedures are complete through composition-safe mobile
   flags and activity/combat hooks: 134 demons, 101 devils, and 12 umber hulks. The
@@ -774,16 +777,16 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,598 static bindings and leaves 123 pending. It resolves
-  690 direct handler names and leaves 105 pending across 26 source files. The pending set has
-  94 singleton handlers and 11 handlers with two to four bindings; no handler with five or more
+- The corrected reconciler resolves 1,606 static bindings and leaves 115 pending. It resolves
+  698 direct handler names and leaves 97 pending across 26 source files. The pending set has
+  86 singleton handlers and 11 handlers with two to four bindings; no handler with five or more
   bindings remains.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
   shopkeeper path accounts for 453 active shops and hosts. Both are resolved through the target
   data-driven HLQuest and shop services. Static and dynamic paths total 7,252 active binding
   instances across 797 handler names.
-- The regenerated `ACT_SPEC` cross-check resolves 819 of 848 records and leaves 29 pending.
+- The regenerated `ACT_SPEC` cross-check resolves 820 of 848 records and leaves 28 pending.
   Automatic race composition still resolves all 247 implicit bindings; 85 now compose with a
   direct binding and 162 are implicit-only.
 - The prior 1,112/1,147 binding, 538/562 handler, and 830/848 `ACT_SPEC` split is historical
@@ -961,9 +964,16 @@ Policy:  rol-conversion-policy-2
   and new-attempt deferral, and one-at-a-time deaths while retaining target charm defenses. The
   batch also corrects the shared Succubus save translation from target `-2` to `+2`; Trahern's
   source `-1` becomes target `+1` under the opposite save-modifier conventions.
-- Twenty-nine corrected batches close 352 bindings across 152 handlers. That measured
+- The Undermountain Yawning Portal batch closes eight bindings across eight handlers. Tamsil,
+  Mhaere, the regular, the gambler, and Thorn use generated `RoL Source Periodic` profiles with
+  exact source ranges, awake and not-fighting gates, all 29 authored outcomes, and all 35 speech,
+  room-action, and Durnan or Kevlar target-action steps. The generator now resolves local
+  target-name arrays and consumes the first `KISS` action-table record despite its leading blank
+  line. The Blade of Paladins, High Duke Sword, and goblin-leader callbacks are explicitly inert:
+  they register no events and return without changing their owners or nearby characters.
+- Thirty corrected batches close 360 bindings across 160 handlers. That measured
   throughput puts the binding-count projection near 10 sessions and the handler-diversity
-  projection near 20. Because 94 of 105 remaining handlers are singletons, the published Phase 6
+  projection near 18. Because 86 of 97 remaining handlers are singletons, the published Phase 6
   envelope is 10-20 sessions, or 20-80 focused engineering hours. Reforecast after another
   material batch or an inventory correction.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
@@ -988,43 +998,46 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Implementation commit `cabd6bfc` reconciles the remaining Trahern handlers `erinyesCharm` and
-  `erinyesCharmed` through one exact `RoL Monster Combat` profile on mobile 2020246. This completes
-  every active direct callback in `src/specs.trahern.c`.
-- The Erinyes preserves either-sex mortal targeting, awake and out-of-combat gates, one-in-four
-  charm attempts, source telepathy and success or resistance messages, follower state, the exact
-  command whitelist and restraint lines, and a one-to-four-MUD-hour heart-ripping deadline. Combat
-  or a new charm attempt defers a due execution by one hour, and followers die one at a time.
-  Target-native charm defenses remain active. The source `-1` save modifier becomes target `+1`;
-  the shared Succubus translation is corrected from target `-2` to target `+2` for its source
-  `-2`, because the APIs give opposite meanings to modifier signs.
+- Implementation commit `b62511d7` reconciles five Yawning Portal periodic handlers and three
+  source-inert Undermountain callbacks. Mobiles 2092001, 2092003, 2092004, 2092006, and 2092021
+  now use exact generated `RoL Source Periodic` profiles; objects 2092124 and 2092129 and mobile
+  2092039 receive no invented callback.
+- The periodic profiles preserve their source one-to-10, one-to-30, one-to-100, and one-to-20
+  ranges, awake and not-fighting gates, 29 authored outcomes, and 35 ordered speech, room-action,
+  and target-action steps. Mhaere targets Durnan for flirt and kiss; Thorn targets Kevlar for poke
+  and eye-roll actions while preserving the remaining speech and socials. The generator now maps
+  source-local target-name arrays and no longer drops the leading `KISS` action-table record.
+- `um_bladeOfPaladins` and `um_highDukeSword` contain only design comments, while
+  `um_goblinLeader` contains only a mimic note. All three register no events and return false, so
+  the explicit smallest-unit exclusions preserve source behavior.
 - The authoritative evidence is
-  `lib/rol-conversion/runs/phase6-special-20260813-trahern-erinyes`, run
-  `rol-phase6-special-f01d2b62f6185eea`. A same-timestamp repeat was byte-identical. The standard
+  `lib/rol-conversion/runs/phase6-special-20260813-undermountain-yawning-portal`, run
+  `rol-phase6-special-ccb5be8a975f9981`. A same-timestamp repeat was byte-identical. The relative
   path-and-content tree digest is
-  `a56d8ccbd906b2ca32569977581b29327a3798078dab47781aadd8572d270c87`.
+  `c1b737e28424a12aad44264106aa4740e90911ae574c149bc8d4b3b3f8873351`.
 - The binding ledger SHA-256 is
-  `451de239e3635006def24474ad4ce04f5c6120d003c2de7d4b16e76ab504c905`; the handler inventory
-  SHA-256 is `e626d468891a916dcc59d123cd6159cd30ba9847da9f7dd7bd2f9219cf0029ca`;
-  and the summary SHA-256 is
-  `dca9a1010c492fd5c1cb8b5a29584860f5ce104b12db22f6599e8775d354d457`.
+  `748ffa545b17bbd0b4857d080295e593c83b5110da06fa7a36f968d16cff8cad`; the handler inventory
+  SHA-256 is `e7c64c2735e38af312cdcee0e5e951e247f72f09f5e9ee8c54b4ddb08f3f7a5d`;
+  the summary SHA-256 is
+  `83f0cb1ae1f5beb608ea926c9a9b319289cfc26aa7940a9ceac9220c57951fe2`; and the manifest SHA-256
+  is `a94fb97780e990e543c845444cffc0630bcc15959d9ce1b7505031e18d8f9ba0`.
 - The denominator remains 1,721 live static plus 5,531 resolved dynamic binding instances.
-  Resolution is now 1,598 static bindings across 690 handlers, leaving 123 bindings across 105
-  handlers in 26 source files. The independent `ACT_SPEC` cross-check remains 819 resolved and
-  29 pending. The pending shape is 94 singletons, five two-binding, five three-binding, and one
-  four-binding family. All automatic race and dynamic paths remain complete, with zero live
-  target writes.
+  Resolution is now 1,606 static bindings across 698 handlers, leaving 115 bindings across 97
+  handlers in 26 source files. The independent `ACT_SPEC` cross-check is 820 resolved and 28
+  pending because Thorn's direct assignment now resolves that record. The pending shape is 86
+  singletons, five two-binding, five three-binding, and one four-binding family. All automatic
+  race and dynamic paths remain complete, with zero live target writes.
 - The target registry remains 117 definitions: 98 legacy and 19 typed, with 118 persisted
-  compatibility names. Final validation passed: 364 world-tool tests, 692 production-linked
+  compatibility names. Final validation passed: 366 world-tool tests, 692 production-linked
   CuTests, a complete CMake build and all 12 CTest targets, zero documentation findings, a
   warning-free Autotools build/test/install, and no root-level `circle`. Installed build ID
-  `066556515b8fd25334296448fdd6acd1a0c331b5`; SHA-256
-  `b6edd047785afbe954964e46e15c6d61ffa6158d20dc192d711429e68bee108f`.
+  `cfcb145fee586fad6aaef875d8c285b03a5e1cee`; SHA-256
+  `f844448ab01f9e82eab8a1fd1528f0250d1dbdbc33989e1c2c94c8d8571c41c4`.
 - No player helpfile changed because the batch adds no player command or syntax. The staff manual
-  covers eligibility, defenses, save translation, command restraint, deadlines, deferral,
-  one-at-a-time execution, and the dependency-stage boundary.
-- Twenty-nine measured batches have closed 352 bindings across 152 handlers. The remaining Phase
-  6 envelope is 10-20 sessions, or 20-80 focused hours; the full remaining project envelope is
+  covers identity attachment, roll ranges, gates, ordered messages, target socials, and inert
+  identity checks for a disposable dependency-complete Phase 7 stage.
+- Thirty measured batches have closed 360 bindings across 160 handlers. The remaining Phase 6
+  envelope is 10-20 sessions, or 20-80 focused hours; the full remaining project envelope is
   66-104 sessions, or 132-416 focused hours. Next, select the highest-value dependency-complete
   combat or utility family while leaving pre-damage weapon and Acheron return lifecycle
   dependencies explicit.

@@ -9,6 +9,72 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Undermountain Yawning Portal callbacks
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Reconciled the five active `um_tamsil`, `um_mhaere`, `um_regular`, `um_gambler`, and
+  `um_thorn` bindings through exact generated profiles in the existing `RoL Source Periodic`
+  runtime. Converted mobiles 2092001, 2092003, 2092004, 2092006, and 2092021 retain their
+  ordinary mobile special-procedure flag and persisted procedure name.
+- Preserved the one-to-10, one-to-30, one-to-100, and one-to-20 source roll ranges; awake and
+  not-fighting gates; all 29 authored outcomes; and all 35 ordered speech, room-action, and
+  target-action steps. This includes the regular's two-step fifth case and the gambler's and
+  Thorn's two- or three-step cases.
+- Extended the generated-profile parser to resolve source-local target-name arrays. Mhaere now
+  flirts with and kisses Durnan, while Thorn pokes and rolls eyes at Kevlar. Repaired the source
+  action-table reader so its leading blank line no longer hides the first `KISS` record.
+- Classified `um_bladeOfPaladins`, `um_highDukeSword`, and `um_goblinLeader` as source-inert.
+  Their active bodies register no events and return false after only design comments or a mimic
+  note, so attaching target mechanics would invent behavior.
+- Added generated-table range, gate, target, victim-message, action ordering, converter,
+  explicit-disposition, production-linked C, and full-ledger regressions. The generated table now
+  covers 131 source handlers, 141 converted mobile identities, 556 outcomes, and 825 actions.
+- Regenerated deterministic evidence. Resolution increases from 1,598 to 1,606 static bindings
+  and from 690 to 698 direct handlers, leaving 115 bindings across 97 handlers in 26 source
+  files. Thorn advances the independent `ACT_SPEC` cross-check to 820 resolved and 28 pending.
+- Reforecast thirty corrected batches covering 360 bindings across 160 handlers. The remaining
+  Phase 6 envelope stays 10-20 sessions, or 20-80 focused engineering hours; the full remaining
+  project envelope stays 66-104 sessions, or 132-416 focused hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: b62511d7
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-undermountain-yawning-portal
+Reconciliation run: rol-phase6-special-ccb5be8a975f9981
+Evidence tree SHA-256: c1b737e28424a12aad44264106aa4740e90911ae574c149bc8d4b3b3f8873351
+Active direct bindings: 1,721
+Direct bindings resolved: 1,606
+Direct bindings pending: 115
+Source handlers resolved: 698
+Source handlers pending: 97
+Additional handler families resolved: 8
+Additional direct bindings resolved: 8
+Native adapted bindings: 1,048
+Native adapted composable bindings: 219
+Source-inert exclusions: 41
+ACT_SPEC records resolved: 820
+ACT_SPEC records pending: 28
+Complete world-tool suite: 366 passed
+Production-linked CuTest suite: 692 passed
+CMake build and CTest: 12 of 12 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: cfcb145fee586fad6aaef875d8c285b03a5e1cee
+Installed SHA-256: f844448ab01f9e82eab8a1fd1528f0250d1dbdbc33989e1c2c94c8d8571c41c4
+Evidence artifact hashes: 7 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+No player helpfile changed because this checkpoint adds no player command or syntax. The staff
+manual records identity attachment, roll ranges, activity gates, ordered output, named target
+socials, and the inert-callback checks for a disposable dependency-complete stage.
+
 ## 2026-08-13 - Phase 6 Trahern Erinyes charm lifecycle
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

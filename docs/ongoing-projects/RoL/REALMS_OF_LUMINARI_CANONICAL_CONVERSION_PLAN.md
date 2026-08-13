@@ -251,17 +251,17 @@ ledger measures:
 
 - 1,813 static candidates, of which 92 are preprocessor-excluded and 1,721 are live;
 - 1,098 mobile, 323 object, and 300 room bindings across 795 direct handler names;
-- 1,598 resolved and 123 pending live static bindings, with 690 resolved and 105 pending
+- 1,606 resolved and 115 pending live static bindings, with 698 resolved and 97 pending
   direct handler names;
 - two resolved dynamic paths representing 5,078 quest and 453 shop binding instances;
 - 7,252 total active static and dynamic binding instances across 797 handler names; and
-- 819 resolved and 29 pending records in the independent 848-record `ACT_SPEC`
+- 820 resolved and 28 pending records in the independent 848-record `ACT_SPEC`
   cross-check.
 
 The corrected dependent evidence is Phase 1 run `rol-phase1-237602d3ade48138`, Phase 2
 run `rol-phase2-c93b8c4610b36d1e`, Phase 5 run
 `rol-phase5-audit-cec58661a4f21a2a`, and Phase 6 run
-`rol-phase6-special-f01d2b62f6185eea`. The older 1,112/1,147 binding, 538/562 handler,
+`rol-phase6-special-ccb5be8a975f9981`. The older 1,112/1,147 binding, 538/562 handler,
 and 830/848 `ACT_SPEC` counts are historical checkpoints only.
 
 ## 4. Canonical identity and rehome contract
@@ -721,8 +721,8 @@ forecasts are in [RoL-Changelog.md](RoL-Changelog.md).
 
 The call-path-aware extractor, macro resolution, dynamic shop/quest dispositions,
 regression fixtures, and dependent Phase 1, 2, 5, and 6 regeneration are complete. The
-remaining measured scope is 128 live static bindings across 110 direct handler names in
-27 source files. The first corrected-denominator closure completed the four-handler,
+remaining measured scope is 115 live static bindings across 97 direct handler names in
+26 source files. The first corrected-denominator closure completed the four-handler,
 four-binding Tarrasque encounter and added the missing typed mobile-death gateway. The second
 reused the established target class-family guild adapters for 14 source callbacks and 37 room
 bindings. The third reconciled the planar demon base layer: 25 explicitly abyss-forged mobiles
@@ -867,6 +867,14 @@ one charmed follower after one to four MUD hours while deferring during combat o
 attempt. Target-native spell resistance, mind blank, no-charm equipment, and charm immunity
 remain protective. The shared path now also correctly translates the older Succubus source `-2`
 save modifier instead of applying it with the target API's opposite meaning.
+The thirtieth reconciled five Yawning Portal periodic handlers through the generated source
+profile runtime and excluded three inert Undermountain callbacks at their smallest units.
+Tamsil, Mhaere, the regular, the gambler, and Thorn preserve their exact one-to-10,
+one-to-30, one-to-100, and one-to-20 ranges, awake and not-fighting gates, speech, room actions,
+and Durnan or Kevlar targeted socials. The generator now resolves source-local target-name
+arrays and correctly reads the leading `KISS` social record instead of silently omitting it.
+The Blade of Paladins, High Duke Sword, and goblin-leader callbacks contain only comments and
+return false without registering an event, so attaching target behavior would invent mechanics.
 Next, select the highest-value dependency-complete pending combat or utility group.
 
 Preserve the six already locked malformed or ignored rows as explicit, logged
@@ -879,10 +887,10 @@ gate at substantial checkpoints. Add a new source file to both `Makefile.am` and
 
 **Exit gate:** every active binding is kept, patched, adapted, ported, or minimally
 excluded with behavior evidence. The measured remaining Phase 6 planning envelope is 10-20
-sessions, or 20-80 focused engineering hours. Twenty-nine corrected batches have closed 352
-bindings across 152 handlers, leaving an arithmetic binding projection near 10 sessions and a
-handler-diversity projection near 20. The published range allows shared runtime families to
-outperform the handler projection while recognizing that 94 of the remaining 105 handlers are
+sessions, or 20-80 focused engineering hours. Thirty corrected batches have closed 360
+bindings across 160 handlers, leaving an arithmetic binding projection near 10 sessions and a
+handler-diversity projection near 18. The published range allows shared runtime families to
+outperform the handler projection while recognizing that 86 of the remaining 97 handlers are
 singletons and many require source-specific tracing. Reforecast after another material batch or
 any inventory correction.
 

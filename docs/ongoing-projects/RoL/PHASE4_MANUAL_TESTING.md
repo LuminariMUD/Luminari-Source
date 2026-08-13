@@ -1153,6 +1153,35 @@ These profiles and inert dispositions are automated and reconciled but are absen
 current five-zone pilot. Exercise them only in a disposable Phase 7 dependency-complete stage;
 do not hand-edit them into the pilot.
 
+### Phase 6 converted Undermountain Yawning Portal callbacks
+
+- Build a disposable dependency-complete stage containing mobiles 2092001, 2092003, 2092004,
+  2092006, 2092021, and 2092039 plus objects 2092124 and 2092129. The five periodic identities
+  must retain `MOB_SPEC` and use `RoL Source Periodic`; unrelated identities must not receive
+  their profiles.
+- Observe Tamsil 2092001 while awake and idle. Its one-to-10 roll must emit only cases one
+  through five. Observe Mhaere 2092003 on one-to-30, the regular 2092004 and gambler 2092006 on
+  one-to-100, and Thorn 2092021 on one-to-20. Sleeping or fighting mobiles must remain silent.
+- Put disposable visible room occupants with the keywords `durnan` and `kevlar` in the test room;
+  do not import their still-pending source callbacks merely to exercise target selection. Mhaere's
+  fourth and fifth cases must emit the source flirt and gentle-kiss room and victim messages for
+  Durnan. Her third case must retain the embedded newlines in both the room action and speech.
+- Confirm the regular's fifth case performs both the look and laugh actions. Confirm the gambler's
+  tenth case raises an eyebrow before saying `I never cheat, I'm just lucky.` All earlier gambler
+  speech and the Tymora room action must retain source order and wording.
+- Confirm Thorn's first case tries the Kevlar poke, says `Lets go! I'm tired of standing here.`,
+  and taps a foot in that order. The second case targets Kevlar with the eye-roll social; the
+  third sighs before speaking; and the fourth only raises an eyebrow. Removing the named target
+  must not prevent the independent speech or self-social steps in the same outcome.
+- Inspect Blade of Paladins 2092124, High Duke Sword 2092129, and goblin leader 2092039. These
+  identities must not gain a procedure or automatic procedure flag from these callbacks. The
+  source contains design comments or a mimic note but registers no event and executes no
+  behavior; test any independent prototype mechanics separately.
+
+These profiles and inert dispositions are automated and reconciled but are absent from the
+current five-zone pilot. Exercise them only in a disposable Phase 7 dependency-complete stage;
+do not hand-edit them into the pilot.
+
 ### Phase 6 converted source death effects
 
 - Build dependency-complete Trahern, Dobluth, and Undermountain stages containing mobiles
