@@ -26,7 +26,7 @@ class ConstantsTests(unittest.TestCase):
 
   def test_room_table_matches_source_contract(self) -> None:
     entries = self.manifest["tables"]["room"]["entries"]
-    self.assertEqual(47, len(entries))
+    self.assertEqual(48, len(entries))
     self.assertEqual("ROOM_DARK", entries[0]["macro"])
     self.assertEqual("Dark", entries[0]["name"])
     self.assertEqual("ROOM_DOCKABLE", entries[41]["macro"])
@@ -35,6 +35,8 @@ class ConstantsTests(unittest.TestCase):
     self.assertEqual("Psionic-Regeneration", entries[45]["name"])
     self.assertEqual("ROOM_ROL_HOME_RESET", entries[46]["macro"])
     self.assertEqual("RoL-Home-Reset", entries[46]["name"])
+    self.assertEqual("ROOM_ROL_ASTRAL", entries[47]["macro"])
+    self.assertEqual("RoL-Astral", entries[47]["name"])
 
   def test_quest_tables_match_source_contract(self) -> None:
     quest_types = self.manifest["tables"]["quest-types"]

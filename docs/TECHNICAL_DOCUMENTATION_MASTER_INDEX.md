@@ -162,7 +162,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[Quest File Format](world_game-data/QUEST_FILE_FORMAT.md)** - `.qst` grammar, source-backed types and flags, rewards, references, and chain rules
 - **[High-Level Quest File Format](world_game-data/HLQUEST_FILE_FORMAT.md)** - `.hlq` host entries, command legality, bounds, references, and runtime order
 - **[OEDIT Guide](world_game-data/OEDIT_GUIDE.md)** - Object editor, item types, wear slots, and the object value vectors
-- **[Room Flags](world_game-data/ROOM_FLAGS.md)** - All 46 room flags
+- **[Room Flags](world_game-data/ROOM_FLAGS.md)** - All 48 room flags
 - **[Mobile Flags](world_game-data/MOB_FLAGS.md)** - All 105 mobile action flags
 
 ### Equipment & Items

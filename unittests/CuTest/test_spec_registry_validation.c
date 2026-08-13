@@ -581,6 +581,14 @@ void Test_spec_registry_event_contracts_and_prerequisites(CuTest *tc)
   CuAssertIntEquals(tc, SPEC_PROTOTYPE_ITEM_AUTOPROC, (int)event->required_prototype_flags);
   CuAssertIntEquals(tc, SPEC_PLACEMENT_NONE, (int)event->required_placement);
 
+  definition = spec_registry_find_by_name("RoL Weapon Proc");
+  event = spec_definition_get_event(definition, SPEC_EVENT_OBJECT_AUTO_PULSE);
+  CuAssertPtrNotNull(tc, event);
+  if (event == NULL)
+    return;
+  CuAssertIntEquals(tc, SPEC_PROTOTYPE_ITEM_AUTOPROC, (int)event->required_prototype_flags);
+  CuAssertIntEquals(tc, SPEC_PLACEMENT_NONE, (int)event->required_placement);
+
   definition = spec_registry_find_by_name("RoL Bloodstone Portal");
   event = spec_definition_get_event(definition, SPEC_EVENT_COMMAND);
   CuAssertPtrNotNull(tc, event);

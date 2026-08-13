@@ -606,6 +606,19 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual("RoL Weapon Proc", disposition["target"])
 
+  def test_undermountain_forged_handlers_use_typed_weapon_runtime(self) -> None:
+    handlers = (
+        "um2_astralForged",
+        "um2_torinChainLightning",
+        "um2_torinGeneral",
+    )
+
+    for handler in handlers:
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Weapon Proc", disposition["target"])
+
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       source_root = Path(temporary)
@@ -871,11 +884,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_585, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(136, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(679, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(116, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(1_033, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_590, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(131, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(682, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(113, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(1_038, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           216, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

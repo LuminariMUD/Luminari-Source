@@ -118,6 +118,9 @@ ZONE_ROOM_FLAG_MAP = {
 ROOM_TRANSFORMED_FLAGS = frozenset({6, 32})
 ZONE_SOURCE_ONLY_FLAGS = frozenset({2, 3, 8})
 
+SOURCE_ASTRAL_SECTOR = 23
+ROL_ASTRAL_ROOM_FLAG = 47
+
 SECTOR_MAP = {
     0: 0,
     1: 1,
@@ -1252,6 +1255,9 @@ def emit_room(
   second_mask = base[6] if len(base) > 6 else 0
   source_flags = _source_mask_bits(first_mask, 1) | _source_mask_bits(second_mask, 33)
   target_flags = _mapped_bits(source_flags, ROOM_FLAG_MAP) | _room_size_bits(base)
+  source_sector = base[2] if len(base) > 2 else 0
+  if source_sector == SOURCE_ASTRAL_SECTOR:
+    target_flags.add(ROL_ASTRAL_ROOM_FLAG)
   target_flags.update(required_flag_bits)
   source_zone_bits = _source_mask_bits(source_zone_flags, 0)
   target_flags.update(_mapped_bits(source_zone_bits, ZONE_ROOM_FLAG_MAP))
@@ -1270,7 +1276,7 @@ def emit_room(
         "preserved source-only zone metadata outside room flags: "
         f"{sorted(source_zone_bits & ZONE_SOURCE_ONLY_FLAGS)}"
     )
-  sector = SECTOR_MAP.get(base[2] if len(base) > 2 else 0, 0)
+  sector = SECTOR_MAP.get(source_sector, 0)
   if 6 in source_flags:
     sector = 9
   lines = [

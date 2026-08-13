@@ -281,10 +281,11 @@
 #define ROOM_ROL_JAIL 44       /* RoL justice-system compatibility marker */
 #define ROOM_PSP_REGEN 45      /* Double psionic power regeneration */
 #define ROOM_ROL_HOME_RESET 46 /* Update a wandering mobile's home after a successful exit */
+#define ROOM_ROL_ASTRAL 47     /* Converted source room is on the Astral Plane */
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS 47
+#define NUM_ROOM_FLAGS 48
 
 /* Room affects */
 /* Old room-affection system, could be replaced by room-events

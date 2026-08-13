@@ -478,6 +478,37 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("RoL Weapon Proc", result.records[0].spec_proc)
     self.assertIn(44, decode_tokens(result.records[0].extra_flags).bits)
 
+  def test_undermountain_forged_bindings_share_typed_weapon_runtime(self) -> None:
+    handlers = (
+        (93191, "um2_astralForged"),
+        (93195, "um2_astralForged"),
+        (93446, "um2_torinGeneral"),
+        (93447, "um2_torinGeneral"),
+        (93447, "um2_torinChainLightning"),
+    )
+    bindings = [
+        {
+            "basename": "undermountain-forged",
+            "record_type": "object",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in handlers
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+
+    self.assertEqual(5, len(compiled.native_bindings))
+    self.assertTrue(
+        all(binding.persisted_name == "RoL Weapon Proc" for binding in compiled.native_bindings)
+    )
+    self.assertTrue(
+        all(binding.required_flag_bits == (44,) for binding in compiled.native_bindings)
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_planar_death_burst_and_balor_weapon_bindings_are_explicit(self) -> None:
     bindings = [
         {
@@ -695,6 +726,20 @@ class RolTransformTests(unittest.TestCase):
 
     self.assertTrue(result.complete)
     self.assertEqual("Guild", result.records[0].spec_proc)
+
+  def test_emitted_astral_room_persists_source_plane_identity(self) -> None:
+    source = self._source_record(
+        "wld",
+        b"#19701\nAstral room~\nSilver emptiness stretches away.~\n0 0 23\nS\n",
+    )
+
+    emitted = emit_room(source, 2_019_701, 20_197, _resolver)
+    path = self._target_path("wld", emitted.text)
+    result = parse_room_file(path, "wld/20197.wld", self.manifest, False, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(18, result.records[0].sector)
+    self.assertIn(47, decode_tokens(result.records[0].flags).bits)
 
   def test_inert_mobile_special_does_not_emit_flag_or_pending_diagnostic(self) -> None:
     source = self._source_record(

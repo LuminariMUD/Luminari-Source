@@ -121,7 +121,10 @@ enum rol_weapon_effect
   ROL_WEAPON_BHAAL_TORMENT,
   ROL_WEAPON_SEELIE_BARDS_GLAIVE,
   ROL_WEAPON_UM2_SNAKE_WHIP,
-  ROL_WEAPON_UM2_SEARING_ROD
+  ROL_WEAPON_UM2_SEARING_ROD,
+  ROL_WEAPON_UM2_ASTRAL_FORGED,
+  ROL_WEAPON_UM2_TORIN_GENERAL,
+  ROL_WEAPON_UM2_TORIN_CHAIN_LIGHTNING
 };
 
 struct rol_weapon_profile
@@ -246,6 +249,16 @@ static const struct rol_weapon_profile rol_weapon_profiles[] = {
      "Critical five-headed snake-whip poison at source level 40."},
     {2093156, ROL_WEAPON_UM2_SNAKE_WHIP, 1, true,
      "Critical nine-pronged snake-whip poison at source level 40."},
+    {2093191, ROL_WEAPON_UM2_ASTRAL_FORGED, 1, false,
+     "Astral-forged hit and damage bonuses rise from three to six on the Astral Plane."},
+    {2093195, ROL_WEAPON_UM2_ASTRAL_FORGED, 1, false,
+     "Astral-forged hit and damage bonuses rise from three to six on the Astral Plane."},
+    {2093446, ROL_WEAPON_UM2_TORIN_GENERAL, 1, false,
+     "Warrior or Cleric Mountain Dwarves and Duergar may wield it; identification reports a "
+     "chain-lightning critical."},
+    {2093447, ROL_WEAPON_UM2_TORIN_CHAIN_LIGHTNING, 1, true,
+     "Warrior or Cleric Mountain Dwarves and Duergar may wield it; critical hits cast chain "
+     "lightning at source level 40."},
 };
 
 struct rol_undead_drain_profile
@@ -6905,6 +6918,16 @@ int rol_bhaal_torment_damage(int hit_damage, bool save_succeeded)
   return save_succeeded ? hit_damage / 2 : hit_damage;
 }
 
+int rol_astral_forged_bonus(bool astral_plane)
+{
+  return astral_plane ? 6 : 3;
+}
+
+bool rol_torin_owner_requirements(int race, bool warrior, bool cleric)
+{
+  return (warrior || cleric) && (race == DL_RACE_MOUNTAIN_DWARF || race == RACE_DUERGAR);
+}
+
 bool rol_scornubel_fiery_mace_roll_fires(int roll)
 {
   return roll == 0;
@@ -8072,6 +8095,135 @@ static int rol_gelugon_freeze_spear_pulse(struct spec_event_context *context, st
   return TRUE;
 }
 
+static struct char_data *rol_weapon_object_owner(struct obj_data *obj)
+{
+  while (obj != NULL)
+  {
+    if (obj->worn_by != NULL)
+      return obj->worn_by;
+    if (obj->carried_by != NULL)
+      return obj->carried_by;
+    obj = obj->in_obj;
+  }
+
+  return NULL;
+}
+
+static int rol_astral_forged_pulse(struct obj_data *obj)
+{
+  struct char_data *wearer;
+  room_rnum room;
+  int bonus;
+  bool changed;
+
+  if (obj == NULL)
+    return FALSE;
+  room = obj_room(obj);
+  bonus = rol_astral_forged_bonus(VALID_ROOM_RNUM(room) && ROOM_FLAGGED(room, ROOM_ROL_ASTRAL));
+  changed = obj->affected[0].location != APPLY_HITROLL || obj->affected[0].modifier != bonus ||
+            obj->affected[1].location != APPLY_DAMROLL || obj->affected[1].modifier != bonus;
+  obj->affected[0].location = APPLY_HITROLL;
+  obj->affected[0].modifier = bonus;
+  obj->affected[1].location = APPLY_DAMROLL;
+  obj->affected[1].modifier = bonus;
+  wearer = obj->worn_by;
+  if (changed && wearer != NULL)
+    affect_total(wearer);
+  return TRUE;
+}
+
+static bool rol_torin_owner_allowed(const struct char_data *owner)
+{
+  const struct char_data *restricted;
+
+  if (owner == NULL || GET_LEVEL(owner) >= LVL_IMMORT)
+    return true;
+  restricted = owner;
+  if (IS_NPC(owner))
+  {
+    if (!IS_PET(owner) || owner->master == NULL)
+      return true;
+    restricted = owner->master;
+  }
+  return rol_torin_owner_requirements(GET_RACE(restricted),
+                                      CLASS_LEVEL(restricted, CLASS_WARRIOR) > 0,
+                                      CLASS_LEVEL(restricted, CLASS_CLERIC) > 0);
+}
+
+static void rol_torin_restore_prototype(struct obj_data *obj)
+{
+  struct obj_data *prototype;
+  struct char_data *wearer;
+  int value;
+  bool changed = false;
+
+  if (obj == NULL || obj_proto == NULL || !VALID_OBJ_RNUM(obj))
+    return;
+  prototype = &obj_proto[GET_OBJ_RNUM(obj)];
+  for (value = 1; value < 4; value++)
+    if (GET_OBJ_VAL(obj, value) != GET_OBJ_VAL(prototype, value))
+    {
+      GET_OBJ_VAL(obj, value) = GET_OBJ_VAL(prototype, value);
+      changed = true;
+    }
+  if (memcmp(GET_OBJ_WEAR(obj), GET_OBJ_WEAR(prototype), sizeof(GET_OBJ_WEAR(obj))) != 0)
+  {
+    memcpy(GET_OBJ_WEAR(obj), GET_OBJ_WEAR(prototype), sizeof(GET_OBJ_WEAR(obj)));
+    changed = true;
+  }
+  if (memcmp(GET_OBJ_EXTRA(obj), GET_OBJ_EXTRA(prototype), sizeof(GET_OBJ_EXTRA(obj))) != 0)
+  {
+    memcpy(GET_OBJ_EXTRA(obj), GET_OBJ_EXTRA(prototype), sizeof(GET_OBJ_EXTRA(obj)));
+    changed = true;
+  }
+  if (GET_OBJ_WEIGHT(obj) != GET_OBJ_WEIGHT(prototype))
+  {
+    GET_OBJ_WEIGHT(obj) = GET_OBJ_WEIGHT(prototype);
+    changed = true;
+  }
+  if (GET_OBJ_COST(obj) != GET_OBJ_COST(prototype))
+  {
+    GET_OBJ_COST(obj) = GET_OBJ_COST(prototype);
+    changed = true;
+  }
+  if (memcmp(GET_OBJ_AFFECT(obj), GET_OBJ_AFFECT(prototype), sizeof(GET_OBJ_AFFECT(obj))) != 0)
+  {
+    memcpy(GET_OBJ_AFFECT(obj), GET_OBJ_AFFECT(prototype), sizeof(GET_OBJ_AFFECT(obj)));
+    changed = true;
+  }
+  if (memcmp(obj->affected, prototype->affected, sizeof(obj->affected)) != 0)
+  {
+    memcpy(obj->affected, prototype->affected, sizeof(obj->affected));
+    changed = true;
+  }
+  wearer = obj->worn_by;
+  if (changed && wearer != NULL)
+    affect_total(wearer);
+}
+
+static int rol_torin_general_pulse(struct spec_event_context *context, struct obj_data *obj)
+{
+  struct char_data *owner;
+
+  owner = rol_weapon_object_owner(obj);
+  if (owner != NULL && !rol_torin_owner_allowed(owner))
+  {
+    if ((!IS_NPC(owner) || IS_PET(owner)) && owner->desc != NULL)
+    {
+      act("$p flashes with intense light, burning you severely.", FALSE, owner, obj, NULL, TO_CHAR);
+      act("$n winces with pain as intense light surrounds $m briefly.", FALSE, owner, obj, NULL,
+          TO_ROOM);
+      if (damage(owner, owner, rand_number(5, 50), -1, DAM_RESERVED_DBC, FALSE) < 0 &&
+          context->actor == owner)
+        context->invalidation |= SPEC_INVALIDATE_ACTOR;
+    }
+    return TRUE;
+  }
+
+  rol_torin_restore_prototype(obj);
+  return TRUE;
+}
+
 static int rol_weapon_hit(struct spec_event_context *context,
                           const struct rol_weapon_profile *profile, struct char_data *ch,
                           struct obj_data *obj, struct char_data *victim, int slot)
@@ -8084,6 +8236,17 @@ static int rol_weapon_hit(struct spec_event_context *context,
 
   switch (profile->effect)
   {
+  case ROL_WEAPON_UM2_TORIN_CHAIN_LIGHTNING:
+    if (!context->critical)
+      return FALSE;
+    act("Streams of lightning pour forth from $p!", FALSE, ch, obj, victim, TO_ROOM);
+    act("Streams of lightning pour forth from $p!", FALSE, ch, obj, victim, TO_CHAR);
+    if (rol_weapon_cast(ch, obj, victim, SPELL_CHAIN_LIGHTNING, 40) < 0)
+      context->invalidation |= SPEC_INVALIDATE_TARGET;
+    return FALSE;
+  case ROL_WEAPON_UM2_ASTRAL_FORGED:
+  case ROL_WEAPON_UM2_TORIN_GENERAL:
+    return FALSE;
   case ROL_WEAPON_BARBAZU_GLAIVE:
     return rol_barbazu_glaive(ch, obj, victim, context->critical);
   case ROL_WEAPON_GELUGON_FREEZE_SPEAR:
@@ -8551,6 +8714,8 @@ int rol_weapon_proc_typed(struct spec_event_context *context)
   {
     if (ch == NULL)
       return FALSE;
+    if (profile->effect == ROL_WEAPON_UM2_ASTRAL_FORGED)
+      return FALSE;
     send_to_char(ch, "Special Effects: %s\r\n", profile->description);
     return TRUE;
   }
@@ -8572,6 +8737,11 @@ int rol_weapon_proc_typed(struct spec_event_context *context)
   }
   if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
   {
+    if (profile->effect == ROL_WEAPON_UM2_ASTRAL_FORGED)
+      return rol_astral_forged_pulse(obj);
+    if (profile->effect == ROL_WEAPON_UM2_TORIN_GENERAL ||
+        profile->effect == ROL_WEAPON_UM2_TORIN_CHAIN_LIGHTNING)
+      return rol_torin_general_pulse(context, obj);
     if (ch == NULL)
       return FALSE;
     if (profile->effect == ROL_WEAPON_BALOR_WHIP ||

@@ -904,6 +904,7 @@ const char *room_bits[] = {"Dark",
                            "RoL-Jail",
                            "Psionic-Regeneration",
                            "RoL-Home-Reset",
+                           "RoL-Astral",
                            "\n"};
 CHECK_TABLE_SIZE(room_bits, NUM_ROOM_FLAGS + 1);
 

@@ -210,7 +210,7 @@ Flags</a></li>
 <h2 id="overview">Overview</h2>
 <p>Room flags are bitflags defined in <code>src/structs.h</code> and are
 checked throughout the codebase using the <code>ROOM_FLAGGED()</code>
-macro. There are currently 47 room flags (indices 0-46) that control
+macro. There are currently 48 room flags (indices 0-47) that control
 everything from movement restrictions to magical effects.</p>
 <p><strong>Usage Pattern:</strong></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>ROOM_FLAGGED<span class="op">(</span>room_rnum<span class="op">,</span> ROOM_FLAGNAME<span class="op">))</span> <span class="op">{</span></span>
@@ -454,6 +454,17 @@ NPC’s home</p>
 (<code>do_simple_move()</code>) -
 <code>src/spec/spec_rol_conversion.c</code> - RoL home update
 (<code>rol_update_mobile_home_after_move()</code>)</p>
+<h3 id="room_rol_astral-index-47">ROOM_ROL_ASTRAL (Index: 47)</h3>
+<p><strong>Effect:</strong> Persists that a converted RoL room used the
+source Astral Plane sector. - Preserves room-level Astral identity after
+the source sector maps to the target’s generic Planes sector - Lets
+Astral-sensitive converted procedures distinguish mixed-sector source
+zones exactly - Is set automatically by the RoL converter; builders
+should not set it outside imported RoL content</p>
+<p><strong>Code References:</strong> -
+<code>scripts/world/wtool_lib/rol_transform.py</code> - Source-sector
+conversion metadata - <code>src/spec/spec_rol_conversion.c</code> -
+Astral-forged weapon bonus selection</p>
 <h3 id="room_noheal-index-25">ROOM_NOHEAL (Index: 25)</h3>
 <p><strong>Effect:</strong> Prevents natural healing and regeneration. -
 Blocks HP regeneration tick - Similar to Blackmantle spell effect - Used
@@ -1045,6 +1056,13 @@ feature for vessel system expansion.</p>
 <td>Retarget NPC home after successful exit</td>
 <td>System</td>
 </tr>
+<tr class="even">
+<td>47</td>
+<td>ROOM_ROL_ASTRAL</td>
+<td>RoL-Astral</td>
+<td>Preserve converted Astral room identity</td>
+<td>System</td>
+</tr>
 </tbody>
 </table>
 <hr />
@@ -1101,8 +1119,8 @@ shutdown - ROOM_NOTELEPORT = prevents teleportation only - ROOM_NOSUMMON
 <h2 id="code-references">Code References</h2>
 <p><strong>Primary Files:</strong> - <code>src/structs.h</code> - Flag
 definitions (the <code>ROOM_*</code> define block ending at
-<code>ROOM_ROL_HOME_RESET</code>) - <code>src/movement/movement.c</code>
-- Movement restriction checks - <code>src/magic/spell_parser.c</code> -
+<code>ROOM_ROL_ASTRAL</code>) - <code>src/movement/movement.c</code> -
+Movement restriction checks - <code>src/magic/spell_parser.c</code> -
 Magic restriction checks - <code>src/combat/fight.c</code> - Combat
 restriction checks - <code>src/utils.c</code> - Light and vision
 calculations - <code>src/act.informative.c</code> - Room description

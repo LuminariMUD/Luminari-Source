@@ -19,7 +19,7 @@ This document provides comprehensive information about all room flags (ROOM_*) u
 
 ## Overview
 
-Room flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `ROOM_FLAGGED()` macro. There are currently 47 room flags (indices 0-46) that control everything from movement restrictions to magical effects.
+Room flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `ROOM_FLAGGED()` macro. There are currently 48 room flags (indices 0-47) that control everything from movement restrictions to magical effects.
 
 **Usage Pattern:**
 ```c
@@ -266,6 +266,16 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 **Code References:**
 - `src/movement/movement.c` - Successful-movement integration (`do_simple_move()`)
 - `src/spec/spec_rol_conversion.c` - RoL home update (`rol_update_mobile_home_after_move()`)
+
+### ROOM_ROL_ASTRAL (Index: 47)
+**Effect:** Persists that a converted RoL room used the source Astral Plane sector.
+- Preserves room-level Astral identity after the source sector maps to the target's generic Planes sector
+- Lets Astral-sensitive converted procedures distinguish mixed-sector source zones exactly
+- Is set automatically by the RoL converter; builders should not set it outside imported RoL content
+
+**Code References:**
+- `scripts/world/wtool_lib/rol_transform.py` - Source-sector conversion metadata
+- `src/spec/spec_rol_conversion.c` - Astral-forged weapon bonus selection
 
 ### ROOM_NOHEAL (Index: 25)
 **Effect:** Prevents natural healing and regeneration.
@@ -593,6 +603,7 @@ code, so do not expect to find it there.
 | 44 | ROOM_ROL_JAIL | RoL-Jail | RoL justice compatibility marker | System |
 | 45 | ROOM_PSP_REGEN | Psionic-Regeneration | Double PSP tick gain | Environment |
 | 46 | ROOM_ROL_HOME_RESET | RoL-Home-Reset | Retarget NPC home after successful exit | System |
+| 47 | ROOM_ROL_ASTRAL | RoL-Astral | Preserve converted Astral room identity | System |
 
 ---
 
@@ -645,7 +656,7 @@ code, so do not expect to find it there.
 ## Code References
 
 **Primary Files:**
-- `src/structs.h` - Flag definitions (the `ROOM_*` define block ending at `ROOM_ROL_HOME_RESET`)
+- `src/structs.h` - Flag definitions (the `ROOM_*` define block ending at `ROOM_ROL_ASTRAL`)
 - `src/movement/movement.c` - Movement restriction checks
 - `src/magic/spell_parser.c` - Magic restriction checks
 - `src/combat/fight.c` - Combat restriction checks

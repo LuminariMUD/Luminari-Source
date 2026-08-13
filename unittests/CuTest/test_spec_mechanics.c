@@ -2479,7 +2479,8 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
       2013308, 2097117, 2001005, 2014023, 2024405, 2053266, 2053263, 2053259, 2053289, 2053290,
       2053291, 2053292, 2053243, 2083238, 2083235, 2053250, 2053271, 2043741, 2008000, 2001057,
       2004797, 2093227, 2093228, 2032602, 2033001, 2033012, 2006084, 2094571, 2094566, 196000,
-      2020208, 2020271, 2021759, 2063747, 2063794, 2062750, 2093035, 2093086, 2093156,
+      2020208, 2020271, 2021759, 2063747, 2063794, 2062750, 2093035, 2093086, 2093156, 2093191,
+      2093195, 2093446, 2093447,
   };
   const char *description;
   bool critical_only;
@@ -2545,7 +2546,102 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertIntEquals(tc, 40, rol_bhaal_torment_damage(40, false));
   CuAssertIntEquals(tc, 20, rol_bhaal_torment_damage(40, true));
   CuAssertIntEquals(tc, 0, rol_bhaal_torment_damage(-1, false));
+  CuAssertIntEquals(tc, 3, rol_astral_forged_bonus(false));
+  CuAssertIntEquals(tc, 6, rol_astral_forged_bonus(true));
+  CuAssertTrue(tc, rol_torin_owner_requirements(DL_RACE_MOUNTAIN_DWARF, true, false));
+  CuAssertTrue(tc, rol_torin_owner_requirements(RACE_DUERGAR, false, true));
+  CuAssertTrue(tc, !rol_torin_owner_requirements(RACE_DUERGAR, false, false));
+  CuAssertTrue(tc, !rol_torin_owner_requirements(RACE_DROW, true, true));
   CuAssertTrue(tc, !rol_weapon_profile(9999999, NULL, NULL, NULL));
+}
+
+void Test_spec_rol_undermountain_forged_pulses_and_chain_profile(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_event_context context;
+  struct obj_data prototype;
+  struct obj_data *saved_obj_proto;
+  const char *description;
+  bool critical_only;
+  int denominator;
+  int previous_hit;
+
+  CuAssertTrue(tc, rol_weapon_profile(2093191, &denominator, &critical_only, &description));
+  CuAssertIntEquals(tc, 1, denominator);
+  CuAssertTrue(tc, !critical_only);
+  CuAssertPtrNotNull(tc, strstr(description, "Astral Plane"));
+  CuAssertTrue(tc, rol_weapon_profile(2093446, &denominator, &critical_only, &description));
+  CuAssertTrue(tc, !critical_only);
+  CuAssertPtrNotNull(tc, strstr(description, "chain-lightning critical"));
+  CuAssertTrue(tc, rol_weapon_profile(2093447, &denominator, &critical_only, &description));
+  CuAssertTrue(tc, critical_only);
+  CuAssertPtrNotNull(tc, strstr(description, "source level 40"));
+
+  spec_mechanics_begin(&fixture);
+  fixture.object_indexes[0].vnum = 2093191;
+  GET_OBJ_RNUM(&fixture.worn) = 0;
+  IN_ROOM(&fixture.worn) = 0;
+  memset(&context, 0, sizeof(context));
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
+  context.owner = &fixture.worn;
+  CuAssertIntEquals(tc, TRUE, rol_weapon_proc_typed(&context));
+  CuAssertIntEquals(tc, APPLY_HITROLL, fixture.worn.affected[0].location);
+  CuAssertIntEquals(tc, 3, fixture.worn.affected[0].modifier);
+  CuAssertIntEquals(tc, APPLY_DAMROLL, fixture.worn.affected[1].location);
+  CuAssertIntEquals(tc, 3, fixture.worn.affected[1].modifier);
+  SET_BIT_AR(ROOM_FLAGS(0), ROOM_ROL_ASTRAL);
+  CuAssertIntEquals(tc, TRUE, rol_weapon_proc_typed(&context));
+  CuAssertIntEquals(tc, 6, fixture.worn.affected[0].modifier);
+  CuAssertIntEquals(tc, 6, fixture.worn.affected[1].modifier);
+
+  saved_obj_proto = obj_proto;
+  clear_object(&prototype);
+  GET_OBJ_RNUM(&prototype) = 0;
+  GET_OBJ_VAL(&prototype, 1) = 3;
+  GET_OBJ_VAL(&prototype, 2) = 6;
+  GET_OBJ_VAL(&prototype, 3) = 7;
+  GET_OBJ_WEIGHT(&prototype) = 2;
+  GET_OBJ_COST(&prototype) = 46625;
+  prototype.affected[0].location = APPLY_HITROLL;
+  prototype.affected[0].modifier = 4;
+  prototype.affected[1].location = APPLY_DAMROLL;
+  prototype.affected[1].modifier = 2;
+  obj_proto = &prototype;
+  fixture.object_indexes[0].vnum = 2093446;
+  GET_OBJ_VAL(&fixture.worn, 0) = 17;
+  GET_OBJ_VAL(&fixture.worn, 1) = 1;
+  GET_OBJ_VAL(&fixture.worn, 2) = 1;
+  GET_OBJ_VAL(&fixture.worn, 3) = 1;
+  GET_OBJ_WEIGHT(&fixture.worn) = 50;
+  GET_OBJ_COST(&fixture.worn) = 1;
+  CuAssertIntEquals(tc, TRUE, rol_weapon_proc_typed(&context));
+  CuAssertIntEquals(tc, 17, GET_OBJ_VAL(&fixture.worn, 0));
+  CuAssertIntEquals(tc, 3, GET_OBJ_VAL(&fixture.worn, 1));
+  CuAssertIntEquals(tc, 6, GET_OBJ_VAL(&fixture.worn, 2));
+  CuAssertIntEquals(tc, 7, GET_OBJ_VAL(&fixture.worn, 3));
+  CuAssertIntEquals(tc, 2, GET_OBJ_WEIGHT(&fixture.worn));
+  CuAssertIntEquals(tc, 46625, GET_OBJ_COST(&fixture.worn));
+  CuAssertIntEquals(tc, 4, fixture.worn.affected[0].modifier);
+  CuAssertIntEquals(tc, 2, fixture.worn.affected[1].modifier);
+  obj_proto = saved_obj_proto;
+
+  fixture.object_indexes[0].vnum = 2093447;
+  IN_ROOM(&fixture.worn) = NOWHERE;
+  fixture.worn.worn_by = &fixture.actor;
+  fixture.worn.worn_on = WEAR_WIELD_1;
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &fixture.worn;
+  FIGHTING(&fixture.actor) = &fixture.target;
+  context.event = SPEC_EVENT_WEAPON_HIT;
+  context.actor = &fixture.actor;
+  context.target = &fixture.target;
+  context.critical = false;
+  previous_hit = GET_HIT(&fixture.target);
+  CuAssertIntEquals(tc, FALSE, rol_weapon_proc_typed(&context));
+  CuAssertIntEquals(tc, previous_hit, GET_HIT(&fixture.target));
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  fixture.worn.worn_by = NULL;
+  spec_mechanics_end(&fixture);
 }
 
 void Test_spec_rol_bhaal_torment_profile_and_ward_runtime(CuTest *tc)
@@ -2828,6 +2924,7 @@ void Test_spec_rol_paralysis_hit_profiles_preserve_gaze_and_venom_tails(CuTest *
   context.actor = &fixture.actor;
   context.target = &fixture.target;
 
+  circle_srandom(1);
   result = rol_monster_combat_typed(&context);
   CuAssertIntEquals(tc, TRUE, result);
   affect = fixture.target.affected;
@@ -2845,9 +2942,10 @@ void Test_spec_rol_paralysis_hit_profiles_preserve_gaze_and_venom_tails(CuTest *
   CuAssertIntEquals(tc, FALSE, rol_monster_combat_typed(&context));
   CuAssertPtrEquals(tc, NULL, fixture.target.affected);
   context.critical = true;
+  circle_srandom(1);
   CuAssertIntEquals(tc, TRUE, rol_monster_combat_typed(&context));
   affect = fixture.target.affected;
-  /* A natural save still succeeds even against the fixture's extreme penalty. */
+  CuAssertPtrNotNull(tc, affect);
   if (affect != NULL)
   {
     CuAssertIntEquals(tc, SPELL_HOLD_MONSTER, affect->spell);
@@ -2855,6 +2953,7 @@ void Test_spec_rol_paralysis_hit_profiles_preserve_gaze_and_venom_tails(CuTest *
     CuAssertTrue(tc, affect->duration <= 12);
     CuAssertTrue(tc, AFF_FLAGGED(&fixture.target, AFF_PARALYZED));
   }
+  circle_srandom((unsigned long)time(NULL));
   spec_mechanics_end(&fixture);
 }
 

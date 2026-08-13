@@ -4503,6 +4503,13 @@
           "macro": "ROOM_ROL_HOME_RESET",
           "name": "RoL-Home-Reset",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 47,
+          "macro": "ROOM_ROL_ASTRAL",
+          "name": "RoL-Astral",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,
