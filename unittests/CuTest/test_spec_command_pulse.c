@@ -604,6 +604,30 @@ void Test_spec_mobile_activity_activation_gates(CuTest *tc)
   CuAssertTrue(tc, missing_callback_gate);
 }
 
+void Test_spec_mobile_activity_shards_preserve_one_call_per_mobile_pulse(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  bool setup_ok;
+  int activity_pulse;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize mobile fixture");
+    return;
+  }
+
+  spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
+  fixture.recorder.return_count = 1;
+  fixture.recorder.returns[0] = 1;
+
+  for (activity_pulse = 0; activity_pulse < PULSE_MOBILE; activity_pulse++)
+    mobile_activity_pulse(activity_pulse);
+
+  CuAssertIntEquals(tc, 1, fixture.recorder.call_count);
+  spec_pulse_fixture_end(&fixture);
+}
+
 void Test_spec_proc_update_worn_object_uses_wearer_once(CuTest *tc)
 {
   struct spec_pulse_fixture fixture;
@@ -850,12 +874,13 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
     moving_schedule_matches = moving_gate != NULL && moving_call != NULL &&
                               one_second_gate != NULL && moving_call < one_second_gate;
 
-    mobile_gate = strstr(source, "if (!(heart_pulse % PULSE_MOBILE))");
-    mobile_call = mobile_gate != NULL ? strstr(mobile_gate, "mobile_activity();") : NULL;
+    mobile_call = strstr(source, "mobile_activity_pulse(heart_pulse);");
+    mobile_gate =
+        mobile_call != NULL ? strstr(mobile_call, "if (!(heart_pulse % PULSE_MOBILE))") : NULL;
     proc_call = mobile_gate != NULL ? strstr(mobile_gate, "proc_update();") : NULL;
     violence_gate =
         mobile_gate != NULL ? strstr(mobile_gate, "if (!(heart_pulse % PULSE_VIOLENCE))") : NULL;
-    pulse_order_matches = mobile_gate != NULL && mobile_call != NULL && proc_call != NULL &&
+    pulse_order_matches = mobile_call != NULL && mobile_gate != NULL && proc_call != NULL &&
                           violence_gate != NULL && mobile_call < proc_call &&
                           proc_call < violence_gate;
   }

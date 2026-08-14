@@ -42,11 +42,50 @@
 
 /* local file scope variables */
 static int extractions_pending = 0;
+static bool extraction_batch_active = false;
 
 /* local file scope functions */
 static void update_object(struct obj_data *obj, int use);
+static bool character_is_pending_extraction(const struct char_data *ch);
+static void prepare_pending_extraction_references(void);
 
 static void update_master_tracker_alert(struct char_data *tracker);
+
+static bool character_is_pending_extraction(const struct char_data *ch)
+{
+  if (ch == NULL)
+    return false;
+
+  if (IS_NPC(ch))
+    return MOB_FLAGGED(ch, MOB_NOTDEADYET);
+  return PLR_FLAGGED(ch, PLR_NOTDEADYET);
+}
+
+/* Clear cross-character pointers once for a pending batch. Running these
+ * searches inside every finalization made a large extraction batch quadratic
+ * in the live character population. */
+static void prepare_pending_extraction_references(void)
+{
+  struct char_data *ch;
+  struct char_data *next_ch;
+
+  for (ch = character_list; ch; ch = ch->next)
+  {
+    if (character_is_pending_extraction(ch->last_attacker))
+      ch->last_attacker = NULL;
+    if (character_is_pending_extraction(GUARDING(ch)))
+      GUARDING(ch) = NULL;
+    if (character_is_pending_extraction(HUNTING(ch)))
+      HUNTING(ch) = NULL;
+  }
+
+  for (ch = combat_list; ch; ch = next_ch)
+  {
+    next_ch = ch->next_fighting;
+    if (character_is_pending_extraction(FIGHTING(ch)))
+      stop_fighting(ch);
+  }
+}
 
 /* find the first word in a string buffer */
 const char *fname(const char *namelist)
@@ -2846,6 +2885,13 @@ void extract_char_final(struct char_data *ch)
   struct descriptor_data *d;
   struct obj_data *obj;
   struct char_data *tch = NULL;
+  static struct PERF_prof_sect *pr_last_attacker = NULL;
+  static struct PERF_prof_sect *pr_relationships = NULL;
+  static struct PERF_prof_sect *pr_assets = NULL;
+  static struct PERF_prof_sect *pr_combat_refs = NULL;
+  static struct PERF_prof_sect *pr_world_remove = NULL;
+  static struct PERF_prof_sect *pr_events = NULL;
+  static struct PERF_prof_sect *pr_finalize = NULL;
   int i;
 
   if (IN_ROOM(ch) == NOWHERE)
@@ -2854,15 +2900,21 @@ void extract_char_final(struct char_data *ch)
     exit(1);
   }
 
+  PERF_prof_sect_init(&pr_last_attacker, "extract.last_attacker");
+  PERF_prof_sect_enter(pr_last_attacker);
   /* Clear last_attacker references to this character */
-  for (k = character_list; k; k = k->next)
+  if (!extraction_batch_active)
   {
-    if (k->last_attacker == ch)
+    for (k = character_list; k; k = k->next)
     {
-      k->last_attacker = NULL;
+      if (k->last_attacker == ch)
+        k->last_attacker = NULL;
     }
   }
+  PERF_prof_sect_exit(pr_last_attacker);
 
+  PERF_prof_sect_init(&pr_relationships, "extract.relationships");
+  PERF_prof_sect_enter(pr_relationships);
   /* We're booting the character of someone who has switched so first we need
    * to stuff them back into their own body.  This will set ch->desc we're
    * checking below this loop to the proper value. */
@@ -2917,12 +2969,18 @@ void extract_char_final(struct char_data *ch)
 
   /* reset guard */
   GUARDING(ch) = NULL;
-  for (tch = character_list; tch; tch = tch->next)
+  if (!extraction_batch_active)
   {
-    if (GUARDING(tch) == ch)
-      GUARDING(tch) = NULL;
+    for (tch = character_list; tch; tch = tch->next)
+    {
+      if (GUARDING(tch) == ch)
+        GUARDING(tch) = NULL;
+    }
   }
+  PERF_prof_sect_exit(pr_relationships);
 
+  PERF_prof_sect_init(&pr_assets, "extract.assets");
+  PERF_prof_sect_enter(pr_assets);
   empty_bags_to_inventory(ch);
 
   /* transfer objects to room, if any */
@@ -2947,37 +3005,59 @@ void extract_char_final(struct char_data *ch)
         extract_obj(unequip_char(ch, i));
       }
     }
+  PERF_prof_sect_exit(pr_assets);
 
+  PERF_prof_sect_init(&pr_combat_refs, "extract.combat_refs");
+  PERF_prof_sect_enter(pr_combat_refs);
   /* stop any fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
   FIRING(ch) = FALSE;
 
-  for (k = combat_list; k; k = temp)
+  if (!extraction_batch_active)
   {
-    temp = k->next_fighting;
-    if (FIGHTING(k) == ch)
-      stop_fighting(k);
+    for (k = combat_list; k; k = temp)
+    {
+      temp = k->next_fighting;
+      if (FIGHTING(k) == ch)
+        stop_fighting(k);
+    }
   }
 
   /* Clear the action queue */
   clear_action_queue(GET_QUEUE(ch));
 
-  /* Wipe character from the memory of hunters and other intelligent NPCs... */
-  for (temp = character_list; temp; temp = temp->next)
+  if (!extraction_batch_active)
   {
-    /* PCs can't use MEMORY, and don't use HUNTING() */
-    if (!IS_NPC(temp))
-      continue;
-    /* If "temp" is hunting our extracted char, stop the hunt. */
-    if (HUNTING(temp) == ch)
-      HUNTING(temp) = NULL;
-    /* If "temp" has allocated memory data and our ch is a PC, forget the
-     * extracted character (if he/she is remembered) */
-    if (!IS_NPC(ch) && GET_POS(ch) == POS_DEAD && MEMORY(temp))
-      forget(temp, ch); /* forget() is safe to use without a check. */
+    /* Wipe character from the memory of hunters and other intelligent NPCs... */
+    for (temp = character_list; temp; temp = temp->next)
+    {
+      /* PCs can't use MEMORY, and don't use HUNTING() */
+      if (!IS_NPC(temp))
+        continue;
+      /* If "temp" is hunting our extracted char, stop the hunt. */
+      if (HUNTING(temp) == ch)
+        HUNTING(temp) = NULL;
+      /* If "temp" has allocated memory data and our ch is a PC, forget the
+       * extracted character (if he/she is remembered) */
+      if (!IS_NPC(ch) && GET_POS(ch) == POS_DEAD && MEMORY(temp))
+        forget(temp, ch); /* forget() is safe to use without a check. */
+    }
   }
+  else if (!IS_NPC(ch) && GET_POS(ch) == POS_DEAD)
+  {
+    /* HUNTING pointers were cleared by the batch prepass. NPC memory stores
+     * player IDs, so dead players still require the established ID cleanup. */
+    for (temp = character_list; temp; temp = temp->next)
+    {
+      if (IS_NPC(temp) && MEMORY(temp))
+        forget(temp, ch);
+    }
+  }
+  PERF_prof_sect_exit(pr_combat_refs);
 
+  PERF_prof_sect_init(&pr_world_remove, "extract.world_remove");
+  PERF_prof_sect_enter(pr_world_remove);
   char_from_room(ch);
 
   if (IS_NPC(ch))
@@ -3002,7 +3082,10 @@ void extract_char_final(struct char_data *ch)
 
     Crash_delete_crashfile(ch);
   }
+  PERF_prof_sect_exit(pr_world_remove);
 
+  PERF_prof_sect_init(&pr_events, "extract.events");
+  PERF_prof_sect_enter(pr_events);
   /* Cancel all events associated with this character */
   if (ch->events != NULL)
   {
@@ -3048,7 +3131,10 @@ void extract_char_final(struct char_data *ch)
     free_list(ch->events);
     ch->events = NULL;
   }
+  PERF_prof_sect_exit(pr_events);
 
+  PERF_prof_sect_init(&pr_finalize, "extract.finalize");
+  PERF_prof_sect_enter(pr_finalize);
   /* CRITICAL FIX: Clean up affects for players going to menu to prevent memory leaks */
   if (!IS_NPC(ch) && ch->desc)
   {
@@ -3062,6 +3148,7 @@ void extract_char_final(struct char_data *ch)
   /* If there's a descriptor, they're in the menu now. */
   if (IS_NPC(ch) || !ch->desc)
     free_char(ch);
+  PERF_prof_sect_exit(pr_finalize);
 }
 
 /* Why do we do this? Because trying to iterate over the character list with
@@ -3133,6 +3220,10 @@ void extract_pending_chars(void)
   if (extractions_pending < 0)
     log("SYSERR: Negative (%d) extractions pending.", extractions_pending);
 
+  extraction_batch_active = extractions_pending > 0;
+  if (extraction_batch_active)
+    prepare_pending_extraction_references();
+
   for (vict = character_list, prev_vict = NULL; vict && extractions_pending; vict = next_vict)
   {
     next_vict = vict->next;
@@ -3194,6 +3285,7 @@ void extract_pending_chars(void)
 
   pending_after = extractions_pending;
   extractions_pending = 0;
+  extraction_batch_active = false;
   PERF_note_pending_extractions(pending_before > 0 ? (uint64_t)pending_before : 0,
                                 (uint64_t)processed,
                                 pending_after > 0 ? (uint64_t)pending_after : 0);

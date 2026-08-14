@@ -21,5 +21,6 @@
 
 /* Main mobile activity function */
 void mobile_activity(void);
+void mobile_activity_pulse(int heart_pulse);
 
 #endif /* _MOB_ACT_H_ */

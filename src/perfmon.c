@@ -1062,6 +1062,7 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
   size_t top_count;
   size_t written;
   size_t i;
+  uint64_t overflow_calls;
   double average;
 
   if (buf == NULL || n == 0)
@@ -1079,6 +1080,8 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
     extraction_stats = &pulse_extraction_stats;
     catchup_stats = &pulse_catchup_stats;
   }
+  overflow_calls =
+      is_total ? event_profile_overflow.total_calls : event_profile_overflow.pulse_calls;
 
   written = bounded_format_length(
       snprintf(buf, n,
@@ -1090,7 +1093,9 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
                " max_pending_after=%" PRIu64 "\n\r"
                "Catch-up: passes=%" PRIu64 " budget_exhausted=%" PRIu64 " requested_missed=%" PRIu64
                " replayed_missed=%" PRIu64 " remaining_backlog=%" PRIu64 " max_requested=%" PRIu64
-               " max_remaining=%" PRIu64 "\n\r",
+               " max_remaining=%" PRIu64 "\n\r"
+               "Event callback registry: registered=%zu/%d report_limit=%d overflow_calls=%" PRIu64
+               "\n\r",
                is_total ? "Cumulative" : "Pulse", process_stats->calls,
                process_stats->callbacks_processed, process_stats->events_created,
                process_stats->initial_depth, process_stats->latest_depth,
@@ -1101,7 +1106,9 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
                extraction_stats->max_pending_after, catchup_stats->passes,
                catchup_stats->budget_exhausted_passes, catchup_stats->requested_missed,
                catchup_stats->replayed_missed, catchup_stats->remaining_backlog,
-               catchup_stats->max_requested_missed, catchup_stats->max_remaining_backlog),
+               catchup_stats->max_requested_missed, catchup_stats->max_remaining_backlog,
+               event_profile_count, EVENT_PROFILE_CAPACITY, EVENT_PROFILE_REPORT_LIMIT,
+               overflow_calls),
       n);
 
   if (written >= n - 1)
@@ -1200,7 +1207,13 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
                "# catchup_budget_exhausted_passes=%" PRIu64 "\n\r"
                "# catchup_requested_missed=%" PRIu64 "\n\r"
                "# catchup_replayed_missed=%" PRIu64 "\n\r"
-               "# catchup_remaining_backlog=%" PRIu64 "\n\r",
+               "# catchup_remaining_backlog=%" PRIu64 "\n\r"
+               "# catchup_max_requested_missed=%" PRIu64 "\n\r"
+               "# catchup_max_remaining_backlog=%" PRIu64 "\n\r"
+               "# event_profile_registered=%zu\n\r"
+               "# event_profile_capacity=%d\n\r"
+               "# event_profile_report_limit=%d\n\r"
+               "# event_profile_overflow_calls=%" PRIu64 "\n\r",
                total_event_process_stats.calls, total_event_process_stats.callbacks_processed,
                total_event_process_stats.events_created, total_event_process_stats.initial_depth,
                total_event_process_stats.latest_depth, total_event_process_stats.max_depth_before,
@@ -1210,7 +1223,10 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
                total_extraction_stats.max_pending_before, total_extraction_stats.max_pending_after,
                total_catchup_stats.passes, total_catchup_stats.budget_exhausted_passes,
                total_catchup_stats.requested_missed, total_catchup_stats.replayed_missed,
-               total_catchup_stats.remaining_backlog),
+               total_catchup_stats.remaining_backlog, total_catchup_stats.max_requested_missed,
+               total_catchup_stats.max_remaining_backlog, event_profile_count,
+               EVENT_PROFILE_CAPACITY, EVENT_PROFILE_REPORT_LIMIT,
+               event_profile_overflow.total_calls),
       n);
   if (written >= n - 1)
     return written;
@@ -1229,6 +1245,17 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
         snprintf(buf + written, n - written, "%s,%" PRIu64 ",%" PRIu64 ",%.2f,%" PRIu64 "\n\r",
                  profile->identity, profile->total_calls, profile->total_usec, average,
                  profile->total_max_usec),
+        n - written);
+  }
+
+  profile = &event_profile_overflow;
+  if (written < n - 1 && profile->total_calls > 0)
+  {
+    average = (double)profile->total_usec / (double)profile->total_calls;
+    written += bounded_format_length(
+        snprintf(buf + written, n - written,
+                 "[unregistered overflow],%" PRIu64 ",%" PRIu64 ",%.2f,%" PRIu64 "\n\r",
+                 profile->total_calls, profile->total_usec, average, profile->total_max_usec),
         n - written);
   }
 

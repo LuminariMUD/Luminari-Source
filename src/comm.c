@@ -125,6 +125,7 @@
 
 /* Keep socket processing responsive when replaying missed heartbeats. */
 #define HEARTBEAT_CATCHUP_BUDGET_USEC ((uint64_t)OPT_USEC)
+#define HEARTBEAT_CATCHUP_LOG_INTERVAL 5
 
 extern time_t motdmod;
 extern time_t newsmod;
@@ -996,11 +997,17 @@ void game_loop(socket_t local_mother_desc)
   uint64_t heartbeat_replay_start_usec = 0;
   uint64_t heartbeat_replay_now_usec = 0;
   uint64_t heartbeat_replay_elapsed_usec = 0;
+  time_t catchup_log_now = 0;
   long int perf_high_water_mark = 0;
   static time_t last_moderate_log_time = 0;
   static time_t last_severe_log_time = 0;
   static time_t last_critical_log_time = 0;
   static int perf_log_suppressed = 0;
+  static time_t last_catchup_log_time = 0;
+  static uint64_t catchup_log_passes = 0;
+  static uint64_t catchup_log_budget_exhausted = 0;
+  static uint64_t catchup_log_max_requested = 0;
+  static uint64_t catchup_log_max_remaining = 0;
 
   /* initialize various time values */
   null_time.tv_sec = 0;
@@ -1462,12 +1469,35 @@ void game_loop(socket_t local_mother_desc)
 
     if (requested_missed_pulses > 0)
     {
-      log("PERFMON [CATCHUP]: requested_missed=%d replayed_missed=%d remaining_backlog=%d "
-          "heartbeat_calls=%d budget_exhausted=%d",
-          requested_missed_pulses, replayed_missed_pulses, remaining_backlog, replayed_heartbeats,
-          catchup_budget_exhausted);
       PERF_note_catchup_pass((uint64_t)requested_missed_pulses, (uint64_t)replayed_missed_pulses,
                              (uint64_t)remaining_backlog, catchup_budget_exhausted);
+
+      if (catchup_log_passes < UINT64_MAX)
+        catchup_log_passes++;
+      if (catchup_budget_exhausted && catchup_log_budget_exhausted < UINT64_MAX)
+        catchup_log_budget_exhausted++;
+      if ((uint64_t)requested_missed_pulses > catchup_log_max_requested)
+        catchup_log_max_requested = (uint64_t)requested_missed_pulses;
+      if ((uint64_t)remaining_backlog > catchup_log_max_remaining)
+        catchup_log_max_remaining = (uint64_t)remaining_backlog;
+
+      catchup_log_now = time(NULL);
+      if (last_catchup_log_time == 0 ||
+          catchup_log_now - last_catchup_log_time >= HEARTBEAT_CATCHUP_LOG_INTERVAL)
+      {
+        log("PERFMON [CATCHUP]: window_passes=%llu budget_exhausted=%llu max_requested=%llu "
+            "max_remaining=%llu latest_requested=%d latest_replayed=%d latest_remaining=%d",
+            (unsigned long long)catchup_log_passes,
+            (unsigned long long)catchup_log_budget_exhausted,
+            (unsigned long long)catchup_log_max_requested,
+            (unsigned long long)catchup_log_max_remaining, requested_missed_pulses,
+            replayed_missed_pulses, remaining_backlog);
+        last_catchup_log_time = catchup_log_now;
+        catchup_log_passes = 0;
+        catchup_log_budget_exhausted = 0;
+        catchup_log_max_requested = 0;
+        catchup_log_max_remaining = 0;
+      }
     }
 
     /* Process terrain bridge API requests */
@@ -1675,12 +1705,15 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % PULSE_IDLEPWD)) /* 15 seconds */
     check_idle_passwords();
 
-  /* this controls the rate mobiles "act" */
+  /* Visit one stable shard per pulse so every mobile retains its six-second
+   * activity cadence without concentrating the full population in one pulse. */
+  PERF_PROF_ENTER(pr_mob_activity_, "mobile_activity");
+  mobile_activity_pulse(heart_pulse);
+  PERF_PROF_EXIT(pr_mob_activity_);
+
+  /* Keep non-mobile special-procedure updates on their established cadence. */
   if (!(heart_pulse % PULSE_MOBILE))
   {
-    PERF_PROF_ENTER(pr_mob_activity_, "mobile_activity");
-    mobile_activity();
-    PERF_PROF_EXIT(pr_mob_activity_);
     PERF_PROF_ENTER(pr_proc_update_, "proc_update");
     proc_update();
     PERF_PROF_EXIT(pr_proc_update_);
