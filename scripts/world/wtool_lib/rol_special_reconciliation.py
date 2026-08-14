@@ -872,6 +872,9 @@ def write_special_reconciliation_bundle(
       "creation_time": _created_at(created_at),
       "phase": 6,
       "stage": "special-procedure-reconciliation",
+      "discovery_run_id": discovery_manifest["run_id"],
+      "plan_run_id": plan_manifest["run_id"],
+      "capability_audit_run_id": audit_manifest["run_id"],
       "artifacts": sorted(artifacts, key=lambda item: item["path"]),
       "acceptance": {
           "all_direct_bindings_accounted": (

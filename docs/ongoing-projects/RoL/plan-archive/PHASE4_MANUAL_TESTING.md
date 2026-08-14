@@ -1,10 +1,11 @@
 # Realms of Luminari Staged Pilot Manual Testing - Archived
 
-- Status: Phases 4-6 complete; Phase 6.5 ready
+- Status: Phase 6.5 complete; original Phase 4 pilot instructions retained for history
 - Environment: disposable development runtime only
 - Staged world: `lib/rol-conversion/runs/phase6-special-20260812-race-keep-stage/staging/world`
 - Runtime contract: `lib/rol-conversion/runs/phase6-special-20260812-race-keep-stage/validation/pilot-runtime-contract.json`
-- Live target writes: zero
+- Canonical rebase: `lib/rol-conversion/runs/phase6-5-canonical-20260814-release3-a`
+- Production writes: zero
 
 ## Safety Boundary
 
@@ -2056,8 +2057,9 @@ Phase 7 package stages rather than in the normal development world.
 
 ## What Is Not Ready Yet
 
-- The pilot is not installed into the normal development world.
-- The remaining 247 source packages have not completed conversion.
+- The original Phase 4 overlay is not installed wholesale. Its accepted Hulburg content
+  is now present in development at its canonical Phase 6.5 identity.
+- The remaining Phase 7 canonical corpus batches have not completed conversion.
 - All active symbolic families and shared Phase 5 capabilities have explicit
   dispositions. The active quest corpus uses fixed item rewards; no random item-reward
   range remains to implement.
@@ -2075,7 +2077,37 @@ Phase 7 package stages rather than in the normal development world.
   or `autoDistributor` room. Those additions remain automated evidence rather than
   manual-test claims for this bundle.
 - Package-wide conversion, repair, balance review, and acceptance bundles are Phase 7.
-- Development-world application and final operational documentation are Phase 8.
+- The Phase 6.5 namespace rebase is applied to development. Phase 8 remains the final
+  integration and application of accepted Phase 7 corpus batches.
+
+## Phase 6.5 Automated Walkthrough and Reset Evidence
+
+The canonical rebase uses automated evidence rather than builder sign-off. Run
+`rol-phase6-5-a11f8a8181c2dd49` passed the following on 2026-08-14:
+
+| Package | Zone | Rooms | Components | Walkthrough roots | Reset rows |
+|---------|-----:|------:|-----------:|-------------------|-----------:|
+| Trail | 20507 | 200 | 3 | 2050700, 2050800, 2050851 | 72 |
+| Hulburg | 20591 | 492 | 9 | 2059100, 2059342, 2059349, 2059353, 2059354, 2059430, 2059487, 2059553, 2059564 | 1,235 |
+| Jotunheim | 20960 | 298 | 4 | 2096000, 2096227, 2096288, 2096297 | 423 |
+
+The graph walk reached all 990 rooms. It resolved all internal links, every incoming
+and outgoing cross-zone exit, 2,215 exit-key uses, 20 portal destinations, 568 typed
+record references, and all six Jotunheim DG attachments. No touched package file has an
+error and no key, portal, attachment, or typed reference is unresolved.
+
+A disposable full-world runtime used a private unprivileged MariaDB instance, not a
+configured development or production database. Syntax boot exited successfully. A
+bounded normal boot entered the game loop, observed one boot reset each for artifact
+zone `1699` and rehomed zones `20507`, `20591`, and `20960`, then handled `SIGTERM` and
+shut down cleanly. No diagnostic named those zones or any canonical artifact.
+
+The complete production-linked suite additionally covers artifact state reload,
+holder reassociation, bonuses, ownership, progression, cooldowns, and reset
+single-instance behavior for the eleven canonical prototypes. The final suite result
+is 698 passing CuTests; the world-tool suite passes 396 tests. The semantic database
+audit additionally proves that 1,512 migrated rows are canonical and all 142 distinct
+saved-object VNUMs resolve to one indexed prototype.
 
 ## Reporting a Manual Finding
 

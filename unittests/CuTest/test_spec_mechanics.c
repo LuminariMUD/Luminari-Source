@@ -2564,7 +2564,7 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
       2019933, 2025030, 2009054, 2025018, 2001010, 2080034, 2080038, 2026233, 2026248, 2015116,
       2013308, 2097117, 2001005, 2014023, 2024405, 2053266, 2053263, 2053259, 2053289, 2053290,
       2053291, 2053292, 2053243, 2083238, 2083235, 2053250, 2053271, 2043741, 2008000, 2001057,
-      2004797, 2093227, 2093228, 2032602, 2033001, 2033012, 2006084, 2094571, 2094566, 196000,
+      2004797, 2093227, 2093228, 2032602, 2033001, 2033012, 2006084, 2094571, 2094566, 2096000,
       2020208, 2020271, 2021759, 2063747, 2063794, 2062750, 2062751, 2062728, 2063763, 2063778,
       2080212, 2083055, 2089471, 2092065, 2092090, 2092117, 2092118, 2092119, 2092120, 2092121,
       2096638, 2096642, 2096678, 2093035, 2093086, 2093156, 2093191, 2093195, 2093446, 2093447,
@@ -2598,7 +2598,7 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertTrue(tc, rol_weapon_profile(2093086, &denominator, &critical_only, &description));
   CuAssertTrue(tc, critical_only);
   CuAssertIntEquals(tc, 1, denominator);
-  CuAssertTrue(tc, rol_weapon_profile(196000, &denominator, &critical_only, &description));
+  CuAssertTrue(tc, rol_weapon_profile(2096000, &denominator, &critical_only, &description));
   CuAssertTrue(tc, !critical_only);
   CuAssertIntEquals(tc, 22, denominator);
   CuAssertTrue(tc, rol_weapon_profile(2021759, &denominator, &critical_only, &description));
@@ -2787,7 +2787,7 @@ void Test_spec_rol_bhaal_torment_profile_and_ward_runtime(CuTest *tc)
 void Test_spec_rol_monster_combat_profiles_cover_converted_bindings(CuTest *tc)
 {
   static const int vnums[] = {
-      150772,  196007,  196013,  196027,  196040,  196076,  2000207, 2000212, 2000214, 2000215,
+      2050772, 2096007, 2096013, 2096027, 2096040, 2096076, 2000207, 2000212, 2000214, 2000215,
       2000220, 2000221, 2000233, 2000325, 2000326, 2000327, 2000328, 2000525, 2001228, 2001229,
       2001232, 2001407, 2001436, 2001437, 2002818, 2003244, 2004070, 2004480, 2004530, 2005023,
       2005527, 2005701, 2005702, 2005718, 2007180, 2010661, 2010744, 2010745, 2010749, 2010750,

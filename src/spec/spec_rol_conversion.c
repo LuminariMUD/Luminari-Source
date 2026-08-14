@@ -246,7 +246,7 @@ static const struct rol_weapon_profile rol_weapon_profiles[] = {
      "One-in-36 fixed 100-point source-untyped fiery burst."},
     {2094571, ROL_WEAPON_DARKHOLD_WARHAMMER, 21, false, "Ice Hammer"},
     {2094566, ROL_WEAPON_DARKHOLD_BASTARD, 1, true, "Dancing Lights"},
-    {196000, ROL_WEAPON_JOTUN_FROSTBITE, 22, false,
+    {2096000, ROL_WEAPON_JOTUN_FROSTBITE, 22, false,
      "One-in-22 burst of thirty ten-sided dice of cold damage."},
     {2020208, ROL_WEAPON_TRAHERN_CRYSTAL, 33, false,
      "One-in-33 natural-energy strike with a daytime scorching ray."},
@@ -706,7 +706,7 @@ static const struct rol_travel_portal_profile rol_travel_portal_profiles[] = {
 };
 
 static const struct rol_death_profile rol_death_profiles[] = {
-    {196030, "$n explodes in a mass of fire and energy!", NULL, 0, 0, ROL_DEATH_EFFECT_BALOR_BURST,
+    {2096030, "$n explodes in a mass of fire and energy!", NULL, 0, 0, ROL_DEATH_EFFECT_BALOR_BURST,
      true},
     {2000200, "As $n dies, $e melts into the shadows of the room.",
      "Suddenly shadows seem to cover a lot more of the room than before.", 0, 0,

@@ -57,11 +57,11 @@ static void artifact_test_registry(int count)
  * in the registry, so those checks need the real membership rather than the
  * synthetic contiguous block artifact_test_registry() builds. */
 static const int artifact_test_all_vnums[] = {
-    ART_VNUM_TRORXEK,     ART_VNUM_AMAUKEKEL, ART_VNUM_FADE,    ART_VNUM_HENEKAR,
-    ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,  ART_VNUM_KELROM,  ART_VNUM_GESEN,
-    ART_VNUM_STINGER,     ART_VNUM_AVERNUS,   ART_VNUM_AEGIS,   ART_VNUM_VENGEANCE,
-    ART_VNUM_EARTHCRIER,  ART_VNUM_WYRMFANG,  ART_VNUM_COURAGE, ART_VNUM_ICEDGE,
-    ART_VNUM_TWILIGHT};
+    ART_VNUM_AEGIS,     ART_VNUM_VENGEANCE,        ART_VNUM_EARTHCRIER, ART_VNUM_WYRMFANG,
+    ART_VNUM_COURAGE,   ART_VNUM_ICEDGE,           ART_VNUM_TWILIGHT,   ART_VNUM_KELRARIN,
+    ART_VNUM_STINGER,   ART_VNUM_KELRARIN_VARIANT, ART_VNUM_FADE,       ART_VNUM_TRORXEK,
+    ART_VNUM_AMAUKEKEL, ART_VNUM_HENEKAR,          ART_VNUM_KELROM,     ART_VNUM_DOOMBRINGER,
+    ART_VNUM_GESEN,     ART_VNUM_AVERNUS};
 
 #define ARTIFACT_TEST_ALL_COUNT                                                                    \
   ((int)(sizeof(artifact_test_all_vnums) / sizeof(artifact_test_all_vnums[0])))
@@ -73,7 +73,7 @@ static const int artifact_test_all_vnums[] = {
 
 struct artifact_test_object_fixture
 {
-  struct index_data indexes[17];
+  struct index_data indexes[ARTIFACT_TEST_OBJ_COUNT];
   struct index_data *saved_obj_index;
   obj_rnum saved_top_of_objt;
 };
@@ -101,6 +101,10 @@ static void artifact_test_end_objects(struct artifact_test_object_fixture *fixtu
 
 static void artifact_test_object(struct obj_data *obj, obj_rnum rnum)
 {
+  obj_rnum trorxek_rnum = real_object(ART_VNUM_TRORXEK);
+
+  if (rnum == 0 && trorxek_rnum != NOTHING)
+    rnum = trorxek_rnum;
   clear_object(obj);
   GET_OBJ_RNUM(obj) = rnum;
   obj->short_description = "a test artifact";
@@ -171,7 +175,7 @@ static int artifact_test_file_contains(const char *path, const char *needle)
 
 /* Like artifact_test_file_contains(), but the whole line has to match.  Object
  * and mobile records are introduced by a bare "#<vnum>" line, and a substring
- * search for "#16990" would also accept "#169901". */
+ * search for "#200104" would also accept "#2001043". */
 static int artifact_test_file_has_line(const char *path, const char *wanted)
 {
   FILE *fl = NULL;
@@ -303,6 +307,20 @@ static const char *artifact_test_source_root(void)
   const char *root = getenv("LUMINARI_TEST_ROOT");
 
   return root && *root ? root : ".";
+}
+
+static void artifact_test_object_package_path(char *path, size_t size, const char *root, int vnum)
+{
+  const char *package = "1699.obj";
+
+  if (vnum >= 2001000 && vnum <= 2001999)
+    package = "20010.obj";
+  else if (vnum >= 2005300 && vnum <= 2005399)
+    package = "20053.obj";
+  else if (vnum >= 2019700 && vnum <= 2019799)
+    package = "20197.obj";
+
+  snprintf(path, size, "%s/lib/world/artifacts/%s", root, package);
 }
 
 
@@ -717,6 +735,7 @@ void Test_artifact_v20_layout_loads_without_column_shift(CuTest *tc)
   int level = 0, exp = 0, persisted = FALSE;
   long bound = 0;
   int wrote = FALSE;
+  struct artifact_data *art = NULL;
 
   if (!artifact_test_enter_sandbox())
   {
@@ -726,16 +745,20 @@ void Test_artifact_v20_layout_loads_without_column_shift(CuTest *tc)
 
   artifact_test_begin_objects(&fixture);
   wrote = artifact_test_write_file("# Artifact Ownership File v2.0\n"
-                                   "169901 Zusuk 4 777 2 12345\n");
+                                   "2001043 Zusuk 4 777 2 12345\n");
   if (wrote)
   {
     artifact_boot();
-    snprintf(owner, sizeof(owner), "%s", art_index[0].owner);
-    snprintf(account, sizeof(account), "%s", art_index[0].account);
-    level = art_index[0].level;
-    exp = art_index[0].experience;
-    bound = (long)art_index[0].bound_time;
-    persisted = art_index[0].instance_persisted;
+    art = artifact_by_vnum(ART_VNUM_TRORXEK);
+    if (art)
+    {
+      snprintf(owner, sizeof(owner), "%s", art->owner);
+      snprintf(account, sizeof(account), "%s", art->account);
+      level = art->level;
+      exp = art->experience;
+      bound = (long)art->bound_time;
+      persisted = art->instance_persisted;
+    }
   }
 
   artifact_shutdown();
@@ -759,6 +782,7 @@ void Test_artifact_v1_layout_loads_timestamp_separately(CuTest *tc)
   int level = 0, exp = -1, persisted = FALSE;
   long bound = 0;
   int wrote = FALSE;
+  struct artifact_data *art = NULL;
 
   if (!artifact_test_enter_sandbox())
   {
@@ -768,16 +792,20 @@ void Test_artifact_v1_layout_loads_timestamp_separately(CuTest *tc)
 
   artifact_test_begin_objects(&fixture);
   wrote = artifact_test_write_file("# Artifact Ownership File v1\n"
-                                   "169901 Zusuk 12345\n");
+                                   "2001043 Zusuk 12345\n");
   if (wrote)
   {
     artifact_boot();
-    snprintf(owner, sizeof(owner), "%s", art_index[0].owner);
-    snprintf(account, sizeof(account), "%s", art_index[0].account);
-    level = art_index[0].level;
-    exp = art_index[0].experience;
-    bound = (long)art_index[0].bound_time;
-    persisted = art_index[0].instance_persisted;
+    art = artifact_by_vnum(ART_VNUM_TRORXEK);
+    if (art)
+    {
+      snprintf(owner, sizeof(owner), "%s", art->owner);
+      snprintf(account, sizeof(account), "%s", art->account);
+      level = art->level;
+      exp = art->experience;
+      bound = (long)art->bound_time;
+      persisted = art->instance_persisted;
+    }
   }
 
   artifact_shutdown();
@@ -805,9 +833,9 @@ void Test_artifact_world_package_contains_all_deployable_records(CuTest *tc)
   const char *root = artifact_test_source_root();
   int i = 0;
 
-  snprintf(path, sizeof(path), "%s/lib/world/artifacts/1699.obj", root);
   for (i = 0; i < ARTIFACT_TEST_ALL_COUNT; i++)
   {
+    artifact_test_object_package_path(path, sizeof(path), root, artifact_test_all_vnums[i]);
     snprintf(needle, sizeof(needle), "#%d", artifact_test_all_vnums[i]);
     if (!artifact_test_file_has_line(path, needle))
     {
@@ -1107,14 +1135,16 @@ void Test_artifact_zone_load_blocks_second_live_instance(CuTest *tc)
 {
   struct artifact_test_object_fixture fixture;
   int blocks_first = FALSE, blocks_second = FALSE;
+  obj_rnum trorxek_rnum = NOTHING;
 
   artifact_test_begin_objects(&fixture);
   artifact_test_registry(11);
+  trorxek_rnum = real_object(ART_VNUM_TRORXEK);
 
-  fixture.indexes[0].number = 0;
-  blocks_first = artifact_block_zone_load(0);
-  fixture.indexes[0].number = 1;
-  blocks_second = artifact_block_zone_load(0);
+  fixture.indexes[trorxek_rnum].number = 0;
+  blocks_first = artifact_block_zone_load(trorxek_rnum);
+  fixture.indexes[trorxek_rnum].number = 1;
+  blocks_second = artifact_block_zone_load(trorxek_rnum);
 
   artifact_shutdown();
   artifact_test_end_objects(&fixture);
@@ -1131,7 +1161,7 @@ void Test_artifact_reload_reassociates_holder_and_refreshes_bonus(CuTest *tc)
   struct obj_data *saved_object_list = object_list;
   struct affected_type *af = NULL, *next_af = NULL;
   struct artifact_data *art = NULL;
-  int wrote = FALSE, holder_restored = FALSE, modifier = 0;
+  int wrote = FALSE, holder_restored = FALSE, modifier = 0, artifact_tag = 0;
 
   memset(&ch, 0, sizeof(ch));
   memset(&obj, 0, sizeof(obj));
@@ -1144,7 +1174,7 @@ void Test_artifact_reload_reassociates_holder_and_refreshes_bonus(CuTest *tc)
 
   artifact_test_begin_objects(&fixture);
   wrote = artifact_test_write_file("# Artifact Ownership File v2.2\n"
-                                   "169901 Zusuk noone 1 50 12345 1\n");
+                                   "2001043 Zusuk noone 1 50 12345 1\n");
   if (wrote)
   {
     artifact_boot();
@@ -1160,13 +1190,15 @@ void Test_artifact_reload_reassociates_holder_and_refreshes_bonus(CuTest *tc)
 
     artifact_apply_bonuses(&ch, &obj);
     artifact_test_write_file("# Artifact Ownership File v2.2\n"
-                             "169901 Zusuk noone 3 650 12345 1\n");
+                             "2001043 Zusuk noone 3 650 12345 1\n");
     artifact_reload();
 
     art = artifact_by_vnum(ART_VNUM_TRORXEK);
     holder_restored = art && art->ch == &ch;
+    artifact_tag = artifact_search(ART_VNUM_TRORXEK) + 1;
     for (af = ch.affected; af; af = af->next)
-      if (af->spell == SPELL_ARTIFACT_BONUS && af->specific == 1 && af->location == APPLY_WIS)
+      if (af->spell == SPELL_ARTIFACT_BONUS && af->specific == artifact_tag &&
+          af->location == APPLY_WIS)
         modifier = af->modifier;
   }
 
@@ -1801,7 +1833,7 @@ void Test_artifact_v23_file_still_loads_without_signature_cooldown(CuTest *tc)
 
   artifact_test_write_file("# Artifact Ownership File v2.3\n"
                            "\n"
-                           "169901 Karaz karaz_account 3 250 12345 1 "
+                           "2001043 Karaz karaz_account 3 250 12345 1 "
                            "Gosric gosric_account 100 200 3 2 1 4 5 1 100 "
                            "300 400 500 600 700 800\n");
 
@@ -1846,7 +1878,7 @@ void Test_artifact_v22_file_still_loads_without_history(CuTest *tc)
 
   artifact_test_write_file("# Artifact Ownership File v2.2\n"
                            "\n"
-                           "169901 Karaz karaz_account 3 250 12345 1\n");
+                           "2001043 Karaz karaz_account 3 250 12345 1\n");
 
   artifact_boot();
 
@@ -2030,17 +2062,18 @@ void Test_artifact_stacking_groups_are_independent(CuTest *tc)
 }
 
 /* --------------------------------------------------------------------------
- * The second-wave roster
+ * The canonical roster
  * -------------------------------------------------------------------------- */
 
-void Test_artifact_second_wave_vnums_are_distinct_and_in_zone(CuTest *tc)
+void Test_artifact_vnums_are_distinct_sorted_and_canonical(CuTest *tc)
 {
   int i = 0, j = 0, ok = TRUE;
 
   for (i = 0; i < ARTIFACT_TEST_ALL_COUNT; i++)
   {
-    if (artifact_test_all_vnums[i] < ARTIFACT_VNUM_BASE ||
-        artifact_test_all_vnums[i] > ARTIFACT_VNUM_BASE + 99)
+    if (!((artifact_test_all_vnums[i] >= ARTIFACT_VNUM_BASE + 11 &&
+           artifact_test_all_vnums[i] <= ARTIFACT_VNUM_BASE + 18) ||
+          (artifact_test_all_vnums[i] >= 2000000 && artifact_test_all_vnums[i] <= 2999999)))
       ok = FALSE;
 
     /* The vault room and the treant are in the same block and must never be

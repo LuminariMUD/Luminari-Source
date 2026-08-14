@@ -18,7 +18,7 @@ place artifacts itself.
 
 ## 1. What exists today
 
-All seventeen artifacts reset into the private Vault of Ages, room 169900,
+All eighteen artifacts reset into the private Vault of Ages, room 169900,
 from the tracked package `lib/world/artifacts/1699.zon`. That room has no
 exits. This is correct for staging and wrong for gameplay: nothing in the
 world hands an artifact to a player.
@@ -29,12 +29,14 @@ Provisioning copies the package into the live world:
 scripts/provision_artifacts.sh
 ```
 
-It is idempotent and never rewrites a record a builder has already edited
-through OLC. It adds object prototypes and vault resets that are missing and
-leaves everything else alone. That means **a builder's placement edits are
-safe**: once an `O` reset for an artifact exists in `lib/world/zon/1699.zon`,
-the provisioner will not add a second one, and once a prototype exists it is
-never overwritten.
+It is idempotent and never rewrites a canonical prototype a builder has
+already edited through OLC. It adds object prototypes and vault resets that
+are missing and leaves canonical records in place. The closed retired range
+169901-169910 is the one exception: those definitions and resets are removed
+so they cannot coexist with the canonical first-wave objects. A builder's
+canonical placement edits remain safe: once an `O` reset for an artifact
+exists in `lib/world/zon/1699.zon`, the provisioner will not add a second one,
+and once a canonical prototype exists it is never overwritten.
 
 ## 2. The single-instance contract placement must respect
 
@@ -94,7 +96,7 @@ listed class; it does not stop them equipping it.
 
 ### 4.1 First wave - currently `ART_ACQ_VAULT`
 
-These eleven have no acquisition mode chosen yet. **Choosing one is the first
+These twelve have no acquisition mode chosen yet. **Choosing one is the first
 decision this handoff needs.** Until a builder picks a mode, they stay vault
 staged and the roster honestly reports them as unreleased. When a mode is
 chosen, the contract row in `artifact_contracts[]`
@@ -103,16 +105,17 @@ one-line source change and the only code work this whole task can generate.
 
 | Vnum | Name | Binding | Oath | Suggested mode | Placement note |
 | --- | --- | --- | --- | --- | --- |
-| 169901 | Trorxek, Staff of Ancient Oaks | on equip | druid | boss | A deep-forest or fey-court boss. Its called effect summons the Oaken Defender, mobile 169912, which is already in the package. |
-| 169902 | Amaukekel, Rod of Light | on equip | cleric | quest | A temple or church chain. Its powers are resurrection and dispel evil; the giver should be a church. |
-| 169903 | Fade, the Shadowblade | on equip | rogue | exploration | A thieves' quarter or shadow plane chain. Contract hint already says thieves trade the rumour, not the sword. |
-| 169904 | Horn of Henekar | on equip | rogue | quest | Its charm effect is capped by target max HP; keep the source away from any zone with charm-exploitable mobiles. |
-| 169905 | Doombringer | **on pickup** | warrior | boss | Owner policy is already public. A high-tier boss; do not leave it lootable from a corpse in a public road room. |
-| 169906 | Kelrarin's Hammer | on equip | none | boss | Anti-evil themed; a fiend or undead boss reads best. |
-| 169907 | Kelrom | on equip | none | quest | Refuses to strike animals. A druidic or ranger giver fits. |
-| 169908 | Gesen | **none** | none | exploration | The only unbound artifact in the roster. It can change hands freely, so it is the safest one to place somewhere reachable. |
-| 169909 | Tiamat's Stinger | **on account** | none | boss | A chromatic dragon boss. Account binding means one per account, ever. |
-| 169910 | Avernus | on equip | none | boss | Infernal theme. |
+| 2001043 | Trorxek, Staff of Ancient Oaks | on equip | druid | boss | A deep-forest or fey-court boss. Its called effect summons the Oaken Defender, mobile 169912, which is already in the package. |
+| 2001044 | Amaukekel, Rod of Light | on equip | cleric | quest | A temple or church chain. Its powers are resurrection and dispel evil; the giver should be a church. |
+| 2001042 | Fade, the Shadowblade | on equip | rogue | exploration | A thieves' quarter or shadow plane chain. Contract hint already says thieves trade the rumour, not the sword. |
+| 2001046 | Horn of Henekar | on equip | rogue | quest | Its charm effect is capped by target max HP; keep the source away from any zone with charm-exploitable mobiles. |
+| 2001050 | Doombringer | **on pickup** | warrior | boss | Owner policy is already public. A high-tier boss; do not leave it lootable from a corpse in a public road room. |
+| 2001007 | Kelrarin's Hammer | on equip | none | boss | Anti-evil themed; a fiend or undead boss reads best. This is the persistent successor of the former shared target object. |
+| 2001009 | Kelrarin's Second Hammer | on equip | none | boss | A distinct source forging with independent ownership and progression. It shares compatible powers, not state, with the first hammer. |
+| 2001048 | Kelrom | on equip | none | quest | Refuses to strike animals. A druidic or ranger giver fits. |
+| 2005343 | Gesen | **none** | none | exploration | The only unbound artifact in the roster. It can change hands freely, so it is the safest one to place somewhere reachable. |
+| 2001008 | Tiamat's Stinger | **on account** | none | boss | A chromatic dragon boss. Account binding means one per account, ever. |
+| 2019730 | Avernus | on equip | none | boss | Infernal theme. |
 | 169911 | Aegis of Ages | on equip | none | quest | Pure defensive breastplate armor; a fortress or siege chain fits. |
 
 ### 4.2 Second wave - acquisition mode already declared
@@ -288,7 +291,7 @@ with no prototype, or an out-of-range recharge slot, is reported by name.
 
 The only source edits placement should ever require:
 
-- `artifact_contracts[]` in `src/obj/spec_artifacts.c:229` - the acquisition
+- `artifact_contracts[]` in `src/obj/spec_artifacts.c` - the acquisition
   mode, campaign mask, owner policy, lore line, and hint line for an artifact
   whose placement was just decided;
 - the roster table in `docs/systems/ARTIFACT_SYSTEM.md`;

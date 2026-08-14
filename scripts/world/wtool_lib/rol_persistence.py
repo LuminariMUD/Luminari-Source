@@ -1,0 +1,704 @@
+"""Semantic persistent-consumer inventory for the RoL canonical rebase."""
+
+from __future__ import annotations
+
+from typing import Any, Iterable
+
+
+PERSISTENT_BINDING_SCHEMA_VERSION = 2
+
+
+def _binding(
+    table: str,
+    column: str,
+    record_type: str,
+    consumer: str,
+    evidence: str,
+    *,
+    encoding: str = "integer",
+    migration: bool = True,
+    predicate: str | None = None,
+    disposition: str = "canonical_rebase",
+) -> dict[str, Any]:
+  return {
+      "table": table,
+      "column": column,
+      "record_type": record_type,
+      "encoding": encoding,
+      "migration_required": migration,
+      "predicate": predicate,
+      "consumer": consumer,
+      "evidence": evidence,
+      "disposition": disposition,
+  }
+
+
+# This table is intentionally explicit. Column-name heuristics missed generic fields such
+# as pet_data.vnum and location_vnum, and they cannot distinguish region/path identities
+# from world-record VNUMs. Each binding below is grounded in the runtime read/write path.
+PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
+    _binding(
+        "active_region_hints",
+        "region_vnum",
+        "region",
+        "wilderness region hints",
+        "region_hints uses region_table identities, not world records",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "ai_npc_personalities",
+        "mob_vnum",
+        "mobile",
+        "AI NPC personality cache",
+        "AI personality rows key directly on mobile prototypes",
+    ),
+    _binding(
+        "ai_requests",
+        "npc_vnum",
+        "mobile",
+        "AI request analytics",
+        "AI requests record the originating NPC prototype",
+    ),
+    _binding(
+        "cascade_effects_log",
+        "zone_vnum",
+        "zone",
+        "resource cascade log",
+        "resource cascade events record zone_table.number",
+    ),
+    _binding(
+        "ecosystem_analysis",
+        "zone_vnum",
+        "zone",
+        "ecosystem analysis view",
+        "derived zone view; SQL application skips non-base tables",
+    ),
+    _binding(
+        "ecosystem_health",
+        "zone_vnum",
+        "zone",
+        "ecosystem health state",
+        "ecosystem rows key directly on zone_table.number",
+    ),
+    _binding(
+        "freight_contracts",
+        "origin_vnum",
+        "room",
+        "vessel freight origin",
+        "vessels_contracts resolves the value with real_room",
+    ),
+    _binding(
+        "freight_contracts",
+        "destination_vnum",
+        "room",
+        "vessel freight destination",
+        "vessels_contracts resolves the value with real_room",
+    ),
+    _binding(
+        "hint_analytics",
+        "region_vnum",
+        "region",
+        "wilderness hint analytics",
+        "region hint subsystem identity, not a world record",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "hint_usage_log",
+        "region_vnum",
+        "region",
+        "wilderness hint usage",
+        "region hint subsystem identity, not a world record",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "house_data",
+        "vnum",
+        "room",
+        "database-backed houses",
+        "house.c and objsave.c select the house by room VNUM",
+    ),
+    _binding(
+        "loot_chests",
+        "chest_vnum",
+        "object",
+        "per-character chest cooldowns",
+        "loot chest state keys directly on an object prototype",
+    ),
+    _binding(
+        "mysql_boards",
+        "obj_vnum",
+        "object",
+        "database-backed boards",
+        "mysql board assignment resolves the board object prototype",
+    ),
+    _binding(
+        "object_database_items",
+        "object_vnum",
+        "object",
+        "object catalogue export",
+        "the export row records the source object prototype VNUM",
+    ),
+    _binding(
+        "object_database_items",
+        "zone_num",
+        "zone",
+        "object catalogue export",
+        "the export row records the owning zone VNUM",
+    ),
+    _binding(
+        "path_data",
+        "vnum",
+        "path",
+        "wilderness path catalogue",
+        "path_data.vnum is a path identity, not a room/mobile/object identity",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "path_data",
+        "zone_vnum",
+        "zone",
+        "wilderness path ownership",
+        "mysql.c stores zone_table[path->zone].number",
+    ),
+    _binding(
+        "path_index",
+        "vnum",
+        "path",
+        "wilderness path spatial index",
+        "path_index mirrors the path identity from path_data",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "path_index",
+        "zone_vnum",
+        "zone",
+        "wilderness path spatial index",
+        "path_index mirrors the owning zone VNUM from path_data",
+    ),
+    _binding(
+        "pet_data",
+        "vnum",
+        "mobile",
+        "saved pets",
+        "players.c reloads this value as the pet mobile prototype",
+    ),
+    _binding(
+        "player_location_conservation",
+        "zone_vnum",
+        "zone",
+        "player location conservation",
+        "location conservation records the containing zone VNUM",
+    ),
+    _binding(
+        "player_quest_info",
+        "quest_id",
+        "quest",
+        "legacy player quest state",
+        "quest state keys on the persisted quest identity",
+    ),
+    _binding(
+        "player_quest_progress",
+        "quest_id",
+        "quest",
+        "legacy player quest progress",
+        "quest progress keys on the persisted quest identity",
+    ),
+    _binding(
+        "port_commodities",
+        "port_vnum",
+        "room",
+        "vessel trade ports",
+        "vessels_trade uses the dock room VNUM as the port identity",
+    ),
+    _binding(
+        "pubsub_message_fields_v3",
+        "location_ref_room",
+        "room",
+        "PubSub location field",
+        "the typed location reference stores a room VNUM",
+    ),
+    _binding(
+        "pubsub_message_fields_v3",
+        "location_ref_zone",
+        "zone",
+        "PubSub location field",
+        "the typed location reference stores a zone VNUM",
+    ),
+    _binding(
+        "pubsub_message_metadata",
+        "origin_room",
+        "room",
+        "PubSub origin metadata",
+        "pubsub metadata records the originating room VNUM",
+    ),
+    _binding(
+        "pubsub_message_metadata",
+        "origin_zone",
+        "zone",
+        "PubSub origin metadata",
+        "pubsub metadata records the originating zone VNUM",
+    ),
+    _binding(
+        "pubsub_message_metadata_v3",
+        "origin_room",
+        "room",
+        "PubSub v3 origin metadata",
+        "pubsub metadata records the originating room VNUM",
+    ),
+    _binding(
+        "pubsub_message_metadata_v3",
+        "origin_zone",
+        "zone",
+        "PubSub v3 origin metadata",
+        "pubsub metadata records the originating zone VNUM",
+    ),
+    _binding(
+        "quest_info",
+        "room_x_vnum",
+        "room",
+        "legacy external quest catalogue",
+        "the declared room_x_vnum field stores a decimal room identity",
+        encoding="integer_text",
+    ),
+    _binding(
+        "quest_info",
+        "mob_z_vnums",
+        "mobile",
+        "legacy external quest catalogue",
+        "comma-delimited mobile identities; no in-server reader remains and the development table is empty",
+        encoding="csv_integer",
+        migration=False,
+        disposition="classified_empty_orphan",
+    ),
+    _binding(
+        "quest_line_steps",
+        "quest_vnum",
+        "quest",
+        "ordered quest lines",
+        "quest.c resolves each step through real_quest",
+    ),
+    _binding(
+        "region_data",
+        "vnum",
+        "region",
+        "wilderness region catalogue",
+        "region_data.vnum is a region identity, not a world record",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "region_data",
+        "zone_vnum",
+        "zone",
+        "wilderness region ownership",
+        "region rows store their owning zone VNUM",
+    ),
+    _binding(
+        "region_description_cache",
+        "region_vnum",
+        "region",
+        "wilderness region description cache",
+        "cache key is a region identity, not a world record",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "region_effect_assignments",
+        "region_vnum",
+        "region",
+        "wilderness region effects",
+        "effect assignment key is a region identity, not a world record",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "region_hints",
+        "region_vnum",
+        "region",
+        "wilderness region hints",
+        "hint key is a region identity, not a world record",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "region_index",
+        "vnum",
+        "region",
+        "wilderness region spatial index",
+        "region_index mirrors a region identity, not a world record",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "region_index",
+        "zone_vnum",
+        "zone",
+        "wilderness region spatial index",
+        "region_index mirrors the owning zone VNUM",
+    ),
+    _binding(
+        "region_profiles",
+        "region_vnum",
+        "region",
+        "wilderness region profiles",
+        "profile key is a region identity, not a world record",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "resource_depletion",
+        "zone_vnum",
+        "zone",
+        "resource depletion state",
+        "resource state keys on zone_table.number",
+    ),
+    _binding(
+        "resource_regeneration_log",
+        "zone_vnum",
+        "zone",
+        "resource regeneration log",
+        "resource events record zone_table.number",
+    ),
+    _binding(
+        "room_description_settings",
+        "room_vnum",
+        "room",
+        "generated room descriptions",
+        "description settings key directly on a room VNUM",
+    ),
+    _binding(
+        "ship_cargo_manifest",
+        "item_vnum",
+        "object",
+        "vessel crated cargo",
+        "vessels_db resolves item_vnum as an object only when cargo_room is nonzero",
+        predicate="`cargo_room` <> 0",
+    ),
+    _binding(
+        "ship_cargo_manifest",
+        "cargo_room",
+        "room",
+        "vessel cargo room",
+        "generated ship interior room in the disjoint 70020-80019 namespace",
+        migration=False,
+        disposition="generated_namespace_disjoint",
+    ),
+    _binding(
+        "ship_crew_roster",
+        "npc_vnum",
+        "mobile",
+        "vessel NPC crew and pilot state",
+        "positive values are mobile prototypes; nonpositive values encode generated crew or permits",
+        predicate="`npc_vnum` > 0",
+    ),
+    _binding(
+        "ship_crew_roster",
+        "assigned_room",
+        "room",
+        "vessel crew assignment",
+        "generated ship interior room in the disjoint 70020-80019 namespace",
+        migration=False,
+        disposition="generated_namespace_disjoint",
+    ),
+    _binding(
+        "ship_crew_roster",
+        "duty_station",
+        "room",
+        "vessel crew duty station",
+        "generated ship interior room in the disjoint 70020-80019 namespace",
+        migration=False,
+        disposition="generated_namespace_disjoint",
+    ),
+    _binding(
+        "ship_docking",
+        "dock_room1",
+        "room",
+        "vessel docking endpoint",
+        "generated ship interior room in the disjoint 70020-80019 namespace",
+        migration=False,
+        disposition="generated_namespace_disjoint",
+    ),
+    _binding(
+        "ship_docking",
+        "dock_room2",
+        "room",
+        "vessel docking endpoint",
+        "generated ship interior room in the disjoint 70020-80019 namespace",
+        migration=False,
+        disposition="generated_namespace_disjoint",
+    ),
+    _binding(
+        "ship_interiors",
+        "room_vnums",
+        "room",
+        "vessel interior room list",
+        "generated ship interior rooms use the disjoint 70020-80019 namespace",
+        encoding="csv_integer",
+        migration=False,
+        disposition="generated_namespace_disjoint",
+    ),
+    _binding(
+        "ship_interiors",
+        "bridge_room",
+        "room",
+        "vessel bridge",
+        "generated ship interior room in the disjoint 70020-80019 namespace",
+        migration=False,
+        disposition="generated_namespace_disjoint",
+    ),
+    _binding(
+        "ship_interiors",
+        "entrance_room",
+        "room",
+        "vessel entrance",
+        "generated ship interior room in the disjoint 70020-80019 namespace",
+        migration=False,
+        disposition="generated_namespace_disjoint",
+    ),
+    *(
+        _binding(
+            "ship_interiors",
+            f"cargo_room{index}",
+            "room",
+            "vessel cargo room",
+            "generated ship interior room in the disjoint 70020-80019 namespace",
+            migration=False,
+            disposition="generated_namespace_disjoint",
+        )
+        for index in range(1, 6)
+    ),
+    _binding(
+        "ship_interiors",
+        "room_data",
+        "room",
+        "vessel interior connection graph",
+        "serialized endpoints are generated ship rooms in the disjoint 70020-80019 namespace",
+        encoding="vessel_connections",
+        migration=False,
+        disposition="generated_namespace_disjoint",
+    ),
+    _binding(
+        "ship_room_template_triggers",
+        "trigger_vnum",
+        "trigger",
+        "generated vessel-room trigger attachments",
+        "vessels_rooms resolves each configured DG trigger VNUM",
+    ),
+    _binding(
+        "ship_runtime_state",
+        "hull_object_vnum",
+        "object",
+        "live vessel hull prototype",
+        "vessels_db reloads the persisted hull object prototype",
+    ),
+    _binding(
+        "ship_runtime_state",
+        "location_vnum",
+        "room",
+        "live vessel exterior location",
+        "vessels_db resolves the persisted exterior room VNUM",
+    ),
+    _binding(
+        "ship_runtime_state",
+        "dock_fee_port",
+        "room",
+        "live vessel trade-port state",
+        "the dock-fee port is the exterior dock room VNUM",
+    ),
+    _binding(
+        "ship_runtime_state",
+        "dock_room",
+        "room",
+        "live vessel docking endpoint",
+        "generated ship interior room in the disjoint 70020-80019 namespace",
+        migration=False,
+        disposition="generated_namespace_disjoint",
+    ),
+    _binding(
+        "ship_runtime_state",
+        "docking_room",
+        "room",
+        "live vessel docking endpoint",
+        "generated ship interior room in the disjoint 70020-80019 namespace",
+        migration=False,
+        disposition="generated_namespace_disjoint",
+    ),
+    _binding(
+        "stored_mobs_for_quests",
+        "vnum",
+        "mobile",
+        "legacy quest mobile catalogue",
+        "table schema explicitly stores mobile prototype VNUMs",
+    ),
+    _binding(
+        "stored_objs_for_quests",
+        "vnum",
+        "object",
+        "legacy quest object catalogue",
+        "table schema explicitly stores object prototype VNUMs",
+    ),
+    _binding(
+        "vehicle_data",
+        "location",
+        "room",
+        "saved vehicle location",
+        "vehicles.c persists GET_ROOM_VNUM into this column",
+    ),
+    _binding(
+        "vessel_encounters",
+        "region_vnum",
+        "region",
+        "vessel encounter region",
+        "encounter region is a wilderness region identity, not a world record",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "vessel_encounters",
+        "mob_vnum",
+        "mobile",
+        "vessel encounter mobile",
+        "vessels_hazards resolves the configured encounter mobile prototype",
+    ),
+    _binding(
+        "vessel_hunter_encounters",
+        "pilot_mob_vnum",
+        "mobile",
+        "vessel hunter pilot",
+        "hunter configuration resolves the pilot mobile prototype",
+    ),
+    _binding(
+        "vessel_npc_merchants",
+        "pilot_mob_vnum",
+        "mobile",
+        "vessel merchant pilot",
+        "merchant configuration resolves the pilot mobile prototype",
+    ),
+    _binding(
+        "vessel_region_law",
+        "region_vnum",
+        "region",
+        "vessel region law",
+        "law key is a wilderness region identity, not a world record",
+        migration=False,
+        disposition="unrelated_typed_identity",
+    ),
+    _binding(
+        "weather_cache",
+        "zone_vnum",
+        "zone",
+        "weather cache",
+        "weather rows key directly on zone_table.number",
+    ),
+    _binding(
+        "wilderness_data",
+        "zone_vnum",
+        "zone",
+        "wilderness definition",
+        "mysql.c loads a wilderness definition by zone VNUM",
+    ),
+    _binding(
+        "wilderness_data",
+        "nav_vnum",
+        "room",
+        "wilderness navigation room",
+        "wilderness.h declares nav_vnum as room_vnum",
+    ),
+    _binding(
+        "wilderness_data",
+        "dynamic_vnum_pool_start",
+        "room",
+        "wilderness dynamic-room allocation",
+        "wilderness.h declares the pool bound as room_vnum",
+    ),
+    _binding(
+        "wilderness_data",
+        "dynamic_vnum_pool_end",
+        "room",
+        "wilderness dynamic-room allocation",
+        "wilderness.h declares the pool bound as room_vnum",
+    ),
+    *(
+        _binding(
+            table,
+            "serialized_obj",
+            "object",
+            consumer,
+            "objsave.c writes and reloads an exact #<object-vnum> prototype header",
+            encoding="object_header_blob",
+        )
+        for table, consumer in (
+            ("player_save_objs", "database-backed player inventory"),
+            ("player_save_objs_sheathed", "database-backed sheathed objects"),
+            ("pet_save_objs", "database-backed pet inventory"),
+            ("house_data", "database-backed house contents"),
+        )
+    ),
+)
+
+
+_BINDINGS_BY_KEY = {
+    (str(binding["table"]), str(binding["column"])): binding
+    for binding in PERSISTENT_BINDINGS
+}
+
+
+def persistent_binding_spec(table: str, column: str) -> dict[str, Any] | None:
+  """Return a copy of the traced semantic binding for one database column."""
+
+  binding = _BINDINGS_BY_KEY.get((table, column))
+  return dict(binding) if binding is not None else None
+
+
+def complete_persistent_bindings(
+    discovered: Iterable[dict[str, Any]],
+    include_guarded_missing: bool = True,
+) -> list[dict[str, Any]]:
+  """Overlay traced semantics and add guarded bindings absent from old inventories."""
+
+  rows: dict[tuple[str, str], dict[str, Any]] = {}
+  for discovered_binding in discovered:
+    row = dict(discovered_binding)
+    key = (str(row["table"]), str(row["column"]))
+    semantic = _BINDINGS_BY_KEY.get(key)
+    if semantic is not None:
+      row.update(semantic)
+      row["classification_status"] = "traced"
+    else:
+      row["classification_status"] = "unclassified"
+      row.setdefault(
+          "migration_required",
+          row.get("record_type")
+          in {"zone", "room", "mobile", "object", "quest", "trigger"},
+      )
+      row.setdefault("encoding", "integer")
+      row.setdefault("disposition", "unclassified")
+    rows[key] = row
+
+  if include_guarded_missing:
+    for key, semantic in _BINDINGS_BY_KEY.items():
+      if key in rows:
+        continue
+      row = dict(semantic)
+      row["classification_status"] = "traced"
+      row["discovered"] = False
+      rows[key] = row
+
+  return [rows[key] for key in sorted(rows)]
+
+
+def persistent_consumer_ledger(
+    discovered: Iterable[dict[str, Any]],
+) -> list[dict[str, Any]]:
+  """Return the stable, credential-free consumer classification ledger."""
+
+  rows = complete_persistent_bindings(discovered)
+  for row in rows:
+    row.pop("values", None)
+    row.pop("values_sha256", None)
+  return rows

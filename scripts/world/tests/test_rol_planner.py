@@ -42,7 +42,7 @@ class RolPlannerTests(unittest.TestCase):
     candidate = {
         "target_type": "mobile",
         "target_vnum": 100010,
-        "evidence": ["legacy_offset_formula"],
+        "evidence": ["legacy_lineage_formula"],
         "confirmed_seed": False,
     }
     actions, identities, packages = build_record_actions(
@@ -67,7 +67,7 @@ class RolPlannerTests(unittest.TestCase):
       candidate = {
           "target_type": "zone" if kind == "zon" else "room",
           "target_vnum": index + (1000 if kind == "zon" else 100000),
-          "evidence": ["exact_normalized_identity", "legacy_offset_formula"],
+          "evidence": ["exact_normalized_identity", "legacy_lineage_formula"],
           "confirmed_seed": index == 0,
       }
       candidates[record["record_id"]] = candidate_row(record, candidate)
@@ -75,15 +75,15 @@ class RolPlannerTests(unittest.TestCase):
     self.assertIn("lineage", confirmed)
     self.assertEqual(1.0, confirmed["lineage"]["legacy_formula_ratio"])
 
-  def test_policy_confirmed_equivalents_reuse_one_authoritative_target(self) -> None:
+  def test_historic_equivalents_do_not_override_distinct_canonical_targets(self) -> None:
     first = source_record("obj:1007:x:1", "obj", 1007, "artifacts")
     second = source_record("obj:1009:x:2", "obj", 1009, "artifacts")
-    self.policy["identity"]["confirmed_target_equivalents"] = [
+    self.policy["identity"]["historic_target_lineage"] = [
         {
             "source_kind": "obj",
             "source_vnum": source_vnum,
             "target_type": "object",
-            "target_vnum": 169906,
+            "historic_target_vnum": 169906,
             "evidence": ["reviewed artifact contract"],
         }
         for source_vnum in (1007, 1009)
@@ -96,13 +96,10 @@ class RolPlannerTests(unittest.TestCase):
         defaultdict(dict),
     )
 
-    self.assertEqual(["KEEP", "KEEP"], [row["action"] for row in actions])
-    self.assertEqual([169906, 169906], [row["destination_vnum"] for row in actions])
-    self.assertTrue(all(row["emission_ready"] for row in actions))
-    self.assertTrue(
-        all(row["selected_target"]["policy_equivalent"] for row in actions)
-    )
-    self.assertEqual([169906, 169906], [row["destination_vnum"] for row in identities])
+    self.assertEqual(["ADD", "ADD"], [row["action"] for row in actions])
+    self.assertEqual([2001007, 2001009], [row["destination_vnum"] for row in actions])
+    self.assertTrue(all(row["selected_target"] is None for row in actions))
+    self.assertEqual([2001007, 2001009], [row["destination_vnum"] for row in identities])
 
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@
 /* Jot           */
 /*****************/
 
-#define JOT_VNUM 1960
+#define JOT_VNUM 20960
 
 #define MAX_FG 60    // fire giants
 #define MAX_SB 20    // smoking beard batallion
@@ -501,7 +501,7 @@ SPECIAL(ymir_cloak)
 
   if (cmd && argument && CMD_IS("say"))
   {
-    if (!is_wearing(ch, 196059))
+    if (!is_wearing(ch, 2096059))
       return 0;
 
     skip_spaces(&argument);
@@ -546,7 +546,7 @@ SPECIAL(mistweave)
 
   if (cmd && argument && CMD_IS("say"))
   {
-    if (!is_wearing(ch, 196012))
+    if (!is_wearing(ch, 2096012))
       return 0;
 
     skip_spaces(&argument);
@@ -597,7 +597,7 @@ SPECIAL(frostbite)
 
   if (cmd && argument && CMD_IS("say"))
   {
-    if (!is_wearing(ch, 196000))
+    if (!is_wearing(ch, 2096000))
       return 0;
 
     skip_spaces(&argument);
@@ -677,7 +677,7 @@ SPECIAL(vaprak_claws)
   if (GET_RACE(ch) != RACE_HALF_TROLL)
     return 0;
 
-  if (!is_wearing(ch, 196062))
+  if (!is_wearing(ch, 2096062))
     return 0;
 
   skip_spaces(&argument);
@@ -867,7 +867,7 @@ SPECIAL(valkyrie_sword)
 
   struct char_data *vict = FIGHTING(ch);
 
-  if (!is_wearing(ch, 196056) || !vict || rand_number(0, 20))
+  if (!is_wearing(ch, 2096056) || !vict || rand_number(0, 20))
     return 0;
 
   weapons_spells("\tYStreaks of flames issue forth from $p\n\r"
@@ -955,7 +955,7 @@ SPECIAL(giantslayer)
     return 0;
 
   skip_spaces(&argument);
-  if (!is_wearing(ch, 196066))
+  if (!is_wearing(ch, 2096066))
     return 0;
   if (!strcmp(argument, "hamstring"))
   {

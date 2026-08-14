@@ -50,14 +50,14 @@ void check_dangersense(struct char_data *ch, room_rnum room);
  * hermetic while still booting the real shipped metadata.
  * -------------------------------------------------------------------------- */
 
-#define ARTINT_OBJ_COUNT 17
+#define ARTINT_OBJ_COUNT 18
 
 static const int artint_vnums[ARTINT_OBJ_COUNT] = {
-    ART_VNUM_TRORXEK,     ART_VNUM_AMAUKEKEL, ART_VNUM_FADE,    ART_VNUM_HENEKAR,
-    ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,  ART_VNUM_KELROM,  ART_VNUM_GESEN,
-    ART_VNUM_STINGER,     ART_VNUM_AVERNUS,   ART_VNUM_AEGIS,   ART_VNUM_VENGEANCE,
-    ART_VNUM_EARTHCRIER,  ART_VNUM_WYRMFANG,  ART_VNUM_COURAGE, ART_VNUM_ICEDGE,
-    ART_VNUM_TWILIGHT};
+    ART_VNUM_AEGIS,     ART_VNUM_VENGEANCE,        ART_VNUM_EARTHCRIER, ART_VNUM_WYRMFANG,
+    ART_VNUM_COURAGE,   ART_VNUM_ICEDGE,           ART_VNUM_TWILIGHT,   ART_VNUM_KELRARIN,
+    ART_VNUM_STINGER,   ART_VNUM_KELRARIN_VARIANT, ART_VNUM_FADE,       ART_VNUM_TRORXEK,
+    ART_VNUM_AMAUKEKEL, ART_VNUM_HENEKAR,          ART_VNUM_KELROM,     ART_VNUM_DOOMBRINGER,
+    ART_VNUM_GESEN,     ART_VNUM_AVERNUS};
 
 struct artint_fixture
 {
@@ -232,7 +232,7 @@ static int artint_begin(struct artint_fixture *fixture)
   fixture->rooms[0].sector_type = SECT_INSIDE;
   fixture->rooms[0].name = (char *)"Artifact integration origin";
   fixture->rooms[0].description = (char *)"A production-linked artifact test room.\r\n";
-  fixture->rooms[1].number = 169901;
+  fixture->rooms[1].number = 169999;
   fixture->rooms[1].zone = 0;
   fixture->rooms[1].sector_type = SECT_INSIDE;
   fixture->rooms[1].name = (char *)"Artifact integration annex";
@@ -556,6 +556,10 @@ static const struct artint_identity_case artint_identity_cases[ARTINT_OBJ_COUNT]
     {ART_VNUM_KELRARIN, "soulstrike", 15, ART_SIG_NONE, ART_VNUM_KELRARIN, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
      {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
+    {ART_VNUM_KELRARIN_VARIANT, "soulstrike", 15, ART_SIG_NONE,
+     ART_VNUM_KELRARIN_VARIANT, 0,
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_KELROM, NULL, 14, ART_SIG_NONE, ART_VNUM_KELROM, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
      {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
@@ -706,6 +710,7 @@ void Test_artifact_integration_every_artifact_has_an_explicit_identity_contract(
 {
   struct artint_fixture fixture;
   struct artifact_test_identity_data actual;
+  struct artifact_data *registered = NULL;
   const struct artint_identity_case *expected = NULL;
   const struct artint_passive_case *passive = NULL;
   char failure[256], field[64];
@@ -725,11 +730,13 @@ void Test_artifact_integration_every_artifact_has_an_explicit_identity_contract(
   for (i = 0; i < ARTINT_OBJ_COUNT && failure[0] == '\0'; i++)
   {
     expected = &artint_identity_cases[i];
+    registered = artifact_by_vnum(expected->vnum);
     memset(&actual, 0, sizeof(actual));
     artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, "fixture roster vnum",
-                                    expected->vnum, artint_vnums[i]);
+                                    TRUE, artint_rnum_of(expected->vnum) >= 0);
     artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum,
-                                    "registered roster vnum", expected->vnum, art_index[i].vnum);
+                                    "registered roster vnum", expected->vnum,
+                                    registered ? registered->vnum : -1);
 
     if (failure[0] == '\0' && !artifact_identity_for_test(expected->vnum, &actual))
       snprintf(failure, sizeof(failure), "artifact %d has no production identity", expected->vnum);
@@ -797,9 +804,11 @@ void Test_artifact_integration_every_artifact_has_an_explicit_identity_contract(
 
 void Test_artifact_integration_first_wave_legacy_passives_are_explicitly_rejected(CuTest *tc)
 {
-  static const int rejected_vnums[] = {ART_VNUM_TRORXEK, ART_VNUM_AMAUKEKEL,   ART_VNUM_FADE,
-                                       ART_VNUM_HENEKAR, ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,
-                                       ART_VNUM_KELROM,  ART_VNUM_STINGER,     ART_VNUM_AVERNUS};
+  static const int rejected_vnums[] = {
+      ART_VNUM_TRORXEK,          ART_VNUM_AMAUKEKEL,   ART_VNUM_FADE,
+      ART_VNUM_HENEKAR,          ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,
+      ART_VNUM_KELRARIN_VARIANT, ART_VNUM_KELROM,      ART_VNUM_STINGER,
+      ART_VNUM_AVERNUS};
   struct artifact_test_identity_data identity;
   struct artint_fixture fixture;
   char failure[256] = {'\0'};
@@ -1326,7 +1335,8 @@ void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
   struct artifact_data *art = NULL;
   struct char_data *actor = NULL;
   int i = 0, abilities = 0, listed = 0;
-  static const int ability_vnums[3] = {ART_VNUM_AMAUKEKEL, ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN};
+  static const int ability_vnums[] = {ART_VNUM_AMAUKEKEL, ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,
+                                      ART_VNUM_KELRARIN_VARIANT};
 
   if (!artint_begin(&fixture))
   {
@@ -1342,7 +1352,7 @@ void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
   actor = &fixture.actor;
 
   /* 'artifact abilities' lists exactly what the bearer is actually holding. */
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < (int)(sizeof(ability_vnums) / sizeof(ability_vnums[0])); i++)
   {
     art = artifact_by_vnum(ability_vnums[i]);
     CuAssertPtrNotNull(tc, art);
@@ -1370,8 +1380,8 @@ void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
 
   artint_end(&fixture);
 
-  CuAssertIntEquals(tc, 3, abilities);
-  CuAssertIntEquals(tc, 3, listed);
+  CuAssertIntEquals(tc, 4, abilities);
+  CuAssertIntEquals(tc, 4, listed);
 }
 
 /* An ability is invoked by typing its own name, so the template's

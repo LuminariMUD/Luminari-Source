@@ -176,9 +176,9 @@ def _identity_resolver(plan_dir: Path):
       (str(row["source_kind"]), int(row["source_vnum"])): row["destination_vnum"]
       for row in rows
   }
-  # The source room is reference-only in the active corpus; target 196003 is the
-  # confirmed zone-960 lineage room already present in the development world.
-  identities[("wld", 96003)] = 196003
+  # The source room is reference-only in the active corpus; canonical 2096003
+  # resolves the external edge without a legacy identity alias.
+  identities[("wld", 96003)] = 2096003
 
   def resolve(kind: str, vnum: int) -> int:
     try:
@@ -940,7 +940,7 @@ def write_pilot_build_bundle(
       dict(mobile_patches_by_file),
       shop_append_text,
   )
-  selected_zones = {1591, 20261, 20409, 20553, 20586}
+  selected_zones = {20591, 20261, 20409, 20553, 20586}
   target_validation = validate_indexed_world(
       target_world,
       repo_root,
@@ -961,7 +961,7 @@ def write_pilot_build_bundle(
   validation_data["root"] = "phase4-pilot-stage"
   validation_data["command"] = (
       "python3 scripts/world/wtool.py --world-root <phase4-pilot-stage> "
-      "--json validate --zone 1591 20261 20409 20553 20586"
+      "--json validate --zone 20591 20261 20409 20553 20586"
   )
   staged_model = load_indexed_world_data(
       staging_world,

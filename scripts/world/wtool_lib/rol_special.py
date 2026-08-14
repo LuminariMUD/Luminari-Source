@@ -695,26 +695,26 @@ MINIMAL_DEPENDENCY_EXCLUSIONS = {
 
 # These source object callbacks are already represented by the target artifact
 # subsystem. Their source identities resolve to these canonical target objects,
-# so conversion neither emits a duplicate prototype nor persists a second proc.
+# so conversion shares runtime code without collapsing distinct prototypes.
 RECONCILED_OBJECT_RUNTIME_HANDLERS = {
-    "OakenDefender": (169901, "modern artifact subsystem: Trorxek"),
-    "Amaukekel": (169902, "modern artifact subsystem: Amaukekel"),
-    "Fade2": (169903, "modern artifact subsystem: Fade"),
-    "HornOfHenekar": (169904, "modern artifact subsystem: Horn of Henekar"),
-    "Doombringer": (169905, "modern artifact subsystem: Doombringer"),
-    "Kelrarin": (169906, "modern artifact subsystem: Kelrarin's Hammer"),
-    "Kelrom": (169907, "modern artifact subsystem: Kelrom"),
-    "Gesen": (169908, "modern artifact subsystem: Gesen"),
-    "tiamat_stinger": (169909, "modern artifact subsystem: Tiamat's Stinger"),
-    "New_Avernus": (169910, "modern artifact subsystem: Avernus"),
-    "jotun_adamantiumMaceMistweave": (196012, "hardwired target callback: mistweave"),
-    "jotun_flamingSwordValkyrie": (196056, "hardwired target callback: valkyrie_sword"),
-    "jotun_cloakIcicles": (196059, "hardwired target callback: ymir_cloak"),
-    "jotun_clawsDestroyer": (196062, "hardwired target callback: vaprak_claws"),
-    "jotun_doubleAxeGiantbane": (196066, "hardwired target callback: giantslayer"),
-    "jotun_holySwordFaith": (196073, "hardwired target callback: planetar_sword"),
-    "jotun_twilight": (196081, "hardwired target callback: twilight"),
-    "jotun_skullSmasher": (196087, "hardwired target callback: skullsmasher"),
+    "OakenDefender": ((2001043,), "modern artifact subsystem: Trorxek"),
+    "Amaukekel": ((2001044,), "modern artifact subsystem: Amaukekel"),
+    "Fade2": ((2001042,), "modern artifact subsystem: Fade"),
+    "HornOfHenekar": ((2001046,), "modern artifact subsystem: Horn of Henekar"),
+    "Doombringer": ((2001050,), "modern artifact subsystem: Doombringer"),
+    "Kelrarin": ((2001007, 2001009), "modern artifact subsystem: Kelrarin's Hammer"),
+    "Kelrom": ((2001048,), "modern artifact subsystem: Kelrom"),
+    "Gesen": ((2005343,), "modern artifact subsystem: Gesen"),
+    "tiamat_stinger": ((2001008,), "modern artifact subsystem: Tiamat's Stinger"),
+    "New_Avernus": ((2019730,), "modern artifact subsystem: Avernus"),
+    "jotun_adamantiumMaceMistweave": ((2096012,), "hardwired target callback: mistweave"),
+    "jotun_flamingSwordValkyrie": ((2096056,), "hardwired target callback: valkyrie_sword"),
+    "jotun_cloakIcicles": ((2096059,), "hardwired target callback: ymir_cloak"),
+    "jotun_clawsDestroyer": ((2096062,), "hardwired target callback: vaprak_claws"),
+    "jotun_doubleAxeGiantbane": ((2096066,), "hardwired target callback: giantslayer"),
+    "jotun_holySwordFaith": ((2096073,), "hardwired target callback: planetar_sword"),
+    "jotun_twilight": ((2096081,), "hardwired target callback: twilight"),
+    "jotun_skullSmasher": ((2096087,), "hardwired target callback: skullsmasher"),
 }
 
 # These source assignments are represented by owner-independent target services.
@@ -1695,11 +1695,11 @@ def compile_special_bindings(
     elif handler in RECONCILED_OBJECT_RUNTIME_HANDLERS:
       if record_type != "object":
         raise ValueError(f"reconciled object handler {handler!r} owns {record_type!r}")
-      expected_vnum, target = RECONCILED_OBJECT_RUNTIME_HANDLERS[handler]
-      if target_vnum != expected_vnum:
+      expected_vnums, target = RECONCILED_OBJECT_RUNTIME_HANDLERS[handler]
+      if target_vnum not in expected_vnums:
         raise ValueError(
             f"reconciled object handler {handler!r} resolved to {target_vnum}, "
-            f"expected {expected_vnum}"
+            f"expected one of {expected_vnums}"
         )
       disposition = _disposition(row, "NATIVE_RECONCILED", target_vnum)
       disposition["target"] = target

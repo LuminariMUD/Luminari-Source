@@ -37,6 +37,16 @@ from .rol_baseline import (
     reconcile_source_aggregates,
 )
 from .rol_inventory import SOURCE_KINDS, build_rol_inventory
+from .rol_identity import (
+    RolIdentityError,
+    canonical_destination,
+    canonical_reference_vnum,
+    legacy_lineage_vnum,
+)
+from .rol_persistence import (
+    PERSISTENT_BINDING_SCHEMA_VERSION,
+    persistent_binding_spec,
+)
 from .rol_source import (
     RolRecord,
     RolReference,
@@ -193,10 +203,6 @@ def _source_identity(record: RolRecord, host_identities: dict[int, str]) -> str 
   return normalize_identity(record.identity) if record.identity else None
 
 
-def _legacy_formula(kind: str, vnum: int) -> int:
-  return vnum + (1000 if kind == "zon" else 100000)
-
-
 def _target_hash(record: WorldRecord) -> str:
   data = record_to_dict(record)
   data.pop("span", None)
@@ -249,7 +255,8 @@ def _candidate_record(
     selected_evidence.add("documented_traced_seed")
   score = (
       (70 if "exact_normalized_identity" in selected_evidence else 0)
-      + (20 if "legacy_offset_formula" in selected_evidence else 0)
+      + (90 if "canonical_formula" in selected_evidence else 0)
+      + (20 if "legacy_lineage_formula" in selected_evidence else 0)
       + (10 if "same_vnum" in selected_evidence else 0)
       + (100 if seeded else 0)
   )
@@ -270,6 +277,7 @@ def lineage_candidates(
     record: RolRecord,
     catalog: dict[str, Any],
     host_identities: dict[int, str],
+    policy: dict[str, Any],
 ) -> dict[str, Any]:
   """Generate non-destructive target candidates for one source record."""
 
@@ -285,14 +293,17 @@ def lineage_candidates(
 
   for candidate in catalog["by_key"].get((target_type, record.vnum), []):
     add(candidate, "same_vnum")
-  formula_vnum = _legacy_formula(record.kind, record.vnum)
-  for candidate in catalog["by_key"].get((target_type, formula_vnum), []):
-    add(candidate, "legacy_offset_formula")
-  if record.kind == "shp":
-    for candidate in catalog["by_key"].get(("shop", formula_vnum), []):
-      add(candidate, "keeper_legacy_offset_formula")
-    for candidate in catalog["by_key"].get(("shop", record.vnum), []):
-      add(candidate, "keeper_same_vnum")
+  if record.kind in _DEFINITION_TYPE or record.kind == "zon":
+    canonical_vnum = canonical_destination(
+        record.kind, record.vnum, record.basename, policy
+    )
+  else:
+    canonical_vnum = canonical_reference_vnum(target_type, record.vnum)
+  for candidate in catalog["by_key"].get((target_type, canonical_vnum), []):
+    add(candidate, "canonical_formula")
+  lineage_vnum = legacy_lineage_vnum(target_type, record.vnum)
+  for candidate in catalog["by_key"].get((target_type, lineage_vnum), []):
+    add(candidate, "legacy_lineage_formula")
   if identity:
     for candidate in catalog["by_identity"].get((target_type, identity), []):
       add(candidate, "exact_normalized_identity")
@@ -861,11 +872,13 @@ def build_binding_candidates(
     key = (binding["record_type"], binding["vnum"])
     if key not in active:
       continue
-    formula_vnum = _target_formula_vnum(*key)
+    canonical_vnum = canonical_reference_vnum(*key)
+    lineage_vnum = legacy_lineage_vnum(*key)
     matches: list[dict[str, Any]] = []
     for target_vnum, formula_evidence in (
         (binding["vnum"], "same_vnum"),
-        (formula_vnum, "legacy_offset_formula"),
+        (canonical_vnum, "canonical_formula"),
+        (lineage_vnum, "legacy_lineage_formula"),
     ):
       for candidate in target_by_key.get((binding["record_type"], target_vnum), []):
         evidence = [formula_evidence]
@@ -910,55 +923,107 @@ def build_persistent_binding_inventory(database_config: Path | None) -> dict[str
   config = _parse_mysql_config(database_config)
   query = (
       "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM information_schema.COLUMNS "
-      "WHERE TABLE_SCHEMA = DATABASE() AND COLUMN_NAME LIKE '%vnum%' "
-      "ORDER BY TABLE_NAME, ORDINAL_POSITION"
+      "WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME, ORDINAL_POSITION"
   )
   columns: list[dict[str, Any]] = []
   for line in _run_mysql(config, query).splitlines():
     fields = line.split("\t")
-    if len(fields) != 3 or fields[2].lower() not in _NUMERIC_TYPES:
+    if len(fields) != 3:
       continue
     table, column, data_type = fields
     if re.fullmatch(r"[A-Za-z0-9_$]+", table) is None or re.fullmatch(
         r"[A-Za-z0-9_$]+", column
     ) is None:
       continue
-    lowered = column.lower()
-    if "zone" in lowered:
-      record_type = "zone"
-    elif "room" in lowered:
-      record_type = "room"
-    elif "mob" in lowered or "mobile" in lowered:
-      record_type = "mobile"
-    elif "obj" in lowered or "object" in lowered:
-      record_type = "object"
-    elif "quest" in lowered:
-      record_type = "quest"
+    lowered_type = data_type.lower()
+    semantic = persistent_binding_spec(table, column)
+    if semantic is None and (
+        "vnum" not in column.lower() or lowered_type not in _NUMERIC_TYPES
+    ):
+      continue
+
+    row: dict[str, Any] = {
+        "table": table,
+        "column": column,
+        "data_type": lowered_type,
+        "discovered": True,
+    }
+    if semantic is not None:
+      row.update(semantic)
+      row["classification_status"] = "traced"
     else:
-      record_type = "unclassified"
-    values_query = (
-        f"SELECT DISTINCT `{column}` FROM `{table}` "
-        f"WHERE `{column}` IS NOT NULL ORDER BY `{column}`"
-    )
-    values = [int(value) for value in _run_mysql(config, values_query).splitlines()]
-    columns.append(
-        {
-            "table": table,
-            "column": column,
-            "data_type": data_type.lower(),
-            "record_type": record_type,
-            "distinct_values": len(values),
-            "values": values,
-            "values_sha256": _sha256_bytes(
-                ("\n".join(str(value) for value in values) + "\n").encode("ascii")
-            ),
-        }
-    )
+      row.update(
+          {
+              "record_type": "unclassified",
+              "encoding": "integer",
+              "migration_required": False,
+              "predicate": None,
+              "consumer": "untraced numeric VNUM column",
+              "evidence": "requires explicit runtime trace before migration",
+              "disposition": "unclassified",
+              "classification_status": "unclassified",
+          }
+      )
+
+    encoding = str(row["encoding"])
+    predicate = str(row["predicate"]) if row.get("predicate") else None
+    if encoding == "integer" and lowered_type in _NUMERIC_TYPES:
+      where = f"`{column}` IS NOT NULL"
+      if predicate:
+        where += f" AND ({predicate})"
+      values_query = (
+          f"SELECT DISTINCT `{column}` FROM `{table}` "
+          f"WHERE {where} ORDER BY `{column}`"
+      )
+      values = [int(value) for value in _run_mysql(config, values_query).splitlines()]
+      row.update(
+          {
+              "distinct_values": len(values),
+              "values": values,
+              "values_sha256": _sha256_bytes(
+                  ("\n".join(str(value) for value in values) + "\n").encode("ascii")
+              ),
+          }
+      )
+    elif encoding == "integer_text":
+      values_query = (
+          f"SELECT DISTINCT CAST(`{column}` AS SIGNED) FROM `{table}` "
+          f"WHERE `{column}` REGEXP '^[0-9]+$' ORDER BY CAST(`{column}` AS SIGNED)"
+      )
+      values = [int(value) for value in _run_mysql(config, values_query).splitlines()]
+      row.update(
+          {
+              "distinct_values": len(values),
+              "values": values,
+              "values_sha256": _sha256_bytes(
+                  ("\n".join(str(value) for value in values) + "\n").encode("ascii")
+              ),
+          }
+      )
+    else:
+      row_count = int(_run_mysql(config, f"SELECT COUNT(*) FROM `{table}`").strip())
+      row.update(
+          {
+              "row_count": row_count,
+              "values_withheld": True,
+              "values_sha256": None,
+          }
+      )
+    columns.append(row)
   identity = f"{config['mysql_host']}/{config['mysql_database']}".encode("utf-8")
   return {
       "captured": True,
+      "binding_schema_version": PERSISTENT_BINDING_SCHEMA_VERSION,
       "database_identity_sha256": _sha256_bytes(identity),
-      "numeric_vnum_columns": len(columns),
+      "semantic_columns": len(columns),
+      "numeric_vnum_columns": sum(
+          "vnum" in str(row["column"]).lower()
+          and str(row["data_type"]) in _NUMERIC_TYPES
+          for row in columns
+      ),
+      "unclassified_columns": sum(
+          row["classification_status"] == "unclassified" for row in columns
+      ),
       "columns": columns,
   }
 
@@ -977,10 +1042,6 @@ def _inactive_definitions(
       if match is not None and int(match.group(1)) != 999999:
         definitions.add((_DEFINITION_TYPE[kind], int(match.group(1))))
   return definitions
-
-
-def _target_formula_vnum(target_type: str, vnum: int) -> int:
-  return vnum + (1000 if target_type == "zone" else 100000)
 
 
 def resolve_reference(
@@ -1006,8 +1067,14 @@ def resolve_reference(
     return "excluded_source", "exclude_dependent_instruction"
   if key in target:
     return "target_exact", "reconcile_existing_target"
-  formula = (reference.target_type, _target_formula_vnum(*key))
-  if formula in target:
+  try:
+    canonical = (reference.target_type, canonical_reference_vnum(*key))
+  except RolIdentityError:
+    return "unresolved", "exclude_dependent_instruction"
+  if canonical in target:
+    return "target_canonical", "reconcile_canonical_target"
+  lineage = (reference.target_type, legacy_lineage_vnum(*key))
+  if lineage in target:
     return "target_lineage_candidate", "resolve_lineage_before_emission"
   return "unresolved", "exclude_dependent_instruction"
 
@@ -1314,7 +1381,7 @@ def write_discovery_bundle(
 
   candidates_path = output_dir / "lineage-candidates.jsonl"
   candidate_rows = (
-      lineage_candidates(record, catalog, host_identities)
+      lineage_candidates(record, catalog, host_identities, policy)
       for record in sorted(
           corpus.records,
           key=lambda item: (item.kind, item.vnum, item.path, item.line),

@@ -247,7 +247,7 @@ def load_rol_policy(repo_root: Path) -> dict[str, Any]:
     policy = json.loads(path.read_text(encoding="ascii"))
   except (OSError, UnicodeError, json.JSONDecodeError) as error:
     raise RolBaselineError(f"cannot load versioned RoL conversion policy: {error}") from error
-  if policy.get("policy_version") != "rol-conversion-policy-2":
+  if policy.get("policy_version") != "rol-conversion-policy-3-canonical-vnum":
     raise RolBaselineError("unsupported RoL conversion policy version")
   return policy
 
@@ -305,13 +305,21 @@ def _parse_mysql_config(path: Path) -> dict[str, str]:
 def _run_mysql(config: dict[str, str], query: str) -> str:
   environment = dict(os.environ)
   environment["MYSQL_PWD"] = config["mysql_password"]
+  connection_arguments = ["--host", config["mysql_host"]]
+  if config.get("mysql_socket"):
+    connection_arguments = [
+        "--protocol=socket",
+        "--socket",
+        config["mysql_socket"],
+    ]
+  elif config.get("mysql_port"):
+    connection_arguments.extend(["--port", config["mysql_port"]])
   completed = subprocess.run(
       [
           "mysql",
           "--batch",
           "--skip-column-names",
-          "--host",
-          config["mysql_host"],
+          *connection_arguments,
           "--user",
           config["mysql_username"],
           config["mysql_database"],

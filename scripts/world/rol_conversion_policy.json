@@ -40,7 +40,11 @@
     "serialization": "canonical_sorted_json"
   },
   "identity": {
-    "confirmed_target_equivalents": [
+    "canonical_formula": {
+      "entity_offset": 2000000,
+      "zone_offset": 20000
+    },
+    "historic_target_lineage": [
       {
         "evidence": [
           "target artifact subsystem explicitly ports and modernizes the RoL Trorxek contract"
@@ -48,7 +52,7 @@
         "source_kind": "obj",
         "source_vnum": 1043,
         "target_type": "object",
-        "target_vnum": 169901
+        "historic_target_vnum": 169901
       },
       {
         "evidence": [
@@ -57,7 +61,7 @@
         "source_kind": "obj",
         "source_vnum": 1044,
         "target_type": "object",
-        "target_vnum": 169902
+        "historic_target_vnum": 169902
       },
       {
         "evidence": [
@@ -66,7 +70,7 @@
         "source_kind": "obj",
         "source_vnum": 1042,
         "target_type": "object",
-        "target_vnum": 169903
+        "historic_target_vnum": 169903
       },
       {
         "evidence": [
@@ -75,7 +79,7 @@
         "source_kind": "obj",
         "source_vnum": 1046,
         "target_type": "object",
-        "target_vnum": 169904
+        "historic_target_vnum": 169904
       },
       {
         "evidence": [
@@ -84,7 +88,7 @@
         "source_kind": "obj",
         "source_vnum": 1050,
         "target_type": "object",
-        "target_vnum": 169905
+        "historic_target_vnum": 169905
       },
       {
         "evidence": [
@@ -93,7 +97,7 @@
         "source_kind": "obj",
         "source_vnum": 1007,
         "target_type": "object",
-        "target_vnum": 169906
+        "historic_target_vnum": 169906
       },
       {
         "evidence": [
@@ -102,7 +106,7 @@
         "source_kind": "obj",
         "source_vnum": 1009,
         "target_type": "object",
-        "target_vnum": 169906
+        "historic_target_vnum": 169906
       },
       {
         "evidence": [
@@ -111,7 +115,7 @@
         "source_kind": "obj",
         "source_vnum": 1048,
         "target_type": "object",
-        "target_vnum": 169907
+        "historic_target_vnum": 169907
       },
       {
         "evidence": [
@@ -120,7 +124,7 @@
         "source_kind": "obj",
         "source_vnum": 5343,
         "target_type": "object",
-        "target_vnum": 169908
+        "historic_target_vnum": 169908
       },
       {
         "evidence": [
@@ -129,7 +133,7 @@
         "source_kind": "obj",
         "source_vnum": 1008,
         "target_type": "object",
-        "target_vnum": 169909
+        "historic_target_vnum": 169909
       },
       {
         "evidence": [
@@ -138,7 +142,25 @@
         "source_kind": "obj",
         "source_vnum": 19730,
         "target_type": "object",
-        "target_vnum": 169910
+        "historic_target_vnum": 169910
+      }
+    ],
+    "normalizations": [
+      {
+        "evidence": [
+          "areas/AREA membership places mytheast in logical zones 817-818",
+          "mytheast.zon top is 81899",
+          "active contained records and typed references use 81700-81899"
+        ],
+        "logical_source_zone": 817,
+        "logical_source_zones": [
+          817,
+          818
+        ],
+        "source_basename": "mytheast",
+        "source_header_vnum": 81700,
+        "source_top_vnum": 81899,
+        "target_zone_vnum": 20817
       }
     ],
     "new_entity_range": {
@@ -152,13 +174,13 @@
       "start": 20000
     },
     "resolution_order": [
-      "confirmed_target_lineage",
-      "deterministic_merge_or_exception",
-      "reserved_new_allocation",
+      "evidence_backed_zone_normalization",
+      "canonical_formula",
+      "same_typed_source_identity_merge",
       "smallest_unit_exclusion"
     ]
   },
-  "policy_version": "rol-conversion-policy-2",
+  "policy_version": "rol-conversion-policy-3-canonical-vnum",
   "quest": {
     "approval_marker": "!",
     "builder_approval_required": false
