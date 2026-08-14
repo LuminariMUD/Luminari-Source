@@ -27,16 +27,21 @@
 /** All Functions handled by the event system must be of this format. */
 #define EVENTFUNC(name) long(name)(void *event_obj __attribute__((unused)))
 
+struct event;
+
+/** Optional cleanup invoked when a queued event is canceled or freed in bulk. */
+typedef void (*event_cleanup_func)(struct event *event);
+
 /** The event structure. Events get attached to the queue and are executed
  * when their turn comes up in the queue. */
 struct event
 {
-  EVENTFUNC(*func);               /**< The function called when this event comes up. */
-  void *event_obj;                /**< event_obj is passed to func when func is called */
-  struct q_element *q_el;         /**< Where this event is located in the queue */
-  void (*cancel_cleanup)(void *); /**< Optional cancellation/shutdown cleanup */
-  bool isMudEvent;                /**< used by the memory routines */
-  int profile_index;              /**< PERFMON event callback aggregate slot */
+  EVENTFUNC(*func);           /**< The function called when this event comes up. */
+  void *event_obj;            /**< event_obj is passed to func when func is called */
+  struct q_element *q_el;     /**< Where this event is located in the queue */
+  bool isMudEvent;            /**< used by the memory routines */
+  event_cleanup_func cleanup; /**< Optional cancellation and bulk cleanup hook. */
+  int profile_index;          /**< PERFMON event callback aggregate slot */
 };
 /**************************************************************************
  * End event structures and defines.
@@ -96,8 +101,11 @@ struct q_element
 void event_init(void);
 struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
                                  const char *profile_name);
+struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
+                                              const char *profile_name, event_cleanup_func cleanup);
 #define event_create(func, event_obj, when) event_create_named((func), (event_obj), (when), #func)
-void event_set_cancel_cleanup(struct event *event, void (*cleanup)(void *));
+#define event_create_with_cleanup(func, event_obj, when, cleanup)                                  \
+  event_create_named_with_cleanup((func), (event_obj), (when), #func, (cleanup))
 void event_cancel(struct event *event);
 void event_process(void);
 long event_time(struct event *event);

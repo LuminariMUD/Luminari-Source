@@ -65,6 +65,15 @@ void event_init(void)
   event_q = queue_init();
 }
 
+/** Creates a named event with no custom cancellation cleanup.
+ * @see event_create_named_with_cleanup
+ */
+struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
+                                 const char *profile_name)
+{
+  return event_create_named_with_cleanup(func, event_obj, when, profile_name, NULL);
+}
+
 /** Creates a new event 'object' that is then enqueued to the global event_q.
  * @post If the newly created event is valid, it is always added to event_q.
  * @param func The function to be called when this event fires. This function
@@ -75,10 +84,12 @@ void event_init(void)
  * pass in NULL.
  * @param when Number of pulses between firing(s) of this event.
  * @param profile_name Stable callback identity used by PERFMON reports.
+ * @param cleanup Optional callback used when a queued event is canceled or
+ * freed in bulk. The event function remains responsible for normal completion.
  * @retval event * Returns a pointer to the newly created event, or NULL on error.
  * */
-struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
-                                 const char *profile_name)
+struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
+                                              const char *profile_name, event_cleanup_func cleanup)
 {
   struct event *new_event = NULL;
   long target_time;
@@ -139,8 +150,8 @@ struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
   new_event->func = func;
   new_event->event_obj = event_obj;
   new_event->q_el = queue_enq(event_q, new_event, target_time);
-  new_event->cancel_cleanup = NULL;
   new_event->isMudEvent = FALSE;
+  new_event->cleanup = cleanup;
   new_event->profile_index = PERF_register_event_callback(profile_name);
 
   /* Increment our event counter for resource tracking */
@@ -149,15 +160,6 @@ struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
     events_created_during_process++;
 
   return new_event;
-}
-
-/** Set specialized cleanup for cancellation and global queue shutdown.
- * Normal callback completion remains owned by the callback itself.
- */
-void event_set_cancel_cleanup(struct event *event, void (*cleanup)(void *))
-{
-  if (event != NULL)
-    event->cancel_cleanup = cleanup;
 }
 
 /** Removes an event from event_q and frees the event.
@@ -236,9 +238,10 @@ void event_cancel(struct event *event)
  *
  * IMPORTANT FOR BEGINNERS:
  * This function cleans up the data associated with an event when the event
- * is being removed from the system. There are two types of events:
+ * is being removed from the system. There are three types of events:
  * 1. Mud Events: Complex events with structured data (freed via free_mud_event)
- * 2. Simple Events: Basic events with malloc'd data (freed via free)
+ * 2. Custom Events: Events with a cleanup hook for owner detachment
+ * 3. Simple Events: Basic events with malloc'd data (freed via free)
  *
  * CRITICAL DESIGN NOTE:
  * For non-mud events, we assume event_obj was dynamically allocated (malloc'd).
@@ -255,7 +258,11 @@ void cleanup_event_obj(struct event *event)
   if (!event || !event->event_obj)
     return;
 
-  if (event->isMudEvent)
+  if (event->cleanup)
+  {
+    event->cleanup(event);
+  }
+  else if (event->isMudEvent)
   {
     /* Mud events have their own cleanup function that knows
      * how to properly free all the complex data structures */
@@ -264,11 +271,10 @@ void cleanup_event_obj(struct event *event)
   }
   else
   {
-    if (event->cancel_cleanup != NULL)
-      event->cancel_cleanup(event->event_obj);
-    else
-      free(event->event_obj);
+    free(event->event_obj);
   }
+
+  event->event_obj = NULL;
 }
 
 /** Process any events whose time has come. Should be called from, and at, every
@@ -333,8 +339,8 @@ void event_process(void)
     {
       log("SYSERR: Event with NULL function pointer detected in event_process!");
       /* Clean up the broken event */
-      if (the_event->isMudEvent && the_event->event_obj != NULL)
-        free_mud_event((struct mud_event_data *)the_event->event_obj);
+      if (the_event->event_obj != NULL)
+        cleanup_event_obj(the_event);
       free(the_event);
 
       /* Decrement event counter since we freed a broken event */

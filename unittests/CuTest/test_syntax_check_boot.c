@@ -25,15 +25,36 @@ static EVENTFUNC(test_profiled_event_callback)
 
 static int test_event_cancel_cleanup_calls;
 
-static void test_event_cancel_cleanup(void *event_obj)
+static void test_event_cancel_cleanup(struct event *event)
 {
   test_event_cancel_cleanup_calls++;
-  free(event_obj);
+  free(event->event_obj);
 }
 
 #define SYNTAX_CHECK_OUTPUT_SIZE (1024 * 1024)
 #define SYNTAX_CHECK_DEFAULT_TIMEOUT_SECONDS 60U
 #define SYNTAX_CHECK_MAX_TIMEOUT_SECONDS 600UL
+
+struct event_cleanup_test_data
+{
+  struct event **owner;
+  int *cleanup_calls;
+};
+
+static EVENTFUNC(event_cleanup_test_callback)
+{
+  return 0;
+}
+
+static void event_cleanup_test_destructor(struct event *event)
+{
+  struct event_cleanup_test_data *data;
+
+  data = (struct event_cleanup_test_data *)event->event_obj;
+  *data->owner = NULL;
+  (*data->cleanup_calls)++;
+  free(data);
+}
 
 static const char *syntax_check_test_root(void)
 {
@@ -126,9 +147,9 @@ void Test_event_free_all_runs_specialized_cancel_cleanup(CuTest *tc)
   event_obj = malloc(sizeof(*event_obj));
   CuAssertPtrNotNull(tc, event_obj);
   *event_obj = 1;
-  test_event = event_create(test_profiled_event_callback, event_obj, 10);
+  test_event = event_create_with_cleanup(test_profiled_event_callback, event_obj, 10,
+                                         test_event_cancel_cleanup);
   CuAssertPtrNotNull(tc, test_event);
-  event_set_cancel_cleanup(test_event, test_event_cancel_cleanup);
   test_event_cancel_cleanup_calls = 0;
 
   event_free_all();
@@ -150,6 +171,31 @@ void Test_global_event_cleanup_detaches_live_object_owner(CuTest *tc)
   event_free_all();
 
   CuAssertPtrEquals(tc, NULL, obj.events);
+}
+
+void Test_global_event_cleanup_invokes_custom_destructor(CuTest *tc)
+{
+  struct event_cleanup_test_data *data;
+  struct event *owner;
+  int cleanup_calls;
+
+  owner = NULL;
+  cleanup_calls = 0;
+  event_free_all();
+  event_init();
+
+  data = malloc(sizeof(*data));
+  CuAssertPtrNotNull(tc, data);
+  data->owner = &owner;
+  data->cleanup_calls = &cleanup_calls;
+  owner = event_create_with_cleanup(event_cleanup_test_callback, data, 100,
+                                    event_cleanup_test_destructor);
+  CuAssertPtrNotNull(tc, owner);
+
+  event_free_all();
+
+  CuAssertPtrEquals(tc, NULL, owner);
+  CuAssertIntEquals(tc, 1, cleanup_calls);
 }
 
 void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)

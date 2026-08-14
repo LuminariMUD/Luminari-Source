@@ -940,6 +940,8 @@ void destroy_db(void)
   event_free_all();
 
   /* Active Mobiles & Players */
+  vessel_navigation_shutdown();
+
   /* First pass: Clear all follower relationships without messages */
   for (chtmp = character_list; chtmp; chtmp = chtmp->next)
   {

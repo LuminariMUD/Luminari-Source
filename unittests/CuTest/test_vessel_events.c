@@ -7,6 +7,8 @@
 #include "../../src/interpreter.h"
 #include "../../src/vessels/vessels.h"
 
+extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
+
 void Test_vessel_event_type_parser_accepts_public_names(CuTest *tc)
 {
   CuAssertIntEquals(tc, VESSEL_EVENT_REGATTA, vessel_event_type_from_name("regatta"));
@@ -58,4 +60,29 @@ void Test_autopilot_cleanup_releases_assigned_route(CuTest *tc)
 
   autopilot_cleanup(&ship);
   CuAssertPtrEquals(tc, NULL, ship.autopilot);
+}
+
+void Test_vessel_navigation_shutdown_releases_global_navigation_state(CuTest *tc)
+{
+  struct greyhawk_ship_data *ship;
+  struct ship_route *route;
+
+  ship = &greyhawk_ships[GREYHAWK_MAXSHIPS - 1];
+  memset(ship, 0, sizeof(*ship));
+  CuAssertPtrNotNull(tc, autopilot_init(ship));
+
+  route = route_create("shutdown lifecycle route");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertTrue(tc, autopilot_start(ship, route));
+  ship->schedule = calloc(1, sizeof(*ship->schedule));
+  CuAssertPtrNotNull(tc, ship->schedule);
+
+  vessel_navigation_shutdown();
+
+  CuAssertPtrEquals(tc, NULL, ship->autopilot);
+  CuAssertPtrEquals(tc, NULL, ship->schedule);
+  CuAssertPtrEquals(tc, NULL, route_list);
+  CuAssertPtrEquals(tc, NULL, waypoint_list);
+
+  vessel_navigation_shutdown();
 }
