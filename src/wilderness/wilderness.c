@@ -47,6 +47,9 @@ struct kdtree *kd_wilderness_rooms = NULL;
 
 int wild_waterline = 128;
 
+static char wilderness_name[] = "The Wilderness of Luminari";
+static char wilderness_desc[] = "The wilderness extends in all directions.";
+
 #define WILDERNESS_MAP_BUFFER_SIZE 65536
 
 /* \t= changes a color to be BACKGROUND. */
@@ -863,6 +866,20 @@ room_rnum find_available_wilderness_room()
  * This pattern prevents both memory leaks and double-free crashes.
  * Future modifications must maintain these safety checks.
  */
+void free_wilderness_room_strings(struct room_data *room)
+{
+  if (room == NULL)
+    return;
+
+  if (room->name != NULL && room->name != wilderness_name)
+    free(room->name);
+  if (room->description != NULL && room->description != wilderness_desc)
+    free(room->description);
+
+  room->name = NULL;
+  room->description = NULL;
+}
+
 void assign_wilderness_room(room_rnum room, int x, int y)
 {
   /* Set defaults */
@@ -876,9 +893,6 @@ void assign_wilderness_room(room_rnum room, int x, int y)
    * CRITICAL: Always check against these pointers before calling free()
    * to prevent crashes from attempting to free static memory.
    */
-  static char wilderness_name[] = "The Wilderness of Luminari";
-  static char wilderness_desc[] = "The wilderness extends in all directions.";
-
   struct region_list *regions = NULL;
   struct region_list *curr_region = NULL;
   struct path_list *paths = NULL;
@@ -903,10 +917,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
    * Only free if the pointer exists AND is not pointing to our static strings.
    * This prevents double-free errors and crashes from freeing static memory.
    */
-  if (world[room].name && world[room].name != wilderness_name)
-    free(world[room].name);
-  if (world[room].description && world[room].description != wilderness_desc)
-    free(world[room].description);
+  free_wilderness_room_strings(&world[room]);
 
   /* MEMORY MANAGEMENT: Assign default static strings.
    * These pointers now point to static memory, not dynamic allocations.

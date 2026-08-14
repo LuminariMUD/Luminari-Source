@@ -65,6 +65,7 @@ static int Crash_load_objs(struct char_data *ch);
 static int handle_obj(struct obj_data *obj, struct char_data *ch, int locate,
                       struct obj_data **cont_rows);
 static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, struct char_data *ch);
+static bool objsave_replace_special_ability(struct obj_data *obj, const char *line);
 static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct char_data *owner,
                           long int pet_idnum, int location);
 int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch,
@@ -76,6 +77,38 @@ int objsave_save_obj_record_db_sheath(struct obj_data *obj, struct char_data *ch
 void load_sheath_contents(struct char_data *ch, struct obj_data *sheath, long int idnum);
 obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum, int sheath_slot,
                                                struct obj_data *sheath);
+
+static bool objsave_replace_special_ability(struct obj_data *obj, const char *line)
+{
+  struct obj_special_ability *ability;
+  int values[7];
+  char command[128];
+
+  if (obj == NULL || line == NULL ||
+      sscanf(line, "%d %d %d %d %d %d %d %127s", &values[0], &values[1], &values[2], &values[3],
+             &values[4], &values[5], &values[6], command) != 8)
+  {
+    log("SYSERR: Invalid SpAb record in object save data: %s", line ? line : "(null)");
+    return false;
+  }
+
+  free_obj_special_abilities(obj->special_abilities);
+  obj->special_abilities = NULL;
+
+  CREATE(ability, struct obj_special_ability, 1);
+  ability->ability = values[0];
+  ability->level = values[1];
+  ability->activation_method = values[2];
+  ability->value[0] = values[3];
+  ability->value[1] = values[4];
+  ability->value[2] = values[5];
+  ability->value[3] = values[6];
+  ability->command_word = strdup(command);
+  ability->next = NULL;
+  obj->special_abilities = ability;
+
+  return true;
+}
 
 
 int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp, int locate)
@@ -2187,21 +2220,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       }
       else if (!strcmp(tag, "SpAb"))
       {
-        if (sscanf(line, "%d %d %d %d %d %d %d %127s", &t[0], &t[1], &t[2], &t[3], &t[4], &t[5],
-                   &t[6], f1) != 8)
-        {
-          log("SYSERR: Invalid SpAb record in object save file: %s", line);
-          break;
-        }
-        CREATE(temp->special_abilities, struct obj_special_ability, 1);
-        temp->special_abilities->ability = t[0];
-        temp->special_abilities->level = t[1];
-        temp->special_abilities->activation_method = t[2];
-        temp->special_abilities->value[0] = t[3];
-        temp->special_abilities->value[1] = t[4];
-        temp->special_abilities->value[2] = t[5];
-        temp->special_abilities->value[3] = t[6];
-        temp->special_abilities->command_word = strdup(f1);
+        objsave_replace_special_ability(temp, line);
       }
       break;
     case 'T':
@@ -2695,17 +2714,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         }
         else if (!strcmp(tag, "SpAb"))
         {
-          sscanf(*line, "%d %d %d %d %d %d %d %s", &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6],
-                 f1);
-          CREATE(temp->special_abilities, struct obj_special_ability, 1);
-          temp->special_abilities->ability = t[0];
-          temp->special_abilities->level = t[1];
-          temp->special_abilities->activation_method = t[2];
-          temp->special_abilities->value[0] = t[3];
-          temp->special_abilities->value[1] = t[4];
-          temp->special_abilities->value[2] = t[5];
-          temp->special_abilities->value[3] = t[6];
-          temp->special_abilities->command_word = strdup(f1);
+          objsave_replace_special_ability(temp, *line);
         }
         break;
       case 'T':
@@ -3773,17 +3782,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         }
         else if (!strcmp(tag, "SpAb"))
         {
-          sscanf(*line, "%d %d %d %d %d %d %d %s", &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6],
-                 f1);
-          CREATE(temp->special_abilities, struct obj_special_ability, 1);
-          temp->special_abilities->ability = t[0];
-          temp->special_abilities->level = t[1];
-          temp->special_abilities->activation_method = t[2];
-          temp->special_abilities->value[0] = t[3];
-          temp->special_abilities->value[1] = t[4];
-          temp->special_abilities->value[2] = t[5];
-          temp->special_abilities->value[3] = t[6];
-          temp->special_abilities->command_word = strdup(f1);
+          objsave_replace_special_ability(temp, *line);
         }
         break;
       case 'T':
@@ -4480,17 +4479,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         }
         else if (!strcmp(tag, "SpAb"))
         {
-          sscanf(*line, "%d %d %d %d %d %d %d %s", &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6],
-                 f1);
-          CREATE(temp->special_abilities, struct obj_special_ability, 1);
-          temp->special_abilities->ability = t[0];
-          temp->special_abilities->level = t[1];
-          temp->special_abilities->activation_method = t[2];
-          temp->special_abilities->value[0] = t[3];
-          temp->special_abilities->value[1] = t[4];
-          temp->special_abilities->value[2] = t[5];
-          temp->special_abilities->value[3] = t[6];
-          temp->special_abilities->command_word = strdup(f1);
+          objsave_replace_special_ability(temp, *line);
         }
         break;
       case 'T':

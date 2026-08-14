@@ -526,7 +526,11 @@ struct mud_event_list mud_event_index[] = {
      0},
     {"RoL Spiderhaunt Maggots", event_rol_spiderhaunt_maggots, EVENT_CHAR, NULL, NULL,
      FEAT_UNDEFINED, 0},
+    {"Dragon Attack Cooldown", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */
 const size_t mud_event_index_count = sizeof(mud_event_index) / sizeof(mud_event_index[0]);
+
+_Static_assert(sizeof(mud_event_index) / sizeof(mud_event_index[0]) == eMUD_EVENT_COUNT,
+               "mud event registry must match the event_id enum");

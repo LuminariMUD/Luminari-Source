@@ -1223,7 +1223,7 @@ struct ship_route
 struct autopilot_data
 {
   enum autopilot_state state;       /* Current autopilot state */
-  struct ship_route *current_route; /* Active route (NULL if none) */
+  struct ship_route *current_route; /* Owned assigned route (NULL if none) */
   int current_waypoint_index;       /* Index in route waypoints array */
   int tick_counter;                 /* Ticks since last update */
   int wait_remaining;               /* Seconds left at current waypoint */

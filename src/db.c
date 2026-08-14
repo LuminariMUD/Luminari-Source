@@ -122,8 +122,8 @@ zone_rnum top_of_zone_table = 0;     /* top element of zone tab   */
 struct region_data *region_table = NULL; /* Region table */
 region_rnum top_of_region_table = -1;    /* top element of region tab */
 
-struct path_data *path_table = NULL; /* Path table */
-path_rnum top_of_path_table = 0;     /* top element of path tab */
+struct path_data *path_table = NULL;   /* Path table */
+path_rnum top_of_path_table = NOWHERE; /* top element of path tab */
 
 /* begin previously located in players.c */
 struct player_index_element *player_table = NULL; /* index to plr file   */
@@ -934,6 +934,11 @@ void destroy_db(void)
   artifact_shutdown();
   vessel_piracy_clear_laws();
 
+  /* Mud events detach themselves from character, object, room, and region
+   * owner lists while being freed. Their owners must remain alive until the
+   * global event queue has been drained. */
+  event_free_all();
+
   /* Active Mobiles & Players */
   /* First pass: Clear all follower relationships without messages */
   for (chtmp = character_list; chtmp; chtmp = chtmp->next)
@@ -988,7 +993,7 @@ void destroy_db(void)
      * Wilderness rooms are identified by their vnum range */
     if (IS_WILDERNESS_VNUM(world[cnt].number))
     {
-      /* Wilderness rooms use static strings that should not be freed */
+      free_wilderness_room_strings(&world[cnt]);
     }
     else
     {
@@ -998,6 +1003,12 @@ void destroy_db(void)
         free(world[cnt].description);
     }
     free_extra_descriptions(world[cnt].ex_description);
+
+    if (world[cnt].traps != NULL)
+    {
+      free_trap_list(world[cnt].traps);
+      world[cnt].traps = NULL;
+    }
 
     /* free trail data */
     if (CONFIG_WILDERNESS_SYSTEM == 2)
@@ -1219,8 +1230,8 @@ void destroy_db(void)
     global_craft_list = NULL;
   }
 
-  /* Events */
-  event_free_all();
+  destroy_perks();
+  cleanup_region_path_tables();
 
   /* Clan economy system */
   shutdown_clan_economy();
@@ -1756,6 +1767,7 @@ void index_boot(int mode)
   const char *index_filename, *prefix = NULL; /* NULL or egcs 1.1 complains */
   FILE *db_index, *db_file;
   int rec_count = 0, size[2] = {0, 0};
+  bool optional_index;
   char buf2[MAX_FILEPATH] = {'\0'};
   char buf1[MAX_FILEPATH] = {'\0'};
 
@@ -1798,6 +1810,9 @@ void index_boot(int mode)
   else
     index_filename = INDEX_FILE;
 
+  optional_index = mode == DB_BOOT_SHP || mode == DB_BOOT_QST || mode == DB_BOOT_HLQST ||
+                   mode == DB_BOOT_TRG || mode == DB_BOOT_HLP;
+
   strlcpy(buf2, prefix, sizeof(buf2));
   if (strlcat(buf2, index_filename, sizeof(buf2)) >= sizeof(buf2))
   {
@@ -1806,6 +1821,11 @@ void index_boot(int mode)
   }
   if (!(db_index = fopen(buf2, "r")))
   {
+    if ((mini_mud && optional_index) || mode == DB_BOOT_HLP)
+    {
+      log("Info: Optional index file '%s' is unavailable; continuing without it.", buf2);
+      return;
+    }
     log("SYSERR: opening index file '%s': %s", buf2, strerror(errno));
     exit(1);
   }
@@ -1814,6 +1834,7 @@ void index_boot(int mode)
   if (fscanf(db_index, "%255s\n", buf1) != 1)
   {
     log("SYSERR: Failed to read from index file '%s'", buf2);
+    fclose(db_index);
     exit(1);
   }
   while (*buf1 != '$')
@@ -1863,13 +1884,13 @@ void index_boot(int mode)
   /* Exit if 0 records, unless this is shops, quests, triggers, or help */
   if (!rec_count)
   {
-    if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST || mode == DB_BOOT_HLQST ||
-        mode == DB_BOOT_TRG || mode == DB_BOOT_HLP)
+    if (optional_index)
     {
       if (mode == DB_BOOT_HLP)
       {
         log("No help.hlp file found - using database-only help system.");
       }
+      fclose(db_index);
       return;
     }
     log("SYSERR: boot error - 0 records counted in %s/%s.", prefix, index_filename);
@@ -2531,8 +2552,40 @@ static void check_start_rooms(void)
 {
   if ((r_mortal_start_room = real_room(CONFIG_MORTAL_START)) == NOWHERE)
   {
-    log("SYSERR:  Mortal start room does not exist.  Change in config.c.");
-    exit(1);
+    if (mini_mud)
+    {
+      room_rnum room;
+
+      r_mortal_start_room = real_room(mortal_start_room);
+      if (r_mortal_start_room == NOWHERE)
+      {
+        for (room = 0; room <= top_of_world; room++)
+        {
+          if (world[room].number > 1 && !ROOM_FLAGGED(room, ROOM_DEATH))
+          {
+            r_mortal_start_room = room;
+            break;
+          }
+        }
+      }
+      if (r_mortal_start_room == NOWHERE && world != NULL)
+        r_mortal_start_room = 0;
+      if (r_mortal_start_room != NOWHERE)
+      {
+        log("Info: Mini-mud start room %d is unavailable; using room %d.", CONFIG_MORTAL_START,
+            GET_ROOM_VNUM(r_mortal_start_room));
+      }
+      else
+      {
+        log("SYSERR: Mini-mud contains no usable mortal start room.");
+        exit(1);
+      }
+    }
+    else
+    {
+      log("SYSERR:  Mortal start room does not exist.  Change in config.c.");
+      exit(1);
+    }
   }
   if ((r_immort_start_room = real_room(CONFIG_IMMORTAL_START)) == NOWHERE)
   {
@@ -2911,8 +2964,6 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
 #define CASE(test) if (value && !matched && !str_cmp(keyword, test) && (matched = TRUE))
 #define BOOL_CASE(test) if (!value && !matched && !str_cmp(keyword, test) && (matched = TRUE))
 #define RANGE(low, high) (num_arg = MAX((low), MIN((high), (num_arg))))
-#define MAX_MOB_ECHOES 20
-
 static void interpret_espec(const char *keyword, const char *value, int i, int nr)
 {
   int num_arg = 0, matched = FALSE;
@@ -4436,7 +4487,21 @@ static void get_one_line(FILE *fl, char *buf)
 
 void free_help_table(void)
 {
-  /* Legacy function retained for compatibility - no longer needed as help is database-driven */
+  int i;
+
+  if (help_table == NULL)
+    return;
+
+  for (i = 0; i < top_of_helpt; i++)
+  {
+    free(help_table[i].keywords);
+    if (help_table[i].duplicate == 0)
+      free(help_table[i].entry);
+  }
+
+  free(help_table);
+  help_table = NULL;
+  top_of_helpt = 0;
 }
 
 void load_help(FILE *fl, char *name)
@@ -6750,6 +6815,7 @@ void free_char(struct char_data *ch)
         free(GET_CRAFT(ch).room_description);
       if (GET_CRAFT(ch).ex_description)
         free(GET_CRAFT(ch).ex_description);
+      cleanup_supply_slots(ch);
     }
 
     if (ch->player_specials)
@@ -6902,6 +6968,12 @@ void free_obj(struct obj_data *obj)
   /* free special abilities list */
   if (obj->special_abilities)
     free_obj_special_abilities(obj->special_abilities);
+
+  if (obj->trap != NULL)
+  {
+    free_trap(obj->trap);
+    obj->trap = NULL;
+  }
 
   /* free spellbook info */
   if (obj->sbinfo)
@@ -7551,6 +7623,9 @@ region_rnum real_region(region_vnum vnum)
 path_rnum real_path(path_vnum vnum)
 {
   region_rnum bot, top, mid;
+
+  if (path_table == NULL || top_of_path_table == NOWHERE)
+    return (NOWHERE);
 
   bot = 0;
   top = top_of_path_table;

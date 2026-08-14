@@ -47,6 +47,12 @@ static void define_wizard_versatile_caster_perks(void);
 /* Global perk database - all defined perks */
 struct perk_data perk_list[NUM_PERKS];
 
+/* Undefined perk slots share immutable-in-practice storage. Defined perks
+ * replace these pointers with owned strdup() allocations. */
+static char undefined_perk_name[] = "Undefined";
+static char undefined_perk_description[] = "This perk has not been defined.";
+static char undefined_perk_special_description[] = "";
+
 /* Perk category names for display */
 const char *perk_category_names[] = {
     "Undefined",                  /* 0 - PERK_CATEGORY_UNDEFINED */
@@ -90,17 +96,37 @@ const char *perk_category_names[] = {
 /* Forward declarations for perk definition functions */
 void define_bard_perks(void);
 
+void destroy_perks(void)
+{
+  int i;
+
+  for (i = 0; i < NUM_PERKS; i++)
+  {
+    if (perk_list[i].name != NULL && perk_list[i].name != undefined_perk_name)
+      free(perk_list[i].name);
+    if (perk_list[i].description != NULL && perk_list[i].description != undefined_perk_description)
+      free(perk_list[i].description);
+    if (perk_list[i].special_description != NULL &&
+        perk_list[i].special_description != undefined_perk_special_description)
+      free(perk_list[i].special_description);
+  }
+
+  memset(perk_list, 0, sizeof(perk_list));
+}
+
 /* Initialize the perk system - called at boot */
 void init_perks(void)
 {
   int i;
 
+  destroy_perks();
+
   /* Clear all perks */
   for (i = 0; i < NUM_PERKS; i++)
   {
     perk_list[i].id = PERK_UNDEFINED;
-    perk_list[i].name = strdup("Undefined");
-    perk_list[i].description = strdup("This perk has not been defined.");
+    perk_list[i].name = undefined_perk_name;
+    perk_list[i].description = undefined_perk_description;
     perk_list[i].associated_class = CLASS_UNDEFINED;
     perk_list[i].perk_category = PERK_CATEGORY_UNDEFINED;
     perk_list[i].cost = 0;
@@ -110,7 +136,7 @@ void init_perks(void)
     perk_list[i].effect_type = PERK_EFFECT_NONE;
     perk_list[i].effect_value = 0;
     perk_list[i].effect_modifier = 0;
-    perk_list[i].special_description = strdup("");
+    perk_list[i].special_description = undefined_perk_special_description;
     perk_list[i].toggleable = false;
   }
 
@@ -753,8 +779,6 @@ void define_blackguard_perks(void)
   perk->special_description =
       strdup("Command 'shadestep'; swift action, grants brief blur/concealment and positions you "
              "defensively. 1-minute cooldown.");
-  perk->special_description =
-      strdup("Improves power attack: +2 damage, reduces to-hit penalty to -1");
 
 
   /* Tier 3: Soul Carapace */
@@ -1404,6 +1428,8 @@ void define_inquisitor_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("Your Studied Target bonus increases by +4. Time to study is "
                                      "halved (swift action instead of move action).");
+
+  perk = &perk_list[PERK_INQUISITOR_LEGENDARY_TRACKER];
   perk->id = PERK_INQUISITOR_LEGENDARY_TRACKER;
   perk->name = strdup("Legendary Tracker");
   perk->description = strdup("Track any creature at any distance.");
@@ -1418,6 +1444,8 @@ void define_inquisitor_perks(void)
   perk->effect_modifier = 0;
   perk->special_description = strdup("You can track creatures at extreme distances. Maximum "
                                      "tracking distance: 50 + (Survival skill * 10) rooms.");
+
+  perk = &perk_list[PERK_INQUISITOR_INSTANT_DEATH];
   perk->id = PERK_INQUISITOR_INSTANT_DEATH;
   perk->name = strdup("Instant Death");
   perk->description = strdup("Deliver a killing strike with perfect precision.");
@@ -1434,6 +1462,8 @@ void define_inquisitor_perks(void)
       strdup("3% chance when you hit with an attack against a studied target to force a Fortitude "
              "save (DC 10 + half level + Wisdom modifier). On failure, target takes +15d6 damage; "
              "on success, it takes +8d6 damage.");
+
+  perk = &perk_list[PERK_INQUISITOR_PERFECT_PREDATOR];
   perk->id = PERK_INQUISITOR_PERFECT_PREDATOR;
   perk->name = strdup("Perfect Predator");
   perk->description = strdup("Achieve mastery over the hunt.");
@@ -1449,6 +1479,8 @@ void define_inquisitor_perks(void)
   perk->special_description =
       strdup("All your favored enemy bonuses increase by +4. In your favored terrains, you gain "
              "true sight and can see perfectly in all lighting conditions.");
+
+  perk = &perk_list[PERK_INQUISITOR_MASTER_TRACKER];
   perk->id = PERK_INQUISITOR_MASTER_TRACKER;
   perk->name = strdup("Master Tracker");
   perk->description = strdup("Track prey across any trail and sense nearby quarries.");
@@ -9148,22 +9180,6 @@ void define_ranger_perks(void)
                                      "temporary bonuses to you and companion, 24h cooldown");
 
   /*** WILDERNESS WARRIOR TREE (partial) ***/
-
-  /* Favored Enemy Slayer */
-  perk = &perk_list[PERK_RANGER_FAVORED_ENEMY_SLAYER];
-  perk->id = PERK_RANGER_FAVORED_ENEMY_SLAYER;
-  perk->name = strdup("Favored Enemy Slayer");
-  perk->description = strdup("+2 to hit against favored enemies");
-  perk->associated_class = CLASS_RANGER;
-  perk->perk_category = PERK_CATEGORY_WILDERNESS_WARRIOR;
-  perk->cost = 2;
-  perk->max_rank = 1;
-  perk->prerequisite_perk = -1;
-  perk->prerequisite_rank = 0;
-  perk->effect_type = PERK_EFFECT_SPECIAL; /* handled in combat code */
-  perk->effect_value = 2;
-  perk->effect_modifier = 0;
-  perk->special_description = strdup("Grants +2 to-hit vs favored enemies");
 
   /* Apex Predator (capstone) */
   perk = &perk_list[PERK_RANGER_APEX_PREDATOR];

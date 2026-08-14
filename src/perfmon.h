@@ -55,6 +55,14 @@ uint64_t PERF_vessel_message_throttled_count(void);
 void PERF_reset(void);
 
 /**
+ * @brief Release all performance-monitoring allocations at final shutdown
+ *
+ * Profiling macros cache section pointers, so no profiling call may follow
+ * this final process cleanup.
+ */
+void PERF_cleanup(void);
+
+/**
  * @brief Generate a performance report
  *
  * @param out_buf Buffer to store the formatted report

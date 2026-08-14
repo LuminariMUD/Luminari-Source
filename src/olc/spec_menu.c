@@ -237,7 +237,11 @@ void spec_olc_display_menu(struct descriptor_data *d, spec_owner_mask owner)
       write_to_output(d, "     %s\r\n", definition->description);
       write_to_output(d, "     Events:\r\n");
       for (event_index = 0; event_index < definition->event_count; event_index++)
-        spec_olc_display_event(d, &definition->events[event_index]);
+      {
+        if (spec_definition_supports_event(definition, owner,
+                                           definition->events[event_index].event))
+          spec_olc_display_event(d, &definition->events[event_index]);
+      }
     }
   }
 

@@ -5741,6 +5741,7 @@
 
 /* maximum number of moves a mobile can store for walking paths (patrols) */
 #define MAX_PATH 50
+#define MAX_MOB_ECHOES 32
 
 /* maximum length for file system paths (NOT related to MAX_PATH for NPC patrols) */
 #define MAX_FILEPATH 256

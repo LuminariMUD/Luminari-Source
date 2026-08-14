@@ -40,3 +40,22 @@ void Test_vessel_event_team_winner_handles_ties(CuTest *tc)
   CuAssertIntEquals(tc, VESSEL_EVENT_TEAM_BLUE, vessel_event_winning_team(10, 11));
   CuAssertIntEquals(tc, VESSEL_EVENT_TEAM_NONE, vessel_event_winning_team(8, 8));
 }
+
+void Test_autopilot_cleanup_releases_assigned_route(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  struct ship_route *route;
+
+  memset(&ship, 0, sizeof(ship));
+  CuAssertPtrNotNull(tc, autopilot_init(&ship));
+
+  route = route_create("cleanup lifecycle route");
+  CuAssertPtrNotNull(tc, route);
+  CuAssertTrue(tc, autopilot_start(&ship, route));
+  CuAssertTrue(tc, autopilot_stop(&ship));
+  CuAssertPtrEquals(tc, route, ship.autopilot->current_route);
+  CuAssertIntEquals(tc, AUTOPILOT_OFF, ship.autopilot->state);
+
+  autopilot_cleanup(&ship);
+  CuAssertPtrEquals(tc, NULL, ship.autopilot);
+}

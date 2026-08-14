@@ -94,6 +94,11 @@ void autopilot_cleanup(struct greyhawk_ship_data *ship)
 
   if (ship->autopilot != NULL)
   {
+    if (ship->autopilot->current_route != NULL)
+    {
+      route_destroy(ship->autopilot->current_route);
+      ship->autopilot->current_route = NULL;
+    }
     free(ship->autopilot);
     ship->autopilot = NULL;
   }
@@ -103,7 +108,7 @@ void autopilot_cleanup(struct greyhawk_ship_data *ship)
  * Start autopilot navigation on a route.
  *
  * @param ship The ship to start autopilot for
- * @param route The route to follow
+ * @param route The route to follow. On success, the autopilot owns the route.
  * @return 1 on success, 0 on failure
  */
 int autopilot_start(struct greyhawk_ship_data *ship, struct ship_route *route)
@@ -150,7 +155,6 @@ int autopilot_stop(struct greyhawk_ship_data *ship)
   }
 
   ship->autopilot->state = AUTOPILOT_OFF;
-  ship->autopilot->current_route = NULL;
   ship->autopilot->current_waypoint_index = 0;
 
   VSSL_DEBUG_AUTO("Ship %d autopilot STOP", ship->shipnum);

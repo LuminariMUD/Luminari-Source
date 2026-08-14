@@ -70,6 +70,7 @@ struct requirement_data
 #define CRAFTEDIT_MSG_SELF 14
 #define CRAFTEDIT_MSG_ROOM 15
 
+struct craft_data *create_craft(void);
 void free_craft(struct craft_data *craft);
 void load_crafts(void);
 void list_all_crafts(struct char_data *ch);

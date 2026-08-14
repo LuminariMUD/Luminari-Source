@@ -6072,7 +6072,7 @@ ACMD(do_frightful)
 
   /* we have to put a restriction here for npc's, otherwise you can order
      a dragon to spam this ability -zusuk */
-  if (char_has_mud_event(ch, eDRACBREATH))
+  if (char_has_mud_event(ch, eDRAGON_ATTACK_COOLDOWN))
   {
     send_to_char(ch, "You are too exhausted to do that!\r\n");
     act("$n tries to use a frightful presence attack, but is too exhausted!", FALSE, ch, 0, 0,
@@ -6118,7 +6118,7 @@ ACMD(do_frightful)
   aoe_effect(ch, -1, frightful_callback, &fright_data);
 
   /* 12 seconds = 2 rounds */
-  attach_mud_event(new_mud_event(eDRACBREATH, ch, NULL), 12 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eDRAGON_ATTACK_COOLDOWN, ch, NULL), 12 * PASSES_PER_SEC);
 }
 
 ACMDCHECK(can_tailspikes)
@@ -6346,7 +6346,7 @@ ACMD(do_breathe)
 
   /* we have to put a restriction here for npc's, otherwise you can order
      a dragon to spam this ability -zusuk */
-  if (char_has_mud_event(ch, eDRACBREATH))
+  if (char_has_mud_event(ch, eDRAGON_ATTACK_COOLDOWN))
   {
     send_to_char(ch, "You are too exhausted to do that!\r\n");
     act("$n tries to use a breath attack, but is too exhausted!", FALSE, ch, 0, 0, TO_ROOM);
@@ -6402,7 +6402,7 @@ ACMD(do_breathe)
   USE_STANDARD_ACTION(ch);
 
   /* 12 seconds = 2 rounds */
-  attach_mud_event(new_mud_event(eDRACBREATH, ch, NULL), 12 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eDRAGON_ATTACK_COOLDOWN, ch, NULL), 12 * PASSES_PER_SEC);
 }
 
 ACMDCHECK(can_poisonbreath)
@@ -7963,7 +7963,7 @@ ACMD(do_tailsweep)
 
   /* we have to put a restriction here for npc's, otherwise you can order
      a dragon to spam this ability -zusuk */
-  if (char_has_mud_event(ch, eDRACBREATH))
+  if (char_has_mud_event(ch, eDRAGON_ATTACK_COOLDOWN))
   {
     send_to_char(ch, "You are too exhausted to do that!\r\n");
     act("$n tries to use a tailsweep attack, but is too exhausted!", FALSE, ch, 0, 0, TO_ROOM);
@@ -7973,7 +7973,7 @@ ACMD(do_tailsweep)
   perform_tailsweep(ch);
 
   /* 12 seconds = 2 rounds */
-  attach_mud_event(new_mud_event(eDRACBREATH, ch, NULL), 12 * PASSES_PER_SEC);
+  attach_mud_event(new_mud_event(eDRAGON_ATTACK_COOLDOWN, ch, NULL), 12 * PASSES_PER_SEC);
 }
 
 ACMD(do_bash)

@@ -58,6 +58,10 @@
 static const struct spec_event_contract command_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE}};
 
+static const struct spec_event_contract mobile_command_events[] = {
+    {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE}};
+
 static const struct spec_event_contract bank_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
     {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE}};
@@ -1282,8 +1286,8 @@ static const struct spec_definition spec_definitions[] = {
         .canonical_name = "RoL Command Sentinel",
         .display_name = "RoL Command Sentinel",
         .owner_mask = SPEC_OWNER_MOBILE | SPEC_OWNER_ROOM,
-        .events = command_events,
-        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .events = mobile_command_events,
+        .event_count = SPEC_ARRAY_SIZE(mobile_command_events),
         .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "RoL Conversion",

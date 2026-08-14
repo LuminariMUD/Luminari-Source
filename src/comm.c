@@ -100,6 +100,7 @@
 #include "wilderness/wilderness.h"
 #include "magic/spell_prep.h"
 #include "perfmon.h"
+#include "mysql.h"
 #include "net/onboarding.h"
 #include "roleplay.h"
 #include "help.h"
@@ -506,6 +507,9 @@ int main(int argc, char **argv)
 
   if (last_act_message)
     free(last_act_message);
+
+  cleanup_mysql_library();
+  PERF_cleanup();
 
   /* probably should free the entire config here.. */
   free(CONFIG_CONFFILE);

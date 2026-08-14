@@ -150,6 +150,14 @@ static void init_interval(struct perf_interval *interval, size_t size)
   interval->count = 0;
 }
 
+static void free_interval(struct perf_interval *interval)
+{
+  free(interval->avg_data);
+  free(interval->min_data);
+  free(interval->max_data);
+  memset(interval, 0, sizeof(*interval));
+}
+
 /* Clear an initialized performance interval buffer. */
 static void reset_interval(struct perf_interval *interval)
 {
@@ -915,4 +923,24 @@ size_t PERF_prof_repr_csv(char *out_buf, size_t n)
   }
 
   return written;
+}
+
+void PERF_cleanup(void)
+{
+  int i;
+
+  free_interval(&pulse_data);
+  free_interval(&sec_data);
+  free_interval(&min_data);
+  free_interval(&hour_data);
+
+  for (i = 0; i < prof_section_count; i++)
+  {
+    free(prof_sections[i]->samples);
+    free(prof_sections[i]);
+    prof_sections[i] = NULL;
+  }
+
+  prof_section_count = 0;
+  initialized = 0;
 }

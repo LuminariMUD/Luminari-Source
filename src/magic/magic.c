@@ -13343,6 +13343,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   int i = 0;
   struct obj_data *eq = NULL;
   char message[200];
+  int affected_spell = 0;
 
   struct affected_type *af = NULL;
 
@@ -13554,16 +13555,13 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     return;
   }
 
-  // lesser restoration and restoration will remove any spell/ability that
-  // affects one of the main 6 ability scores.  It will not affect anything
-  // that blinds, poisons, curses, or stuns, or anything listed in the
-  // is_spell_restorable function. Lesser restoration will break the loop
-  // after completing a single affect removal, whereas restoration will
-  // remove all qualifying affects.
+  /* Lesser restoration and restoration remove qualifying spell or ability
+   * penalties to the six main ability scores. Lesser restoration stops after
+   * removing one qualifying spell group, while restoration checks them all. */
   if (spellnum == SPELL_LESSER_RESTORATION || spellnum == SPELL_RESTORATION ||
       spellnum == SPELL_LESSER_RESTORE_EIDOLON || spellnum == SPELL_RESTORE_EIDOLON)
   {
-    for (af = victim->affected; af; af = af->next)
+    for (af = victim->affected; af;)
     {
       if (af->location == APPLY_STR || af->location == APPLY_CON || af->location == APPLY_DEX ||
           af->location == APPLY_INT || af->location == APPLY_WIS || af->location == APPLY_CHA)
@@ -13572,26 +13570,35 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
              IS_SET_AR(af->bitvector, AFF_BLIND) || IS_SET_AR(af->bitvector, AFF_STUN) ||
              IS_SET_AR(af->bitvector, AFF_DISEASE)) &&
             spellnum == SPELL_LESSER_RESTORATION)
+        {
+          af = af->next;
           continue;
-        if (!is_spell_restoreable(spellnum))
+        }
+
+        affected_spell = af->spell;
+        if (!is_spell_restoreable(affected_spell))
+        {
+          af = af->next;
           continue;
-        if (spellnum == AFFECT_LEVEL_DRAIN &&
-            get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL) > 1)
+        }
+
+        if (affected_spell == AFFECT_LEVEL_DRAIN &&
+            get_char_affect_modifier(victim, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL) > 1)
         {
           change_spell_mod(victim, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL, -1, TRUE);
           if (ch == victim)
           {
-            snprintf(message, sizeof(message), "You reduce the degree thast '%s' is affecting you.",
-                     spell_info[spellnum].name);
+            snprintf(message, sizeof(message), "You reduce the degree that '%s' is affecting you.",
+                     spell_info[affected_spell].name);
             act(message, FALSE, ch, 0, 0, TO_CHAR);
           }
           else
           {
-            snprintf(message, sizeof(message), "You reduce the degree thast '%s' is affecting $N.",
-                     spell_info[spellnum].name);
+            snprintf(message, sizeof(message), "You reduce the degree that '%s' is affecting $N.",
+                     spell_info[affected_spell].name);
             act(message, FALSE, ch, 0, victim, TO_CHAR);
-            snprintf(message, sizeof(message), "$n reduces the degree thast '%s' is affecting you.",
-                     spell_info[spellnum].name);
+            snprintf(message, sizeof(message), "$n reduces the degree that '%s' is affecting you.",
+                     spell_info[affected_spell].name);
             act(message, FALSE, ch, 0, victim, TO_VICT);
           }
         }
@@ -13600,49 +13607,55 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
           if (ch == victim)
           {
             snprintf(message, sizeof(message), "You remove the '%s' affecting you.",
-                     spell_info[spellnum].name);
+                     spell_info[affected_spell].name);
             act(message, FALSE, ch, 0, 0, TO_CHAR);
           }
           else
           {
             snprintf(message, sizeof(message), "You remove the '%s' affecting $N.",
-                     spell_info[spellnum].name);
+                     spell_info[affected_spell].name);
             act(message, FALSE, ch, 0, victim, TO_CHAR);
             snprintf(message, sizeof(message), "$n removes the '%s' affecting you.",
-                     spell_info[spellnum].name);
+                     spell_info[affected_spell].name);
             act(message, FALSE, ch, 0, victim, TO_VICT);
           }
-          affect_from_char(victim, spellnum);
+          affect_from_char(victim, affected_spell);
         }
-        // lesser restoration will only cure one affect
-        if (spellnum == SPELL_LESSER_RESTORATION)
+
+        /* Lesser restoration only cures one qualifying spell group. */
+        if (spellnum == SPELL_LESSER_RESTORATION || spellnum == SPELL_LESSER_RESTORE_EIDOLON)
           break;
+
+        /* affect_from_char() can free multiple nodes, including the cached
+         * successor, so restart from the live list after a removal. */
+        af = victim->affected;
+        continue;
       }
+
+      af = af->next;
     }
     return;
   }
 
   /* this is to try and clean up bits related to the spell */
-  for (af = victim->affected; af; af = af->next)
+  for (af = victim->affected; af;)
   {
-    if (af && affect && IS_SET_AR(af->bitvector, affect))
+    if ((affect && IS_SET_AR(af->bitvector, affect)) ||
+        (affect2 && IS_SET_AR(af->bitvector, affect2)))
     {
-      if (victim && af->spell)
+      affected_spell = af->spell;
+      if (affected_spell)
       {
-        affect_from_char(victim, af->spell);
+        affect_from_char(victim, affected_spell);
         found = TRUE;
+        /* One spell can own several affect nodes. Removing it may free both
+         * the current node and its successor, so resume from the list head. */
+        af = victim->affected;
         continue;
       }
     }
-    if (af && affect2 && IS_SET_AR(af->bitvector, affect2))
-    {
-      if (victim && af->spell)
-      {
-        affect_from_char(victim, af->spell);
-        found = TRUE;
-        continue;
-      }
-    }
+
+    af = af->next;
   }
 
   if (!found && !affected_by_spell(victim, spell) && !AFF_FLAGGED(victim, affect))

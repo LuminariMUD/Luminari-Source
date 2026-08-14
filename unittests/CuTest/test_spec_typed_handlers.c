@@ -291,6 +291,8 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
                                                   SPEC_EVENT_OBJECT_AUTO_PULSE));
   CuAssertTrue(tc,
                spec_registry_find_by_handler(rol_command_sentinel) == command_sentinel_definition);
+  CuAssertTrue(tc, spec_definition_supports_event(command_sentinel_definition, SPEC_OWNER_MOBILE,
+                                                  SPEC_EVENT_MOBILE_ACTIVITY));
   CuAssertStrEquals(tc, "Bank", get_spec_func_name(bank));
   CuAssertStrEquals(tc, "Vampire Cloak", get_spec_func_name(vampire_cloak));
 

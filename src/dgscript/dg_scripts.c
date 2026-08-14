@@ -3666,7 +3666,6 @@ static struct char_data *find_char_by_uid_in_lookup_table(long uid)
   if (lt)
     return (struct char_data *)(lt->c);
 
-  log("find_char_by_uid_in_lookup_table : No entity with number %ld in lookup table", uid);
   return NULL;
 }
 
@@ -3677,7 +3676,6 @@ static struct obj_data *find_obj_by_uid_in_lookup_table(long uid)
   if (lt)
     return (struct obj_data *)(lt->c);
 
-  log("find_obj_by_uid_in_lookup_table : No entity with number %ld in lookup table", uid);
   return NULL;
 }
 

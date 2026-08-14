@@ -15,6 +15,7 @@ extern const char *perk_category_names[];
 
 /* Initialization */
 void init_perks(void);
+void destroy_perks(void);
 int count_defined_perks(void);
 int class_to_perk_class(int class_type, int which_perk);
 

@@ -75,6 +75,9 @@ void free_craft(struct craft_data *craft)
   struct requirement_data *r;
   struct iterator_data Iterator;
 
+  if (craft == NULL)
+    return;
+
   if (craft->craft_name)
     free(craft->craft_name);
 
@@ -84,7 +87,7 @@ void free_craft(struct craft_data *craft)
   if (craft->craft_msg_room)
     free(craft->craft_msg_room);
 
-  if (craft->requirements->iSize)
+  if (craft->requirements != NULL && craft->requirements->iSize)
   {
     struct requirement_data *next_r = NULL;
 
@@ -104,8 +107,9 @@ void free_craft(struct craft_data *craft)
       r = next_r;
     }
     remove_iterator(&Iterator);
-    free_list(craft->requirements);
   }
+  if (craft->requirements != NULL)
+    free_list(craft->requirements);
   free(craft);
 }
 

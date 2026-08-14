@@ -260,6 +260,8 @@ typedef enum
   eROL_DROW_DECAY,              /* Converted drow-equipment surface decay */
   eROL_DEATHS_HEAD_SEED,        /* Converted Death's Head implanted-seed growth */
   eROL_SPIDERHAUNT_MAGGOTS,     /* Converted Spiderhaunt delayed maggot sensation */
+  eDRAGON_ATTACK_COOLDOWN,      /* Shared short cooldown for innate dragon attacks */
+  eMUD_EVENT_COUNT
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

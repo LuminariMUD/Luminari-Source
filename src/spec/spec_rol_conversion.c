@@ -6271,7 +6271,12 @@ int rol_command_sentinel(struct char_data *ch, void *me, int cmd, const char *ar
 
 int rol_command_sentinel_typed(struct spec_event_context *context)
 {
-  if (context == NULL || context->event != SPEC_EVENT_COMMAND)
+  if (context == NULL)
+    return FALSE;
+
+  if (context->event == SPEC_EVENT_MOBILE_ACTIVITY && context->owner_type == SPEC_OWNER_MOBILE)
+    return FALSE;
+  if (context->event != SPEC_EVENT_COMMAND)
     return FALSE;
 
   if (context->owner_type == SPEC_OWNER_MOBILE)

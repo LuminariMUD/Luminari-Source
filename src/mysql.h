@@ -212,6 +212,7 @@ void free_region_list(struct region_list *regions);
 void load_paths();
 struct path_list *get_enclosing_paths(zone_rnum zone, int x, int y);
 void free_path_list(struct path_list *paths);
+void cleanup_region_path_tables(void);
 bool get_random_region_location(region_vnum region, int *x, int *y);
 struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, int r);
 char **tokenize(const char *input, const char *delim);

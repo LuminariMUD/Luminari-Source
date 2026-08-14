@@ -483,7 +483,6 @@ void Test_vessel_production_autopilot_lifecycle(CuTest *tc)
 
   CuAssertTrue(tc, autopilot_stop(&ship));
   autopilot_cleanup(&ship);
-  route_destroy(route);
   CuAssertPtrEquals(tc, NULL, ship.autopilot);
 }
 
@@ -552,7 +551,6 @@ void Test_vessel_autopilot_wait_stops_and_resumes_cruise_speed(CuTest *tc)
   CuAssertIntEquals(tc, 1, ship.autopilot->current_waypoint_index);
 
   autopilot_cleanup(&ship);
-  route_destroy(route);
 }
 
 void Test_vessel_autopilot_rounds_signed_wilderness_coordinates(CuTest *tc)
@@ -629,7 +627,6 @@ void Test_vessel_autopilot_pauses_after_untraversable_waypoint(CuTest *tc)
   CuAssertIntEquals(tc, 0, ship.setspeed);
 
   autopilot_cleanup(&ship);
-  route_destroy(route);
 }
 
 void Test_vessel_z_axis_enforces_class_and_wilderness_boundaries(CuTest *tc)

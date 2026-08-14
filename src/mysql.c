@@ -37,6 +37,7 @@ pthread_mutex_t mysql_mutex3 = PTHREAD_MUTEX_INITIALIZER;
 
 /* Count SQL statement executions across direct, safe, and pooled queries. */
 static atomic_uint_fast64_t query_execution_count;
+static bool mysql_library_initialized;
 
 #ifdef LUMINARI_CUTEST
 static atomic_uint test_query_failure_countdown;
@@ -882,6 +883,7 @@ void connect_to_mysql()
     log("WARNING: Unable to initialize MySQL library.");
     return;
   }
+  mysql_library_initialized = true;
 
   /* Initialize the connection pool with configuration already loaded */
   mysql_pool_init();
@@ -959,8 +961,12 @@ void cleanup_mysql_library()
   conn2 = NULL;
   conn3 = NULL;
 
-  /* End MySQL library */
-  mysql_library_end();
+  /* End MySQL library only when this process initialized it. */
+  if (mysql_library_initialized)
+  {
+    mysql_library_end();
+    mysql_library_initialized = false;
+  }
 }
 
 /**
@@ -2120,6 +2126,61 @@ void free_tokens(char **tokens)
   free(tokens);
 }
 
+static void free_region_table_data(void)
+{
+  int i;
+
+  if (region_table == NULL)
+  {
+    top_of_region_table = NOWHERE;
+    return;
+  }
+
+  for (i = 0; i <= (int)top_of_region_table; i++)
+    clear_region_event_list(&region_table[i]);
+
+  for (i = 0; i <= (int)top_of_region_table; i++)
+  {
+    free(region_table[i].name);
+    free(region_table[i].vertices);
+    free(region_table[i].reset_data);
+  }
+
+  free(region_table);
+  region_table = NULL;
+  top_of_region_table = NOWHERE;
+}
+
+static void free_path_table_data(void)
+{
+  int i;
+
+  if (path_table == NULL)
+  {
+    top_of_path_table = NOWHERE;
+    return;
+  }
+
+  for (i = 0; i <= (int)top_of_path_table; i++)
+  {
+    free(path_table[i].name);
+    free(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
+    free(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
+    free(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
+    free(path_table[i].vertices);
+  }
+
+  free(path_table);
+  path_table = NULL;
+  top_of_path_table = NOWHERE;
+}
+
+void cleanup_region_path_tables(void)
+{
+  free_region_table_data();
+  free_path_table_data();
+}
+
 void load_regions()
 {
   /* region_data* region_table */
@@ -2173,31 +2234,14 @@ void load_regions()
   }
 
   if ((numrows = mysql_num_rows(result)) < 1)
+  {
+    free_region_table_data();
+    mysql_free_result(result);
     return;
+  }
   else
   {
-    if (region_table != NULL)
-    {
-      /* CRITICAL: Clear all region events FIRST before any memory operations.
-       * This prevents use-after-free when events try to access region_table
-       * during cancellation. We must clear events for ALL regions before
-       * freeing ANY region memory. */
-      for (j = 0; j <= (int)top_of_region_table; j++)
-      {
-        clear_region_event_list(&region_table[j]);
-      }
-
-      /* Now it's safe to free region memory */
-      for (j = 0; j <= (int)top_of_region_table; j++)
-      {
-        free(region_table[j].name);
-        free(region_table[j].vertices);
-        if (region_table[j].reset_data)
-          free(region_table[j].reset_data);
-      }
-      free(region_table);
-      region_table = NULL;
-    }
+    free_region_table_data();
     /* Allocate memory for all of the region data. */
     CREATE(region_table, struct region_data, numrows);
   }
@@ -2302,13 +2346,13 @@ void load_regions()
     {
       if (region_table[j].region_type == REGION_ENCOUNTER && region_table[j].reset_time > 0)
       {
-        region_vnum *vnum_ptr = NULL;
-        CREATE(vnum_ptr, region_vnum, 1);
-        *vnum_ptr = region_table[j].vnum;
+        region_vnum vnum;
+
+        vnum = region_table[j].vnum;
 
         log("Creating encounter reset event for region #%d (%s) - resets every %d seconds",
             region_table[j].vnum, region_table[j].name, region_table[j].reset_time);
-        NEW_EVENT(eENCOUNTER_REG_RESET, vnum_ptr, region_table[j].reset_data,
+        NEW_EVENT(eENCOUNTER_REG_RESET, &vnum, region_table[j].reset_data,
                   region_table[j].reset_time RL_SEC);
       }
     }
@@ -2650,7 +2694,7 @@ void load_paths()
   MYSQL_RES *result;
   MYSQL_ROW row;
 
-  int i = 0, vtx = 0, j = 0;
+  int i = 0, vtx = 0;
   int numrows;
 
   char buf[1024];
@@ -2695,23 +2739,15 @@ void load_paths()
   }
 
   if ((numrows = mysql_num_rows(result)) < 1)
+  {
+    free_path_table_data();
+    mysql_free_result(result);
     return;
+  }
   else
   {
     /* Allocate memory for all of the region data. */
-    if (path_table != NULL)
-    {
-      /* Clear it */
-      for (j = 0; j <= (int)top_of_path_table; j++)
-      {
-        free(path_table[j].name);
-        // free(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
-        // free(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
-        // free(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
-        free(path_table[j].vertices);
-      }
-      free(path_table);
-    }
+    free_path_table_data();
     CREATE(path_table, struct path_data, numrows);
   }
 

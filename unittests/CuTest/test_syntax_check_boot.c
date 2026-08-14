@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/dgscript/dg_event.h"
+#include "../../src/mud_event.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -72,6 +73,22 @@ void Test_syntax_check_empty_event_queue_lifecycle(CuTest *tc)
 
   CuAssertIntEquals(tc, 1, event_test_init_call_count());
   CuAssertIntEquals(tc, 1, event_test_free_all_call_count());
+}
+
+void Test_global_event_cleanup_detaches_live_object_owner(CuTest *tc)
+{
+  struct obj_data obj;
+
+  memset(&obj, 0, sizeof(obj));
+  event_free_all();
+  event_init();
+
+  attach_mud_event(new_mud_event(eARMOR_SPECAB_BLINDING, &obj, NULL), 100);
+  CuAssertPtrNotNull(tc, obj.events);
+
+  event_free_all();
+
+  CuAssertPtrEquals(tc, NULL, obj.events);
 }
 
 void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
@@ -178,4 +195,11 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, strstr(output, "event_create called before event_init"));
   CuAssertPtrEquals(tc, NULL, strstr(output, "remove_from_list() called with NULL list pointer"));
   CuAssertPtrNotNull(tc, strstr(output, "Done."));
+}
+void Test_mud_event_registry_matches_enum(CuTest *tc)
+{
+  CuAssertIntEquals(tc, eMUD_EVENT_COUNT, (int)mud_event_index_count);
+  CuAssertStrEquals(tc, "Dragon Attack Cooldown",
+                    mud_event_index[eDRAGON_ATTACK_COOLDOWN].event_name);
+  CuAssertTrue(tc, mud_event_index[eDRAGON_ATTACK_COOLDOWN].func == event_countdown);
 }

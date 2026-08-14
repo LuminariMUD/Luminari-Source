@@ -18,7 +18,9 @@
 #include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
+#include "../../src/character/perks.h"
 #include "../../src/craft/craft.h"
+#include "../../src/craft/crafts.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -1118,4 +1120,121 @@ void Test_affect_wearoff_callback_can_remove_the_cached_successor(CuTest *tc)
 
   while (ch.affected != NULL)
     affect_remove_no_total(&ch, ch.affected);
+}
+
+void Test_mag_unaffects_removes_multi_node_spell_groups_safely(CuTest *tc)
+{
+  struct affected_type af;
+  struct char_data ch;
+
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+
+  clear_char(&ch);
+  ch.player_specials = &dummy_mob;
+  ch.player.short_descr = "unaffects mutation test character";
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
+
+  new_affect(&af);
+  af.spell = SPELL_POISON;
+  af.duration = 10;
+  SET_BIT_AR(af.bitvector, AFF_POISON);
+  affect_to_char(&ch, &af);
+  affect_to_char(&ch, &af);
+
+  new_affect(&af);
+  af.spell = SPELL_POISON_BREATHE;
+  af.duration = 10;
+  SET_BIT_AR(af.bitvector, AFF_POISON);
+  affect_to_char(&ch, &af);
+
+  mag_unaffects(10, &ch, &ch, NULL, SPELL_REMOVE_POISON, 0, CAST_SPELL);
+
+  CuAssertTrue(tc, !affected_by_spell(&ch, SPELL_POISON));
+  CuAssertTrue(tc, !affected_by_spell(&ch, SPELL_POISON_BREATHE));
+  CuAssertTrue(tc, !AFF_FLAGGED(&ch, AFF_POISON));
+
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+}
+
+void Test_restoration_checks_the_affected_spell_not_the_cast_spell(CuTest *tc)
+{
+  struct affected_type af;
+  struct char_data ch;
+
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+
+  clear_char(&ch);
+  ch.player_specials = &dummy_mob;
+  ch.player.short_descr = "restoration test character";
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
+
+  new_affect(&af);
+  af.spell = SPELL_SLOW;
+  af.location = APPLY_DEX;
+  af.modifier = -2;
+  af.duration = 10;
+  affect_to_char(&ch, &af);
+
+  new_affect(&af);
+  af.spell = SPELL_ARMOR;
+  af.location = APPLY_STR;
+  af.modifier = -1;
+  af.duration = 10;
+  affect_to_char(&ch, &af);
+
+  mag_unaffects(10, &ch, &ch, NULL, SPELL_RESTORATION, 0, CAST_SPELL);
+
+  CuAssertTrue(tc, !affected_by_spell(&ch, SPELL_SLOW));
+  CuAssertTrue(tc, affected_by_spell(&ch, SPELL_ARMOR));
+
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+}
+
+void Test_empty_craft_lifecycle_releases_requirements_list(CuTest *tc)
+{
+  struct craft_data *craft;
+
+  craft = create_craft();
+  CuAssertPtrNotNull(tc, craft);
+  CuAssertPtrNotNull(tc, craft->requirements);
+  free_craft(craft);
+}
+
+void Test_perk_initialization_preserves_distinct_definitions(CuTest *tc)
+{
+  struct perk_data *perk;
+
+  init_perks();
+
+  perk = get_perk_by_id(PERK_INQUISITOR_SUPREME_HUNTER);
+  CuAssertPtrNotNull(tc, perk);
+  CuAssertIntEquals(tc, PERK_INQUISITOR_SUPREME_HUNTER, perk->id);
+  perk = get_perk_by_id(PERK_INQUISITOR_LEGENDARY_TRACKER);
+  CuAssertPtrNotNull(tc, perk);
+  CuAssertIntEquals(tc, PERK_INQUISITOR_LEGENDARY_TRACKER, perk->id);
+  perk = get_perk_by_id(PERK_INQUISITOR_INSTANT_DEATH);
+  CuAssertPtrNotNull(tc, perk);
+  CuAssertIntEquals(tc, PERK_INQUISITOR_INSTANT_DEATH, perk->id);
+  perk = get_perk_by_id(PERK_INQUISITOR_PERFECT_PREDATOR);
+  CuAssertPtrNotNull(tc, perk);
+  CuAssertIntEquals(tc, PERK_INQUISITOR_PERFECT_PREDATOR, perk->id);
+  perk = get_perk_by_id(PERK_INQUISITOR_MASTER_TRACKER);
+  CuAssertPtrNotNull(tc, perk);
+  CuAssertIntEquals(tc, PERK_INQUISITOR_MASTER_TRACKER, perk->id);
+
+  perk = get_perk_by_id(PERK_RANGER_FAVORED_ENEMY_SLAYER);
+  CuAssertPtrNotNull(tc, perk);
+  CuAssertIntEquals(tc, PERK_RANGER_FAVORED_ENEMY_MASTERY_I, perk->prerequisite_perk);
+  CuAssertIntEquals(tc, 2, perk->prerequisite_rank);
+  CuAssertIntEquals(tc, 1, perk->effect_modifier);
+
+  destroy_perks();
+  CuAssertPtrEquals(tc, NULL, get_perk_by_id(PERK_INQUISITOR_SUPREME_HUNTER));
+
+  /* Leave global metadata initialized for tests that run after this one. */
+  init_perks();
 }

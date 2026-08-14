@@ -383,7 +383,7 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Auto Distributor", rol_auto_distributor, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Command Sentinel", rol_command_sentinel, SPEC_OWNER_MOBILE | SPEC_OWNER_ROOM,
-       SPEC_EVENT_COMMAND, SPEC_BINDING_SOURCE_WORLD},
+       SPEC_EVENT_COMMAND | SPEC_EVENT_MOBILE_ACTIVITY, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Toll Keeper", rol_toll_keeper, SPEC_OWNER_MOBILE,
        SPEC_EVENT_COMMAND | SPEC_EVENT_MOBILE_ACTIVITY, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Shadow Giant", rol_shadow_giant, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
