@@ -1053,6 +1053,64 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn("approximated source race-factor apply 41", diagnostics)
     self.assertNotIn("unknown source item type", diagnostics)
 
+  def test_emitted_object_synthesizes_runtime_safe_identity_strings(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#2\ncorpse~\n~\n~\n~\n24 0 0\n0 0 0 0\n200 0 0\n",
+    )
+
+    emitted = emit_object(source, 2_000_002, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20000.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    obj = result.records[0]
+    self.assertEqual("corpse", obj.aliases)
+    self.assertEqual("corpse", obj.short_description)
+    self.assertEqual("corpse is here.", obj.description)
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertIn("synthesized missing object short description", diagnostics)
+    self.assertIn("synthesized missing object room description", diagnostics)
+
+  def test_source_object_recovers_missing_action_description(self) -> None:
+    temporary = tempfile.TemporaryDirectory()
+    self.addCleanup(temporary.cleanup)
+    source_path = Path(temporary.name) / "sample.obj"
+    source_path.write_bytes(
+        b"#7\nmanual~\na manual~\nA manual lies here.~\n"
+        b"23 0 1\n0 0 0 0\n1 1000 0\n"
+    )
+
+    records, corpus = parse_rol_source_file(
+        source_path, "areas/obj/sample.obj", "obj", "sample"
+    )
+
+    self.assertTrue(corpus.complete)
+    self.assertEqual(23, records[0].values["item_type"])
+    self.assertEqual("", records[0].values["strings"]["action_description"])
+    self.assertTrue(any(item.code == "ROLOBJ005" for item in corpus.diagnostics))
+
+  def test_source_object_recovers_pre_header_extra_description(self) -> None:
+    temporary = tempfile.TemporaryDirectory()
+    self.addCleanup(temporary.cleanup)
+    source_path = Path(temporary.name) / "sample.obj"
+    source_path.write_bytes(
+        b"#1034\nkey~\na translucent key~\nA translucent key lies here.~\n~\n"
+        b"E\nkey~\nA nearly transparent skeleton key.~\n"
+        b"18 0 1\n0 0 0 0\n1 1 1\n"
+    )
+
+    records, corpus = parse_rol_source_file(
+        source_path, "areas/obj/sample.obj", "obj", "sample"
+    )
+
+    self.assertTrue(corpus.complete)
+    self.assertEqual(18, records[0].values["item_type"])
+    extras = [row for row in records[0].directives if row["token"] == "E"]
+    self.assertEqual(1, len(extras))
+    self.assertEqual("key", extras[0]["keyword"])
+    self.assertTrue(any(item.code == "ROLOBJ006" for item in corpus.diagnostics))
+
   def test_emitted_room_repairs_missing_mountain_sector(self) -> None:
     source = self._source_record(
         "wld",
@@ -1208,6 +1266,23 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(result.complete)
     self.assertEqual(120, result.records[0].values[1])
     self.assertIn("source spell 41 (haste)", " ".join(emitted.diagnostics))
+
+  def test_emitted_staff_repairs_current_charges_above_maximum(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#8013\nstaff magi~\nthe staff of the magi~\n"
+        b"The staff of the magi lies here.~\n~\n"
+        b"4 0 1\n50 1 6 75\n4 10000 6000\n",
+    )
+
+    emitted = emit_object(source, 2_008_013, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20080.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(6, result.records[0].values[1])
+    self.assertEqual(6, result.records[0].values[2])
+    self.assertIn("raised source wand/staff maximum charges", " ".join(emitted.diagnostics))
 
   def test_emitted_magic_item_disables_spell_without_target_equivalent(self) -> None:
     source = self._source_record(

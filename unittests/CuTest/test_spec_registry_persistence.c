@@ -524,12 +524,14 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Tarrasque Encounter",
                                                "RoL Utility Object",
                                                "RoL Utility Room",
-                                               "RoL Scheduled Mobile"};
+                                               "RoL Scheduled Mobile",
+                                               "RoL Composite Mobile",
+                                               "RoL Composite Object"};
   int expected_count;
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 118, expected_count);
+  CuAssertIntEquals(tc, 120, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)
@@ -569,8 +571,8 @@ void Test_spec_registry_legacy_accessor_boundaries(CuTest *tc)
   CuAssertTrue(tc, get_spec_func_by_index(-1) == NULL);
   CuAssertTrue(tc, get_spec_func_name_by_index(count) == NULL);
   CuAssertTrue(tc, get_spec_func_by_index(count) == NULL);
-  CuAssertStrEquals(tc, "RoL Scheduled Mobile", get_spec_func_name_by_index(count - 1));
-  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_scheduled_mobile);
+  CuAssertStrEquals(tc, "RoL Composite Object", get_spec_func_name_by_index(count - 1));
+  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_composite_object);
   CuAssertTrue(tc, get_spec_func_name(NULL) == NULL);
 }
 

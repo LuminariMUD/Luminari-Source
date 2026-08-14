@@ -185,7 +185,7 @@ void assign_objects(void)
 
   /* JOTUNHEIM EQ */
   ASSIGNOBJ(2096012, mistweave);
-  ASSIGNOBJ(2096000, frostbite);
+  /* Converted Frostbite behavior is persisted in world data. */
   ASSIGNOBJ(2096059, ymir_cloak);
   ASSIGNOBJ(2096062, vaprak_claws);
   ASSIGNOBJ(2096056, valkyrie_sword);

@@ -1,9 +1,11 @@
 # Realms of Luminari Canonical Conversion Plan
 
-- Status: Phase 6.5 complete; Phase 7 ready to begin
+- Status: Complete through Phase 8
 - Consolidated: 2026-08-13
 - Phase 6.5 completed: 2026-08-14
 - Phase 7 plan streamlined: 2026-08-14
+- Phase 7 completed: 2026-08-14
+- Phase 8 completed: 2026-08-14
 - Source: `EXAMPLE/RealmsOfLuminari/`
 - Target: this development checkout and its current `lib/world/`
 - Production changes: prohibited
@@ -652,7 +654,19 @@ no-clobber, and idempotency gates.
 **Exit:** Section 9.1 passes on the authoritative development target; only then may
 Phase 7 begin.
 
-### 7.3 Phase 7: Lean canonical corpus conversion
+### 7.3 Phase 7: Complete - lean canonical corpus conversion
+
+Phase 7 completed in 12 dependency-complete batches on 2026-08-14. The final sealed
+checkpoint is `lib/rol-conversion/runs/phase7-final-20260814`, run
+`rol-phase7-b12-a20bbc98e3513f98`; the independently generated
+`phase7-final-repeat-20260814` tree is byte-identical. The cumulative ledger accounts
+for all 258 active packages and all 71,680 selected records with terminal actions,
+including 1,228 SOC triggers, 14 multi-binding special profiles, and 160 patched
+records. Source parsing, runtime contracts, reference closure, preservation, and all
+selected-record gates pass with zero staged new active error and zero live target
+write. Milestone checkpoints were sealed after batches 4 and 8 before final closeout.
+
+The execution rules below are retained as the completed Phase 7 record.
 
 Convert all remaining active packages against the applied canonical baseline. A legacy
 identity, canonical collision, or formula exception is a failed Phase 6.5 invariant;
@@ -696,7 +710,25 @@ milestone checks, and Phase 7 closeout, but not Phase 8. Reforecast after three
 representative batches covering straightforward data, cross-package references, and a
 runtime-heavy package. This is a working envelope, not a calendar promise.
 
-### 7.4 Phase 8: Final integration and release evidence
+### 7.4 Phase 8: Complete - final integration and release evidence
+
+Phase 8 completed on the authoritative development target on 2026-08-14. The sealed
+release bundle is `lib/rol-conversion/runs/phase8-release-20260814`, run
+`rol-phase8-release-5992b9c59dd3055e`, with candidate tree
+`39c05c7427b941e715491d129d83b17b73f89c332219ec577ea5bf2dc4662b20`.
+Its hash-guarded plan applied all 1,201 paths and the repeat apply is a zero-write
+no-op. The release reconciles 258 packages and 71,680 records with zero new active
+error, a clean namespace audit, byte-identical repeat generation, and passing
+preservation and runtime contracts.
+
+Full-corpus behavior evidence covers 761 zones, 90,722 rooms, 26,427 mobiles, 22,273
+objects, 1,148 shops, 6,296 HLQs, 3,216 triggers, 115,074 reset commands, 3,432 trigger
+attachments, 77 object traps, and 34 exit traps. The production binary passes 409
+world-tool tests, 699 CuTests, install, syntax boot, and bounded private-MariaDB runtime
+boot with zero converted-zone diagnostic. The post-apply completion audit is
+`lib/rol-conversion/runs/phase8-completion-20260814`.
+
+The integration steps below are retained as the completed Phase 8 record.
 
 Integrate the accepted cumulative Phase 7 output without repeating the namespace rebase
 or legacy persistent-state migration. Split the following work into 6-10 sessions if
@@ -880,13 +912,12 @@ Out of scope:
 Current handoff:
 
 ```text
-consume the sealed Phase 6.5 canonical baseline
--> execute lean Phase 7 dependency batches and milestone checks
--> integrate and apply the accepted cumulative output in Phase 8
--> pass the project Definition of Done
+sealed Phase 6.5 canonical baseline
+-> sealed and byte-identical Phase 7 cumulative corpus
+-> applied Phase 8 development release
+-> reproducible completion evidence and a zero-write repeat apply
 ```
 
-Phase 7 consumes only the canonical Phase 6.5 policy, identity manifest, generated
-profiles, and validated development baseline. Phase 8 preserves that baseline while
-integrating accepted corpus bundles; neither phase may restore legacy identity
-precedence.
+The conversion through Phase 8 is complete. Future maintenance must preserve the
+canonical identity contract, regenerate from the recorded inputs and policy, and may
+not restore legacy identity precedence.

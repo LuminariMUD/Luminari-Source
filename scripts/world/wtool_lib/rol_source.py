@@ -590,7 +590,27 @@ def _parse_obj(
     position = start + 1
     strings: list[str | None] = []
     strings_ok = True
-    for _ in range(4):
+    for _ in range(3):
+      position, value, ok = _read_tilde(source.lines, position, end)
+      strings.append(value)
+      strings_ok = strings_ok and ok
+    _, action_probe = _next_content(source.lines, position, end)
+    if (
+        action_probe is not None
+        and _numeric_line(action_probe)
+        and len(_integers(action_probe)) >= 3
+    ):
+      strings.append("")
+      _diagnostic(
+          corpus,
+          "ROLOBJ005",
+          "warning",
+          "source object omits its action description; synthesized an empty field",
+          action_probe,
+          "obj",
+          vnum,
+      )
+    else:
       position, value, ok = _read_tilde(source.lines, position, end)
       strings.append(value)
       strings_ok = strings_ok and ok
@@ -601,6 +621,34 @@ def _parse_obj(
         "description": strings[2],
         "action_description": strings[3],
     }
+
+    while position < end:
+      next_position, extension = _next_content(source.lines, position, end)
+      if extension is None or extension.raw.strip() != b"E":
+        break
+      position = next_position
+      position, keyword, first_ok = _read_tilde(source.lines, position, end)
+      position, description, second_ok = _read_tilde(source.lines, position, end)
+      record.directives.append(
+          {
+              "token": "E",
+              "line": extension.number,
+              "keyword": keyword,
+              "description": description,
+          }
+      )
+      if not first_ok or not second_ok:
+        record.directives[-1]["source_disposition"] = "EXCLUDE"
+      _diagnostic(
+          corpus,
+          "ROLOBJ006",
+          "warning",
+          "moved a pre-header extra description after the canonical object base rows",
+          extension,
+          "obj",
+          vnum,
+      )
+
     rows: list[SourceLine] = []
     for token in ("FLAGS", "VALUES", "ECONOMY"):
       position, line = _next_content(source.lines, position, end)

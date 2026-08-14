@@ -636,7 +636,7 @@ void TestSpecAssignmentModulesExposeNarrowBoundaries(CuTest *tc)
             strstr(objects, "void assign_objects(") != NULL &&
             strstr(objects, "src/spec/spec_assign_objects.c:") != NULL &&
             strstr(rooms, "void assign_rooms(") != NULL &&
-            strstr(rooms, "src/spec/spec_assign_rooms.c:") != NULL && assignment_tokens == 785 &&
+            strstr(rooms, "src/spec/spec_assign_rooms.c:") != NULL && assignment_tokens == 781 &&
             strstr(assignment_header, "spec_assign_table_boot_validate") != NULL &&
             strstr(assignment_header, "spec_registry") == NULL &&
             strstr(registry_header, "get_spec_func_name(spec_legacy_handler func)") != NULL &&

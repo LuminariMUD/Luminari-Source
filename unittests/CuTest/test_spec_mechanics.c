@@ -4338,3 +4338,29 @@ void Test_spec_rol_lich_rite_validates_irreversible_conversion_preflight(CuTest 
   complete_cmd_info = saved_complete_cmd_info;
   spec_mechanics_end(&fixture);
 }
+
+void Test_spec_rol_composite_profiles_cover_measured_multi_bindings(CuTest *tc)
+{
+  static const int mobile_vnums[] = {2007110, 2007111, 2007112, 2007141, 2007154, 2007177, 2007180,
+                                     2007190, 2019701, 2019750, 2025400, 2080220, 2093202};
+  const char *behavior;
+  size_t index;
+
+  CuAssertIntEquals(tc, 13, (int)rol_composite_mobile_profile_count());
+  CuAssertIntEquals(tc, 1, (int)rol_composite_object_profile_count());
+  for (index = 0; index < sizeof(mobile_vnums) / sizeof(mobile_vnums[0]); index++)
+  {
+    behavior = NULL;
+    CuAssertTrue(tc, rol_composite_mobile_profile(mobile_vnums[index], 0, &behavior));
+    CuAssertTrue(tc, behavior != NULL && behavior[0] != '\0');
+  }
+  CuAssertTrue(tc, !rol_composite_mobile_profile(2007110, 2, &behavior));
+  CuAssertTrue(tc, rol_composite_mobile_profile(2019701, 2, &behavior));
+  CuAssertStrEquals(tc, "breath_weapon_acid", behavior);
+  CuAssertTrue(tc, !rol_composite_mobile_profile(2019701, 3, &behavior));
+  CuAssertTrue(tc, rol_composite_object_profile(2003088, 0, &behavior));
+  CuAssertStrEquals(tc, "RoL Travel Portal", behavior);
+  CuAssertTrue(tc, rol_composite_object_profile(2003088, 1, &behavior));
+  CuAssertStrEquals(tc, "RoL Utility Object", behavior);
+  CuAssertTrue(tc, !rol_composite_object_profile(2003088, 2, &behavior));
+}

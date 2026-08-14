@@ -194,6 +194,26 @@ static const struct spec_event_contract rol_object_defense_events[] = {
      SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
 };
 
+static const struct spec_event_contract rol_composite_mobile_events[] = {
+    {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
+    {SPEC_EVENT_MOBILE_DEATH, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_HIT, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
+    {SPEC_EVENT_MOBILE_WAS_HIT, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
+};
+
+static const struct spec_event_contract rol_composite_object_events[] = {
+    {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_ITEM_IDENTIFY, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_WEAPON_HIT, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
+    {SPEC_EVENT_DEFENSE_REACTION, SPEC_PROTOTYPE_NONE,
+     SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
+    {SPEC_EVENT_COMBAT_MANEUVER, SPEC_PROTOTYPE_NONE,
+     SPEC_PLACEMENT_EQUIPPED | SPEC_PLACEMENT_COMBAT},
+};
+
 static const char *const guild_aliases[] = {"Guildmaster"};
 
 static const struct spec_definition spec_definitions[] = {
@@ -1739,6 +1759,34 @@ static const struct spec_definition spec_definitions[] = {
                        "behavior by exact mobile identity.",
         .legacy_handler = rol_scheduled_mobile,
     },
+    {
+        .canonical_name = "RoL Composite Mobile",
+        .display_name = "RoL Composite Mobile",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = rol_composite_mobile_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_composite_mobile_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_HIDDEN,
+        .category = "RoL Conversion",
+        .description = "Dispatches the measured multi-registration mobile profiles in the "
+                       "canonical RoL corpus.",
+        .typed_adapter = rol_composite_mobile,
+        .typed_handler = rol_composite_mobile_typed,
+    },
+    {
+        .canonical_name = "RoL Composite Object",
+        .display_name = "RoL Composite Object",
+        .owner_mask = SPEC_OWNER_OBJECT,
+        .events = rol_composite_object_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_composite_object_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_HIDDEN,
+        .category = "RoL Conversion",
+        .description = "Dispatches the measured multi-registration object profiles in the "
+                       "canonical RoL corpus.",
+        .typed_adapter = rol_composite_object,
+        .typed_handler = rol_composite_object_typed,
+    },
 };
 
 enum
@@ -1860,6 +1908,8 @@ enum
   SPEC_DEFINITION_ROL_UTILITY_OBJECT,
   SPEC_DEFINITION_ROL_UTILITY_ROOM,
   SPEC_DEFINITION_ROL_SCHEDULED_MOBILE,
+  SPEC_DEFINITION_ROL_COMPOSITE_MOBILE,
+  SPEC_DEFINITION_ROL_COMPOSITE_OBJECT,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -1991,6 +2041,8 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_UTILITY_OBJECT, -1},
     {SPEC_DEFINITION_ROL_UTILITY_ROOM, -1},
     {SPEC_DEFINITION_ROL_SCHEDULED_MOBILE, -1},
+    {SPEC_DEFINITION_ROL_COMPOSITE_MOBILE, -1},
+    {SPEC_DEFINITION_ROL_COMPOSITE_OBJECT, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,

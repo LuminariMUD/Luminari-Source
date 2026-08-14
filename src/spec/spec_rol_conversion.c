@@ -31,6 +31,7 @@
 #include "spec_combat.h"
 #include "spec_context.h"
 #include "spec_dispatch.h"
+#include "spec_registry.h"
 #include "spec_rol_darkhold.h"
 #include "spec_rol_conversion.h"
 #include "spec_rol_totem.h"
@@ -61,6 +62,39 @@
 #define ROL_NEWBIE_EVIL_DESTINATION_VNUM 2023399
 #define ROL_WEIGHT_TRIGGER_ROOM_VNUM 2051400
 #define ROL_WEIGHT_TRIGGER_THRESHOLD 5000ULL
+
+struct rol_composite_profile
+{
+  int vnum;
+  size_t behavior_count;
+  const char *behaviors[3];
+};
+
+/*
+ * A prototype has one persisted SpecProc slot.  These exact source prototypes
+ * intentionally register more than one independently converted behavior, so
+ * the canonical corpus persists this bounded dispatcher instead of silently
+ * discarding one registration.
+ */
+static const struct rol_composite_profile rol_composite_mobile_profiles[] = {
+    {2007110, 2, {"RoL Bloodstone Critter", "RoL Corpse Devourer"}},
+    {2007111, 2, {"RoL Bloodstone Critter", "RoL Corpse Devourer"}},
+    {2007112, 2, {"RoL Bloodstone Critter", "RoL Corpse Devourer"}},
+    {2007141, 2, {"RoL Bloodstone Critter", "RoL Corpse Devourer"}},
+    {2007154, 2, {"RoL Corpse Devourer", "RoL Source Periodic"}},
+    {2007177, 2, {"Receptionist", "RoL Source Periodic"}},
+    {2007180, 2, {"RoL Monster Combat", "RoL Source Periodic"}},
+    {2007190, 2, {"RoL Source Periodic", "money_changer"}},
+    {2019701, 3, {"RoL Lich Energy Drain", "RoL Monster Combat", "breath_weapon_acid"}},
+    {2019750, 2, {"RoL Guild Guard", "RoL Monster Combat"}},
+    {2025400, 2, {"RoL Guild Guard", "breath_weapon_gas"}},
+    {2080220, 2, {"RoL Monster Combat", "RoL Poison Bite"}},
+    {2093202, 2, {"RoL Monster Combat", "RoL Source Periodic"}},
+};
+
+static const struct rol_composite_profile rol_composite_object_profiles[] = {
+    {2003088, 2, {"RoL Travel Portal", "RoL Utility Object"}},
+};
 
 enum rol_weapon_effect
 {
@@ -9507,6 +9541,150 @@ int rol_utility_weight_transition(bool triggered, unsigned long long weight)
   if (triggered && weight < ROL_WEIGHT_TRIGGER_THRESHOLD)
     return -1;
   return 0;
+}
+
+static const struct rol_composite_profile *
+rol_composite_profile_for(const struct rol_composite_profile *profiles, size_t profile_count,
+                          int vnum)
+{
+  size_t index;
+
+  for (index = 0; index < profile_count; index++)
+  {
+    if (profiles[index].vnum == vnum)
+      return &profiles[index];
+  }
+
+  return NULL;
+}
+
+size_t rol_composite_mobile_profile_count(void)
+{
+  return sizeof(rol_composite_mobile_profiles) / sizeof(rol_composite_mobile_profiles[0]);
+}
+
+size_t rol_composite_object_profile_count(void)
+{
+  return sizeof(rol_composite_object_profiles) / sizeof(rol_composite_object_profiles[0]);
+}
+
+bool rol_composite_mobile_profile(int mobile_vnum, size_t behavior_index,
+                                  const char **behavior_name)
+{
+  const struct rol_composite_profile *profile;
+
+  profile = rol_composite_profile_for(rol_composite_mobile_profiles,
+                                      rol_composite_mobile_profile_count(), mobile_vnum);
+  if (profile == NULL || behavior_index >= profile->behavior_count)
+    return false;
+  if (behavior_name != NULL)
+    *behavior_name = profile->behaviors[behavior_index];
+  return true;
+}
+
+bool rol_composite_object_profile(int object_vnum, size_t behavior_index,
+                                  const char **behavior_name)
+{
+  const struct rol_composite_profile *profile;
+
+  profile = rol_composite_profile_for(rol_composite_object_profiles,
+                                      rol_composite_object_profile_count(), object_vnum);
+  if (profile == NULL || behavior_index >= profile->behavior_count)
+    return false;
+  if (behavior_name != NULL)
+    *behavior_name = profile->behaviors[behavior_index];
+  return true;
+}
+
+static int rol_composite_dispatch(struct spec_event_context *context,
+                                  const struct rol_composite_profile *profile)
+{
+  const struct spec_definition *definition;
+  spec_invalidate_mask invalidation;
+  enum spec_flow flow;
+  size_t index;
+  int result;
+  int handled;
+
+  if (context == NULL || profile == NULL)
+    return FALSE;
+
+  invalidation = context->invalidation;
+  flow = context->flow;
+  handled = FALSE;
+  for (index = 0; index < profile->behavior_count; index++)
+  {
+    definition = spec_registry_find_for_owner(profile->behaviors[index], context->owner_type);
+    if (definition == NULL ||
+        !spec_definition_supports_event(definition, context->owner_type, context->event))
+      continue;
+
+    context->flow = SPEC_FLOW_CONTINUE;
+    context->invalidation = SPEC_INVALIDATE_NONE;
+    if (definition->typed_handler != NULL)
+      result = definition->typed_handler(context);
+    else
+      result = definition->legacy_handler(context->actor, context->owner, context->command,
+                                          context->argument);
+    handled = handled || result != FALSE;
+    invalidation |= context->invalidation;
+    if (context->flow == SPEC_FLOW_STOP)
+      flow = SPEC_FLOW_STOP;
+  }
+
+  context->invalidation = invalidation;
+  context->flow = flow;
+  return handled;
+}
+
+int rol_composite_mobile(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  UNUSED(ch);
+  UNUSED(me);
+  UNUSED(cmd);
+  UNUSED(argument);
+
+  return FALSE;
+}
+
+int rol_composite_mobile_typed(struct spec_event_context *context)
+{
+  struct char_data *mobile;
+  const struct rol_composite_profile *profile;
+
+  if (context == NULL || context->owner_type != SPEC_OWNER_MOBILE || context->owner == NULL)
+    return FALSE;
+  mobile = context->owner;
+  if (!IS_NPC(mobile))
+    return FALSE;
+  profile = rol_composite_profile_for(rol_composite_mobile_profiles,
+                                      rol_composite_mobile_profile_count(), GET_MOB_VNUM(mobile));
+  return rol_composite_dispatch(context, profile);
+}
+
+int rol_composite_object(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  UNUSED(ch);
+  UNUSED(me);
+  UNUSED(cmd);
+  UNUSED(argument);
+
+  return FALSE;
+}
+
+int rol_composite_object_typed(struct spec_event_context *context)
+{
+  struct obj_data *object;
+  const struct rol_composite_profile *profile;
+
+  if (context == NULL || context->owner_type != SPEC_OWNER_OBJECT || context->owner == NULL)
+    return FALSE;
+  object = context->owner;
+  if (!VALID_OBJ_RNUM(object))
+    return FALSE;
+  profile = rol_composite_profile_for(rol_composite_object_profiles,
+                                      rol_composite_object_profile_count(), GET_OBJ_VNUM(object));
+  return rol_composite_dispatch(context, profile);
 }
 
 static bool rol_utility_room_command_is(int cmd, const char *name)

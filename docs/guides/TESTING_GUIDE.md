@@ -449,6 +449,33 @@ The focused protocol harness also has a convenience target:
 make -C unittests/CuTest valgrind-protocol
 ```
 
+## Realms of Luminari Release Validation
+
+The final RoL conversion gate uses the normal full suites plus an isolated copy of the
+complete candidate world:
+
+```sh
+make test-world-tools
+make test
+make install
+python3 scripts/world/wtool.py \
+  --world-root <isolated-lib>/world validate --all --strict
+bin/circle -c -d <isolated-lib>
+timeout --signal=INT 30 bin/circle -d <isolated-lib> <test-port>
+```
+
+The isolated lib root must use a loopback-only test MariaDB database. Never point these
+commands at production. The syntax and bounded runtime logs must show a complete boot;
+the runtime log must enter the game loop, reset the converted corpus, terminate
+normally, and contain no converted-VNUM `SYSERR`, zone error, invalid-reference, or
+missing-reference diagnostic.
+
+`rol-phase8` records the suite, install, syntax, and runtime logs with the static
+structure, reference, reset, quest, shop, SOC, trap, special, path, persistence,
+preservation, and determinism audits. After the accepted overlay is applied to
+development, `rol-phase8-completion` requires an identical validator result and a
+hash-preconditioned repeat-apply no-op.
+
 ## Adding Tests
 
 1. Put the test in `unittests/CuTest/test_*.c`.

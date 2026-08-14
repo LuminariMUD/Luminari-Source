@@ -186,9 +186,9 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 117, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 119, (int)spec_registry_count());
   CuAssertIntEquals(tc, 98, (int)spec_registry_legacy_count());
-  CuAssertIntEquals(tc, 19, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 21, (int)spec_registry_typed_count());
 
   alias_count = 0;
   for (definition_index = 0; definition_index < spec_registry_count(); definition_index++)
@@ -206,7 +206,11 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
     CuAssertTrue(tc, (definition->legacy_handler != NULL) != (definition->typed_handler != NULL));
     if (definition->typed_handler != NULL)
       CuAssertPtrNotNull(tc, definition->typed_adapter);
-    CuAssertIntEquals(tc, SPEC_BUILDER_VISIBLE, definition->builder_visibility);
+    if (strcmp(definition->canonical_name, "RoL Composite Mobile") == 0 ||
+        strcmp(definition->canonical_name, "RoL Composite Object") == 0)
+      CuAssertIntEquals(tc, SPEC_BUILDER_HIDDEN, definition->builder_visibility);
+    else
+      CuAssertIntEquals(tc, SPEC_BUILDER_VISIBLE, definition->builder_visibility);
     CuAssertTrue(tc, spec_definition_allows_binding(definition, SPEC_BINDING_SOURCE_WORLD));
     alias_count += definition->alias_count;
   }
@@ -464,6 +468,14 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Utility Room", rol_utility_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Scheduled Mobile", rol_scheduled_mobile, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Composite Mobile", rol_composite_mobile, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_COMMAND | SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN |
+           SPEC_EVENT_MOBILE_DEATH | SPEC_EVENT_MOBILE_HIT | SPEC_EVENT_MOBILE_WAS_HIT,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Composite Object", rol_composite_object, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_COMMAND | SPEC_EVENT_OBJECT_AUTO_PULSE | SPEC_EVENT_ITEM_IDENTIFY |
+           SPEC_EVENT_WEAPON_HIT | SPEC_EVENT_DEFENSE_REACTION | SPEC_EVENT_COMBAT_MANEUVER,
        SPEC_BINDING_SOURCE_WORLD},
   };
   const struct spec_definition *definition;
