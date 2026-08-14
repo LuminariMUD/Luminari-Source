@@ -144,3 +144,44 @@ void Test_perfmon_csv_reports_and_resets_event_counters(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "# missed_pulses=0"));
   CuAssertPtrNotNull(tc, strstr(report, "# vessel_messages_throttled=0"));
 }
+
+void Test_perfmon_reports_bounded_game_loop_telemetry(CuTest *tc)
+{
+  char report[16384];
+  int event_profile;
+
+  PERF_reset();
+  event_profile = PERF_register_event_callback("slow,event\ncallback");
+  CuAssertTrue(tc, event_profile >= 0);
+  PERF_note_event_callback(event_profile, 11);
+  PERF_note_event_callback(event_profile, 17);
+  PERF_note_event_process(5, 3, 2, 1);
+  PERF_note_pending_extractions(2, 2, 0);
+  PERF_note_catchup_pass(9, 7, 2, 1);
+
+  PERF_prof_repr_csv(report, sizeof(report));
+  CuAssertPtrNotNull(tc, strstr(report, "# event_process_calls=1"));
+  CuAssertPtrNotNull(tc, strstr(report, "# event_callbacks_processed=2"));
+  CuAssertPtrNotNull(tc, strstr(report, "# events_created_during_processing=1"));
+  CuAssertPtrNotNull(tc, strstr(report, "# event_queue_depth_initial=5"));
+  CuAssertPtrNotNull(tc, strstr(report, "# event_queue_depth_latest=3"));
+  CuAssertPtrNotNull(tc, strstr(report, "# extraction_calls=1"));
+  CuAssertPtrNotNull(tc, strstr(report, "# extractions_processed=2"));
+  CuAssertPtrNotNull(tc, strstr(report, "# max_extractions_per_call=2"));
+  CuAssertPtrNotNull(tc, strstr(report, "# catchup_requested_missed=9"));
+  CuAssertPtrNotNull(tc, strstr(report, "# catchup_replayed_missed=7"));
+  CuAssertPtrNotNull(tc, strstr(report, "# catchup_remaining_backlog=2"));
+  CuAssertPtrNotNull(tc, strstr(report, "# catchup_budget_exhausted_passes=1"));
+  CuAssertPtrNotNull(tc, strstr(report, "slow event callback,2,28,14.00,17"));
+
+  PERF_prof_reset();
+  PERF_prof_repr_pulse(report, sizeof(report));
+  CuAssertPtrEquals(tc, NULL, strstr(report, "slow event callback"));
+
+  PERF_reset();
+  PERF_prof_repr_csv(report, sizeof(report));
+  CuAssertPtrNotNull(tc, strstr(report, "# event_process_calls=0"));
+  CuAssertPtrNotNull(tc, strstr(report, "# extractions_processed=0"));
+  CuAssertPtrNotNull(tc, strstr(report, "# catchup_requested_missed=0"));
+  CuAssertPtrEquals(tc, NULL, strstr(report, "slow event callback,"));
+}

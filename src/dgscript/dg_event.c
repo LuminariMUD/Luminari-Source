@@ -26,6 +26,7 @@
 #include "constants.h"
 #include "comm.h" /* For access to the game pulse */
 #include "mud_event.h"
+#include "perfmon.h"
 #include <limits.h> /* For LONG_MAX used in overflow checks */
 
 /***************************************************************************
@@ -38,6 +39,8 @@ static struct dg_queue *event_q = NULL;
 static int processing_events = 0;
 /** Counter to track total number of events in the system (resource exhaustion protection) */
 static int total_events = 0;
+/** New events created by callbacks during the current event_process() call. */
+static uint64_t events_created_during_process = 0;
 
 #if defined(LUMINARI_CUTEST)
 static int event_init_calls = 0;
@@ -71,9 +74,11 @@ void event_init(void)
  * event fires. It is func's job to cast event_obj. If event_obj is not needed,
  * pass in NULL.
  * @param when Number of pulses between firing(s) of this event.
+ * @param profile_name Stable callback identity used by PERFMON reports.
  * @retval event * Returns a pointer to the newly created event, or NULL on error.
  * */
-struct event *event_create(EVENTFUNC(*func), void *event_obj, long when)
+struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
+                                 const char *profile_name)
 {
   struct event *new_event = NULL;
   long target_time;
@@ -134,12 +139,25 @@ struct event *event_create(EVENTFUNC(*func), void *event_obj, long when)
   new_event->func = func;
   new_event->event_obj = event_obj;
   new_event->q_el = queue_enq(event_q, new_event, target_time);
+  new_event->cancel_cleanup = NULL;
   new_event->isMudEvent = FALSE;
+  new_event->profile_index = PERF_register_event_callback(profile_name);
 
   /* Increment our event counter for resource tracking */
   total_events++;
+  if (processing_events && events_created_during_process < UINT64_MAX)
+    events_created_during_process++;
 
   return new_event;
+}
+
+/** Set specialized cleanup for cancellation and global queue shutdown.
+ * Normal callback completion remains owned by the callback itself.
+ */
+void event_set_cancel_cleanup(struct event *event, void (*cleanup)(void *))
+{
+  if (event != NULL)
+    event->cancel_cleanup = cleanup;
 }
 
 /** Removes an event from event_q and frees the event.
@@ -246,11 +264,10 @@ void cleanup_event_obj(struct event *event)
   }
   else
   {
-    /* ASSUMPTION: Non-mud events always have malloc'd event_obj.
-     * This is currently true for all uses in the codebase.
-     * If this assumption changes, we'd need additional flags to
-     * track memory ownership (e.g., event->owns_memory flag). */
-    free(event->event_obj);
+    if (event->cancel_cleanup != NULL)
+      event->cancel_cleanup(event->event_obj);
+    else
+      free(event->event_obj);
   }
 }
 
@@ -266,6 +283,13 @@ void event_process(void)
   struct event *the_event = NULL;
   long new_time = 0;
   unsigned long target_time;
+  uint64_t callback_start_usec;
+  uint64_t callback_end_usec;
+  uint64_t callback_elapsed_usec;
+  uint64_t callbacks_processed = 0;
+  uint64_t created_during_process;
+  int queue_depth_before;
+  int queue_depth_after;
 
   /* Safety check: ensure event_q is initialized */
   if (!event_q)
@@ -276,6 +300,8 @@ void event_process(void)
 
   /* Set flag to indicate we're processing events.
    * This prevents dangerous operations like queue_free() during processing. */
+  queue_depth_before = total_events;
+  events_created_during_process = 0;
   processing_events = 1;
 
   while ((long)pulse >= queue_key(event_q))
@@ -283,8 +309,7 @@ void event_process(void)
     if (!(the_event = (struct event *)queue_head(event_q)))
     {
       log("SYSERR: Attempt to get a NULL event");
-      processing_events = 0; /* CRITICAL: Must clear flag before returning! */
-      return;
+      break;
     }
 
     /* Set the_event->q_el to NULL so that any functions called beneath
@@ -323,8 +348,17 @@ void event_process(void)
       continue; /* Skip to next event */
     }
 
-    /* call event func, reenqueue event if retval > 0 */
-    if ((new_time = (the_event->func)(the_event->event_obj)) > 0)
+    /* Time only the callback so queue management remains outside its cost. */
+    callback_start_usec = PERF_monotonic_usec();
+    new_time = (the_event->func)(the_event->event_obj);
+    callback_end_usec = PERF_monotonic_usec();
+    callback_elapsed_usec =
+        callback_end_usec >= callback_start_usec ? callback_end_usec - callback_start_usec : 0;
+    PERF_note_event_callback(the_event->profile_index, callback_elapsed_usec);
+    callbacks_processed++;
+
+    /* Re-enqueue multi-use events when the callback requests another run. */
+    if (new_time > 0)
     {
       /* FIX FOR INTEGER OVERFLOW when re-queueing:
        * Same overflow check as in event_create() */
@@ -362,7 +396,11 @@ void event_process(void)
   }
 
   /* Clear the processing flag - safe to do bulk operations again */
+  queue_depth_after = total_events;
+  created_during_process = events_created_during_process;
   processing_events = 0;
+  PERF_note_event_process((uint64_t)queue_depth_before, (uint64_t)queue_depth_after,
+                          callbacks_processed, created_during_process);
 }
 
 /** Returns the time remaining before the event as how many pulses from now.

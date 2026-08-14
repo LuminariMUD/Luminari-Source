@@ -31,10 +31,12 @@
  * when their turn comes up in the queue. */
 struct event
 {
-  EVENTFUNC(*func);       /**< The function called when this event comes up. */
-  void *event_obj;        /**< event_obj is passed to func when func is called */
-  struct q_element *q_el; /**< Where this event is located in the queue */
-  bool isMudEvent;        /**< used by the memory routines */
+  EVENTFUNC(*func);               /**< The function called when this event comes up. */
+  void *event_obj;                /**< event_obj is passed to func when func is called */
+  struct q_element *q_el;         /**< Where this event is located in the queue */
+  void (*cancel_cleanup)(void *); /**< Optional cancellation/shutdown cleanup */
+  bool isMudEvent;                /**< used by the memory routines */
+  int profile_index;              /**< PERFMON event callback aggregate slot */
 };
 /**************************************************************************
  * End event structures and defines.
@@ -92,7 +94,10 @@ struct q_element
 
 /* - events - function protos needed by other modules */
 void event_init(void);
-struct event *event_create(EVENTFUNC(*func), void *event_obj, long when);
+struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
+                                 const char *profile_name);
+#define event_create(func, event_obj, when) event_create_named((func), (event_obj), (when), #func)
+void event_set_cancel_cleanup(struct event *event, void (*cleanup)(void *));
 void event_cancel(struct event *event);
 void event_process(void);
 long event_time(struct event *event);

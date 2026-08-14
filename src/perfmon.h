@@ -40,6 +40,41 @@ void PERF_note_missed_pulses(uint64_t count);
 void PERF_note_vessel_message_throttled(void);
 
 /**
+ * @brief Return the current monotonic clock value in microseconds
+ */
+uint64_t PERF_monotonic_usec(void);
+
+/**
+ * @brief Register one stable event callback identity for bounded telemetry
+ *
+ * @return Non-negative aggregate slot, or -1 when the registry is full
+ */
+int PERF_register_event_callback(const char *identity);
+
+/**
+ * @brief Record one completed event callback invocation
+ */
+void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec);
+
+/**
+ * @brief Record one event_process() queue pass
+ */
+void PERF_note_event_process(uint64_t depth_before, uint64_t depth_after,
+                             uint64_t callbacks_processed, uint64_t events_created);
+
+/**
+ * @brief Record pending-character extraction work completed by one call
+ */
+void PERF_note_pending_extractions(uint64_t pending_before, uint64_t processed,
+                                   uint64_t pending_after);
+
+/**
+ * @brief Record one slow-loop heartbeat recovery plan
+ */
+void PERF_note_catchup_pass(uint64_t requested_missed, uint64_t replayed_missed,
+                            uint64_t remaining_backlog, int budget_exhausted);
+
+/**
  * @brief Return missed heartbeats recorded since the last reset
  */
 uint64_t PERF_missed_pulse_count(void);

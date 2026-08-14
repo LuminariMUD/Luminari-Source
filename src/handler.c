@@ -38,6 +38,7 @@
 #include "wilderness/resource_depletion.h"
 #include "character/perks.h"
 #include "graph.h"
+#include "perfmon.h"
 
 /* local file scope variables */
 static int extractions_pending = 0;
@@ -3122,6 +3123,12 @@ void extract_char(struct char_data *ch)
 void extract_pending_chars(void)
 {
   struct char_data *vict, *next_vict, *prev_vict;
+  int pending_before;
+  int pending_after;
+  int processed;
+
+  pending_before = extractions_pending;
+  processed = 0;
 
   if (extractions_pending < 0)
     log("SYSERR: Negative (%d) extractions pending.", extractions_pending);
@@ -3143,6 +3150,7 @@ void extract_pending_chars(void)
 
     extract_char_final(vict);
     extractions_pending--;
+    processed++;
 
     if (prev_vict)
       prev_vict->next = next_vict;
@@ -3184,7 +3192,11 @@ void extract_pending_chars(void)
      * without decrementing extractions_pending */
   }
 
+  pending_after = extractions_pending;
   extractions_pending = 0;
+  PERF_note_pending_extractions(pending_before > 0 ? (uint64_t)pending_before : 0,
+                                (uint64_t)processed,
+                                pending_after > 0 ? (uint64_t)pending_after : 0);
 }
 
 /* Here follows high-level versions of some earlier routines, ie functions

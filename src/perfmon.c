@@ -19,9 +19,12 @@
  * CONSTANTS
  * ======================================================================== */
 
-#define MAX_PROF_SECTIONS 2000     /* Maximum number of profiling sections */
-#define USEC_PER_SEC 1000000       /* Microseconds per second */
-#define PROF_SAMPLE_CAPACITY 16384 /* Per-section rolling percentile window */
+#define MAX_PROF_SECTIONS 2000        /* Maximum number of profiling sections */
+#define USEC_PER_SEC 1000000          /* Microseconds per second */
+#define PROF_SAMPLE_CAPACITY 16384    /* Per-section rolling percentile window */
+#define EVENT_PROFILE_CAPACITY 512    /* Fixed callback identity registry */
+#define EVENT_PROFILE_NAME_SIZE 64    /* Includes terminating NUL */
+#define EVENT_PROFILE_REPORT_LIMIT 16 /* Maximum callback rows per report */
 
 /* Time hierarchy constants */
 #define PULSE_PER_SECOND (PERF_pulse_per_second)
@@ -82,6 +85,50 @@ struct PERF_prof_sect
   uint64_t samples_seen;
 };
 
+struct perf_event_callback
+{
+  char identity[EVENT_PROFILE_NAME_SIZE];
+  uint64_t pulse_calls;
+  uint64_t pulse_total_usec;
+  uint64_t pulse_max_usec;
+  uint64_t total_calls;
+  uint64_t total_usec;
+  uint64_t total_max_usec;
+};
+
+struct perf_event_process_stats
+{
+  uint64_t calls;
+  uint64_t callbacks_processed;
+  uint64_t events_created;
+  uint64_t initial_depth;
+  uint64_t latest_depth;
+  uint64_t max_depth_before;
+  uint64_t max_depth_after;
+};
+
+struct perf_extraction_stats
+{
+  uint64_t calls;
+  uint64_t pending_before;
+  uint64_t processed;
+  uint64_t pending_after;
+  uint64_t max_processed;
+  uint64_t max_pending_before;
+  uint64_t max_pending_after;
+};
+
+struct perf_catchup_stats
+{
+  uint64_t passes;
+  uint64_t budget_exhausted_passes;
+  uint64_t requested_missed;
+  uint64_t replayed_missed;
+  uint64_t remaining_backlog;
+  uint64_t max_requested_missed;
+  uint64_t max_remaining_backlog;
+};
+
 /* ========================================================================
  * GLOBAL STATE
  * ======================================================================== */
@@ -92,6 +139,15 @@ static uint64_t prof_reset_usec;
 static uint64_t logged_pulse_count;
 static uint64_t missed_pulse_count;
 static uint64_t vessel_message_throttled_count;
+static struct perf_event_callback event_profiles[EVENT_PROFILE_CAPACITY];
+static size_t event_profile_count;
+static struct perf_event_callback event_profile_overflow;
+static struct perf_event_process_stats pulse_event_process_stats;
+static struct perf_event_process_stats total_event_process_stats;
+static struct perf_extraction_stats pulse_extraction_stats;
+static struct perf_extraction_stats total_extraction_stats;
+static struct perf_catchup_stats pulse_catchup_stats;
+static struct perf_catchup_stats total_catchup_stats;
 
 /* Pulse performance tracking */
 static double last_pulse = 0.0;
@@ -122,6 +178,123 @@ static uint64_t monotonic_usec(void)
   }
 
   return ((uint64_t)now.tv_sec * USEC_PER_SEC) + ((uint64_t)now.tv_nsec / 1000);
+}
+
+uint64_t PERF_monotonic_usec(void)
+{
+  return monotonic_usec();
+}
+
+static uint64_t saturating_add_u64(uint64_t current, uint64_t addition)
+{
+  if (UINT64_MAX - current < addition)
+  {
+    return UINT64_MAX;
+  }
+  return current + addition;
+}
+
+static void copy_event_identity(char *destination, size_t capacity, const char *identity)
+{
+  size_t i;
+
+  if (destination == NULL || capacity == 0)
+  {
+    return;
+  }
+
+  if (identity == NULL || *identity == '\0')
+  {
+    identity = "unknown_event";
+  }
+
+  for (i = 0; i + 1 < capacity && identity[i] != '\0'; i++)
+  {
+    if (identity[i] == ',' || identity[i] == '\r' || identity[i] == '\n')
+      destination[i] = ' ';
+    else
+      destination[i] = identity[i];
+  }
+  destination[i] = '\0';
+}
+
+static void reset_event_callback_pulse_stats(void)
+{
+  size_t i;
+
+  for (i = 0; i < event_profile_count; i++)
+  {
+    event_profiles[i].pulse_calls = 0;
+    event_profiles[i].pulse_total_usec = 0;
+    event_profiles[i].pulse_max_usec = 0;
+  }
+  event_profile_overflow.pulse_calls = 0;
+  event_profile_overflow.pulse_total_usec = 0;
+  event_profile_overflow.pulse_max_usec = 0;
+}
+
+static void reset_event_callback_total_stats(void)
+{
+  size_t i;
+
+  for (i = 0; i < event_profile_count; i++)
+  {
+    event_profiles[i].total_calls = 0;
+    event_profiles[i].total_usec = 0;
+    event_profiles[i].total_max_usec = 0;
+  }
+  event_profile_overflow.total_calls = 0;
+  event_profile_overflow.total_usec = 0;
+  event_profile_overflow.total_max_usec = 0;
+}
+
+static void update_event_process_stats(struct perf_event_process_stats *stats,
+                                       uint64_t depth_before, uint64_t depth_after,
+                                       uint64_t callbacks_processed, uint64_t events_created)
+{
+  if (stats->calls == 0)
+  {
+    stats->initial_depth = depth_before;
+  }
+  stats->calls = saturating_add_u64(stats->calls, 1);
+  stats->callbacks_processed = saturating_add_u64(stats->callbacks_processed, callbacks_processed);
+  stats->events_created = saturating_add_u64(stats->events_created, events_created);
+  stats->latest_depth = depth_after;
+  if (depth_before > stats->max_depth_before)
+    stats->max_depth_before = depth_before;
+  if (depth_after > stats->max_depth_after)
+    stats->max_depth_after = depth_after;
+}
+
+static void update_extraction_stats(struct perf_extraction_stats *stats, uint64_t pending_before,
+                                    uint64_t processed, uint64_t pending_after)
+{
+  stats->calls = saturating_add_u64(stats->calls, 1);
+  stats->pending_before = saturating_add_u64(stats->pending_before, pending_before);
+  stats->processed = saturating_add_u64(stats->processed, processed);
+  stats->pending_after = saturating_add_u64(stats->pending_after, pending_after);
+  if (processed > stats->max_processed)
+    stats->max_processed = processed;
+  if (pending_before > stats->max_pending_before)
+    stats->max_pending_before = pending_before;
+  if (pending_after > stats->max_pending_after)
+    stats->max_pending_after = pending_after;
+}
+
+static void update_catchup_stats(struct perf_catchup_stats *stats, uint64_t requested_missed,
+                                 uint64_t replayed_missed, uint64_t remaining_backlog,
+                                 int budget_exhausted)
+{
+  stats->passes = saturating_add_u64(stats->passes, 1);
+  if (budget_exhausted)
+    stats->budget_exhausted_passes = saturating_add_u64(stats->budget_exhausted_passes, 1);
+  stats->requested_missed = saturating_add_u64(stats->requested_missed, requested_missed);
+  stats->replayed_missed = saturating_add_u64(stats->replayed_missed, replayed_missed);
+  stats->remaining_backlog = saturating_add_u64(stats->remaining_backlog, remaining_backlog);
+  if (requested_missed > stats->max_requested_missed)
+    stats->max_requested_missed = requested_missed;
+  if (remaining_backlog > stats->max_remaining_backlog)
+    stats->max_remaining_backlog = remaining_backlog;
 }
 
 /* Convert snprintf()'s attempted length to the length actually stored. */
@@ -421,6 +594,14 @@ void PERF_reset(void)
   logged_pulse_count = 0;
   missed_pulse_count = 0;
   vessel_message_throttled_count = 0;
+  reset_event_callback_pulse_stats();
+  reset_event_callback_total_stats();
+  memset(&pulse_event_process_stats, 0, sizeof(pulse_event_process_stats));
+  memset(&total_event_process_stats, 0, sizeof(total_event_process_stats));
+  memset(&pulse_extraction_stats, 0, sizeof(pulse_extraction_stats));
+  memset(&total_extraction_stats, 0, sizeof(total_extraction_stats));
+  memset(&pulse_catchup_stats, 0, sizeof(pulse_catchup_stats));
+  memset(&total_catchup_stats, 0, sizeof(total_catchup_stats));
 
   threshold_count = sizeof(thresholds) / sizeof(thresholds[0]);
   for (i = 0; (size_t)i < threshold_count; i++)
@@ -491,6 +672,76 @@ void PERF_note_vessel_message_throttled(void)
   {
     vessel_message_throttled_count++;
   }
+}
+
+int PERF_register_event_callback(const char *identity)
+{
+  char normalized_identity[EVENT_PROFILE_NAME_SIZE];
+  size_t i;
+
+  ensure_initialized();
+  copy_event_identity(normalized_identity, sizeof(normalized_identity), identity);
+  for (i = 0; i < event_profile_count; i++)
+  {
+    if (strcmp(event_profiles[i].identity, normalized_identity) == 0)
+    {
+      return (int)i;
+    }
+  }
+
+  if (event_profile_count >= EVENT_PROFILE_CAPACITY)
+  {
+    return -1;
+  }
+
+  copy_event_identity(event_profiles[event_profile_count].identity,
+                      sizeof(event_profiles[event_profile_count].identity), normalized_identity);
+  event_profile_count++;
+  return (int)(event_profile_count - 1);
+}
+
+void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec)
+{
+  struct perf_event_callback *profile;
+
+  if (profile_index < 0 || (size_t)profile_index >= event_profile_count)
+    profile = &event_profile_overflow;
+  else
+    profile = &event_profiles[profile_index];
+
+  profile->pulse_calls = saturating_add_u64(profile->pulse_calls, 1);
+  profile->pulse_total_usec = saturating_add_u64(profile->pulse_total_usec, elapsed_usec);
+  profile->total_calls = saturating_add_u64(profile->total_calls, 1);
+  profile->total_usec = saturating_add_u64(profile->total_usec, elapsed_usec);
+  if (elapsed_usec > profile->pulse_max_usec)
+    profile->pulse_max_usec = elapsed_usec;
+  if (elapsed_usec > profile->total_max_usec)
+    profile->total_max_usec = elapsed_usec;
+}
+
+void PERF_note_event_process(uint64_t depth_before, uint64_t depth_after,
+                             uint64_t callbacks_processed, uint64_t events_created)
+{
+  update_event_process_stats(&pulse_event_process_stats, depth_before, depth_after,
+                             callbacks_processed, events_created);
+  update_event_process_stats(&total_event_process_stats, depth_before, depth_after,
+                             callbacks_processed, events_created);
+}
+
+void PERF_note_pending_extractions(uint64_t pending_before, uint64_t processed,
+                                   uint64_t pending_after)
+{
+  update_extraction_stats(&pulse_extraction_stats, pending_before, processed, pending_after);
+  update_extraction_stats(&total_extraction_stats, pending_before, processed, pending_after);
+}
+
+void PERF_note_catchup_pass(uint64_t requested_missed, uint64_t replayed_missed,
+                            uint64_t remaining_backlog, int budget_exhausted)
+{
+  update_catchup_stats(&pulse_catchup_stats, requested_missed, replayed_missed, remaining_backlog,
+                       budget_exhausted);
+  update_catchup_stats(&total_catchup_stats, requested_missed, replayed_missed, remaining_backlog,
+                       budget_exhausted);
 }
 
 uint64_t PERF_missed_pulse_count(void)
@@ -685,6 +936,10 @@ void PERF_prof_reset(void)
     sect->pulse_total_usec = 0;
     sect->pulse_max_usec = 0;
   }
+  reset_event_callback_pulse_stats();
+  memset(&pulse_event_process_stats, 0, sizeof(pulse_event_process_stats));
+  memset(&pulse_extraction_stats, 0, sizeof(pulse_extraction_stats));
+  memset(&pulse_catchup_stats, 0, sizeof(pulse_catchup_stats));
 }
 
 /* Helper function to format a profiling section */
@@ -753,6 +1008,233 @@ static size_t format_prof_section(char *buf, size_t n, const struct PERF_prof_se
   }
 }
 
+static uint64_t event_profile_score(size_t index, int is_total)
+{
+  if (is_total)
+    return event_profiles[index].total_usec;
+  return event_profiles[index].pulse_total_usec;
+}
+
+static uint64_t event_profile_calls(size_t index, int is_total)
+{
+  if (is_total)
+    return event_profiles[index].total_calls;
+  return event_profiles[index].pulse_calls;
+}
+
+static size_t collect_top_event_profiles(size_t *top_indices, int is_total)
+{
+  uint64_t score;
+  size_t top_count = 0;
+  size_t i;
+  size_t j;
+  size_t position;
+
+  for (i = 0; i < event_profile_count; i++)
+  {
+    if (event_profile_calls(i, is_total) == 0)
+      continue;
+
+    score = event_profile_score(i, is_total);
+    position = 0;
+    while (position < top_count && event_profile_score(top_indices[position], is_total) >= score)
+      position++;
+
+    if (position >= EVENT_PROFILE_REPORT_LIMIT)
+      continue;
+    if (top_count < EVENT_PROFILE_REPORT_LIMIT)
+      top_count++;
+    for (j = top_count - 1; j > position; j--)
+      top_indices[j] = top_indices[j - 1];
+    top_indices[position] = i;
+  }
+
+  return top_count;
+}
+
+static size_t format_event_telemetry(char *buf, size_t n, int is_total)
+{
+  const struct perf_event_process_stats *process_stats;
+  const struct perf_extraction_stats *extraction_stats;
+  const struct perf_catchup_stats *catchup_stats;
+  const struct perf_event_callback *profile;
+  size_t top_indices[EVENT_PROFILE_REPORT_LIMIT];
+  size_t top_count;
+  size_t written;
+  size_t i;
+  double average;
+
+  if (buf == NULL || n == 0)
+    return 0;
+
+  if (is_total)
+  {
+    process_stats = &total_event_process_stats;
+    extraction_stats = &total_extraction_stats;
+    catchup_stats = &total_catchup_stats;
+  }
+  else
+  {
+    process_stats = &pulse_event_process_stats;
+    extraction_stats = &pulse_extraction_stats;
+    catchup_stats = &pulse_catchup_stats;
+  }
+
+  written = bounded_format_length(
+      snprintf(buf, n,
+               "\n\r%s game-loop telemetry\n\r"
+               "Event queue: calls=%" PRIu64 " callbacks=%" PRIu64 " created=%" PRIu64
+               " depth=%" PRIu64 "->%" PRIu64 " max_before=%" PRIu64 " max_after=%" PRIu64 "\n\r"
+               "Extractions: calls=%" PRIu64 " pending_before=%" PRIu64 " processed=%" PRIu64
+               " pending_after=%" PRIu64 " max_processed=%" PRIu64 " max_pending_before=%" PRIu64
+               " max_pending_after=%" PRIu64 "\n\r"
+               "Catch-up: passes=%" PRIu64 " budget_exhausted=%" PRIu64 " requested_missed=%" PRIu64
+               " replayed_missed=%" PRIu64 " remaining_backlog=%" PRIu64 " max_requested=%" PRIu64
+               " max_remaining=%" PRIu64 "\n\r",
+               is_total ? "Cumulative" : "Pulse", process_stats->calls,
+               process_stats->callbacks_processed, process_stats->events_created,
+               process_stats->initial_depth, process_stats->latest_depth,
+               process_stats->max_depth_before, process_stats->max_depth_after,
+               extraction_stats->calls, extraction_stats->pending_before,
+               extraction_stats->processed, extraction_stats->pending_after,
+               extraction_stats->max_processed, extraction_stats->max_pending_before,
+               extraction_stats->max_pending_after, catchup_stats->passes,
+               catchup_stats->budget_exhausted_passes, catchup_stats->requested_missed,
+               catchup_stats->replayed_missed, catchup_stats->remaining_backlog,
+               catchup_stats->max_requested_missed, catchup_stats->max_remaining_backlog),
+      n);
+
+  if (written >= n - 1)
+    return written;
+
+  written += bounded_format_length(
+      snprintf(
+          buf + written, n - written,
+          "Event callbacks (top %d by total time)\n\r"
+          "Identity                            |    Calls|  Total usec|  Avg usec|  Max usec\n\r"
+          "-----------------------------------------------------------------------------------\n\r",
+          EVENT_PROFILE_REPORT_LIMIT),
+      n - written);
+
+  top_count = collect_top_event_profiles(top_indices, is_total);
+  for (i = 0; i < top_count && written < n - 1; i++)
+  {
+    profile = &event_profiles[top_indices[i]];
+    if (is_total)
+    {
+      average = profile->total_calls > 0
+                    ? (double)profile->total_usec / (double)profile->total_calls
+                    : 0.0;
+      written += bounded_format_length(
+          snprintf(buf + written, n - written,
+                   "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%10" PRIu64 "\n\r",
+                   profile->identity, profile->total_calls, profile->total_usec, average,
+                   profile->total_max_usec),
+          n - written);
+    }
+    else
+    {
+      average = profile->pulse_calls > 0
+                    ? (double)profile->pulse_total_usec / (double)profile->pulse_calls
+                    : 0.0;
+      written += bounded_format_length(
+          snprintf(buf + written, n - written,
+                   "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%10" PRIu64 "\n\r",
+                   profile->identity, profile->pulse_calls, profile->pulse_total_usec, average,
+                   profile->pulse_max_usec),
+          n - written);
+    }
+  }
+
+  profile = &event_profile_overflow;
+  if (written < n - 1 &&
+      ((is_total && profile->total_calls > 0) || (!is_total && profile->pulse_calls > 0)))
+  {
+    uint64_t calls;
+    uint64_t total_usec;
+    uint64_t max_usec;
+
+    calls = is_total ? profile->total_calls : profile->pulse_calls;
+    total_usec = is_total ? profile->total_usec : profile->pulse_total_usec;
+    max_usec = is_total ? profile->total_max_usec : profile->pulse_max_usec;
+    average = calls > 0 ? (double)total_usec / (double)calls : 0.0;
+    written += bounded_format_length(
+        snprintf(buf + written, n - written,
+                 "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%10" PRIu64 "\n\r",
+                 "[unregistered overflow]", calls, total_usec, average, max_usec),
+        n - written);
+  }
+
+  return written;
+}
+
+static size_t format_event_telemetry_csv(char *buf, size_t n)
+{
+  const struct perf_event_callback *profile;
+  size_t top_indices[EVENT_PROFILE_REPORT_LIMIT];
+  size_t top_count;
+  size_t written;
+  size_t i;
+  double average;
+
+  if (buf == NULL || n == 0)
+    return 0;
+
+  written = bounded_format_length(
+      snprintf(buf, n,
+               "# event_process_calls=%" PRIu64 "\n\r"
+               "# event_callbacks_processed=%" PRIu64 "\n\r"
+               "# events_created_during_processing=%" PRIu64 "\n\r"
+               "# event_queue_depth_initial=%" PRIu64 "\n\r"
+               "# event_queue_depth_latest=%" PRIu64 "\n\r"
+               "# event_queue_depth_max_before=%" PRIu64 "\n\r"
+               "# event_queue_depth_max_after=%" PRIu64 "\n\r"
+               "# extraction_calls=%" PRIu64 "\n\r"
+               "# extractions_pending_before=%" PRIu64 "\n\r"
+               "# extractions_processed=%" PRIu64 "\n\r"
+               "# extractions_pending_after=%" PRIu64 "\n\r"
+               "# max_extractions_per_call=%" PRIu64 "\n\r"
+               "# max_extractions_pending_before=%" PRIu64 "\n\r"
+               "# max_extractions_pending_after=%" PRIu64 "\n\r"
+               "# catchup_passes=%" PRIu64 "\n\r"
+               "# catchup_budget_exhausted_passes=%" PRIu64 "\n\r"
+               "# catchup_requested_missed=%" PRIu64 "\n\r"
+               "# catchup_replayed_missed=%" PRIu64 "\n\r"
+               "# catchup_remaining_backlog=%" PRIu64 "\n\r",
+               total_event_process_stats.calls, total_event_process_stats.callbacks_processed,
+               total_event_process_stats.events_created, total_event_process_stats.initial_depth,
+               total_event_process_stats.latest_depth, total_event_process_stats.max_depth_before,
+               total_event_process_stats.max_depth_after, total_extraction_stats.calls,
+               total_extraction_stats.pending_before, total_extraction_stats.processed,
+               total_extraction_stats.pending_after, total_extraction_stats.max_processed,
+               total_extraction_stats.max_pending_before, total_extraction_stats.max_pending_after,
+               total_catchup_stats.passes, total_catchup_stats.budget_exhausted_passes,
+               total_catchup_stats.requested_missed, total_catchup_stats.replayed_missed,
+               total_catchup_stats.remaining_backlog),
+      n);
+  if (written >= n - 1)
+    return written;
+
+  written +=
+      bounded_format_length(snprintf(buf + written, n - written,
+                                     "event_identity,calls,total_usec,average_usec,max_usec\n\r"),
+                            n - written);
+  top_count = collect_top_event_profiles(top_indices, 1);
+  for (i = 0; i < top_count && written < n - 1; i++)
+  {
+    profile = &event_profiles[top_indices[i]];
+    average =
+        profile->total_calls > 0 ? (double)profile->total_usec / (double)profile->total_calls : 0.0;
+    written += bounded_format_length(
+        snprintf(buf + written, n - written, "%s,%" PRIu64 ",%" PRIu64 ",%.2f,%" PRIu64 "\n\r",
+                 profile->identity, profile->total_calls, profile->total_usec, average,
+                 profile->total_max_usec),
+        n - written);
+  }
+
+  return written;
+}
+
 size_t PERF_prof_repr_pulse(char *out_buf, size_t n)
 {
   size_t written = 0;
@@ -775,6 +1257,9 @@ size_t PERF_prof_repr_pulse(char *out_buf, size_t n)
   {
     written += format_prof_section(out_buf + written, n - written, prof_sections[i], 0);
   }
+
+  if (written < n - 1)
+    written += format_event_telemetry(out_buf + written, n - written, 0);
 
   return written;
 }
@@ -803,6 +1288,9 @@ size_t PERF_prof_repr_total(char *out_buf, size_t n)
   {
     written += format_prof_section(out_buf + written, n - written, prof_sections[i], 1);
   }
+
+  if (written < n - 1)
+    written += format_event_telemetry(out_buf + written, n - written, 1);
 
   return written;
 }
@@ -921,6 +1409,8 @@ size_t PERF_prof_repr_csv(char *out_buf, size_t n)
                                               vessel_message_throttled_count),
                                      n - written);
   }
+  if (written < n - 1)
+    written += format_event_telemetry_csv(out_buf + written, n - written);
 
   return written;
 }
@@ -942,5 +1432,14 @@ void PERF_cleanup(void)
   }
 
   prof_section_count = 0;
+  memset(event_profiles, 0, sizeof(event_profiles));
+  memset(&event_profile_overflow, 0, sizeof(event_profile_overflow));
+  event_profile_count = 0;
+  memset(&pulse_event_process_stats, 0, sizeof(pulse_event_process_stats));
+  memset(&total_event_process_stats, 0, sizeof(total_event_process_stats));
+  memset(&pulse_extraction_stats, 0, sizeof(pulse_extraction_stats));
+  memset(&total_extraction_stats, 0, sizeof(total_extraction_stats));
+  memset(&pulse_catchup_stats, 0, sizeof(pulse_catchup_stats));
+  memset(&total_catchup_stats, 0, sizeof(total_catchup_stats));
   initialized = 0;
 }
