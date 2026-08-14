@@ -105,6 +105,28 @@ void autopilot_cleanup(struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Release all heap-owned vessel navigation state during server shutdown.
+ * The event queue must be drained before this function is called.
+ */
+void vessel_navigation_shutdown(void)
+{
+  int i;
+
+  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  {
+    autopilot_cleanup(&greyhawk_ships[i]);
+    if (greyhawk_ships[i].schedule != NULL)
+    {
+      free(greyhawk_ships[i].schedule);
+      greyhawk_ships[i].schedule = NULL;
+    }
+  }
+
+  route_cache_clear();
+  waypoint_cache_clear();
+}
+
+/**
  * Start autopilot navigation on a route.
  *
  * @param ship The ship to start autopilot for

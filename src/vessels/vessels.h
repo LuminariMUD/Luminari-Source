@@ -1600,6 +1600,7 @@ char vessel_tactical_contact_symbol(int status, int contact_count);
 /* Autopilot Lifecycle Functions */
 struct autopilot_data *autopilot_init(struct greyhawk_ship_data *ship);
 void autopilot_cleanup(struct greyhawk_ship_data *ship);
+void vessel_navigation_shutdown(void);
 int autopilot_start(struct greyhawk_ship_data *ship, struct ship_route *route);
 int autopilot_stop(struct greyhawk_ship_data *ship);
 int autopilot_pause(struct greyhawk_ship_data *ship);

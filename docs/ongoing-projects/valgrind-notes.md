@@ -270,3 +270,159 @@ Mini bootstrap evidence:
 
 - `log/valgrind/live-20260814T095821Z-mini/`
 - `log/valgrind/live-20260814T100030Z-mini/`
+
+## Follow-up remediation and verification - 2026-08-14
+
+The findings above were remediated after the observation run. The user then requested a graceful,
+shortened verification pass instead of another full 10-minute observation. The follow-up used
+commit `c3202a5dd80e5da9f07cc550ef509cc1fb9760b0` plus the uncommitted changes listed below. This was
+still the local development environment; no remote production host was accessed or changed.
+
+### Resolution matrix
+
+- **`mag_unaffects` use-after-free - resolved.** Removal-safe traversal now restarts from the live
+  affect list after `affect_from_char` can remove a spell group. Production-linked tests cover
+  adjacent matching and non-matching affects, multiple nodes from one spell, and
+  lesser-restoration behavior.
+- **Object-event shutdown use-after-free - resolved.** `event_free_all()` now runs before
+  character, object, room, and region owners are destroyed. The ownership regression test confirms
+  that global event cleanup detaches a live object owner.
+- **Wilderness room name/description loss - resolved.** Wilderness default strings have explicit
+  static ownership, while replaced heap strings are released during reassignment and world
+  teardown.
+- **Perk definition loss - resolved.** Undefined slots share static defaults and `destroy_perks()`
+  releases owned strings and clears the table.
+- **Room/object trap loss - resolved.** World teardown frees room trap lists and `free_obj()`
+  releases embedded object traps.
+- **Saved/house object loss - resolved.** Saved-object special-ability replacement frees the
+  previous ability chain, validates the record, and consistently owns the replacement command
+  word.
+- **Vessel route loss - resolved.** A successful autopilot start transfers route ownership to the
+  autopilot; cleanup destroys it. Global vessel-navigation shutdown also frees schedules,
+  autopilots, and route/waypoint caches and is idempotence-tested.
+- **Other definite and reachable shutdown loss - resolved for reported sources.** Shutdown now
+  releases perks, supply slots, empty craft requirement lists, help data, region/path tables,
+  performance buffers, MySQL results/pool/library state, and vessel navigation state.
+- **MariaDB and mini-index descriptors - resolved.** Normal shutdown destroys the connection pool
+  and ends the initialized client library. `index_boot()` closes consumed index streams and treats
+  missing mini-only optional indexes as empty.
+- **Mud-event enum/registry mismatch - resolved.** A count sentinel, missing dragon cooldown entry,
+  and compile-time static assertion keep the enum and registry aligned. The root test suite verifies
+  the count and final entry.
+- **Object UID miss flood - resolved.** Expected low-level lookup misses no longer log
+  individually; actionable higher-level failures retain context.
+- **RoL Command Sentinel mobile-activity rejection - resolved.** The typed contract explicitly
+  accepts the mobile-activity notification and leaves command behavior unchanged.
+- **Mob echo capacity diagnostics - resolved.** `MAX_MOB_ECHOES` is now 32, covering the observed
+  authored data.
+- **Daily-use NULL-variable diagnostics - resolved.** Correcting event-registry alignment prevents
+  the event-ID misrouting that produced these messages.
+- **Zone 20199, object 15802, and equipment 120602 diagnostics - resolved locally.** Three ignored
+  zone files were corrected as detailed below; a full-world reset emitted none of the targeted
+  messages.
+
+The post-fix mini Memcheck run reported zero definitely lost, indirectly lost, or possibly lost
+bytes. That result covers the reported loss sources as a group rather than relying only on code
+inspection of each allocation path.
+
+### Additional shutdown findings caught during follow-up
+
+The first post-fix full-world native smoke reached the game loop, but its SIGTERM teardown exposed
+one more owner-lifecycle defect:
+
+```text
+SYSERR: queue_deq called with NULL queue
+SYSERR: Event counter went negative! This indicates a serious bug.
+corrupted size vs. prev_size in fastbins
+```
+
+GDB traced the path through `event_cancel()` -> `extract_trigger()` -> `extract_script()` ->
+`free_char()`. Bulk event teardown had freed a DG trigger wait event and its payload without
+clearing `GET_TRIG_WAIT(trigger)`. Later trigger destruction tried to cancel that stale event after
+the global queue was gone.
+
+The event API now supports an optional cancellation/bulk-cleanup hook. DG wait-event cleanup uses
+it to detach the trigger owner before freeing the wait payload; normal event completion remains the
+event function's responsibility. A regression test verifies that bulk cleanup invokes a custom
+destructor exactly once and clears its owner. The final full-world smoke then shut down normally
+with exit status 0 and no queue, counter, or allocator diagnostic.
+
+The follow-up also found that live global vessel slots retained autopilots, schedules, and cached
+navigation data at shutdown. `vessel_navigation_shutdown()` now releases those resources after
+the event queue is drained and before vessel-owning characters are freed.
+
+### Local ignored world-data corrections
+
+The zone files are ignored by `.gitignore`, so these changes do not appear in `git status` and are
+not included in a normal source commit or push:
+
+- `lib/world/zon/20199.zon`: changed the first door reset from `D 1` to `D 0`, removing an
+  impossible backward conditional dependency.
+- `lib/world/zon/1204.zon`: changed the affected object 120602 equipment reset from `E 0` to
+  `E 1`, so it only runs when its preceding mobile load succeeds.
+- `lib/world/zon/158.zon`: removed the reset that attempted to load nonexistent object 15802.
+  The zone's object file defines 15800 and 15801; 15802 is not an object prototype.
+
+These local corrections need to be propagated through the project's world-data distribution
+mechanism if they are required outside this development checkout.
+
+### Final verification results
+
+The installed follow-up executable was:
+
+```text
+Git commit:   c3202a5dd80e5da9f07cc550ef509cc1fb9760b0
+Git dirty:    1
+ELF build ID: 67acd70fd54c45dd558c7ee45e5f2dadc08d23e6
+SHA-256:      4c593477258bd2dc31a9c6642b12cc33e02d206e7adc08ddecb047b4d3a2ad2e
+```
+
+Verification completed successfully:
+
+- The warning-enabled GNU C23 production build completed without compiler warnings.
+- `make test` passed every shell regression and the production-linked suite: `OK (708 tests)`.
+- The focused protocol parser harness passed: `OK (29 tests)`.
+- `make install` activated the versioned binary above and removed the root `circle` artifact.
+- A full-world native `-q -s` smoke booted from 14:32:48 to the game loop at 14:33:13 IDT,
+  reset all zones, and exited normally on SIGTERM at 14:33:17.
+- The final mini-world Memcheck entered the game loop, remained live for 10 seconds, and completed
+  the normal SIGTERM cleanup path in 20.656 seconds total.
+
+The full-world smoke contained none of the targeted registry, UID, Sentinel, echo-cap, daily-use,
+zone 20199, object 15802, or object 120602 diagnostics. Its shutdown ended with route and waypoint
+cache cleanup, performance and MySQL cleanup, and `Done.`
+
+The final mini-world Memcheck summary was:
+
+| Metric | Final mini world |
+|---|---:|
+| Heap allocations | 55,745 |
+| Heap frees | 50,130 |
+| Cumulative bytes allocated | 12,425,552 |
+| Definitely lost | 0 bytes / 0 blocks |
+| Indirectly lost | 0 bytes / 0 blocks |
+| Possibly lost | 0 bytes / 0 blocks |
+| Still reachable | 170,864 bytes / 5,615 blocks |
+| Open descriptors | 4 total / 3 standard |
+| Error summary | 5,565 errors / 5,565 contexts |
+
+No invalid read, invalid write, invalid free, mismatched free, uninitialized-value, or conditional-
+jump diagnostic was present. As in the original report, `--errors-for-leak-kinds=all` makes the
+error summary count every reported still-reachable context. The remaining 170,864 bytes are
+reachable global definition data, dominated by spell, weapon, and race registration strings;
+they are not definite or possible losses. The only descriptor beyond the three standard streams
+was Memcheck's own log. No MariaDB socket or mini-index stream remained open.
+
+After verification, no process from this checkout and no listener on ports 4100, 4101, 8181, or
+8182 remained.
+
+### Follow-up evidence paths
+
+- First clean post-fix mini Memcheck:
+  `log/valgrind/postfix-20260814T112036Z-mini/`
+- Full-world smoke that exposed the DG wait-event shutdown defect:
+  `log/valgrind/postfix-20260814T112226Z-full-smoke/`
+- Final clean full-world native smoke:
+  `log/valgrind/postfix-20260814T113300Z-full-smoke/game.log`
+- Final clean mini-world Memcheck:
+  `log/valgrind/postfix-20260814T113500Z-mini-final/`

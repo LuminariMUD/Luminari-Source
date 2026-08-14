@@ -27,14 +27,20 @@
 /** All Functions handled by the event system must be of this format. */
 #define EVENTFUNC(name) long(name)(void *event_obj __attribute__((unused)))
 
+struct event;
+
+/** Optional cleanup invoked when a queued event is canceled or freed in bulk. */
+typedef void (*event_cleanup_func)(struct event *event);
+
 /** The event structure. Events get attached to the queue and are executed
  * when their turn comes up in the queue. */
 struct event
 {
-  EVENTFUNC(*func);       /**< The function called when this event comes up. */
-  void *event_obj;        /**< event_obj is passed to func when func is called */
-  struct q_element *q_el; /**< Where this event is located in the queue */
-  bool isMudEvent;        /**< used by the memory routines */
+  EVENTFUNC(*func);           /**< The function called when this event comes up. */
+  void *event_obj;            /**< event_obj is passed to func when func is called */
+  struct q_element *q_el;     /**< Where this event is located in the queue */
+  bool isMudEvent;            /**< used by the memory routines */
+  event_cleanup_func cleanup; /**< Optional cancellation and bulk cleanup hook. */
 };
 /**************************************************************************
  * End event structures and defines.
@@ -93,6 +99,8 @@ struct q_element
 /* - events - function protos needed by other modules */
 void event_init(void);
 struct event *event_create(EVENTFUNC(*func), void *event_obj, long when);
+struct event *event_create_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
+                                        event_cleanup_func cleanup);
 void event_cancel(struct event *event);
 void event_process(void);
 long event_time(struct event *event);

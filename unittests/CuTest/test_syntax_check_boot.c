@@ -20,6 +20,27 @@ int luminari_main(int argc, char **argv);
 #define SYNTAX_CHECK_DEFAULT_TIMEOUT_SECONDS 60U
 #define SYNTAX_CHECK_MAX_TIMEOUT_SECONDS 600UL
 
+struct event_cleanup_test_data
+{
+  struct event **owner;
+  int *cleanup_calls;
+};
+
+static EVENTFUNC(event_cleanup_test_callback)
+{
+  return 0;
+}
+
+static void event_cleanup_test_destructor(struct event *event)
+{
+  struct event_cleanup_test_data *data;
+
+  data = (struct event_cleanup_test_data *)event->event_obj;
+  *data->owner = NULL;
+  (*data->cleanup_calls)++;
+  free(data);
+}
+
 static const char *syntax_check_test_root(void)
 {
   const char *root;
@@ -89,6 +110,31 @@ void Test_global_event_cleanup_detaches_live_object_owner(CuTest *tc)
   event_free_all();
 
   CuAssertPtrEquals(tc, NULL, obj.events);
+}
+
+void Test_global_event_cleanup_invokes_custom_destructor(CuTest *tc)
+{
+  struct event_cleanup_test_data *data;
+  struct event *owner;
+  int cleanup_calls;
+
+  owner = NULL;
+  cleanup_calls = 0;
+  event_free_all();
+  event_init();
+
+  data = malloc(sizeof(*data));
+  CuAssertPtrNotNull(tc, data);
+  data->owner = &owner;
+  data->cleanup_calls = &cleanup_calls;
+  owner = event_create_with_cleanup(event_cleanup_test_callback, data, 100,
+                                    event_cleanup_test_destructor);
+  CuAssertPtrNotNull(tc, owner);
+
+  event_free_all();
+
+  CuAssertPtrEquals(tc, NULL, owner);
+  CuAssertIntEquals(tc, 1, cleanup_calls);
 }
 
 void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)

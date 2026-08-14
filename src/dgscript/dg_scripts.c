@@ -73,6 +73,7 @@ static struct cmdlist_element *find_done(struct cmdlist_element *cl);
 static struct char_data *find_char_by_uid_in_lookup_table(long uid);
 static struct obj_data *find_obj_by_uid_in_lookup_table(long uid);
 static EVENTFUNC(trig_wait_event);
+static void cleanup_trig_wait_event(struct event *event);
 
 /* Return pointer to first occurrence of string ct in cs, or NULL if not
  * present.  Case insensitive. All of ct must be found in cs for it to be
@@ -815,6 +816,20 @@ static EVENTFUNC(trig_wait_event)
 
   /* Do not reenqueue*/
   return 0;
+}
+
+static void cleanup_trig_wait_event(struct event *event)
+{
+  struct wait_event_data *wait_event_obj;
+
+  if (event == NULL || event->event_obj == NULL)
+    return;
+
+  wait_event_obj = (struct wait_event_data *)event->event_obj;
+  if (wait_event_obj->trigger != NULL && GET_TRIG_WAIT(wait_event_obj->trigger) == event)
+    GET_TRIG_WAIT(wait_event_obj->trigger) = NULL;
+
+  free(wait_event_obj);
 }
 
 static void do_stat_trigger(struct char_data *ch, trig_data *trig)
@@ -1876,7 +1891,14 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
   wait_event_obj->go = go;
   wait_event_obj->type = type;
 
-  GET_TRIG_WAIT(trig) = event_create(trig_wait_event, wait_event_obj, when);
+  GET_TRIG_WAIT(trig) =
+      event_create_with_cleanup(trig_wait_event, wait_event_obj, when, cleanup_trig_wait_event);
+  if (GET_TRIG_WAIT(trig) == NULL)
+  {
+    free(wait_event_obj);
+    return;
+  }
+
   trig->curr_state = cl->next;
 }
 
