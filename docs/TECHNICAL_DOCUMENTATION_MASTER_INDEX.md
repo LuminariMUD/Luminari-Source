@@ -1,6 +1,6 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2026-08-11
+Last Updated: 2026-08-14
 Version: 1.4
 
 ## Documentation Overview
@@ -153,7 +153,9 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[Builder Quickstart](world_game-data/BUILDER_QUICKSTART.md)** - One zone from empty to bootable; start here
 - **[Builder's Manual](world_game-data/builder_manual.md)** - Overview of building tools and processes
 - **[OLC SpecProc Editing](guides/OLC_SpecProcs.md)** - Owner-aware selection, authored persistence, `specbind` diagnostics, and moving-room safety
-- **[World Validator CLI](utilities/WORLD_VALIDATOR_CLI.md)** - World parsing, validation, typed lookup, RoL inventory, discovery, action planning, Phase 3 no-clobber staging, Phase 4 pilot selection, flags, and documentation checks
+- **[World Validator CLI](utilities/WORLD_VALIDATOR_CLI.md)** - World parsing,
+  validation, typed lookup, and the completed RoL reconciliation, canonical
+  rebase, release, and maintenance pipeline
 - **[ultimate-mud-writing-guide.md](guides/ultimate-mud-writing-guide.md)** - Writing compelling MUD content
 
 ### World File Formats
@@ -163,7 +165,8 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[High-Level Quest File Format](world_game-data/HLQUEST_FILE_FORMAT.md)** - `.hlq` host entries, command legality, bounds, references, and runtime order
 - **[OEDIT Guide](world_game-data/OEDIT_GUIDE.md)** - Object editor, item types, wear slots, and the object value vectors
 - **[Room Flags](world_game-data/ROOM_FLAGS.md)** - All 48 room flags
-- **[Mobile Flags](world_game-data/MOB_FLAGS.md)** - All 105 mobile action flags
+- **[Mobile Flags](world_game-data/MOB_FLAGS.md)** - All 126 mobile action flags,
+  including converter-owned RoL compatibility flags
 
 ### Equipment & Items
 - **[CRAFTING_SYSTEM_NOTES.md](world_game-data/CRAFTING_SYSTEM_NOTES.md)** - Crafting system design notes (partial; verify against `src/craft/`)

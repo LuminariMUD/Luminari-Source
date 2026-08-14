@@ -23,6 +23,41 @@
   tests, 699 production-linked CuTests, install, syntax boot, bounded database runtime
   boot, zero converted-zone diagnostic, and zero-write repeat application all passed.
 
+### Realms of Luminari Phase 6.5 canonical VNUM rebase
+
+#### Added
+
+- Added the universal canonical resolver: normalized source zones map to source VNUM
+  plus 20000, while typed room, mobile, and object identities map to source VNUM plus
+  2000000. The malformed `mytheast` source header is explicitly normalized to zone
+  20817 and entities 2081700-2081899.
+- Added typed rehome, reverse-reference, persistent-consumer, and completion ledgers,
+  plus transactional and idempotent migration for affected saved objects, artifact
+  state, and database bindings.
+
+#### Changed
+
+- Rehomed Trail, Hulburg, and Jotunheim to zones 20507, 20591, and 20960, rewrote
+  8,768 world references, and retired their legacy definitions without aliases.
+- Rehomed the first-wave artifacts from 169901-169910 to direct canonical identities,
+  restored the distinct second Kelrarin object at 2001009, and preserved unique
+  ownership and progression state.
+- Migrated 112 player/house object files, 18 artifact-state rows, and 1,512 development
+  database rows; final audits found no persistent reference to a retired identity.
+- Retired the completed temporary RoL planning workspace, moved its durable namespace
+  and acceptance contracts into maintained references, and updated `wtool` 0.8.1 to
+  audit those permanent documents.
+
+#### Verification
+
+- Sealed and applied run `rol-phase6-5-a11f8a8181c2dd49`; an independent regeneration
+  was byte-identical, all four namespace/reference invariants were zero, and repeat
+  application performed zero file writes.
+- Passed 396 world-tool tests, 698 production-linked CuTests, build/install, syntax and
+  isolated-database runtime boots, reset observation, and scripted traversal of all
+  990 rehomed rooms. The historical completion bundle covered 1,994 identity records
+  and 191 project requirements.
+
 ### Realms of Luminari Phase 6 completion
 
 #### Added

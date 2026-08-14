@@ -4,14 +4,27 @@ from pathlib import Path
 
 from wtool_lib.rol_completion_audit import (
     _consumer_ledger,
+    _documentation_audit,
     _numbered_items,
     _old_target,
     _operation,
     _reference_evidence,
+    _requirements_matrix,
 )
 
 
 class RolCompletionAuditTests(unittest.TestCase):
+
+  def test_permanent_documentation_owns_the_maintenance_contract(self):
+    repo_root = Path(__file__).resolve().parents[3]
+
+    requirements = _requirements_matrix(repo_root)
+    documentation = _documentation_audit(repo_root)
+
+    self.assertEqual(14, requirements["summary"]["total"])
+    self.assertTrue(documentation["canonical_contract_present"])
+    self.assertTrue(documentation["maintenance_gate_present"])
+    self.assertTrue(documentation["phase_6_5_changelog_present"])
 
   def test_old_target_and_operation_cover_phase_6_5_special_cases(self):
     core = {"basename": "trail", "source_kind": "wld", "source_vnum": 50700}

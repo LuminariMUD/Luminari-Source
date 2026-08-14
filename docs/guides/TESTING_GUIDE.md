@@ -196,7 +196,39 @@ headers, artifact-state ownership, transactional idempotent SQL, MariaDB view gu
 and apply preconditions. The apply regression forces a database commit failure after
 rollback-only preflight and proves that no file has changed.
 
-Operational Phase 6.5 validation must compare finding identity against the frozen
+### Canonical RoL maintenance gate
+
+The completed conversion remains accepted only while all of these conditions hold:
+
+1. Every active source zone has one evidence-backed normalized identity at the source
+   zone VNUM plus 20000.
+2. Every active, non-excluded room, mobile, and object is at its typed source VNUM plus
+   2000000; distinct source identities remain distinct.
+3. `mytheast` remains zone 20817 with entities 2081700-2081899.
+4. Trail, Hulburg, and Jotunheim exist only at their canonical RoL identities.
+5. The eleven converted first-wave artifacts retain direct canonical identities and
+   unique persistent state.
+6. No world, runtime, configuration, generated data, test, policy documentation,
+   database, or other persistent consumer requires a retired RoL identity.
+7. Every typed cross-zone, key, quest, shop, reset, portal, SOC, and DG edge resolves,
+   and canonical or synthetic identities remain collision-free.
+8. Preserved target and OLC content changes only through an explicit, evidence-backed
+   record action.
+9. Migration neither loses nor duplicates ownership, progression, inventory, or other
+   discovered persistent state.
+10. The assembled world adds no normalized baseline finding, and touched records have
+    no unresolved finding.
+11. Syntax and isolated-database boots, reset and walkthrough evidence, focused tests,
+    world tools, production-linked CuTests, and installation pass.
+12. Regeneration is byte-identical for identical inputs, repeat application is safe,
+    and the applied development target passes the same audits.
+13. Maintained documentation states the canonical identity rule and gives no legacy
+    identity precedence.
+14. No unexplained exception, unresolved decision, or final blocked identity remains.
+
+### Phase 6.5 replay validation
+
+Operational replay validation must compare finding identity against the frozen
 baseline; it must not treat an inherited nonzero validator exit as a new failure. Run
 the global gate and each emitted package selector, then assert zero normalized addition
 and zero touched blocker from the sealed acceptance report:
@@ -249,9 +281,10 @@ python3 scripts/world/wtool.py --json rol-persistence-apply \
 
 After the final gate logs exist, `rol-completion-audit` seals the record-level rehome,
 per-package reference, code/configuration consumer, persistence, runtime topology, and
-191-requirement matrix. It fails on an active retired consumer, unresolved required
-edge, missing or duplicate saved-object prototype, failed gate, or changed repeat
-bundle. See `docs/utilities/WORLD_VALIDATOR_CLI.md` for the full invocation.
+14-rule canonical maintenance matrix. It fails on an active retired consumer,
+unresolved required edge, missing or duplicate saved-object prototype, failed gate, or
+changed repeat bundle. See `docs/utilities/WORLD_VALIDATOR_CLI.md` for the full
+invocation.
 
 Equivalent CMake and CTest entry points are:
 

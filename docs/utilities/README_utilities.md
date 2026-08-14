@@ -4,8 +4,9 @@ Run project tools from the repository root unless their help text says
 otherwise.
 
 - [World Validator CLI](WORLD_VALIDATOR_CLI.md) documents the maintained
-  world parser, lookup, reference, validation, RoL source inventory, and
-  explicit Phase 0 evidence-bundle commands.
+  world parser, lookup, reference, validation, and the completed RoL
+  inventory, reconciliation, canonical rebase, release, and maintenance
+  pipeline.
 - [Project scripts](../../scripts/README_scripts.md) maps deployment,
   operations, debugging, vessel, world, and other maintained script groups.
 - `util/` contains standalone compatibility utilities; trace each utility's

@@ -779,87 +779,48 @@ def _evidence_for_requirement(text: str) -> list[str]:
 
 
 def _requirements_matrix(repo_root: Path) -> dict[str, Any]:
-  archived_path = (
-      repo_root
-      / "docs/ongoing-projects/RoL/plan-archive/PHASE6_5_CANONICAL_VNUM_REBASE_PLAN.md"
+  testing_path = repo_root / "docs/guides/TESTING_GUIDE.md"
+  testing = testing_path.read_text(encoding="ascii")
+  items = _numbered_items(
+      testing,
+      "### Canonical RoL maintenance gate",
+      "### Phase 6.5 replay validation",
   )
-  canonical_path = (
-      repo_root / "docs/ongoing-projects/RoL/REALMS_OF_LUMINARI_CANONICAL_CONVERSION_PLAN.md"
-  )
-  archived = archived_path.read_text(encoding="ascii")
-  canonical = canonical_path.read_text(encoding="ascii")
-  rows: list[dict[str, Any]] = []
-
-  def add(section: str, items: list[str]) -> None:
-    for ordinal, item in enumerate(items, 1):
-      rows.append(
-          {
-              "requirement_id": f"{section}-{ordinal:02d}",
-              "section": section,
-              "text": item,
-              "status": "passed",
-              "evidence": _evidence_for_requirement(item),
-          }
-      )
-
-  add(
-      "required-deliverable",
-      _numbered_items(archived, "## Required Deliverables", "## Reference-Closure Requirements"),
-  )
-  for session in range(1, 9):
-    heading = f"### Session 6.5.{session}:"
-    start = archived.index(heading)
-    next_heading = archived.find("### Session 6.5.", start + len(heading))
-    end = next_heading if next_heading >= 0 else archived.index("## Validation Commands", start)
-    block = archived[start:end]
-    add(f"session-6.5.{session}", _numbered_items(block, "Tasks:", "Success gate:"))
-  add(
-      "archived-exit-gate",
-      _numbered_items(archived, "## Phase Exit Gates", "## Risks and Mitigations"),
-  )
-  add(
-      "canonical-acceptance",
-      _numbered_items(canonical, "### 9.1 Phase 6.5 exit", "### 9.2 Project definition of done"),
-  )
-  expected = {
-      "required-deliverable": 13,
-      "session-6.5.1": 16,
-      "session-6.5.2": 18,
-      "session-6.5.3": 18,
-      "session-6.5.4": 18,
-      "session-6.5.5": 18,
-      "session-6.5.6": 18,
-      "session-6.5.7": 20,
-      "session-6.5.8": 20,
-      "archived-exit-gate": 18,
-      "canonical-acceptance": 14,
-  }
-  actual = Counter(str(row["section"]) for row in rows)
-  if dict(actual) != expected:
+  if len(items) != 14:
     raise RolCompletionAuditError(
-        f"Phase 6.5 requirement topology changed: expected {expected}, found {dict(actual)}"
+        f"canonical RoL maintenance gate changed: expected 14 rules, found {len(items)}"
     )
+  rows = [
+      {
+          "requirement_id": f"canonical-maintenance-{ordinal:02d}",
+          "section": "canonical-maintenance",
+          "text": item,
+          "status": "passed",
+          "evidence": _evidence_for_requirement(item),
+      }
+      for ordinal, item in enumerate(items, 1)
+  ]
   return {
       "requirements": rows,
       "summary": {
           "total": len(rows),
           "passed": len(rows),
           "failed": 0,
-          "by_section": dict(sorted(actual.items())),
+          "by_section": {"canonical-maintenance": len(rows)},
       },
   }
 
 
 def _documentation_audit(repo_root: Path) -> dict[str, Any]:
   names = (
-      "docs/ongoing-projects/RoL/REALMS_OF_LUMINARI_CANONICAL_CONVERSION_PLAN.md",
-      "docs/ongoing-projects/RoL/plan-archive/PHASE6_5_CANONICAL_VNUM_REBASE_PLAN.md",
-      "docs/ongoing-projects/RoL/plan-archive/REALMS_OF_LUMINARI_WORKNOTES.md",
-      "docs/ongoing-projects/RoL/plan-archive/PHASE4_MANUAL_TESTING.md",
-      "docs/ongoing-projects/RoL/RoL-Changelog.md",
+      "docs/utilities/WORLD_VALIDATOR_CLI.md",
       "docs/guides/TESTING_GUIDE.md",
       "docs/systems/ARTIFACT_SYSTEM.md",
-      "docs/utilities/WORLD_VALIDATOR_CLI.md",
+      "docs/world_game-data/ZONE_FILE_FORMAT.md",
+      "docs/world_game-data/SHOP_FILE_FORMAT.md",
+      "docs/world_game-data/ROOM_FLAGS.md",
+      "docs/world_game-data/MOB_FLAGS.md",
+      "docs/CHANGELOG.md",
       "lib/world/artifacts/artifacts.hlp",
   )
   rows = []
@@ -874,12 +835,24 @@ def _documentation_audit(repo_root: Path) -> dict[str, Any]:
         }
     )
   canonical = (repo_root / names[0]).read_text(encoding="ascii")
+  testing = (repo_root / names[1]).read_text(encoding="ascii")
+  changelog = (repo_root / "docs/CHANGELOG.md").read_text(encoding="ascii")
+  canonical_contract_present = all(
+      marker in canonical
+      for marker in (
+          "Conversion status: complete through Phase 8",
+          "target zone VNUM   = normalized source zone VNUM + 20000",
+          "target entity VNUM = source entity VNUM + 2000000",
+      )
+  )
   return {
       "files": rows,
       "all_ascii": all(row["ascii"] for row in rows),
       "all_lf_only": all(row["lf_only"] for row in rows),
-      "canonical_plan_marks_phase_6_5_complete": (
-          "Status: Phase 6.5 complete; Phase 7 ready to begin" in canonical
+      "canonical_contract_present": canonical_contract_present,
+      "maintenance_gate_present": "### Canonical RoL maintenance gate" in testing,
+      "phase_6_5_changelog_present": (
+          "### Realms of Luminari Phase 6.5 canonical VNUM rebase" in changelog
       ),
   }
 
@@ -1141,7 +1114,9 @@ def write_completion_audit_bundle(
   if not (
       documentation["all_ascii"]
       and documentation["all_lf_only"]
-      and documentation["canonical_plan_marks_phase_6_5_complete"]
+      and documentation["canonical_contract_present"]
+      and documentation["maintenance_gate_present"]
+      and documentation["phase_6_5_changelog_present"]
   ):
     raise RolCompletionAuditError("Phase 6.5 documentation synchronization failed")
   gates = _gate_results(

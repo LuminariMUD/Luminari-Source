@@ -4,10 +4,19 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from wtool_lib.rol_phase8 import _action_audit, _line_format_audit
+from wtool_lib.rol_phase8 import _action_audit, _documentation_audit, _line_format_audit
 
 
 class RolPhase8Tests(unittest.TestCase):
+  def test_documentation_audit_uses_permanent_references(self) -> None:
+    repo_root = Path(__file__).resolve().parents[3]
+
+    audit = _documentation_audit(repo_root)
+
+    self.assertTrue(audit["canonical_contract_present"])
+    self.assertTrue(audit["phase_6_5_changelog_present"])
+    self.assertTrue(audit["pass"])
+
   def test_action_audit_accepts_clean_canonical_targets(self) -> None:
     actions = [
         {

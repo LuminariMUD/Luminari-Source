@@ -55,12 +55,14 @@ _CODE_EVIDENCE_PATHS = (
     "unittests/CuTest/test_spec_mechanics.c",
 )
 _DOCUMENTATION_PATHS = (
-    "docs/ongoing-projects/RoL/REALMS_OF_LUMINARI_CANONICAL_CONVERSION_PLAN.md",
-    "docs/ongoing-projects/RoL/RoL-Changelog.md",
-    "docs/ongoing-projects/README_ongoing-projects.md",
     "docs/utilities/WORLD_VALIDATOR_CLI.md",
     "docs/guides/TESTING_GUIDE.md",
     "docs/CHANGELOG.md",
+    "docs/systems/ARTIFACT_SYSTEM.md",
+    "docs/world_game-data/ZONE_FILE_FORMAT.md",
+    "docs/world_game-data/SHOP_FILE_FORMAT.md",
+    "docs/world_game-data/ROOM_FLAGS.md",
+    "docs/world_game-data/MOB_FLAGS.md",
     "lib/text/help/realms_of_luminari.hlp",
     "lib/text/help/index",
 )
@@ -662,12 +664,27 @@ def _documentation_audit(repo_root: Path) -> dict[str, Any]:
             "sha256": hashlib.sha256(data).hexdigest(),
         }
     )
-  plan = (repo_root / _DOCUMENTATION_PATHS[0]).read_text(encoding="ascii")
+  canonical_path = repo_root / _DOCUMENTATION_PATHS[0]
+  changelog_path = repo_root / "docs/CHANGELOG.md"
+  canonical = canonical_path.read_text(encoding="ascii") if canonical_path.is_file() else ""
+  changelog = changelog_path.read_text(encoding="ascii") if changelog_path.is_file() else ""
+  canonical_contract_present = all(
+      marker in canonical
+      for marker in (
+          "Conversion status: complete through Phase 8",
+          "target zone VNUM   = normalized source zone VNUM + 20000",
+          "target entity VNUM = source entity VNUM + 2000000",
+      )
+  )
   return {
       "files": rows,
-      "plan_marks_phase8_complete": "Status: Complete through Phase 8" in plan,
+      "canonical_contract_present": canonical_contract_present,
+      "phase_6_5_changelog_present": (
+          "### Realms of Luminari Phase 6.5 canonical VNUM rebase" in changelog
+      ),
       "pass": all(row["present"] and row["ascii"] and row["lf_only"] for row in rows)
-      and "Status: Complete through Phase 8" in plan,
+      and canonical_contract_present
+      and "### Realms of Luminari Phase 6.5 canonical VNUM rebase" in changelog,
   }
 
 

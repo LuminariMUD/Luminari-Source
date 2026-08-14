@@ -14,10 +14,12 @@ without starting the game, connecting to MariaDB, or compiling `circle`:
 - high-level quests (`.hlq`)
 
 Validation, lookup, RoL inventory, flag conversion, and documentation checks
-are read-only. `rol-baseline`, `rol-discover`, `rol-plan`, `rol-skeleton`, and
-`rol-pilot-select` write new, explicit evidence directories but never write the
-source corpus or target world. The maintainer operation
-`constants sync --write` replaces the checked-in derived constants manifest.
+are read-only. The RoL evidence and generation commands write new, explicit
+run directories but never modify the source corpus. Only `rol-rebase-apply`,
+`rol-persistence-apply`, and `rol-phase8-apply` modify a target, and each
+requires an accepted bundle plus an explicitly identified non-production
+environment. The maintainer operation `constants sync --write` replaces the
+checked-in derived constants manifest.
 
 ## Requirements and Entry Point
 
@@ -28,7 +30,7 @@ python3 scripts/world/wtool.py --help
 python3 scripts/world/wtool.py --version
 ```
 
-The current release reports `wtool 0.8.0`.
+The current release reports `wtool 0.8.1`.
 
 The default world root is `lib/world`. Override it for a staging tree or
 fixture with the global `--world-root` option. Global options precede the
@@ -101,6 +103,70 @@ writers. The validator intentionally diagnoses several cases that the loader
 silently drops or rewrites, including omitted index entries, dangling exits,
 unsafe short object extensions, invalid typed references, unpersistable
 multi-kill quests, ignored HLQ input commands, and unsafe HLQ runtime indexes.
+
+## Canonical RoL Namespace and Maintenance Contract
+
+Conversion status: complete through Phase 8 and applied to the development
+world on 2026-08-14. The phase commands remain available to audit or
+deterministically regenerate the conversion; they are not an alternate
+builder workflow for assigning new VNUMs.
+
+Canonical RoL identities use these formulas:
+
+```text
+target zone VNUM   = normalized source zone VNUM + 20000
+target entity VNUM = source entity VNUM + 2000000
+```
+
+Rooms, mobiles, and objects remain separate typed namespaces. Shops, HLQs,
+SOC behavior, generated triggers, and special bindings attach through typed
+canonical owners; a matching number in another namespace is not evidence of
+identity. A package may span multiple 100-VNUM entity bands, so its top and
+sparse layout must be derived from its records rather than from a single
+band assumption.
+
+The only source-zone normalization in the completed corpus is
+`mytheast.zon`: malformed source header `#81700` represents logical zones
+817-818 and therefore maps to zone 20817, entities 2081700-2081899, and top
+2081899. This is an evidence-backed package exception, not a general
+divide-by-100 rule.
+
+The completed rebase retired these legacy destinations:
+
+| Content | Retired destination | Canonical destination |
+|---------|---------------------|-----------------------|
+| Trail | zone 1507 and 150xxx entities | zone 20507 and 2050700+ entities |
+| Hulburg | zone 1591 and 159xxx entities | zone 20591 and 2059100+ entities |
+| Jotunheim | zone 1960 and 196xxx entities | zone 20960 and 2096000+ entities |
+| Myth Drannor East | fallback zone 20002 | zone 20817 and 2081700-2081899 entities |
+| First-wave artifacts | objects 169901-169910 | direct canonical identities |
+
+Retired source or legacy VNUMs are migration history, not aliases. Do not
+restore forwarding records, compatibility duplicates, old-offset lookup, or
+hard-coded exceptions. Regenerate converted data from the selected source
+manifests and `scripts/world/rol_conversion_policy.json`; do not hand-edit
+generated output as its source of truth. Converter-owned RoL flags and reset,
+shop, or object extensions preserve imported behavior, while new builder
+content should use native mechanics unless it intentionally extends the
+converted compatibility contract.
+
+The exact artifact identities and persistence rules are maintained in
+[ARTIFACT_SYSTEM.md](../systems/ARTIFACT_SYSTEM.md).
+
+Any maintenance regeneration must leave these four checks at zero:
+
+```text
+noncanonical active RoL zone identities   = 0
+noncanonical active RoL entity identities = 0
+active references to retired RoL VNUMs    = 0
+unresolved required typed references      = 0
+```
+
+The accepted result must also preserve target/OLC edits through explicit
+record actions, add no normalized validation finding, resolve persistent
+objects to one live prototype, produce byte-identical output from identical
+inputs, and make repeat application a no-op. See the canonical maintenance
+gate in `docs/guides/TESTING_GUIDE.md` for the complete acceptance list.
 
 ## Realms of Luminari Source Inventory
 
@@ -396,9 +462,8 @@ python3 scripts/world/wtool.py --json rol-completion-audit \
 
 The completion bundle contains a record-level rehome ledger with all required fields,
 package incoming/outgoing reference reports, classified non-world numeric matches,
-runtime structural evidence, a documentation audit, parsed final gates, and a matrix
-covering every archived deliverable, session task, exit gate, and canonical acceptance
-criterion.
+runtime structural evidence, a documentation audit, parsed final gates, and the
+14-rule canonical maintenance matrix from `docs/guides/TESTING_GUIDE.md`.
 
 ## Realms of Luminari Phase 7 and Phase 8
 
