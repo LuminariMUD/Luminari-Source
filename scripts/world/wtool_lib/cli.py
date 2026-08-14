@@ -51,6 +51,13 @@ from .rol_rebase import (
 )
 from .rol_pilot import render_rol_pilot_selection_human, write_pilot_selection_bundle
 from .rol_pilot_build import render_rol_pilot_build_human, write_pilot_build_bundle
+from .rol_phase7 import render_rol_phase7_human, write_phase7_bundle
+from .rol_phase8 import (
+    apply_phase8_bundle,
+    render_rol_phase8_human,
+    write_phase8_bundle,
+    write_phase8_completion,
+)
 from .rol_persistence_audit import (
     apply_persistence_migration_bundle,
     render_persistence_apply_human,
@@ -298,6 +305,58 @@ def _parser() -> argparse.ArgumentParser:
   rol_completion_audit.add_argument("--runtime-log", type=Path, required=True)
   rol_completion_audit.add_argument("--output-dir", type=Path, required=True)
   rol_completion_audit.add_argument("--created-at")
+
+  rol_phase7 = commands.add_parser(
+      "rol-phase7",
+      help="build a cumulative Realms of Luminari Phase 7 conversion milestone",
+  )
+  rol_phase7.add_argument("--discovery-dir", type=Path, required=True)
+  rol_phase7.add_argument("--plan-dir", type=Path, required=True)
+  rol_phase7.add_argument("--capability-audit-dir", type=Path, required=True)
+  rol_phase7.add_argument("--phase6-dir", type=Path, required=True)
+  rol_phase7.add_argument("--completion-dir", type=Path, required=True)
+  rol_phase7.add_argument(
+      "--source-root", type=Path, default=_default_rol_source_root()
+  )
+  rol_phase7.add_argument("--output-dir", type=Path, required=True)
+  rol_phase7.add_argument("--through-batch", type=int, required=True)
+  rol_phase7.add_argument("--prior-milestone-dir", type=Path, action="append", default=[])
+  rol_phase7.add_argument("--created-at")
+
+  rol_phase8 = commands.add_parser(
+      "rol-phase8",
+      help="assemble and seal the final Realms of Luminari release candidate",
+  )
+  rol_phase8.add_argument("--phase7-dir", type=Path, required=True)
+  rol_phase8.add_argument("--repeat-phase7-dir", type=Path, required=True)
+  rol_phase8.add_argument("--completion-dir", type=Path, required=True)
+  rol_phase8.add_argument("--world-tools-log", type=Path, required=True)
+  rol_phase8.add_argument("--cutest-log", type=Path, required=True)
+  rol_phase8.add_argument("--install-log", type=Path, required=True)
+  rol_phase8.add_argument("--syntax-log", type=Path, required=True)
+  rol_phase8.add_argument("--runtime-log", type=Path, required=True)
+  rol_phase8.add_argument("--output-dir", type=Path, required=True)
+  rol_phase8.add_argument("--created-at")
+
+  rol_phase8_apply = commands.add_parser(
+      "rol-phase8-apply",
+      help="apply an accepted Phase 8 release candidate to development",
+  )
+  rol_phase8_apply.add_argument("--bundle-dir", type=Path, required=True)
+  rol_phase8_apply.add_argument(
+      "--lib-root", type=Path, default=default_repo_root() / "lib"
+  )
+
+  rol_phase8_completion = commands.add_parser(
+      "rol-phase8-completion",
+      help="seal post-apply Phase 8 completion and idempotency evidence",
+  )
+  rol_phase8_completion.add_argument("--bundle-dir", type=Path, required=True)
+  rol_phase8_completion.add_argument(
+      "--lib-root", type=Path, default=default_repo_root() / "lib"
+  )
+  rol_phase8_completion.add_argument("--output-dir", type=Path, required=True)
+  rol_phase8_completion.add_argument("--created-at")
   return parser
 
 
@@ -716,6 +775,83 @@ def _run_rol_persistence_bundle(args: argparse.Namespace) -> int:
   return 0
 
 
+def _run_rol_phase7(args: argparse.Namespace) -> int:
+  summary = write_phase7_bundle(
+      args.discovery_dir,
+      args.plan_dir,
+      args.capability_audit_dir,
+      args.phase6_dir,
+      args.completion_dir,
+      args.source_root,
+      args.world_root,
+      args.output_dir,
+      args.through_batch,
+      prior_milestone_dirs=args.prior_milestone_dir,
+      created_at=args.created_at,
+  )
+  if args.json_output:
+    _print_json(summary)
+  else:
+    sys.stdout.write(render_rol_phase7_human(summary))
+  return 0
+
+
+def _run_rol_phase8(args: argparse.Namespace) -> int:
+  summary = write_phase8_bundle(
+      args.phase7_dir,
+      args.repeat_phase7_dir,
+      args.completion_dir,
+      args.world_root,
+      args.output_dir,
+      {
+          "world-tools": args.world_tools_log,
+          "cutest": args.cutest_log,
+          "install": args.install_log,
+          "syntax": args.syntax_log,
+          "runtime": args.runtime_log,
+      },
+      created_at=args.created_at,
+  )
+  if args.json_output:
+    _print_json(summary)
+  else:
+    sys.stdout.write(render_rol_phase8_human(summary))
+  return 0
+
+
+def _run_rol_phase8_apply(args: argparse.Namespace) -> int:
+  summary = apply_phase8_bundle(args.bundle_dir, args.lib_root)
+  if args.json_output:
+    _print_json(summary)
+  else:
+    sys.stdout.write(
+        f"RoL Phase 8 apply: {summary['run_id']}\n"
+        f"Changed paths: {summary['changed_paths']}\n"
+        f"Already current paths: {summary['already_current_paths']}\n"
+        f"Idempotent no-op: {str(summary['idempotent_no_op']).lower()}\n"
+    )
+  return 0
+
+
+def _run_rol_phase8_completion(args: argparse.Namespace) -> int:
+  summary = write_phase8_completion(
+      args.bundle_dir,
+      args.lib_root,
+      args.output_dir,
+      created_at=args.created_at,
+  )
+  if args.json_output:
+    _print_json(summary)
+  else:
+    sys.stdout.write(
+        f"RoL Phase 8 completion: {summary['run_id']}\n"
+        f"Output: {summary['output_dir']}\n"
+        f"Repeat apply no-op: {str(summary['repeat_apply_no_op']).lower()}\n"
+        f"Complete: {str(summary['complete']).lower()}\n"
+    )
+  return 0
+
+
 def _run_rol_persistence_apply(args: argparse.Namespace) -> int:
   summary = apply_persistence_migration_bundle(
       args.bundle_dir,
@@ -802,6 +938,14 @@ def main(argv: Sequence[str] | None = None) -> int:
       return _run_rol_persistence_apply(args)
     if args.command == "rol-completion-audit":
       return _run_rol_completion_audit(args)
+    if args.command == "rol-phase7":
+      return _run_rol_phase7(args)
+    if args.command == "rol-phase8":
+      return _run_rol_phase8(args)
+    if args.command == "rol-phase8-apply":
+      return _run_rol_phase8_apply(args)
+    if args.command == "rol-phase8-completion":
+      return _run_rol_phase8_completion(args)
   except (ConfigError, DocumentationError, ExtractionError, OSError, ValueError) as error:
     sys.stderr.write(f"wtool: error: {error}\n")
     return 2

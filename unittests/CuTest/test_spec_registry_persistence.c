@@ -33,6 +33,7 @@
 struct spec_binding_inventory
 {
   int total[SPEC_TEST_OWNER_COUNT];
+  int valid[SPEC_TEST_OWNER_COUNT];
   int expected[SPEC_TEST_OWNER_COUNT];
 };
 
@@ -83,10 +84,12 @@ static bool spec_test_scan_binding_file(const char *path, enum spec_test_owner o
                                         struct spec_binding_inventory *inventory, char *error,
                                         size_t error_size)
 {
+  const struct spec_definition *definition;
   const char *expected_name;
   FILE *file;
   char line[MAX_STRING_LENGTH];
   char *value;
+  spec_owner_mask owner_mask;
   bool expect_name;
   bool read_error;
   bool success;
@@ -95,6 +98,9 @@ static bool spec_test_scan_binding_file(const char *path, enum spec_test_owner o
   expected_name = owner == SPEC_TEST_OWNER_MOBILE   ? "Postmaster"
                   : owner == SPEC_TEST_OWNER_OBJECT ? "Greyhawk Ship"
                                                     : "Greyhawk Ship Commands";
+  owner_mask = owner == SPEC_TEST_OWNER_MOBILE   ? SPEC_OWNER_MOBILE
+               : owner == SPEC_TEST_OWNER_OBJECT ? SPEC_OWNER_OBJECT
+                                                 : SPEC_OWNER_ROOM;
   file = fopen(path, "r");
   if (file == NULL)
   {
@@ -116,6 +122,10 @@ static bool spec_test_scan_binding_file(const char *path, enum spec_test_owner o
       while (*value == ' ' || *value == '\t')
         value++;
       inventory->total[owner]++;
+      definition = spec_registry_find_for_owner(value, owner_mask);
+      if (definition != NULL &&
+          spec_definition_allows_binding(definition, SPEC_BINDING_SOURCE_WORLD))
+        inventory->valid[owner]++;
       if (strcmp(value, expected_name) == 0)
         inventory->expected[owner]++;
       continue;
@@ -124,6 +134,10 @@ static bool spec_test_scan_binding_file(const char *path, enum spec_test_owner o
     if (expect_name)
     {
       inventory->total[owner]++;
+      definition = spec_registry_find_for_owner(line, owner_mask);
+      if (definition != NULL &&
+          spec_definition_allows_binding(definition, SPEC_BINDING_SOURCE_WORLD))
+        inventory->valid[owner]++;
       if (strcmp(line, expected_name) == 0)
         inventory->expected[owner]++;
       expect_name = false;
@@ -524,12 +538,14 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Tarrasque Encounter",
                                                "RoL Utility Object",
                                                "RoL Utility Room",
-                                               "RoL Scheduled Mobile"};
+                                               "RoL Scheduled Mobile",
+                                               "RoL Composite Mobile",
+                                               "RoL Composite Object"};
   int expected_count;
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 118, expected_count);
+  CuAssertIntEquals(tc, 120, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)
@@ -569,8 +585,8 @@ void Test_spec_registry_legacy_accessor_boundaries(CuTest *tc)
   CuAssertTrue(tc, get_spec_func_by_index(-1) == NULL);
   CuAssertTrue(tc, get_spec_func_name_by_index(count) == NULL);
   CuAssertTrue(tc, get_spec_func_by_index(count) == NULL);
-  CuAssertStrEquals(tc, "RoL Scheduled Mobile", get_spec_func_name_by_index(count - 1));
-  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_scheduled_mobile);
+  CuAssertStrEquals(tc, "RoL Composite Object", get_spec_func_name_by_index(count - 1));
+  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_composite_object);
   CuAssertTrue(tc, get_spec_func_name(NULL) == NULL);
 }
 
@@ -616,15 +632,24 @@ void Test_spec_world_binding_source_inventory(CuTest *tc)
                                              sizeof(error));
 
   CuAssert(tc, error, scanned);
-  CuAssertIntEquals(tc, 1, inventory.total[SPEC_TEST_OWNER_MOBILE]);
-  CuAssertIntEquals(tc, 2, inventory.total[SPEC_TEST_OWNER_OBJECT]);
-  CuAssertIntEquals(tc, 2, inventory.total[SPEC_TEST_OWNER_ROOM]);
+  CuAssertTrue(tc, inventory.total[SPEC_TEST_OWNER_MOBILE] > 0);
+  CuAssertTrue(tc, inventory.total[SPEC_TEST_OWNER_OBJECT] > 0);
+  CuAssertTrue(tc, inventory.total[SPEC_TEST_OWNER_ROOM] > 0);
   CuAssertIntEquals(tc, inventory.total[SPEC_TEST_OWNER_MOBILE],
-                    inventory.expected[SPEC_TEST_OWNER_MOBILE]);
+                    inventory.valid[SPEC_TEST_OWNER_MOBILE]);
   CuAssertIntEquals(tc, inventory.total[SPEC_TEST_OWNER_OBJECT],
-                    inventory.expected[SPEC_TEST_OWNER_OBJECT]);
+                    inventory.valid[SPEC_TEST_OWNER_OBJECT]);
   CuAssertIntEquals(tc, inventory.total[SPEC_TEST_OWNER_ROOM],
-                    inventory.expected[SPEC_TEST_OWNER_ROOM]);
+                    inventory.valid[SPEC_TEST_OWNER_ROOM]);
+  if (spec_test_world_root() != NULL)
+  {
+    CuAssertIntEquals(tc, 1, inventory.total[SPEC_TEST_OWNER_MOBILE]);
+    CuAssertIntEquals(tc, 2, inventory.total[SPEC_TEST_OWNER_OBJECT]);
+    CuAssertIntEquals(tc, 2, inventory.total[SPEC_TEST_OWNER_ROOM]);
+    CuAssertIntEquals(tc, 1, inventory.expected[SPEC_TEST_OWNER_MOBILE]);
+    CuAssertIntEquals(tc, 2, inventory.expected[SPEC_TEST_OWNER_OBJECT]);
+    CuAssertIntEquals(tc, 2, inventory.expected[SPEC_TEST_OWNER_ROOM]);
+  }
 }
 
 void Test_spec_medit_current_selection_behavior(CuTest *tc)

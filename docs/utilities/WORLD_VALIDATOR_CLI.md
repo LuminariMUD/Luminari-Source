@@ -28,7 +28,7 @@ python3 scripts/world/wtool.py --help
 python3 scripts/world/wtool.py --version
 ```
 
-The current release reports `wtool 0.6.0`.
+The current release reports `wtool 0.8.0`.
 
 The default world root is `lib/world`. Override it for a staging tree or
 fixture with the global `--world-root` option. Global options precede the
@@ -399,6 +399,68 @@ package incoming/outgoing reference reports, classified non-world numeric matche
 runtime structural evidence, a documentation audit, parsed final gates, and a matrix
 covering every archived deliverable, session task, exit gate, and canonical acceptance
 criterion.
+
+## Realms of Luminari Phase 7 and Phase 8
+
+Generate cumulative Phase 7 milestones after batches 4, 8, and 12. Each invocation
+regenerates from the sealed Phase 6.5 development baseline; it does not modify that
+baseline.
+
+```sh
+python3 scripts/world/wtool.py --world-root lib/world rol-phase7 \
+  --discovery-dir <phase1-directory> \
+  --plan-dir <phase2-directory> \
+  --capability-audit-dir <phase5-directory> \
+  --phase6-dir <phase6-directory> \
+  --completion-dir <phase6.5-completion-directory> \
+  --through-batch 12 \
+  --prior-milestone-dir <batch4-directory> \
+  --prior-milestone-dir <batch8-directory> \
+  --output-dir <phase7-final-directory>
+```
+
+The command freezes the input trees, derives dependency-complete package batches,
+converts every selected record, compiles SOC and special behavior, patches preserved
+canonical records, validates the full assembled world, and records preservation and
+runtime-contract evidence. The final milestone requires 258 packages, 71,680 record
+actions, no new normalized active error, and a byte-identical independent repeat.
+
+After the code suites, install, isolated syntax boot, and bounded runtime boot pass,
+assemble the Phase 8 release candidate:
+
+```sh
+python3 scripts/world/wtool.py --world-root lib/world rol-phase8 \
+  --phase7-dir <phase7-final-directory> \
+  --repeat-phase7-dir <phase7-repeat-directory> \
+  --completion-dir <phase6.5-completion-directory> \
+  --world-tools-log <world-tools-log> \
+  --cutest-log <cutest-log> \
+  --install-log <install-log> \
+  --syntax-log <syntax-log> \
+  --runtime-log <runtime-log> \
+  --output-dir <phase8-release-directory>
+```
+
+`rol-phase8` reproduces the complete candidate from the frozen baseline and Phase 7
+overlay, reconciles counts and actions, audits selected records, exercises static
+behavior coverage, verifies the namespace and persistence handoff, and emits a
+hash-preconditioned apply plan. Apply and seal it only in development:
+
+```sh
+python3 scripts/world/wtool.py --json rol-phase8-apply \
+  --bundle-dir <phase8-release-directory> \
+  --lib-root lib
+
+python3 scripts/world/wtool.py --json rol-phase8-completion \
+  --bundle-dir <phase8-release-directory> \
+  --lib-root lib \
+  --output-dir <phase8-completion-directory>
+```
+
+The apply command rejects production, changed inputs, changed runtime binaries, and
+modified bundle artifacts. Reapplication is a verified no-op. The completion command
+requires the development tree and post-apply diagnostics to match the accepted
+candidate, rechecks documentation, and records the no-op reapplication.
 
 ## Validation Modes
 

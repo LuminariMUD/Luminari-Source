@@ -5491,6 +5491,12 @@ void reset_zone(zone_rnum zone)
           }
         }
       }
+      else
+      {
+        /* Every reset command must contribute one dependency result. */
+        push_result(0);
+        tobj = NULL;
+      }
       tmob = NULL;
       break;
 

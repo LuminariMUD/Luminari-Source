@@ -1,6 +1,27 @@
 # Changelog
 
-## [Unreleased] - August 11, 2026
+## [Unreleased] - August 14, 2026
+
+### Realms of Luminari Phases 7 and 8 completion
+
+#### Added
+
+- Added deterministic 12-batch canonical corpus compilation and sealed milestone,
+  repeat-generation, release, apply, and post-apply completion evidence.
+- Added full-corpus behavior evidence for rooms, mobiles, objects, shops, HLQs, SOC,
+  triggers, resets, attachments, traps, paths, keyed exits, containers, and specials.
+- Added typed composite runtime bindings for all 14 source multi-binding special
+  profiles, plus parser and transform coverage for source-object irregularities.
+
+#### Changed
+
+- Converted all 258 active packages and 71,680 selected records, then applied the
+  1,201-path hash-guarded Phase 8 release to the development world.
+- Fixed failed object-reset dependency propagation so a failed `O` command correctly
+  prevents dependent reset commands from executing.
+- Marked the canonical RoL conversion complete through Phase 8 after 409 world-tool
+  tests, 699 production-linked CuTests, install, syntax boot, bounded database runtime
+  boot, zero converted-zone diagnostic, and zero-write repeat application all passed.
 
 ### Realms of Luminari Phase 6 completion
 

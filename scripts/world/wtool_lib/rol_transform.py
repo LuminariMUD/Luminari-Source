@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import re
+import textwrap
 from typing import Callable
 
 from .flags import encode_bits
@@ -13,6 +14,15 @@ from .rol_source import RolRecord
 _TARGET_MAGIC_ITEM_TYPES = frozenset({2, 3, 4, 10})
 _TARGET_MAX_LEVEL = 34
 _TARGET_MAX_OBJECT_SPELL_LEVEL = _TARGET_MAX_LEVEL
+_TARGET_MAX_LIQUID = 22
+_SOURCE_LIQUID_MAP = {
+    23: 2,  # champagne -> wine
+    24: 16, # Pepsi -> juice
+    25: 13, # unholy water -> blood
+    26: 2,  # sake -> wine
+    27: 21, # curative liquid -> herbal remedy
+    28: 10, # eggnog -> milk
+}
 _SOURCE_SPELL_MAP: dict[int, tuple[str, int | None]] = {
     9: ("full heal", 28),
     36: ("stone skin", 56),
@@ -668,6 +678,33 @@ def _tilde(value: str | None) -> tuple[str, list[str]]:
   return f"{text}~\n", diagnostics
 
 
+def _bounded_tilde(value: str | None, context: str) -> tuple[str, list[str]]:
+  """Emit a target string without exceeding the runtime's physical-line buffer."""
+
+  text, diagnostics = convert_text(value)
+  output: list[str] = []
+  wrapped = 0
+  for line in text.split("\n"):
+    if len(line.encode("ascii")) <= 480:
+      output.append(line)
+      continue
+    chunks = textwrap.wrap(
+        line,
+        width=480,
+        break_long_words=True,
+        break_on_hyphens=False,
+        replace_whitespace=False,
+        drop_whitespace=True,
+    )
+    output.extend(chunks or [""])
+    wrapped += 1
+  if wrapped:
+    diagnostics.append(
+        f"wrapped {wrapped} overlong {context} physical line(s) for the target reader"
+    )
+  return "\n".join(output) + "~\n", diagnostics
+
+
 def _source_mask_bits(mask: int, logical_offset: int) -> set[int]:
   return {
       logical_offset + bit
@@ -824,6 +861,9 @@ def _shop_message(value: str, monetary: bool = False) -> tuple[str, list[str]]:
   text = text.replace("$p", "that item").replace("$n", "I")
   if "%s" not in text:
     text = f"%s, {text}" if text else "%s."
+  if monetary and "%d" in text and text.find("%d") < text.find("%s"):
+    text = "%s, " + text.replace("%s", "you", 1)
+    diagnostics.append("moved the shop customer placeholder before the monetary placeholder")
   first_name = text.find("%s")
   text = text[: first_name + 2] + text[first_name + 2 :].replace("%s", "you")
   text = re.sub(r"%(?![%sd])", "%%", text)
@@ -1168,9 +1208,21 @@ def emit_hlquest(
   for _, entry_type, payload in sorted(entries, key=lambda item: item[0]):
     if entry_type == "M":
       assert isinstance(payload, dict)
-      keyword, text_diagnostics = _tilde(str(payload.get("keyword", "")))
+      keyword_value = str(payload.get("keyword", ""))
+      message_value = str(payload.get("message", ""))
+      if not keyword_value.strip():
+        keyword_value = "unknown"
+        diagnostics.append(
+            f"replaced an empty quest keyword at source line {payload['line']}"
+        )
+      if not message_value.strip():
+        message_value = "."
+        diagnostics.append(
+            f"replaced an empty ASK reply at source line {payload['line']}"
+        )
+      keyword, text_diagnostics = _bounded_tilde(keyword_value, "quest keyword")
       diagnostics.extend(text_diagnostics)
-      message, text_diagnostics = _tilde(str(payload.get("message", "")))
+      message, text_diagnostics = _bounded_tilde(message_value, "quest reply")
       diagnostics.extend(text_diagnostics)
       lines.extend(["A!\n", keyword, message])
       continue
@@ -1199,7 +1251,12 @@ def emit_hlquest(
           f"folded {len(disappear_messages)} disappear message(s) into the completion "
           f"reply at source line {completion['line']}"
       )
-    reply_text, text_diagnostics = _tilde(reply)
+    if not reply.strip():
+      reply = "."
+      diagnostics.append(
+          f"replaced an empty completion reply at source line {completion['line']}"
+      )
+    reply_text, text_diagnostics = _bounded_tilde(reply, "quest reply")
     diagnostics.extend(text_diagnostics)
     lines.extend(["Q!\n", reply_text])
 
@@ -1540,6 +1597,9 @@ def emit_mobile(
   position = _source_position(int(position_row[0]))
   default_position = _source_position(int(position_row[1]))
   sex = int(position_row[2]) if len(position_row) > 2 else 0
+  if sex not in {0, 1, 2}:
+    diagnostics.append(f"normalized unsupported source sex {sex} to neutral")
+    sex = 0
   lines.append(f"{position} {default_position} {sex}\n")
 
   source_class = int(position_row[3]) if len(position_row) > 3 else 0
@@ -1571,6 +1631,12 @@ def _object_values(
 ) -> list[int]:
   values = list(record.values.get("values", []))
   values = (values + [0] * 16)[:16]
+  if target_type in {17, 23} and not 0 <= values[2] <= _TARGET_MAX_LIQUID:
+    source_liquid = values[2]
+    values[2] = _SOURCE_LIQUID_MAP.get(source_liquid, 0)
+    diagnostics.append(
+        f"mapped unsupported source liquid {source_liquid} to target liquid {values[2]}"
+    )
   if target_type in _TARGET_MAGIC_ITEM_TYPES and values[0] > _TARGET_MAX_OBJECT_SPELL_LEVEL:
     diagnostics.append(
         f"capped source magic-item spell level {values[0]} at target maximum "
@@ -1606,6 +1672,13 @@ def _object_values(
     diagnostics.append(
         f"mapped source spell {source_spell} ({spell_name}) to target spell "
         f"{target_spell} in magic-item slot {slot}"
+    )
+  if target_type in {3, 4} and values[2] > values[1]:
+    source_maximum = values[1]
+    values[1] = values[2]
+    diagnostics.append(
+        f"raised source wand/staff maximum charges {source_maximum} to current "
+        f"charges {values[2]} for the target runtime"
     )
   if source_type == 15 and values[2] > 0:
     source_key = values[2]
@@ -1660,9 +1733,27 @@ def emit_object(
 
   diagnostics: list[str] = []
   strings = record.values.get("strings", {})
+  aliases = str(strings.get("aliases") or "").strip()
+  if not aliases:
+    aliases = f"converted object {destination_vnum}"
+    diagnostics.append("synthesized missing object aliases for target runtime safety")
+  short_description = str(strings.get("short_description") or "").strip()
+  if not short_description:
+    short_description = aliases
+    diagnostics.append("synthesized missing object short description for target runtime safety")
+  description = str(strings.get("description") or "").strip()
+  if not description:
+    description = f"{short_description} is here."
+    diagnostics.append("synthesized missing object room description for target runtime safety")
+  string_values = {
+      "aliases": aliases,
+      "short_description": short_description,
+      "description": description,
+      "action_description": strings.get("action_description"),
+  }
   lines = [f"#{destination_vnum}\n"]
   for key in ("aliases", "short_description", "description", "action_description"):
-    value, text_diagnostics = _tilde(strings.get(key))
+    value, text_diagnostics = _tilde(string_values.get(key))
     diagnostics.extend(text_diagnostics)
     lines.append(value)
 
@@ -1833,6 +1924,8 @@ def _emit_reset(
       if len(arguments) < 4:
         raise ValueError("requires four leading arguments")
       dependency, prototype, maximum, destination = arguments[:4]
+      if prototype <= 0:
+        raise ValueError(f"has non-positive prototype {prototype}")
       target_kind = "mob" if command == "M" else "obj"
       prototype = resolve(target_kind, prototype)
       if command in {"M", "O"}:
@@ -1854,6 +1947,8 @@ def _emit_reset(
       if len(arguments) < 3:
         raise ValueError("requires three leading arguments")
       dependency, prototype, maximum = arguments[:3]
+      if prototype <= 0:
+        raise ValueError(f"has non-positive prototype {prototype}")
       return (
           f"G {dependency} {resolve('obj', prototype)} {maximum} "
           f"{_reset_probability(command, arguments)}\n",
@@ -1864,6 +1959,8 @@ def _emit_reset(
       if len(arguments) < 4:
         raise ValueError("requires four leading arguments")
       dependency, room, direction, state = arguments[:4]
+      if room <= 0:
+        raise ValueError(f"has non-positive room {room}")
       probability = _reset_probability(command, arguments)
       if 0 <= state <= 2 and probability == 100:
         return f"D {dependency} {resolve('wld', room)} {direction} {state}\n", diagnostics
@@ -1880,6 +1977,8 @@ def _emit_reset(
       if len(arguments) < 3:
         raise ValueError("requires three leading arguments")
       dependency, room, prototype = arguments[:3]
+      if room <= 0 or prototype <= 0:
+        raise ValueError(f"has non-positive room/prototype {room}/{prototype}")
       return (
           f"R {dependency} {resolve('wld', room)} {resolve('obj', prototype)} "
           f"{_reset_probability(command, arguments)}\n",
@@ -1892,6 +1991,10 @@ def _emit_reset(
       mode, room, leader, follower = arguments[:4]
       if mode not in {0, 1, 2, 3}:
         raise ValueError(f"has unsupported follow mode {mode}")
+      if room <= 0 or leader <= 0 or follower <= 0:
+        raise ValueError(
+            f"has non-positive room/leader/follower {room}/{leader}/{follower}"
+        )
       return (
           f"F {mode} {resolve('wld', room)} {resolve('mob', leader)} "
           f"{resolve('mob', follower)} 100\n",
@@ -1902,6 +2005,8 @@ def _emit_reset(
       if len(arguments) < 3:
         raise ValueError("requires three leading arguments")
       dependency, room, prototype = arguments[:3]
+      if prototype <= 0:
+        raise ValueError(f"has non-positive prototype {prototype}")
       combat_guard = arguments[3] if len(arguments) >= 4 else 0
       target_room = resolve("wld", room) if room >= 0 else -1
       return (
@@ -1915,6 +2020,12 @@ def _emit_reset(
         raise ValueError("requires dependency, hour, day, and weekday")
       dependency, hour, day, weekday = arguments[:4]
       month = arguments[4] if len(arguments) >= 5 else 0
+      if day < 0:
+        day = 0
+      if weekday < 0:
+        weekday = 0
+      if month < 0:
+        month = 0
       return f"C {dependency} {hour} {day} {weekday} {month}\n", diagnostics
   except (KeyError, ValueError) as error:
     diagnostics.append(f"excluded malformed {command} reset at source line {line}: {error}")
@@ -1964,6 +2075,7 @@ def emit_zone(
   )
 
   current_mobile = False
+  emitted_count = 0
   for directive in record.directives:
     if directive["token"] not in {"M", "O", "P", "G", "E", "D", "R", "F", "X", "T"}:
       continue
@@ -1976,7 +2088,17 @@ def emit_zone(
     emitted, reset_diagnostics = _emit_reset(directive, resolve)
     diagnostics.extend(reset_diagnostics)
     if emitted is not None:
+      if emitted_count == 0:
+        parts = emitted.split(maxsplit=2)
+        if len(parts) >= 2 and parts[0] != "F" and parts[1] != "0":
+          diagnostics.append(
+              f"normalized the first reset dependency {parts[1]} to 0 at source line "
+              f"{directive['line']}"
+          )
+          parts[1] = "0"
+          emitted = " ".join(parts)
       lines.append(emitted)
+      emitted_count += 1
     if directive["token"] == "M":
       current_mobile = emitted is not None
   lines.extend(["S\n", "$\n"])

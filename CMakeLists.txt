@@ -945,6 +945,8 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool_lib/rol_persistence_audit.py
     scripts/world/wtool_lib/rol_planner.py
     scripts/world/wtool_lib/rol_rebase.py
+    scripts/world/wtool_lib/rol_phase7.py
+    scripts/world/wtool_lib/rol_phase8.py
     scripts/world/wtool_lib/rol_pilot.py
     scripts/world/wtool_lib/rol_pilot_build.py
     scripts/world/wtool_lib/rol_periodic_profiles.py
@@ -983,6 +985,8 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/test_rol_persistence_audit.py
     scripts/world/tests/test_rol_planner.py
     scripts/world/tests/test_rol_rebase.py
+    scripts/world/tests/test_rol_phase7.py
+    scripts/world/tests/test_rol_phase8.py
     scripts/world/tests/test_rol_pilot.py
     scripts/world/tests/test_rol_pilot_build.py
     scripts/world/tests/test_rol_periodic_profiles.py

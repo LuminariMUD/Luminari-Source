@@ -273,9 +273,7 @@ void assign_mobiles(void)
   ASSIGNMOB(106000, cf_alathar);        // lord alathar
 
   /* Jotunheim */
-  ASSIGNMOB(2096027, thrym);
-  ASSIGNMOB(2096077, planetar);
-  ASSIGNMOB(2096070, ymir);
+  /* Converted Thrym, Planetar, and Ymir behavior is persisted in world data. */
   ASSIGNMOB(2096033, gatehouse_guard);
   ASSIGNMOB(2096032, gatehouse_guard);
   ASSIGNMOB(2096200, jot_invasion_loader); /* this will load invasion */

@@ -137,6 +137,10 @@ int rol_monster_combat_typed(struct spec_event_context *context);
 int rol_residual_mobile_typed(struct spec_event_context *context);
 int rol_utility_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_utility_room_typed(struct spec_event_context *context);
+int rol_composite_mobile(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_composite_mobile_typed(struct spec_event_context *context);
+int rol_composite_object(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_composite_object_typed(struct spec_event_context *context);
 
 enum rol_scheduled_gate_state rol_scheduled_gate_state_for_hour(int hour);
 enum rol_scheduled_naval_branch rol_scheduled_naval_branch_for(bool standing, bool fighting);
@@ -335,5 +339,11 @@ bool rol_handle_conjured_death(struct char_data *ch);
 bool rol_update_mobile_home_after_move(struct char_data *ch, int source_room, int destination_room);
 int rol_utility_newbie_east_destination_vnum(int race);
 int rol_utility_weight_transition(bool triggered, unsigned long long weight);
+size_t rol_composite_mobile_profile_count(void);
+size_t rol_composite_object_profile_count(void);
+bool rol_composite_mobile_profile(int mobile_vnum, size_t behavior_index,
+                                  const char **behavior_name);
+bool rol_composite_object_profile(int object_vnum, size_t behavior_index,
+                                  const char **behavior_name);
 
 #endif /* LUMINARI_SPEC_ROL_CONVERSION_H */
