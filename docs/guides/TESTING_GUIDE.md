@@ -189,6 +189,70 @@ is absent. The operational selection gate verifies every Phase 1/2 artifact hash
 requires exactly 3-5 packages covering the conventional, settlement, SOC, custom-reset,
 extension, special-procedure, and prior-lineage roles before pilot emission can begin.
 
+RoL Phase 6.5 tests cover the universal zone and entity formulas, evidence-backed
+normalization, sparse and multi-band packages, overflow and malformed inputs, exact
+Trail/Hulburg/Jotunheim rehomes, distinct artifact identities, persistent object
+headers, artifact-state ownership, transactional idempotent SQL, MariaDB view guards,
+and apply preconditions. The apply regression forces a database commit failure after
+rollback-only preflight and proves that no file has changed.
+
+Operational Phase 6.5 validation must compare finding identity against the frozen
+baseline; it must not treat an inherited nonzero validator exit as a new failure. Run
+the global gate and each emitted package selector, then assert zero normalized addition
+and zero touched blocker from the sealed acceptance report:
+
+```sh
+python3 scripts/world/wtool.py --json validate --all --strict
+lib/world/validate-zone.sh 20507 --json --strict
+lib/world/validate-zone.sh 20591 --json --strict
+lib/world/validate-zone.sh 20960 --json --strict
+```
+
+Selected-zone runs can include `REF009` errors from malformed unselected packages that
+prevent a complete global reference universe. Classify those only by exact baseline
+comparison. Any error located in a touched package, new normalized finding, or
+unresolved typed edge fails the gate.
+
+Apply only a verified bundle to an explicitly confirmed development environment. The
+command verifies the sealed manifest, all before/after hashes, and a rollback-only SQL
+preflight before committing the idempotent database migration and copying files:
+
+```sh
+python3 scripts/world/wtool.py --json rol-rebase-apply \
+  --bundle-dir <accepted-phase6.5-bundle> \
+  --lib-root lib \
+  --database-config lib/mysql_config
+```
+
+Re-run the command after validation. A successful repeat reports zero changed paths;
+the SQL migration may execute again but must update no retired row. Follow it with
+`make test-world-tools`, `make test`, `make install`, a syntax boot, and namespace,
+reference, persistent-store, and database audits.
+
+Seal and execute the semantic persistence supplement whenever a discovered database
+schema is in scope. The apply command performs a rollback-only preflight, applies the
+migration twice, preserves row counts and serialized object suffixes, and proves every
+canonical saved-object header resolves to one active indexed prototype:
+
+```sh
+python3 scripts/world/wtool.py --json rol-persistence-bundle \
+  --discovery-dir <phase1-discovery> \
+  --output-dir <persistence-bundle>
+
+python3 scripts/world/wtool.py --json rol-persistence-apply \
+  --bundle-dir <persistence-bundle> \
+  --database-config <isolated-or-development-mysql-config> \
+  --database-role isolated \
+  --lib-root <tested-lib-root> \
+  --output-dir <persistence-execution>
+```
+
+After the final gate logs exist, `rol-completion-audit` seals the record-level rehome,
+per-package reference, code/configuration consumer, persistence, runtime topology, and
+191-requirement matrix. It fails on an active retired consumer, unresolved required
+edge, missing or duplicate saved-object prototype, failed gate, or changed repeat
+bundle. See `docs/utilities/WORLD_VALIDATOR_CLI.md` for the full invocation.
+
 Equivalent CMake and CTest entry points are:
 
 ```sh
@@ -292,6 +356,10 @@ under the repository's protected `lib/` directory. It applies
 `sql/master_schema.sql`, seeds one encounter-event row, copies the tracked
 minimal world bundle, and creates test-only configuration and text files in
 the isolated directory.
+
+The isolated runtime provisions artifact objects from `1699.obj`, `20010.obj`,
+`20053.obj`, and `20197.obj`. Keep all four object packages and the `1699` zone,
+room, and mobile packages in sync when changing the canonical artifact registry.
 
 The syntax-check boot test uses these CI-only overrides:
 

@@ -191,12 +191,6 @@ static const char rol_griffon_guard_description[] =
 
 /* Keep this table sorted by converted mobile VNUM for binary lookup. */
 static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
-    {150772, ROL_MONSTER_PLANT_POISON, 3, "Barbed-thorn poison volley."},
-    {196007, ROL_MONSTER_SWALLOW_WHOLE, 10, "Rhemorhaz bite and whole-swallow attack."},
-    {196013, ROL_MONSTER_JOTUN_MIMER, 1, "Mimer's gate challenge and return to post."},
-    {196027, ROL_MONSTER_JOTUN_THRYM, 2, "Thrym's freezing paralysis bolt."},
-    {196040, ROL_MONSTER_JOTUN_LOKI, 3, "Utgard-Loki's room-wide fear visions."},
-    {196076, ROL_MONSTER_SWALLOW_WHOLE, 10, "Rhemorhaz bite and whole-swallow attack."},
     {2000207, ROL_MONSTER_PLANAR_BALOR, 1,
      "Balor equipment upkeep, elemental protection, and corpse suppression."},
     {2000212, ROL_MONSTER_PLANAR_GLABREZU_GRAB, 11,
@@ -369,6 +363,7 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
      "Consumes the recovered diadem and imprisons its bearer."},
     {2046699, ROL_MONSTER_HYSSK_SLAVE_TAKER, 1,
      "Requires a captive slave before dragon-turtle entry."},
+    {2050772, ROL_MONSTER_PLANT_POISON, 3, "Barbed-thorn poison volley."},
     {2051246, ROL_MONSTER_WINGED_DEVA, 11, "Healing lightning burst and earthquake."},
     {2051333, ROL_MONSTER_KAMERYNN, 3, "Kamerynn's damaging teleport strike."},
     {2051334, ROL_MONSTER_CANTHUS, 1, "Canthus pack summons and elemental breath."},
@@ -473,6 +468,11 @@ static const struct rol_monster_combat_profile rol_monster_combat_profiles[] = {
     {2094506, ROL_MONSTER_DARKHOLD_SHADOW_DRAGON, 1,
      "Death unlocks and reveals the nearby northern passage."},
     {2094563, ROL_MONSTER_UM2_WYVERN_TAIL, 1, "Critical venom tail with a fatal paralysis save."},
+    {2096007, ROL_MONSTER_SWALLOW_WHOLE, 10, "Rhemorhaz bite and whole-swallow attack."},
+    {2096013, ROL_MONSTER_JOTUN_MIMER, 1, "Mimer's gate challenge and return to post."},
+    {2096027, ROL_MONSTER_JOTUN_THRYM, 2, "Thrym's freezing paralysis bolt."},
+    {2096040, ROL_MONSTER_JOTUN_LOKI, 3, "Utgard-Loki's room-wide fear visions."},
+    {2096076, ROL_MONSTER_SWALLOW_WHOLE, 10, "Rhemorhaz bite and whole-swallow attack."},
     {2096631, ROL_MONSTER_GREYCLOAK_BANSHEE_WAIL, 6, "Room-wide Greycloak banshee wail."},
     {2096670, ROL_MONSTER_GREYCLOAK_FUMES, 11, "Room-wide noxious fumes."},
     {2096672, ROL_MONSTER_GREYCLOAK_ARALESH, 11, "Lethal blazing-eye beam."},

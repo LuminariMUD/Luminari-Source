@@ -257,13 +257,14 @@ python3 scripts/world/wtool.py --world-root lib/world rol-skeleton \
   --output-dir lib/rol-conversion/runs/phase3-REVISION
 ```
 
-The default `--basename jotun` selects the confirmed source zone 960 to target
-zone 1960 `KEEP`. The command verifies the Phase 2 artifact hashes and target
-file precondition, inventories the target tree, creates an isolated full staging
-copy, and validates both trees for the selected package with identical grammar
-configuration. It then applies the real `KEEP` action twice. Both applies must
-perform zero writes, the authoritative target tree hash must remain unchanged,
-and staged validation must add no findings.
+`rol-skeleton` is retained to replay the frozen Phase 3 no-clobber evidence;
+it must not select current destinations. Canonical policy v3 resolves source
+zone 960 to zone 20960, and Phase 6.5 `rol-rebase` performs that rehome. When
+the skeleton consumes its historical Phase 2 bundle, it verifies every
+artifact hash and target-file precondition, inventories the target tree,
+creates an isolated staging copy, and validates both trees with identical
+grammar configuration. Its two historical `KEEP` applies must perform zero
+writes, preserve the authoritative target hash, and add no finding.
 
 Use a different `--basename` only when the Phase 2 reconciliation contains
 exactly one confirmed zone `KEEP` for that package. The output directory must
@@ -293,6 +294,111 @@ The bundle contains the selected source oracle, all selected normalized records,
 the exact Phase 2 actions and core identities, all outgoing reference resolutions,
 active special-binding candidates, aggregate coverage, and a manifest hashing every
 artifact. It performs zero live target writes.
+
+## Realms of Luminari Phase 5 and Phase 6 Audits
+
+Audit every planned capability and reconcile every active special binding:
+
+```sh
+python3 scripts/world/wtool.py rol-capability-audit \
+  --plan-dir lib/rol-conversion/runs/phase2-REVISION \
+  --output-dir lib/rol-conversion/runs/phase5-REVISION
+
+python3 scripts/world/wtool.py rol-special-reconcile \
+  --discovery-dir lib/rol-conversion/runs/phase1-REVISION \
+  --plan-dir lib/rol-conversion/runs/phase2-REVISION \
+  --capability-audit-dir lib/rol-conversion/runs/phase5-REVISION \
+  --output-dir lib/rol-conversion/runs/phase6-REVISION
+```
+
+Both commands verify the manifests they consume. Phase 6 accounts for direct
+bindings, dynamic registrations, implicit race bindings, handlers, and every
+active `ACT_SPEC` record. Its accepted bundle has no pending binding.
+
+## Realms of Luminari Phase 6.5 Canonical Rebase
+
+Stage the complete canonical rebase without writing the live world:
+
+```sh
+python3 scripts/world/wtool.py --world-root lib/world rol-rebase \
+  --discovery-dir lib/rol-conversion/runs/phase1-REVISION \
+  --plan-dir lib/rol-conversion/runs/phase2-REVISION \
+  --phase6-dir lib/rol-conversion/runs/phase6-REVISION \
+  --lib-root lib \
+  --output-dir lib/rol-conversion/runs/phase6-5-REVISION
+```
+
+The bundle contains the full staged world, artifact package, persistent-file
+overlay, transactional database migration, typed reference ledger, repair
+ledger, removal plan, exact validation delta, and a hash-preconditioned apply
+plan. Acceptance requires canonical identities, zero required unresolved
+references, zero active retired references, one state row per artifact, no
+new normalized validation finding, and no blocking finding in a touched
+package. Use the same `--created-at` value for independent repeat-generation
+runs; accepted outputs must be byte-identical.
+
+Apply only an accepted bundle to an explicitly identified development target:
+
+```sh
+python3 scripts/world/wtool.py --json rol-rebase-apply \
+  --bundle-dir lib/rol-conversion/runs/phase6-5-REVISION \
+  --lib-root lib \
+  --database-config lib/mysql_config
+```
+
+Apply verifies every bundle hash, the complete staged world-tree hash, each
+destination preimage, and the development marker in `lib/.env`. The database
+SQL is transactional and idempotent. A second apply reports no changed file
+and may safely execute the database migration again.
+
+Seal the schema-complete semantic persistence ledger and SQL independently of the
+world overlay, then execute it against an isolated or explicitly confirmed development
+database:
+
+```sh
+python3 scripts/world/wtool.py --json rol-persistence-bundle \
+  --discovery-dir lib/rol-conversion/runs/phase1-REVISION \
+  --output-dir lib/rol-conversion/runs/phase6-5-persistence-REVISION
+
+python3 scripts/world/wtool.py --json rol-persistence-apply \
+  --bundle-dir lib/rol-conversion/runs/phase6-5-persistence-REVISION \
+  --database-config <mysql-config> \
+  --database-role isolated \
+  --lib-root <tested-lib-root> \
+  --output-dir lib/rol-conversion/runs/phase6-5-persistence-exec-REVISION
+```
+
+The execution audit captures no row contents or credentials. It verifies rollback-only
+preflight, row-count and serialized-suffix preservation, zero retired relevant row,
+repeat migration no-op behavior, and unique live prototype resolution for every
+canonical saved-object VNUM.
+
+After world tools, CuTests, install, syntax boot, and bounded runtime boot pass, seal
+the complete Phase 6.5 closure evidence:
+
+```sh
+python3 scripts/world/wtool.py --json rol-completion-audit \
+  --release-dir <canonical-release-a> \
+  --repeat-release-dir <canonical-release-b> \
+  --persistence-bundle-dir <persistence-release-a> \
+  --repeat-persistence-bundle-dir <persistence-release-b> \
+  --development-execution-dir <development-migration-execution> \
+  --final-verification-dir <development-final-verification> \
+  --isolated-execution-dir <isolated-migration-execution> \
+  --lib-root lib \
+  --world-tools-log <world-tools-log> \
+  --cutest-log <cutest-log> \
+  --install-log <install-log> \
+  --syntax-log <syntax-boot-log> \
+  --runtime-log <bounded-runtime-log> \
+  --output-dir <completion-audit>
+```
+
+The completion bundle contains a record-level rehome ledger with all required fields,
+package incoming/outgoing reference reports, classified non-world numeric matches,
+runtime structural evidence, a documentation audit, parsed final gates, and a matrix
+covering every archived deliverable, session task, exit gate, and canonical acceptance
+criterion.
 
 ## Validation Modes
 

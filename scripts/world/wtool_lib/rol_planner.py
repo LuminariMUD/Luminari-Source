@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .models import TOOL_VERSION
+from .rol_identity import canonical_destination, canonical_reference_vnum
 
 
 ROL_PLAN_SCHEMA_VERSION = 1
@@ -119,7 +120,7 @@ def verify_discovery_bundle(discovery_dir: Path) -> dict[str, Any]:
 
 def _strong_formula(candidate: dict[str, Any]) -> bool:
   evidence = set(candidate["evidence"])
-  return "legacy_offset_formula" in evidence and "exact_normalized_identity" in evidence
+  return "legacy_lineage_formula" in evidence and "exact_normalized_identity" in evidence
 
 
 def confirmed_lineage_packages(
@@ -138,7 +139,7 @@ def confirmed_lineage_packages(
     basename = record["basename"]
     totals[basename] += 1
     row = candidates[record["record_id"]]
-    if any("legacy_offset_formula" in item["evidence"] for item in row["candidates"]):
+    if any("legacy_lineage_formula" in item["evidence"] for item in row["candidates"]):
       formula[basename] += 1
     if any(_strong_formula(item) for item in row["candidates"]):
       strong[basename] += 1
@@ -173,7 +174,7 @@ def _formula_candidate(row: dict[str, Any]) -> dict[str, Any] | None:
   candidates = [
       candidate
       for candidate in row["candidates"]
-      if "legacy_offset_formula" in candidate["evidence"]
+      if "canonical_formula" in candidate["evidence"]
   ]
   return candidates[0] if candidates else None
 
@@ -185,72 +186,13 @@ def _seed_candidate(row: dict[str, Any]) -> dict[str, Any] | None:
   )
 
 
-def _policy_equivalents(policy: dict[str, Any]) -> dict[tuple[str, int], dict[str, Any]]:
-  """Return validated, evidence-backed source-to-target identity aliases."""
-
-  equivalents: dict[tuple[str, int], dict[str, Any]] = {}
-  for item in policy.get("identity", {}).get("confirmed_target_equivalents", []):
-    try:
-      source_kind = str(item["source_kind"])
-      source_vnum = int(item["source_vnum"])
-      target_type = str(item["target_type"])
-      target_vnum = int(item["target_vnum"])
-      evidence = [str(value) for value in item["evidence"]]
-    except (KeyError, TypeError, ValueError) as error:
-      raise RolPlanError(f"invalid confirmed target equivalent: {item!r}") from error
-    if source_kind not in _ENTITY_KINDS | {"zon"}:
-      raise RolPlanError(f"unsupported equivalent source kind: {source_kind}")
-    if target_type != _TARGET_TYPES[source_kind]:
-      raise RolPlanError(
-          f"equivalent target type {target_type!r} does not match {source_kind!r}"
-      )
-    if source_vnum < 0 or target_vnum < 0 or not evidence:
-      raise RolPlanError("confirmed target equivalents require non-negative VNUMs and evidence")
-    key = (source_kind, source_vnum)
-    if key in equivalents:
-      raise RolPlanError(f"duplicate confirmed target equivalent for {source_kind} {source_vnum}")
-    equivalents[key] = {
-        "target_type": target_type,
-        "target_vnum": target_vnum,
-        "evidence": evidence,
-        "confirmed_seed": True,
-        "policy_equivalent": True,
-    }
-  return equivalents
-
-
-def _zone_allocations(
-    records: list[dict[str, Any]], policy: dict[str, Any]
-) -> dict[int, int]:
-  selected_range = policy["identity"]["new_zone_range"]
-  start = selected_range["start"]
-  end = selected_range["end"]
-  offset = selected_range["offset"]
-  source_vnums = sorted({record["vnum"] for record in records if record["kind"] == "zon"})
-  allocations = {
-      vnum: vnum + offset
-      for vnum in source_vnums
-      if start <= vnum + offset <= end
-  }
-  available = iter(value for value in range(start, end + 1) if value not in allocations.values())
-  for vnum in source_vnums:
-    if vnum not in allocations:
-      try:
-        allocations[vnum] = next(available)
-      except StopIteration as error:
-        raise RolPlanError("reserved zone range cannot hold all source zone identities") from error
-  return allocations
-
-
 def _new_destination(
     record: dict[str, Any],
     policy: dict[str, Any],
-    zone_allocations: dict[int, int],
 ) -> int:
-  identity = policy["identity"]
-  if record["kind"] == "zon":
-    return zone_allocations[record["vnum"]]
-  return record["vnum"] + identity["new_entity_range"]["offset"]
+  return canonical_destination(
+      record["kind"], record["vnum"], record["basename"], policy
+  )
 
 
 def _directive_ids(record: dict[str, Any]) -> list[str]:
@@ -275,8 +217,6 @@ def build_record_actions(
   if len(candidates) != len(records):
     raise RolPlanError("source record and candidate counts differ")
   confirmed_packages = confirmed_lineage_packages(records, candidates)
-  policy_equivalents = _policy_equivalents(policy)
-  zone_allocations = _zone_allocations(records, policy)
   duplicate_qst: Counter[int] = Counter(
       record["vnum"] for record in records if record["kind"] == "qst"
   )
@@ -288,38 +228,24 @@ def build_record_actions(
   core_destinations: dict[tuple[str, int], int] = {}
   for record in records:
     row = candidates[record["record_id"]]
-    selected = _seed_candidate(row)
-    formula = _formula_candidate(row)
-    equivalent = policy_equivalents.get((record["kind"], record["vnum"]))
+    selected = _formula_candidate(row)
+    destination = (
+        _new_destination(record, policy)
+        if record["kind"] in _ENTITY_KINDS | {"zon"}
+        else canonical_reference_vnum("mobile", record["vnum"])
+    )
     source_excluded = record.get("values", {}).get("source_disposition") == "EXCLUDE"
     if source_excluded:
       action = "EXCLUDE"
       destination = None
       rationale = record["values"]["source_exclusion_reason"]
       selected = None
-    elif equivalent is not None:
-      action = "KEEP"
-      selected = equivalent
-      destination = equivalent["target_vnum"]
-      rationale = "policy-confirmed target equivalent; preserve authoritative target behavior"
     elif duplicate_source[(record["kind"], record["vnum"])] > 1:
       action = "MERGE"
-      selected = selected or formula
-      destination = (
-          selected["target_vnum"]
-          if selected is not None
-          else _new_destination(record, policy, zone_allocations)
-      )
       rationale = "duplicate active source definitions require deterministic merge"
     elif selected is not None:
       action = "KEEP"
-      destination = selected["target_vnum"]
-      rationale = "documented traced lineage seed; preserve authoritative target"
-    elif record["basename"] in confirmed_packages and formula is not None:
-      action = "KEEP"
-      destination = formula["target_vnum"]
-      selected = formula
-      rationale = "confirmed package lineage; preserve existing target and local edits"
+      rationale = "canonical target candidate already exists; preserve authoritative target"
     elif record["kind"] == "qst" and duplicate_qst[record["vnum"]] > 1:
       action = "MERGE"
       destination = None
@@ -327,7 +253,6 @@ def build_record_actions(
       selected = None
     else:
       action = "ADD"
-      destination = _new_destination(record, policy, zone_allocations)
       rationale = (
           "no acceptable target candidate exists"
           if not row["candidates"]
@@ -369,9 +294,7 @@ def build_record_actions(
     if kind in {"shp", "qst", "soc"} and item["action"] != "EXCLUDE":
       host_destination = core_destinations.get(("mob", item["source_vnum"]))
       if host_destination is None:
-        host_destination = item["source_vnum"] + policy["identity"]["new_entity_range"][
-            "offset"
-        ]
+        host_destination = canonical_reference_vnum("mobile", item["source_vnum"])
       item["destination_vnum"] = host_destination
       if kind == "qst" and duplicate_qst[item["source_vnum"]] > 1:
         item["action"] = "MERGE"
@@ -409,16 +332,25 @@ def _validate_actions(actions: list[dict[str, Any]], policy: dict[str, Any]) -> 
   entity_range = policy["identity"]["new_entity_range"]
   zone_range = policy["identity"]["new_zone_range"]
   for item in actions:
-    if item["action"] != "ADD":
+    if item["action"] == "EXCLUDE":
       continue
     if item["source_kind"] not in _ENTITY_KINDS | {"zon"}:
       continue
-    selected_range = zone_range if item["source_kind"] == "zon" else entity_range
     destination = item["destination_vnum"]
+    expected = canonical_destination(
+        item["source_kind"], item["source_vnum"], item["basename"], policy
+    )
+    if destination != expected:
+      raise RolPlanError(
+          f"destination {destination} violates canonical formula for {item['source_record_id']}"
+      )
+    selected_range = zone_range if item["source_kind"] == "zon" else entity_range
     if not selected_range["start"] <= destination <= selected_range["end"]:
       raise RolPlanError(
-          f"ADD destination {destination} is outside reserved range for {item['source_record_id']}"
+          f"destination {destination} is outside reserved range for {item['source_record_id']}"
       )
+    if item["action"] != "ADD":
+      continue
     if any(
         candidate["target_type"] == item["target_type"]
         and candidate["target_vnum"] == destination
@@ -438,13 +370,6 @@ def _validate_actions(actions: list[dict[str, Any]], policy: dict[str, Any]) -> 
       continue
     source_keys = {(item["source_kind"], item["source_vnum"]) for item in colliding}
     if len(source_keys) == 1 and all(item["action"] in {"KEEP", "MERGE"} for item in colliding):
-      continue
-    if all(
-        item["action"] in {"KEEP", "MERGE"}
-        and item["selected_target"] is not None
-        and item["selected_target"].get("policy_equivalent")
-        for item in colliding
-    ):
       continue
     raise RolPlanError(
         f"identity collision at {key[0]} {key[1]} across {len(colliding)} source records"

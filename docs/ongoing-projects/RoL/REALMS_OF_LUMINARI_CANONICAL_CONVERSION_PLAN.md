@@ -1,7 +1,9 @@
 # Realms of Luminari Canonical Conversion Plan
 
-- Status: Phase 6 complete; Phase 6.5 ready to begin
+- Status: Phase 6.5 complete; Phase 7 ready to begin
 - Consolidated: 2026-08-13
+- Phase 6.5 completed: 2026-08-14
+- Phase 7 plan streamlined: 2026-08-14
 - Source: `EXAMPLE/RealmsOfLuminari/`
 - Target: this development checkout and its current `lib/world/`
 - Production changes: prohibited
@@ -442,13 +444,15 @@ location chosen by its implementation spec. It must provide typed parsers for `w
 maps; and emitters for target `wld`, `mob`, `obj`, `shp`, `hlq`, `trg`, `zon`, indexes,
 and terminators.
 
-Reconcile and generate before writing the development world. Each run first emits a
-unique isolated bundle. Application changes only declared paths, rebuilds indexes,
-applies runtime and persistent dependencies in order, removes only declared legacy
-records, and validates the resulting target. Never hand-edit ignored generated output
-as the source of truth.
+Reconcile and generate before writing the development world. Phase 7 batches emit to
+isolated staging and update shared ledgers; they do not each recreate a complete release
+bundle. Application changes only declared paths, rebuilds indexes, applies runtime and
+persistent dependencies in order, removes only declared legacy records, and validates
+the resulting target. Never hand-edit ignored generated output as the source of truth.
 
-A run bundle contains machine-readable equivalents of:
+A normal Phase 7 batch records only its selected inputs and outputs, action delta,
+reference diagnostics, exceptions, and targeted validation result. A milestone or
+release bundle contains machine-readable equivalents of:
 
 ```text
 run-manifest.json          source-inventory.json    target-inventory.json
@@ -457,15 +461,16 @@ rehome.jsonl              reference-report.json    change-plan.jsonl
 removals.jsonl            output/world/            validation/
 ```
 
-Also emit source/output structural comparisons, loss/exception reports, fixtures for
-every observed grammar, per-package acceptance checklists, and a corpus progress
-ledger. Human summaries derive from canonical records.
+At milestones, also emit source/output structural comparisons, loss/exception reports,
+fixtures for newly supported grammar, and the cumulative corpus progress ledger. Human
+summaries derive from canonical records. Do not duplicate unchanged inventories,
+manifests, or evidence in every batch.
 
-Each vertical capability unit includes traced source/target behavior, action and
-capability rows, IR support, runtime work, deterministic conversion, diagnostics,
-positive/negative/ambiguity fixtures, focused tests, a pilot, and relevant
-documentation/help. Land runtime support before dependent data, and expand only after
-the pilot or preceding batch proves the contract.
+For established grammar and runtime capabilities, reuse the existing converter and
+tests. A new or changed capability includes traced source/target behavior, IR or runtime
+work, diagnostics, representative fixtures, focused tests, and relevant
+documentation/help. Require a separate pilot only for a new high-risk mechanic. Land
+runtime support before dependent data.
 
 ## 7. Execution roadmap
 
@@ -481,7 +486,40 @@ is `lib/rol-conversion/runs/phase6-special-20260813-complete`, run
 `rol-phase6-special-49381a429d6f4224`. Completed behavior and exclusion details are in
 the [Phase 6 archive](changelog-archive/archive08_13-phase6-complete-RoL-Changelog.md).
 
-### 7.2 Phase 6.5: Canonical VNUM rebase and reference closure
+### 7.2 Phase 6.5: Complete
+
+Phase 6.5 completed on the authoritative development target on 2026-08-14. The sealed
+release is `lib/rol-conversion/runs/phase6-5-canonical-20260814-release3-a`, run
+`rol-phase6-5-a11f8a8181c2dd49`; `release3-b` is byte-identical. The release applies
+180 planned path changes, records 270 evidence-backed repairs, and closes all four
+machine-checkable namespace and reference invariants at zero.
+
+The cutover rehomes Trail to zone `20507`, Hulburg to `20591`, Jotunheim to `20960`,
+and ten first-wave artifacts to their direct canonical identities. It restores the
+distinct second Kelrarin identity at `2001009`, migrates 112 persistent object files,
+and preserves 18 unique artifact-state rows without cloning ownership. Global
+validation improves the inherited target baseline from 3,849 errors and 38,219
+warnings to 3,770 errors and 38,028 warnings. Normalized added findings and touched
+blocking findings are both zero.
+
+The supplemental persistence audit classifies all 83 semantic database bindings, of
+which 53 require migration. The development execution migrated 1,512 rows and the
+final verification finds zero retired row; all 142 distinct canonical saved-object
+VNUMs resolve to exactly one indexed live prototype. The record-level completion audit
+is `lib/rol-conversion/runs/phase6-5-completion-20260814-final`; it covers all 1,994
+rehome/normalization records and all 191 explicit deliverables, session tasks, and exit
+requirements.
+
+Final gates pass 396 world-tool tests and 698 production-linked CuTests, a warning-free
+build and install, syntax boot, a private-MariaDB behavioral boot, reset observation,
+and scripted component and cross-zone walkthroughs. The behavioral boot executed the
+artifact and three rehomed zone resets and reached the game loop without a relevant
+diagnostic. The walkthrough reached all 990 rehomed rooms across 16 components and
+resolved all 1,730 reset commands, 2,215 exit-key uses, 20 portals, and 568 typed
+record references. Reapplication reports all 180 paths already current and zero file
+writes while the transactional database migration remains idempotent.
+
+The session lists below are retained as the executed completion record.
 
 **Prerequisites:** keep RoL policy, runtime bindings, generated profiles, and planning
 inputs stable; confirm development; and regenerate all dated counts and hashes in the
@@ -614,46 +652,63 @@ no-clobber, and idempotency gates.
 **Exit:** Section 9.1 passes on the authoritative development target; only then may
 Phase 7 begin.
 
-### 7.3 Phase 7: Canonical corpus batches
+### 7.3 Phase 7: Lean canonical corpus conversion
 
 Convert all remaining active packages against the applied canonical baseline. A legacy
 identity, canonical collision, or formula exception is a failed Phase 6.5 invariant;
 repair that baseline instead of adding a local exception.
 
-Batch by dependency closure, shared runtime capability, and record action. Each batch:
+Freeze the post-Phase-6.5 policy, identity map, target inventory, and input hashes once
+at Phase 7 start. Refresh them only when an authoritative input changes. Group packages
+by dependency closure and shared runtime capability rather than zone-number order.
 
-1. pins post-Phase-6.5 policy, identity map, target inventory, and input hashes;
-2. selects a package closure including companion-only and cross-package dependencies;
-3. assigns every record `KEEP/PATCH/ADD/MERGE/EXCLUDE` at its canonical identity;
-4. resolves every refreshed, pre-owned missing-reference disposition without changing
-   the universal identity rule;
-5. preserves Phase 6.5 content except for explicit dependency actions;
-6. lands runtime capabilities before dependent data;
-7. reports hashes, action/capability coverage, identities, references, repairs,
-   exclusions, and companion mismatches from deterministic regeneration;
-8. runs syntax, exact baseline comparison, isolated syntax/database boots, resets,
-   walkthroughs, focused regressions, preservation, and idempotency checks; and
-9. emits an isolated validation bundle for Phase 8.
+Each batch:
 
-Repair selected or touched baseline findings in their owning batch. Exit when every
-in-scope package, companion mismatch, record action, capability, and required reference
-is resolved and supported by structure, reset, behavior, walkthrough, preservation,
-and regeneration evidence. Reforecast from Phase 6.5 throughput; dated estimates are
-archived.
+1. selects a dependency-complete group, including companion-only and cross-package
+   dependencies;
+2. assigns each selected record `KEEP/PATCH/ADD/MERGE/EXCLUDE` at its canonical
+   identity and resolves its required references;
+3. lands any required runtime capability before its dependent data;
+4. generates isolated output while preserving Phase 6.5 and untouched target content;
+5. runs targeted syntax, identity, reference, range, and no-clobber checks on selected
+   and touched records;
+6. runs focused reset, walkthrough, or behavior tests only for new, changed, or
+   high-risk mechanics; and
+7. updates one cumulative action, exception, and progress ledger instead of producing
+   a full validation bundle per package.
+
+Run a milestone check after every four to six batch sessions, and immediately after a
+loader, persistence, or broadly shared runtime change. A milestone regenerates the
+completed corpus from the frozen baseline, runs full structural validation and an
+isolated syntax/database boot, samples the affected resets and walkthroughs, runs the
+full code suites when code changed, verifies deterministic output and preservation,
+and stores one checkpoint bundle. Phase 8 owns exhaustive full-corpus behavior,
+persistence, integration, and post-apply testing.
+
+Repair selected or touched baseline findings in their owning batch. Phase 7 exits when
+every in-scope package, companion mismatch, record action, capability, and required
+reference is resolved; targeted checks pass; and the final milestone can regenerate
+the cumulative Phase 7 output from the sealed Phase 6.5 baseline.
+
+The initial lean planning target is 18-30 sessions, or 36-120 focused engineering
+hours at 2-4 hours per session. This includes baseline grouping, conversion batches,
+milestone checks, and Phase 7 closeout, but not Phase 8. Reforecast after three
+representative batches covering straightforward data, cross-package references, and a
+runtime-heavy package. This is a working envelope, not a calendar promise.
 
 ### 7.4 Phase 8: Final integration and release evidence
 
-Integrate accepted Phase 7 bundles without repeating the namespace rebase or legacy
-persistent-state migration. Split the following work into 6-10 sessions if measured
-scope still supports that range:
+Integrate the accepted cumulative Phase 7 output without repeating the namespace rebase
+or legacy persistent-state migration. Split the following work into 6-10 sessions if
+measured scope still supports that range:
 
-1. freeze the canonical development baseline and accepted bundles;
+1. freeze the canonical development baseline and accepted Phase 7 checkpoint;
 2. assemble an isolated complete target with runtime before data;
 3. reconcile full-corpus counts, actions, capabilities, identities, typed references,
    externals, exclusions, hashes, and indexes;
 4. run global/per-zone structure, syntax/database boots, resets, walkthroughs, quests,
    shops, SOC, traps, specials, persistence, and regressions;
-5. apply only the validated Phase 7/integration plan to development and revalidate
+5. apply only the validated Phase 7 and integration plan to development and revalidate
    changed inputs;
 6. rerun namespace and retired-reference audits;
 7. finalize converter, operator, builder, testing, apply, system, help, and changelog
@@ -669,9 +724,9 @@ Section 9.2.
 
 ### 8.1 Structural validation
 
-Record exact commands, parsed finding identities, counts, and parse completeness for
-baseline and staged results. Exit status alone is insufficient because a wrapper may
-print errors while returning success.
+For an ordinary batch, record parsed findings for selected and touched records. Run the
+full-corpus commands below at Phase 7 milestones and in Phase 8. Exit status alone is
+insufficient because a wrapper may print errors while returning success.
 
 ```bash
 python3 scripts/world/wtool.py \
@@ -683,25 +738,31 @@ lib/world/validate-zone.sh <zone-vnum> \
 bin/circle -c -d <isolated-lib-root>
 ```
 
-Validate indexes, versions, terminators, ranges, typed collisions, ASCII, and LF. A
-batch adds no global finding, and every selected or touched record has no unresolved
-error. The `validate` command always requires a selector such as `--all`.
+Validate indexes, versions, terminators, ranges, typed collisions, ASCII, and LF. Every
+batch must leave its selected or touched records without an unresolved error. A
+milestone must add no normalized global finding. The `validate` command always
+requires a selector such as `--all`.
 
 ### 8.2 Runtime and behavior validation
 
-Use an isolated lib root and isolated MariaDB instance. Reuse or adapt
-`scripts/ci/prepare_test_runtime.sh` and its safety checks; never run destructive
-fixtures against development or production databases. Reject relevant invalid-record,
-reference, reset, trigger, persistence, extraction, and `SYSERR` diagnostics.
+Use the smallest safe focused harness for an ordinary batch. Use an isolated lib root
+and isolated MariaDB instance at milestones, or sooner when a batch changes loaders,
+persistence, shops, HLQs, SOC, traps, specials, or other database-backed behavior.
+Reuse or adapt `scripts/ci/prepare_test_runtime.sh` and its safety checks; never run
+destructive fixtures against development or production databases. Reject relevant
+invalid-record, reference, reset, trigger, persistence, extraction, and `SYSERR`
+diagnostics.
 
-Automate reset, door, key, container, equipment, shop, HLQ, SOC, path, trap, special,
-cross-zone, artifact, and persistent-reload evidence. Every converted room component
-receives reset observation and a scripted walkthrough; no manual builder sign-off is
-required.
+Test representative changed behavior in each batch. Expand reset and scripted
+walkthrough coverage at milestones, prioritizing new mechanics and cross-zone paths.
+Phase 8 provides exhaustive full-corpus coverage for doors, keys, containers,
+equipment, shops, HLQs, SOC, paths, traps, specials, artifacts, and persistent reloads.
+No manual builder sign-off is required.
 
 ### 8.3 Code, preservation, and apply validation
 
-When runtime or converter code changes, run focused suites plus:
+When runtime or converter code changes, run focused tests immediately. Run the full
+suites below at the next milestone and before the Phase 7 handoff:
 
 ```bash
 make test-world-tools
@@ -712,19 +773,20 @@ make install
 `make install` must remove the root-level `circle`. Add or remove source files in both
 `Makefile.am` and `CMakeLists.txt`.
 
-For every generation and apply:
+For every batch generation:
 
-- identical inventories must produce byte-identical output;
 - untouched paths retain hashes and target/OLC content changes only by declared action;
 - canonical and synthetic identities are collision-free and all required references
   resolve through the typed manifest;
-- repeat application to a disposable migrated copy is a no-op or explicit safe stop;
-- persistent migrations are scoped, transactional where supported, idempotent, and
-  verified by typed counts and save/reload behavior;
-- runtime precedes dependent data, canonical definitions and rewritten references
-  precede legacy retirement, and dependent parts apply as one validated plan; and
-- the resulting development state repeats structure, namespace, reference, syntax,
-  bounded behavior, persistence, and code gates.
+- runtime precedes dependent data; and
+- canonical definitions and rewritten references precede legacy retirement.
+
+At each milestone, identical frozen inputs must produce byte-identical cumulative
+output. Repeat application to a disposable copy must be a no-op or an explicit safe
+stop. If persistent data is touched, verify scoped, transactional where supported,
+idempotent save/reload behavior. Phase 8 repeats the complete structure, namespace,
+reference, syntax, behavior, persistence, preservation, and code gates against the
+assembled development candidate.
 
 ## 9. Acceptance criteria
 
@@ -766,6 +828,10 @@ active references to retired RoL VNUMs    = 0
 unresolved required typed references      = 0
 ```
 
+This gate passed on 2026-08-14 in run `rol-phase6-5-a11f8a8181c2dd49` and again
+against the applied development target. All four values above are zero; generation is
+byte-identical and repeat application performs zero file writes.
+
 ### 9.2 Project definition of done
 
 The conversion is complete only when:
@@ -780,8 +846,10 @@ The conversion is complete only when:
 5. generated grammar, ranges, indexes, terminators, ASCII, and LF are valid, touched
    records have no unresolved finding, and the assembled target adds no baseline
    diagnostic;
-6. syntax/database boots, behavior, resets, walkthroughs, persistence, regressions,
-   no-clobber, determinism, and idempotency pass with a validation bundle per package;
+6. Phase 7 targeted checks and milestones pass, and Phase 8 full-corpus syntax/database
+   boots, behavior, resets, walkthroughs, persistence, regressions, no-clobber,
+   determinism, and idempotency pass with a cumulative ledger and final validation
+   bundle;
 7. the complete result is applied to development and passes post-apply audits;
 8. converter, operator, builder, testing, apply, system, help, and changelog
    documentation matches behavior; and
@@ -812,10 +880,9 @@ Out of scope:
 Current handoff:
 
 ```text
-execute Phase 6.5 Sessions 1-8
--> pass the canonical namespace and reference-closure gates
--> reforecast and execute Phase 7 canonical package batches
--> integrate and apply accepted bundles in Phase 8
+consume the sealed Phase 6.5 canonical baseline
+-> execute lean Phase 7 dependency batches and milestone checks
+-> integrate and apply the accepted cumulative output in Phase 8
 -> pass the project Definition of Done
 ```
 

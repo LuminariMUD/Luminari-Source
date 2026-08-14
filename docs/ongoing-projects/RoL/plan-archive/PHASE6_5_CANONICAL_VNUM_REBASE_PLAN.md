@@ -3,13 +3,21 @@
 > Archived on 2026-08-13. Superseded by the
 > [canonical conversion plan](../REALMS_OF_LUMINARI_CANONICAL_CONVERSION_PLAN.md).
 
-- Status: Planned, not started
+- Status: Completed 2026-08-14
 - Plan date: 2026-08-12
 - Placement: after Phase 6 and before Phase 7
 - Initial estimate: 8 sessions, 16-32 focused engineering hours
 - Source corpus: `EXAMPLE/RealmsOfLuminari/`
 - Target: this writable development checkout and its current `lib/world/`
 - Production changes: prohibited
+
+Completion evidence is sealed in
+`lib/rol-conversion/runs/phase6-5-canonical-20260814-release3-a`, run
+`rol-phase6-5-a11f8a8181c2dd49`. Supplemental semantic persistence evidence is in
+`phase6-5-persistence-20260814-release-a` and its development executions. The final
+record, reference, consumer, runtime, gate, and 191-requirement audit is
+`phase6-5-completion-20260814-final`. The current policy, final counts, validation
+evidence, and Phase 7 handoff live in the superseding canonical conversion plan.
 
 ## Purpose
 
@@ -743,11 +751,9 @@ generic arithmetic shortcut.
 - Editing protected local configuration headers or credential files.
 - Creating backup, rollback, recovery, or remote-capture artifacts.
 
-## Deferred Documentation Synchronization
+## Documentation Synchronization - Complete
 
-Only this plan file is created now because another agent is working with the current RoL
-file set. When Phase 6.5 implementation begins after that work is complete, the final
-session must reconcile at least:
+The completed Phase 6.5 sprint reconciled:
 
 - `REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md`;
 - `REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md`;
@@ -758,20 +764,17 @@ session must reconcile at least:
 - relevant builder/player help; and
 - any generated documentation or tests that expose legacy RoL identities.
 
-Until that synchronization occurs, this document is the authoritative proposed Phase
-6.5 policy. Existing files continue to describe the currently implemented hybrid policy
-and must not be mistaken for the Phase 6.5 end state.
+The canonical conversion plan is now authoritative. This archived document preserves
+the original Phase 6.5 execution contract and no longer describes a proposed hybrid
+state.
 
 ## Handoff
 
 Prerequisite sequence:
 
 ```text
-finish current Phase 6 work
--> stop concurrent RoL identity/policy edits
--> execute Session 6.5.1 baseline
--> complete Sessions 6.5.2 through 6.5.8
--> pass all Phase 6.5 exit gates
+consume run rol-phase6-5-a11f8a8181c2dd49
+-> verify phase6-5-completion-20260814-final
 -> begin Phase 7 action-based corpus batches
 ```
 

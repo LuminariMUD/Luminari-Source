@@ -1,0 +1,22 @@
+#2005343
+axe gesen returning hand artifact~
+@CGesen@n, the @cReturning Axe@n~
+@CA hand axe hangs here in the air, turning slowly, touching nothing.@n~
+~
+5 abgq 0 0 0 an 0 0 0 0 0 0 0 0 0 0 0
+19 1 8 0 0 0 0 0 0 0 0 0 0 0 0 0
+5 220000 0 30 0
+E
+axe gesen returning hand artifact~
+It does not rest against anything. Set it down and it drifts back to roughly
+where it was, turning gently, waiting to be thrown again.
+~
+G
+4
+H
+12
+I
+5
+J
+0
+$~

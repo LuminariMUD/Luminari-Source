@@ -482,9 +482,14 @@ world_tool_sources = \
 	scripts/world/wtool_lib/reporting.py \
 	scripts/world/wtool_lib/rol_baseline.py \
 	scripts/world/wtool_lib/rol_capability_audit.py \
+	scripts/world/wtool_lib/rol_completion_audit.py \
 	scripts/world/wtool_lib/rol_discovery.py \
 	scripts/world/wtool_lib/rol_inventory.py \
+	scripts/world/wtool_lib/rol_identity.py \
+	scripts/world/wtool_lib/rol_persistence.py \
+	scripts/world/wtool_lib/rol_persistence_audit.py \
 	scripts/world/wtool_lib/rol_planner.py \
+	scripts/world/wtool_lib/rol_rebase.py \
 	scripts/world/wtool_lib/rol_pilot.py \
 	scripts/world/wtool_lib/rol_pilot_build.py \
 	scripts/world/wtool_lib/rol_periodic_profiles.py \
@@ -516,9 +521,13 @@ world_tool_sources = \
 	scripts/world/tests/test_reporting.py \
 	scripts/world/tests/test_rol_baseline.py \
 	scripts/world/tests/test_rol_capability_audit.py \
+	scripts/world/tests/test_rol_completion_audit.py \
 	scripts/world/tests/test_rol_discovery.py \
 	scripts/world/tests/test_rol_inventory.py \
+	scripts/world/tests/test_rol_identity.py \
+	scripts/world/tests/test_rol_persistence_audit.py \
 	scripts/world/tests/test_rol_planner.py \
+	scripts/world/tests/test_rol_rebase.py \
 	scripts/world/tests/test_rol_pilot.py \
 	scripts/world/tests/test_rol_pilot_build.py \
 	scripts/world/tests/test_rol_periodic_profiles.py \
@@ -639,6 +648,9 @@ EXTRA_DIST = \
 	$(world_tool_support_files) \
 	lib/world/artifacts/1699.mob \
 	lib/world/artifacts/1699.obj \
+	lib/world/artifacts/20010.obj \
+	lib/world/artifacts/20053.obj \
+	lib/world/artifacts/20197.obj \
 	lib/world/artifacts/1699.wld \
 	lib/world/artifacts/1699.zon \
 	lib/world/artifacts/artifacts.hlp \
@@ -720,6 +732,9 @@ EXTRA_DIST = \
 	docs/testing/VESSEL_SYSTEM_TESTING.md \
 	lib/world/artifacts/1699.mob \
 	lib/world/artifacts/1699.obj \
+	lib/world/artifacts/20010.obj \
+	lib/world/artifacts/20053.obj \
+	lib/world/artifacts/20197.obj \
 	lib/world/artifacts/1699.wld \
 	lib/world/artifacts/1699.zon \
 	lib/world/artifacts/artifacts.hlp \

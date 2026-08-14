@@ -12,6 +12,10 @@ Artifacts are unique items of power. Each one exists only once in the world.
 Artifacts grow stronger as they are used, rising from level 1 to level 5, and
 every bonus they grant scales with that level.
 
+Two distinct artifacts may come from the same tradition and answer with
+similar powers. They still keep separate owners, growth, and recharges; one
+can never stand in for the other.
+
 Many artifacts bind themselves to a single owner. A bind-on-pickup artifact
 claims you the moment you take it; a bind-on-equip artifact waits until you
 first wear it; a bind-on-account artifact can be shared between your own

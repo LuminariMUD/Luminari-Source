@@ -1,10 +1,10 @@
-# Realms of Luminari Phase 6 Conversion Worknotes - Archived
+# Realms of Luminari Phase 6-6.5 Conversion Worknotes - Archived
 
-- Updated: 2026-08-13
+- Updated: 2026-08-14
 - Environment: development
 - Branch: `master`
-- Archive scope: completed Phase 6 implementation and validation handoff
-- Current task: Phase 6 complete; prepare the Phase 6.5 canonical VNUM rebase
+- Archive scope: completed Phase 6 and Phase 6.5 implementation and validation handoff
+- Current task: Phase 6.5 complete; prepare Phase 7 canonical corpus batches
 - Completed milestone record:
   [Phase 6 changelog archive](../changelog-archive/archive08_13-phase6-complete-RoL-Changelog.md)
 - Phase 4 manual test matrix: [PHASE4_MANUAL_TESTING.md](PHASE4_MANUAL_TESTING.md)
@@ -1003,18 +1003,87 @@ Policy:  rol-conversion-policy-2
   bindings, 795 direct handlers, and 848 `ACT_SPEC` records with zero pending rows.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
+## Phase 6.5 completion handoff
+
+- The authoritative release is
+  `lib/rol-conversion/runs/phase6-5-canonical-20260814-release3-a`, run
+  `rol-phase6-5-a11f8a8181c2dd49`. Release trees `release3-a` and `release3-b` are
+  byte-identical. The run-manifest SHA-256 is
+  `9354c9ebce3c626242357ec3c65ef9a47f18c0e8c6b39a96ee0a0db8cc6f7adb`; the SQL
+  migration SHA-256 is
+  `90c91e01e24fa06e8229a06120b341350518cb04d697248aca4f2a0bae017a08`.
+- The frozen Phase 1 run is `rol-phase1-03cf9122d3b6e469`: 71,680 active records and
+  356,771 typed references. The Phase 2 run is `rol-phase2-663674cff12936c8`: 70,604
+  `ADD`, six `EXCLUDE`, and 1,070 `MERGE` actions. The Phase 5 audit is
+  `rol-phase5-audit-1cdeebcf8afe38d3`: 69,920 emitted records with zero transform
+  exceptions. Phase 6 remains `rol-phase6-special-49381a429d6f4224` with every
+  binding family closed.
+- The canonical rebase performs 8,768 world rewrites, 37 rehomes or canonical adds,
+  270 explicit repairs, 112 persistent object-file migrations, and 180 final path
+  changes. Trail is zone `20507`, Hulburg is `20591`, Jotunheim is `20960`, and the
+  `mytheast` identity plan is exactly zone `20817` with entities
+  `2081700-2081899`.
+- All eleven modern artifact prototypes have one definition. Ten first-wave state
+  rows moved to their canonical successors, `169906` ownership moved only to
+  `2001007`, and the distinct second Kelrarin prototype is `2001009`. The canonical
+  state file has 18 unique rows, no clone, and no retired artifact identity.
+- The first development SQL invocation exposed `ecosystem_analysis` as a non-updatable
+  MariaDB view. Its transaction rolled back. Exact hashes confirmed that its preceding
+  file copies already matched all 180 sealed outputs. The final apply path now verifies
+  every hash, executes a rollback-only SQL preflight, guards each update to a base
+  table, commits the idempotent database migration first, and then applies files. No
+  backup or recovery artifact is created or required.
+- Release 3 completed the development cutover. Reapplication through the final code
+  reports 180 already-current paths, zero changed paths, and an idempotent database
+  migration. The semantic persistence ledger classifies all 83 database bindings; 53
+  migration-required bindings are present and contain zero retired row. The original
+  development execution migrated 1,512 rows. Final re-verification proves all 142
+  distinct canonical saved-object VNUMs resolve to exactly one indexed prototype; the
+  only non-base binding is the intentionally skipped `ecosystem_analysis` view.
+- Live world audit reports zero active reference to a retired RoL identity, eleven
+  collision-free canonical artifact definitions, and only classified target-owned
+  numeric matches. All 172,162 player-object headers and 9,959 house-object headers
+  contain zero retired identity.
+- Global live validation exactly matches the sealed staged output: 3,770 errors, 206
+  informational findings, and 38,028 warnings. The prior baseline was 3,849 errors and
+  38,219 warnings. The rebase repaired 270 findings, adds no normalized finding, and
+  leaves no blocker in a touched record.
+- Strict selected-zone validation retains only baseline findings. The five selected
+  errors for each rehomed zone are `REF009` completeness diagnostics from unrelated,
+  unselected malformed packages; the rehomed package files themselves contain zero
+  error. Selected warnings are 53 for Trail, 245 for Hulburg, and 105 for Jotunheim,
+  all baseline-preserved.
+- A scripted directed graph walkthrough reaches all 990 rehomed rooms from one root per
+  disconnected component: three Trail components, nine Hulburg components, and four
+  Jotunheim components. It resolves 1,730 reset commands, 2,215 exit-key uses, 20
+  portals, 568 typed record references, all DG attachments, and all incoming and
+  outgoing cross-zone exits without an unresolved target.
+- A private unprivileged MariaDB instance under `/tmp` passed syntax and behavioral
+  boots. The normal server reached the game loop, executed resets for zones `1699`,
+  `20507`, `20591`, and `20960`, and shut down cleanly with no relevant diagnostic.
+  The private runtime and database were removed at test completion; configured
+  development and production databases were not modified by this isolated gate.
+- The record-level completion audit in
+  `lib/rol-conversion/runs/phase6-5-completion-20260814-final` accounts for all 1,994
+  rehome/normalization records, publishes package incoming/outgoing ledgers, classifies
+  every code/configuration/test/documentation numeric match without an active retired
+  consumer, and maps all 191 explicit Phase 6.5 requirements to evidence.
+- Final regression evidence is 396 passing world-tool tests and 698 passing
+  production-linked CuTests. `make install` succeeds, leaves no root `circle`, and
+  installs build ID `ef9c4b8efa9a0a888bebdfdebce9141ccfb18f10`; `bin/circle` SHA-256
+  is `08dad8bc4eb27496e6f060f1837b0690efeb9a32830d62eb415384e89a6cec89`.
+
 ## Immediate next actions
 
-1. Begin Phase 6.5 Session 1 by regenerating its dated source, target, Phase 1, and Phase 2
-   denominators from the completed Phase 6 baseline.
-2. Reserve and verify the canonical zone and entity identity ranges before any rehome writes.
-3. Keep the Phase 6 terminal dispositions and generated profiles stable while the namespace
-   migration is in progress.
-4. Preserve record-specific missing-reference repairs for their Phase 7 dependency batches.
-5. Continue to protect the six locked malformed or unsafe smallest-unit exclusions and the 30
-   minimal dependency exclusions.
-6. Repeat the full reconciliation, build, test, install, syntax-boot, and CMake gates after each
-   Phase 6.5 session that changes runtime or conversion policy.
+1. Pin run `rol-phase6-5-a11f8a8181c2dd49` as the Phase 7 namespace, policy, and
+   reference baseline.
+2. Reforecast Phase 7 by dependency closure and shared runtime capability rather than
+   by filename order.
+3. Preserve record-specific missing-reference repairs for their owning Phase 7 batch.
+4. Continue to protect the six locked malformed or unsafe smallest-unit exclusions and
+   the 30 minimal dependency exclusions.
+5. Require every Phase 7 batch to repeat structural, syntax, behavior, persistence,
+   determinism, build, test, and install gates against the canonical baseline.
 
 ## Phase 6 completion handoff
 
