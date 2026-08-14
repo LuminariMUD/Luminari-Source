@@ -262,6 +262,8 @@ pause
 .autorun.lock.pid.tmp.*
 .mud.pid
 .mud.pid.tmp.*
+.mud.identity
+.mud.identity.tmp.*
 .watchdog.pid
 .watchdog.pid.tmp.*
 .killwatchdog
