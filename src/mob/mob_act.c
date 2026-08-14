@@ -43,7 +43,16 @@ void npc_offensive_spells(struct char_data *ch);
 void npc_racial_behave(struct char_data *ch);
 bool mob_knows_assigned_spells(struct char_data *ch);
 
-void mobile_activity(void)
+static int mobile_activity_shard(const struct char_data *ch)
+{
+  uintptr_t key;
+
+  key = (uintptr_t)ch >> 4;
+  key ^= key >> 16;
+  return (int)(key % (uintptr_t)PULSE_MOBILE);
+}
+
+static void run_mobile_activity(int shard)
 {
   struct char_data *ch = NULL, *next_ch = NULL, *vict = NULL, *tmp_char = NULL;
   struct obj_data *obj = NULL, *best_obj = NULL;
@@ -69,6 +78,9 @@ void mobile_activity(void)
       continue;
 
     if (!IS_MOB(ch))
+      continue;
+
+    if (shard >= 0 && mobile_activity_shard(ch) != shard)
       continue;
 
     if (rol_automatic_race_activity(ch))
@@ -524,4 +536,19 @@ void mobile_activity(void)
     /* Add new mobile actions here */
 
   } /* end for() */
+}
+
+void mobile_activity(void)
+{
+  run_mobile_activity(-1);
+}
+
+void mobile_activity_pulse(int heart_pulse)
+{
+  int shard;
+
+  shard = heart_pulse % PULSE_MOBILE;
+  if (shard < 0)
+    shard += PULSE_MOBILE;
+  run_mobile_activity(shard);
 }

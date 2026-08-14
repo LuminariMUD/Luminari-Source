@@ -41,6 +41,7 @@ struct event
   struct q_element *q_el;     /**< Where this event is located in the queue */
   bool isMudEvent;            /**< used by the memory routines */
   event_cleanup_func cleanup; /**< Optional cancellation and bulk cleanup hook. */
+  int profile_index;          /**< PERFMON event callback aggregate slot */
 };
 /**************************************************************************
  * End event structures and defines.
@@ -98,9 +99,13 @@ struct q_element
 
 /* - events - function protos needed by other modules */
 void event_init(void);
-struct event *event_create(EVENTFUNC(*func), void *event_obj, long when);
-struct event *event_create_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
-                                        event_cleanup_func cleanup);
+struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
+                                 const char *profile_name);
+struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
+                                              const char *profile_name, event_cleanup_func cleanup);
+#define event_create(func, event_obj, when) event_create_named((func), (event_obj), (when), #func)
+#define event_create_with_cleanup(func, event_obj, when, cleanup)                                  \
+  event_create_named_with_cleanup((func), (event_obj), (when), #func, (cleanup))
 void event_cancel(struct event *event);
 void event_process(void);
 long event_time(struct event *event);

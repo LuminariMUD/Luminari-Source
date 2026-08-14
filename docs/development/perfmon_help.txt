@@ -1,35 +1,56 @@
-PERFCONFIG
+PERFMON
 
-Usage: perfconfig [off|basic|sampling|full|dynamic|<number>]
+Usage:
+  perfmon all
+  perfmon summ
+  perfmon prof
+  perfmon csv
+  perfmon sect <section>
+  perfmon reset
 
-The perfconfig command controls the server's performance monitoring system.
-This allows administrators to adjust monitoring overhead based on current needs.
+The perfmon command reports the server's bounded performance counters. It is
+available to implementors (LVL_IMPL). Monitoring is always active; there is no
+runtime perfconfig command or sampling-mode switch.
 
-Monitoring Levels:
-  off      - Disable all performance monitoring (0% overhead)
-  basic    - Monitor only when performance exceeds 100% (minimal overhead)
-  sampling - Sample every N pulses (default: 1/10, ~90% reduction)
-  full     - Monitor every pulse (original behavior, highest overhead)
+Commands:
+  all    Show utilization history, cumulative named sections, game-loop
+         telemetry, event callback profiles, and database queries.
+  summ   Show pulse, second, minute, and hour utilization history.
+  prof   Show cumulative named sections, game-loop telemetry, top event
+         callbacks, and database queries.
+  csv    Show sampled section data followed by cumulative game-loop counters,
+         event callback rows, and database queries.
+  sect   Show one named profiling section.
+  reset  Start a new measurement window for performance, event, extraction,
+         catch-up, vessel-message, and database-query counters.
 
-Additional Options:
-  dynamic  - Toggle automatic high-load monitoring (on/off)
-  <number> - Set sampling rate (e.g., "perfmon 20" = sample 1/20 pulses)
+Game-loop fields:
+  Event queue calls              event_process() invocations
+  callbacks                      due callbacks executed
+  created                        callbacks created during event processing
+  depth=initial->latest          queue depth across the report interval
+  max_before / max_after         peak queue depths around event processing
+  Extractions processed          characters finalized from the pending list
+  Catch-up requested_missed      pulses requested from wall-clock delay
+  replayed_missed                extra heartbeats actually executed
+  remaining_backlog              requested pulses discarded on that pass
+  budget_exhausted               passes stopped by the 100 ms replay budget
 
-Current Status:
-  Type "perfmon" with no arguments to see current monitoring status.
+Event callback rows are the top 16 identities by total callback time. Compare
+calls with average_usec: a high total and modest average usually means excess
+callback volume, while a large maximum with few calls points to one expensive
+callback. The registry status reports registered identities out of its fixed
+512-entry capacity and counts any unregistered overflow calls.
 
-Dynamic Monitoring:
-  When enabled, the system automatically switches to full monitoring when
-  server load exceeds 150% and returns to sampling mode when load drops
-  below 130%.
+The game loop always executes the current heartbeat. Extra heartbeats run only
+while the batch remains within one normal 100 ms outer-loop budget. Unreplayed
+time is discarded so the server returns to socket and command processing.
+Pulse-based casting, combat rounds, cooldowns, spell preparation, and vessel
+schedules keep their logical order but run later in wall-clock time during
+overload.
 
-Examples:
-  perfconfig           - Show current status
-  perfconfig sampling  - Use sampling mode (recommended for production)
-  perfconfig full     - Enable full monitoring (for debugging)
-  perfconfig 5        - Sample every 5th pulse
-  perfconfig dynamic  - Toggle automatic load-based monitoring
+Automatic PERFMON high-water reports are rate limited by severity. Catch-up
+log messages summarize at most one five-second window, while perfmon counters
+still record every slow pass.
 
-Note: This command requires Greater God level (LVL_GRGOD) privileges.
-
-See also: PERFMON, SHOW STATS
+See also: SHOW STATS

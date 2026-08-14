@@ -4,8 +4,10 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/mud_event.h"
+#include "../../src/perfmon.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -15,6 +17,19 @@
 #include <unistd.h>
 
 int luminari_main(int argc, char **argv);
+
+static EVENTFUNC(test_profiled_event_callback)
+{
+  return 0;
+}
+
+static int test_event_cancel_cleanup_calls;
+
+static void test_event_cancel_cleanup(struct event *event)
+{
+  test_event_cancel_cleanup_calls++;
+  free(event->event_obj);
+}
 
 #define SYNTAX_CHECK_OUTPUT_SIZE (1024 * 1024)
 #define SYNTAX_CHECK_DEFAULT_TIMEOUT_SECONDS 60U
@@ -94,6 +109,52 @@ void Test_syntax_check_empty_event_queue_lifecycle(CuTest *tc)
 
   CuAssertIntEquals(tc, 1, event_test_init_call_count());
   CuAssertIntEquals(tc, 1, event_test_free_all_call_count());
+}
+
+void Test_event_process_reports_registered_callback_identity(CuTest *tc)
+{
+  struct event *test_event;
+  char report[16384];
+  unsigned long saved_pulse;
+
+  saved_pulse = pulse;
+  event_free_all();
+  event_init();
+  PERF_reset();
+
+  test_event = event_create(test_profiled_event_callback, NULL, 1);
+  CuAssertPtrNotNull(tc, test_event);
+  pulse++;
+  event_process();
+
+  PERF_prof_repr_csv(report, sizeof(report));
+  CuAssertPtrNotNull(tc, strstr(report, "# event_process_calls=1"));
+  CuAssertPtrNotNull(tc, strstr(report, "# event_queue_depth_initial=1"));
+  CuAssertPtrNotNull(tc, strstr(report, "# event_queue_depth_latest=0"));
+  CuAssertPtrNotNull(tc, strstr(report, "test_profiled_event_callback,1,"));
+
+  event_free_all();
+  pulse = saved_pulse;
+}
+
+void Test_event_free_all_runs_specialized_cancel_cleanup(CuTest *tc)
+{
+  struct event *test_event;
+  int *event_obj;
+
+  event_free_all();
+  event_init();
+  event_obj = malloc(sizeof(*event_obj));
+  CuAssertPtrNotNull(tc, event_obj);
+  *event_obj = 1;
+  test_event = event_create_with_cleanup(test_profiled_event_callback, event_obj, 10,
+                                         test_event_cancel_cleanup);
+  CuAssertPtrNotNull(tc, test_event);
+  test_event_cancel_cleanup_calls = 0;
+
+  event_free_all();
+
+  CuAssertIntEquals(tc, 1, test_event_cancel_cleanup_calls);
 }
 
 void Test_global_event_cleanup_detaches_live_object_owner(CuTest *tc)

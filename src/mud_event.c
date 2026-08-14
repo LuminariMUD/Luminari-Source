@@ -512,7 +512,14 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
 
   /* Create the actual event and set its timer.
    * event_create() adds it to the global event queue. */
-  pEvent = event_create(mud_event_index[pMudEvent->iId].func, pMudEvent, time);
+  pEvent = event_create_named(mud_event_index[pMudEvent->iId].func, pMudEvent, time,
+                              mud_event_index[pMudEvent->iId].event_name);
+  if (pEvent == NULL)
+  {
+    free(pMudEvent->sVariables);
+    free(pMudEvent);
+    return;
+  }
   pEvent->isMudEvent = TRUE;
   pMudEvent->pEvent = pEvent;
 

@@ -1,158 +1,310 @@
-# game-loop.md - Game Loop Issues
+# Game Loop Catch-Up Recovery
 
-## Investigation: 2026-08-14 slow-loop incident
+## Status
 
-### Scope
+Last updated: 2026-08-14.
 
-This note records a read-only review of the local development logs. The main
-sources were:
+The investigation, recovery guard, measured workload reductions, documentation, and validation are
+complete on `game-loop-recommendations`. There is no remaining implementation item in this project
+note.
 
-- `log/syslog.3`
-- `log/valgrind/live-20260814T093421Z/game.log`
-- `log/valgrind/live-20260814T100137Z-mini/game.log`
-- `src/comm.c`, `src/dgscript/dg_event.c`, and `src/handler.c`
+The branch was synchronized with `master` before the completion work. Merge commit `db397c3f`
+combined the game-loop event profiling with master's event cancellation cleanup contract. The
+published pre-merge documentation checkpoint is `91500956`, and the safety reference is
+`backup/pre-master-sync-2026-08-14-160309`.
 
-All reviewed runs identify the binary as clean commit
-`05c5fea3f30d734020c1fc974e67a2f9c845a51a`. The dedicated
-`log/performance` file was empty, so the conclusions below come from the
-PERFMON reports embedded in the game logs.
+The completed result includes:
 
-### Summary
+1. A 100 ms wall-clock budget for missed-heartbeat recovery.
+2. Bounded event callback identity, timing, queue-depth, extraction, and catch-up telemetry.
+3. Safe event-specific cancellation cleanup, including DG Script wait events.
+4. Stable mobile-activity sharding that preserves each NPC's six-second cadence without running the
+   whole population on one pulse.
+5. One-pass cross-character reference cleanup for pending extraction batches.
+6. Five-second aggregation for catch-up log messages while retaining every pass in counters.
+7. Explicit event registry capacity, report-limit, overflow, and catch-up maximum metadata.
+8. Updated central and staff-facing PERFMON documentation.
 
-The game loop entered a self-reinforcing missed-pulse catch-up spiral after
-the 11:49 copyover. A loop with a 100 ms budget grew from 2.74 seconds to
-10.54 seconds, then 29.94 seconds, and finally 75.95 seconds. Once the loop
-started replaying missed heartbeats, `event_process()` became the dominant
-cost and the server could no longer catch up to wall-clock time.
+## Confirmed failure mechanism
 
-Valgrind made the problem substantially worse, but it was not the root cause.
-The same failure was already present in the ordinary non-Valgrind run.
+The original incident had two stages:
 
-### Ordinary-run evidence
+1. A large `extract_pending_chars()` batch created an initial multi-second stall.
+2. The former recovery loop replayed up to 300 heartbeats in one outer-loop pass. Every heartbeat
+   called `event_process()`, and the replay made thousands of NPC `Casting` callbacks due together.
 
-The copyover started at 11:49:04 and the server entered the game loop at
-11:49:28. PERFMON then recorded the following progression:
+The old loop could not converge. One heartbeat represents 100 ms of logical time, but affected
+replayed heartbeats spent more than 100 ms doing the resulting work. Replay therefore created at
+least as much new wall-clock delay as it removed.
 
-| Time | Outer-loop time | Heartbeats replayed | `event_process()` time |
+### Original incident evidence
+
+The ordinary 11:49 development run grew as follows:
+
+| Time | Outer-loop time | Heartbeats | `event_process()` time |
 | --- | ---: | ---: | ---: |
 | 11:49:31 | 2.744 s | 1 | 0.026 s |
 | 11:50:37 | 10.545 s | 80 | 10.220 s |
 | 11:51:49 | 29.944 s | 161 | 29.047 s |
 | 12:31:00 | 75.946 s | 300 | 73.401 s |
 
-At the final high-water mark, `event_process()` consumed about 97 percent of
-the outer-loop pass. Its maximum single invocation was 3.705 seconds.
+At the final high-water mark, `event_process()` consumed about 97 percent of the pass. Its 300
+invocations averaged about 245 ms, more than twice the logical time recovered by each pulse.
 
-The first explicit missed-pulse warning appeared at 11:52:36. From then until
-12:31:00 the log contains 47 warnings, normally reporting 30 to 46 missed
-seconds and ending with 76 missed seconds. The reported values sum to 1,707
-seconds. This sum is an indication of repeated severe stalls, not a precise
-measurement of unique lost wall-clock time, because the recovery loop clamps
-the amount replayed on each pass.
+A controlled normal-build run then identified callback volume rather than one anomalous callback:
 
-### Why the loop cannot recover
+| Measurement | Value |
+| --- | ---: |
+| Outer-loop time | 8.108416 s |
+| `event_process()` | 7.789088 s |
+| Event callbacks | 5,275 |
+| Queue depth | 1,783 to 1,618 |
+| `Casting` calls | 4,491 |
+| `Casting` total | 7.530550 s |
+| `Casting` average | 1,676.81 us |
+| `Casting` maximum | 13,780 us |
 
-`game_loop()` converts elapsed processing time into `missed_pulses`, clamps a
-large backlog to 30 real seconds, and then calls `heartbeat(++pulse)` once for
-every pulse being replayed. With ten pulses per second, the clamp still allows
-300 heartbeat calls in one outer-loop pass.
+Full-world Memcheck runs amplified the same behavior and were useful for correctness checks, but
+their timings are not representative of normal operation.
 
-`heartbeat()` calls `event_process()` on every pulse. In the 75.95-second
-pass, the 300 `event_process()` calls took 73.40 seconds, or approximately
-245 ms per replayed pulse. That is already more than twice the 100 ms being
-recovered by each pulse. Consequently, replaying the backlog creates another
-backlog and the server remains trapped in catch-up work.
+## Implemented recovery and telemetry
 
-Relevant code locations:
+### Bounded heartbeat recovery
 
-- `src/comm.c`: missed-pulse calculation and the `while (missed_pulses--)`
-  replay loop in `game_loop()`
-- `src/comm.c`: unconditional `event_process()` call at the start of
-  `heartbeat()`
-- `src/dgscript/dg_event.c`: due-event loop inside `event_process()`
+`game_loop()` always executes the current heartbeat. It replays additional requested heartbeats only
+while the batch remains inside `HEARTBEAT_CATCHUP_BUDGET_USEC`, currently one normal 100 ms pulse
+interval. It then reports the actual replayed count and deliberately discards any remainder.
 
-### Likely initial trigger
+The remainder is called `remaining_backlog` for diagnosis, but it is not carried into the next pass.
+The next pass derives its own request from elapsed wall-clock time. This prevents a slow subsystem
+from monopolizing socket and command processing indefinitely.
 
-The first post-copyover pass took 2.744 seconds, but `event_process()` accounted
-for only 25.9 ms. Almost all of the delay was exclusive, currently unlabelled
-heartbeat time.
+Catch-up log output is aggregated into at most one line per five seconds. Each line includes window
+pass count, budget exhaustions, maximum request and remainder, and the latest pass. PERFMON counters
+continue to record every slow pass.
 
-For heartbeat number 1, the periodic modulo-based jobs do not run. After the
-profiled `event_process()` call, the remaining unconditional heartbeat work is
-`extract_pending_chars()`. This makes `extract_pending_chars()` the leading
-candidate for the initial approximately 2.7-second stall. This is a code-trace
-inference rather than a directly labelled PERFMON result and should be
-confirmed by adding timing and extraction-count telemetry around that call.
+### Event and extraction telemetry
 
-After this first stall caused heartbeat replay, `event_process()` became the
-clear sustained bottleneck.
+Events register a stable callback identity when created. Callback execution records two monotonic
+clock readings without doing a per-call name lookup. MUD events use display identities such as
+`Casting`, `Combat Round`, and `Spell Preparation`; direct callbacks use their function identity.
 
-### Error activity observed during the incident
+Reports include:
 
-Between 11:49 and 12:31 the log also contains:
+- event queue calls, callbacks, events created during processing, and queue depth;
+- extraction calls, pending count, processed count, and maximum batch;
+- catch-up requests, replays, discarded remainder, budget exhaustion, and maxima;
+- the top 16 callback identities by total execution time; and
+- callback registry use out of 512 entries plus unregistered overflow calls.
 
-- 10,228 `find_obj_by_uid_in_lookup_table` failures for missing object UIDs
-- 6,171 invalid `RoL Command Sentinel` mobile-activity dispatches
-- repeated Intermud3 connection failures against `127.0.0.1:8081`
+The registry is fixed and callback names are bounded, so memory cannot grow with uptime. The top-16
+view remains sufficient for diagnosis because reports now show whether omitted identities or
+overflow could affect interpretation.
 
-The missing object lookups strongly suggest stale DG Script object references.
-The typed-special errors are generated during mobile activity because the
-bound procedure does not support the dispatched event. Both create avoidable
-work and substantial synchronous log noise.
+### Event cancellation cleanup
 
-These messages correlate with the affected full-world run, but the current
-profiling is not detailed enough to prove that either message class is the
-main cost inside `event_process()`. During the final 75.95-second pass there
-were only 86 missing-UID messages and 85 sentinel messages, while
-`event_process()` consumed more than 73 seconds. They should therefore be
-treated as defects and possible amplifiers, not as the demonstrated primary
-cause of that pass.
+The master merge introduced cleanup callbacks that receive the owning `struct event *`. The merged
+implementation retains named callback profiling and this cleanup contract. DG Script wait-event
+cleanup clears `GET_TRIG_WAIT()` only when it still points to the event being cancelled, preventing
+a stale owner pointer and shutdown double free.
 
-### Valgrind comparison
+### Extraction batch optimization
 
-The full-world Valgrind run reproduced and amplified the spiral:
+Phase telemetry split `extract_char_final()` into:
 
-- Outer-loop passes reached 122 to 127 seconds.
-- `event_process()` consumed roughly 94 to 96 seconds per 300-heartbeat pass.
-- `mobile_activity()` consumed a further 23 to 24 seconds across five calls.
+- `extract.last_attacker`
+- `extract.relationships`
+- `extract.assets`
+- `extract.combat_refs`
+- `extract.world_remove`
+- `extract.events`
+- `extract.finalize`
 
-This overhead is expected under Memcheck, so those absolute timings are not
-representative of production performance. They do reinforce the identification
-of event processing and full-world mobile activity as the expensive paths.
+In a 213-character full-world batch, `extract_pending_chars()` took 1.479350 seconds. Three repeated
+cross-character scans accounted for almost all of it:
 
-The later minimized run, which also suppressed special-procedure assignment,
-did not enter the catch-up spiral. Its only PERFMON warning was a 367.8 ms
-command-processing pass while loading a character; heartbeat and event work
-were negligible. Because that run changed both world size and special
-assignment behavior, it does not isolate which change removed the problem.
+| Phase | Time |
+| --- | ---: |
+| `extract.last_attacker` | 553.854 ms |
+| `extract.relationships` | 431.336 ms |
+| `extract.combat_refs` | 457.973 ms |
+| All other measured phases | 34.737 ms |
 
-### Current diagnostic gap
+Those scans made a batch quadratic in the live character population. The final implementation
+clears pending targets from `last_attacker`, guarding, hunting, and combat pointers in one prepass,
+then finalizes each character. Dead-player NPC memory cleanup retains its established ID-based path.
+Production-linked coverage verifies that two simultaneous targets are removed and an observer's
+cross-character references and combat state are cleared.
 
-PERFMON measures `event_process()` as one inclusive section. It does not record:
+### NPC casting burst reduction
 
-- which event callbacks ran;
-- callback invocation counts and individual durations;
-- event queue depth before and after a pass;
-- how many events were newly queued while catch-up was running; or
-- which callback owns the stale object UID lookups.
+The source trace found why thousands of `Casting` events became active together:
 
-The logs therefore identify the bottleneck boundary but cannot identify the
-specific event type or callback responsible for most of the time.
+- `mobile_activity()` ran the entire mobile population on one `PULSE_MOBILE` boundary every six
+  seconds.
+- Idle NPC casters have a 1-in-16 prebuff opportunity during that pass; combat casters may also cast.
+- NPC casting starts an `eCASTING` event after two seconds, and active casting requeues on pulse
+  intervals.
 
-### Recommended next investigation
+This synchronized both cast creation and later callback deadlines. `mobile_activity_pulse()` now
+hashes each stable character address into one of the 60 mobile pulses and processes only that shard.
+Every continuously live NPC is still visited exactly once per six executed seconds. The legacy full
+pass remains available to focused callers and tests.
 
-1. Add bounded per-callback telemetry inside `event_process()`: callback/event
-   identity, call count, total time, maximum time, and queue depth before and
-   after processing.
-2. Add a profiling section around `extract_pending_chars()` and record how many
-   pending characters it processes per call.
-3. Record requested missed pulses, replayed pulses, and remaining backlog for
-   every slow outer-loop pass.
-4. Reproduce with the full world in a normal build before using Valgrind, then
-   use Valgrind only after the dominant callback is known.
-5. Once event semantics are understood, evaluate a bounded recovery policy
-   that coalesces eligible periodic work or limits heavyweight catch-up work by
-   wall-clock budget instead of replaying as many as 300 heartbeats in a single
-   pass.
+## Gameplay semantics decision
 
-No code or runtime configuration changes were made during this investigation.
+The recovery policy advances `pulse` only for heartbeats that actually execute. This produces one
+consistent rule across pulse-driven systems:
+
+- `event_process()` compares all event deadlines with the same executed `pulse` value;
+- casting and combat rounds remain ordinary queued events;
+- action and daily-use cooldowns remain queued events;
+- spell preparation continues to requeue at its established half-second or one-second delay; and
+- vessel movement, combat, events, upkeep, trade, weather, encounter, and schedule functions retain
+  their existing heartbeat gates.
+
+Discarded logical time therefore delays all of these systems in wall-clock time without reordering
+one callback type relative to another. This is accepted because keeping descriptors and commands
+responsive is safer than trying to simulate an unbounded period while the server is already
+overloaded. No callback-specific coalescing or skipping was added.
+
+## Full-world validation
+
+All active runs used a private copy of the development `lib` tree, isolated game and terrain ports,
+normal special procedures, and the full world. Existing development credential files were read but
+not modified. The primary development process and checkout were not stopped or used as the test
+runtime.
+
+### Post-merge baseline
+
+The synchronized branch without mobile sharding ran an active heartbeat for about 100 seconds:
+
+| Measurement | Value |
+| --- | ---: |
+| Catch-up log lines | 55 |
+| Budget-exhausted passes | 42 |
+| Maximum requested missed pulses | 47 |
+| Maximum remaining backlog | 30 |
+| Initial extraction | 177 characters, 3.941432 s |
+| Process CPU while overloaded | about 73 percent |
+
+The remainder repeatedly returned to zero, so the 100 ms guard preserved responsiveness, but the
+synchronized casting workload continued to produce new slow passes.
+
+### Sharded five-minute comparison
+
+The first five-minute connected run with mobile sharding and final telemetry showed:
+
+| Measurement | Value |
+| --- | ---: |
+| Initial extraction | 213 characters, 1.479350 s |
+| Initial event queue | 78 to 76 |
+| Callback registry | 7/512, zero overflow |
+| Maximum requested missed pulses | 15 initial; 8 after extraction |
+| Maximum remaining backlog | 8 |
+| Last reported remaining backlog | 0 |
+| Catch-up activity after 16:36:21 | none for the final four-plus minutes |
+| Resident memory | stable near 1.43 million KiB (about 1.37 GiB) |
+
+The initial report also showed two `trig_wait_event` callbacks and no event creation. The lack of
+later catch-up reports, stable resident memory, and clean shutdown provide no evidence of a growing
+event queue or registry.
+
+### Final-source five-minute run
+
+The final source, including the extraction batch prepass, received a second continuous five-minute
+full-world run:
+
+| Measurement | Value |
+| --- | ---: |
+| Highest reported pulse use | 864.930 ms |
+| Highest observed `event_process()` total | 209.171 ms across two calls |
+| Catch-up report windows | 16 |
+| Slow passes represented by those windows | 338 |
+| Budget-exhausted passes | 181 |
+| Maximum requested missed pulses | 9 |
+| Maximum remaining backlog | 9 |
+| Last reported remaining backlog | 0 |
+| Catch-up activity after 16:43:25 | none through shutdown at 16:47:58 |
+| Callback registry | 12/512, zero overflow |
+| Resident memory | stable at 1,433,160 KiB (about 1.37 GiB) |
+
+No pending extraction batch occurred naturally during this second boot, so it is not used to claim
+a new batch runtime. The earlier phase trace establishes which repeated scans dominated, while the
+production-linked regression verifies the one-pass implementation's reference and combat cleanup.
+The run instead validates final-source steady-state sharding, bounded recovery, telemetry, memory,
+and shutdown behavior.
+
+Both completed comparison runs stopped by `SIGTERM`, shut down vessel, Discord, Intermud3, terrain,
+world, AI, and MySQL state, and reached `Done.`. No queue error, allocator abort, or listener remained.
+
+## Review decisions
+
+- Keep the game-loop aggregates in `perfmon.c`. They share the existing section registry, reset,
+  reporting, and cleanup lifecycle; another source module would add ownership and manifest churn
+  without separating an independent subsystem.
+- Keep always-on callback clocks. Two monotonic reads were acceptable during the full-world soak,
+  registry lookup is paid at creation rather than dispatch, and the data resolved the incident.
+- Keep the fixed 512-entry registry and top-16 report. Runtime use was a small fraction of capacity,
+  overflow stayed zero, and reports now expose both limits.
+- Keep five-second catch-up aggregation. It reduced the baseline's one-line-per-pass noise while
+  retaining exact cumulative counters.
+- Do not add callback coalescing. Current event lifetime and ordering behavior remains intact.
+- Do not run another broad Memcheck soak. Normal-build evidence is sufficient and no new memory or
+  shutdown symptom requires a targeted Valgrind investigation.
+
+## Adjacent findings resolved by master
+
+The original incident also logged stale DG object UID lookups and invalid Command Sentinel mobile
+activity dispatches. They were independent amplifiers rather than the measured event bottleneck.
+The synchronized master code suppresses low-level missing-UID spam while retaining higher-level
+context and accepts Command Sentinel mobile-activity dispatch. No additional branch-local change is
+required.
+
+## Verification
+
+The synchronized master merge passed the complete repository validation path:
+
+- clean GNU C23 build with `-Wall -Wextra`;
+- production-linked CuTest suite;
+- world tooling suite;
+- protocol parser suite;
+- character rename static and schema suites;
+- install, root artifact cleanup, and clean full-world shutdown.
+
+After the completion changes, the authoritative `make test-all` path passed:
+
+- production-linked CuTest: `OK (713 tests)`;
+- world tooling: `Ran 409 tests`, `OK`;
+- protocol parser: `OK (29 tests)`;
+- character rename static and schema suites: `PASS`; and
+- installation and root-level `circle` artifact cleanup.
+
+Worktree-only test prerequisites are documented rather than hidden:
+
+```bash
+LUMINARI_TEST_SKIP_SYNTAX_BOOT=1 \
+LUMINARI_TEST_SPEC_WORLD_ROOT="$PWD/unittests/CuTest/fixtures/spec_world_inventory" \
+make test
+```
+
+The complete world-tool path additionally needs the ignored reference corpora available to the
+worktree, as described in `docs/guides/TESTING_GUIDE.md`.
+
+## Files changed by the completion work
+
+```text
+docs/development/perfmon_help.txt
+docs/ongoing-projects/game-loop.md
+docs/systems/CORE_SERVER_ARCHITECTURE.md
+src/comm.c
+src/handler.c
+src/handler.h
+src/mob/mob_act.c
+src/mob/mob_act.h
+src/perfmon.c
+unittests/CuTest/test_perfmon_production.c
+unittests/CuTest/test_spec_command_pulse.c
+```
+
+No source file was added or removed, so `Makefile.am` and `CMakeLists.txt` did not require changes.

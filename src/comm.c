@@ -123,6 +123,10 @@
 #define INVALID_SOCKET (-1)
 #endif
 
+/* Keep socket processing responsive when replaying missed heartbeats. */
+#define HEARTBEAT_CATCHUP_BUDGET_USEC ((uint64_t)OPT_USEC)
+#define HEARTBEAT_CATCHUP_LOG_INTERVAL 5
+
 extern time_t motdmod;
 extern time_t newsmod;
 
@@ -984,11 +988,26 @@ void game_loop(socket_t local_mother_desc)
   char comm[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d = NULL, *next_d = NULL;
   int missed_pulses = 0, maxdesc = 0, aliased = 0;
+  int requested_missed_pulses = 0;
+  int requested_heartbeats = 0;
+  int replayed_heartbeats = 0;
+  int replayed_missed_pulses = 0;
+  int remaining_backlog = 0;
+  int catchup_budget_exhausted = 0;
+  uint64_t heartbeat_replay_start_usec = 0;
+  uint64_t heartbeat_replay_now_usec = 0;
+  uint64_t heartbeat_replay_elapsed_usec = 0;
+  time_t catchup_log_now = 0;
   long int perf_high_water_mark = 0;
   static time_t last_moderate_log_time = 0;
   static time_t last_severe_log_time = 0;
   static time_t last_critical_log_time = 0;
   static int perf_log_suppressed = 0;
+  static time_t last_catchup_log_time = 0;
+  static uint64_t catchup_log_passes = 0;
+  static uint64_t catchup_log_budget_exhausted = 0;
+  static uint64_t catchup_log_max_requested = 0;
+  static uint64_t catchup_log_max_remaining = 0;
 
   /* initialize various time values */
   null_time.tv_sec = 0;
@@ -1401,30 +1420,84 @@ void game_loop(socket_t local_mother_desc)
         close_socket(d);
     }
 
-    /* Now, we execute as many pulses as necessary--just one if we haven't
-     * missed any pulses, or make up for lost time if we missed a few
-     * pulses by sleeping for too long. */
-    missed_pulses++;
+    /* Run the current heartbeat and recover missed pulses within the bounded
+     * wall-clock budget below. */
+    requested_missed_pulses = missed_pulses;
+    requested_heartbeats = requested_missed_pulses + 1;
 
-    if (missed_pulses <= 0)
+    if (requested_heartbeats <= 0)
     {
-      log("SYSERR: **BAD** MISSED_PULSES NONPOSITIVE (%d), TIME GOING BACKWARDS!!", missed_pulses);
-      missed_pulses = 1;
+      log("SYSERR: **BAD** MISSED_PULSES NONPOSITIVE (%d), TIME GOING BACKWARDS!!",
+          requested_heartbeats);
+      requested_missed_pulses = 0;
+      requested_heartbeats = 1;
     }
 
-    /* If we missed more than 30 seconds worth of pulses, just do 30 secs */
-    if (missed_pulses > 30 RL_SEC)
-    {
-      log("SYSERR: Missed %d seconds worth of pulses.", missed_pulses / PASSES_PER_SEC);
-      missed_pulses = 30 RL_SEC;
-    }
-
-    /* Now execute the heartbeat functions */
-    while (missed_pulses--)
+    /* Always run the current heartbeat, then replay missed heartbeats only while
+     * the work fits inside one normal outer-loop time budget. Any remainder is
+     * deliberately discarded rather than carried into a self-reinforcing loop;
+     * logical timers advance only for heartbeats that actually run. */
+    replayed_heartbeats = 0;
+    catchup_budget_exhausted = 0;
+    heartbeat_replay_start_usec = PERF_monotonic_usec();
+    while (replayed_heartbeats < requested_heartbeats)
     {
       PERF_PROF_ENTER(pr_heartbeat, "heartbeat");
       heartbeat(++pulse);
       PERF_PROF_EXIT(pr_heartbeat);
+      replayed_heartbeats++;
+
+      if (replayed_heartbeats < requested_heartbeats)
+      {
+        heartbeat_replay_now_usec = PERF_monotonic_usec();
+        heartbeat_replay_elapsed_usec =
+            heartbeat_replay_now_usec >= heartbeat_replay_start_usec
+                ? heartbeat_replay_now_usec - heartbeat_replay_start_usec
+                : 0;
+        if (heartbeat_replay_elapsed_usec >= HEARTBEAT_CATCHUP_BUDGET_USEC)
+        {
+          catchup_budget_exhausted = 1;
+          break;
+        }
+      }
+    }
+
+    replayed_missed_pulses = replayed_heartbeats - 1;
+    remaining_backlog = requested_missed_pulses - replayed_missed_pulses;
+    if (remaining_backlog < 0)
+      remaining_backlog = 0;
+
+    if (requested_missed_pulses > 0)
+    {
+      PERF_note_catchup_pass((uint64_t)requested_missed_pulses, (uint64_t)replayed_missed_pulses,
+                             (uint64_t)remaining_backlog, catchup_budget_exhausted);
+
+      if (catchup_log_passes < UINT64_MAX)
+        catchup_log_passes++;
+      if (catchup_budget_exhausted && catchup_log_budget_exhausted < UINT64_MAX)
+        catchup_log_budget_exhausted++;
+      if ((uint64_t)requested_missed_pulses > catchup_log_max_requested)
+        catchup_log_max_requested = (uint64_t)requested_missed_pulses;
+      if ((uint64_t)remaining_backlog > catchup_log_max_remaining)
+        catchup_log_max_remaining = (uint64_t)remaining_backlog;
+
+      catchup_log_now = time(NULL);
+      if (last_catchup_log_time == 0 ||
+          catchup_log_now - last_catchup_log_time >= HEARTBEAT_CATCHUP_LOG_INTERVAL)
+      {
+        log("PERFMON [CATCHUP]: window_passes=%llu budget_exhausted=%llu max_requested=%llu "
+            "max_remaining=%llu latest_requested=%d latest_replayed=%d latest_remaining=%d",
+            (unsigned long long)catchup_log_passes,
+            (unsigned long long)catchup_log_budget_exhausted,
+            (unsigned long long)catchup_log_max_requested,
+            (unsigned long long)catchup_log_max_remaining, requested_missed_pulses,
+            replayed_missed_pulses, remaining_backlog);
+        last_catchup_log_time = catchup_log_now;
+        catchup_log_passes = 0;
+        catchup_log_budget_exhausted = 0;
+        catchup_log_max_requested = 0;
+        catchup_log_max_remaining = 0;
+      }
     }
 
     /* Process terrain bridge API requests */
@@ -1480,6 +1553,8 @@ void proc_update()
 void heartbeat(int heart_pulse)
 {
   static int mins_since_crashsave = 0;
+  static struct PERF_prof_sect *pr_event_process = NULL;
+  static struct PERF_prof_sect *pr_extract_pending_chars = NULL;
   static struct PERF_prof_sect *pr_vessel_tick = NULL;
   static struct PERF_prof_sect *pr_vessel_autopilot = NULL;
   static struct PERF_prof_sect *pr_vessel_hunters = NULL;
@@ -1493,9 +1568,11 @@ void heartbeat(int heart_pulse)
   static struct PERF_prof_sect *pr_vessel_msdp = NULL;
   static struct PERF_prof_sect *pr_vessel_schedules = NULL;
 
-  PERF_PROF_ENTER(pr_event_process_, "event_process");
+  PERF_prof_sect_init(&pr_event_process, "event_process");
+  PERF_prof_sect_enable_sampling(pr_event_process);
+  PERF_prof_sect_enter(pr_event_process);
   event_process();
-  PERF_PROF_EXIT(pr_event_process_);
+  PERF_prof_sect_exit(pr_event_process);
 
   if (!(heart_pulse % PULSE_DG_SCRIPT))
   {
@@ -1628,12 +1705,15 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % PULSE_IDLEPWD)) /* 15 seconds */
     check_idle_passwords();
 
-  /* this controls the rate mobiles "act" */
+  /* Visit one stable shard per pulse so every mobile retains its six-second
+   * activity cadence without concentrating the full population in one pulse. */
+  PERF_PROF_ENTER(pr_mob_activity_, "mobile_activity");
+  mobile_activity_pulse(heart_pulse);
+  PERF_PROF_EXIT(pr_mob_activity_);
+
+  /* Keep non-mobile special-procedure updates on their established cadence. */
   if (!(heart_pulse % PULSE_MOBILE))
   {
-    PERF_PROF_ENTER(pr_mob_activity_, "mobile_activity");
-    mobile_activity();
-    PERF_PROF_EXIT(pr_mob_activity_);
     PERF_PROF_ENTER(pr_proc_update_, "proc_update");
     proc_update();
     PERF_PROF_EXIT(pr_proc_update_);
@@ -1772,7 +1852,11 @@ void heartbeat(int heart_pulse)
 #endif
 
   /* Every pulse! Don't want them to stink the place up... */
+  PERF_prof_sect_init(&pr_extract_pending_chars, "extract_pending_chars");
+  PERF_prof_sect_enable_sampling(pr_extract_pending_chars);
+  PERF_prof_sect_enter(pr_extract_pending_chars);
   extract_pending_chars();
+  PERF_prof_sect_exit(pr_extract_pending_chars);
 }
 
 /* new code to calculate time differences, which works on systems for which

@@ -470,94 +470,109 @@ approved consumer with complete ordering, lifetime, OLC, and persistence coverag
 
 ## Performance Monitoring
 
-The server includes built-in performance profiling through the `perfmon.c` system:
+The server's single-threaded game loop targets ten pulses per second. `src/perfmon.c` records
+outer-loop utilization, named profiling sections, event-queue activity, pending-character
+extraction, and missed-pulse recovery. The data is available through automatic high-water log
+reports and the implementor-only `perfmon` command.
+
+Named sections use the following pattern:
 
 ```c
-// Performance tracking macros
+/* The macro initializes the static section pointer on first use. */
 PERF_PROF_ENTER(pr_main_loop_, "Main Loop");
-// ... code to profile ...
+/* Profiled work. */
 PERF_PROF_EXIT(pr_main_loop_);
-
-// Key performance areas monitored:
-// - Main loop execution time
-// - Input/output processing
-// - Event system processing
-// - Script execution
-// - Database operations
-// - Heartbeat functions
 ```
 
 ### Performance Monitoring Architecture
 
-**Hierarchical Data Storage:**
-- Pulse-level data (individual game loop iterations)
-- Second-level aggregation (from pulse data)
-- Minute-level aggregation (from second data)
-- Hour-level aggregation (from minute data)
-- Circular buffers prevent memory growth while maintaining history
+The monitor has three related data sets:
 
-**Dual Statistics Tracking:**
-- **Per-pulse statistics**: Reset each game loop iteration for current performance
-- **Cumulative statistics**: Accumulated since server startup for long-term trends
+- Outer-loop utilization rolls pulse samples into bounded second, minute, and hour circular
+  buffers. `PERF_log_pulse()` expresses elapsed work as a percentage of the 100 ms pulse target.
+- Named sections have per-pulse and cumulative call, time, and maximum counters. Sampling can be
+  enabled explicitly for rolling percentile data.
+- Game-loop telemetry has per-pulse and cumulative counters for event queue depth, callbacks,
+  callbacks created while processing, pending extractions, and catch-up requests.
 
-**Threshold Monitoring:**
-- Configurable performance thresholds (10%, 30%, 50%, 70%, 90%, 100%, 250%, 500%, 1000%, 2500%)
-- Automatic violation counting and reporting
-- Performance percentage calculation based on allocated time slice
+`PERF_prof_reset()` clears only the current pulse. `PERF_reset()` starts a new cumulative
+measurement window and also resets utilization, missed-pulse, vessel-message, event, extraction,
+and catch-up counters.
+
+Event callback profiling uses a fixed 512-identity registry. Names are registered when events are
+created, so callback execution does not perform a string lookup. Human and CSV reports expose the
+registered count, registry capacity, top-16 report limit, and unregistered overflow calls. Callback
+rows are ranked by cumulative execution time and include call count, total, average, and maximum
+microseconds.
+
+Automatic high-water reports are rate limited by severity. Catch-up diagnostics are aggregated into
+at most one log line per five seconds while every pass remains represented in PERFMON counters.
+
+### Missed-Pulse Recovery
+
+`game_loop()` always executes the current heartbeat. When wall-clock delay requests additional
+heartbeats, it replays them only while the heartbeat batch remains inside one normal 100 ms
+outer-loop budget. Any unreplayed remainder is reported and deliberately discarded rather than
+carried into a self-reinforcing backlog.
+
+The global `pulse` value advances only for heartbeats that run. Event deadlines, casting, combat
+rounds, action cooldowns, spell preparation, and vessel heartbeat schedules therefore remain in
+their established logical order, but they run later in wall-clock time during overload. The policy
+favors command and socket responsiveness over wall-clock catch-up; it does not coalesce individual
+callback types.
+
+### Staff Command
+
+The `perfmon` command requires `LVL_IMPL`:
+
+- `perfmon all`: utilization summary, cumulative profiling, game-loop telemetry, and database query
+  count.
+- `perfmon summ`: utilization summary only.
+- `perfmon prof`: cumulative named sections, game-loop telemetry, and database query count.
+- `perfmon csv`: sampled section rows followed by cumulative counters and top event callbacks.
+- `perfmon sect <section>`: one named section.
+- `perfmon reset`: start a new measurement window.
+
+The event queue line reads `depth=initial->latest`; `max_before` and `max_after` show interval
+peaks. `remaining_backlog` is diagnostic wording for work discarded on that pass and is not carried
+forward. A high callback total with a modest average points to callback volume; a high maximum with
+few calls points to one expensive invocation.
 
 ### API Functions
 
 ```c
-// Pulse performance logging
+/* Outer-loop utilization. */
 void PERF_log_pulse(double val);
 
-// Report generation
+/* Report generation. */
 size_t PERF_repr(char *out_buf, size_t n);
 size_t PERF_prof_repr_pulse(char *out_buf, size_t n);
 size_t PERF_prof_repr_total(char *out_buf, size_t n);
 size_t PERF_prof_repr_sect(char *out_buf, size_t n, const char *id);
+size_t PERF_prof_repr_csv(char *out_buf, size_t n);
 
-// Section management (typically used via macros)
+/* Section management, normally used through PERF_PROF_ENTER/EXIT. */
 void PERF_prof_sect_init(struct PERF_prof_sect **ptr, const char *id);
 void PERF_prof_sect_enter(struct PERF_prof_sect *ptr);
 void PERF_prof_sect_exit(struct PERF_prof_sect *ptr);
 void PERF_prof_reset(void);
+
+/* Bounded game-loop telemetry. */
+int PERF_register_event_callback(const char *identity);
+void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec);
+void PERF_note_event_process(uint64_t depth_before, uint64_t depth_after,
+                             uint64_t callbacks_processed, uint64_t events_created);
+void PERF_note_pending_extractions(uint64_t pending_before, uint64_t processed,
+                                   uint64_t pending_after);
+void PERF_note_catchup_pass(uint64_t requested_missed, uint64_t replayed_missed,
+                            uint64_t remaining_backlog, int budget_exhausted);
 ```
 
-### Code Quality Improvements (2025)
-
-The performance monitoring system underwent comprehensive refactoring to address:
-
-**Memory Management:**
-- Fixed memory leaks in section creation
-- Added proper RAII compliance with destructors
-- Implemented safe resource cleanup
-
-**Buffer Safety:**
-- Added comprehensive bounds checking to prevent overflows
-- Safe string operations with proper size validation
-- Null termination guarantees
-
-**Performance Optimizations:**
-- 15-20% improvement in report generation
-- Optimized string operations and loop conditions
-- Enhanced circular buffer efficiency
-
-**Testing:**
-- Comprehensive unit test suite (`test_perfmon.c`)
-- Memory leak verification
-- Buffer safety validation
-- Performance regression testing
-
-### Future Performance Monitoring Enhancements
-
-**Recommended Improvements:**
-1. **Thread Safety** - Add mutex protection for multi-threaded environments
-2. **Runtime Configuration** - Make buffer sizes and thresholds configurable
-3. **Debug Logging** - Optional detailed logging for troubleshooting
-4. **Export Formats** - JSON/XML export for external monitoring tools
-5. **Real-time Alerts** - Hooks for performance threshold notifications
-6. **Historical Analysis** - Long-term trend analysis and reporting
+Event callback timing is always on and costs two monotonic clock reads per invocation. Registry,
+sample, interval, and report sizes are fixed, so monitoring memory cannot grow with uptime. Keep
+game-loop counters in `perfmon.c`: they share the same pulse/cumulative reset and report lifecycle.
+Splitting them into another module would add ownership boundaries without isolating an independent
+subsystem.
 
 ## Memory Management
 
