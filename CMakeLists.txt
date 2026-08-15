@@ -939,6 +939,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool_lib/rol_capability_audit.py
     scripts/world/wtool_lib/rol_completion_audit.py
     scripts/world/wtool_lib/rol_discovery.py
+    scripts/world/wtool_lib/rol_graph.py
     scripts/world/wtool_lib/rol_inventory.py
     scripts/world/wtool_lib/rol_identity.py
     scripts/world/wtool_lib/rol_persistence.py
@@ -980,6 +981,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/test_rol_capability_audit.py
     scripts/world/tests/test_rol_completion_audit.py
     scripts/world/tests/test_rol_discovery.py
+    scripts/world/tests/test_rol_graph.py
     scripts/world/tests/test_rol_inventory.py
     scripts/world/tests/test_rol_identity.py
     scripts/world/tests/test_rol_persistence_audit.py
