@@ -24,6 +24,7 @@ Statuses below were re-verified against the source tree on 2026-08-15.
 
 | Document | Status | What remains |
 |----------|--------|--------------|
+| [VALGRIND_FULL_COMMAND_AUDIT_2026-08-15.md](VALGRIND_FULL_COMMAND_AUDIT_2026-08-15.md) | Audit complete; 5 findings open | Repair one craft-skill bounds error, two group-ability hangs, four command ownership leaks, Split Enchantment cooldown gating, and maximum-page descriptor overflow. |
 | [FULL_COMMAND_SWEEP_FINDINGS_2026-08-15.md](FULL_COMMAND_SWEEP_FINDINGS_2026-08-15.md) | Resolved and verified | All 19 findings are repaired in development. Preserve the report as the sweep evidence and resolution map. |
 | [ROL_CONVERSION_DAMAGE_MAP.md](ROL_CONVERSION_DAMAGE_MAP.md) | Luminari restored; isolated RoL graph candidate rebuilt and verified but not applied | Repair conversion-era database and player/house references, prove incompatible RoL mechanics are isolated, finish ownership and exclusion work, and run final release gates before applying the disjoint RoL overlay. |
 | [PET_SYSTEM_COMPARISON_LUMINARI_CHRONICLES_OF_KRYNN.md](PET_SYSTEM_COMPARISON_LUMINARI_CHRONICLES_OF_KRYNN.md) | Comparison complete; P0 persistence repaired | Luminari now has fail-closed migrations and atomic snapshots. Admission policy, temporary lifetime, stable ownership, and full schema-source unification remain design work; the Chronicles sample is still reference-only. |
