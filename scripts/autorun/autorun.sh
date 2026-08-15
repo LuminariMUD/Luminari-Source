@@ -72,6 +72,10 @@ readonly LIB_DIR="${LIB_DIR:-lib}"
 readonly LOG_DIR="${LOG_DIR:-log}"
 readonly DUMPS_DIR="${DUMPS_DIR:-dumps}"
 
+# Keep this value synchronized with MUD_EXIT_REBOOT in src/comm.h. The
+# supervision regression test fails if the two definitions drift apart.
+readonly MUD_EXIT_REBOOT=52
+
 # MUD command-line flags; quick boot skips the rent object-limit scan.
 readonly FLAGS="${MUD_FLAGS:--q}"
 
@@ -886,6 +890,7 @@ log_core_capture_configuration() {
 
 # Process and rotate syslog files
 proc_syslog() {
+    local create_crash_log="${1:-true}"
     # Return if there's no syslog
     if [[ ! -s syslog ]]; then
         return
@@ -897,7 +902,8 @@ proc_syslog() {
     mkdir -p "$LOG_DIR"
 
     # Create the crashlog if configured
-    if [[ -n "$LEN_CRASHLOG" ]] && [[ "$LEN_CRASHLOG" -gt 0 ]]; then
+    if [[ "$create_crash_log" == true ]] &&
+       [[ -n "$LEN_CRASHLOG" ]] && [[ "$LEN_CRASHLOG" -gt 0 ]]; then
         tail -n "$LEN_CRASHLOG" syslog > syslog.CRASH
         log_info "Created crash log with last $LEN_CRASHLOG lines"
     fi
@@ -1217,9 +1223,19 @@ start_mud() {
         # Fork the heartbeat only after active identity is populated so its
         # subshell reports the exact running release while the parent waits.
         (
-            trap 'exit 0' INT TERM
+            heartbeat_sleep_pid=""
+            stop_state_heartbeat() {
+                if [[ "$heartbeat_sleep_pid" =~ ^[1-9][0-9]*$ ]]; then
+                    kill "$heartbeat_sleep_pid" 2>/dev/null || true
+                fi
+                exit 0
+            }
+            trap stop_state_heartbeat INT TERM
             while kill -0 "$AUTORUN_PID" 2>/dev/null; do
-                sleep "$STATE_UPDATE_INTERVAL"
+                sleep "$STATE_UPDATE_INTERVAL" &
+                heartbeat_sleep_pid=$!
+                wait "$heartbeat_sleep_pid" || exit 0
+                heartbeat_sleep_pid=""
                 if kill -0 "$AUTORUN_PID" 2>/dev/null; then
                     write_autorun_state
                 fi
@@ -1921,23 +1937,29 @@ while true; do
 
     mud_error_type=""
     mud_error_message=""
+    mud_crashed=false
     if [[ $mud_exit_code -eq 0 ]]; then
         log_info "MUD exited cleanly"
+    elif [[ $mud_exit_code -eq $MUD_EXIT_REBOOT ]]; then
+        log_info "MUD requested a planned reboot"
     elif [[ $mud_exit_code -eq 139 ]]; then
         mud_error_type="SegmentationFault"
         mud_error_message="MUD crashed with segmentation fault (SIGSEGV)"
         log_error "$mud_error_message"
         CRASH_COUNT=$((CRASH_COUNT + 1))
+        mud_crashed=true
     elif [[ $mud_exit_code -eq 134 ]]; then
         mud_error_type="AbortSignal"
         mud_error_message="MUD aborted (SIGABRT)"
         log_error "$mud_error_message"
         CRASH_COUNT=$((CRASH_COUNT + 1))
+        mud_crashed=true
     else
         mud_error_type="MudProcessExit"
         mud_error_message="MUD exited with unexpected code: $mud_exit_code"
         log_error "$mud_error_message"
         CRASH_COUNT=$((CRASH_COUNT + 1))
+        mud_crashed=true
     fi
 
     # Log crash count but NEVER stop restarting
@@ -1950,13 +1972,13 @@ while true; do
     # Archive any core dump
     archive_core_dump "$mud_exit_code" "$mud_start_time"
 
-    if [[ $mud_exit_code -ne 0 ]]; then
+    if [[ "$mud_crashed" == true ]]; then
         write_last_error "$mud_error_type" "$mud_error_message" \
             "$mud_exit_code" "$mud_uptime" "$CRASH_COUNT" || true
     fi
 
     # Process logs
-    proc_syslog
+    proc_syslog "$mud_crashed"
 
     # Periodic disk space check
     if ! check_disk_space; then

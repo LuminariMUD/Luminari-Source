@@ -18,6 +18,8 @@
 #include "mysql.h"
 #include "wilderness/wilderness.h"
 
+#define SCHEDULE_ROUTE_VALIDATION_MAX_STEPS 10000
+
 /* External MySQL connection variables */
 extern MYSQL *conn;
 extern bool mysql_available;
@@ -1888,7 +1890,8 @@ void save_all_routes(void)
  * @param wp The waypoint to calculate distance to
  * @return The distance in coordinate units, or -1.0 on error
  */
-float calculate_distance_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp)
+float calculate_distance_to_waypoint(const struct greyhawk_ship_data *ship,
+                                     const struct waypoint *wp)
 {
   float dx, dy, dz;
   float distance;
@@ -1969,7 +1972,7 @@ void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypo
  * @param wp The waypoint to check arrival at
  * @return TRUE if within tolerance, FALSE otherwise
  */
-int check_waypoint_arrival(struct greyhawk_ship_data *ship, struct waypoint *wp)
+int check_waypoint_arrival(const struct greyhawk_ship_data *ship, const struct waypoint *wp)
 {
   float distance;
   float tolerance;
@@ -3724,6 +3727,111 @@ ACMD(do_unassignpilot)
 /* SCHEDULE MANAGEMENT FUNCTIONS                                              */
 /* ========================================================================= */
 
+static void schedule_route_validation_failure(const struct waypoint *wp, int x, int y,
+                                              const char **bad_waypoint, int *bad_x, int *bad_y)
+{
+  if (bad_waypoint != NULL)
+  {
+    *bad_waypoint = wp != NULL && wp->name[0] ? wp->name : "(unnamed waypoint)";
+  }
+  if (bad_x != NULL)
+  {
+    *bad_x = x;
+  }
+  if (bad_y != NULL)
+  {
+    *bad_y = y;
+  }
+}
+
+/**
+ * Simulate one complete scheduled route without allocating wilderness rooms.
+ * Loop routes include the final leg back to their first waypoint.
+ */
+static bool scheduled_route_is_traversable(const struct greyhawk_ship_data *ship,
+                                           const struct route_node *route_node,
+                                           const char **bad_waypoint, int *bad_x, int *bad_y)
+{
+  struct greyhawk_ship_data probe;
+  struct waypoint_node *wp_node;
+  const struct waypoint *wp;
+  float speed;
+  int target_x;
+  int target_y;
+  int target_z;
+  int previous_x;
+  int previous_y;
+  int previous_z;
+  int legs;
+  int steps;
+  int i;
+
+  if (bad_waypoint != NULL)
+  {
+    *bad_waypoint = NULL;
+  }
+  if (ship == NULL || route_node == NULL || route_node->num_waypoints < 1 ||
+      route_node->num_waypoints > MAX_WAYPOINTS_PER_ROUTE || route_node->waypoint_ids == NULL)
+  {
+    return FALSE;
+  }
+
+  probe = *ship;
+  speed = probe.speed > 0 ? (float)probe.speed : 1.0f;
+  legs = route_node->num_waypoints + (route_node->loop ? 1 : 0);
+  steps = 0;
+
+  for (i = 0; i < legs; i++)
+  {
+    wp_node = waypoint_cache_find(route_node->waypoint_ids[i % route_node->num_waypoints]);
+    if (wp_node == NULL)
+    {
+      schedule_route_validation_failure(NULL, vessel_autopilot_grid_coordinate(probe.x),
+                                        vessel_autopilot_grid_coordinate(probe.y), bad_waypoint,
+                                        bad_x, bad_y);
+      return FALSE;
+    }
+    wp = &wp_node->data;
+
+    while (!check_waypoint_arrival(&probe, wp))
+    {
+      if (steps++ >= SCHEDULE_ROUTE_VALIDATION_MAX_STEPS ||
+          !vessel_autopilot_next_position(&probe, wp, speed, &target_x, &target_y, &target_z))
+      {
+        schedule_route_validation_failure(wp, vessel_autopilot_grid_coordinate(probe.x),
+                                          vessel_autopilot_grid_coordinate(probe.y), bad_waypoint,
+                                          bad_x, bad_y);
+        return FALSE;
+      }
+
+      previous_x = vessel_autopilot_grid_coordinate(probe.x);
+      previous_y = vessel_autopilot_grid_coordinate(probe.y);
+      previous_z = vessel_autopilot_grid_coordinate(probe.z);
+      if ((target_x == previous_x && target_y == previous_y && target_z == previous_z) ||
+          !vessel_can_occupy_coordinates(probe.vessel_type, target_x, target_y, target_z))
+      {
+        schedule_route_validation_failure(wp, target_x, target_y, bad_waypoint, bad_x, bad_y);
+        return FALSE;
+      }
+
+      probe.x = (float)target_x;
+      probe.y = (float)target_y;
+      probe.z = (float)target_z;
+    }
+
+    if (wp->wait_time > 0 && probe.setspeed > 0)
+    {
+      speed = (float)MIN(probe.setspeed, probe.maxspeed);
+      if (speed <= 0.0f)
+      {
+        speed = 1.0f;
+      }
+    }
+  }
+
+  return TRUE;
+}
+
 /**
  * Calculate the next departure MUD hour based on current time and interval.
  *
@@ -3759,6 +3867,7 @@ void schedule_calculate_next_departure(struct vessel_schedule *sched)
  */
 int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval, int passenger_fare)
 {
+  struct route_node *route_node;
   struct vessel_schedule previous;
   bool had_schedule;
 
@@ -3778,6 +3887,19 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval,
   if (passenger_fare < 0 || passenger_fare > VESSEL_PASSENGER_FARE_MAX)
   {
     log("SYSERR: schedule_create: invalid passenger fare %d", passenger_fare);
+    return 0;
+  }
+
+  route_node = route_cache_find(route_id);
+  if (route_node == NULL)
+  {
+    log("Info: schedule_create: route %d was not found for ship %d", route_id, ship->shipnum);
+    return 0;
+  }
+
+  if (!scheduled_route_is_traversable(ship, route_node, NULL, NULL, NULL))
+  {
+    log("Info: schedule_create: route %d is not traversable for ship %d", route_id, ship->shipnum);
     return 0;
   }
 
@@ -3974,6 +4096,22 @@ int schedule_trigger_departure(struct greyhawk_ship_data *ship)
     return 0;
   }
 
+  if (!scheduled_route_is_traversable(ship, route_node, NULL, NULL, NULL))
+  {
+    ship->schedule->flags &= ~SCHEDULE_FLAG_ENABLED;
+    if (!schedule_save(ship))
+    {
+      ship->schedule->flags |= SCHEDULE_FLAG_ENABLED;
+      log("SYSERR: Could not disable invalid schedule for ship %d", ship->shipnum);
+      return 0;
+    }
+    send_to_ship(ship, "The departure schedule has been disabled because its route is no longer "
+                       "traversable.\r\n");
+    log("Info: Disabled untraversable scheduled route %d for ship %d", ship->schedule->route_id,
+        ship->shipnum);
+    return 0;
+  }
+
   /* Initialize autopilot if needed */
   if (ship->autopilot == NULL)
   {
@@ -4091,12 +4229,15 @@ ACMD(do_setschedule)
 {
   struct greyhawk_ship_data *ship;
   struct route_node *route_node;
+  const char *bad_waypoint;
   char route_arg[MAX_INPUT_LENGTH];
   char interval_arg[MAX_INPUT_LENGTH];
   char fare_arg[MAX_INPUT_LENGTH];
   long parsed_fare;
   int interval;
   int passenger_fare;
+  int bad_x;
+  int bad_y;
 
   /* Get vessel context */
   ship = get_vessel_for_command(ch);
@@ -4168,6 +4309,15 @@ ACMD(do_setschedule)
   if (route_node->num_waypoints < 1)
   {
     send_to_char(ch, "Route '%s' has no waypoints defined.\r\n", route_arg);
+    return;
+  }
+
+  if (!scheduled_route_is_traversable(ship, route_node, &bad_waypoint, &bad_x, &bad_y))
+  {
+    send_to_char(ch,
+                 "Route '%s' cannot be scheduled: the leg to %s crosses impassable terrain "
+                 "at (%d, %d).\r\n",
+                 route_arg, bad_waypoint != NULL ? bad_waypoint : "a waypoint", bad_x, bad_y);
     return;
   }
 

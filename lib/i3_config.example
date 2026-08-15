@@ -32,7 +32,7 @@ enable_who 1         # Allow players to query who lists from other MUDs
 
 # Auto-reconnect settings
 auto_reconnect 1     # Automatically reconnect if connection drops
-reconnect_delay 30   # Seconds to wait before reconnecting
+reconnect_delay 30   # Initial retry delay; failures back off to 15 minutes
 
 # Queue settings
 max_queue_size 1000  # Maximum number of queued messages

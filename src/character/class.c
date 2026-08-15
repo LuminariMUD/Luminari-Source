@@ -2991,7 +2991,7 @@ void init_start_char(struct char_data *ch)
       SET_SKILL(ch, i, 0);
   for (i = 1; i <= NUM_ABILITIES; i++)
     SET_ABILITY(ch, i, 0);
-  for (i = 1; i < NUM_FEATS; i++)
+  for (i = 1; i < FEAT_LAST_FEAT; i++)
     SET_FEAT(ch, i, 0);
   for (i = 0; i < NUM_CFEATS; i++)
     for (j = 0; j < FT_ARRAY_MAX; j++)

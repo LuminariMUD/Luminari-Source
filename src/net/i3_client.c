@@ -15,6 +15,7 @@
 #include "screen.h"
 #include "act.h"
 #include "modify.h"
+#include "dotenv.h"
 
 #include "i3_client.h"
 /* Temporarily disabled for compilation
@@ -64,6 +65,12 @@ static int i3_mutable_config_value(const char *key, char *value, size_t value_si
 int i3_initialize(void)
 {
   pthread_t *thread_ptr;
+
+  if (!get_env_bool("I3_ENABLED", TRUE))
+  {
+    i3_log("Intermud3 service is disabled by I3_ENABLED");
+    return 0;
+  }
 
   /* Initialize security and error systems first - TEMPORARILY DISABLED */
   /* i3_init_security_system(I3_SECURITY_VALIDATE_JSON | I3_SECURITY_SANITIZE_INPUT | I3_SECURITY_CHECK_RATES);
@@ -125,6 +132,7 @@ int i3_initialize(void)
   i3_client->next_request_id = 1;
   i3_client->max_queue_size = I3_MAX_QUEUE_SIZE;
   i3_client->reconnect_delay = I3_RECONNECT_DELAY;
+  i3_client->current_reconnect_delay = I3_RECONNECT_DELAY;
 
   /* Default configuration */
   i3_client->enable_tell = 1;
@@ -143,6 +151,7 @@ int i3_initialize(void)
   {
     log("Warning: Could not load I3 configuration, using defaults");
   }
+  i3_client->current_reconnect_delay = i3_client->reconnect_delay;
 
   /* Create client thread */
   thread_ptr = (pthread_t *)i3_client->thread_id;
@@ -278,7 +287,8 @@ void *i3_client_thread(void *arg)
     if (i3_current_state() == I3_STATE_DISCONNECTED && i3_client->auto_reconnect)
     {
       for (result = 0;
-           result < i3_client->reconnect_delay && i3_current_state() != I3_STATE_SHUTDOWN; result++)
+           result < i3_client->current_reconnect_delay && i3_current_state() != I3_STATE_SHUTDOWN;
+           result++)
       {
         sleep(1);
       }
@@ -366,18 +376,22 @@ void *i3_client_thread(void *arg)
 int i3_connect(void)
 {
   pthread_mutex_t *mutex_ptr;
+  int connect_errno;
 
   mutex_ptr = (pthread_mutex_t *)i3_client->state_mutex;
   pthread_mutex_lock(mutex_ptr);
   i3_client->state = I3_STATE_CONNECTING;
   pthread_mutex_unlock(mutex_ptr);
 
-  i3_log("Connecting to I3 gateway at %s:%d", i3_client->gateway_host, i3_client->gateway_port);
-
   i3_client->socket_fd = i3_socket_connect(i3_client->gateway_host, i3_client->gateway_port);
   if (i3_client->socket_fd < 0)
   {
-    i3_error("Failed to connect to I3 gateway");
+    connect_errno = errno;
+    i3_client->consecutive_connect_failures++;
+    i3_client->current_reconnect_delay =
+        i3_reconnect_backoff(i3_client->reconnect_delay, i3_client->consecutive_connect_failures);
+    i3_error("Connection to %s:%d failed: %s; retrying in %d seconds", i3_client->gateway_host,
+             i3_client->gateway_port, strerror(connect_errno), i3_client->current_reconnect_delay);
     pthread_mutex_lock(mutex_ptr);
     i3_client->state = I3_STATE_DISCONNECTED;
     pthread_mutex_unlock(mutex_ptr);
@@ -385,6 +399,8 @@ int i3_connect(void)
   }
 
   i3_client->connect_time = time(NULL);
+  i3_client->consecutive_connect_failures = 0;
+  i3_client->current_reconnect_delay = i3_client->reconnect_delay;
   i3_log("Connected to I3 gateway");
   return 0;
 }
@@ -467,14 +483,15 @@ static int i3_socket_connect(const char *host, int port)
   server_addr.sin_port = htons(port);
 
   /* Connect */
-  i3_log("DEBUG: Attempting TCP connection to %s:%d", host, port);
   if (connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
   {
-    i3_error("Failed to connect: %s", strerror(errno));
+    int connect_errno;
+
+    connect_errno = errno;
     close(sock);
+    errno = connect_errno;
     return -1;
   }
-  i3_log("DEBUG: TCP connection established, socket fd: %d", sock);
 
   /* Set non-blocking */
   flags = fcntl(sock, F_GETFL, 0);
@@ -529,7 +546,6 @@ static void i3_heartbeat(void)
 /* Reconnect to gateway */
 static void i3_reconnect(void)
 {
-  i3_log("Attempting to reconnect to I3 gateway");
   i3_client->reconnects++;
 
   if (i3_connect() == 0)
@@ -537,6 +553,28 @@ static void i3_reconnect(void)
     /* Don't authenticate immediately - wait for welcome message */
     i3_log("DEBUG: Connected/Reconnected, waiting for welcome message");
   }
+}
+
+/* Return an exponentially increasing reconnect delay capped at 15 minutes. */
+int i3_reconnect_backoff(int base_delay, unsigned int failure_count)
+{
+  int delay;
+
+  delay = MAX(1, MIN(base_delay, I3_MAX_RECONNECT_DELAY));
+  while (failure_count > 1 && delay < I3_MAX_RECONNECT_DELAY)
+  {
+    if (delay > I3_MAX_RECONNECT_DELAY / 2)
+    {
+      delay = I3_MAX_RECONNECT_DELAY;
+    }
+    else
+    {
+      delay *= 2;
+    }
+    failure_count--;
+  }
+
+  return delay;
 }
 
 /* Parse one complete JSON-RPC message from the gateway. */
@@ -2334,7 +2372,7 @@ int i3_load_config(const char *filename)
       }
       else if (strcmp(key, "reconnect_delay") == 0)
       {
-        i3_client->reconnect_delay = atoi(value);
+        i3_client->reconnect_delay = MAX(1, MIN(atoi(value), I3_MAX_RECONNECT_DELAY));
       }
       else if (strcmp(key, "max_queue_size") == 0)
       {

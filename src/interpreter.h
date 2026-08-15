@@ -47,6 +47,7 @@ int is_abbrev(const char *arg1, const char *arg2);
 int is_number(const char *str);
 int find_command(const char *command);
 bool command_actions_available(struct char_data *ch, int actions_required);
+bool command_has_queue_preflight(int cmd);
 void skip_spaces(char **string);
 void skip_spaces_c(const char **string);
 char *delete_doubledollar(char *string);
@@ -110,7 +111,7 @@ struct command_info
   sh_int ignore_wait; // set to TRUE if the command can be performed during wait event
   int actions_required;
   int action_cooldowns[NUM_ACTIONS];
-  int (*command_check_pointer)(struct char_data *ch, bool show_error);
+  int (*command_check_pointer)(struct char_data *ch, const char *argument, bool show_error);
   unsigned int feature_flags;
 };
 

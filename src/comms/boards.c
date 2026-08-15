@@ -59,7 +59,8 @@ struct board_info_type board_info[NUM_OF_BOARDS] = {
     {2403, 0, 1, LVL_IMPL, LIB_ETC "board.palanthas.thief", NOTHING}};
 #else
 struct board_info_type board_info[NUM_OF_BOARDS] = {
-    {2201, 0, 1, LVL_IMPL, LIB_ETC "board.general", NOTHING}};
+    {2201, 0, 1, LVL_IMPL, LIB_ETC "board.general", NOTHING},
+    {3098, LVL_IMMORT, LVL_IMMORT, LVL_IMPL, LIB_ETC "board.immortal", NOTHING}};
 #endif
 
 /* local (file scope) global variables */
@@ -70,7 +71,7 @@ static struct board_msginfo msg_index[NUM_OF_BOARDS][MAX_BOARD_MESSAGES];
 
 /* local static utility functions */
 static int find_slot(void);
-static int find_board(struct char_data *ch);
+static int find_board(struct obj_data *board);
 static void init_boards(void);
 static void board_reset_board(int board_type);
 static void board_clear_board(int board_type);
@@ -88,22 +89,18 @@ static int find_slot(void)
   return (-1);
 }
 
-/* search the room ch is standing in to find which board he's looking at */
-static int find_board(struct char_data *ch)
+/* Find the legacy board entry for the exact object whose special procedure
+ * was invoked. MySQL-managed board objects intentionally have no entry. */
+static int find_board(struct obj_data *board)
 {
-  struct obj_data *obj;
   int i;
 
-  for (obj = world[IN_ROOM(ch)].contents; obj; obj = obj->next_content)
-    for (i = 0; i < NUM_OF_BOARDS; i++)
-      if (BOARD_RNUM(i) == GET_OBJ_RNUM(obj))
-        return (i);
+  if (!board)
+    return (-1);
 
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
-    for (obj = ch->carrying; obj; obj = obj->next_content)
-      for (i = 0; i < NUM_OF_BOARDS; i++)
-        if (BOARD_RNUM(i) == GET_OBJ_RNUM(obj))
-          return (i);
+  for (i = 0; i < NUM_OF_BOARDS; i++)
+    if (BOARD_RNUM(i) == GET_OBJ_RNUM(board))
+      return (i);
 
   return (-1);
 }
@@ -188,20 +185,8 @@ SPECIAL(gen_board)
       cmd != ACMD_REMOVE)
     return (0);
 
-  if ((board_type = find_board(ch)) == -1)
-  {
-    /* Enhanced error logging to help diagnose board issues */
-    log("SYSERR: degenerate board! Character %s in room #%d, board obj #%d", GET_NAME(ch),
-        GET_ROOM_VNUM(IN_ROOM(ch)), board ? (int)GET_OBJ_VNUM(board) : -1);
-
-    /* Log all configured boards for debugging */
-    int i;
-    for (i = 0; i < NUM_OF_BOARDS; i++)
-    {
-      log("  Board %d: vnum=%d, rnum=%d", i, BOARD_VNUM(i), BOARD_RNUM(i));
-    }
+  if ((board_type = find_board(board)) == -1)
     return (0);
-  }
   if (cmd == ACMD_WRITE)
     return (board_write_message(board_type, ch, argument, board));
   else if (cmd == ACMD_LOOK || cmd == ACMD_EXAMINE)
@@ -342,7 +327,10 @@ int board_display_msg(int board_type, struct char_data *ch, char *arg, struct ob
 
   one_argument(arg, number, sizeof(number));
   if (!*number)
-    return (0);
+  {
+    send_to_char(ch, "Read which message? Use 'look board' to list messages.\r\n");
+    return (1);
+  }
   if (isname(number, board->name)) /* so "read board" works */
     return (board_show_board(board_type, ch, arg, board));
   if (!is_number(number)) /* read 2.mail, look 2.sword */

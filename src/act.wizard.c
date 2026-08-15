@@ -2435,7 +2435,7 @@ ACMD(do_restore)
       IS_MORPHED(ch) = 0;
       SUBRACE(ch) = 0;
       GET_DISGUISE_RACE(ch) = 0;
-      for (i = 1; i < NUM_FEATS; i++)
+      for (i = 1; i < FEAT_LAST_FEAT; i++)
       {
         if (!HAS_FEAT(ch, i))
         {
@@ -2934,7 +2934,9 @@ void show_full_last_command(struct char_data *ch)
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      send_to_char(ch, "%-20s %-20s %-25s %s\r\n", row[3], row[0], row[1], row[2]);
+      send_to_char(ch, "%-20s %-20s %-25s %s\r\n", row[3] ? row[3] : "(no account)",
+                   row[0] ? row[0] : "(unknown)", row[1] ? row[1] : "(never)",
+                   row[2] ? row[2] : "(not recorded)");
     }
   }
   mysql_free_result(res);
@@ -2960,7 +2962,9 @@ void show_full_last_command_unique(struct char_data *ch)
   {
     while ((row = mysql_fetch_row(res)) != NULL)
     {
-      send_to_char(ch, "%-20s %-20s %-25s %s\r\n", row[2], row[0], row[1], row[3]);
+      send_to_char(ch, "%-20s %-20s %-25s %s\r\n", row[2] ? row[2] : "(no account)",
+                   row[0] ? row[0] : "(unknown)", row[1] ? row[1] : "(never)",
+                   row[3] ? row[3] : "(not recorded)");
     }
   }
   mysql_free_result(res);
@@ -2970,7 +2974,11 @@ ACMDU(do_last)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'}, timestr[64];
   struct char_data *vict = NULL;
+  const char *class_abbrev;
+  const char *race_abbrev;
   // struct char_data *temp;
+  int class_num;
+  int race_num;
   int num = 0;
   // int recs, i;
   // FILE *fp;
@@ -3031,9 +3039,17 @@ ACMDU(do_last)
 
     format_time_string(vict->player.time.logon, "%a %b %d %H:%M:%S %Y", timestr, sizeof(timestr));
 
+    class_num = GET_CLASS(vict);
+    race_num = GET_RACE(vict);
+    class_abbrev = class_num >= 0 && class_num < NUM_CLASSES && class_list[class_num].abbrev
+                       ? class_list[class_num].abbrev
+                       : "???";
+    race_abbrev = race_num >= 0 && race_num < NUM_RACE_TYPES && race_list[race_num].abbrev_color
+                      ? race_list[race_num].abbrev_color
+                      : "???";
+
     send_to_char(ch, "[%5ld] [%2d %s %s] %-12s : %-18s : %-24s\r\n", GET_IDNUM(vict),
-                 (int)GET_LEVEL(vict), CLSLIST_ABBRV(GET_CLASS(vict)),
-                 race_list[(int)GET_RACE(vict)].abbrev_color, GET_NAME(vict),
+                 (int)GET_LEVEL(vict), class_abbrev, race_abbrev, GET_NAME(vict),
                  GET_HOST(vict) && *GET_HOST(vict) ? GET_HOST(vict) : "(NOHOST)", timestr);
     free_char(vict);
     return;
@@ -4012,22 +4028,33 @@ ACMD(do_show)
 /* The shoplist command - lists all shops with zone, room, and keeper info */
 ACMD(do_shoplist)
 {
+  const char **lines;
+  char line[MAX_STRING_LENGTH];
   int shop_nr, room_idx;
   room_rnum room_rnum_val;
   zone_rnum zone_idx = NOWHERE;
   char keeper_name[MAX_STRING_LENGTH];
   char room_name[MAX_STRING_LENGTH];
   char zone_name[MAX_STRING_LENGTH];
+  bool keeper_valid;
   int shop_count = 0;
+  int line_count = 0;
+  int line_capacity;
 
-  send_to_char(ch, "\tcShop Listing\tn\r\n");
-  send_to_char(ch, "%-6s %-6s %-24s %-6s %-24s %-6s %-20s\r\n", "Shop#", "Zone#", "Zone", "Room#",
-               "Room", "Mob#", "Shopkeeper");
-  send_to_char(ch, "-------------------------------------------------------------------------------"
-                   "-----------------------------\r\n");
+  line_capacity = MAX(0, top_shop + 1) + 5;
+  CREATE(lines, const char *, line_capacity);
+  lines[line_count++] = strdup("\tcShop Listing\tn");
+  snprintf(line, sizeof(line), "%-6s %-6s %-24s %-6s %-24s %-6s %-20s", "Shop#", "Zone#", "Zone",
+           "Room#", "Room", "Mob#", "Shopkeeper");
+  lines[line_count++] = strdup(line);
+  lines[line_count++] =
+      strdup("-------------------------------------------------------------------------------"
+             "-----------------------------");
 
   for (shop_nr = 0; shop_nr <= top_shop; shop_nr++)
   {
+    zone_idx = NOWHERE;
+    keeper_valid = SHOP_KEEPER(shop_nr) != NOBODY && SHOP_KEEPER(shop_nr) <= top_of_mobt;
     /* Get the first room for this shop */
     room_idx = 0;
     room_rnum_val = real_room(SHOP_ROOM(shop_nr, room_idx));
@@ -4058,7 +4085,7 @@ ACMD(do_shoplist)
     else
     {
       /* Use the mob prototype name directly instead of loading a mob */
-      if (SHOP_KEEPER(shop_nr) != NOBODY && SHOP_KEEPER(shop_nr) <= top_of_mobt)
+      if (keeper_valid)
       {
         snprintf(keeper_name, sizeof(keeper_name), "%.20s",
                  mob_proto[SHOP_KEEPER(shop_nr)].player.short_descr);
@@ -4069,19 +4096,26 @@ ACMD(do_shoplist)
       }
     }
 
-    send_to_char(ch, "%-6d %-6d %-24s %-6d %-24s %-6d %-20s\r\n", SHOP_NUM(shop_nr),
-                 (zone_idx != NOWHERE && zone_idx <= top_of_zone_table)
-                     ? (int)zone_table[zone_idx].number
-                     : -1,
-                 zone_name, SHOP_ROOM(shop_nr, room_idx), room_name,
-                 SHOP_KEEPER(shop_nr) == NOBODY ? -1 : (int)mob_index[SHOP_KEEPER(shop_nr)].vnum,
-                 keeper_name);
+    snprintf(
+        line, sizeof(line), "%-6d %-6d %-24.24s %-6d %-24.24s %-6d %-20.20s", SHOP_NUM(shop_nr),
+        (zone_idx != NOWHERE && zone_idx <= top_of_zone_table) ? (int)zone_table[zone_idx].number
+                                                               : -1,
+        zone_name, SHOP_ROOM(shop_nr, room_idx), room_name,
+        keeper_valid ? (int)mob_index[SHOP_KEEPER(shop_nr)].vnum : -1, keeper_name);
+    lines[line_count++] = strdup(line);
     shop_count++;
   }
 
-  send_to_char(ch, "-------------------------------------------------------------------------------"
-                   "-----------------------------\r\n");
-  send_to_char(ch, "Total shops: %d\r\n", shop_count);
+  lines[line_count++] =
+      strdup("-------------------------------------------------------------------------------"
+             "-----------------------------");
+  snprintf(line, sizeof(line), "Total shops: %d", shop_count);
+  lines[line_count++] = strdup(line);
+
+  column_list(ch, 1, lines, line_count, FALSE);
+  for (shop_nr = 0; shop_nr < line_count; shop_nr++)
+    free((char *)lines[shop_nr]);
+  free(lines);
 }
 
 /* The shopstat command - detailed info for a specific shop vnum */
@@ -5683,38 +5717,49 @@ ACMD(do_links)
 #define MAX_OBJ_GOLD_ALLOWED 10000
 
 /* Armor class limits*/
-#define TOTAL_WEAR_CHECKS (NUM_ITEM_WEARS - 1) /* no take flag */
-
 const struct zcheck_armor
 {
   bitvector_t bitvector; /* from Structs.h                       */
   int ac_allowed;        /* Max. AC allowed for this body part  */
   const char *message;   /* phrase for error message            */
-} zarmor[TOTAL_WEAR_CHECKS] = {
-    {ITEM_WEAR_FINGER, 1, "Ring"}, // 0
-    {ITEM_WEAR_NECK, 1, "Necklace"},
-    {ITEM_WEAR_BODY, 35, "Body armor"},
-    {ITEM_WEAR_HEAD, 15, "Head gear"},
-    {ITEM_WEAR_LEGS, 15, "Legwear"},
-    {ITEM_WEAR_FEET, 1, "Footwear"}, // 5
-    {ITEM_WEAR_HANDS, 1, "Glove"},
-    {ITEM_WEAR_ARMS, 15, "Armwear"},
-    {ITEM_WEAR_SHIELD, 40, "Shield"},
-    {ITEM_WEAR_ABOUT, 1, "Cloak"},
-    {ITEM_WEAR_WAIST, 1, "Belt"}, // 10
-    {ITEM_WEAR_WRIST, 1, "Wristwear"},
-    {ITEM_WEAR_WIELD, 1, "Weapon"},
-    {ITEM_WEAR_HOLD, 1, "Held item"},
-    {ITEM_WEAR_FACE, 1, "Face"},
-    {ITEM_WEAR_AMMO_POUCH, 1, "Ammo pouch"}, // 15
-    {ITEM_WEAR_EAR, 1, "Earring"},
-    {ITEM_WEAR_EYES, 1, "Eyewear"},
-    {ITEM_WEAR_BADGE, 1, "Badge"},
-    {ITEM_WEAR_INSTRUMENT, 1, "Instrument"},
-    {ITEM_WEAR_SHOULDERS, 1, "Pauldrons"}, // 19
-    {ITEM_WEAR_ANKLE, 1, "Anklet"},        // 20
-    {ITEM_WEAR_SHEATH, 1, "Sheath"}        // 21
+} zarmor[NUM_ITEM_WEARS] = {
+    [ITEM_WEAR_FINGER] = {ITEM_WEAR_FINGER, 1, "Ring"},
+    [ITEM_WEAR_NECK] = {ITEM_WEAR_NECK, 1, "Necklace"},
+    [ITEM_WEAR_BODY] = {ITEM_WEAR_BODY, 35, "Body armor"},
+    [ITEM_WEAR_HEAD] = {ITEM_WEAR_HEAD, 15, "Head gear"},
+    [ITEM_WEAR_LEGS] = {ITEM_WEAR_LEGS, 15, "Legwear"},
+    [ITEM_WEAR_FEET] = {ITEM_WEAR_FEET, 1, "Footwear"},
+    [ITEM_WEAR_HANDS] = {ITEM_WEAR_HANDS, 1, "Glove"},
+    [ITEM_WEAR_ARMS] = {ITEM_WEAR_ARMS, 15, "Armwear"},
+    [ITEM_WEAR_SHIELD] = {ITEM_WEAR_SHIELD, 40, "Shield"},
+    [ITEM_WEAR_ABOUT] = {ITEM_WEAR_ABOUT, 1, "Cloak"},
+    [ITEM_WEAR_WAIST] = {ITEM_WEAR_WAIST, 1, "Belt"},
+    [ITEM_WEAR_WRIST] = {ITEM_WEAR_WRIST, 1, "Wristwear"},
+    [ITEM_WEAR_WIELD] = {ITEM_WEAR_WIELD, 1, "Weapon"},
+    [ITEM_WEAR_HOLD] = {ITEM_WEAR_HOLD, 1, "Held item"},
+    [ITEM_WEAR_FACE] = {ITEM_WEAR_FACE, 1, "Face"},
+    [ITEM_WEAR_AMMO_POUCH] = {ITEM_WEAR_AMMO_POUCH, 1, "Ammo pouch"},
+    [ITEM_WEAR_EAR] = {ITEM_WEAR_EAR, 1, "Earring"},
+    [ITEM_WEAR_EYES] = {ITEM_WEAR_EYES, 1, "Eyewear"},
+    [ITEM_WEAR_BADGE] = {ITEM_WEAR_BADGE, 1, "Badge"},
+    [ITEM_WEAR_INSTRUMENT] = {ITEM_WEAR_INSTRUMENT, 1, "Instrument"},
+    [ITEM_WEAR_SHOULDERS] = {ITEM_WEAR_SHOULDERS, 1, "Pauldrons"},
+    [ITEM_WEAR_ANKLE] = {ITEM_WEAR_ANKLE, 1, "Anklet"},
+    [ITEM_WEAR_SHEATH] = {ITEM_WEAR_SHEATH, 1, "Sheath"},
+    [ITEM_WEAR_CRAFT_SICKLE] = {ITEM_WEAR_CRAFT_SICKLE, 1, "Harvesting sickle"},
+    [ITEM_WEAR_CRAFT_AXE] = {ITEM_WEAR_CRAFT_AXE, 1, "Forestry axe"},
+    [ITEM_WEAR_CRAFT_KNIFE] = {ITEM_WEAR_CRAFT_KNIFE, 1, "Skinning knife"},
+    [ITEM_WEAR_CRAFT_PICKAXE] = {ITEM_WEAR_CRAFT_PICKAXE, 1, "Mining pickaxe"},
+    [ITEM_WEAR_CRAFT_ALCHEMY] = {ITEM_WEAR_CRAFT_ALCHEMY, 1, "Alchemy set"},
+    [ITEM_WEAR_CRAFT_ARMOR_HAMMER] = {ITEM_WEAR_CRAFT_ARMOR_HAMMER, 1, "Armorsmith hammer"},
+    [ITEM_WEAR_CRAFT_JEWEL_PLIERS] = {ITEM_WEAR_CRAFT_JEWEL_PLIERS, 1, "Jewelcraft pliers"},
+    [ITEM_WEAR_CRAFT_NEEDLE] = {ITEM_WEAR_CRAFT_NEEDLE, 1, "Tailoring needle"},
+    [ITEM_WEAR_CRAFT_WEAPON_HAMMER] = {ITEM_WEAR_CRAFT_WEAPON_HAMMER, 1, "Weaponsmith hammer"},
+    [ITEM_WEAR_ON_BACK] = {ITEM_WEAR_ON_BACK, 1, "Back slot"},
 };
+
+_Static_assert(sizeof(zarmor) / sizeof(zarmor[0]) == NUM_ITEM_WEARS,
+               "zcheck armor rules must track item wear flags");
 
 /*These are strictly boolean*/
 #define CAN_WEAR_WEAPONS 0  /* toggle - can a weapon also be a piece of armor? */
@@ -5951,9 +5996,10 @@ ACMD(do_zcheck)
         __attribute__((fallthrough));
       case ITEM_ARMOR:
         ac = GET_OBJ_VAL(obj, 0);
-        for (j = 0; j < TOTAL_WEAR_CHECKS; j++)
+        for (j = 1; j < NUM_ITEM_WEARS; j++)
         {
-          if (CAN_WEAR(obj, zarmor[j].bitvector) && (ac > zarmor[j].ac_allowed) && (found = 1))
+          if (zarmor[j].message != NULL && CAN_WEAR(obj, zarmor[j].bitvector) &&
+              (ac > zarmor[j].ac_allowed) && (found = 1))
             len = snprintf_append(buf, sizeof(buf), len, "- Has AC %d (%s limit is %d)\r\n", ac,
                                   zarmor[j].message, zarmor[j].ac_allowed);
         }
@@ -7349,28 +7395,21 @@ ACMD(do_ai)
   if (!*arg1)
   {
     send_to_char(ch, "AI Service Status:\r\n");
-    send_to_char(ch, "  OpenAI: %s\r\n", is_ai_enabled() ? "ENABLED" : "DISABLED");
+    send_to_char(ch, "  Overall: %s\r\n", ai_service_health_name());
+    send_to_char(ch, "  Active Provider: %s\r\n", ai_service_active_provider());
     if (ai_state.initialized && ai_state.config)
     {
-      if (is_ai_enabled())
-      {
-        /* OpenAI is enabled - show OpenAI details */
-        send_to_char(ch, "  Primary Model: %s (OpenAI)\r\n", ai_state.config->model);
-        send_to_char(ch, "  Fallback: Ollama (%s)\r\n", ai_state.config->ollama_model);
-      }
-      else
-      {
-        /* OpenAI is disabled - show Ollama as primary */
-        send_to_char(ch, "  Primary Model: Ollama (%s)\r\n", ai_state.config->ollama_model);
-        send_to_char(ch, "  Fallback: Generic responses\r\n");
-      }
+      send_to_char(ch, "  OpenAI: %s%s\r\n",
+                   ai_state.openai_configured ? "CONFIGURED" : "NOT CONFIGURED",
+                   ai_state.config->enabled ? " (selected)" : "");
+      send_to_char(ch, "  Ollama (%s): %s\r\n", ai_state.config->ollama_model,
+                   ai_state.ollama_available ? "AVAILABLE" : "UNAVAILABLE");
       send_to_char(ch, "  Cache Size: %d entries\r\n", get_cache_size());
       if (ai_state.limiter && is_ai_enabled())
       {
         send_to_char(ch, "  OpenAI Requests (minute/hour): %d/%d\r\n",
                      ai_state.limiter->current_minute_count, ai_state.limiter->current_hour_count);
       }
-      send_to_char(ch, "  Status: AI-powered NPCs are %s\r\n", "ACTIVE (using fallback chain)");
     }
     else
     {
@@ -7390,8 +7429,8 @@ ACMD(do_ai)
     {
       ai_state.config->enabled = TRUE;
     }
-    send_to_char(ch, "OpenAI service enabled (Ollama fallback active).\r\n");
-    send_to_char(ch, "NPCs will use OpenAI first, then Ollama if needed.\r\n");
+    send_to_char(ch, "Remote AI provider selected. Status: %s; active provider: %s.\r\n",
+                 ai_service_health_name(), ai_service_active_provider());
     mudlog(BRF, LVL_IMMORT, TRUE, "%s enabled OpenAI service.", GET_NAME(ch));
   }
   else if (!strcasecmp(arg1, "disable"))
@@ -8878,14 +8917,20 @@ ACMD(do_oconvert)
   char arg[MAX_STRING_LENGTH] = {'\0'}, arg2[MAX_STRING_LENGTH] = {'\0'};
   int iarg;
 
-  if (argument == NULL)
+  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
+  if (!*arg || !*arg2 || !is_number(arg))
   {
     send_to_char(ch, "Usage: oconvert <weapon_type> <keyword>\r\n");
     return;
   }
 
-  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
   iarg = atoi(arg);
+
+  if (iarg <= 0 || iarg >= NUM_WEAPON_TYPES || weapon_list[iarg].name == NULL)
+  {
+    send_to_char(ch, "Weapon type must be between 1 and %d.\r\n", NUM_WEAPON_TYPES - 1);
+    return;
+  }
 
   send_to_char(ch, "%d %s\r\n", iarg, arg2);
 
@@ -11031,10 +11076,27 @@ ACMD(do_save_everything)
 ACMD(do_objcheck)
 {
   obj_rnum i;
-  int errors = 0, warnings = 0;
+  obj_rnum rnum;
+  int corrected = 0;
+  int detail_count = 0;
+  int invalid_rnums = 0;
+  int mismatches = 0;
+  int negative_counts = 0;
+  int unindexed_objects = 0;
   struct obj_data *obj;
   int *actual_count;
-  char buf[MAX_STRING_LENGTH];
+  bool repair = false;
+
+  skip_spaces_c(&argument);
+  if (*argument)
+  {
+    if (!is_abbrev(argument, "repair"))
+    {
+      send_to_char(ch, "Usage: objcheck [repair]\r\n");
+      return;
+    }
+    repair = true;
+  }
 
   CREATE(actual_count, int, (size_t)top_of_objt + 1);
 
@@ -11047,14 +11109,26 @@ ACMD(do_objcheck)
   /* Count all objects in game */
   for (obj = object_list; obj; obj = obj->next)
   {
-    if (GET_OBJ_RNUM(obj) != NOTHING && GET_OBJ_RNUM(obj) <= top_of_objt)
+    rnum = GET_OBJ_RNUM(obj);
+    if (rnum == NOTHING)
     {
-      actual_count[GET_OBJ_RNUM(obj)]++;
+      /* Money, crafted items, and other runtime-created objects intentionally
+       * have no prototype and therefore do not contribute to index counts. */
+      unindexed_objects++;
+    }
+    else if (rnum <= top_of_objt)
+    {
+      actual_count[rnum]++;
     }
     else
     {
-      errors++;
-      log("SYSERR: Object with invalid rnum %d found in object_list", GET_OBJ_RNUM(obj));
+      invalid_rnums++;
+      if (detail_count < 20)
+      {
+        send_to_char(ch, "INVALID: rnum %d, object '%s'\r\n", rnum,
+                     obj->short_description ? obj->short_description : "UNDEFINED");
+        detail_count++;
+      }
     }
   }
 
@@ -11066,38 +11140,49 @@ ACMD(do_objcheck)
   {
     if (obj_index[i].number != actual_count[i])
     {
-      errors++;
-      snprintf(buf, sizeof(buf), "ERROR: Object %d (%s) - Index count: %d, Actual count: %d\r\n",
-               obj_index[i].vnum,
-               obj_proto[i].short_description ? obj_proto[i].short_description : "UNDEFINED",
-               obj_index[i].number, actual_count[i]);
-      send_to_char(ch, "%s", buf);
+      mismatches++;
+      if (detail_count < 100)
+      {
+        send_to_char(ch, "MISMATCH: Object %d (%s) - Index count: %d, Actual count: %d\r\n",
+                     obj_index[i].vnum,
+                     obj_proto[i].short_description ? obj_proto[i].short_description : "UNDEFINED",
+                     obj_index[i].number, actual_count[i]);
+        detail_count++;
+      }
 
-      /* Fix the count */
-      obj_index[i].number = actual_count[i];
+      if (repair)
+      {
+        obj_index[i].number = actual_count[i];
+        corrected++;
+      }
     }
 
     if (obj_index[i].number < 0)
     {
-      warnings++;
-      snprintf(buf, sizeof(buf), "WARNING: Object %d has negative count: %d\r\n", obj_index[i].vnum,
-               obj_index[i].number);
-      send_to_char(ch, "%s", buf);
-      obj_index[i].number = 0;
+      negative_counts++;
     }
   }
 
-  if (errors == 0 && warnings == 0)
+  if (invalid_rnums > 20)
+    send_to_char(ch, "... %d additional invalid-rnum objects omitted.\r\n", invalid_rnums - 20);
+  if (mismatches + MIN(invalid_rnums, 20) > 100)
+    send_to_char(ch, "... additional index mismatches omitted; totals follow.\r\n");
+
+  send_to_char(ch, "\r\nPrototype count mismatches: %d%s\r\n", mismatches,
+               repair ? " (repair requested)" : " (check only)");
+  send_to_char(ch, "Prototype counts corrected: %d\r\n", corrected);
+  send_to_char(ch, "Objects with invalid indexed rnums: %d (not corrected)\r\n", invalid_rnums);
+  send_to_char(ch, "Intentional unindexed runtime objects: %d\r\n", unindexed_objects);
+  send_to_char(ch, "Negative prototype counts after scan: %d\r\n", negative_counts);
+
+  if (mismatches == 0 && invalid_rnums == 0 && negative_counts == 0)
   {
     send_to_char(ch, "All object counts verified - no issues found.\r\n");
   }
-  else
-  {
-    send_to_char(ch, "\r\nSummary: %d errors found and corrected, %d warnings.\r\n", errors,
-                 warnings);
-    mudlog(BRF, LVL_IMMORT, TRUE, "OBJCHECK: %s found and fixed %d object count errors",
-           GET_NAME(ch), errors);
-  }
+
+  mudlog(BRF, LVL_IMMORT, TRUE,
+         "OBJCHECK: %s found %d count mismatches, %d invalid rnums, and corrected %d counts",
+         GET_NAME(ch), mismatches, invalid_rnums, corrected);
 
   free(actual_count);
 }

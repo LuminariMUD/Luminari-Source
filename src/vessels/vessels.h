@@ -473,6 +473,7 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
 int get_ship_terrain_type(int shipnum);
 bool vessel_z_within_class_limits(enum vessel_class vessel_type, int z);
 bool vessel_z_allows_sector(enum vessel_class vessel_type, int sector_type, int z);
+bool vessel_can_occupy_coordinates(enum vessel_class vessel_type, int x, int y, int z);
 bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, int z);
 int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
                                int weather_conditions);
@@ -1622,10 +1623,11 @@ int route_activate(struct ship_route *route);
 int route_deactivate(struct ship_route *route);
 
 /* Path-Following Functions (Session 03) */
-float calculate_distance_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp);
+float calculate_distance_to_waypoint(const struct greyhawk_ship_data *ship,
+                                     const struct waypoint *wp);
 void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypoint *wp, float *dx,
                                    float *dy);
-int check_waypoint_arrival(struct greyhawk_ship_data *ship, struct waypoint *wp);
+int check_waypoint_arrival(const struct greyhawk_ship_data *ship, const struct waypoint *wp);
 int advance_to_next_waypoint(struct greyhawk_ship_data *ship);
 void handle_waypoint_arrival(struct greyhawk_ship_data *ship);
 int vessel_autopilot_grid_coordinate(float coordinate);

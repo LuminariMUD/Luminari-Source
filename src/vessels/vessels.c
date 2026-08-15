@@ -580,6 +580,34 @@ static bool vessel_can_traverse_sector(enum vessel_class vessel_type, int sector
 }
 
 /**
+ * Check coordinate terrain without allocating a dynamic wilderness room.
+ *
+ * Route validation can inspect many cells. Resolving their effective sectors
+ * directly avoids consuming the finite dynamic-room pool merely to reject a
+ * malformed route.
+ */
+bool vessel_can_occupy_coordinates(enum vessel_class vessel_type, int x, int y, int z)
+{
+  zone_rnum wild_zone;
+  int sector_type;
+
+  if (x < -1024 || x > 1024 || y < -1024 || y > 1024 ||
+      !vessel_z_within_class_limits(vessel_type, z))
+  {
+    return FALSE;
+  }
+
+  wild_zone = real_zone(WILD_ZONE_VNUM);
+  if (wild_zone == NOWHERE)
+  {
+    return FALSE;
+  }
+
+  sector_type = get_modified_sector_type(wild_zone, x, y);
+  return vessel_can_traverse_sector(vessel_type, sector_type, z);
+}
+
+/**
  * Get vessel type from ship data.
  *
  * Extracts the vessel_type field from a greyhawk_ship_data structure

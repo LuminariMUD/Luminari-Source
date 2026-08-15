@@ -117,6 +117,67 @@ pid_is_watchdog() {
     esac
 }
 
+# Confirm that a PID is this checkout's foreground autorun supervisor.
+pid_is_autorun() {
+    local pid="$1"
+    local candidate=""
+    local expected_path
+    local process_cwd
+    local process_exe
+    local -a command_line=()
+
+    if [[ ! "$pid" =~ ^[1-9][0-9]*$ ]] ||
+       [[ ! -r "/proc/${pid}/cmdline" ]]; then
+        return 1
+    fi
+
+    expected_path=$(readlink -f -- "$AUTORUN_SCRIPT" 2>/dev/null || true)
+    process_exe=$(readlink -f -- "/proc/${pid}/exe" 2>/dev/null || true)
+    process_cwd=$(readlink -f -- "/proc/${pid}/cwd" 2>/dev/null || true)
+    mapfile -d '' -t command_line < "/proc/${pid}/cmdline" 2>/dev/null || return 1
+
+    if [[ -z "$expected_path" ]] || [[ ${#command_line[@]} -lt 2 ]]; then
+        return 1
+    fi
+
+    if [[ "$process_exe" == "$expected_path" ]]; then
+        candidate="$process_exe"
+        [[ "${command_line[1]:-}" == "foreground" ||
+           "${command_line[1]:-}" == "fg" ]]
+        return
+    fi
+
+    if [[ "${command_line[1]}" == /* ]]; then
+        candidate=$(readlink -f -- "${command_line[1]}" 2>/dev/null || true)
+    elif [[ "${command_line[1]}" == */* ]] && [[ -n "$process_cwd" ]]; then
+        candidate=$(readlink -f -- "${process_cwd}/${command_line[1]}" 2>/dev/null || true)
+    fi
+
+    case "$(basename "$process_exe")" in
+        bash|dash|sh)
+            [[ "$candidate" == "$expected_path" ]] &&
+                [[ "${command_line[2]:-}" == "foreground" ||
+                   "${command_line[2]:-}" == "fg" ]]
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# Check the exact configured TCP port without depending on process-name output.
+mud_port_is_listening() {
+    local port="$1"
+
+    if [[ ! "$port" =~ ^[1-9][0-9]*$ ]] ||
+       ((port > 65535)) ||
+       ! command -v ss >/dev/null 2>&1; then
+        return 1
+    fi
+
+    ss -H -ltn "sport = :$port" 2>/dev/null | grep -q .
+}
+
 # Check if autorun is healthy
 check_autorun_health() {
     local current_time
@@ -131,7 +192,8 @@ check_autorun_health() {
         return 1
     fi
 
-    # Check if state file is older than the configured health threshold
+    # Resolve process and listener evidence before considering state age. A
+    # delayed state update must never cause a second supervisor to be launched.
     last_update=$(grep -m 1 "^LAST_UPDATE=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
     if [[ ! "$last_update" =~ ^[0-9]+$ ]]; then
         log_msg "WARN" "Cannot read last update time"
@@ -141,26 +203,42 @@ check_autorun_health() {
     current_time=$(date +%s)
     time_diff=$((current_time - last_update))
 
+    pid=$(grep -m 1 "^PID=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
+    port=$(grep -m 1 "^MUD_PORT=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
+
     if [[ $time_diff -gt $STATE_STALE_THRESHOLD ]]; then
+        if [[ "$pid" =~ ^[1-9][0-9]*$ ]] &&
+           kill -0 "$pid" 2>/dev/null &&
+           pid_is_autorun "$pid"; then
+            log_msg "WARN" \
+                "State is stale (${time_diff}s old), but verified autorun PID $pid is running"
+            return 0
+        fi
+        if mud_port_is_listening "$port"; then
+            log_msg "WARN" \
+                "State is stale (${time_diff}s old), but MUD port $port is listening; suppressing restart"
+            return 0
+        fi
         log_msg "WARN" "State file is stale (${time_diff}s old)"
         return 1
     fi
 
-    # Check if PID in state file is actually running
-    pid=$(grep -m 1 "^PID=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
-    if [[ ! "$pid" =~ ^[0-9]+$ ]] || ! kill -0 "$pid" 2>/dev/null; then
+    # Check both PID existence and exact command identity.
+    if [[ ! "$pid" =~ ^[1-9][0-9]*$ ]] ||
+       ! kill -0 "$pid" 2>/dev/null; then
         log_msg "WARN" "Autorun PID $pid is not running"
+        return 1
+    fi
+    if ! pid_is_autorun "$pid"; then
+        log_msg "WARN" "PID $pid is running, but is not this autorun supervisor"
         return 1
     fi
 
     # Check if MUD port is actually listening
-    port=$(grep -m 1 "^MUD_PORT=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
     if [[ -n "$port" ]]; then
-        if command -v ss >/dev/null 2>&1; then
-            if ! ss -tlnp 2>/dev/null | grep -q ":${port} "; then
-                log_msg "INFO" "MUD not listening on port $port (may be restarting)"
-                # This is not a failure - MUD might be restarting
-            fi
+        if ! mud_port_is_listening "$port"; then
+            log_msg "INFO" "MUD not listening on port $port (may be restarting)"
+            # This is not a failure - MUD might be restarting
         fi
     fi
 
@@ -170,12 +248,29 @@ check_autorun_health() {
 # Start autorun if not running
 start_autorun() {
     local elapsed
+    local existing_pid=""
+    local existing_port=""
 
     log_msg "INFO" "Starting autorun..."
 
     if [[ ! -x "$AUTORUN_SCRIPT" ]]; then
         log_msg "ERROR" "Autorun script not found or not executable: $AUTORUN_SCRIPT"
         return 1
+    fi
+
+    if [[ -r "$STATE_FILE" ]]; then
+        existing_pid=$(grep -m 1 "^PID=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
+        existing_port=$(grep -m 1 "^MUD_PORT=" "$STATE_FILE" 2>/dev/null | cut -d= -f2)
+    fi
+    if [[ "$existing_pid" =~ ^[1-9][0-9]*$ ]] &&
+       kill -0 "$existing_pid" 2>/dev/null &&
+       pid_is_autorun "$existing_pid"; then
+        log_msg "WARN" "Verified autorun PID $existing_pid appeared before restart; not launching another"
+        return 0
+    fi
+    if mud_port_is_listening "$existing_port"; then
+        log_msg "WARN" "MUD port $existing_port is already listening; not launching another autorun"
+        return 0
     fi
 
     # autorun daemonizes itself, so its launcher should exit after starting the

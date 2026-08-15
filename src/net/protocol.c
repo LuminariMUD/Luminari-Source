@@ -4133,14 +4133,14 @@ static void SendMSSP(descriptor_t *apDescriptor)
       {"HOSTNAME", "LuminariMUD.com"},
       {"PORT", "4100"},
       {"CODEBASE", "LuminariMUD"},
-      {"CONTACT", "moshehwebservices<at>live.com"},
+      {"CONTACT", "ornir@luminarimud.com"},
       {"CREATED", "2012"},
-      {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
+      {"ICON", "https://luminarimud.com/images/luminarimud.bmp"},
       {"IP", "198.71.53.124"},
       {"LANGUAGE", "English"},
       {"LOCATION", "United States"},
       {"MINIMUM AGE", "0"},
-      {"WEBSITE", "http://www.LuminariMUD.com/"},
+      {"WEBSITE", "https://luminarimud.com/"},
 
       /* Categorisation */
       {"FAMILY", "tbaMUD"},
@@ -4149,7 +4149,7 @@ static void SendMSSP(descriptor_t *apDescriptor)
       {"STATUS", "Beta"},
       {"GAMESYSTEM", "Pathfinder"},
       {"INTERMUD", ""},
-      {"SUBGENRE", "Forgotten Realms DragonLance"},
+      {"SUBGENRE", "High Fantasy"},
 
       /* World */
       {"AREAS", "514"},

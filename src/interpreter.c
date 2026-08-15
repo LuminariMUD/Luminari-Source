@@ -1751,17 +1751,6 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_STANDARD,
      {6, 0},
      NULL},
-    {"exempt",
-     "exempt",
-     POS_RECLINING,
-     do_consign_to_oblivion,
-     0,
-     SCMD_EXEMPT,
-     FALSE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
     {"faithfulstrike",
      "faithfulstrike",
@@ -4065,7 +4054,7 @@ cpp_extern const struct command_info cmd_info[] = {
      NULL},
     {"sprint", "sprint", POS_STANDING, do_sprint, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"spot", "spot", POS_STANDING, do_spot, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"stand", "st", POS_RECLINING, do_stand, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"stand", "st", POS_SLEEPING, do_stand, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"stat", "stat", POS_DEAD, do_stat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"steal", "ste", POS_STANDING, do_steal, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"stonesendurance",
@@ -4253,16 +4242,6 @@ cpp_extern const struct command_info cmd_info[] = {
      1,
      0,
      FALSE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-    {"spellquests",
-     "spellquests",
-     POS_DEAD,
-     do_spellquests,
-     LVL_BUILDER,
-     0,
-     TRUE,
      ACTION_NONE,
      {0, 0},
      NULL},
@@ -4626,16 +4605,6 @@ cpp_extern const struct command_info cmd_info[] = {
      do_consign_to_oblivion,
      0,
      SCMD_UNCOMMUNE,
-     FALSE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-    {"unconjure",
-     "unconjure",
-     POS_RECLINING,
-     do_consign_to_oblivion,
-     0,
-     SCMD_UNCONJURE,
      FALSE,
      ACTION_NONE,
      {0, 0},
@@ -5188,17 +5157,6 @@ cpp_extern const struct command_info cmd_info[] = {
      0,
      0,
      FALSE,
-     ACTION_NONE,
-     {0, 0},
-     NULL,
-     CMD_FEATURE_VESSEL},
-    {"shipload",
-     "shipload",
-     POS_DEAD,
-     do_greyhawk_shipload,
-     LVL_IMPL,
-     0,
-     TRUE,
      ACTION_NONE,
      {0, 0},
      NULL,
@@ -5924,6 +5882,30 @@ bool command_actions_available(struct char_data *ch, int actions_required)
   return true;
 }
 
+/**
+ * Raw command text may only wait in the action queue when the command table
+ * supplies a non-mutating preflight callback. Commands without one must be
+ * retried after their action recovers; otherwise usage and target errors are
+ * delayed behind unrelated valid commands.
+ */
+bool command_has_queue_preflight(int cmd)
+{
+  int command_count;
+
+  if (complete_cmd_info == NULL || cmd < 0)
+  {
+    return false;
+  }
+
+  for (command_count = 0; complete_cmd_info[command_count].command[0] != '\n'; command_count++)
+    ;
+  if (cmd >= command_count || !*complete_cmd_info[cmd].command)
+    return false;
+
+  return complete_cmd_info[cmd].actions_required != ACTION_NONE &&
+         complete_cmd_info[cmd].command_check_pointer != NULL;
+}
+
 /* This is the actual command interpreter called from game_loop() in comm.c
  * It makes sure you are the proper level and position to execute the command,
  * then calls the appropriate function. */
@@ -6313,7 +6295,18 @@ void command_interpreter(struct char_data *ch, char *argument)
     }
   else if (!IS_NPC(ch) && !command_actions_available(ch, complete_cmd_info[cmd].actions_required))
   {
-    if (pending_actions(ch) > MAX_QUEUE_SIZE)
+    if (!command_has_queue_preflight(cmd))
+    {
+      send_to_char(ch, "You must wait for the required action before trying that command.\r\n");
+      return;
+    }
+    else if (complete_cmd_info[cmd].command_check_pointer(ch, line, true) != CAN_CMD)
+    {
+      /* Command-specific prerequisites must pass before a raw command can be
+       * admitted to the action queue. */
+      return;
+    }
+    else if (pending_actions(ch) > MAX_QUEUE_SIZE)
     {
       send_to_char(ch, "The action queue is full.\r\n");
     }
@@ -7327,9 +7320,8 @@ void nanny(struct descriptor_data *d, char *arg)
       }
       if (circle_restrict)
       {
-        write_to_output(
-            d, "The game is currently closed to making new account.  Please check our website at "
-               "http://www.luminarimud.com/\r\nfor more information.\r\n");
+        write_to_output(d, "The game is currently closed to new accounts. Please check "
+                           "https://luminarimud.com/ for more information.\r\n");
         mudlog(NRM, LVL_STAFF, true, "Request for new account %s denied from [%s] (wizlock)",
                d->account->name, d->host);
         STATE(d) = CON_CLOSE;
@@ -7439,9 +7431,8 @@ void nanny(struct descriptor_data *d, char *arg)
           GET_PFILEPOS(d->character) = player_i;
           if (GET_LEVEL(d->character) < circle_restrict)
           {
-            write_to_output(d, "The game is temporarily open for staff members only.  Please refer "
-                               "to the website for more "
-                               "intormation.\r\nhttp://www.luminarimud.com/\r\n");
+            write_to_output(d, "The game is temporarily open for staff members only. Please refer "
+                               "to https://luminarimud.com/ for more information.\r\n");
             STATE(d) = CON_CLOSE;
             mudlog(NRM, LVL_STAFF, true, "Request for login denied for %s [%s] (wizlock)",
                    GET_NAME(d->character), d->host);
@@ -8021,7 +8012,7 @@ void nanny(struct descriptor_data *d, char *arg)
     }
 #elif defined(CAMPAIGN_DL)
     int sortpos;
-    write_to_output(d, "Races of Krynn\r\n\r\n");
+    write_to_output(d, "Races of Luminari\r\n\r\n");
     for (sortpos = 0; sortpos < NUM_EXTENDED_RACES; sortpos++)
     {
       i = race_sort_info[sortpos];
@@ -8284,7 +8275,7 @@ void nanny(struct descriptor_data *d, char *arg)
           write_to_output(d, "%s\r\n", race_list[i].type);
       }
 #elif defined(CAMPAIGN_DL)
-      write_to_output(d, "Races of Krynn\r\n\r\n");
+      write_to_output(d, "Races of Luminari\r\n\r\n");
       for (sortpos = 0; sortpos < NUM_EXTENDED_RACES; sortpos++)
       {
         i = race_sort_info[sortpos];
@@ -8311,7 +8302,7 @@ void nanny(struct descriptor_data *d, char *arg)
 #if defined(CAMPAIGN_FR)
     write_to_output(d, "Classes of Faerun\r\n\r\n");
 #elif defined(CAMPAIGN_DL)
-    write_to_output(d, "Classes of Krynn\r\n\r\n");
+    write_to_output(d, "Classes of Luminari\r\n\r\n");
 #else
     write_to_output(d, "Classes of Luminari\r\n\r\n");
 #endif
@@ -8402,7 +8393,7 @@ void nanny(struct descriptor_data *d, char *arg)
       d->roleplay_pending.region_active = FALSE;
       d->roleplay_pending.region = REGION_NONE;
 #ifdef CAMPAIGN_DL
-      write_to_output(d, "\tcRegions of Krynn\tn\r\n\r\n");
+      write_to_output(d, "\tcRegions of Luminari\tn\r\n\r\n");
 #else
       write_to_output(d, "\tcRegions of Faerun\tn\r\n\r\n");
 #endif

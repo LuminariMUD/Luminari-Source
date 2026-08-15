@@ -4069,71 +4069,101 @@ void column_list(struct char_data *ch, int num_cols, const char **list, int list
                  bool show_nums)
 {
   size_t max_len = 0;
+  size_t buffer_size;
+  size_t used = 0;
   int num_per_col, col_width, r, c, i, offset = 0, temp_len;
-  char buf[MAX_STRING_LENGTH] = {'\0'};
-  char entry[MAX_STRING_LENGTH] = {'\0'};
-  bool overflow = false;
+  int prefix_width;
+  int screen_width;
+  char *buf;
+
+  if (ch == NULL || ch->desc == NULL || list == NULL || list_length <= 0)
+    return;
 
   /* Work out the longest list item */
   for (i = 0; i < list_length; i++)
-    if (max_len < strlen(list[i]))
+    if (list[i] != NULL && max_len < strlen(list[i]))
       max_len = strlen(list[i]);
+
+  screen_width = IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch);
+  screen_width = MAX(screen_width, 1);
+  prefix_width = show_nums ? 4 : 0;
+  if (show_nums)
+  {
+    for (i = list_length; i >= 100; i /= 10)
+      prefix_width++;
+  }
 
   /* auto columns case */
   if (num_cols == 0)
   {
-    num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / ((int)max_len + (show_nums ? 5 : 1));
+    num_cols = screen_width / ((int)max_len + prefix_width + 1);
   }
 
   /* Ensure that the number of columns is in the range 1-10 */
   num_cols = MIN(MAX(num_cols, 1), 10);
 
-  /* Calculate the width of each column */
-  if (IS_NPC(ch))
-    col_width = 80 / num_cols;
-  else
-    col_width = (GET_SCREEN_WIDTH(ch)) / num_cols;
+  /* Reserve a literal space between columns. Reduce a caller-requested
+   * column count when its longest value would otherwise touch or overlap the
+   * next value. A single value may exceed the user's screen width, but it is
+   * never truncated. */
+  do
+  {
+    col_width = (screen_width - (num_cols - 1)) / num_cols - prefix_width;
+    if (num_cols == 1 || (col_width >= 0 && (size_t)col_width >= max_len))
+      break;
+    num_cols--;
+  } while (num_cols > 0);
 
-  if (show_nums)
-    col_width -= 4;
-
-  if (col_width < 0 || (size_t)col_width < max_len)
-    log("Warning: columns too narrow for correct output to %s in simple_column_list (utils.c)",
-        GET_NAME(ch));
+  if (num_cols == 1)
+    col_width = MAX(screen_width - prefix_width, (int)max_len);
 
   /* Calculate how many list items there should be per column */
   num_per_col = (list_length / num_cols) + ((list_length % num_cols) ? 1 : 0);
 
+  if ((size_t)num_per_col >
+      (SIZE_MAX - 1) / ((size_t)num_cols * (prefix_width + (size_t)col_width + 1) + 2))
+  {
+    log("SYSERR: column_list output size overflow for %s", GET_NAME(ch));
+    return;
+  }
+
+  buffer_size =
+      (size_t)num_per_col * ((size_t)num_cols * (prefix_width + (size_t)col_width + 1) + 2) + 1;
+  CREATE(buf, char, buffer_size);
+
   /* Fill 'buf' with the columnised list */
-  for (r = 0; r < num_per_col && !overflow; r++)
+  for (r = 0; r < num_per_col; r++)
   {
     for (c = 0; c < num_cols; c++)
     {
       offset = (c * num_per_col) + r;
-      if (offset < list_length)
+      if (offset < list_length && list[offset] != NULL)
       {
         if (show_nums)
-          temp_len =
-              snprintf(entry, sizeof(entry), "%2d) %-*s", offset + 1, col_width, list[offset]);
+          temp_len = snprintf(buf + used, buffer_size - used, "%2d) %-*s", offset + 1, col_width,
+                              list[offset]);
         else
-          temp_len = snprintf(entry, sizeof(entry), "%-*s", col_width, list[offset]);
-        if (temp_len < 0 || (size_t)temp_len >= sizeof(entry) ||
-            strlcat(buf, entry, sizeof(buf)) >= sizeof(buf))
+          temp_len = snprintf(buf + used, buffer_size - used, "%-*s", col_width, list[offset]);
+        if (temp_len < 0 || (size_t)temp_len >= buffer_size - used)
         {
-          overflow = true;
-          break;
+          log("SYSERR: column_list formatting overflow for %s", GET_NAME(ch));
+          free(buf);
+          return;
         }
+        used += (size_t)temp_len;
+
+        if (c + 1 < num_cols && ((c + 1) * num_per_col) + r < list_length)
+          buf[used++] = ' ';
       }
     }
-    if (!overflow && strlcat(buf, "\r\n", sizeof(buf)) >= sizeof(buf))
-      overflow = true;
+    buf[used++] = '\r';
+    buf[used++] = '\n';
+    buf[used] = '\0';
   }
-
-  if (overflow)
-    snprintf((buf + MAX_STRING_LENGTH) - 22, 22, "\r\n*** OVERFLOW ***\r\n");
 
   /* Send the list to the player */
   page_string(ch->desc, buf, TRUE);
+  free(buf);
 }
 
 /* column_list_applies
@@ -4789,7 +4819,12 @@ char *add_commas(long num)
   int i, j = 0, len;
   int negative = (num < 0);
   char num_string[MAX_INPUT_LENGTH] = {'\0'};
-  static char commastring[MAX_INPUT_LENGTH] = {'\0'};
+  static char comma_strings[8][MAX_INPUT_LENGTH];
+  static size_t next_string;
+  char *comma_string;
+
+  comma_string = comma_strings[next_string];
+  next_string = (next_string + 1) % (sizeof(comma_strings) / sizeof(comma_strings[0]));
 
   snprintf(num_string, sizeof(num_string), "%ld", num);
   len = strlen(num_string);
@@ -4797,12 +4832,12 @@ char *add_commas(long num)
   for (i = 0; num_string[i]; i++)
   {
     if ((len - i) % 3 == 0 && i && i - negative)
-      commastring[j++] = ',';
-    commastring[j++] = num_string[i];
+      comma_string[j++] = ',';
+    comma_string[j++] = num_string[i];
   }
-  commastring[j] = '\0';
+  comma_string[j] = '\0';
 
-  return commastring;
+  return comma_string;
 }
 
 /* Create a blank affect struct */
@@ -8711,6 +8746,7 @@ int teamwork_best_stealth(struct char_data *ch, int featnum)
   struct char_data *k = NULL;
   int stealth = compute_ability_full(ch, ABILITY_STEALTH, TRUE);
 
+  simple_list(NULL);
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
   {
     if (IN_ROOM(k) != IN_ROOM(ch))
@@ -8737,6 +8773,7 @@ int teamwork_best_d20(struct char_data *ch, int featnum)
   struct char_data *k = NULL;
   int d20roll = d20(ch);
 
+  simple_list(NULL);
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
   {
     if (IN_ROOM(k) != IN_ROOM(ch))
@@ -8759,7 +8796,7 @@ int count_teamwork_feats_available(struct char_data *ch)
   if (!ch)
     return 0;
 
-  for (i = 0; i < NUM_FEATS; i++)
+  for (i = 1; i < FEAT_LAST_FEAT; i++)
   {
     if (feat_list[i].feat_type == FEAT_TYPE_TEAMWORK && HAS_REAL_FEAT(ch, i))
       known++;
@@ -8891,6 +8928,7 @@ bool can_one_with_shadows(struct char_data *ch)
 
   struct char_data *k = NULL;
   int num = 0;
+  simple_list(NULL);
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
   {
     if (IN_ROOM(k) != IN_ROOM(ch))

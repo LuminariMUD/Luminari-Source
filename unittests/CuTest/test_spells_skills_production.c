@@ -4,6 +4,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/act.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
@@ -17,6 +18,7 @@
 #include "../../src/combat/fight.h"
 #include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
+#include "../../src/magic/spell_prep.h"
 #include "../../src/character/class.h"
 #include "../../src/character/perks.h"
 #include "../../src/craft/craft.h"
@@ -1237,4 +1239,120 @@ void Test_perk_initialization_preserves_distinct_definitions(CuTest *tc)
 
   /* Leave global metadata initialized for tests that run after this one. */
   init_perks();
+}
+
+void Test_spell_recall_completes_a_prepared_spell(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  enum spell_recall_recovery_type result;
+  int recovered_class;
+  int recovered_spell;
+  int recovered_circle;
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  CLASS_LEVEL((&ch), CLASS_WIZARD) = 10;
+  prep_queue_add(&ch, CLASS_WIZARD, SPELL_MAGIC_MISSILE, 0, 30, 0);
+
+  CuAssertTrue(tc, spell_recall_has_recoverable_slot(&ch));
+  result = spell_recall_recover_one(&ch, &recovered_class, &recovered_spell, &recovered_circle);
+
+  CuAssertIntEquals(tc, SPELL_RECALL_PREPARED, result);
+  CuAssertIntEquals(tc, CLASS_WIZARD, recovered_class);
+  CuAssertIntEquals(tc, SPELL_MAGIC_MISSILE, recovered_spell);
+  CuAssertIntEquals(tc, -1, recovered_circle);
+  CuAssertPtrEquals(tc, NULL, SPELL_PREP_QUEUE(&ch, CLASS_WIZARD));
+  CuAssertPtrNotNull(tc, SPELL_COLLECTION(&ch, CLASS_WIZARD));
+  CuAssertIntEquals(tc, SPELL_MAGIC_MISSILE, SPELL_COLLECTION(&ch, CLASS_WIZARD)->spell);
+  CuAssertIntEquals(tc, 0, SPELL_COLLECTION(&ch, CLASS_WIZARD)->prep_time);
+  CuAssertTrue(tc, !spell_recall_has_recoverable_slot(&ch));
+
+  clear_collection_by_class(&ch, CLASS_WIZARD);
+}
+
+void Test_spell_recall_recovers_a_spontaneous_slot(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  enum spell_recall_recovery_type result;
+  int recovered_class;
+  int recovered_spell;
+  int recovered_circle;
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  CLASS_LEVEL((&ch), CLASS_SORCERER) = 10;
+  innate_magic_add(&ch, CLASS_SORCERER, 3, 0, 30, 0);
+
+  CuAssertTrue(tc, spell_recall_has_recoverable_slot(&ch));
+  result = spell_recall_recover_one(&ch, &recovered_class, &recovered_spell, &recovered_circle);
+
+  CuAssertIntEquals(tc, SPELL_RECALL_INNATE, result);
+  CuAssertIntEquals(tc, CLASS_SORCERER, recovered_class);
+  CuAssertIntEquals(tc, -1, recovered_spell);
+  CuAssertIntEquals(tc, 3, recovered_circle);
+  CuAssertPtrEquals(tc, NULL, INNATE_MAGIC(&ch, CLASS_SORCERER));
+  CuAssertTrue(tc, !spell_recall_has_recoverable_slot(&ch));
+}
+
+void Test_player_toggle_messages_match_resulting_state(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+
+  clear_char(&ch);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  ch.player.name = "toggle message test character";
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize protocol output for the toggle message test");
+    return;
+  }
+
+  do_gen_tog(&ch, "", 0, SCMD_AUTO_BLAST);
+  CuAssertTrue(tc, PRF_FLAGGED(&ch, PRF_AUTOBLAST));
+  CuAssertStrEquals(tc,
+                    "You will now automatically use eldritch blast in place of normal attacks.\r\n",
+                    descriptor.output);
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  do_gen_tog(&ch, "", 0, SCMD_AUTO_BLAST);
+  CuAssertTrue(tc, !PRF_FLAGGED(&ch, PRF_AUTOBLAST));
+  CuAssertStrEquals(
+      tc, "You will no longer automatically use eldritch blast in place of normal attacks.\r\n",
+      descriptor.output);
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  do_gen_tog(&ch, "", 0, SCMD_USE_STORED_CONSUMABLES);
+  CuAssertTrue(tc, PRF_FLAGGED(&ch, PRF_USE_STORED_CONSUMABLES));
+  CuAssertStrEquals(tc, "You will now use the stored consumables system (HELP CONSUMABLES).\r\n",
+                    descriptor.output);
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  do_gen_tog(&ch, "", 0, SCMD_USE_STORED_CONSUMABLES);
+  CuAssertTrue(tc, !PRF_FLAGGED(&ch, PRF_USE_STORED_CONSUMABLES));
+  CuAssertStrEquals(tc,
+                    "You will no longer use the stored consumables system (HELP CONSUMABLES).\r\n",
+                    descriptor.output);
+
+  ch.desc = NULL;
+  cleanup_test_descriptor(&descriptor);
 }

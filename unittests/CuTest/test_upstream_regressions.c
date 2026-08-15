@@ -8,7 +8,10 @@
 #include "../../src/comm.h"
 #include "../../src/handler.h"
 #include "../../src/magic/spells.h"
+#include "../../src/modify.h"
+#include "../../src/comms/boards.h"
 #include "../../src/character/class.h"
+#include "../../src/character/feats.h"
 #include "../../src/dgscript/dg_olc.h"
 #include "../../src/net/protocol.h"
 #include "../../src/quest/hlquest.h"
@@ -17,6 +20,25 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+void Test_feat_sort_contains_each_valid_feat_once(CuTest *tc)
+{
+  bool seen[FEAT_LAST_FEAT] = {false};
+  int feat;
+  int position;
+
+  sort_feats();
+  for (position = 1; position < FEAT_LAST_FEAT; position++)
+  {
+    feat = feat_sort_info[position];
+    CuAssertTrue(tc, feat > FEAT_UNDEFINED);
+    CuAssertTrue(tc, feat < FEAT_LAST_FEAT);
+    CuAssertTrue(tc, !seen[feat]);
+    seen[feat] = true;
+  }
+  for (feat = 1; feat < FEAT_LAST_FEAT; feat++)
+    CuAssertTrue(tc, seen[feat]);
+}
 
 void Test_hlquest_exact_coin_and_duplicate_item_contracts(CuTest *tc)
 {
@@ -304,6 +326,63 @@ void Test_column_list_applies_uses_item_width_for_auto_columns(CuTest *tc)
   CuAssert(tc, "the first apply-list row should contain three aligned columns", first_row_aligned);
   CuAssert(tc, "the second apply-list row should contain three aligned columns",
            second_row_aligned);
+}
+
+void Test_column_list_pages_complete_output_with_visible_separators(CuTest *tc)
+{
+  const char *items[] = {"abcdefghijklmn", "opqrstuvwxyz12"};
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  const char *full_output;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  ch.desc = &descriptor;
+  ch.player_specials = &player_specials;
+  ch.player.name = "column separator test character";
+  GET_SCREEN_WIDTH(&ch) = 30;
+  GET_PAGE_LENGTH(&ch) = 100;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize the column separator fixture");
+    return;
+  }
+
+  column_list(&ch, 0, items, 2, FALSE);
+  full_output = descriptor.output;
+
+  CuAssertPtrNotNull(tc, full_output);
+  CuAssertPtrNotNull(tc, strstr(full_output, "abcdefghijklmn opqrstuvwxyz12"));
+  CuAssertPtrEquals(tc, NULL, strstr(full_output, "OVERFLOW"));
+
+  ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+}
+
+void Test_add_commas_supports_multiple_values_in_one_format(CuTest *tc)
+{
+  const char *first;
+  const char *second;
+
+  first = add_commas(1234);
+  second = add_commas(987654);
+
+  CuAssertStrEquals(tc, "1,234", first);
+  CuAssertStrEquals(tc, "987,654", second);
+}
+
+void Test_staff_simplex_board_has_legacy_board_storage(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 2, NUM_OF_BOARDS);
+  CuAssertIntEquals(tc, 3098, board_info[1].vnum);
 }
 
 void Test_upstream_type_and_bit_formatting(CuTest *tc)

@@ -361,7 +361,10 @@ void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, 
     bonus += 2;
 
   if (victim == ch)
-    send_to_char(ch, "You like yourself even better!\r\n");
+  {
+    send_to_char(ch, "You cannot charm or dominate yourself.\r\n");
+    return;
+  }
   else if (char_has_object_flag(victim, ITEM_ROL_NO_CHARM))
   {
     send_to_char(ch, "Your victim is protected from this enchantment by carried equipment!\r\n");
@@ -1793,6 +1796,7 @@ ASPELL(spell_group_summon)
     return;
   }
 
+  simple_list(NULL);
   while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
   {
     if (ch == tch)

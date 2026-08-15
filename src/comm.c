@@ -125,7 +125,8 @@
 
 /* Keep socket processing responsive when replaying missed heartbeats. */
 #define HEARTBEAT_CATCHUP_BUDGET_USEC ((uint64_t)OPT_USEC)
-#define HEARTBEAT_CATCHUP_LOG_INTERVAL 5
+#define HEARTBEAT_CATCHUP_LOG_INTERVAL 60
+#define STAFF_COMMAND_LATENCY_BUDGET_USEC 100000
 
 extern time_t motdmod;
 extern time_t newsmod;
@@ -784,7 +785,7 @@ static void init_game(ush_int local_port)
   if (circle_reboot)
   {
     log("Rebooting.");
-    exit(52); /* what's so great about HHGTTG, anyhow? */
+    exit(MUD_EXIT_REBOOT);
   }
   /* Beginner's Note: If we got here from a signal (Ctrl+C, kill, etc.),
    * convert the flag to the normal shutdown flag so the rest of the
@@ -997,7 +998,13 @@ void game_loop(socket_t local_mother_desc)
   uint64_t heartbeat_replay_start_usec = 0;
   uint64_t heartbeat_replay_now_usec = 0;
   uint64_t heartbeat_replay_elapsed_usec = 0;
+  uint64_t command_start_usec = 0;
+  uint64_t command_end_usec = 0;
+  uint64_t command_elapsed_usec = 0;
   time_t catchup_log_now = 0;
+  char command_name[MAX_INPUT_LENGTH] = {'\0'};
+  char command_player[MAX_NAME_LENGTH + 1] = {'\0'};
+  int command_level = 0;
   long int perf_high_water_mark = 0;
   static time_t last_moderate_log_time = 0;
   static time_t last_severe_log_time = 0;
@@ -1366,7 +1373,28 @@ void game_loop(socket_t local_mother_desc)
             d->has_prompt = TRUE; /* To get newline before next cmd output. */
           else if (perform_alias(d, comm, sizeof(comm))) /* Run it through aliasing system */
             get_from_q(&d->input, comm, &aliased);
+
+          command_start_usec = 0;
+          command_level = GET_LEVEL(d->character);
+          if (command_level >= LVL_IMMORT)
+          {
+            any_one_arg(comm, command_name);
+            strlcpy(command_player, GET_NAME(d->character), sizeof(command_player));
+            command_start_usec = PERF_monotonic_usec();
+          }
           command_interpreter(d->character, comm); /* Send it to interpreter */
+          if (command_start_usec)
+          {
+            command_end_usec = PERF_monotonic_usec();
+            command_elapsed_usec =
+                command_end_usec >= command_start_usec ? command_end_usec - command_start_usec : 0;
+            if (command_elapsed_usec >= STAFF_COMMAND_LATENCY_BUDGET_USEC)
+            {
+              log("PERFMON [COMMAND]: staff command '%s' by %s (level %d) took %llu usec",
+                  command_name, command_player, command_level,
+                  (unsigned long long)command_elapsed_usec);
+            }
+          }
         }
       }
       else if (d->character && STATE(d) == CON_PLAYING && pending_actions(d->character) &&

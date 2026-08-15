@@ -10,6 +10,7 @@
 #include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"
 
+#include <limits.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <string.h>
@@ -80,6 +81,73 @@ void Test_command_dispatch_lookup(CuTest *tc)
   CuAssertTrue(tc, help_command >= 0);
   CuAssertTrue(tc, look_command != help_command);
   CuAssertIntEquals(tc, -1, find_command("not-a-real-command"));
+
+  if (created_command_list)
+    free_command_list();
+}
+
+void Test_command_table_excludes_unimplemented_commands(CuTest *tc)
+{
+  bool created_command_list;
+
+  created_command_list = false;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  CuAssertIntEquals(tc, -1, find_command("exempt"));
+  CuAssertIntEquals(tc, -1, find_command("unconjure"));
+  CuAssertIntEquals(tc, -1, find_command("spellquests"));
+  CuAssertIntEquals(tc, -1, find_command("shipload"));
+
+  if (created_command_list)
+    free_command_list();
+}
+
+void Test_stand_command_reaches_sleeping_handler_and_uses_move_action(CuTest *tc)
+{
+  int stand_command;
+  bool created_command_list;
+
+  created_command_list = false;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  stand_command = find_command("stand");
+  CuAssertTrue(tc, stand_command >= 0);
+  CuAssertIntEquals(tc, POS_SLEEPING, complete_cmd_info[stand_command].minimum_position);
+  CuAssertIntEquals(tc, ACTION_MOVE, complete_cmd_info[stand_command].actions_required);
+
+  if (created_command_list)
+    free_command_list();
+}
+
+void Test_action_queue_requires_non_mutating_command_preflight(CuTest *tc)
+{
+  int bandage_command;
+  int layonhands_command;
+  bool created_command_list;
+
+  created_command_list = false;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  bandage_command = find_command("bandage");
+  layonhands_command = find_command("layonhands");
+  CuAssertTrue(tc, bandage_command >= 0);
+  CuAssertTrue(tc, layonhands_command >= 0);
+  CuAssertTrue(tc, !command_has_queue_preflight(-1));
+  CuAssertTrue(tc, !command_has_queue_preflight(INT_MAX));
+  CuAssertTrue(tc, !command_has_queue_preflight(bandage_command));
+  CuAssertTrue(tc, command_has_queue_preflight(layonhands_command));
 
   if (created_command_list)
     free_command_list();

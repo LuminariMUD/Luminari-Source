@@ -48,7 +48,7 @@ bool is_locked_race(int race);
 
 /** Check the specified function to see if we get back a CAN_CMD. */
 #define PREREQ_CHECK(name)                                                                         \
-  if (name(ch, true))                                                                              \
+  if (name(ch, argument, true))                                                                    \
     return;
 
 /** Check if the character has enough daily uses of the specified feat. */

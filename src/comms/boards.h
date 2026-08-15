@@ -16,7 +16,7 @@
 #if defined(CAMPAIGN_DL)
 #define NUM_OF_BOARDS 7 /* change if needed! */
 #else
-#define NUM_OF_BOARDS 1 /* change if needed! */
+#define NUM_OF_BOARDS 2 /* change if needed! */
 #endif
 #define MAX_BOARD_MESSAGES 300  /* arbitrary -- change if needed */
 #define MAX_MESSAGE_LENGTH 9192 /* arbitrary -- change if needed */

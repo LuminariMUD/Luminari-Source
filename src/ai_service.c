@@ -79,7 +79,7 @@ static char *parse_json_response(const char *json_str);
 static char *make_ollama_request(const char *prompt);
 static char *build_ollama_json_request(const char *prompt);
 static char *parse_ollama_json_response(const char *json_str);
-static void warmup_ollama_model(void);
+static bool warmup_ollama_model(void);
 static void *ai_thread_worker(void *arg);
 static int json_escape_string(char *dest, size_t dest_size, const char *src);
 /* static void derive_key_from_seed(unsigned char *key); */
@@ -276,11 +276,12 @@ void init_ai_service(void)
   load_ai_config();
 
   /* Warmup Ollama model to avoid first-request delay */
-  warmup_ollama_model();
+  ai_state.ollama_available = warmup_ollama_model();
 
   ai_state.initialized = TRUE;
   AI_DEBUG("AI Service initialization complete - initialized=%d", ai_state.initialized);
-  log("AI Service initialized successfully.");
+  log("AI Service provider status: %s; active provider: %s.", ai_service_health_name(),
+      ai_service_active_provider());
 }
 
 /**
@@ -373,6 +374,45 @@ bool is_ai_enabled(void)
   return result;
 }
 
+enum ai_service_health ai_get_service_health(void)
+{
+  bool openai_active;
+
+  if (!ai_state.initialized || !ai_state.config)
+    return AI_SERVICE_UNAVAILABLE;
+
+  openai_active = ai_state.config->enabled && ai_state.openai_configured;
+  if (openai_active && ai_state.ollama_available)
+    return AI_SERVICE_HEALTHY;
+  if (openai_active || ai_state.ollama_available)
+    return AI_SERVICE_DEGRADED;
+  return AI_SERVICE_UNAVAILABLE;
+}
+
+const char *ai_service_health_name(void)
+{
+  switch (ai_get_service_health())
+  {
+  case AI_SERVICE_HEALTHY:
+    return "healthy";
+  case AI_SERVICE_DEGRADED:
+    return "degraded";
+  default:
+    return "unavailable";
+  }
+}
+
+const char *ai_service_active_provider(void)
+{
+  if (!ai_state.initialized || !ai_state.config)
+    return "none";
+  if (ai_state.config->enabled && ai_state.openai_configured)
+    return "OpenAI";
+  if (ai_state.ollama_available)
+    return "Ollama";
+  return "generic fallback only";
+}
+
 /**
  * Load AI configuration from database/files
  *
@@ -428,6 +468,7 @@ void load_ai_config(void)
    * OpenAI Configuration
    *=========================================================================*/
   AI_DEBUG("Loading OpenAI configuration");
+  ai_state.openai_configured = FALSE;
 
   /* API Key */
   str_val = get_env_value("OPENAI_API_KEY");
@@ -435,6 +476,7 @@ void load_ai_config(void)
   {
     AI_DEBUG("  Found API key (length=%zu)", strlen(str_val));
     encrypt_api_key(str_val, ai_state.config->encrypted_api_key);
+    ai_state.openai_configured = TRUE;
     log("AI Service: OpenAI API key loaded from .env");
   }
   else
@@ -1423,7 +1465,7 @@ void log_ai_interaction(struct char_data *ch, struct char_data *npc, const char 
  * This preloads the model into memory to avoid the startup delay
  * on the first real player request. Called during server startup.
  */
-static void warmup_ollama_model(void)
+static bool warmup_ollama_model(void)
 {
   char *test_response;
   CURL *curl;
@@ -1483,7 +1525,7 @@ static void warmup_ollama_model(void)
         log("AI Service: ERROR - Ollama connectivity check failed: %s", curl_easy_strerror(res));
       }
       curl_easy_cleanup(curl);
-      return;
+      return false;
     }
 
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -1505,6 +1547,7 @@ static void warmup_ollama_model(void)
     AI_DEBUG("Ollama warmup successful, response: %.100s%s", test_response,
              strlen(test_response) > 100 ? "..." : "");
     free(test_response);
+    return true;
   }
   else
   {
@@ -1514,6 +1557,7 @@ static void warmup_ollama_model(void)
     log("  - Service not running: run 'systemctl start ollama' or 'ollama serve'");
     log("  - Model loading timeout: try a smaller model or increase OLLAMA_TIMEOUT_MS");
     AI_DEBUG("Ollama warmup failed - model may not be loaded");
+    return false;
   }
 }
 
