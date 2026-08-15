@@ -2,6 +2,23 @@
 
 ## [Unreleased] - August 14, 2026
 
+### Luminari world restoration and RoL isolation recovery
+
+#### Changed
+
+- Restored the development flat-file world from the read-only production Luminari world, including
+  Trail 1507, Hulburg 1591, Jotunheim 1960, and the original artifact identities 169901-169910.
+- Restored the artifact runtime, provisioning, CI fixture, and documentation contracts to the
+  original zone 1699 identities; deployment no longer removes those Luminari prototypes or resets.
+- Rebuilt RoL conversion output only in the disjoint zone 20000-29999 and entity
+  2000000-2999999 namespaces, without applying the candidate to the live development world.
+
+#### Added
+
+- Added an exact source-to-candidate connection-graph gate for room exits and typed room
+  references. Phase 8 now rejects missing, extra, or cross-world RoL connections.
+- Added the conversion damage map and regression tests for isolated graph parity.
+
 ### Realms of Luminari Phases 7 and 8 completion
 
 #### Added

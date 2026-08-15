@@ -410,6 +410,8 @@ def write_phase8_bundle(
   completion = _verify_bundle(completion_dir, "6.5-completion-audit")
   if not phase7.get("acceptance", {}).get("phase7_complete"):
     raise RolPhase8Error("Phase 8 requires the accepted final Phase 7 milestone")
+  if not phase7.get("acceptance", {}).get("connection_graph_pass"):
+    raise RolPhase8Error("Phase 8 requires exact isolated RoL connection-graph parity")
   if not completion.get("acceptance", {}).get("complete"):
     raise RolPhase8Error("Phase 8 requires the accepted Phase 6.5 completion audit")
   baseline_tree = tree_manifest(target_world)
@@ -477,6 +479,7 @@ def write_phase8_bundle(
   )
   apply_rows = _apply_plan(target_world, phase7_dir, paths)
   compiler = _load_json(phase7_dir / "compiler-summary.json")
+  connection_graph = _load_json(phase7_dir / "validation/connection-graph.json")
   reconciliation = {
       "phase7_run_id": phase7["run_id"],
       "phase6_5_completion_run_id": completion["run_id"],
@@ -513,6 +516,7 @@ def write_phase8_bundle(
       "action-audit.json": action_audit,
       "behavior-evidence.json": behavior,
       "runtime-contract.json": runtime,
+      "connection-graph.json": connection_graph,
       "line-format-audit.json": line_format,
       "code-gates.json": code_gates,
       "code-evidence.json": code_evidence,
@@ -542,6 +546,7 @@ def write_phase8_bundle(
           delta["new_active_errors"] == 0,
           action_audit["pass"],
           runtime["all_pass"],
+          connection_graph["summary"]["pass"],
           behavior["pass"],
           line_format["pass"],
           code_gates["all_pass"],
@@ -574,6 +579,7 @@ def write_phase8_bundle(
           "new_active_errors": delta["new_active_errors"],
           "selected_records_clean": action_audit["pass"],
           "runtime_contract_pass": runtime["all_pass"],
+          "connection_graph_pass": connection_graph["summary"]["pass"],
           "behavior_evidence_pass": behavior["pass"],
           "code_gates_pass": code_gates["all_pass"],
           "namespace_audit_pass": namespace["pass"],
@@ -589,6 +595,7 @@ def write_phase8_bundle(
       "records": phase7["acceptance"]["final_records"],
       "apply_paths": len(apply_rows),
       "new_active_errors": delta["new_active_errors"],
+      "connection_graph_pass": connection_graph["summary"]["pass"],
       "ready_to_apply": ready,
       "candidate_tree_sha256": candidate_tree["tree_sha256"],
   }

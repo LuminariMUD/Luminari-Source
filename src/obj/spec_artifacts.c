@@ -153,11 +153,6 @@ static const struct artifact_template artifact_templates[] = {
      {2, 0, 0, 0, 1, 0}, 3, 3, 0, 20, 0, 0, 0, 0, 5, 15, CLASS_UNDEFINED, 0,
      ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_REJECT_LEGACY},
 
-    {ART_VNUM_KELRARIN_VARIANT, "soulstrike", "Strikes a single target with soul energy", 300,
-     50, ARTIFACT_BIND_ON_EQUIP,
-     {2, 0, 0, 0, 1, 0}, 3, 3, 0, 20, 0, 0, 0, 0, 5, 15, CLASS_UNDEFINED, 0,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_REJECT_LEGACY},
-
     {ART_VNUM_KELROM, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
      {2, 0, 1, 0, 2, 0}, 2, 4, 0, 40, 0, 0, 5, 0, 0, 14, CLASS_UNDEFINED, 0,
      ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_REJECT_LEGACY},
@@ -262,10 +257,6 @@ static const struct artifact_contract artifact_contracts[] = {
     {ART_VNUM_KELRARIN, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
      "A hammer that breaks over the wicked like the judgement of heaven.",
      "Staged for release."},
-
-    {ART_VNUM_KELRARIN_VARIANT, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
-     "Kelrarin's second hammer carries the same storm in a distinct forging.",
-     "Staged for release; it has no inherited bearer."},
 
     {ART_VNUM_KELROM, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
      "An axe that will not be turned on an animal, and says so.",
@@ -3535,7 +3526,6 @@ static const struct artifact_hand_proc_entry artifact_hand_procs[] = {
     {ART_VNUM_DOOMBRINGER, NULL, artifact_proc_doombringer, ARTIFACT_DOOMBRINGER_BURST_ODDS,
      "burst into extra attacks against an NPC"},
     {ART_VNUM_KELRARIN, NULL, artifact_proc_kelrarin, 0, NULL},
-    {ART_VNUM_KELRARIN_VARIANT, NULL, artifact_proc_kelrarin, 0, NULL},
     {ART_VNUM_KELROM, NULL, artifact_proc_kelrom, 0, NULL},
     {ART_VNUM_GESEN, NULL, artifact_proc_gesen, 0, NULL},
     {ART_VNUM_AVERNUS, artifact_react_avernus, artifact_proc_avernus, ARTIFACT_AVERNUS_DRAIN_ODDS,

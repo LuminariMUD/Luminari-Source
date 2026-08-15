@@ -154,14 +154,10 @@ for world_type in zon wld mob obj shp trg qst hlq; do
     cp "$source_file" "$runtime_dir/world/$world_type/"
   done
 done
-for world_type in zon wld mob; do
+for world_type in zon wld mob obj; do
   artifact_file="1699.$world_type"
   cp "$repo_root/lib/world/artifacts/$artifact_file" "$runtime_dir/world/$world_type/"
   append_index_entry "$artifact_file" "$runtime_dir/world/$world_type/index"
-done
-for artifact_file in 1699.obj 20010.obj 20053.obj 20197.obj; do
-  cp "$repo_root/lib/world/artifacts/$artifact_file" "$runtime_dir/world/obj/"
-  append_index_entry "$artifact_file" "$runtime_dir/world/obj/index"
 done
 
 {

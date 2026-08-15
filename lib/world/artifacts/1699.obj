@@ -1,9 +1,228 @@
+#169901
+staff trorxek oaken ancient artifact~
+@GTrorxek@n, the @gStaff of Ancient Oaks@n~
+@gA gnarled staff of living oak rests here, roots questing at the stone.@n~
+~
+5 65603 0 0 0 8193 0 0 0 0 0 0 0
+10 2 6 0 0 0 0 0 0 0 0 0 0 0 0 0
+8 250000 0 30 0
+E
+staff trorxek oaken ancient artifact~
+The staff is a single length of oak that was never cut so much as persuaded
+to leave its tree. Bark still creeps along its length, and in spring a
+stubborn green shoot forces its way out near the grip. Druids say it
+remembers every forest it has walked through.
+~
+G
+2
+H
+8
+I
+5
+J
+0
+#169902
+rod light amaukekel artifact~
+@YAmaukekel@n, the @WRod of Light@n~
+@WA rod of pale gold lies here, too bright to look at directly.@n~
+~
+5 65603 0 0 0 8193 0 0 0 0 0 0 0
+3 1 8 0 0 0 0 0 0 0 0 0 0 0 0 0
+6 250000 0 30 0
+E
+rod light amaukekel artifact~
+A slender rod of sun-colored metal, warm to the touch even in deep winter.
+Clerics who have carried it report that it grows warmer the closer it comes
+to something that should not be walking.
+~
+G
+2
+H
+13
+I
+5
+J
+0
+#169903
+fade shadowblade blade sword artifact~
+@bFade@n, the @BShadowblade@n~
+@BA blade lies here that the light seems to bend around rather than touch.@n~
+~
+5 65603 0 0 0 8193 0 0 0 0 0 0 0
+23 1 8 0 0 0 0 0 0 0 0 0 0 0 0 0
+3 250000 0 30 0
+E
+fade shadowblade blade sword artifact~
+The edge of this short sword is difficult to find with the eye. It is not
+invisible - it simply declines to be looked at. Thieves prize it; few of
+them keep it long.
+~
+G
+4
+H
+12
+I
+5
+J
+0
+#169904
+horn henekar artifact~
+@cthe Horn of Henekar@n~
+@cA great spiral horn rests here, humming faintly on its own.@n~
+~
+9 65603 0 0 0 16385 0 0 0 0 0 0 0
+1 13 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+4 250000 0 30 0
+E
+horn henekar artifact~
+A hunting horn taken from something that was never hunted successfully. It
+sounds a note no throat could produce, and those who hear it afterward find
+their arguments strangely easy to win.
+~
+G
+0
+H
+7
+I
+5
+J
+0
+#169905
+doombringer sword great artifact~
+@RDoombringer@n~
+@RA vast black sword stands here, point-down in the stone.@n~
+~
+5 65603 0 0 0 8193 0 0 0 0 0 0 0
+37 2 10 0 0 0 0 0 0 0 0 0 0 0 0 0
+22 300000 0 30 0
+E
+doombringer sword great artifact~
+The blade is the color of a closed eye. It is heavier than its size
+explains, and it is always heaviest when its wielder is about to do
+something they will regret.
+~
+G
+4
+H
+12
+I
+5
+J
+0
+#169906
+hammer kelrarin artifact~
+@WKelrarin's Hammer@n~
+@WA warhammer rests here, its head crackling with contained lightning.@n~
+~
+5 65603 0 0 0 8193 0 0 0 0 0 0 0
+31 1 10 0 0 0 0 0 0 0 0 0 0 0 0 0
+14 280000 0 30 0
+E
+hammer kelrarin artifact~
+Kelrarin was, depending on who is telling it, a smith, a king, or a storm.
+What is not disputed is that this hammer returns to the hand that throws it,
+and that it has never yet chosen to stay behind.
+~
+G
+4
+H
+13
+I
+5
+J
+0
+#169907
+axe kelrom pahluruk artifact~
+@yKelrom@n, the @YAxe of Pahluruk@n~
+@yA broad axe lies here, its blade veined like a leaf.@n~
+~
+5 65603 0 0 0 8193 0 0 0 0 0 0 0
+24 1 10 0 0 0 0 0 0 0 0 0 0 0 0 0
+12 260000 0 30 0
+E
+axe kelrom pahluruk artifact~
+Pahluruk's displeasure is bound into this axe, and Pahluruk was a god of
+wild things. It cuts armies gladly. It has been known to refuse to cut
+anything smaller.
+~
+G
+4
+H
+7
+I
+5
+J
+0
+#169908
+axe gesen returning hand artifact~
+@CGesen@n, the @cReturning Axe@n~
+@CA hand axe hangs here in the air, turning slowly, touching nothing.@n~
+~
+5 65603 0 0 0 8193 0 0 0 0 0 0 0
+19 1 8 0 0 0 0 0 0 0 0 0 0 0 0 0
+5 220000 0 30 0
+E
+axe gesen returning hand artifact~
+It does not rest against anything. Set it down and it drifts back to roughly
+where it was, turning gently, waiting to be thrown again.
+~
+G
+4
+H
+12
+I
+5
+J
+0
+#169909
+stinger tiamat rapier artifact~
+@MTiamat's Stinger@n~
+@MA needle-thin rapier rests here, five colors chasing along the blade.@n~
+~
+5 65603 0 0 0 8193 0 0 0 0 0 0 0
+28 1 8 0 0 0 0 0 0 0 0 0 0 0 0 0
+3 240000 0 30 0
+E
+stinger tiamat rapier artifact~
+Five colors run the length of the blade and never settle on one. The point
+is finer than seems survivable for a weapon meant to be parried.
+~
+G
+4
+H
+13
+I
+5
+J
+0
+#169910
+avernus blade black sword long artifact~
+@LAvernus@n, the @LBlack Blade@n~
+@LA longsword lies here, and the air above it is a little too still.@n~
+~
+5 65603 0 0 0 8193 0 0 0 0 0 0 0
+26 1 10 0 0 0 0 0 0 0 0 0 0 0 0 0
+9 270000 0 30 0
+E
+avernus blade black sword long artifact~
+Avernus keeps its bearer alive with a persistence that many have found more
+unsettling than comforting. It has outlived every hand that has held it, and
+it is in no hurry.
+~
+G
+4
+H
+12
+I
+5
+J
+0
 #169911
 aegis ages breastplate armor artifact~
 @Wthe Aegis of Ages@n~
 @WA breastplate stands here unsupported, as though still worn.@n~
 ~
-9 abgq 0 0 0 ad 0 0 0 0 0 0 0 0 0 0 0
+9 65603 0 0 0 9 0 0 0 0 0 0 0
 10 13 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 30 300000 0 30 0
 E

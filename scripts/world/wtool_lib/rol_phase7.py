@@ -18,6 +18,7 @@ from .flags import decode_tokens, encode_bits
 from .models import TOOL_VERSION
 from .reporting import result_payload
 from .rol_discovery import extract_source_commands
+from .rol_graph import audit_connection_graph
 from .rol_pilot_build import (
     _artifact,
     _canonical_json,
@@ -41,7 +42,6 @@ from .rol_transform import (
     emit_room,
     emit_shop,
     emit_zone,
-    mobile_automatic_race_flags,
 )
 from .world import load_indexed_world_data, validate_indexed_world
 
@@ -58,7 +58,6 @@ _KIND_DIRECTORY = {
     "zon": ("zon", "zon"),
 }
 _TYPE_KIND = {"mobile": "mob", "object": "obj", "room": "wld"}
-_PRECONVERTED_BASENAMES = frozenset({"hulburg", "trail", "jotun"})
 _SOC_OWNER_EXCLUSIONS = frozenset(
     {
         "soc:22496:areas/soc/bs3.soc:1",
@@ -214,7 +213,6 @@ def _typed_resolver(
       (str(row["source_kind"]), int(row["source_vnum"])): row["destination_vnum"]
       for row in _load_jsonl(plan_dir / "identity-map.jsonl")
   }
-  identities[("wld", 96003)] = 2_096_003
   exact: set[tuple[str, int]] = set()
   kind_for_type = {"mobile": "mob", "object": "obj", "room": "wld"}
   for row in references:
@@ -231,7 +229,7 @@ def _typed_resolver(
       if destination is None:
         raise RolPhase7Error(f"required identity {kind} {vnum} is excluded")
       return int(destination)
-    if key in exact or vnum <= 0:
+    if (key in exact and kind != "wld") or vnum <= 0:
       return vnum
     raise RolPhase7Error(f"no typed identity for {kind} {vnum}")
 
@@ -1107,11 +1105,6 @@ def write_phase7_bundle(
     bottom = 81700 if record.basename == "mytheast" else record.vnum * 100
     zone_records[(record.basename, bottom)] = record
 
-  rehomed_record_ids = {
-      str(row["source_record_id"])
-      for row in _load_jsonl(completion_dir / "record-rehome-ledger.jsonl")
-  }
-
   room_records = [record for record in records.values() if record.kind == "wld"]
   valid_exit_directions: defaultdict[int, set[int]] = defaultdict(set)
   for room_record in room_records:
@@ -1179,21 +1172,12 @@ def write_phase7_bundle(
   quest_fragments: defaultdict[int, list[tuple[str, str, str]]] = defaultdict(list)
   zone_outputs: defaultdict[int, list[tuple[int, str, str]]] = defaultdict(list)
   transform_diagnostics: list[dict[str, Any]] = []
-  generated_targets: set[tuple[str, int]] = set()
   record_outputs: dict[str, str] = {}
-
-  def preconverted(action: dict[str, Any]) -> bool:
-    if action["source_kind"] == "zon" and action["basename"] == "mytheast":
-      return False
-    return (
-        str(action["source_record_id"]) in rehomed_record_ids
-        or str(action["basename"]) in _PRECONVERTED_BASENAMES
-    )
 
   for action in selected_actions:
     kind = str(action["source_kind"])
     record_id = str(action["source_record_id"])
-    if kind in {"soc", "zon"} or action["action"] == "EXCLUDE" or preconverted(action):
+    if kind in {"soc", "zon"} or action["action"] == "EXCLUDE":
       continue
     if action["destination_vnum"] is None:
       continue
@@ -1255,8 +1239,6 @@ def write_phase7_bundle(
     else:
       generated[relative].append((destination, emitted.text, record_id))
       record_outputs[record_id] = relative
-    if kind in _KIND_OWNER:
-      generated_targets.add((_KIND_OWNER[kind], destination))
     transform_diagnostics.extend(
         {
             "source_record_id": record_id,
@@ -1284,7 +1266,6 @@ def write_phase7_bundle(
     if (
         action["source_kind"] != "zon"
         or action["action"] == "EXCLUDE"
-        or preconverted(action)
         or action["destination_vnum"] is None
     ):
       continue
@@ -1393,46 +1374,10 @@ def write_phase7_bundle(
     if _ensure_index_entry(index_path, filename):
       touched.add(f"{kind}/index")
 
-  action_by_target: defaultdict[tuple[str, int], list[dict[str, Any]]] = defaultdict(list)
-  for action in selected_actions:
-    kind = _KIND_OWNER.get(str(action["source_kind"]))
-    if kind is not None and action["destination_vnum"] is not None:
-      action_by_target[(kind, int(action["destination_vnum"]))].append(action)
-
   patches: dict[
       tuple[str, int],
       tuple[str | None, tuple[int, ...], tuple[int, ...], tuple[int, ...]],
   ] = {}
-  patch_candidates = set(attachments) | set(native)
-  for key, owner_actions in sorted(action_by_target.items()):
-    if key in generated_targets or not any(preconverted(action) for action in owner_actions):
-      continue
-    kind, destination = key
-    binding = native.get(key)
-    required_flags: set[int] = set(binding.required_flag_bits if binding is not None else ())
-    required_affects: set[int] = set(
-        binding.required_affect_bits if binding is not None else ()
-    )
-    if kind == "mob":
-      for action in owner_actions:
-        automatic_actions, automatic_affects = mobile_automatic_race_flags(
-            records[str(action["source_record_id"])]
-        )
-        required_flags.update(automatic_actions)
-        required_affects.update(automatic_affects)
-    if key not in patch_candidates and not required_flags and not required_affects:
-      continue
-    if kind == "obj" and binding is not None and binding.value_reference_slots:
-      raise RolPhase7Error(
-          f"preserved object {destination} requires an unimplemented value-slot rewrite"
-      )
-    patches[key] = (
-        binding.persisted_name if binding is not None else None,
-        tuple(attachments.get(key, ())),
-        tuple(sorted(required_flags)),
-        tuple(sorted(required_affects)),
-    )
-  touched.update(_patch_preserved_records(staging_world, patches))
 
   for relative in sorted(touched):
     source = staging_world / relative
@@ -1466,20 +1411,26 @@ def write_phase7_bundle(
       if action["source_kind"] == "zon" and action["destination_vnum"] is not None
   }
   runtime = _runtime_contract(staged_model, selected_zones)
+  connection_graph = audit_connection_graph(
+      selected_records,
+      selected_actions,
+      staged_model.rooms,
+      (
+          ("mob", staged_model.mobiles),
+          ("obj", staged_model.objects),
+          ("shp", staged_model.shops),
+          ("qst", staged_model.hlquests),
+      ),
+  )
 
-  patched_targets = set(patches)
   dispositions: list[dict[str, Any]] = []
   for action in selected_actions:
     record_id = str(action["source_record_id"])
     kind = str(action["source_kind"])
     destination = action["destination_vnum"]
-    target_key = (_KIND_OWNER.get(kind, kind), int(destination)) if destination is not None else None
     if record_id in _SOC_OWNER_EXCLUSIONS or action["action"] == "EXCLUDE":
       final_action = "EXCLUDE"
       strategy = "SMALLEST_UNIT_EXCLUSION"
-    elif preconverted(action):
-      final_action = "PATCH" if target_key in patched_targets else "KEEP"
-      strategy = "PRESERVE_CANONICAL_BASELINE"
     elif action["action"] == "MERGE":
       final_action = "MERGE"
       strategy = "GENERATED_CANONICAL_MERGE"
@@ -1574,6 +1525,7 @@ def write_phase7_bundle(
       "validation/staged.json": staged_validation,
       "validation/delta.json": delta,
       "validation/runtime-contract.json": runtime,
+      "validation/connection-graph.json": connection_graph,
       "validation/preservation.json": preservation,
       "validation/staged-tree.json": staged_tree,
   }
@@ -1645,6 +1597,7 @@ def write_phase7_bundle(
           "staged_new_active_errors": delta["new_active_errors"],
           "staged_without_new_errors": delta["new_active_errors"] == 0,
           "runtime_contract_pass": runtime["all_pass"],
+          "connection_graph_pass": connection_graph["summary"]["pass"],
           "preservation_pass": preservation["pass"],
           "live_target_writes": 0,
           "final_records": len(dispositions) if final else None,
@@ -1655,6 +1608,7 @@ def write_phase7_bundle(
           and source_parse_complete
           and delta["new_active_errors"] == 0
           and runtime["all_pass"]
+          and connection_graph["summary"]["pass"]
           and preservation["pass"],
       },
   }
@@ -1672,6 +1626,7 @@ def write_phase7_bundle(
       "special_triggers": len(special_compilation.triggers),
       "new_active_errors": delta["new_active_errors"],
       "runtime_contract_pass": runtime["all_pass"],
+      "connection_graph_pass": connection_graph["summary"]["pass"],
       "preservation_pass": preservation["pass"],
       "phase7_complete": manifest["acceptance"]["phase7_complete"],
       "artifacts": len(artifacts) + 1,

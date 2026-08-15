@@ -13,9 +13,7 @@
 #define _SPEC_ARTIFACTS_H_
 
 /* --------------------------------------------------------------------------
- * VNUM allocation.  RoL-owned prototypes use the canonical source +2000000
- * formula.  The target-owned vault, defender, and second-wave prototypes
- * retain zone 1699 identities.
+ * VNUM allocation - zone 1699, range 169900-169999.
  *
  * src/vnums.h is gitignored local configuration and must not be edited, so
  * the artifact vnums live here.  Never hardcode these numbers elsewhere.
@@ -24,17 +22,16 @@
 #define ARTIFACT_VNUM_BASE 169900
 
 #define ART_VNUM_VAULT 169900 /* the vault room                       */
-#define ART_VNUM_KELRARIN 2001007
-#define ART_VNUM_STINGER 2001008
-#define ART_VNUM_KELRARIN_VARIANT 2001009
-#define ART_VNUM_FADE 2001042
-#define ART_VNUM_TRORXEK 2001043
-#define ART_VNUM_AMAUKEKEL 2001044
-#define ART_VNUM_HENEKAR 2001046
-#define ART_VNUM_KELROM 2001048
-#define ART_VNUM_DOOMBRINGER 2001050
-#define ART_VNUM_GESEN 2005343
-#define ART_VNUM_AVERNUS 2019730
+#define ART_VNUM_TRORXEK 169901
+#define ART_VNUM_AMAUKEKEL 169902
+#define ART_VNUM_FADE 169903
+#define ART_VNUM_HENEKAR 169904
+#define ART_VNUM_DOOMBRINGER 169905
+#define ART_VNUM_KELRARIN 169906
+#define ART_VNUM_KELROM 169907
+#define ART_VNUM_GESEN 169908
+#define ART_VNUM_STINGER 169909
+#define ART_VNUM_AVERNUS 169910
 #define ART_VNUM_AEGIS 169911
 
 /* Not an artifact - the treant Trorxek calls.  Shipped in the same zone so

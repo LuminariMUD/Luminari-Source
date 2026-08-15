@@ -2,7 +2,7 @@
 
 ## Overview
 
-The artifact system manages eighteen unique, levelable items. Normal zone
+The artifact system manages seventeen unique, levelable items. Normal zone
 loading enforces one live instance per artifact. The system records
 persistent ownership and binding, applies level-scaled bonuses, awards
 artifact experience, and provides active, on-hit, and speech-invoked powers.
@@ -44,20 +44,15 @@ The main integration points are:
 
 ## Required World Data
 
-Artifact staging uses zone 1699 for the Vault of Ages, the Oaken Defender, and
-the native artifact prototypes. The converted first-wave RoL artifacts use
-their canonical direct entity VNUMs instead of the retired 169901-169910
-range. The VNUM constants live in `src/obj/spec_artifacts.h`; do not add them
-to the local `src/vnums.h`.
+Artifact code uses zone 1699 and the range 169900-169999. The VNUM constants
+live in `src/obj/spec_artifacts.h`; do not add them to the local
+`src/vnums.h`.
 
 The provisioning source is expected at `lib/world/artifacts/`:
 
 | Source file | Required content |
 | --- | --- |
-| `1699.obj` | Native object prototypes 169911 and 169913-169918 |
-| `20010.obj` | Canonical object prototypes 2001007-2001009, 2001042-2001044, 2001046, 2001048, and 2001050 |
-| `20053.obj` | Canonical object prototype 2005343 |
-| `20197.obj` | Canonical object prototype 2019730 |
+| `1699.obj` | Object prototypes 169901-169911 and 169913-169918 |
 | `1699.wld` | Vault room 169900 |
 | `1699.zon` | Zone reset commands for the artifact objects |
 | `1699.mob` | Oaken Defender mobile 169912 |
@@ -67,13 +62,12 @@ The provisioning source is expected at `lib/world/artifacts/`:
 and help directories and adds their names to the corresponding indexes. Both
 `scripts/deployment/setup.sh` and `scripts/deployment/deploy.sh` call it.
 
-It never overwrites an existing world prototype, because a builder may have
-edited it through OLC and that edit is authoritative. Where a file already
-exists, it adds only missing object prototypes and missing zone resets. The
-one bounded exception is canonical retirement: definitions and resets in the
-closed 169901-169910 range are removed so they cannot coexist with their
-canonical successors. Repeated runs add or remove nothing further. The player
-help copy is synchronized with the tracked package.
+It never overwrites a deployed file, because a builder may have edited it
+through OLC and that edit is authoritative. Where a file already exists, it
+instead adds only what is missing: object prototypes whose VNUMs the live
+file does not define, and zone resets for VNUMs the live zone does not
+already load. Existing records are never rewritten or reordered, and repeated
+runs add nothing further.
 
 When a tracked prototype contract changes, existing worlds must apply that
 specific field through OLC or an equivalent reviewed world-data edit. For
@@ -85,7 +79,7 @@ tracked package.
 
 `lib/world/artifacts/` is exempted from the OLC ignore rules by an explicit
 `.gitignore` block, mirroring the exception already used for
-`lib/world/minimal/`, and its eight files are listed in `EXTRA_DIST`. A fresh
+`lib/world/minimal/`, and its five files are listed in `EXTRA_DIST`. A fresh
 clone therefore has everything the provisioner needs, and `make dist` output
 is deployable.
 
@@ -137,8 +131,8 @@ The current v2.4 format is one line per artifact, in three groups:
 #         first_owner first_account first_claimed last_claimed
 #         claims transfers destroys recoveries overrides discovered discovered_at
 #         last_ability last_proc last_signature effect_used[0..3]
-2001043 noone noone 1 0 0 0 noone noone 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-2001050 Zusuk zusuk_acct 3 450 1700000000 1 Vari vari_acct 1699000000 1700000000 2 1 0 0 0 1 1699000000 0 0 0 0 0 0 0
+169901 noone noone 1 0 0 0 noone noone 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+169905 Zusuk zusuk_acct 3 450 1700000000 1 Vari vari_acct 1699000000 1700000000 2 1 0 0 0 1 1699000000 0 0 0 0 0 0 0
 ```
 
 The loader also accepts:
@@ -339,22 +333,20 @@ worked this way, and `doomblast` now matches it.
 ## Artifact Roster
 
 VNUM 169900 is the Vault of Ages room, and 169912 is the Oaken Defender
-mobile. Neither is an artifact registry entry. The retired first-wave VNUMs
-169901-169910 are migration history, not runtime identities.
+mobile. Neither is an artifact registry entry.
 
 | VNUM | Artifact | Binding | Oath | Active ability | Combat proc | Called effects |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2001043 | Trorxek, the Staff of Ancient Oaks | Equip | Druid | - | 12% | 4 |
-| 2001044 | Amaukekel, the Rod of Light | Equip | Cleric | `divineward` | - | 3 |
-| 2001042 | Fade, the Shadowblade | Equip | Rogue | - | 16% generic + 1-in-16 siphon | 4 |
-| 2001046 | The Horn of Henekar | Equip | Rogue | - | - | 4 |
-| 2001050 | Doombringer | Pickup | Warrior | `doomblast` | 20% generic + 1-in-31 burst | 3 |
-| 2001007 | Kelrarin's Hammer | Equip | - | `soulstrike` | 15% | - |
-| 2001009 | Kelrarin's Second Hammer | Equip | - | `soulstrike` | 15% | - |
-| 2001048 | Kelrom, the Axe of Pahluruk | Equip | - | - | 14% generic + group healback | - |
-| 2005343 | Gesen, the Returning Axe | None | - | - | 18% | - |
-| 2001008 | Tiamat's Stinger | Account | - | - | 18% + lifesteal | - |
-| 2019730 | Avernus, the Black Blade | Equip | - | - | 15% generic + 1-in-31 life transfer | - |
+| 169901 | Trorxek, the Staff of Ancient Oaks | Equip | Druid | - | 12% | 4 |
+| 169902 | Amaukekel, the Rod of Light | Equip | Cleric | `divineward` | - | 3 |
+| 169903 | Fade, the Shadowblade | Equip | Rogue | - | 16% generic + 1-in-16 siphon | 4 |
+| 169904 | The Horn of Henekar | Equip | Rogue | - | - | 4 |
+| 169905 | Doombringer | Pickup | Warrior | `doomblast` | 20% generic + 1-in-31 burst | 3 |
+| 169906 | Kelrarin's Hammer | Equip | - | `soulstrike` | 15% | - |
+| 169907 | Kelrom, the Axe of Pahluruk | Equip | - | - | 14% generic + group healback | - |
+| 169908 | Gesen, the Returning Axe | None | - | - | 18% | - |
+| 169909 | Tiamat's Stinger | Account | - | - | 18% + lifesteal | - |
+| 169910 | Avernus, the Black Blade | Equip | - | - | 15% generic + 1-in-31 life transfer | - |
 | 169911 | The Aegis of Ages | Equip | - | - | - | - |
 | 169913 | Vengeance | Equip | Paladin | - | mercy | - |
 | 169914 | Earthcrier | Pickup | - | - | 8% knockdown, Reflex DC `21 + level + Str bonus + Con bonus` | - |
@@ -389,8 +381,8 @@ treats any run of four or more digits as exactly that and refuses the row.
 
 The contract is the content contract, not a reset driver. It states what the
 acquisition route is intended to be; placing the artifact in live content is
-separate builder work. The eleven canonical RoL artifacts, the native Aegis,
-and the six second-wave artifacts all currently reset into the vault.
+separate builder work. The eleven original artifacts and the six second-wave
+artifacts all currently reset into the vault.
 
 An artifact whose contract excludes the running campaign is dropped from the
 chronicle and marked in `testartifact list`.
@@ -915,7 +907,7 @@ logs it at `LVL_STAFF`.
 memory - sub-threshold XP, cooldown stamps, and unsaved ownership changes.
 It now flushes dirty state first; `reload discard` is the explicit opt-out.
 
-All eighteen objects currently reset into the private Vault of Ages room
+All seventeen objects currently reset into the private Vault of Ages room
 169900. That is a staff staging area, not a player-facing distribution
 mechanism. Each artifact's contract declares its intended acquisition route;
 implementing that route in live content remains a builder decision.
@@ -970,7 +962,7 @@ The `proc_chance` column in `artifact_templates[]` controls only the generic
 level-based proc table. It does not imply that an artifact's named or source
 MUD power exists. The signature columns are a separate path. This distinction
 is the first thing to check when a power appears to be impossibly rare. The
-18-row integration identity contract records both values independently, along
+17-row integration identity contract records both values independently, along
 with hand-written dispatch and table-owned odds, active abilities, called
 effects, invocation channels, and progressive passives. A deliberate absence
 is recorded as `ART_SIG_NONE`, `NOTHING`, zero, or `NULL`; it is never inferred
@@ -1202,7 +1194,7 @@ template, contract, passive, and effect tables, puts a real player with a
 descriptor in a real room beside a live NPC, and drives production entry
 points: the full acquire-equip-bind-unequip-drop-save-reload-destroy
 lifecycle, character-bound and account-bound rejection, level-scaled bonuses,
-highest-only resistance, the exact identity contract for all 18 artifacts,
+highest-only resistance, the exact identity contract for all 17 artifacts,
 active abilities, the generic proc guards and every signature shape, lethal
 signature and generic procs at the outer combat boundary, Fade's level-scaled
 living-target siphon and refusal rules, Doombringer's bounded extra-attack
@@ -1254,14 +1246,16 @@ fresh clone always has the records it looks for.
 - Custody history is written but never consulted by any binding, uniqueness,
   or reset check.
 - The registry and its tables require a rebuild and have no OLC editor.
-- The replica or "echo" model described in the HomelandMUD study remains
-  rejected: no artifact-looking object may sit outside registry ownership,
-  binding, progression, cooldown, and single-instance handling. The two
-  source Kelrarin records are instead full, distinct canonical artifacts.
-  They share compatible combat code but have separate prototypes, names,
-  ownership rows, progression, and cooldown state. Template VNUM uniqueness
-  is validated at boot.
-- All eighteen artifacts reset into the staging vault. Their contracts state
+- The replica or "echo" model described in the HomelandMUD study was
+  considered and rejected. The pattern - a named original plus a weaker
+  general version sharing its procedure - is real in the source, but on this
+  system it would mean a second object VNUM that must be kept permanently
+  outside ownership, binding, progression, cooldown, and single-instance
+  handling while still looking like the artifact to players. The uniqueness
+  guarantees are the point of the system, and an item designed to sit beside
+  them dilutes them. Only one object VNUM per artifact exists, and template
+  VNUM uniqueness is validated at boot.
+- All seventeen artifacts reset into the staging vault. Their contracts state
   an intended acquisition route that live content does not yet implement.
   This is the one open item, and it is world-building work rather than code.
 

@@ -50,14 +50,14 @@ void check_dangersense(struct char_data *ch, room_rnum room);
  * hermetic while still booting the real shipped metadata.
  * -------------------------------------------------------------------------- */
 
-#define ARTINT_OBJ_COUNT 18
+#define ARTINT_OBJ_COUNT 17
 
 static const int artint_vnums[ARTINT_OBJ_COUNT] = {
-    ART_VNUM_AEGIS,     ART_VNUM_VENGEANCE,        ART_VNUM_EARTHCRIER, ART_VNUM_WYRMFANG,
-    ART_VNUM_COURAGE,   ART_VNUM_ICEDGE,           ART_VNUM_TWILIGHT,   ART_VNUM_KELRARIN,
-    ART_VNUM_STINGER,   ART_VNUM_KELRARIN_VARIANT, ART_VNUM_FADE,       ART_VNUM_TRORXEK,
-    ART_VNUM_AMAUKEKEL, ART_VNUM_HENEKAR,          ART_VNUM_KELROM,     ART_VNUM_DOOMBRINGER,
-    ART_VNUM_GESEN,     ART_VNUM_AVERNUS};
+    ART_VNUM_TRORXEK,     ART_VNUM_AMAUKEKEL, ART_VNUM_FADE,    ART_VNUM_HENEKAR,
+    ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,  ART_VNUM_KELROM,  ART_VNUM_GESEN,
+    ART_VNUM_STINGER,     ART_VNUM_AVERNUS,   ART_VNUM_AEGIS,   ART_VNUM_VENGEANCE,
+    ART_VNUM_EARTHCRIER,  ART_VNUM_WYRMFANG,  ART_VNUM_COURAGE, ART_VNUM_ICEDGE,
+    ART_VNUM_TWILIGHT};
 
 struct artint_fixture
 {
@@ -556,10 +556,6 @@ static const struct artint_identity_case artint_identity_cases[ARTINT_OBJ_COUNT]
     {ART_VNUM_KELRARIN, "soulstrike", 15, ART_SIG_NONE, ART_VNUM_KELRARIN, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
      {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
-    {ART_VNUM_KELRARIN_VARIANT, "soulstrike", 15, ART_SIG_NONE,
-     ART_VNUM_KELRARIN_VARIANT, 0,
-     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
-     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_KELROM, NULL, 14, ART_SIG_NONE, ART_VNUM_KELROM, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
      {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
@@ -804,11 +800,9 @@ void Test_artifact_integration_every_artifact_has_an_explicit_identity_contract(
 
 void Test_artifact_integration_first_wave_legacy_passives_are_explicitly_rejected(CuTest *tc)
 {
-  static const int rejected_vnums[] = {
-      ART_VNUM_TRORXEK,          ART_VNUM_AMAUKEKEL,   ART_VNUM_FADE,
-      ART_VNUM_HENEKAR,          ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,
-      ART_VNUM_KELRARIN_VARIANT, ART_VNUM_KELROM,      ART_VNUM_STINGER,
-      ART_VNUM_AVERNUS};
+  static const int rejected_vnums[] = {ART_VNUM_TRORXEK, ART_VNUM_AMAUKEKEL,   ART_VNUM_FADE,
+                                       ART_VNUM_HENEKAR, ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,
+                                       ART_VNUM_KELROM,  ART_VNUM_STINGER,     ART_VNUM_AVERNUS};
   struct artifact_test_identity_data identity;
   struct artint_fixture fixture;
   char failure[256] = {'\0'};
@@ -1335,8 +1329,7 @@ void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
   struct artifact_data *art = NULL;
   struct char_data *actor = NULL;
   int i = 0, abilities = 0, listed = 0;
-  static const int ability_vnums[] = {ART_VNUM_AMAUKEKEL, ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,
-                                      ART_VNUM_KELRARIN_VARIANT};
+  static const int ability_vnums[] = {ART_VNUM_AMAUKEKEL, ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN};
 
   if (!artint_begin(&fixture))
   {
@@ -1380,8 +1373,8 @@ void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
 
   artint_end(&fixture);
 
-  CuAssertIntEquals(tc, 4, abilities);
-  CuAssertIntEquals(tc, 4, listed);
+  CuAssertIntEquals(tc, 3, abilities);
+  CuAssertIntEquals(tc, 3, listed);
 }
 
 /* An ability is invoked by typing its own name, so the template's
