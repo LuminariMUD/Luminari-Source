@@ -6522,7 +6522,7 @@ ACMD(do_listraces)
 
   send_to_char(ch, "\r\n");
   draw_line(ch, 80, '-', '-');
-  text_line(ch, "Races of Krynn", 80, '-', '-');
+  text_line(ch, "Races of Luminari", 80, '-', '-');
   draw_line(ch, 80, '-', '-');
   for (sortpos = 0; sortpos < NUM_EXTENDED_RACES; sortpos++)
   {

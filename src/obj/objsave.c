@@ -2440,6 +2440,16 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         /* check for false alarm. */
         if (sscanf(*line, "#%d", &nr) == 1)
         {
+          /* The aborted 20960 Jotunheim rebase reached saved-object rows even
+           * though those prototypes were never installed. Preserve player and
+           * house items by falling back to the extant canonical 1960xx VNUM. */
+          if (nr >= 2096000 && nr <= 2096299 && real_object(nr) == NOTHING &&
+              real_object(nr - 1900000) != NOTHING)
+          {
+            log("Info: Migrating saved object vnum %d to canonical vnum %d.", nr, nr - 1900000);
+            nr -= 1900000;
+          }
+
           /* If we attempt to load an object with a legal VNUM 0-65534, that
            * does not exist, skip it. If the object has a VNUM of NOTHING or
            * NOWHERE, then we assume it doesn't exist on purpose. (Custom Item,

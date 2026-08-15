@@ -39,11 +39,36 @@
 #include "constants.h"
 #include "character/evolutions.h"
 #include "character/perks.h"
+#include "magic/spell_prep.h"
 
 /* externs */
 extern char cast_arg2[MAX_INPUT_LENGTH];
 
 int roll_initiative(struct char_data *ch);
+
+/**
+ * Queue preflights pass NULL while listing command availability and the raw
+ * argument string while admitting a delayed action. Resolve simple room
+ * targets now so invalid names do not occupy the queue.
+ */
+static bool queued_room_target_available(struct char_data *ch, const char *argument,
+                                         bool allow_current_opponent)
+{
+  char arg[MAX_INPUT_LENGTH];
+
+  if (argument == NULL)
+  {
+    return TRUE;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+  if (*arg && get_char_room_vis(ch, arg, NULL) != NULL)
+  {
+    return TRUE;
+  }
+
+  return allow_current_opponent && FIGHTING(ch) != NULL && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch));
+}
 
 /* ============================================================================
  * PSIONICIST PERK ABILITIES
@@ -2384,6 +2409,7 @@ void apply_paladin_mercies(struct char_data *ch, struct char_data *vict)
 void perform_layonhands(struct char_data *ch, struct char_data *vict)
 {
   int heal_amount = 0;
+  int missing_hit_points;
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
       vict->next_in_room != ch)
@@ -2417,7 +2443,8 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict)
     }
   }
 
-  heal_amount = MIN(GET_MAX_HIT(vict) - GET_HIT(vict), heal_amount);
+  missing_hit_points = MAX(0, GET_MAX_HIT(vict) - GET_HIT(vict));
+  heal_amount = MIN(missing_hit_points, MAX(0, heal_amount));
 
   send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
   if (ch == vict)
@@ -4212,6 +4239,31 @@ ACMD(do_reckless_abandon)
   return;
 }
 
+static bool opponent_fights_group_here(struct char_data *ch, struct char_data *opponent)
+{
+  struct char_data *member;
+  struct iterator_data iterator;
+  bool found;
+
+  if (FIGHTING(opponent) == ch)
+    return true;
+  if (!GROUP(ch) || GROUP(ch)->members->iSize == 0)
+    return false;
+
+  found = false;
+  for (member = (struct char_data *)merge_iterator(&iterator, GROUP(ch)->members); member;
+       member = (struct char_data *)next_in_list(&iterator))
+  {
+    if (FIGHTING(opponent) == member && IN_ROOM(member) == IN_ROOM(ch))
+    {
+      found = true;
+      break;
+    }
+  }
+  remove_iterator(&iterator);
+  return found;
+}
+
 ACMD(do_warcry)
 {
   struct affected_type af;
@@ -4240,6 +4292,7 @@ ACMD(do_warcry)
   /* Apply buff to all group members in the same room */
   if (GROUP(ch))
   {
+    simple_list(NULL);
     while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
     {
       if (IN_ROOM(tch) == IN_ROOM(ch))
@@ -4295,26 +4348,7 @@ ACMD(do_warcry)
     if (tch == ch || !IS_NPC(tch))
       continue;
 
-    /* Check if this enemy is fighting the berserker or any group member */
-    bool is_fighting_group = FALSE;
-    if (FIGHTING(tch) == ch)
-    {
-      is_fighting_group = TRUE;
-    }
-    else if (GROUP(ch))
-    {
-      struct char_data *gch = NULL;
-      while ((gch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
-      {
-        if (FIGHTING(tch) == gch && IN_ROOM(gch) == IN_ROOM(ch))
-        {
-          is_fighting_group = TRUE;
-          break;
-        }
-      }
-    }
-
-    if (is_fighting_group)
+    if (opponent_fights_group_here(ch, tch))
     {
       /* -2 attack penalty */
       new_affect(&af);
@@ -4390,26 +4424,7 @@ ACMD(do_earthshaker)
     if (tch == ch || !IS_NPC(tch))
       continue;
 
-    /* Check if this enemy is fighting the berserker or any group member */
-    bool is_fighting_group = FALSE;
-    if (FIGHTING(tch) == ch)
-    {
-      is_fighting_group = TRUE;
-    }
-    else if (GROUP(ch))
-    {
-      struct char_data *gch = NULL;
-      while ((gch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
-      {
-        if (FIGHTING(tch) == gch && IN_ROOM(gch) == IN_ROOM(ch))
-        {
-          is_fighting_group = TRUE;
-          break;
-        }
-      }
-    }
-
-    if (is_fighting_group)
+    if (opponent_fights_group_here(ch, tch))
     {
       /* Deal damage */
       if (dam_amount > 0)
@@ -4551,6 +4566,10 @@ ACMD(do_sacredflames)
 ACMDCHECK(can_dragonborn_breath_weapon)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_DRAGONBORN_BREATH, "You do not have access to this ability.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(GET_DRAGONBORN_ANCESTRY(ch) <= DRACONIC_HERITAGE_NONE ||
+                            GET_DRAGONBORN_ANCESTRY(ch) >= NUM_DRACONIC_HERITAGE_TYPES,
+                        "You must choose a valid dragonborn ancestry before using your breath "
+                        "weapon.\r\n");
   return CAN_CMD;
 }
 
@@ -4593,10 +4612,10 @@ ACMD(do_dragonborn_breath_weapon)
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
-  send_to_char(ch, "You exhale breathing out %s!\r\n",
-               DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)));
+  send_to_char(ch, "You breathe out %s!\r\n", DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)));
   char to_room[200];
-  sprintf(to_room, "$n exhales breathing %s!", DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)));
+  snprintf(to_room, sizeof(to_room), "$n breathes out %s!",
+           DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)));
   act(to_room, FALSE, ch, 0, 0, TO_ROOM);
 
   breath_data.dam_type = draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)];
@@ -5300,6 +5319,7 @@ ACMDCHECK(can_taunt)
 {
   ACMDCHECK_PERMFAIL_IF(!GET_ABILITY(ch, ABILITY_DIPLOMACY),
                         "You have no idea how (requires diplomacy).\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE), "Taunt who?\r\n");
   return CAN_CMD;
 }
 
@@ -5518,6 +5538,8 @@ ACMDCHECK(can_manyshot)
   ACMDCHECK_TEMPFAIL_IF(!can_fire_ammo(ch, TRUE),
                         "You have to be using a ranged weapon with ammo ready to "
                         "fire in your ammo pouch to do this!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE),
+                        "Use manyshot on who?\r\n");
 
   return CAN_CMD;
 }
@@ -5636,6 +5658,7 @@ ACMD(do_arrowswarm)
 ACMDCHECK(can_intimidate)
 {
   ACMDCHECK_PERMFAIL_IF(!GET_ABILITY(ch, ABILITY_INTIMIDATE), "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE), "Intimidate who?\r\n");
   return CAN_CMD;
 }
 
@@ -5689,7 +5712,14 @@ ACMD(do_intimidate)
 
 ACMDCHECK(can_eldritch_blast)
 {
+  char target[MAX_INPUT_LENGTH];
+
   ACMDCHECK_PREREQ_HASFEAT(FEAT_ELDRITCH_BLAST, "You have no idea how.\r\n");
+  if (argument != NULL && GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
+  {
+    one_argument(argument, target, sizeof(target));
+    ACMDCHECK_TEMPFAIL_IF(!*target, "You need to select a target!\r\n");
+  }
   return CAN_CMD;
 }
 
@@ -6383,8 +6413,8 @@ ACMD(do_breathe)
     }
   }
 
-  send_to_char(ch, "You exhale breathing out %s!\r\n", damtypes[dam_type]);
-  snprintf(buf, sizeof(buf), "$n exhales breathing %s!", damtypes[dam_type]);
+  send_to_char(ch, "You exhale a blast of %s!\r\n", damtypes[dam_type]);
+  snprintf(buf, sizeof(buf), "$n exhales a blast of %s!", damtypes[dam_type]);
   act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
   int dam = dice(GET_LEVEL(ch), GET_LEVEL(ch) > 30 ? 14 : 6);
@@ -7743,6 +7773,10 @@ ACMDCHECK(can_sorcerer_breath_weapon)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_DRACONIC_HERITAGE_BREATHWEAPON,
                            "You do not have access to this ability.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(GET_BLOODLINE_SUBTYPE(ch) <= DRACONIC_HERITAGE_NONE ||
+                            GET_BLOODLINE_SUBTYPE(ch) >= NUM_DRACONIC_HERITAGE_TYPES,
+                        "You must choose a valid draconic bloodline before using your breath "
+                        "weapon.\r\n");
   return CAN_CMD;
 }
 
@@ -7761,10 +7795,9 @@ ACMD(do_sorcerer_breath_weapon)
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
-  send_to_char(ch, "You exhale breathing out %s!\r\n",
-               DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+  send_to_char(ch, "You breathe out %s!\r\n", DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
   char to_room[200];
-  snprintf(to_room, sizeof(to_room), "$n exhales breathing %s!",
+  snprintf(to_room, sizeof(to_room), "$n breathes out %s!",
            DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
   act(to_room, FALSE, ch, 0, 0, TO_ROOM);
 
@@ -8042,6 +8075,8 @@ ACMD(do_trip)
 ACMDCHECK(can_layonhands)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_LAYHANDS, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, FALSE),
+                        "Whom do you want to lay hands on?\r\n");
   return CAN_CMD;
 }
 
@@ -8158,57 +8193,78 @@ ACMD(do_irresistablemagic)
 
 ACMDCHECK(can_spellrecall)
 {
+  int seconds_left;
+  int hours;
+  int minutes;
+  int seconds;
+
   ACMDCHECK_PREREQ_HASFEAT(PERK_WIZARD_SPELL_RECALL, "You don't have the Spell Recall perk.\r\n");
+
+  if (GET_SPELL_RECALL_COOLDOWN(ch) > 0)
+  {
+    seconds_left = GET_SPELL_RECALL_COOLDOWN(ch) * SECS_PER_MUD_HOUR;
+    hours = seconds_left / 3600;
+    minutes = (seconds_left % 3600) / 60;
+    seconds = seconds_left % 60;
+
+    if (show_error)
+    {
+      if (hours > 0)
+        send_to_char(ch,
+                     "You must wait %d hour%s, %d minute%s, and %d second%s before using spell "
+                     "recall again.\r\n",
+                     hours, hours != 1 ? "s" : "", minutes, minutes != 1 ? "s" : "", seconds,
+                     seconds != 1 ? "s" : "");
+      else if (minutes > 0)
+        send_to_char(ch,
+                     "You must wait %d minute%s and %d second%s before using spell recall "
+                     "again.\r\n",
+                     minutes, minutes != 1 ? "s" : "", seconds, seconds != 1 ? "s" : "");
+      else
+        send_to_char(ch, "You must wait %d second%s before using spell recall again.\r\n", seconds,
+                     seconds != 1 ? "s" : "");
+    }
+    return CANT_CMD_TEMP;
+  }
+
+  ACMDCHECK_TEMPFAIL_IF(!spell_recall_has_recoverable_slot(ch),
+                        "You have no spell preparations or spell slots to recall.\r\n");
   return CAN_CMD;
 }
 
 ACMD(do_spellrecall)
 {
+  enum spell_recall_recovery_type recovery_type;
+  int recovered_class;
+  int recovered_spell;
+  int recovered_circle;
+
   PREREQ_NOT_NPC();
   PREREQ_CHECK(can_spellrecall);
 
-  /* Check if perk is available */
-  if (!can_use_spell_recall(ch))
+  recovery_type =
+      spell_recall_recover_one(ch, &recovered_class, &recovered_spell, &recovered_circle);
+  if (recovery_type == SPELL_RECALL_NONE)
   {
-    if (!has_perk(ch, PERK_WIZARD_SPELL_RECALL))
-    {
-      send_to_char(ch, "You don't have the Spell Recall perk.\r\n");
-      return;
-    }
-
-    /* Must be on cooldown */
-    int seconds_left = GET_SPELL_RECALL_COOLDOWN(ch) * 6;
-    int hours = seconds_left / 3600;
-    int minutes = (seconds_left % 3600) / 60;
-    int seconds = seconds_left % 60;
-
-    if (hours > 0)
-      send_to_char(ch,
-                   "You must wait %d hour%s, %d minute%s, and %d second%s before using spell "
-                   "recall again.\r\n",
-                   hours, (hours != 1 ? "s" : ""), minutes, (minutes != 1 ? "s" : ""), seconds,
-                   (seconds != 1 ? "s" : ""));
-    else if (minutes > 0)
-      send_to_char(ch,
-                   "You must wait %d minute%s and %d second%s before using spell recall again.\r\n",
-                   minutes, (minutes != 1 ? "s" : ""), seconds, (seconds != 1 ? "s" : ""));
-    else
-      send_to_char(ch, "You must wait %d second%s before using spell recall again.\r\n", seconds,
-                   (seconds != 1 ? "s" : ""));
+    send_to_char(ch, "Your magical reserves shift before you can recall anything.\r\n");
     return;
   }
 
-  /* Simplified implementation - just display message and set cooldown */
-  /* The actual spell slot restoration will be implemented later with proper spell system integration */
-  send_to_char(
-      ch, "\tCYou focus your will and recall your arcane knowledge!\tn\r\n"
-          "Your magical reserves are temporarily restored.\r\n"
-          "\tY(This perk's full functionality will be implemented in a future update.)\tn\r\n");
+  if (recovery_type == SPELL_RECALL_PREPARED)
+    send_to_char(ch,
+                 "\tCYou focus your will and recall your arcane knowledge!\tn\r\n"
+                 "You instantly complete your preparation of \tW%s\tn for %s.\r\n",
+                 spell_name(recovered_spell), class_names[recovered_class]);
+  else
+    send_to_char(ch,
+                 "\tCYou focus your will and recall your arcane knowledge!\tn\r\n"
+                 "You instantly recover a \tW%d-circle\tn spell slot for %s.\r\n",
+                 recovered_circle, class_names[recovered_class]);
 
   act("\tC$n focuses deeply, recalling arcane knowledge!\tn", FALSE, ch, NULL, NULL, TO_ROOM);
 
-  /* Set daily cooldown - 24 hours = 10 ticks per minute * 60 minutes * 24 hours = 14400 ticks */
-  GET_SPELL_RECALL_COOLDOWN(ch) = 14400;
+  /* This counter advances once per old-school tick. */
+  GET_SPELL_RECALL_COOLDOWN(ch) = (24 * 60 * 60) / SECS_PER_MUD_HOUR;
 }
 
 ACMDCHECK(can_avatarofwar)
@@ -8516,16 +8572,20 @@ ACMDCHECK(can_kick)
 
 ACMDCHECK(can_grapple)
 {
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE), "Grapple who?\r\n");
   return CAN_CMD;
 }
 
 ACMDCHECK(can_slam)
 {
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE),
+                        "Who do you want to slam?\r\n");
   return CAN_CMD;
 }
 
 ACMDCHECK(can_feint)
 {
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE), "Feint who?\r\n");
   return CAN_CMD;
 }
 
@@ -8536,11 +8596,14 @@ ACMDCHECK(can_guard)
 
 ACMDCHECK(can_charge)
 {
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE),
+                        "You are not in combat, nor have you specified a target to charge.\r\n");
   return CAN_CMD;
 }
 
 ACMDCHECK(can_bodyslam)
 {
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, FALSE), "Bodyslam who?\r\n");
   return CAN_CMD;
 }
 
@@ -8551,11 +8614,15 @@ ACMDCHECK(can_disarm)
 
 ACMDCHECK(can_sunder)
 {
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE),
+                        "Sunder whose equipment?\r\n");
   return CAN_CMD;
 }
 
 ACMDCHECK(can_rescue)
 {
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, FALSE),
+                        "Whom do you want to rescue?\r\n");
   return CAN_CMD;
 }
 
@@ -8564,6 +8631,8 @@ ACMDCHECK(can_treatinjury)
   ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eTREATINJURY),
                         "You must wait longer before you can use this "
                         "ability again.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, FALSE),
+                        "Whom do you want to treat?\r\n");
   return CAN_CMD;
 }
 
@@ -10573,6 +10642,8 @@ ACMDCHECK(can_circle)
     ACMD_ERRORMSG("You need to wield a weapon to make it a success.\r\n");
     return CANT_CMD_TEMP;
   }
+  ACMDCHECK_TEMPFAIL_IF(FIGHTING(ch) == NULL, "You can only circle while in combat.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE), "Circle who?\r\n");
   return CAN_CMD;
 }
 
@@ -10735,6 +10806,7 @@ ACMD(do_headbutt)
 ACMDCHECK(can_sap)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_SAP, "But you do not know how!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, FALSE), "Sap who?\r\n");
   return CAN_CMD;
 }
 
@@ -10799,6 +10871,12 @@ ACMD(do_guard)
     return;
   }
 
+  if (vict == ch)
+  {
+    send_to_char(ch, "You cannot guard yourself.\r\n");
+    return;
+  }
+
   if (IS_NPC(vict) && !IS_PET(vict))
   {
     send_to_char(ch, "Not even funny..\r\n");
@@ -10821,6 +10899,7 @@ ACMDCHECK(can_dirtkick)
   ACMDCHECK_PREREQ_HASFEAT(FEAT_DIRT_KICK, "You have no idea how.\r\n");
   ACMDCHECK_TEMPFAIL_IF(AFF_FLAGGED(ch, AFF_IMMATERIAL),
                         "You got no material feet to dirtkick with.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE), "Dirtkick who?\r\n");
 
   return CAN_CMD;
 }
@@ -10958,6 +11037,7 @@ ACMDCHECK(can_shieldcharge)
       "You are not proficient enough in the use of your shield to shieldcharge.\r\n");
   ACMDCHECK_TEMPFAIL_IF(!GET_EQ(ch, WEAR_SHIELD),
                         "You need to wear a shield to be able to shieldcharge.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE), "Shieldcharge who?\r\n");
   return CAN_CMD;
 }
 
@@ -11002,6 +11082,7 @@ ACMDCHECK(can_shieldslam)
   ACMDCHECK_PREREQ_HASFEAT(FEAT_SHIELD_SLAM, "You don't know how to do that.\r\n");
   ACMDCHECK_TEMPFAIL_IF(!GET_EQ(ch, WEAR_SHIELD),
                         "You need to wear a shield to be able to shieldslam.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!queued_room_target_available(ch, argument, TRUE), "Shieldslam who?\r\n");
   return CAN_CMD;
 }
 

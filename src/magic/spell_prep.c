@@ -1694,6 +1694,127 @@ bool sustain_melody_recover_one_slot(struct char_data *ch, int ch_class)
   return TRUE;
 }
 
+/** Return TRUE when Spell Recall has at least one recovering spell or slot. */
+bool spell_recall_has_recoverable_slot(struct char_data *ch)
+{
+  int ch_class;
+
+  if (ch == NULL || IS_NPC(ch) || ch->player_specials == NULL)
+    return FALSE;
+
+  for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
+  {
+    if (CLASS_LEVEL(ch, ch_class) <= 0)
+      continue;
+
+    if (SPELL_PREP_QUEUE(ch, ch_class) != NULL || INNATE_MAGIC(ch, ch_class) != NULL)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Recover one uniformly random entry across all active spell preparation queues.
+ * Prepared spells move directly into their ready collection, while spontaneous
+ * slots leave the recovery queue and therefore become immediately available.
+ */
+enum spell_recall_recovery_type spell_recall_recover_one(struct char_data *ch, int *recovered_class,
+                                                         int *recovered_spell,
+                                                         int *recovered_circle)
+{
+  struct prep_collection_spell_data *prep_entry;
+  struct prep_collection_spell_data *selected_prep = NULL;
+  struct prep_collection_spell_data *previous;
+  struct innate_magic_data *innate_entry;
+  struct innate_magic_data *selected_innate = NULL;
+  enum spell_recall_recovery_type selected_type = SPELL_RECALL_NONE;
+  int selected_class = -1;
+  int candidate_count = 0;
+  int ch_class;
+
+  if (recovered_class != NULL)
+    *recovered_class = -1;
+  if (recovered_spell != NULL)
+    *recovered_spell = -1;
+  if (recovered_circle != NULL)
+    *recovered_circle = -1;
+
+  if (ch == NULL || IS_NPC(ch) || ch->player_specials == NULL)
+    return SPELL_RECALL_NONE;
+
+  for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
+  {
+    if (CLASS_LEVEL(ch, ch_class) <= 0)
+      continue;
+
+    for (prep_entry = SPELL_PREP_QUEUE(ch, ch_class); prep_entry != NULL;
+         prep_entry = prep_entry->next)
+    {
+      candidate_count++;
+      if (rand_number(1, candidate_count) == 1)
+      {
+        selected_type = SPELL_RECALL_PREPARED;
+        selected_class = ch_class;
+        selected_prep = prep_entry;
+        selected_innate = NULL;
+      }
+    }
+
+    for (innate_entry = INNATE_MAGIC(ch, ch_class); innate_entry != NULL;
+         innate_entry = innate_entry->next)
+    {
+      candidate_count++;
+      if (rand_number(1, candidate_count) == 1)
+      {
+        selected_type = SPELL_RECALL_INNATE;
+        selected_class = ch_class;
+        selected_prep = NULL;
+        selected_innate = innate_entry;
+      }
+    }
+  }
+
+  if (selected_type == SPELL_RECALL_PREPARED)
+  {
+    if (selected_prep == SPELL_PREP_QUEUE(ch, selected_class))
+    {
+      SPELL_PREP_QUEUE(ch, selected_class) = selected_prep->next;
+    }
+    else
+    {
+      previous = SPELL_PREP_QUEUE(ch, selected_class);
+      while (previous != NULL && previous->next != selected_prep)
+        previous = previous->next;
+
+      if (previous == NULL)
+        return SPELL_RECALL_NONE;
+      previous->next = selected_prep->next;
+    }
+
+    selected_prep->prep_time = 0;
+    selected_prep->next = SPELL_COLLECTION(ch, selected_class);
+    SPELL_COLLECTION(ch, selected_class) = selected_prep;
+
+    if (recovered_spell != NULL)
+      *recovered_spell = selected_prep->spell;
+  }
+  else if (selected_type == SPELL_RECALL_INNATE)
+  {
+    if (recovered_circle != NULL)
+      *recovered_circle = selected_innate->circle;
+    innate_magic_remove(ch, selected_innate, selected_class);
+  }
+  else
+  {
+    return SPELL_RECALL_NONE;
+  }
+
+  if (recovered_class != NULL)
+    *recovered_class = selected_class;
+  return selected_type;
+}
+
 /**
  * is_spell_in_prep_queue - Check if spell is being prepared
  * @ch: Character to check

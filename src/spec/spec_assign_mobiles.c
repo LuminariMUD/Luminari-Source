@@ -143,20 +143,20 @@ void assign_mobiles(void)
 #else
 
   /* vampire mobs (spec to do vampire-like abilities) */
-  ASSIGNMOB(29906, vampire_mob);   /* erich - master vampire */
-  ASSIGNMOB(29241, vampire_mob);   /* tiersten */
-  ASSIGNMOB(26115, vampire_mob);   /* vampiress */
-  ASSIGNMOB(157709, vampire_mob);  /* young vampires */
-  ASSIGNMOB(120004, vampire_mob);  /* a vampire */
-  ASSIGNMOB(121763, vampire_mob);  /* a feeding vampire */
-  ASSIGNMOB(101047, vampire_mob);  /* a vicious vampire */
-  ASSIGNMOB(125503, vampire_mob);  /* a vampirical ixzan */
-  ASSIGNMOB(110608, vampire_mob);  /* a dwarven vampire */
-  ASSIGNMOB(2096052, vampire_mob); /* hel's emissary */
-  ASSIGNMOB(117032, vampire_mob);  /* a vampire */
-  ASSIGNMOB(117026, vampire_mob);  /* a vampire */
-  ASSIGNMOB(117014, vampire_mob);  /* a vampire */
-  ASSIGNMOB(117012, vampire_mob);  /* zarkathan */
+  ASSIGNMOB(29906, vampire_mob);  /* erich - master vampire */
+  ASSIGNMOB(29241, vampire_mob);  /* tiersten */
+  ASSIGNMOB(26115, vampire_mob);  /* vampiress */
+  ASSIGNMOB(157709, vampire_mob); /* young vampires */
+  ASSIGNMOB(120004, vampire_mob); /* a vampire */
+  ASSIGNMOB(121763, vampire_mob); /* a feeding vampire */
+  ASSIGNMOB(101047, vampire_mob); /* a vicious vampire */
+  ASSIGNMOB(125503, vampire_mob); /* a vampirical ixzan */
+  ASSIGNMOB(110608, vampire_mob); /* a dwarven vampire */
+  ASSIGNMOB(196052, vampire_mob); /* hel's emissary */
+  ASSIGNMOB(117032, vampire_mob); /* a vampire */
+  ASSIGNMOB(117026, vampire_mob); /* a vampire */
+  ASSIGNMOB(117014, vampire_mob); /* a vampire */
+  ASSIGNMOB(117012, vampire_mob); /* zarkathan */
 
   // mosswood
   ASSIGNMOB(145391, buyweapons);
@@ -273,10 +273,11 @@ void assign_mobiles(void)
   ASSIGNMOB(106000, cf_alathar);        // lord alathar
 
   /* Jotunheim */
-  /* Converted Thrym, Planetar, and Ymir behavior is persisted in world data. */
-  ASSIGNMOB(2096033, gatehouse_guard);
-  ASSIGNMOB(2096032, gatehouse_guard);
-  ASSIGNMOB(2096200, jot_invasion_loader); /* this will load invasion */
+  ASSIGNMOB(196027, thrym);
+  ASSIGNMOB(196077, planetar);
+  ASSIGNMOB(196070, ymir);
+  ASSIGNMOB(196033, gatehouse_guard);
+  ASSIGNMOB(196032, gatehouse_guard);
 
   /* fire giant zones */
   ASSIGNMOB(34699, fg_invasion_loader);

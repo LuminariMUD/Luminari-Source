@@ -3678,7 +3678,7 @@ void perform_abilities(struct char_data *ch, struct char_data *k)
   text_line(ch, "\tYAbilities\tC", line_length, '-', '-');
   send_to_char(ch, "\tn");
 
-  for (i = 0; i < NUM_FEATS; i++)
+  for (i = 1; i < FEAT_LAST_FEAT; i++)
   {
     if (HAS_FEAT(k, i) && is_daily_feat(i))
     {
@@ -4718,9 +4718,10 @@ ACMD(do_score)
                  "\tcMax Augment PSP:\tn %d - power psp cost\r\n",
                  GET_PSP(ch), GET_MAX_PSP(ch), /* Current/Max power points */
                  GET_PSIONIC_LEVEL(ch),        /* Psionic manifester level */
-                 (GET_PSIONIC_ENERGY_TYPE(ch) >= 0 && GET_PSIONIC_ENERGY_TYPE(ch) < NUM_DAM_TYPES)
+                 (GET_PSIONIC_ENERGY_TYPE(ch) > DAM_RESERVED_DBC &&
+                  GET_PSIONIC_ENERGY_TYPE(ch) < NUM_DAM_TYPES)
                      ? damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]
-                     : "Unknown",               /* Energy specialization */
+                     : "None",                  /* Energy specialization */
                  base_augment_psp_allowed(ch)); /* Max PSP augmentation */
   }
 
@@ -4861,13 +4862,12 @@ ACMD(do_score)
   {
     /* Draconic bloodline - shows dragon type and energy damage */
     int subtype = GET_BLOODLINE_SUBTYPE(ch);
-    send_to_char(ch, "\tcSorcerer Bloodline: \tnDraconic (%s/%s).\r\n",
-                 (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES)
-                     ? DRCHRTLIST_NAME(subtype)
-                     : "Unknown", /* Dragon type name */
-                 (subtype >= 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES)
-                     ? DRCHRT_ENERGY_TYPE(subtype)
-                     : "Unknown"); /* Energy damage type */
+    send_to_char(
+        ch, "\tcSorcerer Bloodline: \tnDraconic (%s/%s).\r\n",
+        (subtype > 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES) ? DRCHRTLIST_NAME(subtype)
+                                                               : "None", /* Dragon type name */
+        (subtype > 0 && subtype < NUM_DRACONIC_HERITAGE_TYPES) ? DRCHRT_ENERGY_TYPE(subtype)
+                                                               : "None"); /* Energy damage type */
     draw_line(ch, line_length, '-', '-');
   }
   else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
@@ -4875,8 +4875,7 @@ ACMD(do_score)
     /* Arcane bloodline - shows school specialization */
     int subtype = GET_BLOODLINE_SUBTYPE(ch);
     send_to_char(ch, "\tcSorcerer Bloodline: \tnArcane (%s magic).\r\n",
-                 (subtype >= 0 && subtype < NUM_SCHOOLS) ? spell_schools_lower[subtype]
-                                                         : "Unknown");
+                 (subtype > 0 && subtype < NUM_SCHOOLS) ? spell_schools_lower[subtype] : "None");
     draw_line(ch, line_length, '-', '-');
   }
   else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
@@ -5952,7 +5951,11 @@ static void display_magic_section(struct char_data *ch, int line_length)
                      "--------------------------------------------------------+\tn\r\n");
     send_to_char(ch,
                  "\tc|\tn \tcPsionic Level:\tn %-3d \tc|\tn \tcEnergy Type:\tn %-15s \tc|\tn\r\n",
-                 GET_PSIONIC_LEVEL(ch), damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
+                 GET_PSIONIC_LEVEL(ch),
+                 GET_PSIONIC_ENERGY_TYPE(ch) > DAM_RESERVED_DBC &&
+                         GET_PSIONIC_ENERGY_TYPE(ch) < NUM_DAM_TYPES
+                     ? damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]
+                     : "None");
     send_to_char(ch, "\tc|\tn \tcMax Augment PSP:\tn %-3d (power psp cost) \tc|\tn\r\n",
                  base_augment_psp_allowed(ch));
     send_to_char(
@@ -6382,7 +6385,10 @@ ACMD(do_skore)
           send_to_char(
               ch,
               "\tc|\tn \tcEnergy Type:\tn %-20s                                      \tc|\tn\r\n",
-              damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
+              GET_PSIONIC_ENERGY_TYPE(ch) > DAM_RESERVED_DBC &&
+                      GET_PSIONIC_ENERGY_TYPE(ch) < NUM_DAM_TYPES
+                  ? damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]
+                  : "None");
           send_to_char(ch,
                        "\tc|\tn \tcMax Augment PSP:\tn %-3d per power                              "
                        "           \tc|\tn\r\n",
@@ -6638,7 +6644,6 @@ ACMD(do_skore)
 /* Display a specific score section based on section ID */
 static void display_score_section(struct char_data *ch, int section_id, int line_length)
 {
-  send_to_char(ch, "\tR[DEBUG] display_score_section called with section_id=%d\tn\r\n", section_id);
   switch (section_id)
   {
   case SECTION_IDENTITY:
@@ -6648,7 +6653,6 @@ static void display_score_section(struct char_data *ch, int section_id, int line
     display_vitals_section(ch, line_length);
     break;
   case SECTION_EXPERIENCE:
-    send_to_char(ch, "\tR[DEBUG] About to call display_experience_section\tn\r\n");
     display_experience_section(ch, line_length);
     break;
   case SECTION_ABILITIES:
@@ -8437,8 +8441,8 @@ ACMD(do_toggle)
        "You will no longer allow charmies to rescue you and other group members\r\n"},
       /* 45 */
       {"storedconsumables", PRF_USE_STORED_CONSUMABLES, 0,
-       "You will now use the stored consumables system (HELP CONSUMABLES).\r\n",
-       "You will no use the stock consumables system (HELP USE).\r\n"},
+       "You will no longer use the stored consumables system (HELP CONSUMABLES).\r\n",
+       "You will now use the stored consumables system (HELP CONSUMABLES).\r\n"},
       /* 46 */
       {"autostand", PRF_AUTO_STAND, 0,
        "You will no longer automatically stand if knocked down in combat.\r\n",
@@ -8834,6 +8838,9 @@ void do_wizhelp(struct char_data *ch)
   extern int *cmd_sort_info;
   int no = 1, i, cmd_num;
   int level;
+  int commands_per_row;
+
+  commands_per_row = MAX(1, (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / 15);
 
   send_to_char(ch, "The following privileged commands are available:\r\n");
 
@@ -8848,9 +8855,10 @@ void do_wizhelp(struct char_data *ch)
       if (complete_cmd_info[i].minimum_level != level)
         continue;
 
-      send_to_char(ch, "%-14s%s", complete_cmd_info[i].command, no++ % 7 == 0 ? "\r\n" : "");
+      send_to_char(ch, "%-14s%s", complete_cmd_info[i].command,
+                   no++ % commands_per_row == 0 ? "\r\n" : " ");
     }
-    if (no % 7 != 1)
+    if (no % commands_per_row != 1)
       send_to_char(ch, "\r\n");
     if (level != LVL_IMMORT)
       send_to_char(ch, "\r\n");
@@ -8859,12 +8867,11 @@ void do_wizhelp(struct char_data *ch)
 
 ACMD(do_commands)
 {
-  int no, i, cmd_num, can_cmd;
+  int no, i, cmd_num, can_cmd, command_count;
   int wizhelp = 0, socials = 0, maneuvers = 0;
   struct char_data *vict;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-  const char *commands[1000];
-  int overflow = sizeof(commands) / sizeof(commands[0]);
+  const char **commands;
 
   if (!ch->desc)
     return;
@@ -8882,10 +8889,15 @@ ACMD(do_commands)
   else
     vict = ch;
 
+  for (command_count = 1; complete_cmd_info[command_count].command[0] != '\n'; command_count++)
+    ;
+  CREATE(commands, const char *, command_count);
+
   if (subcmd == SCMD_SOCIALS)
     socials = 1;
   else if (subcmd == SCMD_WIZHELP)
   {
+    free(commands);
     wizhelp = 1;
     do_wizhelp(ch);
     return;
@@ -8917,15 +8929,12 @@ ACMD(do_commands)
     if (wizhelp && complete_cmd_info[i].command_pointer == do_action)
       continue;
 
-    if (--overflow < 0)
-      continue;
-
     if (maneuvers)
     {
       if (complete_cmd_info[i].command_check_pointer == NULL)
         continue;
 
-      can_cmd = complete_cmd_info[i].command_check_pointer(ch, false);
+      can_cmd = complete_cmd_info[i].command_check_pointer(ch, NULL, false);
 
       if (can_cmd == CANT_CMD_PERM) // char can't use this command, skip it.
         continue;
@@ -8945,6 +8954,7 @@ ACMD(do_commands)
   /* display commands list in a nice columnized format */
   if (!maneuvers)
     column_list(ch, 0, commands, no, FALSE);
+  free(commands);
 }
 
 ACMDU(do_homelands)

@@ -826,12 +826,10 @@ void compute_char_cap(struct char_data *ch, int mode)
     send_to_char(ch, "Charisma:     \tR*%d*\tn\r\n", cha_cap);
     send_to_char(ch, "\r\n");
     send_to_char(ch, "\tYPoints:\tn\r\n");
-    send_to_char(ch, "Hit Points:              \tR* TBD - need to check with Gicker :) *\tn\r\n");
     send_to_char(ch, "Psionic Strength Points: \tR*%d*\tn\r\n", psp_cap);
     send_to_char(ch, "Movement Points:         \tR*%d*\tn\r\n", move_cap);
     send_to_char(ch, "\r\n");
-    send_to_char(ch, "\tYHitroll, Damroll, Armor Class:\tn\r\n");
-    send_to_char(ch, "Armor Class: \tR* TBD *\tn\r\n");
+    send_to_char(ch, "\tYHitroll and Damroll:\tn\r\n");
     send_to_char(ch, "Hitroll:     \tR*%d*\tn\r\n", hit_cap);
     send_to_char(ch, "Damroll:     \tR*%d*\tn\r\n", dam_cap);
     send_to_char(ch, "\r\n");

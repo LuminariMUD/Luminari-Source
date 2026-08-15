@@ -3090,6 +3090,11 @@ ACMD(do_tame)
     send_to_char(ch, "They're not here.\r\n");
     return;
   }
+  else if (vict == ch)
+  {
+    send_to_char(ch, "You cannot tame yourself.\r\n");
+    return;
+  }
   else if (GET_LEVEL(ch) < LVL_IMMORT && IS_NPC(vict) && !MOB_FLAGGED(vict, MOB_MOUNTABLE))
   {
     send_to_char(ch, "You can't do that to them.\r\n");
@@ -7034,6 +7039,12 @@ ACMDU(do_arcanemark)
 ACMDU(do_immtitle)
 {
   skip_spaces(&argument);
+  if (!*argument)
+  {
+    send_to_char(ch, "Usage: immtitle <title>\r\n");
+    return;
+  }
+
   delete_doubledollar(argument);
   parse_at(argument);
 
@@ -8442,7 +8453,7 @@ ACMD(do_gen_tog)
       {"You will now allow charmies to rescue you and other group members.\r\n",
        "You will no longer allow charmies to rescue you and other group members\r\n"},
       /* 45 */
-      {"You will no longer use the stock consumables system (HELP USE).\r\n",
+      {"You will no longer use the stored consumables system (HELP CONSUMABLES).\r\n",
        "You will now use the stored consumables system (HELP CONSUMABLES).\r\n"},
       /* 46 */
       {"You will no longer automatically stand if knocked down in combat.\r\n",
@@ -8492,8 +8503,8 @@ ACMD(do_gen_tog)
       {"Post combat text (exp, gold, etc.) is no longer reduced.\r\n",
        "Post combat text (exp, gold, etc.) is now reduced.\r\n"},
       // 63
-      {"You will no longer automatically use eldritrch blast in place of normal attacks.\r\n"
-       "You will now automatically use eldritrch blast in place of normal attacks.\r\n"},
+      {"You will no longer automatically use eldritch blast in place of normal attacks.\r\n",
+       "You will now automatically use eldritch blast in place of normal attacks.\r\n"},
       // 64
       {"You will now see craft progress indicators.\r\n",
        "You will no longer see craft progress indicators.\r\n"},
@@ -10951,7 +10962,7 @@ ACMDU(do_weapon_touch)
 
   if (!GET_EQ(ch, WEAR_WIELD_1) && !GET_EQ(ch, WEAR_WIELD_2H))
   {
-    send_to_char(ch, "You cannot queued a spell for weapon touch if you are not wielding a weapon "
+    send_to_char(ch, "You cannot queue a spell for weapon touch if you are not wielding a weapon "
                      "in your primary hand.\r\n");
     return;
   }

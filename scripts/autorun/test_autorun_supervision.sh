@@ -52,6 +52,55 @@ test_compatibility_links()
     fail "binary deployment compatibility link has the wrong target"
 }
 
+test_planned_reboot_exit()
+{
+  local c_exit
+  local planned_dir="$test_root/planned-reboot"
+  local shell_exit
+
+  c_exit=$(awk '$1 == "#define" && $2 == "MUD_EXIT_REBOOT" {print $3}' \
+    "$project_root/src/comm.h")
+  shell_exit=$(awk -F= '$1 == "readonly MUD_EXIT_REBOOT" {print $2}' \
+    "$project_root/scripts/autorun/autorun.sh")
+  [[ -n "$c_exit" ]] && [[ "$c_exit" == "$shell_exit" ]] ||
+    fail "server and autorun reboot exit statuses differ"
+
+  mkdir -p "$planned_dir/bin/test-release" "$planned_dir/lib" \
+    "$planned_dir/log" "$planned_dir/dumps"
+  cp "$project_root/scripts/autorun/autorun.sh" "$planned_dir/autorun.sh"
+
+  cat > "$planned_dir/bin/test-release/circle" <<'EOF'
+#!/usr/bin/env bash
+set -u
+script_dir=$(pwd)
+if [[ ! -e "$script_dir/.rebooted-once" ]]; then
+  touch "$script_dir/.rebooted-once"
+  exit 52
+fi
+touch "$script_dir/.killscript"
+exit 0
+EOF
+  chmod +x "$planned_dir/bin/test-release/circle"
+  ln -s "test-release/circle" "$planned_dir/bin/circle"
+  touch "$planned_dir/.fastboot"
+
+  (
+    cd "$planned_dir"
+    MUD_PORT="$(find_unused_port)" ./autorun.sh foreground
+  ) > "$planned_dir/launcher.log" 2>&1
+
+  grep -Fq "MUD requested a planned reboot" "$planned_dir/launcher.log" ||
+    fail "planned reboot was not recognized"
+  [[ ! -e "$planned_dir/syslog.CRASH" ]] ||
+    fail "planned reboot created syslog.CRASH"
+  if find "$planned_dir/log" -maxdepth 1 -type f -name 'last_error_*.json' | grep -q .; then
+    fail "planned reboot created a structured crash record"
+  fi
+  if grep -Fq "unexpected code: 52" "$planned_dir/launcher.log"; then
+    fail "planned reboot was classified as unexpected"
+  fi
+}
+
 cleanup()
 {
   local pid
@@ -433,22 +482,20 @@ test_watchdog_transient_killscript()
   cp "$project_root/scripts/autorun/autorun-watchdog.sh" \
     "$guard_dir/autorun-watchdog.sh"
 
-  cat > "$guard_dir/fake-supervisor.sh" <<'EOF'
-#!/usr/bin/env bash
-trap 'exit 0' INT TERM
-while true; do
-  sleep 1
-done
-EOF
-
   cat > "$guard_dir/autorun.sh" <<'EOF'
 #!/usr/bin/env bash
+if [[ "${1:-}" == "foreground" ]]; then
+  trap 'exit 0' INT TERM
+  while true; do
+    sleep 1
+  done
+fi
 touch "$(dirname "$0")/.unexpected-autorun-restart"
 exit 1
 EOF
-  chmod +x "$guard_dir/autorun.sh" "$guard_dir/fake-supervisor.sh"
+  chmod +x "$guard_dir/autorun.sh"
 
-  "$guard_dir/fake-supervisor.sh" &
+  "$guard_dir/autorun.sh" foreground &
   supervisor_pid=$!
   now=$(date +%s)
   cat > "$guard_dir/.autorun.state" <<EOF
@@ -529,6 +576,60 @@ EOF
   wait "$unrelated_pid" 2>/dev/null || true
 }
 
+test_watchdog_stale_verified_supervisor()
+{
+  local stale_dir="$test_root/stale-supervisor"
+  local supervisor_pid
+  local watchdog_pid
+
+  mkdir -p "$stale_dir/log"
+  cp "$project_root/scripts/autorun/autorun-watchdog.sh" \
+    "$stale_dir/autorun-watchdog.sh"
+
+  cat > "$stale_dir/autorun.sh" <<'EOF'
+#!/usr/bin/env bash
+if [[ "${1:-}" == "foreground" ]]; then
+  trap 'exit 0' INT TERM
+  while true; do
+    sleep 1
+  done
+fi
+touch "$(dirname "$0")/.unexpected-autorun-restart"
+exit 1
+EOF
+  chmod +x "$stale_dir/autorun.sh"
+  "$stale_dir/autorun.sh" foreground &
+  supervisor_pid=$!
+
+  cat > "$stale_dir/.autorun.state" <<EOF
+PID=$supervisor_pid
+START_TIME=1
+LAST_UPDATE=1
+STATUS=RUNNING
+CRASH_COUNT=0
+MUD_PORT=
+EOF
+
+  (
+    cd "$stale_dir"
+    WATCHDOG_CHECK_INTERVAL=1 \
+      WATCHDOG_STARTUP_GRACE_PERIOD=0 \
+      WATCHDOG_STATE_STALE_THRESHOLD=1 \
+      ./autorun-watchdog.sh loop
+  ) > "$stale_dir/loop.log" 2>&1 &
+  watchdog_pid=$!
+
+  wait_for_pattern "$stale_dir/log/watchdog.log" \
+    "but verified autorun PID $supervisor_pid is running"
+  [[ ! -e "$stale_dir/.unexpected-autorun-restart" ]] ||
+    fail "watchdog duplicated a verified supervisor with stale state"
+
+  touch "$stale_dir/.killwatchdog"
+  wait "$watchdog_pid" 2>/dev/null || true
+  kill -TERM "$supervisor_pid"
+  wait "$supervisor_pid" 2>/dev/null || true
+}
+
 test_watchdog_daemon_recovery()
 {
   local recovered_pid
@@ -539,19 +640,17 @@ test_watchdog_daemon_recovery()
   cp "$project_root/scripts/autorun/autorun-watchdog.sh" \
     "$recovery_dir/autorun-watchdog.sh"
 
-  cat > "$recovery_dir/fake-supervisor.sh" <<'EOF'
-#!/usr/bin/env bash
-trap 'exit 0' INT TERM
-while true; do
-  sleep 1
-done
-EOF
-
   cat > "$recovery_dir/autorun.sh" <<'EOF'
 #!/usr/bin/env bash
 set -u
 script_dir=$(cd "$(dirname "$0")" && pwd)
-"$script_dir/fake-supervisor.sh" > /dev/null 2>&1 &
+if [[ "${1:-}" == "foreground" ]]; then
+  trap 'exit 0' INT TERM
+  while true; do
+    sleep 1
+  done
+fi
+"$script_dir/autorun.sh" foreground > /dev/null 2>&1 &
 supervisor_pid=$!
 now=$(date +%s)
 state_tmp="$script_dir/.autorun.state.tmp"
@@ -566,7 +665,7 @@ STATE
 mv -f "$state_tmp" "$script_dir/.autorun.state"
 exit 0
 EOF
-  chmod +x "$recovery_dir/autorun.sh" "$recovery_dir/fake-supervisor.sh"
+  chmod +x "$recovery_dir/autorun.sh"
 
   (
     cd "$recovery_dir"
@@ -729,10 +828,12 @@ EOF
 }
 
 test_compatibility_links
+test_planned_reboot_exit
 test_autorun_startup_and_locking
 test_watchdog_startup_grace
 test_watchdog_transient_killscript
 test_watchdog_pid_verification
+test_watchdog_stale_verified_supervisor
 test_watchdog_daemon_recovery
 test_systemd_unit_installation
 

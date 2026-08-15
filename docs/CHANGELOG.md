@@ -2,6 +2,28 @@
 
 ## [Unreleased] - August 14, 2026
 
+### Full command sweep remediation
+
+#### Fixed
+
+- Repaired all 19 findings from the 2026-08-15 full command sweep, including safe `objcheck`
+  semantics, boot-time Jotunheim and vessel-trigger references, dynamic command listings,
+  pre-validated action queuing, cooldown registry metadata, board lookup, pet keywords, score and
+  command guards, self-target rejection, and route traversability checks.
+- Implemented Spell Recall recovery for prepared and spontaneous casters, removed registered
+  placeholders, corrected player-visible copy and Luminari branding, and added authoritative
+  database help for the changed command behavior and current project contact.
+- Classified exit 52 as a planned reboot, made supervisor heartbeats promptly stoppable, hardened
+  watchdog identity checks, added bounded I3 reconnect backoff and explicit disablement, and made AI
+  provider health reporting reflect healthy, degraded, and unavailable states.
+
+#### Verification
+
+- Passed a warning-free parallel build, 725 production-linked CuTests, all shell supervision and
+  deployment tests, 29 focused protocol-parser tests, `make install`, an idempotent help migration
+  with read-only verification, and a clean syntax-check boot with none of the reported missing-world
+  reference signatures.
+
 ### Luminari world restoration and RoL isolation recovery
 
 #### Changed

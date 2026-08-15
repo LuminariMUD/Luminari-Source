@@ -5936,6 +5936,7 @@ ACMD(do_setmaterial)
                      "many to give/reduce.\r\n"
                      "Eg. setmaterial gicker alchemical-silver 10.\r\n"
                      "This will set gicker's alchemical silver material count to 10.\r\n");
+    return;
   }
 
   if (!(tch = get_char_vis(ch, target, NULL, FIND_CHAR_WORLD)))

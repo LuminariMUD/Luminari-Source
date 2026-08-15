@@ -123,11 +123,20 @@ enum ai_request_type
 struct ai_service_state
 {
   bool initialized;                  /* Service ready flag */
+  bool openai_configured;            /* Remote provider has an API key */
+  bool ollama_available;             /* Local provider passed its startup probe */
   CURL *curl_handle;                 /* Persistent connection pooling */
   struct ai_config *config;          /* Runtime configuration */
   struct ai_cache_entry *cache_head; /* Response cache list */
   int cache_size;                    /* Current cache entries */
   struct rate_limiter *limiter;      /* API rate limiting */
+};
+
+enum ai_service_health
+{
+  AI_SERVICE_UNAVAILABLE = 0,
+  AI_SERVICE_DEGRADED,
+  AI_SERVICE_HEALTHY
 };
 
 /* AI Configuration - loaded from lib/.env at startup */
@@ -189,6 +198,9 @@ void init_ai_service(void);     /* Initialize at startup (comm.c) */
 void shutdown_ai_service(void); /* Cleanup at shutdown */
 void load_ai_config(void);      /* Reload from .env file */
 bool is_ai_enabled(void);       /* Global enable check (all components) */
+enum ai_service_health ai_get_service_health(void);
+const char *ai_service_health_name(void);
+const char *ai_service_active_provider(void);
 
 /* API Request Functions
  * MAIN FUNCTIONALITY - Called by game systems

@@ -81,7 +81,8 @@
  *   2 if the character would normally be able to use the command, but temporarily can't.
  */
 #define ACMDCHECK(name)                                                                            \
-  int name(struct char_data *ch __attribute__((unused)), bool show_error __attribute__((unused)))
+  int name(struct char_data *ch __attribute__((unused)),                                          \
+           const char *argument __attribute__((unused)), bool show_error __attribute__((unused)))
 #define ACMD_ERRORMSG(error)                                                                       \
   if (show_error == true)                                                                          \
     send_to_char(ch, error);

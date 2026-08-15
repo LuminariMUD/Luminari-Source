@@ -292,7 +292,7 @@ ACMD(do_claninvest)
     return;
   }
 
-  if (GET_CLAN(ch) == NO_CLAN)
+  if (!IS_IN_CLAN(ch))
   {
     send_to_char(ch, CLAN_ERR_NOT_IN_CLAN);
     return;

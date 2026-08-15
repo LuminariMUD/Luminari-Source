@@ -21,6 +21,9 @@
 #define NUM_RESERVED_DESCS 8
 #define COPYOVER_FILE "copyover.dat"
 
+/* Process exit statuses consumed by scripts/autorun/autorun.sh. */
+#define MUD_EXIT_REBOOT 52
+
 /* Copyover debug logging - controlled by copyover_debug_enabled in comm.c */
 extern int copyover_debug_enabled;
 #define COPYOVER_DEBUG(msg, ...)                                                                   \

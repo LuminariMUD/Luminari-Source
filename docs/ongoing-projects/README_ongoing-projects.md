@@ -20,10 +20,11 @@ mapped in [ROL_CONVERSION_DAMAGE_MAP.md](ROL_CONVERSION_DAMAGE_MAP.md).
 
 ## Current contents
 
-Statuses below were re-verified against the source tree on 2026-08-14.
+Statuses below were re-verified against the source tree on 2026-08-15.
 
 | Document | Status | What remains |
 |----------|--------|--------------|
+| [FULL_COMMAND_SWEEP_FINDINGS_2026-08-15.md](FULL_COMMAND_SWEEP_FINDINGS_2026-08-15.md) | Resolved and verified | All 19 findings are repaired in development. Preserve the report as the sweep evidence and resolution map. |
 | [ROL_CONVERSION_DAMAGE_MAP.md](ROL_CONVERSION_DAMAGE_MAP.md) | Luminari restored; isolated RoL graph candidate rebuilt and verified but not applied | Repair conversion-era database and player/house references, prove incompatible RoL mechanics are isolated, finish ownership and exclusion work, and run final release gates before applying the disjoint RoL overlay. |
 | [PET_SYSTEM_COMPARISON_LUMINARI_CHRONICLES_OF_KRYNN.md](PET_SYSTEM_COMPARISON_LUMINARI_CHRONICLES_OF_KRYNN.md) | Comparison complete; P0 persistence repaired | Luminari now has fail-closed migrations and atomic snapshots. Admission policy, temporary lifetime, stable ownership, and full schema-source unification remain design work; the Chronicles sample is still reference-only. |
 | [artifact-placement-plan.md](artifact-placement-plan.md) | Handoff | Content brief for a world builder: acquisition routes for all seventeen artifacts, the single-instance reset contract, and verification steps. No code work outstanding. The artifact project's engineering sections are complete and its working notes have been retired; enduring content moved to [ARTIFACT_SYSTEM.md](../systems/ARTIFACT_SYSTEM.md). |

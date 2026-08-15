@@ -312,7 +312,7 @@ ACMD(do_missions)
 
   if (GET_CURRENT_MISSION(ch) <= 0)
   {
-    send_to_char(ch, "You are not currently on a mission.");
+    send_to_char(ch, "You are not currently on a mission.\r\n");
     send_to_char(ch,
                  "You may start a new mission by specifying a difficulty level (you must be in a "
                  "bounty/mission office). Select among the following difficulty levels:\r\n");

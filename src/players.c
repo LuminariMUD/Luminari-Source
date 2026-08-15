@@ -170,6 +170,7 @@ struct pet_runtime_state
 static char *serialize_pet_runtime_state(struct char_data *pet);
 static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_state *state);
 static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runtime_state *state);
+static char *build_pet_keyword_list(const char *saved_keywords, const char *prototype_keywords);
 
 
 // external functions
@@ -6347,6 +6348,33 @@ bool valid_pet_name(char *name)
   return true;
 }
 
+/* Preserve prototype keywords when restoring a custom pet name. Staff and
+ * owner targeting must continue to recognize the creature's base identity. */
+static char *build_pet_keyword_list(const char *saved_keywords, const char *prototype_keywords)
+{
+  char *keywords;
+  size_t length;
+
+  if (!saved_keywords || !*saved_keywords)
+    return prototype_keywords && *prototype_keywords ? strdup(prototype_keywords) : NULL;
+  if (!prototype_keywords || !*prototype_keywords || !strcmp(saved_keywords, prototype_keywords))
+    return strdup(saved_keywords);
+
+  length = strlen(saved_keywords) + strlen(prototype_keywords) + 2;
+  keywords = malloc(length);
+  if (!keywords)
+    return NULL;
+  snprintf(keywords, length, "%s %s", saved_keywords, prototype_keywords);
+  return keywords;
+}
+
+#ifdef LUMINARI_CUTEST
+char *build_pet_keyword_list_for_test(const char *saved_keywords, const char *prototype_keywords)
+{
+  return build_pet_keyword_list(saved_keywords, prototype_keywords);
+}
+#endif
+
 #define PET_SAVE_LOG_BUCKETS 32
 #define PET_SAVE_LOG_INTERVAL 60
 #define PET_SAVE_LOG_OWNER_LENGTH 50
@@ -6681,11 +6709,12 @@ void load_char_pets(struct char_data *ch)
   struct char_data *mob = NULL;
   char query[512];
   char buf[MAX_EXTRA_DESC];
-  char desc1[MAX_STRING_LENGTH] = {'\0'};
   char desc2[MAX_STRING_LENGTH] = {'\0'};
   char desc3[MAX_STRING_LENGTH] = {'\0'};
   char desc4[MAX_STRING_LENGTH] = {'\0'};
   char *escaped_name;
+  char *pet_keywords;
+  const char *prototype_keywords;
   long int pet_idnum = 0;
   bool has_runtime_state;
   bool hired_mercenary;
@@ -6789,8 +6818,10 @@ void load_char_pets(struct char_data *ch)
     autoroll_mob(mob, TRUE, TRUE);
     if (row[11] && *row[11])
     {
-      snprintf(desc1, sizeof(desc1), "%s", row[11]);
-      mob->player.name = strdup(desc1);
+      prototype_keywords = mob->player.name;
+      pet_keywords = build_pet_keyword_list(row[11], prototype_keywords);
+      if (pet_keywords)
+        mob->player.name = pet_keywords;
     }
     if (row[12] && *row[12])
     {

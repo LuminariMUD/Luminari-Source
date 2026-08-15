@@ -428,6 +428,25 @@ void innate_magic_add(struct char_data *ch, int ch_class, int circle, int metama
      * if a slot was recovered, FALSE if no recovering slots were found.
      */
 bool sustain_melody_recover_one_slot(struct char_data *ch, int ch_class);
+
+/** Result of attempting to recover one spell with the Spell Recall perk. */
+enum spell_recall_recovery_type
+{
+  SPELL_RECALL_NONE = 0,
+  SPELL_RECALL_PREPARED,
+  SPELL_RECALL_INNATE
+};
+
+/** Return TRUE when a character has a spell or slot that Spell Recall can recover. */
+bool spell_recall_has_recoverable_slot(struct char_data *ch);
+
+/**
+ * Instantly finish one randomly selected prepared spell or spontaneous slot.
+ * The optional output parameters identify what was recovered for player messaging.
+ */
+enum spell_recall_recovery_type spell_recall_recover_one(struct char_data *ch, int *recovered_class,
+                                                         int *recovered_spell,
+                                                         int *recovered_circle);
 #ifdef LUMINARI_CUTEST
 int test_calculate_metamagic_modifier(struct char_data *ch, int char_class, int metamagic);
 #endif

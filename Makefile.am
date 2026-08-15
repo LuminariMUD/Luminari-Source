@@ -743,6 +743,7 @@ EXTRA_DIST = \
 	lib/world/vessel_harbor/700.trg \
 	lib/world/vessel_harbor/700.zon \
 	sql/components/character_rename_transactional_schema.sql \
+	sql/components/help_command_sweep_entries.sql \
 	sql/components/help_specproc_entries.sql \
 	sql/components/help_vessel_entries.sql \
 	sql/components/help_character_backgrounds.sql \
@@ -751,6 +752,7 @@ EXTRA_DIST = \
 	sql/components/help_worship_entries.sql \
 	sql/components/ci_schema_manifest.txt \
 	sql/components/test_vessels_integrity.sql \
+	sql/components/verify_help_command_sweep_entries.sql \
 	sql/components/verify_help_necromancer_entries.sql \
 	sql/components/verify_help_rol_object_trap_entries.sql \
 	sql/components/verify_help_specproc_entries.sql \

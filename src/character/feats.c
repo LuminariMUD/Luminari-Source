@@ -50,10 +50,10 @@ void sort_feats(void)
   int a;
 
   /* initialize array, avoiding reserved. */
-  for (a = 1; a < NUM_FEATS; a++)
+  for (a = 1; a < FEAT_LAST_FEAT; a++)
     feat_sort_info[a] = a;
 
-  qsort(&feat_sort_info[1], NUM_FEATS, sizeof(int), compare_feats);
+  qsort(&feat_sort_info[1], FEAT_LAST_FEAT - 1, sizeof(int), compare_feats);
 }
 
 /* we use this for checking requirements and levelup struct */
@@ -6121,8 +6121,6 @@ void assign_feats(void)
   epicfeat(FEAT_PSI_POWER_EPIC_PSIONIC_WARD);
   epicfeat(FEAT_CONSTRUCT_IRON_GOLEM);
 
-  epicfeat(FEAT_LAST_FEAT);
-
   /* Feats with "Daily Use" Mechanic, make sure to add to
    * EVENTFUNC(event_daily_use_cooldown) and mud_event.c */
   dailyfeat(FEAT_QUIVERING_PALM, eQUIVERINGPALM);
@@ -7420,12 +7418,31 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg,
 /* simple debug command to make sure we have all our assigns set up */
 ACMD(do_featlisting)
 {
+  const char **lines;
+  char *line;
+  size_t line_size;
+  int count = 0;
   int i = 0;
+
+  CREATE(lines, const char *, FEAT_LAST_FEAT);
 
   for (i = 1; i < FEAT_LAST_FEAT; i++)
   {
-    send_to_char(ch, "%d: %s\r\n", i, feat_list[i].name);
+    if (feat_list[i].name == NULL || !str_cmp(feat_list[i].name, "Unused Feat"))
+      continue;
+
+    line_size = strlen(feat_list[i].name) + 24;
+    CREATE(line, char, line_size);
+    snprintf(line, line_size, "%d: %s", i, feat_list[i].name);
+    lines[count++] = line;
   }
+
+  send_to_char(ch, "Registered feats (%d):\r\n", count);
+  column_list(ch, 1, lines, count, FALSE);
+
+  for (i = 0; i < count; i++)
+    free((char *)lines[i]);
+  free(lines);
 }
 
 /*
@@ -7484,7 +7501,7 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
 
   strlcpy(buf2, buf, sizeof(buf2));
 
-  for (sortpos = 1; sortpos < NUM_FEATS; sortpos++)
+  for (sortpos = 1; sortpos < FEAT_LAST_FEAT; sortpos++)
   {
     if (strlen(buf2) > MAX_STRING_LENGTH - 180)
       break;
@@ -9191,6 +9208,8 @@ int is_class_feat(int featnum, int class, struct char_data *ch)
 
 int is_daily_feat(int featnum)
 {
+  if (featnum <= FEAT_UNDEFINED || featnum >= FEAT_LAST_FEAT)
+    return FALSE;
   return (feat_list[featnum].event != eNULL);
 };
 
@@ -9201,14 +9220,14 @@ int find_feat_num(const char *name)
   char first[256], first2[256];
 
   /* PHASE 1: Check for exact match first (case-insensitive) */
-  for (index = 1; index < NUM_FEATS; index++)
+  for (index = 1; index < FEAT_LAST_FEAT; index++)
   {
     if (!strcasecmp(name, feat_list[index].name))
       return (index);
   }
 
   /* PHASE 2: Try word-by-word matching for multi-word names */
-  for (index = 1; index < NUM_FEATS; index++)
+  for (index = 1; index < FEAT_LAST_FEAT; index++)
   {
     ok = TRUE;
     /* It won't be changed, but other uses of this function elsewhere may. */
@@ -9226,7 +9245,7 @@ int find_feat_num(const char *name)
   }
 
   /* PHASE 3: Finally try abbreviation matching as fallback */
-  for (index = 1; index < NUM_FEATS; index++)
+  for (index = 1; index < FEAT_LAST_FEAT; index++)
   {
     if (is_abbrev(name, feat_list[index].name))
       return (index);
@@ -9736,7 +9755,7 @@ ACMD(do_epicfeats)
   snprintf(buf, sizeof(buf), "%s", text_line_string("-", line_length, '-', '-'));
   strlcat(buf2, buf, sizeof(buf2));
 
-  for (sortpos = 1; sortpos < NUM_FEATS; sortpos++)
+  for (sortpos = 1; sortpos < FEAT_LAST_FEAT; sortpos++)
   {
     i = feat_sort_info[sortpos];
     /*  Print the feat, depending on the type of list. */

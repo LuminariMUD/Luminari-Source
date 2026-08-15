@@ -305,8 +305,19 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
 }
 void Test_mud_event_registry_matches_enum(CuTest *tc)
 {
+  size_t i;
+
   CuAssertIntEquals(tc, eMUD_EVENT_COUNT, (int)mud_event_index_count);
   CuAssertStrEquals(tc, "Dragon Attack Cooldown",
                     mud_event_index[eDRAGON_ATTACK_COOLDOWN].event_name);
   CuAssertTrue(tc, mud_event_index[eDRAGON_ATTACK_COOLDOWN].func == event_countdown);
+
+  for (i = 1; i < mud_event_index_count; i++)
+  {
+    if (mud_event_index[i].func != event_daily_use_cooldown)
+      continue;
+
+    CuAssert(tc, mud_event_index[i].event_name,
+             mud_event_index[i].feat_num != FEAT_UNDEFINED || mud_event_index[i].daily_uses > 0);
+  }
 }

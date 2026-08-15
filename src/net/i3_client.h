@@ -17,6 +17,7 @@
 #define I3_MAX_RECEIVE_LENGTH (1024 * 1024)
 #define I3_MAX_QUEUE_SIZE 1000
 #define I3_RECONNECT_DELAY 30
+#define I3_MAX_RECONNECT_DELAY 900
 #define I3_HEARTBEAT_INTERVAL 30
 #define I3_PRESENCE_INTERVAL 5
 #define I3_MAX_PRESENCE_USERS 512
@@ -159,6 +160,8 @@ typedef struct
   int enable_who;
   int auto_reconnect;
   int reconnect_delay;
+  int current_reconnect_delay;
+  unsigned int consecutive_connect_failures;
   int max_queue_size;
 
   /* Request ID counter */
@@ -174,6 +177,7 @@ void i3_shutdown(void);
 int i3_connect(void);
 void i3_disconnect(void);
 int i3_is_connected(void);
+int i3_reconnect_backoff(int base_delay, unsigned int failure_count);
 
 /* Thread functions */
 void *i3_client_thread(void *arg);

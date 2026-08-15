@@ -19,9 +19,23 @@ extern MYSQL *conn;
 extern bool mysql_available;
 extern char *serialize_pet_runtime_state_for_test(struct char_data *pet);
 extern bool restore_pet_runtime_state_for_test(struct char_data *pet, const char *serialized);
+extern char *build_pet_keyword_list_for_test(const char *saved_keywords,
+                                             const char *prototype_keywords);
 extern bool save_char_pets(struct char_data *ch);
 
 static int query_single_int(MYSQL *connection, const char *query, int fallback);
+
+void Test_restored_pet_keeps_prototype_target_keywords(CuTest *tc)
+{
+  char *keywords;
+
+  keywords = build_pet_keyword_list_for_test("Bones", "mummy undead monster summoned figure");
+  CuAssertPtrNotNull(tc, keywords);
+  CuAssertTrue(tc, isname("Bones", keywords));
+  CuAssertTrue(tc, isname("mummy", keywords));
+  CuAssertTrue(tc, isname("undead", keywords));
+  free(keywords);
+}
 
 struct pet_save_fixture
 {

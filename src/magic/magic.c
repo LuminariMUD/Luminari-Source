@@ -11421,54 +11421,54 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
     to_room = "A massive wave of unholy energy envelops $n!";
     break;
 
-    /** NPC **/
+  /** NPC **/
   case SPELL_FIRE_BREATHE:
-    to_char = "You exhale breathing out fire!";
-    to_room = "$n exhales breathing fire!";
+    to_char = "You exhale a blast of fire!";
+    to_room = "$n exhales a blast of fire!";
     break;
   case SPELL_GAS_BREATHE:
-    to_char = "You exhale breathing out gas!";
-    to_room = "$n exhales breathing gas!";
+    to_char = "You exhale a blast of gas!";
+    to_room = "$n exhales a blast of gas!";
     break;
   case SPELL_FROST_BREATHE:
-    to_char = "You exhale breathing out frost!";
-    to_room = "$n exhales breathing frost!";
+    to_char = "You exhale a blast of frost!";
+    to_room = "$n exhales a blast of frost!";
     break;
   case SPELL_LIGHTNING_BREATHE:
-    to_char = "You exhale breathing out lightning!";
-    to_room = "$n exhales breathing lightning!";
+    to_char = "You exhale a blast of lightning!";
+    to_room = "$n exhales a blast of lightning!";
     break;
   case SPELL_ACID_BREATHE:
-    to_char = "You exhale breathing out acid!";
-    to_room = "$n exhales breathing acid!";
+    to_char = "You exhale a blast of acid!";
+    to_room = "$n exhales a blast of acid!";
     break;
   case SPELL_POISON_BREATHE:
     is_eff_and_dam = TRUE;
-    to_char = "You exhale breathing out poison!";
-    to_room = "$n exhales breathing poison!";
+    to_char = "You exhale a blast of poison!";
+    to_room = "$n exhales a blast of poison!";
     break;
   case SPELL_DRACONIC_BLOODLINE_BREATHWEAPON:
     switch (draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])
     {
     case DAM_FIRE:
-      to_char = "You exhale breathing out fire!";
-      to_room = "$n exhales breathing fire!";
+      to_char = "You exhale a blast of fire!";
+      to_room = "$n exhales a blast of fire!";
       break;
     case DAM_COLD:
-      to_char = "You exhale breathing out frost!";
-      to_room = "$n exhales breathing frost!";
+      to_char = "You exhale a blast of frost!";
+      to_room = "$n exhales a blast of frost!";
       break;
     case DAM_ELECTRIC:
-      to_char = "You exhale breathing out lightning!";
-      to_room = "$n exhales breathing lightning!";
+      to_char = "You exhale a blast of lightning!";
+      to_room = "$n exhales a blast of lightning!";
       break;
     case DAM_ACID:
-      to_char = "You exhale breathing out acid!";
-      to_room = "$n exhales breathing acid!";
+      to_char = "You exhale a blast of acid!";
+      to_room = "$n exhales a blast of acid!";
       break;
     case DAM_POISON:
-      to_char = "You exhale breathing out poison!";
-      to_room = "$n exhales breathing poison!";
+      to_char = "You exhale a blast of poison!";
+      to_room = "$n exhales a blast of poison!";
       break;
     default:
       to_char = "Error DRHRTBREATH_001a, please report to a member of staff.";
@@ -11629,7 +11629,7 @@ static const char *mag_summon_msgs[] = {
     "$N strides into the area with threatening growls!",  // 32 children of the night wolves
     "$N creep into the area with horribly noisy squeeks", // 33 children of the night rats
     "$N flies into the area screeching loudly.",          // 34 children of the night bats
-    "$n raises $n!",                                      // 35 create vampire spawn
+    "$n raises $N!",                                      // 35 create vampire spawn
     "\r\n",                                               // filler
     "\r\n",                                               // filler
     "\r\n",                                               // filler
@@ -11674,7 +11674,7 @@ static const char *mag_summon_to_msgs[] = {
     "$N strides into the area with threatening growls!",  // 32 children of the night wolves
     "$N creep into the area with horribly noisy squeeks", // 33 children of the night rats
     "$N flies into the area screeching loudly.",          // 34 children of the night bats
-    "$n raises $n!",                                      // 35 create vampire spawn
+    "You raise $N!",                                      // 35 create vampire spawn
     "\r\n",                                               // filler
     "\r\n",                                               // filler
     "\r\n",                                               // filler

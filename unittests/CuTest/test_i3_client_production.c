@@ -141,6 +141,15 @@ static json_object *i3_test_mud(const char *name, int port)
   return mud;
 }
 
+void Test_i3_reconnect_backoff_is_bounded(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 30, i3_reconnect_backoff(30, 1));
+  CuAssertIntEquals(tc, 60, i3_reconnect_backoff(30, 2));
+  CuAssertIntEquals(tc, 120, i3_reconnect_backoff(30, 3));
+  CuAssertIntEquals(tc, I3_MAX_RECONNECT_DELAY, i3_reconnect_backoff(30, 20));
+  CuAssertIntEquals(tc, 1, i3_reconnect_backoff(0, 1));
+}
+
 void Test_i3_fragmented_large_mudlist_response(CuTest *tc)
 {
   json_object *root;
