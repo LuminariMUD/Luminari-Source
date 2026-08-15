@@ -36,6 +36,38 @@ int num_crafts = 0;
 
 struct list_data *global_craft_list = NULL;
 
+bool craft_skill_id_is_valid(int skill)
+{
+  return skill == -1 || (skill > 0 && skill <= TOP_SKILL_DEFINE);
+}
+
+static bool character_meets_craft_skill(struct char_data *ch, struct craft_data *craft)
+{
+  if (ch == NULL || craft == NULL || !craft_skill_id_is_valid(CRAFT_SKILL(craft)))
+    return FALSE;
+
+  if (CRAFT_SKILL(craft) == -1)
+    return TRUE;
+
+  return GET_SKILL(ch, CRAFT_SKILL(craft)) >= CRAFT_SKILL_LEVEL(craft);
+}
+
+static const char *craft_skill_name(struct craft_data *craft)
+{
+  int skill;
+
+  if (craft == NULL)
+    return "Invalid Skill";
+
+  skill = CRAFT_SKILL(craft);
+  if (skill == -1)
+    return "No Skill";
+  if (!craft_skill_id_is_valid(skill) || spell_info[skill].name == NULL)
+    return "Invalid Skill";
+
+  return spell_info[skill].name;
+}
+
 struct craft_data *create_craft(void)
 {
   struct craft_data *new_craft;
@@ -155,7 +187,15 @@ void load_crafts(void)
           if (!strcmp(tag, "End "))
           {
             in_craft = FALSE;
-            add_to_list(craft, global_craft_list);
+            if (!craft_skill_id_is_valid(CRAFT_SKILL(craft)))
+            {
+              log("SYSERR: Rejecting craft %d (%s) with invalid skill id %d.", CRAFT_ID(craft),
+                  CRAFT_NAME(craft), CRAFT_SKILL(craft));
+              free_craft(craft);
+            }
+            else
+              add_to_list(craft, global_craft_list);
+            craft = NULL;
           }
           break;
         case 'F':
@@ -524,7 +564,7 @@ void list_available_crafts(struct char_data *ch)
     {
       if (IS_SET(CRAFT_FLAGS(craft), CRAFT_RECIPE))
         continue;
-      if (GET_SKILL(ch, CRAFT_SKILL(craft)) < CRAFT_SKILL_LEVEL(craft))
+      if (!character_meets_craft_skill(ch, craft))
         continue;
       missing = missing_craft_requirements(ch, craft);
       send_to_char(ch, " %d) %s%s%s\r\n", ++count, missing ? CCRED(ch, C_NRM) : CCGRN(ch, C_NRM),
@@ -702,9 +742,25 @@ EVENTFUNC(event_craft)
     return (0);
   }
 
-  skill = GET_SKILL(ch, CRAFT_SKILL(craft));
-  rand = rand_number(0, (CRAFT_SKILL_LEVEL(craft) * 2));
-  rand = MIN(151, rand);
+  if (!craft_skill_id_is_valid(CRAFT_SKILL(craft)))
+  {
+    mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: Event Craft called with invalid skill id %d.",
+           CRAFT_SKILL(craft));
+    send_to_char(ch, "That craft has an invalid skill requirement.\r\n");
+    return (0);
+  }
+
+  if (CRAFT_SKILL(craft) == -1)
+  {
+    skill = 1;
+    rand = 0;
+  }
+  else
+  {
+    skill = GET_SKILL(ch, CRAFT_SKILL(craft));
+    rand = rand_number(0, (CRAFT_SKILL_LEVEL(craft) * 2));
+    rand = MIN(151, rand);
+  }
 
   if (skill > rand)
   {
@@ -799,10 +855,18 @@ ACMDU(do_craft_with_kits)
   }
 
   /* Other Checks */
-  if (GET_SKILL(ch, CRAFT_SKILL(craft)) < CRAFT_SKILL_LEVEL(craft))
+  if (!craft_skill_id_is_valid(CRAFT_SKILL(craft)))
+  {
+    mudlog(CMP, LVL_STAFF, TRUE, "SYSERR: Craft %d (%s) has invalid skill id %d.", CRAFT_ID(craft),
+           CRAFT_NAME(craft), CRAFT_SKILL(craft));
+    send_to_char(ch, "That craft has an invalid skill requirement.\r\n");
+    return;
+  }
+
+  if (!character_meets_craft_skill(ch, craft))
   {
     send_to_char(ch, "You aren't skilled enough in %s to craft that, you need at least %d.\r\n",
-                 spell_info[CRAFT_SKILL(craft)].name, CRAFT_SKILL_LEVEL(craft));
+                 craft_skill_name(craft), CRAFT_SKILL_LEVEL(craft));
     return;
   }
 
@@ -1065,8 +1129,7 @@ static void craftedit_disp_menu(struct descriptor_data *d)
                       : "None",
                   CRAFT_MSG_SELF(c), CRAFT_MSG_ROOM(c));
 
-  write_to_output(d, "\t2S\t3) Craft Skill    : \t1%s \t2(\t3%d\t2)\tn\r\n",
-                  CRAFT_SKILL(c) == -1 ? "No Skill" : spell_info[CRAFT_SKILL(c)].name,
+  write_to_output(d, "\t2S\t3) Craft Skill    : \t1%s \t2(\t3%d\t2)\tn\r\n", craft_skill_name(c),
                   CRAFT_SKILL_LEVEL(c));
 
   sprintbit(CRAFT_FLAGS(c), craft_flags, buf, sizeof(buf));
@@ -1256,7 +1319,19 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    OLC_CRAFT(d)->craft_skill = LIMIT(atoi(arg), 1, TOP_SKILL_DEFINE);
+    if (!is_number(arg) || !craft_skill_id_is_valid((var = atoi(arg))))
+    {
+      write_to_output(d, "Please select -1 or a skill from 1 to %d: ", TOP_SKILL_DEFINE);
+      return;
+    }
+
+    OLC_CRAFT(d)->craft_skill = var;
+    if (var == -1)
+    {
+      OLC_CRAFT(d)->craft_skill_level = 0;
+      craftedit_disp_menu(d);
+      return;
+    }
 
     write_to_output(d, "At what level?: ");
     OLC_MODE(d) = CRAFTEDIT_SKILL_LEVEL;

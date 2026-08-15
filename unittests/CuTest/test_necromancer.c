@@ -430,6 +430,36 @@ void Test_necromancer_touch_command_declares_swift_action(CuTest *tc)
   CuAssertIntEquals(tc, ACTION_SWIFT, actions_required);
 }
 
+void Test_action_queue_execution_consumes_the_dequeued_action(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct action_data *action;
+  bool created_command_list = false;
+
+  setup_necromancer_character(&ch, &player_specials);
+  GET_POS(&ch) = POS_STANDING;
+  GET_QUEUE(&ch) = create_action_queue();
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  action = calloc(1, sizeof(*action));
+  action->argument = strdup("abort");
+  action->actions_required = ACTION_NONE;
+  enqueue_action(GET_QUEUE(&ch), action);
+  execute_next_action(&ch);
+
+  CuAssertIntEquals(tc, 0, pending_actions(&ch));
+
+  free_action_queue(GET_QUEUE(&ch));
+  GET_QUEUE(&ch) = NULL;
+  if (created_command_list)
+    free_command_list();
+}
+
 void Test_necromancer_at_will_summons_skip_prepared_resource_extraction(CuTest *tc)
 {
   struct char_data ch;

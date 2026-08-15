@@ -1,6 +1,6 @@
 # Valgrind Full Command Audit - 2026-08-15
 
-Status: audit complete; five findings remain open.
+Status: resolved and verified on 2026-08-16; all five findings are closed.
 
 This document records a clean local-development build, a live inventory-driven command sweep under
 Valgrind Memcheck, a simple self-target pass, an idle observation window, controlled teardown, and a
@@ -30,6 +30,32 @@ possibly lost bytes and no invalid-access or uninitialized-value diagnostics.
 
 Local Ollama model absence and local I3 connection refusal are expected development-environment
 conditions and are explicitly outside this report's findings.
+
+## Resolution - 2026-08-16
+
+All five findings were repaired in development without changing local Ollama or I3 behavior.
+
+| Finding | Status | Resolution |
+|---------|--------|------------|
+| F01 | Resolved | Craft skill identifiers are validated centrally. `-1` is handled as an intentional no-skill requirement, while loaders, OLC, and runtime paths reject every other invalid identifier before accessing the skill array. |
+| F02 | Resolved | `mag_groups` now uses a function-local merge iterator, so nested affect and group calculations cannot corrupt a global `simple_list` traversal. Player-plus-pet regressions complete for both Inspire Courage and Final Stand. |
+| F03 | Resolved | Zone status labels use static storage, wild-shape modifiers are caller-owned, `whois` frees the duplicated account name, and executed action-queue nodes and arguments are freed after dispatch. |
+| F04 | Resolved | Split Enchantment consistently uses perk ownership, exposes a clamped cooldown helper, treats expired timestamps as ready, and never reports negative remaining time. |
+| F05 | Resolved | Pager boundaries now include descriptor capacity, existing queued output, protocol expansion, and prompt/footer headroom. Maximum 255-by-200 settings split output into safe pages without losing the final item. |
+
+Production-linked regressions cover the no-skill craft, nested two-member group affects, executed
+action ownership, perk/feat namespace disagreement, active and expired cooldowns, and maximum pager
+settings. The authoritative release gate passed `make clean`, a warning-free parallel build, and
+`make test-all`: 730 CuTests, 414 world-tool tests, 29 protocol-parser tests, both character-rename
+checks, and `make install`. The install removed the root-level `circle` artifact.
+
+A focused live Memcheck run then invoked `crafting`, `zlist`, `wildshape`, `whois Kohdee`,
+`splitenchantment`, `featlisting`, `shoplist`, `inspirecourage`, and `finalstand` through the same
+marker- and pager-aware harness used by the audit. All commands returned; a fresh-action retry
+confirmed the full Final Stand effect path. At page length 255 and screen width 200, the large
+listings paged without an overflow marker. Plain `shutdown` reached normal termination and MySQL
+pool destruction. Memcheck reported zero errors, zero definitely, indirectly, or possibly lost
+bytes, and four descriptors at exit (three standard descriptors plus its log).
 
 ## Build and runtime identity
 
@@ -137,7 +163,7 @@ equipment were empty, and no pets remained. Page length and screen width were re
 
 ## Findings
 
-### F01 - `crafting` reads before the character skill array (high)
+### F01 - `crafting` reads before the character skill array (high; resolved)
 
 Invoking `crafting` without arguments produced the audit's only invalid-access context:
 
@@ -155,11 +181,11 @@ explicitly use `-1` for "No Skill" elsewhere in the same file, so a no-skill cra
 integer before the character's skill storage. The same unguarded craft-skill value is also consumed
 at `src/craft/crafts.c:705`, `:802`, and `:805`.
 
-Recommended direction: centralize validation for the craft skill identifier, handle `-1` as a
-deliberate no-skill case, reject other out-of-range values while loading/editing, and add a
-production-linked regression containing a no-skill craft.
+Resolution: craft identifiers now pass through `craft_skill_id_is_valid`; no-skill crafts bypass
+the character skill array deliberately, invalid persisted or edited identifiers are rejected, and
+a production-linked regression covers the legacy `-1` record.
 
-### F02 - Group inspiration abilities can freeze the game loop (high)
+### F02 - Group inspiration abilities can freeze the game loop (high; resolved)
 
 `inspirecourage` and `finalstand` each stopped command processing in a separate fresh process.
 Neither command returned to the game loop, reconnect attempts were not accepted, and the checkpoint
@@ -181,11 +207,11 @@ The watchdog signal stack identifies the checkpoint thread that called `abort`, 
 main-thread frame, so the iterator diagnosis is a source-supported inference rather than a captured
 main-thread backtrace.
 
-Recommended direction: replace the `mag_groups` traversal with a local
-`iterator_data`/merge-iterator loop that remains valid across nested affect calls, remove the
-unreset probe at line 10808, and add grouped player-plus-pet regressions for both abilities.
+Resolution: `mag_groups` now snapshots the group and traverses members with a local merge iterator.
+The unreset global-iterator probe is gone, and a grouped player-plus-pet regression exercises both
+Inspire Courage and Final Stand through nested affect calculations.
 
-### F03 - Four command paths leak 6,067 bytes (medium)
+### F03 - Four command paths leak 6,067 bytes (medium; resolved)
 
 The completed command process reported 6,022 definitely lost bytes and 45 indirectly lost bytes.
 The boot/login normal-shutdown baseline reported zero lost bytes, and the XTree allocation paths
@@ -198,11 +224,12 @@ account for the complete 6,067-byte difference:
 | `whois Kohdee` | 6 B | 1 | `get_char_account_name` returns `strdup` storage at `src/account.c:941`; caller at `src/act.informative.c:9128` does not free it |
 | Aborted queued actions | 93 B total (48 direct, 45 indirect) | 3 | Action nodes and duplicated arguments allocated at `src/interpreter.c:6317-6319` remain lost after queue cleanup |
 
-Recommended direction: use static zone status literals, make wild-shape modifiers caller-owned and
-free each allocation, store/free the account-name result around `send_to_char`, and make abort,
-disconnect, and character cleanup release both action nodes and their argument strings.
+Resolution: zone status text now uses static literals; wild-shape modifiers use stack storage;
+`whois` stores and frees the duplicated account name; and action execution frees both the dequeued
+node and its duplicated argument after dispatch. Queue clearing already owned both allocations and
+continues to free them.
 
-### F04 - Split Enchantment reports an expired negative cooldown (medium)
+### F04 - Split Enchantment reports an expired negative cooldown (medium; resolved)
 
 The no-argument pass printed:
 
@@ -217,11 +244,11 @@ Available in: -38189 seconds
 enters the cooldown branch even though the stored timestamp is already expired, and line 5374
 subtracts the current time without clamping.
 
-Recommended direction: use the perk predicate consistently, treat an expired timestamp as ready,
-and add tests for disabled perk configuration, absent perk, ready state, active cooldown, and
-expired persisted cooldown.
+Resolution: the command and cooldown predicate now use `has_perk` consistently. A shared remaining-
+cooldown helper clamps expired values to zero and oversized values to `INT_MAX`; regressions cover
+the feat/perk collision, an active cooldown, and an expired persisted cooldown.
 
-### F05 - Maximum page length still overflows descriptor output (low)
+### F05 - Maximum page length still overflows descriptor output (low; resolved)
 
 At the supported `pagelength 255` and `screenwidth 200` settings, `featlisting` appended
 `**OVERFLOW**` near feat 120 and `shoplist` appended it near shop 106. Both commands now build
@@ -229,9 +256,9 @@ dynamic rows and pass them to `column_list`, but `page_string` can still fill th
 descriptor output buffer before `process_output` appends the marker at
 `src/comm.c:2979-2988`.
 
-Recommended direction: bound page length by the descriptor output capacity or stream large pager
-pages in output-sized chunks. Add coverage at the maximum accepted page length and screen width,
-not only the normal 40-by-80 setting.
+Resolution: `next_page` now applies a conservative encoded-output budget beneath descriptor
+capacity, accounts for already queued output, and reserves footer and prompt headroom. A regression
+at page length 255 and screen width 200 verifies multiple safe pages and complete final output.
 
 ## Non-findings and interpretation notes
 
@@ -275,12 +302,12 @@ Key evidence files:
   allocation paths.
 - `run4-normal-shutdown/runtime.log`, `valgrind.284679.log`, and
   `xtleak.kcg.284679`: normal-cleanup baseline.
+- `resolution-20260816/commands.coverage.tsv`, `commands.raw.log`, and
+  `finalstand.raw.log`: repaired command completion and maximum-pager evidence.
+- `resolution-20260816/runtime.log`, `valgrind.427926.log`, and
+  `xtleak.kcg.427926`: repaired normal-shutdown and zero-error Memcheck evidence.
 
-## Recommended order
+## Closure
 
-1. Fix and regress F01 because it is a confirmed out-of-bounds read.
-2. Replace the non-reentrant group traversal and reproduce F02 under a debugger.
-3. Repair the four ownership paths in F03 and rerun the completed command segment with plain
-   shutdown.
-4. Correct Split Enchantment gating and expired cooldown handling.
-5. Make maximum-size pager output respect descriptor capacity.
+The repair followed the original recommended order. No remediation item from this audit remains
+open; retain this report and its ignored raw evidence as the command-sweep and resolution record.

@@ -18354,11 +18354,23 @@ bool can_use_split_enchantment_perk(struct char_data *ch)
   if (!has_perk(ch, PERK_WIZARD_SPLIT_ENCHANTMENT))
     return FALSE;
 
-  /* Check cooldown */
-  if (ch->player_specials->saved.split_enchantment_cooldown > time(0))
-    return FALSE;
+  return get_split_enchantment_cooldown_remaining(ch) == 0;
+}
 
-  return TRUE;
+int get_split_enchantment_cooldown_remaining(struct char_data *ch)
+{
+  time_t remaining;
+
+  if (!ch || IS_NPC(ch))
+    return 0;
+
+  remaining = ch->player_specials->saved.split_enchantment_cooldown - time(0);
+  if (remaining <= 0)
+    return 0;
+  if (remaining > INT_MAX)
+    return INT_MAX;
+
+  return (int)remaining;
 }
 
 /**

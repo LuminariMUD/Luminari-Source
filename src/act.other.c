@@ -3505,11 +3505,11 @@ void init_wild_shape_mods(struct wild_shape_mods *abil_mods)
 }
 
 /* stat modifications for wildshape! */
-struct wild_shape_mods *set_wild_shape_mods(int race)
+static void set_wild_shape_mods(int race, struct wild_shape_mods *abil_mods)
 {
-  struct wild_shape_mods *abil_mods;
+  if (abil_mods == NULL)
+    return;
 
-  CREATE(abil_mods, struct wild_shape_mods, 1);
   init_wild_shape_mods(abil_mods);
 
   /* racial-SIZE and default */
@@ -3939,8 +3939,6 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
   default:
     break;
   }
-
-  return abil_mods;
 }
 
 /* At 6th level, a druid can use wild shape to change into a Large or Tiny animal
@@ -3969,10 +3967,7 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
                                      int mode)
 {
   int i = 0;
-  struct wild_shape_mods *abil_mods;
-
-  CREATE(abil_mods, struct wild_shape_mods, 1);
-  init_wild_shape_mods(abil_mods);
+  struct wild_shape_mods abil_mods;
 
   /* human = 0, we gotta fix it, but we think a ZERO value is no disguise */
   for (i = 1; i < NUM_EXTENDED_RACES; i++)
@@ -4143,49 +4138,47 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         continue;
       } /* end family switch */
     }
-    abil_mods = set_wild_shape_mods(i);
+    set_wild_shape_mods(i, &abil_mods);
     if (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE) && mode == 0)
     {
-      abil_mods->strength += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-      abil_mods->dexterity += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-      abil_mods->constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-      abil_mods->natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+      abil_mods.strength += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+      abil_mods.dexterity += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+      abil_mods.constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+      abil_mods.natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
     }
     if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
     { // polymorph
-      abil_mods->strength += 2;
-      abil_mods->dexterity += 2;
-      abil_mods->constitution += 2;
-      abil_mods->natural_armor += 1;
+      abil_mods.strength += 2;
+      abil_mods.dexterity += 2;
+      abil_mods.constitution += 2;
+      abil_mods.natural_armor += 1;
     }
     if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
     { // polymorph
-      abil_mods->strength += 2;
-      abil_mods->dexterity += 2;
-      abil_mods->constitution += 2;
-      abil_mods->natural_armor += 1;
+      abil_mods.strength += 2;
+      abil_mods.dexterity += 2;
+      abil_mods.constitution += 2;
+      abil_mods.natural_armor += 1;
     }
     if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
     { // polymorph
-      abil_mods->strength += 2;
-      abil_mods->dexterity += 2;
-      abil_mods->constitution += 2;
-      abil_mods->natural_armor += 1;
+      abil_mods.strength += 2;
+      abil_mods.dexterity += 2;
+      abil_mods.constitution += 2;
+      abil_mods.natural_armor += 1;
     }
     if (!silent && race_list[i].name != NULL)
     {
       send_to_char(ch, "%-40s Str [%s%-2d] Con [%s%-2d] Dex [%s%-2d] NatAC [%s%-2d]\r\n",
-                   race_list[i].name, abil_mods->strength >= 0 ? "+" : " ", abil_mods->strength,
-                   abil_mods->constitution >= 0 ? "+" : " ", abil_mods->constitution,
-                   abil_mods->dexterity >= 0 ? "+" : " ", abil_mods->dexterity,
-                   abil_mods->natural_armor >= 0 ? "+" : " ", abil_mods->natural_armor);
+                   race_list[i].name, abil_mods.strength >= 0 ? "+" : " ", abil_mods.strength,
+                   abil_mods.constitution >= 0 ? "+" : " ", abil_mods.constitution,
+                   abil_mods.dexterity >= 0 ? "+" : " ", abil_mods.dexterity,
+                   abil_mods.natural_armor >= 0 ? "+" : " ", abil_mods.natural_armor);
     }
 
     if (race_list[i].name != NULL && is_abbrev(argument, race_list[i].name)) /* match argument? */
       break;
   } /* end race list loop */
-
-  // free(abil_mods);
 
   if (i >= NUM_EXTENDED_RACES || i < 0)
     return -1; /* failed to find anything */
@@ -4658,7 +4651,7 @@ bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
 {
   int i = 0;
   char buf[200];
-  struct wild_shape_mods *abil_mods;
+  struct wild_shape_mods abil_mods;
 
   skip_spaces_c(&argument);
 
@@ -4706,51 +4699,51 @@ bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
   SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
   GET_DISGUISE_RACE(ch) = i;
   /* determine modifiers */
-  abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
+  set_wild_shape_mods(GET_DISGUISE_RACE(ch), &abil_mods);
   if (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE) && mode == 0) // wildshape
   {
-    abil_mods->strength += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-    abil_mods->dexterity += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-    abil_mods->constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
-    abil_mods->natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+    abil_mods.strength += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+    abil_mods.dexterity += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+    abil_mods.constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+    abil_mods.natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
   }
   if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
   { // polymorph
-    abil_mods->strength += 2;
-    abil_mods->dexterity += 2;
-    abil_mods->constitution += 2;
-    abil_mods->natural_armor += 1;
+    abil_mods.strength += 2;
+    abil_mods.dexterity += 2;
+    abil_mods.constitution += 2;
+    abil_mods.natural_armor += 1;
   }
   if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
   { // polymorph
-    abil_mods->strength += 2;
-    abil_mods->dexterity += 2;
-    abil_mods->constitution += 2;
-    abil_mods->natural_armor += 1;
+    abil_mods.strength += 2;
+    abil_mods.dexterity += 2;
+    abil_mods.constitution += 2;
+    abil_mods.natural_armor += 1;
   }
   if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
   { // polymorph
-    abil_mods->strength += 2;
-    abil_mods->dexterity += 2;
-    abil_mods->constitution += 2;
-    abil_mods->natural_armor += 1;
+    abil_mods.strength += 2;
+    abil_mods.dexterity += 2;
+    abil_mods.constitution += 2;
+    abil_mods.natural_armor += 1;
   }
   /* Druid perk bonuses - Mighty Wild Shape and Primal Avatar */
   if (!IS_NPC(ch) && mode == 0) // wildshape only
   {
     if (has_perk(ch, PERK_DRUID_MIGHTY_WILD_SHAPE))
     {
-      abil_mods->strength += 4;
-      abil_mods->constitution += 4;
+      abil_mods.strength += 4;
+      abil_mods.constitution += 4;
     }
     if (has_perk(ch, PERK_DRUID_PRIMAL_AVATAR))
     {
-      abil_mods->dexterity += 4;
+      abil_mods.dexterity += 4;
     }
   }
   /* set the bonuses */
-  set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution, abil_mods->dexterity,
-                  abil_mods->natural_armor);
+  set_bonus_stats(ch, abil_mods.strength, abil_mods.constitution, abil_mods.dexterity,
+                  abil_mods.natural_armor);
   /* all stat modifications are done */
 
   /* assign appropriate racial/mobile feats here */
@@ -5356,22 +5349,23 @@ ACMD(do_persistentspell)
 
 ACMD(do_splitenchantment)
 {
+  int remaining;
+
   if (IS_NPC(ch))
   {
     send_to_char(ch, "NPCs cannot use this command.\r\n");
     return;
   }
 
-  if (!HAS_FEAT(ch, PERK_WIZARD_SPLIT_ENCHANTMENT))
+  if (!has_perk(ch, PERK_WIZARD_SPLIT_ENCHANTMENT))
   {
     send_to_char(ch, "You need the Split Enchantment perk to use this command.\r\n");
     return;
   }
 
-  /* Check if on cooldown */
-  if (!can_use_split_enchantment_perk(ch))
+  remaining = get_split_enchantment_cooldown_remaining(ch);
+  if (remaining > 0)
   {
-    int remaining = (int)(ch->player_specials->saved.split_enchantment_cooldown - time(0));
     send_to_char(ch, "Split Enchantment is on cooldown.\r\n");
     send_to_char(ch, "Available in: %d seconds\r\n", remaining);
     return;

@@ -45,6 +45,9 @@ static void bonds_string_cleanup(struct descriptor_data *d, int action);
 static void flaws_string_cleanup(struct descriptor_data *d, int action);
 static void board_post_string_cleanup(struct descriptor_data *d, int action);
 
+#define PAGER_OUTPUT_HEADROOM 1024
+#define PAGER_CONTROL_OUTPUT_BYTES 16
+
 void new_mail_string_cleanup(struct descriptor_data *d, int action);
 
 /* Local (file scope) global variables */
@@ -793,6 +796,16 @@ ACMDU(do_featset)
 static char *next_page(char *str, struct char_data *ch)
 {
   int col = 1, line = 1, count, pw;
+  size_t output_bytes = 0;
+  size_t output_limit = LARGE_BUFSIZE - PAGER_OUTPUT_HEADROOM;
+
+  if (ch != NULL && ch->desc != NULL && ch->desc->bufptr > 0)
+  {
+    if ((size_t)ch->desc->bufptr + PAGER_OUTPUT_HEADROOM >= LARGE_BUFSIZE)
+      output_limit = 1;
+    else
+      output_limit = LARGE_BUFSIZE - (size_t)ch->desc->bufptr - PAGER_OUTPUT_HEADROOM;
+  }
 
   pw = (GET_SCREEN_WIDTH(ch) >= 40 && GET_SCREEN_WIDTH(ch) <= 250) ? GET_SCREEN_WIDTH(ch)
                                                                    : PAGE_WIDTH;
@@ -803,22 +816,36 @@ static char *next_page(char *str, struct char_data *ch)
     if (*str == '\0')
       return (NULL);
 
+    /* A configured page can be wider than the descriptor output queue. Keep each
+     * pager record below that queue's capacity, including conservative allowance
+     * for protocol color/MXP expansion and the page footer. */
+    if (output_bytes >= output_limit)
+      return (str);
+
     /* If we're at the start of the next page, return this fact. */
     else if (line > (GET_PAGE_LENGTH(ch) - (PRF_FLAGGED(ch, PRF_COMPACT) ? 1 : 2)))
       return (str);
 
     /* Check for the beginning of an ANSI color code block. */
     else if (*str == '\x1B') /* Jump to the end of the ANSI code, or max 9 chars */
-      for (count = 0; *str != 'm' && count < 9; count++)
+    {
+      output_bytes++;
+      for (count = 0; *str != 'm' && *(str + 1) != '\0' && count < 9; count++)
+      {
         str++;
+        output_bytes++;
+      }
+    }
 
     else if (*str == '\t')
     {
-      if (*(str + 1) != '\t')
+      output_bytes += PAGER_CONTROL_OUTPUT_BYTES;
+      if (*(str + 1) != '\0')
         str++;
     } /* Check for everything else. */
     else
     {
+      output_bytes++;
       /* Carriage return puts us in column one. */
       if (*str == '\r')
         col = 1;

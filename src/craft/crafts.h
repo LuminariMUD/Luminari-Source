@@ -72,6 +72,7 @@ struct requirement_data
 
 struct craft_data *create_craft(void);
 void free_craft(struct craft_data *craft);
+bool craft_skill_id_is_valid(int skill);
 void load_crafts(void);
 void list_all_crafts(struct char_data *ch);
 void list_available_crafts(struct char_data *ch);

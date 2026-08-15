@@ -10732,6 +10732,8 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj, int spell
 {
   const char *to_char = NULL, *to_room = NULL;
   struct char_data *tch = NULL;
+  struct group_data *group;
+  struct iterator_data iterator = {0};
   bool hit_self = FALSE, hit_leader = FALSE;
 
   if (ch == NULL)
@@ -10798,14 +10800,15 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj, int spell
   }
 
   /* if you are not groupped, just hit self with this spell and exit */
-  if (!GROUP(ch))
+  group = GROUP(ch);
+  if (group == NULL || group->members == NULL)
   {
     perform_mag_groups(level, ch, ch, obj, spellnum, savetype, casttype);
     return;
   }
 
-  /* if you are not groupped, just hit self with this spell and exit */
-  if ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) == NULL)
+  tch = (struct char_data *)merge_iterator(&iterator, group->members);
+  if (tch == NULL)
   {
     perform_mag_groups(level, ch, ch, obj, spellnum, savetype, casttype);
     return;
@@ -10816,13 +10819,7 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj, int spell
   if (to_room != NULL)
     act(to_room, FALSE, ch, 0, 0, TO_ROOM);
 
-  /* Beginner's Note: Reset simple_list iterator before use to prevent
-   * cross-contamination from previous iterations. Without this reset,
-   * if simple_list was used elsewhere and not completed, it would
-   * continue from where it left off instead of starting fresh. */
-  simple_list(NULL);
-
-  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+  for (; tch != NULL; tch = (struct char_data *)next_in_list(&iterator))
   {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
@@ -10831,24 +10828,25 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj, int spell
       hit_self = TRUE;
 
     /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
-    if (GROUP(ch)->leader && GROUP(ch)->leader == tch)
+    if (group->leader && group->leader == tch)
       hit_leader = TRUE;
 
     perform_mag_groups(level, ch, tch, obj, spellnum, savetype, casttype);
   }
+  remove_iterator(&iterator);
 
   /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
   if (!hit_self)
   {
     perform_mag_groups(level, ch, ch, obj, spellnum, savetype, casttype);
 
-    if (ch == GROUP(ch)->leader)
+    if (ch == group->leader)
       hit_leader = TRUE;
   }
 
   /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
-  if (!hit_leader && GROUP(ch)->leader && IN_ROOM(GROUP(ch)->leader) == IN_ROOM(ch))
-    perform_mag_groups(level, ch, GROUP(ch)->leader, obj, spellnum, savetype, casttype);
+  if (!hit_leader && group->leader && IN_ROOM(group->leader) == IN_ROOM(ch))
+    perform_mag_groups(level, ch, group->leader, obj, spellnum, savetype, casttype);
 
   if (affected_by_spell(ch, PSIONIC_ABILITY_MASTERMIND))
     affect_from_char(ch, PSIONIC_ABILITY_MASTERMIND);

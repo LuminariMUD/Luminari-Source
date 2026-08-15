@@ -222,6 +222,7 @@ struct attack_action_data *peek_attack(struct queue_type *queue)
 void execute_next_action(struct char_data *ch)
 {
   struct action_data *action = NULL;
+  char *argument;
 
   if (ch == NULL)
     return;
@@ -235,7 +236,10 @@ void execute_next_action(struct char_data *ch)
     return;
 
   action = dequeue_action(GET_QUEUE(ch));
-  command_interpreter(ch, action->argument);
+  argument = action->argument;
+  free(action);
+  command_interpreter(ch, argument);
+  free(argument);
 };
 
 /* Check if there are pending actions on the queue. */

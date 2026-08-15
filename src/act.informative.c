@@ -9066,8 +9066,9 @@ ACMD(do_history)
 ACMD(do_whois)
 {
   struct char_data *victim = 0;
+  char *account_name = NULL;
   int hours;
-  int got_from_file = 0, c_r;
+  int got_from_file = 0, c_r, i, counter = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   clan_rnum c_n;
 
@@ -9125,7 +9126,9 @@ ACMD(do_whois)
   /* Show immortals account information */
   if (GET_LEVEL(ch) >= LVL_IMMORT)
   {
-    send_to_char(ch, "Account Name: %s\r\n", get_char_account_name(GET_NAME(victim)));
+    account_name = get_char_account_name(GET_NAME(victim));
+    send_to_char(ch, "Account Name: %s\r\n", account_name ? account_name : "Unknown");
+    free(account_name);
   }
 
   // sprinttype(victim->player.chclass, CLSLIST_NAME, buf, sizeof (buf));
@@ -9134,7 +9137,6 @@ ACMD(do_whois)
 
   send_to_char(ch, "\tCClass(es):\tn ");
 
-  int i, counter = 0;
   for (i = 0; i < MAX_CLASSES; i++)
   {
     if (CLASS_LEVEL(victim, i))

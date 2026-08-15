@@ -669,6 +669,7 @@ void use_persistent_spell_perk(struct char_data *ch);
 bool is_persistent_spell_active(struct char_data *ch);
 void clear_persistent_spell_active(struct char_data *ch);
 bool can_use_split_enchantment_perk(struct char_data *ch);
+int get_split_enchantment_cooldown_remaining(struct char_data *ch);
 void use_split_enchantment_perk(struct char_data *ch);
 
 /* Defensive Casting perk functions */

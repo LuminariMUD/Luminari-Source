@@ -1800,7 +1800,7 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
   zone_rnum i;
   zone_vnum bottom, top;
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  char *buf2;
+  const char *status;
   bool use_name = FALSE;
 
   bottom = vmin;
@@ -1838,16 +1838,16 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
       {
         /* status display added for head builder */
         if (ZONE_FLAGGED(i, ZONE_CLOSED))
-          buf2 = strdup("\trIncomp\tn");
+          status = "\trIncomp\tn";
         else if (ZONE_FLAGGED(i, ZONE_GRID))
-          buf2 = strdup("\tGReady\tn ");
+          status = "\tGReady\tn ";
         else
-          buf2 = strdup("\tmN-Reva\tn");
+          status = "\tmN-Reva\tn";
 
         len = snprintf_append(
             buf, sizeof(buf), len, "[%s%3d%s] %s%-*s %s %s%-1s%s\r\n", QGRN, zone_table[i].number,
-            QNRM, QCYN, count_color_chars(zone_table[i].name) + 26, zone_table[i].name, buf2, QYEL,
-            zone_table[i].builders ? zone_table[i].builders : "None.", QNRM);
+            QNRM, QCYN, count_color_chars(zone_table[i].name) + 26, zone_table[i].name, status,
+            QYEL, zone_table[i].builders ? zone_table[i].builders : "None.", QNRM);
         counter++;
       }
     }

@@ -367,6 +367,77 @@ void Test_column_list_pages_complete_output_with_visible_separators(CuTest *tc)
   ProtocolDestroy(descriptor.pProtocol);
 }
 
+void Test_column_list_maximum_page_settings_stay_within_descriptor_capacity(CuTest *tc)
+{
+  const char *items[300];
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  bool all_pages_fit = true;
+  bool saw_last_item = false;
+  int initial_page_count;
+  int i;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  for (i = 0; i < 300; i++)
+    items[i] = "maximum pager boundary item";
+
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  ch.desc = &descriptor;
+  ch.player_specials = &player_specials;
+  ch.player.name = "maximum pager boundary test character";
+  GET_SCREEN_WIDTH(&ch) = 200;
+  GET_PAGE_LENGTH(&ch) = 255;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize the maximum pager boundary fixture");
+    return;
+  }
+
+  column_list(&ch, 1, items, 300, TRUE);
+  initial_page_count = descriptor.showstr_count;
+
+  while (descriptor.showstr_count > 0)
+  {
+    if (descriptor.bufspace == 0 || strstr(descriptor.output, "OVERFLOW") != NULL)
+      all_pages_fit = false;
+    if (strstr(descriptor.output, "300) maximum pager boundary item") != NULL)
+      saw_last_item = true;
+
+    descriptor.output[0] = '\0';
+    descriptor.bufptr = 0;
+    descriptor.bufspace = descriptor.large_outbuf ? LARGE_BUFSIZE - 1 : SMALL_BUFSIZE - 1;
+    if (descriptor.showstr_count > 0)
+      show_string(&descriptor, "");
+  }
+
+  if (descriptor.bufspace == 0 || strstr(descriptor.output, "OVERFLOW") != NULL)
+    all_pages_fit = false;
+  if (strstr(descriptor.output, "300) maximum pager boundary item") != NULL)
+    saw_last_item = true;
+
+  ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+    if (buf_largecount > 0)
+      buf_largecount--;
+  }
+
+  CuAssertTrue(tc, initial_page_count > 1);
+  CuAssertTrue(tc, all_pages_fit);
+  CuAssertTrue(tc, saw_last_item);
+}
+
 void Test_add_commas_supports_multiple_values_in_one_format(CuTest *tc)
 {
   const char *first;

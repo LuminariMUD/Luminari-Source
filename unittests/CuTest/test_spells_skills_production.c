@@ -1206,6 +1206,255 @@ void Test_empty_craft_lifecycle_releases_requirements_list(CuTest *tc)
   free_craft(craft);
 }
 
+void Test_legacy_no_skill_craft_is_available_without_a_skill_array_lookup(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  struct craft_data craft;
+  struct list_data craft_list;
+  struct list_data requirements;
+  struct item_data craft_item;
+  struct list_data *saved_craft_list;
+  bool listed;
+
+  clear_char(&ch);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&craft, 0, sizeof(craft));
+  memset(&craft_list, 0, sizeof(craft_list));
+  memset(&requirements, 0, sizeof(requirements));
+  memset(&craft_item, 0, sizeof(craft_item));
+
+  ch.player_specials = &player_specials;
+  ch.player.name = "no-skill craft test character";
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize the no-skill craft descriptor");
+    return;
+  }
+
+  craft.craft_name = "No Skill Test Craft";
+  craft.craft_skill = -1;
+  craft.craft_skill_level = 0;
+  craft.requirements = &requirements;
+  craft_item.pContent = &craft;
+  craft_list.pFirstItem = &craft_item;
+  craft_list.pLastItem = &craft_item;
+  craft_list.iSize = 1;
+
+  saved_craft_list = global_craft_list;
+  global_craft_list = &craft_list;
+  list_available_crafts(&ch);
+  listed = strstr(descriptor.output, "No Skill Test Craft") != NULL;
+  simple_list(NULL);
+  global_craft_list = saved_craft_list;
+
+  ch.desc = NULL;
+  cleanup_test_descriptor(&descriptor);
+
+  CuAssertTrue(tc, craft_skill_id_is_valid(-1));
+  CuAssertTrue(tc, craft_skill_id_is_valid(1));
+  CuAssertTrue(tc, craft_skill_id_is_valid(TOP_SKILL_DEFINE));
+  CuAssertTrue(tc, !craft_skill_id_is_valid(-2));
+  CuAssertTrue(tc, !craft_skill_id_is_valid(0));
+  CuAssertTrue(tc, !craft_skill_id_is_valid(TOP_SKILL_DEFINE + 1));
+  CuAssertTrue(tc, listed);
+}
+
+void Test_group_inspiration_affects_finish_with_nested_group_calculations(CuTest *tc)
+{
+  struct char_data ch;
+  struct char_data pet;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  struct group_data group;
+  struct list_data members;
+  struct item_data ch_item;
+  struct item_data pet_item;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  bool inspire_on_ch;
+  bool inspire_on_pet;
+  bool final_stand_on_ch;
+  bool final_stand_on_pet;
+  int i;
+
+  if (spell_info[AFFECT_INSPIRE_COURAGE].name == NULL ||
+      spell_info[AFFECT_INSPIRE_COURAGE].name == unused_spellname)
+    mag_assign_spells();
+
+  clear_char(&ch);
+  clear_char(&pet);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&group, 0, sizeof(group));
+  memset(&members, 0, sizeof(members));
+  memset(&ch_item, 0, sizeof(ch_item));
+  memset(&pet_item, 0, sizeof(pet_item));
+  memset(&room, 0, sizeof(room));
+
+  ch.player_specials = &player_specials;
+  ch.player.name = "group inspiration test character";
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize the group inspiration descriptor");
+    return;
+  }
+  GET_LEVEL(&ch) = 30;
+  GET_POS(&ch) = POS_STANDING;
+  IN_ROOM(&ch) = 0;
+  for (i = 1; i < FEAT_LAST_FEAT; i++)
+    SET_FEAT(&ch, i, 1);
+
+  SET_BIT_AR(MOB_FLAGS(&pet), MOB_ISNPC);
+  pet.player_specials = &dummy_mob;
+  pet.player.short_descr = "group inspiration test pet";
+  GET_LEVEL(&pet) = 20;
+  GET_POS(&pet) = POS_STANDING;
+  IN_ROOM(&pet) = 0;
+
+  group.leader = &ch;
+  group.members = &members;
+  GROUP((&ch)) = &group;
+  GROUP((&pet)) = &group;
+  ch_item.pContent = &ch;
+  ch_item.pNextItem = &pet_item;
+  pet_item.pContent = &pet;
+  pet_item.pPrevItem = &ch_item;
+  members.pFirstItem = &ch_item;
+  members.pLastItem = &pet_item;
+  members.iSize = 2;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+  room.people = &ch;
+  ch.next_in_room = &pet;
+
+  mag_groups(GET_LEVEL(&ch), &ch, NULL, AFFECT_INSPIRE_COURAGE, SAVING_WILL, CAST_INNATE);
+  inspire_on_ch = affected_by_spell(&ch, AFFECT_INSPIRE_COURAGE);
+  inspire_on_pet = affected_by_spell(&pet, AFFECT_INSPIRE_COURAGE);
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+  while (pet.affected != NULL)
+    affect_remove_no_total(&pet, pet.affected);
+
+  mag_groups(GET_LEVEL(&ch), &ch, NULL, AFFECT_FINAL_STAND, SAVING_WILL, CAST_INNATE);
+  final_stand_on_ch = affected_by_spell(&ch, AFFECT_FINAL_STAND);
+  final_stand_on_pet = affected_by_spell(&pet, AFFECT_FINAL_STAND);
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+  while (pet.affected != NULL)
+    affect_remove_no_total(&pet, pet.affected);
+
+  simple_list(NULL);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  ch.desc = NULL;
+  cleanup_test_descriptor(&descriptor);
+
+  CuAssertTrue(tc, inspire_on_ch);
+  CuAssertTrue(tc, inspire_on_pet);
+  CuAssertTrue(tc, final_stand_on_ch);
+  CuAssertTrue(tc, final_stand_on_pet);
+  CuAssertIntEquals(tc, 0, members.iIterators);
+}
+
+void Test_split_enchantment_uses_perk_ownership_and_nonnegative_cooldowns(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  struct char_perk_data split_perk;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  time_t now;
+  bool rejected_feat_collision;
+  bool active_cooldown_reported;
+  bool expired_cooldown_activated;
+
+  clear_char(&ch);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&split_perk, 0, sizeof(split_perk));
+  memset(&room, 0, sizeof(room));
+  ch.player_specials = &player_specials;
+  ch.player.name = "split enchantment test character";
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize the split enchantment descriptor");
+    return;
+  }
+  GET_LEVEL(&ch) = 1;
+  IN_ROOM(&ch) = 0;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+  room.people = &ch;
+
+  SET_FEAT(&ch, PERK_WIZARD_SPLIT_ENCHANTMENT, 1);
+  ch.player_specials->saved.split_enchantment_cooldown = time(0) - 60;
+  do_splitenchantment(&ch, "", 0, 0);
+  rejected_feat_collision = strstr(descriptor.output, "need the Split Enchantment perk") != NULL &&
+                            strstr(descriptor.output, "on cooldown") == NULL;
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  split_perk.perk_id = PERK_WIZARD_SPLIT_ENCHANTMENT;
+  split_perk.perk_class = CLASS_WIZARD;
+  split_perk.current_rank = 1;
+  ch.player_specials->saved.perks = &split_perk;
+  now = time(0);
+  ch.player_specials->saved.split_enchantment_cooldown = now + 120;
+  do_splitenchantment(&ch, "", 0, 0);
+  active_cooldown_reported = strstr(descriptor.output, "on cooldown") != NULL &&
+                             strstr(descriptor.output, "Available in: -") == NULL &&
+                             get_split_enchantment_cooldown_remaining(&ch) > 0;
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  ch.player_specials->saved.split_enchantment_cooldown = time(0) - 60;
+  do_splitenchantment(&ch, "", 0, 0);
+  expired_cooldown_activated = strstr(descriptor.output, "prepare to split") != NULL &&
+                               ch.player_specials->saved.split_enchantment_cooldown > time(0);
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  ch.player_specials->saved.perks = NULL;
+  ch.desc = NULL;
+  cleanup_test_descriptor(&descriptor);
+
+  CuAssertTrue(tc, rejected_feat_collision);
+  CuAssertTrue(tc, active_cooldown_reported);
+  CuAssertTrue(tc, expired_cooldown_activated);
+}
+
 void Test_perk_initialization_preserves_distinct_definitions(CuTest *tc)
 {
   struct perk_data *perk;

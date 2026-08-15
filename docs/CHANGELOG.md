@@ -2,6 +2,28 @@
 
 ## [Unreleased] - August 14, 2026
 
+### Valgrind full command audit remediation
+
+#### Fixed
+
+- Made no-skill crafts safe across listing, execution, loading, and OLC while rejecting every
+  other out-of-range craft skill identifier.
+- Replaced the non-reentrant group-spell member traversal that could freeze Inspire Courage and
+  Final Stand when nested affect calculations ran for grouped pets.
+- Closed ownership leaks in zone listings, wild-shape modifier calculations, immortal `whois`,
+  and executed action-queue entries.
+- Corrected Split Enchantment perk gating and expired cooldown handling, and bounded pager output
+  at the supported maximum page length and screen width.
+
+#### Verification
+
+- Added production-linked regressions for all five findings and passed a warning-free clean build,
+  730 CuTests, 414 world-tool tests, 29 protocol-parser tests, both character-rename checks, and
+  `make install` through `make test-all`.
+- Re-ran all affected live commands at maximum pager settings under Memcheck, followed by normal
+  shutdown; every command returned, no output overflowed, and Memcheck reported zero errors and
+  zero definitely, indirectly, or possibly lost bytes.
+
 ### Full command sweep remediation
 
 #### Fixed
