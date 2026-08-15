@@ -8,4 +8,4 @@ cp wld/$1.wld /home/frmud/frmud/lib/world/wld
 cp zon/$1.zon /home/frmud/frmud/lib/world/zon
 cd /home/frmud/frmud/lib/world
 chown -R frmud:frmud *
-echo Zone $1 copied to faerun d20 port
+echo Zone $1 copied to lumia d20 port
