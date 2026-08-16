@@ -362,6 +362,14 @@ int can_continue(struct char_data *ch, bool fighting)
   return 1;
 }
 
+bool npc_room_has_player(const struct char_data *ch)
+{
+  if (ch == NULL || !IS_NPC(ch) || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return false;
+
+  return num_pc_in_room(&world[IN_ROOM(ch)]) > 0;
+}
+
 /* Utility function to check if NPC should call a companion
  * Returns true if NPC should attempt to call companion
  * Takes into account combat state, existing companions, and appropriate timing
@@ -443,6 +451,9 @@ bool npc_should_call_companion(struct char_data *ch, int call_type)
   }
   else
   {
+    if (!npc_room_has_player(ch))
+      return FALSE;
+
     /* Out of combat - lower chance */
     /* 10% chance to call when not in combat */
     if (!rand_number(0, 9))

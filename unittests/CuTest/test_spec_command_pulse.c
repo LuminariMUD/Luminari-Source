@@ -142,6 +142,8 @@ static bool spec_pulse_fixture_begin(struct spec_pulse_fixture *fixture)
   fixture->saved_complete_cmd_info = complete_cmd_info;
   fixture->saved_no_specials = no_specials;
 
+  mobile_activity_reset();
+
   fixture->rooms[0].number = 100;
   fixture->rooms[1].number = 200;
   for (index = 0; index < SPEC_PULSE_MOBILE_COUNT; index++)
@@ -168,6 +170,7 @@ static void spec_pulse_fixture_end(struct spec_pulse_fixture *fixture)
   if (fixture == NULL || active_spec_pulse_fixture != fixture)
     return;
 
+  mobile_activity_reset();
   active_spec_pulse_fixture = NULL;
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;
@@ -261,6 +264,31 @@ static void spec_pulse_prepare_mobile_activity(struct spec_pulse_fixture *fixtur
   fixture->mob_indexes[0].func = callback;
   fixture->rooms[0].people = mobile;
   character_list = mobile;
+}
+
+static void spec_pulse_add_second_mobile(struct spec_pulse_fixture *fixture,
+                                         SPECIAL_DECL(*callback))
+{
+  struct char_data *mobile;
+  time_t now;
+
+  mobile = &fixture->mobiles[1];
+  now = time(NULL);
+  mobile->nr = 1;
+  IN_ROOM(mobile) = 0;
+  mobile->player.short_descr = "second pulse mobile";
+  GET_LEVEL(mobile) = 0;
+  GET_HIT(mobile) = 10;
+  GET_POS(mobile) = POS_RESTING;
+  GET_DEFAULT_POS(mobile) = POS_SITTING;
+  GET_MOB_LOADROOM(mobile) = 0;
+  mobile->mob_specials.last_slot_regen = now;
+  mobile->mob_specials.last_known_slot_regen = now;
+  spec_pulse_set_mobile_flags(mobile, true);
+
+  fixture->mob_indexes[1].func = callback;
+  fixture->mobiles[0].next = mobile;
+  fixture->mobiles[0].next_in_room = mobile;
 }
 
 static bool spec_pulse_calls_match(struct spec_pulse_fixture *fixture, void **owners,
@@ -604,7 +632,39 @@ void Test_spec_mobile_activity_activation_gates(CuTest *tc)
   CuAssertTrue(tc, missing_callback_gate);
 }
 
-void Test_spec_mobile_activity_shards_preserve_one_call_per_mobile_pulse(CuTest *tc)
+void Test_spec_mobile_activity_scheduler_visits_each_mobile_once_per_cycle(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  bool setup_ok;
+  bool distributed;
+  int activity_pulse;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize mobile fixture");
+    return;
+  }
+
+  spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
+  spec_pulse_add_second_mobile(&fixture, spec_pulse_record_callback);
+  fixture.recorder.return_count = 2;
+  fixture.recorder.returns[0] = 1;
+  fixture.recorder.returns[1] = 1;
+
+  mobile_activity_pulse(0);
+  distributed = fixture.recorder.call_count == 1;
+  for (activity_pulse = 1; activity_pulse < PULSE_MOBILE; activity_pulse++)
+    mobile_activity_pulse(activity_pulse);
+
+  CuAssertTrue(tc, distributed);
+  CuAssertIntEquals(tc, 2, fixture.recorder.call_count);
+  CuAssertPtrEquals(tc, &fixture.mobiles[0], fixture.recorder.calls[0].actor);
+  CuAssertPtrEquals(tc, &fixture.mobiles[1], fixture.recorder.calls[1].actor);
+  spec_pulse_fixture_end(&fixture);
+}
+
+void Test_spec_mobile_activity_scheduler_forgets_removed_cursor(CuTest *tc)
 {
   struct spec_pulse_fixture fixture;
   bool setup_ok;
@@ -618,10 +678,16 @@ void Test_spec_mobile_activity_shards_preserve_one_call_per_mobile_pulse(CuTest 
   }
 
   spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
-  fixture.recorder.return_count = 1;
+  spec_pulse_add_second_mobile(&fixture, spec_pulse_record_callback);
+  fixture.recorder.return_count = 2;
   fixture.recorder.returns[0] = 1;
+  fixture.recorder.returns[1] = 1;
 
-  for (activity_pulse = 0; activity_pulse < PULSE_MOBILE; activity_pulse++)
+  mobile_activity_pulse(0);
+  mobile_activity_forget_character(&fixture.mobiles[1]);
+  fixture.mobiles[0].next = NULL;
+  fixture.mobiles[0].next_in_room = NULL;
+  for (activity_pulse = 1; activity_pulse < PULSE_MOBILE; activity_pulse++)
     mobile_activity_pulse(activity_pulse);
 
   CuAssertIntEquals(tc, 1, fixture.recorder.call_count);

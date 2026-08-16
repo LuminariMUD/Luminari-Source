@@ -21,6 +21,8 @@ Commands:
          callbacks, and database queries.
   mem    Show memory dashboard: OS virtual/resident memory, anonymous RSS,
          heap allocator breakdown, rolling growth rates, and live entity inventory.
+         The inventory includes affects, affected characters, NPC followers,
+         charmed NPCs, and reset-window deltas for growth correlation.
   csv    Show sampled section data followed by cumulative game-loop counters,
          memory telemetry, event callback rows, and database queries.
   sect   Show one named profiling section.
@@ -48,6 +50,12 @@ calls with average_usec: a high total and modest average usually means excess
 callback volume, while a large maximum with few calls points to one expensive
 callback. The registry status reports registered identities out of its fixed
 512-entry capacity and counts any unregistered overflow calls.
+
+Use the memory inventory deltas with heap growth. Rising affect-node or charmed
+NPC counts indicate live gameplay population growth rather than an allocator-only
+leak. Stable entity counts with continued anonymous RSS and heap growth warrant a
+deeper allocation trace. DG wait resumption and casting callbacks do not validate
+owners by scanning global entity lists; owner teardown cancels their pending events.
 
 The game loop always executes the current heartbeat. Extra heartbeats run only
 while the batch remains within one normal 100 ms outer-loop budget. Unreplayed

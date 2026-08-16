@@ -39,6 +39,7 @@
 #include "character/perks.h"
 #include "graph.h"
 #include "perfmon.h"
+#include "mob/mob_act.h"
 
 /* local file scope variables */
 static int extractions_pending = 0;
@@ -2899,6 +2900,8 @@ void extract_char_final(struct char_data *ch)
     log("SYSERR: NOWHERE extracting char %s. (%s, extract_char_final)", GET_NAME(ch), __FILE__);
     exit(1);
   }
+
+  mobile_activity_forget_character(ch);
 
   PERF_prof_sect_init(&pr_last_attacker, "extract.last_attacker");
   PERF_prof_sect_enter(pr_last_attacker);

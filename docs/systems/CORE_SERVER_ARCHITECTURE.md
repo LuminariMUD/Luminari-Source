@@ -223,9 +223,12 @@ void heartbeat(int heart_pulse)
         // ... other per-second updates
     }
 
-    // Every 5 seconds
+    // Every pulse, process a bounded part of the six-second NPC cycle
+    mobile_activity_pulse(heart_pulse); // NPC actions
+
+    // Every 6 seconds
     if (!(heart_pulse % PULSE_MOBILE))
-        mobile_activity();              // NPC actions
+        proc_update();                  // Non-mobile special procedures
 
     // Every 30 seconds  
     if (!(heart_pulse % PULSE_ZONE))
@@ -507,6 +510,18 @@ registered count, registry capacity, top-16 report limit, and unregistered overf
 rows are ranked by cumulative execution time and include call count, total, average, and maximum
 microseconds.
 
+Mobile activity holds a cursor over the character list and divides the remaining cycle-boundary
+nodes across the remaining pulses in the six-second interval. It counts the list once per interval
+instead of filtering a full traversal on every 100 ms pulse. Extraction advances the cursor before
+the current node leaves the list. Newly inserted head nodes join the next interval. Combat AI runs
+normally, while idle NPC spell-up, psionic power-up, and companion creation require a player in the
+same room so unloaded areas do not create background affects or followers.
+
+DG Script wait events rely on the attachment lifetime contract: extracting an attached script
+cancels `GET_TRIG_WAIT`, and room relocation updates wait owners. A resumed wait therefore enters
+the script driver directly instead of scanning all characters, objects, or rooms to rediscover its
+owner.
+
 Automatic high-water reports are rate limited by severity. Catch-up diagnostics are aggregated into
 at most one log line per five seconds while every pass remains represented in PERFMON counters.
 
@@ -542,6 +557,10 @@ few calls points to one expensive invocation. Timed casting checks extraction st
 pending-extraction cleanup clears casting target references in the same batched world pass used for
 combat, guarding, hunting, and last-attacker references. Casting callback cost therefore does not
 scale with the total number of loaded characters.
+
+The memory dashboard and CSV inventory include affected characters, individual affect nodes, NPC
+followers, charmed NPCs, and entity deltas since `perfmon reset`. Compare those deltas with heap and
+anonymous RSS growth before classifying a rise as allocator leakage.
 
 ### API Functions
 

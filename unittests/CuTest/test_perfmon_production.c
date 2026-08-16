@@ -14,6 +14,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int perfmon_count_text_occurrences(const char *text, const char *needle)
+{
+  int count;
+  size_t needle_length;
+
+  if (text == NULL || needle == NULL || *needle == '\0')
+    return 0;
+
+  count = 0;
+  needle_length = strlen(needle);
+  while ((text = strstr(text, needle)) != NULL)
+  {
+    count++;
+    text += needle_length;
+  }
+  return count;
+}
+
 static struct char_data *perfmon_test_mobile(void)
 {
   struct char_data *ch;
@@ -339,6 +357,45 @@ void Test_perfmon_memory_sampling_populates_os_and_allocator_metrics(CuTest *tc)
   CuAssertTrue(tc, stats.vm_rss_kib > 0 || stats.max_rss_kib > 0);
 }
 
+void Test_perfmon_memory_sampling_counts_affects_and_npc_followers(CuTest *tc)
+{
+  struct char_data npc;
+  struct char_data companion;
+  struct char_data pc;
+  struct affected_type first_affect;
+  struct affected_type second_affect;
+  struct char_data *saved_character_list;
+  struct perf_memory_stats stats;
+
+  clear_char(&npc);
+  clear_char(&companion);
+  clear_char(&pc);
+  memset(&first_affect, 0, sizeof(first_affect));
+  memset(&second_affect, 0, sizeof(second_affect));
+  SET_BIT_AR(MOB_FLAGS(&npc), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(&companion), MOB_ISNPC);
+  SET_BIT_AR(AFF_FLAGS(&companion), AFF_CHARM);
+  companion.master = &pc;
+  npc.affected = &first_affect;
+  first_affect.next = &second_affect;
+  npc.next = &companion;
+  companion.next = &pc;
+
+  saved_character_list = character_list;
+  character_list = &npc;
+  memset(&stats, 0, sizeof(stats));
+  PERF_sample_memory(&stats);
+  character_list = saved_character_list;
+
+  CuAssertIntEquals(tc, 3, (int)stats.count_chars);
+  CuAssertIntEquals(tc, 2, (int)stats.count_mobs);
+  CuAssertIntEquals(tc, 1, (int)stats.count_pcs);
+  CuAssertIntEquals(tc, 1, (int)stats.count_affected_chars);
+  CuAssertIntEquals(tc, 2, (int)stats.count_affects);
+  CuAssertIntEquals(tc, 1, (int)stats.count_npc_followers);
+  CuAssertIntEquals(tc, 1, (int)stats.count_charmed_npcs);
+}
+
 void Test_perfmon_memory_repr_dashboard_contains_key_sections(CuTest *tc)
 {
   char report[16384];
@@ -353,6 +410,8 @@ void Test_perfmon_memory_repr_dashboard_contains_key_sections(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "Heap Allocator"));
   CuAssertPtrNotNull(tc, strstr(report, "Memory Growth Analysis"));
   CuAssertPtrNotNull(tc, strstr(report, "Live Game Entity Inventory"));
+  CuAssertPtrNotNull(tc, strstr(report, "Spell Affect Nodes"));
+  CuAssertPtrNotNull(tc, strstr(report, "NPC Followers"));
 }
 
 void Test_perfmon_memory_csv_reports_memory_and_entity_metrics(CuTest *tc)
@@ -367,9 +426,17 @@ void Test_perfmon_memory_csv_reports_memory_and_entity_metrics(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "# memory_timestamp_sec="));
   CuAssertPtrNotNull(tc, strstr(report, "# memory_vm_rss_kib="));
   CuAssertPtrNotNull(tc, strstr(report, "# memory_rss_anon_kib="));
+  CuAssertIntEquals(tc, 1, perfmon_count_text_occurrences(report, "# memory_vm_data_kib="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_vm_swap_kib="));
   CuAssertPtrNotNull(tc, strstr(report, "# memory_heap_inuse_kib="));
   CuAssertPtrNotNull(tc, strstr(report, "# memory_count_descriptors="));
   CuAssertPtrNotNull(tc, strstr(report, "# memory_count_chars="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_count_affected_chars="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_count_affects="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_count_npc_followers="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_count_charmed_npcs="));
   CuAssertPtrNotNull(tc, strstr(report, "# memory_count_objs="));
   CuAssertPtrNotNull(tc, strstr(report, "# memory_count_events="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_delta_count_affects_since_reset="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_delta_count_charmed_npcs_since_reset="));
 }

@@ -1745,8 +1745,8 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % PULSE_IDLEPWD)) /* 15 seconds */
     check_idle_passwords();
 
-  /* Visit one stable shard per pulse so every mobile retains its six-second
-   * activity cadence without concentrating the full population in one pulse. */
+  /* Visit one bounded list segment per pulse so every cycle-boundary mobile
+   * retains its six-second cadence without rescanning the full population. */
   PERF_PROF_ENTER(pr_mob_activity_, "mobile_activity");
   mobile_activity_pulse(heart_pulse);
   PERF_PROF_EXIT(pr_mob_activity_);

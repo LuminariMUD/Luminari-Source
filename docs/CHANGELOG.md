@@ -6,6 +6,16 @@
 
 #### Fixed
 
+- Replaced pointer-hash mobile sharding, which still traversed the entire character list every
+  100 ms, with a bounded cursor that visits each cycle-boundary character once across the existing
+  six-second mobile interval. Character extraction now advances the cursor before removing its
+  current node.
+- Paused out-of-combat NPC pre-buffing, psionic power-up, and companion creation in rooms without
+  players. Combat behavior is unchanged, while unloaded areas no longer accumulate avoidable spell
+  affects and charmed followers.
+- Removed the global character, object, or room scan from each DG Script wait resumption. Attached
+  script teardown already cancels its pending wait event, so callback owner lifetime remains
+  protected without population-sized validation work.
 - Removed the full global-character-list scan from every timed casting callback. Pending character
   extraction now clears casting targets in the existing batched reference prepass, preserving
   target lifetime safety while making each casting validation independent of world population.
@@ -14,11 +24,15 @@
   growth.
 - Reworked `helpcheck` to compare commands against one database keyword snapshot instead of issuing
   and logging a help search for every command.
+- Expanded PERFMON memory inventory with affect-node, affected-character, NPC-follower, and charmed
+  NPC counts plus reset-window entity deltas in human, CSV, and automatic alert output.
 
 #### Verification
 
 - Added production-linked coverage for casting-target cleanup during batched extraction and for
   the case-insensitive prefix semantics used by the bulk `helpcheck` index.
+- Added production-linked coverage for bounded mobile-cycle scheduling, cursor removal, player-room
+  detection, DG wait callback complexity, and the new memory inventory fields.
 
 ### RoL isolation correction and full-corpus import
 

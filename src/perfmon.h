@@ -226,6 +226,10 @@ struct perf_memory_stats
   uint64_t count_chars;
   uint64_t count_pcs;
   uint64_t count_mobs;
+  uint64_t count_affected_chars;
+  uint64_t count_affects;
+  uint64_t count_npc_followers;
+  uint64_t count_charmed_npcs;
   uint64_t count_objs;
   uint64_t count_rooms;
   uint64_t count_zones;

@@ -31,6 +31,9 @@ void mobile_echos(struct char_data *ch);
 /* check if ch can continue acting */
 int can_continue(struct char_data *ch, bool fighting);
 
+/* check whether an NPC shares its room with at least one player */
+bool npc_room_has_player(const struct char_data *ch);
+
 /* check if NPC should call a companion */
 bool npc_should_call_companion(struct char_data *ch, int call_type);
 

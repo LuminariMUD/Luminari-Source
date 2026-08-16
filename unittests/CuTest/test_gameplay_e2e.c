@@ -336,6 +336,29 @@ static void end_gameplay_fixture(struct gameplay_fixture *fixture)
   top_of_mobt = fixture->saved_top_of_mobt;
 }
 
+void Test_gameplay_e2e_npc_audience_requires_player_in_same_room(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  bool empty_of_players;
+  bool player_detected;
+  bool invalid_room_rejected;
+
+  begin_gameplay_fixture(&fixture);
+  empty_of_players = !npc_room_has_player(&fixture.actor);
+
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.victim), MOB_ISNPC);
+  player_detected = npc_room_has_player(&fixture.actor);
+
+  IN_ROOM(&fixture.actor) = NOWHERE;
+  invalid_room_rejected = !npc_room_has_player(&fixture.actor);
+  IN_ROOM(&fixture.actor) = 0;
+  end_gameplay_fixture(&fixture);
+
+  CuAssertTrue(tc, empty_of_players);
+  CuAssertTrue(tc, player_detected);
+  CuAssertTrue(tc, invalid_room_rejected);
+}
+
 void Test_gameplay_e2e_harvest_uses_wilderness_only_as_fallback(CuTest *tc)
 {
   struct gameplay_fixture fixture;

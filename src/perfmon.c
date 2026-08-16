@@ -1551,6 +1551,7 @@ int PERF_sample_memory(struct perf_memory_stats *stats)
   struct rusage ru;
   struct descriptor_data *d;
   struct char_data *ch;
+  struct affected_type *af;
   struct obj_data *obj;
 
   if (stats == NULL)
@@ -1604,9 +1605,22 @@ int PERF_sample_memory(struct perf_memory_stats *stats)
   {
     stats->count_chars++;
     if (IS_NPC(ch))
+    {
       stats->count_mobs++;
+      if (ch->master != NULL)
+      {
+        stats->count_npc_followers++;
+        if (AFF_FLAGGED(ch, AFF_CHARM))
+          stats->count_charmed_npcs++;
+      }
+    }
     else
       stats->count_pcs++;
+
+    if (ch->affected != NULL)
+      stats->count_affected_chars++;
+    for (af = ch->affected; af; af = af->next)
+      stats->count_affects++;
   }
 
   /* Count objects */
@@ -1670,6 +1684,11 @@ void PERF_memory_periodic_check(void)
 {
   struct perf_memory_stats current;
   double rss_rate = 0.0, anon_rate = 0.0, heap_rate = 0.0;
+  int64_t mob_delta;
+  int64_t obj_delta;
+  int64_t affect_delta;
+  int64_t charmed_npc_delta;
+  int64_t event_delta;
   uint64_t now_sec;
 
   if (!PERF_sample_memory(&current))
@@ -1696,16 +1715,25 @@ void PERF_memory_periodic_check(void)
       if (anon_rate > 1024.0 &&
           (memory_last_alert_time_sec == 0 || now_sec - memory_last_alert_time_sec >= 900))
       {
+        mob_delta = (int64_t)current.count_mobs - (int64_t)reset_memory_stats.count_mobs;
+        obj_delta = (int64_t)current.count_objs - (int64_t)reset_memory_stats.count_objs;
+        affect_delta = (int64_t)current.count_affects - (int64_t)reset_memory_stats.count_affects;
+        charmed_npc_delta =
+            (int64_t)current.count_charmed_npcs - (int64_t)reset_memory_stats.count_charmed_npcs;
+        event_delta = (int64_t)current.count_events - (int64_t)reset_memory_stats.count_events;
         memory_last_alert_time_sec = now_sec;
         log("PERFMON [MEMORY ALERT]: Elevated anonymous memory growth detected: +%.1f KiB/min "
             "(+%.2f MiB/hr). "
             "RSS: %llu KiB, Anon: %llu KiB, Heap in-use: %llu KiB. Live entities: %llu PCs, %llu "
-            "mobs, "
-            "%llu objs, %llu events.",
+            "mobs (%+lld), %llu objs (%+lld), %llu affects (%+lld), %llu charmed NPCs (%+lld), "
+            "%llu events (%+lld).",
             anon_rate, (anon_rate * 60.0) / 1024.0, (unsigned long long)current.vm_rss_kib,
             (unsigned long long)current.rss_anon_kib, (unsigned long long)current.heap_inuse_kib,
             (unsigned long long)current.count_pcs, (unsigned long long)current.count_mobs,
-            (unsigned long long)current.count_objs, (unsigned long long)current.count_events);
+            (long long)mob_delta, (unsigned long long)current.count_objs, (long long)obj_delta,
+            (unsigned long long)current.count_affects, (long long)affect_delta,
+            (unsigned long long)current.count_charmed_npcs, (long long)charmed_npc_delta,
+            (unsigned long long)current.count_events, (long long)event_delta);
       }
     }
   }
@@ -1719,6 +1747,14 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
   uint64_t boot_elapsed_sec = 0;
   uint64_t reset_elapsed_sec = 0;
   int64_t rss_delta = 0, anon_delta = 0, heap_delta = 0;
+  int64_t char_delta;
+  int64_t mob_delta;
+  int64_t obj_delta;
+  int64_t affected_char_delta;
+  int64_t affect_delta;
+  int64_t npc_follower_delta;
+  int64_t charmed_npc_delta;
+  int64_t event_delta;
   double rss_rate = 0.0, anon_rate = 0.0, heap_rate = 0.0;
   double anon_pct = 0.0;
   const char *assessment = "STABLE - Memory usage within normal parameters";
@@ -1740,6 +1776,18 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
     anon_delta = (int64_t)cur.rss_anon_kib - (int64_t)reset_memory_stats.rss_anon_kib;
   if (reset_memory_stats.heap_inuse_kib > 0)
     heap_delta = (int64_t)cur.heap_inuse_kib - (int64_t)reset_memory_stats.heap_inuse_kib;
+
+  char_delta = (int64_t)cur.count_chars - (int64_t)reset_memory_stats.count_chars;
+  mob_delta = (int64_t)cur.count_mobs - (int64_t)reset_memory_stats.count_mobs;
+  obj_delta = (int64_t)cur.count_objs - (int64_t)reset_memory_stats.count_objs;
+  affected_char_delta =
+      (int64_t)cur.count_affected_chars - (int64_t)reset_memory_stats.count_affected_chars;
+  affect_delta = (int64_t)cur.count_affects - (int64_t)reset_memory_stats.count_affects;
+  npc_follower_delta =
+      (int64_t)cur.count_npc_followers - (int64_t)reset_memory_stats.count_npc_followers;
+  charmed_npc_delta =
+      (int64_t)cur.count_charmed_npcs - (int64_t)reset_memory_stats.count_charmed_npcs;
+  event_delta = (int64_t)cur.count_events - (int64_t)reset_memory_stats.count_events;
 
   PERF_memory_growth_rate(&rss_rate, &anon_rate, &heap_rate);
 
@@ -1788,10 +1836,14 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
           "  Status Assessment:        %s\n\r\n\r"
           "Live Game Entity Inventory:\n\r"
           "  Sockets / Descriptors:    %llu connected (%llu playing)\n\r"
-          "  Characters in World:      %llu total (%llu PCs, %llu Mobs)\n\r"
-          "  Objects in World:         %llu\n\r"
+          "  Characters in World:      %llu total (%llu PCs, %llu Mobs) [%+lld total, %+lld "
+          "Mobs]\n\r"
+          "  Objects in World:         %llu [%+lld since reset]\n\r"
+          "  Spell Affect Nodes:       %llu across %llu characters [%+lld nodes, %+lld "
+          "characters]\n\r"
+          "  NPC Followers:            %llu total (%llu charmed) [%+lld total, %+lld charmed]\n\r"
           "  Rooms & Zones:            %llu rooms across %llu zones\n\r"
-          "  Active Timed Events:      %llu\n\r"
+          "  Active Timed Events:      %llu [%+lld since reset]\n\r"
           "  Pending Extractions:      %llu\n\r",
           (unsigned long)(boot_elapsed_sec / 3600), (unsigned long)((boot_elapsed_sec % 3600) / 60),
           (unsigned long)(boot_elapsed_sec % 60), (unsigned long)(reset_elapsed_sec / 3600),
@@ -1814,9 +1866,15 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
           (long long)heap_delta, heap_rate, (heap_rate * 60.0) / 1024.0, assessment,
           (unsigned long long)cur.count_descriptors, (unsigned long long)cur.count_playing,
           (unsigned long long)cur.count_chars, (unsigned long long)cur.count_pcs,
-          (unsigned long long)cur.count_mobs, (unsigned long long)cur.count_objs,
+          (unsigned long long)cur.count_mobs, (long long)char_delta, (long long)mob_delta,
+          (unsigned long long)cur.count_objs, (long long)obj_delta,
+          (unsigned long long)cur.count_affects, (unsigned long long)cur.count_affected_chars,
+          (long long)affect_delta, (long long)affected_char_delta,
+          (unsigned long long)cur.count_npc_followers, (unsigned long long)cur.count_charmed_npcs,
+          (long long)npc_follower_delta, (long long)charmed_npc_delta,
           (unsigned long long)cur.count_rooms, (unsigned long long)cur.count_zones,
-          (unsigned long long)cur.count_events, (unsigned long long)cur.count_pending_extractions),
+          (unsigned long long)cur.count_events, (long long)event_delta,
+          (unsigned long long)cur.count_pending_extractions),
       n);
 
   return written;
@@ -1826,6 +1884,14 @@ size_t PERF_memory_csv(char *out_buf, size_t n)
 {
   struct perf_memory_stats cur;
   double rss_rate = 0.0, anon_rate = 0.0, heap_rate = 0.0;
+  int64_t char_delta;
+  int64_t mob_delta;
+  int64_t obj_delta;
+  int64_t affected_char_delta;
+  int64_t affect_delta;
+  int64_t npc_follower_delta;
+  int64_t charmed_npc_delta;
+  int64_t event_delta;
   size_t written = 0;
 
   if (!out_buf || n < 1)
@@ -1833,6 +1899,17 @@ size_t PERF_memory_csv(char *out_buf, size_t n)
 
   PERF_sample_memory(&cur);
   PERF_memory_growth_rate(&rss_rate, &anon_rate, &heap_rate);
+  char_delta = (int64_t)cur.count_chars - (int64_t)reset_memory_stats.count_chars;
+  mob_delta = (int64_t)cur.count_mobs - (int64_t)reset_memory_stats.count_mobs;
+  obj_delta = (int64_t)cur.count_objs - (int64_t)reset_memory_stats.count_objs;
+  affected_char_delta =
+      (int64_t)cur.count_affected_chars - (int64_t)reset_memory_stats.count_affected_chars;
+  affect_delta = (int64_t)cur.count_affects - (int64_t)reset_memory_stats.count_affects;
+  npc_follower_delta =
+      (int64_t)cur.count_npc_followers - (int64_t)reset_memory_stats.count_npc_followers;
+  charmed_npc_delta =
+      (int64_t)cur.count_charmed_npcs - (int64_t)reset_memory_stats.count_charmed_npcs;
+  event_delta = (int64_t)cur.count_events - (int64_t)reset_memory_stats.count_events;
 
   written = bounded_format_length(
       snprintf(out_buf, n,
@@ -1857,17 +1934,33 @@ size_t PERF_memory_csv(char *out_buf, size_t n)
                "# memory_count_chars=%" PRIu64 "\n\r"
                "# memory_count_pcs=%" PRIu64 "\n\r"
                "# memory_count_mobs=%" PRIu64 "\n\r"
+               "# memory_count_affected_chars=%" PRIu64 "\n\r"
+               "# memory_count_affects=%" PRIu64 "\n\r"
+               "# memory_count_npc_followers=%" PRIu64 "\n\r"
+               "# memory_count_charmed_npcs=%" PRIu64 "\n\r"
                "# memory_count_objs=%" PRIu64 "\n\r"
                "# memory_count_rooms=%" PRIu64 "\n\r"
                "# memory_count_zones=%" PRIu64 "\n\r"
                "# memory_count_events=%" PRIu64 "\n\r"
+               "# memory_delta_count_chars_since_reset=%" PRId64 "\n\r"
+               "# memory_delta_count_mobs_since_reset=%" PRId64 "\n\r"
+               "# memory_delta_count_affected_chars_since_reset=%" PRId64 "\n\r"
+               "# memory_delta_count_affects_since_reset=%" PRId64 "\n\r"
+               "# memory_delta_count_npc_followers_since_reset=%" PRId64 "\n\r"
+               "# memory_delta_count_charmed_npcs_since_reset=%" PRId64 "\n\r"
+               "# memory_delta_count_objs_since_reset=%" PRId64 "\n\r"
+               "# memory_delta_count_events_since_reset=%" PRId64 "\n\r"
                "# memory_count_pending_extractions=%" PRIu64 "\n\r",
                cur.timestamp_sec, cur.vm_size_kib, cur.vm_rss_kib, cur.rss_anon_kib,
                cur.rss_file_kib, cur.rss_shmem_kib, cur.vm_data_kib, cur.vm_swap_kib,
                cur.max_rss_kib, cur.heap_arena_kib, cur.heap_inuse_kib, cur.heap_free_kib,
                cur.heap_mmap_kib, rss_rate, anon_rate, heap_rate, cur.count_descriptors,
-               cur.count_playing, cur.count_chars, cur.count_pcs, cur.count_mobs, cur.count_objs,
-               cur.count_rooms, cur.count_zones, cur.count_events, cur.count_pending_extractions),
+               cur.count_playing, cur.count_chars, cur.count_pcs, cur.count_mobs,
+               cur.count_affected_chars, cur.count_affects, cur.count_npc_followers,
+               cur.count_charmed_npcs, cur.count_objs, cur.count_rooms, cur.count_zones,
+               cur.count_events, char_delta, mob_delta, affected_char_delta, affect_delta,
+               npc_follower_delta, charmed_npc_delta, obj_delta, event_delta,
+               cur.count_pending_extractions),
       n);
 
   return written;

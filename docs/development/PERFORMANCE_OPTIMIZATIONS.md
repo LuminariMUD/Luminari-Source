@@ -4,6 +4,25 @@
 
 This document tracks performance optimizations implemented in LuminariMUD to improve server efficiency and reduce CPU usage. The optimizations focus on critical game loop functions and memory management.
 
+## Live PERFMON Follow-up (August 2026)
+
+A 54-minute production capture showed `mobile_activity` at 11.35 percent of elapsed CPU time with
+64,547 live characters. Pointer-hash sharding distributed actions but still walked all characters
+on every 100 ms pulse. The scheduler now counts once at the start of each six-second interval and
+advances a bounded cursor through each cycle-boundary node exactly once. Extraction explicitly
+advances a cursor that points at the removed character.
+
+The same capture showed 64,536 mobs, 1,461,091 casting callbacks, `affect_update` averaging 155 ms,
+and heap growth of about 75 MB after the operational baseline. Idle caster and psionic preparation
+now requires a player in the room, and out-of-combat NPC companion creation uses the same audience
+gate. Combat behavior is unchanged. PERFMON now reports individual affect nodes, affected
+characters, NPC followers, charmed NPCs, and their reset-window deltas so later captures can
+separate live entity growth from allocator leakage.
+
+DG Script wait resumption accounted for 22.37 seconds across 11,347 callbacks. Trigger and owner
+teardown already cancel pending wait events, so the callback no longer searches the global
+character list, object list, or room array before restarting the script.
+
 ## Recent Optimizations (January 2025)
 
 ### affect_update() CPU Optimization

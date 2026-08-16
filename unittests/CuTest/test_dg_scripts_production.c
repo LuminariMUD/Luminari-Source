@@ -6,7 +6,62 @@
 #include "../../src/utils.h"
 #include "../../src/dgscript/dg_scripts.h"
 
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#define DG_SOURCE_LIMIT (2L * 1024L * 1024L)
+
+static bool dg_read_source(const char *relative_path, char **text)
+{
+  const char *root;
+  FILE *file;
+  char path[PATH_MAX];
+  char *buffer;
+  long source_length;
+  size_t bytes_read;
+  bool success;
+
+  *text = NULL;
+  root = getenv("LUMINARI_TEST_ROOT");
+  if (root == NULL || *root == '\0')
+    root = ".";
+  if (snprintf(path, sizeof(path), "%s/%s", root, relative_path) >= (int)sizeof(path))
+    return false;
+
+  file = fopen(path, "rb");
+  if (file == NULL)
+    return false;
+  success = fseek(file, 0, SEEK_END) == 0;
+  source_length = success ? ftell(file) : -1;
+  if (source_length < 0 || source_length > DG_SOURCE_LIMIT || fseek(file, 0, SEEK_SET) != 0)
+    success = false;
+
+  buffer = NULL;
+  if (success)
+  {
+    buffer = malloc((size_t)source_length + 1);
+    success = buffer != NULL;
+  }
+  if (success)
+  {
+    bytes_read = fread(buffer, 1, (size_t)source_length, file);
+    success = bytes_read == (size_t)source_length && ferror(file) == 0;
+    buffer[bytes_read] = '\0';
+  }
+  if (fclose(file) != 0)
+    success = false;
+
+  if (!success)
+  {
+    free(buffer);
+    return false;
+  }
+
+  *text = buffer;
+  return true;
+}
 
 void Test_dg_production_text_matching_helpers(CuTest *tc)
 {
@@ -80,6 +135,40 @@ void Test_dg_production_flag_name_matching(CuTest *tc)
 
   CuAssertTrue(tc, check_flags_by_name_ar(flags, 4, "two", names));
   CuAssertTrue(tc, !check_flags_by_name_ar(flags, 4, "one", names));
+}
+
+void Test_dg_wait_resume_does_not_scan_global_owner_lists(CuTest *tc)
+{
+  char *source;
+  char *callback;
+  char *callback_end;
+  char saved_end;
+  bool source_loaded;
+  bool callback_bounded;
+
+  source = NULL;
+  source_loaded = dg_read_source("src/dgscript/dg_scripts.c", &source);
+  callback_bounded = false;
+  if (source_loaded)
+  {
+    callback = strstr(source, "static EVENTFUNC(trig_wait_event)\n{");
+    callback_end =
+        callback != NULL ? strstr(callback, "static void cleanup_trig_wait_event") : NULL;
+    if (callback != NULL && callback_end != NULL)
+    {
+      saved_end = *callback_end;
+      *callback_end = '\0';
+      callback_bounded = strstr(callback, "script_driver(&restart_args);") != NULL &&
+                         strstr(callback, "character_list") == NULL &&
+                         strstr(callback, "object_list") == NULL &&
+                         strstr(callback, "top_of_world") == NULL;
+      *callback_end = saved_end;
+    }
+  }
+  free(source);
+
+  CuAssertTrue(tc, source_loaded);
+  CuAssertTrue(tc, callback_bounded);
 }
 
 void Test_dg_production_empty_expression_operands_are_safe(CuTest *tc)

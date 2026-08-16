@@ -43,16 +43,24 @@ void npc_offensive_spells(struct char_data *ch);
 void npc_racial_behave(struct char_data *ch);
 bool mob_knows_assigned_spells(struct char_data *ch);
 
-static int mobile_activity_shard(const struct char_data *ch)
-{
-  uintptr_t key;
+static struct char_data *mobile_activity_cursor = NULL;
+static size_t mobile_activity_nodes_remaining = 0;
+static int mobile_activity_pulses_remaining = 0;
+static bool mobile_activity_cursor_running = false;
 
-  key = (uintptr_t)ch >> 4;
-  key ^= key >> 16;
-  return (int)(key % (uintptr_t)PULSE_MOBILE);
+static size_t count_mobile_activity_nodes(void)
+{
+  struct char_data *ch;
+  size_t count;
+
+  count = 0;
+  for (ch = character_list; ch; ch = ch->next)
+    count++;
+  return count;
 }
 
-static void run_mobile_activity(int shard)
+static struct char_data *run_mobile_activity(struct char_data *start, size_t node_limit,
+                                             size_t *nodes_visited_out)
 {
   struct char_data *ch = NULL, *next_ch = NULL, *vict = NULL, *tmp_char = NULL;
   struct obj_data *obj = NULL, *best_obj = NULL;
@@ -61,10 +69,12 @@ static void run_mobile_activity(int shard)
   SPECIAL_DECL(*spec_func);             /* Cache for spec proc function */
   int mob_rnum = 0;                     /* Cache for mob rnum */
   bool disabled = false;
+  size_t nodes_visited = 0;
 
-  for (ch = character_list; ch; ch = next_ch)
+  for (ch = start; ch && nodes_visited < node_limit; ch = next_ch)
   {
     next_ch = ch->next;
+    nodes_visited++;
 
     /* Defensive check - verify character is still valid */
     if (!ch || ch->in_room == NOWHERE)
@@ -78,9 +88,6 @@ static void run_mobile_activity(int shard)
       continue;
 
     if (!IS_MOB(ch))
-      continue;
-
-    if (shard >= 0 && mobile_activity_shard(ch) != shard)
       continue;
 
     if (rol_automatic_race_activity(ch))
@@ -166,19 +173,24 @@ static void run_mobile_activity(int shard)
           npc_class_behave(ch);
         continue;
       }
-      else if (!rand_number(0, 15) && (IS_NPC_CASTER(ch) || mob_has_known_spells(ch)))
+
+      if (!rand_number(0, 15) && (IS_NPC_CASTER(ch) || mob_has_known_spells(ch)))
       {
         /* not in combat - reduced from 12.5% to 6.25% chance */
         /* Wizards and sorcerers use specialized pre-buffing with long-duration spells */
-        if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
-          wizard_cast_prebuff(ch);
-        else
-          npc_spellup(ch);
+        if (npc_room_has_player(ch))
+        {
+          if (GET_CLASS(ch) == CLASS_WIZARD || GET_CLASS(ch) == CLASS_SORCERER)
+            wizard_cast_prebuff(ch);
+          else
+            npc_spellup(ch);
+        }
       }
       else if (!rand_number(0, 15) && IS_PSIONIC(ch))
       {
         /* not in combat - reduced from 12.5% to 6.25% chance */
-        npc_psionic_powerup(ch);
+        if (npc_room_has_player(ch))
+          npc_psionic_powerup(ch);
       }
       else if (!rand_number(0, 8) && !IS_NPC_CASTER(ch))
       {
@@ -444,7 +456,11 @@ static void run_mobile_activity(int shard)
             perform_move(ch, door, 1);
             /* CRITICAL: mob may have been extracted during move */
             if (!ch || ch->in_room == NOWHERE)
-              return;
+            {
+              if (nodes_visited_out != NULL)
+                *nodes_visited_out = nodes_visited;
+              return next_ch;
+            }
             continue;
           }
         }
@@ -536,19 +552,78 @@ static void run_mobile_activity(int shard)
     /* Add new mobile actions here */
 
   } /* end for() */
+
+  if (nodes_visited_out != NULL)
+    *nodes_visited_out = nodes_visited;
+  return ch;
 }
 
 void mobile_activity(void)
 {
-  run_mobile_activity(-1);
+  run_mobile_activity(character_list, (size_t)-1, NULL);
+}
+
+void mobile_activity_reset(void)
+{
+  mobile_activity_cursor = NULL;
+  mobile_activity_nodes_remaining = 0;
+  mobile_activity_pulses_remaining = 0;
+  mobile_activity_cursor_running = false;
+}
+
+void mobile_activity_forget_character(struct char_data *ch)
+{
+  if (ch == NULL || mobile_activity_cursor != ch)
+    return;
+
+  mobile_activity_cursor = ch->next;
+  if (!mobile_activity_cursor_running && mobile_activity_nodes_remaining > 0)
+    mobile_activity_nodes_remaining--;
+  if (mobile_activity_cursor == NULL)
+    mobile_activity_nodes_remaining = 0;
 }
 
 void mobile_activity_pulse(int heart_pulse)
 {
-  int shard;
+  int cycle_pulse;
+  size_t node_budget;
+  size_t nodes_visited;
+  size_t total_nodes_visited;
 
-  shard = heart_pulse % PULSE_MOBILE;
-  if (shard < 0)
-    shard += PULSE_MOBILE;
-  run_mobile_activity(shard);
+  cycle_pulse = heart_pulse % PULSE_MOBILE;
+  if (cycle_pulse < 0)
+    cycle_pulse += PULSE_MOBILE;
+
+  if (cycle_pulse == 0 || mobile_activity_pulses_remaining <= 0)
+  {
+    mobile_activity_cursor = character_list;
+    mobile_activity_nodes_remaining = count_mobile_activity_nodes();
+    mobile_activity_pulses_remaining = PULSE_MOBILE;
+  }
+
+  if (mobile_activity_nodes_remaining > 0 && mobile_activity_cursor != NULL)
+  {
+    node_budget = mobile_activity_nodes_remaining / (size_t)mobile_activity_pulses_remaining;
+    if (mobile_activity_nodes_remaining % (size_t)mobile_activity_pulses_remaining != 0)
+      node_budget++;
+
+    total_nodes_visited = 0;
+    do
+    {
+      nodes_visited = 0;
+      mobile_activity_cursor_running = true;
+      mobile_activity_cursor = run_mobile_activity(
+          mobile_activity_cursor, node_budget - total_nodes_visited, &nodes_visited);
+      mobile_activity_cursor_running = false;
+      total_nodes_visited += nodes_visited;
+    } while (mobile_activity_cursor != NULL && nodes_visited > 0 &&
+             total_nodes_visited < node_budget);
+
+    if (total_nodes_visited >= mobile_activity_nodes_remaining || mobile_activity_cursor == NULL)
+      mobile_activity_nodes_remaining = 0;
+    else
+      mobile_activity_nodes_remaining -= total_nodes_visited;
+  }
+
+  mobile_activity_pulses_remaining--;
 }
