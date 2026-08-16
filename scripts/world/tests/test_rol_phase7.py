@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -10,7 +11,9 @@ from wtool_lib.rol_phase7 import (
     _filter_zone_door_resets,
     _merge_hlquest_blocks,
     _patch_record_block,
+    _typed_resolver,
     _validation_delta,
+    RolPhase7Error,
 )
 
 
@@ -107,6 +110,35 @@ class RolPhase7Tests(unittest.TestCase):
           ["10.wld", "20000.wld", "12157521.wld", "$"],
           path.read_text(encoding="ascii").splitlines(),
       )
+
+  def test_typed_resolver_never_falls_back_to_luminari_exact_identity(self) -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+      plan = Path(temporary)
+      (plan / "identity-map.jsonl").write_text(
+          json.dumps(
+              {
+                  "source_kind": "obj",
+                  "source_vnum": 14017,
+                  "destination_vnum": 2_014_017,
+              }
+          )
+          + "\n",
+          encoding="ascii",
+      )
+      resolve = _typed_resolver(
+          plan,
+          [
+              {
+                  "resolution": "target_exact",
+                  "target_type": "object",
+                  "target_vnum": 14018,
+              }
+          ],
+      )
+
+      self.assertEqual(2_014_017, resolve("obj", 14017))
+      with self.assertRaisesRegex(RolPhase7Error, "no typed identity for obj 14018"):
+        resolve("obj", 14018)
 
 
 if __name__ == "__main__":

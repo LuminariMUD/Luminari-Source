@@ -17,7 +17,6 @@ from .flags import decode_tokens
 from .models import TOOL_VERSION
 from .quests import parse_quest_file
 from .reporting import result_payload
-from .rol_baseline import _parse_mysql_config, _run_mysql
 from .rol_identity import canonical_destination
 from .rol_pilot_build import _identity_resolver, _source_records
 from .rol_planner import verify_discovery_bundle
@@ -997,12 +996,14 @@ def _migrate_object_store(source_root: Path, destination_root: Path) -> list[dic
 
 
 def _database_value_mapping(
-    record_type: str, value_expression: str
+    record_type: str, value_expression: str, *, reverse: bool = False
 ) -> tuple[list[str], list[str]]:
   cases: list[str] = []
   predicates: list[str] = []
   if record_type == "zone":
     for source, target in ((1507, 20507), (1591, 20591), (1960, 20960)):
+      if reverse:
+        source, target = target, source
       cases.append(f"WHEN {value_expression} = {source} THEN {target}")
       predicates.append(f"{value_expression} = {source}")
     return cases, predicates
@@ -1010,20 +1011,34 @@ def _database_value_mapping(
   if record_type not in {"room", "mobile", "object", "quest", "trigger"}:
     return cases, predicates
   for low, high in ((150700, 150899), (159100, 159599), (196000, 196299)):
-    cases.append(
-        f"WHEN {value_expression} BETWEEN {low} AND {high} "
-        f"THEN {value_expression} + 1900000"
-    )
-    predicates.append(f"{value_expression} BETWEEN {low} AND {high}")
+    if reverse:
+      cases.append(
+          f"WHEN {value_expression} BETWEEN {low + 1900000} AND {high + 1900000} "
+          f"THEN {value_expression} - 1900000"
+      )
+      predicates.append(
+          f"{value_expression} BETWEEN {low + 1900000} AND {high + 1900000}"
+      )
+    else:
+      cases.append(
+          f"WHEN {value_expression} BETWEEN {low} AND {high} "
+          f"THEN {value_expression} + 1900000"
+      )
+      predicates.append(f"{value_expression} BETWEEN {low} AND {high}")
   if record_type == "object":
     for source, target in sorted(_ARTIFACT_REHOMES.items()):
+      if reverse:
+        source, target = target, source
       cases.append(f"WHEN {value_expression} = {source} THEN {target}")
       predicates.append(f"{value_expression} = {source}")
   return cases, predicates
 
 
 def _database_updates(
-    columns: list[dict[str, Any]], include_guarded_missing: bool = False
+    columns: list[dict[str, Any]],
+    include_guarded_missing: bool = False,
+    *,
+    reverse: bool = False,
 ) -> list[str]:
   statements: list[str] = []
   for column in complete_persistent_bindings(columns, include_guarded_missing):
@@ -1041,7 +1056,9 @@ def _database_updates(
     predicate = str(column["predicate"]) if column.get("predicate") else None
     if encoding == "integer":
       value_expression = f"`{name}`"
-      cases, predicates = _database_value_mapping(record_type, value_expression)
+      cases, predicates = _database_value_mapping(
+          record_type, value_expression, reverse=reverse
+      )
       if not cases:
         continue
       where = " OR ".join(predicates)
@@ -1056,7 +1073,9 @@ def _database_updates(
 
     if encoding == "integer_text":
       value_expression = f"CAST(`{name}` AS SIGNED)"
-      cases, predicates = _database_value_mapping(record_type, value_expression)
+      cases, predicates = _database_value_mapping(
+          record_type, value_expression, reverse=reverse
+      )
       if not cases:
         continue
       where = f"`{name}` REGEXP '^[0-9]+$' AND (" + " OR ".join(predicates) + ")"
@@ -1074,7 +1093,9 @@ def _database_updates(
           f"CAST(SUBSTRING(SUBSTRING_INDEX(CAST(`{name}` AS CHAR), CHAR(10), 1), 2) "
           "AS UNSIGNED)"
       )
-      cases, predicates = _database_value_mapping(record_type, value_expression)
+      cases, predicates = _database_value_mapping(
+          record_type, value_expression, reverse=reverse
+      )
       where = (
           f"LEFT(CAST(`{name}` AS CHAR), 1) = '#' "
           f"AND LOCATE(CHAR(10), `{name}`) > 0 AND ("
@@ -1095,10 +1116,15 @@ def _database_updates(
   return statements
 
 
-def _database_sql(columns: list[dict[str, Any]]) -> str:
+def _database_sql(
+    columns: list[dict[str, Any]], *, reverse: bool = False
+) -> str:
   statements = ["START TRANSACTION;"]
   for index, update in enumerate(
-      _database_updates(columns, include_guarded_missing=True), start=1
+      _database_updates(
+          columns, include_guarded_missing=True, reverse=reverse
+      ),
+      start=1,
   ):
     table_match = re.match(r"UPDATE `([A-Za-z0-9_$]+)` ", update)
     if table_match is None:
@@ -1762,76 +1788,12 @@ def apply_rebase_bundle(
     lib_root: Path,
     database_config: Path | None = None,
 ) -> dict[str, Any]:
-  """Apply one verified Phase 6.5 bundle to the development target."""
+  """Reject the superseded destructive Phase 6.5 target-rehome workflow."""
 
-  bundle_dir = bundle_dir.resolve()
-  lib_root = lib_root.resolve()
-  _development_environment(lib_root)
-  manifest = _verify_bundle(bundle_dir, "6.5")
-  if not manifest.get("acceptance", {}).get("complete"):
-    raise RolRebaseError("Phase 6.5 bundle is not accepted")
-  staged_world = bundle_dir / "output/world"
-  if _tree_hash(staged_world) != manifest.get("world_tree_sha256"):
-    raise RolRebaseError("Phase 6.5 staged world tree is missing or changed")
-  rows = _load_jsonl(bundle_dir / "change-plan.jsonl")
-  operations: list[tuple[dict[str, Any], Path, Path]] = []
-  unchanged = 0
-  for row in rows:
-    scope = str(row.get("scope"))
-    staged_roots = {
-        "world": bundle_dir / "output/world",
-        "artifact-package": bundle_dir / "output/artifact-package",
-        "help": bundle_dir / "output/help",
-        "plrobjs": bundle_dir / "output/persistence/plrobjs",
-        "house": bundle_dir / "output/persistence/house",
-        "artifact-state": bundle_dir / "output/persistence",
-    }
-    if scope not in staged_roots:
-      raise RolRebaseError(f"apply plan contains an unknown scope: {scope}")
-    destination = (lib_root / str(row["destination_path"])).resolve()
-    staged_root = staged_roots[scope].resolve()
-    staged = (staged_root / str(row["source_path"])).resolve()
-    try:
-      destination.relative_to(lib_root)
-      staged.relative_to(staged_root)
-    except ValueError as error:
-      raise RolRebaseError("apply plan path escapes its declared root") from error
-    current = _sha256_path(destination) if destination.is_file() else None
-    if current == row["after_sha256"]:
-      unchanged += 1
-      continue
-    if current != row["before_sha256"]:
-      raise RolRebaseError(f"apply destination changed since staging: {destination}")
-    if row["action"] != "REMOVE":
-      if not staged.is_file() or _sha256_path(staged) != row["after_sha256"]:
-        raise RolRebaseError(f"apply source is missing or changed: {staged}")
-    operations.append((row, destination, staged))
-
-  database_applied = False
-  config: dict[str, str] | None = None
-  sql: str | None = None
-  if database_config is not None:
-    config = _parse_mysql_config(database_config)
-    sql = (bundle_dir / "output/persistence/rol_phase6_5_vnum_migration.sql").read_text(
-        encoding="ascii"
-    )
-    _run_mysql(config, _database_preflight_sql(sql))
-    _run_mysql(config, sql)
-    database_applied = True
-
-  for row, destination, staged in operations:
-    if row["action"] == "REMOVE":
-      destination.unlink()
-    else:
-      destination.parent.mkdir(parents=True, exist_ok=True)
-      shutil.copy2(staged, destination)
-  return {
-      "run_id": manifest["run_id"],
-      "changed_paths": len(operations),
-      "already_current_paths": unchanged,
-      "database_migration_applied": database_applied,
-      "idempotent_no_op": not operations,
-  }
+  raise RolRebaseError(
+      "Phase 6.5 target-rehome apply is disabled because it overwrites existing "
+      "Luminari identities; use the isolated Phase 7/8 overlay workflow"
+  )
 
 
 def render_rol_rebase_human(summary: dict[str, Any]) -> str:

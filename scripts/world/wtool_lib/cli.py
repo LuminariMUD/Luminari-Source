@@ -60,9 +60,12 @@ from .rol_phase8 import (
 )
 from .rol_persistence_audit import (
     apply_persistence_migration_bundle,
+    apply_persistence_recovery_bundle,
     render_persistence_apply_human,
     render_persistence_bundle_human,
+    render_persistence_recovery_human,
     write_persistence_migration_bundle,
+    write_persistence_recovery_bundle,
 )
 from .rol_skeleton import render_rol_skeleton_human, write_skeleton_bundle
 from .rol_special_reconciliation import (
@@ -245,7 +248,7 @@ def _parser() -> argparse.ArgumentParser:
 
   rol_rebase_apply = commands.add_parser(
       "rol-rebase-apply",
-      help="apply one accepted Phase 6.5 bundle to the development target",
+      help="reject the superseded destructive Phase 6.5 target rehome",
   )
   rol_rebase_apply.add_argument("--bundle-dir", type=Path, required=True)
   rol_rebase_apply.add_argument("--lib-root", type=Path, default=default_repo_root() / "lib")
@@ -261,18 +264,51 @@ def _parser() -> argparse.ArgumentParser:
 
   rol_persistence_apply = commands.add_parser(
       "rol-persistence-apply",
-      help="apply and audit a sealed Phase 6.5 persistence migration",
+      help="apply a forward Phase 6.5 persistence migration to an isolated database",
   )
   rol_persistence_apply.add_argument("--bundle-dir", type=Path, required=True)
   rol_persistence_apply.add_argument("--database-config", type=Path, required=True)
   rol_persistence_apply.add_argument(
-      "--database-role", choices=("isolated", "development"), required=True
+      "--database-role", choices=("isolated",), required=True
   )
   rol_persistence_apply.add_argument(
       "--lib-root", type=Path, default=default_repo_root() / "lib"
   )
   rol_persistence_apply.add_argument("--output-dir", type=Path, required=True)
   rol_persistence_apply.add_argument("--created-at")
+
+  rol_persistence_recovery_bundle = commands.add_parser(
+      "rol-persistence-recovery-bundle",
+      help="seal the exact inverse of a Phase 6.5 persistence migration",
+  )
+  rol_persistence_recovery_bundle.add_argument(
+      "--migration-bundle-dir", type=Path, required=True
+  )
+  rol_persistence_recovery_bundle.add_argument(
+      "--output-dir", type=Path, required=True
+  )
+  rol_persistence_recovery_bundle.add_argument("--created-at")
+
+  rol_persistence_recovery_apply = commands.add_parser(
+      "rol-persistence-recovery-apply",
+      help="back up, apply, and audit a sealed Phase 6.5 persistence recovery",
+  )
+  rol_persistence_recovery_apply.add_argument(
+      "--bundle-dir", type=Path, required=True
+  )
+  rol_persistence_recovery_apply.add_argument(
+      "--database-config", type=Path, required=True
+  )
+  rol_persistence_recovery_apply.add_argument(
+      "--database-role", choices=("isolated", "development"), required=True
+  )
+  rol_persistence_recovery_apply.add_argument(
+      "--lib-root", type=Path, default=default_repo_root() / "lib"
+  )
+  rol_persistence_recovery_apply.add_argument(
+      "--output-dir", type=Path, required=True
+  )
+  rol_persistence_recovery_apply.add_argument("--created-at")
 
   rol_completion_audit = commands.add_parser(
       "rol-completion-audit",
@@ -330,6 +366,9 @@ def _parser() -> argparse.ArgumentParser:
   rol_phase8.add_argument("--phase7-dir", type=Path, required=True)
   rol_phase8.add_argument("--repeat-phase7-dir", type=Path, required=True)
   rol_phase8.add_argument("--completion-dir", type=Path, required=True)
+  rol_phase8.add_argument(
+      "--persistence-recovery-dir", type=Path, required=True
+  )
   rol_phase8.add_argument("--world-tools-log", type=Path, required=True)
   rol_phase8.add_argument("--cutest-log", type=Path, required=True)
   rol_phase8.add_argument("--install-log", type=Path, required=True)
@@ -801,6 +840,7 @@ def _run_rol_phase8(args: argparse.Namespace) -> int:
       args.phase7_dir,
       args.repeat_phase7_dir,
       args.completion_dir,
+      args.persistence_recovery_dir,
       args.world_root,
       args.output_dir,
       {
@@ -865,6 +905,39 @@ def _run_rol_persistence_apply(args: argparse.Namespace) -> int:
     _print_json(summary)
   else:
     sys.stdout.write(render_persistence_apply_human(summary))
+  return 0
+
+
+def _run_rol_persistence_recovery_bundle(args: argparse.Namespace) -> int:
+  summary = write_persistence_recovery_bundle(
+      args.migration_bundle_dir,
+      args.output_dir,
+      created_at=args.created_at,
+  )
+  if args.json_output:
+    _print_json(summary)
+  else:
+    sys.stdout.write(
+        f"RoL Phase 6.5 persistence recovery bundle: {summary['run_id']}\n"
+        f"Output: {summary['output_dir']}\n"
+        f"SQL statements: {summary['statements']}\n"
+    )
+  return 0
+
+
+def _run_rol_persistence_recovery_apply(args: argparse.Namespace) -> int:
+  summary = apply_persistence_recovery_bundle(
+      args.bundle_dir,
+      args.database_config,
+      args.database_role,
+      args.output_dir,
+      args.lib_root,
+      created_at=args.created_at,
+  )
+  if args.json_output:
+    _print_json(summary)
+  else:
+    sys.stdout.write(render_persistence_recovery_human(summary))
   return 0
 
 
@@ -936,6 +1009,10 @@ def main(argv: Sequence[str] | None = None) -> int:
       return _run_rol_persistence_bundle(args)
     if args.command == "rol-persistence-apply":
       return _run_rol_persistence_apply(args)
+    if args.command == "rol-persistence-recovery-bundle":
+      return _run_rol_persistence_recovery_bundle(args)
+    if args.command == "rol-persistence-recovery-apply":
+      return _run_rol_persistence_recovery_apply(args)
     if args.command == "rol-completion-audit":
       return _run_rol_completion_audit(args)
     if args.command == "rol-phase7":

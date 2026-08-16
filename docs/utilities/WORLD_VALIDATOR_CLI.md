@@ -15,11 +15,13 @@ without starting the game, connecting to MariaDB, or compiling `circle`:
 
 Validation, lookup, RoL inventory, flag conversion, and documentation checks
 are read-only. The RoL evidence and generation commands write new, explicit
-run directories but never modify the source corpus. Only `rol-rebase-apply`,
-`rol-persistence-apply`, and `rol-phase8-apply` modify a target, and each
-requires an accepted bundle plus an explicitly identified non-production
-environment. The maintainer operation `constants sync --write` replaces the
-checked-in derived constants manifest.
+run directories but never modify the source corpus. `rol-phase8-apply` is the
+only maintained world-data apply path. `rol-persistence-recovery-apply` can
+repair the superseded rehome only after making a full database backup and only
+in an explicitly identified non-production environment. The destructive
+`rol-rebase-apply` path is disabled, and forward `rol-persistence-apply` is
+restricted to isolated test databases. The maintainer operation
+`constants sync --write` replaces the checked-in derived constants manifest.
 
 ## Requirements and Entry Point
 
@@ -106,10 +108,11 @@ multi-kill quests, ignored HLQ input commands, and unsafe HLQ runtime indexes.
 
 ## Canonical RoL Namespace and Maintenance Contract
 
-Conversion status: complete through Phase 8 and applied to the development
-world on 2026-08-14. The phase commands remain available to audit or
-deterministically regenerate the conversion; they are not an alternate
-builder workflow for assigning new VNUMs.
+Conversion status: complete through Phase 8. The accepted import is an additive
+overlay in the dedicated RoL namespace. Existing Luminari zones, records, and
+persistent identities are preserved in place. The phase commands remain
+available to audit or deterministically regenerate the conversion; they are
+not an alternate builder workflow for assigning new VNUMs.
 
 Canonical RoL identities use these formulas:
 
@@ -131,35 +134,36 @@ The only source-zone normalization in the completed corpus is
 2081899. This is an evidence-backed package exception, not a general
 divide-by-100 rule.
 
-The completed rebase retired these legacy destinations:
+The similarly named packages coexist; similarity is never lineage evidence:
 
-| Content | Retired destination | Canonical destination |
-|---------|---------------------|-----------------------|
-| Trail | zone 1507 and 150xxx entities | zone 20507 and 2050700+ entities |
-| Hulburg | zone 1591 and 159xxx entities | zone 20591 and 2059100+ entities |
-| Jotunheim | zone 1960 and 196xxx entities | zone 20960 and 2096000+ entities |
-| Myth Drannor East | fallback zone 20002 | zone 20817 and 2081700-2081899 entities |
-| First-wave artifacts | objects 169901-169910 | direct canonical identities |
+| Existing Luminari content, unchanged | Imported RoL content, additive |
+|--------------------------------------|--------------------------------|
+| Trail zone 1507 and 150xxx entities | RoL source zone 507 at zone 20507 and 20507xx entities |
+| Hulburg zone 1591 and 159xxx entities | RoL source zone 591 at zone 20591 and 20591xx entities |
+| Jotunheim zone 1960 and 196xxx entities | RoL source zone 960 at zone 20960 and 20960xx entities |
+| Luminari artifacts 169901-169910 | RoL objects at their independent 2000000+ identities |
 
-Retired source or legacy VNUMs are migration history, not aliases. Do not
-restore forwarding records, compatibility duplicates, old-offset lookup, or
-hard-coded exceptions. Regenerate converted data from the selected source
-manifests and `scripts/world/rol_conversion_policy.json`; do not hand-edit
-generated output as its source of truth. Converter-owned RoL flags and reset,
-shop, or object extensions preserve imported behavior, while new builder
-content should use native mechanics unless it intentionally extends the
-converted compatibility contract.
+No Luminari VNUM is retired by the RoL import. Do not create forwarding
+records, compatibility aliases, low-VNUM fallback lookup, or package-name
+matching. Regenerate converted data from the selected source manifests and
+`scripts/world/rol_conversion_policy.json`; do not hand-edit generated output
+as its source of truth. Converter-owned RoL flags and reset, shop, or object
+extensions preserve imported behavior, while new builder content should use
+native mechanics unless it intentionally extends the converted compatibility
+contract.
 
 The exact artifact identities and persistence rules are maintained in
 [ARTIFACT_SYSTEM.md](../systems/ARTIFACT_SYSTEM.md).
 
-Any maintenance regeneration must leave these four checks at zero:
+Any maintenance regeneration must leave these checks at zero:
 
 ```text
-noncanonical active RoL zone identities   = 0
-noncanonical active RoL entity identities = 0
-active references to retired RoL VNUMs    = 0
-unresolved required typed references      = 0
+noncanonical active RoL zone identities       = 0
+noncanonical active RoL entity identities     = 0
+modified preserved Luminari records           = 0
+cross-world typed references                   = 0
+missing reserved-namespace typed targets       = 0
+canonical rows from the rejected DB rehome     = 0
 ```
 
 The accepted result must also preserve target/OLC edits through explicit
@@ -306,11 +310,12 @@ python3 scripts/world/wtool.py rol-plan \
 
 The planner verifies every input hash and discovery acceptance gate. It emits the
 record-action ledger, canonical identity map, capability rows, apply-oriented change
-plan, schemas, summary, and run manifest. A documented seed plus broad package-level
-formula and exact-identity evidence may confirm non-destructive `KEEP` lineage.
-Ambiguous candidates are never patched: the planner preserves them and assigns a
-collision-checked reserved `ADD` identity. Duplicate source identities become
-deterministic `MERGE` actions, and known malformed records become `EXCLUDE` actions.
+plan, schemas, summary, and run manifest. Target package similarity and matching low
+VNUMs never establish lineage. Every imported identity is emitted in the reserved
+namespace. `MERGE` in the ledger means only that duplicate records inside the RoL
+source share one RoL identity; it never means merging an RoL record into an existing
+Luminari record. Known source-invalid dependent instructions remain explicit smallest-
+unit exclusions.
 
 ## Realms of Luminari Phase 3 Walking Skeleton
 
@@ -323,10 +328,9 @@ python3 scripts/world/wtool.py --world-root lib/world rol-skeleton \
   --output-dir lib/rol-conversion/runs/phase3-REVISION
 ```
 
-`rol-skeleton` is retained to replay the frozen Phase 3 no-clobber evidence;
-it must not select current destinations. Canonical policy v3 resolves source
-zone 960 to zone 20960, and Phase 6.5 `rol-rebase` performs that rehome. When
-the skeleton consumes its historical Phase 2 bundle, it verifies every
+`rol-skeleton` is retained only to replay frozen Phase 3 evidence; it must not
+select current destinations or authorize target lineage. When the skeleton
+consumes its historical Phase 2 bundle, it verifies every
 artifact hash and target-file precondition, inventories the target tree,
 creates an isolated staging copy, and validates both trees with identical
 grammar configuration. Its two historical `KEEP` applies must perform zero
@@ -381,9 +385,12 @@ Both commands verify the manifests they consume. Phase 6 accounts for direct
 bindings, dynamic registrations, implicit race bindings, handlers, and every
 active `ACT_SPEC` record. Its accepted bundle has no pending binding.
 
-## Realms of Luminari Phase 6.5 Canonical Rebase
+## Superseded Phase 6.5 Rehome and Persistence Recovery
 
-Stage the complete canonical rebase without writing the live world:
+The old Phase 6.5 rehome is retained only so its historical evidence can be
+audited and its exact database inverse can be generated. It moved existing
+Luminari identities and is not part of the accepted import. Staging remains a
+non-writing forensic operation:
 
 ```sh
 python3 scripts/world/wtool.py --world-root lib/world rol-rebase \
@@ -394,32 +401,12 @@ python3 scripts/world/wtool.py --world-root lib/world rol-rebase \
   --output-dir lib/rol-conversion/runs/phase6-5-REVISION
 ```
 
-The bundle contains the full staged world, artifact package, persistent-file
-overlay, transactional database migration, typed reference ledger, repair
-ledger, removal plan, exact validation delta, and a hash-preconditioned apply
-plan. Acceptance requires canonical identities, zero required unresolved
-references, zero active retired references, one state row per artifact, no
-new normalized validation finding, and no blocking finding in a touched
-package. Use the same `--created-at` value for independent repeat-generation
-runs; accepted outputs must be byte-identical.
+The generated bundle describes the rejected target rehome. Do not apply it.
+`rol-rebase-apply` now fails before reading or writing a target so the earlier
+destructive operation cannot be repeated.
 
-Apply only an accepted bundle to an explicitly identified development target:
-
-```sh
-python3 scripts/world/wtool.py --json rol-rebase-apply \
-  --bundle-dir lib/rol-conversion/runs/phase6-5-REVISION \
-  --lib-root lib \
-  --database-config lib/mysql_config
-```
-
-Apply verifies every bundle hash, the complete staged world-tree hash, each
-destination preimage, and the development marker in `lib/.env`. The database
-SQL is transactional and idempotent. A second apply reports no changed file
-and may safely execute the database migration again.
-
-Seal the schema-complete semantic persistence ledger and SQL independently of the
-world overlay, then execute it against an isolated or explicitly confirmed development
-database:
+Forward persistence SQL may be replayed only against a disposable isolated
+database for regression testing:
 
 ```sh
 python3 scripts/world/wtool.py --json rol-persistence-bundle \
@@ -434,10 +421,28 @@ python3 scripts/world/wtool.py --json rol-persistence-apply \
   --output-dir lib/rol-conversion/runs/phase6-5-persistence-exec-REVISION
 ```
 
-The execution audit captures no row contents or credentials. It verifies rollback-only
-preflight, row-count and serialized-suffix preservation, zero retired relevant row,
-repeat migration no-op behavior, and unique live prototype resolution for every
-canonical saved-object VNUM.
+Development recovery is a separate, direction-locked workflow. It seals the
+exact inverse of the historical migration, creates a full restorable database
+dump before any update, performs a rollback-only preflight, applies the inverse,
+and proves a second application is a no-op:
+
+```sh
+python3 scripts/world/wtool.py rol-persistence-recovery-bundle \
+  --migration-bundle-dir <historical-persistence-bundle> \
+  --output-dir <recovery-bundle>
+
+python3 scripts/world/wtool.py rol-persistence-recovery-apply \
+  --bundle-dir <recovery-bundle> \
+  --database-config lib/mysql_config \
+  --database-role development \
+  --lib-root lib \
+  --output-dir <recovery-execution>
+```
+
+Recovery acceptance requires zero high-namespace rows from the rejected
+migration, unchanged table row counts, unchanged serialized-object suffix
+lengths and checksums, unique resolution of all restored Luminari object
+prototypes, a sealed backup hash, and repeat-application no-op evidence.
 
 After world tools, CuTests, install, syntax boot, and bounded runtime boot pass, seal
 the complete Phase 6.5 closure evidence:
@@ -460,16 +465,16 @@ python3 scripts/world/wtool.py --json rol-completion-audit \
   --output-dir <completion-audit>
 ```
 
-The completion bundle contains a record-level rehome ledger with all required fields,
-package incoming/outgoing reference reports, classified non-world numeric matches,
-runtime structural evidence, a documentation audit, parsed final gates, and the
-14-rule canonical maintenance matrix from `docs/guides/TESTING_GUIDE.md`.
+The historical completion bundle remains usable for source-mechanics closure,
+but its target-rehome and forward-persistence claims are superseded. Phase 8
+requires the accepted recovery execution in addition to the historical source
+closure evidence.
 
 ## Realms of Luminari Phase 7 and Phase 8
 
 Generate cumulative Phase 7 milestones after batches 4, 8, and 12. Each invocation
-regenerates from the sealed Phase 6.5 development baseline; it does not modify that
-baseline.
+regenerates from the restored, authoritative Luminari development baseline; it
+does not modify that baseline.
 
 ```sh
 python3 scripts/world/wtool.py --world-root lib/world rol-phase7 \
@@ -498,6 +503,7 @@ python3 scripts/world/wtool.py --world-root lib/world rol-phase8 \
   --phase7-dir <phase7-final-directory> \
   --repeat-phase7-dir <phase7-repeat-directory> \
   --completion-dir <phase6.5-completion-directory> \
+  --persistence-recovery-dir <accepted-recovery-execution> \
   --world-tools-log <world-tools-log> \
   --cutest-log <cutest-log> \
   --install-log <install-log> \
@@ -507,9 +513,11 @@ python3 scripts/world/wtool.py --world-root lib/world rol-phase8 \
 ```
 
 `rol-phase8` reproduces the complete candidate from the frozen baseline and Phase 7
-overlay, reconciles counts and actions, audits selected records, exercises static
-behavior coverage, verifies the namespace and persistence handoff, and emits a
-hash-preconditioned apply plan. Apply and seal it only in development:
+overlay, reconciles counts and actions, proves that source-internal `MERGE` actions
+target no existing Luminari record, rejects every cross-world typed reference,
+audits RoL mechanics markers and code identities, verifies the completed persistence
+recovery, and emits a hash-preconditioned additive apply plan. Apply and seal it only
+in development:
 
 ```sh
 python3 scripts/world/wtool.py --json rol-phase8-apply \

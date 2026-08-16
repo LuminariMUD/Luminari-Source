@@ -65,6 +65,44 @@ _SOC_OWNER_EXCLUSIONS = frozenset(
         "soc:89128:areas/soc/bandits.soc:1",
     }
 )
+_SOURCE_RECORD_REPAIRS = {
+    "mob:51348:areas/mob/llyrath.mob:692": {
+        "destination_vnum": 2_051_348,
+        "kind": "mob",
+        "source_vnum": 51_348,
+        "repair": "restore the omitted 131 131 1 position row used by adjacent llyrath mobiles",
+    },
+    "obj:7067:areas/obj/quest_1.obj:9": {
+        "destination_vnum": 2_007_067,
+        "kind": "obj",
+        "source_vnum": 7_067,
+        "repair": "synthesize the omitted empty action-description field before the intact base rows",
+    },
+    "obj:59060:areas/obj/muspel.obj:4041": {
+        "destination_vnum": 2_059_060,
+        "kind": "obj",
+        "source_vnum": 59_060,
+        "repair": "restore the equipment-holder base rows shared by adjacent muspel holders",
+    },
+    "qst:26253:areas/qst/moonshae.qst:667": {
+        "destination_vnum": 2_026_253,
+        "kind": "qst",
+        "source_vnum": 26_253,
+        "repair": "restore the omitted hi/hello keywords for the preserved dignitary greeting",
+    },
+    "qst:26254:areas/qst/moonshae.qst:672": {
+        "destination_vnum": 2_026_254,
+        "kind": "qst",
+        "source_vnum": 26_254,
+        "repair": "restore the omitted hi/hello keywords for the preserved dignitary greeting",
+    },
+    "wld:1000:areas/wld/quests.wld:2": {
+        "destination_vnum": 2_001_000,
+        "kind": "wld",
+        "source_vnum": 1_000,
+        "repair": "join the split D 5 direction opcode while preserving its authored exit payload",
+    },
+}
 _SPECIAL_TRIGGER_START = 2_026_167
 _COMPOSITE_SPECIALS = {
     ("mob", 2007110): ("RoL Bloodstone Critter", "RoL Corpse Devourer"),
@@ -207,20 +245,16 @@ def _package_batches(
 
 
 def _typed_resolver(
-    plan_dir: Path, references: Iterable[dict[str, Any]]
+    plan_dir: Path,
+    references: Iterable[dict[str, Any]],
+    repaired_identities: dict[tuple[str, int], int] | None = None,
 ):
+  del references
   identities = {
       (str(row["source_kind"]), int(row["source_vnum"])): row["destination_vnum"]
       for row in _load_jsonl(plan_dir / "identity-map.jsonl")
   }
-  exact: set[tuple[str, int]] = set()
-  kind_for_type = {"mobile": "mob", "object": "obj", "room": "wld"}
-  for row in references:
-    if row.get("resolution") != "target_exact":
-      continue
-    kind = kind_for_type.get(str(row.get("target_type")))
-    if kind is not None:
-      exact.add((kind, int(row["target_vnum"])))
+  identities.update(repaired_identities or {})
 
   def resolve(kind: str, vnum: int) -> int:
     key = (kind, vnum)
@@ -229,11 +263,116 @@ def _typed_resolver(
       if destination is None:
         raise RolPhase7Error(f"required identity {kind} {vnum} is excluded")
       return int(destination)
-    if (key in exact and kind != "wld") or vnum <= 0:
+    if vnum <= 0:
       return vnum
     raise RolPhase7Error(f"no typed identity for {kind} {vnum}")
 
   return resolve
+
+
+def _without_exclusion(values: dict[str, Any]) -> dict[str, Any]:
+  repaired = dict(values)
+  repaired.pop("source_disposition", None)
+  repaired.pop("source_exclusion_reason", None)
+  return repaired
+
+
+def _repair_source_record(record: RolRecord) -> RolRecord:
+  values = _without_exclusion(record.values)
+  directives = [
+      dict(directive)
+      for directive in record.directives
+      if directive.get("token") != "EXCLUDED_SOURCE_RECORD"
+  ]
+  if record.record_id == "mob:51348:areas/mob/llyrath.mob:692":
+    values["base_rows"] = [*values.get("base_rows", []), ["131", "131", "1"]]
+    directives.append({"token": "POSITION", "line": record.end_line, "field_count": 3})
+  elif record.record_id == "obj:7067:areas/obj/quest_1.obj:9":
+    if values.get("item_type") != 18 or len(values.get("values", [])) != 4:
+      raise RolPhase7Error("quest key 7067 no longer has its intact reparsed base rows")
+  elif record.record_id == "obj:59060:areas/obj/muspel.obj:4041":
+    values.update(
+        {
+            "item_type": 13,
+            "flags": [13, 4096, 0],
+            "values": [0, 0, 0, 0],
+            "economy": [0, 0, 0],
+        }
+    )
+    directives.extend(
+        {"token": token, "line": record.line, "field_count": width}
+        for token, width in (("FLAGS", 3), ("VALUES", 4), ("ECONOMY", 3))
+    )
+  elif record.record_id in {
+      "qst:26253:areas/qst/moonshae.qst:667",
+      "qst:26254:areas/qst/moonshae.qst:672",
+  }:
+    greeting = next(
+        str(directive.get("keyword", ""))
+        for directive in directives
+        if directive.get("token") == "M"
+    )
+    directives = [
+        {
+            "token": "M",
+            "line": record.line + 1,
+            "keyword": "hi hello",
+            "message": greeting,
+        }
+    ]
+  elif record.record_id == "wld:1000:areas/wld/quests.wld:2":
+    directives.append(
+        {
+            "token": "D",
+            "line": record.line + 5,
+            "direction": 5,
+            "description": None,
+            "keyword": None,
+            "arguments": [0, 0, 200_501],
+        }
+    )
+  else:
+    raise RolPhase7Error(f"no source repair implementation for {record.record_id}")
+  return replace(record, values=values, directives=directives, complete=True)
+
+
+def _apply_source_record_repairs(
+    actions: list[dict[str, Any]], records: dict[str, RolRecord]
+) -> tuple[list[dict[str, Any]], dict[tuple[str, int], int], list[dict[str, Any]]]:
+  repaired_actions: list[dict[str, Any]] = []
+  repaired_identities: dict[tuple[str, int], int] = {}
+  evidence: list[dict[str, Any]] = []
+  seen: set[str] = set()
+  for action in actions:
+    record_id = str(action["source_record_id"])
+    repair = _SOURCE_RECORD_REPAIRS.get(record_id)
+    if repair is None:
+      repaired_actions.append(action)
+      continue
+    if action.get("action") != "EXCLUDE" or action.get("destination_vnum") is not None:
+      raise RolPhase7Error(f"source repair precondition drifted for {record_id}")
+    record = records[record_id]
+    if record.kind != repair["kind"] or record.vnum != repair["source_vnum"]:
+      raise RolPhase7Error(f"source repair identity drifted for {record_id}")
+    destination = int(repair["destination_vnum"])
+    records[record_id] = _repair_source_record(record)
+    repaired_actions.append({**action, "action": "ADD", "destination_vnum": destination})
+    if record.kind in {"mob", "obj", "wld"}:
+      repaired_identities[(record.kind, record.vnum)] = destination
+    evidence.append(
+        {
+            "source_record_id": record_id,
+            "source_kind": record.kind,
+            "source_vnum": record.vnum,
+            "destination_vnum": destination,
+            "repair": repair["repair"],
+        }
+    )
+    seen.add(record_id)
+  if seen != set(_SOURCE_RECORD_REPAIRS):
+    missing = sorted(set(_SOURCE_RECORD_REPAIRS) - seen)
+    raise RolPhase7Error(f"source repair record is absent from the plan: {missing[0]}")
+  return repaired_actions, repaired_identities, evidence
 
 
 def _zone_intervals(
@@ -998,14 +1137,23 @@ def _preservation_check(
 
 
 def _selected_reference_exceptions(
-    references: Iterable[dict[str, Any]], selected_record_ids: set[str]
+    references: Iterable[dict[str, Any]],
+    selected_record_ids: set[str],
+    repaired_targets: set[tuple[str, int]] | None = None,
 ) -> list[dict[str, Any]]:
+  repaired_targets = repaired_targets or set()
   result: list[dict[str, Any]] = []
   for row in references:
     if str(row.get("source_record_id")) not in selected_record_ids:
       continue
     resolution = str(row.get("resolution"))
     if resolution not in {"excluded_source", "unresolved", "target_lineage_candidate"}:
+      continue
+    if (
+        resolution == "excluded_source"
+        and (str(row.get("target_type")), int(row.get("target_vnum", -1)))
+        in repaired_targets
+    ):
       continue
     disposition = (
         "EXCLUDE_DEPENDENT_INSTRUCTION"
@@ -1084,6 +1232,9 @@ def write_phase7_bundle(
 
   actions, metadata = _augment_actions(discovery_dir, plan_dir)
   records, source_diagnostics = _source_records(repo_root, actions)
+  actions, repaired_identities, source_repairs = _apply_source_record_repairs(
+      actions, records
+  )
   references = _load_jsonl(discovery_dir / "reference-report.jsonl")
   inventory = _load_json(discovery_dir / "source-inventory.json")
   batches = _package_batches(inventory, metadata, actions, references)
@@ -1095,7 +1246,7 @@ def write_phase7_bundle(
   ]
   selected_record_ids = {str(action["source_record_id"]) for action in selected_actions}
   selected_records = [records[record_id] for record_id in sorted(selected_record_ids)]
-  resolve = _typed_resolver(plan_dir, references)
+  resolve = _typed_resolver(plan_dir, references, repaired_identities)
   intervals = _zone_intervals(actions, records)
   target_ranges = _target_zone_ranges(selected_actions, records, intervals)
   zone_records: dict[tuple[str, int], RolRecord] = {}
@@ -1416,8 +1567,10 @@ def write_phase7_bundle(
       selected_actions,
       staged_model.rooms,
       (
+          ("zon", staged_model.zones),
           ("mob", staged_model.mobiles),
           ("obj", staged_model.objects),
+          ("trg", staged_model.triggers),
           ("shp", staged_model.shops),
           ("qst", staged_model.hlquests),
       ),
@@ -1431,6 +1584,9 @@ def write_phase7_bundle(
     if record_id in _SOC_OWNER_EXCLUSIONS or action["action"] == "EXCLUDE":
       final_action = "EXCLUDE"
       strategy = "SMALLEST_UNIT_EXCLUSION"
+    elif record_id in _SOURCE_RECORD_REPAIRS:
+      final_action = "ADD"
+      strategy = "SOURCE_DEFECT_REPAIR"
     elif action["action"] == "MERGE":
       final_action = "MERGE"
       strategy = "GENERATED_CANONICAL_MERGE"
@@ -1457,9 +1613,20 @@ def write_phase7_bundle(
     }
     if record_id in record_outputs:
       row["output"] = record_outputs[record_id]
+    if record_id in _SOURCE_RECORD_REPAIRS:
+      row["source_repair"] = _SOURCE_RECORD_REPAIRS[record_id]["repair"]
     dispositions.append(row)
 
-  reference_exceptions = _selected_reference_exceptions(references, selected_record_ids)
+  repaired_target_types = {"mob": "mobile", "obj": "object", "wld": "room"}
+  reference_exceptions = _selected_reference_exceptions(
+      references,
+      selected_record_ids,
+      {
+          (repaired_target_types[kind], source_vnum)
+          for (kind, source_vnum), destination in repaired_identities.items()
+          if destination is not None
+      },
+  )
   batch_rows = [
       {
           "batch": index,
@@ -1509,6 +1676,7 @@ def write_phase7_bundle(
           "native_special_targets": len(native),
           "special_triggers": len(special_compilation.triggers),
           "composite_special_targets": len(_COMPOSITE_SPECIALS),
+          "source_record_repairs": len(source_repairs),
       },
       "change-plan.json": {
           "through_batch": through_batch,
@@ -1518,6 +1686,7 @@ def write_phase7_bundle(
           "live_target_writes": 0,
       },
       "diagnostics/source.json": source_diagnostics,
+      "diagnostics/source-repairs.json": source_repairs,
       "diagnostics/transforms.json": transform_diagnostics,
       "diagnostics/soc.json": soc.diagnostics,
       "diagnostics/specials.json": special_compilation.diagnostics,
@@ -1586,6 +1755,10 @@ def write_phase7_bundle(
           "selected_packages": len(selected_packages),
           "selected_records": len(selected_actions),
           "all_selected_records_disposed": len(dispositions) == len(selected_actions),
+          "source_record_repairs": len(source_repairs),
+          "whole_record_exclusions": sum(
+              row["final_action"] == "EXCLUDE" for row in dispositions
+          ),
           "reference_exceptions_final": all(row["final"] for row in reference_exceptions),
           "source_parse_complete": source_parse_complete,
           "special_bindings_accounted": special_compilation.source_bindings == 1721,

@@ -189,12 +189,14 @@ is absent. The operational selection gate verifies every Phase 1/2 artifact hash
 requires exactly 3-5 packages covering the conventional, settlement, SOC, custom-reset,
 extension, special-procedure, and prior-lineage roles before pilot emission can begin.
 
-RoL Phase 6.5 tests cover the universal zone and entity formulas, evidence-backed
+RoL isolation tests cover the universal zone and entity formulas, evidence-backed
 normalization, sparse and multi-band packages, overflow and malformed inputs, exact
-Trail/Hulburg/Jotunheim rehomes, distinct artifact identities, persistent object
-headers, artifact-state ownership, transactional idempotent SQL, MariaDB view guards,
-and apply preconditions. The apply regression forces a database commit failure after
-rollback-only preflight and proves that no file has changed.
+Trail/Hulburg/Jotunheim coexistence, distinct Luminari and RoL artifact identities,
+all typed reference classes, and target-preservation preconditions. Persistence tests
+cover the exact inverse of the rejected rehome, rollback-only preflight, a mandatory
+full backup, row-count and serialized-suffix preservation, restored prototype
+resolution, and repeat-recovery no-op behavior. The legacy world apply is rejected
+before any file or database write.
 
 ### Canonical RoL maintenance gate
 
@@ -205,38 +207,45 @@ The completed conversion remains accepted only while all of these conditions hol
 2. Every active, non-excluded room, mobile, and object is at its typed source VNUM plus
    2000000; distinct source identities remain distinct.
 3. `mytheast` remains zone 20817 with entities 2081700-2081899.
-4. Trail, Hulburg, and Jotunheim exist only at their canonical RoL identities.
-5. The eleven converted first-wave artifacts retain direct canonical identities and
-   unique persistent state.
-6. No world, runtime, configuration, generated data, test, policy documentation,
-   database, or other persistent consumer requires a retired RoL identity.
-7. Every typed cross-zone, key, quest, shop, reset, portal, SOC, and DG edge resolves,
-   and canonical or synthetic identities remain collision-free.
+4. Existing Luminari Trail 1507, Hulburg 1591, Jotunheim 1960, and artifacts
+   169901-169910 remain byte-preserved while the similarly named RoL packages use
+   independent reserved identities.
+5. No RoL action, including a source-internal `MERGE`, targets an existing Luminari
+   record.
+6. Every typed cross-zone, key, quest, shop, reset, portal, SOC, DG, mobile, and object
+   edge either resolves inside the RoL namespace or has an explicit source-invalid
+   disposition; cross-world typed references are zero.
+7. RoL compatibility markers occur only on reserved-namespace owners, and every
+   hard-coded seven-digit identity in the RoL mechanics modules is in 2000000-2999999.
 8. Preserved target and OLC content changes only through an explicit, evidence-backed
-   record action.
-9. Migration neither loses nor duplicates ownership, progression, inventory, or other
-   discovered persistent state.
+   record action; the final import patches zero preserved Luminari records.
+9. Persistence recovery neither loses nor duplicates ownership, progression,
+   inventory, or other discovered state, and leaves zero rows under identities from
+   the rejected rehome.
 10. The assembled world adds no normalized baseline finding, and touched records have
     no unresolved finding.
 11. Syntax and isolated-database boots, reset and walkthrough evidence, focused tests,
     world tools, production-linked CuTests, and installation pass.
 12. Regeneration is byte-identical for identical inputs, repeat application is safe,
     and the applied development target passes the same audits.
-13. Maintained documentation states the canonical identity rule and gives no legacy
-    identity precedence.
+13. Maintained documentation states the isolation rule and never treats target name
+    similarity or a matching low VNUM as lineage.
 14. No unexplained exception, unresolved decision, or final blocked identity remains.
 
-### Phase 6.5 replay validation
+### Superseded Phase 6.5 evidence and recovery validation
 
-Operational replay validation must compare finding identity against the frozen
-baseline; it must not treat an inherited nonzero validator exit as a new failure. Run
-the global gate and each emitted package selector, then assert zero normalized addition
-and zero touched blocker from the sealed acceptance report:
+Do not apply a Phase 6.5 rehome bundle. The command is retained as rejected
+historical evidence and its apply path is disabled. Validate the coexisting low
+Luminari and high RoL packages separately, then require the final Phase 7 graph and
+preservation reports to show zero cross-world edge and zero patched preserved record:
 
 ```sh
 python3 scripts/world/wtool.py --json validate --all --strict
+lib/world/validate-zone.sh 1507 --json --strict
 lib/world/validate-zone.sh 20507 --json --strict
+lib/world/validate-zone.sh 1591 --json --strict
 lib/world/validate-zone.sh 20591 --json --strict
+lib/world/validate-zone.sh 1960 --json --strict
 lib/world/validate-zone.sh 20960 --json --strict
 ```
 
@@ -245,19 +254,24 @@ prevent a complete global reference universe. Classify those only by exact basel
 comparison. Any error located in a touched package, new normalized finding, or
 unresolved typed edge fails the gate.
 
-Apply only a verified bundle to an explicitly confirmed development environment. The
-command verifies the sealed manifest, all before/after hashes, and a rollback-only SQL
-preflight before committing the idempotent database migration and copying files:
+Recover any database touched by the superseded migration before staging Phase 8:
 
 ```sh
-python3 scripts/world/wtool.py --json rol-rebase-apply \
-  --bundle-dir <accepted-phase6.5-bundle> \
+python3 scripts/world/wtool.py rol-persistence-recovery-bundle \
+  --migration-bundle-dir <historical-persistence-bundle> \
+  --output-dir <recovery-bundle>
+
+python3 scripts/world/wtool.py rol-persistence-recovery-apply \
+  --bundle-dir <recovery-bundle> \
+  --database-config lib/mysql_config \
+  --database-role development \
   --lib-root lib \
-  --database-config lib/mysql_config
+  --output-dir <recovery-execution>
 ```
 
-Re-run the command after validation. A successful repeat reports zero changed paths;
-the SQL migration may execute again but must update no retired row. Follow it with
+Recovery must seal a full pre-write dump, preserve row counts and serialized suffix
+checksums, restore every affected low Luminari prototype uniquely, leave zero high
+rows from the rejected migration, and report a repeat no-op. Follow it with
 `make test-world-tools`, `make test`, `make install`, a syntax boot, and namespace,
 reference, persistent-store, and database audits.
 
@@ -506,9 +520,11 @@ missing-reference diagnostic.
 
 `rol-phase8` records the suite, install, syntax, and runtime logs with the static
 structure, reference, reset, quest, shop, SOC, trap, special, path, persistence,
-preservation, and determinism audits. After the accepted overlay is applied to
-development, `rol-phase8-completion` requires an identical validator result and a
-hash-preconditioned repeat-apply no-op.
+preservation, mechanics-isolation, and determinism audits. It also requires a sealed
+persistence-recovery execution with zero remaining high rows from the rejected
+migration. After the accepted additive overlay is applied to development,
+`rol-phase8-completion` requires an identical validator result and a hash-preconditioned
+repeat-apply no-op.
 
 ## Adding Tests
 

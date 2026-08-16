@@ -784,7 +784,7 @@ def _requirements_matrix(repo_root: Path) -> dict[str, Any]:
   items = _numbered_items(
       testing,
       "### Canonical RoL maintenance gate",
-      "### Phase 6.5 replay validation",
+      "### Superseded Phase 6.5 evidence and recovery validation",
   )
   if len(items) != 14:
     raise RolCompletionAuditError(
@@ -851,8 +851,8 @@ def _documentation_audit(repo_root: Path) -> dict[str, Any]:
       "all_lf_only": all(row["lf_only"] for row in rows),
       "canonical_contract_present": canonical_contract_present,
       "maintenance_gate_present": "### Canonical RoL maintenance gate" in testing,
-      "phase_6_5_changelog_present": (
-          "### Realms of Luminari Phase 6.5 canonical VNUM rebase" in changelog
+      "isolation_correction_changelog_present": (
+          "### RoL isolation correction and full-corpus import" in changelog
       ),
   }
 

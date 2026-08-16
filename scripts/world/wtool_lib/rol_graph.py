@@ -8,7 +8,51 @@ from typing import Any, Iterable
 from .rol_source import RolRecord
 
 
-ROL_GRAPH_SCHEMA_VERSION = 1
+ROL_GRAPH_SCHEMA_VERSION = 2
+
+_TARGET_TYPE_BY_KIND = {
+    "mob": "mobile",
+    "obj": "object",
+    "qst": "hlquest",
+    "shp": "shop",
+    "trg": "trigger",
+    "wld": "room",
+    "zon": "zone",
+}
+
+
+def _in_rol_namespace(target_type: str, vnum: int) -> bool:
+  if target_type == "zone":
+    return 20_000 <= vnum <= 29_999
+  return 2_000_000 <= vnum <= 2_999_999
+
+
+def _zone_references(zone: Any) -> Iterable[tuple[str, int, str, Any]]:
+  for command in getattr(zone, "commands", ()):
+    arguments = list(command.arguments)
+    if command.command == "M" and arguments:
+      yield "mobile", arguments[0], "M reset prototype", command.span
+    elif command.command in {"O", "E", "G", "P"} and arguments:
+      yield "object", arguments[0], f"{command.command} reset prototype", command.span
+    if command.command == "P" and len(arguments) >= 3:
+      yield "object", arguments[2], "P reset container", command.span
+    elif command.command == "R" and len(arguments) >= 2:
+      yield "object", arguments[1], "R reset object", command.span
+    elif command.command == "F" and len(arguments) >= 3:
+      yield "mobile", arguments[1], "F reset leader", command.span
+      yield "mobile", arguments[2], "F reset follower", command.span
+    elif command.command == "X" and len(arguments) >= 2:
+      yield "mobile", arguments[1], "X reset mobile", command.span
+    if command.command in {"M", "O"} and len(arguments) >= 3:
+      if command.command != "O" or arguments[2] >= 0:
+        yield "room", arguments[2], f"{command.command} reset destination", command.span
+    elif command.command in {"D", "R", "K", "F", "X"} and arguments:
+      if command.command != "X" or arguments[0] >= 0:
+        yield "room", arguments[0], f"{command.command} reset room", command.span
+    elif command.command in {"T", "V"} and len(arguments) >= 3:
+      yield "room", arguments[2], f"{command.command} reset host room", command.span
+    if command.command == "T" and len(arguments) >= 2:
+      yield "trigger", arguments[1], "T reset trigger", command.span
 
 
 def _action_disposition(action: dict[str, Any]) -> str:
@@ -241,41 +285,88 @@ def audit_connection_graph(
       mapped_by_kind[str(action.get("source_kind"))].add(
           int(action["destination_vnum"])
       )
+  definitions: defaultdict[str, set[int]] = defaultdict(set)
+  definitions["room"].update(int(room.vnum) for room in rooms)
+  for kind, group in record_groups.items():
+    target_type = _TARGET_TYPE_BY_KIND.get(kind)
+    if target_type is not None:
+      definitions[target_type].update(int(record.vnum) for record in group)
   typed_cross_world: list[dict[str, Any]] = []
+  missing_namespace_targets: list[dict[str, Any]] = []
   typed_room_references = 0
   for kind, group in sorted(record_groups.items()):
     owners = mapped_by_kind[kind]
     for record in group:
       owner_is_rol = record.vnum in owners
-      for reference in record.references:
-        if reference.target_type != "room" or reference.target_vnum <= 0:
+      references = [
+          (reference.target_type, reference.target_vnum, reference.role, reference.span)
+          for reference in getattr(record, "references", ())
+      ]
+      references.extend(
+          ("trigger", attachment.trigger_vnum, "inline trigger attachment", attachment.span)
+          for attachment in getattr(record, "attachments", ())
+      )
+      if kind == "zon":
+        references.extend(_zone_references(record))
+      for target_type, target_vnum, role, span in references:
+        if target_vnum <= 0:
           continue
-        target_is_rol = reference.target_vnum in mapped_rooms
-        if owner_is_rol:
+        target_is_rol = _in_rol_namespace(target_type, target_vnum)
+        if owner_is_rol and target_type == "room":
           typed_room_references += 1
-        if kind == "obj" and owner_is_rol and reference.role in {
+        if kind == "obj" and owner_is_rol and role in {
             "portal destination",
             "switch room",
         }:
-          edge = (record.vnum, reference.role, reference.target_vnum)
+          edge = (record.vnum, role, target_vnum)
           actual_object_connections.add(edge)
           actual_object_locations[edge] = {
-              "target_path": reference.span.path,
-              "target_line": reference.span.line,
+              "target_path": span.path,
+              "target_line": span.line,
           }
-        if owner_is_rol == target_is_rol:
-          continue
-        typed_cross_world.append(
-            {
-                "direction": "rol_to_non_rol" if owner_is_rol else "non_rol_to_rol",
-                "owner_kind": kind,
-                "owner_vnum": record.vnum,
-                "role": reference.role,
-                "target_room": reference.target_vnum,
-                "target_path": reference.span.path,
-                "target_line": reference.span.line,
-            }
-        )
+        row = {
+            "direction": "rol_to_non_rol" if owner_is_rol else "non_rol_to_rol",
+            "owner_kind": kind,
+            "owner_vnum": record.vnum,
+            "role": role,
+            "target_type": target_type,
+            "target_vnum": target_vnum,
+            "target_path": span.path,
+            "target_line": span.line,
+        }
+        if owner_is_rol != target_is_rol:
+          typed_cross_world.append(row)
+        elif owner_is_rol and target_vnum not in definitions.get(target_type, set()):
+          missing_namespace_targets.append(row)
+
+  for room in rooms:
+    if room.vnum not in mapped_rooms:
+      continue
+    room_references = [
+        ("object", getattr(exit_record, "key_vnum", -1), "exit key", exit_record.span)
+        for exit_record in room.exits
+    ]
+    room_references.extend(
+        ("trigger", attachment.trigger_vnum, "inline trigger attachment", attachment.span)
+        for attachment in getattr(room, "attachments", ())
+    )
+    for target_type, target_vnum, role, span in room_references:
+      if target_vnum <= 0:
+        continue
+      row = {
+          "direction": "rol_to_non_rol",
+          "owner_kind": "wld",
+          "owner_vnum": room.vnum,
+          "role": role,
+          "target_type": target_type,
+          "target_vnum": target_vnum,
+          "target_path": span.path,
+          "target_line": span.line,
+      }
+      if not _in_rol_namespace(target_type, target_vnum):
+        typed_cross_world.append(row)
+      elif target_vnum not in definitions.get(target_type, set()):
+        missing_namespace_targets.append(row)
 
   missing = sorted(expected - actual)
   extra = sorted(actual - expected)
@@ -321,6 +412,7 @@ def audit_connection_graph(
           missing_object_rows,
           extra_object_rows,
           typed_cross_world,
+          missing_namespace_targets,
       )
   )
   return {
@@ -346,7 +438,11 @@ def audit_connection_graph(
           "missing_object_room_connections": len(missing_object_rows),
           "extra_object_room_connections": len(extra_object_rows),
           "typed_room_references": typed_room_references,
-          "cross_world_typed_room_references": len(typed_cross_world),
+          "cross_world_typed_room_references": sum(
+              row["target_type"] == "room" for row in typed_cross_world
+          ),
+          "cross_world_typed_references": len(typed_cross_world),
+          "missing_namespace_targets": len(missing_namespace_targets),
           "pass": passed,
       },
       "ambiguous_identities": ambiguous_identities,
@@ -368,12 +464,32 @@ def audit_connection_graph(
       "missing_object_room_connections": missing_object_rows,
       "extra_object_room_connections": extra_object_rows,
       "cross_world_typed_room_references": sorted(
-          typed_cross_world,
+          (row for row in typed_cross_world if row["target_type"] == "room"),
           key=lambda row: (
               row["owner_kind"],
               row["owner_vnum"],
               row["role"],
-              row["target_room"],
+              row["target_vnum"],
+          ),
+      ),
+      "cross_world_typed_references": sorted(
+          typed_cross_world,
+          key=lambda row: (
+              row["owner_kind"],
+              row["owner_vnum"],
+              row["target_type"],
+              row["target_vnum"],
+              row["role"],
+          ),
+      ),
+      "missing_namespace_targets": sorted(
+          missing_namespace_targets,
+          key=lambda row: (
+              row["owner_kind"],
+              row["owner_vnum"],
+              row["target_type"],
+              row["target_vnum"],
+              row["role"],
           ),
       ),
   }

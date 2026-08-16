@@ -17,6 +17,7 @@ from .flags import decode_tokens
 from .models import TOOL_VERSION
 from .reporting import result_payload
 from .rol_phase7 import _runtime_contract, _validation_delta
+from .rol_persistence_audit import verify_persistence_recovery_execution
 from .rol_pilot_build import (
     _artifact,
     _canonical_json,
@@ -43,8 +44,11 @@ _ACTION_RECORD_TYPES = {
 }
 _CODE_EVIDENCE_PATHS = (
     "scripts/world/wtool_lib/cli.py",
+    "scripts/world/wtool_lib/rol_completion_audit.py",
     "scripts/world/wtool_lib/rol_phase7.py",
     "scripts/world/wtool_lib/rol_phase8.py",
+    "scripts/world/wtool_lib/rol_persistence_audit.py",
+    "scripts/world/wtool_lib/rol_rebase.py",
     "scripts/world/wtool_lib/rol_transform.py",
     "src/db.c",
     "src/spec/spec_assign_mobiles.c",
@@ -167,8 +171,111 @@ def _line_format_audit(root: Path, paths: Iterable[str]) -> dict[str, Any]:
   }
 
 
+def _mechanics_markers(world) -> list[dict[str, Any]]:
+  markers: list[dict[str, Any]] = []
+
+  def add(owner_type: str, vnum: int, mechanic: str) -> None:
+    markers.append({"owner_type": owner_type, "vnum": vnum, "mechanic": mechanic})
+
+  for zone in world.zones:
+    if 18 in decode_tokens(zone.flags).bits:
+      add("zone", zone.vnum, "rol_reset_compat")
+  for room in world.rooms:
+    room_bits = decode_tokens(room.flags).bits
+    for bit, mechanic in (
+        (44, "rol_jail"),
+        (46, "rol_home_reset"),
+        (47, "rol_astral"),
+    ):
+      if bit in room_bits:
+        add("room", room.vnum, mechanic)
+    if room.rol_exit_traps:
+      add("room", room.vnum, "rol_exit_trap")
+    if room.spec_proc is not None and room.spec_proc.startswith("rol_"):
+      add("room", room.vnum, room.spec_proc)
+  for mobile in world.mobiles:
+    action_bits = decode_tokens(mobile.action_flags).bits
+    for bit in sorted(action_bits & set(range(105, 126))):
+      add("mobile", mobile.vnum, f"mob_rol_flag_{bit}")
+    if 4 in decode_tokens(mobile.affect2_flags).bits:
+      add("mobile", mobile.vnum, "rol_docile")
+    if mobile.spec_proc is not None and mobile.spec_proc.startswith("rol_"):
+      add("mobile", mobile.vnum, mobile.spec_proc)
+  for obj in world.objects:
+    extra_bits = decode_tokens(obj.extra_flags).bits
+    if 113 in extra_bits:
+      add("object", obj.vnum, "rol_object_trap_compatibility")
+    for bit in sorted(extra_bits & set(range(116, 125))):
+      add("object", obj.vnum, f"item_rol_flag_{bit}")
+    if obj.spec_proc is not None and obj.spec_proc.startswith("rol_"):
+      add("object", obj.vnum, obj.spec_proc)
+  rol_trade_mask = sum(1 << bit for bit in range(26, 30))
+  for shop in world.shops:
+    if shop.shop_flags & ((1 << 6) | (1 << 7)):
+      add("shop", shop.vnum, "rol_magic_policy")
+    if shop.customer_restrictions & rol_trade_mask:
+      add("shop", shop.vnum, "rol_customer_restriction")
+    if shop.rol_cheat_restrictions:
+      add("shop", shop.vnum, "rol_cheat_policy")
+  return markers
+
+
+def _mechanics_isolation_audit(repo_root: Path, baseline_world, candidate_world) -> dict[str, Any]:
+  baseline_markers = _mechanics_markers(baseline_world)
+  candidate_markers = _mechanics_markers(candidate_world)
+  low_candidate_markers = [
+      row
+      for row in candidate_markers
+      if int(row["vnum"])
+      < (20_000 if row["owner_type"] == "zone" else 2_000_000)
+  ]
+  mechanics_paths = sorted((repo_root / "src/spec").glob("spec_rol_*.[ch]"))
+  mechanics_paths.extend(sorted((repo_root / "src/vessels").glob("vessels_rol.[ch]")))
+  static_literals = 0
+  noncanonical_literals: list[dict[str, Any]] = []
+  literal_pattern = re.compile(r"(?<![A-Za-z0-9_])([1-9][0-9]{6})(?![A-Za-z0-9_])")
+  for path in mechanics_paths:
+    for line_number, line in enumerate(
+        path.read_text(encoding="utf-8").splitlines(), start=1
+    ):
+      for token in literal_pattern.findall(line):
+        value = int(token)
+        static_literals += 1
+        if not 2_000_000 <= value <= 2_999_999:
+          noncanonical_literals.append(
+              {
+                  "path": path.relative_to(repo_root).as_posix(),
+                  "line": line_number,
+                  "value": value,
+              }
+          )
+  by_owner = Counter(str(row["owner_type"]) for row in candidate_markers)
+  by_mechanic = Counter(str(row["mechanic"]) for row in candidate_markers)
+  return {
+      "baseline_rol_markers": len(baseline_markers),
+      "baseline_marker_samples": baseline_markers[:40],
+      "candidate_rol_markers": len(candidate_markers),
+      "candidate_markers_by_owner": dict(sorted(by_owner.items())),
+      "candidate_markers_by_mechanic": dict(sorted(by_mechanic.items())),
+      "low_namespace_candidate_markers": len(low_candidate_markers),
+      "low_namespace_marker_samples": low_candidate_markers[:40],
+      "mechanics_source_files": len(mechanics_paths),
+      "mechanics_source_file_sha256": {
+          path.relative_to(repo_root).as_posix(): _sha256_path(path)
+          for path in mechanics_paths
+      },
+      "seven_digit_identity_literals": static_literals,
+      "noncanonical_seven_digit_identity_literals": noncanonical_literals,
+      "pass": not baseline_markers
+      and bool(candidate_markers)
+      and not low_candidate_markers
+      and bool(static_literals)
+      and not noncanonical_literals,
+  }
+
+
 def _action_audit(
-    action_rows: list[dict[str, Any]], validation: dict[str, Any]
+    action_rows: list[dict[str, Any]], validation: dict[str, Any], baseline_world=None
 ) -> dict[str, Any]:
   targets = {
       (_ACTION_RECORD_TYPES[kind], int(row["destination_vnum"]))
@@ -199,6 +306,32 @@ def _action_audit(
     minimum = 20_000 if row["source_kind"] == "zon" else 2_000_000
     if int(destination) < minimum:
       noncanonical.append(str(row["source_record_id"]))
+  merge_rows = [row for row in action_rows if row["final_action"] == "MERGE"]
+  target_merge_collisions: list[str] = []
+  if baseline_world is not None:
+    baseline_by_kind = {
+        "zon": {record.vnum for record in baseline_world.zones},
+        "wld": {record.vnum for record in baseline_world.rooms},
+        "mob": {record.vnum for record in baseline_world.mobiles},
+        "obj": {record.vnum for record in baseline_world.objects},
+        "shp": {record.vnum for record in baseline_world.shops},
+        "qst": {record.vnum for record in baseline_world.hlquests},
+        "soc": {
+            record.vnum
+            for records in (
+                baseline_world.rooms,
+                baseline_world.mobiles,
+                baseline_world.objects,
+            )
+            for record in records
+        },
+    }
+    target_merge_collisions = [
+        str(row["source_record_id"])
+        for row in merge_rows
+        if row.get("destination_vnum")
+        in baseline_by_kind.get(str(row["source_kind"]), set())
+    ]
   return {
       "rows": len(action_rows),
       "actions": dict(sorted(actions.items())),
@@ -206,10 +339,13 @@ def _action_audit(
       "selected_target_records": len(targets),
       "missing_destinations": missing_destinations,
       "noncanonical_destinations": noncanonical,
+      "source_internal_merge_actions": len(merge_rows),
+      "merge_actions_targeting_existing_luminari_records": target_merge_collisions,
       "blocking_selected_record_findings": blocking,
       "pass": len(action_rows) == 71_680
       and not missing_destinations
       and not noncanonical
+      and not target_merge_collisions
       and not blocking,
   }
 
@@ -390,6 +526,7 @@ def write_phase8_bundle(
     phase7_dir: Path,
     repeat_phase7_dir: Path,
     completion_dir: Path,
+    persistence_recovery_dir: Path,
     target_world: Path,
     output_dir: Path,
     logs: dict[str, Path],
@@ -401,6 +538,7 @@ def write_phase8_bundle(
   phase7_dir = phase7_dir.resolve()
   repeat_phase7_dir = repeat_phase7_dir.resolve()
   completion_dir = completion_dir.resolve()
+  persistence_recovery_dir = persistence_recovery_dir.resolve()
   target_world = target_world.resolve()
   output_dir = output_dir.resolve()
   logs = {name: path.resolve() for name, path in logs.items()}
@@ -408,6 +546,9 @@ def write_phase8_bundle(
     raise RolPhase8Error(f"Phase 8 output directory already exists: {output_dir}")
   phase7 = _verify_bundle(phase7_dir, 7, "cumulative-milestone")
   completion = _verify_bundle(completion_dir, "6.5-completion-audit")
+  persistence_recovery = verify_persistence_recovery_execution(
+      persistence_recovery_dir
+  )
   if not phase7.get("acceptance", {}).get("phase7_complete"):
     raise RolPhase8Error("Phase 8 requires the accepted final Phase 7 milestone")
   if not phase7.get("acceptance", {}).get("connection_graph_pass"):
@@ -440,9 +581,12 @@ def write_phase8_bundle(
     baseline_validation["root"] = "sealed-phase6-5/world"
     candidate_validation["root"] = "phase8-candidate/world"
     delta = _validation_delta(baseline_validation, candidate_validation)
+    baseline_world = load_indexed_world_data(target_world, repo_root, constants, config)
     world = load_indexed_world_data(candidate_world, repo_root, constants, config)
     action_rows = _load_jsonl(phase7_dir / "action-ledger.jsonl")
-    action_audit = _action_audit(action_rows, candidate_validation)
+    action_audit = _action_audit(
+        action_rows, candidate_validation, baseline_world
+    )
     selected_zones = {
         int(row["destination_vnum"])
         for row in action_rows
@@ -450,13 +594,33 @@ def write_phase8_bundle(
     }
     runtime = _runtime_contract(world, selected_zones)
     behavior = _behavior_evidence(world, selected_zones)
+    mechanics_isolation = _mechanics_isolation_audit(
+        repo_root, baseline_world, world
+    )
 
   line_format = _line_format_audit(phase7_dir / "output/world", paths)
   code_gates = _code_gates(repo_root, logs)
   code_evidence = _code_evidence(repo_root)
   phase6_acceptance = completion["acceptance"]
+  recovery_acceptance = persistence_recovery["acceptance"]
   namespace = {
       "phase6_5_complete": phase6_acceptance.get("complete") is True,
+      "persistence_recovery_complete": recovery_acceptance.get("complete") is True,
+      "canonical_persistent_rows_after_recovery": recovery_acceptance.get(
+          "canonical_relevant_rows_after"
+      ),
+      "recovery_rollback_preflight_no_op": recovery_acceptance.get(
+          "rollback_preflight_no_op"
+      ),
+      "recovery_repeat_apply_no_op": recovery_acceptance.get(
+          "repeat_apply_no_op"
+      ),
+      "recovery_serialized_suffixes_preserved": recovery_acceptance.get(
+          "serialized_suffixes_preserved"
+      ),
+      "recovered_luminari_object_prototypes_resolve": recovery_acceptance.get(
+          "recovered_object_prototypes_resolve"
+      ),
       "unresolved_required_references": phase6_acceptance.get(
           "unresolved_required_package_references"
       ),
@@ -472,6 +636,12 @@ def write_phase8_bundle(
   }
   namespace["pass"] = (
       namespace["phase6_5_complete"]
+      and namespace["persistence_recovery_complete"]
+      and namespace["canonical_persistent_rows_after_recovery"] == 0
+      and namespace["recovery_rollback_preflight_no_op"] is True
+      and namespace["recovery_repeat_apply_no_op"] is True
+      and namespace["recovery_serialized_suffixes_preserved"] is True
+      and namespace["recovered_luminari_object_prototypes_resolve"] is True
       and namespace["unresolved_required_references"] == 0
       and namespace["unclosed_consumers"] == 0
       and namespace["missing_saved_object_prototypes"] == 0
@@ -480,9 +650,16 @@ def write_phase8_bundle(
   apply_rows = _apply_plan(target_world, phase7_dir, paths)
   compiler = _load_json(phase7_dir / "compiler-summary.json")
   connection_graph = _load_json(phase7_dir / "validation/connection-graph.json")
+  graph_summary = connection_graph["summary"]
+  graph_isolated = (
+      graph_summary["pass"]
+      and graph_summary.get("cross_world_typed_references") == 0
+      and graph_summary.get("missing_namespace_targets") == 0
+  )
   reconciliation = {
       "phase7_run_id": phase7["run_id"],
       "phase6_5_completion_run_id": completion["run_id"],
+      "persistence_recovery_run_id": persistence_recovery["run_id"],
       "packages": phase7["acceptance"]["final_packages"],
       "records": phase7["acceptance"]["final_records"],
       "apply_paths": len(apply_rows),
@@ -507,6 +684,9 @@ def write_phase8_bundle(
               repeat_phase7_dir / "run-manifest.json"
           ),
           "completion_manifest_sha256": _sha256_path(completion_dir / "run-manifest.json"),
+          "persistence_recovery_manifest_sha256": _sha256_path(
+              persistence_recovery_dir / "run-manifest.json"
+          ),
           "baseline_tree": baseline_tree,
           "candidate_tree": candidate_tree,
       },
@@ -517,6 +697,7 @@ def write_phase8_bundle(
       "behavior-evidence.json": behavior,
       "runtime-contract.json": runtime,
       "connection-graph.json": connection_graph,
+      "mechanics-isolation.json": mechanics_isolation,
       "line-format-audit.json": line_format,
       "code-gates.json": code_gates,
       "code-evidence.json": code_evidence,
@@ -546,7 +727,8 @@ def write_phase8_bundle(
           delta["new_active_errors"] == 0,
           action_audit["pass"],
           runtime["all_pass"],
-          connection_graph["summary"]["pass"],
+          graph_isolated,
+          mechanics_isolation["pass"],
           behavior["pass"],
           line_format["pass"],
           code_gates["all_pass"],
@@ -568,6 +750,7 @@ def write_phase8_bundle(
       "stage": "release-candidate",
       "phase7_run_id": phase7["run_id"],
       "phase6_5_completion_run_id": completion["run_id"],
+      "persistence_recovery_run_id": persistence_recovery["run_id"],
       "baseline_tree_sha256": baseline_tree["tree_sha256"],
       "candidate_tree_sha256": candidate_tree["tree_sha256"],
       "installed_binary_sha256": code_evidence["installed_binary_sha256"],
@@ -579,7 +762,14 @@ def write_phase8_bundle(
           "new_active_errors": delta["new_active_errors"],
           "selected_records_clean": action_audit["pass"],
           "runtime_contract_pass": runtime["all_pass"],
-          "connection_graph_pass": connection_graph["summary"]["pass"],
+          "connection_graph_pass": graph_isolated,
+          "cross_world_typed_references": graph_summary.get(
+              "cross_world_typed_references"
+          ),
+          "missing_namespace_targets": graph_summary.get(
+              "missing_namespace_targets"
+          ),
+          "mechanics_isolation_pass": mechanics_isolation["pass"],
           "behavior_evidence_pass": behavior["pass"],
           "code_gates_pass": code_gates["all_pass"],
           "namespace_audit_pass": namespace["pass"],
@@ -595,7 +785,8 @@ def write_phase8_bundle(
       "records": phase7["acceptance"]["final_records"],
       "apply_paths": len(apply_rows),
       "new_active_errors": delta["new_active_errors"],
-      "connection_graph_pass": connection_graph["summary"]["pass"],
+      "connection_graph_pass": graph_isolated,
+      "mechanics_isolation_pass": mechanics_isolation["pass"],
       "ready_to_apply": ready,
       "candidate_tree_sha256": candidate_tree["tree_sha256"],
   }
@@ -686,12 +877,12 @@ def _documentation_audit(repo_root: Path) -> dict[str, Any]:
   return {
       "files": rows,
       "canonical_contract_present": canonical_contract_present,
-      "phase_6_5_changelog_present": (
-          "### Realms of Luminari Phase 6.5 canonical VNUM rebase" in changelog
+      "isolation_correction_changelog_present": (
+          "### RoL isolation correction and full-corpus import" in changelog
       ),
       "pass": all(row["present"] and row["ascii"] and row["lf_only"] for row in rows)
       and canonical_contract_present
-      and "### Realms of Luminari Phase 6.5 canonical VNUM rebase" in changelog,
+      and "### RoL isolation correction and full-corpus import" in changelog,
   }
 
 

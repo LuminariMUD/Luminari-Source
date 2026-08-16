@@ -224,6 +224,39 @@ class RolRebaseTests(unittest.TestCase):
     self.assertIn("PREPARE rol_rebase_update_1", sql)
     self.assertTrue(_database_preflight_sql(sql).endswith("ROLLBACK;\n"))
 
+  def test_database_recovery_exactly_inverts_migration(self) -> None:
+    columns = [
+        {"table": "zones", "column": "zone_vnum", "record_type": "zone"},
+        {"table": "rooms", "column": "room_vnum", "record_type": "room"},
+        {"table": "objects", "column": "object_vnum", "record_type": "object"},
+    ]
+    connection = sqlite3.connect(":memory:")
+    connection.executescript(
+        "CREATE TABLE zones(zone_vnum INTEGER);"
+        "CREATE TABLE rooms(room_vnum INTEGER);"
+        "CREATE TABLE objects(object_vnum INTEGER);"
+        "INSERT INTO zones VALUES(1591);"
+        "INSERT INTO rooms VALUES(196004);"
+        "INSERT INTO objects VALUES(169906);"
+    )
+    connection.executescript("\n".join(_database_updates(columns)))
+    connection.executescript(
+        "\n".join(_database_updates(columns, reverse=True))
+    )
+    recovered = (
+        connection.execute("SELECT zone_vnum FROM zones").fetchone()[0],
+        connection.execute("SELECT room_vnum FROM rooms").fetchone()[0],
+        connection.execute("SELECT object_vnum FROM objects").fetchone()[0],
+    )
+    connection.close()
+
+    self.assertEqual((1591, 196004, 169906), recovered)
+    recovery_sql = _database_sql(columns, reverse=True)
+    self.assertIn("WHEN `zone_vnum` = 20591 THEN 1591", recovery_sql)
+    self.assertIn("THEN `room_vnum` - 1900000", recovery_sql)
+    self.assertIn("WHEN `object_vnum` = 2001007 THEN 169906", recovery_sql)
+    self.assertNotIn("WHEN `object_vnum` = 2001009", recovery_sql)
+
   def test_database_migration_uses_traced_generic_vnum_semantics(self) -> None:
     columns = [
         {"table": "house_data", "column": "vnum", "record_type": "unclassified"},
@@ -264,7 +297,7 @@ class RolRebaseTests(unittest.TestCase):
     self.assertIn("169906", sql)
     self.assertIn("2001007", sql)
 
-  def test_apply_stops_before_files_if_database_commit_fails(self) -> None:
+  def test_legacy_rebase_apply_is_disabled_before_any_write(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       root = Path(temporary)
       lib_root = root / "lib"
@@ -321,12 +354,10 @@ class RolRebaseTests(unittest.TestCase):
           encoding="ascii",
       )
 
-      with patch(
-          "wtool_lib.rol_rebase._run_mysql",
-          side_effect=["", RuntimeError("database commit failed")],
+      with self.assertRaisesRegex(
+          ValueError, "target-rehome apply is disabled"
       ):
-        with self.assertRaisesRegex(RuntimeError, "database commit failed"):
-          apply_rebase_bundle(bundle, lib_root, config)
+        apply_rebase_bundle(bundle, lib_root, config)
 
       self.assertEqual(b"before\n", destination.read_bytes())
 

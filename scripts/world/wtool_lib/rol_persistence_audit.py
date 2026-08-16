@@ -6,8 +6,11 @@ from collections import Counter
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
+import shutil
+import subprocess
 from typing import Any
 
 from .models import TOOL_VERSION
@@ -145,6 +148,92 @@ def write_persistence_migration_bundle(
   }
 
 
+def write_persistence_recovery_bundle(
+    migration_bundle_dir: Path,
+    output_dir: Path,
+    created_at: str | None = None,
+) -> dict[str, Any]:
+  """Seal the exact inverse of one accepted persistence migration."""
+
+  migration_bundle_dir = migration_bundle_dir.resolve()
+  output_dir = output_dir.resolve()
+  if output_dir.exists():
+    raise RolPersistenceAuditError(
+        f"persistence recovery output directory already exists: {output_dir}"
+    )
+  migration_manifest = _verify_persistence_bundle(migration_bundle_dir)
+  consumers = [
+      json.loads(line)
+      for line in (migration_bundle_dir / "persistent-consumer-ledger.jsonl")
+      .read_text(encoding="ascii")
+      .splitlines()
+  ]
+  sql = _database_sql(consumers, reverse=True)
+  statements = _database_updates(
+      consumers, include_guarded_missing=True, reverse=True
+  )
+
+  output_dir.mkdir(parents=True)
+  ledger_path = output_dir / "persistent-consumer-ledger.jsonl"
+  sql_path = output_dir / "rol_phase6_5_vnum_recovery.sql"
+  plan_path = output_dir / "recovery-plan.json"
+  ledger_path.write_bytes(
+      (migration_bundle_dir / "persistent-consumer-ledger.jsonl").read_bytes()
+  )
+  sql_path.write_text(sql, encoding="ascii")
+  plan = {
+      "direction": "canonical_to_retired",
+      "exact_inverse_of_migration_run_id": migration_manifest["run_id"],
+      "classified_consumers": len(consumers),
+      "migration_consumers": sum(
+          bool(row.get("migration_required")) for row in consumers
+      ),
+      "statements": len(statements),
+      "transactional": sql.startswith("START TRANSACTION;\n")
+      and sql.endswith("COMMIT;\n"),
+      "preflight_uses_rollback": _database_preflight_sql(sql).endswith(
+          "ROLLBACK;\n"
+      ),
+      "artifact_mapping_excludes_unmigrated_2001009": all(
+          "2001009" not in statement for statement in statements
+      ),
+      "backup_required_before_apply": True,
+      "repeat_application_contract": (
+          "zero canonical migration rows and byte-identical database state"
+      ),
+  }
+  plan_path.write_bytes(_canonical_json(plan))
+  artifacts = [
+      _artifact(path, output_dir) for path in (ledger_path, plan_path, sql_path)
+  ]
+  seed = "\n".join(
+      [str(migration_manifest["run_id"])]
+      + [row["sha256"] for row in sorted(artifacts, key=lambda item: item["path"])]
+  ).encode("ascii")
+  run_id = f"rol-phase6-5-persistence-recovery-{hashlib.sha256(seed).hexdigest()[:16]}"
+  manifest = {
+      "schema_version": ROL_PERSISTENCE_AUDIT_SCHEMA_VERSION,
+      "tool_version": TOOL_VERSION,
+      "run_id": run_id,
+      "creation_time": _created_at(created_at),
+      "phase": "6.5-persistence-recovery",
+      "migration_run_id": migration_manifest["run_id"],
+      "artifacts": sorted(artifacts, key=lambda item: item["path"]),
+      "acceptance": {
+          "complete": True,
+          "exact_inverse": True,
+          "transactional": plan["transactional"],
+          "preflight_uses_rollback": plan["preflight_uses_rollback"],
+          "backup_required_before_apply": True,
+          "artifact_mapping_excludes_unmigrated_2001009": plan[
+              "artifact_mapping_excludes_unmigrated_2001009"
+          ],
+      },
+  }
+  (output_dir / "run-manifest.json").write_bytes(_canonical_json(manifest))
+  return {"run_id": run_id, "output_dir": output_dir.as_posix(), **plan}
+
+
 def _verify_persistence_bundle(bundle_dir: Path) -> dict[str, Any]:
   manifest_path = bundle_dir / "run-manifest.json"
   manifest = json.loads(manifest_path.read_text(encoding="ascii"))
@@ -160,6 +249,73 @@ def _verify_persistence_bundle(bundle_dir: Path) -> dict[str, Any]:
       raise RolPersistenceAuditError("persistence artifact escapes bundle") from error
     if not path.is_file() or _sha256_path(path) != artifact["sha256"]:
       raise RolPersistenceAuditError(f"persistence artifact is missing or changed: {path}")
+  return manifest
+
+
+def _verify_persistence_recovery_bundle(bundle_dir: Path) -> dict[str, Any]:
+  manifest_path = bundle_dir / "run-manifest.json"
+  manifest = json.loads(manifest_path.read_text(encoding="ascii"))
+  if manifest.get("phase") != "6.5-persistence-recovery":
+    raise RolPersistenceAuditError("not a Phase 6.5 persistence recovery bundle")
+  acceptance = manifest.get("acceptance", {})
+  if not acceptance.get("complete") or not acceptance.get("exact_inverse"):
+    raise RolPersistenceAuditError("persistence recovery bundle is not accepted")
+  if not acceptance.get("backup_required_before_apply"):
+    raise RolPersistenceAuditError("persistence recovery does not require a backup")
+  for artifact in manifest.get("artifacts", []):
+    path = (bundle_dir / str(artifact["path"])).resolve()
+    try:
+      path.relative_to(bundle_dir)
+    except ValueError as error:
+      raise RolPersistenceAuditError("persistence recovery artifact escapes bundle") from error
+    if not path.is_file() or _sha256_path(path) != artifact["sha256"]:
+      raise RolPersistenceAuditError(
+          f"persistence recovery artifact is missing or changed: {path}"
+      )
+  return manifest
+
+
+def verify_persistence_recovery_execution(output_dir: Path) -> dict[str, Any]:
+  """Verify sealed recovery execution evidence and its restorable backup."""
+
+  output_dir = output_dir.resolve()
+  manifest = json.loads((output_dir / "run-manifest.json").read_text(encoding="ascii"))
+  if manifest.get("phase") != "6.5-persistence-recovery-execution":
+    raise RolPersistenceAuditError(
+        "not a Phase 6.5 persistence recovery execution"
+    )
+  acceptance = manifest.get("acceptance", {})
+  required = (
+      "complete",
+      "rollback_preflight_no_op",
+      "repeat_apply_no_op",
+      "row_counts_preserved",
+      "serialized_suffixes_preserved",
+      "recovered_object_prototypes_resolve",
+  )
+  if not all(acceptance.get(key) is True for key in required):
+    raise RolPersistenceAuditError("persistence recovery execution is not accepted")
+  if acceptance.get("canonical_relevant_rows_after") != 0:
+    raise RolPersistenceAuditError("persistence recovery left canonical rows")
+  for artifact in manifest.get("artifacts", []):
+    path = (output_dir / str(artifact["path"])).resolve()
+    try:
+      path.relative_to(output_dir)
+    except ValueError as error:
+      raise RolPersistenceAuditError("persistence recovery evidence escapes output") from error
+    if not path.is_file() or _sha256_path(path) != artifact["sha256"]:
+      raise RolPersistenceAuditError(
+          f"persistence recovery evidence is missing or changed: {path}"
+      )
+  backup = manifest.get("database_backup", {})
+  backup_path = output_dir / str(backup.get("path", ""))
+  if (
+      backup.get("path") != "database-before-recovery.sql"
+      or not backup_path.is_file()
+      or backup_path.stat().st_size <= 0
+      or _sha256_path(backup_path) != backup.get("sha256")
+  ):
+    raise RolPersistenceAuditError("persistence recovery backup is missing or changed")
   return manifest
 
 
@@ -248,8 +404,13 @@ def _persistent_object_prototype_resolution(
     consumers: list[dict[str, Any]],
     schema: dict[tuple[str, str], dict[str, str]],
     lib_root: Path,
+    *,
+    namespace: str = "canonical",
 ) -> dict[str, Any]:
-  """Prove every canonical saved-object header resolves to one active prototype."""
+  """Prove saved-object headers in one migration namespace resolve uniquely."""
+
+  if namespace not in {"canonical", "retired"}:
+    raise RolPersistenceAuditError(f"unsupported object namespace: {namespace}")
 
   values: set[int] = set()
   for consumer in consumers:
@@ -280,10 +441,11 @@ def _persistent_object_prototype_resolution(
       )
     else:
       continue
-    _, target = _source_target_predicates("object", expression)
+    source, target = _source_target_predicates("object", expression)
+    selected = target if namespace == "canonical" else source
     query = (
         f"SELECT DISTINCT {expression} FROM `{table}` "
-        f"WHERE ({value_scope}) AND ({target}) ORDER BY 1"
+        f"WHERE ({value_scope}) AND ({selected}) ORDER BY 1"
     )
     for value in _run_mysql(config, query).splitlines():
       if value:
@@ -296,13 +458,19 @@ def _persistent_object_prototype_resolution(
   fingerprint = hashlib.sha256(
       "\n".join(str(value) for value in sorted(values)).encode("ascii")
   ).hexdigest()
-  return {
-      "referenced_canonical_object_vnums": len(values),
+  result = {
+      "namespace": namespace,
+      "referenced_object_vnums": len(values),
       "resolved_unique_object_vnums": resolved,
       "missing_object_prototypes": missing,
       "nonunique_object_prototypes": nonunique,
       "referenced_vnum_set_sha256": fingerprint,
   }
+  if namespace == "canonical":
+    result["referenced_canonical_object_vnums"] = len(values)
+  else:
+    result["referenced_retired_object_vnums"] = len(values)
+  return result
 
 
 def audit_persistent_database(
@@ -479,6 +647,11 @@ def audit_persistent_database(
     result["object_prototype_resolution"] = _persistent_object_prototype_resolution(
         config, consumers, schema, lib_root
     )
+    result[
+        "retired_object_prototype_resolution"
+    ] = _persistent_object_prototype_resolution(
+        config, consumers, schema, lib_root, namespace="retired"
+    )
   return result
 
 
@@ -552,6 +725,120 @@ def _validate_execution(
   }
 
 
+def _write_database_backup(config: dict[str, str], path: Path) -> None:
+  """Write a restorable full database dump without exposing credentials."""
+
+  executable = shutil.which("mariadb-dump") or shutil.which("mysqldump")
+  if executable is None:
+    raise RolPersistenceAuditError("mariadb-dump or mysqldump is required for recovery")
+  if path.exists():
+    raise RolPersistenceAuditError(f"database backup already exists: {path}")
+  environment = dict(os.environ)
+  environment["MYSQL_PWD"] = config["mysql_password"]
+  connection_arguments = ["--host", config["mysql_host"]]
+  if config.get("mysql_socket"):
+    connection_arguments = [
+        "--protocol=socket",
+        "--socket",
+        config["mysql_socket"],
+    ]
+  elif config.get("mysql_port"):
+    connection_arguments.extend(["--port", config["mysql_port"]])
+  completed = subprocess.run(
+      [
+          executable,
+          "--no-defaults",
+          *connection_arguments,
+          "--user",
+          config["mysql_username"],
+          "--single-transaction",
+          "--quick",
+          "--skip-lock-tables",
+          "--hex-blob",
+          "--skip-comments",
+          "--skip-dump-date",
+          "--databases",
+          config["mysql_database"],
+          f"--result-file={path}",
+      ],
+      check=False,
+      capture_output=True,
+      text=True,
+      env=environment,
+  )
+  if completed.returncode != 0:
+    path.unlink(missing_ok=True)
+    message = completed.stderr.strip().splitlines()
+    detail = message[-1] if message else "database dump failed"
+    raise RolPersistenceAuditError(f"database backup failed: {detail}")
+  os.chmod(path, 0o600)
+
+
+def _validate_recovery_execution(
+    before: dict[str, Any],
+    after_preflight: dict[str, Any],
+    after: dict[str, Any],
+    repeat: dict[str, Any],
+) -> dict[str, Any]:
+  failures: list[str] = []
+  if before != after_preflight:
+    failures.append("rollback preflight changed database state")
+  if after != repeat:
+    failures.append("second recovery changed database state")
+  if after["summary"]["canonical_relevant_rows"] != 0:
+    failures.append("canonical migration rows remain after recovery")
+
+  prototype_resolution = after.get("retired_object_prototype_resolution", {})
+  if prototype_resolution.get("missing_object_prototypes", 0) != 0:
+    failures.append("recovered saved objects reference missing Luminari prototypes")
+  if prototype_resolution.get("nonunique_object_prototypes", 0) != 0:
+    failures.append("recovered saved objects reference nonunique Luminari prototypes")
+
+  before_rows = _audit_by_key(before)
+  after_rows = _audit_by_key(after)
+  for key, prior in before_rows.items():
+    current = after_rows[key]
+    if not prior["present"]:
+      continue
+    if prior.get("table_rows") != current.get("table_rows"):
+      failures.append(f"row count changed for {key[0]}.{key[1]}")
+    if not prior["migration_required"]:
+      continue
+    expected = int(prior.get("retired_rows", 0)) + int(
+        prior.get("canonical_rows", 0)
+    )
+    if int(current.get("retired_rows", 0)) != expected:
+      failures.append(f"recovered row count mismatch for {key[0]}.{key[1]}")
+    if prior["encoding"] == "object_header_blob":
+      expected_bytes = int(prior["retired_suffix_bytes"]) + int(
+          prior["canonical_suffix_bytes"]
+      )
+      if int(current["retired_suffix_bytes"]) != expected_bytes:
+        failures.append(f"serialized suffix length changed for {key[0]}.{key[1]}")
+      expected_xor = int(prior["retired_suffix_crc32_xor"]) ^ int(
+          prior["canonical_suffix_crc32_xor"]
+      )
+      if int(current["retired_suffix_crc32_xor"]) != expected_xor:
+        failures.append(f"serialized suffix checksum changed for {key[0]}.{key[1]}")
+  return {
+      "complete": not failures,
+      "failures": failures,
+      "rollback_preflight_no_op": before == after_preflight,
+      "repeat_apply_no_op": after == repeat,
+      "canonical_relevant_rows_after": after["summary"][
+          "canonical_relevant_rows"
+      ],
+      "retired_relevant_rows_after": after["summary"]["retired_relevant_rows"],
+      "row_counts_preserved": not any("row count" in failure for failure in failures),
+      "serialized_suffixes_preserved": not any(
+          "serialized suffix" in failure for failure in failures
+      ),
+      "recovered_object_prototypes_resolve": not any(
+          "recovered saved objects" in failure for failure in failures
+      ),
+  }
+
+
 def apply_persistence_migration_bundle(
     bundle_dir: Path,
     database_config: Path,
@@ -569,7 +856,10 @@ def apply_persistence_migration_bundle(
   if database_role not in {"isolated", "development"}:
     raise RolPersistenceAuditError("database role must be isolated or development")
   if database_role == "development":
-    _development_environment(lib_root.resolve())
+    raise RolPersistenceAuditError(
+        "forward persistence migration is disabled for development because it "
+        "rehomes existing Luminari identities"
+    )
   manifest = _verify_persistence_bundle(bundle_dir)
   consumers = [
       json.loads(line)
@@ -632,6 +922,111 @@ def apply_persistence_migration_bundle(
   }
 
 
+def apply_persistence_recovery_bundle(
+    bundle_dir: Path,
+    database_config: Path,
+    database_role: str,
+    output_dir: Path,
+    lib_root: Path,
+    created_at: str | None = None,
+) -> dict[str, Any]:
+  """Back up, apply, reapply, and audit one sealed persistence recovery."""
+
+  bundle_dir = bundle_dir.resolve()
+  output_dir = output_dir.resolve()
+  if output_dir.exists():
+    raise RolPersistenceAuditError(
+        f"recovery execution output directory already exists: {output_dir}"
+    )
+  if database_role not in {"isolated", "development"}:
+    raise RolPersistenceAuditError("database role must be isolated or development")
+  if database_role == "development":
+    _development_environment(lib_root.resolve())
+  manifest = _verify_persistence_recovery_bundle(bundle_dir)
+  consumers = [
+      json.loads(line)
+      for line in (bundle_dir / "persistent-consumer-ledger.jsonl")
+      .read_text(encoding="ascii")
+      .splitlines()
+  ]
+  config = _parse_mysql_config(database_config)
+  sql = (bundle_dir / "rol_phase6_5_vnum_recovery.sql").read_text(
+      encoding="ascii"
+  )
+
+  before = audit_persistent_database(config, consumers, lib_root)
+  output_dir.mkdir(parents=True)
+  backup_path = output_dir / "database-before-recovery.sql"
+  _write_database_backup(config, backup_path)
+  (output_dir / "before.json").write_bytes(_canonical_json(before))
+
+  _run_mysql(config, _database_preflight_sql(sql))
+  after_preflight = audit_persistent_database(config, consumers, lib_root)
+  (output_dir / "after-preflight.json").write_bytes(
+      _canonical_json(after_preflight)
+  )
+  if before != after_preflight:
+    raise RolPersistenceAuditError("rollback preflight changed database state")
+
+  _run_mysql(config, sql)
+  after = audit_persistent_database(config, consumers, lib_root)
+  (output_dir / "after.json").write_bytes(_canonical_json(after))
+  _run_mysql(config, sql)
+  repeat = audit_persistent_database(config, consumers, lib_root)
+  (output_dir / "repeat.json").write_bytes(_canonical_json(repeat))
+  acceptance = _validate_recovery_execution(
+      before, after_preflight, after, repeat
+  )
+  (output_dir / "acceptance.json").write_bytes(_canonical_json(acceptance))
+  if not acceptance["complete"]:
+    raise RolPersistenceAuditError("; ".join(acceptance["failures"]))
+
+  artifact_paths = [
+      backup_path,
+      *(output_dir / name for name in (
+          "before.json",
+          "after-preflight.json",
+          "after.json",
+          "repeat.json",
+          "acceptance.json",
+      )),
+  ]
+  artifacts = [_artifact(path, output_dir) for path in artifact_paths]
+  execution_seed = "\n".join(
+      [str(manifest["run_id"]), database_role]
+      + [row["sha256"] for row in sorted(artifacts, key=lambda item: item["path"])]
+  ).encode("ascii")
+  execution_id = (
+      "rol-phase6-5-persistence-recovery-exec-"
+      f"{hashlib.sha256(execution_seed).hexdigest()[:16]}"
+  )
+  execution_manifest = {
+      "schema_version": ROL_PERSISTENCE_AUDIT_SCHEMA_VERSION,
+      "tool_version": TOOL_VERSION,
+      "run_id": execution_id,
+      "creation_time": _created_at(created_at),
+      "phase": "6.5-persistence-recovery-execution",
+      "database_role": database_role,
+      "recovery_run_id": manifest["run_id"],
+      "database_identity_sha256": before["database_identity_sha256"],
+      "database_backup": _artifact(backup_path, output_dir),
+      "artifacts": sorted(artifacts, key=lambda item: item["path"]),
+      "acceptance": acceptance,
+  }
+  (output_dir / "run-manifest.json").write_bytes(
+      _canonical_json(execution_manifest)
+  )
+  return {
+      "run_id": execution_id,
+      "output_dir": output_dir.as_posix(),
+      "database_role": database_role,
+      "database_backup": backup_path.as_posix(),
+      "canonical_rows_before": before["summary"]["canonical_relevant_rows"],
+      "canonical_rows_after": after["summary"]["canonical_relevant_rows"],
+      **acceptance,
+  }
+
+
 def render_persistence_bundle_human(summary: dict[str, Any]) -> str:
   return (
       f"RoL Phase 6.5 persistence bundle: {summary['run_id']}\n"
@@ -648,5 +1043,16 @@ def render_persistence_apply_human(summary: dict[str, Any]) -> str:
       f"Database role: {summary['database_role']}\n"
       f"Retired rows before: {summary['retired_rows_before']}\n"
       f"Retired rows after: {summary['retired_rows_after']}\n"
+      f"Repeat apply no-op: {str(summary['repeat_apply_no_op']).lower()}\n"
+  )
+
+
+def render_persistence_recovery_human(summary: dict[str, Any]) -> str:
+  return (
+      f"RoL Phase 6.5 persistence recovery: {summary['run_id']}\n"
+      f"Database role: {summary['database_role']}\n"
+      f"Backup: {summary['database_backup']}\n"
+      f"Canonical rows before: {summary['canonical_rows_before']}\n"
+      f"Canonical rows after: {summary['canonical_rows_after']}\n"
       f"Repeat apply no-op: {str(summary['repeat_apply_no_op']).lower()}\n"
   )

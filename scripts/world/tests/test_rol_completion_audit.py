@@ -24,7 +24,7 @@ class RolCompletionAuditTests(unittest.TestCase):
     self.assertEqual(14, requirements["summary"]["total"])
     self.assertTrue(documentation["canonical_contract_present"])
     self.assertTrue(documentation["maintenance_gate_present"])
-    self.assertTrue(documentation["phase_6_5_changelog_present"])
+    self.assertTrue(documentation["isolation_correction_changelog_present"])
 
   def test_old_target_and_operation_cover_phase_6_5_special_cases(self):
     core = {"basename": "trail", "source_kind": "wld", "source_vnum": 50700}

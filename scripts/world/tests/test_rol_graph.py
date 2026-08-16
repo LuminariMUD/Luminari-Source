@@ -44,11 +44,12 @@ def target_room(vnum: int, destinations: list[int]) -> SimpleNamespace:
       SimpleNamespace(
           direction=index,
           destination_vnum=destination,
+          key_vnum=-1,
           span=span,
       )
       for index, destination in enumerate(destinations)
   ]
-  return SimpleNamespace(vnum=vnum, exits=exits, span=span)
+  return SimpleNamespace(vnum=vnum, exits=exits, attachments=[], span=span)
 
 
 class RolGraphTests(unittest.TestCase):
@@ -106,6 +107,35 @@ class RolGraphTests(unittest.TestCase):
 
     self.assertFalse(audit["summary"]["pass"])
     self.assertEqual(1, audit["summary"]["cross_world_typed_room_references"])
+
+  def test_non_room_reference_cross_world_edge_fails(self) -> None:
+    records = [source_room(100, -1)]
+    actions = [
+        action(100),
+        {
+            "source_kind": "qst",
+            "source_vnum": 200,
+            "source_record_id": "qst:200:areas/qst/graph.qst:200",
+            "destination_vnum": 2_000_200,
+            "action": "ADD",
+        },
+    ]
+    rooms = [target_room(2_000_100, [])]
+    reference = SimpleNamespace(
+        target_type="object",
+        target_vnum=14018,
+        role="required item",
+        span=SourceSpan("hlq/20002.hlq", 1),
+    )
+    quests = [
+        SimpleNamespace(vnum=2_000_200, references=[reference], attachments=[])
+    ]
+
+    audit = audit_connection_graph(records, actions, rooms, (("qst", quests),))
+
+    self.assertFalse(audit["summary"]["pass"])
+    self.assertEqual(1, audit["summary"]["cross_world_typed_references"])
+    self.assertEqual("object", audit["cross_world_typed_references"][0]["target_type"])
 
 
 if __name__ == "__main__":
