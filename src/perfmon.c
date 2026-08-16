@@ -1,9 +1,5 @@
-/**
- * @file perfmon.c
- * @brief Simple Performance Monitoring System Implementation
- *
- * This provides a lightweight performance monitoring system using only C.
- */
+#include "conf.h"
+#include "sysdep.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +9,17 @@
 #include <inttypes.h>
 #include <math.h>
 #include <stdint.h>
+#include <sys/resource.h>
+#if defined(__GLIBC__)
+#include <malloc.h>
+#endif
+
+#include "structs.h"
+#include "utils.h"
+#include "comm.h"
+#include "db.h"
+#include "handler.h"
+#include "dgscript/dg_event.h"
 #include "perfmon.h"
 
 /* ========================================================================
@@ -162,6 +169,15 @@ static struct perf_interval hour_data;
 /* Profiling sections */
 static struct PERF_prof_sect *prof_sections[MAX_PROF_SECTIONS];
 static int prof_section_count = 0;
+
+/* Memory monitoring state */
+static struct perf_memory_stats boot_memory_stats;
+static struct perf_memory_stats reset_memory_stats;
+static uint64_t memory_boot_time_sec = 0;
+static uint64_t memory_reset_time_sec = 0;
+static uint64_t memory_peak_rss_kib = 0;
+static uint64_t memory_peak_anon_kib = 0;
+static uint64_t memory_last_alert_time_sec = 0;
 
 /* ========================================================================
  * UTILITY FUNCTIONS
@@ -529,6 +545,14 @@ static void ensure_initialized(void)
   init_interval(&hour_data, HOUR_BUFFER_SIZE);
   prof_reset_usec = monotonic_usec();
 
+  if (memory_boot_time_sec == 0)
+  {
+    PERF_sample_memory(&boot_memory_stats);
+    reset_memory_stats = boot_memory_stats;
+    memory_boot_time_sec = (uint64_t)time(NULL);
+    memory_reset_time_sec = memory_boot_time_sec;
+  }
+
   initialized = 1;
 }
 
@@ -625,6 +649,14 @@ void PERF_reset(void)
     sect->sample_index = 0;
     sect->sample_count = 0;
     sect->samples_seen = 0;
+  }
+
+  PERF_sample_memory(&reset_memory_stats);
+  memory_reset_time_sec = (uint64_t)time(NULL);
+  if (memory_boot_time_sec == 0)
+  {
+    boot_memory_stats = reset_memory_stats;
+    memory_boot_time_sec = memory_reset_time_sec;
   }
 
   prof_reset_usec = monotonic_usec();
@@ -801,7 +833,6 @@ size_t PERF_repr(char *out_buf, size_t n)
 
   return written;
 }
-
 /* ========================================================================
  * CODE PROFILING FUNCTIONS
  * ======================================================================== */
@@ -1468,5 +1499,376 @@ void PERF_cleanup(void)
   memset(&total_extraction_stats, 0, sizeof(total_extraction_stats));
   memset(&pulse_catchup_stats, 0, sizeof(pulse_catchup_stats));
   memset(&total_catchup_stats, 0, sizeof(total_catchup_stats));
+  memset(&boot_memory_stats, 0, sizeof(boot_memory_stats));
+  memset(&reset_memory_stats, 0, sizeof(reset_memory_stats));
+  memory_boot_time_sec = 0;
+  memory_reset_time_sec = 0;
+  memory_peak_rss_kib = 0;
+  memory_peak_anon_kib = 0;
+  memory_last_alert_time_sec = 0;
   initialized = 0;
+}
+
+/* ========================================================================
+ * MEMORY MONITORING IMPLEMENTATION
+ * ======================================================================== */
+
+static int sample_proc_status(struct perf_memory_stats *stats)
+{
+  FILE *f;
+  char line[256];
+
+  if (stats == NULL)
+    return 0;
+
+  f = fopen("/proc/self/status", "r");
+  if (!f)
+    return 0;
+
+  while (fgets(line, sizeof(line), f))
+  {
+    if (strncmp(line, "VmSize:", 7) == 0)
+      stats->vm_size_kib = strtoull(line + 7, NULL, 10);
+    else if (strncmp(line, "VmRSS:", 6) == 0)
+      stats->vm_rss_kib = strtoull(line + 6, NULL, 10);
+    else if (strncmp(line, "RssAnon:", 8) == 0)
+      stats->rss_anon_kib = strtoull(line + 8, NULL, 10);
+    else if (strncmp(line, "RssFile:", 8) == 0)
+      stats->rss_file_kib = strtoull(line + 8, NULL, 10);
+    else if (strncmp(line, "RssShmem:", 9) == 0)
+      stats->rss_shmem_kib = strtoull(line + 9, NULL, 10);
+    else if (strncmp(line, "VmData:", 7) == 0)
+      stats->vm_data_kib = strtoull(line + 7, NULL, 10);
+    else if (strncmp(line, "VmSwap:", 7) == 0)
+      stats->vm_swap_kib = strtoull(line + 7, NULL, 10);
+  }
+  fclose(f);
+  return 1;
+}
+
+int PERF_sample_memory(struct perf_memory_stats *stats)
+{
+  struct rusage ru;
+  struct descriptor_data *d;
+  struct char_data *ch;
+  struct obj_data *obj;
+
+  if (stats == NULL)
+    return 0;
+
+  memset(stats, 0, sizeof(*stats));
+  stats->timestamp_sec = (uint64_t)time(NULL);
+
+  /* Sample Linux /proc/self/status */
+  sample_proc_status(stats);
+
+  /* Allocator statistics via glibc mallinfo2 / mallinfo */
+#if defined(__GLIBC__) && ((__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 33))
+  struct mallinfo2 mi = mallinfo2();
+  stats->heap_arena_kib = (uint64_t)(mi.arena / 1024);
+  stats->heap_inuse_kib = (uint64_t)(mi.uordblks / 1024);
+  stats->heap_free_kib = (uint64_t)(mi.fordblks / 1024);
+  stats->heap_mmap_kib = (uint64_t)(mi.hblkhd / 1024);
+#elif defined(__GLIBC__)
+  struct mallinfo mi = mallinfo();
+  stats->heap_arena_kib = (uint64_t)((size_t)mi.arena / 1024);
+  stats->heap_inuse_kib = (uint64_t)((size_t)mi.uordblks / 1024);
+  stats->heap_free_kib = (uint64_t)((size_t)mi.fordblks / 1024);
+  stats->heap_mmap_kib = (uint64_t)((size_t)mi.hblkhd / 1024);
+#endif
+
+  /* Fallback or supplement with getrusage */
+  if (getrusage(RUSAGE_SELF, &ru) == 0)
+  {
+    stats->max_rss_kib = (uint64_t)ru.ru_maxrss;
+    if (stats->vm_rss_kib == 0 && ru.ru_maxrss > 0)
+      stats->vm_rss_kib = (uint64_t)ru.ru_maxrss;
+  }
+
+  /* Track peaks */
+  if (stats->vm_rss_kib > memory_peak_rss_kib)
+    memory_peak_rss_kib = stats->vm_rss_kib;
+  if (stats->rss_anon_kib > memory_peak_anon_kib)
+    memory_peak_anon_kib = stats->rss_anon_kib;
+
+  /* Count descriptors */
+  for (d = descriptor_list; d; d = d->next)
+  {
+    stats->count_descriptors++;
+    if (IS_PLAYING(d))
+      stats->count_playing++;
+  }
+
+  /* Count characters */
+  for (ch = character_list; ch; ch = ch->next)
+  {
+    stats->count_chars++;
+    if (IS_NPC(ch))
+      stats->count_mobs++;
+    else
+      stats->count_pcs++;
+  }
+
+  /* Count objects */
+  for (obj = object_list; obj; obj = obj->next)
+    stats->count_objs++;
+
+  /* World rooms & zones */
+  if (world != NULL && top_of_world != NOWHERE)
+    stats->count_rooms = (uint64_t)(top_of_world + 1);
+  if (zone_table != NULL && top_of_zone_table != NOWHERE)
+    stats->count_zones = (uint64_t)(top_of_zone_table + 1);
+
+  /* Events and extractions */
+  stats->count_events = (uint64_t)event_queue_depth();
+  stats->count_pending_extractions = (uint64_t)pending_extractions_count();
+
+  return 1;
+}
+
+int PERF_memory_growth_rate(double *rss_kib_per_min, double *anon_kib_per_min,
+                            double *heap_kib_per_min)
+{
+  struct perf_memory_stats current;
+  uint64_t now_sec;
+  double elapsed_min;
+  int64_t rss_diff, anon_diff, heap_diff;
+
+  if (rss_kib_per_min)
+    *rss_kib_per_min = 0.0;
+  if (anon_kib_per_min)
+    *anon_kib_per_min = 0.0;
+  if (heap_kib_per_min)
+    *heap_kib_per_min = 0.0;
+
+  if (!PERF_sample_memory(&current))
+    return 0;
+
+  now_sec = current.timestamp_sec;
+  if (memory_reset_time_sec == 0 || now_sec <= memory_reset_time_sec)
+    return 0;
+
+  elapsed_min = (double)(now_sec - memory_reset_time_sec) / 60.0;
+  if (elapsed_min < 0.1)
+    return 0;
+
+  rss_diff = (int64_t)current.vm_rss_kib - (int64_t)reset_memory_stats.vm_rss_kib;
+  anon_diff = (int64_t)current.rss_anon_kib - (int64_t)reset_memory_stats.rss_anon_kib;
+  heap_diff = (int64_t)current.heap_inuse_kib - (int64_t)reset_memory_stats.heap_inuse_kib;
+
+  if (rss_kib_per_min)
+    *rss_kib_per_min = (double)rss_diff / elapsed_min;
+  if (anon_kib_per_min)
+    *anon_kib_per_min = (double)anon_diff / elapsed_min;
+  if (heap_kib_per_min)
+    *heap_kib_per_min = (double)heap_diff / elapsed_min;
+
+  return 1;
+}
+
+void PERF_memory_periodic_check(void)
+{
+  struct perf_memory_stats current;
+  double rss_rate = 0.0, anon_rate = 0.0, heap_rate = 0.0;
+  uint64_t now_sec;
+
+  if (!PERF_sample_memory(&current))
+    return;
+
+  now_sec = current.timestamp_sec;
+
+  /* Initialize baselines if needed */
+  if (memory_boot_time_sec == 0)
+  {
+    boot_memory_stats = current;
+    reset_memory_stats = current;
+    memory_boot_time_sec = now_sec;
+    memory_reset_time_sec = now_sec;
+    return;
+  }
+
+  /* Check growth rate if at least 5 minutes elapsed since reset */
+  if (now_sec - memory_reset_time_sec >= 300)
+  {
+    if (PERF_memory_growth_rate(&rss_rate, &anon_rate, &heap_rate))
+    {
+      /* Alert if sustained anon RSS growth > 1024 KiB/min and 15 min since last alert */
+      if (anon_rate > 1024.0 &&
+          (memory_last_alert_time_sec == 0 || now_sec - memory_last_alert_time_sec >= 900))
+      {
+        memory_last_alert_time_sec = now_sec;
+        log("PERFMON [MEMORY ALERT]: Elevated anonymous memory growth detected: +%.1f KiB/min "
+            "(+%.2f MiB/hr). "
+            "RSS: %llu KiB, Anon: %llu KiB, Heap in-use: %llu KiB. Live entities: %llu PCs, %llu "
+            "mobs, "
+            "%llu objs, %llu events.",
+            anon_rate, (anon_rate * 60.0) / 1024.0, (unsigned long long)current.vm_rss_kib,
+            (unsigned long long)current.rss_anon_kib, (unsigned long long)current.heap_inuse_kib,
+            (unsigned long long)current.count_pcs, (unsigned long long)current.count_mobs,
+            (unsigned long long)current.count_objs, (unsigned long long)current.count_events);
+      }
+    }
+  }
+}
+
+size_t PERF_memory_repr(char *out_buf, size_t n)
+{
+  struct perf_memory_stats cur;
+  size_t written = 0;
+  uint64_t now_sec;
+  uint64_t boot_elapsed_sec = 0;
+  uint64_t reset_elapsed_sec = 0;
+  int64_t rss_delta = 0, anon_delta = 0, heap_delta = 0;
+  double rss_rate = 0.0, anon_rate = 0.0, heap_rate = 0.0;
+  double anon_pct = 0.0;
+  const char *assessment = "STABLE - Memory usage within normal parameters";
+
+  if (!out_buf || n < 1)
+    return 0;
+
+  PERF_sample_memory(&cur);
+  now_sec = cur.timestamp_sec;
+
+  if (memory_boot_time_sec > 0 && now_sec >= memory_boot_time_sec)
+    boot_elapsed_sec = now_sec - memory_boot_time_sec;
+  if (memory_reset_time_sec > 0 && now_sec >= memory_reset_time_sec)
+    reset_elapsed_sec = now_sec - memory_reset_time_sec;
+
+  if (reset_memory_stats.vm_rss_kib > 0)
+    rss_delta = (int64_t)cur.vm_rss_kib - (int64_t)reset_memory_stats.vm_rss_kib;
+  if (reset_memory_stats.rss_anon_kib > 0)
+    anon_delta = (int64_t)cur.rss_anon_kib - (int64_t)reset_memory_stats.rss_anon_kib;
+  if (reset_memory_stats.heap_inuse_kib > 0)
+    heap_delta = (int64_t)cur.heap_inuse_kib - (int64_t)reset_memory_stats.heap_inuse_kib;
+
+  PERF_memory_growth_rate(&rss_rate, &anon_rate, &heap_rate);
+
+  if (cur.vm_rss_kib > 0)
+    anon_pct = ((double)cur.rss_anon_kib / (double)cur.vm_rss_kib) * 100.0;
+
+  if (reset_elapsed_sec >= 300)
+  {
+    if (anon_rate >= 1024.0 || rss_rate >= 1024.0)
+      assessment = "CRITICAL - High memory growth rate / possible leak detected";
+    else if (anon_rate >= 200.0 || rss_rate >= 200.0)
+      assessment = "WARNING - Elevated growth rate (monitor closely)";
+    else if (anon_rate >= 20.0 || rss_rate >= 20.0)
+      assessment = "MODERATE - Mild memory growth (within normal active bounds)";
+  }
+  else
+  {
+    assessment = "COLLECTING - Window under 5 minutes; baseline accumulating";
+  }
+
+  written = bounded_format_length(
+      snprintf(
+          out_buf, n,
+          "Memory Monitoring Dashboard\n\r\n\r"
+          "Window & Uptime:\n\r"
+          "  Elapsed Since Boot:       %02luh %02lum %02lus\n\r"
+          "  Elapsed Since Reset:      %02luh %02lum %02lus\n\r\n\r"
+          "Operating System Memory (/proc/self/status & rusage):\n\r"
+          "  Virtual Size (VmSize):    %8.2f MB (%llu KB)\n\r"
+          "  Resident Set (VmRSS):     %8.2f MB (%llu KB)  [Peak: %.2f MB]\n\r"
+          "  Anonymous RSS (RssAnon):  %8.2f MB (%llu KB)  [%.1f%% of RSS]\n\r"
+          "  File-Backed RSS (RssFile):%8.2f MB (%llu KB)\n\r"
+          "  Shared Memory (RssShmem): %8.2f MB (%llu KB)\n\r"
+          "  Data Segment (VmData):    %8.2f MB (%llu KB)\n\r"
+          "  Swap Used (VmSwap):       %8.2f MB (%llu KB)\n\r"
+          "  Peak MaxRSS (rusage):     %8.2f MB (%llu KB)\n\r\n\r"
+          "Heap Allocator (glibc mallinfo):\n\r"
+          "  In-Use Heap (uordblks):   %8.2f MB (%llu KB)\n\r"
+          "  Free in Arena (fordblks): %8.2f MB (%llu KB)\n\r"
+          "  Mmap Allocated (hblkhd):  %8.2f MB (%llu KB)\n\r"
+          "  Total Arena (arena):      %8.2f MB (%llu KB)\n\r\n\r"
+          "Memory Growth Analysis (Since Reset):\n\r"
+          "  RSS Net Change:           %+8.2f MB (%+lld KB) [%+.1f KiB/min, %+.2f MiB/hr]\n\r"
+          "  Anonymous RSS Net Change: %+8.2f MB (%+lld KB) [%+.1f KiB/min, %+.2f MiB/hr]\n\r"
+          "  Heap In-Use Net Change:   %+8.2f MB (%+lld KB) [%+.1f KiB/min, %+.2f MiB/hr]\n\r"
+          "  Status Assessment:        %s\n\r\n\r"
+          "Live Game Entity Inventory:\n\r"
+          "  Sockets / Descriptors:    %llu connected (%llu playing)\n\r"
+          "  Characters in World:      %llu total (%llu PCs, %llu Mobs)\n\r"
+          "  Objects in World:         %llu\n\r"
+          "  Rooms & Zones:            %llu rooms across %llu zones\n\r"
+          "  Active Timed Events:      %llu\n\r"
+          "  Pending Extractions:      %llu\n\r",
+          (unsigned long)(boot_elapsed_sec / 3600), (unsigned long)((boot_elapsed_sec % 3600) / 60),
+          (unsigned long)(boot_elapsed_sec % 60), (unsigned long)(reset_elapsed_sec / 3600),
+          (unsigned long)((reset_elapsed_sec % 3600) / 60), (unsigned long)(reset_elapsed_sec % 60),
+          (double)cur.vm_size_kib / 1024.0, (unsigned long long)cur.vm_size_kib,
+          (double)cur.vm_rss_kib / 1024.0, (unsigned long long)cur.vm_rss_kib,
+          (double)memory_peak_rss_kib / 1024.0, (double)cur.rss_anon_kib / 1024.0,
+          (unsigned long long)cur.rss_anon_kib, anon_pct, (double)cur.rss_file_kib / 1024.0,
+          (unsigned long long)cur.rss_file_kib, (double)cur.rss_shmem_kib / 1024.0,
+          (unsigned long long)cur.rss_shmem_kib, (double)cur.vm_data_kib / 1024.0,
+          (unsigned long long)cur.vm_data_kib, (double)cur.vm_swap_kib / 1024.0,
+          (unsigned long long)cur.vm_swap_kib, (double)cur.max_rss_kib / 1024.0,
+          (unsigned long long)cur.max_rss_kib, (double)cur.heap_inuse_kib / 1024.0,
+          (unsigned long long)cur.heap_inuse_kib, (double)cur.heap_free_kib / 1024.0,
+          (unsigned long long)cur.heap_free_kib, (double)cur.heap_mmap_kib / 1024.0,
+          (unsigned long long)cur.heap_mmap_kib, (double)cur.heap_arena_kib / 1024.0,
+          (unsigned long long)cur.heap_arena_kib, (double)rss_delta / 1024.0, (long long)rss_delta,
+          rss_rate, (rss_rate * 60.0) / 1024.0, (double)anon_delta / 1024.0, (long long)anon_delta,
+          anon_rate, (anon_rate * 60.0) / 1024.0, (double)heap_delta / 1024.0,
+          (long long)heap_delta, heap_rate, (heap_rate * 60.0) / 1024.0, assessment,
+          (unsigned long long)cur.count_descriptors, (unsigned long long)cur.count_playing,
+          (unsigned long long)cur.count_chars, (unsigned long long)cur.count_pcs,
+          (unsigned long long)cur.count_mobs, (unsigned long long)cur.count_objs,
+          (unsigned long long)cur.count_rooms, (unsigned long long)cur.count_zones,
+          (unsigned long long)cur.count_events, (unsigned long long)cur.count_pending_extractions),
+      n);
+
+  return written;
+}
+
+size_t PERF_memory_csv(char *out_buf, size_t n)
+{
+  struct perf_memory_stats cur;
+  double rss_rate = 0.0, anon_rate = 0.0, heap_rate = 0.0;
+  size_t written = 0;
+
+  if (!out_buf || n < 1)
+    return 0;
+
+  PERF_sample_memory(&cur);
+  PERF_memory_growth_rate(&rss_rate, &anon_rate, &heap_rate);
+
+  written = bounded_format_length(
+      snprintf(out_buf, n,
+               "# memory_timestamp_sec=%" PRIu64 "\n\r"
+               "# memory_vm_size_kib=%" PRIu64 "\n\r"
+               "# memory_vm_rss_kib=%" PRIu64 "\n\r"
+               "# memory_rss_anon_kib=%" PRIu64 "\n\r"
+               "# memory_rss_file_kib=%" PRIu64 "\n\r"
+               "# memory_rss_shmem_kib=%" PRIu64 "\n\r"
+               "# memory_vm_data_kib=%" PRIu64 "\n\r"
+               "# memory_vm_swap_kib=%" PRIu64 "\n\r"
+               "# memory_max_rss_kib=%" PRIu64 "\n\r"
+               "# memory_heap_arena_kib=%" PRIu64 "\n\r"
+               "# memory_heap_inuse_kib=%" PRIu64 "\n\r"
+               "# memory_heap_free_kib=%" PRIu64 "\n\r"
+               "# memory_heap_mmap_kib=%" PRIu64 "\n\r"
+               "# memory_growth_rss_kib_per_min=%.2f\n\r"
+               "# memory_growth_anon_kib_per_min=%.2f\n\r"
+               "# memory_growth_heap_kib_per_min=%.2f\n\r"
+               "# memory_count_descriptors=%" PRIu64 "\n\r"
+               "# memory_count_playing=%" PRIu64 "\n\r"
+               "# memory_count_chars=%" PRIu64 "\n\r"
+               "# memory_count_pcs=%" PRIu64 "\n\r"
+               "# memory_count_mobs=%" PRIu64 "\n\r"
+               "# memory_count_objs=%" PRIu64 "\n\r"
+               "# memory_count_rooms=%" PRIu64 "\n\r"
+               "# memory_count_zones=%" PRIu64 "\n\r"
+               "# memory_count_events=%" PRIu64 "\n\r"
+               "# memory_count_pending_extractions=%" PRIu64 "\n\r",
+               cur.timestamp_sec, cur.vm_size_kib, cur.vm_rss_kib, cur.rss_anon_kib,
+               cur.rss_file_kib, cur.rss_shmem_kib, cur.vm_data_kib, cur.vm_swap_kib,
+               cur.max_rss_kib, cur.heap_arena_kib, cur.heap_inuse_kib, cur.heap_free_kib,
+               cur.heap_mmap_kib, rss_rate, anon_rate, heap_rate, cur.count_descriptors,
+               cur.count_playing, cur.count_chars, cur.count_pcs, cur.count_mobs, cur.count_objs,
+               cur.count_rooms, cur.count_zones, cur.count_events, cur.count_pending_extractions),
+      n);
+
+  return written;
 }

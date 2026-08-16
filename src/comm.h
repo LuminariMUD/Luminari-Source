@@ -48,6 +48,7 @@ void send_to_group(struct char_data *ch, struct group_data *group, const char *m
 void send_to_range(room_vnum start, room_vnum finish, const char *messg, ...)
     __attribute__((format(printf, 3, 4)));
 void update_msdp_room(struct char_data *ch);
+void msdp_mark_map_state_changed(void);
 void send_to_mud(struct char_data *broadcaster, char *message);
 
 #if defined(LUMINARI_CUTEST)

@@ -13,6 +13,7 @@
 #ifndef _DB_H_
 #define _DB_H_
 
+#include <stdint.h>
 #include "conf.h"    /* for CIRCLE_ defines */
 #include "bool.h"    /* for bool */
 #include "structs.h" /* for room_vnum */
@@ -311,6 +312,8 @@ path_rnum real_path(path_vnum vnum);
 
 /* Public Procedures from objsave.c */
 void Crash_save_all(void);
+int Crash_save_single(struct char_data *ch, uint64_t *obj_usec, uint64_t *char_usec);
+int Crash_save_incremental(int max_saves);
 void Crash_idlesave(struct char_data *ch);
 void Crash_crashsave(struct char_data *ch);
 int Crash_load(struct char_data *ch);

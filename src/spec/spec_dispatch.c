@@ -201,8 +201,14 @@ int spec_gateway_command_room(struct char_data *ch, struct room_data *room, int 
                               const char *argument)
 {
   struct spec_event_context context;
+  const struct spec_definition *definition;
 
   if (room == NULL || room->func == NULL)
+    return 0;
+
+  definition = spec_registry_find_by_handler(room->func);
+  if (definition != NULL && definition->typed_handler != NULL &&
+      !spec_definition_supports_event(definition, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND))
     return 0;
 
   spec_context_init(&context, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND, room, ch, cmd, argument);
@@ -214,6 +220,7 @@ int spec_gateway_command_object(struct char_data *ch, struct obj_data *obj, int 
                                 const char *argument)
 {
   struct spec_event_context context;
+  const struct spec_definition *definition;
   spec_legacy_handler handler = NULL;
 
   if (obj == NULL)
@@ -221,6 +228,11 @@ int spec_gateway_command_object(struct char_data *ch, struct obj_data *obj, int 
 
   handler = GET_OBJ_SPEC(obj);
   if (handler == NULL)
+    return 0;
+
+  definition = spec_registry_find_by_handler(handler);
+  if (definition != NULL && definition->typed_handler != NULL &&
+      !spec_definition_supports_event(definition, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND))
     return 0;
 
   spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND, obj, ch, cmd, argument);
@@ -232,6 +244,7 @@ int spec_gateway_command_mobile(struct char_data *ch, struct char_data *mob, int
                                 const char *argument)
 {
   struct spec_event_context context;
+  const struct spec_definition *definition;
   spec_legacy_handler handler = NULL;
 
   if (mob == NULL)
@@ -239,6 +252,11 @@ int spec_gateway_command_mobile(struct char_data *ch, struct char_data *mob, int
 
   handler = GET_MOB_SPEC(mob);
   if (handler == NULL)
+    return 0;
+
+  definition = spec_registry_find_by_handler(handler);
+  if (definition != NULL && definition->typed_handler != NULL &&
+      !spec_definition_supports_event(definition, SPEC_OWNER_MOBILE, SPEC_EVENT_COMMAND))
     return 0;
 
   spec_context_init(&context, SPEC_OWNER_MOBILE, SPEC_EVENT_COMMAND, mob, ch, cmd, argument);
@@ -253,8 +271,14 @@ int spec_gateway_command_mobile(struct char_data *ch, struct char_data *mob, int
 int spec_gateway_mobile_activity(struct char_data *mob, spec_legacy_handler handler)
 {
   struct spec_event_context context;
+  const struct spec_definition *definition;
 
   if (mob == NULL || handler == NULL)
+    return 0;
+
+  definition = spec_registry_find_by_handler(handler);
+  if (definition != NULL && definition->typed_handler != NULL &&
+      !spec_definition_supports_event(definition, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY))
     return 0;
 
   /* The activity caller passes a writable empty buffer, not a literal. */
@@ -269,6 +293,7 @@ int spec_gateway_mobile_activity(struct char_data *mob, spec_legacy_handler hand
 void spec_gateway_mobile_combat_turn(struct char_data *mob)
 {
   struct spec_event_context context;
+  const struct spec_definition *definition;
   spec_legacy_handler handler = NULL;
 
   if (mob == NULL)
@@ -276,6 +301,11 @@ void spec_gateway_mobile_combat_turn(struct char_data *mob)
 
   handler = GET_MOB_SPEC(mob);
   if (handler == NULL)
+    return;
+
+  definition = spec_registry_find_by_handler(handler);
+  if (definition != NULL && definition->typed_handler != NULL &&
+      !spec_definition_supports_event(definition, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN))
     return;
 
   spec_context_init(&context, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN, mob, mob, 0,
@@ -367,6 +397,7 @@ int spec_gateway_mobile_death(struct char_data *mob, struct char_data *killer)
 void spec_gateway_object_auto_pulse(struct obj_data *obj)
 {
   struct spec_event_context context;
+  const struct spec_definition *definition;
   spec_legacy_handler handler = NULL;
 
   if (obj == NULL)
@@ -374,6 +405,11 @@ void spec_gateway_object_auto_pulse(struct obj_data *obj)
 
   handler = GET_OBJ_SPEC(obj);
   if (handler == NULL)
+    return;
+
+  definition = spec_registry_find_by_handler(handler);
+  if (definition != NULL && definition->typed_handler != NULL &&
+      !spec_definition_supports_event(definition, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE))
     return;
 
   /* Room and contained objects have no actor; dispatch them once per pulse. */
@@ -399,9 +435,16 @@ void spec_gateway_object_auto_pulse(struct obj_data *obj)
 void spec_gateway_room_activity(struct room_data *room)
 {
   struct spec_event_context context;
+  const struct spec_definition *definition;
 
   if (room == NULL || room->func == NULL)
     return;
+
+  definition = spec_registry_find_by_handler(room->func);
+  if (definition != NULL && definition->typed_handler != NULL &&
+      !spec_definition_supports_event(definition, SPEC_OWNER_ROOM, SPEC_EVENT_ROOM_ACTIVITY))
+    return;
+
   spec_context_init(&context, SPEC_OWNER_ROOM, SPEC_EVENT_ROOM_ACTIVITY, room, NULL, 0,
                     spec_empty_argument);
   (void)spec_dispatch(&context, room->func);
@@ -436,6 +479,7 @@ void spec_gateway_moving_room(struct room_data *room, struct moving_room_data *m
 void spec_gateway_item_identify(struct char_data *ch, struct obj_data *obj)
 {
   struct spec_event_context context;
+  const struct spec_definition *definition;
   spec_legacy_handler handler = NULL;
 
   if (obj == NULL)
@@ -443,6 +487,11 @@ void spec_gateway_item_identify(struct char_data *ch, struct obj_data *obj)
 
   handler = GET_OBJ_SPEC(obj);
   if (handler == NULL)
+    return;
+
+  definition = spec_registry_find_by_handler(handler);
+  if (definition != NULL && definition->typed_handler != NULL &&
+      !spec_definition_supports_event(definition, SPEC_OWNER_OBJECT, SPEC_EVENT_ITEM_IDENTIFY))
     return;
 
   spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_ITEM_IDENTIFY, obj, ch, 0, "identify");

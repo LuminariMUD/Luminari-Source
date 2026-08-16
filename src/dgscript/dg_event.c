@@ -787,3 +787,8 @@ void queue_free(struct dg_queue *q)
     total_events = 0;
   }
 }
+
+int event_queue_depth(void)
+{
+  return total_events;
+}

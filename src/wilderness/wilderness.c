@@ -491,6 +491,27 @@ int get_comprehensive_elevation(int x, int y, zone_rnum zone)
   return modified_elevation;
 }
 
+#define WILD_MAP_CACHE_SLOTS 16
+#define WILD_MAP_CACHE_MAX_DIM 41
+
+struct wild_map_cache_entry
+{
+  bool valid;
+  int xsize;
+  int ysize;
+  int center_x;
+  int center_y;
+  time_t last_accessed;
+  struct wild_map_tile tiles[WILD_MAP_CACHE_MAX_DIM][WILD_MAP_CACHE_MAX_DIM];
+};
+
+static struct wild_map_cache_entry wild_map_cache[WILD_MAP_CACHE_SLOTS];
+
+void wild_map_cache_invalidate(void)
+{
+  memset(wild_map_cache, 0, sizeof(wild_map_cache));
+}
+
 /*
  * Generate a height map centered on center_x and center_y.
  */
@@ -499,11 +520,41 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
   int x, y;
   int x_offset, y_offset;
   int trans_x, trans_y;
+  int i_slot, slot, oldest_slot;
+  time_t oldest_time;
 
   /* Below is for looking up static rooms. */
   room_rnum *room;
   double loc[2], pos[2];
   void *set;
+
+  if (xsize <= WILD_MAP_CACHE_MAX_DIM && ysize <= WILD_MAP_CACHE_MAX_DIM)
+  {
+    slot = -1;
+    for (i_slot = 0; i_slot < WILD_MAP_CACHE_SLOTS; i_slot++)
+    {
+      if (wild_map_cache[i_slot].valid && wild_map_cache[i_slot].xsize == xsize &&
+          wild_map_cache[i_slot].ysize == ysize && wild_map_cache[i_slot].center_x == center_x &&
+          wild_map_cache[i_slot].center_y == center_y)
+      {
+        slot = i_slot;
+        break;
+      }
+    }
+
+    if (slot >= 0)
+    {
+      wild_map_cache[slot].last_accessed = time(NULL);
+      for (y = 0; y < ysize; y++)
+      {
+        for (x = 0; x < xsize; x++)
+        {
+          map[x][y] = wild_map_cache[slot].tiles[x][y];
+        }
+      }
+      return;
+    }
+  }
 
   x_offset = (center_x - ((xsize - 1) / 2));
   y_offset = (center_y - ((ysize - 1) / 2));
@@ -628,6 +679,39 @@ void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_t
   }
 
   kd_res_free(set);
+
+  if (xsize <= WILD_MAP_CACHE_MAX_DIM && ysize <= WILD_MAP_CACHE_MAX_DIM)
+  {
+    oldest_slot = 0;
+    oldest_time = wild_map_cache[0].last_accessed;
+    for (i_slot = 0; i_slot < WILD_MAP_CACHE_SLOTS; i_slot++)
+    {
+      if (!wild_map_cache[i_slot].valid)
+      {
+        oldest_slot = i_slot;
+        break;
+      }
+      if (wild_map_cache[i_slot].last_accessed < oldest_time)
+      {
+        oldest_time = wild_map_cache[i_slot].last_accessed;
+        oldest_slot = i_slot;
+      }
+    }
+
+    wild_map_cache[oldest_slot].valid = TRUE;
+    wild_map_cache[oldest_slot].xsize = xsize;
+    wild_map_cache[oldest_slot].ysize = ysize;
+    wild_map_cache[oldest_slot].center_x = center_x;
+    wild_map_cache[oldest_slot].center_y = center_y;
+    wild_map_cache[oldest_slot].last_accessed = time(NULL);
+    for (y = 0; y < ysize; y++)
+    {
+      for (x = 0; x < xsize; x++)
+      {
+        wild_map_cache[oldest_slot].tiles[x][y] = map[x][y];
+      }
+    }
+  }
 }
 
 /* Get the sector type based on the three variables -

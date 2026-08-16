@@ -468,6 +468,9 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
                  back->keyword ? fname(back->keyword) : "door", cmd_door[scmd],
                  scmd == SCMD_CLOSE ? "d" : "ed");
 
+  if (!obj && (scmd == SCMD_OPEN || scmd == SCMD_CLOSE))
+    msdp_mark_map_state_changed();
+
   /* Door actions are a move action. */
   USE_MOVE_ACTION(ch);
 }

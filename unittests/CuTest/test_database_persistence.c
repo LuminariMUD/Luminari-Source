@@ -886,3 +886,45 @@ void Test_follower_runtime_state_rejects_incomplete_data(CuTest *tc)
   CuAssertTrue(tc, !AFF_FLAGGED(&follower, AFF_CHARM));
   CuAssertPtrEquals(tc, NULL, follower.affected);
 }
+
+void Test_crash_save_single_and_incremental(CuTest *tc)
+{
+  struct descriptor_data desc;
+  struct char_data ch;
+  struct player_special_data specials;
+  int saved;
+
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+  GET_PFILEPOS(&ch) = -1; /* Don't overwrite actual disk file in unit test */
+  ch.player.name = strdup("Testsaver");
+
+  /* Test Crash_save_single with NPC/NULL */
+  CuAssertIntEquals(tc, 0, Crash_save_single(NULL, NULL, NULL));
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
+  CuAssertIntEquals(tc, 0, Crash_save_single(&ch, NULL, NULL));
+  REMOVE_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
+
+  /* Set PLR_CRASH */
+  SET_BIT_AR(PLR_FLAGS(&ch), PLR_CRASH);
+  CuAssertTrue(tc, PLR_FLAGGED(&ch, PLR_CRASH));
+
+  memset(&desc, 0, sizeof(desc));
+  desc.connected = CON_PLAYING;
+  desc.character = &ch;
+  ch.desc = &desc;
+
+  /* Insert in descriptor list for testing incremental save */
+  desc.next = descriptor_list;
+  descriptor_list = &desc;
+
+  saved = Crash_save_incremental(1);
+  CuAssertIntEquals(tc, 1, saved);
+  CuAssertTrue(tc, !PLR_FLAGGED(&ch, PLR_CRASH));
+
+  /* Remove descriptor from descriptor_list */
+  descriptor_list = desc.next;
+
+  free(ch.player.name);
+}

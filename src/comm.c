@@ -1138,8 +1138,10 @@ void game_loop(socket_t local_mother_desc)
 
       /* Tiered logging system for different severity levels */
       if (total_usec > perf_high_water_mark)
-      {
         perf_high_water_mark = total_usec;
+
+      if (usage_pcnt > 100.0)
+      {
         time_t current_time = time(NULL);
         int should_log = 0;
         const char *severity = "";
@@ -1147,7 +1149,7 @@ void game_loop(socket_t local_mother_desc)
         /* Determine severity and rate limit based on usage percentage */
         if (usage_pcnt > 1000.0)
         {
-          /* CRITICAL: Over 1000% - log at most once per minute */
+          /* CRITICAL: Over 1000% (>1s) - log at most once per minute */
           if (current_time - last_critical_log_time >= 60)
           {
             should_log = 1;
@@ -1157,21 +1159,21 @@ void game_loop(socket_t local_mother_desc)
         }
         else if (usage_pcnt > 500.0)
         {
-          /* SEVERE: 500-1000% - log at most once per 10 minutes */
-          if (current_time - last_severe_log_time >= 600)
+          /* SEVERE: 500-1000% (>500ms) - log at most once per 5 minutes */
+          if (current_time - last_severe_log_time >= 300)
           {
             should_log = 1;
             severity = "SEVERE";
             last_severe_log_time = current_time;
           }
         }
-        else if (usage_pcnt > 200.0)
+        else if (usage_pcnt > 100.0)
         {
-          /* MODERATE: 200-500% - log at most once per hour */
-          if (current_time - last_moderate_log_time >= 3600)
+          /* WARNING: 100-500% (>100ms) - log at most once per 10 minutes */
+          if (current_time - last_moderate_log_time >= 600)
           {
             should_log = 1;
-            severity = "MODERATE";
+            severity = "WARNING";
             last_moderate_log_time = current_time;
           }
         }
@@ -1183,15 +1185,17 @@ void game_loop(socket_t local_mother_desc)
 
           if (perf_log_suppressed > 0)
           {
-            log("PERFMON [%s]: Pulse usage new high water mark [%.2f%%, %ld usec]. (%d similar "
+            log("PERFMON [%s]: Pulse latency exceeded threshold [%.2f%%, %ld usec, high_water=%ld "
+                "usec]. (%d similar "
                 "messages suppressed). Trace info: \n%s",
-                severity, usage_pcnt, total_usec, perf_log_suppressed, buf);
+                severity, usage_pcnt, total_usec, perf_high_water_mark, perf_log_suppressed, buf);
           }
           else
           {
-            log("PERFMON [%s]: Pulse usage new high water mark [%.2f%%, %ld usec]. Trace info: "
+            log("PERFMON [%s]: Pulse latency exceeded threshold [%.2f%%, %ld usec, high_water=%ld "
+                "usec]. Trace info: "
                 "\n%s",
-                severity, usage_pcnt, total_usec, buf);
+                severity, usage_pcnt, total_usec, perf_high_water_mark, buf);
           }
 
           perf_log_suppressed = 0;
@@ -1721,6 +1725,7 @@ void heartbeat(int heart_pulse)
     check_auto_shutdown();
     check_auto_happy_hour();
     recharge_activated_items();
+    PERF_memory_periodic_check();
   }
 
   if (!(heart_pulse % PULSE_ZONE))
@@ -1934,6 +1939,7 @@ static void timeadd(struct timeval *rslt, struct timeval *a, struct timeval *b)
 
 static void record_usage(void)
 {
+  struct perf_memory_stats mem;
   int sockets_connected = 0, sockets_playing = 0;
   struct descriptor_data *d;
 
@@ -1945,6 +1951,17 @@ static void record_usage(void)
   }
 
   log("nusage: %-3d sockets connected, %-3d sockets playing", sockets_connected, sockets_playing);
+
+  if (PERF_sample_memory(&mem))
+  {
+    log("memusage: RSS: %llu KB, Anon: %llu KB, Heap: %llu KB (free: %llu KB), MaxRSS: %llu KB | "
+        "Entities: %llu chars (%llu PCs), %llu objs, %llu events, %llu pending_ext",
+        (unsigned long long)mem.vm_rss_kib, (unsigned long long)mem.rss_anon_kib,
+        (unsigned long long)mem.heap_inuse_kib, (unsigned long long)mem.heap_free_kib,
+        (unsigned long long)mem.max_rss_kib, (unsigned long long)mem.count_chars,
+        (unsigned long long)mem.count_pcs, (unsigned long long)mem.count_objs,
+        (unsigned long long)mem.count_events, (unsigned long long)mem.count_pending_extractions);
+  }
 
 #ifdef RUSAGE /* Not RUSAGE_SELF because it doesn't guarantee prototype. */
   {
@@ -4617,7 +4634,11 @@ static void update_msdp_automap(struct descriptor_data *d, struct char_data *ch)
 {
   char mapbuf[MAX_STRING_LENGTH] = {'\0'};
 
-  if (!d || !ch)
+  if (!d || !ch || !d->pProtocol || (!d->pProtocol->bMSDP && !d->pProtocol->bGMCP))
+    return;
+
+  if (d->pProtocol->pVariables[eMSDP_MINIMAP] == NULL ||
+      !d->pProtocol->pVariables[eMSDP_MINIMAP]->bReport)
     return;
 
   if (IN_ROOM(ch) != NOWHERE && can_see_map(ch) &&
@@ -4909,7 +4930,11 @@ static void update_msdp_graphic_map(struct descriptor_data *d, struct char_data 
   int room_count;
   int index;
 
-  if (!d || !ch)
+  if (!d || !ch || !d->pProtocol || (!d->pProtocol->bMSDP && !d->pProtocol->bGMCP))
+    return;
+
+  if (d->pProtocol->pVariables[eMSDP_GRAPHIC_MAP] == NULL ||
+      !d->pProtocol->pVariables[eMSDP_GRAPHIC_MAP]->bReport)
     return;
 
   if (IN_ROOM(ch) == NOWHERE || !VALID_ROOM_RNUM(IN_ROOM(ch)) || !can_see_map(ch) ||
@@ -5005,7 +5030,11 @@ static void update_msdp_wilderness_graphic_map(struct descriptor_data *d, struct
   int x_index;
   int y_index;
 
-  if (!d || !ch)
+  if (!d || !ch || !d->pProtocol || (!d->pProtocol->bMSDP && !d->pProtocol->bGMCP))
+    return;
+
+  if (d->pProtocol->pVariables[eMSDP_WILDERNESS_GRAPHIC_MAP] == NULL ||
+      !d->pProtocol->pVariables[eMSDP_WILDERNESS_GRAPHIC_MAP]->bReport)
     return;
 
   if (IN_ROOM(ch) == NOWHERE || !VALID_ROOM_RNUM(IN_ROOM(ch)) || !can_see_map(ch) ||
@@ -5132,6 +5161,51 @@ static void update_msdp_wilderness_graphic_map(struct descriptor_data *d, struct
   free(buffer.data);
 }
 
+static bool msdp_map_variable_is_dirty(struct descriptor_data *d, variable_t variable)
+{
+  if (!d || !d->pProtocol || !d->pProtocol->pVariables || variable <= eMSDP_NONE ||
+      variable >= eMSDP_MAX || !d->pProtocol->pVariables[variable])
+    return FALSE;
+
+  return d->pProtocol->pVariables[variable]->bReport && d->pProtocol->pVariables[variable]->bDirty;
+}
+
+static void mark_descriptor_msdp_maps_dirty(struct descriptor_data *d)
+{
+  static const variable_t map_variables[] = {eMSDP_MINIMAP, eMSDP_GRAPHIC_MAP,
+                                             eMSDP_WILDERNESS_GRAPHIC_MAP};
+  size_t i;
+
+  if (!d || !d->pProtocol || !d->pProtocol->pVariables)
+    return;
+
+  for (i = 0; i < sizeof(map_variables) / sizeof(map_variables[0]); i++)
+  {
+    variable_t variable = map_variables[i];
+
+    if (d->pProtocol->pVariables[variable] && d->pProtocol->pVariables[variable]->bReport)
+      d->pProtocol->pVariables[variable]->bDirty = TRUE;
+  }
+}
+
+void msdp_mark_map_state_changed(void)
+{
+  struct descriptor_data *d;
+
+  for (d = descriptor_list; d; d = d->next)
+    mark_descriptor_msdp_maps_dirty(d);
+}
+
+static void update_dirty_msdp_maps(struct descriptor_data *d, struct char_data *ch)
+{
+  if (msdp_map_variable_is_dirty(d, eMSDP_MINIMAP))
+    update_msdp_automap(d, ch);
+  if (msdp_map_variable_is_dirty(d, eMSDP_GRAPHIC_MAP))
+    update_msdp_graphic_map(d, ch);
+  if (msdp_map_variable_is_dirty(d, eMSDP_WILDERNESS_GRAPHIC_MAP))
+    update_msdp_wilderness_graphic_map(d, ch);
+}
+
 /* KaVir's plugin*/
 void update_msdp_room(struct char_data *ch)
 {
@@ -5150,7 +5224,7 @@ void update_msdp_room(struct char_data *ch)
   /* MSDP */
 
   buf2[0] = '\0';
-  if (ch && ch->desc)
+  if (ch && ch->desc && ch->desc->pProtocol && ch->desc->pProtocol->pVariables)
   {
     /* Location information */
     /*  Only update room stuff if they've changed room */
@@ -5246,10 +5320,13 @@ void update_msdp_room(struct char_data *ch)
 
       strip_colors(buf2);
       MSDPSetTable(ch->desc, eMSDP_ROOM, buf2);
-      update_msdp_automap(ch->desc, ch);
-      update_msdp_graphic_map(ch->desc, ch);
-      update_msdp_wilderness_graphic_map(ch->desc, ch);
+      mark_descriptor_msdp_maps_dirty(ch->desc);
     }
+
+    /* REPORT marks a newly subscribed variable dirty. Door and other map-state
+     * changes do the same, so maps are rebuilt only when a subscribed value is
+     * stale rather than unconditionally on every MSDP pulse. */
+    update_dirty_msdp_maps(ch->desc, ch);
   }
 }
 
@@ -5326,9 +5403,6 @@ static void msdp_update(void)
 
       /* Room */
       update_msdp_room(ch);
-      update_msdp_automap(d, ch);
-      update_msdp_graphic_map(d, ch);
-      update_msdp_wilderness_graphic_map(d, ch);
 
       /* gotta adjust compute_hit_damage() so it doesn't send messages randomly */
       /*

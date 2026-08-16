@@ -153,7 +153,7 @@ static const char s_Gauge5[] =
 #define NUMBER_IN_THE_RANGE(x, y) false, true, false, false, x, y, 0, NULL
 #define BOOLEAN_SET_TO(x) false, true, false, false, 0, 1, x, NULL
 #define STRING_WITH_LENGTH_OF(x, y) true, true, false, false, x, y, 0, NULL
-#define STRING_WRITE_ONCE(x, y) true, true, true, false, -1, -1, 0, NULL
+#define STRING_WRITE_ONCE(x, y) true, true, true, false, x, y, 0, NULL
 #define STRING_GUI(x) true, false, false, true, -1, -1, 0, x
 
 static variable_name_t VariableNameTable[eMSDP_MAX + 1] = {
@@ -362,6 +362,14 @@ protocol_t *ProtocolCreate(void)
       {
         ReportBug("MSDP: Variable table does not match the enums in the header.\n");
         break;
+      }
+      if (VariableNameTable[i].bString && VariableNameTable[i].bConfigurable)
+      {
+        if (VariableNameTable[i].Max < 0 || VariableNameTable[i].Max > MAX_VARIABLE_LENGTH ||
+            VariableNameTable[i].Min < 0 || VariableNameTable[i].Min > VariableNameTable[i].Max)
+        {
+          ReportBug("MSDP: Configurable string variable table entry has invalid limits.\n");
+        }
       }
     }
   }
@@ -3519,13 +3527,13 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
             else
             {
               pBuffer = calloc((size_t)VariableNameTable[var].Max + 1, sizeof(char));
+              if (pBuffer == NULL)
+              {
+                ReportBug("ExecuteMSDPPair: Failed to allocate MSDP value buffer");
+              }
             }
 
-            if (pBuffer == NULL)
-            {
-              ReportBug("ExecuteMSDPPair: Failed to allocate MSDP value buffer");
-            }
-            else
+            if (pBuffer != NULL)
             {
               for (j = 0; j < VariableNameTable[var].Max && *apValue != '\0'; ++apValue)
               {

@@ -3289,6 +3289,11 @@ void extract_pending_chars(void)
                                 pending_after > 0 ? (uint64_t)pending_after : 0);
 }
 
+int pending_extractions_count(void)
+{
+  return extractions_pending;
+}
+
 /* Here follows high-level versions of some earlier routines, ie functions
  * which incorporate the actual player-data */
 struct char_data *get_player_vis(struct char_data *ch, char *name, int *number, int inroom)

@@ -111,6 +111,7 @@ void event_process(void);
 long event_time(struct event *event);
 void event_free_all(void);
 void cleanup_event_obj(struct event *event);
+int event_queue_depth(void);
 
 /* - queues - function protos need by other modules */
 struct dg_queue *queue_init(void);

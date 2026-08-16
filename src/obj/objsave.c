@@ -1865,18 +1865,106 @@ SPECIAL(cryogenicist)
   return (gen_receptionist(ch, (struct char_data *)me, cmd, argument, CRYO_FACTOR));
 }
 
+int Crash_save_single(struct char_data *ch, uint64_t *obj_usec, uint64_t *char_usec)
+{
+  struct timeval t_start, t_mid, t_end;
+  uint64_t o_time = 0, c_time = 0;
+
+  if (!ch || IS_NPC(ch))
+    return 0;
+
+  gettimeofday(&t_start, NULL);
+  Crash_crashsave(ch);
+  gettimeofday(&t_mid, NULL);
+  save_char(ch, 0);
+  gettimeofday(&t_end, NULL);
+
+  o_time = (t_mid.tv_sec - t_start.tv_sec) * 1000000ULL + (t_mid.tv_usec - t_start.tv_usec);
+  c_time = (t_end.tv_sec - t_mid.tv_sec) * 1000000ULL + (t_end.tv_usec - t_mid.tv_usec);
+
+  if (obj_usec)
+    *obj_usec = o_time;
+  if (char_usec)
+    *char_usec = c_time;
+
+  REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
+
+  if (o_time + c_time > 100000ULL) /* > 100ms */
+  {
+    log("PERFMON [SAVE]: Slow save for player '%s': objsave=%llu usec, charsave=%llu usec (total "
+        "%llu usec)",
+        GET_NAME(ch), (unsigned long long)o_time, (unsigned long long)c_time,
+        (unsigned long long)(o_time + c_time));
+  }
+
+  return 1;
+}
+
+int Crash_save_incremental(int max_saves)
+{
+  static struct descriptor_data *next_d = NULL;
+  struct descriptor_data *d;
+  int saved_count = 0;
+  int checked = 0;
+  int total_descs = 0;
+  bool found = false;
+
+  for (d = descriptor_list; d; d = d->next)
+    total_descs++;
+
+  if (total_descs == 0)
+  {
+    next_d = NULL;
+    return 0;
+  }
+
+  if (next_d != NULL)
+  {
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d == next_d)
+      {
+        found = true;
+        break;
+      }
+    }
+    if (!found)
+      next_d = descriptor_list;
+  }
+  else
+  {
+    next_d = descriptor_list;
+  }
+
+  d = next_d;
+  while (d != NULL && checked < total_descs && (max_saves <= 0 || saved_count < max_saves))
+  {
+    struct descriptor_data *curr_d = d;
+    d = d->next ? d->next : descriptor_list;
+    checked++;
+
+    if (STATE(curr_d) == CON_PLAYING && curr_d->character && !IS_NPC(curr_d->character) &&
+        PLR_FLAGGED(curr_d->character, PLR_CRASH))
+    {
+      Crash_save_single(curr_d->character, NULL, NULL);
+      saved_count++;
+    }
+  }
+
+  next_d = d;
+  return saved_count;
+}
+
 void Crash_save_all(void)
 {
   struct descriptor_data *d;
   for (d = descriptor_list; d; d = d->next)
   {
-    if ((STATE(d) == CON_PLAYING) && !IS_NPC(d->character))
+    if ((STATE(d) == CON_PLAYING) && d->character && !IS_NPC(d->character))
     {
       if (PLR_FLAGGED(d->character, PLR_CRASH))
       {
-        Crash_crashsave(d->character);
-        save_char(d->character, 0);
-        REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_CRASH);
+        Crash_save_single(d->character, NULL, NULL);
       }
     }
   }

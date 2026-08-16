@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5061 LANGUAGES C)
+project(LuminariMUD VERSION 2.5062 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -1263,6 +1263,8 @@ if (BUILD_TESTS)
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_memory_analyzer.sh)
     add_test(NAME vessel-process-memory-details
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/process-memory/test_process_memory_details.sh)
+    add_test(NAME process-memory-monitor
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/process-memory/test_monitor_process_memory.sh)
     add_test(NAME vessel-ferry-soak-preflight
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_ferry_soak_preflight.sh)
     add_test(NAME vessel-scale-benchmark-parsers
@@ -1270,6 +1272,7 @@ if (BUILD_TESTS)
     set_tests_properties(
         vessel-memory-analyzer
         vessel-process-memory-details
+        process-memory-monitor
         vessel-ferry-soak-preflight
         vessel-scale-benchmark-parsers
         PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
@@ -1279,6 +1282,13 @@ add_custom_target(test-autorun-supervision
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/autorun/test_autorun_supervision.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running autorun supervision regression tests"
+)
+
+add_custom_target(test-process-memory
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/process-memory/test_process_memory_details.sh
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/process-memory/test_monitor_process_memory.sh
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running process memory regression tests"
 )
 
 add_custom_target(test-versioned-binary-install

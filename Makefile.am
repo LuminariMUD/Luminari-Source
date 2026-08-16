@@ -701,7 +701,9 @@ EXTRA_DIST = \
 	scripts/operations/test_healthcheck.sh \
 	scripts/permissions/check_permissions.sh \
 	scripts/permissions/fix_permissions.sh \
+	scripts/process-memory/monitor_process_memory.sh \
 	scripts/process-memory/sample_process_memory_details.sh \
+	scripts/process-memory/test_monitor_process_memory.sh \
 	scripts/process-memory/test_process_memory_details.sh \
 	scripts/provision_artifacts.sh \
 	scripts/setup.sh \
@@ -850,10 +852,15 @@ test-versioned-binary-install:
 test-healthcheck:
 	./scripts/operations/test_healthcheck.sh
 
+test-process-memory:
+	./scripts/process-memory/test_process_memory_details.sh
+	./scripts/process-memory/test_monitor_process_memory.sh
+
 test-vessel-tooling:
 	./scripts/vessels/test_vessel_ferry_soak_preflight.sh
 	./scripts/vessels/test_vessel_memory_analyzer.sh
 	./scripts/process-memory/test_process_memory_details.sh
+	./scripts/process-memory/test_monitor_process_memory.sh
 	./scripts/vessels/test_vessel_scale_benchmark_parsers.sh
 
 # Authoritative full local test entry point. The final install both verifies the
@@ -862,6 +869,7 @@ test-all:
 	$(MAKE) test
 	$(MAKE) test-world-tools
 	$(MAKE) test-protocol
+	$(MAKE) test-process-memory
 	$(MAKE) test-character-rename-static
 	$(MAKE) test-character-rename-schema
 	$(MAKE) install

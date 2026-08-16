@@ -21,6 +21,8 @@
 #include "../../src/handler.h"
 #include "../../src/magic/spells.h"
 #include "../../src/obj/spec_artifacts.h"
+#include "../../src/spec/spec_registry.h"
+#include "../../src/spec/spec_effects.h"
 
 #define ARTIFACT_TEST_STRINGIFY_INNER(value) #value
 #define ARTIFACT_TEST_STRINGIFY(value) ARTIFACT_TEST_STRINGIFY_INNER(value)
@@ -2101,6 +2103,99 @@ void Test_artifact_second_wave_is_reachable_by_search(CuTest *tc)
   artifact_shutdown();
 
   CuAssertIntEquals(tc, TRUE, found);
+}
+
+void Test_artifact_passives_deduplicate_on_reapply(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct artifact_data art;
+  struct affected_type *af;
+  int affect_count = 0;
+  int second_count = 0;
+
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+  memset(&art, 0, sizeof(art));
+  art.vnum = ART_VNUM_WYRMFANG;
+  art.level = 5;
+
+  /* Apply passives once */
+  artifact_apply_passives(&ch, &art);
+
+  affect_count = 0;
+  for (af = ch.affected; af; af = af->next)
+    affect_count++;
+
+  CuAssertTrue(tc, affect_count > 0);
+
+  /* Apply passives second time: should be deduplicated */
+  artifact_apply_passives(&ch, &art);
+
+  second_count = 0;
+  for (af = ch.affected; af; af = af->next)
+    second_count++;
+  CuAssertIntEquals(tc, affect_count, second_count);
+
+  /* Clean up */
+  artifact_remove_passives(&ch, &art);
+  CuAssertPtrEquals(tc, NULL, ch.affected);
+}
+
+void Test_artifact_cleanup_duplicate_passives_removes_legacy_redundancy(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct affected_type af1, af2;
+  struct affected_type *af;
+  long source_id = 0;
+  int count = 0;
+
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+
+  spec_effect_source_id(SPEC_EFFECT_SOURCE_ARTIFACT, ART_VNUM_WYRMFANG, &source_id);
+
+  /* Create modern source-owned affect */
+  new_affect(&af1);
+  af1.spell = SPELL_ARTIFACT_PASSIVE;
+  af1.duration = -1;
+  af1.location = APPLY_NONE;
+  af1.modifier = 0;
+  af1.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  SET_BIT_AR(af1.bitvector, AFF_HASTE);
+  affect_to_char_source(&ch, &af1, source_id);
+
+  /* Create duplicate legacy affect with source_id == 0 */
+  new_affect(&af2);
+  af2.spell = SPELL_ARTIFACT_PASSIVE;
+  af2.duration = -1;
+  af2.location = APPLY_NONE;
+  af2.modifier = 0;
+  af2.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  SET_BIT_AR(af2.bitvector, AFF_HASTE);
+  affect_to_char(&ch, &af2);
+
+  count = 0;
+  for (af = ch.affected; af; af = af->next)
+    count++;
+  CuAssertIntEquals(tc, 2, count);
+
+  /* Run cleanup: should remove the source_id == 0 redundant duplicate */
+  artifact_cleanup_duplicate_passives(&ch);
+
+  count = 0;
+  for (af = ch.affected; af; af = af->next)
+  {
+    count++;
+    CuAssertIntEquals(tc, (int)source_id, (int)af->source_id);
+  }
+  CuAssertIntEquals(tc, 1, count);
+
+  while (ch.affected)
+    affect_remove(&ch, ch.affected);
 }
 
 /*EOF*/

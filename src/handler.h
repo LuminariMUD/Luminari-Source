@@ -96,6 +96,7 @@ void char_to_coords(struct char_data *ch, int x, int y, int wilderness);
 void extract_char(struct char_data *ch);
 void extract_char_final(struct char_data *ch);
 void extract_pending_chars(void);
+int pending_extractions_count(void);
 void char_from_buff_targets(struct char_data *ch);
 
 /* find if character can see */

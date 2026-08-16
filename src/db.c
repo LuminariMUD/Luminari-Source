@@ -918,6 +918,30 @@ static void report_effective_spec_bindings(void)
     collisions += world[room].effective_binding->collision_count;
   }
 
+  for (object = 0; object <= top_of_objt; object++)
+  {
+    if (OBJ_FLAGGED(&obj_proto[object], ITEM_AUTOPROC))
+    {
+      if (obj_index[object].func == NULL)
+      {
+        log("SYSERR: Object prototype #%d has ITEM_AUTOPROC flag but no special procedure "
+            "assigned.",
+            obj_index[object].vnum);
+      }
+      else
+      {
+        const struct spec_definition *def = spec_registry_find_by_handler(obj_index[object].func);
+        if (def != NULL && def->typed_handler != NULL &&
+            !spec_definition_supports_event(def, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE))
+        {
+          log("SYSERR: Object prototype #%d has ITEM_AUTOPROC flag but special procedure '%s' does "
+              "not support auto-pulse.",
+              obj_index[object].vnum, def->canonical_name);
+        }
+      }
+    }
+  }
+
   log("SPEC_BIND_SUMMARY mode=%s status=complete prototypes=%zu contributions=%zu collisions=%zu",
       no_specials ? "no_specials" : "normal", prototypes, contributions, collisions);
 }

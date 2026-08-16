@@ -4,24 +4,27 @@ Usage:
   perfmon all
   perfmon summ
   perfmon prof
+  perfmon mem
   perfmon csv
   perfmon sect <section>
   perfmon reset
 
-The perfmon command reports the server's bounded performance counters. It is
-available to implementors (LVL_IMPL). Monitoring is always active; there is no
-runtime perfconfig command or sampling-mode switch.
+The perfmon command reports the server's bounded performance and memory telemetry.
+It is available to implementors (LVL_IMPL). Monitoring is always active; there is
+no runtime perfconfig command or sampling-mode switch.
 
 Commands:
   all    Show utilization history, cumulative named sections, game-loop
-         telemetry, event callback profiles, and database queries.
+         telemetry, memory dashboard, event callback profiles, and database queries.
   summ   Show pulse, second, minute, and hour utilization history.
   prof   Show cumulative named sections, game-loop telemetry, top event
          callbacks, and database queries.
+  mem    Show memory dashboard: OS virtual/resident memory, anonymous RSS,
+         heap allocator breakdown, rolling growth rates, and live entity inventory.
   csv    Show sampled section data followed by cumulative game-loop counters,
-         event callback rows, and database queries.
+         memory telemetry, event callback rows, and database queries.
   sect   Show one named profiling section.
-  reset  Start a new measurement window for performance, event, extraction,
+  reset  Start a new measurement window for performance, memory, event, extraction,
          catch-up, vessel-message, and database-query counters.
 
 Game-loop fields:

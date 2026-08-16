@@ -231,6 +231,7 @@ struct wild_map_tile
 };
 
 void get_map(int xsize, int ysize, int center_x, int center_y, struct wild_map_tile **map);
+void wild_map_cache_invalidate(void);
 int get_elevation(int map, int x, int y);
 int get_comprehensive_elevation(int x, int y, zone_rnum zone);
 int get_modified_elevation(int x, int y);

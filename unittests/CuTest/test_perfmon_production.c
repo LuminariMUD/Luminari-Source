@@ -300,3 +300,52 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   character_list = saved_character_list;
   combat_list = saved_combat_list;
 }
+
+void Test_perfmon_memory_sampling_populates_os_and_allocator_metrics(CuTest *tc)
+{
+  struct perf_memory_stats stats;
+  int ok;
+
+  memset(&stats, 0, sizeof(stats));
+  ok = PERF_sample_memory(&stats);
+
+  CuAssertIntEquals(tc, 1, ok);
+  CuAssertTrue(tc, stats.timestamp_sec > 0);
+  /* On Linux, VmRSS or max_rss_kib should be populated */
+  CuAssertTrue(tc, stats.vm_rss_kib > 0 || stats.max_rss_kib > 0);
+}
+
+void Test_perfmon_memory_repr_dashboard_contains_key_sections(CuTest *tc)
+{
+  char report[16384];
+  size_t written;
+
+  PERF_reset();
+  written = PERF_memory_repr(report, sizeof(report));
+
+  CuAssertTrue(tc, written > 0);
+  CuAssertPtrNotNull(tc, strstr(report, "Memory Monitoring Dashboard"));
+  CuAssertPtrNotNull(tc, strstr(report, "Operating System Memory"));
+  CuAssertPtrNotNull(tc, strstr(report, "Heap Allocator"));
+  CuAssertPtrNotNull(tc, strstr(report, "Memory Growth Analysis"));
+  CuAssertPtrNotNull(tc, strstr(report, "Live Game Entity Inventory"));
+}
+
+void Test_perfmon_memory_csv_reports_memory_and_entity_metrics(CuTest *tc)
+{
+  char report[8192];
+  size_t written;
+
+  PERF_reset();
+  written = PERF_memory_csv(report, sizeof(report));
+
+  CuAssertTrue(tc, written > 0);
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_timestamp_sec="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_vm_rss_kib="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_rss_anon_kib="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_heap_inuse_kib="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_count_descriptors="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_count_chars="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_count_objs="));
+  CuAssertPtrNotNull(tc, strstr(report, "# memory_count_events="));
+}

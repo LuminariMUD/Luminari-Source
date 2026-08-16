@@ -10463,6 +10463,7 @@ ACMD(do_perfmon)
     send_to_char(ch, "perfmon all             - Print all perfmon info.\r\n"
                      "perfmon summ            - Print summary,\r\n"
                      "perfmon prof            - Print profiling info.\r\n"
+                     "perfmon mem             - Print memory dashboard & leak monitor.\r\n"
                      "perfmon csv             - Print cumulative profiling CSV.\r\n"
                      "perfmon reset           - Start a new measurement window.\r\n"
                      "perfmon sect <section>  - Print profiling info for section.\r\n");
@@ -10476,6 +10477,7 @@ ACMD(do_perfmon)
 
     written = (int)PERF_repr(buf, sizeof(buf));
     written += (int)PERF_prof_repr_total(buf + written, sizeof(buf) - (size_t)written);
+    written += (int)PERF_memory_repr(buf + written, sizeof(buf) - (size_t)written);
     snprintf_append(buf, sizeof(buf), written, "\n\rDatabase queries since reset: %llu\n\r",
                     (unsigned long long)mysql_query_counter_value());
 
@@ -10503,12 +10505,21 @@ ACMD(do_perfmon)
 
     return;
   }
+  else if (!str_cmp(arg1, "mem") || !str_cmp(arg1, "memory"))
+  {
+    char buf[MAX_STRING_LENGTH] = {'\0'};
+
+    PERF_memory_repr(buf, sizeof(buf));
+    page_string(ch->desc, buf, TRUE);
+    return;
+  }
   else if (!str_cmp(arg1, "csv"))
   {
     char buf[MAX_STRING_LENGTH] = {'\0'};
     int written;
 
     written = (int)PERF_prof_repr_csv(buf, sizeof(buf));
+    written += (int)PERF_memory_csv(buf + written, sizeof(buf) - (size_t)written);
     snprintf_append(buf, sizeof(buf), written, "# database_queries=%llu\n\r",
                     (unsigned long long)mysql_query_counter_value());
     page_string(ch->desc, buf, TRUE);
@@ -10519,7 +10530,7 @@ ACMD(do_perfmon)
   {
     PERF_reset();
     mysql_query_counter_reset();
-    send_to_char(ch, "Performance, event, and database-query counters reset.\r\n");
+    send_to_char(ch, "Performance, memory, event, and database-query counters reset.\r\n");
     return;
   }
   else if (!str_cmp(arg1, "sect"))

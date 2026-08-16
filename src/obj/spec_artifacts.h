@@ -526,6 +526,7 @@ void artifact_stack_clear(struct char_data *ch, int group);
 /* Progressive passive powers */
 void artifact_apply_passives(struct char_data *ch, struct artifact_data *art);
 void artifact_remove_passives(struct char_data *ch, struct artifact_data *art);
+void artifact_cleanup_duplicate_passives(struct char_data *ch);
 
 /* Class restriction and the burn penalty */
 int artifact_class_ok(struct char_data *ch, struct artifact_data *art);

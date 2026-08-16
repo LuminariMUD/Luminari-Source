@@ -2317,11 +2317,39 @@ void artifact_remove_bonuses(struct char_data *ch, struct obj_data *obj)
  * one copy and leave the other.
  * -------------------------------------------------------------------------- */
 
+static bool artifact_passive_definition_matches_affect(const struct affected_type *af,
+                                                       const struct artifact_passive *passive)
+{
+  if (!af || !passive)
+    return FALSE;
+
+  if (af->spell != SPELL_ARTIFACT_PASSIVE)
+    return FALSE;
+
+  if (af->bonus_type != BONUS_TYPE_ENHANCEMENT)
+    return FALSE;
+
+  if (passive->aff_flag != 0)
+  {
+    if (!IS_SET_AR(af->bitvector, passive->aff_flag))
+      return FALSE;
+  }
+  else
+  {
+    if (af->location != passive->location || af->modifier != passive->modifier)
+      return FALSE;
+  }
+
+  return TRUE;
+}
+
 void artifact_apply_passives(struct char_data *ch, struct artifact_data *art)
 {
   struct affected_type af;
+  struct affected_type *existing;
   long source_id = 0;
   int i = 0;
+  bool already_has;
 
   if (!ch || !art)
     return;
@@ -2335,6 +2363,24 @@ void artifact_apply_passives(struct char_data *ch, struct artifact_data *art)
       continue;
 
     if (art->level < artifact_passives[i].min_level)
+      continue;
+
+    /* Detect and reject duplicate derived passives before application */
+    already_has = false;
+    for (existing = ch->affected; existing; existing = existing->next)
+    {
+      if (existing->spell == SPELL_ARTIFACT_PASSIVE &&
+          (existing->source_id == source_id || existing->source_id == 0) &&
+          artifact_passive_definition_matches_affect(existing, &artifact_passives[i]))
+      {
+        already_has = true;
+        if (existing->source_id == 0)
+          existing->source_id = source_id;
+        break;
+      }
+    }
+
+    if (already_has)
       continue;
 
     new_affect(&af);
@@ -2356,6 +2402,7 @@ void artifact_remove_passives(struct char_data *ch, struct artifact_data *art)
   struct affected_type *af = NULL, *af_next = NULL;
   sh_int tag = 0;
   long source_id = 0;
+  int i = 0;
 
   if (!ch || !art)
     return;
@@ -2366,16 +2413,83 @@ void artifact_remove_passives(struct char_data *ch, struct artifact_data *art)
 
   affect_from_char_source(ch, SPELL_ARTIFACT_PASSIVE, source_id);
 
-  /* Remove pre-Phase-04 passives that persisted with the old specific tag. */
+  /* Remove pre-Phase-04 passives or legacy source-less passives matching this artifact. */
   for (af = ch->affected; af; af = af_next)
   {
     af_next = af->next;
 
-    if (af->spell == SPELL_ARTIFACT_PASSIVE && af->source_id == 0 && af->specific == tag)
-      affect_remove(ch, af);
+    if (af->spell == SPELL_ARTIFACT_PASSIVE && af->source_id == 0)
+    {
+      if (af->specific == tag)
+      {
+        affect_remove(ch, af);
+      }
+      else
+      {
+        for (i = 0; artifact_passives[i].vnum != -1; i++)
+        {
+          if (artifact_passives[i].vnum == art->vnum &&
+              artifact_passive_definition_matches_affect(af, &artifact_passives[i]))
+          {
+            affect_remove(ch, af);
+            break;
+          }
+        }
+      }
+    }
   }
 
   affect_total(ch);
+}
+
+void artifact_cleanup_duplicate_passives(struct char_data *ch)
+{
+  struct affected_type *af, *af_next, *check;
+  int j;
+
+  if (!ch)
+    return;
+
+  for (af = ch->affected; af; af = af_next)
+  {
+    af_next = af->next;
+
+    if (af->spell != SPELL_ARTIFACT_PASSIVE)
+      continue;
+
+    for (check = ch->affected; check; check = check->next)
+    {
+      bool bitvectors_match;
+      if (check == af)
+        continue;
+
+      bitvectors_match = true;
+      for (j = 0; j < AF_ARRAY_MAX; j++)
+      {
+        if (af->bitvector[j] != check->bitvector[j])
+        {
+          bitvectors_match = false;
+          break;
+        }
+      }
+
+      if (check->spell == SPELL_ARTIFACT_PASSIVE && check->location == af->location &&
+          check->modifier == af->modifier && check->bonus_type == af->bonus_type &&
+          bitvectors_match)
+      {
+        if (af->source_id == 0 && check->source_id != 0)
+        {
+          affect_remove(ch, af);
+          break;
+        }
+        else if (af->source_id == check->source_id && af > check)
+        {
+          affect_remove(ch, af);
+          break;
+        }
+      }
+    }
+  }
 }
 
 /* --------------------------------------------------------------------------

@@ -10,6 +10,7 @@
 #include "sysdep.h"
 #include <stdint.h>
 #include <stdatomic.h>
+#include <math.h>
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
@@ -2233,6 +2234,8 @@ void load_regions()
     exit(1);
   }
 
+  wild_map_cache_invalidate();
+
   if ((numrows = mysql_num_rows(result)) < 1)
   {
     free_region_table_data();
@@ -2412,82 +2415,186 @@ bool is_point_within_region(region_vnum region, int x, int y)
   return retval;
 }
 
-struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y)
+static double mysql_point_to_segment_dist_sq(double px, double py, double x1, double y1, double x2,
+                                             double y2)
 {
-  MYSQL_RES *result;
-  MYSQL_ROW row;
+  double dx = x2 - x1;
+  double dy = y2 - y1;
+  double len_sq = dx * dx + dy * dy;
+  double t;
+  double proj_x, proj_y, diff_x, diff_y;
 
-  struct region_list *regions = NULL;
-  struct region_list *new_node = NULL;
-
-  char buf[1024];
-
-  /* Need an ORDER BY here, since we can have multiple regions. */
-  snprintf(
-      buf, sizeof(buf),
-      "SELECT vnum,  "
-      "case "
-      "  when ST_Within(ST_GeomFromText('Point(%d %d)'), region_polygon) then "
-      "  case "
-      "    when (ST_GeomFromText('Point(%d %d)') = ST_Centroid(region_polygon)) then '1' "
-      "    when (ST_Distance(ST_GeomFromText('Point(%d %d)'), ST_ExteriorRing(region_polygon)) > "
-      "          ST_Distance(ST_GeomFromText('Point(%d %d)'), ST_Centroid(region_polygon))/2) then "
-      "'2' "
-      "    else '3' "
-      "  end "
-      "  else NULL "
-      "end as loc "
-      "  from region_index "
-      "  where zone_vnum = %d "
-      "  and ST_Within(ST_GeomFromText('POINT(%d %d)'), region_polygon)",
-      x, y, x, y, x, y, x, y, zone_table[zone].number, x, y);
-
-  /* Check the connection, reconnect if necessary. */
-  if (!MYSQL_PING_CONN(conn))
+  if (len_sq == 0.0)
   {
-    log("SYSERR: %s: Database connection failed", __func__);
-    return NULL;
+    double dpx = px - x1;
+    double dpy = py - y1;
+    return (dpx * dpx + dpy * dpy);
   }
 
-  if (mysql_query(conn, buf))
+  t = ((px - x1) * dx + (py - y1) * dy) / len_sq;
+  if (t < 0.0)
+    t = 0.0;
+  else if (t > 1.0)
+    t = 1.0;
+
+  proj_x = x1 + t * dx;
+  proj_y = y1 + t * dy;
+  diff_x = px - proj_x;
+  diff_y = py - proj_y;
+
+  return (diff_x * diff_x + diff_y * diff_y);
+}
+
+static void mysql_polygon_centroid(const struct vertex *vertices, int vertex_count, double *cx,
+                                   double *cy)
+{
+  double area_twice = 0.0;
+  double weighted_x = 0.0;
+  double weighted_y = 0.0;
+  double cross;
+  int current, next;
+  int average_count;
+
+  *cx = 0.0;
+  *cy = 0.0;
+
+  for (current = 0; current < vertex_count; current++)
   {
-    log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
-    exit(1);
+    next = (current + 1) % vertex_count;
+    cross = (double)vertices[current].x * vertices[next].y -
+            (double)vertices[next].x * vertices[current].y;
+    area_twice += cross;
+    weighted_x += ((double)vertices[current].x + vertices[next].x) * cross;
+    weighted_y += ((double)vertices[current].y + vertices[next].y) * cross;
   }
 
-  if (!(result = mysql_store_result(conn)))
+  if (fabs(area_twice) > 1.0e-12)
   {
-    log("SYSERR: Unable to SELECT from region_index: %s", mysql_error(conn));
-    exit(1);
+    *cx = weighted_x / (3.0 * area_twice);
+    *cy = weighted_y / (3.0 * area_twice);
+    return;
   }
 
-  while ((row = mysql_fetch_row(result)))
-  {
-    region_rnum rnum = real_region(atoi(row[0]));
+  /* Region polygons should be non-degenerate. Retain deterministic behavior
+   * for malformed data while excluding a repeated closing vertex. */
+  average_count = vertex_count;
+  if (vertex_count > 1 && vertices[0].x == vertices[vertex_count - 1].x &&
+      vertices[0].y == vertices[vertex_count - 1].y)
+    average_count--;
 
-    /* Skip regions that don't exist in the region table */
-    if (rnum == NOWHERE)
+  for (current = 0; current < average_count; current++)
+  {
+    *cx += vertices[current].x;
+    *cy += vertices[current].y;
+  }
+  if (average_count > 0)
+  {
+    *cx /= average_count;
+    *cy /= average_count;
+  }
+}
+
+static bool mysql_point_in_polygon(const struct vertex *vertices, int vertex_count, int x, int y)
+{
+  bool inside;
+  long long cross_product;
+  double intersection_x;
+  int current, previous;
+  int current_x, current_y, previous_x, previous_y;
+
+  if (vertices == NULL || vertex_count < 3)
+    return FALSE;
+
+  inside = FALSE;
+  previous = vertex_count - 1;
+  for (current = 0; current < vertex_count; current++)
+  {
+    current_x = vertices[current].x;
+    current_y = vertices[current].y;
+    previous_x = vertices[previous].x;
+    previous_y = vertices[previous].y;
+
+    cross_product = ((long long)x - current_x) * ((long long)previous_y - current_y) -
+                    ((long long)y - current_y) * ((long long)previous_x - current_x);
+    if (cross_product == 0 && x >= MIN(current_x, previous_x) && x <= MAX(current_x, previous_x) &&
+        y >= MIN(current_y, previous_y) && y <= MAX(current_y, previous_y))
     {
-      log("SYSERR: Region vnum %d from database not found in region table", atoi(row[0]));
-      continue;
+      return FALSE;
     }
 
-    /* Allocate memory for the region data. */
-    CREATE(new_node, struct region_list, 1);
-    new_node->rnum = rnum;
-    if (atoi(row[1]) == 1)
-      new_node->pos = REGION_POS_CENTER;
-    else if (atoi(row[1]) == 2)
-      new_node->pos = REGION_POS_INSIDE;
-    else if (atoi(row[1]) == 3)
-      new_node->pos = REGION_POS_EDGE;
-    else
-      new_node->pos = REGION_POS_UNDEFINED;
-    new_node->next = regions;
-    regions = new_node;
-    new_node = NULL;
+    if ((current_y > y) != (previous_y > y))
+    {
+      intersection_x = ((double)previous_x - current_x) * ((double)y - current_y) /
+                           ((double)previous_y - current_y) +
+                       current_x;
+      if ((double)x < intersection_x)
+      {
+        inside = !inside;
+      }
+    }
+    previous = current;
   }
-  mysql_free_result(result);
+
+  return inside;
+}
+
+struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y)
+{
+  struct region_list *regions = NULL;
+  struct region_list *new_node = NULL;
+  int i, v;
+
+  if (region_table == NULL || top_of_region_table == NOWHERE)
+    return NULL;
+
+  for (i = 0; i <= (int)top_of_region_table; i++)
+  {
+    if (region_table[i].zone != zone || region_table[i].vertices == NULL ||
+        region_table[i].num_vertices < 3)
+      continue;
+
+    if (mysql_point_in_polygon(region_table[i].vertices, region_table[i].num_vertices, x, y))
+    {
+      double cx, cy;
+      double dist_centroid, min_edge_dist_sq;
+      int pos = REGION_POS_INSIDE;
+
+      mysql_polygon_centroid(region_table[i].vertices, region_table[i].num_vertices, &cx, &cy);
+
+      if (fabs((double)x - cx) < 1.0e-9 && fabs((double)y - cy) < 1.0e-9)
+      {
+        pos = REGION_POS_CENTER;
+      }
+      else
+      {
+        min_edge_dist_sq = 1e30;
+        for (v = 0; v < region_table[i].num_vertices; v++)
+        {
+          int next_v = (v + 1) % region_table[i].num_vertices;
+          double d_sq = mysql_point_to_segment_dist_sq(
+              (double)x, (double)y, (double)region_table[i].vertices[v].x,
+              (double)region_table[i].vertices[v].y, (double)region_table[i].vertices[next_v].x,
+              (double)region_table[i].vertices[next_v].y);
+          if (d_sq < min_edge_dist_sq)
+            min_edge_dist_sq = d_sq;
+        }
+
+        dist_centroid =
+            sqrt(((double)x - cx) * ((double)x - cx) + ((double)y - cy) * ((double)y - cy));
+        if (sqrt(min_edge_dist_sq) > dist_centroid / 2.0)
+          pos = REGION_POS_INSIDE;
+        else
+          pos = REGION_POS_EDGE;
+      }
+
+      CREATE(new_node, struct region_list, 1);
+      new_node->rnum = i;
+      new_node->pos = pos;
+      new_node->next = regions;
+      regions = new_node;
+      new_node = NULL;
+    }
+  }
 
   return regions;
 }
@@ -2738,6 +2845,8 @@ void load_paths()
     exit(1);
   }
 
+  wild_map_cache_invalidate();
+
   if ((numrows = mysql_num_rows(result)) < 1)
   {
     free_path_table_data();
@@ -2948,60 +3057,69 @@ bool delete_path(region_vnum vnum)
     return false;
 }
 
+static bool mysql_point_on_path(const struct path_data *path, int px, int py)
+{
+  int v;
+  if (!path || !path->vertices || path->num_vertices < 2)
+    return FALSE;
+
+  for (v = 0; v < path->num_vertices - 1; v++)
+  {
+    int x1 = path->vertices[v].x;
+    int y1 = path->vertices[v].y;
+    int x2 = path->vertices[v + 1].x;
+    int y2 = path->vertices[v + 1].y;
+
+    long long cross =
+        ((long long)px - x1) * ((long long)y2 - y1) - ((long long)py - y1) * ((long long)x2 - x1);
+    if (cross == 0)
+    {
+      if (px >= MIN(x1, x2) && px <= MAX(x1, x2) && py >= MIN(y1, y2) && py <= MAX(y1, y2))
+      {
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
 struct path_list *get_enclosing_paths(zone_rnum zone, int x, int y)
 {
-  MYSQL_RES *result;
-  MYSQL_ROW row;
-
   struct path_list *paths = NULL;
   struct path_list *new_node = NULL;
+  int i;
 
-  char buf[1024];
-
-  snprintf(buf, sizeof(buf),
-           "SELECT vnum, "
-           "  CASE WHEN (ST_Within(ST_GeomFromText('POINT(%d %d)'), path_linestring) AND "
-           "             ST_Within(ST_GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d"
-           "    WHEN (ST_Within(ST_GeomFromText('POINT(%d %d)'), path_linestring) AND "
-           "               ST_Within(ST_GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d "
-           "    ELSE %d"
-           "  END AS glyph "
-           "  from path_index "
-           "  where zone_vnum = %d "
-           "  and ST_Within(ST_GeomFromText('POINT(%d %d)'), path_linestring)",
-           x, y - 1, x, y + 1, GLYPH_TYPE_PATH_NS, x - 1, y, x + 1, y, GLYPH_TYPE_PATH_EW,
-           GLYPH_TYPE_PATH_INT, zone_table[zone].number, x, y);
-
-  /* Check the connection, reconnect if necessary. */
-  if (!MYSQL_PING_CONN(conn))
-  {
-    log("SYSERR: %s: Database connection failed", __func__);
+  if (path_table == NULL || top_of_path_table == NOWHERE)
     return NULL;
-  }
 
-  if (mysql_query(conn, buf))
+  for (i = 0; i <= (int)top_of_path_table; i++)
   {
-    log("SYSERR: Unable to SELECT from path_index: %s", mysql_error(conn));
-    exit(1);
-  }
+    if (path_table[i].zone != zone || path_table[i].vertices == NULL ||
+        path_table[i].num_vertices < 2)
+      continue;
 
-  if (!(result = mysql_store_result(conn)))
-  {
-    log("SYSERR: Unable to SELECT from path_index: %s", mysql_error(conn));
-    exit(1);
-  }
+    if (mysql_point_on_path(&path_table[i], x, y))
+    {
+      int glyph = GLYPH_TYPE_PATH_INT;
+      if (mysql_point_on_path(&path_table[i], x, y - 1) &&
+          mysql_point_on_path(&path_table[i], x, y + 1))
+      {
+        glyph = GLYPH_TYPE_PATH_NS;
+      }
+      else if (mysql_point_on_path(&path_table[i], x - 1, y) &&
+               mysql_point_on_path(&path_table[i], x + 1, y))
+      {
+        glyph = GLYPH_TYPE_PATH_EW;
+      }
 
-  while ((row = mysql_fetch_row(result)))
-  {
-    /* Allocate memory for the region data. */
-    CREATE(new_node, struct path_list, 1);
-    new_node->rnum = real_path(atoi(row[0]));
-    new_node->glyph_type = atoi(row[1]);
-    new_node->next = paths;
-    paths = new_node;
-    new_node = NULL;
+      CREATE(new_node, struct path_list, 1);
+      new_node->rnum = i;
+      new_node->glyph_type = glyph;
+      new_node->next = paths;
+      paths = new_node;
+      new_node = NULL;
+    }
   }
-  mysql_free_result(result);
 
   return paths;
 }

@@ -2276,6 +2276,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   char filename[40] = {'\0'}, bits[127] = {'\0'}, bits2[127] = {'\0'}, bits3[127] = {'\0'},
        bits4[127] = {'\0'};
   int i = 0, j = 0, id = 0, save_index = FALSE;
+  int aff_count = 0, saved_aff_count = 0;
   struct affected_type *aff = NULL;
   struct affected_type tmp_aff[MAX_AFFECT] = {{0}};
   struct damage_reduction_type *tmp_dr = NULL, *cur_dr = NULL;
@@ -2381,21 +2382,29 @@ bool save_char_checked(struct char_data *ch, int mode)
   }
   ch->mute_equip_messages = old_mute_equip_messages;
 
-  for (aff = ch->affected, i = 0; i < MAX_AFFECT; i++)
+  aff_count = 0;
+  saved_aff_count = 0;
+
+  for (aff = ch->affected; aff; aff = aff->next)
   {
-    if (aff)
+    if (aff->spell == SPELL_ARTIFACT_PASSIVE || aff->spell == SPELL_ARTIFACT_BONUS)
+      continue;
+
+    aff_count++;
+    if (saved_aff_count < MAX_AFFECT)
     {
-      tmp_aff[i] = *aff;
+      tmp_aff[saved_aff_count] = *aff;
       for (j = 0; j < AF_ARRAY_MAX; j++)
-        tmp_aff[i].bitvector[j] = aff->bitvector[j];
-      tmp_aff[i].next = 0;
-      aff = aff->next;
+        tmp_aff[saved_aff_count].bitvector[j] = aff->bitvector[j];
+      tmp_aff[saved_aff_count].next = 0;
+      saved_aff_count++;
     }
-    else
-    {
-      new_affect(&(tmp_aff[i]));
-      tmp_aff[i].next = 0;
-    }
+  }
+
+  for (i = saved_aff_count; i < MAX_AFFECT; i++)
+  {
+    new_affect(&(tmp_aff[i]));
+    tmp_aff[i].next = 0;
   }
 
   /* Save off the dr since that is attached to affects (i.e. stoneskin will
@@ -2424,8 +2433,9 @@ bool save_char_checked(struct char_data *ch, int mode)
   while (ch->affected)
     affect_remove(ch, ch->affected);
 
-  if ((i >= MAX_AFFECT) && aff && aff->next)
-    log("SYSERR: WARNING: OUT OF STORE ROOM FOR AFFECTED TYPES!!!");
+  if (aff_count > MAX_AFFECT)
+    log("SYSERR: WARNING: OUT OF STORE ROOM FOR AFFECTED TYPES for %s (%d affects, max %d)!",
+        GET_NAME(ch), aff_count, MAX_AFFECT);
 
   ch->aff_abils = ch->real_abils;
   reset_char_points(ch);
@@ -4837,6 +4847,11 @@ static void load_affects(FILE *fl, struct char_data *ch, int affect_file_version
             n_vars);
       }
       migrate_legacy_perk_affect(&af, affect_file_version);
+      if (af.spell == SPELL_ARTIFACT_PASSIVE || af.spell == SPELL_ARTIFACT_BONUS)
+      {
+        /* Equipment-derived artifact passives and bonuses are restored dynamically on equip */
+        continue;
+      }
       affect_to_char(ch, &af);
       i++;
     }

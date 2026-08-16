@@ -198,6 +198,84 @@ size_t PERF_prof_repr_sect(char *out_buf, size_t n, const char *id);
 double PERF_calculate_percentile(const uint64_t *samples, size_t count, double percentile);
 
 /* ========================================================================
+ * MEMORY MONITORING
+ * ======================================================================== */
+
+struct perf_memory_stats
+{
+  uint64_t timestamp_sec;
+  /* Process OS memory from /proc/self/status and rusage */
+  uint64_t vm_size_kib;
+  uint64_t vm_rss_kib;
+  uint64_t rss_anon_kib;
+  uint64_t rss_file_kib;
+  uint64_t rss_shmem_kib;
+  uint64_t vm_data_kib;
+  uint64_t vm_swap_kib;
+  uint64_t max_rss_kib;
+
+  /* Glibc allocator metrics from mallinfo2() / mallinfo() */
+  uint64_t heap_arena_kib;
+  uint64_t heap_inuse_kib;
+  uint64_t heap_free_kib;
+  uint64_t heap_mmap_kib;
+
+  /* Entity / subsystem resource counts */
+  uint64_t count_descriptors;
+  uint64_t count_playing;
+  uint64_t count_chars;
+  uint64_t count_pcs;
+  uint64_t count_mobs;
+  uint64_t count_objs;
+  uint64_t count_rooms;
+  uint64_t count_zones;
+  uint64_t count_events;
+  uint64_t count_pending_extractions;
+};
+
+/**
+ * @brief Sample current process memory usage and internal entity counts.
+ *
+ * @param stats Pointer to struct to receive sampled statistics.
+ * @return 1 on success, 0 on failure.
+ */
+int PERF_sample_memory(struct perf_memory_stats *stats);
+
+/**
+ * @brief Generate a human-readable memory monitoring dashboard report.
+ *
+ * @param out_buf Buffer to store formatted report.
+ * @param n Size of the buffer.
+ * @return Number of characters written.
+ */
+size_t PERF_memory_repr(char *out_buf, size_t n);
+
+/**
+ * @brief Generate CSV rows for memory metrics.
+ *
+ * @param out_buf Buffer to store formatted report.
+ * @param n Size of the buffer.
+ * @return Number of characters written.
+ */
+size_t PERF_memory_csv(char *out_buf, size_t n);
+
+/**
+ * @brief Perform periodic check of memory growth and log alerts if threshold is exceeded.
+ */
+void PERF_memory_periodic_check(void);
+
+/**
+ * @brief Calculate rolling memory growth rates since reset/boot.
+ *
+ * @param rss_kib_per_min Pointer to receive RSS growth rate in KiB/minute.
+ * @param anon_kib_per_min Pointer to receive Anon RSS growth rate in KiB/minute.
+ * @param heap_kib_per_min Pointer to receive Heap in-use growth rate in KiB/minute.
+ * @return 1 if growth rate could be calculated, 0 otherwise.
+ */
+int PERF_memory_growth_rate(double *rss_kib_per_min, double *anon_kib_per_min,
+                            double *heap_kib_per_min);
+
+/* ========================================================================
  * CONVENIENCE MACROS
  * ======================================================================== */
 
