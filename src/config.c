@@ -135,7 +135,7 @@ int auto_save = YES;
 /* if auto_save (above) is yes, how often (in minutes) should the MUD Crash-save
  * people's objects?   Also, this number indicates how often the MUD will Crash-
  * save players' houses. */
-int autosave_time = 10;
+int autosave_time = 15;
 
 /* Lifetime of crashfiles and forced-rent (idlesave) files in days. */
 int crash_file_timeout = 50;
