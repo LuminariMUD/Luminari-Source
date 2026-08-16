@@ -20,6 +20,7 @@
 #include "actionqueues.h"
 #include "spec/spec_binding.h"
 #include "spec/spec_registry.h"
+#include "mob/mob_autoroll.h"
 #include "spec/spec_effective_binding.h"
 
 /* local functions */
@@ -572,6 +573,8 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     fprintf(fd, "Class: %d\n", GET_CLASS(mob));
   if (GET_SIZE(mob) != -1)
     fprintf(fd, "Size: %d\n", GET_SIZE(mob));
+  if (GET_MOB_TIER(mob) != MOB_TIER_UNSPECIFIED)
+    fprintf(fd, "Tier: %d\n", GET_MOB_TIER(mob));
   if (GET_WALKIN(mob))
     fprintf(fd, "Walkin: %s\n", GET_WALKIN(mob));
   if (GET_WALKOUT(mob))

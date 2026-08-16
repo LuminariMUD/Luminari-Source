@@ -7175,6 +7175,7 @@ struct mob_special_data
   byte damsizedice;           /**< The size of each die rolled for damage. */
   float frustration_level;    /**< The anger/frustration level of the mob */
   byte subrace[MAX_SUBRACES]; // SubRace
+  sbyte tier;                 /**< Encounter-strength tier, or -1 for legacy */
   struct quest_entry *quest;  // quest info for a mob (homeland-port)
   room_rnum loadroom;         // mob loadroom saved
   /* echo system */

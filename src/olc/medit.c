@@ -29,6 +29,7 @@
 #include "character/class.h"
 #include "character/feats.h"
 #include "modify.h" /* for smash_tilde */
+#include "mob/mob_autoroll.h"
 #include "spec/spec_binding.h"
 #include "spec/spec_registry.h"
 #include "spec_menu.h"
@@ -44,6 +45,7 @@ static void medit_disp_subrace2(struct descriptor_data *d);
 static void medit_disp_subrace3(struct descriptor_data *d);
 static void medit_disp_class(struct descriptor_data *d);
 static void medit_disp_size(struct descriptor_data *d);
+static void medit_disp_tier(struct descriptor_data *d);
 static void medit_disp_attack_types(struct descriptor_data *d);
 static bool medit_illegal_mob_flag(int fl);
 static int medit_get_mob_flag_by_number(int num);
@@ -393,6 +395,7 @@ static void init_mobile(struct char_data *mob)
   GET_HIT(mob) = GET_PSP(mob) = 1;
   GET_MAX_PSP(mob) = GET_MAX_MOVE(mob) = 100;
   GET_NDD(mob) = GET_SDD(mob) = 1;
+  GET_MOB_TIER(mob) = MOB_TIER_STANDARD;
   GET_WEIGHT(mob) = 200;
   GET_HEIGHT(mob) = 200;
 
@@ -607,6 +610,18 @@ void medit_disp_size(struct descriptor_data *d)
   write_to_output(d, "\r\nEnter size number (-1 for default): ");
 }
 
+static void medit_disp_tier(struct descriptor_data *d)
+{
+  int i;
+
+  clear_screen(d);
+  write_to_output(d,
+                  "Encounter tier controls group-strength bonuses independently of level.\r\n\r\n");
+  for (i = 0; i < NUM_MOB_TIERS; i++)
+    write_to_output(d, "%d) %s\r\n", i, mob_tier_name(i));
+  write_to_output(d, "\r\nEnter encounter tier: ");
+}
+
 /* Display attack types menu. */
 static void medit_disp_attack_types(struct descriptor_data *d)
 {
@@ -757,7 +772,7 @@ static void medit_disp_menu(struct descriptor_data *d)
   int i = 0;
   char flags[MAX_STRING_LENGTH] = {'\0'}, flag2[MAX_STRING_LENGTH] = {'\0'},
        flag3[MAX_STRING_LENGTH] = {'\0'}, path[MAX_STRING_LENGTH] = {'\0'},
-       buf[MAX_STRING_LENGTH] = {'\0'};
+       buf[MAX_STRING_LENGTH] = {'\0'}, tier_label[64] = {'\0'};
   const char *specname = NULL;
 
   mob = OLC_MOB(d);
@@ -777,6 +792,11 @@ static void medit_disp_menu(struct descriptor_data *d)
       strlcat(path, buf, sizeof(path));
     }
   }
+
+  if (GET_MOB_TIER(mob) == MOB_TIER_UNSPECIFIED)
+    snprintf(tier_label, sizeof(tier_label), "Legacy: %s", mob_tier_name(mob_effective_tier(mob)));
+  else
+    snprintf(tier_label, sizeof(tier_label), "%s", mob_tier_name(GET_MOB_TIER(mob)));
 
   /* Current spec proc name (from OLC selection if any, else from index) */
   if (GET_MOB_RNUM(mob) != NOBODY)
@@ -815,6 +835,7 @@ static void medit_disp_menu(struct descriptor_data *d)
       "%sH%s) Feats     : %s%s\r\n"
       "%sN%s) Spells    : %s%s\r\n"
       "%sI%s) Size      : %s%s\r\n"
+      "%sT%s) Tier      : %s%s\r\n"
       "%sJ%s) Walk-In   : %s%s\r\n"
       "%sK%s) Walk-Out  : %s%s\r\n"
       "%sL%s) Echo Menu...\r\n"
@@ -840,8 +861,8 @@ static void medit_disp_menu(struct descriptor_data *d)
       npc_subrace_types[GET_SUBRACE(mob, 2)], grn, nrm, yel, CLSLIST_NAME(GET_CLASS(mob)), grn, nrm,
       yel, does_mob_have_feats(mob) ? "Set" : "None", grn, nrm, yel,
       does_mob_have_spells(mob) ? "Set" : "None", grn, nrm, yel, size_names[GET_SIZE(mob)], grn,
-      nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.", grn, nrm, yel,
-      GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.", grn, nrm, grn, nrm, grn, nrm,
+      nrm, yel, tier_label, grn, nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.", grn, nrm,
+      yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.", grn, nrm, grn, nrm, grn, nrm,
       //         grn, nrm, ECHO_IS_ZONE(mob), ECHO_FREQ(mob), ECHO_AMOUNT(mob),
       //         (ECHO_ENTRIES(mob)[0] ? ECHO_ENTRIES(mob)[0] : "None."),
       grn, nrm, cyn, flags, grn, nrm, cyn, flag2, grn, nrm, cyn, flag3, grn, nrm, cyn,
@@ -1218,6 +1239,11 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'I':
       OLC_MODE(d) = MEDIT_SIZE;
       medit_disp_size(d);
+      return;
+    case 't':
+    case 'T':
+      OLC_MODE(d) = MEDIT_TIER;
+      medit_disp_tier(d);
       return;
     case 'j':
     case 'J': // walk-in
@@ -2351,6 +2377,16 @@ void medit_parse(struct descriptor_data *d, char *arg)
     (OLC_MOB(d))->points.size = GET_REAL_SIZE(OLC_MOB(d));
     break;
 
+  case MEDIT_TIER:
+    if (!mob_tier_is_valid(i))
+    {
+      write_to_output(d, "That is not a valid encounter tier.\r\n");
+      medit_disp_tier(d);
+      return;
+    }
+    GET_MOB_TIER(OLC_MOB(d)) = (sbyte)i;
+    break;
+
   case MEDIT_PATH_DELAY:
     PATH_SIZE(OLC_MOB(d)) = 0;
     PATH_RESET(OLC_MOB(d)) = atoi(arg);
@@ -2448,6 +2484,8 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   /* first cap level at LVL_IMPL */
   level = GET_LEVEL(mob);
   level = GET_LEVEL(mob) = LIMIT(level, 1, LVL_IMPL);
+  if (GET_MOB_TIER(mob) == MOB_TIER_UNSPECIFIED)
+    GET_MOB_TIER(mob) = mob_effective_tier(mob);
 
   /* hit points roll */
   GET_HIT(mob) = 1;              /* number of hitpoint dice */
@@ -2695,16 +2733,11 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
     break;
   }
 
-  /* group-required mobiles will be levels 31-34 */
-  if (GET_LEVEL(mob) > 30)
-  {
-    int bonus_level = GET_LEVEL(mob) - 30;
-
-    mobs_hps *= (bonus_level * 2);
-    GET_DAMROLL(mob) += bonus_level;
-    GET_EXP(mob) += (bonus_level * 5000);
-    GET_GOLD(mob) += (bonus_level * 50);
-  }
+  if (!mob_tier_calculate_hit_points(mobs_hps, GET_MOB_TIER(mob), &mobs_hps))
+    log("SYSERR: autoroll_mob received invalid tier %d or hit points for mob %d", GET_MOB_TIER(mob),
+        GET_MOB_VNUM(mob));
+  GET_DAMROLL(mob) += mob_tier_damage_bonus(GET_MOB_TIER(mob));
+  armor_class += mob_tier_armor_bonus(GET_MOB_TIER(mob)) * 10;
 
   (mob)->points.armor = armor_class;
 
@@ -2741,11 +2774,12 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
   }
   else
   {
-    /* not realmode, gotta convert hps back to moves */
-    GET_MOVE(mob) = mobs_hps;
+    /* Store deterministic 1d1+(H-1) hit points in the mobile prototype. */
+    GET_HIT(mob) = 1;
+    GET_PSP(mob) = 1;
+    GET_MOVE(mob) = mobs_hps - 1;
   }
 }
-#undef mobs_hps
 
 void medit_autoroll_stats(struct descriptor_data *d)
 {

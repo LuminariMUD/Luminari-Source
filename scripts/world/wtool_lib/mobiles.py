@@ -412,6 +412,31 @@ def _parse_enhanced_line(
           finding("MOB020", "error", f"{keyword} requires a value", line.span, "mobile", record.vnum)
       )
     return
+  if keyword == "Tier":
+    parsed_tier = parse_c_integer_token(value.strip())
+    if not separator or parsed_tier.error is not None or parsed_tier.value is None:
+      result.findings.append(
+          finding(
+              "MOB028",
+              "error",
+              "Tier requires one exact integer value from 0 through 5",
+              line.span,
+              "mobile",
+              record.vnum,
+          )
+      )
+    elif not 0 <= parsed_tier.value <= 5:
+      result.findings.append(
+          finding(
+              "MOB028",
+              "error",
+              f"Tier value {parsed_tier.value} is outside 0..5",
+              line.span,
+              "mobile",
+              record.vnum,
+          )
+      )
+    return
 
   clamp_ranges = _clamp_keyword_ranges(manifest)
   limits = clamp_ranges.get(keyword)

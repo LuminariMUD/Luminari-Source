@@ -132,6 +132,8 @@ circle_SOURCES = \
 	src/magic/metamagic_science.c \
 	src/quest/missions.c \
 	src/mob/mob_act.c \
+	src/mob/mob_autoroll.c \
+	src/mob/mob_autoroll.h \
 	src/mob/mob_memory.c \
 	src/mob/mob_utils.c \
 	src/mob/mob_race.c \
@@ -344,6 +346,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_spells_skills_production.c \
@@ -392,6 +395,7 @@ cutest_test_files = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_spells_skills_production.c \

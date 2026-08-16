@@ -35,7 +35,7 @@ class MobileParserTests(unittest.TestCase):
         mobile_record(
             enhanced=(
                 "Str: 20\nKnownSpell: 1\nRace: 1\nSubRace 1: 1\nClass: 1\n"
-                "Size: 5\nMFeat: 1 1\nFeat: 2 1\nAff2: 0 0 0 0\n"
+                "Size: 5\nTier: 3\nMFeat: 1 1\nFeat: 2 1\nAff2: 0 0 0 0\n"
                 "SpecProc: bank\nPath: 5:10000 10001\n"
             )
         ).replace("E\n$\n", "E\nT 30000\n$\n")
@@ -63,6 +63,10 @@ class MobileParserTests(unittest.TestCase):
     rooms = " ".join(str(10000 + index) for index in range(51))
     result = self.parse(mobile_record(enhanced=f"Path: 1:{rooms}\n"))
     self.assertIn("MOB025", {item.code for item in result.findings})
+
+  def test_tier_rejects_out_of_range_and_non_integer_values(self) -> None:
+    result = self.parse(mobile_record(enhanced="Tier: 6\nTier: 2junk\n"))
+    self.assertEqual(["MOB028", "MOB028"], [item.code for item in result.findings])
 
 
 if __name__ == "__main__":

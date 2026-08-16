@@ -53,6 +53,7 @@
 #include "wilderness/wilderness.h"
 #include "wilderness/wilderness_kb.h"
 #include "character/feats.h"
+#include "mob/mob_autoroll.h"
 #include "combat/assign_wpn_armor.h"
 #include "obj/item.h"
 #include "wilderness/resource_system.h"
@@ -1367,6 +1368,9 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
   {
     sprinttype(k->mob_specials.default_pos, position_types, buf, sizeof(buf));
     send_to_char(ch, "\tC, Default position: \tn%s\r\n", buf);
+    send_to_char(ch, "\tCEncounter tier: \tn%s%s\tC (\tn%d\tC)\tn\r\n",
+                 GET_MOB_TIER(k) == MOB_TIER_UNSPECIFIED ? "Legacy: " : "",
+                 mob_tier_name(mob_effective_tier(k)), GET_MOB_TIER(k));
     sprintbitarray(MOB_FLAGS(k), action_bits, PM_ARRAY_MAX, buf);
     send_to_char(ch, "\tCNPC flags: \tn%s\r\n", buf);
   }

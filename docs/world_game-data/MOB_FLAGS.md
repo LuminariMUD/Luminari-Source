@@ -694,6 +694,22 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 **Code References:**
 - `src/utils.c` - Stat application (`apply_mob_stat_modifiers()`)
 
+### Encounter Tier (separate scalar field)
+
+Encounter tier is sometimes called the mob tier flag, but it is not an action-bit
+flag and does not consume a `MOB_*` bit. Each mobile has one mutually exclusive
+`Tier:` value: Standard (0), Elite (1), Small Group (2), Big Group (3), Raid (4), or
+World Boss (5). Level controls competence; tier controls encounter-size pressure.
+
+Builders select the tier from the main MEDIT menu, then use autoroll after setting race,
+subraces, size, class, and level. Files created before this field display as Legacy
+and temporarily retain the former level-31-to-34 group scaling until reviewed.
+
+**Code References:**
+- `src/mob/mob_autoroll.c` - Tier formulas and legacy effective-tier resolution
+- `src/olc/medit.c` - Builder selection and tier-aware autoroll
+- `src/db.c` and `src/olc/genmob.c` - `Tier:` loading and saving
+
 ### MOB_NO_BLOCK_BYPASS (Index: 102)
 **Effect:** Prevents the Ghost perk and similar abilities from slipping past this mobile's blocking.
 - Blocking mobiles normally have bypass routes available to certain classes and perks

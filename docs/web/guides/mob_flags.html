@@ -740,6 +740,24 @@ applied verbatim - Set it whenever you have deliberately hand-tuned a
 mob’s abilities and do not want them overwritten</p>
 <p><strong>Code References:</strong> - <code>src/utils.c</code> - Stat
 application (<code>apply_mob_stat_modifiers()</code>)</p>
+<h3 id="encounter-tier-separate-scalar-field">Encounter Tier (separate
+scalar field)</h3>
+<p>Encounter tier is sometimes called the mob tier flag, but it is not
+an action-bit flag and does not consume a <code>MOB_*</code> bit. Each
+mobile has one mutually exclusive <code>Tier:</code> value: Standard
+(0), Elite (1), Small Group (2), Big Group (3), Raid (4), or World Boss
+(5). Level controls competence; tier controls encounter-size
+pressure.</p>
+<p>Builders select the tier from the main MEDIT menu, then use autoroll
+after setting race, subraces, size, class, and level. Files created
+before this field display as Legacy and temporarily retain the former
+level-31-to-34 group scaling until reviewed.</p>
+<p><strong>Code References:</strong> -
+<code>src/mob/mob_autoroll.c</code> - Tier formulas and legacy
+effective-tier resolution - <code>src/olc/medit.c</code> - Builder
+selection and tier-aware autoroll - <code>src/db.c</code> and
+<code>src/olc/genmob.c</code> - <code>Tier:</code> loading and
+saving</p>
 <h3 id="mob_no_block_bypass-index-102">MOB_NO_BLOCK_BYPASS (Index:
 102)</h3>
 <p><strong>Effect:</strong> Prevents the Ghost perk and similar

@@ -286,7 +286,8 @@ medit new            # Create new mobile in current zone
 - **Short Description:** Name shown in room
 - **Long Description:** Description when mobile is in room
 - **Detailed Description:** Description when examined
-- **Level:** Mobile's level and difficulty
+- **Level:** Mobile competence: class features, spells, BAB, saves, and similar rules
+- **Encounter Tier:** Intended encounter size, from Standard through World Boss
 - **Stats:** Hitpoints, armor class, damage, etc.
 - **Flags:** Special mobile properties
 - **Affects:** Permanent spell effects
@@ -304,6 +305,23 @@ damage <num>d<size>+<add> # Set damage dice
 flags                     # Set mobile flags
 affects                   # Set spell affects
 ```
+
+Set race, subraces, size, class, level, and encounter tier before using the Stats
+Menu autoroll. Autoroll uses those choices to create the mobile's Luminari-native
+statistics. Tier is one choice, not a collection of mobile flags:
+
+- **Standard (0):** ordinary same-level mobile
+- **Elite (1):** tough solo encounter
+- **Small Group (2):** intended for roughly two or three players
+- **Big Group (3):** intended for roughly four to six players
+- **Raid (4):** intended for a larger coordinated group
+- **World Boss (5):** Raid statistics are only the floor; the named encounter still
+  requires individual design and review
+
+`Legacy` means the file has not been explicitly classified yet. Until it is reviewed,
+a legacy level-31-to-34 mobile preserves the old level-derived group behavior. Choose
+an explicit tier and autoroll to move it to the new system. Do not assume every
+level-34 mobile is a Raid.
 
 **Mobile Flags:**
 - `SPEC` - Has special procedure

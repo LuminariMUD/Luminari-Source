@@ -1723,6 +1723,8 @@ void char_from_furniture(struct char_data *ch);
 #define GET_ANGER(ch) ((ch)->mob_specials.frustration_level)
 /** Subrace Types of MOB **/
 #define GET_SUBRACE(ch, i) ((ch)->mob_specials.subrace[i])
+/** Encounter-strength tier for a mobile. **/
+#define GET_MOB_TIER(ch) ((ch)->mob_specials.tier)
 /** MOB number of damage dice for attacks **/
 #define GET_DAMNODICE(ch) ((ch)->mob_specials.damnodice)
 /** MOB size of damage dice for attacks **/

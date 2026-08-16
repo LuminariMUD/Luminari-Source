@@ -63,6 +63,7 @@
 #include "wilderness/spatial_audio.h"
 #include "wilderness/resource_system.h"
 #include "wilderness/resource_depletion.h"
+#include "mob/mob_autoroll.h"
 #include "wilderness/perlin.h"
 #include "wilderness/wilderness.h"
 #include "wilderness/resource_system.h"
@@ -2955,6 +2956,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
   GET_SUBRACE(mob_proto + i, 0) = 0;
   GET_SUBRACE(mob_proto + i, 1) = 0;
   GET_SUBRACE(mob_proto + i, 2) = 0;
+  GET_MOB_TIER(mob_proto + i) = MOB_TIER_UNSPECIFIED;
   GET_REAL_RACE(mob_proto + i) = 0;
   GET_CLASS(mob_proto + i) = 0;
   GET_REAL_SIZE(mob_proto + i) = SIZE_MEDIUM;
@@ -2994,6 +2996,8 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 {
   int num_arg = 0, matched = FALSE;
   int num, num2, num3, num4;
+  char *endptr;
+  long tier;
 
   /* If there isn't a colon, there is no value.  While Boolean options are
    * possible, we don't actually have any.  Feel free to make some. */
@@ -3323,6 +3327,20 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   {
     RANGE(0, NUM_SIZES - 1);
     GET_REAL_SIZE(mob_proto + i) = num_arg;
+  }
+
+  CASE("Tier")
+  {
+    endptr = NULL;
+    tier = strtol(value, &endptr, 10);
+    while (endptr && isspace_ignoretabs(*endptr))
+      endptr++;
+    if (!*value || !endptr || *endptr || tier < MOB_TIER_STANDARD || tier > MOB_TIER_WORLD_BOSS)
+    {
+      log("SYSERR: Mob #%d has invalid Tier data: %s", nr, value);
+      exit(1);
+    }
+    GET_MOB_TIER(mob_proto + i) = (sbyte)tier;
   }
 
   CASE("Walkin")
@@ -4744,19 +4762,16 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   else
     GET_MAX_HIT(mob) = rand_number(GET_HIT(mob), GET_PSP(mob));
 
-  /* powerful being bump! -zusuk */
-  if (IS_POWERFUL_BEING(mob))
+  /* Records without Tier predate explicit encounter tiers.  Preserve their
+   * spawn-time HP behavior until a builder or conversion explicitly classifies them. */
+  if (GET_MOB_TIER(mob) == MOB_TIER_UNSPECIFIED && GET_LEVEL(mob) > 30)
   {
-    GET_MAX_HIT(mob) += 500;
+    int rank = mob_effective_tier(mob);
+    int tier_step;
 
-    if (GET_LEVEL(mob) > 30)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
-    if (GET_LEVEL(mob) > 31)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
-    if (GET_LEVEL(mob) > 32)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
-    if (GET_LEVEL(mob) > 33)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+    GET_MAX_HIT(mob) += 500;
+    for (tier_step = 0; tier_step < rank; tier_step++)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) / 10;
   }
 
   GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob);

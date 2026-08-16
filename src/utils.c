@@ -44,6 +44,7 @@
 #include "char_descs.h"
 #include "obj/treasure.h"
 #include "character/perks.h"
+#include "mob/mob_autoroll.h"
 #include <time.h>
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
@@ -1060,16 +1061,11 @@ int is_immune_to_crits(struct char_data *attacker, struct char_data *target)
 {
   int powerful_being = 0;
 
-  /* new code to help really powerful beings overcome checks here */
-  if (IS_POWERFUL_BEING(attacker))
+  if (attacker && IS_NPC(attacker))
   {
-    /* base 20% chance of overcoming defense */
-    powerful_being = 20;
+    powerful_being = mob_tier_defense_bypass_percent(mob_effective_tier(attacker));
 
-    /* every level above 30 gives another 10% */
-    powerful_being += (GET_LEVEL(attacker) - (LVL_IMMORT - 1)) * 10;
-
-    if (rand_number(1, 100) < powerful_being)
+    if (powerful_being > 0 && rand_number(1, 100) <= powerful_being)
       return FALSE; /* immune to this crit this pass! */
   }
 
