@@ -49,6 +49,19 @@ static bool validate_help_keyword(const char *keyword, struct descriptor_data *d
 static bool validate_help_content(const char *content, struct descriptor_data *d);
 static bool validate_min_level(int level, struct descriptor_data *d);
 
+struct helpcheck_keyword_index
+{
+  const char **items;
+  size_t count;
+  size_t capacity;
+};
+
+static int compare_helpcheck_keywords(const void *left, const void *right);
+static void free_helpcheck_keyword_index(struct helpcheck_keyword_index *index);
+static bool load_helpcheck_keyword_index(struct helpcheck_keyword_index *index, int level);
+static bool helpcheck_keyword_array_has_prefix(const char *const *keywords, size_t keyword_count,
+                                               const char *command);
+
 /* Import functionality */
 static int import_help_hlp_file(struct char_data *ch, const char *mode);
 static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level);
@@ -61,6 +74,135 @@ static int import_entry_with_resolution(struct char_data *ch, struct help_entry_
                                         int min_level, const char *mode, char *msg_buf,
                                         size_t msg_size);
 static void free_help_entry(struct help_entry_list *entry);
+
+static int compare_helpcheck_keywords(const void *left, const void *right)
+{
+  const char *const *left_keyword;
+  const char *const *right_keyword;
+
+  left_keyword = left;
+  right_keyword = right;
+  return strcasecmp(*left_keyword, *right_keyword);
+}
+
+static void free_helpcheck_keyword_index(struct helpcheck_keyword_index *index)
+{
+  size_t i;
+
+  if (index == NULL)
+    return;
+
+  for (i = 0; i < index->count; i++)
+    free((void *)index->items[i]);
+  free(index->items);
+  memset(index, 0, sizeof(*index));
+}
+
+/* Load one stable snapshot instead of running search_help() once per command.
+ * Besides blocking the game thread on hundreds of queries, the old path also
+ * wrote one analytics row for every command that already had help. */
+static bool load_helpcheck_keyword_index(struct helpcheck_keyword_index *index, int level)
+{
+  PREPARED_STMT *pstmt;
+  const char **resized_items;
+  const char *keyword;
+  size_t new_capacity;
+  bool success;
+
+  if (index == NULL)
+    return false;
+
+  memset(index, 0, sizeof(*index));
+  if (!mysql_available || conn == NULL || !MYSQL_PING_CONN(conn))
+    return false;
+
+  pstmt = mysql_stmt_create(conn);
+  if (pstmt == NULL)
+    return false;
+
+  success = false;
+  if (!mysql_stmt_prepare_query(pstmt, "SELECT DISTINCT hk.keyword "
+                                       "FROM help_keywords hk "
+                                       "INNER JOIN help_entries he ON he.tag = hk.help_tag "
+                                       "WHERE he.min_level <= ?"))
+    goto cleanup;
+  if (!mysql_stmt_bind_param_int(pstmt, 0, level))
+    goto cleanup;
+  if (!mysql_stmt_execute_prepared(pstmt))
+    goto cleanup;
+
+  while (mysql_stmt_fetch_row(pstmt))
+  {
+    keyword = mysql_stmt_get_string(pstmt, 0);
+    if (keyword == NULL || *keyword == '\0')
+      continue;
+
+    if (index->count == index->capacity)
+    {
+      if (index->capacity > SIZE_MAX / 2)
+        goto cleanup;
+      new_capacity = index->capacity == 0 ? 256 : index->capacity * 2;
+      if (new_capacity > SIZE_MAX / sizeof(*index->items))
+        goto cleanup;
+      resized_items = realloc(index->items, new_capacity * sizeof(*index->items));
+      if (resized_items == NULL)
+        goto cleanup;
+      index->items = resized_items;
+      index->capacity = new_capacity;
+    }
+
+    index->items[index->count] = strdup(keyword);
+    if (index->items[index->count] == NULL)
+      goto cleanup;
+    index->count++;
+  }
+
+  if (index->count > 1)
+    qsort(index->items, index->count, sizeof(*index->items), compare_helpcheck_keywords);
+  success = true;
+
+cleanup:
+  mysql_stmt_cleanup(pstmt);
+  if (!success)
+    free_helpcheck_keyword_index(index);
+  return success;
+}
+
+static bool helpcheck_keyword_array_has_prefix(const char *const *keywords, size_t keyword_count,
+                                               const char *command)
+{
+  size_t low;
+  size_t high;
+  size_t middle;
+  size_t command_length;
+  int comparison;
+
+  if (keywords == NULL || keyword_count == 0 || command == NULL || *command == '\0')
+    return false;
+
+  low = 0;
+  high = keyword_count;
+  while (low < high)
+  {
+    middle = low + (high - low) / 2;
+    comparison = strcasecmp(keywords[middle], command);
+    if (comparison < 0)
+      low = middle + 1;
+    else
+      high = middle;
+  }
+
+  command_length = strlen(command);
+  return low < keyword_count && strncasecmp(keywords[low], command, command_length) == 0;
+}
+
+#if defined(LUMINARI_CUTEST)
+int test_helpcheck_keyword_has_prefix(const char *const *keywords, size_t keyword_count,
+                                      const char *command)
+{
+  return helpcheck_keyword_array_has_prefix(keywords, keyword_count, command);
+}
+#endif
 
 /**
  * Validates a help tag for security and format requirements.
@@ -1221,15 +1363,24 @@ void hedit_string_cleanup(struct descriptor_data *d, int terminator __attribute_
 ACMD(do_helpcheck)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  int i, count = 0;
+  struct helpcheck_keyword_index keywords;
+  int i, count = 0, checked = 0;
   size_t len = 0;
+
+  if (!load_helpcheck_keyword_index(&keywords, LVL_IMPL))
+  {
+    send_to_char(ch, "Unable to load the help keyword index from the database.\r\n");
+    return;
+  }
 
   for (i = 1; *(complete_cmd_info[i].command) != '\n'; i++)
   {
     if (complete_cmd_info[i].command_pointer != do_action &&
         complete_cmd_info[i].minimum_level >= 0)
     {
-      if (search_help(complete_cmd_info[i].command, LVL_IMPL) == NULL)
+      checked++;
+      if (!helpcheck_keyword_array_has_prefix(keywords.items, keywords.count,
+                                              complete_cmd_info[i].command))
       {
         len = snprintf_append(buf, sizeof(buf), len, "%-20.20s%s", complete_cmd_info[i].command,
                               (++count % 3 ? "" : "\r\n"));
@@ -1241,13 +1392,15 @@ ACMD(do_helpcheck)
   if (count % 3)
     len = snprintf_append(buf, sizeof(buf), len, "\r\n");
 
+  free_helpcheck_keyword_index(&keywords);
+
   if (ch->desc)
   {
     if (len == 0)
-      send_to_char(ch, "All commands have help entries.\r\n");
+      send_to_char(ch, "All %d commands have help entries.\r\n", checked);
     else
     {
-      send_to_char(ch, "Commands without help entries:\r\n");
+      send_to_char(ch, "%d of %d commands lack help entries:\r\n", count, checked);
       page_string(ch->desc, buf, TRUE);
     }
   }

@@ -497,7 +497,9 @@ The monitor has three related data sets:
 
 `PERF_prof_reset()` clears only the current pulse. `PERF_reset()` starts a new cumulative
 measurement window and also resets utilization, missed-pulse, vessel-message, event, extraction,
-and catch-up counters.
+and catch-up counters. Startup performs this reset, along with the database-query counter reset,
+after world boot and copyover recovery finish. The initial operational memory baseline therefore
+includes the normally resident world instead of reporting world-load allocation as live growth.
 
 Event callback profiling uses a fixed 512-identity registry. Names are registered when events are
 created, so callback execution does not perform a string lookup. Human and CSV reports expose the
@@ -536,7 +538,10 @@ The `perfmon` command requires `LVL_IMPL`:
 The event queue line reads `depth=initial->latest`; `max_before` and `max_after` show interval
 peaks. `remaining_backlog` is diagnostic wording for work discarded on that pass and is not carried
 forward. A high callback total with a modest average points to callback volume; a high maximum with
-few calls points to one expensive invocation.
+few calls points to one expensive invocation. Timed casting checks extraction state directly;
+pending-extraction cleanup clears casting target references in the same batched world pass used for
+combat, guarding, hunting, and last-attacker references. Casting callback cost therefore does not
+scale with the total number of loaded characters.
 
 ### API Functions
 

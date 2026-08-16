@@ -1613,22 +1613,12 @@ int castingCheckOk(struct char_data *ch)
   /* target character available? can add long ranged spells here like lightning bolt */
   if (CASTING_TCH(ch))
   {
-    /* Validate the target character still exists in the character list */
-    struct char_data *temp;
-    int found = FALSE;
-
-    for (temp = character_list; temp; temp = temp->next)
+    /* Character extraction is deferred until the heartbeat cleanup pass. The
+     * extraction prepass clears every CASTING_TCH reference before freeing a
+     * target, so the pointer is safe to inspect here without scanning the
+     * entire world for every casting tick. */
+    if (DEAD(CASTING_TCH(ch)))
     {
-      if (temp == CASTING_TCH(ch))
-      {
-        found = TRUE;
-        break;
-      }
-    }
-
-    if (!found)
-    {
-      /* Target was extracted - clear the pointer and abort */
       act("$n is unable to continue $s spell!", FALSE, ch, 0, 0, TO_ROOM);
       send_to_char(ch, "Your target has vanished! (spell aborted)\r\n");
       resetCastingData(ch);

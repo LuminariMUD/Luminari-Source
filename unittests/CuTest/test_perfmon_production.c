@@ -7,6 +7,7 @@
 #include "../../src/combat/fight.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
+#include "../../src/olc/hedit.h"
 #include "../../src/perfmon.h"
 
 #include <stdint.h>
@@ -27,6 +28,21 @@ static struct char_data *perfmon_test_mobile(void)
   GET_DEFAULT_POS(ch) = POS_STANDING;
   char_to_room(ch, 0);
   return ch;
+}
+
+void Test_helpcheck_keyword_snapshot_preserves_prefix_matching(CuTest *tc)
+{
+  const char *keywords[] = {"affects", "cast", "casting", "help", "perfmon"};
+  size_t keyword_count;
+
+  keyword_count = sizeof(keywords) / sizeof(keywords[0]);
+  CuAssertIntEquals(tc, TRUE, test_helpcheck_keyword_has_prefix(keywords, keyword_count, "aff"));
+  CuAssertIntEquals(tc, TRUE, test_helpcheck_keyword_has_prefix(keywords, keyword_count, "HELP"));
+  CuAssertIntEquals(tc, TRUE,
+                    test_helpcheck_keyword_has_prefix(keywords, keyword_count, "perfmon"));
+  CuAssertIntEquals(tc, FALSE,
+                    test_helpcheck_keyword_has_prefix(keywords, keyword_count, "casual"));
+  CuAssertIntEquals(tc, FALSE, test_helpcheck_keyword_has_prefix(keywords, keyword_count, "where"));
 }
 
 void Test_perfmon_percentiles_use_linear_interpolation(CuTest *tc)
@@ -274,6 +290,11 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   GUARDING(observer) = second_target;
   HUNTING(observer) = first_target;
   FIGHTING(observer) = second_target;
+  IS_CASTING(observer) = TRUE;
+  CASTING_TIME(observer) = 2;
+  CASTING_TIME_MAX(observer) = 2;
+  CASTING_SPELLNUM(observer) = 1;
+  CASTING_TCH(observer) = second_target;
   combat_list = observer;
 
   extract_char(first_target);
@@ -287,6 +308,9 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, HUNTING(observer));
   CuAssertPtrEquals(tc, NULL, FIGHTING(observer));
   CuAssertPtrEquals(tc, NULL, combat_list);
+  CuAssertIntEquals(tc, FALSE, IS_CASTING(observer));
+  CuAssertIntEquals(tc, 0, CASTING_TIME(observer));
+  CuAssertPtrEquals(tc, NULL, CASTING_TCH(observer));
 
   extract_char(observer);
   extract_pending_chars();

@@ -2,6 +2,24 @@
 
 ## [Unreleased] - August 14, 2026
 
+### Live PERFMON hotspot remediation
+
+#### Fixed
+
+- Removed the full global-character-list scan from every timed casting callback. Pending character
+  extraction now clears casting targets in the existing batched reference prepass, preserving
+  target lifetime safety while making each casting validation independent of world population.
+- Moved the automatic PERFMON memory and database-query baseline to the end of world boot and
+  copyover recovery, preventing normal resident world allocation from appearing as live leak
+  growth.
+- Reworked `helpcheck` to compare commands against one database keyword snapshot instead of issuing
+  and logging a help search for every command.
+
+#### Verification
+
+- Added production-linked coverage for casting-target cleanup during batched extraction and for
+  the case-insensitive prefix semantics used by the bulk `helpcheck` index.
+
 ### RoL isolation correction and full-corpus import
 
 #### Fixed

@@ -77,6 +77,8 @@ static void prepare_pending_extraction_references(void)
       GUARDING(ch) = NULL;
     if (character_is_pending_extraction(HUNTING(ch)))
       HUNTING(ch) = NULL;
+    if (character_is_pending_extraction(CASTING_TCH(ch)))
+      resetCastingData(ch);
   }
 
   for (ch = combat_list; ch; ch = next_ch)

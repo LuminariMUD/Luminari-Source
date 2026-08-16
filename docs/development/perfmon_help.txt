@@ -27,6 +27,10 @@ Commands:
   reset  Start a new measurement window for performance, memory, event, extraction,
          catch-up, vessel-message, and database-query counters.
 
+The automatic startup window begins after world boot and copyover recovery. Normal
+world-load allocation and boot queries are therefore part of the baseline, not
+reported as live memory growth or operational database traffic.
+
 Game-loop fields:
   Event queue calls              event_process() invocations
   callbacks                      due callbacks executed

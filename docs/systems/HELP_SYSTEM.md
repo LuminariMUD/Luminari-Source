@@ -291,13 +291,13 @@ struct help_cache_entry {
 
 ### helpcheck - Validate Help System
 **Usage:** `helpcheck`
-- **Location:** src/act.wizard.c
+- **Location:** src/olc/hedit.c
 - **Access:** Immortals (LVL_IMMORT)
 - **Features:**
-  - Checks database connectivity
-  - Validates help entries
-  - Reports missing or broken links
-  - Identifies orphaned keywords
+  - Loads one stable snapshot of all accessible database help keywords
+  - Checks every registered non-social command for a matching keyword prefix
+  - Reports commands that have no help entry without generating search-history rows
+  - Fails promptly when the required database keyword index is unavailable
 
 ### hindex - Rebuild Help Index
 **Usage:** `hindex`

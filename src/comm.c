@@ -742,6 +742,13 @@ static void init_game(ush_int local_port)
   log("Initializing terrain bridge API.");
   terrain_api_start();
 
+  /* Event registration begins during boot, which initializes PERFMON before
+   * the world has finished allocating its normal resident data. Start the
+   * operational window only after boot and copyover recovery are complete so
+   * world-load memory and database work are not mislabeled as live growth. */
+  PERF_reset();
+  mysql_query_counter_reset();
+
   log("Entering game loop.");
 
   game_loop(mother_desc);

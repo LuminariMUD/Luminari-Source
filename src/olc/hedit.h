@@ -28,4 +28,9 @@ ACMD_DECL(do_helpcheck);
 ACMD_DECL(do_hindex);
 ACMD_DECL(do_helpgen);
 
+#if defined(LUMINARI_CUTEST)
+int test_helpcheck_keyword_has_prefix(const char *const *keywords, size_t keyword_count,
+                                      const char *command);
+#endif
+
 #endif /* _HEDIT_H_*/
