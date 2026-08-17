@@ -1466,6 +1466,9 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   {
     send_to_char(ch, "L-Desc: '%s'\r\n", j->description ? j->description : "<None>");
     send_to_char(ch, "A-Desc: '%s'\r\n", j->action_description ? j->action_description : "<None>");
+    send_to_char(ch, "Arcane mark: %s\tn\r\n",
+                 GET_OBJ_ARCANE_MARK(j) && *GET_OBJ_ARCANE_MARK(j) ? GET_OBJ_ARCANE_MARK(j)
+                                                                   : "<Not marked>");
     if (j->ex_description)
     {
       send_to_char(ch, "Extra descriptions:");

@@ -1188,6 +1188,10 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
   if (!IS_MOB(k))
     send_to_char(ch, "\tCTitle:\tn %s\r\n", k->player.title ? k->player.title : "<None>");
 
+  if (!IS_NPC(k))
+    send_to_char(ch, "\tCArcane mark signature:\tn %s\tn\r\n",
+                 GET_ARCANE_MARK(k) && *GET_ARCANE_MARK(k) ? GET_ARCANE_MARK(k) : "<Not set>");
+
   send_to_char(ch, "\tCD-Des: \tn%s", k->player.description ? k->player.description : "<None>\r\n");
 
   if (IS_NPC(k))
@@ -5278,7 +5282,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   case 107: /* arcanemark */
     if (!*val_arg)
     {
-      send_to_char(ch, "Please specify 'reset' to reset a player's arcane mark.\r\n");
+      send_to_char(ch, "Please specify 'reset' to clear a player's arcane mark signature.\r\n");
       return (0);
     }
     if (is_abbrev(val_arg, "reset"))
@@ -5286,13 +5290,13 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       if (GET_ARCANE_MARK(vict))
         free(GET_ARCANE_MARK(vict));
       GET_ARCANE_MARK(vict) = NULL;
-      send_to_char(ch, "You have reset %s's arcane mark.\r\n", GET_NAME(vict));
-      send_to_char(vict, "%s has reset your arcane mark.\r\n",
+      send_to_char(ch, "You have cleared %s's arcane mark signature.\r\n", GET_NAME(vict));
+      send_to_char(vict, "%s has cleared your arcane mark signature.\r\n",
                    CAN_SEE(vict, ch) ? GET_NAME(ch) : "Someone");
     }
     else
     {
-      send_to_char(ch, "Please specify 'reset' to reset a player's arcane mark.\r\n");
+      send_to_char(ch, "Please specify 'reset' to clear a player's arcane mark signature.\r\n");
       return (0);
     }
     break;

@@ -1574,7 +1574,7 @@ ASPELL(spell_detect_poison)
 ASPELL(spell_arcane_mark)
 {
   const char *mark = NULL;
-  char truncated[251];
+  char truncated[MAX_ARCANE_MARK_LENGTH + 1];
 
   if (!obj)
   {
@@ -1585,24 +1585,28 @@ ASPELL(spell_arcane_mark)
   /* Check if object already has an arcane mark */
   if (GET_OBJ_ARCANE_MARK(obj))
   {
-    send_to_char(ch, "That object already has an arcane mark upon it.\r\n");
+    send_to_char(ch, "That object already bears an arcane mark reading \"%s\"\tn.\r\n",
+                 GET_OBJ_ARCANE_MARK(obj));
     return;
   }
 
   mark = GET_ARCANE_MARK(ch);
   if (!mark || !*mark || !strcmp(mark, "(null)") || !strcmp(mark, "null"))
   {
-    send_to_char(ch, "You have not set an arcane mark yet. Use 'arcanemark <mark>' to set it.\r\n");
-    send_to_char(ch, "Your arcane mark can be anything up to 250 characters long, which includes "
-                     "any color characters used.\r\n");
+    send_to_char(ch, "You have not set an arcane mark signature. Use 'arcanemark <signature>' to "
+                     "set it.\r\n");
+    send_to_char(ch, "The ARCANEMARK command defines the signature; this spell applies it to an "
+                     "inventory object.\r\n");
+    send_to_char(ch, "Your signature can be up to %d characters long, including color codes.\r\n",
+                 MAX_ARCANE_MARK_LENGTH);
     send_to_char(ch, "Please keep your arcane mark in-character and tasteful.\r\n");
-    send_to_char(ch, "If you need to change your arcane mark, please request a staff member to "
-                     "reset it for you.\r\n");
+    send_to_char(ch, "You can change it later with 'arcanemark <signature>' or remove it with "
+                     "'arcanemark clear'.\r\n");
     return;
   }
 
   /* Enforce hard cap on stored marks */
-  if (strlen(mark) > 250)
+  if (strlen(mark) > MAX_ARCANE_MARK_LENGTH)
   {
     strlcpy(truncated, mark, sizeof(truncated));
     mark = truncated;
@@ -1611,6 +1615,10 @@ ASPELL(spell_arcane_mark)
   GET_OBJ_ARCANE_MARK(obj) = strdup(mark);
 
   act("You inscribe your arcane mark upon $p.", FALSE, ch, obj, 0, TO_CHAR);
+  send_to_char(ch,
+               "The mark reads \"%s\"\tn. Use LOOK <object> or EXAMINE <object> to read it "
+               "again.\r\n",
+               mark);
   act("$n inscribes a faint sigil onto $p.", TRUE, ch, obj, 0, TO_ROOM);
 }
 

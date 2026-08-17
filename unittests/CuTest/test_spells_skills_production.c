@@ -23,6 +23,7 @@
 #include "../../src/character/perks.h"
 #include "../../src/craft/craft.h"
 #include "../../src/craft/crafts.h"
+#include "../../src/obj/item.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -104,6 +105,253 @@ void Test_spells_production_classification_helpers(CuTest *tc)
   CuAssertTrue(tc, !is_wall_spell(SPELL_MAGIC_MISSILE));
   CuAssertTrue(tc, isEpicSpell(SPELL_HELLBALL));
   CuAssertTrue(tc, !isEpicSpell(SPELL_CURE_LIGHT));
+}
+
+void Test_arcane_mark_workflow_reports_and_displays_applied_signature(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  struct obj_data obj;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int saved_top_of_p_table;
+  char signature[] = "@RTest Sigil";
+  bool command_explained;
+  bool spell_explained;
+  bool look_displayed;
+  bool stat_displayed;
+  bool repeat_reported;
+
+  clear_char(&ch);
+  clear_object(&obj);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &ch;
+  descriptor.connected = CON_PLAYING;
+  descriptor.pProtocol = ProtocolCreate();
+  ch.desc = &descriptor;
+  ch.player_specials = &player_specials;
+  ch.player.name = "arcane mark test character";
+  GET_LEVEL(&ch) = 1;
+  GET_POS(&ch) = POS_STANDING;
+  IN_ROOM(&ch) = 0;
+  ch.carrying = &obj;
+  obj.carried_by = &ch;
+  obj.name = "test token";
+  obj.short_description = "a test token";
+  obj.description = "A test token is here.";
+  room.number = 1;
+  room.name = "Arcane Mark Test Room";
+  room.light = 1;
+  room.people = &ch;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    world = saved_world;
+    top_of_world = saved_top_of_world;
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize protocol output for the arcane mark workflow test");
+    return;
+  }
+
+  do_arcanemark(&ch, signature, 0, 0);
+  command_explained = strstr(descriptor.output, "This sets your signature only") != NULL &&
+                      strstr(descriptor.output, "cast 'arcane mark' <object>") != NULL;
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  spell_arcane_mark(0, &ch, NULL, &obj, CAST_SPELL);
+  spell_explained = strstr(descriptor.output, "The mark reads") != NULL &&
+                    strstr(descriptor.output, "LOOK <object> or EXAMINE <object>") != NULL;
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  do_look(&ch, "token", 0, SCMD_LOOK);
+  look_displayed = strstr(descriptor.output, "It bears an arcane mark reading") != NULL &&
+                   strstr(descriptor.output, "Test Sigil") != NULL;
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  IN_ROOM(&obj) = 0;
+  saved_top_of_p_table = top_of_p_table;
+  top_of_p_table = -1;
+  do_stat_object(&ch, &obj, ITEM_STAT_MODE_IMMORTAL);
+  top_of_p_table = saved_top_of_p_table;
+  stat_displayed = strstr(descriptor.output, "Arcane mark:") != NULL &&
+                   strstr(descriptor.output, "Test Sigil") != NULL;
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  spell_arcane_mark(0, &ch, NULL, &obj, CAST_SPELL);
+  repeat_reported = strstr(descriptor.output, "already bears an arcane mark reading") != NULL &&
+                    strstr(descriptor.output, "Test Sigil") != NULL;
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  ch.desc = NULL;
+  cleanup_test_descriptor(&descriptor);
+
+  CuAssertStrEquals(tc, "\tRTest Sigil", GET_ARCANE_MARK(&ch));
+  CuAssertStrEquals(tc, GET_ARCANE_MARK(&ch), GET_OBJ_ARCANE_MARK(&obj));
+  CuAssertTrue(tc, command_explained);
+  CuAssertTrue(tc, spell_explained);
+  CuAssertTrue(tc, look_displayed);
+  CuAssertTrue(tc, stat_displayed);
+  CuAssertTrue(tc, repeat_reported);
+
+  free(GET_ARCANE_MARK(&ch));
+  GET_ARCANE_MARK(&ch) = NULL;
+  free(GET_OBJ_ARCANE_MARK(&obj));
+  GET_OBJ_ARCANE_MARK(&obj) = NULL;
+}
+
+void Test_arcane_mark_staff_character_stat_reports_signature(CuTest *tc)
+{
+  struct char_data staff;
+  struct char_data target;
+  struct descriptor_data descriptor;
+  struct player_special_data staff_specials;
+  struct player_special_data target_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  bool stat_displayed;
+
+  clear_char(&staff);
+  clear_char(&target);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&staff_specials, 0, sizeof(staff_specials));
+  memset(&target_specials, 0, sizeof(target_specials));
+  memset(&room, 0, sizeof(room));
+
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &staff;
+  descriptor.connected = CON_PLAYING;
+  descriptor.pProtocol = ProtocolCreate();
+  staff.desc = &descriptor;
+  staff.player_specials = &staff_specials;
+  staff.player.name = "arcane mark staff";
+  GET_LEVEL(&staff) = LVL_IMPL;
+  GET_POS(&staff) = POS_STANDING;
+  IN_ROOM(&staff) = 0;
+
+  target.player_specials = &target_specials;
+  target.player.name = "marktarget";
+  target.player.title = "the Marked";
+  target.player.description = "A character used for arcane mark stat testing.\r\n";
+  GET_ARCANE_MARK(&target) = strdup("Staff-visible Sigil");
+  GET_LEVEL(&target) = 1;
+  GET_POS(&target) = POS_STANDING;
+  IN_ROOM(&target) = 0;
+
+  room.number = 1;
+  room.name = "Arcane Mark Stat Test Room";
+  room.light = 1;
+  room.people = &target;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    world = saved_world;
+    top_of_world = saved_top_of_world;
+    free(GET_ARCANE_MARK(&target));
+    GET_ARCANE_MARK(&target) = NULL;
+    staff.desc = NULL;
+    CuFail(tc, "could not initialize protocol output for the arcane mark stat test");
+    return;
+  }
+
+  do_stat(&staff, "marktarget", 0, 0);
+  stat_displayed = strstr(descriptor.output, "Arcane mark signature:") != NULL &&
+                   strstr(descriptor.output, "Staff-visible Sigil") != NULL;
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  free(GET_ARCANE_MARK(&target));
+  GET_ARCANE_MARK(&target) = NULL;
+  staff.desc = NULL;
+  cleanup_test_descriptor(&descriptor);
+
+  CuAssertTrue(tc, stat_displayed);
+}
+
+void Test_arcane_mark_preserves_full_signature_limit(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  char signature[MAX_ARCANE_MARK_LENGTH + 1];
+  char replacement[] = "Replacement Sigil";
+  char clear_command[] = "clear";
+  bool replacement_succeeded;
+  bool clear_succeeded;
+
+  clear_char(&ch);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(signature, 'x', MAX_ARCANE_MARK_LENGTH);
+  signature[MAX_ARCANE_MARK_LENGTH] = '\0';
+
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &ch;
+  descriptor.connected = CON_PLAYING;
+  descriptor.pProtocol = ProtocolCreate();
+  ch.desc = &descriptor;
+  ch.player_specials = &player_specials;
+  ch.player.name = "arcane mark length test character";
+
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize protocol output for the arcane mark length test");
+    return;
+  }
+
+  do_arcanemark(&ch, signature, 0, 0);
+
+  CuAssertIntEquals(tc, MAX_ARCANE_MARK_LENGTH, (int)strlen(GET_ARCANE_MARK(&ch)));
+  CuAssertIntEquals(tc, 'x', GET_ARCANE_MARK(&ch)[MAX_ARCANE_MARK_LENGTH - 1]);
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  do_arcanemark(&ch, replacement, 0, 0);
+  replacement_succeeded = !strcmp(GET_ARCANE_MARK(&ch), "Replacement Sigil") &&
+                          strstr(descriptor.output, "change it at any time") != NULL;
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  do_arcanemark(&ch, clear_command, 0, 0);
+  clear_succeeded = GET_ARCANE_MARK(&ch) == NULL &&
+                    strstr(descriptor.output, "Existing marked objects are unchanged") != NULL;
+
+  CuAssertTrue(tc, replacement_succeeded);
+  CuAssertTrue(tc, clear_succeeded);
+
+  ch.desc = NULL;
+  cleanup_test_descriptor(&descriptor);
 }
 
 void Test_blackguard_counts_as_a_spellcasting_class(CuTest *tc)

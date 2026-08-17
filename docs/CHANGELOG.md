@@ -2,6 +2,25 @@
 
 ## [Unreleased] - August 14, 2026
 
+### Arcane mark clarity and staff diagnostics
+
+#### Fixed
+
+- Clarified that `arcanemark` configures a character's signature while the `arcane mark` cantrip
+  applies that signature to an inventory object, and made successful casting explain how to inspect
+  the resulting mark.
+- Made signature management self-service: players can replace their configured text at any time or
+  remove it with `arcanemark clear`, without changing marks already applied to objects.
+- Preserved the full 250-character signature limit by keeping display-only color resets out of
+  persisted mark text and normalized legacy null placeholders during player load.
+- Added character signatures and applied object marks to the corresponding staff `stat` output,
+  including explicit not-set and not-marked states.
+
+#### Documentation
+
+- Added database-authoritative player help for both `ARCANEMARK` and `ARCANE-MARK`, covering syntax,
+  visibility, persistence, overwrite rules, and the feature's roleplay-only mechanics.
+
 ### Live PERFMON hotspot remediation
 
 #### Fixed

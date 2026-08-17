@@ -236,10 +236,10 @@ unrelated mobiles.
 RoL Weapon Proc is object-owned and must be equipped. Fifty converted weapon
 objects use identity-keyed profiles for their source critical, sneak-attack,
 random-hit, periodic, wielder-restriction, charge, extra-swing, damage, spell,
-and summon behavior. The hit gateway supplies exact damage, attack type, and
-critical state. Object 2095878 accepts SAY LABELAS for weekly group barkskin;
+and summon behavior. The hit gateway supplies exact damage, attack type, and critical
+state. Object 2095878 accepts SAY LABELAS for weekly group barkskin;
 the Halruaan staves accept their documented summon and corpse-preservation SAY
-phrases, and Kor's lethal damage leaves converted severed-head object 2001058.
+phrases, and Kor\'s lethal damage leaves converted severed-head object 2001058.
 This procedure is converter-owned and should not be assigned to unrelated
 objects.
 
@@ -260,11 +260,11 @@ outcomes and 274 ordered speech or room-visible actions. Idle tables require an
 awake, standing mobile. Fighting tables run whenever a mobile has a current opponent,
 making the source-authored combat tables usable even where the source tested standing
 position before fighting state. Casino owner 2003206 independently rolls both its
-fighting and standing tables during combat, as in the source. Guildmaster 2003020 has
-no authored fighting table and remains quiet in combat. Twenty-seven profiles use
+fighting and standing tables during combat, as in the source. Guildmaster 2003020 has no authored
+fighting table and remains quiet in combat. Twenty-seven profiles use
 this procedure directly; seven Waterdeep guild guards compose the same generated
-profiles through RoL Guild Guard. Do not assign either converter-owned,
-identity-keyed procedure to unrelated mobiles.
+profiles through RoL Guild Guard. Do not assign either converter-owned, identity-keyed procedure
+to unrelated mobiles.
 
 RoL Sister Knight is mobile-owned and requires MOB_SPEC. When one of the five
 converted Sister Knight prototypes enters combat, it shouts once across the zone

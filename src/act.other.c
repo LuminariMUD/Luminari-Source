@@ -6974,7 +6974,7 @@ ACMDU(do_title)
 ACMDU(do_arcanemark)
 {
   char mark[MAX_INPUT_LENGTH];
-  const char *tmark = NULL;
+  const char *current_mark = NULL;
 
   if (IS_NPC(ch))
   {
@@ -6987,34 +6987,52 @@ ACMDU(do_arcanemark)
   /* Show or set default mark when no argument is provided */
   if (!*argument)
   {
-    if ((tmark = GET_ARCANE_MARK(ch)) && *tmark && strcmp(tmark, "(null)") && strcmp(tmark, "null"))
+    current_mark = GET_ARCANE_MARK(ch);
+    if (current_mark && *current_mark)
     {
-      send_to_char(ch, "Your arcane mark is set to: %s\r\n", GET_ARCANE_MARK(ch));
+      send_to_char(ch, "Your arcane mark signature is: %s\tn\r\n", current_mark);
+      send_to_char(ch, "Use 'arcanemark <signature>' to change it, or 'arcanemark clear' to "
+                       "remove it.\r\n");
       return;
     }
-    send_to_char(ch, "You have not set an arcane mark yet. Use 'arcanemark <mark>' to set it.\r\n");
-    send_to_char(ch, "Your arcane mark can be anything up to 250 characters long, which includes "
-                     "any color characters used.\r\n");
+    send_to_char(ch,
+                 "You have not set an arcane mark signature. Use 'arcanemark <signature>' to set "
+                 "it.\r\n");
+    send_to_char(ch, "This command defines your signature; it does not mark an object.\r\n");
+    send_to_char(ch, "After setting it, use 'cast \'arcane mark\' <object>' on an object in your "
+                     "inventory.\r\n");
+    send_to_char(ch, "Your signature can be up to %d characters long, including color codes.\r\n",
+                 MAX_ARCANE_MARK_LENGTH);
     send_to_char(ch, "Please keep your arcane mark in-character and tasteful.\r\n");
-    send_to_char(ch, "If you need to change your arcane mark, please request a staff member to "
-                     "reset it for you.\r\n");
+    send_to_char(ch, "Use 'arcanemark <signature>' again to change it, or 'arcanemark clear' to "
+                     "remove it.\r\n");
     return;
   }
 
-  if (GET_ARCANE_MARK(ch) && GET_LEVEL(ch) < LVL_STAFF)
+  if (!strcasecmp(argument, "clear"))
   {
-    send_to_char(ch, "You have already set your arcane mark. Staff can reset it for you.\r\n");
-    send_to_char(ch, "Current arcane mark: %s\r\n", GET_ARCANE_MARK(ch));
+    if (GET_ARCANE_MARK(ch))
+    {
+      free(GET_ARCANE_MARK(ch));
+      GET_ARCANE_MARK(ch) = NULL;
+      send_to_char(ch, "You clear your arcane mark signature. Existing marked objects are "
+                       "unchanged.\r\n");
+    }
+    else
+      send_to_char(ch, "You do not have an arcane mark signature to clear.\r\n");
     return;
   }
 
   delete_doubledollar(argument);
   strlcpy(mark, argument, sizeof(mark));
 
-  if (strlen(mark) > 250)
+  if (strlen(mark) > MAX_ARCANE_MARK_LENGTH)
   {
-    mark[250] = '\0';
-    send_to_char(ch, "Arcane marks are limited to 250 characters; your entry was truncated.\r\n");
+    mark[MAX_ARCANE_MARK_LENGTH] = '\0';
+    send_to_char(ch,
+                 "Arcane mark signatures are limited to %d characters; your entry was "
+                 "truncated.\r\n",
+                 MAX_ARCANE_MARK_LENGTH);
   }
 
   parse_at(mark);
@@ -7022,12 +7040,11 @@ ACMDU(do_arcanemark)
   if (GET_ARCANE_MARK(ch))
     free(GET_ARCANE_MARK(ch));
 
-  char norm_color[] = "\tn";
-
-  strcat(mark, norm_color);
-
   GET_ARCANE_MARK(ch) = strdup(mark);
-  send_to_char(ch, "Arcane mark set to: %s\r\n", GET_ARCANE_MARK(ch));
+  send_to_char(ch, "Your arcane mark signature is now: %s\tn\r\n", GET_ARCANE_MARK(ch));
+  send_to_char(ch, "This sets your signature only. Use 'cast \'arcane mark\' <object>' to apply "
+                   "it.\r\n");
+  send_to_char(ch, "You can change it at any time, or remove it with 'arcanemark clear'.\r\n");
 }
 
 ACMDU(do_immtitle)

@@ -5691,14 +5691,15 @@
 #define PLR_DESC_LENGTH 4096             /**< Max length for PC description */
 #define MAX_HELP_ENTRY MAX_STRING_LENGTH /**< Max size of help entry */
 
-#define MAX_MESSAGES 200        /**< Max Different attack message types */
-#define MAX_NAME_LENGTH 20      /**< Max PC/NPC name length */
-#define MAX_PWD_LENGTH 30       /**< Max PC password length */
-#define MAX_TITLE_LENGTH 80     /**< Max PC title length */
-#define MAX_IMM_TITLE_LENGTH 20 /**< Max Imm Title Length */
-#define HOST_LENGTH 40          /**< Max hostname resolution length */
-#define MAX_NOTE_LENGTH 4000    /**< Max length of text on a note obj */
-#define MAX_LAST_ENTRIES 6000   /**< Max log entries?? */
+#define MAX_MESSAGES 200           /**< Max Different attack message types */
+#define MAX_NAME_LENGTH 20         /**< Max PC/NPC name length */
+#define MAX_PWD_LENGTH 30          /**< Max PC password length */
+#define MAX_TITLE_LENGTH 80        /**< Max PC title length */
+#define MAX_IMM_TITLE_LENGTH 20    /**< Max Imm Title Length */
+#define MAX_ARCANE_MARK_LENGTH 250 /**< Max stored arcane mark signature length */
+#define HOST_LENGTH 40             /**< Max hostname resolution length */
+#define MAX_NOTE_LENGTH 4000       /**< Max length of text on a note obj */
+#define MAX_LAST_ENTRIES 6000      /**< Max log entries?? */
 
 #define MAX_SKILLS 4000                 /**< Max number of skills */
 #define MAX_SPELLS 2000                 /**< Max number of spells */
