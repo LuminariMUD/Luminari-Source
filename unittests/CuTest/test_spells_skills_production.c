@@ -1315,11 +1315,13 @@ void Test_skill_numbered_affect_expiration_dispatches_wearoff(CuTest *tc)
   saved_character_list = character_list;
   ch.next = NULL;
   character_list = &ch;
+  affected_registry_attach(&ch);
   affect_update();
   remained_for_final_tick = affected_by_spell(&ch, SKILL_BLEEDING_ATTACK);
   affect_update();
   removed = !affected_by_spell(&ch, SKILL_BLEEDING_ATTACK);
   announced = strstr(descriptor.output, "The bleeding from the attack stops.") != NULL;
+  affected_registry_detach(&ch);
   character_list = saved_character_list;
 
   while (ch.affected != NULL)
@@ -1362,7 +1364,9 @@ void Test_affect_wearoff_callback_can_remove_the_cached_successor(CuTest *tc)
   saved_character_list = character_list;
   ch.next = NULL;
   character_list = &ch;
+  affected_registry_attach(&ch);
   affect_update();
+  affected_registry_detach(&ch);
   character_list = saved_character_list;
 
   CuAssertTrue(tc, !affected_by_spell(&ch, SKILL_RAGE));

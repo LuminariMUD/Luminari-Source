@@ -257,7 +257,7 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
        * Create and deliver the standard Jackalope Hide
        * This is the primary event currency for tracking participation
        */
-      if ((obj = read_object(JACKALOPE_HIDE, VIRTUAL)) == NULL)
+      if ((obj = read_object_reason(JACKALOPE_HIDE, VIRTUAL, PERF_ENTITY_QUEST)) == NULL)
       {
         log("SYSERR: check_event_drops() failed to create jackalope hide (vnum %d) for %s",
             JACKALOPE_HIDE, killer ? GET_NAME(killer) : "unknown");
@@ -298,7 +298,7 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
        */
       if (dice(1, PERCENTAGE_DICE_SIDES) < P_HORN_RARITY)
       {
-        if ((obj = read_object(PRISTINE_HORN, VIRTUAL)) == NULL)
+        if ((obj = read_object_reason(PRISTINE_HORN, VIRTUAL, PERF_ENTITY_QUEST)) == NULL)
         {
           log("SYSERR: check_event_drops() failed to create pristine horn (vnum %d) for %s",
               PRISTINE_HORN, killer ? GET_NAME(killer) : "unknown");
@@ -786,7 +786,7 @@ void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
   struct char_data *mob = NULL; /* Mobile instance to be created */
 
   /* Create the mobile instance from its prototype */
-  mob = read_mobile(mobile_vnum, VIRTUAL);
+  mob = read_mobile_reason(mobile_vnum, VIRTUAL, PERF_ENTITY_QUEST);
 
   /* Safety check: Ensure mobile was successfully created */
   if (!mob)
@@ -1003,7 +1003,7 @@ void staff_event_tick()
       /* Portal missing - recreate it */
       if (!found)
       {
-        obj = read_object(THE_PRISONER_PORTAL, VIRTUAL);
+        obj = read_object_reason(THE_PRISONER_PORTAL, VIRTUAL, PERF_ENTITY_QUEST);
         if (obj)
         {
           obj_to_room(obj, real_room(TP_PORTAL_L_ROOM));
@@ -2528,7 +2528,7 @@ void init_object_pool(void)
   /* Pre-allocate Jackalope Hides */
   for (i = 0; i < 10; i++)
   {
-    obj = read_object(JACKALOPE_HIDE, VIRTUAL);
+    obj = read_object_reason(JACKALOPE_HIDE, VIRTUAL, PERF_ENTITY_QUEST);
     if (obj)
     {
       node = malloc(sizeof(obj_pool_node_t));
@@ -2546,7 +2546,7 @@ void init_object_pool(void)
   /* Pre-allocate Pristine Horns */
   for (i = 0; i < 5; i++)
   {
-    obj = read_object(PRISTINE_HORN, VIRTUAL);
+    obj = read_object_reason(PRISTINE_HORN, VIRTUAL, PERF_ENTITY_QUEST);
     if (obj)
     {
       node = malloc(sizeof(obj_pool_node_t));
@@ -2591,7 +2591,7 @@ struct obj_data *get_pooled_object(int obj_vnum)
   }
 
   /* Pool exhausted or object type not pooled - fall back to standard creation */
-  return read_object(obj_vnum, VIRTUAL);
+  return read_object_reason(obj_vnum, VIRTUAL, PERF_ENTITY_QUEST);
 }
 
 /*

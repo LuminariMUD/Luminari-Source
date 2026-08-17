@@ -44,6 +44,7 @@
 #include "character/character_creation.h"
 #include "vessels/vessels.h"
 #include "bardic_performance.h"
+#include "perfmon.h"
 #include <stdint.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -2010,6 +2011,7 @@ int load_char(const char *name, struct char_data *ch)
             t = read_trigger(t_rnum);
             if (!SCRIPT(ch))
               CREATE(SCRIPT(ch), struct script_data, 1);
+            dg_script_bind_owner(SCRIPT(ch), ch, MOB_TRIGGER);
             add_trigger(SCRIPT(ch), t, -1);
           }
         }
@@ -2294,15 +2296,20 @@ bool save_char_checked(struct char_data *ch, int mode)
   /* Performance timing */
   struct timeval start_time, end_time;
   gettimeofday(&start_time, NULL);
+  PERF_PROF_ENTER_SAMPLED(pr_save_char_checked_, "save.character");
 
   if (IS_NPC(ch) || GET_PFILEPOS(ch) < 0)
+  {
+    PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
+  }
 
   /* Allocate write buffer for performance */
   CREATE(write_buffer, char, buffer_size);
   if (!write_buffer)
   {
     log("SYSERR: save_char: Could not allocate write buffer for %s", GET_NAME(ch));
+    PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
   }
 
@@ -2314,6 +2321,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     {                                                                                              \
       log("SYSERR: save_char: Buffer formatting or allocation failed");                            \
       free(write_buffer);                                                                          \
+      PERF_PROF_EXIT(pr_save_char_checked_);                                                       \
       return FALSE;                                                                                \
     }                                                                                              \
   } while (0)
@@ -2326,6 +2334,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     {                                                                                              \
       log("SYSERR: save_char: String buffer formatting or allocation failed");                     \
       free(write_buffer);                                                                          \
+      PERF_PROF_EXIT(pr_save_char_checked_);                                                       \
       return FALSE;                                                                                \
     }                                                                                              \
   } while (0)
@@ -2356,12 +2365,14 @@ bool save_char_checked(struct char_data *ch, int mode)
   if (!get_filename(filename, sizeof(filename), PLR_FILE, GET_NAME(ch)))
   {
     free(write_buffer);
+    PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
   }
   if (!(fl = fopen_restricted(filename, "w")))
   {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't open player file %s for write", filename);
     free(write_buffer);
+    PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
   }
 
@@ -4049,30 +4060,6 @@ bool save_char_checked(struct char_data *ch, int mode)
   write_aliases_ascii(fl, ch);
   save_char_vars_ascii(fl, ch);
 
-  /* Save account data
-     Trying this before file gets closed, before use to be
-     at very end of this function 11/28/2017 -Zusuk*/
-  if (ch->desc && ch->desc->account)
-  {
-    for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
-    {
-      if (ch->desc->account->character_names[i] != NULL &&
-          !strcmp(ch->desc->account->character_names[i], GET_NAME(ch)))
-        break;
-      if (ch->desc->account->character_names[i] == NULL)
-        break;
-    }
-
-    if (i != MAX_CHARS_PER_ACCOUNT && !IS_SET_AR(PLR_FLAGS(ch), PLR_DELETED))
-    {
-      /* Free existing string to prevent memory leak */
-      if (ch->desc->account->character_names[i] != NULL)
-        free(ch->desc->account->character_names[i]);
-      ch->desc->account->character_names[i] = strdup(GET_NAME(ch));
-    }
-    save_account(ch->desc->account);
-  }
-
   /* Write buffer to file and close */
   if (buffer_used > 0)
   {
@@ -4144,7 +4131,10 @@ bool save_char_checked(struct char_data *ch, int mode)
   /* end char_to_store code */
 
   if ((id = get_ptable_by_name(GET_NAME(ch))) < 0)
+  {
+    PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
+  }
 
   /* update the player in the player index */
   if (player_table[id].level != GET_LEVEL(ch))
@@ -4188,6 +4178,7 @@ bool save_char_checked(struct char_data *ch, int mode)
         buffer_used);
   }
 
+  PERF_PROF_EXIT(pr_save_char_checked_);
   return save_ok;
 }
 
@@ -5786,93 +5777,103 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count)
   }
 }
 
-void update_player_last_on(void)
+bool update_player_last_on_single(struct char_data *ch)
 {
-  struct descriptor_data *d = NULL;
-  struct char_data *ch = NULL;
   char buf[2048]; /* For MySQL insert. */
   char char_info[1000];
   char classes_list[MAX_INPUT_LENGTH] = {'\0'};
   size_t len = 0;
   int class_len = 0;
+  enum perf_sql_category previous_sql_category;
+  char *escaped_char_info;
+  char *escaped_name_update;
+  char *escaped_name_update2;
+  bool success;
 
-  for (d = descriptor_list; d; d = d->next)
+  if (ch == NULL || IS_NPC(ch) || GET_NAME(ch) == NULL)
+    return false;
+
+  PERF_PROF_ENTER_SAMPLED(pr_last_online_save_, "save.last_online");
+  previous_sql_category = PERF_sql_scope_set(PERF_SQL_LAST_ONLINE);
+  success = false;
+
+  if (GET_LEVEL(ch) < LVL_IMMORT)
   {
-    if (!d || !d->character)
-      continue;
-
-    ch = d->character;
-
-    len = 0;
-
-    if (GET_LEVEL(ch) < LVL_IMMORT)
+    int inc, class_count = 0;
+    len = snprintf_append(classes_list, sizeof(classes_list), len, "[%2d %4s ", GET_LEVEL(ch),
+                          RACE_ABBR_REAL(ch));
+    for (inc = 0; inc < MAX_CLASSES; inc++)
     {
-      int inc, classCount = 0;
-      len = snprintf_append(classes_list, sizeof(classes_list), len, "[%2d %4s ", GET_LEVEL(ch),
-                            RACE_ABBR_REAL(ch));
-      for (inc = 0; inc < MAX_CLASSES; inc++)
+      if (CLASS_LEVEL(ch, inc))
       {
-        if (CLASS_LEVEL(ch, inc))
-        {
-          if (classCount)
-            len = snprintf_append(classes_list, sizeof(classes_list), len, "|");
-          len = snprintf_append(classes_list, sizeof(classes_list), len, "%s", CLSLIST_ABBRV(inc));
-          classCount++;
-        }
+        if (class_count)
+          len = snprintf_append(classes_list, sizeof(classes_list), len, "|");
+        len = snprintf_append(classes_list, sizeof(classes_list), len, "%s", CLSLIST_ABBRV(inc));
+        class_count++;
       }
-      class_len = strlen(classes_list) - count_color_chars(classes_list);
-      while (class_len < 11)
-      {
-        len = snprintf_append(classes_list, sizeof(classes_list), len, " ");
-        class_len++;
-      }
-      snprintf(char_info, sizeof(char_info), "%s]", classes_list);
     }
-    else
+    class_len = strlen(classes_list) - count_color_chars(classes_list);
+    while (class_len < 11)
     {
-      snprintf(char_info, sizeof(char_info), "[%2d %s] ", GET_LEVEL(ch), GET_IMM_TITLE(ch));
+      len = snprintf_append(classes_list, sizeof(classes_list), len, " ");
+      class_len++;
     }
+    snprintf(char_info, sizeof(char_info), "%s]", classes_list);
+  }
+  else
+  {
+    snprintf(char_info, sizeof(char_info), "[%2d %s] ", GET_LEVEL(ch), GET_IMM_TITLE(ch));
+  }
 
-    char *escaped_char_info = mysql_escape_string_alloc(conn, char_info);
-    char *escaped_name_update = mysql_escape_string_alloc(conn, GET_NAME(d->character));
-    if (!escaped_char_info || !escaped_name_update)
+  escaped_char_info = mysql_escape_string_alloc(conn, char_info);
+  escaped_name_update = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (!escaped_char_info || !escaped_name_update)
+  {
+    log("SYSERR: Failed to escape strings in last_online update");
+    free(escaped_char_info);
+    free(escaped_name_update);
+    goto cleanup;
+  }
+
+  snprintf(buf, sizeof(buf),
+           "UPDATE player_data SET last_online = NOW(), character_info='%s' WHERE name = '%s';",
+           escaped_char_info, escaped_name_update);
+  free(escaped_char_info);
+  free(escaped_name_update);
+  if (mysql_query(conn, buf))
+  {
+    /* Try without character_info column for compatibility. */
+    escaped_name_update2 = mysql_escape_string_alloc(conn, GET_NAME(ch));
+    if (!escaped_name_update2)
     {
-      log("SYSERR: Failed to escape strings in save_char mysql update");
-      if (escaped_char_info)
-        free(escaped_char_info);
-      if (escaped_name_update)
-        free(escaped_name_update);
+      log("SYSERR: Failed to escape character name in last_online fallback");
+      goto cleanup;
     }
-    else
+    snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW() WHERE name = '%s';",
+             escaped_name_update2);
+    free(escaped_name_update2);
+    if (mysql_query(conn, buf))
     {
-      snprintf(buf, sizeof(buf),
-               "UPDATE player_data SET last_online = NOW(), character_info='%s' WHERE name = '%s';",
-               escaped_char_info, escaped_name_update);
-      free(escaped_char_info);
-      free(escaped_name_update);
-      if (mysql_query(conn, buf))
-      {
-        /* Try without character_info column for compatibility */
-        char *escaped_name_update2 = mysql_escape_string_alloc(conn, GET_NAME(d->character));
-        if (!escaped_name_update2)
-        {
-          log("SYSERR: Failed to escape character name in save_char mysql fallback");
-        }
-        else
-        {
-          snprintf(buf, sizeof(buf),
-                   "UPDATE player_data SET last_online = NOW() WHERE name = '%s';",
-                   escaped_name_update2);
-          free(escaped_name_update2);
-          if (mysql_query(conn, buf))
-          {
-            log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s",
-                GET_NAME(d->character), mysql_error(conn));
-          }
-        }
-      }
+      log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s", GET_NAME(ch),
+          mysql_error(conn));
+      goto cleanup;
     }
   }
+  success = true;
+
+cleanup:
+  PERF_sql_scope_restore(previous_sql_category);
+  PERF_PROF_EXIT(pr_last_online_save_);
+  return success;
+}
+
+void update_player_last_on(void)
+{
+  struct descriptor_data *d;
+
+  for (d = descriptor_list; d; d = d->next)
+    if (d->character != NULL)
+      (void)update_player_last_on_single(d->character);
 }
 
 static bool pet_has_valid_prototype(struct char_data *pet)
@@ -6396,6 +6397,7 @@ char *build_pet_keyword_list_for_test(const char *saved_keywords, const char *pr
 #define PET_SAVE_LOG_INTERVAL 60
 #define PET_SAVE_LOG_OWNER_LENGTH 50
 #define PET_SAVE_LOG_DETAIL_LENGTH 160
+#define PET_SAVE_CACHE_CAPACITY 256
 
 struct pet_save_record
 {
@@ -6413,6 +6415,126 @@ struct pet_save_log_bucket
 };
 
 static struct pet_save_log_bucket pet_save_log_buckets[PET_SAVE_LOG_BUCKETS];
+
+struct pet_save_cache_entry
+{
+  long owner_id;
+  uint64_t fingerprint;
+  bool used;
+};
+
+static struct pet_save_cache_entry pet_save_cache[PET_SAVE_CACHE_CAPACITY];
+
+static uint64_t pet_hash_bytes(uint64_t hash, const void *data, size_t size)
+{
+  const unsigned char *bytes;
+  size_t i;
+
+  bytes = data;
+  for (i = 0; i < size; i++)
+  {
+    hash ^= bytes[i];
+    hash *= UINT64_C(1099511628211);
+  }
+  return hash;
+}
+
+static uint64_t pet_hash_string(uint64_t hash, const char *text)
+{
+  if (text == NULL)
+    return pet_hash_bytes(hash, "", 1);
+  return pet_hash_bytes(hash, text, strlen(text) + 1);
+}
+
+static uint64_t pet_hash_objects(uint64_t hash, const struct obj_data *obj)
+{
+  const struct extra_descr_data *extra;
+  const struct obj_special_ability *ability;
+  unsigned char marker;
+  int vnum;
+  int i;
+
+  for (; obj != NULL; obj = obj->next_content)
+  {
+    marker = 1;
+    hash = pet_hash_bytes(hash, &marker, sizeof(marker));
+    vnum = GET_OBJ_VNUM(obj);
+    hash = pet_hash_bytes(hash, &vnum, sizeof(vnum));
+    hash = pet_hash_bytes(hash, &obj->obj_flags, sizeof(obj->obj_flags));
+    hash = pet_hash_bytes(hash, obj->affected, sizeof(obj->affected));
+    hash = pet_hash_bytes(hash, &obj->weapon_poison, sizeof(obj->weapon_poison));
+    hash = pet_hash_bytes(hash, obj->activate_spell, sizeof(obj->activate_spell));
+    hash = pet_hash_bytes(hash, &obj->tinker_bonus, sizeof(obj->tinker_bonus));
+    hash = pet_hash_string(hash, obj->name);
+    hash = pet_hash_string(hash, obj->description);
+    hash = pet_hash_string(hash, obj->short_description);
+    hash = pet_hash_string(hash, obj->action_description);
+    hash = pet_hash_string(hash, obj->arcane_mark);
+    hash = pet_hash_string(hash, obj->restring_identifier);
+    for (extra = obj->ex_description; extra != NULL; extra = extra->next)
+    {
+      hash = pet_hash_string(hash, extra->keyword);
+      hash = pet_hash_string(hash, extra->description);
+    }
+    marker = 2;
+    hash = pet_hash_bytes(hash, &marker, sizeof(marker));
+    if (obj->sbinfo != NULL)
+      for (i = 0; i < SPELLBOOK_SIZE; i++)
+        hash = pet_hash_bytes(hash, &obj->sbinfo[i], sizeof(obj->sbinfo[i]));
+    for (ability = obj->special_abilities; ability != NULL; ability = ability->next)
+    {
+      hash = pet_hash_bytes(hash, &ability->ability, sizeof(ability->ability));
+      hash = pet_hash_bytes(hash, &ability->level, sizeof(ability->level));
+      hash = pet_hash_bytes(hash, &ability->activation_method, sizeof(ability->activation_method));
+      hash = pet_hash_bytes(hash, ability->value, sizeof(ability->value));
+      hash = pet_hash_string(hash, ability->command_word);
+    }
+    hash = pet_hash_objects(hash, obj->contains);
+  }
+  marker = 0;
+  hash = pet_hash_bytes(hash, &marker, sizeof(marker));
+  return hash;
+}
+
+static uint64_t pet_save_fingerprint(const struct pet_save_record *records)
+{
+  const struct pet_save_record *record;
+  uint64_t hash;
+  int wear;
+
+  hash = UINT64_C(1469598103934665603);
+  for (record = records; record != NULL; record = record->next)
+  {
+    hash = pet_hash_string(hash, record->insert_query);
+    for (wear = 0; wear < NUM_WEARS; wear++)
+    {
+      hash = pet_hash_bytes(hash, &wear, sizeof(wear));
+      hash = pet_hash_objects(hash, GET_EQ(record->pet, wear));
+    }
+    wear = -1;
+    hash = pet_hash_bytes(hash, &wear, sizeof(wear));
+    hash = pet_hash_objects(hash, record->pet->carrying);
+  }
+  return hash;
+}
+
+static struct pet_save_cache_entry *pet_save_cache_entry(long owner_id)
+{
+  struct pet_save_cache_entry *entry;
+  size_t start;
+  size_t index;
+
+  start = ((uint64_t)owner_id * UINT64_C(11400714819323198485)) % PET_SAVE_CACHE_CAPACITY;
+  index = start;
+  do
+  {
+    entry = &pet_save_cache[index];
+    if (!entry->used || entry->owner_id == owner_id)
+      return entry;
+    index = (index + 1) % PET_SAVE_CACHE_CAPACITY;
+  } while (index != start);
+  return &pet_save_cache[start];
+}
 
 static void log_pet_save_failure(struct char_data *owner, int pet_vnum, const char *operation,
                                  unsigned int error_code, const char *detail)
@@ -6605,9 +6727,15 @@ bool save_char_pets(struct char_data *ch)
   my_ulonglong raw_insert_id;
   bool success;
   bool transaction_started;
+  enum perf_sql_category previous_sql_category;
+  struct pet_save_cache_entry *cache_entry;
+  uint64_t fingerprint;
 
   if (!ch || IS_NPC(ch) || !GET_NAME(ch) || !*GET_NAME(ch))
     return false;
+
+  PERF_PROF_ENTER_SAMPLED(pr_save_pet_, "save.pet");
+  previous_sql_category = PERF_sql_scope_set(PERF_SQL_PET);
 
   /* Ensure database connection is active before save operations */
   if (!MYSQL_PING_CONN(conn))
@@ -6622,6 +6750,8 @@ bool save_char_pets(struct char_data *ch)
   tail = NULL;
   success = false;
   transaction_started = false;
+  cache_entry = NULL;
+  fingerprint = 0;
   escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(ch));
   if (!escaped_owner)
   {
@@ -6644,6 +6774,15 @@ bool save_char_pets(struct char_data *ch)
     else
       records = current;
     tail = current;
+  }
+
+  fingerprint = pet_save_fingerprint(records);
+  cache_entry = pet_save_cache_entry(GET_IDNUM(ch));
+  if (cache_entry->used && cache_entry->owner_id == GET_IDNUM(ch) &&
+      cache_entry->fingerprint == fingerprint)
+  {
+    success = true;
+    goto cleanup;
   }
 
   if (mysql_query(conn, "START TRANSACTION"))
@@ -6703,6 +6842,9 @@ bool save_char_pets(struct char_data *ch)
   }
   transaction_started = false;
   success = true;
+  cache_entry->used = true;
+  cache_entry->owner_id = GET_IDNUM(ch);
+  cache_entry->fingerprint = fingerprint;
   goto cleanup;
 
 rollback:
@@ -6715,6 +6857,8 @@ cleanup:
     log_pet_save_failure(ch, NOBODY, "cleanup rollback", mysql_errno(conn), mysql_error(conn));
   free_pet_save_records(records);
   free(escaped_owner);
+  PERF_sql_scope_restore(previous_sql_category);
+  PERF_PROF_EXIT(pr_save_pet_);
   return success;
 }
 
@@ -6735,6 +6879,7 @@ void load_char_pets(struct char_data *ch)
   long int pet_idnum = 0;
   bool has_runtime_state;
   bool hired_mercenary;
+  enum perf_entity_reason previous_entity_reason;
 
   if (!ch)
     return;
@@ -6774,6 +6919,7 @@ void load_char_pets(struct char_data *ch)
     return;
   }
 
+  previous_entity_reason = PERF_entity_scope_set(PERF_ENTITY_PET_RESTORE);
   while ((row = mysql_fetch_row(result)))
   {
     if (!row[0])
@@ -6939,6 +7085,7 @@ void load_char_pets(struct char_data *ch)
     act("$N appears beside $n.", true, ch, 0, mob, TO_ROOM);
   }
 
+  PERF_entity_scope_restore(previous_entity_reason);
   mysql_free_result(result);
 }
 

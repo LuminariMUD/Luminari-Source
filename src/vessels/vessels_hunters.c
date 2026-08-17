@@ -436,7 +436,7 @@ static bool vessel_hunter_assign_pilot(struct greyhawk_ship_data *ship, int pilo
   {
     return FALSE;
   }
-  pilot = read_mobile(pilot_rnum, REAL);
+  pilot = read_mobile_reason(pilot_rnum, REAL, PERF_ENTITY_VESSEL);
   if (pilot == NULL)
   {
     return FALSE;

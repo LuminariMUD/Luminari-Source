@@ -4003,6 +4003,7 @@ void iedit_setup_existing(struct descriptor_data *d, struct obj_data *real_num)
   obj = create_obj();
 
   copy_object(obj, real_num);
+  autoproc_registry_sync(obj);
 
   /* free any assigned scripts */
 

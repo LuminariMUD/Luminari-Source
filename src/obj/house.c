@@ -24,6 +24,7 @@
 #include "act.h"                 /* for perform_save() */
 #include "dgscript/dg_scripts.h" /* for load_otriggers() */
 #include "olc/genzon.h"          /* for real_zone_by_thing() */
+#include "perfmon.h"
 
 #define MAX_BAG_ROWS 5
 
@@ -152,17 +153,23 @@ static void House_restore_weight(struct obj_data *obj)
 }
 
 /* Save all objects in a house */
-void House_crashsave(room_vnum vnum)
+bool House_crashsave(room_vnum vnum)
 {
   room_rnum rnum;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   FILE *fp;
   char del_buf[2048];
+  enum perf_sql_category previous_sql_category;
+  bool success;
+
+  PERF_PROF_ENTER_SAMPLED(pr_house_save_, "save.house");
+  previous_sql_category = PERF_sql_scope_set(PERF_SQL_HOUSE);
+  success = false;
 
   if (mysql_query(conn, "start transaction;"))
   {
     log("SYSERR: Unable to start transaction for saving of house data: %s", mysql_error(conn));
-    return;
+    goto cleanup;
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
   snprintf(del_buf, sizeof(del_buf), "delete from house_data where vnum = '%u';", vnum);
@@ -170,30 +177,30 @@ void House_crashsave(room_vnum vnum)
   {
     log("SYSERR: Unable to delete house data: %s", mysql_error(conn));
     mysql_query(conn, "rollback;");
-    return;
+    goto cleanup;
   }
 
   if ((rnum = real_room(vnum)) == NOWHERE)
   {
     mysql_query(conn, "rollback;");
-    return;
+    goto cleanup;
   }
   if (!House_get_filename(vnum, buf, sizeof(buf)))
   {
     mysql_query(conn, "rollback;");
-    return;
+    goto cleanup;
   }
   if (!(fp = fopen_restricted(buf, "wb")))
   {
     perror("SYSERR: Error saving house file");
     mysql_query(conn, "rollback;");
-    return;
+    goto cleanup;
   }
   if (!House_save(world[rnum].contents, vnum, fp, 0))
   {
     fclose(fp);
     mysql_query(conn, "rollback;");
-    return;
+    goto cleanup;
   }
   fclose(fp);
 
@@ -203,10 +210,16 @@ void House_crashsave(room_vnum vnum)
   {
     log("SYSERR: Unable to commit transaction for saving of house data: %s", mysql_error(conn));
     mysql_query(conn, "rollback;");
-    return;
+    goto cleanup;
   }
 
   REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_HOUSE_CRASH);
+  success = true;
+
+cleanup:
+  PERF_sql_scope_restore(previous_sql_category);
+  PERF_PROF_EXIT(pr_house_save_);
+  return success;
 }
 
 /* Delete a house save file */
@@ -631,6 +644,46 @@ void House_save_all(void)
     if ((real_house = real_room(house_control[i].vnum)) != NOWHERE)
       if (ROOM_FLAGGED(real_house, ROOM_HOUSE_CRASH))
         House_crashsave(house_control[i].vnum);
+}
+
+enum persistence_step_result House_save_incremental(int max_saves)
+{
+  static int next_house = 0;
+  static int remaining_to_check = 0;
+  room_rnum real_house;
+  int saved_count;
+
+  if (num_of_houses <= 0)
+  {
+    next_house = 0;
+    remaining_to_check = 0;
+    return PERSISTENCE_STEP_COMPLETE;
+  }
+  if (remaining_to_check <= 0 || next_house < 0 || next_house >= num_of_houses)
+  {
+    next_house = 0;
+    remaining_to_check = num_of_houses;
+  }
+
+  saved_count = 0;
+  while (remaining_to_check > 0 && (max_saves <= 0 || saved_count < max_saves))
+  {
+    real_house = real_room(house_control[next_house].vnum);
+    if (real_house != NOWHERE && ROOM_FLAGGED(real_house, ROOM_HOUSE_CRASH))
+    {
+      if (!House_crashsave(house_control[next_house].vnum))
+        return PERSISTENCE_STEP_FAILURE;
+      saved_count++;
+    }
+    next_house = (next_house + 1) % num_of_houses;
+    remaining_to_check--;
+  }
+  if (remaining_to_check == 0)
+  {
+    next_house = 0;
+    return PERSISTENCE_STEP_COMPLETE;
+  }
+  return saved_count > 0 ? PERSISTENCE_STEP_PROGRESS : PERSISTENCE_STEP_IDLE;
 }
 
 /* note: arg passed must be house vnum, so there. */

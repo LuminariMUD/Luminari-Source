@@ -928,9 +928,11 @@ void Test_gameplay_e2e_winters_war_march_failed_save_slow_expires(CuTest *tc)
   saved_character_list = character_list;
   fixture.victim.next = NULL;
   character_list = &fixture.victim;
+  affected_registry_attach(&fixture.victim);
   for (update = 0; update < 4; update++)
     affect_update();
   slow_removed = !affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH);
+  affected_registry_detach(&fixture.victim);
   character_list = saved_character_list;
 
   FIGHTING(bard) = NULL;

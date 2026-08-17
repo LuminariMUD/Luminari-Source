@@ -1143,7 +1143,7 @@ static bool vessel_create_runtime_hull(struct greyhawk_ship_data *ship)
     return FALSE;
   }
 
-  obj = read_object(ship->hull_object_vnum, VIRTUAL);
+  obj = read_object_reason(ship->hull_object_vnum, VIRTUAL, PERF_ENTITY_VESSEL);
   if (obj == NULL)
   {
     log("SYSERR: Cannot restore ship %d: hull object prototype %d is missing", ship->shipnum,
@@ -1286,7 +1286,7 @@ void load_cargo_manifest(struct greyhawk_ship_data *ship)
 
     if (cargo_room != NOWHERE && obj_num != NOTHING)
     {
-      cargo = read_object(obj_num, REAL);
+      cargo = read_object_reason(obj_num, REAL, PERF_ENTITY_VESSEL);
       if (cargo)
       {
         obj_to_room(cargo, cargo_room);
@@ -1364,7 +1364,7 @@ void load_crew_roster(struct greyhawk_ship_data *ship)
 
     if (mob_num != NOBODY && target_room != NOWHERE)
     {
-      npc = read_mobile(mob_num, REAL);
+      npc = read_mobile_reason(mob_num, REAL, PERF_ENTITY_VESSEL);
       if (npc)
       {
         char_to_room(npc, target_room);

@@ -12,6 +12,8 @@
 #ifndef _HOUSE_H_
 #define _HOUSE_H_
 
+#include "persistence.h"
+
 /* NOTE: learned the hard way, changing (one or both) of these will destroy the houses in the
          game apparently -Zusuk */
 #define MAX_HOUSES 999
@@ -63,7 +65,8 @@ struct house_control_rec
 void House_boot(void);
 void House_save_all(void);
 int House_can_enter(struct char_data *ch, room_vnum house);
-void House_crashsave(room_vnum vnum);
+bool House_crashsave(room_vnum vnum);
+enum persistence_step_result House_save_incremental(int max_saves);
 void House_list_guests(struct char_data *ch, int i, int quiet);
 int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp, int location);
 void hcontrol_list_houses(struct char_data *ch, char *arg);

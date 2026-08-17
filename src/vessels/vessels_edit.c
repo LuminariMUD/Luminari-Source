@@ -499,7 +499,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id, co
 
   /* Instantiate the generic boardable ship object; it carries the boarding
    * spec proc through its prototype. */
-  obj = read_object(VESSEL_BASE_HULL_OBJ_VNUM, VIRTUAL);
+  obj = read_object_reason(VESSEL_BASE_HULL_OBJ_VNUM, VIRTUAL, PERF_ENTITY_VESSEL);
   if (obj == NULL)
   {
     mysql_free_result(result);

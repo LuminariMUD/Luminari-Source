@@ -13,6 +13,9 @@
 #ifndef _DB_H_
 #define _DB_H_
 
+#include "persistence.h"
+#include "perfmon.h"
+
 #include <stdint.h>
 #include "conf.h"    /* for CIRCLE_ defines */
 #include "bool.h"    /* for bool */
@@ -313,7 +316,7 @@ path_rnum real_path(path_vnum vnum);
 /* Public Procedures from objsave.c */
 void Crash_save_all(void);
 int Crash_save_single(struct char_data *ch, uint64_t *obj_usec, uint64_t *char_usec);
-int Crash_save_incremental(int max_saves);
+enum persistence_step_result Crash_save_incremental(int max_saves);
 void Crash_idlesave(struct char_data *ch);
 void Crash_crashsave(struct char_data *ch);
 int Crash_load(struct char_data *ch);
@@ -342,12 +345,14 @@ int load_char(const char *name, struct char_data *ch);
  * must use this rather than save_char().
  */
 bool save_char_checked(struct char_data *ch, int mode);
+bool update_player_last_on_single(struct char_data *ch);
 
 /** Result-discarding wrapper over save_char_checked(), for legacy callers. */
 void save_char(struct char_data *ch, int mode);
 void init_char(struct char_data *ch);
 struct char_data *create_char(void);
 struct char_data *read_mobile(mob_vnum nr, int type);
+struct char_data *read_mobile_reason(mob_vnum nr, int type, enum perf_entity_reason reason);
 int vnum_mobile(char *searchname, struct char_data *ch);
 void clear_char(struct char_data *ch);
 void reset_char(struct char_data *ch);
@@ -375,10 +380,21 @@ void clean_pfiles(void);
 void build_player_index(void);
 
 struct obj_data *create_obj(void);
+void autoproc_registry_sync(struct obj_data *obj);
+void autoproc_registry_remove(struct obj_data *obj);
+struct obj_data *autoproc_registry_iteration_begin(void);
+struct obj_data *autoproc_registry_iteration_next(void);
+void autoproc_registry_iteration_end(void);
+size_t autoproc_registry_count(void);
+size_t autoproc_registry_validate(void);
+#ifdef LUMINARI_CUTEST
+void autoproc_registry_reset_for_test(void);
+#endif
 void clear_object(struct obj_data *obj);
 void free_obj(struct obj_data *obj);
 void free_obj_special_abilities(struct obj_special_ability *list);
 struct obj_data *read_object(obj_vnum nr, int type);
+struct obj_data *read_object_reason(obj_vnum nr, int type, enum perf_entity_reason reason);
 int vnum_object(char *searchname, struct char_data *ch);
 int vnum_room(char *, struct char_data *);
 int vnum_trig(char *, struct char_data *);

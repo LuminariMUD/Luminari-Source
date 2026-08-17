@@ -445,7 +445,7 @@ void create_hunt_mob(room_rnum room, int which_hunt)
   if (room == NOWHERE)
     return;
 
-  struct char_data *mob = read_mobile(HUNTS_MOB_VNUM, VIRTUAL);
+  struct char_data *mob = read_mobile_reason(HUNTS_MOB_VNUM, VIRTUAL, PERF_ENTITY_QUEST);
   char mob_descs[1000];
   int i = 0;
 
@@ -761,7 +761,7 @@ void list_hunt_rewards(struct char_data *ch, int type)
     {
       if (i >= HUNT_TYPE_YOUNG_RED_DRAGON && i <= HUNT_TYPE_OLD_WHITE_DRAGON)
         continue;
-      obj = read_object(get_hunt_armor_drop_vnum(i), VIRTUAL);
+      obj = read_object_reason(get_hunt_armor_drop_vnum(i), VIRTUAL, PERF_ENTITY_QUEST);
       if (obj)
         send_to_char(ch, "%-30s - %s\r\n", obj->short_description,
                      affected_bits[hunts_special_armor_type(i)]);
@@ -780,7 +780,7 @@ void list_hunt_rewards(struct char_data *ch, int type)
     {
       if (i >= HUNT_TYPE_YOUNG_BLUE_DRAGON && i <= HUNT_TYPE_OLD_WHITE_DRAGON)
         continue;
-      obj = read_object(get_hunt_weapon_drop_vnum(i), VIRTUAL);
+      obj = read_object_reason(get_hunt_weapon_drop_vnum(i), VIRTUAL, PERF_ENTITY_QUEST);
       if (obj)
         send_to_char(ch, "%-30s - %s\r\n", obj->short_description,
                      special_ability_info[hunts_special_weapon_type(i)].name);
@@ -958,7 +958,7 @@ SPECIAL(huntsmaster)
       }
 
       // get the base item.  We'll be modifying it below
-      obj2 = read_object(HUNTS_REWARD_ITEM_VNUM, VIRTUAL);
+      obj2 = read_object_reason(HUNTS_REWARD_ITEM_VNUM, VIRTUAL, PERF_ENTITY_QUEST);
       if (!obj2)
       {
         send_to_char(
@@ -1002,7 +1002,7 @@ SPECIAL(huntsmaster)
     else
     {
       // get the base item.  We'll be modifying it below
-      obj2 = read_object(HUNTS_REWARD_ITEM_VNUM, VIRTUAL);
+      obj2 = read_object_reason(HUNTS_REWARD_ITEM_VNUM, VIRTUAL, PERF_ENTITY_QUEST);
       if (!obj2)
       {
         send_to_char(
@@ -1072,8 +1072,8 @@ void award_hunt_materials(struct char_data *ch, int which_hunt)
 {
   struct obj_data *obj1 = NULL, *obj2 = NULL;
 
-  obj1 = read_object(get_hunt_armor_drop_vnum(which_hunt), VIRTUAL);
-  obj2 = read_object(get_hunt_weapon_drop_vnum(which_hunt), VIRTUAL);
+  obj1 = read_object_reason(get_hunt_armor_drop_vnum(which_hunt), VIRTUAL, PERF_ENTITY_QUEST);
+  obj2 = read_object_reason(get_hunt_weapon_drop_vnum(which_hunt), VIRTUAL, PERF_ENTITY_QUEST);
 
   if (obj1)
   {

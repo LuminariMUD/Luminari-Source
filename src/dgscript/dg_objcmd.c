@@ -319,7 +319,7 @@ static OCMD(do_otransform)
     obj_log(obj, "otransform: bad argument");
   else
   {
-    o = read_object(atoi(arg), VIRTUAL);
+    o = read_object_reason(atoi(arg), VIRTUAL, PERF_ENTITY_DG_SCRIPT);
     if (o == NULL)
     {
       obj_log(obj, "otransform: bad object vnum");
@@ -555,7 +555,7 @@ static OCMD(do_dgoload)
         return;
       }
     }
-    if ((mob = read_mobile(number, VIRTUAL)) == NULL)
+    if ((mob = read_mobile_reason(number, VIRTUAL, PERF_ENTITY_DG_SCRIPT)) == NULL)
     {
       obj_log(obj, "oload: bad mob vnum");
       return;
@@ -580,7 +580,7 @@ static OCMD(do_dgoload)
   }
   else if (is_abbrev(arg1, "obj"))
   {
-    if ((object = read_object(number, VIRTUAL)) == NULL)
+    if ((object = read_object_reason(number, VIRTUAL, PERF_ENTITY_DG_SCRIPT)) == NULL)
     {
       obj_log(obj, "oload: bad object vnum");
       return;
@@ -860,7 +860,7 @@ static OCMD(do_oat)
     return;
   }
 
-  if (!(object = read_object(GET_OBJ_VNUM(obj), VIRTUAL)))
+  if (!(object = read_object_reason(GET_OBJ_VNUM(obj), VIRTUAL, PERF_ENTITY_DG_SCRIPT)))
     return;
 
   obj_to_room(object, loc);

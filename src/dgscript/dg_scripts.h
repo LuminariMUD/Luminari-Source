@@ -183,6 +183,14 @@ struct script_data
   long context;                      /**< current context for statics */
 
   struct script_data *next; /**< used for purged_scripts    */
+
+  /* Runtime-only random-trigger owner registry metadata. */
+  void *owner;
+  long owner_vnum;
+  byte owner_type;
+  bool random_registered;
+  struct script_data *random_next;
+  struct script_data *random_prev;
 };
 
 /* The event data for the wait command */
@@ -363,6 +371,16 @@ int remove_var(struct trig_var_data **var_list, char *name);
 void free_trigger(trig_data *trig);
 void extract_trigger(struct trig_data *trig);
 void extract_script(struct script_data **script);
+void dg_script_bind_owner(struct script_data *script, void *owner, int owner_type);
+void dg_random_registry_sync(struct script_data *script);
+void *dg_random_registry_iteration_begin(int owner_type);
+void *dg_random_registry_iteration_next(void);
+void dg_random_registry_iteration_end(void);
+size_t dg_random_registry_count(int owner_type);
+size_t dg_random_registry_validate(int owner_type);
+#ifdef LUMINARI_CUTEST
+void dg_random_registry_reset_for_test(void);
+#endif
 void extract_script_mem(struct script_memory *sc);
 void free_proto_script(struct trig_proto_list **proto_script);
 void copy_proto_script(const struct trig_proto_list *source, struct trig_proto_list **destination);

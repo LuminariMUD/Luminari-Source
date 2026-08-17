@@ -489,7 +489,7 @@ PERF_PROF_EXIT(pr_main_loop_);
 
 ### Performance Monitoring Architecture
 
-The monitor has three related data sets:
+The monitor has related bounded data sets:
 
 - Outer-loop utilization rolls pulse samples into bounded second, minute, and hour circular
   buffers. `PERF_log_pulse()` expresses elapsed work as a percentage of the 100 ms pulse target.
@@ -497,6 +497,15 @@ The monitor has three related data sets:
   enabled explicitly for rolling percentile data.
 - Game-loop telemetry has per-pulse and cumulative counters for event queue depth, callbacks,
   callbacks created while processing, pending extractions, and catch-up requests.
+- A 128-row slow-pulse flight recorder correlates schedule classes, top-level sections,
+  main-thread SQL, callbacks, entity inventory, and requested/replayed/dropped heartbeats.
+- SQL telemetry separates main and worker threads and reports bounded latency samples, errors,
+  reconnects, normalized table families, and explicit subsystem categories without SQL values.
+- Entity telemetry records mobile/object construction and extraction centrally, then ranks positive
+  net growth by VNUM, zone, and explicit creation reason. Zone reset timing and population deltas
+  share this reset window.
+- A one-day minute ring records memory, entities, queries, and pulse-tail counters for short,
+  medium, and long slope analysis.
 
 `PERF_prof_reset()` clears only the current pulse. `PERF_reset()` starts a new cumulative
 measurement window and also resets utilization, missed-pulse, vessel-message, event, extraction,
@@ -507,8 +516,8 @@ includes the normally resident world instead of reporting world-load allocation 
 Event callback profiling uses a fixed 512-identity registry. Names are registered when events are
 created, so callback execution does not perform a string lookup. Human and CSV reports expose the
 registered count, registry capacity, top-16 report limit, and unregistered overflow calls. Callback
-rows are ranked by cumulative execution time and include call count, total, average, and maximum
-microseconds.
+rows are ranked by cumulative execution time and include call count, total, average, p50, p95,
+p99, and maximum microseconds.
 
 Mobile activity holds a cursor over the character list and divides the remaining cycle-boundary
 nodes across the remaining pulses in the six-second interval. It counts the list once per interval
@@ -524,6 +533,28 @@ owner.
 
 Automatic high-water reports are rate limited by severity. Catch-up diagnostics are aggregated into
 at most one log line per five seconds while every pass remains represented in PERFMON counters.
+
+Minute persistence no longer executes an all-player burst. The scheduler snapshots stable player
+IDs and advances character, dirty-pet, last-online, dirty-artifact, crash-object, and dirty-house
+work one operation per pulse. It rotates task classes for fairness, skips disconnected players,
+retries failures, targets 20 ms, and reports operations above the 50 ms diagnostic threshold. An
+individual synchronous save cannot be preempted, so the threshold is an observable acceptance gate
+rather than a claim that a storage operation is forcibly interrupted.
+
+Account state has independent dirty generations for core data, character membership, race unlocks,
+and class unlocks. Successful writes advance only the saved generations; ordinary character
+serialization no longer rewrites account unlock tables. Pet saves use a stable state fingerprint so
+unchanged owners avoid the delete-and-reinsert transaction.
+
+Eligible-owner registries remove three measured global scans: `ITEM_AUTOPROC` objects, DG random
+trigger owners by mobile/object/room type, and affected characters. Registry updates occur at the
+same attach, detach, flag-change, extraction, and OLC replacement boundaries that change
+eligibility. Staff entity reports perform debug full-list validation; normal heartbeat paths do not.
+
+Combat callback timing separates action queues, attack generation, assist fan-out, specials, and
+backlash. A bounded slow-combat ring stores safe numeric context for callbacks above 100 ms. Per
+round attack and special-procedure limits prevent recursive proc chains from monopolizing the game
+loop and report every truncation.
 
 ### Missed-Pulse Recovery
 
@@ -542,17 +573,24 @@ callback types.
 
 The `perfmon` command requires `LVL_IMPL`:
 
-- `perfmon all`: utilization summary, cumulative profiling, game-loop telemetry, and database query
-  count.
+- `perfmon all`: decision-oriented summary, save scheduler, slow pulses, SQL, ranked sections,
+  combat, entities, sweeps, memory history, and database query count.
 - `perfmon summ`: utilization summary only.
 - `perfmon prof`: cumulative named sections, game-loop telemetry, and database query count.
-- `perfmon csv`: sampled section rows followed by cumulative counters and top event callbacks.
+- `perfmon mem`: current memory state and one-day minute history.
+- `perfmon slow [count] [csv]`: recent over-budget pulse correlations.
+- `perfmon sql [csv]`: SQL ownership and latency telemetry.
+- `perfmon entities [csv]`: entity lifecycle, zone reset, sweep, and registry telemetry.
+- `perfmon combat [count] [csv]`: slow combat records and chain-limit counters.
+- `perfmon saves`: incremental scheduler state and high-maximum save sections.
+- `perfmon top <total|max|p99> [limit]`: ranked profiling sections.
+- `perfmon csv`: all machine-readable profiling, SQL, pulse, combat, memory, and entity rows.
 - `perfmon sect <section>`: one named section.
 - `perfmon reset`: start a new measurement window.
 
 The event queue line reads `depth=initial->latest`; `max_before` and `max_after` show interval
-peaks. `remaining_backlog` is diagnostic wording for work discarded on that pass and is not carried
-forward. A high callback total with a modest average points to callback volume; a high maximum with
+peaks. `dropped_missed` is work discarded on that pass and is not carried forward. A high callback
+total with a modest average points to callback volume; a high maximum with
 few calls points to one expensive invocation. Timed casting checks extraction state directly;
 pending-extraction cleanup clears casting target references in the same batched world pass used for
 combat, guarding, hunting, and last-attacker references. Casting callback cost therefore does not
@@ -560,7 +598,8 @@ scale with the total number of loaded characters.
 
 The memory dashboard and CSV inventory include affected characters, individual affect nodes, NPC
 followers, charmed NPCs, and entity deltas since `perfmon reset`. Compare those deltas with heap and
-anonymous RSS growth before classifying a rise as allocator leakage.
+anonymous RSS growth before classifying a rise as allocator leakage. A representative production
+run is still required to prove that a population and memory cohort reaches its intended plateau.
 
 ### API Functions
 
@@ -570,8 +609,13 @@ void PERF_log_pulse(double val);
 
 /* Report generation. */
 size_t PERF_repr(char *out_buf, size_t n);
+size_t PERF_slow_repr(char *out_buf, size_t n, size_t count, int csv);
+size_t PERF_sql_repr(char *out_buf, size_t n, int csv);
+size_t PERF_entities_repr(char *out_buf, size_t n, int csv);
+size_t PERF_combat_repr(char *out_buf, size_t n, size_t count, int csv);
 size_t PERF_prof_repr_pulse(char *out_buf, size_t n);
 size_t PERF_prof_repr_total(char *out_buf, size_t n);
+size_t PERF_prof_repr_top(char *out_buf, size_t n, const char *metric, size_t limit);
 size_t PERF_prof_repr_sect(char *out_buf, size_t n, const char *id);
 size_t PERF_prof_repr_csv(char *out_buf, size_t n);
 

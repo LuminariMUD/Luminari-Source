@@ -5,9 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 #include <float.h>
 #include <inttypes.h>
 #include <math.h>
+#include <pthread.h>
 #include <stdint.h>
 #include <sys/resource.h>
 #if defined(__GLIBC__)
@@ -20,6 +22,7 @@
 #include "db.h"
 #include "handler.h"
 #include "dgscript/dg_event.h"
+#include "dgscript/dg_scripts.h"
 #include "perfmon.h"
 
 /* ========================================================================
@@ -32,6 +35,23 @@
 #define EVENT_PROFILE_CAPACITY 512    /* Fixed callback identity registry */
 #define EVENT_PROFILE_NAME_SIZE 64    /* Includes terminating NUL */
 #define EVENT_PROFILE_REPORT_LIMIT 16 /* Maximum callback rows per report */
+#define EVENT_SAMPLE_CAPACITY 1024    /* Per-callback rolling latency window */
+#define SQL_SAMPLE_CAPACITY 4096      /* Main/worker rolling query latency window */
+#define SQL_FAMILY_CAPACITY 128       /* Bounded normalized owner/verb/table registry */
+#define SQL_FAMILY_NAME_SIZE 80       /* Includes terminating NUL */
+#define SQL_FAMILY_REPORT_LIMIT 16    /* Maximum normalized query-family rows */
+#define SLOW_PULSE_CAPACITY 128       /* Bounded over-budget flight recorder */
+#define SLOW_PULSE_DEFAULT_COUNT 10   /* Default newest slow pulses to print */
+#define SLOW_PULSE_SECTION_LIMIT 12   /* Largest profiled sections retained per pulse */
+#define ENTITY_VNUM_CAPACITY 8192     /* Fixed open-addressed prototype counters */
+#define ENTITY_ZONE_CAPACITY 2048     /* Fixed open-addressed zone counters */
+#define ENTITY_REPORT_LIMIT 12        /* Maximum ranked lifecycle rows */
+#define MEMORY_SAMPLE_CAPACITY 1440   /* One day of minute-resolution history */
+#define COMBAT_SLOW_CAPACITY 64       /* Bounded slow/limited combat callback records */
+#define COMBAT_SLOW_DEFAULT_COUNT 10  /* Default newest combat records to print */
+#define COMBAT_SLOW_USEC 100000       /* Ordinary callback latency objective */
+#define COMBAT_ATTACK_LIMIT 128       /* Maximum hit() entries in one callback */
+#define COMBAT_PROC_LIMIT 128         /* Maximum combat special dispatches per callback */
 
 /* Time hierarchy constants */
 #define PULSE_PER_SECOND (PERF_pulse_per_second)
@@ -101,6 +121,10 @@ struct perf_event_callback
   uint64_t total_calls;
   uint64_t total_usec;
   uint64_t total_max_usec;
+  uint64_t samples[EVENT_SAMPLE_CAPACITY];
+  size_t sample_index;
+  size_t sample_count;
+  uint64_t samples_seen;
 };
 
 struct perf_event_process_stats
@@ -136,6 +160,158 @@ struct perf_catchup_stats
   uint64_t max_remaining_backlog;
 };
 
+struct perf_sql_rollup
+{
+  uint64_t calls;
+  uint64_t total_usec;
+  uint64_t max_usec;
+  uint64_t errors;
+  uint64_t samples[SQL_SAMPLE_CAPACITY];
+  size_t sample_index;
+  size_t sample_count;
+  uint64_t samples_seen;
+};
+
+struct perf_sql_family
+{
+  char identity[SQL_FAMILY_NAME_SIZE];
+  uint64_t calls;
+  uint64_t total_usec;
+  uint64_t max_usec;
+  uint64_t errors;
+};
+
+struct perf_slow_section
+{
+  char identity[64];
+  uint64_t elapsed_usec;
+};
+
+struct perf_slow_pulse
+{
+  uint64_t wall_timestamp_sec;
+  uint64_t monotonic_timestamp_usec;
+  uint64_t pulse_number;
+  uint64_t duration_usec;
+  uint64_t schedule_flags;
+  uint64_t sql_queries;
+  uint64_t sql_usec;
+  uint64_t event_callbacks;
+  uint64_t slowest_event_usec;
+  char slowest_event[EVENT_PROFILE_NAME_SIZE];
+  uint64_t descriptors;
+  uint64_t characters;
+  uint64_t mobiles;
+  uint64_t objects;
+  uint64_t events;
+  uint64_t pending_extractions;
+  uint64_t entity_sample_age_sec;
+  uint64_t requested_missed;
+  uint64_t replayed_missed;
+  uint64_t dropped_missed;
+  struct perf_slow_section sections[SLOW_PULSE_SECTION_LIMIT];
+  size_t section_count;
+};
+
+struct perf_entity_counter
+{
+  int key;
+  int used;
+  uint64_t created;
+  uint64_t extracted;
+};
+
+struct perf_entity_zone_counter
+{
+  int key;
+  int used;
+  uint64_t mobiles_created;
+  uint64_t mobiles_extracted;
+  uint64_t objects_created;
+  uint64_t objects_extracted;
+  uint64_t resets;
+  uint64_t reset_total_usec;
+  uint64_t reset_max_usec;
+  uint64_t reset_mobiles_created;
+  uint64_t reset_mobiles_extracted;
+  uint64_t reset_objects_created;
+  uint64_t reset_objects_extracted;
+};
+
+struct perf_entity_reason_counter
+{
+  uint64_t mobiles_created;
+  uint64_t mobiles_extracted;
+  uint64_t objects_created;
+  uint64_t objects_extracted;
+};
+
+struct perf_memory_sample
+{
+  struct perf_memory_stats stats;
+  uint64_t mobiles_created;
+  uint64_t mobiles_extracted;
+  uint64_t objects_created;
+  uint64_t objects_extracted;
+  uint64_t queries;
+  uint64_t pulses_over_100;
+  uint64_t pulses_over_500;
+};
+
+struct perf_memory_slope
+{
+  uint64_t elapsed_sec;
+  double rss_kib_per_min;
+  double anon_kib_per_min;
+  double heap_kib_per_min;
+  double mobs_per_min;
+  double objects_per_min;
+  double residual_heap_kib_per_min;
+};
+
+struct perf_sweep_counter
+{
+  uint64_t calls;
+  uint64_t visited;
+  uint64_t eligible;
+  uint64_t acted;
+  uint64_t max_visited;
+  uint64_t max_eligible;
+  uint64_t max_acted;
+};
+
+struct perf_combat_context
+{
+  int active;
+  unsigned nesting;
+  uint64_t start_usec;
+  uint64_t wall_timestamp_sec;
+  int actor_is_npc;
+  int actor_class;
+  int mobile_vnum;
+  int room_vnum;
+  uint64_t participants;
+  uint64_t attacks;
+  uint64_t procs;
+  uint64_t rejected_attacks;
+  uint64_t rejected_procs;
+};
+
+struct perf_slow_combat
+{
+  uint64_t wall_timestamp_sec;
+  uint64_t elapsed_usec;
+  int actor_is_npc;
+  int actor_class;
+  int mobile_vnum;
+  int room_vnum;
+  uint64_t participants;
+  uint64_t attacks;
+  uint64_t procs;
+  uint64_t rejected_attacks;
+  uint64_t rejected_procs;
+};
+
 /* ========================================================================
  * GLOBAL STATE
  * ======================================================================== */
@@ -143,6 +319,7 @@ struct perf_catchup_stats
 /* Initialization tracking */
 static int initialized = 0;
 static uint64_t prof_reset_usec;
+static uint64_t prof_reset_wall_time_sec;
 static uint64_t logged_pulse_count;
 static uint64_t missed_pulse_count;
 static uint64_t vessel_message_throttled_count;
@@ -155,6 +332,48 @@ static struct perf_extraction_stats pulse_extraction_stats;
 static struct perf_extraction_stats total_extraction_stats;
 static struct perf_catchup_stats pulse_catchup_stats;
 static struct perf_catchup_stats total_catchup_stats;
+static uint64_t pulse_schedule_flags;
+static uint64_t pulse_last_heartbeat;
+static uint64_t total_heartbeats_executed;
+static struct perf_sql_rollup main_sql_stats;
+static struct perf_sql_rollup worker_sql_stats;
+static uint64_t pulse_main_sql_calls;
+static uint64_t pulse_main_sql_usec;
+static struct perf_sql_family sql_families[SQL_FAMILY_CAPACITY];
+static size_t sql_family_count;
+static uint64_t sql_family_overflow_calls;
+static uint64_t sql_reconnect_attempts;
+static uint64_t sql_reconnect_successes;
+static uint64_t sql_reconnect_failures;
+static pthread_mutex_t sql_stats_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_t perf_main_thread;
+static int perf_main_thread_set;
+static _Thread_local enum perf_sql_category current_sql_category = PERF_SQL_OTHER;
+static _Thread_local enum perf_entity_reason current_entity_reason = PERF_ENTITY_UNKNOWN;
+static struct perf_slow_pulse slow_pulses[SLOW_PULSE_CAPACITY];
+static size_t slow_pulse_index;
+static size_t slow_pulse_count;
+static struct perf_entity_counter mobile_vnum_counters[ENTITY_VNUM_CAPACITY];
+static struct perf_entity_counter object_vnum_counters[ENTITY_VNUM_CAPACITY];
+static struct perf_entity_zone_counter entity_zone_counters[ENTITY_ZONE_CAPACITY];
+static struct perf_entity_reason_counter entity_reason_counters[PERF_ENTITY_REASON_COUNT];
+static struct perf_sweep_counter sweep_counters[PERF_SWEEP_COUNT];
+static uint64_t mobiles_created_total;
+static uint64_t mobiles_extracted_total;
+static uint64_t objects_created_total;
+static uint64_t objects_extracted_total;
+static uint64_t mobile_vnum_overflow;
+static uint64_t object_vnum_overflow;
+static uint64_t entity_zone_overflow;
+static struct perf_combat_context combat_context;
+static struct perf_slow_combat slow_combats[COMBAT_SLOW_CAPACITY];
+static size_t slow_combat_index;
+static size_t slow_combat_count;
+static uint64_t combat_callbacks;
+static uint64_t combat_slow_callbacks;
+static uint64_t combat_limited_callbacks;
+static uint64_t combat_rejected_attacks;
+static uint64_t combat_rejected_procs;
 
 /* Pulse performance tracking */
 static double last_pulse = 0.0;
@@ -173,11 +392,18 @@ static int prof_section_count = 0;
 /* Memory monitoring state */
 static struct perf_memory_stats boot_memory_stats;
 static struct perf_memory_stats reset_memory_stats;
+static struct perf_memory_stats latest_memory_stats;
+static int latest_memory_stats_valid;
 static uint64_t memory_boot_time_sec = 0;
 static uint64_t memory_reset_time_sec = 0;
 static uint64_t memory_peak_rss_kib = 0;
 static uint64_t memory_peak_anon_kib = 0;
 static uint64_t memory_last_alert_time_sec = 0;
+static struct perf_memory_sample memory_samples[MEMORY_SAMPLE_CAPACITY];
+static size_t memory_sample_index;
+static size_t memory_sample_count;
+
+static void append_memory_sample(const struct perf_memory_stats *stats);
 
 /* ========================================================================
  * UTILITY FUNCTIONS
@@ -210,6 +436,208 @@ static uint64_t saturating_add_u64(uint64_t current, uint64_t addition)
   return current + addition;
 }
 
+static const char *sql_category_name(enum perf_sql_category category)
+{
+  static const char *names[PERF_SQL_CATEGORY_COUNT] = {
+      "other", "account", "character", "pet", "crash_object", "house", "last_online", "artifact"};
+
+  if (category < PERF_SQL_OTHER || category >= PERF_SQL_CATEGORY_COUNT)
+    return names[PERF_SQL_OTHER];
+  return names[category];
+}
+
+static const char *skip_sql_space(const char *text)
+{
+  while (text != NULL && *text != '\0' && isspace((unsigned char)*text))
+    text++;
+  return text;
+}
+
+static size_t copy_sql_word(char *destination, size_t capacity, const char *source)
+{
+  size_t used;
+
+  if (destination == NULL || capacity == 0)
+    return 0;
+  destination[0] = '\0';
+  source = skip_sql_space(source);
+  if (source == NULL)
+    return 0;
+
+  while (*source == '`' || *source == '(')
+    source++;
+  used = 0;
+  while (*source != '\0' && used + 1 < capacity &&
+         (isalnum((unsigned char)*source) || *source == '_' || *source == '.'))
+  {
+    destination[used++] = (char)tolower((unsigned char)*source++);
+  }
+  destination[used] = '\0';
+  return used;
+}
+
+static int sql_word_matches(const char *text, const char *word)
+{
+  size_t length;
+
+  length = strlen(word);
+  if (strncasecmp(text, word, length) != 0)
+    return 0;
+  return text[length] == '\0' || !(isalnum((unsigned char)text[length]) || text[length] == '_');
+}
+
+static const char *find_sql_word(const char *query, const char *word)
+{
+  const char *cursor;
+
+  if (query == NULL || word == NULL || *word == '\0')
+    return NULL;
+  for (cursor = query; *cursor != '\0'; cursor++)
+  {
+    if ((cursor == query || !(isalnum((unsigned char)cursor[-1]) || cursor[-1] == '_')) &&
+        sql_word_matches(cursor, word))
+      return cursor;
+  }
+  return NULL;
+}
+
+static void normalize_sql_identity(char *identity, size_t capacity, const char *query,
+                                   enum perf_sql_category category)
+{
+  char verb[16];
+  char family[40];
+  const char *table_start;
+  const char *keyword;
+
+  copy_sql_word(verb, sizeof(verb), query);
+  if (verb[0] == '\0')
+    strlcpy(verb, "unknown", sizeof(verb));
+
+  keyword = NULL;
+  if (strcmp(verb, "select") == 0 || strcmp(verb, "delete") == 0)
+    keyword = "from";
+  else if (strcmp(verb, "insert") == 0 || strcmp(verb, "replace") == 0)
+    keyword = "into";
+  else if (strcmp(verb, "update") == 0)
+    keyword = "update";
+  else if (strcmp(verb, "alter") == 0 || strcmp(verb, "create") == 0 || strcmp(verb, "drop") == 0)
+    keyword = "table";
+
+  family[0] = '\0';
+  table_start = keyword != NULL ? find_sql_word(query, keyword) : NULL;
+  if (table_start != NULL)
+  {
+    table_start += strlen(keyword);
+    copy_sql_word(family, sizeof(family), table_start);
+  }
+  if (family[0] == '\0')
+    strlcpy(family, "none", sizeof(family));
+
+  snprintf(identity, capacity, "%s:%s.%s", sql_category_name(category), verb, family);
+}
+
+static void update_sql_rollup(struct perf_sql_rollup *stats, uint64_t elapsed_usec, int failed)
+{
+  stats->calls = saturating_add_u64(stats->calls, 1);
+  stats->total_usec = saturating_add_u64(stats->total_usec, elapsed_usec);
+  if (elapsed_usec > stats->max_usec)
+    stats->max_usec = elapsed_usec;
+  if (failed)
+    stats->errors = saturating_add_u64(stats->errors, 1);
+  stats->samples[stats->sample_index] = elapsed_usec;
+  stats->sample_index = (stats->sample_index + 1) % SQL_SAMPLE_CAPACITY;
+  if (stats->sample_count < SQL_SAMPLE_CAPACITY)
+    stats->sample_count++;
+  stats->samples_seen = saturating_add_u64(stats->samples_seen, 1);
+}
+
+enum perf_sql_category PERF_sql_scope_set(enum perf_sql_category category)
+{
+  enum perf_sql_category previous;
+
+  previous = current_sql_category;
+  if (category < PERF_SQL_OTHER || category >= PERF_SQL_CATEGORY_COUNT)
+    current_sql_category = PERF_SQL_OTHER;
+  else
+    current_sql_category = category;
+  return previous;
+}
+
+void PERF_sql_scope_restore(enum perf_sql_category category)
+{
+  if (category < PERF_SQL_OTHER || category >= PERF_SQL_CATEGORY_COUNT)
+    current_sql_category = PERF_SQL_OTHER;
+  else
+    current_sql_category = category;
+}
+
+void PERF_note_sql_query(const char *query, uint64_t elapsed_usec, int failed)
+{
+  struct perf_sql_family *family;
+  char identity[SQL_FAMILY_NAME_SIZE];
+  int is_main_thread;
+  size_t i;
+
+  normalize_sql_identity(identity, sizeof(identity), query, current_sql_category);
+  pthread_mutex_lock(&sql_stats_mutex);
+  if (!perf_main_thread_set)
+  {
+    perf_main_thread = pthread_self();
+    perf_main_thread_set = 1;
+  }
+  is_main_thread = pthread_equal(pthread_self(), perf_main_thread);
+  if (is_main_thread)
+  {
+    update_sql_rollup(&main_sql_stats, elapsed_usec, failed);
+    pulse_main_sql_calls = saturating_add_u64(pulse_main_sql_calls, 1);
+    pulse_main_sql_usec = saturating_add_u64(pulse_main_sql_usec, elapsed_usec);
+  }
+  else
+  {
+    update_sql_rollup(&worker_sql_stats, elapsed_usec, failed);
+  }
+
+  family = NULL;
+  for (i = 0; i < sql_family_count; i++)
+  {
+    if (strcmp(sql_families[i].identity, identity) == 0)
+    {
+      family = &sql_families[i];
+      break;
+    }
+  }
+  if (family == NULL && sql_family_count < SQL_FAMILY_CAPACITY)
+  {
+    family = &sql_families[sql_family_count++];
+    strlcpy(family->identity, identity, sizeof(family->identity));
+  }
+  if (family != NULL)
+  {
+    family->calls = saturating_add_u64(family->calls, 1);
+    family->total_usec = saturating_add_u64(family->total_usec, elapsed_usec);
+    if (elapsed_usec > family->max_usec)
+      family->max_usec = elapsed_usec;
+    if (failed)
+      family->errors = saturating_add_u64(family->errors, 1);
+  }
+  else
+  {
+    sql_family_overflow_calls = saturating_add_u64(sql_family_overflow_calls, 1);
+  }
+  pthread_mutex_unlock(&sql_stats_mutex);
+}
+
+void PERF_note_sql_reconnect(int succeeded)
+{
+  pthread_mutex_lock(&sql_stats_mutex);
+  sql_reconnect_attempts = saturating_add_u64(sql_reconnect_attempts, 1);
+  if (succeeded)
+    sql_reconnect_successes = saturating_add_u64(sql_reconnect_successes, 1);
+  else
+    sql_reconnect_failures = saturating_add_u64(sql_reconnect_failures, 1);
+  pthread_mutex_unlock(&sql_stats_mutex);
+}
+
 static void copy_event_identity(char *destination, size_t capacity, const char *identity)
 {
   size_t i;
@@ -232,6 +660,113 @@ static void copy_event_identity(char *destination, size_t capacity, const char *
       destination[i] = identity[i];
   }
   destination[i] = '\0';
+}
+
+static void copy_slow_section_identity(char *destination, size_t capacity, const char *identity)
+{
+  size_t i;
+
+  if (destination == NULL || capacity == 0)
+    return;
+  if (identity == NULL || *identity == '\0')
+    identity = "unknown";
+
+  for (i = 0; i + 1 < capacity && identity[i] != '\0'; i++)
+  {
+    if (identity[i] == ',' || identity[i] == ';' || identity[i] == '\r' || identity[i] == '\n')
+      destination[i] = ' ';
+    else
+      destination[i] = identity[i];
+  }
+  destination[i] = '\0';
+}
+
+static void insert_slow_section(struct perf_slow_pulse *record, const char *identity,
+                                uint64_t elapsed_usec)
+{
+  size_t position;
+  size_t i;
+
+  if (record == NULL || elapsed_usec == 0)
+    return;
+  position = 0;
+  while (position < record->section_count &&
+         record->sections[position].elapsed_usec >= elapsed_usec)
+    position++;
+  if (position >= SLOW_PULSE_SECTION_LIMIT)
+    return;
+  if (record->section_count < SLOW_PULSE_SECTION_LIMIT)
+    record->section_count++;
+  for (i = record->section_count - 1; i > position; i--)
+    record->sections[i] = record->sections[i - 1];
+  copy_slow_section_identity(record->sections[position].identity,
+                             sizeof(record->sections[position].identity), identity);
+  record->sections[position].elapsed_usec = elapsed_usec;
+}
+
+static void capture_slow_pulse(double usage_percent)
+{
+  struct perf_slow_pulse *record;
+  struct perf_event_callback *profile;
+  uint64_t now_sec;
+  size_t i;
+
+  if (usage_percent <= 100.0)
+    return;
+
+  record = &slow_pulses[slow_pulse_index];
+  memset(record, 0, sizeof(*record));
+  now_sec = (uint64_t)time(NULL);
+  record->wall_timestamp_sec = now_sec;
+  record->monotonic_timestamp_usec = monotonic_usec();
+  record->pulse_number = pulse_last_heartbeat;
+  record->duration_usec = usage_percent >= ((double)UINT64_MAX * 100.0 / (double)USEC_PER_PULSE)
+                              ? UINT64_MAX
+                              : (uint64_t)((usage_percent * (double)USEC_PER_PULSE) / 100.0);
+  record->schedule_flags = pulse_schedule_flags;
+  pthread_mutex_lock(&sql_stats_mutex);
+  record->sql_queries = pulse_main_sql_calls;
+  record->sql_usec = pulse_main_sql_usec;
+  pthread_mutex_unlock(&sql_stats_mutex);
+  record->event_callbacks = pulse_event_process_stats.callbacks_processed;
+
+  for (i = 0; i < event_profile_count; i++)
+  {
+    profile = &event_profiles[i];
+    if (profile->pulse_max_usec > record->slowest_event_usec)
+    {
+      record->slowest_event_usec = profile->pulse_max_usec;
+      copy_event_identity(record->slowest_event, sizeof(record->slowest_event), profile->identity);
+    }
+  }
+  if (event_profile_overflow.pulse_max_usec > record->slowest_event_usec)
+  {
+    record->slowest_event_usec = event_profile_overflow.pulse_max_usec;
+    copy_event_identity(record->slowest_event, sizeof(record->slowest_event),
+                        "unregistered overflow");
+  }
+
+  if (latest_memory_stats_valid)
+  {
+    record->descriptors = latest_memory_stats.count_descriptors;
+    record->characters = latest_memory_stats.count_chars;
+    record->mobiles = latest_memory_stats.count_mobs;
+    record->objects = latest_memory_stats.count_objs;
+    record->events = latest_memory_stats.count_events;
+    record->pending_extractions = latest_memory_stats.count_pending_extractions;
+    if (now_sec >= latest_memory_stats.timestamp_sec)
+      record->entity_sample_age_sec = now_sec - latest_memory_stats.timestamp_sec;
+  }
+
+  record->requested_missed = pulse_catchup_stats.requested_missed;
+  record->replayed_missed = pulse_catchup_stats.replayed_missed;
+  record->dropped_missed = pulse_catchup_stats.remaining_backlog;
+  for (i = 0; i < (size_t)prof_section_count; i++)
+    insert_slow_section(record, prof_sections[i]->id, prof_sections[i]->pulse_total_usec);
+
+  slow_pulse_index = (slow_pulse_index + 1) % SLOW_PULSE_CAPACITY;
+  if (slow_pulse_count < SLOW_PULSE_CAPACITY)
+    slow_pulse_count++;
 }
 
 static void reset_event_callback_pulse_stats(void)
@@ -258,10 +793,16 @@ static void reset_event_callback_total_stats(void)
     event_profiles[i].total_calls = 0;
     event_profiles[i].total_usec = 0;
     event_profiles[i].total_max_usec = 0;
+    event_profiles[i].sample_index = 0;
+    event_profiles[i].sample_count = 0;
+    event_profiles[i].samples_seen = 0;
   }
   event_profile_overflow.total_calls = 0;
   event_profile_overflow.total_usec = 0;
   event_profile_overflow.total_max_usec = 0;
+  event_profile_overflow.sample_index = 0;
+  event_profile_overflow.sample_count = 0;
+  event_profile_overflow.samples_seen = 0;
 }
 
 static void update_event_process_stats(struct perf_event_process_stats *stats,
@@ -544,6 +1085,7 @@ static void ensure_initialized(void)
   init_interval(&min_data, MIN_BUFFER_SIZE);
   init_interval(&hour_data, HOUR_BUFFER_SIZE);
   prof_reset_usec = monotonic_usec();
+  prof_reset_wall_time_sec = (uint64_t)time(NULL);
 
   if (memory_boot_time_sec == 0)
   {
@@ -551,6 +1093,7 @@ static void ensure_initialized(void)
     reset_memory_stats = boot_memory_stats;
     memory_boot_time_sec = (uint64_t)time(NULL);
     memory_reset_time_sec = memory_boot_time_sec;
+    append_memory_sample(&boot_memory_stats);
   }
 
   initialized = 1;
@@ -618,6 +1161,48 @@ void PERF_reset(void)
   logged_pulse_count = 0;
   missed_pulse_count = 0;
   vessel_message_throttled_count = 0;
+  pulse_schedule_flags = 0;
+  pulse_last_heartbeat = 0;
+  total_heartbeats_executed = 0;
+  memset(slow_pulses, 0, sizeof(slow_pulses));
+  slow_pulse_index = 0;
+  slow_pulse_count = 0;
+  memset(mobile_vnum_counters, 0, sizeof(mobile_vnum_counters));
+  memset(object_vnum_counters, 0, sizeof(object_vnum_counters));
+  memset(entity_zone_counters, 0, sizeof(entity_zone_counters));
+  memset(entity_reason_counters, 0, sizeof(entity_reason_counters));
+  memset(sweep_counters, 0, sizeof(sweep_counters));
+  mobiles_created_total = 0;
+  mobiles_extracted_total = 0;
+  objects_created_total = 0;
+  objects_extracted_total = 0;
+  mobile_vnum_overflow = 0;
+  object_vnum_overflow = 0;
+  entity_zone_overflow = 0;
+  memset(&combat_context, 0, sizeof(combat_context));
+  memset(slow_combats, 0, sizeof(slow_combats));
+  slow_combat_index = 0;
+  slow_combat_count = 0;
+  combat_callbacks = 0;
+  combat_slow_callbacks = 0;
+  combat_limited_callbacks = 0;
+  combat_rejected_attacks = 0;
+  combat_rejected_procs = 0;
+  current_entity_reason = PERF_ENTITY_UNKNOWN;
+  pthread_mutex_lock(&sql_stats_mutex);
+  memset(&main_sql_stats, 0, sizeof(main_sql_stats));
+  memset(&worker_sql_stats, 0, sizeof(worker_sql_stats));
+  pulse_main_sql_calls = 0;
+  pulse_main_sql_usec = 0;
+  memset(sql_families, 0, sizeof(sql_families));
+  sql_family_count = 0;
+  sql_family_overflow_calls = 0;
+  sql_reconnect_attempts = 0;
+  sql_reconnect_successes = 0;
+  sql_reconnect_failures = 0;
+  perf_main_thread = pthread_self();
+  perf_main_thread_set = 1;
+  pthread_mutex_unlock(&sql_stats_mutex);
   reset_event_callback_pulse_stats();
   reset_event_callback_total_stats();
   memset(&pulse_event_process_stats, 0, sizeof(pulse_event_process_stats));
@@ -652,6 +1237,10 @@ void PERF_reset(void)
   }
 
   PERF_sample_memory(&reset_memory_stats);
+  memset(memory_samples, 0, sizeof(memory_samples));
+  memory_sample_index = 0;
+  memory_sample_count = 0;
+  append_memory_sample(&reset_memory_stats);
   memory_reset_time_sec = (uint64_t)time(NULL);
   if (memory_boot_time_sec == 0)
   {
@@ -660,6 +1249,7 @@ void PERF_reset(void)
   }
 
   prof_reset_usec = monotonic_usec();
+  prof_reset_wall_time_sec = (uint64_t)time(NULL);
 }
 
 /* ========================================================================
@@ -679,12 +1269,24 @@ void PERF_log_pulse(double val)
   }
 
   check_thresholds(val);
+  capture_slow_pulse(val);
 
   /* Add to pulse data buffer */
   add_interval_data(&pulse_data, val, val, val);
 
   /* Check for aggregation */
   aggregate_data();
+}
+
+void PERF_note_heartbeat(uint64_t pulse_number)
+{
+  pulse_last_heartbeat = pulse_number;
+  total_heartbeats_executed = saturating_add_u64(total_heartbeats_executed, 1);
+}
+
+void PERF_note_schedule(uint64_t schedule_flags)
+{
+  pulse_schedule_flags |= schedule_flags;
 }
 
 void PERF_note_missed_pulses(uint64_t count)
@@ -749,6 +1351,11 @@ void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec)
     profile->pulse_max_usec = elapsed_usec;
   if (elapsed_usec > profile->total_max_usec)
     profile->total_max_usec = elapsed_usec;
+  profile->samples[profile->sample_index] = elapsed_usec;
+  profile->sample_index = (profile->sample_index + 1) % EVENT_SAMPLE_CAPACITY;
+  if (profile->sample_count < EVENT_SAMPLE_CAPACITY)
+    profile->sample_count++;
+  profile->samples_seen = saturating_add_u64(profile->samples_seen, 1);
 }
 
 void PERF_note_event_process(uint64_t depth_before, uint64_t depth_after,
@@ -790,13 +1397,27 @@ size_t PERF_repr(char *out_buf, size_t n)
 {
   size_t written = 0;
   size_t i;
+  size_t sampled_section_count;
+  size_t sample_bytes;
+  uint64_t now_usec;
+  uint64_t elapsed_usec;
+  uint64_t expected_slots;
   double total_pulses;
   double pulse_min, sec_min, min_min, hour_min;
+  char reset_time[32];
+  time_t reset_wall_time;
+  struct tm reset_tm;
 
   if (!out_buf || n < 1)
     return 0;
 
   ensure_initialized();
+
+  sampled_section_count = 0;
+  for (i = 0; i < (size_t)prof_section_count; i++)
+    if (prof_sections[i]->sampling_enabled)
+      sampled_section_count++;
+  sample_bytes = sampled_section_count * PROF_SAMPLE_CAPACITY * sizeof(uint64_t);
 
   total_pulses = (double)logged_pulse_count;
 
@@ -806,31 +1427,1025 @@ size_t PERF_repr(char *out_buf, size_t n)
   min_min = get_interval_min(&min_data);
   hour_min = get_interval_min(&hour_data);
 
+  now_usec = monotonic_usec();
+  elapsed_usec = now_usec >= prof_reset_usec ? now_usec - prof_reset_usec : 0;
+  expected_slots = USEC_PER_PULSE > 0 ? elapsed_usec / USEC_PER_PULSE : 0;
+  reset_wall_time = (time_t)prof_reset_wall_time_sec;
+  if (gmtime_r(&reset_wall_time, &reset_tm) != NULL)
+    strftime(reset_time, sizeof(reset_time), "%Y-%m-%d %H:%M:%S UTC", &reset_tm);
+  else
+    strlcpy(reset_time, "unknown", sizeof(reset_time));
+
   /* Format the report */
-  written =
-      snprintf(out_buf, n,
-               "                     Avg         Min         Max\n\r"
-               "  1 Pulse:   %10.2f%% %10.2f%% %10.2f%%\n\r"
-               "%3zu Pulses:  %10.2f%% %10.2f%% %10.2f%%\n\r"
-               "%3zu Seconds: %10.2f%% %10.2f%% %10.2f%%\n\r"
-               "%3zu Minutes: %10.2f%% %10.2f%% %10.2f%%\n\r"
-               "%3zu Hours:   %10.2f%% %10.2f%% %10.2f%%\n\r"
-               "\n\rMax pulse:      %.2f\n\r\n\r",
-               last_pulse, last_pulse, last_pulse, pulse_data.count, get_interval_avg(&pulse_data),
-               pulse_min, get_interval_max(&pulse_data), sec_data.count,
-               get_interval_avg(&sec_data), sec_min, get_interval_max(&sec_data), min_data.count,
-               get_interval_avg(&min_data), min_min, get_interval_max(&min_data), hour_data.count,
-               get_interval_avg(&hour_data), hour_min, get_interval_max(&hour_data), max_pulse);
+  written = bounded_format_length(
+      snprintf(
+          out_buf, n,
+          "Measurement started: %s\n\r"
+          "Elapsed: %.2f seconds | Pulse budget: %.2f ms | Logged outer loops: %" PRIu64
+          " | Expected slots: %" PRIu64 " | Executed heartbeats: %" PRIu64 "\n\r"
+          "Catch-up: requested=%" PRIu64 " replayed=%" PRIu64 " dropped=%" PRIu64 "\n\r"
+          "Rolling completed windows (percent of %.2f ms pulse budget)\n\r"
+          "                     Avg         Min         Max\n\r"
+          "  1 Pulse:   %10.2f%% %10.2f%% %10.2f%%\n\r"
+          "%3zu Pulses:  %10.2f%% %10.2f%% %10.2f%%\n\r"
+          "%3zu Seconds: %10.2f%% %10.2f%% %10.2f%%\n\r"
+          "%3zu Minutes: %10.2f%% %10.2f%% %10.2f%%\n\r"
+          "%3zu Hours:   %10.2f%% %10.2f%% %10.2f%%\n\r"
+          "\n\rMax pulse:      %.2f ms (%.2f%%)\n\r\n\r",
+          reset_time, (double)elapsed_usec / (double)USEC_PER_SEC, (double)USEC_PER_PULSE / 1000.0,
+          logged_pulse_count, expected_slots, total_heartbeats_executed,
+          total_catchup_stats.requested_missed, total_catchup_stats.replayed_missed,
+          total_catchup_stats.remaining_backlog, (double)USEC_PER_PULSE / 1000.0, last_pulse,
+          last_pulse, last_pulse, pulse_data.count, get_interval_avg(&pulse_data), pulse_min,
+          get_interval_max(&pulse_data), sec_data.count, get_interval_avg(&sec_data), sec_min,
+          get_interval_max(&sec_data), min_data.count, get_interval_avg(&min_data), min_min,
+          get_interval_max(&min_data), hour_data.count, get_interval_avg(&hour_data), hour_min,
+          get_interval_max(&hour_data), (max_pulse * (double)USEC_PER_PULSE) / 100000.0, max_pulse),
+      n);
 
   /* Add threshold statistics */
   for (i = 0; (size_t)i < sizeof(thresholds) / sizeof(thresholds[0]) && written < n - 1; i++)
   {
     double percent = (total_pulses > 0) ? (100.0 * thresholds[i].count / total_pulses) : 0.0;
 
-    written += snprintf(out_buf + written, n - written, "Over %5d%%:      %.2f%% (%lu)\n\r",
-                        thresholds[i].threshold, percent, thresholds[i].count);
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written, "Over %5d%% (%7.1f ms): %.2f%% (%lu)\n\r",
+                 thresholds[i].threshold,
+                 ((double)thresholds[i].threshold * (double)USEC_PER_PULSE) / 100000.0, percent,
+                 thresholds[i].count),
+        n - written);
   }
 
+  if (written < n - 1)
+  {
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "PERFMON overhead: sections=%d sampled=%zu sample_bytes=%zu "
+                 "event_registry_bytes=%zu slow_ring_bytes=%zu sql_bytes=%zu\n\r",
+                 prof_section_count, sampled_section_count, sample_bytes, sizeof(event_profiles),
+                 sizeof(slow_pulses),
+                 sizeof(main_sql_stats) + sizeof(worker_sql_stats) + sizeof(sql_families)),
+        n - written);
+  }
+
+  return written;
+}
+
+static size_t append_schedule_name(char *buf, size_t n, size_t written, const char *name)
+{
+  if (written >= n - 1)
+    return written;
+  if (written > 0)
+    written += bounded_format_length(snprintf(buf + written, n - written, "+"), n - written);
+  if (written < n - 1)
+    written += bounded_format_length(snprintf(buf + written, n - written, "%s", name), n - written);
+  return written;
+}
+
+static void format_schedule_flags(char *buf, size_t n, uint64_t flags)
+{
+  size_t written;
+
+  if (buf == NULL || n == 0)
+    return;
+  buf[0] = '\0';
+  written = 0;
+  if (flags & PERF_SCHEDULE_1_SECOND)
+    written = append_schedule_name(buf, n, written, "1s");
+  if (flags & PERF_SCHEDULE_3_SECONDS)
+    written = append_schedule_name(buf, n, written, "3s");
+  if (flags & PERF_SCHEDULE_5_SECONDS)
+    written = append_schedule_name(buf, n, written, "5s");
+  if (flags & PERF_SCHEDULE_6_SECONDS)
+    written = append_schedule_name(buf, n, written, "6s");
+  if (flags & PERF_SCHEDULE_13_SECONDS)
+    written = append_schedule_name(buf, n, written, "13s");
+  if (flags & PERF_SCHEDULE_30_SECONDS)
+    written = append_schedule_name(buf, n, written, "30s");
+  if (flags & PERF_SCHEDULE_60_SECONDS)
+    written = append_schedule_name(buf, n, written, "60s");
+  if (flags & PERF_SCHEDULE_75_SECONDS)
+    written = append_schedule_name(buf, n, written, "75s");
+  if (flags & PERF_SCHEDULE_AUTOSAVE)
+    written = append_schedule_name(buf, n, written, "autosave");
+  if (flags & PERF_SCHEDULE_LONG_INTERVAL)
+    written = append_schedule_name(buf, n, written, "long");
+  if (written == 0)
+    strlcpy(buf, "base", n);
+}
+
+size_t PERF_slow_repr(char *out_buf, size_t n, size_t count, int csv)
+{
+  const struct perf_slow_pulse *record;
+  char schedule[96];
+  char timestamp[32];
+  char sections[1024];
+  struct tm timestamp_tm;
+  time_t wall_time;
+  size_t available;
+  size_t index;
+  size_t offset;
+  size_t section_index;
+  size_t section_written;
+  size_t written;
+
+  if (out_buf == NULL || n == 0)
+    return 0;
+  ensure_initialized();
+  available = slow_pulse_count;
+  if (count == 0)
+    count = SLOW_PULSE_DEFAULT_COUNT;
+  if (count > available)
+    count = available;
+
+  if (csv)
+  {
+    written = bounded_format_length(
+        snprintf(out_buf, n,
+                 "timestamp_utc,monotonic_usec,pulse,duration_usec,schedules,sql_queries,sql_usec,"
+                 "event_callbacks,slowest_event,slowest_event_usec,descriptors,characters,mobiles,"
+                 "objects,events,pending_extractions,entity_sample_age_sec,requested_missed,"
+                 "replayed_missed,dropped_missed,top_sections\n\r"),
+        n);
+  }
+  else
+  {
+    written = bounded_format_length(
+        snprintf(out_buf, n,
+                 "Slow pulse flight recorder (newest first, > %.1f ms, retained %zu/%d)\n\r",
+                 (double)USEC_PER_PULSE / 1000.0, slow_pulse_count, SLOW_PULSE_CAPACITY),
+        n);
+  }
+
+  for (offset = 0; offset < count && written < n - 1; offset++)
+  {
+    index = (slow_pulse_index + SLOW_PULSE_CAPACITY - 1 - offset) % SLOW_PULSE_CAPACITY;
+    record = &slow_pulses[index];
+    format_schedule_flags(schedule, sizeof(schedule), record->schedule_flags);
+    wall_time = (time_t)record->wall_timestamp_sec;
+    if (gmtime_r(&wall_time, &timestamp_tm) != NULL)
+      strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%SZ", &timestamp_tm);
+    else
+      strlcpy(timestamp, "unknown", sizeof(timestamp));
+
+    sections[0] = '\0';
+    section_written = 0;
+    for (section_index = 0; section_index < record->section_count; section_index++)
+    {
+      section_written += bounded_format_length(
+          snprintf(sections + section_written, sizeof(sections) - section_written, "%s%s:%" PRIu64,
+                   section_index == 0 ? "" : "|", record->sections[section_index].identity,
+                   record->sections[section_index].elapsed_usec),
+          sizeof(sections) - section_written);
+      if (section_written >= sizeof(sections) - 1)
+        break;
+    }
+
+    if (csv)
+    {
+      written += bounded_format_length(
+          snprintf(out_buf + written, n - written,
+                   "%s,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%s,%" PRIu64 ",%" PRIu64 ",%" PRIu64
+                   ",%s,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64
+                   ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%s\n\r",
+                   timestamp, record->monotonic_timestamp_usec, record->pulse_number,
+                   record->duration_usec, schedule, record->sql_queries, record->sql_usec,
+                   record->event_callbacks,
+                   record->slowest_event[0] != '\0' ? record->slowest_event : "none",
+                   record->slowest_event_usec, record->descriptors, record->characters,
+                   record->mobiles, record->objects, record->events, record->pending_extractions,
+                   record->entity_sample_age_sec, record->requested_missed, record->replayed_missed,
+                   record->dropped_missed, sections[0] != '\0' ? sections : "none"),
+          n - written);
+    }
+    else
+    {
+      written += bounded_format_length(
+          snprintf(
+              out_buf + written, n - written,
+              "%s pulse=%" PRIu64 " duration=%.3f ms schedules=%s SQL=%" PRIu64
+              "/%.3f ms events=%" PRIu64 " slowest=%s/%.3f ms entities=%" PRIu64 " chars (%" PRIu64
+              " mobs), %" PRIu64 " objs, %" PRIu64 " descriptors, %" PRIu64 " events, %" PRIu64
+              " pending (sample_age=%" PRIu64 "s) catchup=%" PRIu64 "/%" PRIu64 "/%" PRIu64
+              "\n\r  sections: %s\n\r",
+              timestamp, record->pulse_number, (double)record->duration_usec / 1000.0, schedule,
+              record->sql_queries, (double)record->sql_usec / 1000.0, record->event_callbacks,
+              record->slowest_event[0] != '\0' ? record->slowest_event : "none",
+              (double)record->slowest_event_usec / 1000.0, record->characters, record->mobiles,
+              record->objects, record->descriptors, record->events, record->pending_extractions,
+              record->entity_sample_age_sec, record->requested_missed, record->replayed_missed,
+              record->dropped_missed, sections[0] != '\0' ? sections : "none"),
+          n - written);
+    }
+  }
+
+  return written;
+}
+
+static size_t collect_top_sql_families(const struct perf_sql_family *families, size_t family_count,
+                                       size_t *indices)
+{
+  size_t top_count;
+  size_t i;
+  size_t j;
+  size_t position;
+
+  top_count = 0;
+  for (i = 0; i < family_count; i++)
+  {
+    position = 0;
+    while (position < top_count && families[indices[position]].total_usec >= families[i].total_usec)
+      position++;
+    if (position >= SQL_FAMILY_REPORT_LIMIT)
+      continue;
+    if (top_count < SQL_FAMILY_REPORT_LIMIT)
+      top_count++;
+    for (j = top_count - 1; j > position; j--)
+      indices[j] = indices[j - 1];
+    indices[position] = i;
+  }
+  return top_count;
+}
+
+size_t PERF_sql_repr(char *out_buf, size_t n, int csv)
+{
+  struct perf_sql_rollup main_snapshot;
+  struct perf_sql_rollup worker_snapshot;
+  struct perf_sql_family family_snapshot[SQL_FAMILY_CAPACITY];
+  const struct perf_sql_family *family;
+  size_t top_indices[SQL_FAMILY_REPORT_LIMIT];
+  size_t family_count;
+  size_t top_count;
+  size_t written;
+  size_t i;
+  uint64_t overflow_calls;
+  uint64_t reconnect_attempts;
+  uint64_t reconnect_successes;
+  uint64_t reconnect_failures;
+  double main_median;
+  double main_p95;
+  double main_p99;
+  double worker_median;
+  double worker_p95;
+  double worker_p99;
+
+  if (out_buf == NULL || n == 0)
+    return 0;
+  pthread_mutex_lock(&sql_stats_mutex);
+  main_snapshot = main_sql_stats;
+  worker_snapshot = worker_sql_stats;
+  family_count = sql_family_count;
+  memcpy(family_snapshot, sql_families, family_count * sizeof(*family_snapshot));
+  overflow_calls = sql_family_overflow_calls;
+  reconnect_attempts = sql_reconnect_attempts;
+  reconnect_successes = sql_reconnect_successes;
+  reconnect_failures = sql_reconnect_failures;
+  pthread_mutex_unlock(&sql_stats_mutex);
+
+  calculate_percentile_set(main_snapshot.samples, main_snapshot.sample_count, &main_median,
+                           &main_p95, &main_p99);
+  calculate_percentile_set(worker_snapshot.samples, worker_snapshot.sample_count, &worker_median,
+                           &worker_p95, &worker_p99);
+  top_count = collect_top_sql_families(family_snapshot, family_count, top_indices);
+
+  if (csv)
+  {
+    written = bounded_format_length(
+        snprintf(out_buf, n,
+                 "sql_thread,calls,total_usec,average_usec,median_usec,p95_usec,p99_usec,max_usec,"
+                 "errors,samples_stored,samples_seen\n\r"
+                 "main,%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%" PRIu64 ",%" PRIu64
+                 ",%zu,%" PRIu64 "\n\r"
+                 "worker,%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%" PRIu64 ",%" PRIu64
+                 ",%zu,%" PRIu64 "\n\r"
+                 "# sql_reconnect_attempts=%" PRIu64 "\n\r"
+                 "# sql_reconnect_successes=%" PRIu64 "\n\r"
+                 "# sql_reconnect_failures=%" PRIu64 "\n\r"
+                 "sql_family,calls,total_usec,average_usec,max_usec,errors\n\r",
+                 main_snapshot.calls, main_snapshot.total_usec,
+                 main_snapshot.calls > 0
+                     ? (double)main_snapshot.total_usec / (double)main_snapshot.calls
+                     : 0.0,
+                 main_median, main_p95, main_p99, main_snapshot.max_usec, main_snapshot.errors,
+                 main_snapshot.sample_count, main_snapshot.samples_seen, worker_snapshot.calls,
+                 worker_snapshot.total_usec,
+                 worker_snapshot.calls > 0
+                     ? (double)worker_snapshot.total_usec / (double)worker_snapshot.calls
+                     : 0.0,
+                 worker_median, worker_p95, worker_p99, worker_snapshot.max_usec,
+                 worker_snapshot.errors, worker_snapshot.sample_count, worker_snapshot.samples_seen,
+                 reconnect_attempts, reconnect_successes, reconnect_failures),
+        n);
+  }
+  else
+  {
+    written = bounded_format_length(
+        snprintf(out_buf, n,
+                 "SQL Telemetry (rolling percentiles cover the newest %d calls per thread)\n\r"
+                 "Thread |    Calls|  Total usec|  Avg usec|Median usec|  P95 usec|  P99 usec|"
+                 "  Max usec| Errors|Samples stored/seen\n\r"
+                 "main   |%9" PRIu64 "|%12" PRIu64 "|%10.2f|%11.2f|%10.2f|%10.2f|%10" PRIu64
+                 "|%7" PRIu64 "|%7zu/%-7" PRIu64 "\n\r"
+                 "worker |%9" PRIu64 "|%12" PRIu64 "|%10.2f|%11.2f|%10.2f|%10.2f|%10" PRIu64
+                 "|%7" PRIu64 "|%7zu/%-7" PRIu64 "\n\r"
+                 "Reconnects: attempts=%" PRIu64 " successes=%" PRIu64 " failures=%" PRIu64 "\n\r"
+                 "Normalized query families (top %d by elapsed time, registered=%zu/%d, "
+                 "overflow_calls=%" PRIu64 ")\n\r"
+                 "Family                                                                          |"
+                 "    Calls|  Total usec|  Avg usec|  Max usec| Errors\n\r",
+                 SQL_SAMPLE_CAPACITY, main_snapshot.calls, main_snapshot.total_usec,
+                 main_snapshot.calls > 0
+                     ? (double)main_snapshot.total_usec / (double)main_snapshot.calls
+                     : 0.0,
+                 main_median, main_p95, main_p99, main_snapshot.max_usec, main_snapshot.errors,
+                 main_snapshot.sample_count, main_snapshot.samples_seen, worker_snapshot.calls,
+                 worker_snapshot.total_usec,
+                 worker_snapshot.calls > 0
+                     ? (double)worker_snapshot.total_usec / (double)worker_snapshot.calls
+                     : 0.0,
+                 worker_median, worker_p95, worker_p99, worker_snapshot.max_usec,
+                 worker_snapshot.errors, worker_snapshot.sample_count, worker_snapshot.samples_seen,
+                 reconnect_attempts, reconnect_successes, reconnect_failures,
+                 SQL_FAMILY_REPORT_LIMIT, family_count, SQL_FAMILY_CAPACITY, overflow_calls),
+        n);
+  }
+
+  for (i = 0; i < top_count && written < n - 1; i++)
+  {
+    family = &family_snapshot[top_indices[i]];
+    if (csv)
+    {
+      written += bounded_format_length(
+          snprintf(out_buf + written, n - written,
+                   "%s,%" PRIu64 ",%" PRIu64 ",%.2f,%" PRIu64 ",%" PRIu64 "\n\r", family->identity,
+                   family->calls, family->total_usec,
+                   family->calls > 0 ? (double)family->total_usec / (double)family->calls : 0.0,
+                   family->max_usec, family->errors),
+          n - written);
+    }
+    else
+    {
+      written += bounded_format_length(
+          snprintf(out_buf + written, n - written,
+                   "%-80s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%10" PRIu64 "|%7" PRIu64 "\n\r",
+                   family->identity, family->calls, family->total_usec,
+                   family->calls > 0 ? (double)family->total_usec / (double)family->calls : 0.0,
+                   family->max_usec, family->errors),
+          n - written);
+    }
+  }
+  return written;
+}
+
+/* ========================================================================
+ * COMBAT CALLBACK MONITORING
+ * ======================================================================== */
+
+void PERF_combat_round_begin(const struct char_data *ch)
+{
+  const struct char_data *participant;
+
+  ensure_initialized();
+  if (combat_context.active)
+  {
+    combat_context.nesting++;
+    return;
+  }
+
+  memset(&combat_context, 0, sizeof(combat_context));
+  combat_context.active = TRUE;
+  combat_context.start_usec = monotonic_usec();
+  combat_context.wall_timestamp_sec = (uint64_t)time(NULL);
+  combat_context.mobile_vnum = -1;
+  combat_context.room_vnum = -1;
+  if (ch == NULL)
+    return;
+
+  combat_context.actor_is_npc = IS_NPC(ch) ? TRUE : FALSE;
+  combat_context.actor_class = GET_CLASS(ch);
+  if (IS_NPC(ch))
+    combat_context.mobile_vnum = GET_MOB_VNUM(ch);
+  if (IN_ROOM(ch) == NOWHERE || world == NULL || IN_ROOM(ch) > top_of_world)
+    return;
+
+  combat_context.room_vnum = GET_ROOM_VNUM(IN_ROOM(ch));
+  for (participant = world[IN_ROOM(ch)].people; participant != NULL;
+       participant = participant->next_in_room)
+    combat_context.participants++;
+}
+
+int PERF_combat_allow_attack(void)
+{
+  if (!combat_context.active)
+    return TRUE;
+  if (combat_context.attacks >= COMBAT_ATTACK_LIMIT)
+  {
+    combat_context.rejected_attacks++;
+    return FALSE;
+  }
+  combat_context.attacks++;
+  return TRUE;
+}
+
+int PERF_combat_allow_proc(void)
+{
+  if (!combat_context.active)
+    return TRUE;
+  if (combat_context.procs >= COMBAT_PROC_LIMIT)
+  {
+    combat_context.rejected_procs++;
+    return FALSE;
+  }
+  combat_context.procs++;
+  return TRUE;
+}
+
+void PERF_combat_round_end(void)
+{
+  struct perf_slow_combat *record;
+  uint64_t elapsed_usec;
+  uint64_t now_usec;
+  int limited;
+
+  if (!combat_context.active)
+    return;
+  if (combat_context.nesting > 0)
+  {
+    combat_context.nesting--;
+    return;
+  }
+
+  now_usec = monotonic_usec();
+  elapsed_usec = now_usec >= combat_context.start_usec ? now_usec - combat_context.start_usec : 0;
+  limited = combat_context.rejected_attacks > 0 || combat_context.rejected_procs > 0;
+  combat_callbacks = saturating_add_u64(combat_callbacks, 1);
+  if (elapsed_usec >= COMBAT_SLOW_USEC)
+    combat_slow_callbacks = saturating_add_u64(combat_slow_callbacks, 1);
+  if (limited)
+    combat_limited_callbacks = saturating_add_u64(combat_limited_callbacks, 1);
+  combat_rejected_attacks =
+      saturating_add_u64(combat_rejected_attacks, combat_context.rejected_attacks);
+  combat_rejected_procs = saturating_add_u64(combat_rejected_procs, combat_context.rejected_procs);
+
+  if (elapsed_usec >= COMBAT_SLOW_USEC || limited)
+  {
+    record = &slow_combats[slow_combat_index];
+    record->wall_timestamp_sec = combat_context.wall_timestamp_sec;
+    record->elapsed_usec = elapsed_usec;
+    record->actor_is_npc = combat_context.actor_is_npc;
+    record->actor_class = combat_context.actor_class;
+    record->mobile_vnum = combat_context.mobile_vnum;
+    record->room_vnum = combat_context.room_vnum;
+    record->participants = combat_context.participants;
+    record->attacks = combat_context.attacks;
+    record->procs = combat_context.procs;
+    record->rejected_attacks = combat_context.rejected_attacks;
+    record->rejected_procs = combat_context.rejected_procs;
+    slow_combat_index = (slow_combat_index + 1) % COMBAT_SLOW_CAPACITY;
+    if (slow_combat_count < COMBAT_SLOW_CAPACITY)
+      slow_combat_count++;
+  }
+  memset(&combat_context, 0, sizeof(combat_context));
+}
+
+size_t PERF_combat_repr(char *out_buf, size_t n, size_t count, int csv)
+{
+  const struct perf_slow_combat *record;
+  size_t index;
+  size_t available;
+  size_t written;
+  size_t i;
+
+  if (out_buf == NULL || n == 0)
+    return 0;
+  available = slow_combat_count;
+  if (count == 0)
+    count = COMBAT_SLOW_DEFAULT_COUNT;
+  if (count > available)
+    count = available;
+
+  if (csv)
+    written = bounded_format_length(
+        snprintf(out_buf, n,
+                 "combat_timestamp,elapsed_usec,actor_kind,class,mob_vnum,room_vnum,participants,"
+                 "attacks,procs,rejected_attacks,rejected_procs\n\r"),
+        n);
+  else
+    written = bounded_format_length(
+        snprintf(out_buf, n,
+                 "Combat callback telemetry since reset\n\r"
+                 "Callbacks=%" PRIu64 " slow_over_100ms=%" PRIu64 " limited=%" PRIu64
+                 " rejected_attacks=%" PRIu64 " rejected_procs=%" PRIu64 "\n\r"
+                 "Limits: attacks=%d procs=%d; retained slow/limited callbacks=%zu/%d\n\r"
+                 "Timestamp |Elapsed ms|Kind|Class| Mob VNUM|Room VNUM|People|Attacks|Procs|"
+                 "Rejected A/P\n\r",
+                 combat_callbacks, combat_slow_callbacks, combat_limited_callbacks,
+                 combat_rejected_attacks, combat_rejected_procs, COMBAT_ATTACK_LIMIT,
+                 COMBAT_PROC_LIMIT, slow_combat_count, COMBAT_SLOW_CAPACITY),
+        n);
+
+  for (i = 0; i < count && written < n - 1; i++)
+  {
+    index = (slow_combat_index + COMBAT_SLOW_CAPACITY - 1 - i) % COMBAT_SLOW_CAPACITY;
+    record = &slow_combats[index];
+    if (csv)
+      written += bounded_format_length(
+          snprintf(out_buf + written, n - written,
+                   "%" PRIu64 ",%" PRIu64 ",%s,%d,%d,%d,%" PRIu64 ",%" PRIu64 ",%" PRIu64
+                   ",%" PRIu64 ",%" PRIu64 "\n\r",
+                   record->wall_timestamp_sec, record->elapsed_usec,
+                   record->actor_is_npc ? "npc" : "pc", record->actor_class, record->mobile_vnum,
+                   record->room_vnum, record->participants, record->attacks, record->procs,
+                   record->rejected_attacks, record->rejected_procs),
+          n - written);
+    else
+      written += bounded_format_length(
+          snprintf(out_buf + written, n - written,
+                   "%-10" PRIu64 "|%10.3f|%-4s|%5d|%9d|%9d|%6" PRIu64 "|%7" PRIu64 "|%5" PRIu64
+                   "|%8" PRIu64 "/%-8" PRIu64 "\n\r",
+                   record->wall_timestamp_sec, (double)record->elapsed_usec / 1000.0,
+                   record->actor_is_npc ? "NPC" : "PC", record->actor_class, record->mobile_vnum,
+                   record->room_vnum, record->participants, record->attacks, record->procs,
+                   record->rejected_attacks, record->rejected_procs),
+          n - written);
+  }
+  return written;
+}
+
+/* ========================================================================
+ * ENTITY LIFECYCLE MONITORING
+ * ======================================================================== */
+
+static const char *entity_reason_name(enum perf_entity_reason reason)
+{
+  static const char *names[PERF_ENTITY_REASON_COUNT] = {
+      "unknown", "boot",   "zone_reset",  "dg_script", "spell_summon", "encounter",
+      "quest",   "vessel", "pet_restore", "special",   "staff"};
+
+  if (reason < PERF_ENTITY_UNKNOWN || reason >= PERF_ENTITY_REASON_COUNT)
+    return names[PERF_ENTITY_UNKNOWN];
+  return names[reason];
+}
+
+static size_t entity_hash(int key, size_t capacity)
+{
+  uint32_t value;
+
+  value = (uint32_t)key;
+  value ^= value >> 16;
+  value *= UINT32_C(0x7feb352d);
+  value ^= value >> 15;
+  return (size_t)value & (capacity - 1);
+}
+
+static struct perf_entity_counter *entity_counter_slot(struct perf_entity_counter *table,
+                                                       size_t capacity, int key)
+{
+  size_t start;
+  size_t index;
+
+  start = entity_hash(key, capacity);
+  index = start;
+  do
+  {
+    if (!table[index].used)
+    {
+      table[index].used = 1;
+      table[index].key = key;
+      return &table[index];
+    }
+    if (table[index].key == key)
+      return &table[index];
+    index = (index + 1) & (capacity - 1);
+  } while (index != start);
+  return NULL;
+}
+
+static struct perf_entity_zone_counter *entity_zone_slot(int key)
+{
+  size_t start;
+  size_t index;
+
+  start = entity_hash(key, ENTITY_ZONE_CAPACITY);
+  index = start;
+  do
+  {
+    if (!entity_zone_counters[index].used)
+    {
+      entity_zone_counters[index].used = 1;
+      entity_zone_counters[index].key = key;
+      return &entity_zone_counters[index];
+    }
+    if (entity_zone_counters[index].key == key)
+      return &entity_zone_counters[index];
+    index = (index + 1) & (ENTITY_ZONE_CAPACITY - 1);
+  } while (index != start);
+  return NULL;
+}
+
+enum perf_entity_reason PERF_entity_scope_set(enum perf_entity_reason reason)
+{
+  enum perf_entity_reason previous;
+
+  previous = current_entity_reason;
+  if (reason < PERF_ENTITY_UNKNOWN || reason >= PERF_ENTITY_REASON_COUNT)
+    current_entity_reason = PERF_ENTITY_UNKNOWN;
+  else
+    current_entity_reason = reason;
+  return previous;
+}
+
+void PERF_entity_scope_restore(enum perf_entity_reason reason)
+{
+  if (reason < PERF_ENTITY_UNKNOWN || reason >= PERF_ENTITY_REASON_COUNT)
+    current_entity_reason = PERF_ENTITY_UNKNOWN;
+  else
+    current_entity_reason = reason;
+}
+
+enum perf_entity_reason PERF_entity_current_reason(void)
+{
+  return current_entity_reason;
+}
+
+static void note_entity_vnum(struct perf_entity_counter *table, size_t capacity, int vnum,
+                             int created, uint64_t *overflow)
+{
+  struct perf_entity_counter *counter;
+
+  counter = entity_counter_slot(table, capacity, vnum);
+  if (counter == NULL)
+  {
+    *overflow = saturating_add_u64(*overflow, 1);
+    return;
+  }
+  if (created)
+    counter->created = saturating_add_u64(counter->created, 1);
+  else
+    counter->extracted = saturating_add_u64(counter->extracted, 1);
+}
+
+void PERF_note_mobile_created(int vnum, int zone_vnum, enum perf_entity_reason reason)
+{
+  struct perf_entity_zone_counter *zone;
+
+  if (reason < PERF_ENTITY_UNKNOWN || reason >= PERF_ENTITY_REASON_COUNT)
+    reason = PERF_ENTITY_UNKNOWN;
+  mobiles_created_total = saturating_add_u64(mobiles_created_total, 1);
+  entity_reason_counters[reason].mobiles_created =
+      saturating_add_u64(entity_reason_counters[reason].mobiles_created, 1);
+  note_entity_vnum(mobile_vnum_counters, ENTITY_VNUM_CAPACITY, vnum, 1, &mobile_vnum_overflow);
+  zone = entity_zone_slot(zone_vnum);
+  if (zone != NULL)
+    zone->mobiles_created = saturating_add_u64(zone->mobiles_created, 1);
+  else
+    entity_zone_overflow = saturating_add_u64(entity_zone_overflow, 1);
+}
+
+void PERF_note_mobile_extracted(int vnum, int zone_vnum, enum perf_entity_reason reason)
+{
+  struct perf_entity_zone_counter *zone;
+
+  if (reason < PERF_ENTITY_UNKNOWN || reason >= PERF_ENTITY_REASON_COUNT)
+    reason = PERF_ENTITY_UNKNOWN;
+  mobiles_extracted_total = saturating_add_u64(mobiles_extracted_total, 1);
+  entity_reason_counters[reason].mobiles_extracted =
+      saturating_add_u64(entity_reason_counters[reason].mobiles_extracted, 1);
+  note_entity_vnum(mobile_vnum_counters, ENTITY_VNUM_CAPACITY, vnum, 0, &mobile_vnum_overflow);
+  zone = entity_zone_slot(zone_vnum);
+  if (zone != NULL)
+    zone->mobiles_extracted = saturating_add_u64(zone->mobiles_extracted, 1);
+  else
+    entity_zone_overflow = saturating_add_u64(entity_zone_overflow, 1);
+}
+
+void PERF_note_object_created(int vnum, int zone_vnum, enum perf_entity_reason reason)
+{
+  struct perf_entity_zone_counter *zone;
+
+  if (reason < PERF_ENTITY_UNKNOWN || reason >= PERF_ENTITY_REASON_COUNT)
+    reason = PERF_ENTITY_UNKNOWN;
+  objects_created_total = saturating_add_u64(objects_created_total, 1);
+  entity_reason_counters[reason].objects_created =
+      saturating_add_u64(entity_reason_counters[reason].objects_created, 1);
+  note_entity_vnum(object_vnum_counters, ENTITY_VNUM_CAPACITY, vnum, 1, &object_vnum_overflow);
+  zone = entity_zone_slot(zone_vnum);
+  if (zone != NULL)
+    zone->objects_created = saturating_add_u64(zone->objects_created, 1);
+  else
+    entity_zone_overflow = saturating_add_u64(entity_zone_overflow, 1);
+}
+
+void PERF_note_object_extracted(int vnum, int zone_vnum, enum perf_entity_reason reason)
+{
+  struct perf_entity_zone_counter *zone;
+
+  if (reason < PERF_ENTITY_UNKNOWN || reason >= PERF_ENTITY_REASON_COUNT)
+    reason = PERF_ENTITY_UNKNOWN;
+  objects_extracted_total = saturating_add_u64(objects_extracted_total, 1);
+  entity_reason_counters[reason].objects_extracted =
+      saturating_add_u64(entity_reason_counters[reason].objects_extracted, 1);
+  note_entity_vnum(object_vnum_counters, ENTITY_VNUM_CAPACITY, vnum, 0, &object_vnum_overflow);
+  zone = entity_zone_slot(zone_vnum);
+  if (zone != NULL)
+    zone->objects_extracted = saturating_add_u64(zone->objects_extracted, 1);
+  else
+    entity_zone_overflow = saturating_add_u64(entity_zone_overflow, 1);
+}
+
+void PERF_note_zone_reset(int zone_vnum, uint64_t elapsed_usec, uint64_t mobiles_created,
+                          uint64_t mobiles_extracted, uint64_t objects_created,
+                          uint64_t objects_extracted)
+{
+  struct perf_entity_zone_counter *zone;
+
+  zone = entity_zone_slot(zone_vnum);
+  if (zone == NULL)
+  {
+    entity_zone_overflow = saturating_add_u64(entity_zone_overflow, 1);
+    return;
+  }
+  zone->resets = saturating_add_u64(zone->resets, 1);
+  zone->reset_total_usec = saturating_add_u64(zone->reset_total_usec, elapsed_usec);
+  if (elapsed_usec > zone->reset_max_usec)
+    zone->reset_max_usec = elapsed_usec;
+  /* These deltas include cross-zone prototypes and therefore complement the
+   * prototype-zone counters rather than replacing them. */
+  zone->reset_mobiles_created = saturating_add_u64(zone->reset_mobiles_created, mobiles_created);
+  zone->reset_mobiles_extracted =
+      saturating_add_u64(zone->reset_mobiles_extracted, mobiles_extracted);
+  zone->reset_objects_created = saturating_add_u64(zone->reset_objects_created, objects_created);
+  zone->reset_objects_extracted =
+      saturating_add_u64(zone->reset_objects_extracted, objects_extracted);
+}
+
+void PERF_entity_totals(uint64_t *mobiles_created, uint64_t *mobiles_extracted,
+                        uint64_t *objects_created, uint64_t *objects_extracted)
+{
+  if (mobiles_created != NULL)
+    *mobiles_created = mobiles_created_total;
+  if (mobiles_extracted != NULL)
+    *mobiles_extracted = mobiles_extracted_total;
+  if (objects_created != NULL)
+    *objects_created = objects_created_total;
+  if (objects_extracted != NULL)
+    *objects_extracted = objects_extracted_total;
+}
+
+void PERF_note_sweep(enum perf_sweep_kind kind, uint64_t visited, uint64_t eligible, uint64_t acted)
+{
+  struct perf_sweep_counter *counter;
+
+  if (kind < PERF_SWEEP_AUTOPROC || kind >= PERF_SWEEP_COUNT)
+    return;
+  counter = &sweep_counters[kind];
+  counter->calls = saturating_add_u64(counter->calls, 1);
+  counter->visited = saturating_add_u64(counter->visited, visited);
+  counter->eligible = saturating_add_u64(counter->eligible, eligible);
+  counter->acted = saturating_add_u64(counter->acted, acted);
+  if (visited > counter->max_visited)
+    counter->max_visited = visited;
+  if (eligible > counter->max_eligible)
+    counter->max_eligible = eligible;
+  if (acted > counter->max_acted)
+    counter->max_acted = acted;
+}
+
+static const char *sweep_name(enum perf_sweep_kind kind)
+{
+  static const char *names[PERF_SWEEP_COUNT] = {"autoproc", "dg_mobile_random", "dg_object_random",
+                                                "dg_room_random", "affect"};
+
+  if (kind < PERF_SWEEP_AUTOPROC || kind >= PERF_SWEEP_COUNT)
+    return "unknown";
+  return names[kind];
+}
+
+static int64_t entity_counter_net(const struct perf_entity_counter *counter)
+{
+  return (int64_t)counter->created - (int64_t)counter->extracted;
+}
+
+static size_t collect_top_entity_counters(const struct perf_entity_counter *table, size_t capacity,
+                                          size_t *indices)
+{
+  size_t top_count;
+  size_t position;
+  size_t i;
+  size_t j;
+  int64_t net;
+
+  top_count = 0;
+  for (i = 0; i < capacity; i++)
+  {
+    if (!table[i].used || (net = entity_counter_net(&table[i])) <= 0)
+      continue;
+    position = 0;
+    while (position < top_count && entity_counter_net(&table[indices[position]]) >= net)
+      position++;
+    if (position >= ENTITY_REPORT_LIMIT)
+      continue;
+    if (top_count < ENTITY_REPORT_LIMIT)
+      top_count++;
+    for (j = top_count - 1; j > position; j--)
+      indices[j] = indices[j - 1];
+    indices[position] = i;
+  }
+  return top_count;
+}
+
+size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
+{
+  const struct perf_entity_counter *counter;
+  const struct perf_entity_reason_counter *reason;
+  const struct perf_entity_zone_counter *zone;
+  size_t mobile_top[ENTITY_REPORT_LIMIT];
+  size_t object_top[ENTITY_REPORT_LIMIT];
+  size_t mobile_count;
+  size_t object_count;
+  size_t written;
+  size_t i;
+
+  if (out_buf == NULL || n == 0)
+    return 0;
+  mobile_count =
+      collect_top_entity_counters(mobile_vnum_counters, ENTITY_VNUM_CAPACITY, mobile_top);
+  object_count =
+      collect_top_entity_counters(object_vnum_counters, ENTITY_VNUM_CAPACITY, object_top);
+  if (csv)
+    written = bounded_format_length(
+        snprintf(
+            out_buf, n,
+            "entity_kind,key,created,extracted,net,resets,reset_total_usec,reset_max_usec\n\r"),
+        n);
+  else
+    written = bounded_format_length(
+        snprintf(out_buf, n,
+                 "Entity lifecycle since reset\n\r"
+                 "Mobiles: created=%" PRIu64 " extracted=%" PRIu64 " net=%" PRId64
+                 " | Objects: created=%" PRIu64 " extracted=%" PRIu64 " net=%" PRId64 "\n\r"
+                 "Counter overflow: mob_vnum=%" PRIu64 " obj_vnum=%" PRIu64 " zone=%" PRIu64
+                 "\n\rCreation reason                 | Mob create| Mob extract|    Mob net|"
+                 " Obj create| Obj extract|    Obj net\n\r",
+                 mobiles_created_total, mobiles_extracted_total,
+                 (int64_t)mobiles_created_total - (int64_t)mobiles_extracted_total,
+                 objects_created_total, objects_extracted_total,
+                 (int64_t)objects_created_total - (int64_t)objects_extracted_total,
+                 mobile_vnum_overflow, object_vnum_overflow, entity_zone_overflow),
+        n);
+
+  for (i = 0; i < PERF_ENTITY_REASON_COUNT && written < n - 1; i++)
+  {
+    reason = &entity_reason_counters[i];
+    if (csv)
+      written += bounded_format_length(
+          snprintf(out_buf + written, n - written,
+                   "reason,%s,%" PRIu64 ",%" PRIu64 ",%" PRId64 ",0,0,0\n\r"
+                   "reason_object,%s,%" PRIu64 ",%" PRIu64 ",%" PRId64 ",0,0,0\n\r",
+                   entity_reason_name((enum perf_entity_reason)i), reason->mobiles_created,
+                   reason->mobiles_extracted,
+                   (int64_t)reason->mobiles_created - (int64_t)reason->mobiles_extracted,
+                   entity_reason_name((enum perf_entity_reason)i), reason->objects_created,
+                   reason->objects_extracted,
+                   (int64_t)reason->objects_created - (int64_t)reason->objects_extracted),
+          n - written);
+    else if (reason->mobiles_created != 0 || reason->mobiles_extracted != 0 ||
+             reason->objects_created != 0 || reason->objects_extracted != 0)
+      written += bounded_format_length(
+          snprintf(out_buf + written, n - written,
+                   "%-32s|%11" PRIu64 "|%12" PRIu64 "|%11" PRId64 "|%11" PRIu64 "|%12" PRIu64
+                   "|%11" PRId64 "\n\r",
+                   entity_reason_name((enum perf_entity_reason)i), reason->mobiles_created,
+                   reason->mobiles_extracted,
+                   (int64_t)reason->mobiles_created - (int64_t)reason->mobiles_extracted,
+                   reason->objects_created, reason->objects_extracted,
+                   (int64_t)reason->objects_created - (int64_t)reason->objects_extracted),
+          n - written);
+  }
+
+  if (!csv && written < n - 1)
+    written += bounded_format_length(
+        snprintf(
+            out_buf + written, n - written,
+            "Top mobile VNUM positive net\n\rVNUM       |    Created|   Extracted|        Net\n\r"),
+        n - written);
+  for (i = 0; i < mobile_count && written < n - 1; i++)
+  {
+    counter = &mobile_vnum_counters[mobile_top[i]];
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 csv ? "mobile_vnum,%d,%" PRIu64 ",%" PRIu64 ",%" PRId64 ",0,0,0\n\r"
+                     : "%-11d|%11" PRIu64 "|%12" PRIu64 "|%11" PRId64 "\n\r",
+                 counter->key, counter->created, counter->extracted, entity_counter_net(counter)),
+        n - written);
+  }
+  if (!csv && written < n - 1)
+    written += bounded_format_length(
+        snprintf(
+            out_buf + written, n - written,
+            "Top object VNUM positive net\n\rVNUM       |    Created|   Extracted|        Net\n\r"),
+        n - written);
+  for (i = 0; i < object_count && written < n - 1; i++)
+  {
+    counter = &object_vnum_counters[object_top[i]];
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 csv ? "object_vnum,%d,%" PRIu64 ",%" PRIu64 ",%" PRId64 ",0,0,0\n\r"
+                     : "%-11d|%11" PRIu64 "|%12" PRIu64 "|%11" PRId64 "\n\r",
+                 counter->key, counter->created, counter->extracted, entity_counter_net(counter)),
+        n - written);
+  }
+  if (!csv && written < n - 1)
+    written += bounded_format_length(snprintf(out_buf + written, n - written,
+                                              "Zones with reset or lifecycle activity\n\rZone      "
+                                              " | Resets| Reset total ms| Reset max ms|"
+                                              " Mob create/extract| Obj create/extract\n\r"),
+                                     n - written);
+  for (i = 0; i < ENTITY_ZONE_CAPACITY && written < n - 1; i++)
+  {
+    zone = &entity_zone_counters[i];
+    if (!zone->used || (zone->resets == 0 && zone->mobiles_created == zone->mobiles_extracted &&
+                        zone->objects_created == zone->objects_extracted))
+      continue;
+    if (csv)
+      written += bounded_format_length(
+          snprintf(out_buf + written, n - written,
+                   "zone,%d,%" PRIu64 ",%" PRIu64 ",%" PRId64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64
+                   "\n\r",
+                   zone->key, zone->mobiles_created + zone->objects_created,
+                   zone->mobiles_extracted + zone->objects_extracted,
+                   (int64_t)(zone->mobiles_created + zone->objects_created) -
+                       (int64_t)(zone->mobiles_extracted + zone->objects_extracted),
+                   zone->resets, zone->reset_total_usec, zone->reset_max_usec),
+          n - written);
+    else
+      written += bounded_format_length(
+          snprintf(out_buf + written, n - written,
+                   "%-11d|%7" PRIu64 "|%15.3f|%13.3f|%11" PRIu64 "/%-7" PRIu64 "|%11" PRIu64
+                   "/%-7" PRIu64 "\n\r",
+                   zone->key, zone->resets, (double)zone->reset_total_usec / 1000.0,
+                   (double)zone->reset_max_usec / 1000.0, zone->reset_mobiles_created,
+                   zone->reset_mobiles_extracted, zone->reset_objects_created,
+                   zone->reset_objects_extracted),
+          n - written);
+  }
+  if (csv && written < n - 1)
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "sweep,calls,visited,eligible,acted,max_visited,max_eligible,max_acted\n\r"),
+        n - written);
+  else if (written < n - 1)
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "Population sweep telemetry\n\r"
+                 "Sweep                           |    Calls|      Visited|     Eligible|"
+                 "        Acted| Max visit/eligible/acted\n\r"),
+        n - written);
+  for (i = 0; i < PERF_SWEEP_COUNT && written < n - 1; i++)
+  {
+    const struct perf_sweep_counter *sweep;
+
+    sweep = &sweep_counters[i];
+    if (csv)
+      written +=
+          bounded_format_length(snprintf(out_buf + written, n - written,
+                                         "%s,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64
+                                         ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 "\n\r",
+                                         sweep_name((enum perf_sweep_kind)i), sweep->calls,
+                                         sweep->visited, sweep->eligible, sweep->acted,
+                                         sweep->max_visited, sweep->max_eligible, sweep->max_acted),
+                                n - written);
+    else
+      written +=
+          bounded_format_length(snprintf(out_buf + written, n - written,
+                                         "%-32s|%9" PRIu64 "|%13" PRIu64 "|%13" PRIu64 "|%13" PRIu64
+                                         "|%10" PRIu64 "/%-8" PRIu64 "/%-8" PRIu64 "\n\r",
+                                         sweep_name((enum perf_sweep_kind)i), sweep->calls,
+                                         sweep->visited, sweep->eligible, sweep->acted,
+                                         sweep->max_visited, sweep->max_eligible, sweep->max_acted),
+                                n - written);
+  }
+  if (!csv && written < n - 1)
+    written +=
+        bounded_format_length(snprintf(out_buf + written, n - written,
+                                       "Autoproc registry: members=%zu validation_mismatch=%zu\n\r",
+                                       autoproc_registry_count(), autoproc_registry_validate()),
+                              n - written);
+  if (!csv && written < n - 1)
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "DG random registries: mob=%zu/%zu obj=%zu/%zu room=%zu/%zu "
+                 "(members/mismatch)\n\r",
+                 dg_random_registry_count(MOB_TRIGGER), dg_random_registry_validate(MOB_TRIGGER),
+                 dg_random_registry_count(OBJ_TRIGGER), dg_random_registry_validate(OBJ_TRIGGER),
+                 dg_random_registry_count(WLD_TRIGGER), dg_random_registry_validate(WLD_TRIGGER)),
+        n - written);
+  if (!csv && written < n - 1)
+    written +=
+        bounded_format_length(snprintf(out_buf + written, n - written,
+                                       "Affected registry: members=%zu validation_mismatch=%zu\n\r",
+                                       affected_registry_count(), affected_registry_validate()),
+                              n - written);
   return written;
 }
 /* ========================================================================
@@ -919,6 +2534,8 @@ void PERF_prof_sect_exit(struct PERF_prof_sect *ptr)
     return;
   }
   diff_usec = now_usec - ptr->last_enter_usec;
+  if (diff_usec == 0)
+    diff_usec = 1;
   ptr->last_enter_usec = 0;
 
   ptr->pulse_exit_count++;
@@ -971,6 +2588,12 @@ void PERF_prof_reset(void)
   memset(&pulse_event_process_stats, 0, sizeof(pulse_event_process_stats));
   memset(&pulse_extraction_stats, 0, sizeof(pulse_extraction_stats));
   memset(&pulse_catchup_stats, 0, sizeof(pulse_catchup_stats));
+  pulse_schedule_flags = 0;
+  pulse_last_heartbeat = 0;
+  pthread_mutex_lock(&sql_stats_mutex);
+  pulse_main_sql_calls = 0;
+  pulse_main_sql_usec = 0;
+  pthread_mutex_unlock(&sql_stats_mutex);
 }
 
 /* Helper function to format a profiling section */
@@ -988,6 +2611,9 @@ static size_t format_prof_section(char *buf, size_t n, const struct PERF_prof_se
   double p95;
   double p99;
   double percent;
+  char median_text[16];
+  char p95_text[16];
+  char p99_text[16];
 
   if (is_total)
   {
@@ -1017,21 +2643,32 @@ static size_t format_prof_section(char *buf, size_t n, const struct PERF_prof_se
   if (is_total)
   {
     average = exit_count > 0 ? (double)usec_total / (double)exit_count : 0.0;
-    calculate_percentile_set(sect->samples, sect->sample_count, &median, &p95, &p99);
+    if (sect->sampling_enabled && sect->sample_count > 0)
+    {
+      calculate_percentile_set(sect->samples, sect->sample_count, &median, &p95, &p99);
+      snprintf(median_text, sizeof(median_text), "%.2f", median);
+      snprintf(p95_text, sizeof(p95_text), "%.2f", p95);
+      snprintf(p99_text, sizeof(p99_text), "%.2f", p99);
+    }
+    else
+    {
+      strlcpy(median_text, "n/a", sizeof(median_text));
+      strlcpy(p95_text, "n/a", sizeof(p95_text));
+      strlcpy(p99_text, "n/a", sizeof(p99_text));
+    }
 
     return bounded_format_length(
         snprintf(buf, n,
-                 "%-24.24s|%9" PRIu64 "|%12" PRIu64 "|%8.2f%%|%10.2f|%10.2f|%10.2f|%10.2f|"
+                 "%-63s|%9" PRIu64 "|%12" PRIu64 "|%8.2f%%|%10.2f|%10s|%10s|%10s|"
                  "%10" PRIu64 "|%7zu/%-7" PRIu64 "\n\r",
-                 sect->id, exit_count, usec_total, percent, average, median, p95, p99, usec_max,
-                 sect->sample_count, sect->samples_seen),
+                 sect->id, exit_count, usec_total, percent, average, median_text, p95_text,
+                 p99_text, usec_max, sect->sample_count, sect->samples_seen),
         n);
   }
   else
   {
     return bounded_format_length(snprintf(buf, n,
-                                          "%-24.24s|%9" PRIu64 "|%9" PRIu64 "|%12" PRIu64
-                                          "|%8.2f%%|"
+                                          "%-63s|%9" PRIu64 "|%9" PRIu64 "|%12" PRIu64 "|%8.2f%%|"
                                           "%10" PRIu64 "|%8.2f%%\n\r",
                                           sect->id, enter_count, exit_count, usec_total, percent,
                                           usec_max, (100.0 * (double)usec_max) / USEC_PER_PULSE),
@@ -1095,6 +2732,9 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
   size_t i;
   uint64_t overflow_calls;
   double average;
+  double median;
+  double p95;
+  double p99;
 
   if (buf == NULL || n == 0)
     return 0;
@@ -1123,8 +2763,8 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
                " pending_after=%" PRIu64 " max_processed=%" PRIu64 " max_pending_before=%" PRIu64
                " max_pending_after=%" PRIu64 "\n\r"
                "Catch-up: passes=%" PRIu64 " budget_exhausted=%" PRIu64 " requested_missed=%" PRIu64
-               " replayed_missed=%" PRIu64 " remaining_backlog=%" PRIu64 " max_requested=%" PRIu64
-               " max_remaining=%" PRIu64 "\n\r"
+               " replayed_missed=%" PRIu64 " dropped_missed=%" PRIu64 " max_requested=%" PRIu64
+               " max_dropped=%" PRIu64 "\n\r"
                "Event callback registry: registered=%zu/%d report_limit=%d overflow_calls=%" PRIu64
                "\n\r",
                is_total ? "Cumulative" : "Pulse", process_stats->calls,
@@ -1146,18 +2786,20 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
     return written;
 
   written += bounded_format_length(
-      snprintf(
-          buf + written, n - written,
-          "Event callbacks (top %d by total time)\n\r"
-          "Identity                            |    Calls|  Total usec|  Avg usec|  Max usec\n\r"
-          "-----------------------------------------------------------------------------------\n\r",
-          EVENT_PROFILE_REPORT_LIMIT),
+      snprintf(buf + written, n - written,
+               "Event callbacks (top %d by total time)\n\r"
+               "Identity                            |    Calls|  Total usec|  Avg usec| P50 usec|"
+               " P95 usec| P99 usec|  Max usec|Samples stored/seen\n\r"
+               "-----------------------------------------------------------------------------------"
+               "-----------------------------------------------\n\r",
+               EVENT_PROFILE_REPORT_LIMIT),
       n - written);
 
   top_count = collect_top_event_profiles(top_indices, is_total);
   for (i = 0; i < top_count && written < n - 1; i++)
   {
     profile = &event_profiles[top_indices[i]];
+    calculate_percentile_set(profile->samples, profile->sample_count, &median, &p95, &p99);
     if (is_total)
     {
       average = profile->total_calls > 0
@@ -1165,9 +2807,10 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
                     : 0.0;
       written += bounded_format_length(
           snprintf(buf + written, n - written,
-                   "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%10" PRIu64 "\n\r",
-                   profile->identity, profile->total_calls, profile->total_usec, average,
-                   profile->total_max_usec),
+                   "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%9.2f|%9.2f|%9.2f|%10" PRIu64
+                   "|%7zu/%" PRIu64 "\n\r",
+                   profile->identity, profile->total_calls, profile->total_usec, average, median,
+                   p95, p99, profile->total_max_usec, profile->sample_count, profile->samples_seen),
           n - written);
     }
     else
@@ -1177,9 +2820,11 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
                     : 0.0;
       written += bounded_format_length(
           snprintf(buf + written, n - written,
-                   "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%10" PRIu64 "\n\r",
+                   "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%9.2f|%9.2f|%9.2f|%10" PRIu64
+                   "|%7zu/%" PRIu64 "\n\r",
                    profile->identity, profile->pulse_calls, profile->pulse_total_usec, average,
-                   profile->pulse_max_usec),
+                   median, p95, p99, profile->pulse_max_usec, profile->sample_count,
+                   profile->samples_seen),
           n - written);
     }
   }
@@ -1196,10 +2841,13 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
     total_usec = is_total ? profile->total_usec : profile->pulse_total_usec;
     max_usec = is_total ? profile->total_max_usec : profile->pulse_max_usec;
     average = calls > 0 ? (double)total_usec / (double)calls : 0.0;
+    calculate_percentile_set(profile->samples, profile->sample_count, &median, &p95, &p99);
     written += bounded_format_length(
         snprintf(buf + written, n - written,
-                 "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%10" PRIu64 "\n\r",
-                 "[unregistered overflow]", calls, total_usec, average, max_usec),
+                 "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%9.2f|%9.2f|%9.2f|%10" PRIu64
+                 "|%7zu/%" PRIu64 "\n\r",
+                 "[unregistered overflow]", calls, total_usec, average, median, p95, p99, max_usec,
+                 profile->sample_count, profile->samples_seen),
         n - written);
   }
 
@@ -1214,6 +2862,9 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
   size_t written;
   size_t i;
   double average;
+  double median;
+  double p95;
+  double p99;
 
   if (buf == NULL || n == 0)
     return 0;
@@ -1238,9 +2889,9 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
                "# catchup_budget_exhausted_passes=%" PRIu64 "\n\r"
                "# catchup_requested_missed=%" PRIu64 "\n\r"
                "# catchup_replayed_missed=%" PRIu64 "\n\r"
-               "# catchup_remaining_backlog=%" PRIu64 "\n\r"
+               "# catchup_dropped_missed=%" PRIu64 "\n\r"
                "# catchup_max_requested_missed=%" PRIu64 "\n\r"
-               "# catchup_max_remaining_backlog=%" PRIu64 "\n\r"
+               "# catchup_max_dropped_missed=%" PRIu64 "\n\r"
                "# event_profile_registered=%zu\n\r"
                "# event_profile_capacity=%d\n\r"
                "# event_profile_report_limit=%d\n\r"
@@ -1264,7 +2915,8 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
 
   written +=
       bounded_format_length(snprintf(buf + written, n - written,
-                                     "event_identity,calls,total_usec,average_usec,max_usec\n\r"),
+                                     "event_identity,calls,total_usec,average_usec,p50_usec,"
+                                     "p95_usec,p99_usec,max_usec,samples_stored,samples_seen\n\r"),
                             n - written);
   top_count = collect_top_event_profiles(top_indices, 1);
   for (i = 0; i < top_count && written < n - 1; i++)
@@ -1272,10 +2924,12 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
     profile = &event_profiles[top_indices[i]];
     average =
         profile->total_calls > 0 ? (double)profile->total_usec / (double)profile->total_calls : 0.0;
+    calculate_percentile_set(profile->samples, profile->sample_count, &median, &p95, &p99);
     written += bounded_format_length(
-        snprintf(buf + written, n - written, "%s,%" PRIu64 ",%" PRIu64 ",%.2f,%" PRIu64 "\n\r",
-                 profile->identity, profile->total_calls, profile->total_usec, average,
-                 profile->total_max_usec),
+        snprintf(buf + written, n - written,
+                 "%s,%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%" PRIu64 ",%zu,%" PRIu64 "\n\r",
+                 profile->identity, profile->total_calls, profile->total_usec, average, median, p95,
+                 p99, profile->total_max_usec, profile->sample_count, profile->samples_seen),
         n - written);
   }
 
@@ -1283,10 +2937,13 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
   if (written < n - 1 && profile->total_calls > 0)
   {
     average = (double)profile->total_usec / (double)profile->total_calls;
+    calculate_percentile_set(profile->samples, profile->sample_count, &median, &p95, &p99);
     written += bounded_format_length(
         snprintf(buf + written, n - written,
-                 "[unregistered overflow],%" PRIu64 ",%" PRIu64 ",%.2f,%" PRIu64 "\n\r",
-                 profile->total_calls, profile->total_usec, average, profile->total_max_usec),
+                 "[unregistered overflow],%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%" PRIu64
+                 ",%zu,%" PRIu64 "\n\r",
+                 profile->total_calls, profile->total_usec, average, median, p95, p99,
+                 profile->total_max_usec, profile->sample_count, profile->samples_seen),
         n - written);
   }
 
@@ -1302,13 +2959,14 @@ size_t PERF_prof_repr_pulse(char *out_buf, size_t n)
     return 0;
 
   written = bounded_format_length(
-      snprintf(
-          out_buf, n,
-          "Pulse profiling info\n\r\n\r"
-          "Section name            |    Enter|     Exit|  Total usec| Pulse %%|"
-          "  Max usec|Max %%\n\r"
-          "---------------------------------------------------------------------------------------"
-          "\n\r"),
+      snprintf(out_buf, n,
+               "Pulse profiling info\n\r\n\r"
+               "Section name                                                   |    Enter|     "
+               "Exit|  Total usec| Pulse %%|"
+               "  Max usec|Max %%\n\r"
+               "-----------------------------------------------------------------------------------"
+               "-------------------------------------------"
+               "\n\r"),
       n);
 
   for (i = 0; i < prof_section_count && written < n - 1; i++)
@@ -1334,12 +2992,13 @@ size_t PERF_prof_repr_total(char *out_buf, size_t n)
 
   written = bounded_format_length(
       snprintf(out_buf, n,
-               "Cumulative profiling info\n\r\n\r"
-               "Section name            |    Calls|  Total usec| Total %%|  Avg usec|Median usec|"
+               "Cumulative profiling info (Total %% is inclusive elapsed-wall time)\n\r\n\r"
+               "Section name                                                   |    Calls|  Total "
+               "usec| Total %%|  Avg usec|Median usec|"
                "  P95 usec|  P99 usec|  Max usec|Samples stored/seen\n\r"
-               "--------------------------------------------------------------------------------"
-               "---------"
-               "------------------------------------------------------\n\r"),
+               "-----------------------------------------------------------------------------------"
+               "---------------------------------------------"
+               "-----------------------------------------------\n\r"),
       n);
 
   for (i = 0; i < prof_section_count && written < n - 1; i++)
@@ -1350,6 +3009,98 @@ size_t PERF_prof_repr_total(char *out_buf, size_t n)
   if (written < n - 1)
     written += format_event_telemetry(out_buf + written, n - written, 1);
 
+  return written;
+}
+
+enum perf_top_metric
+{
+  PERF_TOP_TOTAL = 0,
+  PERF_TOP_MAX,
+  PERF_TOP_P99
+};
+
+static double prof_top_score(const struct PERF_prof_sect *sect, enum perf_top_metric metric)
+{
+  if (sect == NULL || sect->total_exit_count == 0)
+    return -1.0;
+  if (metric == PERF_TOP_MAX)
+    return (double)sect->max_usec;
+  if (metric == PERF_TOP_P99)
+  {
+    if (!sect->sampling_enabled || sect->sample_count == 0)
+      return -1.0;
+    return PERF_calculate_percentile(sect->samples, sect->sample_count, 99.0);
+  }
+  return (double)sect->total_usec;
+}
+
+size_t PERF_prof_repr_top(char *out_buf, size_t n, const char *metric_name, size_t limit)
+{
+  enum perf_top_metric metric;
+  struct PERF_prof_sect *sect;
+  size_t top_indices[100];
+  size_t top_count;
+  size_t position;
+  size_t written;
+  size_t i;
+  size_t j;
+  double score;
+
+  if (out_buf == NULL || n == 0)
+    return 0;
+  ensure_initialized();
+  metric = PERF_TOP_TOTAL;
+  if (metric_name != NULL && !strcasecmp(metric_name, "max"))
+    metric = PERF_TOP_MAX;
+  else if (metric_name != NULL && !strcasecmp(metric_name, "p99"))
+    metric = PERF_TOP_P99;
+  else if (metric_name != NULL && strcasecmp(metric_name, "total"))
+    return bounded_format_length(
+        snprintf(out_buf, n, "Unknown top metric '%s'; use total, max, or p99.\n\r", metric_name),
+        n);
+
+  if (limit == 0)
+    limit = 15;
+  if (limit > sizeof(top_indices) / sizeof(top_indices[0]))
+    limit = sizeof(top_indices) / sizeof(top_indices[0]);
+  top_count = 0;
+  for (i = 0; i < (size_t)prof_section_count; i++)
+  {
+    score = prof_top_score(prof_sections[i], metric);
+    if (score < 0.0)
+      continue;
+    position = 0;
+    while (position < top_count &&
+           prof_top_score(prof_sections[top_indices[position]], metric) >= score)
+      position++;
+    if (position >= limit)
+      continue;
+    if (top_count < limit)
+      top_count++;
+    for (j = top_count - 1; j > position; j--)
+      top_indices[j] = top_indices[j - 1];
+    top_indices[position] = i;
+  }
+
+  written = bounded_format_length(
+      snprintf(out_buf, n,
+               "Top profiling sections by %s (Total %% is inclusive elapsed-wall time)\n\r"
+               "Section name                                                   |    Calls|  Total "
+               "usec| Total %%|  Avg usec|Median usec|"
+               "  P95 usec|  P99 usec|  Max usec|Samples stored/seen\n\r"
+               "-----------------------------------------------------------------------------------"
+               "-----------------------------------------------------------------------------------"
+               "---------"
+               "\n\r",
+               metric == PERF_TOP_TOTAL ? "total"
+               : metric == PERF_TOP_MAX ? "max"
+                                        : "p99"),
+      n);
+  for (i = 0; i < top_count && written < n - 1; i++)
+  {
+    sect = prof_sections[top_indices[i]];
+    written += format_prof_section(out_buf + written, n - written, sect, 1);
+  }
   return written;
 }
 
@@ -1379,13 +3130,14 @@ size_t PERF_prof_repr_sect(char *out_buf, size_t n, const char *id)
 
   /* Generate both pulse and total reports for this section */
   written = bounded_format_length(
-      snprintf(
-          out_buf, n,
-          "Pulse profiling info\n\r\n\r"
-          "Section name            |    Enter|     Exit|  Total usec| Pulse %%|"
-          "  Max usec|Max %%\n\r"
-          "---------------------------------------------------------------------------------------"
-          "\n\r"),
+      snprintf(out_buf, n,
+               "Pulse profiling info\n\r\n\r"
+               "Section name                                                   |    Enter|     "
+               "Exit|  Total usec| Pulse %%|"
+               "  Max usec|Max %%\n\r"
+               "-----------------------------------------------------------------------------------"
+               "-------------------------------------------"
+               "\n\r"),
       n);
 
   if (written < n - 1)
@@ -1397,12 +3149,13 @@ size_t PERF_prof_repr_sect(char *out_buf, size_t n, const char *id)
   {
     written += bounded_format_length(
         snprintf(out_buf + written, n - written,
-                 "\n\rCumulative profiling info\n\r\n\r"
-                 "Section name            |    Calls|  Total usec| Total %%|  Avg usec|Median usec|"
+                 "\n\rCumulative profiling info (Total %% is inclusive elapsed-wall time)\n\r\n\r"
+                 "Section name                                                   |    Calls|  "
+                 "Total usec| Total %%|  Avg usec|Median usec|"
                  "  P95 usec|  P99 usec|  Max usec|Samples stored/seen\n\r"
                  "---------------------------------------------------------------------------------"
-                 "--"
-                 "----------------------------------------------------------\n\r"),
+                 "-----------------------------------------------"
+                 "-----------------------------------------------\n\r"),
         n - written);
 
     if (written < n - 1)
@@ -1499,13 +3252,47 @@ void PERF_cleanup(void)
   memset(&total_extraction_stats, 0, sizeof(total_extraction_stats));
   memset(&pulse_catchup_stats, 0, sizeof(pulse_catchup_stats));
   memset(&total_catchup_stats, 0, sizeof(total_catchup_stats));
+  memset(slow_pulses, 0, sizeof(slow_pulses));
+  slow_pulse_index = 0;
+  slow_pulse_count = 0;
+  memset(&combat_context, 0, sizeof(combat_context));
+  memset(slow_combats, 0, sizeof(slow_combats));
+  slow_combat_index = 0;
+  slow_combat_count = 0;
+  combat_callbacks = 0;
+  combat_slow_callbacks = 0;
+  combat_limited_callbacks = 0;
+  combat_rejected_attacks = 0;
+  combat_rejected_procs = 0;
+  pulse_schedule_flags = 0;
+  pulse_last_heartbeat = 0;
+  total_heartbeats_executed = 0;
+  pthread_mutex_lock(&sql_stats_mutex);
+  memset(&main_sql_stats, 0, sizeof(main_sql_stats));
+  memset(&worker_sql_stats, 0, sizeof(worker_sql_stats));
+  pulse_main_sql_calls = 0;
+  pulse_main_sql_usec = 0;
+  memset(sql_families, 0, sizeof(sql_families));
+  sql_family_count = 0;
+  sql_family_overflow_calls = 0;
+  sql_reconnect_attempts = 0;
+  sql_reconnect_successes = 0;
+  sql_reconnect_failures = 0;
+  perf_main_thread_set = 0;
+  pthread_mutex_unlock(&sql_stats_mutex);
   memset(&boot_memory_stats, 0, sizeof(boot_memory_stats));
   memset(&reset_memory_stats, 0, sizeof(reset_memory_stats));
+  memset(&latest_memory_stats, 0, sizeof(latest_memory_stats));
+  latest_memory_stats_valid = 0;
   memory_boot_time_sec = 0;
   memory_reset_time_sec = 0;
   memory_peak_rss_kib = 0;
   memory_peak_anon_kib = 0;
   memory_last_alert_time_sec = 0;
+  memset(memory_samples, 0, sizeof(memory_samples));
+  memory_sample_index = 0;
+  memory_sample_count = 0;
+  prof_reset_wall_time_sec = 0;
   initialized = 0;
 }
 
@@ -1637,13 +3424,131 @@ int PERF_sample_memory(struct perf_memory_stats *stats)
   stats->count_events = (uint64_t)event_queue_depth();
   stats->count_pending_extractions = (uint64_t)pending_extractions_count();
 
+  latest_memory_stats = *stats;
+  latest_memory_stats_valid = 1;
+
+  return 1;
+}
+
+static uint64_t threshold_count_for(int threshold)
+{
+  size_t i;
+
+  for (i = 0; i < sizeof(thresholds) / sizeof(thresholds[0]); i++)
+    if (thresholds[i].threshold == threshold)
+      return thresholds[i].count;
+  return 0;
+}
+
+static void append_memory_sample(const struct perf_memory_stats *stats)
+{
+  struct perf_memory_sample *sample;
+  size_t last_index;
+
+  if (stats == NULL)
+    return;
+  if (memory_sample_count > 0)
+  {
+    last_index = (memory_sample_index + MEMORY_SAMPLE_CAPACITY - 1) % MEMORY_SAMPLE_CAPACITY;
+    if (memory_samples[last_index].stats.timestamp_sec == stats->timestamp_sec)
+      sample = &memory_samples[last_index];
+    else
+      sample = NULL;
+  }
+  else
+    sample = NULL;
+  if (sample == NULL)
+  {
+    sample = &memory_samples[memory_sample_index];
+    memory_sample_index = (memory_sample_index + 1) % MEMORY_SAMPLE_CAPACITY;
+    if (memory_sample_count < MEMORY_SAMPLE_CAPACITY)
+      memory_sample_count++;
+  }
+  memset(sample, 0, sizeof(*sample));
+  sample->stats = *stats;
+  PERF_entity_totals(&sample->mobiles_created, &sample->mobiles_extracted, &sample->objects_created,
+                     &sample->objects_extracted);
+  pthread_mutex_lock(&sql_stats_mutex);
+  sample->queries = main_sql_stats.calls + worker_sql_stats.calls;
+  pthread_mutex_unlock(&sql_stats_mutex);
+  sample->pulses_over_100 = threshold_count_for(100);
+  sample->pulses_over_500 = threshold_count_for(500);
+}
+
+static const struct perf_memory_sample *memory_sample_newest(void)
+{
+  size_t index;
+
+  if (memory_sample_count == 0)
+    return NULL;
+  index = (memory_sample_index + MEMORY_SAMPLE_CAPACITY - 1) % MEMORY_SAMPLE_CAPACITY;
+  return &memory_samples[index];
+}
+
+static const struct perf_memory_sample *memory_sample_for_window(uint64_t window_sec)
+{
+  const struct perf_memory_sample *newest;
+  const struct perf_memory_sample *candidate;
+  size_t offset;
+  size_t index;
+
+  newest = memory_sample_newest();
+  if (newest == NULL || memory_sample_count < 2)
+    return NULL;
+  candidate = NULL;
+  for (offset = 1; offset < memory_sample_count; offset++)
+  {
+    index = (memory_sample_index + MEMORY_SAMPLE_CAPACITY - 1 - offset) % MEMORY_SAMPLE_CAPACITY;
+    candidate = &memory_samples[index];
+    if (newest->stats.timestamp_sec >= candidate->stats.timestamp_sec + window_sec)
+      break;
+  }
+  return candidate;
+}
+
+static int calculate_memory_slope(uint64_t window_sec, struct perf_memory_slope *slope)
+{
+  const struct perf_memory_sample *newest;
+  const struct perf_memory_sample *oldest;
+  int64_t mob_delta;
+  int64_t obj_delta;
+  int64_t heap_delta;
+  double elapsed_min;
+  double explained_kib;
+
+  if (slope == NULL)
+    return 0;
+  memset(slope, 0, sizeof(*slope));
+  newest = memory_sample_newest();
+  oldest = memory_sample_for_window(window_sec);
+  if (newest == NULL || oldest == NULL ||
+      newest->stats.timestamp_sec <= oldest->stats.timestamp_sec)
+    return 0;
+  slope->elapsed_sec = newest->stats.timestamp_sec - oldest->stats.timestamp_sec;
+  elapsed_min = (double)slope->elapsed_sec / 60.0;
+  mob_delta = (int64_t)newest->stats.count_mobs - (int64_t)oldest->stats.count_mobs;
+  obj_delta = (int64_t)newest->stats.count_objs - (int64_t)oldest->stats.count_objs;
+  heap_delta = (int64_t)newest->stats.heap_inuse_kib - (int64_t)oldest->stats.heap_inuse_kib;
+  slope->rss_kib_per_min =
+      ((double)((int64_t)newest->stats.vm_rss_kib - (int64_t)oldest->stats.vm_rss_kib)) /
+      elapsed_min;
+  slope->anon_kib_per_min =
+      ((double)((int64_t)newest->stats.rss_anon_kib - (int64_t)oldest->stats.rss_anon_kib)) /
+      elapsed_min;
+  slope->heap_kib_per_min = (double)heap_delta / elapsed_min;
+  slope->mobs_per_min = (double)mob_delta / elapsed_min;
+  slope->objects_per_min = (double)obj_delta / elapsed_min;
+  explained_kib =
+      ((double)mob_delta * sizeof(struct char_data) + (double)obj_delta * sizeof(struct obj_data)) /
+      1024.0;
+  slope->residual_heap_kib_per_min = ((double)heap_delta - explained_kib) / elapsed_min;
   return 1;
 }
 
 int PERF_memory_growth_rate(double *rss_kib_per_min, double *anon_kib_per_min,
                             double *heap_kib_per_min)
 {
-  struct perf_memory_stats current;
+  const struct perf_memory_stats *current;
   uint64_t now_sec;
   double elapsed_min;
   int64_t rss_diff, anon_diff, heap_diff;
@@ -1655,10 +3560,11 @@ int PERF_memory_growth_rate(double *rss_kib_per_min, double *anon_kib_per_min,
   if (heap_kib_per_min)
     *heap_kib_per_min = 0.0;
 
-  if (!PERF_sample_memory(&current))
+  if (!latest_memory_stats_valid)
     return 0;
 
-  now_sec = current.timestamp_sec;
+  current = &latest_memory_stats;
+  now_sec = current->timestamp_sec;
   if (memory_reset_time_sec == 0 || now_sec <= memory_reset_time_sec)
     return 0;
 
@@ -1666,9 +3572,9 @@ int PERF_memory_growth_rate(double *rss_kib_per_min, double *anon_kib_per_min,
   if (elapsed_min < 0.1)
     return 0;
 
-  rss_diff = (int64_t)current.vm_rss_kib - (int64_t)reset_memory_stats.vm_rss_kib;
-  anon_diff = (int64_t)current.rss_anon_kib - (int64_t)reset_memory_stats.rss_anon_kib;
-  heap_diff = (int64_t)current.heap_inuse_kib - (int64_t)reset_memory_stats.heap_inuse_kib;
+  rss_diff = (int64_t)current->vm_rss_kib - (int64_t)reset_memory_stats.vm_rss_kib;
+  anon_diff = (int64_t)current->rss_anon_kib - (int64_t)reset_memory_stats.rss_anon_kib;
+  heap_diff = (int64_t)current->heap_inuse_kib - (int64_t)reset_memory_stats.heap_inuse_kib;
 
   if (rss_kib_per_min)
     *rss_kib_per_min = (double)rss_diff / elapsed_min;
@@ -1695,6 +3601,7 @@ void PERF_memory_periodic_check(void)
     return;
 
   now_sec = current.timestamp_sec;
+  append_memory_sample(&current);
 
   /* Initialize baselines if needed */
   if (memory_boot_time_sec == 0)
@@ -1757,7 +3664,15 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
   int64_t event_delta;
   double rss_rate = 0.0, anon_rate = 0.0, heap_rate = 0.0;
   double anon_pct = 0.0;
-  const char *assessment = "STABLE - Memory usage within normal parameters";
+  double explained_heap_kib;
+  double residual_heap_kib;
+  struct perf_memory_slope short_slope;
+  struct perf_memory_slope medium_slope;
+  struct perf_memory_slope long_slope;
+  int has_short_slope;
+  int has_medium_slope;
+  int has_long_slope;
+  const char *assessment = "STABLE";
 
   if (!out_buf || n < 1)
     return 0;
@@ -1790,23 +3705,34 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
   event_delta = (int64_t)cur.count_events - (int64_t)reset_memory_stats.count_events;
 
   PERF_memory_growth_rate(&rss_rate, &anon_rate, &heap_rate);
+  has_short_slope = calculate_memory_slope(15 * 60, &short_slope);
+  has_medium_slope = calculate_memory_slope(60 * 60, &medium_slope);
+  has_long_slope = calculate_memory_slope(6 * 60 * 60, &long_slope);
+  explained_heap_kib =
+      ((double)mob_delta * sizeof(struct char_data) + (double)obj_delta * sizeof(struct obj_data)) /
+      1024.0;
+  residual_heap_kib = (double)heap_delta - explained_heap_kib;
 
   if (cur.vm_rss_kib > 0)
     anon_pct = ((double)cur.rss_anon_kib / (double)cur.vm_rss_kib) * 100.0;
 
-  if (reset_elapsed_sec >= 300)
+  if (cur.vm_swap_kib > 0 && cur.vm_rss_kib > 0)
+    assessment = "CRITICAL HEADROOM";
+  else if (reset_elapsed_sec < 15 * 60)
+    assessment = "WARMING";
+  else if (has_short_slope && short_slope.anon_kib_per_min > 200.0)
   {
-    if (anon_rate >= 1024.0 || rss_rate >= 1024.0)
-      assessment = "CRITICAL - High memory growth rate / possible leak detected";
-    else if (anon_rate >= 200.0 || rss_rate >= 200.0)
-      assessment = "WARNING - Elevated growth rate (monitor closely)";
-    else if (anon_rate >= 20.0 || rss_rate >= 20.0)
-      assessment = "MODERATE - Mild memory growth (within normal active bounds)";
+    if ((short_slope.mobs_per_min > 0.1 || short_slope.objects_per_min > 0.1) &&
+        short_slope.residual_heap_kib_per_min < short_slope.heap_kib_per_min * 0.5)
+      assessment = "GROWING WITH ENTITIES";
+    else
+      assessment = "UNEXPLAINED GROWTH";
   }
+  else if (has_short_slope &&
+           (fabs(short_slope.mobs_per_min) > 0.1 || fabs(short_slope.objects_per_min) > 0.1))
+    assessment = "WARMING";
   else
-  {
-    assessment = "COLLECTING - Window under 5 minutes; baseline accumulating";
-  }
+    assessment = "STABLE";
 
   written = bounded_format_length(
       snprintf(
@@ -1877,12 +3803,52 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
           (unsigned long long)cur.count_pending_extractions),
       n);
 
+  if (written < n - 1)
+  {
+    written += bounded_format_length(
+        snprintf(
+            out_buf + written, n - written,
+            "Memory Time Series:        %zu/%d minute samples\n\r"
+            "  Short slope (%" PRIu64 "s): RSS %+.1f, anon %+.1f, heap %+.1f KiB/min; "
+            "mobs %+.2f, objects %+.2f/min; residual heap %+.1f KiB/min\n\r"
+            "  Medium slope (%" PRIu64 "s): RSS %+.1f, anon %+.1f, heap %+.1f KiB/min; "
+            "mobs %+.2f, objects %+.2f/min; residual heap %+.1f KiB/min\n\r"
+            "  Long slope (%" PRIu64 "s): RSS %+.1f, anon %+.1f, heap %+.1f KiB/min; "
+            "mobs %+.2f, objects %+.2f/min; residual heap %+.1f KiB/min\n\r"
+            "  Entity base-size explanation since reset: %+.1f KiB; residual heap %+.1f KiB\n\r",
+            memory_sample_count, MEMORY_SAMPLE_CAPACITY,
+            has_short_slope ? short_slope.elapsed_sec : 0,
+            has_short_slope ? short_slope.rss_kib_per_min : 0.0,
+            has_short_slope ? short_slope.anon_kib_per_min : 0.0,
+            has_short_slope ? short_slope.heap_kib_per_min : 0.0,
+            has_short_slope ? short_slope.mobs_per_min : 0.0,
+            has_short_slope ? short_slope.objects_per_min : 0.0,
+            has_short_slope ? short_slope.residual_heap_kib_per_min : 0.0,
+            has_medium_slope ? medium_slope.elapsed_sec : 0,
+            has_medium_slope ? medium_slope.rss_kib_per_min : 0.0,
+            has_medium_slope ? medium_slope.anon_kib_per_min : 0.0,
+            has_medium_slope ? medium_slope.heap_kib_per_min : 0.0,
+            has_medium_slope ? medium_slope.mobs_per_min : 0.0,
+            has_medium_slope ? medium_slope.objects_per_min : 0.0,
+            has_medium_slope ? medium_slope.residual_heap_kib_per_min : 0.0,
+            has_long_slope ? long_slope.elapsed_sec : 0,
+            has_long_slope ? long_slope.rss_kib_per_min : 0.0,
+            has_long_slope ? long_slope.anon_kib_per_min : 0.0,
+            has_long_slope ? long_slope.heap_kib_per_min : 0.0,
+            has_long_slope ? long_slope.mobs_per_min : 0.0,
+            has_long_slope ? long_slope.objects_per_min : 0.0,
+            has_long_slope ? long_slope.residual_heap_kib_per_min : 0.0, explained_heap_kib,
+            residual_heap_kib),
+        n - written);
+  }
+
   return written;
 }
 
 size_t PERF_memory_csv(char *out_buf, size_t n)
 {
   struct perf_memory_stats cur;
+  const struct perf_memory_sample *sample;
   double rss_rate = 0.0, anon_rate = 0.0, heap_rate = 0.0;
   int64_t char_delta;
   int64_t mob_delta;
@@ -1893,6 +3859,8 @@ size_t PERF_memory_csv(char *out_buf, size_t n)
   int64_t charmed_npc_delta;
   int64_t event_delta;
   size_t written = 0;
+  size_t offset;
+  size_t index;
 
   if (!out_buf || n < 1)
     return 0;
@@ -1962,6 +3930,36 @@ size_t PERF_memory_csv(char *out_buf, size_t n)
                npc_follower_delta, charmed_npc_delta, obj_delta, event_delta,
                cur.count_pending_extractions),
       n);
+
+  if (written < n - 1)
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "memory_history_timestamp_sec,rss_kib,anon_kib,heap_kib,arena_kib,mmap_kib,"
+                 "swap_kib,pcs,mobs,objects,followers,affects,events,descriptors,pending,"
+                 "mobiles_created,mobiles_extracted,objects_created,objects_extracted,queries,"
+                 "pulses_over_100,pulses_over_500\n\r"),
+        n - written);
+  for (offset = memory_sample_count; offset > 0 && written < n - 1; offset--)
+  {
+    index = (memory_sample_index + MEMORY_SAMPLE_CAPACITY - offset) % MEMORY_SAMPLE_CAPACITY;
+    sample = &memory_samples[index];
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64
+                 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64
+                 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64
+                 ",%" PRIu64 "\n\r",
+                 sample->stats.timestamp_sec, sample->stats.vm_rss_kib, sample->stats.rss_anon_kib,
+                 sample->stats.heap_inuse_kib, sample->stats.heap_arena_kib,
+                 sample->stats.heap_mmap_kib, sample->stats.vm_swap_kib, sample->stats.count_pcs,
+                 sample->stats.count_mobs, sample->stats.count_objs,
+                 sample->stats.count_npc_followers, sample->stats.count_affects,
+                 sample->stats.count_events, sample->stats.count_descriptors,
+                 sample->stats.count_pending_extractions, sample->mobiles_created,
+                 sample->mobiles_extracted, sample->objects_created, sample->objects_extracted,
+                 sample->queries, sample->pulses_over_100, sample->pulses_over_500),
+        n - written);
+  }
 
   return written;
 }

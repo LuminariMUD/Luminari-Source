@@ -24,6 +24,18 @@ void affect_to_char(struct char_data *ch, struct affected_type *af);
 void affect_to_char_source(struct char_data *ch, struct affected_type *af, long source_id);
 void affect_remove(struct char_data *ch, struct affected_type *af);
 void affect_remove_no_total(struct char_data *ch, struct affected_type *af);
+void affected_registry_attach(struct char_data *ch);
+void affected_registry_detach(struct char_data *ch);
+void affected_registry_sync(struct char_data *ch);
+void affected_registry_remove(struct char_data *ch);
+struct char_data *affected_registry_iteration_begin(void);
+struct char_data *affected_registry_iteration_next(void);
+void affected_registry_iteration_end(void);
+size_t affected_registry_count(void);
+size_t affected_registry_validate(void);
+#ifdef LUMINARI_CUTEST
+void affected_registry_reset_for_test(void);
+#endif
 void affect_from_char(struct char_data *ch, int type);
 void affect_from_char_source(struct char_data *ch, int type, long source_id);
 void affect_type_from_char(struct char_data *ch, int type);

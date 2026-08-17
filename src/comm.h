@@ -87,6 +87,8 @@ void echo_off(struct descriptor_data *d);
 void echo_on(struct descriptor_data *d);
 void game_loop(socket_t mother_desc);
 void heartbeat(int heart_pulse);
+size_t persistence_scheduler_repr(char *out_buf, size_t n);
+void persistence_scheduler_reset_telemetry(void);
 void copyover_recover(void);
 bool suspend_checkpoint_timer(void);
 bool resume_checkpoint_timer(void);

@@ -1,44 +1,36 @@
-# Production Health Work Remaining
+# Production PERFMON Rollout and Acceptance
 
-## Budget player autosaves across pulses
+Implementation for the production capture below is complete in the codebase. The original
+once-per-minute persistence burst has been replaced by dirty-driven incremental work, and PERFMON
+now records enough bounded context to identify future pulse, SQL, combat, entity, sweep, and memory
+owners.
 
-The production heartbeat still calls `Crash_save_all()` and `House_save_all()`
-synchronously after each autosave interval. `Crash_save_incremental()` and per-player
-object/character save timing exist, but the incremental path has no production caller.
-Increasing the autosave interval reduces frequency without removing the main-loop stall.
+## Deployment acceptance work
 
-Work remaining:
+After deployment, retain at least one representative 24-hour capture covering idle periods,
+normal player activity, wilderness use, combat, scheduled saves, zone resets, and copyover. Use:
 
-- Replace the heartbeat's all-player crash save with an incremental scheduler bounded by
-  both elapsed time and save count per pulse.
-- Preserve atomic, durable object and character saves, eventual completion for every dirty
-  connected player, and safe cursor behavior when descriptors disconnect or reorder.
-- Measure `House_save_all()` separately and budget or defer it if it can exceed the remaining
-  pulse allowance.
-- Add production-linked coverage for cursor continuation, disconnects, save failures,
-  fairness, and completion across multiple pulses.
-- Validate under representative development load that autosave does not create a pulse over
-  500 ms and normally remains within the 100 ms pulse budget.
+- `perfmon all` for the decision-oriented overview.
+- `perfmon slow 128 csv` for schedule and owner correlation.
+- `perfmon saves` for scheduler progress, failures, and budget overruns.
+- `perfmon sql csv` for query ownership and latency.
+- `perfmon entities csv` for positive-net VNUM, zone, reason, reset, and sweep cohorts.
+- `perfmon combat 64 csv` for callback tails and chain truncation.
+- `perfmon csv` at the start and end of the retained window for the complete record.
 
-## Close the anonymous-memory growth finding
+Acceptance requires:
 
-The built-in PERFMON inventory and `scripts/process-memory/monitor_process_memory.sh` now
-provide the required telemetry, but there is no retained representative time series proving
-that anonymous RSS plateaus or identifying and bounding continued growth.
+- No scheduled-persistence pulse over 500 ms and no once-per-minute latency signature.
+- Every dirty player/pet cycle completes; failures retry; ordinary work remains near the 20 ms
+  target and all work over the 50 ms diagnostic limit has an identified owner.
+- Routine SQL volume is attributable and proportional to changed state.
+- Positive-net entity cohorts have a documented source and lifetime; entity and memory counts
+  plateau, or residual memory growth selects the next allocation trace.
+- Ordinary combat callbacks remain below 100 ms and chain truncation is absent or explained.
+- Registry validation mismatch counts remain zero.
 
-Work remaining:
-
-- Record a long-running time series across idle periods, normal player activity,
-  wilderness use, combat, saves, and copyovers on the current deployed image.
-- Correlate RSS, anonymous RSS, and allocator growth with mobiles, objects, affects,
-  affected characters, NPC followers, charmed NPCs, events, and player population.
-- If anonymous RSS continues rising while live-entity counts remain stable, capture a
-  development allocation trace for the corresponding workload and repair the owning path.
-- Define and verify an acceptable steady-state bound and operating headroom for the normal
-  process lifetime.
-
-This item is complete only when representative evidence shows a stable plateau or documents
-an identified, justified, and operationally safe bound.
+The detailed analysis, implementation map, and rationale are in
+[`PERFMON_PRODUCTION_FIX_OBJECTIVES.md`](PERFMON_PRODUCTION_FIX_OBJECTIVES.md).
 
 ### Latest `perfmon all` capture
 

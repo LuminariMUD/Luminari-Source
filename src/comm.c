@@ -127,6 +127,9 @@
 #define HEARTBEAT_CATCHUP_BUDGET_USEC ((uint64_t)OPT_USEC)
 #define HEARTBEAT_CATCHUP_LOG_INTERVAL 60
 #define STAFF_COMMAND_LATENCY_BUDGET_USEC 100000
+#define PERSISTENCE_PULSE_BUDGET_USEC 20000
+#define PERSISTENCE_HARD_LIMIT_USEC 50000
+#define PERSISTENCE_RETRY_PULSES PASSES_PER_SEC
 
 extern time_t motdmod;
 extern time_t newsmod;
@@ -193,6 +196,8 @@ static void record_usage(void);
 static char *make_prompt(struct descriptor_data *point);
 static void check_idle_passwords(void);
 static void init_descriptor(struct descriptor_data *newd, int desc);
+static void persistence_schedule_minute(int include_crash_and_houses);
+static void persistence_scheduler_step(uint64_t heart_pulse);
 
 static struct in_addr *get_bind_addr(void);
 static int parse_ip(const char *addr, struct in_addr *inaddr);
@@ -1254,7 +1259,7 @@ void game_loop(socket_t local_mother_desc)
 
     perf_start = now;
     PERF_prof_reset();
-    PERF_PROF_ENTER(pr_main_loop_, "Main Loop");
+    PERF_PROF_ENTER_SAMPLED(pr_main_loop_, "Main Loop");
 
     /* Poll (without blocking) for new input, output, and exceptions */
     if (select(maxdesc + 1, &input_set, &output_set, &exc_set, &null_time) < 0)
@@ -1481,7 +1486,7 @@ void game_loop(socket_t local_mother_desc)
     heartbeat_replay_start_usec = PERF_monotonic_usec();
     while (replayed_heartbeats < requested_heartbeats)
     {
-      PERF_PROF_ENTER(pr_heartbeat, "heartbeat");
+      PERF_PROF_ENTER_SAMPLED(pr_heartbeat, "heartbeat");
       heartbeat(++pulse);
       PERF_PROF_EXIT(pr_heartbeat);
       replayed_heartbeats++;
@@ -1571,21 +1576,342 @@ void game_loop(socket_t local_mother_desc)
 /*  This was ported to accomodate the HL objects that were imported */
 void proc_update()
 {
-  struct obj_data *obj = NULL, *next_obj = NULL;
+  struct obj_data *obj;
+  size_t acted;
+  size_t visited;
 
-  /* Cache the successor: an auto-proc may extract its own object. */
-  for (obj = object_list; obj; obj = next_obj)
+  acted = 0;
+  visited = 0;
+  for (obj = autoproc_registry_iteration_begin(); obj != NULL;
+       obj = autoproc_registry_iteration_next())
   {
-    next_obj = obj->next;
-
-    // start_fall_object_event(obj);
-    if (!OBJ_FLAGGED(obj, ITEM_AUTOPROC) ||
-        (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0))
+    visited++;
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0)
       continue;
 
     spec_gateway_object_auto_pulse(obj);
+    acted++;
   }
+  autoproc_registry_iteration_end();
+  PERF_note_sweep(PERF_SWEEP_AUTOPROC, visited, autoproc_registry_count(), acted);
   rol_avernus_room_pulse();
+}
+
+enum persistence_task
+{
+  PERSISTENCE_TASK_CHARACTER = 0,
+  PERSISTENCE_TASK_PET,
+  PERSISTENCE_TASK_LAST_ONLINE,
+  PERSISTENCE_TASK_ARTIFACT,
+  PERSISTENCE_TASK_CRASH,
+  PERSISTENCE_TASK_HOUSE,
+  PERSISTENCE_TASK_COUNT
+};
+
+static struct
+{
+  long *player_ids;
+  size_t player_count;
+  size_t character_index;
+  size_t pet_index;
+  size_t last_online_index;
+  enum persistence_task next_task;
+  uint64_t retry_after[PERSISTENCE_TASK_COUNT];
+  uint64_t cycle_started_usec;
+  uint64_t cycles_started;
+  uint64_t cycles_completed;
+  uint64_t operations;
+  uint64_t failures;
+  uint64_t budget_overruns;
+  uint64_t hard_limit_overruns;
+  uint64_t max_operation_usec;
+  int active;
+  int pending_cycle;
+  int artifact_pending;
+  int crash_pending;
+  int house_pending;
+} persistence_scheduler;
+
+static int persistence_descriptor_eligible(const struct descriptor_data *d)
+{
+  return d != NULL && d->character != NULL && STATE(d) == CON_PLAYING && !IS_NPC(d->character) &&
+         IN_ROOM(d->character) != NOWHERE && d->account != NULL;
+}
+
+static struct char_data *persistence_find_player(long idnum)
+{
+  struct descriptor_data *d;
+
+  for (d = descriptor_list; d != NULL; d = d->next)
+    if (persistence_descriptor_eligible(d) && GET_IDNUM(d->character) == idnum)
+      return d->character;
+  return NULL;
+}
+
+static int persistence_begin_cycle(int include_crash_and_houses)
+{
+  struct descriptor_data *d;
+  size_t count;
+  size_t index;
+  long *ids;
+
+  count = 0;
+  for (d = descriptor_list; d != NULL; d = d->next)
+    if (persistence_descriptor_eligible(d))
+      count++;
+  ids = count > 0 ? calloc(count, sizeof(*ids)) : NULL;
+  if (count > 0 && ids == NULL)
+  {
+    log("SYSERR: Unable to allocate the incremental persistence player snapshot.");
+    persistence_scheduler.failures++;
+    return 0;
+  }
+  index = 0;
+  for (d = descriptor_list; d != NULL && index < count; d = d->next)
+    if (persistence_descriptor_eligible(d))
+      ids[index++] = GET_IDNUM(d->character);
+
+  free(persistence_scheduler.player_ids);
+  persistence_scheduler.player_ids = ids;
+  persistence_scheduler.player_count = index;
+  persistence_scheduler.character_index = 0;
+  persistence_scheduler.pet_index = 0;
+  persistence_scheduler.last_online_index = 0;
+  persistence_scheduler.next_task = PERSISTENCE_TASK_CHARACTER;
+  memset(persistence_scheduler.retry_after, 0, sizeof(persistence_scheduler.retry_after));
+  persistence_scheduler.cycle_started_usec = PERF_monotonic_usec();
+  persistence_scheduler.artifact_pending = 1;
+  persistence_scheduler.crash_pending = include_crash_and_houses;
+  persistence_scheduler.house_pending = include_crash_and_houses;
+  persistence_scheduler.active = 1;
+  persistence_scheduler.pending_cycle = 0;
+  persistence_scheduler.cycles_started++;
+  return 1;
+}
+
+static void persistence_schedule_minute(int include_crash_and_houses)
+{
+  if (!persistence_scheduler.active)
+  {
+    if (!persistence_begin_cycle(include_crash_and_houses))
+      persistence_scheduler.pending_cycle = 1;
+    return;
+  }
+  persistence_scheduler.pending_cycle = 1;
+  if (include_crash_and_houses)
+  {
+    persistence_scheduler.crash_pending = 1;
+    persistence_scheduler.house_pending = 1;
+  }
+}
+
+static int persistence_players_complete(void)
+{
+  return persistence_scheduler.character_index >= persistence_scheduler.player_count &&
+         persistence_scheduler.pet_index >= persistence_scheduler.player_count &&
+         persistence_scheduler.last_online_index >= persistence_scheduler.player_count;
+}
+
+static int persistence_cycle_complete(void)
+{
+  return persistence_players_complete() && !persistence_scheduler.artifact_pending &&
+         !persistence_scheduler.crash_pending && !persistence_scheduler.house_pending;
+}
+
+static int persistence_run_player_task(enum persistence_task task)
+{
+  struct char_data *ch;
+  size_t *index;
+  bool success;
+
+  if (task == PERSISTENCE_TASK_CHARACTER)
+    index = &persistence_scheduler.character_index;
+  else if (task == PERSISTENCE_TASK_PET)
+    index = &persistence_scheduler.pet_index;
+  else
+    index = &persistence_scheduler.last_online_index;
+  if (*index >= persistence_scheduler.player_count)
+    return PERSISTENCE_STEP_COMPLETE;
+  ch = persistence_find_player(persistence_scheduler.player_ids[*index]);
+  if (ch == NULL)
+  {
+    (*index)++;
+    return PERSISTENCE_STEP_PROGRESS;
+  }
+
+  success = false;
+  if (task == PERSISTENCE_TASK_CHARACTER)
+  {
+    PERF_PROF_ENTER_SAMPLED(pr_minute_char_save_, "minute.character_save");
+    success = save_char_checked(ch, 0);
+    PERF_PROF_EXIT(pr_minute_char_save_);
+  }
+  else if (task == PERSISTENCE_TASK_PET)
+  {
+    PERF_PROF_ENTER_SAMPLED(pr_minute_pet_save_, "minute.pet_save");
+    success = save_char_pets(ch);
+    PERF_PROF_EXIT(pr_minute_pet_save_);
+  }
+  else
+  {
+    PERF_PROF_ENTER_SAMPLED(pr_last_online_, "minute.last_online");
+    success = update_player_last_on_single(ch);
+    PERF_PROF_EXIT(pr_last_online_);
+  }
+  if (success)
+    (*index)++;
+  return success ? PERSISTENCE_STEP_PROGRESS : PERSISTENCE_STEP_FAILURE;
+}
+
+static int persistence_run_task(enum persistence_task task)
+{
+  enum persistence_step_result result;
+
+  if (task == PERSISTENCE_TASK_CHARACTER || task == PERSISTENCE_TASK_PET ||
+      task == PERSISTENCE_TASK_LAST_ONLINE)
+    return persistence_run_player_task(task);
+  if (task == PERSISTENCE_TASK_ARTIFACT)
+  {
+    if (!persistence_scheduler.artifact_pending)
+      return PERSISTENCE_STEP_COMPLETE;
+    PERF_PROF_ENTER_SAMPLED(pr_minute_artifact_save_, "minute.artifact_save");
+    artifact_save_if_dirty();
+    PERF_PROF_EXIT(pr_minute_artifact_save_);
+    persistence_scheduler.artifact_pending = 0;
+    return PERSISTENCE_STEP_PROGRESS;
+  }
+  if (task == PERSISTENCE_TASK_CRASH)
+  {
+    if (!persistence_scheduler.crash_pending)
+      return PERSISTENCE_STEP_COMPLETE;
+    PERF_PROF_ENTER_SAMPLED(pr_minute_crash_save_, "minute.crash_save");
+    result = Crash_save_incremental(1);
+    PERF_PROF_EXIT(pr_minute_crash_save_);
+    if (result == PERSISTENCE_STEP_COMPLETE)
+      persistence_scheduler.crash_pending = 0;
+    return result;
+  }
+  if (!persistence_scheduler.house_pending)
+    return PERSISTENCE_STEP_COMPLETE;
+  PERF_PROF_ENTER_SAMPLED(pr_minute_house_save_, "minute.house_save");
+  result = House_save_incremental(1);
+  PERF_PROF_EXIT(pr_minute_house_save_);
+  if (result == PERSISTENCE_STEP_COMPLETE)
+    persistence_scheduler.house_pending = 0;
+  return result;
+}
+
+static void persistence_scheduler_step(uint64_t heart_pulse)
+{
+  enum persistence_task task;
+  uint64_t started_usec;
+  uint64_t completed_usec;
+  uint64_t elapsed_usec;
+  int result;
+  int attempts;
+
+  if (!persistence_scheduler.active)
+    return;
+  PERF_PROF_ENTER_SAMPLED(pr_persistence_scheduler_, "persistence.scheduler");
+  result = PERSISTENCE_STEP_IDLE;
+  task = persistence_scheduler.next_task;
+  for (attempts = 0; attempts < PERSISTENCE_TASK_COUNT; attempts++)
+  {
+    if (heart_pulse >= persistence_scheduler.retry_after[task])
+    {
+      started_usec = PERF_monotonic_usec();
+      result = persistence_run_task(task);
+      completed_usec = PERF_monotonic_usec();
+      elapsed_usec = completed_usec >= started_usec ? completed_usec - started_usec : 0;
+      if (result == PERSISTENCE_STEP_PROGRESS || result == PERSISTENCE_STEP_FAILURE)
+      {
+        persistence_scheduler.operations++;
+        if (elapsed_usec > persistence_scheduler.max_operation_usec)
+          persistence_scheduler.max_operation_usec = elapsed_usec;
+        if (elapsed_usec > PERSISTENCE_PULSE_BUDGET_USEC)
+          persistence_scheduler.budget_overruns++;
+        if (elapsed_usec > PERSISTENCE_HARD_LIMIT_USEC)
+        {
+          persistence_scheduler.hard_limit_overruns++;
+          log("PERFMON [PERSISTENCE]: task=%d exceeded hard pulse limit: %llu usec", task,
+              (unsigned long long)elapsed_usec);
+        }
+        if (result == PERSISTENCE_STEP_FAILURE)
+        {
+          persistence_scheduler.failures++;
+          persistence_scheduler.retry_after[task] = heart_pulse + PERSISTENCE_RETRY_PULSES;
+        }
+        break;
+      }
+    }
+    task = (enum persistence_task)((task + 1) % PERSISTENCE_TASK_COUNT);
+  }
+  persistence_scheduler.next_task = (enum persistence_task)((task + 1) % PERSISTENCE_TASK_COUNT);
+
+  if (persistence_cycle_complete())
+  {
+    persistence_scheduler.active = 0;
+    persistence_scheduler.cycles_completed++;
+    free(persistence_scheduler.player_ids);
+    persistence_scheduler.player_ids = NULL;
+    persistence_scheduler.player_count = 0;
+    if (persistence_scheduler.pending_cycle)
+      (void)persistence_begin_cycle(0);
+  }
+  PERF_PROF_EXIT(pr_persistence_scheduler_);
+}
+
+size_t persistence_scheduler_repr(char *out_buf, size_t n)
+{
+  uint64_t now_usec;
+  uint64_t age_usec;
+  int result;
+
+  if (out_buf == NULL || n == 0)
+    return 0;
+  now_usec = PERF_monotonic_usec();
+  age_usec = persistence_scheduler.active && now_usec >= persistence_scheduler.cycle_started_usec
+                 ? now_usec - persistence_scheduler.cycle_started_usec
+                 : 0;
+  result = snprintf(
+      out_buf, n,
+      "Incremental persistence scheduler\n\r"
+      "State: active=%d queued_cycle=%d age=%.3f sec players=%zu char=%zu pet=%zu last_online=%zu "
+      "artifact=%d crash=%d house=%d\n\r"
+      "Cycles: started=%llu completed=%llu operations=%llu failures=%llu\n\r"
+      "Budget: target=%d usec hard_limit=%d usec overruns=%llu hard_overruns=%llu "
+      "max_operation=%llu usec\n\r",
+      persistence_scheduler.active, persistence_scheduler.pending_cycle,
+      (double)age_usec / 1000000.0, persistence_scheduler.player_count,
+      persistence_scheduler.character_index, persistence_scheduler.pet_index,
+      persistence_scheduler.last_online_index, persistence_scheduler.artifact_pending,
+      persistence_scheduler.crash_pending, persistence_scheduler.house_pending,
+      (unsigned long long)persistence_scheduler.cycles_started,
+      (unsigned long long)persistence_scheduler.cycles_completed,
+      (unsigned long long)persistence_scheduler.operations,
+      (unsigned long long)persistence_scheduler.failures, PERSISTENCE_PULSE_BUDGET_USEC,
+      PERSISTENCE_HARD_LIMIT_USEC, (unsigned long long)persistence_scheduler.budget_overruns,
+      (unsigned long long)persistence_scheduler.hard_limit_overruns,
+      (unsigned long long)persistence_scheduler.max_operation_usec);
+  if (result < 0)
+  {
+    out_buf[0] = '\0';
+    return 0;
+  }
+  if ((size_t)result >= n)
+    return n - 1;
+  return (size_t)result;
+}
+
+void persistence_scheduler_reset_telemetry(void)
+{
+  persistence_scheduler.cycles_started = persistence_scheduler.active ? 1 : 0;
+  persistence_scheduler.cycles_completed = 0;
+  persistence_scheduler.operations = 0;
+  persistence_scheduler.failures = 0;
+  persistence_scheduler.budget_overruns = 0;
+  persistence_scheduler.hard_limit_overruns = 0;
+  persistence_scheduler.max_operation_usec = 0;
 }
 
 /* here she is, heartbeat function - called every 1/10th of a second */
@@ -1607,6 +1933,29 @@ void heartbeat(int heart_pulse)
   static struct PERF_prof_sect *pr_vessel_msdp = NULL;
   static struct PERF_prof_sect *pr_vessel_schedules = NULL;
 
+  PERF_note_heartbeat(heart_pulse >= 0 ? (uint64_t)heart_pulse : 0);
+  if (!(heart_pulse % PASSES_PER_SEC))
+    PERF_note_schedule(PERF_SCHEDULE_1_SECOND);
+  if (!(heart_pulse % (3 * PASSES_PER_SEC)))
+    PERF_note_schedule(PERF_SCHEDULE_3_SECONDS);
+  if (!(heart_pulse % (5 * PASSES_PER_SEC)))
+    PERF_note_schedule(PERF_SCHEDULE_5_SECONDS);
+  if (!(heart_pulse % (6 * PASSES_PER_SEC)))
+    PERF_note_schedule(PERF_SCHEDULE_6_SECONDS);
+  if (!(heart_pulse % PULSE_DG_SCRIPT))
+    PERF_note_schedule(PERF_SCHEDULE_13_SECONDS);
+  if (!(heart_pulse % (30 * PASSES_PER_SEC)))
+    PERF_note_schedule(PERF_SCHEDULE_30_SECONDS);
+  if (!(heart_pulse % (60 * PASSES_PER_SEC)))
+    PERF_note_schedule(PERF_SCHEDULE_60_SECONDS);
+  if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
+    PERF_note_schedule(PERF_SCHEDULE_75_SECONDS);
+  if (CONFIG_AUTO_SAVE && !(heart_pulse % PULSE_AUTOSAVE))
+    PERF_note_schedule(PERF_SCHEDULE_AUTOSAVE);
+  if (!(heart_pulse % PULSE_USAGE) || !(heart_pulse % PULSE_TIMESAVE) ||
+      !(heart_pulse % ((60 * PASSES_PER_SEC) * 60 * 2)))
+    PERF_note_schedule(PERF_SCHEDULE_LONG_INTERVAL);
+
   PERF_prof_sect_init(&pr_event_process, "event_process");
   PERF_prof_sect_enable_sampling(pr_event_process);
   PERF_prof_sect_enter(pr_event_process);
@@ -1615,7 +1964,7 @@ void heartbeat(int heart_pulse)
 
   if (!(heart_pulse % PULSE_DG_SCRIPT))
   {
-    PERF_PROF_ENTER(pr_script_trigger_, "script_trigger_check");
+    PERF_PROF_ENTER_SAMPLED(pr_script_trigger_, "script_trigger_check");
     script_trigger_check();
     PERF_PROF_EXIT(pr_script_trigger_);
   }
@@ -1729,15 +2078,20 @@ void heartbeat(int heart_pulse)
 
   if (!(heart_pulse % (PASSES_PER_SEC * 60)))
   { // every minute
+    PERF_PROF_ENTER_SAMPLED(pr_minute_maintenance_, "minute.maintenance");
     check_auto_shutdown();
     check_auto_happy_hour();
     recharge_activated_items();
+    PERF_PROF_EXIT(pr_minute_maintenance_);
+
+    PERF_PROF_ENTER_SAMPLED(pr_minute_memory_, "minute.memory_sample");
     PERF_memory_periodic_check();
+    PERF_PROF_EXIT(pr_minute_memory_);
   }
 
   if (!(heart_pulse % PULSE_ZONE))
   {
-    PERF_PROF_ENTER(pr_zone_update_, "zone_update");
+    PERF_PROF_ENTER_SAMPLED(pr_zone_update_, "zone_update");
     zone_update();
     PERF_PROF_EXIT(pr_zone_update_);
   }
@@ -1747,14 +2101,14 @@ void heartbeat(int heart_pulse)
 
   /* Visit one bounded list segment per pulse so every cycle-boundary mobile
    * retains its six-second cadence without rescanning the full population. */
-  PERF_PROF_ENTER(pr_mob_activity_, "mobile_activity");
+  PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "mobile_activity");
   mobile_activity_pulse(heart_pulse);
   PERF_PROF_EXIT(pr_mob_activity_);
 
   /* Keep non-mobile special-procedure updates on their established cadence. */
   if (!(heart_pulse % PULSE_MOBILE))
   {
-    PERF_PROF_ENTER(pr_proc_update_, "proc_update");
+    PERF_PROF_ENTER_SAMPLED(pr_proc_update_, "proc_update");
     proc_update();
     PERF_PROF_EXIT(pr_proc_update_);
   }
@@ -1764,7 +2118,7 @@ void heartbeat(int heart_pulse)
   {
     /* Next line removed as part of conversion from pulse to event-based combat */
     //    perform_violence();
-    PERF_PROF_ENTER(pr_aff_update_, "affect_update");
+    PERF_PROF_ENTER_SAMPLED(pr_aff_update_, "affect_update");
     affect_update(); // affect updates transformed into "rounds"
     PERF_PROF_EXIT(pr_aff_update_);
     proc_d20_round(); /* for encounter code */
@@ -1779,7 +2133,7 @@ void heartbeat(int heart_pulse)
    */
   if (!(pulse % PULSE_LUMINARI))
   { /* 5 sec */
-    PERF_PROF_ENTER(pr_lum_, "pulse_luminari");
+    PERF_PROF_ENTER_SAMPLED(pr_lum_, "pulse_luminari");
     pulse_luminari(); // limits.c
     PERF_PROF_EXIT(pr_lum_);
   }
@@ -1799,7 +2153,7 @@ void heartbeat(int heart_pulse)
   /* every 6 seconds, update damage and effects over time AND update player misc()*/
   if (!(heart_pulse % (6 * PASSES_PER_SEC)))
   {
-    PERF_PROF_ENTER(pr_upd_, "update_damage_and_effects_over_time");
+    PERF_PROF_ENTER_SAMPLED(pr_upd_, "update_damage_and_effects_over_time");
     update_damage_and_effects_over_time();
     PERF_PROF_EXIT(pr_upd_);
     update_player_misc();
@@ -1814,9 +2168,15 @@ void heartbeat(int heart_pulse)
   /* save characters and their pets once per minute */
   if (!(heart_pulse % (60 * PASSES_PER_SEC)))
   {
-    save_player_pets();
-    save_chars();
-    artifact_save_if_dirty();
+    int include_crash_and_houses;
+
+    include_crash_and_houses = FALSE;
+    if (CONFIG_AUTO_SAVE && ++mins_since_crashsave >= CONFIG_AUTOSAVE_TIME)
+    {
+      mins_since_crashsave = 0;
+      include_crash_and_houses = TRUE;
+    }
+    persistence_schedule_minute(include_crash_and_houses);
   }
 
   /* every 2 hours run create hunts */
@@ -1828,7 +2188,7 @@ void heartbeat(int heart_pulse)
   /* the old skool tick system! */
   if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
   { /* Tick ! */
-    PERF_PROF_ENTER(pr_ost_, "old skool tick");
+    PERF_PROF_ENTER_SAMPLED(pr_ost_, "old skool tick");
     next_tick = SECS_PER_MUD_HOUR; /* Reset tick coundown */
     weather_and_time(1);
     check_time_triggers();
@@ -1860,22 +2220,7 @@ void heartbeat(int heart_pulse)
     save_clan_investments();
   }
 
-  if (CONFIG_AUTO_SAVE && !(heart_pulse % PULSE_AUTOSAVE))
-  { /* 1 minute */
-    if (++mins_since_crashsave >= CONFIG_AUTOSAVE_TIME)
-    {
-      mins_since_crashsave = 0;
-
-      PERF_PROF_ENTER(pr_csa_, "Crash_save_all");
-      Crash_save_all();
-      PERF_PROF_EXIT(pr_csa_);
-
-      PERF_PROF_ENTER(pr_hsa_, "House_save_all");
-      House_save_all();
-      PERF_PROF_EXIT(pr_hsa_);
-    }
-    update_player_last_on();
-  }
+  persistence_scheduler_step(heart_pulse >= 0 ? (uint64_t)heart_pulse : 0);
 
   /* 3 minute pulse for record usage */
   if (!(heart_pulse % PULSE_USAGE))

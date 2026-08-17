@@ -134,7 +134,7 @@ void do_dg_cast(void *go, struct script_data *sc __attribute__((unused)), trig_d
 
   if (!caster)
   {
-    caster = read_mobile(DG_CASTER_PROXY, VIRTUAL);
+    caster = read_mobile_reason(DG_CASTER_PROXY, VIRTUAL, PERF_ENTITY_DG_SCRIPT);
     if (!caster)
     {
       script_log("dg_cast: Cannot load the caster mob!");

@@ -626,7 +626,7 @@ void complete_quest(struct char_data *ch, int index)
        this is "pre-flight" */
   if (QST_FOLLOWER(rnum) != (int)NOBODY)
   {
-    if (!(mob = read_mobile(QST_FOLLOWER(rnum), VIRTUAL)))
+    if (!(mob = read_mobile_reason(QST_FOLLOWER(rnum), VIRTUAL, PERF_ENTITY_QUEST)))
     {
       send_to_char(ch, "Report to staff:  quest follower invalid.\r\n");
       return;
@@ -694,7 +694,7 @@ void complete_quest(struct char_data *ch, int index)
   {
     if (real_object(QST_OBJ(rnum)) != NOTHING)
     {
-      if ((new_obj = read_object((QST_OBJ(rnum)), VIRTUAL)) != NULL)
+      if ((new_obj = read_object_reason((QST_OBJ(rnum)), VIRTUAL, PERF_ENTITY_QUEST)) != NULL)
       {
         obj_to_char(new_obj, ch);
         send_to_char(ch, "You have been presented with %s%s for your service.\r\n\r\n",

@@ -44,6 +44,10 @@
 /* local file scope variables */
 static int extractions_pending = 0;
 static bool extraction_batch_active = false;
+static struct char_data *affected_character_list = NULL;
+static struct char_data *affected_iteration_next = NULL;
+static size_t affected_character_count = 0;
+static bool affected_iteration_active = false;
 
 /* local file scope functions */
 static void update_object(struct obj_data *obj, int use);
@@ -51,6 +55,126 @@ static bool character_is_pending_extraction(const struct char_data *ch);
 static void prepare_pending_extraction_references(void);
 
 static void update_master_tracker_alert(struct char_data *tracker);
+
+void affected_registry_sync(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+  if (ch->affected != NULL && !ch->affected_registry_live)
+    return;
+  if (ch->affected != NULL && !ch->affected_registered)
+  {
+    ch->affected_prev = NULL;
+    ch->affected_next = affected_character_list;
+    if (affected_character_list != NULL)
+      affected_character_list->affected_prev = ch;
+    affected_character_list = ch;
+    ch->affected_registered = true;
+    affected_character_count++;
+  }
+  else if (ch->affected == NULL && ch->affected_registered)
+  {
+    affected_registry_remove(ch);
+  }
+}
+
+void affected_registry_attach(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+  ch->affected_registry_live = true;
+  affected_registry_sync(ch);
+}
+
+void affected_registry_detach(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+  affected_registry_remove(ch);
+  ch->affected_registry_live = false;
+}
+
+void affected_registry_remove(struct char_data *ch)
+{
+  if (ch == NULL || !ch->affected_registered)
+    return;
+  if (affected_iteration_active && affected_iteration_next == ch)
+    affected_iteration_next = ch->affected_next;
+  if (ch->affected_prev != NULL)
+    ch->affected_prev->affected_next = ch->affected_next;
+  else
+    affected_character_list = ch->affected_next;
+  if (ch->affected_next != NULL)
+    ch->affected_next->affected_prev = ch->affected_prev;
+  ch->affected_next = NULL;
+  ch->affected_prev = NULL;
+  ch->affected_registered = false;
+  if (affected_character_count > 0)
+    affected_character_count--;
+}
+
+struct char_data *affected_registry_iteration_next(void)
+{
+  struct char_data *ch;
+
+  if (!affected_iteration_active)
+    return NULL;
+  ch = affected_iteration_next;
+  if (ch != NULL)
+    affected_iteration_next = ch->affected_next;
+  return ch;
+}
+
+struct char_data *affected_registry_iteration_begin(void)
+{
+  if (affected_iteration_active)
+  {
+    log("SYSERR: Nested affected-character registry iteration rejected.");
+    return NULL;
+  }
+  affected_iteration_active = true;
+  affected_iteration_next = affected_character_list;
+  return affected_registry_iteration_next();
+}
+
+void affected_registry_iteration_end(void)
+{
+  affected_iteration_next = NULL;
+  affected_iteration_active = false;
+}
+
+size_t affected_registry_count(void)
+{
+  return affected_character_count;
+}
+
+size_t affected_registry_validate(void)
+{
+  struct char_data *ch;
+  size_t expected;
+  size_t actual;
+
+  expected = 0;
+  for (ch = character_list; ch != NULL; ch = ch->next)
+    if (ch->affected != NULL)
+      expected++;
+  actual = 0;
+  for (ch = affected_character_list; ch != NULL; ch = ch->affected_next)
+    actual++;
+  if (expected == actual && actual == affected_character_count)
+    return 0;
+  return expected > actual ? expected - actual : actual - expected;
+}
+
+#ifdef LUMINARI_CUTEST
+void affected_registry_reset_for_test(void)
+{
+  affected_character_list = NULL;
+  affected_iteration_next = NULL;
+  affected_character_count = 0;
+  affected_iteration_active = false;
+}
+#endif
 
 static bool character_is_pending_extraction(const struct char_data *ch)
 {
@@ -1290,6 +1414,7 @@ void affect_to_char_source(struct char_data *ch, struct affected_type *af, long 
   affected_alloc->source_id = source_id;
   affected_alloc->next = ch->affected;
   ch->affected = affected_alloc;
+  affected_registry_sync(ch);
 
   /*affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);*/
   affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
@@ -1368,6 +1493,7 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
 
   REMOVE_FROM_LIST(af, ch->affected, next);
   free_affect(af);
+  affected_registry_sync(ch);
 
   if (removes_repulsion)
     clear_repulsion_lists(ch);
@@ -1427,6 +1553,7 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   REMOVE_FROM_LIST(af, ch->affected, next);
 
   free_affect(af);
+  affected_registry_sync(ch);
 
   affect_total(ch);
 
@@ -2754,6 +2881,10 @@ void extract_obj(struct obj_data *obj)
   if (!obj)
     return;
 
+  autoproc_registry_remove(obj);
+  PERF_note_object_extracted(GET_OBJ_VNUM(obj), obj->perf_origin_zone_vnum,
+                             (enum perf_entity_reason)obj->perf_create_reason);
+
   /* artifact: release ownership unless a player is merely renting out */
   artifact_on_extract(obj);
 
@@ -2900,6 +3031,10 @@ void extract_char_final(struct char_data *ch)
     log("SYSERR: NOWHERE extracting char %s. (%s, extract_char_final)", GET_NAME(ch), __FILE__);
     exit(1);
   }
+
+  if (IS_NPC(ch))
+    PERF_note_mobile_extracted(GET_MOB_VNUM(ch), ch->perf_origin_zone_vnum,
+                               (enum perf_entity_reason)ch->perf_create_reason);
 
   mobile_activity_forget_character(ch);
 
@@ -3147,6 +3282,7 @@ void extract_char_final(struct char_data *ch)
   }
 
   clear_repulsion_lists(ch);
+  affected_registry_detach(ch);
 
   /* If there's a descriptor, they're in the menu now. */
   if (IS_NPC(ch) || !ch->desc)

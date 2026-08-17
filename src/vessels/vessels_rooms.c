@@ -321,6 +321,7 @@ static void attach_ship_room_template_triggers(room_rnum room, enum ship_room_ty
     {
       CREATE(SCRIPT(&world[room]), struct script_data, 1);
     }
+    dg_script_bind_owner(SCRIPT(&world[room]), &world[room], WLD_TRIGGER);
     add_trigger(SCRIPT(&world[room]), trigger, -1);
   }
 }

@@ -42,6 +42,7 @@
 #include "wilderness/wilderness.h"
 #include "character/perks.h"
 #include "bardic_performance.h"
+#include "perfmon.h"
 
 // external
 extern struct raff_node *raff_list;
@@ -1328,34 +1329,28 @@ static void dispatch_affect_wearoff(struct char_data *ch, int spell)
 void affect_update(void)
 {
   struct affected_type *af, *next;
-  struct char_data *i, *next_char;
+  struct char_data *i;
+  struct descriptor_data *descriptor;
   struct raff_node *raff, *next_raff;
   int *wearoff_spells;
   static int update_count = 0;
   size_t expired_count, wearoff_count, wearoff_index;
   int char_count = 0, npc_count = 0, pc_count = 0;
   int affected_chars = 0, processed_affects = 0;
+  size_t eligible_count;
 
   update_count++;
 
-  for (i = character_list; i; i = next_char)
-  {                      /* go through everything */
-    next_char = i->next; /* Cache next pointer in case character is extracted */
+  eligible_count = affected_registry_count();
+  for (i = affected_registry_iteration_begin(); i != NULL; i = affected_registry_iteration_next())
+  {
     char_count++;
     if (IS_NPC(i))
       npc_count++;
     else
       pc_count++;
 
-    /* Skip NPCs with no affects - they don't need affect processing or MSDP updates */
-    if (IS_NPC(i))
-    {
-      if (!i->affected)
-        continue;
-    }
-
-    if (i->affected)
-      affected_chars++;
+    affected_chars++;
 
     expired_count = 0;
     for (af = i->affected; af; af = af->next)
@@ -1395,6 +1390,16 @@ void affect_update(void)
     if (!IS_NPC(i) && i->desc)
       update_msdp_affects(i);
   }
+  affected_registry_iteration_end();
+
+  /* Unaffected connected PCs still need their established MSDP refresh. */
+  for (descriptor = descriptor_list; descriptor != NULL; descriptor = descriptor->next)
+    if (descriptor->character != NULL && !IS_NPC(descriptor->character) &&
+        descriptor->character->affected == NULL)
+      update_msdp_affects(descriptor->character);
+
+  PERF_note_sweep(PERF_SWEEP_AFFECT, (uint64_t)char_count, (uint64_t)eligible_count,
+                  (uint64_t)processed_affects);
 
   /* update the room affections */
   for (raff = raff_list; raff; raff = next_raff)
@@ -12366,7 +12371,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
   /* bring the mob into existence! */
   for (i = 0; i < num; i++)
   {
-    if (!(mob = read_mobile(mob_num, VIRTUAL)))
+    if (!(mob = read_mobile_reason(mob_num, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
     {
       send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
       return;
@@ -14096,7 +14101,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     return;
   }
 
-  if (!(tobj = read_object(object_vnum, VIRTUAL)))
+  if (!(tobj = read_object_reason(object_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
   {
     send_to_char(
         ch, "I seem to have goofed.  Please let staff know these values:  spell %d, obj %d\r\n",
@@ -14109,7 +14114,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   /* the obj (801) should already bet set right, but just in case */
   if (portal_process)
   {
-    if (!(portal = read_object(object_vnum, VIRTUAL)))
+    if (!(portal = read_object_reason(object_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
     {
       send_to_char(
           ch, "I seem to have goofed.  Please let staff know these values:  spell %d, obj %d\r\n",
@@ -14145,7 +14150,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   }
   else if (gate_process)
   {
-    if (!(portal = read_object(object_vnum, VIRTUAL)))
+    if (!(portal = read_object_reason(object_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
     {
       send_to_char(ch, "I seem to have goofed.\r\n");
       log("SYSERR: spell_creations, spell %d, obj %d: obj not found", spellnum, object_vnum);

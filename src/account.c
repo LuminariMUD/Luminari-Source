@@ -69,12 +69,14 @@
 #include "account.h"
 #include "vessels/routing.h"
 #include "campaign.h"
+#include "perfmon.h"
 
 extern MYSQL *conn;
 
 /* Forward reference: helper loaders for attached structures on an account */
 void load_account_characters(struct account_data *account);
 void load_account_unlocks(struct account_data *account);
+static void account_persistence_mark_clean(struct account_data *account);
 
 /* Simple aliases for boolean-like flags used in this file. */
 #define Y TRUE
@@ -657,6 +659,7 @@ int load_account(char *name, struct account_data *account)
   mysql_free_result(result);
   load_account_characters(account);
   load_account_unlocks(account);
+  account_persistence_mark_clean(account);
 
   return (0);
 }
@@ -944,127 +947,344 @@ char *get_char_account_name(char *name)
   return acct_name;
 }
 
-/*
-  save_account(struct account_data *account)
-  Purpose: Upsert account data and associated arrays (characters, races, classes) into DB.
-  Parameters:
-    - account: pointer to populated account (id may be 0 for new)
-  Behavior:
-    1) Upserts into account_data (id, name, password, experience, email).
-       - If id is 0 (new), retrieves auto-generated id via mysql_insert_id.
-    2) Upserts each character name in player_data with account_id.
-    3) Upserts each entry in unlocked_races and unlocked_classes.
-    4) Iterates descriptor_list so that all active descriptors sharing this account id
-       get their unlock lists refreshed and their displayed account experience updated.
-  Safety:
-    - Checks for NULL account and logs error.
-    - Uses VALUES(...) UPSERT pattern.
-*/
-void save_account(struct account_data *account)
+enum account_persistence_component
 {
-  char buf[2048];
-  int i = 0;
-  struct descriptor_data *j, *next_desc;
+  ACCOUNT_PERSIST_CORE = 0,
+  ACCOUNT_PERSIST_CHARACTERS,
+  ACCOUNT_PERSIST_RACES,
+  ACCOUNT_PERSIST_CLASSES,
+  ACCOUNT_PERSIST_COMPONENT_COUNT
+};
+
+static uint64_t account_hash_bytes(uint64_t hash, const void *data, size_t size)
+{
+  const unsigned char *bytes;
+  size_t i;
+
+  bytes = data;
+  for (i = 0; i < size; i++)
+  {
+    hash ^= bytes[i];
+    hash *= UINT64_C(1099511628211);
+  }
+  return hash;
+}
+
+static uint64_t account_hash_string(uint64_t hash, const char *text)
+{
+  if (text == NULL)
+    return account_hash_bytes(hash, "", 1);
+  return account_hash_bytes(hash, text, strlen(text) + 1);
+}
+
+static void account_component_hashes(const struct account_data *account,
+                                     uint64_t hashes[ACCOUNT_PERSIST_COMPONENT_COUNT])
+{
+  uint64_t hash;
+  int i;
+
+  hash = UINT64_C(1469598103934665603);
+  hash = account_hash_string(hash, account->name);
+  hash = account_hash_string(hash, account->password);
+  hash = account_hash_bytes(hash, &account->experience, sizeof(account->experience));
+  hash = account_hash_string(hash, account->email);
+  hash = account_hash_bytes(hash, &account->quit_survey_completed,
+                            sizeof(account->quit_survey_completed));
+  hashes[ACCOUNT_PERSIST_CORE] = hash;
+
+  hash = UINT64_C(1469598103934665603);
+  for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
+    hash = account_hash_string(hash, account->character_names[i]);
+  hashes[ACCOUNT_PERSIST_CHARACTERS] = hash;
+
+  hashes[ACCOUNT_PERSIST_RACES] =
+      account_hash_bytes(UINT64_C(1469598103934665603), account->races, sizeof(account->races));
+  hashes[ACCOUNT_PERSIST_CLASSES] =
+      account_hash_bytes(UINT64_C(1469598103934665603), account->classes, sizeof(account->classes));
+}
+
+static void account_persistence_mark_clean(struct account_data *account)
+{
+  uint64_t hashes[ACCOUNT_PERSIST_COMPONENT_COUNT];
+  int i;
 
   if (account == NULL)
-  {
-    log("SYSERR: Attempted to save NULL account.");
     return;
-  }
-
-  snprintf(
-      buf, sizeof(buf),
-      "INSERT into account_data (id, name, password, experience, email, quit_survey_completed) "
-      "values (%d, '%s', '%s', %d, %s%s%s, %d)"
-      " on duplicate key update password = VALUES(password), "
-      "                         experience = VALUES(experience), "
-      "                         email = VALUES(email), "
-      "                         quit_survey_completed = VALUES(quit_survey_completed);",
-      account->id, account->name, account->password, account->experience,
-      (account->email ? "'" : ""), (account->email ? account->email : "NULL"),
-      (account->email ? "'" : ""), account->quit_survey_completed ? 1 : 0);
-
-  if (mysql_query(conn, buf))
+  account_component_hashes(account, hashes);
+  for (i = 0; i < ACCOUNT_PERSIST_COMPONENT_COUNT; i++)
   {
-    log("SYSERR: Unable to UPSERT into account_data: %s", mysql_error(conn));
-    return;
+    account->persistence_hash[i] = hashes[i];
+    account->persistence_dirty_generation[i] = 0;
+    account->persistence_saved_generation[i] = 0;
   }
+  account->persistence_hash_initialized = true;
+}
 
-  if (account->id == 0) /* This is a new account! */
-    account->id = mysql_insert_id(conn);
+static void account_persistence_detect_dirty(struct account_data *account,
+                                             uint64_t hashes[ACCOUNT_PERSIST_COMPONENT_COUNT])
+{
+  int i;
 
-  /* Update account_id for characters belonging to this account
-   * We only UPDATE, not INSERT - characters already exist in player_data from creation */
-  for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (account->character_names[i] != NULL); i++)
+  account_component_hashes(account, hashes);
+  for (i = 0; i < ACCOUNT_PERSIST_COMPONENT_COUNT; i++)
   {
-    buf[0] = '\0';
-    /* Escape character name to prevent SQL injection */
-    char escaped_name[MAX_INPUT_LENGTH * 2 + 1];
-    mysql_real_escape_string(conn, escaped_name, account->character_names[i],
-                             strlen(account->character_names[i]));
-
-    snprintf(buf, sizeof(buf),
-             "UPDATE player_data SET account_id = %d "
-             "WHERE lower(name) = lower('%s');",
-             account->id, escaped_name);
-    if (mysql_query(conn, buf))
+    if (!account->persistence_hash_initialized || account->persistence_hash[i] != hashes[i])
     {
-      /* Log error but continue - don't abort for single character update failure */
-      log("SYSERR: Unable to UPDATE player_data for %s: %s", account->character_names[i],
-          mysql_error(conn));
+      if (account->persistence_dirty_generation[i] == account->persistence_saved_generation[i])
+        account->persistence_dirty_generation[i]++;
     }
   }
+}
 
-  /* save unlocked races */
-  for (i = 0; i < MAX_UNLOCKED_RACES; i++)
+static bool save_account_character_links(struct account_data *account, char *query,
+                                         size_t query_size)
+{
+  char *escaped_name;
+  int used;
+  int i;
+  int count;
+
+  used = snprintf(query, query_size,
+                  "UPDATE player_data SET account_id = %d WHERE lower(name) IN (", account->id);
+  count = 0;
+  for (i = 0; i < MAX_CHARS_PER_ACCOUNT && account->character_names[i] != NULL; i++)
   {
-    buf[0] = '\0';
-    snprintf(buf, sizeof(buf),
-             "INSERT into unlocked_races (account_id, race_id) "
-             "VALUES (%d, %d)"
-             "on duplicate key update race_id = VALUES(race_id);",
-             account->id, account->races[i]);
-    if (mysql_query(conn, buf))
-    {
-      log("SYSERR: Unable to UPSERT unlocked_races: %s", mysql_error(conn));
-      return;
-    }
+    escaped_name = mysql_escape_string_alloc(conn, account->character_names[i]);
+    if (escaped_name == NULL)
+      return false;
+    used = snprintf_append(query, query_size, used, "%slower('%s')", count > 0 ? "," : "",
+                           escaped_name);
+    free(escaped_name);
+    if ((size_t)used >= query_size - 1)
+      return false;
+    count++;
+  }
+  if (count == 0)
+    return true;
+  used = snprintf_append(query, query_size, used, ")");
+  if ((size_t)used >= query_size - 1)
+    return false;
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Unable to batch account character links: %s", mysql_error(conn));
+    return false;
+  }
+  return true;
+}
+
+static bool save_account_integer_set(int account_id, const char *table, const char *column,
+                                     const int *values, int value_count, char *query,
+                                     size_t query_size)
+{
+  int count;
+  int i;
+  int used;
+
+  snprintf(query, query_size, "DELETE FROM %s WHERE account_id = %d", table, account_id);
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Unable to replace %s: %s", table, mysql_error(conn));
+    return false;
   }
 
-  /* save unlocked classes */
-  for (i = 0; i < MAX_UNLOCKED_CLASSES; i++)
+  used = snprintf(query, query_size, "INSERT INTO %s (account_id, %s) VALUES ", table, column);
+  count = 0;
+  for (i = 0; i < value_count; i++)
   {
-    buf[0] = '\0';
-    snprintf(buf, sizeof(buf),
-             "INSERT into unlocked_classes (account_id, class_id) "
-             "VALUES (%d, %d)"
-             "on duplicate key update class_id = VALUES(class_id);",
-             account->id, account->classes[i]);
-    if (mysql_query(conn, buf))
-    {
-      log("SYSERR: Unable to UPSERT unlocked_classes: %s", mysql_error(conn));
-      return;
-    }
+    if (values[i] == 0)
+      continue;
+    used = snprintf_append(query, query_size, used, "%s(%d,%d)", count > 0 ? "," : "", account_id,
+                           values[i]);
+    if ((size_t)used >= query_size - 1)
+      return false;
+    count++;
   }
-
-  /* what happens if you have multiple characters logged on at the same time?
-     We need to update all characters in game with this account id
-     so that they reflect new unlocks/experience immediately. */
-  for (j = descriptor_list; j; j = next_desc)
+  if (count == 0)
+    return true;
+  used = snprintf_append(query, query_size, used, " ON DUPLICATE KEY UPDATE %s=VALUES(%s)", column,
+                         column);
+  if ((size_t)used >= query_size - 1)
+    return false;
+  if (mysql_query(conn, query))
   {
-    next_desc = j->next;
+    log("SYSERR: Unable to batch %s: %s", table, mysql_error(conn));
+    return false;
+  }
+  return true;
+}
 
-    if (j->account)
+static void synchronize_connected_account_views(const struct account_data *source)
+{
+  struct descriptor_data *descriptor;
+  struct account_data *target;
+  char *character_name_copy;
+  int i;
+
+  for (descriptor = descriptor_list; descriptor != NULL; descriptor = descriptor->next)
+  {
+    target = descriptor->account;
+    if (target == NULL || target->id != source->id)
+      continue;
+    if (target != source)
     {
-      if (j->account->id == account->id)
+      target->experience = source->experience;
+      target->quit_survey_completed = source->quit_survey_completed;
+      for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
       {
-        /* Reload unlock arrays from DB to keep them in sync */
-        load_account_unlocks(j->account);
-        if (IS_PLAYING(j))
-          GET_ACCEXP_DESC(j->character) = account->experience;
+        character_name_copy =
+            source->character_names[i] != NULL ? strdup(source->character_names[i]) : NULL;
+        free(target->character_names[i]);
+        target->character_names[i] = character_name_copy;
       }
+      memcpy(target->races, source->races, sizeof(target->races));
+      memcpy(target->classes, source->classes, sizeof(target->classes));
+      memcpy(target->persistence_hash, source->persistence_hash, sizeof(target->persistence_hash));
+      memcpy(target->persistence_dirty_generation, source->persistence_dirty_generation,
+             sizeof(target->persistence_dirty_generation));
+      memcpy(target->persistence_saved_generation, source->persistence_saved_generation,
+             sizeof(target->persistence_saved_generation));
+      target->persistence_hash_initialized = source->persistence_hash_initialized;
+      snprintf(target->password, sizeof(target->password), "%s", source->password);
+      free(target->email);
+      target->email = source->email != NULL ? strdup(source->email) : NULL;
     }
+    if (IS_PLAYING(descriptor))
+      GET_ACCEXP_DESC(descriptor->character) = source->experience;
   }
+}
+
+/*
+ * Persist account state in one transaction. Character membership and unlock
+ * sets use bounded batch statements, so query volume follows changed data
+ * rather than the fixed capacities of the in-memory arrays.
+ */
+bool save_account_checked(struct account_data *account)
+{
+  char query[16384];
+  char *escaped_name;
+  char *escaped_password;
+  char *escaped_email;
+  enum perf_sql_category previous_sql_category;
+  bool success;
+  bool transaction_started;
+  bool core_dirty;
+  bool characters_dirty;
+  bool races_dirty;
+  bool classes_dirty;
+  uint64_t hashes[ACCOUNT_PERSIST_COMPONENT_COUNT];
+  int i;
+
+  if (account == NULL || account->name == NULL)
+  {
+    log("SYSERR: Attempted to save an incomplete account.");
+    return false;
+  }
+
+  PERF_PROF_ENTER_SAMPLED(pr_save_account_, "save.account");
+  previous_sql_category = PERF_sql_scope_set(PERF_SQL_ACCOUNT);
+  escaped_name = NULL;
+  escaped_password = NULL;
+  escaped_email = NULL;
+  success = false;
+  transaction_started = false;
+  account_persistence_detect_dirty(account, hashes);
+  core_dirty = account->persistence_dirty_generation[ACCOUNT_PERSIST_CORE] !=
+               account->persistence_saved_generation[ACCOUNT_PERSIST_CORE];
+  characters_dirty = account->persistence_dirty_generation[ACCOUNT_PERSIST_CHARACTERS] !=
+                     account->persistence_saved_generation[ACCOUNT_PERSIST_CHARACTERS];
+  races_dirty = account->persistence_dirty_generation[ACCOUNT_PERSIST_RACES] !=
+                account->persistence_saved_generation[ACCOUNT_PERSIST_RACES];
+  classes_dirty = account->persistence_dirty_generation[ACCOUNT_PERSIST_CLASSES] !=
+                  account->persistence_saved_generation[ACCOUNT_PERSIST_CLASSES];
+  if (!core_dirty && !characters_dirty && !races_dirty && !classes_dirty)
+  {
+    success = true;
+    goto cleanup;
+  }
+
+  escaped_name = mysql_escape_string_alloc(conn, account->name);
+  escaped_password = mysql_escape_string_alloc(conn, account->password);
+  escaped_email = account->email != NULL ? mysql_escape_string_alloc(conn, account->email) : NULL;
+  if (escaped_name == NULL || escaped_password == NULL ||
+      (account->email != NULL && escaped_email == NULL))
+  {
+    log("SYSERR: Unable to escape account data for persistence.");
+    goto cleanup;
+  }
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Unable to start account save transaction: %s", mysql_error(conn));
+    goto cleanup;
+  }
+  transaction_started = true;
+
+  if (core_dirty)
+  {
+    snprintf(query, sizeof(query),
+             "INSERT INTO account_data (id,name,password,experience,email,quit_survey_completed) "
+             "VALUES (%d,'%s','%s',%d,%s%s%s,%d) "
+             "ON DUPLICATE KEY UPDATE password=VALUES(password),experience=VALUES(experience),"
+             "email=VALUES(email),quit_survey_completed=VALUES(quit_survey_completed)",
+             account->id, escaped_name, escaped_password, account->experience,
+             escaped_email != NULL ? "'" : "", escaped_email != NULL ? escaped_email : "NULL",
+             escaped_email != NULL ? "'" : "", account->quit_survey_completed ? 1 : 0);
+    if (mysql_query(conn, query))
+    {
+      log("SYSERR: Unable to UPSERT account_data: %s", mysql_error(conn));
+      goto rollback;
+    }
+    if (account->id == 0)
+      account->id = (int)mysql_insert_id(conn);
+  }
+
+  if ((characters_dirty && !save_account_character_links(account, query, sizeof(query))) ||
+      (races_dirty &&
+       !save_account_integer_set(account->id, "unlocked_races", "race_id", account->races,
+                                 MAX_UNLOCKED_RACES, query, sizeof(query))) ||
+      (classes_dirty &&
+       !save_account_integer_set(account->id, "unlocked_classes", "class_id", account->classes,
+                                 MAX_UNLOCKED_CLASSES, query, sizeof(query))))
+    goto rollback;
+
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: Unable to commit account save transaction: %s", mysql_error(conn));
+    goto rollback;
+  }
+  transaction_started = false;
+  success = true;
+  for (i = 0; i < ACCOUNT_PERSIST_COMPONENT_COUNT; i++)
+  {
+    account->persistence_hash[i] = hashes[i];
+    account->persistence_saved_generation[i] = account->persistence_dirty_generation[i];
+  }
+  account->persistence_hash_initialized = true;
+  synchronize_connected_account_views(account);
+  goto cleanup;
+
+rollback:
+  if (mysql_query(conn, "ROLLBACK"))
+    log("SYSERR: Unable to roll back account save transaction: %s", mysql_error(conn));
+  transaction_started = false;
+
+cleanup:
+  if (transaction_started && mysql_query(conn, "ROLLBACK"))
+    log("SYSERR: Unable to clean up account save transaction: %s", mysql_error(conn));
+  if (!success)
+    log("SYSERR: Account '%s' was not durably saved; the current state remains retryable.",
+        account->name);
+  free(escaped_name);
+  free(escaped_password);
+  free(escaped_email);
+  PERF_sql_scope_restore(previous_sql_category);
+  PERF_PROF_EXIT(pr_save_account_);
+  return success;
+}
+
+void save_account(struct account_data *account)
+{
+  (void)save_account_checked(account);
 }
 
 /*

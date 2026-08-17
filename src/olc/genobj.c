@@ -67,6 +67,7 @@ static int update_all_objects(struct obj_data *refobj)
     count++;
 
     /* Update the existing object but save a copy for private information. */
+    autoproc_registry_remove(obj);
     swap = *obj;
     *obj = *refobj;
 
@@ -81,6 +82,10 @@ static int update_all_objects(struct obj_data *refobj)
     obj->next_content = swap.next_content;
     obj->next = swap.next;
     obj->sitting_here = swap.sitting_here;
+    obj->autoproc_next = NULL;
+    obj->autoproc_prev = NULL;
+    obj->autoproc_registered = false;
+    autoproc_registry_sync(obj);
   }
 
   return count;
@@ -542,7 +547,17 @@ int copy_object_preserve(struct obj_data *to, struct obj_data *from)
 int copy_object_main(struct obj_data *to, struct obj_data *from,
                      int free_object __attribute__((unused)))
 {
+  struct obj_data *autoproc_next;
+  struct obj_data *autoproc_prev;
+  bool autoproc_registered;
+
+  autoproc_next = to->autoproc_next;
+  autoproc_prev = to->autoproc_prev;
+  autoproc_registered = to->autoproc_registered;
   *to = *from;
+  to->autoproc_next = autoproc_next;
+  to->autoproc_prev = autoproc_prev;
+  to->autoproc_registered = autoproc_registered;
   copy_object_strings(to, from);
   return TRUE;
 }

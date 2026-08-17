@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "modify.h"
 #include "mysql.h"
+#include "perfmon.h"
 
 #include "wilderness/wilderness.h"
 #include "mud_event.h"
@@ -62,12 +63,27 @@ static bool mysql_test_should_fail_query(void)
 
 int luminari_mysql_query(MYSQL *mysql_conn, const char *query)
 {
+  uint64_t start_usec;
+  uint64_t end_usec;
+  uint64_t elapsed_usec;
+  int result;
+
+  start_usec = PERF_monotonic_usec();
   atomic_fetch_add_explicit(&query_execution_count, 1, memory_order_relaxed);
 #ifdef LUMINARI_CUTEST
   if (mysql_test_should_fail_query())
+  {
+    end_usec = PERF_monotonic_usec();
+    elapsed_usec = end_usec >= start_usec ? end_usec - start_usec : 0;
+    PERF_note_sql_query(query, elapsed_usec, 1);
     return 1;
+  }
 #endif
-  return (mysql_query)(mysql_conn, query);
+  result = (mysql_query)(mysql_conn, query);
+  end_usec = PERF_monotonic_usec();
+  elapsed_usec = end_usec >= start_usec ? end_usec - start_usec : 0;
+  PERF_note_sql_query(query, elapsed_usec, result != 0);
+  return result;
 }
 
 uint64_t mysql_query_counter_value(void)
@@ -315,11 +331,13 @@ MYSQL_POOL_CONN *mysql_pool_acquire(void)
               if (!mysql_real_connect(pc->conn, mysql_pool->host, mysql_pool->username,
                                       mysql_pool->password, mysql_pool->database, 0, NULL, 0))
               {
+                PERF_note_sql_reconnect(FALSE);
                 log("ERROR: Failed to reconnect connection %d: %s", pc->id, mysql_error(pc->conn));
                 pc->state = CONN_STATE_ERROR;
                 mysql_pool->error_count++;
                 continue;
               }
+              PERF_note_sql_reconnect(TRUE);
               pc->thread_id = mysql_thread_id(pc->conn);
             }
           }
@@ -457,11 +475,16 @@ void mysql_pool_health_check(void)
           if (mysql_real_connect(pc->conn, mysql_pool->host, mysql_pool->username,
                                  mysql_pool->password, mysql_pool->database, 0, NULL, 0))
           {
+            PERF_note_sql_reconnect(TRUE);
             pc->state = CONN_STATE_FREE;
             pc->thread_id = mysql_thread_id(pc->conn);
             pc->created = now;
             log("Info: Reconnected connection %d during health check", pc->id);
             errors--;
+          }
+          else
+          {
+            PERF_note_sql_reconnect(FALSE);
           }
         }
       }
@@ -775,9 +798,11 @@ bool ensure_mysql_connection(MYSQL *mysql_conn, const char *caller_func)
     {
       log("SYSERR: %s: Unable to reconnect to MySQL: %s", caller_func ? caller_func : "Unknown",
           mysql_error(mysql_conn));
+      PERF_note_sql_reconnect(FALSE);
       return false;
     }
 
+    PERF_note_sql_reconnect(TRUE);
     log("Info: %s: Successfully reconnected to MySQL", caller_func ? caller_func : "Unknown");
   }
 

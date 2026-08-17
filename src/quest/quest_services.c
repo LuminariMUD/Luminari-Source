@@ -66,7 +66,7 @@ SPECIAL(replace_quest_item)
         if (IS_SET(QST_FLAGS(rnum), AQ_REPLACE_OBJ_REWARD) && QST_OBJ(rnum) > 0 &&
             QST_OBJ(rnum) < 65535)
         {
-          obj = read_object(QST_OBJ(rnum), VIRTUAL);
+          obj = read_object_reason(QST_OBJ(rnum), VIRTUAL, PERF_ENTITY_QUEST);
           if (obj)
           {
             send_to_char(ch, "\tg%5d\tn) \tc%-52.52s\tn \ty%s\tn\r\n", QST_NUM(rnum),
@@ -94,7 +94,7 @@ SPECIAL(replace_quest_item)
         if (IS_SET(QST_FLAGS(rnum), AQ_REPLACE_OBJ_REWARD) && QST_OBJ(rnum) > 0 &&
             QST_OBJ(rnum) < 65535)
         {
-          obj = read_object(QST_OBJ(rnum), VIRTUAL);
+          obj = read_object_reason(QST_OBJ(rnum), VIRTUAL, PERF_ENTITY_QUEST);
           if (obj)
           {
             if (atoidx(arg1) == QST_NUM(rnum))

@@ -5,67 +5,82 @@ Usage:
   perfmon summ
   perfmon prof
   perfmon mem
+  perfmon slow [count] [csv]
+  perfmon sql [csv]
+  perfmon entities [csv]
+  perfmon combat [count] [csv]
+  perfmon saves
+  perfmon top <total|max|p99> [limit]
   perfmon csv
   perfmon sect <section>
   perfmon reset
 
-The perfmon command reports the server's bounded performance and memory telemetry.
-It is available to implementors (LVL_IMPL). Monitoring is always active; there is
-no runtime perfconfig command or sampling-mode switch.
+The implementor-only PERFMON command reports bounded performance, persistence,
+database, entity-lifecycle, combat, and memory telemetry. Monitoring is always
+active; there is no runtime sampling switch.
 
 Commands:
-  all    Show utilization history, cumulative named sections, game-loop
-         telemetry, memory dashboard, event callback profiles, and database queries.
-  summ   Show pulse, second, minute, and hour utilization history.
-  prof   Show cumulative named sections, game-loop telemetry, top event
-         callbacks, and database queries.
-  mem    Show memory dashboard: OS virtual/resident memory, anonymous RSS,
-         heap allocator breakdown, rolling growth rates, and live entity inventory.
-         The inventory includes affects, affected characters, NPC followers,
-         charmed NPCs, and reset-window deltas for growth correlation.
-  csv    Show sampled section data followed by cumulative game-loop counters,
-         memory telemetry, event callback rows, and database queries.
-  sect   Show one named profiling section.
-  reset  Start a new measurement window for performance, memory, event, extraction,
-         catch-up, vessel-message, and database-query counters.
+  all       Show the decision-oriented health summary, persistence scheduler,
+            recent slow pulses, SQL owners, top sections, slow combat records,
+            entity lifecycle, population sweeps, and memory dashboard.
+  summ      Show pulse utilization and measurement-window semantics.
+  prof      Show every cumulative named section, game-loop telemetry, event
+            callback percentiles, and the process-wide query count.
+  mem       Show the current memory dashboard and the bounded one-minute history.
+  slow      Show recent pulses that exceeded the normal 100 ms budget. Optional
+            count limits rows; optional csv selects machine-readable output.
+  sql       Show main/worker calls, errors, reconnects, latency percentiles,
+            normalized table families, and explicit subsystem categories.
+  entities  Show mobile/object create and extract totals, positive-net VNUM and
+            zone cohorts, creation reasons, zone reset costs, population sweep
+            counts, and registry validation results.
+  combat    Show combat chain-limit totals and recent callbacks over 100 ms.
+  saves     Show incremental persistence progress, retry/failure counters, and
+            budget overruns, followed by the sections with the highest maxima.
+  top       Rank profiling sections by total time, maximum, or sampled p99.
+  csv       Show the complete machine-readable telemetry export.
+  sect      Show one named profiling section.
+  reset     Start a new measurement window for every PERFMON subsystem and the
+            database query counter.
 
-The automatic startup window begins after world boot and copyover recovery. Normal
-world-load allocation and boot queries are therefore part of the baseline, not
-reported as live memory growth or operational database traffic.
+The startup window begins after world boot and copyover recovery. Boot allocations,
+entity loads, and SQL establish the baseline and are not reported as runtime growth.
 
-Game-loop fields:
-  Event queue calls              event_process() invocations
-  callbacks                      due callbacks executed
-  created                        callbacks created during event processing
-  depth=initial->latest          queue depth across the report interval
-  max_before / max_after         peak queue depths around event processing
-  Extractions processed          characters finalized from the pending list
-  Catch-up requested_missed      pulses requested from wall-clock delay
-  replayed_missed                extra heartbeats actually executed
-  remaining_backlog              requested pulses discarded on that pass
-  budget_exhausted               passes stopped by the 100 ms replay budget
+Slow-pulse records preserve the wall/monotonic time, logical heartbeat, elapsed
+milliseconds, schedule classes, expensive top-level sections, main-thread SQL,
+event callbacks, entity counts, pending extractions, and catch-up requested/replayed/
+dropped pulses. The recorder is bounded and stores no SQL values, credentials,
+commands, or player text.
 
-Event callback rows are the top 16 identities by total callback time. Compare
-calls with average_usec: a high total and modest average usually means excess
-callback volume, while a large maximum with few calls points to one expensive
-callback. The registry status reports registered identities out of its fixed
-512-entry capacity and counts any unregistered overflow calls.
+Persistence work is dirty-driven and incremental. A cycle snapshots player IDs and
+runs at most one character, pet, last-online, artifact, crash-object, or house unit
+per pulse. The target budget is 20 ms and the hard diagnostic threshold is 50 ms.
+An individual synchronous operation cannot be preempted, so an overrun is counted and
+logged for follow-up. Disconnects are skipped safely and failed work is retried.
 
-Use the memory inventory deltas with heap growth. Rising affect-node or charmed
-NPC counts indicate live gameplay population growth rather than an allocator-only
-leak. Stable entity counts with continued anonymous RSS and heap growth warrant a
-deeper allocation trace. DG wait resumption and casting callbacks do not validate
-owners by scanning global entity lists; owner teardown cancels their pending events.
+Profiling totals, averages, and maxima are cumulative since reset. Percentiles cover
+the most recent bounded sample window and display n/a when sampling is disabled.
+Total percent is inclusive elapsed-wall time, so nested rows must not be added as if
+they were exclusive CPU shares.
 
-The game loop always executes the current heartbeat. Extra heartbeats run only
-while the batch remains within one normal 100 ms outer-loop budget. Unreplayed
-time is discarded so the server returns to socket and command processing.
-Pulse-based casting, combat rounds, cooldowns, spell preparation, and vessel
-schedules keep their logical order but run later in wall-clock time during
-overload.
+Event callback rows include p50, p95, and p99. Combat records include safe bounded
+context and identify attack/proc-chain truncation. The guard prevents an ordinary
+combat callback from generating more than 128 attacks or 128 special-procedure calls.
 
-Automatic PERFMON high-water reports are rate limited by severity. Catch-up
-log messages summarize at most one five-second window, while perfmon counters
-still record every slow pass.
+Entity lifecycle counters are recorded centrally and major creation paths apply an
+explicit reason such as zone reset, DG script, spell/summon, encounter, quest, vessel,
+pet restore, special procedure, or staff command. Unknown remains visible so missing
+attribution can be repaired. Registry validation compares autoproc, affected-character,
+and DG random-trigger membership against full lists only when the report is requested;
+production hot paths use the registries.
+
+The memory history retains up to one day of minute samples. Interpret memory status
+together with entity deltas: growth explained by live mobiles or objects is a lifecycle
+issue, while continuing anonymous/heap growth after entity counts flatten warrants an
+allocation trace. Production acceptance still requires a representative long run.
+
+The game loop always executes the current heartbeat. Extra heartbeats replay only
+within one normal outer-loop budget. Unreplayed time is reported as dropped_missed,
+not as a retained backlog, so socket and command processing resume promptly.
 
 See also: SHOW STATS

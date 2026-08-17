@@ -920,11 +920,13 @@ void Test_crash_save_single_and_incremental(CuTest *tc)
   descriptor_list = &desc;
 
   saved = Crash_save_incremental(1);
-  CuAssertIntEquals(tc, 1, saved);
-  CuAssertTrue(tc, !PLR_FLAGGED(&ch, PLR_CRASH));
+  CuAssertIntEquals(tc, PERSISTENCE_STEP_FAILURE, saved);
+  CuAssertTrue(tc, PLR_FLAGGED(&ch, PLR_CRASH));
 
   /* Remove descriptor from descriptor_list */
   descriptor_list = desc.next;
+  saved = Crash_save_incremental(1);
+  CuAssertIntEquals(tc, PERSISTENCE_STEP_COMPLETE, saved);
 
   free(ch.player.name);
 }

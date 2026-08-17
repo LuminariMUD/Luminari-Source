@@ -95,6 +95,7 @@
 #include "mob/mob_known_spells.h"
 #include "magic/moon_bonus_spells.h" /* For moon-based bonus spell slots */
 #include "bardic_performance.h"
+#include "perfmon.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -113,6 +114,11 @@ struct obj_data *object_list = NULL; /* global linked list of objs	*/
 struct index_data *obj_index = NULL; /* index table for object file	 */
 struct obj_data *obj_proto = NULL;   /* prototypes for objs		 */
 obj_rnum top_of_objt = 0;            /* top of object index table	 */
+
+static struct obj_data *autoproc_object_list = NULL;
+static struct obj_data *autoproc_iteration_next = NULL;
+static size_t autoproc_object_count = 0;
+static bool autoproc_iteration_active = false;
 
 /* Object rnum hash table for fast lookups */
 struct obj_rnum_hash_bucket obj_rnum_hash[OBJ_RNUM_HASH_SIZE];
@@ -4715,6 +4721,7 @@ struct char_data *create_char(void)
 
   ch->next = character_list;
   character_list = ch;
+  affected_registry_attach(ch);
 
   GET_ID(ch) = 0;
 
@@ -4736,6 +4743,8 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
 {
   mob_rnum i;
   struct char_data *mob;
+  zone_rnum origin_zone;
+  enum perf_entity_reason reason;
 
   if (type == VIRTUAL)
   {
@@ -4759,6 +4768,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   *mob = mob_proto[i];
   mob->next = character_list;
   character_list = mob;
+  affected_registry_attach(mob);
 
   new_mobile_data(mob);
   /* Allocate mobile event list */
@@ -4847,13 +4857,31 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   /* Initialize known spell slots for mobs */
   init_known_spell_slots(mob);
 
+  reason = PERF_entity_current_reason();
+  origin_zone = real_zone_by_thing(GET_MOB_VNUM(mob));
+  mob->perf_origin_zone_vnum = origin_zone != NOWHERE ? zone_table[origin_zone].number : NOWHERE;
+  mob->perf_create_reason = (unsigned char)reason;
+  PERF_note_mobile_created(GET_MOB_VNUM(mob), mob->perf_origin_zone_vnum, reason);
+
   return (mob);
+}
+
+struct char_data *read_mobile_reason(mob_vnum nr, int type, enum perf_entity_reason reason)
+{
+  enum perf_entity_reason previous_reason;
+  struct char_data *mob;
+
+  previous_reason = PERF_entity_scope_set(reason);
+  mob = read_mobile(nr, type);
+  PERF_entity_scope_restore(previous_reason);
+  return mob;
 }
 
 /* create an object, and add it to the object list */
 struct obj_data *create_obj(void)
 {
   struct obj_data *obj;
+  enum perf_entity_reason reason;
 
   CREATE(obj, struct obj_data, 1);
   clear_object(obj);
@@ -4865,8 +4893,119 @@ struct obj_data *create_obj(void)
 
   GET_ID(obj) = 0;
 
+  reason = PERF_entity_current_reason();
+  obj->perf_origin_zone_vnum = NOWHERE;
+  obj->perf_create_reason = (unsigned char)reason;
+  PERF_note_object_created(NOTHING, NOWHERE, reason);
+
   return (obj);
 }
+
+void autoproc_registry_sync(struct obj_data *obj)
+{
+  bool eligible;
+
+  if (obj == NULL)
+    return;
+  eligible = OBJ_FLAGGED(obj, ITEM_AUTOPROC);
+  if (eligible && !obj->autoproc_registered)
+  {
+    obj->autoproc_prev = NULL;
+    obj->autoproc_next = autoproc_object_list;
+    if (autoproc_object_list != NULL)
+      autoproc_object_list->autoproc_prev = obj;
+    autoproc_object_list = obj;
+    obj->autoproc_registered = true;
+    autoproc_object_count++;
+  }
+  else if (!eligible && obj->autoproc_registered)
+  {
+    autoproc_registry_remove(obj);
+  }
+}
+
+void autoproc_registry_remove(struct obj_data *obj)
+{
+  if (obj == NULL || !obj->autoproc_registered)
+    return;
+
+  if (autoproc_iteration_active && autoproc_iteration_next == obj)
+    autoproc_iteration_next = obj->autoproc_next;
+  if (obj->autoproc_prev != NULL)
+    obj->autoproc_prev->autoproc_next = obj->autoproc_next;
+  else
+    autoproc_object_list = obj->autoproc_next;
+  if (obj->autoproc_next != NULL)
+    obj->autoproc_next->autoproc_prev = obj->autoproc_prev;
+  obj->autoproc_next = NULL;
+  obj->autoproc_prev = NULL;
+  obj->autoproc_registered = false;
+  if (autoproc_object_count > 0)
+    autoproc_object_count--;
+}
+
+struct obj_data *autoproc_registry_iteration_begin(void)
+{
+  if (autoproc_iteration_active)
+  {
+    log("SYSERR: Nested ITEM_AUTOPROC registry iteration rejected.");
+    return NULL;
+  }
+  autoproc_iteration_active = true;
+  autoproc_iteration_next = autoproc_object_list;
+  return autoproc_registry_iteration_next();
+}
+
+struct obj_data *autoproc_registry_iteration_next(void)
+{
+  struct obj_data *obj;
+
+  if (!autoproc_iteration_active)
+    return NULL;
+  obj = autoproc_iteration_next;
+  if (obj != NULL)
+    autoproc_iteration_next = obj->autoproc_next;
+  return obj;
+}
+
+void autoproc_registry_iteration_end(void)
+{
+  autoproc_iteration_next = NULL;
+  autoproc_iteration_active = false;
+}
+
+size_t autoproc_registry_count(void)
+{
+  return autoproc_object_count;
+}
+
+size_t autoproc_registry_validate(void)
+{
+  struct obj_data *obj;
+  size_t expected;
+  size_t actual;
+
+  expected = 0;
+  for (obj = object_list; obj != NULL; obj = obj->next)
+    if (OBJ_FLAGGED(obj, ITEM_AUTOPROC))
+      expected++;
+  actual = 0;
+  for (obj = autoproc_object_list; obj != NULL; obj = obj->autoproc_next)
+    actual++;
+  if (expected == actual && actual == autoproc_object_count)
+    return 0;
+  return expected > actual ? expected - actual : actual - expected;
+}
+
+#ifdef LUMINARI_CUTEST
+void autoproc_registry_reset_for_test(void)
+{
+  autoproc_object_list = NULL;
+  autoproc_iteration_next = NULL;
+  autoproc_object_count = 0;
+  autoproc_iteration_active = false;
+}
+#endif
 
 /* Hash table functions for fast object rnum lookups */
 
@@ -4940,6 +5079,8 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   struct obj_special_ability *proto_specab, *specab_list;
   int j;
   obj_rnum i = type == VIRTUAL ? real_object(nr) : nr;
+  zone_rnum origin_zone;
+  enum perf_entity_reason reason;
 
   if (i == NOTHING || i > top_of_objt)
   {
@@ -5073,7 +5214,25 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
     // REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_SET_STATS_AT_LOAD);
   }
 
+  reason = PERF_entity_current_reason();
+  origin_zone = real_zone_by_thing(GET_OBJ_VNUM(obj));
+  obj->perf_origin_zone_vnum = origin_zone != NOWHERE ? zone_table[origin_zone].number : NOWHERE;
+  obj->perf_create_reason = (unsigned char)reason;
+  PERF_note_object_created(GET_OBJ_VNUM(obj), obj->perf_origin_zone_vnum, reason);
+  autoproc_registry_sync(obj);
+
   return (obj);
+}
+
+struct obj_data *read_object_reason(obj_vnum nr, int type, enum perf_entity_reason reason)
+{
+  enum perf_entity_reason previous_reason;
+  struct obj_data *obj;
+
+  previous_reason = PERF_entity_scope_set(reason);
+  obj = read_object(nr, type);
+  PERF_entity_scope_restore(previous_reason);
+  return obj;
 }
 
 #define ZO_DEAD 999
@@ -5429,6 +5588,17 @@ void reset_zone(zone_rnum zone)
   room_rnum rrnum = 0;
   struct char_data *tmob = NULL; /* for trigger assignment */
   struct obj_data *tobj = NULL;  /* for trigger assignment */
+  enum perf_entity_reason previous_entity_reason;
+  uint64_t reset_start_usec;
+  uint64_t reset_end_usec;
+  uint64_t mob_created_before;
+  uint64_t mob_extracted_before;
+  uint64_t obj_created_before;
+  uint64_t obj_extracted_before;
+  uint64_t mob_created_after;
+  uint64_t mob_extracted_after;
+  uint64_t obj_created_after;
+  uint64_t obj_extracted_after;
 
   /* CRITICAL: Set zone reset state to prevent race conditions */
   if (zone_table[zone].reset_state == ZONE_RESET_ACTIVE)
@@ -5437,6 +5607,11 @@ void reset_zone(zone_rnum zone)
         zone_table[zone].number);
     return;
   }
+
+  reset_start_usec = PERF_monotonic_usec();
+  PERF_entity_totals(&mob_created_before, &mob_extracted_before, &obj_created_before,
+                     &obj_extracted_before);
+  previous_entity_reason = PERF_entity_scope_set(PERF_ENTITY_ZONE_RESET);
 
   zone_table[zone].reset_state = ZONE_RESET_ACTIVE;
   zone_table[zone].reset_start = time(0);
@@ -6116,6 +6291,7 @@ void reset_zone(zone_rnum zone)
       {
         if (!SCRIPT(tmob))
           CREATE(SCRIPT(tmob), struct script_data, 1);
+        dg_script_bind_owner(SCRIPT(tmob), tmob, MOB_TRIGGER);
         add_trigger(SCRIPT(tmob), read_trigger(ZCMD.arg2), -1);
         push_result(1);
       }
@@ -6123,6 +6299,7 @@ void reset_zone(zone_rnum zone)
       {
         if (!SCRIPT(tobj))
           CREATE(SCRIPT(tobj), struct script_data, 1);
+        dg_script_bind_owner(SCRIPT(tobj), tobj, OBJ_TRIGGER);
         add_trigger(SCRIPT(tobj), read_trigger(ZCMD.arg2), -1);
         push_result(1);
       }
@@ -6135,6 +6312,7 @@ void reset_zone(zone_rnum zone)
         }
         if (!world[ZCMD.arg3].script)
           CREATE(world[ZCMD.arg3].script, struct script_data, 1);
+        dg_script_bind_owner(world[ZCMD.arg3].script, &world[ZCMD.arg3], WLD_TRIGGER);
         add_trigger(world[ZCMD.arg3].script, read_trigger(ZCMD.arg2), -1);
         push_result(1);
       }
@@ -6289,6 +6467,16 @@ void reset_zone(zone_rnum zone)
         zone_table[zone].number, GET_OBJ_VNUM(tobj), tobj->short_description);
     extract_obj(tobj);
   }
+
+  PERF_entity_scope_restore(previous_entity_reason);
+  reset_end_usec = PERF_monotonic_usec();
+  PERF_entity_totals(&mob_created_after, &mob_extracted_after, &obj_created_after,
+                     &obj_extracted_after);
+  PERF_note_zone_reset(
+      zone_table[zone].number,
+      reset_end_usec >= reset_start_usec ? reset_end_usec - reset_start_usec : 0,
+      mob_created_after - mob_created_before, mob_extracted_after - mob_extracted_before,
+      obj_created_after - obj_created_before, obj_extracted_after - obj_extracted_before);
 }
 
 /* for use in reset_zone; return TRUE if zone 'nr' is free of PC's  */
@@ -6740,6 +6928,8 @@ void free_char(struct char_data *ch)
   int i = 0;
   struct alias_data *a = NULL;
 
+  affected_registry_detach(ch);
+
   /* Free the action queues for ALL characters, not just those with player_specials */
   if (GET_QUEUE(ch))
     free_action_queue(GET_QUEUE(ch));
@@ -7005,6 +7195,8 @@ void free_obj_special_abilities(struct obj_special_ability *list)
 
 void free_obj(struct obj_data *obj)
 {
+  autoproc_registry_remove(obj);
+
   if (GET_OBJ_RNUM(obj) == NOWHERE)
   {
     free_object_strings(obj);

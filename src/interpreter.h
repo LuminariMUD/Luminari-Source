@@ -58,6 +58,7 @@ int enter_player_game(struct descriptor_data *d);
 
 int load_account(char *name, struct account_data *account);
 void save_account(struct account_data *account);
+bool save_account_checked(struct account_data *account);
 void show_account_menu(struct descriptor_data *d);
 void remove_char_from_account(struct char_data *ch, struct account_data *account);
 char *get_char_account_name(char *name);

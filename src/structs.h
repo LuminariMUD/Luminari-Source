@@ -6106,6 +6106,15 @@ struct obj_data
   /* Hash table support for fast rnum lookups */
   struct obj_data *next_in_hash; // Next object in hash bucket
   struct obj_data *prev_in_hash; // Previous object in hash bucket
+
+  /* Runtime-only ITEM_AUTOPROC registry links. */
+  struct obj_data *autoproc_next;
+  struct obj_data *autoproc_prev;
+  bool autoproc_registered;
+
+  /* PERFMON lifecycle attribution; runtime-only and never serialized. */
+  int perf_origin_zone_vnum;
+  unsigned char perf_create_reason;
 };
 
 /** Instance info for an object that gets saved to disk.
@@ -7491,6 +7500,10 @@ struct char_data
   struct mob_special_data mob_specials;        /**< NPC specials		  */
 
   struct affected_type *affected;        /**< affected by what spells    */
+  struct char_data *affected_next;       /**< Runtime affected-owner registry link. */
+  struct char_data *affected_prev;       /**< Runtime affected-owner registry link. */
+  bool affected_registered;              /**< Runtime affected-owner registry state. */
+  bool affected_registry_live;           /**< Eligible live-world registry owner. */
   struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */
 
   struct obj_data *carrying;    /**< List head for objects in inventory */
@@ -7524,6 +7537,10 @@ struct char_data
   long int confuser_idnum;
   bool preserve_organs_procced;
   bool mute_equip_messages;
+
+  /* PERFMON lifecycle attribution for NPC instances; runtime-only. */
+  int perf_origin_zone_vnum;
+  unsigned char perf_create_reason;
 
   int natures_wrath_cooldown; /* Beast Master capstone cooldown (seconds) */
 };
@@ -8120,6 +8137,11 @@ struct account_data
   int races[MAX_UNLOCKED_RACES];
   char *email;
   bool quit_survey_completed;
+  /* Runtime-only component generations/hashes for dirty persistence. */
+  unsigned long long persistence_hash[4];
+  unsigned long long persistence_dirty_generation[4];
+  unsigned long long persistence_saved_generation[4];
+  bool persistence_hash_initialized;
   //        int surveys[4];
   //        struct obj_data *item_bank;
   //        int item_bank_size;

@@ -12,6 +12,62 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* Heartbeat schedule classes retained in slow-pulse flight records. */
+enum perf_schedule_flag
+{
+  PERF_SCHEDULE_1_SECOND = 1ULL << 0,
+  PERF_SCHEDULE_3_SECONDS = 1ULL << 1,
+  PERF_SCHEDULE_5_SECONDS = 1ULL << 2,
+  PERF_SCHEDULE_6_SECONDS = 1ULL << 3,
+  PERF_SCHEDULE_13_SECONDS = 1ULL << 4,
+  PERF_SCHEDULE_30_SECONDS = 1ULL << 5,
+  PERF_SCHEDULE_60_SECONDS = 1ULL << 6,
+  PERF_SCHEDULE_75_SECONDS = 1ULL << 7,
+  PERF_SCHEDULE_AUTOSAVE = 1ULL << 8,
+  PERF_SCHEDULE_LONG_INTERVAL = 1ULL << 9
+};
+
+/* Explicit SQL owners. Unscoped callers remain visible as "other". */
+enum perf_sql_category
+{
+  PERF_SQL_OTHER = 0,
+  PERF_SQL_ACCOUNT,
+  PERF_SQL_CHARACTER,
+  PERF_SQL_PET,
+  PERF_SQL_CRASH_OBJECT,
+  PERF_SQL_HOUSE,
+  PERF_SQL_LAST_ONLINE,
+  PERF_SQL_ARTIFACT,
+  PERF_SQL_CATEGORY_COUNT
+};
+
+/* Stable entity-creation owners used by the lifecycle report. */
+enum perf_entity_reason
+{
+  PERF_ENTITY_UNKNOWN = 0,
+  PERF_ENTITY_BOOT,
+  PERF_ENTITY_ZONE_RESET,
+  PERF_ENTITY_DG_SCRIPT,
+  PERF_ENTITY_SPELL_SUMMON,
+  PERF_ENTITY_ENCOUNTER,
+  PERF_ENTITY_QUEST,
+  PERF_ENTITY_VESSEL,
+  PERF_ENTITY_PET_RESTORE,
+  PERF_ENTITY_SPECIAL,
+  PERF_ENTITY_STAFF,
+  PERF_ENTITY_REASON_COUNT
+};
+
+enum perf_sweep_kind
+{
+  PERF_SWEEP_AUTOPROC = 0,
+  PERF_SWEEP_DG_MOBILE_RANDOM,
+  PERF_SWEEP_DG_OBJECT_RANDOM,
+  PERF_SWEEP_DG_ROOM_RANDOM,
+  PERF_SWEEP_AFFECT,
+  PERF_SWEEP_COUNT
+};
+
 /* Number of pulses per second (defined elsewhere in the codebase) */
 extern const unsigned PERF_pulse_per_second;
 
@@ -26,6 +82,12 @@ extern const unsigned PERF_pulse_per_second;
  *            Values over 100% indicate the pulse took longer than allocated
  */
 void PERF_log_pulse(double val);
+
+/** Record the logical heartbeat most recently executed in this outer loop. */
+void PERF_note_heartbeat(uint64_t pulse_number);
+
+/** Add one or more schedule-class bits to the current outer-loop context. */
+void PERF_note_schedule(uint64_t schedule_flags);
 
 /**
  * @brief Add game-loop heartbeats missed during a lagged pass
@@ -106,6 +168,84 @@ void PERF_cleanup(void);
  */
 size_t PERF_repr(char *out_buf, size_t n);
 
+/**
+ * Format the bounded slow-pulse flight recorder.
+ *
+ * @param out_buf Destination buffer.
+ * @param n Destination capacity.
+ * @param count Number of newest records to print; zero selects the default.
+ * @param csv Non-zero selects machine-readable CSV.
+ */
+size_t PERF_slow_repr(char *out_buf, size_t n, size_t count, int csv);
+
+/* ========================================================================
+ * SQL MONITORING
+ * ======================================================================== */
+
+/** Set the current thread's explicit query owner and return the prior owner. */
+enum perf_sql_category PERF_sql_scope_set(enum perf_sql_category category);
+
+/** Restore a query owner returned by PERF_sql_scope_set(). */
+void PERF_sql_scope_restore(enum perf_sql_category category);
+
+/** Record one query without retaining SQL values or full statement text. */
+void PERF_note_sql_query(const char *query, uint64_t elapsed_usec, int failed);
+
+/** Record a reconnect attempt and whether it restored service. */
+void PERF_note_sql_reconnect(int succeeded);
+
+/** Format cumulative SQL latency and normalized-family telemetry. */
+size_t PERF_sql_repr(char *out_buf, size_t n, int csv);
+
+/* ========================================================================
+ * ENTITY LIFECYCLE MONITORING
+ * ======================================================================== */
+
+/** Set the creation owner for nested mobile/object constructors. */
+enum perf_entity_reason PERF_entity_scope_set(enum perf_entity_reason reason);
+
+/** Restore a creation owner returned by PERF_entity_scope_set(). */
+void PERF_entity_scope_restore(enum perf_entity_reason reason);
+
+/** Return the current scoped entity owner for instance metadata. */
+enum perf_entity_reason PERF_entity_current_reason(void);
+
+void PERF_note_mobile_created(int vnum, int zone_vnum, enum perf_entity_reason reason);
+void PERF_note_mobile_extracted(int vnum, int zone_vnum, enum perf_entity_reason reason);
+void PERF_note_object_created(int vnum, int zone_vnum, enum perf_entity_reason reason);
+void PERF_note_object_extracted(int vnum, int zone_vnum, enum perf_entity_reason reason);
+void PERF_note_zone_reset(int zone_vnum, uint64_t elapsed_usec, uint64_t mobiles_created,
+                          uint64_t mobiles_extracted, uint64_t objects_created,
+                          uint64_t objects_extracted);
+void PERF_entity_totals(uint64_t *mobiles_created, uint64_t *mobiles_extracted,
+                        uint64_t *objects_created, uint64_t *objects_extracted);
+size_t PERF_entities_repr(char *out_buf, size_t n, int csv);
+
+/** Record population work so reports distinguish visited, eligible, and acted-on owners. */
+void PERF_note_sweep(enum perf_sweep_kind kind, uint64_t visited, uint64_t eligible,
+                     uint64_t acted);
+
+/* ========================================================================
+ * COMBAT CALLBACK MONITORING
+ * ======================================================================== */
+
+struct char_data;
+
+/** Begin safe, bounded context collection for one combat-round callback. */
+void PERF_combat_round_begin(const struct char_data *ch);
+
+/** Count one generated attack and reject work beyond the per-callback safety limit. */
+int PERF_combat_allow_attack(void);
+
+/** Count one combat special/proc and reject work beyond the per-callback safety limit. */
+int PERF_combat_allow_proc(void);
+
+/** Complete the current callback and retain it when slow or guard-limited. */
+void PERF_combat_round_end(void);
+
+/** Format bounded slow-combat and chain-limit telemetry. */
+size_t PERF_combat_repr(char *out_buf, size_t n, size_t count, int csv);
+
 /* ========================================================================
  * CODE PROFILING
  * ======================================================================== */
@@ -167,6 +307,9 @@ size_t PERF_prof_repr_pulse(char *out_buf, size_t n);
  * @return Number of characters written
  */
 size_t PERF_prof_repr_total(char *out_buf, size_t n);
+
+/** Format cumulative sections ranked by total time, maximum, or rolling p99. */
+size_t PERF_prof_repr_top(char *out_buf, size_t n, const char *metric, size_t limit);
 
 /**
  * @brief Generate machine-readable cumulative profiling data
@@ -300,5 +443,12 @@ int PERF_memory_growth_rate(double *rss_kib_per_min, double *anon_kib_per_min,
  * @param sect Variable name of the profiling section
  */
 #define PERF_PROF_EXIT(sect) PERF_prof_sect_exit(sect)
+
+/** Begin a profiled section with bounded rolling percentile sampling enabled. */
+#define PERF_PROF_ENTER_SAMPLED(sect, sect_descr)                                                  \
+  static struct PERF_prof_sect *sect = NULL;                                                       \
+  PERF_prof_sect_init(&sect, sect_descr);                                                          \
+  PERF_prof_sect_enable_sampling(sect);                                                            \
+  PERF_prof_sect_enter(sect)
 
 #endif /* PERFMON_H */

@@ -26,6 +26,7 @@
 #include "combat/spec_abilities.h"
 #include "spec_artifacts.h"
 #include "objsave.h"
+#include "perfmon.h"
 
 #define OBJSAVE_DB 1
 
@@ -1869,14 +1870,22 @@ int Crash_save_single(struct char_data *ch, uint64_t *obj_usec, uint64_t *char_u
 {
   struct timeval t_start, t_mid, t_end;
   uint64_t o_time = 0, c_time = 0;
+  enum perf_sql_category previous_sql_category;
+  bool character_saved;
 
   if (!ch || IS_NPC(ch))
     return 0;
 
   gettimeofday(&t_start, NULL);
+  PERF_PROF_ENTER_SAMPLED(pr_crash_object_save_, "save.crash_object");
+  previous_sql_category = PERF_sql_scope_set(PERF_SQL_CRASH_OBJECT);
   Crash_crashsave(ch);
+  PERF_sql_scope_restore(previous_sql_category);
+  PERF_PROF_EXIT(pr_crash_object_save_);
   gettimeofday(&t_mid, NULL);
-  save_char(ch, 0);
+  PERF_PROF_ENTER_SAMPLED(pr_crash_character_save_, "save.crash_character");
+  character_saved = save_char_checked(ch, 0);
+  PERF_PROF_EXIT(pr_crash_character_save_);
   gettimeofday(&t_end, NULL);
 
   o_time = (t_mid.tv_sec - t_start.tv_sec) * 1000000ULL + (t_mid.tv_usec - t_start.tv_usec);
@@ -1887,7 +1896,8 @@ int Crash_save_single(struct char_data *ch, uint64_t *obj_usec, uint64_t *char_u
   if (char_usec)
     *char_usec = c_time;
 
-  REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
+  if (character_saved)
+    REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
 
   if (o_time + c_time > 100000ULL) /* > 100ms */
   {
@@ -1897,15 +1907,15 @@ int Crash_save_single(struct char_data *ch, uint64_t *obj_usec, uint64_t *char_u
         (unsigned long long)(o_time + c_time));
   }
 
-  return 1;
+  return character_saved ? 1 : 0;
 }
 
-int Crash_save_incremental(int max_saves)
+enum persistence_step_result Crash_save_incremental(int max_saves)
 {
   static struct descriptor_data *next_d = NULL;
+  static int remaining_to_check = 0;
   struct descriptor_data *d;
   int saved_count = 0;
-  int checked = 0;
   int total_descs = 0;
   bool found = false;
 
@@ -1915,10 +1925,11 @@ int Crash_save_incremental(int max_saves)
   if (total_descs == 0)
   {
     next_d = NULL;
-    return 0;
+    remaining_to_check = 0;
+    return PERSISTENCE_STEP_COMPLETE;
   }
 
-  if (next_d != NULL)
+  if (next_d != NULL && remaining_to_check > 0)
   {
     for (d = descriptor_list; d; d = d->next)
     {
@@ -1929,30 +1940,47 @@ int Crash_save_incremental(int max_saves)
       }
     }
     if (!found)
+    {
       next_d = descriptor_list;
+      remaining_to_check = total_descs;
+    }
   }
   else
   {
     next_d = descriptor_list;
+    remaining_to_check = total_descs;
   }
 
   d = next_d;
-  while (d != NULL && checked < total_descs && (max_saves <= 0 || saved_count < max_saves))
+  while (d != NULL && remaining_to_check > 0 && (max_saves <= 0 || saved_count < max_saves))
   {
     struct descriptor_data *curr_d = d;
     d = d->next ? d->next : descriptor_list;
-    checked++;
+    remaining_to_check--;
 
     if (STATE(curr_d) == CON_PLAYING && curr_d->character && !IS_NPC(curr_d->character) &&
         PLR_FLAGGED(curr_d->character, PLR_CRASH))
     {
-      Crash_save_single(curr_d->character, NULL, NULL);
+      if (!Crash_save_single(curr_d->character, NULL, NULL))
+      {
+        /* Retry this same dirty character after the scheduler backoff.  Keep
+         * only the pointer value; the next call resolves it against the live
+         * descriptor list before dereferencing it. */
+        next_d = curr_d;
+        remaining_to_check++;
+        return PERSISTENCE_STEP_FAILURE;
+      }
       saved_count++;
     }
   }
 
   next_d = d;
-  return saved_count;
+  if (remaining_to_check == 0)
+  {
+    next_d = NULL;
+    return PERSISTENCE_STEP_COMPLETE;
+  }
+  return saved_count > 0 ? PERSISTENCE_STEP_PROGRESS : PERSISTENCE_STEP_IDLE;
 }
 
 void Crash_save_all(void)

@@ -483,7 +483,7 @@ void create_mission_mobs(char_data *ch)
 
   for (i = 0; i < 4; i++)
   {
-    mob = read_mobile(MISSION_MOB_DFLT_VNUM, VIRTUAL);
+    mob = read_mobile_reason(MISSION_MOB_DFLT_VNUM, VIRTUAL, PERF_ENTITY_QUEST);
     if (!mob)
       return;
     GET_SEX(mob) = dice(1, 2);
@@ -598,7 +598,7 @@ void create_mission_mobs(char_data *ch)
 
   for (i = 0; i < 4; i++)
   {
-    mob = read_mobile(MISSION_MOB_DFLT_VNUM, VIRTUAL);
+    mob = read_mobile_reason(MISSION_MOB_DFLT_VNUM, VIRTUAL, PERF_ENTITY_QUEST);
     if (!mob)
       return;
     GET_SEX(mob) = dice(1, 2);
@@ -694,7 +694,7 @@ void create_mission_mobs(char_data *ch)
 
   for (i = 0; i < 4; i++)
   {
-    mob = read_mobile(MISSION_MOB_DFLT_VNUM, VIRTUAL);
+    mob = read_mobile_reason(MISSION_MOB_DFLT_VNUM, VIRTUAL, PERF_ENTITY_QUEST);
 
     if (!mob)
       return;

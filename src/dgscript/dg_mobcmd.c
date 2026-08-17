@@ -540,7 +540,7 @@ ACMD(do_mload)
         return;
       }
     }
-    if ((mob = read_mobile(number, VIRTUAL)) == NULL)
+    if ((mob = read_mobile_reason(number, VIRTUAL, PERF_ENTITY_DG_SCRIPT)) == NULL)
     {
       mob_log(ch, "mload: bad mob vnum");
       return;
@@ -563,7 +563,7 @@ ACMD(do_mload)
   }
   else if (is_abbrev(arg1, "obj"))
   {
-    if ((object = read_object(number, VIRTUAL)) == NULL)
+    if ((object = read_object_reason(number, VIRTUAL, PERF_ENTITY_DG_SCRIPT)) == NULL)
     {
       mob_log(ch, "mload: bad object vnum");
       return;
@@ -1286,6 +1286,11 @@ ACMD(do_mtransform)
   char_data *m, tmpmob;
   obj_data *obj[NUM_WEARS];
   mob_rnum this_rnum = GET_MOB_RNUM(ch);
+  struct char_data *affected_next;
+  struct char_data *affected_prev;
+  int old_origin_zone_vnum;
+  int old_create_reason;
+  bool affected_registered;
   //  mob_vnum this_vnum = GET_MOB_VNUM(ch);
   int keep_hp = 1; /* new mob keeps the old mob's hp/max hp/exp */
   int pos;
@@ -1314,11 +1319,11 @@ ACMD(do_mtransform)
   else
   {
     if (isdigit(*arg))
-      m = read_mobile(atoi(arg), VIRTUAL);
+      m = read_mobile_reason(atoi(arg), VIRTUAL, PERF_ENTITY_DG_SCRIPT);
     else
     {
       keep_hp = 0;
-      m = read_mobile(atoi(arg + 1), VIRTUAL);
+      m = read_mobile_reason(atoi(arg + 1), VIRTUAL, PERF_ENTITY_DG_SCRIPT);
     }
     if (m == NULL)
     {
@@ -1366,8 +1371,19 @@ ACMD(do_mtransform)
     if (m->player.description)
       tmpmob.player.description = strdup(m->player.description);
 
+    old_origin_zone_vnum = ch->perf_origin_zone_vnum;
+    old_create_reason = ch->perf_create_reason;
+    affected_next = ch->affected_next;
+    affected_prev = ch->affected_prev;
+    affected_registered = ch->affected_registered;
+
     tmpmob.id = ch->id;
     tmpmob.affected = ch->affected;
+    tmpmob.affected_next = affected_next;
+    tmpmob.affected_prev = affected_prev;
+    tmpmob.affected_registered = affected_registered;
+    tmpmob.perf_origin_zone_vnum = old_origin_zone_vnum;
+    tmpmob.perf_create_reason = (unsigned char)old_create_reason;
     tmpmob.carrying = ch->carrying;
     tmpmob.proto_script = ch->proto_script;
     tmpmob.script = ch->script;

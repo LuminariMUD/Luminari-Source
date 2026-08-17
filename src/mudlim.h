@@ -44,6 +44,7 @@ int gain_exp_regardless(struct char_data *ch, int gain, bool is_ress);
 void gain_condition(struct char_data *ch, int condition, int value);
 void check_idling(struct char_data *ch);
 bool save_player_pets(void);
+bool save_char_pets(struct char_data *ch);
 void point_update(void);
 int increase_gold(struct char_data *ch, int amt);
 int decrease_gold(struct char_data *ch, int deduction);

@@ -669,48 +669,59 @@ void script_trigger_check(void)
 {
   char_data *ch;
   obj_data *obj;
-  struct room_data *room = NULL;
-  room_rnum nr;
+  struct room_data *room;
   struct script_data *sc;
+  uint64_t acted;
+  uint64_t eligible;
+  uint64_t visited;
 
-  char_data *next_ch;
-  for (ch = character_list; ch; ch = next_ch)
+  acted = 0;
+  visited = 0;
+  eligible = dg_random_registry_count(MOB_TRIGGER);
+  for (ch = dg_random_registry_iteration_begin(MOB_TRIGGER); ch != NULL;
+       ch = dg_random_registry_iteration_next())
   {
-    next_ch = ch->next; /* Cache next char before potential script extraction */
-
-    if (SCRIPT(ch))
+    visited++;
+    sc = SCRIPT(ch);
+    if (IN_ROOM(ch) != NOWHERE &&
+        (!is_empty(world[IN_ROOM(ch)].zone) || IS_SET(SCRIPT_TYPES(sc), MTRIG_GLOBAL)))
     {
-      sc = SCRIPT(ch);
-
-      if (IS_SET(SCRIPT_TYPES(sc), WTRIG_RANDOM) &&
-          (!is_empty(world[IN_ROOM(ch)].zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
-        random_mtrigger(ch);
+      random_mtrigger(ch);
+      acted++;
     }
   }
+  dg_random_registry_iteration_end();
+  PERF_note_sweep(PERF_SWEEP_DG_MOBILE_RANDOM, visited, eligible, acted);
 
-  for (obj = object_list; obj; obj = obj->next)
+  acted = 0;
+  visited = 0;
+  eligible = dg_random_registry_count(OBJ_TRIGGER);
+  for (obj = dg_random_registry_iteration_begin(OBJ_TRIGGER); obj != NULL;
+       obj = dg_random_registry_iteration_next())
   {
-    if (SCRIPT(obj))
-    {
-      sc = SCRIPT(obj);
+    visited++;
+    random_otrigger(obj);
+    acted++;
+  }
+  dg_random_registry_iteration_end();
+  PERF_note_sweep(PERF_SWEEP_DG_OBJECT_RANDOM, visited, eligible, acted);
 
-      if (IS_SET(SCRIPT_TYPES(sc), OTRIG_RANDOM))
-        random_otrigger(obj);
+  acted = 0;
+  visited = 0;
+  eligible = dg_random_registry_count(WLD_TRIGGER);
+  for (room = dg_random_registry_iteration_begin(WLD_TRIGGER); room != NULL;
+       room = dg_random_registry_iteration_next())
+  {
+    visited++;
+    sc = SCRIPT(room);
+    if (!is_empty(room->zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL))
+    {
+      random_wtrigger(room);
+      acted++;
     }
   }
-
-  for (nr = 0; nr <= top_of_world; nr++)
-  {
-    if (SCRIPT(&world[nr]))
-    {
-      room = &world[nr];
-      sc = SCRIPT(room);
-
-      if (IS_SET(SCRIPT_TYPES(sc), WTRIG_RANDOM) &&
-          (!is_empty(room->zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
-        random_wtrigger(room);
-    }
-  }
+  dg_random_registry_iteration_end();
+  PERF_note_sweep(PERF_SWEEP_DG_ROOM_RANDOM, visited, eligible, acted);
 }
 
 void check_time_triggers(void)
@@ -1000,6 +1011,7 @@ void add_trigger(struct script_data *sc, trig_data *t, int loc)
   }
 
   SCRIPT_TYPES(sc) |= GET_TRIG_TYPE(t);
+  dg_random_registry_sync(sc);
 
   t->next_in_world = trigger_list;
   trigger_list = t;
@@ -1066,6 +1078,7 @@ ACMD(do_attach)
 
     if (!SCRIPT(victim))
       CREATE(SCRIPT(victim), struct script_data, 1);
+    dg_script_bind_owner(SCRIPT(victim), victim, MOB_TRIGGER);
     add_trigger(SCRIPT(victim), trig, loc);
 
     if (IS_NPC(victim))
@@ -1113,6 +1126,7 @@ ACMD(do_attach)
 
     if (!SCRIPT(object))
       CREATE(SCRIPT(object), struct script_data, 1);
+    dg_script_bind_owner(SCRIPT(object), object, OBJ_TRIGGER);
     add_trigger(SCRIPT(object), trig, loc);
 
     send_to_char(ch, "Trigger %d (%s) attached to %s [%d].\r\n", tn, GET_TRIG_NAME(trig),
@@ -1151,6 +1165,7 @@ ACMD(do_attach)
 
     if (!SCRIPT(room))
       CREATE(SCRIPT(room), struct script_data, 1);
+    dg_script_bind_owner(SCRIPT(room), room, WLD_TRIGGER);
     add_trigger(SCRIPT(room), trig, loc);
 
     send_to_char(ch, "Trigger %d (%s) attached to room %d.\r\n", tn, GET_TRIG_NAME(trig),
@@ -1220,6 +1235,7 @@ static int remove_trigger(struct script_data *sc, char *name)
     SCRIPT_TYPES(sc) = 0;
     for (i = TRIGGERS(sc); i; i = i->next)
       SCRIPT_TYPES(sc) |= GET_TRIG_TYPE(i);
+    dg_random_registry_sync(sc);
 
     return 1;
   }
@@ -1984,6 +2000,7 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig, in
     }
     if (!SCRIPT(c))
       CREATE(SCRIPT(c), struct script_data, 1);
+    dg_script_bind_owner(SCRIPT(c), c, MOB_TRIGGER);
     add_trigger(SCRIPT(c), newtrig, -1);
     return;
   }
@@ -1992,6 +2009,7 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig, in
   {
     if (!SCRIPT(o))
       CREATE(SCRIPT(o), struct script_data, 1);
+    dg_script_bind_owner(SCRIPT(o), o, OBJ_TRIGGER);
     add_trigger(SCRIPT(o), newtrig, -1);
     return;
   }
@@ -2000,6 +2018,7 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig, in
   {
     if (!SCRIPT(r))
       CREATE(SCRIPT(r), struct script_data, 1);
+    dg_script_bind_owner(SCRIPT(r), r, WLD_TRIGGER);
     add_trigger(SCRIPT(r), newtrig, -1);
     return;
   }
@@ -2523,6 +2542,7 @@ int perform_set_dg_var(struct char_data *ch, struct char_data *vict, char *val_a
   }
   if (!SCRIPT(vict))
     CREATE(SCRIPT(vict), struct script_data, 1);
+  dg_script_bind_owner(SCRIPT(vict), vict, MOB_TRIGGER);
 
   add_var(&(SCRIPT(vict)->global_vars), var_name, var_value, 0);
   return 1;
@@ -3441,6 +3461,7 @@ void read_saved_vars(struct char_data *ch)
    * do this first, because later calls to 'remote' will need. A script already
    * assigned. */
   CREATE(SCRIPT(ch), struct script_data, 1);
+  dg_script_bind_owner(SCRIPT(ch), ch, MOB_TRIGGER);
 
   /* find the file that holds the saved variables and open it*/
   get_filename(fn, sizeof(fn), SCRIPT_VARS_FILE, GET_NAME(ch));
@@ -3533,6 +3554,7 @@ void read_saved_vars_ascii(FILE *file, struct char_data *ch, int count)
    * do this first, because later calls to 'remote' will need. A script already
    * assigned. */
   CREATE(SCRIPT(ch), struct script_data, 1);
+  dg_script_bind_owner(SCRIPT(ch), ch, MOB_TRIGGER);
 
   /* walk through each line in the file parsing variables */
   for (i = 0; i < count; i++)

@@ -2065,7 +2065,7 @@ ACMD(do_load)
     }
     for (i = 0; i < n; i++)
     {
-      mob = read_mobile(r_num, REAL);
+      mob = read_mobile_reason(r_num, REAL, PERF_ENTITY_STAFF);
 
       if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
       {
@@ -2099,7 +2099,7 @@ ACMD(do_load)
     }
     for (i = 0; i < n; i++)
     {
-      obj = read_object(r_num, REAL);
+      obj = read_object_reason(r_num, REAL, PERF_ENTITY_STAFF);
       if (CONFIG_LOAD_INVENTORY)
         obj_to_char(obj, ch);
       else
@@ -2144,7 +2144,7 @@ ACMD(do_vstat)
       send_to_char(ch, "There is no monster with that number.\r\n");
       return;
     }
-    mob = read_mobile(r_num, REAL);
+    mob = read_mobile_reason(r_num, REAL, PERF_ENTITY_STAFF);
     char_to_room(mob, 0);
     do_stat_character(ch, mob);
     extract_char(mob);
@@ -2155,7 +2155,7 @@ ACMD(do_vstat)
       send_to_char(ch, "There is no object with that number.\r\n");
       return;
     }
-    obj = read_object(r_num, REAL);
+    obj = read_object_reason(r_num, REAL, PERF_ENTITY_STAFF);
     do_stat_object(ch, obj, ITEM_STAT_MODE_IMMORTAL);
     extract_obj(obj);
     break;
@@ -9859,7 +9859,7 @@ ACMD(do_findmagic)
       {
         hits++;
         r_num = real_object(obj_index[num].vnum);
-        obj = read_object(r_num, REAL);
+        obj = read_object_reason(r_num, REAL, PERF_ENTITY_STAFF);
         if (hits == 1)
           send_to_char(ch, "Showing %ss with the '%s' spell\r\nNum  VNUM    Name\r\n", objname,
                        skill_name(spellnum));
@@ -9875,7 +9875,7 @@ ACMD(do_findmagic)
       {
         hits++;
         r_num = real_object(obj_index[num].vnum);
-        obj = read_object(r_num, REAL);
+        obj = read_object_reason(r_num, REAL, PERF_ENTITY_STAFF);
         if (hits == 1)
           send_to_char(ch, "Num  VNUM   Name\r\n");
         send_to_char(ch, "%4d %6d %s (%d charges)\r\n", hits, obj_index[num].vnum,
@@ -10465,18 +10465,30 @@ void check_auto_shutdown(void)
 ACMD(do_perfmon)
 {
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char arg3[MAX_INPUT_LENGTH] = {'\0'};
 
   argument = one_argument(argument, arg1, sizeof(arg1));
+  argument = one_argument(argument, arg2, sizeof(arg2));
+  one_argument(argument, arg3, sizeof(arg3));
 
   if (arg1[0] == '\0')
   {
-    send_to_char(ch, "perfmon all             - Print all perfmon info.\r\n"
-                     "perfmon summ            - Print summary,\r\n"
-                     "perfmon prof            - Print profiling info.\r\n"
-                     "perfmon mem             - Print memory dashboard & leak monitor.\r\n"
-                     "perfmon csv             - Print cumulative profiling CSV.\r\n"
-                     "perfmon reset           - Start a new measurement window.\r\n"
-                     "perfmon sect <section>  - Print profiling info for section.\r\n");
+    send_to_char(ch,
+                 "perfmon all             - Print all perfmon info.\r\n"
+                 "perfmon summ            - Print summary,\r\n"
+                 "perfmon prof            - Print profiling info.\r\n"
+                 "perfmon mem             - Print memory dashboard & leak monitor.\r\n"
+                 "perfmon slow [count]    - Print recent over-budget pulse correlations.\r\n"
+                 "perfmon slow [count] csv - Print slow-pulse correlations as CSV.\r\n"
+                 "perfmon sql [csv]       - Print SQL ownership and latency telemetry.\r\n"
+                 "perfmon entities [csv]  - Print entity lifecycle and zone-reset telemetry.\r\n"
+                 "perfmon combat [count] [csv] - Print slow combat and chain-limit telemetry.\r\n"
+                 "perfmon saves           - Print incremental persistence scheduler state.\r\n"
+                 "perfmon top <metric> [limit] - Rank sections by total, max, or p99.\r\n"
+                 "perfmon csv             - Print cumulative profiling CSV.\r\n"
+                 "perfmon reset           - Start a new measurement window.\r\n"
+                 "perfmon sect <section>  - Print profiling info for section.\r\n");
     return;
   }
 
@@ -10486,7 +10498,12 @@ ACMD(do_perfmon)
     int written;
 
     written = (int)PERF_repr(buf, sizeof(buf));
-    written += (int)PERF_prof_repr_total(buf + written, sizeof(buf) - (size_t)written);
+    written += (int)persistence_scheduler_repr(buf + written, sizeof(buf) - (size_t)written);
+    written += (int)PERF_slow_repr(buf + written, sizeof(buf) - (size_t)written, 5, FALSE);
+    written += (int)PERF_sql_repr(buf + written, sizeof(buf) - (size_t)written, FALSE);
+    written += (int)PERF_prof_repr_top(buf + written, sizeof(buf) - (size_t)written, "total", 12);
+    written += (int)PERF_combat_repr(buf + written, sizeof(buf) - (size_t)written, 5, FALSE);
+    written += (int)PERF_entities_repr(buf + written, sizeof(buf) - (size_t)written, FALSE);
     written += (int)PERF_memory_repr(buf + written, sizeof(buf) - (size_t)written);
     snprintf_append(buf, sizeof(buf), written, "\n\rDatabase queries since reset: %llu\n\r",
                     (unsigned long long)mysql_query_counter_value());
@@ -10523,13 +10540,86 @@ ACMD(do_perfmon)
     page_string(ch->desc, buf, TRUE);
     return;
   }
+  else if (!str_cmp(arg1, "slow"))
+  {
+    char buf[MAX_STRING_LENGTH] = {'\0'};
+    size_t count = 0;
+    int csv = FALSE;
+
+    if (is_number(arg2))
+      count = (size_t)MAX(0, atoi(arg2));
+    else if (!str_cmp(arg2, "csv"))
+      csv = TRUE;
+    if (!str_cmp(arg3, "csv"))
+      csv = TRUE;
+    PERF_slow_repr(buf, sizeof(buf), count, csv);
+    page_string(ch->desc, buf, TRUE);
+    return;
+  }
+  else if (!str_cmp(arg1, "sql"))
+  {
+    char buf[MAX_STRING_LENGTH] = {'\0'};
+
+    PERF_sql_repr(buf, sizeof(buf), !str_cmp(arg2, "csv"));
+    page_string(ch->desc, buf, TRUE);
+    return;
+  }
+  else if (!str_cmp(arg1, "top"))
+  {
+    char buf[MAX_STRING_LENGTH] = {'\0'};
+    size_t limit = 0;
+
+    if (is_number(arg3))
+      limit = (size_t)MAX(0, atoi(arg3));
+    PERF_prof_repr_top(buf, sizeof(buf), arg2[0] != '\0' ? arg2 : "total", limit);
+    page_string(ch->desc, buf, TRUE);
+    return;
+  }
+  else if (!str_cmp(arg1, "entities"))
+  {
+    char buf[MAX_STRING_LENGTH] = {'\0'};
+
+    PERF_entities_repr(buf, sizeof(buf), !str_cmp(arg2, "csv"));
+    page_string(ch->desc, buf, TRUE);
+    return;
+  }
+  else if (!str_cmp(arg1, "combat"))
+  {
+    char buf[MAX_STRING_LENGTH] = {'\0'};
+    size_t count = 0;
+    int csv = FALSE;
+
+    if (is_number(arg2))
+      count = (size_t)MAX(0, atoi(arg2));
+    else if (!str_cmp(arg2, "csv"))
+      csv = TRUE;
+    if (!str_cmp(arg3, "csv"))
+      csv = TRUE;
+    PERF_combat_repr(buf, sizeof(buf), count, csv);
+    page_string(ch->desc, buf, TRUE);
+    return;
+  }
+  else if (!str_cmp(arg1, "saves"))
+  {
+    char buf[MAX_STRING_LENGTH] = {'\0'};
+    int written;
+
+    written = (int)persistence_scheduler_repr(buf, sizeof(buf));
+    written += (int)PERF_prof_repr_top(buf + written, sizeof(buf) - (size_t)written, "max", 12);
+    page_string(ch->desc, buf, TRUE);
+    return;
+  }
   else if (!str_cmp(arg1, "csv"))
   {
     char buf[MAX_STRING_LENGTH] = {'\0'};
     int written;
 
     written = (int)PERF_prof_repr_csv(buf, sizeof(buf));
+    written += (int)PERF_sql_repr(buf + written, sizeof(buf) - (size_t)written, TRUE);
+    written += (int)PERF_slow_repr(buf + written, sizeof(buf) - (size_t)written, 128, TRUE);
+    written += (int)PERF_combat_repr(buf + written, sizeof(buf) - (size_t)written, 64, TRUE);
     written += (int)PERF_memory_csv(buf + written, sizeof(buf) - (size_t)written);
+    written += (int)PERF_entities_repr(buf + written, sizeof(buf) - (size_t)written, TRUE);
     snprintf_append(buf, sizeof(buf), written, "# database_queries=%llu\n\r",
                     (unsigned long long)mysql_query_counter_value());
     page_string(ch->desc, buf, TRUE);
@@ -10539,6 +10629,7 @@ ACMD(do_perfmon)
   else if (!str_cmp(arg1, "reset"))
   {
     PERF_reset();
+    persistence_scheduler_reset_telemetry();
     mysql_query_counter_reset();
     send_to_char(ch, "Performance, memory, event, and database-query counters reset.\r\n");
     return;
@@ -13088,7 +13179,7 @@ ACMD(do_settestkit)
   if (HAS_FEAT(vict, FEAT_EXOTIC_WEAPON_PROFICIENCY))
   {
     /* Bastard Sword */
-    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    obj = read_object_reason(OUTFIT_WEAPON_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
     if (obj)
     {
       set_weapon_object(obj, WEAPON_TYPE_BASTARD_SWORD);
@@ -13102,7 +13193,7 @@ ACMD(do_settestkit)
   else if (HAS_FEAT(vict, FEAT_MARTIAL_WEAPON_PROFICIENCY))
   {
     /* Long Sword */
-    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    obj = read_object_reason(OUTFIT_WEAPON_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
     if (obj)
     {
       set_weapon_object(obj, WEAPON_TYPE_LONG_SWORD);
@@ -13114,7 +13205,7 @@ ACMD(do_settestkit)
     }
 
     /* Light Hammer */
-    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    obj = read_object_reason(OUTFIT_WEAPON_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
     if (obj)
     {
       set_weapon_object(obj, WEAPON_TYPE_LIGHT_HAMMER);
@@ -13126,7 +13217,7 @@ ACMD(do_settestkit)
     }
 
     /* Greatsword */
-    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    obj = read_object_reason(OUTFIT_WEAPON_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
     if (obj)
     {
       set_weapon_object(obj, WEAPON_TYPE_GREAT_SWORD);
@@ -13140,7 +13231,7 @@ ACMD(do_settestkit)
   else if (HAS_FEAT(vict, FEAT_SIMPLE_WEAPON_PROFICIENCY))
   {
     /* Dagger */
-    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    obj = read_object_reason(OUTFIT_WEAPON_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
     if (obj)
     {
       set_weapon_object(obj, WEAPON_TYPE_DAGGER);
@@ -13152,7 +13243,7 @@ ACMD(do_settestkit)
     }
 
     /* Greatclub */
-    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    obj = read_object_reason(OUTFIT_WEAPON_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
     if (obj)
     {
       set_weapon_object(obj, WEAPON_TYPE_GREAT_CLUB);
@@ -13164,7 +13255,7 @@ ACMD(do_settestkit)
     }
 
     /* Heavy Mace */
-    obj = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+    obj = read_object_reason(OUTFIT_WEAPON_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
     if (obj)
     {
       set_weapon_object(obj, WEAPON_TYPE_HEAVY_MACE);
@@ -13197,7 +13288,7 @@ ACMD(do_settestkit)
   }
 
   /* Body Armor */
-  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  obj = read_object_reason(OUTFIT_ARMOR_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
   if (obj)
   {
     char body_keywords[64] = {'\0'};
@@ -13211,7 +13302,7 @@ ACMD(do_settestkit)
   }
 
   /* Arm Armor */
-  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  obj = read_object_reason(OUTFIT_ARMOR_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
   if (obj)
   {
     char arm_keywords[64] = {'\0'};
@@ -13226,7 +13317,7 @@ ACMD(do_settestkit)
   }
 
   /* Leg Armor */
-  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  obj = read_object_reason(OUTFIT_ARMOR_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
   if (obj)
   {
     char leg_keywords[64] = {'\0'};
@@ -13241,7 +13332,7 @@ ACMD(do_settestkit)
   }
 
   /* Head Armor */
-  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  obj = read_object_reason(OUTFIT_ARMOR_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
   if (obj)
   {
     char head_keywords[64] = {'\0'};
@@ -13257,7 +13348,7 @@ ACMD(do_settestkit)
   /* === SHIELD === */
   if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD))
   {
-    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+    obj = read_object_reason(OUTFIT_ARMOR_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
     if (obj)
     {
       GET_OBJ_TYPE(obj) = ITEM_ARMOR;
@@ -13272,7 +13363,7 @@ ACMD(do_settestkit)
   }
   else if (HAS_FEAT(vict, FEAT_ARMOR_PROFICIENCY_SHIELD))
   {
-    obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+    obj = read_object_reason(OUTFIT_ARMOR_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
     if (obj)
     {
       GET_OBJ_TYPE(obj) = ITEM_ARMOR;
@@ -13287,7 +13378,7 @@ ACMD(do_settestkit)
   }
 
   /* === AMULET (All stats +level/5) === */
-  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  obj = read_object_reason(OUTFIT_ARMOR_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
   if (obj)
   {
     GET_OBJ_TYPE(obj) = ITEM_WORN;
@@ -13311,7 +13402,7 @@ ACMD(do_settestkit)
   }
 
   /* === RING (hitroll, damroll, dodge AC +level/6) === */
-  obj = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+  obj = read_object_reason(OUTFIT_ARMOR_PROTO, VIRTUAL, PERF_ENTITY_STAFF);
   if (obj)
   {
     GET_OBJ_TYPE(obj) = ITEM_WORN;

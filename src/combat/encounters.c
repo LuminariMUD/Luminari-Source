@@ -1692,7 +1692,7 @@ void check_random_encounter(struct char_data *ch)
       {
         if (dice(1, 100) > encounter_table[j].load_chance)
           continue;
-        mob = read_mobile(ENCOUNTER_MOB_VNUM, VIRTUAL);
+        mob = read_mobile_reason(ENCOUNTER_MOB_VNUM, VIRTUAL, PERF_ENTITY_ENCOUNTER);
         if (!mob)
         {
           // send_to_char(ch, "Mob load error.\r\n");

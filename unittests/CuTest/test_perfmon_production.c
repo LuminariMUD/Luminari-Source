@@ -6,6 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/combat/fight.h"
 #include "../../src/db.h"
+#include "../../src/dgscript/dg_scripts.h"
 #include "../../src/handler.h"
 #include "../../src/olc/hedit.h"
 #include "../../src/perfmon.h"
@@ -167,6 +168,7 @@ void Test_perfmon_ignores_stale_and_duplicate_section_exits(CuTest *tc)
   PERF_prof_sect_init(&section, "perfmon_exit_guard");
   PERF_prof_sect_enable_sampling(section);
   PERF_prof_sect_enter(section);
+  usleep(1000);
   PERF_prof_sect_exit(section);
   PERF_prof_sect_exit(section);
   PERF_prof_repr_csv(report, sizeof(report));
@@ -228,15 +230,15 @@ void Test_perfmon_reports_bounded_game_loop_telemetry(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "# max_extractions_per_call=2"));
   CuAssertPtrNotNull(tc, strstr(report, "# catchup_requested_missed=9"));
   CuAssertPtrNotNull(tc, strstr(report, "# catchup_replayed_missed=7"));
-  CuAssertPtrNotNull(tc, strstr(report, "# catchup_remaining_backlog=2"));
+  CuAssertPtrNotNull(tc, strstr(report, "# catchup_dropped_missed=2"));
   CuAssertPtrNotNull(tc, strstr(report, "# catchup_budget_exhausted_passes=1"));
   CuAssertPtrNotNull(tc, strstr(report, "# catchup_max_requested_missed=9"));
-  CuAssertPtrNotNull(tc, strstr(report, "# catchup_max_remaining_backlog=2"));
+  CuAssertPtrNotNull(tc, strstr(report, "# catchup_max_dropped_missed=2"));
   CuAssertPtrNotNull(tc, strstr(report, "# event_profile_registered="));
   CuAssertPtrNotNull(tc, strstr(report, "# event_profile_capacity=512"));
   CuAssertPtrNotNull(tc, strstr(report, "# event_profile_report_limit=16"));
   CuAssertPtrNotNull(tc, strstr(report, "# event_profile_overflow_calls=0"));
-  CuAssertPtrNotNull(tc, strstr(report, "slow event callback,2,28,14.00,17"));
+  CuAssertPtrNotNull(tc, strstr(report, "slow event callback,2,28,14.00,14.00,16.70,16.94,17"));
 
   PERF_prof_reset();
   PERF_prof_repr_pulse(report, sizeof(report));
@@ -248,6 +250,70 @@ void Test_perfmon_reports_bounded_game_loop_telemetry(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "# extractions_processed=0"));
   CuAssertPtrNotNull(tc, strstr(report, "# catchup_requested_missed=0"));
   CuAssertPtrEquals(tc, NULL, strstr(report, "slow event callback,"));
+}
+
+void Test_perfmon_slow_pulse_correlates_schedule_sql_events_and_sections(CuTest *tc)
+{
+  static struct PERF_prof_sect *section = NULL;
+  char report[16384];
+  enum perf_sql_category previous_category;
+  int event_profile;
+
+  PERF_reset();
+  PERF_prof_sect_init(&section, "minute.character_save");
+  PERF_prof_sect_enable_sampling(section);
+  PERF_prof_sect_enter(section);
+  PERF_prof_sect_exit(section);
+  PERF_note_heartbeat(600);
+  PERF_note_schedule(PERF_SCHEDULE_60_SECONDS | PERF_SCHEDULE_AUTOSAVE);
+  previous_category = PERF_sql_scope_set(PERF_SQL_ACCOUNT);
+  PERF_note_sql_query("UPDATE player_data SET account_id=7 WHERE name='hidden'", 2500, 0);
+  PERF_sql_scope_restore(previous_category);
+  event_profile = PERF_register_event_callback("Combat Round");
+  PERF_note_event_callback(event_profile, 4000);
+  PERF_note_event_process(2, 1, 1, 0);
+  PERF_note_catchup_pass(2, 1, 1, 1);
+  PERF_log_pulse(250.0);
+
+  PERF_slow_repr(report, sizeof(report), 1, FALSE);
+  CuAssertPtrNotNull(tc, strstr(report, "pulse=600"));
+  CuAssertPtrNotNull(tc, strstr(report, "duration=250.000 ms"));
+  CuAssertPtrNotNull(tc, strstr(report, "schedules=60s+autosave"));
+  CuAssertPtrNotNull(tc, strstr(report, "SQL=1/2.500 ms"));
+  CuAssertPtrNotNull(tc, strstr(report, "slowest=Combat Round/4.000 ms"));
+  CuAssertPtrNotNull(tc, strstr(report, "catchup=2/1/1"));
+  CuAssertPtrNotNull(tc, strstr(report, "minute.character_save"));
+
+  PERF_slow_repr(report, sizeof(report), 1, TRUE);
+  CuAssertPtrNotNull(tc, strstr(report, "timestamp_utc,monotonic_usec"));
+  CuAssertPtrNotNull(tc, strstr(report, ",600,250000,60s+autosave,1,2500,"));
+
+  PERF_sql_repr(report, sizeof(report), FALSE);
+  CuAssertPtrNotNull(tc, strstr(report, "SQL Telemetry"));
+  CuAssertPtrNotNull(tc, strstr(report, "account:update.player_data"));
+
+  PERF_reset();
+  PERF_slow_repr(report, sizeof(report), 1, FALSE);
+  CuAssertPtrNotNull(tc, strstr(report, "retained 0/128"));
+  PERF_sql_repr(report, sizeof(report), FALSE);
+  CuAssertPtrEquals(tc, NULL, strstr(report, "account:update.player_data"));
+}
+
+void Test_perfmon_summary_labels_window_budget_and_dropped_heartbeats(CuTest *tc)
+{
+  char report[8192];
+
+  PERF_reset();
+  PERF_note_heartbeat(1);
+  PERF_note_catchup_pass(3, 2, 1, 1);
+  PERF_log_pulse(150.0);
+  PERF_repr(report, sizeof(report));
+
+  CuAssertPtrNotNull(tc, strstr(report, "Measurement started:"));
+  CuAssertPtrNotNull(tc, strstr(report, "Pulse budget: 100.00 ms"));
+  CuAssertPtrNotNull(tc, strstr(report, "Executed heartbeats: 1"));
+  CuAssertPtrNotNull(tc, strstr(report, "Catch-up: requested=3 replayed=2 dropped=1"));
+  CuAssertPtrNotNull(tc, strstr(report, "Max pulse:      150.00 ms (150.00%)"));
 }
 
 void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
@@ -439,4 +505,168 @@ void Test_perfmon_memory_csv_reports_memory_and_entity_metrics(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "# memory_count_events="));
   CuAssertPtrNotNull(tc, strstr(report, "# memory_delta_count_affects_since_reset="));
   CuAssertPtrNotNull(tc, strstr(report, "# memory_delta_count_charmed_npcs_since_reset="));
+}
+
+void Test_perfmon_combat_guard_bounds_attack_and_proc_chains(CuTest *tc)
+{
+  char report[4096];
+  int i;
+
+  PERF_reset();
+  PERF_combat_round_begin(NULL);
+  for (i = 0; i < 128; i++)
+  {
+    CuAssertIntEquals(tc, TRUE, PERF_combat_allow_attack());
+    CuAssertIntEquals(tc, TRUE, PERF_combat_allow_proc());
+  }
+  CuAssertIntEquals(tc, FALSE, PERF_combat_allow_attack());
+  CuAssertIntEquals(tc, FALSE, PERF_combat_allow_proc());
+  PERF_combat_round_end();
+
+  PERF_combat_repr(report, sizeof(report), 1, FALSE);
+  CuAssertPtrNotNull(tc, strstr(report, "Callbacks=1"));
+  CuAssertPtrNotNull(tc, strstr(report, "limited=1"));
+  CuAssertPtrNotNull(tc, strstr(report, "rejected_attacks=1"));
+  CuAssertPtrNotNull(tc, strstr(report, "rejected_procs=1"));
+
+  PERF_reset();
+  PERF_combat_repr(report, sizeof(report), 1, TRUE);
+  CuAssertPtrNotNull(tc, strstr(report, "combat_timestamp,elapsed_usec"));
+  CuAssertPtrEquals(tc, NULL, strstr(report, ",128,128,1,1"));
+}
+
+void Test_autoproc_registry_tracks_flags_and_safe_removal(CuTest *tc)
+{
+  struct obj_data *saved_object_list;
+  struct obj_data *first;
+  struct obj_data *second;
+  struct obj_data *iterated;
+  size_t baseline;
+
+  autoproc_registry_reset_for_test();
+  saved_object_list = object_list;
+  baseline = autoproc_registry_count();
+  first = create_obj();
+  second = create_obj();
+  SET_BIT_AR(GET_OBJ_EXTRA(first), ITEM_AUTOPROC);
+  SET_BIT_AR(GET_OBJ_EXTRA(second), ITEM_AUTOPROC);
+  autoproc_registry_sync(first);
+  autoproc_registry_sync(second);
+
+  CuAssertIntEquals(tc, (int)baseline + 2, (int)autoproc_registry_count());
+  CuAssertIntEquals(tc, 0, (int)autoproc_registry_validate());
+  iterated = autoproc_registry_iteration_begin();
+  CuAssertPtrEquals(tc, second, iterated);
+  autoproc_registry_remove(first);
+  iterated = autoproc_registry_iteration_next();
+  CuAssertTrue(tc, iterated != first);
+  autoproc_registry_iteration_end();
+
+  autoproc_registry_remove(second);
+  object_list = saved_object_list;
+  free(first);
+  free(second);
+  CuAssertIntEquals(tc, (int)baseline, (int)autoproc_registry_count());
+}
+
+void Test_affected_registry_tracks_membership_and_safe_removal(CuTest *tc)
+{
+  struct char_data first;
+  struct char_data second;
+  struct char_data *saved_character_list;
+  struct char_data *iterated;
+  struct affected_type first_affect;
+  struct affected_type second_affect;
+  size_t baseline;
+
+  affected_registry_reset_for_test();
+  clear_char(&first);
+  clear_char(&second);
+  memset(&first_affect, 0, sizeof(first_affect));
+  memset(&second_affect, 0, sizeof(second_affect));
+  saved_character_list = character_list;
+  baseline = affected_registry_count();
+  first.next = saved_character_list;
+  second.next = &first;
+  character_list = &second;
+  first.affected = &first_affect;
+  second.affected = &second_affect;
+  affected_registry_attach(&first);
+  affected_registry_attach(&second);
+
+  CuAssertIntEquals(tc, (int)baseline + 2, (int)affected_registry_count());
+  CuAssertIntEquals(tc, 0, (int)affected_registry_validate());
+  iterated = affected_registry_iteration_begin();
+  CuAssertPtrEquals(tc, &second, iterated);
+  affected_registry_detach(&first);
+  iterated = affected_registry_iteration_next();
+  CuAssertTrue(tc, iterated != &first);
+  affected_registry_iteration_end();
+
+  affected_registry_detach(&second);
+  character_list = saved_character_list;
+  CuAssertIntEquals(tc, (int)baseline, (int)affected_registry_count());
+}
+
+void Test_dg_random_registry_tracks_owners_and_safe_removal(CuTest *tc)
+{
+  struct char_data first;
+  struct char_data second;
+  struct char_data *saved_character_list;
+  struct script_data first_script;
+  struct script_data second_script;
+  void *iterated;
+  size_t baseline;
+
+  dg_random_registry_reset_for_test();
+  clear_char(&first);
+  clear_char(&second);
+  memset(&first_script, 0, sizeof(first_script));
+  memset(&second_script, 0, sizeof(second_script));
+  saved_character_list = character_list;
+  baseline = dg_random_registry_count(MOB_TRIGGER);
+  first.next = saved_character_list;
+  second.next = &first;
+  character_list = &second;
+  SCRIPT(&first) = &first_script;
+  SCRIPT(&second) = &second_script;
+  first_script.types = MTRIG_RANDOM;
+  second_script.types = MTRIG_RANDOM;
+  dg_script_bind_owner(&first_script, &first, MOB_TRIGGER);
+  dg_script_bind_owner(&second_script, &second, MOB_TRIGGER);
+
+  CuAssertIntEquals(tc, (int)baseline + 2, (int)dg_random_registry_count(MOB_TRIGGER));
+  CuAssertIntEquals(tc, 0, (int)dg_random_registry_validate(MOB_TRIGGER));
+  iterated = dg_random_registry_iteration_begin(MOB_TRIGGER);
+  CuAssertPtrEquals(tc, &second, iterated);
+  first_script.owner = NULL;
+  dg_random_registry_sync(&first_script);
+  iterated = dg_random_registry_iteration_next();
+  CuAssertTrue(tc, iterated != &first);
+  dg_random_registry_iteration_end();
+
+  second_script.owner = NULL;
+  dg_random_registry_sync(&second_script);
+  SCRIPT(&first) = NULL;
+  SCRIPT(&second) = NULL;
+  character_list = saved_character_list;
+  CuAssertIntEquals(tc, (int)baseline, (int)dg_random_registry_count(MOB_TRIGGER));
+}
+
+void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
+{
+  char report[16384];
+
+  PERF_reset();
+  PERF_note_mobile_created(1234, 12, PERF_ENTITY_ENCOUNTER);
+  PERF_note_object_created(5678, 12, PERF_ENTITY_QUEST);
+  PERF_note_zone_reset(12, 25000, 2, 1, 3, 1);
+  PERF_note_sweep(PERF_SWEEP_AUTOPROC, 4, 4, 3);
+  PERF_entities_repr(report, sizeof(report), FALSE);
+
+  CuAssertPtrNotNull(tc, strstr(report, "encounter"));
+  CuAssertPtrNotNull(tc, strstr(report, "1234"));
+  CuAssertPtrNotNull(tc, strstr(report, "5678"));
+  CuAssertPtrNotNull(tc, strstr(report, "Population sweep telemetry"));
+  CuAssertPtrNotNull(tc, strstr(report, "autoproc"));
 }

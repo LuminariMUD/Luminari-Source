@@ -377,7 +377,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
       send_to_char(ch, "You receive %d experience points.\r\n", qcom->value);
       break;
     case QUEST_COMMAND_ITEM:
-      obj = read_object(qcom->value, VIRTUAL);
+      obj = read_object_reason(qcom->value, VIRTUAL, PERF_ENTITY_QUEST);
 
       if (obj)
       {
@@ -391,14 +391,14 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
       }
       break;
     case QUEST_COMMAND_LOAD_OBJECT_INROOM:
-      obj = read_object(qcom->value, VIRTUAL);
+      obj = read_object_reason(qcom->value, VIRTUAL, PERF_ENTITY_QUEST);
       if (obj && qcom->location == 0)
         obj_to_room(obj, victim->in_room);
       else if (obj)
         obj_to_room(obj, real_room(qcom->location));
       break;
     case QUEST_COMMAND_LOAD_MOB_INROOM:
-      mob = read_mobile(qcom->value, VIRTUAL);
+      mob = read_mobile_reason(qcom->value, VIRTUAL, PERF_ENTITY_QUEST);
 
       if (mob && qcom->location == 0)
       {

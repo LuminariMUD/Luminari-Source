@@ -200,7 +200,7 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level)
     return;
   }
 
-  wall = read_object(WALL_ITEM, VIRTUAL);
+  wall = read_object_reason(WALL_ITEM, VIRTUAL, PERF_ENTITY_SPELL_SUMMON);
 
   if (!wall)
   { /* make sure we have the object */
@@ -2222,7 +2222,7 @@ ASPELL(spell_prismatic_sphere)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  if (!(mob = read_mobile(PRISMATIC_SPHERE, VIRTUAL)))
+  if (!(mob = read_mobile_reason(PRISMATIC_SPHERE, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)))
   {
     send_to_char(ch, "You don't quite remember how to create that.\r\n");
     return;
@@ -3777,7 +3777,7 @@ ASPELL(spell_wall_of_force)
   /*
   struct char_data *mob;
    *
-  if (!(mob = read_mobile(WALL_OF_FORCE, VIRTUAL))) {
+  if (!(mob = read_mobile_reason(WALL_OF_FORCE, VIRTUAL, PERF_ENTITY_SPELL_SUMMON))) {
     send_to_char(ch, "You don't quite remember how to create that.\r\n");
     return;
   }
@@ -3819,7 +3819,7 @@ ASPELL(psionic_wall_of_ectoplasm)
 
 ASPELL(spell_wizard_eye)
 {
-  struct char_data *eye = read_mobile(WIZARD_EYE, VIRTUAL);
+  struct char_data *eye = read_mobile_reason(WIZARD_EYE, VIRTUAL, PERF_ENTITY_SPELL_SUMMON);
 
   // dummy check
   if (!eye)

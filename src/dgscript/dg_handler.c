@@ -24,6 +24,185 @@
 #include "dg_event.h"
 #include "constants.h"
 
+#define DG_RANDOM_OWNER_TYPES 3
+
+static struct script_data *dg_random_heads[DG_RANDOM_OWNER_TYPES];
+static size_t dg_random_counts[DG_RANDOM_OWNER_TYPES];
+static struct script_data *dg_random_iteration_next;
+static bool dg_random_iteration_active;
+
+static void dg_random_registry_remove(struct script_data *script)
+{
+  int owner_type;
+
+  if (script == NULL || !script->random_registered)
+    return;
+  owner_type = script->owner_type;
+  if (dg_random_iteration_active && dg_random_iteration_next == script)
+    dg_random_iteration_next = script->random_next;
+  if (script->random_prev != NULL)
+    script->random_prev->random_next = script->random_next;
+  else if (owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER)
+    dg_random_heads[owner_type] = script->random_next;
+  if (script->random_next != NULL)
+    script->random_next->random_prev = script->random_prev;
+  script->random_next = NULL;
+  script->random_prev = NULL;
+  script->random_registered = false;
+  if (owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER && dg_random_counts[owner_type] > 0)
+    dg_random_counts[owner_type]--;
+}
+
+void dg_random_registry_sync(struct script_data *script)
+{
+  int owner_type;
+  bool eligible;
+
+  if (script == NULL)
+    return;
+  owner_type = script->owner_type;
+  eligible = script->owner != NULL && owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER &&
+             IS_SET(SCRIPT_TYPES(script), MTRIG_RANDOM);
+  if (!eligible)
+  {
+    dg_random_registry_remove(script);
+    return;
+  }
+  if (script->random_registered)
+    return;
+  script->random_prev = NULL;
+  script->random_next = dg_random_heads[owner_type];
+  if (script->random_next != NULL)
+    script->random_next->random_prev = script;
+  dg_random_heads[owner_type] = script;
+  script->random_registered = true;
+  dg_random_counts[owner_type]++;
+}
+
+void dg_script_bind_owner(struct script_data *script, void *owner, int owner_type)
+{
+  if (script == NULL || owner == NULL || owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
+    return;
+  if (script->random_registered)
+    dg_random_registry_remove(script);
+  script->owner = owner;
+  script->owner_type = (byte)owner_type;
+  script->owner_vnum = owner_type == WLD_TRIGGER ? ((struct room_data *)owner)->number : NOWHERE;
+  dg_random_registry_sync(script);
+}
+
+static void *dg_random_registry_resolve_owner(struct script_data *script)
+{
+  room_rnum room;
+
+  if (script == NULL)
+    return NULL;
+  switch (script->owner_type)
+  {
+  case MOB_TRIGGER:
+    if (script->owner != NULL && SCRIPT((struct char_data *)script->owner) == script)
+      return script->owner;
+    break;
+  case OBJ_TRIGGER:
+    if (script->owner != NULL && SCRIPT((struct obj_data *)script->owner) == script)
+      return script->owner;
+    break;
+  case WLD_TRIGGER:
+    room = real_room(script->owner_vnum);
+    if (room != NOWHERE && SCRIPT(&world[room]) == script)
+      return &world[room];
+    break;
+  }
+  dg_random_registry_remove(script);
+  return NULL;
+}
+
+void *dg_random_registry_iteration_next(void)
+{
+  struct script_data *script;
+  void *owner;
+
+  if (!dg_random_iteration_active)
+    return NULL;
+  while ((script = dg_random_iteration_next) != NULL)
+  {
+    dg_random_iteration_next = script->random_next;
+    owner = dg_random_registry_resolve_owner(script);
+    if (owner != NULL)
+      return owner;
+  }
+  return NULL;
+}
+
+void *dg_random_registry_iteration_begin(int owner_type)
+{
+  if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
+    return NULL;
+  if (dg_random_iteration_active)
+  {
+    log("SYSERR: Nested DG random-owner registry iteration rejected.");
+    return NULL;
+  }
+  dg_random_iteration_active = true;
+  dg_random_iteration_next = dg_random_heads[owner_type];
+  return dg_random_registry_iteration_next();
+}
+
+void dg_random_registry_iteration_end(void)
+{
+  dg_random_iteration_next = NULL;
+  dg_random_iteration_active = false;
+}
+
+size_t dg_random_registry_count(int owner_type)
+{
+  if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
+    return 0;
+  return dg_random_counts[owner_type];
+}
+
+size_t dg_random_registry_validate(int owner_type)
+{
+  struct char_data *ch;
+  struct obj_data *obj;
+  struct script_data *script;
+  room_rnum room;
+  size_t expected;
+  size_t actual;
+
+  if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
+    return 0;
+  expected = 0;
+  if (owner_type == MOB_TRIGGER)
+    for (ch = character_list; ch != NULL; ch = ch->next)
+      if (SCRIPT(ch) != NULL && IS_SET(SCRIPT_TYPES(SCRIPT(ch)), MTRIG_RANDOM))
+        expected++;
+  if (owner_type == OBJ_TRIGGER)
+    for (obj = object_list; obj != NULL; obj = obj->next)
+      if (SCRIPT(obj) != NULL && IS_SET(SCRIPT_TYPES(SCRIPT(obj)), OTRIG_RANDOM))
+        expected++;
+  if (owner_type == WLD_TRIGGER && world != NULL)
+    for (room = 0; room <= top_of_world; room++)
+      if (SCRIPT(&world[room]) != NULL && IS_SET(SCRIPT_TYPES(SCRIPT(&world[room])), WTRIG_RANDOM))
+        expected++;
+  actual = 0;
+  for (script = dg_random_heads[owner_type]; script != NULL; script = script->random_next)
+    actual++;
+  if (expected == actual && actual == dg_random_counts[owner_type])
+    return 0;
+  return expected > actual ? expected - actual : actual - expected;
+}
+
+#ifdef LUMINARI_CUTEST
+void dg_random_registry_reset_for_test(void)
+{
+  memset(dg_random_heads, 0, sizeof(dg_random_heads));
+  memset(dg_random_counts, 0, sizeof(dg_random_counts));
+  dg_random_iteration_next = NULL;
+  dg_random_iteration_active = false;
+}
+#endif
+
 /* frees memory associated with var */
 void free_var_el(struct trig_var_data *var)
 {
@@ -157,6 +336,7 @@ void extract_script(struct script_data **script)
 
   sc = *script;
   *script = NULL;
+  dg_random_registry_remove(sc);
 
   /* zusuk disabled this debug 10/15/2017 */
 #if 0 /* debugging */

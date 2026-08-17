@@ -238,6 +238,7 @@ void dg_read_trigger(FILE *fp, void *proto, int type, int proto_vnum)
     {
       if (!(room->script))
         CREATE(room->script, struct script_data, 1);
+      dg_script_bind_owner(SCRIPT(room), room, WLD_TRIGGER);
       add_trigger(SCRIPT(room), read_trigger(rnum), -1);
     }
     else
@@ -343,6 +344,8 @@ void assign_mob_triggers(struct char_data *mob)
 
   assign_trigger_list(mob->proto_script, &mob->script, "Mobile", mob_index[mob->nr].vnum, "medit",
                       "attach");
+  if (SCRIPT(mob) != NULL)
+    dg_script_bind_owner(SCRIPT(mob), mob, MOB_TRIGGER);
 }
 
 void assign_obj_triggers(struct obj_data *obj)
@@ -352,6 +355,8 @@ void assign_obj_triggers(struct obj_data *obj)
 
   assign_trigger_list(obj->proto_script, &obj->script, "Object", obj_index[obj->item_number].vnum,
                       "oedit", "scripts");
+  if (SCRIPT(obj) != NULL)
+    dg_script_bind_owner(SCRIPT(obj), obj, OBJ_TRIGGER);
 }
 
 void assign_room_triggers(struct room_data *room)
@@ -360,4 +365,6 @@ void assign_room_triggers(struct room_data *room)
     return;
 
   assign_trigger_list(room->proto_script, &room->script, "Room", room->number, "redit", "scripts");
+  if (SCRIPT(room) != NULL)
+    dg_script_bind_owner(SCRIPT(room), room, WLD_TRIGGER);
 }

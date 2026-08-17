@@ -56,6 +56,7 @@
 #include "character/perks.h"
 #include "vessels/routing.h"
 #include "movement/movement_cost.h"
+#include "perfmon.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -14102,6 +14103,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
   if (!ch || !victim)
     return (HIT_MISS); /* ch and victim exist? */
+  if (!PERF_combat_allow_attack())
+    return (HIT_MISS);
 
   // each hit we want to reset the preserve organs proc.  This is to prevent double dipping
   // from sneak attacks and crits
@@ -16087,25 +16090,39 @@ EVENTFUNC(event_combat_round)
     return 0;
   }
 
+  PERF_combat_round_begin(ch);
+
   /* action queue system */
-  execute_next_action(ch);
+  {
+    PERF_PROF_ENTER_SAMPLED(combat_action_queue, "combat.action_queue");
+    execute_next_action(ch);
+    PERF_PROF_EXIT(combat_action_queue);
+  }
   /* execute phase */
-  perform_violence(ch, (pMudEvent->sVariables != NULL && is_number(pMudEvent->sVariables)
-                            ? atoi(pMudEvent->sVariables)
-                            : 0));
+  {
+    PERF_PROF_ENTER_SAMPLED(combat_perform_violence, "combat.perform_violence");
+    perform_violence(ch, (pMudEvent->sVariables != NULL && is_number(pMudEvent->sVariables)
+                              ? atoi(pMudEvent->sVariables)
+                              : 0));
+    PERF_PROF_EXIT(combat_perform_violence);
+  }
 
   /* Alchemist: Unstable Mutagen backlash (10% chance per round while mutagen active)
    * Perfect Mutagen capstone grants immunity to this backlash. */
-  if (is_alchemist_unstable_mutagen_on(ch) && affected_by_spell(ch, SKILL_MUTAGEN) &&
-      !has_alchemist_perfect_mutagen(ch))
   {
-    if (rand_number(1, 100) <= 10)
+    PERF_PROF_ENTER_SAMPLED(combat_backlash, "combat.backlash");
+    if (is_alchemist_unstable_mutagen_on(ch) && affected_by_spell(ch, SKILL_MUTAGEN) &&
+        !has_alchemist_perfect_mutagen(ch))
     {
-      int backlash = MAX(1, GET_LEVEL(ch));
-      send_to_char(ch, "Your unstable mutagen backlashes, harming you!\r\n");
-      act("$n winces as unstable mutagenic energies lash back.", FALSE, ch, 0, 0, TO_ROOM);
-      damage(ch, ch, backlash, TYPE_UNDEFINED, DAM_RESERVED_DBC, FALSE);
+      if (rand_number(1, 100) <= 10)
+      {
+        int backlash = MAX(1, GET_LEVEL(ch));
+        send_to_char(ch, "Your unstable mutagen backlashes, harming you!\r\n");
+        act("$n winces as unstable mutagenic energies lash back.", FALSE, ch, 0, 0, TO_ROOM);
+        damage(ch, ch, backlash, TYPE_UNDEFINED, DAM_RESERVED_DBC, FALSE);
+      }
     }
+    PERF_PROF_EXIT(combat_backlash);
   }
 
   /* set the next phase */
@@ -16113,6 +16130,7 @@ EVENTFUNC(event_combat_round)
     sprintf(pMudEvent->sVariables, "%d",
             (atoi(pMudEvent->sVariables) < 3 ? atoi(pMudEvent->sVariables) + 1 : 1));
 
+  PERF_combat_round_end();
   return 2 RL_SEC; /* 6 second rounds, hack! */
 }
 
@@ -16299,7 +16317,11 @@ void perform_violence(struct char_data *ch, int phase)
 
 #define RETURN_NUM_ATTACKS 1
     if (FIGHTING(ch))
+    {
+      PERF_PROF_ENTER_SAMPLED(combat_opening_attacks, "combat.attack_generation");
       TOTAL_DEFENSE(ch) = perform_attacks(ch, RETURN_NUM_ATTACKS, phase);
+      PERF_PROF_EXIT(combat_opening_attacks);
+    }
     else
       TOTAL_DEFENSE(ch) = 0;
 #undef RETURN_NUM_ATTACKS
@@ -16660,36 +16682,40 @@ void perform_violence(struct char_data *ch, int phase)
    1)  npc or
    2)  pref flagged autoassist
    */
-  if (GROUP(ch))
   {
-    struct iterator_data iterator;
-
-    for (tch = (struct char_data *)merge_iterator(&iterator, GROUP(ch)->members); tch;
-         tch = (struct char_data *)next_in_list(&iterator))
+    PERF_PROF_ENTER_SAMPLED(combat_assist_fanout, "combat.assist_fanout");
+    if (GROUP(ch))
     {
-      if (tch == ch)
-        continue;
-      if (!IS_NPC(tch) && !PRF_FLAGGED(tch, PRF_AUTOASSIST))
-        continue;
-      if (IN_ROOM(ch) != IN_ROOM(tch))
-        continue;
-      if (FIGHTING(tch))
-        continue;
-      if (GET_POS(tch) != POS_STANDING)
-        continue;
-      if (!CAN_SEE(tch, ch))
-        continue;
+      struct iterator_data iterator;
 
-      perform_assist(tch, ch);
+      for (tch = (struct char_data *)merge_iterator(&iterator, GROUP(ch)->members); tch;
+           tch = (struct char_data *)next_in_list(&iterator))
+      {
+        if (tch == ch)
+          continue;
+        if (!IS_NPC(tch) && !PRF_FLAGGED(tch, PRF_AUTOASSIST))
+          continue;
+        if (IN_ROOM(ch) != IN_ROOM(tch))
+          continue;
+        if (FIGHTING(tch))
+          continue;
+        if (GET_POS(tch) != POS_STANDING)
+          continue;
+        if (!CAN_SEE(tch, ch))
+          continue;
+
+        perform_assist(tch, ch);
+      }
+      remove_iterator(&iterator);
     }
-    remove_iterator(&iterator);
-  }
 
-  // your charmee, even if not grouped, should assist
-  for (charmee = world[IN_ROOM(ch)].people; charmee; charmee = charmee->next_in_room)
-    if (AFF_FLAGGED(charmee, AFF_CHARM) && charmee->master == ch && !FIGHTING(charmee) &&
-        GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch))
-      perform_assist(charmee, ch);
+    // your charmee, even if not grouped, should assist
+    for (charmee = world[IN_ROOM(ch)].people; charmee; charmee = charmee->next_in_room)
+      if (AFF_FLAGGED(charmee, AFF_CHARM) && charmee->master == ch && !FIGHTING(charmee) &&
+          GET_POS(charmee) == POS_STANDING && CAN_SEE(charmee, ch))
+        perform_assist(charmee, ch);
+    PERF_PROF_EXIT(combat_assist_fanout);
+  }
 
   /* here is our entry point for melee attack rotation */
   /* conditions for not performing melee attacks:
@@ -16717,7 +16743,11 @@ void perform_violence(struct char_data *ch, int phase)
       handle_smash_defense(ch);
 
 #define NORMAL_ATTACK_ROUTINE 0
-    perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
+    {
+      PERF_PROF_ENTER_SAMPLED(combat_normal_attacks, "combat.attack_generation");
+      perform_attacks(ch, NORMAL_ATTACK_ROUTINE, phase);
+      PERF_PROF_EXIT(combat_normal_attacks);
+    }
 #undef NORMAL_ATTACK_ROUTINE
 
     /* handle cleave - now includes Cleaving Strike perks */
@@ -16731,7 +16761,11 @@ void perform_violence(struct char_data *ch, int phase)
 
   if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) && !MOB_FLAGGED(ch, MOB_NOTDEADYET) &&
       GET_HIT(ch) > 0)
+  {
+    PERF_PROF_ENTER_SAMPLED(combat_specials, "combat.specials");
     spec_gateway_mobile_combat_turn(ch);
+    PERF_PROF_EXIT(combat_specials);
+  }
 
   if (IS_NPC(ch) && !MOB_FLAGGED(ch, MOB_NOTDEADYET) && GET_HIT(ch) > 0)
     rol_automatic_race_combat_turn(ch);

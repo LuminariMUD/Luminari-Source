@@ -892,7 +892,7 @@ void vessel_encounter_tick(void)
        * it can be fought, fled, or fired upon like anything else. */
       if (hunter_configured == 0 && definition->mob_vnum > 0 && ship_room != NOWHERE)
       {
-        mob = read_mobile(definition->mob_vnum, VIRTUAL);
+        mob = read_mobile_reason(definition->mob_vnum, VIRTUAL, PERF_ENTITY_VESSEL);
         if (mob != NULL)
         {
           char_to_room(mob, ship_room);

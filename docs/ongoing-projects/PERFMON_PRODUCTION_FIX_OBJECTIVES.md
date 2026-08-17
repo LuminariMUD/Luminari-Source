@@ -1,12 +1,35 @@
 # PERFMON Production Analysis and Fix Objectives
 
-Status: active engineering plan
+Status: implementation complete; production acceptance pending
 
 Analysis date: 2026-08-17
 
 Evidence source: the production-port `perfmon all` capture retained in
 [`todo-now.md`](todo-now.md). The measurement window began after boot and copyover
 recovery, as intended by the `PERF_reset()` call in `src/comm.c:745-750`.
+
+## Implementation status
+
+The code-side phases in this plan were implemented on 2026-08-17. The remaining work is
+deployment validation: only a representative production run can prove the 24-hour tail,
+durability, entity plateau, and memory plateau acceptance gates.
+
+| Objective | Implemented result | Production evidence still required |
+| --- | --- | --- |
+| Persistence burst | Dirty-driven, fair incremental scheduler; one save unit per pulse; 20 ms target and 50 ms diagnostic limit; retry counters; incremental crash and dirty-house contracts | Confirm no save-attributed pulse over 500 ms and maximum dirty-owner durability interval |
+| Account and pet SQL | Independent account dirty generations, batched changed sets, no account rewrite from ordinary character save, and pet-state fingerprinting | Compare idle and active query volume before/after deployment and exercise database-failure recovery |
+| Slow-pulse attribution | Bounded 128-record flight recorder with schedule, section, SQL, callback, entity, extraction, and missed-pulse context; human and CSV views | Capture the first production incidents and verify that every over-budget pulse has a useful owner |
+| SQL attribution | Main/worker latency samples, p50/p95/p99/max, errors, reconnects, normalized table families, explicit subsystem categories, and per-pulse correlation | Establish production latency and volume budgets per category |
+| Entity lifecycle | Central create/extract counters; explicit major-source reasons; positive-net VNUM/zone rankings; zone reset duration and deltas | Identify sustained cohorts, then add source-specific lifetime/cap enforcement where the report demonstrates a need |
+| Broad scans | Extraction-safe autoproc, DG random-owner, and affected-character registries plus visited/eligible/acted counters and on-demand validation | Use sweep telemetry to decide whether Luminari hazard/regen/affliction registries or bounded cursors are justified |
+| Combat tail | Phase sampling, event callback percentiles, bounded slow-combat context, and 128 attack/proc chain guards | Validate ordinary and designed mass-combat p99/max against the 100 ms target |
+| Report semantics | Ranked top views, `n/a` unsampled percentiles, inclusive-time labeling, explicit window metadata, milliseconds, `dropped_missed`, and monitoring-overhead accounting | Confirm paging and CSV consumption on the production staff workflow |
+| Memory trend | One-day minute ring, short/medium/long slopes, entity-normalized residual, and actionable status labels | Demonstrate that entities and memory plateau, or use residual growth to select an allocation trace |
+
+The implementation deliberately does not invent global mobile/object caps or generic temporary
+entity expiry rules. Those are gameplay policies and must be applied to the positive-net cohorts
+identified by production telemetry; a global cap chosen without that evidence could silently break
+zone reset, summon, quest, vessel, or pet semantics.
 
 This document separates observations, strong inferences, and items that still need
 instrumentation. It is not proof that every proposed cause is responsible for every

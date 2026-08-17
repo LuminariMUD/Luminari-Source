@@ -515,7 +515,7 @@ WCMD(do_wload)
         return;
       }
     }
-    if ((mob = read_mobile(number, VIRTUAL)) == NULL)
+    if ((mob = read_mobile_reason(number, VIRTUAL, PERF_ENTITY_DG_SCRIPT)) == NULL)
     {
       wld_log(room, "mload: bad mob vnum");
       return;
@@ -539,7 +539,7 @@ WCMD(do_wload)
 
   else if (is_abbrev(arg1, "obj"))
   {
-    if ((object = read_object(number, VIRTUAL)) == NULL)
+    if ((object = read_object_reason(number, VIRTUAL, PERF_ENTITY_DG_SCRIPT)) == NULL)
     {
       wld_log(room, "wload: bad object vnum");
       return;

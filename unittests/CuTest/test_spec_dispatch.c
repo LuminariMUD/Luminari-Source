@@ -154,9 +154,13 @@ static bool spec_dispatch_begin(struct spec_dispatch_fixture *fixture)
 
 static void spec_dispatch_end(struct spec_dispatch_fixture *fixture)
 {
+  int index;
+
   if (fixture == NULL || active_fixture != fixture)
     return;
 
+  for (index = 0; index < SPEC_DISPATCH_OBJ_COUNT; index++)
+    autoproc_registry_remove(&fixture->objects[index]);
   active_fixture = NULL;
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;
@@ -732,6 +736,8 @@ void Test_spec_proc_update_caches_successor_before_callback(CuTest *tc)
   GET_OBJ_TYPE(&fixture.objects[1]) = ITEM_OTHER;
   SET_BIT_AR(GET_OBJ_EXTRA(&fixture.objects[0]), ITEM_AUTOPROC);
   SET_BIT_AR(GET_OBJ_EXTRA(&fixture.objects[1]), ITEM_AUTOPROC);
+  autoproc_registry_sync(&fixture.objects[1]);
+  autoproc_registry_sync(&fixture.objects[0]);
   fixture.objects[0].next = &fixture.objects[1];
   object_list = &fixture.objects[0];
 

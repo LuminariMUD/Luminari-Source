@@ -167,9 +167,13 @@ static bool spec_pulse_fixture_begin(struct spec_pulse_fixture *fixture)
 
 static void spec_pulse_fixture_end(struct spec_pulse_fixture *fixture)
 {
+  int index;
+
   if (fixture == NULL || active_spec_pulse_fixture != fixture)
     return;
 
+  for (index = 0; index < SPEC_PULSE_OBJECT_COUNT; index++)
+    autoproc_registry_remove(&fixture->objects[index]);
   mobile_activity_reset();
   active_spec_pulse_fixture = NULL;
   world = fixture->saved_world;
@@ -712,6 +716,7 @@ void Test_spec_proc_update_worn_object_uses_wearer_once(CuTest *tc)
   object = &fixture.objects[0];
   GET_OBJ_RNUM(object) = 0;
   SET_BIT_AR(GET_OBJ_EXTRA(object), ITEM_AUTOPROC);
+  autoproc_registry_sync(object);
   object->worn_by = &fixture.actor;
   fixture.obj_indexes[0].func = spec_pulse_record_callback;
   fixture.recorder.return_count = 1;
@@ -747,6 +752,7 @@ void Test_spec_proc_update_carried_object_uses_null_then_carrier(CuTest *tc)
   object = &fixture.objects[0];
   GET_OBJ_RNUM(object) = 0;
   SET_BIT_AR(GET_OBJ_EXTRA(object), ITEM_AUTOPROC);
+  autoproc_registry_sync(object);
   object->carried_by = &fixture.actor;
   fixture.obj_indexes[0].func = spec_pulse_record_callback;
   object_list = object;
@@ -804,9 +810,11 @@ void Test_spec_proc_update_gates_and_ignores_no_specials(CuTest *tc)
   fixture.obj_indexes[1].func = spec_pulse_record_callback;
   fixture.obj_indexes[2].func = NULL;
   SET_BIT_AR(GET_OBJ_EXTRA(inert_weapon), ITEM_AUTOPROC);
+  autoproc_registry_sync(inert_weapon);
   GET_OBJ_TYPE(inert_weapon) = ITEM_WEAPON;
   GET_OBJ_VAL(inert_weapon, 0) = 0;
   SET_BIT_AR(GET_OBJ_EXTRA(missing_callback), ITEM_AUTOPROC);
+  autoproc_registry_sync(missing_callback);
   unflagged->next = inert_weapon;
   inert_weapon->next = missing_callback;
   object_list = unflagged;
@@ -816,6 +824,7 @@ void Test_spec_proc_update_gates_and_ignores_no_specials(CuTest *tc)
 
   spec_pulse_recorder_reset(&fixture);
   SET_BIT_AR(GET_OBJ_EXTRA(unflagged), ITEM_AUTOPROC);
+  autoproc_registry_sync(unflagged);
   unflagged->worn_by = &fixture.actor;
   unflagged->next = NULL;
   no_specials = 1;

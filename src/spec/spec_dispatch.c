@@ -13,6 +13,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
+#include "perfmon.h"
 #include "spec/spec_context.h"
 #include "spec/spec_dispatch.h"
 
@@ -61,6 +62,14 @@ static void spec_context_reset_outcome(struct spec_event_context *context)
   context->flow = SPEC_FLOW_CONTINUE;
   context->invalidation = SPEC_INVALIDATE_NONE;
   context->legacy_return = 0;
+}
+
+static bool spec_event_is_combat(spec_event_mask event)
+{
+  return event == SPEC_EVENT_MOBILE_COMBAT_TURN || event == SPEC_EVENT_WEAPON_HIT ||
+         event == SPEC_EVENT_DEFENSE_REACTION || event == SPEC_EVENT_COMBAT_MANEUVER ||
+         event == SPEC_EVENT_MOUNT_CHARGE || event == SPEC_EVENT_MOBILE_HIT ||
+         event == SPEC_EVENT_MOBILE_WAS_HIT;
 }
 
 int spec_dispatch_legacy(struct spec_event_context *context, spec_legacy_handler handler)
@@ -165,12 +174,24 @@ int spec_dispatch_typed(struct spec_event_context *context,
 int spec_dispatch(struct spec_event_context *context, spec_legacy_handler handler)
 {
   const struct spec_definition *definition;
+  enum perf_entity_reason previous_reason;
+  int result;
+
+  if (context != NULL && spec_event_is_combat(context->event) && !PERF_combat_allow_proc())
+  {
+    spec_context_reset_outcome(context);
+    return 0;
+  }
 
   definition = spec_registry_find_by_handler(handler);
+  previous_reason = PERF_entity_scope_set(PERF_ENTITY_SPECIAL);
   if (definition != NULL && definition->typed_handler != NULL)
-    return spec_dispatch_typed(context, definition);
+    result = spec_dispatch_typed(context, definition);
+  else
+    result = spec_dispatch_legacy(context, handler);
 
-  return spec_dispatch_legacy(context, handler);
+  PERF_entity_scope_restore(previous_reason);
+  return result;
 }
 
 /**

@@ -439,7 +439,7 @@ static bool vessel_merchant_assign_pilot(struct greyhawk_ship_data *ship,
     return FALSE;
   }
 
-  pilot = read_mobile(pilot_rnum, REAL);
+  pilot = read_mobile_reason(pilot_rnum, REAL, PERF_ENTITY_VESSEL);
   if (pilot == NULL)
   {
     return FALSE;
