@@ -9782,22 +9782,33 @@ void weapon_spells(struct char_data *ch, struct char_data *vict, struct obj_data
     return;
 
   int i = 0, random = -1;
-  const char *buf = "$p begins to vibrate and release sparks of energy before leaping to action "
-                    "with an attack of its own!";
+  const char *buf = "Battle-light races along $p before erupting in a storm of vengeful magic!";
 
   /* give some random messages */
-  switch (dice(1, 4))
+  switch (dice(1, 8))
   {
   case 1:
-    buf = "$p hums with power then releases its magic!";
+    buf = "$p sings a razor-bright note, and the air answers with a burst of spellfire!";
     break;
   case 2:
-    buf = "$p flashes with energy then releases its magic!";
+    buf = "$p shudders like a caged storm, then hurls its gathered magic into the fray!";
     break;
   case 3:
-    buf = "$p glows and lets off a deep sound while releasing its magic!";
+    buf = "A constellation of sparks streams from $p as its enchantment lashes out!";
     break;
-  default: /* default "leaps to action" */
+  case 4:
+    buf = "Ancient runes blaze across $p, spilling their long-slumbering wrath!";
+    break;
+  case 5:
+    buf = "A spectral echo tears free from $p and blossoms into violent sorcery!";
+    break;
+  case 6:
+    buf = "$p tolls like a distant war bell as power surges from its heart!";
+    break;
+  case 7:
+    buf = "Shadows coil around $p, then snap outward in a flash of arcane fury!";
+    break;
+  default: /* default "battle-light" message */
     break;
   }
 
@@ -9900,23 +9911,35 @@ void idle_weapon_spells(struct char_data *ch)
 
   int random = 0, i = 0, j = 0;
   struct obj_data *gear = NULL;
-  const char *buf = "$p begins to vibrate and release sparks of energy!";
+  const char *buf = "A pale constellation blooms above $p, then settles softly over $n.";
   int spellnum = -1;
   bool affected_by_spellnum = FALSE;
 
   /* give some random messages */
-  switch (dice(1, 4))
+  switch (dice(1, 8))
   {
   case 1:
-    buf = "$p hums with power!";
+    buf = "A quiet halo unfolds from $p, wreathing $n in patient magic.";
     break;
   case 2:
-    buf = "$p flashes with energy!";
+    buf = "$p chimes like crystal in moonlight as a soft radiance gathers around $n.";
     break;
   case 3:
-    buf = "$p glows and lets off a deep sound!";
+    buf = "Firefly runes drift from $p and dissolve gently into $n's aura.";
     break;
-  default: /* default "vibrate and sparks" */
+  case 4:
+    buf = "A warm pulse travels through $p, wrapping $n in an unseen mantle.";
+    break;
+  case 5:
+    buf = "Starlit threads spill from $p and weave a luminous shelter around $n.";
+    break;
+  case 6:
+    buf = "$p whispers in a forgotten tongue as soothing magic settles over $n.";
+    break;
+  case 7:
+    buf = "The air around $p ripples like still water, washing $n in quiet power.";
+    break;
+  default: /* default "pale constellation" message */
     break;
   }
 
