@@ -1407,6 +1407,26 @@ void Test_spec_rol_yggdrasil_release_and_death_profiles_preserve_source_outcomes
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_planar_gate_full_summon_recipes_are_bounded(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+
+  spec_mechanics_begin(&fixture);
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ROL_DEMON);
+
+  fixture.actor.player.short_descr = "babau demon";
+  CuAssertIntEquals(tc, 2, rol_planar_gate_summon_option_count(&fixture.actor));
+  fixture.actor.player.short_descr = "balor demon";
+  CuAssertIntEquals(tc, 6, rol_planar_gate_summon_option_count(&fixture.actor));
+  fixture.actor.player.short_descr = "hezrou demon";
+  CuAssertIntEquals(tc, 6, rol_planar_gate_summon_option_count(&fixture.actor));
+  fixture.actor.player.short_descr = "hezrou demon nogate";
+  CuAssertIntEquals(tc, 0, rol_planar_gate_summon_option_count(&fixture.actor));
+  CuAssertIntEquals(tc, 0, rol_planar_gate_summon_option_count(NULL));
+
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_vortex_knight_last_peer_creates_timed_portal(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

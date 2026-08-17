@@ -13817,7 +13817,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_CONTINUAL_LIGHT:
     to_char = "You summon forth $p.";
     to_room = "$n summons forth $p.";
-    object_vnum = 20839;
+    object_vnum = 839;
     break;
   case SPELL_CREATE_FOOD:
     to_char = "You create $p.";
@@ -13827,7 +13827,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_CONTINUAL_FLAME:
     to_char = "You create $p.";
     to_room = "$n creates $p.";
-    object_vnum = 20839;
+    object_vnum = 839;
     break;
   case SPELL_FIRE_SEEDS:
     to_char = "You create $p.";
@@ -14098,7 +14098,9 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 
   if (!(tobj = read_object(object_vnum, VIRTUAL)))
   {
-    send_to_char(ch, "I seem to have goofed.\r\n");
+    send_to_char(
+        ch, "I seem to have goofed.  Please let staff know these values:  spell %d, obj %d\r\n",
+        spellnum, object_vnum);
     log("SYSERR: spell_creations, spell %d, obj %d: obj not found", spellnum, object_vnum);
     return;
   }
@@ -14109,7 +14111,9 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   {
     if (!(portal = read_object(object_vnum, VIRTUAL)))
     {
-      send_to_char(ch, "I seem to have goofed.\r\n");
+      send_to_char(
+          ch, "I seem to have goofed.  Please let staff know these values:  spell %d, obj %d\r\n",
+          spellnum, object_vnum);
       log("SYSERR: spell_creations, spell %d, obj %d: obj not found", spellnum, object_vnum);
       return;
     }

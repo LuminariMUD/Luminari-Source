@@ -332,6 +332,7 @@ bool rol_manscorpion_apply_venom(struct char_data *victim, int duration);
 size_t rol_residual_mobile_profile_count(void);
 bool rol_residual_mobile_profile(int mobile_vnum, const char **description);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);
+int rol_planar_gate_summon_option_count(const struct char_data *ch);
 bool rol_automatic_race_activity(struct char_data *ch);
 void rol_automatic_race_combat_turn(struct char_data *ch);
 int rol_dissolve_abyss_forged_weapons(struct char_data *ch);

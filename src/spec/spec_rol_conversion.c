@@ -1338,6 +1338,21 @@ static const struct rol_gate_recipe *rol_gate_recipe_for(const struct char_data 
   return NULL;
 }
 
+static int rol_gate_summon_option_count(const struct rol_gate_recipe *recipe)
+{
+  int option_count;
+
+  if (recipe == NULL)
+    return 0;
+
+  for (option_count = 0; option_count < (int)(sizeof(recipe->summons) / sizeof(recipe->summons[0]));
+       option_count++)
+    if (recipe->summons[option_count] == NULL)
+      break;
+
+  return option_count;
+}
+
 static mob_rnum rol_gate_template(const char *alias, int family_flag)
 {
   mob_rnum rnum;
@@ -1428,8 +1443,12 @@ static void rol_attempt_planar_gate(struct char_data *ch)
   if (rand_number(0, 99) >= chance)
     return;
 
-  for (option_count = 0; recipe->summons[option_count] != NULL; option_count++)
-    ;
+  option_count = rol_gate_summon_option_count(recipe);
+  if (option_count == 0)
+  {
+    log("SYSERR: RoL gate recipe '%s' has no summon options", recipe->alias);
+    return;
+  }
   count = rand_number(recipe->minimum, recipe->maximum);
   count = MIN(count, ROL_GATE_MAX_SUMMONS);
   for (index = 0; index < count; index++)
@@ -1487,6 +1506,11 @@ int rol_planar_gate_cooldown_seconds(const struct char_data *ch)
   const struct rol_gate_recipe *recipe = rol_gate_recipe_for(ch);
 
   return recipe != NULL ? recipe->cooldown_seconds : 0;
+}
+
+int rol_planar_gate_summon_option_count(const struct char_data *ch)
+{
+  return rol_gate_summon_option_count(rol_gate_recipe_for(ch));
 }
 
 bool rol_conversion_death_retargets_clerics(int vnum)
