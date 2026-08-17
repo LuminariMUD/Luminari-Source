@@ -112,6 +112,12 @@ persistent identities are preserved in place. The phase commands remain
 available to audit or deterministically regenerate the conversion; they are
 not an alternate builder workflow for assigning new VNUMs.
 
+Treat installed records in the canonical RoL namespace as generated output. A
+maintenance regeneration removes that namespace only in its staging copy, recreates
+it from the selected source manifests and versioned policy, and preserves non-RoL
+record blocks. Builder or OLC edits to generated RoL records are not merge inputs and
+can be overwritten by the next accepted regeneration.
+
 Canonical RoL identities use these formulas:
 
 ```text
@@ -376,6 +382,38 @@ Both commands verify the manifests they consume. Phase 6 accounts for direct
 bindings, dynamic registrations, implicit race bindings, handlers, and every
 active `ACT_SPEC` record. Its accepted bundle has no pending binding.
 
+## RoL Mobile Conversion Contract
+
+RoL mobile combat rows are not copied directly because the source and target use
+different encodings and runtime adjustments. The converter instead:
+
+1. maps a positive source level with
+   `min(34, (3 * min(source_level, 59) + 4) / 5)` using integer division;
+2. resolves one broad race, up to three subraces, final size, class, and explicit
+   encounter tier through hash-checked exact-record, phrase, and source-code fallback
+   rules in `scripts/world/rol_conversion_policy.json`;
+3. submits that identity to the native `mob_autoroll_calculate()` implementation
+   through `util/rol_mob_calculator`; and
+4. serializes target-native hitroll, armor, HP, damage, abilities, saves, rewards,
+   `Tier:`, subrace, size, and `SpellRes:` fields with their source and target
+   dispositions in the generation ledger.
+
+The calculator bridge checks its protocol and profile versions, executable hash, and
+echoed inputs. Python has no production formula fallback. A valid explicit source
+magic-resistance value is persisted; otherwise the source race-and-level result is
+derived and persisted once. Target-native rewards own experience and gold, including
+explicit `MOB_CUSTOM_GOLD` ownership. Ordinary generated mobiles retain variable HP as
+one deterministic `1dY+H` roll; exact custom profiles use fixed `1d1+(H-1)` HP. Source
+race-list aggression and source prestige bonuses remain explicit bounded exclusions
+because Luminari has no equivalent safe race-list aggression primitive or mobile
+prestige kill-reward field. Named World Boss overrides require exact, hash-bound custom
+profiles.
+
+Encounter Tier affects only values saved by autoroll; it does not add loader-time or
+live-combat bonuses. See the
+[Mobile Flags guide](../world_game-data/MOB_FLAGS.md#encounter-tier-separate-scalar-field)
+for the builder and runtime contract.
+
 ## RoL Database Boundary
 
 World generation, baseline capture, discovery, planning, capability analysis,
@@ -430,6 +468,12 @@ canonical records, validates the full assembled world, and records preservation 
 runtime-contract evidence. The final milestone requires 258 packages, 71,680 record
 actions, no new normalized active error, and a byte-identical independent repeat.
 
+Conversion selection is package- and dependency-based, not extension-based. There is
+no supported `.mob`-only, `.obj`-only, `.wld`-only, or similar release mode. Intermediate
+milestones may stop at a cumulative dependency batch, but Phase 8 requires the complete
+final Phase 7 corpus. Use `validate --zone` or `validate --paths` for scoped diagnosis;
+the accepted release still validates a complete assembled world.
+
 After the code suites, install, candidate syntax boot, and bounded runtime boot pass,
 assemble the Phase 8 release candidate:
 
@@ -467,6 +511,12 @@ The apply command rejects production, changed inputs, changed runtime binaries, 
 modified bundle artifacts. Reapplication is a verified no-op. The completion command
 requires the development tree and post-apply diagnostics to match the accepted
 candidate, rechecks documentation, and records the no-op reapplication.
+
+`rol-phase8-apply` copies only apply-plan paths whose current hashes differ, but it does
+not create a backup or write-ahead journal, automatically restore a partial application,
+or provide a `rol-phase8-rollback` command. Before applying, create and independently
+verify an exact snapshot of the complete development world tree. Do not use the apply
+command without that external recovery point.
 
 Candidate boots use the repository's local development database through
 `lib/mysql_config`.

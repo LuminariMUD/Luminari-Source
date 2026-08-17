@@ -53,6 +53,17 @@
 - Added production-linked coverage for bounded mobile-cycle scheduling, cursor removal, player-room
   detection, DG wait callback complexity, and the new memory inventory fields.
 
+### RoL mobile autostat correction
+
+#### Fixed
+
+- Restored the established mobile autostat, loader, and level-based combat behavior. Encounter Tier
+  now adds only saved HP, hitroll, armor, and damroll after the base autoroll calculation; Standard
+  and unspecified tiers add nothing, and changing Tier has no effect until autoroll runs again.
+- Regenerated the converted RoL mobiles from the sealed source lineage through two byte-identical
+  full-corpus candidates, then applied the accepted development-only release. Unchanged candidate
+  paths were skipped and repeat application was a no-op.
+
 ### RoL isolation correction and full-corpus import
 
 #### Fixed

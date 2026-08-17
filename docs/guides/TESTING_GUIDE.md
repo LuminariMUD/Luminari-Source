@@ -477,6 +477,12 @@ additive overlay is applied to development,
 `rol-phase8-completion` requires an identical validator result and a hash-preconditioned
 repeat-apply no-op.
 
+These automated gates prove structure, isolation, deterministic generation, bootability,
+and reference closure; they do not by themselves prove authored dialogue, encounter
+balance, quest intent, shop behavior, rewards, or ambience. A release that changes
+converted behavior still requires risk-based development walkthroughs and spawned-state
+or gameplay checks for the affected packages before production deployment.
+
 ## Adding Tests
 
 1. Put the test in `unittests/CuTest/test_*.c`.
