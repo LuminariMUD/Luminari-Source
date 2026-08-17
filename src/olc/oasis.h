@@ -446,6 +446,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define MEDIT_ADD_SPELLS 81
 #define MEDIT_SPEC_PROC 82
 #define MEDIT_TIER 83
+#define MEDIT_SPELL_RESISTANCE 84
 
 /* Submodes of SEDIT connectedness. */
 #define SEDIT_MAIN_MENU 0

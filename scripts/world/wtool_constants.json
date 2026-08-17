@@ -233,6 +233,142 @@
   },
   "schema_version": 1,
   "source_branch": "LUMINARI",
+  "symbols": {
+    "classes": {
+      "source_defines": "src/structs.h:CLASS_WIZARD..NUM_CLASSES",
+      "values": {
+        "CLASS_ALCHEMIST": 17,
+        "CLASS_ARCANEARCHER": 12,
+        "CLASS_ARCANE_ARCHER": 12,
+        "CLASS_ARCANE_SHADOW": 18,
+        "CLASS_ARTIFICER": 35,
+        "CLASS_ASSASSIN": 25,
+        "CLASS_BARD": 10,
+        "CLASS_BERSERKER": 6,
+        "CLASS_BLACKGUARD": 24,
+        "CLASS_CLERIC": 1,
+        "CLASS_DRAGONRIDER": 34,
+        "CLASS_DRUID": 5,
+        "CLASS_DUELIST": 15,
+        "CLASS_ELDRITCH_KNIGHT": 20,
+        "CLASS_INQUISITOR": 26,
+        "CLASS_KNIGHT_OF_SOLAMNIA": 30,
+        "CLASS_KNIGHT_OF_THE_LILY": 33,
+        "CLASS_KNIGHT_OF_THE_SKULL": 32,
+        "CLASS_KNIGHT_OF_THE_THORN": 31,
+        "CLASS_MONK": 4,
+        "CLASS_MYSTICTHEURGE": 16,
+        "CLASS_MYSTIC_THEURGE": 16,
+        "CLASS_NECROMANCER": 29,
+        "CLASS_PALADIN": 8,
+        "CLASS_PALE_MASTER": 29,
+        "CLASS_PLACEHOLDER_1": 36,
+        "CLASS_PLACEHOLDER_2": 37,
+        "CLASS_PSION": 21,
+        "CLASS_PSIONICIST": 21,
+        "CLASS_RANGER": 9,
+        "CLASS_ROGUE": 2,
+        "CLASS_SACRED_FIST": 19,
+        "CLASS_SHADOWDANCER": 23,
+        "CLASS_SHADOW_DANCER": 23,
+        "CLASS_SHIFTER": 14,
+        "CLASS_SORCERER": 7,
+        "CLASS_SPELLSWORD": 22,
+        "CLASS_STALWARTDEFENDER": 13,
+        "CLASS_STALWART_DEFENDER": 13,
+        "CLASS_SUMMONER": 27,
+        "CLASS_WARLOCK": 28,
+        "CLASS_WARRIOR": 3,
+        "CLASS_WEAPONMASTER": 11,
+        "CLASS_WEAPON_MASTER": 11,
+        "CLASS_WIZARD": 0
+      }
+    },
+    "mob-autoroll-custom-profiles": {
+      "source_enum": "src/mob/mob_autoroll.h:enum mob_autoroll_custom_profile",
+      "values": {
+        "MOB_AUTOROLL_CUSTOM_NONE": 0,
+        "MOB_AUTOROLL_CUSTOM_TIAMAT_DRACOLICH_V1": 2,
+        "MOB_AUTOROLL_CUSTOM_TIAMAT_LIVING_V1": 1
+      }
+    },
+    "mob-tiers": {
+      "source_enum": "src/mob/mob_autoroll.h:enum mob_tier",
+      "values": {
+        "MOB_TIER_BIG_GROUP": 3,
+        "MOB_TIER_ELITE": 1,
+        "MOB_TIER_RAID": 4,
+        "MOB_TIER_SMALL_GROUP": 2,
+        "MOB_TIER_STANDARD": 0,
+        "MOB_TIER_WORLD_BOSS": 5
+      }
+    },
+    "race-types": {
+      "source_defines": "src/structs.h:RACE_TYPE_UNKNOWN..NUM_RACE_TYPES",
+      "values": {
+        "RACE_TYPE_ABERRATION": 6,
+        "RACE_TYPE_ANIMAL": 3,
+        "RACE_TYPE_CONSTRUCT": 7,
+        "RACE_TYPE_DRAGON": 4,
+        "RACE_TYPE_ELEMENTAL": 8,
+        "RACE_TYPE_FEY": 9,
+        "RACE_TYPE_GIANT": 5,
+        "RACE_TYPE_HUMANOID": 1,
+        "RACE_TYPE_LYCANTHROPE": 16,
+        "RACE_TYPE_MAGICAL_BEAST": 10,
+        "RACE_TYPE_MONSTROUS_HUMANOID": 11,
+        "RACE_TYPE_OOZE": 12,
+        "RACE_TYPE_OUTSIDER": 13,
+        "RACE_TYPE_PLANT": 14,
+        "RACE_TYPE_UNDEAD": 2,
+        "RACE_TYPE_UNKNOWN": 0,
+        "RACE_TYPE_VERMIN": 15
+      }
+    },
+    "sizes": {
+      "source_defines": "src/structs.h:SIZE_RESERVED..NUM_SIZES",
+      "values": {
+        "SIZE_COLOSSAL": 9,
+        "SIZE_DIMINUTIVE": 2,
+        "SIZE_FINE": 1,
+        "SIZE_GARGANTUAN": 8,
+        "SIZE_HUGE": 7,
+        "SIZE_LARGE": 6,
+        "SIZE_MEDIUM": 5,
+        "SIZE_RESERVED": 0,
+        "SIZE_SMALL": 4,
+        "SIZE_TINY": 3
+      }
+    },
+    "subraces": {
+      "source_defines": "src/structs.h:SUBRACE_UNKNOWN..NUM_SUB_RACES",
+      "values": {
+        "SUBRACE_AIR": 1,
+        "SUBRACE_ANGEL": 2,
+        "SUBRACE_AQUATIC": 3,
+        "SUBRACE_ARCHON": 4,
+        "SUBRACE_AUGMENTED": 5,
+        "SUBRACE_CHAOTIC": 6,
+        "SUBRACE_COLD": 7,
+        "SUBRACE_DARKLING": 21,
+        "SUBRACE_EARTH": 8,
+        "SUBRACE_EVIL": 9,
+        "SUBRACE_EXTRAPLANAR": 10,
+        "SUBRACE_FIRE": 11,
+        "SUBRACE_GOBLINOID": 12,
+        "SUBRACE_GOOD": 13,
+        "SUBRACE_INCORPOREAL": 14,
+        "SUBRACE_LAWFUL": 15,
+        "SUBRACE_NATIVE": 16,
+        "SUBRACE_REPTILIAN": 17,
+        "SUBRACE_SHAPECHANGER": 18,
+        "SUBRACE_SWARM": 19,
+        "SUBRACE_UNKNOWN": 0,
+        "SUBRACE_VAMPIRE": 22,
+        "SUBRACE_WATER": 20
+      }
+    }
+  },
   "tables": {
     "affect": {
       "count_symbol": "NUM_AFF_FLAGS",

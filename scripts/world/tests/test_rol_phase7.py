@@ -7,6 +7,7 @@ import unittest
 
 from wtool_lib.rol_phase7 import (
     _bound_trigger_text,
+    _clear_rol_namespace,
     _ensure_index_entry,
     _filter_zone_door_resets,
     _merge_hlquest_blocks,
@@ -18,6 +19,22 @@ from wtool_lib.rol_phase7 import (
 
 
 class RolPhase7Tests(unittest.TestCase):
+  def test_namespace_clear_removes_only_generated_rol_records(self) -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+      world = Path(temporary)
+      (world / "obj").mkdir()
+      path = world / "obj/20010.obj"
+      path.write_text(
+          "#100\nlow~\n#2000100\nhigh~\n$~\n", encoding="ascii"
+      )
+
+      touched = _clear_rol_namespace(world)
+
+      self.assertEqual({"obj/20010.obj"}, touched)
+      self.assertIn("#100\n", path.read_text(encoding="ascii"))
+      self.assertNotIn("#2000100\n", path.read_text(encoding="ascii"))
+      self.assertTrue(path.read_text(encoding="ascii").endswith("$~\n"))
+
   def test_hlquest_merge_keeps_one_host_and_deduplicates_exact_bodies(self) -> None:
     first = "#2000100\nA!\nhello~\nworld~\n"
     second = "#2000100\nQ!\ndone~\nS\n"

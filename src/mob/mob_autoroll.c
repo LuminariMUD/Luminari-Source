@@ -44,7 +44,7 @@ int mob_effective_tier(const struct char_data *mob)
 
   level = GET_LEVEL(mob);
   if (level > 30)
-    return MIN(MOB_TIER_RAID, level - 30);
+    return level - 30 > MOB_TIER_RAID ? MOB_TIER_RAID : level - 30;
   return MOB_TIER_STANDARD;
 }
 
@@ -80,7 +80,7 @@ int mob_tier_attack_bonus(int tier)
 
   if (rank == 0)
     return 0;
-  return rank + 1 + MAX(0, rank - 2);
+  return rank + 1 + (rank > 2 ? rank - 2 : 0);
 }
 
 int mob_tier_armor_bonus(int tier)

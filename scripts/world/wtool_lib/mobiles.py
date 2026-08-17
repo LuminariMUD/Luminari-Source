@@ -27,6 +27,7 @@ _CLAMP_RANGES = {
     "Dex": (3, 50),
     "Con": (3, 50),
     "Cha": (3, 50),
+    "SpellRes": (0, 100),
     "SavingPara": (0, 100),
     "SavingFort": (0, 100),
     "SavingRod": (0, 100),

@@ -2,7 +2,7 @@
 
 `wtool` is the standalone validator, lookup, source-inventory, and RoL reconciliation utility for
 LuminariMUD flat world data. It parses the same eight formats used by the server
-without starting the game, connecting to MariaDB, or compiling `circle`:
+without starting the game or compiling `circle`:
 
 - zones (`.zon`)
 - rooms (`.wld`)
@@ -13,14 +13,12 @@ without starting the game, connecting to MariaDB, or compiling `circle`:
 - quests (`.qst`)
 - high-level quests (`.hlq`)
 
-Validation, lookup, RoL inventory, flag conversion, and documentation checks
-are read-only. The RoL evidence and generation commands write new, explicit
-run directories but never modify the source corpus. `rol-phase8-apply` is the
-only maintained world-data apply path. `rol-persistence-recovery-apply` can
-repair the superseded rehome only after making a full database backup and only
-in an explicitly identified non-production environment. The destructive
-`rol-rebase-apply` path is disabled, and forward `rol-persistence-apply` is
-restricted to isolated test databases. The maintainer operation
+Validation, lookup, RoL inventory, flag conversion, documentation checks, and
+`rol-persistence-check` are read-only. The persistence check is the only RoL command
+that connects to MariaDB; it uses `lib/mysql_config`, requires `APP_ENV=development`,
+and executes only `SELECT` statements. Evidence and generation commands write new,
+explicit run directories but never modify the source corpus. `rol-phase8-apply` is
+the only maintained world-data apply path. The maintainer operation
 `constants sync --write` replaces the checked-in derived constants manifest.
 
 ## Requirements and Entry Point
@@ -73,15 +71,15 @@ manifest lines and zone headers. It then hashes and classifies physical files
 without invoking a source or target game runtime.
 
 The RoL baseline path hashes target indexes and files, reproduces the source
-aggregate builder byte for byte, checks typed candidate ranges in world, code,
-and database stores, captures full target diagnostics, and writes a unique
-evidence bundle. Its versioned policy is
+aggregate builder byte for byte, checks typed candidate ranges in world and code,
+captures full target diagnostics, and writes a unique evidence bundle. It does not
+connect to a database. Its versioned policy is
 `scripts/world/rol_conversion_policy.json`.
 
 The Phase 1 discovery path parses all seven active source grammars, resolves
-typed dependencies, extracts command and special-procedure bindings, inventories
-persistent VNUM values, generates non-destructive lineage candidates, and records
-an owned capability disposition for every observed construct. The Phase 2 planner
+typed dependencies, extracts command and special-procedure bindings, generates
+non-destructive lineage candidates, and records an owned capability disposition for
+every observed construct. It does not connect to a database. The Phase 2 planner
 verifies those artifacts before assigning every active record a deterministic
 `KEEP`, `PATCH`, `ADD`, `MERGE`, or `EXCLUDE` action. Neither command writes
 `lib/world/`. The Phase 3 walking skeleton verifies a confirmed `KEEP`, copies
@@ -163,7 +161,6 @@ noncanonical active RoL entity identities     = 0
 modified preserved Luminari records           = 0
 cross-world typed references                   = 0
 missing reserved-namespace typed targets       = 0
-canonical rows from the rejected DB rehome     = 0
 ```
 
 The accepted result must also preserve target/OLC edits through explicit
@@ -243,16 +240,12 @@ development target:
 ```sh
 python3 scripts/world/wtool.py --world-root lib/world rol-baseline \
   --source-root EXAMPLE/RealmsOfLuminari \
-  --output-dir lib/rol-conversion/runs/phase0-YYYYMMDD \
-  --database-config lib/mysql_config
+  --output-dir lib/rol-conversion/runs/phase0-YYYYMMDD
 ```
 
 The output directory must not already exist. Generated runs are ignored by
 Git because their inventories and diagnostics describe builder-owned world
-data. The command reads database credentials only when `--database-config` is
-given, never includes them in output, and identifies the database by a SHA-256
-digest of its host/database pair. A complete range-reservation gate requires
-database evidence.
+data. The command never connects to MariaDB.
 
 Use `--created-at` with an ISO-8601 timestamp when reproducing a run manifest
 with a controlled creation time. All other artifact content is derived from
@@ -266,7 +259,7 @@ The bundle contains:
 | `source-inventory.json` | Active source manifests, packages, hashes, and exclusions |
 | `target-inventory.json` | Target indexes, hashes, missing entries, and orphaned files |
 | `source-aggregate-reconciliation.json` | Exact per-kind rebuild and aggregate comparison |
-| `collision-evidence.json` | Typed world, code-binding, and database range checks |
+| `collision-evidence.json` | Typed world and code-binding range checks |
 | `policies.json` | The exact versioned conversion policy used by the run |
 | `validation/baseline.json` | Full `validate --all` result, finding identities, and parse state |
 
@@ -282,16 +275,14 @@ Generate grammar, closure, binding, lineage, and capability evidence:
 ```sh
 python3 scripts/world/wtool.py --world-root lib/world rol-discover \
   --source-root EXAMPLE/RealmsOfLuminari \
-  --output-dir lib/rol-conversion/runs/phase1-YYYYMMDD \
-  --database-config lib/mysql_config
+  --output-dir lib/rol-conversion/runs/phase1-YYYYMMDD
 ```
 
 The unique output contains source and target inventories, the grammar summary,
 all normalized source records, one lineage-candidate row per active record, one
-resolution row per typed reference, source/target special bindings, persistent
-VNUM bindings, the capability matrix, byte and semantic aggregate reconciliation,
-the locked policy, and a manifest hashing every artifact. Credentials are read
-only by the database client and never serialized.
+resolution row per typed reference, source/target special bindings, the capability
+matrix, byte and semantic aggregate reconciliation, the locked policy, and a manifest
+hashing every artifact. The command never connects to MariaDB.
 
 Unknown syntax is an operational error. Known source-loader losses remain explicit
 warnings or smallest-unit exclusions. Aggregate semantic differences are accepted
@@ -385,95 +376,40 @@ Both commands verify the manifests they consume. Phase 6 accounts for direct
 bindings, dynamic registrations, implicit race bindings, handlers, and every
 active `ACT_SPEC` record. Its accepted bundle has no pending binding.
 
-## Superseded Phase 6.5 Rehome and Persistence Recovery
+## RoL Database Boundary
 
-The old Phase 6.5 rehome is retained only so its historical evidence can be
-audited and its exact database inverse can be generated. It moved existing
-Luminari identities and is not part of the accepted import. Staging remains a
-non-writing forensic operation:
+World generation, baseline capture, discovery, planning, capability analysis,
+special reconciliation, and Phase 7 compilation do not connect to MariaDB.
 
-```sh
-python3 scripts/world/wtool.py --world-root lib/world rol-rebase \
-  --discovery-dir lib/rol-conversion/runs/phase1-REVISION \
-  --plan-dir lib/rol-conversion/runs/phase2-REVISION \
-  --phase6-dir lib/rol-conversion/runs/phase6-REVISION \
-  --lib-root lib \
-  --output-dir lib/rol-conversion/runs/phase6-5-REVISION
-```
-
-The generated bundle describes the rejected target rehome. Do not apply it.
-`rol-rebase-apply` now fails before reading or writing a target so the earlier
-destructive operation cannot be repeated.
-
-Forward persistence SQL may be replayed only against a disposable isolated
-database for regression testing:
+Persisted player, pet, house, quest, vessel, and subsystem state can contain world
+VNUMs. Before release, validate those references against the candidate:
 
 ```sh
-python3 scripts/world/wtool.py --json rol-persistence-bundle \
-  --discovery-dir lib/rol-conversion/runs/phase1-REVISION \
-  --output-dir lib/rol-conversion/runs/phase6-5-persistence-REVISION
-
-python3 scripts/world/wtool.py --json rol-persistence-apply \
-  --bundle-dir lib/rol-conversion/runs/phase6-5-persistence-REVISION \
-  --database-config <mysql-config> \
-  --database-role isolated \
-  --lib-root <tested-lib-root> \
-  --output-dir lib/rol-conversion/runs/phase6-5-persistence-exec-REVISION
+python3 scripts/world/wtool.py \
+  --world-root <candidate-lib>/world \
+  --json rol-persistence-check
 ```
 
-Development recovery is a separate, direction-locked workflow. It seals the
-exact inverse of the historical migration, creates a full restorable database
-dump before any update, performs a rollback-only preflight, applies the inverse,
-and proves a second application is a no-op:
+The command is deliberately narrow:
 
-```sh
-python3 scripts/world/wtool.py rol-persistence-recovery-bundle \
-  --migration-bundle-dir <historical-persistence-bundle> \
-  --output-dir <recovery-bundle>
+- it reads only the repository's `lib/mysql_config`;
+- it refuses to run unless `lib/.env` identifies the development environment;
+- its query runner accepts only one `SELECT` or `SHOW` statement and rejects
+  semicolons and every write-shaped statement, and every connection sets the
+  database session to `READ ONLY` before running the query;
+- it reports only typed VNUMs, counts, definition status, and a database-identity
+  hash, never credentials or serialized object contents; and
+- it fails unless every persisted RoL VNUM resolves to exactly one indexed candidate
+  definition.
 
-python3 scripts/world/wtool.py rol-persistence-recovery-apply \
-  --bundle-dir <recovery-bundle> \
-  --database-config lib/mysql_config \
-  --database-role development \
-  --lib-root lib \
-  --output-dir <recovery-execution>
-```
-
-Recovery acceptance requires zero high-namespace rows from the rejected
-migration, unchanged table row counts, unchanged serialized-object suffix
-lengths and checksums, unique resolution of all restored Luminari object
-prototypes, a sealed backup hash, and repeat-application no-op evidence.
-
-After world tools, CuTests, install, syntax boot, and bounded runtime boot pass, seal
-the complete Phase 6.5 closure evidence:
-
-```sh
-python3 scripts/world/wtool.py --json rol-completion-audit \
-  --release-dir <canonical-release-a> \
-  --repeat-release-dir <canonical-release-b> \
-  --persistence-bundle-dir <persistence-release-a> \
-  --repeat-persistence-bundle-dir <persistence-release-b> \
-  --development-execution-dir <development-migration-execution> \
-  --final-verification-dir <development-final-verification> \
-  --isolated-execution-dir <isolated-migration-execution> \
-  --lib-root lib \
-  --world-tools-log <world-tools-log> \
-  --cutest-log <cutest-log> \
-  --install-log <install-log> \
-  --syntax-log <syntax-boot-log> \
-  --runtime-log <bounded-runtime-log> \
-  --output-dir <completion-audit>
-```
-
-The historical completion bundle remains usable for source-mechanics closure,
-but its target-rehome and forward-persistence claims are superseded. Phase 8
-requires the accepted recovery execution in addition to the historical source
-closure evidence.
+Phase 8 runs this same check against its assembled candidate. The database target is
+fixed to `lib/mysql_config`; the converter cannot create, copy, migrate, recover, or
+select a database.
 
 ## Realms of Luminari Phase 7 and Phase 8
 
 Generate cumulative Phase 7 milestones after batches 4, 8, and 12. Each invocation
-regenerates from the restored, authoritative Luminari development baseline; it
+regenerates from the frozen, authoritative Luminari development baseline; it
 does not modify that baseline.
 
 ```sh
@@ -482,7 +418,6 @@ python3 scripts/world/wtool.py --world-root lib/world rol-phase7 \
   --plan-dir <phase2-directory> \
   --capability-audit-dir <phase5-directory> \
   --phase6-dir <phase6-directory> \
-  --completion-dir <phase6.5-completion-directory> \
   --through-batch 12 \
   --prior-milestone-dir <batch4-directory> \
   --prior-milestone-dir <batch8-directory> \
@@ -495,15 +430,13 @@ canonical records, validates the full assembled world, and records preservation 
 runtime-contract evidence. The final milestone requires 258 packages, 71,680 record
 actions, no new normalized active error, and a byte-identical independent repeat.
 
-After the code suites, install, isolated syntax boot, and bounded runtime boot pass,
+After the code suites, install, candidate syntax boot, and bounded runtime boot pass,
 assemble the Phase 8 release candidate:
 
 ```sh
 python3 scripts/world/wtool.py --world-root lib/world rol-phase8 \
   --phase7-dir <phase7-final-directory> \
   --repeat-phase7-dir <phase7-repeat-directory> \
-  --completion-dir <phase6.5-completion-directory> \
-  --persistence-recovery-dir <accepted-recovery-execution> \
   --world-tools-log <world-tools-log> \
   --cutest-log <cutest-log> \
   --install-log <install-log> \
@@ -515,9 +448,9 @@ python3 scripts/world/wtool.py --world-root lib/world rol-phase8 \
 `rol-phase8` reproduces the complete candidate from the frozen baseline and Phase 7
 overlay, reconciles counts and actions, proves that source-internal `MERGE` actions
 target no existing Luminari record, rejects every cross-world typed reference,
-audits RoL mechanics markers and code identities, verifies the completed persistence
-recovery, and emits a hash-preconditioned additive apply plan. Apply and seal it only
-in development:
+audits RoL mechanics markers and code identities, checks persisted VNUMs read-only
+against the candidate, and emits a hash-preconditioned additive apply plan. Apply and
+seal it only in development:
 
 ```sh
 python3 scripts/world/wtool.py --json rol-phase8-apply \
@@ -534,6 +467,9 @@ The apply command rejects production, changed inputs, changed runtime binaries, 
 modified bundle artifacts. Reapplication is a verified no-op. The completion command
 requires the development tree and post-apply diagnostics to match the accepted
 candidate, rechecks documentation, and records the no-op reapplication.
+
+Candidate boots use the repository's local development database through
+`lib/mysql_config`.
 
 ## Validation Modes
 

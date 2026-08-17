@@ -939,7 +939,12 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(9, mobile.position)
     self.assertEqual(1, int(mobile.enhanced["Class"][0]))
     self.assertEqual(15, int(mobile.enhanced["Race"][0]))
-    self.assertEqual(4321, mobile.gold)
+    self.assertEqual(0, mobile.gold)
+    self.assertIn(39, decode_tokens(mobile.action_flags).bits)
+    self.assertEqual(6, mobile.level)
+    self.assertEqual(0, int(mobile.enhanced["SubRace 1"][0]))
+    self.assertIn("Size", mobile.enhanced)
+    self.assertEqual(0, int(mobile.enhanced["Tier"][0]))
 
   def test_emitted_mobile_maps_rol_secondary_and_source_only_affects(self) -> None:
     first_affects = (1 << (16 - 1)) | (1 << (24 - 1))

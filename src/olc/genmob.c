@@ -511,6 +511,8 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     fprintf(fd, "Con: %d\n", GET_CON(mob));
   if (GET_CHA(mob) != 11)
     fprintf(fd, "Cha: %d\n", GET_CHA(mob));
+  if (GET_REAL_SPELL_RES(mob) != 0)
+    fprintf(fd, "SpellRes: %d\n", GET_REAL_SPELL_RES(mob));
   if (GET_SAVE(mob, SAVING_FORT) != 0)
     fprintf(fd, "SavingFort: %d\n", GET_SAVE(mob, SAVING_FORT));
   if (GET_SAVE(mob, SAVING_REFL) != 0)

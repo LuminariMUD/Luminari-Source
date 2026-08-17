@@ -29,9 +29,6 @@ from .models import (
     ZoneRecord,
 )
 from .rol_baseline import (
-    _NUMERIC_TYPES,
-    _parse_mysql_config,
-    _run_mysql,
     build_target_inventory,
     load_rol_policy,
     reconcile_source_aggregates,
@@ -42,10 +39,6 @@ from .rol_identity import (
     canonical_destination,
     canonical_reference_vnum,
     legacy_lineage_vnum,
-)
-from .rol_persistence import (
-    PERSISTENT_BINDING_SCHEMA_VERSION,
-    persistent_binding_spec,
 )
 from .rol_source import (
     RolRecord,
@@ -915,118 +908,6 @@ def build_binding_candidates(
   return rows
 
 
-def build_persistent_binding_inventory(database_config: Path | None) -> dict[str, Any]:
-  """Inventory typed persistent VNUM values without exposing database credentials."""
-
-  if database_config is None:
-    return {"captured": False, "reason": "database configuration not requested"}
-  config = _parse_mysql_config(database_config)
-  query = (
-      "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM information_schema.COLUMNS "
-      "WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME, ORDINAL_POSITION"
-  )
-  columns: list[dict[str, Any]] = []
-  for line in _run_mysql(config, query).splitlines():
-    fields = line.split("\t")
-    if len(fields) != 3:
-      continue
-    table, column, data_type = fields
-    if re.fullmatch(r"[A-Za-z0-9_$]+", table) is None or re.fullmatch(
-        r"[A-Za-z0-9_$]+", column
-    ) is None:
-      continue
-    lowered_type = data_type.lower()
-    semantic = persistent_binding_spec(table, column)
-    if semantic is None and (
-        "vnum" not in column.lower() or lowered_type not in _NUMERIC_TYPES
-    ):
-      continue
-
-    row: dict[str, Any] = {
-        "table": table,
-        "column": column,
-        "data_type": lowered_type,
-        "discovered": True,
-    }
-    if semantic is not None:
-      row.update(semantic)
-      row["classification_status"] = "traced"
-    else:
-      row.update(
-          {
-              "record_type": "unclassified",
-              "encoding": "integer",
-              "migration_required": False,
-              "predicate": None,
-              "consumer": "untraced numeric VNUM column",
-              "evidence": "requires explicit runtime trace before migration",
-              "disposition": "unclassified",
-              "classification_status": "unclassified",
-          }
-      )
-
-    encoding = str(row["encoding"])
-    predicate = str(row["predicate"]) if row.get("predicate") else None
-    if encoding == "integer" and lowered_type in _NUMERIC_TYPES:
-      where = f"`{column}` IS NOT NULL"
-      if predicate:
-        where += f" AND ({predicate})"
-      values_query = (
-          f"SELECT DISTINCT `{column}` FROM `{table}` "
-          f"WHERE {where} ORDER BY `{column}`"
-      )
-      values = [int(value) for value in _run_mysql(config, values_query).splitlines()]
-      row.update(
-          {
-              "distinct_values": len(values),
-              "values": values,
-              "values_sha256": _sha256_bytes(
-                  ("\n".join(str(value) for value in values) + "\n").encode("ascii")
-              ),
-          }
-      )
-    elif encoding == "integer_text":
-      values_query = (
-          f"SELECT DISTINCT CAST(`{column}` AS SIGNED) FROM `{table}` "
-          f"WHERE `{column}` REGEXP '^[0-9]+$' ORDER BY CAST(`{column}` AS SIGNED)"
-      )
-      values = [int(value) for value in _run_mysql(config, values_query).splitlines()]
-      row.update(
-          {
-              "distinct_values": len(values),
-              "values": values,
-              "values_sha256": _sha256_bytes(
-                  ("\n".join(str(value) for value in values) + "\n").encode("ascii")
-              ),
-          }
-      )
-    else:
-      row_count = int(_run_mysql(config, f"SELECT COUNT(*) FROM `{table}`").strip())
-      row.update(
-          {
-              "row_count": row_count,
-              "values_withheld": True,
-              "values_sha256": None,
-          }
-      )
-    columns.append(row)
-  identity = f"{config['mysql_host']}/{config['mysql_database']}".encode("utf-8")
-  return {
-      "captured": True,
-      "binding_schema_version": PERSISTENT_BINDING_SCHEMA_VERSION,
-      "database_identity_sha256": _sha256_bytes(identity),
-      "semantic_columns": len(columns),
-      "numeric_vnum_columns": sum(
-          "vnum" in str(row["column"]).lower()
-          and str(row["data_type"]) in _NUMERIC_TYPES
-          for row in columns
-      ),
-      "unclassified_columns": sum(
-          row["classification_status"] == "unclassified" for row in columns
-      ),
-      "columns": columns,
-  }
-
 
 def _inactive_definitions(
     source_root: Path,
@@ -1295,7 +1176,6 @@ def write_discovery_bundle(
     world_root: Path,
     output_dir: Path,
     repo_root: Path,
-    database_config: Path | None = None,
     created_at: str | None = None,
 ) -> dict[str, Any]:
   """Write immutable Phase 1 evidence without changing source or target inputs."""
@@ -1344,7 +1224,6 @@ def write_discovery_bundle(
   binding_candidates = build_binding_candidates(
       source_bindings, target_bindings, corpus
   )
-  persistent_bindings = build_persistent_binding_inventory(database_config)
   capabilities = build_capability_matrix(corpus)
   aggregate_semantics = reconcile_aggregate_semantics(
       source_root, corpus, byte_reconciliation
@@ -1365,7 +1244,6 @@ def write_discovery_bundle(
           "target_special_bindings": target_bindings,
           "active_binding_candidates": binding_candidates,
           "source_commands": commands,
-          "persistent_bindings": persistent_bindings,
       },
       "policies.json": policy,
   }
@@ -1455,7 +1333,6 @@ def write_discovery_bundle(
           "source_aggregates_semantically_reconciled": aggregate_semantics[
               "all_semantically_reconciled"
           ],
-          "persistent_bindings_captured": persistent_bindings["captured"],
           "target_parse_complete": world.complete,
       },
   }
@@ -1474,7 +1351,6 @@ def write_discovery_bundle(
       "aggregate_semantics_reconciled": aggregate_semantics[
           "all_semantically_reconciled"
       ],
-      "persistent_bindings_captured": persistent_bindings["captured"],
       "target_parse_complete": world.complete,
       "artifacts": len(artifacts) + 1,
   }
@@ -1493,8 +1369,6 @@ def render_rol_discovery_human(summary: dict[str, Any]) -> str:
       f"Aggregate semantics equal: {str(summary['aggregate_semantics_equal']).lower()}",
       "Aggregate semantics reconciled: "
       f"{str(summary['aggregate_semantics_reconciled']).lower()}",
-      "Persistent bindings captured: "
-      f"{str(summary['persistent_bindings_captured']).lower()}",
       f"Target parse complete: {str(summary['target_parse_complete']).lower()}",
       f"Artifacts written: {summary['artifacts']}",
   ]

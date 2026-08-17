@@ -68,6 +68,14 @@ class MobileParserTests(unittest.TestCase):
     result = self.parse(mobile_record(enhanced="Tier: 6\nTier: 2junk\n"))
     self.assertEqual(["MOB028", "MOB028"], [item.code for item in result.findings])
 
+  def test_spell_resistance_is_canonical_and_range_checked(self) -> None:
+    valid = self.parse(mobile_record(enhanced="SpellRes: 47\n"))
+    self.assertEqual([], valid.findings)
+    self.assertEqual("47", valid.records[0].enhanced["SpellRes"][0])
+
+    invalid = self.parse(mobile_record(enhanced="SpellRes: 101\n"))
+    self.assertEqual(["MOB026"], [item.code for item in invalid.findings])
+
 
 if __name__ == "__main__":
   unittest.main()

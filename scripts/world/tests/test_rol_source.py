@@ -7,6 +7,7 @@ import unittest
 from wtool_lib.rol_source import (
     RolSourceCorpus,
     _parse_obj,
+    _parse_mob,
     _parse_qst,
     _parse_shp,
     _parse_soc,
@@ -27,6 +28,7 @@ def parse_fixture(kind: str, data: bytes):
     parser = {
         "wld": _parse_wld,
         "obj": _parse_obj,
+        "mob": _parse_mob,
         "zon": _parse_zon,
         "qst": _parse_qst,
         "shp": _parse_shp,
@@ -67,6 +69,18 @@ class RolSourceTests(unittest.TestCase):
     self.assertEqual(201, records[0].references[0].target_vnum)
     self.assertEqual([15, 0, 1], records[0].values["flags"])
     self.assertEqual([1, 2, 3], records[0].values["economy"])
+
+  def test_mobile_parser_rejects_arbitrary_row_shapes(self) -> None:
+    records, corpus = parse_fixture(
+        "mob",
+        b"<*> File Version 1 <*>\n#100\nmobile~\na mobile~\nA mobile waits.~\n"
+        b"A mobile.~\n0 0 0 0 S\nH height 0\n10 0 0 bad 1d4+0\n"
+        b"0 0 trailing\n131 131\n",
+    )
+
+    self.assertFalse(corpus.complete)
+    self.assertFalse(records[0].complete)
+    self.assertEqual(4, [item.code for item in corpus.diagnostics].count("ROLMOB005"))
 
   def test_object_affect_masks_are_only_read_before_extensions(self) -> None:
     records, corpus = parse_fixture(

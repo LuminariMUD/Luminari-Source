@@ -3,11 +3,21 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import lru_cache
 import re
 import textwrap
-from typing import Callable
+from typing import Any, Callable
 
 from .flags import encode_bits
+from .rol_mob_calculator import (
+    MobileCalculatorClient,
+    calculation_to_dict,
+    default_mobile_calculator,
+)
+from .rol_mobile_identity import (
+    load_mobile_conversion_policy,
+    select_mobile_conversion,
+)
 from .rol_source import RolRecord
 
 
@@ -77,6 +87,19 @@ class TransformResult:
 
   text: str
   diagnostics: list[str] = field(default_factory=list)
+  ledger: dict[str, Any] | None = None
+
+
+@lru_cache(maxsize=1)
+def _mobile_conversion_inputs():
+  return load_mobile_conversion_policy()
+
+
+def _manifest_bit(manifest: dict[str, Any], table: str, macro: str) -> int:
+  for entry in manifest["tables"][table]["entries"]:
+    if entry.get("macro") == macro:
+      return int(entry["index"])
+  raise ValueError(f"constants manifest table {table!r} has no {macro}")
 
 
 ROOM_FLAG_MAP = {
@@ -249,17 +272,6 @@ MOB_DEFERRED_ACTIONS = frozenset({1})
 # ACT_SAVE is a runtime owner/follower relationship, not a prototype property
 # in the target. ACT_SPEC_DIE has no source runtime consumer.
 MOB_SOURCE_ONLY_ACTIONS = frozenset({14, 24})
-
-# RoL can grant several class behavior roles independently of its single class
-# field. The target retains every role as a mobile flag and selects one primary
-# class for its single-class mobile spell/skill AI.
-MOB_PRIMARY_CLASS_BY_ACTION = (
-    (19, 21), # psionicist
-    (21, 0),  # wizard
-    (20, 1),  # cleric
-    (22, 2),  # rogue
-    (23, 3),  # warrior
-)
 
 MOB_AFFECT_MAP = {
     1: 1,   # BLIND
@@ -542,114 +554,6 @@ EQUIPMENT_POSITION_MAP = {
     22: 23,  # quiver/ammo pouch
     23: 27,  # badge/insignia
 }
-
-CLASS_MAP = {
-    0: 3, # no source class -> target warrior baseline unless a role flag infers one
-    1: 3,
-    2: 9,
-    3: 6,
-    4: 8,
-    5: 24,
-    6: 1,
-    7: 4,
-    8: 5,
-    9: 1,
-    10: 7,
-    11: 29,
-    12: 0,
-    13: 2,
-    14: 25,
-    15: 3,
-    16: 10,
-    17: 21,
-    18: 29,
-    19: 0,
-    20: 0,
-    21: 0,
-    22: 10,
-    23: 2,
-    24: 0,
-    25: 3,
-}
-
-RACE_CODE_MAP = {
-    "A": 3,
-    "AA": 3,
-    "AB": 3,
-    "AC": 3,
-    "AD": 3,
-    "AE": 3,
-    "AF": 3,
-    "AH": 3,
-    "AP": 15,
-    "AS": 15,
-    "AY": 10,
-    "B": 3,
-    "BR": 3,
-    "D": 4,
-    "DK": 4,
-    "E1": 13,
-    "E2": 13,
-    "EA": 8,
-    "EE": 8,
-    "EF": 8,
-    "EW": 8,
-    "F": 3,
-    "G": 5,
-    "H": 1,
-    "H2": 1,
-    "HC": 11,
-    "HF": 9,
-    "HG": 1,
-    "HH": 1,
-    "HK": 1,
-    "HO": 1,
-    "HS": 11,
-    "HY": 13,
-    "I": 15,
-    "IX": 6,
-    "K": 10,
-    "L": 16,
-    "MH": 6,
-    "MS": 11,
-    "N": 0,
-    "OB": 6,
-    "OG": 7,
-    "OH": 11,
-    "OP": 13,
-    "OS": 12,
-    "OU": 14,
-    "P2": 1,
-    "PB": 1,
-    "PD": 1,
-    "PE": 1,
-    "PF": 1,
-    "PG": 1,
-    "PH": 1,
-    "PI": 6,
-    "PL": 1,
-    "PM": 1,
-    "PO": 1,
-    "PT": 1,
-    "PR": 1,
-    "PS": 14,
-    "PY": 11,
-    "PZ": 2,
-    "R": 3,
-    "RH": 11,
-    "RS": 3,
-    "RT": 11,
-    "U": 2,
-    "UG": 2,
-    "UH": 2,
-    "US": 2,
-    "UV": 2,
-    "VT": 14,
-    "X": 13,
-    "Y": 13,
-    "Z": 13,
-}
-
 
 _SOURCE_COLOR = re.compile(r"&\+([A-Za-z])|&([Nn])")
 
@@ -1459,54 +1363,6 @@ def emit_room(
   return TransformResult("".join(lines), diagnostics)
 
 
-def _source_position(value: int) -> int:
-  if value & 4:
-    return 0
-  if value & 8:
-    return 1
-  if value & 16:
-    return 2
-  if value & 32:
-    return 4
-  if value & 64:
-    return 6
-  posture = value & 3
-  return {0: 5, 1: 7, 2: 7, 3: 9}.get(posture, 9)
-
-
-def _dice_row(tokens: list[str]) -> tuple[int, int, int, str, str]:
-  padded = tokens + ["0"] * max(0, 5 - len(tokens))
-  return (
-      int(padded[0]),
-      int(padded[1]),
-      int(padded[2]),
-      _normalize_dice(padded[3]),
-      _normalize_dice(padded[4]),
-  )
-
-
-def _normalize_dice(value: str) -> str:
-  match = re.fullmatch(r"([+-]?\d+)d([+-]?\d+)\+([+-]?\d+)", value)
-  if match is None:
-    return "1d1+0"
-  count, size, bonus = (int(item) for item in match.groups())
-  if count <= 0 or size <= 0:
-    return f"0d0+{bonus}"
-  return f"{count}d{size}+{bonus}"
-
-
-def _money_row(tokens: list[str]) -> tuple[int, int]:
-  if not tokens:
-    return 0, 0
-  if "." in tokens[0]:
-    pieces = [int(value) for value in tokens[0].split(".")]
-    pieces = (pieces + [0, 0, 0, 0])[:4]
-    money = pieces[0] + pieces[1] * 10 + pieces[2] * 100 + pieces[3] * 1000
-  else:
-    money = int(tokens[0])
-  return money, int(tokens[1]) if len(tokens) > 1 else 0
-
-
 def emit_mobile(
     record: RolRecord,
     destination_vnum: int,
@@ -1515,10 +1371,52 @@ def emit_mobile(
     attachments: tuple[int, ...] = (),
     required_action_bits: tuple[int, ...] = (),
     required_affect_bits: tuple[int, ...] = (),
+    calculator: MobileCalculatorClient | None = None,
 ) -> TransformResult:
   """Emit one enhanced target mobile record."""
 
   diagnostics: list[str] = []
+  mobile_policy, manifest, registry = _mobile_conversion_inputs()
+  selection = select_mobile_conversion(record, mobile_policy, manifest, registry)
+  calculator_client = calculator or default_mobile_calculator()
+  custom_profile_name = selection.custom_profile or "none"
+  try:
+    custom_profile_symbol = str(
+        mobile_policy["calculator"]["custom_profiles"][custom_profile_name]
+    )
+    custom_profile = int(
+        manifest["symbols"]["mob-autoroll-custom-profiles"]["values"][
+            custom_profile_symbol
+        ]
+    )
+  except (KeyError, TypeError, ValueError) as error:
+    raise ValueError(
+        f"unsupported mobile calculator custom profile {custom_profile_name!r}"
+    ) from error
+  calculation = calculator_client.calculate(
+      destination_vnum,
+      selection.mapped_level,
+      selection.identity.target_race,
+      selection.target_class,
+      selection.tier,
+      custom_profile,
+  )
+  stats = calculation.persisted
+  hit_points = stats.hit_points
+  if selection.custom_hit_points is not None and hit_points != selection.custom_hit_points:
+    raise ValueError(
+        f"calculator custom profile {custom_profile_name!r} returned {hit_points} hit points, "
+        f"expected {selection.custom_hit_points} for mobile {record.record_id}"
+    )
+  if stats.armor_class % 10:
+    raise ValueError(
+        f"calculator returned non-serializable armor class {stats.armor_class} "
+        f"for mobile {record.record_id}"
+    )
+  if hit_points < 1:
+    raise ValueError(
+        f"calculator returned non-positive hit points {hit_points} for mobile {record.record_id}"
+    )
   strings = record.values.get("strings", {})
   lines = [f"#{destination_vnum}\n"]
   for key in ("aliases", "short_description", "long_description", "description"):
@@ -1538,7 +1436,10 @@ def emit_mobile(
   rows = record.values.get("base_rows", [])
   race_row = rows[0] if len(rows) > 0 else ["N", "0", "0"]
   race_code = race_row[0].upper() if race_row else "N"
-  target_actions = _mapped_bits(source_actions, MOB_ACTION_MAP) | {3}
+  custom_gold_bit = _manifest_bit(manifest, "mob", "MOB_CUSTOM_GOLD")
+  target_actions = _mapped_bits(source_actions, MOB_ACTION_MAP) | {3, custom_gold_bit}
+  if selection.custom_profile is not None:
+    target_actions.add(_manifest_bit(manifest, "mob", "MOB_CUSTOM_MOB_STATS"))
   for source_action, expanded_actions in MOB_ACTION_EXPANSIONS.items():
     if source_action in source_actions:
       target_actions.update(expanded_actions)
@@ -1586,40 +1487,184 @@ def emit_mobile(
     )
   lines.append(f"{_encoded(target_actions)} {_encoded(target_affects)} {alignment} E\n")
 
-  combat_row = rows[1] if len(rows) > 1 else ["1", "0", "0", "1d1+0", "1d1+0"]
-  money_row = rows[2] if len(rows) > 2 else ["0", "0"]
-  position_row = rows[3] if len(rows) > 3 else ["131", "131", "0", "0"]
-  level, hitroll, armor, hit_dice, damage_dice = _dice_row(combat_row)
-  level = min(34, max(1, level))
-  lines.append(f"{level} {hitroll} {armor} {hit_dice} {damage_dice}\n")
-  money, experience = _money_row(money_row)
-  lines.append(f"{money} {experience}\n")
-  position = _source_position(int(position_row[0]))
-  default_position = _source_position(int(position_row[1]))
-  sex = int(position_row[2]) if len(position_row) > 2 else 0
-  if sex not in {0, 1, 2}:
-    diagnostics.append(f"normalized unsupported source sex {sex} to neutral")
-    sex = 0
-  lines.append(f"{position} {default_position} {sex}\n")
+  hit_dice = f"1d1+{hit_points - 1}"
+  damage_dice = f"{stats.damage_dice_count}d{stats.damage_dice_size}+{stats.damage_bonus}"
+  lines.append(
+      f"{selection.mapped_level} {20 - stats.hitroll} "
+      f"{20 - stats.armor_class // 10} {hit_dice} {damage_dice}\n"
+  )
+  lines.append(f"{stats.gold} {stats.experience}\n")
+  lines.append(
+      f"{selection.current_position} {selection.default_position} {selection.target_sex}\n"
+  )
 
-  source_class = int(position_row[3]) if len(position_row) > 3 else 0
-  target_class = CLASS_MAP.get(source_class, 0)
-  if source_class == 0:
-    for action, inferred_class in MOB_PRIMARY_CLASS_BY_ACTION:
-      if action in source_actions:
-        target_class = inferred_class
-        break
-  target_race = RACE_CODE_MAP.get(race_code, 0)
-  if race_code not in RACE_CODE_MAP:
-    diagnostics.append(f"unknown source race code {race_code!r}; used target human")
-  lines.extend([f"Class: {target_class}\n", f"Race: {target_race}\n"])
+  identity = selection.identity
+  lines.extend(
+      [
+          f"Class: {selection.target_class}\n",
+          f"Race: {identity.target_race}\n",
+          f"SubRace 1: {identity.subraces[0]}\n",
+          f"SubRace 2: {identity.subraces[1]}\n",
+          f"SubRace 3: {identity.subraces[2]}\n",
+          f"Size: {identity.final_size}\n",
+          f"Tier: {selection.tier}\n",
+          f"Str: {stats.strength}\n",
+          f"StrAdd: {stats.strength_add}\n",
+          f"Int: {stats.intelligence}\n",
+          f"Wis: {stats.wisdom}\n",
+          f"Dex: {stats.dexterity}\n",
+          f"Con: {stats.constitution}\n",
+          f"Cha: {stats.charisma}\n",
+          f"SavingFort: {stats.saving_fortitude}\n",
+          f"SavingRefl: {stats.saving_reflex}\n",
+          f"SavingWill: {stats.saving_will}\n",
+          f"SavingPoison: {stats.saving_poison}\n",
+          f"SavingDeath: {stats.saving_death}\n",
+          f"SpellRes: {selection.effective_source_spell_resistance}\n",
+      ]
+  )
   if target_affects2:
     lines.append(f"Aff2: {_numeric_bitarray(target_affects2)}\n")
   if special_proc is not None:
     lines.append(f"SpecProc: {special_proc}\n")
   lines.append("E\n")
   lines.extend(f"T {trigger_vnum}\n" for trigger_vnum in attachments)
-  return TransformResult("".join(lines), diagnostics)
+  if selection.repairs:
+    diagnostics.extend(f"automatic source repair: {repair}" for repair in selection.repairs)
+  if selection.source_aggression_codes or selection.ignored_aggression_tokens:
+    diagnostics.append(
+        "excluded source race-list aggression under bounded adaptation: "
+        f"{[*selection.source_aggression_codes, *selection.ignored_aggression_tokens]}"
+    )
+  if selection.source_prestige_bonus > 0:
+    diagnostics.append(
+        f"excluded source prestige bonus {selection.source_prestige_bonus}; target has no equivalent"
+    )
+  ledger = selection.ledger()
+  ledger["calculator"] = {
+      **calculator_client.identity,
+      "result": calculation_to_dict(calculation),
+      "custom_profile": selection.custom_profile,
+      "custom_profile_symbol": custom_profile_symbol,
+      "custom_profile_id": custom_profile,
+      "custom_hit_points": selection.custom_hit_points,
+  }
+  ledger["serialization"] = {
+      "disposition": "MAPPED",
+      "hitroll_file": 20 - stats.hitroll,
+      "armor_file": 20 - stats.armor_class // 10,
+      "hit_dice": hit_dice,
+      "damage_dice": damage_dice,
+      "final_size_assigned_after_calculation": identity.final_size,
+      "mob_custom_gold": True,
+      "mob_custom_stats": selection.custom_profile is not None,
+  }
+  source_rows = record.values.get("base_rows", [])
+  source_combat = source_rows[1] if len(source_rows) > 1 else []
+  ledger["field_dispositions"] = {
+      "file_framing": {
+          "disposition": "MAPPED",
+          "source_format": record.format_version,
+          "target_format": "enhanced-mobile-E",
+          "reason": "source and target use different native record framing",
+          "player_impact": "none",
+      },
+      "vnum": {
+          "disposition": "MAPPED",
+          "source": record.vnum,
+          "target": destination_vnum,
+          "rule": "canonical-rol-vnum-map",
+          "player_impact": "references resolve through the canonical typed identity map",
+      },
+      "text": {
+          "disposition": "MAPPED",
+          "fields": ["aliases", "short_description", "long_description", "description"],
+          "rule": "legacy-color-and-ascii-v1",
+          "player_impact": "visible text is retained with target color syntax",
+      },
+      "action_mask": {
+          "disposition": "MAPPED",
+          "source_bits": sorted(source_actions),
+          "target_bits": sorted(target_actions),
+          "rule": "mobile-action-map-v1",
+          "player_impact": "mapped, adapted, deferred, and source-only bits are diagnosed",
+      },
+      "affect_masks": {
+          "disposition": "MAPPED",
+          "source_bits": sorted(source_affects),
+          "target_affect_bits": sorted(target_affects),
+          "target_affect2_bits": sorted(target_affects2),
+          "rule": "mobile-affect-map-v1",
+          "player_impact": "persistent equivalents are retained; transient exclusions are diagnosed",
+      },
+      "alignment": {
+          "disposition": "EXACT",
+          "source": alignment,
+          "target": alignment,
+          "player_impact": "none",
+      },
+      "format_letter": {
+          "disposition": "MAPPED",
+          "source": record.values.get("format_letter"),
+          "target": "E",
+          "reason": "target-only generated stats require enhanced fields",
+          "player_impact": "none",
+      },
+      "source_hitroll": {
+          "disposition": "EXCLUDED",
+          "source": source_combat[1] if len(source_combat) > 1 else None,
+          "reason": "target calculator owns attack bonus and target file encoding is inverse",
+          "player_impact": "target-native attack progression replaces the incompatible raw value",
+      },
+      "source_armor": {
+          "disposition": "EXCLUDED",
+          "source": source_combat[2] if len(source_combat) > 2 else None,
+          "reason": "target calculator owns armor and target file encoding is inverse-times-ten",
+          "player_impact": "target-native defense progression replaces the incompatible raw value",
+      },
+      "source_hit_dice": {
+          "disposition": "EXCLUDED",
+          "source": source_combat[3] if len(source_combat) > 3 else None,
+          "reason": "calculator or exact named profile owns deterministic target hit points",
+          "player_impact": "spawn HP is stable and cannot acquire a second random modifier",
+      },
+      "source_damage_dice": {
+          "disposition": "EXCLUDED",
+          "source": source_combat[4] if len(source_combat) > 4 else None,
+          "reason": "calculator and selected tier own target damage",
+          "player_impact": "target-native damage progression replaces the raw source roll",
+      },
+      "target_only_stats": {
+          "disposition": "MAPPED",
+          "owner": "mob-autoroll-profile-v1",
+          "fields": [
+              "Str", "StrAdd", "Int", "Wis", "Dex", "Con", "Cha",
+              "SavingFort", "SavingRefl", "SavingWill", "SavingPoison", "SavingDeath",
+          ],
+          "player_impact": "class, race, configuration, and tier are applied exactly once",
+      },
+  }
+  ledger["loader_consequences"] = {
+      "source_ability_rolls": "EXCLUDED: target calculator owns deterministic abilities",
+      "source_spell_circle_budgets": "ADAPTED: target class spell-slot initialization runs at spawn",
+      "source_racial_infravision": "ADAPTED: target race/subrace and affect mappings own vision",
+      "source_coin_randomization": "ADAPTED: fixed calculator gold uses MOB_CUSTOM_GOLD",
+      "source_dimension_generation": "MAPPED: identity resolver persists one final target size",
+      "source_memory_default": "EXCLUDED: target has no safe equivalent to universal memory",
+      "source_classless_experience_reduction": "ADAPTED: one target-native experience policy",
+      "source_elite_alias_detection": "EXCLUDED: exact words do not silently add target affects",
+      "source_scavenger_suppression": "ADAPTED: explicit mapped target flags own behavior",
+      "source_psionic_mana": "ADAPTED: target spell-slot initialization owns class resources",
+      "source_race_procedures": "ADAPTED: composition-safe target action hooks",
+      "source_periodic_and_path_behavior": "ADAPTED: separate special/SOC reconciliation",
+      "target_hitroll_inverse": "MAPPED: loader returns the calculator hitroll",
+      "target_armor_inverse": "MAPPED: loader returns the calculator armor class",
+      "target_hp_roll": "MAPPED: 1d1 plus fixed bonus returns exact generated HP",
+      "target_explicit_tier": "EXACT: loader preserves explicit selected tier",
+      "target_class_category": "MAPPED: calculator records expected post-load values",
+      "target_spell_slots": "ADAPTED: initialized once by target runtime",
+  }
+  return TransformResult("".join(lines), diagnostics, ledger)
 
 
 def _object_values(

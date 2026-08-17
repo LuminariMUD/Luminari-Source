@@ -710,6 +710,19 @@ and temporarily retain the former level-31-to-34 group scaling until reviewed.
 - `src/olc/medit.c` - Builder selection and tier-aware autoroll
 - `src/db.c` and `src/olc/genmob.c` - `Tier:` loading and saving
 
+### Spell resistance (separate scalar field)
+
+Enhanced mobile files persist base spell resistance as `SpellRes:` from 0 through
+100. MEDIT exposes the same value in its advanced statistics menu. Loading clamps
+the field to that range, and OLC save writes a nonzero base value back to disk.
+Autoroll can replace it from the selected race profile, so set identity before
+running automatic statistics.
+
+**Code References:**
+- `src/db.c` - `SpellRes:` loading
+- `src/olc/genmob.c` - `SpellRes:` saving
+- `src/olc/medit.c` - display, edit, and autoroll ownership
+
 ### MOB_NO_BLOCK_BYPASS (Index: 102)
 **Effect:** Prevents the Ghost perk and similar abilities from slipping past this mobile's blocking.
 - Blocking mobiles normally have bypass routes available to certain classes and perks

@@ -595,6 +595,38 @@ def _trigger_vnums(path: Path) -> set[int]:
   return result
 
 
+def _is_rol_namespace(kind: str, vnum: int) -> bool:
+  if kind == "zon":
+    return 20_000 <= vnum <= 29_999
+  return 2_000_000 <= vnum <= 2_999_999
+
+
+def _clear_rol_namespace(world_root: Path) -> set[str]:
+  """Remove existing generated RoL records while preserving every other block."""
+
+  touched: set[str] = set()
+  for kind in ("zon", "wld", "mob", "obj", "shp", "trg", "qst", "hlq"):
+    directory = world_root / kind
+    if not directory.is_dir():
+      continue
+    for path in sorted(directory.glob(f"*.{kind}")):
+      headers = {
+          int(value)
+          for value in re.findall(rb"(?m)^#(\d+)~?\s*$", path.read_bytes())
+      }
+      if not any(_is_rol_namespace(kind, vnum) for vnum in headers):
+        continue
+      prefix, blocks = _split_world_file(path, kind)
+      retained = [row for row in blocks if not _is_rol_namespace(kind, row[0])]
+      if len(retained) == len(blocks):
+        continue
+      path.write_text(
+          _render_world_file(kind, prefix, retained), encoding="utf-8", newline="\n"
+      )
+      touched.add(path.relative_to(world_root).as_posix())
+  return touched
+
+
 def _compile_soc_corpus(
     records: Iterable[RolRecord],
     resolve,
@@ -1187,7 +1219,6 @@ def write_phase7_bundle(
     plan_dir: Path,
     capability_audit_dir: Path,
     phase6_dir: Path,
-    completion_dir: Path,
     source_root: Path,
     target_world: Path,
     output_dir: Path,
@@ -1195,14 +1226,13 @@ def write_phase7_bundle(
     prior_milestone_dirs: Iterable[Path] = (),
     created_at: str | None = None,
 ) -> dict[str, Any]:
-  """Regenerate one cumulative Phase 7 milestone from the sealed Phase 6.5 baseline."""
+  """Regenerate one cumulative Phase 7 milestone from the accepted inputs."""
 
   repo_root = default_repo_root()
   discovery_dir = discovery_dir.resolve()
   plan_dir = plan_dir.resolve()
   capability_audit_dir = capability_audit_dir.resolve()
   phase6_dir = phase6_dir.resolve()
-  completion_dir = completion_dir.resolve()
   source_root = source_root.resolve()
   target_world = target_world.resolve()
   output_dir = output_dir.resolve()
@@ -1212,7 +1242,7 @@ def write_phase7_bundle(
   if source_root != (repo_root / _SOURCE_ROOT_PREFIX).resolve():
     raise RolPhase7Error("Phase 7 requires the inventoried repository RoL source root")
   if not target_world.is_dir():
-    raise RolPhase7Error(f"Phase 6.5 target world is inaccessible: {target_world}")
+    raise RolPhase7Error(f"development target world is inaccessible: {target_world}")
   if through_batch < 1 or through_batch > 12:
     raise RolPhase7Error("--through-batch must be in the frozen range 1..12")
 
@@ -1222,9 +1252,6 @@ def write_phase7_bundle(
       capability_audit_dir, 5, "full-corpus-capability-audit"
   )
   phase6_manifest = _verify_bundle(phase6_dir, 6, "special-procedure-reconciliation")
-  completion_manifest = _verify_bundle(completion_dir, "6.5-completion-audit")
-  if not completion_manifest.get("acceptance", {}).get("complete"):
-    raise RolPhase7Error("Phase 7 requires the accepted Phase 6.5 completion bundle")
   if plan_manifest.get("discovery_run_id") != discovery_manifest["run_id"]:
     raise RolPhase7Error("Phase 1 and Phase 2 inputs do not share a run lineage")
   if phase6_manifest.get("discovery_run_id") != discovery_manifest["run_id"]:
@@ -1303,7 +1330,11 @@ def write_phase7_bundle(
       resolve,
       source_commands,
       intervals,
-      _trigger_vnums(target_world / "trg"),
+      {
+          vnum
+          for vnum in _trigger_vnums(target_world / "trg")
+          if not _is_rol_namespace("trg", vnum)
+      },
   )
 
   attachments: defaultdict[tuple[str, int], list[int]] = defaultdict(list)
@@ -1491,8 +1522,8 @@ def write_phase7_bundle(
   output_dir.mkdir(parents=True)
   staging_world = output_dir / "staging/world"
   shutil.copytree(target_world, staging_world, copy_function=shutil.copy2)
+  touched = _clear_rol_namespace(staging_world)
   existing_trigger_ids = _trigger_vnums(staging_world / "trg")
-  touched: set[str] = set()
   for relative, rows in sorted(generated.items()):
     kind = relative.split("/", 1)[0]
     replacements: set[int] = (
@@ -1512,7 +1543,7 @@ def write_phase7_bundle(
           if len(baseline_by_vnum[vnum]) != 1:
             raise RolPhase7Error(f"baseline zone {vnum} is not unique in {target_path}")
           text = _merge_zone_blocks(
-              [(vnum, baseline_by_vnum[vnum][0], "phase6.5-baseline"),
+              [(vnum, baseline_by_vnum[vnum][0], "development-baseline"),
                (vnum, text, record_id)]
           )
           replacements.add(vnum)
@@ -1550,7 +1581,7 @@ def write_phase7_bundle(
   )
   baseline_validation = result_payload(baseline_validation_result)
   staged_validation = result_payload(staged_validation_result)
-  baseline_validation["root"] = "sealed-phase6-5/world"
+  baseline_validation["root"] = "development/world"
   staged_validation["root"] = "phase7-candidate/world"
   delta = _validation_delta(baseline_validation, staged_validation)
   staged_model = load_indexed_world_data(
@@ -1655,7 +1686,6 @@ def write_phase7_bundle(
       "plan_run_id": plan_manifest["run_id"],
       "capability_audit_run_id": capability_manifest["run_id"],
       "phase6_run_id": phase6_manifest["run_id"],
-      "phase6_5_completion_run_id": completion_manifest["run_id"],
       "source_tree": tree_manifest(source_root),
       "target_tree": baseline_tree,
   }
@@ -1722,7 +1752,7 @@ def write_phase7_bundle(
     if prior.get("through_batch", 0) >= through_batch:
       raise RolPhase7Error("prior Phase 7 milestone is not earlier than this milestone")
     if prior.get("frozen_target_tree_sha256") != baseline_tree["tree_sha256"]:
-      raise RolPhase7Error("prior milestone does not share the sealed Phase 6.5 baseline")
+      raise RolPhase7Error("prior milestone does not share the frozen development baseline")
     prior_runs.append(
         {"run_id": prior["run_id"], "through_batch": prior["through_batch"]}
     )

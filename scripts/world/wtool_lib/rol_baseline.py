@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import hashlib
 import json
-import os
 from pathlib import Path
 import re
 import subprocess
@@ -23,22 +22,6 @@ from .world import validate_indexed_world
 ROL_BASELINE_SCHEMA_VERSION = 1
 _POLICY_NAME = "rol_conversion_policy.json"
 _INTEGER_TOKEN = re.compile(rb"(?<![A-Za-z0-9_])-?\d+(?![A-Za-z0-9_])")
-_NUMERIC_TYPES = frozenset(
-    {
-        "bigint",
-        "decimal",
-        "double",
-        "float",
-        "int",
-        "mediumint",
-        "numeric",
-        "real",
-        "smallint",
-        "tinyint",
-    }
-)
-
-
 class RolBaselineError(ValueError):
   """Raised when a baseline cannot be reproduced safely."""
 
@@ -287,120 +270,12 @@ def _scan_hardcoded_range(
   return matches
 
 
-def _parse_mysql_config(path: Path) -> dict[str, str]:
-  values: dict[str, str] = {}
-  for raw_line in path.read_text(encoding="utf-8").splitlines():
-    line = raw_line.strip()
-    if not line or line.startswith("#") or "=" not in line:
-      continue
-    key, value = line.split("=", 1)
-    values[key.strip()] = value.strip()
-  required = ("mysql_host", "mysql_database", "mysql_username", "mysql_password")
-  missing = [key for key in required if not values.get(key)]
-  if missing:
-    raise RolBaselineError(f"database configuration is missing {', '.join(missing)}")
-  return values
-
-
-def _run_mysql(config: dict[str, str], query: str) -> str:
-  environment = dict(os.environ)
-  environment["MYSQL_PWD"] = config["mysql_password"]
-  connection_arguments = ["--host", config["mysql_host"]]
-  if config.get("mysql_socket"):
-    connection_arguments = [
-        "--protocol=socket",
-        "--socket",
-        config["mysql_socket"],
-    ]
-  elif config.get("mysql_port"):
-    connection_arguments.extend(["--port", config["mysql_port"]])
-  completed = subprocess.run(
-      [
-          "mysql",
-          "--batch",
-          "--skip-column-names",
-          *connection_arguments,
-          "--user",
-          config["mysql_username"],
-          config["mysql_database"],
-          "--execute",
-          query,
-      ],
-      check=False,
-      capture_output=True,
-      text=True,
-      env=environment,
-  )
-  if completed.returncode != 0:
-    message = completed.stderr.strip().splitlines()
-    detail = message[-1] if message else "database client failed"
-    raise RolBaselineError(f"database collision query failed: {detail}")
-  return completed.stdout
-
-
-def _database_collision_evidence(
-    config_path: Path,
-    ranges: dict[str, tuple[int, int]],
-) -> dict[str, Any]:
-  config = _parse_mysql_config(config_path)
-  columns_query = (
-      "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE FROM information_schema.COLUMNS "
-      "WHERE TABLE_SCHEMA = DATABASE() AND COLUMN_NAME LIKE '%vnum%' "
-      "ORDER BY TABLE_NAME, ORDINAL_POSITION"
-  )
-  columns: list[tuple[str, str, str]] = []
-  for line in _run_mysql(config, columns_query).splitlines():
-    fields = line.split("\t")
-    if len(fields) == 3 and fields[2].lower() in _NUMERIC_TYPES:
-      if all(re.fullmatch(r"[A-Za-z0-9_$]+", field) for field in fields[:2]):
-        columns.append((fields[0], fields[1], fields[2].lower()))
-
-  range_results: list[dict[str, Any]] = []
-  for range_name, (start, end) in ranges.items():
-    collisions: list[dict[str, Any]] = []
-    for table, column, data_type in columns:
-      if range_name == "new_zone_range" and "zone" not in column.lower():
-        continue
-      query = (
-          f"SELECT COUNT(*) FROM `{table}` WHERE `{column}` BETWEEN {start} AND {end}"
-      )
-      raw_count = _run_mysql(config, query).strip()
-      count = int(raw_count or "0")
-      if count:
-        collisions.append(
-            {
-                "table": table,
-                "column": column,
-                "data_type": data_type,
-                "rows": count,
-            }
-        )
-    range_results.append(
-        {
-            "range": range_name,
-            "start": start,
-            "end": end,
-            "collisions": collisions,
-            "collision_rows": sum(item["rows"] for item in collisions),
-        }
-    )
-
-  identity = f"{config['mysql_host']}/{config['mysql_database']}".encode("utf-8")
-  return {
-      "captured": True,
-      "database_identity_sha256": _sha256_bytes(identity),
-      "numeric_vnum_columns": len(columns),
-      "ranges": range_results,
-  }
-
-
 def build_collision_evidence(
     repo_root: Path,
     world_root: Path,
     policy: dict[str, Any],
-    database_config: Path | None = None,
 ) -> dict[str, Any]:
-  """Check the reserved ranges in indexed world, source, config, and database stores."""
+  """Check the reserved ranges in indexed world and source/configuration code."""
 
   identity = policy["identity"]
   ranges = {
@@ -447,17 +322,8 @@ def build_collision_evidence(
       )
       for name, (start, end) in ranges.items()
   }
-  if database_config is None:
-    database = {"captured": False, "reason": "database configuration not requested"}
-  else:
-    database = _database_collision_evidence(database_config, ranges)
-
   range_summary = []
-  database_by_name = {
-      result["range"]: result for result in database.get("ranges", [])
-  }
   for name, (start, end) in ranges.items():
-    database_rows = database_by_name.get(name, {}).get("collision_rows")
     range_summary.append(
         {
             "range": name,
@@ -465,10 +331,7 @@ def build_collision_evidence(
             "end": end,
             "world_definitions": len(world_matches[name]),
             "hardcoded_literals": len(hardcoded[name]),
-            "database_rows": database_rows,
-            "reserved": not world_matches[name]
-            and not hardcoded[name]
-            and database_rows == 0,
+            "reserved": not world_matches[name] and not hardcoded[name],
         }
     )
 
@@ -477,9 +340,8 @@ def build_collision_evidence(
       "tool_version": TOOL_VERSION,
       "world_header_matches": world_matches,
       "hardcoded_literal_matches": hardcoded,
-      "database": database,
       "ranges": range_summary,
-      "complete": database.get("captured", False),
+      "complete": True,
       "all_reserved": all(result["reserved"] for result in range_summary),
   }
 
@@ -505,7 +367,6 @@ def write_baseline_bundle(
     world_root: Path,
     output_dir: Path,
     repo_root: Path,
-    database_config: Path | None = None,
     created_at: str | None = None,
 ) -> dict[str, Any]:
   """Write a unique Phase 0 evidence bundle without modifying either input root."""
@@ -524,7 +385,6 @@ def write_baseline_bundle(
       repo_root,
       world_root,
       policy,
-      database_config=database_config,
   )
   validation = validate_indexed_world(
       world_root,
@@ -577,7 +437,6 @@ def write_baseline_bundle(
       "acceptance": {
           "source_aggregates_match": aggregates["all_byte_identical"],
           "candidate_ranges_reserved": collision["all_reserved"],
-          "collision_evidence_complete": collision["complete"],
           "target_parse_complete": baseline_validation["complete"],
           "baseline_findings": baseline_validation["summary"]["active"],
       },
@@ -590,7 +449,6 @@ def write_baseline_bundle(
       "output_dir": output_dir.as_posix(),
       "source_aggregates_match": aggregates["all_byte_identical"],
       "candidate_ranges_reserved": collision["all_reserved"],
-      "collision_evidence_complete": collision["complete"],
       "target_parse_complete": baseline_validation["complete"],
       "findings": baseline_validation["summary"]["active"],
       "artifacts": len(artifacts) + 1,
@@ -604,7 +462,6 @@ def render_rol_baseline_human(summary: dict[str, Any]) -> str:
       f"Output: {summary['output_dir']}",
       f"Source aggregates byte-identical: {str(summary['source_aggregates_match']).lower()}",
       f"Candidate ranges reserved: {str(summary['candidate_ranges_reserved']).lower()}",
-      f"Database collision evidence captured: {str(summary['collision_evidence_complete']).lower()}",
       f"Target parse complete: {str(summary['target_parse_complete']).lower()}",
       f"Baseline findings: {counts['error']} error, {counts['warning']} warning, "
       f"{counts['info']} info",

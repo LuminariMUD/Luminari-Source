@@ -543,6 +543,7 @@ set(SRC_C_FILES
     src/mob/mob_act.c
     src/mob/mob_autoroll.c
     src/mob/mob_autoroll.h
+    src/mob/mob_autoroll_profile.c
     src/mob/mob_memory.c
     src/mob/mob_utils.c
     src/mob/mob_race.c
@@ -893,6 +894,9 @@ if (BUILD_UTILS)
     add_executable(plrtoascii util/plrtoascii.c)
     add_executable(rebuildAsciiIndex util/rebuildAsciiIndex.c)
     add_executable(rebuildMailIndex util/rebuildMailIndex.c)
+    add_executable(rol_mob_calculator util/rol_mob_calculator.c
+                                      src/mob/mob_autoroll.c
+                                      src/mob/mob_autoroll_profile.c)
     add_executable(shopconv util/shopconv.c)
     add_executable(sign util/sign.c)
     add_executable(split util/split.c)
@@ -904,7 +908,7 @@ if (BUILD_UTILS)
 
     # Set output directory for utilities
     set_target_properties(autowiz asciipasswd plrtoascii rebuildAsciiIndex
-                          rebuildMailIndex shopconv sign split wld2html
+                          rebuildMailIndex rol_mob_calculator shopconv sign split wld2html
                           PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
 
     # Link libraries for utilities that need them
@@ -939,15 +943,15 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool_lib/reporting.py
     scripts/world/wtool_lib/rol_baseline.py
     scripts/world/wtool_lib/rol_capability_audit.py
-    scripts/world/wtool_lib/rol_completion_audit.py
     scripts/world/wtool_lib/rol_discovery.py
     scripts/world/wtool_lib/rol_graph.py
     scripts/world/wtool_lib/rol_inventory.py
+    scripts/world/wtool_lib/rol_mob_calculator.py
+    scripts/world/wtool_lib/rol_mobile_identity.py
     scripts/world/wtool_lib/rol_identity.py
     scripts/world/wtool_lib/rol_persistence.py
-    scripts/world/wtool_lib/rol_persistence_audit.py
+    scripts/world/wtool_lib/rol_persistence_check.py
     scripts/world/wtool_lib/rol_planner.py
-    scripts/world/wtool_lib/rol_rebase.py
     scripts/world/wtool_lib/rol_phase7.py
     scripts/world/wtool_lib/rol_phase8.py
     scripts/world/wtool_lib/rol_pilot.py
@@ -981,14 +985,14 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/test_reporting.py
     scripts/world/tests/test_rol_baseline.py
     scripts/world/tests/test_rol_capability_audit.py
-    scripts/world/tests/test_rol_completion_audit.py
     scripts/world/tests/test_rol_discovery.py
     scripts/world/tests/test_rol_graph.py
     scripts/world/tests/test_rol_inventory.py
+    scripts/world/tests/test_rol_mob_calculator.py
+    scripts/world/tests/test_rol_mobile_identity.py
     scripts/world/tests/test_rol_identity.py
-    scripts/world/tests/test_rol_persistence_audit.py
+    scripts/world/tests/test_rol_persistence_check.py
     scripts/world/tests/test_rol_planner.py
-    scripts/world/tests/test_rol_rebase.py
     scripts/world/tests/test_rol_phase7.py
     scripts/world/tests/test_rol_phase8.py
     scripts/world/tests/test_rol_pilot.py
@@ -1111,8 +1115,15 @@ add_custom_target(check-world-docs
     SOURCES ${WORLD_TOOL_SOURCES} ${WORLD_TOOL_SUPPORT_FILES}
     COMMENT "Checking world-data constants and documentation")
 
+set(WORLD_TOOL_CALCULATOR_ENV)
+if (TARGET rol_mob_calculator)
+    set(WORLD_TOOL_CALCULATOR_ENV
+        "ROL_MOB_CALCULATOR=$<TARGET_FILE:rol_mob_calculator>")
+endif()
+
 add_custom_target(test-world-tools
-    COMMAND Python3::Interpreter -m unittest discover
+    COMMAND ${CMAKE_COMMAND} -E env ${WORLD_TOOL_CALCULATOR_ENV}
+            ${Python3_EXECUTABLE} -m unittest discover
             -s scripts/world/tests -t scripts/world -v
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/lib/world/validate-zone.sh 100
             --world-root
@@ -1121,6 +1132,9 @@ add_custom_target(test-world-tools
     SOURCES ${WORLD_TOOL_SOURCES} ${WORLD_TOOL_SUPPORT_FILES}
     COMMENT "Running standalone world-data tool tests")
 add_dependencies(test-world-tools check-world-docs)
+if (TARGET rol_mob_calculator)
+    add_dependencies(test-world-tools rol_mob_calculator)
+endif()
 
 # ========== Build unit tests AFTER main executable ==========
 # The focused protocol parser harness remains available under unittests/CuTest.
@@ -1246,6 +1260,10 @@ if (BUILD_TESTS)
         world-tool-wrapper
         PROPERTIES
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    if (TARGET rol_mob_calculator)
+        set_tests_properties(world-tools PROPERTIES
+            ENVIRONMENT "ROL_MOB_CALCULATOR=$<TARGET_FILE:rol_mob_calculator>")
+    endif()
 
     add_test(NAME autorun-supervision
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/autorun/test_autorun_supervision.sh)

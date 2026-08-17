@@ -166,15 +166,14 @@ aliases, and unchanged JSON for the original six record types.
 RoL baseline tests cover exact source aggregate reconstruction, including the
 source C reader's unterminated-tail behavior, deterministic target index/hash
 inventory, missing and orphaned target paths, and the versioned conversion
-policy. Live database collision evidence is an operational Phase 0 gate and
-is not exercised against CI credentials.
+policy. Phase 0 does not connect to a database.
 
 RoL discovery and planning tests cover all seven grammar adapters, compact and
 same-line quest forms, false-reset rejection, typed references, source-defect
 classification, command identities, lineage evidence, ambiguity-preserving
 actions, reserved identity allocation, collision failures, and complete
-non-writing action ledgers. Operational discovery captures live persistent
-VNUM bindings only when an explicit database configuration is supplied.
+non-writing action ledgers. Phase 1 does not connect to a database or accept a
+database configuration.
 
 RoL walking-skeleton tests cover deterministic target-tree inventories, unsafe
 path rejection, hash-guarded `KEEP` preconditions, and repeatable zero-write
@@ -193,10 +192,10 @@ RoL isolation tests cover the universal zone and entity formulas, evidence-backe
 normalization, sparse and multi-band packages, overflow and malformed inputs, exact
 Trail/Hulburg/Jotunheim coexistence, distinct Luminari and RoL artifact identities,
 all typed reference classes, and target-preservation preconditions. Persistence tests
-cover the exact inverse of the rejected rehome, rollback-only preflight, a mandatory
-full backup, row-count and serialized-suffix preservation, restored prototype
-resolution, and repeat-recovery no-op behavior. The legacy world apply is rejected
-before any file or database write.
+cover the fixed local-development configuration, rejection of every non-read-only
+query shape, enforced read-only database sessions, schema discovery, and unique
+candidate resolution for persisted RoL VNUMs. No active conversion test performs a
+database migration or recovery.
 
 ### Canonical RoL maintenance gate
 
@@ -219,12 +218,11 @@ The completed conversion remains accepted only while all of these conditions hol
    hard-coded seven-digit identity in the RoL mechanics modules is in 2000000-2999999.
 8. Preserved target and OLC content changes only through an explicit, evidence-backed
    record action; the final import patches zero preserved Luminari records.
-9. Persistence recovery neither loses nor duplicates ownership, progression,
-   inventory, or other discovered state, and leaves zero rows under identities from
-   the rejected rehome.
+9. The read-only persistence gate proves that every RoL VNUM currently stored by the
+   development game resolves to exactly one candidate definition.
 10. The assembled world adds no normalized baseline finding, and touched records have
     no unresolved finding.
-11. Syntax and isolated-database boots, reset and walkthrough evidence, focused tests,
+11. Syntax and local-development-database boots, reset and walkthrough evidence, focused tests,
     world tools, production-linked CuTests, and installation pass.
 12. Regeneration is byte-identical for identical inputs, repeat application is safe,
     and the applied development target passes the same audits.
@@ -232,73 +230,21 @@ The completed conversion remains accepted only while all of these conditions hol
     similarity or a matching low VNUM as lineage.
 14. No unexplained exception, unresolved decision, or final blocked identity remains.
 
-### Superseded Phase 6.5 evidence and recovery validation
+### RoL persistence validation
 
-Do not apply a Phase 6.5 rehome bundle. The command is retained as rejected
-historical evidence and its apply path is disabled. Validate the coexisting low
-Luminari and high RoL packages separately, then require the final Phase 7 graph and
-preservation reports to show zero cross-world edge and zero patched preserved record:
+The conversion stages that generate files do not connect to MariaDB. Before release,
+check persisted RoL VNUMs read-only against the candidate world:
 
 ```sh
-python3 scripts/world/wtool.py --json validate --all --strict
-lib/world/validate-zone.sh 1507 --json --strict
-lib/world/validate-zone.sh 20507 --json --strict
-lib/world/validate-zone.sh 1591 --json --strict
-lib/world/validate-zone.sh 20591 --json --strict
-lib/world/validate-zone.sh 1960 --json --strict
-lib/world/validate-zone.sh 20960 --json --strict
+python3 scripts/world/wtool.py \
+  --world-root <candidate-lib>/world \
+  --json rol-persistence-check
 ```
 
-Selected-zone runs can include `REF009` errors from malformed unselected packages that
-prevent a complete global reference universe. Classify those only by exact baseline
-comparison. Any error located in a touched package, new normalized finding, or
-unresolved typed edge fails the gate.
-
-Recover any database touched by the superseded migration before staging Phase 8:
-
-```sh
-python3 scripts/world/wtool.py rol-persistence-recovery-bundle \
-  --migration-bundle-dir <historical-persistence-bundle> \
-  --output-dir <recovery-bundle>
-
-python3 scripts/world/wtool.py rol-persistence-recovery-apply \
-  --bundle-dir <recovery-bundle> \
-  --database-config lib/mysql_config \
-  --database-role development \
-  --lib-root lib \
-  --output-dir <recovery-execution>
-```
-
-Recovery must seal a full pre-write dump, preserve row counts and serialized suffix
-checksums, restore every affected low Luminari prototype uniquely, leave zero high
-rows from the rejected migration, and report a repeat no-op. Follow it with
-`make test-world-tools`, `make test`, `make install`, a syntax boot, and namespace,
-reference, persistent-store, and database audits.
-
-Seal and execute the semantic persistence supplement whenever a discovered database
-schema is in scope. The apply command performs a rollback-only preflight, applies the
-migration twice, preserves row counts and serialized object suffixes, and proves every
-canonical saved-object header resolves to one active indexed prototype:
-
-```sh
-python3 scripts/world/wtool.py --json rol-persistence-bundle \
-  --discovery-dir <phase1-discovery> \
-  --output-dir <persistence-bundle>
-
-python3 scripts/world/wtool.py --json rol-persistence-apply \
-  --bundle-dir <persistence-bundle> \
-  --database-config <isolated-or-development-mysql-config> \
-  --database-role isolated \
-  --lib-root <tested-lib-root> \
-  --output-dir <persistence-execution>
-```
-
-After the final gate logs exist, `rol-completion-audit` seals the record-level rehome,
-per-package reference, code/configuration consumer, persistence, runtime topology, and
-14-rule canonical maintenance matrix. It fails on an active retired consumer,
-unresolved required edge, missing or duplicate saved-object prototype, failed gate, or
-changed repeat bundle. See `docs/utilities/WORLD_VALIDATOR_CLI.md` for the full
-invocation.
+The command uses only `lib/mysql_config`, requires `APP_ENV=development`, rejects
+non-read-only query shapes, and fails if any persisted RoL VNUM is missing or
+duplicated in the candidate. Phase 8 runs the same check while its assembled
+candidate exists.
 
 Equivalent CMake and CTest entry points are:
 
@@ -499,7 +445,7 @@ make -C unittests/CuTest valgrind-protocol
 
 ## Realms of Luminari Release Validation
 
-The final RoL conversion gate uses the normal full suites plus an isolated copy of the
+The final RoL conversion gate uses the normal full suites plus a staged copy of the
 complete candidate world:
 
 ```sh
@@ -507,22 +453,27 @@ make test-world-tools
 make test
 make install
 python3 scripts/world/wtool.py \
-  --world-root <isolated-lib>/world validate --all --strict
-bin/circle -c -d <isolated-lib>
-timeout --signal=INT 30 bin/circle -d <isolated-lib> <test-port>
+  --world-root <candidate-lib>/world validate --all --strict
+python3 scripts/world/wtool.py \
+  --world-root <candidate-lib>/world --json rol-persistence-check
+bin/circle -c -d <candidate-lib>
+timeout --signal=INT 30 bin/circle -d <candidate-lib> <test-port>
 ```
 
-The isolated lib root must use a loopback-only test MariaDB database. Never point these
-commands at production. The syntax and bounded runtime logs must show a complete boot;
-the runtime log must enter the game loop, reset the converted corpus, terminate
-normally, and contain no converted-VNUM `SYSERR`, zone error, invalid-reference, or
-missing-reference diagnostic.
+The candidate lib root must use the repository's local development database
+configuration from `lib/mysql_config`, and these commands must never point at
+production. The syntax and bounded runtime logs must show a complete boot; the
+runtime log must enter the game loop, reset the converted corpus, terminate normally,
+and contain no
+converted-VNUM `SYSERR`, zone error, invalid-reference, or missing-reference
+diagnostic.
 
 `rol-phase8` records the suite, install, syntax, and runtime logs with the static
 structure, reference, reset, quest, shop, SOC, trap, special, path, persistence,
-preservation, mechanics-isolation, and determinism audits. It also requires a sealed
-persistence-recovery execution with zero remaining high rows from the rejected
-migration. After the accepted additive overlay is applied to development,
+preservation, mechanics-isolation, and determinism audits. Its persistence gate runs
+read-only against the existing local development database and requires every
+persisted RoL VNUM to resolve exactly once in the candidate. After the accepted
+additive overlay is applied to development,
 `rol-phase8-completion` requires an identical validator result and a hash-preconditioned
 repeat-apply no-op.
 

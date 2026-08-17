@@ -37,18 +37,9 @@ from .rol_capability_audit import (
     render_rol_capability_audit_human,
     write_capability_audit_bundle,
 )
-from .rol_completion_audit import (
-    render_completion_audit_human,
-    write_completion_audit_bundle,
-)
 from .rol_discovery import render_rol_discovery_human, write_discovery_bundle
 from .rol_inventory import build_rol_inventory, render_rol_inventory_human
 from .rol_planner import render_rol_plan_human, write_plan_bundle
-from .rol_rebase import (
-    apply_rebase_bundle,
-    render_rol_rebase_human,
-    write_rebase_bundle,
-)
 from .rol_pilot import render_rol_pilot_selection_human, write_pilot_selection_bundle
 from .rol_pilot_build import render_rol_pilot_build_human, write_pilot_build_bundle
 from .rol_phase7 import render_rol_phase7_human, write_phase7_bundle
@@ -58,14 +49,9 @@ from .rol_phase8 import (
     write_phase8_bundle,
     write_phase8_completion,
 )
-from .rol_persistence_audit import (
-    apply_persistence_migration_bundle,
-    apply_persistence_recovery_bundle,
-    render_persistence_apply_human,
-    render_persistence_bundle_human,
-    render_persistence_recovery_human,
-    write_persistence_migration_bundle,
-    write_persistence_recovery_bundle,
+from .rol_persistence_check import (
+    audit_development_persistence,
+    render_persistence_check_human,
 )
 from .rol_skeleton import render_rol_skeleton_human, write_skeleton_bundle
 from .rol_special_reconciliation import (
@@ -153,13 +139,17 @@ def _parser() -> argparse.ArgumentParser:
   )
   rol_inventory.add_argument("--source-root", type=Path, default=_default_rol_source_root())
 
+  commands.add_parser(
+      "rol-persistence-check",
+      help="read-only check of persisted RoL VNUMs in the local development database",
+  )
+
   rol_baseline = commands.add_parser(
       "rol-baseline",
       help="write Realms of Luminari Phase 0 source and target evidence",
   )
   rol_baseline.add_argument("--source-root", type=Path, default=_default_rol_source_root())
   rol_baseline.add_argument("--output-dir", type=Path, required=True)
-  rol_baseline.add_argument("--database-config", type=Path)
   rol_baseline.add_argument("--created-at")
 
   rol_discover = commands.add_parser(
@@ -168,7 +158,6 @@ def _parser() -> argparse.ArgumentParser:
   )
   rol_discover.add_argument("--source-root", type=Path, default=_default_rol_source_root())
   rol_discover.add_argument("--output-dir", type=Path, required=True)
-  rol_discover.add_argument("--database-config", type=Path)
   rol_discover.add_argument("--created-at")
 
   rol_plan = commands.add_parser(
@@ -235,113 +224,6 @@ def _parser() -> argparse.ArgumentParser:
   rol_special_reconciliation.add_argument("--output-dir", type=Path, required=True)
   rol_special_reconciliation.add_argument("--created-at")
 
-  rol_rebase = commands.add_parser(
-      "rol-rebase",
-      help="stage the complete Realms of Luminari Phase 6.5 canonical VNUM rebase",
-  )
-  rol_rebase.add_argument("--discovery-dir", type=Path, required=True)
-  rol_rebase.add_argument("--plan-dir", type=Path, required=True)
-  rol_rebase.add_argument("--phase6-dir", type=Path, required=True)
-  rol_rebase.add_argument("--lib-root", type=Path, default=default_repo_root() / "lib")
-  rol_rebase.add_argument("--output-dir", type=Path, required=True)
-  rol_rebase.add_argument("--created-at")
-
-  rol_rebase_apply = commands.add_parser(
-      "rol-rebase-apply",
-      help="reject the superseded destructive Phase 6.5 target rehome",
-  )
-  rol_rebase_apply.add_argument("--bundle-dir", type=Path, required=True)
-  rol_rebase_apply.add_argument("--lib-root", type=Path, default=default_repo_root() / "lib")
-  rol_rebase_apply.add_argument("--database-config", type=Path)
-
-  rol_persistence_bundle = commands.add_parser(
-      "rol-persistence-bundle",
-      help="seal the Phase 6.5 semantic persistence migration and consumer ledger",
-  )
-  rol_persistence_bundle.add_argument("--discovery-dir", type=Path, required=True)
-  rol_persistence_bundle.add_argument("--output-dir", type=Path, required=True)
-  rol_persistence_bundle.add_argument("--created-at")
-
-  rol_persistence_apply = commands.add_parser(
-      "rol-persistence-apply",
-      help="apply a forward Phase 6.5 persistence migration to an isolated database",
-  )
-  rol_persistence_apply.add_argument("--bundle-dir", type=Path, required=True)
-  rol_persistence_apply.add_argument("--database-config", type=Path, required=True)
-  rol_persistence_apply.add_argument(
-      "--database-role", choices=("isolated",), required=True
-  )
-  rol_persistence_apply.add_argument(
-      "--lib-root", type=Path, default=default_repo_root() / "lib"
-  )
-  rol_persistence_apply.add_argument("--output-dir", type=Path, required=True)
-  rol_persistence_apply.add_argument("--created-at")
-
-  rol_persistence_recovery_bundle = commands.add_parser(
-      "rol-persistence-recovery-bundle",
-      help="seal the exact inverse of a Phase 6.5 persistence migration",
-  )
-  rol_persistence_recovery_bundle.add_argument(
-      "--migration-bundle-dir", type=Path, required=True
-  )
-  rol_persistence_recovery_bundle.add_argument(
-      "--output-dir", type=Path, required=True
-  )
-  rol_persistence_recovery_bundle.add_argument("--created-at")
-
-  rol_persistence_recovery_apply = commands.add_parser(
-      "rol-persistence-recovery-apply",
-      help="back up, apply, and audit a sealed Phase 6.5 persistence recovery",
-  )
-  rol_persistence_recovery_apply.add_argument(
-      "--bundle-dir", type=Path, required=True
-  )
-  rol_persistence_recovery_apply.add_argument(
-      "--database-config", type=Path, required=True
-  )
-  rol_persistence_recovery_apply.add_argument(
-      "--database-role", choices=("isolated", "development"), required=True
-  )
-  rol_persistence_recovery_apply.add_argument(
-      "--lib-root", type=Path, default=default_repo_root() / "lib"
-  )
-  rol_persistence_recovery_apply.add_argument(
-      "--output-dir", type=Path, required=True
-  )
-  rol_persistence_recovery_apply.add_argument("--created-at")
-
-  rol_completion_audit = commands.add_parser(
-      "rol-completion-audit",
-      help="seal record-level Phase 6.5 completion and gate evidence",
-  )
-  rol_completion_audit.add_argument("--release-dir", type=Path, required=True)
-  rol_completion_audit.add_argument("--repeat-release-dir", type=Path, required=True)
-  rol_completion_audit.add_argument(
-      "--persistence-bundle-dir", type=Path, required=True
-  )
-  rol_completion_audit.add_argument(
-      "--repeat-persistence-bundle-dir", type=Path, required=True
-  )
-  rol_completion_audit.add_argument(
-      "--development-execution-dir", type=Path, required=True
-  )
-  rol_completion_audit.add_argument(
-      "--final-verification-dir", type=Path, required=True
-  )
-  rol_completion_audit.add_argument(
-      "--isolated-execution-dir", type=Path, required=True
-  )
-  rol_completion_audit.add_argument(
-      "--lib-root", type=Path, default=default_repo_root() / "lib"
-  )
-  rol_completion_audit.add_argument("--world-tools-log", type=Path, required=True)
-  rol_completion_audit.add_argument("--cutest-log", type=Path, required=True)
-  rol_completion_audit.add_argument("--install-log", type=Path, required=True)
-  rol_completion_audit.add_argument("--syntax-log", type=Path, required=True)
-  rol_completion_audit.add_argument("--runtime-log", type=Path, required=True)
-  rol_completion_audit.add_argument("--output-dir", type=Path, required=True)
-  rol_completion_audit.add_argument("--created-at")
-
   rol_phase7 = commands.add_parser(
       "rol-phase7",
       help="build a cumulative Realms of Luminari Phase 7 conversion milestone",
@@ -350,7 +232,6 @@ def _parser() -> argparse.ArgumentParser:
   rol_phase7.add_argument("--plan-dir", type=Path, required=True)
   rol_phase7.add_argument("--capability-audit-dir", type=Path, required=True)
   rol_phase7.add_argument("--phase6-dir", type=Path, required=True)
-  rol_phase7.add_argument("--completion-dir", type=Path, required=True)
   rol_phase7.add_argument(
       "--source-root", type=Path, default=_default_rol_source_root()
   )
@@ -365,10 +246,6 @@ def _parser() -> argparse.ArgumentParser:
   )
   rol_phase8.add_argument("--phase7-dir", type=Path, required=True)
   rol_phase8.add_argument("--repeat-phase7-dir", type=Path, required=True)
-  rol_phase8.add_argument("--completion-dir", type=Path, required=True)
-  rol_phase8.add_argument(
-      "--persistence-recovery-dir", type=Path, required=True
-  )
   rol_phase8.add_argument("--world-tools-log", type=Path, required=True)
   rol_phase8.add_argument("--cutest-log", type=Path, required=True)
   rol_phase8.add_argument("--install-log", type=Path, required=True)
@@ -636,6 +513,23 @@ def _run_rol_inventory(args: argparse.Namespace) -> int:
   return 0
 
 
+def _run_rol_persistence_check(args: argparse.Namespace) -> int:
+  repo_root = default_repo_root()
+  world_root = args.world_root.resolve()
+  world = load_indexed_world_data(
+      world_root,
+      repo_root,
+      load_manifest(default_manifest_path(repo_root)),
+      resolve_config(world_root, None),
+  )
+  result = audit_development_persistence(world, repo_root)
+  if args.json_output:
+    _print_json(result)
+  else:
+    sys.stdout.write(render_persistence_check_human(result))
+  return 0 if result["summary"]["pass"] else 1
+
+
 def _run_rol_baseline(args: argparse.Namespace) -> int:
   source_root = args.source_root.resolve()
   world_root = args.world_root.resolve()
@@ -643,15 +537,11 @@ def _run_rol_baseline(args: argparse.Namespace) -> int:
     raise ConfigError(f"requested RoL source root is inaccessible: {source_root}")
   if not world_root.is_dir():
     raise ConfigError(f"requested world root is inaccessible: {world_root}")
-  database_config = args.database_config.resolve() if args.database_config is not None else None
-  if database_config is not None and not database_config.is_file():
-    raise ConfigError(f"requested database configuration is inaccessible: {database_config}")
   summary = write_baseline_bundle(
       source_root,
       world_root,
       args.output_dir,
       default_repo_root(),
-      database_config=database_config,
       created_at=args.created_at,
   )
   if args.json_output:
@@ -667,7 +557,6 @@ def _run_rol_discover(args: argparse.Namespace) -> int:
       args.world_root,
       args.output_dir,
       default_repo_root(),
-      database_config=args.database_config,
       created_at=args.created_at,
   )
   if args.json_output:
@@ -765,62 +654,12 @@ def _run_rol_special_reconciliation(args: argparse.Namespace) -> int:
   return 0
 
 
-def _run_rol_rebase(args: argparse.Namespace) -> int:
-  summary = write_rebase_bundle(
-      args.discovery_dir,
-      args.plan_dir,
-      args.phase6_dir,
-      args.world_root,
-      args.lib_root,
-      default_repo_root(),
-      args.output_dir,
-      created_at=args.created_at,
-  )
-  if args.json_output:
-    _print_json(summary)
-  else:
-    sys.stdout.write(render_rol_rebase_human(summary))
-  return 0
-
-
-def _run_rol_rebase_apply(args: argparse.Namespace) -> int:
-  result = apply_rebase_bundle(
-      args.bundle_dir,
-      args.lib_root,
-      database_config=args.database_config,
-  )
-  if args.json_output:
-    _print_json(result)
-  else:
-    sys.stdout.write(
-        f"RoL Phase 6.5 apply: {result['run_id']}\n"
-        f"Changed paths: {result['changed_paths']}\n"
-        f"Already current paths: {result['already_current_paths']}\n"
-        f"Database migration applied: {result['database_migration_applied']}\n"
-    )
-  return 0
-
-
-def _run_rol_persistence_bundle(args: argparse.Namespace) -> int:
-  summary = write_persistence_migration_bundle(
-      args.discovery_dir,
-      args.output_dir,
-      created_at=args.created_at,
-  )
-  if args.json_output:
-    _print_json(summary)
-  else:
-    sys.stdout.write(render_persistence_bundle_human(summary))
-  return 0
-
-
 def _run_rol_phase7(args: argparse.Namespace) -> int:
   summary = write_phase7_bundle(
       args.discovery_dir,
       args.plan_dir,
       args.capability_audit_dir,
       args.phase6_dir,
-      args.completion_dir,
       args.source_root,
       args.world_root,
       args.output_dir,
@@ -839,8 +678,6 @@ def _run_rol_phase8(args: argparse.Namespace) -> int:
   summary = write_phase8_bundle(
       args.phase7_dir,
       args.repeat_phase7_dir,
-      args.completion_dir,
-      args.persistence_recovery_dir,
       args.world_root,
       args.output_dir,
       {
@@ -892,81 +729,6 @@ def _run_rol_phase8_completion(args: argparse.Namespace) -> int:
   return 0
 
 
-def _run_rol_persistence_apply(args: argparse.Namespace) -> int:
-  summary = apply_persistence_migration_bundle(
-      args.bundle_dir,
-      args.database_config,
-      args.database_role,
-      args.output_dir,
-      args.lib_root,
-      created_at=args.created_at,
-  )
-  if args.json_output:
-    _print_json(summary)
-  else:
-    sys.stdout.write(render_persistence_apply_human(summary))
-  return 0
-
-
-def _run_rol_persistence_recovery_bundle(args: argparse.Namespace) -> int:
-  summary = write_persistence_recovery_bundle(
-      args.migration_bundle_dir,
-      args.output_dir,
-      created_at=args.created_at,
-  )
-  if args.json_output:
-    _print_json(summary)
-  else:
-    sys.stdout.write(
-        f"RoL Phase 6.5 persistence recovery bundle: {summary['run_id']}\n"
-        f"Output: {summary['output_dir']}\n"
-        f"SQL statements: {summary['statements']}\n"
-    )
-  return 0
-
-
-def _run_rol_persistence_recovery_apply(args: argparse.Namespace) -> int:
-  summary = apply_persistence_recovery_bundle(
-      args.bundle_dir,
-      args.database_config,
-      args.database_role,
-      args.output_dir,
-      args.lib_root,
-      created_at=args.created_at,
-  )
-  if args.json_output:
-    _print_json(summary)
-  else:
-    sys.stdout.write(render_persistence_recovery_human(summary))
-  return 0
-
-
-def _run_rol_completion_audit(args: argparse.Namespace) -> int:
-  summary = write_completion_audit_bundle(
-      args.release_dir,
-      args.repeat_release_dir,
-      args.persistence_bundle_dir,
-      args.repeat_persistence_bundle_dir,
-      args.development_execution_dir,
-      args.final_verification_dir,
-      args.isolated_execution_dir,
-      default_repo_root(),
-      args.lib_root,
-      args.output_dir,
-      args.world_tools_log,
-      args.cutest_log,
-      args.install_log,
-      args.syntax_log,
-      args.runtime_log,
-      created_at=args.created_at,
-  )
-  if args.json_output:
-    _print_json(summary)
-  else:
-    sys.stdout.write(render_completion_audit_human(summary))
-  return 0
-
-
 def main(argv: Sequence[str] | None = None) -> int:
   parser = _parser()
   args = parser.parse_args(argv)
@@ -985,6 +747,8 @@ def main(argv: Sequence[str] | None = None) -> int:
       return _run_docs(args)
     if args.command == "rol-inventory":
       return _run_rol_inventory(args)
+    if args.command == "rol-persistence-check":
+      return _run_rol_persistence_check(args)
     if args.command == "rol-baseline":
       return _run_rol_baseline(args)
     if args.command == "rol-discover":
@@ -1001,20 +765,6 @@ def main(argv: Sequence[str] | None = None) -> int:
       return _run_rol_capability_audit(args)
     if args.command == "rol-special-reconcile":
       return _run_rol_special_reconciliation(args)
-    if args.command == "rol-rebase":
-      return _run_rol_rebase(args)
-    if args.command == "rol-rebase-apply":
-      return _run_rol_rebase_apply(args)
-    if args.command == "rol-persistence-bundle":
-      return _run_rol_persistence_bundle(args)
-    if args.command == "rol-persistence-apply":
-      return _run_rol_persistence_apply(args)
-    if args.command == "rol-persistence-recovery-bundle":
-      return _run_rol_persistence_recovery_bundle(args)
-    if args.command == "rol-persistence-recovery-apply":
-      return _run_rol_persistence_recovery_apply(args)
-    if args.command == "rol-completion-audit":
-      return _run_rol_completion_audit(args)
     if args.command == "rol-phase7":
       return _run_rol_phase7(args)
     if args.command == "rol-phase8":

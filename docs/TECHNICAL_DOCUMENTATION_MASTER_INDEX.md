@@ -204,11 +204,11 @@ This master index provides a comprehensive guide to all technical documentation 
   Active work and retained handoffs: RoL conversion accuracy recovery, artifact placement, AI
   conversation history, SKORE phases 3-4, event-system merge, and in-game backlogs
 - **[RoL conversion accuracy recovery](ongoing-projects/ROL_CONVERSION_ACCURACY_RECOVERY_PLAN.md)** -
-  Remaining safe-regeneration, semantic-audit, mobile-converter, classification, repair-wave,
-  balance, and release work for the converted Realms of Luminari corpus
+  Remaining safe-regeneration, all-record semantic-audit, candidate/runtime mobile validation,
+  repair-wave, balance, rollback, and release work for the converted Realms of Luminari corpus
 - **[RoL conversion completed work](ongoing-projects/ROL_CONVERSION_DONE.md)** -
-  Completed structural import, mechanics study, encounter-tier foundation, and verification
-  evidence separated from the active recovery backlog
+  Completed structural import, mechanics study, mobile identity/calculator/bridge recovery,
+  encounter-tier foundation, field dispositions, and verification evidence
 - **[artifact-placement-plan.md](ongoing-projects/artifact-placement-plan.md)** -
   World-building brief for placing artifacts in player-facing content, the
   artifact system's one remaining open item

@@ -22,9 +22,9 @@ from .rol_pilot_build import (
     _verify_bundle,
 )
 from .rol_source import RolRecord
+from .rol_mobile_identity import load_mobile_conversion_policy
 from .rol_transform import (
     APPLY_MAP,
-    CLASS_MAP,
     MOB_ACTION_MAP,
     MOB_DEFERRED_ACTIONS,
     MOB_AFFECT_MAP,
@@ -37,7 +37,6 @@ from .rol_transform import (
     OBJECT_WEAR_MAP,
     OBJECT_SOURCE_ONLY_APPLIES,
     OBJECT_SOURCE_ONLY_WEAR_FLAGS,
-    RACE_CODE_MAP,
     ROOM_FLAG_MAP,
     ROOM_TRANSFORMED_FLAGS,
     SECTOR_MAP,
@@ -204,6 +203,7 @@ def build_symbolic_inventory(records: Iterable[RolRecord]) -> list[dict[str, Any
           _source_mask_bits(int(header[3]) if len(header) > 3 else 0, 0)
       )
 
+  mobile_policy, _manifest, registry = load_mobile_conversion_policy()
   mapped: dict[str, set[int | str]] = {
       "room_flag": set(ROOM_FLAG_MAP) | set(ROOM_TRANSFORMED_FLAGS),
       "sector": set(SECTOR_MAP),
@@ -213,8 +213,8 @@ def build_symbolic_inventory(records: Iterable[RolRecord]) -> list[dict[str, Any
       "mobile_affect_flag": (
           set(MOB_AFFECT_MAP) | set(MOB_AFFECT2_MAP) | set(MOB_SOURCE_ONLY_AFFECTS)
       ),
-      "mobile_race_code": set(RACE_CODE_MAP),
-      "mobile_class": set(CLASS_MAP),
+      "mobile_race_code": set(registry),
+      "mobile_class": {int(value) for value in mobile_policy["class_map"]},
       "object_type": set(OBJECT_TYPE_MAP),
       "object_extra_flag": set(OBJECT_EXTRA_MAP) | set(OBJECT_SOURCE_ONLY_FLAGS),
       "object_wear_flag": set(OBJECT_WEAR_MAP) | set(OBJECT_SOURCE_ONLY_WEAR_FLAGS),
@@ -377,6 +377,7 @@ def write_capability_audit_bundle(
   diagnostic_counts: Counter[str] = Counter()
   diagnostics: list[dict[str, Any]] = []
   exceptions: list[dict[str, Any]] = []
+  mobile_ledgers: list[dict[str, Any]] = []
   emitted_bytes = 0
   for action in actions:
     disposition_counts[str(action["action"])] += 1
@@ -405,6 +406,8 @@ def write_capability_audit_bundle(
       continue
     emitted_counts[str(action["source_kind"])] += 1
     emitted_bytes += len(payload)
+    if emitted.ledger is not None:
+      mobile_ledgers.append(emitted.ledger)
     for message in emitted.diagnostics:
       classification = classify_transform_diagnostic(message)
       diagnostic_counts[classification] += 1
@@ -467,6 +470,9 @@ def write_capability_audit_bundle(
   source_path = output_dir / "source-diagnostics.jsonl"
   source_count = _write_jsonl(source_path, source_diagnostics)
   artifacts.append(_artifact(source_path, output_dir, source_count))
+  mobile_ledger_path = output_dir / "mobile-conversion-ledger.jsonl"
+  mobile_ledger_count = _write_jsonl(mobile_ledger_path, mobile_ledgers)
+  artifacts.append(_artifact(mobile_ledger_path, output_dir, mobile_ledger_count))
 
   fingerprint_seed = "\n".join(
       artifact["sha256"] for artifact in sorted(artifacts, key=lambda item: item["path"])
@@ -490,6 +496,7 @@ def write_capability_audit_bundle(
               )
           ),
           "transform_exceptions": len(exceptions),
+          "mobile_conversion_ledgers": mobile_ledger_count,
           "quest_random_item_ranges": random_ranges,
           "live_target_writes": 0,
       },

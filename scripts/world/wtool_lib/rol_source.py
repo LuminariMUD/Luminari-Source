@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass, field
 import hashlib
+import json
 from pathlib import Path
 import re
 from typing import Any, Iterable
@@ -28,6 +29,7 @@ _SOC_LOOSE_HEADER = re.compile(
     re.IGNORECASE,
 )
 _RESET_COMMANDS = frozenset({"M", "O", "P", "G", "E", "D", "R", "F", "X", "T", "L", "Z"})
+_MOBILE_REPAIR_POLICY: dict[tuple[str, int, str], frozenset[str]] | None = None
 _SHOP_KEYWORDS = frozenset(
     {
         "BT",
@@ -180,6 +182,61 @@ def normalize_identity(value: str) -> str:
   value = value.replace("\r", " ").replace("\n", " ")
   value = re.sub(r"[^A-Za-z0-9]+", " ", value).strip().lower()
   return " ".join(value.split())
+
+
+def _mobile_repair_policy() -> dict[tuple[str, int, str], frozenset[str]]:
+  """Read exact syntax-repair ownership without mutating the parsed source record."""
+
+  global _MOBILE_REPAIR_POLICY
+  if _MOBILE_REPAIR_POLICY is None:
+    policy_path = Path(__file__).resolve().parents[1] / "rol_conversion_policy.json"
+    try:
+      policy = json.loads(policy_path.read_text(encoding="ascii"))["mobile"]
+      _MOBILE_REPAIR_POLICY = {
+          (str(rule["basename"]), int(rule["source_vnum"]), str(rule["source_sha256"])):
+          frozenset(
+              key
+              for key in (
+                  "repair_race_row",
+                  "repair_position_row",
+                  "repair_level",
+                  "repair_sex",
+                  "ignored_money_tokens",
+              )
+              if key in rule
+          )
+          for rule in policy.get("exact_records", [])
+      }
+    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+      raise RuntimeError(f"cannot load versioned mobile repair policy: {error}") from error
+  return _MOBILE_REPAIR_POLICY
+
+
+def _mobile_repair_owns(record: RolRecord, key: str) -> bool:
+  return key in _mobile_repair_policy().get(
+      (record.basename, record.vnum, record.sha256), frozenset()
+  )
+
+
+def _mobile_row_diagnostic(
+    corpus: RolSourceCorpus,
+    record: RolRecord,
+    line: SourceLine,
+    repair_key: str,
+    message: str,
+) -> None:
+  repaired = _mobile_repair_owns(record, repair_key)
+  if not repaired:
+    record.complete = False
+  _diagnostic(
+      corpus,
+      "ROLMOB005",
+      "warning" if repaired else "error",
+      f"{message}; {'owned by exact automatic repair' if repaired else 'no exact repair owns it'}",
+      line,
+      "mob",
+      record.vnum,
+  )
 
 
 def _line_bytes(lines: list[SourceLine], start: int, end: int) -> bytes:
@@ -550,21 +607,99 @@ def _parse_mob(
       record.complete = False
       _diagnostic(corpus, "ROLMOB002", "error", f"unsupported mobile format letter {letter!r}", flags_line, "mob", vnum)
     base_rows: list[list[str]] = []
+    base_lines: list[SourceLine] = []
     for token in ("RACE", "COMBAT", "MONEY", "POSITION"):
       position, line = _next_content(source.lines, position, end)
       if line is None:
-        _exclude_record(
-            corpus,
-            record,
-            "ROLMOB003",
-            f"source mobile lacks its {token.lower()} row",
-            source.lines[start],
-        )
+        repair_key = "repair_position_row" if token == "POSITION" else ""
+        if repair_key and _mobile_repair_owns(record, repair_key):
+          _diagnostic(
+              corpus,
+              "ROLMOB003",
+              "warning",
+              f"source mobile lacks its {token.lower()} row; owned by exact automatic repair",
+              source.lines[start],
+              "mob",
+              vnum,
+          )
+        else:
+          record.complete = False
+          _diagnostic(
+              corpus,
+              "ROLMOB003",
+              "error",
+              f"source mobile lacks its {token.lower()} row and has no exact repair",
+              source.lines[start],
+              "mob",
+              vnum,
+          )
         break
       values = line.text.split()
       base_rows.append(values)
+      base_lines.append(line)
       record.directives.append({"token": token, "line": line.number, "field_count": len(values)})
     record.values["base_rows"] = base_rows
+    if len(base_rows) >= 1:
+      race = base_rows[0]
+      valid_race = (
+          len(race) in {3, 4}
+          and re.fullmatch(r"[A-Za-z0-9]+", race[0]) is not None
+          and all(re.fullmatch(r"[+-]?\d+", value) is not None for value in race[1:3])
+          and (len(race) == 3 or re.fullmatch(r"[A-Za-z0-9.-]+", race[3]) is not None)
+      )
+      if not valid_race:
+        _mobile_row_diagnostic(
+            corpus, record, base_lines[0], "repair_race_row",
+            "race row requires code, integer height/weight, and optional period-list aggression",
+        )
+    if len(base_rows) >= 2:
+      combat = base_rows[1]
+      valid_combat = (
+          len(combat) == 5
+          and all(re.fullmatch(r"[+-]?\d+", value) is not None for value in combat[:3])
+          and all(
+              re.fullmatch(r"[+-]?\d+d[+-]?\d+\+[+-]?\d+", value) is not None
+              for value in combat[3:]
+          )
+      )
+      if not valid_combat:
+        _mobile_row_diagnostic(
+            corpus, record, base_lines[1], "repair_combat_row",
+            "combat row requires level, hitroll, armor, HP dice, and damage dice",
+        )
+      elif int(combat[0]) <= 0:
+        _mobile_row_diagnostic(
+            corpus, record, base_lines[1], "repair_level",
+            "generic mobile grammar requires a positive combat level",
+        )
+    if len(base_rows) >= 3:
+      money = base_rows[2]
+      money_token = r"(?:[+-]?\d+|\d+\.\d+\.\d+\.\d+)"
+      valid_money = (
+          len(money) == 2
+          and re.fullmatch(money_token, money[0]) is not None
+          and re.fullmatch(r"[+-]?\d+", money[1]) is not None
+      )
+      if not valid_money:
+        _mobile_row_diagnostic(
+            corpus, record, base_lines[2], "ignored_money_tokens",
+            "money row requires exactly money and experience",
+        )
+    if len(base_rows) >= 4:
+      position_values = base_rows[3]
+      valid_position = len(position_values) in {3, 4, 5, 6} and all(
+          re.fullmatch(r"[+-]?\d+", value) is not None for value in position_values
+      )
+      if not valid_position:
+        _mobile_row_diagnostic(
+            corpus, record, base_lines[3], "repair_position_row",
+            "position row requires three through six integers",
+        )
+      elif not 0 <= int(position_values[2]) <= 2:
+        _mobile_row_diagnostic(
+            corpus, record, base_lines[3], "repair_sex",
+            "mobile sex must be in the source range 0 through 2",
+        )
     position, extra = _next_content(source.lines, position, end)
     if extra is not None and not extra.raw.strip().startswith(b"$"):
       record.complete = False

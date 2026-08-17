@@ -134,6 +134,7 @@ circle_SOURCES = \
 	src/mob/mob_act.c \
 	src/mob/mob_autoroll.c \
 	src/mob/mob_autoroll.h \
+	src/mob/mob_autoroll_profile.c \
 	src/mob/mob_memory.c \
 	src/mob/mob_utils.c \
 	src/mob/mob_race.c \
@@ -486,15 +487,15 @@ world_tool_sources = \
 	scripts/world/wtool_lib/reporting.py \
 	scripts/world/wtool_lib/rol_baseline.py \
 	scripts/world/wtool_lib/rol_capability_audit.py \
-	scripts/world/wtool_lib/rol_completion_audit.py \
 	scripts/world/wtool_lib/rol_discovery.py \
 	scripts/world/wtool_lib/rol_graph.py \
 	scripts/world/wtool_lib/rol_inventory.py \
+	scripts/world/wtool_lib/rol_mob_calculator.py \
+	scripts/world/wtool_lib/rol_mobile_identity.py \
 	scripts/world/wtool_lib/rol_identity.py \
 	scripts/world/wtool_lib/rol_persistence.py \
-	scripts/world/wtool_lib/rol_persistence_audit.py \
+	scripts/world/wtool_lib/rol_persistence_check.py \
 	scripts/world/wtool_lib/rol_planner.py \
-	scripts/world/wtool_lib/rol_rebase.py \
 	scripts/world/wtool_lib/rol_phase7.py \
 	scripts/world/wtool_lib/rol_phase8.py \
 	scripts/world/wtool_lib/rol_pilot.py \
@@ -528,14 +529,14 @@ world_tool_sources = \
 	scripts/world/tests/test_reporting.py \
 	scripts/world/tests/test_rol_baseline.py \
 	scripts/world/tests/test_rol_capability_audit.py \
-	scripts/world/tests/test_rol_completion_audit.py \
 	scripts/world/tests/test_rol_discovery.py \
 	scripts/world/tests/test_rol_graph.py \
 	scripts/world/tests/test_rol_inventory.py \
+	scripts/world/tests/test_rol_mob_calculator.py \
+	scripts/world/tests/test_rol_mobile_identity.py \
 	scripts/world/tests/test_rol_identity.py \
-	scripts/world/tests/test_rol_persistence_audit.py \
+	scripts/world/tests/test_rol_persistence_check.py \
 	scripts/world/tests/test_rol_planner.py \
-	scripts/world/tests/test_rol_rebase.py \
 	scripts/world/tests/test_rol_phase7.py \
 	scripts/world/tests/test_rol_phase8.py \
 	scripts/world/tests/test_rol_pilot.py \
@@ -818,7 +819,7 @@ test: check test-autorun-supervision test-versioned-binary-install test-healthch
 	test-background-help-entries test-vessel-tooling
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
-.PHONY: check-world-docs test-all test-world-tools test-protocol test-protocol-fuzz test-character-rename-static \
+.PHONY: check-world-docs rol-mob-calculator test-all test-world-tools test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-healthcheck test-vessel-tooling
 
@@ -826,7 +827,10 @@ check-world-docs:
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py docs --check
 
-test-world-tools: check-world-docs
+rol-mob-calculator:
+	$(MAKE) -C "$(abs_top_srcdir)/util" rol_mob_calculator
+
+test-world-tools: check-world-docs rol-mob-calculator
 	cd "$(abs_top_srcdir)" && python3 -m unittest discover -s scripts/world/tests -t scripts/world -v
 	"$(abs_top_srcdir)/lib/world/validate-zone.sh" 100 \
 		--world-root "$(abs_top_srcdir)/scripts/world/tests/fixtures/phase2/complete" \

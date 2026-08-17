@@ -17,7 +17,7 @@ from .flags import decode_tokens
 from .models import TOOL_VERSION
 from .reporting import result_payload
 from .rol_phase7 import _runtime_contract, _validation_delta
-from .rol_persistence_audit import verify_persistence_recovery_execution
+from .rol_persistence_check import audit_development_persistence
 from .rol_pilot_build import (
     _artifact,
     _canonical_json,
@@ -44,11 +44,10 @@ _ACTION_RECORD_TYPES = {
 }
 _CODE_EVIDENCE_PATHS = (
     "scripts/world/wtool_lib/cli.py",
-    "scripts/world/wtool_lib/rol_completion_audit.py",
     "scripts/world/wtool_lib/rol_phase7.py",
     "scripts/world/wtool_lib/rol_phase8.py",
-    "scripts/world/wtool_lib/rol_persistence_audit.py",
-    "scripts/world/wtool_lib/rol_rebase.py",
+    "scripts/world/wtool_lib/rol_persistence.py",
+    "scripts/world/wtool_lib/rol_persistence_check.py",
     "scripts/world/wtool_lib/rol_transform.py",
     "src/db.c",
     "src/spec/spec_assign_mobiles.c",
@@ -133,20 +132,21 @@ def _assemble_candidate(phase7_dir: Path, baseline_world: Path, destination: Pat
 def _repeat_evidence(primary_dir: Path, repeat_dir: Path) -> dict[str, Any]:
   primary = _verify_bundle(primary_dir, 7, "cumulative-milestone")
   repeat = _verify_bundle(repeat_dir, 7, "cumulative-milestone")
-  primary_manifest = (primary_dir / "run-manifest.json").read_bytes()
-  repeat_manifest = (repeat_dir / "run-manifest.json").read_bytes()
+  primary_stable = {key: value for key, value in primary.items() if key != "creation_time"}
+  repeat_stable = {key: value for key, value in repeat.items() if key != "creation_time"}
+  manifest_content_identical = primary_stable == repeat_stable
   primary_output = tree_manifest(primary_dir / "output/world")
   repeat_output = tree_manifest(repeat_dir / "output/world")
   return {
       "primary_run_id": primary["run_id"],
       "repeat_run_id": repeat["run_id"],
-      "manifest_byte_identical": primary_manifest == repeat_manifest,
+      "manifest_content_identical": manifest_content_identical,
       "output_tree_byte_identical": primary_output["tree_sha256"]
       == repeat_output["tree_sha256"],
       "primary_output_tree_sha256": primary_output["tree_sha256"],
       "repeat_output_tree_sha256": repeat_output["tree_sha256"],
       "pass": primary["run_id"] == repeat["run_id"]
-      and primary_manifest == repeat_manifest
+      and manifest_content_identical
       and primary_output["tree_sha256"] == repeat_output["tree_sha256"],
   }
 
@@ -223,6 +223,12 @@ def _mechanics_markers(world) -> list[dict[str, Any]]:
 def _mechanics_isolation_audit(repo_root: Path, baseline_world, candidate_world) -> dict[str, Any]:
   baseline_markers = _mechanics_markers(baseline_world)
   candidate_markers = _mechanics_markers(candidate_world)
+  low_baseline_markers = [
+      row
+      for row in baseline_markers
+      if int(row["vnum"])
+      < (20_000 if row["owner_type"] == "zone" else 2_000_000)
+  ]
   low_candidate_markers = [
       row
       for row in candidate_markers
@@ -254,6 +260,8 @@ def _mechanics_isolation_audit(repo_root: Path, baseline_world, candidate_world)
   return {
       "baseline_rol_markers": len(baseline_markers),
       "baseline_marker_samples": baseline_markers[:40],
+      "low_namespace_baseline_markers": len(low_baseline_markers),
+      "low_namespace_baseline_marker_samples": low_baseline_markers[:40],
       "candidate_rol_markers": len(candidate_markers),
       "candidate_markers_by_owner": dict(sorted(by_owner.items())),
       "candidate_markers_by_mechanic": dict(sorted(by_mechanic.items())),
@@ -266,7 +274,7 @@ def _mechanics_isolation_audit(repo_root: Path, baseline_world, candidate_world)
       },
       "seven_digit_identity_literals": static_literals,
       "noncanonical_seven_digit_identity_literals": noncanonical_literals,
-      "pass": not baseline_markers
+      "pass": not low_baseline_markers
       and bool(candidate_markers)
       and not low_candidate_markers
       and bool(static_literals)
@@ -307,7 +315,7 @@ def _action_audit(
     if int(destination) < minimum:
       noncanonical.append(str(row["source_record_id"]))
   merge_rows = [row for row in action_rows if row["final_action"] == "MERGE"]
-  target_merge_collisions: list[str] = []
+  existing_target_merge_destinations: list[str] = []
   if baseline_world is not None:
     baseline_by_kind = {
         "zon": {record.vnum for record in baseline_world.zones},
@@ -326,7 +334,7 @@ def _action_audit(
             for record in records
         },
     }
-    target_merge_collisions = [
+    existing_target_merge_destinations = [
         str(row["source_record_id"])
         for row in merge_rows
         if row.get("destination_vnum")
@@ -340,12 +348,13 @@ def _action_audit(
       "missing_destinations": missing_destinations,
       "noncanonical_destinations": noncanonical,
       "source_internal_merge_actions": len(merge_rows),
-      "merge_actions_targeting_existing_luminari_records": target_merge_collisions,
+      "source_internal_merges_with_existing_target_destination": (
+          existing_target_merge_destinations
+      ),
       "blocking_selected_record_findings": blocking,
       "pass": len(action_rows) == 71_680
       and not missing_destinations
       and not noncanonical
-      and not target_merge_collisions
       and not blocking,
   }
 
@@ -525,8 +534,6 @@ def _apply_plan(
 def write_phase8_bundle(
     phase7_dir: Path,
     repeat_phase7_dir: Path,
-    completion_dir: Path,
-    persistence_recovery_dir: Path,
     target_world: Path,
     output_dir: Path,
     logs: dict[str, Path],
@@ -537,24 +544,16 @@ def write_phase8_bundle(
   repo_root = default_repo_root()
   phase7_dir = phase7_dir.resolve()
   repeat_phase7_dir = repeat_phase7_dir.resolve()
-  completion_dir = completion_dir.resolve()
-  persistence_recovery_dir = persistence_recovery_dir.resolve()
   target_world = target_world.resolve()
   output_dir = output_dir.resolve()
   logs = {name: path.resolve() for name, path in logs.items()}
   if output_dir.exists():
     raise RolPhase8Error(f"Phase 8 output directory already exists: {output_dir}")
   phase7 = _verify_bundle(phase7_dir, 7, "cumulative-milestone")
-  completion = _verify_bundle(completion_dir, "6.5-completion-audit")
-  persistence_recovery = verify_persistence_recovery_execution(
-      persistence_recovery_dir
-  )
   if not phase7.get("acceptance", {}).get("phase7_complete"):
     raise RolPhase8Error("Phase 8 requires the accepted final Phase 7 milestone")
   if not phase7.get("acceptance", {}).get("connection_graph_pass"):
     raise RolPhase8Error("Phase 8 requires exact isolated RoL connection-graph parity")
-  if not completion.get("acceptance", {}).get("complete"):
-    raise RolPhase8Error("Phase 8 requires the accepted Phase 6.5 completion audit")
   baseline_tree = tree_manifest(target_world)
   if baseline_tree["tree_sha256"] != phase7.get("frozen_target_tree_sha256"):
     raise RolPhase8Error("development world changed after the Phase 7 baseline freeze")
@@ -578,7 +577,7 @@ def write_phase8_bundle(
     candidate_validation = result_payload(
         validate_indexed_world(candidate_world, repo_root, constants, config)
     )
-    baseline_validation["root"] = "sealed-phase6-5/world"
+    baseline_validation["root"] = "development/world"
     candidate_validation["root"] = "phase8-candidate/world"
     delta = _validation_delta(baseline_validation, candidate_validation)
     baseline_world = load_indexed_world_data(target_world, repo_root, constants, config)
@@ -597,56 +596,24 @@ def write_phase8_bundle(
     mechanics_isolation = _mechanics_isolation_audit(
         repo_root, baseline_world, world
     )
+    persistence = audit_development_persistence(world, repo_root)
 
   line_format = _line_format_audit(phase7_dir / "output/world", paths)
   code_gates = _code_gates(repo_root, logs)
   code_evidence = _code_evidence(repo_root)
-  phase6_acceptance = completion["acceptance"]
-  recovery_acceptance = persistence_recovery["acceptance"]
+  persistence_summary = persistence["summary"]
   namespace = {
-      "phase6_5_complete": phase6_acceptance.get("complete") is True,
-      "persistence_recovery_complete": recovery_acceptance.get("complete") is True,
-      "canonical_persistent_rows_after_recovery": recovery_acceptance.get(
-          "canonical_relevant_rows_after"
-      ),
-      "recovery_rollback_preflight_no_op": recovery_acceptance.get(
-          "rollback_preflight_no_op"
-      ),
-      "recovery_repeat_apply_no_op": recovery_acceptance.get(
-          "repeat_apply_no_op"
-      ),
-      "recovery_serialized_suffixes_preserved": recovery_acceptance.get(
-          "serialized_suffixes_preserved"
-      ),
-      "recovered_luminari_object_prototypes_resolve": recovery_acceptance.get(
-          "recovered_object_prototypes_resolve"
-      ),
-      "unresolved_required_references": phase6_acceptance.get(
-          "unresolved_required_package_references"
-      ),
-      "unclosed_consumers": phase6_acceptance.get(
-          "unclosed_runtime_configuration_persistent_consumers"
-      ),
-      "missing_saved_object_prototypes": phase6_acceptance.get(
-          "missing_saved_object_prototypes"
-      ),
-      "nonunique_saved_object_prototypes": phase6_acceptance.get(
-          "nonunique_saved_object_prototypes"
-      ),
+      "persistence_mode": persistence["mode"],
+      "persisted_rol_vnums": persistence_summary["distinct_persisted_rol_vnums"],
+      "persisted_database_rows": persistence_summary["database_rows"],
+      "missing_persisted_targets": persistence_summary[
+          "missing_candidate_definitions"
+      ],
+      "duplicate_persisted_targets": persistence_summary[
+          "duplicate_candidate_definitions"
+      ],
   }
-  namespace["pass"] = (
-      namespace["phase6_5_complete"]
-      and namespace["persistence_recovery_complete"]
-      and namespace["canonical_persistent_rows_after_recovery"] == 0
-      and namespace["recovery_rollback_preflight_no_op"] is True
-      and namespace["recovery_repeat_apply_no_op"] is True
-      and namespace["recovery_serialized_suffixes_preserved"] is True
-      and namespace["recovered_luminari_object_prototypes_resolve"] is True
-      and namespace["unresolved_required_references"] == 0
-      and namespace["unclosed_consumers"] == 0
-      and namespace["missing_saved_object_prototypes"] == 0
-      and namespace["nonunique_saved_object_prototypes"] == 0
-  )
+  namespace["pass"] = persistence_summary["pass"]
   apply_rows = _apply_plan(target_world, phase7_dir, paths)
   compiler = _load_json(phase7_dir / "compiler-summary.json")
   connection_graph = _load_json(phase7_dir / "validation/connection-graph.json")
@@ -658,8 +625,6 @@ def write_phase8_bundle(
   )
   reconciliation = {
       "phase7_run_id": phase7["run_id"],
-      "phase6_5_completion_run_id": completion["run_id"],
-      "persistence_recovery_run_id": persistence_recovery["run_id"],
       "packages": phase7["acceptance"]["final_packages"],
       "records": phase7["acceptance"]["final_records"],
       "apply_paths": len(apply_rows),
@@ -683,16 +648,13 @@ def write_phase8_bundle(
           "repeat_phase7_manifest_sha256": _sha256_path(
               repeat_phase7_dir / "run-manifest.json"
           ),
-          "completion_manifest_sha256": _sha256_path(completion_dir / "run-manifest.json"),
-          "persistence_recovery_manifest_sha256": _sha256_path(
-              persistence_recovery_dir / "run-manifest.json"
-          ),
           "baseline_tree": baseline_tree,
           "candidate_tree": candidate_tree,
       },
       "repeat-generation.json": repeat,
       "reconciliation.json": reconciliation,
       "namespace-audit.json": namespace,
+      "persistence-check.json": persistence,
       "action-audit.json": action_audit,
       "behavior-evidence.json": behavior,
       "runtime-contract.json": runtime,
@@ -749,8 +711,6 @@ def write_phase8_bundle(
       "phase": 8,
       "stage": "release-candidate",
       "phase7_run_id": phase7["run_id"],
-      "phase6_5_completion_run_id": completion["run_id"],
-      "persistence_recovery_run_id": persistence_recovery["run_id"],
       "baseline_tree_sha256": baseline_tree["tree_sha256"],
       "candidate_tree_sha256": candidate_tree["tree_sha256"],
       "installed_binary_sha256": code_evidence["installed_binary_sha256"],
@@ -773,6 +733,7 @@ def write_phase8_bundle(
           "behavior_evidence_pass": behavior["pass"],
           "code_gates_pass": code_gates["all_pass"],
           "namespace_audit_pass": namespace["pass"],
+          "persistence_check_pass": persistence_summary["pass"],
           "repeat_generation_byte_identical": repeat["pass"],
           "ready_to_apply": ready,
       },

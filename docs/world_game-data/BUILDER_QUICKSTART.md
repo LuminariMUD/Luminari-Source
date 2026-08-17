@@ -162,9 +162,11 @@ He wears the plain tabard of the town watch.
 ~
 0 0 0 0 0 0 0 0 0 E
 5 20 10 5d8+20 1d6+2
-100 100 1
+100 100
 8 8 1
 BareHandAttack: 0
+SpellRes: 0
+Tier: 0
 E
 $
 ```

@@ -187,6 +187,14 @@ TRIGGER_SPECS = (
 )
 
 
+SYMBOL_SPECS = (
+    ("classes", "src/structs.h", "CLASS_WIZARD", "NUM_CLASSES", "CLASS_"),
+    ("race-types", "src/structs.h", "RACE_TYPE_UNKNOWN", "NUM_RACE_TYPES", "RACE_TYPE_"),
+    ("subraces", "src/structs.h", "SUBRACE_UNKNOWN", "NUM_SUB_RACES", "SUBRACE_"),
+    ("sizes", "src/structs.h", "SIZE_RESERVED", "NUM_SIZES", "SIZE_"),
+)
+
+
 _DIRECTION_SYMBOLS = {
     "NORTH",
     "EAST",
@@ -654,6 +662,7 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
   root = (repo_root or default_repo_root()).resolve()
   constants_text = (root / "src/constants.c").read_text(encoding="utf-8")
   tables: dict[str, Any] = {}
+  symbol_groups: dict[str, Any] = {}
   direction_values: dict[str, int] = {}
 
   for spec in TABLE_SPECS:
@@ -697,6 +706,37 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
 
   for flag_table in ("room", "zone", "mob", "affect", "affect2", "obj-extra", "obj-wear"):
     tables[flag_table]["serialized_chunks"] = SERIALIZED_CHUNKS
+
+  for key, source_path, start_symbol, end_symbol, prefix in SYMBOL_SPECS:
+    source_text = (root / source_path).read_text(encoding="utf-8")
+    block = _extract_define_block(source_text, start_symbol, end_symbol)
+    values, _ = _parse_defines(block)
+    selected = {
+        symbol: value
+        for symbol, value in values.items()
+        if symbol.startswith(prefix) and not symbol.startswith("NUM_")
+    }
+    if not selected:
+      raise ExtractionError(f"no {prefix} symbols extracted from {source_path}")
+    symbol_groups[key] = {
+        "source_defines": f"{source_path}:{start_symbol}..{end_symbol}",
+        "values": dict(sorted(selected.items())),
+    }
+
+  mob_autoroll_path = "src/mob/mob_autoroll.h"
+  mob_autoroll_text = (root / mob_autoroll_path).read_text(encoding="utf-8")
+  tier_values = _extract_enum(mob_autoroll_text, "mob_tier")
+  tier_values.pop("NUM_MOB_TIERS", None)
+  symbol_groups["mob-tiers"] = {
+      "source_enum": f"{mob_autoroll_path}:enum mob_tier",
+      "values": dict(sorted(tier_values.items())),
+  }
+  custom_profile_values = _extract_enum(mob_autoroll_text, "mob_autoroll_custom_profile")
+  custom_profile_values.pop("NUM_MOB_AUTOROLL_CUSTOM_PROFILES", None)
+  symbol_groups["mob-autoroll-custom-profiles"] = {
+      "source_enum": f"{mob_autoroll_path}:enum mob_autoroll_custom_profile",
+      "values": dict(sorted(custom_profile_values.items())),
+  }
 
   hlquest_header_path = "src/quest/hlquest.h"
   hlquest_header = (root / hlquest_header_path).read_text(encoding="utf-8")
@@ -834,6 +874,7 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
           "obj-affect2": "affect2",
       },
       "limits": limits,
+      "symbols": symbol_groups,
       "tables": tables,
   }
 

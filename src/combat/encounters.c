@@ -1744,6 +1744,7 @@ void check_random_encounter(struct char_data *ch)
           GET_CLASS(mob) = encounter_table[j].char_class;
           GET_LEVEL(mob) = MAX(1, highest_level - 2);
           autoroll_mob(mob, TRUE, FALSE);
+          GET_REAL_SIZE(mob) = encounter_table[j].size;
           GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 75);
           GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
           set_alignment(mob, encounter_table[j].alignment);

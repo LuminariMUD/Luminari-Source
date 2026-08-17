@@ -3052,6 +3052,12 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     GET_REAL_CHA(mob_proto + i) = num_arg;
   }
 
+  CASE("SpellRes")
+  {
+    RANGE(0, 100);
+    GET_REAL_SPELL_RES(mob_proto + i) = num_arg;
+  }
+
   /* leaving old saves for ease-of-conversion cases -zusuk */
   CASE("SavingPara")
   {
@@ -3427,6 +3433,13 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   }
   affect_total(mob_proto + i);
 }
+
+#ifdef LUMINARI_CUTEST
+void test_interpret_mobile_espec(const char *keyword, const char *value, int i, int nr)
+{
+  interpret_espec(keyword, value, i, nr);
+}
+#endif
 
 #undef CASE
 #undef BOOL_CASE

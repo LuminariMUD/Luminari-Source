@@ -10,6 +10,7 @@ bin_PROGRAMS = \
 	plrtoascii \
 	rebuildAsciiIndex \
 	rebuildMailIndex \
+	rol_mob_calculator \
 	shopconv \
 	sign \
 	split \
@@ -24,6 +25,8 @@ autowiz_SOURCES = autowiz.c
 plrtoascii_SOURCES = plrtoascii.c
 rebuildAsciiIndex_SOURCES = rebuildAsciiIndex.c
 rebuildMailIndex_SOURCES = rebuildMailIndex.c
+rol_mob_calculator_SOURCES = rol_mob_calculator.c ../src/mob/mob_autoroll.c \
+	../src/mob/mob_autoroll_profile.c
 shopconv_SOURCES = shopconv.c
 sign_SOURCES = sign.c
 split_SOURCES = split.c

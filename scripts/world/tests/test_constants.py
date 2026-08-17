@@ -117,6 +117,21 @@ class ConstantsTests(unittest.TestCase):
     self.assertEqual("MOB_ROL_ABYSS_FORGED", entries[125]["macro"])
     self.assertEqual("RoL-Abyss-Forged", entries[125]["name"])
 
+  def test_mobile_conversion_symbols_match_runtime_headers(self) -> None:
+    symbols = self.manifest["symbols"]
+
+    self.assertEqual(3, symbols["classes"]["values"]["CLASS_WARRIOR"])
+    self.assertEqual(4, symbols["race-types"]["values"]["RACE_TYPE_DRAGON"])
+    self.assertEqual(10, symbols["subraces"]["values"]["SUBRACE_EXTRAPLANAR"])
+    self.assertEqual(6, symbols["sizes"]["values"]["SIZE_LARGE"])
+    self.assertEqual(5, symbols["mob-tiers"]["values"]["MOB_TIER_WORLD_BOSS"])
+    self.assertEqual(
+        2,
+        symbols["mob-autoroll-custom-profiles"]["values"][
+            "MOB_AUTOROLL_CUSTOM_TIAMAT_DRACOLICH_V1"
+        ],
+    )
+
   def test_luminari_campaign_filter_selects_non_campaign_branch(self) -> None:
     source = "#ifdef CAMPAIGN_FR\nfr\n#else\nluminari\n#endif\n"
     self.assertEqual("luminari\n", _filter_luminari_branch(source))

@@ -48,8 +48,9 @@
 - Reversed the superseded Phase 6.5 database rehome across all 53 typed persistent consumers. The
   recovery restored 1,103 saved-object rows to 133 unique original Luminari prototypes without
   changing row counts or serialized-object suffix bytes.
-- Disabled the destructive Phase 6.5 world apply and disabled forward persistence migration against
-  development. The maintained apply path is the additive, hash-preconditioned Phase 8 overlay.
+- Removed the rejected Phase 6.5 rehome, persistence mutation/recovery, and completion-audit
+  commands and implementation modules. The maintained apply path is the additive,
+  hash-preconditioned Phase 8 overlay.
 
 #### Added
 
@@ -59,8 +60,9 @@
 - Added a mechanics-isolation gate. The original Luminari world must contain zero RoL compatibility
   markers, every converted marker owner must be in the reserved namespace, and every seven-digit
   identity literal in the RoL mechanics modules must be in 2000000-2999999.
-- Added deterministic persistence-recovery bundles, full pre-write database dumps, rollback-only
-  preflight, checksum-preserving recovery validation, and repeat-application no-op evidence.
+- Added a read-only persisted-VNUM gate that uses `lib/mysql_config` only in development, rejects
+  write-shaped queries, and requires every persisted RoL identity to resolve exactly once in the
+  assembled candidate.
 
 #### Verification
 
@@ -191,7 +193,7 @@ RoL identities to retire. The apply path for this workflow is now disabled.
   was byte-identical, all four namespace/reference invariants were zero, and repeat
   application performed zero file writes.
 - Passed 396 world-tool tests, 698 production-linked CuTests, build/install, syntax and
-  isolated-database runtime boots, reset observation, and scripted traversal of all
+  local-development-database runtime boots, reset observation, and scripted traversal of all
   990 rehomed rooms. The historical completion bundle covered 1,994 identity records
   and 191 project requirements.
 

@@ -88,6 +88,7 @@ util/autowiz
 util/plrtoascii
 util/rebuildAsciiIndex
 util/rebuildMailIndex
+util/rol_mob_calculator
 util/shopconv
 util/sign
 util/split

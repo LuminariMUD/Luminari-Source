@@ -752,6 +752,7 @@ def write_pilot_build_bundle(
   generated: defaultdict[tuple[str, int], list[tuple[int, str]]] = defaultdict(list)
   shop_appends: defaultdict[str, list[tuple[int, str]]] = defaultdict(list)
   diagnostics: list[dict[str, Any]] = []
+  mobile_ledgers: list[dict[str, Any]] = []
   generated_record_ids: dict[str, str] = {}
 
   for action in actions:
@@ -843,6 +844,8 @@ def write_pilot_build_bundle(
         }
         for item in emitted.diagnostics
     )
+    if emitted.ledger is not None:
+      mobile_ledgers.append(emitted.ledger)
 
   for trigger in all_triggers:
     generated[("trg", trigger.vnum // 100)].append((trigger.vnum, trigger.text))
@@ -1089,6 +1092,7 @@ def write_pilot_build_bundle(
       },
       "diagnostics/source.json": source_diagnostics,
       "diagnostics/transforms.json": diagnostics,
+      "diagnostics/mobile-conversion-ledger.json": mobile_ledgers,
       "diagnostics/soc.json": soc.diagnostics,
       "diagnostics/specials.json": specials.diagnostics,
       "validation/generated-structure.json": generated_validation_data,

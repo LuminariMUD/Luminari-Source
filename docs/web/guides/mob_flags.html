@@ -758,6 +758,18 @@ effective-tier resolution - <code>src/olc/medit.c</code> - Builder
 selection and tier-aware autoroll - <code>src/db.c</code> and
 <code>src/olc/genmob.c</code> - <code>Tier:</code> loading and
 saving</p>
+<h3 id="spell-resistance-separate-scalar-field">Spell resistance
+(separate scalar field)</h3>
+<p>Enhanced mobile files persist base spell resistance as
+<code>SpellRes:</code> from 0 through 100. MEDIT exposes the same value
+in its advanced statistics menu. Loading clamps the field to that range,
+and OLC save writes a nonzero base value back to disk. Autoroll can
+replace it from the selected race profile, so set identity before
+running automatic statistics.</p>
+<p><strong>Code References:</strong> - <code>src/db.c</code> -
+<code>SpellRes:</code> loading - <code>src/olc/genmob.c</code> -
+<code>SpellRes:</code> saving - <code>src/olc/medit.c</code> - display,
+edit, and autoroll ownership</p>
 <h3 id="mob_no_block_bypass-index-102">MOB_NO_BLOCK_BYPASS (Index:
 102)</h3>
 <p><strong>Effect:</strong> Prevents the Ghost perk and similar

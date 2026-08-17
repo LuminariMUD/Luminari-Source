@@ -1,11 +1,8 @@
-"""Semantic persistent-consumer inventory for the RoL canonical rebase."""
+"""Semantic persistent-reference inventory for RoL release validation."""
 
 from __future__ import annotations
 
-from typing import Any, Iterable
-
-
-PERSISTENT_BINDING_SCHEMA_VERSION = 2
+from typing import Any
 
 
 def _binding(
@@ -16,20 +13,16 @@ def _binding(
     evidence: str,
     *,
     encoding: str = "integer",
-    migration: bool = True,
     predicate: str | None = None,
-    disposition: str = "canonical_rebase",
 ) -> dict[str, Any]:
   return {
       "table": table,
       "column": column,
       "record_type": record_type,
       "encoding": encoding,
-      "migration_required": migration,
       "predicate": predicate,
       "consumer": consumer,
       "evidence": evidence,
-      "disposition": disposition,
   }
 
 
@@ -43,8 +36,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "region",
         "wilderness region hints",
         "region_hints uses region_table identities, not world records",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "ai_npc_personalities",
@@ -101,8 +92,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "region",
         "wilderness hint analytics",
         "region hint subsystem identity, not a world record",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "hint_usage_log",
@@ -110,8 +99,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "region",
         "wilderness hint usage",
         "region hint subsystem identity, not a world record",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "house_data",
@@ -154,8 +141,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "path",
         "wilderness path catalogue",
         "path_data.vnum is a path identity, not a room/mobile/object identity",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "path_data",
@@ -170,8 +155,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "path",
         "wilderness path spatial index",
         "path_index mirrors the path identity from path_data",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "path_index",
@@ -272,8 +255,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "legacy external quest catalogue",
         "comma-delimited mobile identities; no in-server reader remains and the development table is empty",
         encoding="csv_integer",
-        migration=False,
-        disposition="classified_empty_orphan",
     ),
     _binding(
         "quest_line_steps",
@@ -288,8 +269,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "region",
         "wilderness region catalogue",
         "region_data.vnum is a region identity, not a world record",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "region_data",
@@ -304,8 +283,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "region",
         "wilderness region description cache",
         "cache key is a region identity, not a world record",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "region_effect_assignments",
@@ -313,8 +290,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "region",
         "wilderness region effects",
         "effect assignment key is a region identity, not a world record",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "region_hints",
@@ -322,8 +297,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "region",
         "wilderness region hints",
         "hint key is a region identity, not a world record",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "region_index",
@@ -331,8 +304,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "region",
         "wilderness region spatial index",
         "region_index mirrors a region identity, not a world record",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "region_index",
@@ -347,8 +318,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "region",
         "wilderness region profiles",
         "profile key is a region identity, not a world record",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "resource_depletion",
@@ -385,8 +354,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "room",
         "vessel cargo room",
         "generated ship interior room in the disjoint 70020-80019 namespace",
-        migration=False,
-        disposition="generated_namespace_disjoint",
     ),
     _binding(
         "ship_crew_roster",
@@ -402,8 +369,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "room",
         "vessel crew assignment",
         "generated ship interior room in the disjoint 70020-80019 namespace",
-        migration=False,
-        disposition="generated_namespace_disjoint",
     ),
     _binding(
         "ship_crew_roster",
@@ -411,8 +376,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "room",
         "vessel crew duty station",
         "generated ship interior room in the disjoint 70020-80019 namespace",
-        migration=False,
-        disposition="generated_namespace_disjoint",
     ),
     _binding(
         "ship_docking",
@@ -420,8 +383,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "room",
         "vessel docking endpoint",
         "generated ship interior room in the disjoint 70020-80019 namespace",
-        migration=False,
-        disposition="generated_namespace_disjoint",
     ),
     _binding(
         "ship_docking",
@@ -429,8 +390,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "room",
         "vessel docking endpoint",
         "generated ship interior room in the disjoint 70020-80019 namespace",
-        migration=False,
-        disposition="generated_namespace_disjoint",
     ),
     _binding(
         "ship_interiors",
@@ -439,8 +398,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "vessel interior room list",
         "generated ship interior rooms use the disjoint 70020-80019 namespace",
         encoding="csv_integer",
-        migration=False,
-        disposition="generated_namespace_disjoint",
     ),
     _binding(
         "ship_interiors",
@@ -448,8 +405,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "room",
         "vessel bridge",
         "generated ship interior room in the disjoint 70020-80019 namespace",
-        migration=False,
-        disposition="generated_namespace_disjoint",
     ),
     _binding(
         "ship_interiors",
@@ -457,8 +412,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "room",
         "vessel entrance",
         "generated ship interior room in the disjoint 70020-80019 namespace",
-        migration=False,
-        disposition="generated_namespace_disjoint",
     ),
     *(
         _binding(
@@ -467,8 +420,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
             "room",
             "vessel cargo room",
             "generated ship interior room in the disjoint 70020-80019 namespace",
-            migration=False,
-            disposition="generated_namespace_disjoint",
         )
         for index in range(1, 6)
     ),
@@ -479,8 +430,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "vessel interior connection graph",
         "serialized endpoints are generated ship rooms in the disjoint 70020-80019 namespace",
         encoding="vessel_connections",
-        migration=False,
-        disposition="generated_namespace_disjoint",
     ),
     _binding(
         "ship_room_template_triggers",
@@ -516,8 +465,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "room",
         "live vessel docking endpoint",
         "generated ship interior room in the disjoint 70020-80019 namespace",
-        migration=False,
-        disposition="generated_namespace_disjoint",
     ),
     _binding(
         "ship_runtime_state",
@@ -525,8 +472,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "room",
         "live vessel docking endpoint",
         "generated ship interior room in the disjoint 70020-80019 namespace",
-        migration=False,
-        disposition="generated_namespace_disjoint",
     ),
     _binding(
         "stored_mobs_for_quests",
@@ -555,8 +500,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "region",
         "vessel encounter region",
         "encounter region is a wilderness region identity, not a world record",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "vessel_encounters",
@@ -585,8 +528,6 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         "region",
         "vessel region law",
         "law key is a wilderness region identity, not a world record",
-        migration=False,
-        disposition="unrelated_typed_identity",
     ),
     _binding(
         "weather_cache",
@@ -640,65 +581,3 @@ PERSISTENT_BINDINGS: tuple[dict[str, Any], ...] = (
         )
     ),
 )
-
-
-_BINDINGS_BY_KEY = {
-    (str(binding["table"]), str(binding["column"])): binding
-    for binding in PERSISTENT_BINDINGS
-}
-
-
-def persistent_binding_spec(table: str, column: str) -> dict[str, Any] | None:
-  """Return a copy of the traced semantic binding for one database column."""
-
-  binding = _BINDINGS_BY_KEY.get((table, column))
-  return dict(binding) if binding is not None else None
-
-
-def complete_persistent_bindings(
-    discovered: Iterable[dict[str, Any]],
-    include_guarded_missing: bool = True,
-) -> list[dict[str, Any]]:
-  """Overlay traced semantics and add guarded bindings absent from old inventories."""
-
-  rows: dict[tuple[str, str], dict[str, Any]] = {}
-  for discovered_binding in discovered:
-    row = dict(discovered_binding)
-    key = (str(row["table"]), str(row["column"]))
-    semantic = _BINDINGS_BY_KEY.get(key)
-    if semantic is not None:
-      row.update(semantic)
-      row["classification_status"] = "traced"
-    else:
-      row["classification_status"] = "unclassified"
-      row.setdefault(
-          "migration_required",
-          row.get("record_type")
-          in {"zone", "room", "mobile", "object", "quest", "trigger"},
-      )
-      row.setdefault("encoding", "integer")
-      row.setdefault("disposition", "unclassified")
-    rows[key] = row
-
-  if include_guarded_missing:
-    for key, semantic in _BINDINGS_BY_KEY.items():
-      if key in rows:
-        continue
-      row = dict(semantic)
-      row["classification_status"] = "traced"
-      row["discovered"] = False
-      rows[key] = row
-
-  return [rows[key] for key in sorted(rows)]
-
-
-def persistent_consumer_ledger(
-    discovered: Iterable[dict[str, Any]],
-) -> list[dict[str, Any]]:
-  """Return the stable, credential-free consumer classification ledger."""
-
-  rows = complete_persistent_bindings(discovered)
-  for row in rows:
-    row.pop("values", None)
-    row.pop("values_sha256", None)
-  return rows

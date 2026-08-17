@@ -486,6 +486,9 @@ extern struct char_data *character_list;
 extern struct index_data *mob_index;
 extern struct char_data *mob_proto;
 extern mob_rnum top_of_mobt;
+#ifdef LUMINARI_CUTEST
+void test_interpret_mobile_espec(const char *keyword, const char *value, int i, int nr);
+#endif
 
 extern struct index_data *obj_index;
 extern struct obj_data *object_list;
