@@ -451,6 +451,13 @@ OBJECT_EXTRA_MAP = {
 # counters never consume it. Persisting target darkness would invent behavior.
 OBJECT_SOURCE_ONLY_FLAGS = frozenset({2})
 
+# read_object() in EXAMPLE/RealmsOfLuminari/src/db.c strips AFF_HIDE from every
+# object as it loads ("No hide items."), so a source object carrying the bit
+# confers nothing at runtime. Persisting it would invent behavior. This is
+# object-specific: source mobiles keep AFF_HIDE, so it must not join
+# MOB_SOURCE_ONLY_AFFECTS.
+OBJECT_SOURCE_ONLY_AFFECTS = frozenset({21})
+
 ROL_OBJECT_TRAP_EXTRA_BIT = 113
 ROL_OBJECT_TRAP_EFFECT_MASK = 0xFFF
 ROL_OBJECT_TRAP_DAMAGE_TYPES = frozenset((*range(1, 8), *range(11, 17), 30, 31))
@@ -536,6 +543,29 @@ APPLY_MAP = {
 # no active source mechanic consuming their modified values.
 OBJECT_SOURCE_ONLY_APPLIES = frozenset({29, 30, 39, 40, 49, 50})
 
+# The source loader rescales stat applies as it reads them, covering
+# APPLY_STR..APPLY_CON and APPLY_AGI..APPLY_LUCK (see read_object() in
+# EXAMPLE/RealmsOfLuminari/src/db.c). Locations 29 and 30 are inside that range
+# but never reach the scale here because OBJECT_SOURCE_ONLY_APPLIES drops them
+# first; they stay listed so this set mirrors the source ranges exactly.
+SOURCE_SCALED_STAT_APPLIES = frozenset({1, 2, 3, 4, 5, 26, 27, 28, 29, 30})
+
+# The source loader does NOT rescale the *_MAX applies. The converter maps them
+# onto the base stats they cap and scales them to match, so that a converted
+# *_MAX apply keeps the same magnitude as the base-stat apply beside it.
+SOURCE_MAX_STAT_APPLIES = frozenset({31, 32, 33, 34, 35, 36, 37, 38})
+
+_SOURCE_STAT_APPLY_NUMERATOR = 45
+_SOURCE_STAT_APPLY_DENOMINATOR = 10
+
+
+def _scaled_stat_modifier(modifier: int) -> int:
+  """Apply the source stat scale using C truncation toward zero."""
+
+  scaled = modifier * _SOURCE_STAT_APPLY_NUMERATOR
+  magnitude = abs(scaled) // _SOURCE_STAT_APPLY_DENOMINATOR
+  return -magnitude if scaled < 0 else magnitude
+
 # Active race-factor applies are multiplicative in RoL. Convert their observed
 # factors into fixed D20-scale modifiers around a baseline score of 10.
 OBJECT_RACE_APPLY_MODIFIERS = {
@@ -555,6 +585,26 @@ EQUIPMENT_POSITION_MAP = {
     23: 27,  # badge/insignia
 }
 
+# Source weapons store a one-based index into RoL's weapons[] verb table
+# (constant.c), while the target stores a zero-based index into
+# attack_hit_text[] (src/combat/fight.c). The two tables share several verbs at
+# different offsets, so the values must be translated rather than passed
+# through. Source 0 and anything above 11 is rejected by the source runtime as
+# well; those fall back to the target's "hit" verb.
+SOURCE_WEAPON_MESSAGE_MAP = {
+    1: 2,   # Whip -> whip
+    2: 2,   # Whip -> whip
+    3: 3,   # Slash -> slash
+    4: 6,   # Crush -> crush
+    5: 6,   # Crush -> crush
+    6: 6,   # Crush -> crush
+    7: 5,   # Bludgeon -> bludgeon
+    8: 8,   # Claw -> claw
+    9: 8,   # Claw -> claw
+    10: 4,  # Bite -> bite
+    11: 11, # Pierce -> pierce
+}
+
 _SOURCE_COLOR = re.compile(r"&\+([A-Za-z])|&([Nn])")
 
 
@@ -563,6 +613,12 @@ def convert_text(value: str | None) -> tuple[str, list[str]]:
 
   diagnostics: list[str] = []
   text = value or ""
+  # The target reader runs parse_at() over every tilde string, so a bare '@'
+  # becomes a color introducer and swallows the next character. Escape source
+  # at-signs to '@@' before introducing our own '@' color codes below.
+  if "@" in text:
+    text = text.replace("@", "@@")
+    diagnostics.append("escaped literal '@' as '@@' for the target color parser")
   text = _SOURCE_COLOR.sub(
       lambda match: "@n" if match.group(2) else f"@{match.group(1)}",
       text,
@@ -1732,6 +1788,21 @@ def _object_values(
         f"mapped source spell {source_spell} ({spell_name}) to target spell "
         f"{target_spell} in magic-item slot {slot}"
     )
+  if source_type == 5:
+    source_message = values[3]
+    target_message = SOURCE_WEAPON_MESSAGE_MAP.get(source_message)
+    if target_message is None:
+      values[3] = 0
+      diagnostics.append(
+          f"replaced out-of-range source weapon damage message {source_message} "
+          "with the target default"
+      )
+    elif target_message != source_message:
+      values[3] = target_message
+      diagnostics.append(
+          f"mapped source weapon damage message {source_message} to target "
+          f"message {target_message}"
+      )
   if target_type in {3, 4} and values[2] > values[1]:
     source_maximum = values[1]
     values[1] = values[2]
@@ -1853,6 +1924,12 @@ def emit_object(
       continue
     for ordinal, mask in enumerate(directive.get("arguments", [])):
       source_affects.update(_source_mask_bits(mask, ordinal * 32 + 1))
+  if source_affects & OBJECT_SOURCE_ONLY_AFFECTS:
+    diagnostics.append(
+        "omitted source-inert object affects the source loader clears at load: "
+        f"{sorted(source_affects & OBJECT_SOURCE_ONLY_AFFECTS)}"
+    )
+    source_affects -= OBJECT_SOURCE_ONLY_AFFECTS
   target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
   target_affects2 = _mapped_bits(source_affects, MOB_AFFECT2_MAP)
   missing_affects = sorted(
@@ -1893,6 +1970,16 @@ def emit_object(
   economy = list(record.values.get("economy", []))
   economy_defaults = [0, 1, 0, 1, 1]
   economy = economy[:5] + economy_defaults[len(economy[:5]):]
+  if source_type == 17 and economy[0] > 0:
+    # Source drink containers store weight in quarter pounds and the source
+    # loader divides by four at load. The target reader applies no such
+    # division, so scale the stored weight here instead.
+    source_weight = economy[0]
+    economy[0] = source_weight // 4
+    diagnostics.append(
+        f"converted source drink-container weight {source_weight} from quarter "
+        f"pounds to {economy[0]}"
+    )
   economy[0] = max(0, economy[0])
   economy[2] = max(0, economy[2])
   if economy[3] <= 0:
@@ -1943,8 +2030,8 @@ def emit_object(
             f"approximated source race-factor apply {source_location} as fixed "
             f"target modifier {modifier} at source line {directive['line']}"
         )
-      elif source_location in {1, 2, 3, 4, 5, 26, 27, 31, 32, 33, 34, 35, 36, 37, 38}:
-        modifier = (modifier * 45) // 10
+      elif source_location in SOURCE_SCALED_STAT_APPLIES | SOURCE_MAX_STAT_APPLIES:
+        modifier = _scaled_stat_modifier(modifier)
       lines.extend(["A\n", f"{location} {modifier} 0 0\n"])
   if special_proc is not None:
     lines.extend(["Z\n", f"{special_proc}\n"])

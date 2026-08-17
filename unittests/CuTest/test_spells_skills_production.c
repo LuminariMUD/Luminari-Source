@@ -107,6 +107,27 @@ void Test_spells_production_classification_helpers(CuTest *tc)
   CuAssertTrue(tc, !isEpicSpell(SPELL_CURE_LIGHT));
 }
 
+void Test_group_morale_buffs_are_registered_non_violent(CuTest *tc)
+{
+  /* These are self and ally buffs. Registering one as violent makes
+   * mag_affects_full() roll the Slippery Mind save against its own recipient,
+   * which silently drops the buff at random, makes a recast report "no effect"
+   * instead of refreshing, and excludes it from Beast Master shared spells. */
+  static const int morale_buffs[] = {
+      AFFECT_INSPIRE_COURAGE,    AFFECT_INSPIRE_GREATNESS, AFFECT_FINAL_STAND,
+      AFFECT_RALLYING_CRY,       AFFECT_GLORYS_CALL,       AFFECT_PRESCIENCE,
+      AFFECT_KNIGHTHOODS_FLOWER,
+  };
+  size_t index;
+
+  if (spell_info[AFFECT_INSPIRE_COURAGE].name == NULL ||
+      spell_info[AFFECT_INSPIRE_COURAGE].name == unused_spellname)
+    mag_assign_spells();
+
+  for (index = 0; index < sizeof(morale_buffs) / sizeof(morale_buffs[0]); index++)
+    CuAssertIntEquals(tc, FALSE, spell_info[morale_buffs[index]].violent);
+}
+
 void Test_arcane_mark_workflow_reports_and_displays_applied_signature(CuTest *tc)
 {
   struct char_data ch;

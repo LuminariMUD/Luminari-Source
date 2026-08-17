@@ -1058,6 +1058,158 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn("approximated source race-factor apply 41", diagnostics)
     self.assertNotIn("unknown source item type", diagnostics)
 
+  def test_converted_text_escapes_literal_at_for_target_color_parser(self) -> None:
+    text, diagnostics = convert_text("mail me @ &+rdawn&N")
+
+    self.assertEqual("mail me @@ @rdawn@n", text)
+    self.assertIn("escaped literal '@'", " ".join(diagnostics))
+
+  def test_converted_text_leaves_color_free_source_untouched(self) -> None:
+    text, diagnostics = convert_text("a plain iron axe")
+
+    self.assertEqual("a plain iron axe", text)
+    self.assertEqual([], diagnostics)
+
+  def test_emitted_weapon_translates_source_damage_message_index(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nclub bludgeon~\na heavy club~\nA heavy club is here.~\n~\n"
+        b"5 0 8193\n0 3 8 7\n15 100 0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    obj = result.records[0]
+    self.assertEqual(5, obj.item_type)
+    # Source 7 is RoL weapons[6] "Bludgeon"; the target's "bludgeon" is 5.
+    self.assertEqual(5, obj.values[3])
+    self.assertIn("mapped source weapon damage message 7", " ".join(emitted.diagnostics))
+
+  def test_emitted_weapon_keeps_already_aligned_damage_message(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nsword slash~\na long sword~\nA long sword is here.~\n~\n"
+        b"5 0 8193\n0 1 12 3\n15 100 0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(3, result.records[0].values[3])
+    self.assertNotIn("weapon damage message", " ".join(emitted.diagnostics))
+
+  def test_emitted_weapon_replaces_out_of_range_damage_message(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nodd weapon~\nan odd weapon~\nAn odd weapon is here.~\n~\n"
+        b"5 0 8193\n0 1 6 12\n15 100 0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(0, result.records[0].values[3])
+    self.assertIn(
+        "replaced out-of-range source weapon damage message 12",
+        " ".join(emitted.diagnostics),
+    )
+
+  def test_emitted_drink_container_converts_quarter_pound_weight(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nflask water~\na leather flask~\nA leather flask is here.~\n~\n"
+        b"17 0 1\n10 3 0 0\n20 25 0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(17, result.records[0].item_type)
+    self.assertEqual(5, result.records[0].weight)
+    self.assertIn(
+        "converted source drink-container weight 20", " ".join(emitted.diagnostics)
+    )
+
+  def test_emitted_object_weight_is_untouched_for_non_drink_containers(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nstatue~\na stone statue~\nA stone statue is here.~\n~\n"
+        b"12 0 1\n0 0 0 0\n20 25 0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(20, result.records[0].weight)
+
+  def test_emitted_object_scales_charisma_apply_like_other_stats(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\ncharm ring~\na charm ring~\nA charm ring is here.~\n~\n"
+        b"11 0 3\n0 0 0 0\n1 100 0\n"
+        b"A\n28 2\nA\n1 2\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    affects = {
+        affect.location: affect.modifier for affect in result.records[0].affects
+    }
+    # APPLY_CHA sits inside the source loader's scaled range, so it must carry
+    # the same magnitude as the APPLY_STR beside it.
+    self.assertEqual(9, affects[6])
+    self.assertEqual(9, affects[1])
+
+  def test_emitted_object_truncates_negative_stat_scale_toward_zero(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\ncursed band~\na cursed band~\nA cursed band is here.~\n~\n"
+        b"11 0 3\n0 0 0 0\n1 100 0\n"
+        b"A\n1 -1\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    # The source loader computes (-1 * 45) / 10 in C, which truncates to -4.
+    self.assertEqual(-4, result.records[0].affects[0].modifier)
+
+  def test_emitted_object_drops_source_inert_hide_affect(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\ncloak shadow~\na shadowed cloak~\nA shadowed cloak is here.~\n~\n"
+        b"11 0 1025\n0 0 0 0\n1 100 0\n"
+        + f"{1 << 20}\n0\n".encode("ascii"),
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    # Target AFF_HIDE is 20; the source loader clears the source bit at load,
+    # so the converted object must not confer it.
+    self.assertNotIn(20, decode_tokens(result.records[0].affect_flags).bits)
+    self.assertIn(
+        "omitted source-inert object affects", " ".join(emitted.diagnostics)
+    )
+
   def test_emitted_object_synthesizes_runtime_safe_identity_strings(self) -> None:
     source = self._source_record(
         "obj",

@@ -32,6 +32,7 @@ from .rol_transform import (
     MOB_SOURCE_ONLY_AFFECTS,
     MOB_SOURCE_ONLY_ACTIONS,
     OBJECT_EXTRA_MAP,
+    OBJECT_SOURCE_ONLY_AFFECTS,
     OBJECT_SOURCE_ONLY_FLAGS,
     OBJECT_TYPE_MAP,
     OBJECT_WEAR_MAP,
@@ -219,7 +220,10 @@ def build_symbolic_inventory(records: Iterable[RolRecord]) -> list[dict[str, Any
       "object_extra_flag": set(OBJECT_EXTRA_MAP) | set(OBJECT_SOURCE_ONLY_FLAGS),
       "object_wear_flag": set(OBJECT_WEAR_MAP) | set(OBJECT_SOURCE_ONLY_WEAR_FLAGS),
       "object_affect_flag": (
-          set(MOB_AFFECT_MAP) | set(MOB_AFFECT2_MAP) | set(MOB_SOURCE_ONLY_AFFECTS)
+          set(MOB_AFFECT_MAP)
+          | set(MOB_AFFECT2_MAP)
+          | set(MOB_SOURCE_ONLY_AFFECTS)
+          | set(OBJECT_SOURCE_ONLY_AFFECTS)
       ),
       "object_apply": set(APPLY_MAP) | set(OBJECT_SOURCE_ONLY_APPLIES),
       "zone_flag": set(ZONE_ROOM_FLAG_MAP) | set(ZONE_SOURCE_ONLY_FLAGS),

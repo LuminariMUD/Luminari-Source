@@ -5690,16 +5690,16 @@ void mag_assign_spells(void)
   spello(AFFECT_RALLYING_CRY, "rallying cry", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
          "The rallying cry fades.", 1, 1, NOSCHOOL, FALSE);
 
-  spello(AFFECT_INSPIRE_COURAGE, "inspire courage", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE,
+  spello(AFFECT_INSPIRE_COURAGE, "inspire courage", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
          MAG_GROUPS, "Your inspired courage fades.", 1, 1, NOSCHOOL, FALSE);
 
-  spello(AFFECT_INSPIRE_GREATNESS, "inspire greatness", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE,
+  spello(AFFECT_INSPIRE_GREATNESS, "inspire greatness", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
          MAG_GROUPS, "Your inspired greatness fades.", 1, 1, NOSCHOOL, FALSE);
 
-  spello(AFFECT_FINAL_STAND, "final stand", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_GROUPS,
+  spello(AFFECT_FINAL_STAND, "final stand", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
          "Your final stand ends.", 1, 1, NOSCHOOL, FALSE);
 
-  spello(AFFECT_KNIGHTHOODS_FLOWER, "knighthood's flower", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE,
+  spello(AFFECT_KNIGHTHOODS_FLOWER, "knighthood's flower", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
          MAG_AFFECTS, "Your knighthood's flower fades.", 1, 1, NOSCHOOL, FALSE);
 
   spello(RACIAL_ABILITY_CRYSTAL_BODY, "crystal body", 0, 0, 0, POS_FIGHTING,
