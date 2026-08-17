@@ -23,6 +23,7 @@
 #include "handler.h"
 #include "dgscript/dg_event.h"
 #include "dgscript/dg_scripts.h"
+#include "mysql.h"
 #include "perfmon.h"
 
 /* ========================================================================
@@ -52,6 +53,7 @@
 #define COMBAT_SLOW_USEC 100000       /* Ordinary callback latency objective */
 #define COMBAT_ATTACK_LIMIT 128       /* Maximum hit() entries in one callback */
 #define COMBAT_PROC_LIMIT 128         /* Maximum combat special dispatches per callback */
+#define COPYOVER_SNAPSHOT_BUFFER_SIZE (2U * 1024U * 1024U)
 
 /* Time hierarchy constants */
 #define PULSE_PER_SECOND (PERF_pulse_per_second)
@@ -3845,7 +3847,8 @@ size_t PERF_memory_repr(char *out_buf, size_t n)
   return written;
 }
 
-size_t PERF_memory_csv(char *out_buf, size_t n)
+static size_t perf_memory_csv_with_current(char *out_buf, size_t n,
+                                           const struct perf_memory_stats *current)
 {
   struct perf_memory_stats cur;
   const struct perf_memory_sample *sample;
@@ -3862,10 +3865,10 @@ size_t PERF_memory_csv(char *out_buf, size_t n)
   size_t offset;
   size_t index;
 
-  if (!out_buf || n < 1)
+  if (!out_buf || n < 1 || current == NULL)
     return 0;
 
-  PERF_sample_memory(&cur);
+  cur = *current;
   PERF_memory_growth_rate(&rss_rate, &anon_rate, &heap_rate);
   char_delta = (int64_t)cur.count_chars - (int64_t)reset_memory_stats.count_chars;
   mob_delta = (int64_t)cur.count_mobs - (int64_t)reset_memory_stats.count_mobs;
@@ -3962,4 +3965,234 @@ size_t PERF_memory_csv(char *out_buf, size_t n)
   }
 
   return written;
+}
+
+size_t PERF_memory_csv(char *out_buf, size_t n)
+{
+  struct perf_memory_stats current;
+
+  if (!out_buf || n < 1)
+    return 0;
+  if (!PERF_sample_memory(&current))
+  {
+    out_buf[0] = '\0';
+    return 0;
+  }
+  return perf_memory_csv_with_current(out_buf, n, &current);
+}
+
+static int perf_snapshot_write_report(FILE *snapshot, char *buffer, size_t capacity, size_t written,
+                                      const char *name)
+{
+  if (written >= capacity - 1)
+  {
+    errno = EOVERFLOW;
+    log("SYSERR: PERFMON copyover snapshot section '%s' exceeded %zu bytes", name, capacity);
+    return 0;
+  }
+  if (fprintf(snapshot, "\n# BEGIN %s\n", name) < 0)
+    return 0;
+  if (written > 0 && fwrite(buffer, 1, written, snapshot) != written)
+    return 0;
+  if (fprintf(snapshot, "\n# END %s\n", name) < 0)
+    return 0;
+  return 1;
+}
+
+int PERF_write_copyover_snapshot(const char *path)
+{
+  FILE *snapshot;
+  char *buffer;
+  char *temp_path;
+  const char *failure;
+  struct perf_memory_stats memory_snapshot;
+  struct tm captured_tm;
+  char captured_utc[32];
+  size_t path_length;
+  size_t written;
+  time_t captured_at;
+  long snapshot_size;
+  int saved_errno;
+  int temp_created;
+
+  snapshot = NULL;
+  buffer = NULL;
+  temp_path = NULL;
+  failure = "initialization";
+  snapshot_size = 0;
+  saved_errno = 0;
+  temp_created = FALSE;
+
+  if (path == NULL || *path == '\0')
+  {
+    errno = EINVAL;
+    log("SYSERR: PERFMON copyover snapshot requires a destination path");
+    return 0;
+  }
+  if (!PERF_sample_memory(&memory_snapshot))
+  {
+    log("SYSERR: PERFMON copyover snapshot could not sample current memory");
+    return 0;
+  }
+
+  path_length = strlen(path);
+  if (path_length > SIZE_MAX - 5)
+  {
+    errno = ENAMETOOLONG;
+    log("SYSERR: PERFMON copyover snapshot path is too long");
+    return 0;
+  }
+  temp_path = malloc(path_length + 5);
+  buffer = malloc(COPYOVER_SNAPSHOT_BUFFER_SIZE);
+  if (temp_path == NULL || buffer == NULL)
+  {
+    errno = ENOMEM;
+    failure = "allocation";
+    goto fail;
+  }
+  snprintf(temp_path, path_length + 5, "%s.tmp", path);
+
+  snapshot = fopen_restricted(temp_path, "w");
+  if (snapshot == NULL)
+  {
+    failure = "open temporary file";
+    goto fail;
+  }
+  temp_created = TRUE;
+
+  captured_at = time(NULL);
+  if (gmtime_r(&captured_at, &captured_tm) == NULL ||
+      strftime(captured_utc, sizeof(captured_utc), "%Y-%m-%dT%H:%M:%SZ", &captured_tm) == 0)
+  {
+    snprintf(captured_utc, sizeof(captured_utc), "%lld", (long long)captured_at);
+  }
+  if (fprintf(snapshot,
+              "# LuminariMUD pre-copyover PERFMON snapshot\n"
+              "# snapshot_format=1\n"
+              "# captured_utc=%s\n"
+              "# replacement=atomic_overwrite\n",
+              captured_utc) < 0)
+  {
+    failure = "write header";
+    goto fail;
+  }
+
+  written = PERF_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE);
+  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+                                  "health_summary"))
+  {
+    failure = "write health summary";
+    goto fail;
+  }
+  written = persistence_scheduler_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE);
+  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+                                  "persistence_scheduler"))
+  {
+    failure = "write persistence scheduler";
+    goto fail;
+  }
+  written = PERF_prof_repr_top(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, "max", 20);
+  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+                                  "top_max"))
+  {
+    failure = "write maximum ranking";
+    goto fail;
+  }
+  written = PERF_prof_repr_top(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, "p99", 20);
+  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+                                  "top_p99"))
+  {
+    failure = "write p99 ranking";
+    goto fail;
+  }
+  written = PERF_prof_repr_csv(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE);
+  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+                                  "profiling_csv"))
+  {
+    failure = "write profiling CSV";
+    goto fail;
+  }
+  written = PERF_sql_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, TRUE);
+  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+                                  "sql_csv"))
+  {
+    failure = "write SQL CSV";
+    goto fail;
+  }
+  written = PERF_slow_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, 128, TRUE);
+  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+                                  "slow_pulses_csv"))
+  {
+    failure = "write slow-pulse CSV";
+    goto fail;
+  }
+  written = PERF_combat_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, 64, TRUE);
+  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+                                  "combat_csv"))
+  {
+    failure = "write combat CSV";
+    goto fail;
+  }
+  written = perf_memory_csv_with_current(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, &memory_snapshot);
+  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+                                  "memory_csv"))
+  {
+    failure = "write memory CSV";
+    goto fail;
+  }
+  written = PERF_entities_repr(buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, TRUE);
+  if (!perf_snapshot_write_report(snapshot, buffer, COPYOVER_SNAPSHOT_BUFFER_SIZE, written,
+                                  "entities_csv"))
+  {
+    failure = "write entity CSV";
+    goto fail;
+  }
+  if (fprintf(snapshot, "\n# database_queries=%llu\n# snapshot_complete=1\n",
+              (unsigned long long)mysql_query_counter_value()) < 0)
+  {
+    failure = "write footer";
+    goto fail;
+  }
+
+  if (fflush(snapshot) != 0 || ferror(snapshot) || fsync(fileno(snapshot)) != 0)
+  {
+    failure = "flush temporary file";
+    goto fail;
+  }
+  snapshot_size = ftell(snapshot);
+  if (snapshot_size < 0)
+  {
+    failure = "measure temporary file";
+    goto fail;
+  }
+  if (fclose(snapshot) != 0)
+  {
+    snapshot = NULL;
+    failure = "close temporary file";
+    goto fail;
+  }
+  snapshot = NULL;
+
+  if (rename(temp_path, path) != 0)
+  {
+    failure = "replace snapshot";
+    goto fail;
+  }
+
+  log("PERFMON [SNAPSHOT]: Wrote %ld-byte pre-copyover snapshot to %s", snapshot_size, path);
+  free(buffer);
+  free(temp_path);
+  return 1;
+
+fail:
+  saved_errno = errno != 0 ? errno : EIO;
+  if (snapshot != NULL)
+    fclose(snapshot);
+  if (temp_created)
+    unlink(temp_path);
+  free(buffer);
+  free(temp_path);
+  errno = saved_errno;
+  log("SYSERR: PERFMON copyover snapshot failed during %s: %s", failure, strerror(saved_errno));
+  return 0;
 }

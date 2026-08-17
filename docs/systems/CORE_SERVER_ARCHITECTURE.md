@@ -513,6 +513,14 @@ and catch-up counters. Startup performs this reset, along with the database-quer
 after world boot and copyover recovery finish. The initial operational memory baseline therefore
 includes the normally resident world instead of reporting world-load allocation as live growth.
 
+Before an accepted copyover starts descriptor handoff persistence, PERFMON captures the current
+memory sample and atomically replaces `log/perfmon-pre-copyover.txt`. The snapshot contains a
+readable summary, persistence state, max/p99 rankings, and complete profiling, SQL, slow-pulse,
+combat, memory, and entity CSV sections. It uses a same-directory temporary file plus flush,
+`fsync()`, and `rename()`, so a failed capture leaves the preceding complete snapshot intact.
+Snapshot failure is logged but does not prevent copyover. The fixed destination intentionally
+retains only the newest run.
+
 Event callback profiling uses a fixed 512-identity registry. Names are registered when events are
 created, so callback execution does not perform a string lookup. Human and CSV reports expose the
 registered count, registry capacity, top-16 report limit, and unregistered overflow calls. Callback
@@ -684,6 +692,11 @@ LuminariMUD supports "copyover" - restarting the server without disconnecting pl
 5. **Continuation:** Resume normal operation
 
 This allows for seamless updates and maintenance without player disruption.
+
+The built-in nightly copyover check uses UTC and normally executes at 08:00 UTC, with warnings at
+07:30, 07:45, 07:55, 07:58, and 07:59 UTC. Happy hour or an active staff event suppresses that
+minute's automatic action. An accepted automatic or staff-initiated copyover first refreshes the
+single PERFMON snapshot described above; recovery then starts a new monitoring window.
 
 ## Configuration System
 

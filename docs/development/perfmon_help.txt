@@ -19,6 +19,13 @@ The implementor-only PERFMON command reports bounded performance, persistence,
 database, entity-lifecycle, combat, and memory telemetry. Monitoring is always
 active; there is no runtime sampling switch.
 
+Immediately before an accepted copyover begins descriptor handoff, the server
+atomically replaces `log/perfmon-pre-copyover.txt`. The file contains a readable health
+summary, persistence state, max/p99 rankings, and the complete profiling, SQL,
+slow-pulse, combat, memory-history, and entity CSV exports. Only the newest copyover
+snapshot is retained. If rendering or writing fails, the prior complete file remains
+in place and copyover continues.
+
 Commands:
   all       Show the decision-oriented health summary, persistence scheduler,
             recent slow pulses, SQL owners, top sections, slow combat records,

@@ -6627,6 +6627,12 @@ void perform_do_copyover()
     return;
   }
 
+  /* PERFMON resets after copyover recovery. Preserve one complete, bounded
+   * pre-copyover report without accumulating per-run files. A monitoring
+   * failure must not prevent an otherwise valid copyover. */
+  if (!PERF_write_copyover_snapshot(PERFMON_COPYOVER_SNAPSHOT_FILE))
+    log("SYSERR: copyover: Continuing without a fresh PERFMON snapshot");
+
   /* First, count descriptors and validate state */
   for (d = descriptor_list; d; d = d->next)
   {

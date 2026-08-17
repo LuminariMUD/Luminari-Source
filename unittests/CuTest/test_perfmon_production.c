@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 static int perfmon_count_text_occurrences(const char *text, const char *needle)
 {
@@ -31,6 +32,26 @@ static int perfmon_count_text_occurrences(const char *text, const char *needle)
     text += needle_length;
   }
   return count;
+}
+
+static int perfmon_file_contains(const char *path, const char *needle)
+{
+  FILE *input;
+  char line[4096];
+
+  input = fopen(path, "r");
+  if (input == NULL)
+    return FALSE;
+  while (fgets(line, sizeof(line), input) != NULL)
+  {
+    if (strstr(line, needle) != NULL)
+    {
+      fclose(input);
+      return TRUE;
+    }
+  }
+  fclose(input);
+  return FALSE;
 }
 
 static struct char_data *perfmon_test_mobile(void)
@@ -669,4 +690,71 @@ void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "5678"));
   CuAssertPtrNotNull(tc, strstr(report, "Population sweep telemetry"));
   CuAssertPtrNotNull(tc, strstr(report, "autoproc"));
+}
+
+void Test_perfmon_copyover_snapshot_replaces_one_complete_file(CuTest *tc)
+{
+  static const char stale_marker[] = "stale snapshot marker\n";
+  char snapshot_path[] = "/tmp/luminari-perfmon-snapshot-XXXXXX";
+  char temp_path[sizeof(snapshot_path) + 4];
+  ssize_t seed_written;
+  int snapshot_fd;
+  int write_result;
+  int has_header;
+  int has_complete_footer;
+  int has_stale_marker;
+  int has_temp_file;
+
+  snapshot_fd = mkstemp(snapshot_path);
+  CuAssertTrue(tc, snapshot_fd >= 0);
+  if (snapshot_fd < 0)
+    return;
+  seed_written = write(snapshot_fd, stale_marker, sizeof(stale_marker) - 1);
+  close(snapshot_fd);
+  CuAssertIntEquals(tc, (int)(sizeof(stale_marker) - 1), (int)seed_written);
+
+  PERF_reset();
+  write_result = PERF_write_copyover_snapshot(snapshot_path);
+  snprintf(temp_path, sizeof(temp_path), "%s.tmp", snapshot_path);
+  has_header = perfmon_file_contains(snapshot_path, "pre-copyover PERFMON snapshot");
+  has_complete_footer = perfmon_file_contains(snapshot_path, "# snapshot_complete=1");
+  has_stale_marker = perfmon_file_contains(snapshot_path, "stale snapshot marker");
+  has_temp_file = access(temp_path, F_OK) == 0;
+  unlink(snapshot_path);
+  unlink(temp_path);
+
+  CuAssertIntEquals(tc, TRUE, write_result);
+  CuAssertIntEquals(tc, TRUE, has_header);
+  CuAssertIntEquals(tc, TRUE, has_complete_footer);
+  CuAssertIntEquals(tc, FALSE, has_stale_marker);
+  CuAssertIntEquals(tc, FALSE, has_temp_file);
+}
+
+void Test_perfmon_copyover_snapshot_preserves_previous_file_on_failure(CuTest *tc)
+{
+  static const char previous_marker[] = "previous complete snapshot\n";
+  char snapshot_path[] = "/tmp/luminari-perfmon-snapshot-XXXXXX";
+  char temp_path[sizeof(snapshot_path) + 4];
+  ssize_t seed_written;
+  int snapshot_fd;
+  int write_result;
+  int has_previous_marker;
+
+  snapshot_fd = mkstemp(snapshot_path);
+  CuAssertTrue(tc, snapshot_fd >= 0);
+  if (snapshot_fd < 0)
+    return;
+  seed_written = write(snapshot_fd, previous_marker, sizeof(previous_marker) - 1);
+  close(snapshot_fd);
+  CuAssertIntEquals(tc, (int)(sizeof(previous_marker) - 1), (int)seed_written);
+
+  snprintf(temp_path, sizeof(temp_path), "%s.tmp", snapshot_path);
+  CuAssertIntEquals(tc, 0, mkdir(temp_path, 0700));
+  write_result = PERF_write_copyover_snapshot(snapshot_path);
+  has_previous_marker = perfmon_file_contains(snapshot_path, "previous complete snapshot");
+  rmdir(temp_path);
+  unlink(snapshot_path);
+
+  CuAssertIntEquals(tc, FALSE, write_result);
+  CuAssertIntEquals(tc, TRUE, has_previous_marker);
 }

@@ -12,6 +12,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define PERFMON_COPYOVER_SNAPSHOT_FILE "../log/perfmon-pre-copyover.txt"
+
 /* Heartbeat schedule classes retained in slow-pulse flight records. */
 enum perf_schedule_flag
 {
@@ -405,6 +407,16 @@ size_t PERF_memory_repr(char *out_buf, size_t n);
  * @return Number of characters written.
  */
 size_t PERF_memory_csv(char *out_buf, size_t n);
+
+/**
+ * Atomically replace the durable pre-copyover snapshot with current telemetry.
+ *
+ * The previous complete snapshot remains intact if rendering or writing fails.
+ *
+ * @param path Destination path, normally PERFMON_COPYOVER_SNAPSHOT_FILE.
+ * @return 1 on success, 0 on failure.
+ */
+int PERF_write_copyover_snapshot(const char *path);
 
 /**
  * @brief Perform periodic check of memory growth and log alerts if threshold is exceeded.

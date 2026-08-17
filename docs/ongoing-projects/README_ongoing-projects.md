@@ -19,8 +19,7 @@ are grouped in [`todo-zusuk/`](todo-zusuk/); current cross-cutting plans may liv
 
 | Document | Status | What remains |
 |----------|--------|--------------|
-| [todo-now.md](todo-now.md) | Active production-health follow-up | Budget player autosaves across pulses and close the anonymous-memory growth finding with representative retained evidence. |
-| [PERFMON_PRODUCTION_FIX_OBJECTIVES.md](PERFMON_PRODUCTION_FIX_OBJECTIVES.md) | Active production analysis and implementation plan | Attribute and remove the one-minute persistence stall, trace entity growth, bound broad scans and combat tails, and make PERFMON decision-oriented. |
+| [PERFMON_PRODUCTION_STATUS.md](PERFMON_PRODUCTION_STATUS.md) | Production acceptance in progress | Correct registry discrepancies, remove the remaining zone/save tails, control reset-driven entity growth, and retain a complete inter-copyover capture. |
 | [AI_TODO_IDEAS.md](todo-zusuk/AI_TODO_IDEAS.md) | Not started; plan needs revalidation | No conversation-history implementation exists. Rework the plan around the current AI dialogue entry points in `src/act.comm.c` and `src/act.comm.do_spec_comm.c`, then implement bounded history, prompt integration, management, and tests. |
 | [DO_SKORE_PROJECT.md](todo-zusuk/DO_SKORE_PROJECT.md) | Partial; detailed views complete | Phase 1, Phases 2.1-2.5, and Phase 3.1 are implemented. Group, achievement, and clan views remain in Phase 3; caching and a dedicated screen-reader mode remain in Phase 4. System reference: [SKORE_SYSTEM.md](../systems/SKORE_SYSTEM.md). |
 | [IDEA_LIST.md](todo-zusuk/IDEA_LIST.md) | Backlog | Production in-game idea queue snapshot from 2026-08-03, plus four earlier imported ideas no longer present in that queue. This is a source of candidates, not an implementation plan. |
