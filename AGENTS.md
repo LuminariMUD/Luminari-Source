@@ -8,10 +8,12 @@
 - NEVER modify `src/campaign.h`, `src/mud_options.h`, `src/vnums.h` - they are local, customized configuration (gitignored). Edit the `.example.h` templates instead if a template change is needed. Only copy `.example.h` -> `.h` on a fresh clone where the real headers do not exist yet.
 - `lib/mysql_config` and `lib/.env` contain credentials: you may read them, never modify them without permission. Edit `lib/mysql_config_example` / `lib/.env.example` instead.
 - When adding or removing a source file, update BOTH `Makefile.am` and `CMakeLists.txt`.
-- Check `lib/.env` whether this is dev or production environment.  We don't modify production code.  We do not create new branches / worktress from production.
 - All documentation must be valid ASCII, UTF-8, LF line endings.
 - Always trace code; never assume naming conventions.
 - When adding or updating features, make sure to update relevant documentation and helpfiles
+- Check `lib/.env` whether this is dev or production environment.  We don't modify production code.  We do not create new branches / worktress from production.
+- For running the MUD on local/dev, don't use `luminari.service`, use `autorun.sh`
+- It is NOT expected on local/dev for Ollama, I3 and Discord services to work (unless we are specifically working on those features)
 
 ## Project Overview
 
