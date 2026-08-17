@@ -1487,7 +1487,16 @@ def emit_mobile(
     )
   lines.append(f"{_encoded(target_actions)} {_encoded(target_affects)} {alignment} E\n")
 
-  hit_dice = f"1d1+{hit_points - 1}"
+  if selection.custom_profile is not None:
+    hit_die_size = 1
+    hit_point_bonus = hit_points - 1
+  else:
+    # Production autoroll stores one hit die whose size is rolled from 1..level,
+    # plus the completed base HP in the file bonus field. Use the destination
+    # identity to choose that die size reproducibly for generated world data.
+    hit_die_size = destination_vnum % selection.mapped_level + 1
+    hit_point_bonus = hit_points
+  hit_dice = f"1d{hit_die_size}+{hit_point_bonus}"
   damage_dice = f"{stats.damage_dice_count}d{stats.damage_dice_size}+{stats.damage_bonus}"
   lines.append(
       f"{selection.mapped_level} {20 - stats.hitroll} "
@@ -1554,6 +1563,8 @@ def emit_mobile(
       "hitroll_file": 20 - stats.hitroll,
       "armor_file": 20 - stats.armor_class // 10,
       "hit_dice": hit_dice,
+      "hit_die_size": hit_die_size,
+      "hit_point_bonus": hit_point_bonus,
       "damage_dice": damage_dice,
       "final_size_assigned_after_calculation": identity.final_size,
       "mob_custom_gold": True,
@@ -1625,8 +1636,8 @@ def emit_mobile(
       "source_hit_dice": {
           "disposition": "EXCLUDED",
           "source": source_combat[3] if len(source_combat) > 3 else None,
-          "reason": "calculator or exact named profile owns deterministic target hit points",
-          "player_impact": "spawn HP is stable and cannot acquire a second random modifier",
+          "reason": "calculator or exact named profile owns target-native hit points",
+          "player_impact": "ordinary autorolled mobs retain the target's saved hit-die variation",
       },
       "source_damage_dice": {
           "disposition": "EXCLUDED",
@@ -1659,7 +1670,10 @@ def emit_mobile(
       "source_periodic_and_path_behavior": "ADAPTED: separate special/SOC reconciliation",
       "target_hitroll_inverse": "MAPPED: loader returns the calculator hitroll",
       "target_armor_inverse": "MAPPED: loader returns the calculator armor class",
-      "target_hp_roll": "MAPPED: 1d1 plus fixed bonus returns exact generated HP",
+      "target_hp_roll": (
+          "MAPPED: ordinary mobs preserve one saved variable hit die above completed autoroll HP; "
+          "exact named profiles retain fixed pre-loader HP"
+      ),
       "target_explicit_tier": "EXACT: loader preserves explicit selected tier",
       "target_class_category": "MAPPED: calculator records expected post-load values",
       "target_spell_slots": "ADAPTED: initialized once by target runtime",

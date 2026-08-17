@@ -66,8 +66,6 @@ int mob_autoroll_class_category(int ch_class)
   switch (ch_class)
   {
   case CLASS_WIZARD:
-  case CLASS_SORCERER:
-  case CLASS_BARD:
   case CLASS_ARCANE_ARCHER:
   case CLASS_MYSTIC_THEURGE:
   case CLASS_ELDRITCH_KNIGHT:
@@ -340,7 +338,8 @@ bool mob_autoroll_calculate(const struct mob_autoroll_input *input,
   if (!input || !config || !result || config->version != MOB_AUTOROLL_CONFIG_V1 ||
       input->level < 1 || input->level > LVL_IMPL || input->race < 0 ||
       input->race >= NUM_RACE_TYPES || input->ch_class < 0 || input->ch_class >= NUM_CLASSES ||
-      !mob_tier_is_valid(input->tier) || input->custom_profile < MOB_AUTOROLL_CUSTOM_NONE ||
+      (input->tier != MOB_TIER_UNSPECIFIED && !mob_tier_is_valid(input->tier)) ||
+      input->custom_profile < MOB_AUTOROLL_CUSTOM_NONE ||
       input->custom_profile >= NUM_MOB_AUTOROLL_CUSTOM_PROFILES)
     return false;
   for (configured_category = 0; configured_category < MOB_AUTOROLL_CATEGORY_COUNT;
@@ -379,10 +378,21 @@ bool mob_autoroll_calculate(const struct mob_autoroll_input *input,
 
   apply_class_profile(stats, input->ch_class, bonus);
   apply_race_profile(stats, input->race, level);
-  if (!mob_tier_calculate_hit_points(stats->hit_points, input->tier, &stats->hit_points))
+
+  /* Preserve the production base before applying any encounter-tier delta. */
+  if (level > 30)
+  {
+    int bonus_level = level - 30;
+
+    stats->hit_points *= bonus_level * 2;
+    stats->damage_bonus += bonus_level;
+    stats->experience += bonus_level * 5000;
+    stats->gold += bonus_level * 50;
+  }
+
+  if (!mob_tier_apply_autostat_bonuses(input->tier, &stats->hit_points, &stats->hitroll,
+                                       &stats->armor_class, &stats->damage_bonus))
     return false;
-  stats->damage_bonus += mob_tier_damage_bonus(input->tier);
-  stats->armor_class += mob_tier_armor_bonus(input->tier) * 10;
   stats->damage_dice_size = stats->damage_dice_size < 4 ? 4 : stats->damage_dice_size;
   switch (input->custom_profile)
   {
@@ -399,6 +409,14 @@ bool mob_autoroll_calculate(const struct mob_autoroll_input *input,
   }
 
   result->expected_post_load = *stats;
+  if (level > 30)
+  {
+    int tier_step;
+
+    result->expected_post_load.hit_points += 500;
+    for (tier_step = 30; tier_step < level; tier_step++)
+      result->expected_post_load.hit_points += result->expected_post_load.hit_points / 10;
+  }
   if (input->custom_profile == MOB_AUTOROLL_CUSTOM_NONE &&
       !apply_category_config(&result->expected_post_load, &config->category[category]))
     return false;

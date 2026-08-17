@@ -31,23 +31,6 @@ int mob_tier_formula_rank(int tier)
   return tier;
 }
 
-int mob_effective_tier(const struct char_data *mob)
-{
-  int tier;
-  int level;
-
-  if (!mob)
-    return MOB_TIER_STANDARD;
-  tier = GET_MOB_TIER(mob);
-  if (mob_tier_is_valid(tier))
-    return tier;
-
-  level = GET_LEVEL(mob);
-  if (level > 30)
-    return level - 30 > MOB_TIER_RAID ? MOB_TIER_RAID : level - 30;
-  return MOB_TIER_STANDARD;
-}
-
 bool mob_tier_calculate_hit_points(int base_hit_points, int tier, int *result)
 {
   int64_t hit_points;
@@ -74,40 +57,24 @@ bool mob_tier_calculate_hit_points(int base_hit_points, int tier, int *result)
   return true;
 }
 
-int mob_tier_attack_bonus(int tier)
+bool mob_tier_apply_autostat_bonuses(int tier, int *hit_points, int *hitroll, int *armor_class,
+                                     int *damage_bonus)
 {
-  int rank = mob_tier_formula_rank(tier);
+  int adjusted_hit_points;
+  int rank;
 
-  if (rank == 0)
-    return 0;
-  return rank + 1 + (rank > 2 ? rank - 2 : 0);
-}
+  if (!hit_points || !hitroll || !armor_class || !damage_bonus)
+    return false;
+  if (tier == MOB_TIER_UNSPECIFIED || tier == MOB_TIER_STANDARD)
+    return true;
+  if (!mob_tier_is_valid(tier) ||
+      !mob_tier_calculate_hit_points(*hit_points, tier, &adjusted_hit_points))
+    return false;
 
-int mob_tier_armor_bonus(int tier)
-{
-  int rank = mob_tier_formula_rank(tier);
-
-  return rank == 0 ? 0 : rank + 1;
-}
-
-int mob_tier_damage_bonus(int tier)
-{
-  return mob_tier_formula_rank(tier);
-}
-
-int mob_tier_extra_attacks(int tier)
-{
-  return mob_tier_formula_rank(tier);
-}
-
-int mob_tier_critical_confirmation_bonus(int tier)
-{
-  return mob_tier_formula_rank(tier) * 2;
-}
-
-int mob_tier_defense_bypass_percent(int tier)
-{
-  int rank = mob_tier_formula_rank(tier);
-
-  return rank == 0 ? 0 : 20 + 10 * rank;
+  rank = mob_tier_formula_rank(tier);
+  *hit_points = adjusted_hit_points;
+  *hitroll += rank + 1 + (rank > 2 ? rank - 2 : 0);
+  *armor_class += (rank + 1) * 10;
+  *damage_bonus += rank;
+  return true;
 }

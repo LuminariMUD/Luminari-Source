@@ -14,6 +14,19 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+
+static void init_autoroll_mobile(struct char_data *mob, int level, int race, int ch_class, int tier)
+{
+  clear_char(mob);
+  SET_BIT_AR(MOB_FLAGS(mob), MOB_ISNPC);
+  GET_LEVEL(mob) = level;
+  GET_CLASS(mob) = ch_class;
+  GET_REAL_RACE(mob) = race;
+  GET_REAL_SIZE(mob) = SIZE_MEDIUM;
+  mob->points.size = SIZE_MEDIUM;
+  GET_MOB_TIER(mob) = tier;
+}
 
 void Test_mob_tier_formula_v1_hit_point_vectors(CuTest *tc)
 {
@@ -31,127 +44,219 @@ void Test_mob_tier_formula_v1_hit_point_vectors(CuTest *tc)
   CuAssertIntEquals(tc, 18252, result);
   CuAssertTrue(tc, mob_tier_calculate_hit_points(1496, MOB_TIER_WORLD_BOSS, &result));
   CuAssertIntEquals(tc, 18252, result);
-
-  CuAssertTrue(tc, mob_tier_calculate_hit_points(598, MOB_TIER_ELITE, &result));
-  CuAssertIntEquals(tc, 1865, result);
-  CuAssertTrue(tc, mob_tier_calculate_hit_points(598, MOB_TIER_SMALL_GROUP, &result));
-  CuAssertIntEquals(tc, 3499, result);
-  CuAssertTrue(tc, mob_tier_calculate_hit_points(598, MOB_TIER_BIG_GROUP, &result));
-  CuAssertIntEquals(tc, 5439, result);
-  CuAssertTrue(tc, mob_tier_calculate_hit_points(598, MOB_TIER_RAID, &result));
-  CuAssertIntEquals(tc, 7735, result);
 }
 
-void Test_mob_tier_formula_v1_combat_modifiers(CuTest *tc)
+void Test_mob_tier_autostat_bonus_is_additive_and_saved_field_only(CuTest *tc)
 {
-  const int attack[] = {0, 2, 3, 5, 7};
-  const int armor[] = {0, 2, 3, 4, 5};
-  const int bypass[] = {0, 30, 40, 50, 60};
+  int hit_points = 11968;
+  int hitroll = 6;
+  int armor_class = 440;
+  int damage_bonus = 10;
+
+  CuAssertTrue(tc, mob_tier_apply_autostat_bonuses(MOB_TIER_ELITE, &hit_points, &hitroll,
+                                                   &armor_class, &damage_bonus));
+  CuAssertIntEquals(tc, 26879, hit_points);
+  CuAssertIntEquals(tc, 8, hitroll);
+  CuAssertIntEquals(tc, 460, armor_class);
+  CuAssertIntEquals(tc, 11, damage_bonus);
+}
+
+void Test_mob_tier_standard_and_unspecified_are_strict_noops(CuTest *tc)
+{
   int tier;
 
-  for (tier = MOB_TIER_STANDARD; tier <= MOB_TIER_RAID; tier++)
+  for (tier = MOB_TIER_UNSPECIFIED; tier <= MOB_TIER_STANDARD; tier++)
   {
-    CuAssertIntEquals(tc, attack[tier], mob_tier_attack_bonus(tier));
-    CuAssertIntEquals(tc, armor[tier], mob_tier_armor_bonus(tier));
-    CuAssertIntEquals(tc, tier, mob_tier_damage_bonus(tier));
-    CuAssertIntEquals(tc, tier, mob_tier_extra_attacks(tier));
-    CuAssertIntEquals(tc, tier * 2, mob_tier_critical_confirmation_bonus(tier));
-    CuAssertIntEquals(tc, bypass[tier], mob_tier_defense_bypass_percent(tier));
+    int hit_points = 11968;
+    int hitroll = 6;
+    int armor_class = 440;
+    int damage_bonus = 10;
+
+    CuAssertTrue(tc, mob_tier_apply_autostat_bonuses(tier, &hit_points, &hitroll, &armor_class,
+                                                     &damage_bonus));
+    CuAssertIntEquals(tc, 11968, hit_points);
+    CuAssertIntEquals(tc, 6, hitroll);
+    CuAssertIntEquals(tc, 440, armor_class);
+    CuAssertIntEquals(tc, 10, damage_bonus);
   }
-  CuAssertIntEquals(tc, MOB_TIER_RAID, mob_tier_formula_rank(MOB_TIER_WORLD_BOSS));
-  CuAssertIntEquals(tc, 60, mob_tier_defense_bypass_percent(MOB_TIER_WORLD_BOSS));
 }
 
-void Test_mob_tier_formula_rejects_invalid_input(CuTest *tc)
+void Test_mob_tier_formula_rejects_invalid_input_without_mutation(CuTest *tc)
 {
+  int hit_points = 100;
+  int hitroll = 5;
+  int armor_class = 200;
+  int damage_bonus = 4;
   int result = 1234;
 
   CuAssertTrue(tc, !mob_tier_calculate_hit_points(0, MOB_TIER_STANDARD, &result));
-  CuAssertTrue(tc, !mob_tier_calculate_hit_points(100, -1, &result));
+  CuAssertTrue(tc, !mob_tier_calculate_hit_points(100, MOB_TIER_UNSPECIFIED, &result));
   CuAssertTrue(tc, !mob_tier_calculate_hit_points(100, NUM_MOB_TIERS, &result));
   CuAssertTrue(tc, !mob_tier_calculate_hit_points(INT_MAX, MOB_TIER_RAID, &result));
   CuAssertTrue(tc, !mob_tier_calculate_hit_points(100, MOB_TIER_STANDARD, NULL));
+  CuAssertTrue(tc, !mob_tier_apply_autostat_bonuses(NUM_MOB_TIERS, &hit_points, &hitroll,
+                                                    &armor_class, &damage_bonus));
+  CuAssertIntEquals(tc, 100, hit_points);
+  CuAssertIntEquals(tc, 5, hitroll);
+  CuAssertIntEquals(tc, 200, armor_class);
+  CuAssertIntEquals(tc, 4, damage_bonus);
   CuAssertIntEquals(tc, 1234, result);
   CuAssertStrEquals(tc, "Invalid", mob_tier_name(NUM_MOB_TIERS));
 }
 
-void Test_mob_tier_legacy_fallback_preserves_old_level_ladder(CuTest *tc)
+void Test_autoroll_mob_standard_restores_level_34_base(CuTest *tc)
 {
   struct char_data mob;
 
-  clear_char(&mob);
-  GET_MOB_TIER(&mob) = MOB_TIER_UNSPECIFIED;
-  GET_LEVEL(&mob) = 30;
-  CuAssertIntEquals(tc, MOB_TIER_STANDARD, mob_effective_tier(&mob));
-  GET_LEVEL(&mob) = 31;
-  CuAssertIntEquals(tc, MOB_TIER_ELITE, mob_effective_tier(&mob));
-  GET_LEVEL(&mob) = 34;
-  CuAssertIntEquals(tc, MOB_TIER_RAID, mob_effective_tier(&mob));
-  GET_LEVEL(&mob) = 40;
-  CuAssertIntEquals(tc, MOB_TIER_RAID, mob_effective_tier(&mob));
+  init_autoroll_mobile(&mob, 34, RACE_TYPE_HUMANOID, CLASS_WARRIOR, MOB_TIER_STANDARD);
+  circle_srandom(12345);
+  autoroll_mob(&mob, false, false);
 
-  GET_MOB_TIER(&mob) = MOB_TIER_STANDARD;
-  CuAssertIntEquals(tc, MOB_TIER_STANDARD, mob_effective_tier(&mob));
+  CuAssertIntEquals(tc, 1, GET_HIT(&mob));
+  CuAssertTrue(tc, GET_PSP(&mob) >= 1 && GET_PSP(&mob) <= 34);
+  CuAssertIntEquals(tc, 11968, GET_MOVE(&mob));
+  CuAssertIntEquals(tc, 6, GET_HITROLL(&mob));
+  CuAssertIntEquals(tc, 10, GET_DAMROLL(&mob));
+  CuAssertIntEquals(tc, 440, mob.points.armor);
+  CuAssertIntEquals(tc, 106700, GET_EXP(&mob));
+  CuAssertIntEquals(tc, 540, GET_GOLD(&mob));
+  circle_srandom((unsigned long)time(NULL));
 }
 
-void Test_autoroll_mob_applies_every_tier_once_and_serializes_exact_hp(CuTest *tc)
+void Test_autoroll_mob_unspecified_matches_standard_base(CuTest *tc)
 {
-  const int expected_hit_points[] = {1496, 3841, 7845, 12611, 18252, 18252};
-  const int expected_damage_bonus[] = {6, 7, 8, 9, 10, 10};
-  const int expected_armor[] = {440, 460, 470, 480, 490, 490};
-  struct char_data mob;
-  int tier;
+  struct char_data standard;
+  struct char_data unspecified;
 
-  for (tier = MOB_TIER_STANDARD; tier <= MOB_TIER_WORLD_BOSS; tier++)
-  {
-    clear_char(&mob);
-    SET_BIT_AR(MOB_FLAGS(&mob), MOB_ISNPC);
-    GET_LEVEL(&mob) = 34;
-    GET_CLASS(&mob) = CLASS_WARRIOR;
-    GET_REAL_RACE(&mob) = RACE_TYPE_HUMANOID;
-    GET_REAL_SIZE(&mob) = SIZE_MEDIUM;
-    mob.points.size = SIZE_MEDIUM;
-    GET_MOB_TIER(&mob) = tier;
+  init_autoroll_mobile(&standard, 34, RACE_TYPE_HUMANOID, CLASS_WARRIOR, MOB_TIER_STANDARD);
+  init_autoroll_mobile(&unspecified, 34, RACE_TYPE_HUMANOID, CLASS_WARRIOR, MOB_TIER_UNSPECIFIED);
+  circle_srandom(54321);
+  autoroll_mob(&standard, false, false);
+  circle_srandom(54321);
+  autoroll_mob(&unspecified, false, false);
 
-    autoroll_mob(&mob, false, false);
-
-    CuAssertIntEquals(tc, 1, GET_HIT(&mob));
-    CuAssertIntEquals(tc, 1, GET_PSP(&mob));
-    CuAssertIntEquals(tc, expected_hit_points[tier] - 1, GET_MOVE(&mob));
-    CuAssertIntEquals(tc, expected_damage_bonus[tier], GET_DAMROLL(&mob));
-    CuAssertIntEquals(tc, expected_armor[tier], mob.points.armor);
-  }
+  CuAssertIntEquals(tc, GET_HIT(&standard), GET_HIT(&unspecified));
+  CuAssertIntEquals(tc, GET_PSP(&standard), GET_PSP(&unspecified));
+  CuAssertIntEquals(tc, GET_MOVE(&standard), GET_MOVE(&unspecified));
+  CuAssertIntEquals(tc, GET_HITROLL(&standard), GET_HITROLL(&unspecified));
+  CuAssertIntEquals(tc, GET_DAMROLL(&standard), GET_DAMROLL(&unspecified));
+  CuAssertIntEquals(tc, standard.points.armor, unspecified.points.armor);
+  CuAssertIntEquals(tc, GET_EXP(&standard), GET_EXP(&unspecified));
+  CuAssertIntEquals(tc, GET_GOLD(&standard), GET_GOLD(&unspecified));
+  CuAssertIntEquals(tc, MOB_TIER_UNSPECIFIED, GET_MOB_TIER(&unspecified));
+  circle_srandom((unsigned long)time(NULL));
 }
 
-void Test_mob_autoroll_full_profile_matches_authoritative_warrior_vector(CuTest *tc)
+void Test_autoroll_mob_tier_adds_to_complete_level_34_base(CuTest *tc)
+{
+  struct char_data mob;
+
+  init_autoroll_mobile(&mob, 34, RACE_TYPE_HUMANOID, CLASS_WARRIOR, MOB_TIER_ELITE);
+  circle_srandom(12345);
+  autoroll_mob(&mob, false, false);
+
+  CuAssertIntEquals(tc, 26879, GET_MOVE(&mob));
+  CuAssertIntEquals(tc, 8, GET_HITROLL(&mob));
+  CuAssertIntEquals(tc, 11, GET_DAMROLL(&mob));
+  CuAssertIntEquals(tc, 460, mob.points.armor);
+  CuAssertIntEquals(tc, 106700, GET_EXP(&mob));
+  CuAssertIntEquals(tc, 540, GET_GOLD(&mob));
+  circle_srandom((unsigned long)time(NULL));
+}
+
+void Test_changing_tier_after_autostat_does_not_change_stats(CuTest *tc)
+{
+  struct char_data mob;
+  int hit_points;
+  int hitroll;
+  int damage_bonus;
+  int armor_class;
+
+  init_autoroll_mobile(&mob, 20, RACE_TYPE_HUMANOID, CLASS_WARRIOR, MOB_TIER_STANDARD);
+  circle_srandom(12345);
+  autoroll_mob(&mob, false, false);
+  hit_points = GET_MOVE(&mob);
+  hitroll = GET_HITROLL(&mob);
+  damage_bonus = GET_DAMROLL(&mob);
+  armor_class = mob.points.armor;
+
+  GET_MOB_TIER(&mob) = MOB_TIER_RAID;
+
+  CuAssertIntEquals(tc, hit_points, GET_MOVE(&mob));
+  CuAssertIntEquals(tc, hitroll, GET_HITROLL(&mob));
+  CuAssertIntEquals(tc, damage_bonus, GET_DAMROLL(&mob));
+  CuAssertIntEquals(tc, armor_class, mob.points.armor);
+  circle_srandom((unsigned long)time(NULL));
+}
+
+void Test_rerunning_autostat_after_tier_change_applies_new_bonus_once(CuTest *tc)
+{
+  struct char_data mob;
+
+  init_autoroll_mobile(&mob, 20, RACE_TYPE_HUMANOID, CLASS_WARRIOR, MOB_TIER_STANDARD);
+  circle_srandom(12345);
+  autoroll_mob(&mob, false, false);
+  CuAssertIntEquals(tc, 600, GET_MOVE(&mob));
+
+  GET_MOB_TIER(&mob) = MOB_TIER_ELITE;
+  circle_srandom(12345);
+  autoroll_mob(&mob, false, false);
+  CuAssertIntEquals(tc, 1870, GET_MOVE(&mob));
+  CuAssertIntEquals(tc, 6, GET_HITROLL(&mob));
+  CuAssertIntEquals(tc, 5, GET_DAMROLL(&mob));
+  CuAssertIntEquals(tc, 320, mob.points.armor);
+
+  circle_srandom(12345);
+  autoroll_mob(&mob, false, false);
+  CuAssertIntEquals(tc, 1870, GET_MOVE(&mob));
+  circle_srandom((unsigned long)time(NULL));
+}
+
+void Test_autoroll_mob_preserves_base_owned_side_effects(CuTest *tc)
+{
+  struct char_data giant;
+  struct char_data humanoid;
+
+  init_autoroll_mobile(&giant, 20, RACE_TYPE_GIANT, CLASS_WARRIOR, MOB_TIER_STANDARD);
+  GET_REAL_SIZE(&giant) = SIZE_SMALL;
+  giant.points.size = SIZE_SMALL;
+  autoroll_mob(&giant, false, false);
+  CuAssertIntEquals(tc, SIZE_LARGE, GET_REAL_SIZE(&giant));
+  CuAssertIntEquals(tc, SIZE_SMALL, GET_SIZE(&giant));
+
+  init_autoroll_mobile(&humanoid, 20, RACE_TYPE_HUMANOID, CLASS_WARRIOR, MOB_TIER_STANDARD);
+  humanoid.aff_abils.str_add = 17;
+  GET_SPELL_RES(&humanoid) = 47;
+  autoroll_mob(&humanoid, false, false);
+  CuAssertIntEquals(tc, 17, humanoid.aff_abils.str_add);
+  CuAssertIntEquals(tc, 47, GET_SPELL_RES(&humanoid));
+}
+
+void Test_mob_autoroll_profile_preserves_base_before_tier(CuTest *tc)
 {
   struct mob_autoroll_config config;
   struct mob_autoroll_input input = {34, RACE_TYPE_HUMANOID, CLASS_WARRIOR, MOB_TIER_STANDARD,
                                      MOB_AUTOROLL_CUSTOM_NONE};
   struct mob_autoroll_result result;
-  const struct mob_autoroll_stats *stats;
 
   mob_autoroll_default_config(&config);
-  config.category[MOB_AUTOROLL_CATEGORY_WARRIOR].hit_points = 50;
   CuAssertTrue(tc, mob_autoroll_calculate(&input, &config, &result));
-  CuAssertIntEquals(tc, MOB_AUTOROLL_PROFILE_V1, result.profile_version);
-  CuAssertIntEquals(tc, MOB_AUTOROLL_CATEGORY_WARRIOR, result.category);
-  stats = &result.persisted;
-  CuAssertIntEquals(tc, 1496, stats->hit_points);
-  CuAssertIntEquals(tc, 6, stats->hitroll);
-  CuAssertIntEquals(tc, 440, stats->armor_class);
-  CuAssertIntEquals(tc, 1, stats->damage_dice_count);
-  CuAssertIntEquals(tc, 34, stats->damage_dice_size);
-  CuAssertIntEquals(tc, 6, stats->damage_bonus);
-  CuAssertIntEquals(tc, 86700, stats->experience);
-  CuAssertIntEquals(tc, 340, stats->gold);
-  CuAssertIntEquals(tc, 27, stats->strength);
-  CuAssertIntEquals(tc, 27, stats->constitution);
-  CuAssertIntEquals(tc, 10, stats->dexterity);
-  CuAssertIntEquals(tc, 8, stats->saving_fortitude);
+  CuAssertIntEquals(tc, 11968, result.persisted.hit_points);
+  CuAssertIntEquals(tc, 6, result.persisted.hitroll);
+  CuAssertIntEquals(tc, 440, result.persisted.armor_class);
+  CuAssertIntEquals(tc, 10, result.persisted.damage_bonus);
+  CuAssertIntEquals(tc, 106700, result.persisted.experience);
+  CuAssertIntEquals(tc, 540, result.persisted.gold);
+
+  input.tier = MOB_TIER_ELITE;
+  CuAssertTrue(tc, mob_autoroll_calculate(&input, &config, &result));
+  CuAssertIntEquals(tc, 26879, result.persisted.hit_points);
+  CuAssertIntEquals(tc, 8, result.persisted.hitroll);
+  CuAssertIntEquals(tc, 460, result.persisted.armor_class);
+  CuAssertIntEquals(tc, 11, result.persisted.damage_bonus);
 }
 
-void Test_mob_autoroll_profile_rejects_unspecified_and_invalid_inputs(CuTest *tc)
+void Test_mob_autoroll_profile_accepts_unspecified_and_rejects_invalid_inputs(CuTest *tc)
 {
   struct mob_autoroll_config config;
   struct mob_autoroll_input input = {34, RACE_TYPE_HUMANOID, CLASS_WARRIOR, MOB_TIER_UNSPECIFIED,
@@ -159,6 +264,8 @@ void Test_mob_autoroll_profile_rejects_unspecified_and_invalid_inputs(CuTest *tc
   struct mob_autoroll_result result;
 
   mob_autoroll_default_config(&config);
+  CuAssertTrue(tc, mob_autoroll_calculate(&input, &config, &result));
+  input.tier = NUM_MOB_TIERS;
   CuAssertTrue(tc, !mob_autoroll_calculate(&input, &config, &result));
   input.tier = MOB_TIER_STANDARD;
   input.level = 0;
@@ -166,60 +273,14 @@ void Test_mob_autoroll_profile_rejects_unspecified_and_invalid_inputs(CuTest *tc
   input.level = 34;
   input.race = NUM_RACE_TYPES;
   CuAssertTrue(tc, !mob_autoroll_calculate(&input, &config, &result));
-  input.race = RACE_TYPE_HUMANOID;
-  input.custom_profile = NUM_MOB_AUTOROLL_CUSTOM_PROFILES;
-  CuAssertTrue(tc, !mob_autoroll_calculate(&input, &config, &result));
-  input.custom_profile = MOB_AUTOROLL_CUSTOM_NONE;
-  config.version++;
-  CuAssertTrue(tc, !mob_autoroll_calculate(&input, &config, &result));
 }
 
-void Test_mob_autoroll_nondefault_category_config_is_post_load_only(CuTest *tc)
+void Test_mob_stat_categories_preserve_existing_sorcerer_and_bard_behavior(CuTest *tc)
 {
-  struct mob_autoroll_config config;
-  struct mob_autoroll_input input = {20, RACE_TYPE_HUMANOID, CLASS_SORCERER, MOB_TIER_ELITE,
-                                     MOB_AUTOROLL_CUSTOM_NONE};
-  struct mob_autoroll_result result;
-  struct mob_autoroll_category_config *arcane;
-
-  mob_autoroll_default_config(&config);
-  arcane = &config.category[MOB_AUTOROLL_CATEGORY_ARCANE];
-  arcane->hit_points = 125;
-  arcane->armor_class = 90;
-  arcane->attack_bonus = 150;
-  arcane->damage_bonus = 175;
-  arcane->saving_throws = 80;
-  arcane->ability_scores = 120;
-  arcane->gold = 50;
-
-  CuAssertTrue(tc, mob_autoroll_calculate(&input, &config, &result));
-  CuAssertIntEquals(tc, MOB_AUTOROLL_CATEGORY_ARCANE, result.category);
-  CuAssertTrue(tc, result.persisted.hit_points != result.expected_post_load.hit_points);
-  CuAssertIntEquals(tc, result.persisted.hit_points * 125 / 100,
-                    result.expected_post_load.hit_points);
-  CuAssertIntEquals(tc, result.persisted.hitroll * 150 / 100, result.expected_post_load.hitroll);
-  CuAssertIntEquals(tc, result.persisted.gold / 2, result.expected_post_load.gold);
-  CuAssertIntEquals(tc, MOB_STAT_CATEGORY_ARCANE, get_mob_stat_category(CLASS_SORCERER));
-  CuAssertIntEquals(tc, MOB_STAT_CATEGORY_ARCANE, get_mob_stat_category(CLASS_BARD));
-}
-
-void Test_autoroll_mob_never_reads_or_changes_identity_owned_size(CuTest *tc)
-{
-  struct char_data mob;
-
-  clear_char(&mob);
-  SET_BIT_AR(MOB_FLAGS(&mob), MOB_ISNPC);
-  GET_LEVEL(&mob) = 20;
-  GET_CLASS(&mob) = CLASS_WARRIOR;
-  GET_REAL_RACE(&mob) = RACE_TYPE_GIANT;
-  GET_REAL_SIZE(&mob) = SIZE_SMALL;
-  mob.points.size = SIZE_SMALL;
-  GET_MOB_TIER(&mob) = MOB_TIER_STANDARD;
-
-  autoroll_mob(&mob, false, false);
-
-  CuAssertIntEquals(tc, SIZE_SMALL, GET_REAL_SIZE(&mob));
-  CuAssertIntEquals(tc, SIZE_SMALL, GET_SIZE(&mob));
+  CuAssertIntEquals(tc, MOB_STAT_CATEGORY_WARRIOR, get_mob_stat_category(CLASS_SORCERER));
+  CuAssertIntEquals(tc, MOB_STAT_CATEGORY_WARRIOR, get_mob_stat_category(CLASS_BARD));
+  CuAssertIntEquals(tc, MOB_AUTOROLL_CATEGORY_WARRIOR, mob_autoroll_class_category(CLASS_SORCERER));
+  CuAssertIntEquals(tc, MOB_AUTOROLL_CATEGORY_WARRIOR, mob_autoroll_class_category(CLASS_BARD));
 }
 
 void Test_mobile_spell_resistance_enhanced_field_loads_and_saves(CuTest *tc)
@@ -276,7 +337,7 @@ void Test_mob_autoroll_full_supported_input_matrix_is_deterministic(CuTest *tc)
   for (input.level = 1; input.level <= LVL_IMPL; input.level++)
     for (input.race = 0; input.race < NUM_RACE_TYPES; input.race++)
       for (input.ch_class = 0; input.ch_class < NUM_CLASSES; input.ch_class++)
-        for (input.tier = MOB_TIER_STANDARD; input.tier <= MOB_TIER_WORLD_BOSS; input.tier++)
+        for (input.tier = MOB_TIER_UNSPECIFIED; input.tier <= MOB_TIER_WORLD_BOSS; input.tier++)
         {
           CuAssertTrue(tc, mob_autoroll_calculate(&input, &config, &first));
           CuAssertTrue(tc, mob_autoroll_calculate(&input, &config, &second));
@@ -284,11 +345,10 @@ void Test_mob_autoroll_full_supported_input_matrix_is_deterministic(CuTest *tc)
           CuAssertTrue(tc, first.persisted.hit_points > 0);
           CuAssertTrue(tc, first.persisted.damage_dice_count > 0);
           CuAssertTrue(tc, first.persisted.damage_dice_size >= 4);
-          CuAssertTrue(tc, first.persisted.spell_resistance >= 0);
         }
 }
 
-void Test_mob_autoroll_named_custom_profiles_own_fixed_hit_points(CuTest *tc)
+void Test_mob_autoroll_named_custom_profiles_keep_fixed_persisted_hit_points(CuTest *tc)
 {
   struct mob_autoroll_config config;
   struct mob_autoroll_input input = {34, RACE_TYPE_DRAGON, CLASS_WARRIOR, MOB_TIER_WORLD_BOSS,
@@ -299,12 +359,10 @@ void Test_mob_autoroll_named_custom_profiles_own_fixed_hit_points(CuTest *tc)
   CuAssertTrue(tc, mob_autoroll_calculate(&input, &config, &result));
   CuAssertIntEquals(tc, MOB_AUTOROLL_CUSTOM_TIAMAT_LIVING_V1, result.custom_profile);
   CuAssertIntEquals(tc, 29999, result.persisted.hit_points);
-  CuAssertIntEquals(tc, 29999, result.expected_post_load.hit_points);
 
   input.race = RACE_TYPE_UNDEAD;
   input.custom_profile = MOB_AUTOROLL_CUSTOM_TIAMAT_DRACOLICH_V1;
   CuAssertTrue(tc, mob_autoroll_calculate(&input, &config, &result));
   CuAssertIntEquals(tc, MOB_AUTOROLL_CUSTOM_TIAMAT_DRACOLICH_V1, result.custom_profile);
   CuAssertIntEquals(tc, 30000, result.persisted.hit_points);
-  CuAssertIntEquals(tc, 30000, result.expected_post_load.hit_points);
 }

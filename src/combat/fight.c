@@ -56,7 +56,6 @@
 #include "character/perks.h"
 #include "vessels/routing.h"
 #include "movement/movement_cost.h"
-#include "mob/mob_autoroll.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -1486,8 +1485,20 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     break;
   }
 
-  if (IS_NPC(ch) && GET_MOB_TIER(ch) == MOB_TIER_UNSPECIFIED)
-    armorclass += mob_tier_armor_bonus(mob_effective_tier(ch));
+  /* this is the powerful being system */
+  if (IS_POWERFUL_BEING(ch))
+  {
+    armorclass++;
+
+    if (GET_LEVEL(ch) > 30)
+      armorclass++;
+    if (GET_LEVEL(ch) > 31)
+      armorclass++;
+    if (GET_LEVEL(ch) > 32)
+      armorclass++;
+    if (GET_LEVEL(ch) > 33)
+      armorclass++;
+  }
 
   /* value for normal mode */
   return (MIN(CONFIG_PLAYER_AC_CAP, armorclass));
@@ -8478,8 +8489,14 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
       confirm_roll += supreme_style_crit_bonus;
   }
 
-  if (IS_NPC(ch))
-    powerful_being = mob_tier_defense_bypass_percent(mob_effective_tier(ch));
+  /* new code to help really powerful beings overcome checks here */
+  if (IS_POWERFUL_BEING(ch))
+  {
+    /* base 20% chance of overcoming defense */
+    powerful_being = 20;
+    /* every level above 30 gives another 10% */
+    powerful_being += (GET_LEVEL(ch) - (LVL_IMMORT - 1)) * 10;
+  }
 
   if (FIGHTING(ch) && CLASS_LEVEL(ch, CLASS_INQUISITOR) >= 10 &&
       is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_JUSTICE))
@@ -8491,7 +8508,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
   if (FIGHTING(ch) && KNOWS_DISCOVERY(FIGHTING(ch), ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1 &&
       !(FIGHTING(ch)->preserve_organs_procced))
   {
-    if (powerful_being == 0)
+    if (!IS_POWERFUL_BEING(ch))
     {
       FIGHTING(ch)->preserve_organs_procced = TRUE;
       return FALSE;
@@ -8508,7 +8525,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
   if (FIGHTING(ch) && (affected_by_spell(FIGHTING(ch), PSIONIC_BODY_OF_IRON) ||
                        affected_by_spell(FIGHTING(ch), PSIONIC_SHADOW_BODY)))
   {
-    if (powerful_being == 0)
+    if (!IS_POWERFUL_BEING(ch))
     {
       return FALSE;
     }
@@ -8540,8 +8557,11 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
       confirm_roll += HAS_FEAT(ch, FEAT_WEAPON_TRAINING) * 2;
     }
 
-    if (IS_NPC(ch))
-      confirm_roll += mob_tier_critical_confirmation_bonus(mob_effective_tier(ch));
+    /* high level mobs get a bonus! */
+    if (IS_NPC(ch) && GET_LEVEL(ch) > 30)
+    {
+      confirm_roll += (GET_LEVEL(ch) - 30) * 2;
+    }
 
     if (confirm_roll >= victim_ac ||
         affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE)) /* confirm critical */
@@ -11296,17 +11316,36 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
 
   int maximum_bab = MAX_BAB;
 
-  /* Tier attack pressure applies only when neither epic defense is active. */
-  if (IS_NPC(ch) && mob_tier_attack_bonus(mob_effective_tier(ch)) > 0 && FIGHTING(ch))
+  /* powerful being mechanics */
+  if (IS_POWERFUL_BEING(ch) && FIGHTING(ch))
   {
     /* this bonus will only kick in IF the defender doesn't have iron skin & epic warding */
     if (!affected_by_spell(FIGHTING(ch), SPELL_IRONSKIN) &&
         !affected_by_spell(FIGHTING(ch), SPELL_EPIC_WARDING))
     {
-      int tier_bonus = mob_tier_attack_bonus(mob_effective_tier(ch));
+      maximum_bab++;
+      calc_bab++;
 
-      maximum_bab += tier_bonus;
-      calc_bab += tier_bonus;
+      if (GET_LEVEL(ch) > 30)
+      {
+        maximum_bab++;
+        calc_bab++;
+      }
+      if (GET_LEVEL(ch) > 31)
+      {
+        maximum_bab++;
+        calc_bab++;
+      }
+      if (GET_LEVEL(ch) > 32)
+      {
+        maximum_bab += 2;
+        calc_bab += 2;
+      }
+      if (GET_LEVEL(ch) > 33)
+      {
+        maximum_bab += 2;
+        calc_bab += 2;
+      }
     }
   }
 
@@ -14993,11 +15032,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     }
   }
 
-  /* Tiered NPCs receive their encounter-pressure attacks at maximum BAB. */
-  if (IS_NPC(ch) && mob_tier_extra_attacks(mob_effective_tier(ch)) > 0)
+  /* high level NPCs get bonus attacks at max-bab! */
+  if (IS_NPC(ch) && GET_LEVEL(ch) > 30)
   {
-    bonus_mainhand_attacks += mob_tier_extra_attacks(mob_effective_tier(ch));
-    attacks_at_max_bab += mob_tier_extra_attacks(mob_effective_tier(ch));
+    bonus_mainhand_attacks += GET_LEVEL(ch) - 30;
+    attacks_at_max_bab += GET_LEVEL(ch) - 30;
   }
 
   /* raging critical bonus attack */

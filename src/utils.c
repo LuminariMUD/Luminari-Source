@@ -44,7 +44,6 @@
 #include "char_descs.h"
 #include "obj/treasure.h"
 #include "character/perks.h"
-#include "mob/mob_autoroll.h"
 #include <time.h>
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
@@ -1061,11 +1060,16 @@ int is_immune_to_crits(struct char_data *attacker, struct char_data *target)
 {
   int powerful_being = 0;
 
-  if (attacker && IS_NPC(attacker))
+  /* new code to help really powerful beings overcome checks here */
+  if (IS_POWERFUL_BEING(attacker))
   {
-    powerful_being = mob_tier_defense_bypass_percent(mob_effective_tier(attacker));
+    /* base 20% chance of overcoming defense */
+    powerful_being = 20;
 
-    if (powerful_being > 0 && rand_number(1, 100) <= powerful_being)
+    /* every level above 30 gives another 10% */
+    powerful_being += (GET_LEVEL(attacker) - (LVL_IMMORT - 1)) * 10;
+
+    if (rand_number(1, 100) < powerful_being)
       return FALSE; /* immune to this crit this pass! */
   }
 
@@ -10892,7 +10896,60 @@ int get_smite_good_level(struct char_data *ch)
 /* Returns the mob stat category for a given class */
 int get_mob_stat_category(int ch_class)
 {
-  return mob_autoroll_class_category(ch_class) + MOB_STAT_CATEGORY_WARRIOR;
+  switch (ch_class)
+  {
+  /* Warrior category */
+  case CLASS_WARRIOR:
+  case CLASS_MONK:
+  case CLASS_BERSERKER:
+  case CLASS_SORCERER:
+  case CLASS_PALADIN:
+  case CLASS_RANGER:
+  case CLASS_BARD:
+  case CLASS_WEAPON_MASTER:
+  case CLASS_STALWART_DEFENDER:
+  case CLASS_DUELIST:
+  case CLASS_SPELLSWORD:
+  case CLASS_BLACKGUARD:
+  case CLASS_KNIGHT_OF_SOLAMNIA:
+  case CLASS_KNIGHT_OF_THE_LILY:
+  case CLASS_DRAGONRIDER:
+    return MOB_STAT_CATEGORY_WARRIOR;
+
+  /* Arcane Caster category */
+  case CLASS_WIZARD:
+  case CLASS_ARCANE_ARCHER:
+  case CLASS_MYSTIC_THEURGE:
+  case CLASS_ELDRITCH_KNIGHT:
+  case CLASS_PSIONICIST:
+  case CLASS_SUMMONER:
+  case CLASS_WARLOCK:
+  case CLASS_NECROMANCER:
+  case CLASS_KNIGHT_OF_THE_THORN:
+  case CLASS_ARTIFICER:
+    return MOB_STAT_CATEGORY_ARCANE;
+
+  /* Divine Caster category */
+  case CLASS_CLERIC:
+  case CLASS_DRUID:
+  case CLASS_SHIFTER:
+  case CLASS_SACRED_FIST:
+  case CLASS_INQUISITOR:
+  case CLASS_KNIGHT_OF_THE_SKULL:
+    return MOB_STAT_CATEGORY_DIVINE;
+
+  /* Rogue category */
+  case CLASS_ROGUE:
+  case CLASS_ALCHEMIST:
+  case CLASS_ARCANE_SHADOW:
+  case CLASS_SHADOW_DANCER:
+  case CLASS_ASSASSIN:
+    return MOB_STAT_CATEGORY_ROGUE;
+
+  /* Default to warrior for undefined classes */
+  default:
+    return MOB_STAT_CATEGORY_WARRIOR;
+  }
 }
 
 /* Apply mob stat category modifiers based on class */

@@ -1372,9 +1372,11 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
   {
     sprinttype(k->mob_specials.default_pos, position_types, buf, sizeof(buf));
     send_to_char(ch, "\tC, Default position: \tn%s\r\n", buf);
-    send_to_char(ch, "\tCEncounter tier: \tn%s%s\tC (\tn%d\tC)\tn\r\n",
-                 GET_MOB_TIER(k) == MOB_TIER_UNSPECIFIED ? "Legacy: " : "",
-                 mob_tier_name(mob_effective_tier(k)), GET_MOB_TIER(k));
+    if (GET_MOB_TIER(k) == MOB_TIER_UNSPECIFIED)
+      send_to_char(ch, "\tCEncounter tier: \tnUnspecified (no tier bonus)\r\n");
+    else
+      send_to_char(ch, "\tCEncounter tier: \tn%s\tC (\tn%d\tC)\tn\r\n",
+                   mob_tier_name(GET_MOB_TIER(k)), GET_MOB_TIER(k));
     sprintbitarray(MOB_FLAGS(k), action_bits, PM_ARRAY_MAX, buf);
     send_to_char(ch, "\tCNPC flags: \tn%s\r\n", buf);
   }

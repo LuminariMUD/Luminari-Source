@@ -4775,16 +4775,19 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   else
     GET_MAX_HIT(mob) = rand_number(GET_HIT(mob), GET_PSP(mob));
 
-  /* Records without Tier predate explicit encounter tiers.  Preserve their
-   * spawn-time HP behavior until a builder or conversion explicitly classifies them. */
-  if (GET_MOB_TIER(mob) == MOB_TIER_UNSPECIFIED && GET_LEVEL(mob) > 30)
+  /* powerful being bump! -zusuk */
+  if (IS_POWERFUL_BEING(mob))
   {
-    int rank = mob_effective_tier(mob);
-    int tier_step;
-
     GET_MAX_HIT(mob) += 500;
-    for (tier_step = 0; tier_step < rank; tier_step++)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) / 10;
+
+    if (GET_LEVEL(mob) > 30)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+    if (GET_LEVEL(mob) > 31)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+    if (GET_LEVEL(mob) > 32)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+    if (GET_LEVEL(mob) > 33)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
   }
 
   GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob);

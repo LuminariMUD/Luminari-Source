@@ -4,6 +4,12 @@ Status: Completed-work record; active tasks are kept in the remaining-work plan
 
 Last reviewed: 2026-08-17
 
+Important: the autostat and encounter-tier sections in this completed-work record are
+not an accepted design. They describe the regression that replaced base autostat
+behavior instead of adding tier bonuses. The implemented authoritative correction is
+[AUTOSTAT_TIER_DAMAGE_ASSESSMENT.md](AUTOSTAT_TIER_DAMAGE_ASSESSMENT.md). Structural
+conversion history outside that regression remains a completed-work record.
+
 ## Purpose
 
 This file records RoL conversion work that is already implemented and verified. It

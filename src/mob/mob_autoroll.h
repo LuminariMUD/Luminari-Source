@@ -101,14 +101,9 @@ struct mob_autoroll_result
 const char *mob_tier_name(int tier);
 bool mob_tier_is_valid(int tier);
 int mob_tier_formula_rank(int tier);
-int mob_effective_tier(const struct char_data *mob);
 bool mob_tier_calculate_hit_points(int base_hit_points, int tier, int *result);
-int mob_tier_attack_bonus(int tier);
-int mob_tier_armor_bonus(int tier);
-int mob_tier_damage_bonus(int tier);
-int mob_tier_extra_attacks(int tier);
-int mob_tier_critical_confirmation_bonus(int tier);
-int mob_tier_defense_bypass_percent(int tier);
+bool mob_tier_apply_autostat_bonuses(int tier, int *hit_points, int *hitroll, int *armor_class,
+                                     int *damage_bonus);
 void mob_autoroll_default_config(struct mob_autoroll_config *config);
 int mob_autoroll_class_category(int ch_class);
 bool mob_autoroll_calculate(const struct mob_autoroll_input *input,

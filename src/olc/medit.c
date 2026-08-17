@@ -615,8 +615,8 @@ static void medit_disp_tier(struct descriptor_data *d)
   int i;
 
   clear_screen(d);
-  write_to_output(d,
-                  "Encounter tier controls group-strength bonuses independently of level.\r\n\r\n");
+  write_to_output(d, "Encounter tier adds saved-stat bonuses the next time autostat runs.\r\n"
+                     "Changing Tier alone does not change this mobile's stats.\r\n\r\n");
   for (i = 0; i < NUM_MOB_TIERS; i++)
     write_to_output(d, "%d) %s\r\n", i, mob_tier_name(i));
   write_to_output(d, "\r\nEnter encounter tier: ");
@@ -794,7 +794,7 @@ static void medit_disp_menu(struct descriptor_data *d)
   }
 
   if (GET_MOB_TIER(mob) == MOB_TIER_UNSPECIFIED)
-    snprintf(tier_label, sizeof(tier_label), "Legacy: %s", mob_tier_name(mob_effective_tier(mob)));
+    snprintf(tier_label, sizeof(tier_label), "Unspecified (no tier bonus)");
   else
     snprintf(tier_label, sizeof(tier_label), "%s", mob_tier_name(GET_MOB_TIER(mob)));
 
@@ -2404,6 +2404,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
       return;
     }
     GET_MOB_TIER(OLC_MOB(d)) = (sbyte)i;
+    write_to_output(d, "Tier changed. Run autostat to recalculate this mobile's saved stats.\r\n");
     break;
 
   case MEDIT_PATH_DELAY:
@@ -2482,99 +2483,311 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator __attribute_
   }
 }
 
-static int medit_autoroll_config_value(int value)
-{
-  return value >= 1 && value <= 1000 ? value : 100;
-}
-
-static void medit_autoroll_config(struct mob_autoroll_config *config)
-{
-  struct mob_autoroll_category_config *category;
-
-  mob_autoroll_default_config(config);
-  category = &config->category[MOB_AUTOROLL_CATEGORY_WARRIOR];
-  category->hit_points = medit_autoroll_config_value(CONFIG_MOB_WARRIORS_HP);
-  category->armor_class = medit_autoroll_config_value(CONFIG_MOB_WARRIORS_AC);
-  category->attack_bonus = medit_autoroll_config_value(CONFIG_MOB_WARRIORS_AB);
-  category->damage_bonus = medit_autoroll_config_value(CONFIG_MOB_WARRIORS_DB);
-  category->saving_throws = medit_autoroll_config_value(CONFIG_MOB_WARRIORS_ST);
-  category->ability_scores = medit_autoroll_config_value(CONFIG_MOB_WARRIORS_AS);
-  category->gold = medit_autoroll_config_value(CONFIG_MOB_WARRIORS_GOLD);
-  category = &config->category[MOB_AUTOROLL_CATEGORY_ARCANE];
-  category->hit_points = medit_autoroll_config_value(CONFIG_MOB_ARCANE_HP);
-  category->armor_class = medit_autoroll_config_value(CONFIG_MOB_ARCANE_AC);
-  category->attack_bonus = medit_autoroll_config_value(CONFIG_MOB_ARCANE_AB);
-  category->damage_bonus = medit_autoroll_config_value(CONFIG_MOB_ARCANE_DB);
-  category->saving_throws = medit_autoroll_config_value(CONFIG_MOB_ARCANE_ST);
-  category->ability_scores = medit_autoroll_config_value(CONFIG_MOB_ARCANE_AS);
-  category->gold = medit_autoroll_config_value(CONFIG_MOB_ARCANE_GOLD);
-  category = &config->category[MOB_AUTOROLL_CATEGORY_DIVINE];
-  category->hit_points = medit_autoroll_config_value(CONFIG_MOB_DIVINE_HP);
-  category->armor_class = medit_autoroll_config_value(CONFIG_MOB_DIVINE_AC);
-  category->attack_bonus = medit_autoroll_config_value(CONFIG_MOB_DIVINE_AB);
-  category->damage_bonus = medit_autoroll_config_value(CONFIG_MOB_DIVINE_DB);
-  category->saving_throws = medit_autoroll_config_value(CONFIG_MOB_DIVINE_ST);
-  category->ability_scores = medit_autoroll_config_value(CONFIG_MOB_DIVINE_AS);
-  category->gold = medit_autoroll_config_value(CONFIG_MOB_DIVINE_GOLD);
-  category = &config->category[MOB_AUTOROLL_CATEGORY_ROGUE];
-  category->hit_points = medit_autoroll_config_value(CONFIG_MOB_ROGUES_HP);
-  category->armor_class = medit_autoroll_config_value(CONFIG_MOB_ROGUES_AC);
-  category->attack_bonus = medit_autoroll_config_value(CONFIG_MOB_ROGUES_AB);
-  category->damage_bonus = medit_autoroll_config_value(CONFIG_MOB_ROGUES_DB);
-  category->saving_throws = medit_autoroll_config_value(CONFIG_MOB_ROGUES_ST);
-  category->ability_scores = medit_autoroll_config_value(CONFIG_MOB_ROGUES_AS);
-  category->gold = medit_autoroll_config_value(CONFIG_MOB_ROGUES_GOLD);
-}
-
-/* Select identity and tier before calling. Final size is owned by the caller. */
+/* function to set a ch (mob) to correct stats */
+/* an important note about mobiles besides these values:
+   1)  their attack rotation will match their class/level
+   2)  their BAB will match their class/level
+   3)  their saving-throws will match their class/level
+ */
 void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribute__((unused)))
 {
-  struct mob_autoroll_config config;
-  struct mob_autoroll_input input;
-  struct mob_autoroll_result result;
-  const struct mob_autoroll_stats *stats;
+  int level = 0, bonus = 0;
+  int armor_class = 100; /* base 10 AC */
+  int hitroll;
+  int damage_bonus;
+  int mobs_hps;
 
   if (!mob)
     return;
-  GET_LEVEL(mob) = LIMIT(GET_LEVEL(mob), 1, LVL_IMPL);
-  if (GET_MOB_TIER(mob) == MOB_TIER_UNSPECIFIED)
-    GET_MOB_TIER(mob) = mob_effective_tier(mob);
 
-  input.level = GET_LEVEL(mob);
-  input.race = GET_RACE(mob);
-  input.ch_class = GET_CLASS(mob);
-  input.tier = GET_MOB_TIER(mob);
-  input.custom_profile = MOB_AUTOROLL_CUSTOM_NONE;
-  medit_autoroll_config(&config);
-  if (!mob_autoroll_calculate(&input, &config, &result))
+  /* this variable is to avoid confusion:  GET_MOVE() is actually hps for
+   !realmode in this context */
+  mobs_hps = GET_MOVE(mob);
+
+  if (realmode)
+    mobs_hps = GET_MAX_HIT(mob);
+
+  /* first cap level at LVL_IMPL */
+  level = GET_LEVEL(mob);
+  level = GET_LEVEL(mob) = LIMIT(level, 1, LVL_IMPL);
+
+  /* hit points roll */
+  GET_HIT(mob) = 1;              /* number of hitpoint dice */
+  GET_PSP(mob) = dice(1, level); /* size of hitpoint dice   */
+
+  /* damroll */
+  GET_DAMROLL(mob) = (level / 6) + 1; /* damroll (dam bonus) 1-6 */
+
+  /* hitroll (remember that mobiles are using their class BAB already) */
+  GET_HITROLL(mob) = (level / 6) + 1;
+
+  /* saving throws (bonus) */
+  GET_SAVE(mob, SAVING_FORT) = level / 4;
+  GET_SAVE(mob, SAVING_REFL) = level / 4;
+  GET_SAVE(mob, SAVING_WILL) = level / 4;
+  GET_SAVE(mob, SAVING_POISON) = level / 4;
+  GET_SAVE(mob, SAVING_DEATH) = level / 4;
+
+  /* stats, default */
+  (mob)->aff_abils.str = 10;
+  (mob)->aff_abils.dex = 10;
+  (mob)->aff_abils.con = 10;
+  GET_INT(mob) = 10;
+  GET_WIS(mob) = 10;
+  GET_CHA(mob) = 10;
+  bonus = level / 2; // bonus applied to stats
+
+  /* hp, default */
+  mobs_hps = (level * level) + (level * 10);
+
+  /* damage dice default */
+  GET_NDD(mob) = 1;     /* number damage dice */
+  GET_SDD(mob) = level; /* size of damage dice */
+
+  /* armor class default, d20 system * 10 */
+  armor_class += level * 10; // 110 (11) - 400 (40)
+
+  /* exp and gold */
+  GET_EXP(mob) = (level * level * 75);
+  GET_GOLD(mob) = (level * 10);
+
+  /* class modifications to base */
+  switch (GET_CLASS(mob))
   {
-    log("SYSERR: autoroll_mob rejected level %d, race %d, class %d, tier %d for mob %d",
-        input.level, input.race, input.ch_class, input.tier, GET_MOB_VNUM(mob));
-    return;
+  case CLASS_WIZARD:
+    mobs_hps = mobs_hps * 2 / 5;
+    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    armor_class -= 60;
+    GET_INT(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    break;
+  case CLASS_PSIONICIST:
+    mobs_hps = mobs_hps * 2 / 5;
+    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    armor_class -= 60;
+    GET_INT(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    GET_PSP(mob) = GET_LEVEL(mob) * 5;
+    break;
+  case CLASS_SORCERER:
+    GET_CHA(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    mobs_hps = mobs_hps * 2 / 5;
+    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    armor_class -= 60;
+    break;
+  case CLASS_NECROMANCER:
+    GET_CHA(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    mobs_hps = mobs_hps * 2 / 5;
+    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    armor_class -= 60;
+    break;
+  case CLASS_ROGUE:
+    //    case CLASS_ASSASSIN:
+    //    case CLASS_SHADOW_DANCER:
+    (mob)->aff_abils.dex += bonus;
+    (mob)->aff_abils.str += bonus;
+    mobs_hps = mobs_hps * 3 / 5;
+    armor_class -= 50;
+    break;
+  case CLASS_BARD:
+    GET_CHA(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
+    mobs_hps = mobs_hps * 3 / 5;
+    armor_class -= 50;
+    break;
+  case CLASS_MONK:
+    GET_WIS(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    mobs_hps = mobs_hps * 4 / 5;
+    armor_class -= 60; // they will still get wis bonus
+    break;
+  case CLASS_CLERIC:
+    (mob)->aff_abils.str += bonus;
+    GET_WIS(mob) += bonus;
+    GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
+    mobs_hps = mobs_hps * 4 / 5;
+    armor_class -= 10;
+    break;
+  case CLASS_DRUID:
+  case CLASS_SHIFTER:
+    GET_WIS(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    GET_SDD(mob) = GET_SDD(mob) * 4 / 5;
+    mobs_hps = mobs_hps * 4 / 5;
+    armor_class -= 50;
+    break;
+  case CLASS_BERSERKER:
+  case CLASS_STALWART_DEFENDER:
+    (mob)->aff_abils.str += bonus;
+    (mob)->aff_abils.con += bonus;
+    mobs_hps = mobs_hps * 6 / 5;
+    armor_class -= 40;
+    break;
+  case CLASS_RANGER:
+  case CLASS_DUELIST:
+    (mob)->aff_abils.str += bonus;
+    (mob)->aff_abils.dex += bonus;
+    armor_class -= 50;
+    break;
+  case CLASS_SACRED_FIST:
+    (mob)->aff_abils.wis += bonus;
+    (mob)->aff_abils.dex += bonus;
+    armor_class -= 50;
+    break;
+  case CLASS_WARRIOR:
+    (mob)->aff_abils.str += bonus;
+    (mob)->aff_abils.con += bonus;
+    break;
+  case CLASS_WEAPON_MASTER:
+    (mob)->aff_abils.str += bonus;
+    (mob)->aff_abils.dex += bonus;
+    break;
+  case CLASS_ARCANE_ARCHER:
+    GET_INT(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    (mob)->aff_abils.cha += bonus;
+    break;
+  case CLASS_ARCANE_SHADOW:
+    GET_INT(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    GET_INT(mob) += bonus;
+    break;
+  case CLASS_ELDRITCH_KNIGHT:
+    GET_INT(mob) += bonus;
+    (mob)->aff_abils.str += bonus;
+    GET_INT(mob) += bonus;
+    break;
+  case CLASS_PALADIN:
+    (mob)->aff_abils.str += bonus;
+    GET_CHA(mob) += bonus;
+    break;
+  case CLASS_MYSTIC_THEURGE:
+    mobs_hps = mobs_hps * 3 / 5;         // Average of cleric (4) and wizard (2)
+    GET_SDD(mob) = GET_SDD(mob) * 3 / 5; // Average of cleric (4) and wizard (2)
+    armor_class -= 60;                   // Use wizard-level AC.
+    // Wizard stat bonuses
+    GET_INT(mob) += bonus;
+    (mob)->aff_abils.dex += bonus;
+    // Cleric stat bonuses
+    (mob)->aff_abils.str += bonus;
+    GET_WIS(mob) += bonus;
+    break;
+
+  default:
+    /* if we ned up here, just using wizard stats as default */
+    mobs_hps = mobs_hps * 2 / 5;
+    GET_SDD(mob) = GET_SDD(mob) * 2 / 5;
+    armor_class -= 60;
+    break;
   }
-  stats = &result.persisted;
 
-  GET_HITROLL(mob) = stats->hitroll;
-  GET_DAMROLL(mob) = stats->damage_bonus;
-  GET_NDD(mob) = stats->damage_dice_count;
-  GET_SDD(mob) = stats->damage_dice_size;
-  mob->points.armor = stats->armor_class;
-  GET_EXP(mob) = stats->experience;
-  GET_GOLD(mob) = stats->gold;
-  mob->aff_abils.str = stats->strength;
-  mob->aff_abils.str_add = stats->strength_add;
-  mob->aff_abils.intel = stats->intelligence;
-  mob->aff_abils.wis = stats->wisdom;
-  mob->aff_abils.dex = stats->dexterity;
-  mob->aff_abils.con = stats->constitution;
-  mob->aff_abils.cha = stats->charisma;
-  GET_SAVE(mob, SAVING_FORT) = stats->saving_fortitude;
-  GET_SAVE(mob, SAVING_REFL) = stats->saving_reflex;
-  GET_SAVE(mob, SAVING_WILL) = stats->saving_will;
-  GET_SAVE(mob, SAVING_POISON) = stats->saving_poison;
-  GET_SAVE(mob, SAVING_DEATH) = stats->saving_death;
-  GET_SPELL_RES(mob) = stats->spell_resistance;
+  /* racial mods */
+  switch (GET_RACE(mob))
+  {
+  case RACE_TYPE_HUMANOID:
+    break;
+  case RACE_TYPE_UNDEAD:
+    break;
+  case RACE_TYPE_ANIMAL:
+    GET_INT(mob) -= 7;
+    GET_WIS(mob) -= 7;
+    GET_CHA(mob) -= 7;
+    GET_SAVE(mob, SAVING_FORT) += 4;
+    GET_SAVE(mob, SAVING_REFL) += 4;
+    GET_GOLD(mob) = 0;
+    break;
+  case RACE_TYPE_DRAGON:
+    (mob)->aff_abils.dex += 6;
+    (mob)->aff_abils.str += 6;
+    (mob)->aff_abils.con += 6;
+    GET_CHA(mob) += 6;
+    GET_INT(mob) += 6;
+    GET_WIS(mob) += 6;
+    GET_SAVE(mob, SAVING_FORT) += 4;
+    GET_SAVE(mob, SAVING_REFL) += 4;
+    GET_SAVE(mob, SAVING_WILL) += 4;
+    GET_SPELL_RES(mob) = 10 + level;
+    break;
+  case RACE_TYPE_GIANT:
+    (mob)->aff_abils.str += 4;
+    (mob)->aff_abils.con += 4;
+    (mob)->aff_abils.dex -= 7;
+    if (GET_SIZE(mob) < SIZE_LARGE)
+      GET_REAL_SIZE(mob) = SIZE_LARGE;
+    break;
+  case RACE_TYPE_ABERRATION:
+    GET_SAVE(mob, SAVING_WILL) += 4;
+    break;
+  case RACE_TYPE_CONSTRUCT:
+    (mob)->aff_abils.str += 4;
+    (mob)->aff_abils.con += 4;
+    GET_SAVE(mob, SAVING_WILL) -= 4;
+    GET_SAVE(mob, SAVING_FORT) -= 4;
+    GET_SAVE(mob, SAVING_REFL) -= 4;
+    break;
+  case RACE_TYPE_ELEMENTAL:
+    break;
+  case RACE_TYPE_FEY:
+    GET_SAVE(mob, SAVING_REFL) += 4;
+    GET_SAVE(mob, SAVING_WILL) += 4;
+    break;
+  case RACE_TYPE_MAGICAL_BEAST:
+    GET_SAVE(mob, SAVING_FORT) += 4;
+    GET_SAVE(mob, SAVING_REFL) += 4;
+    break;
+  case RACE_TYPE_MONSTROUS_HUMANOID:
+    break;
+  case RACE_TYPE_OOZE:
+    GET_SAVE(mob, SAVING_WILL) -= 4;
+    GET_SAVE(mob, SAVING_FORT) -= 4;
+    GET_SAVE(mob, SAVING_REFL) -= 4;
+    break;
+  case RACE_TYPE_OUTSIDER:
+    break;
+  case RACE_TYPE_PLANT:
+    GET_GOLD(mob) = 0;
+    break;
+  case RACE_TYPE_VERMIN:
+    GET_GOLD(mob) = 0;
+    break;
+  default:
+    break;
+  }
 
+  /* group-required mobiles will be levels 31-34 */
+  if (GET_LEVEL(mob) > 30)
+  {
+    int bonus_level = GET_LEVEL(mob) - 30;
+
+    mobs_hps *= (bonus_level * 2);
+    GET_DAMROLL(mob) += bonus_level;
+    GET_EXP(mob) += (bonus_level * 5000);
+    GET_GOLD(mob) += (bonus_level * 50);
+  }
+
+  /* Tier is an autoroll input. It adds saved-stat bonuses only when autoroll runs. */
+  hitroll = GET_HITROLL(mob);
+  damage_bonus = GET_DAMROLL(mob);
+  if (!mob_tier_apply_autostat_bonuses(GET_MOB_TIER(mob), &mobs_hps, &hitroll, &armor_class,
+                                       &damage_bonus))
+    log("SYSERR: autoroll_mob received invalid tier %d or hit points for mob %d", GET_MOB_TIER(mob),
+        GET_MOB_VNUM(mob));
+  else
+  {
+    GET_HITROLL(mob) = hitroll;
+    GET_DAMROLL(mob) = damage_bonus;
+  }
+
+  (mob)->points.armor = armor_class;
+
+  /* make sure mobs do at least 1d4 damage */
+  if (GET_SDD(mob) < 4)
+    GET_SDD(mob) = 4;
+
+  /* we're auto-statting a live mob */
   if (realmode)
   {
     GET_REAL_DAMROLL(mob) = GET_DAMROLL(mob);
@@ -2585,28 +2798,29 @@ void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribut
     GET_REAL_SAVE(mob, SAVING_POISON) = GET_SAVE(mob, SAVING_POISON);
     GET_REAL_SAVE(mob, SAVING_DEATH) = GET_SAVE(mob, SAVING_DEATH);
     GET_REAL_AC(mob) = GET_AC(mob);
-    GET_HIT(mob) = stats->hit_points;
-    GET_REAL_MAX_HIT(mob) = stats->hit_points;
-    if (GET_CLASS(mob) == CLASS_PSIONICIST)
-      GET_PSP(mob) = GET_LEVEL(mob) * 5;
+    GET_HIT(mob) = mobs_hps;
+    GET_REAL_MAX_HIT(mob) = mobs_hps;
     GET_REAL_STR(mob) = GET_STR(mob);
     GET_REAL_INT(mob) = GET_INT(mob);
     GET_REAL_WIS(mob) = GET_WIS(mob);
     GET_REAL_DEX(mob) = GET_DEX(mob);
     GET_REAL_CON(mob) = GET_CON(mob);
     GET_REAL_CHA(mob) = GET_CHA(mob);
+    GET_REAL_SIZE(mob) = GET_SIZE(mob);
     GET_REAL_SPELL_RES(mob) = GET_SPELL_RES(mob);
+
+    /* so far realmode is only for mobiles that shouldn't give xp/gold */
     GET_EXP(mob) = 0;
     GET_GOLD(mob) = 0;
     affect_total(mob);
   }
   else
   {
-    GET_HIT(mob) = 1;
-    GET_PSP(mob) = 1;
-    GET_MOVE(mob) = stats->hit_points - 1;
+    /* not realmode, gotta convert hps back to moves */
+    GET_MOVE(mob) = mobs_hps;
   }
 }
+#undef mobs_hps
 
 void medit_autoroll_stats(struct descriptor_data *d)
 {

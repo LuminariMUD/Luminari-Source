@@ -318,6 +318,10 @@ statistics. Tier is one choice, not a collection of mobile flags:
 - **World Boss (5):** Raid statistics are only the floor; the named encounter still
   requires individual design and review
 
+Tier adds saved HP, hitroll, armor, and damroll only when autoroll runs. Standard and
+an unspecified tier add nothing. Editing Tier does not alter an already-statted
+mobile, loader behavior, or live combat; rerun autoroll to apply the new selection.
+
 `Legacy` means the file has not been explicitly classified yet. Until it is reviewed,
 a legacy level-31-to-34 mobile preserves the old level-derived group behavior. Choose
 an explicit tier and autoroll to move it to the new system. Do not assume every

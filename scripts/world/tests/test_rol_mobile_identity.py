@@ -190,6 +190,22 @@ class RolMobileIdentityTests(unittest.TestCase):
         "tiamat-dracolich-v1", dracolich.ledger["calculator"]["custom_profile"]
     )
 
+  def test_regular_serialization_preserves_base_autoroll_hit_die_shape(self) -> None:
+    record = self._fixture("N 0 0", "guard", "a guard")
+    destination_vnum = 2_000_100
+    with MobileCalculatorClient(self.root) as calculator:
+      emitted = emit_mobile(record, destination_vnum, calculator=calculator)
+
+    calculation = emitted.ledger["calculator"]["result"]
+    mapped_level = calculation["level"]
+    base_hit_points = calculation["persisted"]["hit_points"]
+    die_size = destination_vnum % mapped_level + 1
+    self.assertIn(f"1d{die_size}+{base_hit_points}", emitted.text)
+    self.assertEqual(die_size, emitted.ledger["serialization"]["hit_die_size"])
+    self.assertEqual(
+        base_hit_points, emitted.ledger["serialization"]["hit_point_bonus"]
+    )
+
   def test_full_active_corpus_resolves_without_manual_review(self) -> None:
     statuses = Counter()
     mixed_count = 0

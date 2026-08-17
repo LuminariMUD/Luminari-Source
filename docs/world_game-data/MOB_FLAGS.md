@@ -701,12 +701,17 @@ flag and does not consume a `MOB_*` bit. Each mobile has one mutually exclusive
 `Tier:` value: Standard (0), Elite (1), Small Group (2), Big Group (3), Raid (4), or
 World Boss (5). Level controls competence; tier controls encounter-size pressure.
 
-Builders select the tier from the main MEDIT menu, then use autoroll after setting race,
-subraces, size, class, and level. Files created before this field display as Legacy
-and temporarily retain the former level-31-to-34 group scaling until reviewed.
+Builders select the tier from the main MEDIT menu, then use autoroll after setting
+race, subraces, size, class, and level. The complete established autostat calculation
+runs first. Standard and an unspecified tier add nothing; higher tiers then add saved
+HP, hitroll, armor, and damroll.
+
+Tier is not read by the loader or combat system to add live bonuses. Editing Tier
+does not change existing statistics; rerun autoroll to calculate and save the new
+tier result. The established level-31-to-34 base behavior always remains active.
 
 **Code References:**
-- `src/mob/mob_autoroll.c` - Tier formulas and legacy effective-tier resolution
+- `src/mob/mob_autoroll.c` - Post-base saved-stat Tier bonuses
 - `src/olc/medit.c` - Builder selection and tier-aware autoroll
 - `src/db.c` and `src/olc/genmob.c` - `Tier:` loading and saving
 
