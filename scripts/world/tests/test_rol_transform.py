@@ -1049,13 +1049,14 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(12, obj.item_type)
     self.assertEqual({0, 14}, decode_tokens(obj.wear_flags).bits)
     self.assertEqual(
-        [(2, 9), (4, 4), (1, 9), (1, -2)],
+        [(2, 2), (4, 1), (1, 2)],
         [(affect.location, affect.modifier) for affect in obj.affects],
     )
+    self.assertEqual([23, 23, 23], [affect.bonus_type for affect in obj.affects])
     diagnostics = " ".join(emitted.diagnostics)
     self.assertIn("omitted malformed source object wear flags: [25, 27]", diagnostics)
     self.assertIn("omitted source-only object apply 29", diagnostics)
-    self.assertIn("approximated source race-factor apply 41", diagnostics)
+    self.assertIn("omitted source-only object apply 41", diagnostics)
     self.assertNotIn("unknown source item type", diagnostics)
 
   def test_converted_text_escapes_literal_at_for_target_color_parser(self) -> None:
@@ -1153,7 +1154,7 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(result.complete)
     self.assertEqual(20, result.records[0].weight)
 
-  def test_emitted_object_scales_charisma_apply_like_other_stats(self) -> None:
+  def test_emitted_object_maps_charisma_and_primary_stats_1_to_1(self) -> None:
     source = self._source_record(
         "obj",
         b"#200\ncharm ring~\na charm ring~\nA charm ring is here.~\n~\n"
@@ -1169,12 +1170,13 @@ class RolTransformTests(unittest.TestCase):
     affects = {
         affect.location: affect.modifier for affect in result.records[0].affects
     }
-    # APPLY_CHA sits inside the source loader's scaled range, so it must carry
-    # the same magnitude as the APPLY_STR beside it.
-    self.assertEqual(9, affects[6])
-    self.assertEqual(9, affects[1])
+    self.assertEqual(2, affects[6])
+    self.assertEqual(2, affects[1])
+    self.assertTrue(
+        all(affect.bonus_type == 23 for affect in result.records[0].affects)
+    )
 
-  def test_emitted_object_truncates_negative_stat_scale_toward_zero(self) -> None:
+  def test_emitted_object_preserves_negative_stat_modifier_1_to_1(self) -> None:
     source = self._source_record(
         "obj",
         b"#200\ncursed band~\na cursed band~\nA cursed band is here.~\n~\n"
@@ -1187,8 +1189,8 @@ class RolTransformTests(unittest.TestCase):
     result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
 
     self.assertTrue(result.complete)
-    # The source loader computes (-1 * 45) / 10 in C, which truncates to -4.
-    self.assertEqual(-4, result.records[0].affects[0].modifier)
+    self.assertEqual(-1, result.records[0].affects[0].modifier)
+    self.assertEqual(23, result.records[0].affects[0].bonus_type)
 
   def test_emitted_object_drops_source_inert_hide_affect(self) -> None:
     source = self._source_record(
@@ -1296,7 +1298,8 @@ class RolTransformTests(unittest.TestCase):
     obj = result.records[0]
     self.assertEqual(15, obj.item_type)
     self.assertEqual(2_000_201, obj.values[2])
-    self.assertEqual(9, obj.affects[0].modifier)
+    self.assertEqual(2, obj.affects[0].modifier)
+    self.assertEqual(23, obj.affects[0].bonus_type)
     self.assertEqual(1, len(obj.extra_descriptions))
 
   def test_emitted_object_preserves_rol_compatibility_flags(self) -> None:

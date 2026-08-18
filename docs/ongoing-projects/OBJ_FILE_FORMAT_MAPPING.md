@@ -390,14 +390,16 @@ then at most one `T` block.
 | `A` | 2 ints: `location modifier` | `obj->affected[i]`; **`MAX_OBJ_AFFECT` is 2** (`config.h:141`) |
 | `T` | 6 ints: `trap_eff trap_dam trap_charge trap_level trap_dnum trap_dsize` | trap fields, read exactly once |
 
-### The `A` modifier scaling hack
+### The `A` modifier scaling in RoL vs Luminari
 
 At `db.c:3372`, applies whose location is in `APPLY_STR`..`APPLY_CON` (1..5) or
 `APPLY_AGI`..`APPLY_LUCK` (26..30) have their modifier multiplied by 45/10
-(integer arithmetic) at load time. RoL stats run on a 0..100 scale; the file
-stores the old small-integer value and the loader rescales it. A converter must
-apply this same 4.5x factor before translating to Luminari's `APPLY_*` scale,
-or every stat item will be off by a factor of four and a half.
+(integer arithmetic) at load time in the RoL engine. RoL character stats ran on a
+0..100 scale, while the area `.obj` files stored small integers. Because Luminari
+operates on the standard D20 (3..18+) ability score scale, raw source file modifiers
+are already at the appropriate D20 magnitude (+1, +2, +3, etc.) and are converted 1:1
+without applying the 4.5x inflation factor. Converted item applies default to
+`BONUS_TYPE_UNIVERSAL` (23).
 
 ### Ordering quirk
 

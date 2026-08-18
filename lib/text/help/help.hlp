@@ -764,7 +764,7 @@ Caster-Level, Spellcraft Checks and Concentration Checks	n
 	YSee Also:	n  RACES
 	n
 #0
-ARCANA-SKILL SKILL-ARCANA
+ARCANA-SKILL SKILL-ARCANA ARCANA
 
 \n   Your arcana skill measures your ability to recall lore about spells, magic\nitems, eldritch symbols, magical traditions, the planes of existence, and the\ninhabitants of those planes.\n\nIt can also be used to identify items and creatures. (HELP LORE)\n\n
 
@@ -5832,7 +5832,7 @@ CRITICAL CRITICAL-HIT
 
 When determining whether you hit an opponent or not in melee combat, a 20-sided dice (1d20) is rolled.
 On a natural roll of 1, you miss no matter how good your BAB or how bad your opponents Armor Class is.
-But on a roll of 20, you are gauranteed a hit.  In addition on a roll of 20, you will do double damage
+But on a roll of 20, you are guaranteed a hit.  In addition on a roll of 20, you will do double damage
 on that attack.
 
 Careful, even mobiles get this bonus.
@@ -5983,7 +5983,7 @@ can not remove blindness caused by for example cursed items.
 See also: SPELLS
 	n
 #0
-CURE-CRITICAL
+CURE-CRITICAL CURE-CRITIC
 
 	D-----------------------------------------------------------------	n
 	D>Usage:           	W cast 'cure critical' <target> 	n
@@ -9115,7 +9115,7 @@ Usage: encounters escape
 When one finds themself in a hostile encounter in the wilderness, there are multiple options
 to resolve the encounter without requiring combat.
 
-The escape option allows the character and their party to leave the encounter peacfully by various means:
+The escape option allows the character and their party to leave the encounter peacefully by various means:
 
 speed     - If the party is fast enough, they can simply run away.  
             Note that in the case of groups, the slowest group member's speed is used.
@@ -9714,7 +9714,7 @@ FINGER-OF-DEATH
 	D>Duration:	n         Instantaneous
 	D>School of Magic:	n  Death
 	D>Target(s):	n        Victim
-	D>Magic Resist:	n     No
+	D>Magic Resist:	n     Yes
 	D>Saving Throw:	n     Saving Fortitude
 	D>Damage Type:	n      Negative
 	D>Description:	n
@@ -14906,7 +14906,7 @@ This spell will increase the group's intelligence.
 	YSee also:	n SPELLS
 	n
 #0
-MASS-CURE-CRITICAL
+MASS-CURE-CRITICAL MASS-CURE-CRITIC
 
 	D-----------------------------------------------------------------	n
 	D>Usage:           	W cast 'mass cure critical' 	n
@@ -16119,7 +16119,7 @@ MOVEMENT
 
    The following commands deal with movement - for more info, 	RHELP KEYWORD	n 
 
-NORTH SOUTH EAST WEST UP DOWN   - Most world all go one of these ways.
+NORTH SOUTH EAST WEST UP DOWN   - Most rooms connect in one or more of these directions.
 ENTER LEAVE SNEAK HIDE          - Move inside/outside/undetected.
 FOLLOW GROUP UNGROUP            - Follow someone, group or ungroup a follower
 LOOK EXITS AUTOEXIT             - Look at the room, see the exits, 
@@ -16250,9 +16250,9 @@ Some guidelines:
 
     1. Do not use names such as John, Brad, Bill, Steve etc.
     2. Less common names like Blythe and such may be acceptable
-    2. Do not name yourself after a deity, fictional or otherwise.
-    3. Do not use the names of well-known historical/fictional characters.
-    4. Names should fit with our fantasy theme.
+    3. Do not name yourself after a deity, fictional or otherwise.
+    4. Do not use the names of well-known historical/fictional characters.
+    5. Names should fit with our fantasy theme.
 
 
 If your name does not meet our standards an immortal staff member will
@@ -27917,7 +27917,7 @@ the variety of weapons and to choose the one(s) that best fit your character.
 
 To begin, the different weapons have been broken down into weapon types.  You can see
 the different types by typing 'weapontypes'.  If you wish to see what weapons are
-included in a certain weapon type, type 'weapotype (type)', such as 'weapontype heavy-blades'.
+included in a certain weapon type, type 'weapontype (type)', such as 'weapontype heavy-blades'.
 These types are mainly used, in a mechanical sense, when selecting a combat feat, such as
 weapon focus or improved critical.  When doing so, you will select a weapon type for that
 feat, and in doing so, you will receive the feat benefits if you're using any weapon

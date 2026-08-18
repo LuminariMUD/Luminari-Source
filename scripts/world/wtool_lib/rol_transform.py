@@ -531,49 +531,17 @@ APPLY_MAP = {
     36: 2,  # AGI_MAX -> DEX
     37: 4,  # POW_MAX -> WIS
     38: 6,  # CHA_MAX -> CHA
-    41: 1,  # STR_RACE -> bounded fixed STR equivalent
-    43: 3,  # INT_RACE -> bounded fixed INT equivalent
-    45: 5,  # CON_RACE -> bounded fixed CON equivalent
-    48: 6,  # CHA_RACE -> bounded fixed CHA equivalent
     51: 25,
     52: 13,
 }
 
-# Karma and Luck are displayed source statistics with no target attribute and
-# no active source mechanic consuming their modified values.
-OBJECT_SOURCE_ONLY_APPLIES = frozenset({29, 30, 39, 40, 49, 50})
+# Karma, Luck, and race-factor applies are source-only attributes with no
+# target equivalent; racial modifiers in Luminari are flat character attributes
+# rather than equipment multipliers.
+OBJECT_SOURCE_ONLY_APPLIES = frozenset({29, 30, 39, 40, 41, 43, 45, 48, 49, 50})
 
-# The source loader rescales stat applies as it reads them, covering
-# APPLY_STR..APPLY_CON and APPLY_AGI..APPLY_LUCK (see read_object() in
-# EXAMPLE/RealmsOfLuminari/src/db.c). Locations 29 and 30 are inside that range
-# but never reach the scale here because OBJECT_SOURCE_ONLY_APPLIES drops them
-# first; they stay listed so this set mirrors the source ranges exactly.
-SOURCE_SCALED_STAT_APPLIES = frozenset({1, 2, 3, 4, 5, 26, 27, 28, 29, 30})
-
-# The source loader does NOT rescale the *_MAX applies. The converter maps them
-# onto the base stats they cap and scales them to match, so that a converted
-# *_MAX apply keeps the same magnitude as the base-stat apply beside it.
-SOURCE_MAX_STAT_APPLIES = frozenset({31, 32, 33, 34, 35, 36, 37, 38})
-
-_SOURCE_STAT_APPLY_NUMERATOR = 45
-_SOURCE_STAT_APPLY_DENOMINATOR = 10
-
-
-def _scaled_stat_modifier(modifier: int) -> int:
-  """Apply the source stat scale using C truncation toward zero."""
-
-  scaled = modifier * _SOURCE_STAT_APPLY_NUMERATOR
-  magnitude = abs(scaled) // _SOURCE_STAT_APPLY_DENOMINATOR
-  return -magnitude if scaled < 0 else magnitude
-
-# Active race-factor applies are multiplicative in RoL. Convert their observed
-# factors into fixed D20-scale modifiers around a baseline score of 10.
-OBJECT_RACE_APPLY_MODIFIERS = {
-    (41, 4): -2, # elven STR factor 85 percent
-    (43, 9): -4, # ogre INT factor 60 percent
-    (45, 5): 3,  # dwarven CON factor 130 percent
-    (48, 5): -2, # dwarven CHA factor 85 percent
-}
+# Converted item applies default to BONUS_TYPE_UNIVERSAL (23, stacks with everything)
+OBJECT_APPLY_DEFAULT_BONUS_TYPE = 23
 
 EQUIPMENT_POSITION_MAP = {
     **{position: position for position in range(18)},
@@ -2015,24 +1983,9 @@ def emit_object(
         )
         continue
       modifier = arguments[1]
-      if source_location in {41, 43, 45, 48}:
-        race_modifier = OBJECT_RACE_APPLY_MODIFIERS.get(
-            (source_location, modifier)
-        )
-        if race_modifier is None:
-          diagnostics.append(
-              f"excluded unsupported race-factor object apply {source_location} "
-              f"modifier {modifier} at source line {directive['line']}"
-          )
-          continue
-        modifier = race_modifier
-        diagnostics.append(
-            f"approximated source race-factor apply {source_location} as fixed "
-            f"target modifier {modifier} at source line {directive['line']}"
-        )
-      elif source_location in SOURCE_SCALED_STAT_APPLIES | SOURCE_MAX_STAT_APPLIES:
-        modifier = _scaled_stat_modifier(modifier)
-      lines.extend(["A\n", f"{location} {modifier} 0 0\n"])
+      lines.extend(
+          ["A\n", f"{location} {modifier} {OBJECT_APPLY_DEFAULT_BONUS_TYPE} 0\n"]
+      )
   if special_proc is not None:
     lines.extend(["Z\n", f"{special_proc}\n"])
   lines.extend(f"T {trigger_vnum}\n" for trigger_vnum in attachments)

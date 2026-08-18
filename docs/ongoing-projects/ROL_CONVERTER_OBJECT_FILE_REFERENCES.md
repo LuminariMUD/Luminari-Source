@@ -346,22 +346,16 @@ Damage dice survive, because both formats carry them in values 1 and 2, so
 converted weapons deal correct damage with an undefined weapon profile. A fix
 needs a dice-and-verb to weapon-type inference table.
 
-## 3.4 `*_MAX` applies are scaled although the source loader does not scale them
+## 3.4 Primary and `*_MAX` stat applies convert 1:1 on the D20 scale
 
-**Severity: medium. Policy question. 101 corpus directives.**
+**Status: resolved. Converted 1:1.**
 
-The source loader rescales only `APPLY_STR..APPLY_CON` and
-`APPLY_AGI..APPLY_LUCK`. It does not rescale `APPLY_STR_MAX..APPLY_CHA_MAX`
-(31-38), whose file values are already on the source 0-100 scale. The converter
-maps those onto the base stats they cap and applies the 4.5x scale anyway,
-which overstates them by that factor relative to the source runtime.
-
-This behavior predates this pass and is pinned by
-`test_emitted_object_maps_extended_stats_and_repairs_source_defects`, which
-asserts source `A 31 2` becomes target modifier 9. It was left alone because
-changing it is a balance decision, not a format correction. The two sets are now
-named separately in `rol_transform.py` so the divergence is visible at the call
-site.
+Luminari operates on the standard D20 (3..18+) ability score scale where every 2
+stat points = +1 modifier. The 4.5x inflation factor from RoL's 0..100 engine loader
+was removed. All primary stat applies (including `*_MAX` applies mapped to base stats)
+convert 1:1 from their raw source values, and race-factor applies (41, 43, 45, 48)
+are omitted as source-only attributes. Converted item applies default to
+`BONUS_TYPE_UNIVERSAL` (23).
 
 ## 3.5 Missile type index is passed through untranslated
 
