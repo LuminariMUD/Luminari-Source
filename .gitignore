@@ -344,6 +344,10 @@ lib/text/oldnews
 lib/text/help/*
 !lib/text/help/README
 !lib/text/help/.gitkeep
+# help.hlp is still loaded at boot (db.c) as the fallback when the MySQL help
+# tables are empty, so the canonical copy is tracked. Regenerate it with
+# 'hedit export' rather than hand-editing when the database is authoritative.
+!lib/text/help/help.hlp
 
 ####################
 # Unit Tests

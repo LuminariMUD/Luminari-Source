@@ -15,12 +15,18 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
+      # help.hlp is generated data (hedit export). Rewriting its whitespace
+      # would churn thousands of lines and diverge from what the exporter
+      # emits, so the hygiene hooks skip it.
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
+        exclude: ^lib/text/help/help\.hlp$
       - id: end-of-file-fixer
+        exclude: ^lib/text/help/help\.hlp$
       - id: check-yaml
       - id: check-added-large-files
         args: [--maxkb=500]
+        exclude: ^lib/text/help/help\.hlp$
       - id: check-merge-conflict
       - id: mixed-line-ending
         args: [--fix=lf]
