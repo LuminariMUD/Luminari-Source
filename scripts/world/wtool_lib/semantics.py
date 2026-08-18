@@ -278,6 +278,7 @@ def _text_fields(
     yield trigger, "name", trigger.name
 
 
+# Retired: see the commented-out call in validate_semantics() for the rationale.
 def _validate_placeholder_text(
     zones: list[ZoneRecord],
     rooms: list[RoomRecord],
@@ -363,18 +364,24 @@ def _validate_exit_topology(
       reverse_direction = reverse[direction]
       reverse_exit = exits_by_room[destination.vnum].get(reverse_direction)
       if reverse_exit is None or reverse_exit.destination_vnum != room.vnum:
-        findings.append(
-            Finding(
-                "SEM006",
-                "warning",
-                f"physical exit direction {direction} to room {destination.vnum} has no "
-                f"reverse direction {reverse_direction} back to room {room.vnum}",
-                exit_record.span,
-                record_type="room",
-                vnum=room.vnum,
-                related=_related_room(destination),
-            )
-        )
+        # SEM006 (missing reverse exit) is retired. One-way connections are a
+        # deliberate, widespread mechanic in the legacy zones, so the check only
+        # produced noise. The branch stays because the paired-exit checks below
+        # (SEM007..SEM009) are only meaningful for a true reciprocal pair.
+        #
+        # findings.append(
+        #     Finding(
+        #         "SEM006",
+        #         "warning",
+        #         f"physical exit direction {direction} to room {destination.vnum} "
+        #         f"has no reverse direction {reverse_direction} back to room "
+        #         f"{room.vnum}",
+        #         exit_record.span,
+        #         record_type="room",
+        #         vnum=room.vnum,
+        #         related=_related_room(destination),
+        #     )
+        # )
         continue
       if (room.vnum, direction) >= (destination.vnum, reverse_direction):
         continue
@@ -449,13 +456,113 @@ def _validate_room_level_ranges(
       )
 
 
+# DG script commands that can put a player inside an arbitrary room, mapped to
+# the zero-based argument positions that carry a room vnum. Traced from the
+# command tables in src/interpreter.c and src/dgscript/dg_{obj,wld}cmd.c. The
+# %name% forms are the portable spellings that find_replacement() in
+# src/dgscript/dg_variables.c rewrites to the attach-type-specific command.
+_SCRIPT_ROOM_ARGUMENTS = {
+    "mat": (0,),
+    "oat": (0,),
+    "wat": (0,),
+    "%at%": (0,),
+    "mgoto": (0,),
+    "%goto%": (0,),
+    "mteleport": (1,),
+    "oteleport": (1,),
+    "wteleport": (1,),
+    "%teleport%": (1,),
+}
+
+# *door <room> <direction> <field> <value>; the "room" field wires a brand new
+# exit from <room> to <value> at runtime.
+_SCRIPT_DOOR_COMMANDS = {"mdoor", "odoor", "wdoor", "%door%"}
+
+
+def _room_vnum_token(token: str) -> int | None:
+  """Return the literal room vnum in a script argument, or None if dynamic."""
+
+  return int(token) if token.isdigit() else None
+
+
+def _script_room_targets(triggers: list[TriggerRecord]) -> set[int]:
+  """Rooms a DG script can move a player into or wire a runtime exit into."""
+
+  targets: set[int] = set()
+  for trigger in triggers:
+    if not trigger.commands:
+      continue
+    for line in trigger.commands.splitlines():
+      tokens = line.strip().split()
+      if not tokens:
+        continue
+      command = tokens[0].casefold()
+      arguments = tokens[1:]
+      positions = list(_SCRIPT_ROOM_ARGUMENTS.get(command, ()))
+      if command in _SCRIPT_DOOR_COMMANDS:
+        positions.append(0)
+        if len(arguments) >= 4 and arguments[2].casefold() == "room":
+          positions.append(3)
+      for position in positions:
+        if position >= len(arguments):
+          continue
+        vnum = _room_vnum_token(arguments[position])
+        if vnum is not None:
+          targets.add(vnum)
+  return targets
+
+
+def _portal_room_targets(
+    objects: list[ObjectRecord],
+    manifest: dict[str, Any],
+) -> tuple[set[int], list[tuple[int, int]]]:
+  """Exact and randomized room destinations reachable through portal objects."""
+
+  portal_item_type = _table_index(manifest, "item-types", "ITEM_PORTAL")
+  portal_random = _limit(manifest, "PORTAL_RANDOM")
+  portal_exact = {
+      _limit(manifest, "PORTAL_NORMAL"),
+      _limit(manifest, "PORTAL_CHECKFLAGS"),
+  }
+  exact: set[int] = set()
+  ranges: list[tuple[int, int]] = []
+  for obj in objects:
+    if obj.item_type != portal_item_type or len(obj.values) < 3:
+      continue
+    if obj.values[0] in portal_exact and obj.values[1] > 0:
+      exact.add(obj.values[1])
+    elif obj.values[0] == portal_random and 0 < obj.values[1] <= obj.values[2]:
+      ranges.append((obj.values[1], obj.values[2]))
+  return exact, ranges
+
+
 def _validate_reachability(
     zones: list[ZoneRecord],
     rooms: list[RoomRecord],
+    objects: list[ObjectRecord],
+    triggers: list[TriggerRecord],
     exits_by_room: dict[int, dict[int, ExitRecord]],
     findings: list[Finding],
     selected_packages: set[int] | None,
+    manifest: dict[str, Any],
 ) -> None:
+  """Report rooms no player can enter by any modelled route.
+
+  A room only warrants SEM011 when every entrance is absent: no walkable exit
+  from a zone entrance, no portal object whose destination is the room, no DG
+  script that teleports into it or wires an exit to it, and the owning zone is
+  not ZONE_CLOSED or ZONE_WILDERNESS. A locked zone is deliberately sealed off,
+  and wilderness rooms are entered through the coordinate navigator rather than
+  through static exits, so unreachable rooms in either are expected.
+  """
+
+  zone_table = manifest["tables"]["zone"]
+  exempt_zone_bits = {
+      _table_index(manifest, "zone", "ZONE_CLOSED"),
+      _table_index(manifest, "zone", "ZONE_WILDERNESS"),
+  }
+  portal_exact, portal_ranges = _portal_room_targets(objects, manifest)
+  script_targets = _script_room_targets(triggers)
   rooms_by_vnum = {room.vnum: room for room in rooms}
   rooms_by_zone: dict[int, list[RoomRecord]] = {}
   incoming_roots: dict[int, set[int]] = {}
@@ -476,21 +583,37 @@ def _validate_reachability(
     zone_rooms = rooms_by_zone.get(zone.vnum, [])
     if not zone_rooms:
       continue
-    roots = sorted(incoming_roots.get(zone.vnum, set()))
+    if _decoded_bits(zone.flags, zone_table) & exempt_zone_bits:
+      # A locked zone is intentionally sealed, and wilderness rooms are entered
+      # by coordinate rather than by exit; unreachable rooms are expected.
+      continue
+    zone_vnums = {room.vnum for room in zone_rooms}
+    entrances = {
+        vnum
+        for vnum in incoming_roots.get(zone.vnum, set())
+        if vnum in zone_vnums
+    }
+    entrances |= portal_exact & zone_vnums
+    entrances |= script_targets & zone_vnums
+    entrances |= {
+        vnum
+        for vnum in zone_vnums
+        if any(low <= vnum <= high for low, high in portal_ranges)
+    }
+    roots = sorted(entrances)
     if not roots:
       roots = [min(room.vnum for room in zone_rooms)]
       findings.append(
           Finding(
               "SEM010",
               "info",
-              f"zone has no incoming cross-zone exits; reachability uses fallback root "
-              f"{roots[0]}",
+              f"zone has no incoming cross-zone exits, portal destinations, or script "
+              f"destinations; reachability uses fallback root {roots[0]}",
               zone.span,
               record_type="zone",
               vnum=zone.vnum,
           )
       )
-    zone_vnums = {room.vnum for room in zone_rooms}
     reachable = set(roots)
     pending = list(roots)
     while pending:
@@ -500,14 +623,18 @@ def _validate_reachability(
         if destination in zone_vnums and destination not in reachable:
           reachable.add(destination)
           pending.append(destination)
-    root_text = ", ".join(str(root) for root in roots)
+    shown_roots = roots[:8]
+    root_text = ", ".join(str(root) for root in shown_roots)
+    if len(roots) > len(shown_roots):
+      root_text += f", ... ({len(roots)} total)"
     for room in sorted(zone_rooms, key=lambda item: item.vnum):
       if room.vnum not in reachable:
         findings.append(
             Finding(
                 "SEM011",
                 "warning",
-                f"room is unreachable within zone {zone.vnum} from roots [{root_text}]",
+                f"room is unreachable within zone {zone.vnum} from roots [{root_text}]; "
+                f"no exit, portal object, or script destination reaches it",
                 room.span,
                 record_type="room",
                 vnum=room.vnum,
@@ -1656,15 +1783,26 @@ def validate_semantics(
   _validate_reserved_flags(
       rooms, mobiles, objects, findings, selected_packages, manifest
   )
-  _validate_placeholder_text(
-      zones, rooms, mobiles, objects, triggers, findings, selected_packages
-  )
+  # SEM004 (placeholder/empty descriptive text) is retired. It fired on every
+  # in-progress builder record and on legitimate short-form text, which buried
+  # the actionable findings. The implementation is kept for reference.
+  #
+  # _validate_placeholder_text(
+  #     zones, rooms, mobiles, objects, triggers, findings, selected_packages
+  # )
   _validate_room_level_ranges(rooms, findings, selected_packages, manifest)
   exits_by_room = _validate_exit_topology(
       rooms, findings, selected_packages, manifest, direction_count
   )
   _validate_reachability(
-      zones, rooms, exits_by_room, findings, selected_packages
+      zones,
+      rooms,
+      objects,
+      triggers,
+      exits_by_room,
+      findings,
+      selected_packages,
+      manifest,
   )
   _validate_reset_levels(
       zones, rooms, mobiles, findings, selected_packages

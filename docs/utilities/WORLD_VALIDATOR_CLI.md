@@ -30,7 +30,7 @@ python3 scripts/world/wtool.py --help
 python3 scripts/world/wtool.py --version
 ```
 
-The current release reports `wtool 0.8.1`.
+The current release reports `wtool 0.9.0`.
 
 The default world root is `lib/world`. Override it for a staging tree or
 fixture with the global `--world-root` option. Global options precede the
@@ -584,6 +584,47 @@ The code prefix identifies the validation layer:
 | `REF` | Typed cross-file references |
 | `SEM` | Semantic and topology checks |
 | `DOC` | World-building documentation drift |
+
+### Retired Semantic Checks
+
+Two semantic checks are permanently disabled. Their code is retained, commented
+out, in `scripts/world/wtool_lib/semantics.py` so the rationale stays with the
+implementation. Neither code can be emitted any more, so `--ignore-code` entries
+for them are unnecessary.
+
+| Code | Was | Why it is retired |
+|------|-----|-------------------|
+| `SEM004` | Warning on empty or known-placeholder descriptive text | Fired on every in-progress builder record and on legitimate short-form text, drowning the actionable findings. |
+| `SEM006` | Warning on a physical exit with no reverse exit | One-way connections are a deliberate, widespread mechanic in the legacy zones. |
+
+Removing `SEM006` does not weaken the paired-exit checks. `SEM007` (key
+mismatch), `SEM008` (keyword mismatch), and `SEM009` (door-capability mismatch)
+still run over every genuine reciprocal pair.
+
+### Room Reachability (`SEM011`)
+
+`SEM011` reports a room that no player can enter by any modelled route. The
+check only warns after every entrance has been ruled out:
+
+- **Exits.** The room is not walkable from any zone entrance. Entrances are the
+  rooms targeted by incoming cross-zone exits.
+- **Portal objects.** No `ITEM_PORTAL` object names the room. Both
+  `PORTAL_NORMAL`/`PORTAL_CHECKFLAGS` exact destinations and `PORTAL_RANDOM`
+  destination ranges are honored, whichever zone the portal object lives in.
+- **DG scripts.** No trigger teleports into the room or wires a runtime exit to
+  it. The parser reads literal room vnums out of `mteleport`/`oteleport`/
+  `wteleport`, `mat`/`oat`/`wat`, `mgoto`, and the `*door <room> <dir> room
+  <vnum>` form, in both the type-specific spelling and the portable `%teleport%`
+  / `%at%` / `%goto%` / `%door%` spelling. A vnum supplied through a script
+  variable cannot be resolved and is not counted.
+- **Zone flags.** The owning zone is neither `ZONE_CLOSED` nor
+  `ZONE_WILDERNESS`. A locked zone is deliberately sealed off, and wilderness
+  rooms are entered through the coordinate navigator rather than through static
+  exits, so an unreachable room in either is expected. Every room in such a zone
+  is skipped, which also suppresses the `SEM010` fallback-root note for it.
+
+Portal and script destinations are full reachability roots, not just
+exemptions: rooms walkable onward from them are reachable too.
 
 Room level-range records use two additional stable findings:
 

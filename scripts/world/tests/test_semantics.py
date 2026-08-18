@@ -250,7 +250,7 @@ class SemanticTests(unittest.TestCase):
     self.assertIn("AFF_POISON", messages)
     self.assertIn("AFF_CHARM", messages)
     self.assertNotIn("AFF_GROUP", messages)
-    self.assertIn("SEM004", {item.code for item in findings})
+    self.assertNotIn("SEM004", {item.code for item in findings})
     self.assertEqual("@red\ttext", strip_color_codes("@@red\t\ttext"))
 
   def test_exit_consistency_no_exit_fallback_and_unreachable_codes(self) -> None:
@@ -272,11 +272,87 @@ class SemanticTests(unittest.TestCase):
     findings = self.validate([zone(1, 100, 199)], [first, second, isolated, one_way_target])
     codes = {item.code for item in findings}
     self.assertTrue(
-        {"SEM005", "SEM006", "SEM007", "SEM008", "SEM009", "SEM010", "SEM011"}
-        <= codes
+        {"SEM005", "SEM007", "SEM008", "SEM009", "SEM010", "SEM011"} <= codes
     )
+    self.assertNotIn("SEM006", codes)
     unreachable = [item for item in findings if item.code == "SEM011"]
     self.assertTrue(all("roots [100]" in item.message for item in unreachable))
+
+  def test_portal_destination_is_a_reachability_root(self) -> None:
+    root = room(100, 1, exits=[exit_record(0, 101)])
+    reachable = room(101, 1)
+    portal_only = room(102, 1)
+    portal = obj(
+        300,
+        self.item_types["ITEM_PORTAL"],
+        [self.manifest["limits"]["PORTAL_NORMAL"]["value"], 102, 0, 0],
+    )
+    findings = self.validate(
+        [zone(1, 100, 199)], [root, reachable, portal_only], objects=[portal]
+    )
+    self.assertFalse(any(item.code == "SEM011" and item.vnum == 102 for item in findings))
+
+  def test_random_portal_range_covers_a_reachability_root(self) -> None:
+    root = room(100, 1, exits=[exit_record(0, 101)])
+    reachable = room(101, 1)
+    in_range = room(102, 1)
+    outside_range = room(150, 1)
+    portal = obj(
+        300,
+        self.item_types["ITEM_PORTAL"],
+        [self.manifest["limits"]["PORTAL_RANDOM"]["value"], 102, 110, 0],
+    )
+    findings = self.validate(
+        [zone(1, 100, 199)],
+        [root, reachable, in_range, outside_range],
+        objects=[portal],
+    )
+    unreachable = {item.vnum for item in findings if item.code == "SEM011"}
+    self.assertNotIn(102, unreachable)
+    self.assertIn(150, unreachable)
+
+  def test_script_destination_is_a_reachability_root(self) -> None:
+    root = room(100, 1, exits=[exit_record(0, 101)])
+    reachable = room(101, 1)
+    teleport_target = room(102, 1, exits=[exit_record(0, 103)])
+    onward = room(103, 1)
+    door_target = room(104, 1)
+    still_unreachable = room(105, 1)
+    trigger = TriggerRecord(
+        500,
+        span(500),
+        "1",
+        name="teleport trigger",
+        commands=(
+            "* move the actor onward\n"
+            "wait 1 sec\n"
+            "mteleport %actor% 102\n"
+            "%door% 100 north room 104\n"
+            "%teleport% %actor% %destination%\n"
+        ),
+    )
+    findings = self.validate(
+        [zone(1, 100, 199)],
+        [root, reachable, teleport_target, onward, door_target, still_unreachable],
+        triggers=[trigger],
+    )
+    unreachable = {item.vnum for item in findings if item.code == "SEM011"}
+    self.assertEqual({105}, unreachable)
+
+  def test_closed_zone_suppresses_unreachable_rooms(self) -> None:
+    closed_bit = next(
+        entry["index"]
+        for entry in self.manifest["tables"]["zone"]["entries"]
+        if entry["macro"] == "ZONE_CLOSED"
+    )
+    root = room(100, 1, exits=[exit_record(0, 101)])
+    reachable = room(101, 1)
+    isolated = room(102, 1)
+    locked = zone(1, 100, 199, flags=list(encode_bits({closed_bit})))
+    findings = self.validate([locked], [root, reachable, isolated])
+    codes = {item.code for item in findings}
+    self.assertNotIn("SEM011", codes)
+    self.assertNotIn("SEM010", codes)
 
   def test_cross_zone_incoming_exit_is_reachability_root(self) -> None:
     external = room(50, 1, exits=[exit_record(0, 100)])

@@ -2,6 +2,25 @@
 
 ## [Unreleased] - August 14, 2026
 
+### World validator reachability accuracy
+
+#### Changed
+
+- Retired `SEM006` (exit has no reverse exit). One-way connections are a deliberate,
+  widespread mechanic in the legacy zones, so the check only produced noise. The paired-exit
+  key, keyword, and door-capability checks (`SEM007`-`SEM009`) still run over every genuine
+  reciprocal pair.
+- Retired `SEM004` (empty or known-placeholder descriptive text). It fired on every
+  in-progress builder record and on legitimate short-form text.
+- Made `SEM011` (room unreachable from the zone roots) prove that no entrance exists before
+  warning. `ITEM_PORTAL` destinations, including `PORTAL_RANDOM` ranges, and DG script
+  destinations from `mteleport`/`oteleport`/`wteleport`, `mat`/`oat`/`wat`, `mgoto`, and the
+  `*door <room> <dir> room <vnum>` form are now full reachability roots, in both the
+  type-specific and portable `%teleport%`/`%at%`/`%goto%`/`%door%` spellings. Rooms in
+  `ZONE_CLOSED` and `ZONE_WILDERNESS` zones are skipped, since a locked zone is deliberately
+  sealed and wilderness rooms are entered through the coordinate navigator.
+- Bumped `wtool` to 0.9.0 while retaining schema version 1 for existing consumers.
+
 ### Arcane mark clarity and staff diagnostics
 
 #### Fixed
