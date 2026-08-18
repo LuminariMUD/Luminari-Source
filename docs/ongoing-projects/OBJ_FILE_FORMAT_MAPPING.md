@@ -168,18 +168,22 @@ After line 3 the parser loops on single-character tokens. Every letter except
 
 ### Extension hazards
 
-Two real defects worth knowing before writing a converter:
+Three parser defects were found here and have since been fixed in `parse_object()`.
+They are recorded because any file written before the fix may still carry the
+data shapes that triggered them:
 
-1. `A` and `B` share the same counter `j` (`src/db.c:3949` and `src/db.c:3993`).
-   An object with both affects and spellbook pages will index them into
-   overlapping slots. In practice no shipped object mixes the two.
-2. The `A` handler's `specific` field reads `t[3]` even when `sscanf` matched
-   only 2 or 3 arguments, leaving a stale value from the previous use of the
-   `t[]` array. The writer always emits 4 arguments, so only hand-edited or
-   legacy files can hit this.
-
-The `S` handler's bounds check against `MAX_WEAPON_SPELLS` is commented out, so
-a file with more than 3 `S` blocks writes past `wpn_spells[]`.
+1. `A` and `B` shared the same counter `j`, so an object carrying both affects
+   and spellbook pages indexed them into overlapping slots. `B` now uses its own
+   `sbnum` counter.
+2. The `A` handler's `specific` field read `t[3]` even when `sscanf` matched only
+   2 or 3 arguments, storing whatever the previous record left in the `t[]`
+   array. Both short forms now clear `t[3]` explicitly. The world validator
+   reports the affected data shapes as `OBJ021`; 2863 prototypes in the
+   development world still carry 2- or 3-integer `A` payloads, which now load
+   deterministically as `specific = 0` instead of stale data.
+3. The `S` handler's bounds check against `MAX_WEAPON_SPELLS` was commented out,
+   so a file with more than three `S` blocks wrote past `wpn_spells[]`. The check
+   is restored.
 
 ## 1.7 Flag namespaces
 

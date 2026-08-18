@@ -3685,7 +3685,7 @@ const char *parse_object(FILE *obj_f, int nr)
 {
   static int i = 0;
   static char line[READ_SIZE];
-  int t[16], j, retval, wsplnum;
+  int t[16], j, retval, wsplnum, sbnum;
   char *tmpptr, buf2[128], f1[READ_SIZE], f2[READ_SIZE], f3[READ_SIZE], f4[READ_SIZE];
   char f5[READ_SIZE], f6[READ_SIZE], f7[READ_SIZE], f8[READ_SIZE];
   char f9[READ_SIZE], f10[READ_SIZE], f11[READ_SIZE], f12[READ_SIZE];
@@ -3961,6 +3961,7 @@ const char *parse_object(FILE *obj_f, int nr)
           sizeof(buf2));
   j = 0;
   wsplnum = 0;
+  sbnum = 0;
 
   for (;;)
   {
@@ -3989,14 +3990,16 @@ const char *parse_object(FILE *obj_f, int nr)
       {
         if (retval == 3)
         {
-          obj_proto[i].affected[j].location = t[0];
-          obj_proto[i].affected[j].modifier = t[1];
-          obj_proto[i].affected[j].bonus_type = t[2];
+          /* Older object version, no specific field. sscanf() left t[3] holding
+           * whatever the previous record put there, so clear it explicitly
+           * rather than storing stale parser data. */
+          t[3] = 0;
         }
         else if (retval == 2)
         {
           /* Old object verison, no bonus type.*/
           t[2] = BONUS_TYPE_UNDEFINED;
+          t[3] = 0;
         }
         else
         {
@@ -4014,7 +4017,7 @@ const char *parse_object(FILE *obj_f, int nr)
       j++;
       break;
     case 'B':
-      if (j >= SPELLBOOK_SIZE)
+      if (sbnum >= SPELLBOOK_SIZE)
       {
         log("SYSERR: Unknown spellbook slot in S field, %s", buf2);
         exit(1);
@@ -4043,9 +4046,9 @@ const char *parse_object(FILE *obj_f, int nr)
         memset((char *)obj_proto[i].sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
       }
 
-      obj_proto[i].sbinfo[j].spellname = t[0];
-      obj_proto[i].sbinfo[j].pages = t[1];
-      j++;
+      obj_proto[i].sbinfo[sbnum].spellname = t[0];
+      obj_proto[i].sbinfo[sbnum].pages = t[1];
+      sbnum++;
       break;
     case 'C': /* Special abilities */
       CREATE(new_specab, struct obj_special_ability, 1);
@@ -4193,12 +4196,13 @@ const char *parse_object(FILE *obj_f, int nr)
 
       break;
     case 'S': // weapon spells
-      /*
-              if (wsplnum >= MAX_WEAPON_SPELLS) {
-                log("SYSERR: Too many A fields (%d max), %s", MAX_WEAPON_SPELLS, buf2);
-                exit(1);
-              }
-         */
+      /* wpn_spells[] holds MAX_WEAPON_SPELLS entries. Without this bound a
+       * prototype carrying extra S blocks writes past the end of the array. */
+      if (wsplnum >= MAX_WEAPON_SPELLS)
+      {
+        log("SYSERR: Too many S fields (%d max), %s", MAX_WEAPON_SPELLS, buf2);
+        exit(1);
+      }
       if (!get_line(obj_f, line))
       {
         log("SYSERR: Format error in 'S' field, %s.  Expecting numeric constants, but file ended!",
