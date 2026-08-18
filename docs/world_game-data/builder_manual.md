@@ -315,11 +315,27 @@ statistics. Tier is one choice, not a collection of mobile flags:
 - **Small Group (2):** intended for roughly two or three players
 - **Big Group (3):** intended for roughly four to six players
 - **Raid (4):** intended for a larger coordinated group
-- **World Boss (5):** Raid statistics are only the floor; the named encounter still
-  requires individual design and review
+- **World Boss (5):** the server-wide named encounter; still requires individual
+  design and review
 
 Tier adds saved HP, hitroll, armor, and damroll only when autoroll runs. Standard and
-an unspecified tier add nothing. Editing Tier does not alter an already-statted
+an unspecified tier add nothing. Each tier applies a fixed multiplier to the hit
+points the rest of autoroll produced, plus flat combat bonuses:
+
+| Tier            | Hit points | Hitroll | Armor | Damroll |
+|-----------------|------------|---------|-------|---------|
+| Standard (0)    | x1.00      | +0      | +0    | +0      |
+| Elite (1)       | x1.35      | +2      | +10   | +1      |
+| Small Group (2) | x1.75      | +4      | +20   | +2      |
+| Big Group (3)   | x2.25      | +6      | +30   | +3      |
+| Raid (4)        | x2.90      | +8      | +40   | +4      |
+| World Boss (5)  | x3.75      | +10     | +50   | +5      |
+
+The World Boss multiplier is anchored to the Prisoner (vnum 113750), the reference
+hand-statted level 34 boss: a level 34 warrior autorolls to 11968 base hit points,
+and x3.75 gives 44880 against the Prisoner's 45015 average. Because tier multiplies
+the post-class, post-level base, a caster-class world boss stays proportionally
+squishier than a warrior one, which is intended. Editing Tier does not alter an already-statted
 mobile, loader behavior, or live combat; rerun autoroll to apply the new selection.
 
 `Legacy` means the file has not been explicitly classified yet. Until it is reviewed,

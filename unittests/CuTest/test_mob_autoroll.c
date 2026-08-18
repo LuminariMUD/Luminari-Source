@@ -35,15 +35,48 @@ void Test_mob_tier_formula_v1_hit_point_vectors(CuTest *tc)
   CuAssertTrue(tc, mob_tier_calculate_hit_points(1496, MOB_TIER_STANDARD, &result));
   CuAssertIntEquals(tc, 1496, result);
   CuAssertTrue(tc, mob_tier_calculate_hit_points(1496, MOB_TIER_ELITE, &result));
-  CuAssertIntEquals(tc, 3841, result);
+  CuAssertIntEquals(tc, 2019, result);
   CuAssertTrue(tc, mob_tier_calculate_hit_points(1496, MOB_TIER_SMALL_GROUP, &result));
-  CuAssertIntEquals(tc, 7845, result);
+  CuAssertIntEquals(tc, 2618, result);
   CuAssertTrue(tc, mob_tier_calculate_hit_points(1496, MOB_TIER_BIG_GROUP, &result));
-  CuAssertIntEquals(tc, 12611, result);
+  CuAssertIntEquals(tc, 3366, result);
   CuAssertTrue(tc, mob_tier_calculate_hit_points(1496, MOB_TIER_RAID, &result));
-  CuAssertIntEquals(tc, 18252, result);
+  CuAssertIntEquals(tc, 4338, result);
   CuAssertTrue(tc, mob_tier_calculate_hit_points(1496, MOB_TIER_WORLD_BOSS, &result));
-  CuAssertIntEquals(tc, 18252, result);
+  CuAssertIntEquals(tc, 5610, result);
+}
+
+/* The level 34 world boss curve is anchored to the Prisoner (vnum 113750), whose
+   hand-statted 30d1000+30000 averages 45015 hit points before db.c's powerful-being
+   bump.  Tiers must also stay strictly ordered, world boss included. */
+void Test_mob_tier_world_boss_matches_hand_statted_reference_boss(CuTest *tc)
+{
+  int previous = 0;
+  int tier;
+  struct char_data mob;
+
+  for (tier = MOB_TIER_STANDARD; tier < NUM_MOB_TIERS; tier++)
+  {
+    int hit_points = 11968;
+    int hitroll = 6;
+    int armor_class = 440;
+    int damage_bonus = 10;
+
+    CuAssertTrue(tc, mob_tier_apply_autostat_bonuses(tier, &hit_points, &hitroll, &armor_class,
+                                                     &damage_bonus));
+    CuAssertTrue(tc, hit_points > previous);
+    previous = hit_points;
+  }
+  CuAssertIntEquals(tc, 44880, previous);
+
+  init_autoroll_mobile(&mob, 34, RACE_TYPE_HUMANOID, CLASS_WARRIOR, MOB_TIER_WORLD_BOSS);
+  circle_srandom(12345);
+  autoroll_mob(&mob, false, false);
+  CuAssertIntEquals(tc, 44880, GET_MOVE(&mob));
+  CuAssertIntEquals(tc, 16, GET_HITROLL(&mob));
+  CuAssertIntEquals(tc, 15, GET_DAMROLL(&mob));
+  CuAssertIntEquals(tc, 490, mob.points.armor);
+  circle_srandom((unsigned long)time(NULL));
 }
 
 void Test_mob_tier_autostat_bonus_is_additive_and_saved_field_only(CuTest *tc)
@@ -55,9 +88,9 @@ void Test_mob_tier_autostat_bonus_is_additive_and_saved_field_only(CuTest *tc)
 
   CuAssertTrue(tc, mob_tier_apply_autostat_bonuses(MOB_TIER_ELITE, &hit_points, &hitroll,
                                                    &armor_class, &damage_bonus));
-  CuAssertIntEquals(tc, 26879, hit_points);
+  CuAssertIntEquals(tc, 16156, hit_points);
   CuAssertIntEquals(tc, 8, hitroll);
-  CuAssertIntEquals(tc, 460, armor_class);
+  CuAssertIntEquals(tc, 450, armor_class);
   CuAssertIntEquals(tc, 11, damage_bonus);
 }
 
@@ -155,10 +188,10 @@ void Test_autoroll_mob_tier_adds_to_complete_level_34_base(CuTest *tc)
   circle_srandom(12345);
   autoroll_mob(&mob, false, false);
 
-  CuAssertIntEquals(tc, 26879, GET_MOVE(&mob));
+  CuAssertIntEquals(tc, 16156, GET_MOVE(&mob));
   CuAssertIntEquals(tc, 8, GET_HITROLL(&mob));
   CuAssertIntEquals(tc, 11, GET_DAMROLL(&mob));
-  CuAssertIntEquals(tc, 460, mob.points.armor);
+  CuAssertIntEquals(tc, 450, mob.points.armor);
   CuAssertIntEquals(tc, 106700, GET_EXP(&mob));
   CuAssertIntEquals(tc, 540, GET_GOLD(&mob));
   circle_srandom((unsigned long)time(NULL));
@@ -201,14 +234,14 @@ void Test_rerunning_autostat_after_tier_change_applies_new_bonus_once(CuTest *tc
   GET_MOB_TIER(&mob) = MOB_TIER_ELITE;
   circle_srandom(12345);
   autoroll_mob(&mob, false, false);
-  CuAssertIntEquals(tc, 1870, GET_MOVE(&mob));
+  CuAssertIntEquals(tc, 810, GET_MOVE(&mob));
   CuAssertIntEquals(tc, 6, GET_HITROLL(&mob));
   CuAssertIntEquals(tc, 5, GET_DAMROLL(&mob));
-  CuAssertIntEquals(tc, 320, mob.points.armor);
+  CuAssertIntEquals(tc, 310, mob.points.armor);
 
   circle_srandom(12345);
   autoroll_mob(&mob, false, false);
-  CuAssertIntEquals(tc, 1870, GET_MOVE(&mob));
+  CuAssertIntEquals(tc, 810, GET_MOVE(&mob));
   circle_srandom((unsigned long)time(NULL));
 }
 
@@ -250,9 +283,9 @@ void Test_mob_autoroll_profile_preserves_base_before_tier(CuTest *tc)
 
   input.tier = MOB_TIER_ELITE;
   CuAssertTrue(tc, mob_autoroll_calculate(&input, &config, &result));
-  CuAssertIntEquals(tc, 26879, result.persisted.hit_points);
+  CuAssertIntEquals(tc, 16156, result.persisted.hit_points);
   CuAssertIntEquals(tc, 8, result.persisted.hitroll);
-  CuAssertIntEquals(tc, 460, result.persisted.armor_class);
+  CuAssertIntEquals(tc, 450, result.persisted.armor_class);
   CuAssertIntEquals(tc, 11, result.persisted.damage_bonus);
 }
 

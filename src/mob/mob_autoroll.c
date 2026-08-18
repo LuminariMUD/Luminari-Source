@@ -22,12 +22,22 @@ bool mob_tier_is_valid(int tier)
   return tier >= MOB_TIER_STANDARD && tier < NUM_MOB_TIERS;
 }
 
+/* Encounter-tier hit point multipliers, expressed as a percentage of the tier-0
+   autostat base.  Formula v2 replaced the v1 "2 * rank * base + 500, then compound
+   +10% per rank" curve, which multiplied a level 34 raid mob by nearly twelve and
+   put it roughly three times above the hand-statted reference boss.
+
+   The anchor is the Prisoner (vnum 113750): level 34, 30d1000+30000 hit points, so
+   an average base of 45015 before db.c's powerful-being bump.  A level 34 warrior
+   autostats to a tier-0 base of 11968, and 11968 * 375% = 44880 lands on that
+   anchor.  The intermediate tiers are a uniform ~1.29x step so each rung is a
+   meaningful but not explosive jump. */
+static const int mob_tier_hit_point_percent[NUM_MOB_TIERS] = {100, 135, 175, 225, 290, 375};
+
 int mob_tier_formula_rank(int tier)
 {
-  if (!mob_tier_is_valid(tier) || tier == MOB_TIER_STANDARD)
+  if (!mob_tier_is_valid(tier))
     return 0;
-  if (tier == MOB_TIER_WORLD_BOSS)
-    return MOB_TIER_RAID;
   return tier;
 }
 
@@ -35,7 +45,6 @@ bool mob_tier_calculate_hit_points(int base_hit_points, int tier, int *result)
 {
   int64_t hit_points;
   int rank;
-  int i;
 
   if (!result || base_hit_points < 1 || !mob_tier_is_valid(tier))
     return false;
@@ -47,9 +56,7 @@ bool mob_tier_calculate_hit_points(int base_hit_points, int tier, int *result)
     return true;
   }
 
-  hit_points = (int64_t)2 * rank * base_hit_points + 500;
-  for (i = 0; i < rank; i++)
-    hit_points += hit_points / 10;
+  hit_points = (int64_t)base_hit_points * mob_tier_hit_point_percent[rank] / 100;
 
   if (hit_points > INT_MAX)
     return false;
@@ -73,8 +80,8 @@ bool mob_tier_apply_autostat_bonuses(int tier, int *hit_points, int *hitroll, in
 
   rank = mob_tier_formula_rank(tier);
   *hit_points = adjusted_hit_points;
-  *hitroll += rank + 1 + (rank > 2 ? rank - 2 : 0);
-  *armor_class += (rank + 1) * 10;
+  *hitroll += rank * 2;
+  *armor_class += rank * 10;
   *damage_bonus += rank;
   return true;
 }
