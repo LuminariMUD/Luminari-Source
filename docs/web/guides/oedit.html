@@ -310,6 +310,18 @@ enhancements.</li>
 <li>Normal armor takes its subtype at <code>Value2</code>
 (<code>value[1]</code>) and auto-fills AC, size, material, and wear
 flags via <code>set_armor_object()</code>.</li>
+<li><code>Value1</code> (<code>value[0]</code>) is the AC-apply, in
+tenths of an armor-class point: <code>armor_list[].armorBonus</code> is
+stored that way and players see it divided by ten.</li>
+<li>The AC-apply counts only when the piece is worn on
+<code>WEAR_SHIELD</code>, <code>WEAR_HEAD</code>,
+<code>WEAR_BODY</code>, <code>WEAR_ARMS</code>, or
+<code>WEAR_LEGS</code> (<code>apply_ac()</code>,
+<code>src/handler.c</code>). On any other slot it is ignored - give
+those slots armor class with an <code>APPLY_AC_NEW</code> affection
+instead. Those same five slots are the ones charged armor check penalty,
+spell failure, and the max-dex cap
+(<code>src/combat/assign_wpn_armor.c</code>).</li>
 <li>Clan armor uses that same slot for the clan vnum instead. The value
 must identify an existing clan.</li>
 <li>Both armor types collect an enhancement bonus at <code>Value5</code>

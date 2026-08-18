@@ -10,7 +10,8 @@
 - When adding or removing a source file, update BOTH `Makefile.am` and `CMakeLists.txt`.
 - All documentation must be valid ASCII, UTF-8, LF line endings.
 - Always trace code; never assume naming conventions.
-- When adding or updating features, make sure to update relevant documentation and helpfiles
+- Helpfiles have to be updated in two places: the database and `lib/text/help/help.hlp`
+- When adding or updating features and relevant, make sure to update documentation and helpfiles
 - Check `lib/.env` whether this is dev or production environment.  We don't modify production code.  We do not create new branches / worktress from production.
 - For running the MUD on local/dev, don't use `luminari.service`, use `autorun.sh`
 - It is NOT expected on local/dev for Ollama, I3 and Discord services to work (unless we are specifically working on those features)

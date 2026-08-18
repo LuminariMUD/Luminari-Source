@@ -8888,26 +8888,32 @@ ACMD(do_analyze_world)
   send_to_char(ch, "File size will be approximately 15-20 MB.\r\n");
 }
 
-/* do_acconvert - Commant to convert exising armor to the new (Sept 9, 2014)
- * AC system.  ONLY USE THIS ONE TIME! */
-ACMD(do_acconvert)
-{
-  obj_rnum num;
-  int found = 0, total = 0;
-
-  for (num = 0; num <= top_of_objt; num++)
-  {
-    if (GET_OBJ_TYPE(&obj_proto[num]) != ITEM_ARMOR)
-      continue;
-
-    GET_OBJ_VAL(&obj_proto[num], 0) =
-        (GET_OBJ_VAL(&obj_proto[num], 0) / 10) + (GET_OBJ_VAL(&obj_proto[num], 0) % 10 != 0);
-    found++;
-  }
-  total += found;
-  (void)total;
-  send_to_char(ch, "%d converted.\r\n", found);
-}
+/* do_acconvert - one-shot migration that rescaled every armor prototype's
+ * value 0 for the Sept 9, 2014 AC system.  That migration is long finished, so
+ * the command is disabled: running it again would divide every armor
+ * prototype's armor-class apply by ten a second time.  Its command-table entry
+ * in interpreter.c is commented out to match.  Kept for the historical record
+ * only -- do not re-enable.
+ *
+ * ACMD(do_acconvert)
+ * {
+ *   obj_rnum num;
+ *   int found = 0, total = 0;
+ *
+ *   for (num = 0; num <= top_of_objt; num++)
+ *   {
+ *     if (GET_OBJ_TYPE(&obj_proto[num]) != ITEM_ARMOR)
+ *       continue;
+ *
+ *     GET_OBJ_VAL(&obj_proto[num], 0) =
+ *         (GET_OBJ_VAL(&obj_proto[num], 0) / 10) + (GET_OBJ_VAL(&obj_proto[num], 0) % 10 != 0);
+ *     found++;
+ *   }
+ *   total += found;
+ *   (void)total;
+ *   send_to_char(ch, "%d converted.\r\n", found);
+ * }
+ */
 
 /* do_oconvert - Command to convert existing objects to the new (Jan 13, 2014)
  * weapon/armor type and feat system.  This command should be executed once, or can be

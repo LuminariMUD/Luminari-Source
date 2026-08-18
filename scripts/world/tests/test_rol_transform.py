@@ -21,6 +21,7 @@ from wtool_lib.rol_state_periodic_profiles import (
 from wtool_lib.rol_soc import build_soc_prototype_comparison, compile_soc_records
 from wtool_lib.rol_special import compile_special_bindings
 from wtool_lib.rol_transform import (
+    TARGET_APPLY_AC_NEW,
     convert_text,
     emit_mobile,
     emit_hlquest,
@@ -1283,6 +1284,48 @@ class RolTransformTests(unittest.TestCase):
 
     self.assertTrue(result.complete)
     self.assertEqual(5, result.records[0].sector)
+
+  def test_emitted_object_retargets_source_armor_apply_to_apply_ac_new(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nplated hauberk~\na plated hauberk~\nA plated hauberk is here.~\n~\n"
+        b"9 0 1\n0 0 0 0\n1 1 0\n0\n0\n"
+        b"A\n17 -50\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    affect = result.records[0].affects[0]
+    self.assertEqual(TARGET_APPLY_AC_NEW, affect.location)
+    self.assertEqual(5, affect.modifier)
+    self.assertEqual(23, affect.bonus_type)
+    self.assertIn(
+        "restated source armor apply -50 as APPLY_AC_NEW 5", " ".join(emitted.diagnostics)
+    )
+
+  def test_emitted_object_keeps_one_point_of_small_source_armor_apply(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nfrayed cloak~\na frayed cloak~\nA frayed cloak is here.~\n~\n"
+        b"9 0 1\n0 0 0 0\n1 1 0\n0\n0\n"
+        b"A\n17 -5\nA\n17 3\nA\n17 0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(
+        [(TARGET_APPLY_AC_NEW, 1), (TARGET_APPLY_AC_NEW, -1), (TARGET_APPLY_AC_NEW, 0)],
+        [(affect.location, affect.modifier) for affect in result.records[0].affects],
+    )
+    self.assertEqual(
+        [23, 23, 23], [affect.bonus_type for affect in result.records[0].affects]
+    )
 
   def test_emitted_object_maps_container_key_affects_and_apply(self) -> None:
     source = self._source_record(

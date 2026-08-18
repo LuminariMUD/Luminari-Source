@@ -493,6 +493,15 @@ OBJECT_WEAR_MAP = {
 # high wear bits are source corruption, not axe/pickaxe crafting slots.
 OBJECT_SOURCE_ONLY_WEAR_FLAGS = frozenset({25, 27})
 
+# Source apply 17 is RoL's "ARMOR", stated on the descending-AC scale where a
+# negative modifier is protection. The target's live armour-class apply is
+# APPLY_AC_NEW: ascending, and multiplied by ten by affect_modify
+# (src/handler.c). Target APPLY_AC (17) is deprecated -- is_valid_apply()
+# rejects it (src/utils.c) and it reaches armour class only as a tenth-scale
+# remainder -- so armour applies are retargeted rather than passed through.
+TARGET_APPLY_AC_NEW = 27
+SOURCE_ARMOR_APPLY = 17
+
 APPLY_MAP = {
     0: 0,
     1: 1,
@@ -511,7 +520,7 @@ APPLY_MAP = {
     14: 14,
     15: 15,
     16: 16,
-    17: 17,
+    17: TARGET_APPLY_AC_NEW,  # ARMOR, rescaled by _convert_armor_apply_modifier
     18: 18,
     19: 19,
     20: 20,
@@ -643,6 +652,20 @@ def _source_mask_bits(mask: int, logical_offset: int) -> set[int]:
 
 def _mapped_bits(source_bits: set[int], mapping: dict[int, int]) -> set[int]:
   return {mapping[bit] for bit in source_bits if bit in mapping}
+
+
+def _convert_armor_apply_modifier(modifier: int) -> int:
+  """Restate a source ARMOR apply as a target APPLY_AC_NEW modifier.
+
+  The source scale is descending and ten times the target scale, so the sign is
+  inverted and the magnitude is divided by ten. Any non-zero source modifier
+  keeps at least one point of effect in its converted direction, because the
+  source author expressed a deliberate armour-class change.
+  """
+  if not modifier:
+    return 0
+  magnitude = max(1, abs(modifier) // 10)
+  return -magnitude if modifier > 0 else magnitude
 
 
 def _unmapped(source_bits: set[int], mapping: dict[int, int]) -> list[int]:
@@ -1983,6 +2006,14 @@ def emit_object(
         )
         continue
       modifier = arguments[1]
+      if source_location == SOURCE_ARMOR_APPLY:
+        converted = _convert_armor_apply_modifier(modifier)
+        if converted != modifier:
+          diagnostics.append(
+              f"restated source armor apply {modifier} as APPLY_AC_NEW {converted} at "
+              f"source line {directive['line']}"
+          )
+        modifier = converted
       lines.extend(
           ["A\n", f"{location} {modifier} {OBJECT_APPLY_DEFAULT_BONUS_TYPE} 0\n"]
       )

@@ -2336,11 +2336,24 @@ int apply_ac(struct char_data *ch, int eq_pos)
   if (!(GET_OBJ_TYPE(GET_EQ(ch, eq_pos)) == ITEM_ARMOR))
     return (0);
 
+  /* Object value 0 is the armor-class apply for the five real armor slots
+     only.  Value 0 carries a different meaning for every other item type, and
+     the slot-gated penalties (compute_gear_spell_failure,
+     compute_gear_armor_penalty, compute_gear_max_dex) cover exactly these
+     positions, so armor class has to be gated the same way.  A slot outside
+     this list that should grant armor class must do it with an APPLY_AC_NEW
+     affection instead. */
   switch (eq_pos)
   {
-  default:
+  case WEAR_BODY:
+  case WEAR_HEAD:
+  case WEAR_LEGS:
+  case WEAR_ARMS:
+  case WEAR_SHIELD:
     factor = 1;
     break;
+  default:
+    return (0);
   }
 
   return (factor * GET_OBJ_VAL(GET_EQ(ch, eq_pos), 0));

@@ -958,7 +958,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   int ac_bonus = 0;
   struct obj_data *ac_piece = NULL;
 
-  if ((ac_piece = GET_EQ(ch, WEAR_BODY)) != NULL)
+  if ((ac_piece = GET_EQ(ch, WEAR_BODY)) != NULL && GET_OBJ_TYPE(ac_piece) == ITEM_ARMOR)
   {
     switch (GET_OBJ_MATERIAL(ac_piece))
     {
@@ -975,7 +975,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
                     get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
   }
-  if ((ac_piece = GET_EQ(ch, WEAR_HEAD)) != NULL)
+  if ((ac_piece = GET_EQ(ch, WEAR_HEAD)) != NULL && GET_OBJ_TYPE(ac_piece) == ITEM_ARMOR)
   {
     switch (GET_OBJ_MATERIAL(ac_piece))
     {
@@ -992,7 +992,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
                     get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
   }
-  if ((ac_piece = GET_EQ(ch, WEAR_ARMS)) != NULL)
+  if ((ac_piece = GET_EQ(ch, WEAR_ARMS)) != NULL && GET_OBJ_TYPE(ac_piece) == ITEM_ARMOR)
   {
     switch (GET_OBJ_MATERIAL(ac_piece))
     {
@@ -1009,7 +1009,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4),
                     get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
   }
-  if ((ac_piece = GET_EQ(ch, WEAR_LEGS)) != NULL)
+  if ((ac_piece = GET_EQ(ch, WEAR_LEGS)) != NULL && GET_OBJ_TYPE(ac_piece) == ITEM_ARMOR)
   {
     switch (GET_OBJ_MATERIAL(ac_piece))
     {
@@ -1030,7 +1030,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   // important! We're dividing the total bonuses from body, head, arms and legs by 4.  Then we add shield at the end.
   ac_bonus /= 4;
 
-  if ((ac_piece = GET_EQ(ch, WEAR_SHIELD)) != NULL)
+  if ((ac_piece = GET_EQ(ch, WEAR_SHIELD)) != NULL && GET_OBJ_TYPE(ac_piece) == ITEM_ARMOR)
   {
     switch (GET_OBJ_MATERIAL(ac_piece))
     {

@@ -73,6 +73,8 @@ write. The notes here cover the cases that behave unusually:
 
 ### Armor (`ITEM_ARMOR` and `ITEM_CLANARMOR`)
 - Normal armor takes its subtype at `Value2` (`value[1]`) and auto-fills AC, size, material, and wear flags via `set_armor_object()`.
+- `Value1` (`value[0]`) is the AC-apply, in tenths of an armor-class point: `armor_list[].armorBonus` is stored that way and players see it divided by ten.
+- The AC-apply counts only when the piece is worn on `WEAR_SHIELD`, `WEAR_HEAD`, `WEAR_BODY`, `WEAR_ARMS`, or `WEAR_LEGS` (`apply_ac()`, `src/handler.c`). On any other slot it is ignored - give those slots armor class with an `APPLY_AC_NEW` affection instead. Those same five slots are the ones charged armor check penalty, spell failure, and the max-dex cap (`src/combat/assign_wpn_armor.c`).
 - Clan armor uses that same slot for the clan vnum instead. The value must identify an existing clan.
 - Both armor types collect an enhancement bonus at `Value5` (`value[4]`).
 

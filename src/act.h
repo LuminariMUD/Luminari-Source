@@ -1166,7 +1166,7 @@ ACMD_DECL(do_genmap);
 ACMD_DECL(do_genriver);
 ACMD_DECL(do_deletepath);
 ACMD_DECL(do_oconvert);
-ACMD_DECL(do_acconvert);
+/* ACMD_DECL(do_acconvert); disabled one-shot 2014 AC migration, see act.wizard.c */
 ACMD_DECL(do_findmagic);
 ACMD_DECL(do_cmdlev);
 ACMD_DECL(do_obind);
