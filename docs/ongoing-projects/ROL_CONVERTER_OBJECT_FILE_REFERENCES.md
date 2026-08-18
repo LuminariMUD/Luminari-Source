@@ -18,8 +18,17 @@ passes it through, so armor type is effectively random.
 
 In the corpus, 2426 of 2527 armor records carry warmth 0, so most converted
 armor lands on `armor_list[0]`; the remaining 101 spread across 19 further
-values up to 60. A real fix needs a source-to-target armor type mapping,
-probably inferred from wear slot and AC.
+values up to 60. A real fix needs a source-to-target armor type mapping.
+
+Proposal and corpus analysis:
+[ROL_CONVERTER_ARMOR_TYPE_INFERENCE.md](ROL_CONVERTER_ARMOR_TYPE_INFERENCE.md).
+Two findings there change this item's scope. `SPEC_ARMOR_TYPE_*` is a 13-family
+by 4-slot grid running to 58 entries, so the slot is deterministic from the wear
+mask and only the family needs inference -- a 13-way decision. And `armor_list[]`
+covers only BODY, HEAD, ARMS, LEGS, and SHIELD, so just 1157 of the records are
+eligible; the other 1366 sit on slots with no armor semantics at all and are
+proposed as separate Item 3.2b. Inferring from AC is specifically ruled out
+there.
 
 ## 3.3 Weapon type index is populated from the source proc value
 
@@ -32,8 +41,14 @@ corpus weapons. Converted weapons therefore land on `weapon_list[0]`, which is
 `WEAPON_TYPE_UNDEFINED`.
 
 Damage dice survive, because both formats carry them in values 1 and 2, so
-converted weapons deal correct damage with an undefined weapon profile. A fix
-needs a dice-and-verb to weapon-type inference table.
+converted weapons deal correct damage with an undefined weapon profile.
+
+That last sentence is wrong, and the correction matters:
+`MAX_WEAPON_NDICE 2` / `MAX_WEAPON_SDICE 12` (`src/olc/oasis.h`) are enforced at
+load (`src/db.c:5162`) and flatten 30% of the corpus to a common 2d12 ceiling.
+With dice capped uniformly, `weapon_list[]` is where nearly all surviving weapon
+differentiation lives. Proposal, corpus analysis, and the full correction list:
+[ROL_CONVERTER_WEAPON_TYPE_INFERENCE.md](ROL_CONVERTER_WEAPON_TYPE_INFERENCE.md).
 
 ## 3.4 Primary and `*_MAX` stat applies convert 1:1 on the D20 scale
 
