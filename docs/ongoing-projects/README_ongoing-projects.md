@@ -14,11 +14,13 @@ deleted.
 
 ## Current contents
 
-Statuses below were re-verified against the source tree on 2026-08-17. Most retained legacy notes
-are grouped in [`todo-zusuk/`](todo-zusuk/); current cross-cutting plans may live beside this index.
+Retained legacy statuses were re-verified against the source tree on 2026-08-17. Newer entries carry
+their own analysis dates. Most retained legacy notes are grouped in
+[`todo-zusuk/`](todo-zusuk/); current cross-cutting plans may live beside this index.
 
 | Document | Status | What remains |
 |----------|--------|--------------|
+| [CAMPAIGN_VARIANT_REMOVAL_SCOPE.md](CAMPAIGN_VARIANT_REMOVAL_SCOPE.md) | Scoped; implementation not started | Remove the compile-time FR/DL variants, the separate runtime campaign selector, fork-only routing and metadata, campaign-header build/setup dependencies, and obsolete documentation while preserving current Luminari behavior and persisted identifiers. |
 | [PERFMON_PRODUCTION_STATUS.md](PERFMON_PRODUCTION_STATUS.md) | Production acceptance in progress | Correct registry discrepancies, remove the remaining zone/save tails, control reset-driven entity growth, and retain a complete inter-copyover capture. |
 | [OBJ_FILE_FORMAT_MAPPING.md](OBJ_FILE_FORMAT_MAPPING.md) | Research complete | Field-by-field reference for the Luminari and Realms of Luminari `.obj` formats, traced to their loaders and writers, with a side-by-side comparison and the conversion hazards that follow from it. Reference material for the RoL converter work; nothing to implement here. |
 | [ROL_CONVERTER_OBJECT_FILE_REFERENCES.md](ROL_CONVERTER_OBJECT_FILE_REFERENCES.md) | Released and applied to the dev world; gap list open | Object-conversion file index, six fidelity fixes made by auditing the converter against [OBJ_FILE_FORMAT_MAPPING.md](OBJ_FILE_FORMAT_MAPPING.md), the Phase 7/8 release that applied them, and eleven remaining gaps. Highest-impact open items are armor AC scale, armor type index, and weapon type index, each of which needs a balance decision rather than a format correction. |
