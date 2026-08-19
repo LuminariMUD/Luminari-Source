@@ -124,26 +124,28 @@ SPECIAL(jot_invasion_loader)
     }
   }
 
-  /* soldiers to glammad */
-  for (i = 0; i < 2; i++)
+  /* soldiers to glammad.  Resolve the destination before creating anything so a
+   * missing room cannot strand a freshly loaded mobile outside the world. */
+  if ((roomrnum = real_room(jot_converter(204))) != NOWHERE)
   {
-    mob = read_mobile(jot_converter(78), VIRTUAL);
-    obj = read_object(jot_converter(17), VIRTUAL);
-    if (obj && mob)
+    for (i = 0; i < 2; i++)
     {
-      obj_to_char(obj, mob);
-      perform_wield(mob, obj, TRUE);
-      if ((roomrnum = real_room(jot_converter(204))) != NOWHERE)
+      if ((mob = read_mobile(jot_converter(78), VIRTUAL)) == NULL)
+        continue;
+
+      char_to_room(mob, roomrnum);
+      if ((obj = read_object(jot_converter(17), VIRTUAL)) != NULL)
       {
-        char_to_room(mob, roomrnum);
-        SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
-        REMOVE_BIT_AR(MOB_FLAGS(mob), MOB_LISTEN);
-        if (glammad)
-        {
-          add_follower(mob, glammad);
-          if (!GROUP(mob))
-            join_group(mob, GROUP(glammad));
-        }
+        obj_to_char(obj, mob);
+        perform_wield(mob, obj, TRUE);
+      }
+      SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
+      REMOVE_BIT_AR(MOB_FLAGS(mob), MOB_LISTEN);
+      if (glammad)
+      {
+        add_follower(mob, glammad);
+        if (!GROUP(mob))
+          join_group(mob, GROUP(glammad));
       }
     }
   }
@@ -230,13 +232,15 @@ SPECIAL(jot_invasion_loader)
     }
   }
   /* citadel guards join the group */
-  if (roomrnum != NOWHERE)
+  if ((roomrnum = real_room(jot_converter(266))) != NOWHERE)
   {
     for (i = 0; i < 8; i++)
     {
-      mob = read_mobile(jot_converter(33), VIRTUAL);
-      obj = read_object(jot_converter(28), VIRTUAL);
-      if (mob && obj)
+      if ((mob = read_mobile(jot_converter(33), VIRTUAL)) == NULL)
+        continue;
+
+      char_to_room(mob, roomrnum);
+      if ((obj = read_object(jot_converter(28), VIRTUAL)) != NULL)
       {
         obj_to_char(obj, mob);
         perform_wield(mob, obj, TRUE);
@@ -247,7 +251,6 @@ SPECIAL(jot_invasion_loader)
         where = find_eq_pos(mob, obj2, 0);
         perform_wear(mob, obj2, where);
       }
-      char_to_room(mob, roomrnum);
       if (leader)
       {
         add_follower(mob, leader);
@@ -288,13 +291,15 @@ SPECIAL(jot_invasion_loader)
     }
   }
   /* citadel guards join the group */
-  if (roomrnum != NOWHERE)
+  if ((roomrnum = real_room(jot_converter(252))) != NOWHERE)
   {
     for (i = 0; i < 5; i++)
     {
-      mob = read_mobile(jot_converter(33), VIRTUAL);
-      obj = read_object(jot_converter(28), VIRTUAL);
-      if (mob && obj)
+      if ((mob = read_mobile(jot_converter(33), VIRTUAL)) == NULL)
+        continue;
+
+      char_to_room(mob, roomrnum);
+      if ((obj = read_object(jot_converter(28), VIRTUAL)) != NULL)
       {
         obj_to_char(obj, mob);
         perform_wield(mob, obj, TRUE);
@@ -305,7 +310,6 @@ SPECIAL(jot_invasion_loader)
         where = find_eq_pos(mob, obj2, 0);
         perform_wear(mob, obj2, where);
       }
-      char_to_room(mob, roomrnum);
       if (leader)
       {
         add_follower(mob, leader);

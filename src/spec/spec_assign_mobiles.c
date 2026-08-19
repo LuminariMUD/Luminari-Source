@@ -273,6 +273,7 @@ void assign_mobiles(void)
   ASSIGNMOB(106000, cf_alathar);        // lord alathar
 
   /* Jotunheim */
+  ASSIGNMOB(196200, jot_invasion_loader);
   ASSIGNMOB(196027, thrym);
   ASSIGNMOB(196077, planetar);
   ASSIGNMOB(196070, ymir);

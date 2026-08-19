@@ -2,6 +2,26 @@
 
 ## [Unreleased] - August 14, 2026
 
+### Jotunheim invasion
+
+#### Fixed
+
+- Assigned `jot_invasion_loader` to mobile 196200. The world data was complete -- the
+  JOT INVASION LOADER mobile exists with the SPEC flag set and `lib/world/zon/1960.zon`
+  stages it into room 196297 at boot on a 6 percent roll, alongside Glammad, the fire giant
+  captains, and Sirthon Quilen -- but no `ASSIGNMOB` ever bound the procedure. On the boots
+  where the loader spawned, `mob_index[rnum].func` was NULL, so the SPEC flag was stripped
+  with a "no special procedure assigned" error and the invasion never ran. The fire giant
+  equivalent (`fg_invasion_loader`, mobile 34699) was wired up correctly; the Jotunheim one
+  was not.
+- Hardened `jot_invasion_loader`, which had never executed. The two citadel guard loops
+  dereferenced a possibly NULL mobile in `obj_to_char()`, `find_eq_pos()`, `perform_wear()`,
+  and `char_to_room()`, and reached their destination through a `roomrnum` left over from an
+  earlier block rather than resolving room 196266 or 196252 themselves. The soldier loop
+  could also load a mobile and never place it when its weapon failed to load. Each loop now
+  resolves its room up front, skips an iteration whose mobile did not load, and places the
+  mobile before equipping it.
+
 ### Build identity and login profiling
 
 #### Fixed
