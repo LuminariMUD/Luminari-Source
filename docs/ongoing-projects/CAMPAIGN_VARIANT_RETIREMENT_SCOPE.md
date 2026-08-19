@@ -1,6 +1,6 @@
 # Campaign Variant Retirement Scope
 
-Status: implementation in progress
+Status: implementation complete; pending review and merge
 
 Analysis date: 2026-08-19
 
@@ -13,10 +13,10 @@ Supersedes: `CAMPAIGN_VARIANT_REMOVAL_SCOPE.md`
 - [x] Retired compile-time definitions and branches removed.
 - [x] Retired runtime selection and campaign-routed data removed.
 - [x] Build, setup, tests, tooling, and current documentation cleaned.
-- [ ] Full verification and local smoke test completed.
+- [x] Full verification and local smoke test completed.
 
-Last checkpoint: 2026-08-20. The compiler-led source retirement and repository cleanup are green.
-Fresh CMake verification and the local boot smoke test remain.
+Last checkpoint: 2026-08-20. Implementation and verification are complete on
+`codex/retire-campaign-variants`; only review and merge remain.
 
 ### Source-retirement checkpoint
 
@@ -53,6 +53,20 @@ Fresh CMake verification and the local boot smoke test remain.
 - A second clean Autotools build passed with `-Wall -Wextra` and no warnings. The full
   production-linked suite again passed all 778 tests, and `make install` removed the root-level
   `circle` artifact.
+
+### Final-verification checkpoint
+
+- Exact active-tree searches found no retired compile/runtime campaign identifiers, misspellings,
+  parser fields, selectors, routing symbols, or artifact availability bits. Protected local
+  headers, the two scope notes, and historical changelogs were excluded as required.
+- Broad lore review retained only active content, persisted special-procedure names, historical
+  inspiration, and explicitly reference-only comparison material.
+- A fresh out-of-tree CMake configure and GNU C23 build completed successfully.
+- The installed binary completed a full development world boot under `autorun.sh`, reached the
+  game loop, and passed the Kohdee account login, world entry, character logout, and account logout
+  smoke test in five seconds.
+- The root-level `circle` artifact is absent, protected local configuration is unmodified, and
+  `docs/CHANGELOG.md` records the retirement.
 
 ### Baseline evidence
 

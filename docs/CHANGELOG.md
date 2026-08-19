@@ -2,6 +2,29 @@
 
 ## [Unreleased] - August 14, 2026
 
+### Campaign variant retirement
+
+#### Changed
+
+- Retired the DragonLance and Forgotten Realms implementations from this repository. More than
+  10,000 lines of compile-time branches, runtime selection, campaign-only routing and transport,
+  artifact metadata, setup choices, tests, and supporting data were removed. Luminari behavior is
+  now ordinary code rather than the fallback branch of a three-campaign build.
+- Removed the runtime campaign setting and CEDIT selector, the deployment campaign prompt and
+  target switch, and the world constants tool's retired-branch preprocessor. Fresh setup now
+  creates only the local Luminari feature configuration.
+- Removed the unused alternate newbie-equipment implementation and example VNUM catalog. Retired
+  race numbers remain reserved under `LEGACY_RACE_*` names to preserve persisted identifiers.
+- Deleted the obsolete campaign-system architecture guide and cleaned current technical,
+  environment, testing, and contributor documentation. Historical changelogs and intentional
+  setting lore remain unchanged.
+
+#### Verification
+
+- Passed a clean warning-free GNU C23 Autotools build, all 778 production-linked CuTests, all 454
+  world-tool tests, `make install`, a fresh out-of-tree CMake build, a full local `autorun.sh` boot,
+  and the Kohdee account login/world-entry/logout smoke test.
+
 ### Jotunheim invasion
 
 #### Fixed
