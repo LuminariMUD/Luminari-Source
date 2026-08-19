@@ -16,6 +16,7 @@ apply help_character_backgrounds.sql
 apply help_command_sweep_entries.sql
 apply help_intermud3_entries.sql
 apply help_necromancer_entries.sql
+apply help_oedit_values_armor_ac.sql
 apply help_rol_object_trap_entries.sql
 apply help_specproc_entries.sql
 apply help_system_indexes.sql
