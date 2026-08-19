@@ -72,6 +72,15 @@ ensure_index_entry()
   fi
 
   awk -v entry="$entry" '
+    BEGIN {
+      entry_number = entry + 0
+    }
+    # index order is the rnum order, and the world lookups binary-search it, so
+    # the new entry has to land in ascending vnum position, not at the end.
+    !inserted && /^[0-9]+\./ && ($0 + 0) > entry_number {
+      print entry
+      inserted = 1
+    }
     $0 == "$" && !inserted {
       print entry
       inserted = 1
