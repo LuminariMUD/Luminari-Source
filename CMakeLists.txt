@@ -506,6 +506,7 @@ set(SRC_C_FILES
     src/magic/domain_powers.c
     src/magic/domains_schools.c
     src/dotenv.c
+    src/elf_build_id.c
     src/combat/encounters.c
     src/character/evolutions.c
     src/character/feats.c
@@ -1161,6 +1162,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_bardic_performance.c
     unittests/CuTest/test_spells_skills_production.c
     unittests/CuTest/test_perfmon_production.c
+    unittests/CuTest/test_elf_build_id.c
     unittests/CuTest/test_vessel_events.c
     unittests/CuTest/test_vessel_tactical.c
     unittests/CuTest/test_vessel_lookout.c

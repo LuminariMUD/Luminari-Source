@@ -534,7 +534,9 @@ void assign_mobiles(void)
   ASSIGNMOB(125984, bank);
 
   /*Thunderholme*/
-  ASSIGNMOB(110600, shadowdragon);
+  /* Aurgloroasa (110600) is a shadow dragon that became a dracolich; the
+   * dracolich_mob assignment below is the effective one.  The shadowdragon
+   * callback was silently overwritten here, so it is no longer assigned. */
 
   /* Mercenaries */
   ASSIGNMOB(104300, mercenary);

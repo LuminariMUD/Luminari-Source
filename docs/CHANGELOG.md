@@ -2,6 +2,28 @@
 
 ## [Unreleased] - August 14, 2026
 
+### Build identity and login profiling
+
+#### Fixed
+
+- The startup `Build identity` line now derives `elf_build_id` from the GNU build ID note in
+  the image that is actually running, rather than trusting `LUMINARI_ELF_BUILD_ID` from the
+  environment. Copyover uses `execl()`, which preserves the launching release's environment,
+  so after a copyover the line reported the previous binary's build ID alongside the new
+  release's git commit. The inherited value is now only a fallback, the environment variable
+  is refreshed for later execs, and a mismatch is logged. New module: `src/elf_build_id.c`.
+- Removed the `shadowdragon` special-procedure assignment for mobile 110600 (Aurgloroasa).
+  A later `dracolich_mob` assignment for the same VNUM silently overwrote it, so the
+  callback was never reachable; `dracolich_mob` remains the effective handler and runtime
+  behavior is unchanged.
+
+#### Added
+
+- Profiling sections on the login recovery path (`login.enter_game`, `login.load_pets`,
+  `login.init_classes`, and `load.crash_objects`), so the pulse-latency traces that fire
+  during crash-save recovery attribute the time instead of leaving it inside the broad
+  `Process Commands` section.
+
 ### World validator reachability accuracy
 
 #### Changed

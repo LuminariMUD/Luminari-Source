@@ -100,6 +100,7 @@
 #include "wilderness/wilderness.h"
 #include "magic/spell_prep.h"
 #include "perfmon.h"
+#include "elf_build_id.h"
 #include "mysql.h"
 #include "net/onboarding.h"
 #include "roleplay.h"
@@ -267,6 +268,7 @@ int main(int argc, char **argv)
   const char *config_file = NULL;
   const char *dir = NULL;
   const char *elf_build_id;
+  const char *inherited_build_id;
   const char *logname_override;
   char *owned_logname;
 
@@ -453,12 +455,26 @@ int main(int argc, char **argv)
    * in the log if stderr is redirected to a file. */
   log("Loading configuration.");
   log("%s", luminari_version);
-  elf_build_id = getenv("LUMINARI_ELF_BUILD_ID");
+  /* Prefer the note carried by the image we are actually executing.  The
+   * inherited environment is only a fallback, because copyover's execl() keeps
+   * the launching release's LUMINARI_ELF_BUILD_ID. */
+  elf_build_id = get_self_elf_build_id();
+  inherited_build_id = getenv("LUMINARI_ELF_BUILD_ID");
+  if (elf_build_id == NULL)
+    elf_build_id = inherited_build_id;
   if (elf_build_id == NULL || *elf_build_id == '\0' || strlen(elf_build_id) > 128 ||
       strspn(elf_build_id, "0123456789abcdefABCDEF") != strlen(elf_build_id))
     elf_build_id = "unavailable";
+  else
+    /* Keep the environment coherent for anything we exec later, including the
+     * next copyover generation. */
+    setenv("LUMINARI_ELF_BUILD_ID", elf_build_id, 1);
   log("Build identity: git_commit=%s git_dirty=%d elf_build_id=%s", luminari_build_git_commit,
       luminari_build_git_dirty ? 1 : 0, elf_build_id);
+  if (inherited_build_id != NULL && *inherited_build_id != '\0' &&
+      strcmp(inherited_build_id, elf_build_id) != 0)
+    log("Info: Inherited LUMINARI_ELF_BUILD_ID=%s did not match the running executable.",
+        inherited_build_id);
 
   if (dir == NULL || *dir == '\0')
   {

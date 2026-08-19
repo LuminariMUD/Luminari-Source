@@ -1048,7 +1048,13 @@ void Crash_listrent(struct char_data *ch, char *name)
  *  2 - rented equipment lost (no $) */
 int Crash_load(struct char_data *ch)
 {
-  return (Crash_load_objs(ch));
+  int result = 0;
+
+  PERF_PROF_ENTER_SAMPLED(pr_crash_object_load_, "load.crash_objects");
+  result = Crash_load_objs(ch);
+  PERF_PROF_EXIT(pr_crash_object_load_);
+
+  return result;
 }
 
 /* recursive function using linked lists to go through object lists to save

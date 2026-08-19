@@ -37,6 +37,7 @@
 #include "obj/house.h"
 #include "config.h"
 #include "modify.h" /* for do_skillset... */
+#include "perfmon.h"
 #include "quest/quest.h"
 #include "quest/hlquest.h"
 #include "asciimap.h"
@@ -7022,6 +7023,8 @@ int enter_player_game(struct descriptor_data *d)
   int i = 0;
   char char_title[MAX_TITLE_LENGTH];
 
+  PERF_PROF_ENTER_SAMPLED(pr_enter_player_game_, "login.enter_game");
+
   reset_char(d->character);
 
   if (d->character->bags == NULL)
@@ -7068,7 +7071,9 @@ int enter_player_game(struct descriptor_data *d)
   create_group(d->character);
 
   /* load up their pets, new system by gicksta */
+  PERF_PROF_ENTER_SAMPLED(pr_login_load_pets_, "login.load_pets");
   load_char_pets(d->character);
+  PERF_PROF_EXIT(pr_login_load_pets_);
 
   // /* Save the character and their object file */
   // save_char(d->character, 0);
@@ -7100,11 +7105,13 @@ int enter_player_game(struct descriptor_data *d)
   wildshape_return(d->character);
 
   /* make sure we assign any new spells */
+  PERF_PROF_ENTER_SAMPLED(pr_login_init_classes_, "login.init_classes");
   for (i = 0; i < NUM_CLASSES; i++)
   {
     if (CLASS_LEVEL(d->character, i))
       init_class(d->character, i, CLASS_LEVEL(d->character, i));
   }
+  PERF_PROF_EXIT(pr_login_init_classes_);
 
 #if defined(CAMPAIGN_FR)
   if (!race_list[GET_REAL_RACE(d->character)].is_pc)
@@ -7145,6 +7152,7 @@ int enter_player_game(struct descriptor_data *d)
   init_condensed_combat_data(d->character);
 
   /* all done! */
+  PERF_PROF_EXIT(pr_enter_player_game_);
   return load_result;
 }
 
