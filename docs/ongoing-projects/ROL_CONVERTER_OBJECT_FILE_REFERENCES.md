@@ -32,22 +32,25 @@ there.
 
 ## 3.3 Weapon type index is populated from the source proc value
 
-**Severity: high. 1319 records.**
+**Status: resolved. 1319 records classified.**
 
 Target weapon value 0 must be an index into `weapon_list[]`, which supplies
 crit range, crit multiplier, damage types, weapon family, range, and
 proficiency. Source weapon value 0 is a proc-value hook, 0 in 1305 of 1319
-corpus weapons. Converted weapons therefore land on `weapon_list[0]`, which is
-`WEAPON_TYPE_UNDEFINED`.
-
-Damage dice survive, because both formats carry them in values 1 and 2, so
-converted weapons deal correct damage with an undefined weapon profile.
-
-That last sentence is wrong, and the correction matters:
+corpus weapons, so every converted weapon used to land on `weapon_list[0]`,
+which is `WEAPON_TYPE_UNDEFINED`. Damage dice do not compensate:
 `MAX_WEAPON_NDICE 2` / `MAX_WEAPON_SDICE 12` (`src/olc/oasis.h`) are enforced at
-load (`src/db.c:5162`) and flatten 30% of the corpus to a common 2d12 ceiling.
-With dice capped uniformly, `weapon_list[]` is where nearly all surviving weapon
-differentiation lives. Proposal, corpus analysis, and the full correction list:
+load (`src/db.c:5162`) and flatten 401 of the 1319 records onto a common 2d12
+ceiling, which is what makes `weapon_list[]` carry nearly all surviving weapon
+differentiation.
+
+`scripts/world/wtool_lib/rol_weapon_mapping.py` now infers the type from a
+curated override catalog, an ordered keyword rule engine, and a mechanical
+verb-and-handedness fallback matrix; `emit_object()` writes the result into
+value 0. All 1319 active source weapons resolve to a defined type in 1..79,
+across 43 distinct `WEAPON_TYPE_*` values, and none to a ranged type. Remaining
+follow-on work -- builder validation, the downstream `G`/`H`/`I` extension
+blocks, and the `value[4]` enhancement-bonus question -- is tracked in
 [ROL_CONVERTER_WEAPON_TYPE_INFERENCE.md](ROL_CONVERTER_WEAPON_TYPE_INFERENCE.md).
 
 ## 3.4 Primary and `*_MAX` stat applies convert 1:1 on the D20 scale

@@ -19,6 +19,7 @@ from .rol_mobile_identity import (
     select_mobile_conversion,
 )
 from .rol_source import RolRecord
+from .rol_weapon_mapping import SOURCE_ITEM_TYPE_WEAPON, infer_weapon_type
 
 
 _TARGET_MAGIC_ITEM_TYPES = frozenset({2, 3, 4, 10})
@@ -1949,6 +1950,22 @@ def emit_object(
           f"disabled special-procedure reference {target_kind} {source_value} "
           f"in object value slot {slot}: {error}"
       )
+  if source_type == SOURCE_ITEM_TYPE_WEAPON:
+    # Source value[0] is a proc hook, target value[0] is an index into
+    # weapon_list[]. Passing it through lands every converted weapon on
+    # WEAPON_TYPE_UNDEFINED, which disables criticals, empties the damage-type
+    # bitmask so damage reduction never bypasses, and matches no weapon family.
+    # Infer from the untouched source record: _object_values() has already
+    # rewritten values[3] into the target damage-message id, so the source verb
+    # is no longer recoverable from this list.
+    if any(slot == 0 for slot, _ in required_value_references):
+      diagnostics.append(
+          "replaced a special-procedure reference in object value slot 0 with "
+          "the inferred weapon type"
+      )
+    inference = infer_weapon_type(record)
+    values[0] = inference.weapon_type
+    diagnostics.append(inference.diagnostic)
   trap_values = _object_trap_values(record, values, diagnostics)
   if trap_values is not None:
     target_extra.add(ROL_OBJECT_TRAP_EXTRA_BIT)
