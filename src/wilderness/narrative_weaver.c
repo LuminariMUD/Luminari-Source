@@ -27,7 +27,6 @@
 #include "narrative_weaver.h"
 #include "resource_system.h"
 
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
 
 /* External function declarations */
 extern struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y);
@@ -4727,5 +4726,3 @@ char *enhanced_wilderness_description_unified(struct char_data *ch, room_rnum ro
                       x, y);
   return base_desc;
 }
-
-#endif

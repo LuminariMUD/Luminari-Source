@@ -190,7 +190,6 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->player_config.level_21_30_summon_ac = CONFIG_SUMMON_LEVEL_21_30_AC;
 
   // Extra game data
-  OLC_CONFIG(d)->extra.campaign = CONFIG_CAMPAIGN;
   OLC_CONFIG(d)->extra.bag_system = CONFIG_BAG_SYSTEM;
   OLC_CONFIG(d)->extra.crafting_system = CONFIG_CRAFTING_SYSTEM;
   OLC_CONFIG(d)->extra.landmarks_system = CONFIG_LANDMARK_SYSTEM;
@@ -374,7 +373,6 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_SUMMON_LEVEL_21_30_AC = OLC_CONFIG(d)->player_config.level_21_30_summon_ac;
 
   // extra game data
-  CONFIG_CAMPAIGN = OLC_CONFIG(d)->extra.campaign;
   CONFIG_BAG_SYSTEM = OLC_CONFIG(d)->extra.bag_system;
   CONFIG_CRAFTING_SYSTEM = OLC_CONFIG(d)->extra.crafting_system;
   CONFIG_LANDMARK_SYSTEM = OLC_CONFIG(d)->extra.landmarks_system;
@@ -975,11 +973,6 @@ int save_config(IDXTYPE nowhere __attribute__((unused)))
 
   // extra game data
   fprintf(fl,
-          "* Which campaign does the game use? Note that changing this without the proper support "
-          "files in place could cause the game to break\n"
-          "campaign_setting = %d\n\n",
-          CONFIG_CAMPAIGN);
-  fprintf(fl,
           "* Which bag system do you want to use?\n"
           "bag_system = %d\n\n",
           CONFIG_BAG_SYSTEM);
@@ -1371,25 +1364,23 @@ static void cedit_disp_extra_game_play_options(struct descriptor_data *d)
 
   write_to_output(d,
                   "\r\n\r\n"
-                  "%sA%s) Campaign Setting               : %s%s\r\n"
-                  "%sB%s) Choose Bag System              : %s%s\r\n"
-                  "%sC%s) Choose Crafting System         : %s%s\r\n"
-                  "%sD%s) Choose Walkto System           : %s%s\r\n"
-                  "%sE%s) Choose New Player Gear         : %s%s\r\n"
-                  "%sF%s) Allow CExchange Command?       : %s%s\r\n"
-                  "%sG%s) Wilderness System              : %s%s\r\n"
-                  "%sH%s) Allow Exp on Melee Hits        : %s%s\r\n"
-                  "%sI%s) Allow Exp on Spells Cast       : %s%s\r\n"
-                  "%sJ%s) Use Arcane Moon Phases         : %s%s\r\n"
-                  "%sK%s) Spellcasting Time Mode         : %s%s\r\n"
-                  "%sL%s) Vessel System                  : %s%s\r\n"
-                  "%sM%s) Auto-Download MUDlet Package?  : %s%s\r\n"
+                  "%sA%s) Choose Bag System              : %s%s\r\n"
+                  "%sB%s) Choose Crafting System         : %s%s\r\n"
+                  "%sC%s) Choose Walkto System           : %s%s\r\n"
+                  "%sD%s) Choose New Player Gear         : %s%s\r\n"
+                  "%sE%s) Allow CExchange Command?       : %s%s\r\n"
+                  "%sF%s) Wilderness System              : %s%s\r\n"
+                  "%sG%s) Allow Exp on Melee Hits        : %s%s\r\n"
+                  "%sH%s) Allow Exp on Spells Cast       : %s%s\r\n"
+                  "%sI%s) Use Arcane Moon Phases         : %s%s\r\n"
+                  "%sJ%s) Spellcasting Time Mode         : %s%s\r\n"
+                  "%sK%s) Vessel System                  : %s%s\r\n"
+                  "%sL%s) Auto-Download MUDlet Package?  : %s%s\r\n"
                   "\r\n"
                   "%sQ%s) Exit To The Main Menu\r\n"
                   "Enter your choice : ",
 
-                  grn, nrm, cyn, campaigns[OLC_CONFIG(d)->extra.campaign], grn, nrm, cyn,
-                  bag_system_options[OLC_CONFIG(d)->extra.bag_system], grn, nrm, cyn,
+                  grn, nrm, cyn, bag_system_options[OLC_CONFIG(d)->extra.bag_system], grn, nrm, cyn,
                   crafting_system_options[OLC_CONFIG(d)->extra.crafting_system], grn, nrm, cyn,
                   landmark_system_options[OLC_CONFIG(d)->extra.landmarks_system], grn, nrm, cyn,
                   new_player_gear_options[OLC_CONFIG(d)->extra.new_player_gear], grn, nrm, cyn,
@@ -2151,18 +2142,6 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     {
     case 'a':
     case 'A':
-      write_to_output(
-          d, "Enter the desired campaign setting for the MUD Note that you should not change this "
-             "unless you know what you're doing as it could break the MUD:\r\n");
-      for (i = 0; i < NUM_CAMPAIGN_SETTINGS; i++)
-      {
-        write_to_output(d, "%d) %s\n", i + 1, campaigns[i]);
-      }
-      OLC_MODE(d) = CEDIT_SET_CAMPAIGN;
-      return;
-
-    case 'b':
-    case 'B':
       write_to_output(d, "Enter the desired bag system:\r\n");
       write_to_output(d, "Containers use physical objects to put other objects into.\r\n");
       write_to_output(d, "Virtual bags essentially give players 10 additonal inventories to sort "
@@ -2174,8 +2153,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_BAG_SYSTEM;
       return;
 
-    case 'c':
-    case 'C':
+    case 'b':
+    case 'B':
       write_to_output(d, "Enter the desired crafting system:\r\n");
       write_to_output(d, "Crafting kits are a physical item which molds, materials and a crystal "
                          "must be put into. Stats are limited to what is tied to the crystal.\r\n");
@@ -2190,8 +2169,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_CRAFTING_SYSTEM;
       return;
 
-    case 'd':
-    case 'D':
+    case 'c':
+    case 'C':
       write_to_output(d, "Enter the desired walkto/landmark system:\r\n");
       write_to_output(
           d, "Cities only limits walkto to go to landmarks within supporting citites.\r\n");
@@ -2204,8 +2183,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_LANDMARK_SYSTEM;
       return;
 
-    case 'e':
-    case 'E':
+    case 'd':
+    case 'D':
       write_to_output(d, "Enter the desired new player gear option:\r\n");
       write_to_output(d, "Luminari style adds a teleporter and crafting kit, plus uses shared "
                          "items and limited armor.\r\n");
@@ -2218,8 +2197,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_NEW_PLAYER_GEAR;
       return;
 
-    case 'f':
-    case 'F':
+    case 'e':
+    case 'E':
       write_to_output(d, "Do you wish to allow the cexchab=nge command?\r\n");
       write_to_output(d, "Cexhcnage allows a playere to convert experience, gold, quest points, "
                          "etc between each other. So exp for gold, gold for qp, etc.\r\n");
@@ -2230,8 +2209,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_ALLOW_CEXCHANGE;
       return;
 
-    case 'g':
-    case 'G':
+    case 'f':
+    case 'F':
       write_to_output(d, "What kind of wilderness system do you use??\r\n");
       write_to_output(d, "None/Roads only means you have no grid-like, ASCII wilderness system, "
                          "and connect zones by roads.\r\n");
@@ -2246,8 +2225,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_WILDERNESS_SYSTEM;
       return;
 
-    case 'h':
-    case 'H':
+    case 'g':
+    case 'G':
       write_to_output(d, "How much experience should be granted for melee hits?\r\n");
       write_to_output(d, "Full: Normal experience gain from melee attacks.\r\n");
       write_to_output(d, "Reduced: Diminished experience gain from melee attacks.\r\n");
@@ -2259,8 +2238,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_MELEE_EXP;
       return;
 
-    case 'i':
-    case 'I':
+    case 'h':
+    case 'H':
       write_to_output(d, "How much experience should be granted for casting spells?\r\n");
       write_to_output(d, "Full: Normal experience gain from spell casting.\r\n");
       write_to_output(d, "Reduced: Diminished experience gain from spell casting.\r\n");
@@ -2272,8 +2251,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_SPELL_CAST_EXP;
       return;
 
-    case 'j':
-    case 'J':
+    case 'i':
+    case 'I':
       write_to_output(d, "Do you wish to enable arcane moon phase bonus spells?\r\n");
       write_to_output(
           d, "When enabled, arcane casters gain bonuses depending on the phase of the moons.\r\n");
@@ -2283,8 +2262,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_ARCANE_MOON_PHASES;
       return;
 
-    case 'k':
-    case 'K':
+    case 'j':
+    case 'J':
       write_to_output(d, "Choose spellcasting time mode:\r\n");
       for (i = 0; i < NUM_SPELLCASTING_TIME_OPTIONS; i++)
       {
@@ -2293,8 +2272,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_SPELLCASTING_TIME_MODE;
       return;
 
-    case 'l':
-    case 'L':
+    case 'k':
+    case 'K':
       write_to_output(d, "Enable the vessel system?\r\n");
       for (i = 0; i < NUM_VESSEL_SYSTEM_OPTIONS; i++)
       {
@@ -2303,8 +2282,8 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_SET_VESSEL_SYSTEM;
       return;
 
-    case 'm':
-    case 'M':
+    case 'l':
+    case 'L':
       write_to_output(d, "Auto-download MUDlet package?\r\n");
       write_to_output(d,
                       "When enabled, players connecting via MUDlet will automatically receive\r\n");
@@ -3439,14 +3418,6 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     OLC_CONFIG(d)->play.min_pop_to_claim = FLOATMIN(FLOATMAX(f_num, 0.0), 100.0);
     cedit_disp_game_play_options(d);
-    break;
-
-  case CEDIT_SET_CAMPAIGN:
-    if (*arg)
-    {
-      OLC_CONFIG(d)->extra.campaign = (MIN(NUM_CAMPAIGN_SETTINGS, MAX(1, atoi(arg))) - 1);
-    }
-    cedit_disp_extra_game_play_options(d);
     break;
 
   case CEDIT_SET_BAG_SYSTEM:

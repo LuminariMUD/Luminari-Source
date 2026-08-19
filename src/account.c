@@ -68,7 +68,6 @@
 #include "act.h"
 #include "account.h"
 #include "vessels/routing.h"
-#include "campaign.h"
 #include "perfmon.h"
 
 extern MYSQL *conn;
@@ -158,14 +157,12 @@ int change_account_xp(struct char_data *ch, int change_val)
   Return:
     - TRUE if the race is not locked, or if it appears in account->races[]
     - FALSE otherwise or if preconditions fail (e.g., no descriptor/account)
-  Conditional compilation:
-    - For some campaigns (FR/DL), fewer constraints are checked here.
   Notes:
     - The loop searches up to MAX_UNLOCKED_RACES for an exact match.
 */
 int has_unlocked_race(struct char_data *ch, int race)
 {
-  // In non-FR/DL builds, LICH and VAMPIRE races are always locked out here.
+  /* Lich and vampire races are always locked out here. */
   if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH || race == RACE_VAMPIRE)
     return FALSE;
 
@@ -436,10 +433,7 @@ ACMD(do_accexp)
       {
         if (has_unlocked_class(ch, i) || !CLSLIST_LOCK(i))
           continue;
-        if (IS_CAMPAIGN_DL)
-          cost = CLSLIST_COST(i) / 10;
-        else
-          cost = CLSLIST_COST(i);
+        cost = CLSLIST_COST(i);
         send_to_char(ch, "%s (%d account experience)\r\n", CLSLIST_NAME(i), cost);
       }
       return;
@@ -454,10 +448,7 @@ ACMD(do_accexp)
       /* Check if this class matches the input */
       if (is_abbrev(arg2, CLSLIST_NAME(i)))
       {
-        if (IS_CAMPAIGN_DL)
-          cost = CLSLIST_COST(i) / 10;
-        else
-          cost = CLSLIST_COST(i);
+        cost = CLSLIST_COST(i);
         break;
       }
 
@@ -469,41 +460,22 @@ ACMD(do_accexp)
         switch (i)
         {
         case CLASS_KNIGHT_OF_SOLAMNIA:
-#ifdef CAMPAIGN_DL
-          matches_alternate = is_abbrev(arg2, "knight of the luminous thread");
-#else
           matches_alternate = is_abbrev(arg2, "knight of solamnia");
-#endif
           break;
         case CLASS_KNIGHT_OF_THE_LILY:
-#ifdef CAMPAIGN_DL
-          matches_alternate = is_abbrev(arg2, "knight of the howling moon");
-#else
           matches_alternate = is_abbrev(arg2, "knight of the lily");
-#endif
           break;
         case CLASS_KNIGHT_OF_THE_THORN:
-#ifdef CAMPAIGN_DL
-          matches_alternate = is_abbrev(arg2, "knight of the shattered mirror");
-#else
           matches_alternate = is_abbrev(arg2, "knight of the thorn");
-#endif
           break;
         case CLASS_KNIGHT_OF_THE_SKULL:
-#ifdef CAMPAIGN_DL
-          matches_alternate = is_abbrev(arg2, "knight of the pale throne");
-#else
           matches_alternate = is_abbrev(arg2, "knight of the skull");
-#endif
           break;
         }
 
         if (matches_alternate)
         {
-          if (IS_CAMPAIGN_DL)
-            cost = CLSLIST_COST(i) / 10;
-          else
-            cost = CLSLIST_COST(i);
+          cost = CLSLIST_COST(i);
           break;
         }
       }

@@ -763,11 +763,7 @@ void add_premade_sorcerer_spells(struct char_data *ch, int level)
     break;
   case 19:
     known_spells_add(ch, chclass, SPELL_IRONSKIN, FALSE);
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    known_spells_add(ch, chclass, SPELL_TIMESTOP, FALSE);
-#else
     known_spells_add(ch, chclass, SPELL_GATE, FALSE);
-#endif
 
     break;
   case 20:

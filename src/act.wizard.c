@@ -390,95 +390,6 @@ ACMD(do_send)
     send_to_char(ch, "You send '%s' to %s.\r\n", buf, GET_NAME(vict));
 }
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-
-/* take a string, and return an rnum.. used for goto, at, etc.  -je 4/6/93 */
-room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
-{
-  room_rnum location = NOWHERE;
-  char roomstr[MAX_INPUT_LENGTH];
-
-  one_argument(rawroomstr, roomstr, sizeof(roomstr));
-
-  if (!*roomstr)
-  {
-    send_to_char(ch, "You must supply a room number or name.\r\n");
-    return (NOWHERE);
-  }
-
-  if (isdigit(*roomstr) && !strchr(roomstr, '.'))
-  {
-    if ((location = real_room((room_vnum)atoi(roomstr))) == NOWHERE)
-    {
-      send_to_char(ch, "No room exists with that number.\r\n");
-      return (NOWHERE);
-    }
-  }
-  else
-  {
-    struct char_data *target_mob;
-    struct obj_data *target_obj;
-    char *mobobjstr = roomstr;
-    int num;
-
-    int i = 0;
-    for (i = 0; i < NUM_GOTO_ZONES; i++)
-    {
-      if (!strcmp(goto_zones[i][0], roomstr))
-        if ((location = real_room((room_vnum)atol(goto_zones[i][1]))) != NOWHERE)
-          return location;
-    }
-
-    num = get_number(&mobobjstr);
-    if ((target_mob = get_char_vis(ch, mobobjstr, &num, FIND_CHAR_WORLD)) != NULL)
-    {
-      if ((location = IN_ROOM(target_mob)) == NOWHERE)
-      {
-        send_to_char(ch, "That character is currently lost.\r\n");
-        return (NOWHERE);
-      }
-    }
-    else if ((target_obj = get_obj_vis(ch, mobobjstr, &num)) != NULL)
-    {
-      if (IN_ROOM(target_obj) != NOWHERE)
-        location = IN_ROOM(target_obj);
-      else if (target_obj->carried_by && IN_ROOM(target_obj->carried_by) != NOWHERE)
-        location = IN_ROOM(target_obj->carried_by);
-      else if (target_obj->worn_by && IN_ROOM(target_obj->worn_by) != NOWHERE)
-        location = IN_ROOM(target_obj->worn_by);
-
-      if (location == NOWHERE)
-      {
-        send_to_char(ch, "That object is currently not in a room.\r\n");
-        return (NOWHERE);
-      }
-    }
-
-    if (location == NOWHERE)
-    {
-      send_to_char(ch, "Nothing exists by that name.\r\n");
-      return (NOWHERE);
-    }
-  }
-
-  /* A location has been found -- if you're >= GRSTAFF, no restrictions. */
-  if (GET_LEVEL(ch) >= LVL_GRSTAFF)
-    return (location);
-
-  if (ROOM_FLAGGED(location, ROOM_STAFFROOM))
-    send_to_char(ch, "You are not godly enough to use that room!\r\n");
-  else if (ROOM_FLAGGED(location, ROOM_PRIVATE) && world[location].people &&
-           world[location].people->next_in_room)
-    send_to_char(ch, "There's a private conversation going on in that room.\r\n");
-  else if (ROOM_FLAGGED(location, ROOM_HOUSE) && !House_can_enter(ch, GET_ROOM_VNUM(location)))
-    send_to_char(ch, "That's private property -- no trespassing!\r\n");
-  else
-    return (location);
-
-  return (NOWHERE);
-}
-
-#else
 
 /* take a string, and return an rnum.. used for goto, at, etc.  -je 4/6/93 */
 room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
@@ -558,7 +469,6 @@ room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
   return (NOWHERE);
 }
 
-#endif
 
 ACMD(do_at)
 {
@@ -634,16 +544,12 @@ ACMD(do_goto)
                        "goto (room vnum)          eg. goto 200\r\n"
                        "goto (mob or player name) eg. goto gicker or goto cave-troll\r\n"
                        "goto (zone name)          eg. goto lusken\r\n"
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
-                       "goto (x y coordinates)    eg. goto 1 3\r\n"
-#endif
-      );
+                       "goto (x y coordinates)    eg. goto 1 3\r\n");
       return;
     }
     if ((location = find_target_room(ch, argument)) == NOWHERE)
       return;
   }
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   else
   {
     /* Have two args, that means coordinates (potentially) */
@@ -664,7 +570,6 @@ ACMD(do_goto)
       }
     }
   }
-#endif
 
   if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_NOIMMORT) && (GET_LEVEL(ch) >= LVL_IMMORT) &&
       (GET_LEVEL(ch) < LVL_GRSTAFF))
@@ -1795,16 +1700,8 @@ ACMD(do_shutdown)
   if (!*arg)
   {
     log("(GC) Shutdown by %s (SLOWBOOT).", GET_NAME(ch));
-#if defined(CAMPAIGN_FR)
-    send_to_all("Shutting down, script will reboot Faerun unless stated otherwise by %s.\r\n",
-                GET_NAME(ch));
-#elif defined(CAMPAIGN_DL)
-    send_to_all("Shutting down, script will reboot Krynn unless stated otherwise by %s.\r\n",
-                GET_NAME(ch));
-#else
     send_to_all("Shutting down, script will reboot Luminari unless stated otherwise by %s.\r\n",
                 GET_NAME(ch));
-#endif
     circle_shutdown = 1;
   }
   else if (!str_cmp(arg, "reboot"))
@@ -5187,7 +5084,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   case 103:
     if (!*val_arg)
     {
-      send_to_char(ch, "\tcRegions of Faerun\tn\r\n\r\n");
+      send_to_char(ch, "\tcRegions of Luminari\tn\r\n\r\n");
       for (i = 1; i < NUM_REGIONS; i++)
       {
         send_to_char(ch, "%-2d) %-20s ", i, regions[i]);
@@ -5200,22 +5097,9 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
                        "awards an associated language and\r\n"
                        "may be integrated into future game systems.\r\n");
       send_to_char(ch, "Type 'quit' to exit out of region selection.\r\n");
-#if defined(CAMPAIGN_DL)
-      send_to_char(
-          ch, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ",
-          REGION_ABANASINIA);
-#else
-#if defined(CAMPAIGN_FR)
-      send_to_char(
-          ch,
-          "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ",
-          REGION_THE_SWORD_COAST);
-#else
       send_to_char(ch,
                    "\r\nRegion Selection (select %d for default if you do not know what to pick): ",
                    REGION_NONE);
-#endif
-#endif
     }
     else
     {
@@ -6735,7 +6619,6 @@ void perform_do_copyover()
       write_to_descriptor(
           d->descriptor,
           "\n\r *** Time stops for a moment as space and time folds upon itself! ***\n\r");
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
       switch (rand_number(1, 3))
       {
       case 1:
@@ -6806,7 +6689,6 @@ void perform_do_copyover()
             "    .-'            .' \r\n");
         break;
       }
-#endif
       write_to_descriptor(
           d->descriptor,
           "[The game will pause for about 30 seconds while new code is being imported, \r\n"
@@ -9024,11 +8906,7 @@ ACMD(do_oconvert)
   send_to_char(ch, "Total of %d objects converted.\r\n", total);
 }
 
-#if defined(CAMPAIGN_DL)
-#define DEBUG_EQ_SCORE FALSE
-#else
 #define DEBUG_EQ_SCORE TRUE
-#endif
 /* a function to "score" the value of equipment -zusuk
    what to take into consideration?
   type [object values], weapon spells, procs [have to be manually determined], spec abilities, affections, restrictions, weight,
@@ -13134,13 +13012,8 @@ static void set_testkit_obj_strings_fmt_armor(struct obj_data *obj, int bonus, c
 
 
 #ifndef OUTFIT_WEAPON_PROTO
-#if defined(CAMPAIGN_DL)
-#define OUTFIT_WEAPON_PROTO 16856
-#define OUTFIT_ARMOR_PROTO 16855
-#else
 #define OUTFIT_WEAPON_PROTO 211
 #define OUTFIT_ARMOR_PROTO 212
-#endif
 #endif
 
 ACMD(do_settestkit)

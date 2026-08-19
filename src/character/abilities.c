@@ -787,9 +787,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   case ABILITY_HARVEST_HUNTING:
   case ABILITY_HARVEST_FORESTRY:
   case ABILITY_HARVEST_GATHERING:
-#if !defined(CAMPAIGN_DL)
     value += GET_INT_BONUS(ch);
-#endif
     return value;
   default:
     return -1;

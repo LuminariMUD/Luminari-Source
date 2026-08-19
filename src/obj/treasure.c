@@ -117,9 +117,6 @@ int cp_convert_grade_enchantment(int grade)
     break;
   }
 
-#if defined(CAMPAIGN_DL)
-  enchantment++;
-#endif
 
   return enchantment;
 }
@@ -759,9 +756,6 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
 
   gold = dice(1, GET_LEVEL(mob)) * 10;
 
-#if defined(CAMPAIGN_DL)
-  gold *= 5;
-#endif
 
   level = GET_LEVEL(mob);
 
@@ -994,11 +988,7 @@ int random_apply_value(void)
   /* There will be different groupings based on item type and wear location,
    * for example weapons will get hit/dam bonus (the +) and armor will get
    * ac_apply_new bonus (the +). */
-#if defined(CAMPAIGN_DL)
-  switch (dice(1, 24))
-#else
   switch (dice(1, 12))
-#endif
   {
   case 1:
     val = APPLY_HIT;
@@ -1033,44 +1023,6 @@ int random_apply_value(void)
   case 11:
     val = APPLY_SAVING_WILL;
     break;
-#if defined(CAMPAIGN_DL)
-  case 12:
-    val = APPLY_HP_REGEN;
-    break;
-  case 13:
-    val = APPLY_MV_REGEN;
-    break;
-  case 14:
-    val = APPLY_PSP_REGEN;
-    break;
-  case 15:
-    val = APPLY_ENCUMBRANCE;
-    break;
-  case 16:
-    val = APPLY_FAST_HEALING;
-    break;
-  case 17:
-    val = APPLY_INITIATIVE;
-    break;
-  case 18:
-    val = determine_random_spell_circle_bonus();
-    break;
-  case 19:
-    val = APPLY_SPELL_POTENCY;
-    break;
-  case 20:
-    val = APPLY_SPELL_DC;
-    break;
-  case 21:
-    val = APPLY_SPELL_DURATION;
-    break;
-  case 22:
-    val = APPLY_SKILL;
-    break;
-  case 23:
-    val = APPLY_SPELL_PENETRATION;
-    break;
-#endif
   default:
     switch (rand_number(1, 20))
     {

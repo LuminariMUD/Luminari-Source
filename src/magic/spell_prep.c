@@ -2257,44 +2257,6 @@ static int level_to_circle_conversion(int min_level, int caster_type)
   }
 }
 
-/**
- * check_campaign_spell_override - Check for campaign-specific spell circles
- * @spellnum: Spell to check
- *
- * Some campaigns override normal spell circle calculations for
- * specific spells. This centralizes those overrides.
- *
- * Returns: Override circle or 0 if no override
- */
-static int check_campaign_spell_override(int spellnum __attribute__((unused)))
-{
-#ifdef CAMPAIGN_FR
-  switch (spellnum)
-  {
-  case SPELL_LUSKAN_RECALL:
-  case SPELL_MIRABAR_RECALL:
-  case SPELL_TRIBOAR_RECALL:
-  case SPELL_SILVERYMOON_RECALL:
-    return 5;
-  }
-#elif defined(CAMPAIGN_DL)
-  switch (spellnum)
-  {
-  case SPELL_PALANTHAS_RECALL:
-  case SPELL_SANCTION_RECALL:
-  case SPELL_SOLACE_RECALL:
-    return 5;
-  case SPELL_MINOR_RAPID_BUFF:
-    return 3;
-  case SPELL_RAPID_BUFF:
-    return 5;
-  case SPELL_GREATER_RAPID_BUFF:
-    return 7;
-  }
-#endif
-  return 0; /* No override */
-}
-
 /* END helper functions for compute_spells_circle() */
 
 /* START bloodline code */
@@ -2445,16 +2407,10 @@ int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, in
   int metamagic_mod = 0; /* Circle adjustment from metamagic */
   int spell_circle = 0;  /* Final calculated circle */
   int min_level = 0;     /* Minimum level to cast this spell */
-  int campaign_override = 0;
 
   /* Validate spell number for class */
   if (!validate_spell_for_class(char_class, spellnum))
     return (NUM_CIRCLES + 1);
-
-  /* Check for campaign-specific overrides */
-  campaign_override = check_campaign_spell_override(spellnum);
-  if (campaign_override > 0)
-    return campaign_override;
 
   /* Cantrips are always circle 0 and ignore metamagic adjustments */
   if (spell_is_cantrip(spellnum))

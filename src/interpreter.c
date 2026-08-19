@@ -160,15 +160,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"se", "se", POS_RECLINING, do_move, 0, SCMD_SE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"southwest", "southw", POS_RECLINING, do_move, 0, SCMD_SW, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sw", "sw", POS_RECLINING, do_move, 0, SCMD_SW, FALSE, ACTION_NONE, {0, 0}, NULL},
-#if defined(CAMPAIGN_FR)
-    // we want i to default to inventory, that's why it's up here.
-    {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"inside", "ins", POS_RECLINING, do_move, 0, SCMD_IN, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"outside", "out", POS_RECLINING, do_move, 0, SCMD_OUT, FALSE, ACTION_NONE, {0, 0}, NULL},
-#elif defined(CAMPAIGN_DL)
-    // we want i to default to inventory, that's why it's up here.
-    {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#endif
     /* now, the main list */
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
@@ -1129,8 +1120,6 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-#else
     {"coordconvert",
      "coordconvert",
      POS_SLEEPING,
@@ -1141,11 +1130,8 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
-#endif
     {"cmdlev", "cmdlev", POS_DEAD, do_cmdlev, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     {"cexchange", "cexchange", POS_RECLINING, do_cexchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#endif
     {"createspawn",
      "createspawn",
      POS_STANDING,
@@ -1638,28 +1624,6 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL},
     {"export", "export", POS_DEAD, do_export_zone, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#if (defined(CAMPAIGN_FR))
-    {"exportmap",
-     "exportmap",
-     POS_DEAD,
-     do_export_map,
-     LVL_IMPL,
-     0,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-    {"exportworldmap",
-     "exportworldmap",
-     POS_DEAD,
-     do_export_worldmap,
-     LVL_IMPL,
-     0,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-#endif
     {"eqrating",
      "eqrating",
      POS_SLEEPING,
@@ -1988,7 +1952,6 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_SWIFT,
      {3, 0},
      can_galerush},
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
     {"gather",
      "gather",
      POS_STANDING,
@@ -1999,7 +1962,6 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_STANDARD,
      {6, 0},
      NULL},
-#endif
     {"goto", "go", POS_SLEEPING, do_goto, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"gongsummit",
      "gongsummit",
@@ -2155,20 +2117,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"holyweapon", "holyw", POS_DEAD, do_holyweapon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"holyblade", "holyblade", POS_RESTING, do_holy_blade, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"house", "house", POS_RECLINING, do_house, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-    {"harvest",
-     "harvest",
-     POS_STANDING,
-     do_newcraft,
-     0,
-     SCMD_NEWCRAFT_HARVEST,
-     TRUE,
-     ACTION_STANDARD,
-     {0, 0},
-     NULL},
-#else
     {"harvest", "harvest", POS_STANDING, do_harvest, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#endif
     {"hlqedit", "hlqedit", POS_DEAD, do_hlqedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hlqlist", "hlqlist", POS_DEAD, do_hlqlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"headbutt",
@@ -2235,11 +2184,9 @@ cpp_extern const struct command_info cmd_info[] = {
      NULL},
     {"hsort", "hsort", POS_RECLINING, do_hsort, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
-/* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
     {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#endif
     {"identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"idea", "ide", POS_DEAD, do_ibt, 0, SCMD_IDEA, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"iedit", "iedit", POS_DEAD, do_iedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -2408,12 +2355,10 @@ cpp_extern const struct command_info cmd_info[] = {
     {"i3tell", "i3tell", POS_DEAD, do_i3tell, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"i3who", "i3who", POS_DEAD, do_i3who, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
-/* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     {"drop", "d", POS_RECLINING, do_drop, 0, SCMD_DROP, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}, NULL},
-#endif
     {"judgement", "judge", POS_RECLINING, do_judgement, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"greaterjudgment",
      "gj",
@@ -2659,9 +2604,7 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL},
     {"mercies", "mercies", POS_DEAD, do_mercies, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
     {"mine", "mine", POS_STANDING, do_wilderness_mine, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
-#endif
     {"mission", "mission", POS_RESTING, do_missions, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"miststance",
      "miststance",
@@ -2954,11 +2897,7 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-    {"picklock", "pi", POS_STANDING, do_pick_lock, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#else
     {"picklock", "pi", POS_STANDING, do_gen_door, 1, SCMD_PICK, FALSE, ACTION_NONE, {0, 0}, NULL},
-#endif
     {"pilfer", "pil", POS_STANDING, do_loot, 1, SCMD_PILFER, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"practice", "pr", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"profanebond",
@@ -3271,28 +3210,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"quest", "que", POS_DEAD, do_quest, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"questline", "questline", POS_DEAD, do_questline, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"qui", "qui", POS_DEAD, do_quit, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    {"quickchant",
-     "quickc",
-     POS_FIGHTING,
-     do_quick_chant,
-     0,
-     SCMD_QUICK_CHANT,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-    {"quickmind",
-     "quickm",
-     POS_FIGHTING,
-     do_quick_chant,
-     0,
-     SCMD_QUICK_MIND,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-#endif
     {"quit", "quit", POS_DEAD, do_quit, 0, SCMD_QUIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"quitlog", "quitlog", POS_DEAD, do_quitlog, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"qsay", "qsay", POS_RECLINING, do_qcomm, 0, SCMD_QSAY, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -3354,20 +3271,8 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL},
     {"read", "rea", POS_RECLINING, do_read_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-// {"read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}, NULL},
+    // {"read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}, NULL},
 
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-    {"refine",
-     "refine",
-     POS_STANDING,
-     do_newcraft,
-     0,
-     SCMD_NEWCRAFT_REFINE,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-#endif
     {"reforge", "reforge", POS_STANDING, do_reforge_new, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"relay", "relay", POS_RECLINING, do_relay, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reload", "reload", POS_FIGHTING, do_reload, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -3526,21 +3431,7 @@ cpp_extern const struct command_info cmd_info[] = {
      NULL},
     {"respec", "respec", POS_STANDING, do_respec, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"recharge", "recharge", POS_STANDING, do_recharge, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-    {"resize",
-     "resize",
-     POS_STANDING,
-     do_newcraft,
-     0,
-     SCMD_NEWCRAFT_RESIZE,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-// {"resize", "resize", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#else
     {"resize", "resize", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-#endif
     {"redesc", "redesc", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #if defined(ALLOW_OBJECT_RETSRINGS_BY_PLAYERS)
     {"restring", "restring", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -3689,11 +3580,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"salvage", "salv", POS_RECLINING, do_salvage, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sachp", "sachp", POS_RECLINING, do_sacrifice, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-    {"say", "s", POS_RECLINING, do_osay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#else
     {"say", "s", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#endif
     {"sail", "sail", POS_RECLINING, do_sail, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"score", "sc", POS_DEAD, do_score, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"scoreconfig", "scoreconfig", POS_DEAD, do_scoreconfig, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -4329,20 +4216,7 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      can_seekerarrow},
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-    {"survey",
-     "survey",
-     POS_STANDING,
-     do_newcraft,
-     0,
-     SCMD_NEWCRAFT_SURVEY,
-     TRUE,
-     ACTION_STANDARD,
-     {0, 0},
-     NULL},
-#else
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#endif
     {"sacredflames",
      "sacredflames",
      POS_FIGHTING,
@@ -6160,9 +6034,6 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "save") &&
            !is_abbrev(complete_cmd_info[cmd].command, "wearapplies") &&
            !is_abbrev(complete_cmd_info[cmd].command, "wearlocations") &&
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-           !is_abbrev(complete_cmd_info[cmd].command, "say") &&
-#endif
            !is_abbrev(complete_cmd_info[cmd].command, "attackqueue"))
   {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
@@ -6175,54 +6046,6 @@ void command_interpreter(struct char_data *ch, char *argument)
     send_to_char(ch, "You step out of the shadows...  (attempting to cast without 'magical ambush' "
                      "removes hidden status)\r\n");
   }
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-  else if (GET_CRAFT(ch).craft_duration > 0 && !is_abbrev(complete_cmd_info[cmd].command, "look") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "group") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "gtell") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "gsay") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "consider") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "equipment") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "idea") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "bug") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "typo") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "inventory") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "scan") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "who") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "hp") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "score") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "craftscore") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "nocraftprogress") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "materials") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "applies") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "bonuses") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "cancel") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "queue") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "help") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "feat") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "tnl") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "prefedit") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "races") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "class") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "cooldowns") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "abilities") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "resistances") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "lore") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "powerattack") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "expertise") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "ooc") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "osay") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "rest") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "save") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "wearapplies") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "wearlocations") &&
-           !is_abbrev(complete_cmd_info[cmd].command, "say"))
-  {
-    send_to_char(ch, "You can't do that while %s.\r\n",
-                 crafting_methods[GET_CRAFT(ch).crafting_method]);
-  }
-#endif
   else if ((char_has_mud_event(ch, eCRAFTING) || char_has_mud_event(ch, eDEVICE_CREATION) ||
             char_has_mud_event(ch, eDEVICE_REPAIR) || char_has_mud_event(ch, eBREWING)) &&
            !is_abbrev(complete_cmd_info[cmd].command, "gossip") &&
@@ -7113,15 +6936,6 @@ int enter_player_game(struct descriptor_data *d)
   }
   PERF_PROF_EXIT(pr_login_init_classes_);
 
-#if defined(CAMPAIGN_FR)
-  if (!race_list[GET_REAL_RACE(d->character)].is_pc)
-    GET_REAL_RACE(d->character) = RACE_HUMAN;
-#elif defined(CAMPAIGN_DL)
-  if (!race_list[GET_REAL_RACE(d->character)].is_pc)
-    GET_REAL_RACE(d->character) = DL_RACE_HUMAN;
-  if (GET_DEITY(d->character) >= NUM_DEITIES)
-    GET_DEITY(d->character) = 0;
-#endif
 
   // We want to make sure their title follows the 'new' format.
   // It must contain the character's name
@@ -8011,30 +7825,12 @@ void nanny(struct descriptor_data *d, char *arg)
                          "What IS your sex? ");
       return;
     }
-#if defined(CAMPAIGN_FR)
-    write_to_output(d, "Races of Faerun\r\n\r\n");
-    for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
-    {
-      if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
-        write_to_output(d, "%s\r\n", race_list[i].type);
-    }
-#elif defined(CAMPAIGN_DL)
-    int sortpos;
-    write_to_output(d, "Races of Luminari\r\n\r\n");
-    for (sortpos = 0; sortpos < NUM_EXTENDED_RACES; sortpos++)
-    {
-      i = race_sort_info[sortpos];
-      if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
-        write_to_output(d, "%s\r\n", race_list[i].type);
-    }
-#else
     write_to_output(d, "Races of Luminari\r\n\r\n");
     for (i = 0; i < NUM_RACES; i++)
     {
       if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
         write_to_output(d, "%s\r\n", race_list[i].type);
     }
-#endif
     write_to_output(d, "\r\nRace Selection (type 'human' if you do not know "
                        "what to pick): ");
     STATE(d) = CON_QRACE;
@@ -8059,7 +7855,6 @@ void nanny(struct descriptor_data *d, char *arg)
     else
       GET_REAL_RACE(d->character) = load_result;
 
-#if !defined(CAMPAIGN_DL)
     switch (load_result)
     {
     case RACE_HUMAN:
@@ -8068,15 +7863,9 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_ELF:
       perform_help(d, "race-moon-elf");
       break;
-#if defined(CAMPAIGN_FR)
-    case RACE_DWARF:
-      perform_help(d, "race-shield-dwarf");
-      break;
-#else
     case RACE_DWARF:
       perform_help(d, "race-mountain-dwarf");
       break;
-#endif
     case RACE_DUERGAR:
       perform_help(d, "race-duergar");
       break;
@@ -8095,14 +7884,6 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_DROW:
       perform_help(d, "race-drow");
       break;
-#if defined(CAMPAIGN_FR)
-    case RACE_LICH:
-      perform_help(d, "race-lich");
-      break;
-    case RACE_VAMPIRE:
-      perform_help(d, "race-vampire");
-      break;
-#else
     case RACE_HALF_TROLL:
       perform_help(d, "race-half-troll");
       break;
@@ -8115,22 +7896,15 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_TRELUX:
       perform_help(d, "race-trelux");
       break;
-#endif
     case RACE_FAE:
       perform_help(d, "race-fae");
       break;
     case RACE_HIGH_ELF:
       perform_help(d, "race-high-elf");
       break;
-#if defined(CAMPAIGN_FR)
-    case RACE_WOOD_ELF:
-      perform_help(d, "race-wood-elf");
-      break;
-#else
     case RACE_WILD_ELF:
       perform_help(d, "race-wild-elf");
       break;
-#endif
     case RACE_HALF_DROW:
       perform_help(d, "race-half-drow");
       break;
@@ -8171,86 +7945,7 @@ void nanny(struct descriptor_data *d, char *arg)
       write_to_output(d, "\r\nCommand not understood.\r\n");
       return;
     }
-// dl races only
-#else
-    switch (load_result)
-    {
-    case DL_RACE_HUMAN:
-      perform_help(d, "race-human");
-      break;
-    case DL_RACE_QUALINESTI_ELF:
-      perform_help(d, "race-qualinesti-elf");
-      break;
-    case DL_RACE_SILVANESTI_ELF:
-      perform_help(d, "race-silvanesti-elf");
-      break;
-    case DL_RACE_KAGONESTI_ELF:
-      perform_help(d, "race-kagonesti-elf");
-      break;
-    case DL_RACE_DARGONESTI_ELF:
-      perform_help(d, "race-dargonesti-elf");
-      break;
-    case DL_RACE_MOUNTAIN_DWARF:
-      perform_help(d, "race-mountain-dwarf");
-      break;
-    case DL_RACE_HILL_DWARF:
-      perform_help(d, "race-hill-dwarf");
-      break;
-    case DL_RACE_GULLY_DWARF:
-      perform_help(d, "race-gully-dwarf");
-      break;
-    case DL_RACE_MINOTAUR:
-      perform_help(d, "race-minotaur");
-      break;
-    case DL_RACE_KENDER:
-      perform_help(d, "race-kender");
-      break;
-    case DL_RACE_GNOME:
-      perform_help(d, "race-gnome");
-      break;
-    case DL_RACE_HALF_ELF:
-      perform_help(d, "race-half-elf");
-      break;
-    case DL_RACE_BAAZ_DRACONIAN:
-      perform_help(d, "race-baaz-draconian");
-      break;
-    case DL_RACE_GOBLIN:
-      perform_help(d, "race-goblin");
-      break;
-    case DL_RACE_HOBGOBLIN:
-      perform_help(d, "race-hobgoblin");
-      break;
-    case DL_RACE_KAPAK_DRACONIAN:
-      perform_help(d, "race-kapak-draconian");
-      break;
-    case DL_RACE_BOZAK_DRACONIAN:
-      perform_help(d, "race-bozak-draconian");
-      break;
-    case DL_RACE_SIVAK_DRACONIAN:
-      perform_help(d, "race-sivak-draconian");
-      break;
-    case DL_RACE_AURAK_DRACONIAN:
-      perform_help(d, "race-aurak-draconian");
-      break;
-    case DL_RACE_IRDA:
-      perform_help(d, "race-irda");
-      break;
-    case DL_RACE_OGRE:
-      perform_help(d, "race-ogre");
-      break;
-    case RACE_LICH:
-      perform_help(d, "race-lich");
-      break;
-    case RACE_VAMPIRE:
-      perform_help(d, "race-vampire");
-      break;
-
-    default:
-      write_to_output(d, "\r\nCommand not understood.\r\n");
-      return;
-    }
-
-#endif
+    // dl races only
     write_to_output(d, "Do you want to select this race? (y/n) : ");
     STATE(d) = CON_QRACE_HELP;
     break;
@@ -8268,36 +7963,12 @@ void nanny(struct descriptor_data *d, char *arg)
     }
     else
     {
-// #if defined(CAMPAIGN_FR)
-//       write_to_output(d, "Races of Faerun\r\n\r\n");
-//       for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
-// #else
-//       write_to_output(d, "Races of Luminari\r\n\r\n");
-//       for (i = 0; i < NUM_RACES; i++)
-// #endif
-#if defined(CAMPAIGN_FR)
-      write_to_output(d, "Races of Faerun\r\n\r\n");
-      for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
-      {
-        if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
-          write_to_output(d, "%s\r\n", race_list[i].type);
-      }
-#elif defined(CAMPAIGN_DL)
-      write_to_output(d, "Races of Luminari\r\n\r\n");
-      for (sortpos = 0; sortpos < NUM_EXTENDED_RACES; sortpos++)
-      {
-        i = race_sort_info[sortpos];
-        if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
-          write_to_output(d, "%s\r\n", race_list[i].type);
-      }
-#else
       write_to_output(d, "Races of Luminari\r\n\r\n");
       for (i = 0; i < NUM_RACES; i++)
       {
         if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
           write_to_output(d, "%s\r\n", race_list[i].type);
       }
-#endif
       // {
       //   if (!is_locked_race(i) || has_unlocked_race(d->character, i)) write_to_output(d, "%s\r\n", race_list[i].type);
       // }
@@ -8307,13 +7978,7 @@ void nanny(struct descriptor_data *d, char *arg)
     }
 
     /* display class menu */
-#if defined(CAMPAIGN_FR)
-    write_to_output(d, "Classes of Faerun\r\n\r\n");
-#elif defined(CAMPAIGN_DL)
     write_to_output(d, "Classes of Luminari\r\n\r\n");
-#else
-    write_to_output(d, "Classes of Luminari\r\n\r\n");
-#endif
 
     for (i = 0; i < NUM_CLASSES; i++)
     {
@@ -8400,11 +8065,7 @@ void nanny(struct descriptor_data *d, char *arg)
     {
       d->roleplay_pending.region_active = FALSE;
       d->roleplay_pending.region = REGION_NONE;
-#ifdef CAMPAIGN_DL
       write_to_output(d, "\tcRegions of Luminari\tn\r\n\r\n");
-#else
-      write_to_output(d, "\tcRegions of Faerun\tn\r\n\r\n");
-#endif
       i = 1;
       while (i < NUM_REGIONS)
       {
@@ -8424,19 +8085,9 @@ void nanny(struct descriptor_data *d, char *arg)
                          "awards an associated language and\r\n"
                          "may be integrated into future game systems.\r\n");
       write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
-#ifdef CAMPAIGN_DL
-      write_to_output(
-          d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ",
-          REGION_ABANASINIA);
-#elif defined(CAMPAIGN_FR)
-      write_to_output(
-          d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ",
-          REGION_THE_SWORD_COAST);
-#else
       write_to_output(
           d, "\r\nRegion Selection (select %d for default if you do not know what to pick): ",
           REGION_NONE);
-#endif
       STATE(d) = CON_QREGION;
       return;
     }
@@ -9050,11 +8701,6 @@ void nanny(struct descriptor_data *d, char *arg)
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTORELOAD);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_COMBATROLL);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_CHARMIE_COMBATROLL);
-      /* Only enable stored consumables for DragonLance campaign */
-      if (IS_CAMPAIGN_DL || IS_CAMPAIGN_FR)
-      {
-        SET_BIT_AR(PRF_FLAGS(d->character), PRF_USE_STORED_CONSUMABLES);
-      }
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTO_STAND);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTOHIT);
       SET_BIT_AR(PRF_FLAGS(d->character), PRF_AUTO_GROUP);
@@ -9780,35 +9426,6 @@ void show_homeland_region_main_menu(struct descriptor_data *d)
 {
   /* int i; */ /* Currently unused */
 
-#if defined(CAMPAIGN_FR)
-  int i;
-  if (GET_REGION(d->character))
-  {
-    write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will "
-                       "need to ask a staff member to do it.\r\n\r\n\tn");
-    return;
-  }
-
-  write_to_output(d, "\tcRegions of Faerun\tn\r\n\r\n");
-  for (i = 1; i < NUM_REGIONS; i++)
-  {
-    write_to_output(d, "%-2d) %-20s ", i, regions[i]);
-    if (((i - 1) % 3) == 2)
-      send_to_char(d->character, "\r\n");
-  }
-  if (((i - 1) % 3) != 2)
-    send_to_char(d->character, "\r\n");
-  write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards "
-                     "an associated language and\r\n"
-                     "may be integrated into future game systems.\r\n");
-  write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
-  write_to_output(
-      d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ",
-      REGION_THE_SWORD_COAST);
-
-  STATE(d) = CON_QREGION;
-#elif defined(CAMPAIGN_DL)
-
   if (GET_REGION(d->character))
   {
     write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will "
@@ -9836,65 +9453,11 @@ void show_homeland_region_main_menu(struct descriptor_data *d)
                      "an associated language and\r\n"
                      "may be integrated into future game systems.\r\n");
   write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
-#if defined(CAMPAIGN_DL)
-  write_to_output(
-      d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ",
-      REGION_ABANASINIA);
-#elif defined(CAMPAIGN_FR)
-  write_to_output(
-      d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ",
-      REGION_THE_SWORD_COAST);
-#else
   write_to_output(d,
                   "\r\nRegion Selection (select %d for default if you do not know what to pick): ",
                   REGION_NONE);
-#endif
 
   STATE(d) = CON_QREGION;
-#else
-  if (GET_REGION(d->character))
-  {
-    write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will "
-                       "need to ask a staff member to do it.\r\n\r\n\tn");
-    return;
-  }
-
-  write_to_output(d, "\tcRegions of Ansalon\tn\r\n\r\n");
-  int i = 1;
-  while (i < NUM_REGIONS)
-  {
-    if (!is_selectable_region(i))
-    {
-      i++;
-      continue;
-    }
-    write_to_output(d, "%-2d) %-20s ", i, regions[i]);
-    if (((i - 1) % 3) == 2)
-      send_to_char(d->character, "\r\n");
-    i++;
-  }
-  if (((i - 1) % 3) != 2)
-    send_to_char(d->character, "\r\n");
-  write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards "
-                     "an associated language and\r\n"
-                     "may be integrated into future game systems.\r\n");
-  write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
-#if defined(CAMPAIGN_DL)
-  write_to_output(
-      d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ",
-      REGION_ABANASINIA);
-#elif defined(CAMPAIGN_FR)
-  write_to_output(
-      d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ",
-      REGION_THE_SWORD_COAST);
-#else
-  write_to_output(d,
-                  "\r\nRegion Selection (select %d for default if you do not know what to pick): ",
-                  REGION_NONE);
-#endif
-
-  STATE(d) = CON_QREGION;
-#endif
 }
 
 void show_character_long_description_menu(struct descriptor_data *d)
@@ -10015,9 +9578,6 @@ bool command_can_be_used_while_casting(int cmd)
       !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
       !is_abbrev(complete_cmd_info[cmd].command, "osay") &&
       !is_abbrev(complete_cmd_info[cmd].command, "save") &&
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-      !is_abbrev(complete_cmd_info[cmd].command, "say") &&
-#endif
       !is_abbrev(complete_cmd_info[cmd].command, "attackqueue"))
     return false;
 

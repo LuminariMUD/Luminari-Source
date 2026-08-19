@@ -2032,21 +2032,6 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
     return;
   }
 
-#if defined(CAMPAIGN_DL)
-  if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER && !is_crafting_kit(cont))
-  {
-    send_to_char(ch, "We are having issues right now with containers losing items. Until then "
-                     "please use the virtual bag system. Read HELP BAGS.\r\n");
-    return;
-  }
-#elif defined(CAMPAIGN_FR)
-  if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER && num_obj_in_obj(cont) >= 10 && !is_crafting_kit(cont))
-  {
-    send_to_char(ch, "Containers can only fit 10 items.  Please use the 'sort' command to organize "
-                     "your inventory.\r\n");
-    return;
-  }
-#endif
 
   if ((GET_OBJ_VAL(cont, 0) > 0) &&
       (GET_OBJ_WEIGHT(cont) + GET_OBJ_WEIGHT(obj) > GET_OBJ_VAL(cont, 0)))
@@ -7317,13 +7302,8 @@ void perform_outfit_show(struct char_data *ch)
   );
 }
 
-#if defined(CAMPAIGN_DL)
-#define OUTFIT_WEAPON_PROTO 16856
-#define OUTFIT_ARMOR_PROTO 16855
-#else
 #define OUTFIT_WEAPON_PROTO 211
 #define OUTFIT_ARMOR_PROTO 212
-#endif
 
 int outfit_type_to_armor_type(int type, int wear)
 {
@@ -8038,16 +8018,6 @@ ACMDU(do_tinker)
     return;
   }
 
-#if defined(CAMPAIGN_DL)
-  if (dice(1, 4) == 1)
-  {
-    act("You botched your tinkering on $p, destroying it!", TRUE, ch, obj, 0, TO_CHAR);
-    act("$n botched $s tinkering on $p, destroying it!", TRUE, ch, obj, 0, TO_ROOM);
-    obj_from_char(obj);
-    extract_obj(obj);
-    return;
-  }
-#endif
 
   send_to_char(ch, "You have successfully tinkered with %s, improving it.\r\n",
                obj->short_description);

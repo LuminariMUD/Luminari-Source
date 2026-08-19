@@ -8,7 +8,6 @@
 
 #include <string.h>
 
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
 
 static const char content_provenance[] =
     "Approved Luminari canon snapshot; see The Thirteen Homelands, The Heart Tongues of the "
@@ -986,54 +985,3 @@ const char *character_creation_content_provenance(void)
 {
   return content_provenance;
 }
-
-#else
-
-const struct character_creation_homeland *
-character_creation_homeland_for_region(int region __attribute__((unused)))
-{
-  return NULL;
-}
-
-const struct character_creation_language *
-character_creation_language_for_index(int language __attribute__((unused)))
-{
-  return NULL;
-}
-
-const struct character_creation_guidance *
-character_creation_guidance_for_profile(const char *profile_id __attribute__((unused)))
-{
-  return NULL;
-}
-
-const struct character_creation_background *
-character_creation_background_for_value(int background __attribute__((unused)))
-{
-  return NULL;
-}
-
-const char *character_creation_inspiration_seed(int background __attribute__((unused)),
-                                                enum character_creation_inspiration_kind kind
-                                                __attribute__((unused)),
-                                                int index __attribute__((unused)))
-{
-  return NULL;
-}
-
-const char *character_creation_hometown_summary(int hometown __attribute__((unused)))
-{
-  return NULL;
-}
-
-const char *character_creation_hometown_description(int hometown __attribute__((unused)))
-{
-  return NULL;
-}
-
-const char *character_creation_content_provenance(void)
-{
-  return NULL;
-}
-
-#endif

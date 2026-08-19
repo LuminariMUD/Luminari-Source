@@ -705,7 +705,6 @@ void regen_update(struct char_data *ch)
       return;
     }
 
-#if !defined(CAMPAIGN_DL)
     if (FIGHTING(ch) || dice(1, 2) == 2)
     {
       for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
@@ -733,7 +732,6 @@ void regen_update(struct char_data *ch)
       update_pos(ch);
       return;
     }
-#endif
 
   } /* done dealing with poison */
 
@@ -1295,20 +1293,6 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     if (HAS_FEAT(ch, FEAT_BG_HERMIT) && get_party_size_same_room(ch) == 1)
       gain += (int)((float)gain * .05);
 
-#if defined(CAMPAIGN_DL)
-    /* flat rate for now! (halfed the rate for testing purposes) */
-    if (rand_number(0, 1) && ch && ch->desc && ch->desc->account)
-    {
-      if (gain >= 1000 && GET_ACCEXP_DESC(ch) <= 99999999)
-      {
-        if (!ch->char_specials.post_combat_messages)
-          send_to_char(ch, "You gain %d account experience points!\r\n", (gain / 1000));
-        else
-          ch->char_specials.post_combat_account_exp = gain / 1000;
-        change_account_xp(ch, (gain / 1000));
-      }
-    }
-#else
     /* flat rate for now! (halfed the rate for testing purposes) */
     if (rand_number(0, 1) && ch && ch->desc && ch->desc->account)
     {
@@ -1328,7 +1312,6 @@ int gain_exp(struct char_data *ch, int gain, int mode)
         change_account_xp(ch, (gain / 3000));
       }
     }
-#endif
 
     /* some limited xp cap conditions */
     switch (mode)
@@ -1498,9 +1481,7 @@ int gain_exp_regardless(struct char_data *ch, int gain, bool is_ress)
           send_to_char(ch, "You rise a level!\r\n");
         else
           send_to_char(ch, "You rise %d levels!\r\n", num_levels);
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
         set_title(ch, NULL);
-#endif
       }
     }
   }
@@ -3209,14 +3190,7 @@ void self_buffing(void)
           GET_BUFF_TIMER(ch) = 1;
         else
         {
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-          if (spell_info[spellnum].ritual_spell)
-            GET_BUFF_TIMER(ch) = MAX(6, spell_info[spellnum].time + 1);
-          else
-            GET_BUFF_TIMER(ch) = 6;
-#else
           GET_BUFF_TIMER(ch) = spell_info[spellnum].time + 1;
-#endif
           if (has_perk(ch, PERK_CLERIC_BATTLE_BLESSING) && GET_BUFF_TARGET(ch) == ch)
             GET_BUFF_TIMER(ch) -= 1;
         }

@@ -1005,7 +1005,7 @@ void Test_spec_secondary_assignment_and_boot_gates_preserve_composition(CuTest *
       world_loaded ? spec_combat_region_find(&world_region, "index_boot(DB_BOOT_SHP);") : NULL;
   shop_load_gate_matches =
       shop_load_gate != NULL && shop_load != NULL && shop_load_gate < shop_load &&
-      spec_combat_region_find(&world_region, "index_boot(DB_BOOT_SHP);\n\n#if") != NULL;
+      spec_combat_region_find(&world_region, "reset_harvesting_rooms();\n  }") != NULL;
 
   assignment_gate = boot_loaded ? spec_combat_region_find(&boot_region, "if (!no_specials)") : NULL;
   mobile_assignment =

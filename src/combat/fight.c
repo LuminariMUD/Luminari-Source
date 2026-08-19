@@ -142,9 +142,7 @@ static void perform_group_gain(struct char_data *ch, int base, struct char_data 
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim, int w_type,
                         int offhand);
 static void make_corpse(struct char_data *ch);
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
 static void change_alignment(struct char_data *ch, struct char_data *victim);
-#endif
 static void group_gain(struct char_data *ch, struct char_data *victim);
 static void solo_gain(struct char_data *ch, struct char_data *victim);
 static int award_kill_experience(struct char_data *ch, int exp, int mode);
@@ -2029,7 +2027,6 @@ static void make_corpse(struct char_data *ch)
   if (rol_handle_conjured_death(ch))
     return;
 
-#if !defined(CAMPAIGN_DL)
   /* handle mobile death that should not leave a corpse */
   if (IS_NPC(ch))
   { /* necessary check because of morphed druids */
@@ -2059,7 +2056,6 @@ static void make_corpse(struct char_data *ch)
       return;
     }
   } /* if we continue on, we need to actually make a corpse.... */
-#endif
 
   /* Check if this is a golem that died - drop materials before creating corpse */
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_GOLEM) && ch->master)
@@ -2156,7 +2152,6 @@ static void make_corpse(struct char_data *ch)
   obj_to_room(corpse, IN_ROOM(ch));
 }
 
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
 /* When ch kills victim */
 static void change_alignment(struct char_data *ch, struct char_data *victim)
 {
@@ -2177,7 +2172,6 @@ static void change_alignment(struct char_data *ch, struct char_data *victim)
    * you move 1/16th of the way to having alignment -A.  Simple and fast. */
   //  GET_ALIGNMENT(ch) += (-GET_ALIGNMENT(victim) - GET_ALIGNMENT(ch)) / 16;
 }
-#endif
 
 /* a function for 'audio' effect of killing, notifies neighboring
  room of a nearby death */
@@ -2773,17 +2767,11 @@ static void perform_group_gain(struct char_data *ch, int base, struct char_data 
 
   award_kill_experience(ch, share, GAIN_EXP_MODE_GROUP);
 
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   change_alignment(ch, victim);
-#endif
 }
 
 /* called for splitting xp in a group (prelim) */
-#if defined(CAMPAIGN_DL)
-#define BONUS_PER_MEMBER 10
-#else
 #define BONUS_PER_MEMBER 2
-#endif
 
 static void group_gain(struct char_data *ch, struct char_data *victim)
 {
@@ -2838,21 +2826,14 @@ static void group_gain(struct char_data *ch, struct char_data *victim)
   else
     base = 0;
 
-    /* if mob isn't within X levels, don't give xp -zusuk */
-#if !defined(CAMPAIGN_DL)
+  /* if mob isn't within X levels, don't give xp -zusuk */
   if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < party_level)
     base = 1;
-#endif
 
   /* XP bonus for groupping */
   if (tot_members > 1)
     base = 1 + base * ((100 + (tot_members * BONUS_PER_MEMBER)) / 100);
 
-#if defined(CAMPAIGN_DL)
-  if (GET_LEVEL(victim) < 18)
-    if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < party_level)
-      base /= 2;
-#endif
 
   /* Beginner's Note: Reset simple_list iterator before use to prevent
    * cross-contamination from previous iterations. Without this reset,
@@ -2890,15 +2871,9 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   /* minimum of 1 xp point */
   exp = MAX(exp, 1);
 
-#if defined(CAMPAIGN_DL)
-  if (GET_LEVEL(victim) < 18)
-    if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < GET_LEVEL(ch))
-      exp /= 2;
-#else
   /* if mob isn't within X levels, don't give xp -zusuk */
   if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < GET_LEVEL(ch))
     exp = 1;
-#endif
 
   /* avoid xp abuse in PvP */
   if (!IS_NPC(victim))
@@ -2913,9 +2888,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
 
   award_kill_experience(ch, exp, GAIN_EXP_MODE_SOLO);
 
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   change_alignment(ch, victim);
-#endif
 }
 
 static int award_kill_experience(struct char_data *ch, int exp, int mode)
@@ -5772,15 +5745,8 @@ static int cap_combat_damage(struct char_data *ch, int dam, int w_type)
     break;
   }
 
-#if defined(CAMPAIGN_DL)
-  if (IS_NPC(ch))
-    return MAX(MIN(dam, NPC_DAMAGE_CAP), 0);
-
-  return MAX(MIN(dam, DAMAGE_CAP), 0);
-#else
   (void)ch;
   return MAX(MIN(dam, DAMAGE_CAP), 0);
-#endif
 }
 
 bool activate_rol_delayed_hunter(struct char_data *victim, int damage)
@@ -10703,14 +10669,12 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
   /* Profane bonus */
 
   /* Racial bonus */
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   if (GET_RACE(ch) == RACE_TRELUX)
   {
     bonuses[BONUS_TYPE_RACIAL] += 4;
     if (display)
       send_to_char(ch, " 4: %-50s\r\n", "Trelux");
   }
-#endif
   /* light blindness - dayblind, underdark/underworld penalties */
   if (!IS_NPC(ch) && IS_DAYLIT(IN_ROOM(ch)) && HAS_FEAT(ch, FEAT_LIGHT_BLINDNESS))
   {
@@ -14860,11 +14824,7 @@ int is_dual_wielding(struct char_data *ch)
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     return FALSE;
 
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   if (GET_EQ(ch, WEAR_WIELD_OFFHAND) || GET_RACE(ch) == RACE_TRELUX)
-#else
-  if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
-#endif
     return TRUE;
 
   if (is_using_double_weapon(ch))

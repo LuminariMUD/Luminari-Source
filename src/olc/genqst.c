@@ -285,9 +285,6 @@ int save_quests(zone_rnum zone_num)
       fprintf(sf, "%s%c\n", convert_from_tabs(quest_info), STRING_TERMINATOR);
       fprintf(sf, "%s%c\n", convert_from_tabs(quest_done), STRING_TERMINATOR);
       fprintf(sf, "%s%c\n", convert_from_tabs(quest_quit), STRING_TERMINATOR);
-#if (defined(CAMPAIGN_DL))
-      fprintf(sf, "%s%c\n", convert_from_tabs(quest_kill_list), STRING_TERMINATOR);
-#endif
       fprintf(sf,
               "%d %d %s %d %d %d %d\n"
               "%d %d %d %d %d %d %d\n"

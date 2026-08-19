@@ -883,10 +883,6 @@ room_rnum find_static_room_by_coordinates(int x, int y)
  * vector and a pointer to struct room_data (the actual room!). */
 room_rnum find_room_by_coordinates(int x, int y)
 {
-#ifdef CAMPAIGN_FR
-  return NOWHERE;
-#endif
-
   int i = 0;
   room_rnum room = NOWHERE;
 

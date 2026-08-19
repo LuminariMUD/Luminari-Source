@@ -412,18 +412,6 @@ void check_hunt_room(room_rnum room)
   if (room == NOWHERE)
     return;
 
-#if defined(CAMPAIGN_DL)
-  int i = 0;
-
-  for (i = 0; i < AHUNT_1; i++)
-  {
-    if (real_room(active_hunts[i][1]) == room)
-    {
-      create_hunt_mob(room, active_hunts[i][0]);
-      return;
-    }
-  }
-#else
   int x = 0, y = 0, i = 0;
 
   x = world[room].coords[0];
@@ -437,7 +425,6 @@ void check_hunt_room(room_rnum room)
       return;
     }
   }
-#endif
 }
 
 void create_hunt_mob(room_rnum room, int which_hunt)
@@ -536,99 +523,6 @@ int get_hunt_room(int start, int x, int y)
   return room;
 }
 
-#if defined(CAMPAIGN_DL)
-
-void select_hunt_coords(int which_hunt)
-{
-  room_rnum room = NOWHERE;
-
-  if (which_hunt >= 5)
-    which_hunt = 4;
-  else if (which_hunt < 0)
-    which_hunt = 0;
-
-#if defined(CAMPAIGN_DL)
-  if ((room = get_random_road_room(2)) != NOWHERE)
-    active_hunts[which_hunt][1] = world[room].number;
-#else
-
-  int x = 0, y = 0, start = 0;
-  int terrain = 0;
-  int room_vnum = 0;
-
-  start = dice(1, NUM_GOTO_ZONES) - 1;
-
-  y = dice(1, 21) - 10;
-  x = dice(1, 21) - 10;
-
-  room_vnum = get_hunt_room(atoi(goto_zones[start][1]), x, y);
-  room = real_room(room_vnum);
-
-  terrain = world[room].sector_type;
-
-  switch (terrain)
-  {
-  case SECT_OCEAN:
-  case SECT_UD_NOSWIM:
-  case SECT_UD_WATER:
-  case SECT_UNDERWATER:
-  case SECT_WATER_NOSWIM:
-  case SECT_WATER_SWIM:
-  case SECT_INSIDE:
-  case SECT_INSIDE_ROOM:
-  case SECT_RIVER:
-    select_hunt_coords(which_hunt);
-    return;
-  }
-
-  active_hunts[which_hunt][1] = room_vnum;
-  active_hunts[which_hunt][2] = start;
-#endif
-}
-
-#elif defined(CAMPAIGN_FR)
-
-void select_hunt_coords(int which_hunt)
-{
-  if (which_hunt >= 5)
-    which_hunt = 4;
-  else if (which_hunt < 0)
-    which_hunt = 0;
-
-  int x = 0, y = 0, start = 0;
-  int terrain = 0;
-  room_rnum room = NOWHERE;
-  int room_vnum = 0;
-
-  start = dice(1, NUM_GOTO_ZONES) - 1;
-
-  y = dice(1, 21) - 10;
-  x = dice(1, 21) - 10;
-
-  room_vnum = get_hunt_room(atoi(goto_zones[start][1]), x, y);
-  room = real_room(room_vnum);
-
-  terrain = world[room].sector_type;
-
-  switch (terrain)
-  {
-  case SECT_OCEAN:
-  case SECT_UD_NOSWIM:
-  case SECT_UD_WATER:
-  case SECT_UNDERWATER:
-  case SECT_WATER_NOSWIM:
-  case SECT_WATER_SWIM:
-  case SECT_INSIDE:
-  case SECT_INSIDE_ROOM:
-  case SECT_RIVER:
-    select_hunt_coords(which_hunt);
-    return;
-  }
-
-  active_hunts[which_hunt][1] = room_vnum;
-  active_hunts[which_hunt][2] = start;
-}
-#else
 
 void select_hunt_coords(int which_hunt)
 {
@@ -668,7 +562,6 @@ void select_hunt_coords(int which_hunt)
   select_reported_hunt_coords(which_hunt, 0);
 }
 
-#endif
 
 void select_reported_hunt_coords(int which_hunt, int times_called)
 {
@@ -803,38 +696,6 @@ SPECIAL(huntsmaster)
 
   half_chop(argument, arg1, arg2);
 
-#if defined(CAMPAIGN_DL)
-  if (CMD_IS("hunts"))
-  {
-    char room_vnum[10];
-    snprintf(room_vnum, sizeof(room_vnum), " ");
-    send_to_char(ch, "%-20s %-5s %s\r\n", "Hunt Target", "Level", "Last Seen Zone");
-    send_to_char(ch, "---------------------------------------------------------\r\n");
-    for (i = 0; i < 5; i++)
-    {
-      if (active_hunts[i][0] == 0)
-        continue; // hunt already defeated
-      count++;
-      if (GET_LEVEL(ch) >= LVL_IMMORT)
-        snprintf(room_vnum, sizeof(room_vnum), " %d", active_hunts[i][1]);
-      send_to_char(ch, "%-20s %-5d %s%s\r\n", hunt_table[active_hunts[i][0]].name,
-                   hunt_table[active_hunts[i][0]].level,
-                   zone_table[GET_ROOM_ZONE(real_room(active_hunts[i][1]))].name, room_vnum);
-    }
-    hours = hunt_reset_timer / 600;
-    minutes = (hunt_reset_timer - (hours * 600)) / 10;
-    seconds = hunt_reset_timer - ((hours * 600) + (minutes * 10));
-
-    send_to_char(ch, "\r\nTime until next hunt targets: %d hour(s), %d minute(s), %d seconds",
-                 hours, minutes, seconds * 6);
-
-    if (count == 0)
-    {
-      send_to_char(ch, "There are no active hunts right now.\r\n");
-      return 1;
-    }
-  }
-#else
   if (CMD_IS("hunts"))
   {
     char reported[20], actual[20];
@@ -867,7 +728,6 @@ SPECIAL(huntsmaster)
       return 1;
     }
   }
-#endif
   else if (CMD_IS("list"))
   {
     if (!*arg1)

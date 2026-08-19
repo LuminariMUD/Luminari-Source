@@ -18,11 +18,7 @@
 #define WIZARD_GROUP_BUFFS 10 /* Group buff spells for wizards/sorcerers */
 #define WIZARD_AOE_SPELLS 15  /* AoE damage/debuff spells for wizards/sorcerers */
 
-#if defined(CAMPAIGN_DL)
-#define SPELLUP_SPELLS 53
-#else
 #define SPELLUP_SPELLS 56
-#endif
 
 /* External spell data arrays */
 extern int valid_spellup_spell[SPELLUP_SPELLS];

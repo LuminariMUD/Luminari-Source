@@ -191,9 +191,7 @@ void initialize_background_list(void)
 
 void assign_backgrounds(void)
 {
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   int i = 0;
-#endif
 
   initialize_background_list();
 
@@ -353,7 +351,6 @@ void assign_backgrounds(void)
               "cunning, strength, "
               "speed, or some combination of each.");
 
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   for (i = 1; i < NUM_BACKGROUNDS; i++)
   {
     const struct character_creation_background *content =
@@ -362,7 +359,6 @@ void assign_backgrounds(void)
     if (content != NULL && content->biography != NULL)
       background_list[i].desc = content->biography;
   }
-#endif
 }
 
 /*

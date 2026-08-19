@@ -1121,11 +1121,9 @@ SAVING_WILL here...  */
     case SPELL_MASS_DOMINATION:
       MANUAL_SPELL(spell_mass_domination);
       break;
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     case SPELL_PLANE_SHIFT:
       MANUAL_SPELL(spell_plane_shift);
       break;
-#endif
     case SPELL_POLYMORPH:
       MANUAL_SPELL(spell_polymorph);
       break;
@@ -5245,30 +5243,6 @@ void mag_assign_spells(void)
          MAG_MANUAL, NULL, 10, 20, CONJURATION, FALSE);
   spello(SPELL_WORD_OF_RECALL, "word of recall", 72, 57, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
          MAG_MANUAL, NULL, 0, 20, CONJURATION, FALSE);
-#ifdef CAMPAIGN_FR
-  spello(SPELL_LUSKAN_RECALL, "recall to luskan", 72, 57, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
-         MAG_MANUAL, NULL, 0, 20, CONJURATION, FALSE);
-  CantCast(SPELL_LUSKAN_RECALL);
-  spello(SPELL_TRIBOAR_RECALL, "recall to triboar", 72, 57, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
-         MAG_MANUAL, NULL, 0, 20, CONJURATION, FALSE);
-  CantCast(SPELL_TRIBOAR_RECALL);
-  spello(SPELL_SILVERYMOON_RECALL, "recall to silverymoon", 72, 57, 1, POS_FIGHTING, TAR_CHAR_ROOM,
-         FALSE, MAG_MANUAL, NULL, 0, 20, CONJURATION, FALSE);
-  CantCast(SPELL_SILVERYMOON_RECALL);
-  spello(SPELL_MIRABAR_RECALL, "recall to mirabar", 72, 57, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
-         MAG_MANUAL, NULL, 0, 20, CONJURATION, FALSE);
-  CantCast(SPELL_MIRABAR_RECALL);
-#elif defined(CAMPAIGN_DL)
-  spello(SPELL_PALANTHAS_RECALL, "recall to palanthas", 72, 57, 1, POS_FIGHTING, TAR_CHAR_ROOM,
-         FALSE, MAG_MANUAL, NULL, 0, 20, CONJURATION, FALSE);
-  CantCast(SPELL_PALANTHAS_RECALL);
-  spello(SPELL_SANCTION_RECALL, "recall to sanction", 72, 57, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
-         MAG_MANUAL, NULL, 0, 20, CONJURATION, FALSE);
-  CantCast(SPELL_SANCTION_RECALL);
-  spello(SPELL_SOLACE_RECALL, "recall to solace", 72, 57, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
-         MAG_MANUAL, NULL, 0, 20, CONJURATION, FALSE);
-  CantCast(SPELL_SOLACE_RECALL);
-#endif
 
   spello(SPELL_MINOR_RAPID_BUFF, "minor rapid buff", 72, 57, 1, POS_STANDING, TAR_CHAR_ROOM, FALSE,
          MAG_AFFECTS, NULL, 0, 20, ABJURATION, FALSE);
@@ -5321,10 +5295,8 @@ void mag_assign_spells(void)
   // 9th circle
   spello(SPELL_EARTHQUAKE, "earthquake", 85, 70, 1, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS, NULL,
          10, 25, EVOCATION, FALSE);
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   spello(SPELL_PLANE_SHIFT, "plane shift", 85, 70, 1, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_MANUAL,
          NULL, 2, 25, CONJURATION, FALSE);
-#endif
   spello(SPELL_GROUP_HEAL, "group heal", 85, 70, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
          NULL, 5, 25, CONJURATION, FALSE);
   spello(SPELL_GROUP_SUMMON, "group summon", 85, 70, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_MANUAL,
@@ -6728,13 +6700,11 @@ bool isSummonerMagic(struct char_data *ch, int spellnum)
     if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 17)
       return true;
     break;
-// No gate spell in FR because there aren't multiple planes of existence yet
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
+    // No gate spell in FR because there aren't multiple planes of existence yet
   case SPELL_GATE:
     if (CLASS_LEVEL(ch, CLASS_SUMMONER) >= 19)
       return true;
     break;
-#endif
   }
 
   return false;

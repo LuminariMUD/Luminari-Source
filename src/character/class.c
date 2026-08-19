@@ -36,7 +36,6 @@
 #include "premadebuilds.h"
 #include "evolutions.h"
 #include "backgrounds.h"
-#include "campaign.h"
 #include "perks.h"
 
 /** LOCAL DEFINES **/
@@ -3982,60 +3981,6 @@ long int level_exp(struct char_data *ch, int level)
   {
     /* funny bug: used to use disguised/wildshape race */
 
-#ifdef CAMPAIGN_FR
-  case RACE_DROW:
-    exp *= 2;
-    break;
-  case RACE_DUERGAR:
-    exp *= 2;
-    break;
-
-  case RACE_FAE:
-    exp *= 5;
-    break;
-
-  case RACE_LICH:
-    exp *= 10;
-    break;
-
-  case RACE_VAMPIRE:
-    exp *= 10;
-    break;
-#elif defined(CAMPAIGN_DL)
-
-  case RACE_LICH:
-    exp *= 4;
-    break;
-
-  case RACE_VAMPIRE:
-    exp *= 4;
-    break;
-
-  case DL_RACE_KAPAK_DRACONIAN:
-    exp *= 1.5;
-    break;
-
-  case DL_RACE_BOZAK_DRACONIAN:
-    exp *= 1.5;
-    break;
-
-  case DL_RACE_IRDA:
-    exp *= 2;
-    break;
-
-  case DL_RACE_OGRE:
-    exp *= 2;
-    break;
-
-  case DL_RACE_SIVAK_DRACONIAN:
-    exp *= 2;
-    break;
-
-  case DL_RACE_AURAK_DRACONIAN:
-    exp *= 3;
-    break;
-
-#else
     // advanced races
   case RACE_HALF_TROLL:
     exp *= 2;
@@ -4070,7 +4015,6 @@ long int level_exp(struct char_data *ch, int level)
   case RACE_VAMPIRE:
     exp *= 10;
     break;
-#endif
   default:
     break;
   }
@@ -4451,9 +4395,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_METEOR_SWARM, 17);
   spell_assignment(CLASS_WIZARD, SPELL_BLADE_OF_DISASTER, 17);
   spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_9, 17);
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   spell_assignment(CLASS_WIZARD, SPELL_GATE, 17);
-#endif
   spell_assignment(CLASS_WIZARD, SPELL_ENERGY_DRAIN, 17);
   spell_assignment(CLASS_WIZARD, SPELL_WAIL_OF_THE_BANSHEE, 17);
   spell_assignment(CLASS_WIZARD, SPELL_POWER_WORD_KILL, 17);
@@ -4727,9 +4669,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_ENERGY_DRAIN, 17);
   spell_assignment(CLASS_CLERIC, SPELL_GROUP_HEAL, 17);
   spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_9, 17);
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   spell_assignment(CLASS_CLERIC, SPELL_PLANE_SHIFT, 17);
-#endif
   spell_assignment(CLASS_CLERIC, SPELL_STORM_OF_VENGEANCE, 17);
   spell_assignment(CLASS_CLERIC, SPELL_IMPLODE, 17);
   spell_assignment(CLASS_CLERIC, SPELL_REFUGE, 17);
@@ -5837,9 +5777,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_METEOR_SWARM, 18);
   spell_assignment(CLASS_SORCERER, SPELL_BLADE_OF_DISASTER, 18);
   spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_9, 18);
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   spell_assignment(CLASS_SORCERER, SPELL_GATE, 18);
-#endif
   spell_assignment(CLASS_SORCERER, SPELL_ENERGY_DRAIN, 18);
   spell_assignment(CLASS_SORCERER, SPELL_WAIL_OF_THE_BANSHEE, 18);
   spell_assignment(CLASS_SORCERER, SPELL_POWER_WORD_KILL, 18);
@@ -6922,12 +6860,10 @@ void load_class_list(void)
   /* no spell assignment */
   /* class prereqs */
   class_prereq_bab(CLASS_ARCANE_ARCHER, 5);
-#if !defined(CAMPAIGN_DL)
   /* elf, half-elf, drow only */
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_DROW);
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_ELF);
   class_prereq_race(CLASS_ARCANE_ARCHER, RACE_HALF_ELF);
-#endif
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_POINT_BLANK_SHOT, 1);
   class_prereq_feat(CLASS_ARCANE_ARCHER, FEAT_PRECISE_SHOT, 1);
   class_prereq_spellcasting(CLASS_ARCANE_ARCHER, CASTING_TYPE_ARCANE, PREP_TYPE_ANY, 1 /*circle*/);
@@ -7441,40 +7377,13 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_SOLAMNIA,
-#ifdef CAMPAIGN_DL
-         "knight of solamnia", "KSo", "\tWKSo\tn", "g) \tWKnight of Solamnia\tn",
-#else
-         "knight of the luminous thread", "KLT", "\tWKLT\tn",
+  classo(CLASS_KNIGHT_OF_SOLAMNIA, "knight of the luminous thread", "KLT", "\tWKLT\tn",
          "g) \tWKnight of the Luminous Thread\tn",
-#endif
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          20, Y, Y, H, 10, 0, 1, 2, Y, 2500, 0,
          /*prestige spell progression*/ "divine advancement after level 5",
          /*primary attributes*/ "Strength, Wisdom for spellcasting",
-  /*descrip*/
-#ifdef CAMPAIGN_DL
-         /* DragonLance theme - Knights of Solamnia */
-         "The Knights of Solamnia are the most renowned knightly order on Krynn, bound by "
-         "the sacred Oath and the Measure. This combined order represents the progression "
-         "of a knight through the three virtues: Loyalty (Crown), Courage (Sword), and "
-         "Wisdom (Rose)."
-         "\r\n"
-         "Beginning as Knights of the Crown (levels 1-5), they learn the virtues of Loyalty "
-         "and Obedience, forming the backbone of the armed forces. Advancing to the Sword "
-         "(levels 6-10), they embrace Courage and Heroism, channeling divine power in battle. "
-         "Finally, achieving the Rose (levels 11-20), they embody Wisdom and Justice, "
-         "becoming inspiring leaders and champions of good."
-         "\r\n"
-         "NOTE: Obtaining the abilities of a certain knightly order (crown/sword/rose) does not "
-         "denote actual promotions to that rank. That must be done through role-playing and the "
-         "in-game clan system."
-         "\r\n"
-         "The Order is bound by their sacred Oath: 'Est Sularus oth Mithas' - My Honor is My "
-         "Life. They follow the 37 volumes of the Measure, a code of conduct governing every "
-         "aspect of their lives. Patron deities include Paladine (Dragonlance's Platinum "
-         "Dragon), Kiri-Jolith (god of war and honor), and Habbakuk (the Fisher King)."
-#else
+         /*descrip*/
          /* LuminariMUD theme - Knights of the Luminous Thread */
          "The Knights of the Luminous Thread represent the full evolution of oath-bound "
          "warriors, from novice oath-takers to master weavers of destiny. These divine "
@@ -7490,9 +7399,7 @@ void load_class_list(void)
          "Divine Patrons: Kordran (War/Duty), Aethyra (Magic/Oaths), and the Luminous Weaver "
          "(the deity of fate). Their sacred motto: 'Our oaths are iron, our words are law, "
          "our blood is the ink of destiny.' Each fulfilled oath strengthens them; each broken "
-         "promise creates an unhealable wound that burns with eternal shame."
-#endif
-  );
+         "promise creates an unhealable wound that burns with eternal shame.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_KNIGHT_OF_SOLAMNIA, G, B, G, B, B);
   assign_class_abils(CLASS_KNIGHT_OF_SOLAMNIA, /* class number */
@@ -7692,30 +7599,13 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_THE_LILY,
-#ifdef CAMPAIGN_DL
-         "knight of the lily", "KLy", "\tDKLy\tn", "g) \tDKnight of the Lily\tn",
-#else
-         "knight of the howling moon", "KHM", "\tDKHM\tn", "g) \tDKnight of the Howling Moon\tn",
-#endif
+  classo(CLASS_KNIGHT_OF_THE_LILY, "knight of the howling moon", "KHM", "\tDKHM\tn",
+         "g) \tDKnight of the Howling Moon\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 10, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Str for melee combat, Con/Dex for survivability",
-  /*descrip*/
-#ifdef CAMPAIGN_DL
-         /* DragonLance theme - Knights of Takhisis */
-         "The Order of the Lily is the backbone of the Knights of Takhisis, and the order  "
-         "in which every applicant for the knighthood must first enter. The Lily Knights  "
-         "are most likened to their Solamnic counterparts in the Order of the Crown, and  "
-         "are the order in which most training occurs for the younger members of the  "
-         "knighthood. The Knights of the Lily are taught that strength is achieved through "
-         "conformity  "
-         "and uniformity. To be an individualist or to be a freethinker is to submit to  "
-         "chaos, and ultimately leads down the path of evil turning on itself. The Lily  "
-         "Knights are the military might of the knighthood that live by the code of  "
-         "'Independence breeds chaos, submit and be strong.' "
-#else
+         /*descrip*/
          /* LuminariMUD theme - Knights of the Howling Moon */
          "The Knights of the Howling Moon are warriors who have embraced their primal "
          "nature, running between the civilized and wild as guardians of the boundary. "
@@ -7729,9 +7619,7 @@ void load_class_list(void)
          "Divine Patrons: Zorren (Wild Hunt) and Selithiel (Moon/Dreams). Their motto: "
          "'We run between the civilized and wild, guardians of the boundary.' The price "
          "they pay: gradually losing humanity to the beast within, becoming more predator "
-         "than person with each passing moon."
-#endif
-  );
+         "than person with each passing moon.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_KNIGHT_OF_THE_LILY, G, B, G, G, G);
   assign_class_abils(CLASS_KNIGHT_OF_THE_LILY, /* class number */
@@ -7869,36 +7757,15 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_THE_THORN,
-#ifdef CAMPAIGN_DL
-         "knight of the thorn", "KTh", "\tDKTh\tn", "g) \tDKnight of the Thorn\tn",
-#else
-         "knight of the shattered mirror", "KSM", "\tDKSM\tn",
+  classo(CLASS_KNIGHT_OF_THE_THORN, "knight of the shattered mirror", "KSM", "\tDKSM\tn",
          "g) \tDKnight of the Shattered Mirror\tn",
-#endif
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 6, 0, 1, 2, Y, 5000, 0,
-  /*prestige spell progression*/
-#ifdef CAMPAIGN_DL
-         "+1 arcane caster level per knight of the thorn level.",
-#else
+         /*prestige spell progression*/
          "+1 arcane caster level per knight of the shattered mirror level.",
-#endif
          /*primary attributes*/
          "Con/Dex for survivability, INT/CHA depending on base spellcasting class.",
-  /*descrip*/
-#ifdef CAMPAIGN_DL
-         /* DragonLance theme - Knights of Takhisis */
-         "The Knights of the Thorn are also known as the \"gray robes\" for the ash-colored "
-         "robes they wear to indicate that they do not serve the Orders of High Sorcery. "
-         "In addition to wielding devastating arcane magic, Thorn Knights are seers and "
-         "diviners, working to understand how every person and event fits into their "
-         "order's design. Thorn Knights are able to see and understand seemingly random "
-         "events as part of a grand design. While the Order of the Skull seeks to "
-         "manipulate people and events, the Thorn Knights try to profit from a greater "
-         "understanding of fate. Their pursuit of forbidden magic outside the laws of the "
-         "Conclave allows them access to magical secrets to enhance their spellcasting. "
-#else
+         /*descrip*/
          /* LuminariMUD theme - Knights of the Shattered Mirror */
          "The Knights of the Shattered Mirror are masters of paradox who blend arcane "
          "magic with martial prowess. They can fragment their perception to see multiple "
@@ -7913,9 +7780,7 @@ void load_class_list(void)
          "Divine Patrons: Vespera (Trickery/Revolution) and Thalos (Law/Truth). Their "
          "motto: 'Truth has many faces; we wear them all.' The price they pay: gradually "
          "forgetting which reality is true, losing themselves in the infinite reflections "
-         "of possibility."
-#endif
-  );
+         "of possibility.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_KNIGHT_OF_THE_THORN, B, B, G, G, G);
   assign_class_abils(CLASS_KNIGHT_OF_THE_THORN, /* class number */
@@ -7969,36 +7834,15 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_KNIGHT_OF_THE_SKULL,
-#ifdef CAMPAIGN_DL
-         "knight of the skull", "KSk", "\tDKSk\tn", "g) \tDKnight of the Skull\tn",
-#else
-         "knight of the pale throne", "KPT", "\tDKPT\tn", "g) \tDKnight of the Pale Throne\tn",
-#endif
+  classo(CLASS_KNIGHT_OF_THE_SKULL, "knight of the pale throne", "KPT", "\tDKPT\tn",
+         "g) \tDKnight of the Pale Throne\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 10, 0, 1, 2, Y, 5000, 0,
-  /*prestige spell progression*/
-#ifdef CAMPAIGN_DL
-         "+1 divine caster level per knight of the skull level.",
-#else
+         /*prestige spell progression*/
          "+1 divine caster level per knight of the pale throne level.",
-#endif
          /*primary attributes*/
          "Str for melee combat, Con/Dex for survivability, Wis for spellcasting.",
-  /*descrip*/
-#ifdef CAMPAIGN_DL
-         /* DragonLance theme - Knights of Takhisis */
-         "The Order of the Skull is the clerical branch of the Knights of Takhisis, who  "
-         "wield both weapons and divine magic when they wade into battle. Skull Knights  "
-         "utilize their magic for healing, gathering intelligence and also managing  "
-         "internal affairs within the knighthood. The Knights of the Skull often serve as  "
-         "diplomats and advisors in the courts of many rulers, or sometimes as the  "
-         "internal police within the knighthood, reporting the infractions of their fellow "
-         "knights, back to their superiors. They were originally powerful clerics who drew "
-         "divine magic from their goddess Takhisis. They are wholly dedicated to their  "
-         "goddess, but at the same time revered Zeboim. Skull Knights will be more  "
-         "inclined to take Black Dragons as their mounts, rather than Blue Dragons. "
-#else
+         /*descrip*/
          /* LuminariMUD theme - Knights of the Pale Throne */
          "The Knights of the Pale Throne are death-priests who channel negative divine "
          "energy. They have glimpsed beyond the veil of death and returned with terrible "
@@ -8013,9 +7857,7 @@ void load_class_list(void)
          "Divine Patrons: Nethris (Death/Fate), Glacius (Eternal Winter), and Orith "
          "(Earth/Patience). Their motto: 'Death is not the end; it is the pause between "
          "movements in the eternal symphony.' The price they pay: becoming more dead than "
-         "alive with each use of their power, slowly joining the realm they serve."
-#endif
-  );
+         "alive with each use of their power, slowly joining the realm they serve.");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_KNIGHT_OF_THE_SKULL, G, B, G, G, G);
   assign_class_abils(CLASS_KNIGHT_OF_THE_SKULL, /* class number */

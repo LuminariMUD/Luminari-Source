@@ -279,11 +279,7 @@
 
 #define NUM_TREASURE_TABLES 17
 
-#if defined(CAMPAIGN_DL)
-#define ENCOUNTER_MOB_VNUM 60002
-#else
 #define ENCOUNTER_MOB_VNUM 8100
-#endif
 
 #define NON_HOSTILE false
 #define HOSTILE true

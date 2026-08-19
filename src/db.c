@@ -731,24 +731,12 @@ void boot_world(void)
     log("Loading shops.");
     index_boot(DB_BOOT_SHP);
 
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     int x = 0;
     log("Placing Harvesting Nodes");
     for (x = 0; x < NUM_HARVEST_NODE_RESETS; x++)
       reset_harvesting_rooms();
-#endif
   }
 
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-  log("Assigning crafting system harvesting nodes (DragonLance).");
-  assign_harvest_materials_to_word();
-  log("Populating crafting recipes.");
-  populate_crafting_recipes();
-  log("Populating refining recipes.");
-  populate_refining_recipes();
-  log("Sorting crafting materials.");
-  sort_materials();
-#endif
 
   log("Loading quests.");
   index_boot(DB_BOOT_QST);
@@ -811,7 +799,6 @@ void boot_world(void)
   init_perlin(NOISE_STONE, NOISE_STONE_SEED);
   init_perlin(NOISE_CRYSTAL, NOISE_CRYSTAL_SEED);
 
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   log("Indexing wilderness rooms.");
   initialize_wilderness_lists();
 
@@ -826,7 +813,6 @@ void boot_world(void)
 
   // save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 0);
   // save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 1);
-#endif
 }
 
 static void free_extra_descriptions(struct extra_descr_data *edesc)
@@ -3571,14 +3557,12 @@ void parse_mobile(FILE *mob_f, int nr)
     REMOVE_BIT_AR(AFF_FLAGS(mob_proto + i), AFF_POISON);
     REMOVE_BIT_AR(AFF_FLAGS(mob_proto + i), AFF_ACID_COAT);
     REMOVE_BIT_AR(AFF_FLAGS(mob_proto + i), AFF_SLEEP);
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     if (MOB_FLAGGED(mob_proto + i, MOB_AGGRESSIVE) && MOB_FLAGGED(mob_proto + i, MOB_AGGR_GOOD))
       REMOVE_BIT_AR(MOB_FLAGS(mob_proto + i), MOB_AGGR_GOOD);
     if (MOB_FLAGGED(mob_proto + i, MOB_AGGRESSIVE) && MOB_FLAGGED(mob_proto + i, MOB_AGGR_NEUTRAL))
       REMOVE_BIT_AR(MOB_FLAGS(mob_proto + i), MOB_AGGR_NEUTRAL);
     if (MOB_FLAGGED(mob_proto + i, MOB_AGGRESSIVE) && MOB_FLAGGED(mob_proto + i, MOB_AGGR_EVIL))
       REMOVE_BIT_AR(MOB_FLAGS(mob_proto + i), MOB_AGGR_EVIL);
-#endif
 
     check_bitvector_names(AFF_FLAGS(mob_proto + i)[0], affected_bits_count, buf2, "mobile affect");
 
@@ -4839,15 +4823,10 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   if (GET_SIZE(mob) < 0 || GET_SIZE(mob) >= NUM_SIZES)
     GET_REAL_SIZE(mob) = SIZE_MEDIUM;
 
-    //  this line of code can be used to randomize the classes of the world
-    //  for testing purposes - zusuk
-    //  GET_CLASS(mob) = rand_number(0, NUM_CLASSES - 1);
+  //  this line of code can be used to randomize the classes of the world
+  //  for testing purposes - zusuk
+  //  GET_CLASS(mob) = rand_number(0, NUM_CLASSES - 1);
 
-#if defined(CAMPAIGN_DL)
-  if (!MOB_FLAGGED(mob, MOB_CUSTOM_GOLD))
-    autoroll_mob(mob, FALSE, FALSE);
-  GET_HIT(mob) = GET_MAX_HIT(mob);
-#endif
 
   if (MOB_FLAGGED(mob, MOB_MOUNTABLE))
     GET_REAL_MAX_MOVE(mob) = 2000 + (GET_LEVEL(mob) * 200);
@@ -7518,9 +7497,7 @@ void init_char(struct char_data *ch)
     GET_MOVE(ch) = GET_REAL_MAX_MOVE(ch);
     newbieEquipment(ch);
   }
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   set_title(ch, NULL);
-#endif
   ch->player.short_descr = NULL;
   ch->player.long_descr = NULL;
   ch->player.description = NULL;
@@ -7575,13 +7552,7 @@ void init_char(struct char_data *ch)
 
   GET_REAL_SIZE(ch) = SIZE_MEDIUM;
 
-#ifdef CAMPAIGN_FR
-  if (GET_RACE(ch) < -1 || GET_RACE(ch) >= NUM_EXTENDED_PC_RACES)
-#elif defined(CAMPAIGN_DL)
-  if (GET_RACE(ch) < DL_RACE_START || GET_RACE(ch) >= DL_RACE_END)
-#else
   if (GET_RACE(ch) < -1 || GET_RACE(ch) >= NUM_RACES)
-#endif
     GET_REAL_RACE(ch) = RACE_UNDEFINED;
 
   if ((i = get_ptable_by_name(GET_NAME(ch))) != -1)
@@ -7644,12 +7615,6 @@ void init_char(struct char_data *ch)
 
   // automap toggled on -zusuk
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOMAP);
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-  // autoprep toggled on -gicker
-  SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTO_PREP);
-  // autoconsider on
-  SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOCON);
-#endif
 
   // fresh start on casting data
   resetCastingData(ch);
@@ -8209,7 +8174,6 @@ static void load_default_config(void)
   CONFIG_MOB_ROGUES_GOLD = 100;
 
   /* Extra game options - defaults to 0 (Full for exp options) */
-  CONFIG_CAMPAIGN = 0;
   CONFIG_BAG_SYSTEM = 0;
   CONFIG_CRAFTING_SYSTEM = 0;
   CONFIG_LANDMARK_SYSTEM = 0;
@@ -8283,8 +8247,6 @@ void load_config(void)
     case 'c':
       if (!str_cmp(tag, "crash_file_timeout"))
         CONFIG_CRASH_TIMEOUT = num;
-      if (!str_cmp(tag, "campaign_setting"))
-        CONFIG_CAMPAIGN = num;
       if (!str_cmp(tag, "crafting_system"))
         CONFIG_CRAFTING_SYSTEM = num;
       break;

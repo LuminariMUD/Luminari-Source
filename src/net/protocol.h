@@ -26,7 +26,7 @@
  * - 200+ predefined MSDP variables covering all game aspects
  * - Color system with RGB support and Unicode characters
  * - GUI elements (buttons and gauges) for compatible clients
- * - Campaign-specific MUD names (Dragonlance, Forgotten Realms, LuminariMUD)
+ * - LuminariMUD server identity metadata
  * - Memory-safe per-descriptor buffers
  * - Comprehensive error handling and debugging support
  *
@@ -59,24 +59,13 @@
 #define PROTOCOL_H
 
 /******************************************************************************
- *                           CAMPAIGN CONFIGURATION
- *
- * MUD_NAME: Automatically set based on campaign compilation flags:
- * - CAMPAIGN_DL: "Chronicles of Krynn" (Dragonlance campaign)
- * - CAMPAIGN_FR: "Faerun: A Forgotten Realms MUD" (Forgotten Realms)
- * - Default: "LuminariMUD" (standard fantasy campaign)
+ *                           SERVER CONFIGURATION
  *
  * The descriptor_t type is defined by the MUD's communication system and
  * represents a single client connection with all associated protocol data.
  *****************************************************************************/
 
-#if defined(CAMPAIGN_DL)
-#define MUD_NAME "Chronicles of Krynn"
-#elif defined(CAMPAIGN_FR)
-#define MUD_NAME "Faerun: A Forgotten Realms MUD"
-#else
 #define MUD_NAME "LuminariMUD"
-#endif
 
 /* for ssize_t and friends */
 #include "conf.h"

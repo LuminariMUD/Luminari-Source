@@ -32,7 +32,6 @@
 
 #define ASSIGNOBJ(obj, handler) spec_assign_object((obj), (handler), #handler, SPEC_ASSIGN_LOCATION)
 
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
 static const struct spec_obj_assignment luminari_object_assignments[] = {
     {NOOB_CRAFTING_KIT, "Crafting Kit"},
     {VAMPIRE_CLOAK_OBJ_VNUM, "Vampire Cloak"},
@@ -62,7 +61,6 @@ static void apply_object_assignments(const struct spec_obj_assignment *rows, siz
                        definition->canonical_name, source_location);
   }
 }
-#endif
 
 /**
  * Validate every declarative table against the registry.
@@ -75,34 +73,17 @@ void spec_assign_table_boot_validate(void)
 {
   char error[512];
 
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   if (!spec_assign_table_validate_objects(luminari_object_assignments,
                                           LUMINARI_OBJECT_ASSIGNMENT_COUNT, error, sizeof(error)))
   {
     log("SYSERR: Invalid declarative object assignment table: %s", error);
     exit(1);
   }
-#else
-  (void)error;
-#endif
 }
 
 /* assign special procedures to objects */
 void assign_objects(void)
 {
-#ifdef CAMPAIGN_FR
-
-  ASSIGNOBJ(115, bank);
-
-  ASSIGNOBJ(3118, crafting_kit);
-  ASSIGNOBJ(3322, crafting_kit);
-
-  ASSIGNOBJ(VAMPIRE_CLOAK_OBJ_VNUM, vampire_cloak);
-#elif defined(CAMPAIGN_DL)
-  // general
-  ASSIGNOBJ(VAMPIRE_CLOAK_OBJ_VNUM, vampire_cloak);
-
-#else
   apply_object_assignments(luminari_object_assignments, LUMINARI_OBJECT_ASSIGNMENT_COUNT,
                            SPEC_ASSIGN_LOCATION);
 
@@ -310,8 +291,6 @@ void assign_objects(void)
 
   /* clouds realm */
   ASSIGNOBJ(144669, dragon_robes);
-
-#endif
 }
 
 /* eof */

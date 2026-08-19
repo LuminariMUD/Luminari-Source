@@ -4424,17 +4424,9 @@ ACMD(do_score)
   send_to_char(ch, "\tcName : \tn%-20s \tcTitle   : \tn%s\r\n", GET_NAME(ch),
                GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
 
-#if defined(CAMPAIGN_DL)
-  /* Display race with bounds checking */
-  send_to_char(ch, "\tcRace : \tn%-20s ",
-               (GET_RACE(ch) >= DL_RACE_START && GET_RACE(ch) < DL_RACE_END)
-                   ? race_list[GET_RACE(ch)].type
-                   : "Unknown");
-#else
   /* Display race with bounds checking */
   send_to_char(ch, "\tcRace : \tn%-20s ",
                (valid_luminari_race(GET_RACE(ch)) ? race_list[GET_RACE(ch)].type : "Unknown"));
-#endif
 
   /* Build class string - shows all classes for multiclass characters */
   *buf = '\0';
@@ -7310,13 +7302,7 @@ ACMD(do_equipment)
     if (GET_EQ(ch, eq_ordering_1[i]))
     {
       found = TRUE;
-#if defined(CAMPAIGN_DL)
-      // In Dragonlance, we always want to be able to see our equipment unless it's invis and we can't see invis
-      if (!OBJ_FLAGGED(GET_EQ(ch, eq_ordering_1[i]), ITEM_INVISIBLE) ||
-          AFF_FLAGGED(ch, AFF_DETECT_INVIS) || has_true_sight(ch))
-#else
       if (CAN_SEE_OBJ(ch, GET_EQ(ch, eq_ordering_1[i])))
-#endif
       {
         send_to_char(ch, "%s", wear_where[eq_ordering_1[i]]);
         /* added this as a clue to players */
@@ -7445,13 +7431,8 @@ ACMD(do_who)
   struct descriptor_data *d;
   struct char_data *tch;
   int i, num_can_see = 0;
-#if !defined(CAMPAIGN_DL)
   int class_len = 0;
   size_t len = 0;
-#else
-  char clan_name[MAX_CLAN_NAME] = {'\0'}; /* Currently unused */
-  int length = 0, padding = 0;
-#endif
   char name_search[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'},
        classes_list[MAX_INPUT_LENGTH] = {'\0'};
   char mode;
@@ -7656,9 +7637,7 @@ ACMD(do_who)
     for (d = descriptor_list; d; d = d->next)
     {
       *classes_list = '\0';
-#if !defined(CAMPAIGN_DL)
       len = 0;
-#endif
       if (d->original)
         tch = d->original;
       else if (!(tch = d->character))
@@ -7689,65 +7668,6 @@ ACMD(do_who)
         continue;
       if (showleader && (!GROUP(tch) || GROUP_LEADER(GROUP(tch)) != tch))
         continue;
-#if defined(CAMPAIGN_DL)
-      if (TRUE)
-      {
-        if (GET_LEVEL(tch) >= LVL_IMMORT)
-          snprintf(clan_name, sizeof(clan_name), "%s", GET_IMM_TITLE(tch));
-        else
-          snprintf(clan_name, sizeof(clan_name), "%s",
-                   ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0)
-                       ? CLAN_NAME(c_n)
-                       : "Adventurer");
-        length = strlen(clan_name);
-        length += count_color_chars(clan_name);
-        padding = 28 - length;
-
-        // Move characters to make room for padding at the front
-        for (x = length; x >= 0; x--)
-        {
-          clan_name[x + padding / 2] = clan_name[x];
-        }
-        // Append spaces at the front
-        for (x = 0; x < padding / 2; x++)
-        {
-          clan_name[x] = ' ';
-        }
-        // Append spaces at the end
-        for (x = length + padding / 2; x < 28; x++)
-        {
-          clan_name[x] = ' ';
-        }
-        if (padding % 2 != 0)
-        {
-          // If padding is odd, add one more space at the end
-          clan_name[28] = ' ';
-        }
-        if (GET_LEVEL(tch) >= LVL_IMMORT)
-        {
-          send_to_char(ch, "\tW[\tC%28.28s \tW]\tn %s", clan_name,
-                       (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)));
-        }
-        else
-        {
-          send_to_char(ch, "\tW[ \tC%2d %-4.4s %-20.20s \tW]\tn %s", GET_LEVEL(tch),
-                       race_list[GET_REAL_RACE(tch)].abbrev,
-                       ((c_n = real_clan(GET_CLAN(tch))) != NO_CLAN && GET_CLANRANK(tch) > 0)
-                           ? CLAN_NAME(c_n)
-                           : "Adventurer",
-                       (*GET_TITLE(tch) ? GET_TITLE(tch) : GET_NAME(tch)));
-        }
-
-        // num_can_see++;
-        if (GET_LEVEL(tch) >= LVL_IMMORT)
-        {
-          staff++;
-        }
-        else
-        {
-          mortals++;
-        }
-#else
       if (short_list)
       {
         /* changed this to force showing char real race */
@@ -7813,7 +7733,6 @@ ACMD(do_who)
                            clan_list[c_n].abrev ? CLAN_ABREV(c_n) : "Unknown", QBRED, QNRM);
           }
         }
-#endif
         if (GET_INVIS_LEV(tch))
           send_to_char(ch, " (i%d)", GET_INVIS_LEV(tch));
         else if (AFF_FLAGGED(tch, AFF_INVISIBLE))
@@ -8964,7 +8883,7 @@ ACMDU(do_homelands)
 
   if (!*argument)
   {
-    send_to_char(ch, "\tcRegions of Faerun\tn\r\n\r\n");
+    send_to_char(ch, "\tcRegions of Luminari\tn\r\n\r\n");
     for (i = 1; i < NUM_REGIONS; i++)
     {
       send_to_char(ch, "%-20s ", regions[i]);
@@ -9409,17 +9328,7 @@ ACMD(do_areas)
         "Areas shown in \trred\tn may have some creatures outside the specified range.\r\n");
   }
 
-#if defined(CAMPAIGN_DL)
-  len = snprintf_append(
-      buf, sizeof(buf), len,
-      "To show all areas type 'areas all', or to filter zones by level see HELP AREAS.\r\n");
-  len =
-      snprintf_append(buf, sizeof(buf), len,
-                      "To show more information on a specific zone, type HELP (zone name as shown "
-                      "in areas command).\r\n");
-#else
   len = snprintf_append(buf, sizeof(buf), len, "More areas are listed in HELP ZONES");
-#endif
 
   // if (zcount == 0)
   if (num_areas == 0)
@@ -11035,27 +10944,8 @@ ACMD(do_flightlist)
 {
   int i = 0;
 
-#ifdef CAMPAIGN_FR
-
-  char zone[200];
-
-  text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
-  for (i = 0; i < NUM_ZONE_ENTRANCES; i++)
-  {
-    snprintf(zone, sizeof(zone), "%s (%s)", zone_entrances_fr[i][0], zone_entrances_fr[i][1]);
-    send_to_char(ch, "%-39s ", zone);
-    if ((i % 2) == 1)
-      send_to_char(ch, "\r\n");
-  }
-  if ((i % 2) != 1)
-    send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-#else
   i = 0;
   text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
-#if defined(CAMPAIGN_DL)
-  text_line(ch, "\tYCarriage Stops:\tC", 80, '-', '-');
-#endif
   while (get_carriage_locale_vnum(i) != 0)
   {
     send_to_char(ch, "%-39s ", get_transport_carriage_name(i));
@@ -11067,20 +10957,6 @@ ACMD(do_flightlist)
     send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
   i = 0;
-#if defined(CAMPAIGN_DL)
-  text_line(ch, "\tYSailing Ports\tC", 80, '-', '-');
-  while (get_sailing_locale_vnum(i) != 0)
-  {
-    send_to_char(ch, "%-39s ", get_transport_sailing_name(i));
-    if ((i % 2) == 1)
-      send_to_char(ch, "\r\n");
-    i++;
-  }
-  if ((i % 2) != 1)
-    send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-#endif
-#endif
 }
 
 ACMD(do_touch_spells)

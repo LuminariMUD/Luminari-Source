@@ -40,63 +40,6 @@
 #define OFFENSIVE_AOE_POWERS 6
 
 
-#if defined(CAMPAIGN_DL)
-#define SPELLUP_SPELLS 53
-/* list of spells mobiles will use for spellups */
-int valid_spellup_spell[SPELLUP_SPELLS] = {SPELL_SHIELD_OF_FAITH, // 0
-                                           SPELL_BLESS,
-                                           SPELL_DETECT_ALIGN,
-                                           SPELL_DETECT_INVIS,
-                                           SPELL_DETECT_MAGIC,
-                                           SPELL_DETECT_POISON,
-                                           SPELL_PROT_FROM_EVIL,
-                                           SPELL_SANCTUARY,
-                                           SPELL_STRENGTH,
-                                           SPELL_SENSE_LIFE,
-                                           SPELL_INFRAVISION,
-                                           SPELL_WATERWALK,
-                                           SPELL_FLY,
-                                           SPELL_BLUR,
-                                           SPELL_MIRROR_IMAGE,
-                                           SPELL_STONESKIN,
-                                           SPELL_ENDURANCE,
-                                           SPELL_PROT_FROM_GOOD,
-                                           SPELL_ENDURE_ELEMENTS,
-                                           SPELL_EXPEDITIOUS_RETREAT,
-                                           SPELL_IRON_GUTS,
-                                           SPELL_MAGE_ARMOR,
-                                           SPELL_SHIELD,
-                                           SPELL_TRUE_STRIKE,
-                                           SPELL_FALSE_LIFE,
-                                           SPELL_GRACE,
-                                           SPELL_RESIST_ENERGY,
-                                           SPELL_WATER_BREATHE,
-                                           SPELL_HEROISM,
-                                           SPELL_NON_DETECTION,
-                                           SPELL_HASTE,
-                                           SPELL_CUNNING,
-                                           SPELL_WISDOM,
-                                           SPELL_CHARISMA,
-                                           SPELL_FIRE_SHIELD,
-                                           SPELL_COLD_SHIELD,
-                                           SPELL_MINOR_GLOBE,
-                                           SPELL_GREATER_HEROISM,
-                                           SPELL_TRUE_SEEING,
-                                           SPELL_GLOBE_OF_INVULN,
-                                           SPELL_GREATER_MIRROR_IMAGE,
-                                           SPELL_DISPLACEMENT,
-                                           SPELL_PROTECT_FROM_SPELLS,
-                                           SPELL_SPELL_MANTLE,
-                                           SPELL_IRONSKIN,
-                                           SPELL_MIND_BLANK,
-                                           SPELL_SHADOW_SHIELD,
-                                           SPELL_GREATER_SPELL_MANTLE,
-                                           SPELL_REGENERATION,
-                                           SPELL_DEATH_SHIELD,
-                                           SPELL_BARKSKIN,
-                                           SPELL_SPELL_RESISTANCE,
-                                           SPELL_WATERWALK};
-#else
 /* SPELLUP_SPELLS already defined in mob_spells.h */
 /* list of spells mobiles will use for spellups */
 int valid_spellup_spell[SPELLUP_SPELLS] = {SPELL_SHIELD_OF_FAITH, // 0
@@ -154,7 +97,6 @@ int valid_spellup_spell[SPELLUP_SPELLS] = {SPELL_SHIELD_OF_FAITH, // 0
                                            SPELL_BARKSKIN,
                                            SPELL_SPELL_RESISTANCE,
                                            SPELL_WATERWALK};
-#endif
 
 /* Wizard/Sorcerer group buff spells (MAG_GROUPS) */
 int wizard_group_buff_spells[WIZARD_GROUP_BUFFS] = {

@@ -1386,13 +1386,11 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
   } /* end for */
   (void)merc_slot;
 
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   /* charisma bonus, spare represents our extra slots */
   if (GET_CHA_BONUS(ch) <= 0)
     spare = 0;
   else
     spare = GET_CHA_BONUS(ch);
-#endif
 
   spare++; /* base 1 */
 
@@ -10569,13 +10567,11 @@ bool is_wearing_metal(struct char_data *ch)
 
 bool can_npc_command(struct char_data *ch)
 {
-#if !defined(CAMPAIGN_DL)
   if (IS_NPC(ch))
   {
     send_to_char(ch, "You have no idea how.\r\n");
     return FALSE;
   }
-#endif
 
   return TRUE;
 }
@@ -10694,10 +10690,6 @@ bool is_selectable_region(int region)
 {
   switch (region)
   {
-#if defined(CAMPAIGN_DL)
-  case REGION_OUTER_PLANES:
-    return false;
-#endif
   }
   return true;
 }
@@ -12061,8 +12053,7 @@ bool valid_luminari_race(int race)
   if (race < 0 || race >= NUM_EXTENDED_RACES)
     return false;
 
-  /* The quest-only races sit inside the Dragonlance number range, but they
-   * are Luminari races - see RACE_LICH/RACE_VAMPIRE in structs.h */
+  /* The quest-only races sit inside a reserved legacy number range. */
   if (race == RACE_LICH || race == RACE_VAMPIRE)
     return true;
 

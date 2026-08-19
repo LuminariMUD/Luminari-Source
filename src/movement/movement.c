@@ -872,11 +872,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   display_leave_messages(ch, dir, riding, ridden_by);
 
 
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   /* Create tracks using new modular function */
   if (should_create_tracks(ch))
     create_movement_tracks(ch, dir, TRACKS_OUT);
-#endif
 
   /* the actual technical moving of the char */
   char_from_room(ch);

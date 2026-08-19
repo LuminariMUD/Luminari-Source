@@ -402,39 +402,6 @@ void assign_feats(void)
         "+2 spell save versus damaging spells", "+2 spell save versus damaging spells");
   feato(FEAT_DWARF_RACIAL_ADJUSTMENT, "dwarf racial adjustment", TRUE, FALSE, FALSE,
         FEAT_TYPE_INNATE_ABILITY, "+2 con", "As a racial adjustment you have +2 to constitution.");
-#if defined(CAMPAIGN_DL)
-  // gully dwarf
-  feato(FEAT_GULLY_DWARF_RACIAL_ADJUSTMENT, "gully dwarf racial adjustment", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "+4 Con, +4 Dex, -4 Int, -2 Cha",
-        "+4 racial bonus to dexterity and constituion ability scores. -4 to intelligence and -2 to "
-        "charisma.");
-  feato(FEAT_SURVIVAL_INSTINCT, "survival instinct", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+3 to Stealth and Nature skills. Can use the scrounge ability to find random items "
-        "virtually anywhere.",
-        "+3 to Stealth and Nature skills. Can use the scrounge ability to find random items "
-        "virtually anywhere.");
-  feato(FEAT_COWARDLY, "cowardly", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "-4 penalty to intimidation attempts on the gully dwarf. Movement speed will not prevent "
-        "them from fleeing, and they do not need an action to flee. Immune to taunts.",
-        "-4 penalty to intimidation attempts on the gully dwarf. Movement speed will not prevent "
-        "them from fleeing, and they do not need an action to flee. Immune to taunts.");
-  feato(FEAT_PITIABLE, "pitiable", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "Has a 75% chance to avoid aggro attacks by mobs.",
-        "Has a 75% chance to avoid aggro attacks by mobs.");
-  feato(FEAT_GRUBBY, "grubby", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "-6 to persuasion and appraise skill checks. 50% resistance to poison and disease damage. "
-        "+4 saving throw bonus against disease.",
-        "-6 to persuasion and appraise skill checks. 50% resistance to poison and disease damage. "
-        "+4 saving throw bonus against disease.");
-  // mountain dwarf
-  feato(FEAT_SHIELD_DWARF_RACIAL_ADJUSTMENT, "mountain dwarf racial adjustment", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "+2 str +2 Con",
-        "+2 racial bonus to strength and constituion ability scores.");
-  feato(FEAT_SHIELD_DWARF_ARMOR_TRAINING, "dwarven armor training", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "proficiency and bonuses in light and medium armor",
-        "All mountain dwarves are proficient in light and medium armor, and reduce their armor "
-        "check penalty in all armor by 1.");
-#else
   feato(FEAT_SHIELD_DWARF_RACIAL_ADJUSTMENT, "shield dwarf racial adjustment", TRUE, FALSE, FALSE,
         FEAT_TYPE_INNATE_ABILITY, "+2 str +2 Con",
         "+2 racial bonus to strength and constituion ability scores.");
@@ -442,7 +409,6 @@ void assign_feats(void)
         FEAT_TYPE_INNATE_ABILITY, "proficiency and bonuses in light and medium armor",
         "All shield dwarves are proficient in light and medium armor, and reduce their armor check "
         "penalty in all armor by 1.");
-#endif
   feato(FEAT_ENCUMBERED_RESILIENCE, "encumbered resilience", TRUE, FALSE, FALSE,
         FEAT_TYPE_INNATE_ABILITY,
         "Strength is treated as 2 points higher in determining maximum carry weight.",
@@ -592,15 +558,6 @@ void assign_feats(void)
   feato(FEAT_NATURAL_ILLUSIONIST, "natural illusionist", TRUE, FALSE, FALSE,
         FEAT_TYPE_INNATE_ABILITY, "Can cast minor illusion at will.",
         "Can cast minor illusion at will. At level 20 can cast mirror image at will.");
-#if defined(CAMPAIGN_DL)
-  // hill dwarves
-  feato(FEAT_GOLD_DWARF_RACIAL_ADJUSTMENT, "hill dwarf racial adjustment", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "+1 wis", "+1 racial bonus to wisdom ability score.");
-  feato(FEAT_GOLD_DWARF_TOUGHNESS, "hill dwarf toughness", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "+1 hit point per level",
-        "Hill dwarves receive an extra hit point at level 1 and +1 for each level they gain "
-        "thereafter.");
-#else
   // gold dwarves
   feato(FEAT_GOLD_DWARF_RACIAL_ADJUSTMENT, "gold dwarf racial adjustment", TRUE, FALSE, FALSE,
         FEAT_TYPE_INNATE_ABILITY, "+1 wis", "+1 racial bonus to wisdom ability score.");
@@ -608,7 +565,6 @@ void assign_feats(void)
         FEAT_TYPE_INNATE_ABILITY, "+1 hit point per level",
         "Gold dwarves receive an extra hit point at level 1 and +1 for each level they gain "
         "thereafter.");
-#endif
   // Aasimar
   feato(FEAT_AASIMAR_RACIAL_ADJUSTMENT, "aasimar racial adjustment", TRUE, FALSE, FALSE,
         FEAT_TYPE_INNATE_ABILITY, "+2 cha and +1 wis",
@@ -1018,39 +974,6 @@ void assign_feats(void)
         "powerful boost to stats 3x/day",
         "Allows you to tap into your insect being, greatly enhancing your stats 3x / day");
 
-#if defined(CAMPAIGN_DL)
-  feato(FEAT_HIGH_ELF_RACIAL_ADJUSTMENT, "silvanesti elf racial adjustment", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "+2 dex +1 int",
-        "Silvanesti Elf racial adjustment to stats are: +2 dexterity, +1 intelligence.");
-  feato(FEAT_HIGH_ELF_CANTRIP, "silvanesti elf cantrip", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "can choose 1 wizard cantrip",
-        "Allows the choosing of a single circle 1 wizard spell that can be cast at will, chosen "
-        "via the study menu.");
-  feato(FEAT_HIGH_ELF_LINGUIST, "silvanesti elf linguist", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "can learn an additional language",
-        "Allows the choosing of an extra language.");
-
-  feato(FEAT_WOOD_ELF_RACIAL_ADJUSTMENT, "kagonesti elf racial adjustment", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "+2 Dex, +1 Str ",
-        "Kagonesti elf racial adjustment to stats are: +2 dexterity, +1 strength.");
-  feato(FEAT_WOOD_ELF_MASK_OF_THE_WILD, "mask of the wild", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "+3 to stealth checks",
-        "+3 to stealth based skill and ability checks.");
-  feato(FEAT_WOOD_ELF_FLEETNESS, "kagonesti elf fleetness", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "max movement points increased by +20 per level",
-        "The kagonesti elf's maximum movement points increases by +20 per level.");
-
-  feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "qualinesti racial adjustment", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "+2 dex +1 wis",
-        "Qualinesti elf racial adjustment to stats are: +2 dexterity, +1 wisdom.");
-  feato(FEAT_MOON_ELF_BATHED_IN_MOONLIGHT, "bathed in moonlight", TRUE, FALSE, FALSE,
-        FEAT_TYPE_INNATE_ABILITY, "+6 to stealth checks when outside at night",
-        "+6 to stealth and ability checks when outside at night time.");
-  feato(FEAT_MOON_ELF_LUNAR_MAGIC, "lunar magic", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "learns some spells as innate abilities",
-        "Learns minor illusion spell at level 1, sleep at level 3, and moonbeam at level 5.  "
-        "Castable 1/day each.");
-#else
   feato(FEAT_HIGH_ELF_RACIAL_ADJUSTMENT, "high elf racial adjustment", TRUE, FALSE, FALSE,
         FEAT_TYPE_INNATE_ABILITY, "+2 dex +1 int",
         "High Elven racial adjustment to stats are: +2 dexterity, +1 intelligence.");
@@ -1081,7 +1004,6 @@ void assign_feats(void)
         "learns some spells as innate abilities",
         "Learns minor illusion spell at level 1, sleep at level 3, and moonbeam at level 5.  "
         "Castable 1/day each.");
-#endif
 
   feato(FEAT_WEAPON_PROFICIENCY_KENDER, "kender hoopak proficiency", TRUE, FALSE, FALSE,
         FEAT_TYPE_INNATE_ABILITY, "All kender are proficient with hoopaks.",
@@ -1794,11 +1716,8 @@ void assign_feats(void)
         "they can cast summon creature ii.  At level five they can cast summon creature iii, and "
         "so forth up until level 17 "
         "for summon creature ix. "
-// No gate spell in FR because there aren't multiple planes of existence yet
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
-        "At level 19, the summoner can cast the gate spell at-will."
-#endif
-  );
+        // No gate spell in FR because there aren't multiple planes of existence yet
+        "At level 19, the summoner can cast the gate spell at-will.");
 
   feato(FEAT_BOND_SENSES, "bond senses", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "The summoner can take full control of their eidolon.",
@@ -3334,19 +3253,10 @@ void assign_feats(void)
         "Each rank in this feat will give your familiar: 1 AC, 10 Hit-points, +1 to "
         "strength, dexterity and constitution.");
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-  feato(FEAT_QUICK_CHANT, "quick chant", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-        "You can cast spells faster.",
-        "You can cast/manifest ritual spells/psionic powers about 50 percent faster than normal "
-        "with this feat. You also have a 10% chance to cast/manifest "
-        "any spell/psionic power as if it were quickened, using a swift action to cast/manifest "
-        "instead of a standard action.\r\n");
-#else
   feato(FEAT_QUICK_CHANT, "quick chant", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "You can cast spells faster.",
         "You can cast/manifest ritual spells/psionic powers about 50 percent faster than normal "
         "with this feat.");
-#endif
 
 
   feato(FEAT_AUGMENT_SUMMONING, "augment summoning", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,

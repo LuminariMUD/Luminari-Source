@@ -47,7 +47,6 @@
 #include "character/evolutions.h"
 #include "olc/oasis.h"
 #include "dgscript/dg_scripts.h"
-#include "campaign.h"
 #include "magic/domains_schools.h"
 #include "spec_artifacts.h"
 #include "spec/spec_effects.h"
@@ -215,96 +214,95 @@ static const struct artifact_template artifact_templates[] = {
 /* --------------------------------------------------------------------------
  * The content contract
  *
- * Where an artifact comes from, which campaigns it exists in, whether its
- * bearer is named publicly, and the one line of lore and one line of hint the
- * chronicle is allowed to print.  Neither string may name a room or a vnum:
+ * Where an artifact comes from, whether its bearer is named publicly, and the
+ * one line of lore and one line of hint the chronicle is allowed to print.
+ * Neither string may name a room or a vnum:
  * the roster is a rumour board, not a treasure map.
  *
- * An artifact with no row here is available everywhere, staged in the vault,
- * and keeps its bearer secret.  Boot validation says so out loud.
+ * An artifact with no row here is staged in the vault and keeps its bearer
+ * secret. Boot validation says so out loud.
  * -------------------------------------------------------------------------- */
 struct artifact_contract
 {
   int vnum;
   int acquisition;
-  int campaigns;
   int owner_policy;
   const char *lore;
   const char *acq_hint;
 };
 
 static const struct artifact_contract artifact_contracts[] = {
-    {ART_VNUM_TRORXEK, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_TRORXEK, ART_ACQ_VAULT, ART_OWNER_SECRET,
      "A staff that was persuaded out of its tree rather than cut from it.",
      "Staged for release; the forests have not given it up yet."},
 
-    {ART_VNUM_AMAUKEKEL, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_AMAUKEKEL, ART_ACQ_VAULT, ART_OWNER_SECRET,
      "A rod of sun-colored metal that warms near what should not be walking.",
      "Staged for release; no shrine has yet admitted to holding it."},
 
-    {ART_VNUM_FADE, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_FADE, ART_ACQ_VAULT, ART_OWNER_SECRET,
      "A blade the light bends around rather than touches.",
      "Staged for release; thieves trade the rumour, not the sword."},
 
-    {ART_VNUM_HENEKAR, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_HENEKAR, ART_ACQ_VAULT, ART_OWNER_SECRET,
      "A horn whose single clear note takes the fight out of a room.",
      "Staged for release."},
 
-    {ART_VNUM_DOOMBRINGER, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_PUBLIC,
+    {ART_VNUM_DOOMBRINGER, ART_ACQ_VAULT, ART_OWNER_PUBLIC,
      "A blade that turns the room black from the edges in.",
      "Staged for release; whoever carries it will not be able to hide it."},
 
-    {ART_VNUM_KELRARIN, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_KELRARIN, ART_ACQ_VAULT, ART_OWNER_SECRET,
      "A hammer that breaks over the wicked like the judgement of heaven.",
      "Staged for release."},
 
-    {ART_VNUM_KELROM, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_KELROM, ART_ACQ_VAULT, ART_OWNER_SECRET,
      "An axe that will not be turned on an animal, and says so.",
      "Staged for release."},
 
-    {ART_VNUM_GESEN, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_GESEN, ART_ACQ_VAULT, ART_OWNER_SECRET,
      "An axe that comes back, and brings something with it.",
      "Staged for release."},
 
-    {ART_VNUM_STINGER, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_STINGER, ART_ACQ_VAULT, ART_OWNER_SECRET,
      "A barb taken from something with five heads and no mercy in any of them.",
      "Staged for release."},
 
-    {ART_VNUM_AVERNUS, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_AVERNUS, ART_ACQ_VAULT, ART_OWNER_SECRET,
      "A black blade that keeps its bearer alive to keep swinging.",
      "Staged for release."},
 
-    {ART_VNUM_AEGIS, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_AEGIS, ART_ACQ_VAULT, ART_OWNER_SECRET,
      "A breastplate repaired in every age, with no two patches alike and none yet broken.",
      "Staged for release."},
 
     /* ---- second wave: each one has a real, stated acquisition mode ------- */
 
-    {ART_VNUM_VENGEANCE, ART_ACQ_QUEST, ART_CAMPAIGN_ALL, ART_OWNER_PUBLIC,
+    {ART_VNUM_VENGEANCE, ART_ACQ_QUEST, ART_OWNER_PUBLIC,
      "A sacred sword worked for a lifetime and finished by three hands, not one.",
      "The orders that made it still test who asks for it. Answer the test."},
 
-    {ART_VNUM_EARTHCRIER, ART_ACQ_BOSS, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_EARTHCRIER, ART_ACQ_BOSS, ART_OWNER_SECRET,
      "A rune-cut mithril maul heavy enough that the ground hears it land.",
      "Something large enough to swing it two-handed is already carrying it."},
 
-    {ART_VNUM_WYRMFANG, ART_ACQ_BOSS, ART_CAMPAIGN_ALL, ART_OWNER_PUBLIC,
+    {ART_VNUM_WYRMFANG, ART_ACQ_BOSS, ART_OWNER_PUBLIC,
      "An eight-foot night-black spear cut from a gargantuan black dragon's horn.",
      "It was taken from a dragon once. It will have to be taken again."},
 
-    {ART_VNUM_COURAGE, ART_ACQ_STAFF_EVENT, ART_CAMPAIGN_ALL, ART_OWNER_PUBLIC,
+    {ART_VNUM_COURAGE, ART_ACQ_STAFF_EVENT, ART_OWNER_PUBLIC,
      "A golden mace that makes the people standing beside its bearer braver.",
      "It is given, in the open, to someone who has already earned it."},
 
-    {ART_VNUM_ICEDGE, ART_ACQ_EXPLORATION, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
+    {ART_VNUM_ICEDGE, ART_ACQ_EXPLORATION, ART_OWNER_SECRET,
      "One of the legendary daggers of Ochir Naal, ice-blue and adamantine.",
      "A cult held it. Something out of the blizzard took it, and took it home."},
 
-    {ART_VNUM_TWILIGHT, ART_ACQ_RECOVERY, ART_CAMPAIGN_ALL, ART_OWNER_PUBLIC,
+    {ART_VNUM_TWILIGHT, ART_ACQ_RECOVERY, ART_OWNER_PUBLIC,
      "A huge black sword whose fire-giant runes give it only one name.",
      "It is not placed and it is not dropped. It is recovered, or it is lost."},
 
-    {-1, ART_ACQ_UNSET, 0, ART_OWNER_SECRET, NULL, NULL}};
+    {-1, ART_ACQ_UNSET, ART_OWNER_SECRET, NULL, NULL}};
 
 /* --------------------------------------------------------------------------
  * Progressive passive powers
@@ -686,23 +684,6 @@ static void artifact_apply_template(struct artifact_data *art)
   art->sig_align = template->sig_align;
 }
 
-/* Which campaign is compiled in.  One bit, decided once. */
-static int artifact_current_campaign(void)
-{
-#if defined(CAMPAIGN_DL)
-  return ART_CAMPAIGN_DL;
-#elif defined(CAMPAIGN_FR)
-  return ART_CAMPAIGN_FR;
-#else
-  return ART_CAMPAIGN_LUMINARI;
-#endif
-}
-
-int artifact_campaign_available(int campaigns)
-{
-  return (campaigns & artifact_current_campaign()) ? TRUE : FALSE;
-}
-
 static const struct artifact_contract *artifact_contract_of(int vnum)
 {
   int i = 0;
@@ -724,20 +705,16 @@ static void artifact_apply_contract(struct artifact_data *art)
   if (!contract)
   {
     art->acquisition = ART_ACQ_UNSET;
-    art->campaigns = ART_CAMPAIGN_ALL;
     art->owner_policy = ART_OWNER_SECRET;
     art->lore = NULL;
     art->acq_hint = NULL;
-    art->available = TRUE;
     return;
   }
 
   art->acquisition = contract->acquisition;
-  art->campaigns = contract->campaigns;
   art->owner_policy = contract->owner_policy;
   art->lore = contract->lore;
   art->acq_hint = contract->acq_hint;
-  art->available = artifact_campaign_available(contract->campaigns);
 }
 
 /* --------------------------------------------------------------------------
@@ -1110,12 +1087,6 @@ static int artifact_validate_contracts(void)
     {
       log("SYSERR: artifact contract (vnum %d): acquisition %d is unknown or undeclared",
           contract->vnum, contract->acquisition);
-      problems++;
-    }
-
-    if ((contract->campaigns & ART_CAMPAIGN_ALL) == 0)
-    {
-      log("SYSERR: artifact contract (vnum %d): available in no campaign at all", contract->vnum);
       problems++;
     }
 
@@ -1746,9 +1717,7 @@ void artifact_boot(void)
     art->discovered_at = 0;
 
     art->acquisition = ART_ACQ_UNSET;
-    art->campaigns = ART_CAMPAIGN_ALL;
     art->owner_policy = ART_OWNER_SECRET;
-    art->available = TRUE;
     art->lore = NULL;
     art->acq_hint = NULL;
 
@@ -5468,9 +5437,6 @@ static void artifact_show_roster(struct char_data *ch)
   {
     art = &art_index[i];
 
-    if (!art->available)
-      continue;
-
     state = artifact_state(art);
     stage = artifact_lore_stage(ch, art);
 
@@ -5509,7 +5475,7 @@ static void artifact_show_chronicle(struct char_data *ch, const char *name)
   {
     art = &art_index[i];
 
-    if (!art->available || !art->discovered)
+    if (!art->discovered)
       continue;
 
     if ((rnum = real_object(art->vnum)) == NOTHING)
@@ -6423,11 +6389,10 @@ ACMD(do_testartifact)
 
     for (i = 0; i < total_artifacts; i++)
       send_to_char(
-          ch, "%6d  %2d  %-19s  %-11s  %-20s  %s%s\r\n", art_index[i].vnum, art_index[i].level,
+          ch, "%6d  %2d  %-19s  %-11s  %-20s  %s\r\n", art_index[i].vnum, art_index[i].level,
           artifact_is_owned(art_index[i].vnum) ? art_index[i].owner : "-",
           artifact_state_name(artifact_state(&art_index[i])),
-          artifact_acquisition_name(art_index[i].acquisition), artifact_locate(&art_index[i]),
-          art_index[i].available ? "" : " \tD(not in this campaign)\tn");
+          artifact_acquisition_name(art_index[i].acquisition), artifact_locate(&art_index[i]));
 
     send_to_char(ch, "\r\nBinding and custody detail: \tcartifact chronicle <name>\tn\r\n");
     return;

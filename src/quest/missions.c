@@ -90,17 +90,6 @@ const char *const guard_difficulty[NUM_MISSION_DIFFICULTIES] = {
 /* begin fuctnions */
 int mission_details_to_faction(int faction)
 {
-#if defined(CAMPAIGN_DL)
-  switch (faction)
-  {
-  case FACTION_NONE:
-    return MISSION_HUTTS;
-  case FACTION_FORCES_OF_WHITESTONE:
-    return MISSION_REBELS;
-  case FACTION_DRAGONARMIES:
-    return MISSION_EMPIRE;
-  }
-#else
   switch (faction)
   {
   case FACTION_THE_ORDER:
@@ -110,7 +99,6 @@ int mission_details_to_faction(int faction)
   case FACTION_CRIMINAL:
     return MISSION_HUTTS;
   }
-#endif
   return MISSION_FREELANCERS;
 }
 
@@ -261,12 +249,7 @@ SPECIAL(faction_mission)
            "will be %s.'\r\n",
            faction_names_lwr[faction], AN(mission_targets[mission_details_to_faction(faction)]),
            mission_targets[mission_details_to_faction(faction)],
-           random_npc_names[GET_MISSION_NPC_NAME_NUM(ch)],
-#if defined(CAMPAIGN_DL)
-           get_mission_zone_name(ch),
-#else
-           mission_details[mDet][MISSION_ZONE_NAME],
-#endif
+           random_npc_names[GET_MISSION_NPC_NAME_NUM(ch)], mission_details[mDet][MISSION_ZONE_NAME],
            //        mission_details[mDet][MISSION_PLANET],
            mission_difficulty[difficulty], target_difficulty[difficulty],
            guard_difficulty[difficulty]);
@@ -286,24 +269,7 @@ SPECIAL(faction_mission)
 
 const char *get_mission_zone_name(struct char_data *ch)
 {
-#if defined(CAMPAIGN_DL)
-  if (GET_CURRENT_MISSION_ROOM(ch) == NOWHERE)
-    return "Unknown";
-  char name[400];
-  snprintf(name, sizeof(name), "%s", zone_table[world[GET_CURRENT_MISSION_ROOM(ch)].zone].name);
-  if (is_abbrev(name, "the") || is_abbrev(name, "The"))
-  {
-    return zone_table[world[GET_CURRENT_MISSION_ROOM(ch)].zone].name;
-  }
-  else
-  {
-    snprintf(name, sizeof(name), "the %s",
-             zone_table[world[GET_CURRENT_MISSION_ROOM(ch)].zone].name);
-    return strdup(name);
-  }
-#else
   return mission_details[GET_CURRENT_MISSION(ch)][MISSION_ZONE_NAME];
-#endif
 }
 
 ACMD(do_missions)
@@ -358,10 +324,7 @@ long get_mission_reward(char_data *ch, int reward_type)
     break;
   case MISSION_EXP:
     reward = (int)(level * MAX(1, level / 4) * mult * 300);
-// rewards are way too low when compared to the DL campaign exp tables.
-#if defined(CAMPAIGN_DL)
-    reward *= 5;
-#endif
+    // rewards are way too low when compared to the DL campaign exp tables.
     break;
   }
 
@@ -469,218 +432,6 @@ int select_mission_coords(int start)
   return room_vnum;
 }
 
-#ifdef CAMPAIGN_FR
-
-void create_mission_mobs(char_data *ch)
-{
-  struct char_data *mob = NULL;
-  struct char_data *leader = NULL;
-  int i = 0, randName = 0;
-  room_vnum to_room = 0;
-  if (GET_CURRENT_MISSION(ch) > 0)
-    to_room = select_mission_coords(atoi(mission_details[GET_CURRENT_MISSION(ch)][6]));
-  char buf[MAX_STRING_LENGTH];
-
-  for (i = 0; i < 4; i++)
-  {
-    mob = read_mobile_reason(MISSION_MOB_DFLT_VNUM, VIRTUAL, PERF_ENTITY_QUEST);
-    if (!mob)
-      return;
-    GET_SEX(mob) = dice(1, 2);
-    if (i > 0)
-    {
-      GET_LEVEL(mob) = GET_LEVEL(ch) - 2;
-      SET_BIT_AR(MOB_FLAGS(mob), MOB_GUARD);
-      SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
-      add_follower(mob, leader);
-    }
-    else
-    {
-      GET_LEVEL(mob) = GET_LEVEL(ch);
-      SET_BIT_AR(MOB_FLAGS(mob), MOB_CITIZEN);
-      leader = mob;
-    }
-    autoroll_mob(mob, TRUE, FALSE);
-    mob->points.armor -= 40;
-    GET_REAL_MAX_HIT(mob) = GET_HIT(mob);
-    GET_NDD(mob) = GET_SDD(mob) = MAX(2, GET_LEVEL(mob) / 6) + GET_MISSION_DIFFICULTY(ch);
-    GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 75);
-    GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
-    switch (GET_MISSION_DIFFICULTY(ch))
-    {
-    case MISSION_DIFF_EASY:
-      increase_mob_difficulty(mob, MISSION_DIFF_EASY);
-      break;
-    case MISSION_DIFF_TOUGH:
-      if (i == 0)
-      {
-        increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
-      }
-      break;
-    case MISSION_DIFF_CHALLENGING:
-      if (i == 0)
-        increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
-      else
-        increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
-      break;
-    case MISSION_DIFF_ARDUOUS:
-      if (i == 0)
-        increase_mob_difficulty(mob, MISSION_DIFF_ARDUOUS);
-      else
-        increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
-      break;
-    case MISSION_DIFF_SEVERE:
-      if (i == 0)
-        increase_mob_difficulty(mob, MISSION_DIFF_SEVERE);
-      else
-        increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
-    }
-    GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);
-    GET_HIT(mob) = GET_MAX_HIT(mob);
-    GET_FACTION(mob) = GET_MISSION_FACTION(ch);
-    randName = GET_MISSION_NPC_NAME_NUM(ch);
-    mob->mission_owner = GET_IDNUM(ch);
-    sprintf(buf, "%s %s %s %ld -%s",
-            AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
-            (i > 0) ? " guard" : random_npc_names[randName], (i == 0) ? GET_IDNUM(ch) : 0,
-            GET_NAME(ch));
-    mob->player.name = strdup(buf);
-    sprintf(buf, "%s %s%s%s",
-            AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
-            (i > 0) ? "" : " named ", (i > 0) ? " guard" : random_npc_names[randName]);
-    mob->player.short_descr = strdup(buf);
-    sprintf(buf, "%s %s%s%s (%s) is here.\r\n",
-            AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
-            (i > 0) ? "" : " named ", (i > 0) ? " guard" : random_npc_names[randName],
-            GET_NAME(ch));
-    mob->player.long_descr = strdup(buf);
-    if (real_room(to_room) != NOWHERE)
-    {
-      char_to_room(mob, real_room(to_room));
-      if (i > 0)
-      {
-        sprintf(buf, "%ld", GET_IDNUM(ch));
-        do_follow(mob, strdup(buf), 0, 0);
-      }
-    }
-  }
-}
-
-#elif defined(CAMPAIGN_DL)
-void create_mission_mobs(char_data *ch)
-{
-  struct char_data *mob = NULL;
-  struct char_data *leader = NULL;
-  int i = 0, randName = 0;
-  room_rnum to_room = 0;
-  char player_name[MAX_NAME_LENGTH];
-
-  if (GET_CURRENT_MISSION(ch) > 0)
-  {
-    to_room = get_random_road_room(1);
-    GET_CURRENT_MISSION_ROOM(ch) = to_room;
-  }
-
-  if (to_room == NOWHERE)
-  {
-    log("Cannot create mission mobs for %s. Random road room was NOWHERE.", GET_NAME(ch));
-    return;
-  }
-
-  snprintf(player_name, sizeof(player_name), "%s", GET_NAME(ch));
-  for (i = 0; (size_t)i < strlen(player_name); i++)
-    player_name[i] = tolower(player_name[i]);
-
-  char buf[MAX_STRING_LENGTH];
-
-  for (i = 0; i < 4; i++)
-  {
-    mob = read_mobile_reason(MISSION_MOB_DFLT_VNUM, VIRTUAL, PERF_ENTITY_QUEST);
-    if (!mob)
-      return;
-    GET_SEX(mob) = dice(1, 2);
-    if (i > 0)
-    {
-      GET_LEVEL(mob) = GET_LEVEL(ch) - 2;
-      SET_BIT_AR(MOB_FLAGS(mob), MOB_GUARD);
-      SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
-      add_follower(mob, leader);
-    }
-    else
-    {
-      GET_LEVEL(mob) = GET_LEVEL(ch);
-      SET_BIT_AR(MOB_FLAGS(mob), MOB_CITIZEN);
-      leader = mob;
-    }
-    autoroll_mob(mob, TRUE, FALSE);
-    mob->points.armor -= 40;
-    GET_REAL_MAX_HIT(mob) = GET_HIT(mob);
-    GET_NDD(mob) = GET_SDD(mob) = MAX(2, GET_LEVEL(mob) / 6) + GET_MISSION_DIFFICULTY(ch);
-    GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 75);
-    GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
-    switch (GET_MISSION_DIFFICULTY(ch))
-    {
-    case MISSION_DIFF_EASY:
-      increase_mob_difficulty(mob, MISSION_DIFF_EASY);
-      break;
-    case MISSION_DIFF_TOUGH:
-      if (i == 0)
-      {
-        increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
-      }
-      break;
-    case MISSION_DIFF_CHALLENGING:
-      if (i == 0)
-        increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
-      else
-        increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
-      break;
-    case MISSION_DIFF_ARDUOUS:
-      if (i == 0)
-        increase_mob_difficulty(mob, MISSION_DIFF_ARDUOUS);
-      else
-        increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
-      break;
-    case MISSION_DIFF_SEVERE:
-      if (i == 0)
-        increase_mob_difficulty(mob, MISSION_DIFF_SEVERE);
-      else
-        increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
-    }
-    GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);
-    GET_HIT(mob) = GET_MAX_HIT(mob);
-    GET_FACTION(mob) = GET_MISSION_FACTION(ch);
-    randName = GET_MISSION_NPC_NAME_NUM(ch);
-    mob->mission_owner = GET_IDNUM(ch);
-    sprintf(buf, "%s %s %s %ld %s",
-            AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
-            (i > 0) ? " guard" : random_npc_names[randName], (i == 0) ? GET_IDNUM(ch) : 0,
-            player_name);
-    mob->player.name = strdup(buf);
-    sprintf(buf, "%s %s%s%s",
-            AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
-            (i > 0) ? "" : " named ", (i > 0) ? " guard" : random_npc_names[randName]);
-    mob->player.short_descr = strdup(buf);
-    sprintf(buf, "%s %s%s%s (%s) is here.\r\n",
-            AN(mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
-            (i > 0) ? "" : " named ", (i > 0) ? " guard" : random_npc_names[randName],
-            GET_NAME(ch));
-    mob->player.long_descr = strdup(buf);
-    char_to_room(mob, to_room);
-    if (i > 0)
-    {
-      sprintf(buf, "%ld", GET_IDNUM(ch));
-      do_follow(mob, strdup(buf), 0, 0);
-    }
-  }
-}
-#else
 void create_mission_mobs(char_data *ch)
 {
   struct char_data *mob = NULL;
@@ -801,7 +552,6 @@ void create_mission_mobs(char_data *ch)
   }
 }
 
-#endif
 
 bool are_mission_mobs_loaded(char_data *ch)
 {

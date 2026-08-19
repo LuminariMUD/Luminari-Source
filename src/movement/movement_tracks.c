@@ -363,14 +363,7 @@ bool should_create_tracks(struct char_data *ch)
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOTRACK))
     return FALSE;
 
-    /* Check campaign settings */
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-  /* Tracks disabled for DragonLance and Forgotten Realms campaigns */
-  return FALSE;
-#else
-  /* Tracks enabled for default LuminariMUD campaign */
   return TRUE;
-#endif
 }
 
 /**

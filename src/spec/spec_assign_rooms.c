@@ -36,55 +36,6 @@ void assign_rooms(void)
 {
   room_rnum i;
 
-#ifdef CAMPAIGN_FR
-
-  // Luskan
-  ASSIGNROOM(3226, wizard_library);
-  ASSIGNROOM(3254, pet_shops);
-  ASSIGNROOM(3273, pet_shops);
-
-  // Longsaddle
-  ASSIGNROOM(337, wizard_library);
-  ASSIGNROOM(338, wizard_library);
-  ASSIGNROOM(339, wizard_library);
-  ASSIGNROOM(340, wizard_library);
-
-  // Silverymoon
-  ASSIGNROOM(6120, pet_shops);
-  ASSIGNROOM(6100, wizard_library);
-
-  // Triboar
-  ASSIGNROOM(7002, buyweapons);
-  ASSIGNROOM(7001, buyarmor);
-  ASSIGNROOM(7007, bazaar);
-  ASSIGNROOM(7058, pet_shops);
-  ASSIGNROOM(7060, pet_shops);
-  ASSIGNROOM(7045, wizard_library);
-  ASSIGNROOM(7048, bank);
-
-  // ASSIGNROOM(103006, bazaar);
-
-  // ASSIGNROOM(370, crafting_quest);
-
-  // ASSIGNROOM(3031, pet_shops);
-
-#elif defined(CAMPAIGN_DL)
-
-  // palanthas
-  ASSIGNROOM(2314, bank);           // s of fountain
-  ASSIGNROOM(7068, wizard_library); // academy
-  ASSIGNROOM(2496, bazaar);         // market st
-  ASSIGNROOM(15301, pet_shops);     // pets
-  ASSIGNROOM(15303, pet_shops);     // mounts
-  ASSIGNROOM(15306, pet_shops);     // mercs
-
-  // sanction
-  ASSIGNROOM(6525, bank);            // sw of fountain
-  ASSIGNROOM(13814, wizard_library); // academy
-  ASSIGNROOM(13815, bazaar);         // market st
-  ASSIGNROOM(13819, pet_shops);      // pets
-
-#else
 
   /* bazaar - spend quest points on magic gear */
   ASSIGNROOM(103006, bazaar);
@@ -194,8 +145,6 @@ void assign_rooms(void)
   ASSIGNROOM(1403, greyhawk_ship_commands);
   ASSIGNROOM(70003, greyhawk_ship_commands);
 
-
-#endif
 
   /* death traps are dumps, i.e. will destroy all gear that hits the ground */
   if (CONFIG_DTS_ARE_DUMPS)

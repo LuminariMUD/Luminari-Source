@@ -1786,11 +1786,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 
 /** Return how many items ch can carry.
  *  Increased this by 5 - Ornir */
-#if defined(CAMPAIGN_DL)
-#define CAN_CARRY_N(ch) (1000)
-#else
 #define CAN_CARRY_N(ch) (20 + (GET_DEX(ch) >> 1) + (GET_LEVEL(ch) >> 1))
-#endif
 
 /** Return whether or not ch is awake. */
 #define AWAKE(ch) (GET_POS(ch) > POS_SLEEPING)
@@ -2149,11 +2145,7 @@ int ACTUAL_BAB(struct char_data *ch);
    !IS_SET(EXIT(ch, door)->exit_info, EX_CLOSED))
 
 /** True total number of directions available to move in. */
-#ifdef CAMPAIGN_FR
-#define DIR_COUNT ((CONFIG_DIAGONAL_DIRS) ? 12 : 6)
-#else
 #define DIR_COUNT ((CONFIG_DIAGONAL_DIRS) ? 10 : 6)
-#endif
 
 /* Returns TRUE if the direction is a diagonal one */
 #define IS_DIAGONAL(dir)                                                                           \
@@ -2318,19 +2310,11 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_DUERGAR(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_DUERGAR))
 #define IS_GRAY_DWARF(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_DUERGAR))
 #define IS_DARK_DWARF(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_DUERGAR))
-#if defined(CAMPAIGN_DL)
-#define IS_GOBLINOID(ch)                                                                           \
-  ((IS_NPC(ch) &&                                                                                  \
-    (GET_SUBRACE(ch, 0) == SUBRACE_GOBLINOID || GET_SUBRACE(ch, 1) == SUBRACE_GOBLINOID ||         \
-     GET_SUBRACE(ch, 2) == SUBRACE_GOBLINOID)) ||                                                  \
-   (!IS_NPC(ch) && (GET_RACE(ch) == DL_RACE_GOBLIN || GET_RACE(ch) == DL_RACE_HOBGOBLIN)))
-#else
 #define IS_GOBLINOID(ch)                                                                           \
   ((IS_NPC(ch) &&                                                                                  \
     (GET_SUBRACE(ch, 0) == SUBRACE_GOBLINOID || GET_SUBRACE(ch, 1) == SUBRACE_GOBLINOID ||         \
      GET_SUBRACE(ch, 2) == SUBRACE_GOBLINOID)) ||                                                  \
    (!IS_NPC(ch) && (GET_RACE(ch) == RACE_GOBLIN || GET_RACE(ch) == RACE_HOBGOBLIN)))
-#endif
 
 // backwards compatibility for old circlemud code snippets
 #define SEND_TO_Q(buf, desc) (write_to_output(desc, "%s", buf))
@@ -2782,7 +2766,6 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define CONFIG_DEATH_EXP_LOSS config_info.player_config.death_exp_loss_penalty
 
 // extra game data
-#define CONFIG_CAMPAIGN config_info.extra.campaign
 #define CONFIG_BAG_SYSTEM config_info.extra.bag_system
 #define CONFIG_CRAFTING_SYSTEM config_info.extra.crafting_system
 #define CONFIG_LANDMARK_SYSTEM config_info.extra.landmarks_system
@@ -2874,13 +2857,7 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define GUI_RDSC_OPEN(ch) (gui_room_desc_wrap_open(ch))
 #define GUI_RDSC_CLOSE(ch) (gui_room_desc_wrap_close(ch))
 
-#ifdef CAMPAING_FR
-#define CRAFTING_CRYSTAL "shard of abeir"
-#elif defined(CAMPAIGN_DL)
-#define CRAFTING_CRYSTAL "greygem shard"
-#else
 #define CRAFTING_CRYSTAL "arcanite crystal"
-#endif
 
 // LootBoxes / Treasure Chests
 

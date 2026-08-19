@@ -115,25 +115,7 @@ int is_wilderness_material_craftable(int category, int subtype, int quality);
 float get_wilderness_crafting_value(int category, int subtype, int quality);
 
 /* Campaign-specific material arrays */
-#ifdef CAMPAIGN_DL
-extern const char *dl_herb_names[];
-extern const char *dl_crystal_names[];
-extern const char *dl_wood_names[];
-extern const char *dl_game_names[];
-extern const char *dl_vegetation_names[];
-extern const char *dl_stone_names[];
-extern const char *dl_mineral_names[];
-#endif
 
-#ifdef CAMPAIGN_FR
-extern const char *fr_herb_names[];
-extern const char *fr_crystal_names[];
-extern const char *fr_wood_names[];
-extern const char *fr_game_names[];
-extern const char *fr_vegetation_names[];
-extern const char *fr_stone_names[];
-extern const char *fr_mineral_names[];
-#endif
 
 /* Default LuminariMUD names (when no campaign defined) */
 extern const char *default_herb_names[];

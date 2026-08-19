@@ -242,9 +242,9 @@
 /* --------------------------------------------------------------------------
  * Acquisition and release policy
  *
- * This is the content contract for an artifact: where it comes from, which
- * campaigns it exists in, and how it re-enters play once lost.  It drives the
- * roster, the help text, and boot validation - not zone resets.
+ * This is the content contract for an artifact: where it comes from and how it
+ * re-enters play once lost. It drives the roster, the help text, and boot
+ * validation - not zone resets.
  * -------------------------------------------------------------------------- */
 #define ART_ACQ_UNSET 0
 #define ART_ACQ_BOSS 1        /* carried by a named world boss            */
@@ -255,12 +255,6 @@
 #define ART_ACQ_RECOVERY 6    /* only ever re-enters through recovery     */
 #define ART_ACQ_VAULT 7       /* staged in the vault, not yet placed      */
 #define NUM_ART_ACQ 8
-
-/* Campaign availability.  A bitmask so one artifact may exist in several. */
-#define ART_CAMPAIGN_LUMINARI (1 << 0)
-#define ART_CAMPAIGN_DL (1 << 1)
-#define ART_CAMPAIGN_FR (1 << 2)
-#define ART_CAMPAIGN_ALL (ART_CAMPAIGN_LUMINARI | ART_CAMPAIGN_DL | ART_CAMPAIGN_FR)
 
 /* --------------------------------------------------------------------------
  * Reusable signature-proc shapes
@@ -473,12 +467,10 @@ struct artifact_data
 
   /* Content contract - see the template table.  Copied in at boot so the
    * roster and validator read one place. */
-  int acquisition;      /* ART_ACQ_*                                  */
-  int campaigns;        /* ART_CAMPAIGN_* bitmask                     */
-  int owner_policy;     /* ART_OWNER_SECRET or ART_OWNER_PUBLIC       */
-  int available;        /* FALSE when disabled for this campaign      */
-  const char *lore;     /* one public line, no room or vnum in it     */
-  const char *acq_hint; /* how it is found, in the same terms         */
+  int acquisition;      /* ART_ACQ_*                            */
+  int owner_policy;     /* ART_OWNER_SECRET or ART_OWNER_PUBLIC */
+  const char *lore;     /* one public line, no room or vnum      */
+  const char *acq_hint; /* how it is found, in the same terms    */
 };
 
 /* --------------------------------------------------------------------------
@@ -516,7 +508,6 @@ int artifact_state(struct artifact_data *art);
 const char *artifact_state_name(int state);
 const char *artifact_acquisition_name(int acquisition);
 const char *artifact_invoke_name(int channel);
-int artifact_campaign_available(int campaigns);
 int artifact_validate_metadata(void);
 
 /* Stacking groups */

@@ -46,54 +46,6 @@ int find_first_step(room_rnum src, room_rnum target);
 
 /* location name, carriage stop room vnum, cost to travel here, continent name (matched below),
 zone description, mapp coord x, map coord y */
-const char *carriage_locales_dl[][CARRIAGE_LOCALES_FIELDS] = {
-    {"palanthas gate", "15204", "25", "Solamnia", "good alignment starting city", "1075", "2525"},
-    {"vingaard keep", "15206", "25", "Solamnia", "levels 13-20", "1320", "2925"},
-    {"thelgaard keep", "15207", "25", "Solamnia", "levels 21-24", "1765", "2555"},
-    {"caergoth gate", "15210", "25", "Solamnia", "levels 8-16, boat to Abanasinia", "2210", "2260"},
-    {"solace", "15200", "25", "Abanasinia",
-     "city for neutral or unfactioned people of any alignment", "2690", "2535"},
-    {"que-shu village", "15202", "25", "Abanasinia", "level 18 npcs", "2730", "2650"},
-    {"xak tsaroth", "15203", "25", "Abanasinia", "level 30 npcs, boat to sanction (taman busuk)",
-     "2705", "2670"},
-    {"fireside tavern", "15211", "25", "Abanasinia", "level 12 npcs", "2615", "2650"},
-    {"new sea docks", "15212", "25", "Abanasinia", "boat to solamnia", "2430", "2660"},
-    {"qualinost", "15213", "25", "Abanasinia", "level 20 npcs", "2855", "2485"},
-    {"pax tharkas", "15214", "25", "Abanasinia", "halfway between solace and tarsis", "2915",
-     "2520"},
-    {"tarsis", "15215", "25", "Abanasinia", "levels 18-25", "3595", "2630"},
-    {"darken wood", "15219", "25", "Abanasinia", "levels 13-19", "2770", "2510"},
-    {"sanction gate", "15205", "25", "Taman Busuk", "evil alignment starting city", "2020", "3765"},
-    {"neraka", "15216", "25", "Taman Busuk", "levels 14-25", "1805", "3950"},
-    {"city of morning dew", "15217", "25", "Taman Busuk", "level 40 npcs", "3055", "3645"},
-    {"plains of dust", "15218", "25", "Taman Busuk", "near the onyx obelisk epic level zone",
-     "3590", "3200"},
-    {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"}};
-
-
-/* continent name, ship dock room vnum, Cost in gold, faction name,
-     contintent description, map coord x, map coord y */
-const char *sailing_locales_dl[][SAILING_LOCALES_FIELDS] = {
-    {"palanthas dock", "2459", "50", "Any", "Home of the Solamnic Knights & Forces of Whitestone.",
-     "1075", "2525"},
-    {"caergoth / northern new sea", "4430", "50", "Any",
-     "Western Solamnia and a ferry across the New Sea.", "2210", "2260"},
-    {"abanasinia / southern new sea", "4429", "50", "Any",
-     "In this area: Solace, Qualinesti, Darken Wood & Que-Shu.", "2430", "2660"},
-    {"sanction dock", "6500", "50", "Any", "Economic center of the Dragonarmies, and near Neraka.",
-     "2020", "3765"},
-    {"bethel island", "9201", "50", "Any", "An island north of Palanthas in the Bay of Branchala.",
-     "975", "2530"},
-    {"eastern abanasinia", "2966", "50", "Any", "Trader's dock in eastern Abanasinia.", "2830",
-     "2570"},
-    {"undomesticated island", "2501", "50", "Any",
-     "A small island in the Eastern New Sea, near Sanction.", "1075", "2525"},
-    {"northern ergoth", "34700", "50", "Any", "A neutral trade dock located in Northern Ergoth",
-     "1765", "1210"},
-
-    {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"},
-};
-
 const char *carriage_locales_lumi[][CARRIAGE_LOCALES_FIELDS] = {
     {"ashenport", "103000", "10", "Ondius",
      "central city for low to mid levels and main quest line", "-59", "92"},
@@ -257,146 +209,6 @@ const char *walkto_landmarks_lumi[][WALKTO_LANDMARKS_FIELDS] = {
     {"1030", "103052", "baker", "bread & pastries"},
     {"1030", "103070", "elfstone tavern", "specialty drinks"},
 
-    /* always last! */
-    {"0", "", "always last item", ""},
-};
-
-/* zone, destination vnum, title, details */
-const char *walkto_landmarks_dl[][WALKTO_LANDMARKS_FIELDS] = {
-    {"Abanasinia", "4429", "Abanasinia to Solamnia Ferry", ""},
-    {"Abanasinia", "300", "Darken Wood", ""},
-    {"Abanasinia", "6318", "Elven Cadre", ""},
-    {"Abanasinia", "9000", "Ettin Cave", ""},
-    {"Abanasinia", "229", "Fireside Tavern", ""},
-    {"Abanasinia", "11700", "Goblin Warrens", ""},
-    {"Abanasinia", "15416", "Grove of Ambarin", ""},
-    {"Abanasinia", "14000", "Icewall Castle", ""},
-    {"Abanasinia", "700", "Marsh Temple", ""},
-    {"Abanasinia", "5900", "Onyx Obelisk", ""},
-    {"Abanasinia", "14701", "Para-Elemental Planes", ""},
-    {"Abanasinia", "7200", "Plains of Dust West", ""},
-    {"Abanasinia", "1002", "Qualinost", ""},
-    {"Abanasinia", "3205", "Que-Shu Village", ""},
-    {"Abanasinia", "1358", "Solace East Gate", ""},
-    {"Abanasinia", "13145", "Tarsis", ""},
-    {"Abanasinia", "2950", "Xak Tsaroth", ""},
-    {"Palanthas", "5052", "Gardens of the Blue Phoenix", ""},
-    {"Palanthas", "15347", "Lost Caverns of Palanthas", ""},
-    {"Palanthas", "2314", "Palanthas Bank", ""},
-    {"Palanthas", "2496", "Palanthas Bazaar", ""},
-    {"Palanthas", "15328", "Palanthas Bounties", ""},
-    {"Palanthas", "2200", "Palanthas Center Plaza", ""},
-    {"Palanthas", "15310", "Palanthas Crafting Halls", ""},
-    {"Palanthas", "15326", "Palanthas Donations", ""},
-    {"Palanthas", "15305", "Palanthas Dump", ""},
-    {"Palanthas", "2459", "Palanthas Ferry to Bethel Island", ""},
-    {"Palanthas", "5718", "Palanthas Graveyard", ""},
-    {"Palanthas", "15329", "Palanthas Hunts", ""},
-    {"Palanthas", "7067", "Palanthas Magic Shop", ""},
-    {"Palanthas", "2220", "Palanthas Market Square", ""},
-    {"Palanthas", "15306", "Palanthas Mercenary Hirelings", ""},
-    {"Palanthas", "7069", "Palanthas Object identifying", ""},
-    {"Palanthas", "4200", "Palanthas Palace", ""},
-    {"Palanthas", "15327", "Palanthas Pawn Shop", ""},
-    {"Palanthas", "15330", "Palanthas Quest Item Recovery", ""},
-    {"Palanthas", "2357", "Palanthas South Gate", ""},
-    {"Palanthas", "15303", "Palanthas Stables", ""},
-    {"Palanthas", "15348", "Palanthas Temple", ""},
-    {"Palanthas", "500", "Palanthas Training Pit", ""},
-    {"Palanthas", "7002", "Palanthas Wizard Academy", ""},
-    {"Sanction", "5387", "Black Dragonarmy Camp", ""},
-    {"Sanction", "14210", "Sanction Concentration Camp", ""},
-    {"Sanction", "13827", "Sanction Bounties", ""},
-    {"Sanction", "6530", "Sanction Center Square", ""},
-    {"Sanction", "13824", "Sanction Crafting Halls", ""},
-    {"Sanction", "6500", "Sanction Docks", ""},
-    {"Sanction", "13826", "Sanction Donations", ""},
-    {"Sanction", "13816", "Sanction Magic Shop", ""},
-    {"Sanction", "13805", "Sanction Mercenary Hirelings", ""},
-    {"Sanction", "13822", "Sanction Object identifying", ""},
-    {"Sanction", "13804", "Sanction Pawn Shop", ""},
-    {"Sanction", "13831", "Sanction Quest Item Recovery", ""},
-    {"Sanction", "9735", "Sanction Palace", ""},
-    {"Sanction", "6531", "Sanction Shops", ""},
-    {"Sanction", "6516", "Sanction Temple", ""},
-    {"Sanction", "6000", "Sanction Training Pits", ""},
-    {"Sanction", "3700", "Sanction Sewers", ""},
-    {"Sanction", "6601", "Sanction Slums", ""},
-    {"Sanction", "60373", "Sanction Slave Mines", ""},
-    {"Sanction", "6599", "Sanction Thieves Guild", ""},
-    {"Sanction", "6584", "Sanction East Gate", ""},
-    {"Sanction", "13814", "Sanction Spell Researching", ""},
-    {"Sanction", "5399", "Red Dragonarmy Camp", ""},
-    {"Sanction", "3705", "Shadowpeople City", ""},
-    {"Sanction", "8644", "Snow Wood Convent", ""},
-    {"Sanction", "8406", "Temple of Huerzyd", ""},
-    {"Sanction", "9461", "Temple of Luerkhisis", ""},
-    {"Solace", "604", "Crystalmir Lake", ""},
-    {"Solace", "3100", "Eld Manor", ""},
-    {"Solace", "2606", "Goblin Encampment", ""},
-    {"Solace", "15000", "Infected Forest", ""},
-    {"Solace", "2802", "Red Moon Festival", ""},
-    {"Solace", "1358", "Solace East Gate", ""},
-    {"Solace", "2100", "Tainted Druids", ""},
-    {"Solace", "15100", "Woodland Grove", ""},
-    {"Solamnia", "6100", "Caergoth", ""},
-    {"Solamnia", "5400", "Cult of Hikkudel", ""},
-    {"Solamnia", "228", "Cultists of Morgion", ""},
-    {"Solamnia", "11600", "Dargaard Keep", ""},
-    {"Solamnia", "4300", "Forces of Whitestone Camp", ""},
-    {"Solamnia", "9511", "Lord Anias Estate", ""},
-    {"Solamnia", "60100", "North Vingaard Mines", ""},
-    {"Solamnia", "60128", "Northwestern Solamnic Wilds", ""},
-    {"Solamnia", "4430", "Solamnia to Abanasinia Ferry", ""},
-    {"Solamnia", "6702", "Solanthus", ""},
-    {"Solamnia", "5115", "Temple of Chemosh", ""},
-    {"Solamnia", "3400", "Thelgaard Keep", ""},
-    {"Solamnia", "6445", "Village of Keiflore", ""},
-    {"Solamnia", "8300", "Vingaard Keep", ""},
-    {"Solamnia", "9100", "Wenfyr Mansion", ""},
-    {"Taman Busuk", "1714", "Bugbear Cave", ""},
-    {"Taman Busuk", "11812", "City of Morning Dew", ""},
-    {"Taman Busuk", "5400", "Cult of Hikkudel", ""},
-    {"Taman Busuk", "9511", "Lord Anias Estate", ""},
-    {"Taman Busuk", "8709", "Neraka", ""},
-    {"Taman Busuk", "5900", "Onyx Obelisk", ""},
-    {"Taman Busuk", "7581", "Plains of Dust East", ""},
-    {"Taman Busuk", "13500", "Pristine Valley", ""},
-    {"Taman Busuk", "9800", "Rogue Encampment", ""},
-    {"Taman Busuk", "6584", "Sanction East Gate", ""},
-    {"Taman Busuk", "4135", "Slave Market", ""},
-    {"Taman Busuk", "8644", "Snow Wood Convent", ""},
-    {"Taman Busuk", "11000", "Wyvern Den", ""},
-    /* always last! */
-    {"0", "", "always last item", ""},
-};
-
-/* zone, destination vnum, title, details */
-const char *walkto_landmarks_fr[][WALKTO_LANDMARKS_FIELDS] = {
-    {"Sword Coast", "616076", "Boat to Chult", ""},
-    {"Sword Coast", "605650", "Crypt of Shadow", ""},
-    {"Sword Coast", "605998", "Earth Cult Camp", ""},
-    {"Sword Coast", "606884", "Fireshear", ""},
-    {"Sword Coast", "608264", "Fireside Tavern", ""},
-    {"Sword Coast", "613082", "Fire Giant Keep", ""},
-    {"Sword Coast", "612721", "Flaming Fist Mercenary Camp", ""},
-    {"Sword Coast", "603802", "Goblin Encampment", ""},
-    {"Sword Coast", "611744", "Goblin Arrows", ""},
-    {"Sword Coast", "602476", "Gnoll Cave", ""},
-    {"Sword Coast", "608199", "Hunter's Forest", ""},
-    {"Sword Coast", "603043", "Ice Fortress", ""},
-    {"Sword Coast", "607751", "Longsaddle", ""},
-    {"Sword Coast", "607071", "Luskan", ""},
-    {"Sword Coast", "603108", "Mirabar", ""},
-    {"Sword Coast", "605533", "Nesme", ""},
-    {"Sword Coast", "610929", "Neverwinter", ""},
-    {"Sword Coast", "605137", "Orcish Fort", ""},
-    {"Sword Coast", "609796", "Port Llast", ""},
-    {"Luruar", "604130", "Silverymoon", ""},
-    {"Icewind Dale", "602093", "Ten Towns", ""},
-    {"Sword Coast", "605859", "The Evermoors", ""},
-    {"Sword Coast", "611763", "Triboar", ""},
-    {"Sword Coast", "616237", "Waterdeep", ""},
     /* always last! */
     {"0", "", "always last item", ""},
 };
@@ -574,9 +386,8 @@ ACMDU(do_sail)
     if (found)
     {
       send_to_char(ch, "\r\nTo sail somewhere, type sail <name of destination>\r\n");
-      if (IS_CAMPAIGN_LUMINARI)
-        send_to_char(ch, "\r\nYou can view our world map online at "
-                         "https://luminarimud.com/new-revised-worldmap-eat-your-heart-out/\r\n");
+      send_to_char(ch, "\r\nYou can view our world map online at "
+                       "https://luminarimud.com/new-revised-worldmap-eat-your-heart-out/\r\n");
 
       return;
     }
@@ -678,17 +489,11 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
   }
   else if (type == TRAVEL_OVERLAND_FLIGHT)
   {
-    if (IS_CAMPAIGN_FR)
-      snprintf(car, sizeof(car), "%s", zone_entrances_fr[locale][0]);
-    else
-      snprintf(car, sizeof(car), "%d", get_carriage_locale_vnum(locale));
+    snprintf(car, sizeof(car), "%d", get_carriage_locale_vnum(locale));
   }
   else if (type == TRAVEL_OVERLAND_FLIGHT_SAIL)
   {
-    if (IS_CAMPAIGN_FR)
-      snprintf(car, sizeof(car), "%s", zone_entrances_fr[locale][0]);
-    else
-      snprintf(car, sizeof(car), "%d", get_sailing_locale_vnum(locale));
+    snprintf(car, sizeof(car), "%d", get_sailing_locale_vnum(locale));
   }
 
   if ((to_room = find_target_room(ch, (type == TRAVEL_SAILING) ? air : car)) == NOWHERE)
@@ -818,11 +623,7 @@ void travel_tickdown(void)
 
     if (ch->player_specials->destination == 0 || ch->player_specials->destination == (int)NOWHERE)
     {
-#if defined(CAMPAIGN_DL)
-      to_room = real_room(16500);
-#else
       to_room = real_room(14100);
-#endif
       if (to_room == NOWHERE)
       {
         log("SYSERR: travel_tickdown could not resolve the emergency destination.");
@@ -852,11 +653,7 @@ void travel_tickdown(void)
         {
           log("SYSERR: travel_tickdown found invalid destination rnum %u for %s.", to_room,
               GET_NAME(ch));
-#if defined(CAMPAIGN_DL)
-          to_room = real_room(16500);
-#else
           to_room = real_room(14100);
-#endif
           if (to_room == NOWHERE)
           {
             send_to_char(ch,
@@ -907,75 +704,44 @@ void travel_tickdown(void)
 int get_distance(struct char_data *ch, int locale, int here, int type)
 {
   int xf = 0, xt = 0, yf = 0, yt = 0;
-
-  if (IS_CAMPAIGN_FR)
-  {
-    int room = 0;
-
-    if (type == TRAVEL_CARRIAGE)
-    {
-      xf = get_carriage_locale_x(here);
-      xt = get_carriage_locale_x(locale);
-      yf = get_carriage_locale_y(here);
-      yt = get_carriage_locale_y(locale);
-    }
-    if (type == TRAVEL_SAILING)
-    {
-      xf = get_sailing_locale_x(here);
-      xt = get_sailing_locale_x(locale);
-      yf = get_sailing_locale_y(here);
-      yt = get_sailing_locale_y(locale);
-    }
-    else if (type == TRAVEL_OVERLAND_FLIGHT)
-    {
-      set_x_y_coords(get_carriage_locale_vnum(locale), &xf, &yf, &room);
-      set_x_y_coords(here, &xt, &yt, &room);
-    }
-  }
-  else
-  {
-    if (type == TRAVEL_CARRIAGE)
-    {
-      xf = get_carriage_locale_x(here);
-      xt = get_carriage_locale_x(locale);
-      yf = get_carriage_locale_y(here);
-      yt = get_carriage_locale_y(locale);
-    }
-    else if (type == TRAVEL_SAILING)
-    {
-      xf = get_sailing_locale_x(here);
-      xt = get_sailing_locale_x(locale);
-      yf = get_sailing_locale_y(here);
-      yt = get_sailing_locale_y(locale);
-    }
-    else if (type == TRAVEL_OVERLAND_FLIGHT)
-    {
-      xf = ch->coords[0];
-      xt = get_carriage_locale_x(locale);
-      yf = ch->coords[1];
-      yt = get_carriage_locale_y(locale);
-    }
-    else if (type == TRAVEL_OVERLAND_FLIGHT_SAIL)
-    {
-      xf = ch->coords[0];
-      xt = get_sailing_locale_x(locale);
-      yf = ch->coords[1];
-      yt = get_sailing_locale_y(locale);
-    }
-  }
-
-  if (IS_CAMPAIGN_DL)
-  {
-    xf = yf = 0;
-  }
-
   int dx, dy;
+  int total;
+  int dist;
+
+  if (type == TRAVEL_CARRIAGE)
+  {
+    xf = get_carriage_locale_x(here);
+    xt = get_carriage_locale_x(locale);
+    yf = get_carriage_locale_y(here);
+    yt = get_carriage_locale_y(locale);
+  }
+  else if (type == TRAVEL_SAILING)
+  {
+    xf = get_sailing_locale_x(here);
+    xt = get_sailing_locale_x(locale);
+    yf = get_sailing_locale_y(here);
+    yt = get_sailing_locale_y(locale);
+  }
+  else if (type == TRAVEL_OVERLAND_FLIGHT)
+  {
+    xf = ch->coords[0];
+    xt = get_carriage_locale_x(locale);
+    yf = ch->coords[1];
+    yt = get_carriage_locale_y(locale);
+  }
+  else if (type == TRAVEL_OVERLAND_FLIGHT_SAIL)
+  {
+    xf = ch->coords[0];
+    xt = get_sailing_locale_x(locale);
+    yf = ch->coords[1];
+    yt = get_sailing_locale_y(locale);
+  }
 
   dx = xt - xf;
   dy = yt - yf;
 
-  int total = pow(dx, 2) + pow(dy, 2);
-  int dist = sqrt(total);
+  total = pow(dx, 2) + pow(dy, 2);
+  dist = sqrt(total);
 
   return dist / 2;
 }
@@ -989,18 +755,11 @@ int get_travel_time(struct char_data *ch, int speed, int locale, int here, int t
   if (speed == 0)
     speed = 2;
 
-#ifdef CAMPAIGN_FR
-  distance *= 5;
-#endif
 
   distance /= speed;
 
   distance /= 2;
 
-#if defined(CAMPAIGN_DL)
-
-  distance /= speed;
-#endif
 
   if (HAS_FEAT(ch, FEAT_BG_SAILOR))
     distance /= 2;
@@ -1194,14 +953,8 @@ ACMD(do_landmarks_full)
   if (!*arg1)
   {
     send_to_char(ch, "Please specify one of the following regions:\r\n");
-#if defined(CAMPAIGN_DL)
-    send_to_char(ch, "Abanasinia, Palanthas, Sanction, Solace, Solamnia, Taman Busuk.\r\n");
-#elif defined(CAMPAIGN_FR)
-    send_to_char(ch, "Icewind Dale, Luruar, Sword Coast.\r\n");
-#else
     send_to_char(ch,
                  "You can also type 'landmarks city' to see landmarks in your current area.\r\n");
-#endif
     return;
   }
 

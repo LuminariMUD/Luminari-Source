@@ -10759,13 +10759,6 @@ ACMD(do_bodyslam)
     return;
   }
 
-#if defined(CAMPAIGN_DL)
-  if (GET_SIZE(vict) >= GET_SIZE(ch))
-  {
-    send_to_char(ch, "You can only bodyslam targets smaller than yourself.\r\n");
-    return;
-  }
-#endif
 
   perform_knockdown(ch, vict, SKILL_BODYSLAM, true, true);
 }

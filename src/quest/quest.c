@@ -260,10 +260,8 @@ int count_quests(qst_vnum low, qst_vnum high)
   return j;
 }
 
-/* read quest from file and load it into memory
-     called by discrete_load() in db.c - briefly discrete_load() is terminated by a $ (offical end of file) */
-/* IMPORTANT - this function is handling two different file formats --
-          CAMPAIGN_DL will have an extra tilde-terminated string for kill list */
+/* Read a quest from a file and load it into memory. Called by discrete_load()
+ * in db.c; the file is terminated by a '$'. */
 void parse_quest(FILE *quest_f, int nr)
 {
   static char line[MEDIUM_STRING] = {'\0'};
@@ -315,17 +313,11 @@ void parse_quest(FILE *quest_f, int nr)
   aquest_table[i].done = fread_string(quest_f, buf2); /* quest completed message (done) */
   aquest_table[i].quit = fread_string(quest_f, buf2); /* quest abandoned message (quit) */
 
-  /* Dragonlance Campaign has a tilde-terminated string for mobile kill list that is comma separated and ends with ~
-       ex.  201,202,203,204,205,206,207,208,209,210,211~ */
-#if defined(CAMPAIGN_DL)
-  aquest_table[i].kill_list = fread_string(quest_f, buf2);
-#endif
-
   /**** */
   /* now reading in LINES not tilde-terminated strings*/
   /***** */
 
-  /* parse value line (2nd if Dragonlance Campaign) */
+  /* Parse the value line. */
   if (!get_line(quest_f, line) || (retval = sscanf(line, " %d %d %127s %d %d %d %d", t, t + 1, f1,
                                                    t + 2, t + 3, t + 4, t + 5)) != 7)
   {

@@ -19,65 +19,7 @@
 #include "constants.h"
 
 /* Campaign-specific material name arrays */
-#ifdef CAMPAIGN_DL
-const char *dl_herb_names[NUM_HERB_SUBTYPES] = {"kingsfern",  "dragongrass", "vallenwood leaf",
-                                                "krynn sage", "moonbell",    "silverleaf",
-                                                "wyrmroot",   "dracoflower"};
 
-const char *dl_crystal_names[NUM_CRYSTAL_SUBTYPES] = {
-    "dragonmetal ore", "astral crystal", "solamnic stone", "godsgem",
-    "knightstone",     "darksteel ore",  "whitestone",     "dragonstone"};
-
-const char *dl_wood_names[NUM_WOOD_SUBTYPES] = {"vallenwood", "ironwood",   "silverbirch",
-                                                "dragonwood", "knightwood", "astralwood",
-                                                "shadowbark", "brightoak"};
-
-const char *dl_game_names[NUM_GAME_SUBTYPES] = {
-    "draconian hide",  "kender fur",    "minotaur leather", "centaur hide",
-    "pegasus feather", "griffin plume", "dragon scale",     "wyrmling skin"};
-
-const char *dl_vegetation_names[NUM_VEGETATION_SUBTYPES] = {
-    "vallenwood moss", "krynn lichen", "astral fungus", "moon vine",
-    "star blossom",    "dragon ivy",   "knight grass",  "sacred moss"};
-
-const char *dl_stone_names[NUM_STONE_SUBTYPES] = {
-    "krynn granite", "solamnic marble", "astral stone", "dragonrock",
-    "knight stone",  "moon marble",     "star granite", "sacred stone"};
-
-const char *dl_mineral_names[NUM_MINERAL_SUBTYPES] = {
-    "krynn iron",    "dragonmetal", "astral silver", "knight steel",
-    "solamnic gold", "moon silver", "star metal",    "sacred ore"};
-#endif
-
-#ifdef CAMPAIGN_FR
-const char *fr_herb_names[NUM_HERB_SUBTYPES] = {"silverleaf", "moonwort",  "blueleaf",
-                                                "tansy",      "feverfew",  "goldenseal",
-                                                "nightshade", "bloodgrass"};
-
-const char *fr_crystal_names[NUM_CRYSTAL_SUBTYPES] = {"mithril ore",   "adamantine", "deep crystal",
-                                                      "star sapphire", "moonstone",  "sunstone",
-                                                      "shadowgem",     "voidcrystal"};
-
-const char *fr_wood_names[NUM_WOOD_SUBTYPES] = {"shadowtop", "blueleaf wood", "weirwood",
-                                                "duskwood",  "silverbirch",   "goldenbark",
-                                                "ironwood",  "brightwood"};
-
-const char *fr_game_names[NUM_GAME_SUBTYPES] = {
-    "rothé hide",      "stirge leather", "owlbear fur",  "displacer hide",
-    "pegasus feather", "griffin plume",  "dragon scale", "bulette hide"};
-
-const char *fr_vegetation_names[NUM_VEGETATION_SUBTYPES] = {
-    "sword coast moss", "cormyr lichen", "underdark fungus", "moon vine",
-    "weave flower",     "magic moss",    "fey grass",        "astral bloom"};
-
-const char *fr_stone_names[NUM_STONE_SUBTYPES] = {
-    "waterdeep stone", "cormyr marble", "underdark rock", "dragonstone",
-    "moonstone",       "sunstone",      "shadowstone",    "voidstone"};
-
-const char *fr_mineral_names[NUM_MINERAL_SUBTYPES] = {
-    "sword coast iron", "mithril",     "adamantine", "deep silver",
-    "cormyr gold",      "moon silver", "star metal", "voidmetal"};
-#endif
 
 /* Default LuminariMUD material names */
 const char *default_herb_names[NUM_HERB_SUBTYPES] = {"marjoram",   "kingfoil",   "starlily",
@@ -184,73 +126,31 @@ const char *get_campaign_material_name(int category, int subtype, int quality)
   switch (category)
   {
   case RESOURCE_HERBS:
-#ifdef CAMPAIGN_DL
-    name_array = dl_herb_names;
-#elif defined(CAMPAIGN_FR)
-    name_array = fr_herb_names;
-#else
     name_array = default_herb_names;
-#endif
     break;
 
   case RESOURCE_CRYSTAL:
-#ifdef CAMPAIGN_DL
-    name_array = dl_crystal_names;
-#elif defined(CAMPAIGN_FR)
-    name_array = fr_crystal_names;
-#else
     name_array = default_crystal_names;
-#endif
     break;
 
   case RESOURCE_WOOD:
-#ifdef CAMPAIGN_DL
-    name_array = dl_wood_names;
-#elif defined(CAMPAIGN_FR)
-    name_array = fr_wood_names;
-#else
     name_array = default_wood_names;
-#endif
     break;
 
   case RESOURCE_GAME:
-#ifdef CAMPAIGN_DL
-    name_array = dl_game_names;
-#elif defined(CAMPAIGN_FR)
-    name_array = fr_game_names;
-#else
     name_array = default_game_names;
-#endif
     break;
 
   case RESOURCE_VEGETATION:
-#ifdef CAMPAIGN_DL
-    name_array = dl_vegetation_names;
-#elif defined(CAMPAIGN_FR)
-    name_array = fr_vegetation_names;
-#else
     name_array = default_vegetation_names;
-#endif
     break;
 
   case RESOURCE_STONE:
-#ifdef CAMPAIGN_DL
-    name_array = dl_stone_names;
-#elif defined(CAMPAIGN_FR)
-    name_array = fr_stone_names;
-#else
     name_array = default_stone_names;
-#endif
     break;
 
   case RESOURCE_MINERALS:
-#ifdef CAMPAIGN_DL
-    name_array = dl_mineral_names;
-#elif defined(CAMPAIGN_FR)
-    name_array = fr_mineral_names;
-#else
     name_array = default_mineral_names;
-#endif
     break;
 
   default:

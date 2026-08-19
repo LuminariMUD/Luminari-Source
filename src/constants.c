@@ -27,7 +27,6 @@
 #include "constants.h"
 #include "roleplay.h"
 #include "craft/crafting_new.h"
-#include "campaign.h"
 #include "build_identity.h"
 
 #define CHECK_TABLE_SIZE(tbl, exp_sz)                                                              \
@@ -522,18 +521,11 @@ const char *class_names[] = {"Wizard", // 0
                              "Psionicist", "Spellsword", "Shadow Dancer", "Blackguard",
                              "Assassin", // 25
                              "Inquisitor", "Summoner", "Warlock", "Necromancer",
-#ifdef CAMPAIGN_DL
-                             /* DragonLance theme - Combined Solamnic Knights */
-                             "Knight of Solamnia", // 30 (Combined Crown/Sword/Rose)
-                             "Knight of the Thorn", "Knight of the Skull",
-                             "Knight of the Lily", // 33
-#else
                              /* LuminariMUD theme - Combined Order of Light */
                              "Knight of Solamnia",             // 30 (Combined three orders)
                              "Knight of the Shattered Mirror", // (Thorn)
                              "Knight of the Pale Throne",      // (Skull)
                              "Knight of the Howling Moon",     // 33 (Lily)
-#endif
                              "Dragon Rider", "Artificer", "Placeholder 1", "Placeholder 2",
                              //  "unfinished",
                              //  "unfinished",
@@ -830,28 +822,16 @@ CHECK_TABLE_SIZE(damtype_display, NUM_DAM_TYPES + 1);
 const char *dirs[] = {
     "north",     "east",      "south",     "west",
     "up",        "down",      "northwest", /* Diagonals only used if CONFIG_DIAGONAL_DIRS is set */
-    "northeast", "southeast", "southwest",
-#ifdef CAMPAIGN_FR
-    "inside",    "outside",
-#endif
-    "\n"};
+    "northeast", "southeast", "southwest", "\n"};
 CHECK_TABLE_SIZE(dirs, NUM_OF_DIRS + 1);
 
 const char *dirs_short[] = {
-    "north",  "east",    "south", "west",
-    "up",     "down",    "nwest", /* Diagonals only used if CONFIG_DIAGONAL_DIRS is set */
-    "neast",  "seast",   "swest",
-#ifdef CAMPAIGN_FR
-    "inside", "outside",
-#endif
-    "\n"};
+    "north", "east",  "south", "west",
+    "up",    "down",  "nwest", /* Diagonals only used if CONFIG_DIAGONAL_DIRS is set */
+    "neast", "seast", "swest", "\n"};
 CHECK_TABLE_SIZE(dirs, NUM_OF_DIRS + 1);
 
-const char *autoexits[] = {"N",      "E",   "S", "W", "U", "D", "nw", "ne", "se", "sw",
-#ifdef CAMPAIGN_FR
-                           "inside", "out",
-#endif
-                           "\n"};
+const char *autoexits[] = {"N", "E", "S", "W", "U", "D", "nw", "ne", "se", "sw", "\n"};
 CHECK_TABLE_SIZE(autoexits, NUM_OF_DIRS + 1);
 
 /** Room flag descriptions.
@@ -3163,43 +3143,20 @@ const char *ability_names[] = {
     "mining", "hunting", "forestry", "gathering", "\n"};
 CHECK_TABLE_SIZE(ability_names, NUM_ABILITIES - START_GENERAL_ABILITIES + 3);
 
-#if defined(CAMPAIGN_DL)
 
-const char *languages[] = {
-    "common",      "draconic", "druidic",     "dwarven",    "elven",       "ergot",
-    "giant",       "gnome",    "goblin",      "gullytalk",  "kenderspeak", "minotaur",
-    "nerakese",    "ogre",     "plainsfolk",  "solamnic",   "sylvan",      "thieves cant",
-    "abanasinian", "camptalk", "dargoi",      "dargonesti", "dimernesti",  "kalinese",
-    "kender",      "kothian",  "nordmaarian", "saifhum",    "khur",        "kharolian",
-    "\n"};
+const char *languages[] = {"common",    "thieves cant", "druidic",    "abyssal",    "elven",
+                           "gnome",     "dwarven",      "celestial",  "draconic",   "orcish",
+                           "halfling",  "goblin",       "aberration", "giant",      "kobold",
+                           "barbarian", "mulhorandi",   "rashemi",    "northerner", "undercommon",
+                           "gnomish",   "aglarondan",   "thorass",    "netherese",  "alzhedo",
+                           "mulan",     "chultan",      "chondathan", "dambrathan", "halruaan",
+                           "illuskan",  "damaran",      "shou",       "guran",      "shaaran",
+                           "midani",    "Ashen Cant",   "Sanctine",   "Onduic",     "Seleric",
+                           "Carstani",  "Axtrosi",      "Hiri",       "Quechian",   "Vailic",
+                           "Oorpic",    "Tal",          "Ubdinic",    "\n"};
 CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);
 
-#else
 
-const char *languages[] = {
-    "common",     "thieves cant", "druidic",  "abyssal",    "elven",      "gnome",
-    "dwarven",    "celestial",    "draconic", "orcish",     "halfling",   "goblin",
-    "aberration", "giant",        "kobold",   "barbarian",  "mulhorandi", "rashemi",
-    "northerner", "undercommon",  "gnomish",  "aglarondan", "thorass",    "netherese",
-    "alzhedo",    "mulan",        "chultan",  "chondathan", "dambrathan", "halruaan",
-    "illuskan",   "damaran",      "shou",     "guran",      "shaaran",    "midani",
-#if !defined(CAMPAIGN_FR)
-    "Ashen Cant", "Sanctine",     "Onduic",   "Seleric",    "Carstani",   "Axtrosi",
-    "Hiri",       "Quechian",     "Vailic",   "Oorpic",     "Tal",        "Ubdinic",
-#endif
-    "\n"};
-CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);
-
-#endif
-
-#if defined(CAMPAIGN_FR)
-const char *pantheons[] = {"",      "All",   "Faerun",   "Dwarven", "Drow",
-                           "Elven", "Gnome", "Halfling", "Orc",     "\n"};
-CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
-#elif defined(CAMPAIGN_DL)
-const char *pantheons[] = {"", "All", "\n"};
-CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
-#else
 const char *pantheons[] = {"",
                            "All",
                            "Luminari Core",
@@ -3212,7 +3169,6 @@ const char *pantheons[] = {"",
                            "Luminari Primarchs",
                            "\n"};
 CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
-#endif
 const char *draconic_heritage_names[] = {
     "none", "black", "blue", "green", "red", "white", "brass", "bronze", "copper", "silver", "gold",
     "\n" // always last
@@ -4556,17 +4512,6 @@ const char *class_short_descriptions[] = {
     "force of will and dark pacts.", // warlock
     "A master of the arcane and necromantic arts, able to take upon "
     "them the powers of undeath.", // necromancer
-#ifdef CAMPAIGN_DL
-    /* DragonLance theme - Combined Knights of Solamnia */
-    "A combined order of the Knights of Solamnia, progressing "
-    "through Crown, Sword and Rose virtues.", // knight of solamnia
-    "The arcane order of the Knights of Takhisis, clad in armor and "
-    "adhering to a strict code of honor.", // knight of the thorn
-    "The clerical order of the Knights of Takhisis, they serve as "
-    "diplomats and internal enforcers.", // knight of the skull
-    "The rank and file of the Knights of Takhisis and main force of "
-    "their military.", // knight of the lily
-#else
     /* LuminariMUD theme - Combined Order of the Luminous Thread */
     "Oath-warriors who weave reality through vows, progressing from "
     "initiate to master weaver.", // knight of the luminous thread
@@ -4576,7 +4521,6 @@ const char *class_short_descriptions[] = {
     "arbiters of death's justice.", // knight of the pale throne (skull)
     "Primal warriors embracing their beast nature, guardians of "
     "civilization's boundary.", // knight of the howling moon (lily)
-#endif
     "A skilled warrior whose bond with their dragon mount offers "
     "numerous special abilities.", // dragonrider
     "A brilliant inventor whose creations cancause destruction, "
@@ -4616,34 +4560,6 @@ const char *goto_zones_display[NUM_GOTO_ZONES + 1][2] = {
     {"Longsaddle", "607751"},
     {"Nesme", "605533"},
     {"", "-1"} // always last
-};
-
-const char *zone_entrances_fr[NUM_ZONE_ENTRANCES + 1][3] = {
-    {"boat to chult", "closed", "616076"},
-    {"crypt of shadow", "open", "605650"},
-    {"earth cult camp", "open", "605998"},
-    {"fire giant keep", "open", "613082"},
-    {"fireshear", "closed", "606884"},
-    {"fireside tavern", "open", "608264"},
-    {"flaming fist mercenary camp", "open", "612721"},
-    {"gnoll cave", "open", "602476"},
-    {"goblin arrows", "open", "611744"},
-    {"goblin encampment", "open", "603802"},
-    {"hunter's forest", "open", "608199"},
-    {"ice fortress", "closed", "603043"},
-    {"longsaddle", "open", "607751"},
-    {"luskan", "open", "607071"},
-    {"mirabar", "open", "603108"},
-    {"nesme", "closed", "605533"},
-    {"neverwinter", "closed", "610929"},
-    {"orcish fort", "open", "605137"},
-    {"port llast", "closed", "609796"},
-    {"silverymoon", "open", "604130"},
-    {"ten towns", "closed", "602093"},
-    {"the evermoors", "closed", "605859"},
-    {"triboar", "open", "611763"},
-    {"waterdeep", "closed", "616237"},
-    {"", "", "-1"} // always last
 };
 
 const char *asciimap_points[NUM_MAP_POINTS + 1][2] = {
@@ -4687,94 +4603,6 @@ const char *sector_map_letters[NUM_ROOM_SECTORS + 1] = {
     "i", "C", ",", "Y", "^", "m", "~", "=", "^", "U", "X", "|", "-", "+", ".", "o", "`", "M", ".",
     "Y", "C", "i", "~", "=", "^", "]", "|", "-", "+", "C", "&", ".", "A", ":", "*", "?", "~", "\n"};
 
-#if defined(CAMPAIGN_DL)
-// region names
-const char *regions[] = {"none",
-                         "Abanasinia",
-                         "Balifor",
-                         "Blode",
-                         "Blood Sea Isles",
-                         "Enstar",
-                         "Estwilde",
-                         "Goodlund",
-                         "Hylo",
-                         "Kayolin",
-                         "Khur",
-                         "Lemish",
-                         "Nightlund",
-                         "Nordmaar",
-                         "Northern Ergoth",
-                         "Nostar",
-                         "Qualinesti",
-                         "Sancrist Isle",
-                         "Schallsea",
-                         "Silvanesti",
-                         "Solamnia",
-                         "Southern Ergoth",
-                         "Taman Busuk",
-                         "Tarsis",
-                         "Teyr",
-                         "Thorbardin",
-                         "Outer Planes",
-                         "\n"};
-CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
-
-const char *cities[] = {"None",      "Palanthas",  "Sanction", "Solace",      "Caergoth",
-                        "Solanthus", "Thelgaard",  "Neraka",   "Morning_Dew", "Tarsis",
-                        "Qualinost", "Kendermore", "\n"};
-CHECK_TABLE_SIZE(cities, NUM_CITIES + 1);
-
-const char *factions[] = {"None", "Forces of Whitestone", "Dragonarmies", "Independant", "\n"};
-CHECK_TABLE_SIZE(factions, NUM_FACTIONS + 1);
-
-#elif defined(CAMPAIGN_FR)
-// region names
-const char *regions[] = {"none",
-                         "Aglarond",
-                         "Amn",
-                         "Anauroch Desert",
-                         "Calimshan",
-                         "Chessenta",
-                         "Chult",
-                         "Cormyr",
-                         "Dambrath",
-                         "Elfharrow",
-                         "Evermeet",
-                         "Halruaa",
-                         "Icewind Dale",
-                         "Impiltur",
-                         "Kara-Tur",
-                         "Luiren",
-                         "Luruar",
-                         "Mulhorand",
-                         "Rashemen",
-                         "Sembia",
-                         "Tethyr",
-                         "Thay",
-                         "Thesk",
-                         "The Cold Lands",
-                         "The Dalelands",
-                         "The Hordelands",
-                         "The Lake of Steam",
-                         "The Moonsea",
-                         "The Savage Frontier",
-                         "The Sword Coast",
-                         "The Underdark",
-                         "Turmish",
-                         "Tymanther",
-                         "Unther",
-                         "Westgate",
-                         "Zakhara",
-                         "Outer Planes",
-                         "\n"};
-CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
-
-const char *factions[] = {"None", "The Order", "Darklings", "Criminals", "\n"};
-CHECK_TABLE_SIZE(factions, NUM_FACTIONS + 1);
-
-const char *cities[] = {"None", "Luskan", "\n"};
-CHECK_TABLE_SIZE(cities, NUM_CITIES + 1);
-#else
 // region names
 const char *regions[] = {"none",    "Ashenport", "Sanctus",     "Onduis",      "Selerish",
                          "Carstan", "Axtros",    "Hir",         "Quechian",    "Vailand",
@@ -4787,7 +4615,6 @@ CHECK_TABLE_SIZE(factions, NUM_FACTIONS + 1);
 const char *cities[] = {"None", "Ashenport", "Sanctus", "\n"};
 CHECK_TABLE_SIZE(cities, NUM_CITIES + 1);
 
-#endif
 const int evolution_points[] = {0,
                                 3, // 1
                                 4,  5,  7,
@@ -5081,8 +4908,6 @@ const char *crafting_methods[] = {"",         "crafting", "surveying",          
 
 const char *crafting_methods_short[] = {"",       "craft",  "survey",      "harvest",
                                         "refine", "resize", "supplyorder", "\n"};
-
-const char *campaigns[] = {"Default (Luminari)", "Dragonlance", "Forgotten Realms", "\n"};
 
 const char *bag_system_options[] = {"Use container objects", "Use virtual bags", "\n"};
 

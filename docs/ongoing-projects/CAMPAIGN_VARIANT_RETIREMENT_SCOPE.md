@@ -10,12 +10,29 @@ Supersedes: `CAMPAIGN_VARIANT_REMOVAL_SCOPE.md`
 
 - [x] Scope agreed and compiler-led removal approach selected.
 - [x] Luminari baseline and persistent identifier manifests captured.
-- [ ] Retired compile-time definitions and branches removed.
-- [ ] Retired runtime selection and campaign-routed data removed.
+- [x] Retired compile-time definitions and branches removed.
+- [x] Retired runtime selection and campaign-routed data removed.
 - [ ] Build, setup, tests, tooling, and current documentation cleaned.
 - [ ] Full verification and local smoke test completed.
 
-Last checkpoint: 2026-08-20. Baseline complete; source cleanup is ready to begin.
+Last checkpoint: 2026-08-20. The compiler-led source retirement is green. Deployment, world
+tooling, templates, and current documentation remain to be cleaned.
+
+### Source-retirement checkpoint
+
+- A temporary poison in `structs.h` turned remaining retired preprocessor references into compile
+  errors. It remains only as a migration guard until the repository-wide cleanup is complete.
+- The active Luminari branches were retained as ordinary code while the DragonLance and Forgotten
+  Realms branches were deleted across 70 source files.
+- The runtime campaign field, configuration parser and writer, CEDIT selector, display table, and
+  routing macros were removed. Old numeric campaign values are not reused.
+- Retired vessel routes, destinations, landmarks, zone entrances, flight helpers, and artifact
+  availability metadata were removed with their declarations and tests.
+- The resulting source checkpoint removes more than 9,000 lines of retired implementation.
+- A clean Autotools production build passed with `-Wall -Wextra` and no warnings.
+- The full production-linked suite passed all 778 tests after its source-shape assertions were
+  updated for the Luminari-only assignment tables and boot path.
+- `make install` passed and removed the root-level `circle` artifact.
 
 ### Baseline evidence
 

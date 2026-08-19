@@ -3587,21 +3587,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   // dwarven racial bonus to magic, gnomes to illusion
   int race_bonus = 0;
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
-#else
-  if (GET_RACE(victim) == RACE_DWARF)
-    race_bonus += 2;
-  if (GET_RACE(victim) == RACE_DUERGAR)
-  {
-    race_bonus += 4;
-    if (spellnum == SPELL_WEIRD)
-      race_bonus += 4;
-  }
-  if (GET_RACE(victim) == RACE_GNOME && element == DAM_ILLUSION)
-    race_bonus += 2;
-  if (GET_RACE(victim) == RACE_ARCANA_GOLEM)
-    race_bonus -= 2;
-#endif
 
   if (element == DAM_POISON)
     race_bonus += get_poison_save_mod(ch, victim);
@@ -11729,19 +11714,11 @@ bool isSummonMob(int vnum)
   case MOB_BLADE_OF_DISASTER:
   case MOB_DIRE_RAT:
   case MOB_ECTOPLASMIC_SHAMBLER:
-#if defined(CAMPAIGN_DL)
-  case 40112: // air elemental
-  case 40113: // earth elemental
-  case 40114: // fire elemental
-  case 40115: // water elemental
-  case 40199: // shambling mound
-#else
   case 9412: // air elemental
   case 9413: // earth elemental
   case 9414: // fire elemental
   case 9415: // water elemental
   case 9499: // shambling mound
-#endif
   case MOB_CHILDREN_OF_THE_NIGHT_WOLVES:
   case MOB_CHILDREN_OF_THE_NIGHT_RATS:
   case MOB_CHILDREN_OF_THE_NIGHT_BATS:
@@ -12019,24 +11996,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
   case SPELL_ELEMENTAL_SWARM: // conjuration
     handle_corpse = FALSE;
     fmsg = rand_number(2, 6);
-#if defined(CAMPAIGN_DL)
-    mob_num = 40112 + rand_number(0, 3); // 9412-9415
-    switch (mob_num)
-    {
-    case 40112:
-      msg = 7;
-      break;
-    case 40113:
-      msg = 9;
-      break;
-    case 40114:
-      msg = 8;
-      break;
-    case 40115:
-      msg = 10;
-      break;
-    }
-#else
     mob_num = 9412 + rand_number(0, 3); // 9412-9415
     switch (mob_num)
     {
@@ -12053,7 +12012,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       msg = 10;
       break;
     }
-#endif
     num = dice(2, 4);
     mob_level = summon_spell_mob_level(spellnum, level);
     break;
@@ -12123,11 +12081,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     handle_corpse = FALSE;
     msg = 25;
     fmsg = rand_number(2, 6);
-#if defined(CAMPAIGN_DL)
-    mob_num = 40199;
-#else
     mob_num = 9499;
-#endif
     num = dice(1, 4) + 2;
     mob_level = summon_spell_mob_level(spellnum, level);
     break;
@@ -13799,10 +13753,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   bool gate_process = FALSE;
   room_rnum gate_dest = NOWHERE;
   char buf[MEDIUM_STRING] = {'\0'};
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int loop_count = 0;
-#endif
 
   if (ch == NULL)
     return;
@@ -13838,19 +13790,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     to_char = "You create $p.";
     to_room = "$n creates $p.";
     send_to_char(ch, "Drop <item name> to start grenade, it will explode in 3 seconds.\r\n");
-#if defined(CAMPAIGN_DL)
-    if (rand_number(0, 1))
-      object_vnum = 20868;
-    else
-      object_vnum = 20869;
-#else
     if (rand_number(0, 1))
       object_vnum = 9404;
     else
       object_vnum = 9405;
-#endif
     break;
-#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   case SPELL_GATE:
   case PSIONIC_PLANAR_TRAVEL:
     to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
@@ -13963,17 +13907,12 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
                    spellnum == SPELL_GATE ? "magic" : "power");
       return;
     }
-#endif
 
     break;
   case SPELL_GOODBERRY:
     to_char = "You create $p.";
     to_room = "$n creates $p.";
-#if defined(CAMPAIGN_DL)
-    object_vnum = 20870;
-#else
     object_vnum = 9400;
-#endif
     break;
   case SPELL_HOLY_SWORD:
     to_char = "You summon $p.";
@@ -13988,11 +13927,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_MAGIC_STONE:
     to_char = "You create $p.";
     to_room = "$n creates $p.";
-#if defined(CAMPAIGN_DL)
-    object_vnum = 20871;
-#else
     object_vnum = 9401;
-#endif
     break;
   case SPELL_PORTAL:
 
@@ -14063,11 +13998,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
     to_room = "$n \tnfolds \tMtime\tn and \tDspace\tn, and creates $p\tn.";
     obj_to_floor = TRUE;
-#if defined(CAMPAIGN_DL)
-    object_vnum = 20801;
-#else
     object_vnum = 801;
-#endif
     /* a little more work with portals */
     portal_process = TRUE;
     break;
@@ -14075,11 +14006,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     to_char = "You create $p.";
     to_room = "$n creates $p.";
     obj_to_floor = TRUE;
-#if defined(CAMPAIGN_DL)
-    object_vnum = 20805;
-#else
     object_vnum = 805;
-#endif
     break;
     /* these have been made manual spells */
     /*

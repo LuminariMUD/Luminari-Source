@@ -209,21 +209,12 @@ void process_wilderness_events(struct char_data *ch, room_rnum was_in)
     }
 
     /* Check for encounters and hunts */
-#if defined(CAMPAIGN_DL)
-    /* DragonLance campaign specific */
-    if (is_road_room(ch->in_room, 2))
-      check_hunt_room(ch->in_room);
-    if (is_road_room(ch->in_room, 3))
-      check_random_encounter(ch);
-#else
-    /* Default campaign */
     if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
     {
       check_random_encounter(ch);
       reset_expire_cooldown(ch->in_room);
       check_hunt_room(ch->in_room);
     }
-#endif
   }
 }
 

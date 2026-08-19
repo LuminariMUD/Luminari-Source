@@ -395,7 +395,6 @@ void roleplay_region_stable_id(int region, char *buf, size_t buf_size)
 
 const char *roleplay_region_media_key(int region)
 {
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   static const char *const keys[NUM_REGIONS] = {
       [REGION_NONE] = "region/fallback",           [REGION_ASHENPORT] = "region/ashenport",
       [REGION_SANCTUS] = "region/sanctus",         [REGION_ONDUIS] = "region/onduis",
@@ -408,9 +407,6 @@ const char *roleplay_region_media_key(int region)
 
   if (region > REGION_NONE && region < NUM_REGIONS && keys[region] != NULL)
     return keys[region];
-#else
-  (void)region;
-#endif
 
   return "region/fallback";
 }
@@ -438,11 +434,7 @@ const char *roleplay_faction_media_key(int faction_vnum)
 
 bool roleplay_hometown_is_selectable(int hometown)
 {
-#if defined(CAMPAIGN_DL)
-  return hometown >= 1 && hometown <= 3;
-#else
   return hometown == 1;
-#endif
 }
 
 void roleplay_hometown_stable_id(int hometown, char *buf, size_t buf_size)
@@ -459,12 +451,8 @@ void roleplay_hometown_stable_id(int hometown, char *buf, size_t buf_size)
 
 const char *roleplay_hometown_media_key(int hometown)
 {
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   if (hometown == 1)
     return "hometown/ashenport";
-#else
-  (void)hometown;
-#endif
   return "hometown/fallback";
 }
 
@@ -482,7 +470,6 @@ void roleplay_deity_stable_id(int deity, char *buf, size_t buf_size)
 
 const char *roleplay_deity_media_key(int deity)
 {
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   static const char *const keys[NUM_DEITIES] = {
       [0] = "deity/none",
       [DEITY_LUMINARI] = "deity/aethyra",
@@ -510,10 +497,6 @@ const char *roleplay_deity_media_key(int deity)
 
   if (deity >= 0 && deity < NUM_DEITIES && keys[deity] != NULL)
     return keys[deity];
-#else
-  if (deity == 0)
-    return "deity/none";
-#endif
   return "deity/fallback";
 }
 
@@ -2002,17 +1985,8 @@ void display_hometown_menu(struct descriptor_data *d)
                    "into various\r\n");
   send_to_char(ch, "other mechanics, such as some background archtype abilities.\r\n");
   send_to_char(ch, "\r\n");
-#if defined(CAMPAIGN_DL)
-  send_to_char(ch, "1) Palanthas : Home of the Knights of Solamnia & Forces of Whitestone\r\n");
-  send_to_char(ch, "2) Sanction  : Home of the Dragonarmies\r\n");
-  send_to_char(ch, "3) Solace    : Free City with No Direct Alleigances\r\n");
-#elif defined(CAMPAIGN_FR)
-  send_to_char(ch, "1) Luskan : The Northern Swordcoast city ruled by the Pirate Captains and the "
-                   "Arcane Brotherhood.\r\n");
-#else
   send_to_char(
       ch, "1) Ashenport : A bustling port city known for its trade and diverse population.\r\n");
-#endif
   send_to_char(ch, "\r\n");
   send_to_char(ch, "Choose Your Hometown: ");
 }
@@ -2062,7 +2036,7 @@ void display_deity_menu(struct descriptor_data *d)
   if (!ch)
     return;
 
-  send_to_char(ch, "   %-25s - %-15s %s\r\n", "Deities of Krynn", "Alignment", "Portfolio");
+  send_to_char(ch, "   %-25s - %-15s %s\r\n", "Deities of Luminari", "Alignment", "Portfolio");
   for (i = 0; i < 80; i++)
     send_to_char(ch, "-");
   send_to_char(ch, "\r\n");
@@ -2356,15 +2330,6 @@ void display_rp_decide_menu(struct descriptor_data *d)
   send_to_char(
       ch,
       "\r\n"
-#ifdef CAMPAIGN_DL
-      "\tCChronicles of DragonLance is a Role Play Focused MUD. \tnWhat that means is that the "
-      "staff's focus is\r\n"
-      "on creating overarching role-play themes and stories, and assisting players with their "
-      "individual\r\n"
-      "character stories. \tcHowever role-play is not mandatory\tn, and we only ask that "
-      "non-role-players respect\r\n"
-      "the role play of others in their vicinity and not disrupt it.\r\n"
-#else
       "\tCRole play is encouraged on this MUD. \tnThe staff focuses on creating overarching "
       "role-play themes\r\n"
       "and stories, and assisting players with their individual character stories. \tcHowever "
@@ -2372,7 +2337,6 @@ void display_rp_decide_menu(struct descriptor_data *d)
       "not mandatory\tn, and we only ask that non-role-players respect the role play of others in "
       "their\r\n"
       "vicinity and not disrupt it.\r\n"
-#endif
       "At this moment you have three choices:\r\n"
       "\r\n"
       "\tc1)\tn Flag yourself a non-role-player and enter the game.\r\n"

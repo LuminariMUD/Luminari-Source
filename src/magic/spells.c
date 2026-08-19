@@ -1622,8 +1622,7 @@ ASPELL(spell_arcane_mark)
   act("$n inscribes a faint sigil onto $p.", TRUE, ch, obj, 0, TO_ROOM);
 }
 
-// This spell will allow you to travel to any carriage or sea port destination for LuminariMUD
-// Or to any zone entrance if on Faerun.
+/* This spell allows travel to any Luminari carriage destination. */
 ASPELL(spell_overland_flight)
 {
   if (IN_ROOM(ch) == NOWHERE)
@@ -1638,23 +1637,7 @@ ASPELL(spell_overland_flight)
     return;
   }
 
-  if (IS_CAMPAIGN_FR)
-  {
-    start_fr_flight_to_zone(ch, zone);
-  }
-  else if (IS_CAMPAIGN_DL)
-  {
-    start_flight_to_zone_dl(ch, zone);
-  }
-  else if (IS_CAMPAIGN_LUMINARI)
-  {
-    start_flight_to_destination_luminari(ch, zone);
-  }
-  else
-  {
-    send_to_char(ch, "This spell is not available right now.\n\r");
-    return;
-  }
+  start_flight_to_destination_luminari(ch, zone);
 }
 
 ASPELL(spell_dismissal)

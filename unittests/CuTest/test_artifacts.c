@@ -340,7 +340,6 @@ static void artifact_test_real_registry(void)
     art_index[i].level = 1;
     art_index[i].binding_type = ARTIFACT_BIND_NONE;
     art_index[i].class_restrict = CLASS_UNDEFINED;
-    art_index[i].available = TRUE;
   }
 }
 

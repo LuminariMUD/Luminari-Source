@@ -2221,10 +2221,8 @@ void heartbeat(int heart_pulse)
       PERF_prof_sect_exit(pr_vessel_schedules);
     }
 
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     /* Clean up old trails once per mud hour */
     cleanup_all_trails();
-#endif
 
     PERF_PROF_EXIT(pr_ost_);
   }
@@ -2246,11 +2244,6 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % PULSE_TIMESAVE))
     save_mud_time(&time_info);
 
-#if defined(CAMPAIGN_DL)
-  // assigning new crafting system harvesting nodes.
-  if (!(heart_pulse % PULSE_RESET_HARVEST_MATS))
-    assign_harvest_materials_to_word();
-#endif
 
   /* Every pulse! Don't want them to stink the place up... */
   PERF_prof_sect_init(&pr_extract_pending_chars, "extract_pending_chars");
@@ -5217,12 +5210,6 @@ static void build_graphic_map_specials(struct char_data *ch, room_rnum room, cha
     specials[length++] = 'u';
   if (graphic_map_visible_exit(ch, room, DOWN) && length + 1 < specials_size)
     specials[length++] = 'd';
-#ifdef CAMPAIGN_FR
-  if (graphic_map_visible_exit(ch, room, IN) && length + 1 < specials_size)
-    specials[length++] = 'i';
-  if (graphic_map_visible_exit(ch, room, OUT) && length + 1 < specials_size)
-    specials[length++] = 'o';
-#endif
 
   specials[length] = '\0';
 }

@@ -195,13 +195,6 @@ void TestBackgroundSortKeepsEveryPlayableBackgroundInBounds(CuTest *tc)
 
 void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
 {
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-  CuAssertTrue(tc, character_creation_content_provenance() == NULL);
-  CuAssertTrue(tc, character_creation_homeland_for_region(1) == NULL);
-  CuAssertTrue(tc, character_creation_language_for_index(0) == NULL);
-  CuAssertTrue(tc, character_creation_guidance_for_profile("profile/goals") == NULL);
-  CuAssertTrue(tc, character_creation_background_for_value(BACKGROUND_ACOLYTE) == NULL);
-#else
   const char *profile_ids[] = {
       "profile/goals", "profile/personality", "profile/ideals", "profile/bonds", "profile/flaws",
   };
@@ -320,7 +313,6 @@ void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
     }
   }
   CuAssertIntEquals(tc, 128, seed_count);
-#endif
 }
 
 void TestEveryBackgroundHasNonPlaceholderMechanicMetadata(CuTest *tc)
@@ -1090,11 +1082,7 @@ void TestWebOnboardingBackgroundCatalogUsesStableIdentityAndFitsPayloadCap(CuTes
                                          "\"classic-terminal\"]"));
   CuAssertTrue(tc, strstr(payload, "\"detail\"") == NULL);
   CuAssertPtrNotNull(tc, strstr(payload, "\"inspectable\":true"));
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-  CuAssertTrue(tc, strstr(payload, "\"canonVersion\":\"character-compass-1.0.0\"") == NULL);
-#else
   CuAssertPtrNotNull(tc, strstr(payload, "\"canonVersion\":\"character-compass-1.0.0\""));
-#endif
   CuAssertPtrNotNull(tc, strstr(payload, "\"label\":\"Ability effect\""));
 
   for (index = 0; index < 6; index++)
@@ -1653,16 +1641,10 @@ void TestRoleplayGuidanceAndInspirationPayloadsAreContextSpecific(CuTest *tc)
     CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
     CuAssertTrue(tc, json_is_balanced(payload));
     CuAssertTrue(tc, strlen(payload) < WEB_ONBOARDING_MAX_PAYLOAD);
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-    CuAssertTrue(tc, strstr(payload, "\"help\":") == NULL);
-    CuAssertTrue(tc, strstr(payload, "\"generatorShape\":") == NULL);
-    CuAssertTrue(tc, strstr(payload, "\"nonPersistenceNotice\":") == NULL);
-#else
     CuAssertPtrNotNull(tc, strstr(payload, "\"help\":"));
     CuAssertPtrNotNull(tc, strstr(payload, "\"generatorShape\":"));
     CuAssertPtrNotNull(tc, strstr(payload, "\"nonPersistenceNotice\":"));
     CuAssertPtrNotNull(tc, strstr(payload, "will not set or change your permanent Background"));
-#endif
     CuAssertTrue(tc, strstr(payload, "Palanthas") == NULL);
 
     for (background = 1; background < NUM_BACKGROUNDS; background++)
@@ -1676,13 +1658,8 @@ void TestRoleplayGuidanceAndInspirationPayloadsAreContextSpecific(CuTest *tc)
 
   STATE(&d) = CON_CHARACTER_GOALS_IDEAS;
   CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-  CuAssertTrue(tc, strstr(payload, "\"help\":") == NULL);
-  CuAssertTrue(tc, strstr(payload, "\"generatorShape\":") == NULL);
-#else
   CuAssertPtrNotNull(tc, strstr(payload, "\"help\":"));
   CuAssertPtrNotNull(tc, strstr(payload, "\"generatorShape\":"));
-#endif
   CuAssertTrue(tc, strstr(payload, "\"nonPersistenceNotice\":") == NULL);
 
   cleanup_editor_descriptor(&d);
@@ -1693,24 +1670,15 @@ void TestHomelandAndHometownPayloadsPublishCanonDetails(CuTest *tc)
   struct descriptor_data d;
   struct char_data ch;
   struct player_special_data specials;
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   bool seen[NUM_REGIONS] = {FALSE};
-#endif
   char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   int page = 0;
   int region = 0;
-#endif
 
   CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_QREGION));
   if (d.pProtocol == NULL)
     return;
 
-#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
-  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
-  CuAssertTrue(tc, json_is_balanced(payload));
-  CuAssertTrue(tc, strstr(payload, "\"canonVersion\":\"homelands-1.0.0\"") == NULL);
-#else
   for (page = 0; page < 5; page++)
   {
     CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
@@ -1744,7 +1712,6 @@ void TestHomelandAndHometownPayloadsPublishCanonDetails(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(payload, "\"inspectable\":true"));
   CuAssertPtrNotNull(tc, strstr(payload, "principal adventuring hub"));
   CuAssertPtrNotNull(tc, strstr(payload, "practical point of return"));
-#endif
 
   cleanup_editor_descriptor(&d);
 }

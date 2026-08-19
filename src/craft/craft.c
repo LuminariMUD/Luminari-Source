@@ -2660,9 +2660,6 @@ SPECIAL(crafting_quest)
   char desc[MAX_INPUT_LENGTH] = {'\0'};
   char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int roll = 0;
-#if defined(CAMPAIGN_DL)
-  int avail = 0;
-#endif
 
   if (!CMD_IS("supplyorder"))
   {
@@ -2687,15 +2684,6 @@ SPECIAL(crafting_quest)
                        "handed in the one you've completed (supplyorder complete).\r\n");
       return 1;
     }
-#if defined(CAMPAIGN_DL)
-    avail = get_mysql_supply_orders_available(ch);
-
-    if (avail <= 0)
-    {
-      send_to_char(ch, "You must wait until tomorrow to perform more supply orders.\r\n");
-      return 1;
-    }
-#endif
 
     /* initialize values */
     reset_acraft(ch);
@@ -2768,14 +2756,10 @@ SPECIAL(crafting_quest)
 
     GET_AUTOCQUEST_DESC(ch) = strdup(desc);
     GET_AUTOCQUEST_MAKENUM(ch) = AUTOCQUEST_MAKENUM;
-#if defined(CAMPAIGN_DL)
-    GET_AUTOCQUEST_QP(ch) = MAX(5, GET_LEVEL(ch) / 2);
-#else
     if (!rand_number(0, 20))
       GET_AUTOCQUEST_QP(ch) = 1;
     else
       GET_AUTOCQUEST_QP(ch) = 0;
-#endif
     if (GET_LEVEL(ch) <= 5)
     {
       GET_AUTOCQUEST_GOLD(ch) = 50;
@@ -2816,9 +2800,6 @@ SPECIAL(crafting_quest)
                  "experience points.\r\n",
                  desc, GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_QP(ch), GET_AUTOCQUEST_GOLD(ch),
                  GET_AUTOCQUEST_EXP(ch));
-#if defined(CAMPAIGN_DL)
-    put_mysql_supply_orders_available(ch, --avail);
-#endif
   }
   else if (!strcmp(arg, "complete"))
   {

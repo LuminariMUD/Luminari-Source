@@ -604,13 +604,8 @@ void assign_domains(void)
                     SPELL_PHANTOM_STEED, SPELL_RESERVED_DBC, SPELL_MASS_FLY,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
                     SPELL_TELEPORT, SPELL_RESERVED_DBC, SPELL_PORTAL,
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
-                    /* 9th circle */
-                    SPELL_TIMESTOP);
-#else
                     /* 9th circle */
                     SPELL_GATE);
-#endif
 
   /* War Domain */
   add_domain(

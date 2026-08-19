@@ -54,11 +54,7 @@
 #define MOLD_CRAFT_NECKLACE 5
 #define MOLD_CRAFT_CLOAK 6
 
-#if defined(CAMPAIGN_DL)
-#define MOLD_OBJ_VNUM 16603
-#else
 #define MOLD_OBJ_VNUM 208
-#endif
 #define MOLD_OBJ_COST 100
 
 void create_crafting_mold(struct char_data *ch, int selection, int type)

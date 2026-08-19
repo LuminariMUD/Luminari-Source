@@ -79,69 +79,6 @@
  * puff, fido, janitor, and cityguards are now implemented via triggers. */
 void assign_mobiles(void)
 {
-#ifdef CAMPAIGN_FR
-
-  // Luskan Market
-  ASSIGNMOB(3276, buyweapons);
-  ASSIGNMOB(3275, buyarmor);
-
-  // Luskan Host Tower
-  ASSIGNMOB(3278, buyweapons);
-  ASSIGNMOB(3277, buyarmor);
-  ASSIGNMOB(3076, eqstats);
-
-  // Luskan Misc.
-  ASSIGNMOB(3077, huntsmaster);
-  ASSIGNMOB(3044, crafting_quest);
-
-  // Silverymoon
-  ASSIGNMOB(6000, buyweapons);
-  ASSIGNMOB(6002, buyweapons);
-  ASSIGNMOB(6006, buyweapons);
-  ASSIGNMOB(6003, buyarmor);
-
-  // Mirabar
-  ASSIGNMOB(4825, buyweapons);
-  ASSIGNMOB(4824, buyarmor);
-
-  // Longsaddle
-  ASSIGNMOB(305, buyweapons);
-  ASSIGNMOB(304, buyarmor);
-  ASSIGNMOB(303, pet_shops);
-
-  // Triboar
-  ASSIGNMOB(7021, buymolds);
-  ASSIGNMOB(7022, faction_mission);
-  ASSIGNMOB(7023, huntsmaster);
-#elif defined(CAMPAIGN_DL)
-  // palanthas
-  ASSIGNMOB(2427, buyweapons);
-  ASSIGNMOB(2428, buyarmor);
-  ASSIGNMOB(2430, buyweapons);
-  ASSIGNMOB(2429, buyarmor);
-  ASSIGNMOB(15325, faction_mission);
-  // ASSIGNMOB(15321, krynn_supply_orders);
-  ASSIGNMOB(15322, buymolds);
-  ASSIGNMOB(7021, identify_mob);
-  ASSIGNMOB(15326, huntsmaster);
-  ASSIGNMOB(15327, replace_quest_item);
-  ASSIGNMOB(15378, temple);
-
-  // sanction
-  ASSIGNMOB(13800, buyweapons);
-  ASSIGNMOB(13801, buyarmor);
-  ASSIGNMOB(13802, buyweapons);
-  ASSIGNMOB(13803, buyarmor);
-  ASSIGNMOB(13810, faction_mission);
-  ASSIGNMOB(13808, crafting_quest);
-  ASSIGNMOB(13809, buymolds);
-  ASSIGNMOB(13822, identify_mob);
-  ASSIGNMOB(13811, huntsmaster);
-  ASSIGNMOB(13821, replace_quest_item);
-  ASSIGNMOB(6505, temple);
-
-#else
-
   /* vampire mobs (spec to do vampire-like abilities) */
   ASSIGNMOB(29906, vampire_mob);  /* erich - master vampire */
   ASSIGNMOB(29241, vampire_mob);  /* tiersten */
@@ -768,7 +705,6 @@ void assign_mobiles(void)
   ASSIGNMOB(136105, chan);
 
   ASSIGNMOB(100581, fzoul);
-#endif
 }
 
 /* eof */

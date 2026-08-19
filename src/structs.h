@@ -18,22 +18,16 @@
 #include "net/protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
-// You will need to add a campaign.h file, which is not included in the git repo.
-// You can leave it blank, unless you want to add special campaign/theme-specific
-// code separate from the regular Luminari code.  In this case add a #define
-// for the campaign that you can use to disable luminari code you don't want in
-// and add theme-specific code. This is mainly used for the Faerun codebase.
+/* Local configuration copied from campaign.example.h. */
 #include "campaign.h"
-#define CAMPAIGN_LUMINARI 0
-#define CAMPAIGN_DRAGONLANCE 1
-#define CAMPAIGN_FORGOTTEN_REALMS 2
 
-#define NUM_CAMPAIGN_SETTINGS 3
 
-// You will need to add a mud_options.h file that contains the various
-// options which must be defined in the code to work properly. This will
-// eventually replace the campaign.h file entirely. You can make a copy of the
-// mud_options.example.h file to get started.
+/* Temporary migration guard. Remove after all retired conditionals are gone. */
+#pragma GCC poison CAMPAIGN_DL CAMPAIGN_FR CAMPAING_FR CAMPGIN_DL
+
+/* You will need to add a mud_options.h file that contains the various
+ * options which must be defined in the code to work properly. You can make a
+ * copy of the mud_options.example.h file to get started. */
 #include "mud_options.h"
 
 // You will need to have a vnums.h file. You can make a copy of vnums.example.h
@@ -124,20 +118,10 @@
 /** Total number of directions available to move in. BEFORE CHANGING THIS, make
  * sure you change every other direction and movement based item that this will
  * impact. */
-#ifdef CAMPAIGN_FR
-
-#define IN 10
-#define OUT 11
-
-#define NUM_OF_DIRS 12
-#define NUM_OF_INGAME_DIRS 12
-
-#else
 
 #define NUM_OF_DIRS 10
 #define NUM_OF_INGAME_DIRS 6
 
-#endif
 
 /* ============================================================================ */
 /* COMPREHENSIVE TRAP SYSTEM - Based on NWN Mechanics                          */
@@ -345,8 +329,6 @@
 ** displaying the asciimap on a web site.  Hovering over these points will
 ** display the name of the location */
 #define NUM_MAP_POINTS 27
-
-#define NUM_ZONE_ENTRANCES 24
 
 #define NUM_FEMALE_NAMES 110
 #define NUM_MALE_NAMES 110
@@ -1001,80 +983,6 @@
 #define NUM_GENDERS 3
 #define NUM_SEX NUM_GENDERS
 
-#if defined(CAMPAIGN_DL)
-
-#define REGION_NONE 0
-#define REGION_ABANASINIA 1
-#define REGION_BALIFOR 2
-#define REGION_BLODE 3
-#define REGION_BLOOD_SEA_ISLES 4
-#define REGION_ENSTAR 5
-#define REGION_ESTWILDE 6
-#define REGION_GOODLUND 7
-#define REGION_HYLO 8
-#define REGION_KAYOLIN 9
-#define REGION_KHUR 10
-#define REGION_LEMISH 11
-#define REGION_NIGHTLUND 12
-#define REGION_NORDMAAR 13
-#define REGION_NORTHERN_ERGOTH 14
-#define REGION_NOSTAR 15
-#define REGION_QUALINESTI 16
-#define REGION_SANCRIST_ISLE 17
-#define REGION_SCHALLSEA 18
-#define REGION_SILVANESTI 19
-#define REGION_SOLAMNIA 20
-#define REGION_SOUTHERN_ERGOTH 21
-#define REGION_TAMAN_BUSUK 22
-#define REGION_TARSIS 23
-#define REGION_TEYR 24
-#define REGION_THORBARDIN 25
-#define REGION_OUTER_PLANES 26
-
-#define NUM_REGIONS 27
-
-#elif defined(CAMPAIGN_FR)
-
-#define REGION_NONE 0
-#define REGION_AGLAROND 1
-#define REGION_AMN 2
-#define REGION_ANAUROCH_DESERT 3
-#define REGION_CALIMSHAN 4
-#define REGION_CHESSENTA 5
-#define REGION_CHULT 6
-#define REGION_CORMYR 7
-#define REGION_DAMBRATH 8
-#define REGION_ELFHARROW 9
-#define REGION_EVERMEET 10
-#define REGION_HALRUAA 11
-#define REGION_ICEWIND_DALE 12
-#define REGION_IMPILTUR 13
-#define REGION_KARA_TUR 14
-#define REGION_LUIREN 15
-#define REGION_LURUAR 16
-#define REGION_MULHORAND 17
-#define REGION_RASHEMEN 18
-#define REGION_SEMBIA 19
-#define REGION_TETHYR 20
-#define REGION_THAY 21
-#define REGION_THESK 22
-#define REGION_THE_COLD_LANDS 23
-#define REGION_THE_DALELANDS 24
-#define REGION_THE_HORDELANDS 25
-#define REGION_THE_LAKE_OF_STEAM 26
-#define REGION_THE_MOONSEA 27
-#define REGION_THE_SAVAGE_FRONTIER 28
-#define REGION_THE_SWORD_COAST 29
-#define REGION_THE_UNDERDARK 30
-#define REGION_TURMISH 31
-#define REGION_TYMANTHER 32
-#define REGION_UNTHER 33
-#define REGION_WESTGATE 34
-#define REGION_ZAKHARA 35
-#define REGION_OUTER_PLANES 36
-#define NUM_REGIONS 37
-
-#else
 
 #define REGION_NONE 0
 #define REGION_ASHENPORT 1
@@ -1092,17 +1000,8 @@
 #define REGION_WEST_UBDINA 13
 #define NUM_REGIONS 14
 
-#endif
 
 /* factions */
-#if defined(CAMPAIGN_DL)
-#define FACTION_NONE 0
-#define FACTION_ADVENTURERS FACTION_NONE
-#define FACTION_FORCES_OF_WHITESTONE 1
-#define FACTION_DRAGONARMIES 2
-#define FACTION_NEUTRAL 3
-#define NUM_FACTIONS 4
-#else
 #define FACTION_NONE 0
 #define FACTION_ADVENTURER 0
 #define FACTION_ADVENTURERS 0
@@ -1114,34 +1013,8 @@
 #define FACTION_DARKLING 2
 #define FACTION_CRIMINAL 3
 #define NUM_FACTIONS 4
-#endif
 
 // cities
-#if defined(CAMPAIGN_DL)
-
-#define CITY_NONE 0
-#define CITY_PALANTHAS 1
-#define CITY_SANCTION 2
-#define CITY_SOLACE 3
-#define CITY_CAERGOTH 4
-#define CITY_SOLANTHUS 5
-#define CITY_THELGAARD 6
-#define CITY_NERAKA 7
-#define CITY_MORNING_DEW 8
-#define CITY_TARSIS 9
-#define CITY_QUALINOST 10
-#define CITY_KENDERMORE 11
-
-#define NUM_CITIES 12
-
-#elif defined(CAMPAIGN_FR)
-
-#define CITY_NONE 0
-#define CITY_LUSKAN 1
-
-#define NUM_CITIES 2
-
-#else
 
 #define CITY_NONE 0
 #define CITY_ASHENPORT 1
@@ -1149,7 +1022,6 @@
 
 #define NUM_CITIES 3
 
-#endif
 
 /* Positions */
 #define POS_DEAD 0      /**< Position = dead */
@@ -1368,25 +1240,6 @@
 #define MOB_BLADE_OF_DISASTER 59    // black blade of disaster
 #define MOB_ECTOPLASMIC_SHAMBLER 93 // ectoplasmic shambler psionic ability
 
-#if defined(CAMPAIGN_DL)
-
-#define MOB_GHOST_WOLF 20801 // Mob to use for ghost wolf spell
-#define MOB_NUM_EIDOLON 20802
-#define MOB_DIRE_RAT 40100 // summon natures ally i
-#define MOB_CHILDREN_OF_THE_NIGHT_WOLVES                                                           \
-  40119 // Potential mob for children of the night vampire ability.
-#define MOB_CHILDREN_OF_THE_NIGHT_RATS                                                             \
-  40120 // Potential mob for children of the night vampire ability.
-#define MOB_CHILDREN_OF_THE_NIGHT_BATS                                                             \
-  40121                                // Potential mob for children of the night vampire ability.
-#define MOB_CREATE_VAMPIRE_SPAWN 40122 // Mob to use for create vampire spawn
-#define MOB_MOUNT_SPELL 40320
-#define MOB_DJINNI_KIND 40321
-#define MOB_EFREETI_KIND 40322
-#define MOB_MARID_KIND 40323
-#define MOB_SHAITAN_KIND 40324
-
-#else
 
 #define MOB_DIRE_RAT 9400 // summon natures ally i
 #define MOB_MOUNT_SPELL 101320
@@ -1404,7 +1257,6 @@
 #define MOB_SHAITAN_KIND 101324
 #define MOB_NUM_EIDOLON 802
 
-#endif
 
 #define OBJ_VNUM_KAPAK_POISON 20872
 
@@ -5521,7 +5373,6 @@
 #define LANG_KHUR SKILL_LANG_KHUR - SKILL_LANG_LOW
 #define LANG_KHAROLIAN SKILL_LANG_KHAROLIAN - SKILL_LANG_LOW
 
-#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
 #define LANG_ASHEN_CANT SKILL_LANG_ASHEN_CANT - SKILL_LANG_LOW
 #define LANG_SANCTINE SKILL_LANG_SANCTINE - SKILL_LANG_LOW
 #define LANG_ONDUIC SKILL_LANG_ONDUIC - SKILL_LANG_LOW
@@ -5534,15 +5385,8 @@
 #define LANG_OORPIC SKILL_LANG_OORPIC - SKILL_LANG_LOW
 #define LANG_TAL SKILL_LANG_TAL - SKILL_LANG_LOW
 #define LANG_UBDINIC SKILL_LANG_UBDINIC - SKILL_LANG_LOW
-#endif
 
-#if defined(CAMPAIGN_DL)
-#define NUM_LANGUAGES 30
-#elif defined(CAMPAIGN_FR)
-#define NUM_LANGUAGES 36
-#else
 #define NUM_LANGUAGES 48
-#endif
 
 #define NUM_KENDER_BAUBLES 314
 
@@ -8043,7 +7887,6 @@ struct player_config_data
 
 struct extra_game_data
 {
-  ubyte campaign;
   ubyte bag_system;
   ubyte new_player_gear;
   ubyte crafting_system;

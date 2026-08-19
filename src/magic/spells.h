@@ -1321,13 +1321,7 @@
 #define NUM_RANGED_TYPES 1
 
 // Vampire cloak
-#ifdef CAMPAIGN_FR
-#define VAMPIRE_CLOAK_OBJ_VNUM 299
-#elif defined(CAMPAIGN_DL)
-#define VAMPIRE_CLOAK_OBJ_VNUM 16604
-#else
 #define VAMPIRE_CLOAK_OBJ_VNUM 34700
-#endif
 
 /* not hard coded, but up to 2375 */
 
@@ -1366,46 +1360,6 @@
 /* new attack types can be added here - up to TYPE_SUFFERING */
 #define MAX_TYPES 3400
 
-#if defined(CAMPAIGN_DL)
-
-#define SKILL_LANG_COMMON 3401
-#define SKILL_LANG_DRACONIC 3402
-#define SKILL_LANG_DRUIDIC 3403
-#define SKILL_LANG_DWARVEN 3404
-#define SKILL_LANG_ELVEN 3405
-#define SKILL_LANG_ERGOT 3406
-#define SKILL_LANG_GIANT 3407
-#define SKILL_LANG_GNOME 3408
-#define SKILL_LANG_GOBLIN 3409
-#define SKILL_LANG_GULLYTALK 3410
-#define SKILL_LANG_HALFLING 3411
-#define SKILL_LANG_KENDER SKILL_LANG_HALFLING
-#define SKILL_LANG_MINOTAUR 3412
-#define SKILL_LANG_NERAKESE 3413
-#define SKILL_LANG_OGRE 3414
-#define SKILL_LANG_PLAINSFOLK 3415
-#define SKILL_LANG_SOLAMNIC 3416
-#define SKILL_LANG_SYLVAN 3417
-#define SKILL_LANG_THIEVES_CANT 3418
-#define SKILL_LANG_ABANASINIAN 3419
-#define SKILL_LANG_CAMPTALK 3420
-#define SKILL_LANG_DARGOI 3421
-#define SKILL_LANG_DARGONESTI 3422
-#define SKILL_LANG_DIMERNESTI 3423
-#define SKILL_LANG_KALINESE 3424
-#define SKILL_LANG_KOTHIAN 3425
-#define SKILL_LANG_NORDMAARIAN 3426
-#define SKILL_LANG_SAIFHUM 3427
-#define SKILL_LANG_KHUR 3428
-#define SKILL_LANG_KHAROLIAN 3429
-
-/**/
-#define SKILL_LANG_LOW 3401
-#define SKILL_LANG_HIGH 3429
-#define MIN_LANGUAGES SKILL_LANG_LOW
-#define MAX_LANGUAGES SKILL_LANG_HIGH
-
-#else
 
 #define SKILL_LANG_COMMON 3401
 #define SKILL_LANG_BASIC SKILL_LANG_COMMON
@@ -1446,7 +1400,6 @@
 #define SKILL_LANG_SHAARAN 3435
 #define SKILL_LANG_MIDANI 3436
 
-#if !defined(CAMPAIGN_FR)
 /* Default Luminari campaign Heart Tongues. Persistent IDs are append-only. */
 #define SKILL_LANG_ASHEN_CANT 3437
 #define SKILL_LANG_SANCTINE 3438
@@ -1460,18 +1413,12 @@
 #define SKILL_LANG_OORPIC 3446
 #define SKILL_LANG_TAL 3447
 #define SKILL_LANG_UBDINIC 3448
-#endif
 /**/
 #define SKILL_LANG_LOW 3401
-#if defined(CAMPAIGN_FR)
-#define SKILL_LANG_HIGH 3436
-#else
 #define SKILL_LANG_HIGH 3448
-#endif
 #define MIN_LANGUAGES SKILL_LANG_LOW
 #define MAX_LANGUAGES SKILL_LANG_HIGH
 
-#endif
 
 /*****  !!!! MAKE SURE MAX_SKILLS (structs.h) IS BIGGER THAN THIS NUMBER!!! -zusuk ******/
 #define TOP_SKILL_DEFINE 3500
@@ -1753,11 +1700,7 @@ struct wall_information
 /******/
 #define NUM_WALL_TYPES 7
 /****/
-#if defined(CAMPAIGN_DL)
-#define WALL_ITEM 13818
-#else
 #define WALL_ITEM 101220
-#endif
 /* object values for walls */
 #define WALL_TYPE 0  /* type, effect */
 #define WALL_DIR 1   /* direction blocking */

@@ -269,7 +269,6 @@ void populate_encounter_table(void)
                        NON_SENTIENT, SIZE_SMALL);
   set_encounter_terrain_any(ENCOUNTER_TYPE_FIRE_BEETLE);
 
-#if !defined(CAMPAIGN_DL)
   add_encounter_record(ENCOUNTER_TYPE_DROW_WARRIOR, ENCOUNTER_CLASS_COMBAT, 1, 20,
                        ENCOUNTER_GROUP_TYPE_DROW_PATROL, "drow warrior", 100, 1, 3,
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, CHAOTIC_EVIL,
@@ -296,7 +295,6 @@ void populate_encounter_table(void)
   add_encounter_sector(ENCOUNTER_TYPE_DROW_WIZARD, SECT_UD_WILD);
   add_encounter_sector(ENCOUNTER_TYPE_DROW_WIZARD, SECT_UD_CITY);
   add_encounter_sector(ENCOUNTER_TYPE_DROW_WIZARD, SECT_UD_INSIDE);
-#endif
 
   add_encounter_record(ENCOUNTER_TYPE_DUERGAR_WARRIOR, ENCOUNTER_CLASS_COMBAT, 1, 20,
                        ENCOUNTER_GROUP_TYPE_DUERGAR_PATROL, "duergar warrior", 100, 1, 4,
@@ -323,7 +321,6 @@ void populate_encounter_table(void)
                        NON_HOSTILE, SENTIENT, SIZE_MEDIUM);
   set_encounter_terrain_all_water(ENCOUNTER_TYPE_MERFOLK_HUNTER);
 
-#if !defined(CAMPAIGN_DL)
   add_encounter_record(ENCOUNTER_TYPE_ORCISH_WARRIOR, ENCOUNTER_CLASS_COMBAT, 1, 15,
                        ENCOUNTER_GROUP_TYPE_ORC_PATROL, "orcish warrior", 100, 1, 6,
                        TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, CHAOTIC_EVIL,
@@ -337,7 +334,6 @@ void populate_encounter_table(void)
   add_encounter_sector(ENCOUNTER_TYPE_ORCISH_WARRIOR, SECT_UD_WILD);
   add_encounter_sector(ENCOUNTER_TYPE_ORCISH_WARRIOR, SECT_UD_INSIDE);
   add_encounter_sector(ENCOUNTER_TYPE_ORCISH_WARRIOR, SECT_CAVE);
-#endif
 
   add_encounter_record(ENCOUNTER_TYPE_OWL, ENCOUNTER_CLASS_COMBAT, 1, 10, ENCOUNTER_GROUP_TYPE_OWL,
                        "owl", 100, 1, 2, TREASURE_TABLE_NONE, CLASS_WARRIOR,
@@ -893,7 +889,6 @@ void populate_encounter_table(void)
   add_encounter_sector(ENCOUNTER_TYPE_MANDRAGORA, SECT_FIELD);
   add_encounter_sector(ENCOUNTER_TYPE_MANDRAGORA, SECT_FOREST);
 
-#if !defined(CAMPAIGN_DL)
   add_encounter_record(ENCOUNTER_TYPE_OGRILLON, ENCOUNTER_CLASS_COMBAT, 1, 15,
                        ENCOUNTER_GROUP_TYPE_OGRILLON, "ogrillon", 100, 1, 5, TREASURE_TABLE_NONE,
                        CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, CHAOTIC_EVIL, RACE_TYPE_GIANT,
@@ -908,7 +903,6 @@ void populate_encounter_table(void)
       ENCOUNTER_TYPE_OGRILLON, "A towering ogrillon, half-orc, half-ogre, grins wickedly at you.");
   set_encounter_terrain_all_surface(ENCOUNTER_TYPE_OGRILLON);
   set_encounter_terrain_all_underdark(ENCOUNTER_TYPE_OGRILLON);
-#endif
 
   add_encounter_record(ENCOUNTER_TYPE_OROG, ENCOUNTER_CLASS_COMBAT, 1, 15,
                        ENCOUNTER_GROUP_TYPE_OROG, "orog", 100, 1, 5, TREASURE_TABLE_NONE,
@@ -1612,9 +1606,7 @@ void check_random_encounter(struct char_data *ch)
 
   int i = 0, j = 0, count = 0, roll = 0, group_type = ENCOUNTER_GROUP_TYPE_NONE;
   int groups[NUM_ENCOUNTER_GROUP_TYPES];
-#if !defined(CAMPAIGN_DL)
   int room_sect = world[IN_ROOM(ch)].sector_type;
-#endif
   int highest_level = get_max_party_level_same_room(ch);
   // int avg_level = get_avg_party_level_same_room(ch);
   int party_size = get_party_size_same_room(ch);
@@ -1648,10 +1640,8 @@ void check_random_encounter(struct char_data *ch)
   {
     for (j = 0; j < NUM_ENCOUNTER_TYPES; j++)
       if (encounter_table[j].encounter_group == i)
-      // Dragonlance encounters will load in any terrain, so we'll just skip this 'if statement' if campaign is DL
-#if !defined(CAMPAIGN_DL)
+        // Dragonlance encounters will load in any terrain, so we'll just skip this 'if statement' if campaign is DL
         if (encounter_table[j].sector_types[room_sect] == true)
-#endif
           if (highest_level <= encounter_table[j].max_level)
             groups[i] = true;
   }
