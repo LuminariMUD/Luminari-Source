@@ -97,7 +97,6 @@
 - [ ] **Resource system integration** - descriptions reflect resource abundance
 - [ ] **Event system hooks** - special descriptions for ongoing events
 - [ ] **Quest integration** - region descriptions that hint at quests
-- [ ] **Campaign-specific content** - Dragonlance/Forgotten Realms variants
 
 ---
 

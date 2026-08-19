@@ -12,16 +12,16 @@ Supersedes: `CAMPAIGN_VARIANT_REMOVAL_SCOPE.md`
 - [x] Luminari baseline and persistent identifier manifests captured.
 - [x] Retired compile-time definitions and branches removed.
 - [x] Retired runtime selection and campaign-routed data removed.
-- [ ] Build, setup, tests, tooling, and current documentation cleaned.
+- [x] Build, setup, tests, tooling, and current documentation cleaned.
 - [ ] Full verification and local smoke test completed.
 
-Last checkpoint: 2026-08-20. The compiler-led source retirement is green. Deployment, world
-tooling, templates, and current documentation remain to be cleaned.
+Last checkpoint: 2026-08-20. The compiler-led source retirement and repository cleanup are green.
+Fresh CMake verification and the local boot smoke test remain.
 
 ### Source-retirement checkpoint
 
 - A temporary poison in `structs.h` turned remaining retired preprocessor references into compile
-  errors. It remains only as a migration guard until the repository-wide cleanup is complete.
+  errors. It was removed after the repository-wide search became clean.
 - The active Luminari branches were retained as ordinary code while the DragonLance and Forgotten
   Realms branches were deleted across 70 source files.
 - The runtime campaign field, configuration parser and writer, CEDIT selector, display table, and
@@ -33,6 +33,26 @@ tooling, templates, and current documentation remain to be cleaned.
 - The full production-linked suite passed all 778 tests after its source-shape assertions were
   updated for the Luminari-only assignment tables and boot path.
 - `make install` passed and removed the root-level `circle` artifact.
+
+### Repository-cleanup checkpoint
+
+- Fresh deployment setup now copies the Luminari configuration without presenting a campaign
+  selector. Binary deployment accepts only the development or live Luminari target.
+- The world constants tool no longer contains a miniature preprocessor for choosing Luminari from
+  retired branches. Its regenerated manifest SHA-256 is
+  `48fcde732220fa7c9b1076a78fc1ec94cf95778f474db306f766a294ccc64865`.
+- The alternate newbie-equipment implementation and its unused example VNUM catalog were deleted;
+  the current equipment path is ordinary code.
+- Retired race numbers remain reserved as `LEGACY_RACE_*` identifiers so persisted values are not
+  renumbered or silently reused.
+- `docs/systems/CAMPAIGN_SYSTEM_ARCHITECTURE.md` was deleted because the advertised system no
+  longer exists. Current system, testing, environment, contributor, and generated web documents
+  were cleaned without rewriting historical changelogs.
+- The world-tool suite passes all 454 remaining tests; the three removed tests existed only to
+  exercise retired campaign-branch preprocessing.
+- A second clean Autotools build passed with `-Wall -Wextra` and no warnings. The full
+  production-linked suite again passed all 778 tests, and `make install` removed the root-level
+  `circle` artifact.
 
 ### Baseline evidence
 

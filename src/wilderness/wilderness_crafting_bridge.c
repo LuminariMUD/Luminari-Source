@@ -4,7 +4,7 @@
  *
  * This system provides integration between the Phase 4.5 wilderness
  * material system and the existing newcrafting system, making them
- * compatible and campaign-aware.
+ * compatible.
  */
 
 #include "conf.h"
@@ -17,36 +17,6 @@
 #include "utils.h"
 #include "comm.h"
 #include "constants.h"
-
-/* Campaign-specific material name arrays */
-
-
-/* Default LuminariMUD material names */
-const char *default_herb_names[NUM_HERB_SUBTYPES] = {"marjoram",   "kingfoil",   "starlily",
-                                                     "wolfsbane",  "nightshade", "moonbell",
-                                                     "silverleaf", "dragonherb"};
-
-const char *default_crystal_names[NUM_CRYSTAL_SUBTYPES] = {"arcanite",   "nethermote",  "sunstone",
-                                                           "voidshards", "starcrystal", "moonstone",
-                                                           "shadowgem",  "brightstone"};
-
-const char *default_wood_names[NUM_WOOD_SUBTYPES] = {"ironwood",  "silverbirch", "shadowbark",
-                                                     "brightoak", "moonwood",    "starwood",
-                                                     "voidwood",  "crystalwood"};
-
-const char *default_game_names[NUM_GAME_SUBTYPES] = {
-    "wolf hide",     "bear fur",   "deer leather", "boar hide",
-    "eagle feather", "hawk plume", "dragon scale", "wyrm skin"};
-
-const char *default_vegetation_names[NUM_VEGETATION_SUBTYPES] = {
-    "moss", "lichen", "fungus", "vine", "flower", "grass", "fern", "bloom"};
-
-const char *default_stone_names[NUM_STONE_SUBTYPES] = {"granite", "marble", "limestone", "obsidian",
-                                                       "quartz",  "slate",  "sandstone", "basalt"};
-
-const char *default_mineral_names[NUM_MINERAL_SUBTYPES] = {
-    "iron ore",     "copper ore",  "silver ore", "gold ore",
-    "platinum ore", "mithril ore", "adamantine", "star metal"};
 
 /**
  * Convert wilderness material category to crafting material group
@@ -107,57 +77,6 @@ int wilderness_to_crafting_material(int category, int subtype, int quality)
   default:
     return CRAFT_MAT_REFINING;
   }
-}
-
-/**
- * Get campaign-appropriate material name
- */
-const char *get_campaign_material_name(int category, int subtype, int quality)
-{
-  const char **name_array = NULL;
-
-  // Validate subtype range
-  if (subtype < 0 || subtype >= NUM_SUBTYPES_PER_CATEGORY)
-  {
-    return "unknown material";
-  }
-
-  // Select appropriate name array based on campaign and category
-  switch (category)
-  {
-  case RESOURCE_HERBS:
-    name_array = default_herb_names;
-    break;
-
-  case RESOURCE_CRYSTAL:
-    name_array = default_crystal_names;
-    break;
-
-  case RESOURCE_WOOD:
-    name_array = default_wood_names;
-    break;
-
-  case RESOURCE_GAME:
-    name_array = default_game_names;
-    break;
-
-  case RESOURCE_VEGETATION:
-    name_array = default_vegetation_names;
-    break;
-
-  case RESOURCE_STONE:
-    name_array = default_stone_names;
-    break;
-
-  case RESOURCE_MINERALS:
-    name_array = default_mineral_names;
-    break;
-
-  default:
-    return "unknown material";
-  }
-
-  return name_array[subtype];
 }
 
 /**

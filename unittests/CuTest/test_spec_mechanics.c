@@ -2658,7 +2658,7 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertIntEquals(tc, 0, rol_bhaal_torment_damage(-1, false));
   CuAssertIntEquals(tc, 3, rol_astral_forged_bonus(false));
   CuAssertIntEquals(tc, 6, rol_astral_forged_bonus(true));
-  CuAssertTrue(tc, rol_torin_owner_requirements(DL_RACE_MOUNTAIN_DWARF, true, false));
+  CuAssertTrue(tc, rol_torin_owner_requirements(LEGACY_RACE_MOUNTAIN_DWARF, true, false));
   CuAssertTrue(tc, rol_torin_owner_requirements(RACE_DUERGAR, false, true));
   CuAssertTrue(tc, !rol_torin_owner_requirements(RACE_DUERGAR, false, false));
   CuAssertTrue(tc, !rol_torin_owner_requirements(RACE_DROW, true, true));

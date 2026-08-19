@@ -2400,11 +2400,11 @@ static void newbie_give_obj(struct char_data *ch, obj_vnum vnum, bool adjust_siz
     obj_to_char(obj, ch);
 }
 
-#if defined(USE_NEW_NOOB_GEAR) || defined(NOOB_CRAFTING_TAILORING) ||                              \
-    defined(NOOB_CRAFTING_ALCHEMY) || defined(NOOB_CRAFTING_ARMORSMITHING) ||                      \
-    defined(NOOB_CRAFTING_WEAPONSMITHING) || defined(NOOB_CRAFTING_JEWELCRAFTING) ||               \
-    defined(NOOB_HARVESTING_MINING) || defined(NOOB_HARVESTING_HUNTING) ||                         \
-    defined(NOOB_HARVESTING_FORESTRY) || defined(NOOB_HARVESTING_GATHERING)
+#if defined(NOOB_CRAFTING_TAILORING) || defined(NOOB_CRAFTING_ALCHEMY) ||                          \
+    defined(NOOB_CRAFTING_ARMORSMITHING) || defined(NOOB_CRAFTING_WEAPONSMITHING) ||               \
+    defined(NOOB_CRAFTING_JEWELCRAFTING) || defined(NOOB_HARVESTING_MINING) ||                     \
+    defined(NOOB_HARVESTING_HUNTING) || defined(NOOB_HARVESTING_FORESTRY) ||                       \
+    defined(NOOB_HARVESTING_GATHERING)
 static void newbie_equip_obj(struct char_data *ch, obj_vnum vnum, int wear_pos, bool adjust_size)
 {
   struct obj_data *obj = newbie_create_obj(ch, vnum, adjust_size);
@@ -2417,7 +2417,6 @@ static void newbie_equip_obj(struct char_data *ch, obj_vnum vnum, int wear_pos, 
 /* function that gives chars starting gear */
 void newbieEquipment(struct char_data *ch)
 {
-#if defined(USE_OLD_NOOB_GEAR)
   struct obj_data *quiver = NULL, *pouch = NULL, *bp = NULL;
   int objNums[] = {
       NOOB_BP, /* HAS to be first */
@@ -2437,7 +2436,6 @@ void newbieEquipment(struct char_data *ch)
       NOOB_CRAFT_MOLD,
       -1 // had to end with -1
   };
-#endif
 
   send_to_char(ch, "\tMYou are given a set of starting equipment...\tn\r\n");
 
@@ -2481,20 +2479,6 @@ void newbieEquipment(struct char_data *ch)
   }
   /* end items everyone gets */
 #elif defined(USE_VIRTUAL_BAGS_ONLY)
-
-#if defined(USE_NEW_NOOB_GEAR)
-  int x;
-  for (x = 0; x < 5; x++)
-  {
-    newbie_give_obj(ch, NOOB_RATIONS, FALSE);
-  }
-  for (x = 0; x < 3; x++)
-  {
-    newbie_give_obj(ch, NOOB_TORCH, FALSE);
-  }
-  newbie_give_obj(ch, NOOB_WATERSKIN, FALSE);
-#endif
-
 #endif
 
 #if defined(NOOB_GEAR_MAP_ONE)
@@ -2561,7 +2545,7 @@ void newbieEquipment(struct char_data *ch)
     break;
 #endif
 #if defined(RACE_ALLOW_KENDER)
-  case DL_RACE_KENDER:
+  case LEGACY_RACE_KENDER:
     newbie_give_obj(ch, NOOB_HOOPAK, FALSE); // Kender hoopak
     break;
 #endif
@@ -2577,7 +2561,6 @@ void newbieEquipment(struct char_data *ch)
   /* class specific gear */
   switch (GET_CLASS(ch))
   {
-#if defined(USE_OLD_NOOB_GEAR)
   case CLASS_PALADIN:
   case CLASS_BLACKGUARD:
   case CLASS_CLERIC:
@@ -2657,160 +2640,6 @@ void newbieEquipment(struct char_data *ch)
     newbie_give_obj(ch, NOOB_CLOTH_ROBES, TRUE);   // cloth robes
 
     break;
-#elif defined(USE_NEW_NOOB_GEAR)
-
-  case CLASS_MONK:
-    newbie_equip_obj(ch, NOOB_GEAR_MONK_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_MONK_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_MONK_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_MONK_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_MONK_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    break;
-
-  case CLASS_PALADIN:
-    newbie_equip_obj(ch, NOOB_GEAR_PALAD_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_PALAD_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_PALAD_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_PALAD_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_PALAD_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    newbie_equip_obj(ch, NOOB_GEAR_PALAD_SHIELD, WEAR_SHIELD, TRUE);  // shield
-    break;
-
-  case CLASS_BLACKGUARD:
-    newbie_equip_obj(ch, NOOB_GEAR_BLKG_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_BLKG_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_BLKG_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_BLKG_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_BLKG_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    newbie_equip_obj(ch, NOOB_GEAR_BLKG_SHIELD, WEAR_SHIELD, TRUE);  // shield
-    break;
-
-  case CLASS_CLERIC:
-    newbie_equip_obj(ch, NOOB_GEAR_CLER_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_CLER_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_CLER_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_CLER_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_CLER_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    newbie_equip_obj(ch, NOOB_GEAR_CLER_SHIELD, WEAR_SHIELD, TRUE);  // shield
-    break;
-
-  case CLASS_INQUISITOR:
-    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_INQUISITOR_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    break;
-
-  case CLASS_DRUID:
-    newbie_equip_obj(ch, NOOB_GEAR_DRUID_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_DRUID_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_DRUID_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_DRUID_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_DRUID_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    break;
-
-  case CLASS_BERSERKER:
-    newbie_equip_obj(ch, NOOB_GEAR_BERSER_ARMS, WEAR_ARMS, TRUE);       // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_BERSER_LEGS, WEAR_LEGS, TRUE);       // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_BERSER_BODY, WEAR_BODY, TRUE);       // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_BERSER_HEAD, WEAR_HEAD, TRUE);       // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_BERSER_WEAPON, WEAR_WIELD_2H, TRUE); // weapon
-    break;
-
-  case CLASS_WARRIOR:
-    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_ARMS, WEAR_ARMS, TRUE);       // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_LEGS, WEAR_LEGS, TRUE);       // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_BODY, WEAR_BODY, TRUE);       // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_HEAD, WEAR_HEAD, TRUE);       // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_FIGHT_WEAPON, WEAR_WIELD_2H, TRUE); // weapon
-    newbie_give_obj(ch, NOOB_GEAR_FIGHT_SHIELD, FALSE);                // shield spare
-    newbie_give_obj(ch, NOOB_GEAR_FIGHT_WEAPON2, FALSE);               // one-handed weapon
-    break;
-
-  case CLASS_RANGER:
-    newbie_equip_obj(ch, NOOB_GEAR_RANGER_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_RANGER_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_RANGER_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_RANGER_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_RANGER_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    break;
-
-  case CLASS_BARD:
-    newbie_give_obj(ch, NOOB_GEAR_BARD_INSTRUMENT, FALSE); // instrument
-
-    newbie_give_obj(ch, NOOB_GEAR_BARD_ARMS, TRUE); // leather sleeves
-
-    newbie_give_obj(ch, NOOB_GEAR_BARD_LEGS, TRUE); // leather leggings
-
-    newbie_give_obj(ch, NOOB_GEAR_BARD_BODY, TRUE); // studded leather
-
-    newbie_give_obj(ch, NOOB_GEAR_BARD_WEAPON, FALSE); // dagger
-    break;
-
-  case CLASS_ROGUE:
-    newbie_equip_obj(ch, NOOB_GEAR_ROG_ARMS, WEAR_ARMS, TRUE); // arms armor
-
-    newbie_equip_obj(ch, NOOB_GEAR_ROG_LEGS, WEAR_LEGS, TRUE); // legs armor
-
-    newbie_equip_obj(ch, NOOB_GEAR_ROG_BODY, WEAR_BODY, TRUE); // body armor
-
-    newbie_equip_obj(ch, NOOB_GEAR_ROG_HEAD, WEAR_HEAD, TRUE); // head armor
-
-    newbie_equip_obj(ch, NOOB_GEAR_ROG_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    break;
-
-  case CLASS_WIZARD:
-    newbie_give_obj(ch, NOOB_WIZ_NOTE, FALSE);                      // wizard note
-    newbie_give_obj(ch, NOOB_WIZ_SPELLBOOK, FALSE);                 // spellbook
-    newbie_equip_obj(ch, NOOB_GEAR_WIZ_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_WIZ_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_WIZ_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_WIZ_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_WIZ_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    break;
-
-  case CLASS_ALCHEMIST:
-    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_ALCHEMIST_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    break;
-
-  case CLASS_SUMMONER:
-  case CLASS_ARTIFICER:
-    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_SUMMONER_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    break;
-
-  case CLASS_SORCERER:
-    newbie_equip_obj(ch, NOOB_GEAR_SORC_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_SORC_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_SORC_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_SORC_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_SORC_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    break;
-
-  case CLASS_PSIONICIST:
-    newbie_equip_obj(ch, NOOB_GEAR_PSION_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_PSION_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_PSION_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_PSION_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_PSION_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    break;
-
-  case CLASS_WARLOCK:
-    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_ARMS, WEAR_ARMS, TRUE);      // arms armor
-    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_LEGS, WEAR_LEGS, TRUE);      // legs armor
-    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_BODY, WEAR_BODY, TRUE);      // body armor
-    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_HEAD, WEAR_HEAD, TRUE);      // head armor
-    newbie_equip_obj(ch, NOOB_GEAR_WARLOCK_WEAPON, WEAR_WIELD_1, TRUE); // weapon
-    break;
-#endif
   default:
     log("Invalid class sent to newbieEquipment class!");
     break;
@@ -3055,7 +2884,7 @@ void init_start_char(struct char_data *ch)
   switch (GET_RACE(ch))
   {
   case RACE_HUMAN:
-  case DL_RACE_HUMAN:
+  case LEGACY_RACE_HUMAN:
     GET_FEAT_POINTS(ch)++;
     trains += 3;
     break;
@@ -3690,7 +3519,7 @@ void advance_level(struct char_data *ch, int class)
   switch (GET_RACE(ch))
   {
   case RACE_HUMAN:
-  case DL_RACE_HUMAN:
+  case LEGACY_RACE_HUMAN:
     trains++;
     break;
   case RACE_CRYSTAL_DWARF:

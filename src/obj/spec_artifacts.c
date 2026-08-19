@@ -695,9 +695,9 @@ static const struct artifact_contract *artifact_contract_of(int vnum)
   return NULL;
 }
 
-/* Stamp the content contract onto a registry entry.  An artifact with no
- * contract row still works; it is simply vault-staged, campaign-neutral, and
- * keeps its bearer's name to itself.  Boot validation reports the gap. */
+/* Stamp the content contract onto a registry entry. An artifact with no
+ * contract row still works; it is vault-staged and keeps its bearer's name to
+ * itself. Boot validation reports the gap. */
 static void artifact_apply_contract(struct artifact_data *art)
 {
   const struct artifact_contract *contract = artifact_contract_of(art->vnum);
@@ -5356,7 +5356,6 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
  * A public roster of what exists, what state it is in, and roughly how it is
  * come by.  Display policy, in one place:
  *
- *   - artifacts not enabled for the running campaign are not listed at all;
  *   - an undiscovered artifact is a rumour: state and lore, but no name;
  *   - the current bearer is named only when the artifact's contract makes
  *     bearers public AND it is actually held;

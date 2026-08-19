@@ -248,7 +248,7 @@ static void worldmap_html_write_document(FILE *out, const char *subtitle,
   fprintf(out,
           "<html>\n"
           "<head>\n"
-          "<title>Faerun MUD World Map</title>\n"
+          "<title>LuminariMUD World Map</title>\n"
           "<script src=\"https://code.jquery.com/jquery-3.6.0.slim.min.js\" integrity=\"sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=\" crossorigin=\"anonymous\"></script>\n"
           "<style>\n"
           "  body {\n"
@@ -296,7 +296,7 @@ static void worldmap_html_write_document(FILE *out, const char *subtitle,
           "</script>\n"
           "</head>\n"
           "<body>\n"
-          "  <h1>Faerun MUD World Map</h1>\n"
+          "  <h1>LuminariMUD World Map</h1>\n"
           "  <h2>");
   worldmap_html_write_escaped(out, subtitle ? subtitle : "Connected Wilderness Zones");
   fprintf(out, "</h2>\n");
@@ -1062,7 +1062,7 @@ ACMD(do_export_worldmap)
   }
   else
   {
-    fixed_name = fix_filename("faerun_worldmap");
+    fixed_name = fix_filename("luminari_worldmap");
     snprintf(output_file, sizeof(output_file), "%s.html", fixed_name);
   }
 

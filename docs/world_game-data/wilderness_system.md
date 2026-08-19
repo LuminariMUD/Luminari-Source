@@ -494,7 +494,7 @@ Regions and paths are stored in MySQL database:
 
 **Integration:** Per-tile weather, map overlay mode, excluded from zone weather
 
-**Campaign FR:** Wilderness completely disabled
+The supported Luminari world uses per-tile wilderness weather.
 
 ## Resource System
 

@@ -1,6 +1,6 @@
 /***********************************************************************
 ** FEATS.H                                                            **
-** Header file for the Gates of Krynn Feat System.                    **
+** Header file for the LuminariMUD feat system.                       **
 ** Initial code by Paladine (Stephen Squires)                         **
 ** Created Thursday, September 5, 2002                                **
 ** Ported to Luminari by Ornir                                        **

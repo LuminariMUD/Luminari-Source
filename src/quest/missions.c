@@ -324,7 +324,7 @@ long get_mission_reward(char_data *ch, int reward_type)
     break;
   case MISSION_EXP:
     reward = (int)(level * MAX(1, level / 4) * mult * 300);
-    // rewards are way too low when compared to the DL campaign exp tables.
+    /* Mission rewards use the current Luminari experience scale. */
     break;
   }
 

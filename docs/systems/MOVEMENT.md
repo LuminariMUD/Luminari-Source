@@ -243,9 +243,8 @@ Creates persistent movement trails (disabled in DL/FR campaigns):
 #define TRAIL_PRUNING_THRESHOLD 3600  // 1 hour
 ```
 
-### Campaign Differences
-- **Default**: Full track system enabled
-- **CAMPAIGN_DL/FR**: Tracks disabled, modified encounter checks
+The track system and terrain-aware encounter checks are enabled in the supported
+Luminari build.
 
 ## API Reference
 

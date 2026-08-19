@@ -7,7 +7,6 @@ import unittest
 
 from wtool_lib.constants import (
     ExtractionError,
-    _filter_luminari_branch,
     check_manifest,
     default_manifest_path,
     default_repo_root,
@@ -131,28 +130,6 @@ class ConstantsTests(unittest.TestCase):
             "MOB_AUTOROLL_CUSTOM_TIAMAT_DRACOLICH_V1"
         ],
     )
-
-  def test_luminari_campaign_filter_selects_non_campaign_branch(self) -> None:
-    source = "#ifdef CAMPAIGN_FR\nfr\n#else\nluminari\n#endif\n"
-    self.assertEqual("luminari\n", _filter_luminari_branch(source))
-
-  def test_campaign_filter_restores_nested_parent_state(self) -> None:
-    source = (
-        "#ifndef CAMPAIGN_FR\n"
-        "outer\n"
-        "#ifdef CAMPAIGN_DL\n"
-        "dragonlance\n"
-        "#else\n"
-        "nested-luminari\n"
-        "#endif\n"
-        "after-nested\n"
-        "#endif\n"
-    )
-    self.assertEqual("outer\nnested-luminari\nafter-nested\n", _filter_luminari_branch(source))
-
-  def test_campaign_filter_fails_closed_for_unknown_conditions(self) -> None:
-    with self.assertRaises(ExtractionError):
-      _filter_luminari_branch("#ifdef CAMPAIGN_UNKNOWN\nvalue\n#endif\n")
 
   def test_checked_in_manifest_is_current(self) -> None:
     current, message = check_manifest(self.repo_root)

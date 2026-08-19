@@ -476,15 +476,9 @@ GAUGE_1: [NAME]Health[COLOR]red[VAR]HEALTH[MAX]HEALTH_MAX[END]
 
 ## Configuration Options
 
-#### Campaign-Specific MUD Names (protocol.h)
+#### MUD Name (protocol.h)
 ```c
-#if defined(CAMPAIGN_DL)
-   #define MUD_NAME "Chronicles of Krynn"
-#elif defined(CAMPAIGN_FR)
-   #define MUD_NAME "Faerun: A Forgotten Realms MUD"
-#else
-   #define MUD_NAME "LuminariMUD"
-#endif
+#define MUD_NAME "LuminariMUD"
 ```
 
 #### Protocol Settings (protocol.h)

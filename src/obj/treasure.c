@@ -6516,7 +6516,7 @@ bool does_obj_have_wear_slots(struct obj_data *obj)
 // duplicate apply types from appearing on gear where the apply bonuses are randomly
 // applied. Example: It will prevent an item from having two ability score increases
 // such as +strength and +dexterity. This is to coincide with the gear balancing
-// guide written by Meka for Chronicles of Krynn
+// gear balancing guide written by Meka
 int get_apply_no_repeat_category(int apply)
 {
   switch (apply)

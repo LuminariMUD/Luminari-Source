@@ -11875,8 +11875,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     /*
      * We have designated the clone spell as the example for how to use the
      * mag_materials function.
-     * In stock FaerunMUD it checks to see if the character has item with
-     * vnum 161 which is a set of sacrificial entrails. If we have the entrails
+     * It checks whether the character has the OBJ_CLONE material. If we have it,
      * the spell will succeed,  and if not, the spell will fail 102% of the time
      * (prevents random success... see below).
      * The object is extracted and the generic cast messages are displayed.

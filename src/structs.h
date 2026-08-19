@@ -21,10 +21,6 @@
 /* Local configuration copied from campaign.example.h. */
 #include "campaign.h"
 
-
-/* Temporary migration guard. Remove after all retired conditionals are gone. */
-#pragma GCC poison CAMPAIGN_DL CAMPAIGN_FR CAMPAING_FR CAMPGIN_DL
-
 /* You will need to add a mud_options.h file that contains the various
  * options which must be defined in the code to work properly. You can make a
  * copy of the mud_options.example.h file to get started. */
@@ -779,24 +775,23 @@
 #define RACE_ORC 27
 #define RACE_H_OGRE 28 // not yet implemented
 #define RACE_HALF_OGRE RACE_H_OGRE
-// space for new races up to 44
-
-#define DL_RACE_START 29
-#define DL_RACE_HUMAN 29
-#define DL_RACE_QUALINESTI_ELF 30
-#define DL_RACE_SILVANESTI_ELF 31
-#define DL_RACE_KAGONESTI_ELF 32
-#define DL_RACE_DARGONESTI_ELF 33
-#define DL_RACE_MOUNTAIN_DWARF 34
-#define DL_RACE_HILL_DWARF 35
-#define DL_RACE_GULLY_DWARF 36
-#define DL_RACE_MINOTAUR 37
-#define DL_RACE_KENDER 38
-#define DL_RACE_GNOME 39
-#define DL_RACE_HALF_ELF 40
-#define DL_RACE_BAAZ_DRACONIAN 41
-#define DL_RACE_GOBLIN 42
-#define DL_RACE_HOBGOBLIN 43
+/* Retired race IDs remain reserved for persisted character and world data. */
+#define LEGACY_RACE_START 29
+#define LEGACY_RACE_HUMAN 29
+#define LEGACY_RACE_QUALINESTI_ELF 30
+#define LEGACY_RACE_SILVANESTI_ELF 31
+#define LEGACY_RACE_KAGONESTI_ELF 32
+#define LEGACY_RACE_DARGONESTI_ELF 33
+#define LEGACY_RACE_MOUNTAIN_DWARF 34
+#define LEGACY_RACE_HILL_DWARF 35
+#define LEGACY_RACE_GULLY_DWARF 36
+#define LEGACY_RACE_MINOTAUR 37
+#define LEGACY_RACE_KENDER 38
+#define LEGACY_RACE_GNOME 39
+#define LEGACY_RACE_HALF_ELF 40
+#define LEGACY_RACE_BAAZ_DRACONIAN 41
+#define LEGACY_RACE_GOBLIN 42
+#define LEGACY_RACE_HOBGOBLIN 43
 
 
 #define RACE_LICH 45    /*quest only race*/
@@ -806,14 +801,14 @@
 
 #define NUM_EXTENDED_PC_RACES 47
 
-#define DL_RACE_KAPAK_DRACONIAN 48
-#define DL_RACE_BOZAK_DRACONIAN 49
-#define DL_RACE_SIVAK_DRACONIAN 50
-#define DL_RACE_AURAK_DRACONIAN 51
-#define DL_RACE_IRDA 52
-#define DL_RACE_OGRE 53
+#define LEGACY_RACE_KAPAK_DRACONIAN 48
+#define LEGACY_RACE_BOZAK_DRACONIAN 49
+#define LEGACY_RACE_SIVAK_DRACONIAN 50
+#define LEGACY_RACE_AURAK_DRACONIAN 51
+#define LEGACY_RACE_IRDA 52
+#define LEGACY_RACE_OGRE 53
 
-#define DL_RACE_END 54
+#define LEGACY_RACE_END 54
 
 #define RACE_HORSE 60
 #define RACE_IRON_GOLEM 61

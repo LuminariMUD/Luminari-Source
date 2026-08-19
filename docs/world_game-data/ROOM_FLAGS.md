@@ -397,7 +397,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 **Code References:**
 - `src/act.informative.c` - Automap checks (`do_survey()`)
 - `src/asciimap.c` - Map rendering (`show_worldmap()`)
-- `src/vessels/routing.c` - Navigation system (`start_fr_flight_to_zone()`)
+- `src/vessels/routing.c` - Navigation system (`start_flight_to_destination_luminari()`)
 - `src/act.wizard.c` - Administrative flag setting (`do_setworldsect()`)
 
 ### ROOM_VEHICLE (Index: 40)

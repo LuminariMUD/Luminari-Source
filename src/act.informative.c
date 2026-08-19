@@ -11204,14 +11204,14 @@ ACMD(do_materials)
   if (show_details)
   {
 #ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
-    /* Enhanced materials display for LuminariMUD */
+    /* Enhanced materials display */
     send_to_char(ch, "\\cW=== Enhanced Wilderness Materials (LuminariMUD) ===\\cn\r\n");
     send_to_char(ch, "Your materials are preserved with their full hierarchy and quality.\r\n");
     send_to_char(ch,
                  "These materials can be used in enhanced LuminariMUD crafting recipes.\r\n\r\n");
     show_enhanced_material_storage(ch);
 #else
-    send_to_char(ch, "Enhanced crafting integration not available in this campaign.\r\n");
+    send_to_char(ch, "Enhanced crafting integration is not available in this build.\r\n");
     show_basic_material_storage(ch);
 #endif
   }

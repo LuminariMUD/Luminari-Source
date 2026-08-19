@@ -94,8 +94,8 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 - `db.c` - boots the world from flat files in `lib/world/` (`.zon`, `.wld`, `.mob`, `.obj`, `.shp`, `.trg`) into in-memory arrays. `mysql.c` - MariaDB layer for player/account persistence and many subsystems.
 - `handler.c` - object/character manipulation primitives (equip, extract, move).
 
-### Campaign variants (compile-time)
-** NO LONGER SUPPORTED, GAME SHOULD BE `LUMINARI ONLY` **
+### Build identity
+LuminariMUD is the only supported game identity in this repository.
 
 ### Game mechanics
 - Spells and skills share ONE number space: skills are "skill-spells" starting at `START_SKILLS` (2000) in `magic/spells.h`. There is no skills.c - spell/skill logic lives in `src/magic/`: `spells.c`, `magic.c`, `spell_parser.c` (registration via `spello()` calls in `mag_assign_spells()`), and `spell_prep.c` (the preparation system).

@@ -7306,7 +7306,7 @@ int rol_astral_forged_bonus(bool astral_plane)
 
 bool rol_torin_owner_requirements(int race, bool warrior, bool cleric)
 {
-  return (warrior || cleric) && (race == DL_RACE_MOUNTAIN_DWARF || race == RACE_DUERGAR);
+  return (warrior || cleric) && (race == LEGACY_RACE_MOUNTAIN_DWARF || race == RACE_DUERGAR);
 }
 
 bool rol_scornubel_fiery_mace_roll_fires(int roll)

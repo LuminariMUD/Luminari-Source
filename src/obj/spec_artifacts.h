@@ -34,8 +34,8 @@
 #define ART_VNUM_AVERNUS 169910
 #define ART_VNUM_AEGIS 169911
 
-/* Not an artifact - the treant Trorxek calls.  Shipped in the same zone so
- * the effect does not depend on any campaign's world content. */
+/* Not an artifact - the treant Trorxek calls. Shipped in the same zone so
+ * the effect does not depend on external world content. */
 #define ART_VNUM_OAKEN_DEFENDER 169912
 
 /* Second wave: the six complete HomelandMUD candidates, rebuilt on this

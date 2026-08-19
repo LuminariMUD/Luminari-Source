@@ -222,7 +222,7 @@ WHERE category BETWEEN 0 AND 6 AND quality BETWEEN 1 AND 5;
 **Symptoms:** Materials command shows basic display even in default campaign
 **Solutions:**
 1. Verify compilation: `grep ENABLE_WILDERNESS_CRAFTING_INTEGRATION src/*.o`
-2. Check campaign setting: Ensure in default LuminariMUD campaign
+2. Check local feature settings: Ensure wilderness crafting integration is enabled
 3. Restart server: Enhanced features may need server restart
 
 ### **Issue: Integration functions not triggering**

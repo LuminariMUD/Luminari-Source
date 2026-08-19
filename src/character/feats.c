@@ -5080,7 +5080,7 @@ void assign_feats(void)
                " strength damage, 1d4 dexterity damage, -4 penalty to each save, "
                "-4 penalty to AC, then finally doing 2d4 bleed and movement damage.");
 
-  /* Blackguard */ /* knight of the skull (dragonlance) */
+  /* Blackguard */
   feato(
       FEAT_SMITE_GOOD, "smite good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
       "add charisma bonus to hit roll and blackguard level to damage",

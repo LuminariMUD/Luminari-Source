@@ -143,7 +143,6 @@ gen_room_description()
 - [ ] **Player-specific descriptions** based on character skills/background
 - [ ] **Temporal memory system** for description variation over time
 - [ ] **Dynamic content generation** responding to player actions
-- [ ] **Cross-campaign integration** (Dragonlance, Forgotten Realms)
 
 ---
 

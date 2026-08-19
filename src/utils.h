@@ -968,8 +968,8 @@ void char_from_furniture(struct char_data *ch);
 #define IS_EPIC(ch) (IS_EPIC_LEVEL(ch))
 
 #define TOTAL_STAT_POINTS(ch)                                                                      \
-  ((GET_REAL_RACE(ch) == RACE_HUMAN || GET_REAL_RACE(ch) == DL_RACE_HUMAN)         ? 34            \
-   : (GET_REAL_RACE(ch) == RACE_HALF_ELF || GET_REAL_RACE(ch) == DL_RACE_HALF_ELF) ? 32            \
+  ((GET_REAL_RACE(ch) == RACE_HUMAN || GET_REAL_RACE(ch) == LEGACY_RACE_HUMAN)         ? 34            \
+   : (GET_REAL_RACE(ch) == RACE_HALF_ELF || GET_REAL_RACE(ch) == LEGACY_RACE_HALF_ELF) ? 32            \
                                                                                    : 30)
 #define MAX_POINTS_IN_A_STAT 10
 #define BASE_STAT 8
@@ -2284,7 +2284,7 @@ int ACTUAL_BAB(struct char_data *ch);
   (CHECK_PLAYER_SPECIAL(ch, (ch->player_specials->saved.necromancer_bonus_levels)))
 
 /* 1 if ch is race, 0 if not */
-#define IS_HUMAN(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_HUMAN || GET_RACE(ch) == DL_RACE_HUMAN))
+#define IS_HUMAN(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_HUMAN || GET_RACE(ch) == LEGACY_RACE_HUMAN))
 #define IS_ELF(ch)                                                                                 \
   (!IS_NPC(ch) &&                                                                                  \
    (GET_RACE(ch) == RACE_ELF || GET_RACE(ch) == RACE_WILD_ELF || GET_RACE(ch) == RACE_HIGH_ELF))
@@ -2301,7 +2301,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define IS_H_ORC(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_H_ORC))
 #define IS_GNOME(ch)                                                                               \
   (!IS_NPC(ch) && (GET_RACE(ch) == RACE_GNOME || GET_RACE(ch) == RACE_FOREST_GNOME ||              \
-                   GET_RACE(ch) == DL_RACE_GNOME))
+                   GET_RACE(ch) == LEGACY_RACE_GNOME))
 #define IS_ARCANA_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_ARCANA_GOLEM))
 #define IS_ARCANE_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_ARCANA_GOLEM))
 #define IS_DROW(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_DROW))
@@ -2328,7 +2328,7 @@ int ACTUAL_BAB(struct char_data *ch);
 #define HIGH_ELF_CANTRIP(ch) (ch->player_specials->saved.high_elf_cantrip)
 #define CAN_CHOOSE_HIGH_ELF_CANTRIP(ch)                                                            \
   (HIGH_ELF_CANTRIP(ch) ||                                                                         \
-   (GET_RACE(d->character) != RACE_HIGH_ELF && GET_RACE(d->character) != DL_RACE_SILVANESTI_ELF))
+   (GET_RACE(d->character) != RACE_HIGH_ELF && GET_RACE(d->character) != LEGACY_RACE_SILVANESTI_ELF))
 #define GET_RACIAL_MAGIC(ch, slot) (ch->player_specials->saved.racial_magic[slot])
 #define GET_RACIAL_COOLDOWN(ch, slot) (ch->player_specials->saved.racial_cooldown[slot])
 #define GET_DRAGONBORN_ANCESTRY(ch) (ch->player_specials->saved.dragonborn_draconic_ancestry)
@@ -2381,9 +2381,9 @@ int ACTUAL_BAB(struct char_data *ch);
    (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_HUMANOID) || (!IS_NPC(ch) && !IS_MORPHED(ch)))
 #define IS_DRACONIAN(ch)                                                                           \
   (IS_NPC(ch) &&                                                                                   \
-   (GET_RACE(ch) == DL_RACE_BAAZ_DRACONIAN || GET_RACE(ch) == DL_RACE_BOZAK_DRACONIAN ||           \
-    GET_RACE(ch) == DL_RACE_KAPAK_DRACONIAN || GET_RACE(ch) == DL_RACE_SIVAK_DRACONIAN ||          \
-    GET_RACE(ch) == DL_RACE_AURAK_DRACONIAN))
+   (GET_RACE(ch) == LEGACY_RACE_BAAZ_DRACONIAN || GET_RACE(ch) == LEGACY_RACE_BOZAK_DRACONIAN ||           \
+    GET_RACE(ch) == LEGACY_RACE_KAPAK_DRACONIAN || GET_RACE(ch) == LEGACY_RACE_SIVAK_DRACONIAN ||          \
+    GET_RACE(ch) == LEGACY_RACE_AURAK_DRACONIAN))
 #define IS_LIVING(ch) (!IS_UNDEAD(ch) && !IS_CONSTRUCT(ch))
 #define IS_VAMPIRE(ch)                                                                             \
   ((!IS_NPC(ch) && GET_RACE(ch) == RACE_VAMPIRE) ||                                                \

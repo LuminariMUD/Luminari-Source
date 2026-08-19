@@ -228,14 +228,10 @@ Wiring NPC dialogue to staged lore is ordinary DG-script work against
 `artifact chronicle`. That is the recommended way to seed clues: a mob greet
 or speech trigger that repeats the same hint the chronicle shows.
 
-## 6. Campaign availability
+## 6. Availability
 
-Every contract row currently declares `ART_CAMPAIGN_ALL`. Campaign variants
-are no longer supported in this codebase, so this is presently a no-op and
-placement does not need a per-campaign plan. If an artifact is placed in a
-zone that only exists in one world dataset, narrow its `campaigns` field in
-`artifact_contracts[]` at the same time, so the roster stops advertising an
-artifact a player cannot reach.
+Artifact availability is global. Placement only needs to account for the
+current Luminari world and no longer has per-campaign metadata.
 
 ## 7. Acceptance criteria and how to verify them
 

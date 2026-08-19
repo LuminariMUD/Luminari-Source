@@ -6273,13 +6273,13 @@ void perform_draconian_death_throes(struct char_data *ch)
 
     switch (GET_RACE(ch))
     {
-    case DL_RACE_BAAZ_DRACONIAN:
+    case LEGACY_RACE_BAAZ_DRACONIAN:
       call_magic(ch, 0, 0, ABILITY_BAAZ_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
       return;
-    case DL_RACE_KAPAK_DRACONIAN:
+    case LEGACY_RACE_KAPAK_DRACONIAN:
       call_magic(ch, 0, 0, ABILITY_KAPAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
       return;
-    case DL_RACE_BOZAK_DRACONIAN:
+    case LEGACY_RACE_BOZAK_DRACONIAN:
       call_magic(ch, 0, 0, ABILITY_BOZAK_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
       return;
     }
@@ -12057,7 +12057,7 @@ bool valid_luminari_race(int race)
   if (race == RACE_LICH || race == RACE_VAMPIRE)
     return true;
 
-  if (race >= DL_RACE_START && race <= DL_RACE_END)
+  if (race >= LEGACY_RACE_START && race <= LEGACY_RACE_END)
     return false;
 
   return true;

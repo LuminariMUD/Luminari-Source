@@ -6,7 +6,7 @@
  * with the wilderness material hierarchy, preserving the rich material system
  * while providing advanced crafting capabilities.
  *
- * Only active for LuminariMUD campaign (when other campaigns are not defined)
+ * Enabled through the local wilderness integration setting.
  */
 
 #ifndef ENHANCED_CRAFTING_RECIPES_H

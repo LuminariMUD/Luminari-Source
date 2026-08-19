@@ -3193,7 +3193,7 @@ sbyte has_racial_abils_unchosen(struct char_data *ch)
     if (HIGH_ELF_CANTRIP(ch) == 0)
       return true;
     break;
-  case DL_RACE_SILVANESTI_ELF:
+  case LEGACY_RACE_SILVANESTI_ELF:
     if (HIGH_ELF_CANTRIP(ch) == 0)
       return true;
     break;
@@ -3273,7 +3273,7 @@ bool is_furry(int race)
   switch (race)
   {
   case RACE_TABAXI:
-  case DL_RACE_MINOTAUR:
+  case LEGACY_RACE_MINOTAUR:
     return true;
   }
   return false;
@@ -3284,7 +3284,7 @@ bool has_horns(int race)
   switch (race)
   {
   case RACE_TIEFLING:
-  case DL_RACE_MINOTAUR:
+  case LEGACY_RACE_MINOTAUR:
     return true;
   }
   return false;
@@ -3295,11 +3295,11 @@ bool has_scales(int race)
   switch (race)
   {
   case RACE_DRAGONBORN:
-  case DL_RACE_AURAK_DRACONIAN:
-  case DL_RACE_BAAZ_DRACONIAN:
-  case DL_RACE_BOZAK_DRACONIAN:
-  case DL_RACE_KAPAK_DRACONIAN:
-  case DL_RACE_SIVAK_DRACONIAN:
+  case LEGACY_RACE_AURAK_DRACONIAN:
+  case LEGACY_RACE_BAAZ_DRACONIAN:
+  case LEGACY_RACE_BOZAK_DRACONIAN:
+  case LEGACY_RACE_KAPAK_DRACONIAN:
+  case LEGACY_RACE_SIVAK_DRACONIAN:
     return true;
   }
   return false;
@@ -3310,11 +3310,11 @@ bool race_has_no_hair(int race)
   switch (race)
   {
   case RACE_DRAGONBORN:
-  case DL_RACE_AURAK_DRACONIAN:
-  case DL_RACE_BAAZ_DRACONIAN:
-  case DL_RACE_BOZAK_DRACONIAN:
-  case DL_RACE_KAPAK_DRACONIAN:
-  case DL_RACE_SIVAK_DRACONIAN:
+  case LEGACY_RACE_AURAK_DRACONIAN:
+  case LEGACY_RACE_BAAZ_DRACONIAN:
+  case LEGACY_RACE_BOZAK_DRACONIAN:
+  case LEGACY_RACE_KAPAK_DRACONIAN:
+  case LEGACY_RACE_SIVAK_DRACONIAN:
     return true;
   }
   return false;

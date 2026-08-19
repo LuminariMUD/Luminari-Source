@@ -45,7 +45,7 @@ cpp_extern const bool luminari_build_git_dirty = LUMINARI_BUILD_GIT_DIRTY != 0;
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
-/* Moon names for Dragonlance setting */
+/* Luminari moon names */
 const char *moon_names[] = {"Solinari", /* white moon */
                             "Lunitari", /* red moon */
                             "Nuitari",  /* black moon */

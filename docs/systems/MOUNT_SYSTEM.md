@@ -66,8 +66,7 @@ struct char_data {
 - `MOB_EPIC_BLACKGUARD_MOUNT` (vnum 20803)
 
 ### 4. Dragon Mounts (Dragonrider Class)
-- **Standard Campaign**: vnums 1240-1249 (src/act.other.c:1746-1751)
-- **DragonLance Campaign**: vnums 40401-40410 (src/act.other.c:1738-1744)
+- vnums 1240-1249
 - Dragon types selected via study menu
 
 ## Mount-Related Feats
@@ -276,8 +275,7 @@ Handles summoning of various companion types:
 - 20803 - Epic blackguard mount
 
 ### Dragon Mounts
-- 1240-1249 - Standard campaign dragons
-- 40401-40410 - DragonLance campaign dragons
+- 1240-1249 - Dragonrider class dragons
 
 ## Notes and Observations
 
@@ -291,6 +289,4 @@ Handles summoning of various companion types:
 
 5. **Cooldown System**: Uses MUD events for managing summon cooldowns.
 
-6. **Campaign Variations**: Different vnums for different campaign settings (standard vs DragonLance).
-
-7. **Future Expansion**: System appears designed to easily add new mount types and abilities.
+6. **Future Expansion**: System appears designed to easily add new mount types and abilities.

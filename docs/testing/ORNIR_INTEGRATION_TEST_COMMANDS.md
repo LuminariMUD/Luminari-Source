@@ -298,12 +298,12 @@ harvest herbs
 ## 🐛 **Potential Issues to Watch For**
 
 ### **If Commands Don't Work:**
-1. **Command not found:** Verify you're using LuminariMUD campaign (not DL/FR)
+1. **Command not found:** Verify the current Luminari binary is installed
 2. **Wrong location:** Ensure you're in a wilderness zone
 3. **No resources:** Use `survey resources` to verify availability
 
 ### **If Integration Doesn't Show:**
-1. **Basic display only:** Check campaign setting
+1. **Basic display only:** Check the wilderness integration feature settings
 2. **No enhanced features:** Verify Phase 4.5 integration compiled correctly
 3. **Empty storage:** Ensure harvesting is actually adding materials
 
@@ -318,7 +318,7 @@ harvest herbs
 - ✅ Quality and subtype determination
 - ✅ Automatic storage integration
 - ✅ Enhanced crafting integration triggers
-- ✅ Campaign-safe implementation
+- ✅ Luminari implementation
 - ⏳ Skill improvement system (commented out for now)
 - ⏳ Resource depletion/regeneration (future enhancement)
 
@@ -431,33 +431,6 @@ materials details
 - Uncommon materials: Enhanced crafting value (uncommon quality +50%)
 - Rare materials: High crafting value (rare quality +200%)
 - Legendary materials: Maximum crafting value (legendary quality +500%)
-
----
-
-## 🛡️ **Campaign Safety Testing**
-
-### **Test Campaign Switching (If Available):**
-
-#### **Switch to DragonLance (if available):**
-```
-campaign dl
-materials
-```
-**Expected:** Basic materials display only (no enhanced features)
-
-#### **Switch to Forgotten Realms (if available):**
-```
-campaign fr
-materials
-```
-**Expected:** Basic materials display only (no enhanced features)
-
-#### **Return to LuminariMUD:**
-```
-campaign luminari
-materials
-```
-**Expected:** Enhanced materials display returns
 
 ---
 

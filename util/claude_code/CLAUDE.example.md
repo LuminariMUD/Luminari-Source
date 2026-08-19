@@ -92,13 +92,9 @@ LuminariMUD is a sophisticated text-based multiplayer online role-playing game (
 - When adding new commands, register them in interpreter.c
 - Use the existing logging macros (log(), mudlog()) for debugging
 
-### Campaign System
-The codebase supports multiple campaign settings:
-- **Default LuminariMUD**: Standard fantasy setting (no CAMPAIGN_* defined)
-- **CAMPAIGN_DL**: DragonLance (Chronicles of Krynn)
-- **CAMPAIGN_FR**: Forgotten Realms (Faerun)
-
-Different campaigns may have different features enabled/disabled (e.g., trail system is disabled for DL/FR campaigns).
+### Game Identity
+This repository builds and supports LuminariMUD only. Local compile-time feature
+settings live in `src/campaign.h`.
 
 ## Architecture Overview
 

@@ -220,68 +220,6 @@ def default_manifest_path(repo_root: Path | None = None) -> Path:
   return root / "scripts/world/wtool_constants.json"
 
 
-def _conditional_value(expression: str) -> bool:
-  compact = re.sub(r"\s+", "", expression)
-  if compact in {"defined(CAMPAIGN_FR)", "definedCAMPAIGN_FR", "CAMPAIGN_FR"}:
-    return False
-  if compact in {"defined(CAMPAIGN_DL)", "definedCAMPAIGN_DL", "CAMPAIGN_DL"}:
-    return False
-  if compact in {"!defined(CAMPAIGN_FR)", "!definedCAMPAIGN_FR", "!CAMPAIGN_FR"}:
-    return True
-  if compact in {"!defined(CAMPAIGN_DL)", "!definedCAMPAIGN_DL", "!CAMPAIGN_DL"}:
-    return True
-  raise ExtractionError(f"unsupported conditional directive in selected constants block: {expression!r}")
-
-
-def _filter_luminari_branch(text: str) -> str:
-  output: list[str] = []
-  stack: list[tuple[bool, bool, bool]] = []
-  active = True
-
-  for line in text.splitlines(keepends=True):
-    stripped = line.lstrip()
-    directive = re.match(r"#\s*(ifdef|ifndef|if|elif|else|endif)\b(.*)", stripped)
-    if directive is None:
-      if active:
-        output.append(line)
-      continue
-
-    kind = directive.group(1)
-    argument = directive.group(2).strip()
-    if kind in {"ifdef", "ifndef", "if"}:
-      if kind == "ifdef":
-        condition = _conditional_value(argument)
-      elif kind == "ifndef":
-        condition = not _conditional_value(argument)
-      else:
-        condition = _conditional_value(argument)
-      stack.append((active, condition, False))
-      active = active and condition
-      continue
-
-    if not stack:
-      raise ExtractionError(f"unmatched #{kind} in selected constants block")
-    parent_active, branch_taken, saw_else = stack[-1]
-    if kind == "elif":
-      if saw_else:
-        raise ExtractionError("#elif after #else in selected constants block")
-      condition = _conditional_value(argument)
-      active = parent_active and not branch_taken and condition
-      stack[-1] = (parent_active, branch_taken or condition, saw_else)
-    elif kind == "else":
-      if saw_else:
-        raise ExtractionError("duplicate #else in selected constants block")
-      active = parent_active and not branch_taken
-      stack[-1] = (parent_active, True, True)
-    else:
-      parent_active, _, _ = stack.pop()
-      active = parent_active
-
-  if stack:
-    raise ExtractionError("unterminated conditional directive in selected constants block")
-  return "".join(output)
-
-
 def _strip_c_comments(text: str) -> str:
   output: list[str] = []
   index = 0
@@ -412,9 +350,8 @@ def _eval_expression(expression: str, values: dict[str, int]) -> int:
 
 
 def _parse_defines(text: str) -> tuple[dict[str, int], dict[str, str]]:
-  filtered = _filter_luminari_branch(text)
-  raw_lines = _logical_lines(filtered)
-  clean_lines = _logical_lines(_strip_c_comments(filtered))
+  raw_lines = _logical_lines(text)
+  clean_lines = _logical_lines(_strip_c_comments(text))
   values: dict[str, int] = {}
   raw_by_symbol: dict[str, str] = {}
   for raw_line in raw_lines:
@@ -445,7 +382,7 @@ def _extract_array(text: str, table_name: str, has_sentinel: bool = True) -> lis
   end = text.find("};", declaration.end())
   if end < 0:
     raise ExtractionError(f"unterminated table {table_name}")
-  body = _filter_luminari_branch(text[declaration.end() : end])
+  body = text[declaration.end() : end]
   clean = _strip_c_comments(body)
   tokens = re.findall(r'"(?:\\.|[^"\\])*"', clean)
   values: list[str] = []
@@ -636,26 +573,6 @@ def _extract_limit(repo_root: Path, symbol: str, source_path: str) -> int:
     if name == symbol:
       return values[name]
   raise ExtractionError(f"cannot extract {symbol} from {source_path}")
-
-
-def _extract_branch_limit(
-    repo_root: Path,
-    symbol: str,
-    start_marker: str,
-    end_marker: str,
-) -> int:
-  text = (repo_root / "src/structs.h").read_text(encoding="utf-8")
-  start = text.find(start_marker)
-  if start < 0:
-    raise ExtractionError(f"cannot find branch marker {start_marker!r}")
-  conditional = text.find("#if", start)
-  end = text.find(end_marker, conditional)
-  if conditional < 0 or end < 0:
-    raise ExtractionError(f"cannot bound branch constant {symbol}")
-  values, _ = _parse_defines(text[conditional:end])
-  if symbol not in values:
-    raise ExtractionError(f"cannot extract {symbol} from Luminari branch")
-  return values[symbol]
 
 
 def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
@@ -849,16 +766,16 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
       for symbol, source_path in sorted(LIMIT_SPECS.items())
   }
   limits["NUM_CITIES"] = {
-      "value": _extract_branch_limit(root, "NUM_CITIES", "// cities", "/* Positions */"),
-      "source": "src/structs.h:NUM_CITIES (LUMINARI branch)",
+      "value": _extract_limit(root, "NUM_CITIES", "src/structs.h"),
+      "source": "src/structs.h:NUM_CITIES",
   }
   limits["NUM_FACTIONS"] = {
-      "value": _extract_branch_limit(root, "NUM_FACTIONS", "/* factions */", "// cities"),
-      "source": "src/structs.h:NUM_FACTIONS (LUMINARI branch)",
+      "value": _extract_limit(root, "NUM_FACTIONS", "src/structs.h"),
+      "source": "src/structs.h:NUM_FACTIONS",
   }
   limits["NUM_REGIONS"] = {
-      "value": _extract_branch_limit(root, "NUM_REGIONS", "#define NUM_SEX", "/* factions */"),
-      "source": "src/structs.h:NUM_REGIONS (LUMINARI branch)",
+      "value": _extract_limit(root, "NUM_REGIONS", "src/structs.h"),
+      "source": "src/structs.h:NUM_REGIONS",
   }
   return {
       "schema_version": MANIFEST_SCHEMA_VERSION,

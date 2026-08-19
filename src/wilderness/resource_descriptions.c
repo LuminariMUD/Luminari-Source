@@ -19,7 +19,7 @@
 #include "resource_system.h"
 #include "resource_descriptions.h"
 
-/* Only compile if dynamic descriptions are enabled for this campaign */
+/* Only compile if dynamic descriptions are enabled for this build. */
 #ifdef ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS
 
 /* ===== DESCRIPTION TEMPLATES ===== */

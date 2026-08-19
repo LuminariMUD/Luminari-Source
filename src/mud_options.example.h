@@ -49,29 +49,6 @@
 /* #define USE_VIRTUAL_BAGS_ONLY */
 
 /* ************************************************************************
- * Newbie Equipment Configuration
- *
- * WARNING: ONE AND ONLY ONE of the following two options MUST be defined.
- * Defining both or neither will cause compilation errors.
- * ************************************************************************ */
-
-/**
- * USE_NEW_NOOB_GEAR - Chronicles of Krynn newbie equipment
- *
- * Uses the new newbie gear created in Chronicles of Krynn.
- * This gear is more balanced and fits the Krynn campaign setting.
- */
-/*#define USE_NEW_NOOB_GEAR */
-
-/**
- * USE_OLD_NOOB_GEAR - LuminariMUD legacy newbie equipment
- *
- * Uses the old newbie gear created in LuminariMUD.
- * This gear is for backward compatibility with existing areas.
- */
-#define USE_OLD_NOOB_GEAR
-
-/* ************************************************************************
  * Crafting System Configuration
  *
  * WARNING: ONE AND ONLY ONE of the following two options MUST be defined.
@@ -120,8 +97,8 @@
 /**
  * RACE_ALLOW_KENDER - Enable Kender race
  *
- * Kender are a unique race from the Dragonlance setting, known for their
- * curiosity, fearlessness, and "borrowin//g" habits.
+ * Kender are known for their curiosity, fearlessness, and "borrowing"
+ * habits.
  */
 #define RACE_ALLOW_KENDER
 

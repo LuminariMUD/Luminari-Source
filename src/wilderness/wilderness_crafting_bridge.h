@@ -4,7 +4,7 @@
  *
  * This system provides integration between the Phase 4.5 wilderness
  * material system and the existing newcrafting system, making them
- * compatible and campaign-aware.
+ * compatible.
  */
 
 #ifndef WILDERNESS_CRAFTING_BRIDGE_H
@@ -15,23 +15,9 @@
 #include "structs.h"
 #include "campaign.h"
 
-/* Campaign-safe wilderness-crafting integration */
+/* Wilderness-crafting integration */
 
 #ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
-/* Only compile enhanced integration features for LuminariMUD campaign */
-
-/**
- * Enhanced material storage that preserves wilderness hierarchy
- */
-struct enhanced_material_storage
-{
-  int category;             // RESOURCE_HERBS, RESOURCE_CRYSTAL, etc.
-  int subtype;              // Specific material type within category
-  int quality;              // 1-5 quality level
-  int quantity;             // Amount stored
-  const char *display_name; // Campaign-specific display name
-};
-
 /**
  * Enhanced crafting groups that work with wilderness materials
  */
@@ -55,7 +41,7 @@ enum enhanced_craft_groups
 
 #endif /* ENABLE_WILDERNESS_CRAFTING_INTEGRATION */
 
-/* Core functions available to all campaigns */
+/* Core integration functions */
 
 /**
  * Convert wilderness material category to crafting material group
@@ -88,15 +74,6 @@ int convert_wilderness_to_crafting(struct char_data *ch, int category, int subty
                                    int quantity);
 
 /**
- * Get campaign-appropriate material name
- * @param category Wilderness resource category
- * @param subtype Material subtype
- * @param quality Material quality
- * @return String pointer to material name
- */
-const char *get_campaign_material_name(int category, int subtype, int quality);
-
-/**
  * Check if wilderness material can be used in crafting
  * @param category Wilderness resource category
  * @param subtype Material subtype
@@ -114,31 +91,13 @@ int is_wilderness_material_craftable(int category, int subtype, int quality);
  */
 float get_wilderness_crafting_value(int category, int subtype, int quality);
 
-/* Campaign-specific material arrays */
-
-
-/* Default LuminariMUD names (when no campaign defined) */
-extern const char *default_herb_names[];
-extern const char *default_crystal_names[];
-extern const char *default_wood_names[];
-extern const char *default_game_names[];
-extern const char *default_vegetation_names[];
-extern const char *default_stone_names[];
-extern const char *default_mineral_names[];
-
-/**
- * Convert wilderness materials from player storage to crafting materials
- */
-int convert_wilderness_to_crafting(struct char_data *ch, int category, int subtype, int quality,
-                                   int quantity);
-
 /**
  * Display crafting materials inventory
  */
 void show_crafting_materials_display(struct char_data *ch);
 
 #ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
-/* Enhanced LuminariMUD-only functions */
+/* Enhanced integration functions */
 
 /**
  * Get enhanced crafting group for wilderness material (preserves hierarchy)

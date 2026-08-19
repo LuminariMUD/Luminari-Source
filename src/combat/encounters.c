@@ -1640,7 +1640,7 @@ void check_random_encounter(struct char_data *ch)
   {
     for (j = 0; j < NUM_ENCOUNTER_TYPES; j++)
       if (encounter_table[j].encounter_group == i)
-        // Dragonlance encounters will load in any terrain, so we'll just skip this 'if statement' if campaign is DL
+        /* Respect the encounter terrain filters. */
         if (encounter_table[j].sector_types[room_sect] == true)
           if (highest_level <= encounter_table[j].max_level)
             groups[i] = true;

@@ -3,7 +3,7 @@
 **Document Version**: 1.0  
 **Date**: August 11, 2025  
 **Author**: Development Team  
-**Related Systems**: Resource Depletion, Dynamic Descriptions, Campaign System  
+**Related Systems**: Resource Depletion, Dynamic Descriptions
 
 ## Overview
 
@@ -22,28 +22,21 @@ This document outlines the integration of LuminariMUD's resource depletion syste
 
 **Approach**: The ecology system becomes a tool for rich, varied storytelling rather than environmental messaging.
 
-## Campaign-Specific Implementation
+## Luminari Implementation
 
 ### Configuration Control
 
-Only enable dynamic resource descriptions for the Luminari campaign initially:
+Dynamic resource descriptions are controlled by the local Luminari configuration:
 
 ```c
-// In campaign.h - only enable for Luminari campaign
-#if defined(CAMPAIGN_LUMINARI)
-  #define ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS 1
-  #define RESOURCE_DESCRIPTION_DETAIL_LEVEL 3
-  #define ECOLOGICAL_NARRATIVE_DEPTH 2
-#else
-  // Dragonlance and Forgotten Realms keep static descriptions for now
-  #define ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS 0
-#endif
+// In campaign.h
+#define ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS 1
+#define RESOURCE_DESCRIPTION_DETAIL_LEVEL 3
+#define ECOLOGICAL_NARRATIVE_DEPTH 2
 ```
 
-**Rationale**:
-- Dragonlance and Forgotten Realms maintain their established atmospheric feel
-- Allows testing and refinement in Luminari before expanding
-- Respects different campaign aesthetics and expectations
+This keeps the feature configurable per installation while the shipped template
+enables the supported Luminari behavior.
 
 ## Implementation Phases
 
@@ -202,16 +195,17 @@ static const char *water_features_abundant = " while %s flows between moss-cover
 static const char *wildlife_active = ". Small creatures move through the %s undergrowth";
 ```
 
-### Campaign Integration
+### Runtime Integration
 
 ```c
-#if defined(CAMPAIGN_LUMINARI) && defined(WILDERNESS_RESOURCE_DEPLETION_SYSTEM)
+#if defined(ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS) && \
+    defined(WILDERNESS_RESOURCE_DEPLETION_SYSTEM)
     // Use dynamic resource-based descriptions
     if (IS_SET_AR(ROOM_FLAGS(room), ROOM_GENDESC) || IS_WILDERNESS(room)) {
         generated_desc = generate_luminari_wilderness_description(ch, room);
     }
-#else  
-    // Use standard static descriptions for DL/FR
+#else
+    // Use standard static descriptions when the feature is disabled
     generated_desc = get_standard_wilderness_description(ch, room);
 #endif
 ```
@@ -233,7 +227,7 @@ static const char *wildlife_active = ". Small creatures move through the %s unde
 
 ### Core Files
 - `src/wilderness/desc_engine.c` - Enhanced description generation
-- `src/campaign.h` - Campaign-specific feature flags
+- `src/campaign.h` - Local wilderness feature settings
 - `src/act.informative.c` - Integration with look command
 - `src/wilderness/wilderness.c` - Wilderness room handling
 
@@ -282,7 +276,6 @@ static const char *wildlife_active = ". Small creatures move through the %s unde
 
 ## Future Expansion Possibilities
 
-- Extension to Dragonlance and Forgotten Realms campaigns
 - Player-created environmental modifications
 - Guild/community area stewardship systems
 - Historical environmental tracking
@@ -291,7 +284,6 @@ static const char *wildlife_active = ". Small creatures move through the %s unde
 ## Related Documentation
 
 - [Resource Depletion System](RESOURCE_REGENERATION_SYSTEM.md)
-- [Campaign System Architecture](CAMPAIGN_SYSTEM_ARCHITECTURE.md)
 - [Technical Resource Documentation](RESOURCE_SYSTEM_TECHNICAL.md)
 
 ---

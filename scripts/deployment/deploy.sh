@@ -149,32 +149,11 @@ install_dependencies() {
 setup_config_files() {
     print_header "Setting Up Configuration Files"
 
-    # Setup campaign.h
+    # Setup local Luminari configuration
     if [[ ! -f "$PROJECT_ROOT/src/campaign.h" ]]; then
         print_msg "$GREEN" "Creating campaign.h from template..."
         cp "$PROJECT_ROOT"/src/campaign.example.h "$PROJECT_ROOT"/src/campaign.h
-
-        if [[ "$AUTO_MODE" == false ]]; then
-            print_msg "$YELLOW" "Select campaign setting:"
-            echo "  1) LuminariMUD (default)"
-            echo "  2) DragonLance (Chronicles of Krynn)"
-            echo "  3) Forgotten Realms (Faerun)"
-            read -p "Choice [1-3]: " campaign_choice
-
-            case $campaign_choice in
-                2)
-                    sed -i 's|/\* #define CAMPAIGN_DL \*/|#define CAMPAIGN_DL|' "$PROJECT_ROOT"/src/campaign.h
-                    print_msg "$GREEN" "DragonLance campaign selected"
-                    ;;
-                3)
-                    sed -i 's|/\* #define CAMPAIGN_FR \*/|#define CAMPAIGN_FR|' "$PROJECT_ROOT"/src/campaign.h
-                    print_msg "$GREEN" "Forgotten Realms campaign selected"
-                    ;;
-                *)
-                    print_msg "$GREEN" "Using default LuminariMUD campaign"
-                    ;;
-            esac
-        fi
+        print_msg "$GREEN" "Created default LuminariMUD configuration"
     else
         print_msg "$YELLOW" "campaign.h already exists, skipping..."
     fi

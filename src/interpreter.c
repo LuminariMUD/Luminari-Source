@@ -9433,7 +9433,7 @@ void show_homeland_region_main_menu(struct descriptor_data *d)
     return;
   }
 
-  write_to_output(d, "\tcRegions of Ansalon\tn\r\n\r\n");
+  write_to_output(d, "\tcRegions of Luminari\tn\r\n\r\n");
   int i = 1;
   while (i < NUM_REGIONS)
   {

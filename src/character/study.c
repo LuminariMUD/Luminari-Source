@@ -2816,9 +2816,9 @@ void reset_training_points(struct char_data *ch)
   trains = MAX(4, ((CLSLIST_TRAINS(GET_CLASS(ch)) + int_bonus) * 4));
 
   /* human bonus */
-  if (GET_RACE(ch) == RACE_HUMAN || GET_RACE(ch) == DL_RACE_HUMAN)
+  if (GET_RACE(ch) == RACE_HUMAN || GET_RACE(ch) == LEGACY_RACE_HUMAN)
     trains += 4;
-  if (GET_RACE(ch) == DL_RACE_HALF_ELF)
+  if (GET_RACE(ch) == LEGACY_RACE_HALF_ELF)
     trains += 2;
 
   /* finalize */

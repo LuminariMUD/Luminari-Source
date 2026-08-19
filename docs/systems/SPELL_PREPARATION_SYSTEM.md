@@ -498,7 +498,6 @@ Base slots = class_slots[level][circle]
 - **Psionics**: Use spell system with special validation
 - **NPCs**: Can cast any spell of their class
 - **Warlock invocations**: Special spell range with unique mechanics
-- **Campaign-specific**: Some spells have hardcoded circles for FR/DL campaigns
 
 ### **Warlock Class Details**
 Warlocks use a special subset of the spell system called invocations:
@@ -517,25 +516,6 @@ Psionicists integrate with the spell system using psionic powers:
 - **Known Powers**: INT bonus affects number of known powers
 - **Casting**: Uses standard spontaneous casting mechanics
 - **Integration**: Powers are treated as spells internally
-
-### **Campaign-Specific Overrides**
-Some spells have hardcoded circle assignments based on campaign setting:
-```c
-#ifdef CAMPAIGN_FR  // Forgotten Realms
-  // Example: Special handling for FR-specific spells
-#endif
-
-#ifdef CAMPAIGN_DL  // Dragonlance
-  // Hardcoded spell circles for DL campaign
-  if (spellnum == SPELL_CHARM) return 1;
-  if (spellnum == SPELL_SLEEP) return 1;
-  if (spellnum == SPELL_SPIRITUAL_HAMMER) return 2;
-  // ... many more hardcoded assignments
-#endif
-```
-These overrides bypass the normal circle calculation and are checked first in `compute_spells_circle()`. This allows campaigns to rebalance spell levels without modifying the core spell definitions.
-
----
 
 ## 9. Code Conventions & Patterns
 

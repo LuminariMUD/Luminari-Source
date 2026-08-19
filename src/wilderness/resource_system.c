@@ -1652,10 +1652,10 @@ void show_material_storage(struct char_data *ch)
   }
 
 #ifdef ENABLE_WILDERNESS_CRAFTING_INTEGRATION
-  /* Enhanced materials display for LuminariMUD */
+  /* Enhanced materials display */
   show_enhanced_material_storage(ch);
 #else
-  /* Basic materials display for other campaigns */
+  /* Basic display for builds without enhanced integration */
   show_basic_material_storage(ch);
 #endif
 }
@@ -1709,7 +1709,7 @@ const char *get_quality_bonus_description(int quality)
   }
 }
 
-/* Basic materials display for campaigns without enhanced integration */
+/* Basic materials display for builds without enhanced integration */
 void show_basic_material_storage(struct char_data *ch)
 {
   int i;

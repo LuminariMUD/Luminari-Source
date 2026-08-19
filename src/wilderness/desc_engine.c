@@ -51,7 +51,7 @@
 char *gen_room_description(struct char_data *ch, room_rnum room)
 {
 #if defined(ENABLE_DYNAMIC_RESOURCE_DESCRIPTIONS) && defined(WILDERNESS_RESOURCE_DEPLETION_SYSTEM)
-  /* Use new resource-aware descriptions for Luminari campaign */
+  /* Use resource-aware descriptions when the feature is enabled. */
   if (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(room)))
   {
     /* Try unified narrative weaver system first */
