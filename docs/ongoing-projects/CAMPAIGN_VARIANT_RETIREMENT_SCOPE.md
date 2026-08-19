@@ -1,6 +1,6 @@
 # Campaign Variant Retirement Scope
 
-Status: scoped; implementation not started
+Status: implementation in progress
 
 Analysis date: 2026-08-19
 
@@ -9,13 +9,37 @@ Supersedes: `CAMPAIGN_VARIANT_REMOVAL_SCOPE.md`
 ## Implementation progress
 
 - [x] Scope agreed and compiler-led removal approach selected.
-- [ ] Luminari baseline and persistent identifier manifests captured.
+- [x] Luminari baseline and persistent identifier manifests captured.
 - [ ] Retired compile-time definitions and branches removed.
 - [ ] Retired runtime selection and campaign-routed data removed.
 - [ ] Build, setup, tests, tooling, and current documentation cleaned.
 - [ ] Full verification and local smoke test completed.
 
-Last checkpoint: 2026-08-19. Implementation branch created; source cleanup has not started.
+Last checkpoint: 2026-08-20. Baseline complete; source cleanup is ready to begin.
+
+### Baseline evidence
+
+Baseline commit: `b9dce643` on `codex/retire-campaign-variants`.
+
+- Local `src/campaign.h` defines neither retired campaign. It was read only.
+- `lib/.env` identifies this checkout as development.
+- No persisted `campaign_setting` was found under `lib/`; `src/db.c` supplies the active default
+  value 0.
+- A clean Autotools build passed with `-Wall -Wextra` and no warnings.
+- The full production-linked CuTest suite passed all 778 tests.
+- `make install` passed, installed build ID `24713c3a572cb74cf54ae9b3155734af20d179dc`,
+  and removed the root-level `circle` artifact.
+- The world-tool suite passed all 457 tests.
+- A fresh out-of-tree CMake configure and build passed with GNU C23.
+- The checked-in `scripts/world/wtool_constants.json` baseline SHA-256 is
+  `d8f020586321868e60a1803e9e24ba952ce0a73e5ff785fb56e7d26875d28d32`.
+- Initial source inventory: 494 retired compile-symbol occurrences across 75 files and 64 runtime
+  campaign-symbol occurrences across 10 files.
+
+Key active Luminari limits are `NUM_OF_DIRS=10`, `NUM_OF_INGAME_DIRS=6`, `NUM_RACES=28`,
+`NUM_CLASSES=38`, `NUM_DEITIES=22`, `NUM_REGIONS=14`, `NUM_LANGUAGES=48`, `NUM_SPELLS=528`,
+`NUM_SKILLS=2239`, and `NUM_FEATS=1263`. Baseline tests also observed 982 registered commands,
+17 initialized artifacts, and 565 defined perks.
 
 ## Decision and objective
 
