@@ -9740,8 +9740,286 @@ static const char *const hints[] = {
     "powerful entities...  (Level 30 Group Content)\r\n"
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #endif
-
-};
+    /*60*/
+    "\tR[HINT]:\tn \ty"
+    "Combat modes allow you to adjust your combat strategy on the fly without using an "
+    "action! Modes like Power Attack and Deadly Aim trade accuracy for extra damage, Combat "
+    "Expertise trades attack bonus for increased Armor Class, Total Defense bolsters your "
+    "defenses, and Flurry of Blows or Rapid Shot grant extra attacks per round. Type "
+    "HELP COMBAT-MODES for a full overview."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*61*/
+    "\tR[HINT]:\tn \ty"
+    "Combat in Luminari features full d20 Combat Maneuver mechanics (CMB vs CMD)! You can "
+    "attempt to TRIP foes to knock them prone, DISARM their weapons, FEINT to lower their "
+    "defenses, or GRAPPLE enemies to immobilize them. If you find yourself grappled, use "
+    "STRUGGLE or ESCAPE to break free. See HELP MANEUVERS and HELP GRAPPLE."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*62*/
+    "\tR[HINT]:\tn \ty"
+    "Spellcasters with metamagic feats can enhance their spells with powerful modifications! "
+    "Feats like Empower Spell, Maximize Spell, Quicken Spell, Extend Spell, Silent Spell, and "
+    "Still Spell modify damage, duration, or casting time in exchange for preparing the spell "
+    "in a higher circle. You can prepare them directly (e.g. MEMORIZE 'EMPOWERED MAXIMIZED "
+    "FIREBALL') or manage them via the SPELLPREP menu. See HELP METAMAGIC."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*63*/
+    "\tR[HINT]:\tn \ty"
+    "Did you know divine casters have spontaneous spell conversion? Good-aligned Clerics can "
+    "spontaneously convert any prepared divine spell into a Cure Wounds spell of equal circle "
+    "on the fly, while evil Clerics can convert spells into Inflict Wounds. Druids can "
+    "spontaneously convert their prepared spells into Summon Nature's Ally. See "
+    "HELP SPONTANEOUS-CASTING."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*64*/
+    "\tR[HINT]:\tn \ty"
+    "When you cast a touch-range spell, the charge remains held in your hands until "
+    "discharged! You can deliver held touch spells through standard touch attacks or weapon "
+    "strikes. Classes like the Magus can combine touch spells with weapon attacks using "
+    "SPELLSTRIKE and SPELL COMBAT to cast and attack in the same round. Check TOUCHSPELLS and "
+    "HELP SPELLSTRIKE."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*65*/
+    "\tR[HINT]:\tn \ty"
+    "Psionicists harness the power of the mind using Power Points (PSP) instead of traditional "
+    "spell slots! Use the POWERS command to view known psionic powers and MANIFEST to perform "
+    "them. Many powers can be AUGMENTED with extra PSP to increase damage, duration, or targets. "
+    "Maintaining PSIONIC FOCUS grants additional manifestation speed and DC bonuses. See "
+    "HELP PSIONICS and HELP MANIFEST."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*66*/
+    "\tR[HINT]:\tn \ty"
+    "Looking for deeper character customization between levels? Luminari features an extensive "
+    "PERKS system with specialized enhancement trees for every class! Type PERKS or PERK LIST "
+    "to view your available perk points and classes, PERK INFO <id> to inspect benefits, and "
+    "PERK LEARN <id> to unlock new passive and active powers. See HELP PERKS."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*67*/
+    "\tR[HINT]:\tn \ty"
+    "Summoners forge a mystical link with a powerful Eidolon companion! Use CALL EIDOLON or "
+    "SUMMON to bring your eidolon to your side, and use the EIDOLON command (such as EIDOLON "
+    "EVOLUTIONS) to spend evolution points granting natural armor, wings, claws, breath "
+    "attacks, and resistances. You can even use BONDSENSES to see through your eidolon or "
+    "MERGEFORMS to fuse forms in battle! See HELP EIDOLON and HELP EVOLUTIONS."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*68*/
+    "\tR[HINT]:\tn \ty"
+    "Alchemists combine science and magic to craft unique concoctions! Brew extracts using "
+    "CONCOCT, brew MUTAGENS to temporarily enhance physical ability scores, and craft powerful "
+    "BOMBS with specialized discoveries like acid, frost, smoke, or explosive force (BOMBS MAKE, "
+    "BOMBS TOSS). See HELP ALCHEMIST, HELP BOMBS, and HELP MUTAGEN."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*69*/
+    "\tR[HINT]:\tn \ty"
+    "Bards can inspire their comrades and confound their enemies through Bardic Performance! "
+    "Type PERFORM LIST to view available songs and performances, such as Inspire Courage for "
+    "party-wide attack and damage bonuses, Inspire Competence for skill boosts, or Dirge of "
+    "Doom to frighten foes. Use PERFORM <name> to start and PERFORM STOP when finished. See "
+    "HELP PERFORM."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*70*/
+    "\tR[HINT]:\tn \ty"
+    "Inquisitors bring divine justice to the battlefield! During combat, use the JUDGMENT "
+    "command to invoke scalable divine buffs such as Destruction (bonus damage), Justice "
+    "(bonus to hit), Healing (fast healing), Protection (AC boost), or Purity (save bonuses). "
+    "You can also use BANE to imbue your weapon with extra damage against specific creature "
+    "types. See HELP JUDGMENT and HELP BANE."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*71*/
+    "\tR[HINT]:\tn \ty"
+    "Monks channel an inner reservoir of mystical energy called the Ki pool! Spend Ki points "
+    "with the KI command to gain bonus attacks, burst movement speed, or dodge bonuses. "
+    "Combine your Ki with feats like Stunning Fist, Flurry of Blows, and Wholeness of Body to "
+    "become a versatile martial artist. See HELP KI and HELP MONK."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*72*/
+    "\tR[HINT]:\tn \ty"
+    "Paladins are beacons of righteous power on the battlefield! Deliver crushing blows "
+    "against evil foes using SMITEEVIL, heal yourself as a swift action or allies as a "
+    "standard action with LAYONHANDS, and attach MERCIES to cure status effects like "
+    "diseased, blinded, or paralyzed. You can also CHANNEL positive energy to heal living "
+    "allies or damage undead. See HELP PALADIN, HELP SMITE-EVIL, and HELP CHANNEL."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*73*/
+    "\tR[HINT]:\tn \ty"
+    "Rogues, Ninjas, and Shadowdancers thrive in the darkness! Use SNEAK and HIDE to position "
+    "yourself for devastating BACKSTABs and SNEAK ATTACKs. Customize your rogue with special "
+    "TALENTS (such as Opportunist, Slippery Mind, or Bleeding Attack), or master ninja tricks "
+    "and shadow arts like SHADOWSTEP and SMOKEBOMB. See HELP SNEAKATTACK, HELP TALENTS, and "
+    "HELP SHADOWSTEP."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*74*/
+    "\tR[HINT]:\tn \ty"
+    "Warlocks wield raw arcane might that never runs out! Use ELDRITCHBLAST (or BLAST) to "
+    "fire blasts of mystical power at your enemies. Customize your blast using BLASTSHAPE "
+    "(such as chain, cone, or spear) and ELDRITCHESSENCE (such as brimstone, hellrime, or "
+    "utterdark) to tailor damage types and secondary effects, and use INVOCATIONS for "
+    "at-will magical abilities. See HELP WARLOCK and HELP ELDRITCH-BLAST."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*75*/
+    "\tR[HINT]:\tn \ty"
+    "Druids and Rangers form deep bonds with nature! Druids can use WILDSHAPE to transform into "
+    "powerful animal, elemental, or plant forms, gaining natural attacks, enhanced strength, "
+    "and special movement modes like flight or swimming. Both classes can bond with an ANIMAL "
+    "COMPANION (using the COMPANION command) who levels up and fights at your side. See "
+    "HELP WILDSHAPE and HELP COMPANION."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*76*/
+    "\tR[HINT]:\tn \ty"
+    "Devoting yourself to a deity enriches your roleplay and unlocks divine mechanical "
+    "advantages! Use DEVOTE LIST ALL to explore available deities across multiple pantheons, "
+    "and DEVOTE INFO <deity name> to view portfolios, alignments, favored weapons, and granted "
+    "divine domains. Clerics and Inquisitors can choose domains granting unique domain powers "
+    "and bonus spells. See HELP DEVOTE and HELP DEITY."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*77*/
+    "\tR[HINT]:\tn \ty"
+    "The oceans and waterways of Lumia are open for adventure! Players can purchase vessels "
+    "(SHIPBUY), hire specialized crew (SHIPHIRE), install deck cannons (SHIPFIRE), and set "
+    "sail across the seas. You can navigate manually or use AUTOPILOT with designated trade "
+    "routes and waypoints, engage in naval warfare, and accept lucrative cargo trade CONTRACTS. "
+    "See HELP VESSELS, HELP SHIPS, and HELP AUTOPILOT."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*78*/
+    "\tR[HINT]:\tn \ty"
+    "Need to travel across the realm quickly? Public carriages and passenger transports connect "
+    "major cities and regions throughout the world! Board a waiting carriage using TENTER, "
+    "select your destination using TGO <destination>, and check travel progress with TSTATUS. "
+    "While exploring wilderness regions, type LANDMARKS to discover nearby settlements, "
+    "geographic features, and travel hubs. See HELP TRANSPORT and HELP LANDMARKS."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*79*/
+    "\tR[HINT]:\tn \ty"
+    "The wilderness is filled with natural abundance for craftspeople and survivalists! Use the "
+    "SURVEY command to locate nearby resource nodes and terrain features. Collect materials "
+    "using HARVEST on trees, mineral veins, herbal plants, and water sources, and pitch a CAMP "
+    "to safely rest and recover in the open wilds. See HELP SURVEY, HELP HARVEST, and "
+    "HELP WILDERNESS."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*80*/
+    "\tR[HINT]:\tn \ty"
+    "Equipment in Luminari can be heavily customized through crafting! Use DISENCHANT to break "
+    "down unwanted magical items into crafting crystals and essences. Use AUGMENT to combine "
+    "and embed magical crystals into weapons and armor, granting bonus stats, elemental "
+    "damage, and special effects. You can also use RESIZE to adjust armor sizes and RESTRING "
+    "to customize descriptions! See HELP AUGMENT, HELP DISENCHANT, and HELP CRAFTING."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*81*/
+    "\tR[HINT]:\tn \ty"
+    "Never enter a dangerous dungeon unprepared! Spellcasters can create their own consumable "
+    "supplies: use SCRIBE to create spell scrolls, BREW to create potions, and CRAFTWAND to "
+    "craft magical wands. Storing utility and healing spells in scrolls and potions ensures you "
+    "always have magic ready when spell slots run low. See HELP SCRIBE, HELP BREW, and "
+    "HELP CRAFTWAND."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*82*/
+    "\tR[HINT]:\tn \ty"
+    "With hundreds of feats available, planning your build is easy with feat navigation "
+    "tools! Use FEATTREE to view prerequisite trees and progression chains, FEAT SEARCH "
+    "<keyword> to find feats matching a specific playstyle, and FEAT INFO <feat name> to read "
+    "complete rules and mechanics. See HELP FEATS and HELP FEATTREE."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*83*/
+    "\tR[HINT]:\tn \ty"
+    "Combat rounds move fast, but you can plan ahead with action queueing! Use the QUEUE "
+    "command (or ATTACKQUEUE) to queue up your next spell, combat maneuver, or special "
+    "ability so it executes automatically on your next available turn without needing to mash "
+    "commands. Type HELP QUEUE and HELP ACTIONS to learn more about the action economy."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*84*/
+    "\tR[HINT]:\tn \ty"
+    "Dungeon doors and treasure chests may be protected by deadly mechanical and magical traps! "
+    "Characters with good Perception can SEARCH rooms and objects to detect hidden traps and "
+    "secret doors. Once detected, skilled adventurers can use DISARMTRAP to safely disarm "
+    "mechanisms before they trigger. See HELP TRAPS and HELP SEARCH."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*85*/
+    "\tR[HINT]:\tn \ty"
+    "Luminari offers extensive automation and quality-of-life settings to customize your "
+    "experience! Type PREFEDIT to access the preferences menu where you can configure screen "
+    "size, ANSI colors, and brief modes. You can also toggle helpful automated behaviors like "
+    "AUTOLOOT, AUTOGOLD, AUTOSPLIT, AUTOCOLLECT, AUTOASSIST, and AUTOSTORE. See HELP PREFEDIT "
+    "and HELP TOGGLES."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*86*/
+    "\tR[HINT]:\tn \ty"
+    "Keep your inventory neat and organized! You can assign specific containers for gear, "
+    "loot, and reagents using SORTTO and STORE commands. When looting or sorting, use "
+    "multi-item targeting like 'put all.gem bag' or 'get all.potion chest' to handle items in "
+    "bulk effortlessly. See HELP CONTAINERS and HELP SORTTO."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*87*/
+    "\tR[HINT]:\tn \ty"
+    "Looking to buy rare equipment or sell treasures to other players? The AUCTION channel "
+    "allows players to put items up for public bidding across the entire realm! Use AUCTION "
+    "<item> to start an auction, BID <amount> to place a bid, and AUCTION STATS to check "
+    "current listings. See HELP AUCTION."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*88*/
+    "\tR[HINT]:\tn \ty"
+    "Save keystrokes and speed up your gameplay with the ALIAS command! You can create custom "
+    "shortcuts for long commands or chains of actions. For example, 'alias k cast magic "
+    "missile' allows you to simply type 'k orc' to cast spells rapidly. See HELP ALIAS."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*89*/
+    "\tR[HINT]:\tn \ty"
+    "Your prompt can provide valuable real-time combat and survival information! Use the "
+    "PROMPT command to customize your status line with placeholders showing your current HP, "
+    "Mana, Moves, PSP, target health percentage, active affections, and ability cooldowns. "
+    "Type PROMPT HELP to view all available tokens. See HELP PROMPT."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*90*/
+    "\tR[HINT]:\tn \ty"
+    "Want to see all the math behind your character's combat rolls? Luminari provides dedicated "
+    "breakdown commands: ATTACKS shows your Base Attack Bonus, iterative attacks, and damage "
+    "modifiers; DEFENSES breaks down your AC, touch AC, and flat-footed AC; RESISTANCE displays "
+    "damage reduction, spell resistance, and energy protections; and COOLDOWNS tracks active "
+    "ability timers. See HELP ATTACKS, HELP DEFENSES, and HELP RESISTANCE."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*91*/
+    "\tR[HINT]:\tn \ty"
+    "Every hero comes from somewhere! During character creation, selecting a character "
+    "background gives your adventurer distinct thematic traits, bonus skill proficiencies, and "
+    "special perks that reflect your past history and upbringing. Type HELP BACKGROUNDS to "
+    "learn about all the available background options."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*92*/
+    "\tR[HINT]:\tn \ty"
+    "If you ever find your character stuck, immobilized due to a collision glitch, or unable "
+    "to move in an anomalous room or vehicle state, simply type UNSTUCK to safely free your "
+    "character and return to a stable nearby location. See HELP UNSTUCK."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*93*/
+    "\tR[HINT]:\tn \ty"
+    "Characters wielding light weapons or finessable weapons (with the Weapon Finesse feat) use "
+    "Dexterity instead of Strength for attack rolls! Wielding two weapons or double weapons "
+    "allows off-hand attacks, which can be improved with the Two-Weapon Fighting feat tree. "
+    "See HELP WEAPON-FINESSE and HELP DUAL-WIELD."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*94*/
+    "\tR[HINT]:\tn \ty"
+    "Wearing heavier armor or shields can hinder physical skills via Armor Check Penalty (ACP) "
+    "and cause arcane spells to fail (Arcane Spell Failure / ASF). Arcane casters like Wizards "
+    "and Sorcerers should monitor their ASF before donning armor, or invest in feats like "
+    "Arcane Armor Training. See HELP ARMOR and HELP SPELL-FAILURE."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*95*/
+    "\tR[HINT]:\tn \ty"
+    "High-tier monsters often possess Damage Reduction (DR) which subtracts damage from "
+    "non-matching weapons (e.g. DR 10/silver or DR 15/magic), as well as Energy Resistance "
+    "against elements like fire, cold, or electricity. Type RESISTANCE to inspect your own "
+    "resistances or observe combat messages to choose the right weapons and spells! See "
+    "HELP DAMAGE-REDUCTION and HELP RESISTANCE."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*96*/
+    "\tR[HINT]:\tn \ty"
+    "Scattered throughout the realms are legendary, single-instance ARTIFACTS of immense power! "
+    "Unlike ordinary gear, artifacts grow in power as you wield them in battle, gaining "
+    "experience from combat and unlocking unique activated and passive abilities. Use "
+    "ARTIFACT LIST to see which artifacts have been discovered, ARTIFACT PROGRESS to monitor "
+    "your artifact's level, ARTIFACT ABILITIES to view special powers, and ARTIFACT ROSTER "
+    "to read lore chronicles. See HELP ARTIFACTS."
+    "  [use nohint or prefedit to deactivate this]\tn\r\n"};
 
 static const size_t NUM_HINTS = sizeof(hints) / sizeof(hints[0]);
 
