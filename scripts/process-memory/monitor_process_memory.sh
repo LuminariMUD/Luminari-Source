@@ -26,6 +26,7 @@ fi
 
 SAMPLER_SCRIPT="${SCRIPT_DIR}/sample_process_memory_details.sh"
 PID_FILE="${PROJECT_ROOT}/.memory-monitor.pid"
+MUD_PID_FILE="${PROJECT_ROOT}/.mud.pid"
 LOG_FILE="${PROJECT_ROOT}/log/memory-monitor.log"
 DEFAULT_OUTPUT="${PROJECT_ROOT}/log/process-memory-timeseries.tsv"
 DEFAULT_INTERVAL=30
@@ -62,7 +63,7 @@ Usage:
 Options:
   --interval <seconds>         Sampling interval (default: 30s)
   --output <file>              Output TSV file (default: log/process-memory-timeseries.tsv)
-  --pid <pid>                  Pin target PID (default: auto-detect and follow copyovers)
+  --pid <pid>                  Pin target PID (default: follow .mud.pid across copyovers)
   --alert-threshold <kib_min>  Growth rate alert threshold in KiB/min (default: 1024)
   --label <label>              Sample label (default: live)
   --input <file>               Input TSV file for report
@@ -71,9 +72,26 @@ EOF
   exit 1
 }
 
+# Confirm a PID is running an executable from this checkout's bin tree. A bare
+# process-name probe can select an unrelated MUD on a shared host, so ownership
+# is proved from /proc rather than assumed from the executable's name.
+pid_owned_by_checkout()
+{
+  local pid="$1"
+  local process_exe=""
+
+  process_exe="$(readlink -f -- "/proc/$pid/exe" 2>/dev/null || true)"
+  [[ -n "$process_exe" ]] || return 1
+  [[ "$process_exe" == "${PROJECT_ROOT}/bin/"* ]]
+}
+
+# Resolve the MUD PID for this checkout. The project PID file is the only
+# discovery source; anything it cannot prove is treated as no target at all.
 find_mud_pid()
 {
   local explicit_pid="${1:-}"
+  local candidate_pid=""
+
   if [[ -n "$explicit_pid" ]]; then
     if [[ -d "/proc/$explicit_pid" ]]; then
       printf '%s\n' "$explicit_pid"
@@ -83,22 +101,14 @@ find_mud_pid()
     fi
   fi
 
-  # Auto-detect circle process
-  local candidate_pid=""
-  candidate_pid="$(pgrep -x circle 2>/dev/null | tail -n 1 || true)"
-  if [[ -n "$candidate_pid" && -d "/proc/$candidate_pid" ]]; then
-    printf '%s\n' "$candidate_pid"
-    return 0
-  fi
+  [[ -r "$MUD_PID_FILE" ]] || return 1
+  IFS= read -r candidate_pid < "$MUD_PID_FILE" || true
+  [[ "$candidate_pid" =~ ^[1-9][0-9]*$ ]] || return 1
+  [[ -d "/proc/$candidate_pid" ]] || return 1
+  pid_owned_by_checkout "$candidate_pid" || return 1
 
-  # Try pgrep full command line
-  candidate_pid="$(pgrep -f "circle.*-d" 2>/dev/null | tail -n 1 || true)"
-  if [[ -n "$candidate_pid" && -d "/proc/$candidate_pid" ]]; then
-    printf '%s\n' "$candidate_pid"
-    return 0
-  fi
-
-  return 1
+  printf '%s\n' "$candidate_pid"
+  return 0
 }
 
 read_pid_file()

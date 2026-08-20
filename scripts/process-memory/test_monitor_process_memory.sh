@@ -108,44 +108,54 @@ LUMINARI_PROJECT_ROOT="$env_root" "$monitor" stop
 status_stopped=$(LUMINARI_PROJECT_ROOT="$env_root" "$monitor" status)
 grep -Fq "Status: STOPPED" <<< "$status_stopped" || fail "status did not report STOPPED after stop"
 
-# Test 8: Auto-discovery remains unpinned and follows a replacement process
+# Test 8: Discovery follows .mud.pid across a replacement process
 auto_root="$test_root/auto-sandbox"
 auto_output="$auto_root/log/process-memory-timeseries.tsv"
-fake_bin="$test_root/fake-bin"
-pid_source="$test_root/discovered-pid"
-mkdir -p "$auto_root/log" "$fake_bin"
-printf '%s\n' \
-  '#!/usr/bin/env bash' \
-  'IFS= read -r discovered_pid < "$MONITOR_TEST_PID_FILE"' \
-  'printf "%s\n" "$discovered_pid"' \
-  > "$fake_bin/pgrep"
-chmod +x "$fake_bin/pgrep"
+auto_release="$auto_root/bin/releases/aaaabbbbccccdddd"
+mkdir -p "$auto_root/log" "$auto_release"
+cp "$(command -v sleep)" "$auto_release/luminari"
+chmod 0755 "$auto_release/luminari"
+ln -sf "releases/aaaabbbbccccdddd/luminari" "$auto_root/bin/luminari"
 
-sleep 30 &
+"$auto_release/luminari" 30 &
 target_one=$!
-sleep 30 &
+"$auto_release/luminari" 30 &
 target_two=$!
-printf '%s\n' "$target_one" > "$pid_source"
+printf '%s\n' "$target_one" > "$auto_root/.mud.pid"
 
-MONITOR_TEST_PID_FILE="$pid_source" PATH="$fake_bin:$PATH" LUMINARI_PROJECT_ROOT="$auto_root" \
+LUMINARI_PROJECT_ROOT="$auto_root" \
   "$monitor" start --interval 1 --output "$auto_output"
 IFS= read -r auto_daemon_pid < "$auto_root/.memory-monitor.pid"
 daemon_cmdline=$(tr '\0' ' ' < "/proc/$auto_daemon_pid/cmdline")
 [[ "$daemon_cmdline" != *" --pid "* ]] || fail "auto-discovered start pinned daemon PID"
 
 sleep 1.5
-printf '%s\n' "$target_two" > "$pid_source"
+printf '%s\n' "$target_two" > "$auto_root/.mud.pid"
 kill "$target_one"
 wait "$target_one" 2>/dev/null || true
 target_one=""
 sleep 2.5
 
 awk -F '\t' -v pid="$target_two" 'NR > 1 && $3 == pid { found = 1 } END { exit !found }' \
-  "$auto_output" || fail "daemon did not discover the replacement process"
+  "$auto_output" || fail "daemon did not follow .mud.pid to the replacement process"
 
 LUMINARI_PROJECT_ROOT="$auto_root" "$monitor" stop
 auto_daemon_pid=""
-kill "$target_two"
+
+# Test 9: A PID outside this checkout's bin tree is never adopted
+sleep 30 &
+foreign_pid=$!
+printf '%s\n' "$foreign_pid" > "$auto_root/.mud.pid"
+if LUMINARI_PROJECT_ROOT="$auto_root" "$monitor" start --interval 1 \
+     --output "$auto_output" > "$test_root/foreign.log" 2>&1; then
+  LUMINARI_PROJECT_ROOT="$auto_root" "$monitor" stop >/dev/null 2>&1 || true
+  kill "$foreign_pid" 2>/dev/null || true
+  fail "monitor adopted a PID that does not belong to this checkout"
+fi
+kill "$foreign_pid" 2>/dev/null || true
+wait "$foreign_pid" 2>/dev/null || true
+
+kill "$target_two" 2>/dev/null || true
 wait "$target_two" 2>/dev/null || true
 target_two=""
 

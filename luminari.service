@@ -84,6 +84,7 @@ TimeoutStartSec=120
 TimeoutStopSec=30
 
 # Environment variables
+Environment="MUD_BINARY=luminari"
 Environment="MUD_PORT=4100"
 Environment="MUD_FLAGS=-q"
 Environment="TERRAIN_API_PORT=8182"

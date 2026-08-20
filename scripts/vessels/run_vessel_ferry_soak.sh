@@ -484,7 +484,7 @@ run_monitor()
       current_mud_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
       [[ "$current_mud_pid" == "$initial_mud_pid" ]] ||
         fail_run "MUD PID changed while recovering from copyover: $initial_mud_pid -> $current_mud_pid"
-      current_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/circle")
+      current_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/luminari")
       [[ "$current_binary_fingerprint" == "$initial_binary_fingerprint" ]] ||
         fail_run "the installed MUD executable changed during copyover"
       if ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q . &&
@@ -903,7 +903,7 @@ run_monitor()
       fail_run "MUD PID changed during the continuous run: $initial_mud_pid -> $current_pid"
     [[ -r "/proc/$current_pid/status" ]] ||
       fail_run "MUD process $current_pid disappeared"
-    current_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/circle")
+    current_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/luminari")
     [[ "$current_binary_fingerprint" == "$initial_binary_fingerprint" ]] ||
       fail_run "the installed MUD executable changed during the continuous run"
 
@@ -1001,10 +1001,10 @@ run_monitor()
     [[ "$database_coordinates" == "$pause_x $pause_y" ]] ||
       fail_run "paused runtime did not persist exact coordinates"
 
-    installed_binary_sha256=$(binary_sha256 "$repo_root/bin/circle")
+    installed_binary_sha256=$(binary_sha256 "$repo_root/bin/luminari")
     running_binary_sha256=$(binary_sha256 "/proc/$initial_mud_pid/exe")
     [[ "$installed_binary_sha256" == "$initial_binary_sha256" ]] ||
-      fail_run "bin/circle changed before the persistence restart"
+      fail_run "bin/luminari changed before the persistence restart"
     [[ "$running_binary_sha256" == "$initial_binary_sha256" ]] ||
       fail_run "the running MUD executable changed before persistence verification"
 
@@ -1065,8 +1065,8 @@ run_monitor()
     fail_run "cannot read lib/.env"
   [[ -r "$repo_root/lib/mysql_config" ]] ||
     fail_run "cannot read lib/mysql_config"
-  [[ -x "$repo_root/bin/circle" ]] ||
-    fail_run "bin/circle is missing; build and install first"
+  [[ -x "$repo_root/bin/luminari" ]] ||
+    fail_run "bin/luminari is missing; build and install first"
   [[ -x "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" ]] ||
     fail_run "the local character login helper is unavailable"
   [[ -x "$repo_root/scripts/process-memory/sample_process_memory_details.sh" ]] ||
@@ -1102,17 +1102,21 @@ run_monitor()
   initial_mud_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
   [[ "$initial_mud_pid" =~ ^[1-9][0-9]*$ ]] ||
     fail_run "could not read the local MUD PID"
-  initial_binary_sha256=$(binary_sha256 "$repo_root/bin/circle")
+  initial_binary_sha256=$(binary_sha256 "$repo_root/bin/luminari")
   [[ "$initial_binary_sha256" =~ ^[0-9a-f]{64}$ ]] ||
     fail_run "could not hash the installed MUD executable"
   [[ "$(binary_sha256 "/proc/$initial_mud_pid/exe")" == "$initial_binary_sha256" ]] ||
-    fail_run "the active MUD process does not match bin/circle"
-  initial_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/circle")
+    fail_run "the active MUD process does not match bin/luminari"
+  initial_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/luminari")
   initial_source_commit=$(git -C "$repo_root" rev-parse HEAD)
   [[ "$initial_source_commit" =~ ^[0-9a-f]{40}$ ]] ||
     fail_run "could not record the source commit"
-  ss -H -ltnp "sport = :$mud_port" 2>/dev/null | grep -q circle ||
-    fail_run "the development port is not owned by circle"
+  # Verify the listener by PID and executable, not by process name.
+  port_listener=$(ss -H -ltnp "sport = :$mud_port" 2>/dev/null || true)
+  port_listener_pid=$(sed -n 's/.*pid=\([0-9]\{1,\}\).*/\1/p' <<< "$port_listener" |
+    head -n 1)
+  [[ "$port_listener_pid" == "$initial_mud_pid" ]] ||
+    fail_run "the development port is not owned by the active MUD process"
 
   if ! ferry_rows_output=$(database_query "
     SELECT runtime.ship_id, route.route_id

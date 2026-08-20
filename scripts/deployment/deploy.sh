@@ -328,13 +328,13 @@ build_project() {
         make install
 
         # Check if build succeeded
-        if [[ ! -f "$PROJECT_ROOT/bin/circle" ]]; then
-            print_msg "$RED" "Build failed - bin/circle executable not created"
+        if [[ ! -f "$PROJECT_ROOT/bin/luminari" ]]; then
+            print_msg "$RED" "Build failed - bin/luminari executable not created"
             print_msg "$YELLOW" "Try running 'make' manually to see detailed errors"
             exit 1
         fi
 
-        print_msg "$GREEN" "Build and install complete: bin/circle"
+        print_msg "$GREEN" "Build and install complete: bin/luminari"
 
     elif [[ -f CMakeLists.txt ]]; then
         print_msg "$GREEN" "Building with CMake..."
@@ -718,9 +718,9 @@ verify_active_release_after_restart() {
     local state_file="$PROJECT_ROOT/.autorun.state"
     local timeout_seconds="${DEPLOY_IDENTITY_TIMEOUT_SECONDS:-120}"
 
-    expected_executable=$(readlink -f "$PROJECT_ROOT/bin/circle" 2>/dev/null || true)
+    expected_executable=$(readlink -f "$PROJECT_ROOT/bin/luminari" 2>/dev/null || true)
     if [[ -z "$expected_executable" ]] || [[ ! -x "$expected_executable" ]]; then
-        print_msg "$RED" "Installed bin/circle is missing or not executable"
+        print_msg "$RED" "Installed bin/luminari is missing or not executable"
         return 1
     fi
     if [[ ! "$timeout_seconds" =~ ^[1-9][0-9]*$ ]]; then
@@ -903,7 +903,7 @@ verify_autorun_script() {
         print_msg "$GREEN" "Autorun script is ready to use"
     else
         print_msg "$YELLOW" "Warning: scripts/autorun/autorun.sh not found"
-        print_msg "$YELLOW" "You can start the MUD directly with: bin/circle"
+        print_msg "$YELLOW" "You can start the MUD directly with: bin/luminari"
     fi
 }
 

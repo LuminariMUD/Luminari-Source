@@ -106,9 +106,9 @@ fi
 
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════${NC}"
-if [ -f bin/circle ]; then
+if [ -f bin/luminari ]; then
     echo -e "${GREEN}✅ Build successful!${NC}"
-    echo -e "${GREEN}   Binary: bin/circle${NC}"
+    echo -e "${GREEN}   Binary: bin/luminari${NC}"
     echo -e "${GREEN}   Full log: build/build.log${NC}"
 else
     echo -e "\033[0;31m❌ Build may have failed. Check build/build.log${NC}"

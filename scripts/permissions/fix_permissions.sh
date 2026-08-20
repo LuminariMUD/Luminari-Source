@@ -81,8 +81,8 @@ echo ""
 echo "=== Fixing File Permissions ==="
 
 # Fix executables
-if [ -f "$BASE_DIR/bin/circle" ]; then
-    chmod 755 "$BASE_DIR/bin/circle" 2>/dev/null && echo -e "${GREEN}[FIXED]${NC} Main executable" || echo -e "${RED}[FAILED]${NC} Main executable"
+if [ -f "$BASE_DIR/bin/luminari" ]; then
+    chmod 755 "$BASE_DIR/bin/luminari" 2>/dev/null && echo -e "${GREEN}[FIXED]${NC} Main executable" || echo -e "${RED}[FAILED]${NC} Main executable"
 fi
 
 if [ -f "$BASE_DIR/bin/autowiz" ]; then

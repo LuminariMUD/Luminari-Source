@@ -7,7 +7,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 COPYOVER_FILE="$PROJECT_ROOT/lib/misc/copyover.dat"
 STATE_FILE="$PROJECT_ROOT/lib/misc/copyover_last_state.txt"
 DIAG_LOG="$PROJECT_ROOT/log/copyover_diagnostic.log"
-PID_FILE="$PROJECT_ROOT/lib/misc/circle.pid"
+PID_FILE="$PROJECT_ROOT/.mud.pid"
 
 # Function to check if MUD is running
 is_mud_running() {

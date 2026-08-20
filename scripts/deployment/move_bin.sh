@@ -71,8 +71,8 @@ else
 fi
 
 # Check if source binary exists
-if [[ ! -f "bin/circle" ]]; then
-    echo "Error: Source binary 'bin/circle' not found!"
+if [[ ! -f "bin/luminari" ]]; then
+    echo "Error: Source binary 'bin/luminari' not found!"
     exit 1
 fi
 
@@ -90,16 +90,16 @@ echo "=================================================="
 
 # Create timestamped backup of existing binary
 TIMEDATE=$(date +"%m-%d-%Y-%H-%M")
-if [[ -f "$BASE_PATH/bin/circle" ]]; then
-    echo "Creating backup: circle.$TIMEDATE"
-    mv "$BASE_PATH/bin/circle" "$BASE_PATH/bin/circle.$TIMEDATE"
+if [[ -f "$BASE_PATH/bin/luminari" ]]; then
+    echo "Creating backup: luminari.$TIMEDATE"
+    mv "$BASE_PATH/bin/luminari" "$BASE_PATH/bin/luminari.$TIMEDATE"
 else
     echo "No existing binary found, skipping backup"
 fi
 
 # Copy new binary
 echo "Copying new binary..."
-cp "bin/circle" "$BASE_PATH/bin/"
+cp "bin/luminari" "$BASE_PATH/bin/"
 echo "Copied binary to $DESCRIPTION"
 
 # Copy changelog to news file

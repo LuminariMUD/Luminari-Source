@@ -170,7 +170,8 @@ for command_name in expect nc ss awk flock grep systemctl systemd-run; do
 done
 
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
-[[ -x "$repo_root/bin/circle" ]] || fail "bin/circle is missing; build and install first"
+[[ -x "$repo_root/bin/luminari" ]] ||
+  fail "bin/luminari is missing; build and install first"
 
 login_lock="${TMPDIR:-/tmp}/luminari-dev-character-login-${UID}.lock"
 exec 9>"$login_lock"
@@ -216,9 +217,15 @@ mud_port=$(awk -F= '
 ((mud_port > 1024 && mud_port <= 65535)) || fail "invalid development port: $mud_port"
 
 if port_is_listening; then
+  # Identify the listener by PID and executable rather than by process name:
+  # a name match would accept an unrelated MUD bound to the same port.
   listener=$(ss -H -ltnp "sport = :$mud_port" 2>/dev/null || true)
-  [[ "$listener" == *circle* ]] ||
-    fail "port $mud_port is occupied by something other than the MUD"
+  listener_pid=$(sed -n 's/.*pid=\([0-9]\{1,\}\).*/\1/p' <<< "$listener" | head -n 1)
+  [[ "$listener_pid" =~ ^[1-9][0-9]*$ ]] ||
+    fail "could not identify the process listening on port $mud_port"
+  listener_exe=$(readlink -f -- "/proc/$listener_pid/exe" 2>/dev/null || true)
+  [[ "$listener_exe" == "$(readlink -f -- "$repo_root/bin/luminari")" ]] ||
+    fail "port $mud_port is occupied by something other than this checkout's MUD"
   printf 'Reusing the development MUD on port %s.\n' "$mud_port"
 else
   if ! systemctl is-active --quiet mariadb 2>/dev/null &&
@@ -240,7 +247,7 @@ else
     --property="WorkingDirectory=$repo_root" \
     --property="StandardOutput=append:$server_log" \
     --property="StandardError=append:$server_log" \
-    "$repo_root/bin/circle" -d "$repo_root/lib"
+    "$repo_root/bin/luminari" -d "$repo_root/lib"
 
   server_ready=false
 

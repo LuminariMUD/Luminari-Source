@@ -109,7 +109,7 @@ echo ""
 
 # Check executables
 echo "=== Executable Files ==="
-check_file "$BASE_DIR/bin/circle" "755" "Main game executable"
+check_file "$BASE_DIR/bin/luminari" "755" "Main game executable"
 check_file "$BASE_DIR/bin/autowiz" "755" "Autowiz utility"
 echo ""
 

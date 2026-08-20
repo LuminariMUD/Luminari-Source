@@ -11,12 +11,28 @@ echo "ENHANCED COPYOVER DIAGNOSTIC"
 echo "=========================================="
 echo ""
 
-# Check if the game is running
-if pgrep -f "circle" > /dev/null; then
-    echo "[OK] Game process is running"
-    echo "PID: $(pgrep -f circle)"
+# Check if the game is running.  The project PID file is the only authority:
+# a process-name probe can select an unrelated MUD on a shared host.
+MUD_PID_FILE="$PROJECT_ROOT/.mud.pid"
+mud_pid=""
+if [ -r "$MUD_PID_FILE" ]; then
+    IFS= read -r mud_pid < "$MUD_PID_FILE" || true
+fi
+if [ -n "$mud_pid" ] && [ -d "/proc/$mud_pid" ]; then
+    mud_exe="$(readlink -f -- "/proc/$mud_pid/exe" 2>/dev/null || true)"
+    case "$mud_exe" in
+        "$PROJECT_ROOT/bin/"*)
+            echo "[OK] Game process is running"
+            echo "PID: $mud_pid"
+            echo "Executable: $mud_exe"
+            ;;
+        *)
+            echo "[WARNING] $MUD_PID_FILE names PID $mud_pid, which is not running"
+            echo "          an executable from this checkout: ${mud_exe:-unreadable}"
+            ;;
+    esac
 else
-    echo "[WARNING] Game process not found"
+    echo "[WARNING] Game process not found (no usable $MUD_PID_FILE)"
 fi
 
 echo ""
@@ -52,16 +68,16 @@ fi
 # Check binary location and permissions
 echo ""
 echo "Checking game binary:"
-if [ -f "$PROJECT_ROOT/bin/circle" ]; then
-    echo "  [FOUND] $PROJECT_ROOT/bin/circle"
-    ls -la "$PROJECT_ROOT/bin/circle"
-    if [ -x "$PROJECT_ROOT/bin/circle" ]; then
+if [ -f "$PROJECT_ROOT/bin/luminari" ]; then
+    echo "  [FOUND] $PROJECT_ROOT/bin/luminari"
+    ls -la "$PROJECT_ROOT/bin/luminari"
+    if [ -x "$PROJECT_ROOT/bin/luminari" ]; then
         echo "  [OK] Binary is executable"
     else
         echo "  [ERROR] Binary is NOT executable"
     fi
 else
-    echo "  [NOT FOUND] $PROJECT_ROOT/bin/circle"
+    echo "  [NOT FOUND] $PROJECT_ROOT/bin/luminari"
 fi
 
 # Check directory permissions

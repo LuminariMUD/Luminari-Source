@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-BIN_PATH="$REPO_ROOT/bin/circle"
+BIN_PATH="$REPO_ROOT/bin/luminari"
 LOG_DIR="$REPO_ROOT/log"
 LOG_FILE="$LOG_DIR/gdb_debug.log"
 

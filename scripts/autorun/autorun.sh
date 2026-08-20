@@ -66,7 +66,7 @@ readonly PROJECT_ROOT
 
 # MUD Configuration (can be overridden by environment variables)
 readonly MUD_PORT="${MUD_PORT:-4100}"
-readonly MUD_BINARY="${MUD_BINARY:-circle}"
+readonly MUD_BINARY="${MUD_BINARY:-luminari}"
 readonly BIN_DIR="${BIN_DIR:-bin}"
 readonly LIB_DIR="${LIB_DIR:-lib}"
 readonly LOG_DIR="${LOG_DIR:-log}"
@@ -336,6 +336,7 @@ read_identity_value() {
 resolve_mud_binary_identity() {
     local binary_path="$1"
     local debug_build_id=""
+    local debug_symbols=""
     local manifest=""
     local manifest_build_id=""
     local manifest_sha256=""
@@ -371,7 +372,7 @@ resolve_mud_binary_identity() {
 
     manifest="$(dirname "$real_path")/manifest"
     if [[ ! -r "$manifest" ]]; then
-        if [[ "$real_path" == */releases/*/circle ]]; then
+        if [[ "$real_path" == */releases/*/* ]]; then
             return 2
         fi
         return 0
@@ -389,10 +390,11 @@ resolve_mud_binary_identity() {
         return 2
     fi
 
-    if [[ ! -r "$(dirname "$real_path")/circle.debug" ]]; then
+    debug_symbols="${real_path}.debug"
+    if [[ ! -r "$debug_symbols" ]]; then
         return 2
     fi
-    debug_build_id=$(readelf -nW "$(dirname "$real_path")/circle.debug" 2>/dev/null |
+    debug_build_id=$(readelf -nW "$debug_symbols" 2>/dev/null |
         awk '/Build ID:/ {print tolower($NF); exit}')
     if [[ "$debug_build_id" != "$RESOLVED_MUD_BUILD_ID" ]]; then
         return 2
@@ -425,6 +427,49 @@ EOF
         rm -f -- "$identity_tmp"
         return 1
     fi
+}
+
+# Re-read the live MUD's executable from /proc so a same-PID copyover cannot
+# leave stale identity behind. The MUD execs a new image without autorun
+# forking again, so the launch-time values are only correct until it does.
+refresh_active_mud_identity() {
+    local current_exe=""
+
+    [[ "$ACTIVE_MUD_PID" =~ ^[1-9][0-9]*$ ]] || return 0
+    current_exe=$(readlink -f -- "/proc/${ACTIVE_MUD_PID}/exe" 2>/dev/null || true)
+    [[ -n "$current_exe" ]] || return 0
+    [[ -f "$current_exe" ]] || return 0
+    [[ "$current_exe" != "$LAST_MUD_EXECUTABLE" ]] || return 0
+
+    # Accept a manifest mismatch here: /proc is the authority for what is
+    # actually running, and refusing it would keep the stale record instead.
+    resolve_mud_binary_identity "$current_exe" || true
+    [[ -n "$RESOLVED_MUD_EXECUTABLE" ]] || return 0
+    LAST_MUD_EXECUTABLE="$RESOLVED_MUD_EXECUTABLE"
+    LAST_MUD_BUILD_ID="$RESOLVED_MUD_BUILD_ID"
+    LAST_MUD_GIT_COMMIT="$RESOLVED_MUD_GIT_COMMIT"
+    LAST_MUD_GIT_DIRTY="$RESOLVED_MUD_GIT_DIRTY"
+    LAST_MUD_SHA256="$RESOLVED_MUD_SHA256"
+    log_info "Active MUD executable changed in place: $LAST_MUD_EXECUTABLE (build_id=$LAST_MUD_BUILD_ID)"
+    write_mud_identity "$ACTIVE_MUD_PID" || true
+}
+
+# Adopt the identity published for a PID by the state heartbeat. The heartbeat
+# runs in a subshell, so a copyover it observed is only visible here as a file.
+adopt_published_mud_identity() {
+    local expected_pid="$1"
+    local published_exe=""
+
+    published_exe=$(get_recorded_mud_executable "$expected_pid" 2>/dev/null || true)
+    [[ -n "$published_exe" ]] || return 0
+    [[ "$published_exe" != "$LAST_MUD_EXECUTABLE" ]] || return 0
+
+    LAST_MUD_EXECUTABLE="$published_exe"
+    LAST_MUD_GIT_COMMIT=$(read_identity_value "$MUD_IDENTITY_FILE" GIT_COMMIT 2>/dev/null || printf 'unknown')
+    LAST_MUD_GIT_DIRTY=$(read_identity_value "$MUD_IDENTITY_FILE" GIT_DIRTY 2>/dev/null || printf 'unknown')
+    LAST_MUD_BUILD_ID=$(read_identity_value "$MUD_IDENTITY_FILE" ELF_BUILD_ID 2>/dev/null || printf 'unavailable')
+    LAST_MUD_SHA256=$(read_identity_value "$MUD_IDENTITY_FILE" SHA256 2>/dev/null || printf 'unavailable')
+    log_info "Adopted post-copyover MUD executable for crash analysis: $LAST_MUD_EXECUTABLE"
 }
 
 # Return the executable recorded for a specific MUD PID. Refuse stale or
@@ -1254,6 +1299,7 @@ start_mud() {
         kill "$heartbeat_pid" 2>/dev/null || true
         wait "$heartbeat_pid" 2>/dev/null || true
     fi
+    adopt_published_mud_identity "$mud_pid"
     ACTIVE_MUD_PID=""
     write_autorun_state
 
@@ -1776,6 +1822,8 @@ write_autorun_state() {
     local state_file="${PROJECT_ROOT}/.autorun.state"
     local state_tmp
 
+    refresh_active_mud_identity
+
     if resolve_mud_binary_identity "${BIN_DIR}/${MUD_BINARY}"; then
         installed_build_id="$RESOLVED_MUD_BUILD_ID"
         installed_commit="$RESOLVED_MUD_GIT_COMMIT"
@@ -1810,6 +1858,7 @@ LAST_UPDATE=$(date +%s)
 STATUS=RUNNING
 CRASH_COUNT=$CRASH_COUNT
 MUD_PORT=$MUD_PORT
+MUD_BINARY=$MUD_BINARY
 MUD_PID=$ACTIVE_MUD_PID
 MUD_EXECUTABLE=$active_executable
 MUD_GIT_COMMIT=$active_commit

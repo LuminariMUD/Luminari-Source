@@ -633,7 +633,13 @@ landed so an interrupted session can resume without re-deriving state.
       `.gitignore`).
 - [x] 4.2 Installer and mixed release layouts (`install_versioned_binary.sh`,
       `test_versioned_binary_install.sh`).
-- [ ] 4.3 Autorun, systemd, deploy, and diagnostics.
+- [x] 4.3 Autorun, systemd, deploy, and diagnostics. Autorun defaults to
+      `luminari`, derives the debug sidecar from the resolved basename,
+      publishes `MUD_BINARY` in `.autorun.state`, and refreshes the active
+      executable from `/proc/<pid>/exe` after a same-PID copyover. Process
+      discovery in the memory monitor, copyover diagnostics/watchdog, login
+      smoke, and ferry soak now uses `.mud.pid` plus `/proc/<pid>/exe`
+      instead of a process-name probe.
 - [ ] 4.4 CI, test harnesses, and operational tooling.
 - [ ] 4.5 Help, templates, and current documentation.
 - [ ] 5 Phase A verification.
