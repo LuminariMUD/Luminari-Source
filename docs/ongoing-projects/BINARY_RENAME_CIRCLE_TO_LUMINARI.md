@@ -650,5 +650,21 @@ landed so an interrupted session can resume without re-deriving state.
       help entry in `lib/text/help/help.hlp` and the idempotent
       `sql/components/help_gdb_binary_rename.sql` component registered as
       `apply` in `sql/components/ci_schema_manifest.txt`.
-- [ ] 5 Phase A verification.
+- [~] 5 Phase A verification, on development (`APP_ENV=development`).
+  - [x] 5.1 `git diff --check`, `bash -n` on every changed script, and
+        `test-binary-name-static` all pass. Remaining `circle` hits are the
+        reviewed allowlist in that script.
+  - [x] 5.2 `autoreconf -fvi && ./configure && make clean && make -j` builds
+        root `luminari`; `make test-all` passes (see note below) and
+        `make install` yields:
+        root artifacts absent, `bin/luminari -> releases/<id>/luminari`,
+        `bin/circle -> luminari`, both resolving to the same file, with a
+        matching `luminari.debug` build ID and manifest SHA-256.
+        `bin/luminari --build-info` reports the expected release.
+        Note: `make test-protocol` first failed on stale gcov-instrumented
+        objects in `unittests/CuTest/build/` left by an earlier coverage run.
+        That is unrelated to the rename; `make -C unittests/CuTest clean`
+        then `make test-protocol` passes (29 tests).
+  - [ ] 5.3 CMake scratch-build verification.
+  - [ ] 5.4 Local runtime and copyover rehearsal.
 - [ ] 6 Production rollout (not started; development checkout only).

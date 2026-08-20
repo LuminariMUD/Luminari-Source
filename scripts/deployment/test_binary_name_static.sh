@@ -58,6 +58,7 @@ allowed_paths=(
   'scripts/deployment/install_versioned_binary.sh'
   'scripts/deployment/test_binary_name_static.sh'
   'scripts/deployment/test_versioned_binary_install.sh'
+  'sql/components/help_gdb_binary_rename.sql'
 )
 
 is_allowed_path()
