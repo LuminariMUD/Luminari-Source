@@ -665,6 +665,15 @@ landed so an interrupted session can resume without re-deriving state.
         objects in `unittests/CuTest/build/` left by an earlier coverage run.
         That is unrelated to the rename; `make -C unittests/CuTest clean`
         then `make test-protocol` passes (29 tests).
-  - [ ] 5.3 CMake scratch-build verification.
+  - [x] 5.3 CMake scratch-build verification. A fresh
+        `cmake -S . -B <scratch> -DBUILD_TESTS=ON` build produces
+        `<scratch>/bin/luminari` and a `cutest` that inherited the main
+        target's properties through the renamed `LUMINARI_*` scratch
+        variables. `ctest -N` lists 14 tests including the new
+        `binary-name-static`; `versioned-binary-install` and
+        `binary-name-static` pass. `cmake --install <scratch>` reaches the
+        installer through `$<TARGET_FILE:luminari>` and produces the same
+        source-tree layout as Autotools. The Autotools release was
+        reinstalled afterwards to restore the active alias.
   - [ ] 5.4 Local runtime and copyover rehearsal.
 - [ ] 6 Production rollout (not started; development checkout only).
