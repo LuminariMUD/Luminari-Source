@@ -14,7 +14,7 @@ The preferred fresh-install path is:
 
 That command installs supported dependencies, creates missing local
 configuration from examples, provisions MariaDB, initializes minimal world
-data, configures Autotools, builds, and installs `bin/circle`. Inspect exact
+data, configures Autotools, builds, and installs `bin/luminari`. Inspect exact
 flags with `./scripts/deployment/deploy.sh --help`.
 
 ## Ubuntu, Debian, and WSL2 Dependencies
@@ -47,8 +47,8 @@ make test
 make install
 ```
 
-`make test` may leave a root-level test build of `circle`; the required
-`make install` step activates the versioned binary at `bin/circle` and removes
+`make test` may leave a root-level test build of `luminari`; the required
+`make install` step activates the versioned binary at `bin/luminari` and removes
 that root artifact.
 
 ## Fresh Manual Configuration
@@ -86,7 +86,7 @@ cmake --install build
 ## Run and Verify
 
 ```bash
-./bin/circle -d lib
+./bin/luminari -d lib
 ```
 
 The checked-in runtime configuration defaults to game port 4100. While the

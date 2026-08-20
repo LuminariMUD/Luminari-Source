@@ -26,8 +26,8 @@ cmake -S . -B build/
 cmake --build build/ -j"$(nproc)"
 cmake --install build/
 
-# The candidate is build/bin/circle; installation activates bin/circle
-ls -la bin/circle
+# The candidate is build/bin/luminari; installation activates bin/luminari
+ls -la bin/luminari
 ```
 
 ## Configuration Options
@@ -216,9 +216,9 @@ make -j4
 ## Notes
 
 1. Autotools is preferred for incremental development; CMake remains supported
-2. CMake builds the candidate at `build/bin/circle`; `cmake --install build/`
+2. CMake builds the candidate at `build/bin/luminari`; `cmake --install build/`
    retains it and its symbols under `bin/releases/<ELF-build-ID>/` and
-   atomically activates `bin/circle`
+   atomically activates `bin/luminari`
 3. CMake requires GNU C23 and retains compiler extensions
 4. The build configuration no longer generates `conf.h` - all defines are passed directly to the compiler
 5. MySQL configuration still uses `lib/mysql_config` file

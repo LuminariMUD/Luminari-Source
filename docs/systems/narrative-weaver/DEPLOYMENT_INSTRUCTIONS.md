@@ -144,13 +144,13 @@ make
 echo $?  # Should return 0
 
 # Check if binary was created
-ls -la bin/circle
+ls -la bin/luminari
 ```
 
 ### Step 6: Test In-Game (Optional but Recommended)
 ```bash
 # Start the game in test mode (if you have a test port)
-./bin/circle 4000 > /tmp/test_narrative_weaver.log 2>&1 &
+./bin/luminari 4000 > /tmp/test_narrative_weaver.log 2>&1 &
 
 # Connect and test
 telnet localhost 4000

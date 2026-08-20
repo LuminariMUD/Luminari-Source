@@ -46,7 +46,7 @@ packages and manual paths.
 4. Start the server and verify readiness:
 
    ```bash
-   ./bin/circle -d lib
+   ./bin/luminari -d lib
    ./scripts/operations/healthcheck.sh
    ```
 

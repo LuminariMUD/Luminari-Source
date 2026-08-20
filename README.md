@@ -10,7 +10,7 @@ Current version: `2.5062-beta` (tbaMUD 3.64).
 
 On Ubuntu, Debian, or WSL2, the repository's one-command setup installs
 dependencies, prepares local configuration and world data, provisions MariaDB,
-builds the server, and installs `bin/circle`:
+builds the server, and installs `bin/luminari`:
 
 ```bash
 ./scripts/deployment/deploy.sh
@@ -19,7 +19,7 @@ builds the server, and installs `bin/circle`:
 Then start the server:
 
 ```bash
-./bin/circle -d lib
+./bin/luminari -d lib
 ```
 
 The checked-in runtime configuration defaults to game port 4100. Connect a MUD
@@ -41,7 +41,7 @@ make test && make install
 
 `make test` builds the production-linked CuTest suite and shell regressions.
 `make install` activates the tested immutable build under `bin/releases/` and
-removes the root-level `circle` artifact.
+removes the root-level `luminari` artifact.
 
 ## Repository Structure
 

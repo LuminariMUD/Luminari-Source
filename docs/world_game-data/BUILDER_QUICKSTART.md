@@ -255,7 +255,7 @@ lib/world/validate-zone.sh 30 --strict
 
 The validator reports all independently recoverable parser, reference, and
 topology findings in one run. It is read-only and needs neither MariaDB nor a
-`circle` build.
+`luminari` build.
 
 ## Step 6: Index and Boot
 
@@ -263,7 +263,7 @@ Add `30.wld`, `30.mob`, `30.obj`, and `30.zon` to their respective `index`
 files, above the `$` line. Then boot:
 
 ```
-./bin/circle -d lib
+./bin/luminari -d lib
 ```
 
 Watch the log. Every world-data problem is reported as `SYSERR` and, for the

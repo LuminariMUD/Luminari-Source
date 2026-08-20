@@ -1,5 +1,32 @@
 # Changelog
 
+## [Unreleased] - August 20, 2026
+
+### Server executable renamed to `luminari`
+
+#### Changed
+
+- Renamed the built server executable and its debug sidecar from `circle` to `luminari` in both
+  build systems, in the compiled-in copyover path, and in the release layout. New immutable
+  releases contain `luminari`, `luminari.debug`, and `manifest`; `bin/luminari` is the canonical
+  mutable alias.
+- Kept `bin/circle` as a Phase A compatibility symlink to `luminari` so a pre-rename process can
+  still resolve its compiled-in path during copyover. Pre-rename release directories are left
+  intact and remain valid for rollback and core analysis.
+- Pointed autorun, the systemd unit environment, deployment, diagnostics, permission helpers, CI,
+  the vessel and login harnesses, and current documentation at `bin/luminari`, and updated the
+  `GDB` help entry in both `lib/text/help/help.hlp` and the database.
+
+#### Fixed
+
+- Replaced process-name discovery in the memory monitor, copyover diagnostic, copyover watchdog,
+  login smoke test, and ferry soak with the project `.mud.pid` plus `/proc/<pid>/exe` ownership
+  verification. A bare name probe could select an unrelated MUD on a shared host, and the watchdog
+  was reading a PID file that no longer exists.
+- Made autorun's recorded MUD identity copyover-aware. A same-PID `exec` previously left
+  `.mud.identity` and `.autorun.state` naming the pre-copyover executable, which could send crash
+  analysis to the wrong binary.
+
 ## [Unreleased] - August 14, 2026
 
 ### Campaign variant retirement

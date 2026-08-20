@@ -69,8 +69,8 @@ logs.
 ## Build and test
 
 Build and install the MUD before starting it. `make install` is required after
-`make test`; it installs `bin/circle` and removes the temporary root-level
-`circle` binary.
+`make test`; it installs `bin/luminari` and removes the temporary root-level
+`luminari` binary.
 
 ```bash
 cd /home/aiwithapex/projects/Luminari-Source
@@ -120,7 +120,7 @@ systemd-run --user \
   --property=Restart=on-failure \
   --property=RestartSec=5s \
   --property=TimeoutStopSec=20s \
-  /home/aiwithapex/projects/Luminari-Source/bin/circle -d lib 4100
+  /home/aiwithapex/projects/Luminari-Source/bin/luminari -d lib 4100
 ```
 
 These are transient user units. They remain supervised for the current user
@@ -216,7 +216,7 @@ systemctl --user stop i3-gateway-local.service
 - Parameterless `mudlist` or `channel_list` returns a `NoneType` error: the
   gateway is running an old build; restart it from the current checkout.
 - The MUD receives a large snapshot but does not update its cache: confirm the
-  running executable is the current `bin/circle`, then check for framing or
+  running executable is the current `bin/luminari`, then check for framing or
   oversized-response errors.
 - Incoming events appear only after a player connects: the running MUD predates
   the idle main-loop wake fix; rebuild, install, and restart it.

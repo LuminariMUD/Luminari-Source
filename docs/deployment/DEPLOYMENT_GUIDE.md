@@ -39,7 +39,7 @@ cd Luminari-Source
 
 It installs missing dependencies, copies only missing local configuration from
 tracked examples, provisions MariaDB, initializes minimal world data, configures
-Autotools, builds, and installs `bin/circle`.
+Autotools, builds, and installs `bin/luminari`.
 
 Verified options from `./scripts/deployment/deploy.sh --help`:
 
@@ -99,15 +99,15 @@ For manual database creation and schema initialization, use the
 ## Immutable Installation
 
 `make install` stores the executable and matching debug file under
-`bin/releases/<ELF-build-ID>/`, then atomically points `bin/circle` at the new
+`bin/releases/<ELF-build-ID>/`, then atomically points `bin/luminari` at the new
 release. Existing releases remain available for crash analysis. Installation
-refuses to replace a live legacy regular `bin/circle` during the first upgrade.
+refuses to replace a live legacy regular `bin/luminari` during the first upgrade.
 
 After testing, verify the installed identity and absence of a root artifact:
 
 ```bash
-./bin/circle --build-info
-test ! -e ./circle
+./bin/luminari --build-info
+test ! -e ./luminari
 ```
 
 ## Direct Runtime
@@ -115,14 +115,14 @@ test ! -e ./circle
 Start the server against the repository runtime tree:
 
 ```bash
-./bin/circle -d lib
+./bin/luminari -d lib
 ```
 
 The checked-in runtime configuration defaults to game port 4100. Supply a
 different port as the final positional argument when required:
 
 ```bash
-./bin/circle -d lib 4200
+./bin/luminari -d lib 4200
 ```
 
 Use direct startup for local development. For a supervised local process:
@@ -195,7 +195,7 @@ autoreconf -fvi
 
 ```bash
 make install
-test -x ./bin/circle
+test -x ./bin/luminari
 ```
 
 ### Database Unavailable

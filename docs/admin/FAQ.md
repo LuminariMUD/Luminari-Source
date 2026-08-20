@@ -203,10 +203,10 @@ touch lib/etc/board.immortal
 **A:**
 ```bash
 # If you have a core dump
-gdb bin/circle core
+gdb bin/luminari core
 
 # Or attach to running process
-gdb bin/circle <process_id>
+gdb bin/luminari <process_id>
 
 # Common gdb commands
 (gdb) bt          # Show backtrace

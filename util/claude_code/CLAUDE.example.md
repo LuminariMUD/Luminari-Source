@@ -87,7 +87,7 @@ LuminariMUD is a sophisticated text-based multiplayer online role-playing game (
 - **Platform**: Linux/Unix systems (Ubuntu)
 - **Database**: MariaDB
 - **Compiler**: GCC/Clang with GNU C23 support
-- **Binary Output**: Main executable is output to `/bin/circle`
+- **Binary Output**: Main executable is output to `/bin/luminari`
 - Use the existing utility functions and macros defined in utils.h
 - When adding new commands, register them in interpreter.c
 - Use the existing logging macros (log(), mudlog()) for debugging

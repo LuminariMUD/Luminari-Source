@@ -55,7 +55,7 @@ make install
 
 There is no `test_runner`. The root `make test` target builds the
 production-linked CuTest executable and registered shell regressions. The
-required install step activates `bin/circle` and removes the root-level build
+required install step activates `bin/luminari` and removes the root-level build
 artifact.
 
 ### CMake Test Target Missing
@@ -74,9 +74,9 @@ ctest --test-dir build --output-on-failure
 
 ```bash
 make install
-test -x ./bin/circle
-./bin/circle --build-info
-test ! -e ./circle
+test -x ./bin/luminari
+./bin/luminari --build-info
+test ! -e ./luminari
 ```
 
 ### Database Connection Failure
@@ -120,7 +120,7 @@ not an unconditional `SIGKILL`. A direct development server accepts another
 game port as its final positional argument:
 
 ```bash
-./bin/circle -d lib 4200
+./bin/luminari -d lib 4200
 ```
 
 Set `TERRAIN_API_PORT` and the matching `LUMINARI_HEALTH_URL` when changing the
@@ -139,7 +139,9 @@ find dumps -maxdepth 2 -type f -print
 ```
 
 Do not rebuild or remove `bin/releases/<ELF-build-ID>/` before preserving the
-executable and `circle.debug` used by the crashed process.
+executable used by the crashed process and the `.debug` sidecar beside it with
+the same basename. Pre-rename releases hold `circle`/`circle.debug`; newer
+releases hold `luminari`/`luminari.debug`.
 
 ### GDB
 

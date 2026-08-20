@@ -24,7 +24,7 @@ cd Luminari-Source
 ./scripts/deployment/deploy.sh
 
 # Start the server
-./bin/circle -d lib
+./bin/luminari -d lib
 ```
 
 That's it! Connect to `localhost:4100` with any MUD client.
@@ -45,7 +45,7 @@ cd Luminari-Source
 ./scripts/deployment/deploy.sh --auto  # Skip prompts where possible
 
 # Start the server
-./bin/circle -d lib
+./bin/luminari -d lib
 ```
 
 The deploy script automatically:
@@ -204,7 +204,7 @@ saveall              - Save all OLC work
 ### Changing Port
 Edit startup command:
 ```bash
-./bin/circle -q 5000 -d lib  # Run on port 5000
+./bin/luminari -q 5000 -d lib  # Run on port 5000
 ```
 
 ### Database Setup (REQUIRED)

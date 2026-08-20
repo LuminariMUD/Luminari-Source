@@ -56,7 +56,7 @@ The following checks are intentionally disabled in `.clang-tidy`:
 - CI workflow (`test.yml`) already uses Makefile tests, which remain fully functional
 
 **Current State**:
-- CMake builds main binary `bin/circle` successfully
+- CMake builds main binary `bin/luminari` successfully
 - Production-linked unit tests run via `make test`
 - The focused protocol parser harness runs via
   `make -C unittests/CuTest protocol-parser`

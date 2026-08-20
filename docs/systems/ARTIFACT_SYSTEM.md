@@ -1136,7 +1136,7 @@ make install
 ```
 
 `make install` is required after `make test`: it installs the tested server as
-`bin/circle` and removes the root-level build artifact. The login smoke script
+`bin/luminari` and removes the root-level build artifact. The login smoke script
 reads credentials internally, refuses a non-development environment, performs
 the copyover check, and logs the test character out. Never print credentials
 or copy them into commands or documentation.

@@ -46,7 +46,7 @@ This deployment guide covers database setup for:
 ## Installation Steps
 
 ### 1. Initialize via Admin Command
-- Start `./bin/circle -d lib` and log in as an implementor (or use the staff console).
+- Start `./bin/luminari -d lib` and log in as an implementor (or use the staff console).
 - Run `database init` to execute the full initializer. To refresh only the wilderness stack you can use targeted commands such as:
 
 ```

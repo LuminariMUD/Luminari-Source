@@ -193,14 +193,14 @@ grep -i "integration\|wilderness.*craft" build_output.log
 ### **Memory and Stability Test**
 ```bash
 # Run with debug flags if available
-./circle -d
+./luminari -d
 
 # Test material storage limits
 # (Add many materials to test MAX_STORED_MATERIALS)
 
 # Monitor for memory leaks during integration
 # Use valgrind if available
-valgrind --leak-check=full ./circle
+valgrind --leak-check=full ./luminari
 ```
 
 ### **Database Integrity Test**

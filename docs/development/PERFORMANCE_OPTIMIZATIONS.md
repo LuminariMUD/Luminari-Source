@@ -95,7 +95,7 @@ if (update_count % 100 == 0) {
 ### Memory Debugging
 ```bash
 # Run with full memory checking
-valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ../bin/circle
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ../bin/luminari
 ```
 
 ## Future Optimization Targets
@@ -123,13 +123,13 @@ valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ../bin/circ
 ### Monitoring Commands
 ```bash
 # Check server performance
-top -p $(pgrep circle)
+top -p $(pgrep luminari)
 
 # Monitor memory usage
-valgrind --tool=massif ../bin/circle
+valgrind --tool=massif ../bin/luminari
 
 # Profile function calls
-gprof ../bin/circle gmon.out > profile.txt
+gprof ../bin/luminari gmon.out > profile.txt
 ```
 
 ## Best Practices

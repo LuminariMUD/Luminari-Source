@@ -280,7 +280,7 @@ The project is complete only when all of the following are true:
 - The discovered world-tool test set does not shrink.
 - `make test-world-tools` passes.
 - `make test` passes and is followed by `make install`, leaving no root-level
-  `circle` artifact.
+  `luminari` artifact.
 - A complete Phase 7 repeat, when its sealed inputs are available, is
   byte-identical to the accepted candidate tree.
 - Both build-system source lists and the Phase 8 code-evidence list contain all

@@ -44,7 +44,7 @@ make clean
 make -j"$(nproc)"
 make test
 make install
-./bin/circle -d lib
+./bin/luminari -d lib
 ```
 
 Development may use isolated minimal world data and a local test database. CI

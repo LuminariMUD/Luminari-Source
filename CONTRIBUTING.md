@@ -62,7 +62,7 @@ make install
 There is no `test_runner` binary. `make test` builds the root `cutest`
 executable against all production sources and also runs the registered shell
 checks. Always follow it with `make install`; do not leave a root-level
-`circle` binary.
+`luminari` binary.
 
 The focused protocol parser harness is separate:
 
@@ -96,7 +96,7 @@ world-tool, schema, and subsystem-specific gates.
       exact reproducible blocker.
 - [ ] Both build manifests agree when source membership changed.
 - [ ] Relevant docs, help SQL, and changelog entries are current.
-- [ ] No credential, protected local configuration, root `circle`, or temporary
+- [ ] No credential, protected local configuration, root `luminari`, or temporary
       validation artifact is included.
 - [ ] The pull request explains any migration, rollout, or rollback step.
 

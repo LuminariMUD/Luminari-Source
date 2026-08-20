@@ -1,7 +1,8 @@
 # Binary Rename: `circle` -> `luminari`
 
-> Planning document. This describes the required end state and rollout. The
-> rename is not implemented yet.
+> Phase A is implemented in this repository; the `bin/circle -> luminari`
+> compatibility link is still created and still required. Phase B has not
+> landed. Section 11 records implementation progress.
 
 Audit refreshed: 2026-08-20, against `master` at `a64f8afc`.
 
@@ -645,6 +646,9 @@ landed so an interrupted session can resume without re-deriving state.
       `test-binary-name-static` Autotools target and the `binary-name-static`
       CMake test. `rol_phase8.py` reports `root_build_artifacts_absent` and
       keeps `root_circle_absent` for existing manifests.
-- [ ] 4.5 Help, templates, and current documentation.
+- [x] 4.5 Help, templates, and current documentation, including the `GDB`
+      help entry in `lib/text/help/help.hlp` and the idempotent
+      `sql/components/help_gdb_binary_rename.sql` component registered as
+      `apply` in `sql/components/ci_schema_manifest.txt`.
 - [ ] 5 Phase A verification.
 - [ ] 6 Production rollout (not started; development checkout only).

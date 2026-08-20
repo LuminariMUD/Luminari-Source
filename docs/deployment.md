@@ -8,7 +8,7 @@ repository-level pipeline, release, and rollback boundaries.
 
 ```bash
 ./scripts/deployment/deploy.sh --dev
-./bin/circle -d lib
+./bin/luminari -d lib
 ./scripts/operations/healthcheck.sh
 ```
 
@@ -52,7 +52,7 @@ activation claim.
 ## Release Storage and Rollback
 
 `make install` stores immutable server and debug binaries under
-`bin/releases/<ELF-build-ID>/` and atomically updates `bin/circle`. Autorun
+`bin/releases/<ELF-build-ID>/` and atomically updates `bin/luminari`. Autorun
 records the active executable and build identity for crash analysis.
 
 The repository does not provide one general application rollback command.

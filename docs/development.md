@@ -19,8 +19,8 @@ Detailed APIs and subsystem behavior live in the
 |---------|---------|
 | `make clean && make -j"$(nproc)"` | Rebuild the configured Autotools tree |
 | `make test` | Run production-linked CuTest and registered shell regressions |
-| `make install` | Activate the tested immutable release as `bin/circle` |
-| `./bin/circle -d lib` | Run the server with repository runtime data |
+| `make install` | Activate the tested immutable release as `bin/luminari` |
+| `./bin/luminari -d lib` | Run the server with repository runtime data |
 | `./scripts/debugging/debug_game.sh` | Start the maintained GDB helper |
 | `./scripts/operations/healthcheck.sh` | Check database-backed local readiness |
 | `python scripts/world/wtool.py --help` | Inspect the read-only world-data tool surface |

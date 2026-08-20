@@ -132,14 +132,14 @@ The magic section now includes active spell effects with visual duration indicat
 # Memory leak testing for SKORE system
 valgrind --leak-check=full --show-leak-kinds=all \
          --track-origins=yes --log-file=valgrind_skore.log \
-         ../bin/circle < test_commands.txt
+         ../bin/luminari < test_commands.txt
 ```
 
 ### Performance Test (test_skore_performance.sh)
 ```bash
 #!/bin/bash
 # Performance testing - 100 iterations, target <10ms
-time for i in {1..100}; do echo "skore" | ../bin/circle; done
+time for i in {1..100}; do echo "skore" | ../bin/luminari; done
 ```
 
 ## Client Testing Guide
@@ -170,7 +170,7 @@ scoreconfig reset
 2. Add help entries: `hedit skore` and `hedit scoreconfig`
 
 ### Critical Tests
-1. **Memory**: `valgrind --leak-check=full ../bin/circle`
+1. **Memory**: `valgrind --leak-check=full ../bin/luminari`
 2. **Performance**: 100x execution <10ms each
 3. **Functionality**: All skore variants display correctly
 4. **Configuration**: All scoreconfig options work and persist

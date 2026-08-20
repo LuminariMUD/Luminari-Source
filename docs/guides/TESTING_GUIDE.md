@@ -42,8 +42,8 @@ make install
 ```
 
 This retains the tested binary and matching symbols under its immutable
-`bin/releases/<ELF-build-ID>/` directory, atomically activates `bin/circle`,
-and removes the root-level `circle` artifact that the test build may leave
+`bin/releases/<ELF-build-ID>/` directory, atomically activates `bin/luminari`,
+and removes the root-level `luminari` artifact that the test build may leave
 behind.
 
 ## Special Procedure Regression Ownership
@@ -103,7 +103,7 @@ assignment ownership, direct-header boundaries, exact manifest membership, and f
 consolidation.
 
 The manifest parity gate compares all compiled C paths, not incidental header listings. The current
-inventory is 288 production C sources in both `circle_SOURCES` and `SRC_C_FILES`, plus the same 41
+inventory is 288 production C sources in both `luminari_SOURCES` and `SRC_C_FILES`, plus the same 41
 test-owner sources in `cutest_SOURCES`, `cutest_test_files`, and `CUTEST_TEST_SOURCES`.
 
 ## Bardic Performance Regression Ownership
@@ -142,7 +142,7 @@ maintained behavior and security matrix.
 
 ## Standalone World-Data Tools
 
-The Python world-data suite requires neither MariaDB nor a `circle` build. Run
+The Python world-data suite requires neither MariaDB nor a `luminari` build. Run
 its complete enforced gate from the repository root:
 
 ```sh
@@ -315,7 +315,7 @@ make test-all
 This authoritative target runs the production-linked CuTest suite, the
 focused protocol parser harness, the character-rename static checks, and the
 isolated MariaDB schema test. It finishes with `make install`, so the tested
-server is installed as `bin/circle` and no root-level `circle` artifact is
+server is installed as `bin/luminari` and no root-level `luminari` artifact is
 left behind. The `unittests/CuTest` target of the same name delegates here.
 
 ## MariaDB Persistence Test
@@ -456,8 +456,8 @@ python3 scripts/world/wtool.py \
   --world-root <candidate-lib>/world validate --all --strict
 python3 scripts/world/wtool.py \
   --world-root <candidate-lib>/world --json rol-persistence-check
-bin/circle -c -d <candidate-lib>
-timeout --signal=INT 30 bin/circle -d <candidate-lib> <test-port>
+bin/luminari -c -d <candidate-lib>
+timeout --signal=INT 30 bin/luminari -d <candidate-lib> <test-port>
 ```
 
 The candidate lib root must use the repository's local development database

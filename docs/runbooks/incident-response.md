@@ -63,8 +63,10 @@ sudo systemctl restart luminari.service
 ./scripts/operations/healthcheck.sh --wait
 ```
 
-Analyze a core only with the executable and `circle.debug` recorded for the
-crashed process. During a controlled maintenance window, the maintained capture
+Analyze a core only with the executable recorded for the crashed process and
+the `.debug` sidecar beside it that carries the same basename. Releases made
+before the binary rename hold `circle`/`circle.debug`; newer ones hold
+`luminari`/`luminari.debug`. During a controlled maintenance window, the maintained capture
 self-test is:
 
 ```bash
@@ -124,7 +126,7 @@ Record the process identity and sample the live process before restart:
 
 ```bash
 ./scripts/autorun/autorun.sh status
-ps -o pid,ppid,etime,%cpu,%mem,rss,vsz,cmd -C circle
+ps -o pid,ppid,etime,%cpu,%mem,rss,vsz,cmd -C luminari
 ./scripts/process-memory/sample_process_memory_details.sh --header
 ```
 

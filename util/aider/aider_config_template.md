@@ -232,7 +232,7 @@ R 0 room_vnum obj_vnum (Remove object from room)
 S (End of zone commands)
 
 ## Testing Practices
-- Use ./bin/circle -c -q to syntax check
+- Use ./bin/luminari -c -q to syntax check
 - Test on development port (e.g., 4001) before live
 - Use 'stat' commands in-game to verify changes
 - Check 'syslog' for loading errors
@@ -448,13 +448,13 @@ chmod +x backup-zone.sh
 aider --no-git lib/world/wld/100.wld lib/world/mob/100.mob
 
 # 3. Syntax check
-./bin/circle -c -q
+./bin/luminari -c -q
 
 # 4. Check for errors
 tail -n 50 syslog
 
 # 5. Test on dev port if available
-# ./bin/circle 4001 &
+# ./bin/luminari 4001 &
 
 # 6. Connect and test
 # telnet localhost 4001
@@ -485,7 +485,7 @@ alias backup-zone='$LUMINARI_DIR/backup-zone.sh'
 alias backup-world='tar -czf $LUMINARI_DIR/lib/world/backups/world-$(date +%Y%m%d-%H%M).tar.gz -C $LUMINARI_DIR lib/world/'
 
 # Quick checks
-alias check-mud='$LUMINARI_DIR/bin/circle -c -q'
+alias check-mud='$LUMINARI_DIR/bin/luminari -c -q'
 alias check-log='tail -n 100 $LUMINARI_DIR/syslog'
 alias check-errors='grep -i error $LUMINARI_DIR/syslog | tail -n 20'
 
@@ -571,7 +571,7 @@ for ext in wld mob obj zon; do
 done
 
 # Check for syntax
-./bin/circle -c -q 2>&1 | grep -i "error\|warning" | grep "${ZONE}"
+./bin/luminari -c -q 2>&1 | grep -i "error\|warning" | grep "${ZONE}"
 
 # Check for terminators
 echo "Checking terminators..."
@@ -602,7 +602,7 @@ for ext in wld mob obj zon trg shp; do
 done
 
 # 4. Verify fixes
-./bin/circle -c -q
+./bin/luminari -c -q
 grep ERROR syslog | tail
 ```
 

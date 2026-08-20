@@ -30715,7 +30715,7 @@ GDB
 GDB stands for general debugger and is used to troubleshoot programming problems.
 
    From the root directory: 
-> gdb bin/circle
+> gdb bin/luminari
 gdb > run   (Then crash the MUD on purpose and get the debugging info.)
 gdb > bt 
 gdb > info local 

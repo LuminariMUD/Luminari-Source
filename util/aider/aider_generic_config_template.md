@@ -240,10 +240,10 @@ aider --no-git lib/world/wld/30.wld lib/world/mob/30.mob
 > Create a new shop in room 3050...
 
 # 3. Syntax check
-./bin/circle -c -q
+./bin/luminari -c -q
 
 # 4. Test on dev port
-./bin/circle -q 4001 &
+./bin/luminari -q 4001 &
 telnet localhost 4001
 
 # 5. If good, reload on live server (or wait for reboot)
@@ -333,10 +333,10 @@ aider --no-git lib/world/wld/125.wld
 > Create 5 connected rooms for a crypt entrance...
 
 # 3. Check syntax
-./bin/circle -c -q
+./bin/luminari -c -q
 
 # 4. Boot test server
-./bin/circle -q 4001 &
+./bin/luminari -q 4001 &
 
 # 5. Connect and test
 telnet localhost 4001

@@ -35,16 +35,21 @@ patterns=(
 )
 
 # Path-specific allowlist. Every entry is either the Phase A compatibility
-# implementation, a test that exercises it, the rename plan itself, or dated
-# historical evidence that must not be rewritten.
+# implementation, a test that exercises it, the rename plan and its index, an
+# operational document that must keep naming the old release layout so pre-
+# rename cores stay analyzable, or dated historical evidence that must not be
+# rewritten.
 allowed_paths=(
   '.github/workflows/test.yml'
   'docs/CHANGELOG.md'
   'docs/deployment/DEPLOYMENT_FIX.md'
   'docs/deployment/DEPLOYMENT_STATUS.md'
   'docs/ongoing-projects/BINARY_RENAME_CIRCLE_TO_LUMINARI.md'
+  'docs/guides/TROUBLESHOOTING_AND_MAINTENANCE.md'
   'docs/ongoing-projects/CAMPAIGN_VARIANT_RETIREMENT_LIVE_TEST_REPORT.md'
+  'docs/ongoing-projects/README_ongoing-projects.md'
   'docs/ongoing-projects/todo.md'
+  'docs/runbooks/incident-response.md'
   'docs/testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md'
   'docs/testing/VESSEL_BENCHMARKS.md'
   'docs/testing/VESSEL_SYSTEM_TESTING.md'

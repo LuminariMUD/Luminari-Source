@@ -124,7 +124,7 @@ ownership evidence in the
 
 - Use root production-linked CuTest coverage for vessel, vehicle, autopilot, special-procedure, and
   other behavior that touches real game sources and structures.
-- Run `make test`, then always run `make install`; do not leave a root-level `circle` artifact.
+- Run `make test`, then always run `make install`; do not leave a root-level `luminari` artifact.
 - There is no `test_runner` binary. The focused protocol harness is
   `unittests/CuTest/protocol_parser_tests` and is not a substitute for production-linked coverage.
 - Add `unittests/CuTest/test_*.c` files to `cutest_SOURCES` and `cutest_test_files` in
@@ -180,7 +180,7 @@ ownership evidence in the
 | Type safety | GCC/Clang `-Wall -Wextra` | `Makefile.am`, `CMakeLists.txt` |
 | Testing | CuTest and protocol parser harness | `Makefile.am`, `unittests/CuTest/Makefile` |
 | Build | Autotools/Automake and CMake | `Makefile.am`, `CMakeLists.txt` |
-| Development startup | Syntax-check boot | `./bin/circle -c -d lib` |
+| Development startup | Syntax-check boot | `./bin/luminari -c -d lib` |
 | Observability | Autorun structured crash capture | `scripts/autorun/autorun.sh`, `log/last_error_*.json` |
 | Git hooks | pre-commit | `.pre-commit-config.yaml` |
 | Database | MariaDB/MySQL C client | `src/mysql.c`, `sql/`, `lib/mysql_config` |

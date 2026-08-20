@@ -34,7 +34,7 @@ This will:
 1. Build and run the production-linked CuTest suite.
 2. Build and run the focused protocol parser harness.
 3. Run the character-rename static and temporary-MariaDB schema tests.
-4. Install the tested server to `bin/circle` and remove the root build artifact.
+4. Install the tested server to `bin/luminari` and remove the root build artifact.
 
 Individual targets remain available:
 

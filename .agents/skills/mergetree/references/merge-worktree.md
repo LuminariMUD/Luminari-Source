@@ -172,7 +172,7 @@ make test-all
 ```
 
 `make test-all` runs the production-linked CuTest suite, world tools, protocol parser, character
-rename checks, and `make install`; the install also removes the root-level `circle` artifact. Use
+rename checks, and `make install`; the install also removes the root-level `luminari` artifact. Use
 `autoreconf -fvi && ./configure` only when configuration files are absent or inputs require it.
 MariaDB is required. Save complete test output outside the repository when tool output may truncate,
 and report the command, exit status, and relevant failure details without dumping huge logs.

@@ -180,7 +180,7 @@ All table structures and INSERT statements use exact production database schema:
 ### Build System
 ```makefile
 # Added to Makefile.am
-circle_SOURCES = ... db_init.c db_init_data.c db_startup_init.c db_admin_commands.c
+luminari_SOURCES = ... db_init.c db_init_data.c db_startup_init.c db_admin_commands.c
 ```
 
 ### Command System

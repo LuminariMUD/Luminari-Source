@@ -37,8 +37,8 @@ make install
 # If configure/Makefile are missing:
 autoreconf -fvi && ./configure && make -j$(nproc)
 
-# Run the server (binary is bin/circle):
-./bin/circle -d lib
+# Run the server (binary is bin/luminari):
+./bin/luminari -d lib
 
 # Full environment setup aka fresh install (deps, MariaDB, world data, build):
 ./scripts/deployment/deploy.sh
@@ -58,9 +58,9 @@ make test
 make install
 ```
 
-The root `make test` path may also build `./circle`. Always follow it with
-`make install`, which installs the current server as `bin/circle` and removes
-the root-level binary. Do not leave a `circle` build artifact in the project
+The root `make test` path may also build `./luminari`. Always follow it with
+`make install`, which installs the current server as `bin/luminari` and removes
+the root-level binary. Do not leave a `luminari` build artifact in the project
 root.
 
 To add a test here: create `unittests/CuTest/test_*.c`, add it to
