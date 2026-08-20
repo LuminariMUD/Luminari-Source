@@ -707,4 +707,17 @@ landed so an interrupted session can resume without re-deriving state.
         7. Boot reached `Entering game loop.` with zero `SYSERR` lines, and
            `scripts/operations/healthcheck.sh` reported
            `status: healthy, database: healthy`.
-- [ ] 6 Production rollout (not started; development checkout only).
+- [ ] 6 Production rollout. Intentionally not performed from this checkout:
+      `lib/.env` reports `APP_ENV=development`, and the rollout is an
+      operator task on the production host. Everything section 6 depends on
+      is now ready and rehearsed locally.
+- [ ] 7 Phase B. Blocked by design on production evidence: a Phase A
+      binary must have initiated a copyover there, and the production
+      supervisor must have restarted with `MUD_BINARY=luminari`.
+
+### Session state
+
+The development checkout ends with `bin/luminari` and `bin/circle -> luminari`
+both pointing at the Phase A release, no root build artifact, and no MUD
+running (the rehearsal supervisor was stopped). Start one again with
+`./scripts/autorun/autorun.sh`.
