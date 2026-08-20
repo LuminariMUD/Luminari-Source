@@ -56,7 +56,7 @@
  * To see if your version supports it, run:
  * info libc 'Allocation Debugging' 'Tracing malloc'
  * Example usage (Bourne shell):
- *      MALLOC_TRACE=/tmp/circle-trace bin/circle
+ *      MALLOC_TRACE=/tmp/luminari-trace bin/luminari
  * Read the entire "Allocation Debugging" section of the GNU C library
  * documentation before setting this to '1'. */
 #define CIRCLE_GNU_LIBC_MEMORY_TRACK 0 /* 0 = off, 1 = on */

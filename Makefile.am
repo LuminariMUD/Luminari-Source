@@ -10,10 +10,10 @@ AM_CFLAGS = @CSTD_CFLAGS@ @MYFLAGS@
 
 
 # Main program
-bin_PROGRAMS = circle
+bin_PROGRAMS = luminari
 
 # Source files for the main program
-circle_SOURCES = \
+luminari_SOURCES = \
 	src/account.c \
 	src/act.comm.c \
 	src/act.comm.do_spec_comm.c \
@@ -326,7 +326,7 @@ circle_SOURCES = \
 	src/zmalloc.c
 
 # Libraries to link
-circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread -ljson-c
+luminari_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread -ljson-c
 
 
 # Unit testing with CuTest
@@ -379,10 +379,10 @@ cutest_SOURCES = \
 	unittests/CuTest/test_spec_combat_secondary.c \
 	unittests/CuTest/test_gameplay_e2e.c \
 	unittests/CuTest/AllTests.c \
-	$(circle_SOURCES)
+	$(luminari_SOURCES)
 
 cutest_CFLAGS = $(AM_CFLAGS) -DLUMINARI_CUTEST
-cutest_LDADD = $(circle_LDADD)
+cutest_LDADD = $(luminari_LDADD)
 
 cutest_test_files = \
 	unittests/CuTest/test_syntax_check_boot.c \
@@ -450,20 +450,20 @@ build_identity.h: FORCE_BUILD_IDENTITY scripts/deployment/generate_build_identit
 src/constants.$(OBJEXT) src/cutest-constants.$(OBJEXT): build_identity.h
 
 # Stage the server away from the mutable launch alias. The install hook below
-# promotes it into an immutable build-ID release and updates bin/circle.
-bindir = $(top_builddir)/bin/.circle-install
+# promotes it into an immutable build-ID release and updates bin/luminari.
+bindir = $(top_builddir)/bin/.luminari-install
 
 # After installation, remove the executable from the source directory
 install-exec-hook:
 	$(SHELL) $(abs_top_srcdir)/scripts/deployment/install_versioned_binary.sh \
-		$(bindir)/circle $(top_builddir)/bin
+		$(bindir)/luminari $(top_builddir)/bin
 	$(SHELL) $(abs_top_srcdir)/scripts/provision_artifacts.sh
-	rm -f $(bindir)/circle
+	rm -f $(bindir)/luminari
 	rmdir $(bindir)
 	rm -f $(bin_PROGRAMS)
 
 # Ensure constants.c is rebuilt when other sources change
-src/constants.c: $(filter-out src/constants.c,$(circle_SOURCES))
+src/constants.c: $(filter-out src/constants.c,$(luminari_SOURCES))
 	touch $@
 
 # Standalone Python world-data tooling. Keep this list synchronized with
@@ -879,7 +879,7 @@ test-vessel-tooling:
 	./scripts/vessels/test_vessel_scale_benchmark_parsers.sh
 
 # Authoritative full local test entry point. The final install both verifies the
-# install path and removes the root-level circle artifact created by make test.
+# install path and removes the root-level luminari artifact created by make test.
 test-all:
 	$(MAKE) test
 	$(MAKE) test-world-tools

@@ -71,16 +71,16 @@
 #define SUF_PLR "plr"
 
 #if defined(CIRCLE_AMIGA)
-#define EXE_FILE "/bin/circle"         /* maybe use argv[0] but it's not reliable */
+#define EXE_FILE "/bin/luminari"       /* maybe use argv[0] but it's not reliable */
 #define KILLSCRIPT_FILE "/.killscript" /* autorun: shut mud down       */
 #define PAUSE_FILE "/pause"            /* autorun: don't restart mud   */
 #elif defined(CIRCLE_MACINTOSH)
-#define EXE_FILE "::bin:circle"         /* maybe use argv[0] but it's not reliable */
+#define EXE_FILE "::bin:luminari"       /* maybe use argv[0] but it's not reliable */
 #define FASTBOOT_FILE "::.fastboot"     /* autorun: boot without sleep	*/
 #define KILLSCRIPT_FILE "::.killscript" /* autorun: shut mud down	*/
 #define PAUSE_FILE "::pause"            /* autorun: don't restart mud	*/
 #else
-#define EXE_FILE "bin/circle"            /* maybe use argv[0] but it's not reliable */
+#define EXE_FILE "bin/luminari"          /* maybe use argv[0] but it's not reliable */
 #define FASTBOOT_FILE "../.fastboot"     /* autorun: boot without sleep  */
 #define KILLSCRIPT_FILE "../.killscript" /* autorun: shut mud down       */
 #define PAUSE_FILE "../pause"            /* autorun: don't restart mud   */

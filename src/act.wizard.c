@@ -7004,7 +7004,7 @@ void perform_do_copyover()
   {
     log_copyover_phase("EXECL", "Calling execl()");
     exec_attempted = TRUE;
-    execl(copyover_executable, "circle", buf2, buf, (char *)NULL);
+    execl(copyover_executable, "luminari", buf2, buf, (char *)NULL);
     exec_errno = errno;
 
     /* A successful exec never returns.  Keep the current process protected if
@@ -7031,7 +7031,7 @@ void perform_do_copyover()
         strerror(exec_errno), exec_errno);
   }
   close_copyover_diagnostics(0);
-  log("SYSERR: Attempted to execute: %s with args: circle %s %s", copyover_executable, buf2, buf);
+  log("SYSERR: Attempted to execute: %s with args: luminari %s %s", copyover_executable, buf2, buf);
 
   /* Try to change back to lib directory for recovery attempt */
   if (chdir("lib") != 0)

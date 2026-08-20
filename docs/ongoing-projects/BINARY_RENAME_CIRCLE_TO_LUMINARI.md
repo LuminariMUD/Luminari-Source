@@ -621,3 +621,19 @@ full world syntax boot. This plan uses
 `LUMINARI_TEST_SYNTAX_TIMEOUT_SECONDS=480` to give slower hosts explicit
 headroom. Changing the global default is an independent test-policy decision
 and should not be hidden in the binary rename.
+
+## 11. Implementation progress log
+
+Phase A is being implemented incrementally. This section records what has
+landed so an interrupted session can resume without re-deriving state.
+
+- [x] 4.1 Build target and C source (`Makefile.am`, `CMakeLists.txt`,
+      `src/db.h`, `src/act.wizard.c`,
+      `unittests/CuTest/test_syntax_check_boot.c`, `src/sysdep.h`,
+      `.gitignore`).
+- [ ] 4.2 Installer and mixed release layouts.
+- [ ] 4.3 Autorun, systemd, deploy, and diagnostics.
+- [ ] 4.4 CI, test harnesses, and operational tooling.
+- [ ] 4.5 Help, templates, and current documentation.
+- [ ] 5 Phase A verification.
+- [ ] 6 Production rollout (not started; development checkout only).

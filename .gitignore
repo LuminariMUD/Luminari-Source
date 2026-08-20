@@ -380,7 +380,7 @@ lib/text/help/*
 !lib/world/shp/.gitkeep
 !lib/world/trg/.gitkeep
 !lib/world/qst/.gitkeep
-circle
+/luminari
 
 # Ignore tar and gz files in root
 /*.tar

@@ -242,7 +242,7 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
       _exit(20);
     close(output_pipe[1]);
 
-    argv[0] = (char *)"circle";
+    argv[0] = (char *)"luminari";
     if (config_file != NULL)
     {
       argv[1] = (char *)"-f";

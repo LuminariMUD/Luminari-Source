@@ -27,7 +27,7 @@ if (NOT LUMINARI_HAVE_C23_KEYWORDS)
     message(FATAL_ERROR "The C compiler does not provide the required GNU C23 language support")
 endif()
 
-# Build outside the mutable launch alias. Installation promotes circle into an
+# Build outside the mutable launch alias. Installation promotes luminari into an
 # immutable build-ID release under the source tree's bin directory.
 set(BIN_OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin)
 set(INSTALL_BIN_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin)
@@ -756,7 +756,7 @@ set(SRC_FILES ${SRC_C_FILES} ${BUILD_IDENTITY_HEADER})
 set_source_files_properties(${BUILD_IDENTITY_HEADER} PROPERTIES GENERATED TRUE)
 
 # ========== Build main executable FIRST ==========
-add_executable(circle ${SRC_FILES})
+add_executable(luminari ${SRC_FILES})
 add_custom_target(refresh_build_identity ALL
     COMMAND bash
             ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/generate_build_identity.sh
@@ -764,10 +764,10 @@ add_custom_target(refresh_build_identity ALL
             ${CMAKE_CURRENT_SOURCE_DIR}
     BYPRODUCTS ${BUILD_IDENTITY_HEADER}
     COMMENT "Refreshing embedded Git build identity")
-add_dependencies(circle refresh_build_identity)
+add_dependencies(luminari refresh_build_identity)
 
 # Add compile definitions based on detected features
-target_compile_definitions(circle PRIVATE
+target_compile_definitions(luminari PRIVATE
     $<$<BOOL:${CIRCLE_MYSQL}>:CIRCLE_MYSQL>
     $<$<BOOL:${CIRCLE_UNIX}>:CIRCLE_UNIX>
     $<$<BOOL:${CIRCLE_CRYPT}>:CIRCLE_CRYPT>
@@ -823,48 +823,48 @@ target_compile_definitions(circle PRIVATE
 
 # Add type definitions if needed
 if (NOT HAVE_PID_T)
-    target_compile_definitions(circle PRIVATE pid_t=int)
+    target_compile_definitions(luminari PRIVATE pid_t=int)
 endif()
 if (NOT HAVE_SIZE_T)
-    target_compile_definitions(circle PRIVATE size_t=unsigned)
+    target_compile_definitions(luminari PRIVATE size_t=unsigned)
 endif()
 if (NOT HAVE_SSIZE_T)
-    target_compile_definitions(circle PRIVATE ssize_t=int)
+    target_compile_definitions(luminari PRIVATE ssize_t=int)
 endif()
 if (NOT HAVE_SOCKLEN_T)
-    target_compile_definitions(circle PRIVATE socklen_t=int)
+    target_compile_definitions(luminari PRIVATE socklen_t=int)
 endif()
 
 # Link required libraries
-target_link_libraries(circle ${EXTRA_LIBS} m pthread)
+target_link_libraries(luminari ${EXTRA_LIBS} m pthread)
 
 # Find and link additional libraries
 find_library(CURL_LIBRARY curl)
 if (CURL_LIBRARY)
-    target_link_libraries(circle ${CURL_LIBRARY})
+    target_link_libraries(luminari ${CURL_LIBRARY})
 endif()
 
 find_library(SSL_LIBRARY ssl)
 if (SSL_LIBRARY)
-    target_link_libraries(circle ${SSL_LIBRARY})
+    target_link_libraries(luminari ${SSL_LIBRARY})
 endif()
 
 find_library(CRYPTO_LIBRARY crypto)
 if (CRYPTO_LIBRARY)
-    target_link_libraries(circle ${CRYPTO_LIBRARY})
+    target_link_libraries(luminari ${CRYPTO_LIBRARY})
 endif()
 
 find_library(JSON_C_LIBRARY json-c)
 if (JSON_C_LIBRARY)
-    target_link_libraries(circle ${JSON_C_LIBRARY})
-    target_compile_definitions(circle PRIVATE HAVE_JSON_C)
+    target_link_libraries(luminari ${JSON_C_LIBRARY})
+    target_compile_definitions(luminari PRIVATE HAVE_JSON_C)
 endif()
 
 # ========== Compiler warnings and options ==========
 if (CMAKE_COMPILER_IS_GNUCC)
     # Additional warnings for development
     if (DEVELOPER_MODE)
-        target_compile_options(circle PRIVATE -Wshadow -Wcast-qual
+        target_compile_options(luminari PRIVATE -Wshadow -Wcast-qual
                                -Wwrite-strings -Wconversion -Wunreachable-code)
     endif()
 endif()
@@ -872,15 +872,15 @@ endif()
 # ========== Feature toggles ==========
 if (MEMORY_DEBUG)
     message(STATUS "MEMORY_DEBUG is activated")
-    target_compile_definitions(circle PRIVATE MEMORY_DEBUG)
+    target_compile_definitions(luminari PRIVATE MEMORY_DEBUG)
 endif()
 
 if (DMALLOC)
     message(STATUS "DMALLOC is activated")
-    target_compile_definitions(circle PRIVATE DMALLOC)
+    target_compile_definitions(luminari PRIVATE DMALLOC)
     find_library(DMALLOC_LIBRARY dmalloc)
     if (DMALLOC_LIBRARY)
-        target_link_libraries(circle ${DMALLOC_LIBRARY})
+        target_link_libraries(luminari ${DMALLOC_LIBRARY})
     endif()
 endif()
 
@@ -1226,19 +1226,19 @@ if (BUILD_TESTS)
     target_include_directories(cutest PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest)
 
-    get_target_property(CIRCLE_COMPILE_DEFINITIONS
-        circle COMPILE_DEFINITIONS)
+    get_target_property(LUMINARI_COMPILE_DEFINITIONS
+        luminari COMPILE_DEFINITIONS)
     target_compile_definitions(cutest PRIVATE
-        ${CIRCLE_COMPILE_DEFINITIONS}
+        ${LUMINARI_COMPILE_DEFINITIONS}
         LUMINARI_CUTEST)
 
-    get_target_property(CIRCLE_COMPILE_OPTIONS circle COMPILE_OPTIONS)
-    if (CIRCLE_COMPILE_OPTIONS)
-        target_compile_options(cutest PRIVATE ${CIRCLE_COMPILE_OPTIONS})
+    get_target_property(LUMINARI_COMPILE_OPTIONS luminari COMPILE_OPTIONS)
+    if (LUMINARI_COMPILE_OPTIONS)
+        target_compile_options(cutest PRIVATE ${LUMINARI_COMPILE_OPTIONS})
     endif()
 
-    get_target_property(CIRCLE_LINK_LIBRARIES circle LINK_LIBRARIES)
-    target_link_libraries(cutest PRIVATE ${CIRCLE_LINK_LIBRARIES})
+    get_target_property(LUMINARI_LINK_LIBRARIES luminari LINK_LIBRARIES)
+    target_link_libraries(cutest PRIVATE ${LUMINARI_LINK_LIBRARIES})
 
     add_test(NAME production-cutest COMMAND cutest)
     set_tests_properties(production-cutest PROPERTIES
@@ -1333,11 +1333,11 @@ install(CODE "
     execute_process(
         COMMAND
             \"${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/install_versioned_binary.sh\"
-            \"$<TARGET_FILE:circle>\"
+            \"$<TARGET_FILE:luminari>\"
             \"${INSTALL_BIN_OUTPUT_DIR}\"
         RESULT_VARIABLE versioned_install_result)
     if (NOT versioned_install_result EQUAL 0)
-        message(FATAL_ERROR \"Versioned circle installation failed\")
+        message(FATAL_ERROR \"Versioned luminari installation failed\")
     endif()
     execute_process(
         COMMAND \"${CMAKE_CURRENT_SOURCE_DIR}/scripts/provision_artifacts.sh\"
