@@ -650,7 +650,7 @@ landed so an interrupted session can resume without re-deriving state.
       help entry in `lib/text/help/help.hlp` and the idempotent
       `sql/components/help_gdb_binary_rename.sql` component registered as
       `apply` in `sql/components/ci_schema_manifest.txt`.
-- [~] 5 Phase A verification, on development (`APP_ENV=development`).
+- [x] 5 Phase A verification, on development (`APP_ENV=development`).
   - [x] 5.1 `git diff --check`, `bash -n` on every changed script, and
         `test-binary-name-static` all pass. Remaining `circle` hits are the
         reviewed allowlist in that script.
@@ -675,5 +675,33 @@ landed so an interrupted session can resume without re-deriving state.
         installer through `$<TARGET_FILE:luminari>` and produces the same
         source-tree layout as Autotools. The Autotools release was
         reinstalled afterwards to restore the active alias.
-  - [ ] 5.4 Local runtime and copyover rehearsal.
+  - [x] 5.4 Local runtime and copyover rehearsal, run on development with
+        `scripts/autorun/autorun.sh` (never `luminari.service`). Evidence,
+        2026-08-21:
+        1. Pre-rename release `87d6d63e...` (`<release>/circle`, commit
+           `4a61df85`) was reactivated by the Phase A installer, which
+           validated the old-format layout and published
+           `bin/luminari -> releases/87d6d63e.../circle` with
+           `bin/circle -> luminari`.
+        2. That old release was started through the alias chain by autorun
+           with `MUD_BINARY=circle`, simulating the old supervisor. MUD PID
+           106586.
+        3. Phase A release `64663f1c...` was installed while that MUD kept
+           running; the live process stayed on the old release.
+        4. Copyover old -> Phase A via
+           `dev_kohdee_login_smoke.sh --copyover-check score`: the connected
+           character survived, PID stayed 106586, and `/proc/<pid>/exe`
+           became `.../64663f1c.../luminari`. `.mud.identity` and
+           `.autorun.state` both converged on that value, and the supervisor
+           logged `Active MUD executable changed in place`.
+        5. Copyover Phase A -> Phase A: same PID, character survived again.
+           The Phase A image contains only the string `../bin/luminari` and
+           no `bin/circle`, so this copyover necessarily resolved the new
+           compiled path.
+        6. With the compatibility link still present, an autorun stop/start
+           produced a supervisor reporting `MUD_BINARY=luminari` that
+           launched `bin/luminari` directly (MUD PID 117857).
+        7. Boot reached `Entering game loop.` with zero `SYSERR` lines, and
+           `scripts/operations/healthcheck.sh` reported
+           `status: healthy, database: healthy`.
 - [ ] 6 Production rollout (not started; development checkout only).

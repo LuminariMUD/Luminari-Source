@@ -224,7 +224,9 @@ if port_is_listening; then
   [[ "$listener_pid" =~ ^[1-9][0-9]*$ ]] ||
     fail "could not identify the process listening on port $mud_port"
   listener_exe=$(readlink -f -- "/proc/$listener_pid/exe" 2>/dev/null || true)
-  [[ "$listener_exe" == "$(readlink -f -- "$repo_root/bin/luminari")" ]] ||
+  # Match the checkout's release tree rather than the current alias: a MUD that
+  # is still running an older release is exactly what a copyover check needs.
+  [[ "$listener_exe" == "$(readlink -f -- "$repo_root/bin")/"* ]] ||
     fail "port $mud_port is occupied by something other than this checkout's MUD"
   printf 'Reusing the development MUD on port %s.\n' "$mud_port"
 else
