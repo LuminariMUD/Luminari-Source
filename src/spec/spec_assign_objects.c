@@ -177,8 +177,6 @@ void assign_objects(void)
   ASSIGNOBJ(196087, skullsmasher);
 
   /* more homeland, unsorted */
-  ASSIGNOBJ(100400, gen_board); /* quest board */
-
   ASSIGNOBJ(123419, neverwinter_button_control);
   ASSIGNOBJ(123418, neverwinter_valve_control);
 
@@ -277,8 +275,6 @@ void assign_objects(void)
   ASSIGNOBJ(139250, courage);
   ASSIGNOBJ(139251, courage);
   ASSIGNOBJ(121456, clang_bracer);
-  ASSIGNOBJ(128150, spikeshield);
-  ASSIGNOBJ(128106, ches);
   ASSIGNOBJ(100596, tormblade);
   // ASSIGNOBJ(100599, tormblade); // obj #100599 doesn't exist
 

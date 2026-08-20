@@ -37,15 +37,11 @@ void assign_rooms(void)
   room_rnum i;
 
 
-  /* bazaar - spend quest points on magic gear */
-  ASSIGNROOM(103006, bazaar);
-
   /* crafting quest (autocraft) */
   ASSIGNROOM(370, crafting_quest);
 
   /* wizard library - research wizard spells for spellbook */
-  ASSIGNROOM(5905, wizard_library);   /* wizard training mansion */
-  ASSIGNROOM(103047, wizard_library); /* Ashenport Mage's Guild */
+  ASSIGNROOM(5905, wizard_library); /* wizard training mansion */
 
   /* buy pets */
   ASSIGNROOM(3031, pet_shops);
@@ -80,7 +76,7 @@ void assign_rooms(void)
   ASSIGNROOM(139217, abyssal_vortex);
   ASSIGNROOM(139218, abyssal_vortex);
   ASSIGNROOM(139219, abyssal_vortex);
-  ASSIGNROOM(139210, abyssal_vortex);
+  ASSIGNROOM(139220, abyssal_vortex);
   ASSIGNROOM(139221, abyssal_vortex);
   ASSIGNROOM(139222, abyssal_vortex);
   ASSIGNROOM(139223, abyssal_vortex);

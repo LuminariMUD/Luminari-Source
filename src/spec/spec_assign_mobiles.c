@@ -137,7 +137,6 @@ void assign_mobiles(void)
   ASSIGNMOB(5402, guild);
   ASSIGNMOB(5403, guild);
   ASSIGNMOB(11518, guild);
-  ASSIGNMOB(14105, guild);
   /* female newbie trainer newbie school */
   ASSIGNMOB(23411, guild);
   ASSIGNMOB(25720, guild);
@@ -332,7 +331,6 @@ void assign_mobiles(void)
 
   /* Waterdeep*/
   ASSIGNMOB(103001, receptionist);
-  ASSIGNMOB(103010, postmaster);
   ASSIGNMOB(103200, guild_guard); // Anti-Paladin
   ASSIGNMOB(103201, guild);       // Anti-Paladin
   ASSIGNMOB(103202, guild_guard); // Assassin
@@ -562,7 +560,6 @@ void assign_mobiles(void)
   /* BANKS */
   ASSIGNMOB(121825, bank);
   ASSIGNMOB(103007, bank);
-  ASSIGNMOB(110421, bank);
   ASSIGNMOB(113010, bank);
   ASSIGNMOB(105039, bank);
 
@@ -610,7 +607,6 @@ void assign_mobiles(void)
 
   /*Beregost*/
   ASSIGNMOB(121822, receptionist);
-  ASSIGNMOB(121825, bank);
 
   /*Tilverton*/
   ASSIGNMOB(111373, receptionist);
@@ -667,9 +663,6 @@ void assign_mobiles(void)
 
   ASSIGNMOB(136702, ogremoch);
 
-  ASSIGNMOB(106000, cf_alathar);
-  ASSIGNMOB(106040, cf_trainingmaster);
-
   ASSIGNMOB(145146, ttf_monstrosity);
   ASSIGNMOB(145116, ttf_abomination);
   ASSIGNMOB(145182, ttf_rotbringer);
@@ -696,7 +689,6 @@ void assign_mobiles(void)
   ASSIGNMOB(100580, imix);
   ASSIGNMOB(100508, practice_dummy);
   ASSIGNMOB(100509, practice_dummy);
-  ASSIGNMOB(142300, abyss_randomizer);
   ASSIGNMOB(109718, banshee);
 
   ASSIGNMOB(106230, banshee);
