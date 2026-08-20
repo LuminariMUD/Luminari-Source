@@ -185,6 +185,7 @@
     "rule_set_version": "rol-mobile-identity-tier-v1",
     "source_registry": {
       "path": "EXAMPLE/RealmsOfLuminari/src/race_class.c",
+      "snapshot_path": "scripts/world/rol_source_race_registry.json",
       "sha256": "9b25944b330b8adca7e7129ccd3d8f1ce5d6526f1a3a9f5d31cb63ac304b9a30",
       "expected_code_count": 75
     },

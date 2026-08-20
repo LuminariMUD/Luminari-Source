@@ -22,6 +22,7 @@ extern bool restore_pet_runtime_state_for_test(struct char_data *pet, const char
 extern char *build_pet_keyword_list_for_test(const char *saved_keywords,
                                              const char *prototype_keywords);
 extern bool save_char_pets(struct char_data *ch);
+extern void reset_pet_save_cache_for_test(void);
 
 static int query_single_int(MYSQL *connection, const char *query, int fallback);
 
@@ -192,6 +193,7 @@ static bool reset_old_pet_snapshot(MYSQL *connection)
 
 static void initialize_pet_save_fixture(struct pet_save_fixture *fixture)
 {
+  reset_pet_save_cache_for_test();
   memset(fixture, 0, sizeof(*fixture));
   clear_char(&fixture->owner);
   clear_char(&fixture->first_pet);
@@ -598,6 +600,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   for (failure_query = 1; rollback_coverage_passed && failure_query <= save_query_count;
        failure_query++)
   {
+    fixture.timed_affect.duration = 12 + failure_query;
     if (!reset_old_pet_snapshot(connection))
     {
       rollback_coverage_passed = false;
@@ -733,7 +736,7 @@ void Test_pet_snapshot_lifecycle_handles_disconnect_and_follower_removal(CuTest 
   mysql_query_counter_reset();
   detached_saved = save_char_pets(&fixture.owner);
   detached_save_queries = (int)mysql_query_counter_value();
-  detached_saved = detached_saved && detached_save_queries == 9 &&
+  detached_saved = detached_saved && detached_save_queries == 0 &&
                    query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2 &&
                    query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1) == 3;
 
@@ -758,7 +761,7 @@ void Test_pet_snapshot_lifecycle_handles_disconnect_and_follower_removal(CuTest 
   CuAssertTrue(tc, disconnected_skipped);
   CuAssertIntEquals(tc, 0, disconnected_save_queries);
   CuAssertTrue(tc, detached_saved);
-  CuAssertIntEquals(tc, 9, detached_save_queries);
+  CuAssertIntEquals(tc, 0, detached_save_queries);
   CuAssertTrue(tc, followers_removed);
   CuAssertIntEquals(tc, 4, removal_save_queries);
   CuAssertIntEquals(tc, 0, final_pet_rows);

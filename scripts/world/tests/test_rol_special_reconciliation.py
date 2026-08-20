@@ -23,6 +23,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
   def setUpClass(cls) -> None:
     cls.root = default_repo_root()
 
+  def _require_reference_paths(self, *relative_paths: str) -> None:
+    missing = [relative for relative in relative_paths if not (self.root / relative).exists()]
+    if missing:
+      self.skipTest("ignored RoL reference inputs are not installed")
+
   def test_reviewed_handler_dispositions_do_not_rely_on_matching_names(self) -> None:
     guild = handler_disposition("guild")
     dump = handler_disposition("dump")
@@ -967,6 +972,7 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("RoL Monster Combat", disposition["target"])
 
   def test_source_definition_scanner_ignores_preprocessor_disabled_decoy(self) -> None:
+    self._require_reference_paths("EXAMPLE/RealmsOfLuminari/src/specs.realm.c")
     definitions = source_handler_definitions(
         self.root / "EXAMPLE/RealmsOfLuminari", {"tree_spirit"}
     )
@@ -975,6 +981,12 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual(188, definitions["tree_spirit"]["line"])
 
   def test_production_inputs_generate_complete_progress_ledgers(self) -> None:
+    self._require_reference_paths(
+        "lib/rol-conversion/runs/phase1-policy2-20260813-special-discovery/run-manifest.json",
+        "lib/rol-conversion/runs/phase2-policy2-20260813-special-discovery/run-manifest.json",
+        "lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit/run-manifest.json",
+        "EXAMPLE/RealmsOfLuminari/areas",
+    )
     with tempfile.TemporaryDirectory() as temporary:
       output_dir = Path(temporary) / "phase6"
       summary = write_special_reconciliation_bundle(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -22,12 +23,28 @@ class RolMobileIdentityTests(unittest.TestCase):
   def setUpClass(cls) -> None:
     cls.root = default_repo_root()
     cls.policy, cls.manifest, cls.registry = load_mobile_conversion_policy(cls.root)
-    cls.corpus = parse_active_rol_corpus(
-        cls.root / "EXAMPLE/RealmsOfLuminari", cls.root
+    cls.source_root = cls.root / "EXAMPLE/RealmsOfLuminari"
+    cls.corpus = None
+    cls.mobiles = []
+    if (cls.source_root / "areas").is_dir():
+      cls.corpus = parse_active_rol_corpus(cls.source_root, cls.root)
+      cls.mobiles = [record for record in cls.corpus.records if record.kind == "mob"]
+
+  def _require_reference_corpus(self) -> None:
+    if self.corpus is None:
+      self.skipTest("ignored RoL reference corpus is not installed")
+
+  def _require_calculator(self) -> None:
+    configured = os.environ.get("ROL_MOB_CALCULATOR")
+    candidates = [Path(configured)] if configured else []
+    candidates.extend(
+        self.root / str(name) for name in self.policy["calculator"]["binary_names"]
     )
-    cls.mobiles = [record for record in cls.corpus.records if record.kind == "mob"]
+    if not any(path.is_file() for path in candidates):
+      self.skipTest("build util/rol_mob_calculator before running calculator tests")
 
   def _record(self, basename: str, vnum: int):
+    self._require_reference_corpus()
     return next(
         record
         for record in self.mobiles
@@ -137,6 +154,7 @@ class RolMobileIdentityTests(unittest.TestCase):
       self.assertEqual("SIZE_COLOSSAL", selection.identity.final_size_symbol)
 
   def test_source_spell_resistance_uses_explicit_then_race_derived_precedence(self) -> None:
+    self._require_reference_corpus()
     explicit_record = next(
         record
         for record in self.mobiles
@@ -170,6 +188,7 @@ class RolMobileIdentityTests(unittest.TestCase):
     self.assertEqual(80, living.effective_source_spell_resistance)
 
   def test_tiamat_serialization_preserves_each_runtime_phase_budget(self) -> None:
+    self._require_calculator()
     with MobileCalculatorClient(self.root) as calculator:
       living = emit_mobile(
           self._record("astral_main", 19700), 2_019_700, calculator=calculator
@@ -191,6 +210,7 @@ class RolMobileIdentityTests(unittest.TestCase):
     )
 
   def test_regular_serialization_preserves_base_autoroll_hit_die_shape(self) -> None:
+    self._require_calculator()
     record = self._fixture("N 0 0", "guard", "a guard")
     destination_vnum = 2_000_100
     with MobileCalculatorClient(self.root) as calculator:
@@ -207,6 +227,7 @@ class RolMobileIdentityTests(unittest.TestCase):
     )
 
   def test_full_active_corpus_resolves_without_manual_review(self) -> None:
+    self._require_reference_corpus()
     statuses = Counter()
     mixed_count = 0
     high_level_count = 0
@@ -237,6 +258,8 @@ class RolMobileIdentityTests(unittest.TestCase):
     )
 
   def test_full_corpus_serialization_uses_one_native_calculator_process(self) -> None:
+    self._require_reference_corpus()
+    self._require_calculator()
     explicit_spell_resistance = 0
     positive_prestige = 0
     negative_prestige = 0

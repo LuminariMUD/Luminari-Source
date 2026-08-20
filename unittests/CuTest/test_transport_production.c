@@ -6,6 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"
+#include "../../src/graph.h"
 #include "../../src/perfmon.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
@@ -17,6 +18,50 @@
 #include <string.h>
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
+
+void Test_graph_room_distance_handles_small_and_invalid_worlds(CuTest *tc)
+{
+  struct room_data rooms[2];
+  struct room_direction_data east_exit;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int same_room_result;
+  int adjacent_room_result;
+  int disconnected_result;
+  int invalid_target_result;
+  int null_world_result;
+  int empty_world_result;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  memset(rooms, 0, sizeof(rooms));
+  memset(&east_exit, 0, sizeof(east_exit));
+  east_exit.to_room = 1;
+  rooms[0].dir_option[EAST] = &east_exit;
+  world = rooms;
+  top_of_world = 1;
+
+  same_room_result = count_rooms_between(0, 0);
+  adjacent_room_result = count_rooms_between(0, 1);
+  disconnected_result = count_rooms_between(1, 0);
+  invalid_target_result = count_rooms_between(0, 2);
+
+  world = NULL;
+  null_world_result = count_rooms_between(0, 1);
+  world = rooms;
+  top_of_world = NOWHERE;
+  empty_world_result = count_rooms_between(0, 0);
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertIntEquals(tc, 0, same_room_result);
+  CuAssertIntEquals(tc, 1, adjacent_room_result);
+  CuAssertIntEquals(tc, -1, disconnected_result);
+  CuAssertIntEquals(tc, -1, invalid_target_result);
+  CuAssertIntEquals(tc, -1, null_world_result);
+  CuAssertIntEquals(tc, -1, empty_world_result);
+}
 
 void Test_transport_landmark_regions_accept_names_and_city(CuTest *tc)
 {

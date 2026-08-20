@@ -927,6 +927,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool.py
     scripts/world/wtool_constants.json
     scripts/world/rol_conversion_policy.json
+    scripts/world/rol_source_race_registry.json
     scripts/world/wtool_lib/__init__.py
     scripts/world/wtool_lib/cli.py
     scripts/world/wtool_lib/config.py

@@ -21,6 +21,17 @@
 
 #### Fixed
 
+- Restored clean-checkout world-tool coverage by tracking the converter's object fixtures and a
+  validated source-race registry snapshot. Tests that require the separately supplied legacy
+  source corpus now skip only those integration cases, while the native calculator is built and
+  exercised in CI.
+- Replaced `count_rooms_between()`'s zero-length and undersized stack arrays with bounds-checked
+  dynamic storage, including coverage for single-room worlds and invalid room numbers.
+- Isolated the pet-save fingerprint cache between database tests and varied retry fixtures so the
+  MariaDB failure assertions exercise the intended writes instead of a stale cache hit.
+- Released command-history allocations in the bandit special-procedure test, made the process
+  memory regression script executable in clean checkouts, and closed an invalid-enum path that
+  produced compiler warnings in the special-procedure persistence tests.
 - Prevented `accexp class` from listing or selling placeholder classes whose class definition is
   not enabled for play.
 - Made `landmarks` list the available landmark areas, accept either an area name or exact zone

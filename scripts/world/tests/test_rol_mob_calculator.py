@@ -22,7 +22,7 @@ class RolMobileCalculatorTests(unittest.TestCase):
         os.environ.get("ROL_MOB_CALCULATOR", cls.root / "util/rol_mob_calculator")
     )
     if not cls.executable.is_file():
-      raise RuntimeError("build util/rol_mob_calculator before running calculator tests")
+      raise unittest.SkipTest("build util/rol_mob_calculator before running calculator tests")
 
   def _helper(self, body: str) -> Path:
     temporary = tempfile.TemporaryDirectory()

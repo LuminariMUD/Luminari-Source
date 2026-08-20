@@ -197,9 +197,67 @@ def _bounded_c_block(text: str, declaration: str) -> str:
   return text[opening + 1 : closing]
 
 
+def _load_source_race_registry_snapshot(
+    repo_root: Path, registry_policy: dict[str, Any]
+) -> dict[str, SourceRace]:
+  snapshot_path = repo_root / registry_policy["snapshot_path"]
+  expected_fields = [
+      "code",
+      "macro",
+      "source_index",
+      "source_name",
+      "average_height",
+      "average_weight",
+      "magic_resistance_cap",
+  ]
+  try:
+    payload = json.loads(snapshot_path.read_text(encoding="ascii"))
+  except (OSError, ValueError) as error:
+    raise MobileConversionError(
+        f"cannot load source race registry snapshot {snapshot_path}: {error}"
+    ) from error
+  if payload.get("schema_version") != 1 or payload.get("fields") != expected_fields:
+    raise MobileConversionError("source race registry snapshot has an unsupported schema")
+  if payload.get("source_path") != registry_policy["path"]:
+    raise MobileConversionError("source race registry snapshot path does not match policy")
+  if payload.get("source_sha256") != registry_policy["sha256"]:
+    raise MobileConversionError("source race registry snapshot hash does not match policy")
+  rows = payload.get("races")
+  if not isinstance(rows, list):
+    raise MobileConversionError("source race registry snapshot has no race rows")
+
+  registry: dict[str, SourceRace] = {}
+  source_indexes: set[int] = set()
+  macros: set[str] = set()
+  for row in rows:
+    if (
+        not isinstance(row, list)
+        or len(row) != len(expected_fields)
+        or not all(isinstance(value, str) for value in (row[0], row[1], row[3]))
+        or not all(isinstance(value, int) for value in (row[2], row[4], row[5], row[6]))
+    ):
+      raise MobileConversionError("source race registry snapshot contains an invalid row")
+    race = SourceRace(*row)
+    if race.code in registry or race.source_index in source_indexes or race.macro in macros:
+      raise MobileConversionError("source race registry snapshot contains a duplicate identity")
+    registry[race.code] = race
+    source_indexes.add(race.source_index)
+    macros.add(race.macro)
+
+  expected = int(registry_policy["expected_code_count"])
+  if len(registry) != expected:
+    raise MobileConversionError(
+        f"source race registry snapshot contains {len(registry)} codes; policy requires {expected}"
+    )
+  return registry
+
+
 def load_source_race_registry(repo_root: Path, mobile_policy: dict[str, Any]) -> dict[str, SourceRace]:
   registry_policy = mobile_policy["source_registry"]
   source_path = repo_root / registry_policy["path"]
+  snapshot = _load_source_race_registry_snapshot(repo_root, registry_policy)
+  if not source_path.is_file():
+    return snapshot
   actual_hash = _sha256(source_path)
   if actual_hash != registry_policy["sha256"]:
     raise MobileConversionError(
@@ -255,6 +313,8 @@ def load_source_race_registry(repo_root: Path, mobile_policy: dict[str, Any]) ->
     raise MobileConversionError(
         f"source race registry contains {len(registry)} codes; policy requires {expected}"
     )
+  if registry != snapshot:
+    raise MobileConversionError("source race registry does not match its tracked snapshot")
   return registry
 
 

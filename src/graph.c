@@ -594,40 +594,51 @@ void hunt_loadroom(struct char_data *ch)
 int count_rooms_between(room_rnum src, room_rnum target)
 {
   room_rnum curr;
-  int visited[top_of_world + 1];
-  int queue[top_of_world];
+  room_rnum next;
+  room_rnum *queue;
+  int *visited;
   int head = 0, tail = 0;
   int dir = 0;
+  int result = -1;
+  size_t room_count;
 
-  if (src == NOWHERE || target == NOWHERE)
+  if (!world || top_of_world == NOWHERE || src == NOWHERE || src > top_of_world ||
+      target == NOWHERE || target > top_of_world)
     return -1;
 
   if (src == target)
     return 0;
 
-  memset(visited, 0, sizeof(visited));
+  room_count = (size_t)top_of_world + 1;
+  CREATE(visited, int, room_count);
+  CREATE(queue, room_rnum, room_count);
   visited[src] = 1;
   queue[tail++] = src;
 
-  while (head < tail)
+  while (head < tail && result < 0)
   {
     curr = queue[head++];
 
     for (dir = 0; dir < NUM_OF_DIRS; dir++)
     {
-      room_rnum next = world[curr].dir_option[dir] ? world[curr].dir_option[dir]->to_room : NOWHERE;
+      next = world[curr].dir_option[dir] ? world[curr].dir_option[dir]->to_room : NOWHERE;
 
-      if (next == NOWHERE || visited[next])
+      if (next == NOWHERE || next > top_of_world || visited[next])
         continue;
 
-      visited[next] = visited[curr] + 1; // Track distance via visited array
+      visited[next] = visited[curr] + 1;
 
       if (next == target)
-        return visited[next] - 1;
+      {
+        result = visited[next] - 1;
+        break;
+      }
 
       queue[tail++] = next;
     }
   }
 
-  return -1; // No path found
+  free(queue);
+  free(visited);
+  return result;
 }

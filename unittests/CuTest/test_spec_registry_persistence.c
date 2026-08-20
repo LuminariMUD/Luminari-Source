@@ -319,6 +319,7 @@ static bool spec_test_olc_scenario(enum spec_test_owner owner, const char *sandb
     expected_handler = greyhawk_ship_commands;
     break;
   case SPEC_TEST_OWNER_COUNT:
+  default:
     spec_test_set_error(error, error_size, "invalid OLC owner scenario");
     return false;
   }

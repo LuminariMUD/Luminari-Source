@@ -66,6 +66,11 @@ class RolTransformTests(unittest.TestCase):
     path.write_text(text + "$~\n", encoding="ascii", newline="\n")
     return path
 
+  def _require_reference_paths(self, *relative_paths: str) -> None:
+    missing = [relative for relative in relative_paths if not (self.root / relative).exists()]
+    if missing:
+      self.skipTest("ignored RoL reference inputs are not installed")
+
   def test_tarrasque_encounter_bindings_share_typed_contract(self) -> None:
     bindings = [
         {
@@ -1414,6 +1419,7 @@ class RolTransformTests(unittest.TestCase):
       emit_object(source, 2_000_200, _resolver)
 
   def test_all_active_source_object_traps_have_explicit_dispositions(self) -> None:
+    self._require_reference_paths("EXAMPLE/RealmsOfLuminari/areas")
     corpus = parse_active_rol_corpus(self.root / "EXAMPLE/RealmsOfLuminari", self.root)
     trapped = [
         record
@@ -1640,6 +1646,11 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn("meteor swarm", diagnostics)
 
   def test_selected_pilot_quests_all_emit_valid_target_records(self) -> None:
+    self._require_reference_paths(
+        "lib/rol-conversion/runs/phase4-select-e6ea7982/pilot-actions.jsonl",
+        "lib/rol-conversion/runs/phase2-e6ea7982/identity-map.jsonl",
+        "EXAMPLE/RealmsOfLuminari/areas/qst",
+    )
     selection = self.root / "lib/rol-conversion/runs/phase4-select-e6ea7982"
     actions = [
         json.loads(line)
@@ -1692,6 +1703,7 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(57, emitted_count)
 
   def test_selected_pilot_shops_all_emit_valid_target_records(self) -> None:
+    self._require_reference_paths("EXAMPLE/RealmsOfLuminari/areas/shp")
     cases = (("hulburg", 100_000), ("muspel", 2_000_000))
     for basename, offset in cases:
       with self.subTest(basename=basename):
@@ -1754,6 +1766,10 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn("wait 5 s\n        mrolwalkto 2000101", text)
 
   def test_all_pilot_soc_compiles_to_valid_target_triggers(self) -> None:
+    self._require_reference_paths(
+        "EXAMPLE/RealmsOfLuminari/areas/soc",
+        "EXAMPLE/RealmsOfLuminari/src/interp.c",
+    )
     records = []
     for basename in PILOT_BASENAMES:
       source_path = self.root / f"EXAMPLE/RealmsOfLuminari/areas/soc/{basename}.soc"
@@ -1812,6 +1828,11 @@ class RolTransformTests(unittest.TestCase):
     )
 
   def test_all_pilot_special_bindings_have_valid_native_or_dg_output(self) -> None:
+    self._require_reference_paths(
+        "lib/rol-conversion/runs/phase4-select-e6ea7982/pilot-special-bindings.jsonl",
+        "lib/rol-conversion/runs/phase2-e6ea7982/identity-map.jsonl",
+        "EXAMPLE/RealmsOfLuminari/areas/wld",
+    )
     selection = self.root / "lib/rol-conversion/runs/phase4-select-e6ea7982"
     bindings = [
         json.loads(line)

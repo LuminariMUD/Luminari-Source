@@ -15,6 +15,7 @@ depend
 *.o
 *.ko
 *.obj
+!scripts/world/tests/fixtures/rol_inventory/valid/areas/obj/*.obj
 *.elf
 *.lo
 *.slo

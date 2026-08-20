@@ -20,13 +20,21 @@ class RolWeaponMappingTests(unittest.TestCase):
   @classmethod
   def setUpClass(cls) -> None:
     cls.root = default_repo_root()
-    cls.corpus = parse_active_rol_corpus(cls.root / "EXAMPLE/RealmsOfLuminari", cls.root)
-    cls.weapons = [
-        record
-        for record in cls.corpus.records
-        if record.kind == "obj"
-        and record.values.get("item_type") == mapping.SOURCE_ITEM_TYPE_WEAPON
-    ]
+    cls.source_root = cls.root / "EXAMPLE/RealmsOfLuminari"
+    cls.corpus = None
+    cls.weapons = []
+    if (cls.source_root / "areas").is_dir():
+      cls.corpus = parse_active_rol_corpus(cls.source_root, cls.root)
+      cls.weapons = [
+          record
+          for record in cls.corpus.records
+          if record.kind == "obj"
+          and record.values.get("item_type") == mapping.SOURCE_ITEM_TYPE_WEAPON
+      ]
+
+  def _require_reference_corpus(self) -> None:
+    if self.corpus is None:
+      self.skipTest("ignored RoL reference corpus is not installed")
 
   def _source_record(self, data: bytes):
     temporary = tempfile.TemporaryDirectory()
@@ -64,6 +72,7 @@ class RolWeaponMappingTests(unittest.TestCase):
     self.assertEqual(declared, set(mapping.RANGED_WEAPON_TYPES))
 
   def test_every_active_source_weapon_resolves_to_a_defined_type(self) -> None:
+    self._require_reference_corpus()
     self.assertEqual(1319, len(self.weapons))
     for record in self.weapons:
       inference = mapping.infer_weapon_type(record)
@@ -73,6 +82,7 @@ class RolWeaponMappingTests(unittest.TestCase):
       self.assertIn(inference.tier, {"override", "keyword", "fallback"})
 
   def test_keyword_and_override_tiers_carry_the_corpus(self) -> None:
+    self._require_reference_corpus()
     report = mapping.audit(self.corpus.records)
     self.assertEqual(0, report["undefined"])
     self.assertEqual(1319, report["weapons"])
@@ -83,6 +93,7 @@ class RolWeaponMappingTests(unittest.TestCase):
     self.assertGreaterEqual(report["tiers"]["keyword"], 1200)
 
   def test_overrides_are_curated_against_records_that_exist(self) -> None:
+    self._require_reference_corpus()
     overrides = mapping.load_overrides()
     self.assertTrue(overrides)
     vnums = {record.vnum for record in self.weapons}

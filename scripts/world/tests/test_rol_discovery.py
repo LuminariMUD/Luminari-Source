@@ -200,6 +200,8 @@ class RolDiscoveryTests(unittest.TestCase):
   def test_source_command_inventory_includes_special_actions(self) -> None:
     repo_root = Path(__file__).resolve().parents[3]
     source_root = repo_root / "EXAMPLE/RealmsOfLuminari"
+    if not source_root.is_dir():
+      self.skipTest("ignored RoL reference corpus is not installed")
     result = extract_source_commands(source_root)
     self.assertGreater(result["command_count"], 100)
     self.assertEqual(

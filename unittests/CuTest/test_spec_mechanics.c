@@ -10,6 +10,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 
+#include "../../src/act.h"
 #include "../../src/combat/fight.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
@@ -4176,6 +4177,8 @@ void Test_spec_rol_trade_bandit_preserves_cargo_tolls_and_cleanup_timer(CuTest *
   fixture.copy.contains = NULL;
   wagon_load.in_obj = NULL;
   fixture.rooms[0].contents = NULL;
+  free_history(&fixture.target, HIST_SAY);
+  free_history(&fixture.target, HIST_ALL);
   fixture.target.player_specials = &dummy_mob;
   SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
   spec_mechanics_end(&fixture);

@@ -66,8 +66,6 @@ _DOCUMENTATION_PATHS = (
     "docs/world_game-data/SHOP_FILE_FORMAT.md",
     "docs/world_game-data/ROOM_FLAGS.md",
     "docs/world_game-data/MOB_FLAGS.md",
-    "lib/text/help/realms_of_luminari.hlp",
-    "lib/text/help/index",
 )
 
 

@@ -6425,6 +6425,13 @@ struct pet_save_cache_entry
 
 static struct pet_save_cache_entry pet_save_cache[PET_SAVE_CACHE_CAPACITY];
 
+#ifdef LUMINARI_CUTEST
+void reset_pet_save_cache_for_test(void)
+{
+  memset(pet_save_cache, 0, sizeof(pet_save_cache));
+}
+#endif
+
 static uint64_t pet_hash_bytes(uint64_t hash, const void *data, size_t size)
 {
   const unsigned char *bytes;
