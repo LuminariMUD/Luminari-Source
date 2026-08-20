@@ -19,7 +19,7 @@ test_root=$(mktemp -d "${TMPDIR:-/tmp}/vessel-scale-parser-test.XXXXXX")
 trap 'rm -rf -- "$test_root"' EXIT
 
 provenance_root="$test_root/provenance"
-provenance_binary="$provenance_root/bin/circle"
+provenance_binary="$provenance_root/bin/luminari"
 provenance_source="$provenance_root/src/vessels/vessels.c"
 mkdir -p "$provenance_root/bin" "$provenance_root/src/vessels"
 touch -t 202608010100 "$provenance_binary"

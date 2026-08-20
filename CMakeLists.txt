@@ -1277,6 +1277,11 @@ if (BUILD_TESTS)
             ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_versioned_binary_install.sh)
     set_tests_properties(versioned-binary-install PROPERTIES
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    add_test(NAME binary-name-static
+        COMMAND
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_binary_name_static.sh)
+    set_tests_properties(binary-name-static PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME healthcheck
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/operations/test_healthcheck.sh)

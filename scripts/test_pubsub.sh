@@ -18,7 +18,7 @@ fi
 # Test 2: Check binary exists and is executable
 echo ""
 echo "Test 2: Binary Test"
-if [ -x "./circle" ]; then
+if [ -x "./luminari" ]; then
     echo "✅ PASS: Binary exists and is executable"
 else
     echo "❌ FAIL: Binary not found or not executable"
@@ -28,7 +28,7 @@ fi
 # Test 3: Check for symbol conflicts (no duplicate symbols)
 echo ""
 echo "Test 3: Symbol Conflict Test"
-nm circle | grep pubsub_db_create_tables | wc -l > /tmp/symbol_count
+nm luminari | grep pubsub_db_create_tables | wc -l > /tmp/symbol_count
 SYMBOL_COUNT=$(cat /tmp/symbol_count)
 if [ "$SYMBOL_COUNT" -eq 1 ]; then
     echo "✅ PASS: No duplicate symbols found"

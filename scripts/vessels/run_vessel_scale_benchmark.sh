@@ -841,7 +841,7 @@ run_benchmark()
     current_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
     [[ "$current_pid" == "$server_pid" ]] ||
       benchmark_fail "development MUD PID changed during measurement"
-    current_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/circle")
+    current_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/luminari")
     [[ "$current_binary_fingerprint" == "$binary_fingerprint" ]] ||
       benchmark_fail "the installed MUD executable changed during measurement"
     process_row=$(ps -o rss=,vsz=,nlwp= -p "$current_pid")
@@ -887,8 +887,8 @@ run_benchmark()
     command -v "$command_name" >/dev/null 2>&1 ||
       benchmark_fail "required command not found: $command_name"
   done
-  [[ -x "$repo_root/bin/circle" ]] ||
-    benchmark_fail "bin/circle is missing; build and install first"
+  [[ -x "$repo_root/bin/luminari" ]] ||
+    benchmark_fail "bin/luminari is missing; build and install first"
   [[ -x "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" ]] ||
     benchmark_fail "the local character login helper is unavailable"
   [[ -x "$script_dir/provision_vessel_harbor.sh" ]] ||
@@ -903,12 +903,12 @@ run_benchmark()
     benchmark_fail "refusing to disturb active ferry soak $soak_unit"
   [[ -z "$(git -C "$repo_root" status --porcelain)" ]] ||
     benchmark_fail "source worktree must be clean before benchmark provenance is recorded"
-  stale_binary_input=$(newer_binary_input "$repo_root" "$repo_root/bin/circle") ||
+  stale_binary_input=$(newer_binary_input "$repo_root" "$repo_root/bin/luminari") ||
     benchmark_fail "could not compare the installed MUD with current build inputs"
   [[ -z "$stale_binary_input" ]] ||
-    benchmark_fail "bin/circle is older than $stale_binary_input; run make test and make install"
+    benchmark_fail "bin/luminari is older than $stale_binary_input; run make test and make install"
   source_commit=$(git -C "$repo_root" rev-parse HEAD)
-  binary_sha256=$(sha256sum "$repo_root/bin/circle" | awk '{print $1}')
+  binary_sha256=$(sha256sum "$repo_root/bin/luminari" | awk '{print $1}')
 
   write_status "$run_dir" "PREPARING harbor"
   "$script_dir/provision_vessel_harbor.sh" >"$run_dir/harbor-provision.log" 2>&1 ||
@@ -1614,7 +1614,7 @@ SQL
     benchmark_fail "could not read the development MUD PID"
   [[ "$(sha256sum "/proc/$server_pid/exe" | awk '{print $1}')" == "$binary_sha256" ]] ||
     benchmark_fail "running MUD does not match the recorded installed binary"
-  binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/circle")
+  binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/luminari")
   log_offset=$(stat -c %s "$server_log")
   initial_rss=""
   maximum_rss=0

@@ -822,13 +822,15 @@ EXTRA_DIST = \
 	README.md
 
 # Run unit tests
-test: check test-autorun-supervision test-versioned-binary-install test-healthcheck \
+test: check test-autorun-supervision test-versioned-binary-install \
+	test-binary-name-static test-healthcheck \
 	test-background-help-entries test-vessel-tooling
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
 .PHONY: check-world-docs rol-mob-calculator test-all test-world-tools test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
-	test-versioned-binary-install test-healthcheck test-vessel-tooling
+	test-versioned-binary-install test-binary-name-static test-healthcheck \
+	test-vessel-tooling
 
 check-world-docs:
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check
@@ -863,6 +865,9 @@ test-autorun-supervision:
 
 test-versioned-binary-install:
 	./scripts/deployment/test_versioned_binary_install.sh
+
+test-binary-name-static:
+	./scripts/deployment/test_binary_name_static.sh
 
 test-healthcheck:
 	./scripts/operations/test_healthcheck.sh

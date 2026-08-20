@@ -456,6 +456,9 @@ def _code_gates(repo_root: Path, logs: dict[str, Path]) -> dict[str, Any]:
       if any(marker in line for marker in ("SYSERR", "ZONE ERROR", "invalid", "missing"))
       and re.search(r"(?:#|zone\s+)20(?:[0-9]{3}|[0-9]{5,6})\b", line, re.IGNORECASE)
   ]
+  root_build_artifacts_absent_failures = [
+      name for name in ("luminari", "circle") if (repo_root / name).exists()
+  ]
   gates = {
       "world_tools": {
           "passed": bool(world_matches) and "OK" in texts["world-tools"],
@@ -467,10 +470,13 @@ def _code_gates(repo_root: Path, logs: dict[str, Path]) -> dict[str, Any]:
       },
       "install": {
           "passed": "Installed release:" in texts["install"]
-          and (repo_root / "bin/circle").is_file()
-          and not (repo_root / "circle").exists(),
+          and (repo_root / "bin/luminari").is_file()
+          and not root_build_artifacts_absent_failures,
+          # Canonical result; root_circle_absent is retained so existing
+          # manifests keep the key they were written with.
+          "root_build_artifacts_absent": not root_build_artifacts_absent_failures,
           "root_circle_absent": not (repo_root / "circle").exists(),
-          "installed_binary_sha256": _sha256_path(repo_root / "bin/circle"),
+          "installed_binary_sha256": _sha256_path(repo_root / "bin/luminari"),
       },
       "syntax_boot": {
           "passed": "Syntax check mode enabled." in texts["syntax"]
@@ -508,7 +514,7 @@ def _code_evidence(repo_root: Path) -> dict[str, Any]:
     if not path.is_file():
       raise RolPhase8Error(f"Phase 8 code evidence path is missing: {relative}")
     rows.append({"path": relative, "sha256": _sha256_path(path)})
-  return {"files": rows, "installed_binary_sha256": _sha256_path(repo_root / "bin/circle")}
+  return {"files": rows, "installed_binary_sha256": _sha256_path(repo_root / "bin/luminari")}
 
 
 def _apply_plan(
@@ -761,7 +767,7 @@ def apply_phase8_bundle(bundle_dir: Path, lib_root: Path) -> dict[str, Any]:
   manifest = _verify_bundle(bundle_dir, 8, "release-candidate")
   if not manifest.get("acceptance", {}).get("ready_to_apply"):
     raise RolPhase8Error("Phase 8 release candidate is not accepted")
-  if _sha256_path(default_repo_root() / "bin/circle") != manifest["installed_binary_sha256"]:
+  if _sha256_path(default_repo_root() / "bin/luminari") != manifest["installed_binary_sha256"]:
     raise RolPhase8Error("installed runtime changed after Phase 8 validation")
   current_tree = tree_manifest(world_root)["tree_sha256"]
   if current_tree not in {

@@ -332,7 +332,7 @@ done
 
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
 [[ -r "$repo_root/lib/mysql_config" ]] || fail "cannot read lib/mysql_config"
-[[ -x "$repo_root/bin/circle" ]] || fail "bin/circle is missing; build and install first"
+[[ -x "$repo_root/bin/luminari" ]] || fail "bin/luminari is missing; build and install first"
 
 app_environment=$(config_value "$repo_root/lib/.env" APP_ENV)
 [[ "$app_environment" == development ]] ||

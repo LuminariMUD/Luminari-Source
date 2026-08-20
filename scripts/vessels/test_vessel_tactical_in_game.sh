@@ -190,7 +190,7 @@ start_server_without_login()
       --property="WorkingDirectory=$repo_root" \
       --property="StandardOutput=append:$server_log" \
       --property="StandardError=append:$server_log" \
-      "$repo_root/bin/circle" -d "$repo_root/lib"; then
+      "$repo_root/bin/luminari" -d "$repo_root/lib"; then
       launched=true
       break
     fi
@@ -374,7 +374,7 @@ flock -n 8 || fail "another vessel view acceptance check is running"
 
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
 [[ -r "$repo_root/lib/mysql_config" ]] || fail "cannot read lib/mysql_config"
-[[ -x "$repo_root/bin/circle" ]] || fail "bin/circle is missing; run make install"
+[[ -x "$repo_root/bin/luminari" ]] || fail "bin/luminari is missing; run make install"
 [[ -x "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" ]] ||
   fail "the local character login helper is unavailable"
 [[ -f "$player_file" && ! -L "$player_file" ]] ||
@@ -415,12 +415,12 @@ mud_port=$(awk -F= '
 
 [[ -z $(git -C "$repo_root" status --porcelain --untracked-files=all) ]] ||
   fail "source worktree must be clean before acceptance provenance is recorded"
-stale_binary_input=$(newer_binary_input "$repo_root" "$repo_root/bin/circle") ||
+stale_binary_input=$(newer_binary_input "$repo_root" "$repo_root/bin/luminari") ||
   fail "could not compare installed MUD with build inputs"
 [[ -z "$stale_binary_input" ]] ||
-  fail "bin/circle is older than $stale_binary_input; run make test and make install"
+  fail "bin/luminari is older than $stale_binary_input; run make test and make install"
 
-candidate_sha256=$(sha256sum "$repo_root/bin/circle" | awk '{ print $1 }')
+candidate_sha256=$(sha256sum "$repo_root/bin/luminari" | awk '{ print $1 }')
 source_commit=$(git -C "$repo_root" rev-parse HEAD)
 warship_prototype_id=$(database_query "
   SELECT prototype_id

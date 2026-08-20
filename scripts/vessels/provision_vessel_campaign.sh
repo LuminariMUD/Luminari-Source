@@ -379,7 +379,7 @@ done
 
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
 [[ -r "$repo_root/lib/mysql_config" ]] || fail "cannot read lib/mysql_config"
-[[ -x "$repo_root/bin/circle" ]] || fail "bin/circle is missing; run make install"
+[[ -x "$repo_root/bin/luminari" ]] || fail "bin/luminari is missing; run make install"
 [[ -x "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" ]] ||
   fail "the local character login helper is unavailable"
 
@@ -702,7 +702,7 @@ if [[ -f "$server_log" ]] &&
 fi
 
 source_commit=$(git -C "$repo_root" rev-parse HEAD)
-binary_sha256=$(sha256sum "$repo_root/bin/circle" | awk '{ print $1 }')
+binary_sha256=$(sha256sum "$repo_root/bin/luminari" | awk '{ print $1 }')
 elapsed_seconds=$(($(date +%s) - started_epoch))
 {
   printf 'source_commit=%s\n' "$source_commit"

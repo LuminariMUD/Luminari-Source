@@ -69,7 +69,7 @@ test_planned_reboot_exit()
     "$planned_dir/log" "$planned_dir/dumps"
   cp "$project_root/scripts/autorun/autorun.sh" "$planned_dir/autorun.sh"
 
-  cat > "$planned_dir/bin/test-release/circle" <<'EOF'
+  cat > "$planned_dir/bin/test-release/luminari" <<'EOF'
 #!/usr/bin/env bash
 set -u
 script_dir=$(pwd)
@@ -80,8 +80,8 @@ fi
 touch "$script_dir/.killscript"
 exit 0
 EOF
-  chmod +x "$planned_dir/bin/test-release/circle"
-  ln -s "test-release/circle" "$planned_dir/bin/circle"
+  chmod +x "$planned_dir/bin/test-release/luminari"
+  ln -s "test-release/luminari" "$planned_dir/bin/luminari"
   touch "$planned_dir/.fastboot"
 
   (
@@ -196,7 +196,7 @@ find_unused_port()
 
 test_autorun_startup_and_locking()
 {
-  local circle_pid
+  local fake_mud_pid
   local current_update
   local daemon_dir="$test_root/daemon"
   local heartbeat_attempt
@@ -221,19 +221,19 @@ test_autorun_startup_and_locking()
     "$daemon_dir/lib" "$daemon_dir/log" "$daemon_dir/dumps" "$unrelated_dir"
   cp "$project_root/scripts/autorun/autorun.sh" "$daemon_dir/autorun.sh"
 
-  cat > "$daemon_dir/bin/test-release-one/circle" <<'EOF'
+  cat > "$daemon_dir/bin/test-release-one/luminari" <<'EOF'
 #!/usr/bin/env bash
 set -u
 script_dir=$(pwd)
-printf '%s\n' "$$" > "$script_dir/.circle.pid"
+printf '%s\n' "$$" > "$script_dir/.mud-fake.pid"
 trap 'touch "$script_dir/lib/core"; exit 134' INT TERM
-while [[ ! -f "$script_dir/.stop-circle" ]]; do
+while [[ ! -f "$script_dir/.stop-mud" ]]; do
   sleep 0.1
 done
 EOF
-  cp "$daemon_dir/bin/test-release-one/circle" \
-    "$daemon_dir/bin/test-release-two/circle"
-  ln -s "test-release-one/circle" "$daemon_dir/bin/circle"
+  cp "$daemon_dir/bin/test-release-one/luminari" \
+    "$daemon_dir/bin/test-release-two/luminari"
+  ln -s "test-release-one/luminari" "$daemon_dir/bin/luminari"
 
   cat > "$daemon_dir/fake-bin/gdb" <<'EOF'
 #!/usr/bin/env bash
@@ -255,8 +255,8 @@ fi
 touch "$script_dir/.watchdog-missing-state"
 exit 1
 EOF
-  chmod +x "$daemon_dir/bin/test-release-one/circle" \
-    "$daemon_dir/bin/test-release-two/circle" \
+  chmod +x "$daemon_dir/bin/test-release-one/luminari" \
+    "$daemon_dir/bin/test-release-two/luminari" \
     "$daemon_dir/fake-bin/gdb" "$daemon_dir/autorun-watchdog.sh"
 
   cat > "$unrelated_dir/autorun.sh" <<'EOF'
@@ -280,26 +280,26 @@ EOF
   wait_for_file "$daemon_dir/.watchdog-saw-state"
   [[ ! -e "$daemon_dir/.watchdog-missing-state" ]] ||
     fail "watchdog ran before the initial autorun state was published"
-  wait_for_file "$daemon_dir/.circle.pid"
+  wait_for_file "$daemon_dir/.mud-fake.pid"
   wait_for_file "$daemon_dir/.mud.pid"
   wait_for_file "$daemon_dir/.autorun.lock.pid"
 
   state_pid=$(awk -F= '$1 == "PID" {print $2}' "$daemon_dir/.autorun.state")
-  circle_pid=$(sed -n '1p' "$daemon_dir/.circle.pid")
-  [[ "$(sed -n '1p' "$daemon_dir/.mud.pid")" == "$circle_pid" ]] ||
+  fake_mud_pid=$(sed -n '1p' "$daemon_dir/.mud-fake.pid")
+  [[ "$(sed -n '1p' "$daemon_dir/.mud.pid")" == "$fake_mud_pid" ]] ||
     fail "MUD PID file does not identify the fake MUD"
-  grep -Fxq "PID=$circle_pid" "$daemon_dir/.mud.identity" ||
+  grep -Fxq "PID=$fake_mud_pid" "$daemon_dir/.mud.identity" ||
     fail "MUD identity does not identify the fake MUD"
   grep -Fxq \
-    "EXECUTABLE=$daemon_dir/bin/test-release-one/circle" \
+    "EXECUTABLE=$daemon_dir/bin/test-release-one/luminari" \
     "$daemon_dir/.mud.identity" ||
     fail "MUD identity does not pin the resolved release"
   kill -0 "$state_pid" 2>/dev/null || fail "foreground supervisor is not running"
-  kill -0 "$circle_pid" 2>/dev/null || fail "fake MUD is not running"
+  kill -0 "$fake_mud_pid" 2>/dev/null || fail "fake MUD is not running"
 
   [[ ! -e "/proc/$state_pid/fd/200" ]] ||
     fail "foreground supervisor inherited the autorun lock descriptor"
-  [[ ! -e "/proc/$circle_pid/fd/200" ]] ||
+  [[ ! -e "/proc/$fake_mud_pid/fd/200" ]] ||
     fail "MUD process inherited the autorun lock descriptor"
 
   initial_update=$(awk -F= '$1 == "LAST_UPDATE" {print $2}' "$daemon_dir/.autorun.state")
@@ -334,8 +334,8 @@ EOF
   [[ "$inode_before" == "$inode_after" ]] ||
     fail "actively locked autorun file was replaced"
 
-  ln -s "test-release-two/circle" "$daemon_dir/bin/.circle-next"
-  mv -Tf "$daemon_dir/bin/.circle-next" "$daemon_dir/bin/circle"
+  ln -s "test-release-two/luminari" "$daemon_dir/bin/.luminari-next"
+  mv -Tf "$daemon_dir/bin/.luminari-next" "$daemon_dir/bin/luminari"
   wait_for_pattern "$daemon_dir/.autorun.state" \
     "MUD_IDENTITY_MATCH=restart-required"
   (
@@ -343,11 +343,11 @@ EOF
     MUD_PORT="$port" ./autorun.sh status
   ) > "$daemon_dir/status.log" 2>&1
   grep -Fq \
-    "Active Executable: $daemon_dir/bin/test-release-one/circle" \
+    "Active Executable: $daemon_dir/bin/test-release-one/luminari" \
     "$daemon_dir/status.log" ||
     fail "status did not report the active release"
   grep -Fq \
-    "Installed Executable: $daemon_dir/bin/test-release-two/circle" \
+    "Installed Executable: $daemon_dir/bin/test-release-two/luminari" \
     "$daemon_dir/status.log" ||
     fail "status did not report the installed release"
   grep -Fq "Active Matches Installed: no - restart required" \
@@ -368,13 +368,13 @@ EOF
   wait_for_lock_release "$daemon_dir/.autorun.lock"
   wait_for_file "$daemon_dir/.gdb-args"
   [[ "$(sed -n '1p' "$daemon_dir/.gdb-args")" == \
-      "$daemon_dir/bin/test-release-one/circle" ]] ||
+      "$daemon_dir/bin/test-release-one/luminari" ]] ||
     fail "core analysis did not use the exact active release"
   identity_dump=$(find "$daemon_dir/dumps" -maxdepth 1 \
     -type f -name 'identity.core.*' -print -quit)
   [[ -n "$identity_dump" ]] || fail "core identity report was not archived"
   grep -Fxq \
-    "EXECUTABLE=$daemon_dir/bin/test-release-one/circle" \
+    "EXECUTABLE=$daemon_dir/bin/test-release-one/luminari" \
     "$identity_dump" ||
     fail "core identity report does not name the active release"
   last_error=$(find "$daemon_dir/log" -maxdepth 1 \
@@ -383,7 +383,7 @@ EOF
   [[ "$(stat -c '%a' "$last_error")" == 600 ]] ||
     fail "structured error context is not restricted to mode 0600"
   if ! python3 - "$last_error" \
-    "$daemon_dir/bin/test-release-one/circle" "$circle_pid" <<'PY'
+    "$daemon_dir/bin/test-release-one/luminari" "$fake_mud_pid" <<'PY'
 import json
 import pathlib
 import sys
@@ -688,6 +688,100 @@ EOF
   wait_for_pid_exit "$recovered_pid"
 }
 
+# A copyover replaces the MUD image without autorun forking again. The
+# supervisor must follow /proc/<pid>/exe instead of trusting its launch-time
+# record, or crash analysis would later select the pre-copyover executable.
+test_copyover_identity_refresh()
+{
+  local copyover_dir="$test_root/copyover"
+  local mud_pid
+  local port
+
+  mkdir -p "$copyover_dir/bin/release-old" "$copyover_dir/bin/release-new" \
+    "$copyover_dir/lib" "$copyover_dir/log" "$copyover_dir/dumps"
+  cp "$project_root/scripts/autorun/autorun.sh" "$copyover_dir/autorun.sh"
+
+  # Compiled fixtures: /proc/<pid>/exe reports the interpreter for a script,
+  # so only a real executable can stand in for a copyover here.
+  cat > "$copyover_dir/mud-old.c" <<'EOF'
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int main(void)
+{
+  FILE *pid_file = fopen(".mud-fake.pid", "w");
+
+  if (pid_file == NULL)
+    return 1;
+  fprintf(pid_file, "%ld\n", (long)getpid());
+  fclose(pid_file);
+
+  for (;;)
+  {
+    if (access(".do-copyover", F_OK) == 0)
+      execl("bin/release-new/luminari", "luminari", (char *)NULL);
+    usleep(100000);
+  }
+}
+EOF
+  cat > "$copyover_dir/mud-new.c" <<'EOF'
+#include <stdio.h>
+#include <unistd.h>
+
+int main(void)
+{
+  FILE *marker = fopen(".copyover-done", "w");
+
+  if (marker != NULL)
+    fclose(marker);
+
+  while (access(".stop-mud", F_OK) != 0)
+    usleep(100000);
+  return 0;
+}
+EOF
+  cc -o "$copyover_dir/bin/release-old/luminari" "$copyover_dir/mud-old.c" ||
+    fail "could not build the pre-copyover fixture"
+  cc -o "$copyover_dir/bin/release-new/luminari" "$copyover_dir/mud-new.c" ||
+    fail "could not build the post-copyover fixture"
+  ln -s "release-old/luminari" "$copyover_dir/bin/luminari"
+  ln -s "luminari" "$copyover_dir/bin/circle"
+
+  port=$(find_unused_port)
+  (
+    cd "$copyover_dir"
+    AUTORUN_STATE_INTERVAL=1 MUD_PORT="$port" ./autorun.sh
+  ) > "$copyover_dir/launcher.log" 2>&1
+
+  wait_for_file "$copyover_dir/.mud-fake.pid"
+  wait_for_file "$copyover_dir/.mud.identity"
+  mud_pid=$(sed -n '1p' "$copyover_dir/.mud-fake.pid")
+  grep -Fxq "EXECUTABLE=$copyover_dir/bin/release-old/luminari" \
+    "$copyover_dir/.mud.identity" ||
+    fail "MUD identity did not start on the old release"
+
+  touch "$copyover_dir/.do-copyover"
+  wait_for_file "$copyover_dir/.copyover-done"
+  [[ "$(sed -n '1p' "$copyover_dir/.mud-fake.pid")" == "$mud_pid" ]] ||
+    fail "the simulated copyover did not keep the same PID"
+
+  wait_for_pattern "$copyover_dir/.mud.identity" \
+    "EXECUTABLE=$copyover_dir/bin/release-new/luminari"
+  wait_for_pattern "$copyover_dir/.autorun.state" \
+    "MUD_EXECUTABLE=$copyover_dir/bin/release-new/luminari"
+  grep -Fxq "MUD_BINARY=luminari" "$copyover_dir/.autorun.state" ||
+    fail "autorun state does not publish the configured binary basename"
+
+  touch "$copyover_dir/.stop-mud"
+  touch "$copyover_dir/.killscript"
+  (
+    cd "$copyover_dir"
+    MUD_PORT="$port" ./autorun.sh stop
+  ) > "$copyover_dir/stop.log" 2>&1 || true
+}
+
 test_systemd_unit_installation()
 {
   local deploy_dir="$test_root/deploy"
@@ -708,8 +802,8 @@ test_systemd_unit_installation()
   chmod +x "$deploy_dir/scripts/autorun/autorun.sh" \
     "$deploy_dir/scripts/deployment/deploy.sh" \
     "$deploy_dir/scripts/operations/healthcheck.sh"
-  cp /bin/true "$deploy_dir/bin/releases/test-build/circle"
-  ln -s "releases/test-build/circle" "$deploy_dir/bin/circle"
+  cp /bin/true "$deploy_dir/bin/releases/test-build/luminari"
+  ln -s "releases/test-build/luminari" "$deploy_dir/bin/luminari"
 
   cat > "$fake_bin/sudo" <<'EOF'
 #!/usr/bin/env bash
@@ -741,7 +835,7 @@ case "${1:-}" in
     [[ "${FAKE_SERVICE_ACTIVE:-true}" == "true" ]]
     ;;
   restart)
-    active_executable=$(readlink -f "$FAKE_PROJECT_ROOT/bin/circle")
+    active_executable=$(readlink -f "$FAKE_PROJECT_ROOT/bin/luminari")
     cat > "$FAKE_PROJECT_ROOT/.autorun.state" <<STATE
 LAST_UPDATE=$(date +%s)
 MUD_PID=$FAKE_LIVE_PID
@@ -781,9 +875,11 @@ EOF
     fail "installed systemd unit does not run the readiness probe"
   grep -Fxq "ExecStop=$deploy_dir/scripts/autorun/autorun.sh stop" "$installed_unit" ||
     fail "installed systemd unit does not use the PID-safe stop path"
-  if grep -Fq "ExecStart=$deploy_dir/bin/circle" "$installed_unit"; then
-    fail "deployment installed the obsolete direct-circle unit"
+  if grep -Eq "^ExecStart=$deploy_dir/bin/(luminari|circle)$" "$installed_unit"; then
+    fail "deployment installed the obsolete direct-executable unit"
   fi
+  grep -Fxq 'Environment="MUD_BINARY=luminari"' "$installed_unit" ||
+    fail "installed systemd unit does not pin the canonical MUD binary"
   grep -Fxq "restart luminari.service" "$deploy_dir/systemctl.log" ||
     fail "requested service restart was not performed"
   grep -Fq "Systemd service restarted with MainPID 4242" "$deploy_dir/install.log" ||
@@ -835,6 +931,7 @@ test_watchdog_transient_killscript
 test_watchdog_pid_verification
 test_watchdog_stale_verified_supervisor
 test_watchdog_daemon_recovery
+test_copyover_identity_refresh
 test_systemd_unit_installation
 
 echo "autorun supervision test: PASS"

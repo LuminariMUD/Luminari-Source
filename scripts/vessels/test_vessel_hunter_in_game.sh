@@ -413,12 +413,12 @@ flock -n 8 ||
 
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
 [[ -r "$repo_root/lib/mysql_config" ]] || fail "cannot read lib/mysql_config"
-[[ -x "$repo_root/bin/circle" ]] ||
-  fail "bin/circle is missing; run make install first"
+[[ -x "$repo_root/bin/luminari" ]] ||
+  fail "bin/luminari is missing; run make install first"
 [[ -f "$repo_root/src/vessels/vessels_hunters.c" ]] ||
   fail "the Phase 15 hunter source is missing"
-[[ "$repo_root/bin/circle" -nt "$repo_root/src/vessels/vessels_hunters.c" ]] ||
-  fail "bin/circle predates the Phase 15 source; run make install"
+[[ "$repo_root/bin/luminari" -nt "$repo_root/src/vessels/vessels_hunters.c" ]] ||
+  fail "bin/luminari predates the Phase 15 source; run make install"
 
 app_environment=$(config_value "$repo_root/lib/.env" APP_ENV)
 [[ "$app_environment" == development ]] ||
@@ -451,7 +451,7 @@ mud_port=$(awk -F= '
 [[ "$mud_port" =~ ^[0-9]+$ ]] ||
   fail "could not read the development MUD port"
 
-candidate_sha256=$(sha256sum "$repo_root/bin/circle" | awk '{ print $1 }')
+candidate_sha256=$(sha256sum "$repo_root/bin/luminari" | awk '{ print $1 }')
 printf 'source=%s\nbinary_sha256=%s\nstarted_at=%s\n' \
   "$repo_root" "$candidate_sha256" "$started_epoch" >"$run_dir/metadata"
 

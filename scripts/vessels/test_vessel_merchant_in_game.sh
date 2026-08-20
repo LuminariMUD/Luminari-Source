@@ -322,7 +322,7 @@ start_server_without_login()
       --property="WorkingDirectory=$repo_root" \
       --property="StandardOutput=append:$server_log" \
       --property="StandardError=append:$server_log" \
-      "$repo_root/bin/circle" -d "$repo_root/lib"; then
+      "$repo_root/bin/luminari" -d "$repo_root/lib"; then
       launched=true
       break
     fi
@@ -514,8 +514,8 @@ flock -n 8 || fail "another merchant acceptance check is already running"
 
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
 [[ -r "$repo_root/lib/mysql_config" ]] || fail "cannot read lib/mysql_config"
-[[ -x "$repo_root/bin/circle" ]] ||
-  fail "bin/circle is missing; run make install first"
+[[ -x "$repo_root/bin/luminari" ]] ||
+  fail "bin/luminari is missing; run make install first"
 [[ -x "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" ]] ||
   fail "the local character login helper is unavailable"
 [[ -f "$repo_root/src/vessels/vessels_merchants.c" ]] ||
@@ -538,10 +538,10 @@ active_workload_unit=$(active_vessel_workload)
   fail "$active_workload_unit owns the installed development MUD"
 [[ -z "$(git -C "$repo_root" status --porcelain)" ]] ||
   fail "source worktree must be clean before acceptance provenance is recorded"
-stale_binary_input=$(newer_binary_input "$repo_root" "$repo_root/bin/circle") ||
+stale_binary_input=$(newer_binary_input "$repo_root" "$repo_root/bin/luminari") ||
   fail "could not compare the installed MUD with current build inputs"
 [[ -z "$stale_binary_input" ]] ||
-  fail "bin/circle is older than $stale_binary_input; run make test and make install"
+  fail "bin/luminari is older than $stale_binary_input; run make test and make install"
 
 database_host=$(config_value "$repo_root/lib/mysql_config" mysql_host)
 database_name=$(config_value "$repo_root/lib/mysql_config" mysql_database)
@@ -561,7 +561,7 @@ mud_port=$(awk -F= '
 [[ "$mud_port" =~ ^[0-9]+$ ]] ||
   fail "could not read the development MUD port"
 
-candidate_sha256=$(sha256sum "$repo_root/bin/circle" | awk '{ print $1 }')
+candidate_sha256=$(sha256sum "$repo_root/bin/luminari" | awk '{ print $1 }')
 source_commit=$(git -C "$repo_root" rev-parse HEAD)
 start_current_server
 

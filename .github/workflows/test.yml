@@ -171,7 +171,9 @@ jobs:
         run: |
           make test
           make install
-          test -x bin/circle
+          test -x bin/luminari
+          test -L bin/circle
+          test ! -e luminari
           test ! -e circle
 
   unit-tests:

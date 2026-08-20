@@ -413,7 +413,7 @@ done
 
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
 [[ -r "$repo_root/lib/mysql_config" ]] || fail "cannot read lib/mysql_config"
-[[ -x "$repo_root/bin/circle" ]] || fail "bin/circle is missing; run make install"
+[[ -x "$repo_root/bin/luminari" ]] || fail "bin/luminari is missing; run make install"
 [[ -x "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" ]] ||
   fail "the local character login helper is unavailable"
 [[ -f "$package_dir/700.obj" && -f "$package_dir/700.trg" ]] ||
@@ -443,8 +443,8 @@ mud_port=$(awk -F= '
 [[ -z $(git -C "$repo_root" status --porcelain --untracked-files=all) ]] ||
   fail "the source tree must be clean"
 if find "$repo_root/src" -type f \( -name '*.c' -o -name '*.h' \) \
-  -newer "$repo_root/bin/circle" -print -quit | grep -q .; then
-  fail "bin/circle is stale; run make install"
+  -newer "$repo_root/bin/luminari" -print -quit | grep -q .; then
+  fail "bin/luminari is stale; run make install"
 fi
 
 for workload_unit in luminari-vessel-ferry-soak.service \
@@ -457,7 +457,7 @@ if systemctl --user is-active --quiet "$server_unit"; then
   server_pid=$(systemctl --user show -p MainPID --value "$server_unit")
   [[ "$server_pid" =~ ^[1-9][0-9]*$ ]] || fail "development service has no PID"
   [[ $(readlink -f "/proc/$server_pid/exe") == \
-     $(readlink -f "$repo_root/bin/circle") ]] ||
+     $(readlink -f "$repo_root/bin/luminari") ]] ||
     fail "the running development service uses a different executable"
 elif port_is_listening; then
   fail "a manually started process owns development port $mud_port"
@@ -712,7 +712,7 @@ if [[ -f "$server_log" ]]; then
 fi
 
 source_commit=$(git -C "$repo_root" rev-parse HEAD)
-binary_sha256=$(sha256sum "$repo_root/bin/circle" | awk '{ print $1 }')
+binary_sha256=$(sha256sum "$repo_root/bin/luminari" | awk '{ print $1 }')
 elapsed_seconds=$(($(date +%s) - started_epoch))
 {
   printf 'source_commit=%s\n' "$source_commit"

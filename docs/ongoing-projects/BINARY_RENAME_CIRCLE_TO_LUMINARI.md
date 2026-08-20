@@ -640,7 +640,11 @@ landed so an interrupted session can resume without re-deriving state.
       discovery in the memory monitor, copyover diagnostics/watchdog, login
       smoke, and ferry soak now uses `.mud.pid` plus `/proc/<pid>/exe`
       instead of a process-name probe.
-- [ ] 4.4 CI, test harnesses, and operational tooling.
+- [x] 4.4 CI, test harnesses, and operational tooling. Adds
+      `scripts/deployment/test_binary_name_static.sh`, registered as the
+      `test-binary-name-static` Autotools target and the `binary-name-static`
+      CMake test. `rol_phase8.py` reports `root_build_artifacts_absent` and
+      keeps `root_circle_absent` for existing manifests.
 - [ ] 4.5 Help, templates, and current documentation.
 - [ ] 5 Phase A verification.
 - [ ] 6 Production rollout (not started; development checkout only).

@@ -17,14 +17,14 @@ foreach ($ext in $exts) {
 }
 
 # Check for syntax
-$circleExe = Join-Path $repoRoot 'bin/circle.exe'
-$circleSh  = Join-Path $repoRoot 'bin/circle'
-if (Test-Path -LiteralPath $circleExe) {
-  & $circleExe -c -q 2>&1 | Select-String -Pattern 'error|warning' -AllMatches -CaseSensitive:$false | Where-Object { $_.Line -match $Zone }
-} elseif (Test-Path -LiteralPath $circleSh) {
-  & $circleSh -c -q 2>&1 | Select-String -Pattern 'error|warning' -AllMatches -CaseSensitive:$false | Where-Object { $_.Line -match $Zone }
+$mudExe = Join-Path $repoRoot 'bin/luminari.exe'
+$mudSh  = Join-Path $repoRoot 'bin/luminari'
+if (Test-Path -LiteralPath $mudExe) {
+  & $mudExe -c -q 2>&1 | Select-String -Pattern 'error|warning' -AllMatches -CaseSensitive:$false | Where-Object { $_.Line -match $Zone }
+} elseif (Test-Path -LiteralPath $mudSh) {
+  & $mudSh -c -q 2>&1 | Select-String -Pattern 'error|warning' -AllMatches -CaseSensitive:$false | Where-Object { $_.Line -match $Zone }
 } else {
-  Write-Warning 'circle binary not found in ./bin, skipping syntax check'
+  Write-Warning 'luminari binary not found in ./bin, skipping syntax check'
 }
 
 # Check for terminators (lines ending with ~)

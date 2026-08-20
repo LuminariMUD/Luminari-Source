@@ -433,6 +433,7 @@ EOF
 # leave stale identity behind. The MUD execs a new image without autorun
 # forking again, so the launch-time values are only correct until it does.
 refresh_active_mud_identity() {
+    local bin_root=""
     local current_exe=""
 
     [[ "$ACTIVE_MUD_PID" =~ ^[1-9][0-9]*$ ]] || return 0
@@ -440,6 +441,12 @@ refresh_active_mud_identity() {
     [[ -n "$current_exe" ]] || return 0
     [[ -f "$current_exe" ]] || return 0
     [[ "$current_exe" != "$LAST_MUD_EXECUTABLE" ]] || return 0
+
+    # Only follow an image inside this checkout's bin tree. Anything else is an
+    # interpreter or wrapper, not the release the MUD copied over to.
+    bin_root=$(readlink -f -- "${BIN_DIR}" 2>/dev/null || true)
+    [[ -n "$bin_root" ]] || return 0
+    [[ "$current_exe" == "${bin_root}/"* ]] || return 0
 
     # Accept a manifest mismatch here: /proc is the authority for what is
     # actually running, and refusing it would keep the stale record instead.

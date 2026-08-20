@@ -240,7 +240,7 @@ jobs:
           autoreconf -fvi
           ./configure
           make -j"$(nproc)"
-          test -f circle && echo "Build successful: circle binary created"
+          test -f luminari && echo "Build successful: luminari binary created"
 
       - name: Prepare isolated integration runtime
         run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
@@ -253,7 +253,7 @@ jobs:
 
           # The minimal fixture intentionally omits production special-procedure
           # targets, so suppress special assignment while testing the real boot.
-          ./circle -f "$LUMINARI_TEST_CONFIG_FILE" -d "$LUMINARI_TEST_DATA_DIR" \
+          ./luminari -f "$LUMINARI_TEST_CONFIG_FILE" -d "$LUMINARI_TEST_DATA_DIR" \
             -o "$server_log" -q -s 4100 &
           server_pid=$!
           cleanup_server()

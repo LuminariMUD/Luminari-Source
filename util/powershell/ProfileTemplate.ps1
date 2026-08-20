@@ -62,11 +62,11 @@ function validate-zone {
 }
 
 function check-mud {
-  $exe = Join-Path $repoRoot 'bin/circle.exe'
-  $alt = Join-Path $repoRoot 'bin/circle'
+  $exe = Join-Path $repoRoot 'bin/luminari.exe'
+  $alt = Join-Path $repoRoot 'bin/luminari'
   if (Test-Path -LiteralPath $exe) { & $exe -c -q }
   elseif (Test-Path -LiteralPath $alt) { & $alt -c -q }
-  else { Write-Warning 'circle binary not found.' }
+  else { Write-Warning 'luminari binary not found.' }
 }
 
 function check-log {

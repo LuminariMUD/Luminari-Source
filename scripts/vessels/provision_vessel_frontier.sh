@@ -206,7 +206,7 @@ flock -n 8 || fail "another frontier provisioner is already running"
 
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
 [[ -r "$repo_root/lib/mysql_config" ]] || fail "cannot read lib/mysql_config"
-[[ -x "$repo_root/bin/circle" ]] || fail "bin/circle is missing; run make install"
+[[ -x "$repo_root/bin/luminari" ]] || fail "bin/luminari is missing; run make install"
 [[ -x "$repo_root/scripts/development/dev_kohdee_login_smoke.sh" ]] ||
   fail "the local character login helper is unavailable"
 [[ -r "$repo_root/sql/components/vessels_frontier_content.sql" ]] ||
@@ -238,10 +238,10 @@ active_workload_unit=$(active_vessel_workload)
   fail "$active_workload_unit owns the development service"
 [[ -z $(git -C "$repo_root" status --porcelain --untracked-files=all) ]] ||
   fail "the source worktree must be clean"
-stale_binary_input=$(newer_binary_input "$repo_root" "$repo_root/bin/circle") ||
+stale_binary_input=$(newer_binary_input "$repo_root" "$repo_root/bin/luminari") ||
   fail "could not compare the installed MUD with current build inputs"
 [[ -z "$stale_binary_input" ]] ||
-  fail "bin/circle is older than $stale_binary_input; run make test and make install"
+  fail "bin/luminari is older than $stale_binary_input; run make test and make install"
 
 collision_count=$(database_scalar "
   SELECT
@@ -423,7 +423,7 @@ if [[ -f "$server_log" ]] &&
 fi
 
 source_commit=$(git -C "$repo_root" rev-parse HEAD)
-binary_sha256=$(sha256sum "$repo_root/bin/circle" | awk '{ print $1 }')
+binary_sha256=$(sha256sum "$repo_root/bin/luminari" | awk '{ print $1 }')
 prototype_rows=$(database_scalar "
   SELECT GROUP_CONCAT(CONCAT(prototype_id, ':', vessel_class)
                       ORDER BY vessel_class SEPARATOR ',')
