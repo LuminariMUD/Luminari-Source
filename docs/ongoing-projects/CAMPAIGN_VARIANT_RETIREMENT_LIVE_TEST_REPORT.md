@@ -1,14 +1,14 @@
 # Campaign Variant Retirement Live Test Report
 
-Status: pass with non-blocking follow-up findings
+Status: pass; findings F-1, F-3, and F-4 resolved and verified
 
 Test date: 2026-08-20
 
 Branch: `codex/retire-campaign-variants`
 
-Tested commit: `e5bad72450950bed90cc2b59961e329aca7465c4`
+Original tested commit: `e5bad72450950bed90cc2b59961e329aca7465c4`
 
-Related scope: [CAMPAIGN_VARIANT_RETIREMENT_SCOPE.md](CAMPAIGN_VARIANT_RETIREMENT_SCOPE.md)
+Follow-up verification date: 2026-08-20
 
 ## Verdict
 
@@ -21,9 +21,10 @@ shops, and item commands.
 The live session did expose several cleanup opportunities. The most relevant is that some
 DragonLance-named abilities remain registered and visible to the staff test character. These are
 not selectable current race content, and they did not cause a runtime failure, but they are a good
-example of residual implementation that exact campaign-macro searches cannot find. Other findings
-are pre-existing command, travel, and world-script defects rather than changes introduced by this
-branch.
+example of residual implementation that exact campaign-macro searches cannot find. The account
+class, landmark selection, and walk-to logout findings were fixed in the same branch and verified
+with production-linked tests and live sessions. The remaining findings are pre-existing residual
+content and world-script defects rather than changes introduced by this branch.
 
 ## Environment and build identity
 
@@ -35,6 +36,9 @@ branch.
 - ELF build ID: `95d86409e01113d36c8d10558454d7c253b0396f`.
 - Installed binary SHA-256:
   `4cb572a3ed2c8af341dea7f59826088f25d703e9bf9305b3450c0ec7e94c4259`.
+- The follow-up fixes were exercised from installed working-tree build ID
+  `045c060c70e5e1a4cf59825997629818cf658f8d`, SHA-256
+  `093390ec45eda271a9c2f0071b766fa4dd2a98560118682f8c7df8c787bdf2e9`.
 - The MUD was started locally through `autorun.sh`, reached the game loop on port 4100, and was
   still running after the final verification.
 - Tests used the existing development account and the `Kohdee` character through
@@ -47,7 +51,7 @@ branch.
 | Account and login | Repeated account authentication, character selection, world entry, logout, and reconnect | PASS |
 | Character identity | `whoami`, `who`, `score`, `equipment`, `inventory`, `rpsheet` | PASS |
 | Race data | `races`, `race info human`, `accexp race` | PASS |
-| Class data | `classes`, `class info warrior`, `class feats warrior`, `accexp class` | PASS with finding F-1 |
+| Class data | `classes`, `class info warrior`, `class feats warrior`, `accexp class` | PASS; F-1 resolved |
 | Deities | `devote list all`, `devote info Aethyra` | PASS |
 | Feats and abilities | `feats info power attack`, `abilities`, `skills` | PASS with finding F-2 |
 | Spells | `spells wizard 0`, `spelllist wizard 0`, `memorize` | LIMITED; registry passed, prepared casting was not available to this warrior |
@@ -60,8 +64,8 @@ branch.
 | Carriage routes | `carriage` outside a stop and at Ashenport room 103000 | PASS |
 | Sailing routes | `sail` outside a port and at Ashenport room 34801 | PASS |
 | Flight routes | `flightlist` with 34 active Luminari destinations | PASS |
-| Landmarks | `landmarks`, `landmarks city`, `landmarks Ondius`, and working `landmarks 1030` output | PASS with finding F-3 |
-| Automatic walking | `walkto jade jug inn`, automatic multi-room movement, reconnect persistence, and `walkto cancel` | PASS with finding F-4 |
+| Landmarks | `landmarks`, `landmarks Ashenport`, `landmarks city`, and `landmarks 1030` | PASS; F-3 resolved |
+| Automatic walking | `walkto jade jug inn`, automatic movement, cancellation, and logout during an active route | PASS; F-4 resolved |
 | Quests | `quest`, `quest list` outside a questmaster | PASS for rejection and usage paths |
 | Missions | `mission` and faction representative handling in room 103009 | PASS for listing and validation paths |
 | Hunts | `hunts` at the Ashenport Huntsmaster in room 103492 | PASS |
@@ -75,7 +79,7 @@ branch.
 
 ## Findings
 
-### F-1: `accexp class` offers placeholder classes
+### F-1 [RESOLVED]: `accexp class` offered placeholder classes
 
 Severity: low
 
@@ -85,7 +89,9 @@ unlock state; it does not filter `CLSLIST_INGAME(i)`.
 
 This behavior is present on `origin/master`: the same placeholder definitions and listing filter
 precede the campaign-retirement branch. It is therefore not a regression from variant removal.
-The command should eventually exclude classes whose `in_game` field is false.
+The account experience class listing and purchase lookup now both exclude classes whose `in_game`
+field is false. A production-linked regression test confirms an active locked class remains
+available while both placeholder classes are absent.
 
 ### F-2: Retired-campaign ability content remains registered
 
@@ -106,7 +112,7 @@ not sufficient grounds for deletion. The Draconian registrations, however, are c
 code that deserves a separate reachability and persisted-identifier review. This is outside the
 compiler-led macro retirement completed by the current branch.
 
-### F-3: `landmarks` region guidance is incomplete
+### F-3 [RESOLVED]: `landmarks` region guidance was incomplete
 
 Severity: low usability defect
 
@@ -115,10 +121,12 @@ Severity: low usability defect
 listed 19 Ashenport landmarks. The active landmark table uses numeric zone keys, not the continent
 name presented by nearby travel commands.
 
-The same Luminari behavior exists on `origin/master`; the branch removed only alternate-campaign
-region lists. This is not a campaign-retirement regression.
+The command now lists each available landmark area with its numeric zone, accepts either an area
+name or exact zone number, and routes `landmarks city` to the current-area view. Live checks from
+Ashenport confirmed the area list, `Ashenport`, `city`, and `1030` forms all expose the expected 19
+landmarks. A partial numeric key such as `103` is deliberately rejected instead of matching 1030.
 
-### F-4: Quitting during `walkto` logs an invalid route lookup
+### F-4 [RESOLVED]: Quitting during `walkto` logged an invalid route lookup
 
 Severity: low runtime defect
 
@@ -130,10 +138,11 @@ the route was active, the server recorded:
 SYSERR: Illegal value -1 or 17883 passed to find_first_step. (src/graph.c)
 ```
 
-The walk scheduler called `find_first_step()` after the character's room had become `NOWHERE`.
-The relevant validation and `process_walkto_actions()` lifecycle are unchanged from `master`; the
-campaign diff in `graph.c` only removes an alternate-campaign cross-zone conditional after this
-validation. This is reproducible test evidence, but not a regression caused by the branch.
+The walk scheduler now clears an active route before pathfinding whenever its character is no
+longer playing or has no room. It also clears a route whose destination has disappeared and uses
+the correct landmark-table row when reporting an interrupted route. A production-linked test
+covers the logout state directly. The live logout replay completed without an illegal
+`find_first_step()` value, server error, crash, assertion, or abort.
 
 ### F-5: Ashenport welcome trigger messages can outlive their actor
 
@@ -158,7 +167,8 @@ compiled implementation with no player-facing route to invoke it.
 The server did not crash, restart, abort, or emit an assertion failure during the test. The active
 process remained the installed binary after all sessions.
 
-Besides findings F-4 and F-5, the log contained:
+The follow-up logout-during-walk replay produced no route lookup error. Besides finding F-5, the
+log contained:
 
 - local I3 connection failures to `127.0.0.1:8081`;
 - a missing local Ollama model and failed Ollama warmup;
@@ -208,7 +218,15 @@ if later work changes one of those systems directly.
 2. Open a separate dead-code and persisted-identifier audit for retired lore mechanics, beginning
    with the Draconian feat, spell, event, and combat registrations and the unregistered
    `do_homelands` handler.
-3. Fix `do_accexp` to omit classes for which `CLSLIST_INGAME(i)` is false.
-4. Make `landmarks` print valid numeric zone keys or accept the region names presented to players.
-5. Cancel or ignore `walkto` processing when a descriptor's character is no longer in a room.
-6. Guard delayed room-trigger messages when their original actor has left.
+3. Guard delayed room-trigger messages when their original actor has left.
+
+## Follow-up verification
+
+- `make -j$(nproc)` completed as a warning-free GNU C23 production build.
+- `make test` passed all 781 production-linked CuTests and the repository regression scripts.
+- `make install` installed the tested executable and removed the root-level `circle` artifact.
+- Live `accexp class` output retained the available locked classes without either placeholder.
+- Live Ashenport landmark checks passed for the area list, area name, current city, and exact zone
+  number forms.
+- Logging out during an active route canceled the route before pathfinding; the server remained
+  healthy and its follow-up log contained no route lookup error.

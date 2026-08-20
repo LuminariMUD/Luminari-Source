@@ -27321,15 +27321,19 @@ WALK-UNSEEN
 #0
 FASTWALK LANDMARKS WALKING WALKTO
 
-Usage: walkto (landmark name)
+Usage: walkto <landmark name or room number>
      : landmarks
+     : landmarks <area name or zone number>
+     : landmarks city
 
 The walkto system allows players to be able to travel within certain zones
-automatically.  Only certain places within the zone can be traveled to. For
-a list of these, type 'landmarks'. Not all zones have landmarks, usually only
-larger cities.
+automatically. Only certain places within the zone can be traveled to. Type
+'landmarks' to list areas that have landmarks, then provide an area name or
+zone number to list its destinations. Type 'landmarks city' to list landmarks
+in your current area. Not all zones have landmarks, usually only larger cities.
 
-To stop at any time type 'walkto cancel'
+To stop at any time type 'walkto cancel'. An active route is also canceled
+when you leave the game.
 
 #0
 POWER-WALL-OF-ECTOPLASM PSIONIC-POWER-WALL-OF-ECTOPLASM WALL-OF-ECTOPLASM

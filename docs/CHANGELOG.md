@@ -19,11 +19,22 @@
   environment, testing, and contributor documentation. Historical changelogs and intentional
   setting lore remain unchanged.
 
+#### Fixed
+
+- Prevented `accexp class` from listing or selling placeholder classes whose class definition is
+  not enabled for play.
+- Made `landmarks` list the available landmark areas, accept either an area name or exact zone
+  number, and route `landmarks city` to the current-area listing.
+- Canceled active `walkto` routes before pathfinding when a character logs out or no longer has a
+  valid room, avoiding an invalid route lookup during logout.
+
 #### Verification
 
 - Passed a clean warning-free GNU C23 Autotools build, all 778 production-linked CuTests, all 454
   world-tool tests, `make install`, a fresh out-of-tree CMake build, a full local `autorun.sh` boot,
   and the Kohdee account login/world-entry/logout smoke test.
+- The account class, landmark, and walk-to follow-ups passed all 781 production-linked CuTests,
+  `make install`, live command checks, and a clean logout-during-walk replay.
 
 ### Jotunheim invasion
 

@@ -9,6 +9,7 @@
 #include "../../src/perfmon.h"
 #include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
+#include "../../src/vessels/transport.h"
 #include "../../src/wilderness/wilderness.h"
 
 #include <limits.h>
@@ -16,6 +17,120 @@
 #include <string.h>
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
+
+void Test_transport_landmark_regions_accept_names_and_city(CuTest *tc)
+{
+  char output[8192];
+  struct room_data room_fixture;
+  struct room_data *saved_world;
+  struct zone_data zone_fixture;
+  struct zone_data *saved_zone_table;
+  struct char_data character;
+  struct player_special_data player_specials;
+  struct descriptor_data descriptor;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone_table;
+  int saved_landmark_system;
+  bool listed_area;
+  bool accepted_name;
+  bool listed_city;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  saved_landmark_system = CONFIG_LANDMARK_SYSTEM;
+  memset(&room_fixture, 0, sizeof(room_fixture));
+  memset(&zone_fixture, 0, sizeof(zone_fixture));
+  memset(&character, 0, sizeof(character));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(output, 0, sizeof(output));
+
+  room_fixture.number = 103000;
+  room_fixture.zone = 0;
+  zone_fixture.number = 1030;
+  zone_fixture.name = "Ashenport";
+  world = &room_fixture;
+  top_of_world = 0;
+  zone_table = &zone_fixture;
+  top_of_zone_table = 0;
+  CONFIG_LANDMARK_SYSTEM = LANDMARK_SYSTEM_WORLD;
+  character.in_room = 0;
+  character.player_specials = &player_specials;
+  character.desc = &descriptor;
+  descriptor.character = &character;
+  descriptor.output = output;
+  descriptor.bufspace = sizeof(output) - 1;
+  descriptor.pProtocol = ProtocolCreate();
+
+  if (descriptor.pProtocol == NULL)
+  {
+    world = saved_world;
+    top_of_world = saved_top_of_world;
+    zone_table = saved_zone_table;
+    top_of_zone_table = saved_top_of_zone_table;
+    CONFIG_LANDMARK_SYSTEM = saved_landmark_system;
+    CuFail(tc, "could not initialize the landmark descriptor");
+    return;
+  }
+
+  do_landmarks(&character, "", 0, 0);
+  listed_area = strstr(output, "[1030] Ashenport") != NULL &&
+                strstr(output, "landmarks <area name or zone number>") != NULL;
+
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_landmarks(&character, "Ashenport", 0, 0);
+  accepted_name = strstr(output, "jade jug inn") != NULL;
+
+  memset(output, 0, sizeof(output));
+  descriptor.bufptr = 0;
+  descriptor.bufspace = sizeof(output) - 1;
+  do_landmarks(&character, "city", 0, 0);
+  listed_city = strstr(output, "jade jug inn") != NULL;
+
+  ProtocolDestroy(descriptor.pProtocol);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+  CONFIG_LANDMARK_SYSTEM = saved_landmark_system;
+
+  CuAssertIntEquals(tc, 1030, get_walkto_landmark_region_vnum("1030"));
+  CuAssertIntEquals(tc, NOWHERE, get_walkto_landmark_region_vnum("103"));
+  CuAssertTrue(tc, listed_area);
+  CuAssertTrue(tc, accepted_name);
+  CuAssertTrue(tc, listed_city);
+}
+
+void Test_transport_walkto_cancels_before_pathfinding_after_logout(CuTest *tc)
+{
+  struct descriptor_data descriptor;
+  struct descriptor_data *saved_descriptor_list;
+  struct char_data character;
+  struct char_data *ch;
+  struct player_special_data player_specials;
+
+  saved_descriptor_list = descriptor_list;
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&character, 0, sizeof(character));
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch = &character;
+  descriptor_list = &descriptor;
+  descriptor.character = ch;
+  character.desc = &descriptor;
+  character.player_specials = &player_specials;
+  character.in_room = NOWHERE;
+  GET_WALKTO_LOC(ch) = 103009;
+  STATE(&descriptor) = CON_PLAYING;
+
+  process_walkto_actions();
+
+  descriptor_list = saved_descriptor_list;
+  CuAssertIntEquals(tc, 0, GET_WALKTO_LOC(ch));
+}
 
 void Test_vessel_fleet_supports_500_active_slots(CuTest *tc)
 {

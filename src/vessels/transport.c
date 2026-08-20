@@ -785,10 +785,16 @@ ACMDU(do_walkto)
 
 ACMDU(do_landmarks)
 {
+  char arg[MAX_INPUT_LENGTH];
+
   switch (CONFIG_LANDMARK_SYSTEM)
   {
   case LANDMARK_SYSTEM_WORLD:
-    do_landmarks_full(ch, argument, cmd, subcmd);
+    one_argument(argument, arg, sizeof(arg));
+    if (*arg && is_abbrev(arg, "city"))
+      do_landmarks_city(ch, argument, cmd, subcmd);
+    else
+      do_landmarks_full(ch, argument, cmd, subcmd);
     break;
   case LANDMARK_SYSTEM_CITIES:
     do_landmarks_city(ch, argument, cmd, subcmd);
@@ -935,12 +941,87 @@ ACMDU(do_walkto_city)
                get_walkto_landmark_name(walkto_vnum_to_list_row(landmark)));
 }
 
+zone_vnum get_walkto_landmark_region_vnum(const char *selector)
+{
+  const char *region_name;
+  zone_rnum zone;
+  zone_vnum region;
+  int i;
+
+  if (selector == NULL || !*selector)
+    return NOWHERE;
+
+  for (i = 0; get_walkto_landmark_region(i)[0] != '0'; i++)
+  {
+    region = atoidx(get_walkto_landmark_region(i));
+    if (region <= 0)
+      continue;
+
+    if (is_number(selector))
+    {
+      if (atoidx(selector) == region)
+        return region;
+      continue;
+    }
+
+    zone = real_zone(region);
+    if (zone == NOWHERE || zone_table[zone].name == NULL)
+      continue;
+
+    region_name = zone_table[zone].name;
+    if (is_abbrev(selector, region_name) || isname(selector, region_name))
+      return region;
+  }
+
+  return NOWHERE;
+}
+
+static void show_walkto_landmark_regions(struct char_data *ch)
+{
+  zone_rnum zone;
+  zone_vnum region;
+  bool already_listed;
+  int i;
+  int j;
+
+  send_to_char(ch, "Available landmark areas:\r\n");
+
+  for (i = 0; get_walkto_landmark_region(i)[0] != '0'; i++)
+  {
+    region = atoidx(get_walkto_landmark_region(i));
+    if (region <= 0)
+      continue;
+
+    already_listed = false;
+    for (j = 0; j < i; j++)
+    {
+      if (atoidx(get_walkto_landmark_region(j)) == region)
+      {
+        already_listed = true;
+        break;
+      }
+    }
+    if (already_listed)
+      continue;
+
+    zone = real_zone(region);
+    if (zone != NOWHERE && zone_table[zone].name != NULL)
+      send_to_char(ch, "  [%d] %s\r\n", region, zone_table[zone].name);
+    else
+      send_to_char(ch, "  [%d]\r\n", region);
+  }
+
+  send_to_char(ch, "\r\nUse 'landmarks <area name or zone number>' to list an area's landmarks.\r\n"
+                   "Use 'landmarks city' to list landmarks in your current area.\r\n");
+}
+
 ACMD(do_landmarks_full)
 {
-  int i = 0, count = 0, j = 0, dir = 0, distance = -1;
+  int i = 0, count = 0, dir = 0, distance = -1;
   room_rnum destination = NOWHERE;
+  zone_vnum requested_region;
   bool found = false;
-  char buf[200], arg1[200], direction[50];
+  char arg1[200], direction[50];
 
   if (IN_ROOM(ch) == NOWHERE)
   {
@@ -952,18 +1033,21 @@ ACMD(do_landmarks_full)
 
   if (!*arg1)
   {
-    send_to_char(ch, "Please specify one of the following regions:\r\n");
-    send_to_char(ch,
-                 "You can also type 'landmarks city' to see landmarks in your current area.\r\n");
+    show_walkto_landmark_regions(ch);
+    return;
+  }
+
+  requested_region = get_walkto_landmark_region_vnum(arg1);
+  if (requested_region == NOWHERE)
+  {
+    send_to_char(ch, "There is no landmark area matching '%s'.  Type 'landmarks' for a list.\r\n",
+                 arg1);
     return;
   }
 
   while (get_walkto_landmark_region(i)[0] != '0')
   {
-    snprintf(buf, sizeof(buf), "%s", get_walkto_landmark_region(i));
-    for (j = 0; (size_t)j < strlen(buf); j++)
-      buf[j] = LOWER(buf[j]);
-    if (is_abbrev(arg1, buf))
+    if (atoidx(get_walkto_landmark_region(i)) == requested_region)
     {
       if (count == 0)
       {
@@ -1040,17 +1124,29 @@ void process_walkto_actions(void)
   for (d = descriptor_list; d; d = d->next)
   {
     ch = d->character;
-    if (!ch)
+    if (!ch || IS_NPC(ch) || ch->player_specials == NULL)
       continue;
     if (!GET_WALKTO_LOC(ch))
       continue;
+    if (STATE(d) != CON_PLAYING || IN_ROOM(ch) == NOWHERE)
+    {
+      GET_WALKTO_LOC(ch) = 0;
+      continue;
+    }
     destination = real_room(GET_WALKTO_LOC(ch));
     if (destination == NOWHERE)
+    {
+      send_to_char(ch,
+                   "Your walk to '%s' has been interrupted because that landmark is no longer "
+                   "available.\r\n",
+                   get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))));
+      GET_WALKTO_LOC(ch) = 0;
       continue;
+    }
     if ((dir = find_first_step(IN_ROOM(ch), destination)) < 0)
     {
       send_to_char(ch, "Your walk to '%s' has been interrupted %d.\r\n",
-                   get_walkto_landmark_name(GET_WALKTO_LOC(ch)), dir);
+                   get_walkto_landmark_name(walkto_vnum_to_list_row(GET_WALKTO_LOC(ch))), dir);
       GET_WALKTO_LOC(ch) = 0;
       continue;
     }

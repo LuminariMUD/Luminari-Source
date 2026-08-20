@@ -431,7 +431,7 @@ ACMD(do_accexp)
       send_to_char(ch, "Please choose from the following classes:\r\n");
       for (i = 0; i < NUM_CLASSES; i++)
       {
-        if (has_unlocked_class(ch, i) || !CLSLIST_LOCK(i))
+        if (!CLSLIST_INGAME(i) || has_unlocked_class(ch, i) || !CLSLIST_LOCK(i))
           continue;
         cost = CLSLIST_COST(i);
         send_to_char(ch, "%s (%d account experience)\r\n", CLSLIST_NAME(i), cost);
@@ -441,8 +441,8 @@ ACMD(do_accexp)
     /* Identify class to unlock by name abbreviation */
     for (i = 0; i < NUM_CLASSES; i++)
     {
-      /* Skip already unlocked classes and non-lockable classes */
-      if (has_unlocked_class(ch, i) || !CLSLIST_LOCK(i))
+      /* Skip disabled, already unlocked, and non-lockable classes */
+      if (!CLSLIST_INGAME(i) || has_unlocked_class(ch, i) || !CLSLIST_LOCK(i))
         continue;
 
       /* Check if this class matches the input */
