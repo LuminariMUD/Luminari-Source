@@ -649,7 +649,10 @@ landed so an interrupted session can resume without re-deriving state.
 - [x] 4.5 Help, templates, and current documentation, including the `GDB`
       help entry in `lib/text/help/help.hlp` and the idempotent
       `sql/components/help_gdb_binary_rename.sql` component registered as
-      `apply` in `sql/components/ci_schema_manifest.txt`.
+      `apply` in `sql/components/ci_schema_manifest.txt`. Verified on the
+      development database 2026-08-21: exactly one `GDB` row before and
+      after, `bin/circle` gone from both the row and the file copy, and a
+      second run of the component is a no-op.
 - [x] 5 Phase A verification, on development (`APP_ENV=development`).
   - [x] 5.1 `git diff --check`, `bash -n` on every changed script, and
         `test-binary-name-static` all pass. Remaining `circle` hits are the
