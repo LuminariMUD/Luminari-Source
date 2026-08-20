@@ -631,7 +631,8 @@ landed so an interrupted session can resume without re-deriving state.
       `src/db.h`, `src/act.wizard.c`,
       `unittests/CuTest/test_syntax_check_boot.c`, `src/sysdep.h`,
       `.gitignore`).
-- [ ] 4.2 Installer and mixed release layouts.
+- [x] 4.2 Installer and mixed release layouts (`install_versioned_binary.sh`,
+      `test_versioned_binary_install.sh`).
 - [ ] 4.3 Autorun, systemd, deploy, and diagnostics.
 - [ ] 4.4 CI, test harnesses, and operational tooling.
 - [ ] 4.5 Help, templates, and current documentation.
