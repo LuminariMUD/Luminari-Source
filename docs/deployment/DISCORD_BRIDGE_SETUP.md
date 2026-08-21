@@ -136,7 +136,7 @@ Then recompile and restart MUD. Bot must send auth token as first message.
 
 ### Discord Bot Can't Connect:
 - Check firewall allows port 8181
-- Verify MUD is running: `ps aux | grep circle`
+- Verify MUD is running: `ps aux | grep luminari`
 - Check server listens: `netstat -an | grep 8181`
 - Try telnet test: `telnet localhost 8181`
 

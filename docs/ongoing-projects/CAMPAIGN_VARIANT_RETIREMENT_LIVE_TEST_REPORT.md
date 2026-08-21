@@ -224,7 +224,7 @@ if later work changes one of those systems directly.
 
 - `make -j$(nproc)` completed as a warning-free GNU C23 production build.
 - `make test` passed all 781 production-linked CuTests and the repository regression scripts.
-- `make install` installed the tested executable and removed the root-level `circle` artifact.
+- `make install` installed the tested executable and removed the root-level `luminari` artifact.
 - Live `accexp class` output retained the available locked classes without either placeholder.
 - Live Ashenport landmark checks passed for the area list, area name, current city, and exact zone
   number forms.

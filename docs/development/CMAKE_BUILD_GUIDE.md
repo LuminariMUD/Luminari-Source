@@ -85,7 +85,7 @@ cmake -DGD_LIBRARY=/usr/lib/libgd.so ..
 
 ```bash
 # Build main server
-cmake --build build/ --target circle
+cmake --build build/ --target luminari
 
 # Install the server release after it has been tested
 cmake --install build/
@@ -127,7 +127,7 @@ Create `.vscode/settings.json`:
 
 1. Open project root containing CMakeLists.txt
 2. CLion will automatically detect CMake project
-3. Configure build profiles in Settings → Build → CMake
+3. Configure build profiles in Settings -> Build -> CMake
 
 ### Eclipse CDT
 

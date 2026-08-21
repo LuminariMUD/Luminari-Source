@@ -1080,7 +1080,7 @@ numbered gameplay flow:
   `board goshawk` all entered the intended vessel. The temporary slot 5 then
   purged its two rooms and all persistence, leaving the four durable fixtures.
 - The full production-linked root suite passed 220 tests, followed by
-  `make install`; no root-level `circle` artifact remained.
+  `make install`; no root-level `luminari` artifact remained.
 
 ## Known Findings
 

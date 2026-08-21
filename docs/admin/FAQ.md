@@ -160,7 +160,7 @@ sudo apt-get install libc6-dev
 **A:** The autorun script runs the MUD in the background. This is normal behavior. To see what's happening:
 ```bash
 # Check if the MUD is running
-ps aux | grep circle
+ps aux | grep luminari
 
 # View the log files
 tail -f log/syslog

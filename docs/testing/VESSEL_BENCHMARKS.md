@@ -732,7 +732,7 @@ to process-lifetime spell, command, DG, and profiler registries and are not
 presented as a long-horizon leak verdict; Memcheck must be repeated for Phase
 15.
 `make install` completed for the current local candidate and removed its
-root-level `circle`. Isolated provisioner fixtures also passed
+root-level `luminari`. Isolated provisioner fixtures also passed
 the idempotent zone-extension and overlap-rejection paths. Deterministic shell
 fixtures cover the compact live-system parser, incomplete sample rejection, a
 clean normal-build log, and detection of six representative vessel progress
@@ -795,7 +795,7 @@ rerun after post-scale source changes.
 The final-preflight candidate passes all 306 production-linked tests and
 strict Memcheck with zero errors and zero definite, indirect, or possible
 loss. The focused protocol harness passes 13 of 13 and all four vessel-tooling
-gates pass. Required `make install` removes the root `circle` and installs the
+gates pass. Required `make install` removes the root `luminari` and installs the
 SHA-256 recorded with the final run. Actual Kohdee also proved debug-off,
 load-bearing disable/freeze/enable/resume behavior, all 81 authoritative help
 keywords, and moving-Trader copyover with generation, speed, and 40

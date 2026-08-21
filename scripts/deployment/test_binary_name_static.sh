@@ -37,6 +37,8 @@ patterns=(
   'CIRCLE_(COMPILE_DEFINITIONS|COMPILE_OPTIONS|LINK_LIBRARIES)'
   'MUD_BINARY *= *circle'
   'pgrep[^[:cntrl:]]*circle'
+  'grep +circle'
+  '--target +circle'
   'circle\.pid'
 )
 

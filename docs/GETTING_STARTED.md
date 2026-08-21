@@ -216,7 +216,7 @@ for MySQL/MariaDB setup details.
 ### Common Issues
 
 **Can't connect:**
-- Verify server is running: `ps aux | grep circle`
+- Verify server is running: `ps aux | grep luminari`
 - Check firewall settings
 - Try `telnet localhost 4100` to test
 

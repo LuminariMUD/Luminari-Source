@@ -21,8 +21,8 @@ Observed evidence:
 
 - The pre-copyover process was release
   `70bb9124e49380410784c680da21574692d7e965`.
-- `log/copyover_diagnostic.log` records that the 16:50:22 copyover executed
-  `bin/releases/94e743c79dab9e17a38c77e5123a2e0342c0b3b4/circle`.
+- `log/copyover_diagnostic.log` records that the 16:50:22 copyover executed the
+  server in release `94e743c79dab9e17a38c77e5123a2e0342c0b3b4`.
 - The new release manifest and `readelf -n` both identify the running binary as
   `94e743c79dab9e17a38c77e5123a2e0342c0b3b4` at git commit
   `52094f8f66342a0ee3c7413c74291e024803eb60`.

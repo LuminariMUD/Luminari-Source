@@ -280,9 +280,57 @@ Done:
 - `docs/ongoing-projects/README_ongoing-projects.md` describes the clean
   cutover.
 
+### 2026-08-21 - development cutover and verification gates
+
+The development cutover in section 5 is complete. No MUD or supervisor process
+from this checkout was running, so the maintenance window was empty.
+
+- Removed `bin/circle`, and removed 303 old-name release directories under
+  `bin/releases/`. Each held only `circle`, `circle.debug`, and `manifest`; no
+  release held both basenames, and the active alias already pointed at a
+  canonical release. Three canonical releases were retained.
+- No root-level `luminari` or `circle` artifact existed before or after.
+
+Verification gates, all on development:
+
+- `git diff --check` clean.
+- `make clean && make -j"$(nproc)"`: success, zero compiler warnings.
+- `LUMINARI_TEST_SYNTAX_TIMEOUT_SECONDS=480 make test-all`: PASS,
+  782 production-linked tests and 29 protocol-parser tests.
+- Fresh CMake directory with `-DBUILD_TESTS=ON`: configure, build, and
+  `ctest`: 14 of 14 tests passed. `cmake --install` published a canonical
+  release and alias. `make install` then restored the Autotools release as
+  the active alias.
+- Post-install proof: root `luminari` absent, root `circle` absent,
+  `bin/luminari` an executable symlink, `bin/circle` absent, the active
+  release a regular executable with a matching `luminari.debug` build ID and a
+  manifest matching both the build ID and the SHA-256, and no old-name release
+  artifacts anywhere.
+- `bin/luminari --build-info` reports the expected version and commit.
+- `bash -n` clean on every changed shell script.
+- `scripts/deployment/test_binary_name_static.sh`: PASS.
+- `scripts/deployment/test_versioned_binary_install.sh`: PASS.
+- `scripts/autorun/test_autorun_supervision.sh`: PASS.
+- Runtime rehearsal through `scripts/autorun/autorun.sh`: clean start on the
+  canonical release, a `luminari` to `luminari` copyover through
+  `scripts/development/dev_kohdee_login_smoke.sh --copyover-check score` that
+  kept the same PID and the connected character, then a clean stop and
+  restart. Active identity matched the installed release at every step.
+
+Second sweep of the tracked tree found and fixed executable references the
+original pattern list missed: `ps aux | grep circle` in three guides,
+`cmake --build --target circle` in the CMake guide, root-artifact claims in
+two vessel test reports and one campaign report, and a release executable path
+in a completed copyover report. The static check gained `grep circle`,
+`--target circle`, and `MUD_BINARY=circle` patterns. Every remaining tracked
+`circle` occurrence is CircleMUD heritage, a `CIRCLE_*` platform macro, an
+internal `circle_*` C identifier, gameplay spell-circle text, or one of the
+two exempt files.
+
 Not done yet:
 
-- Full build and test gates from section 6.
-- The development cutover in section 5, including removing `bin/circle`, the
-  root-level old-name artifacts, and old-name release directories.
-- The production maintenance window.
+- The production maintenance cutover in section 5. Production still needs the
+  window: stop the service, remove `bin/circle` and any old-name release
+  directories there, install the reviewed candidate, reload
+  `luminari.service`, apply the `GDB` help component, start through the
+  supervisor, and prove the identity chain.
