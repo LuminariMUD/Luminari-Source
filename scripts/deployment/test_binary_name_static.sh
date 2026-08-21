@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 
-# Static regression: no active file may refer to the pre-rename executable.
+# Static regression: no tracked file may refer to the pre-rename executable.
 #
-# This checks high-signal executable forms only. CircleMUD attribution,
-# gameplay spell circles, and internal circle_* C identifiers are deliberately
-# out of scope: the goal is a reviewed allowlist, not zero uses of the word.
+# This checks executable, build-target, release-artifact, and process-probe
+# forms only. CircleMUD attribution, gameplay spell circles, internal circle_*
+# C identifiers, and CIRCLE_* platform macros are deliberately out of scope:
+# they are unrelated to the executable name.
+#
+# There is no compatibility allowlist. The only exempt paths are ones that must
+# name the rejected forms to do their job: the rename plan, this detector's own
+# pattern list, and the frozen changelog history.
 
 set -euo pipefail
 
@@ -30,48 +35,22 @@ patterns=(
   'TARGET_FILE:circle'
   'circle_(SOURCES|LDADD)'
   'CIRCLE_(COMPILE_DEFINITIONS|COMPILE_OPTIONS|LINK_LIBRARIES)'
+  'MUD_BINARY *= *circle'
   'pgrep[^[:cntrl:]]*circle'
   'circle\.pid'
 )
 
-# Path-specific allowlist. Every entry is either the Phase A compatibility
-# implementation, a test that exercises it, the rename plan and its index, an
-# operational document that must keep naming the old release layout so pre-
-# rename cores stay analyzable, or dated historical evidence that must not be
-# rewritten.
-allowed_paths=(
-  '.github/workflows/test.yml'
-  'docs/CHANGELOG.md'
-  'docs/deployment/DEPLOYMENT_FIX.md'
-  'docs/deployment/DEPLOYMENT_STATUS.md'
-  'docs/ongoing-projects/BINARY_RENAME_CIRCLE_TO_LUMINARI.md'
-  'docs/guides/TROUBLESHOOTING_AND_MAINTENANCE.md'
-  'docs/ongoing-projects/CAMPAIGN_VARIANT_RETIREMENT_LIVE_TEST_REPORT.md'
-  'docs/ongoing-projects/README_ongoing-projects.md'
-  'docs/ongoing-projects/todo.md'
-  'docs/runbooks/incident-response.md'
-  'docs/testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md'
-  'docs/testing/VESSEL_BENCHMARKS.md'
-  'docs/testing/VESSEL_SYSTEM_TESTING.md'
-  'docs/utilities/WORLD_VALIDATOR_CLI.md'
-  'scripts/autorun/test_autorun_supervision.sh'
-  'scripts/deployment/install_versioned_binary.sh'
-  'scripts/deployment/test_binary_name_static.sh'
-  'scripts/deployment/test_versioned_binary_install.sh'
-  'sql/components/help_gdb_binary_rename.sql'
-)
-
+# Only two exemptions: this plan, which necessarily names the rejected forms,
+# and the frozen changelog history, which records the tree as it was.
 is_allowed_path()
 {
   local candidate=$1
-  local allowed
 
-  for allowed in "${allowed_paths[@]}"; do
-    [[ "$candidate" == "$allowed" ]] && return 0
-  done
   case "$candidate" in
+    docs/ongoing-projects/BINARY_RENAME_CIRCLE_TO_LUMINARI.md) return 0 ;;
+    docs/CHANGELOG.md) return 0 ;;
     docs/previous_changelogs/*) return 0 ;;
-    docs/testing/SPECIAL_PROCEDURE_PHASE_*) return 0 ;;
+    scripts/deployment/test_binary_name_static.sh) return 0 ;;
   esac
   return 1
 }
@@ -89,9 +68,8 @@ done < <(git grep -n -I -E "$pattern_expression" -- . ':!EXAMPLE' || true)
 if ((${#violations[@]} > 0)); then
   printf 'binary name static test: obsolete executable references found:\n' >&2
   printf '  %s\n' "${violations[@]}" >&2
-  printf '\nRename these to luminari, or add a reviewed path to the allowlist\n' >&2
-  printf 'in scripts/deployment/test_binary_name_static.sh if the reference is\n' >&2
-  printf 'Phase A compatibility code or dated historical evidence.\n' >&2
+  printf '\nRename these to luminari. The rename is a clean cutover, so there\n' >&2
+  printf 'is no compatibility allowlist to add them to.\n' >&2
   exit 1
 fi
 

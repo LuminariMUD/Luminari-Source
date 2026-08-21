@@ -457,7 +457,7 @@ def _code_gates(repo_root: Path, logs: dict[str, Path]) -> dict[str, Any]:
       and re.search(r"(?:#|zone\s+)20(?:[0-9]{3}|[0-9]{5,6})\b", line, re.IGNORECASE)
   ]
   root_build_artifacts_absent_failures = [
-      name for name in ("luminari", "circle") if (repo_root / name).exists()
+      name for name in ("luminari",) if (repo_root / name).exists()
   ]
   gates = {
       "world_tools": {
@@ -472,10 +472,7 @@ def _code_gates(repo_root: Path, logs: dict[str, Path]) -> dict[str, Any]:
           "passed": "Installed release:" in texts["install"]
           and (repo_root / "bin/luminari").is_file()
           and not root_build_artifacts_absent_failures,
-          # Canonical result; root_circle_absent is retained so existing
-          # manifests keep the key they were written with.
           "root_build_artifacts_absent": not root_build_artifacts_absent_failures,
-          "root_circle_absent": not (repo_root / "circle").exists(),
           "installed_binary_sha256": _sha256_path(repo_root / "bin/luminari"),
       },
       "syntax_boot": {

@@ -193,13 +193,13 @@ Run from the repository root:
 ```sh
 make test
 make install
-test -x bin/circle
-test -L bin/circle
-test ! -e circle
+test -x bin/luminari
+test -L bin/luminari
+test ! -e luminari
 ```
 
 `make test` runs the full production-linked binary, not only the 78 dedicated tests. Installation
-must immediately follow because the test path can create a root-level `circle`.
+must immediately follow because the test path can create a root-level `luminari`.
 
 ### Independent CMake And CTest
 
@@ -263,8 +263,8 @@ against production.
 - Scan changed text for non-ASCII and CR bytes and run `git diff --check`.
 - Confirm no diff in `src/campaign.h`, `src/mud_options.h`, `src/vnums.h`, `lib/.env`,
   `lib/mysql_config`, or `lib/world/`.
-- Confirm the checked-in world digest is unchanged, no validation sandbox remains, `bin/circle` is
-  executable, and root `circle` is absent.
+- Confirm the checked-in world digest is unchanged, no validation sandbox remains, `bin/luminari` is
+  executable, and root `luminari` is absent.
 
 ## Acceptance Rule
 

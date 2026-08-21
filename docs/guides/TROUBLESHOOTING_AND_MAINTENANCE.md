@@ -140,8 +140,7 @@ find dumps -maxdepth 2 -type f -print
 
 Do not rebuild or remove `bin/releases/<ELF-build-ID>/` before preserving the
 executable used by the crashed process and the `.debug` sidecar beside it with
-the same basename. Pre-rename releases hold `circle`/`circle.debug`; newer
-releases hold `luminari`/`luminari.debug`.
+the same basename. Every release holds `luminari` and `luminari.debug`.
 
 ### GDB
 

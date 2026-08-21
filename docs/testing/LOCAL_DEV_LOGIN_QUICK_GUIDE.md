@@ -121,7 +121,7 @@ That single command:
 
 - Refuses to run unless `APP_ENV=development`.
 - Reads credentials from `lib/.env` without displaying them.
-- Reuses the local MUD if it is already listening, or starts `bin/circle` and
+- Reuses the local MUD if it is already listening, or starts `bin/luminari` and
   waits for the game loop.
 - Finds `Kohdee` by the exact account-menu Name column rather than a menu
   number.
@@ -550,7 +550,7 @@ same PID and installed executable, waits for boot, reconnects the hold socket,
 and records the recovery count. A missing socket without copyover evidence is
 still a hard failure. Live checks use the configured master account and
 existing Kohdee character; they do not create an account or character.
-The launch metadata records the source commit and SHA-256 of `bin/circle`.
+The launch metadata records the source commit and SHA-256 of `bin/luminari`.
 Each process sample rejects a changed executable fingerprint, and the final
 restart must launch the same SHA-256 that served the continuous window.
 
@@ -706,8 +706,8 @@ harbor, channel, economy, or MSDP commands first only duplicates work.
 The current suite result is 306 of 306. The current 306-test Memcheck gate
 reported zero errors and zero definite, indirect, or possible loss. Reachable
 process-lifetime registries and profiler buffers remain reported but are not
-classified as lost. `make test` may leave a root-level `circle` while it builds
-the production-linked suite. The required `make install` installs `bin/circle`
+classified as lost. `make test` may leave a root-level `luminari` while it builds
+the production-linked suite. The required `make install` installs `bin/luminari`
 and removes that root artifact before the runner records provenance. Root
 `make test` and CMake/CTest now also run the vessel memory analyzer, detailed
 process-memory, and scale-parser regressions; the release manifest includes
@@ -910,7 +910,7 @@ removing the root artifact. Confirm the boot-cache log through an actual
 Kohdee smoke, then use a clean committed tree for the next scale run.
 
 That smoke now passes in 22 seconds. The newly started development process is
-PID 850894, `/proc` and `bin/circle` both hash to the installed value above,
+PID 850894, `/proc` and `bin/luminari` both hash to the installed value above,
 and boot logs `Loaded 1 vessel encounter definition into memory.` with no
 vessel or encounter `SYSERR`. Kohdee entered room 1204, saw 6 of 500 ships,
 5 of 2,000 dynamic rooms, zero movement trails, and zero overflows, then
@@ -1502,7 +1502,7 @@ to perform the process manually.
 - `GAME_MASTER_ACCOUNT` and `GAME_MASTER_ACCOUNT_PASSWORD` must be set in
   `lib/.env`. Never print, log, or copy their values into a command or document.
 - MariaDB must be active.
-- `bin/circle` must exist and be executable. Build and install first if it does
+- `bin/luminari` must exist and be executable. Build and install first if it does
   not.
 - `expect`, `nc`, `ss`, `systemctl`, and `systemd-run` must be installed.
 - The helper reads `DFLT_PORT` from `lib/etc/config`; it is currently 4100.
@@ -1514,7 +1514,7 @@ The helper checks all of these automatically.
 Start the server:
 
 ```bash
-./bin/circle -d lib
+./bin/luminari -d lib
 ```
 
 Wait for `Entering game loop.`, then connect from a second terminal:

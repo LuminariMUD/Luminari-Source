@@ -172,7 +172,7 @@ jobs:
           make test
           make install
           test -x bin/luminari
-          test -L bin/circle
+          test -L bin/luminari
           test ! -e luminari
           test ! -e circle
 

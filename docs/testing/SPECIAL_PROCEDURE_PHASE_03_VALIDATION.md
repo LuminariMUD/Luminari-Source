@@ -98,9 +98,9 @@ supervision, installation, health, and vessel regressions.
 make clean
 make -j"$(nproc)"         # no -Wall -Wextra warnings
 make test                 # OK (574 tests)
-make install              # installs bin/circle and removes root circle
-test -x bin/circle
-test ! -e circle
+make install              # installs bin/luminari and removes root luminari
+test -x bin/luminari
+test ! -e luminari
 ```
 
 ### Independent CMake and CTest
@@ -120,7 +120,7 @@ trap cleanup_phase03_cmake EXIT
 
 cmake -S . -B "$phase03_cmake_dir" \
   -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
-cmake --build "$phase03_cmake_dir" --target circle cutest --parallel "$(nproc)"
+cmake --build "$phase03_cmake_dir" --target luminari cutest --parallel "$(nproc)"
 ctest --test-dir "$phase03_cmake_dir" --output-on-failure
 cleanup_phase03_cmake
 trap - EXIT

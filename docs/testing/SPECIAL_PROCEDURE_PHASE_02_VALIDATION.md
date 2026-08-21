@@ -122,10 +122,10 @@ command must not alter either prototype.
 ```sh
 make -j"$(nproc)"         # no new -Wall -Wextra warnings
 make test                 # OK (574 tests)
-make install              # installs bin/circle and removes root circle
-test -x bin/circle
-test -L bin/circle
-test ! -e circle
+make install              # installs bin/luminari and removes root luminari
+test -x bin/luminari
+test -L bin/luminari
+test ! -e luminari
 ```
 
 ### Assignment Inventory

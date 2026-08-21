@@ -56,7 +56,7 @@ Both production source manifests contain the same new implementation files:
 - `CMakeLists.txt`: the identical two paths.
 
 The root Autotools production binary and CuTest binary link both files. A fresh CMake build links
-both the `circle` and `cutest` targets.
+both the `luminari` and `cutest` targets.
 
 ## Checkpoint 1 Verification Evidence
 
@@ -67,8 +67,8 @@ Run from the repository root on 2026-08-07:
 | `make -j$(nproc)` | PASS with `-Wall -Wextra` |
 | `make test` | PASS |
 | direct `./cutest` confirmation | PASS, 574 tests |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
-| fresh CMake `circle` build | PASS |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
+| fresh CMake `luminari` build | PASS |
 | fresh CMake `cutest` build and `ctest --output-on-failure` | PASS, 12/12 tests |
 | exported-symbol comparison against the Phase 02 installed binary | PASS, no moved symbol added, removed, or retyped |
 | `git diff --check` | PASS |
@@ -111,7 +111,7 @@ or call site changes.
 |------|--------|
 | `make -j$(nproc)` | PASS with `-Wall -Wextra` |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` incremental rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 1 | PASS, no symbol added, removed, or retyped |
@@ -142,7 +142,7 @@ lines and from the Phase 03 baseline of 12,212 lines by 7,867 lines.
 | Gate | Result |
 |------|--------|
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 2 | PASS, no symbol added, removed, or retyped |
@@ -178,7 +178,7 @@ lines and from the Phase 03 baseline of 12,212 lines by 8,192 lines.
 | Gate | Result |
 |------|--------|
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 3 | PASS, no symbol added, removed, or retyped |
@@ -217,7 +217,7 @@ lines and from the Phase 03 baseline of 12,212 lines by 9,197 lines.
 | Gate | Result |
 |------|--------|
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 4 | PASS, no symbol added, removed, or retyped |
@@ -256,7 +256,7 @@ lines and from the Phase 03 baseline of 12,212 lines by 10,252 lines.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 5 | PASS, no symbol added, removed, or retyped |
@@ -294,7 +294,7 @@ The new cohesive implementation is 851 lines, below the 1,000-line review prompt
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 6 | PASS, no symbol added, removed, or retyped |
@@ -331,7 +331,7 @@ are 158 and 124 lines respectively.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 7 | PASS, no symbol added, removed, or retyped |
@@ -374,7 +374,7 @@ from its Phase 03 baseline. The new Prisoner and Celestial Leviathan implementat
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 8 | PASS, no symbol added, removed, or retyped |
@@ -410,7 +410,7 @@ lines and by 2,594 lines from the Phase 03 baseline. The new cohesive implementa
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 9 | PASS, no symbol added, removed, or retyped |
@@ -454,7 +454,7 @@ baseline.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 10 | PASS, no symbol added, removed, or retyped |
@@ -492,7 +492,7 @@ baseline.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 11 | PASS, no symbol added, removed, or retyped |
@@ -529,7 +529,7 @@ command, authored-data, or behavior contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 12 | PASS, no symbol added, removed, or retyped |
@@ -558,7 +558,7 @@ because no command, authored-data, or behavior contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 13 | PASS, no symbol added, removed, or retyped |
@@ -587,7 +587,7 @@ because no command, authored-data, or behavior contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 14 | PASS, no symbol added, removed, or retyped |
@@ -619,7 +619,7 @@ contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 15 | PASS, no symbol added, removed, or retyped |
@@ -649,7 +649,7 @@ player or builder helpfile changed because no command, authored-data, or behavio
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 16 | PASS, no symbol added, removed, or retyped |
@@ -681,7 +681,7 @@ no command, authored-data, or behavior contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 17 | PASS, no symbol added, removed, or retyped |
@@ -711,7 +711,7 @@ command, authored-data, or behavior contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 18 | PASS, no symbol added, removed, or retyped |
@@ -742,7 +742,7 @@ command, authored-data, or behavior contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 19 | PASS, no symbol added, removed, or retyped |
@@ -772,7 +772,7 @@ because no command, authored-data, or behavior contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 20 | PASS, no symbol added, removed, or retyped |
@@ -803,7 +803,7 @@ contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 21 | PASS, no symbol added, removed, or retyped |
@@ -833,7 +833,7 @@ helpfile changed because no command, authored-data, or behavior contract changed
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 22 | PASS, no symbol added, removed, or retyped |
@@ -865,7 +865,7 @@ behavior contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 23 | PASS, no symbol added, removed, or retyped |
@@ -898,7 +898,7 @@ changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 24 | PASS, no symbol added, removed, or retyped |
@@ -927,7 +927,7 @@ command, authored-data, or behavior contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 25 | PASS, no symbol added, removed, or retyped |
@@ -956,7 +956,7 @@ player or builder helpfile changed because no command, authored-data, or behavio
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 26 | PASS, no symbol added, removed, or retyped |
@@ -985,7 +985,7 @@ player or builder helpfile changed because no command, authored-data, or behavio
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 27 | PASS, no symbol added, removed, or retyped |
@@ -1023,7 +1023,7 @@ behavior contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 28 | PASS, no symbol added, removed, or retyped |
@@ -1062,7 +1062,7 @@ command, authored-data, or behavior contract changed.
 |------|--------|
 | warning-clean Autotools production build | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 29 | PASS, no symbol added, removed, or retyped |
@@ -1106,7 +1106,7 @@ build manifests. The deletion is source-controlled and recoverable through Git.
 |------|--------|
 | warning-clean Autotools production build after legacy-source retirement | PASS |
 | `make test` | PASS, 574 tests plus all root script gates |
-| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| `make install` | PASS; `bin/luminari` installed and root `luminari` removed |
 | independent CMake production and `cutest` rebuild | PASS |
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 30 | PASS, no symbol added, removed, or retyped |

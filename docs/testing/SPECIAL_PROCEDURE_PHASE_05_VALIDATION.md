@@ -97,9 +97,9 @@ passing tests. The independent CMake matrix contains 12 passing targets.
 make clean
 make -j"$(nproc)"         # no -Wall -Wextra warnings
 make test                 # OK (588 tests)
-make install              # installs bin/circle and removes root circle
-test -x bin/circle
-test ! -e circle
+make install              # installs bin/luminari and removes root luminari
+test -x bin/luminari
+test ! -e luminari
 ```
 
 ### Independent CMake and CTest
@@ -119,7 +119,7 @@ trap cleanup_phase05_cmake EXIT
 
 cmake -S . -B "$phase05_cmake_dir" \
   -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
-cmake --build "$phase05_cmake_dir" --target circle cutest --parallel "$(nproc)"
+cmake --build "$phase05_cmake_dir" --target luminari cutest --parallel "$(nproc)"
 ctest --test-dir "$phase05_cmake_dir" --output-on-failure
 cleanup_phase05_cmake
 trap - EXIT

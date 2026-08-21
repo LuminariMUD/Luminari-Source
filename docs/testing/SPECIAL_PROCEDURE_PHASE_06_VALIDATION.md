@@ -135,13 +135,13 @@ make -j"$(nproc)"
 make test
 make install
 cmake -S . -B <fresh-build-directory> -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
-cmake --build <fresh-build-directory> --target circle cutest --parallel "$(nproc)"
+cmake --build <fresh-build-directory> --target luminari cutest --parallel "$(nproc)"
 ctest --test-dir <fresh-build-directory> --output-on-failure
 ```
 
 The close also requires synchronized Autotools/CMake manifests, ASCII UTF-8 LF documentation,
 the database-first `SPECIALS` migration/verifier gate, untouched local configuration and credential
-files, `bin/circle` installed, and no root-level `circle` artifact.
+files, `bin/luminari` installed, and no root-level `luminari` artifact.
 
 ## Verification Results
 
@@ -149,8 +149,8 @@ The 2026-08-07 close passed every required gate:
 
 - clean Autotools production build with no compiler warnings;
 - root production-linked CuTest suite: 589 tests passed;
-- `make install`: `bin/circle` installed and the root-level `circle` artifact removed;
-- fresh CMake Debug builds of `circle` and `cutest`;
+- `make install`: `bin/luminari` installed and the root-level `luminari` artifact removed;
+- fresh CMake Debug builds of `luminari` and `cutest`;
 - CTest: 12 of 12 tests passed;
 - world documentation checker: zero findings;
 - database-first `SPECIALS` help migration and verifier: four of four contracts passed;

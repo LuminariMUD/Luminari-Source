@@ -19,7 +19,7 @@
 
 ### ❌ What's Broken
 1. **Server Won't Stay Running**:
-   - Binary exists at `./bin/circle`
+   - Binary exists at `./bin/luminari`
    - Starts briefly then immediately exits
    - No persistent process
    - No log output (syslog not created)
@@ -56,11 +56,11 @@ make              # Compile source
 make install      # Install to bin/
 ```
 - **Result**: All steps complete successfully
-- **Binary Location**: `./bin/circle` exists
+- **Binary Location**: `./bin/luminari` exists
 
 ### Step 4: Start Server ❌
 ```bash
-./bin/circle -d lib
+./bin/luminari -d lib
 ```
 - **Result**: Server starts, shows initialization messages, then immediately exits
 - **Error**: Cannot find world files at expected locations

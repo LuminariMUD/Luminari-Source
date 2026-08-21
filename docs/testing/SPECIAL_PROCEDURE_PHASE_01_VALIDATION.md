@@ -135,7 +135,7 @@ Phase 01 test coverage:
 make clean
 make -j$(nproc)            # zero new -Wall -Wextra warnings
 make test                  # 563 tests, all passing
-make install               # installs bin/circle, leaves no root-level circle
+make install               # installs bin/luminari, leaves no root-level luminari
 ```
 
 Build parity: `src/spec/spec_dispatch.c` and `unittests/CuTest/test_spec_dispatch.c` are listed in

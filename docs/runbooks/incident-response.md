@@ -64,10 +64,9 @@ sudo systemctl restart luminari.service
 ```
 
 Analyze a core only with the executable recorded for the crashed process and
-the `.debug` sidecar beside it that carries the same basename. Releases made
-before the binary rename hold `circle`/`circle.debug`; newer ones hold
-`luminari`/`luminari.debug`. During a controlled maintenance window, the maintained capture
-self-test is:
+the `.debug` sidecar beside it that carries the same basename. Every release
+holds `luminari` and `luminari.debug`. During a controlled maintenance window,
+the maintained capture self-test is:
 
 ```bash
 ./scripts/debugging/verify_core_capture.sh --self-test

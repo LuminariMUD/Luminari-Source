@@ -6,14 +6,11 @@ candidate=${1:?usage: install_versioned_binary.sh CANDIDATE BIN_DIRECTORY}
 bin_dir=${2:?usage: install_versioned_binary.sh CANDIDATE BIN_DIRECTORY}
 mkdir -p "$bin_dir"
 release_root="$bin_dir/releases"
-project_root=$(cd "$bin_dir/.." && pwd)
 release_tmp=
 link_tmp=
 
-# Canonical basename for newly created releases and for the mutable alias.
-# Old releases keep the pre-rename basename; see resolve_release_basename.
+# The only executable basename this installer creates or activates.
 exe_name=luminari
-compat_name=circle
 
 fail()
 {
@@ -77,24 +74,9 @@ write_manifest()
   } > "$manifest"
 }
 
-# Report the executable basename an existing release directory uses.  New
-# releases are always canonical, but pre-rename releases must stay usable for
-# rollback and core analysis, so both layouts are recognized here.
-resolve_release_basename()
-{
-  local release_dir=$1
-
-  if [[ -f "$release_dir/$exe_name" ]]; then
-    printf '%s\n' "$exe_name"
-    return 0
-  fi
-  if [[ -f "$release_dir/$compat_name" ]]; then
-    printf '%s\n' "$compat_name"
-    return 0
-  fi
-  return 1
-}
-
+# Create the immutable release for this build ID, or validate the one that is
+# already published.  A release always holds luminari, luminari.debug, and a
+# manifest whose build ID and SHA-256 match the executable.
 create_release()
 {
   local source_binary=$1
@@ -104,29 +86,27 @@ create_release()
   local source_sha256=$5
   local source_version=$6
   local release_dir="$release_root/$source_build_id"
-  local release_exe
   local debug_build_id
   local installed_sha256
 
   if [[ -d "$release_dir" ]]; then
-    release_exe=$(resolve_release_basename "$release_dir") ||
+    [[ -f "$release_dir/$exe_name" ]] ||
       fail "release directory is incomplete: $release_dir"
-    installed_sha256=$(sha256sum "$release_dir/$release_exe" | awk '{print $1}')
+    installed_sha256=$(sha256sum "$release_dir/$exe_name" | awk '{print $1}')
     [[ "$installed_sha256" == "$source_sha256" ]] ||
       fail "build ID collision at $release_dir"
-    [[ -f "$release_dir/$release_exe.debug" ]] ||
-      fail "release debug symbols are missing: $release_dir/$release_exe.debug"
+    [[ -f "$release_dir/$exe_name.debug" ]] ||
+      fail "release debug symbols are missing: $release_dir/$exe_name.debug"
     [[ -f "$release_dir/manifest" ]] ||
       fail "release manifest is missing: $release_dir/manifest"
     grep -Fxq "ELF_BUILD_ID=$source_build_id" "$release_dir/manifest" ||
       fail "release manifest has the wrong build ID: $release_dir/manifest"
     grep -Fxq "SHA256=$source_sha256" "$release_dir/manifest" ||
       fail "release manifest has the wrong SHA-256: $release_dir/manifest"
-    debug_build_id=$(readelf -nW "$release_dir/$release_exe.debug" 2>/dev/null |
+    debug_build_id=$(readelf -nW "$release_dir/$exe_name.debug" 2>/dev/null |
       awk '/Build ID:/ {print tolower($NF); exit}')
     [[ "$debug_build_id" == "$source_build_id" ]] ||
-      fail "release debug symbols have the wrong build ID: $release_dir/$release_exe.debug"
-    created_release_exe=$release_exe
+      fail "release debug symbols have the wrong build ID: $release_dir/$exe_name.debug"
     return 0
   fi
 
@@ -139,73 +119,19 @@ create_release()
   chmod 0644 "$release_tmp/manifest"
   mv -- "$release_tmp" "$release_dir"
   release_tmp=
-  created_release_exe=$exe_name
 }
 
-archive_regular_alias()
-{
-  local alias_path=$1
-  local legacy_build_id
-  local legacy_sha256
-
-  legacy_build_id=$(readelf -nW "$alias_path" 2>/dev/null |
-    awk '/Build ID:/ {print $NF; exit}')
-  [[ "$legacy_build_id" =~ ^[0-9a-fA-F]{16,}$ ]] ||
-    fail "existing $alias_path has no usable ELF build ID"
-  legacy_build_id=${legacy_build_id,,}
-  legacy_sha256=$(sha256sum "$alias_path" | awk '{print $1}')
-  create_release "$alias_path" "$legacy_build_id" unknown 1 "$legacy_sha256" legacy
-}
-
-# Return 0 when alias_path is the executable image of the recorded live MUD.
-alias_is_live()
-{
-  local alias_path=$1
-  local active_pid=
-
-  if [[ -r "$project_root/.mud.pid" ]]; then
-    IFS= read -r active_pid < "$project_root/.mud.pid" || true
-  fi
-  [[ "$active_pid" =~ ^[1-9][0-9]*$ ]] || return 1
-  [[ -e "/proc/$active_pid/exe" ]] || return 1
-  [[ $(stat -Lc '%d:%i' "$alias_path" 2>/dev/null || true) == \
-     $(stat -Lc '%d:%i' "/proc/$active_pid/exe" 2>/dev/null || true) ]]
-}
-
-# Reject an alias path we must never replace.  Runs for both aliases before
-# anything is mutated so a refusal leaves the whole installation untouched.
+# The canonical alias must be absent or a symbolic link.  Anything else is a
+# hand-managed path this installer will not silently replace.  Checked before
+# anything is mutated so a refusal leaves the installation untouched.
 validate_alias_path()
 {
   local alias_path=$1
   local label=$2
 
-  if [[ -L "$alias_path" ]]; then
-    return 0
-  fi
+  [[ -L "$alias_path" ]] && return 0
   [[ -e "$alias_path" ]] || return 0
-  [[ -f "$alias_path" ]] ||
-    fail "$label is neither a regular file nor a symbolic link"
-  if alias_is_live "$alias_path"; then
-    fail "refusing to replace a live regular $label; stop it once to migrate"
-  fi
-  return 0
-}
-
-# Leave alias_path either absent or a symbolic link we may replace.  A stopped
-# regular executable is archived by build ID before it is removed.
-prepare_alias_path()
-{
-  local alias_path=$1
-
-  if [[ -L "$alias_path" ]]; then
-    if [[ ! -e "$alias_path" ]]; then
-      rm -f -- "$alias_path"
-    fi
-    return 0
-  fi
-  [[ -f "$alias_path" ]] || return 0
-  archive_regular_alias "$alias_path"
-  rm -f -- "$alias_path"
+  fail "$label is not a symbolic link; remove it and reinstall"
 }
 
 publish_symlink()
@@ -221,35 +147,19 @@ publish_symlink()
 }
 
 canonical_alias="$bin_dir/$exe_name"
-compat_alias="$bin_dir/$compat_name"
 
 validate_alias_path "$canonical_alias" "bin/$exe_name"
-validate_alias_path "$compat_alias" "bin/$compat_name"
 
 mkdir -p "$release_root"
-created_release_exe=
 create_release "$candidate" "$elf_build_id" "$git_commit" \
   "$git_dirty" "$candidate_sha256" "$version"
-release_exe=$created_release_exe
 
-prepare_alias_path "$canonical_alias"
-prepare_alias_path "$compat_alias"
+# A dangling link is replaced in place by the atomic publish below.
+publish_symlink "$canonical_alias" "releases/$elf_build_id/$exe_name"
 
-# Publish the canonical alias first so the compatibility link never resolves
-# to a target that does not exist yet.
-publish_symlink "$canonical_alias" "releases/$elf_build_id/$release_exe"
-
-# Phase A keeps bin/circle as a stable link to bin/luminari.  Both names then
-# change together whenever the canonical alias is switched.
-if [[ ! -L "$compat_alias" ]] ||
-   [[ $(readlink "$compat_alias") != "$exe_name" ]]; then
-  publish_symlink "$compat_alias" "$exe_name"
-fi
-
-printf 'Installed release: %s\n' "$release_root/$elf_build_id/$release_exe"
+printf 'Installed release: %s\n' "$release_root/$elf_build_id/$exe_name"
 printf 'Activated alias: %s -> releases/%s/%s\n' "$canonical_alias" \
-  "$elf_build_id" "$release_exe"
-printf 'Compatibility alias: %s -> %s\n' "$compat_alias" "$exe_name"
+  "$elf_build_id" "$exe_name"
 printf 'Git commit: %s (dirty=%s)\n' "$git_commit" "$git_dirty"
 printf 'ELF build ID: %s\n' "$elf_build_id"
 printf 'SHA-256: %s\n' "$candidate_sha256"

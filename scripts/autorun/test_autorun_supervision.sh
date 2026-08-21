@@ -747,7 +747,6 @@ EOF
   cc -o "$copyover_dir/bin/release-new/luminari" "$copyover_dir/mud-new.c" ||
     fail "could not build the post-copyover fixture"
   ln -s "release-old/luminari" "$copyover_dir/bin/luminari"
-  ln -s "luminari" "$copyover_dir/bin/circle"
 
   port=$(find_unused_port)
   (
@@ -875,7 +874,7 @@ EOF
     fail "installed systemd unit does not run the readiness probe"
   grep -Fxq "ExecStop=$deploy_dir/scripts/autorun/autorun.sh stop" "$installed_unit" ||
     fail "installed systemd unit does not use the PID-safe stop path"
-  if grep -Eq "^ExecStart=$deploy_dir/bin/(luminari|circle)$" "$installed_unit"; then
+  if grep -Eq "^ExecStart=$deploy_dir/bin/luminari$" "$installed_unit"; then
     fail "deployment installed the obsolete direct-executable unit"
   fi
   grep -Fxq 'Environment="MUD_BINARY=luminari"' "$installed_unit" ||

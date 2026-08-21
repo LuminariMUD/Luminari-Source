@@ -2,7 +2,7 @@
 
 `wtool` is the standalone validator, lookup, source-inventory, and RoL reconciliation utility for
 LuminariMUD flat world data. It parses the same eight formats used by the server
-without starting the game or compiling `circle`:
+without starting the game or compiling `luminari`:
 
 - zones (`.zon`)
 - rooms (`.wld`)
@@ -969,7 +969,7 @@ HLQ  7f1647e1d55c3404c348a3cb967cc6722bb764fcae518fb256e55d1a058b7bfe
 ```
 
 After all static gates, the development service was restarted on the newly
-installed `bin/circle` and entered the game loop. The final installed and
+installed `bin/luminari` and entered the game loop. The final installed and
 running executable hashes both equal
 `4253a7d2a077e1fadf6d75ff6c6b7bd235bbf162dae8a6cd727da24be25ed3c0`.
 QST 300 was listed at its
@@ -1005,7 +1005,7 @@ ctest --test-dir build --output-on-failure -R '^world-tool'
 
 These gates run the Python suite, constants drift check, documentation check,
 and compatibility-wrapper smoke test. They require Python 3.10+ and Pandoc,
-but not MariaDB or a `circle` build.
+but not MariaDB or a `luminari` build.
 
 GitHub Actions validates tracked fixtures and the constants/documentation
 contracts. The live `lib/world/{wld,mob,obj,zon,shp,trg,qst,hlq}` data is ignored by

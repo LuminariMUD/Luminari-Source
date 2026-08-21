@@ -64,7 +64,7 @@ From fresh clone:
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 ./scripts/deployment/setup.sh
-./bin/circle -d lib
+./bin/luminari -d lib
 ```
 
 Server should start and run on port 4100 (or 4000 depending on config).
