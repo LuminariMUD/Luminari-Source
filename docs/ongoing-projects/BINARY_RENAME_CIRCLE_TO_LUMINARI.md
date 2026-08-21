@@ -327,10 +327,47 @@ in a completed copyover report. The static check gained `grep circle`,
 internal `circle_*` C identifier, gameplay spell-circle text, or one of the
 two exempt files.
 
+### 2026-08-21 - production dry run, read only
+
+Surveyed production over `ssh lumi` without stopping or changing anything.
+Production is entirely pre-rename:
+
+| Item | State |
+|------|-------|
+| Checkout | `/home/luminari/Luminari-Source`, `master` at `4a61df85`, clean |
+| Live MUD | PID from `.mud.pid`, executing `bin/releases/760ea71f.../circle` |
+| Supervisor | `luminari.service` active, autorun and watchdog running |
+| `bin/circle` | symlink to `releases/760ea71f.../circle` |
+| `bin/luminari` | absent |
+| Releases | 21 directories, all `circle` and `circle.debug`, 0 canonical, 1.1 GB |
+| Root artifacts | none |
+| `GDB` help row | exactly 1 row, still `gdb bin/circle` |
+| Installed unit | differs from the repo copy of `luminari.service` |
+
+What the maintenance window must therefore do, in this order:
+
+1. Announce downtime and stop `luminari.service`; confirm no MUD, autorun, or
+   watchdog process from that checkout survives.
+2. Update the checkout to the reviewed commit and build the candidate.
+3. Remove `bin/circle` and the 21 old-name release directories, resolving each
+   path first. This reclaims about 1.1 GB.
+4. `make install`, producing only `bin/luminari` and one canonical release.
+5. Install the repo copy of `luminari.service` and `systemctl daemon-reload`.
+   The installed unit currently differs, so this is a real change: it adds the
+   readiness probe and pins `MUD_BINARY=luminari`.
+6. Apply `sql/components/help_gdb_binary_path.sql`; the production row is
+   still obsolete, so this one is not a no-op there.
+7. Start through the supervisor, wait for the health check, and prove
+   `/proc/<pid>/exe`, the ELF build ID, the manifest, and the SHA-256 all
+   agree with the active `luminari` release.
+8. Perform one `luminari` to `luminari` copyover and one normal stop and start.
+
+Because production has no canonical release at all, there is no rollback to a
+`luminari` build there. The rollback material is the old `circle` releases, so
+step 3 is the point of no return: do not delete them until step 4 has produced
+a verified canonical release, or accept that recovery means rebuilding.
+
 Not done yet:
 
-- The production maintenance cutover in section 5. Production still needs the
-  window: stop the service, remove `bin/circle` and any old-name release
-  directories there, install the reviewed candidate, reload
-  `luminari.service`, apply the `GDB` help component, start through the
-  supervisor, and prove the identity chain.
+- The production maintenance cutover itself. It needs an announced window and
+  explicit authorization to take the live game down.
