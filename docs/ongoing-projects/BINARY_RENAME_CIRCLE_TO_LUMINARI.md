@@ -1,12 +1,11 @@
 # Binary Rename: `circle` to `luminari`
 
-Status: development implementation and rehearsal complete; production
-maintenance cutover pending. The rename is not complete while any executable,
-alias, release artifact, operational command, or compatibility path still uses
-`circle`.
+Status: complete. Development implementation, rehearsal, and the production
+maintenance cutover are all done and verified. No executable, alias, release
+artifact, operational command, or compatibility path uses `circle`.
 
-Last reviewed: 2026-08-21 against `master` at `97b0d2ee` plus the audit changes
-recorded below.
+Last reviewed: 2026-08-21 against `master` at `3a38a6ae`, which is also the
+commit running in production.
 
 ## 1. Decision
 
@@ -454,3 +453,112 @@ file, process, service, database row, or configuration was changed.
 The required maintenance sequence and point-of-no-return warning from the
 earlier production dry run remain current. The cutover still requires explicit
 authorization and an announced downtime window.
+
+### 2026-08-21 - production database synchronized
+
+Brought the production database into sync with the rename ahead of the
+maintenance window. This was the only database change the rename requires.
+
+Scope check first. The rename touches exactly one row: the `GDB` help entry.
+A read-only sweep of production `help_entries` found one row containing an
+executable path and no other row referencing `bin/circle` or `./circle`. No
+other component in `sql/components/` carries an executable name, and the
+development database was already canonical.
+
+Applied `sql/components/help_gdb_binary_path.sql` to `luminari_mudprod` by
+piping the reviewed development copy over `ssh lumi`; the production checkout
+is still at `4a61df85` and does not contain the file. Applied it twice to prove
+idempotence. Post-state on production:
+
+| Check | Result |
+|-------|--------|
+| `GDB` rows | 1 |
+| `GDB` rows using `gdb bin/luminari` | 1 |
+| `help_entries` rows naming an old executable | 0 |
+| `assert_gdb_help_binary_path` procedure retained | no |
+
+`src/help.c` resolves help through `search_help_table()` on each lookup rather
+than from a boot-time cache, so the corrected text is live without restarting
+the MUD. Nothing was stopped, restarted, or otherwise changed on production.
+
+The original entry text is preserved here for reversal:
+`> gdb bin/circle` on the "From the root directory:" line.
+
+Two consequences for the maintenance window:
+
+- Step 6 of the production dry-run sequence is now a verification, not a
+  change. Reapplying the component there is still correct and will be a no-op.
+- Production help text now names `bin/luminari` while production still runs
+  `bin/circle`. This is cosmetic staff-facing text and resolves at cutover.
+  The production copy of `lib/text/help/help.hlp` still reads `gdb bin/circle`
+  at line 30718; it becomes canonical when step 2 updates the checkout.
+
+The production maintenance cutover remains the only unfinished section.
+
+### 2026-08-21 - production maintenance cutover complete
+
+The production cutover in section 5 is done and verified. The rename is
+complete.
+
+Two parts of the cutover had already been performed on the host between the
+preflight survey and this session: the checkout was updated to `3a38a6ae` and
+`make install` published the canonical release
+`99d5df5459163ec6705e9262a20cde71e7323f21`, removing `bin/circle`. The MUD was
+restarted onto `bin/luminari` at 11:35 UTC. An intermediate survey taken during
+that restart window read as an outage; it was not one.
+
+This session finished the remaining steps.
+
+Old release removal (step 4). Each candidate was resolved with `readlink -f`
+and compared against the alias target and `/proc/<mud-pid>/exe` before removal.
+Twenty-one directories held `circle` and `circle.debug`; none was active,
+running, or canonical. `bin/releases` went from 1,233,363,366 to 57,068,781
+bytes, reclaiming 1,176,294,585 - exactly the figure the preflight predicted.
+One release remains, holding `luminari`, `luminari.debug`, and `manifest`.
+
+Systemd unit (step 6). The installed unit still pointed at the project-root
+`autorun.sh` symlink and set no `MUD_BINARY`. The previous unit was backed up
+to `/root/luminari.service.pre-rename.bak`, then the repository copy was
+installed with `install -m 0644` and `systemctl daemon-reload` run. The
+installed file now matches the repository copy exactly. The service was
+restarted with no players connected; `ExecStartPost` ran
+`scripts/operations/healthcheck.sh --wait`, which retried against the terrain
+API for about thirty seconds during boot and then exited 0. The new unit adds
+`MUD_BINARY=luminari`, confirmed present in the running MUD's `/proc/<pid>/environ`.
+
+Database (step 7). Already canonical from earlier in the session; reconfirmed
+after the cutover. One `GDB` row, canonical, zero old-executable rows.
+
+Copyover (step 10). `expect` is not installed on production and
+`scripts/development/dev_kohdee_login_smoke.sh` refuses to run unless
+`APP_ENV=development`, so that guard was left intact and the check was driven
+directly over a loopback socket with the game master account. Result: PID
+3505367 was preserved across the copyover, its command line became
+`luminari -C3 4100`, and `/proc/<pid>/exe` still resolved to the canonical
+release. A `luminari` to `luminari` copyover on the same process is exactly the
+required proof.
+
+Stop and start (step 10). A full `systemctl stop` left port 4100 closed with no
+MUD, autorun, or watchdog process from the checkout surviving. `systemctl start`
+came back clean through the readiness probe.
+
+Final production proof:
+
+| Item | State |
+|------|-------|
+| Checkout | `3a38a6ae`, clean |
+| Live MUD | executes the canonical release, port 4100 listening, health `healthy` |
+| `bin/luminari` | symlink to `releases/99d5df54.../luminari` |
+| `bin/circle` | absent |
+| Root `luminari` / `circle` | absent |
+| Releases | 1 directory, exactly three canonical files, 57,068,781 bytes |
+| Old-name artifacts under `bin/` | 0 |
+| Installed unit | identical to the repository copy |
+| `MUD_BINARY` in the MUD's environment | `luminari` |
+| `lib/text/help/help.hlp` | 1 canonical `gdb bin/luminari`, 0 old |
+| Database `GDB` row | 1 row, canonical, 0 old |
+
+Operational note for future remote work: the `sudo -S` invocations used here
+place the sudo password on the remote process command line, where any local
+user can read it from `ps` for the life of the call. Prefer a askpass helper or
+an NOPASSWD rule for the specific commands.
