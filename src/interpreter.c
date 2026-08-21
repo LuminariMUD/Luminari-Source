@@ -6888,6 +6888,7 @@ int enter_player_game(struct descriptor_data *d)
 
   d->character->next = character_list;
   character_list = d->character;
+  affected_registry_attach(d->character);
   char_to_room(d->character, load_room);
   load_result = Crash_load(d->character);
 

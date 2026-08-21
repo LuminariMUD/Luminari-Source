@@ -8,6 +8,7 @@
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/handler.h"
+#include "../../src/magic/spells.h"
 #include "../../src/olc/hedit.h"
 #include "../../src/perfmon.h"
 
@@ -627,6 +628,50 @@ void Test_affected_registry_tracks_membership_and_safe_removal(CuTest *tc)
   affected_registry_detach(&second);
   character_list = saved_character_list;
   CuAssertIntEquals(tc, (int)baseline, (int)affected_registry_count());
+}
+
+void Test_player_live_entry_registers_loaded_timed_affects(CuTest *tc)
+{
+  struct affected_type affect;
+  struct char_data player;
+  struct char_data *saved_character_list;
+  size_t count_before_attach;
+  size_t count_after_attach;
+  bool entry_hook_present;
+  bool still_affected;
+  int remaining_duration;
+
+  affected_registry_reset_for_test();
+  clear_char(&player);
+  player.player_specials = &dummy_mob;
+  player.player.short_descr = (char *)"affected registry player";
+  new_affect(&affect);
+  affect.duration = 2;
+  affect_to_char(&player, &affect);
+
+  saved_character_list = character_list;
+  player.next = saved_character_list;
+  character_list = &player;
+  entry_hook_present =
+      perfmon_file_contains("src/interpreter.c", "affected_registry_attach(d->character);");
+
+  count_before_attach = affected_registry_count();
+  affected_registry_attach(&player);
+  count_after_attach = affected_registry_count();
+  affect_update();
+  still_affected = player.affected != NULL;
+  remaining_duration = still_affected ? player.affected->duration : -1;
+
+  while (player.affected != NULL)
+    affect_remove_no_total(&player, player.affected);
+  affected_registry_detach(&player);
+  character_list = saved_character_list;
+
+  CuAssertTrue(tc, entry_hook_present);
+  CuAssertIntEquals(tc, 0, (int)count_before_attach);
+  CuAssertIntEquals(tc, 1, (int)count_after_attach);
+  CuAssertTrue(tc, still_affected);
+  CuAssertIntEquals(tc, 1, remaining_duration);
 }
 
 void Test_dg_random_registry_tracks_owners_and_safe_removal(CuTest *tc)
