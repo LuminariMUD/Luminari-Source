@@ -34,7 +34,7 @@ cat > .aiderignore << 'EOF'
 bin/
 *.o
 *.a
-circle
+luminari
 autorun
 
 # Ignore player files and runtime data
@@ -352,21 +352,21 @@ telnet localhost 4001
 ## Important Reminders
 
 ### DO's:
-- ✅ ALWAYS backup before editing
-- ✅ Use --no-git flag for world files
-- ✅ Test on development port first
-- ✅ Maintain zone theme consistency
-- ✅ Document special features in comments
-- ✅ Follow existing format patterns exactly
+- [OK] ALWAYS backup before editing
+- [OK] Use --no-git flag for world files
+- [OK] Test on development port first
+- [OK] Maintain zone theme consistency
+- [OK] Document special features in comments
+- [OK] Follow existing format patterns exactly
 
 ### DON'Ts:
-- ❌ NEVER commit world files to git
-- ❌ Never change existing vnums
-- ❌ Don't break file format standards
-- ❌ Avoid modern language in fantasy zones
-- ❌ Don't create overpowered items
-- ❌ Never edit in lib/plrfiles/ or player data
-- ❌ Don't forget to backup!
+- [NO] NEVER commit world files to git
+- [NO] Never change existing vnums
+- [NO] Don't break file format standards
+- [NO] Avoid modern language in fantasy zones
+- [NO] Don't create overpowered items
+- [NO] Never edit in lib/plrfiles/ or player data
+- [NO] Don't forget to backup!
 
 ## Quick Reference for File Formats
 

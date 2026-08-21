@@ -1,10 +1,12 @@
 # Binary Rename: `circle` to `luminari`
 
-Status: clean-cutover plan. The rename is not complete while any executable,
+Status: development implementation and rehearsal complete; production
+maintenance cutover pending. The rename is not complete while any executable,
 alias, release artifact, operational command, or compatibility path still uses
 `circle`.
 
-Last reviewed: 2026-08-21 against `master` at `6a6fa64d`.
+Last reviewed: 2026-08-21 against `master` at `97b0d2ee` plus the audit changes
+recorded below.
 
 ## 1. Decision
 
@@ -16,7 +18,8 @@ fallback, old-to-new copyover, or binary rollback path.
 
 Git history is the record of the old executable name. The current tree should
 not carry obsolete executable paths solely to preserve historical examples or
-validation output.
+validation output. The repository-mandated frozen changelog files remain
+unchanged because they record the tree as it was.
 
 The rename does not affect:
 
@@ -44,15 +47,17 @@ The work is complete only when all of the following are true:
 - Current documentation and both copies of the `GDB` help entry use
   `bin/luminari` only.
 - A static regression fails on executable-name uses of `circle` anywhere in
-  the tracked tree, except this plan while it describes the rename.
+  the tracked tree, except this plan, the detector's own patterns, and the
+  repository-mandated frozen changelog history.
 - A stopped development server starts cleanly through
   `scripts/autorun/autorun.sh`, completes a `luminari` to `luminari` copyover,
   and restarts cleanly.
 
-## 3. Current state to remove
+## 3. Audit baseline (removed)
 
-Most build and runtime call sites already use `luminari`, but the existing
-implementation deliberately added compatibility that this plan rejects:
+At the start of the clean-cutover work, most build and runtime call sites
+already used `luminari`, but the implementation deliberately included
+compatibility that this plan rejects:
 
 - the installer creates `bin/circle -> luminari`;
 - the installer and autorun understand old `circle` release layouts;
@@ -145,15 +150,18 @@ MUD_BINARY=circle
 process-name probes for circle
 ```
 
-Do not use a compatibility or historical allowlist for those executable
-forms. Exclude this plan itself, because it necessarily names the rejected
-forms. Continue ignoring unrelated CircleMUD, gameplay, and internal API uses.
+Do not use a compatibility allowlist for those executable forms. Exclude this
+plan and the detector itself because they necessarily name the rejected forms.
+The repository-mandated frozen changelog history is the only historical
+exemption. Continue ignoring unrelated CircleMUD, gameplay, and internal API
+uses.
 
 ### 4.4 Documentation and help
 
 Replace obsolete executable commands in all maintained documentation,
 templates, examples, and help text. Do not preserve an obsolete path merely
 because it appeared in a dated report; Git already preserves that version.
+Leave the repository-mandated frozen changelog paths unchanged.
 
 If a completed report has no continuing operational value, delete it instead
 of maintaining exceptions for it. If the report remains useful, update its
@@ -232,7 +240,8 @@ old-name release artifacts            absent
 Also run `bin/luminari --build-info`, validate all changed shell scripts with
 `bash -n`, run the focused installer and autorun regressions, and review every
 remaining tracked `circle` occurrence. Every remaining occurrence must be
-unrelated to the executable rename or be inside this plan.
+unrelated to the executable rename, be necessary detector/spec text, or be in
+the repository-mandated frozen changelog history.
 
 ## 7. Completion rule
 
@@ -371,3 +380,77 @@ Not done yet:
 
 - The production maintenance cutover itself. It needs an announced window and
   explicit authorization to take the live game down.
+
+### 2026-08-21 - independent implementation audit and hardening
+
+Audited the required final state against the current development worktree
+rather than relying on the earlier progress entries. The audit found and fixed
+the following gaps:
+
+- `scripts/deployment/install_versioned_binary.sh` now rejects an existing
+  release unless it is a real directory containing exactly three regular
+  files: `luminari`, `luminari.debug`, and `manifest`. It also validates every
+  manifest field against the candidate, not only the build ID and SHA-256.
+- `scripts/deployment/test_versioned_binary_install.sh` now covers exact
+  release contents, unexpected entries, malformed manifests, symlinked release
+  metadata, and a FIFO at the canonical alias in addition to the original
+  canonical-format cases. PASS.
+- `sql/components/help_gdb_binary_path.sql` now fails unless exactly one `GDB`
+  row exists and verifies the canonical path before committing. Applied twice
+  on development: one row, one canonical reference, and no helper procedure
+  retained.
+- Fixed missed executable references in both Aider templates, the narrative
+  weaver rollback instructions, and the vessel testing guide. The edited
+  documentation is ASCII, UTF-8, and LF. The static detector now covers the
+  missed process-probe and root-artifact forms. Both build systems invoke it
+  through Bash, so its tracked mode of 0644 works in a fresh checkout.
+- Refreshed the ignored in-tree CMake configuration and moved its stale
+  pre-rename binary and target directory out of the workspace. No old-name
+  build or release artifact remains in the development checkout.
+
+Verification after the fixes:
+
+- `git diff --check` and all changed shell syntax checks passed.
+- Warning-free clean Autotools build passed.
+- `LUMINARI_TEST_SYNTAX_TIMEOUT_SECONDS=480 make test-all` passed: 782
+  production-linked tests, 29 protocol-parser tests, 454 world-tool tests, and
+  all focused shell/schema regressions. `make install` completed afterward.
+- Fresh CMake configure/build/install passed; CTest passed 14 of 14 tests.
+  The final Autotools install restored the preferred active release.
+- Final artifact proof passed: no root artifact, no `bin/circle`, no old-name
+  release artifact, an executable `bin/luminari` symlink, exact three-file
+  releases, and matching executable/debug/manifest build IDs and SHA-256.
+- Runtime rehearsal passed through `scripts/autorun/autorun.sh`: clean boot,
+  health check, connected-character `luminari` to `luminari` same-PID copyover,
+  clean stop, clean restart after supervisor exit, and final clean stop.
+
+The production maintenance cutover remains the only unfinished section. It was
+not attempted because taking down the live game requires an announced window
+and explicit authorization.
+
+### 2026-08-21 - production preflight refreshed, read only
+
+Repeated the production survey after the independent implementation audit.
+The SSH account required a command-scoped Git safe-directory override and
+read-only `sudo` for owner-only runtime and release details. No production
+file, process, service, database row, or configuration was changed.
+
+- The production checkout remains clean on `master` at `4a61df85`.
+- `luminari.service` remains active and enabled. Its supervisor PID is 1194067,
+  and `.mud.pid` identifies live MUD PID 1194248.
+- The live MUD still executes
+  `bin/releases/760ea71f.../circle`; its ELF build ID matches that release.
+- `bin/circle` still points to that release, while `bin/luminari` remains
+  absent. All 21 releases contain `circle` and `circle.debug`; none contains
+  `luminari`. The release tree occupies 1,176,294,585 bytes.
+- The production `GDB` help state is exactly one row, zero canonical paths,
+  and one `gdb bin/circle` path.
+- The installed unit still executes the project-root `autorun.sh`, has no
+  `MUD_BINARY` environment setting, and therefore still differs from the
+  reviewed unit in this repository.
+- The checkout filesystem has 188,809,392,128 bytes free, so the canonical
+  candidate and temporary build/install files have ample space.
+
+The required maintenance sequence and point-of-no-return warning from the
+earlier production dry run remain current. The cutover still requires explicit
+authorization and an announced downtime window.

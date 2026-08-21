@@ -7,9 +7,9 @@
 # C identifiers, and CIRCLE_* platform macros are deliberately out of scope:
 # they are unrelated to the executable name.
 #
-# There is no compatibility allowlist. The only exempt paths are ones that must
-# name the rejected forms to do their job: the rename plan, this detector's own
-# pattern list, and the frozen changelog history.
+# There is no compatibility allowlist. The rename plan and this detector must
+# name rejected forms to do their jobs. Repository policy separately freezes
+# paths in the current and archived changelogs as historical records.
 
 set -euo pipefail
 
@@ -37,13 +37,16 @@ patterns=(
   'CIRCLE_(COMPILE_DEFINITIONS|COMPILE_OPTIONS|LINK_LIBRARIES)'
   'MUD_BINARY *= *circle'
   'pgrep[^[:cntrl:]]*circle'
+  '(killall|pkill|pidof|taskkill)[^[:cntrl:]]*circle'
+  '(Get-Process|get-process)[^[:cntrl:]]*circle'
   'grep +circle'
   '--target +circle'
   'circle\.pid'
+  'root-level +circle +(artifact|binary|executable)'
 )
 
-# Only two exemptions: this plan, which necessarily names the rejected forms,
-# and the frozen changelog history, which records the tree as it was.
+# Exempt only necessary detector/spec text and repository-mandated frozen
+# history. These are not runtime compatibility paths.
 is_allowed_path()
 {
   local candidate=$1
@@ -65,7 +68,15 @@ while IFS= read -r line; do
   path=${line%%:*}
   is_allowed_path "$path" && continue
   violations+=("$line")
-done < <(git grep -n -I -E "$pattern_expression" -- . ':!EXAMPLE' || true)
+done < <(
+  git grep -n -I -E "$pattern_expression" -- . ':!EXAMPLE' || true
+
+  # A bare root artifact name is otherwise indistinguishable from gameplay
+  # prose. In maintained automation and tool templates, however, a line that
+  # consists only of the old name is necessarily an executable artifact.
+  git grep -n -I -E '^[[:space:]]*circle[[:space:]]*$' -- \
+    .github scripts util || true
+)
 
 if ((${#violations[@]} > 0)); then
   printf 'binary name static test: obsolete executable references found:\n' >&2

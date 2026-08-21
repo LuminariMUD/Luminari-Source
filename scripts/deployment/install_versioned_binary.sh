@@ -88,17 +88,39 @@ create_release()
   local release_dir="$release_root/$source_build_id"
   local debug_build_id
   local installed_sha256
+  local manifest_line_count
+  local unexpected_entry
 
-  if [[ -d "$release_dir" ]]; then
-    [[ -f "$release_dir/$exe_name" ]] ||
-      fail "release directory is incomplete: $release_dir"
+  if [[ -e "$release_dir" || -L "$release_dir" ]]; then
+    [[ -d "$release_dir" && ! -L "$release_dir" ]] ||
+      fail "release path is not a directory: $release_dir"
+    unexpected_entry=$(find "$release_dir" -mindepth 1 -maxdepth 1 \
+      ! -name "$exe_name" ! -name "$exe_name.debug" ! -name manifest \
+      -print -quit)
+    [[ -z "$unexpected_entry" ]] ||
+      fail "release directory has unexpected content: $unexpected_entry"
+    [[ -f "$release_dir/$exe_name" && ! -L "$release_dir/$exe_name" ]] ||
+      fail "release executable is not a regular file: $release_dir/$exe_name"
+    [[ -x "$release_dir/$exe_name" ]] ||
+      fail "release executable is not executable: $release_dir/$exe_name"
     installed_sha256=$(sha256sum "$release_dir/$exe_name" | awk '{print $1}')
     [[ "$installed_sha256" == "$source_sha256" ]] ||
       fail "build ID collision at $release_dir"
-    [[ -f "$release_dir/$exe_name.debug" ]] ||
-      fail "release debug symbols are missing: $release_dir/$exe_name.debug"
-    [[ -f "$release_dir/manifest" ]] ||
-      fail "release manifest is missing: $release_dir/manifest"
+    [[ -f "$release_dir/$exe_name.debug" && ! -L "$release_dir/$exe_name.debug" ]] ||
+      fail "release debug symbols are not a regular file: $release_dir/$exe_name.debug"
+    [[ -f "$release_dir/manifest" && ! -L "$release_dir/manifest" ]] ||
+      fail "release manifest is not a regular file: $release_dir/manifest"
+    manifest_line_count=$(wc -l < "$release_dir/manifest")
+    [[ "$manifest_line_count" -eq 6 ]] ||
+      fail "release manifest has the wrong shape: $release_dir/manifest"
+    grep -Fxq "FORMAT=1" "$release_dir/manifest" ||
+      fail "release manifest has the wrong format: $release_dir/manifest"
+    grep -Fxq "VERSION=$source_version" "$release_dir/manifest" ||
+      fail "release manifest has the wrong version: $release_dir/manifest"
+    grep -Fxq "GIT_COMMIT=$source_commit" "$release_dir/manifest" ||
+      fail "release manifest has the wrong Git commit: $release_dir/manifest"
+    grep -Fxq "GIT_DIRTY=$source_dirty" "$release_dir/manifest" ||
+      fail "release manifest has the wrong dirty flag: $release_dir/manifest"
     grep -Fxq "ELF_BUILD_ID=$source_build_id" "$release_dir/manifest" ||
       fail "release manifest has the wrong build ID: $release_dir/manifest"
     grep -Fxq "SHA256=$source_sha256" "$release_dir/manifest" ||

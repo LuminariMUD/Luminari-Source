@@ -80,8 +80,9 @@ install_root="$test_root/project"
 broken_root="$test_root/broken"
 special_root="$test_root/special"
 regular_root="$test_root/regular"
+fifo_root="$test_root/fifo"
 mkdir -p "$install_root/bin" "$broken_root/bin" "$special_root/bin" \
-  "$regular_root/bin"
+  "$regular_root/bin" "$fifo_root/bin"
 
 build_helper "$commit_one" one "$candidate_one"
 build_helper "$commit_two" two "$candidate_two"
@@ -102,6 +103,9 @@ assert_canonical_alias "$install_root/bin" "$build_one" "first install"
   fail "first release has no debug symbols"
 [[ -f "$install_root/bin/releases/$build_one/manifest" ]] ||
   fail "first release has no manifest"
+[[ $(find "$install_root/bin/releases/$build_one" -mindepth 1 -maxdepth 1 \
+  -printf '%f\n' | sort | tr '\n' ' ') == "luminari luminari.debug manifest " ]] ||
+  fail "first release does not contain exactly the canonical files"
 grep -Fxq "GIT_COMMIT=$commit_one" "$install_root/bin/releases/$build_one/manifest" ||
   fail "first manifest has the wrong commit"
 
@@ -126,6 +130,37 @@ assert_canonical_alias "$install_root/bin" "$build_two" "second install"
 # --- Installing an already-published release is idempotent.
 "$installer" "$candidate_two" "$install_root/bin" > "$test_root/install-two-again.log"
 assert_canonical_alias "$install_root/bin" "$build_two" "repeated install"
+
+# --- Existing releases must retain the exact immutable three-file layout.
+touch "$install_root/bin/releases/$build_two/unexpected"
+if "$installer" "$candidate_two" "$install_root/bin" > "$test_root/unexpected.log" 2>&1; then
+  fail "installer accepted unexpected release content"
+fi
+grep -Fq "release directory has unexpected content" "$test_root/unexpected.log" ||
+  fail "the unexpected-content refusal was not explained"
+rm -f -- "$install_root/bin/releases/$build_two/unexpected"
+
+manifest="$install_root/bin/releases/$build_two/manifest"
+cp "$manifest" "$test_root/manifest-backup"
+printf 'EXTRA=invalid\n' >> "$manifest"
+if "$installer" "$candidate_two" "$install_root/bin" > "$test_root/manifest.log" 2>&1; then
+  fail "installer accepted a malformed release manifest"
+fi
+grep -Fq "release manifest has the wrong shape" "$test_root/manifest.log" ||
+  fail "the malformed-manifest refusal was not explained"
+cp "$test_root/manifest-backup" "$manifest"
+
+cp "$manifest" "$test_root/external-manifest"
+rm -f -- "$manifest"
+ln -s "$test_root/external-manifest" "$manifest"
+if "$installer" "$candidate_two" "$install_root/bin" > "$test_root/symlink.log" 2>&1; then
+  fail "installer accepted a symlinked release manifest"
+fi
+grep -Fq "release manifest is not a regular file" "$test_root/symlink.log" ||
+  fail "the symlinked-manifest refusal was not explained"
+rm -f -- "$manifest"
+cp "$test_root/manifest-backup" "$manifest"
+
 kill -TERM "$helper_pid"
 wait "$helper_pid" 2>/dev/null || true
 helper_pid=
@@ -141,7 +176,7 @@ if "$installer" "$candidate_three" "$install_root/bin" > "$test_root/incomplete.
 fi
 [[ $(readlink "$install_root/bin/luminari") == "$before_canonical" ]] ||
   fail "a failed install moved the canonical alias"
-grep -Fq "release debug symbols are missing" "$test_root/incomplete.log" ||
+grep -Fq "release debug symbols are not a regular file" "$test_root/incomplete.log" ||
   fail "the incomplete-release refusal was not explained"
 
 # --- A build-ID collision with different content is refused.
@@ -184,5 +219,15 @@ fi
   fail "a rejected install published a release"
 grep -Fq "bin/luminari is not a symbolic link" "$test_root/regular.log" ||
   fail "the regular-file rejection was not explained"
+
+# --- A special file at the canonical path is rejected.
+mkfifo "$fifo_root/bin/luminari"
+if "$installer" "$candidate_one" "$fifo_root/bin" > "$test_root/fifo.log" 2>&1; then
+  fail "installer accepted a FIFO at bin/luminari"
+fi
+grep -Fq "bin/luminari is not a symbolic link" "$test_root/fifo.log" ||
+  fail "the FIFO rejection was not explained"
+[[ ! -d "$fifo_root/bin/releases" ]] ||
+  fail "a rejected special-file install published a release"
 
 printf 'versioned binary install test: PASS\n'

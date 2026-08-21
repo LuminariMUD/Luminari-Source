@@ -6,7 +6,7 @@
 
 ---
 
-## ⚠️ PRE-DEPLOYMENT CHECKLIST
+## PRE-DEPLOYMENT CHECKLIST
 
 ### Required Files to Transfer to Production
 Copy these files to your production server:
@@ -25,7 +25,7 @@ Copy these files to your production server:
 
 ---
 
-## 📋 STEP-BY-STEP DEPLOYMENT
+## STEP-BY-STEP DEPLOYMENT
 
 ### Step 1: Create Production Backup (CRITICAL)
 ```bash
@@ -162,7 +162,7 @@ telnet localhost 4000
 
 ---
 
-## 🔧 POST-DEPLOYMENT VERIFICATION
+## POST-DEPLOYMENT VERIFICATION
 
 ### Expected Results After Successful Installation:
 
@@ -185,12 +185,12 @@ telnet localhost 4000
 
 ---
 
-## 🚨 ROLLBACK PROCEDURE (If Needed)
+## ROLLBACK PROCEDURE (If Needed)
 
 ### If Something Goes Wrong:
 ```bash
-# 1. Stop the game server
-killall circle
+# 1. Stop this checkout's game server through its supervisor
+./scripts/autorun/autorun.sh stop
 
 # 2. Restore from backup
 mysql -u root -p luminari_mudprod < /backup/narrative_weaver_backup_YYYYMMDD_HHMMSS.sql
@@ -232,7 +232,7 @@ DROP COLUMN IF EXISTS is_approved;
 
 ---
 
-## 📊 MONITORING & MAINTENANCE
+## MONITORING & MAINTENANCE
 
 ### Log Files to Monitor:
 - `/log/syslog` - General game errors
@@ -271,7 +271,7 @@ WHERE used_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
 
 ---
 
-## 🎯 SUCCESS CRITERIA
+## SUCCESS CRITERIA
 
 ### Deployment is Successful When:
 - [ ] All SQL scripts execute without errors
@@ -289,7 +289,7 @@ WHERE used_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
 
 ---
 
-## 📞 SUPPORT & TROUBLESHOOTING
+## SUPPORT & TROUBLESHOOTING
 
 ### Common Issues:
 
@@ -319,4 +319,6 @@ WHERE used_at < DATE_SUB(NOW(), INTERVAL 30 DAY);
 
 ---
 
-**⚠️ Important:** This deployment installs a sophisticated narrative enhancement system. The core functionality is complete but requires periodic content updates and monitoring for optimal player experience.
+**Important:** This deployment installs a sophisticated narrative enhancement system. The core
+functionality is complete but requires periodic content updates and monitoring for optimal player
+experience.

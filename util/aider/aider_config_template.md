@@ -39,7 +39,7 @@ cat > .aiderignore << 'EOF'
 bin/
 *.o
 *.a
-circle
+luminari
 autorun
 *.so
 *.dylib

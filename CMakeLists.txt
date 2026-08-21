@@ -1278,7 +1278,7 @@ if (BUILD_TESTS)
     set_tests_properties(versioned-binary-install PROPERTIES
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     add_test(NAME binary-name-static
-        COMMAND
+        COMMAND bash
             ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_binary_name_static.sh)
     set_tests_properties(binary-name-static PROPERTIES
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

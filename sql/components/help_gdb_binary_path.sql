@@ -6,7 +6,35 @@
 -- GDB entry is normalized to bin/luminari, so rerunning it is a no-op once the
 -- entry is canonical.
 
+DROP PROCEDURE IF EXISTS assert_gdb_help_binary_path;
+
+DELIMITER //
+CREATE PROCEDURE assert_gdb_help_binary_path(IN require_canonical BOOLEAN)
+BEGIN
+  DECLARE canonical_count INT DEFAULT 0;
+  DECLARE gdb_count INT DEFAULT 0;
+
+  SELECT COUNT(*),
+         COALESCE(SUM(entry LIKE '%gdb bin/luminari%'), 0)
+    INTO gdb_count, canonical_count
+    FROM help_entries
+   WHERE tag = 'GDB';
+
+  IF gdb_count <> 1 THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Expected exactly one GDB help entry';
+  END IF;
+
+  IF require_canonical AND canonical_count <> 1 THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'GDB help entry does not use gdb bin/luminari';
+  END IF;
+END//
+DELIMITER ;
+
 START TRANSACTION;
+
+CALL assert_gdb_help_binary_path(FALSE);
 
 UPDATE help_entries
    SET entry = REGEXP_REPLACE(entry, 'gdb bin/[[:alnum:]_.-]+', 'gdb bin/luminari')
@@ -14,9 +42,8 @@ UPDATE help_entries
    AND entry REGEXP 'gdb bin/[[:alnum:]_.-]+'
    AND entry NOT LIKE '%gdb bin/luminari%';
 
+CALL assert_gdb_help_binary_path(TRUE);
+
 COMMIT;
 
--- Verification (expect exactly one row, and one canonical reference):
---   SELECT COUNT(*) FROM help_entries WHERE tag = 'GDB';
---   SELECT COUNT(*) FROM help_entries
---    WHERE tag = 'GDB' AND entry LIKE '%gdb bin/luminari%';
+DROP PROCEDURE assert_gdb_help_binary_path;

@@ -867,7 +867,7 @@ test-versioned-binary-install:
 	./scripts/deployment/test_versioned_binary_install.sh
 
 test-binary-name-static:
-	./scripts/deployment/test_binary_name_static.sh
+	$(SHELL) ./scripts/deployment/test_binary_name_static.sh
 
 test-healthcheck:
 	./scripts/operations/test_healthcheck.sh

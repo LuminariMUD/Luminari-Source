@@ -1901,7 +1901,7 @@ or keyword count is insufficient once later phases extend the system.
 # Production-linked integration suite
 make test
 
-# Install the tested server and remove the root-level circle artifact
+# Install the tested server and remove the root-level luminari artifact
 make install
 
 # Full local gate, including focused protocol and schema checks
