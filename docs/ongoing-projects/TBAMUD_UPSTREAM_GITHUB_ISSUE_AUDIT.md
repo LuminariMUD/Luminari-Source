@@ -30,11 +30,11 @@ one of these local dispositions:
 
 ## Executive result
 
-Four current defects were confirmed:
+The initial audit confirmed four defects:
 
 | Priority | Issue | Finding |
 | --- | --- | --- |
-| P0 | [#181](https://github.com/tbamud/tbamud/issues/181) | Zone names reach `system()` after an incomplete filename sanitizer, allowing shell metacharacters. |
+| P0 | [#181](https://github.com/tbamud/tbamud/issues/181) | Resolved locally 2026-08-23: zone archive creation no longer invokes a shell and all export basenames use an ASCII allowlist. |
 | P0 | [#157](https://github.com/tbamud/tbamud/issues/157) | PvP policy is not enforced at the central combat transition, and `grapple` is a confirmed player-accessible bypass. |
 | P1 | [#92](https://github.com/tbamud/tbamud/issues/92) | VNUM storage is 32-bit, but room/mobile/object stat output still assumes narrow VNUM fields and often uses signed `%d` for unsigned index types. |
 | P2 | [#57](https://github.com/tbamud/tbamud/issues/57) | The bundled `snprintf` fallback still formats fractional values with leading zeroes incorrectly. It is dormant on the current development host. |
@@ -59,30 +59,34 @@ as correctness defects:
 
 The other 35 issues are fixed, absent, or not applicable to this codebase.
 
+Resolution work is tracked in this document. One of the four confirmed defects
+is resolved locally; three remain. The six design, portability, and legal
+findings remain tracked until their policies or implementations are resolved.
+
 ## Confirmed defects
 
 ### P0: Issue #181 - command injection in zone export
 
-Status: Confirmed.
+Status: Resolved locally on 2026-08-23.
 
-The local [`fix_filename()`](../../src/olc/genolc.c#L824) replaces spaces and
-parentheses and drops quotes, but passes shell characters such as semicolon,
-pipe, ampersand, backtick, dollar, redirection characters, backslash, and line
-breaks unchanged. [`do_export_zone()`](../../src/olc/genolc.c#L866) then embeds
-that value in `rm`, `tar`, and `gzip` command strings passed to `system()`.
+The original local `fix_filename()` replaced only a few characters and passed
+shell metacharacters through to `rm`, `tar`, and `gzip` command strings. A
+builder-controlled zone name could therefore become shell syntax when an
+implementor exported that zone.
 
-The export command requires implementor level, but a builder can control the
-zone name. This matches the upstream builder-plus-implementor attack described
-in #181. The MUD process executes the resulting command as its operating-system
-user.
+[`genolc_sanitize_export_filename()`](../../src/olc/genolc.c#L831) now accepts
+only ASCII letters, digits, underscore, hyphen, and dot, replacing every other
+byte with underscore and rejecting names that do not fit. Zone, regional-map,
+and connected-world-map exports all use this bounded destination-buffer API.
 
-Recommended direction:
+[`do_export_zone()`](../../src/olc/genolc.c#L903) removes an existing archive
+with `remove()` and runs `tar` directly with an argument vector through
+`fork()`/`execvp()` (or `_spawnvp()` on Windows). No shell parses the zone name.
+The export also retains failure state across every component write, so it no
+longer creates an archive after an earlier partial-save failure.
 
-1. Stop invoking a shell for archive creation and deletion. Use explicit
-   argument arrays with `execv()`/`posix_spawn()`, or a suitable archive API.
-2. Independently restrict export basenames to a small allowlist such as ASCII
-   letters, digits, underscore, hyphen, and dot.
-3. Add a regression test containing every shell metacharacter and a line break.
+A production-linked regression test covers shell metacharacters, path
+separators, CR/LF, and destination-buffer exhaustion.
 
 ### P0: Issue #157 - PvP policy bypasses
 
@@ -266,7 +270,7 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
 | [#157 PK configuration bypass](https://github.com/tbamud/tbamud/issues/157) | Closed | Confirmed defect | Central combat entry does not reject PvP, and `grapple` is a verified unchecked caller. |
 | [#159 Questmaster retains return items](https://github.com/tbamud/tbamud/issues/159) | Closed | Not present | `AQ_OBJ_RETURN` completes the quest and calls `extract_obj(object)`. |
 | [#179 Complex alias overflow](https://github.com/tbamud/tbamud/issues/179) | Closed | Not present | Every token, `$*`, literal, and escaped-dollar write checks remaining `MAX_RAW_INPUT_LENGTH`; overflow frees the temporary queue and returns failure. |
-| [#181 Zone export command injection](https://github.com/tbamud/tbamud/issues/181) | Open | Confirmed defect | Incomplete sanitization feeds attacker-controlled zone-name bytes to three `system()` calls. |
+| [#181 Zone export command injection](https://github.com/tbamud/tbamud/issues/181) | Open | Resolved locally | Archive creation uses direct process arguments, old archives use `remove()`, and bounded allowlist sanitization covers every export basename. |
 | [#183 `var_subst` stack overflow](https://github.com/tbamud/tbamud/issues/183) | Open | Not present | Input is copied to the 512-byte temporary with `strlcpy`, and output is bounded by the `left` counter. Oversized lines truncate rather than overwrite the stack. |
 | [#185 `sizeof(pointer)` null write](https://github.com/tbamud/tbamud/issues/185) | Closed | Not present | The function terminates at the current output cursor with `*buf = '\0'`; it does not use `sizeof(buf)`. |
 | [#186 Copyover `fscanf` widths](https://github.com/tbamud/tbamud/issues/186) | Open | Not present | The format uses `%511s`, `%1023s`, and `%1023s` for the corresponding arrays and validates that five fields were read. |
@@ -283,17 +287,24 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
   follow-up `make install` also completed successfully.
 - The report passes the repository's ASCII-only check, all relative source links
   resolve locally, and `git diff --check` reports no whitespace errors.
-- No source code was changed as part of this audit.
+- No source code was changed during the initial applicability audit.
+
+### Resolution checkpoint 1 - issue #181
+
+- The production server builds with `-std=gnu2x -Wall -Wextra` and no new
+  warnings.
+- `make test` passes all 794 tests, including the new hostile-filename
+  regression. The required follow-up `make install` also passes.
+- `do_export_zone()` contains no `system()` call, and neither zone names nor
+  explicit map-export filenames can introduce path separators or shell syntax.
 
 ## Recommended work order
 
-1. Fix #181 before allowing untrusted builders to control zone names or using
-   `export` on such zones.
-2. Fix and regression-test #157 across all hostile entry points.
-3. Complete #92 as a single index-formatting pass rather than patching isolated
+1. Fix and regression-test #157 across all hostile entry points.
+2. Complete #92 as a single index-formatting pass rather than patching isolated
    output lines.
-4. Fix #57 or deliberately remove the unsupported fallback implementation.
-5. Decide and document the builder/player compatibility policies behind #47,
+3. Fix #57 or deliberately remove the unsupported fallback implementation.
+4. Decide and document the builder/player compatibility policies behind #47,
    #86, and the #105/#147 ordering tradeoff.
 
 ## Audit limits

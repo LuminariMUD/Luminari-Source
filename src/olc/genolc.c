@@ -30,6 +30,12 @@
 #include "quest/quest.h"
 #include "craft/craft.h" // get_obj_material
 
+#ifdef CIRCLE_WINDOWS
+#include <process.h>
+#elif defined(HAVE_SYS_WAIT_H)
+#include <sys/wait.h>
+#endif
+
 #define WORLDMAP_ZONE_WIDTH 160
 #define WORLDMAP_ZONE_MAX_HEIGHT 160
 #define WORLDMAP_EXPORT_MAX_WIDTH (WORLDMAP_ZONE_WIDTH * 2)
@@ -89,6 +95,7 @@ static int export_save_triggers(zone_rnum zrnum);
 static int export_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd);
 static void export_script_save_to_disk(FILE *fp, void *item, int type);
 static int export_info_file(zone_rnum zrnum);
+static bool run_export_program(const char *program, char *const arguments[]);
 static room_vnum worldmap_zone_anchor(zone_vnum zvnum);
 static bool worldmap_vnum_to_xy(zone_vnum zvnum, room_vnum rvnum, int *x, int *y);
 static int worldmap_zone_height(zone_rnum zrnum);
@@ -820,46 +827,75 @@ int sprintascii(char *out, bitvector_t bits)
   return j;
 }
 
-/* converts illegal filename chars into appropriate equivalents */
-const char *fix_filename(char *str)
+/* Produce a basename containing only characters that are safe for exported files. */
+bool genolc_sanitize_export_filename(const char *source, char *destination, size_t destination_size)
 {
-  static char good_file_name[MAX_EXPORT_FILENAME] = {'\0'};
-  char *cindex = good_file_name;
+  const unsigned char *current;
+  size_t written = 0;
 
-  while (*str)
+  if (destination == NULL || destination_size == 0)
+    return FALSE;
+  destination[0] = '\0';
+  if (source == NULL || *source == '\0')
+    return FALSE;
+
+  for (current = (const unsigned char *)source; *current != '\0'; current++)
   {
-    switch (*str)
+    if (written + 1 >= destination_size)
     {
-    case ' ':
-      *cindex = '_';
-      cindex++;
-      break;
-    case '(':
-      *cindex = '{';
-      cindex++;
-      break;
-    case ')':
-      *cindex = '}';
-      cindex++;
-      break;
-
-      /* skip the following */
-    case '\'':
-      break;
-    case '"':
-      break;
-
-      /* Legal character */
-    default:
-      *cindex = *str;
-      cindex++;
-      break;
+      destination[0] = '\0';
+      return FALSE;
     }
-    str++;
-  }
-  *cindex = '\0';
 
-  return good_file_name;
+    if ((*current >= 'a' && *current <= 'z') || (*current >= 'A' && *current <= 'Z') ||
+        (*current >= '0' && *current <= '9') || *current == '_' || *current == '-' ||
+        *current == '.')
+      destination[written++] = (char)*current;
+    else
+      destination[written++] = '_';
+  }
+  destination[written] = '\0';
+
+  return written > 0;
+}
+
+static bool run_export_program(const char *program, char *const arguments[])
+{
+#ifdef CIRCLE_WINDOWS
+  return _spawnvp(_P_WAIT, program, (const char *const *)arguments) == 0;
+#elif defined(HAVE_SYS_WAIT_H)
+  pid_t child_pid;
+  pid_t waited_pid;
+  int status;
+
+  child_pid = fork();
+  if (child_pid < 0)
+  {
+    log("SYSERR: Unable to start zone export program %s: %s", program, strerror(errno));
+    return FALSE;
+  }
+  if (child_pid == 0)
+  {
+    execvp(program, arguments);
+    _exit(127);
+  }
+
+  do
+  {
+    waited_pid = waitpid(child_pid, &status, 0);
+  } while (waited_pid < 0 && errno == EINTR);
+
+  if (waited_pid < 0)
+  {
+    log("SYSERR: Unable to wait for zone export program %s: %s", program, strerror(errno));
+    return FALSE;
+  }
+
+  return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+#else
+  log("SYSERR: Zone export requires process-spawning support for %s", program);
+  return FALSE;
+#endif
 }
 
 /* Export command by Kyle */
@@ -867,15 +903,12 @@ ACMD(do_export_zone)
 {
   zone_rnum zrnum;
   zone_vnum zvnum;
-  char sysbuf[MAX_INPUT_LENGTH] = {'\0'};
-  char zone_name[MAX_EXPORT_FILENAME] = {'\0'}; /* zone names are short */
-  const char *f;
+  char archive_name[MAX_EXPORT_FILENAME] = {'\0'};
+  char archive_path[MAX_INPUT_LENGTH] = {'\0'};
+  char *tar_arguments[13];
   int success;
 
-  /* system command locations are relative to
-   * where the binary IS, not where it was run
-   * from, thus we act like we are in the bin
-   * folder, because we are*/
+  /* Export paths are relative to lib/, the server's working directory. */
   const char *path = "../lib/world/export/";
 
   if (IS_NPC(ch) || GET_LEVEL(ch) < LVL_IMPL)
@@ -897,71 +930,89 @@ ACMD(do_export_zone)
     return;
   }
 
-  /* If we fail, it might just be because the
-   *   directory didn't exist.  Can't hurt to try
-   *     again. Do it silently though ( no logs ). */
+  ensure_dir_exists(path);
+
+  success = TRUE;
   if (!export_info_file(zrnum))
   {
-    snprintf(sysbuf, sizeof(sysbuf), "mkdir %s", path);
-    if (system(sysbuf) == -1)
-    {
-      log("SYSERR: Failed to create directory %s", path);
-    }
-  }
-
-  if (!(success = export_info_file(zrnum)))
     send_to_char(ch, "Info file not saved!\r\n");
-  if (!(success = export_save_shops(zrnum)))
+    success = FALSE;
+  }
+  if (!export_save_shops(zrnum))
+  {
     send_to_char(ch, "Shops not saved!\r\n");
-  if (!(success = export_save_mobiles(zrnum)))
+    success = FALSE;
+  }
+  if (!export_save_mobiles(zrnum))
+  {
     send_to_char(ch, "Mobiles not saved!\r\n");
-  if (!(success = export_save_objects(zrnum)))
+    success = FALSE;
+  }
+  if (!export_save_objects(zrnum))
+  {
     send_to_char(ch, "Objects not saved!\r\n");
-  if (!(success = export_save_zone(zrnum)))
+    success = FALSE;
+  }
+  if (!export_save_zone(zrnum))
+  {
     send_to_char(ch, "Zone info not saved!\r\n");
-  if (!(success = export_save_rooms(zrnum)))
+    success = FALSE;
+  }
+  if (!export_save_rooms(zrnum))
+  {
     send_to_char(ch, "Rooms not saved!\r\n");
-  if (!(success = export_save_triggers(zrnum)))
+    success = FALSE;
+  }
+  if (!export_save_triggers(zrnum))
+  {
     send_to_char(ch, "Triggers not saved!\r\n");
+    success = FALSE;
+  }
 
   /* If anything went wrong, don't try to tar the files. */
   if (success)
   {
     send_to_char(ch, "Individual files saved to /lib/world/export.\r\n");
-    snprintf(zone_name, sizeof(zone_name), "%s", zone_table[zrnum].name);
   }
   else
   {
     send_to_char(ch, "Ran into problems writing to files.\r\n");
     return;
   }
-  /* Make sure the name of the zone doesn't make the filename illegal. */
-  f = fix_filename(zone_name);
-
-  /* Remove the old copy. */
-  snprintf(sysbuf, sizeof(sysbuf), "rm %s%s.tar.gz", path, f);
-  if (system(sysbuf) == -1)
+  if (!genolc_sanitize_export_filename(zone_table[zrnum].name, archive_name, sizeof(archive_name)))
   {
-    log("SYSERR: Failed to remove old tar file");
+    send_to_char(ch, "The zone name is empty or too long to use as an archive name.\r\n");
+    return;
   }
 
-  /* Tar the new copy. */
-  snprintf(sysbuf, sizeof(sysbuf),
-           "tar -cf %s%s.tar %sqq.info %sqq.wld %sqq.zon %sqq.mob %sqq.obj %sqq.trg %sqq.shp", path,
-           f, path, path, path, path, path, path, path);
-  if (system(sysbuf) == -1)
+  snprintf(archive_path, sizeof(archive_path), "%s%s.tar.gz", path, archive_name);
+  if (remove(archive_path) != 0 && errno != ENOENT)
   {
-    log("SYSERR: Failed to create tar file");
+    log("SYSERR: Unable to replace zone export archive %s: %s", archive_path, strerror(errno));
+    send_to_char(ch, "Unable to replace the previous zone archive.\r\n");
+    return;
   }
 
-  /* Gzip it. */
-  snprintf(sysbuf, sizeof(sysbuf), "gzip %s%s.tar", path, f);
-  if (system(sysbuf) == -1)
+  tar_arguments[0] = "tar";
+  tar_arguments[1] = "-czf";
+  tar_arguments[2] = archive_path;
+  tar_arguments[3] = "../lib/world/export/qq.info";
+  tar_arguments[4] = "../lib/world/export/qq.wld";
+  tar_arguments[5] = "../lib/world/export/qq.zon";
+  tar_arguments[6] = "../lib/world/export/qq.mob";
+  tar_arguments[7] = "../lib/world/export/qq.obj";
+  tar_arguments[8] = "../lib/world/export/qq.trg";
+  tar_arguments[9] = "../lib/world/export/qq.shp";
+  tar_arguments[10] = NULL;
+
+  if (!run_export_program("tar", tar_arguments))
   {
-    log("SYSERR: Failed to gzip tar file");
+    log("SYSERR: Failed to create zone export archive %s", archive_path);
+    send_to_char(ch, "Unable to create the zone archive.\r\n");
+    return;
   }
 
-  send_to_char(ch, "Files tar'ed to \"%s%s.tar.gz\"\r\n", path, f);
+  send_to_char(ch, "Files archived to \"%s\"\r\n", archive_path);
 }
 
 ACMD(do_export_map)
@@ -971,12 +1022,10 @@ ACMD(do_export_map)
   char arg_copy[MAX_INPUT_LENGTH] = {'\0'};
   char zone_arg[MAX_INPUT_LENGTH] = {'\0'};
   char file_arg[MAX_INPUT_LENGTH] = {'\0'};
-  char sysbuf[MAX_INPUT_LENGTH] = {'\0'};
   char output_file[MAX_INPUT_LENGTH] = {'\0'};
   char safe_name[MAX_EXPORT_FILENAME] = {'\0'};
   char saved_path[MAX_INPUT_LENGTH] = {'\0'};
   const char *path = "../lib/world/export/";
-  const char *fixed_name;
 
   if (IS_NPC(ch) || GET_LEVEL(ch) < LVL_IMPL)
     return;
@@ -1004,20 +1053,24 @@ ACMD(do_export_map)
     return;
   }
 
-  snprintf(sysbuf, sizeof(sysbuf), "mkdir -p %s", path);
-  if (system(sysbuf) == -1)
-    log("SYSERR: Failed to create directory %s", path);
+  ensure_dir_exists(path);
 
   if (*file_arg)
   {
-    fixed_name = fix_filename(file_arg);
-    snprintf(output_file, sizeof(output_file), "%s", fixed_name);
+    if (!genolc_sanitize_export_filename(file_arg, output_file, sizeof(output_file)))
+    {
+      send_to_char(ch, "The export filename is empty or too long.\r\n");
+      return;
+    }
   }
   else
   {
     snprintf(safe_name, sizeof(safe_name), "%s_zone_%d", zone_table[zrnum].name, zvnum);
-    fixed_name = fix_filename(safe_name);
-    snprintf(output_file, sizeof(output_file), "%s.html", fixed_name);
+    if (!genolc_sanitize_export_filename(safe_name, output_file, sizeof(output_file)))
+    {
+      send_to_char(ch, "The zone name is empty or too long to use as an export filename.\r\n");
+      return;
+    }
   }
 
   if (!strstr(output_file, ".html"))
@@ -1040,30 +1093,28 @@ ACMD(do_export_map)
 ACMD(do_export_worldmap)
 {
   char file_arg[MAX_INPUT_LENGTH] = {'\0'};
-  char sysbuf[MAX_INPUT_LENGTH] = {'\0'};
   char output_file[MAX_INPUT_LENGTH] = {'\0'};
   char saved_path[MAX_INPUT_LENGTH] = {'\0'};
   const char *path = "../lib/world/export/";
-  const char *fixed_name;
 
   if (IS_NPC(ch) || GET_LEVEL(ch) < LVL_IMPL)
     return;
 
   one_argument(argument ? argument : "", file_arg, sizeof(file_arg));
 
-  snprintf(sysbuf, sizeof(sysbuf), "mkdir -p %s", path);
-  if (system(sysbuf) == -1)
-    log("SYSERR: Failed to create directory %s", path);
+  ensure_dir_exists(path);
 
   if (*file_arg)
   {
-    fixed_name = fix_filename(file_arg);
-    snprintf(output_file, sizeof(output_file), "%s", fixed_name);
+    if (!genolc_sanitize_export_filename(file_arg, output_file, sizeof(output_file)))
+    {
+      send_to_char(ch, "The export filename is empty or too long.\r\n");
+      return;
+    }
   }
   else
   {
-    fixed_name = fix_filename("luminari_worldmap");
-    snprintf(output_file, sizeof(output_file), "%s.html", fixed_name);
+    snprintf(output_file, sizeof(output_file), "luminari_worldmap.html");
   }
 
   if (!strstr(output_file, ".html"))

@@ -10,6 +10,7 @@
 #include "../../src/magic/spells.h"
 #include "../../src/modify.h"
 #include "../../src/comms/boards.h"
+#include "../../src/olc/genolc.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
 #include "../../src/dgscript/dg_olc.h"
@@ -20,6 +21,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+void Test_zone_export_filename_rejects_shell_and_path_metacharacters(CuTest *tc)
+{
+  const char *allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-";
+  const char *hostile = "Tiamat's Lair;|&`$()<>/\\\r\n.tar.gz";
+  char sanitized[128];
+  char too_small[8];
+
+  CuAssertTrue(tc, genolc_sanitize_export_filename(hostile, sanitized, sizeof(sanitized)));
+  CuAssertIntEquals(tc, (int)strlen(sanitized), (int)strspn(sanitized, allowed));
+  CuAssertPtrEquals(tc, NULL, strpbrk(sanitized, ";|&`$()<>/\\\r\n'\" "));
+  CuAssertTrue(tc, strstr(sanitized, ".tar.gz") != NULL);
+
+  CuAssertTrue(tc,
+               !genolc_sanitize_export_filename("filename-too-long", too_small, sizeof(too_small)));
+  CuAssertStrEquals(tc, "", too_small);
+  CuAssertTrue(tc, !genolc_sanitize_export_filename("", sanitized, sizeof(sanitized)));
+}
 
 void Test_feat_sort_contains_each_valid_feat_once(CuTest *tc)
 {

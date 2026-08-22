@@ -27,6 +27,8 @@ char *str_udupnl(const char *);
 void copy_ex_descriptions(struct extra_descr_data **to, struct extra_descr_data *from);
 void free_ex_descriptions(struct extra_descr_data *head);
 int sprintascii(char *out, bitvector_t bits);
+bool genolc_sanitize_export_filename(const char *source, char *destination,
+                                     size_t destination_size);
 ACMD_DECL(do_export_zone);
 ACMD_DECL(do_export_map);
 ACMD_DECL(do_export_worldmap);
