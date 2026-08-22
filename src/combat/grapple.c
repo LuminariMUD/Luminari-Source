@@ -316,6 +316,9 @@ ACMD(do_grapple)
   }
   else
   { /* attempt to grapple */
+    if (!pvp_ok(ch, vict, TRUE))
+      return;
+
     if (GET_POS(ch) <= POS_SITTING)
     {
       send_to_char(ch, "You need to stand to grapple!\r\n");

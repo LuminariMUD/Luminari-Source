@@ -35,7 +35,7 @@ The initial audit confirmed four defects:
 | Priority | Issue | Finding |
 | --- | --- | --- |
 | P0 | [#181](https://github.com/tbamud/tbamud/issues/181) | Resolved locally 2026-08-23: zone archive creation no longer invokes a shell and all export basenames use an ASCII allowlist. |
-| P0 | [#157](https://github.com/tbamud/tbamud/issues/157) | PvP policy is not enforced at the central combat transition, and `grapple` is a confirmed player-accessible bypass. |
+| P0 | [#157](https://github.com/tbamud/tbamud/issues/157) | Resolved locally 2026-08-23: combat, damage, and grapple enforce global PK configuration and mutual controller consent. |
 | P1 | [#92](https://github.com/tbamud/tbamud/issues/92) | VNUM storage is 32-bit, but room/mobile/object stat output still assumes narrow VNUM fields and often uses signed `%d` for unsigned index types. |
 | P2 | [#57](https://github.com/tbamud/tbamud/issues/57) | The bundled `snprintf` fallback still formats fractional values with leading zeroes incorrectly. It is dormant on the current development host. |
 
@@ -59,8 +59,8 @@ as correctness defects:
 
 The other 35 issues are fixed, absent, or not applicable to this codebase.
 
-Resolution work is tracked in this document. One of the four confirmed defects
-is resolved locally; three remain. The six design, portability, and legal
+Resolution work is tracked in this document. Two of the four confirmed defects
+are resolved locally; two remain. The six design, portability, and legal
 findings remain tracked until their policies or implementations are resolved.
 
 ## Confirmed defects
@@ -90,34 +90,34 @@ separators, CR/LF, and destination-buffer exhaustion.
 
 ### P0: Issue #157 - PvP policy bypasses
 
-Status: Confirmed equivalent failure.
+Status: Resolved locally on 2026-08-23.
 
-LuminariMUD has a stronger mutual-consent policy in
-[`pvp_ok()`](../../src/utils.c#L6946), and common attack and spell paths call it.
-The policy is not enforced in the central
-[`set_fighting()`](../../src/combat/fight.c#L1679) transition, however. When
-`CONFIG_PK_ALLOWED` is false, `set_fighting()` only calls `check_killer()`;
-that function's killer-flag mutation is commented out and it does not reject
-combat.
+The original code had a mutual-consent policy in `pvp_ok()`, but did not enforce
+it in the central `set_fighting()` transition. `do_grapple()` was a concrete
+player-accessible bypass: it applied the maneuver and started combat without a
+policy check.
 
-[`do_grapple()`](../../src/combat/grapple.c#L208) is a concrete bypass. It
-selects a visible player, performs and applies the maneuver, and calls
-`set_fighting()` in both directions without calling `pvp_ok()`. Consequently a
-player can initiate hostile state and grapple effects while global PK is off,
-or without mutual PvP consent when PK is on.
+[`pvp_ok()`](../../src/utils.c#L6967) now resolves the controlling player through
+NPC master chains. Ordinary monsters remain valid PvE opponents, actions
+between a player and that player's own follower remain valid, and player-owned
+pets on either side require the same consent as their controllers. Invalid or
+cyclic ownership chains fail closed.
 
-This confirms the central concern in #157 even though LuminariMUD's desired
-policy differs from upstream's three-state design.
+Outside an arena, the global `CONFIG_PK_ALLOWED` switch must be enabled and both
+distinct controlling players must have `PRF_PVP`. The arena exception requires
+both physical participants to be in arena rooms.
 
-Recommended direction:
+[`set_fighting()`](../../src/combat/fight.c#L1681), `hit()`, and `damage()` now
+reject disallowed player-controlled combat before changing combat state or hit
+points. [`do_grapple()`](../../src/combat/grapple.c#L319) checks before attacks
+of opportunity, maneuver rolls, effects, or combat state. Existing grapples can
+still be escaped or reversed, so the policy cannot trap a participant in an
+already active grapple.
 
-1. Audit every hostile entry point, including maneuvers, area callbacks,
-   damage shields, pets, spells, and vessel combat.
-2. Add a defensive policy check at the lowest safe combat-entry layer, while
-   retaining enough context to distinguish an initiating attack from the
-   victim's automatic retaliation.
-3. Add production-linked tests for PK off, one-sided consent, mutual consent,
-   arena exceptions, player pets, and `grapple` specifically.
+A production-linked regression covers PK disabled, one-sided and mutual
+consent, arenas, ordinary PvE, player-controlled pets on both sides,
+owner-versus-own-pet actions, malformed master chains, direct grapple entry,
+central combat-state entry, and direct damage.
 
 ### P1: Issue #92 - large-VNUM stat output is incomplete
 
@@ -267,7 +267,7 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
 | [#147 Autoloot and `obj_to_room`](https://github.com/tbamud/tbamud/issues/147) | Open | Not present | LuminariMUD inserts new corpses at the head, so normal lookup sees the newest corpse first. This is the inverse tradeoff of #105. |
 | [#148 `name_from_drinkcon` prototype pollution](https://github.com/tbamud/tbamud/issues/148) | Closed | Not present | The function frees `obj->name` only for unprototyped objects or when the pointer differs from the prototype name. |
 | [#155 Website email failure](https://github.com/tbamud/tbamud/issues/155) | Closed | Not applicable | Upstream website mail configuration only. |
-| [#157 PK configuration bypass](https://github.com/tbamud/tbamud/issues/157) | Closed | Confirmed defect | Central combat entry does not reject PvP, and `grapple` is a verified unchecked caller. |
+| [#157 PK configuration bypass](https://github.com/tbamud/tbamud/issues/157) | Closed | Resolved locally | Controller-aware policy checks now guard combat state, hit, damage, and grapple before hostile effects occur. |
 | [#159 Questmaster retains return items](https://github.com/tbamud/tbamud/issues/159) | Closed | Not present | `AQ_OBJ_RETURN` completes the quest and calls `extract_obj(object)`. |
 | [#179 Complex alias overflow](https://github.com/tbamud/tbamud/issues/179) | Closed | Not present | Every token, `$*`, literal, and escaped-dollar write checks remaining `MAX_RAW_INPUT_LENGTH`; overflow frees the temporary queue and returns failure. |
 | [#181 Zone export command injection](https://github.com/tbamud/tbamud/issues/181) | Open | Resolved locally | Archive creation uses direct process arguments, old archives use `remove()`, and bounded allowlist sanitization covers every export basename. |
@@ -298,13 +298,25 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
 - `do_export_zone()` contains no `system()` call, and neither zone names nor
   explicit map-export filenames can introduce path separators or shell syntax.
 
+### Resolution checkpoint 2 - issue #157
+
+- The production server builds with `-std=gnu2x -Wall -Wextra` and no new
+  warnings.
+- `make test` passes all 795 tests, including the controller-aware PvP policy
+  regression. The required follow-up `make install` also passes.
+- The regression invokes `do_grapple()`, `set_fighting()`, and `damage()`
+  directly under denied policy and verifies that no grapple state, combat state,
+  or hit-point change occurs.
+- The policy matrix covers global PK disabled, one-sided and mutual consent,
+  arenas, ordinary monsters, pets on both sides, owner-versus-own-pet actions,
+  and malformed master chains.
+
 ## Recommended work order
 
-1. Fix and regression-test #157 across all hostile entry points.
-2. Complete #92 as a single index-formatting pass rather than patching isolated
-   output lines.
-3. Fix #57 or deliberately remove the unsupported fallback implementation.
-4. Decide and document the builder/player compatibility policies behind #47,
+1. Complete #90 and #92 as a single index-formatting pass rather than patching
+   isolated output lines.
+2. Fix #57 or deliberately remove the unsupported fallback implementation.
+3. Decide and document the builder/player compatibility policies behind #47,
    #86, and the #105/#147 ordering tradeoff.
 
 ## Audit limits

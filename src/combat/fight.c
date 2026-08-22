@@ -1681,7 +1681,14 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   struct char_data *current = NULL, *previous = NULL;
   int delay;
 
+  if (ch == NULL || vict == NULL)
+    return FALSE;
+
   if (ch == vict)
+    return FALSE;
+
+  /* Every combat-state entry point must honor the configured PvP policy. */
+  if (!pvp_ok(ch, vict, FALSE))
     return FALSE;
 
   if (FIGHTING(ch))
@@ -5860,6 +5867,10 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
   if (!ch)
     return 0;
   if (!victim)
+    return 0;
+
+  /* Damage is a second fail-closed boundary for callers that do not engage first. */
+  if (ch != victim && !pvp_ok(ch, victim, TRUE))
     return 0;
 
   if (offhand == 2)
@@ -14105,6 +14116,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
   if (!ch || !victim)
     return (HIT_MISS); /* ch and victim exist? */
+  if (ch != victim && !pvp_ok(ch, victim, TRUE))
+    return (HIT_MISS);
   if (!PERF_combat_allow_attack())
     return (HIT_MISS);
 

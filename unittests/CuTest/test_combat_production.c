@@ -13,6 +13,7 @@
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/combat/encounters.h"
 #include "../../src/combat/fight.h"
+#include "../../src/combat/grapple.h"
 #include "../../src/lists.h"
 #include "../../src/mudlim.h"
 #include "../../src/net/protocol.h"
@@ -21,6 +22,105 @@
 #include <string.h>
 
 bool sect_no_weather(struct char_data *ch);
+
+void Test_pvp_policy_blocks_combat_damage_and_player_controlled_pets(CuTest *tc)
+{
+  struct char_data attacker;
+  struct char_data defender;
+  struct char_data monster;
+  struct char_data attacker_pet;
+  struct char_data defender_pet;
+  struct player_special_data attacker_specials;
+  struct player_special_data defender_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int saved_pk_allowed;
+
+  clear_char(&attacker);
+  clear_char(&defender);
+  clear_char(&monster);
+  clear_char(&attacker_pet);
+  clear_char(&defender_pet);
+  memset(&attacker_specials, 0, sizeof(attacker_specials));
+  memset(&defender_specials, 0, sizeof(defender_specials));
+  memset(&room, 0, sizeof(room));
+
+  attacker.player_specials = &attacker_specials;
+  defender.player_specials = &defender_specials;
+  attacker.player.name = "Aggressor";
+  defender.player.name = "Defender";
+  monster.player.short_descr = "a pvp policy monster";
+  attacker_pet.player.short_descr = "an attacker pet";
+  defender_pet.player.short_descr = "a defender pet";
+  SET_BIT_AR(MOB_FLAGS(&monster), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(&attacker_pet), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(&defender_pet), MOB_ISNPC);
+  attacker_pet.master = &attacker;
+  defender_pet.master = &defender;
+  IN_ROOM(&attacker) = 0;
+  IN_ROOM(&defender) = 0;
+  IN_ROOM(&monster) = 0;
+  IN_ROOM(&attacker_pet) = 0;
+  IN_ROOM(&defender_pet) = 0;
+  GET_POS(&attacker) = POS_STANDING;
+  GET_POS(&defender) = POS_STANDING;
+  GET_HIT(&attacker) = GET_MAX_HIT(&attacker) = 100;
+  GET_HIT(&defender) = GET_MAX_HIT(&defender) = 100;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_pk_allowed = CONFIG_PK_ALLOWED;
+  world = &room;
+  top_of_world = 0;
+  room.number = 100;
+  room.light = 1;
+  room.people = &attacker;
+  attacker.next_in_room = &defender;
+  CONFIG_PK_ALLOWED = FALSE;
+
+  CuAssertTrue(tc, !pvp_ok(&attacker, &defender, FALSE));
+  CuAssertTrue(tc, pvp_ok(&attacker, &monster, FALSE));
+  CuAssertTrue(tc, pvp_ok(&monster, &defender, FALSE));
+  CuAssertTrue(tc, !pvp_ok(&attacker_pet, &defender, FALSE));
+  CuAssertTrue(tc, !pvp_ok(&attacker, &defender_pet, FALSE));
+  CuAssertTrue(tc, !pvp_ok(&attacker_pet, &defender_pet, FALSE));
+  CuAssertTrue(tc, pvp_ok(&attacker, &attacker_pet, FALSE));
+  CuAssertTrue(tc, !pvp_ok_single(&attacker, FALSE));
+  CuAssertTrue(tc, pvp_ok_single(&monster, FALSE));
+
+  monster.master = &monster;
+  CuAssertTrue(tc, !pvp_ok(&monster, &defender, FALSE));
+  CuAssertTrue(tc, !pvp_ok_single(&monster, FALSE));
+  monster.master = NULL;
+
+  do_grapple(&attacker, "Defender", 0, 0);
+  CuAssertPtrEquals(tc, NULL, GRAPPLE_TARGET(&attacker));
+  CuAssertPtrEquals(tc, NULL, GRAPPLE_ATTACKER(&defender));
+  CuAssertTrue(tc, !AFF_FLAGGED(&attacker, AFF_GRAPPLED));
+  CuAssertTrue(tc, !AFF_FLAGGED(&defender, AFF_GRAPPLED));
+  CuAssertTrue(tc, !set_fighting(&attacker, &defender));
+  CuAssertPtrEquals(tc, NULL, FIGHTING(&attacker));
+  CuAssertIntEquals(tc, 0, damage(&attacker, &defender, 25, TYPE_UNDEFINED, DAM_SLICE, FALSE));
+  CuAssertIntEquals(tc, 100, GET_HIT(&defender));
+
+  SET_BIT_AR(ROOM_FLAGS(0), ROOM_ARENA);
+  CuAssertTrue(tc, pvp_ok(&attacker, &defender, FALSE));
+  CuAssertTrue(tc, pvp_ok_single(&attacker, FALSE));
+  REMOVE_BIT_AR(ROOM_FLAGS(0), ROOM_ARENA);
+
+  CONFIG_PK_ALLOWED = TRUE;
+  CuAssertTrue(tc, !pvp_ok(&attacker, &defender, FALSE));
+  SET_BIT_AR(PRF_FLAGS(&attacker), PRF_PVP);
+  CuAssertTrue(tc, !pvp_ok(&attacker, &defender, FALSE));
+  SET_BIT_AR(PRF_FLAGS(&defender), PRF_PVP);
+  CuAssertTrue(tc, pvp_ok(&attacker, &defender, FALSE));
+  CuAssertTrue(tc, pvp_ok(&attacker_pet, &defender_pet, FALSE));
+
+  CONFIG_PK_ALLOWED = saved_pk_allowed;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
 
 void Test_rol_slow_poison_reduces_target_poison_damage(CuTest *tc)
 {
