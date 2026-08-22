@@ -214,7 +214,8 @@ Recorded so they are not re-investigated:
 
 ## 3.13 The source economy row swallows the affect flag words
 
-**Severity: high. 183 object records, 35 of them weapons. Found 2026-08-22.**
+**Status: resolved. 183 object records, 35 of them weapons, plus 240 more that
+split their affect words across two lines. Found and fixed 2026-08-22.**
 
 The source economy fields are read with three separate `fscanf(" %d ")` calls
 and are not line-bound (mapping Part 2.5), and the two affect-flag words that
@@ -231,9 +232,16 @@ bitmask lands there: source object 19730, a longsword, converts to level
 that every converted object is level 1, and it gates 35 converted weapons
 behind level 30.
 
-The fix belongs in the source parser, not the emitter: split the economy row at
-three fields and hand any remainder to the affect-word path, which already
-carries the correct one-based bit offsets.
+A second defect sat next to it. The bit offset for an affect word was derived
+from its position inside its own row, so the 240 records that write their two
+affect words on two separate lines had word 2 read as word 1: source bits
+33..64 landed on 1..32.
+
+Both are fixed in the source parser rather than the emitter. The economy row is
+split at three fields and any remainder becomes affect words, and every
+affect-word row now carries the `word_offset` it was read at, which
+`rol_transform.py` and `rol_capability_audit.py` both use instead of inferring
+one. Every active object record now parses exactly three economy fields.
 
 ---
 

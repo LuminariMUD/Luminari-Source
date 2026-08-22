@@ -22,6 +22,12 @@
   becoming badges, held items eye gear, and two positions were dropped entirely.
 - Split converted quivers by the kind they declare: archery quivers become ammo pouches and
   throwing quivers become plain containers, since an ammo pouch may hold only ammunition.
+- Stopped the source economy row from swallowing the affect flag words that follow it. The
+  three economy fields and the two affect words are read independently of line breaks in the
+  source format, so 183 records were converting with no affects at all and with an affect
+  bitmask in place of their object level, which the target clamped to level 30. A further
+  240 records that wrote their two affect words on separate lines had the second word read
+  as the first, moving its bits into the wrong half of the affect range.
 - Gave converted archers a reload step. The in-combat auto-reload was player-only, so a
   crossbow or sling archer fired once per load and then fell silent.
 

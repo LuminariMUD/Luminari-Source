@@ -288,6 +288,13 @@ def _read_tilde(
   return position, value or None, False
 
 
+# EXAMPLE/RealmsOfLuminari/src/db.c reads three economy fields and then two
+# affect-flag words, each with its own fscanf(" %d "), so none of the five is
+# line bound.
+SOURCE_ECONOMY_FIELDS = 3
+SOURCE_AFFECT_WORDS = 2
+
+
 def _integers(line: SourceLine) -> list[int]:
   return [int(token) for token in _INTEGER.findall(line.raw)]
 
@@ -806,10 +813,30 @@ def _parse_obj(
           "source object string block is incomplete",
           source.lines[start],
       )
+    affect_words = 0
     if len(rows) == 3:
       flags = _integers(rows[0])
       values = _integers(rows[1])
       economy = _integers(rows[2])
+      # The three economy fields and the two affect-flag words that follow are
+      # each read with their own fscanf(" %d "), so they are whitespace
+      # delimited rather than line bound. A record that puts an affect word on
+      # the economy line is legal source, and reading the row as five economy
+      # fields both loses the affects and pushes a bitmask into the target's
+      # object level.
+      trailing = economy[SOURCE_ECONOMY_FIELDS:SOURCE_ECONOMY_FIELDS + SOURCE_AFFECT_WORDS]
+      economy = economy[:SOURCE_ECONOMY_FIELDS]
+      if trailing:
+        record.directives.append(
+            {
+                "token": "AFFECT_FLAGS",
+                "line": rows[2].number,
+                "field_count": len(trailing),
+                "word_offset": 0,
+                "arguments": trailing,
+            }
+        )
+        affect_words = len(trailing)
       record.values.update(
           {
               "item_type": flags[0] if flags else None,
@@ -828,7 +855,6 @@ def _parse_obj(
       elif item_type == 29 and len(values) >= 2:
         _reference(record, "room", values[1], "switch_room", rows[1])
 
-    affect_flag_rows = 0
     saw_extension = False
     while position < end:
       position, line = _next_content(source.lines, position, end)
@@ -880,16 +906,22 @@ def _parse_obj(
         record.directives.append({"token": "T", "line": line.number, "arguments": values})
       elif re.fullmatch(br"[+-]?\d+(?:\s+[+-]?\d+)*", stripped):
         values = _integers(line)
-        if not saw_extension and affect_flag_rows < 2:
-          affect_flag_rows += 1
+        if not saw_extension and affect_words < SOURCE_AFFECT_WORDS:
+          # Word 1 carries source affect bits 1..32 and word 2 bits 33..64, in
+          # the order they are read, however the file lays them out across
+          # lines. The offset travels with the row so a consumer never has to
+          # infer it from the row's own position.
+          taken = values[: SOURCE_AFFECT_WORDS - affect_words]
           record.directives.append(
               {
                   "token": "AFFECT_FLAGS",
                   "line": line.number,
-                  "field_count": len(values),
-                  "arguments": values,
+                  "field_count": len(taken),
+                  "word_offset": affect_words,
+                  "arguments": taken,
               }
           )
+          affect_words += len(taken)
         else:
           saw_extension = True
           record.directives.append(

@@ -177,9 +177,10 @@ def build_symbolic_inventory(records: Iterable[RolRecord]) -> list[dict[str, Any
       )
       for directive in record.directives:
         if directive["token"] == "AFFECT_FLAGS":
+          offset = int(directive.get("word_offset", 0))
           for ordinal, mask in enumerate(directive.get("arguments", [])):
             counters["object_affect_flag"].update(
-                _source_mask_bits(int(mask), ordinal * 32 + 1)
+                _source_mask_bits(int(mask), (offset + ordinal) * 32 + 1)
             )
         elif directive["token"] == "A" and directive.get("arguments"):
           counters["object_apply"][int(directive["arguments"][0])] += 1

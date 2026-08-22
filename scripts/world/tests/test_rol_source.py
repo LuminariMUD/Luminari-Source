@@ -82,6 +82,40 @@ class RolSourceTests(unittest.TestCase):
     self.assertFalse(records[0].complete)
     self.assertEqual(4, [item.code for item in corpus.diagnostics].count("ROLMOB005"))
 
+  def test_economy_row_gives_back_the_affect_words_it_swallowed(self) -> None:
+    # The three economy fields and the two affect words are read with five
+    # separate fscanf(" %d ") calls, so a record may legally put an affect word
+    # on the economy line.
+    records, _corpus = parse_fixture(
+        "obj",
+        b"#201\nsword~\na sword~\nA sword lies here.~\n~\n"
+        b"5 0 8193\n0 1 6 3\n30 5000000 2 32768 4\n",
+    )
+    self.assertEqual([30, 5000000, 2], records[0].values["economy"])
+    affect_rows = [
+        directive
+        for directive in records[0].directives
+        if directive["token"] == "AFFECT_FLAGS"
+    ]
+    self.assertEqual([[32768, 4]], [row["arguments"] for row in affect_rows])
+    self.assertEqual([0], [row["word_offset"] for row in affect_rows])
+
+  def test_affect_words_carry_their_reading_order(self) -> None:
+    # Word 1 is source affect bits 1..32 and word 2 is bits 33..64, whether the
+    # file writes them on one line or two.
+    records, _corpus = parse_fixture(
+        "obj",
+        b"#202\nmace~\na mace~\nA mace lies here.~\n~\n"
+        b"5 0 8193\n0 1 6 7\n10 100 1\n32768\n4\n",
+    )
+    affect_rows = [
+        directive
+        for directive in records[0].directives
+        if directive["token"] == "AFFECT_FLAGS"
+    ]
+    self.assertEqual([[32768], [4]], [row["arguments"] for row in affect_rows])
+    self.assertEqual([0, 1], [row["word_offset"] for row in affect_rows])
+
   def test_object_affect_masks_are_only_read_before_extensions(self) -> None:
     records, corpus = parse_fixture(
         "obj",

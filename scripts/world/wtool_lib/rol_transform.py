@@ -2173,8 +2173,9 @@ def emit_object(
   for directive in record.directives:
     if directive["token"] != "AFFECT_FLAGS":
       continue
+    offset = int(directive.get("word_offset", 0))
     for ordinal, mask in enumerate(directive.get("arguments", [])):
-      source_affects.update(_source_mask_bits(mask, ordinal * 32 + 1))
+      source_affects.update(_source_mask_bits(mask, (offset + ordinal) * 32 + 1))
   if source_affects & OBJECT_SOURCE_ONLY_AFFECTS:
     diagnostics.append(
         "omitted source-inert object affects the source loader clears at load: "

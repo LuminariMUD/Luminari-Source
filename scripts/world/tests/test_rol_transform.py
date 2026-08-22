@@ -1509,6 +1509,36 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(0, result.records[0].values[3])
     self.assertIn("mud to rock", " ".join(emitted.diagnostics))
 
+  def test_second_affect_word_converts_on_its_own_bit_range(self) -> None:
+    # Source affect word 2 carries bits 33..64. Bit 34 is ULTRAVISION, which
+    # maps to target affect 33; reading it as word 1 would land on bit 2.
+    source = self._source_record(
+        "obj",
+        b"#203\nmace~\na mace~\nA mace lies here.~\n~\n"
+        b"5 0 8193\n0 1 6 7\n10 100 1\n0\n2\n",
+    )
+    emitted = emit_object(source, 2_000_203, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20003.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertIn(33, decode_tokens(result.records[0].affect_flags).bits)
+
+  def test_affect_words_on_the_economy_row_still_convert(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#204\nmace~\na mace~\nA mace lies here.~\n~\n"
+        b"5 0 8193\n0 1 6 7\n10 100 1 0 2\n",
+    )
+    emitted = emit_object(source, 2_000_204, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20004.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertIn(33, decode_tokens(result.records[0].affect_flags).bits)
+    # The fourth number is an affect word, not an object level.
+    self.assertEqual(1, result.records[0].level)
+
   def test_equipment_positions_map_to_the_target_wear_constants(self) -> None:
     # The source zone E command carries a source WEAR_* constant, not an index
     # into the source equipment_types[] display table. Both headers are read so
