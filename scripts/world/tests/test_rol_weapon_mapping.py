@@ -388,6 +388,29 @@ class RolWeaponMappingTests(unittest.TestCase):
         self.assertEqual(0, values[3])
         self.assertLessEqual(values[4], 10)
 
+  def test_retyped_thrown_ammunition_drops_the_source_missile_type(self) -> None:
+    # value[3] on a source missile is its missile type; on a target weapon it
+    # indexes attack_hit_text[]. Carrying it across names an unrelated verb.
+    record = self._source_record(
+        b"#906\ndagger throwing~\na throwing dagger~\nA throwing dagger lies here.~\n~\n"
+        b"7 0 0\n2 5 6 9\n1 20 0\n"
+    )
+    _emitted, item_type, values, _economy, _blocks = self._emit(record)
+    self.assertEqual(mapping.TARGET_ITEM_WEAPON, item_type)
+    self.assertEqual(mapping.WEAPON_TYPE_IDS["WEAPON_TYPE_DAGGER"], values[0])
+    self.assertEqual(0, values[3])
+
+  def test_every_retyped_source_missile_drops_the_missile_type(self) -> None:
+    self._require_reference_corpus()
+    retyped = 0
+    for record in self.ammunition:
+      _emitted, item_type, values, _economy, _blocks = self._emit(record)
+      if item_type != mapping.TARGET_ITEM_WEAPON:
+        continue
+      retyped += 1
+      self.assertEqual(0, values[3], record.record_id)
+    self.assertEqual(4, retyped)
+
   def test_source_quivers_split_by_the_kind_they_declare(self) -> None:
     self._require_reference_corpus()
     kinds = {}

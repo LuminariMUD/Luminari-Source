@@ -2009,6 +2009,7 @@ def _apply_weapon_object(
     inference: WeaponInference,
     enhancement: int,
     diagnostics: list[str],
+    carries_attack_message: bool = True,
 ) -> tuple[int, int, int]:
   """Replicate set_weapon_object() (src/obj/treasure.c:2562) at emit time.
 
@@ -2028,6 +2029,17 @@ def _apply_weapon_object(
     )
   values[1] = entry.num_dice
   values[2] = entry.dice_size
+  if not carries_attack_message:
+    # A record retyped out of ITEM_MISSILE has a source missile type in this
+    # slot, not a damage message. The target reads value[3] as an index into
+    # attack_hit_text[] (src/combat/fight.c:11922), so the source value would
+    # name an unrelated verb.
+    if values[3]:
+      diagnostics.append(
+          f"zeroed source missile type {values[3]}; the target slot is the "
+          "weapon attack message"
+      )
+    values[3] = 0
   values[4] = enhancement
   # value[5] is the target's loaded-ammo counter, read by weapon_is_loaded()
   # (src/combat/assign_wpn_armor.c:549). The source slot in that position is a
@@ -2225,7 +2237,13 @@ def emit_object(
       )
     diagnostics.append(weapon_inference.diagnostic)
     proficiency, material, size = _apply_weapon_object(
-        values, economy, target_wear, weapon_inference, enhancement, diagnostics
+        values,
+        economy,
+        target_wear,
+        weapon_inference,
+        enhancement,
+        diagnostics,
+        carries_attack_message=source_type != SOURCE_ITEM_TYPE_MISSILE,
     )
   elif target_type == TARGET_ITEM_MISSILE and ammo_inference is not None:
     diagnostics.append(ammo_inference.diagnostic)
