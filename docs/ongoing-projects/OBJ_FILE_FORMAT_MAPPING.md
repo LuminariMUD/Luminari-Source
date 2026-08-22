@@ -217,9 +217,11 @@ Authority: `display_item_object_values()` in `src/obj/act.item.c:106` and the
 | `ITEM_LIGHT` | unused | unused | hours left, `-1` = infinite | unused |
 | `ITEM_SCROLL`, `ITEM_POTION` | spell level | spell 1 | spell 2 | spell 3 |
 | `ITEM_WAND`, `ITEM_STAFF` | spell level | max charges | charges left | spellnum |
-| `ITEM_WEAPON` | weapon type (`weapon_list` index) | num damage dice | dice size | (enhancement bonus via `GET_ENHANCEMENT_BONUS`) |
+| `ITEM_WEAPON` | weapon type (`weapon_list` index) | num damage dice | dice size | attack-message index, used as `value[3] + TYPE_HIT` only when `weapon_list[].damageTypes` is empty (`src/combat/fight.c:11922`) |
 | `ITEM_ARMOR` | AC apply, tenths | armor type (`armor_list` index) | | |
-| `ITEM_FIREWEAPON` | ranged weapon type | damage | break chance percent | deprecated type |
+| `ITEM_FIREWEAPON` | index into the two-entry `ranged_weapons[]`, **not** `weapon_list[]` | damage | break chance percent | deprecated (`src/structs.h:4348`); `is_using_ranged_weapon()` tests `weapon_list[value[0]].weaponFlags` without checking item type, so objects of this type can never fire |
+| `ITEM_MISSILE` | `AMMO_TYPE_*` 1..4, paired against the weapon type by `has_ammo_in_pouch()` | imbued spell number, cast through `call_magic()` on every shot (`fight.c:12057`); 0 = none | break probability percent, breaks when `value[2] >= dice(1, 100)` | unused; the imbue duration is the object timer |
+| `ITEM_AMMO_POUCH` | capacity, counted in items not weight (`act.item.c:2028`) | container flags (`CONT_*`) | key vnum, `-1` for none | corpse flag |
 | `ITEM_TRAP` | trap type | direction, or target obj vnum by trap type | effect (spellnum, or `trap_effects` offset by `TRAP_SPECIAL_PARALYSIS`) | trap DC; val 4 is the "detected" flag |
 | `ITEM_SWITCH` | 0 push / 1 pull | affected room vnum | direction 0..5 | 0 unhide / 1 unlock / 2 open |
 | `ITEM_FOOD`, `ITEM_DRINK` | duration | | | |
@@ -228,6 +230,13 @@ Weapon and armor stats are largely *not* stored in the object. Damage dice,
 crit range, crit multiplier, damage types, range, and family come from
 `weapon_list[val 0]`; AC bonus, max dex, armor check, spell fail come from
 `armor_list[val 1]`. The file stores only the index.
+
+Two weapon slots past val 3 carry meaning and have no `oedit` prompt of their
+own: val 4 is the enhancement bonus (`GET_ENHANCEMENT_BONUS`, `src/utils.h:1596`,
+clamped 0..10 in OLC) and val 5 is the loaded-ammo counter that
+`weapon_is_loaded()` requires for crossbows and slings
+(`src/combat/assign_wpn_armor.c:549`, decremented at `src/combat/fight.c:14278`).
+Ammunition also reads val 4 as its enhancement bonus.
 
 The remaining 40-odd types (crafting, vessels, portals, pets, blueprints,
 outfits) each carry their own layout in the same switch. Treat
@@ -453,8 +462,8 @@ Authority: the `switch(j->type)` in RoL's `do_stat_object` at
 | `ITEM_SCROLL` (2), `ITEM_POTION` (10) | 0 level, 1..3 spellnums, stored **1-based** (display subtracts 1 before the `spells[]` lookup) |
 | `ITEM_WAND` (3), `ITEM_STAFF` (4) | 0 level, 1 max charges, 2 charges left, 3 spellnum, 1-based |
 | `ITEM_WEAPON` (5) | 0 proc value, 1 num dice, 2 dice size, 3 weapon class 1..11, 1-based |
-| `ITEM_FIREWEAPON` (6) | 1 damage, 2 dice size, 3 hit message, 4 firing delay, 5 max rate of fire, 6 durability, 7 ranged weapon type |
-| `ITEM_MISSILE` (7) | 0 num dice, 1 dice size, 2 condition, 3 missile type 1..16 |
+| `ITEM_FIREWEAPON` (6) | 0 unused, 1 damage, 2 dice size, 3 hit message, 4 firing delay, 5 max rate of fire, 6 durability 1..10, 7 ranged weapon type 1..21 |
+| `ITEM_MISSILE` (7) | 0 num dice, 1 dice size, 2 durability 1..10 (10 best), 3 missile type 1..21 |
 | `ITEM_ARMOR` (9) | 0 AC apply, 1 warmth, 2 prestige, 3 proc value |
 | `ITEM_WORN` (11) | 1 warmth, 2 prestige |
 | `ITEM_TRAP` (14) | 0 spell, 1 hitpoints |
@@ -469,7 +478,7 @@ Authority: the `switch(j->type)` in RoL's `do_stat_object` at
 | `ITEM_POISON` (26) | 0 poison type, 1 level, 2 applications left, 3 hits per application |
 | `ITEM_SUMMON` (27) | 0 command index, 1 mob vnum, 2 charges, 3 summon type |
 | `ITEM_SWITCH` (29) | 0 command index, 1 room vnum with blocked exit, 2 direction 0..5, 3 switch type |
-| `ITEM_QUIVER` (30) | 0 max missiles, 1 container flags, 2 key vnum, 3 `1` = archery quiver |
+| `ITEM_QUIVER` (30) | 0 max missiles, 1 container flags, 2 key vnum, 3 quiver kind: `1` archery (holds `ITEM_MISSILE`), `2` throwing (holds thrown `ITEM_FIREWEAPON`) |
 | `ITEM_PSP_CRYSTAL` (37) | 0 max charge, 1 current charge |
 | `ITEM_DISTRIBUTION` (40) | 0 odds denominator, 1 room range low, 2 room range high, 3 sector bitmask |
 
@@ -483,6 +492,42 @@ from the loader.
 Two types are internal-only and must never appear in source files:
 `ITEM_CORPSE` (24, explicitly commented "do NOT assign this type") and
 `ITEM_MISSILE_INFLIGHT` (34).
+
+### 2.9.1 Ranged type numbering
+
+`ITEM_FIREWEAPON` value 7 and `ITEM_MISSILE` value 3 index the same one-based,
+21-entry space. Authority: the layout comment at
+`EXAMPLE/RealmsOfLuminari/src/missile.c:51-83` and the two name tables
+`rangeweapons[]` (`missile.c:347`) and `missiles[]` (`missile.c:402`), which
+list the launcher and the ammunition sharing each number.
+
+| # | Launcher (`rangeweapons[]`) | Ammunition (`missiles[]`) |
+|---|---|---|
+| 1 | Short Bow | Normal Flight Arrow |
+| 2 | Long Bow | Elven Flight Arrow |
+| 3 | Elven Short Bow | Normal Sheaf Arrow |
+| 4 | Elven Long Bow | Elven Sheaf Arrow |
+| 5 | Hand Crossbow | Hand Crossbow Quarrel |
+| 6 | Light Crossbow | Light Crossbow Quarrel |
+| 7 | Heavy Crossbow | Heavy Crossbow Quarrel |
+| 8 | Special Missile Weapon | Special Flight |
+| 9 | Throwing Dagger | Throwing Dagger |
+| 10 | Dart | Dart |
+| 11 | Throwing Hammer | Throwing Hammer |
+| 12 | Throwing Handaxe | Throwing Handaxe |
+| 13 | Sling | Sling Stone |
+| 14 | Javelin | Javelin |
+| 15 | Spear | Spear |
+| 16 | Blowgun | Blowgun Dart |
+| 17 | Special Thrown Weapon | Special Throw |
+| 18 | Common Object | Object |
+| 19 | Scorpion Ballista | Ballista Missile |
+| 20 | Catapult | Catapult Missile |
+| 21 | Spell Missile | Spell Missile |
+
+1-8 are the archery range and 9-18 the thrown range (`missile.h:17-21`).
+`Fireweapon_MaxRange[]` (`missile.c:218`) carries the per-type range in the
+source engine; the target derives range from `weapon_list[]` instead.
 
 ## 2.10 Load-time mutations
 

@@ -64,24 +64,59 @@ convert 1:1 from their raw source values, and race-factor applies (41, 43, 45, 4
 are omitted as source-only attributes. Converted item applies default to
 `BONUS_TYPE_UNIVERSAL` (23).
 
-## 3.5 Missile type index is passed through untranslated
+## 3.5 Ranged weapons and their ammunition do not convert
 
-**Severity: medium. 48 records.**
+**Status: resolved. 99 object records, 44 quivers, and the archer path.**
 
-Source `ITEM_MISSILE` value 3 is a one-based missile type, 1-16 in RoL's
-`missiles[]` table, and source values 0-2 carry dice and condition. Target
-`ITEM_MISSILE` uses a different value layout. This is the same class of defect
-as 1.2 but for missiles, and it needs the target-side missile semantics
-confirmed before a map can be written.
+Source `ITEM_FIREWEAPON` now becomes `ITEM_WEAPON` on a real `weapon_list[]`
+index classified from the range type the record declares; source `ITEM_MISSILE`
+keeps its type on a classified `AMMO_TYPE_*`, except for the four thrown
+records, which are retyped to the melee weapon they are. The three misread
+value slots -- the imbued spell number, the inverted break probability, and the
+loaded-ammo counter -- are fixed. Quivers split 24 archery pouches to 20
+throwing containers, and `MOB_ROL_ARCHER` mobiles reload. Implementation record:
+[ROL_CONVERTER_WEAPON_TYPE_INFERENCE.md](ROL_CONVERTER_WEAPON_TYPE_INFERENCE.md)
+sections 2 and 2.10. What was found originally:
+
+Both halves of the ranged chain were broken, and the plan for all of it is
+[ROL_CONVERTER_WEAPON_TYPE_INFERENCE.md](ROL_CONVERTER_WEAPON_TYPE_INFERENCE.md)
+section 2, which carries the verified mapping tables, value-slot rules, and
+implementation order. Summary of what was found:
+
+- **Launchers (51).** Source `ITEM_FIREWEAPON` maps to the target's deprecated
+  `ITEM_FIREWEAPON` (7), whose `value[0]` indexes a two-entry `ranged_weapons[]`
+  table. `is_using_ranged_weapon()` tests
+  `weapon_list[value[0]].weaponFlags & WEAPON_FLAG_RANGED` without looking at
+  item type, so every record fails and nothing can fire. They must become
+  `ITEM_WEAPON` (5) with a real `weapon_list[]` index.
+- **Ammunition (48).** Source `value[3]` is a one-based missile type, 1-21 in
+  RoL's `missiles[]` table (not 1-16 -- corrected in mapping Part 2.9), and it
+  is never read; source `value[0]` (a damage die) passes through into the
+  target's `AMMO_TYPE_*` slot instead.
+- **Two target slots mean something else entirely.** Missile `value[1]` is the
+  target's imbued-spell number (`imbued_arrow()`, `src/combat/fight.c:12057`),
+  so converted arrows currently cast a spell chosen by their source dice size --
+  `SPELL_CHILL_TOUCH`, `SPELL_CALL_LIGHTNING`, `SPELL_TELEPORT`. Missile
+  `value[2]` is a break-probability percent while the source stores durability
+  on an inverted 1-10 scale.
+- **Delivery.** RoL quivers already map to `ITEM_AMMO_POUCH`, but 20 of the 44
+  are throwing quivers holding thrown weapons, which an ammo pouch may not
+  hold; those must become plain containers. And the zone equipment positions
+  are shifted by one (gap 3.11), which puts all 103 quiver equips on the badge
+  slot.
+- **The NPC path already exists.** `ACT_ARCHER` maps to `MOB_ROL_ARCHER` and
+  `src/mob/mob_act.c:424` implements it, so the mobile side needs no new work.
 
 ## 3.6 Object level is always 1
 
 **Severity: medium. All records.**
 
 The source format has no level field at all (mapping Part 2.5), so
-`emit_object` falls back to the economy default of 1. Every converted object is
+`emit_object` falls back to the economy default of 1. Most converted objects are
 therefore usable at level 1, and the source's own gating -- anti-class extra
-flags -- is the only restriction that survives.
+flags -- is the only restriction that survives. The exception is the 183 records
+of gap 3.13, whose fourth parsed economy field is an affect bitmask rather than
+a level.
 
 The target clamps level to 1-30 at load, so any future level inference must
 stay inside that range to round-trip.
@@ -90,14 +125,15 @@ stay inside that range to round-trip.
 
 **Severity: medium. All records.**
 
-`emit_object` writes only the header, the three numeric rows, `E`, `A`, `Z`,
-and `T` blocks. It never writes `G` (proficiency), `H` (material), `I` (size),
-`B` (spellbook), `C` (weapon special abilities), `K` (activated spells), or `S`
-(weapon proc spells).
+`emit_object` writes the header, the three numeric rows, `E`, `A`, `Z`, and `T`
+blocks, plus `G` (proficiency), `H` (material), and `I` (size) **for converted
+weapons only**, where `weapon_list[]` supplies all three. It never writes `B`
+(spellbook), `C` (weapon special abilities), `K` (activated spells), or `S`
+(weapon proc spells), and non-weapon records still get none of `G`/`H`/`I`.
 
-Consequences: every converted object gets material `MATERIAL_UNDEFINED` and
-proficiency `ITEM_PROF_NONE`, and a missing `I` block means the loader's
-size-0 rewrite silently makes every converted object `SIZE_MEDIUM`.
+Consequences for everything that is not a weapon: material
+`MATERIAL_UNDEFINED`, proficiency `ITEM_PROF_NONE`, and a missing `I` block
+means the loader's size-0 rewrite silently makes the object `SIZE_MEDIUM`.
 
 `C` is the notable one: it is the target's native representation of exactly the
 kind of themed weapon effect RoL encodes as a proc value, so it is the natural
@@ -139,7 +175,29 @@ table.
 Source type 28 maps to target `ITEM_BOAT` (22) and the forced light bit is not
 reproduced.
 
-## 3.11 Checked and found benign
+## 3.11 Zone equipment positions above 16 are shifted by one
+
+**Status: resolved. 1,247 resets.** `EQUIPMENT_POSITION_MAP` is now built from
+the source `WEAR_*` constants the zone `E` command actually carries, and
+`test_equipment_positions_map_to_the_target_wear_constants` reparses both
+headers so neither side can renumber a slot silently. Source position 25
+(`WEAR_TAIL`) has no target equivalent and is still dropped, with a diagnostic.
+What was found:
+
+`EQUIPMENT_POSITION_MAP` in `rol_transform.py` was built from RoL's
+`equipment_types[]` display table, which omits `SECONDARY_WEAPON`, rather than
+the `WEAR_*` constants the zone `E` command actually uses. Every source
+position from 17 up lands one slot early: quivers (23) become badges, held
+items become eye gear, eye gear becomes face gear, offhand weapons become held
+items, and positions 24 and 25 are rejected outright so those resets are
+dropped. The target's `E` handler validates only slot bounds
+(`src/db.c:5967`), so it all loads silently. The corrected table and the corpus
+evidence for it are in
+[ROL_CONVERTER_WEAPON_TYPE_INFERENCE.md](ROL_CONVERTER_WEAPON_TYPE_INFERENCE.md)
+section 2.6.2. This is not a ranged-specific defect, but it blocks the ranged
+chain completely.
+
+## 3.12 Checked and found benign
 
 Recorded so they are not re-investigated:
 
@@ -153,6 +211,29 @@ Recorded so they are not re-investigated:
   behavior-preserving reading.
 - **Negative source weights.** Clamped to zero by an existing guard, both
   before and after the drink-container change in 1.3.
+
+## 3.13 The source economy row swallows the affect flag words
+
+**Severity: high. 183 object records, 35 of them weapons. Found 2026-08-22.**
+
+The source economy fields are read with three separate `fscanf(" %d ")` calls
+and are not line-bound (mapping Part 2.5), and the two affect-flag words that
+follow are read the same way. 183 active source objects put one or both affect
+words on the same physical line as their three economy fields.
+`rol_source._parse_obj` reads the economy row as a whole line, so for those
+records the trailing affect words are parsed as economy fields 4 and 5.
+
+Two consequences. The affect words are lost -- they never reach the
+`AFFECT_FLAGS` handling, so those objects convert with no affects at all. And
+`emit_object` maps economy field 4 to the target object level, so an affect
+bitmask lands there: source object 19730, a longsword, converts to level
+536,870,972, which the target clamps to 30. That contradicts gap 3.6's claim
+that every converted object is level 1, and it gates 35 converted weapons
+behind level 30.
+
+The fix belongs in the source parser, not the emitter: split the economy row at
+three fields and hand any remainder to the affect-word path, which already
+carries the correct one-based bit offsets.
 
 ---
 

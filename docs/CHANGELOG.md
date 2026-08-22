@@ -1,5 +1,40 @@
 # Changelog
 
+## [Unreleased] - August 22, 2026
+
+### RoL converter: ranged weapons, ammunition, and weapon parity
+
+#### Fixed
+
+- Converted Realms of Luminari ranged weapons into working target weapons. Source
+  `ITEM_FIREWEAPON` records now become `ITEM_WEAPON` on a real `weapon_list[]` index,
+  classified from the range-weapon type the source record declares; the target's own
+  `ITEM_FIREWEAPON` is deprecated and can never fire. Source ammunition is classified onto
+  `AMMO_TYPE_*`, except for thrown records, which the target has no command for and which
+  become the melee weapon they are.
+- Stopped three target value slots from being filled with source data that means something
+  else there: the missile imbued-spell number, which made converted arrows cast a spell
+  chosen by their source dice size; the missile break probability, which is inverted against
+  the source durability scale; and the weapon loaded-ammo counter, which a source rate of
+  fire silently pre-loaded.
+- Corrected the zone equipment positions above 16, which were built from a source display
+  table that omits the off-hand weapon slot and so landed one slot early. Quiver equips were
+  becoming badges, held items eye gear, and two positions were dropped entirely.
+- Split converted quivers by the kind they declare: archery quivers become ammo pouches and
+  throwing quivers become plain containers, since an ammo pouch may hold only ammunition.
+- Gave converted archers a reload step. The in-combat auto-reload was player-only, so a
+  crossbow or sling archer fired once per load and then fell silent.
+
+#### Changed
+
+- Converted weapons now come out of the converter mechanically identical to one an immortal
+  builds in OLC by picking a weapon type: damage dice, cost, weight, material, size, and a
+  take-and-wield wear word are all derived from the weapon table, and the proficiency,
+  material, and size extension blocks are written. Source dice, cost, and weight are
+  discarded for weapons, which is what the target's own weapon system expects.
+- Restated Realms of Luminari hitroll and damroll applies as the native enhancement bonus
+  and dropped the source applies, which the target would otherwise have counted twice.
+
 ## [Unreleased] - August 20, 2026
 
 ### Server executable renamed to `luminari`
