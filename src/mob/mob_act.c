@@ -421,6 +421,14 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
 
     /* RoL archers fire one room away when their converted equipment provides
      * a usable ranged weapon and ammunition. */
+    if (MOB_FLAGGED(ch, MOB_ROL_ARCHER) && !FIGHTING(ch) && !ch->master)
+    {
+      /* Crossbows and slings carry a loaded-ammo counter that hit() decrements
+       * per shot, and the mob AI has no reload step of its own. Without this a
+       * converted crossbow archer fires once per load and then falls silent. */
+      auto_reload_weapon(ch, TRUE);
+    }
+
     if (MOB_FLAGGED(ch, MOB_ROL_ARCHER) && !FIGHTING(ch) && !ch->master && can_fire_ammo(ch, TRUE))
     {
       found = FALSE;

@@ -15288,8 +15288,10 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
             penalty -= 5; /* cummulative penalty */
 
           /* here is our auto-reload system for xbows, etc */
-          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTORELOAD))
+          if (IS_NPC(ch) ? MOB_FLAGGED(ch, MOB_ROL_ARCHER) : PRF_FLAGGED(ch, PRF_AUTORELOAD))
           {
+            /* converted RoL archers have no reload step of their own, so
+             * without this a crossbow archer fires once per load */
             auto_reload_weapon(ch, TRUE);
           }
 
