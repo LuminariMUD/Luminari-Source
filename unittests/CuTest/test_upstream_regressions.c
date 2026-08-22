@@ -223,6 +223,63 @@ void Test_skillset_reports_explicit_administrator_override_policy(CuTest *tc)
   CuAssertTrue(tc, unavailable_rejected);
 }
 
+void Test_room_objects_preserve_money_identity_and_newest_first_lookup(CuTest *tc)
+{
+  struct room_data test_room;
+  struct room_data *saved_world;
+  struct obj_data *first_pile;
+  struct obj_data *second_pile;
+  struct obj_data *older_corpse;
+  struct obj_data *newer_corpse;
+  room_rnum saved_top_of_world;
+  bool money_piles_remained_distinct;
+  bool custom_money_properties_remained_distinct;
+  bool newest_corpse_was_first;
+
+  memset(&test_room, 0, sizeof(test_room));
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  test_room.number = 1;
+  world = &test_room;
+  top_of_world = 0;
+
+  first_pile = create_money(100);
+  second_pile = create_money(200);
+  GET_OBJ_TIMER(first_pile) = 11;
+  GET_OBJ_TIMER(second_pile) = 22;
+  SET_BIT_AR(GET_OBJ_EXTRA(first_pile), ITEM_NODONATE);
+  obj_to_room(first_pile, 0);
+  obj_to_room(second_pile, 0);
+
+  money_piles_remained_distinct =
+      world[0].contents == second_pile && second_pile->next_content == first_pile &&
+      first_pile->next_content == NULL && GET_OBJ_VAL(first_pile, 0) == 100 &&
+      GET_OBJ_VAL(second_pile, 0) == 200;
+  custom_money_properties_remained_distinct =
+      GET_OBJ_TIMER(first_pile) == 11 && GET_OBJ_TIMER(second_pile) == 22 &&
+      OBJ_FLAGGED(first_pile, ITEM_NODONATE) && !OBJ_FLAGGED(second_pile, ITEM_NODONATE);
+
+  older_corpse = create_obj();
+  newer_corpse = create_obj();
+  older_corpse->name = strdup("corpse older");
+  newer_corpse->name = strdup("corpse newer");
+  GET_OBJ_TYPE(older_corpse) = ITEM_CONTAINER;
+  GET_OBJ_TYPE(newer_corpse) = ITEM_CONTAINER;
+  obj_to_room(older_corpse, 0);
+  obj_to_room(newer_corpse, 0);
+  newest_corpse_was_first = world[0].contents == newer_corpse &&
+                            get_obj_in_list("corpse", world[0].contents) == newer_corpse;
+
+  while (world[0].contents != NULL)
+    extract_obj(world[0].contents);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, money_piles_remained_distinct);
+  CuAssertTrue(tc, custom_money_properties_remained_distinct);
+  CuAssertTrue(tc, newest_corpse_was_first);
+}
+
 void Test_uint32_indices_parse_and_render_high_stat_vnums(CuTest *tc)
 {
   const IDXTYPE high_vnum = UINT32_C(4000000000);

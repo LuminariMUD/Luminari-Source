@@ -1322,6 +1322,9 @@ will loot everything (including cursed objects) until you can no longer carry
 anymore weight.  If this happens and and you also have autosac enabled, the 
 items you cannot pick up will be left on the ground.
 
+If more than one object named corpse is in the room, autoloot selects the
+newest corpse first.
+
 See Also: TOGGLE, TAKE, SPLIT
 #0
 AUTOMAPPING
@@ -7732,6 +7735,9 @@ Level 31 builders can not drop objects outside of their assigned zone.
   > drop all.bread
   > drop all
   > drop 1000 coins
+
+Each coin drop remains a separate pile. This preserves per-object properties
+and lets you retrieve one pile or all matching piles explicitly.
 
 See also: DONATE, GET, JUNK
 #0

@@ -2713,6 +2713,8 @@ static void perform_drop_gold(struct char_data *ch, int amount, byte mode, room_
     if (mode != SCMD_JUNK)
     {
       USE_SWIFT_ACTION(ch); /* to prevent coin-bombing */
+      /* Preserve each drop as its own object. Money instances may have
+       * independent triggers and properties, so implicit merging loses data. */
       obj = create_money(amount);
       if (mode == SCMD_DONATE)
       {

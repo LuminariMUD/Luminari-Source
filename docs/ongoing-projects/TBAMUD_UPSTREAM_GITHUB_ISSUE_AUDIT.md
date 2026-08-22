@@ -39,24 +39,19 @@ The initial audit confirmed four defects:
 | P1 | [#92](https://github.com/tbamud/tbamud/issues/92) | Resolved locally 2026-08-23 with fixed-width index parsing/formatting and tested high-VNUM stat and OLC output. |
 | P2 | [#57](https://github.com/tbamud/tbamud/issues/57) | Resolved locally 2026-08-23: fractional zero padding is emitted in the correct order and the fallback has dedicated Autotools and CMake tests. |
 
-Three additional reports still describe this repository, but are not classified
-as correctness defects:
+One additional report still describes this repository, but is not classified as
+a correctness defect:
 
-- [#86](https://github.com/tbamud/tbamud/issues/86): separately dropped coin
-  piles remain separate objects.
 - [#95](https://github.com/tbamud/tbamud/issues/95): inherited licensing remains
   relevant and is already called out in the repository's legal documentation.
-- [#105](https://github.com/tbamud/tbamud/issues/105): new room objects are
-  inserted at the head of the room list, so recent drops appear above fixtures.
-  This behavior also avoids upstream issue #147.
 
-The other 36 issues are fixed, absent, resolved locally, or not applicable to
-this codebase.
+Every other issue is fixed, absent, resolved locally, or not applicable to this
+codebase.
 
 Resolution work is tracked in this document. All four confirmed defects are
-resolved locally. Issues #47 and #80 now have explicit, tested policies. The
-three remaining design and legal findings stay tracked until their policies are
-resolved.
+resolved locally. Issues #47, #80, #86, #105, and #147 now have explicit,
+tested policies. The inherited licensing concern in #95 remains tracked until
+the repository policy is resolved.
 
 ## Confirmed defects
 
@@ -200,12 +195,21 @@ override changes the skill and that the unavailable-class rejection does not.
 
 ### Issue #86 - separate coin piles
 
-Status: Present cosmetic behavior.
+Status: Resolved locally on 2026-08-23.
 
 [`perform_drop_gold()`](../../src/obj/act.item.c#L2697) creates a new money
 object for each drop, and [`obj_to_room()`](../../src/handler.c#L2738) does not
 coalesce money objects. Upstream closed this as `wontfix` because custom money
 objects and object properties make automatic merging behavior-sensitive.
+
+LuminariMUD now records this as an object-identity contract. Separately dropped
+money remains separate because each object can carry independent triggers,
+flags, timers, descriptions, and runtime state. The `DROP` help entry explains
+the behavior, source comments identify the constraint, and the data-structure
+documentation requires any future coalescing change to update all consumers.
+
+A production-linked regression verifies that two money objects retain distinct
+amounts, timers, and flags after room insertion.
 
 ### Issue #95 - LGPL relicensing
 
@@ -218,9 +222,9 @@ DikuMUD, and other licensed content. Upstream relicensing cannot be inferred
 from the newer licenses of its ancestors; contributor permission and code
 provenance remain upstream concerns. This audit makes no legal conclusion.
 
-### Issue #105 - room object display order
+### Issues #105 and #147 - room object display and lookup order
 
-Status: Present ordering policy.
+Status: Resolved locally on 2026-08-23.
 
 [`obj_to_room()`](../../src/handler.c#L2738) inserts each object at the head of
 `world[room].contents`. The newest dropped object therefore appears before
@@ -231,6 +235,12 @@ Current upstream tbaMUD later changed to append objects, which led to open issue
 [#147](https://github.com/tbamud/tbamud/issues/147): autoloot can select an older
 corpse. LuminariMUD's head insertion avoids #147. Changing order should be an
 explicit player-compatibility decision, not treated as an isolated bug fix.
+
+Newest-first insertion is now an explicit gameplay contract in source and
+data-structure documentation. The `AUTOLOOT` help entry tells players that the
+newest matching corpse is selected first. A production-linked regression
+inserts two same-keyword corpses and verifies both room-list head order and
+first-match lookup select the newer instance.
 
 ## Complete issue disposition
 
@@ -249,7 +259,7 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
 | [#81 Syntax-check crash](https://github.com/tbamud/tbamud/issues/81) | Closed | Not present | `queue_free(NULL)` returns safely, and the syntax-check boot path completed during this audit. |
 | [#83 `wpurge` dropped gold crash](https://github.com/tbamud/tbamud/issues/83) | Closed | Not present | Drop paths save the object script ID and call `has_obj_by_uid_in_lookup_table()` after triggers before dereferencing or extracting the object. |
 | [#85 GCC 9.2 warnings](https://github.com/tbamud/tbamud/issues/85) | Closed | Not present | `name_from_drinkcon()` uses bounded allocation/memory copies, and `say_spell()` uses larger bounded buffers. The reported warning sites are gone. |
-| [#86 Multiple gold stacks](https://github.com/tbamud/tbamud/issues/86) | Closed | Present by design | Each drop creates a distinct money object; upstream classified this as cosmetic and `wontfix`. |
+| [#86 Multiple gold stacks](https://github.com/tbamud/tbamud/issues/86) | Closed | Resolved locally | Distinct money-object identity is documented in source, technical docs, and player help, and protected by a property-preservation regression. |
 | [#89 Testing frameworks](https://github.com/tbamud/tbamud/issues/89) | Open | Not applicable/satisfied | This is an upstream planning task. LuminariMUD already has production-linked CuTest integration tests and focused harnesses. |
 | [#90 Change IDXTYPE to uint32](https://github.com/tbamud/tbamud/issues/90) | Open | Resolved locally | `IDXTYPE` is a `uint32_t` typedef with matching print/scan macros and a reserved `UINT32_MAX` invalid sentinel. |
 | [#91 OLC with uint32](https://github.com/tbamud/tbamud/issues/91) | Open | Not present at stated target | `atoidx()` and `create_new_zone()` support zone 600000 and rooms 60000000-60000099; fixed-width parsing and OLC display tests also cover values above that target. |
@@ -259,7 +269,7 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
 | [#96 Typo/idea/bug crash](https://github.com/tbamud/tbamud/issues/96) | Closed | Not applicable | The report arose from the reporter's Korean command-order and character-set modifications; stock upstream did not reproduce it. |
 | [#98 Utility overruns](https://github.com/tbamud/tbamud/issues/98) | Closed | Not present at reported sites | `shopconv` uses bounded formatting and the obsolete `webster` utility is absent. |
 | [#104 Forged item persistence](https://github.com/tbamud/tbamud/issues/104) | Closed | Not present | The report did not identify an upstream defect. LuminariMUD object saving explicitly persists changed values and affect records relative to the prototype. |
-| [#105 Room object ordering](https://github.com/tbamud/tbamud/issues/105) | Closed | Present by design | Head insertion makes recent drops appear first and avoids #147's stale-corpse autoloot behavior. |
+| [#105 Room object ordering](https://github.com/tbamud/tbamud/issues/105) | Closed | Resolved locally | Newest-first room insertion is an explicit, documented gameplay policy protected by lookup-order regression coverage. |
 | [#106 Zone list documentation](https://github.com/tbamud/tbamud/issues/106) | Closed | Not applicable | The list is upstream world content. LuminariMUD ships a different world and exposes area/zone information in game. |
 | [#107 Startup SYSERR](https://github.com/tbamud/tbamud/issues/107) | Closed | Not applicable | Reporter confirmed the error came from copying and modifying `do_exits`; it was not in stock source. |
 | [#108 Startup SCRIPT ERROR](https://github.com/tbamud/tbamud/issues/108) | Closed | Not applicable | Same reporter modification as #107; not a stock defect. |
@@ -270,7 +280,7 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
 | [#135 Nested DG loop freeze](https://github.com/tbamud/tbamud/issues/135) | Closed | Not present | Each command-list element has its own loop counter; a false nested `while` resets only that line's counter, and loop execution yields after 30 iterations. |
 | [#141 `where` truncation](https://github.com/tbamud/tbamud/issues/141) | Closed | Not present | `perform_immort_where()` appends to a dynamically growing buffer and `deliver_where_output()` pages the completed result. |
 | [#144 `aedit.c` warning](https://github.com/tbamud/tbamud/issues/144) | Closed | Not present | The assignment correctly remains outside a braced conditional that only frees the previous string. Putting it inside would fail for a null old value. |
-| [#147 Autoloot and `obj_to_room`](https://github.com/tbamud/tbamud/issues/147) | Open | Not present | LuminariMUD inserts new corpses at the head, so normal lookup sees the newest corpse first. This is the inverse tradeoff of #105. |
+| [#147 Autoloot and `obj_to_room`](https://github.com/tbamud/tbamud/issues/147) | Open | Resolved locally | LuminariMUD intentionally inserts new corpses at the head; player help and a first-match regression protect newest-corpse autoloot. |
 | [#148 `name_from_drinkcon` prototype pollution](https://github.com/tbamud/tbamud/issues/148) | Closed | Not present | The function frees `obj->name` only for unprototyped objects or when the pointer differs from the prototype name. |
 | [#155 Website email failure](https://github.com/tbamud/tbamud/issues/155) | Closed | Not applicable | Upstream website mail configuration only. |
 | [#157 PK configuration bypass](https://github.com/tbamud/tbamud/issues/157) | Closed | Resolved locally | Controller-aware policy checks now guard combat state, hit, damage, and grapple before hostile effects occur. |
@@ -355,12 +365,23 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
 - The `ATTACH`, `ZEDIT`, and `SKILLSET` help entries were updated in the local
   development database and `lib/text/help/help.hlp`; exact content hashes match.
 
+### Resolution checkpoint 6 - issues #86, #105, and #147
+
+- `make test` passes the standalone fallback test and all 799 production-linked
+  CuTest tests. The required follow-up `make install` also passes and removes
+  the root-level `luminari` artifact.
+- The policy regression proves separate money objects retain independent
+  amounts, flags, and timers, and proves first-match lookup selects the newest
+  of two same-keyword corpses.
+- Source comments and data-structure documentation define separate money-object
+  identity and newest-first room insertion as gameplay contracts.
+- The `DROP` and `AUTOLOOT` help entries were updated in the local development
+  database and `lib/text/help/help.hlp`; exact content hashes match.
+
 ## Recommended work order
 
-1. Decide and document the player compatibility policies behind #86 and the
-   #105/#147 ordering tradeoff.
-2. Record the repository's decision for the inherited licensing concern in
-   #95 without making unsupported legal claims.
+1. Record the repository's decision for the inherited licensing concern in #95
+   without making unsupported legal claims.
 
 ## Audit limits
 

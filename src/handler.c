@@ -2742,6 +2742,8 @@ void obj_to_room(struct obj_data *object, room_rnum room)
         object);
   else
   {
+    /* Room contents are deliberately newest-first. Combat autoloot and other
+     * first-match commands must select the corpse or drop just created. */
     object->next_content = world[room].contents;
     world[room].contents = object;
     IN_ROOM(object) = room;

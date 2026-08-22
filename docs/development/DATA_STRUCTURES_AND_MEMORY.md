@@ -158,6 +158,17 @@ struct obj_data {
 - **Linked Lists:** `contains` and `next_content` manage container contents
 - **Location Tracking:** Objects know their container or room location
 
+**Room Object Identity and Ordering:**
+- `obj_to_room()` prepends objects to `room->contents`. This newest-first order
+  is a gameplay contract: first-match commands and post-kill autoloot must find
+  the corpse or drop just created instead of an older object with the same
+  keyword.
+- Money objects remain separate instances when dropped. They may have distinct
+  triggers, flags, timers, descriptions, or other runtime properties, so room
+  insertion must not implicitly coalesce them.
+- Any change to room insertion order or money coalescing must update the lookup,
+  autoloot, player help, and production-linked policy regression together.
+
 ### 4. Descriptor Data (`struct descriptor_data`)
 
 Manages network connections and player sessions:
