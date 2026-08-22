@@ -21,6 +21,7 @@ from wtool_lib.rol_state_periodic_profiles import (
 from wtool_lib.rol_soc import build_soc_prototype_comparison, compile_soc_records
 from wtool_lib.rol_special import compile_special_bindings
 from wtool_lib.rol_transform import (
+    EQUIPMENT_POSITION_MAP,
     TARGET_APPLY_AC_NEW,
     convert_text,
     emit_mobile,
@@ -1508,13 +1509,69 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(0, result.records[0].values[3])
     self.assertIn("mud to rock", " ".join(emitted.diagnostics))
 
+  def test_equipment_positions_map_to_the_target_wear_constants(self) -> None:
+    # The source zone E command carries a source WEAR_* constant, not an index
+    # into the source equipment_types[] display table. Both headers are read so
+    # the table fails when either side renumbers a slot.
+    import re
+
+    target = (self.root / "src/structs.h").read_text(encoding="utf-8", errors="ignore")
+    target_wear = {
+        name: int(value)
+        for name, value in re.findall(r"#define (WEAR_\w+) (\d+)", target)
+    }
+    source = (self.root / "EXAMPLE/RealmsOfLuminari/src/structs.h").read_text(
+        encoding="utf-8", errors="ignore"
+    )
+    source_wear = {
+        name: int(value)
+        for name, value in re.findall(
+            r"#define (WEAR_\w+|PRIMARY_WEAPON|SECONDARY_WEAPON|HOLD|GUILD_INSIGNIA) +(\d+)",
+            source,
+        )
+    }
+    equivalents = {
+        "WEAR_LIGHT": "WEAR_LIGHT",
+        "WEAR_FINGER_R": "WEAR_FINGER_R",
+        "WEAR_FINGER_L": "WEAR_FINGER_L",
+        "WEAR_NECK_1": "WEAR_NECK_1",
+        "WEAR_NECK_2": "WEAR_NECK_2",
+        "WEAR_BODY": "WEAR_BODY",
+        "WEAR_HEAD": "WEAR_HEAD",
+        "WEAR_LEGS": "WEAR_LEGS",
+        "WEAR_FEET": "WEAR_FEET",
+        "WEAR_HANDS": "WEAR_HANDS",
+        "WEAR_ARMS": "WEAR_ARMS",
+        "WEAR_SHIELD": "WEAR_SHIELD",
+        "WEAR_ABOUT": "WEAR_ABOUT",
+        "WEAR_WAIST": "WEAR_WAIST",
+        "WEAR_WRIST_R": "WEAR_WRIST_R",
+        "WEAR_WRIST_L": "WEAR_WRIST_L",
+        "PRIMARY_WEAPON": "WEAR_WIELD_1",
+        "SECONDARY_WEAPON": "WEAR_WIELD_OFFHAND",
+        "HOLD": "WEAR_HOLD_1",
+        "WEAR_EYES": "WEAR_EYES",
+        "WEAR_FACE": "WEAR_FACE",
+        "WEAR_EARRING_R": "WEAR_EAR_R",
+        "WEAR_EARRING_L": "WEAR_EAR_L",
+        "WEAR_QUIVER": "WEAR_AMMO_POUCH",
+        "GUILD_INSIGNIA": "WEAR_BADGE",
+    }
+    expected = {
+        source_wear[source_name]: target_wear[target_name]
+        for source_name, target_name in equivalents.items()
+    }
+    self.assertEqual(expected, EQUIPMENT_POSITION_MAP)
+    # WEAR_TAIL has no target equivalent and must stay unmapped.
+    self.assertNotIn(source_wear["WEAR_TAIL"], EQUIPMENT_POSITION_MAP)
+
   def test_emitted_zone_normalizes_extended_resets(self) -> None:
     source = self._source_record(
         "zon",
         b"#100\nfile~\nPilot~\n199 30 2 64\n"
         b"0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n"
         b"D 0 100 1 8\nD 0 100 2 3\nR 0 100 200 35\nF 2 100 300 301\n"
-        b"M 0 300 1 100\nE 1 200 1 24\nT 0 2 0 0\nX 1 -1 300 1 25\nS\n",
+        b"M 0 300 1 100\nE 1 200 1 25\nT 0 2 0 0\nX 1 -1 300 1 25\nS\n",
     )
     emitted = emit_zone(source, 20_100, 2_000_100, _resolver)
     temporary = tempfile.TemporaryDirectory()
@@ -1533,7 +1590,7 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(2, result.records[0].commands[3].dependency)
     self.assertEqual(25, result.records[0].commands[6].probability)
     self.assertIn(18, decode_tokens(result.records[0].flags).bits)
-    self.assertIn("unsupported equipment position 24", " ".join(emitted.diagnostics))
+    self.assertIn("unsupported equipment position 25", " ".join(emitted.diagnostics))
 
   def test_emitted_zone_normalizes_source_boolean_dependencies(self) -> None:
     source = self._source_record(

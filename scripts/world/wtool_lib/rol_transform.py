@@ -553,14 +553,22 @@ OBJECT_SOURCE_ONLY_APPLIES = frozenset({29, 30, 39, 40, 41, 43, 45, 48, 49, 50})
 # Converted item applies default to BONUS_TYPE_UNIVERSAL (23, stacks with everything)
 OBJECT_APPLY_DEFAULT_BONUS_TYPE = 23
 
+# The zone E command's position argument is a source WEAR_* constant
+# (EXAMPLE/RealmsOfLuminari/src/structs.h:1120-1146), resolved at reset through
+# restore_wear[] (EXAMPLE/RealmsOfLuminari/src/files.c:547). It is not an index
+# into the source equipment_types[] display table, which omits SECONDARY_WEAPON
+# and therefore runs one short from 17 up. Source 25 (WEAR_TAIL) has no target
+# slot and its resets are dropped with a diagnostic.
 EQUIPMENT_POSITION_MAP = {
-    **{position: position for position in range(18)},
-    18: 26,  # eyes
-    19: 22,  # face
-    20: 24,  # right ear
-    21: 25,  # left ear
-    22: 23,  # quiver/ammo pouch
-    23: 27,  # badge/insignia
+    **{position: position for position in range(17)},
+    17: 18,  # SECONDARY_WEAPON -> WEAR_WIELD_OFFHAND
+    18: 17,  # HOLD -> WEAR_HOLD_1
+    19: 26,  # WEAR_EYES -> WEAR_EYES
+    20: 22,  # WEAR_FACE -> WEAR_FACE
+    21: 24,  # WEAR_EARRING_R -> WEAR_EAR_R
+    22: 25,  # WEAR_EARRING_L -> WEAR_EAR_L
+    23: 23,  # WEAR_QUIVER -> WEAR_AMMO_POUCH
+    24: 27,  # GUILD_INSIGNIA -> WEAR_BADGE
 }
 
 # Source weapons store a one-based index into RoL's weapons[] verb table
