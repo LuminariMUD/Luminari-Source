@@ -2933,7 +2933,7 @@ ASPELL(eldritch_blast)
       if (!aoeOK(ch, tch, WARLOCK_ELDRITCH_BLAST))
         continue;
       else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN &&
-               target_list->iSize >= (GET_WARLOCK_LEVEL(ch) / 5))
+               target_list->iSize >= (size_t)(GET_WARLOCK_LEVEL(ch) / 5))
         continue;
       add_to_list(tch, target_list);
     }
@@ -3023,7 +3023,7 @@ ASPELL(eldritch_blast)
       mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
     }
   }
-  if (target_list && target_list->iSize > 0)
+  if (target_list != NULL)
     free_list(target_list);
 }
 

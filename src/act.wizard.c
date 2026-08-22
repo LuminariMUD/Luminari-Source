@@ -3704,7 +3704,7 @@ ACMD(do_show)
                  "  %5d large bufs       %5d autoquests\r\n"
                  "  %5d hlquests app     %5d total hl quests\r\n"
                  "  %5d buf switches     %5d overflows\r\n"
-                 "  %5d lists\r\n"
+                 "  %5zu lists\r\n"
                  "  %9zu movement trails\r\n",
                  i, con, top_of_p_table + 1, j, top_of_mobt + 1, k, top_of_objt + 1,
                  top_of_world + 1, top_of_zone_table + 1, top_of_trigt + 1, top_shop + 1,

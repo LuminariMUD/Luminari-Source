@@ -6,6 +6,11 @@
 
 #### Fixed
 
+- Repaired the generic list implementation so removing the current iterator node and freeing a
+  list during iteration cannot dereference freed memory. Removed nodes and list destruction are
+  now deferred until iterators detach; NULL iterator arguments and NULL content fail safely; list
+  sizes no longer wrap at 65,535; registry initialization can be repeated without stale static
+  state; empty randomization returns a valid empty list; and empty eldritch target lists are freed.
 - Made empty generic-list iteration a silent no-op and balanced the combat perk iterators used by
   Inquisitor Telepathic Bond; Paladin Shield Guardian, Aura of Protection, Aura of Life, Divine
   Sacrifice, and Sacred Vengeance; Berserker War Cry; Monk Ice Rabbit; Coordinated Shot; and ranged

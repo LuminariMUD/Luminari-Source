@@ -17,6 +17,17 @@
 struct list_data *global_lists = NULL;
 struct list_data *group_list = NULL;
 
+/* simple_list() is intentionally a single, non-reentrant convenience cursor. */
+static struct iterator_data simple_iterator;
+static bool simple_loop = FALSE;
+static struct list_data *simple_last_list = NULL;
+
+static struct item_data *create_item(void);
+static void free_removed_items(struct list_data *pList);
+static void destroy_list(struct list_data *pList);
+static void unlink_item(struct item_data *pItem, struct list_data *pList);
+static void reset_simple_iterator(void);
+
 struct list_data *create_list(void)
 {
   /* Beginner's Note: This creates a new empty list container.
@@ -26,20 +37,20 @@ struct list_data *create_list(void)
    * iterators are currently reading the list (iIterators). */
 
   struct list_data *pNewList = NULL;
-  static bool first_list = TRUE;
-
   /* Allocate memory for the list container structure */
   CREATE(pNewList, struct list_data, 1);
 
   /* Initialize an empty list - no items yet */
   pNewList->pFirstItem = NULL; /* No first item yet */
   pNewList->pLastItem = NULL;  /* No last item yet */
-  pNewList->iIterators = 0;    /* Nobody is iterating through us yet */
-  pNewList->iSize = 0;         /* We have no items yet */
+  pNewList->pRemovedItems = NULL;
+  pNewList->iIterators = 0; /* Nobody is iterating through us yet */
+  pNewList->iSize = 0;      /* We have no items yet */
+  pNewList->pending_free = FALSE;
 
   /* Add to global lists, primarily for debugging purposes.
-   * The first list created becomes the global_lists itself,
-   * all others are added to it for tracking.
+   * boot_db() explicitly creates and assigns the registry; all lists created
+   * after that are added to it for tracking.
    *
    * GLOBAL_LISTS EXPLAINED FOR BEGINNERS:
    * The global_lists is a special "list of lists" used for debugging.
@@ -47,26 +58,23 @@ struct list_data *create_list(void)
    * monitor memory usage and find list-related bugs.
    *
    * HOW IT WORKS:
-   * 1. The VERY FIRST list created becomes global_lists itself
-   * 2. All subsequent lists are added as items to global_lists
-   * 3. This avoids circular reference (global_lists containing itself)
+   * 1. boot_db() explicitly assigns its first list to global_lists
+   * 2. All lists created after that are added to global_lists
+   * 3. Lists created before registry initialization remain unregistered
    *
    * WHY THIS PATTERN?
    * - We need a list to store all lists
-   * - But that list itself is also a list
-   * - So we make the first list special - it IS the registry
-   * - This is called "bootstrapping" - using the first instance to track all others
+   * - But the registry itself must not contain itself
+   * - Explicit assignment makes registry lifetime and reinitialization unambiguous
    *
    * NOTE: global_lists is mainly for debugging and is not critical for gameplay */
-  if (first_list == FALSE)
+  if (global_lists != NULL)
     add_to_list(pNewList, global_lists);
-  else
-    first_list = FALSE;
 
   return (pNewList);
 }
 
-struct item_data *create_item(void)
+static struct item_data *create_item(void)
 {
   struct item_data *pNewItem = NULL;
 
@@ -74,67 +82,120 @@ struct item_data *create_item(void)
 
   pNewItem->pNextItem = NULL;
   pNewItem->pPrevItem = NULL;
+  pNewItem->pNextRemoved = NULL;
   pNewItem->pContent = NULL;
+  pNewItem->is_removed = FALSE;
 
   return (pNewItem);
 }
 
-void free_list(struct list_data *pList)
+static void free_removed_items(struct list_data *pList)
 {
-  /* Beginner's Note: This function completely destroys a list.
-   * It removes all item nodes and then frees the list container itself.
-   * IMPORTANT: This does NOT free the content that items point to!
-   * The caller must free content separately if needed.
-   *
-   * Think of it like dismantling a train:
-   * - We unhook and scrap each train car (item nodes)
-   * - But the cargo in each car is NOT destroyed (content pointers)
-   * - Finally we scrap the engine/tracks (the list structure itself)
-   *
-   * Performance Note (2025-08-09): This function was optimized from O(n²) to O(n).
-   * Previously it called remove_from_list() for each item, which did an O(n) search.
-   * Now we directly traverse and free the nodes since we're destroying the entire list. */
+  struct item_data *pItem;
+  struct item_data *pNext;
 
-  struct item_data *pItem, *pNext;
-
-  /* Safety check: Can't free a NULL list */
-  if (pList == NULL)
+  if (pList == NULL || pList->iIterators != 0)
     return;
 
-  /* CRITICAL: Reset simple_list if it's iterating THIS specific list
-   * This prevents use-after-free bugs where simple_list would try to
-   * continue iterating through freed memory.
-   *
-   * Beginner's Note: This is a defensive programming technique.
-   * Since simple_list uses static variables that persist between calls,
-   * we must ensure it's not pointing to the list we're about to destroy. */
-  simple_list(NULL);
-
-  /* Free all item nodes directly - O(n) instead of O(n²).
-   * Since we're destroying the entire list, we don't need to maintain
-   * the list's integrity during removal - we can just free the nodes directly. */
-  pItem = pList->pFirstItem;
-  while (pItem)
+  pItem = pList->pRemovedItems;
+  while (pItem != NULL)
   {
-    pNext = pItem->pNextItem; /* Save next before current is freed */
-    /* Beginner's Note: We only free the item NODE here, not pItem->pContent!
-     * The content is owned by whoever created it and they must free it separately. */
-    free(pItem);   /* Free the list node structure only */
-    pItem = pNext; /* Move to the saved next item */
+    pNext = pItem->pNextRemoved;
+    free(pItem);
+    pItem = pNext;
+  }
+  pList->pRemovedItems = NULL;
+}
+
+static void destroy_list(struct list_data *pList)
+{
+  struct item_data *pItem;
+  struct item_data *pNext;
+
+  if (pList == NULL || pList->iIterators != 0)
+    return;
+
+  pItem = pList->pFirstItem;
+  while (pItem != NULL)
+  {
+    pNext = pItem->pNextItem;
+    free(pItem);
+    pItem = pNext;
   }
 
-  /* Clear the list structure's pointers and size for safety */
   pList->pFirstItem = NULL;
   pList->pLastItem = NULL;
   pList->iSize = 0;
-  pList->iIterators = 0;
-
-  /* Remove this list from the global list registry (unless it IS global_lists) */
-  if (global_lists != NULL && pList != global_lists)
-    remove_from_list(pList, global_lists);
-
-  /* Finally, free the list container structure itself */
+  free_removed_items(pList);
   free(pList);
+}
+
+static void unlink_item(struct item_data *pItem, struct list_data *pList)
+{
+  if (pItem == NULL || pList == NULL || pItem->is_removed)
+    return;
+
+  if (pItem == pList->pFirstItem)
+    pList->pFirstItem = pItem->pNextItem;
+  if (pItem == pList->pLastItem)
+    pList->pLastItem = pItem->pPrevItem;
+  if (pItem->pPrevItem != NULL)
+    pItem->pPrevItem->pNextItem = pItem->pNextItem;
+  if (pItem->pNextItem != NULL)
+    pItem->pNextItem->pPrevItem = pItem->pPrevItem;
+
+  if (pList->iSize > 0)
+    pList->iSize--;
+  if (pList->iSize == 0)
+  {
+    pList->pFirstItem = NULL;
+    pList->pLastItem = NULL;
+  }
+
+  pItem->is_removed = TRUE;
+  if (pList->iIterators > 0)
+  {
+    /* Keep the old next link intact so an iterator on this node can advance. */
+    pItem->pNextRemoved = pList->pRemovedItems;
+    pList->pRemovedItems = pItem;
+  }
+  else
+  {
+    free(pItem);
+  }
+}
+
+void free_list(struct list_data *pList)
+{
+  struct item_data *pRegistryItem;
+
+  if (pList == NULL)
+    return;
+  if (pList->pending_free)
+    return;
+
+  /* Only reset the convenience cursor when it belongs to this list. */
+  if (simple_loop && simple_iterator.pList == pList)
+    reset_simple_iterator();
+
+  if (pList == global_lists)
+  {
+    global_lists = NULL;
+  }
+  else if (global_lists != NULL && !global_lists->pending_free)
+  {
+    pRegistryItem = find_in_list(pList, global_lists);
+    if (pRegistryItem != NULL)
+      unlink_item(pRegistryItem, global_lists);
+  }
+
+  if (pList == group_list)
+    group_list = NULL;
+
+  /* Active iterators retain node addresses. Delay destruction until they detach. */
+  pList->pending_free = TRUE;
+  if (pList->iIterators == 0)
+    destroy_list(pList);
 }
 
 void add_to_list(void *pContent, struct list_data *pList)
@@ -157,6 +218,19 @@ void add_to_list(void *pContent, struct list_data *pList)
     /* ERROR HANDLING POLICY: NULL list pointers are programming errors.
      * Log at SYSERR level since this indicates a bug that needs fixing. */
     mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: add_to_list() called with NULL list pointer.");
+    return;
+  }
+
+  if (pList->pending_free)
+  {
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: add_to_list() called for a list pending destruction.");
+    return;
+  }
+
+  /* NULL is the iterator end sentinel and therefore cannot be list content. */
+  if (pContent == NULL)
+  {
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: add_to_list() called with NULL content.");
     return;
   }
 
@@ -193,9 +267,9 @@ void remove_from_list(void *pContent, struct list_data *pList)
    * 1. Find which car has our cargo (find_in_list)
    * 2. Connect the car before it to the car after it
    * 3. Update the train's first/last car if needed
-   * 4. Free the removed car (but NOT the cargo - caller owns that!)
+   * 4. Reclaim the removed car when no iterator can still reference it
    *
-   * IMPORTANT: This only frees the list node, NOT the content itself!
+   * IMPORTANT: This only reclaims the list node, NOT the content itself!
    * The caller is responsible for freeing pContent if needed. */
 
   struct item_data *pRemovedItem = NULL;
@@ -210,6 +284,13 @@ void remove_from_list(void *pContent, struct list_data *pList)
     return;
   }
 
+  if (pList->pending_free)
+  {
+    mudlog(CMP, LVL_GRSTAFF, TRUE,
+           "SYSERR: remove_from_list() called for a list pending destruction.");
+    return;
+  }
+
   /* First, find the item node that contains this content */
   if ((pRemovedItem = find_in_list(pContent, pList)) == NULL)
   {
@@ -220,34 +301,8 @@ void remove_from_list(void *pContent, struct list_data *pList)
     return;
   }
 
-  /* Update list's first pointer if we're removing the first item */
-  if (pRemovedItem == pList->pFirstItem)
-    pList->pFirstItem = pRemovedItem->pNextItem;
-
-  /* Update list's last pointer if we're removing the last item */
-  if (pRemovedItem == pList->pLastItem)
-    pList->pLastItem = pRemovedItem->pPrevItem;
-
-  /* Connect the previous item to the next item (skip over us) */
-  if (pRemovedItem->pPrevItem)
-    pRemovedItem->pPrevItem->pNextItem = pRemovedItem->pNextItem;
-
-  /* Connect the next item to the previous item (skip over us) */
-  if (pRemovedItem->pNextItem)
-    pRemovedItem->pNextItem->pPrevItem = pRemovedItem->pPrevItem;
-
-  /* Decrement the list size */
-  pList->iSize--;
-
-  /* If list is now empty, ensure pointers are clean */
-  if (pList->iSize == 0)
-  {
-    pList->pFirstItem = NULL;
-    pList->pLastItem = NULL;
-  }
-
-  /* Free the item node itself (but NOT pContent - caller owns that!) */
-  free(pRemovedItem);
+  /* Active iterators may still point at this node, so unlink_item() defers its free. */
+  unlink_item(pRemovedItem, pList);
 }
 
 /** Merges an iterator with a list
@@ -287,12 +342,27 @@ void *merge_iterator(struct iterator_data *pIterator, struct list_data *pList)
 
   void *pContent = NULL;
 
+  if (pIterator == NULL)
+  {
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: merge_iterator() called with NULL iterator.");
+    return NULL;
+  }
+
   /* Safety check: Can't iterate a NULL list */
   if (pList == NULL)
   {
     /* ERROR HANDLING POLICY: NULL list in iterator is a programming error.
      * Log at SYSERR level since this indicates incorrect API usage. */
     mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: Attempting to merge iterator to NULL list.");
+    pIterator->pList = NULL;
+    pIterator->pItem = NULL;
+    return NULL;
+  }
+
+  if (pList->pending_free)
+  {
+    mudlog(CMP, LVL_GRSTAFF, TRUE,
+           "SYSERR: merge_iterator() called for a list pending destruction.");
     pIterator->pList = NULL;
     pIterator->pItem = NULL;
     return NULL;
@@ -306,13 +376,20 @@ void *merge_iterator(struct iterator_data *pIterator, struct list_data *pList)
     return NULL;
   }
 
-  /* Attach the iterator to this list and position at first item */
-  pList->iIterators++;                  /* Track that someone is iterating us */
-  pIterator->pList = pList;             /* Iterator now knows its list */
-  pIterator->pItem = pList->pFirstItem; /* Start at the beginning */
+  pIterator->pItem = pList->pFirstItem;
+  while (pIterator->pItem != NULL &&
+         (pIterator->pItem->is_removed || pIterator->pItem->pContent == NULL))
+    pIterator->pItem = pIterator->pItem->pNextItem;
 
-  /* Get the content of the first item */
-  pContent = pIterator->pItem ? pIterator->pItem->pContent : NULL;
+  if (pIterator->pItem == NULL)
+  {
+    pIterator->pList = NULL;
+    return NULL;
+  }
+
+  pList->iIterators++;
+  pIterator->pList = pList;
+  pContent = pIterator->pItem->pContent;
 
   return (pContent);
 }
@@ -325,6 +402,14 @@ void remove_iterator(struct iterator_data *pIterator)
    * If the iterator isn't attached to any list (NULL), we just return silently
    * as this is a normal case (e.g., when merge_iterator fails on empty lists). */
 
+  struct list_data *pList;
+
+  if (pIterator == NULL)
+  {
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: remove_iterator() called with NULL iterator.");
+    return;
+  }
+
   if (pIterator->pList == NULL)
   {
     /* Silent return - this is normal when merge_iterator fails or
@@ -332,12 +417,24 @@ void remove_iterator(struct iterator_data *pIterator)
     return;
   }
 
-  /* Decrement the count of active iterators on this list */
-  pIterator->pList->iIterators--;
-
-  /* Clear the iterator's references to make it safe for reuse */
+  pList = pIterator->pList;
   pIterator->pList = NULL;
   pIterator->pItem = NULL;
+
+  if (pList->iIterators == 0)
+  {
+    mudlog(CMP, LVL_GRSTAFF, TRUE,
+           "SYSERR: remove_iterator() found an invalid zero iterator count.");
+    return;
+  }
+
+  pList->iIterators--;
+  if (pList->iIterators == 0)
+  {
+    free_removed_items(pList);
+    if (pList->pending_free)
+      destroy_list(pList);
+  }
 }
 
 /** Spits out an item and cycles down the list
@@ -350,8 +447,13 @@ void *next_in_list(struct iterator_data *pIterator)
    * and returns that item's content. Think of it like turning a page in a book -
    * we move to the next page and return what's written on it. */
 
-  void *pContent = NULL;
   struct item_data *pTempItem = NULL;
+
+  if (pIterator == NULL)
+  {
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: next_in_list() called with NULL iterator.");
+    return NULL;
+  }
 
   /* Safety check: Make sure the iterator is attached to a list */
   if (pIterator->pList == NULL)
@@ -364,21 +466,32 @@ void *next_in_list(struct iterator_data *pIterator)
     return NULL;
   }
 
+  if (pIterator->pList->pending_free)
+  {
+    remove_iterator(pIterator);
+    return NULL;
+  }
+
   /* Safety check: Ensure current item pointer is valid before accessing it */
   if (pIterator->pItem == NULL)
   {
-    /* We've reached the end of the list or iterator wasn't initialized properly */
-    return NULL; /* Silent return - this is the normal end-of-list condition */
+    remove_iterator(pIterator);
+    return NULL;
   }
 
-  /* Move to the next item in the list by following the next pointer */
+  /* Removed nodes retain their old next link until every iterator has detached. */
   pTempItem = pIterator->pItem->pNextItem;
+  while (pTempItem != NULL && (pTempItem->is_removed || pTempItem->pContent == NULL))
+    pTempItem = pTempItem->pNextItem;
   pIterator->pItem = pTempItem;
 
-  /* Get the content from the new current item (NULL if we've reached the end) */
-  pContent = pIterator->pItem ? pIterator->pItem->pContent : NULL;
+  if (pIterator->pItem == NULL)
+  {
+    remove_iterator(pIterator);
+    return NULL;
+  }
 
-  return (pContent);
+  return (pIterator->pItem->pContent);
 }
 
 /** Searches through the a list and returns the item block that holds pContent
@@ -397,36 +510,23 @@ struct item_data *find_in_list(void *pContent, struct list_data *pList)
    *
    * Returns: The item node containing pContent, or NULL if not found */
 
-  struct iterator_data Iterator;
-  void *pFoundItem = NULL;
   struct item_data *pItem = NULL;
-  bool found = FALSE;
 
-  /* Start iterating from the beginning of the list */
-  pFoundItem = merge_iterator(&Iterator, pList);
-
-  /* Search through each item until we find our content */
-  for (found = FALSE; pFoundItem != NULL; pFoundItem = next_in_list(&Iterator))
+  if (pList == NULL)
   {
-    if (pFoundItem == pContent) /* Found it! */
-    {
-      found = TRUE;
-      break;
-    }
+    mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: find_in_list() called with NULL list pointer.");
+    return NULL;
+  }
+  if (pContent == NULL || pList->pending_free)
+    return NULL;
+
+  for (pItem = pList->pFirstItem; pItem != NULL; pItem = pItem->pNextItem)
+  {
+    if (!pItem->is_removed && pItem->pContent == pContent)
+      return (pItem);
   }
 
-  /* If found, grab the actual item node (not just the content) */
-  if (found)
-    pItem = Iterator.pItem;
-
-  /* Clean up our iterator */
-  remove_iterator(&Iterator);
-
-  /* Return the node if found, NULL otherwise */
-  if (found)
-    return (pItem);
-  else
-    return NULL;
+  return NULL;
 }
 
 /** This is the "For Dummies" function, as although it's not as flexible,
@@ -445,144 +545,65 @@ struct item_data *find_in_list(void *pContent, struct list_data *pList)
  * will detach itself from the list.
  * */
 
+static void reset_simple_iterator(void)
+{
+  if (simple_loop && simple_iterator.pList != NULL)
+    remove_iterator(&simple_iterator);
+
+  simple_iterator.pList = NULL;
+  simple_iterator.pItem = NULL;
+  simple_loop = FALSE;
+  simple_last_list = NULL;
+}
+
 void *simple_list(struct list_data *pList)
 {
-  /* Beginner's Note: This function provides an easy way to iterate through a list
-   * WITHOUT creating your own iterator. It uses a STATIC iterator that remembers
-   * its position between calls. This makes it simple but NOT THREAD-SAFE and
-   * you CANNOT nest calls (can't use simple_list inside another simple_list loop).
-   *
-   * How it works:
-   * 1. First call with a list starts iteration from the beginning
-   * 2. Each subsequent call returns the next item
-   * 3. When done, returns NULL and resets itself
-   * 4. Call with NULL to manually reset at any time
-   *
-   * CRITICAL WARNING - NESTING IS FORBIDDEN:
-   * Because this uses static variables (variables that keep their value between
-   * function calls), you CANNOT nest simple_list loops! For example, this is WRONG:
-   *   while ((obj1 = simple_list(list1))) {
-   *     while ((obj2 = simple_list(list2))) {  // WRONG! This breaks the outer loop!
-   *       ...
-   *     }
-   *   }
-   * The inner loop will corrupt the outer loop's state. Use explicit iterators instead.
-   *
-   * BEST PRACTICE - ALWAYS RESET:
-   * Always call simple_list(NULL) before starting a loop to ensure clean state:
-   *   simple_list(NULL);  // Reset any previous state
-   *   while ((item = simple_list(my_list))) {
-   *     // Process item
-   *   }
-   *   simple_list(NULL);  // Clean up when done (optional but recommended)
-   *
-   * USE-AFTER-FREE PROTECTION:
-   * This function includes protection against use-after-free bugs. If a list
-   * is freed while we're iterating it, we try to detect this and reset safely.
-   * However, this protection isn't perfect - always reset before switching lists!
-   */
+  void *pContent;
 
-  static struct iterator_data Iterator;      /* Static = remembers state between calls */
-  static bool loop = FALSE;                  /* Are we currently iterating? */
-  static struct list_data *pLastList = NULL; /* Which list are we iterating? */
-  void *pContent = NULL;
-
-  /* Manual reset requested (passing NULL) - clear all state */
   if (pList == NULL)
   {
-    /* If we were iterating, properly clean up the iterator */
-    if (loop && Iterator.pList != NULL)
-      remove_iterator(&Iterator);
-
-    loop = FALSE;
-    pLastList = NULL;
+    reset_simple_iterator();
     return NULL;
   }
 
-  /* Starting a new iteration or switching to a different list */
-  if (!loop || pLastList != pList)
+  if (!simple_loop || simple_last_list != pList)
   {
-    /* Safety check: If we were iterating a different list, warn about it
-     * This indicates the caller forgot to reset or is trying to nest loops */
-    if (loop && pLastList != pList)
+    if (simple_loop && simple_last_list != pList)
       mudlog(CMP, LVL_GRSTAFF, TRUE, "SYSERR: simple_list() forced to reset itself.");
 
-    /* CRITICAL BUG FIX (2025-08-09): Prevent use-after-free
-     *
-     * PROBLEM: If the old list (pLastList) was freed while we were iterating it,
-     * calling remove_iterator() would access freed memory and crash the MUD!
-     *
-     * SOLUTION: Only clean up the iterator if it still has a valid list pointer.
-     * If Iterator.pList is NULL, it means either:
-     * 1. The iterator was already cleaned up (safe)
-     * 2. We never successfully started iterating (safe)
-     *
-     * SCENARIO THIS FIXES:
-     * 1. Start iterating list1 with simple_list(list1)
-     * 2. Something frees list1 (e.g., randomize_list or free_list)
-     * 3. Call simple_list(list2) - would crash trying to decrement freed list's counter
-     *
-     * NOTE: This doesn't prevent ALL use-after-free bugs (if list is freed but
-     * memory not zeroed, we might still have issues), but it prevents the most
-     * common case and makes the code much safer. */
-    if (loop)
-    {
-      if (Iterator.pList != NULL)
-      {
-        /* Normal case: iterator still has valid list pointer, clean it up properly */
-        remove_iterator(&Iterator);
-      }
-      else
-      {
-        /* Iterator was already cleaned up (e.g., by free_list calling simple_list(NULL))
-         * Just reset our state variables without calling remove_iterator */
-        Iterator.pItem = NULL; /* Ensure it's fully clean */
-      }
-      loop = FALSE; /* Either way, we're no longer looping */
-    }
-
-    /* Start iterating the new list from the beginning */
-    pContent = merge_iterator(&Iterator, pList);
-    if (pContent != NULL)
-    {
-      pLastList = pList;
-      loop = TRUE;
-      return (pContent);
-    }
-    else
-    {
-      /* List is empty or invalid - no iteration needed */
+    reset_simple_iterator();
+    pContent = merge_iterator(&simple_iterator, pList);
+    if (pContent == NULL)
       return NULL;
-    }
+
+    simple_loop = TRUE;
+    simple_last_list = pList;
+    return (pContent);
   }
 
-  /* Continue with the current iteration - get next item */
-  if ((pContent = next_in_list(&Iterator)) != NULL)
-    return (pContent);
+  pContent = next_in_list(&simple_iterator);
+  if (pContent == NULL)
+  {
+    simple_loop = FALSE;
+    simple_last_list = NULL;
+  }
 
-  /* We've reached the end of the list - clean up and reset */
-  remove_iterator(&Iterator);
-  loop = FALSE;
-  pLastList = NULL;
-  return NULL;
+  return (pContent);
 }
 
 void *random_from_list(struct list_data *pList)
 {
   /* Beginner's Note: This picks a random item from a list.
    * It works by:
-   * 1. Generating a random number between 1 and list size
+   * 1. Generating a random zero-based index below the list size
    * 2. Iterating through the list counting items
    * 3. Returning the item when we reach our random count
    *
    * This is O(n) time complexity but works for any size list.
    * Returns: Random content from list, or NULL if list is empty */
 
-  struct iterator_data Iterator;
-  void *pFoundItem = NULL;
-  bool found = FALSE;
-  int number = 0;
-  int count = 1;
+  struct item_data *pItem;
+  size_t number;
 
   /* SAFETY: Check for NULL list pointer to prevent crashes.
    * Can't pick from a list that doesn't exist! */
@@ -594,33 +615,29 @@ void *random_from_list(struct list_data *pList)
     return NULL;
   }
 
-  /* Can't pick from an empty list */
-  if (pList->iSize <= 0)
-    return NULL;
-  else
-    number = rand_number(1, pList->iSize); /* Pick which item we want */
-
-  /* Start iterating from the beginning */
-  pFoundItem = merge_iterator(&Iterator, pList);
-
-  /* Count through items until we reach our random number */
-  for (found = FALSE; pFoundItem != NULL; pFoundItem = next_in_list(&Iterator), count++)
+  if (pList->pending_free)
   {
-    if (count == number) /* This is the randomly chosen item */
-    {
-      found = TRUE;
-      break;
-    }
+    mudlog(CMP, LVL_GRSTAFF, TRUE,
+           "SYSERR: random_from_list() called for a list pending destruction.");
+    return NULL;
   }
 
-  /* Clean up our iterator */
-  remove_iterator(&Iterator);
+  /* Can't pick from an empty list */
+  if (pList->iSize == 0)
+    return NULL;
 
-  /* Return the randomly selected content */
-  if (found)
-    return (pFoundItem);
-  else
-    return NULL; /* Shouldn't happen unless list was modified during iteration */
+  number = (size_t)circle_random() % pList->iSize;
+  for (pItem = pList->pFirstItem; pItem != NULL && number > 0; pItem = pItem->pNextItem)
+    number--;
+
+  if (pItem == NULL || pItem->is_removed || pItem->pContent == NULL)
+  {
+    mudlog(CMP, LVL_GRSTAFF, TRUE,
+           "SYSERR: random_from_list() found inconsistent list size or content.");
+    return NULL;
+  }
+
+  return (pItem->pContent);
 }
 
 struct list_data *randomize_list(struct list_data *pList)
@@ -649,28 +666,23 @@ struct list_data *randomize_list(struct list_data *pList)
     return NULL;
   }
 
-  /* IMPORTANT: Handle empty list case
-   * Even though there's nothing to randomize, we MUST free the original list!
-   * This function ALWAYS consumes (destroys) the input list, even if empty.
-   * This prevents memory leaks since callers expect the old list to be gone.
-   *
-   * CALLER RESPONSIBILITY:
-   * After calling randomize_list(), NEVER use the original list pointer again!
-   * It has been freed and is now invalid memory. Only use the returned list.
-   * Example:
-   *   list = randomize_list(list);  // OK - replaces old pointer with new
-   *   // The original list memory is now freed, use only the new list
-   */
-  if (pList->iSize == 0)
+  if (pList->pending_free)
   {
-    free_list(pList); /* Free the empty list - caller expects us to consume it */
-    return NULL;      /* Nothing to randomize, return NULL for empty result */
+    mudlog(CMP, LVL_GRSTAFF, TRUE,
+           "SYSERR: randomize_list() called for a list pending destruction.");
+    return NULL;
   }
 
   newList = create_list();
 
-  while ((pContent = random_from_list(pList)) != NULL)
+  while (pList->iSize > 0)
   {
+    pContent = random_from_list(pList);
+    if (pContent == NULL)
+    {
+      free_list(newList);
+      return NULL;
+    }
     remove_from_list(pContent, pList);
     add_to_list(pContent, newList);
   }

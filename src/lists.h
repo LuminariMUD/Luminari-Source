@@ -13,19 +13,27 @@
 #ifndef _LISTS_HEADER
 #define _LISTS_HEADER
 
+#include <stddef.h>
+
+#include "bool.h"
+
 struct item_data
 {
   struct item_data *pPrevItem;
   struct item_data *pNextItem;
+  struct item_data *pNextRemoved;
   void *pContent;
+  bool is_removed;
 };
 
 struct list_data
 {
   struct item_data *pFirstItem;
   struct item_data *pLastItem;
-  unsigned short int iIterators;
-  unsigned short int iSize;
+  struct item_data *pRemovedItems;
+  size_t iIterators;
+  size_t iSize;
+  bool pending_free;
 };
 
 struct iterator_data
@@ -45,7 +53,7 @@ struct iterator_data
  *
  * - WARNING (NRM, LVL_STAFF): Normal but noteworthy conditions
  *   - Removing items not in list (might be gameplay logic)
- *   - simple_list() forced resets (indicates missing cleanup)
+ * - simple_list() forced resets are programming errors and use SYSERR
  *
  * Return Values:
  * - Functions return NULL on error when they return pointers
@@ -56,12 +64,15 @@ struct iterator_data
  * - NULL list operations: Log error and return safely
  * - Empty list operations: Return NULL/0 without error
  * - Double-remove: Log warning but continue safely
- * - Iterator on freed list: Reset safely if detected
+ * - Removing during iteration: Unlink immediately and reclaim after iterators detach
+ * - Freeing during iteration: Defer destruction until iterators detach
+ * - NULL content: Reject it because NULL terminates iteration
  *
  * Best Practices:
  * - Always check return values from create_list()
  * - Call simple_list(NULL) before and after loops
  * - Use explicit iterators for nested operations
+ * - Call remove_iterator() after early exits
  * - Free content separately from lists
  */
 

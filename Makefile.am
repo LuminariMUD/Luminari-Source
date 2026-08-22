@@ -349,6 +349,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
 	unittests/CuTest/test_bardic_performance.c \
@@ -399,6 +400,7 @@ cutest_test_files = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
 	unittests/CuTest/test_bardic_performance.c \
