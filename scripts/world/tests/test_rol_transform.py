@@ -1539,6 +1539,24 @@ class RolTransformTests(unittest.TestCase):
     # The fourth number is an affect word, not an object level.
     self.assertEqual(1, result.records[0].level)
 
+  def test_quiver_equips_land_on_the_ammo_pouch_slot(self) -> None:
+    # Source position 23 is WEAR_QUIVER and target position 23 is
+    # WEAR_AMMO_POUCH, the slot has_ammo_in_pouch() reads. The round trip is
+    # the one the whole ranged chain depends on.
+    source = self._source_record(
+        "zon",
+        b"#100\nfile~\nPilot~\n199 30 2 0\n"
+        b"0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n"
+        b"M 0 300 1 100\nE 1 200 1 23\nE 1 201 1 17\nE 1 202 1 18\nS\n",
+    )
+    emitted = emit_zone(source, 20_100, 2_000_100, _resolver)
+    positions = [
+        int(line.split()[4])
+        for line in emitted.text.splitlines()
+        if line.startswith("E ")
+    ]
+    self.assertEqual([23, 18, 17], positions)
+
   def test_equipment_positions_map_to_the_target_wear_constants(self) -> None:
     # The source zone E command carries a source WEAR_* constant, not an index
     # into the source equipment_types[] display table. Both headers are read so

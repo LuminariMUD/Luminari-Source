@@ -29,6 +29,12 @@ archery pouches to 20 throwing containers; no `WEAPON_TYPE_UNDEFINED`, no
 `AMMO_TYPE_UNDEFINED`, and no emitted ranged type that `has_ammo_in_pouch()`
 lacks a case for. Every emitted record re-parses through `parse_object_file()`.
 
+**Not carried to the dev world yet.** All of this changes converter output, and
+the world already applied to development came out of the previous Phase 7/8
+release. Nothing converted before this change carries the ranged chain, the
+weapon-table parity, the enhancement bonus, or the corrected equipment
+positions; a fresh Phase 7/8 release is what delivers them.
+
 Context: [ROL_CONVERTER_OBJECT_FILE_REFERENCES.md](ROL_CONVERTER_OBJECT_FILE_REFERENCES.md) Item 3.3
 Format authority: [OBJ_FILE_FORMAT_MAPPING.md](OBJ_FILE_FORMAT_MAPPING.md)
 
