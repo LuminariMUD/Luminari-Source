@@ -136,6 +136,7 @@ process_list(list2, &it);  // OK - can reuse after proper cleanup
 ### Iterator Safety Features
 
 - `merge_iterator()` increments list's `iIterators` counter for diagnostics
+- `merge_iterator()` returns NULL silently for an empty list without attaching the iterator
 - `remove_iterator()` safely handles NULL list (already detached)
 - `next_in_list()` returns NULL at end of list automatically
 - Multiple iterators can traverse the same list simultaneously
@@ -382,7 +383,7 @@ remove_iterator(&it);
 - `remove_from_list` detaches the node if present, decrements `iSize`, and frees the node wrapper.
 - The list never frees or touches `pContent` ownership.
 - `find_in_list` and removal use pointer equality on `pContent`.
-- `merge_iterator` logs a SYSERR if the list is NULL and a WARNING if the list is empty; it returns NULL in both cases.
+- `merge_iterator` logs a SYSERR if the list is NULL. An empty list returns NULL silently.
 - `next_in_list` logs a SYSERR only if the iterator's list pointer is NULL; it returns NULL silently at end-of-list when `pItem` is NULL.
 - `simple_list(NULL)` resets the static cursor in the Luminari implementation. `clear_simple_list()` has been removed; always use `simple_list(NULL)` for resets.
 
@@ -393,7 +394,7 @@ remove_iterator(&it);
 The implementation uses the standard MUD logging (`mudlog`) with staff levels to highlight misuse:
 
 - Merging an iterator to a NULL list → SYSERR via `mudlog(CMP, LVL_GRSTAFF, ...)`.
-- Merging an iterator to an empty list → WARNING via `mudlog(NRM, LVL_STAFF, ...)`.
+- Merging an iterator to an empty list is a silent no-op.
 - Calling `next_in_list` with an iterator whose `pList` is NULL → SYSERR via `mudlog(CMP, LVL_GRSTAFF, ...)`.
 - Removing an element not present in the list → WARNING via `mudlog(NRM, LVL_STAFF, ...)`.
 - ~~Detaching an iterator that is already detached (NULL list on the iterator) → warning via `mudlog`.~~ **FIXED (2025-08-08)**: Now returns silently as this is a normal condition.
@@ -608,9 +609,10 @@ remove_iterator(&it);
    my_list = create_list();
    ```
 
-### Problem: "WARNING: Attempting to merge iterator to empty list"
+### Empty-list iteration
 
-**This is usually harmless** - it just means the list has no items. Handle gracefully:
+Empty lists are a normal collection state. `merge_iterator()` returns NULL without attaching the
+iterator or logging a warning:
 
 ```c
 struct iterator_data it;

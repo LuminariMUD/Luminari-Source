@@ -6,6 +6,11 @@
 
 #### Fixed
 
+- Made empty generic-list iteration a silent no-op and balanced the combat perk iterators used by
+  Inquisitor Telepathic Bond; Paladin Shield Guardian, Aura of Protection, Aura of Life, Divine
+  Sacrifice, and Sacred Vengeance; Berserker War Cry; Monk Ice Rabbit; Coordinated Shot; and ranged
+  group-assist attacks. Staff no longer receive a misleading empty-list warning during combat, and
+  these scans no longer leak iterator bookkeeping on completion or an early match.
 - Converted Realms of Luminari ranged weapons into working target weapons. Source
   `ITEM_FIREWEAPON` records now become `ITEM_WEAPON` on a real `weapon_list[]` index,
   classified from the range-weapon type the source record declares; the target's own

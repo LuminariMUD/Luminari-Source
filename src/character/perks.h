@@ -864,10 +864,12 @@ int get_paladin_healing_hands_bonus(struct char_data *ch);
 bool has_paladin_defensive_strike(struct char_data *ch);
 bool has_paladin_shield_guardian(struct char_data *ch);
 bool has_paladin_aura_of_protection(struct char_data *ch);
+bool group_has_paladin_aura_of_protection(struct char_data *ch);
 int get_paladin_sanctuary_reduction(struct char_data *ch);
 bool has_paladin_merciful_touch(struct char_data *ch);
 bool has_paladin_bastion_of_defense(struct char_data *ch);
 bool has_paladin_aura_of_life(struct char_data *ch);
+bool group_has_paladin_aura_of_life(struct char_data *ch);
 bool has_paladin_cleansing_touch(struct char_data *ch);
 bool has_paladin_divine_sacrifice(struct char_data *ch);
 

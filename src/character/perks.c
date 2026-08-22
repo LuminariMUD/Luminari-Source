@@ -2509,6 +2509,8 @@ bool has_inquisitor_perfect_recall(struct char_data *ch)
 int get_inquisitor_telepathic_bond_bonus(struct char_data *ch)
 {
   struct char_data *tch = NULL;
+  struct iterator_data iterator;
+  int bonus = 0;
 
   if (!ch || IS_NPC(ch))
     return 0;
@@ -2517,21 +2519,26 @@ int get_inquisitor_telepathic_bond_bonus(struct char_data *ch)
     return 0;
 
   /* Check if this character has the perk */
-  if (has_inquisitor_telepathic_bond(ch) && GROUP(ch) && GROUP(ch)->members->iSize > 1)
+  if (has_inquisitor_telepathic_bond(ch) && GROUP(ch) && GROUP(ch)->members &&
+      GROUP(ch)->members->iSize > 1)
     return 1;
 
   /* Check if any party member in the same room has the perk */
-  if (GROUP(ch) && GROUP(ch)->members->iSize > 1)
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize > 1)
   {
-    simple_list(NULL); /* Reset iterator */
-    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    for (tch = (struct char_data *)merge_iterator(&iterator, GROUP(ch)->members); tch != NULL;
+         tch = (struct char_data *)next_in_list(&iterator))
     {
       if (tch != ch && IN_ROOM(tch) == IN_ROOM(ch) && has_inquisitor_telepathic_bond(tch))
-        return 1;
+      {
+        bonus = 1;
+        break;
+      }
     }
+    remove_iterator(&iterator);
   }
 
-  return 0;
+  return bonus;
 }
 
 /* ============================================================================
@@ -21092,6 +21099,34 @@ bool has_paladin_aura_of_protection(struct char_data *ch)
   return has_perk(ch, PERK_PALADIN_AURA_OF_PROTECTION);
 }
 
+static bool group_has_paladin_perk_in_room(struct char_data *ch, int perk_id)
+{
+  struct char_data *tch = NULL;
+  struct iterator_data iterator;
+  bool found = FALSE;
+
+  if (!ch || IS_NPC(ch) || !GROUP(ch) || !GROUP(ch)->members)
+    return FALSE;
+
+  for (tch = (struct char_data *)merge_iterator(&iterator, GROUP(ch)->members); tch != NULL;
+       tch = (struct char_data *)next_in_list(&iterator))
+  {
+    if (IN_ROOM(tch) == IN_ROOM(ch) && !IS_NPC(tch) && has_perk(tch, perk_id))
+    {
+      found = TRUE;
+      break;
+    }
+  }
+  remove_iterator(&iterator);
+
+  return found;
+}
+
+bool group_has_paladin_aura_of_protection(struct char_data *ch)
+{
+  return group_has_paladin_perk_in_room(ch, PERK_PALADIN_AURA_OF_PROTECTION);
+}
+
 /**
  * Get Sanctuary damage reduction percentage.
  * Returns 10 if character has the perk, 0 otherwise.
@@ -21133,6 +21168,11 @@ bool has_paladin_aura_of_life(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
   return has_perk(ch, PERK_PALADIN_AURA_OF_LIFE);
+}
+
+bool group_has_paladin_aura_of_life(struct char_data *ch)
+{
+  return group_has_paladin_perk_in_room(ch, PERK_PALADIN_AURA_OF_LIFE);
 }
 
 /**

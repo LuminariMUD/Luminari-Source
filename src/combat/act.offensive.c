@@ -4321,6 +4321,7 @@ ACMD(do_warcry)
         }
       }
     }
+    simple_list(NULL);
   }
   else
   {
@@ -5851,6 +5852,7 @@ ACMD(do_blast)
         break;
       }
     }
+    simple_list(NULL);
   }
 
   /* maybe its your pet?  so assist */
@@ -6136,6 +6138,7 @@ ACMD(do_frightful)
         break;
       }
     }
+    simple_list(NULL);
   }
 
   send_to_char(ch, "You ROAR!\r\n");
@@ -9196,6 +9199,7 @@ ACMD(do_icerabbit)
         break;
       }
     }
+    simple_list(NULL);
   }
 
   /* maybe its your pet? so assist */
@@ -11434,6 +11438,7 @@ ACMD(do_fire)
         break;
       }
     }
+    simple_list(NULL);
   }
 
   /* maybe its your pet?  so assist */
@@ -11558,6 +11563,7 @@ ACMD(do_assistblast)
       break;
     }
   }
+  simple_list(NULL);
 
   if (!vict)
   {
@@ -11633,6 +11639,7 @@ ACMD(do_autofire)
       break;
     }
   }
+  simple_list(NULL);
 
   if (!vict)
   {

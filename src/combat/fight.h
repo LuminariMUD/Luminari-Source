@@ -120,6 +120,8 @@ void test_apply_bard_warbeat_allies(struct char_data *ch);
 void test_reset_bard_warbeat_observations(void);
 int test_get_bard_warbeat_opening_attacks(void);
 struct obj_data *test_get_wielded(struct char_data *ch, int attack_type);
+struct char_data *test_find_divine_sacrifice_defender(struct char_data *victim);
+void test_apply_group_sacred_vengeance(struct char_data *victim);
 #endif
 
 /* Global variables */

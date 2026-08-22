@@ -1165,6 +1165,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
           }
         }
       }
+      remove_iterator(&it);
     }
 
     /* Bard Warchanter: Steel Serenade - +2 natural AC while performing */
@@ -5760,6 +5761,84 @@ bool activate_rol_delayed_hunter(struct char_data *victim, int damage)
   return true;
 }
 
+static struct char_data *find_divine_sacrifice_defender(struct char_data *victim)
+{
+  struct group_data *group;
+  struct char_data *defender = NULL;
+  struct char_data *k = NULL;
+  struct iterator_data iterator;
+
+  if (!victim || !(group = GROUP(victim)) || !group->members)
+    return NULL;
+
+  for (k = (struct char_data *)merge_iterator(&iterator, group->members); k != NULL;
+       k = (struct char_data *)next_in_list(&iterator))
+  {
+    if (!IS_NPC(k) && k != victim && IN_ROOM(k) == IN_ROOM(victim) &&
+        has_paladin_divine_sacrifice(k) && !char_has_mud_event(k, eDIVINE_SACRIFICE))
+    {
+      defender = k;
+      break;
+    }
+  }
+  remove_iterator(&iterator);
+
+  return defender;
+}
+
+static void apply_group_sacred_vengeance(struct char_data *victim)
+{
+  struct group_data *group;
+  struct char_data *k = NULL;
+  struct iterator_data iterator;
+
+  if (!victim || !(group = GROUP(victim)) || !group->members)
+    return;
+
+  for (k = (struct char_data *)merge_iterator(&iterator, group->members); k != NULL;
+       k = (struct char_data *)next_in_list(&iterator))
+  {
+    if (!IS_NPC(k) && k != victim && IN_ROOM(k) == IN_ROOM(victim) &&
+        has_paladin_sacred_vengeance(k) && !affected_by_spell(k, SKILL_SACRED_VENGEANCE))
+    {
+      struct affected_type af;
+      new_affect(&af);
+      af.spell = SKILL_SACRED_VENGEANCE;
+      af.duration = 3; /* 3 rounds */
+      af.location = APPLY_HITROLL;
+      af.modifier = 4;
+      af.bonus_type = BONUS_TYPE_SACRED;
+      affect_to_char(k, &af);
+
+      new_affect(&af);
+      af.spell = SKILL_SACRED_VENGEANCE;
+      af.duration = 3;
+      af.location = APPLY_DAMROLL;
+      af.modifier = 8;
+      af.bonus_type = BONUS_TYPE_SACRED;
+      affect_to_char(k, &af);
+
+      send_to_char(k,
+                   "\tRYour fury ignites as %s falls! You gain +4 to hit and +8 to damage!\tn\r\n",
+                   GET_NAME(victim));
+      act("\tR$n's eyes blaze with righteous fury!\tn", FALSE, k, 0, 0, TO_ROOM);
+    }
+  }
+  remove_iterator(&iterator);
+}
+
+#ifdef LUMINARI_CUTEST
+struct char_data *test_find_divine_sacrifice_defender(struct char_data *victim)
+{
+  return find_divine_sacrifice_defender(victim);
+}
+
+void test_apply_group_sacred_vengeance(struct char_data *victim)
+{
+  apply_group_sacred_vengeance(victim);
+}
+#endif
+
 // death < 0, no dam = 0, damage done > 0
 /* ALLLLLL damage goes through this function */
 /* probably need to bring in another variable letting us know our source, like:
@@ -6051,37 +6130,28 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
   /* Paladin Sacred Defender perk: Divine Sacrifice - take damage for ally */
   if (!IS_NPC(victim) && GROUP(victim) && (GET_HIT(victim) - dam) <= 0)
   {
-    struct group_data *group = GROUP(victim);
-    struct char_data *k = NULL;
-    struct iterator_data it;
+    struct char_data *k = find_divine_sacrifice_defender(victim);
 
-    /* Check if any grouped paladin can sacrifice for this victim */
-    for (k = (struct char_data *)merge_iterator(&it, group->members); k != NULL;
-         k = (struct char_data *)next_in_list(&it))
+    if (k)
     {
-      if (!IS_NPC(k) && k != victim && IN_ROOM(k) == IN_ROOM(victim) &&
-          has_paladin_divine_sacrifice(k) && !char_has_mud_event(k, eDIVINE_SACRIFICE))
-      {
-        /* Paladin takes the damage instead */
-        send_to_char(k, "\tWYou invoke Divine Sacrifice, taking the damage meant for %s!\tn\r\n",
-                     GET_NAME(victim));
-        send_to_char(victim,
-                     "\tW%s invokes Divine Sacrifice, taking the damage meant for you!\tn\r\n",
-                     GET_NAME(k));
-        act("\tW$n glows with divine light, taking the damage meant for $N!\tn", FALSE, k, 0,
-            victim, TO_NOTVICT);
+      /* Paladin takes the damage instead */
+      send_to_char(k, "\tWYou invoke Divine Sacrifice, taking the damage meant for %s!\tn\r\n",
+                   GET_NAME(victim));
+      send_to_char(victim,
+                   "\tW%s invokes Divine Sacrifice, taking the damage meant for you!\tn\r\n",
+                   GET_NAME(k));
+      act("\tW$n glows with divine light, taking the damage meant for $N!\tn", FALSE, k, 0, victim,
+          TO_NOTVICT);
 
-        /* Transfer damage to paladin */
-        GET_HIT(k) -= dam;
-        update_pos(k);
+      /* Transfer damage to paladin */
+      GET_HIT(k) -= dam;
+      update_pos(k);
 
-        /* Start 10 minute cooldown */
-        attach_mud_event(new_mud_event(eDIVINE_SACRIFICE, k, NULL), 10 * 60 * PASSES_PER_SEC);
+      /* Start 10 minute cooldown */
+      attach_mud_event(new_mud_event(eDIVINE_SACRIFICE, k, NULL), 10 * 60 * PASSES_PER_SEC);
 
-        /* Victim takes no damage */
-        dam = 0;
-        break;
-      }
+      /* Victim takes no damage */
+      dam = 0;
     }
   }
 
@@ -6152,44 +6222,11 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
   /* Sacred Vengeance: Trigger when ally drops below 25% HP or dies */
   if (victim && !IS_NPC(victim) && GROUP(victim))
   {
-    struct group_data *group = GROUP(victim);
-    struct char_data *k = NULL;
-    struct iterator_data it;
     int victim_hp_pct = (GET_HIT(victim) * 100) / MAX(1, GET_MAX_HIT(victim));
     bool trigger_vengeance = (GET_HIT(victim) <= 0 || victim_hp_pct < 25);
 
     if (trigger_vengeance)
-    {
-      for (k = (struct char_data *)merge_iterator(&it, group->members); k != NULL;
-           k = (struct char_data *)next_in_list(&it))
-      {
-        if (!IS_NPC(k) && k != victim && IN_ROOM(k) == IN_ROOM(victim) &&
-            has_paladin_sacred_vengeance(k) && !affected_by_spell(k, SKILL_SACRED_VENGEANCE))
-        {
-          struct affected_type af;
-          new_affect(&af);
-          af.spell = SKILL_SACRED_VENGEANCE;
-          af.duration = 3; /* 3 rounds */
-          af.location = APPLY_HITROLL;
-          af.modifier = 4;
-          af.bonus_type = BONUS_TYPE_SACRED;
-          affect_to_char(k, &af);
-
-          new_affect(&af);
-          af.spell = SKILL_SACRED_VENGEANCE;
-          af.duration = 3;
-          af.location = APPLY_DAMROLL;
-          af.modifier = 8;
-          af.bonus_type = BONUS_TYPE_SACRED;
-          affect_to_char(k, &af);
-
-          send_to_char(
-              k, "\tRYour fury ignites as %s falls! You gain +4 to hit and +8 to damage!\tn\r\n",
-              GET_NAME(victim));
-          act("\tR$n's eyes blaze with righteous fury!\tn", FALSE, k, 0, 0, TO_ROOM);
-        }
-      }
-    }
+      apply_group_sacred_vengeance(victim);
   }
 
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
@@ -10317,6 +10354,7 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
           send_to_char(ch, " 1: %-50s\r\n", "Coordinated Shot Additional");
         break;
       }
+    simple_list(NULL);
   }
 
   // flanking gives a +2 bonus to hit

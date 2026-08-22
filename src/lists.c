@@ -298,12 +298,9 @@ void *merge_iterator(struct iterator_data *pIterator, struct list_data *pList)
     return NULL;
   }
 
-  /* Safety check: Can't iterate an empty list */
+  /* An empty list is a valid collection with nothing to iterate. */
   if (pList->pFirstItem == NULL)
   {
-    /* ERROR HANDLING POLICY: Empty list is a normal condition.
-     * Log at NRM level as this can happen in normal operation. */
-    mudlog(NRM, LVL_STAFF, TRUE, "WARNING: Attempting to merge iterator to empty list.");
     pIterator->pList = NULL;
     pIterator->pItem = NULL;
     return NULL;

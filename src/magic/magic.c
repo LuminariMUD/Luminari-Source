@@ -613,21 +613,8 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
     savethrow += get_active_bardic_resonant_voice_bonus(vict);
 
   /* Paladin Sacred Defender perk: Aura of Protection - +2 to all saves for allies in aura */
-  if (!IS_NPC(vict) && GROUP(vict) != NULL)
-  {
-    struct char_data *tch = NULL;
-    simple_list(NULL); /* Reset iterator */
-    while ((tch = (struct char_data *)simple_list(GROUP(vict)->members)) != NULL)
-    {
-      if (IN_ROOM(tch) != IN_ROOM(vict))
-        continue;
-      if (has_paladin_aura_of_protection(tch))
-      {
-        savethrow += 2;
-        break; /* Only one aura bonus */
-      }
-    }
-  }
+  if (group_has_paladin_aura_of_protection(vict))
+    savethrow += 2;
 
   if (ARCANE_LEVEL(ch) > 0)
   {

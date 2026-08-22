@@ -9,9 +9,11 @@
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
+#include "../../src/character/perks.h"
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/combat/encounters.h"
 #include "../../src/combat/fight.h"
+#include "../../src/lists.h"
 #include "../../src/mudlim.h"
 #include "../../src/net/protocol.h"
 
@@ -139,6 +141,110 @@ void Test_combat_production_npc_barehand_damage_dice(CuTest *tc)
   compute_barehand_dam_dice(&ch, &dice_count, &dice_size);
   CuAssertIntEquals(tc, 3, dice_count);
   CuAssertIntEquals(tc, 7, dice_size);
+}
+
+void Test_empty_list_iteration_is_a_clean_noop(CuTest *tc)
+{
+  struct iterator_data iterator;
+  struct list_data list;
+
+  memset(&iterator, 0, sizeof(iterator));
+  memset(&list, 0, sizeof(list));
+
+  CuAssertPtrEquals(tc, NULL, merge_iterator(&iterator, &list));
+  CuAssertPtrEquals(tc, NULL, iterator.pList);
+  CuAssertPtrEquals(tc, NULL, iterator.pItem);
+  CuAssertIntEquals(tc, 0, list.iIterators);
+}
+
+void Test_combat_perk_group_iterators_detach_on_matches_and_completion(CuTest *tc)
+{
+  struct char_data ch;
+  struct char_data ally;
+  struct player_special_data ch_specials;
+  struct player_special_data ally_specials;
+  struct char_perk_data telepathic_bond;
+  struct group_data group;
+  struct list_data members;
+  struct item_data ch_item;
+  struct item_data ally_item;
+  struct obj_data shield;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+
+  clear_char(&ch);
+  clear_char(&ally);
+  memset(&ch_specials, 0, sizeof(ch_specials));
+  memset(&ally_specials, 0, sizeof(ally_specials));
+  memset(&telepathic_bond, 0, sizeof(telepathic_bond));
+  memset(&group, 0, sizeof(group));
+  memset(&members, 0, sizeof(members));
+  memset(&ch_item, 0, sizeof(ch_item));
+  memset(&ally_item, 0, sizeof(ally_item));
+  memset(&shield, 0, sizeof(shield));
+  memset(&room, 0, sizeof(room));
+
+  ch.player_specials = &ch_specials;
+  ally.player_specials = &ally_specials;
+  ch.player.name = "perk iterator character";
+  ally.player.name = "perk iterator ally";
+  GET_LEVEL(&ch) = 10;
+  GET_LEVEL(&ally) = 10;
+  IN_ROOM(&ch) = 0;
+  IN_ROOM(&ally) = 0;
+
+  group.leader = &ch;
+  group.members = &members;
+  GROUP((&ch)) = &group;
+  GROUP((&ally)) = &group;
+  ch_item.pContent = &ch;
+  ch_item.pNextItem = &ally_item;
+  ally_item.pContent = &ally;
+  ally_item.pPrevItem = &ch_item;
+  members.pFirstItem = &ch_item;
+  members.pLastItem = &ally_item;
+  members.iSize = 2;
+
+  telepathic_bond.perk_id = PERK_INQUISITOR_TELEPATHIC_BOND;
+  telepathic_bond.perk_class = CLASS_INQUISITOR;
+  telepathic_bond.current_rank = 1;
+  ally.player_specials->saved.perks = &telepathic_bond;
+
+  CuAssertIntEquals(tc, 1, get_inquisitor_telepathic_bond_bonus(&ch));
+  CuAssertIntEquals(tc, 0, members.iIterators);
+
+  ally.player_specials->saved.perks = NULL;
+  GET_LEVEL(&ally) = LVL_STAFF;
+  SET_BIT_AR(PRF_FLAGS(&ally), PRF_HOLYLIGHT);
+  GET_OBJ_TYPE(&shield) = ITEM_ARMOR;
+  GET_EQ(&ally, WEAR_SHIELD) = &shield;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+  room.people = &ch;
+  compute_armor_class(NULL, &ch, FALSE, MODE_ARMOR_CLASS_NORMAL);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  CuAssertIntEquals(tc, 0, members.iIterators);
+
+  CuAssertTrue(tc, group_has_paladin_aura_of_protection(&ch));
+  CuAssertIntEquals(tc, 0, members.iIterators);
+
+  CuAssertTrue(tc, group_has_paladin_aura_of_life(&ch));
+  CuAssertIntEquals(tc, 0, members.iIterators);
+
+  CuAssertPtrEquals(tc, &ally, test_find_divine_sacrifice_defender(&ch));
+  CuAssertIntEquals(tc, 0, members.iIterators);
+
+  GET_LEVEL(&ally) = 10;
+  REMOVE_BIT_AR(PRF_FLAGS(&ally), PRF_HOLYLIGHT);
+  GET_EQ(&ally, WEAR_SHIELD) = NULL;
+
+  test_apply_group_sacred_vengeance(&ch);
+  CuAssertIntEquals(tc, 0, members.iIterators);
 }
 
 void Test_combat_production_damage_type_validation(CuTest *tc)

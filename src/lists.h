@@ -44,7 +44,6 @@ struct iterator_data
  *   - API misuse that should never happen in correct code
  *
  * - WARNING (NRM, LVL_STAFF): Normal but noteworthy conditions
- *   - Attempting to iterate empty lists
  *   - Removing items not in list (might be gameplay logic)
  *   - simple_list() forced resets (indicates missing cleanup)
  *
