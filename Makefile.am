@@ -329,8 +329,13 @@ luminari_SOURCES = \
 luminari_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread -ljson-c
 
 
-# Unit testing with CuTest
-check_PROGRAMS = cutest
+# Unit testing with CuTest and the bundled snprintf fallback
+check_PROGRAMS = cutest bsd_snprintf_fallback_test
+TESTS = bsd_snprintf_fallback_test
+
+bsd_snprintf_fallback_test_SOURCES = src/bsd-snprintf.c
+bsd_snprintf_fallback_test_CPPFLAGS = $(AM_CPPFLAGS) -DBROKEN_SNPRINTF -DTEST_SNPRINTF
+bsd_snprintf_fallback_test_LDADD = -lm
 
 # CuTest sources
 cutest_SOURCES = \

@@ -315,6 +315,7 @@ static void dopr(char *buffer, size_t maxlen, const char *format, va_list args)
         break;
       case 'X':
         flags |= DP_F_UP;
+        /* Fall through. */
       case 'x':
         flags |= DP_F_UNSIGNED;
         if (cflags == DP_C_SHORT)
@@ -337,6 +338,7 @@ static void dopr(char *buffer, size_t maxlen, const char *format, va_list args)
         break;
       case 'E':
         flags |= DP_F_UP;
+        /* Fall through. */
       case 'e':
         if (cflags == DP_C_LDOUBLE)
           fvalue = va_arg(args, long double);
@@ -345,6 +347,7 @@ static void dopr(char *buffer, size_t maxlen, const char *format, va_list args)
         break;
       case 'G':
         flags |= DP_F_UP;
+        /* Fall through. */
       case 'g':
         if (cflags == DP_C_LDOUBLE)
           fvalue = va_arg(args, long double);
@@ -542,7 +545,7 @@ static void fmtint(char *buffer, size_t *currlen, size_t maxlen, long value, int
   }
 }
 
-static long double pow10(int exp)
+static long double dopr_pow10(int exp)
 {
   long double result = 1;
 
@@ -555,7 +558,7 @@ static long double pow10(int exp)
   return result;
 }
 
-static long round(long double value)
+static long dopr_round(long double value)
 {
   long intpart = value;
 
@@ -609,12 +612,12 @@ static void fmtfp(char *buffer, size_t *currlen, size_t maxlen, long double fval
   /* We "cheat" by converting the fractional part to integer by
 	 * multiplying by a factor of 10
 	 */
-  fracpart = round((pow10(max)) * (ufvalue - intpart));
+  fracpart = dopr_round((dopr_pow10(max)) * (ufvalue - intpart));
 
-  if (fracpart >= pow10(max))
+  if (fracpart >= dopr_pow10(max))
   {
     intpart++;
-    fracpart -= pow10(max);
+    fracpart -= dopr_pow10(max);
   }
 
   /* Convert integer part */
@@ -678,14 +681,14 @@ static void fmtfp(char *buffer, size_t *currlen, size_t maxlen, long double fval
 	 */
   dopr_outch(buffer, currlen, maxlen, '.');
 
-  while (fplace > 0)
-    dopr_outch(buffer, currlen, maxlen, fconvert[--fplace]);
-
   while (zpadlen > 0)
   {
     dopr_outch(buffer, currlen, maxlen, '0');
     --zpadlen;
   }
+
+  while (fplace > 0)
+    dopr_outch(buffer, currlen, maxlen, fconvert[--fplace]);
 
   while (padlen < 0)
   {
@@ -731,8 +734,8 @@ int main(void)
   char buf2[LONG_STRING] = {'\0'};
   char *fp_fmt[] = {"%-1.5f", "%1.5f",  "%123.9f", "%10.5f", "% 10.5f", "%+22.9f",
                     "%+4.9f", "%01.3f", "%4f",     "%3.1f",  "%3.2f",   NULL};
-  double fp_nums[] = {-1.5,  134.21, 91340.2, 341.1234, 0203.9, 0.96,
-                      0.996, 0.9996, 1.996,   4.136,    0};
+  double fp_nums[] = {-1.5,  134.21, 91340.2, 341.1234, 0203.9, 0.96,   0.996, 0.9996,
+                      1.996, 4.136,  2.01,    2.001,    -2.01,  -2.001, 0};
   char *int_fmt[] = {"%-1.5d",   "%1.5d",  "%123.9d", "%5.5d", "%10.5d", "% 10.5d",
                      "%+22.33d", "%01.3d", "%4d",     "%lld",  "%qd",    NULL};
   long long int_nums[] = {-1, 134, 91340, 341, 0203, 0, 9999999};
@@ -775,7 +778,7 @@ int main(void)
     }
   }
   printf("%d tests failed out of %d.\n", fail, num);
-  return (0);
+  return (fail == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 #endif /* SNPRINTF_TEST */
 

@@ -37,7 +37,7 @@ The initial audit confirmed four defects:
 | P0 | [#181](https://github.com/tbamud/tbamud/issues/181) | Resolved locally 2026-08-23: zone archive creation no longer invokes a shell and all export basenames use an ASCII allowlist. |
 | P0 | [#157](https://github.com/tbamud/tbamud/issues/157) | Resolved locally 2026-08-23: combat, damage, and grapple enforce global PK configuration and mutual controller consent. |
 | P1 | [#92](https://github.com/tbamud/tbamud/issues/92) | Resolved locally 2026-08-23 with fixed-width index parsing/formatting and tested high-VNUM stat and OLC output. |
-| P2 | [#57](https://github.com/tbamud/tbamud/issues/57) | The bundled `snprintf` fallback still formats fractional values with leading zeroes incorrectly. It is dormant on the current development host. |
+| P2 | [#57](https://github.com/tbamud/tbamud/issues/57) | Resolved locally 2026-08-23: fractional zero padding is emitted in the correct order and the fallback has dedicated Autotools and CMake tests. |
 
 Five additional reports still describe this repository, but are not classified
 as correctness defects:
@@ -57,9 +57,9 @@ as correctness defects:
 The other 36 issues are fixed, absent, resolved locally, or not applicable to
 this codebase.
 
-Resolution work is tracked in this document. Three of the four confirmed
-defects are resolved locally; one remains. The five design and legal findings
-remain tracked until their policies or implementations are resolved.
+Resolution work is tracked in this document. All four confirmed defects are
+resolved locally. The five design and legal findings remain tracked until their
+policies or implementations are resolved.
 
 ## Confirmed defects
 
@@ -145,21 +145,22 @@ also verifies that the fixed-width zone parser loads the complete local world.
 
 ### P2: Issue #57 - fallback floating-point formatting
 
-Status: Confirmed but dormant in the current environment.
+Status: Resolved locally on 2026-08-23.
 
-The fallback [`fmtfp()`](../../src/bsd-snprintf.c#L564) converts the fractional
-integer into reverse-order digits, then emits those digits before its zero
-padding. For a value such as `2.01`, the fractional integer is `1`; the code
-therefore emits `1` followed by zeroes instead of emitting the missing leading
-zeroes before `1`.
+The fallback [`fmtfp()`](../../src/bsd-snprintf.c#L564) now emits fractional zero
+padding before the significant digits stored in reverse order. Values such as
+`2.01`, `2.001`, and their negative equivalents therefore retain the zeroes
+between the decimal point and the first significant fractional digit.
 
-The configured development build defines both `HAVE_SNPRINTF` and
-`HAVE_VSNPRINTF`, so libc is used and this path is not active here. The defect
-still exists in shipped source for platforms that use the fallback.
+The built-in comparison harness now returns failure when any comparison fails
+and includes those four regression values. Autotools and CMake both register a
+standalone fallback test that compiles this source with `BROKEN_SNPRINTF` and
+`TEST_SNPRINTF`, even when the host normally uses libc formatting. This keeps
+the dormant compatibility path under routine test coverage.
 
-Recommended direction: add `2.01`, `2.001`, and negative equivalents to the
-built-in fallback tests and emit fractional zero padding before the reversed
-digits.
+The fallback also uses private names for its power-of-ten and rounding helpers
+and explicitly annotates intentional switch fallthroughs, so its forced build
+passes the repository warning policy.
 
 ## Present behavior and non-defect decisions
 
@@ -229,7 +230,7 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
 | [#3 Olist Sword](https://github.com/tbamud/tbamud/issues/3) | Closed | Not present | Object-name and affect lists stop with a safety margin before another append; generic OLC list appenders also cap their buffers. |
 | [#47 Room trigger attachment](https://github.com/tbamud/tbamud/issues/47) | Closed | Present by design | Both room-file prototype scripts and zone-reset `T` commands remain; see the detailed section above. |
 | [#56 Mobile save comparison](https://github.com/tbamud/tbamud/issues/56) | Closed | Not present | The reported aggregate-record length comparison no longer exists. `write_mobile_record()` writes bounded description copies and fields directly to `FILE`. |
-| [#57 Float 2.01](https://github.com/tbamud/tbamud/issues/57) | Closed | Confirmed defect | The bundled fallback still places fractional zero padding after significant digits. |
+| [#57 Float 2.01](https://github.com/tbamud/tbamud/issues/57) | Closed | Resolved locally | Fractional zero padding now precedes significant digits, and both build systems run the forced fallback's 209 comparisons. |
 | [#59 Website download link](https://github.com/tbamud/tbamud/issues/59) | Closed | Not applicable | Upstream website/release policy only. |
 | [#77 Missing syslogs](https://github.com/tbamud/tbamud/issues/77) | Closed | Not applicable | The reporter had skipped configure/build; no product defect was identified. |
 | [#78 Affect flag count](https://github.com/tbamud/tbamud/issues/78) | Closed | Not present | Affect indexes consistently use `1 <= index < NUM_AFF_FLAGS`; constant tables include the sentinel entry and compile-time size checks. |
@@ -319,11 +320,23 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
   in room/mobile/object stat and OLC room-list output, and verifies that every
   visible line is shorter than 120 columns.
 
+### Resolution checkpoint 4 - issue #57
+
+- The forced fallback harness passes all 209 comparisons, including `2.01`,
+  `2.001`, `-2.01`, and `-2.001`, under the Autotools build.
+- The same fallback target passes its registered CMake/CTest test.
+- `make test` passes the standalone fallback test and all 796 production-linked
+  CuTest tests. The required follow-up `make install` also passes and removes
+  the root-level `luminari` artifact.
+- The forced fallback compiles with the repository warning flags without
+  builtin-declaration or implicit-fallthrough warnings.
+
 ## Recommended work order
 
-1. Fix #57 or deliberately remove the unsupported fallback implementation.
-2. Decide and document the builder/player compatibility policies behind #47,
-   #86, and the #105/#147 ordering tradeoff.
+1. Decide and document the builder/player compatibility policies behind #47,
+   #80, #86, and the #105/#147 ordering tradeoff.
+2. Record the repository's decision for the inherited licensing concern in
+   #95 without making unsupported legal claims.
 
 ## Audit limits
 

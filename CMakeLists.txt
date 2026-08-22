@@ -1199,6 +1199,13 @@ set(PROTOCOL_FOCUSED_TEST_SOURCES
 if (BUILD_TESTS)
     enable_testing()
 
+    add_executable(bsd_snprintf_fallback_test src/bsd-snprintf.c)
+    target_compile_definitions(bsd_snprintf_fallback_test PRIVATE
+        BROKEN_SNPRINTF
+        TEST_SNPRINTF)
+    target_link_libraries(bsd_snprintf_fallback_test PRIVATE m)
+    add_test(NAME bsd-snprintf-fallback COMMAND bsd_snprintf_fallback_test)
+
     set(CUTEST_GENERATOR
         ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest/make-tests.sh)
     set(CUTEST_ALL_TESTS_SOURCE
