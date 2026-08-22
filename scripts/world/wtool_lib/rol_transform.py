@@ -19,7 +19,23 @@ from .rol_mobile_identity import (
     select_mobile_conversion,
 )
 from .rol_source import RolRecord
-from .rol_weapon_mapping import SOURCE_ITEM_TYPE_WEAPON, infer_weapon_type
+from .rol_weapon_mapping import (
+    SOURCE_ITEM_TYPE_FIREWEAPON,
+    SOURCE_ITEM_TYPE_MISSILE,
+    SOURCE_ITEM_TYPE_QUIVER,
+    SOURCE_ITEM_TYPE_WEAPON,
+    SOURCE_QUIVER_THROWING,
+    TARGET_ITEM_AMMO_POUCH,
+    TARGET_ITEM_CONTAINER,
+    TARGET_ITEM_MISSILE,
+    TARGET_ITEM_WEAPON,
+    WeaponInference,
+    infer_ammunition,
+    infer_ranged_weapon_type,
+    infer_weapon_type,
+    missile_break_probability,
+)
+from .rol_weapon_table import weapon_table
 
 
 _TARGET_MAGIC_ITEM_TYPES = frozenset({2, 3, 4, 10})
@@ -377,7 +393,7 @@ OBJECT_TYPE_MAP = {
     3: 3,
     4: 4,
     5: 5,
-    6: 7,
+    6: 5,  # ITEM_FIREWEAPON -> ITEM_WEAPON; the target's own type is deprecated
     7: 14,
     8: 8,
     9: 9,
@@ -590,6 +606,32 @@ SOURCE_WEAPON_MESSAGE_MAP = {
     10: 4,  # Bite -> bite
     11: 11, # Pierce -> pierce
 }
+
+# Target wear bits a weapon carries after set_weapon_object()
+# (src/obj/treasure.c:2562) clears the word and sets these two.
+TARGET_WEAR_TAKE = 0
+TARGET_WEAR_WIELD = 13
+
+# Target object proficiency, the 'G' block. set_weapon_object() does not touch
+# it, but leaving every converted weapon on ITEM_PROF_NONE throws away the one
+# piece of weapon-training data weapon_list[] carries. The target's ladder is
+# ITEM_PROF_MINIMAL/BASIC/ADVANCED/MASTER/EXOTIC (src/structs.h:4460), so the
+# D20 simple/martial/exotic tiers land on its first, second, and last rungs.
+# invalid_prof() is commented out at every call site (src/handler.c:2490,
+# src/obj/objsave.c:801), so this is descriptive today rather than restrictive.
+TARGET_ITEM_PROF_NONE = 0
+TARGET_ITEM_PROF_MINIMAL = 1
+TARGET_ITEM_PROF_BASIC = 2
+TARGET_ITEM_PROF_EXOTIC = 5
+WEAPON_FLAG_SIMPLE = 1 << 0
+WEAPON_FLAG_MARTIAL = 1 << 1
+WEAPON_FLAG_EXOTIC = 1 << 2
+
+SOURCE_APPLY_HITROLL = 18
+SOURCE_APPLY_DAMROLL = 19
+# OLC accepts 0..10 for ITEM_WEAPON and ITEM_MISSILE value 5 (oedit.c:2978).
+TARGET_MIN_ENHANCEMENT_BONUS = 0
+TARGET_MAX_ENHANCEMENT_BONUS = 10
 
 _SOURCE_COLOR = re.compile(r"&\+([A-Za-z])|&([Nn])")
 
@@ -1788,7 +1830,7 @@ def _object_values(
         f"mapped source spell {source_spell} ({spell_name}) to target spell "
         f"{target_spell} in magic-item slot {slot}"
     )
-  if source_type == 5:
+  if source_type in {5, SOURCE_ITEM_TYPE_FIREWEAPON}:
     source_message = values[3]
     target_message = SOURCE_WEAPON_MESSAGE_MAP.get(source_message)
     if target_message is None:
@@ -1810,7 +1852,10 @@ def _object_values(
         f"raised source wand/staff maximum charges {source_maximum} to current "
         f"charges {values[2]} for the target runtime"
     )
-  if source_type == 15 and values[2] > 0:
+  if source_type in {15, SOURCE_ITEM_TYPE_QUIVER} and values[2] > 0:
+    # Source quivers carry the container value layout, key vnum included, and
+    # convert to an ammo pouch or a container -- both of which read value[2] as
+    # a key vnum in the target.
     source_key = values[2]
     try:
       values[2] = resolve("obj", source_key)
@@ -1845,9 +1890,215 @@ def _object_values(
       diagnostics.append(
           f"disabled vehicle destination to unresolved room {source_destination}: {error}"
       )
-  if target_type == 15 and values[2] == 65535:
+  if target_type in {TARGET_ITEM_CONTAINER, TARGET_ITEM_AMMO_POUCH} and values[2] == 65535:
     values[2] = -1
+  if source_type == SOURCE_ITEM_TYPE_QUIVER and values[3]:
+    # The source quiver kind has been consumed by the item-type decision. The
+    # target slot is the corpse flag (IS_CORPSE, src/utils.h:1983).
+    diagnostics.append(
+        f"zeroed source quiver kind {values[3]}; the target slot is the corpse flag"
+    )
+    values[3] = 0
   return values
+
+
+def _object_target_type(
+    record: RolRecord,
+    source_type: int,
+    diagnostics: list[str],
+) -> tuple[int, WeaponInference | None, Any]:
+  """Resolve the target item type, and any weapon identity it depends on.
+
+  Most source types resolve straight through ``OBJECT_TYPE_MAP``. Four do not,
+  because the target type depends on the record rather than only on its source
+  type: source weapons and ranged weapons both become ``ITEM_WEAPON``, source
+  ammunition becomes either ``ITEM_MISSILE`` or -- when it is thrown, which the
+  target has no command for -- ``ITEM_WEAPON``, and a source quiver becomes an
+  ammo pouch or a plain container depending on the kind it declares.
+  """
+
+  values = (list(record.values.get("values", [])) + [0] * 8)[:8]
+  if source_type == SOURCE_ITEM_TYPE_WEAPON:
+    # Source value[0] is a proc hook, target value[0] is an index into
+    # weapon_list[]. Passing it through lands every converted weapon on
+    # WEAPON_TYPE_UNDEFINED, which disables criticals, empties the damage-type
+    # bitmask so damage reduction never bypasses, and matches no weapon family.
+    return TARGET_ITEM_WEAPON, infer_weapon_type(record), None
+  if source_type == SOURCE_ITEM_TYPE_FIREWEAPON:
+    # The target's own ITEM_FIREWEAPON is deprecated (src/structs.h:4348) and
+    # cannot fire: is_using_ranged_weapon() tests the wielded object's
+    # weapon_list[] flags and never looks at item type.
+    diagnostics.append(
+        "retyped source ITEM_FIREWEAPON to ITEM_WEAPON; the target's own "
+        "ITEM_FIREWEAPON is deprecated and never fires"
+    )
+    return TARGET_ITEM_WEAPON, infer_ranged_weapon_type(record), None
+  if source_type == SOURCE_ITEM_TYPE_MISSILE:
+    inference = infer_ammunition(record)
+    if inference.item_type == TARGET_ITEM_WEAPON:
+      return (
+          TARGET_ITEM_WEAPON,
+          WeaponInference(
+              inference.weapon_type, inference.name, inference.tier, inference.rule
+          ),
+          inference,
+      )
+    return TARGET_ITEM_MISSILE, None, inference
+  if source_type == SOURCE_ITEM_TYPE_QUIVER and values[3] == SOURCE_QUIVER_THROWING:
+    # A throwing quiver holds thrown weapons, which convert to ITEM_WEAPON, and
+    # an ammo pouch may hold nothing but ITEM_MISSILE -- has_ammo_in_pouch() and
+    # do_put (src/obj/act.item.c:2022) both enforce that.
+    diagnostics.append(
+        "retyped source throwing quiver to ITEM_CONTAINER; an ammo pouch may "
+        "hold only ITEM_MISSILE"
+    )
+    return TARGET_ITEM_CONTAINER, None, None
+  target_type = OBJECT_TYPE_MAP.get(source_type, 12)
+  if source_type not in OBJECT_TYPE_MAP:
+    diagnostics.append(f"unknown source item type {source_type}; used ITEM_OTHER")
+  return target_type, None, None
+
+
+def _object_enhancement_bonus(
+    record: RolRecord,
+    diagnostics: list[str],
+) -> int:
+  """Restate the source hitroll/damroll applies as the native enhancement bonus.
+
+  RoL has no enhancement-bonus concept and expresses a ``+N`` weapon as
+  ``APPLY_HITROLL`` and ``APPLY_DAMROLL`` affects. The target reads
+  ``GET_ENHANCEMENT_BONUS()`` into both to-hit and damage already
+  (``src/combat/fight.c:7135`` and ``:10500``), so the caller drops the source
+  applies after this restatement; emitting both would grant the bonus twice.
+  """
+
+  hitroll = 0
+  damroll = 0
+  for directive in record.directives:
+    if directive["token"] != "A":
+      continue
+    arguments = directive.get("arguments", [])
+    if len(arguments) < 2:
+      continue
+    if arguments[0] == SOURCE_APPLY_HITROLL:
+      hitroll += arguments[1]
+    elif arguments[0] == SOURCE_APPLY_DAMROLL:
+      damroll += arguments[1]
+  if not hitroll and not damroll:
+    return 0
+  # A record stating only one of the two averages against zero, which is the
+  # intended reading of a half-stated bonus.
+  average = (hitroll + damroll) // 2
+  bonus = min(TARGET_MAX_ENHANCEMENT_BONUS, max(TARGET_MIN_ENHANCEMENT_BONUS, average))
+  diagnostics.append(
+      f"restated source hitroll {hitroll} and damroll {damroll} as enhancement "
+      f"bonus {bonus} and dropped the source applies"
+  )
+  if bonus != average:
+    diagnostics.append(
+        f"clamped enhancement bonus {average} to {bonus} for the target range "
+        f"{TARGET_MIN_ENHANCEMENT_BONUS}..{TARGET_MAX_ENHANCEMENT_BONUS}"
+    )
+  return bonus
+
+
+def _apply_weapon_object(
+    values: list[int],
+    economy: list[int],
+    target_wear: set[int],
+    inference: WeaponInference,
+    enhancement: int,
+    diagnostics: list[str],
+) -> tuple[int, int, int]:
+  """Replicate set_weapon_object() (src/obj/treasure.c:2562) at emit time.
+
+  A converted weapon has to come out mechanically identical to one an immortal
+  builds in OLC by picking a weapon type, so dice, cost, weight, material,
+  size, and the wear word are all derived from ``weapon_list[]`` rather than
+  carried over. Returns the proficiency, material, and size for the ``G``,
+  ``H``, and ``I`` blocks.
+  """
+
+  entry = weapon_table()[inference.weapon_type]
+  values[0] = inference.weapon_type
+  if [values[1], values[2]] != [entry.num_dice, entry.dice_size]:
+    diagnostics.append(
+        f"replaced source damage dice {values[1]}d{values[2]} with the "
+        f"{entry.name} table dice {entry.num_dice}d{entry.dice_size}"
+    )
+  values[1] = entry.num_dice
+  values[2] = entry.dice_size
+  values[4] = enhancement
+  # value[5] is the target's loaded-ammo counter, read by weapon_is_loaded()
+  # (src/combat/assign_wpn_armor.c:549). The source slot in that position is a
+  # rate of fire, which would silently pre-load a converted crossbow.
+  if values[5]:
+    diagnostics.append(
+        f"zeroed source rate of fire {values[5]}; the target slot is the "
+        "loaded-ammo counter"
+    )
+  for slot in range(5, len(values)):
+    values[slot] = 0
+  source_weight, source_cost = economy[0], economy[1]
+  economy[0] = entry.weight
+  economy[1] = entry.cost + 1
+  if [source_weight, source_cost] != [economy[0], economy[1]]:
+    diagnostics.append(
+        f"replaced source weight {source_weight} and cost {source_cost} with the "
+        f"{entry.name} table weight {economy[0]} and cost {economy[1]}"
+    )
+  dropped = sorted(target_wear - {TARGET_WEAR_TAKE, TARGET_WEAR_WIELD})
+  if dropped:
+    diagnostics.append(
+        f"cleared object wear flags {dropped}; a weapon carries only TAKE and WIELD"
+    )
+  target_wear.clear()
+  target_wear.update({TARGET_WEAR_TAKE, TARGET_WEAR_WIELD})
+  if entry.weapon_flags & WEAPON_FLAG_EXOTIC:
+    proficiency = TARGET_ITEM_PROF_EXOTIC
+  elif entry.weapon_flags & WEAPON_FLAG_MARTIAL:
+    proficiency = TARGET_ITEM_PROF_BASIC
+  elif entry.weapon_flags & WEAPON_FLAG_SIMPLE:
+    proficiency = TARGET_ITEM_PROF_MINIMAL
+  else:
+    proficiency = TARGET_ITEM_PROF_NONE
+  return proficiency, entry.material, entry.size
+
+
+def _apply_missile_object(
+    record: RolRecord,
+    values: list[int],
+    inference: Any,
+    enhancement: int,
+    diagnostics: list[str],
+) -> None:
+  """Apply the target ITEM_MISSILE value layout to a converted source missile.
+
+  Two of these slots mean something entirely different from the source slot
+  sitting in them, so passing them through is a live defect rather than
+  lossiness.
+  """
+
+  source_values = (list(record.values.get("values", [])) + [0] * 4)[:4]
+  values[0] = inference.ammo_type
+  # value[1] is the target's imbued spell number: imbued_arrow()
+  # (src/combat/fight.c:12057) casts it through call_magic() on every shot. The
+  # source slot in that position is a damage die.
+  if values[1]:
+    diagnostics.append(
+        f"zeroed source dice size {values[1]}; the target slot is the imbued "
+        "spell number"
+    )
+  values[1] = 0
+  values[2] = missile_break_probability(source_values[2])
+  diagnostics.append(
+      f"restated source missile durability {source_values[2]} as target break "
+      f"probability {values[2]} percent"
+  )
+  values[3] = 0
+  values[4] = enhancement
+  for slot in range(5, len(values)):
+    values[slot] = 0
 
 
 def emit_object(
@@ -1888,9 +2139,9 @@ def emit_object(
     lines.append(value)
 
   source_type = int(record.values.get("item_type") or 0)
-  target_type = OBJECT_TYPE_MAP.get(source_type, 12)
-  if source_type not in OBJECT_TYPE_MAP:
-    diagnostics.append(f"unknown source item type {source_type}; used ITEM_OTHER")
+  target_type, weapon_inference, ammo_inference = _object_target_type(
+      record, source_type, diagnostics
+  )
   source_flags = record.values.get("flags", [])
   extra_mask = source_flags[1] if len(source_flags) > 1 else 0
   wear_mask = source_flags[2] if len(source_flags) > 2 else 0
@@ -1958,22 +2209,26 @@ def emit_object(
           f"disabled special-procedure reference {target_kind} {source_value} "
           f"in object value slot {slot}: {error}"
       )
-  if source_type == SOURCE_ITEM_TYPE_WEAPON:
-    # Source value[0] is a proc hook, target value[0] is an index into
-    # weapon_list[]. Passing it through lands every converted weapon on
-    # WEAPON_TYPE_UNDEFINED, which disables criticals, empties the damage-type
-    # bitmask so damage reduction never bypasses, and matches no weapon family.
-    # Infer from the untouched source record: _object_values() has already
-    # rewritten values[3] into the target damage-message id, so the source verb
-    # is no longer recoverable from this list.
+  economy = list(record.values.get("economy", []))
+  economy_defaults = [0, 1, 0, 1, 1]
+  economy = economy[:5] + economy_defaults[len(economy[:5]):]
+  proficiency = material = size = None
+  enhancement = 0
+  if target_type in {TARGET_ITEM_WEAPON, TARGET_ITEM_MISSILE}:
+    enhancement = _object_enhancement_bonus(record, diagnostics)
+  if weapon_inference is not None:
     if any(slot == 0 for slot, _ in required_value_references):
       diagnostics.append(
           "replaced a special-procedure reference in object value slot 0 with "
           "the inferred weapon type"
       )
-    inference = infer_weapon_type(record)
-    values[0] = inference.weapon_type
-    diagnostics.append(inference.diagnostic)
+    diagnostics.append(weapon_inference.diagnostic)
+    proficiency, material, size = _apply_weapon_object(
+        values, economy, target_wear, weapon_inference, enhancement, diagnostics
+    )
+  elif target_type == TARGET_ITEM_MISSILE and ammo_inference is not None:
+    diagnostics.append(ammo_inference.diagnostic)
+    _apply_missile_object(record, values, ammo_inference, enhancement, diagnostics)
   trap_values = _object_trap_values(record, values, diagnostics)
   if trap_values is not None:
     target_extra.add(ROL_OBJECT_TRAP_EXTRA_BIT)
@@ -1983,9 +2238,6 @@ def emit_object(
       f"{_encoded(target_affects)} {_encoded(target_affects2)}\n"
   )
   lines.append(" ".join(str(value) for value in values) + "\n")
-  economy = list(record.values.get("economy", []))
-  economy_defaults = [0, 1, 0, 1, 1]
-  economy = economy[:5] + economy_defaults[len(economy[:5]):]
   if source_type == 17 and economy[0] > 0:
     # Source drink containers store weight in quarter pounds and the source
     # loader divides by four at load. The target reader applies no such
@@ -2018,6 +2270,13 @@ def emit_object(
         diagnostics.append(f"excluded incomplete object affect at source line {directive['line']}")
         continue
       source_location = arguments[0]
+      if (
+          target_type in {TARGET_ITEM_WEAPON, TARGET_ITEM_MISSILE}
+          and source_location in {SOURCE_APPLY_HITROLL, SOURCE_APPLY_DAMROLL}
+      ):
+        # Restated as the native enhancement bonus in value[4]; emitting both
+        # would grant the bonus twice.
+        continue
       if source_location in OBJECT_SOURCE_ONLY_APPLIES:
         diagnostics.append(
             f"omitted source-only object apply {source_location} at source line "
@@ -2042,6 +2301,12 @@ def emit_object(
       lines.extend(
           ["A\n", f"{location} {modifier} {OBJECT_APPLY_DEFAULT_BONUS_TYPE} 0\n"]
       )
+  if proficiency is not None:
+    # G/H/I, in the order oedit_save_to_disk() writes them (src/olc/genobj.c).
+    # The 'I' block is required even when the table size is SIZE_MEDIUM: the
+    # loader rewrites a missing or zero size to SIZE_MEDIUM (src/db.c:4112),
+    # which would silently resize every converted weapon that is not medium.
+    lines.extend(["G\n", f"{proficiency}\n", "H\n", f"{material}\n", "I\n", f"{size}\n"])
   if special_proc is not None:
     lines.extend(["Z\n", f"{special_proc}\n"])
   lines.extend(f"T {trigger_vnum}\n" for trigger_vnum in attachments)

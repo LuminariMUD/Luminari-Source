@@ -69,5 +69,24 @@
   "97061": {"weapon_type": "WEAPON_TYPE_KNIFE", "rationale": "grout trowel, short improvised blade"},
   "97112": {"weapon_type": "WEAPON_TYPE_LONGSPEAR", "rationale": "twisted iron shaft, two-handed thrusting shaft"},
   "98339": {"weapon_type": "WEAPON_TYPE_CLUB", "rationale": "long wooden ladle, improvised bludgeon"}
+ },
+ "ranged_comment": [
+  "Overrides for source ITEM_FIREWEAPON records, tier 1 ahead of the declared",
+  "range-weapon type in value[7] and the launcher name rules. A ranged",
+  "WEAPON_TYPE_* is accepted here only when has_ammo_in_pouch() carries a case",
+  "pairing it with an ammo type; anything else could never fire and do_hit",
+  "would refuse to melee with it."
+ ],
+ "ranged_overrides": {
+  "1017": {"weapon_type": "WEAPON_TYPE_HEAVY_CROSSBOW", "rationale": "SKM-77 joke rocket launcher, declared Special Missile Weapon; the heavy crossbow is the closest firing profile and pairs with its own ammunition, source object 1019"}
+ },
+ "ammunition_comment": [
+  "Overrides for source ITEM_MISSILE records. The value names either an",
+  "AMMO_TYPE_* constant, which keeps the record ITEM_MISSILE, or a",
+  "WEAPON_TYPE_* constant, which retypes it to ITEM_WEAPON because the target",
+  "has no throwing command and thrown records are only ever swung there."
+ ],
+ "ammunition_overrides": {
+  "1019": {"target": "AMMO_TYPE_BOLT", "rationale": "SMIR-42 joke rocket, declared Special Flight; kept as ammunition for its launcher, source object 1017"}
  }
 }

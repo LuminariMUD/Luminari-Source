@@ -154,7 +154,152 @@ RANGED_WEAPON_TYPES = frozenset({
     "WEAPON_TYPE_LIGHT_REP_XBOW",
 })
 
+# A ranged WEAPON_TYPE_* may only be emitted when has_ammo_in_pouch()
+# (src/combat/assign_wpn_armor.c:566) carries a case pairing it with an ammo
+# type. Every other ranged type is an item that can neither fire -- no ammo
+# pairs with it -- nor melee, because do_hit (src/combat/act.offensive.c:4667)
+# refuses to start melee for a wielded WEAPON_FLAG_RANGED weapon.
+# test_rol_weapon_mapping.py reparses that switch and fails if the set drifts.
+AMMO_PAIRED_WEAPON_TYPES = frozenset({
+    "WEAPON_TYPE_LONG_BOW",
+    "WEAPON_TYPE_SHORT_BOW",
+    "WEAPON_TYPE_COMPOSITE_LONGBOW",
+    "WEAPON_TYPE_COMPOSITE_LONGBOW_2",
+    "WEAPON_TYPE_COMPOSITE_LONGBOW_3",
+    "WEAPON_TYPE_COMPOSITE_LONGBOW_4",
+    "WEAPON_TYPE_COMPOSITE_LONGBOW_5",
+    "WEAPON_TYPE_COMPOSITE_SHORTBOW",
+    "WEAPON_TYPE_COMPOSITE_SHORTBOW_2",
+    "WEAPON_TYPE_COMPOSITE_SHORTBOW_3",
+    "WEAPON_TYPE_COMPOSITE_SHORTBOW_4",
+    "WEAPON_TYPE_COMPOSITE_SHORTBOW_5",
+    "WEAPON_TYPE_HAND_CROSSBOW",
+    "WEAPON_TYPE_HEAVY_REP_XBOW",
+    "WEAPON_TYPE_LIGHT_REP_XBOW",
+    "WEAPON_TYPE_HEAVY_CROSSBOW",
+    "WEAPON_TYPE_LIGHT_CROSSBOW",
+    "WEAPON_TYPE_SLING",
+    "WEAPON_TYPE_DART",
+})
+
+# Mirrors the AMMO_TYPE_* block in src/structs.h.
+AMMO_TYPE_NAMES: dict[int, str] = {
+    0: "AMMO_TYPE_UNDEFINED",
+    1: "AMMO_TYPE_ARROW",
+    2: "AMMO_TYPE_BOLT",
+    3: "AMMO_TYPE_STONE",
+    4: "AMMO_TYPE_DART",
+}
+AMMO_TYPE_IDS: dict[str, int] = {name: value for value, name in AMMO_TYPE_NAMES.items()}
+NUM_AMMO_TYPES = 5
+
 SOURCE_ITEM_TYPE_WEAPON = 5
+SOURCE_ITEM_TYPE_FIREWEAPON = 6
+SOURCE_ITEM_TYPE_MISSILE = 7
+SOURCE_ITEM_TYPE_QUIVER = 30
+
+TARGET_ITEM_WEAPON = 5
+TARGET_ITEM_MISSILE = 14
+TARGET_ITEM_CONTAINER = 15
+TARGET_ITEM_AMMO_POUCH = 36
+
+# RoL quivers declare their kind in value[3]
+# (EXAMPLE/RealmsOfLuminari/src/missile.c:53). An archery quiver holds
+# ITEM_MISSILE records and becomes an ammo pouch; a throwing quiver holds
+# thrown ITEM_FIREWEAPON records, which convert to ITEM_WEAPON, and an ammo
+# pouch may hold nothing but ITEM_MISSILE -- both has_ammo_in_pouch() and
+# do_put (src/obj/act.item.c:2022) enforce that -- so it becomes a container.
+SOURCE_QUIVER_ARCHERY = 1
+SOURCE_QUIVER_THROWING = 2
+
+# rangeweapons[] and missiles[], EXAMPLE/RealmsOfLuminari/src/missile.c:347 and
+# :402. One shared one-based numbering, read from fireweapon value[7] and
+# missile value[3].
+SOURCE_RANGE_TYPE_NAMES: dict[int, str] = {
+    1: "Short Bow",
+    2: "Long Bow",
+    3: "Elven Short Bow",
+    4: "Elven Long Bow",
+    5: "Hand Crossbow",
+    6: "Light Crossbow",
+    7: "Heavy Crossbow",
+    8: "Special Missile Weapon",
+    9: "Throwing Dagger",
+    10: "Dart",
+    11: "Throwing Hammer",
+    12: "Throwing Handaxe",
+    13: "Sling",
+    14: "Javelin",
+    15: "Spear",
+    16: "Blowgun",
+    17: "Special Thrown Weapon",
+    18: "Common Object",
+    19: "Scorpion Ballista",
+    20: "Catapult",
+    21: "Spell Missile",
+}
+
+# The "special" and "common object" buckets carry no weapon identity of their
+# own, so they fall through to the name tier.
+SOURCE_UNSPECIFIC_RANGE_TYPES = frozenset({8, 17, 18})
+
+# Source ITEM_FIREWEAPON value[7] to target weapon type. Elven bows are RoL's
+# better tier (range 100/200 against 65/120), which is what the composite types
+# express; the _2.._5 variants encode a strength rating no source record
+# carries. Javelin deliberately becomes SHORTSPEAR rather than
+# WEAPON_TYPE_JAVELIN: the latter is WEAPON_FLAG_RANGED with no case in
+# has_ammo_in_pouch(), so it could never fire and do_hit would refuse to melee
+# with it. SHORTSPEAR is the same 1d6 piercing thrown profile without the flag.
+SOURCE_RANGE_WEAPON_TYPES: dict[int, str] = {
+    1: "WEAPON_TYPE_SHORT_BOW",
+    2: "WEAPON_TYPE_LONG_BOW",
+    3: "WEAPON_TYPE_COMPOSITE_SHORTBOW",
+    4: "WEAPON_TYPE_COMPOSITE_LONGBOW",
+    5: "WEAPON_TYPE_HAND_CROSSBOW",
+    6: "WEAPON_TYPE_LIGHT_CROSSBOW",
+    7: "WEAPON_TYPE_HEAVY_CROSSBOW",
+    9: "WEAPON_TYPE_DAGGER",
+    10: "WEAPON_TYPE_DART",
+    11: "WEAPON_TYPE_LIGHT_HAMMER",
+    12: "WEAPON_TYPE_THROWING_AXE",
+    13: "WEAPON_TYPE_SLING",
+    14: "WEAPON_TYPE_SHORTSPEAR",
+    15: "WEAPON_TYPE_SPEAR",
+    16: "WEAPON_TYPE_DART",
+}
+
+# Source ITEM_MISSILE value[3] to target AMMO_TYPE_*.
+SOURCE_MISSILE_AMMO_TYPES: dict[int, str] = {
+    1: "AMMO_TYPE_ARROW",
+    2: "AMMO_TYPE_ARROW",
+    3: "AMMO_TYPE_ARROW",
+    4: "AMMO_TYPE_ARROW",
+    5: "AMMO_TYPE_BOLT",
+    6: "AMMO_TYPE_BOLT",
+    7: "AMMO_TYPE_BOLT",
+    10: "AMMO_TYPE_DART",
+    13: "AMMO_TYPE_STONE",
+    16: "AMMO_TYPE_DART",
+}
+
+# Source ITEM_MISSILE types the target has no ammunition for. The target has no
+# throwing command at all, so these records are retyped to ITEM_WEAPON and
+# become the melee weapon they are.
+SOURCE_MISSILE_WEAPON_TYPES: dict[int, str] = {
+    9: "WEAPON_TYPE_DAGGER",
+    11: "WEAPON_TYPE_LIGHT_HAMMER",
+    12: "WEAPON_TYPE_THROWING_AXE",
+    14: "WEAPON_TYPE_SHORTSPEAR",
+    15: "WEAPON_TYPE_SPEAR",
+}
+
+# Source missile durability runs 1..10 with 10 best; target missile value[2] is
+# a break-probability percent read at src/combat/fight.c:12210, where higher is
+# more fragile. The scale is inverted, not merely rescaled.
+SOURCE_MISSILE_MIN_DURABILITY = 1
+SOURCE_MISSILE_MAX_DURABILITY = 10
+MISSILE_BREAK_PROBABILITY_BASE = SOURCE_MISSILE_MAX_DURABILITY + 1
+
 # ITEM_TWOHANDS in the source extra-flag word.
 SOURCE_TWO_HANDED_BIT = 1 << 22
 
@@ -435,42 +580,107 @@ _FALLBACK: list[tuple[str, frozenset[int], str, str]] = [
 # Applied when value[3] holds a verb the source runtime itself would reject.
 _FALLBACK_DEFAULT = "WEAPON_TYPE_CLUB"
 
-_overrides_cache: dict[int, dict[str, Any]] | None = None
+_catalog_cache: dict[str, dict[int, dict[str, Any]]] | None = None
+
+
+def _melee_override(vnum: int, name: str) -> dict[str, Any]:
+  if name not in WEAPON_TYPE_IDS:
+    raise ValueError(f"override for source object {vnum} names unknown weapon type {name}")
+  if WEAPON_TYPE_IDS[name] == 0:
+    raise ValueError(f"override for source object {vnum} resolves to WEAPON_TYPE_UNDEFINED")
+  if name in RANGED_WEAPON_TYPES:
+    raise ValueError(
+        f"override for source object {vnum} names ranged weapon type {name}; "
+        "source melee weapons must not become ranged"
+    )
+  return {"weapon_type": WEAPON_TYPE_IDS[name], "name": name}
+
+
+def _ranged_override(vnum: int, name: str) -> dict[str, Any]:
+  if name not in WEAPON_TYPE_IDS:
+    raise ValueError(f"override for source object {vnum} names unknown weapon type {name}")
+  if WEAPON_TYPE_IDS[name] == 0:
+    raise ValueError(f"override for source object {vnum} resolves to WEAPON_TYPE_UNDEFINED")
+  if name in RANGED_WEAPON_TYPES and name not in AMMO_PAIRED_WEAPON_TYPES:
+    raise ValueError(
+        f"override for source object {vnum} names ranged weapon type {name}, which "
+        "has no case in has_ammo_in_pouch() and could never fire"
+    )
+  return {"weapon_type": WEAPON_TYPE_IDS[name], "name": name}
+
+
+def _ammunition_override(vnum: int, name: str) -> dict[str, Any]:
+  if name in AMMO_TYPE_IDS:
+    if AMMO_TYPE_IDS[name] == 0:
+      raise ValueError(f"override for source object {vnum} resolves to AMMO_TYPE_UNDEFINED")
+    return {
+        "item_type": TARGET_ITEM_MISSILE,
+        "ammo_type": AMMO_TYPE_IDS[name],
+        "weapon_type": 0,
+        "name": name,
+    }
+  resolved = _melee_override(vnum, name)
+  return {
+      "item_type": TARGET_ITEM_WEAPON,
+      "ammo_type": 0,
+      "weapon_type": resolved["weapon_type"],
+      "name": resolved["name"],
+  }
+
+
+_CATALOG_SECTIONS: dict[str, Callable[[int, str], dict[str, Any]]] = {
+    "overrides": _melee_override,
+    "ranged_overrides": _ranged_override,
+    "ammunition_overrides": _ammunition_override,
+}
+
+# The section key the entries in each catalog section name their target with.
+_CATALOG_VALUE_KEYS: dict[str, str] = {
+    "overrides": "weapon_type",
+    "ranged_overrides": "weapon_type",
+    "ammunition_overrides": "target",
+}
+
+
+def load_catalog(path: Path | None = None) -> dict[str, dict[int, dict[str, Any]]]:
+  """Load and validate every curated per-vnum override section."""
+
+  global _catalog_cache
+  if path is None and _catalog_cache is not None:
+    return _catalog_cache
+  target = path or OVERRIDES_PATH
+  payload = json.loads(target.read_text(encoding="ascii")) if target.exists() else {}
+  catalog: dict[str, dict[int, dict[str, Any]]] = {}
+  for section, validate in _CATALOG_SECTIONS.items():
+    entries = payload.get(section, {})
+    resolved: dict[int, dict[str, Any]] = {}
+    for key, entry in entries.items():
+      vnum = int(key)
+      record = validate(vnum, entry[_CATALOG_VALUE_KEYS[section]])
+      record["rationale"] = entry.get("rationale", "")
+      resolved[vnum] = record
+    catalog[section] = resolved
+  if path is None:
+    _catalog_cache = catalog
+  return catalog
 
 
 def load_overrides(path: Path | None = None) -> dict[int, dict[str, Any]]:
-  """Load and validate the curated per-vnum override catalog."""
+  """Load the curated per-vnum override catalog for source melee weapons."""
 
-  global _overrides_cache
-  if path is None and _overrides_cache is not None:
-    return _overrides_cache
-  target = path or OVERRIDES_PATH
-  if not target.exists():
-    overrides: dict[int, dict[str, Any]] = {}
-  else:
-    payload = json.loads(target.read_text(encoding="ascii"))
-    entries = payload.get("overrides", {})
-    overrides = {}
-    for key, entry in entries.items():
-      vnum = int(key)
-      name = entry["weapon_type"]
-      if name not in WEAPON_TYPE_IDS:
-        raise ValueError(f"override for source object {vnum} names unknown weapon type {name}")
-      if WEAPON_TYPE_IDS[name] == 0:
-        raise ValueError(f"override for source object {vnum} resolves to WEAPON_TYPE_UNDEFINED")
-      if name in RANGED_WEAPON_TYPES:
-        raise ValueError(
-            f"override for source object {vnum} names ranged weapon type {name}; "
-            "source melee weapons must not become ranged"
-        )
-      overrides[vnum] = {
-          "weapon_type": WEAPON_TYPE_IDS[name],
-          "name": name,
-          "rationale": entry.get("rationale", ""),
-      }
-  if path is None:
-    _overrides_cache = overrides
-  return overrides
+  return load_catalog(path)["overrides"]
+
+
+def load_ranged_overrides(path: Path | None = None) -> dict[int, dict[str, Any]]:
+  """Load the curated per-vnum override catalog for source ranged weapons."""
+
+  return load_catalog(path)["ranged_overrides"]
+
+
+def load_ammunition_overrides(path: Path | None = None) -> dict[int, dict[str, Any]]:
+  """Load the curated per-vnum override catalog for source ammunition."""
+
+  return load_catalog(path)["ammunition_overrides"]
 
 
 def weapon_context(record: Any) -> WeaponContext:
@@ -537,40 +747,398 @@ def infer_weapon_type(record: Any) -> WeaponInference:
   return inference
 
 
+# Name rules for the source "special"/"common object" buckets, which declare no
+# usable type. Ordered; the first match wins. A launcher rule may only name an
+# ammo-paired type, and an ammunition rule may only name an AMMO_TYPE_*.
+_LAUNCHER_NAME_RULES: list[tuple[str, Callable[[str], bool], str]] = [
+    ("crossbow", _phrase(
+        "crossbow", "cross bow", "bolt thrower", "arbalest"), "WEAPON_TYPE_LIGHT_CROSSBOW"),
+    ("short bow", _phrase("short bow", "shortbow"), "WEAPON_TYPE_SHORT_BOW"),
+    ("composite bow", _phrase(
+        "composite bow", "composite longbow", "elven longbow", "elven long bow"),
+     "WEAPON_TYPE_COMPOSITE_LONGBOW"),
+    ("bow", _phrase("bow", "longbow", "long bow", "warbow"), "WEAPON_TYPE_LONG_BOW"),
+    ("sling", _phrase("sling", "slingshot"), "WEAPON_TYPE_SLING"),
+    ("dart launcher", _phrase("blowgun", "blow gun", "dart gun", "dartgun"),
+     "WEAPON_TYPE_DART"),
+]
+
+_AMMUNITION_NAME_RULES: list[tuple[str, Callable[[str], bool], str]] = [
+    ("arrow", _phrase("arrow", "arrows", "shaft", "shafts", "flight"), "AMMO_TYPE_ARROW"),
+    ("bolt", _phrase("bolt", "bolts", "quarrel", "quarrels"), "AMMO_TYPE_BOLT"),
+    ("sling stone", _phrase(
+        "sling stone", "slingstone", "sling bullet", "pebble", "pebbles"), "AMMO_TYPE_STONE"),
+    ("dart", _phrase("dart", "darts", "needle", "needles"), "AMMO_TYPE_DART"),
+]
+
+
+@dataclass(frozen=True)
+class RangedContext:
+  """The source signals ranged inference is allowed to read."""
+
+  vnum: int
+  text: str
+  source_item_type: int
+  declared_type: int
+  values: tuple[int, ...]
+
+  @property
+  def declared_name(self) -> str:
+    return SOURCE_RANGE_TYPE_NAMES.get(self.declared_type, "unknown")
+
+
+@dataclass(frozen=True)
+class AmmoInference:
+  """A resolved ammunition identity plus the trail that produced it.
+
+  ``item_type`` is the target item type the record must be emitted as. Source
+  ammunition the target has no ammo type for is retyped to ``ITEM_WEAPON``,
+  because the target has no throwing command and a thrown record is only ever
+  swung there.
+  """
+
+  item_type: int
+  ammo_type: int
+  weapon_type: int
+  name: str
+  tier: str
+  rule: str
+
+  @property
+  def diagnostic(self) -> str:
+    if self.item_type == TARGET_ITEM_WEAPON:
+      return (
+          f"retyped source ammunition to ITEM_WEAPON on weapon type "
+          f"{self.weapon_type} ({self.name}) from {self.tier} rule '{self.rule}'"
+      )
+    return (
+        f"inferred ammo type {self.ammo_type} ({self.name}) "
+        f"from {self.tier} rule '{self.rule}'"
+    )
+
+
+def ranged_context(record: Any) -> RangedContext:
+  """Build the ranged inference context from an unmodified source record."""
+
+  values = list(record.values.get("values", []))
+  values = (values + [0] * 8)[:8]
+  source_item_type = int(record.values.get("item_type") or 0)
+  declared = values[7] if source_item_type == SOURCE_ITEM_TYPE_FIREWEAPON else values[3]
+  strings = record.values.get("strings", {})
+  text = normalize_text(
+      f"{strings.get('aliases', '')} {strings.get('short_description', '')}"
+  )
+  return RangedContext(
+      vnum=record.vnum,
+      text=text,
+      source_item_type=source_item_type,
+      declared_type=declared,
+      values=tuple(values),
+  )
+
+
+class _MeleeFallbackRecord:
+  """Adapt a RangedContext back into the shape ``weapon_context()`` reads.
+
+  The melee classifier is the last tier for the source "special" buckets, and
+  it reads its own signals off a source record. A ranged record carries no
+  melee verb and no handedness that means anything, so only the text and the
+  vnum are carried across; the melee fallback matrix then resolves on the
+  unmapped-verb default rather than on an invented verb.
+  """
+
+  def __init__(self, context: RangedContext) -> None:
+    self.vnum = context.vnum
+    self.kind = "obj"
+    self.values = {
+        "values": [0, 0, 0, -1],
+        "flags": [0, 0, 0],
+        "economy": [0],
+        "strings": {"aliases": context.text, "short_description": ""},
+    }
+
+
+def classify_ranged_weapon(
+    context: RangedContext,
+    overrides: dict[int, dict[str, Any]] | None = None,
+) -> WeaponInference:
+  """Resolve one source ITEM_FIREWEAPON to a defined target WEAPON_TYPE_*.
+
+  The tiers invert relative to melee inference. The source record declares its
+  own range-weapon type in ``value[7]``, and that is what the RoL engine used
+  for range, rate of fire, and quiver compatibility, so it outranks the name.
+  A curated override still wins over both, as it does for melee weapons: it is
+  an explicit builder-review decision rather than an inference.
+  """
+
+  catalog = load_ranged_overrides() if overrides is None else overrides
+  override = catalog.get(context.vnum)
+  if override is not None:
+    return WeaponInference(override["weapon_type"], override["name"], "override", "catalog")
+
+  declared = SOURCE_RANGE_WEAPON_TYPES.get(context.declared_type)
+  if declared is not None:
+    return WeaponInference(
+        WEAPON_TYPE_IDS[declared],
+        declared,
+        "declared",
+        f"range type {context.declared_type} ({context.declared_name})",
+    )
+
+  for rule, matches, name in _LAUNCHER_NAME_RULES:
+    if matches(context.text):
+      return WeaponInference(WEAPON_TYPE_IDS[name], name, "keyword", rule)
+
+  # Nothing declared and nothing named: RoL's "special"/"common object" buckets
+  # are improvised objects as often as they are weapons, so fall through to the
+  # melee classifier, which always resolves and never emits a ranged type.
+  melee = classify(weapon_context(_MeleeFallbackRecord(context)))
+  return WeaponInference(melee.weapon_type, melee.name, "fallback", f"melee {melee.rule}")
+
+
+def classify_ammunition(
+    context: RangedContext,
+    overrides: dict[int, dict[str, Any]] | None = None,
+) -> AmmoInference:
+  """Resolve one source ITEM_MISSILE to an ammo type or a retyped weapon."""
+
+  catalog = load_ammunition_overrides() if overrides is None else overrides
+  override = catalog.get(context.vnum)
+  if override is not None:
+    return AmmoInference(
+        override["item_type"],
+        override["ammo_type"],
+        override["weapon_type"],
+        override["name"],
+        "override",
+        "catalog",
+    )
+
+  declared = SOURCE_MISSILE_AMMO_TYPES.get(context.declared_type)
+  if declared is not None:
+    return AmmoInference(
+        TARGET_ITEM_MISSILE,
+        AMMO_TYPE_IDS[declared],
+        0,
+        declared,
+        "declared",
+        f"missile type {context.declared_type} ({context.declared_name})",
+    )
+
+  thrown = SOURCE_MISSILE_WEAPON_TYPES.get(context.declared_type)
+  if thrown is not None:
+    return AmmoInference(
+        TARGET_ITEM_WEAPON,
+        0,
+        WEAPON_TYPE_IDS[thrown],
+        thrown,
+        "declared",
+        f"missile type {context.declared_type} ({context.declared_name})",
+    )
+
+  for rule, matches, name in _AMMUNITION_NAME_RULES:
+    if matches(context.text):
+      return AmmoInference(
+          TARGET_ITEM_MISSILE, AMMO_TYPE_IDS[name], 0, name, "keyword", rule
+      )
+
+  melee = classify(weapon_context(_MeleeFallbackRecord(context)))
+  return AmmoInference(
+      TARGET_ITEM_WEAPON, 0, melee.weapon_type, melee.name, "fallback", f"melee {melee.rule}"
+  )
+
+
+def infer_ranged_weapon_type(record: Any) -> WeaponInference:
+  """Infer the target weapon type for one source ITEM_FIREWEAPON record."""
+
+  inference = classify_ranged_weapon(ranged_context(record))
+  if not 1 <= inference.weapon_type < NUM_WEAPON_TYPES:
+    raise ValueError(
+        f"source object {record.vnum} resolved to out-of-range weapon type "
+        f"{inference.weapon_type}"
+    )
+  if inference.name in RANGED_WEAPON_TYPES and inference.name not in AMMO_PAIRED_WEAPON_TYPES:
+    raise ValueError(
+        f"source object {record.vnum} resolved to ranged weapon type {inference.name}, "
+        "which has no case in has_ammo_in_pouch() and could never fire"
+    )
+  return inference
+
+
+def infer_ammunition(record: Any) -> AmmoInference:
+  """Infer the target ammunition identity for one source ITEM_MISSILE record."""
+
+  inference = classify_ammunition(ranged_context(record))
+  if inference.item_type == TARGET_ITEM_MISSILE:
+    if not 1 <= inference.ammo_type < NUM_AMMO_TYPES:
+      raise ValueError(
+          f"source object {record.vnum} resolved to out-of-range ammo type "
+          f"{inference.ammo_type}"
+      )
+  elif not 1 <= inference.weapon_type < NUM_WEAPON_TYPES:
+    raise ValueError(
+        f"source object {record.vnum} resolved to out-of-range weapon type "
+        f"{inference.weapon_type}"
+    )
+  elif inference.name in RANGED_WEAPON_TYPES:
+    raise ValueError(
+        f"source object {record.vnum} retyped to ranged weapon type {inference.name}"
+    )
+  return inference
+
+
+def missile_break_probability(durability: int) -> int:
+  """Restate source missile durability as the target's break-probability percent.
+
+  Source durability runs 1..10 with 10 best; the target breaks the missile when
+  ``value[2] >= dice(1, 100)``, so the scale is inverted rather than rescaled.
+  """
+
+  clamped = min(
+      SOURCE_MISSILE_MAX_DURABILITY, max(SOURCE_MISSILE_MIN_DURABILITY, durability)
+  )
+  return MISSILE_BREAK_PROBABILITY_BASE - clamped
+
+
 def audit(records: Iterable[Any]) -> dict[str, Any]:
-  """Summarize inference over a corpus for conversion reporting."""
+  """Summarize inference over a corpus for conversion reporting.
+
+  One report covers all three source families -- melee weapons, ranged
+  weapons, and ammunition -- so the builder review packet is one document
+  rather than three. ``name_disagreements`` collects the records whose text
+  argues with the type their builder declared; the declared type wins
+  mechanically, but each one is a builder judgement the review should see.
+  """
 
   rows: list[dict[str, Any]] = []
+  disagreements: list[dict[str, Any]] = []
   for record in records:
-    if record.kind != "obj" or record.values.get("item_type") != SOURCE_ITEM_TYPE_WEAPON:
+    if record.kind != "obj":
       continue
-    context = weapon_context(record)
-    inference = classify(context)
-    rows.append(
+    source_type = record.values.get("item_type")
+    if source_type == SOURCE_ITEM_TYPE_WEAPON:
+      context = weapon_context(record)
+      inference = classify(context)
+      rows.append(
+          {
+              "vnum": record.vnum,
+              "path": record.path,
+              "identity": record.identity,
+              "source_item_type": source_type,
+              "target_item_type": TARGET_ITEM_WEAPON,
+              "weapon_type": inference.weapon_type,
+              "weapon_type_name": inference.name,
+              "ammo_type": 0,
+              "tier": inference.tier,
+              "rule": inference.rule,
+              "two_handed": context.two_handed,
+              "verb": context.verb,
+          }
+      )
+      continue
+    if source_type not in {SOURCE_ITEM_TYPE_FIREWEAPON, SOURCE_ITEM_TYPE_MISSILE}:
+      continue
+    context = ranged_context(record)
+    if source_type == SOURCE_ITEM_TYPE_FIREWEAPON:
+      inference = classify_ranged_weapon(context)
+      row = {
+          "target_item_type": TARGET_ITEM_WEAPON,
+          "weapon_type": inference.weapon_type,
+          "weapon_type_name": inference.name,
+          "ammo_type": 0,
+          "tier": inference.tier,
+          "rule": inference.rule,
+      }
+      named = _launcher_name_opinion(context)
+    else:
+      ammo = classify_ammunition(context)
+      row = {
+          "target_item_type": ammo.item_type,
+          "weapon_type": ammo.weapon_type,
+          "weapon_type_name": ammo.name,
+          "ammo_type": ammo.ammo_type,
+          "tier": ammo.tier,
+          "rule": ammo.rule,
+      }
+      named = _ammunition_name_opinion(context)
+    row.update(
         {
             "vnum": record.vnum,
             "path": record.path,
             "identity": record.identity,
-            "weapon_type": inference.weapon_type,
-            "weapon_type_name": inference.name,
-            "tier": inference.tier,
-            "rule": inference.rule,
-            "two_handed": context.two_handed,
-            "verb": context.verb,
+            "source_item_type": source_type,
+            "declared_type": context.declared_type,
+            "declared_name": context.declared_name,
+            "two_handed": False,
+            "verb": 0,
         }
     )
+    rows.append(row)
+    if named is not None and named != row["weapon_type_name"]:
+      disagreements.append(
+          {
+              "vnum": record.vnum,
+              "identity": record.identity,
+              "declared_name": context.declared_name,
+              "resolved": row["weapon_type_name"],
+              "named": named,
+          }
+      )
   tiers: dict[str, int] = {}
   rules: dict[str, int] = {}
   types: dict[str, int] = {}
   for row in rows:
     tiers[row["tier"]] = tiers.get(row["tier"], 0) + 1
     rules[f"{row['tier']}:{row['rule']}"] = rules.get(f"{row['tier']}:{row['rule']}", 0) + 1
-    types[row["weapon_type_name"]] = types.get(row["weapon_type_name"], 0) + 1
+    name = row["weapon_type_name"]
+    types[name] = types.get(name, 0) + 1
   return {
-      "weapons": len(rows),
-      "undefined": sum(1 for row in rows if row["weapon_type"] == 0),
+      "weapons": sum(
+          1 for row in rows if row["source_item_type"] == SOURCE_ITEM_TYPE_WEAPON
+      ),
+      "ranged_weapons": sum(
+          1 for row in rows if row["source_item_type"] == SOURCE_ITEM_TYPE_FIREWEAPON
+      ),
+      "ammunition": sum(
+          1 for row in rows if row["source_item_type"] == SOURCE_ITEM_TYPE_MISSILE
+      ),
+      "retyped_ammunition": sum(
+          1
+          for row in rows
+          if row["source_item_type"] == SOURCE_ITEM_TYPE_MISSILE
+          and row["target_item_type"] == TARGET_ITEM_WEAPON
+      ),
+      "undefined": sum(
+          1
+          for row in rows
+          if row["target_item_type"] == TARGET_ITEM_WEAPON and row["weapon_type"] == 0
+      ),
+      "undefined_ammo": sum(
+          1
+          for row in rows
+          if row["target_item_type"] == TARGET_ITEM_MISSILE and row["ammo_type"] == 0
+      ),
       "tiers": dict(sorted(tiers.items())),
       "rules": dict(sorted(rules.items(), key=lambda item: (-item[1], item[0]))),
       "weapon_types": dict(sorted(types.items(), key=lambda item: (-item[1], item[0]))),
+      "name_disagreements": disagreements,
       "records": rows,
   }
+
+
+def _launcher_name_opinion(context: RangedContext) -> str | None:
+  """What the launcher name rules would say, ignoring the declared type."""
+
+  for _rule, matches, name in _LAUNCHER_NAME_RULES:
+    if matches(context.text):
+      return name
+  return None
+
+
+def _ammunition_name_opinion(context: RangedContext) -> str | None:
+  """What the ammunition name rules would say, ignoring the declared type."""
+
+  for _rule, matches, name in _AMMUNITION_NAME_RULES:
+    if matches(context.text):
+      return name
+  return None
