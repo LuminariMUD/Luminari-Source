@@ -12,6 +12,8 @@
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
 
+#include <inttypes.h>     /* for PRIu32 and SCNu32 */
+#include <stdint.h>       /* for int32_t and uint32_t */
 #include <time.h>         /* for time_t */
 #include <stddef.h>       /* for size_t */
 #include "bool.h"         /* for bool */
@@ -48,29 +50,32 @@
 #define USE_AUTOEQ 1
 
 /* preamble */
-/** As of bpl20, it should be safe to use unsigned data types for the various
- * virtual and real number data types.  There really isn't a reason to use
- * signed anymore so use the unsigned types and get 65,535 objects instead of
- * 32,768. NOTE: This will likely be unconditionally unsigned later.
+/** Use fixed-width data types for virtual and real numbers. Unsigned indexes
+ * reserve UINT32_MAX as the common invalid sentinel and support every lower
+ * value without depending on the host width of int.
  * 0 = use signed indexes; 1 = use unsigned indexes */
 #define CIRCLE_UNSIGNED_INDEX 1
 
 #if CIRCLE_UNSIGNED_INDEX
-#define IDXTYPE unsigned int  /** Index types are unsigned ints */
-#define IDXTYPE_MAX UINT_MAX  /** Used for compatibility checks. */
-#define IDXTYPE_MIN 0         /**< Used for compatibility checks. */
-#define NOWHERE ((IDXTYPE)~0) /**< Sets to unsigned_int_MAX, or -1 */
-#define NOTHING ((IDXTYPE)~0) /**< Sets to unsigned_int_MAX, or -1 */
-#define NOBODY ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
-#define NOFLAG ((IDXTYPE)~0)  /**< Sets to unsigned_int_MAX, or -1 */
+typedef uint32_t IDXTYPE;       /**< Fixed-width type for virtual and real indexes. */
+#define IDXTYPE_MAX UINT32_MAX  /**< Used for compatibility checks. */
+#define IDXTYPE_MIN UINT32_C(0) /**< Used for compatibility checks. */
+#define NOWHERE ((IDXTYPE)~0)   /**< Sets to UINT32_MAX, or -1 */
+#define NOTHING ((IDXTYPE)~0)   /**< Sets to UINT32_MAX, or -1 */
+#define NOBODY ((IDXTYPE)~0)    /**< Sets to UINT32_MAX, or -1 */
+#define NOFLAG ((IDXTYPE)~0)    /**< Sets to UINT32_MAX, or -1 */
+#define PRI_IDX PRIu32          /**< printf conversion for an index. */
+#define SCN_IDX SCNu32          /**< scanf conversion for an index. */
 #else
-#define IDXTYPE signed int      /** Index types are unsigned short ints */
-#define IDXTYPE_MAX INT_MAX     /** Used for compatibility checks. */
-#define IDXTYPE_MIN INT_MIN     /** Used for compatibility checks. */
+typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
+#define IDXTYPE_MAX INT32_MAX   /**< Used for compatibility checks. */
+#define IDXTYPE_MIN INT32_MIN   /**< Used for compatibility checks. */
 #define NOWHERE ((IDXTYPE) - 1) /**< nil reference for rooms */
 #define NOTHING ((IDXTYPE) - 1) /**< nil reference for objects */
 #define NOBODY ((IDXTYPE) - 1)  /**< nil reference for mobiles  */
 #define NOFLAG ((IDXTYPE) - 1)  /**< nil reference for flags   */
+#define PRI_IDX PRId32          /**< printf conversion for an index. */
+#define SCN_IDX SCNd32          /**< scanf conversion for an index. */
 #endif
 
 /** Function macro for the mob, obj and room special functions */

@@ -6,11 +6,15 @@
 #include "../../src/utils.h"
 #include "../../src/act.h"
 #include "../../src/comm.h"
+#include "../../src/db.h"
 #include "../../src/handler.h"
+#include "../../src/interpreter.h"
 #include "../../src/magic/spells.h"
 #include "../../src/modify.h"
 #include "../../src/comms/boards.h"
+#include "../../src/obj/item.h"
 #include "../../src/olc/genolc.h"
+#include "../../src/olc/oasis.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
 #include "../../src/dgscript/dg_olc.h"
@@ -21,6 +25,221 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+static size_t longest_visible_output_line(const char *output)
+{
+  size_t current;
+  size_t longest;
+
+  current = 0;
+  longest = 0;
+  while (output != NULL && *output != '\0')
+  {
+    if (*output == '\033' && output[1] == '[')
+    {
+      output += 2;
+      while (*output != '\0' && *output != 'm')
+        output++;
+      if (*output == 'm')
+        output++;
+      continue;
+    }
+    if (*output == '\r' || *output == '\n')
+    {
+      if (current > longest)
+        longest = current;
+      current = 0;
+      output++;
+      continue;
+    }
+    current++;
+    output++;
+  }
+  return current > longest ? current : longest;
+}
+
+static void reset_test_descriptor_output(struct descriptor_data *descriptor)
+{
+  if (descriptor->large_outbuf != NULL)
+  {
+    free(descriptor->large_outbuf->text);
+    free(descriptor->large_outbuf);
+    descriptor->large_outbuf = NULL;
+    if (buf_largecount > 0)
+      buf_largecount--;
+  }
+  descriptor->output = descriptor->small_outbuf;
+  descriptor->output[0] = '\0';
+  descriptor->bufptr = 0;
+  descriptor->bufspace = SMALL_BUFSIZE - 1;
+}
+
+void Test_uint32_indices_parse_and_render_high_stat_vnums(CuTest *tc)
+{
+  const IDXTYPE high_vnum = UINT32_C(4000000000);
+  struct char_data staff;
+  struct char_data mobile;
+  struct descriptor_data descriptor;
+  struct player_special_data staff_specials;
+  struct room_data rooms[2];
+  struct room_data *saved_world;
+  struct zone_data zone;
+  struct zone_data *saved_zone_table;
+  struct reset_com zone_command;
+  struct index_data mobile_index;
+  struct index_data *saved_mob_index;
+  struct index_data object_index;
+  struct index_data *saved_obj_index;
+  struct obj_data object;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone_table;
+  mob_rnum saved_top_of_mobt;
+  obj_rnum saved_top_of_objt;
+  int saved_top_of_p_table;
+  char high_text[16];
+  bool room_stat_valid;
+  bool room_list_valid;
+  bool mobile_stat_valid;
+  bool object_stat_valid;
+
+  clear_char(&staff);
+  clear_char(&mobile);
+  clear_object(&object);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&staff_specials, 0, sizeof(staff_specials));
+  memset(rooms, 0, sizeof(rooms));
+  memset(&zone, 0, sizeof(zone));
+  memset(&zone_command, 0, sizeof(zone_command));
+  memset(&mobile_index, 0, sizeof(mobile_index));
+  memset(&object_index, 0, sizeof(object_index));
+
+  CuAssertIntEquals(tc, 4, (int)sizeof(IDXTYPE));
+  CuAssertTrue(tc, atoidx("4000000000") == high_vnum);
+  CuAssertTrue(tc, atoidx("4294967295") == NOWHERE);
+  CuAssertTrue(tc, atoidx("4294967296") == NOWHERE);
+  CuAssertTrue(tc, atoidx("-1") == NOWHERE);
+  CuAssertTrue(tc, atoidx("12junk") == NOWHERE);
+  sprintindex(high_vnum, high_text, sizeof(high_text));
+  CuAssertStrEquals(tc, "4000000000", high_text);
+  sprintindex(NOWHERE, high_text, sizeof(high_text));
+  CuAssertStrEquals(tc, "NONE", high_text);
+  sprintindex(high_vnum, high_text, sizeof(high_text));
+
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &staff;
+  descriptor.connected = CON_PLAYING;
+  descriptor.pProtocol = ProtocolCreate();
+  staff.desc = &descriptor;
+  staff.player_specials = &staff_specials;
+  staff.player.name = "indexstat";
+  GET_LEVEL(&staff) = LVL_IMPL;
+  GET_POS(&staff) = POS_STANDING;
+  IN_ROOM(&staff) = 1;
+
+  mobile.player_specials = &dummy_mob;
+  mobile.player.name = "highmobile";
+  mobile.player.short_descr = "a high-vnum mobile";
+  mobile.player.long_descr = "A high-vnum mobile is here.\r\n";
+  mobile.player.description = "A mobile used to test high VNUM stat output.\r\n";
+  SET_BIT_AR(MOB_FLAGS(&mobile), MOB_ISNPC);
+  GET_MOB_RNUM(&mobile) = 0;
+  GET_LEVEL(&mobile) = 1;
+  GET_POS(&mobile) = POS_STANDING;
+  IN_ROOM(&mobile) = 1;
+
+  rooms[0].number = 1;
+  rooms[0].name = "Low VNUM Fixture Room";
+  rooms[0].zone = 0;
+  rooms[1].number = high_vnum;
+  rooms[1].name = "High VNUM Stat Room";
+  rooms[1].description = "A room used to test high VNUM stat output.\r\n";
+  rooms[1].zone = 0;
+  rooms[1].light = 1;
+  rooms[1].people = &mobile;
+  zone.number = UINT32_C(40000000);
+  zone.bot = high_vnum;
+  zone.top = high_vnum;
+  zone.name = "High VNUM Zone";
+  zone.builders = "Test";
+  zone.cmd = &zone_command;
+  zone_command.command = 'S';
+  mobile_index.vnum = high_vnum;
+
+  object.name = "high object";
+  object.short_description = "a high-vnum object";
+  object.description = "A high-vnum object lies here.";
+  GET_OBJ_RNUM(&object) = 0;
+  GET_OBJ_TYPE(&object) = ITEM_OTHER;
+  object_index.vnum = high_vnum;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  saved_mob_index = mob_index;
+  saved_top_of_mobt = top_of_mobt;
+  saved_obj_index = obj_index;
+  saved_top_of_objt = top_of_objt;
+  saved_top_of_p_table = top_of_p_table;
+  world = rooms;
+  top_of_world = 1;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+  mob_index = &mobile_index;
+  top_of_mobt = 0;
+  obj_index = &object_index;
+  top_of_objt = 0;
+  top_of_p_table = -1;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    room_stat_valid = FALSE;
+    room_list_valid = FALSE;
+    mobile_stat_valid = FALSE;
+    object_stat_valid = FALSE;
+  }
+  else
+  {
+    do_stat(&staff, "room", 0, 0);
+    room_stat_valid = strstr(descriptor.output, high_text) != NULL &&
+                      longest_visible_output_line(descriptor.output) < 120;
+
+    reset_test_descriptor_output(&descriptor);
+    do_oasis_list(&staff, "4000000000 4000000000", 0, SCMD_OASIS_RLIST);
+    room_list_valid = strstr(descriptor.output, high_text) != NULL &&
+                      longest_visible_output_line(descriptor.output) < 120;
+
+    reset_test_descriptor_output(&descriptor);
+    do_stat(&staff, "mob highmobile", 0, 0);
+    mobile_stat_valid = strstr(descriptor.output, high_text) != NULL &&
+                        longest_visible_output_line(descriptor.output) < 120;
+
+    reset_test_descriptor_output(&descriptor);
+    do_stat_object(&staff, &object, ITEM_STAT_MODE_IMMORTAL);
+    object_stat_valid = strstr(descriptor.output, high_text) != NULL &&
+                        longest_visible_output_line(descriptor.output) < 120;
+  }
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+  mob_index = saved_mob_index;
+  top_of_mobt = saved_top_of_mobt;
+  obj_index = saved_obj_index;
+  top_of_objt = saved_top_of_objt;
+  top_of_p_table = saved_top_of_p_table;
+  staff.desc = NULL;
+  if (descriptor.pProtocol != NULL)
+    ProtocolDestroy(descriptor.pProtocol);
+  reset_test_descriptor_output(&descriptor);
+
+  CuAssertTrue(tc, room_stat_valid);
+  CuAssertTrue(tc, room_list_valid);
+  CuAssertTrue(tc, mobile_stat_valid);
+  CuAssertTrue(tc, object_stat_valid);
+}
 
 void Test_zone_export_filename_rejects_shell_and_path_metacharacters(CuTest *tc)
 {

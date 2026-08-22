@@ -790,39 +790,40 @@ static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum)
                      ZOCMD.arg1);
         break;
       case 'L':
-        send_to_char(ch, "%sPut random treasure in %s [%s%d%s] (%d%%)",
+        send_to_char(ch, "%sPut random treasure in %s [%s%" PRI_IDX "%s] (%d%%)",
                      ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
                      obj_index[ZOCMD.arg1].vnum, yel, ZOCMD.arg2);
         break;
       case 'M':
-        send_to_char(ch, "%sLoad %s [%s%d%s], Max : %d\r\n", ZOCMD.if_flag ? " then " : "",
-                     mob_proto[ZOCMD.arg1].player.short_descr, cyn, mob_index[ZOCMD.arg1].vnum, yel,
-                     ZOCMD.arg2);
+        send_to_char(ch, "%sLoad %s [%s%" PRI_IDX "%s], Max : %d\r\n",
+                     ZOCMD.if_flag ? " then " : "", mob_proto[ZOCMD.arg1].player.short_descr, cyn,
+                     mob_index[ZOCMD.arg1].vnum, yel, ZOCMD.arg2);
         break;
       case 'G':
-        send_to_char(ch, "%sGive it %s [%s%d%s], Max : %d\r\n", ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel,
-                     ZOCMD.arg2);
+        send_to_char(ch, "%sGive it %s [%s%" PRI_IDX "%s], Max : %d\r\n",
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
+                     obj_index[ZOCMD.arg1].vnum, yel, ZOCMD.arg2);
         break;
       case 'O':
-        send_to_char(ch, "%sLoad %s [%s%d%s], Max : %d\r\n", ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg1].short_description, cyn, obj_index[ZOCMD.arg1].vnum, yel,
-                     ZOCMD.arg2);
+        send_to_char(ch, "%sLoad %s [%s%" PRI_IDX "%s], Max : %d\r\n",
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
+                     obj_index[ZOCMD.arg1].vnum, yel, ZOCMD.arg2);
         break;
       case 'E':
-        send_to_char(ch, "%sEquip with %s [%s%d%s], %s, Max : %d\r\n",
+        send_to_char(ch, "%sEquip with %s [%s%" PRI_IDX "%s], %s, Max : %d\r\n",
                      ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
                      obj_index[ZOCMD.arg1].vnum, yel, equipment_types[ZOCMD.arg3], ZOCMD.arg2);
         break;
       case 'P':
-        send_to_char(ch, "%sPut %s [%s%d%s] in %s [%s%d%s], Max : %d\r\n",
+        send_to_char(ch, "%sPut %s [%s%" PRI_IDX "%s] in %s [%s%" PRI_IDX "%s], Max : %d\r\n",
                      ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg1].short_description, cyn,
                      obj_index[ZOCMD.arg1].vnum, yel, obj_proto[ZOCMD.arg3].short_description, cyn,
                      obj_index[ZOCMD.arg3].vnum, yel, ZOCMD.arg2);
         break;
       case 'R':
-        send_to_char(ch, "%sRemove %s [%s%d%s] from room.\r\n", ZOCMD.if_flag ? " then " : "",
-                     obj_proto[ZOCMD.arg2].short_description, cyn, obj_index[ZOCMD.arg2].vnum, yel);
+        send_to_char(ch, "%sRemove %s [%s%" PRI_IDX "%s] from room.\r\n",
+                     ZOCMD.if_flag ? " then " : "", obj_proto[ZOCMD.arg2].short_description, cyn,
+                     obj_index[ZOCMD.arg2].vnum, yel);
         break;
       case 'D':
         send_to_char(ch, "%sSet door %s as %s.\r\n", ZOCMD.if_flag ? " then " : "",
@@ -830,20 +831,21 @@ static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum)
                      ZOCMD.arg3 ? ((ZOCMD.arg3 == 1) ? "closed" : "locked") : "open");
         break;
       case 'F':
-        send_to_char(ch, "Follow mode %d: mobile [%s%d%s] follows [%s%d%s] (%d%%).\r\n",
-                     ZOCMD.if_flag, cyn, mob_index[ZOCMD.arg3].vnum, yel, cyn,
-                     mob_index[ZOCMD.arg2].vnum, yel, ZOCMD.arg4);
+        send_to_char(
+            ch, "Follow mode %d: mobile [%s%" PRI_IDX "%s] follows [%s%" PRI_IDX "%s] (%d%%).\r\n",
+            ZOCMD.if_flag, cyn, mob_index[ZOCMD.arg3].vnum, yel, cyn, mob_index[ZOCMD.arg2].vnum,
+            yel, ZOCMD.arg4);
         break;
       case 'K':
         send_to_char(ch, "Set legacy door %s bitmask %d (%d%%).\r\n", dirs[ZOCMD.arg2], ZOCMD.arg3,
                      ZOCMD.arg4);
         break;
       case 'X':
-        send_to_char(ch, "Remove mobile [%s%d%s] from this room (%d%%).\r\n", cyn,
+        send_to_char(ch, "Remove mobile [%s%" PRI_IDX "%s] from this room (%d%%).\r\n", cyn,
                      mob_index[ZOCMD.arg2].vnum, yel, ZOCMD.arg4);
         break;
       case 'T':
-        send_to_char(ch, "%sAttach trigger %s%s%s [%s%d%s] to %s\r\n",
+        send_to_char(ch, "%sAttach trigger %s%s%s [%s%" PRI_IDX "%s] to %s\r\n",
                      ZOCMD.if_flag ? " then " : "", cyn, trig_index[ZOCMD.arg2]->proto->name, yel,
                      cyn, trig_index[ZOCMD.arg2]->vnum, yel,
                      ((ZOCMD.arg1 == MOB_TRIGGER)
@@ -878,6 +880,9 @@ static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum)
 static void do_stat_room(struct char_data *ch, struct room_data *rm)
 {
   char buf2[MAX_STRING_LENGTH] = {'\0'};
+  char destination[16];
+  char key[16];
+  char room_index[16];
   struct extra_descr_data *desc;
   int i, found, column;
   struct obj_data *j;
@@ -886,9 +891,11 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm)
   send_to_char(ch, "Room name: %s%s%s\r\n", CCCYN(ch, C_NRM), rm->name, CCNRM(ch, C_NRM));
 
   sprinttype(rm->sector_type, sector_types, buf2, sizeof(buf2));
-  send_to_char(ch, "Zone: [%3d], VNum: [%s%5d%s], RNum: [%5d], IDNum: [%5ld], Type: %s\r\n",
+  sprintindex(real_room(rm->number), room_index, sizeof(room_index));
+  send_to_char(ch, "Zone: [%" PRI_IDX "], VNum: [%s%" PRI_IDX "%s], RNum: [%s], Type: %s\r\n",
                zone_table[rm->zone].number, CCGRN(ch, C_NRM), rm->number, CCNRM(ch, C_NRM),
-               real_room(rm->number), (long)rm->number + ROOM_ID_BASE, buf2);
+               room_index, buf2);
+  send_to_char(ch, "IDNum: [%" PRIu64 "]\r\n", (uint64_t)rm->number + ROOM_ID_BASE);
   send_to_char(ch, "Coordinate Location (Wilderness only): (%d, %d)\r\n", rm->coords[0],
                rm->coords[1]);
   if (rm->minimum_level > 0 || rm->maximum_level > 0)
@@ -966,16 +973,17 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm)
       continue;
 
     if (rm->dir_option[i]->to_room == NOWHERE)
-      snprintf(buf1, sizeof(buf1), " %sNONE%s", CCCYN(ch, C_NRM), CCNRM(ch, C_NRM));
+      strlcpy(destination, "NONE", sizeof(destination));
     else
-      snprintf(buf1, sizeof(buf1), "%s%5d%s", CCCYN(ch, C_NRM),
-               GET_ROOM_VNUM(rm->dir_option[i]->to_room), CCNRM(ch, C_NRM));
+      sprintindex(GET_ROOM_VNUM(rm->dir_option[i]->to_room), destination, sizeof(destination));
+
+    sprintindex(rm->dir_option[i]->key, key, sizeof(key));
+    snprintf(buf1, sizeof(buf1), "%s%s%s", CCCYN(ch, C_NRM), destination, CCNRM(ch, C_NRM));
 
     sprintbit(rm->dir_option[i]->exit_info, exit_bits, buf2, sizeof(buf2));
 
-    send_to_char(ch, "Exit %s%-5s%s:  To: [%s], Key: [%5d], Keywords: %s, Type: %s\r\n%s",
-                 CCCYN(ch, C_NRM), dirs[i], CCNRM(ch, C_NRM), buf1,
-                 rm->dir_option[i]->key == NOTHING ? -1 : (int)rm->dir_option[i]->key,
+    send_to_char(ch, "Exit %s%-5s%s:  To: [%s], Key: [%s], Keywords: %s, Type: %s\r\n%s",
+                 CCCYN(ch, C_NRM), dirs[i], CCNRM(ch, C_NRM), buf1, key,
                  rm->dir_option[i]->keyword ? rm->dir_option[i]->keyword : "None", buf2,
                  rm->dir_option[i]->general_description ? rm->dir_option[i]->general_description
                                                         : "  No exit description.\r\n");
@@ -1054,6 +1062,8 @@ static void do_stat_scriptvar(struct char_data *ch, struct char_data *k)
 static void do_stat_character(struct char_data *ch, struct char_data *k)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
+  char loadroom[16];
+  char mobile_rnum[16];
   int i, i2, column, found = FALSE, w_type, counter = 0;
   struct obj_data *j, *wielded = GET_EQ(ch, WEAR_WIELD_1);
   struct follow_type *fol;
@@ -1077,16 +1087,19 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
       "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
 
   sprinttype(GET_SEX(k), genders, buf, sizeof(buf));
+  sprintindex(IS_NPC(k) ? NOWHERE : GET_LOADROOM(k), loadroom, sizeof(loadroom));
+  send_to_char(ch, "\tC%s %s '\tn%s\tC'  IDNum: [\tn%ld\tC]\tn\r\n", buf,
+               (!IS_NPC(k) ? "PC" : (!IS_MOB(k) ? "NPC" : "MOB")), GET_NAME(k),
+               IS_NPC(k) ? char_script_id(k) : GET_IDNUM(k));
   send_to_char(ch,
-               "\tC%s %s '\tn%s\tC'  IDNum: [\tn%5ld\tC], Loc [\tn%5d\tC/W(\tn%d\tC, \tn%d\tC)], "
-               "Loadroom : [\tn%5d\tC]\tn\r\n",
-               buf, (!IS_NPC(k) ? "PC" : (!IS_MOB(k) ? "NPC" : "MOB")), GET_NAME(k),
-               IS_NPC(k) ? char_script_id(k) : GET_IDNUM(k), GET_ROOM_VNUM(IN_ROOM(k)),
-               k->coords[0], k->coords[1], IS_NPC(k) ? NOWHERE : GET_LOADROOM(k));
+               "\tCLoc: [\tn%" PRI_IDX "\tC/W(\tn%d\tC, \tn%d\tC)], Loadroom: [\tn%s\tC]\tn\r\n",
+               GET_ROOM_VNUM(IN_ROOM(k)), k->coords[0], k->coords[1], loadroom);
   if (IS_MOB(k))
   {
-    send_to_char(ch, "\tCKeyword:\tn %s\tC, VNum: [\tn%5d\tC], RNum: [\tn%5d\tC]\r\n",
-                 k->player.name, GET_MOB_VNUM(k), GET_MOB_RNUM(k));
+    sprintindex(GET_MOB_RNUM(k), mobile_rnum, sizeof(mobile_rnum));
+    send_to_char(ch, "\tCKeyword:\tn %s\r\n", k->player.name);
+    send_to_char(ch, "\tCVNum: [\tn%" PRI_IDX "\tC], RNum: [\tn%s\tC]\r\n", GET_MOB_VNUM(k),
+                 mobile_rnum);
     send_to_char(ch, "\tCL-Des: \tn%s", k->player.long_descr ? k->player.long_descr : "<None>\r\n");
   }
 
@@ -1497,7 +1510,7 @@ ACMD(do_stat)
       room = &world[IN_ROOM(ch)];
     else
     {
-      room_rnum rnum = real_room(atoi(buf2));
+      room_rnum rnum = real_room(atoidx(buf2));
       if (rnum == NOWHERE)
       {
         send_to_char(ch, "That is not a valid room.\r\n");
@@ -1658,7 +1671,7 @@ ACMD(do_stat)
     }
     else
     {
-      print_zone(ch, atoi(buf2));
+      print_zone(ch, atoidx(buf2));
       return;
     }
 
@@ -1955,7 +1968,7 @@ ACMD(do_load)
       return;
     }
 
-    if ((r_num = real_mobile(atoi(buf2))) == NOBODY)
+    if ((r_num = real_mobile(atoidx(buf2))) == NOBODY)
     {
       send_to_char(ch, "There is no monster with that number.\r\n");
       return;
@@ -1989,7 +2002,7 @@ ACMD(do_load)
       return;
     }
 
-    if ((r_num = real_object(atoi(buf2))) == NOTHING)
+    if ((r_num = real_object(atoidx(buf2))) == NOTHING)
     {
       send_to_char(ch, "There is no object with that number.\r\n");
       return;
@@ -2036,7 +2049,7 @@ ACMD(do_vstat)
   switch (LOWER(*buf))
   {
   case 'm':
-    if ((r_num = real_mobile(atoi(buf2))) == NOBODY)
+    if ((r_num = real_mobile(atoidx(buf2))) == NOBODY)
     {
       send_to_char(ch, "There is no monster with that number.\r\n");
       return;
@@ -2047,7 +2060,7 @@ ACMD(do_vstat)
     extract_char(mob);
     break;
   case 'o':
-    if ((r_num = real_object(atoi(buf2))) == NOTHING)
+    if ((r_num = real_object(atoidx(buf2))) == NOTHING)
     {
       send_to_char(ch, "There is no object with that number.\r\n");
       return;
@@ -5442,7 +5455,7 @@ ACMD(do_keycheck)
   }
   else
   {
-    rzone = real_zone(atoi(zone_num));
+    rzone = real_zone(atoidx(zone_num));
 
     if (rzone == NOWHERE)
     {
@@ -5751,7 +5764,7 @@ ACMD(do_zcheck)
   if (!is_number(buf) || !strcmp(buf, "."))
     zrnum = world[IN_ROOM(ch)].zone;
   else
-    zrnum = real_zone(atoi(buf));
+    zrnum = real_zone(atoidx(buf));
 
   if (zrnum == NOWHERE)
   {
@@ -10060,7 +10073,6 @@ ACMDU(do_plist) {
 ACMD(do_finddoor)
 {
   int d, nlen, num = 0;
-  long parsed_vnum;
   size_t len;
   room_rnum i;
   obj_rnum rnum;
@@ -10082,14 +10094,12 @@ ACMD(do_finddoor)
   }
   else if (is_number(arg))
   {
-    parsed_vnum = strtol(arg, NULL, 10);
-    if (parsed_vnum < 0 || parsed_vnum > (long)IDXTYPE_MAX ||
-        (rnum = real_object((obj_vnum)parsed_vnum)) == NOTHING)
+    vnum = atoidx(arg);
+    if (vnum == NOTHING || (rnum = real_object(vnum)) == NOTHING)
     {
       send_to_char(ch, "No key with that VNum exists.\r\n");
       return;
     }
-    vnum = (obj_vnum)parsed_vnum;
     obj = &obj_proto[rnum];
   }
   else
@@ -10106,7 +10116,7 @@ ACMD(do_finddoor)
   }
   if (vnum != NOTHING)
   {
-    len = snprintf(buf, sizeof(buf), "Doors unlocked by key %s[%s%d%s]%s %s%s are:\r\n",
+    len = snprintf(buf, sizeof(buf), "Doors unlocked by key %s[%s%" PRI_IDX "%s]%s %s%s are:\r\n",
                    CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), vnum, CCCYN(ch, C_NRM), CCNRM(ch, C_NRM),
                    obj->short_description, CCNRM(ch, C_NRM));
     for (i = 0; i <= top_of_world; i++)
@@ -10116,8 +10126,8 @@ ACMD(do_finddoor)
         if (world[i].dir_option[d] && world[i].dir_option[d]->key &&
             world[i].dir_option[d]->key == vnum)
         {
-          nlen = snprintf(buf + len, sizeof(buf) - len, "[%3d] Room %d, %s (%s)\r\n", ++num,
-                          world[i].number, dirs[d], world[i].dir_option[d]->keyword);
+          nlen = snprintf(buf + len, sizeof(buf) - len, "[%3d] Room %" PRI_IDX ", %s (%s)\r\n",
+                          ++num, world[i].number, dirs[d], world[i].dir_option[d]->keyword);
           if (nlen < 0 || (size_t)nlen >= sizeof(buf) - len)
             break;
           len += nlen;
@@ -10127,7 +10137,8 @@ ACMD(do_finddoor)
     if (num > 0)
       page_string(ch->desc, buf, 1);
     else
-      send_to_char(ch, "No doors were found for key [%d] %s.\r\n", vnum, obj->short_description);
+      send_to_char(ch, "No doors were found for key [%" PRI_IDX "] %s.\r\n", vnum,
+                   obj->short_description);
   }
 }
 

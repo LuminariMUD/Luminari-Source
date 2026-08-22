@@ -61,7 +61,7 @@ Clan Header File
 #define CLAN_ERR_DATA_CORRUPTION                                                                   \
   "Clan data corruption detected. Please contact an administrator.\r\n"
 
-#define NO_CLAN ((IDXTYPE)~0) /**< Sets to ush_int_MAX, or 65,535 */
+#define NO_CLAN ((IDXTYPE)~0) /**< Sets to the common IDXTYPE invalid sentinel. */
 #define NO_CLANRANK 0         /**< A non-ranking value            */
 #define RANK_LEADERONLY 0     /**< For clan privs, 0 is higher than top rank */
 

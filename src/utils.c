@@ -4505,8 +4505,8 @@ int file_numlines(FILE *file)
   return numlines;
 }
 
-/** A string converter designed to deal with the compile sensitive IDXTYPE.
- * Relies on the friendlier strtol function.
+/** A string converter designed to deal with the fixed-width IDXTYPE.
+ * Relies on strtoumax so the full unsigned range is checked before conversion.
  * @pre Assumes that NOWHERE, NOTHING, NOBODY, NOFLAG, etc are all equal.
  * @param str_to_conv A string of characters to attempt to convert to an
  * IDXTYPE number.
@@ -4514,17 +4514,32 @@ int file_numlines(FILE *file)
  */
 IDXTYPE atoidx(const char *str_to_conv)
 {
-  long int result;
+  char *end;
+  uintmax_t result;
 
   /* Check for errors */
   errno = 0;
 
-  result = strtol(str_to_conv, NULL, 10);
+  if (str_to_conv == NULL || *str_to_conv == '\0' || *str_to_conv == '-')
+    return NOWHERE;
 
-  if (errno || (result > IDXTYPE_MAX) || (result < 0))
+  result = strtoumax(str_to_conv, &end, 10);
+
+  if (errno || end == str_to_conv || *end != '\0' || result >= IDXTYPE_MAX)
     return NOWHERE; /* All of the NO* settings should be the same */
   else
     return (IDXTYPE)result;
+}
+
+void sprintindex(IDXTYPE index, char *result, size_t result_size)
+{
+  if (result == NULL || result_size == 0)
+    return;
+
+  if (index == NOWHERE)
+    strlcpy(result, "NONE", result_size);
+  else
+    snprintf(result, result_size, "%" PRI_IDX, index);
 }
 
 static void strfrmt_append(char **cursor, size_t *remaining, const char *text, size_t text_length)

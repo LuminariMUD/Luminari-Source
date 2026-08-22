@@ -1400,6 +1400,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   struct extra_descr_data *desc;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf2[MAX_STRING_LENGTH] = {'\0'};
+  char rnum[16];
   int line_length = 80;
 
   if (mode == ITEM_STAT_MODE_G_LORE)
@@ -1410,17 +1411,21 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   /* display id# related values */
   /* put object type in buf */
   sprinttype(GET_OBJ_TYPE(j), item_types, buf, sizeof(buf));
+  sprintindex(GET_OBJ_RNUM(j), rnum, sizeof(rnum));
   if (mode == ITEM_STAT_MODE_IMMORTAL)
   {
     if (mode == ITEM_STAT_MODE_G_LORE)
       send_to_group(NULL, GROUP(ch),
-                    "\tCType:\tn %s, VNum: [%5d], RNum: [%5d], Idnum: [%5ld], SpecProc: %s\r\n",
-                    buf, vnum, GET_OBJ_RNUM(j), obj_script_id(j),
-                    GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
+                    "\tCType:\tn %s, SpecProc: %s\r\n"
+                    "\tCVNum:\tn [\tC%" PRI_IDX "\tn], RNum: [\tC%s\tn], Idnum: [\tC%ld\tn]\r\n",
+                    buf, GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None", vnum,
+                    rnum, obj_script_id(j));
     else
-      send_to_char(ch, "\tCType:\tn %s, VNum: [%5d], RNum: [%5d], Idnum: [%5ld], SpecProc: %s\r\n",
-                   buf, vnum, GET_OBJ_RNUM(j), obj_script_id(j),
-                   GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
+      send_to_char(ch,
+                   "\tCType:\tn %s, SpecProc: %s\r\n"
+                   "\tCVNum:\tn [\tC%" PRI_IDX "\tn], RNum: [\tC%s\tn], Idnum: [\tC%ld\tn]\r\n",
+                   buf, GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None", vnum,
+                   rnum, obj_script_id(j));
   }
   else if (GET_OBJ_TYPE(j) == ITEM_WEAPON_OIL)
   {

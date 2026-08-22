@@ -337,6 +337,7 @@ int file_numlines(FILE *file);
 int leadership_exp_multiplier(struct char_data *ch);
 void clear_misc_cooldowns(struct char_data *ch);
 IDXTYPE atoidx(const char *str_to_conv);
+void sprintindex(IDXTYPE index, char *result, size_t result_size);
 char *strfrmt(const char *str, int w, int h, int justify, int hpad, int vpad);
 const char *strpaste(const char *str1, const char *str2, const char *joiner);
 struct char_data *is_playing(char *vict_name);

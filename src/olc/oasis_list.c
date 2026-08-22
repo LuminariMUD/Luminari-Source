@@ -79,11 +79,11 @@ void perform_mob_name_list(struct char_data *ch, char *arg)
       if ((mob = read_mobile(num, REAL)) != NULL)
       {
         char_to_room(mob, 0);
-        len +=
-            snprintf(buf + len, sizeof(buf) - len, "%s%3d. %s[%s%5d%s]%s Level %s%-3d%s %s%s\r\n",
-                     CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM),
-                     GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), CCYEL(ch, C_NRM),
-                     GET_LEVEL(mob), CCNRM(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
+        len += snprintf(buf + len, sizeof(buf) - len,
+                        "%s%3d. %s[%s%10" PRI_IDX "%s]%s Level %s%-3d%s %s%s\r\n", CCNRM(ch, C_NRM),
+                        ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), GET_MOB_VNUM(mob),
+                        CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), CCYEL(ch, C_NRM), GET_LEVEL(mob),
+                        CCNRM(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
         extract_char(mob); /* Finished with the mob - remove it from the MUD */
         if ((size_t)len >= sizeof(buf))
           break;
@@ -122,11 +122,11 @@ void perform_mob_flag_list(struct char_data *ch, char *arg)
       if ((mob = read_mobile(num, REAL)) != NULL)
       {
         char_to_room(mob, 0);
-        len +=
-            snprintf(buf + len, sizeof(buf) - len, "%s%3d. %s[%s%5d%s]%s Level %s%-3d%s %s%s\r\n",
-                     CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM),
-                     GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), CCYEL(ch, C_NRM),
-                     GET_LEVEL(mob), CCNRM(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
+        len += snprintf(buf + len, sizeof(buf) - len,
+                        "%s%3d. %s[%s%10" PRI_IDX "%s]%s Level %s%-3d%s %s%s\r\n", CCNRM(ch, C_NRM),
+                        ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM), GET_MOB_VNUM(mob),
+                        CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), CCYEL(ch, C_NRM), GET_LEVEL(mob),
+                        CCNRM(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
         extract_char(mob); /* Finished with the mob - remove it from the MUD */
         if ((size_t)len >= sizeof(buf))
           break;
@@ -163,7 +163,7 @@ void perform_mob_level_list(struct char_data *ch, char *arg)
       if ((mob = read_mobile(num, REAL)) != NULL)
       {
         char_to_room(mob, 0);
-        len += snprintf(buf + len, sizeof(buf) - len, "%s%3d. %s[%s%5d%s]%s %s%s\r\n",
+        len += snprintf(buf + len, sizeof(buf) - len, "%s%3d. %s[%s%10" PRI_IDX "%s]%s %s%s\r\n",
                         CCNRM(ch, C_NRM), ++found, CCCYN(ch, C_NRM), CCYEL(ch, C_NRM),
                         GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), GET_NAME(mob),
                         CCNRM(ch, C_NRM));
@@ -237,7 +237,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
         {
         case ITEM_SWITCH:
           tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                             "%s%3d%s) %s[%s%5d%s]%s "
+                             "%s%3d%s) %s[%s%10" PRI_IDX "%s]%s "
                              "[%s, affecting room VNum %d, %s %s] "
                              "%s%s%s\r\n",
                              QGRN, ++found, QNRM, /**/ QCYN, QYEL, ov, QCYN, QNRM,
@@ -273,31 +273,34 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           if (v1 < 0 || v1 >= NUM_TRAP_TYPES)
           { /* invalid trap types */
             tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                               "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (trap-type)\r\n", QGRN,
-                               ++found, QNRM, ov);
+                               "%s%3d%s) %10" PRI_IDX " INVALID, CHECK THIS OBJECT (trap-type)\r\n",
+                               QGRN, ++found, QNRM, ov);
             break;
           }
           if (v3 <= 0 || v3 >= NUM_TRAP_SPECIAL_EFFECTS)
           { /* invalid trap effects */
-            tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                               "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range)\r\n", QGRN,
-                               ++found, QNRM, ov);
+            tmp_len =
+                snprintf(buf + len, sizeof(buf) - len,
+                         "%s%3d%s) %10" PRI_IDX " INVALID, CHECK THIS OBJECT (effect-range)\r\n",
+                         QGRN, ++found, QNRM, ov);
             break;
           }
           if (v3 < TRAP_SPECIAL_PARALYSIS && v3 >= LAST_SPELL_DEFINE)
           { /* invalid trap effects check 2 */
-            tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                               "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (effect-range-2)\r\n", QGRN,
-                               ++found, QNRM, ov);
+            tmp_len =
+                snprintf(buf + len, sizeof(buf) - len,
+                         "%s%3d%s) %10" PRI_IDX " INVALID, CHECK THIS OBJECT (effect-range-2)\r\n",
+                         QGRN, ++found, QNRM, ov);
             break;
           }
           if ((v1 == TRAP_TRIGGER_OPEN_CONTAINER || v1 == TRAP_TRIGGER_UNLOCK_CONTAINER ||
                v1 == TRAP_TRIGGER_GET_OBJECT) &&
               target_obj == NOTHING)
           {
-            tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                               "%s%3d%s) %7d INVALID, CHECK THIS OBJECT (object vnum)\r\n", QGRN,
-                               ++found, QNRM, ov);
+            tmp_len =
+                snprintf(buf + len, sizeof(buf) - len,
+                         "%s%3d%s) %10" PRI_IDX " INVALID, CHECK THIS OBJECT (object vnum)\r\n",
+                         QGRN, ++found, QNRM, ov);
             break;
           }
           /* end disqualifications */
@@ -307,19 +310,19 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           case TRAP_TRIGGER_LEAVE_ROOM: /* display effect and difficulty */
             if (v3 >= TRAP_SPECIAL_PARALYSIS)
             { /* not a normal spell effect */
-              tmp_len =
-                  snprintf(buf + len, sizeof(buf) - len,
-                           "%s%3d%s) %7d %s%s | Type: %s | Effect: %s | DC: %d | Detected? %d\r\n",
-                           QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
-                           trap_type[v1], trap_effects[v3 - TRAP_SPECIAL_PARALYSIS], v4, v5);
+              tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                                 "%s%3d%s) %10" PRI_IDX
+                                 " %s%s | Type: %s | Effect: %s | DC: %d | Detected? %d\r\n",
+                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
+                                 trap_type[v1], trap_effects[v3 - TRAP_SPECIAL_PARALYSIS], v4, v5);
             }
             else
             { /* spell effect */
-              tmp_len =
-                  snprintf(buf + len, sizeof(buf) - len,
-                           "%s%3d%s) %7d %s%s | Type: %s |  Spell: %s | DC: %d | Detected? %d\r\n",
-                           QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
-                           trap_type[v1], spell_info[v3].name, v4, v5);
+              tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                                 "%s%3d%s) %10" PRI_IDX
+                                 " %s%s | Type: %s |  Spell: %s | DC: %d | Detected? %d\r\n",
+                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
+                                 trap_type[v1], spell_info[v3].name, v4, v5);
             }
             break;
           // TRAP_TRIGGER_ENTER_ROOM removed - use autosearch system instead
@@ -328,17 +331,18 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           case TRAP_TRIGGER_UNLOCK_DOOR: /* display direction, effect, difficulty */
             if (v3 >= TRAP_SPECIAL_PARALYSIS)
             { /* not a normal spell effect */
-              tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                                 "%s%3d%s) %7d %s%s | Type: %s |  Direction: %s | Effect: %s | DC: "
-                                 "%d | Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
-                                 trap_type[v1], dirs[v2], trap_effects[v3 - TRAP_SPECIAL_PARALYSIS],
-                                 v4, v5);
+              tmp_len = snprintf(
+                  buf + len, sizeof(buf) - len,
+                  "%s%3d%s) %10" PRI_IDX " %s%s | Type: %s |  Direction: %s | Effect: %s | DC: "
+                  "%d | Detected? %d\r\n",
+                  QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1],
+                  dirs[v2], trap_effects[v3 - TRAP_SPECIAL_PARALYSIS], v4, v5);
             }
             else
             { /* spell effect */
               tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                                 "%s%3d%s) %7d %s%s | Type: %s |  Direction: %s | Spell: %s | DC: "
+                                 "%s%3d%s) %10" PRI_IDX
+                                 " %s%s | Type: %s |  Direction: %s | Spell: %s | DC: "
                                  "%d | Detected? %d\r\n",
                                  QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
                                  trap_type[v1], dirs[v2], spell_info[v3].name, v4, v5);
@@ -352,7 +356,8 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
             if (v3 >= TRAP_SPECIAL_PARALYSIS)
             { /* not a normal spell effect */
               tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                                 "%s%3d%s) %7d %s%s | Type: %s |  On Obj: %s | Effect: %s | DC: %d "
+                                 "%s%3d%s) %10" PRI_IDX
+                                 " %s%s | Type: %s |  On Obj: %s | Effect: %s | DC: %d "
                                  "| Detected? %d\r\n",
                                  QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
                                  trap_type[v1], obj_proto[target_obj].short_description,
@@ -360,12 +365,12 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
             }
             else
             { /* spell effect */
-              tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                                 "%s%3d%s) %7d %s%s | Type: %s |  On Obj: %s | Spell: %s | DC: %d "
-                                 "| Detected? %d\r\n",
-                                 QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM,
-                                 trap_type[v1], obj_proto[target_obj].short_description,
-                                 spell_info[v3].name, v4, v5);
+              tmp_len = snprintf(
+                  buf + len, sizeof(buf) - len,
+                  "%s%3d%s) %10" PRI_IDX " %s%s | Type: %s |  On Obj: %s | Spell: %s | DC: %d "
+                  "| Detected? %d\r\n",
+                  QGRN, ++found, QNRM, ov, obj_proto[r_num].short_description, QNRM, trap_type[v1],
+                  obj_proto[target_obj].short_description, spell_info[v3].name, v4, v5);
             }
             break;
           default: /* invalid type! we checked this already above */
@@ -378,71 +383,72 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
         case ITEM_LIGHT:
           v1 = (obj_proto[num].obj_flags.value[2]);
           if (v1 == -1)
-            tmp_len =
-                snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%5d%s]%s INFINITE%s %s%s\r\n",
-                         QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QBRED, QCYN,
-                         obj_proto[r_num].short_description, QNRM);
+            tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                               "%s%3d%s) %s[%s%10" PRI_IDX "%s]%s INFINITE%s %s%s\r\n", QGRN,
+                               ++found, QNRM, QCYN, QYEL, ov, QCYN, QBRED, QCYN,
+                               obj_proto[r_num].short_description, QNRM);
           else
-            tmp_len =
-                snprintf(buf + len, sizeof(buf) - len,
-                         "%s%3d%s) %s[%s%5d%s]%s (%-3dhrs) %s%s%s\r\n", QGRN, ++found, QNRM, QCYN,
-                         QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
+            tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                               "%s%3d%s) %s[%s%10" PRI_IDX "%s]%s (%-3dhrs) %s%s%s\r\n", QGRN,
+                               ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                               obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_SCROLL:
         case ITEM_POTION:
-          tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] [%15s] %s%s\r\n",
-                             QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN,
-                             spell_info[obj_proto[num].obj_flags.value[1]].name,
-                             obj_proto[r_num].short_description, QNRM);
+          tmp_len =
+              snprintf(buf + len, sizeof(buf) - len,
+                       "%s%3d%s) %s[%s%10" PRI_IDX "%s] [%15s] %s%s\r\n", QGRN, ++found, QNRM, QCYN,
+                       QYEL, ov, QCYN, spell_info[obj_proto[num].obj_flags.value[1]].name,
+                       obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_WAND:
         case ITEM_STAFF:
           v1 = (obj_proto[num].obj_flags.value[1]);
           v2 = (obj_proto[num].obj_flags.value[3]);
-          tmp_len =
-              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (%dx%s) %s%s%s\r\n",
-                       QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, spell_name(v2), QCYN,
-                       obj_proto[r_num].short_description, QNRM);
+          tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                             "%s%3d%s) %s[%s%10" PRI_IDX "%s]%s (%dx%s) %s%s%s\r\n", QGRN, ++found,
+                             QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, spell_name(v2), QCYN,
+                             obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_POISON:
-          tmp_len = snprintf(
-              buf + len, sizeof(buf) - len,
-              "%s%3d%s) %s%7d%s (Poison:%s%s|Level:%d|Applications:%d|Hits/App:%d) %s%s\r\n", QGRN,
-              ++found, QNRM, QYEL, ov, QNRM, spell_name(v1), QNRM, v2, v3, v4,
-              obj_proto[r_num].short_description, QNRM);
+          tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                             "%s%3d%s) %s%10" PRI_IDX
+                             "%s (Poison:%s%s|Level:%d|Applications:%d|Hits/App:%d) %s%s\r\n",
+                             QGRN, ++found, QNRM, QYEL, ov, QNRM, spell_name(v1), QNRM, v2, v3, v4,
+                             obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_WEAPON:
           v1 =
               ((obj_proto[num].obj_flags.value[2] + 1) * (obj_proto[r_num].obj_flags.value[1])) / 2;
-          tmp_len =
-              snprintf(buf + len, sizeof(buf) - len,
-                       "%s%3d%s) %s[%s%8d%s]%s (%d Avg Dam) %s%s%s\r\n", QGRN, ++found, QNRM, QCYN,
-                       QYEL, ov, QCYN, QNRM, v1, QCYN, obj_proto[r_num].short_description, QNRM);
+          tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                             "%s%3d%s) %s[%s%10" PRI_IDX "%s]%s (%d Avg Dam) %s%s%s\r\n", QGRN,
+                             ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                             obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_ARMOR:
-          tmp_len =
-              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (%dAC) %s%s%s\r\n",
-                       QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
-                       obj_proto[r_num].short_description, QNRM);
+          tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                             "%s%3d%s) %s[%s%10" PRI_IDX "%s]%s (%dAC) %s%s%s\r\n", QGRN, ++found,
+                             QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                             obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_CONTAINER:
-          tmp_len =
-              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s\r\n",
-                       QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
-                       obj_proto[r_num].short_description, QNRM);
+          tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                             "%s%3d%s) %s[%s%10" PRI_IDX "%s]%s (Max: %d) %s%s%s\r\n", QGRN,
+                             ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                             obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_AMMO_POUCH:
-          tmp_len =
-              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s\r\n",
-                       QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
-                       obj_proto[r_num].short_description, QNRM);
+          tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                             "%s%3d%s) %s[%s%10" PRI_IDX "%s]%s (Max: %d) %s%s%s\r\n", QGRN,
+                             ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                             obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_DRINKCON:
@@ -456,13 +462,13 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
 
           if (v1 != -1)
             tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                               "%s%3d%s) %s[%s%8d%s]%s (Max: %d) %s%s%s%s\r\n", QGRN, ++found, QNRM,
-                               QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                               "%s%3d%s) %s[%s%10" PRI_IDX "%s]%s (Max: %d) %s%s%s%s\r\n", QGRN,
+                               ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
                                obj_proto[r_num].short_description, buf2, QNRM);
           else
             tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                               "%s%3d%s) %s[%s%8d%s] %sINFINITE%s %s%s%s\r\n", QGRN, ++found, QNRM,
-                               QCYN, QYEL, ov, QCYN, QBRED, QCYN,
+                               "%s%3d%s) %s[%s%10" PRI_IDX "%s] %sINFINITE%s %s%s%s\r\n", QGRN,
+                               ++found, QNRM, QCYN, QYEL, ov, QCYN, QBRED, QCYN,
                                obj_proto[r_num].short_description, buf2, QNRM);
           break;
 
@@ -476,22 +482,23 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
             *buf2 = '\0';
 
           if (v3 != 0)
-            tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                               "%s%3d%s) %s[%s%8d%s]%s (%2dhrs) %s%s%s %sPoisoned!%s\r\n", QGRN,
-                               ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
-                               obj_proto[r_num].short_description, buf2, QBGRN, QNRM);
+            tmp_len =
+                snprintf(buf + len, sizeof(buf) - len,
+                         "%s%3d%s) %s[%s%10" PRI_IDX "%s]%s (%2dhrs) %s%s%s %sPoisoned!%s\r\n",
+                         QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                         obj_proto[r_num].short_description, buf2, QBGRN, QNRM);
           else
             tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                               "%s%3d%s) %s[%s%8d%s]%s (%2dhrs) %s%s%s%s\r\n", QGRN, ++found, QNRM,
-                               QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
+                               "%s%3d%s) %s[%s%10" PRI_IDX "%s]%s (%2dhrs) %s%s%s%s\r\n", QGRN,
+                               ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, QCYN,
                                obj_proto[r_num].short_description, buf2, QNRM);
           break;
 
         case ITEM_MONEY:
-          tmp_len =
-              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s (%s%d coins%s)\r\n",
-                       QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN,
-                       obj_proto[r_num].short_description, QNRM, QYEL, v1, QNRM);
+          tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                             "%s%3d%s) %s[%s%10" PRI_IDX "%s] %s%s (%s%d coins%s)\r\n", QGRN,
+                             ++found, QNRM, QCYN, QYEL, ov, QCYN,
+                             obj_proto[r_num].short_description, QNRM, QYEL, v1, QNRM);
           break;
 
         case ITEM_PORTAL:
@@ -499,25 +506,27 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           v3 = (obj_proto[num].obj_flags.value[2]);
           if (v1 < 0 || v1 > NUM_PORTAL_TYPES)
           {
-            tmp_len =
-                snprintf(buf + len, sizeof(buf) - len,
-                         "%s%3d%s) %s[%s%8d%s] %s%s (%s INVALID %s)\r\n", QGRN, ++found, QNRM, QCYN,
-                         QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM, QYEL, QNRM);
+            tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                               "%s%3d%s) %s[%s%10" PRI_IDX "%s] %s%s (%s INVALID %s)\r\n", QGRN,
+                               ++found, QNRM, QCYN, QYEL, ov, QCYN,
+                               obj_proto[r_num].short_description, QNRM, QYEL, QNRM);
             break;
           }
-          tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                             "%s%3d%s) %s[%s%8d%s] %s%s (%s%s/To: %d-%d%s)\r\n", QGRN, ++found,
-                             QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM,
-                             QYEL, portal_types[v1], v2, v3, QNRM);
+          tmp_len =
+              snprintf(buf + len, sizeof(buf) - len,
+                       "%s%3d%s) %s[%s%10" PRI_IDX "%s] %s%s (%s%s/To: %d-%d%s)\r\n", QGRN, ++found,
+                       QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM, QYEL,
+                       portal_types[v1], v2, v3, QNRM);
           break;
 
         case ITEM_INSTRUMENT:
-          tmp_len = snprintf(
-              buf + len, sizeof(buf) - len,
-              "%s%3d%s) %s%7d%s (%s%s | Difficulty reduction: %d | Effectiveness bonus: %d | "
-              "Breakability: %d in %d) %s%s\r\n",
-              QGRN, ++found, QNRM, QYEL, ov, QNRM, instrument_subtype_name(v1), QNRM, v2, v3, v4,
-              INSTRUMENT_BREAKABILITY_SCALE, obj_proto[r_num].short_description, QNRM);
+          tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                             "%s%3d%s) %s%10" PRI_IDX
+                             "%s (%s%s | Difficulty reduction: %d | Effectiveness bonus: %d | "
+                             "Breakability: %d in %d) %s%s\r\n",
+                             QGRN, ++found, QNRM, QYEL, ov, QNRM, instrument_subtype_name(v1), QNRM,
+                             v2, v3, v4, INSTRUMENT_BREAKABILITY_SCALE,
+                             obj_proto[r_num].short_description, QNRM);
           break;
 
         /* The 'normal' items - don't provide extra info */
@@ -553,9 +562,9 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
         case ITEM_BOAT:
         case ITEM_KEY:
         case ITEM_FURNITURE:
-          tmp_len =
-              snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%s\r\n", QGRN, ++found,
-                       QNRM, QCYN, QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM);
+          tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                             "%s%3d%s) %s[%s%10" PRI_IDX "%s] %s%s\r\n", QGRN, ++found, QNRM, QCYN,
+                             QYEL, ov, QCYN, obj_proto[r_num].short_description, QNRM);
           break;
 
         default:
@@ -610,7 +619,7 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
       ov = obj_index[num].vnum;
 
       /* display index, vnum */
-      len = snprintf_append(buf, sizeof(buf), len, "%s%3d %7d ", QNRM, ++found, ov);
+      len = snprintf_append(buf, sizeof(buf), len, "%s%3d %10" PRI_IDX " ", QNRM, ++found, ov);
 
       /* has affects? */
       /*
@@ -701,8 +710,8 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
       if ((r_num = real_object(lst[i].vobj)) != NOTHING)
       {
         tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                           "%s%3d%s) %s[%s%5d%s] %s%3d %s%-*s %s[%s]%s%s\r\n", QGRN, ++found, QNRM,
-                           QCYN, QYEL, lst[i].vobj, QCYN, QYEL, lst[i].val, QCYN,
+                           "%s%3d%s) %s[%s%10" PRI_IDX "%s] %s%3d %s%-*s %s[%s]%s%s\r\n", QGRN,
+                           ++found, QNRM, QCYN, QYEL, lst[i].vobj, QCYN, QYEL, lst[i].val, QCYN,
                            42 + count_color_chars(obj_proto[r_num].short_description),
                            obj_proto[r_num].short_description, QYEL,
                            item_types[obj_proto[r_num].obj_flags.type_flag], QNRM,
@@ -738,13 +747,13 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
   {
     if ((r_num = real_object(lst[i].vobj)) != NOTHING)
     {
-      tmp_len =
-          snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%3d %s%-*s %s[%s]%s%s\r\n",
-                   QGRN, ++found, QNRM, QCYN, QYEL, lst[i].vobj, QCYN, QYEL, lst[i].val, QCYN,
-                   42 + count_color_chars(obj_proto[r_num].short_description),
-                   obj_proto[r_num].short_description, QYEL,
-                   item_types[obj_proto[r_num].obj_flags.type_flag], QNRM,
-                   obj_proto[r_num].proto_script ? " [TRIG]" : "");
+      tmp_len = snprintf(buf + len, sizeof(buf) - len,
+                         "%s%3d%s) %s[%s%10" PRI_IDX "%s] %s%3d %s%-*s %s[%s]%s%s\r\n", QGRN,
+                         ++found, QNRM, QCYN, QYEL, lst[i].vobj, QCYN, QYEL, lst[i].val, QCYN,
+                         42 + count_color_chars(obj_proto[r_num].short_description),
+                         obj_proto[r_num].short_description, QYEL,
+                         item_types[obj_proto[r_num].obj_flags.type_flag], QNRM,
+                         obj_proto[r_num].proto_script ? " [TRIG]" : "");
       len += tmp_len;
       if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
         break; /* zusuk put this check here */
@@ -773,8 +782,8 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
   len = snprintf(
       buf, sizeof(buf),
       "Objects with the affect '%s'\r\n"
-      "Index VNum    Num   Object Name                                Object Type\r\n"
-      "----- ------- ----- ------------------------------------------ ----------------\r\n",
+      "Index VNum       RNum       Object Name                         Object Type\r\n"
+      "----- ---------- ---------- ----------------------------------- ----------------\r\n",
       affected_bits[flag_num]);
 
   for (num = 0; num <= top_of_objt; num++)
@@ -785,8 +794,9 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
     {
       ov = obj_index[num].vnum;
       tmp_len = snprintf(
-          buf + len, sizeof(buf) - len, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
-          QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
+          buf + len, sizeof(buf) - len,
+          "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10" PRI_IDX "%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
+          ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
           42 + count_color_chars(obj_proto[num].short_description),
           obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
           QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
@@ -819,8 +829,8 @@ void perform_obj_perms2_list(struct char_data *ch, char *arg)
   len = snprintf(
       buf, sizeof(buf),
       "Objects with the affect2 '%s'\r\n"
-      "Index VNum    Num   Object Name                                Object Type\r\n"
-      "----- ------- ----- ------------------------------------------ ----------------\r\n",
+      "Index VNum       RNum       Object Name                         Object Type\r\n"
+      "----- ---------- ---------- ----------------------------------- ----------------\r\n",
       affected2_bits[flag_num]);
 
   for (num = 0; num <= top_of_objt; num++)
@@ -831,8 +841,9 @@ void perform_obj_perms2_list(struct char_data *ch, char *arg)
     {
       ov = obj_index[num].vnum;
       tmp_len = snprintf(
-          buf + len, sizeof(buf) - len, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
-          QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
+          buf + len, sizeof(buf) - len,
+          "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10" PRI_IDX "%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
+          ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
           42 + count_color_chars(obj_proto[num].short_description),
           obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
           QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
@@ -855,8 +866,8 @@ void perform_obj_name_list(struct char_data *ch, char *arg)
   len = snprintf(
       buf, sizeof(buf),
       "Objects with the name '%s'\r\n"
-      "Index VNum    Num   Object Name                                Object Type\r\n"
-      "----- ------- ----- ------------------------------------------ ----------------\r\n",
+      "Index VNum       RNum       Object Name                         Object Type\r\n"
+      "----- ---------- ---------- ----------------------------------- ----------------\r\n",
       arg);
   for (num = 0; num <= top_of_objt; num++)
   {
@@ -864,8 +875,9 @@ void perform_obj_name_list(struct char_data *ch, char *arg)
     {
       ov = obj_index[num].vnum;
       tmp_len = snprintf(
-          buf + len, sizeof(buf) - len, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
-          QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
+          buf + len, sizeof(buf) - len,
+          "%s%4d%s) %s[%s%10" PRI_IDX "%s] %s(%s%10" PRI_IDX "%s)%s %-*s%s [%s]%s%s\r\n", QGRN,
+          ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, QGRN, obj_index[num].number, QNRM, QCYN,
           42 + count_color_chars(obj_proto[num].short_description),
           obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag],
           QNRM, obj_proto[num].proto_script ? " [TRIG]" : "");
@@ -882,8 +894,8 @@ void perform_obj_name_list(struct char_data *ch, char *arg)
 ACMD(do_oasis_list)
 {
   zone_rnum rzone = NOWHERE;
-  room_rnum vmin = NOWHERE;
-  room_rnum vmax = NOWHERE;
+  room_vnum vmin = NOWHERE;
+  room_vnum vmax = NOWHERE;
   char smin[MAX_INPUT_LENGTH] = {'\0'};
   char smax[MAX_INPUT_LENGTH] = {'\0'};
   char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
@@ -898,7 +910,7 @@ ACMD(do_oasis_list)
   }
   else if (!*smax)
   {
-    rzone = real_zone(atoi(smin));
+    rzone = real_zone(atoidx(smin));
 
     if ((rzone == NOWHERE || rzone == 0) && subcmd == SCMD_OASIS_ZLIST && !isdigit(*smin))
     {
@@ -914,12 +926,18 @@ ACMD(do_oasis_list)
   else
   {
     /* Listing by min vnum / max vnum.  Retrieve the numeric values. */
-    vmin = atoi(smin);
-    vmax = atoi(smax);
+    vmin = atoidx(smin);
+    vmax = atoidx(smax);
 
+    if (vmin == NOWHERE || vmax == NOWHERE)
+    {
+      send_to_char(ch, "Both VNUM bounds must be unsigned 32-bit integers.\r\n");
+      return;
+    }
     if (vmin > vmax)
     {
-      send_to_char(ch, "List from %d to %d - Aren't we funny today!\r\n", vmin, vmax);
+      send_to_char(ch, "List from %" PRI_IDX " to %" PRI_IDX " - Aren't we funny today!\r\n", vmin,
+                   vmax);
       return;
     }
   }
@@ -1259,7 +1277,7 @@ ACMD(do_oasis_links)
   }
   else
   {
-    zvnum = atoi(arg);
+    zvnum = atoidx(arg);
     zrnum = real_zone(zvnum);
   }
 
@@ -1272,7 +1290,7 @@ ACMD(do_oasis_links)
   last = zone_table[zrnum].top;
   first = zone_table[zrnum].bot;
 
-  send_to_char(ch, "Zone %d is linked to the following zones:\r\n", zvnum);
+  send_to_char(ch, "Zone %" PRI_IDX " is linked to the following zones:\r\n", zvnum);
   for (nr = 0; nr <= top_of_world && (GET_ROOM_VNUM(nr) <= last); nr++)
   {
     if (GET_ROOM_VNUM(nr) >= first)
@@ -1283,7 +1301,7 @@ ACMD(do_oasis_links)
         {
           to_room = world[nr].dir_option[j]->to_room;
           if (to_room != NOWHERE && (zrnum != world[to_room].zone))
-            send_to_char(ch, "%3d %-30s%s at %5d (%-5s) ---> %5d\r\n",
+            send_to_char(ch, "%" PRI_IDX " %-30s%s at %" PRI_IDX " (%-5s) ---> %" PRI_IDX "\r\n",
                          zone_table[world[to_room].zone].number,
                          zone_table[world[to_room].zone].name, QNRM, GET_ROOM_VNUM(nr), dirs[j],
                          world[to_room].number);
@@ -1304,11 +1322,11 @@ static void list_regions(struct char_data *ch, int requested_type)
   char properties[32];
   const char *type_name;
 
-  len =
-      strlcpy(buf,
-              "Ind|VNum   | Name                                |Type        |Properties\r\n"
-              "--- ------- ------------------------------------- ------------ ---------------\r\n",
-              sizeof(buf));
+  len = strlcpy(
+      buf,
+      "Ind|VNum      | Name                                |Type        |Properties\r\n"
+      "--- ---------- ------------------------------------- ------------ ---------------\r\n",
+      sizeof(buf));
   if (!region_table || top_of_region_table == NOWHERE)
     return;
 
@@ -1355,10 +1373,10 @@ static void list_regions(struct char_data *ch, int requested_type)
       break;
     }
 
-    len +=
-        snprintf(buf + len, sizeof(buf) - len, "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%-15s%s\r\n",
-                 QGRN, counter, QNRM, QGRN, region_table[i].vnum, QNRM, QYEL, region_table[i].name,
-                 QNRM, QYEL, type_name, QNRM, QYEL, properties, QNRM);
+    len += snprintf(buf + len, sizeof(buf) - len,
+                    "%s%3d%s|%s%-10" PRI_IDX "%s|%s%-37s%s|%s%12s%s|%s%-15s%s\r\n", QGRN, counter,
+                    QNRM, QGRN, region_table[i].vnum, QNRM, QYEL, region_table[i].name, QNRM, QYEL,
+                    type_name, QNRM, QYEL, properties, QNRM);
 
     if ((size_t)len >= sizeof(buf))
       break;
@@ -1377,11 +1395,11 @@ static void list_paths(struct char_data *ch, int requested_type)
   int counter = 0, len;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  len =
-      strlcpy(buf,
-              "Ind|VNum   | Name                                |Type        |Glyphs\r\n"
-              "--- ------- ------------------------------------- ------------ ---------------\r\n",
-              sizeof(buf));
+  len = strlcpy(
+      buf,
+      "Ind|VNum      | Name                                |Type        |Glyphs\r\n"
+      "--- ---------- ------------------------------------- ------------ ---------------\r\n",
+      sizeof(buf));
   if (!path_table)
     return;
 
@@ -1393,8 +1411,8 @@ static void list_paths(struct char_data *ch, int requested_type)
     counter++;
 
     len += snprintf(buf + len, sizeof(buf) - len,
-                    "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%s%s%s%s\r\n", QGRN, counter, QNRM, QGRN,
-                    path_table[i].vnum, QNRM, QYEL, path_table[i].name, QNRM, QYEL,
+                    "%s%3d%s|%s%-10" PRI_IDX "%s|%s%-37s%s|%s%12s%s|%s%s%s%s%s\r\n", QGRN, counter,
+                    QNRM, QGRN, path_table[i].vnum, QNRM, QYEL, path_table[i].name, QNRM, QYEL,
                     (path_table[i].path_type == 1
                          ? "Road"
                          : (path_table[i].path_type == 2
@@ -1442,8 +1460,8 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
   }
 
   len = strlcpy(buf,
-                "Index  VNum    Room Name                                    Exits\r\n"
-                "-----  ------- -------------------------------------------- -----\r\n",
+                "Index  VNum       Room Name                                    Exits\r\n"
+                "-----  ---------- -------------------------------------------- -----\r\n",
                 sizeof(buf));
 
   if (!top_of_world)
@@ -1481,7 +1499,7 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
       counter++;
 
       len = snprintf_append(
-          buf, sizeof(buf), len, "%4d)%s%s%s [%s%-5d%s] %s%-*s%s %s", counter, QYEL,
+          buf, sizeof(buf), len, "%4d)%s%s%s [%s%-10" PRI_IDX "%s] %s%-*s%s %s", counter, QYEL,
           (has_zcmds != NULL ? (has_zcmds[world[i].number - bottom] == TRUE ? "Z" : " ") : ""),
           QNRM, QGRN, world[i].number, QNRM, QCYN, count_color_chars(world[i].name) + 44,
           world[i].name, QNRM, world[i].proto_script ? "[TRIG] " : "");
@@ -1494,7 +1512,7 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
           continue;
 
         if (world[W_EXIT(i, j)->to_room].zone != world[i].zone)
-          len = snprintf_append(buf, sizeof(buf), len, "(%s%d%s)", QYEL,
+          len = snprintf_append(buf, sizeof(buf), len, "(%s%" PRI_IDX "%s)", QYEL,
                                 world[W_EXIT(i, j)->to_room].number, QNRM);
       }
 
@@ -1542,8 +1560,8 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
   }
 
   len = strlcpy(buf,
-                "Ind|VNum   |Lv|T|Al|Rac|Cls|E|Mobile Name                                 \r\n"
-                "--- ------- -- - -- --- --- - ------------------------------------------- \r\n",
+                "Ind|VNum      |Lv|T|Al|Rac|Cls|E|Mobile Name                                 \r\n"
+                "--- ---------- -- - -- --- --- - ------------------------------------------- \r\n",
                 sizeof(buf));
   if (!top_of_mobt)
     return;
@@ -1565,9 +1583,9 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
                    mob_proto[i].proto_script ? " [TRIG]" : ""
                    );*/
       len += snprintf(buf + len, sizeof(buf) - len,
-                      "%s%3d%s|%s%-7d%s|%s%2d%s|%s|%s|%s|%s|%s|%s%-*s %s\r\n", QGRN, counter, QNRM,
-                      QGRN, mob_index[i].vnum, QNRM, QYEL, mob_proto[i].player.level, QNRM,
-                      mob_proto[i].proto_script ? "\tRY\tn" : "N",
+                      "%s%3d%s|%s%-10" PRI_IDX "%s|%s%2d%s|%s|%s|%s|%s|%s|%s%-*s %s\r\n", QGRN,
+                      counter, QNRM, QGRN, mob_index[i].vnum, QNRM, QYEL, mob_proto[i].player.level,
+                      QNRM, mob_proto[i].proto_script ? "\tRY\tn" : "N",
                       get_align_by_num_cnd(mob_proto[i].char_specials.saved.alignment),
                       race_family_short[mob_proto[i].player.race],
                       IS_SET_AR(mob_proto[i].char_specials.saved.act, MOB_NOCLASS)
@@ -1623,8 +1641,8 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
   }
 
   len = strlcpy(buf,
-                "VNum    #  D Object Name                  Type         Lv [B] + Specific\r\n"
-                "------- -- - ---------------------------- ------------ -- ----------------\r\n",
+                "VNum       #  D Object Name                  Type         Lv [B] + Specific\r\n"
+                "---------- -- - ---------------------------- ------------ -- ----------------\r\n",
                 sizeof(buf));
 
   if (!top_of_objt)
@@ -1658,7 +1676,8 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
       }
 
       len = snprintf_append(
-          buf, sizeof(buf), len, "%s%-7d%s %2d %s %s%-*s %s%-12s%s %2d [%d] %s%-16s%s %s ", QGRN,
+          buf, sizeof(buf), len,
+          "%s%-10" PRI_IDX "%s %2d %s %s%-*s %s%-12s%s %2d [%d] %s%-16s%s %s ", QGRN,
           obj_index[i].vnum, QNRM, num_found,
           (!obj_proto[i].ex_description ? "\tRN\tn" : "\tWY\tn"), QCYN,
           count_color_chars(obj_proto[i].short_description) + 28, obj_proto[i].short_description,
@@ -1737,8 +1756,8 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
     top = vmax;
   }
 
-  send_to_char(ch, "Index VNum    RNum    Mob Name and Shop Room(s)\r\n"
-                   "----- ------- ------- -----------------------------------------\r\n");
+  send_to_char(ch, "Index VNum       RNum       Mob Name and Shop Room(s)\r\n"
+                   "----- ---------- ---------- -----------------------------------------\r\n");
 
   for (i = 0; (int)i <= top_shop; i++)
   {
@@ -1763,8 +1782,8 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
        */
 
       /* the +1 is strange but fits the rest of the shop code */
-      send_to_char(ch, "%s%4d%s) [%s%-5d%s] [%s%-5d%s] %s%s", QGRN, counter, QNRM, QGRN,
-                   SHOP_NUM(i), QNRM, QGRN, i + 1, QNRM,
+      send_to_char(ch, "%s%4d%s) [%s%-10" PRI_IDX "%s] [%s%-10" PRI_IDX "%s] %s%s", QGRN, counter,
+                   QNRM, QGRN, SHOP_NUM(i), QNRM, QGRN, i + 1, QNRM,
                    (SHOP_KEEPER(i) < top_of_mobt) ? mob_proto[SHOP_KEEPER(i)].player.short_descr
                                                   : "ERR!",
                    QNRM);
@@ -1777,7 +1796,7 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
 
       /* Thanks to Ken Ray for this display fix. -Welcor */
       for (j = 0; SHOP_ROOM(i, j) != NOWHERE; j++)
-        send_to_char(ch, "%s%s[%s%-5d%s]%s",
+        send_to_char(ch, "%s%s[%s%-10" PRI_IDX "%s]%s",
                      ((j > 0) && (j % 6 == 0)) ? "\r\n                      " : " ", QCYN, QYEL,
                      SHOP_ROOM(i, j), QCYN, QNRM);
 
@@ -1821,9 +1840,10 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
       top = zone_table[top_of_zone_table].number; /* Highest Zone */
   }
 
-  len = snprintf(buf, sizeof(buf),
-                 "VNum  Zone Name                  Status    Builder(s)\r\n"
-                 "----- -------------------------- ------ -------------------------------\r\n");
+  len =
+      snprintf(buf, sizeof(buf),
+               "VNum       Zone Name                  Status    Builder(s)\r\n"
+               "---------- -------------------------- ------ -------------------------------\r\n");
 
   len = snprintf_append(buf, sizeof(buf), len, "NOTE:  <*> Means Reserved, See HELP RESERVED\r\n");
 
@@ -1844,10 +1864,11 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
         else
           status = "\tmN-Reva\tn";
 
-        len = snprintf_append(
-            buf, sizeof(buf), len, "[%s%3d%s] %s%-*s %s %s%-1s%s\r\n", QGRN, zone_table[i].number,
-            QNRM, QCYN, count_color_chars(zone_table[i].name) + 26, zone_table[i].name, status,
-            QYEL, zone_table[i].builders ? zone_table[i].builders : "None.", QNRM);
+        len =
+            snprintf_append(buf, sizeof(buf), len, "[%s%10" PRI_IDX "%s] %s%-*s %s %s%-1s%s\r\n",
+                            QGRN, zone_table[i].number, QNRM, QCYN,
+                            count_color_chars(zone_table[i].name) + 26, zone_table[i].name, status,
+                            QYEL, zone_table[i].builders ? zone_table[i].builders : "None.", QNRM);
         counter++;
       }
     }
@@ -1871,7 +1892,7 @@ void print_zone(struct char_data *ch, zone_vnum vnum)
 
   if ((rnum = real_zone(vnum)) == NOWHERE)
   {
-    send_to_char(ch, "Zone #%d does not exist in the database.\r\n", vnum);
+    send_to_char(ch, "Zone #%" PRI_IDX " does not exist in the database.\r\n", vnum);
     return;
   }
 
@@ -1920,14 +1941,14 @@ void print_zone(struct char_data *ch, zone_vnum vnum)
 
   /* Display all of the zone information at once. */
   send_to_char(ch,
-               "%sVirtual Number = %s%d\r\n"
+               "%sVirtual Number = %s%" PRI_IDX "\r\n"
                "%sName of zone   = %s%s\r\n"
                "%sBuilders       = %s%s\r\n"
                "%sLifespan       = %s%d\r\n"
                "%sShow Weather   = %s%d\r\n"
                "%sAge            = %s%d\r\n"
-               "%sBottom of Zone = %s%d\r\n"
-               "%sTop of Zone    = %s%d\r\n"
+               "%sBottom of Zone = %s%" PRI_IDX "\r\n"
+               "%sTop of Zone    = %s%" PRI_IDX "\r\n"
                "%sReset Mode     = %s%s\r\n"
                "%sZone Flags     = %s%s\r\n"
                "%sMin Level      = %s%d\r\n"
@@ -1973,8 +1994,8 @@ static void list_triggers(struct char_data *ch, zone_rnum rnum, trig_vnum vmin, 
   }
 
   /* Store the header for the room listing. */
-  send_to_char(ch, "Index VNum    Trigger Name                                  Type\r\n"
-                   "----- ------- --------------------------------------------- ---------\r\n");
+  send_to_char(ch, "Index VNum       Trigger Name                                  Type\r\n"
+                   "----- ---------- --------------------------------------------- ---------\r\n");
 
   /* Loop through the world and find each room. */
   for (i = 0; i < top_of_trigt; i++)
@@ -1984,8 +2005,8 @@ static void list_triggers(struct char_data *ch, zone_rnum rnum, trig_vnum vmin, 
     {
       counter++;
 
-      send_to_char(ch, "%4d) [%s%5d%s] %s%-45.45s%s ", counter, QGRN, trig_index[i]->vnum, QNRM,
-                   QCYN, trig_index[i]->proto->name, QNRM);
+      send_to_char(ch, "%4d) [%s%10" PRI_IDX "%s] %s%-45.45s%s ", counter, QGRN,
+                   trig_index[i]->vnum, QNRM, QCYN, trig_index[i]->proto->name, QNRM);
 
       if (trig_index[i]->proto->attach_type == OBJ_TRIGGER)
       {
@@ -2008,8 +2029,8 @@ static void list_triggers(struct char_data *ch, zone_rnum rnum, trig_vnum vmin, 
   if (counter == 0)
   {
     if (rnum == NOWHERE)
-      send_to_char(ch, "No triggers found from %d to %d\r\n", vmin, vmax);
+      send_to_char(ch, "No triggers found from %" PRI_IDX " to %" PRI_IDX "\r\n", vmin, vmax);
     else
-      send_to_char(ch, "No triggers found for zone #%d\r\n", zone_table[rnum].number);
+      send_to_char(ch, "No triggers found for zone #%" PRI_IDX "\r\n", zone_table[rnum].number);
   }
 }

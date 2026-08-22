@@ -4273,12 +4273,12 @@ static void load_zones(FILE *fl, char *zonename)
   line_num += get_line(fl, buf);
   /* vnum expansion */
   //  if (sscanf(buf, "#%hd", &Z.number) != 1) {
-  if (sscanf(buf, "#%d", &Z.number) != 1)
+  if (sscanf(buf, "#%" SCN_IDX, &Z.number) != 1)
   {
     log("SYSERR: Format error in %s, line %d", zname, line_num);
     exit(1);
   }
-  snprintf(buf2, sizeof(buf2), "beginning of zone #%d", Z.number);
+  snprintf(buf2, sizeof(buf2), "beginning of zone #%" PRI_IDX, Z.number);
 
   line_num += get_line(fl, buf);
   if ((ptr = strchr(buf, '~')) != NULL) /* take off the '~' if it's there */
@@ -4303,25 +4303,28 @@ static void load_zones(FILE *fl, char *zonename)
           &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
           &Z.show_weather) != 11) {
    */
-  if (sscanf(buf, " %d %d %d %d %511s %511s %511s %511s %d %d %d %d %d %d", &Z.bot, &Z.top,
-             &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
-             &Z.show_weather, &Z.region, &Z.faction, &Z.city) != 14)
+  if (sscanf(buf, " %" SCN_IDX " %" SCN_IDX " %d %d %511s %511s %511s %511s %d %d %d %d %d %d",
+             &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
+             &Z.max_level, &Z.show_weather, &Z.region, &Z.faction, &Z.city) != 14)
   {
     // not 14 values, lets try 11
-    if (sscanf(buf, " %d %d %d %d %511s %511s %511s %511s %d %d %d", &Z.bot, &Z.top, &Z.lifespan,
-               &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
-               &Z.show_weather) != 11)
+    if (sscanf(buf, " %" SCN_IDX " %" SCN_IDX " %d %d %511s %511s %511s %511s %d %d %d", &Z.bot,
+               &Z.top, &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
+               &Z.max_level, &Z.show_weather) != 11)
     {
       // not 11 values, lets try 10
-      if (sscanf(buf, " %d %d %d %d %511s %511s %511s %511s %d %d", &Z.bot, &Z.top, &Z.lifespan,
-                 &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level) != 10)
+      if (sscanf(buf, " %" SCN_IDX " %" SCN_IDX " %d %d %511s %511s %511s %511s %d %d", &Z.bot,
+                 &Z.top, &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
+                 &Z.max_level) != 10)
       {
         // not 10 values, last try for 4 values
-        if (sscanf(buf, " %d %d %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4)
+        if (sscanf(buf, " %" SCN_IDX " %" SCN_IDX " %d %d ", &Z.bot, &Z.top, &Z.lifespan,
+                   &Z.reset_mode) != 4)
         {
           // attempt to fix: copy previous 2 last reads into this and last variable
           log("SYSERR: Format error in numeric constant line of %s, attempting to fix.", zname);
-          if (sscanf(Z.name, " %d %d %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4)
+          if (sscanf(Z.name, " %" SCN_IDX " %" SCN_IDX " %d %d ", &Z.bot, &Z.top, &Z.lifespan,
+                     &Z.reset_mode) != 4)
           {
             log("SYSERR: Could not fix previous error, aborting game.");
             exit(1);

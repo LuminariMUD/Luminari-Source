@@ -36,10 +36,10 @@ The initial audit confirmed four defects:
 | --- | --- | --- |
 | P0 | [#181](https://github.com/tbamud/tbamud/issues/181) | Resolved locally 2026-08-23: zone archive creation no longer invokes a shell and all export basenames use an ASCII allowlist. |
 | P0 | [#157](https://github.com/tbamud/tbamud/issues/157) | Resolved locally 2026-08-23: combat, damage, and grapple enforce global PK configuration and mutual controller consent. |
-| P1 | [#92](https://github.com/tbamud/tbamud/issues/92) | VNUM storage is 32-bit, but room/mobile/object stat output still assumes narrow VNUM fields and often uses signed `%d` for unsigned index types. |
+| P1 | [#92](https://github.com/tbamud/tbamud/issues/92) | Resolved locally 2026-08-23 with fixed-width index parsing/formatting and tested high-VNUM stat and OLC output. |
 | P2 | [#57](https://github.com/tbamud/tbamud/issues/57) | The bundled `snprintf` fallback still formats fractional values with leading zeroes incorrectly. It is dormant on the current development host. |
 
-Six additional reports still describe this repository, but are not classified
+Five additional reports still describe this repository, but are not classified
 as correctness defects:
 
 - [#47](https://github.com/tbamud/tbamud/issues/47): rooms still have both
@@ -48,20 +48,18 @@ as correctness defects:
   permits an administrator to override a level requirement after warning.
 - [#86](https://github.com/tbamud/tbamud/issues/86): separately dropped coin
   piles remain separate objects.
-- [#90](https://github.com/tbamud/tbamud/issues/90): `IDXTYPE` is 32-bit on the
-  configured target, but is still spelled `unsigned int` rather than a
-  fixed-width `uint32_t` type.
 - [#95](https://github.com/tbamud/tbamud/issues/95): inherited licensing remains
   relevant and is already called out in the repository's legal documentation.
 - [#105](https://github.com/tbamud/tbamud/issues/105): new room objects are
   inserted at the head of the room list, so recent drops appear above fixtures.
   This behavior also avoids upstream issue #147.
 
-The other 35 issues are fixed, absent, or not applicable to this codebase.
+The other 36 issues are fixed, absent, resolved locally, or not applicable to
+this codebase.
 
-Resolution work is tracked in this document. Two of the four confirmed defects
-are resolved locally; two remain. The six design, portability, and legal
-findings remain tracked until their policies or implementations are resolved.
+Resolution work is tracked in this document. Three of the four confirmed
+defects are resolved locally; one remains. The five design and legal findings
+remain tracked until their policies or implementations are resolved.
 
 ## Confirmed defects
 
@@ -119,34 +117,31 @@ consent, arenas, ordinary PvE, player-controlled pets on both sides,
 owner-versus-own-pet actions, malformed master chains, direct grapple entry,
 central combat-state entry, and direct damage.
 
-### P1: Issue #92 - large-VNUM stat output is incomplete
+### P1: Issues #90 and #92 - fixed-width indexes and high-VNUM output
 
-Status: Confirmed.
+Status: Resolved locally on 2026-08-23.
 
-Issue #90's storage range is available on the configured target:
-[`IDXTYPE`](../../src/structs.h#L59) is `unsigned int`, which is 32-bit here.
-It is not the fixed-width `uint32_t` requested by #90, so that issue remains a
-portability concern rather than a current-host failure. Zone creation accepts
-values up to `IDXTYPE_MAX / 100`, and
-[`atoidx()`](../../src/utils.c#L4512) rejects negative and out-of-range input.
+[`IDXTYPE`](../../src/structs.h#L59) is now an actual `uint32_t` typedef rather
+than a host-dependent spelling. `PRI_IDX` and `SCN_IDX` provide one matching
+format convention, while `UINT32_MAX` remains reserved as the common invalid
+index sentinel.
 
-The display conversion is incomplete. Examples include:
+[`atoidx()`](../../src/utils.c#L4515) now parses with `strtoumax()`, validates the
+whole token, and rejects negative, overflow, sentinel, and trailing-junk input.
+Zone-file number and bound parsing uses the matching scan macro.
+[`sprintindex()`](../../src/utils.c#L4534) renders valid indexes with the fixed-
+width format and invalid sentinels as `NONE`.
 
-- [`do_stat_room()`](../../src/act.wizard.c#L878), which prints zone, VNUM, and
-  RNUM with widths of three or five characters.
-- [`do_stat_character()`](../../src/act.wizard.c#L1054), which prints room and
-  mobile VNUMs with five-character fields.
-- [`oasis_list.c`](../../src/olc/oasis_list.c#L1417), which contains several
-  fixed five- or seven-character VNUM layouts.
+Room, mobile, and object stat identity fields now use the index formatter and
+split long identity records across lines. OLC room/mobile/object/zone/trigger
+lists use ten-character VNUM columns and matching unsigned conversions. Numeric
+staff lookups use `atoidx()` instead of narrowing through `atoi()`.
 
-These widths are minimum widths, so large values are not truncated, but they do
-break the intended column alignment and can push output beyond the issue's
-120-column target. Many of these calls also pass unsigned `IDXTYPE` values to
-signed `%d` conversions.
-
-Recommended direction: define one index-format convention, use unsigned or
-fixed-width format macros consistently, size columns for the supported range,
-and add rendered-output tests using zone 600000 and VNUMs 60000000-60000099.
+A production-linked regression creates room, mobile, and object fixtures at
+VNUM 4,000,000,000. It exercises room stat, mobile stat, object stat, and an OLC
+room range listing, verifies the full identifier is present, and requires every
+visible output line to remain below 120 columns. The normal world syntax boot
+also verifies that the fixed-width zone parser loads the complete local world.
 
 ### P2: Issue #57 - fallback floating-point formatting
 
@@ -245,9 +240,9 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
 | [#85 GCC 9.2 warnings](https://github.com/tbamud/tbamud/issues/85) | Closed | Not present | `name_from_drinkcon()` uses bounded allocation/memory copies, and `say_spell()` uses larger bounded buffers. The reported warning sites are gone. |
 | [#86 Multiple gold stacks](https://github.com/tbamud/tbamud/issues/86) | Closed | Present by design | Each drop creates a distinct money object; upstream classified this as cosmetic and `wontfix`. |
 | [#89 Testing frameworks](https://github.com/tbamud/tbamud/issues/89) | Open | Not applicable/satisfied | This is an upstream planning task. LuminariMUD already has production-linked CuTest integration tests and focused harnesses. |
-| [#90 Change IDXTYPE to uint32](https://github.com/tbamud/tbamud/issues/90) | Open | Present portability concern | `IDXTYPE` is `unsigned int`, which is 32-bit on the configured target but is not a fixed-width `uint32_t` type. |
-| [#91 OLC with uint32](https://github.com/tbamud/tbamud/issues/91) | Open | Not present at stated target | `atoidx()` and `create_new_zone()` support zone 600000 and rooms 60000000-60000099. Display formatting remains incomplete under #92. |
-| [#92 Stat alignment for uint32](https://github.com/tbamud/tbamud/issues/92) | Open | Confirmed defect | Stat and OLC output still use narrow fields and signed conversions for unsigned indexes. |
+| [#90 Change IDXTYPE to uint32](https://github.com/tbamud/tbamud/issues/90) | Open | Resolved locally | `IDXTYPE` is a `uint32_t` typedef with matching print/scan macros and a reserved `UINT32_MAX` invalid sentinel. |
+| [#91 OLC with uint32](https://github.com/tbamud/tbamud/issues/91) | Open | Not present at stated target | `atoidx()` and `create_new_zone()` support zone 600000 and rooms 60000000-60000099; fixed-width parsing and OLC display tests also cover values above that target. |
+| [#92 Stat alignment for uint32](https://github.com/tbamud/tbamud/issues/92) | Open | Resolved locally | Room/mobile/object stat and relevant OLC list output use type-safe conversions, ten-character VNUM fields, and sub-120-column identity records. |
 | [#93 Large test world](https://github.com/tbamud/tbamud/issues/93) | Open | Not applicable | Upstream performance-test data request, not an inherited runtime defect. |
 | [#95 Relicensing to LGPL](https://github.com/tbamud/tbamud/issues/95) | Open | Present legal concern | Inherited licensing is explicitly tracked locally; no code defect or automatic relicensing follows. |
 | [#96 Typo/idea/bug crash](https://github.com/tbamud/tbamud/issues/96) | Closed | Not applicable | The report arose from the reporter's Korean command-order and character-set modifications; stock upstream did not reproduce it. |
@@ -311,12 +306,23 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
   arenas, ordinary monsters, pets on both sides, owner-versus-own-pet actions,
   and malformed master chains.
 
+### Resolution checkpoint 3 - issues #90 and #92
+
+- A clean production rebuild with `-std=gnu2x -Wall -Wextra` completes with no
+  warnings after changing `IDXTYPE` to `uint32_t`.
+- `make test` passes all 796 tests, including the high-VNUM parsing, stat, and
+  OLC rendering regression. The required follow-up `make install` also passes
+  and removes the root-level `luminari` artifact.
+- The installed binary's syntax-check boot loads 762 zones, 91,736 rooms,
+  27,069 mobiles, and 22,637 objects before clean shutdown.
+- The rendering regression uses VNUM 4,000,000,000, verifies the complete value
+  in room/mobile/object stat and OLC room-list output, and verifies that every
+  visible line is shorter than 120 columns.
+
 ## Recommended work order
 
-1. Complete #90 and #92 as a single index-formatting pass rather than patching
-   isolated output lines.
-2. Fix #57 or deliberately remove the unsupported fallback implementation.
-3. Decide and document the builder/player compatibility policies behind #47,
+1. Fix #57 or deliberately remove the unsupported fallback implementation.
+2. Decide and document the builder/player compatibility policies behind #47,
    #86, and the #105/#147 ordering tradeoff.
 
 ## Audit limits
