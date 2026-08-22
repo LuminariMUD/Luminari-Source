@@ -29,11 +29,30 @@ archery pouches to 20 throwing containers; no `WEAPON_TYPE_UNDEFINED`, no
 `AMMO_TYPE_UNDEFINED`, and no emitted ranged type that `has_ammo_in_pouch()`
 lacks a case for. Every emitted record re-parses through `parse_object_file()`.
 
-**Not carried to the dev world yet.** All of this changes converter output, and
-the world already applied to development came out of the previous Phase 7/8
-release. Nothing converted before this change carries the ranged chain, the
-weapon-table parity, the enhancement bonus, or the corrected equipment
-positions; a fresh Phase 7/8 release is what delivers them.
+**Released to development on 2026-08-22.** Phase 7 regenerated the full corpus
+from the canonical 2026-08-13 discovery/plan/audit/special chain -- 258
+packages, 71,680 records, 0 new active errors, byte-identical repeat -- and
+Phase 8 release `rol-phase8-release-154eb06fdce0c331` applied and sealed it
+(bundle `lib/rol-conversion/runs/phase8-run-20260822_152000`, pre-apply snapshot
+in `lib/rol-conversion/backups/`). The assembled world validates with 0 errors
+and 685 fewer warnings than the world it replaced: 59 `OBJ015` object-level
+clamps gone with the economy-row fix, and 626 `REF030` wear-slot mismatches gone
+with the equipment-position fix. The 69 `REF030` findings that appear in their
+place are the same resets landing on their correct slot and finding a source
+record that never carried the matching wear flag.
+
+Live verification on the development server: a player wields a converted
+longbow, wears a converted quiver as an ammo pouch, loads it with converted
+arrows and fires; `do_hit` refuses melee with it and points at `fire`; a
+converted light crossbow reports "You have to reload your weapon!", reloads, and
+fires; a converted throwing quiver holds a retyped thrown weapon that an ammo
+pouch would refuse; and `MOB_ROL_ARCHER` pixie archers fire arrows into the
+adjacent room at a player standing there. Boot, reset, and 30 minutes of runtime
+produce no `SYSERR`.
+
+One defect surfaced in that pass and was fixed before release: a record retyped
+out of `ITEM_MISSILE` kept its source missile type in `value[3]`, which is the
+attack-message index on a target weapon.
 
 Context: [ROL_CONVERTER_OBJECT_FILE_REFERENCES.md](ROL_CONVERTER_OBJECT_FILE_REFERENCES.md) Item 3.3
 Format authority: [OBJ_FILE_FORMAT_MAPPING.md](OBJ_FILE_FORMAT_MAPPING.md)

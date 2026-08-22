@@ -22,6 +22,9 @@
   becoming badges, held items eye gear, and two positions were dropped entirely.
 - Split converted quivers by the kind they declare: archery quivers become ammo pouches and
   throwing quivers become plain containers, since an ammo pouch may hold only ammunition.
+- Dropped the source missile type when retyping thrown ammunition to a weapon. The same
+  value slot indexes the attack-message table on a target weapon, so a converted throwing
+  dagger mauled and a converted stone clawed.
 - Stopped the source economy row from swallowing the affect flag words that follow it. The
   three economy fields and the two affect words are read independently of line breaks in the
   source format, so 183 records were converting with no affects at all and with an affect
