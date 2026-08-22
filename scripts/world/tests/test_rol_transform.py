@@ -21,7 +21,10 @@ from wtool_lib.rol_state_periodic_profiles import (
 from wtool_lib.rol_soc import build_soc_prototype_comparison, compile_soc_records
 from wtool_lib.rol_special import compile_special_bindings
 from wtool_lib.rol_transform import (
+    APPLY_MAP,
     EQUIPMENT_POSITION_MAP,
+    SOURCE_INSTRUMENT_SUBTYPE_MAP,
+    SOURCE_SAVING_THROW_APPLIES,
     TARGET_APPLY_AC_NEW,
     convert_text,
     emit_mobile,
@@ -1331,6 +1334,156 @@ class RolTransformTests(unittest.TestCase):
     )
     self.assertEqual(
         [23, 23, 23], [affect.bonus_type for affect in result.records[0].affects]
+    )
+
+  def test_emitted_object_inverts_all_source_saving_throw_applies(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nwarded cloak~\na warded cloak~\nA warded cloak is here.~\n~\n"
+        b"11 0 1\n0 0 0 0\n1 1 0\n0\n0\n"
+        b"A\n20 -1\nA\n21 2\nA\n22 -3\nA\n23 4\nA\n24 -5\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(
+        [(20, 1), (20, -2), (21, 3), (21, -4), (22, 5)],
+        [(affect.location, affect.modifier) for affect in result.records[0].affects],
+    )
+    self.assertEqual(
+        [23, 23, 23, 23, 23],
+        [affect.bonus_type for affect in result.records[0].affects],
+    )
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertIn("saving-throw apply 20 modifier -1 to 1", diagnostics)
+    self.assertIn("saving-throw apply 23 modifier 4 to -4", diagnostics)
+
+  def test_emitted_object_translates_rol_instrument_value_contract(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#19959\ndrum oaken dragonhide~\na dragonhide drum~\n"
+        b"A dragonhide drum is here.~\n~\n32 0 16385\n188 12 12 45\n1 1 0\n",
+    )
+
+    emitted = emit_object(source, 2_019_959, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20019.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(38, result.records[0].item_type)
+    self.assertEqual([3, 12, 10, 0], result.records[0].values[:4])
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertIn("source instrument subtype 188 to target subtype 3 (Drum)", diagnostics)
+    self.assertIn("source instrument effectiveness 12 to target maximum 10", diagnostics)
+    self.assertIn(
+        "source instrument minimum-use level 45 to target breakability 0", diagnostics
+    )
+
+  def test_active_object_saving_throw_applies_invert_for_target_sign(self) -> None:
+    self._require_reference_paths("EXAMPLE/RealmsOfLuminari/areas")
+    corpus = parse_active_rol_corpus(
+        self.root / "EXAMPLE/RealmsOfLuminari", self.root
+    )
+    expected: dict[int, list[tuple[int, int]]] = {}
+    emitted_records: list[str] = []
+
+    for record in corpus.records:
+      if record.kind != "obj":
+        continue
+      applies = [
+          (APPLY_MAP[int(directive["arguments"][0])], -int(directive["arguments"][1]))
+          for directive in record.directives
+          if directive["token"] == "A"
+          and len(directive.get("arguments", [])) >= 2
+          and int(directive["arguments"][0]) in SOURCE_SAVING_THROW_APPLIES
+      ]
+      if not applies:
+        continue
+      destination_vnum = 2_000_000 + record.vnum
+      expected[destination_vnum] = applies
+      emitted_records.append(emit_object(record, destination_vnum, _resolver).text)
+
+    path = self._target_path("obj", "".join(emitted_records))
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(458, len(expected))
+    self.assertEqual(490, sum(len(applies) for applies in expected.values()))
+    actual = {
+        record.vnum: [
+            (affect.location, affect.modifier)
+            for affect in record.affects
+            if affect.location in {20, 21, 22}
+        ]
+        for record in result.records
+    }
+    self.assertEqual(expected, actual)
+
+  def test_active_object_instruments_emit_valid_target_values(self) -> None:
+    self._require_reference_paths("EXAMPLE/RealmsOfLuminari/areas")
+    corpus = parse_active_rol_corpus(
+        self.root / "EXAMPLE/RealmsOfLuminari", self.root
+    )
+    expected_subtypes = {
+        184: 1, # Flute
+        185: 0, # Lyre
+        186: 5, # Mandolin
+        187: 4, # Harp
+        188: 3, # Drums
+        189: 2, # Horn
+    }
+    inferred_source_defects = {
+        1046: 2,  # War Horn of Henekar has spell 299 in its subtype slot.
+        22554: 1, # Flute has zero in its subtype slot.
+        22575: 3, # Drums have zero in their subtype slot.
+        57214: 4, # Harp has zero in its subtype slot.
+    }
+    expected: dict[int, list[int]] = {}
+    emitted_records: list[str] = []
+    diagnostics: list[str] = []
+
+    self.assertEqual(expected_subtypes, SOURCE_INSTRUMENT_SUBTYPE_MAP)
+    for record in corpus.records:
+      if record.kind != "obj" or record.values.get("item_type") != 32:
+        continue
+      source_values = list(record.values.get("values", []))
+      source_values = (source_values + [0] * 4)[:4]
+      source_subtype, source_quality, source_effectiveness, source_level = source_values
+      target_subtype = expected_subtypes.get(source_subtype)
+      if target_subtype is None:
+        target_subtype = inferred_source_defects[record.vnum]
+      destination_vnum = 2_000_000 + record.vnum
+      expected[destination_vnum] = [
+          target_subtype,
+          max(0, min(source_quality, 30)),
+          max(0, min(source_effectiveness, 10)),
+          30 - (max(1, min(source_level, 45)) * 30 // 45),
+      ]
+      emitted = emit_object(record, destination_vnum, _resolver)
+      emitted_records.append(emitted.text)
+      diagnostics.extend(emitted.diagnostics)
+
+    path = self._target_path("obj", "".join(emitted_records))
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(83, len(expected))
+    actual = {record.vnum: record.values[:4] for record in result.records}
+    self.assertEqual(expected, actual)
+    self.assertEqual([3, 12, 10, 0], actual[2_019_959])
+    self.assertEqual(
+        {0, 30},
+        {
+            values[3]
+            for destination_vnum, values in actual.items()
+            if destination_vnum in {2_019_959, 2_022_554}
+        },
+    )
+    self.assertFalse(
+        any("defaulted unsupported source instrument subtype" in item for item in diagnostics)
     )
 
   def test_emitted_object_maps_container_key_affects_and_apply(self) -> None:

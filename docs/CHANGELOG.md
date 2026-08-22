@@ -33,6 +33,17 @@
   as the first, moving its bits into the wrong half of the affect range.
 - Gave converted archers a reload step. The in-combat auto-reload was player-only, so a
   crossbow or sling archer fired once per load and then fell silent.
+- Inverted Realms of Luminari item saving-throw modifiers during conversion. RoL uses
+  descending save targets where negative modifiers are beneficial, while Luminari adds the
+  modifier to a d20 save bonus where positive values are beneficial. The magnitude remains
+  one-to-one because one RoL modifier point and one d20 bonus point both represent five
+  percentage points.
+- Translated Realms of Luminari instruments from the active `NEW_BARD` value contract to
+  current Luminari values. Instrument skill IDs now map to valid subtypes, source quality and
+  effectiveness are bounded to their runtime limits, authored subtype defects are inferred
+  from object identity, and the source minimum-use tier now maps inversely onto Luminari's
+  breakability range. Ungated instruments receive the native default of 30 while maximum-tier
+  instruments, including Tiamat's dragonhide drum, are unbreakable.
 
 #### Changed
 

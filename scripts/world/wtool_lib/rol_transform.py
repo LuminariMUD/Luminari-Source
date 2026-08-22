@@ -18,7 +18,7 @@ from .rol_mobile_identity import (
     load_mobile_conversion_policy,
     select_mobile_conversion,
 )
-from .rol_source import RolRecord
+from .rol_source import RolRecord, normalize_identity
 from .rol_weapon_mapping import (
     SOURCE_ITEM_TYPE_FIREWEAPON,
     SOURCE_ITEM_TYPE_MISSILE,
@@ -42,6 +42,37 @@ _TARGET_MAGIC_ITEM_TYPES = frozenset({2, 3, 4, 10})
 _TARGET_MAX_LEVEL = 34
 _TARGET_MAX_OBJECT_SPELL_LEVEL = _TARGET_MAX_LEVEL
 _TARGET_MAX_LIQUID = 22
+SOURCE_ITEM_TYPE_INSTRUMENT = 32
+TARGET_ITEM_INSTRUMENT = 38
+_TARGET_INSTRUMENT_MAX_DIFFICULTY_REDUCTION = 30
+_TARGET_INSTRUMENT_MAX_EFFECTIVENESS = 10
+_TARGET_INSTRUMENT_DEFAULT_BREAKABILITY = 30
+_SOURCE_INSTRUMENT_MAXIMUM_LEVEL = 45
+SOURCE_INSTRUMENT_SUBTYPE_MAP = {
+    184: 1, # FLUTE
+    185: 0, # LYRE
+    186: 5, # MANDOLIN
+    187: 4, # HARP
+    188: 3, # DRUMS -> DRUM
+    189: 2, # HORN
+}
+_TARGET_INSTRUMENT_SUBTYPE_NAMES = {
+    0: "Lyre",
+    1: "Flute",
+    2: "Horn",
+    3: "Drum",
+    4: "Harp",
+    5: "Mandolin",
+}
+_TARGET_INSTRUMENT_NAME_MAP = {
+    "lyre": 0,
+    "flute": 1,
+    "horn": 2,
+    "drum": 3,
+    "drums": 3,
+    "harp": 4,
+    "mandolin": 5,
+}
 _SOURCE_LIQUID_MAP = {
     23: 2,  # champagne -> wine
     24: 16, # Pepsi -> juice
@@ -419,7 +450,7 @@ OBJECT_TYPE_MAP = {
     29: 35,
     30: 36,
     31: 37,
-    32: 38,
+    SOURCE_ITEM_TYPE_INSTRUMENT: TARGET_ITEM_INSTRUMENT,
     33: 28,
     34: 14,
     35: 44,
@@ -518,6 +549,12 @@ OBJECT_SOURCE_ONLY_WEAR_FLAGS = frozenset({25, 27})
 # remainder -- so armour applies are retargeted rather than passed through.
 TARGET_APPLY_AC_NEW = 27
 SOURCE_ARMOR_APPLY = 17
+
+# RoL saving throws are descending targets: NewSaves() explicitly says "less
+# is more" and multiplies item modifiers by five percentage points. Luminari
+# adds these applies to a d20 save bonus, where higher is better. One point is
+# still five percentage points, so preserve the magnitude and invert the sign.
+SOURCE_SAVING_THROW_APPLIES = frozenset({20, 21, 22, 23, 24})
 
 APPLY_MAP = {
     0: 0,
@@ -1779,6 +1816,92 @@ def emit_mobile(
   return TransformResult("".join(lines), diagnostics, ledger)
 
 
+def _instrument_subtype(
+    record: RolRecord, source_subtype: int, diagnostics: list[str]
+) -> int:
+  target_subtype = SOURCE_INSTRUMENT_SUBTYPE_MAP.get(source_subtype)
+  if target_subtype is not None:
+    diagnostics.append(
+        f"mapped source instrument subtype {source_subtype} to target subtype "
+        f"{target_subtype} ({_TARGET_INSTRUMENT_SUBTYPE_NAMES[target_subtype]})"
+    )
+    return target_subtype
+
+  strings = record.values.get("strings", {})
+  identity = normalize_identity(
+      " ".join(
+          str(strings.get(key) or "")
+          for key in ("aliases", "short_description", "description")
+      )
+  )
+  words = set(identity.split())
+  for name, inferred_subtype in _TARGET_INSTRUMENT_NAME_MAP.items():
+    if name not in words:
+      continue
+    diagnostics.append(
+        f"inferred target instrument subtype {inferred_subtype} "
+        f"({_TARGET_INSTRUMENT_SUBTYPE_NAMES[inferred_subtype]}) from source object "
+        f"identity for unsupported source subtype {source_subtype}"
+    )
+    return inferred_subtype
+
+  diagnostics.append(
+      f"defaulted unsupported source instrument subtype {source_subtype} to target "
+      "subtype 0 (Lyre); source object identity has no recognized instrument name"
+  )
+  return 0
+
+
+def _instrument_values(
+    record: RolRecord, values: list[int], diagnostics: list[str]
+) -> list[int]:
+  """Translate the active RoL NEW_BARD value contract to target instruments."""
+
+  source_subtype, source_quality, source_effectiveness, source_minimum_level = values[:4]
+  target_subtype = _instrument_subtype(record, source_subtype, diagnostics)
+  target_quality = max(
+      0, min(source_quality, _TARGET_INSTRUMENT_MAX_DIFFICULTY_REDUCTION)
+  )
+  target_effectiveness = max(
+      0, min(source_effectiveness, _TARGET_INSTRUMENT_MAX_EFFECTIVENESS)
+  )
+  bounded_source_level = max(
+      1, min(source_minimum_level, _SOURCE_INSTRUMENT_MAXIMUM_LEVEL)
+  )
+  target_breakability = _TARGET_INSTRUMENT_DEFAULT_BREAKABILITY - (
+      bounded_source_level
+      * _TARGET_INSTRUMENT_DEFAULT_BREAKABILITY
+      // _SOURCE_INSTRUMENT_MAXIMUM_LEVEL
+  )
+
+  if target_quality != source_quality:
+    diagnostics.append(
+        f"bounded source instrument quality {source_quality} to target difficulty "
+        f"maximum {_TARGET_INSTRUMENT_MAX_DIFFICULTY_REDUCTION}"
+    )
+  if target_effectiveness != source_effectiveness:
+    diagnostics.append(
+        f"bounded source instrument effectiveness {source_effectiveness} to "
+        f"target maximum {_TARGET_INSTRUMENT_MAX_EFFECTIVENESS}"
+    )
+  if bounded_source_level != source_minimum_level:
+    diagnostics.append(
+        f"bounded source instrument minimum-use level {source_minimum_level} to "
+        f"{bounded_source_level}"
+    )
+  diagnostics.append(
+      f"mapped source instrument minimum-use level {bounded_source_level} to target "
+      f"breakability {target_breakability}"
+  )
+
+  return [
+      target_subtype,
+      target_quality,
+      target_effectiveness,
+      target_breakability,
+  ] + values[4:]
+
+
 def _object_values(
     record: RolRecord,
     source_type: int,
@@ -1788,6 +1911,8 @@ def _object_values(
 ) -> list[int]:
   values = list(record.values.get("values", []))
   values = (values + [0] * 16)[:16]
+  if source_type == SOURCE_ITEM_TYPE_INSTRUMENT:
+    values = _instrument_values(record, values, diagnostics)
   if target_type in {17, 23} and not 0 <= values[2] <= _TARGET_MAX_LIQUID:
     source_liquid = values[2]
     values[2] = _SOURCE_LIQUID_MAP.get(source_liquid, 0)
@@ -2315,6 +2440,14 @@ def emit_object(
           diagnostics.append(
               f"restated source armor apply {modifier} as APPLY_AC_NEW {converted} at "
               f"source line {directive['line']}"
+          )
+        modifier = converted
+      elif source_location in SOURCE_SAVING_THROW_APPLIES:
+        converted = -modifier
+        if converted != modifier:
+          diagnostics.append(
+              f"inverted source saving-throw apply {source_location} modifier "
+              f"{modifier} to {converted} at source line {directive['line']}"
           )
         modifier = converted
       lines.extend(
