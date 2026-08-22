@@ -88,6 +88,18 @@ world-tool, schema, and subsystem-specific gates.
   use C when behavior needs engine state, broad reuse, performance, combat,
   persistence, or lifecycle guarantees.
 
+## Licensing and Provenance
+
+Third-party code, content, and assets must identify their exact source revision,
+author or rightsholder, license or permission, modifications, and required
+notices. Do not submit material whose source or permission is unclear, and do
+not remove inherited copyright, authorship, credit, or license notices.
+
+Changes that alter licensing or provenance must follow the
+[inherited code policy](docs/legal/INHERITED_CODE_POLICY.md), including its
+whole-tree relicensing gate. An upstream license change does not by itself
+authorize a uniform license claim for this repository.
+
 ## Pull Request Checklist
 
 - [ ] The change is scoped and its current behavior was traced.
@@ -96,6 +108,8 @@ world-tool, schema, and subsystem-specific gates.
       exact reproducible blocker.
 - [ ] Both build manifests agree when source membership changed.
 - [ ] Relevant docs, help SQL, and changelog entries are current.
+- [ ] New third-party material has complete provenance and preserves all
+      required notices.
 - [ ] No credential, protected local configuration, root `luminari`, or temporary
       validation artifact is included.
 - [ ] The pull request explains any migration, rollout, or rollback step.

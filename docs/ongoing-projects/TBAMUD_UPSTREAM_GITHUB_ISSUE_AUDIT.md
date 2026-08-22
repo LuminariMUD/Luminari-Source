@@ -39,19 +39,18 @@ The initial audit confirmed four defects:
 | P1 | [#92](https://github.com/tbamud/tbamud/issues/92) | Resolved locally 2026-08-23 with fixed-width index parsing/formatting and tested high-VNUM stat and OLC output. |
 | P2 | [#57](https://github.com/tbamud/tbamud/issues/57) | Resolved locally 2026-08-23: fractional zero padding is emitted in the correct order and the fallback has dedicated Autotools and CMake tests. |
 
-One additional report still describes this repository, but is not classified as
-a correctness defect:
+The remaining non-defect report, [#95](https://github.com/tbamud/tbamud/issues/95),
+is resolved locally as a repository policy. LuminariMUD does not claim a
+whole-tree LGPL relicense; inherited notices are preserved and any future
+relicensing proposal must pass a documented component-by-component rights gate.
 
-- [#95](https://github.com/tbamud/tbamud/issues/95): inherited licensing remains
-  relevant and is already called out in the repository's legal documentation.
-
-Every other issue is fixed, absent, resolved locally, or not applicable to this
-codebase.
+Every audited issue is now fixed, absent, resolved locally, or not applicable to
+this codebase.
 
 Resolution work is tracked in this document. All four confirmed defects are
 resolved locally. Issues #47, #80, #86, #105, and #147 now have explicit,
-tested policies. The inherited licensing concern in #95 remains tracked until
-the repository policy is resolved.
+tested policies. The inherited licensing concern in #95 now has an explicit
+provenance and relicensing policy.
 
 ## Confirmed defects
 
@@ -213,14 +212,28 @@ amounts, timers, and flags after room insertion.
 
 ### Issue #95 - LGPL relicensing
 
-Status: Applicable legal/project concern, not a source defect.
+Status: Resolved locally as repository policy on 2026-08-23.
 
 The root [`LICENSE`](../../LICENSE) and
 [`docs/legal/README_legal.md`](../legal/README_legal.md) already distinguish
 LuminariMUD's public-domain custom code from inherited tbaMUD, CircleMUD,
-DikuMUD, and other licensed content. Upstream relicensing cannot be inferred
-from the newer licenses of its ancestors; contributor permission and code
-provenance remain upstream concerns. This audit makes no legal conclusion.
+DikuMUD, and other licensed content. Upstream issue #95 remains open because
+tbaMUD also incorporates independently authored patch sets whose permissions
+must be traced; LuminariMUD has additional inherited and local layers.
+
+The new [inherited code policy](../legal/INHERITED_CODE_POLICY.md) makes the
+local decision explicit without claiming a legal conclusion. A later ancestor
+license change is treated as evidence to review, not whole-tree authorization.
+Existing notices must remain, new third-party material requires exact source,
+author, license, modification, and obligation records, and a uniform relicensing
+claim is blocked until every affected component has documented rights and the
+completed matrix receives maintainer and appropriate legal review.
+
+The repository now also retains a
+[verbatim CircleMUD/DikuMUD license reference](../legal/CIRCLEMUD_DIKUMUD_LICENSE.txt)
+whose SHA-256 matches upstream tbaMUD tag `v3.68`. The root license and
+contribution rules link to the policy, while in-game credits, login attribution,
+help entries, source headers, and history remain part of the provenance trail.
 
 ### Issues #105 and #147 - room object display and lookup order
 
@@ -265,7 +278,7 @@ first-match lookup select the newer instance.
 | [#91 OLC with uint32](https://github.com/tbamud/tbamud/issues/91) | Open | Not present at stated target | `atoidx()` and `create_new_zone()` support zone 600000 and rooms 60000000-60000099; fixed-width parsing and OLC display tests also cover values above that target. |
 | [#92 Stat alignment for uint32](https://github.com/tbamud/tbamud/issues/92) | Open | Resolved locally | Room/mobile/object stat and relevant OLC list output use type-safe conversions, ten-character VNUM fields, and sub-120-column identity records. |
 | [#93 Large test world](https://github.com/tbamud/tbamud/issues/93) | Open | Not applicable | Upstream performance-test data request, not an inherited runtime defect. |
-| [#95 Relicensing to LGPL](https://github.com/tbamud/tbamud/issues/95) | Open | Present legal concern | Inherited licensing is explicitly tracked locally; no code defect or automatic relicensing follows. |
+| [#95 Relicensing to LGPL](https://github.com/tbamud/tbamud/issues/95) | Open | Resolved locally as policy | The repository rejects unsupported whole-tree relicensing, preserves a verbatim inherited license reference, and requires component-level provenance and permission evidence. |
 | [#96 Typo/idea/bug crash](https://github.com/tbamud/tbamud/issues/96) | Closed | Not applicable | The report arose from the reporter's Korean command-order and character-set modifications; stock upstream did not reproduce it. |
 | [#98 Utility overruns](https://github.com/tbamud/tbamud/issues/98) | Closed | Not present at reported sites | `shopconv` uses bounded formatting and the obsolete `webster` utility is absent. |
 | [#104 Forged item persistence](https://github.com/tbamud/tbamud/issues/104) | Closed | Not present | The report did not identify an upstream defect. LuminariMUD object saving explicitly persists changed values and affect records relative to the prototype. |
@@ -378,10 +391,26 @@ first-match lookup select the newer instance.
 - The `DROP` and `AUTOLOOT` help entries were updated in the local development
   database and `lib/text/help/help.hlp`; exact content hashes match.
 
-## Recommended work order
+### Resolution checkpoint 7 - issue #95
 
-1. Record the repository's decision for the inherited licensing concern in #95
-   without making unsupported legal claims.
+- The root license, legal index, contribution rules, and inherited-code policy
+  consistently distinguish custom LuminariMUD code from inherited and
+  third-party material.
+- `docs/legal/CIRCLEMUD_DIKUMUD_LICENSE.txt` is byte-identical to
+  `doc/license.txt` at upstream tbaMUD tag `v3.68`; both SHA-256 values are
+  `848534e3f7b18a5b2c7d48170b65c3e8ad8b0de287db57f1016a443e93853231`.
+- The policy inventories the retained in-game credits, login attribution, help
+  entries, source notices, and history, and defines mandatory provenance fields
+  for future third-party imports.
+- Whole-tree relicensing is blocked until every affected component has a
+  documented rights basis, missing permissions are resolved, and the complete
+  matrix receives maintainer and appropriate legal review.
+
+## Resolution status
+
+No audited issue remains unresolved locally. Upstream issue #95 may continue as
+an upstream relicensing project; any future local adoption must satisfy the
+repository policy and is not implied by this audit.
 
 ## Audit limits
 

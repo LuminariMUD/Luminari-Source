@@ -15,14 +15,13 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
-      # help.hlp is generated data (hedit export). Rewriting its whitespace
-      # would churn thousands of lines and diverge from what the exporter
-      # emits, so the hygiene hooks skip it.
+      # help.hlp is generated data (hedit export), and the inherited license
+      # is a byte-identical legal archive. Mutating hygiene hooks skip both.
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-        exclude: ^lib/text/help/help\.hlp$
+        exclude: ^(lib/text/help/help\.hlp|docs/legal/CIRCLEMUD_DIKUMUD_LICENSE\.txt)$
       - id: end-of-file-fixer
-        exclude: ^lib/text/help/help\.hlp$
+        exclude: ^(lib/text/help/help\.hlp|docs/legal/CIRCLEMUD_DIKUMUD_LICENSE\.txt)$
       - id: check-yaml
       - id: check-added-large-files
         args: [--maxkb=500]
@@ -30,6 +29,7 @@ repos:
       - id: check-merge-conflict
       - id: mixed-line-ending
         args: [--fix=lf]
+        exclude: ^docs/legal/CIRCLEMUD_DIKUMUD_LICENSE\.txt$
 
   # Local hooks for project-specific checks
   - repo: local

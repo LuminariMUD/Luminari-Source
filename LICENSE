@@ -36,4 +36,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 For more information, please refer to <https://unlicense.org>
 
-**Important Note:** This public domain dedication applies ONLY to custom Luminari MUD code. All inherited code from tbaMUD, CircleMUD, and DikuMUD remains subject to their respective licenses.  Those licenses may be able to change, so you should check them periodically at their sources and not rely on our docs/legal folder.
+**Important Note:** This public domain dedication applies ONLY to custom
+Luminari MUD code. Inherited tbaMUD, CircleMUD, DikuMUD, independent patch, and
+third-party material remains subject to its applicable terms and notices. This
+project does not treat a later upstream license change as authorization to
+relicense the whole repository. Existing notices must be preserved, and any
+relicensing claim must satisfy the documented
+[inherited code policy](docs/legal/INHERITED_CODE_POLICY.md). A verbatim local
+reference copy of the inherited CircleMUD/DikuMUD license is retained in
+[docs/legal/CIRCLEMUD_DIKUMUD_LICENSE.txt](docs/legal/CIRCLEMUD_DIKUMUD_LICENSE.txt).
