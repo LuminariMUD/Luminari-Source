@@ -29635,6 +29635,10 @@ Usage: attach mob {trigger vnum/name} {mob name} [location]
 testing or other purposes. The command only attaches the trigger once,
 and will not last over a reboot (or crash).
 
+Persistent room triggers belong in the redit scripts menu. Do not duplicate a
+persistent redit room trigger with a zedit T command; legacy zone attachments
+are supported, but redundant attachments produce a builder warning.
+
 The 'location' is what number in the triggerlist the trigger will assume.
 It is important to first attach a trigger to test before you manually add it
 through oedit/medit/redit. 
@@ -33688,7 +33692,10 @@ SKILLSET
 Usage: skillset <name> '<skill>' <value>
 
    This command sets the specified skill or spell to a percentage learned value
-1-100%. Skills and spells are based on class and level.
+from 0-100%. Skills and spells are based on class and level. A skill unavailable
+to the target's mortal class is rejected. If the target is below the normal
+minimum level, the command reports an administrator override and performs the
+assignment for testing or recovery.
 
 skillset rumble 'magic missile' 100
 
@@ -36068,6 +36075,11 @@ Usage: zedit [room vnum]
 Zedit lets you edit (online) the zone files for your particular zone.
 Within zedit you can alter the loading of monsters and objects and the
 closing/locking of doors etc.
+
+Persistent room triggers should be attached through the redit scripts menu.
+Room-targeted T commands remain supported for legacy reset data, but do not use
+both mechanisms for the same room and trigger. The duplicate is ignored and
+reported to builders.
 
 If no room number is specified, the current room is used as target.
 

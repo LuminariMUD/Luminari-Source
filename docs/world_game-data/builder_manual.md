@@ -937,6 +937,15 @@ The DG (DikuMUD Scripting) system allows builders to create interactive, dynamic
 - **Get/Drop/Wear:** Object interaction events
 - **Fight:** Combat-related triggers
 
+### Persistent Room Trigger Policy
+
+Attach persistent room triggers through the `redit` scripts menu. The room file
+is the canonical source, and a missing persistent trigger is restored on zone
+reset. Do not also add the same room and trigger as a `zedit` `T` command; that
+legacy form remains readable for compatibility, but the overlap is redundant
+and produces a builder warning. The runtime `attach room` command is for
+temporary testing and is never saved.
+
 ---
 
 ## Testing and Debugging

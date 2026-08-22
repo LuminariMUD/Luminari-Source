@@ -582,14 +582,17 @@ ACMDU(do_skillset)
   }
   if ((spell_info[skill].min_level[(pc)] >= LVL_IMMORT) && (pl < LVL_IMMORT))
   {
-    send_to_char(ch, "%s cannot be learned by mortals.\r\n", spell_info[skill].name);
+    send_to_char(ch, "%s is unavailable to mortal %ss; no change was made.\r\n",
+                 spell_info[skill].name, CLSLIST_NAME(pc));
     return;
   }
   else if (spell_info[skill].min_level[(pc)] > pl)
   {
-    send_to_char(ch, "%s is a level %d %s.\r\n", GET_NAME(vict), pl, CLSLIST_NAME(pc));
-    send_to_char(ch, "The minimum level for %s is %d for %ss.\r\n", spell_info[skill].name,
-                 spell_info[skill].min_level[(pc)], CLSLIST_NAME(pc));
+    send_to_char(ch,
+                 "Administrator override: %s is level %d, below the level %d minimum for %s "
+                 "%ss; assignment will continue.\r\n",
+                 GET_NAME(vict), pl, spell_info[skill].min_level[(pc)], spell_info[skill].name,
+                 CLSLIST_NAME(pc));
   }
 
   /* find_skill_num() guarantees a valid spell_info[] index, or -1, and we

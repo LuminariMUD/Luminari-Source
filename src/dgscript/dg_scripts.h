@@ -352,6 +352,7 @@ void dg_obj_trigger(char *line, struct obj_data *obj, int obj_vnum);
 void assign_mob_triggers(struct char_data *mob);
 void assign_obj_triggers(struct obj_data *obj);
 void assign_room_triggers(struct room_data *room);
+bool dg_script_has_trigger_rnum(const struct script_data *script, trig_rnum rnum);
 
 /* From dg_variables.c */
 void add_var(struct trig_var_data **var_list, const char *name, const char *value, long id);

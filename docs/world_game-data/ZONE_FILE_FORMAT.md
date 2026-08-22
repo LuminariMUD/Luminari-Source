@@ -161,6 +161,22 @@ document about rooms.
 | `S` | End of command list | none |
 | `*` | Comment; the whole line is ignored | none |
 
+### Room trigger attachment policy
+
+Use `redit`'s scripts menu for persistent room triggers. Those attachments are
+stored with the room in its `.wld` file, loaded at boot, and restored if they
+are missing when the zone resets.
+
+A room-targeted `T` command in a `.zon` file remains supported for legacy world
+data, but it is a reset-time attachment rather than the canonical room
+definition. Attaching the same trigger to the same room through both sources is
+redundant. Boot and OLC-save diagnostics report that overlap, and reset handling
+does not create a second runtime instance. Duplicate room-trigger entries in a
+room file are likewise ignored, and the room script editor rejects them.
+
+The `attach room` staff command is different from both persisted forms: it
+changes only the current runtime instance for testing and is not saved.
+
 ### Load Percentage
 
 `M`, `O`, and `P` take an optional fifth number: a 1-100 percentage chance the

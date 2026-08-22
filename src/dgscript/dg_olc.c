@@ -28,6 +28,47 @@ static void trigedit_disp_types(struct descriptor_data *d);
 static void trigedit_create_index(int znum, const char *type);
 static void trigedit_setup_new(struct descriptor_data *d);
 
+static void warn_room_trigger_source_overlap(const struct room_data *room)
+{
+  const struct trig_proto_list *proto_trigger;
+  room_rnum room_rnum_value;
+  int command_number;
+
+  if (room == NULL || room->zone == NOWHERE || room->zone > top_of_zone_table)
+    return;
+
+  room_rnum_value = real_room(room->number);
+  if (room_rnum_value == NOWHERE)
+    return;
+
+  for (proto_trigger = room->proto_script; proto_trigger != NULL;
+       proto_trigger = proto_trigger->next)
+  {
+    trig_rnum trigger_rnum;
+
+    trigger_rnum = real_trigger(proto_trigger->vnum);
+    if (trigger_rnum == NOTHING)
+      continue;
+
+    for (command_number = 0; zone_table[room->zone].cmd[command_number].command != 'S';
+         command_number++)
+    {
+      const struct reset_com *command;
+
+      command = &zone_table[room->zone].cmd[command_number];
+      if (command->command == 'T' && command->arg1 == WLD_TRIGGER &&
+          command->arg2 == (int)trigger_rnum && command->arg3 == (int)room_rnum_value)
+      {
+        mudlog(BRF, LVL_BUILDER, TRUE,
+               "TRIGGER WARNING: Room #%" PRI_IDX " and zone #%d line %d both attach trigger #%d"
+               "; keep the redit attachment and remove the redundant zedit command.",
+               room->number, zone_table[room->zone].number, command->line, proto_trigger->vnum);
+        break;
+      }
+    }
+  }
+}
+
 /* Trigedit */
 ACMD(do_oasis_trigedit)
 {
@@ -118,7 +159,10 @@ void script_save_to_disk(FILE *fp, void *item, int type)
   else if (type == OBJ_TRIGGER)
     t = ((struct obj_data *)item)->proto_script;
   else if (type == WLD_TRIGGER)
+  {
+    warn_room_trigger_source_overlap((const struct room_data *)item);
     t = ((struct room_data *)item)->proto_script;
+  }
   else
   {
     log("SYSERR: Invalid type passed to script_save_to_disk()");
@@ -887,6 +931,18 @@ int dg_script_edit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Invalid Trigger VNUM!\r\n"
                          "Please enter position, vnum   (ex: 1, 200):");
       return 1;
+    }
+
+    if (OLC_ITEM_TYPE(d) == WLD_TRIGGER)
+    {
+      for (currtrig = OLC_SCRIPT(d); currtrig != NULL; currtrig = currtrig->next)
+      {
+        if (currtrig->vnum == vnum)
+        {
+          write_to_output(d, "That trigger is already attached to this room.\r\n");
+          return 1;
+        }
+      }
     }
 
     /* add the new info in position */

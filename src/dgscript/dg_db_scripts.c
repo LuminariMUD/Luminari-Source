@@ -27,6 +27,17 @@
 /* local functions */
 static void trig_data_init(trig_data *this_data);
 
+static bool proto_script_has_trigger_vnum(const struct trig_proto_list *proto_script, int vnum)
+{
+  const struct trig_proto_list *trigger;
+
+  for (trigger = proto_script; trigger != NULL; trigger = trigger->next)
+    if (trigger->vnum == vnum)
+      return true;
+
+  return false;
+}
+
 void parse_trigger(FILE *trig_f, int nr)
 {
   int t[2], k, attach_type;
@@ -218,10 +229,18 @@ void dg_read_trigger(FILE *fp, void *proto, int type, int proto_vnum)
     }
     break;
   case WLD_TRIGGER:
+    room = (room_data *)proto;
+    if (proto_script_has_trigger_vnum(room->proto_script, vnum))
+    {
+      mudlog(BRF, LVL_BUILDER, TRUE,
+             "TRIGGER WARNING: Room #%d lists trigger #%d more than once; ignoring duplicate.",
+             proto_vnum, vnum);
+      break;
+    }
+
     CREATE(new_trg, struct trig_proto_list, 1);
     new_trg->vnum = vnum;
     new_trg->next = NULL;
-    room = (room_data *)proto;
     trg_proto = room->proto_script;
     if (!trg_proto)
     {
@@ -308,7 +327,7 @@ void dg_obj_trigger(char *line, struct obj_data *obj, int obj_vnum)
 
 static void assign_trigger_list(struct trig_proto_list *trg_proto, struct script_data **script,
                                 const char *owner_type, int owner_vnum, const char *editor,
-                                const char *script_menu)
+                                const char *script_menu, bool skip_existing)
 {
   trig_rnum rnum;
 
@@ -328,6 +347,11 @@ static void assign_trigger_list(struct trig_proto_list *trg_proto, struct script
     }
     else
     {
+      if (skip_existing && dg_script_has_trigger_rnum(*script, rnum))
+      {
+        trg_proto = trg_proto->next;
+        continue;
+      }
       if (!*script)
         CREATE(*script, struct script_data, 1);
       add_trigger(*script, read_trigger(rnum), -1);
@@ -343,7 +367,7 @@ void assign_mob_triggers(struct char_data *mob)
     return;
 
   assign_trigger_list(mob->proto_script, &mob->script, "Mobile", mob_index[mob->nr].vnum, "medit",
-                      "attach");
+                      "attach", false);
   if (SCRIPT(mob) != NULL)
     dg_script_bind_owner(SCRIPT(mob), mob, MOB_TRIGGER);
 }
@@ -354,7 +378,7 @@ void assign_obj_triggers(struct obj_data *obj)
     return;
 
   assign_trigger_list(obj->proto_script, &obj->script, "Object", obj_index[obj->item_number].vnum,
-                      "oedit", "scripts");
+                      "oedit", "scripts", false);
   if (SCRIPT(obj) != NULL)
     dg_script_bind_owner(SCRIPT(obj), obj, OBJ_TRIGGER);
 }
@@ -364,7 +388,8 @@ void assign_room_triggers(struct room_data *room)
   if (!room)
     return;
 
-  assign_trigger_list(room->proto_script, &room->script, "Room", room->number, "redit", "scripts");
+  assign_trigger_list(room->proto_script, &room->script, "Room", room->number, "redit", "scripts",
+                      true);
   if (SCRIPT(room) != NULL)
     dg_script_bind_owner(SCRIPT(room), room, WLD_TRIGGER);
 }

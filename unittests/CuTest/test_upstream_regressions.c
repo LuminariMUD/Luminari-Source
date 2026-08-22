@@ -18,6 +18,7 @@
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
 #include "../../src/dgscript/dg_olc.h"
+#include "../../src/dgscript/dg_scripts.h"
 #include "../../src/net/protocol.h"
 #include "../../src/quest/hlquest.h"
 #include "../../src/wilderness/terrain_bridge.h"
@@ -72,6 +73,154 @@ static void reset_test_descriptor_output(struct descriptor_data *descriptor)
   descriptor->output[0] = '\0';
   descriptor->bufptr = 0;
   descriptor->bufspace = SMALL_BUFSIZE - 1;
+}
+
+void Test_room_trigger_attachments_are_idempotent_and_reset_restorable(CuTest *tc)
+{
+  struct room_data room;
+  struct trig_proto_list proto_attachment;
+  struct index_data trigger_index_entry;
+  struct trig_data trigger_prototype;
+  struct index_data *test_trigger_index[1];
+  struct index_data **saved_trigger_index;
+  trig_data *runtime_trigger;
+  int saved_top_of_trigt;
+  int attached_count;
+  bool initial_attachment_valid;
+  bool duplicate_was_skipped;
+  bool restored_after_detach;
+
+  memset(&room, 0, sizeof(room));
+  memset(&proto_attachment, 0, sizeof(proto_attachment));
+  memset(&trigger_index_entry, 0, sizeof(trigger_index_entry));
+  memset(&trigger_prototype, 0, sizeof(trigger_prototype));
+
+  trigger_index_entry.vnum = 123;
+  trigger_index_entry.proto = &trigger_prototype;
+  trigger_prototype.nr = 0;
+  trigger_prototype.attach_type = WLD_TRIGGER;
+  trigger_prototype.name = "room trigger attachment fixture";
+  proto_attachment.vnum = 123;
+  room.number = 456;
+  room.proto_script = &proto_attachment;
+  test_trigger_index[0] = &trigger_index_entry;
+  saved_trigger_index = trig_index;
+  saved_top_of_trigt = top_of_trigt;
+  trig_index = test_trigger_index;
+  top_of_trigt = 1;
+
+  assign_room_triggers(&room);
+  initial_attachment_valid = room.script != NULL && dg_script_has_trigger_rnum(room.script, 0);
+
+  assign_room_triggers(&room);
+  attached_count = 0;
+  for (runtime_trigger = room.script ? TRIGGERS(room.script) : NULL; runtime_trigger != NULL;
+       runtime_trigger = runtime_trigger->next)
+    attached_count++;
+  duplicate_was_skipped = attached_count == 1;
+
+  extract_script(&room.script);
+  assign_room_triggers(&room);
+  restored_after_detach = room.script != NULL && dg_script_has_trigger_rnum(room.script, 0) &&
+                          TRIGGERS(room.script)->next == NULL;
+
+  extract_script(&room.script);
+  trig_index = saved_trigger_index;
+  top_of_trigt = saved_top_of_trigt;
+
+  CuAssertTrue(tc, initial_attachment_valid);
+  CuAssertTrue(tc, duplicate_was_skipped);
+  CuAssertTrue(tc, restored_after_detach);
+}
+
+void Test_skillset_reports_explicit_administrator_override_policy(CuTest *tc)
+{
+  struct char_data staff;
+  struct char_data target;
+  struct descriptor_data descriptor;
+  struct player_special_data staff_specials;
+  struct player_special_data target_specials;
+  struct room_data test_room;
+  struct char_data *saved_character_list;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int saved_minimum_level;
+  bool override_reported;
+  bool override_applied;
+  bool unavailable_reported;
+  bool unavailable_rejected;
+
+  if (spell_info[SPELL_MAGIC_MISSILE].name == NULL ||
+      spell_info[SPELL_MAGIC_MISSILE].name == unused_spellname)
+    mag_assign_spells();
+
+  clear_char(&staff);
+  clear_char(&target);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&staff_specials, 0, sizeof(staff_specials));
+  memset(&target_specials, 0, sizeof(target_specials));
+  memset(&test_room, 0, sizeof(test_room));
+
+  descriptor.character = &staff;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  staff.desc = &descriptor;
+  staff.player_specials = &staff_specials;
+  staff.player.name = "skillsetter";
+  GET_LEVEL(&staff) = LVL_IMPL;
+  IN_ROOM(&staff) = 0;
+
+  target.player_specials = &target_specials;
+  target.player.name = "skilltarget";
+  GET_CLASS(&target) = CLASS_WIZARD;
+  GET_LEVEL(&target) = 1;
+  IN_ROOM(&target) = 0;
+  target.next = NULL;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    staff.desc = NULL;
+    CuFail(tc, "could not initialize the skillset output fixture");
+    return;
+  }
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  test_room.number = 1;
+  test_room.sector_type = SECT_INSIDE;
+  world = &test_room;
+  top_of_world = 0;
+  saved_character_list = character_list;
+  character_list = &target;
+  saved_minimum_level = spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_WIZARD];
+  spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_WIZARD] = 10;
+
+  do_skillset(&staff, "skilltarget 'magic missile' 42", 0, 0);
+  override_reported = strstr(descriptor.output, "Administrator override:") != NULL &&
+                      strstr(descriptor.output, "assignment will continue") != NULL;
+  override_applied = GET_SKILL(&target, SPELL_MAGIC_MISSILE) == 42;
+
+  reset_test_descriptor_output(&descriptor);
+  spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_WIZARD] = LVL_IMMORT;
+  do_skillset(&staff, "skilltarget 'magic missile' 55", 0, 0);
+  unavailable_reported = strstr(descriptor.output, "unavailable to mortal") != NULL &&
+                         strstr(descriptor.output, "no change was made") != NULL;
+  unavailable_rejected = GET_SKILL(&target, SPELL_MAGIC_MISSILE) == 42;
+
+  spell_info[SPELL_MAGIC_MISSILE].min_level[CLASS_WIZARD] = saved_minimum_level;
+  character_list = saved_character_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  staff.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  descriptor.pProtocol = NULL;
+  reset_test_descriptor_output(&descriptor);
+
+  CuAssertTrue(tc, override_reported);
+  CuAssertTrue(tc, override_applied);
+  CuAssertTrue(tc, unavailable_reported);
+  CuAssertTrue(tc, unavailable_rejected);
 }
 
 void Test_uint32_indices_parse_and_render_high_stat_vnums(CuTest *tc)

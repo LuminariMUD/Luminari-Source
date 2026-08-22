@@ -989,6 +989,20 @@ void do_sstat_character(char_data *ch, char_data *k)
 
 /* Adds the trigger t to script sc in in location loc.  loc = -1 means add to
  * the end, loc = 0 means add before all other triggers. */
+bool dg_script_has_trigger_rnum(const struct script_data *sc, trig_rnum rnum)
+{
+  const trig_data *trigger;
+
+  if (sc == NULL || rnum == NOTHING)
+    return false;
+
+  for (trigger = TRIGGERS(sc); trigger != NULL; trigger = trigger->next)
+    if (GET_TRIG_RNUM(trigger) == rnum)
+      return true;
+
+  return false;
+}
+
 void add_trigger(struct script_data *sc, trig_data *t, int loc)
 {
   trig_data *i;
@@ -1155,13 +1169,26 @@ ACMD(do_attach)
     }
     /* have a valid room, now get trigger */
     rn = real_trigger(tn);
-    if ((rn == NOTHING) || !(trig = read_trigger(rn)))
+    if (rn == NOTHING)
     {
       send_to_char(ch, "That trigger does not exist.\r\n");
       return;
     }
 
     room = &world[rnum];
+
+    if (dg_script_has_trigger_rnum(SCRIPT(room), rn))
+    {
+      send_to_char(ch, "Trigger %d is already attached to room %" PRI_IDX ".\r\n", tn,
+                   world[rnum].number);
+      return;
+    }
+
+    if (!(trig = read_trigger(rn)))
+    {
+      send_to_char(ch, "That trigger could not be instantiated.\r\n");
+      return;
+    }
 
     if (!SCRIPT(room))
       CREATE(SCRIPT(room), struct script_data, 1);

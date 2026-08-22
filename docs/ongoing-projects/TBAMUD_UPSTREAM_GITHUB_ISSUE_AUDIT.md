@@ -39,13 +39,9 @@ The initial audit confirmed four defects:
 | P1 | [#92](https://github.com/tbamud/tbamud/issues/92) | Resolved locally 2026-08-23 with fixed-width index parsing/formatting and tested high-VNUM stat and OLC output. |
 | P2 | [#57](https://github.com/tbamud/tbamud/issues/57) | Resolved locally 2026-08-23: fractional zero padding is emitted in the correct order and the fallback has dedicated Autotools and CMake tests. |
 
-Five additional reports still describe this repository, but are not classified
+Three additional reports still describe this repository, but are not classified
 as correctness defects:
 
-- [#47](https://github.com/tbamud/tbamud/issues/47): rooms still have both
-  room-file and zone-reset trigger attachment mechanisms.
-- [#80](https://github.com/tbamud/tbamud/issues/80): `skillset` deliberately
-  permits an administrator to override a level requirement after warning.
 - [#86](https://github.com/tbamud/tbamud/issues/86): separately dropped coin
   piles remain separate objects.
 - [#95](https://github.com/tbamud/tbamud/issues/95): inherited licensing remains
@@ -58,8 +54,9 @@ The other 36 issues are fixed, absent, resolved locally, or not applicable to
 this codebase.
 
 Resolution work is tracked in this document. All four confirmed defects are
-resolved locally. The five design and legal findings remain tracked until their
-policies or implementations are resolved.
+resolved locally. Issues #47 and #80 now have explicit, tested policies. The
+three remaining design and legal findings stay tracked until their policies are
+resolved.
 
 ## Confirmed defects
 
@@ -166,27 +163,40 @@ passes the repository warning policy.
 
 ### Issue #47 - two room-trigger attachment mechanisms
 
-Status: Present architectural behavior.
+Status: Resolved locally on 2026-08-23.
 
 [`save_rooms()`](../../src/olc/genwld.c#L395) writes room prototype scripts into
 `.wld` files, while [`reset_zone()`](../../src/db.c#L5621) also processes `T`
 commands from `.zon` files and can attach a trigger to a room during reset.
-Thus the two mechanisms described by #47 still exist and have different
-reattachment behavior.
+The room-file/redit attachment list is now the canonical persistent source.
+Zone-reset `T` commands remain supported for world compatibility, but attaching
+the same trigger to the same room is idempotent regardless of source.
 
-This is real builder-facing complexity, but collapsing the mechanisms would be
-a compatibility change. A safe first step is to document the distinction and
-detect duplicate or conflicting attachments during OLC save and world boot.
+Every zone reset restores any missing room-file triggers before firing reset
+triggers. Boot renumbering reports repeated zone commands and cross-source
+duplicates, the room script editor rejects duplicate entries, runtime `attach
+room` rejects an already attached trigger, and OLC save reports a room-file
+attachment that overlaps a legacy zone command. Builder and file-format
+documentation now state the policy explicitly.
+
+A production-linked regression verifies initial room-file attachment,
+duplicate suppression, and restoration after the runtime instance is removed.
+The shipped world contains 865 room-file attachments, no zone-reset room
+attachments, and no duplicate or cross-source pairs.
 
 ### Issue #80 - `skillset` continues after a level warning
 
-Status: Intentional administrator override.
+Status: Resolved locally on 2026-08-23.
 
 [`do_skillset()`](../../src/modify.c#L494) warns when a skill's minimum level is
 above the target's level, then assigns the requested value. It does return for
-skills unavailable to mortals. This matches the upstream maintainer's stated
-testing/admin intent. The missing return is not a defect, though clearer output
-would make the override explicit.
+skills unavailable to mortals. This administrator override is now explicit:
+the below-level message says assignment will continue, while the unavailable-
+class message says no change was made. The `SKILLSET` help entry documents the
+0-100 range, class rejection, and below-level override.
+
+A production-linked regression verifies both branches, including that the
+override changes the skill and that the unavailable-class rejection does not.
 
 ### Issue #86 - separate coin piles
 
@@ -228,14 +238,14 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
 | --- | --- | --- | --- |
 | [#2 Pagelength](https://github.com/tbamud/tbamud/issues/2) | Closed | Not present | The pager accepts 255 and resets only values above 255; the maximum-page regression test exercises 255. |
 | [#3 Olist Sword](https://github.com/tbamud/tbamud/issues/3) | Closed | Not present | Object-name and affect lists stop with a safety margin before another append; generic OLC list appenders also cap their buffers. |
-| [#47 Room trigger attachment](https://github.com/tbamud/tbamud/issues/47) | Closed | Present by design | Both room-file prototype scripts and zone-reset `T` commands remain; see the detailed section above. |
+| [#47 Room trigger attachment](https://github.com/tbamud/tbamud/issues/47) | Closed | Resolved locally | Room-file attachments are canonical and restored on reset; legacy zone attachments are idempotent, with duplicate diagnostics at boot, OLC, and runtime. |
 | [#56 Mobile save comparison](https://github.com/tbamud/tbamud/issues/56) | Closed | Not present | The reported aggregate-record length comparison no longer exists. `write_mobile_record()` writes bounded description copies and fields directly to `FILE`. |
 | [#57 Float 2.01](https://github.com/tbamud/tbamud/issues/57) | Closed | Resolved locally | Fractional zero padding now precedes significant digits, and both build systems run the forced fallback's 209 comparisons. |
 | [#59 Website download link](https://github.com/tbamud/tbamud/issues/59) | Closed | Not applicable | Upstream website/release policy only. |
 | [#77 Missing syslogs](https://github.com/tbamud/tbamud/issues/77) | Closed | Not applicable | The reporter had skipped configure/build; no product defect was identified. |
 | [#78 Affect flag count](https://github.com/tbamud/tbamud/issues/78) | Closed | Not present | Affect indexes consistently use `1 <= index < NUM_AFF_FLAGS`; constant tables include the sentinel entry and compile-time size checks. |
 | [#79 `how_good` typo](https://github.com/tbamud/tbamud/issues/79) | Closed | Not present | The reported helper and malformed string are no longer in this tree. |
-| [#80 `skillset` return](https://github.com/tbamud/tbamud/issues/80) | Open | Present by design | The continuation is an administrator override after a warning, not a failed guard. |
+| [#80 `skillset` return](https://github.com/tbamud/tbamud/issues/80) | Open | Resolved locally | Output and help now identify the below-level continuation as an administrator override and accurately identify unavailable-class rejection. |
 | [#81 Syntax-check crash](https://github.com/tbamud/tbamud/issues/81) | Closed | Not present | `queue_free(NULL)` returns safely, and the syntax-check boot path completed during this audit. |
 | [#83 `wpurge` dropped gold crash](https://github.com/tbamud/tbamud/issues/83) | Closed | Not present | Drop paths save the object script ID and call `has_obj_by_uid_in_lookup_table()` after triggers before dereferencing or extracting the object. |
 | [#85 GCC 9.2 warnings](https://github.com/tbamud/tbamud/issues/85) | Closed | Not present | `name_from_drinkcon()` uses bounded allocation/memory copies, and `say_spell()` uses larger bounded buffers. The reported warning sites are gone. |
@@ -331,10 +341,24 @@ explicit player-compatibility decision, not treated as an isolated bug fix.
 - The forced fallback compiles with the repository warning flags without
   builtin-declaration or implicit-fallthrough warnings.
 
+### Resolution checkpoint 5 - issues #47 and #80
+
+- `make test` passes the standalone fallback test and all 798 production-linked
+  CuTest tests. The required follow-up `make install` also passes and removes
+  the root-level `luminari` artifact.
+- The room-trigger regression covers initial persistent attachment, duplicate
+  suppression, removal, and zone-reset restoration. A shipped-world scan found
+  865 room-file attachments, no zone-reset room attachments, and no duplicate
+  or cross-source pairs.
+- The `skillset` regression verifies the explicit below-level administrator
+  override and the unavailable-class rejection, including their state changes.
+- The `ATTACH`, `ZEDIT`, and `SKILLSET` help entries were updated in the local
+  development database and `lib/text/help/help.hlp`; exact content hashes match.
+
 ## Recommended work order
 
-1. Decide and document the builder/player compatibility policies behind #47,
-   #80, #86, and the #105/#147 ordering tradeoff.
+1. Decide and document the player compatibility policies behind #86 and the
+   #105/#147 ordering tradeoff.
 2. Record the repository's decision for the inherited licensing concern in
    #95 without making unsupported legal claims.
 

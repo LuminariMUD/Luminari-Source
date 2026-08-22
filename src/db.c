@@ -2648,7 +2648,7 @@ void renum_world(void)
  * Assumes sizeof(room_rnum) >= (sizeof(mob_rnum) and sizeof(obj_rnum)) */
 static void renum_zone_table(void)
 {
-  int cmd_no;
+  int cmd_no, prior_cmd;
   room_rnum a, b, c, olda, oldb, oldc;
   zone_rnum zone;
   char buf[128];
@@ -2798,6 +2798,37 @@ static void renum_zone_table(void)
       case 'T': /* a trigger */
         b = ZCMD.arg2 = real_trigger(ZCMD.arg2);
         c = ZCMD.arg3 = real_room(ZCMD.arg3);
+        if (ZCMD.arg1 == WLD_TRIGGER && b != NOTHING && c != NOWHERE)
+        {
+          struct trig_proto_list *proto_trigger;
+
+          for (proto_trigger = world[c].proto_script; proto_trigger != NULL;
+               proto_trigger = proto_trigger->next)
+          {
+            if (proto_trigger->vnum == (int)oldb)
+            {
+              log("ZONE WARNING: Zone #%d, Line %d: Room #%" PRI_IDX
+                  " and its zone reset both attach "
+                  "trigger #%d; reset attachment will be idempotent.",
+                  zone_table[zone].number, ZCMD.line, world[c].number, oldb);
+              break;
+            }
+          }
+
+          for (prior_cmd = 0; prior_cmd < cmd_no; prior_cmd++)
+          {
+            if (zone_table[zone].cmd[prior_cmd].command == 'T' &&
+                zone_table[zone].cmd[prior_cmd].arg1 == WLD_TRIGGER &&
+                zone_table[zone].cmd[prior_cmd].arg2 == (int)b &&
+                zone_table[zone].cmd[prior_cmd].arg3 == (int)c)
+            {
+              log("ZONE WARNING: Zone #%d, Line %d: duplicate reset attachment of trigger #%d "
+                  "to room #%" PRI_IDX " will be idempotent.",
+                  zone_table[zone].number, ZCMD.line, oldb, world[c].number);
+              break;
+            }
+          }
+        }
         break;
       case 'V': /* trigger variable assignment */
         b = ZCMD.arg3 = real_room(ZCMD.arg3);
@@ -6296,10 +6327,13 @@ void reset_zone(zone_rnum zone)
           ZONE_ERROR("Invalid room number in trigger assignment");
           break;
         }
-        if (!world[ZCMD.arg3].script)
-          CREATE(world[ZCMD.arg3].script, struct script_data, 1);
-        dg_script_bind_owner(world[ZCMD.arg3].script, &world[ZCMD.arg3], WLD_TRIGGER);
-        add_trigger(world[ZCMD.arg3].script, read_trigger(ZCMD.arg2), -1);
+        if (!dg_script_has_trigger_rnum(world[ZCMD.arg3].script, ZCMD.arg2))
+        {
+          if (!world[ZCMD.arg3].script)
+            CREATE(world[ZCMD.arg3].script, struct script_data, 1);
+          dg_script_bind_owner(world[ZCMD.arg3].script, &world[ZCMD.arg3], WLD_TRIGGER);
+          add_trigger(world[ZCMD.arg3].script, read_trigger(ZCMD.arg2), -1);
+        }
         push_result(1);
       }
 
@@ -6366,6 +6400,7 @@ void reset_zone(zone_rnum zone)
     if (rrnum != NOWHERE)
     {
       total_rooms++;
+      assign_room_triggers(&world[rrnum]);
       reset_wtrigger(&world[rrnum]);
       if (has_random_chests == false &&
           (ROOM_FLAGGED(rrnum, ROOM_RANDOM_CHEST) || ZONE_FLAGGED(zone, ZONE_RANDOM_CHESTS)))
