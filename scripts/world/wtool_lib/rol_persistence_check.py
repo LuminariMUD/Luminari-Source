@@ -53,8 +53,15 @@ def _parse_key_values(path: Path) -> dict[str, str]:
   return values
 
 
-def _development_database_config(repo_root: Path) -> tuple[Path, dict[str, str]]:
-  lib_root = (repo_root / "lib").resolve()
+def _development_database_config(
+    repo_root: Path,
+    development_lib_root: Path | None = None,
+) -> tuple[Path, dict[str, str]]:
+  lib_root = (
+      (repo_root / "lib").resolve()
+      if development_lib_root is None
+      else development_lib_root.resolve()
+  )
   environment_path = lib_root / ".env"
   config_path = lib_root / "mysql_config"
   if not environment_path.is_file():
@@ -208,11 +215,14 @@ def _definition_counts(world: WorldData) -> dict[str, Counter[int]]:
 def audit_development_persistence(
     world: WorldData,
     repo_root: Path,
+    development_lib_root: Path | None = None,
 ) -> dict[str, Any]:
   """Check persisted RoL VNUMs against a candidate using the local development DB."""
 
   repo_root = repo_root.resolve()
-  config_path, config = _development_database_config(repo_root)
+  config_path, config = _development_database_config(
+      repo_root, development_lib_root
+  )
   schema = _database_schema(config)
   definitions = _definition_counts(world)
   references: list[dict[str, Any]] = []
@@ -246,10 +256,17 @@ def audit_development_persistence(
   missing = sum(row["status"] == "missing" for row in references)
   duplicate = sum(row["status"] == "duplicate" for row in references)
   identity = f"{config['mysql_host']}/{config['mysql_database']}".encode("utf-8")
+  try:
+    configuration = config_path.relative_to(repo_root).as_posix()
+    configuration_scope = "repository"
+  except ValueError:
+    configuration = "external-development-lib/mysql_config"
+    configuration_scope = "explicit-development-lib-root"
   result = {
       "schema_version": ROL_PERSISTENCE_CHECK_SCHEMA_VERSION,
       "mode": "read-only-local-development",
-      "configuration": config_path.relative_to(repo_root).as_posix(),
+      "configuration": configuration,
+      "configuration_scope": configuration_scope,
       "database_identity_sha256": hashlib.sha256(identity).hexdigest(),
       "tracked_bindings": sum(
           str(binding["record_type"]) in _ROL_RANGES

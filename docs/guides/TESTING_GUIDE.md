@@ -261,13 +261,14 @@ check persisted RoL VNUMs read-only against the candidate world:
 ```sh
 python3 scripts/world/wtool.py \
   --world-root <candidate-lib>/world \
-  --json rol-persistence-check
+  --json rol-persistence-check \
+  --development-lib-root <development-lib>
 ```
 
-The command uses only `lib/mysql_config`, requires `APP_ENV=development`, rejects
-non-read-only query shapes, and fails if any persisted RoL VNUM is missing or
-duplicated in the candidate. Phase 8 runs the same check while its assembled
-candidate exists.
+The command uses `lib/mysql_config` by default or an explicitly selected
+`--development-lib-root`, requires `APP_ENV=development` in that selected lib root, rejects
+non-read-only query shapes, and fails if any persisted RoL VNUM is missing or duplicated in the
+candidate. Phase 8 runs the same check while its assembled candidate exists.
 
 Equivalent CMake and CTest entry points are:
 
@@ -478,14 +479,15 @@ make install
 python3 scripts/world/wtool.py \
   --world-root <candidate-lib>/world validate --all --strict
 python3 scripts/world/wtool.py \
-  --world-root <candidate-lib>/world --json rol-persistence-check
+  --world-root <candidate-lib>/world --json rol-persistence-check \
+  --development-lib-root <development-lib>
 bin/luminari -c -d <candidate-lib>
 timeout --signal=INT 30 bin/luminari -d <candidate-lib> <test-port>
 ```
 
-The candidate lib root must use the repository's local development database
-configuration from `lib/mysql_config`, and these commands must never point at
-production. The syntax and bounded runtime logs must show a complete boot; the
+The persistence gate uses the repository's local development database configuration by default;
+an isolated worktree may name an established development lib root explicitly. These commands must
+never point at production. The syntax and bounded runtime logs must show a complete boot; the
 runtime log must enter the game loop, reset the converted corpus, terminate normally,
 and contain no
 converted-VNUM `SYSERR`, zone error, invalid-reference, or missing-reference

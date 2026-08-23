@@ -1,7 +1,7 @@
 # Thrown Weapons Implementation Plan
 
 - Status: Source implementation and offline validation complete; guarded development data
-  application and live QA pending
+  application and live QA are in progress
 - Analysis date: 2026-08-23
 - Environment reviewed: development
 
@@ -732,6 +732,26 @@ The generated world candidate has not been applied. This feature worktree intent
 inputs must not be synthesized or copied from another checkout. Applying the sealed Phase 8 bundle
 and running the live manual matrix in Section 8 therefore remain release-environment gates rather
 than source implementation work.
+
+### 2026-08-23: Phase 8 development preflight checkpoint
+
+Verified the authoritative development boundary without modifying its data:
+
+- the established development world contains 4,995 files and exactly matches the accepted Phase 7
+  frozen baseline hash `9aa16bbdf4a5728314bea1fd45ca1dc3906698df89df9660df8eab0d7ca17df9`;
+- overlaying the accepted 1,207-path thrown-weapons conversion reproduces candidate hash
+  `3ff3bae40d1dfc87c26758e8eb5d2b7bd268228917b8f4c566ddb3b38f7bfaa7`;
+- the Phase 8 persistence gate can now use an explicitly selected development lib root while
+  retaining its exact `APP_ENV=development` requirement, read-only MariaDB session, write-shaped
+  SQL rejection, and credential/path redaction;
+- an actual read-only audit of the assembled candidate resolved all 32 distinct persisted RoL
+  VNUMs across 34 database rows exactly once; and
+- the expanded world-tool suite reports 491 passing tests with 34 expected optional-corpus skips.
+
+No protected credential file or development-world file changed during preflight. Next, rebuild and
+install the exact checkpoint, capture candidate syntax/runtime boots, seal Phase 8, create and
+verify an independent development-world snapshot, apply the hash-guarded overlay, and execute the
+live matrix.
 
 ## 10. Definition of done
 

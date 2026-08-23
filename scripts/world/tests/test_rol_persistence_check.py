@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+import json
 from pathlib import Path
 from types import SimpleNamespace
 import tempfile
@@ -43,6 +44,27 @@ class RolPersistenceCheckTests(unittest.TestCase):
 
       with self.assertRaisesRegex(RolPersistenceCheckError, "development environment"):
         _development_database_config(root)
+
+  def test_database_configuration_accepts_explicit_development_lib_root(self) -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+      root = Path(temporary)
+      repository = root / "repository"
+      lib_root = root / "development-lib"
+      repository.mkdir()
+      lib_root.mkdir()
+      (lib_root / ".env").write_text("APP_ENV=development\n", encoding="ascii")
+      (lib_root / "mysql_config").write_text(
+          "mysql_host=localhost\n"
+          "mysql_database=luminari\n"
+          "mysql_username=luminari\n"
+          "mysql_password=secret\n",
+          encoding="ascii",
+      )
+
+      config_path, config = _development_database_config(repository, lib_root)
+
+    self.assertEqual((lib_root / "mysql_config").resolve(), config_path)
+    self.assertEqual("luminari", config["mysql_database"])
 
   def test_query_runner_rejects_every_write_shape(self) -> None:
     with self.assertRaisesRegex(RolPersistenceCheckError, "non-read-only"):
@@ -114,6 +136,36 @@ class RolPersistenceCheckTests(unittest.TestCase):
     self.assertEqual(1, result["summary"]["missing_candidate_definitions"])
     self.assertEqual(3, result["summary"]["database_rows"])
     self.assertNotIn("mysql_password", result)
+
+  def test_audit_redacts_explicit_development_lib_root(self) -> None:
+    world = _World({})
+    config_path = Path("/private/development/lib/mysql_config")
+    config = {
+        "mysql_host": "localhost",
+        "mysql_database": "luminari",
+        "mysql_username": "luminari",
+        "mysql_password": "secret",
+    }
+    with patch(
+        "wtool_lib.rol_persistence_check._development_database_config",
+        return_value=(config_path, config),
+    ), patch(
+        "wtool_lib.rol_persistence_check._database_schema",
+        return_value=set(),
+    ):
+      result = audit_development_persistence(
+          world,
+          Path("/repo"),
+          Path("/private/development/lib"),
+      )
+
+    self.assertEqual(
+        "explicit-development-lib-root", result["configuration_scope"]
+    )
+    self.assertEqual(
+        "external-development-lib/mysql_config", result["configuration"]
+    )
+    self.assertNotIn("/private", json.dumps(result))
 
 
 if __name__ == "__main__":

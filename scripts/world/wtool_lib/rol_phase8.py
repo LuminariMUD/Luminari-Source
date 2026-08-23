@@ -539,6 +539,7 @@ def write_phase8_bundle(
     output_dir: Path,
     logs: dict[str, Path],
     created_at: str | None = None,
+    development_lib_root: Path | None = None,
 ) -> dict[str, Any]:
   """Assemble and seal the complete, non-mutating Phase 8 release candidate."""
 
@@ -597,7 +598,9 @@ def write_phase8_bundle(
     mechanics_isolation = _mechanics_isolation_audit(
         repo_root, baseline_world, world
     )
-    persistence = audit_development_persistence(world, repo_root)
+    persistence = audit_development_persistence(
+        world, repo_root, development_lib_root
+    )
 
   line_format = _line_format_audit(phase7_dir / "output/world", paths)
   code_gates = _code_gates(repo_root, logs)

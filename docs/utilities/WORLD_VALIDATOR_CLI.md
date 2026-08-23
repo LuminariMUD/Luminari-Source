@@ -425,13 +425,16 @@ VNUMs. Before release, validate those references against the candidate:
 ```sh
 python3 scripts/world/wtool.py \
   --world-root <candidate-lib>/world \
-  --json rol-persistence-check
+  --json rol-persistence-check \
+  --development-lib-root <development-lib>
 ```
 
 The command is deliberately narrow:
 
-- it reads only the repository's `lib/mysql_config`;
-- it refuses to run unless `lib/.env` identifies the development environment;
+- it reads the repository's `lib/mysql_config` by default, or the configuration under an
+  explicitly supplied `--development-lib-root`;
+- it refuses to run unless the selected lib root's `.env` identifies the environment exactly as
+  `development`;
 - its query runner accepts only one `SELECT` or `SHOW` statement and rejects
   semicolons and every write-shaped statement, and every connection sets the
   database session to `READ ONLY` before running the query;
@@ -440,9 +443,10 @@ The command is deliberately narrow:
 - it fails unless every persisted RoL VNUM resolves to exactly one indexed candidate
   definition.
 
-Phase 8 runs this same check against its assembled candidate. The database target is
-fixed to `lib/mysql_config`; the converter cannot create, copy, migrate, recover, or
-select a database.
+Phase 8 runs this same check against its assembled candidate. Use
+`--development-lib-root` when the candidate is being sealed from an isolated worktree whose
+protected credential files are intentionally absent. The converter cannot create, copy, migrate,
+recover, or select a database.
 
 ## Realms of Luminari Phase 7 and Phase 8
 
@@ -486,6 +490,7 @@ python3 scripts/world/wtool.py --world-root lib/world rol-phase8 \
   --install-log <install-log> \
   --syntax-log <syntax-log> \
   --runtime-log <runtime-log> \
+  --development-lib-root <development-lib> \
   --output-dir <phase8-release-directory>
 ```
 
