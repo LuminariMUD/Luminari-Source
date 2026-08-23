@@ -85,6 +85,7 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int | None]] = {
     9: ("full heal", 28),
     36: ("stone skin", 56),
     41: ("haste", 120),
+    91: ("bigby's clenched fist", 188),
     108: ("fly", 53),
     111: ("plane shift", 239),
     121: ("protection from fire", 433),

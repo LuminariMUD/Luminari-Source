@@ -1630,6 +1630,25 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(120, result.records[0].values[1])
     self.assertIn("source spell 41 (haste)", " ".join(emitted.diagnostics))
 
+  def test_emitted_wand_maps_bigbys_clenched_fist(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#19750\nrod dark blue~\na dark-blue rod~\nA dark-blue rod is here.~\n~\n"
+        b"3 0 16385\n50 10 10 91\n10 100000 1\n0\n0\n",
+    )
+
+    emitted = emit_object(source, 2_019_750, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20197.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(34, result.records[0].values[0])
+    self.assertEqual(188, result.records[0].values[3])
+    self.assertIn(
+        "source spell 91 (bigby's clenched fist) to target spell 188",
+        " ".join(emitted.diagnostics),
+    )
+
   def test_emitted_staff_repairs_current_charges_above_maximum(self) -> None:
     source = self._source_record(
         "obj",
