@@ -1,14 +1,16 @@
 # tbaMUD DG Mobile Damage Trigger Audit
 
-Status: research complete; remediation open
+Status: remediation complete
 
 Research date: 2026-08-23
+
+Remediation completed: 2026-08-23
 
 ## Executive conclusion
 
 Welcor's Mobile Damage trigger is a useful interception point, but the upstream
-patch is not safe to adopt verbatim. Its central contract is underspecified and
-has several surprising behaviors:
+patch is not safe to adopt verbatim. At the audited baseline, its central
+contract was underspecified and had several surprising behaviors:
 
 - a trigger body with no explicit `return` changes the pending hit to 1 damage;
 - a `wait` reached before an explicit `return` also returns 1 to combat
@@ -26,17 +28,37 @@ has several surprising behaviors:
   triggers.
 
 Luminari imported the feature in commit `f272409702c081ba0c000e25a3a821ee1469a3aa`
-and already fixed several of the upstream runtime hazards: it limits the hook to
-NPC victims, validates attack type bounds, uses bounded formatting, checks for
-purged/dead participants, preserves original damage on driver failure, and
-rejects return values below -1. However, the Luminari port introduced a blocking
-OLC regression: option 21 (`Damage`) is displayed but the parser accepts only
-options 1 through 20. Builders therefore cannot select the trigger in
-`trigedit`; only hand-authored/imported `u` flag records work.
+and had already fixed several upstream runtime hazards. The remediation in this
+repository now also fixes the blocking OLC regression, makes no-return and wait
+behavior safe, limits the event to positive pending damage, exposes complete
+combat metadata, documents the actual interception boundary, and supplies the
+missing automated and live builder coverage.
 
-The current recommendation is to keep the feature disabled for builder use
-until the OLC, default-return/wait semantics, documentation, and test matrix are
-fixed. The runtime hook itself need not be removed.
+The release gate defined by this audit is met. The implementation should be
+retained; upstream PR #151 still should not be cherry-picked verbatim into
+another codebase.
+
+## Remediation result
+
+The detailed findings below retain the 2026-08-23 pre-remediation evidence for
+audit history. Their disposition in the current implementation is:
+
+| Finding | Resolution and evidence |
+|---------|-------------------------|
+| DTRIG-001 | Fixed. `trigedit` accepts mobile option 21, and CuTest plus the live builder smoke test prove select, clear, save, and reload behavior. |
+| DTRIG-002 | Fixed. OLC derives a separate sentinel-bounded count for mobile, object, and room arrays; object and room menus stop at 20. |
+| DTRIG-003 | Fixed. Driver status distinguishes a valid explicit return from the driver's ordinary default; no return and `halt` preserve pending damage. |
+| DTRIG-004 | Fixed and documented. Yield status is reported separately; a wait before a result preserves pending damage and logs a warning, while a post-resume return cannot revise the completed hit. |
+| DTRIG-005 | Retained and extended. Owner purge and participant death/position checks cancel the outer path; owner/actor purge and lethal DG-damage cases are tested. |
+| DTRIG-006 | Retained and tested. Driver errors preserve pending damage; invalid values below -1 log and cancel. |
+| DTRIG-007 | Retained and tested. Only NPC victims are eligible, even when player scripts exist. |
+| DTRIG-008 | Resolved as positive-damage-only. Zero-damage misses do not fire the hook. |
+| DTRIG-009 | Resolved by a precise scope contract. Help and web/system documentation state that only positive damage routed through `damage()` is intercepted and enumerate exclusions. |
+| DTRIG-010 | Resolved as a pre-mitigation contract. The returned value replaces pending damage; later defenses, redirects, bonuses, and `cap_combat_damage()` may change final HP loss. Tests cover resistance and the cap. |
+| DTRIG-011 | Fixed compatibly. `%attackid%`, `%attackname%`, `%damagetype%`, `%damagetypename%`, `%attackmodeid%`, and `%attackmode%` supplement legacy `%attacktype%`. |
+| DTRIG-012 | Fixed. Flat-file and development-database help, SQL migration/verifier, web and system references, and a real `0 u 100` minimal-world example now ship together. |
+| DTRIG-013 | Fixed. Production-linked CuTest covers OLC, serialization, chance/order, all return classes, waits, scope, metadata, lifecycle, detachment, mitigation/cap ordering, docs, SQL, and the real world example. The existing E2E test now loads that example. |
+| DTRIG-014 | Fixed. The shared global count was removed, bounded formatting remains, declarations and API comments match the implementation, and the synchronous result contract is explicit. |
 
 ## Scope and sources
 
@@ -77,9 +99,12 @@ Authority for the current Luminari state is master commit
 - `docs/web/assets/js/dg-reference.js:27`
 - `docs/web/dg-scripts/trigger-types.html:83`
 
-The production database was not queried or changed. This audit can prove that
-the repository has no Damage-trigger help migration, but it does not claim to
-know whether someone added an unsourced entry directly to a live database.
+The original research did not query or change the production database. During
+remediation, the new idempotent component
+`sql/components/help_dg_damage_trigger.sql` was applied only to the local
+development database. `sql/components/verify_help_dg_damage_trigger.sql`
+passed all four checks: one help entry, three keywords, no orphan ownership,
+and all ten required content markers. Production was not accessed.
 
 ### Verification performed
 
@@ -93,7 +118,24 @@ extraction, OLC display and input handling, trigger serialization, all shipped
 world trigger records, builder manuals, in-game help source, Luminari web guide,
 and Luminari's one Damage-trigger integration test.
 
-## Actual code contract
+Remediation verification added and passed:
+
+- the full production-linked suite (`make test`): 820 tests, zero failures;
+- the focused protocol parser suite: 29 tests, zero failures;
+- installation through `make install`, leaving no root-level `luminari` artifact;
+- DG documentation and generated-world consistency checks;
+- the local SQL help verifier, with all four checks passing;
+- live help lookups for all three Damage-trigger aliases;
+- a development-server OLC smoke test that created VNUM 11885, selected option
+  21, saved, re-opened, edited, attached it to mobile 11850, fired it in combat,
+  observed `return 0`, detached it, and saved again.
+
+The temporary live-smoke prototype and attachment were removed afterward. OLC
+rewrote the ignored zone mobile file during the test, so that file was restored
+byte-for-byte from the repository's pre-apply development backup before the
+server was stopped cleanly.
+
+## Audited baseline code contract
 
 The upstream execution order is:
 
@@ -145,7 +187,7 @@ The intended return meanings are `-1` to cancel before combat starts, `0` for
 a miss, and a positive replacement amount. The actual edge behavior is covered
 below.
 
-## Findings
+## Audited baseline findings
 
 ### DTRIG-001 - Luminari cannot select Damage in `trigedit` (high)
 
@@ -446,7 +488,7 @@ also left the unused bit 18 implicit. None is severe alone, but together they
 made the actual contract harder to review and helped the documentation and OLC
 errors survive.
 
-## What Luminari already improved
+## What Luminari had already improved at the audited baseline
 
 The Luminari port should not be replaced wholesale with upstream. It contains
 material hardening that the upstream current master still lacks:
@@ -464,36 +506,33 @@ material hardening that the upstream current master still lacks:
 | Caller | Cancels on any negative result and rechecks participant death. |
 | Integration proof | Parses a `u` trigger and proves explicit positive replacement and HP loss. |
 
-These changes directly address DTRIG-005, DTRIG-006, and DTRIG-007. They do not
-address default result/wait behavior, final-damage semantics, metadata, builder
-help, world examples, or the OLC regression.
+At the audited baseline, these changes directly addressed DTRIG-005,
+DTRIG-006, and DTRIG-007. The remediation result above records how the remaining
+findings were resolved.
 
-## Recommended remediation sequence
+## Completed remediation sequence
 
-1. Repair `trigedit` with per-owner type counts and add OLC/serialization tests.
-   This is the immediate blocker to legitimate builder use.
-2. Define synchronous result semantics. Preserve pending damage when no
-   explicit return has been established, and define/log wait behavior.
-3. Keep Luminari's lifecycle, scope, error, and negative-result hardening; add
-   tests for every branch.
-4. Decide whether the hook receives zero-damage attempts and whether its return
-   is pre- or post-mitigation. Name variables and place the hook to match that
-   decision.
-5. Extend attack metadata for Luminari's `dam_type` and attack mode without
-   breaking `%attacktype%`.
-6. Add `TRIGEDIT-MOB-DAMAGE` to `lib/text/help/help.hlp`, create the matching
-   database SQL help component and verifier, update the general type lists and
-   web guide, and add a real `0 u 100` world example.
-7. Run the full production-linked test suite and a manual in-game builder smoke
-   test: create, select, save, reload, attach, fire, edit, and remove a Damage
-   trigger.
+1. Repaired `trigedit` with per-owner type counts and added OLC/serialization
+   tests.
+2. Defined synchronous result semantics, preserving pending damage when no
+   valid explicit return exists and reporting wait behavior.
+3. Retained Luminari's lifecycle, scope, error, and invalid-negative hardening
+   and covered the branches with production-linked tests.
+4. Defined the hook as positive pending damage before later mitigation and
+   documented its exact boundaries.
+5. Extended attack metadata for damage type and attack mode without changing
+   legacy `%attacktype%`.
+6. Updated flat-file and database help, added the SQL verifier, completed the
+   web and long-form references, and added a real `0 u 100` world example.
+7. Passed the full suites and completed the manual create, select, save,
+   reload, attach, fire, edit, detach, and cleanup smoke test.
 
 ## Adoption decision
 
 Do not cherry-pick upstream PR #151 into another codebase unchanged.
 
-For Luminari, retain the existing hardened runtime implementation but treat the
-feature as incomplete. The minimum release gate is:
+For Luminari, retain the remediated implementation. The minimum release gate
+was:
 
 - Damage can be selected and round-tripped through OLC without exposing a bogus
   object/room option;
@@ -502,3 +541,6 @@ feature as incomplete. The minimum release gate is:
   coverage;
 - both in-game help sources and the web guide describe the actual contract;
 - one real builder example exists and has been exercised in game.
+
+Every item is now satisfied. The feature is ready for builder use under the
+documented synchronous, positive-pending-damage contract.

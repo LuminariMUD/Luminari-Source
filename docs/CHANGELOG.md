@@ -16,12 +16,23 @@
 - Corrected DG Script formatting to recognize complete control tokens, validate matching
   `if`/`end`, `while`/`done`, and `switch`/`end` structure before formatting, and leave the
   editor buffer unchanged when validation or output bounds fail.
+- Repaired the Mobile Damage trigger's OLC option bounds, made omitted returns and waits
+  preserve pending damage, limited firing to positive NPC damage, retained purge/death and
+  error hardening, and exposed stable attack, damage-type, and attack-mode metadata.
+
+#### Added
+
+- Added matching flat-file and database help for Mobile Damage triggers, an idempotent SQL
+  verifier, complete builder references, and a working minimal-world pending-damage cap example.
 
 #### Tests
 
 - Added production-linked CuTest coverage for string edge cases, durable-save success and
   forced write/rename failures, DG token-prefix false positives, unmatched and unclosed
   blocks, nesting depth, long lines, output limits, and non-mutation on validation failure.
+- Added production-linked Mobile Damage coverage for OLC and serialization, chance and trigger
+  ordering, returns and waits, participant lifecycle, scope, metadata, post-hook mitigation and
+  caps, documentation, database help sources, and the real world example.
 
 ## [Unreleased] - August 22, 2026
 

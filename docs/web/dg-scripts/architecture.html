@@ -68,6 +68,7 @@
           <li>Consumes or ignores the returned integer according to the hook contract.</li>
         </ol>
         <p>The main heartbeat calls <code>script_trigger_check()</code> every <code>PULSE_DG_SCRIPT</code> for periodic checks; Time triggers also compare the in-game hour.</p>
+        <p>Mobile Damage is a specialized synchronous hook in the combat path. Deflective-screen and artifact reductions can occur before it; most defenses, reductions, redirects, the combat cap, hit-point subtraction, and death handling occur after it. The hook also records whether the driver executed an explicit return or yielded, allowing no-return and pre-return waits to preserve the incoming pending damage without changing the default behavior of other trigger families.</p>
       </section>
 
       <section class="dg-article-section" id="driver">

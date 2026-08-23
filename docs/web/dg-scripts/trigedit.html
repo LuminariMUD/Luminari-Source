@@ -68,7 +68,7 @@ Enter Choice :</code></pre></div>
 
       <section class="dg-article-section" id="configure">
         <h2>Configure owner, types, and arguments</h2>
-        <p>Changing <strong>Intended for</strong> changes the list presented by choice 3. The type selector displays a fixed flag table, including entries marked UNUSED. Do not select an UNUSED flag simply because it is displayed.</p>
+        <p>Changing <strong>Intended for</strong> changes the list presented by choice 3. The selector stops at the end of that owner's actual table: mobile triggers have 21 choices through Damage, while object and room triggers have 20. Entries explicitly marked UNUSED remain reserved and should not be selected.</p>
         <div class="dg-callout"><h3>Catch attachment mismatches before runtime</h3><p>The attached-triggers OLC menu labels a mismatched intended owner, and <code>wtool validate</code> reports the bad reference. The driver contains an additional type-versus-flag diagnostic abort only in builds compiled with <code>SCRIPT_DEBUG</code>; normal builds must not rely on it. Fix the attachment rather than guarding around a mismatch in the body.</p></div>
         <p>Before opening the command editor, write down the event contract:</p>
         <ol class="dg-checklist">

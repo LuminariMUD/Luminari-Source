@@ -85,7 +85,7 @@ end</code></pre></div>
         <p>The driver starts with a true result and <code>return N</code> changes it with integer parsing. The caller decides whether that value matters.</p>
         <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Hook family</th><th>Effect of return</th></tr></thead><tbody>
           <tr><td>Mobile Receive</td><td>The result can accept or reject the object transfer.</td></tr>
-          <tr><td>Mobile Damage</td><td>The returned integer replaces the pending damage amount. A driver error preserves the original damage; values below <code>-1</code> are rejected and become <code>-1</code>.</td></tr>
+          <tr><td>Mobile Damage</td><td>No explicit return preserves the original pending damage. An explicit <code>-1</code> cancels, <code>0</code> produces a miss, and a positive integer replaces the pending amount. A driver error preserves the original; values below <code>-1</code> are rejected and cancel.</td></tr>
           <tr><td>Object actions</td><td>Get, Drop, Give, Wear, Remove, and Consume return into action code and can veto the action.</td></tr>
           <tr><td>Arrival hooks</td><td>In the standard movement path, Mobile Entry, Mobile Greet/Greet-All, and Room Enter can return false and send the mover back.</td></tr>
           <tr><td>Leave and Door hooks</td><td>Callers combine trigger results to decide whether movement or the door action continues.</td></tr>
@@ -94,6 +94,8 @@ end</code></pre></div>
           <tr><td>Mobile Death</td><td>When there is a killer, a false result suppresses the default death cry; it does not cancel the death.</td></tr>
           <tr><td>Other notifications</td><td>The body still runs, but the caller may ignore the integer result.</td></tr>
         </tbody></table></div>
+        <div class="dg-callout dg-callout--info"><h3>Damage is synchronous and pre-mitigation</h3><p>Damage runs only for positive attempts routed through <code>damage()</code> against an uncharmed NPC. It does not observe misses, direct DG damage commands, direct hit-point mutation, protected attempts rejected earlier, or an instance already running or waiting. The first eligible attached trigger whose chance succeeds owns the hit. A <code>wait</code> cannot postpone the decision: without an earlier explicit return, the original pending amount is used, and a return after resume cannot revise completed combat. Later defenses, reductions, redirects, and the combat cap can still change final hit-point loss.</p></div>
+        <p>Damage supplies <code>%actor%</code>, <code>%victim%</code>, <code>%damage%</code>, legacy <code>%attacktype%</code>, and stable metadata pairs: <code>%attackid%</code>/<code>%attackname%</code>, <code>%damagetype%</code>/<code>%damagetypename%</code>, and <code>%attackmodeid%</code>/<code>%attackmode%</code>. Physical attacks remain <code>UNDEFINED</code> in the legacy variable; use <code>%attackname%</code> for them.</p>
         <div class="dg-callout dg-callout--dark"><h3>Multiple flags require compatible semantics</h3><p>A single prototype can carry more than one trigger flag, but Numeric Arg and Arguments are shared fields. Combine flags only when one configuration makes sense for every selected hook.</p></div>
       </section>
 

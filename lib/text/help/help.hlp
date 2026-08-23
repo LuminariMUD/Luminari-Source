@@ -26329,6 +26329,7 @@ accessed by typing:                                |  TRIGEDIT-MOB-MEMORY    |
 i.e. 	RHELP TRIGEDIT-MOB-ACT	n                         |  TRIGEDIT-MOB-LEAVE     |
                                                    |  TRIGEDIT-MOB-DOOR      |
                                                    |  TRIGEDIT-MOB-TIME      |
+                                                   |  TRIGEDIT-MOB-DAMAGE    |
 See also: TRIG-COMMANDS, TRIGGER-VARIABLES, EXPRESSIONS
 
 #0
@@ -31597,6 +31598,9 @@ MOB-TRIGGERS
 16) Cast        	RHELP TRIGEDIT-MOB-CAST	n          
 17) Leave       	RHELP TRIGEDIT-MOB-LEAVE	n          
 18) Door        	RHELP TRIGEDIT-MOB-DOOR	n          
+19) UNUSED
+20) Time        	RHELP TRIGEDIT-MOB-TIME	n
+21) Damage      	RHELP TRIGEDIT-MOB-DAMAGE	n
 #31
 MOBILE-ECHOS
 
@@ -34868,6 +34872,45 @@ Variables:
 %self%      - the mob.
 
 See also: %TIME%
+#31
+TRIGEDIT-MOB-DAMAGE MOB-DAMAGE-TRIGGER MTRIG-DAMAGE
+
+Activated before positive pending damage routed through the combat damage()
+function is applied to an uncharmed mobile. This is a synchronous,
+pre-mitigation interception hook. Numeric Arg is the 0-100 activation chance;
+Arguments is not used. Damage is option 21 when Intended for is Mobiles. The
+first idle attached Damage trigger whose chance succeeds runs, and later Damage
+triggers are not checked for that hit.
+
+No explicit return preserves the pending damage. An explicit return sets the
+pending result: -1 cancels the hit, 0 makes it a miss, and a positive value
+replaces the pending amount. Values below -1 are rejected and cancel the hit.
+Later combat defenses, reductions, redirects, and the damage cap can still
+change the actual hit-point loss.
+
+Damage triggers do not fire for misses or zero damage, player victims, charmed
+mobiles, protected/rejected attempts, direct DG damage commands, direct hitp
+changes, or an instance already running or waiting. A wait cannot delay the
+current hit: if reached before an explicit return, the original pending damage
+is used; any return after resume is too late to change that hit.
+
+Variables:
+%self%           - the mobile receiving the pending damage.
+%actor%          - the source character; can equal self for self-damage.
+%victim%         - the mobile receiving the pending damage.
+%damage%         - pending damage at this hook, before later mitigation.
+%attacktype%     - legacy spell/skill name; physical attacks are UNDEFINED.
+%attackid%       - numeric attack, spell, or skill identifier.
+%attackname%     - readable attack, spell, or skill name.
+%damagetype%     - numeric damage type.
+%damagetypename% - readable damage type.
+%attackmodeid%   - numeric attack mode supplied by combat.
+%attackmode%     - readable mode such as Primary, Offhand, or Ranged.
+
+Example: the minimal-world training dummy uses trigger 1 to cap each pending
+hit at 25 damage while preserving smaller hits explicitly.
+
+See also: MOB-TRIGGERS, TRIGEDIT, RETURN, WAIT
 #31
 TRIGEDIT-MOB-TUTORIAL
 

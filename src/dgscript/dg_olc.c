@@ -28,6 +28,32 @@ static void trigedit_disp_types(struct descriptor_data *d);
 static int trigedit_create_index(int znum, const char *type);
 static void trigedit_setup_new(struct descriptor_data *d);
 
+static const char **trigedit_types_for_attachment(int attach_type)
+{
+  switch (attach_type)
+  {
+  case WLD_TRIGGER:
+    return wtrig_types;
+  case OBJ_TRIGGER:
+    return otrig_types;
+  case MOB_TRIGGER:
+  default:
+    return trig_types;
+  }
+}
+
+static int trigedit_type_count(int attach_type)
+{
+  const char **types;
+  int count;
+
+  types = trigedit_types_for_attachment(attach_type);
+  for (count = 0; strcmp(types[count], "\n") != 0; count++)
+    ;
+
+  return count;
+}
+
 static void warn_room_trigger_source_overlap(const struct room_data *room)
 {
   const struct trig_proto_list *proto_trigger;
@@ -279,28 +305,17 @@ static void trigedit_disp_menu(struct descriptor_data *d)
 
 static void trigedit_disp_types(struct descriptor_data *d)
 {
-  int i, columns = 0;
+  int i, columns = 0, type_count;
   const char **types;
   char bitbuf[MAX_STRING_LENGTH] = {'\0'};
 
-  switch (OLC_TRIG(d)->attach_type)
-  {
-  case WLD_TRIGGER:
-    types = wtrig_types;
-    break;
-  case OBJ_TRIGGER:
-    types = otrig_types;
-    break;
-  case MOB_TRIGGER:
-  default:
-    types = trig_types;
-    break;
-  }
+  types = trigedit_types_for_attachment(OLC_TRIG(d)->attach_type);
+  type_count = trigedit_type_count(OLC_TRIG(d)->attach_type);
 
   get_char_colors(d->character);
   clear_screen(d);
 
-  for (i = 0; i < NUM_TRIG_TYPE_FLAGS; i++)
+  for (i = 0; i < type_count; i++)
   {
     write_to_output(d, "%s%2d%s) %-20.20s  %s", grn, i + 1, nrm, types[i],
                     !(++columns % 2) ? "\r\n" : "");
@@ -429,7 +444,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
   case TRIGEDIT_TYPES:
     if ((i = atoi(arg)) == 0)
       break;
-    else if (i >= 0 && i < NUM_TRIG_TYPE_FLAGS)
+    else if (i >= 1 && i <= trigedit_type_count(OLC_TRIG(d)->attach_type))
       TOGGLE_BIT((GET_TRIG_TYPE(OLC_TRIG(d))), 1 << (i - 1));
     OLC_VAL(d)
     ++;

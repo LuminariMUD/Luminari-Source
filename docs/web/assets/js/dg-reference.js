@@ -24,7 +24,7 @@
         { name: "Leave", narg: "Chance percent", args: "-", variables: "actor, direction", behavior: "Runs when an actor tries to leave the room." },
         { name: "Door", narg: "Chance percent", args: "-", variables: "actor, cmd, direction", behavior: "Runs for door actions directed at the mobile's room." },
         { name: "Time", narg: "Game hour", args: "-", variables: "time", behavior: "Runs when the in-game hour equals the numeric argument." },
-        { name: "Damage", narg: "Chance percent", args: "-", variables: "actor, victim, damage, attacktype", behavior: "Runs before damage is applied; return replaces the damage amount." }
+        { name: "Damage", narg: "Chance percent", args: "-", variables: "actor, victim, damage, attacktype, attackid, attackname, damagetype, damagetypename, attackmodeid, attackmode", behavior: "For positive combat damage against an uncharmed NPC, synchronously intercepts the pending amount before most mitigation. No return preserves it; -1 cancels, 0 misses, and a positive return replaces it." }
       ],
       object: [
         { name: "Global", narg: "Unused", args: "-", variables: "-", behavior: "Defined for compatibility but not used by object trigger checks." },

@@ -59,7 +59,7 @@ static void process_set(struct script_data *sc, trig_data *trig, char *cmd);
 static void process_attach(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd);
 static void process_detach(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd);
 static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd);
-static int process_return(trig_data *trig, char *cmd);
+static int process_return(trig_data *trig, char *cmd, bool *explicit_return);
 static void process_unset(struct script_data *sc, trig_data *trig, char *cmd);
 static void process_remote(struct script_data *sc, trig_data *trig, char *cmd);
 static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd);
@@ -2331,7 +2331,7 @@ static void makeuid_var(void *go, struct script_data *sc, trig_data *trig, int t
 
 /* Processes a script return command. Returns the new value for the script to
  * return. */
-static int process_return(trig_data *trig, char *cmd)
+static int process_return(trig_data *trig, char *cmd, bool *explicit_return)
 {
   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
 
@@ -2345,6 +2345,8 @@ static int process_return(trig_data *trig, char *cmd)
     return 1;
   }
 
+  if (explicit_return != NULL)
+    *explicit_return = true;
   return atoi(arg2);
 }
 
@@ -2795,7 +2797,7 @@ static void dg_letter_value(struct script_data *sc, trig_data *trig, char *cmd)
  * int mode
      TRIG_NEW     just started from dg_triggers.c
      TRIG_RESTART restarted after a 'wait' */
-int script_driver(struct script_call_args *args)
+int script_driver_with_status(struct script_call_args *args, struct script_driver_status *status)
 {
   static int depth = 0;
   int ret_val = 1;
@@ -2811,6 +2813,12 @@ int script_driver(struct script_call_args *args)
   trig_data *trig = args->trig;
   int type = args->type;
   int mode = args->mode;
+
+  if (status != NULL)
+  {
+    status->explicit_return = false;
+    status->yielded = false;
+  }
 
   /* CRITICAL VALIDATION: Detect when triggers are attached to wrong entity types
    * This prevents hours of debugging wild goose chases!
@@ -3219,6 +3227,8 @@ int script_driver(struct script_call_args *args)
           {
             cl->loops = 0;
             process_wait(go, trig, type, "wait 1", cl);
+            if (status != NULL)
+              status->yielded = true;
             depth--;
             return ret_val;
           }
@@ -3285,7 +3295,7 @@ int script_driver(struct script_call_args *args)
         process_rdelete(sc, trig, cmd);
 
       else if (!strn_cmp(cmd, "return ", 7))
-        ret_val = process_return(trig, cmd);
+        ret_val = process_return(trig, cmd, status != NULL ? &status->explicit_return : NULL);
 
       else if (!strn_cmp(cmd, "set ", 4))
         process_set(sc, trig, cmd);
@@ -3296,6 +3306,8 @@ int script_driver(struct script_call_args *args)
       else if (!strn_cmp(cmd, "wait ", 5))
       {
         process_wait(go, trig, type, cmd, cl);
+        if (status != NULL)
+          status->yielded = true;
         depth--;
         return ret_val;
       }
@@ -3352,6 +3364,11 @@ int script_driver(struct script_call_args *args)
 
   depth--;
   return ret_val;
+}
+
+int script_driver(struct script_call_args *args)
+{
+  return script_driver_with_status(args, NULL);
 }
 
 /* returns the real number of the trigger with given virtual number */

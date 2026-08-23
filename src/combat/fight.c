@@ -5926,7 +5926,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
   if (!IS_NPC(victim) && ((GET_LEVEL(victim) >= LVL_IMMORT) && PRF_FLAGGED(victim, PRF_NOHASSLE)))
     dam = 0; // immort protection
 
-  dam = damage_mtrigger(ch, victim, dam, w_type);
+  dam = damage_mtrigger(ch, victim, dam, w_type, dam_type, offhand);
   if (dam < 0 || DEAD(ch) || DEAD(victim))
     return 0;
 

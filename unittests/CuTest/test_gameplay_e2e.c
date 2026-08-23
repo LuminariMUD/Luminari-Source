@@ -1406,12 +1406,15 @@ void Test_gameplay_e2e_damage_trigger_overrides_damage(CuTest *tc)
   struct index_data *prototype_index;
   struct cmdlist_element *commands;
   struct cmdlist_element *next_command;
-  struct trig_var_data *variable;
   int saved_top_of_trigt;
   int damage_result;
   int remaining_hit_points;
   bool parsed;
-  bool damage_variable_matches;
+  bool attachment_found;
+  char line[MAX_INPUT_LENGTH];
+  char mobile_path[PATH_MAX];
+  char trigger_path[PATH_MAX];
+  FILE *mobile_file;
   FILE *trigger_file;
 
   begin_gameplay_fixture(&fixture);
@@ -1420,25 +1423,31 @@ void Test_gameplay_e2e_damage_trigger_overrides_damage(CuTest *tc)
   saved_trigger_list = trigger_list;
   trig_index = calloc(1, sizeof(*trig_index));
   top_of_trigt = 0;
-  trigger_file = tmpfile();
+  trigger_file = NULL;
+  mobile_file = NULL;
   parsed = false;
-  damage_variable_matches = false;
+  attachment_found = false;
   damage_result = -1;
   remaining_hit_points = GET_HIT(&fixture.victim);
 
-  if (trig_index != NULL && trigger_file != NULL)
+  if (trig_index != NULL &&
+      snprintf(trigger_path, sizeof(trigger_path), "%s/lib/world/minimal/0.trg",
+               test_source_root()) < (int)sizeof(trigger_path) &&
+      snprintf(mobile_path, sizeof(mobile_path), "%s/lib/world/minimal/0.mob", test_source_root()) <
+          (int)sizeof(mobile_path))
   {
-    fprintf(trigger_file, "End-to-end damage trigger~\n");
-    fprintf(trigger_file, "0 u 100\n");
-    fprintf(trigger_file, "~\n");
-    fprintf(trigger_file, "set seen_damage %%damage%%\n");
-    fprintf(trigger_file, "global seen_damage\n");
-    fprintf(trigger_file, "return 5\n");
-    fprintf(trigger_file, "~\n");
-    rewind(trigger_file);
+    trigger_file = fopen(trigger_path, "r");
+    mobile_file = fopen(mobile_path, "r");
+    if (trigger_file != NULL && get_line(trigger_file, line) && strcmp(line, "#1") == 0)
+    {
+      parse_trigger(trigger_file, 1);
+      parsed = top_of_trigt == 1 && trig_index[0] != NULL &&
+               IS_SET(GET_TRIG_TYPE((struct trig_data *)trig_index[0]->proto), MTRIG_DAMAGE);
+    }
+    while (mobile_file != NULL && get_line(mobile_file, line))
+      if (strcmp(line, "T 1") == 0)
+        attachment_found = true;
 
-    parse_trigger(trigger_file, 9001);
-    parsed = top_of_trigt == 1 && trig_index[0] != NULL;
     if (parsed)
     {
       fixture.victim.script = calloc(1, sizeof(*fixture.victim.script));
@@ -1447,17 +1456,8 @@ void Test_gameplay_e2e_damage_trigger_overrides_damage(CuTest *tc)
         add_trigger(fixture.victim.script, read_trigger(0), -1);
         FIGHTING(&fixture.actor) = &fixture.victim;
         FIGHTING(&fixture.victim) = &fixture.actor;
-        damage_result = damage(&fixture.actor, &fixture.victim, 17, TYPE_HIT, DAM_BLUDGEON, FALSE);
+        damage_result = damage(&fixture.actor, &fixture.victim, 40, TYPE_HIT, DAM_BLUDGEON, FALSE);
         remaining_hit_points = GET_HIT(&fixture.victim);
-        for (variable = fixture.victim.script->global_vars; variable != NULL;
-             variable = variable->next)
-        {
-          if (strcmp(variable->name, "seen_damage") == 0 && strcmp(variable->value, "17") == 0)
-          {
-            damage_variable_matches = true;
-            break;
-          }
-        }
         extract_script(&fixture.victim.script);
       }
     }
@@ -1469,6 +1469,8 @@ void Test_gameplay_e2e_damage_trigger_overrides_damage(CuTest *tc)
     remove_from_lookup_table(GET_ID(&fixture.victim));
   if (trigger_file != NULL)
     fclose(trigger_file);
+  if (mobile_file != NULL)
+    fclose(mobile_file);
 
   prototype_index = parsed ? trig_index[0] : NULL;
   if (prototype_index != NULL)
@@ -1491,9 +1493,9 @@ void Test_gameplay_e2e_damage_trigger_overrides_damage(CuTest *tc)
   end_gameplay_fixture(&fixture);
 
   CuAssertTrue(tc, parsed);
-  CuAssertIntEquals(tc, 5, damage_result);
-  CuAssertIntEquals(tc, 95, remaining_hit_points);
-  CuAssertTrue(tc, damage_variable_matches);
+  CuAssertTrue(tc, attachment_found);
+  CuAssertIntEquals(tc, 25, damage_result);
+  CuAssertIntEquals(tc, 75, remaining_hit_points);
 }
 
 void Test_gameplay_e2e_actual_minimal_world_parse(CuTest *tc)

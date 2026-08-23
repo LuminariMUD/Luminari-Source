@@ -65,6 +65,7 @@ Every DG Script is composed of three fundamental components:
 - **Leave:** When someone leaves room (visible)
 - **Door:** When door is manipulated in room
 - **Time:** Trigger based on game hour
+- **Damage:** Before positive combat damage is applied to the mobile
 
 ### Object Triggers
 - **Global:** Unused
@@ -119,6 +120,7 @@ Understanding trigger mechanics is crucial. The function of Numeric Argument (NA
 | Entry | Mob | The mob is loaded/enters a room | Percent chance to fire (0-100) | Not used |
 | Memory | Mob | Mob sees someone it remembers | Percent chance to fire (0-100) | Not used |
 | Cast | Mob, Obj, Wld | Entity is targeted by a spell | Not used | Not used |
+| Damage | Mob | Positive pending damage reaches the combat damage hook | Percent chance to fire (0-100) | Not used |
 | Load | Mob, Obj | Entity is loaded into the game | Percent chance to fire (0-100) | Not used |
 | Zone Reset | Wld | Zone containing the room resets | Not used | Not used |
 | Random | Mob, Wld | Fires periodically (approx. every 13-15 seconds) | Percent chance to fire (0-100) | Not used |
@@ -346,6 +348,46 @@ switch %self.hitp%
   default
     break
 done
+```
+
+#### Damage Triggers
+
+Damage is a mobile-only, synchronous interception point for positive pending
+damage routed through the combat `damage()` function. Numeric Arg is the
+activation chance from 0 through 100. Attached triggers are checked in list
+order, and only the first idle Damage trigger whose chance succeeds runs.
+
+The trigger receives `%actor%`, `%victim%`, `%damage%`, `%attackid%`,
+`%attackname%`, `%damagetype%`, `%damagetypename%`, `%attackmodeid%`, and
+`%attackmode%`. The legacy `%attacktype%` remains available, but it is
+`UNDEFINED` for physical weapon attacks; use `%attackid%` and `%attackname%`
+for new scripts. Self-damage is valid, so `%actor%` can equal `%victim%`.
+
+An explicit `return -1` cancels the damage attempt, `return 0` makes it a
+miss, and a positive result replaces the pending amount. A body with no valid
+explicit return preserves the original pending damage. Driver errors also
+preserve it, while values below -1 are invalid and cancel the attempt. The
+replacement is not guaranteed final HP loss: defenses, reductions, redirects,
+bonuses, and the combat damage cap can still run afterward.
+
+Do not use `wait` to decide the initiating hit. The combat call completes when
+the trigger first yields, and a return reached after resumption cannot revise
+that hit. If the script yields before any explicit result, the original pending
+damage is preserved and a warning is logged.
+
+Damage triggers do not run for zero-damage misses, player victims, charmed
+mobiles, an already-running instance, attempts rejected before the hook, or HP
+changes made directly by DG `%damage%` commands or field mutation. A trigger
+that purges or kills either combat participant cancels the outer damage path.
+
+Example pending-damage cap:
+
+```
+if %damage% > 25
+  return 25
+else
+  return %damage%
+end
 ```
 
 ### Object Triggers

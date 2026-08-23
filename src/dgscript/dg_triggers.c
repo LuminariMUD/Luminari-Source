@@ -703,26 +703,72 @@ int cast_mtrigger(char_data *actor, char_data *ch, int spellnum)
   return 1;
 }
 
-int damage_mtrigger(char_data *actor, char_data *victim, int dam, int attacktype)
+static const char *damage_trigger_attack_name(int attack_id)
+{
+  if (attack_id >= TYPE_HIT && attack_id < BOT_WEAPON_TYPES)
+    return attack_hit_types[attack_id - TYPE_HIT];
+  if (attack_id >= 0 && attack_id <= TOP_SKILL_DEFINE)
+    return skill_name(attack_id);
+  return "UNDEFINED";
+}
+
+static const char *damage_trigger_attack_mode_name(int attack_mode)
+{
+  if (attack_mode < ATTACK_TYPE_PRIMARY || attack_mode > ATTACK_TYPE_PRIMARY_EVO_TRAMPLE)
+    return "unknown";
+  return attack_types[attack_mode];
+}
+
+static int resolve_damage_trigger_result(int mob_vnum, int original_damage, int driver_result,
+                                         bool explicit_return)
+{
+  if (driver_result == SCRIPT_ERROR_CODE)
+  {
+    script_log("Damage trigger on mob %d failed; preserving %d damage", mob_vnum, original_damage);
+    return original_damage;
+  }
+  if (!explicit_return)
+    return original_damage;
+  if (driver_result < -1)
+  {
+    script_log("Damage trigger on mob %d returned invalid damage %d; preventing damage", mob_vnum,
+               driver_result);
+    return -1;
+  }
+  return driver_result;
+}
+
+#ifdef LUMINARI_CUTEST
+int test_damage_mtrigger_result(int original_damage, int driver_result, bool explicit_return)
+{
+  return resolve_damage_trigger_result(0, original_damage, driver_result, explicit_return);
+}
+#endif
+
+int damage_mtrigger(char_data *actor, char_data *victim, int dam, int attack_id, int damage_type,
+                    int attack_mode)
 {
   trig_data *t;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   const char *attack_name;
+  const char *legacy_attack_name;
+  const char *damage_type_name;
+  bool explicit_return;
+  bool yielded;
   int original_damage = dam;
   int ret_val;
 
-  if (!actor || !victim || !IS_NPC(victim))
+  if (!actor || !victim || !IS_NPC(victim) || dam <= 0)
     return dam;
 
   if (!SCRIPT_CHECK(victim, MTRIG_DAMAGE) || AFF_FLAGGED(victim, AFF_CHARM))
     return dam;
 
-  if (attacktype >= TYPE_HIT && attacktype < BOT_WEAPON_TYPES)
-    attack_name = "UNDEFINED";
-  else if (attacktype >= 0 && attacktype <= TOP_SKILL_DEFINE)
-    attack_name = skill_name(attacktype);
-  else
-    attack_name = "UNDEFINED";
+  attack_name = damage_trigger_attack_name(attack_id);
+  legacy_attack_name =
+      attack_id >= TYPE_HIT && attack_id < BOT_WEAPON_TYPES ? "UNDEFINED" : attack_name;
+  damage_type_name =
+      damage_type >= 0 && damage_type < NUM_DAM_TYPES ? damtypes[damage_type] : "UNDEFINED";
 
   for (t = TRIGGERS(SCRIPT(victim)); t; t = t->next)
   {
@@ -732,29 +778,35 @@ int damage_mtrigger(char_data *actor, char_data *victim, int dam, int attacktype
       ADD_UID_VAR(buf, t, victim, "victim", 0);
       snprintf(buf, sizeof(buf), "%d", MAX(0, dam));
       add_var(&GET_TRIG_VARS(t), "damage", buf, 0);
-      add_var(&GET_TRIG_VARS(t), "attacktype", attack_name, 0);
+      add_var(&GET_TRIG_VARS(t), "attacktype", legacy_attack_name, 0);
+      snprintf(buf, sizeof(buf), "%d", attack_id);
+      add_var(&GET_TRIG_VARS(t), "attackid", buf, 0);
+      add_var(&GET_TRIG_VARS(t), "attackname", attack_name, 0);
+      snprintf(buf, sizeof(buf), "%d", damage_type);
+      add_var(&GET_TRIG_VARS(t), "damagetype", buf, 0);
+      add_var(&GET_TRIG_VARS(t), "damagetypename", damage_type_name, 0);
+      snprintf(buf, sizeof(buf), "%d", attack_mode);
+      add_var(&GET_TRIG_VARS(t), "attackmodeid", buf, 0);
+      add_var(&GET_TRIG_VARS(t), "attackmode", damage_trigger_attack_mode_name(attack_mode), 0);
       {
         char_data *trigger_owner = victim;
         struct script_call_args args = {&trigger_owner, t, MOB_TRIGGER, TRIG_NEW};
+        struct script_driver_status status;
 
-        ret_val = script_driver(&args);
+        ret_val = script_driver_with_status(&args, &status);
+        explicit_return = status.explicit_return;
+        yielded = status.yielded;
       }
 
-      if (dg_owner_purged || DEAD(actor) || DEAD(victim))
+      if (dg_owner_purged || DEAD(actor) || DEAD(victim) || GET_POS(actor) <= POS_DEAD ||
+          GET_POS(victim) <= POS_DEAD)
         return -1;
-      if (ret_val == SCRIPT_ERROR_CODE)
-      {
-        script_log("Damage trigger on mob %d failed; preserving %d damage", GET_MOB_VNUM(victim),
-                   original_damage);
-        return original_damage;
-      }
-      if (ret_val < -1)
-      {
-        script_log("Damage trigger on mob %d returned invalid damage %d; preventing damage",
-                   GET_MOB_VNUM(victim), ret_val);
-        return -1;
-      }
-      return ret_val;
+      if (yielded && !explicit_return)
+        script_log("Damage trigger %d on mob %d waited before setting a return; preserving %d "
+                   "pending damage",
+                   GET_TRIG_VNUM(t), GET_MOB_VNUM(victim), original_damage);
+      return resolve_damage_trigger_result(GET_MOB_VNUM(victim), original_damage, ret_val,
+                                           explicit_return);
     }
   }
 

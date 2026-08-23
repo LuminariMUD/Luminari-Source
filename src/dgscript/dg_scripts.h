@@ -258,7 +258,17 @@ void load_mtrigger(char_data *ch);
 void load_otrigger(obj_data *obj);
 
 int cast_mtrigger(char_data *actor, char_data *ch, int spellnum);
-int damage_mtrigger(char_data *actor, char_data *victim, int dam, int attacktype);
+/**
+ * Runs the synchronous mobile Damage trigger before most combat mitigation.
+ * Only positive damage routed through damage() is eligible. A valid explicit
+ * return replaces the pending amount; no return preserves it. A wait ends the
+ * synchronous decision, so commands after the wait cannot alter that hit.
+ */
+int damage_mtrigger(char_data *actor, char_data *victim, int dam, int attack_id, int damage_type,
+                    int attack_mode);
+#ifdef LUMINARI_CUTEST
+int test_damage_mtrigger_result(int original_damage, int driver_result, bool explicit_return);
+#endif
 int cast_otrigger(char_data *actor, obj_data *obj, int spellnum);
 int cast_wtrigger(char_data *actor, char_data *vict, obj_data *obj, int spellnum);
 
@@ -327,9 +337,16 @@ struct script_call_args
   int mode;
 };
 
+struct script_driver_status
+{
+  bool explicit_return;
+  bool yielded;
+};
+
 /* To maintain strict-aliasing we'll have to do this trick with a union */
 /* Thanks to Chris Gilbert for reminding me that there are other options. */
 int script_driver(struct script_call_args *args);
+int script_driver_with_status(struct script_call_args *args, struct script_driver_status *status);
 trig_rnum real_trigger(trig_vnum vnum);
 void process_eval(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd);
 void read_saved_vars(struct char_data *ch);
