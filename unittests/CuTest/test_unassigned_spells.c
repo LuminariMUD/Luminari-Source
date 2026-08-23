@@ -7,6 +7,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/character/evolutions.h"
+#include "../../src/combat/fight.h"
 #include "../../src/handler.h"
 #include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
@@ -76,6 +77,33 @@ static const struct spell_registration_expectation offensive_spells[] = {
     {SPELL_POLTERGEIST, MAG_MANUAL},
 };
 
+static const struct spell_registration_expectation utility_spells[] = {
+    {SPELL_MINOR_CREATE, MAG_MANUAL},
+    {SPELL_VENTRILOQUATE, MAG_MANUAL},
+    {SPELL_PRESERVE, MAG_ALTER_OBJS},
+    {SPELL_WRAITHFORM, MAG_MANUAL},
+    {SPELL_CREATE_SPRING, MAG_MANUAL},
+    {SPELL_MOONWELL, MAG_MANUAL},
+    {SPELL_EMBALM, MAG_ALTER_OBJS},
+    {SPELL_AIRY_WATER, MAG_ROOM},
+    {SPELL_BLINK, MAG_MANUAL},
+    {SPELL_UNSEEN_SERVANT, MAG_AFFECTS},
+    {SPELL_MISLEAD, MAG_AFFECTS},
+    {SPELL_SEQUESTER, MAG_AFFECTS},
+    {SPELL_DIMENSION_SHIFT, MAG_MANUAL},
+    {SPELL_SOUL_BIND, MAG_AFFECTS},
+    {SPELL_DEATH_PACT, MAG_GROUPS},
+    {SPELL_SPIRIT_WALK, MAG_MANUAL},
+    {SPELL_ROCK_TO_MUD, MAG_MANUAL},
+    {SPELL_MUD_TO_ROCK, MAG_MANUAL},
+    {SPELL_PHANTOM_HEAL, MAG_MANUAL},
+    {SPELL_CURSE_OBJ, MAG_ALTER_OBJS},
+    {SPELL_CORPSE_GLAMOR, MAG_ALTER_OBJS},
+    {SPELL_SUN_SHADOW, MAG_ROOM},
+    {SPELL_EARTH_FOG, MAG_ROOM},
+    {SPELL_FIRE_FOG, MAG_ROOM},
+};
+
 static void add_test_affect(struct char_data *ch, int spellnum, int location, int modifier)
 {
   struct affected_type af;
@@ -138,6 +166,67 @@ void TestOffensiveSpellsUseNativeRoutinesWithoutClassAssignments(CuTest *tc)
     for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
       CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].domain[domain_num]);
   }
+}
+
+void TestUtilitySpellsUseNativeRoutinesWithoutClassAssignments(CuTest *tc)
+{
+  size_t index;
+  int class_num;
+  int domain_num;
+  int spellnum;
+
+  mag_assign_spells();
+
+  for (index = 0; index < sizeof(utility_spells) / sizeof(utility_spells[0]); index++)
+  {
+    spellnum = utility_spells[index].spellnum;
+    CuAssertTrue(tc, spell_info[spellnum].name != NULL);
+    CuAssertTrue(tc, spell_info[spellnum].name != unused_spellname);
+    CuAssertIntEquals(tc, utility_spells[index].routines, spell_info[spellnum].routines);
+
+    for (class_num = 0; class_num < NUM_CLASSES; class_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].min_level[class_num]);
+    for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].domain[domain_num]);
+  }
+}
+
+void TestUnseenServantAddsOnlyItsStoredCarryCapacity(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  int base_limit;
+
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+  GET_REAL_STR(&ch) = ch.aff_abils.str = 10;
+  base_limit = can_carry_weight_limit(&ch);
+
+  add_test_affect(&ch, SPELL_UNSEEN_SERVANT, APPLY_SPECIAL, 75);
+  CuAssertIntEquals(tc, base_limit + 75, can_carry_weight_limit(&ch));
+
+  remove_test_affects(&ch);
+}
+
+void TestDeathPactKeepsACharacterStandingAboveItsLimit(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+  GET_HIT(&ch) = -50;
+  GET_POS(&ch) = POS_STANDING;
+
+  add_test_affect(&ch, SPELL_DEATH_PACT, APPLY_SPECIAL, 0);
+  update_pos(&ch);
+  CuAssertIntEquals(tc, POS_STANDING, GET_POS(&ch));
+
+  remove_test_affects(&ch);
+  update_pos(&ch);
+  CuAssertIntEquals(tc, POS_DEAD, GET_POS(&ch));
 }
 
 void TestComprehendLanguagesDoesNotGrantSpeech(CuTest *tc)

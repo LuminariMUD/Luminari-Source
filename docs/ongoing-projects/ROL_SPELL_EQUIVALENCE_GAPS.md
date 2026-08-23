@@ -1,9 +1,9 @@
 # RoL Spells Without a Close LuminariMUD Equivalent
 
-Status: implementation in progress. The source audit was completed and
+Status: implementation complete. The source audit was completed and
 independently re-verified 2026-08-23 against `sparser.c`, `spells.h`,
-`spell_parser.c`, and `psionics.c`. The first two implementation checkpoints
-add 51 of the 75 functional gaps through the native magic paths.
+`spell_parser.c`, and `psionics.c`. Three implementation checkpoints add all
+75 functional gaps through native magic paths and focused direct handlers.
 
 This list compares every unique spell registered through `SPELL_CREATE()` in
 Realms of Luminari with LuminariMUD's registered spells and closely equivalent
@@ -124,8 +124,40 @@ room-target selection. None has a class or domain assignment.
 | shadow flux | Temporarily strips a large amount of spell resistance. |
 | poltergeist | Hurls three force strikes at randomly selected eligible room targets. |
 
-The complete audited inventory remains below. A later checkpoint will move the
-remaining 24 entries into implementation groups while preserving this original
+### Implementation checkpoint 3: creation, travel, terrain, and utility spells
+
+These final 24 spells use existing object, affect, group, room-affect, combat,
+and movement systems. Direct handlers are limited to behavior that cannot be
+expressed by one native routine. None has a class or domain assignment.
+
+| Spell | Implemented gameplay purpose |
+|-------|------------------------------|
+| minor creation | Creates one selected mundane, no-rent, no-sell object without relying on a prototype VNUM. |
+| ventriloquate | Throws supplied speech toward a nearby character or object; observers can save to detect the illusion. |
+| preserve | Extends a corpse's decay timer, with a larger extension for player corpses. |
+| wraithform | Ends combat and temporarily makes the target immaterial without discarding equipment. |
+| create spring | Creates a temporary outdoor fountain filled with water. |
+| moonwell | Creates temporary paired portals between valid material-plane player locations. |
+| embalm | Greatly extends a corpse's decay timer. |
+| airy water | Temporarily makes an underwater room breathable. |
+| blink | Disengages a supported group tank or moves the target to a random valid adjacent room. |
+| unseen servant | Temporarily increases the caster's carrying capacity. |
+| mislead | Conceals the caster from pursuit and prevents tracking. |
+| sequester | Temporarily prevents teleportation and summoning magic from targeting the subject. |
+| dimension shift | Ends combat and temporarily phases the room group beyond ordinary material reach. |
+| soul bind | On a failed save, anchors the target and blocks teleportation. |
+| death pact | Lets room-group members remain standing below normal death thresholds, down to -120 hit points. |
+| spirit walk | Moves the caster to a consenting group member's player corpse. |
+| rock to mud | Damages earth elementals or turns the room into temporary difficult terrain. |
+| mud to rock | Heals allied earth elementals or removes rock to mud from the room. |
+| phantom heal | Grants temporary vitality up to half health, then removes that vitality when the illusion expires. |
+| curse item | Makes an inventory item undroppable and weakens a weapon's damage die. |
+| corpse glamor | Reduces a corpse's weight to one. |
+| sun shadow | Temporarily darkens the room. |
+| earth fog | Temporarily fills the room with obscuring earthen fog. |
+| fire fog | Temporarily illuminates the room with fiery fog. |
+
+The complete audited inventory remains below, preserving the original
 source-to-target accounting.
 
 | RoL ID | RoL spell | RoL constant |

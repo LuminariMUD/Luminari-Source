@@ -10282,6 +10282,7 @@ int can_carry_weight_limit(struct char_data *ch)
     break;
   }
 
+  limit += MAX(0, get_char_affect_modifier(ch, SPELL_UNSEEN_SERVANT, APPLY_SPECIAL));
   limit = MIN(25000, limit);
 
   return MAX(1, limit);

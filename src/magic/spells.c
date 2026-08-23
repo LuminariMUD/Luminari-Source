@@ -29,6 +29,7 @@
 #include "craft/craft.h"
 #include "mudlim.h"
 #include "obj/item.h"
+#include "obj/treasure.h"
 #include "domains_schools.h"
 #include "olc/oasis.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
@@ -4921,6 +4922,618 @@ ASPELL(spell_poltergeist)
     if (target != NULL)
       mag_damage(level, ch, target, NULL, SPELL_POLTERGEIST, 0, SAVING_REFL, casttype);
   }
+}
+
+struct minor_creation_definition
+{
+  const char *keyword;
+  const char *short_description;
+  const char *room_description;
+  int item_type;
+  int subtype;
+  int material;
+  int weight;
+  int value;
+};
+
+static const struct minor_creation_definition minor_creation_options[] = {
+    {"bag", "a plain cloth bag", "A plain cloth bag rests here.", ITEM_CONTAINER, 0,
+     MATERIAL_COTTON, 2, 100},
+    {"ration", "a simple trail ration", "A simple trail ration rests here.", ITEM_FOOD, 0,
+     MATERIAL_ORGANIC, 1, 24},
+    {"raft", "a small wooden raft", "A small wooden raft rests here.", ITEM_BOAT, 0, MATERIAL_WOOD,
+     25, 0},
+    {"robe", "a plain cotton robe", "A plain cotton robe lies here.", ITEM_ARMOR,
+     SPEC_ARMOR_TYPE_CLOTHING, MATERIAL_COTTON, 2, 0},
+    {"barrel", "a plain wooden barrel", "A plain wooden barrel stands here.", ITEM_CONTAINER, 0,
+     MATERIAL_WOOD, 15, 250},
+    {"club", "a plain wooden club", "A plain wooden club lies here.", ITEM_WEAPON, WEAPON_TYPE_CLUB,
+     MATERIAL_WOOD, 3, 0},
+    {"staff", "a plain wooden quarterstaff", "A plain wooden quarterstaff lies here.", ITEM_WEAPON,
+     WEAPON_TYPE_QUARTERSTAFF, MATERIAL_WOOD, 4, 0},
+    {"spear", "a plain wooden spear", "A plain wooden spear lies here.", ITEM_WEAPON,
+     WEAPON_TYPE_SPEAR, MATERIAL_WOOD, 6, 0},
+    {"dagger", "a plain steel dagger", "A plain steel dagger lies here.", ITEM_WEAPON,
+     WEAPON_TYPE_DAGGER, MATERIAL_STEEL, 1, 0},
+    {"shield", "a plain wooden buckler", "A plain wooden buckler lies here.", ITEM_ARMOR,
+     SPEC_ARMOR_TYPE_BUCKLER, MATERIAL_WOOD, 5, 0},
+    {"torch", "a plain wooden torch", "A plain wooden torch lies here.", ITEM_LIGHT, 0,
+     MATERIAL_WOOD, 1, 24},
+    {"box", "a plain wooden box", "A plain wooden box rests here.", ITEM_CONTAINER, 0,
+     MATERIAL_WOOD, 5, 50},
+    {"paper", "a blank sheet of paper", "A blank sheet of paper lies here.", ITEM_NOTE, 0,
+     MATERIAL_PAPER, 1, 0},
+    {"quill", "a plain writing quill", "A plain writing quill lies here.", ITEM_PEN, 0,
+     MATERIAL_ORGANIC, 1, 0},
+};
+
+ASPELL(spell_minor_creation)
+{
+  const struct minor_creation_definition *definition;
+  struct obj_data *created;
+  char choice[MAX_INPUT_LENGTH];
+  size_t index;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  one_argument(cast_arg3, choice, sizeof(choice));
+  definition = NULL;
+  for (index = 0; index < sizeof(minor_creation_options) / sizeof(minor_creation_options[0]);
+       index++)
+  {
+    if (*choice && is_abbrev(choice, minor_creation_options[index].keyword))
+    {
+      definition = &minor_creation_options[index];
+      break;
+    }
+  }
+
+  if (definition == NULL)
+  {
+    send_to_char(ch, "Create what? Choose bag, ration, raft, robe, barrel, club, staff, spear, "
+                     "dagger, shield, torch, box, paper, or quill.\r\n");
+    return;
+  }
+
+  created = create_obj();
+  if (definition->item_type == ITEM_WEAPON)
+    set_weapon_object(created, definition->subtype);
+  else if (definition->item_type == ITEM_ARMOR)
+    set_armor_object(created, definition->subtype);
+  else
+    GET_OBJ_TYPE(created) = definition->item_type;
+
+  GET_OBJ_COST(created) = 0;
+  GET_OBJ_RENT(created) = 0;
+  GET_OBJ_WEIGHT(created) = definition->weight;
+  GET_OBJ_MATERIAL(created) = definition->material;
+  GET_OBJ_SIZE(created) = GET_SIZE(ch);
+  GET_OBJ_BOUND_ID(created) = NOBODY;
+  created->name = strdup(definition->keyword);
+  created->short_description = strdup(definition->short_description);
+  created->description = strdup(definition->room_description);
+
+  if (definition->item_type == ITEM_CONTAINER || definition->item_type == ITEM_FOOD)
+    GET_OBJ_VAL(created, 0) = definition->value;
+  else if (definition->item_type == ITEM_LIGHT)
+    GET_OBJ_VAL(created, 2) = definition->value;
+  else if (definition->item_type == ITEM_NOTE)
+    created->action_description = strdup("");
+
+  SET_BIT_AR(GET_OBJ_WEAR(created), ITEM_WEAR_TAKE);
+  SET_BIT_AR(GET_OBJ_EXTRA(created), ITEM_NORENT);
+  SET_BIT_AR(GET_OBJ_EXTRA(created), ITEM_NOSELL);
+  obj_to_room(created, IN_ROOM(ch));
+  act("$p suddenly takes shape before you.", FALSE, ch, created, NULL, TO_CHAR);
+  act("$p suddenly takes shape before $n.", FALSE, ch, created, NULL, TO_ROOM);
+}
+
+ASPELL(spell_ventriloquate)
+{
+  struct char_data *target_char;
+  struct char_data *listener;
+  struct obj_data *target_obj;
+  const char *speech;
+  const char *source_name;
+  char target_name[MAX_INPUT_LENGTH];
+  int found;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  speech = one_argument(cast_arg3, target_name, sizeof(target_name));
+  while (*speech && isspace((unsigned char)*speech))
+    speech++;
+  if (!*target_name || !*speech)
+  {
+    send_to_char(ch, "Usage: cast 'ventriloquate' <target> <speech>\r\n");
+    return;
+  }
+
+  target_char = NULL;
+  target_obj = NULL;
+  found = generic_find(target_name, FIND_CHAR_ROOM | FIND_OBJ_ROOM | FIND_OBJ_INV | FIND_OBJ_EQUIP,
+                       ch, &target_char, &target_obj);
+  if (!found || (target_char == NULL && target_obj == NULL))
+  {
+    send_to_char(ch, "You cannot find anything nearby to throw your voice toward.\r\n");
+    return;
+  }
+  if (target_char == ch)
+  {
+    send_to_char(ch, "Throwing your own voice back at yourself would accomplish nothing.\r\n");
+    return;
+  }
+
+  source_name = target_char != NULL ? GET_NAME(target_char) : target_obj->short_description;
+  if (source_name == NULL)
+    source_name = "something nearby";
+
+  send_to_char(ch, "You throw your voice toward %s: '%s'\r\n", source_name, speech);
+  for (listener = world[IN_ROOM(ch)].people; listener; listener = listener->next_in_room)
+  {
+    if (listener == ch || AFF_FLAGGED(listener, AFF_DEAF))
+      continue;
+    if (listener != target_char &&
+        savingthrow(ch, listener, SAVING_WILL, 0, casttype, level, ILLUSION))
+      send_to_char(listener, "A telltale magical echo betrays the voice coming from %s.\r\n",
+                   source_name);
+    else
+      send_to_char(listener, "%s says, '%s'\r\n", source_name, speech);
+  }
+}
+
+ASPELL(spell_wraithform)
+{
+  if (ch == NULL)
+    return;
+  if (victim == NULL)
+    victim = ch;
+  if (affected_by_spell(victim, SPELL_WRAITHFORM))
+  {
+    if (victim == ch)
+      send_to_char(ch, "You are already without a material form.\r\n");
+    else
+      send_to_char(ch, "%s is already without a material form.\r\n", GET_NAME(victim));
+    return;
+  }
+
+  end_fights_with(victim);
+  apply_spell_effect(victim, SPELL_WRAITHFORM, 10, APPLY_NONE, 0, AFF_IMMATERIAL, NO_AFFECT_FLAG);
+  send_to_char(victim, "Your body fades until only a pale, immaterial outline remains.\r\n");
+  act("$n fades into a pale, immaterial outline.", FALSE, victim, NULL, NULL, TO_ROOM);
+}
+
+ASPELL(spell_create_spring)
+{
+  struct obj_data *spring;
+  int capacity;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+  if (!OUTSIDE(ch))
+  {
+    send_to_char(ch, "A spring can only break through open ground outdoors.\r\n");
+    return;
+  }
+
+  spring = create_obj();
+  capacity = MAX(20, level * 20);
+  GET_OBJ_TYPE(spring) = ITEM_FOUNTAIN;
+  GET_OBJ_VAL(spring, 0) = capacity;
+  GET_OBJ_VAL(spring, 1) = capacity;
+  GET_OBJ_VAL(spring, 2) = LIQ_WATER;
+  GET_OBJ_VAL(spring, 3) = 0;
+  GET_OBJ_TIMER(spring) = MAX(2, level);
+  GET_OBJ_COST(spring) = 0;
+  GET_OBJ_RENT(spring) = 0;
+  GET_OBJ_WEIGHT(spring) = 100;
+  GET_OBJ_MATERIAL(spring) = MATERIAL_STONE;
+  spring->name = strdup("spring water fountain");
+  spring->short_description = strdup("a clear natural spring");
+  spring->description = strdup("A clear natural spring bubbles up from the ground here.");
+  SET_BIT_AR(GET_OBJ_EXTRA(spring), ITEM_DECAY);
+  SET_BIT_AR(GET_OBJ_EXTRA(spring), ITEM_NORENT);
+  SET_BIT_AR(GET_OBJ_EXTRA(spring), ITEM_NOSELL);
+  obj_to_room(spring, IN_ROOM(ch));
+  send_to_room(IN_ROOM(ch), "A clear spring bursts from the ground and begins to flow.\r\n");
+}
+
+static struct obj_data *create_moonwell_portal(room_vnum destination, int duration)
+{
+  struct obj_data *portal;
+
+  portal = create_obj();
+  GET_OBJ_TYPE(portal) = ITEM_PORTAL;
+  GET_OBJ_VAL(portal, 0) = PORTAL_NORMAL;
+  GET_OBJ_VAL(portal, 1) = destination;
+  GET_OBJ_TIMER(portal) = duration;
+  GET_OBJ_COST(portal) = 0;
+  GET_OBJ_RENT(portal) = 0;
+  GET_OBJ_WEIGHT(portal) = 0;
+  GET_OBJ_MATERIAL(portal) = MATERIAL_ETHER;
+  portal->name = strdup("moonwell portal pool");
+  portal->short_description = strdup("a pool of swirling silver moonlight");
+  portal->description = strdup("A pool of swirling silver moonlight shimmers here.");
+  SET_BIT_AR(GET_OBJ_EXTRA(portal), ITEM_DECAY);
+  SET_BIT_AR(GET_OBJ_EXTRA(portal), ITEM_NORENT);
+  SET_BIT_AR(GET_OBJ_EXTRA(portal), ITEM_NOSELL);
+  return portal;
+}
+
+ASPELL(spell_moonwell)
+{
+  struct obj_data *near_portal;
+  struct obj_data *far_portal;
+  room_rnum source_room;
+  room_rnum destination_room;
+  int duration;
+
+  if (ch == NULL || victim == NULL || IN_ROOM(ch) == NOWHERE || IN_ROOM(victim) == NOWHERE)
+    return;
+  if (IS_NPC(victim))
+  {
+    send_to_char(ch, "A moonwell can only be anchored to another player.\r\n");
+    return;
+  }
+
+  source_room = IN_ROOM(ch);
+  destination_room = IN_ROOM(victim);
+  if (source_room == destination_room)
+  {
+    send_to_char(ch, "The two ends of a moonwell must be in different places.\r\n");
+    return;
+  }
+  if (AFF_FLAGGED(victim, AFF_NOTELEPORT) || AFF_FLAGGED(victim, AFF_DIM_LOCK) ||
+      ROOM_FLAGGED(source_room, ROOM_NOSUMMON) || ROOM_FLAGGED(destination_room, ROOM_NOSUMMON) ||
+      !valid_mortal_tele_dest(ch, source_room, TRUE) ||
+      !valid_mortal_tele_dest(ch, destination_room, TRUE))
+  {
+    send_to_char(ch, "The moonwell cannot find a stable anchor between those locations.\r\n");
+    return;
+  }
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(source_room), ZONE_ELEMENTAL) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(source_room), ZONE_ETH_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(source_room), ZONE_ASTRAL_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(destination_room), ZONE_ELEMENTAL) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(destination_room), ZONE_ETH_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(destination_room), ZONE_ASTRAL_PLANE))
+  {
+    send_to_char(ch, "Moonwells can only join locations on the material plane.\r\n");
+    return;
+  }
+
+  duration = MAX(2, level / 5);
+  near_portal = create_moonwell_portal(GET_ROOM_VNUM(destination_room), duration);
+  far_portal = create_moonwell_portal(GET_ROOM_VNUM(source_room), duration);
+  obj_to_room(near_portal, source_room);
+  obj_to_room(far_portal, destination_room);
+  send_to_room(source_room,
+               "Swirling silver mist gathers into a moonlit pool upon the ground.\r\n");
+  send_to_room(destination_room,
+               "Swirling silver mist gathers into a moonlit pool upon the ground.\r\n");
+}
+
+ASPELL(spell_blink)
+{
+  struct char_data *ally;
+  room_rnum destination;
+  int available_directions[NUM_OF_DIRS];
+  int available_count;
+  int direction;
+
+  if (ch == NULL)
+    return;
+  if (victim == NULL)
+    victim = ch;
+  if (IN_ROOM(victim) == NOWHERE)
+    return;
+  if (victim != ch && !is_player_grouped(ch, victim))
+  {
+    send_to_char(ch, "You can only blink yourself or a member of your group.\r\n");
+    return;
+  }
+
+  ally = NULL;
+  for (ally = world[IN_ROOM(victim)].people; ally; ally = ally->next_in_room)
+    if (ally != victim && is_player_grouped(victim, ally))
+      break;
+
+  if (FIGHTING(victim) != NULL && ally != NULL)
+  {
+    end_fights_with(victim);
+    send_to_char(victim, "You vanish and reappear a few feet away, free of the melee.\r\n");
+    act("$n vanishes and reappears a few feet away, free of the melee.", FALSE, victim, NULL, NULL,
+        TO_ROOM);
+    return;
+  }
+
+  available_count = 0;
+  for (direction = 0; direction < DIR_COUNT; direction++)
+  {
+    if (EXIT(victim, direction) == NULL || EXIT(victim, direction)->to_room == NOWHERE ||
+        IS_SET(EXIT(victim, direction)->exit_info, EX_CLOSED | EX_BLOCKED | EX_HIDDEN |
+                                                       EX_HIDDEN_EASY | EX_HIDDEN_MEDIUM |
+                                                       EX_HIDDEN_HARD) ||
+        !valid_mortal_tele_dest(victim, EXIT(victim, direction)->to_room, TRUE))
+      continue;
+    available_directions[available_count++] = direction;
+  }
+
+  if (available_count == 0)
+  {
+    send_to_char(ch, "The spell cannot find a safe nearby place to re-form.\r\n");
+    return;
+  }
+
+  direction = available_directions[rand_number(0, available_count - 1)];
+  destination = EXIT(victim, direction)->to_room;
+  end_fights_with(victim);
+  act("$n blinks out of existence.", FALSE, victim, NULL, NULL, TO_ROOM);
+  send_to_char(victim, "You blink out of existence.\r\n");
+  char_from_room(victim);
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(destination), ZONE_WILDERNESS))
+  {
+    X_LOC(victim) = world[destination].coords[0];
+    Y_LOC(victim) = world[destination].coords[1];
+  }
+  char_to_room(victim, destination);
+  act("$n blinks into existence.", FALSE, victim, NULL, NULL, TO_ROOM);
+  send_to_char(victim, "You blink back into existence nearby.\r\n");
+  if (!IS_NPC(victim))
+    look_at_room(victim, 0);
+  entry_memory_mtrigger(victim);
+  greet_mtrigger(victim, -1);
+  greet_memory_mtrigger(victim);
+}
+
+ASPELL(spell_dimension_shift)
+{
+  struct affected_type af;
+  struct char_data *target;
+  struct char_data *next_target;
+  int duration;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+  if ((AFF_FLAGGED(ch, AFF_DIM_LOCK) || AFF_FLAGGED(ch, AFF_NOTELEPORT)) &&
+      !affected_by_spell(ch, SPELL_DIMENSION_SHIFT))
+  {
+    send_to_char(ch, "A dimensional lock prevents the shift.\r\n");
+    return;
+  }
+
+  duration = MAX(2, level / 10);
+  for (target = world[IN_ROOM(ch)].people; target; target = next_target)
+  {
+    next_target = target->next_in_room;
+    if (target != ch && !is_player_grouped(ch, target))
+      continue;
+    if (target != ch &&
+        (AFF_FLAGGED(target, AFF_DIM_LOCK) || AFF_FLAGGED(target, AFF_NOTELEPORT)) &&
+        !affected_by_spell(target, SPELL_DIMENSION_SHIFT))
+    {
+      send_to_char(target, "A dimensional anchor prevents you from joining the shift.\r\n");
+      continue;
+    }
+
+    end_fights_with(target);
+    if (affected_by_spell(target, SPELL_DIMENSION_SHIFT))
+      affect_from_char(target, SPELL_DIMENSION_SHIFT);
+    new_affect(&af);
+    af.spell = SPELL_DIMENSION_SHIFT;
+    af.duration = duration;
+    SET_BIT_AR(af.bitvector, AFF_REFUGE);
+    SET_BIT_AR(af.bitvector, AFF_IMMATERIAL);
+    SET_BIT_AR(af.bitvector, AFF_DIM_LOCK);
+    affect_to_char(target, &af);
+    send_to_char(target,
+                 "Space folds around you, sheltering you within a pocket beyond the room.\r\n");
+  }
+  act("Space folds inward and shelters $n's group beyond ordinary reach.", FALSE, ch, NULL, NULL,
+      TO_ROOM);
+}
+
+ASPELL(spell_spirit_walk)
+{
+  struct obj_data *corpse;
+  room_rnum destination;
+
+  if (ch == NULL || victim == NULL || IN_ROOM(ch) == NOWHERE || IS_NPC(victim))
+    return;
+  if (victim != ch && !is_player_grouped(ch, victim))
+  {
+    send_to_char(ch, "%s must be grouped with you before you can follow that spirit.\r\n",
+                 GET_NAME(victim));
+    return;
+  }
+
+  corpse = NULL;
+  for (corpse = object_list; corpse; corpse = corpse->next)
+    if (IS_CORPSE(corpse) && GET_OBJ_VAL(corpse, 4) == GET_IDNUM(victim) &&
+        IN_ROOM(corpse) != NOWHERE)
+      break;
+
+  if (corpse == NULL)
+  {
+    send_to_char(ch, "You cannot find that spirit's corpse anywhere in the world.\r\n");
+    return;
+  }
+
+  destination = IN_ROOM(corpse);
+  if (destination == IN_ROOM(ch))
+  {
+    send_to_char(ch, "That spirit's corpse is already here.\r\n");
+    return;
+  }
+  if (AFF_FLAGGED(ch, AFF_NOTELEPORT) || !valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE) ||
+      !valid_mortal_tele_dest(ch, destination, TRUE))
+  {
+    send_to_char(ch, "The spirit path to that corpse is sealed.\r\n");
+    return;
+  }
+
+  end_fights_with(ch);
+  act("$n dissolves into pale spirit light.", FALSE, ch, NULL, NULL, TO_ROOM);
+  send_to_char(ch, "You dissolve into spirit light and follow the path of the dead.\r\n");
+  char_from_room(ch);
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(destination), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[destination].coords[0];
+    Y_LOC(ch) = world[destination].coords[1];
+  }
+  char_to_room(ch, destination);
+  act("Pale spirit light gathers and resolves into $n.", FALSE, ch, NULL, NULL, TO_ROOM);
+  look_at_room(ch, 0);
+  entry_memory_mtrigger(ch);
+  greet_mtrigger(ch, -1);
+  greet_memory_mtrigger(ch);
+}
+
+static bool is_earth_elemental(struct char_data *target)
+{
+  if (target == NULL)
+    return FALSE;
+  if (HAS_SUBRACE(target, SUBRACE_EARTH) && GET_NPC_RACE(target) == RACE_TYPE_ELEMENTAL)
+    return TRUE;
+
+  switch (GET_RACE(target))
+  {
+  case RACE_SMALL_EARTH_ELEMENTAL:
+  case RACE_MEDIUM_EARTH_ELEMENTAL:
+  case RACE_EARTH_ELEMENTAL:
+  case RACE_LARGE_EARTH_ELEMENTAL:
+  case RACE_HUGE_EARTH_ELEMENTAL:
+  case RACE_GARGANTUAN_EARTH_ELEMENTAL:
+  case RACE_COLOSSAL_EARTH_ELEMENTAL:
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+
+static struct char_data *find_terrain_spell_target(struct char_data *ch, char *target_name,
+                                                   size_t target_name_size)
+{
+  one_argument(cast_arg3, target_name, target_name_size);
+  if (!*target_name || is_abbrev(target_name, "room"))
+    return NULL;
+  return get_char_room_vis(ch, target_name, NULL);
+}
+
+ASPELL(spell_rock_to_mud)
+{
+  struct char_data *target;
+  char target_name[MAX_INPUT_LENGTH];
+  int amount;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  target = find_terrain_spell_target(ch, target_name, sizeof(target_name));
+  if (*target_name && !is_abbrev(target_name, "room") && target == NULL)
+  {
+    send_to_char(ch, "You cannot find that target here.\r\n");
+    return;
+  }
+  if (target != NULL && is_earth_elemental(target))
+  {
+    if (!aoeOK(ch, target, SPELL_ROCK_TO_MUD) || mag_resistance(ch, target, 0))
+      return;
+    amount = dice(MAX(1, level / 3), 6) + level;
+    if (savingthrow(ch, target, SAVING_FORT, 0, casttype, level, TRANSMUTATION))
+      amount /= 2;
+    damage(ch, target, MAX(1, amount), SPELL_ROCK_TO_MUD, DAM_EARTH, FALSE);
+    return;
+  }
+
+  mag_room(level, ch, NULL, SPELL_ROCK_TO_MUD, casttype);
+}
+
+ASPELL(spell_mud_to_rock)
+{
+  struct char_data *target;
+  struct raff_node *raff;
+  char target_name[MAX_INPUT_LENGTH];
+  int amount;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  target = find_terrain_spell_target(ch, target_name, sizeof(target_name));
+  if (*target_name && !is_abbrev(target_name, "room") && target == NULL)
+  {
+    send_to_char(ch, "You cannot find that target here.\r\n");
+    return;
+  }
+  if (target != NULL && is_earth_elemental(target))
+  {
+    if (target != ch && !is_player_grouped(ch, target))
+    {
+      send_to_char(ch, "You can only reinforce an earth elemental allied with you.\r\n");
+      return;
+    }
+    amount = MIN(GET_MAX_HIT(target) - GET_HIT(target), MAX(10, level * 4));
+    if (amount <= 0)
+    {
+      send_to_char(ch, "%s needs no reinforcement.\r\n",
+                   target == ch ? "Your elemental form" : GET_NAME(target));
+      return;
+    }
+    GET_HIT(target) += amount;
+    update_pos(target);
+    send_to_char(target, "Your earthen form hardens, restoring %d hit points.\r\n", amount);
+    if (target != ch)
+      act("$N's earthen form hardens and repairs itself.", FALSE, ch, NULL, target, TO_CHAR);
+    return;
+  }
+
+  for (raff = raff_list; raff; raff = raff->next)
+  {
+    if (raff->room != IN_ROOM(ch) || raff->spell != SPELL_ROCK_TO_MUD)
+      continue;
+    rem_room_aff(raff);
+    return;
+  }
+  send_to_char(ch, "There is no magically softened ground here to harden.\r\n");
+}
+
+ASPELL(spell_phantom_heal)
+{
+  int amount;
+  int half_health;
+
+  if (ch == NULL || victim == NULL)
+    return;
+  if (victim != ch && !is_player_grouped(ch, victim))
+  {
+    send_to_char(ch, "You can only veil the wounds of a member of your group.\r\n");
+    return;
+  }
+  if (affected_by_spell(victim, SPELL_PHANTOM_HEAL))
+  {
+    send_to_char(ch, "Those wounds are already concealed by phantom vitality.\r\n");
+    return;
+  }
+
+  half_health = GET_MAX_HIT(victim) / 2;
+  if (GET_HIT(victim) >= half_health)
+  {
+    send_to_char(ch, "That target is not wounded badly enough for the illusion to take hold.\r\n");
+    return;
+  }
+
+  amount = MIN(half_health - GET_HIT(victim), MAX(10, level * 5));
+  apply_spell_effect(victim, SPELL_PHANTOM_HEAL, 2, APPLY_SPECIAL, amount, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  GET_HIT(victim) += amount;
+  update_pos(victim);
+  send_to_char(victim,
+               "Phantom vitality conceals your wounds and lends you %d temporary hit "
+               "points.\r\n",
+               amount);
+  act("A healthy illusion settles over $n's wounds.", FALSE, victim, NULL, NULL, TO_ROOM);
 }
 
 int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage)

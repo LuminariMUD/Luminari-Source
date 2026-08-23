@@ -177,7 +177,7 @@ int has_scuba(struct char_data *ch, room_rnum destination)
     if (GET_EQ(ch, i) && OBJAFF_FLAGGED(GET_EQ(ch, i), AFF_SCUBA))
       return (1);
 
-  if (IS_SET_AR(ROOM_FLAGS(destination), ROOM_AIRY))
+  if (IS_SET_AR(ROOM_FLAGS(destination), ROOM_AIRY) || ROOM_AFFECTED(destination, RAFF_AIRY_WATER))
     return (1);
 
   return (0);

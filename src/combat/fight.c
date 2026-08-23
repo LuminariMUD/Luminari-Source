@@ -1522,6 +1522,9 @@ void update_pos_dam(struct char_data *victim)
       return;
   }
 
+  if (affected_by_spell(victim, SPELL_DEATH_PACT) && GET_HIT(victim) <= 0 && GET_HIT(victim) > -121)
+    return;
+
   /* Berserker Deathless Frenzy perk - 50% chance to revive to 25% HP when dying while raging */
   if (!IS_NPC(victim) && has_berserker_deathless_frenzy(victim) &&
       affected_by_spell(victim, SKILL_RAGE) && GET_HIT(victim) <= 0 && dice(1, 2) == 1)
@@ -1621,6 +1624,9 @@ void update_pos(struct char_data *victim)
     else
       return;
   }
+
+  if (affected_by_spell(victim, SPELL_DEATH_PACT) && GET_HIT(victim) <= 0 && GET_HIT(victim) > -121)
+    return;
 
   if ((GET_HIT(victim) > 0) && (GET_POS(victim) > POS_STUNNED))
     return;

@@ -44,7 +44,6 @@
 
 // external functions
 bool save_char_pets(struct char_data *ch);
-void rem_room_aff(struct raff_node *raff);
 
 /* added this for falling event, general dummy check */
 bool death_check(struct char_data *ch)
@@ -61,6 +60,9 @@ bool death_check(struct char_data *ch)
     else
       return FALSE;
   }
+
+  if (affected_by_spell(ch, SPELL_DEATH_PACT) && GET_HIT(ch) <= -12 && GET_HIT(ch) > -121)
+    return FALSE;
 
   if (GET_HIT(ch) <= -12)
   {
@@ -330,7 +332,7 @@ void hazard_tick(struct char_data *ch)
       if (IS_NPC(ch) && (GET_MOB_VNUM(ch) == 1260 || IS_UNDEAD(ch)))
         break;
       if (!IS_UNDEAD(ch) && !AFF_FLAGGED(ch, AFF_WATER_BREATH) &&
-          !ROOM_FLAGGED(IN_ROOM(ch), ROOM_AIRY))
+          !ROOM_FLAGGED(IN_ROOM(ch), ROOM_AIRY) && !ROOM_AFFECTED(IN_ROOM(ch), RAFF_AIRY_WATER))
         damage(ch, ch, rand_number(1, 65), TYPE_DROWNING, DAM_WATER, FALSE);
       break;
     }

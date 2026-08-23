@@ -1272,15 +1272,26 @@ bool alt_wear_off_msg(struct char_data *ch, int skillnum)
 void rem_room_aff(struct raff_node *raff)
 {
   struct raff_node *temp;
+  struct raff_node *remaining;
+  long affection;
+  room_rnum room;
+  int spell;
 
-  /* this room affection has expired */
-  send_to_room(raff->room, "%s", get_wearoff(raff->spell));
-  send_to_room(raff->room, "\r\n");
-
-  /* remove the affection */
-  REMOVE_BIT(world[(int)raff->room].room_affections, raff->affection);
+  room = raff->room;
+  affection = raff->affection;
+  spell = raff->spell;
   REMOVE_FROM_LIST(raff, raff_list, next)
   free(raff);
+
+  /* Keep a shared room bit active until its last contributing spell expires. */
+  for (remaining = raff_list; remaining; remaining = remaining->next)
+    if (remaining->room == room && remaining->affection == affection)
+      return;
+
+  /* this room affection has expired */
+  send_to_room(room, "%s", get_wearoff(spell));
+  send_to_room(room, "\r\n");
+  REMOVE_BIT(world[(int)room].room_affections, affection);
 }
 
 /* Dispatch wear-off side effects only after the affect traversal has released
@@ -1324,6 +1335,8 @@ void affect_update(void)
   size_t expired_count, wearoff_count, wearoff_index;
   int char_count = 0, npc_count = 0, pc_count = 0;
   int affected_chars = 0, processed_affects = 0;
+  int phantom_healing;
+  bool update_position_after_expiry;
   size_t eligible_count;
 
   update_count++;
@@ -1359,6 +1372,13 @@ void affect_update(void)
         ;
       else
       { /* affect wore off! */
+        phantom_healing = 0;
+        update_position_after_expiry = FALSE;
+        if (af->spell == SPELL_PHANTOM_HEAL && af->location == APPLY_SPECIAL)
+          phantom_healing = MAX(0, af->modifier);
+        if (af->spell == SPELL_DEATH_PACT)
+          update_position_after_expiry = TRUE;
+
         /* Queue one wear-off dispatch for the last adjacent component. The
          * dispatch happens after traversal because it may mutate this list. */
         if (af->spell > 0 && af->spell < TOP_SPELL_DEFINE &&
@@ -1366,6 +1386,13 @@ void affect_update(void)
           wearoff_spells[wearoff_count++] = af->spell;
 
         affect_remove(i, af);
+        if (phantom_healing > 0)
+        {
+          GET_HIT(i) = MAX(-10, GET_HIT(i) - phantom_healing);
+          update_pos(i);
+        }
+        else if (update_position_after_expiry)
+          update_pos(i);
       }
     }
 
@@ -10549,6 +10576,48 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are stunned by a terrible WEIRD!";
     break;
 
+  case SPELL_UNSEEN_SERVANT:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 50 + (level * 5);
+    af[0].duration = MAX(4, level / 2);
+    to_room = "An unseen presence begins attending $n.";
+    to_vict = "An unseen servant answers your call and lightens your burden.";
+    break;
+
+  case SPELL_MISLEAD:
+    af[0].duration = MAX(2, level / 5);
+    SET_BIT_AR(af[0].bitvector, AFF_REFUGE);
+    SET_BIT_AR(af[0].bitvector, AFF_NOTRACK);
+    to_room = "Misleading shadows coil around $n and scatter in every direction.";
+    to_vict = "Misleading shadows conceal your trail and confuse pursuit.";
+    break;
+
+  case SPELL_SEQUESTER:
+    af[0].duration = MAX(4, level / 2);
+    SET_BIT_AR(af[0].bitvector, AFF_NOTELEPORT);
+    to_room = "$n briefly fades from the reach of distant magic.";
+    to_vict = "You feel cut off from teleportation and summoning magic.";
+    break;
+
+  case SPELL_SOUL_BIND:
+    spell_school = NECROMANCY;
+    if (mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))
+      return;
+    af[0].duration = MAX(5, level);
+    SET_BIT_AR(af[0].bitvector, AFF_DIM_LOCK);
+    SET_BIT_AR(af[0].bitvector, AFF_NOTELEPORT);
+    to_room = "A pale binding closes around $n's soul.";
+    to_vict = "A pale binding anchors your soul to the material world.";
+    break;
+
+  case SPELL_DEATH_PACT:
+    af[0].location = APPLY_SPECIAL;
+    af[0].duration = MAX(2, level / 10);
+    to_room = "$n's blood flashes with the dark power of a death pact.";
+    to_vict = "A death pact fills your blood and keeps you standing beyond mortal limits.";
+    break;
+
   case SPELL_SANDBLAST:
     if (mag_resistance(ch, victim, 0))
       return;
@@ -11010,6 +11079,9 @@ static void perform_mag_groups(int level, struct char_data *ch, struct char_data
 {
   switch (spellnum)
   {
+  case SPELL_DEATH_PACT:
+    mag_affects(level, ch, tch, obj, SPELL_DEATH_PACT, savetype, casttype, 0);
+    break;
   case WARLOCK_FLEE_THE_SCENE:
     mag_affects(level, ch, tch, obj, WARLOCK_FLEE_THE_SCENE, savetype, casttype, 0);
     break;
@@ -14163,6 +14235,36 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int s
 
   switch (spellnum)
   {
+  case SPELL_PRESERVE:
+    if (IS_CORPSE(obj))
+    {
+      GET_OBJ_TIMER(obj) += MAX(1, level * (GET_OBJ_VAL(obj, 4) ? 3 : 1));
+      to_char = "A cool stillness settles over $p, slowing its decay.";
+    }
+    break;
+  case SPELL_EMBALM:
+    if (IS_CORPSE(obj))
+    {
+      GET_OBJ_TIMER(obj) += MAX(1, level * 20);
+      to_char = "A dark preservative sheen settles over $p.";
+    }
+    break;
+  case SPELL_CURSE_OBJ:
+    if (!OBJ_FLAGGED(obj, ITEM_NODROP))
+    {
+      SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_NODROP);
+      if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+        GET_OBJ_VAL(obj, 2) = MAX(1, GET_OBJ_VAL(obj, 2) - 1);
+      to_char = "$p shudders and takes on a baleful red glow.";
+    }
+    break;
+  case SPELL_CORPSE_GLAMOR:
+    if (IS_CORPSE(obj) && GET_OBJ_WEIGHT(obj) > 1)
+    {
+      GET_OBJ_WEIGHT(obj) = 1;
+      to_char = "$p shimmers and becomes almost weightless.";
+    }
+    break;
   case SPELL_BLESS:
     if (!OBJ_FLAGGED(obj, ITEM_BLESS) && (GET_OBJ_WEIGHT(obj) <= 5 * DIVINE_LEVEL(ch)))
     {
@@ -14714,6 +14816,23 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     rounds = MAX(4, MAGIC_LEVEL(ch));
     break;
 
+  case SPELL_AIRY_WATER:
+    if (SECT(rnum) != SECT_UNDERWATER)
+    {
+      send_to_char(ch, "Airy water can only be formed underwater.\r\n");
+      return;
+    }
+    if (ROOM_AFFECTED(rnum, RAFF_AIRY_WATER))
+    {
+      send_to_char(ch, "The water here is already filled with breathable air.\r\n");
+      return;
+    }
+    to_char = "You fill the surrounding water with a sphere of breathable air.";
+    to_room = "$n fills the surrounding water with a sphere of breathable air.";
+    aff = RAFF_AIRY_WATER;
+    rounds = MAX(4, level);
+    break;
+
   case ABILITY_KAPAK_DRACONIAN_DEATH_THROES: // conjuration
     to_char = "You dissolve into a pool of acid!";
     to_room = "$n dissolves into a pool of acid!";
@@ -14749,6 +14868,18 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     rounds = GET_PSIONIC_LEVEL(ch);
     break;
 
+  case SPELL_ROCK_TO_MUD:
+    if (ROOM_AFFECTED(rnum, RAFF_DIFFICULT_TERRAIN))
+    {
+      send_to_char(ch, "The ground here is already treacherously soft.\r\n");
+      return;
+    }
+    to_char = "You soften the ground into clinging mud.";
+    to_room = "$n softens the ground into clinging mud.";
+    aff = RAFF_DIFFICULT_TERRAIN;
+    rounds = MAX(4, level);
+    break;
+
   case SPELL_OBSCURING_MIST: // conjuration
     /* so right now this spell is simply 20% concealment to everyone in room, needs
      * I also think it needs some other affects
@@ -14772,6 +14903,18 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     to_room = "$n creates a blanket of pitch black.";
     aff = RAFF_DARKNESS;
     rounds = 15;
+    break;
+
+  case SPELL_SUN_SHADOW:
+    if (SECT(rnum) == SECT_UNDERWATER || ROOM_AFFECTED(rnum, RAFF_DARKNESS))
+    {
+      send_to_char(ch, "There is no unshadowed sun here to conceal.\r\n");
+      return;
+    }
+    to_char = "You raise a dark veil that blots out the sun.";
+    to_room = "$n raises a dark veil that blots out the sun.";
+    aff = RAFF_DARKNESS;
+    rounds = MAX(5, level);
     break;
 
   case SPELL_SACRED_SPACE: // divination
@@ -14826,6 +14969,30 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     to_room = "$n creates clouds of billowing stinking fumes that fill the area.";
     aff = RAFF_STINK;
     rounds = 12;
+    break;
+
+  case SPELL_EARTH_FOG:
+    if (SECT(rnum) == SECT_UNDERWATER || ROOM_AFFECTED(rnum, RAFF_FOG))
+    {
+      send_to_char(ch, "No more earthen fog can gather here.\r\n");
+      return;
+    }
+    to_char = "You call up a dense cloud of dust and earthen fog.";
+    to_room = "$n calls up a dense cloud of dust and earthen fog.";
+    aff = RAFF_FOG;
+    rounds = MAX(4, level / 2);
+    break;
+
+  case SPELL_FIRE_FOG:
+    if (SECT(rnum) == SECT_UNDERWATER || ROOM_AFFECTED(rnum, RAFF_LIGHT))
+    {
+      send_to_char(ch, "No more fiery radiance can gather here.\r\n");
+      return;
+    }
+    to_char = "You surround the area with a luminous sphere of fiery fog.";
+    to_room = "$n surrounds the area with a luminous sphere of fiery fog.";
+    aff = RAFF_LIGHT;
+    rounds = MAX(4, level / 2);
     break;
 
   case SPELL_UNHALLOW: // evocation

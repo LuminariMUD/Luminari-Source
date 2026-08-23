@@ -1584,7 +1584,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG))
     send_to_char(ch, "\tDA hazy \tWfog\tD enshrouds the area.\tn\r\n");
   /* Show underwater air bubbles */
-  if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_AIRY))
+  if (IS_SET_AR(ROOM_FLAGS(target_room), ROOM_AIRY) || ROOM_AFFECTED(target_room, RAFF_AIRY_WATER))
     send_to_char(ch, "\tBLarge bubbles of air float through the water\tn\r\n");
 
   /* Check if this is a wilderness zone (shows special map) */

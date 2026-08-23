@@ -450,7 +450,6 @@
 #define SPELL_RESURRECT 319
 #define SPELL_SILENCE 320
 #define SPELL_MINOR_CREATE 321
-#define SPELL_MINOR_CREATION SPELL_MINOR_CREATE
 #define SPELL_DISPEL_INVIS 322
 
 /** OPEN SPELL NUMBERS 323 to 381
@@ -1887,6 +1886,17 @@ ASPELL(spell_agility);
 ASPELL(spell_natures_blessing);
 ASPELL(spell_song_of_travel);
 ASPELL(spell_poltergeist);
+ASPELL(spell_minor_creation);
+ASPELL(spell_ventriloquate);
+ASPELL(spell_wraithform);
+ASPELL(spell_create_spring);
+ASPELL(spell_moonwell);
+ASPELL(spell_blink);
+ASPELL(spell_dimension_shift);
+ASPELL(spell_spirit_walk);
+ASPELL(spell_rock_to_mud);
+ASPELL(spell_mud_to_rock);
+ASPELL(spell_phantom_heal);
 
 int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage);
 int adjust_damage_for_creature_wards(struct char_data *attacker, struct char_data *victim,
@@ -1935,6 +1945,7 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int s
 void mag_creations(int level, struct char_data *ch, struct char_data *vict, struct obj_data *obj,
                    int spellnum, int casttype);
 void mag_room(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int casttype);
+void rem_room_aff(struct raff_node *raff);
 
 int call_magic(struct char_data *caster, struct char_data *cvict, struct obj_data *ovict,
                int spellnum, int metamagic, int level, int casttype);
