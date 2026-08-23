@@ -163,6 +163,7 @@ missing
 install-sh
 depcomp
 compile
+test-driver
 .dirstamp
 stamp-h1
 # Temporary configure directories
