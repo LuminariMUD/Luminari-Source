@@ -6256,6 +6256,8 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
     dam = dam * 110 / 100; /* +10% */
   }
 
+  dam = adjust_damage_for_creature_wards(ch, victim, dam);
+
   dam = cap_combat_damage(ch, dam, w_type);
 
   /* Paladin Sacred Defender perk: Sanctuary - 10% damage reduction */

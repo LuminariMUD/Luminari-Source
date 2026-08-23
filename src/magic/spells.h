@@ -450,6 +450,7 @@
 #define SPELL_RESURRECT 319
 #define SPELL_SILENCE 320
 #define SPELL_MINOR_CREATE 321
+#define SPELL_MINOR_CREATION SPELL_MINOR_CREATE
 #define SPELL_DISPEL_INVIS 322
 
 /** OPEN SPELL NUMBERS 323 to 381
@@ -611,8 +612,81 @@
 #define SPELL_SHOCKWAVE 526
 #define SPELL_POISON_BREATH 527
 
+/* Unassigned spells.  Registration does not grant these to a class or domain. */
+#define SPELL_FARSEE 528
+#define SPELL_REJUVENATE_MAJOR 529
+#define SPELL_REJUVENATE_MINOR 530
+#define SPELL_AGE 531
+#define SPELL_COMMAND_UNDEAD 532
+#define SPELL_SLOW_POISON 533
+#define SPELL_COMPREHEND_LANGUAGES 534
+#define SPELL_FUMBLE 535
+#define SPELL_STUMBLE 536
+#define SPELL_ENERVATE 537
+#define SPELL_SANDBLAST 538
+#define SPELL_FELL_FROST 539
+#define SPELL_WRAITHFORM 540
+#define SPELL_PROT_UNDEAD 541
+#define SPELL_PROT_FROM_UNDEAD 542
+#define SPELL_COMMAND_HORDE 543
+#define SPELL_CREATE_SPRING 544
+#define SPELL_MOONWELL 545
+#define SPELL_NERVE_DANCE 546
+#define SPELL_SPECTRAL_HAND 547
+#define SPELL_RAIN_OF_BLOOD 548
+#define SPELL_ROT 549
+#define SPELL_ICE_TOMB 550
+#define SPELL_CONSTRICTION 551
+#define SPELL_AIRY_WATER 552
+#define SPELL_BLINK 553
+#define SPELL_SANDSTORM 554
+#define SPELL_BLACKLIGHT_BURST 555
+#define SPELL_MINUTE_METEORS 556
+#define SPELL_UNSEEN_SERVANT 557
+#define SPELL_THUNDER_LANCE 558
+#define SPELL_SHADOW_BOLT 559
+#define SPELL_SHADOW_BURST 560
+#define SPELL_MISLEAD 561
+#define SPELL_SEQUESTER 562
+#define SPELL_DIMENSION_SHIFT 563
+#define SPELL_SHADOW_MAGIC 564
+#define SPELL_PHANTASMAL_BLADES 565
+#define SPELL_SOUL_BIND 566
+#define SPELL_DEATH_PACT 567
+#define SPELL_NEEDLE_SWARM 568
+#define SPELL_SNAPPING_TEETH 569
+#define SPELL_BELTYNS_BURNING_BLOOD 570
+#define SPELL_BLACKMANTLE 571
+#define SPELL_EARTHBLOOD 572
+#define SPELL_SOUL_TEMPEST 573
+#define SPELL_SPIRIT_WALK 574
+#define SPELL_ANCESTRAL_SHIELD 575
+#define SPELL_PROTECTION_FROM_ANIMALS 576
+#define SPELL_DUST_DEVIL 577
+#define SPELL_SUFFOCATE 578
+#define SPELL_PASS_WITHOUT_TRACE 579
+#define SPELL_ROCK_TO_MUD 580
+#define SPELL_MUD_TO_ROCK 581
+#define SPELL_GREATER_REALM_OF_PROTECTION 582
+#define SPELL_BLACKTHORNS 583
+#define SPELL_FEIGN_DEATH 584
+#define SPELL_TRANQUILITY 585
+#define SPELL_PHANTOM_HEAL 586
+#define SPELL_SHADECHILL 587
+#define SPELL_AGILITY 588
+#define SPELL_AIR_BLAST 589
+#define SPELL_SHADOW_FLUX 590
+#define SPELL_NATURES_BLESSING 591
+#define SPELL_SONG_OF_TRAVEL 592
+#define SPELL_POLTERGEIST 593
+#define SPELL_CURSE_OBJ 594
+#define SPELL_CORPSE_GLAMOR 595
+#define SPELL_SUN_SHADOW 596
+#define SPELL_EARTH_FOG 597
+#define SPELL_FIRE_FOG 598
+
 /** Total Number of defined spells  */
-#define NUM_SPELLS 528
+#define NUM_SPELLS 599
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1790,6 +1864,32 @@ ASPELL(spell_control_summoned_creature);
 ASPELL(spell_siphon_might);
 ASPELL(spell_overland_flight);
 ASPELL(spell_geniekind);
+ASPELL(spell_farsee);
+ASPELL(spell_rejuvenate_major);
+ASPELL(spell_rejuvenate_minor);
+ASPELL(spell_age);
+ASPELL(spell_command_undead);
+ASPELL(spell_command_horde);
+ASPELL(spell_slow_poison);
+ASPELL(spell_comprehend_languages);
+ASPELL(spell_fumble);
+ASPELL(spell_stumble);
+ASPELL(spell_enervate);
+ASPELL(spell_protect_undead);
+ASPELL(spell_protection_from_undead);
+ASPELL(spell_ancestral_shield);
+ASPELL(spell_protection_from_animals);
+ASPELL(spell_pass_without_trace);
+ASPELL(spell_greater_realm_of_protection);
+ASPELL(spell_feign_death);
+ASPELL(spell_tranquility);
+ASPELL(spell_agility);
+ASPELL(spell_natures_blessing);
+ASPELL(spell_song_of_travel);
+
+int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage);
+int adjust_damage_for_creature_wards(struct char_data *attacker, struct char_data *victim,
+                                     int damage);
 
 // psionics
 ASPELL(psionic_concussive_onslaught);

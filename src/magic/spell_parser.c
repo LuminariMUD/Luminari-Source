@@ -1004,6 +1004,72 @@ SAVING_WILL here...  */
   if (IS_SET(SINFO.routines, MAG_MANUAL))
     switch (spellnum)
     {
+    case SPELL_FARSEE:
+      MANUAL_SPELL(spell_farsee);
+      break;
+    case SPELL_REJUVENATE_MAJOR:
+      MANUAL_SPELL(spell_rejuvenate_major);
+      break;
+    case SPELL_REJUVENATE_MINOR:
+      MANUAL_SPELL(spell_rejuvenate_minor);
+      break;
+    case SPELL_AGE:
+      MANUAL_SPELL(spell_age);
+      break;
+    case SPELL_COMMAND_UNDEAD:
+      MANUAL_SPELL(spell_command_undead);
+      break;
+    case SPELL_COMMAND_HORDE:
+      MANUAL_SPELL(spell_command_horde);
+      break;
+    case SPELL_SLOW_POISON:
+      MANUAL_SPELL(spell_slow_poison);
+      break;
+    case SPELL_COMPREHEND_LANGUAGES:
+      MANUAL_SPELL(spell_comprehend_languages);
+      break;
+    case SPELL_FUMBLE:
+      MANUAL_SPELL(spell_fumble);
+      break;
+    case SPELL_STUMBLE:
+      MANUAL_SPELL(spell_stumble);
+      break;
+    case SPELL_ENERVATE:
+      MANUAL_SPELL(spell_enervate);
+      break;
+    case SPELL_PROT_UNDEAD:
+      MANUAL_SPELL(spell_protect_undead);
+      break;
+    case SPELL_PROT_FROM_UNDEAD:
+      MANUAL_SPELL(spell_protection_from_undead);
+      break;
+    case SPELL_ANCESTRAL_SHIELD:
+      MANUAL_SPELL(spell_ancestral_shield);
+      break;
+    case SPELL_PROTECTION_FROM_ANIMALS:
+      MANUAL_SPELL(spell_protection_from_animals);
+      break;
+    case SPELL_PASS_WITHOUT_TRACE:
+      MANUAL_SPELL(spell_pass_without_trace);
+      break;
+    case SPELL_GREATER_REALM_OF_PROTECTION:
+      MANUAL_SPELL(spell_greater_realm_of_protection);
+      break;
+    case SPELL_FEIGN_DEATH:
+      MANUAL_SPELL(spell_feign_death);
+      break;
+    case SPELL_TRANQUILITY:
+      MANUAL_SPELL(spell_tranquility);
+      break;
+    case SPELL_AGILITY:
+      MANUAL_SPELL(spell_agility);
+      break;
+    case SPELL_NATURES_BLESSING:
+      MANUAL_SPELL(spell_natures_blessing);
+      break;
+    case SPELL_SONG_OF_TRAVEL:
+      MANUAL_SPELL(spell_song_of_travel);
+      break;
     case SPELL_GIRD_ALLIES:
       MANUAL_SPELL(spell_gird_allies);
       break;
@@ -6129,6 +6195,59 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   spello(ABILITY_DEATHLESS_TOUCH, "deathless touch", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE, "Your withering pain subsides.", 0, 1,
          NECROMANCY, FALSE);
+
+  /* Registered for scripts, items, and staff use; intentionally unassigned. */
+  spello(SPELL_FARSEE, "farsee", 0, 0, 0, POS_STANDING, TAR_IGNORE, FALSE, MAG_MANUAL,
+         "Your far-reaching vision returns to normal.", 5, 5, DIVINATION, FALSE);
+  spello(SPELL_REJUVENATE_MAJOR, "rejuvenate major", 0, 0, 0, POS_STANDING, TAR_CHAR_ROOM, FALSE,
+         MAG_MANUAL, NULL, 6, 6, TRANSMUTATION, FALSE);
+  spello(SPELL_REJUVENATE_MINOR, "rejuvenate minor", 0, 0, 0, POS_STANDING, TAR_CHAR_ROOM, FALSE,
+         MAG_MANUAL, "Your apparent youth fades.", 4, 4, TRANSMUTATION, FALSE);
+  spello(SPELL_AGE, "age", 0, 0, 0, POS_STANDING, TAR_CHAR_ROOM, FALSE, MAG_MANUAL, NULL, 4, 4,
+         TRANSMUTATION, FALSE);
+  spello(SPELL_COMMAND_UNDEAD, "command undead", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL, "You regain your own will.", 4, 4,
+         NECROMANCY, FALSE);
+  spello(SPELL_SLOW_POISON, "slow poison", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         "Poisons resume their normal course through your body.", 2, 2, TRANSMUTATION, FALSE);
+  spello(SPELL_COMPREHEND_LANGUAGES, "comprehend languages", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM,
+         FALSE, MAG_MANUAL, "Unfamiliar languages lose their meaning again.", 4, 4, DIVINATION,
+         FALSE);
+  spello(SPELL_FUMBLE, "fumble", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+         "Your manual dexterity returns.", 2, 2, ENCHANTMENT, FALSE);
+  spello(SPELL_STUMBLE, "stumble", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_MANUAL, "Your balance returns.",
+         2, 2, ENCHANTMENT, FALSE);
+  spello(SPELL_ENERVATE, "enervate", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_MANUAL, "Your vitality returns.",
+         2, 2, NECROMANCY, FALSE);
+  spello(SPELL_PROT_UNDEAD, "protect undead", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
+         MAG_MANUAL, "The ward around your undead form fades.", 4, 4, ABJURATION, FALSE);
+  spello(SPELL_PROT_FROM_UNDEAD, "protection from undead", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM,
+         FALSE, MAG_MANUAL, "Your protection from undead fades.", 4, 4, ABJURATION, FALSE);
+  spello(SPELL_COMMAND_HORDE, "command horde", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_MANUAL,
+         NULL, 6, 6, NECROMANCY, FALSE);
+  spello(SPELL_ANCESTRAL_SHIELD, "ancestral shield", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
+         MAG_MANUAL, "Your ancestral shield dissipates.", 3, 3, ABJURATION, FALSE);
+  spello(SPELL_PROTECTION_FROM_ANIMALS, "protection from animals", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your protection from animals fades.", 4, 4, ABJURATION,
+         FALSE);
+  spello(SPELL_PASS_WITHOUT_TRACE, "pass without trace", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
+         MAG_MANUAL, "You begin leaving tracks again.", 2, 2, TRANSMUTATION, FALSE);
+  spello(SPELL_GREATER_REALM_OF_PROTECTION, "greater realm of protection", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your layered elemental wards fade.", 4, 4, ABJURATION,
+         FALSE);
+  spello(SPELL_FEIGN_DEATH, "feign death", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         "Your deathlike stillness passes.", 3, 3, ILLUSION, FALSE);
+  spello(SPELL_TRANQUILITY, "tranquility", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_MANUAL,
+         "The imposed tranquility leaves you.", 2, 2, ENCHANTMENT, FALSE);
+  spello(SPELL_AGILITY, "agility", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         "Your supernatural agility fades.", 4, 4, TRANSMUTATION, FALSE);
+  spello(SPELL_NATURES_BLESSING, "natures blessing", 0, 0, 0, POS_FIGHTING, TAR_SELF_ONLY, FALSE,
+         MAG_MANUAL, "Nature's blessing leaves you.", 3, 3, ABJURATION, FALSE);
+  spello(SPELL_SONG_OF_TRAVEL, "song of travel", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
+         MAG_MANUAL, "The traveling melody fades from your thoughts.", 3, 3, TRANSMUTATION, FALSE);
 
   /* Declaration of skills - this assigns categories and also will set it up
    * so that immortals can use these skills by default.  The min level to use

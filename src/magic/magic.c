@@ -3692,6 +3692,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       dam /= 2;
   }
 
+  if (IS_SET(spell_info[spellnum].routines, MAG_AREAS))
+    dam = adjust_area_damage_for_spell_wards(victim, dam);
+
   /* blinking between prime and ethereal planes - 20% dodge AoE spells */
   if (IS_SET(spell_info[spellnum].routines, MAG_AREAS) && AFF_FLAGGED(victim, AFF_BLINKING) &&
       rand_number(1, 100) <= 20)
