@@ -455,6 +455,8 @@ bool is_safe_path_component(const char *name);
 bool is_safe_relative_path(const char *path);
 /* Ensures that a directory path exists, creating intermediate directories as needed. */
 bool ensure_dir_exists(const char *path);
+/* Durably closes a temporary stream and atomically replaces the live path. */
+bool finish_file_save(FILE *stream, const char *temporary_path, const char *destination_path);
 
 /* Feats */
 int get_feat_value(struct char_data *ch, int featnum);

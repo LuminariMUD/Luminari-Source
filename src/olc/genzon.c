@@ -276,7 +276,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
   return rznum;
 }
 
-void create_world_index(int znum, const char *type)
+int create_world_index(int znum, const char *type)
 {
   FILE *newfile, *oldfile;
   char new_name[32], old_name[32];
@@ -313,7 +313,7 @@ void create_world_index(int znum, const char *type)
     break;
   default:
     /* Caller messed up. */
-    return;
+    return FALSE;
   }
 
   snprintf(old_name, sizeof(old_name), "%s/index", prefix);
@@ -322,13 +322,13 @@ void create_world_index(int znum, const char *type)
   if (!(oldfile = fopen(old_name, "r")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Failed to open %s.", old_name);
-    return;
+    return FALSE;
   }
   else if (!(newfile = fopen_restricted(new_name, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Failed to open %s.", new_name);
     fclose(oldfile);
-    return;
+    return FALSE;
   }
 
   /* Index contents must be in order: search through the old file for the right
@@ -361,17 +361,16 @@ void create_world_index(int znum, const char *type)
         fclose(oldfile);
         fclose(newfile);
         remove(new_name);
-        return;
+        return TRUE;
       }
     }
     fprintf(newfile, "%s\n", buf);
   }
 
-  fclose(newfile);
   fclose(oldfile);
-  /* Out with the old, in with the new. */
-  remove(old_name);
-  rename(new_name, old_name);
+  if (!finish_file_save(newfile, new_name, old_name))
+    return FALSE;
+  return TRUE;
 }
 
 void remove_room_zone_commands(zone_rnum zone, room_rnum room_num)
@@ -641,10 +640,9 @@ int save_zone(zone_rnum zone_num)
               ZCMD(zone_num, subcmd).sarg2);
   }
   fputs("S\n$\n", zfile);
-  fclose(zfile);
   snprintf(oldname, sizeof(oldname), "%s/%d.zon", ZON_PREFIX, zone_table[zone_num].number);
-  remove(oldname);
-  rename(fname, oldname);
+  if (!finish_file_save(zfile, fname, oldname))
+    return FALSE;
 
   if (in_save_list(zone_table[zone_num].number, SL_ZON))
     remove_from_save_list(zone_table[zone_num].number, SL_ZON);

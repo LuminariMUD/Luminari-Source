@@ -44,6 +44,8 @@ void script_save_to_disk(FILE *fp, void *item, int type);
 void dg_olc_script_copy(struct descriptor_data *d);
 void dg_script_menu(struct descriptor_data *d);
 int dg_script_edit_parse(struct descriptor_data *d, char *arg);
+bool dg_format_script_text(const char *source, size_t max_length, char **formatted, char *error,
+                           size_t error_size);
 int format_script(struct descriptor_data *d);
 
 #endif /* _DG_OLC_H_ */

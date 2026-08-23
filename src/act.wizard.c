@@ -2742,7 +2742,7 @@ void clean_llog_entries(void)
 {
   FILE *ofp, *nfp;
   struct last_entry mlast;
-  int recs;
+  int recs, failed = FALSE;
 
   if (!(ofp = fopen(LAST_FILE, "r")))
     return; /* no file, no gripe */
@@ -2768,20 +2768,27 @@ void clean_llog_entries(void)
   fseek(ofp, (recs - MAX_LAST_ENTRIES) * (sizeof(struct last_entry)), SEEK_CUR);
 
   /* copy the rest */
-  while (!feof(ofp))
+  while (fread(&mlast, sizeof(struct last_entry), 1, ofp) == 1)
   {
-    if (fread(&mlast, sizeof(struct last_entry), 1, ofp) != 1 && !feof(ofp))
+    if (fwrite(&mlast, sizeof(struct last_entry), 1, nfp) != 1)
     {
-      log("SYSERR: Failed to read from last file");
+      failed = TRUE;
       break;
     }
-    (void)fwrite(&mlast, sizeof(struct last_entry), 1, nfp);
   }
-  fclose(ofp);
-  fclose(nfp);
+  if (ferror(ofp))
+    failed = TRUE;
+  if (fclose(ofp) != 0)
+    failed = TRUE;
 
-  remove(LAST_FILE);
-  rename("etc/nlast", LAST_FILE);
+  if (failed)
+  {
+    log("SYSERR: Failed to rebuild last log; preserving %s", LAST_FILE);
+    fclose(nfp);
+    return;
+  }
+  if (!finish_file_save(nfp, "etc/nlast", LAST_FILE))
+    return;
 }
 
 /* debugging stuff, if you wanna see the whole file */
@@ -7641,8 +7648,10 @@ ACMD(do_file)
 ACMD(do_changelog)
 {
   time_t rawtime;
-  char tmstr[32] = {'\0'}, line[READ_SIZE], last_buf[READ_SIZE], buf[READ_SIZE];
+  char tmstr[32] = {'\0'}, line[READ_SIZE], last_buf[READ_SIZE] = {'\0'}, buf[READ_SIZE];
+  char temp_path[READ_SIZE] = {'\0'};
   FILE *fl, *new;
+  int path_length;
 
   skip_spaces_c(&argument);
 
@@ -7652,22 +7661,18 @@ ACMD(do_changelog)
     return;
   }
 
-  snprintf(buf, sizeof(buf), "%s.bak", CHANGE_LOG_FILE);
-  if (rename(CHANGE_LOG_FILE, buf))
+  if (!(fl = fopen(CHANGE_LOG_FILE, "r")))
   {
-    mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: Error making backup changelog file (%s)", buf);
+    mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: Error opening changelog file (%s)", CHANGE_LOG_FILE);
     return;
   }
 
-  if (!(fl = fopen(buf, "r")))
+  path_length = snprintf(temp_path, sizeof(temp_path), "%s.tmp", CHANGE_LOG_FILE);
+  if (path_length < 0 || (size_t)path_length >= sizeof(temp_path) ||
+      !(new = fopen_restricted(temp_path, "w")))
   {
-    mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: Error opening backup changelog file (%s)", buf);
-    return;
-  }
-
-  if (!(new = fopen_restricted(CHANGE_LOG_FILE, "w")))
-  {
-    mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: Error opening new changelog file (%s)", CHANGE_LOG_FILE);
+    mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: Error opening temporary changelog file (%s)", temp_path);
+    fclose(fl);
     return;
   }
 
@@ -7696,8 +7701,19 @@ ACMD(do_changelog)
   while (get_line(fl, line))
     fprintf(new, "%s\n", line);
 
+  if (ferror(fl))
+  {
+    mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: Error reading changelog file (%s)", CHANGE_LOG_FILE);
+    fclose(fl);
+    fclose(new);
+    return;
+  }
   fclose(fl);
-  fclose(new);
+  if (!finish_file_save(new, temp_path, CHANGE_LOG_FILE))
+  {
+    send_to_char(ch, "The changelog could not be updated; the previous file is unchanged.\r\n");
+    return;
+  }
   send_to_char(ch, "Change added.\r\n");
 }
 

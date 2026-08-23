@@ -253,10 +253,8 @@ char *read_delete(long recipient)
     free_mail_record(record_to_keep);
   }
   fclose(mail_file);
-  fclose(new_file);
-
-  remove(MAIL_FILE);
-  rename(MAIL_FILE_TMP, MAIL_FILE);
+  if (!finish_file_save(new_file, MAIL_FILE_TMP, MAIL_FILE))
+    strlcpy(buf, "Mail system error - please report", sizeof(buf));
 
   return strdup(buf);
 }

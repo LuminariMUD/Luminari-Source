@@ -463,10 +463,9 @@ int save_mobiles(zone_rnum rznum)
   }
   fputs("$\n", mobfd);
   written = ftell(mobfd);
-  fclose(mobfd);
   snprintf(usedfname, sizeof(usedfname), "%s%d.mob", MOB_PREFIX, vznum);
-  remove(usedfname);
-  rename(mobfname, usedfname);
+  if (!finish_file_save(mobfd, mobfname, usedfname))
+    return FALSE;
 
   if (in_save_list(vznum, SL_MOB))
     remove_from_save_list(vznum, SL_MOB);

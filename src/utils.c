@@ -46,6 +46,10 @@
 #include "character/perks.h"
 #include <time.h>
 
+#ifdef CIRCLE_WINDOWS
+#include <io.h>
+#endif
+
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
 /* Functions of a general utility nature
@@ -2816,10 +2820,14 @@ char *strdup(const char *source)
  * @param txt The writable string to prune. */
 void prune_crlf(char *txt)
 {
-  int i = strlen(txt) - 1;
+  size_t length;
 
-  while (txt[i] == '\n' || txt[i] == '\r')
-    txt[i--] = '\0';
+  if (txt == NULL || *txt == '\0')
+    return;
+
+  length = strlen(txt);
+  while (length > 0 && (txt[length - 1] == '\n' || txt[length - 1] == '\r'))
+    txt[--length] = '\0';
 }
 
 #ifndef str_cmp
@@ -3655,6 +3663,9 @@ int count_non_protocol_chars(const char *str)
   int count = 0;
   const char *string = str;
 
+  if (string == NULL)
+    return 0;
+
   while (*string)
   {
     if (*string == '\r' || *string == '\n')
@@ -3665,13 +3676,16 @@ int count_non_protocol_chars(const char *str)
     if (*string == '@' || *string == '\t')
     {
       string++;
+      if (!*string)
+        break;
       if (*string != '[' && *string != '<' && *string != '>' && *string != '(' && *string != ')')
         string++;
       else if (*string == '[')
       {
         while (*string && *string != ']')
           string++;
-        string++;
+        if (*string == ']')
+          string++;
       }
       else
         string++;
@@ -5724,6 +5738,100 @@ bool ensure_dir_exists(const char *path)
   {
     /* Ignore if already exists */
   }
+  return true;
+}
+
+/** Flushes, synchronizes, closes, and atomically installs a temporary file.
+ * The temporary file is intentionally preserved if any stage fails so an
+ * operator can inspect or recover it. The destination is never removed before
+ * replacement, so a failed replacement leaves the previous file intact.
+ *
+ * @param stream Open stream associated with temporary_path. This function
+ * always closes a non-NULL stream before returning.
+ * @param temporary_path Path to the completed temporary file.
+ * @param destination_path Live path to replace.
+ * @retval true Every buffered byte was written and the replacement succeeded.
+ * @retval false Validation, write, synchronization, close, or replacement
+ * failed. A SYSERR identifying the stage and both paths is logged. */
+bool finish_file_save(FILE *stream, const char *temporary_path, const char *destination_path)
+{
+  const char *stage = "validate arguments";
+  int saved_errno = EINVAL;
+  bool failed = false;
+
+  if (stream == NULL || temporary_path == NULL || *temporary_path == '\0' ||
+      destination_path == NULL || *destination_path == '\0')
+  {
+    if (stream != NULL)
+      fclose(stream);
+    log("SYSERR: Durable file replacement failed during %s (%s -> %s): %s", stage,
+        temporary_path ? temporary_path : "(null)", destination_path ? destination_path : "(null)",
+        strerror(saved_errno));
+    errno = saved_errno;
+    return false;
+  }
+
+  stage = "write temporary file";
+  if (ferror(stream))
+  {
+    failed = true;
+    saved_errno = errno ? errno : EIO;
+  }
+  if (fflush(stream) != 0 && !failed)
+  {
+    failed = true;
+    saved_errno = errno ? errno : EIO;
+  }
+
+  if (!failed)
+  {
+    stage = "synchronize temporary file";
+#ifdef CIRCLE_WINDOWS
+    if (_commit(_fileno(stream)) != 0)
+#else
+    if (fsync(fileno(stream)) != 0)
+#endif
+    {
+      failed = true;
+      saved_errno = errno ? errno : EIO;
+    }
+  }
+
+  if (fclose(stream) != 0 && !failed)
+  {
+    stage = "close temporary file";
+    failed = true;
+    saved_errno = errno ? errno : EIO;
+  }
+
+  if (failed)
+  {
+    log("SYSERR: Durable file replacement failed during %s (%s -> %s): %s", stage, temporary_path,
+        destination_path, strerror(saved_errno));
+    errno = saved_errno;
+    return false;
+  }
+
+  stage = "replace destination";
+#ifdef CIRCLE_WINDOWS
+  if (!MoveFileExA(temporary_path, destination_path,
+                   MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+  {
+    log("SYSERR: Durable file replacement failed during %s (%s -> %s): Windows error %lu", stage,
+        temporary_path, destination_path, (unsigned long)GetLastError());
+    return false;
+  }
+#else
+  if (rename(temporary_path, destination_path) != 0)
+  {
+    saved_errno = errno ? errno : EIO;
+    log("SYSERR: Durable file replacement failed during %s (%s -> %s): %s", stage, temporary_path,
+        destination_path, strerror(saved_errno));
+    errno = saved_errno;
+    return false;
+  }
+#endif
+
   return true;
 }
 

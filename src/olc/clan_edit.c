@@ -55,11 +55,12 @@ void save_clans(void)
 {
   FILE *fl;
   int i, j, x;
-  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'}, tmpname[256];
 
-  if (!(fl = fopen_restricted(CLAN_FILE, "w")))
+  snprintf(tmpname, sizeof(tmpname), "%s.tmp", CLAN_FILE);
+  if (!(fl = fopen_restricted(tmpname, "w")))
   {
-    mudlog(CMP, LVL_IMPL, TRUE, "SYSERR: Unable to open clan file");
+    mudlog(CMP, LVL_IMPL, TRUE, "SYSERR: Unable to open temporary clan file");
     return;
   }
   fprintf(fl, "* Clans File\n");
@@ -162,7 +163,8 @@ void save_clans(void)
     fprintf(fl, "~\n");
   }
   fprintf(fl, "$\n");
-  fclose(fl);
+  if (!finish_file_save(fl, tmpname, CLAN_FILE))
+    return;
 
   /* Clear all modified flags after successful save */
   for (i = 0; i < num_of_clans; i++)
@@ -186,7 +188,7 @@ void save_clans(void)
 void save_single_clan(clan_rnum c)
 {
   FILE *fl, *new_fl;
-  char tmpname[256], backup[256];
+  char tmpname[256];
   char line[MAX_INPUT_LENGTH + 1]; /* tag[6] unused in this function */
   int j, x, gl, current_clan = -1;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -202,7 +204,6 @@ void save_single_clan(clan_rnum c)
 
   /* Create temporary file name */
   snprintf(tmpname, sizeof(tmpname), "%s.tmp", CLAN_FILE);
-  snprintf(backup, sizeof(backup), "%s.bak", CLAN_FILE);
 
   /* Open original file for reading */
   if (!(fl = fopen(CLAN_FILE, "r")))
@@ -362,24 +363,10 @@ void save_single_clan(clan_rnum c)
   fprintf(new_fl, "$\n");
 
   fclose(fl);
-  fclose(new_fl);
-
-  /* Now replace the original file with the new one */
-  /* First, backup the original */
-  remove(backup);
-  rename(CLAN_FILE, backup);
-
-  /* Then rename the temporary file */
-  if (rename(tmpname, CLAN_FILE) != 0)
-  {
-    log("SYSERR: Couldn't rename temporary clan file, restoring backup");
-    rename(backup, CLAN_FILE);
-    remove(tmpname);
+  if (!finish_file_save(new_fl, tmpname, CLAN_FILE))
     return;
-  }
 
-  /* Success - remove backup and clear modified flag */
-  remove(backup);
+  /* Success - clear modified flag. */
   clan_list[c].modified = FALSE;
 }
 
