@@ -28,10 +28,21 @@
   the blowgun/ammo pairing, all throwing quivers remain ammo pouches, and throwable-only
   `MOB_ROL_ARCHER` loadouts use thrown mode without changing unrelated NPCs.
 
+#### Fixed
+
+- Revalidated characters and projectile ownership after every callback boundary so extraction,
+  death, movement, or projectile replacement during a weapon proc cannot leave a stale combat
+  reference or duplicate, lose, or return the wrong object.
+- Made critical and poison processing use the exact detached weapon instance, allowed physical
+  weapon abilities on adjacent-room throws, and prevented Returning from delivering an object to
+  a recipient who is no longer in the world.
+
 #### Tests
 
 - Added production-linked coverage for append-only IDs, classification, mixed pouches, exact source
   order, persistence, lifecycle outcomes, Returning, Snatch, collection, and pouch capacity.
+- Added command-target, exact-instance statistic, cross-room ability, poison, and callback-lifecycle
+  regressions; the production-linked suite now exercises 827 tests.
 - Added synthetic and full-corpus converter coverage for darts, blowguns, all 44 quivers, numeric
   drift, and every converted archer loadout.
 

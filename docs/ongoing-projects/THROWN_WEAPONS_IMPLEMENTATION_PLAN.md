@@ -829,6 +829,39 @@ branches that are not reliably induced in a live session. The complete 824-test 
 covers the existing launcher, reload, feat, melee, OEDIT, persistence, and world-loading surfaces.
 No production operation or protected local configuration change was performed.
 
+### 2026-08-23: Post-completion identity and lifecycle audit
+
+A final source-level audit after the live matrix found and repaired narrow callback and
+instance-identity edges that the completed gameplay paths did not deterministically induce:
+
+- critical-range and poison handling now read the exact detached projectile instance rather than
+  the equipped anchor or an unrelated pointer;
+- character, room, and projectile state is revalidated after every critical, on-hit, spell,
+  artifact, special-ability, trigger, teamwork, and banishing callback boundary;
+- adjacent-room physical projectiles can invoke weapon special abilities without requiring a
+  same-room `FIGHTING(ch)` relationship;
+- Returning requires a live recipient in a valid room, while extracted, moved, destroyed, or
+  replaced projectiles retain one unambiguous final disposition; and
+- command-target gating, mixed launcher bolt/stone selection, and the newly exposed lifecycle
+  branches have production-linked regressions.
+
+The repairs were committed and pushed as
+`04c37f767c85916164c8721ee0261ed5902e7808`. Final release verification used a disposable,
+isolated MariaDB runtime and produced these results:
+
+- root `make test`: 827 tests, zero failures, including a real database syntax boot;
+- `make install`: successful versioned install with `bin/luminari` executable and no root-level
+  `luminari` or `circle` artifact;
+- world tools: 491 passes with 34 expected optional-corpus skips;
+- focused protocol parser: 29 passes; and
+- database help: the component remained idempotent across two applications and all four verifier
+  rows reported `PASS`.
+
+The full post-audit tree builds without warnings, passes `git diff --check`, and remains confined to
+the development feature branch. The earlier Phase 8 world conversion and live-QA evidence remains
+valid because this audit changed projectile runtime handling and tests only; it did not change
+converted content, persistence formats, help content, or the guarded development data.
+
 ## 10. Definition of done
 
 The feature is complete only when all of the following are true:
