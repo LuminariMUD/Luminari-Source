@@ -10,10 +10,10 @@ VALUES ('ACCOMPANY', 'Accompany
 Usage: accompany <performer>
        accompany
 
-Requires: the accompany feat, bard level 6
+Requires: the accompany feat, 5 ranks of perform
 
-Instead of leading a song of your own, you back the performance of a bard you
-are grouped with in your room. Your perform ability and instrument raise the
+Instead of leading a song of your own, you back a grouped performer''s song in
+your room. Your perform ability and instrument raise the
 quality of every verse the lead performs, up to a cap, and if the lead''s
 performance falters or stutters you take the song over rather than letting it
 end.

@@ -5973,9 +5973,9 @@ void assign_feats(void)
         "fortitude save against 10 + half your level + your dexterity bonus, leaves it choking: "
         "silenced and staggered for a short time.  Targets that do not breathe cannot be "
         "garroted.  Garrote is a standard and move action.");
-  feato(FEAT_ACCOMPANY, "accompany", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
+  feato(FEAT_ACCOMPANY, "accompany", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "join and support another performer's song",
-        "With 'accompany <performer>' you join the performance of a grouped bard in your room "
+        "With 'accompany <performer>' you join a grouped performer's song in your room "
         "instead of starting one of your own.  Your perform ability and instrument raise the "
         "quality of the lead performance, and if the lead falters you take the song over rather "
         "than letting it end.  Type 'accompany' alone to stop accompanying.");
@@ -5984,6 +5984,7 @@ void assign_feats(void)
   feat_prereq_ability(FEAT_ESTABLISH_CAMP, ABILITY_SURVIVAL, 3);
   feat_prereq_ability(FEAT_GARROTE, ABILITY_STEALTH, 8);
   feat_prereq_bab(FEAT_GARROTE, 4);
+  feat_prereq_ability(FEAT_ACCOMPANY, ABILITY_PERFORM, 5);
 
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat",

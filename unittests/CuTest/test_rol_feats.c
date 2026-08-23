@@ -12,15 +12,16 @@
 #include "../../src/act.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/character/abilities.h"
+#include "../../src/constants.h"
 #include "../../src/character/feats.h"
 #include "../../src/combat/fight.h"
-#include "../../src/constants.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/magic/spells.h"
+#include "../../src/character/class.h"
 #include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
 #include "../../src/rol_feats.h"
@@ -304,4 +305,36 @@ void TestConvertedRolSkillsAreRegistered(CuTest *tc)
 
   for (i = 0; i < sizeof(feats) / sizeof(feats[0]); i++)
     CuAssertTrue(tc, find_feat_num(feats[i]) > 0);
+}
+
+/* Converted RoL skills are selected normally and never granted by a class. */
+void TestConvertedRolFeatsAreClassNeutralAndLearnable(CuTest *tc)
+{
+  static const int feats[] = {FEAT_SHADOW, FEAT_CALM, FEAT_ESTABLISH_CAMP, FEAT_GARROTE,
+                              FEAT_ACCOMPANY};
+  struct class_feat_assign *assignment;
+  size_t i;
+  int class_num;
+
+  if (feat_list[FEAT_SHADOW].name == NULL)
+    assign_feats();
+  if (class_list[CLASS_WIZARD].name == NULL)
+    load_class_list();
+
+  for (i = 0; i < sizeof(feats) / sizeof(feats[0]); i++)
+  {
+    CuAssertTrue(tc, feat_list[feats[i]].can_learn);
+    CuAssertTrue(tc, feat_list[feats[i]].feat_type > FEAT_TYPE_NONE);
+    CuAssertTrue(tc, feat_list[feats[i]].feat_type < NUM_LEARNABLE_FEAT_TYPES);
+
+    for (class_num = 0; class_num < NUM_CLASSES; class_num++)
+    {
+      for (assignment = class_list[class_num].featassign_list; assignment != NULL;
+           assignment = assignment->next)
+      {
+        CuAssert(tc, "converted RoL feat unexpectedly assigned by a class",
+                 assignment->feat_num != feats[i]);
+      }
+    }
+  }
 }

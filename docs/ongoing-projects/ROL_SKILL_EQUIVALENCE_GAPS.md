@@ -1,7 +1,8 @@
 # RoL Skills Without a Close LuminariMUD Equivalent
 
 Status: re-verified against both source trees 2026-08-23. All five player-facing
-gaps have since been implemented as LuminariMUD feats; see "Ported gaps" below.
+gaps have since been implemented as class-neutral, learnable LuminariMUD feats;
+see "Ported gaps" below.
 
 This is the companion to `ROL_SPELL_EQUIVALENCE_GAPS.md`, alongside
 `ROL_RACE_EQUIVALENCE_GAPS.md`. That document covers
@@ -61,20 +62,37 @@ Each gap was re-expressed as a feat rather than as a `skillo()` percentage skill
 using d20 checks, ability scores, and the existing feat, daily-use, and
 performance machinery. Behavior lives in `src/rol_feats.c`.
 
-| RoL skill | LuminariMUD feat | Command | Mechanic | Granted by |
+| RoL skill | LuminariMUD feat | Command | Mechanic | Availability |
 |-----------|------------------|---------|----------|------------|
-| shadow | `FEAT_SHADOW` | `shadow <target>` | Contested stealth against the mark's perception to take up the trail, re-rolled every time the mark leaves the room. Requires sneaking. Hooked into `perform_move_full()`. | Rogue 6, Ranger 8; learnable with 5 ranks of stealth |
-| calm | `FEAT_CALM` | `calm` | Will save against 10 + half level + charisma bonus stops each fight in the room and clears NPC memory. Mind-affecting immunity ignores it. Limited daily uses through `eROL_CALM`. | Bard 8; learnable with charisma 13 |
-| establish camp | `FEAT_ESTABLISH_CAMP` | `camp` | Survival check against a terrain and weather difficulty. The camp affect halves again the recovery of anyone in the group settled into it, through `hit_gain()` and `move_gain()`, and sets the campers' load room. | Ranger 3, Druid 3; learnable with 3 ranks of survival |
-| garrote | `FEAT_GARROTE` | `garrote <target>` | Attack from a hide-then-sneak posture against a target that cannot see you, needing a free hand. On a failed fortitude save against 10 + half level + dexterity bonus the target is silenced and staggered. Creatures that do not breathe are immune. | Rogue 10, Assassin 3; learnable with 8 ranks of stealth and BAB 4 |
-| accompany | `FEAT_ACCOMPANY` | `accompany <performer>` | A grouped bard backs the lead's performance, adding a capped effectiveness bonus from perform and instrument, and takes the song over when the lead's verse fails or stutters. | Bard 6 |
+| shadow | `FEAT_SHADOW` | `shadow <target>` | Contested stealth against the mark's perception to take up the trail, re-rolled every time the mark leaves the room. Requires sneaking. Hooked into `perform_move_full()`. | Learnable by any class with 5 ranks of stealth |
+| calm | `FEAT_CALM` | `calm` | Will save against 10 + half level + charisma bonus stops each fight in the room and clears NPC memory. Mind-affecting immunity ignores it. Limited daily uses through `eROL_CALM`. | Learnable by any class with charisma 13 |
+| establish camp | `FEAT_ESTABLISH_CAMP` | `camp` | Survival check against a terrain and weather difficulty. The camp affect halves again the recovery of anyone in the group settled into it, through `hit_gain()` and `move_gain()`, and sets the campers' load room. | Learnable by any class with 3 ranks of survival |
+| garrote | `FEAT_GARROTE` | `garrote <target>` | Attack from a hide-then-sneak posture against a target that cannot see you, needing a free hand. On a failed fortitude save against 10 + half level + dexterity bonus the target is silenced and staggered. Creatures that do not breathe are immune. | Learnable by any class with 8 ranks of stealth and BAB 4 |
+| accompany | `FEAT_ACCOMPANY` | `accompany <performer>` | A grouped performer backs the lead's performance, adding a capped effectiveness bonus from perform and instrument, and takes the song over when the lead's verse fails or stutters. | Learnable by any class with 5 ranks of perform |
 
 Supporting changes: `SKILL_SHADOW`, `SKILL_CALM`, `SKILL_CAMP`, `SKILL_GARROTE`
 and `SKILL_ACCOMPANY` were added as affect and damage identifiers and registered
 with `skillo()`; `SHADOWING()` and `ACCOMPANYING()` were added to
 `char_special_data` with the same lifecycle cleanup as `GUARDING()`. Help is in
 `lib/text/help/help.hlp` and `sql/components/help_rol_feat_entries.sql`, and
-coverage is in `unittests/CuTest/test_rol_feats.c`.
+coverage is in `unittests/CuTest/test_rol_feats.c`. None of the five feats is
+granted by or registered as a bonus feat for any class.
+
+## Implementation checkpoint
+
+The class-neutral conversion was validated on 2026-08-23. The production and
+CuTest binaries compile without warnings, the full fixture-backed `make test`
+run passes all 849 CuTest cases, and `make install` installs the tested server
+and removes the root-level binary. The class-neutrality test verifies that all
+five feats are learnable through the normal feat menu and absent from every
+class feat-assignment list.
+
+This fresh development worktree has no `lib/mysql_config` and no deployed world
+files. The validation therefore used the checked-in special-procedure world
+fixture and skipped only the database-dependent syntax boot. An unmodified
+`make test` reaches all 849 cases but reports those two missing-runtime-data
+failures; neither is related to the RoL feats. No production database was
+accessed or modified.
 
 ## Internal state markers, not player skills
 
