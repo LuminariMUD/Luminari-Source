@@ -66,7 +66,7 @@ performance machinery. Behavior lives in `src/rol_feats.c`.
 |-----------|------------------|---------|----------|------------|
 | shadow | `FEAT_SHADOW` | `shadow <target>` | Contested stealth against the mark's perception to take up the trail, re-rolled every time the mark leaves the room. Requires sneaking. Hooked into `perform_move_full()`. | Learnable by any class with 5 ranks of stealth |
 | calm | `FEAT_CALM` | `calm` | Will save against 10 + half level + charisma bonus stops each fight in the room and clears NPC memory. Mind-affecting immunity ignores it. Limited daily uses through `eROL_CALM`. | Learnable by any class with charisma 13 |
-| establish camp | `FEAT_ESTABLISH_CAMP` | `camp` | Survival check against a terrain and weather difficulty. The camp affect halves again the recovery of anyone in the group settled into it, through `hit_gain()` and `move_gain()`, and sets the campers' load room. | Learnable by any class with 3 ranks of survival |
+| establish camp | `FEAT_ESTABLISH_CAMP` | `camp` | Survival check against a terrain and weather difficulty. The camp affect adds 50 percent to the hitpoint and movement recovery of anyone in the group settled into that campsite, through `hit_gain()` and `move_gain()`, and sets the campers' load room. | Learnable by any class with 3 ranks of survival |
 | garrote | `FEAT_GARROTE` | `garrote <target>` | Attack from a hide-then-sneak posture against a target that cannot see you, needing a free hand. On a failed fortitude save against 10 + half level + dexterity bonus the target is silenced and staggered. Creatures that do not breathe are immune. | Learnable by any class with 8 ranks of stealth and BAB 4 |
 | accompany | `FEAT_ACCOMPANY` | `accompany <performer>` | A grouped performer backs the lead's performance, adding a capped effectiveness bonus from perform and instrument, and takes the song over when the lead's verse fails or stutters. | Learnable by any class with 5 ranks of perform |
 
@@ -80,19 +80,37 @@ granted by or registered as a bonus feat for any class.
 
 ## Implementation checkpoint
 
-The class-neutral conversion was validated on 2026-08-23. The production and
-CuTest binaries compile without warnings, the full fixture-backed `make test`
-run passes all 849 CuTest cases, and `make install` installs the tested server
-and removes the root-level binary. The class-neutrality test verifies that all
-five feats are learnable through the normal feat menu and absent from every
-class feat-assignment list.
+The class-neutral conversion and final lifecycle audit were validated on
+2026-08-23. The production and CuTest binaries compile without warnings, the
+full fixture-backed `make test` run passes all 853 CuTest cases, and
+`make install` installs the tested server and removes the root-level binary.
+The class-neutrality test verifies that all five feats are learnable through
+the normal feat menu and absent from every class feat-assignment list.
+
+The final audit also verifies the behavior at subsystem boundaries:
+
+- A shadow link ends immediately when the tail independently leaves the mark
+  or enters combat, and extraction clears links in both directions.
+- Calm uses the registered `eROL_CALM` daily-use event and saves that event in
+  the player `Evnt:` block, so logging out cannot reset spent uses.
+- A camp stores its full 32-bit room VNUM in fields retained by affect
+  persistence. Its recovery bonus works only while resting at that campsite,
+  not after carrying the affect into another room.
+- Garrote delegates hand accounting to `hands_available()`, including held
+  objects, shields, two-handed equipment, and characters with an extra arm.
+- Accompaniment contributes to or takes over a performance only while the
+  accompanist and lead still share a group and room.
+- The exact command handlers, command checks, and action costs are registered;
+  the flat and database help sources cover the same command keywords; and the
+  database verifier checks player access, exact keyword sets and help content.
 
 This fresh development worktree has no `lib/mysql_config` and no deployed world
 files. The validation therefore used the checked-in special-procedure world
 fixture and skipped only the database-dependent syntax boot. An unmodified
-`make test` reaches all 849 cases but reports those two missing-runtime-data
+`make test` reaches all 853 cases but reports those two missing-runtime-data
 failures; neither is related to the RoL feats. No production database was
-accessed or modified.
+accessed or modified; the idempotent SQL help migration and its read-only
+verifier are ready for the normal deployment workflow.
 
 ## Internal state markers, not player skills
 

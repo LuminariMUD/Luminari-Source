@@ -1775,6 +1775,9 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   FIGHTING(ch) = vict;
   GET_WARBEAT_USED(ch) = 0;
 
+  /* entering combat immediately ends any covert tail this character held */
+  stop_shadowing(ch, TRUE);
+
   if (!CONFIG_PK_ALLOWED)
     check_killer(ch, vict);
 
