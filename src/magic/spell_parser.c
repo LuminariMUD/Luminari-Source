@@ -968,7 +968,7 @@ SAVING_WILL here...  */
       return (-1); /* Successful and target died, don't cast again. */
 
   if (IS_SET(SINFO.routines, MAG_LOOPS))
-    mag_loops(spell_level, caster, cvict, ovict, spellnum, savetype, casttype, metamagic);
+    mag_loops(spell_level, caster, cvict, ovict, spellnum, metamagic, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_AFFECTS))
     mag_affects(spell_level, caster, cvict, ovict, spellnum, savetype, casttype, metamagic);
@@ -1004,6 +1004,108 @@ SAVING_WILL here...  */
   if (IS_SET(SINFO.routines, MAG_MANUAL))
     switch (spellnum)
     {
+    case SPELL_FARSEE:
+      MANUAL_SPELL(spell_farsee);
+      break;
+    case SPELL_REJUVENATE_MAJOR:
+      MANUAL_SPELL(spell_rejuvenate_major);
+      break;
+    case SPELL_REJUVENATE_MINOR:
+      MANUAL_SPELL(spell_rejuvenate_minor);
+      break;
+    case SPELL_AGE:
+      MANUAL_SPELL(spell_age);
+      break;
+    case SPELL_COMMAND_UNDEAD:
+      MANUAL_SPELL(spell_command_undead);
+      break;
+    case SPELL_COMMAND_HORDE:
+      MANUAL_SPELL(spell_command_horde);
+      break;
+    case SPELL_SLOW_POISON:
+      MANUAL_SPELL(spell_slow_poison);
+      break;
+    case SPELL_COMPREHEND_LANGUAGES:
+      MANUAL_SPELL(spell_comprehend_languages);
+      break;
+    case SPELL_FUMBLE:
+      MANUAL_SPELL(spell_fumble);
+      break;
+    case SPELL_STUMBLE:
+      MANUAL_SPELL(spell_stumble);
+      break;
+    case SPELL_ENERVATE:
+      MANUAL_SPELL(spell_enervate);
+      break;
+    case SPELL_PROT_UNDEAD:
+      MANUAL_SPELL(spell_protect_undead);
+      break;
+    case SPELL_PROT_FROM_UNDEAD:
+      MANUAL_SPELL(spell_protection_from_undead);
+      break;
+    case SPELL_ANCESTRAL_SHIELD:
+      MANUAL_SPELL(spell_ancestral_shield);
+      break;
+    case SPELL_PROTECTION_FROM_ANIMALS:
+      MANUAL_SPELL(spell_protection_from_animals);
+      break;
+    case SPELL_PASS_WITHOUT_TRACE:
+      MANUAL_SPELL(spell_pass_without_trace);
+      break;
+    case SPELL_GREATER_REALM_OF_PROTECTION:
+      MANUAL_SPELL(spell_greater_realm_of_protection);
+      break;
+    case SPELL_FEIGN_DEATH:
+      MANUAL_SPELL(spell_feign_death);
+      break;
+    case SPELL_TRANQUILITY:
+      MANUAL_SPELL(spell_tranquility);
+      break;
+    case SPELL_AGILITY:
+      MANUAL_SPELL(spell_agility);
+      break;
+    case SPELL_NATURES_BLESSING:
+      MANUAL_SPELL(spell_natures_blessing);
+      break;
+    case SPELL_SONG_OF_TRAVEL:
+      MANUAL_SPELL(spell_song_of_travel);
+      break;
+    case SPELL_POLTERGEIST:
+      MANUAL_SPELL(spell_poltergeist);
+      break;
+    case SPELL_MINOR_CREATE:
+      MANUAL_SPELL(spell_minor_creation);
+      break;
+    case SPELL_VENTRILOQUATE:
+      MANUAL_SPELL(spell_ventriloquate);
+      break;
+    case SPELL_WRAITHFORM:
+      MANUAL_SPELL(spell_wraithform);
+      break;
+    case SPELL_CREATE_SPRING:
+      MANUAL_SPELL(spell_create_spring);
+      break;
+    case SPELL_MOONWELL:
+      MANUAL_SPELL(spell_moonwell);
+      break;
+    case SPELL_BLINK:
+      MANUAL_SPELL(spell_blink);
+      break;
+    case SPELL_DIMENSION_SHIFT:
+      MANUAL_SPELL(spell_dimension_shift);
+      break;
+    case SPELL_SPIRIT_WALK:
+      MANUAL_SPELL(spell_spirit_walk);
+      break;
+    case SPELL_ROCK_TO_MUD:
+      MANUAL_SPELL(spell_rock_to_mud);
+      break;
+    case SPELL_MUD_TO_ROCK:
+      MANUAL_SPELL(spell_mud_to_rock);
+      break;
+    case SPELL_PHANTOM_HEAL:
+      MANUAL_SPELL(spell_phantom_heal);
+      break;
     case SPELL_GIRD_ALLIES:
       MANUAL_SPELL(spell_gird_allies);
       break;
@@ -6129,6 +6231,189 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   spello(ABILITY_DEATHLESS_TOUCH, "deathless touch", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE, "Your withering pain subsides.", 0, 1,
          NECROMANCY, FALSE);
+
+  /* Registered for scripts, items, and staff use; intentionally unassigned. */
+  spello(SPELL_FARSEE, "farsee", 0, 0, 0, POS_STANDING, TAR_IGNORE, FALSE, MAG_MANUAL,
+         "Your far-reaching vision returns to normal.", 5, 5, DIVINATION, FALSE);
+  spello(SPELL_REJUVENATE_MAJOR, "rejuvenate major", 0, 0, 0, POS_STANDING, TAR_CHAR_ROOM, FALSE,
+         MAG_MANUAL, NULL, 6, 6, TRANSMUTATION, FALSE);
+  spello(SPELL_REJUVENATE_MINOR, "rejuvenate minor", 0, 0, 0, POS_STANDING, TAR_CHAR_ROOM, FALSE,
+         MAG_MANUAL, "Your apparent youth fades.", 4, 4, TRANSMUTATION, FALSE);
+  spello(SPELL_AGE, "age", 0, 0, 0, POS_STANDING, TAR_CHAR_ROOM, FALSE, MAG_MANUAL, NULL, 4, 4,
+         TRANSMUTATION, FALSE);
+  spello(SPELL_COMMAND_UNDEAD, "command undead", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL, "You regain your own will.", 4, 4,
+         NECROMANCY, FALSE);
+  spello(SPELL_SLOW_POISON, "slow poison", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         "Poisons resume their normal course through your body.", 2, 2, TRANSMUTATION, FALSE);
+  spello(SPELL_COMPREHEND_LANGUAGES, "comprehend languages", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM,
+         FALSE, MAG_MANUAL, "Unfamiliar languages lose their meaning again.", 4, 4, DIVINATION,
+         FALSE);
+  spello(SPELL_FUMBLE, "fumble", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+         "Your manual dexterity returns.", 2, 2, ENCHANTMENT, FALSE);
+  spello(SPELL_STUMBLE, "stumble", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_MANUAL, "Your balance returns.",
+         2, 2, ENCHANTMENT, FALSE);
+  spello(SPELL_ENERVATE, "enervate", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_MANUAL, "Your vitality returns.",
+         2, 2, NECROMANCY, FALSE);
+  spello(SPELL_PROT_UNDEAD, "protect undead", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
+         MAG_MANUAL, "The ward around your undead form fades.", 4, 4, ABJURATION, FALSE);
+  spello(SPELL_PROT_FROM_UNDEAD, "protection from undead", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM,
+         FALSE, MAG_MANUAL, "Your protection from undead fades.", 4, 4, ABJURATION, FALSE);
+  spello(SPELL_COMMAND_HORDE, "command horde", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_MANUAL,
+         NULL, 6, 6, NECROMANCY, FALSE);
+  spello(SPELL_ANCESTRAL_SHIELD, "ancestral shield", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
+         MAG_MANUAL, "Your ancestral shield dissipates.", 3, 3, ABJURATION, FALSE);
+  spello(SPELL_PROTECTION_FROM_ANIMALS, "protection from animals", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your protection from animals fades.", 4, 4, ABJURATION,
+         FALSE);
+  spello(SPELL_PASS_WITHOUT_TRACE, "pass without trace", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
+         MAG_MANUAL, "You begin leaving tracks again.", 2, 2, TRANSMUTATION, FALSE);
+  spello(SPELL_GREATER_REALM_OF_PROTECTION, "greater realm of protection", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your layered elemental wards fade.", 4, 4, ABJURATION,
+         FALSE);
+  spello(SPELL_FEIGN_DEATH, "feign death", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         "Your deathlike stillness passes.", 3, 3, ILLUSION, FALSE);
+  spello(SPELL_TRANQUILITY, "tranquility", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_MANUAL,
+         "The imposed tranquility leaves you.", 2, 2, ENCHANTMENT, FALSE);
+  spello(SPELL_AGILITY, "agility", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         "Your supernatural agility fades.", 4, 4, TRANSMUTATION, FALSE);
+  spello(SPELL_NATURES_BLESSING, "natures blessing", 0, 0, 0, POS_FIGHTING, TAR_SELF_ONLY, FALSE,
+         MAG_MANUAL, "Nature's blessing leaves you.", 3, 3, ABJURATION, FALSE);
+  spello(SPELL_SONG_OF_TRAVEL, "song of travel", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
+         MAG_MANUAL, "The traveling melody fades from your thoughts.", 3, 3, TRANSMUTATION, FALSE);
+  spello(SPELL_SANDBLAST, "sandblast", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The last grains of blinding sand fall away.", 6, 6, EVOCATION, FALSE);
+  spello(SPELL_FELL_FROST, "fell frost", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The fell frost releases your limbs.", 6, 6, EVOCATION, FALSE);
+  spello(SPELL_NERVE_DANCE, "nerve dance", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 4, 4, NECROMANCY,
+         FALSE);
+  spello(SPELL_SPECTRAL_HAND, "spectral hand", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 3, 3, NECROMANCY,
+         FALSE);
+  spello(SPELL_RAIN_OF_BLOOD, "rain of blood", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 6, 6, NECROMANCY, FALSE);
+  spello(SPELL_ROT, "rot", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS, NULL, 5, 5,
+         NECROMANCY, FALSE);
+  spello(SPELL_ICE_TOMB, "ice tomb", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The ice tomb around you shatters.", 6, 6, NECROMANCY, FALSE);
+  spello(SPELL_CONSTRICTION, "constriction", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The constriction around your throat releases.", 4, 4, EVOCATION, FALSE);
+  spello(SPELL_SANDSTORM, "sandstorm", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE,
+         MAG_AREAS | MAG_AFFECTS, "The scouring sand clears from your eyes.", 6, 6, EVOCATION,
+         FALSE);
+  spello(SPELL_BLACKLIGHT_BURST, "blacklight burst", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE,
+         MAG_AREAS | MAG_AFFECTS, "The black light no longer slows you.", 5, 5, NECROMANCY, FALSE);
+  spello(SPELL_MINUTE_METEORS, "minute meteors", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_LOOPS, NULL, 3, 3, EVOCATION,
+         FALSE);
+  spello(SPELL_THUNDER_LANCE, "thunder lance", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 4, 4, EVOCATION,
+         FALSE);
+  spello(SPELL_SHADOW_BOLT, "shadow bolt", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_LOOPS, NULL, 2, 2, ILLUSION,
+         FALSE);
+  spello(SPELL_SHADOW_BURST, "shadow burst", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 4, 4, ILLUSION, FALSE);
+  spello(SPELL_SHADOW_MAGIC, "shadow magic", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 3, 3, ILLUSION,
+         FALSE);
+  spello(SPELL_PHANTASMAL_BLADES, "phantasmal blades", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE,
+         MAG_AREAS, NULL, 6, 6, ILLUSION, FALSE);
+  spello(SPELL_NEEDLE_SWARM, "needle swarm", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 4, 4, CONJURATION,
+         FALSE);
+  spello(SPELL_SNAPPING_TEETH, "snapping teeth", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 4, 4, CONJURATION,
+         FALSE);
+  spello(SPELL_BELTYNS_BURNING_BLOOD, "beltyns burning blood", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "Your blood stops burning.", 6, 6, NECROMANCY, FALSE);
+  spello(SPELL_BLACKMANTLE, "blackmantle", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
+         "The black mantle around you dissipates.", 4, 4, NECROMANCY, FALSE);
+  spello(SPELL_EARTHBLOOD, "earthblood", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "Your body is no longer rigid with elemental earth.", 6, 6, EVOCATION, FALSE);
+  spello(SPELL_SOUL_TEMPEST, "soul tempest", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 6, 6, NECROMANCY, FALSE);
+  spello(SPELL_DUST_DEVIL, "dust devil", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, NULL, 3, 3,
+         CONJURATION, FALSE);
+  spello(SPELL_SUFFOCATE, "suffocate", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "Air rushes back into your lungs.", 5, 5, TRANSMUTATION, FALSE);
+  spello(SPELL_BLACKTHORNS, "blackthorns", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 3, 3, ILLUSION,
+         FALSE);
+  spello(SPELL_SHADECHILL, "shadechill", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 6, 6, ILLUSION,
+         FALSE);
+  spello(SPELL_AIR_BLAST, "air blast", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 2, 2, EVOCATION,
+         FALSE);
+  spello(SPELL_SHADOW_FLUX, "shadow flux", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
+         "The shadow flux around you dissipates.", 4, 4, ILLUSION, FALSE);
+  spello(SPELL_POLTERGEIST, "poltergeist", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_MANUAL,
+         NULL, 4, 4, NECROMANCY, FALSE);
+  spello(SPELL_MINOR_CREATE, "minor creation", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_MANUAL,
+         NULL, 1, 1, CONJURATION, FALSE);
+  spello(SPELL_VENTRILOQUATE, "ventriloquate", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_MANUAL,
+         NULL, 1, 1, ILLUSION, FALSE);
+  spello(SPELL_PRESERVE, "preserve", 0, 0, 0, POS_FIGHTING, TAR_OBJ_ROOM, FALSE, MAG_ALTER_OBJS,
+         NULL, 3, 3, NECROMANCY, FALSE);
+  spello(SPELL_WRAITHFORM, "wraithform", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY,
+         FALSE, MAG_MANUAL, "Your body becomes solid again.", 5, 5, ILLUSION, FALSE);
+  spello(SPELL_CREATE_SPRING, "create spring", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_MANUAL,
+         NULL, 5, 5, CONJURATION, FALSE);
+  spello(SPELL_MOONWELL, "moonwell", 0, 0, 0, POS_FIGHTING, TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE,
+         MAG_MANUAL, NULL, 10, 10, CONJURATION, FALSE);
+  spello(SPELL_EMBALM, "embalm", 0, 0, 0, POS_FIGHTING, TAR_OBJ_ROOM, FALSE, MAG_ALTER_OBJS, NULL,
+         2, 2, NECROMANCY, FALSE);
+  spello(SPELL_AIRY_WATER, "airy water", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_ROOM,
+         "The breathable air disperses into the surrounding water.", 2, 2, TRANSMUTATION, FALSE);
+  spello(SPELL_BLINK, "blink", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_MANUAL, NULL, 1, 1,
+         CONJURATION, FALSE);
+  spello(SPELL_UNSEEN_SERVANT, "unseen servant", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "Your unseen servant fades away.", 2, 2,
+         CONJURATION, FALSE);
+  spello(SPELL_MISLEAD, "mislead", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE,
+         MAG_AFFECTS, "The misleading shadows around you disperse.", 2, 2, ILLUSION, FALSE);
+  spello(SPELL_SEQUESTER, "sequester", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "You no longer feel cut off from distant magic.", 4, 4, ILLUSION, FALSE);
+  spello(SPELL_DIMENSION_SHIFT, "dimension shift", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
+         MAG_MANUAL, "You settle fully back into the material world.", 2, 2, CONJURATION, FALSE);
+  spello(SPELL_SOUL_BIND, "soul bind", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
+         "The binding around your soul breaks.", 4, 4, NECROMANCY, FALSE);
+  spello(SPELL_DEATH_PACT, "death pact", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
+         "The death pact leaves your blood.", 2, 2, NECROMANCY, FALSE);
+  spello(SPELL_SPIRIT_WALK, "spirit walk", 0, 0, 0, POS_FIGHTING, TAR_CHAR_WORLD, FALSE, MAG_MANUAL,
+         NULL, 5, 5, CONJURATION, FALSE);
+  spello(SPELL_ROCK_TO_MUD, "rock to mud", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_MANUAL,
+         "The magically softened ground hardens again.", 2, 2, TRANSMUTATION, FALSE);
+  spello(SPELL_MUD_TO_ROCK, "mud to rock", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_MANUAL,
+         NULL, 2, 2, TRANSMUTATION, FALSE);
+  spello(SPELL_PHANTOM_HEAL, "phantom heal", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
+         MAG_MANUAL, "Your phantom vitality fades.", 2, 2, ILLUSION, FALSE);
+  spello(SPELL_CURSE_OBJ, "curse item", 0, 0, 0, POS_FIGHTING, TAR_OBJ_INV, FALSE, MAG_ALTER_OBJS,
+         NULL, 2, 2, ENCHANTMENT, FALSE);
+  spello(SPELL_CORPSE_GLAMOR, "corpse glamor", 0, 0, 0, POS_FIGHTING, TAR_OBJ_ROOM, FALSE,
+         MAG_ALTER_OBJS, NULL, 1, 1, ILLUSION, FALSE);
+  spello(SPELL_SUN_SHADOW, "sun shadow", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_ROOM,
+         "Sunlight returns as the shadow veil dissolves.", 3, 3, ILLUSION, FALSE);
+  spello(SPELL_EARTH_FOG, "earth fog", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_ROOM,
+         "The earthen fog settles out of the air.", 2, 2, CONJURATION, FALSE);
+  spello(SPELL_FIRE_FOG, "fire fog", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_ROOM,
+         "The fiery fog dims and dissipates.", 2, 2, EVOCATION, FALSE);
 
   /* Declaration of skills - this assigns categories and also will set it up
    * so that immortals can use these skills by default.  The min level to use

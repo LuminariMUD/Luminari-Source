@@ -29,6 +29,7 @@
 #include "craft/craft.h"
 #include "mudlim.h"
 #include "obj/item.h"
+#include "obj/treasure.h"
 #include "domains_schools.h"
 #include "olc/oasis.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
@@ -385,7 +386,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, 
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-  else if (is_immune_charm(ch, victim, FALSE))
+  else if (spellnum != SPELL_COMMAND_UNDEAD && is_immune_charm(ch, victim, FALSE))
   {
     send_to_char(ch, "Your victim is protected from this "
                      "enchantment!\r\n");
@@ -455,20 +456,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, 
     add_follower(victim, ch);
 
     new_affect(&af);
-    if (spellnum == SPELL_CHARM)
-      af.spell = SPELL_CHARM;
-    if (spellnum == SPELL_CHARM_ANIMAL)
-      af.spell = SPELL_CHARM_ANIMAL;
-    else if (spellnum == SPELL_DOMINATE_PERSON)
-      af.spell = SPELL_DOMINATE_PERSON;
-    else if (spellnum == SPELL_MASS_DOMINATION)
-      af.spell = SPELL_MASS_DOMINATION;
-    else if (spellnum == SPELL_CHARM_MONSTER)
-      af.spell = SPELL_CHARM_MONSTER;
-    else if (spellnum == WARLOCK_CHARM)
-      af.spell = WARLOCK_CHARM;
-    else if (spellnum == SPELL_CONTROL_PLANTS)
-      af.spell = SPELL_CONTROL_PLANTS;
+    af.spell = spellnum;
     af.duration = 100;
     if (GET_CHA_BONUS(ch))
       af.duration += GET_CHA_BONUS(ch) * 4;
@@ -4440,6 +4428,1140 @@ ASPELL(spell_holy_javelin)
     NEW_EVENT(eHOLYJAVELIN, ch, NULL, ((x * 6) * PASSES_PER_SEC));
   }
 }
+
+/* Unassigned spell implementations. */
+#define NO_AFFECT_FLAG (-1)
+
+static int spell_effect_duration(int level, int minimum, int divisor)
+{
+  if (divisor < 1)
+    divisor = 1;
+
+  return MAX(minimum, level / divisor);
+}
+
+static void apply_spell_effect(struct char_data *victim, int spellnum, int duration, int location,
+                               int modifier, int affect_flag, int affect2_flag)
+{
+  struct affected_type af;
+
+  if (victim == NULL)
+    return;
+
+  new_affect(&af);
+  af.spell = spellnum;
+  af.duration = MAX(1, duration);
+  af.location = location;
+  af.modifier = modifier;
+  if (affect_flag > AFF_DONTUSE)
+    SET_BIT_AR(af.bitvector, affect_flag);
+  if (affect2_flag > AFF2_DONTUSE)
+    SET_BIT_AR(af.bitvector2, affect2_flag);
+  affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+}
+
+static bool target_resists_spell(struct char_data *ch, struct char_data *victim, int level,
+                                 int casttype, int save, int school)
+{
+  if (ch == NULL || victim == NULL)
+    return TRUE;
+
+  if (mag_resistance(ch, victim, 0) || savingthrow(ch, victim, save, 0, casttype, level, school))
+  {
+    act("$N resists your spell.", FALSE, ch, NULL, victim, TO_CHAR);
+    act("You resist $n's spell.", FALSE, ch, NULL, victim, TO_VICT);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+static bool can_adjust_character_age(struct char_data *ch, struct char_data *victim)
+{
+  if (ch == NULL || victim == NULL || IS_NPC(victim))
+  {
+    if (ch != NULL)
+      send_to_char(ch, "That spell can only alter a player character's age.\r\n");
+    return FALSE;
+  }
+
+  if (ch != victim && !is_player_grouped(ch, victim))
+  {
+    send_to_char(ch, "%s must be grouped with you to accept that lasting change.\r\n",
+                 GET_NAME(victim));
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+static void adjust_character_age(struct char_data *victim, int years)
+{
+  time_t now;
+  time_t delta;
+
+  if (victim == NULL || IS_NPC(victim) || years == 0)
+    return;
+
+  now = time(NULL);
+  delta = (time_t)years * SECS_PER_MUD_YEAR;
+  victim->player.time.birth -= delta;
+  if (years < 0 && victim->player.time.birth > now)
+    victim->player.time.birth = now;
+}
+
+static void end_fights_with(struct char_data *victim)
+{
+  struct char_data *person;
+  struct char_data *next_person;
+
+  if (victim == NULL || IN_ROOM(victim) == NOWHERE)
+    return;
+
+  for (person = world[IN_ROOM(victim)].people; person; person = next_person)
+  {
+    next_person = person->next_in_room;
+    if (FIGHTING(person) == victim)
+      stop_fighting(person);
+  }
+  if (FIGHTING(victim) != NULL)
+    stop_fighting(victim);
+}
+
+ASPELL(spell_farsee)
+{
+  if (ch == NULL)
+    return;
+
+  apply_spell_effect(ch, SPELL_FARSEE, MAX(4, level * 2), APPLY_NONE, 0, AFF_FARSEE,
+                     NO_AFFECT_FLAG);
+  send_to_char(ch, "Your vision sharpens and reaches far beyond the horizon.\r\n");
+}
+
+ASPELL(spell_rejuvenate_major)
+{
+  int years;
+
+  if (!can_adjust_character_age(ch, victim))
+    return;
+
+  years = dice(1, 3);
+  adjust_character_age(victim, -years);
+  send_to_char(victim, "Warmth settles into your bones as %d year%s fall away.\r\n", years,
+               years == 1 ? "" : "s");
+  if (ch != victim)
+    act("$N looks subtly younger.", FALSE, ch, NULL, victim, TO_CHAR);
+}
+
+ASPELL(spell_rejuvenate_minor)
+{
+  int years;
+
+  if (ch == NULL || victim == NULL)
+    return;
+  if (ch != victim && !is_player_grouped(ch, victim))
+  {
+    send_to_char(ch, "That spell can only be shared with a group member.\r\n");
+    return;
+  }
+
+  years = MAX(1, dice(2, MAX(1, level)) / 2);
+  apply_spell_effect(victim, SPELL_REJUVENATE_MINOR, MAX(4, level), APPLY_AGE, -years,
+                     NO_AFFECT_FLAG, NO_AFFECT_FLAG);
+  send_to_char(victim, "You feel younger, though the change is only temporary.\r\n");
+}
+
+ASPELL(spell_age)
+{
+  int years;
+
+  if (!can_adjust_character_age(ch, victim))
+    return;
+
+  years = dice(2, 8);
+  adjust_character_age(victim, years);
+  send_to_char(victim, "A sudden weight settles on you as you age %d years.\r\n", years);
+  if (ch != victim)
+    act("$N looks noticeably older.", FALSE, ch, NULL, victim, TO_CHAR);
+}
+
+ASPELL(spell_command_undead)
+{
+  if (ch == NULL || victim == NULL)
+    return;
+  if (!IS_NPC(victim) || !IS_UNDEAD(victim))
+  {
+    send_to_char(ch, "Only an undead creature can be commanded by this spell.\r\n");
+    return;
+  }
+  if (GET_LEVEL(victim) > level)
+  {
+    act("$N is too powerful for you to command.", FALSE, ch, NULL, victim, TO_CHAR);
+    return;
+  }
+
+  effect_charm(ch, victim, SPELL_COMMAND_UNDEAD, casttype, level);
+}
+
+ASPELL(spell_command_horde)
+{
+  struct char_data *target;
+  struct char_data *next_target;
+  int commanded;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  commanded = 0;
+  for (target = world[IN_ROOM(ch)].people; target; target = next_target)
+  {
+    next_target = target->next_in_room;
+    if (target == ch || !IS_NPC(target) || !IS_UNDEAD(target) || GET_LEVEL(target) > level ||
+        !aoeOK(ch, target, SPELL_COMMAND_HORDE))
+      continue;
+    spell_command_undead(level, ch, target, obj, casttype);
+    if (target->master == ch)
+      commanded++;
+  }
+
+  if (commanded == 0)
+    send_to_char(ch, "No undead in the area submit to your command.\r\n");
+}
+
+ASPELL(spell_slow_poison)
+{
+  if (victim == NULL)
+    return;
+
+  apply_spell_effect(victim, SPELL_SLOW_POISON, spell_effect_duration(level, 4, 2), APPLY_NONE, 0,
+                     NO_AFFECT_FLAG, AFF2_ROL_SLOW_POISON);
+  send_to_char(victim, "Your pulse steadies as poisons begin moving more slowly.\r\n");
+}
+
+ASPELL(spell_comprehend_languages)
+{
+  if (victim == NULL)
+    return;
+
+  apply_spell_effect(victim, SPELL_COMPREHEND_LANGUAGES, MAX(4, level * 2), APPLY_NONE, 0,
+                     NO_AFFECT_FLAG, NO_AFFECT_FLAG);
+  send_to_char(victim, "Unfamiliar languages begin to make sense to you.\r\n");
+}
+
+ASPELL(spell_fumble)
+{
+  int penalty;
+
+  if (victim == NULL || target_resists_spell(ch, victim, level, casttype, SAVING_WILL, ENCHANTMENT))
+    return;
+
+  penalty = MIN(0, 1 - GET_REAL_DEX(victim));
+  apply_spell_effect(victim, SPELL_FUMBLE, spell_effect_duration(level, 3, 4), APPLY_DEX, penalty,
+                     NO_AFFECT_FLAG, NO_AFFECT_FLAG);
+  act("Your hands become impossibly clumsy.", FALSE, ch, NULL, victim, TO_VICT);
+  act("$N fumbles as precise movement deserts $M.", FALSE, ch, NULL, victim, TO_CHAR);
+}
+
+ASPELL(spell_stumble)
+{
+  int duration;
+
+  if (victim == NULL || target_resists_spell(ch, victim, level, casttype, SAVING_WILL, ENCHANTMENT))
+    return;
+
+  duration = spell_effect_duration(level, 3, 4);
+  apply_spell_effect(victim, SPELL_STUMBLE, duration, APPLY_AC_NEW, -4, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  apply_spell_effect(victim, SPELL_STUMBLE, duration, APPLY_SAVING_REFL, -4, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  apply_spell_effect(victim, SPELL_STUMBLE, duration, APPLY_INITIATIVE, -4, AFF_STAGGERED,
+                     NO_AFFECT_FLAG);
+  act("Your balance fails and every step becomes uncertain.", FALSE, ch, NULL, victim, TO_VICT);
+  act("$N staggers as $S balance deserts $M.", FALSE, ch, NULL, victim, TO_CHAR);
+}
+
+ASPELL(spell_enervate)
+{
+  int penalty;
+
+  if (victim == NULL || target_resists_spell(ch, victim, level, casttype, SAVING_FORT, NECROMANCY))
+    return;
+
+  penalty = MIN(0, 1 - GET_REAL_CON(victim));
+  apply_spell_effect(victim, SPELL_ENERVATE, spell_effect_duration(level, 3, 4), APPLY_CON, penalty,
+                     NO_AFFECT_FLAG, NO_AFFECT_FLAG);
+  act("Your vitality drains away, leaving you frighteningly frail.", FALSE, ch, NULL, victim,
+      TO_VICT);
+  act("$N pales as $S vitality drains away.", FALSE, ch, NULL, victim, TO_CHAR);
+}
+
+ASPELL(spell_protect_undead)
+{
+  int duration;
+
+  if (ch == NULL || victim == NULL)
+    return;
+  if (!IS_UNDEAD(victim))
+  {
+    send_to_char(ch, "That target has no undead essence to protect.\r\n");
+    return;
+  }
+
+  duration = spell_effect_duration(level, 5, 2);
+  apply_spell_effect(victim, SPELL_PROT_UNDEAD, duration, APPLY_AC_NEW, 4, AFF_WARDED,
+                     NO_AFFECT_FLAG);
+  apply_spell_effect(victim, SPELL_PROT_UNDEAD, duration, APPLY_SAVING_WILL, 2, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  send_to_char(victim, "A dark ward settles around your undead form.\r\n");
+}
+
+ASPELL(spell_protection_from_undead)
+{
+  int duration;
+
+  if (victim == NULL)
+    return;
+
+  duration = spell_effect_duration(level, 5, 2);
+  apply_spell_effect(victim, SPELL_PROT_FROM_UNDEAD, duration, APPLY_AC_NEW, 2, AFF_WARDED,
+                     NO_AFFECT_FLAG);
+  apply_spell_effect(victim, SPELL_PROT_FROM_UNDEAD, duration, APPLY_SAVING_WILL, 2, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  send_to_char(victim, "A pale ward rises between you and the undead.\r\n");
+}
+
+ASPELL(spell_ancestral_shield)
+{
+  struct char_data *target;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  for (target = world[IN_ROOM(ch)].people; target; target = target->next_in_room)
+  {
+    if (!is_player_grouped(ch, target))
+      continue;
+    apply_spell_effect(target, SPELL_ANCESTRAL_SHIELD, spell_effect_duration(level, 2, 10),
+                       APPLY_NONE, 0, NO_AFFECT_FLAG, NO_AFFECT_FLAG);
+    send_to_char(target, "Ancestral spirits gather into a shimmering shield around you.\r\n");
+  }
+}
+
+ASPELL(spell_protection_from_animals)
+{
+  int duration;
+
+  if (victim == NULL)
+    return;
+
+  duration = spell_effect_duration(level, 5, 2);
+  apply_spell_effect(victim, SPELL_PROTECTION_FROM_ANIMALS, duration, APPLY_AC_NEW, 2, AFF_WARDED,
+                     NO_AFFECT_FLAG);
+  apply_spell_effect(victim, SPELL_PROTECTION_FROM_ANIMALS, duration, APPLY_SAVING_REFL, 2,
+                     NO_AFFECT_FLAG, NO_AFFECT_FLAG);
+  send_to_char(victim, "A primal ward rises between you and hostile beasts.\r\n");
+}
+
+ASPELL(spell_pass_without_trace)
+{
+  if (ch == NULL)
+    return;
+
+  apply_spell_effect(ch, SPELL_PASS_WITHOUT_TRACE, spell_effect_duration(level, 4, 2), APPLY_NONE,
+                     0, AFF_NOTRACK, NO_AFFECT_FLAG);
+  send_to_char(ch, "Your passage ceases to leave any trail.\r\n");
+}
+
+ASPELL(spell_greater_realm_of_protection)
+{
+  static const int resistance_applies[] = {
+      APPLY_RES_FIRE,  APPLY_RES_COLD, APPLY_RES_AIR,
+      APPLY_RES_EARTH, APPLY_RES_ACID, APPLY_RES_ELECTRIC,
+  };
+  size_t index;
+  int duration;
+  int resistance;
+
+  if (victim == NULL)
+    return;
+
+  duration = spell_effect_duration(level, 5, 2);
+  resistance = 10 + MIN(20, level / 2);
+  for (index = 0; index < sizeof(resistance_applies) / sizeof(resistance_applies[0]); index++)
+    apply_spell_effect(victim, SPELL_GREATER_REALM_OF_PROTECTION, duration,
+                       resistance_applies[index], resistance, NO_AFFECT_FLAG, NO_AFFECT_FLAG);
+  send_to_char(victim, "Layered wards shield you from every elemental realm.\r\n");
+}
+
+ASPELL(spell_feign_death)
+{
+  if (victim == NULL)
+    return;
+
+  end_fights_with(victim);
+  apply_spell_effect(victim, SPELL_FEIGN_DEATH, spell_effect_duration(level, 2, 5), APPLY_NONE, 0,
+                     AFF_REFUGE, NO_AFFECT_FLAG);
+  send_to_char(victim, "Your breath stills and you take on the semblance of death.\r\n");
+  act("$n goes utterly still, showing no sign of life.", FALSE, victim, NULL, NULL, TO_ROOM);
+}
+
+ASPELL(spell_tranquility)
+{
+  struct char_data *target;
+  struct char_data *next_target;
+  int duration;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  duration = spell_effect_duration(level, 2, 10);
+  for (target = world[IN_ROOM(ch)].people; target; target = next_target)
+  {
+    next_target = target->next_in_room;
+    if (target != ch && !is_player_grouped(ch, target) && !aoeOK(ch, target, SPELL_TRANQUILITY))
+      continue;
+    end_fights_with(target);
+    apply_spell_effect(target, SPELL_TRANQUILITY, duration, APPLY_NONE, 0, NO_AFFECT_FLAG,
+                       AFF2_ROL_DOCILE);
+  }
+  send_to_room(IN_ROOM(ch), "A profound tranquility settles over the area.\r\n");
+}
+
+ASPELL(spell_agility)
+{
+  int duration;
+
+  if (victim == NULL)
+    return;
+
+  duration = MAX(4, level);
+  apply_spell_effect(victim, SPELL_AGILITY, duration, APPLY_AC_NEW, 4, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  apply_spell_effect(victim, SPELL_AGILITY, duration, APPLY_SAVING_REFL, 4, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  apply_spell_effect(victim, SPELL_AGILITY, duration, APPLY_INITIATIVE, 4, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  send_to_char(victim, "Your balance and reactions become supernaturally agile.\r\n");
+}
+
+ASPELL(spell_natures_blessing)
+{
+  int duration;
+  int hit_bonus;
+  int save_bonus;
+
+  if (ch == NULL)
+    return;
+
+  duration = MAX(5, level / 2);
+  hit_bonus = level < 35 ? 2 : 3;
+  save_bonus = level < 18 ? 3 : (level < 49 ? 4 : 5);
+  apply_spell_effect(ch, SPELL_NATURES_BLESSING, duration, APPLY_HITROLL, hit_bonus, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  apply_spell_effect(ch, SPELL_NATURES_BLESSING, duration, APPLY_SAVING_FORT, save_bonus,
+                     NO_AFFECT_FLAG, NO_AFFECT_FLAG);
+  apply_spell_effect(ch, SPELL_NATURES_BLESSING, duration, APPLY_SAVING_REFL, save_bonus,
+                     NO_AFFECT_FLAG, NO_AFFECT_FLAG);
+  apply_spell_effect(ch, SPELL_NATURES_BLESSING, duration, APPLY_SAVING_WILL, save_bonus,
+                     NO_AFFECT_FLAG, NO_AFFECT_FLAG);
+  send_to_char(ch, "Nature's blessing wraps around you like a warm mantle.\r\n");
+}
+
+ASPELL(spell_song_of_travel)
+{
+  struct char_data *target;
+  int duration;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  duration = spell_effect_duration(level, 4, 2);
+  for (target = world[IN_ROOM(ch)].people; target; target = target->next_in_room)
+  {
+    if (!is_player_grouped(ch, target))
+      continue;
+    GET_MOVE(target) = MIN(GET_MAX_MOVE(target), GET_MOVE(target) + MAX(10, level * 2));
+    apply_spell_effect(target, SPELL_SONG_OF_TRAVEL, duration, APPLY_NONE, 0, AFF_FLYING,
+                       NO_AFFECT_FLAG);
+    send_to_char(target,
+                 "A traveling melody lightens your feet and lifts you from the ground.\r\n");
+  }
+}
+
+ASPELL(spell_poltergeist)
+{
+  struct char_data *target;
+  int eligible;
+  int selected;
+  int strike;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  send_to_room(IN_ROOM(ch),
+               "Dark forms coalesce from shadow and begin hurling invisible force!\r\n");
+  for (strike = 0; strike < 3; strike++)
+  {
+    eligible = 0;
+    for (target = world[IN_ROOM(ch)].people; target; target = target->next_in_room)
+      if (target != ch && !IS_INCORPOREAL(target) && aoeOK(ch, target, SPELL_POLTERGEIST))
+        eligible++;
+
+    if (eligible == 0)
+      break;
+
+    selected = rand_number(1, eligible);
+    for (target = world[IN_ROOM(ch)].people; target; target = target->next_in_room)
+    {
+      if (target == ch || IS_INCORPOREAL(target) || !aoeOK(ch, target, SPELL_POLTERGEIST))
+        continue;
+      if (--selected == 0)
+        break;
+    }
+
+    if (target != NULL)
+      mag_damage(level, ch, target, NULL, SPELL_POLTERGEIST, 0, SAVING_REFL, casttype);
+  }
+}
+
+struct minor_creation_definition
+{
+  const char *keyword;
+  const char *short_description;
+  const char *room_description;
+  int item_type;
+  int subtype;
+  int material;
+  int weight;
+  int value;
+};
+
+static const struct minor_creation_definition minor_creation_options[] = {
+    {"bag", "a plain cloth bag", "A plain cloth bag rests here.", ITEM_CONTAINER, 0,
+     MATERIAL_COTTON, 2, 100},
+    {"ration", "a simple trail ration", "A simple trail ration rests here.", ITEM_FOOD, 0,
+     MATERIAL_ORGANIC, 1, 24},
+    {"raft", "a small wooden raft", "A small wooden raft rests here.", ITEM_BOAT, 0, MATERIAL_WOOD,
+     25, 0},
+    {"robe", "a plain cotton robe", "A plain cotton robe lies here.", ITEM_ARMOR,
+     SPEC_ARMOR_TYPE_CLOTHING, MATERIAL_COTTON, 2, 0},
+    {"barrel", "a plain wooden barrel", "A plain wooden barrel stands here.", ITEM_CONTAINER, 0,
+     MATERIAL_WOOD, 15, 250},
+    {"club", "a plain wooden club", "A plain wooden club lies here.", ITEM_WEAPON, WEAPON_TYPE_CLUB,
+     MATERIAL_WOOD, 3, 0},
+    {"staff", "a plain wooden quarterstaff", "A plain wooden quarterstaff lies here.", ITEM_WEAPON,
+     WEAPON_TYPE_QUARTERSTAFF, MATERIAL_WOOD, 4, 0},
+    {"spear", "a plain wooden spear", "A plain wooden spear lies here.", ITEM_WEAPON,
+     WEAPON_TYPE_SPEAR, MATERIAL_WOOD, 6, 0},
+    {"dagger", "a plain steel dagger", "A plain steel dagger lies here.", ITEM_WEAPON,
+     WEAPON_TYPE_DAGGER, MATERIAL_STEEL, 1, 0},
+    {"shield", "a plain wooden buckler", "A plain wooden buckler lies here.", ITEM_ARMOR,
+     SPEC_ARMOR_TYPE_BUCKLER, MATERIAL_WOOD, 5, 0},
+    {"torch", "a plain wooden torch", "A plain wooden torch lies here.", ITEM_LIGHT, 0,
+     MATERIAL_WOOD, 1, 24},
+    {"box", "a plain wooden box", "A plain wooden box rests here.", ITEM_CONTAINER, 0,
+     MATERIAL_WOOD, 5, 50},
+    {"paper", "a blank sheet of paper", "A blank sheet of paper lies here.", ITEM_NOTE, 0,
+     MATERIAL_PAPER, 1, 0},
+    {"quill", "a plain writing quill", "A plain writing quill lies here.", ITEM_PEN, 0,
+     MATERIAL_ORGANIC, 1, 0},
+};
+
+ASPELL(spell_minor_creation)
+{
+  const struct minor_creation_definition *definition;
+  struct obj_data *created;
+  char choice[MAX_INPUT_LENGTH];
+  size_t index;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  one_argument(cast_arg3, choice, sizeof(choice));
+  definition = NULL;
+  for (index = 0; index < sizeof(minor_creation_options) / sizeof(minor_creation_options[0]);
+       index++)
+  {
+    if (*choice && is_abbrev(choice, minor_creation_options[index].keyword))
+    {
+      definition = &minor_creation_options[index];
+      break;
+    }
+  }
+
+  if (definition == NULL)
+  {
+    send_to_char(ch, "Create what? Choose bag, ration, raft, robe, barrel, club, staff, spear, "
+                     "dagger, shield, torch, box, paper, or quill.\r\n");
+    return;
+  }
+
+  created = create_obj();
+  if (definition->item_type == ITEM_WEAPON)
+    set_weapon_object(created, definition->subtype);
+  else if (definition->item_type == ITEM_ARMOR)
+    set_armor_object(created, definition->subtype);
+  else
+    GET_OBJ_TYPE(created) = definition->item_type;
+
+  GET_OBJ_COST(created) = 0;
+  GET_OBJ_RENT(created) = 0;
+  GET_OBJ_WEIGHT(created) = definition->weight;
+  GET_OBJ_MATERIAL(created) = definition->material;
+  GET_OBJ_SIZE(created) = GET_SIZE(ch);
+  GET_OBJ_BOUND_ID(created) = NOBODY;
+  created->name = strdup(definition->keyword);
+  created->short_description = strdup(definition->short_description);
+  created->description = strdup(definition->room_description);
+
+  if (definition->item_type == ITEM_CONTAINER || definition->item_type == ITEM_FOOD)
+    GET_OBJ_VAL(created, 0) = definition->value;
+  else if (definition->item_type == ITEM_LIGHT)
+    GET_OBJ_VAL(created, 2) = definition->value;
+  else if (definition->item_type == ITEM_NOTE)
+    created->action_description = strdup("");
+
+  SET_BIT_AR(GET_OBJ_WEAR(created), ITEM_WEAR_TAKE);
+  SET_BIT_AR(GET_OBJ_EXTRA(created), ITEM_NORENT);
+  SET_BIT_AR(GET_OBJ_EXTRA(created), ITEM_NOSELL);
+  obj_to_room(created, IN_ROOM(ch));
+  act("$p suddenly takes shape before you.", FALSE, ch, created, NULL, TO_CHAR);
+  act("$p suddenly takes shape before $n.", FALSE, ch, created, NULL, TO_ROOM);
+}
+
+ASPELL(spell_ventriloquate)
+{
+  struct char_data *target_char;
+  struct char_data *listener;
+  struct obj_data *target_obj;
+  const char *speech;
+  const char *source_name;
+  char target_name[MAX_INPUT_LENGTH];
+  int found;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  speech = one_argument(cast_arg3, target_name, sizeof(target_name));
+  while (*speech && isspace((unsigned char)*speech))
+    speech++;
+  if (!*target_name || !*speech)
+  {
+    send_to_char(ch, "Usage: cast 'ventriloquate' <target> <speech>\r\n");
+    return;
+  }
+
+  target_char = NULL;
+  target_obj = NULL;
+  found = generic_find(target_name, FIND_CHAR_ROOM | FIND_OBJ_ROOM | FIND_OBJ_INV | FIND_OBJ_EQUIP,
+                       ch, &target_char, &target_obj);
+  if (!found || (target_char == NULL && target_obj == NULL))
+  {
+    send_to_char(ch, "You cannot find anything nearby to throw your voice toward.\r\n");
+    return;
+  }
+  if (target_char == ch)
+  {
+    send_to_char(ch, "Throwing your own voice back at yourself would accomplish nothing.\r\n");
+    return;
+  }
+
+  source_name = target_char != NULL ? GET_NAME(target_char) : target_obj->short_description;
+  if (source_name == NULL)
+    source_name = "something nearby";
+
+  send_to_char(ch, "You throw your voice toward %s: '%s'\r\n", source_name, speech);
+  for (listener = world[IN_ROOM(ch)].people; listener; listener = listener->next_in_room)
+  {
+    if (listener == ch || AFF_FLAGGED(listener, AFF_DEAF))
+      continue;
+    if (listener != target_char &&
+        savingthrow(ch, listener, SAVING_WILL, 0, casttype, level, ILLUSION))
+      send_to_char(listener, "A telltale magical echo betrays the voice coming from %s.\r\n",
+                   source_name);
+    else
+      send_to_char(listener, "%s says, '%s'\r\n", source_name, speech);
+  }
+}
+
+ASPELL(spell_wraithform)
+{
+  if (ch == NULL)
+    return;
+  if (victim == NULL)
+    victim = ch;
+  if (affected_by_spell(victim, SPELL_WRAITHFORM))
+  {
+    if (victim == ch)
+      send_to_char(ch, "You are already without a material form.\r\n");
+    else
+      send_to_char(ch, "%s is already without a material form.\r\n", GET_NAME(victim));
+    return;
+  }
+
+  end_fights_with(victim);
+  apply_spell_effect(victim, SPELL_WRAITHFORM, 10, APPLY_NONE, 0, AFF_IMMATERIAL, NO_AFFECT_FLAG);
+  send_to_char(victim, "Your body fades until only a pale, immaterial outline remains.\r\n");
+  act("$n fades into a pale, immaterial outline.", FALSE, victim, NULL, NULL, TO_ROOM);
+}
+
+ASPELL(spell_create_spring)
+{
+  struct obj_data *spring;
+  int capacity;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+  if (!OUTSIDE(ch))
+  {
+    send_to_char(ch, "A spring can only break through open ground outdoors.\r\n");
+    return;
+  }
+
+  spring = create_obj();
+  capacity = MAX(20, level * 20);
+  GET_OBJ_TYPE(spring) = ITEM_FOUNTAIN;
+  GET_OBJ_VAL(spring, 0) = capacity;
+  GET_OBJ_VAL(spring, 1) = capacity;
+  GET_OBJ_VAL(spring, 2) = LIQ_WATER;
+  GET_OBJ_VAL(spring, 3) = 0;
+  GET_OBJ_TIMER(spring) = MAX(2, level);
+  GET_OBJ_COST(spring) = 0;
+  GET_OBJ_RENT(spring) = 0;
+  GET_OBJ_WEIGHT(spring) = 100;
+  GET_OBJ_MATERIAL(spring) = MATERIAL_STONE;
+  spring->name = strdup("spring water fountain");
+  spring->short_description = strdup("a clear natural spring");
+  spring->description = strdup("A clear natural spring bubbles up from the ground here.");
+  SET_BIT_AR(GET_OBJ_EXTRA(spring), ITEM_DECAY);
+  SET_BIT_AR(GET_OBJ_EXTRA(spring), ITEM_NORENT);
+  SET_BIT_AR(GET_OBJ_EXTRA(spring), ITEM_NOSELL);
+  obj_to_room(spring, IN_ROOM(ch));
+  send_to_room(IN_ROOM(ch), "A clear spring bursts from the ground and begins to flow.\r\n");
+}
+
+static struct obj_data *create_moonwell_portal(room_vnum destination, int duration)
+{
+  struct obj_data *portal;
+
+  portal = create_obj();
+  GET_OBJ_TYPE(portal) = ITEM_PORTAL;
+  GET_OBJ_VAL(portal, 0) = PORTAL_NORMAL;
+  GET_OBJ_VAL(portal, 1) = destination;
+  GET_OBJ_TIMER(portal) = duration;
+  GET_OBJ_COST(portal) = 0;
+  GET_OBJ_RENT(portal) = 0;
+  GET_OBJ_WEIGHT(portal) = 0;
+  GET_OBJ_MATERIAL(portal) = MATERIAL_ETHER;
+  portal->name = strdup("moonwell portal pool");
+  portal->short_description = strdup("a pool of swirling silver moonlight");
+  portal->description = strdup("A pool of swirling silver moonlight shimmers here.");
+  SET_BIT_AR(GET_OBJ_EXTRA(portal), ITEM_DECAY);
+  SET_BIT_AR(GET_OBJ_EXTRA(portal), ITEM_NORENT);
+  SET_BIT_AR(GET_OBJ_EXTRA(portal), ITEM_NOSELL);
+  return portal;
+}
+
+ASPELL(spell_moonwell)
+{
+  struct obj_data *near_portal;
+  struct obj_data *far_portal;
+  room_rnum source_room;
+  room_rnum destination_room;
+  int duration;
+
+  if (ch == NULL || victim == NULL || IN_ROOM(ch) == NOWHERE || IN_ROOM(victim) == NOWHERE)
+    return;
+  if (IS_NPC(victim))
+  {
+    send_to_char(ch, "A moonwell can only be anchored to another player.\r\n");
+    return;
+  }
+
+  source_room = IN_ROOM(ch);
+  destination_room = IN_ROOM(victim);
+  if (source_room == destination_room)
+  {
+    send_to_char(ch, "The two ends of a moonwell must be in different places.\r\n");
+    return;
+  }
+  if (AFF_FLAGGED(victim, AFF_NOTELEPORT) || AFF_FLAGGED(victim, AFF_DIM_LOCK) ||
+      ROOM_FLAGGED(source_room, ROOM_NOSUMMON) || ROOM_FLAGGED(destination_room, ROOM_NOSUMMON) ||
+      !valid_mortal_tele_dest(ch, source_room, TRUE) ||
+      !valid_mortal_tele_dest(ch, destination_room, TRUE))
+  {
+    send_to_char(ch, "The moonwell cannot find a stable anchor between those locations.\r\n");
+    return;
+  }
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(source_room), ZONE_ELEMENTAL) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(source_room), ZONE_ETH_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(source_room), ZONE_ASTRAL_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(destination_room), ZONE_ELEMENTAL) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(destination_room), ZONE_ETH_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(destination_room), ZONE_ASTRAL_PLANE))
+  {
+    send_to_char(ch, "Moonwells can only join locations on the material plane.\r\n");
+    return;
+  }
+
+  duration = MAX(2, level / 5);
+  near_portal = create_moonwell_portal(GET_ROOM_VNUM(destination_room), duration);
+  far_portal = create_moonwell_portal(GET_ROOM_VNUM(source_room), duration);
+  obj_to_room(near_portal, source_room);
+  obj_to_room(far_portal, destination_room);
+  send_to_room(source_room,
+               "Swirling silver mist gathers into a moonlit pool upon the ground.\r\n");
+  send_to_room(destination_room,
+               "Swirling silver mist gathers into a moonlit pool upon the ground.\r\n");
+}
+
+ASPELL(spell_blink)
+{
+  struct char_data *ally;
+  room_rnum destination;
+  int available_directions[NUM_OF_DIRS];
+  int available_count;
+  int direction;
+
+  if (ch == NULL)
+    return;
+  if (victim == NULL)
+    victim = ch;
+  if (IN_ROOM(victim) == NOWHERE)
+    return;
+  if (victim != ch && !is_player_grouped(ch, victim))
+  {
+    send_to_char(ch, "You can only blink yourself or a member of your group.\r\n");
+    return;
+  }
+
+  ally = NULL;
+  for (ally = world[IN_ROOM(victim)].people; ally; ally = ally->next_in_room)
+    if (ally != victim && is_player_grouped(victim, ally))
+      break;
+
+  if (FIGHTING(victim) != NULL && ally != NULL)
+  {
+    end_fights_with(victim);
+    send_to_char(victim, "You vanish and reappear a few feet away, free of the melee.\r\n");
+    act("$n vanishes and reappears a few feet away, free of the melee.", FALSE, victim, NULL, NULL,
+        TO_ROOM);
+    return;
+  }
+
+  available_count = 0;
+  for (direction = 0; direction < DIR_COUNT; direction++)
+  {
+    if (EXIT(victim, direction) == NULL || EXIT(victim, direction)->to_room == NOWHERE ||
+        IS_SET(EXIT(victim, direction)->exit_info, EX_CLOSED | EX_BLOCKED | EX_HIDDEN |
+                                                       EX_HIDDEN_EASY | EX_HIDDEN_MEDIUM |
+                                                       EX_HIDDEN_HARD) ||
+        !valid_mortal_tele_dest(victim, EXIT(victim, direction)->to_room, TRUE))
+      continue;
+    available_directions[available_count++] = direction;
+  }
+
+  if (available_count == 0)
+  {
+    send_to_char(ch, "The spell cannot find a safe nearby place to re-form.\r\n");
+    return;
+  }
+
+  direction = available_directions[rand_number(0, available_count - 1)];
+  destination = EXIT(victim, direction)->to_room;
+  end_fights_with(victim);
+  act("$n blinks out of existence.", FALSE, victim, NULL, NULL, TO_ROOM);
+  send_to_char(victim, "You blink out of existence.\r\n");
+  char_from_room(victim);
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(destination), ZONE_WILDERNESS))
+  {
+    X_LOC(victim) = world[destination].coords[0];
+    Y_LOC(victim) = world[destination].coords[1];
+  }
+  char_to_room(victim, destination);
+  act("$n blinks into existence.", FALSE, victim, NULL, NULL, TO_ROOM);
+  send_to_char(victim, "You blink back into existence nearby.\r\n");
+  if (!IS_NPC(victim))
+    look_at_room(victim, 0);
+  entry_memory_mtrigger(victim);
+  greet_mtrigger(victim, -1);
+  greet_memory_mtrigger(victim);
+}
+
+ASPELL(spell_dimension_shift)
+{
+  struct affected_type af;
+  struct char_data *target;
+  struct char_data *next_target;
+  int duration;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+  if ((AFF_FLAGGED(ch, AFF_DIM_LOCK) || AFF_FLAGGED(ch, AFF_NOTELEPORT)) &&
+      !affected_by_spell(ch, SPELL_DIMENSION_SHIFT))
+  {
+    send_to_char(ch, "A dimensional lock prevents the shift.\r\n");
+    return;
+  }
+
+  duration = MAX(2, level / 10);
+  for (target = world[IN_ROOM(ch)].people; target; target = next_target)
+  {
+    next_target = target->next_in_room;
+    if (target != ch && !is_player_grouped(ch, target))
+      continue;
+    if (target != ch &&
+        (AFF_FLAGGED(target, AFF_DIM_LOCK) || AFF_FLAGGED(target, AFF_NOTELEPORT)) &&
+        !affected_by_spell(target, SPELL_DIMENSION_SHIFT))
+    {
+      send_to_char(target, "A dimensional anchor prevents you from joining the shift.\r\n");
+      continue;
+    }
+
+    end_fights_with(target);
+    if (affected_by_spell(target, SPELL_DIMENSION_SHIFT))
+      affect_from_char(target, SPELL_DIMENSION_SHIFT);
+    new_affect(&af);
+    af.spell = SPELL_DIMENSION_SHIFT;
+    af.duration = duration;
+    SET_BIT_AR(af.bitvector, AFF_REFUGE);
+    SET_BIT_AR(af.bitvector, AFF_IMMATERIAL);
+    SET_BIT_AR(af.bitvector, AFF_DIM_LOCK);
+    affect_to_char(target, &af);
+    send_to_char(target,
+                 "Space folds around you, sheltering you within a pocket beyond the room.\r\n");
+  }
+  act("Space folds inward and shelters $n's group beyond ordinary reach.", FALSE, ch, NULL, NULL,
+      TO_ROOM);
+}
+
+ASPELL(spell_spirit_walk)
+{
+  struct obj_data *corpse;
+  room_rnum destination;
+
+  if (ch == NULL || victim == NULL || IN_ROOM(ch) == NOWHERE || IS_NPC(victim))
+    return;
+  if (victim != ch && !is_player_grouped(ch, victim))
+  {
+    send_to_char(ch, "%s must be grouped with you before you can follow that spirit.\r\n",
+                 GET_NAME(victim));
+    return;
+  }
+
+  corpse = NULL;
+  for (corpse = object_list; corpse; corpse = corpse->next)
+    if (IS_CORPSE(corpse) && GET_OBJ_VAL(corpse, 4) == GET_IDNUM(victim) &&
+        IN_ROOM(corpse) != NOWHERE)
+      break;
+
+  if (corpse == NULL)
+  {
+    send_to_char(ch, "You cannot find that spirit's corpse anywhere in the world.\r\n");
+    return;
+  }
+
+  destination = IN_ROOM(corpse);
+  if (destination == IN_ROOM(ch))
+  {
+    send_to_char(ch, "That spirit's corpse is already here.\r\n");
+    return;
+  }
+  if (AFF_FLAGGED(ch, AFF_NOTELEPORT) || !valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE) ||
+      !valid_mortal_tele_dest(ch, destination, TRUE))
+  {
+    send_to_char(ch, "The spirit path to that corpse is sealed.\r\n");
+    return;
+  }
+
+  end_fights_with(ch);
+  act("$n dissolves into pale spirit light.", FALSE, ch, NULL, NULL, TO_ROOM);
+  send_to_char(ch, "You dissolve into spirit light and follow the path of the dead.\r\n");
+  char_from_room(ch);
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(destination), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[destination].coords[0];
+    Y_LOC(ch) = world[destination].coords[1];
+  }
+  char_to_room(ch, destination);
+  act("Pale spirit light gathers and resolves into $n.", FALSE, ch, NULL, NULL, TO_ROOM);
+  look_at_room(ch, 0);
+  entry_memory_mtrigger(ch);
+  greet_mtrigger(ch, -1);
+  greet_memory_mtrigger(ch);
+}
+
+static bool is_earth_elemental(struct char_data *target)
+{
+  if (target == NULL)
+    return FALSE;
+  if (HAS_SUBRACE(target, SUBRACE_EARTH) && GET_NPC_RACE(target) == RACE_TYPE_ELEMENTAL)
+    return TRUE;
+
+  switch (GET_RACE(target))
+  {
+  case RACE_SMALL_EARTH_ELEMENTAL:
+  case RACE_MEDIUM_EARTH_ELEMENTAL:
+  case RACE_EARTH_ELEMENTAL:
+  case RACE_LARGE_EARTH_ELEMENTAL:
+  case RACE_HUGE_EARTH_ELEMENTAL:
+  case RACE_GARGANTUAN_EARTH_ELEMENTAL:
+  case RACE_COLOSSAL_EARTH_ELEMENTAL:
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+
+static struct char_data *find_terrain_spell_target(struct char_data *ch, char *target_name,
+                                                   size_t target_name_size)
+{
+  one_argument(cast_arg3, target_name, target_name_size);
+  if (!*target_name || is_abbrev(target_name, "room"))
+    return NULL;
+  return get_char_room_vis(ch, target_name, NULL);
+}
+
+ASPELL(spell_rock_to_mud)
+{
+  struct char_data *target;
+  char target_name[MAX_INPUT_LENGTH];
+  int amount;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  target = find_terrain_spell_target(ch, target_name, sizeof(target_name));
+  if (*target_name && !is_abbrev(target_name, "room") && target == NULL)
+  {
+    send_to_char(ch, "You cannot find that target here.\r\n");
+    return;
+  }
+  if (target != NULL && is_earth_elemental(target))
+  {
+    if (!aoeOK(ch, target, SPELL_ROCK_TO_MUD) || mag_resistance(ch, target, 0))
+      return;
+    amount = dice(MAX(1, level / 3), 6) + level;
+    if (savingthrow(ch, target, SAVING_FORT, 0, casttype, level, TRANSMUTATION))
+      amount /= 2;
+    damage(ch, target, MAX(1, amount), SPELL_ROCK_TO_MUD, DAM_EARTH, FALSE);
+    return;
+  }
+
+  mag_room(level, ch, NULL, SPELL_ROCK_TO_MUD, casttype);
+}
+
+ASPELL(spell_mud_to_rock)
+{
+  struct char_data *target;
+  struct raff_node *raff;
+  char target_name[MAX_INPUT_LENGTH];
+  int amount;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  target = find_terrain_spell_target(ch, target_name, sizeof(target_name));
+  if (*target_name && !is_abbrev(target_name, "room") && target == NULL)
+  {
+    send_to_char(ch, "You cannot find that target here.\r\n");
+    return;
+  }
+  if (target != NULL && is_earth_elemental(target))
+  {
+    if (target != ch && !is_player_grouped(ch, target))
+    {
+      send_to_char(ch, "You can only reinforce an earth elemental allied with you.\r\n");
+      return;
+    }
+    amount = MIN(GET_MAX_HIT(target) - GET_HIT(target), MAX(10, level * 4));
+    if (amount <= 0)
+    {
+      send_to_char(ch, "%s needs no reinforcement.\r\n",
+                   target == ch ? "Your elemental form" : GET_NAME(target));
+      return;
+    }
+    GET_HIT(target) += amount;
+    update_pos(target);
+    send_to_char(target, "Your earthen form hardens, restoring %d hit points.\r\n", amount);
+    if (target != ch)
+      act("$N's earthen form hardens and repairs itself.", FALSE, ch, NULL, target, TO_CHAR);
+    return;
+  }
+
+  for (raff = raff_list; raff; raff = raff->next)
+  {
+    if (raff->room != IN_ROOM(ch) || raff->spell != SPELL_ROCK_TO_MUD)
+      continue;
+    rem_room_aff(raff);
+    return;
+  }
+  send_to_char(ch, "There is no magically softened ground here to harden.\r\n");
+}
+
+ASPELL(spell_phantom_heal)
+{
+  int amount;
+  int half_health;
+
+  if (ch == NULL || victim == NULL)
+    return;
+  if (victim != ch && !is_player_grouped(ch, victim))
+  {
+    send_to_char(ch, "You can only veil the wounds of a member of your group.\r\n");
+    return;
+  }
+  if (affected_by_spell(victim, SPELL_PHANTOM_HEAL))
+  {
+    send_to_char(ch, "Those wounds are already concealed by phantom vitality.\r\n");
+    return;
+  }
+
+  half_health = GET_MAX_HIT(victim) / 2;
+  if (GET_HIT(victim) >= half_health)
+  {
+    send_to_char(ch, "That target is not wounded badly enough for the illusion to take hold.\r\n");
+    return;
+  }
+
+  amount = MIN(half_health - GET_HIT(victim), MAX(10, level * 5));
+  apply_spell_effect(victim, SPELL_PHANTOM_HEAL, 2, APPLY_SPECIAL, amount, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  GET_HIT(victim) += amount;
+  update_pos(victim);
+  send_to_char(victim,
+               "Phantom vitality conceals your wounds and lends you %d temporary hit "
+               "points.\r\n",
+               amount);
+  act("A healthy illusion settles over $n's wounds.", FALSE, victim, NULL, NULL, TO_ROOM);
+}
+
+int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage)
+{
+  if (victim == NULL || damage <= 0)
+    return MAX(0, damage);
+
+  if (affected_by_spell(victim, SPELL_ANCESTRAL_SHIELD) ||
+      affected_by_spell(victim, SPELL_NATURES_BLESSING))
+    damage = damage * 3 / 4;
+
+  return MAX(0, damage);
+}
+
+int adjust_damage_for_creature_wards(struct char_data *attacker, struct char_data *victim,
+                                     int damage)
+{
+  if (attacker == NULL || victim == NULL || damage <= 0 || attacker == victim)
+    return MAX(0, damage);
+
+  if ((IS_UNDEAD(attacker) && affected_by_spell(victim, SPELL_PROT_FROM_UNDEAD)) ||
+      (IS_ANIMAL(attacker) && affected_by_spell(victim, SPELL_PROTECTION_FROM_ANIMALS)))
+    damage = damage * 3 / 4;
+
+  return MAX(0, damage);
+}
+
+#undef NO_AFFECT_FLAG
 
 #undef ZOCMD
 

@@ -1578,6 +1578,9 @@ bool can_hear_sneaking(struct char_data *ch, struct char_data *sneaker)
   {
     dc += compute_ability((struct char_data *)sneaker, ABILITY_STEALTH);
 
+    if (affected_by_spell(sneaker, SPELL_PASS_WITHOUT_TRACE))
+      dc += 20;
+
     if (IN_NATURE(sneaker) && HAS_FEAT(sneaker, FEAT_TRACKLESS_STEP))
     {
       dc += 4;
@@ -3206,10 +3209,17 @@ time_t mud_time_to_secs(struct time_info_data *now)
 struct time_info_data *age(struct char_data *ch)
 {
   static struct time_info_data player_age;
+  struct affected_type *af;
+  int age_modifier;
 
   player_age = *mud_time_passed(time(0), ch->player.time.birth);
 
   player_age.year += 17; /* All players start at 17 */
+  age_modifier = 0;
+  for (af = ch->affected; af; af = af->next)
+    if (af->location == APPLY_AGE)
+      age_modifier += af->modifier;
+  player_age.year = MAX(17, player_age.year + age_modifier);
 
   return (&player_age);
 }
@@ -6622,6 +6632,14 @@ bool can_speak_language(struct char_data *ch, int language)
     return true;
 
   return false;
+}
+
+bool can_understand_language(struct char_data *ch, int language)
+{
+  if (ch == NULL)
+    return false;
+
+  return can_speak_language(ch, language) || affected_by_spell(ch, SPELL_COMPREHEND_LANGUAGES);
 }
 
 bool group_member_affected_by_spell(struct char_data *ch, int spellnum)
@@ -10264,6 +10282,7 @@ int can_carry_weight_limit(struct char_data *ch)
     break;
   }
 
+  limit += MAX(0, get_char_affect_modifier(ch, SPELL_UNSEEN_SERVANT, APPLY_SPECIAL));
   limit = MIN(25000, limit);
 
   return MAX(1, limit);

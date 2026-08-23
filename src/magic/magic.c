@@ -1272,15 +1272,26 @@ bool alt_wear_off_msg(struct char_data *ch, int skillnum)
 void rem_room_aff(struct raff_node *raff)
 {
   struct raff_node *temp;
+  struct raff_node *remaining;
+  long affection;
+  room_rnum room;
+  int spell;
 
-  /* this room affection has expired */
-  send_to_room(raff->room, "%s", get_wearoff(raff->spell));
-  send_to_room(raff->room, "\r\n");
-
-  /* remove the affection */
-  REMOVE_BIT(world[(int)raff->room].room_affections, raff->affection);
+  room = raff->room;
+  affection = raff->affection;
+  spell = raff->spell;
   REMOVE_FROM_LIST(raff, raff_list, next)
   free(raff);
+
+  /* Keep a shared room bit active until its last contributing spell expires. */
+  for (remaining = raff_list; remaining; remaining = remaining->next)
+    if (remaining->room == room && remaining->affection == affection)
+      return;
+
+  /* this room affection has expired */
+  send_to_room(room, "%s", get_wearoff(spell));
+  send_to_room(room, "\r\n");
+  REMOVE_BIT(world[(int)room].room_affections, affection);
 }
 
 /* Dispatch wear-off side effects only after the affect traversal has released
@@ -1324,6 +1335,8 @@ void affect_update(void)
   size_t expired_count, wearoff_count, wearoff_index;
   int char_count = 0, npc_count = 0, pc_count = 0;
   int affected_chars = 0, processed_affects = 0;
+  int phantom_healing;
+  bool update_position_after_expiry;
   size_t eligible_count;
 
   update_count++;
@@ -1359,6 +1372,13 @@ void affect_update(void)
         ;
       else
       { /* affect wore off! */
+        phantom_healing = 0;
+        update_position_after_expiry = FALSE;
+        if (af->spell == SPELL_PHANTOM_HEAL && af->location == APPLY_SPECIAL)
+          phantom_healing = MAX(0, af->modifier);
+        if (af->spell == SPELL_DEATH_PACT)
+          update_position_after_expiry = TRUE;
+
         /* Queue one wear-off dispatch for the last adjacent component. The
          * dispatch happens after traversal because it may mutate this list. */
         if (af->spell > 0 && af->spell < TOP_SPELL_DEFINE &&
@@ -1366,6 +1386,13 @@ void affect_update(void)
           wearoff_spells[wearoff_count++] = af->spell;
 
         affect_remove(i, af);
+        if (phantom_healing > 0)
+        {
+          GET_HIT(i) = MAX(-10, GET_HIT(i) - phantom_healing);
+          update_pos(i);
+        }
+        else if (update_position_after_expiry)
+          update_pos(i);
       }
     }
 
@@ -1553,6 +1580,14 @@ void mag_loops(int level, struct char_data *ch, struct char_data *victim, struct
     num_times = (level - 2) / 3;
     dam = true;
     break;
+  case SPELL_MINUTE_METEORS:
+    num_times = MAX(1, MIN(5, level / 5));
+    dam = true;
+    break;
+  case SPELL_SHADOW_BOLT:
+    num_times = MAX(1, MIN(5, level / 3));
+    dam = true;
+    break;
     /*   case SPELL_MAGIC_STONE:
         num_times = MIN(5, (level + 1) / 2);
         dam = true;
@@ -1567,7 +1602,7 @@ void mag_loops(int level, struct char_data *ch, struct char_data *victim, struct
     if (dam)
       mag_damage(level, ch, victim, wpn, spellnum, metamagic, savetype, casttype);
     if (affect)
-      mag_affects(level, ch, victim, wpn, spellnum, metamagic, savetype, casttype);
+      mag_affects(level, ch, victim, wpn, spellnum, savetype, casttype, metamagic);
     if (points)
       mag_points(level, ch, victim, wpn, spellnum, savetype, casttype);
   }
@@ -1698,6 +1733,247 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = 1;
     size_dice = 6;
     bonus = 0;
+    break;
+
+    /*******************************************\
+      || ------ UNASSIGNED DAMAGE SPELLS ------ ||
+      \*******************************************/
+
+  case SPELL_SANDBLAST:
+    save = SAVING_REFL;
+    element = DAM_EARTH;
+    num_dice = MIN(15, MAX(1, level));
+    size_dice = 8;
+    bonus = level / 2;
+    break;
+
+  case SPELL_FELL_FROST:
+    save = SAVING_FORT;
+    element = DAM_COLD;
+    num_dice = MIN(20, MAX(1, level));
+    size_dice = 8;
+    bonus = level / 2;
+    break;
+
+  case SPELL_NERVE_DANCE:
+    if (!IS_LIVING(victim) || IS_ELEMENTAL(victim) || IS_INCORPOREAL(victim))
+    {
+      act("$N has no vulnerable nerves for your spell to torment.", FALSE, ch, NULL, victim,
+          TO_CHAR);
+      return 0;
+    }
+    save = SAVING_FORT;
+    element = DAM_NEGATIVE;
+    num_dice = MIN(15, MAX(1, level));
+    size_dice = 8;
+    bonus = level / 2;
+    break;
+
+  case SPELL_SPECTRAL_HAND:
+    save = SAVING_FORT;
+    element = DAM_NEGATIVE;
+    num_dice = MIN(12, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_RAIN_OF_BLOOD:
+    save = SAVING_REFL;
+    element = DAM_UNHOLY;
+    num_dice = MIN(18, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_ROT:
+    if (!IS_LIVING(victim) || IS_INCORPOREAL(victim))
+      return 0;
+    save = SAVING_FORT;
+    element = DAM_NEGATIVE;
+    num_dice = MIN(15, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_ICE_TOMB:
+    save = SAVING_FORT;
+    element = DAM_COLD;
+    num_dice = MIN(20, MAX(1, level));
+    size_dice = 8;
+    bonus = level / 2;
+    break;
+
+  case SPELL_CONSTRICTION:
+    save = SAVING_FORT;
+    element = DAM_FORCE;
+    num_dice = MIN(15, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_SANDSTORM:
+    save = SAVING_REFL;
+    element = DAM_EARTH;
+    num_dice = MIN(18, MAX(1, level));
+    size_dice = 8;
+    bonus = level / 2;
+    break;
+
+  case SPELL_BLACKLIGHT_BURST:
+    save = SAVING_WILL;
+    element = DAM_UNHOLY;
+    num_dice = MIN(12, MAX(1, level));
+    if (IS_UNDEAD(victim))
+      num_dice = MAX(1, num_dice / 2);
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_MINUTE_METEORS:
+    save = SAVING_REFL;
+    element = DAM_FIRE;
+    num_dice = 1;
+    size_dice = 6;
+    bonus = 2;
+    break;
+
+  case SPELL_THUNDER_LANCE:
+    save = SAVING_REFL;
+    element = DAM_ELECTRIC;
+    num_dice = MIN(15, MAX(1, level));
+    size_dice = 8;
+    bonus = level / 2;
+    break;
+
+  case SPELL_SHADOW_BOLT:
+    save = SAVING_WILL;
+    element = DAM_ILLUSION;
+    num_dice = 1;
+    size_dice = 6;
+    bonus = 2;
+    break;
+
+  case SPELL_SHADOW_BURST:
+    save = SAVING_WILL;
+    element = DAM_ILLUSION;
+    num_dice = MIN(12, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_SHADOW_MAGIC:
+    save = SAVING_WILL;
+    element = DAM_ILLUSION;
+    num_dice = MIN(10, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_PHANTASMAL_BLADES:
+    save = SAVING_WILL;
+    element = DAM_SLASHING;
+    num_dice = MIN(16, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_NEEDLE_SWARM:
+    save = SAVING_REFL;
+    element = DAM_PUNCTURE;
+    num_dice = MIN(12, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_SNAPPING_TEETH:
+    save = SAVING_REFL;
+    element = DAM_SLASHING;
+    num_dice = MIN(12, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_BELTYNS_BURNING_BLOOD:
+    if (!can_bleed(victim) || GET_HIT(victim) >= GET_MAX_HIT(victim))
+    {
+      act("$N has no open wounds through which your spell can ignite living blood.", FALSE, ch,
+          NULL, victim, TO_CHAR);
+      return 0;
+    }
+    save = SAVING_FORT;
+    element = DAM_FIRE;
+    num_dice = MIN(15, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_EARTHBLOOD:
+    if (!can_bleed(victim) || IS_INCORPOREAL(victim))
+    {
+      act("$N's body cannot be transmuted into elemental earth.", FALSE, ch, NULL, victim, TO_CHAR);
+      return 0;
+    }
+    save = SAVING_FORT;
+    element = DAM_EARTH;
+    num_dice = MIN(18, MAX(1, level));
+    size_dice = 8;
+    bonus = level / 2;
+    break;
+
+  case SPELL_SOUL_TEMPEST:
+    save = SAVING_WILL;
+    element = DAM_FORCE;
+    num_dice = MIN(18, MAX(1, level));
+    size_dice = 8;
+    bonus = level / 2;
+    break;
+
+  case SPELL_DUST_DEVIL:
+    save = SAVING_REFL;
+    element = DAM_AIR;
+    num_dice = MIN(10, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_SUFFOCATE:
+    save = SAVING_FORT;
+    element = DAM_AIR;
+    num_dice = MIN(15, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_BLACKTHORNS:
+    save = SAVING_REFL;
+    element = DAM_PUNCTURE;
+    num_dice = MIN(10, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_SHADECHILL:
+    save = SAVING_WILL;
+    element = DAM_COLD;
+    num_dice = MIN(16, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_AIR_BLAST:
+    save = SAVING_REFL;
+    element = DAM_AIR;
+    num_dice = MIN(8, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 2;
+    break;
+
+  case SPELL_POLTERGEIST:
+    save = SAVING_REFL;
+    element = DAM_FORCE;
+    num_dice = MIN(4, MAX(1, level));
+    size_dice = 6;
+    bonus = level / 4;
     break;
 
     /*******************************************\
@@ -3692,6 +3968,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       dam /= 2;
   }
 
+  if (IS_SET(spell_info[spellnum].routines, MAG_AREAS))
+    dam = adjust_area_damage_for_spell_wards(victim, dam);
+
   /* blinking between prime and ethereal planes - 20% dodge AoE spells */
   if (IS_SET(spell_info[spellnum].routines, MAG_AREAS) && AFF_FLAGGED(victim, AFF_BLINKING) &&
       rand_number(1, 100) <= 20)
@@ -3803,6 +4082,35 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     }
 
     result = damage(ch, victim, dam, spellnum, element, FALSE);
+
+    if (spellnum == SPELL_THUNDER_LANCE && result != -1)
+    {
+      bool shattered;
+
+      shattered = FALSE;
+      if (affected_by_spell(victim, SPELL_MINOR_GLOBE))
+      {
+        affect_from_char(victim, SPELL_MINOR_GLOBE);
+        shattered = TRUE;
+      }
+      if (affected_by_spell(victim, SPELL_RESIST_ENERGY))
+      {
+        affect_from_char(victim, SPELL_RESIST_ENERGY);
+        shattered = TRUE;
+      }
+      if (affected_by_spell(victim, SPELL_PROTECTION_FROM_ENERGY))
+      {
+        affect_from_char(victim, SPELL_PROTECTION_FROM_ENERGY);
+        shattered = TRUE;
+      }
+      if (shattered)
+      {
+        act("The thunder lance shatters $N's lesser protective magic!", FALSE, ch, NULL, victim,
+            TO_CHAR);
+        act("The thunder lance shatters your lesser protective magic!", FALSE, ch, NULL, victim,
+            TO_VICT);
+      }
+    }
 
     /* Apply Crescendo sonic damage as additional damage */
     if (crescendo_sonic_dam > 0)
@@ -10268,6 +10576,247 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are stunned by a terrible WEIRD!";
     break;
 
+  case SPELL_UNSEEN_SERVANT:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 50 + (level * 5);
+    af[0].duration = MAX(4, level / 2);
+    to_room = "An unseen presence begins attending $n.";
+    to_vict = "An unseen servant answers your call and lightens your burden.";
+    break;
+
+  case SPELL_MISLEAD:
+    af[0].duration = MAX(2, level / 5);
+    SET_BIT_AR(af[0].bitvector, AFF_REFUGE);
+    SET_BIT_AR(af[0].bitvector, AFF_NOTRACK);
+    to_room = "Misleading shadows coil around $n and scatter in every direction.";
+    to_vict = "Misleading shadows conceal your trail and confuse pursuit.";
+    break;
+
+  case SPELL_SEQUESTER:
+    af[0].duration = MAX(4, level / 2);
+    SET_BIT_AR(af[0].bitvector, AFF_NOTELEPORT);
+    to_room = "$n briefly fades from the reach of distant magic.";
+    to_vict = "You feel cut off from teleportation and summoning magic.";
+    break;
+
+  case SPELL_SOUL_BIND:
+    spell_school = NECROMANCY;
+    if (mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))
+      return;
+    af[0].duration = MAX(5, level);
+    SET_BIT_AR(af[0].bitvector, AFF_DIM_LOCK);
+    SET_BIT_AR(af[0].bitvector, AFF_NOTELEPORT);
+    to_room = "A pale binding closes around $n's soul.";
+    to_vict = "A pale binding anchors your soul to the material world.";
+    break;
+
+  case SPELL_DEATH_PACT:
+    af[0].location = APPLY_SPECIAL;
+    af[0].duration = MAX(2, level / 10);
+    to_room = "$n's blood flashes with the dark power of a death pact.";
+    to_vict = "A death pact fills your blood and keeps you standing beyond mortal limits.";
+    break;
+
+  case SPELL_SANDBLAST:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (!AFF_FLAGGED(victim, AFF_BLIND))
+    {
+      if (!can_blind(victim) || rand_number(0, MAX(1, GET_LEVEL(victim) / 10)) != 0 ||
+          savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
+        return;
+
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = -4;
+      af[0].duration = 1;
+      SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+      af[1].location = APPLY_AC_NEW;
+      af[1].modifier = -4;
+      af[1].duration = 1;
+      to_room = "$n is blinded by the swirling sand!";
+      to_vict = "The swirling sand blinds you!";
+    }
+    else
+    {
+      if (!can_silence(victim) || rand_number(0, 5) != 0 ||
+          savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
+        return;
+
+      affect_from_char(victim, SPELL_SANDBLAST);
+      af[0].duration = 1;
+      SET_BIT_AR(af[0].bitvector, AFF_SILENCED);
+      to_room = "$n chokes as swirling sand fills $s lungs!";
+      to_vict = "Swirling sand fills your lungs and silences you!";
+    }
+    break;
+
+  case SPELL_FELL_FROST:
+    if (mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
+      return;
+
+    if (AFF_FLAGGED(victim, AFF_SLOW))
+    {
+      if (paralysis_immunity(victim) || AFF_FLAGGED(victim, AFF_PARALYZED) ||
+          rand_number(0, 1) != 0)
+        return;
+      affect_from_char(victim, SPELL_FELL_FROST);
+      af[0].duration = 1;
+      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+      to_room = "$n freezes solid inside a crushing vortex of frost!";
+      to_vict = "The frost locks your already-slow limbs in place!";
+    }
+    else
+    {
+      af[0].duration = 2;
+      SET_BIT_AR(af[0].bitvector, AFF_SLOW);
+      to_room = "$n's movements slow beneath a vortex of killing frost!";
+      to_vict = "Your limbs slow beneath the spell's killing frost!";
+    }
+    break;
+
+  case SPELL_ICE_TOMB:
+    if (GET_HIT(victim) > MAX(80, GET_MAX_HIT(victim) / 5) || paralysis_immunity(victim) ||
+        mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
+      return;
+    af[0].duration = 1;
+    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+    to_room = "Ice crystallizes around $n, sealing $m in a frozen tomb!";
+    to_vict = "Ice crystallizes around you and locks your body in place!";
+    break;
+
+  case SPELL_CONSTRICTION:
+    if (mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
+      return;
+    if (IS_CASTING(victim))
+    {
+      act("The constricting force shatters $n's concentration!", FALSE, victim, NULL, NULL,
+          TO_ROOM);
+      send_to_char(victim, "The constricting force shatters your concentration!\r\n");
+      resetCastingData(victim);
+    }
+    af[0].duration = 2;
+    SET_BIT_AR(af[0].bitvector, AFF_SILENCED);
+    to_room = "$n claws at $s throat, struggling to draw breath!";
+    to_vict = "An invisible force constricts your throat and steals your voice!";
+    break;
+
+  case SPELL_SANDSTORM:
+    if (mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
+      return;
+    af[0].duration = 1;
+    SET_BIT_AR(af[0].bitvector, AFF_STAGGERED);
+    if (can_blind(victim))
+    {
+      af[1].location = APPLY_HITROLL;
+      af[1].modifier = -4;
+      af[1].duration = 1;
+      SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+      af[2].location = APPLY_AC_NEW;
+      af[2].modifier = -4;
+      af[2].duration = 1;
+    }
+    to_room = "$n staggers through the devastating sandstorm!";
+    to_vict = "The devastating sandstorm knocks you off balance and obscures your sight!";
+    break;
+
+  case SPELL_BLACKLIGHT_BURST:
+    if (mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))
+      return;
+    af[0].duration = 2;
+    SET_BIT_AR(af[0].bitvector, AFF_SLOW);
+    to_room = "$n's movements slow beneath the black light!";
+    to_vict = "Your movements slow beneath the black light!";
+    break;
+
+  case SPELL_BELTYNS_BURNING_BLOOD:
+    if (!can_bleed(victim) || GET_HIT(victim) >= GET_MAX_HIT(victim) ||
+        mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
+      return;
+    af[0].duration = 2;
+    SET_BIT_AR(af[0].bitvector, AFF_ON_FIRE);
+    to_room = "$n's blood ignites beneath $s skin!";
+    to_vict = "Your blood ignites beneath your skin!";
+    break;
+
+  case SPELL_BLACKMANTLE:
+    if (mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))
+      return;
+    af[0].duration = 4;
+    SET_BIT_AR(af[0].bitvector, AFF_BLACKMANTLE);
+    to_room = "A black mantle settles around $n and smothers every healing light.";
+    to_vict = "A black mantle settles around you and smothers your ability to heal.";
+    break;
+
+  case SPELL_EARTHBLOOD:
+    if (!can_bleed(victim) || IS_INCORPOREAL(victim) || paralysis_immunity(victim) ||
+        mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
+      return;
+    af[0].duration = 1;
+    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+    to_room = "$n stops moving as elemental earth solidifies through $s body!";
+    to_vict = "You cannot move as your blood and joints solidify into elemental earth!";
+    break;
+
+  case SPELL_DUST_DEVIL:
+  {
+    struct obj_data *weapon;
+    int wear_slot;
+
+    wear_slot = WEAR_WIELD_2H;
+    weapon = GET_EQ(victim, wear_slot);
+    if (weapon == NULL)
+    {
+      wear_slot = WEAR_WIELD_1;
+      weapon = GET_EQ(victim, wear_slot);
+    }
+    if (weapon == NULL)
+    {
+      wear_slot = WEAR_WIELD_OFFHAND;
+      weapon = GET_EQ(victim, wear_slot);
+    }
+    if (weapon == NULL || GET_OBJ_TYPE(weapon) != ITEM_WEAPON || OBJ_FLAGGED(weapon, ITEM_NODROP) ||
+        IN_ROOM(victim) == NOWHERE || mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, CONJURATION))
+      return;
+
+    act("A dust devil tears $p from your grasp!", FALSE, victim, weapon, NULL, TO_CHAR);
+    act("A dust devil tears $p from $n's grasp!", FALSE, victim, weapon, NULL, TO_ROOM);
+    weapon = unequip_char(victim, wear_slot);
+    if (weapon != NULL)
+      obj_to_room(weapon, IN_ROOM(victim));
+    return;
+  }
+
+  case SPELL_SUFFOCATE:
+    if (!can_silence(victim) || mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, TRANSMUTATION))
+      return;
+    af[0].duration = 2;
+    SET_BIT_AR(af[0].bitvector, AFF_SILENCED);
+    to_room = "$n gasps as the air is torn from $s lungs!";
+    to_vict = "The air is torn from your lungs, leaving you unable to speak!";
+    break;
+
+  case SPELL_SHADOW_FLUX:
+    if (mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ILLUSION))
+      return;
+    af[0].location = APPLY_SPELL_RES;
+    af[0].modifier = -(10 + MIN(20, level / 2));
+    af[0].duration = 2;
+    to_room = "A massive flux of shadow coils around $n and strips away magical defenses!";
+    to_vict = "A massive flux of shadow strips away your magical defenses!";
+    break;
+
   case SPELL_WISDOM: // transmutation
     af[0].location = APPLY_WIS;
     af[0].duration = (level * 12) + 100;
@@ -10530,6 +11079,9 @@ static void perform_mag_groups(int level, struct char_data *ch, struct char_data
 {
   switch (spellnum)
   {
+  case SPELL_DEATH_PACT:
+    mag_affects(level, ch, tch, obj, SPELL_DEATH_PACT, savetype, casttype, 0);
+    break;
   case WARLOCK_FLEE_THE_SCENE:
     mag_affects(level, ch, tch, obj, WARLOCK_FLEE_THE_SCENE, savetype, casttype, 0);
     break;
@@ -11133,6 +11685,36 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
     to_char = "You call forth many large, black tentacles from the ground!";
     to_room = "$n calls forth many large, black tentacles from the ground!";
     isEffect = TRUE;
+    break;
+  case SPELL_RAIN_OF_BLOOD:
+    to_char = "You call down a horrible crimson rain of burning blood!";
+    to_room = "$n calls down a horrible crimson rain of burning blood!";
+    break;
+  case SPELL_ROT:
+    to_char = "You call forth a ravenous tide of living rot!";
+    to_room = "$n calls forth a ravenous tide of living rot!";
+    break;
+  case SPELL_SANDSTORM:
+    to_char = "You conjure a devastating storm of scouring sand!";
+    to_room = "$n conjures a devastating storm of scouring sand!";
+    is_eff_and_dam = TRUE;
+    break;
+  case SPELL_BLACKLIGHT_BURST:
+    to_char = "You detonate a burst of black light and negative energy!";
+    to_room = "$n detonates a burst of black light and negative energy!";
+    is_eff_and_dam = TRUE;
+    break;
+  case SPELL_SHADOW_BURST:
+    to_char = "You bathe the area in an explosion of shadow energy!";
+    to_room = "$n bathes the area in an explosion of shadow energy!";
+    break;
+  case SPELL_PHANTASMAL_BLADES:
+    to_char = "You send a swarm of phantasmal blades whirling through the area!";
+    to_room = "$n sends a swarm of phantasmal blades whirling through the area!";
+    break;
+  case SPELL_SOUL_TEMPEST:
+    to_char = "You call forth a tempest of howling spirits!";
+    to_room = "$n calls forth a tempest of howling spirits!";
     break;
   case WARLOCK_CHILLING_TENTACLES:
     to_char = "You call forth many writhing, frost-covered tentacles from the ground!";
@@ -13653,6 +14235,36 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int s
 
   switch (spellnum)
   {
+  case SPELL_PRESERVE:
+    if (IS_CORPSE(obj))
+    {
+      GET_OBJ_TIMER(obj) += MAX(1, level * (GET_OBJ_VAL(obj, 4) ? 3 : 1));
+      to_char = "A cool stillness settles over $p, slowing its decay.";
+    }
+    break;
+  case SPELL_EMBALM:
+    if (IS_CORPSE(obj))
+    {
+      GET_OBJ_TIMER(obj) += MAX(1, level * 20);
+      to_char = "A dark preservative sheen settles over $p.";
+    }
+    break;
+  case SPELL_CURSE_OBJ:
+    if (!OBJ_FLAGGED(obj, ITEM_NODROP))
+    {
+      SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_NODROP);
+      if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+        GET_OBJ_VAL(obj, 2) = MAX(1, GET_OBJ_VAL(obj, 2) - 1);
+      to_char = "$p shudders and takes on a baleful red glow.";
+    }
+    break;
+  case SPELL_CORPSE_GLAMOR:
+    if (IS_CORPSE(obj) && GET_OBJ_WEIGHT(obj) > 1)
+    {
+      GET_OBJ_WEIGHT(obj) = 1;
+      to_char = "$p shimmers and becomes almost weightless.";
+    }
+    break;
   case SPELL_BLESS:
     if (!OBJ_FLAGGED(obj, ITEM_BLESS) && (GET_OBJ_WEIGHT(obj) <= 5 * DIVINE_LEVEL(ch)))
     {
@@ -14204,6 +14816,23 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     rounds = MAX(4, MAGIC_LEVEL(ch));
     break;
 
+  case SPELL_AIRY_WATER:
+    if (SECT(rnum) != SECT_UNDERWATER)
+    {
+      send_to_char(ch, "Airy water can only be formed underwater.\r\n");
+      return;
+    }
+    if (ROOM_AFFECTED(rnum, RAFF_AIRY_WATER))
+    {
+      send_to_char(ch, "The water here is already filled with breathable air.\r\n");
+      return;
+    }
+    to_char = "You fill the surrounding water with a sphere of breathable air.";
+    to_room = "$n fills the surrounding water with a sphere of breathable air.";
+    aff = RAFF_AIRY_WATER;
+    rounds = MAX(4, level);
+    break;
+
   case ABILITY_KAPAK_DRACONIAN_DEATH_THROES: // conjuration
     to_char = "You dissolve into a pool of acid!";
     to_room = "$n dissolves into a pool of acid!";
@@ -14239,6 +14868,18 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     rounds = GET_PSIONIC_LEVEL(ch);
     break;
 
+  case SPELL_ROCK_TO_MUD:
+    if (ROOM_AFFECTED(rnum, RAFF_DIFFICULT_TERRAIN))
+    {
+      send_to_char(ch, "The ground here is already treacherously soft.\r\n");
+      return;
+    }
+    to_char = "You soften the ground into clinging mud.";
+    to_room = "$n softens the ground into clinging mud.";
+    aff = RAFF_DIFFICULT_TERRAIN;
+    rounds = MAX(4, level);
+    break;
+
   case SPELL_OBSCURING_MIST: // conjuration
     /* so right now this spell is simply 20% concealment to everyone in room, needs
      * I also think it needs some other affects
@@ -14262,6 +14903,18 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     to_room = "$n creates a blanket of pitch black.";
     aff = RAFF_DARKNESS;
     rounds = 15;
+    break;
+
+  case SPELL_SUN_SHADOW:
+    if (SECT(rnum) == SECT_UNDERWATER || ROOM_AFFECTED(rnum, RAFF_DARKNESS))
+    {
+      send_to_char(ch, "There is no unshadowed sun here to conceal.\r\n");
+      return;
+    }
+    to_char = "You raise a dark veil that blots out the sun.";
+    to_room = "$n raises a dark veil that blots out the sun.";
+    aff = RAFF_DARKNESS;
+    rounds = MAX(5, level);
     break;
 
   case SPELL_SACRED_SPACE: // divination
@@ -14316,6 +14969,30 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     to_room = "$n creates clouds of billowing stinking fumes that fill the area.";
     aff = RAFF_STINK;
     rounds = 12;
+    break;
+
+  case SPELL_EARTH_FOG:
+    if (SECT(rnum) == SECT_UNDERWATER || ROOM_AFFECTED(rnum, RAFF_FOG))
+    {
+      send_to_char(ch, "No more earthen fog can gather here.\r\n");
+      return;
+    }
+    to_char = "You call up a dense cloud of dust and earthen fog.";
+    to_room = "$n calls up a dense cloud of dust and earthen fog.";
+    aff = RAFF_FOG;
+    rounds = MAX(4, level / 2);
+    break;
+
+  case SPELL_FIRE_FOG:
+    if (SECT(rnum) == SECT_UNDERWATER || ROOM_AFFECTED(rnum, RAFF_LIGHT))
+    {
+      send_to_char(ch, "No more fiery radiance can gather here.\r\n");
+      return;
+    }
+    to_char = "You surround the area with a luminous sphere of fiery fog.";
+    to_room = "$n surrounds the area with a luminous sphere of fiery fog.";
+    aff = RAFF_LIGHT;
+    rounds = MAX(4, level / 2);
     break;
 
   case SPELL_UNHALLOW: // evocation

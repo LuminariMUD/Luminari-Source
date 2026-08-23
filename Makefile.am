@@ -363,6 +363,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_copyover_timer.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
+	unittests/CuTest/test_unassigned_spells.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_elf_build_id.c \
@@ -417,6 +418,7 @@ cutest_test_files = \
 	unittests/CuTest/test_copyover_timer.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
+	unittests/CuTest/test_unassigned_spells.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_elf_build_id.c \

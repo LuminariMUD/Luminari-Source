@@ -153,6 +153,7 @@ class SemanticTests(unittest.TestCase):
     cls.repo_root = default_repo_root()
     cls.manifest = load_manifest()
     cls.spec_names = extract_spec_names(cls.repo_root)
+    cls.num_spells = cls.manifest["limits"]["NUM_SPELLS"]["value"]
     cls.item_types = {
         entry["macro"]: entry["index"]
         for entry in cls.manifest["tables"]["item-types"]["entries"]
@@ -416,7 +417,7 @@ class SemanticTests(unittest.TestCase):
         obj(309, self.item_types["ITEM_SWITCH"], [0, 100, 0, 0]),
     ]
     objects[0].weapon_spells.append(([2001, 0, 51, 2], span(40)))
-    objects[0].activated_spells.append(([31, 528, 6, 5, -1], span(41)))
+    objects[0].activated_spells.append(([31, self.num_spells, 6, 5, -1], span(41)))
     findings = self.validate([zone(1, 100, 199)], [room(100, 1)], objects=objects)
     codes = {item.code for item in findings}
     self.assertTrue(
@@ -762,11 +763,11 @@ class SemanticTests(unittest.TestCase):
 
     for macro in ("QUEST_COMMAND_TEACH_SPELL", "QUEST_COMMAND_CAST_SPELL"):
       command_type = command_types[macro]
-      for value in (1, 527):
+      for value in (1, self.num_spells - 1):
         self.assertNotIn(
             "SEM032", {item.code for item in findings(hlq_command(command_type, value, 0))}
         )
-      for value in (0, 528):
+      for value in (0, self.num_spells):
         self.assertIn(
             "SEM032", {item.code for item in findings(hlq_command(command_type, value, 0))}
         )

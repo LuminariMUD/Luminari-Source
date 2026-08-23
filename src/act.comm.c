@@ -100,7 +100,7 @@ ACMDU(do_rsay)
     for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
       if (vict != ch && GET_POS(vict) > POS_SLEEPING && !AFF_FLAGGED(vict, AFF_DEAF))
       {
-        if (CAN_SPEAK(vict, SPEAKING(ch)))
+        if (CAN_UNDERSTAND(vict, SPEAKING(ch)))
         {
           msg = act(buf, FALSE, ch, 0, vict, TO_VICT | DG_NO_TRIG);
           add_history(vict, msg, HIST_SAY);

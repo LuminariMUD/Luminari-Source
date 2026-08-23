@@ -154,12 +154,12 @@ first-match and execution behavior in the runtime view.
 | `M` | Existing mobile VNUM. | Existing room VNUM, or `0` for the current room. |
 | `A` | Unused; canonical value is `0`. | Unused; canonical value is `0`. |
 | `D` | Unused; canonical value is `0`. | Unused; canonical value is `0`. |
-| `T` | Runtime-safe spell/skill `1..527` (`SPELL_RESERVED_DBC + 1` through `NUM_SPELLS - 1`). | Unused; canonical value is `0`. |
+| `T` | Runtime-safe spell/skill `1..598` (`SPELL_RESERVED_DBC + 1` through `NUM_SPELLS - 1`). | Unused; canonical value is `0`. |
 | `X` | Direction `0..5` in the current source-derived direction table. | Existing room VNUM with an exit in that direction. |
 | `F` | Unused; canonical value is `0`. | Unused; canonical value is `0`. |
 | `K` | Target class `0..37`, or `9999` for the lich transition. | Prerequisite class `0..37`, or `9999` for the lich transition. |
 | `U` | Church `0..12`. | Unused; canonical value is `0`. |
-| `S` | Runtime-safe spell/skill `1..527`. | Unused; canonical value is `0`. |
+| `S` | Runtime-safe spell/skill `1..598`. | Unused; canonical value is `0`. |
 | `P` | Signed quest-point delta `-100000000..100000000`. | Unused; canonical value is `0`. |
 | `E` | Non-negative experience through `2140000000`. | Unused; canonical value is `0`. |
 

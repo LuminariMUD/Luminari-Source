@@ -8,6 +8,10 @@ Fourth document in the Realms of Luminari conversion series, after
 with LuminariMUD's current class, prestige-class, specialty-school, race, feat,
 and multiclass systems.
 
+All 75 audited functional spell gaps are now implemented, but they deliberately
+have no class or domain assignments. References below therefore describe
+remaining class-kit integration, not missing spell handlers.
+
 This is necessarily a best-effort comparison. RoL stores one current class and
 advances it to mortal level 50. LuminariMUD supports multiclass characters,
 base and prestige classes, wizard specialty schools, feats, perks, and a mortal
@@ -70,10 +74,10 @@ Cleric level 21 and Wisdom for the source class and skill requirements. This is
 valuable compatibility support for converted content, but it is not a native
 Shaman choice or a full Shaman progression.
 
-The remaining player-facing Shaman spell gaps are `farsee`, `preserve`,
-`command undead`, `soul tempest`, `spirit walk`, and `ancestral shield`. Those
-are kit gaps rather than proof that six entirely new class mechanics are needed;
-they are specified in `ROL_SPELL_EQUIVALENCE_GAPS.md`.
+The unassigned Shaman kit spells are `farsee`, `preserve`, `command undead`,
+`soul tempest`, `spirit walk`, and `ancestral shield`. Those are kit-integration
+gaps rather than proof that six entirely new class mechanics are needed; their
+implementations are specified in `ROL_SPELL_EQUIVALENCE_GAPS.md`.
 
 **Assessment:** add a native Shaman only if preserving the RoL class identity is
 a product goal. The existing converted totem implementation is the natural
@@ -96,8 +100,8 @@ Elementalist specialty. An Invoker emphasizes evocation and a Conjurer or
 Summoner covers the summoning half, but neither reproduces a persistent
 elemental specialization and embodiment progression.
 
-The remaining player-facing Elementalist spell gaps are `minor creation`,
-`thunder lance`, `air blast`, `earthblood`, `earth fog`, and `fire fog`.
+The unassigned Elementalist kit spells are `minor creation`, `thunder lance`,
+`air blast`, `earthblood`, `earth fog`, and `fire fog`.
 
 **Assessment:** preserve this either as a class or as an explicit Wizard
 elemental specialty with an embodiment/perk track. A full base class should be
@@ -112,10 +116,10 @@ it to Bard. That preserves the performance role, and current Bard performance
 mechanics plus `FEAT_ACCOMPANY` cover the core group-support loop. Adding
 Warrior or Cleric levels supplies most of the martial or shamanic side.
 
-No ordinary `SPELL_ADD` spell from Battlechanter's registered kit remains on
-the spell-gap list. Its shared Bard performance engine does retain one gap,
-`song of travel`. LuminariMUD also lacks the Orc-locked war-chant identity and
-its dedicated level progression.
+No ordinary `SPELL_ADD` spell from Battlechanter's registered kit lacks an
+implementation. Its shared Bard performance engine also supplies `song of
+travel`, whose handler is implemented but remains unassigned. LuminariMUD still
+lacks the Orc-locked war-chant identity and its dedicated level progression.
 
 **Assessment:** a formal class-identity gap, but a lower mechanical priority.
 Prefer a Bard archetype, perk line, or themed build guidance over a new base
@@ -135,9 +139,8 @@ expression. It still lacks a formal dire-wolf bond and source-faithful class
 progression. Dragonrider is not a close substitute because its mount and
 fantasy identity are materially different.
 
-Its remaining player-facing spell gaps are `farsee`, `command undead`,
-`protection from animals`, `dust devil`, `pass without trace`, and
-`poltergeist`.
+Its unassigned kit spells are `farsee`, `command undead`, `protection from
+animals`, `dust devil`, `pass without trace`, and `poltergeist`.
 
 **Assessment:** an active formal-identity gap with substantial existing
 mechanical coverage. A Ranger archetype, companion option, or feat/perk package
@@ -216,10 +219,10 @@ LuminariMUD expresses the same lifecycle differently:
 - A separate current quest reward can also grant the Lich race.
 
 That is a deliberate composite equivalent, not a missing Lich class. It is not
-mechanically identical: Necromancer has 17 and Lich has 21 remaining
-player-facing spell gaps, and the level-reset/class-change behavior differs.
-Those residuals belong to spell and progression parity work rather than an
-automatic proposal for two more class IDs.
+mechanically identical: Necromancer has 17 and Lich has 21 implemented spells
+still awaiting class-kit assignment, and the level-reset/class-change behavior
+differs. Those residuals belong to kit and progression parity work rather than
+an automatic proposal for two more class IDs.
 
 ### Conjurer
 
@@ -227,8 +230,8 @@ Conjurer is not an active RoL destination. Its creation switch is absent, and
 the player loader calls `convert_conjurer_to_elementalist()` for old characters.
 LuminariMUD nevertheless has two coherent homes for its older identity:
 Conjuration-specialist Wizard for the school-based caster and Summoner for a
-companion-centered class. Its two remaining player-facing spell gaps are
-`minor creation` and `ventriloquate`.
+companion-centered class. Its two unassigned kit spells are `minor creation`
+and `ventriloquate`.
 
 ### Enchanter, Invoker, and Illusionist
 
@@ -246,18 +249,19 @@ Assassin have no race that can select them at creation; active Rogue is the
 successor to the old mundane skill-class role. LuminariMUD Rogue plus its
 locked Assassin prestige class preserves the relevant player route.
 
-## Residual spell and performance-kit gaps by class
+## Unassigned spell and performance-kit integrations by class
 
-This section joins RoL's live class registrations to the 75 player-facing spell
-gaps already audited in `ROL_SPELL_EQUIVALENCE_GAPS.md`. It also assigns
-`song of travel` to Bard and Battlechanter from the live shared performance
-engine in `newbard.c`; that performance is not registered with `SPELL_ADD`.
+This section joins RoL's live class registrations to the 75 implemented but
+intentionally unassigned spells audited in `ROL_SPELL_EQUIVALENCE_GAPS.md`. It
+also assigns `song of travel` to Bard and Battlechanter from the live shared
+performance engine in `newbard.c`; that performance is not registered with
+`SPELL_ADD`.
 A spell learned by several classes appears in several rows, so the per-class
-counts must not be summed. A zero count means only that the class learns no
-spell currently on that gap list; it does not prove complete class-behavior
-parity.
+counts must not be summed. A zero count means only that the class has no spell
+awaiting assignment from this inventory; it does not prove complete
+class-behavior parity.
 
-| RoL class | Count | Remaining player-facing spells in its registered kit |
+| RoL class | Count | Implemented spells awaiting class-kit integration |
 |-----------|------:|------------------------------------------------------|
 | Ranger | 5 | `natures blessing`, `create spring`, `protection from animals`, `dust devil`, `pass without trace` |
 | Anti-Paladin | 3 | `curse item`, `command undead`, `spectral hand` |
@@ -276,16 +280,16 @@ parity.
 | Elementalist | 6 | `minor creation`, `thunder lance`, `air blast`, `earthblood`, `earth fog`, `fire fog` |
 | Dire Raider | 6 | `farsee`, `command undead`, `protection from animals`, `dust devil`, `pass without trace`, `poltergeist` |
 
-Six other player-facing or functional spell gaps have no live class
-registration and therefore cannot be attributed to a class from source
-evidence: `comprehend languages`, `wraithform`, `unseen servant`,
+Six other implemented spells have no live class registration and therefore
+cannot be attributed to a class from source evidence: `comprehend languages`,
+`wraithform`, `unseen servant`,
 `needle swarm`, `snapping teeth`, and `agility`.
 
-The following classes have zero registered player-facing spell gaps: Warrior,
-Berserker, Paladin, Monk, Thief, Assassin, Mercenary, Psionicist,
-and Rogue. Psionicist was cross-checked against the separate live psionic
-registry in the spell audit; its zero is not an artifact of looking only at
-ordinary spells.
+The following classes have zero spells awaiting assignment from this inventory:
+Warrior, Berserker, Paladin, Monk, Thief, Assassin, Mercenary, Psionicist, and
+Rogue. Psionicist was cross-checked against the separate live psionic registry
+in the spell audit; its zero is not an artifact of looking only at ordinary
+spells.
 
 `ROL_SKILL_EQUIVALENCE_GAPS.md` records that all five formerly missing live
 non-psionic skill equivalents have now been ported. Consequently there is no
@@ -362,7 +366,7 @@ Recommended sequence:
 5. Leave Mercenary as a legacy mapping unless old-player compatibility reveals
    requirements that multiclassing cannot meet.
 6. Track per-class spells through `ROL_SPELL_EQUIVALENCE_GAPS.md`; do not make a
-   new class merely to house an unported spell.
+   new class merely to house an unassigned spell.
 
 ## Verification method
 
@@ -386,8 +390,8 @@ Recommended sequence:
    specialty behavior in `src/magic/domains_schools.c` and `src/magic/magic.c`.
 7. Converter targets were taken from the current policy file rather than
    inferred from names.
-8. The residual spell lists were mechanically joined against the existing live
-   spell-gap audit. The separate psionic registry and the completed skill-gap
+8. The residual spell lists were mechanically joined against the audited live
+   spell inventory. The separate psionic registry and the completed skill-gap
    audit were also checked.
 
 ## Source authority

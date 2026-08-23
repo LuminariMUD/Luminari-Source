@@ -164,7 +164,7 @@
     },
     "NUM_SPELLS": {
       "source": "src/magic/spells.h:NUM_SPELLS",
-      "value": 528
+      "value": 599
     },
     "NUM_SUB_RACES": {
       "source": "src/structs.h:NUM_SUB_RACES",
