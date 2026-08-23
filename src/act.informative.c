@@ -9381,6 +9381,9 @@ ACMD(do_scan)
   else
     return;
 
+  if (AFF_FLAGGED(ch, AFF_FARSEE))
+    maxrange = 6;
+
   if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_NOMAP) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "A magical force prevents you from seeing beyond this room.\r\n");

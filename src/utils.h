@@ -193,6 +193,7 @@ bool can_add_follower_by_flag(struct char_data *ch, int flag);
 const char *apply_types_lowercase(int apply_type);
 bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy);
 bool can_speak_language(struct char_data *ch, int language);
+bool can_understand_language(struct char_data *ch, int language);
 int num_blackguard_cruelties_known(struct char_data *ch);
 sbyte has_blackguard_cruelties_unchosen(struct char_data *ch);
 sbyte has_blackguard_cruelties_unchosen_study(struct char_data *ch);
@@ -2333,6 +2334,7 @@ int ACTUAL_BAB(struct char_data *ch);
 // language stuff
 #define SPEAKING(ch) (ch->player_specials->saved.speaking)
 #define CAN_SPEAK(ch, i) (can_speak_language(ch, i))
+#define CAN_UNDERSTAND(ch, i) (can_understand_language(ch, i))
 #define GET_REGION(ch) (ch->player_specials->saved.region)
 #define GET_LANG(ch) ((ch)->player_specials->saved.speaking)
 

@@ -39,6 +39,7 @@
 #include "mob/mob_spellslots.h"
 #include "character/perks.h"
 #include "bardic_performance.h"
+#include "rol_spells.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -56,10 +57,6 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
 static int at_will_casting_class(struct char_data *ch, int spellnum);
 static int necromancer_summon_caster_level(struct char_data *ch, int spellnum);
 static bool should_extract_prepared_spell(struct char_data *ch, int spellnum);
-void spello(int spl, const char *name, int max_psp, int min_psp, int psp_change, int minpos,
-            int targets, int violent, int routines, const char *wearoff, int time, int memtime,
-            int school, bool quest);
-
 void spellabilo(int spl, const char *name, int max_psp, int min_psp, int psp_change, int minpos,
                 int targets, int violent, int routines, const char *wearoff, int time, int memtime,
                 int school, int effective_level, bool quest);
@@ -1004,6 +1001,30 @@ SAVING_WILL here...  */
   if (IS_SET(SINFO.routines, MAG_MANUAL))
     switch (spellnum)
     {
+    case SPELL_FARSEE:
+    case SPELL_REJUVENATE_MAJOR:
+    case SPELL_REJUVENATE_MINOR:
+    case SPELL_AGE:
+    case SPELL_COMMAND_UNDEAD:
+    case SPELL_SLOW_POISON:
+    case SPELL_COMPREHEND_LANGUAGES:
+    case SPELL_FUMBLE:
+    case SPELL_STUMBLE:
+    case SPELL_ENERVATE:
+    case SPELL_PROT_UNDEAD:
+    case SPELL_PROT_FROM_UNDEAD:
+    case SPELL_COMMAND_HORDE:
+    case SPELL_ANCESTRAL_SHIELD:
+    case SPELL_PROTECTION_FROM_ANIMALS:
+    case SPELL_PASS_WITHOUT_TRACE:
+    case SPELL_GREATER_REALM_OF_PROTECTION:
+    case SPELL_FEIGN_DEATH:
+    case SPELL_TRANQUILITY:
+    case SPELL_AGILITY:
+    case SPELL_NATURES_BLESSING:
+    case SPELL_SONG_OF_TRAVEL:
+      cast_rol_gap_spell(spellnum, level, caster, cvict, ovict, casttype);
+      break;
     case SPELL_GIRD_ALLIES:
       MANUAL_SPELL(spell_gird_allies);
       break;
@@ -4184,6 +4205,7 @@ void mag_assign_spells(void)
 
   /** let's start by assigning the psionic powers from psionics.c */
   assign_psionic_powers();
+  assign_rol_gap_spells();
 
   // sorted the spells by shared / magical / divine, and by circle
   // in each category (school) -zusuk

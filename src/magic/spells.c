@@ -385,7 +385,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, 
     if (IS_NPC(victim))
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
-  else if (is_immune_charm(ch, victim, FALSE))
+  else if (spellnum != SPELL_COMMAND_UNDEAD && is_immune_charm(ch, victim, FALSE))
   {
     send_to_char(ch, "Your victim is protected from this "
                      "enchantment!\r\n");
@@ -455,20 +455,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, 
     add_follower(victim, ch);
 
     new_affect(&af);
-    if (spellnum == SPELL_CHARM)
-      af.spell = SPELL_CHARM;
-    if (spellnum == SPELL_CHARM_ANIMAL)
-      af.spell = SPELL_CHARM_ANIMAL;
-    else if (spellnum == SPELL_DOMINATE_PERSON)
-      af.spell = SPELL_DOMINATE_PERSON;
-    else if (spellnum == SPELL_MASS_DOMINATION)
-      af.spell = SPELL_MASS_DOMINATION;
-    else if (spellnum == SPELL_CHARM_MONSTER)
-      af.spell = SPELL_CHARM_MONSTER;
-    else if (spellnum == WARLOCK_CHARM)
-      af.spell = WARLOCK_CHARM;
-    else if (spellnum == SPELL_CONTROL_PLANTS)
-      af.spell = SPELL_CONTROL_PLANTS;
+    af.spell = spellnum;
     af.duration = 100;
     if (GET_CHA_BONUS(ch))
       af.duration += GET_CHA_BONUS(ch) * 4;

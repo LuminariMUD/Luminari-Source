@@ -59,6 +59,7 @@
 #include "movement/movement_cost.h"
 #include "perfmon.h"
 #include "rol_feats.h"
+#include "magic/rol_spells.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -6255,6 +6256,8 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   {
     dam = dam * 110 / 100; /* +10% */
   }
+
+  dam = rol_spell_adjust_incoming_damage(ch, victim, dam);
 
   dam = cap_combat_damage(ch, dam, w_type);
 
