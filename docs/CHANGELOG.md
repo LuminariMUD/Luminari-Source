@@ -45,6 +45,10 @@
   `ITEM_FIREWEAPON` is deprecated and can never fire. Source ammunition is classified onto
   `AMMO_TYPE_*`, except for thrown records, which the target has no command for and which
   become the melee weapon they are.
+- Preserved native javelin identity across melee, ranged-weapon, and ammunition source
+  records instead of converting javelins into shortspears. Javelins retain their thrown
+  profile but are no longer misclassified as ammo-pouch launchers, so they remain usable in
+  melee until native thrown attacks are implemented.
 - Stopped three target value slots from being filled with source data that means something
   else there: the missile imbued-spell number, which made converted arrows cast a spell
   chosen by their source dice size; the missile break probability, which is inverted against

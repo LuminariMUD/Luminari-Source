@@ -381,6 +381,32 @@ void Test_combat_production_weapon_lookup_excludes_natural_attacks(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, test_get_wielded(&ch, ATTACK_TYPE_ELDRITCH_BLAST));
 }
 
+void Test_native_javelin_profile_is_melee_usable(CuTest *tc)
+{
+  struct char_data ch;
+  struct obj_data javelin;
+  struct player_special_data player_specials;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&javelin, 0, sizeof(javelin));
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  load_weapons();
+
+  GET_OBJ_TYPE(&javelin) = ITEM_WEAPON;
+  GET_OBJ_VAL(&javelin, 0) = WEAPON_TYPE_JAVELIN;
+  GET_EQ(&ch, WEAR_WIELD_1) = &javelin;
+
+  CuAssertStrEquals(tc, "javelin", weapon_list[WEAPON_TYPE_JAVELIN].name);
+  CuAssertTrue(tc, IS_SET(weapon_list[WEAPON_TYPE_JAVELIN].weaponFlags, WEAPON_FLAG_THROWN));
+  CuAssertTrue(tc, !IS_SET(weapon_list[WEAPON_TYPE_JAVELIN].weaponFlags, WEAPON_FLAG_RANGED));
+  CuAssertIntEquals(tc, 1, weapon_list[WEAPON_TYPE_JAVELIN].numDice);
+  CuAssertIntEquals(tc, 6, weapon_list[WEAPON_TYPE_JAVELIN].diceSize);
+  CuAssertIntEquals(tc, 2, weapon_list[WEAPON_TYPE_JAVELIN].weight);
+  CuAssertIntEquals(tc, 30, weapon_list[WEAPON_TYPE_JAVELIN].range);
+  CuAssertPtrEquals(tc, NULL, is_using_ranged_weapon(&ch, TRUE));
+}
+
 void Test_psionic_death_effects_bypass_the_generic_damage_cap(CuTest *tc)
 {
   struct char_data ch;

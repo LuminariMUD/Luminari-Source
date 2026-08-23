@@ -48,8 +48,9 @@ current VNUMs are:
 
 Also review the target-engine compromises that are not all name disagreements:
 
-- Javelins become `WEAPON_TYPE_SHORTSPEAR` so they remain usable; the target's
-  ranged javelin type has no ammunition-pouch pairing.
+- Javelin records preserve `WEAPON_TYPE_JAVELIN`. The native type retains its
+  thrown flag but is no longer treated as an ammunition launcher, so javelins
+  remain melee-usable until the target gains a throwing command.
 - Source darts use the target dart weapon/ammunition pairing.
 - Thrown source ammunition becomes a melee weapon because the target has no
   throwing command.

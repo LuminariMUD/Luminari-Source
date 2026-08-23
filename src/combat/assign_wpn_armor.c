@@ -1038,10 +1038,9 @@ void load_weapons(void)
             "will strike first. They can be distinguished from javelins by fletching (i.e., "
             "feathers on the tail) and a shaft that is shorter and/or more flexible, and from "
             "arrows by the fact that they are not of the right length to use with a normal bow.");
-  setweapon(WEAPON_TYPE_JAVELIN, "javelin", 1, 6, 0, 2,
-            WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN | WEAPON_FLAG_RANGED, 1, DAMAGE_TYPE_PIERCING,
-            2, 30, WEAPON_FAMILY_SPEAR, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_SHAFT,
-            HEAD_TYPE_POINT, "A javelin is a thin throwing spear.");
+  setweapon(WEAPON_TYPE_JAVELIN, "javelin", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN, 1,
+            DAMAGE_TYPE_PIERCING, 2, 30, WEAPON_FAMILY_SPEAR, SIZE_MEDIUM, MATERIAL_WOOD,
+            HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT, "A javelin is a thin throwing spear.");
   setweapon(WEAPON_TYPE_SLING, "sling", 1, 4, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_RANGED, 1,
             DAMAGE_TYPE_BLUDGEONING, 1, 50, WEAPON_FAMILY_THROWN, SIZE_SMALL, MATERIAL_LEATHER,
             HANDLE_TYPE_STRAP, HEAD_TYPE_POUCH,

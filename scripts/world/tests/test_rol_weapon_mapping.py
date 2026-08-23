@@ -14,8 +14,11 @@ from wtool_lib.rol_weapon_table import weapon_table
 from wtool_lib import rol_weapon_mapping as mapping
 
 
-# WEAPON_FLAG_RANGED, src/structs.h:4916.
+# WEAPON_FLAG_RANGED, src/structs.h.
 _WEAPON_FLAG_RANGED = 1 << 3
+
+# WEAPON_FLAG_THROWN, src/structs.h.
+_WEAPON_FLAG_THROWN = 1 << 4
 
 # The has_ammo_in_pouch() pairings, restated for the kit simulation.
 _AMMO_PAIRS = {
@@ -175,6 +178,33 @@ class RolWeaponMappingTests(unittest.TestCase):
         record = self._weapon(aliases, short, extra, "0 1 6 3")
         self.assertEqual(expected, mapping.infer_weapon_type(record).name)
 
+  def test_javelin_identity_is_preserved_across_source_record_families(self) -> None:
+    melee = self._weapon("javelin", "a balanced javelin", 0, "0 1 6 11")
+    launcher = self._source_record(
+        b"#901\njavelin~\na balanced javelin~\nA balanced javelin lies here.~\n~\n"
+        b"6 0 0\n0 1 6 11 0 1 10 14\n1 20 0\n"
+    )
+    missile = self._source_record(
+        b"#902\njavelin~\na balanced javelin~\nA balanced javelin lies here.~\n~\n"
+        b"7 0 0\n1 6 10 14\n1 20 0\n"
+    )
+
+    self.assertEqual("WEAPON_TYPE_JAVELIN", mapping.infer_weapon_type(melee).name)
+    self.assertEqual("WEAPON_TYPE_JAVELIN", mapping.infer_ranged_weapon_type(launcher).name)
+    self.assertEqual("WEAPON_TYPE_JAVELIN", mapping.infer_ammunition(missile).name)
+
+    for record in (melee, launcher, missile):
+      with self.subTest(source_item_type=record.values["item_type"]):
+        _emitted, item_type, values, _economy, _blocks = self._emit(record)
+        self.assertEqual(mapping.TARGET_ITEM_WEAPON, item_type)
+        self.assertEqual(mapping.WEAPON_TYPE_IDS["WEAPON_TYPE_JAVELIN"], values[0])
+
+  def test_native_javelin_profile_is_thrown_but_not_an_ammo_launcher(self) -> None:
+    entry = weapon_table()[mapping.WEAPON_TYPE_IDS["WEAPON_TYPE_JAVELIN"]]
+    self.assertTrue(entry.weapon_flags & _WEAPON_FLAG_THROWN)
+    self.assertFalse(entry.weapon_flags & _WEAPON_FLAG_RANGED)
+    self.assertEqual((1, 6, 2, 30), (entry.num_dice, entry.dice_size, entry.weight, entry.range))
+
   def test_weak_modifiers_never_outrank_a_named_weapon(self) -> None:
     decorated = self._weapon("spear hunting razor", "a razor-sharp hunting spear", 0, "0 1 6 11")
     bare = self._weapon("razor barber", "a sharp barber's razor", 0, "0 1 3 3")
@@ -260,8 +290,8 @@ class RolWeaponMappingTests(unittest.TestCase):
     body = body[: body.index("\n}\n")]
     declared = set(re.findall(r"case (WEAPON_TYPE_\w+):", body))
     self.assertEqual(declared, set(mapping.AMMO_PAIRED_WEAPON_TYPES))
-    # Every ammo-paired type is a ranged type; the guard only ever narrows.
-    self.assertTrue(mapping.AMMO_PAIRED_WEAPON_TYPES <= mapping.RANGED_WEAPON_TYPES)
+    # The current ranged engine requires an ammo pouch for every ranged type.
+    self.assertEqual(mapping.AMMO_PAIRED_WEAPON_TYPES, mapping.RANGED_WEAPON_TYPES)
 
   def test_weapon_table_covers_every_declared_weapon_type(self) -> None:
     table = weapon_table()
@@ -273,7 +303,7 @@ class RolWeaponMappingTests(unittest.TestCase):
       self.assertGreaterEqual(entry.num_dice, 1, mapping.WEAPON_TYPE_NAMES[weapon_type])
       self.assertGreaterEqual(entry.dice_size, 1, mapping.WEAPON_TYPE_NAMES[weapon_type])
 
-  def test_every_source_launcher_resolves_to_a_firing_weapon_type(self) -> None:
+  def test_every_source_launcher_resolves_to_a_usable_weapon_type(self) -> None:
     self._require_reference_corpus()
     self.assertEqual(51, len(self.launchers))
     for record in self.launchers:
@@ -331,7 +361,7 @@ class RolWeaponMappingTests(unittest.TestCase):
       self.assertIn(vnum, ammunition, f"ammo override {vnum} names no source missile")
       self.assertTrue(entry["rationale"], f"ammo override {vnum} carries no rationale")
 
-  def test_ranged_override_catalog_rejects_types_that_cannot_fire(self) -> None:
+  def test_ranged_override_catalog_accepts_native_thrown_weapon_types(self) -> None:
     temporary = tempfile.TemporaryDirectory()
     self.addCleanup(temporary.cleanup)
     path = Path(temporary.name) / "overrides.json"
@@ -339,8 +369,15 @@ class RolWeaponMappingTests(unittest.TestCase):
     path.write_text(
         json.dumps({"ranged_overrides": {"1": {"weapon_type": "WEAPON_TYPE_JAVELIN"}}})
     )
-    with self.assertRaisesRegex(ValueError, "has_ammo_in_pouch"):
-      mapping.load_catalog(path)
+    catalog = mapping.load_catalog(path)
+    self.assertEqual(
+        "WEAPON_TYPE_JAVELIN", catalog["ranged_overrides"][1]["name"]
+    )
+
+  def test_ammunition_override_catalog_rejects_invalid_targets(self) -> None:
+    temporary = tempfile.TemporaryDirectory()
+    self.addCleanup(temporary.cleanup)
+    path = Path(temporary.name) / "overrides.json"
 
     path.write_text(
         json.dumps({"ammunition_overrides": {"1": {"target": "AMMO_TYPE_UNDEFINED"}}})

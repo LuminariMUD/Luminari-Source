@@ -135,7 +135,6 @@ RANGED_WEAPON_TYPES = frozenset({
     "WEAPON_TYPE_HEAVY_CROSSBOW",
     "WEAPON_TYPE_LIGHT_CROSSBOW",
     "WEAPON_TYPE_DART",
-    "WEAPON_TYPE_JAVELIN",
     "WEAPON_TYPE_SLING",
     "WEAPON_TYPE_LONG_BOW",
     "WEAPON_TYPE_SHORT_BOW",
@@ -246,10 +245,9 @@ SOURCE_UNSPECIFIC_RANGE_TYPES = frozenset({8, 17, 18})
 # Source ITEM_FIREWEAPON value[7] to target weapon type. Elven bows are RoL's
 # better tier (range 100/200 against 65/120), which is what the composite types
 # express; the _2.._5 variants encode a strength rating no source record
-# carries. Javelin deliberately becomes SHORTSPEAR rather than
-# WEAPON_TYPE_JAVELIN: the latter is WEAPON_FLAG_RANGED with no case in
-# has_ammo_in_pouch(), so it could never fire and do_hit would refuse to melee
-# with it. SHORTSPEAR is the same 1d6 piercing thrown profile without the flag.
+# carries. Source thrown weapons retain their native target weapon identity and
+# become melee-usable ITEM_WEAPON records until the target gains a throwing
+# command.
 SOURCE_RANGE_WEAPON_TYPES: dict[int, str] = {
     1: "WEAPON_TYPE_SHORT_BOW",
     2: "WEAPON_TYPE_LONG_BOW",
@@ -263,7 +261,7 @@ SOURCE_RANGE_WEAPON_TYPES: dict[int, str] = {
     11: "WEAPON_TYPE_LIGHT_HAMMER",
     12: "WEAPON_TYPE_THROWING_AXE",
     13: "WEAPON_TYPE_SLING",
-    14: "WEAPON_TYPE_SHORTSPEAR",
+    14: "WEAPON_TYPE_JAVELIN",
     15: "WEAPON_TYPE_SPEAR",
     16: "WEAPON_TYPE_DART",
 }
@@ -289,7 +287,7 @@ SOURCE_MISSILE_WEAPON_TYPES: dict[int, str] = {
     9: "WEAPON_TYPE_DAGGER",
     11: "WEAPON_TYPE_LIGHT_HAMMER",
     12: "WEAPON_TYPE_THROWING_AXE",
-    14: "WEAPON_TYPE_SHORTSPEAR",
+    14: "WEAPON_TYPE_JAVELIN",
     15: "WEAPON_TYPE_SPEAR",
 }
 
@@ -461,7 +459,7 @@ _RULES: list[tuple[str, Callable[[str], bool], int | _Resolver]] = [
     ("trident", _phrase("trident", "fork", "pitchfork"),
      WEAPON_TYPE_IDS["WEAPON_TYPE_TRIDENT"]),
     ("javelin", _phrase("javelin", "harpoon"),
-     WEAPON_TYPE_IDS["WEAPON_TYPE_SHORTSPEAR"]),
+     WEAPON_TYPE_IDS["WEAPON_TYPE_JAVELIN"]),
     ("longspear", _phrase("longspear", "long spear", "pike", "lugged spear"),
      WEAPON_TYPE_IDS["WEAPON_TYPE_LONGSPEAR"]),
     ("shortspear", _phrase("shortspear", "short spear", "half spear"),
