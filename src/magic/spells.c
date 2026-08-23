@@ -4887,6 +4887,42 @@ ASPELL(spell_song_of_travel)
   }
 }
 
+ASPELL(spell_poltergeist)
+{
+  struct char_data *target;
+  int eligible;
+  int selected;
+  int strike;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  send_to_room(IN_ROOM(ch),
+               "Dark forms coalesce from shadow and begin hurling invisible force!\r\n");
+  for (strike = 0; strike < 3; strike++)
+  {
+    eligible = 0;
+    for (target = world[IN_ROOM(ch)].people; target; target = target->next_in_room)
+      if (target != ch && !IS_INCORPOREAL(target) && aoeOK(ch, target, SPELL_POLTERGEIST))
+        eligible++;
+
+    if (eligible == 0)
+      break;
+
+    selected = rand_number(1, eligible);
+    for (target = world[IN_ROOM(ch)].people; target; target = target->next_in_room)
+    {
+      if (target == ch || IS_INCORPOREAL(target) || !aoeOK(ch, target, SPELL_POLTERGEIST))
+        continue;
+      if (--selected == 0)
+        break;
+    }
+
+    if (target != NULL)
+      mag_damage(level, ch, target, NULL, SPELL_POLTERGEIST, 0, SAVING_REFL, casttype);
+  }
+}
+
 int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage)
 {
   if (victim == NULL || damage <= 0)

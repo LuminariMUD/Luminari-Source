@@ -2,8 +2,8 @@
 
 Status: implementation in progress. The source audit was completed and
 independently re-verified 2026-08-23 against `sparser.c`, `spells.h`,
-`spell_parser.c`, and `psionics.c`. The first implementation checkpoint adds
-22 of the 75 functional gaps through the native magic paths.
+`spell_parser.c`, and `psionics.c`. The first two implementation checkpoints
+add 51 of the 75 functional gaps through the native magic paths.
 
 This list compares every unique spell registered through `SPELL_CREATE()` in
 Realms of Luminari with LuminariMUD's registered spells and closely equivalent
@@ -86,8 +86,46 @@ staff without changing any player class spell list.
 | natures blessing | Improves attacks and saves and reduces area-spell damage by 25 percent. |
 | song of travel | Restores group movement, grants flight, and increases travel speed. |
 
-The complete audited inventory remains below. Later checkpoints will move the
-remaining 53 entries into implementation groups while preserving this original
+### Implementation checkpoint 2: offensive and control spells
+
+These 29 spells use the existing damage, affect, projectile-loop, and area
+magic routines. Poltergeist uses a direct spell handler solely for its random
+room-target selection. None has a class or domain assignment.
+
+| Spell | Implemented gameplay purpose |
+|-------|------------------------------|
+| sandblast | Deals earth damage and can blind, then silence, an already blinded target. |
+| fell frost | Deals heavy cold damage, slows targets, and can freeze an already slowed target. |
+| nerve dance | Deals negative-energy damage to living, corporeal, non-elemental targets. |
+| spectral hand | Strikes one target with negative energy. |
+| rain of blood | Deals unholy damage to eligible enemies throughout the room. |
+| rot | Deals negative-energy area damage only to living, corporeal targets. |
+| ice tomb | Deals heavy cold damage and can paralyze a badly wounded target. |
+| constriction | Deals force damage, interrupts casting, and briefly silences the target. |
+| sandstorm | Deals area earth damage and can blind and stagger its victims. |
+| blacklight burst | Deals area unholy damage and slows victims; undead take reduced damage. |
+| minute meteors | Launches up to five small fire projectiles at one target. |
+| thunder lance | Deals electrical damage and shatters lesser globes and energy wards. |
+| shadow bolt | Launches up to five illusion-damage projectiles at one target. |
+| shadow burst | Deals illusion damage to eligible enemies throughout the room. |
+| shadow magic | Deals single-target illusion damage. |
+| phantasmal blades | Deals slashing illusion damage throughout the room. |
+| needle swarm | Deals puncture damage to one target. |
+| snapping teeth | Deals slashing damage to one target. |
+| beltyns burning blood | Ignites a wounded living target's blood and leaves the target burning. |
+| blackmantle | Suppresses normal regeneration and reduces healing. |
+| earthblood | Deals earth damage and can briefly solidify a living target in place. |
+| soul tempest | Deals force damage to eligible enemies throughout the room. |
+| dust devil | Deals air damage and can tear a droppable weapon from the target's grasp. |
+| suffocate | Deals air damage and briefly silences the target. |
+| blackthorns | Deals puncture damage to one target. |
+| shadechill | Deals cold illusion damage to one target. |
+| air blast | Deals air damage to one target. |
+| shadow flux | Temporarily strips a large amount of spell resistance. |
+| poltergeist | Hurls three force strikes at randomly selected eligible room targets. |
+
+The complete audited inventory remains below. A later checkpoint will move the
+remaining 24 entries into implementation groups while preserving this original
 source-to-target accounting.
 
 | RoL ID | RoL spell | RoL constant |

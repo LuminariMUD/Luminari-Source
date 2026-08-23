@@ -38,6 +38,44 @@ static const int foundational_spells[] = {
     SPELL_SONG_OF_TRAVEL,
 };
 
+struct spell_registration_expectation
+{
+  int spellnum;
+  int routines;
+};
+
+static const struct spell_registration_expectation offensive_spells[] = {
+    {SPELL_SANDBLAST, MAG_DAMAGE | MAG_AFFECTS},
+    {SPELL_FELL_FROST, MAG_DAMAGE | MAG_AFFECTS},
+    {SPELL_NERVE_DANCE, MAG_DAMAGE},
+    {SPELL_SPECTRAL_HAND, MAG_DAMAGE},
+    {SPELL_RAIN_OF_BLOOD, MAG_AREAS},
+    {SPELL_ROT, MAG_AREAS},
+    {SPELL_ICE_TOMB, MAG_DAMAGE | MAG_AFFECTS},
+    {SPELL_CONSTRICTION, MAG_DAMAGE | MAG_AFFECTS},
+    {SPELL_SANDSTORM, MAG_AREAS | MAG_AFFECTS},
+    {SPELL_BLACKLIGHT_BURST, MAG_AREAS | MAG_AFFECTS},
+    {SPELL_MINUTE_METEORS, MAG_LOOPS},
+    {SPELL_THUNDER_LANCE, MAG_DAMAGE},
+    {SPELL_SHADOW_BOLT, MAG_LOOPS},
+    {SPELL_SHADOW_BURST, MAG_AREAS},
+    {SPELL_SHADOW_MAGIC, MAG_DAMAGE},
+    {SPELL_PHANTASMAL_BLADES, MAG_AREAS},
+    {SPELL_NEEDLE_SWARM, MAG_DAMAGE},
+    {SPELL_SNAPPING_TEETH, MAG_DAMAGE},
+    {SPELL_BELTYNS_BURNING_BLOOD, MAG_DAMAGE | MAG_AFFECTS},
+    {SPELL_BLACKMANTLE, MAG_AFFECTS},
+    {SPELL_EARTHBLOOD, MAG_DAMAGE | MAG_AFFECTS},
+    {SPELL_SOUL_TEMPEST, MAG_AREAS},
+    {SPELL_DUST_DEVIL, MAG_DAMAGE | MAG_AFFECTS},
+    {SPELL_SUFFOCATE, MAG_DAMAGE | MAG_AFFECTS},
+    {SPELL_BLACKTHORNS, MAG_DAMAGE},
+    {SPELL_SHADECHILL, MAG_DAMAGE},
+    {SPELL_AIR_BLAST, MAG_DAMAGE},
+    {SPELL_SHADOW_FLUX, MAG_AFFECTS},
+    {SPELL_POLTERGEIST, MAG_MANUAL},
+};
+
 static void add_test_affect(struct char_data *ch, int spellnum, int location, int modifier)
 {
   struct affected_type af;
@@ -71,6 +109,29 @@ void TestFoundationalSpellsAreRegisteredWithoutClassAssignments(CuTest *tc)
     CuAssertTrue(tc, spell_info[spellnum].name != NULL);
     CuAssertTrue(tc, spell_info[spellnum].name != unused_spellname);
     CuAssertTrue(tc, IS_SET(spell_info[spellnum].routines, MAG_MANUAL));
+
+    for (class_num = 0; class_num < NUM_CLASSES; class_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].min_level[class_num]);
+    for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].domain[domain_num]);
+  }
+}
+
+void TestOffensiveSpellsUseNativeRoutinesWithoutClassAssignments(CuTest *tc)
+{
+  size_t index;
+  int class_num;
+  int domain_num;
+  int spellnum;
+
+  mag_assign_spells();
+
+  for (index = 0; index < sizeof(offensive_spells) / sizeof(offensive_spells[0]); index++)
+  {
+    spellnum = offensive_spells[index].spellnum;
+    CuAssertTrue(tc, spell_info[spellnum].name != NULL);
+    CuAssertTrue(tc, spell_info[spellnum].name != unused_spellname);
+    CuAssertIntEquals(tc, offensive_spells[index].routines, spell_info[spellnum].routines);
 
     for (class_num = 0; class_num < NUM_CLASSES; class_num++)
       CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].min_level[class_num]);

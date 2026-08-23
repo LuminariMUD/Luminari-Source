@@ -1886,6 +1886,7 @@ ASPELL(spell_tranquility);
 ASPELL(spell_agility);
 ASPELL(spell_natures_blessing);
 ASPELL(spell_song_of_travel);
+ASPELL(spell_poltergeist);
 
 int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage);
 int adjust_damage_for_creature_wards(struct char_data *attacker, struct char_data *victim,

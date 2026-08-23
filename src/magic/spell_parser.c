@@ -968,7 +968,7 @@ SAVING_WILL here...  */
       return (-1); /* Successful and target died, don't cast again. */
 
   if (IS_SET(SINFO.routines, MAG_LOOPS))
-    mag_loops(spell_level, caster, cvict, ovict, spellnum, savetype, casttype, metamagic);
+    mag_loops(spell_level, caster, cvict, ovict, spellnum, metamagic, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_AFFECTS))
     mag_affects(spell_level, caster, cvict, ovict, spellnum, savetype, casttype, metamagic);
@@ -1069,6 +1069,9 @@ SAVING_WILL here...  */
       break;
     case SPELL_SONG_OF_TRAVEL:
       MANUAL_SPELL(spell_song_of_travel);
+      break;
+    case SPELL_POLTERGEIST:
+      MANUAL_SPELL(spell_poltergeist);
       break;
     case SPELL_GIRD_ALLIES:
       MANUAL_SPELL(spell_gird_allies);
@@ -6248,6 +6251,86 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
          MAG_MANUAL, "Nature's blessing leaves you.", 3, 3, ABJURATION, FALSE);
   spello(SPELL_SONG_OF_TRAVEL, "song of travel", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
          MAG_MANUAL, "The traveling melody fades from your thoughts.", 3, 3, TRANSMUTATION, FALSE);
+  spello(SPELL_SANDBLAST, "sandblast", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The last grains of blinding sand fall away.", 6, 6, EVOCATION, FALSE);
+  spello(SPELL_FELL_FROST, "fell frost", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The fell frost releases your limbs.", 6, 6, EVOCATION, FALSE);
+  spello(SPELL_NERVE_DANCE, "nerve dance", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 4, 4, NECROMANCY,
+         FALSE);
+  spello(SPELL_SPECTRAL_HAND, "spectral hand", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 3, 3, NECROMANCY,
+         FALSE);
+  spello(SPELL_RAIN_OF_BLOOD, "rain of blood", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 6, 6, NECROMANCY, FALSE);
+  spello(SPELL_ROT, "rot", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS, NULL, 5, 5,
+         NECROMANCY, FALSE);
+  spello(SPELL_ICE_TOMB, "ice tomb", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The ice tomb around you shatters.", 6, 6, NECROMANCY, FALSE);
+  spello(SPELL_CONSTRICTION, "constriction", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The constriction around your throat releases.", 4, 4, EVOCATION, FALSE);
+  spello(SPELL_SANDSTORM, "sandstorm", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE,
+         MAG_AREAS | MAG_AFFECTS, "The scouring sand clears from your eyes.", 6, 6, EVOCATION,
+         FALSE);
+  spello(SPELL_BLACKLIGHT_BURST, "blacklight burst", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE,
+         MAG_AREAS | MAG_AFFECTS, "The black light no longer slows you.", 5, 5, NECROMANCY, FALSE);
+  spello(SPELL_MINUTE_METEORS, "minute meteors", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_LOOPS, NULL, 3, 3, EVOCATION,
+         FALSE);
+  spello(SPELL_THUNDER_LANCE, "thunder lance", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 4, 4, EVOCATION,
+         FALSE);
+  spello(SPELL_SHADOW_BOLT, "shadow bolt", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_LOOPS, NULL, 2, 2, ILLUSION,
+         FALSE);
+  spello(SPELL_SHADOW_BURST, "shadow burst", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 4, 4, ILLUSION, FALSE);
+  spello(SPELL_SHADOW_MAGIC, "shadow magic", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 3, 3, ILLUSION,
+         FALSE);
+  spello(SPELL_PHANTASMAL_BLADES, "phantasmal blades", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE,
+         MAG_AREAS, NULL, 6, 6, ILLUSION, FALSE);
+  spello(SPELL_NEEDLE_SWARM, "needle swarm", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 4, 4, CONJURATION,
+         FALSE);
+  spello(SPELL_SNAPPING_TEETH, "snapping teeth", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 4, 4, CONJURATION,
+         FALSE);
+  spello(SPELL_BELTYNS_BURNING_BLOOD, "beltyns burning blood", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "Your blood stops burning.", 6, 6, NECROMANCY, FALSE);
+  spello(SPELL_BLACKMANTLE, "blackmantle", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
+         "The black mantle around you dissipates.", 4, 4, NECROMANCY, FALSE);
+  spello(SPELL_EARTHBLOOD, "earthblood", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "Your body is no longer rigid with elemental earth.", 6, 6, EVOCATION, FALSE);
+  spello(SPELL_SOUL_TEMPEST, "soul tempest", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 6, 6, NECROMANCY, FALSE);
+  spello(SPELL_DUST_DEVIL, "dust devil", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, NULL, 3, 3,
+         CONJURATION, FALSE);
+  spello(SPELL_SUFFOCATE, "suffocate", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "Air rushes back into your lungs.", 5, 5, TRANSMUTATION, FALSE);
+  spello(SPELL_BLACKTHORNS, "blackthorns", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 3, 3, ILLUSION,
+         FALSE);
+  spello(SPELL_SHADECHILL, "shadechill", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 6, 6, ILLUSION,
+         FALSE);
+  spello(SPELL_AIR_BLAST, "air blast", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_DAMAGE, NULL, 2, 2, EVOCATION,
+         FALSE);
+  spello(SPELL_SHADOW_FLUX, "shadow flux", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
+         "The shadow flux around you dissipates.", 4, 4, ILLUSION, FALSE);
+  spello(SPELL_POLTERGEIST, "poltergeist", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_MANUAL,
+         NULL, 4, 4, NECROMANCY, FALSE);
 
   /* Declaration of skills - this assigns categories and also will set it up
    * so that immortals can use these skills by default.  The min level to use
