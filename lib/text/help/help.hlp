@@ -4761,13 +4761,18 @@ COLD-SHIELD
 #0
 COLLECT
 
-The 'collect' command will attempt to gather all your ammo in the
-room you are currently standing in.  It will automatically find your
-ammo in the room, and in any corpses in the same room.  This is avery
-helpful command especially if you have multiple archers fighting in the
-same room.
+Usage: collect
 
-See also: AUTOCOLLECT
+COLLECT gathers physical projectiles that you fired or threw. It searches the
+current room and corpses in that room, and never collects projectiles belonging
+to another character.
+
+An equipped ammo pouch receives recovered missiles and eligible throwable
+weapons while it has object-count capacity. A throwable weapon falls back to
+top-level inventory when the pouch is absent, incompatible, or full and you
+can carry it. Launcher ammunition still requires a usable ammo pouch.
+
+See also: AMMO, AUTOCOLLECT, FIRE, QUIVERS, THROW, THROWN-WEAPONS
 
 #0
 COLOR-SPRAY COLORSPRAY
@@ -7776,7 +7781,7 @@ Example:
 
 See also: VMOUNT, VDISMOUNT, VSTATUS
 #0
-DROP THROWN
+DROP
 
 Usage: drop <item>
        drop all.<item>
@@ -25659,6 +25664,34 @@ commands.
 
 See also: BUG, TYPO, IDEA
 #0
+RETURNING THROW THROWING THROWN THROWN-WEAPON THROWN-WEAPONS
+
+Usage: throw <target>
+       throw <target> <direction>
+
+THROW starts ranged combat with a throwable weapon. The first eligible weapon
+wielded two-handed, in the primary hand, or in the off hand becomes the anchor.
+Weapons marked as thrown are eligible; the Throwing special ability can also
+make an otherwise melee weapon eligible. Returning alone does not.
+
+Each attack uses one actual copy of the anchor's object vnum. Copies are chosen
+in this exact order: the equipped ammo pouch, top-level inventory, then the
+wielded anchor itself. Ordinary containers and other equipment slots are not
+searched. The wielded copy is unequipped only when all reserves are gone, and
+throwing mode ends if that last copy does not return.
+
+Without a direction, the target must be in the same room. With a valid
+direction and the required Far Shot or ranger Longshot benefit, THROW can use
+the same one-adjacent-room targeting rules as FIRE.
+
+Thrown weapons use ranged accuracy and defenses, but add the thrower's full
+Strength modifier to damage. Rapid Shot and ranger Quick Draw can add throws;
+Manyshot remains launcher-only. A Returning weapon comes back after the attack
+unless it was destroyed or successfully caught with Snatch Arrows. Use COLLECT
+to recover your other thrown weapons from the room or corpses.
+
+See also: AMMO, COLLECT, FIRE, QUIVERS
+#0
 THACO
 
 The stock system of THAC0 has been replaced with BAB.
@@ -28917,29 +28950,30 @@ called HOMELAND-QUEST-SYSTEM in the help files.
 
 See Also: QUEST, QEDIT, QUEST-FLAG
 
-#1
-AMMO ARCHERY BLAST BOWS FIRE-WEAPONS MISSILES QUIVERS RANGED-WEAPONS SHOOT
+#0
+AMMO AMMUNITION ARCHERY BLAST BOWS FIRE FIRE-WEAPONS MISSILES QUIVER QUIVERS RANGED-WEAPONS SHOOT
 
-Usage:  fire <target> <optionally direction>
-       if <target> is group member or pet, you will assist them...
+Usage: fire <target>
+       fire <target> <direction>
+       collect
 
-Usage:  collect
+FIRE starts a launcher attack with a wielded bow, crossbow, sling, or blowgun.
+You must equip an ammo pouch containing a compatible arrow, bolt, stone, or
+blowgun dart. Mixed pouches are supported: FIRE scans past incompatible
+missiles and throwable weapons for the first compatible missile.
 
-The 'fire' command is used to utilize your ranged weapon.  To make
-a ranged-attack you need a fire-weapon of some sort, like a bow.  You
-will also need an ammo-pouch, like a quiver.  And finally you need
-to make sure appropriate ammo is in your ammo-pouch, like arrows.
+Ammo-pouch capacity is a number of objects, not a weight. A pouch accepts
+missiles and eligible transferable throwable weapons, but rejects launchers,
+ordinary melee weapons, nested containers, and unrelated items. It uses the
+single equipped ammo-pouch slot; containers worn elsewhere are not ammunition
+sources.
 
-If you wanted to target a fido you saw to your south:
-fire fido south
+FIRE is launcher-only. A dart used as a weapon is thrown with THROW; a blowgun
+fires ITEM_MISSILE darts with FIRE. Use RELOAD for launchers that require it.
+COLLECT recovers your owner-tagged missiles and thrown weapons from the room
+and corpses.
 
-The 'collect' command is used to gather all your ammo without
-confusing your ammo for your fellow group-mates or adventurers.
-
-If you wanted to collect your ammo after defeating the fido:
-type:  collect, in the room of its corpse.
-
-See Also:  COMBAT
+See also: COLLECT, COMBAT, RELOAD, THROW, THROWN-WEAPONS
 
 #1
 BOATS FERRY SHIPS TRANSPORTSS

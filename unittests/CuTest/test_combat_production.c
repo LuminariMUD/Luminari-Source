@@ -361,11 +361,22 @@ void Test_combat_production_weapon_lookup_excludes_natural_attacks(CuTest *tc)
   struct obj_data primary;
   struct obj_data offhand;
   struct obj_data twohand;
+  struct player_special_data player_specials;
 
   memset(&ch, 0, sizeof(ch));
   memset(&primary, 0, sizeof(primary));
   memset(&offhand, 0, sizeof(offhand));
   memset(&twohand, 0, sizeof(twohand));
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  load_weapons();
+
+  GET_OBJ_TYPE(&primary) = ITEM_WEAPON;
+  GET_OBJ_VAL(&primary, 0) = WEAPON_TYPE_LONG_SWORD;
+  GET_OBJ_TYPE(&offhand) = ITEM_WEAPON;
+  GET_OBJ_VAL(&offhand, 0) = WEAPON_TYPE_BLOWGUN;
+  GET_OBJ_TYPE(&twohand) = ITEM_WEAPON;
+  GET_OBJ_VAL(&twohand, 0) = WEAPON_TYPE_LONG_BOW;
 
   GET_EQ(&ch, WEAR_WIELD_1) = &primary;
   GET_EQ(&ch, WEAR_WIELD_OFFHAND) = &offhand;
@@ -374,6 +385,7 @@ void Test_combat_production_weapon_lookup_excludes_natural_attacks(CuTest *tc)
   CuAssertPtrEquals(tc, &primary, test_get_wielded(&ch, ATTACK_TYPE_PRIMARY));
   CuAssertPtrEquals(tc, &offhand, test_get_wielded(&ch, ATTACK_TYPE_OFFHAND));
   CuAssertPtrEquals(tc, &twohand, test_get_wielded(&ch, ATTACK_TYPE_TWOHAND));
+  CuAssertPtrEquals(tc, &twohand, test_get_wielded(&ch, ATTACK_TYPE_RANGED));
   CuAssertPtrEquals(tc, NULL, test_get_wielded(&ch, ATTACK_TYPE_UNARMED));
   CuAssertPtrEquals(tc, NULL, test_get_wielded(&ch, ATTACK_TYPE_PRIMARY_EVO_BITE));
   CuAssertPtrEquals(tc, NULL, test_get_wielded(&ch, ATTACK_TYPE_PRIMARY_EVO_CLAWS));

@@ -816,11 +816,14 @@ retaliation when caught - <code>MOB_ROL_STAY_SECTOR</code> restricts
 random wandering to the mobile’s current sector -
 <code>MOB_ROL_DELAY_HUNTER</code> becomes <code>MOB_HUNTER</code> after
 the mobile falls below 90 percent HP - <code>MOB_ROL_ARCHER</code> lets
-an equipped mobile fire at a valid target one room away -
-<code>MOB_ROL_HAS_PS</code>, <code>MOB_ROL_HAS_CL</code>,
-<code>MOB_ROL_HAS_MU</code>, <code>MOB_ROL_HAS_TH</code>, and
-<code>MOB_ROL_HAS_WA</code> retain independent source class-behavior
-roles - <code>MOB_ROL_AGGR_RACE_EVIL</code> and
+an equipped mobile fire a launcher, or throw an eligible wielded weapon
+when no usable launcher exists, at a valid target one room away.
+Ordinary mobiles do not gain automatic throwing merely by wielding a
+throwable weapon. - <code>MOB_ROL_HAS_PS</code>,
+<code>MOB_ROL_HAS_CL</code>, <code>MOB_ROL_HAS_MU</code>,
+<code>MOB_ROL_HAS_TH</code>, and <code>MOB_ROL_HAS_WA</code> retain
+independent source class-behavior roles -
+<code>MOB_ROL_AGGR_RACE_EVIL</code> and
 <code>MOB_ROL_AGGR_RACE_GOOD</code> use the converted source race groups
 rather than current character alignment - <code>MOB_ROL_DEMON</code> and
 <code>MOB_ROL_DEVIL</code> preserve the source boot-time planar
@@ -1648,7 +1651,7 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>MOB_ROL_ARCHER</td>
 <td>RoL-Archer</td>
 <td>Compatibility</td>
-<td>Fires into an adjacent room</td>
+<td>Fires or throws into an adjacent room</td>
 </tr>
 <tr class="even">
 <td>109</td>

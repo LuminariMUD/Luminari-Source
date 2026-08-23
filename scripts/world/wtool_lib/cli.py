@@ -139,9 +139,14 @@ def _parser() -> argparse.ArgumentParser:
   )
   rol_inventory.add_argument("--source-root", type=Path, default=_default_rol_source_root())
 
-  commands.add_parser(
+  rol_persistence_check = commands.add_parser(
       "rol-persistence-check",
       help="read-only check of persisted RoL VNUMs in the local development database",
+  )
+  rol_persistence_check.add_argument(
+      "--development-lib-root",
+      type=Path,
+      help="explicit development lib root containing .env and mysql_config",
   )
 
   rol_baseline = commands.add_parser(
@@ -251,6 +256,11 @@ def _parser() -> argparse.ArgumentParser:
   rol_phase8.add_argument("--install-log", type=Path, required=True)
   rol_phase8.add_argument("--syntax-log", type=Path, required=True)
   rol_phase8.add_argument("--runtime-log", type=Path, required=True)
+  rol_phase8.add_argument(
+      "--development-lib-root",
+      type=Path,
+      help="explicit development lib root used only by the read-only persistence gate",
+  )
   rol_phase8.add_argument("--output-dir", type=Path, required=True)
   rol_phase8.add_argument("--created-at")
 
@@ -522,7 +532,9 @@ def _run_rol_persistence_check(args: argparse.Namespace) -> int:
       load_manifest(default_manifest_path(repo_root)),
       resolve_config(world_root, None),
   )
-  result = audit_development_persistence(world, repo_root)
+  result = audit_development_persistence(
+      world, repo_root, args.development_lib_root
+  )
   if args.json_output:
     _print_json(result)
   else:
@@ -687,6 +699,7 @@ def _run_rol_phase8(args: argparse.Namespace) -> int:
           "syntax": args.syntax_log,
           "runtime": args.runtime_log,
       },
+      development_lib_root=args.development_lib_root,
       created_at=args.created_at,
   )
   if args.json_output:

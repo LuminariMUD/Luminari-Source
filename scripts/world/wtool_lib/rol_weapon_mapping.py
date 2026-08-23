@@ -3,7 +3,7 @@
 Realms of Luminari stores no weapon identity. A source weapon carries a proc
 hook in ``value[0]``, damage dice in ``value[1]``/``value[2]``, and a verb index
 in ``value[3]``; nothing in the record names the weapon. Luminari drives every
-weapon off ``value[0]``, an index into ``weapon_list[]`` (``WEAPON_TYPE_*`` 1..79
+weapon off ``value[0]``, an index into ``weapon_list[]`` (``WEAPON_TYPE_*`` 1..80
 in ``src/structs.h``, populated by ``load_weapons()`` in
 ``src/combat/assign_wpn_armor.c``). Passing the source ``value[0]`` through lands
 converted weapons on ``WEAPON_TYPE_UNDEFINED``, which disables criticals, leaves
@@ -120,10 +120,11 @@ WEAPON_TYPE_NAMES: dict[int, str] = {
     77: "WEAPON_TYPE_HOOPAK",
     78: "WEAPON_TYPE_FOOTMANS_LANCE",
     79: "WEAPON_TYPE_ATHAME",
+    80: "WEAPON_TYPE_BLOWGUN",
 }
 
 WEAPON_TYPE_IDS: dict[str, int] = {name: value for value, name in WEAPON_TYPE_NAMES.items()}
-NUM_WEAPON_TYPES = 80
+NUM_WEAPON_TYPES = 81
 
 # Weapon types load_weapons() marks WEAPON_FLAG_RANGED. A source ITEM_WEAPON is
 # a melee record -- it carries a melee verb and the source runtime resolves it
@@ -134,7 +135,6 @@ NUM_WEAPON_TYPES = 80
 RANGED_WEAPON_TYPES = frozenset({
     "WEAPON_TYPE_HEAVY_CROSSBOW",
     "WEAPON_TYPE_LIGHT_CROSSBOW",
-    "WEAPON_TYPE_DART",
     "WEAPON_TYPE_SLING",
     "WEAPON_TYPE_LONG_BOW",
     "WEAPON_TYPE_SHORT_BOW",
@@ -151,13 +151,14 @@ RANGED_WEAPON_TYPES = frozenset({
     "WEAPON_TYPE_HAND_CROSSBOW",
     "WEAPON_TYPE_HEAVY_REP_XBOW",
     "WEAPON_TYPE_LIGHT_REP_XBOW",
+    "WEAPON_TYPE_BLOWGUN",
 })
 
-# A ranged WEAPON_TYPE_* may only be emitted when has_ammo_in_pouch()
-# (src/combat/assign_wpn_armor.c:566) carries a case pairing it with an ammo
-# type. Every other ranged type is an item that can neither fire -- no ammo
-# pairs with it -- nor melee, because do_hit (src/combat/act.offensive.c:4667)
-# refuses to start melee for a wielded WEAPON_FLAG_RANGED weapon.
+# A ranged WEAPON_TYPE_* may only be emitted when
+# is_compatible_launcher_ammo() pairs it with an ammo type. Every other ranged
+# type is an item that can neither fire -- no ammo pairs with it -- nor melee,
+# because do_hit refuses to start melee for a wielded WEAPON_FLAG_RANGED
+# weapon.
 # test_rol_weapon_mapping.py reparses that switch and fails if the set drifts.
 AMMO_PAIRED_WEAPON_TYPES = frozenset({
     "WEAPON_TYPE_LONG_BOW",
@@ -178,7 +179,7 @@ AMMO_PAIRED_WEAPON_TYPES = frozenset({
     "WEAPON_TYPE_HEAVY_CROSSBOW",
     "WEAPON_TYPE_LIGHT_CROSSBOW",
     "WEAPON_TYPE_SLING",
-    "WEAPON_TYPE_DART",
+    "WEAPON_TYPE_BLOWGUN",
 })
 
 # Mirrors the AMMO_TYPE_* block in src/structs.h.
@@ -203,11 +204,9 @@ TARGET_ITEM_CONTAINER = 15
 TARGET_ITEM_AMMO_POUCH = 36
 
 # RoL quivers declare their kind in value[3]
-# (EXAMPLE/RealmsOfLuminari/src/missile.c:53). An archery quiver holds
-# ITEM_MISSILE records and becomes an ammo pouch; a throwing quiver holds
-# thrown ITEM_FIREWEAPON records, which convert to ITEM_WEAPON, and an ammo
-# pouch may hold nothing but ITEM_MISSILE -- both has_ammo_in_pouch() and
-# do_put (src/obj/act.item.c:2022) enforce that -- so it becomes a container.
+# (EXAMPLE/RealmsOfLuminari/src/missile.c:53). Both archery and throwing
+# quivers become ammo pouches: the target accepts compatible ITEM_MISSILE
+# records and throwable ITEM_WEAPON records in the shared pouch slot.
 SOURCE_QUIVER_ARCHERY = 1
 SOURCE_QUIVER_THROWING = 2
 
@@ -246,8 +245,8 @@ SOURCE_UNSPECIFIC_RANGE_TYPES = frozenset({8, 17, 18})
 # better tier (range 100/200 against 65/120), which is what the composite types
 # express; the _2.._5 variants encode a strength rating no source record
 # carries. Source thrown weapons retain their native target weapon identity and
-# become melee-usable ITEM_WEAPON records until the target gains a throwing
-# command.
+# become melee-by-default ITEM_WEAPON records that the explicit throw command
+# can use.
 SOURCE_RANGE_WEAPON_TYPES: dict[int, str] = {
     1: "WEAPON_TYPE_SHORT_BOW",
     2: "WEAPON_TYPE_LONG_BOW",
@@ -263,7 +262,7 @@ SOURCE_RANGE_WEAPON_TYPES: dict[int, str] = {
     13: "WEAPON_TYPE_SLING",
     14: "WEAPON_TYPE_JAVELIN",
     15: "WEAPON_TYPE_SPEAR",
-    16: "WEAPON_TYPE_DART",
+    16: "WEAPON_TYPE_BLOWGUN",
 }
 
 # Source ITEM_MISSILE value[3] to target AMMO_TYPE_*.
@@ -275,16 +274,15 @@ SOURCE_MISSILE_AMMO_TYPES: dict[int, str] = {
     5: "AMMO_TYPE_BOLT",
     6: "AMMO_TYPE_BOLT",
     7: "AMMO_TYPE_BOLT",
-    10: "AMMO_TYPE_DART",
     13: "AMMO_TYPE_STONE",
     16: "AMMO_TYPE_DART",
 }
 
-# Source ITEM_MISSILE types the target has no ammunition for. The target has no
-# throwing command at all, so these records are retyped to ITEM_WEAPON and
-# become the melee weapon they are.
+# Source ITEM_MISSILE types representing physical thrown weapons are retyped
+# to ITEM_WEAPON so they remain melee-usable and can be delivered by throw.
 SOURCE_MISSILE_WEAPON_TYPES: dict[int, str] = {
     9: "WEAPON_TYPE_DAGGER",
+    10: "WEAPON_TYPE_DART",
     11: "WEAPON_TYPE_LIGHT_HAMMER",
     12: "WEAPON_TYPE_THROWING_AXE",
     14: "WEAPON_TYPE_JAVELIN",
@@ -758,7 +756,7 @@ _LAUNCHER_NAME_RULES: list[tuple[str, Callable[[str], bool], str]] = [
     ("bow", _phrase("bow", "longbow", "long bow", "warbow"), "WEAPON_TYPE_LONG_BOW"),
     ("sling", _phrase("sling", "slingshot"), "WEAPON_TYPE_SLING"),
     ("dart launcher", _phrase("blowgun", "blow gun", "dart gun", "dartgun"),
-     "WEAPON_TYPE_DART"),
+     "WEAPON_TYPE_BLOWGUN"),
 ]
 
 _AMMUNITION_NAME_RULES: list[tuple[str, Callable[[str], bool], str]] = [
@@ -790,9 +788,8 @@ class AmmoInference:
   """A resolved ammunition identity plus the trail that produced it.
 
   ``item_type`` is the target item type the record must be emitted as. Source
-  ammunition the target has no ammo type for is retyped to ``ITEM_WEAPON``,
-  because the target has no throwing command and a thrown record is only ever
-  swung there.
+  physical thrown ammunition is retyped to ``ITEM_WEAPON`` so it can be used
+  in melee or delivered by the target's explicit throw command.
   """
 
   item_type: int
@@ -958,7 +955,7 @@ def infer_ranged_weapon_type(record: Any) -> WeaponInference:
   if inference.name in RANGED_WEAPON_TYPES and inference.name not in AMMO_PAIRED_WEAPON_TYPES:
     raise ValueError(
         f"source object {record.vnum} resolved to ranged weapon type {inference.name}, "
-        "which has no case in has_ammo_in_pouch() and could never fire"
+        "which has no case in is_compatible_launcher_ammo() and could never fire"
     )
   return inference
 

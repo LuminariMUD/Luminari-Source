@@ -65,6 +65,9 @@ static void Crash_cryosave(struct char_data *ch, int cost);
 static int Crash_load_objs(struct char_data *ch);
 static int handle_obj(struct obj_data *obj, struct char_data *ch, int locate,
                       struct obj_data **cont_rows);
+static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_data *ch,
+                                            room_vnum house_vnum, FILE *fp, int locate,
+                                            bool persist_database);
 static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, struct char_data *ch);
 static bool objsave_replace_special_ability(struct obj_data *obj, const char *line);
 static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct char_data *owner,
@@ -114,7 +117,13 @@ static bool objsave_replace_special_ability(struct obj_data *obj, const char *li
 
 int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp, int locate)
 {
-  return objsave_save_obj_record_db(obj, ch, NOWHERE, fp, locate);
+  return objsave_save_obj_record_internal(obj, ch, NOWHERE, fp, locate, TRUE);
+}
+
+int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_vnum house_vnum,
+                               FILE *fp, int locate)
+{
+  return objsave_save_obj_record_internal(obj, ch, house_vnum, fp, locate, TRUE);
 }
 
 /* Writes one object record to FILE.  Old name: Obj_to_store() */
@@ -131,8 +140,9 @@ int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp
  * NB: Database saving is partially implemented. *
 
  */
-int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_vnum house_vnum,
-                               FILE *fp, int locate)
+static int objsave_save_obj_record_internal(struct obj_data *obj, struct char_data *ch,
+                                            room_vnum house_vnum, FILE *fp, int locate,
+                                            bool persist_database)
 {
 #ifdef OBJSAVE_DB
   static char ins_buf[36767]; /* For MySQL insert - static to avoid stack allocation */
@@ -567,38 +577,40 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   fprintf(fp, "\n");
 
 #ifdef OBJSAVE_DB
-  snprintf(line_buf, sizeof(line_buf), "');");
-  strlcat(ins_buf, line_buf, sizeof(ins_buf));
-  if (ch != NULL)
-  { /* GHETTTTTTTOOOOOOOOO */
-    if (mysql_query(conn, ins_buf))
-    {
-      log("SYSERR: Unable to REPLACE into player_save_objs: %s", mysql_error(conn));
-      extract_obj(temp);
-      return 1;
-    }
-  }
-  else
+  if (persist_database)
   {
-    if (mysql_query(conn, ins_buf))
+    int insert_id;
+
+    snprintf(line_buf, sizeof(line_buf), "');");
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+    if (ch != NULL)
+    { /* GHETTTTTTTOOOOOOOOO */
+      if (mysql_query(conn, ins_buf))
+      {
+        log("SYSERR: Unable to REPLACE into player_save_objs: %s", mysql_error(conn));
+        extract_obj(temp);
+        return 1;
+      }
+    }
+    else if (mysql_query(conn, ins_buf))
     {
       log("SYSERR: Unable to INSERT into house_data: %s", mysql_error(conn));
       extract_obj(temp);
       return 1;
     }
-  }
 
-  int insert_id = mysql_insert_id(conn);
+    insert_id = mysql_insert_id(conn);
 
-  if (CAN_WEAR(obj, ITEM_WEAR_SHEATH))
-  {
-    if (obj->sheath_primary)
+    if (CAN_WEAR(obj, ITEM_WEAR_SHEATH))
     {
-      objsave_save_obj_record_db_sheath(obj->sheath_primary, ch, insert_id, 1);
-    }
-    if (obj->sheath_secondary)
-    {
-      objsave_save_obj_record_db_sheath(obj->sheath_secondary, ch, insert_id, 2);
+      if (obj->sheath_primary)
+      {
+        objsave_save_obj_record_db_sheath(obj->sheath_primary, ch, insert_id, 1);
+      }
+      if (obj->sheath_secondary)
+      {
+        objsave_save_obj_record_db_sheath(obj->sheath_secondary, ch, insert_id, 2);
+      }
     }
   }
 #endif
@@ -2073,7 +2085,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
          * does not exist, skip it. If the object has a VNUM of NOTHING or
          * NOWHERE, then we assume it doesn't exist on purpose. (Custom Item,
          * Coins, Corpse, etc...) */
-        if (real_object(nr) == NOTHING && nr != (int)NOTHING)
+        if (nr != (int)NOTHING && real_object(nr) == NOTHING)
         {
           log("SYSERR: Prevented loading of non-existant item #%d.", nr);
           /* MEMORY LEAK FIX: Free any existing temp object before continuing */
@@ -3265,6 +3277,33 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate,
 
   return TRUE;
 }
+
+#ifdef LUMINARI_CUTEST
+int test_objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp, int locate)
+{
+  return objsave_save_obj_record_internal(obj, ch, NOWHERE, fp, locate, FALSE);
+}
+
+int test_restore_loaded_objects(struct char_data *ch, obj_save_data *loaded)
+{
+  struct obj_data *cont_row[MAX_BAG_ROWS] = {NULL};
+  obj_save_data *current;
+  int count;
+
+  count = 0;
+  for (current = loaded; current; current = current->next)
+    count += handle_obj(current->obj, ch, current->locate, cont_row);
+
+  while (loaded)
+  {
+    current = loaded;
+    loaded = loaded->next;
+    free(current);
+  }
+
+  return count;
+}
+#endif
 
 
 int objsave_save_obj_record_db_pet(struct obj_data *obj,

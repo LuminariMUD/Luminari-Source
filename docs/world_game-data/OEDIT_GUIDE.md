@@ -70,6 +70,14 @@ write. The notes here cover the cases that behave unusually:
 - Picking the weapon type auto-populates dice, cost, weight, material, size, and wear slots from `weapon_list`.
 - After the type is chosen you go straight to the enhancement prompt (`Value5`, which is `value[4]`).
 - You can revisit `C` if you need to tweak damage dice or attack type; be aware that re-running `C` resets enhancements.
+- `ITEM_WEAPON` is the canonical type for melee weapons, launchers, and throwable weapons. The
+  selected `weapon_list` profile decides which modes are legal.
+- Weapon type 14 is a thrown dart. Weapon type 80 is the separate blowgun launcher. Build new
+  bows, crossbows, slings, and blowguns as `ITEM_WEAPON`; do not create new
+  `ITEM_FIREWEAPON` objects.
+- A profile with `WEAPON_FLAG_THROWN` remains melee-usable and can also anchor the `throw`
+  command. The Throwing special ability grants that eligibility to an individual weapon;
+  Returning controls recovery but does not grant eligibility by itself.
 
 ### Armor (`ITEM_ARMOR` and `ITEM_CLANARMOR`)
 - Normal armor takes its subtype at `Value2` (`value[1]`) and auto-fills AC, size, material, and wear flags via `set_armor_object()`.
@@ -79,9 +87,15 @@ write. The notes here cover the cases that behave unusually:
 - Both armor types collect an enhancement bonus at `Value5` (`value[4]`).
 
 ### Ammunition & Ranged
-- `ITEM_FIREWEAPON`: prompts for weapon type, damage dice, then break chance (2-98). Enhancement is `Value5`.
+- `ITEM_FIREWEAPON`: legacy/deprecated value prompts retained for old data. This type is not a
+  working launcher and should not be used for new objects.
 - `ITEM_MISSILE`: prompts for ammo category, then break chance, then enhancement at `Value5`.
-- `ITEM_AMMO_POUCH` / `ITEM_CONTAINER`: capacity in pounds (`-1` unlimited), then a flag toggle for the closeable/lockable bits - enter `0` when done - then the key vnum (`-1` for none).
+- `ITEM_CONTAINER`: capacity in pounds (`-1` unlimited), then a flag toggle for the
+  closeable/lockable bits - enter `0` when done - then the key vnum (`-1` for none).
+- `ITEM_AMMO_POUCH`: capacity is an object count (`-1` unlimited), not weight. It accepts
+  `ITEM_MISSILE` objects and transferable `ITEM_WEAPON` objects that are throwable. It rejects
+  ordinary melee weapons, launchers, nested containers, and other item types. Both archery and
+  throwing quivers use this type and the `WEAR_AMMO_POUCH` slot.
 
 ### Consumables
 - `ITEM_POTION` / `ITEM_SCROLL`: spell level first, then up to three spells. Use `-1` or `0` to clear a slot.
@@ -346,9 +360,9 @@ for what each type stores in its value slots.
 | 2 | Scroll | ITEM_SCROLL | Up to three spells, consumed on read. |
 | 3 | Wand | ITEM_WAND | Charged, single-target spell device. |
 | 4 | Staff | ITEM_STAFF | Charged, area-effect spell device. |
-| 5 | Weapon | ITEM_WEAPON | Melee weapon. Type selection auto-fills dice and stats. |
+| 5 | Weapon | ITEM_WEAPON | Canonical melee, launcher, or throwable weapon. Type selection auto-fills dice and stats. |
 | 6 | Furniture | ITEM_FURNITURE | Sittable; value 0 is occupant capacity. |
-| 7 | Ranged-Weapon | ITEM_FIREWEAPON | Bows and crossbows. Marked deprecated in the source but still in use. |
+| 7 | Ranged-Weapon | ITEM_FIREWEAPON | Deprecated legacy type; do not use for new launchers. |
 | 8 | Treasure | ITEM_TREASURE | Valuables that are not coins. No values. |
 | 9 | Armor/Shield | ITEM_ARMOR | Armor. Subtype selection auto-fills AC, size, material, wear. |
 | 10 | Potion | ITEM_POTION | Up to three spells, consumed on quaff. |
@@ -377,7 +391,7 @@ for what each type stores in its value slots.
 | 33 | Poison | ITEM_POISON | Weapon poison; spell, level, applications, hits per application. |
 | 34 | Summon | ITEM_SUMMON | Summons a mob on command. |
 | 35 | Switch | ITEM_SWITCH | Lever or button that manipulates a door in another room. |
-| 36 | Ammo-Pouch | ITEM_AMMO_POUCH | Container specialized for ammunition. |
+| 36 | Ammo-Pouch | ITEM_AMMO_POUCH | Object-count container for missiles and transferable throwable weapons. |
 | 37 | Pick | ITEM_PICK | Grants a bonus to lock picking. |
 | 38 | Instrument | ITEM_INSTRUMENT | Bard instrument; subtype, difficulty reduction, effectiveness bonus, breakability. |
 | 39 | Disguise | ITEM_DISGUISE | Kit used by the disguise command. |
@@ -505,7 +519,7 @@ Slots not listed are unused for that type and should be left at 0.
 | Armor/Shield | Armor class apply | Armor subtype (`armor_list`) | - | - | Enhancement bonus |
 | Clan-Armor | Armor class apply | Clan vnum | - | - | Enhancement bonus |
 | Container | Max weight held (`-1` unlimited) | Container flags (bitvector) | Key vnum (`-1` none) | - | - |
-| Ammo-Pouch | Max weight held (`-1` unlimited) | Container flags (bitvector) | Key vnum (`-1` none) | - | - |
+| Ammo-Pouch | Max projectile objects (`-1` unlimited) | Container flags (bitvector) | Key vnum (`-1` none) | Corpse flag | - |
 | Liquid-Cont | Max drink units (`-1` unlimited) | Current drink units | Liquid type | Spell on drink (`0` none) | - |
 | Fountain | Max drink units (`-1` unlimited) | Current drink units | Liquid type | Spell on drink (`0` none) | - |
 | Food | Duration in rounds (6s each) | - | - | - | - |

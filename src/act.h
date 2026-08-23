@@ -551,6 +551,12 @@ ACMD_DECL(do_bullrush);
 /* Functions without subcommands */
 ACMD_DECL(do_cexchange);
 ACMD_DECL(do_fire);
+ACMD_DECL(do_throw);
+#ifdef LUMINARI_CUTEST
+bool test_resolve_projectile_command_target(struct char_data *ch, char *target_name,
+                                            char *direction_name, struct char_data **victim,
+                                            room_rnum *target_room, bool *remote);
+#endif
 ACMD_DECL(do_aura_of_vengeance);
 ACMD_DECL(do_aura_of_justice);
 ACMD_DECL(do_reload);

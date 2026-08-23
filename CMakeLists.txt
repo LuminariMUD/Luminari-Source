@@ -454,6 +454,8 @@ set(SRC_C_FILES
     src/craft/alchemy.c
     src/asciimap.c
     src/combat/assign_wpn_armor.c
+    src/combat/projectiles.c
+    src/combat/projectiles.h
     src/character/abilities.c
     src/character/backgrounds.c
     src/character/guild_services.c
@@ -1159,6 +1161,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_transport_production.c
     unittests/CuTest/test_traps_production.c
     unittests/CuTest/test_combat_production.c
+    unittests/CuTest/test_thrown_weapons.c
     unittests/CuTest/test_lists_production.c
     unittests/CuTest/test_mob_autoroll.c
     unittests/CuTest/test_copyover_timer.c

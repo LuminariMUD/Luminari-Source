@@ -4159,11 +4159,11 @@ ACMD(do_damage)
 #undef DISPLAY_ROUTINE_POTENTIAL
     send_to_char(ch, "\tC");
     text_line(ch, "\tYTo view bonus breakdown: \tC", line_length, '-', '-');
-    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|bomb|psionic\tC", line_length, '-',
-              '-');
+    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|thrown|bomb|psionic\tC", line_length,
+              '-', '-');
     text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC",
               line_length, '-', '-');
-    text_line(ch, "\tYdamage hit|primary|offhand|ranged\tC", line_length, '-', '-');
+    text_line(ch, "\tYdamage hit|primary|offhand|ranged|thrown\tC", line_length, '-', '-');
     send_to_char(ch, "\tn");
 
     return;
@@ -4188,9 +4188,14 @@ ACMD(do_damage)
     mode = MODE_DISPLAY_RANGED;
     attack_type = ATTACK_TYPE_RANGED;
   }
+  else if (is_abbrev(arg, "thrown"))
+  {
+    mode = MODE_DISPLAY_RANGED;
+    attack_type = ATTACK_TYPE_THROWN;
+  }
   else
   {
-    send_to_char(ch, "Valid arguments: hit/primary/offhand/ranged.\r\n");
+    send_to_char(ch, "Valid arguments: hit/primary/offhand/ranged/thrown.\r\n");
     return;
   }
 
@@ -4226,11 +4231,11 @@ ACMD(do_attacks)
 #undef DISPLAY_ROUTINE_POTENTIAL
     send_to_char(ch, "\tC");
     text_line(ch, "\tYTo view bonus breakdown: \tC", line_length, '-', '-');
-    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|bomb|psionic\tC", line_length, '-',
-              '-');
+    text_line(ch, "\tYattacks unarmed|primary|offhand|ranged|thrown|bomb|psionic\tC", line_length,
+              '-', '-');
     text_line(ch, "\tYattacks primary-sneak|offhand-sneak|eldritch|twohand|evolution\tC",
               line_length, '-', '-');
-    text_line(ch, "\tYdamage hit|primary|offhand|ranged\tC", line_length, '-', '-');
+    text_line(ch, "\tYdamage hit|primary|offhand|ranged|thrown\tC", line_length, '-', '-');
     send_to_char(ch, "\tn");
 
     return;
@@ -4259,6 +4264,10 @@ ACMD(do_attacks)
   {
     attack_type = ATTACK_TYPE_RANGED;
   }
+  else if (is_abbrev(arg, "thrown"))
+  {
+    attack_type = ATTACK_TYPE_THROWN;
+  }
   else if (is_abbrev(arg, "bomb"))
   {
     attack_type = ATTACK_TYPE_BOMB_TOSS;
@@ -4281,9 +4290,10 @@ ACMD(do_attacks)
   }
   else
   {
-    send_to_char(ch, "Valid arguments: "
-                     "unarmed/primary/offhand/ranged/bomb/psionic/primary-sneak/offhand-sneak/"
-                     "eldritch/twohand/evolution.\r\n");
+    send_to_char(ch,
+                 "Valid arguments: "
+                 "unarmed/primary/offhand/ranged/thrown/bomb/psionic/primary-sneak/offhand-sneak/"
+                 "eldritch/twohand/evolution.\r\n");
     return;
   }
 

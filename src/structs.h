@@ -5225,8 +5225,9 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define WEAPON_TYPE_HOOPAK 77
 #define WEAPON_TYPE_FOOTMANS_LANCE 78
 #define WEAPON_TYPE_ATHAME 79
+#define WEAPON_TYPE_BLOWGUN 80
 // One higher than last above
-#define NUM_WEAPON_TYPES 80
+#define NUM_WEAPON_TYPES 81
 
 /* different ammo types */
 #define AMMO_TYPE_UNDEFINED 0
@@ -5272,6 +5273,12 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define ATTACK_TYPE_PRIMARY_EVO_RAKE 19
 #define ATTACK_TYPE_PRIMARY_EVO_REND 20
 #define ATTACK_TYPE_PRIMARY_EVO_TRAMPLE 21
+#define ATTACK_TYPE_THROWN 22
+
+/* Non-persistent runtime intent for attacks that consume a physical projectile. */
+#define PROJECTILE_MODE_NONE 0
+#define PROJECTILE_MODE_LAUNCHER 1
+#define PROJECTILE_MODE_THROWN 2
 
 /* WEAPON ATTACK TYPES - indicates type of attack both
    armed and unarmed attacks are, example: You BITE Bob.
@@ -6311,7 +6318,9 @@ struct char_special_data
   struct char_data *guarding;     /* target for 'guard' ability */
   struct char_data *shadowing;    /* target being tailed by the 'shadow' feat */
   struct char_data *accompanying; /* lead performer joined by the 'accompany' feat */
-  bool firing;                    /* is char firing missile weapon? */
+  byte projectile_mode;           /* none, launcher, or explicitly thrown weapon */
+  obj_vnum thrown_anchor_vnum;    /* prototype of the wielded thrown weapon */
+  int thrown_anchor_wear_slot;    /* equipment slot used to validate the anchor */
   bool blasting;                  /* is char eldritch blasting? */
   int mounted_blocks_left;        /* how many mounted combat blocks left in the round */
   int deflect_arrows_left;        /* deflect arrows left */

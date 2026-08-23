@@ -42,6 +42,8 @@ luminari_SOURCES = \
 	src/craft/alchemy.c \
 	src/asciimap.c \
 	src/combat/assign_wpn_armor.c \
+	src/combat/projectiles.c \
+	src/combat/projectiles.h \
 	src/character/abilities.c \
 	src/character/backgrounds.c \
 	src/character/guild_services.c \
@@ -355,6 +357,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_thrown_weapons.c \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
@@ -408,6 +411,7 @@ cutest_test_files = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_thrown_weapons.c \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
@@ -769,7 +773,10 @@ EXTRA_DIST = \
 	sql/components/character_rename_transactional_schema.sql \
 	sql/components/help_arcane_mark_entries.sql \
 	sql/components/help_command_sweep_entries.sql \
+	sql/components/help_dg_damage_trigger.sql \
+	sql/components/help_rol_feat_entries.sql \
 	sql/components/help_specproc_entries.sql \
+	sql/components/help_thrown_weapons_entries.sql \
 	sql/components/help_vessel_entries.sql \
 	sql/components/help_character_backgrounds.sql \
 	sql/components/help_necromancer_entries.sql \
@@ -779,9 +786,12 @@ EXTRA_DIST = \
 	sql/components/test_vessels_integrity.sql \
 	sql/components/verify_help_arcane_mark_entries.sql \
 	sql/components/verify_help_command_sweep_entries.sql \
+	sql/components/verify_help_dg_damage_trigger.sql \
 	sql/components/verify_help_necromancer_entries.sql \
+	sql/components/verify_help_rol_feat_entries.sql \
 	sql/components/verify_help_rol_object_trap_entries.sql \
 	sql/components/verify_help_specproc_entries.sql \
+	sql/components/verify_help_thrown_weapons_entries.sql \
 	sql/components/verify_help_vessel_entries.sql \
 	sql/components/verify_help_worship_entries.sql \
 	sql/components/verify_vessels_schema.sql \

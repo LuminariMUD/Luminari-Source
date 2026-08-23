@@ -46,6 +46,29 @@ This retains the tested binary and matching symbols under its immutable
 and removes the root-level `luminari` artifact that the test build may leave
 behind.
 
+## Thrown-Weapon Regression Ownership
+
+`unittests/CuTest/test_thrown_weapons.c` is the production-linked owner for launcher/thrown
+classification, append-only dart/blowgun identity, projectile mode state, mixed-pouch compatibility
+and capacity, pouch/inventory/wielded selection, persistence, detachment/finalization, Returning,
+Snatch Arrows, and collection. The suite calls production helpers in `src/combat/projectiles.c` and
+the production object persistence path; do not create a standalone mirror.
+
+The converter half is owned by `scripts/world/tests/test_rol_weapon_mapping.py`. With the ignored
+canonical RoL corpus installed at `EXAMPLE/RealmsOfLuminari`, it checks all relevant source records,
+including the dart/blowgun split, all 44 quivers, and all 42 `MOB_ROL_ARCHER` loadout outcomes. Run
+the complete world-tool suite because constant and documentation drift tests are cross-file:
+
+```sh
+make test-world-tools
+make test
+make install
+```
+
+Thrown-weapons help also requires applying its migration twice against a development database and
+running `sql/components/verify_help_thrown_weapons_entries.sql`; every verifier row must report
+`PASS`.
+
 ## Special Procedure Regression Ownership
 
 Phase 00 registry safety and observability is owned by eight production-linked test sources plus one
@@ -238,13 +261,14 @@ check persisted RoL VNUMs read-only against the candidate world:
 ```sh
 python3 scripts/world/wtool.py \
   --world-root <candidate-lib>/world \
-  --json rol-persistence-check
+  --json rol-persistence-check \
+  --development-lib-root <development-lib>
 ```
 
-The command uses only `lib/mysql_config`, requires `APP_ENV=development`, rejects
-non-read-only query shapes, and fails if any persisted RoL VNUM is missing or
-duplicated in the candidate. Phase 8 runs the same check while its assembled
-candidate exists.
+The command uses `lib/mysql_config` by default or an explicitly selected
+`--development-lib-root`, requires `APP_ENV=development` in that selected lib root, rejects
+non-read-only query shapes, and fails if any persisted RoL VNUM is missing or duplicated in the
+candidate. Phase 8 runs the same check while its assembled candidate exists.
 
 Equivalent CMake and CTest entry points are:
 
@@ -455,14 +479,15 @@ make install
 python3 scripts/world/wtool.py \
   --world-root <candidate-lib>/world validate --all --strict
 python3 scripts/world/wtool.py \
-  --world-root <candidate-lib>/world --json rol-persistence-check
+  --world-root <candidate-lib>/world --json rol-persistence-check \
+  --development-lib-root <development-lib>
 bin/luminari -c -d <candidate-lib>
 timeout --signal=INT 30 bin/luminari -d <candidate-lib> <test-port>
 ```
 
-The candidate lib root must use the repository's local development database
-configuration from `lib/mysql_config`, and these commands must never point at
-production. The syntax and bounded runtime logs must show a complete boot; the
+The persistence gate uses the repository's local development database configuration by default;
+an isolated worktree may name an established development lib root explicitly. These commands must
+never point at production. The syntax and bounded runtime logs must show a complete boot; the
 runtime log must enter the game loop, reset the converted corpus, terminate normally,
 and contain no
 converted-VNUM `SYSERR`, zone error, invalid-reference, or missing-reference

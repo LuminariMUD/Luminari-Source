@@ -2035,12 +2035,11 @@ def _object_target_type(
 ) -> tuple[int, WeaponInference | None, Any]:
   """Resolve the target item type, and any weapon identity it depends on.
 
-  Most source types resolve straight through ``OBJECT_TYPE_MAP``. Four do not,
+  Most source types resolve straight through ``OBJECT_TYPE_MAP``. Three do not,
   because the target type depends on the record rather than only on its source
   type: source weapons and ranged weapons both become ``ITEM_WEAPON``, source
-  ammunition becomes either ``ITEM_MISSILE`` or -- when it is thrown, which the
-  target has no command for -- ``ITEM_WEAPON``, and a source quiver becomes an
-  ammo pouch or a plain container depending on the kind it declares.
+  ammunition becomes either ``ITEM_MISSILE`` or, when it is physically thrown,
+  ``ITEM_WEAPON``. Both source quiver kinds use the target ammo-pouch contract.
   """
 
   values = (list(record.values.get("values", [])) + [0] * 8)[:8]
@@ -2071,14 +2070,11 @@ def _object_target_type(
       )
     return TARGET_ITEM_MISSILE, None, inference
   if source_type == SOURCE_ITEM_TYPE_QUIVER and values[3] == SOURCE_QUIVER_THROWING:
-    # A throwing quiver holds thrown weapons, which convert to ITEM_WEAPON, and
-    # an ammo pouch may hold nothing but ITEM_MISSILE -- has_ammo_in_pouch() and
-    # do_put (src/obj/act.item.c:2022) both enforce that.
+    # A throwing quiver now shares the ammo-pouch contract with missiles.
     diagnostics.append(
-        "retyped source throwing quiver to ITEM_CONTAINER; an ammo pouch may "
-        "hold only ITEM_MISSILE"
+        "retained source throwing quiver as ITEM_AMMO_POUCH for throwable weapons"
     )
-    return TARGET_ITEM_CONTAINER, None, None
+    return TARGET_ITEM_AMMO_POUCH, None, None
   target_type = OBJECT_TYPE_MAP.get(source_type, 12)
   if source_type not in OBJECT_TYPE_MAP:
     diagnostics.append(f"unknown source item type {source_type}; used ITEM_OTHER")

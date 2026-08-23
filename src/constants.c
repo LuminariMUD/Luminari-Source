@@ -572,6 +572,7 @@ const char *attack_types[] = {
     "Evolution (Rake)",
     "Evolution (Rend)",
     "Evolution (Trample)",
+    "Thrown",
 };
 
 const char *instrument_names[] = {"Lyre", "Flute", "Horn", "Drum", "Harp", "Mandolin",

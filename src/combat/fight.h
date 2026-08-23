@@ -68,7 +68,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *victim, struct 
 int compute_cmb(struct char_data *ch, int combat_maneuver_type);
 int compute_cmd(struct char_data *vict, int combat_maneuver_type);
 int damage(struct char_data *ch, struct char_data *victim, int dam, int attacktype, int dam_type,
-           int dualwield);
+           int attack_type);
 void death_cry(struct char_data *ch);
 void die(struct char_data *ch, struct char_data *killer);
 void free_messages(void);
@@ -82,13 +82,13 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
 void attacks_of_opportunity(struct char_data *victim, int penalty);
 int compute_attack_bonus(struct char_data *ch, struct char_data *victim, int attack_type);
 int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, int penalty,
-        int dualwield);
+        int attack_type);
 void load_messages(void);
 void perform_violence(struct char_data *ch, int phase);
 void raw_kill(struct char_data *ch, struct char_data *killer);
 bool set_fighting(struct char_data *ch, struct char_data *victim);
 int skill_message(int dam, struct char_data *ch, struct char_data *vict, int attacktype,
-                  int dualwield);
+                  int attack_type);
 void stop_fighting(struct char_data *ch);
 bool is_tanking(struct char_data *ch);
 void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo);
@@ -97,8 +97,12 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
                        int mode, bool is_critical, int attack_type, int dam_type);
 struct obj_data *make_a_corpse_4_npcs(struct char_data *ch);
 int handle_warding(struct char_data *ch, struct char_data *victim, int dam);
+void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_data *wielded,
+                   struct obj_data *missile);
 int compute_attack_bonus_full(struct char_data *ch, struct char_data *victim, int attack_type,
                               bool display);
+int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struct char_data *victim,
+                           int attack_type);
 int dual_wielding_penalty(struct char_data *ch, bool offhand);
 int is_dual_wielding(struct char_data *ch);
 int get_initiative_modifier(struct char_data *ch);
@@ -116,6 +120,17 @@ int test_apply_bard_frostbite_rider(struct char_data *ch, struct char_data *vict
 int test_handle_successful_artifact_attack(struct char_data *ch, struct char_data *victim,
                                            struct obj_data *wielded, int dam, int is_critical,
                                            int dam_type);
+int test_compute_projectile_attack_bonus(struct char_data *ch, struct char_data *victim,
+                                         struct obj_data *wielded, struct obj_data *projectile,
+                                         int attack_type);
+int test_compute_projectile_damage_bonus(struct char_data *ch, struct char_data *victim,
+                                         struct obj_data *wielded, struct obj_data *projectile,
+                                         int attack_type);
+bool test_projectile_attack_context_was_invalidated(struct char_data *ch, struct char_data *victim,
+                                                    int attack_type, struct obj_data *projectile);
+bool test_can_process_projectile_weapon_abilities(struct char_data *ch, struct obj_data *wielded,
+                                                  int attack_type);
+void test_finish_thrown_projectile_attack(struct char_data *ch);
 void test_apply_bard_warbeat_allies(struct char_data *ch);
 void test_reset_bard_warbeat_observations(void);
 int test_get_bard_warbeat_opening_attacks(void);

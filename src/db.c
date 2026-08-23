@@ -39,6 +39,7 @@
 #include "olc/genwld.h" /* for free_trail_data_list */
 #include "config.h"     /* for the default config values. */
 #include "combat/fight.h"
+#include "combat/projectiles.h"
 #include "combat/traps.h"
 #include "modify.h"
 #include "obj/shop.h"
@@ -7462,6 +7463,7 @@ void clear_char(struct char_data *ch)
   ch->mob_specials.default_pos = POS_STANDING;
   ch->events = NULL;
   initialize_bardic_performance_state(ch);
+  clear_projectile_mode(ch);
 
   /* worried about mobiles having junk-data for wards */
   for (i = 0; i < MAX_WARDING; i++)

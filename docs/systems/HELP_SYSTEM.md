@@ -105,6 +105,19 @@ runtime export. Use this workflow for new or changed topics:
    or migration process.
 6. Reload or restart help and exercise the exact search keywords in a development game.
 
+For the thrown-weapons help component, apply and verify it only against the configured development
+database. Applying it twice is the idempotency check; all four verifier result rows must report
+`PASS`:
+
+```sh
+mysql --defaults-extra-file=lib/mysql_config < sql/components/help_thrown_weapons_entries.sql
+mysql --defaults-extra-file=lib/mysql_config < sql/components/help_thrown_weapons_entries.sql
+mysql --defaults-extra-file=lib/mysql_config < sql/components/verify_help_thrown_weapons_entries.sql
+```
+
+After reloading help, check the exact `THROW`, `THROWN-WEAPONS`, `AMMO`, `QUIVERS`, `FIRE`, and
+`COLLECT` searches in the development game.
+
 `help_specproc_entries.sql` and `verify_help_specproc_entries.sql` are the maintained sources for the
 builder/staff `SPECIALS` topic. They cover canonical names and aliases, owner-aware OLC,
 prerequisites, authored-name preservation, explicit replace/clear, boot provenance, `-s` behavior,

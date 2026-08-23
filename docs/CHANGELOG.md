@@ -31,6 +31,49 @@
   eligibility, performance handoff with and without the song's feat, tail breaks on lost stealth
   and on combat, both-direction link cleanup, and command/feat registration.
 
+### Native thrown weapons
+
+#### Added
+
+- Added `throw <target> [direction]` with the same target and action gates as launcher fire,
+  Dexterity-based ranged accuracy, full Strength to damage, and persistent thrown combat rounds.
+- Added deterministic physical-weapon selection from the equipped ammo pouch, top-level inventory,
+  then the wielded anchor. Each attack carries its actual object instance through enhancement,
+  poison, critical, script, artifact, special-ability, and final-disposition handling.
+- Added Returning recovery, Snatch Arrows precedence, owner-tagged throwable collection from rooms
+  and corpses, and throwable fallback to inventory when a pouch cannot receive the object.
+- Added database and flat-file player help for thrown weapons, launchers, mixed quivers, and
+  projectile collection, plus OEDIT and system documentation.
+
+#### Changed
+
+- Split thrown darts from blowguns without renumbering persisted weapon IDs: dart remains type 14
+  and is melee-by-default, while blowgun is appended at type 80 and fires `AMMO_TYPE_DART`.
+- Generalized ammo pouches to hold missiles and transferable throwable weapons. Pouch value 0 is
+  enforced and displayed as an object count, with `-1` retaining unlimited capacity.
+- Refactored launcher and thrown physical-projectile ownership around an explicit per-attack
+  context and one idempotent finalizer, eliminating pouch-head/global projectile rediscovery.
+- Updated the RoL converter so source type-10 darts become thrown weapons, type-16 delivery remains
+  the blowgun/ammo pairing, all throwing quivers remain ammo pouches, and throwable-only
+  `MOB_ROL_ARCHER` loadouts use thrown mode without changing unrelated NPCs.
+
+#### Fixed
+
+- Revalidated characters and projectile ownership after every callback boundary so extraction,
+  death, movement, or projectile replacement during a weapon proc cannot leave a stale combat
+  reference or duplicate, lose, or return the wrong object.
+- Made critical and poison processing use the exact detached weapon instance, allowed physical
+  weapon abilities on adjacent-room throws, and prevented Returning from delivering an object to
+  a recipient who is no longer in the world.
+
+#### Tests
+
+- Added production-linked coverage for append-only IDs, classification, mixed pouches, exact source
+  order, persistence, lifecycle outcomes, Returning, Snatch, collection, and pouch capacity.
+- Added command-target, exact-instance statistic, cross-room ability, poison, and callback-lifecycle
+  regressions; the production-linked suite now exercises 827 tests.
+- Added synthetic and full-corpus converter coverage for darts, blowguns, all 44 quivers, numeric
+  drift, and every converted archer loadout.
 
 ### Upstream pull request audit remediation
 

@@ -764,7 +764,9 @@ running automatic statistics.
 - `MOB_ROL_NICE_THIEF` allows stealing but suppresses automatic retaliation when caught
 - `MOB_ROL_STAY_SECTOR` restricts random wandering to the mobile's current sector
 - `MOB_ROL_DELAY_HUNTER` becomes `MOB_HUNTER` after the mobile falls below 90 percent HP
-- `MOB_ROL_ARCHER` lets an equipped mobile fire at a valid target one room away
+- `MOB_ROL_ARCHER` lets an equipped mobile fire a launcher, or throw an eligible wielded weapon
+  when no usable launcher exists, at a valid target one room away. Ordinary mobiles do not gain
+  automatic throwing merely by wielding a throwable weapon.
 - `MOB_ROL_HAS_PS`, `MOB_ROL_HAS_CL`, `MOB_ROL_HAS_MU`, `MOB_ROL_HAS_TH`, and
   `MOB_ROL_HAS_WA` retain independent source class-behavior roles
 - `MOB_ROL_AGGR_RACE_EVIL` and `MOB_ROL_AGGR_RACE_GOOD` use the converted source race
@@ -927,7 +929,7 @@ running automatic statistics.
 | 105 | MOB_ROL_NICE_THIEF | RoL-Nice-Thief | Compatibility | Does not retaliate against caught theft |
 | 106 | MOB_ROL_STAY_SECTOR | RoL-Stay-Sector | Compatibility | Random movement stays in sector |
 | 107 | MOB_ROL_DELAY_HUNTER | RoL-Delay-Hunter | Compatibility | Starts hunting after material damage |
-| 108 | MOB_ROL_ARCHER | RoL-Archer | Compatibility | Fires into an adjacent room |
+| 108 | MOB_ROL_ARCHER | RoL-Archer | Compatibility | Fires or throws into an adjacent room |
 | 109 | MOB_ROL_HAS_PS | RoL-Psionic | Compatibility | Has psionic behavior role |
 | 110 | MOB_ROL_HAS_CL | RoL-Cleric | Compatibility | Has divine-caster behavior role |
 | 111 | MOB_ROL_HAS_MU | RoL-Mage | Compatibility | Has arcane-caster behavior role |

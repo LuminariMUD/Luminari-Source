@@ -496,8 +496,8 @@ void trigger_blackguard_reprisal_on_save(struct char_data *ch, int casttype);
 int get_blackguard_reprisal_damage_bonus(struct char_data *ch, struct char_data *vict);
 
 /* Ranger-specific perk bonus functions */
-int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded);
-int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded);
+int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded, int attack_type);
+int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded, int attack_type);
 int get_ranger_dr_penetration(struct char_data *ch);
 int get_ranger_attack_speed_bonus(struct char_data *ch);
 int get_ranger_quick_draw_proc_chance(struct char_data *ch);

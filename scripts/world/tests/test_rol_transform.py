@@ -1735,6 +1735,7 @@ class RolTransformTests(unittest.TestCase):
     # the table fails when either side renumbers a slot.
     import re
 
+    self._require_reference_paths("EXAMPLE/RealmsOfLuminari/src/structs.h")
     target = (self.root / "src/structs.h").read_text(encoding="utf-8", errors="ignore")
     target_wear = {
         name: int(value)

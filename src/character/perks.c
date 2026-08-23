@@ -22,6 +22,7 @@
 #include "class.h"
 #include "perks.h"
 #include "combat/assign_wpn_armor.h"
+#include "combat/projectiles.h"
 
 /* Undefine NUM_ABILITIES before including spells.h to avoid redefinition warning */
 #undef NUM_ABILITIES
@@ -15415,23 +15416,23 @@ int get_perk_ranged_sneak_attack_bonus(struct char_data *ch)
  * @param wielded The wielded weapon (must be ranged)
  * @return Total ranged weapon to-hit bonus
  */
-int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
+int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded, int attack_type)
 {
   int bonus = 0;
+  int weapon_type;
 
   if (!ch || IS_NPC(ch))
     return 0;
 
-  /* If no weapon wielded or weapon is not ranged, return 0 */
-  if (!wielded)
+  if (!is_ranged_weapon_attack(attack_type) || !wielded)
     return 0;
 
   if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON && GET_OBJ_TYPE(wielded) != ITEM_FIREWEAPON)
     return 0;
 
-  int weapon_type = GET_OBJ_VAL(wielded, 0);
-  if (!IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
-    return 0; /* Not a ranged weapon */
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  if (weapon_type <= WEAPON_TYPE_UNDEFINED || weapon_type >= NUM_WEAPON_TYPES)
+    return 0;
 
   /* Archer's Focus I: +1 to-hit per rank (max 3 ranks) */
   bonus += get_total_perk_ranks(ch, PERK_RANGER_ARCHERS_FOCUS_I);
@@ -15451,23 +15452,23 @@ int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded
  * @param wielded The wielded weapon (must be ranged)
  * @return Total ranged weapon damage bonus
  */
-int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded)
+int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielded, int attack_type)
 {
   int bonus = 0;
+  int weapon_type;
 
   if (!ch || IS_NPC(ch))
     return 0;
 
-  /* If no weapon wielded or weapon is not ranged, return 0 */
-  if (!wielded)
+  if (!is_ranged_weapon_attack(attack_type) || !wielded)
     return 0;
 
   if (GET_OBJ_TYPE(wielded) != ITEM_WEAPON && GET_OBJ_TYPE(wielded) != ITEM_FIREWEAPON)
     return 0;
 
-  int weapon_type = GET_OBJ_VAL(wielded, 0);
-  if (!IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
-    return 0; /* Not a ranged weapon */
+  weapon_type = GET_OBJ_VAL(wielded, 0);
+  if (weapon_type <= WEAPON_TYPE_UNDEFINED || weapon_type >= NUM_WEAPON_TYPES)
+    return 0;
 
   /* Steady Aim I: +1 damage per rank (max 3 ranks) */
   bonus += get_total_perk_ranks(ch, PERK_RANGER_STEADY_AIM_I);

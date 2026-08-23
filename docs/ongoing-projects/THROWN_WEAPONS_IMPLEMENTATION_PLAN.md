@@ -1,10 +1,11 @@
 # Thrown Weapons Implementation Plan
 
-- Status: Proposed; implementation not started
+- Status: Complete
 - Analysis date: 2026-08-23
 - Environment reviewed: development
 
-This is a planning document, not a description of current game behavior.
+This document records both the locked implementation plan and checkpoint progress. Sections not
+explicitly marked complete remain planned behavior rather than current game behavior.
 
 ## 1. Goal
 
@@ -617,25 +618,270 @@ and combat stops without a surprise melee attack.
 | Converter silently changes many objects | Extend drift tests, produce affected-object reports, review ambiguity, and apply only to development first. |
 | Help diverges | Ship matching flat-file and idempotent SQL help plus a verifier in the same change. |
 
+## 9.1 Implementation progress
+
+### 2026-08-23: Foundational projectile checkpoint
+
+Implemented and covered by production-linked CuTest cases:
+
+- preserved weapon IDs 0 through 79, appended `WEAPON_TYPE_BLOWGUN` at 80, and raised the count
+  to 81;
+- made native darts thrown-only and added the separate simple ranged blowgun profile and dart-ammo
+  pairing;
+- added launcher, thrown, shared-ranged, and physical-projectile predicates plus null-safe,
+  instance-aware throwable classification;
+- replaced the non-persistent firing boolean with explicit projectile mode, anchor VNUM, and wear
+  slot state and centralized state transitions;
+- consolidated eligible equipped-weapon priority and made launcher readiness scan mixed pouch
+  contents for the first compatible missile;
+- broadened ammo-pouch admission to compatible missiles and transferable throwable weapons;
+- added strict thrown-instance selection in pouch, top-level inventory, then wielded-anchor order,
+  including prototype-less-anchor and customized-instance safeguards;
+- added `src/combat/projectiles.[ch]` to both supported build manifests and added focused tests for
+  numeric stability, profiles, classification, modes, slot priority, pouch compatibility, and
+  exact source order.
+
+Verification at this checkpoint:
+
+- the production-linked test executable builds without compiler warnings;
+- all nine new thrown-weapon tests pass;
+- the full executable reports 816 runs, 814 passes, and the same two environment/baseline failures
+  recorded before implementation: required database startup without local `lib/mysql_config`, and
+  `Test_spec_world_binding_source_inventory`;
+- the root `make test` wrapper additionally remains blocked by the pre-existing missing root
+  `autorun` compatibility link in this worktree.
+
+Next checkpoint: characterize mixed-pouch persistence in the production save/load path, then make
+the attack lifecycle context-aware and centrally finalize detached missiles before wiring the
+`throw` command into combat.
+
+### 2026-08-23: Runtime thrown-combat checkpoint
+
+Implemented and covered by production-linked CuTest cases:
+
+- characterized mixed missile/throwable pouch persistence through the production object
+  save/parser/restore path and corrected its invalid-prototype sentinel check;
+- centralized launcher and thrown detachment/finalization around an explicit per-attack context,
+  removed global projectile rediscovery, and made repeated finalization idempotent;
+- registered `throw`, shared its same-room/adjacent-room target gates with `fire`, and added
+  persistent thrown combat rounds with pouch, inventory, then wielded-anchor depletion;
+- threaded the selected weapon and physical projectile through attack, damage, critical, poison,
+  script, artifact, and weapon-special paths, including extraction-safe boundaries;
+- applied shared ranged rules to thrown attacks while retaining launcher-only reload, Manyshot,
+  arrow-magic, and missile break behavior;
+- implemented Returning with re-equip/inventory/room fallback and Snatch/destruction precedence;
+- extended `collect` to recover throwable weapons from rooms and corpses, with compatible-pouch
+  priority and inventory fallback, and corrected ammo-pouch object-count capacity checks;
+- added `MOB_ROL_ARCHER` thrown selection only when no usable launcher exists, and added thrown
+  attack/damage diagnostic displays;
+- added focused persistence, lifecycle, Returning, Snatch, and collection regressions, bringing
+  the thrown-weapons suite to 14 tests.
+
+Verification at this checkpoint:
+
+- the production-linked test executable builds without compiler warnings;
+- all 14 thrown-weapon tests pass;
+- the full executable reports 821 runs, 819 passes, and only the two recorded baseline failures:
+  required database startup without local `lib/mysql_config`, and
+  `Test_spec_world_binding_source_inventory`.
+
+Next checkpoint: update and validate the RoL converter, audit native and converted world data,
+then finish OEDIT guidance, synchronized flat-file/database help, combat documentation, and the
+changelog.
+
+### 2026-08-23: Converter, content, help, and validation checkpoint
+
+Implemented and verified:
+
+- split source dart and blowgun delivery in the converter: range/missile type 10 becomes thrown
+  `WEAPON_TYPE_DART`, while range type 16 becomes `WEAPON_TYPE_BLOWGUN` and missile type 16 remains
+  `AMMO_TYPE_DART`;
+- retained all 44 source quivers as object-count `ITEM_AMMO_POUCH` containers, including the 20
+  throwing quivers, and added full-corpus loadout assertions for all 42 `MOB_ROL_ARCHER` mobiles;
+- audited the minimal native world, every affected source dart/blowgun/quiver, and every archer
+  loadout in `THROWN_WEAPONS_CONVERSION_AUDIT.md`;
+- produced two identical full conversion candidates from the sealed Phase 7 inputs, each covering
+  71,680 records in 258 packages with zero active errors and passing runtime/preservation audits;
+- updated OEDIT prompts and displays so ammo-pouch capacity is consistently enforced as a number
+  of objects, including the legacy `-1` unlimited value;
+- hardened final weapon selection and lifecycle edges: invalid sentinel profiles and transformed
+  wielders are rejected, launcher slot priority is consistent, pending-death characters cannot
+  receive a projectile, and an exhausted opening attack cannot fall through into melee;
+- synchronized player-facing `THROW`, ranged-ammunition, and `COLLECT` help in the flat file and
+  idempotent database component, with a read-only SQL verifier;
+- updated combat, OEDIT, mobile-flag, converter, testing, help-system, changelog, and project-index
+  documentation, including regenerated web guides.
+
+Validation at this checkpoint:
+
+- `make test` passes the supervision, deployment, health, help, vessel, process-memory, and full
+  production-linked gates; CuTest reports 823 runs and zero failures, including 16 focused
+  thrown-weapon tests;
+- `make install` follows the root suite, installs a versioned `bin/luminari`, and leaves no
+  root-level `luminari` artifact;
+- the focused protocol parser reports 29 passing tests;
+- clean-checkout and full-corpus world-tool runs each report 489 passing tests; the full-corpus run
+  has only four unrelated optional-input skips;
+- all four database-help verifier rows report `PASS` after applying the component twice;
+- constants synchronization, generated documentation, compiler warnings, ASCII/LF checks, and
+  `git diff --check` pass.
+
+The generated world candidate has not been applied. This feature worktree intentionally lacks
+`lib/.env`, `lib/mysql_config`, and the established full development world baseline. Those guarded
+inputs must not be synthesized or copied from another checkout. Applying the sealed Phase 8 bundle
+and running the live manual matrix in Section 8 therefore remain release-environment gates rather
+than source implementation work.
+
+### 2026-08-23: Phase 8 development preflight checkpoint
+
+Verified the authoritative development boundary without modifying its data:
+
+- the established development world contains 4,995 files and exactly matches the accepted Phase 7
+  frozen baseline hash `9aa16bbdf4a5728314bea1fd45ca1dc3906698df89df9660df8eab0d7ca17df9`;
+- overlaying the accepted 1,207-path thrown-weapons conversion reproduces candidate hash
+  `3ff3bae40d1dfc87c26758e8eb5d2b7bd268228917b8f4c566ddb3b38f7bfaa7`;
+- the Phase 8 persistence gate can now use an explicitly selected development lib root while
+  retaining its exact `APP_ENV=development` requirement, read-only MariaDB session, write-shaped
+  SQL rejection, and credential/path redaction;
+- an actual read-only audit of the assembled candidate resolved all 32 distinct persisted RoL
+  VNUMs across 34 database rows exactly once; and
+- the expanded world-tool suite reports 491 passing tests with 34 expected optional-corpus skips.
+
+No protected credential file or development-world file changed during preflight. Next, rebuild and
+install the exact checkpoint, capture candidate syntax/runtime boots, seal Phase 8, create and
+verify an independent development-world snapshot, apply the hash-guarded overlay, and execute the
+live matrix.
+
+### 2026-08-23: Phase 8 application and live depletion checkpoint
+
+Completed against the authoritative development checkout:
+
+- captured and independently verified a 4,995-file development-world snapshot at the accepted
+  Phase 7 hash before changing data;
+- sealed the 1,207-path Phase 8 bundle from 258 packages and 71,680 records, applied its 119
+  changed paths under the baseline/candidate hash guard, and verified a repeated completion apply
+  was a no-op at candidate hash `3ff3bae40d1dfc87c26758e8eb5d2b7bd268228917b8f4c566ddb3b38f7bfaa7`;
+- applied the idempotent database help component twice and verified all thrown-weapon help rows;
+- installed the exact feature binary through the versioned release mechanism, booted the
+  development server through `autorun.sh`, and verified converted dart, ammo-pouch, and
+  `MOB_ROL_ARCHER` data in game;
+- exercised pouch, inventory, and wielded-anchor depletion with unique object movement, room and
+  corpse collection, logout/reconnect persistence, and converted thornslinger targeting.
+
+The first complete live exhaustion pass exposed a real lifecycle defect: the thrower stopped after
+the final non-returning anchor, but the reciprocal target remained engaged and its next attack
+silently enrolled the unarmed thrower in melee. The server was stopped, and the source now ends
+both sides of that specific thrown engagement whenever the anchor is exhausted or invalid while
+leaving launcher termination unchanged. A production-linked regression asserts reciprocal combat
+cleanup, and the root suite now reports 824 passing tests with no failures. `make install` followed
+the suite and removed the root-level binary.
+
+Next, commit and install the clean fix checkpoint, recapture candidate boot evidence, reseal Phase
+8 for the new binary identity, and repeat the complete live depletion and regression matrix before
+closing either remaining definition-of-done item.
+
+### 2026-08-23: Final Phase 8 and live-QA completion checkpoint
+
+Completed the corrected release and every remaining development gate:
+
+- committed and pushed clean source checkpoint
+  `72c86a2ef1816a64d641a2b0682b8f4fc818d892`, then built and installed it with dirty state 0,
+  ELF build ID `9dcef9807e303bc3686bd00706a16aa2f7deb50f`, and SHA-256
+  `aa9dc0cbace11da92fa90395ada7098216f2ca6cbd4fe4faf307c1dbd4fdb261`;
+- reran the root production-linked suite with 824 passing tests, followed it with `make install`,
+  and confirmed that no root-level `luminari` artifact remained;
+- reran the complete world-tool suite with 491 passes and 34 expected optional-corpus skips, the
+  focused protocol suite with 29 passes, and exact-binary candidate syntax and bounded runtime
+  boots through normal termination;
+- sealed ready-to-apply release `rol-phase8-release-eaebc9ec674e09b8` from 258 packages, 71,680
+  records, and 1,207 paths at candidate hash
+  `3ff3bae40d1dfc87c26758e8eb5d2b7bd268228917b8f4c566ddb3b38f7bfaa7`, with every code,
+  runtime, preservation, connection, mechanics-isolation, and read-only persistence gate passing;
+- verified the final persistence audit across 33 distinct RoL VNUMs and 35 database rows with no
+  missing or duplicate resolutions;
+- repeated the guarded development apply as a 1,207-path no-op and sealed completion run
+  `rol-phase8-complete-880367fcc005c3ee`, whose acceptance record reports complete,
+  documentation pass, candidate-tree match, unchanged runtime code, and repeat-apply no-op;
+- installed that exact binary in the authoritative development checkout and exercised a five-shot
+  two-pouch, two-inventory, wielded-anchor-last depletion. Exactly five distinct thorns moved,
+  both combatants reported no opponent after exhaustion, no unarmed fallback occurred, and
+  `collect` recovered exactly five objects;
+- exercised a mixed equipped pouch by firing its arrow with a composite longbow and then throwing
+  all three matching thorns, and verified that the same mixed arrow/throwable pouch survived a
+  logout and reconnect;
+- exercised a one-adjacent-room, wielded-anchor-only throw, critical and poison handling,
+  melee-by-default dart use, room and corpse collection, and peaceful-room rejection without
+  detaching or consuming the anchor;
+- observed a naturally reset converted thornslinger, equipped from the converted zone with a
+  sharp-thorn anchor and knotted-vine throwing quiver, throw three reserve darts across an exit;
+  a second naturally converted throwable-only archer also threw its equipped dagger;
+- verified all six authoritative player-help routes for `THROW`, `THROWN-WEAPONS`, `AMMO`,
+  `QUIVERS`, `FIRE`, and `COLLECT`; and
+- stopped the development server through `autorun.sh`; it exited with code 0 and logged normal
+  termination. The runtime rewrote only the generated timestamp in `world.artifact`; its semantic
+  rows remained byte-identical to the previously verified candidate state.
+
+The live passes cover player command integration, converted content, persistence, source order,
+launcher coexistence, adjacent targeting, collection, and shutdown behavior. Deterministic
+production-linked cases cover the forced defense, Returning, Snatch, carry-capacity, death,
+extraction, instance-identity, anchor-change, dual-wield priority, and idempotent-finalization
+branches that are not reliably induced in a live session. The complete 824-test regression run
+covers the existing launcher, reload, feat, melee, OEDIT, persistence, and world-loading surfaces.
+No production operation or protected local configuration change was performed.
+
+### 2026-08-23: Post-completion identity and lifecycle audit
+
+A final source-level audit after the live matrix found and repaired narrow callback and
+instance-identity edges that the completed gameplay paths did not deterministically induce:
+
+- critical-range and poison handling now read the exact detached projectile instance rather than
+  the equipped anchor or an unrelated pointer;
+- character, room, and projectile state is revalidated after every critical, on-hit, spell,
+  artifact, special-ability, trigger, teamwork, and banishing callback boundary;
+- adjacent-room physical projectiles can invoke weapon special abilities without requiring a
+  same-room `FIGHTING(ch)` relationship;
+- Returning requires a live recipient in a valid room, while extracted, moved, destroyed, or
+  replaced projectiles retain one unambiguous final disposition; and
+- command-target gating, mixed launcher bolt/stone selection, and the newly exposed lifecycle
+  branches have production-linked regressions.
+
+The repairs were committed and pushed as
+`04c37f767c85916164c8721ee0261ed5902e7808`. Final release verification used a disposable,
+isolated MariaDB runtime and produced these results:
+
+- root `make test`: 827 tests, zero failures, including a real database syntax boot;
+- `make install`: successful versioned install with `bin/luminari` executable and no root-level
+  `luminari` or `circle` artifact;
+- world tools: 491 passes with 34 expected optional-corpus skips;
+- focused protocol parser: 29 passes; and
+- database help: the component remained idempotent across two applications and all four verifier
+  rows reported `PASS`.
+
+The full post-audit tree builds without warnings, passes `git diff --check`, and remains confined to
+the development feature branch. The earlier Phase 8 world conversion and live-QA evidence remains
+valid because this audit changed projectile runtime handling and tests only; it did not change
+converted content, persistence formats, help content, or the guarded development data.
+
 ## 10. Definition of done
 
 The feature is complete only when all of the following are true:
 
-- [ ] Wielding any native thrown-only weapon still permits ordinary melee combat.
-- [ ] `throw <target> [direction]` works through the existing ranged target and action gates.
-- [ ] Matching objects are consumed from equipped ammo pouch, then inventory, then the wielded
+- [x] Wielding any native thrown-only weapon still permits ordinary melee combat.
+- [x] `throw <target> [direction]` works through the existing ranged target and action gates.
+- [x] Matching objects are consumed from equipped ammo pouch, then inventory, then the wielded
       anchor, using strict VNUM identity and one actual instance per attack.
-- [ ] The last non-returning anchor is unequipped and thrown; mode stops without melee fallback.
-- [ ] Hit, miss, defenses, death, extraction, collection, and Returning have tested, unique object
+- [x] The last non-returning anchor is unequipped and thrown; mode stops without melee fallback.
+- [x] Hit, miss, defenses, death, extraction, collection, and Returning have tested, unique object
       ownership outcomes.
-- [ ] Dart and blowgun are separate append-only weapon profiles with correct melee/launcher
+- [x] Dart and blowgun are separate append-only weapon profiles with correct melee/launcher
       behavior and converter mappings.
-- [ ] Mixed ammo pouches work for launchers and thrown weapons and survive persistence.
-- [ ] Converted throwing quivers and `MOB_ROL_ARCHER` throwers work in the development world.
-- [ ] Existing fire, reload, autofire, autoreload, archery feats, and missile collection regressions
+- [x] Mixed ammo pouches work for launchers and thrown weapons and survive persistence.
+- [x] Converted throwing quivers and `MOB_ROL_ARCHER` throwers work in the development world.
+- [x] Existing fire, reload, autofire, autoreload, archery feats, and missile collection regressions
       pass.
-- [ ] Root `make test` passes, `make install` follows it, and no root `luminari` artifact remains.
-- [ ] Converter tests, SQL help verification, manual development QA, and `git diff --check` pass.
-- [ ] `lib/text/help/help.hlp`, database help components, OEDIT guide, combat documentation, and
+- [x] Root `make test` passes, `make install` follows it, and no root `luminari` artifact remains.
+- [x] Converter tests, SQL help verification, and `git diff --check` pass.
+- [x] The guarded development data apply and manual development QA matrix pass.
+- [x] `lib/text/help/help.hlp`, database help components, OEDIT guide, combat documentation, and
       changelog are updated together.
-- [ ] No protected local header, credential file, or production environment was modified.
+- [x] No protected local header, credential file, or production environment was modified.

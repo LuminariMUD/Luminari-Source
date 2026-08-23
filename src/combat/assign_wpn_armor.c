@@ -14,6 +14,7 @@
 #include "actions.h"
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
+#include "projectiles.h"
 #include "craft/craft.h"
 #include "character/feats.h"
 #include "constants.h"
@@ -495,7 +496,7 @@ bool process_load_weapon(struct char_data *ch, struct obj_data *weapon, bool sil
   /* success! */
   send_to_char(ch, "You reload %s.\r\n", weapon->short_description);
   if (FIGHTING(ch))
-    FIRING(ch) = TRUE;
+    set_launcher_projectile_mode(ch);
   return TRUE;
 }
 
@@ -540,7 +541,7 @@ bool reload_weapon(struct char_data *ch, struct obj_data *wielded,
 
   /* if we are in combat, let's make sure we start firing! */
   if (FIGHTING(ch))
-    FIRING(ch) = TRUE;
+    set_launcher_projectile_mode(ch);
 
   return TRUE;
 }
@@ -555,7 +556,7 @@ bool weapon_is_loaded(struct char_data *ch, struct obj_data *wielded, bool silen
   { /* object value 5 is for loaded status */
     if (!silent)
       send_to_char(ch, "You have to reload your weapon!\r\n");
-    FIRING(ch) = FALSE;
+    clear_launcher_projectile_mode(ch);
     return FALSE;
   }
 
@@ -571,7 +572,7 @@ bool has_ammo_in_pouch(struct char_data *ch, struct obj_data *wielded, bool sile
   {
     if (!silent)
       send_to_char(ch, "You have no weapon!\r\n");
-    FIRING(ch) = FALSE;
+    clear_launcher_projectile_mode(ch);
     return FALSE;
   }
 
@@ -579,7 +580,7 @@ bool has_ammo_in_pouch(struct char_data *ch, struct obj_data *wielded, bool sile
   {
     if (!silent)
       send_to_char(ch, "You have no ammo pouch!\r\n");
-    FIRING(ch) = FALSE;
+    clear_launcher_projectile_mode(ch);
     return FALSE;
   }
 
@@ -587,92 +588,15 @@ bool has_ammo_in_pouch(struct char_data *ch, struct obj_data *wielded, bool sile
   {
     if (!silent)
       send_to_char(ch, "Your ammo pouch is empty!\r\n");
-    FIRING(ch) = FALSE;
+    clear_launcher_projectile_mode(ch);
     return FALSE;
   }
 
-  if (GET_OBJ_TYPE(ammo_pouch->contains) != ITEM_MISSILE)
+  if (!find_compatible_launcher_ammo(ch, wielded))
   {
     if (!silent)
-      send_to_char(ch, "Your ammo pouch needs to be filled with only ammo!\r\n");
-    FIRING(ch) = FALSE;
-    return FALSE;
-  }
-
-  switch (GET_OBJ_VAL(ammo_pouch->contains, 0))
-  {
-  case AMMO_TYPE_ARROW:
-    switch (GET_OBJ_VAL(wielded, 0))
-    {
-    case WEAPON_TYPE_LONG_BOW:
-    case WEAPON_TYPE_SHORT_BOW:
-    case WEAPON_TYPE_COMPOSITE_LONGBOW:
-    case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
-    case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
-    case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
-    case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
-    case WEAPON_TYPE_COMPOSITE_SHORTBOW:
-    case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
-    case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
-    case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
-    case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
-      break;
-    default:
-      if (!silent)
-        act("Your $p requires a bow.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
-      FIRING(ch) = FALSE;
-      return FALSE;
-    }
-    break;
-
-  case AMMO_TYPE_BOLT:
-    switch (GET_OBJ_VAL(wielded, 0))
-    {
-    case WEAPON_TYPE_HAND_CROSSBOW:
-    case WEAPON_TYPE_HEAVY_REP_XBOW:
-    case WEAPON_TYPE_LIGHT_REP_XBOW:
-    case WEAPON_TYPE_HEAVY_CROSSBOW:
-    case WEAPON_TYPE_LIGHT_CROSSBOW:
-      break;
-    default:
-      if (!silent)
-        act("Your $p requires a crossbow.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
-      FIRING(ch) = FALSE;
-      return FALSE;
-    }
-    break;
-
-  case AMMO_TYPE_STONE:
-    switch (GET_OBJ_VAL(wielded, 0))
-    {
-    case WEAPON_TYPE_SLING:
-      break;
-    default:
-      if (!silent)
-        act("Your $p requires a sling.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
-      FIRING(ch) = FALSE;
-      return FALSE;
-    }
-    break;
-
-  case AMMO_TYPE_DART:
-    switch (GET_OBJ_VAL(wielded, 0))
-    {
-    case WEAPON_TYPE_DART:
-      break;
-    default:
-      if (!silent)
-        act("Your $p requires a dart-gun.", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
-      FIRING(ch) = FALSE;
-      return FALSE;
-    }
-    break;
-
-  case AMMO_TYPE_UNDEFINED:
-  default:
-    if (!silent)
-      act("Your $p does not fit your weapon...", FALSE, ch, ammo_pouch->contains, NULL, TO_CHAR);
-    FIRING(ch) = FALSE;
+      send_to_char(ch, "Your ammo pouch has no ammunition compatible with your weapon.\r\n");
+    clear_launcher_projectile_mode(ch);
     return FALSE;
   }
 
@@ -689,13 +613,13 @@ bool can_fire_ammo(struct char_data *ch, bool silent)
 
   if (!(wielded = is_using_ranged_weapon(ch, silent)))
   {
-    FIRING(ch) = FALSE;
+    clear_launcher_projectile_mode(ch);
     return FALSE;
   }
 
   if (!has_ammo_in_pouch(ch, wielded, silent))
   {
-    FIRING(ch) = FALSE;
+    clear_launcher_projectile_mode(ch);
     return FALSE;
   }
 
@@ -704,7 +628,7 @@ bool can_fire_ammo(struct char_data *ch, bool silent)
   if (is_reloading_weapon(ch, wielded)) {
     if (!weapon_is_loaded(ch, wielded, silent)) {
       //a message is sent in weapon_is_loaded()
-      FIRING(ch) = FALSE;
+      clear_launcher_projectile_mode(ch);
       return FALSE;
     }
   }
@@ -717,19 +641,7 @@ bool can_fire_ammo(struct char_data *ch, bool silent)
 /*check all wielded slots looking for ranged weapon*/
 struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode)
 {
-  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_2H);
-
-  if (!wielded)
-    wielded = GET_EQ(ch, WEAR_WIELD_1);
-  if (!wielded)
-    wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
-
-  if (!wielded)
-  {
-    if (!silent_mode)
-      send_to_char(ch, "You are not wielding a ranged weapon!\r\n");
-    return NULL;
-  }
+  struct obj_data *wielded;
 
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
   {
@@ -738,7 +650,8 @@ struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode)
     return NULL;
   }
 
-  if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].weaponFlags, WEAPON_FLAG_RANGED))
+  wielded = find_equipped_launcher(ch, NULL);
+  if (wielded)
     return wielded;
 
   if (!silent_mode)
@@ -1030,10 +943,9 @@ void load_weapons(void)
             "A light crossbow is a lighter version of a normal crossbow. It fires with less force "
             "than a heavy crossbow, and takes a -2 penalty to hit if fired with one hand.");
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
-  setweapon(WEAPON_TYPE_DART, "dart", 1, 4, 0, 2,
-            WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN | WEAPON_FLAG_RANGED, 1, DAMAGE_TYPE_PIERCING,
-            1, 20, WEAPON_FAMILY_THROWN, SIZE_TINY, MATERIAL_WOOD, HANDLE_TYPE_SHAFT,
-            HEAD_TYPE_POINT,
+  setweapon(WEAPON_TYPE_DART, "dart", 1, 4, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN, 1,
+            DAMAGE_TYPE_PIERCING, 1, 20, WEAPON_FAMILY_THROWN, SIZE_TINY, MATERIAL_WOOD,
+            HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
             "Darts are missile weapons, designed to fly such that a sharp, often weighted point "
             "will strike first. They can be distinguished from javelins by fletching (i.e., "
             "feathers on the tail) and a shaft that is shorter and/or more flexible, and from "
@@ -1397,6 +1309,10 @@ void load_weapons(void)
             HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
             "A knife made from materials of symbolic importance, and frequently engraved with "
             "mystical artwork.");
+  setweapon(WEAPON_TYPE_BLOWGUN, "blowgun", 1, 2, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_RANGED, 2,
+            DAMAGE_TYPE_PIERCING, 1, 20, WEAPON_FAMILY_RANGED, SIZE_SMALL, MATERIAL_WOOD,
+            HANDLE_TYPE_SHAFT, HEAD_TYPE_BOW,
+            "A blowgun is a narrow tube that propels small darts with the wielder's breath.");
 }
 
 /************** ------- ARMOR ----------************************************/
@@ -2562,14 +2478,13 @@ bool is_two_handed_ranged_weapon(struct obj_data *obj)
 
   int type = GET_OBJ_VAL(obj, 0);
 
-  if (type < 0 || type > NUM_WEAPON_TYPES)
+  if (type < 0 || type >= NUM_WEAPON_TYPES)
     return FALSE;
 
-  if (weapon_list[type].weaponFamily != WEAPON_FAMILY_RANGED)
+  if (!is_launcher_weapon(obj))
     return FALSE;
 
-  if (type == WEAPON_TYPE_DART || type == WEAPON_TYPE_SLING || type == WEAPON_TYPE_HAND_CROSSBOW ||
-      type == WEAPON_TYPE_BOLA)
+  if (type == WEAPON_TYPE_SLING || type == WEAPON_TYPE_HAND_CROSSBOW || type == WEAPON_TYPE_BLOWGUN)
     return FALSE;
 
   return TRUE;
@@ -2636,41 +2551,11 @@ bool is_using_ghost_touch_weapon(struct char_data *ch)
   return false;
 }
 
-bool is_using_keen_weapon(struct char_data *ch)
+bool weapon_has_keen_effect(struct char_data *ch, struct obj_data *obj)
 {
-  struct obj_data *obj = NULL;
+  if (!ch)
+    return false;
 
-  obj = GET_EQ(ch, WEAR_WIELD_1);
-  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
-    return true;
-  if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
-    return true;
-  if (obj &&
-      (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_PIERCING) ||
-       IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_SLASHING)) &&
-      affected_by_spell(ch, SPELL_KEEN_EDGE))
-    return true;
-  if ((!obj ||
-       (obj && (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_BLUDGEONING)))) &&
-      affected_by_spell(ch, SPELL_WEAPON_OF_IMPACT))
-    return true;
-
-  obj = GET_EQ(ch, WEAR_WIELD_2H);
-  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
-    return true;
-  if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
-    return true;
-  if (obj &&
-      (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_PIERCING) ||
-       IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_SLASHING)) &&
-      affected_by_spell(ch, SPELL_KEEN_EDGE))
-    return true;
-  if ((!obj ||
-       (obj && (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_BLUDGEONING)))) &&
-      affected_by_spell(ch, SPELL_WEAPON_OF_IMPACT))
-    return true;
-
-  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
     return true;
   if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
@@ -2686,6 +2571,25 @@ bool is_using_keen_weapon(struct char_data *ch)
     return true;
 
   if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_KEEN))
+    return true;
+
+  return false;
+}
+
+bool is_using_keen_weapon(struct char_data *ch)
+{
+  struct obj_data *obj;
+
+  obj = GET_EQ(ch, WEAR_WIELD_1);
+  if (weapon_has_keen_effect(ch, obj))
+    return true;
+
+  obj = GET_EQ(ch, WEAR_WIELD_2H);
+  if (weapon_has_keen_effect(ch, obj))
+    return true;
+
+  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (weapon_has_keen_effect(ch, obj))
     return true;
 
   return false;
