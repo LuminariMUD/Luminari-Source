@@ -1,7 +1,7 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2026-08-14
-Version: 1.4
+Last Updated: 2026-08-23
+Version: 1.5
 
 ## Documentation Overview
 
@@ -116,6 +116,9 @@ This master index provides a comprehensive guide to all technical documentation 
 ### Core Development
 - **[development.md](development.md)** - Current daily commands, build gates, and source map
 - **[DEVELOPER_GUIDE_AND_API.md](guides/DEVELOPER_GUIDE_AND_API.md)** - Comprehensive developer reference
+- **[ADDING_NEW_RACE_GUIDE.md](guides/ADDING_NEW_RACE_GUIDE.md)** - End-to-end
+  playable-race ID, registry, creation, mechanics, persistence, help, testing,
+  deployment, and rollback guide
 - **[RESOURCE_SYSTEM_REFERENCE.md](guides/RESOURCE_SYSTEM_REFERENCE.md)** - Resource system player/admin reference
 - **[RESOURCE_REGENERATION_API.md](development/RESOURCE_REGENERATION_API.md)** - Resource regeneration API for developers
 - **[PHASE_4_INSTALLATION.md](guides/PHASE_4_INSTALLATION.md)** - Phase 4 region effects system setup and testing guide

@@ -18,6 +18,25 @@ Examples:
 
 See also: \t(HELP ALIAS\t)
 #0
+ACCOMPANY
+
+Usage: accompany <performer>
+       accompany
+
+Requires:  the accompany feat, bard level 6
+
+Instead of leading a song of your own, you back the performance of a bard
+you are grouped with in your room.  Your perform ability and instrument
+raise the quality of every verse the lead performs, up to a cap, and if the
+lead's performance falters or stutters you take the song over rather than
+letting it end.
+
+Type accompany with no argument to stop accompanying.  You must stop your
+own performance before you can accompany someone else, and you cannot
+accompany while silenced.
+
+See also: PERFORM, INSTRUMENT, FEAT INFO ACCOMPANY
+#0
 ABILITIES CLASS-ABILITY CROSS-CLASS
 
 Abilities are a set of traits available depending on your class.  Abilities are
@@ -3169,6 +3188,42 @@ The travel time to the destination in seconds will be determined by how far
 the station is from your current location.  Travelling by carriage is completely
 safe from encounters.
 See Also:  SURVEY, WILDERNESS
+#0
+CALM
+
+Usage: calm
+
+Requires:  the calm feat
+Action  :  Standard Action
+Uses    :  limited per day, 1 plus your charisma bonus
+
+You intone a settling chant that tries to end every fight in the room.  Each
+combatant resists with a will save against 10 + half your level + your
+charisma bonus.  Those who fail disengage, forget their current quarrel, and
+are left too settled to be calmed again for a few rounds.  Creatures immune
+to mind-affecting effects ignore the chant, and you cannot chant while
+silenced.
+
+See also: FEAT INFO CALM, PACIFY
+#0
+CAMP ESTABLISH-CAMP
+
+Usage: camp
+
+Requires:  the establish camp feat
+Action  :  Standard and Move Action
+Check   :  survival against a difficulty set by terrain and weather
+
+You clear a site, set your gear and get a fire going.  You and any grouped
+companions in the room recover hitpoints and movement far faster while
+sleeping, reclining, resting or sitting in the camp, and the campsite becomes
+your return point, so quitting from camp brings you back to it.
+
+Camps cannot be pitched indoors, on or under water, while flying, or during
+combat.  Rough ground such as desert, marsh, mountains and the deep underdark
+raises the difficulty, as does rain or a lightning storm.
+
+See also: FEAT INFO ESTABLISH CAMP, SURVEY, HARVEST, WILDERNESS
 #0
 CAST CASTING IMBIBE MAGIC
 
@@ -10277,6 +10332,25 @@ prime-material plane, you will need to be _off_ of it.
 	n
 	YSee also:	n SPELLS CHARMEE
 	n
+#0
+GARROTE
+
+Usage: garrote <target>
+
+Requires:  the garrote feat, sneaking and hiding (in that order),
+           no shield, no two-handed weapon and a free off hand
+Action  :  Standard and Move Action
+
+You loop a cord around the throat of a target that cannot see you.  The
+attack roll gains a bonus for striking from concealment.  On a hit you deal
+strangling damage, and unless the target makes a fortitude save against
+10 + half your level + your dexterity bonus it is left choking: silenced and
+staggered for a short time.
+
+Creatures that do not breathe, such as undead, constructs, golems and
+elementals, cannot be garroted, and neither can anything incorporeal.
+
+See also: FEAT INFO GARROTE, BACKSTAB, SAP, SNEAK, HIDE
 #0
 GATHERING
 
@@ -21093,6 +21167,27 @@ POWER-SHADOW-BODY SHADOW-BODY
 	n
 	YSee also:	n PSIONICS
 	n
+#0
+SHADOW
+
+Usage: shadow <target>
+       shadow
+
+Requires:  the shadow feat, sneaking
+
+You covertly tail a target from room to room.  Taking up the trail is a
+contested stealth check against your mark's perception, and the contest is
+repeated every time your mark leaves the room.  While the tail holds you move
+with your mark without joining a group and without being announced.
+
+Losing a contest, being unable to keep pace, entering combat, stopping
+sneaking or being knocked from your feet all end the tail.  Type shadow with
+no argument to break off.
+
+Note that this is not the Shadowdancer shadow line: shadow jump, shadow walk,
+one with shadow and shadow master are separate abilities.
+
+See also: FEAT INFO SHADOW, SNEAK, HIDE, STEALTH
 #0
 SHADOW-SHIELD
 

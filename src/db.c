@@ -7697,6 +7697,8 @@ void init_char(struct char_data *ch)
   for (i = 0; i < MAX_ENEMIES; i++)
     GET_FAVORED_ENEMY(ch, i) = 0;
   GUARDING(ch) = NULL;
+  SHADOWING(ch) = NULL;
+  ACCOMPANYING(ch) = NULL;
   GET_TOTAL_AOO(ch) = 0;
 
   /*

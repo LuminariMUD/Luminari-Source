@@ -39,6 +39,7 @@
 #include "character/perks.h"
 #include "magic/moon_bonus_spells.h"
 #include "obj/spec_artifacts.h"
+#include "rol_feats.h"
 
 // external functions
 bool save_char_pets(struct char_data *ch);
@@ -1108,6 +1109,9 @@ int hit_gain(struct char_data *ch)
   if (AFF_FLAGGED(ch, AFF_POISON) || AFF_FLAGGED(ch, AFF_ACID_COAT))
     gain /= 4;
 
+  /* a pitched camp speeds recovery for anyone settled into it */
+  gain += camp_recovery_bonus(ch, gain);
+
   return (gain);
 }
 
@@ -1150,6 +1154,9 @@ int move_gain(struct char_data *ch)
 
   if (AFF_FLAGGED(ch, AFF_POISON) || AFF_FLAGGED(ch, AFF_ACID_COAT))
     gain /= 4;
+
+  /* a pitched camp speeds recovery for anyone settled into it */
+  gain += camp_recovery_bonus(ch, gain);
 
   gain *= 10;
 

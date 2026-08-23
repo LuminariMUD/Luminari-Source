@@ -2,6 +2,36 @@
 
 ## [Unreleased] - August 23, 2026
 
+### RoL skill parity: five converted feats
+
+#### Added
+
+- Implemented the five Realms of Luminari player skills that had no LuminariMUD equivalent as
+  feats in `src/rol_feats.c`, keeping RoL's gameplay purpose while expressing the mechanics with
+  d20 checks, ability scores, and the existing feat and daily-use machinery.
+  - `shadow` covertly tails a target between rooms. Taking up and keeping the trail are contested
+    stealth checks against the mark's perception, re-rolled on every room the mark leaves.
+    Granted to rogues at 6 and rangers at 8, learnable with 5 ranks of stealth.
+  - `calm` chants to end every fight in the room, resisted with a will save against
+    10 + half level + charisma bonus. Limited daily uses; mind-affecting immunity ignores it.
+    Granted to bards at 8, learnable with charisma 13.
+  - `camp` pitches a wilderness campsite on a survival check set by terrain and weather, speeding
+    hitpoint and movement recovery for the group while they rest and making the site their return
+    point. Granted to rangers and druids at 3, learnable with 3 ranks of survival.
+  - `garrote` strangles a target that cannot see you from a hide-then-sneak posture, leaving it
+    silenced and staggered on a failed fortitude save. Granted to rogues at 10 and assassins at 3,
+    learnable with 8 ranks of stealth and base attack bonus 4.
+  - `accompany` lets a grouped bard back another bard's performance, raising its effectiveness and
+    taking the song over when the lead falters. Granted to bards at 6.
+- Added flat-file and database help for all five, plus an idempotent SQL migration and verifier.
+
+#### Tests
+
+- Added production-linked CuTest coverage for camp recovery gating, accompaniment bonus
+  eligibility, performance handoff with and without the song's feat, tail breaks on lost stealth
+  and on combat, both-direction link cleanup, and command/feat registration.
+
+
 ### Upstream pull request audit remediation
 
 #### Fixed

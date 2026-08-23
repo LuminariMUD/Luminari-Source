@@ -1208,6 +1208,10 @@ void char_from_furniture(struct char_data *ch);
 #define HUNTING(ch) ((ch)->char_specials.hunting)
 /** Who is ch guarding? */
 #define GUARDING(ch) ((ch)->char_specials.guarding)
+/* target this character is covertly tailing via the 'shadow' feat */
+#define SHADOWING(ch) ((ch)->char_specials.shadowing)
+/* lead performer this character is backing via the 'accompany' feat */
+#define ACCOMPANYING(ch) ((ch)->char_specials.accompanying)
 /** Is ch firing a missile weapon? */
 #define FIRING(ch) ((ch)->char_specials.firing)
 /** is ch auto-eldritch-blasting? */

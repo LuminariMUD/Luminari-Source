@@ -526,6 +526,8 @@ struct mud_event_list mud_event_index[] = {
     {"RoL Spiderhaunt Maggots", event_rol_spiderhaunt_maggots, EVENT_CHAR, NULL, NULL,
      FEAT_UNDEFINED, 0},
     {"Dragon Attack Cooldown", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Calm Cooldown", event_daily_use_cooldown, EVENT_CHAR, NULL,
+     "One of your calm uses has recovered.", FEAT_CALM, 0},
 };
 
 /* Expose registry count for validation */

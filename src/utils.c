@@ -5176,6 +5176,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
   case FEAT_RALLYING_CRY:
     daily_uses = 3;
     break;
+  case FEAT_CALM:
+    daily_uses = MAX(1, 1 + GET_CHA_BONUS(ch));
+    break;
   case FEAT_INSPIRE_COURAGE:
     daily_uses = 1 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
     break;

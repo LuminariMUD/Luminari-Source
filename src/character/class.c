@@ -4610,6 +4610,8 @@ void load_class_list(void)
   feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 23, Y);
   /* talent lvl 24, sap */
   feat_assignment(CLASS_ROGUE, FEAT_SAP, Y, 24, N);
+  feat_assignment(CLASS_ROGUE, FEAT_SHADOW, Y, 6, N);
+  feat_assignment(CLASS_ROGUE, FEAT_GARROTE, Y, 10, N);
   feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 25, Y);
   feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 26, Y);
   feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 27, Y);
@@ -4935,6 +4937,7 @@ void load_class_list(void)
   feat_assignment(CLASS_DRUID, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
   feat_assignment(CLASS_DRUID, FEAT_ANIMAL_COMPANION, Y, 1, N);
   feat_assignment(CLASS_DRUID, FEAT_NATURE_SENSE, Y, 1, N);
+  feat_assignment(CLASS_DRUID, FEAT_ESTABLISH_CAMP, Y, 3, N);
   feat_assignment(CLASS_DRUID, FEAT_WILD_EMPATHY, Y, 2, N);
   feat_assignment(CLASS_DRUID, FEAT_WOODLAND_STRIDE, Y, 2, N);
   feat_assignment(CLASS_DRUID, FEAT_TRACKLESS_STEP, Y, 3, N);
@@ -6092,6 +6095,8 @@ void load_class_list(void)
   feat_assignment(CLASS_RANGER, FEAT_RAPID_SHOT, Y, 7, N);
   feat_assignment(CLASS_RANGER, FEAT_WOODLAND_STRIDE, Y, 8, N);
   feat_assignment(CLASS_RANGER, FEAT_TRACK, Y, 9, N);
+  feat_assignment(CLASS_RANGER, FEAT_ESTABLISH_CAMP, Y, 3, N);
+  feat_assignment(CLASS_RANGER, FEAT_SHADOW, Y, 8, N);
   feat_assignment(CLASS_RANGER, FEAT_EVASION, Y, 10, N);
   feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE, Y, 10, Y);
   /*CM*/
@@ -6242,6 +6247,8 @@ void load_class_list(void)
   feat_assignment(CLASS_BARD, FEAT_DANCE_OF_PROTECTION, Y, 2, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_FOCUSED_MIND, Y, 3, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_HEROISM, Y, 5, N);
+  feat_assignment(CLASS_BARD, FEAT_ACCOMPANY, Y, 6, N);
+  feat_assignment(CLASS_BARD, FEAT_CALM, Y, 8, N);
   feat_assignment(CLASS_BARD, FEAT_ORATORY_OF_REJUVENATION, Y, 7, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_FLIGHT, Y, 9, N);
   feat_assignment(CLASS_BARD, FEAT_EFFICIENT_PERFORMANCE, Y, 10, N);
@@ -8800,6 +8807,7 @@ void load_class_list(void)
 
   feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 2, Y);
   feat_assignment(CLASS_ASSASSIN, FEAT_UNCANNY_DODGE, Y, 2, N);
+  feat_assignment(CLASS_ASSASSIN, FEAT_GARROTE, Y, 3, N);
 
   feat_assignment(CLASS_ASSASSIN, FEAT_SNEAK_ATTACK, Y, 3, Y);
 

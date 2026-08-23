@@ -583,6 +583,7 @@ set(SRC_C_FILES
     src/olc/qedit.c
     src/quest/quest.c
     src/quest/quest_services.c
+    src/rol_feats.c
     src/character/race.c
     src/random.c
     src/random_names.c
@@ -1162,6 +1163,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_mob_autoroll.c
     unittests/CuTest/test_copyover_timer.c
     unittests/CuTest/test_bardic_performance.c
+    unittests/CuTest/test_rol_feats.c
     unittests/CuTest/test_spells_skills_production.c
     unittests/CuTest/test_perfmon_production.c
     unittests/CuTest/test_elf_build_id.c

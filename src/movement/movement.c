@@ -46,6 +46,7 @@
 
 /* Include vessel system for ship interior movement */
 #include "vessels/vessels.h"
+#include "rol_feats.h"
 
 #define ZONE_MINLVL(rnum) (zone_table[(rnum)].min_level)
 
@@ -1084,12 +1085,12 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
     if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
       buildwalk(ch, dir);
 
-    if (!ch->followers)
-      return (do_simple_move(ch, dir, need_specials_check));
-
     was_in = IN_ROOM(ch);
     if (!do_simple_move(ch, dir, need_specials_check))
       return (0);
+
+    /* anyone tailing this character tries to keep up, unannounced */
+    shadowers_follow(ch, was_in, dir);
 
     for (k = ch->followers; k; k = next)
     {

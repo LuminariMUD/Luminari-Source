@@ -83,6 +83,9 @@ ACMD_DECL(do_perform);
 /**/
 #define NUM_PERFORM_AOE 4
 
+/* reference/lookup data for each performance, defined in bardic_performance.c */
+extern int performance_info[MAX_PERFORMANCES][PERFORMANCE_INFO_FIELDS];
+
 /*********************************************************/
 #ifdef __cplusplus
 }

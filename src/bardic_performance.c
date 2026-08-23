@@ -23,6 +23,7 @@
 #include "character/feats.h"
 #include "character/perks.h"
 #include "magic/spell_prep.h"
+#include "rol_feats.h"
 
 /* defines */
 #define DEBUG_MODE FALSE
@@ -1591,6 +1592,9 @@ static int process_bardic_performance_slot_internal(struct char_data *ch, int sl
     effectiveness += 3;
   }
 
+  /* grouped performers using the accompany feat raise the quality of the lead */
+  effectiveness += accompaniment_bonus(ch);
+
   /* this is the currently formula for effectiveness of the performance */
   effectiveness = effectiveness * compute_ability(ch, ABILITY_PERFORM) / 7;
 
@@ -1606,6 +1610,7 @@ static int process_bardic_performance_slot_internal(struct char_data *ch, int sl
   {
     send_to_char(ch, "Your performance fails!\r\n");
     stop_bardic_performance_slot(ch, slot, FALSE);
+    accompany_takeover(ch, performance_num);
     return 0; /* process performance failed somehow */
   }
 
@@ -1615,6 +1620,7 @@ static int process_bardic_performance_slot_internal(struct char_data *ch, int sl
     send_to_char(ch, "Uh oh.. how did the performance go, anyway?\r\n");
     act("$n stutters in the performance!", TRUE, ch, 0, 0, TO_ROOM);
     stop_bardic_performance_slot(ch, slot, FALSE);
+    accompany_takeover(ch, performance_num);
     return 0;
   }
 

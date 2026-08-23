@@ -57,6 +57,7 @@
 #include "vessels/routing.h"
 #include "movement/movement_cost.h"
 #include "perfmon.h"
+#include "rol_feats.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -2657,6 +2658,10 @@ void die(struct char_data *ch, struct char_data *killer)
       GUARDING(temp) = NULL;
     }
   }
+
+  /* clear any tail or accompaniment this character was part of */
+  clear_shadow_links(ch);
+  clear_accompany_links(ch);
 
   /* Info-Kill mobs against player, print info about the death of this player by the mob to the world
    * TODO: add info channel for these guys */

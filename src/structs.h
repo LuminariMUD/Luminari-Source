@@ -2976,10 +2976,17 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define FEAT_WOOD_GOLEM_IMMUNITY 1260
 #define FEAT_STONE_GOLEM_IMMUNITY 1261
 
+/* feats converted from Realms of Luminari skills */
+#define FEAT_SHADOW 1262
+#define FEAT_CALM 1263
+#define FEAT_ESTABLISH_CAMP 1264
+#define FEAT_GARROTE 1265
+#define FEAT_ACCOMPANY 1266
+
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1262
+#define FEAT_LAST_FEAT 1267
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1263
+#define NUM_FEATS 1268
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -6297,15 +6304,17 @@ struct condensed_combat_data
 struct char_special_data
 {
   /* combat related */
-  int initiative;             /* What is this char's initiative score? */
-  struct char_data *fighting; /**< Target of fight; else NULL */
-  struct char_data *hunting;  /**< Target of NPC hunt; else NULL */
-  int totalDefense;           /* how many totaldefense attempts left in the round */
-  struct char_data *guarding; /* target for 'guard' ability */
-  bool firing;                /* is char firing missile weapon? */
-  bool blasting;              /* is char eldritch blasting? */
-  int mounted_blocks_left;    /* how many mounted combat blocks left in the round */
-  int deflect_arrows_left;    /* deflect arrows left */
+  int initiative;                 /* What is this char's initiative score? */
+  struct char_data *fighting;     /**< Target of fight; else NULL */
+  struct char_data *hunting;      /**< Target of NPC hunt; else NULL */
+  int totalDefense;               /* how many totaldefense attempts left in the round */
+  struct char_data *guarding;     /* target for 'guard' ability */
+  struct char_data *shadowing;    /* target being tailed by the 'shadow' feat */
+  struct char_data *accompanying; /* lead performer joined by the 'accompany' feat */
+  bool firing;                    /* is char firing missile weapon? */
+  bool blasting;                  /* is char eldritch blasting? */
+  int mounted_blocks_left;        /* how many mounted combat blocks left in the round */
+  int deflect_arrows_left;        /* deflect arrows left */
   struct condensed_combat_data *condensed_combat; /* condensed combat struct */
 
 

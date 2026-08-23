@@ -200,6 +200,10 @@ static void prepare_pending_extraction_references(void)
       ch->last_attacker = NULL;
     if (character_is_pending_extraction(GUARDING(ch)))
       GUARDING(ch) = NULL;
+    if (character_is_pending_extraction(SHADOWING(ch)))
+      SHADOWING(ch) = NULL;
+    if (character_is_pending_extraction(ACCOMPANYING(ch)))
+      ACCOMPANYING(ch) = NULL;
     if (character_is_pending_extraction(HUNTING(ch)))
       HUNTING(ch) = NULL;
     if (character_is_pending_extraction(CASTING_TCH(ch)))
@@ -3122,12 +3126,18 @@ void extract_char_final(struct char_data *ch)
 
   /* reset guard */
   GUARDING(ch) = NULL;
+  SHADOWING(ch) = NULL;
+  ACCOMPANYING(ch) = NULL;
   if (!extraction_batch_active)
   {
     for (tch = character_list; tch; tch = tch->next)
     {
       if (GUARDING(tch) == ch)
         GUARDING(tch) = NULL;
+      if (SHADOWING(tch) == ch)
+        SHADOWING(tch) = NULL;
+      if (ACCOMPANYING(tch) == ch)
+        ACCOMPANYING(tch) = NULL;
     }
   }
   PERF_prof_sect_exit(pr_relationships);

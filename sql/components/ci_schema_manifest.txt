@@ -18,6 +18,7 @@ apply help_gdb_binary_path.sql
 apply help_intermud3_entries.sql
 apply help_necromancer_entries.sql
 apply help_oedit_values_armor_ac.sql
+apply help_rol_feat_entries.sql
 apply help_rol_object_trap_entries.sql
 apply help_specproc_entries.sql
 apply help_system_indexes.sql
@@ -43,6 +44,7 @@ skip verify_help_bardic_instrument_entries.sql
 skip verify_help_command_sweep_entries.sql
 skip verify_help_intermud3_entries.sql
 skip verify_help_necromancer_entries.sql
+skip verify_help_rol_feat_entries.sql
 skip verify_help_rol_object_trap_entries.sql
 skip verify_help_specproc_entries.sql
 skip verify_help_vessel_entries.sql

@@ -1,6 +1,7 @@
 # RoL Skills Without a Close LuminariMUD Equivalent
 
-Status: draft independently re-verified against both source trees 2026-08-23.
+Status: re-verified against both source trees 2026-08-23. All five player-facing
+gaps have since been implemented as LuminariMUD feats; see "Ported gaps" below.
 
 This is the companion to `ROL_SPELL_EQUIVALENCE_GAPS.md`, alongside
 `ROL_RACE_EQUIVALENCE_GAPS.md`. That document covers
@@ -40,6 +41,12 @@ neither command is the equivalent used for the same-name RoL skill.
 
 ## Player-facing or functional gaps
 
+These five were the only live registrations without a close equivalent. All five
+are now implemented as feats in `src/rol_feats.c`; the RoL behavior column below
+records what was missing, and the ported-gaps table that follows records what
+LuminariMUD now provides.
+
+
 | RoL ID | RoL skill | RoL constant | Notes |
 |-------:|-----------|--------------|-------|
 | 102 | shadow | `SKILL_SHADOW` | Covertly follow a target between rooms, contested against the target's own shadow skill (`actnoff.c:5502`). LuminariMUD has no follow-unseen mechanic. Its `shadow *` names (shadow jump, shadow walk, one with shadow, shadow master) are all Shadowdancer teleport and concealment effects, not tailing. |
@@ -47,6 +54,27 @@ neither command is the equivalent used for the same-name RoL skill.
 | 252 | establish camp | `SKILL_CAMP` | Set up camp and rent out in the wilderness (`actnoff.c:119`). LuminariMUD has `rest` but no camp-as-rent-point mechanic and no `camp` command. A hint in `src/act.other.c` says players can pitch a camp, but no handler or command-table entry implements it. |
 | 375 | garrote | `SKILL_GARROTE` | Strangling attack from concealment (`actoff.c:5987`). LuminariMUD has no garrote or strangle anywhere in `src/`; `sap` and `backstab` are separate mechanics that do not model strangulation. |
 | 506 | accompany | `SKILL_ACCOMPANY` | A second grouped bard joins the lead bard's song, adds skill to its quality, and can take over if the lead fails (`newbard.c:159`, `newbard.c:2205`). LuminariMUD supports independent simultaneous performers and lets one bard maintain two songs through Master of Motifs, but has no join, quality-boost, or handoff mechanic between two bards. |
+
+## Ported gaps
+
+Each gap was re-expressed as a feat rather than as a `skillo()` percentage skill,
+using d20 checks, ability scores, and the existing feat, daily-use, and
+performance machinery. Behavior lives in `src/rol_feats.c`.
+
+| RoL skill | LuminariMUD feat | Command | Mechanic | Granted by |
+|-----------|------------------|---------|----------|------------|
+| shadow | `FEAT_SHADOW` | `shadow <target>` | Contested stealth against the mark's perception to take up the trail, re-rolled every time the mark leaves the room. Requires sneaking. Hooked into `perform_move_full()`. | Rogue 6, Ranger 8; learnable with 5 ranks of stealth |
+| calm | `FEAT_CALM` | `calm` | Will save against 10 + half level + charisma bonus stops each fight in the room and clears NPC memory. Mind-affecting immunity ignores it. Limited daily uses through `eROL_CALM`. | Bard 8; learnable with charisma 13 |
+| establish camp | `FEAT_ESTABLISH_CAMP` | `camp` | Survival check against a terrain and weather difficulty. The camp affect halves again the recovery of anyone in the group settled into it, through `hit_gain()` and `move_gain()`, and sets the campers' load room. | Ranger 3, Druid 3; learnable with 3 ranks of survival |
+| garrote | `FEAT_GARROTE` | `garrote <target>` | Attack from a hide-then-sneak posture against a target that cannot see you, needing a free hand. On a failed fortitude save against 10 + half level + dexterity bonus the target is silenced and staggered. Creatures that do not breathe are immune. | Rogue 10, Assassin 3; learnable with 8 ranks of stealth and BAB 4 |
+| accompany | `FEAT_ACCOMPANY` | `accompany <performer>` | A grouped bard backs the lead's performance, adding a capped effectiveness bonus from perform and instrument, and takes the song over when the lead's verse fails or stutters. | Bard 6 |
+
+Supporting changes: `SKILL_SHADOW`, `SKILL_CALM`, `SKILL_CAMP`, `SKILL_GARROTE`
+and `SKILL_ACCOMPANY` were added as affect and damage identifiers and registered
+with `skillo()`; `SHADOWING()` and `ACCOMPANYING()` were added to
+`char_special_data` with the same lifecycle cleanup as `GUARDING()`. Help is in
+`lib/text/help/help.hlp` and `sql/components/help_rol_feat_entries.sql`, and
+coverage is in `unittests/CuTest/test_rol_feats.c`.
 
 ## Internal state markers, not player skills
 
@@ -139,16 +167,16 @@ first eleven with one Perform ability, 13 performance feats, instrument
 objects, and performance perks. Instrument subtype is mechanically relevant:
 using the ideal instrument changes performance effectiveness, while item
 values can reduce difficulty. LuminariMUD does not track a separate proficiency
-percentage for each instrument. `Accompany` is the one functional gap and is
-listed above.
+percentage for each instrument. `Accompany` was the one functional gap and is now
+the `FEAT_ACCOMPANY` feat.
 
 **Chant (6 live registrations: 5 covered, 1 gap).** RoL's `chant` command and
 its five selectable effects (`calm`, `regeneration`, `heroism`, `soul strike`,
 and `death grip`) are separate skill constants implemented through
 `do_chant()` in `actunused.c`. LuminariMUD covers heroism and regeneration
 directly, while its divine area damage and monk attack mechanics cover the
-broad roles of soul strike and death grip. `Calm` is a gap. Despite the
-filename, `actunused.c` is compiled (`Makefile:67`) and `do_chant`,
+broad roles of soul strike and death grip. `Calm` was a gap and is now the
+`FEAT_CALM` feat. Despite the filename, `actunused.c` is compiled (`Makefile:67`) and `do_chant`,
 `do_dragon_punch`, and `do_self_preservation` are wired into `interp.c`.
 
 ## Near-miss cases ruled covered

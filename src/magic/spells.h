@@ -1253,8 +1253,15 @@
 #define SKILL_APPLY_NATURES_WRATH_DAMAGE 2237 /* Custom: +2d8 damage for Nature's Wrath */
 #define WARLOCK_CHILLING_TENTACLES_COLD 2238  /* Custom: Cold damage for Chilling Tentacles */
 
+/* skills converted from Realms of Luminari, used as affect/damage identifiers */
+#define SKILL_SHADOW 2239    /* covert tailing, see the shadow feat */
+#define SKILL_CALM 2240      /* room pacification, see the calm feat */
+#define SKILL_CAMP 2241      /* wilderness campsite, see the establish camp feat */
+#define SKILL_GARROTE 2242   /* strangling attack, see the garrote feat */
+#define SKILL_ACCOMPANY 2243 /* backing performance, see the accompany feat */
+
 /* New skills may be added above here, up to 3000 */
-#define NUM_SKILLS 2239 // Total number of skills (increment when adding new skills)
+#define NUM_SKILLS 2244 // Total number of skills (increment when adding new skills)
 
 /* Special Abilities for weapons (3000-3099: 100 slots reserved) */
 

@@ -6288,6 +6288,12 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   skillo(SKILL_SACRED_FLAMES, "sacred flames", ACTIVE_SKILL);                 /* 549 */
   skillo(SKILL_EPIC_WILDSHAPE, "epic wildshape", PASSIVE_SKILL);
   skillo(SKILL_SUNDER, "sunder", ACTIVE_SKILL); /* 550 */
+  /* converted Realms of Luminari skills, driven by feats */
+  skillo(SKILL_SHADOW, "shadow", ACTIVE_SKILL);
+  skillo(SKILL_CALM, "calm", ACTIVE_SKILL);
+  skillo(SKILL_CAMP, "establish camp", ACTIVE_SKILL);
+  skillo(SKILL_GARROTE, "garrote", ACTIVE_SKILL);
+  skillo(SKILL_ACCOMPANY, "accompany", ACTIVE_SKILL);
 
   /* songs */
   skillo(SKILL_DEAFENING_SONG, "deafening song", ACTIVE_SKILL);                   // 587
