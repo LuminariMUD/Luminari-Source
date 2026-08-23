@@ -111,10 +111,11 @@ static bool character_can_receive_projectile(const struct char_data *ch)
   if (!character_is_live(ch))
     return FALSE;
 
-  return !DEAD(ch) && GET_POS(ch) > POS_DEAD && IN_ROOM(ch) <= top_of_world;
+  return !DEAD(ch) && GET_POS(ch) > POS_DEAD && IN_ROOM(ch) != NOWHERE &&
+         IN_ROOM(ch) <= top_of_world;
 }
 
-static bool projectile_is_unplaced(const struct obj_data *projectile)
+bool projectile_object_is_unplaced(const struct obj_data *projectile)
 {
   return projectile && !projectile->carried_by && !projectile->worn_by && !projectile->in_obj &&
          IN_ROOM(projectile) == NOWHERE;
@@ -544,7 +545,7 @@ void finalize_physical_projectile(struct projectile_attack_context *context,
     return;
   }
 
-  if (!projectile_is_unplaced(projectile))
+  if (!projectile_object_is_unplaced(projectile))
   {
     context->disposition = get_existing_disposition(context, projectile, attacker, target);
     return;

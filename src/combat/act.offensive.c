@@ -11457,6 +11457,27 @@ static bool resolve_projectile_command_target(struct char_data *ch, char *target
   return TRUE;
 }
 
+#ifdef LUMINARI_CUTEST
+bool test_resolve_projectile_command_target(struct char_data *ch, char *target_name,
+                                            char *direction_name, struct char_data **victim,
+                                            room_rnum *target_room, bool *remote)
+{
+  struct projectile_command_target result;
+
+  memset(&result, 0, sizeof(result));
+  if (!resolve_projectile_command_target(ch, target_name, direction_name, "throw", &result))
+    return FALSE;
+
+  if (victim)
+    *victim = result.victim;
+  if (target_room)
+    *target_room = result.room;
+  if (remote)
+    *remote = result.remote;
+  return TRUE;
+}
+#endif
+
 static bool thrown_projectile_is_ready(struct char_data *ch)
 {
   return can_throw_projectile(ch, TRUE);

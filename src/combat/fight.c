@@ -78,7 +78,6 @@ struct char_data *combat_list = NULL;
 
 // external functions
 bool save_char_pets(struct char_data *ch);
-bool is_using_keen_weapon(struct char_data *ch);
 int hands_used(struct char_data *ch);
 
 /* Weapon attack texts
@@ -1928,6 +1927,30 @@ static bool character_is_in_live_list(const struct char_data *candidate)
   }
 
   return FALSE;
+}
+
+static bool projectile_attack_context_was_invalidated(struct char_data *ch,
+                                                      struct char_data *victim, int attack_type,
+                                                      struct obj_data *projectile,
+                                                      bool *attack_context_invalidated)
+{
+  bool invalidated;
+
+  if (!has_physical_projectile(attack_type))
+    return FALSE;
+
+  invalidated = !character_is_in_live_list(ch) || DEAD(ch) || GET_POS(ch) <= POS_DEAD ||
+                IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world ||
+                !character_is_in_live_list(victim) || DEAD(victim) || GET_POS(victim) <= POS_DEAD ||
+                IN_ROOM(victim) == NOWHERE || IN_ROOM(victim) > top_of_world ||
+                !projectile_object_is_live(projectile) ||
+                !projectile_object_is_unplaced(projectile);
+  if (!invalidated)
+    return FALSE;
+
+  if (attack_context_invalidated)
+    *attack_context_invalidated = TRUE;
+  return TRUE;
 }
 
 static void stop_projectile_combat(struct char_data *ch, int attack_type)
@@ -6634,6 +6657,13 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
  * displayed, compute_damage_bonus() calculates bonus damage that will be
  * displayed.  compute_hit_damage() always calls compute_damage_bonus() */
 
+static bool can_process_weapon_damage_abilities(struct char_data *ch, struct obj_data *wielded,
+                                                int attack_type)
+{
+  return (wielded || using_monk_gloves(ch)) &&
+         (FIGHTING(ch) || is_ranged_weapon_attack(attack_type));
+}
+
 /* #define MODE_NORMAL_HIT       0
    #define MODE_DISPLAY_PRIMARY  2
    #define MODE_DISPLAY_OFFHAND  3
@@ -8090,6 +8120,7 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struc
                            int attack_type)
 {
   int threat_range = 19;
+  bool keen_weapon;
 
   if (wielded)
     threat_range = 20 - weapon_list[GET_OBJ_VAL(wielded, 0)].critRange;
@@ -8099,14 +8130,16 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struc
   }
 
   /* mods */
-  if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL) || is_using_keen_weapon(ch))
+  keen_weapon = weapon_has_keen_effect(ch, wielded);
+
+  if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL) || keen_weapon)
   { /* Check the weapon type, make sure it matches. */
     if ((((wielded != NULL) &&
           HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL),
                           weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
          ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL),
                                                weapon_list[WEAPON_TYPE_UNARMED].weaponFamily))) ||
-        is_using_keen_weapon(ch))
+        keen_weapon)
     {
       if ((wielded == NULL) || weapon_list[GET_OBJ_VAL(wielded, 0)].critRange == 0)
       {
@@ -8740,7 +8773,8 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
                                               struct obj_data *wielded, struct obj_data *projectile,
                                               int w_type, int diceroll __attribute__((unused)),
                                               int mode, bool is_critical, int attack_type,
-                                              int dam_type __attribute__((unused)))
+                                              int dam_type __attribute__((unused)),
+                                              bool *attack_context_invalidated)
 {
   int dam = 0, damage_holder = 0, base_weapon_damage = 0;
   int loop = 1;
@@ -9276,14 +9310,19 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
     }
 
     /* Add additional damage dice from weapon special abilities. - Ornir */
-    if ((wielded || using_monk_gloves(ch)) && FIGHTING(ch))
+    if (can_process_weapon_damage_abilities(ch, wielded, attack_type))
     {
       if (!wielded)
         wielded = GET_EQ(ch, WEAR_HANDS);
 
       /* process weapon abilities - critical */
       if (is_critical && !IS_IMMUNE_CRITS(ch, victim))
+      {
         process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_CRIT, NULL);
+        if (projectile_attack_context_was_invalidated(ch, victim, attack_type, projectile,
+                                                      attack_context_invalidated))
+          return dam;
+      }
 
       /*chaotic weapon*/
       if ((obj_has_special_ability(wielded, WEAPON_SPECAB_ANARCHIC) ||
@@ -9476,7 +9515,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
                        int mode, bool is_critical, int attack_type, int dam_type)
 {
   return compute_hit_damage_with_projectile(ch, victim, NULL, NULL, w_type, diceroll, mode,
-                                            is_critical, attack_type, dam_type);
+                                            is_critical, attack_type, dam_type, NULL);
 }
 
 #define STONESKIN_ABSORB 15
@@ -9828,7 +9867,7 @@ void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_da
   if (GET_RACE(ch) == RACE_TRELUX)
     is_trelux = TRUE;
   else if (!wielded)
-    *wielded = *missile;
+    wielded = missile;
 
   if (!wielded && !is_trelux)
     return;
@@ -12532,17 +12571,6 @@ static int fist_air_callback(struct char_data *ch, struct char_data *tch, void *
   return 1;
 }
 
-static bool physical_projectile_was_extracted(int attack_type, struct obj_data *projectile,
-                                              bool *attack_context_invalidated)
-{
-  if (!has_physical_projectile(attack_type) || !projectile || projectile_object_is_live(projectile))
-    return FALSE;
-
-  if (attack_context_invalidated)
-    *attack_context_invalidated = TRUE;
-  return TRUE;
-}
-
 /* called from hit() */
 int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              struct obj_data *wielded, int dam, int w_type, int type, int diceroll,
@@ -13508,7 +13536,10 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   /* Calculate damage for this hit */
   dam += compute_hit_damage_with_projectile(ch, victim, wielded, projectile, w_type, diceroll, 0,
-                                            is_critical, attack_type, dam_type);
+                                            is_critical, attack_type, dam_type,
+                                            attack_context_invalidated);
+  if (attack_context_invalidated && *attack_context_invalidated)
+    return dam;
   if (type == TYPE_ATTACK_OF_OPPORTUNITY && has_teamwork_feat(ch, FEAT_PAIRED_OPPORTUNISTS))
     dam += 2;
   dam += powerful_blow_bonus;     /* ornir is going to yell at me for this :p  -zusuk */
@@ -13630,7 +13661,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   {
     /* set off imbued arrow! */
     imbued_arrow(ch, victim, projectile);
-    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+    if (projectile_attack_context_was_invalidated(ch, victim, attack_type, projectile,
+                                                  attack_context_invalidated))
       return dam;
   }
 
@@ -13930,7 +13962,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (ch && victim && wielded && !victim_is_dead)
   {
     weapon_spells(ch, victim, wielded);
-    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+    if (projectile_attack_context_was_invalidated(ch, victim, attack_type, projectile,
+                                                  attack_context_invalidated))
       return dam;
   }
 
@@ -13938,11 +13971,17 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (ch && victim && (wielded || using_monk_gloves(ch)) && !victim_is_dead)
   {
     process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
-    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+    if (projectile_attack_context_was_invalidated(ch, victim, attack_type, projectile,
+                                                  attack_context_invalidated))
       return dam;
   }
   if (IS_EFREETI(ch))
+  {
     damage(ch, victim, dice(2, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+    if (projectile_attack_context_was_invalidated(ch, victim, attack_type, projectile,
+                                                  attack_context_invalidated))
+      return dam;
+  }
 
   /* Wilderness Warrior: Whirling Steel - 5% chance per hit for extra attack when dual wielding */
   if (!IS_NPC(ch) && !victim_is_dead && has_perk(ch, PERK_RANGER_WHIRLING_STEEL) &&
@@ -13972,13 +14011,17 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   {
     process_evolution_elemental_damage(ch, victim);
     process_evolution_thrash_alignment_damage(ch, victim);
+    if (projectile_attack_context_was_invalidated(ch, victim, attack_type, projectile,
+                                                  attack_context_invalidated))
+      return dam;
   }
 
   /* our primitive weapon-poison system, needs some love */
   if (ch && victim && (wielded || projectile || IS_TRELUX(ch)) && !victim_is_dead)
   {
     weapon_poison(ch, victim, wielded, projectile);
-    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+    if (projectile_attack_context_was_invalidated(ch, victim, attack_type, projectile,
+                                                  attack_context_invalidated))
       return dam;
   }
 
@@ -14011,6 +14054,9 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (ch && victim && !victim_is_dead && dam > 0)
   {
     artifact_combat_hit(ch, victim, dam, is_critical);
+    if (projectile_attack_context_was_invalidated(ch, victim, attack_type, projectile,
+                                                  attack_context_invalidated))
+      return dam;
     if (wielded && artifact_weapon_proc(ch, victim, wielded, dam, is_critical))
     {
       victim_is_dead = TRUE;
@@ -14018,7 +14064,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         *attack_context_invalidated = TRUE;
       return dam;
     }
-    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+    if (projectile_attack_context_was_invalidated(ch, victim, attack_type, projectile,
+                                                  attack_context_invalidated))
       return dam;
   }
 
@@ -14026,7 +14073,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (ch && victim && wielded && !victim_is_dead)
   {
     weapon_special(wielded, ch, victim, dam, attack_type, is_critical, hit_msg);
-    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+    if (projectile_attack_context_was_invalidated(ch, victim, attack_type, projectile,
+                                                  attack_context_invalidated))
       return dam;
   }
   else if (ch && victim && GET_EQ(ch, WEAR_HANDS) && !victim_is_dead && is_bare_handed(ch))
@@ -14106,6 +14154,38 @@ int test_handle_successful_artifact_attack(struct char_data *ch, struct char_dat
                                  is_critical, ATTACK_TYPE_PRIMARY, dam_type, NULL,
                                  &attack_context_invalidated, &projectile_disposition);
   return attack_context_invalidated;
+}
+
+int test_compute_projectile_attack_bonus(struct char_data *ch, struct char_data *victim,
+                                         struct obj_data *wielded, struct obj_data *projectile,
+                                         int attack_type)
+{
+  return compute_attack_bonus_full_with_weapon(ch, victim, attack_type, false, wielded, projectile);
+}
+
+int test_compute_projectile_damage_bonus(struct char_data *ch, struct char_data *victim,
+                                         struct obj_data *wielded, struct obj_data *projectile,
+                                         int attack_type)
+{
+  return compute_damage_bonus_with_projectile(ch, victim, wielded, projectile, TYPE_HIT, NO_MOD,
+                                              MODE_NORMAL_HIT, attack_type);
+}
+
+bool test_projectile_attack_context_was_invalidated(struct char_data *ch, struct char_data *victim,
+                                                    int attack_type, struct obj_data *projectile)
+{
+  bool attack_context_invalidated;
+
+  attack_context_invalidated = FALSE;
+  return projectile_attack_context_was_invalidated(ch, victim, attack_type, projectile,
+                                                   &attack_context_invalidated) &&
+         attack_context_invalidated;
+}
+
+bool test_can_process_projectile_weapon_abilities(struct char_data *ch, struct obj_data *wielded,
+                                                  int attack_type)
+{
+  return can_process_weapon_damage_abilities(ch, wielded, attack_type);
 }
 #endif
 
@@ -14856,6 +14936,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
                                    &projectile_disposition);
   }
 
+  projectile_attack_context_was_invalidated(ch, victim, attack_type, missile,
+                                            &attack_context_invalidated);
   if (attack_context_invalidated)
   {
     hit_result = dam;
@@ -14913,9 +14995,25 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
     /* perform teamwork feats */
     if (is_flanked(ch, victim))
+    {
       teamwork_attacks_of_opportunity(victim, 0, FEAT_OUTFLANK);
+      if (projectile_attack_context_was_invalidated(ch, victim, attack_type, missile,
+                                                    &attack_context_invalidated))
+      {
+        hit_result = dam;
+        goto finalize_projectile;
+      }
+    }
     if (teamwork_using_shield(ch, FEAT_SEIZE_THE_MOMENT))
+    {
       teamwork_attacks_of_opportunity(victim, 0, FEAT_SEIZE_THE_MOMENT);
+      if (projectile_attack_context_was_invalidated(ch, victim, attack_type, missile,
+                                                    &attack_context_invalidated))
+      {
+        hit_result = dam;
+        goto finalize_projectile;
+      }
+    }
   }
 
   /* Stunning Blow - Berserker Primal Warrior perk (triggers on any successful hit after rage) */
@@ -15022,6 +15120,12 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
   apply_bard_frostbite_rider(ch, victim, dam, can_hit, attack_type);
 
   hitprcnt_mtrigger(victim); // hitprcnt trigger
+  if (projectile_attack_context_was_invalidated(ch, victim, attack_type, missile,
+                                                &attack_context_invalidated))
+  {
+    hit_result = dam;
+    goto finalize_projectile;
+  }
 
   // This goes last because we're extracting ch in certain conditions within
   if (victim && affected_by_spell(victim, SPELL_BANISHING_BLADE))
@@ -15066,9 +15170,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
               }
             }
 
-            // on a successful trip attempt, they will be immune to the effect for 4 rounds.
-            // we check for (ch) here in case they were extracted above.
-            if (ch)
+            /* On a successful trip attempt, grant immunity to the effect for four rounds. */
+            if (character_is_in_live_list(ch))
             {
               new_affect(&af);
               af.spell = AFFECT_IMMUNITY_BANISHING_BLADE;
@@ -15081,6 +15184,12 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
         }
       }
     }
+  }
+  if (projectile_attack_context_was_invalidated(ch, victim, attack_type, missile,
+                                                &attack_context_invalidated))
+  {
+    hit_result = dam;
+    goto finalize_projectile;
   }
 
   /* Overwhelming Force - power attack stagger chance */

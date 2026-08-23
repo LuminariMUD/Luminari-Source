@@ -75,6 +75,7 @@ void set_projectile_target(struct projectile_attack_context *context,
                            const struct char_data *target);
 bool detach_physical_projectile(struct char_data *ch, struct projectile_attack_context *context);
 bool projectile_object_is_live(const struct obj_data *obj);
+bool projectile_object_is_unplaced(const struct obj_data *obj);
 void finalize_physical_projectile(struct projectile_attack_context *context,
                                   struct char_data *attacker, struct char_data *target,
                                   enum projectile_disposition disposition);

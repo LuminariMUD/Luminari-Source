@@ -7,6 +7,8 @@
 #include "../../src/db.h"
 #include "../../src/handler.h"
 #include "../../src/act.h"
+#include "../../src/interpreter.h"
+#include "../../src/magic/spells.h"
 #include "../../src/character/feats.h"
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/combat/fight.h"
@@ -280,6 +282,7 @@ void Test_launcher_ammo_selection_scans_mixed_pouch_contents(CuTest *tc)
   struct obj_data bolt;
   struct obj_data arrow;
   struct obj_data dart;
+  struct obj_data stone;
   struct player_special_data player_specials;
 
   initialize_test_character(&ch, &player_specials);
@@ -289,11 +292,13 @@ void Test_launcher_ammo_selection_scans_mixed_pouch_contents(CuTest *tc)
   initialize_test_object(&bolt, ITEM_MISSILE, AMMO_TYPE_BOLT);
   initialize_test_object(&arrow, ITEM_MISSILE, AMMO_TYPE_ARROW);
   initialize_test_object(&dart, ITEM_MISSILE, AMMO_TYPE_DART);
+  initialize_test_object(&stone, ITEM_MISSILE, AMMO_TYPE_STONE);
   load_weapons();
 
   thrown_weapon.next_content = &bolt;
   bolt.next_content = &arrow;
   arrow.next_content = &dart;
+  dart.next_content = &stone;
   pouch.contains = &thrown_weapon;
   GET_EQ(&ch, WEAR_WIELD_1) = &launcher;
   GET_EQ(&ch, WEAR_AMMO_POUCH) = &pouch;
@@ -306,6 +311,14 @@ void Test_launcher_ammo_selection_scans_mixed_pouch_contents(CuTest *tc)
   CuAssertPtrEquals(tc, &dart, find_compatible_launcher_ammo(&ch, &launcher));
   CuAssertTrue(tc, is_compatible_launcher_ammo(&launcher, &dart));
   CuAssertTrue(tc, !is_compatible_launcher_ammo(&launcher, &arrow));
+
+  GET_OBJ_VAL(&launcher, 0) = WEAPON_TYPE_LIGHT_CROSSBOW;
+  CuAssertPtrEquals(tc, &bolt, find_compatible_launcher_ammo(&ch, &launcher));
+  CuAssertTrue(tc, is_compatible_launcher_ammo(&launcher, &bolt));
+
+  GET_OBJ_VAL(&launcher, 0) = WEAPON_TYPE_SLING;
+  CuAssertPtrEquals(tc, &stone, find_compatible_launcher_ammo(&ch, &launcher));
+  CuAssertTrue(tc, is_compatible_launcher_ammo(&launcher, &stone));
 }
 
 void Test_ammo_pouch_admission_accepts_only_physical_projectiles(CuTest *tc)
@@ -860,6 +873,7 @@ void Test_projectile_finalizer_handles_pending_death_and_extraction(CuTest *tc)
   struct char_data *saved_character_list;
   struct obj_data target_projectile;
   struct obj_data returning_projectile;
+  struct obj_data nowhere_returning_projectile;
   struct obj_data extracted_projectile;
   struct obj_data *saved_object_list;
   struct obj_special_ability returning;
@@ -874,6 +888,7 @@ void Test_projectile_finalizer_handles_pending_death_and_extraction(CuTest *tc)
   initialize_test_character(&target, &target_specials);
   initialize_test_object(&target_projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
   initialize_test_object(&returning_projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  initialize_test_object(&nowhere_returning_projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
   initialize_test_object(&extracted_projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
   memset(&returning, 0, sizeof(returning));
   memset(rooms, 0, sizeof(rooms));
@@ -899,7 +914,8 @@ void Test_projectile_finalizer_handles_pending_death_and_extraction(CuTest *tc)
   target.next = NULL;
   character_list = &attacker;
   target_projectile.next = &returning_projectile;
-  returning_projectile.next = NULL;
+  returning_projectile.next = &nowhere_returning_projectile;
+  nowhere_returning_projectile.next = NULL;
   object_list = &target_projectile;
 
   SET_BIT_AR(PLR_FLAGS(&target), PLR_NOTDEADYET);
@@ -927,6 +943,20 @@ void Test_projectile_finalizer_handles_pending_death_and_extraction(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, returning_projectile.carried_by);
   CuAssertIntEquals(tc, 1, IN_ROOM(&returning_projectile));
 
+  REMOVE_BIT_AR(PLR_FLAGS(&attacker), PLR_NOTDEADYET);
+  nowhere_returning_projectile.special_abilities = &returning;
+  IN_ROOM(&attacker) = NOWHERE;
+  initialize_projectile_attack_context(&context, ATTACK_TYPE_THROWN);
+  context.physical_projectile = &nowhere_returning_projectile;
+  context.original_source = PROJECTILE_SOURCE_INVENTORY;
+  context.detached = TRUE;
+  context.target_room = 1;
+  finalize_physical_projectile(&context, &attacker, &target, PROJECTILE_DISPOSITION_TARGET_ROOM);
+  CuAssertIntEquals(tc, PROJECTILE_DISPOSITION_TARGET_ROOM, context.disposition);
+  CuAssertPtrEquals(tc, NULL, nowhere_returning_projectile.carried_by);
+  CuAssertIntEquals(tc, 1, IN_ROOM(&nowhere_returning_projectile));
+  IN_ROOM(&attacker) = 0;
+
   initialize_projectile_attack_context(&context, ATTACK_TYPE_THROWN);
   context.physical_projectile = &extracted_projectile;
   context.detached = TRUE;
@@ -934,6 +964,356 @@ void Test_projectile_finalizer_handles_pending_death_and_extraction(CuTest *tc)
   finalize_physical_projectile(&context, &attacker, &target, PROJECTILE_DISPOSITION_TARGET_ROOM);
   CuAssertIntEquals(tc, PROJECTILE_DISPOSITION_DESTROYED, context.disposition);
   CuAssertPtrEquals(tc, NULL, context.physical_projectile);
+
+  object_list = saved_object_list;
+  character_list = saved_character_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
+void Test_throw_command_registration_and_shared_target_gates(CuTest *tc)
+{
+  const struct command_info *fire_command;
+  const struct command_info *throw_command;
+  const struct command_info *command;
+  struct char_data attacker;
+  struct char_data target;
+  struct char_data *resolved_victim;
+  struct char_data *saved_character_list;
+  struct player_special_data attacker_specials;
+  struct player_special_data target_specials;
+  struct room_data rooms[2];
+  struct room_direction_data north_exit;
+  struct zone_data zone;
+  struct room_data *saved_world;
+  struct zone_data *saved_zone_table;
+  char target_name[] = "target";
+  char north[] = "north";
+  char sideways[] = "sideways";
+  char no_direction[] = "";
+  room_rnum resolved_room;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone_table;
+  bool remote;
+
+  fire_command = NULL;
+  throw_command = NULL;
+  for (command = cmd_info; command->command[0] != '\n'; command++)
+  {
+    if (!strcmp(command->command, "fire"))
+      fire_command = command;
+    else if (!strcmp(command->command, "throw"))
+      throw_command = command;
+  }
+
+  CuAssertPtrNotNull(tc, fire_command);
+  CuAssertPtrNotNull(tc, throw_command);
+  if (!fire_command || !throw_command)
+    return;
+
+  CuAssertIntEquals(tc, fire_command->minimum_position, throw_command->minimum_position);
+  CuAssertIntEquals(tc, fire_command->minimum_level, throw_command->minimum_level);
+  CuAssertIntEquals(tc, fire_command->actions_required, throw_command->actions_required);
+  CuAssertIntEquals(tc, fire_command->action_cooldowns[atSTANDARD],
+                    throw_command->action_cooldowns[atSTANDARD]);
+  CuAssertTrue(tc, throw_command->command_pointer == do_throw);
+
+  initialize_test_character(&attacker, &attacker_specials);
+  initialize_test_character(&target, &target_specials);
+  memset(rooms, 0, sizeof(rooms));
+  memset(&north_exit, 0, sizeof(north_exit));
+  memset(&zone, 0, sizeof(zone));
+  attacker.player.name = (char *)"thrower";
+  target.player.name = (char *)"target";
+  target.player.short_descr = (char *)"target";
+  SET_BIT_AR(MOB_FLAGS(&target), MOB_ISNPC);
+  target.player_specials = &dummy_mob;
+  GET_LEVEL(&attacker) = 10;
+  GET_LEVEL(&target) = 10;
+  GET_POS(&attacker) = POS_STANDING;
+  GET_POS(&target) = POS_STANDING;
+  IN_ROOM(&attacker) = 0;
+  IN_ROOM(&target) = 1;
+  rooms[0].number = 100;
+  rooms[0].zone = 0;
+  rooms[0].light = 1;
+  rooms[1].number = 101;
+  rooms[1].zone = 0;
+  rooms[1].light = 1;
+  rooms[0].people = &attacker;
+  rooms[1].people = &target;
+  north_exit.key = NOTHING;
+  north_exit.to_room = 1;
+  rooms[0].dir_option[NORTH] = &north_exit;
+  zone.number = 0;
+  zone.bot = 100;
+  zone.top = 101;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  saved_character_list = character_list;
+  world = rooms;
+  top_of_world = 1;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+  attacker.next = &target;
+  target.next = NULL;
+  character_list = &attacker;
+
+  CuAssertTrue(tc, !test_resolve_projectile_command_target(
+                       &attacker, target_name, north, &resolved_victim, &resolved_room, &remote));
+
+  SET_FEAT(&attacker, FEAT_FAR_SHOT, 1);
+  SET_BIT(north_exit.exit_info, EX_CLOSED);
+  CuAssertTrue(tc, !test_resolve_projectile_command_target(
+                       &attacker, target_name, north, &resolved_victim, &resolved_room, &remote));
+  REMOVE_BIT(north_exit.exit_info, EX_CLOSED);
+
+  CuAssertTrue(tc, test_resolve_projectile_command_target(
+                       &attacker, target_name, north, &resolved_victim, &resolved_room, &remote));
+  CuAssertPtrEquals(tc, &target, resolved_victim);
+  CuAssertIntEquals(tc, 1, resolved_room);
+  CuAssertTrue(tc, remote);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&attacker));
+
+  SET_BIT_AR(ROOM_FLAGS(1), ROOM_PEACEFUL);
+  CuAssertTrue(tc, !test_resolve_projectile_command_target(
+                       &attacker, target_name, north, &resolved_victim, &resolved_room, &remote));
+  REMOVE_BIT_AR(ROOM_FLAGS(1), ROOM_PEACEFUL);
+  CuAssertTrue(tc,
+               !test_resolve_projectile_command_target(&attacker, target_name, sideways,
+                                                       &resolved_victim, &resolved_room, &remote));
+
+  char_from_room(&target);
+  REMOVE_BIT_AR(MOB_FLAGS(&target), MOB_ISNPC);
+  target.player_specials = &target_specials;
+  char_to_room(&target, 0);
+  CuAssertTrue(tc,
+               !test_resolve_projectile_command_target(&attacker, target_name, no_direction,
+                                                       &resolved_victim, &resolved_room, &remote));
+
+  character_list = saved_character_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+}
+
+void Test_selected_throwable_drives_combat_statistics_and_poison(CuTest *tc)
+{
+  struct char_data attacker;
+  struct char_data victim;
+  struct obj_data anchor;
+  struct obj_data selected;
+  struct obj_data selected_family;
+  struct obj_special_ability keen;
+  struct player_special_data attacker_specials;
+  struct player_special_data victim_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int anchor_attack_bonus;
+  int selected_attack_bonus;
+  int low_dex_attack_bonus;
+  int high_dex_attack_bonus;
+  int anchor_damage_bonus;
+  int selected_damage_bonus;
+  int low_str_damage_bonus;
+  int high_str_damage_bonus;
+  int simple_family_attack_bonus;
+  int selected_family_attack_bonus;
+  int pre_point_blank_attack_bonus;
+  int pre_point_blank_damage_bonus;
+  int point_blank_attack_bonus;
+  int point_blank_damage_bonus;
+  int deadly_aim_attack_bonus;
+  int deadly_aim_damage_bonus;
+
+  initialize_test_character(&attacker, &attacker_specials);
+  initialize_test_character(&victim, &victim_specials);
+  initialize_test_object(&anchor, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  initialize_test_object(&selected, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  initialize_test_object(&selected_family, ITEM_WEAPON, WEAPON_TYPE_THROWING_AXE);
+  memset(&keen, 0, sizeof(keen));
+  memset(&room, 0, sizeof(room));
+  load_weapons();
+
+  attacker.player.name = (char *)"statistics thrower";
+  victim.player.name = (char *)"statistics target";
+  GET_LEVEL(&attacker) = 1;
+  GET_LEVEL(&victim) = 1;
+  GET_POS(&attacker) = POS_STANDING;
+  GET_POS(&victim) = POS_STANDING;
+  GET_HIT(&attacker) = GET_MAX_HIT(&attacker) = 100;
+  GET_HIT(&victim) = GET_MAX_HIT(&victim) = 100;
+  GET_REAL_SIZE(&attacker) = SIZE_MEDIUM;
+  GET_REAL_SIZE(&victim) = SIZE_MEDIUM;
+  GET_OBJ_SIZE(&anchor) = SIZE_MEDIUM;
+  GET_OBJ_SIZE(&selected) = SIZE_MEDIUM;
+  GET_OBJ_SIZE(&selected_family) = SIZE_MEDIUM;
+  GET_REAL_STR(&attacker) = attacker.aff_abils.str = 10;
+  GET_REAL_DEX(&attacker) = attacker.aff_abils.dex = 10;
+  GET_REAL_STR(&victim) = victim.aff_abils.str = 10;
+  GET_REAL_DEX(&victim) = victim.aff_abils.dex = 10;
+  IN_ROOM(&attacker) = 0;
+  IN_ROOM(&victim) = 0;
+  room.number = 100;
+  room.light = 1;
+  room.people = &attacker;
+  attacker.next_in_room = &victim;
+  GET_EQ(&attacker, WEAR_WIELD_1) = &anchor;
+  anchor.worn_by = &attacker;
+  anchor.worn_on = WEAR_WIELD_1;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+
+  GET_OBJ_VAL(&anchor, 4) = 0;
+  GET_OBJ_VAL(&selected, 4) = 3;
+  anchor_attack_bonus = test_compute_projectile_attack_bonus(&attacker, &victim, &anchor, &anchor,
+                                                             ATTACK_TYPE_THROWN);
+  selected_attack_bonus = test_compute_projectile_attack_bonus(&attacker, &victim, &selected,
+                                                               &selected, ATTACK_TYPE_THROWN);
+  anchor_damage_bonus = test_compute_projectile_damage_bonus(&attacker, &victim, &anchor, &anchor,
+                                                             ATTACK_TYPE_THROWN);
+  selected_damage_bonus = test_compute_projectile_damage_bonus(&attacker, &victim, &selected,
+                                                               &selected, ATTACK_TYPE_THROWN);
+  CuAssertIntEquals(tc, 3, selected_attack_bonus - anchor_attack_bonus);
+  CuAssertIntEquals(tc, 3, selected_damage_bonus - anchor_damage_bonus);
+
+  GET_OBJ_VAL(&selected, 4) = 0;
+  low_dex_attack_bonus = test_compute_projectile_attack_bonus(&attacker, &victim, &selected,
+                                                              &selected, ATTACK_TYPE_THROWN);
+  GET_REAL_DEX(&attacker) = attacker.aff_abils.dex = 18;
+  high_dex_attack_bonus = test_compute_projectile_attack_bonus(&attacker, &victim, &selected,
+                                                               &selected, ATTACK_TYPE_THROWN);
+  CuAssertIntEquals(tc, 4, high_dex_attack_bonus - low_dex_attack_bonus);
+
+  GET_REAL_DEX(&attacker) = attacker.aff_abils.dex = 10;
+  low_str_damage_bonus = test_compute_projectile_damage_bonus(&attacker, &victim, &selected,
+                                                              &selected, ATTACK_TYPE_THROWN);
+  GET_REAL_STR(&attacker) = attacker.aff_abils.str = 18;
+  high_str_damage_bonus = test_compute_projectile_damage_bonus(&attacker, &victim, &selected,
+                                                               &selected, ATTACK_TYPE_THROWN);
+  CuAssertIntEquals(tc, 4, high_str_damage_bonus - low_str_damage_bonus);
+  GET_REAL_STR(&attacker) = attacker.aff_abils.str = 10;
+
+  SET_FEAT(&attacker, FEAT_SIMPLE_WEAPON_PROFICIENCY, 1);
+  SET_FEAT(&attacker, FEAT_WEAPON_FOCUS, 1);
+  SET_COMBAT_FEAT(&attacker, feat_to_cfeat(FEAT_WEAPON_FOCUS), WEAPON_FAMILY_AXE);
+  simple_family_attack_bonus = test_compute_projectile_attack_bonus(&attacker, &victim, &anchor,
+                                                                    &anchor, ATTACK_TYPE_THROWN);
+  selected_family_attack_bonus = test_compute_projectile_attack_bonus(
+      &attacker, &victim, &selected_family, &selected_family, ATTACK_TYPE_THROWN);
+  CuAssertIntEquals(tc, -3, selected_family_attack_bonus - simple_family_attack_bonus);
+
+  pre_point_blank_attack_bonus = test_compute_projectile_attack_bonus(
+      &attacker, &victim, &selected, &selected, ATTACK_TYPE_THROWN);
+  pre_point_blank_damage_bonus = test_compute_projectile_damage_bonus(
+      &attacker, &victim, &selected, &selected, ATTACK_TYPE_THROWN);
+  SET_FEAT(&attacker, FEAT_POINT_BLANK_SHOT, 1);
+  point_blank_attack_bonus = test_compute_projectile_attack_bonus(&attacker, &victim, &selected,
+                                                                  &selected, ATTACK_TYPE_THROWN);
+  point_blank_damage_bonus = test_compute_projectile_damage_bonus(&attacker, &victim, &selected,
+                                                                  &selected, ATTACK_TYPE_THROWN);
+  CuAssertIntEquals(tc, 1, point_blank_attack_bonus - pre_point_blank_attack_bonus);
+  CuAssertIntEquals(tc, 1, point_blank_damage_bonus - pre_point_blank_damage_bonus);
+
+  SET_BIT_AR(AFF_FLAGS(&attacker), AFF_DEADLY_AIM);
+  COMBAT_MODE_VALUE(&attacker) = 2;
+  deadly_aim_attack_bonus = test_compute_projectile_attack_bonus(&attacker, &victim, &selected,
+                                                                 &selected, ATTACK_TYPE_THROWN);
+  deadly_aim_damage_bonus = test_compute_projectile_damage_bonus(&attacker, &victim, &selected,
+                                                                 &selected, ATTACK_TYPE_THROWN);
+  CuAssertIntEquals(tc, -2, deadly_aim_attack_bonus - point_blank_attack_bonus);
+  CuAssertIntEquals(tc, 4, deadly_aim_damage_bonus - point_blank_damage_bonus);
+
+  keen.ability = WEAPON_SPECAB_KEEN;
+  selected.special_abilities = &keen;
+  CuAssertIntEquals(tc, 20,
+                    determine_threat_range(&attacker, &anchor, &victim, ATTACK_TYPE_THROWN));
+  CuAssertIntEquals(tc, 19,
+                    determine_threat_range(&attacker, &selected, &victim, ATTACK_TYPE_THROWN));
+  FIGHTING(&attacker) = NULL;
+  CuAssertTrue(
+      tc, test_can_process_projectile_weapon_abilities(&attacker, &selected, ATTACK_TYPE_THROWN));
+  CuAssertTrue(
+      tc, !test_can_process_projectile_weapon_abilities(&attacker, &selected, ATTACK_TYPE_PRIMARY));
+
+  anchor.weapon_poison.poison = SPELL_POISON;
+  anchor.weapon_poison.poison_level = 5;
+  anchor.weapon_poison.poison_hits = 2;
+  selected.weapon_poison.poison = SPELL_POISON;
+  selected.weapon_poison.poison_level = 5;
+  selected.weapon_poison.poison_hits = 1;
+  selected.short_description = (char *)"a selected poisoned javelin";
+  weapon_poison(&attacker, &victim, &selected, &selected);
+  CuAssertIntEquals(tc, 2, anchor.weapon_poison.poison_hits);
+  CuAssertIntEquals(tc, 0, selected.weapon_poison.poison_hits);
+  CuAssertIntEquals(tc, 0, selected.weapon_poison.poison);
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
+void Test_projectile_proc_boundaries_detect_movement_and_invalid_characters(CuTest *tc)
+{
+  struct char_data attacker;
+  struct char_data victim;
+  struct char_data *saved_character_list;
+  struct obj_data projectile;
+  struct obj_data *saved_object_list;
+  struct player_special_data attacker_specials;
+  struct player_special_data victim_specials;
+  struct room_data rooms[2];
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+
+  initialize_test_character(&attacker, &attacker_specials);
+  initialize_test_character(&victim, &victim_specials);
+  initialize_test_object(&projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  memset(rooms, 0, sizeof(rooms));
+  GET_POS(&attacker) = POS_STANDING;
+  GET_POS(&victim) = POS_STANDING;
+  IN_ROOM(&attacker) = 0;
+  IN_ROOM(&victim) = 1;
+  rooms[0].number = 100;
+  rooms[1].number = 101;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_character_list = character_list;
+  saved_object_list = object_list;
+  world = rooms;
+  top_of_world = 1;
+  attacker.next = &victim;
+  victim.next = NULL;
+  character_list = &attacker;
+  projectile.next = NULL;
+  object_list = &projectile;
+
+  CuAssertTrue(tc, !test_projectile_attack_context_was_invalidated(
+                       &attacker, &victim, ATTACK_TYPE_THROWN, &projectile));
+
+  obj_to_room(&projectile, 1);
+  CuAssertTrue(tc, test_projectile_attack_context_was_invalidated(&attacker, &victim,
+                                                                  ATTACK_TYPE_THROWN, &projectile));
+  obj_from_room(&projectile);
+
+  IN_ROOM(&victim) = NOWHERE;
+  CuAssertTrue(tc, test_projectile_attack_context_was_invalidated(&attacker, &victim,
+                                                                  ATTACK_TYPE_THROWN, &projectile));
+  IN_ROOM(&victim) = 1;
+
+  object_list = NULL;
+  CuAssertTrue(tc, test_projectile_attack_context_was_invalidated(&attacker, &victim,
+                                                                  ATTACK_TYPE_THROWN, &projectile));
+  CuAssertTrue(tc, !test_projectile_attack_context_was_invalidated(
+                       &attacker, &victim, ATTACK_TYPE_PRIMARY, &projectile));
 
   object_list = saved_object_list;
   character_list = saved_character_list;

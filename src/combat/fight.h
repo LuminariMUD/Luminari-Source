@@ -97,8 +97,12 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
                        int mode, bool is_critical, int attack_type, int dam_type);
 struct obj_data *make_a_corpse_4_npcs(struct char_data *ch);
 int handle_warding(struct char_data *ch, struct char_data *victim, int dam);
+void weapon_poison(struct char_data *ch, struct char_data *victim, struct obj_data *wielded,
+                   struct obj_data *missile);
 int compute_attack_bonus_full(struct char_data *ch, struct char_data *victim, int attack_type,
                               bool display);
+int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struct char_data *victim,
+                           int attack_type);
 int dual_wielding_penalty(struct char_data *ch, bool offhand);
 int is_dual_wielding(struct char_data *ch);
 int get_initiative_modifier(struct char_data *ch);
@@ -116,6 +120,16 @@ int test_apply_bard_frostbite_rider(struct char_data *ch, struct char_data *vict
 int test_handle_successful_artifact_attack(struct char_data *ch, struct char_data *victim,
                                            struct obj_data *wielded, int dam, int is_critical,
                                            int dam_type);
+int test_compute_projectile_attack_bonus(struct char_data *ch, struct char_data *victim,
+                                         struct obj_data *wielded, struct obj_data *projectile,
+                                         int attack_type);
+int test_compute_projectile_damage_bonus(struct char_data *ch, struct char_data *victim,
+                                         struct obj_data *wielded, struct obj_data *projectile,
+                                         int attack_type);
+bool test_projectile_attack_context_was_invalidated(struct char_data *ch, struct char_data *victim,
+                                                    int attack_type, struct obj_data *projectile);
+bool test_can_process_projectile_weapon_abilities(struct char_data *ch, struct obj_data *wielded,
+                                                  int attack_type);
 void test_finish_thrown_projectile_attack(struct char_data *ch);
 void test_apply_bard_warbeat_allies(struct char_data *ch);
 void test_reset_bard_warbeat_observations(void);

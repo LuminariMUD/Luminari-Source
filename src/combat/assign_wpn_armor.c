@@ -2551,41 +2551,11 @@ bool is_using_ghost_touch_weapon(struct char_data *ch)
   return false;
 }
 
-bool is_using_keen_weapon(struct char_data *ch)
+bool weapon_has_keen_effect(struct char_data *ch, struct obj_data *obj)
 {
-  struct obj_data *obj = NULL;
+  if (!ch)
+    return false;
 
-  obj = GET_EQ(ch, WEAR_WIELD_1);
-  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
-    return true;
-  if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
-    return true;
-  if (obj &&
-      (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_PIERCING) ||
-       IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_SLASHING)) &&
-      affected_by_spell(ch, SPELL_KEEN_EDGE))
-    return true;
-  if ((!obj ||
-       (obj && (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_BLUDGEONING)))) &&
-      affected_by_spell(ch, SPELL_WEAPON_OF_IMPACT))
-    return true;
-
-  obj = GET_EQ(ch, WEAR_WIELD_2H);
-  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
-    return true;
-  if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
-    return true;
-  if (obj &&
-      (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_PIERCING) ||
-       IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_SLASHING)) &&
-      affected_by_spell(ch, SPELL_KEEN_EDGE))
-    return true;
-  if ((!obj ||
-       (obj && (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_BLUDGEONING)))) &&
-      affected_by_spell(ch, SPELL_WEAPON_OF_IMPACT))
-    return true;
-
-  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
     return true;
   if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
@@ -2601,6 +2571,25 @@ bool is_using_keen_weapon(struct char_data *ch)
     return true;
 
   if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_KEEN))
+    return true;
+
+  return false;
+}
+
+bool is_using_keen_weapon(struct char_data *ch)
+{
+  struct obj_data *obj;
+
+  obj = GET_EQ(ch, WEAR_WIELD_1);
+  if (weapon_has_keen_effect(ch, obj))
+    return true;
+
+  obj = GET_EQ(ch, WEAR_WIELD_2H);
+  if (weapon_has_keen_effect(ch, obj))
+    return true;
+
+  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (weapon_has_keen_effect(ch, obj))
     return true;
 
   return false;

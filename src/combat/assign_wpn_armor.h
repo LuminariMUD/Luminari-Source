@@ -65,6 +65,8 @@ int compute_gear_armor_type(struct char_data *ch);
 int compute_gear_shield_type(struct char_data *ch);
 int get_defending_weapon_bonus(struct char_data *ch, bool weapon);
 bool is_using_ghost_touch_weapon(struct char_data *ch);
+bool is_using_keen_weapon(struct char_data *ch);
+bool weapon_has_keen_effect(struct char_data *ch, struct obj_data *obj);
 bool has_speed_weapon(struct char_data *ch);
 int get_lucky_weapon_bonus(struct char_data *ch);
 int get_agile_weapon_dex_bonus(struct char_data *ch);
