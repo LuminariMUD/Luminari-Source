@@ -1368,6 +1368,11 @@ bool is_weapon_specab_compatible(struct char_data *ch, int weapon_type, int spec
   switch (specab)
   {
   case WEAPON_SPECAB_SEEKING:
+    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED | WEAPON_FLAG_THROWN))
+      return true;
+    if (output)
+      send_to_char(ch, "This weapon ability can only be added to ranged or thrown weapons.\r\n");
+    return false;
   case WEAPON_SPECAB_ADAPTIVE:
     if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
       return true;

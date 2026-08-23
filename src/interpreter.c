@@ -4304,6 +4304,7 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
+    {"throw", "throw", POS_FIGHTING, do_throw, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"title", "title", POS_DEAD, do_title, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"time", "time", POS_DEAD, do_time, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"tinker", "tinker", POS_STANDING, do_tinker, 0, 0, TRUE, ACTION_NONE, {0, 0}, can_tinker},
@@ -6015,6 +6016,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "idea") &&
            !is_abbrev(complete_cmd_info[cmd].command, "applypoison") &&
            !is_abbrev(complete_cmd_info[cmd].command, "fire") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "throw") &&
            !is_abbrev(complete_cmd_info[cmd].command, "disabletrap") &&
            !is_abbrev(complete_cmd_info[cmd].command, "detecttrap") &&
            !is_abbrev(complete_cmd_info[cmd].command, "cast") &&

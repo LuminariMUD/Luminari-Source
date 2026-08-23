@@ -73,9 +73,6 @@
 #define DRACOLICH_PRISONER 113751
 #define CELESTIAL_LEVIATHAN 13700
 
-/* local global */
-struct obj_data *last_missile = NULL;
-
 /* head of l-list of fighting chars */
 struct char_data *combat_list = NULL;
 
@@ -141,7 +138,14 @@ int test_get_bard_warbeat_opening_attacks(void)
 struct obj_data *get_wielded(struct char_data *ch, int attack_type);
 static void perform_group_gain(struct char_data *ch, int base, struct char_data *victim);
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim, int w_type,
-                        int offhand);
+                        int attack_type, struct obj_data *projectile);
+static int skill_message_with_projectile(int dam, struct char_data *ch, struct char_data *vict,
+                                         int attacktype, int attack_mode,
+                                         struct obj_data *projectile);
+static int compute_attack_bonus_full_with_weapon(struct char_data *ch, struct char_data *victim,
+                                                 int attack_type, bool display,
+                                                 struct obj_data *wielded,
+                                                 struct obj_data *projectile);
 static void make_corpse(struct char_data *ch);
 static void change_alignment(struct char_data *ch, struct char_data *victim);
 static void group_gain(struct char_data *ch, struct char_data *victim);
@@ -1419,7 +1423,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
   /**/
 
   if (attacker && has_teamwork_feat(ch, FEAT_DUCK_AND_COVER) &&
-      teamwork_using_shield(ch, FEAT_DUCK_AND_COVER) && is_using_ranged_weapon(attacker, TRUE))
+      teamwork_using_shield(ch, FEAT_DUCK_AND_COVER) &&
+      (is_using_ranged_weapon(attacker, TRUE) || IS_THROWN_MODE(attacker)))
     bonuses[BONUS_TYPE_INSIGHT] += 2;
 
   if (has_one_thought(ch))
@@ -2977,9 +2982,12 @@ static char *replace_string(const char *str, const char *weapon_singular, const 
 
 /* message for doing damage with a weapon */
 static void dam_message(int dam, struct char_data *ch, struct char_data *victim, int w_type,
-                        int offhand)
+                        int attack_type, struct obj_data *projectile)
 {
   int msgnum = -1, hp = 0, pct = 0;
+  const char *ranged_to_room;
+  const char *ranged_to_char;
+  const char *ranged_to_victim;
 
   hp = GET_HIT(victim);
   if (GET_HIT(victim) < 1)
@@ -3126,12 +3134,31 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     msgnum = 13;
 
   /* ranged, not dead */
-  if (offhand == 2 && last_missile && GET_POS(victim) > POS_DEAD)
+  if (is_ranged_weapon_attack(attack_type) && projectile && GET_POS(victim) > POS_DEAD)
   {
+    ranged_to_room = dam_ranged[msgnum].to_room;
+    ranged_to_char = dam_ranged[msgnum].to_char;
+    ranged_to_victim = dam_ranged[msgnum].to_victim;
+    if (is_thrown_attack(attack_type))
+    {
+      if (msgnum == 0)
+      {
+        ranged_to_room = "$n throws $p at $N but misses!";
+        ranged_to_char = "You throw $p at $N but miss!";
+        ranged_to_victim = "$n throws $p at you but misses!";
+      }
+      else
+      {
+        ranged_to_room = "$n throws $p at $N and strikes $M!";
+        ranged_to_char = "You throw $p at $N and strike $M!";
+        ranged_to_victim = "$n throws $p at you and strikes you!";
+      }
+    }
+
     /* damage message to room */
     /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
          for condensed combat mode handling -zusuk */
-    act(dam_ranged[msgnum].to_room, ACT_CONDENSE_VALUE, ch, last_missile, victim, TO_NOTVICT);
+    act(ranged_to_room, ACT_CONDENSE_VALUE, ch, projectile, victim, TO_NOTVICT);
 
     /* damage message to damager */
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
@@ -3141,7 +3168,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     }
     else
     {
-      act(dam_ranged[msgnum].to_char, FALSE, ch, last_missile, victim, TO_CHAR);
+      act(ranged_to_char, FALSE, ch, projectile, victim, TO_CHAR);
       send_to_char(ch, CCNRM(ch, C_CMP));
     }
 
@@ -3154,7 +3181,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     else
     {
       send_to_char(victim, CCRED(victim, C_CMP));
-      act(dam_ranged[msgnum].to_victim, FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
+      act(ranged_to_victim, FALSE, ch, projectile, victim, TO_VICT | TO_SLEEP);
       send_to_char(victim, CCNRM(victim, C_CMP));
     }
   }
@@ -3219,6 +3246,12 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
 int skill_message(int dam, struct char_data *ch, struct char_data *vict, int attacktype,
                   int dualing)
 {
+  return skill_message_with_projectile(dam, ch, vict, attacktype, dualing, NULL);
+}
+
+static int skill_message_with_projectile(int dam, struct char_data *ch, struct char_data *vict,
+                                         int attacktype, int dualing, struct obj_data *projectile)
+{
   int i, j, nr, return_value = SKILL_MESSAGE_MISS_FAIL;
   struct message_type *msg;
   struct obj_data *opponent_weapon = GET_EQ(vict, WEAR_WIELD_1);
@@ -3255,10 +3288,10 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict, int att
     attacktype = TYPE_CLAW;
 
   /* ranged weapon - general check and we want the missile to serve as our weapon */
-  if (can_fire_ammo(ch, TRUE) && (dualing == 2))
+  if (projectile && is_ranged_weapon_attack(dualing))
   {
     is_ranged = TRUE;
-    weap = GET_EQ(ch, WEAR_AMMO_POUCH)->contains; /* top missile */
+    weap = projectile;
   }
 
   /* defender weapon for parry message */
@@ -3312,15 +3345,24 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict, int att
           if (is_ranged)
           {
             /* ranged attack death blow */
-            /* death message to room */
-            act("* THWISH * $n fires $p at $N * THUNK * $E \tRcollapses\tn to the ground!", FALSE,
-                ch, weap, vict, TO_NOTVICT);
-            /* death message to damager */
-            act("* THWISH * you fire $p at $N * THUNK * $E \tRcollapses\tn to the ground!", FALSE,
-                ch, weap, vict, TO_CHAR);
-            /* death message to damagee */
-            act("* THWISH * $n fires $p at you * THUNK * you \tRcollapse\tn to the ground!", FALSE,
-                ch, weap, vict, TO_VICT | TO_SLEEP);
+            if (is_thrown_attack(dualing))
+            {
+              act("$n throws $p at $N, and $E \tRcollapses\tn to the ground!", FALSE, ch, weap,
+                  vict, TO_NOTVICT);
+              act("You throw $p at $N, and $E \tRcollapses\tn to the ground!", FALSE, ch, weap,
+                  vict, TO_CHAR);
+              act("$n throws $p at you, and you \tRcollapse\tn to the ground!", FALSE, ch, weap,
+                  vict, TO_VICT | TO_SLEEP);
+            }
+            else
+            {
+              act("* THWISH * $n fires $p at $N * THUNK * $E \tRcollapses\tn to the ground!", FALSE,
+                  ch, weap, vict, TO_NOTVICT);
+              act("* THWISH * you fire $p at $N * THUNK * $E \tRcollapses\tn to the ground!", FALSE,
+                  ch, weap, vict, TO_CHAR);
+              act("* THWISH * $n fires $p at you * THUNK * you \tRcollapse\tn to the ground!",
+                  FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
+            }
 
             return SKILL_MESSAGE_DEATH_BLOW; /* no reason to stay here */
           }
@@ -3567,6 +3609,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict, int att
 
   return (return_value); /* did not find a message to use? */
 }
+
 #undef TRELUX_CLAWS
 
 // this is just like damage reduction, except applies to certain type
@@ -4918,14 +4961,16 @@ bool ok_damage_handling(int attacktype)
    -1 means we're gonna go ahead and exit damage()
    anything that goes through here will affect ALL damage, whether
    skill or spell, etc */
-int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int attacktype,
-                    int dam_type)
+static int damage_handling_with_weapon(struct char_data *ch, struct char_data *victim, int dam,
+                                       int attacktype, int dam_type, int attack_mode,
+                                       struct obj_data *weapon)
 {
   bool is_spell = FALSE;
-  struct obj_data *weapon = NULL;
-  weapon = is_using_ranged_weapon(ch, true);
+  bool is_ranged;
   int damage_reduction = 0, dr_reduction = 0;
   float damtype_reduction = 0;
+
+  is_ranged = is_ranged_weapon_attack(attack_mode);
 
   /* lets figure out if this attacktype is magical or not */
   if (is_spell_or_spell_like(attacktype))
@@ -4940,10 +4985,10 @@ int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int
     /* handle concealment */
     int concealment = compute_concealment(victim, ch);
     /* seeking weapons (ranged weapons only) bypass concealment always */
-    if (weapon && OBJ_FLAGGED(weapon, ITEM_SEEKING))
+    if (is_ranged && weapon && OBJ_FLAGGED(weapon, ITEM_SEEKING))
       concealment = 0;
     /* Pinpoint Accuracy (Ranger) - ignore concealment with ranged attacks */
-    if (weapon && has_perk(ch, PERK_RANGER_PINPOINT_ACCURACY))
+    if (is_ranged && has_perk(ch, PERK_RANGER_PINPOINT_ACCURACY))
       concealment = 0;
     if (affected_by_spell(ch, PSIONIC_INEVITABLE_STRIKE))
       concealment = 0;
@@ -5302,7 +5347,8 @@ int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int
       if (IS_INCORPOREAL(victim))
       {
         // damage is normal if you're using a ghost touch weapon, or you're incorporeal yourself
-        if (is_using_ghost_touch_weapon(ch) || IS_INCORPOREAL(ch))
+        if ((weapon && obj_has_special_ability(weapon, WEAPON_SPECAB_GHOST_TOUCH)) ||
+            (!weapon && is_using_ghost_touch_weapon(ch)) || IS_INCORPOREAL(ch))
           ;
         else
           dam /= 2;
@@ -5344,7 +5390,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int
       dr_reduction += MAX(0, HAS_EVOLUTION(ch, EVOLUTION_DAMAGE_REDUCTION) * 3);
 
       /* Ranger Deadly Aim - DR penetration for ranged attacks */
-      if (!IS_NPC(ch) && weapon != NULL)
+      if (!IS_NPC(ch) && is_ranged && weapon != NULL)
       {
         int ranger_dr_pen = get_ranger_dr_penetration(ch);
         if (ranger_dr_pen > 0)
@@ -5434,6 +5480,13 @@ int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int
   } /* end big dummy check if() */
 
   return dam;
+}
+
+int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int attacktype,
+                    int dam_type)
+{
+  return damage_handling_with_weapon(ch, victim, dam, attacktype, dam_type, ATTACK_TYPE_PRIMARY,
+                                     NULL);
 }
 
 #ifdef LUMINARI_CUTEST
@@ -5855,8 +5908,9 @@ void test_apply_group_sacred_vengeance(struct char_data *victim)
    -item
    -etc */
 /* if it's a spell, the spellnum will be carried through the w_type variable */
-int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
-           int offhand)
+static int damage_with_projectile(struct char_data *ch, struct char_data *victim, int dam,
+                                  int w_type, int dam_type, int attack_type,
+                                  struct obj_data *attack_weapon, struct obj_data *projectile)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
@@ -5874,8 +5928,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
   if (ch != victim && !pvp_ok(ch, victim, TRUE))
     return 0;
 
-  if (offhand == 2)
-    is_ranged = TRUE;
+  is_ranged = is_ranged_weapon_attack(attack_type);
 
   /* Deflective Screen: first hit each round reduced by 5 damage */
   if (dam > 0 && has_deflective_screen(victim) &&
@@ -6055,8 +6108,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
 
   /* modify damage: concealment, trelux leap, mirror image, energey absorb
        damage-type reduction, old-skool damage reduction, inertial barrier */
-  dam = damage_handling(ch, victim, dam, w_type, dam_type); // modify damage
-  if (dam == -1) // make sure message handling has been done!
+  dam = damage_handling_with_weapon(ch, victim, dam, w_type, dam_type, attack_type,
+                                    attack_weapon); // modify damage
+  if (dam == -1)                                    // make sure message handling has been done!
     return 0;
 
   /* last word!  gonna die to this blow, SMACK the fool hard! */
@@ -6335,7 +6389,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
     {
       send_to_char(ch, "Weapon-type: %s", attack_hit_types[weapon_type]);
     }
-    send_to_char(ch, ", Dam-type: %s, Offhand: %d (2==ranged)\r\n", damtypes[dam_type], offhand);
+    send_to_char(ch, ", Dam-type: %s, Attack mode: %d\r\n", damtypes[dam_type], attack_type);
   }
 
   /** DAMAGE MESSAGES
@@ -6355,7 +6409,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
     {
       /* OK we now know this is not a weapon type, it should be either a
        SKILL_ or SPELL_ */
-      if (!skill_message(dam, ch, victim, w_type, offhand))
+      if (!skill_message_with_projectile(dam, ch, victim, w_type, attack_type, projectile))
       {
         /* somehow there is no SKILL_ or SPELL_ message for this damage
            so we have a fallback message here */
@@ -6374,19 +6428,19 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
       {
         if (!dam && is_ranged)
         { // miss with ranged = dam_message()
-          dam_message(dam, ch, victim, w_type, offhand);
+          dam_message(dam, ch, victim, w_type, attack_type, projectile);
         }
-        else if (!skill_message(dam, ch, victim, w_type, offhand))
+        else if (!skill_message_with_projectile(dam, ch, victim, w_type, attack_type, projectile))
         {
           /* no skill_message? try dam_message */
-          dam_message(dam, ch, victim, w_type, offhand);
+          dam_message(dam, ch, victim, w_type, attack_type, projectile);
         }
 
         /* landed a normal weapon attack hit */
       }
       else
       {
-        dam_message(dam, ch, victim, w_type, offhand);
+        dam_message(dam, ch, victim, w_type, attack_type, projectile);
       }
     }
   }
@@ -6519,6 +6573,12 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
   return (dam);
 }
 
+int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
+           int attack_type)
+{
+  return damage_with_projectile(ch, victim, dam, w_type, dam_type, attack_type, NULL, NULL);
+}
+
 /* you are going to arrive here from an attack, or viewing mode
  * We have two functions: compute_hit_damage() and compute_damage_bonus() that
  * both basically will compute how much damage a given hit will do or display
@@ -6541,8 +6601,10 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
  *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand
  *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand */
 /* using w_type -1 as a display mode */
-int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct obj_data *wielded,
-                         int w_type, int mod, int mode, int attack_type)
+static int compute_damage_bonus_with_projectile(struct char_data *ch, struct char_data *vict,
+                                                struct obj_data *wielded,
+                                                struct obj_data *projectile, int w_type, int mod,
+                                                int mode, int attack_type)
 {
   int dambonus = mod;
   bool display_mode = FALSE;
@@ -6557,8 +6619,11 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct ob
   if (attack_type == ATTACK_TYPE_UNARMED || is_evolution_attack(attack_type) || IS_WILDSHAPED(ch) ||
       IS_MORPHED(ch))
     wielded = NULL;
-  else
+  else if (!wielded)
     wielded = get_wielded(ch, attack_type);
+
+  if (!projectile && is_launcher_attack(attack_type))
+    projectile = find_compatible_launcher_ammo(ch, wielded);
 
   if (wielded && is_using_light_weapon(ch, wielded) && OBJ_FLAGGED(wielded, ITEM_AGILE))
   {
@@ -6873,6 +6938,24 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct ob
     }
     break;
 
+  case ATTACK_TYPE_THROWN:
+    dambonus += str_bonus;
+    if (display_mode)
+      send_to_char(ch, "Thrown weapon %s bonus: \tR%d\tn\r\n", strength, str_bonus);
+    if (vict && IN_ROOM(ch) == IN_ROOM(vict) && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))
+    {
+      if (display_mode)
+        send_to_char(ch, "Point Blank Shot bonus: \tR1\tn\r\n");
+      dambonus++;
+    }
+    if (wielded && wielded->tinker_bonus > 0)
+    {
+      dambonus += wielded->tinker_bonus;
+      if (display_mode)
+        send_to_char(ch, "Tinker bonus: \tR1\tn\r\n");
+    }
+    break;
+
   case ATTACK_TYPE_RANGED:
 
     /* strength penalties DO apply to ranged weapons */
@@ -7012,7 +7095,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct ob
   dambonus += size_modifiers[GET_SIZE(ch)] * 2;
 
   /* Wilderness Warrior: Favored Enemy Mastery I - bonus damage vs favored enemies */
-  if (vict && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER) && attack_type != ATTACK_TYPE_RANGED)
+  if (vict && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER) && !is_ranged_weapon_attack(attack_type))
   {
     if ((!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID)) ||
         (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict))))
@@ -7306,42 +7389,40 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct ob
     }
   }
 
-  /* ranged includes arrow enhancement bonus + special ranged bonus to favored enemies with the epic favored enemy feat */
-  if (can_fire_ammo(ch, TRUE))
+  /* Launcher ammunition contributes its own enhancement and arrow-only magic. */
+  if (is_launcher_attack(attack_type) && projectile && GET_OBJ_TYPE(projectile) == ITEM_MISSILE)
   {
     if (display_mode)
-      send_to_char(ch, "Ammo enhancement bonus: \tR%d\tn\r\n",
-                   GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains));
-    dambonus += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
+      send_to_char(ch, "Ammo enhancement bonus: \tR%d\tn\r\n", GET_ENHANCEMENT_BONUS(projectile));
+    dambonus += GET_ENHANCEMENT_BONUS(projectile);
 
     if (HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC) && display_mode)
       send_to_char(ch, "Enhance ammo magic bonus: \tR%d\tn\r\n",
                    HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
     dambonus += HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC);
+  }
 
-    /* favored enemy */
-    if (vict && vict != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER))
+  /* Epic favored-enemy ranged damage applies to launchers and thrown weapons. */
+  if (is_ranged_weapon_attack(attack_type) && vict && vict != ch && !IS_NPC(ch) &&
+      CLASS_LEVEL(ch, CLASS_RANGER))
+  {
+    /* checking if we have humanoid favored enemies for PC victims */
+    if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
     {
-      // checking if we have humanoid favored enemies for PC victims
-      if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
+      if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
-        if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
-        {
-          if (display_mode)
-            send_to_char(ch, "Epic favored enemy ranged dex bonus: \tR%d\tn\r\n",
-                         GET_DEX_BONUS(ch));
-          dambonus += GET_DEX_BONUS(ch);
-        }
+        if (display_mode)
+          send_to_char(ch, "Epic favored enemy ranged dex bonus: \tR%d\tn\r\n", GET_DEX_BONUS(ch));
+        dambonus += GET_DEX_BONUS(ch);
       }
-      else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict)))
+    }
+    else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict)))
+    {
+      if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
-        if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
-        {
-          if (display_mode)
-            send_to_char(ch, "Epic favored enemy ranged dex bonus: \tR%d\tn\r\n",
-                         GET_DEX_BONUS(ch));
-          dambonus += GET_DEX_BONUS(ch);
-        }
+        if (display_mode)
+          send_to_char(ch, "Epic favored enemy ranged dex bonus: \tR%d\tn\r\n", GET_DEX_BONUS(ch));
+        dambonus += GET_DEX_BONUS(ch);
       }
     }
   }
@@ -7363,7 +7444,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct ob
     dambonus += 2;
 
   /* power attack */
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) && attack_type != ATTACK_TYPE_RANGED &&
+  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) && !is_ranged_weapon_attack(attack_type) &&
       attack_type != ATTACK_TYPE_BOMB_TOSS)
   {
     int pa_bonus = COMBAT_MODE_VALUE(ch);
@@ -7501,7 +7582,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct ob
         send_to_char(ch, "Deadly Aim (Inquisitor): \tR%d\tn\r\n", deadly_aim_bonus);
     }
   }
-  else if (AFF_FLAGGED(ch, AFF_DEADLY_AIM) && attack_type == ATTACK_TYPE_RANGED)
+  else if (AFF_FLAGGED(ch, AFF_DEADLY_AIM) && is_ranged_weapon_attack(attack_type))
   {
     dambonus += COMBAT_MODE_VALUE(ch) * 2;
     if (display_mode)
@@ -7704,7 +7785,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct ob
   }
 
   /* Add perk weapon damage bonuses (Step 6) - only for melee/unarmed attacks */
-  if (!IS_NPC(ch) && attack_type != ATTACK_TYPE_RANGED && attack_type != ATTACK_TYPE_BOMB_TOSS)
+  if (!IS_NPC(ch) && !is_ranged_weapon_attack(attack_type) && attack_type != ATTACK_TYPE_BOMB_TOSS)
   {
     int perk_bonus = get_perk_weapon_damage_bonus(ch, wielded);
     if (perk_bonus != 0)
@@ -7728,9 +7809,9 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct ob
   }
 
   /* Add ranger ranged perk bonuses - only for ranged attacks */
-  if (!IS_NPC(ch) && attack_type == ATTACK_TYPE_RANGED)
+  if (!IS_NPC(ch) && is_ranged_weapon_attack(attack_type))
   {
-    int ranger_ranged_bonus = get_ranger_ranged_damage_bonus(ch, wielded);
+    int ranger_ranged_bonus = get_ranger_ranged_damage_bonus(ch, wielded, attack_type);
     if (ranger_ranged_bonus != 0)
     {
       dambonus += ranger_ranged_bonus;
@@ -7752,6 +7833,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct ob
   }
 
   return (MIN(MAX_DAM_BONUS, dambonus));
+}
+
+int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct obj_data *wielded,
+                         int w_type, int mod, int mode, int attack_type)
+{
+  return compute_damage_bonus_with_projectile(ch, vict, wielded, NULL, w_type, mod, mode,
+                                              attack_type);
 }
 
 /* when unarmed, this is how we handle weapon dice */
@@ -7951,7 +8039,8 @@ int crit_range_extension(struct char_data *ch, struct obj_data *weap) {
 }
  */
 
-int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struct char_data *victim)
+int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struct char_data *victim,
+                           int attack_type)
 {
   int threat_range = 19;
 
@@ -8049,17 +8138,15 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struc
     threat_range = MIN(threat_range, 19);
   }
 
-  /* Ranger: Improved Critical: Ranged I - applies only to ranged weapons */
-  if (!IS_NPC(ch) && wielded)
+  /* Ranger ranged critical perks apply to launcher and thrown attacks. */
+  if (!IS_NPC(ch) && wielded && is_ranged_weapon_attack(attack_type))
   {
-    int weapon_type = GET_OBJ_VAL(wielded, 0);
-    bool is_ranged_weapon = IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED);
-    if (is_ranged_weapon && has_perk(ch, PERK_RANGER_IMPROVED_CRITICAL_RANGED_I))
+    if (has_perk(ch, PERK_RANGER_IMPROVED_CRITICAL_RANGED_I))
     {
       threat_range--;
     }
     /* Ranger: Master Archer - crit range becomes 19-20 for ranged */
-    if (is_ranged_weapon && has_perk(ch, PERK_RANGER_MASTER_ARCHER))
+    if (has_perk(ch, PERK_RANGER_MASTER_ARCHER))
     {
       threat_range = MIN(threat_range, 19);
     }
@@ -8101,7 +8188,7 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded, struc
 #define CRIT_MULTI_MAX 7
 
 int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded,
-                                  struct char_data *victim)
+                                  struct char_data *victim, int attack_type)
 {
   int crit_multi = 2;
 
@@ -8149,12 +8236,10 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
     crit_multi = MAX(crit_multi, 3);
   }
 
-  /* Ranger: Master Archer - ranged crit multiplier becomes x4 */
-  if (!IS_NPC(ch) && wielded)
+  /* Ranger: Master Archer - ranged crit multiplier becomes x4. */
+  if (!IS_NPC(ch) && wielded && is_ranged_weapon_attack(attack_type))
   {
-    int weapon_type = GET_OBJ_VAL(wielded, 0);
-    if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED) &&
-        has_perk(ch, PERK_RANGER_MASTER_ARCHER))
+    if (has_perk(ch, PERK_RANGER_MASTER_ARCHER))
     {
       crit_multi = MAX(crit_multi, 4);
     }
@@ -8205,16 +8290,11 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim, struct obj_
                      int mode, int attack_type)
 {
   int diceOne = 0, diceTwo = 0;
-  bool is_ranged = FALSE;
+  bool is_ranged;
 
-  /* going to check if we are in a state ready to use ranged weapon
-     before anything else */
-  if (can_fire_ammo(ch, TRUE))
-  {
-    is_ranged = TRUE;
-    /* this -has- to be a weapon, can_fire_ammo() already verified this */
-    wielded = is_using_ranged_weapon(ch, TRUE);
-  } /* should be ready to check for ranged */
+  is_ranged = is_ranged_weapon_attack(attack_type);
+  if (!wielded && is_launcher_attack(attack_type) && can_fire_ammo(ch, TRUE))
+    wielded = find_equipped_launcher(ch, NULL);
 
   // just information mode
   if (mode == MODE_DISPLAY_PRIMARY)
@@ -8427,8 +8507,9 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim, struct obj_
   /* display modes */
   if (mode == MODE_DISPLAY_PRIMARY || mode == MODE_DISPLAY_OFFHAND || mode == MODE_DISPLAY_RANGED)
   {
-    send_to_char(ch, "Threat Range: %d, ", determine_threat_range(ch, wielded, NULL));
-    send_to_char(ch, "Critical Multiplier: %d, ", determine_critical_multiplier(ch, wielded, NULL));
+    send_to_char(ch, "Threat Range: %d, ", determine_threat_range(ch, wielded, NULL, attack_type));
+    send_to_char(ch, "Critical Multiplier: %d, ",
+                 determine_critical_multiplier(ch, wielded, NULL, attack_type));
     send_to_char(ch, "Damage Dice: %dD%d, ", diceOne, diceTwo);
   }
 
@@ -8474,7 +8555,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim, struct obj_
 
 /* simple test for testing (confirming) critical hit */
 int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll, int calc_bab,
-                    int victim_ac, struct char_data *victim)
+                    int victim_ac, struct char_data *victim, int attack_type)
 {
   int threat_range, confirm_roll = d20(ch) + calc_bab;
   int powerful_being = 0;
@@ -8553,7 +8634,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
     /* we get here, the powerful being beat it */
   }
 
-  threat_range = determine_threat_range(ch, wielded, victim);
+  threat_range = determine_threat_range(ch, wielded, victim, attack_type);
 
   if (diceroll >= threat_range)
   { /* critical potential? */
@@ -8608,23 +8689,25 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
  *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
  *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand
  *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand  */
-int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_type,
-                       int diceroll __attribute__((unused)), int mode, bool is_critical,
-                       int attack_type, int dam_type __attribute__((unused)))
+static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_data *victim,
+                                              struct obj_data *wielded, struct obj_data *projectile,
+                                              int w_type, int diceroll __attribute__((unused)),
+                                              int mode, bool is_critical, int attack_type,
+                                              int dam_type __attribute__((unused)))
 {
   int dam = 0, damage_holder = 0, base_weapon_damage = 0;
   int loop = 1;
-  struct obj_data *wielded = NULL;
 
   /* redundancy necessary due to sometimes arriving here without going through
    * hit()*/
   if (attack_type == ATTACK_TYPE_UNARMED || is_evolution_attack(attack_type) || IS_WILDSHAPED(ch) ||
       IS_MORPHED(ch))
     wielded = NULL;
-  else
+  else if (!wielded)
     wielded = get_wielded(ch, attack_type);
 
-  if (GET_EQ(ch, WEAR_WIELD_2H) && mode != MODE_DISPLAY_RANGED && attack_type != ATTACK_TYPE_RANGED)
+  if (GET_EQ(ch, WEAR_WIELD_2H) && mode != MODE_DISPLAY_RANGED &&
+      !is_ranged_weapon_attack(attack_type))
     attack_type = ATTACK_TYPE_TWOHAND;
 
   /* calculate how much damage to do with a given hit() */
@@ -8643,7 +8726,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
     }
 
     /* add any modifers to melee damage: strength, circumstance penalty, fatigue, size, etc etc */
-    dam += compute_damage_bonus(ch, victim, wielded, w_type, NO_MOD, mode, attack_type);
+    dam += compute_damage_bonus_with_projectile(ch, victim, wielded, projectile, w_type, NO_MOD,
+                                                mode, attack_type);
 
     /* calculate bonus to damage based on target position */
     switch (GET_POS(victim))
@@ -8782,7 +8866,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
           send_to_char(ch, "\tW[DEVASTATING!]\tn");
         if (IS_NPC(victim) || !PRF_FLAGGED(victim, PRF_CONDENSED))
           send_to_char(victim, "\tR[DEVASTATING!]\tn");
-        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded, victim) - 1);
+        for (loop = 1;
+             loop <= MAX(1, determine_critical_multiplier(ch, wielded, victim, attack_type) - 1);
              loop++)
         {
           // overwhelming critical damage
@@ -8797,7 +8882,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
           send_to_char(ch, "\tW[OVERWHELMING!]\tn");
         if (IS_NPC(victim) || !PRF_FLAGGED(victim, PRF_CONDENSED))
           send_to_char(victim, "\tR[OVERWHELMING!]\tn");
-        for (loop = 1; loop <= MAX(1, determine_critical_multiplier(ch, wielded, victim) - 1);
+        for (loop = 1;
+             loop <= MAX(1, determine_critical_multiplier(ch, wielded, victim, attack_type) - 1);
              loop++)
         {
           dam += dice(1, 6);
@@ -8834,25 +8920,22 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
 
 
       /* critical bonus */
-      dam *= determine_critical_multiplier(ch, wielded, victim);
+      dam *= determine_critical_multiplier(ch, wielded, victim, attack_type);
 
       /* Ranger: Sniper - add +2d6 damage on ranged critical hits (not multiplied) */
-      if (!IS_NPC(ch) && wielded)
+      if (!IS_NPC(ch) && wielded && is_ranged_weapon_attack(attack_type))
       {
-        int weapon_type = GET_OBJ_VAL(wielded, 0);
-        if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED) &&
-            has_perk(ch, PERK_RANGER_SNIPER))
+        if (has_perk(ch, PERK_RANGER_SNIPER))
         {
           dam += dice(2, 6);
         }
       }
 
       /* Ranger: Hunter's Mark - add +1d6 damage vs marked target after 5 rounds (ranged only) */
-      if (!IS_NPC(ch) && wielded && victim && has_perk(ch, PERK_RANGER_HUNTERS_MARK))
+      if (!IS_NPC(ch) && wielded && victim && is_ranged_weapon_attack(attack_type) &&
+          has_perk(ch, PERK_RANGER_HUNTERS_MARK))
       {
-        int weapon_type = GET_OBJ_VAL(wielded, 0);
-        if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED) &&
-            GET_MARK(ch) == victim && GET_MARK_ROUNDS(ch) >= 5)
+        if (GET_MARK(ch) == victim && GET_MARK_ROUNDS(ch) >= 5)
         {
           dam += dice(1, 6);
         }
@@ -9263,7 +9346,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
     /* calculate dice */
     dam = compute_dam_dice(ch, ch, wielded, mode, attack_type);
     /* modifiers to melee damage */
-    dam += compute_damage_bonus(ch, ch, wielded, TYPE_UNDEFINED_WTYPE, NO_MOD, mode, attack_type);
+    dam += compute_damage_bonus_with_projectile(ch, ch, wielded, projectile, TYPE_UNDEFINED_WTYPE,
+                                                NO_MOD, mode, attack_type);
   }
 
   /* Hunter's Precision: reroll damage and keep the higher result */
@@ -9339,6 +9423,13 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_typ
   }
 
   return MAX(1, dam); // min damage of 1
+}
+
+int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_type, int diceroll,
+                       int mode, bool is_critical, int attack_type, int dam_type)
+{
+  return compute_hit_damage_with_projectile(ch, victim, NULL, NULL, w_type, diceroll, mode,
+                                            is_critical, attack_type, dam_type);
 }
 
 #define STONESKIN_ABSORB 15
@@ -10069,6 +10160,9 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
 
   switch (attack_type)
   {
+  case ATTACK_TYPE_THROWN:
+    wielded = find_equipped_throwable(ch, NULL);
+    break;
   case ATTACK_TYPE_RANGED:
   case ATTACK_TYPE_PRIMARY:
   case ATTACK_TYPE_PRIMARY_SNEAK:
@@ -10117,7 +10211,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
                          struct char_data *victim, /* Defender */
                          int attack_type)
 {
-  return compute_attack_bonus_full(ch, victim, attack_type, false);
+  return compute_attack_bonus_full_with_weapon(ch, victim, attack_type, false, NULL, NULL);
 }
 
 /* Calculate ch's attack bonus when attacking victim, for the type of attack given.
@@ -10130,23 +10224,27 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
  *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
  *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand
  *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand  */
-int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
-                              struct char_data *victim, /* Defender */
-                              int attack_type,          /* Type of attack  */
-                              bool display) // whether to show info on the attack bonus breakdown
+static int compute_attack_bonus_full_with_weapon(
+    struct char_data *ch,     /* Attacker */
+    struct char_data *victim, /* Defender */
+    int attack_type,          /* Type of attack  */
+    bool display,             /* whether to show info on the attack bonus breakdown */
+    struct obj_data *wielded, struct obj_data *projectile)
 {
   int i = 0;
   int bonuses[NUM_BONUS_TYPES];
   int calc_bab = BAB(ch); /* Start with base attack bonus */
-  struct obj_data *wielded = NULL;
   struct char_data *k = NULL;
 
   /* redundancy necessary due to sometimes arriving here without going through
    * hit()*/
   if (attack_type == ATTACK_TYPE_UNARMED || attack_type == ATTACK_TYPE_ELDRITCH_BLAST)
     wielded = NULL;
-  else
+  else if (!wielded)
     wielded = get_wielded(ch, attack_type);
+
+  if (!projectile && is_launcher_attack(attack_type))
+    projectile = find_compatible_launcher_ammo(ch, wielded);
 
   /* Initialize bonuses to 0 */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
@@ -10252,6 +10350,7 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       calc_bab += 1;
     __attribute__((fallthrough));
   case ATTACK_TYPE_RANGED:
+  case ATTACK_TYPE_THROWN:
     calc_bab += GET_DEX_BONUS(ch);
     if (display)
       send_to_char(ch, "%2d: %-50s\r\n", GET_DEX_BONUS(ch), "Ranged Dex");
@@ -10347,7 +10446,7 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
                    "Judgement");
   }
 
-  if (has_teamwork_feat(ch, FEAT_COORDINATED_SHOT) && attack_type == ATTACK_TYPE_RANGED)
+  if (has_teamwork_feat(ch, FEAT_COORDINATED_SHOT) && is_ranged_weapon_attack(attack_type))
   {
     bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
     if (display)
@@ -10384,7 +10483,7 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
   }
 
   /* Ranger Hunter's Mark: after 5 rounds, gain +2 to hit against marked target (ranged attacks) */
-  if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_HUNTERS_MARK) && attack_type == ATTACK_TYPE_RANGED)
+  if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_HUNTERS_MARK) && is_ranged_weapon_attack(attack_type))
   {
     if (GET_MARK(ch) && victim && GET_MARK(ch) == victim && GET_MARK_ROUNDS(ch) >= 5)
     {
@@ -10572,14 +10671,12 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       send_to_char(ch, "%2d: %-50s\r\n", bonuses[BONUS_TYPE_ENHANCEMENT], "Unarmed Enhancement");
   }
 
-  /* ranged includes arrow, what a hack */ /* why is that a hack again? */
-  if (can_fire_ammo(ch, TRUE))
+  /* A launcher's projectile contributes its own enhancement to the attack. */
+  if (is_launcher_attack(attack_type) && projectile)
   {
-    bonuses[BONUS_TYPE_ENHANCEMENT] += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
-    if (display && GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains) > 0)
-      send_to_char(ch, "%2d: %-50s\r\n",
-                   GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains),
-                   "Ammo Enhancement");
+    bonuses[BONUS_TYPE_ENHANCEMENT] += GET_ENHANCEMENT_BONUS(projectile);
+    if (display && GET_ENHANCEMENT_BONUS(projectile) > 0)
+      send_to_char(ch, "%2d: %-50s\r\n", GET_ENHANCEMENT_BONUS(projectile), "Ammo Enhancement");
   }
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
   {
@@ -11160,7 +11257,7 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
                  get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL), "Level Drain");
 
   /* Add perk weapon bonuses (Step 6) - only for melee/unarmed attacks */
-  if (!IS_NPC(ch) && attack_type != ATTACK_TYPE_RANGED && attack_type != ATTACK_TYPE_BOMB_TOSS)
+  if (!IS_NPC(ch) && !is_ranged_weapon_attack(attack_type) && attack_type != ATTACK_TYPE_BOMB_TOSS)
   {
     int perk_bonus = get_perk_weapon_tohit_bonus(ch, wielded);
     if (perk_bonus != 0)
@@ -11184,9 +11281,9 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
   }
 
   /* Add ranger ranged perk bonuses - only for ranged attacks */
-  if (!IS_NPC(ch) && attack_type == ATTACK_TYPE_RANGED)
+  if (!IS_NPC(ch) && is_ranged_weapon_attack(attack_type))
   {
-    int ranger_ranged_bonus = get_ranger_ranged_tohit_bonus(ch, wielded);
+    int ranger_ranged_bonus = get_ranger_ranged_tohit_bonus(ch, wielded, attack_type);
     if (ranger_ranged_bonus != 0)
     {
       bonuses[BONUS_TYPE_UNDEFINED] += ranger_ranged_bonus;
@@ -11277,7 +11374,7 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
   }
 
   /* Bard Swashbuckler: Supreme Style - +2 to-hit (Tier 4 Capstone) */
-  if (wielded && !IS_NPC(ch) && attack_type != ATTACK_TYPE_RANGED &&
+  if (wielded && !IS_NPC(ch) && !is_ranged_weapon_attack(attack_type) &&
       attack_type != ATTACK_TYPE_BOMB_TOSS)
   {
     int supreme_style_bonus = get_bard_supreme_style_tohit_bonus(ch);
@@ -11400,6 +11497,12 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
   }
 
   return (MIN(maximum_bab, calc_bab));
+}
+
+int compute_attack_bonus_full(struct char_data *ch, struct char_data *victim, int attack_type,
+                              bool display)
+{
+  return compute_attack_bonus_full_with_weapon(ch, victim, attack_type, display, NULL, NULL);
 }
 
 /* compute a combat maneuver bonus (attack) value */
@@ -11685,7 +11788,7 @@ int attack_roll(struct char_data *ch,                      /* Attacker */
 
   /* Perfect Deflection: negate one incoming ranged/bomb attack and reflect force damage */
   if (victim && AFF_FLAGGED(victim, AFF_PERFECT_DEFLECTION_ACTIVE) &&
-      (attack_type == ATTACK_TYPE_RANGED || attack_type == ATTACK_TYPE_BOMB_TOSS))
+      (is_ranged_weapon_attack(attack_type) || attack_type == ATTACK_TYPE_BOMB_TOSS))
   {
     /* consume the stance */
     REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_PERFECT_DEFLECTION_ACTIVE);
@@ -11702,7 +11805,7 @@ int attack_roll(struct char_data *ch,                      /* Attacker */
   }
 
   /* Deflective Screen: +2 AC vs ranged while shield/armor active */
-  if (attack_type == ATTACK_TYPE_RANGED)
+  if (is_ranged_weapon_attack(attack_type))
   {
     if (has_deflective_screen(victim) && (affected_by_spell(victim, PSIONIC_FORCE_SCREEN) ||
                                           affected_by_spell(victim, PSIONIC_INERTIAL_ARMOR)))
@@ -11766,7 +11869,7 @@ int attack_roll_with_critical(struct char_data *ch,     /* Attacker */
 
   int diceroll = d20(ch);
   if (diceroll >= critical_threshold &&
-      is_critical_hit(ch, NULL, diceroll, attack_bonus, victim_ac, victim) &&
+      is_critical_hit(ch, NULL, diceroll, attack_bonus, victim_ac, victim, attack_type) &&
       !IS_IMMUNE_CRITS(ch, victim))
     return 999;
   int result = ((attack_bonus + diceroll) - victim_ac);
@@ -11963,7 +12066,7 @@ int determine_weapon_type(struct char_data *ch, struct char_data *victim __attri
   int w_type = TYPE_HIT, count = 0;
   int w_type_array[NUM_ATTACK_TYPES];
 
-  if (attack_type == ATTACK_TYPE_RANGED)
+  if (is_ranged_weapon_attack(attack_type))
   { // ranged-attack
     if (!wielded)
       w_type = TYPE_HIT;
@@ -12168,8 +12271,10 @@ void imbued_arrow(struct char_data *ch, struct char_data *vict, struct obj_data 
 }
 
 /* called from hit() */
-void handle_missed_attack(struct char_data *ch, struct char_data *victim, int type, int w_type,
-                          int dam_type, int attack_type, struct obj_data *missile)
+enum projectile_disposition handle_missed_attack(struct char_data *ch, struct char_data *victim,
+                                                 int type, int w_type, int dam_type,
+                                                 int attack_type, struct obj_data *attack_weapon,
+                                                 struct obj_data *projectile)
 {
   GET_CONSECUTIVE_HITS(ch) = 0;
 
@@ -12249,32 +12354,30 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim, int ty
   /* Display the flavorful backstab miss messages. This should be changed so we can
    * get rid of the SKILL_ defined (and convert abilities to skills :))
    * it should be noted that it displays miss messages based on weapon-types as well */
-  damage(ch, victim, 0, type == SKILL_BACKSTAB ? SKILL_BACKSTAB : w_type, dam_type, attack_type);
+  damage_with_projectile(ch, victim, 0, type == SKILL_BACKSTAB ? SKILL_BACKSTAB : w_type, dam_type,
+                         attack_type, attack_weapon, projectile);
 
   /* Ranged miss */
-  if (attack_type == ATTACK_TYPE_RANGED)
+  if (is_launcher_attack(attack_type))
   {
     /* set off imbued arrow! */
-    imbued_arrow(ch, victim, missile);
+    imbued_arrow(ch, victim, projectile);
     /* breakage chance! */
-    if (GET_OBJ_VAL(missile, 2) >= dice(1, 100))
+    if (GET_OBJ_VAL(projectile, 2) >= dice(1, 100))
     { /*broke!*/
-      act("\tnThe $o\tn you fire at $N\tn misses badly and ends up breaking!", FALSE, ch, missile,
-          victim, TO_CHAR);
-      act("\tnThe $o\tn that $n\tn fired at you misses and ends up breaking!", FALSE, ch, missile,
-          victim, TO_VICT | TO_SLEEP);
+      act("\tnThe $o\tn you fire at $N\tn misses badly and ends up breaking!", FALSE, ch,
+          projectile, victim, TO_CHAR);
+      act("\tnThe $o\tn that $n\tn fired at you misses and ends up breaking!", FALSE, ch,
+          projectile, victim, TO_VICT | TO_SLEEP);
       act("\tnThe $o\tn that $n\tn fires at $N\tn misses badly and ends up breaking!", FALSE, ch,
-          missile, victim, TO_NOTVICT);
-      extract_obj(missile);
-    }
-    else
-    { /* Drop the ammo to the ground.*/
-
-      obj_to_room(missile, IN_ROOM(victim));
+          projectile, victim, TO_NOTVICT);
+      extract_obj(projectile);
+      return PROJECTILE_DISPOSITION_DESTROYED;
     }
   }
 
-  return;
+  return has_physical_projectile(attack_type) ? PROJECTILE_DISPOSITION_TARGET_ROOM
+                                              : PROJECTILE_DISPOSITION_NONE;
 }
 
 /* is ch sneak attacking victim? */
@@ -12379,11 +12482,23 @@ static int fist_air_callback(struct char_data *ch, struct char_data *tch, void *
   return 1;
 }
 
+static bool physical_projectile_was_extracted(int attack_type, struct obj_data *projectile,
+                                              bool *attack_context_invalidated)
+{
+  if (!has_physical_projectile(attack_type) || !projectile || projectile_object_is_live(projectile))
+    return FALSE;
+
+  if (attack_context_invalidated)
+    *attack_context_invalidated = TRUE;
+  return TRUE;
+}
+
 /* called from hit() */
 int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              struct obj_data *wielded, int dam, int w_type, int type, int diceroll,
                              int is_critical, int attack_type, int dam_type,
-                             struct obj_data *missile, bool *attack_context_invalidated)
+                             struct obj_data *projectile, bool *attack_context_invalidated,
+                             enum projectile_disposition *projectile_disposition)
 {
   struct affected_type af = {0}; /* for crippling strike */
   struct affected_type *af2;     // for hostile juxtaposition
@@ -12398,6 +12513,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   if (attack_context_invalidated)
     *attack_context_invalidated = FALSE;
+  if (projectile_disposition)
+    *projectile_disposition = PROJECTILE_DISPOSITION_TARGET_ROOM;
 
   GET_CONSECUTIVE_HITS(ch)++;
 
@@ -13176,7 +13293,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         sneakdam += dice(monk_precision_dice, 6);
 
       /* Add ranged sneak attack flat damage bonus from perks */
-      if (attack_type == ATTACK_TYPE_RANGED)
+      if (is_ranged_weapon_attack(attack_type))
       {
         int ranged_bonus = get_perk_ranged_sneak_attack_bonus(ch);
         if (ranged_bonus > 0)
@@ -13340,7 +13457,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
 
   /* Calculate damage for this hit */
-  dam += compute_hit_damage(ch, victim, w_type, diceroll, 0, is_critical, attack_type, dam_type);
+  dam += compute_hit_damage_with_projectile(ch, victim, wielded, projectile, w_type, diceroll, 0,
+                                            is_critical, attack_type, dam_type);
   if (type == TYPE_ATTACK_OF_OPPORTUNITY && has_teamwork_feat(ch, FEAT_PAIRED_OPPORTUNISTS))
     dam += 2;
   dam += powerful_blow_bonus;     /* ornir is going to yell at me for this :p  -zusuk */
@@ -13458,12 +13576,12 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
 
   /* We hit with a ranged weapon, victim gets a new arrow, stuck neatly in his butt. */
-  if (attack_type == ATTACK_TYPE_RANGED)
+  if (is_launcher_attack(attack_type))
   {
     /* set off imbued arrow! */
-    imbued_arrow(ch, victim, missile);
-    /* the victim gets to inherit the bullet, right in the bum! */
-    obj_to_char(missile, victim); /* note bullet will be in inventory, not in the bum eq-slot */
+    imbued_arrow(ch, victim, projectile);
+    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+      return dam;
   }
 
   /* Melee warding modifies damage. */
@@ -13508,13 +13626,17 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
   /***** end counter attacks ******/
 
+  if (projectile_disposition && has_physical_projectile(attack_type))
+    *projectile_disposition = PROJECTILE_DISPOSITION_TARGET_INVENTORY;
+
   /* if the 'type' of hit() requires special handling, do it here */
   switch (type)
   {
     /* More SKILL_ garbage - This needs a better mechanic.  */
   case SKILL_BACKSTAB:
     dam += 4; /* base backstab bonus to damage */
-    if (damage(ch, victim, (dam * backstab_mult(ch)), SKILL_BACKSTAB, dam_type, attack_type) < 0)
+    if (damage_with_projectile(ch, victim, (dam * backstab_mult(ch)), SKILL_BACKSTAB, dam_type,
+                               attack_type, wielded, projectile) < 0)
       victim_is_dead = TRUE;
 
     break;
@@ -13522,7 +13644,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     /* Here we manage the racial specials, Trelux have claws and can not use weapons. */
     if (GET_RACE(ch) == RACE_TRELUX)
     {
-      if (damage(ch, victim, dam, TYPE_CLAW, dam_type, attack_type) < 0)
+      if (damage_with_projectile(ch, victim, dam, TYPE_CLAW, dam_type, attack_type, wielded,
+                                 projectile) < 0)
       {
         victim_is_dead = TRUE;
       }
@@ -13538,7 +13661,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
 
       /* So do damage! (We aren't trelux, so do it normally) */
-      if (damage(ch, victim, dam, w_type, dam_type, attack_type) < 0)
+      if (damage_with_projectile(ch, victim, dam, w_type, dam_type, attack_type, wielded,
+                                 projectile) < 0)
         victim_is_dead = TRUE;
 
       /* Blackguard: Ravaging Smite - apply bleed on smite good hit */
@@ -13754,11 +13878,19 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* weapon spells - deprecated, although many weapons still have these.  Weapon Special Abilities supercede
    * this implementation. */
   if (ch && victim && wielded && !victim_is_dead)
+  {
     weapon_spells(ch, victim, wielded);
+    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+      return dam;
+  }
 
   /* Weapon special abilities that trigger on hit. */
   if (ch && victim && (wielded || using_monk_gloves(ch)) && !victim_is_dead)
+  {
     process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
+    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+      return dam;
+  }
   if (IS_EFREETI(ch))
     damage(ch, victim, dice(2, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
 
@@ -13772,7 +13904,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   /* Wilderness Warrior: Crippling Strike - 5% chance to apply slow on melee hit */
   if (!IS_NPC(ch) && !victim_is_dead && has_perk(ch, PERK_RANGER_CRIPPLING_STRIKE) &&
-      attack_type != ATTACK_TYPE_RANGED && !affected_by_spell(victim, SPELL_SLOW) &&
+      !is_ranged_weapon_attack(attack_type) && !affected_by_spell(victim, SPELL_SLOW) &&
       dice(1, 100) <= 5)
   {
     struct affected_type af;
@@ -13793,8 +13925,12 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
 
   /* our primitive weapon-poison system, needs some love */
-  if (ch && victim && (wielded || missile || IS_TRELUX(ch)) && !victim_is_dead)
-    weapon_poison(ch, victim, wielded, missile);
+  if (ch && victim && (wielded || projectile || IS_TRELUX(ch)) && !victim_is_dead)
+  {
+    weapon_poison(ch, victim, wielded, projectile);
+    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+      return dam;
+  }
 
   if (IS_NPC(ch) && !victim_is_dead && MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) != NULL)
   {
@@ -13832,11 +13968,17 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         *attack_context_invalidated = TRUE;
       return dam;
     }
+    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+      return dam;
   }
 
   /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */
   if (ch && victim && wielded && !victim_is_dead)
+  {
     weapon_special(wielded, ch, victim, dam, attack_type, is_critical, hit_msg);
+    if (physical_projectile_was_extracted(attack_type, projectile, attack_context_invalidated))
+      return dam;
+  }
   else if (ch && victim && GET_EQ(ch, WEAR_HANDS) && !victim_is_dead && is_bare_handed(ch))
     weapon_special(GET_EQ(ch, WEAR_HANDS), ch, victim, dam, attack_type, is_critical, hit_msg);
 
@@ -13908,10 +14050,11 @@ int test_handle_successful_artifact_attack(struct char_data *ch, struct char_dat
                                            int dam_type)
 {
   bool attack_context_invalidated = FALSE;
+  enum projectile_disposition projectile_disposition;
 
   (void)handle_successful_attack(ch, victim, wielded, dam, TYPE_HIT, TYPE_UNDEFINED, 10,
                                  is_critical, ATTACK_TYPE_PRIMARY, dam_type, NULL,
-                                 &attack_context_invalidated);
+                                 &attack_context_invalidated, &projectile_disposition);
   return attack_context_invalidated;
 }
 #endif
@@ -13926,7 +14069,7 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
   int power_resist_bonus = 0;
   int dam_bonus = 0;
 
-  if (attack_type != ATTACK_TYPE_RANGED)
+  if (!is_ranged_weapon_attack(attack_type))
   {
     if (dam && victim && GET_HIT(victim) >= -1 && IS_AFFECTED(victim, AFF_CSHIELD))
     { // cold shield
@@ -14053,7 +14196,7 @@ static int apply_bard_frostbite_rider(struct char_data *ch, struct char_data *vi
   int cold_damage;
 
   if (ch == NULL || victim == NULL || IS_NPC(ch) || weapon_damage <= 0 || can_hit <= 0 ||
-      attack_type == ATTACK_TYPE_RANGED || attack_type == ATTACK_TYPE_BOMB_TOSS || DEAD(victim))
+      is_ranged_weapon_attack(attack_type) || attack_type == ATTACK_TYPE_BOMB_TOSS || DEAD(victim))
     return 0;
 
   cold_damage = get_bard_frostbite_cold_damage(ch) + get_bard_frostbite_refrain_ii_cold_damage(ch);
@@ -14100,19 +14243,22 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       calc_bab = penalty, /* ch's base attack bonus for the attack. */
       diceroll = 0,       /* ch's attack roll. */
       can_hit = 0,        /* ch successfully hit? */
-      dam = 0;            /* Damage for the attack, with mods. */
+      dam = 0,            /* Damage for the attack, with mods. */
+      hit_result = HIT_MISS;
 
   struct affected_type af = {0};
+  struct projectile_attack_context projectile_context;
+  struct projectile_attack_context *active_projectile = NULL;
+  struct obj_data *missile = NULL;
+  struct obj_data *wielded = NULL;
+  enum projectile_disposition projectile_disposition = PROJECTILE_DISPOSITION_NONE;
   bool attack_context_invalidated = FALSE;
-
   bool is_critical = FALSE;
 
   char buf[DAM_MES_LENGTH] = {'\0'}; /* Damage message buffers. */
   char buf1[DAM_MES_LENGTH] = {'\0'};
 
   bool same_room = FALSE; /* Is the victim in the same room as ch? */
-
-  struct obj_data *missile = NULL; /* For ranged combat. */
 
   if (!ch || !victim)
     return (HIT_MISS); /* ch and victim exist? */
@@ -14125,8 +14271,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
   // from sneak attacks and crits
   victim->preserve_organs_procced = FALSE;
 
-  struct obj_data *wielded =
-      get_wielded(ch, attack_type); /* Wielded weapon for this hand (uses offhand) */
+  wielded = get_wielded(ch, attack_type); /* Wielded weapon for this hand (uses offhand) */
   /*if (GET_EQ(ch, WEAR_WIELD_2H) && attack_type != ATTACK_TYPE_RANGED)
             attack_type = ATTACK_TYPE_TWOHAND;*/
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
@@ -14148,6 +14293,34 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     /* Currently no way to get a result from these kinds of actions, so return something bogus.
                   Needs improvement. */
     return (HIT_RESULT_ACTION);
+  }
+
+  if (is_launcher_attack(attack_type))
+  {
+    if (!prepare_launcher_projectile(ch, &projectile_context))
+    {
+      send_to_char(ch, "You have no compatible ammunition ready!\r\n");
+      return (HIT_MISS);
+    }
+    active_projectile = &projectile_context;
+    wielded = projectile_context.attack_weapon;
+    missile = projectile_context.physical_projectile;
+  }
+  else if (is_thrown_attack(attack_type))
+  {
+    if (!IS_THROWN_MODE(ch) ||
+        !select_thrown_projectile(ch, THROWN_ANCHOR_VNUM(ch), THROWN_ANCHOR_WEAR_SLOT(ch),
+                                  &projectile_context))
+    {
+      send_to_char(ch, "You no longer have the throwable weapon you readied.\r\n");
+      clear_projectile_mode(ch);
+      if (FIGHTING(ch) == victim)
+        stop_fighting(ch);
+      return (HIT_MISS);
+    }
+    active_projectile = &projectile_context;
+    wielded = projectile_context.attack_weapon;
+    missile = projectile_context.physical_projectile;
   }
 
   /* hitting pets:  some protection from a toggle if you like */
@@ -14172,23 +14345,14 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
   /* if we come into the hit() function anticipating a ranged attack, we are
    examining obvious cases where the attack will fail */
-  if (attack_type == ATTACK_TYPE_RANGED)
+  if (is_launcher_attack(attack_type))
   {
-    /* Keep launcher execution aligned with mixed-pouch readiness until the
-     * projectile context replaces last_missile below. */
-    last_missile = missile = find_compatible_launcher_ammo(ch, wielded);
-    if (!missile)
-    { /* no ammo = miss for ranged attacks*/
-      send_to_char(ch, "You have no ammo!\r\n");
-      return (HIT_MISS);
-    }
-
     /* reloading type of weapons, such as crossbows */
     if (is_reloading_weapon(ch, wielded, TRUE))
     {
       if (!weapon_is_loaded(ch, wielded, FALSE))
       {
-        clear_launcher_projectile_mode(ch);
+        clear_projectile_mode(ch);
         return (HIT_NEED_RELOAD);
       }
     }
@@ -14207,7 +14371,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
   /* If this is a melee attack, check if the target and the aggressor are in
     the same room. */
-  if (attack_type != ATTACK_TYPE_RANGED && IN_ROOM(ch) != IN_ROOM(victim))
+  if (!is_ranged_weapon_attack(attack_type) && IN_ROOM(ch) != IN_ROOM(victim))
   {
     /* Not in the same room, so stop fighting. */
     if (FIGHTING(ch) && FIGHTING(ch) == victim)
@@ -14285,7 +14449,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     }
   }
 
-  if (attack_type != ATTACK_TYPE_RANGED && AFF_FLAGGED(victim, AFF_REPULSION))
+  if (!is_ranged_weapon_attack(attack_type) && AFF_FLAGGED(victim, AFF_REPULSION))
   {
     ensure_repulsion_lists(victim);
 
@@ -14316,13 +14480,22 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
   // determine weapon type, potentially a deprecated function
   w_type = determine_weapon_type(ch, victim, wielded, attack_type);
-  /* some ranged attack handling */
-  if (attack_type == ATTACK_TYPE_RANGED)
+  if (active_projectile)
   {
-    // tag missile so that only this char collects it.
-    MISSILE_ID(missile) = GET_IDNUM(ch);
-    /* Remove the missile from the ammo_pouch. */
-    obj_from_obj(missile);
+    set_projectile_target(active_projectile, victim);
+    if (!detach_physical_projectile(ch, active_projectile))
+    {
+      send_to_char(ch, "Your readied projectile is no longer available.\r\n");
+      if (is_thrown_attack(attack_type))
+        clear_projectile_mode(ch);
+      return (HIT_MISS);
+    }
+    projectile_disposition = PROJECTILE_DISPOSITION_TARGET_ROOM;
+  }
+
+  /* Launcher-only handling. */
+  if (is_launcher_attack(attack_type))
+  {
     /* if this was a weapon that was loaded, unload */
     if (wielded && GET_OBJ_VAL(wielded, 5) > 0)
       GET_OBJ_VAL(wielded, 5)
@@ -14363,7 +14536,9 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     break;
 
   case ATTACK_TYPE_RANGED: /* ranged weapon */
-    calc_bab += compute_attack_bonus(ch, victim, attack_type);
+  case ATTACK_TYPE_THROWN: /* thrown weapon */
+    calc_bab +=
+        compute_attack_bonus_full_with_weapon(ch, victim, attack_type, false, wielded, missile);
     break;
 
   case ATTACK_TYPE_TWOHAND: /* two handed weapon */
@@ -14405,7 +14580,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     diceroll = d20(ch) + HAS_FEAT(ch, FEAT_WEAPON_TRAINING);
   else
     diceroll = d20(ch);
-  if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac, victim) &&
+  if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac, victim, attack_type) &&
       !IS_IMMUNE_CRITS(ch, victim))
   {
     can_hit = TRUE;
@@ -14460,7 +14635,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
   int total_defense_attempt = 0;
   if (!IS_NPC(victim) && compute_ability(victim, ABILITY_TOTAL_DEFENSE) && TOTAL_DEFENSE(victim) &&
       AFF_FLAGGED(victim, AFF_TOTAL_DEFENSE) && !IS_CASTING(victim) &&
-      GET_POS(victim) >= POS_SITTING && attack_type != ATTACK_TYPE_RANGED && !is_critical)
+      GET_POS(victim) >= POS_SITTING && !is_ranged_weapon_attack(attack_type) && !is_critical)
   {
     /* -2 penalty to totaldefense attempts if you are sitting, basically.  You will never ever
      * get here if you are in a lower position than sitting, so the 'less than' is
@@ -14492,7 +14667,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, attack_type);
       TOTAL_DEFENSE(victim)
       --;
-      return (HIT_MISS);
+      hit_result = HIT_MISS;
+      goto finalize_projectile;
     }
     else
     {
@@ -14509,11 +14685,13 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
         spec_gateway_defense_reaction(victim, opp_wpn, ch, "parry");
       }
 
-      return (HIT_MISS);
+      hit_result = HIT_MISS;
+      goto finalize_projectile;
     }
   } /* End of totaldefense */
 
-  if (attack_type != ATTACK_TYPE_RANGED && is_immaterial(ch) && AFF_FLAGGED(victim, AFF_WIND_WALL))
+  if (!is_ranged_weapon_attack(attack_type) && is_immaterial(ch) &&
+      AFF_FLAGGED(victim, AFF_WIND_WALL))
   {
     act("You are unable to get close enough to $N to complete your attack.", FALSE, ch, 0, victim,
         TO_CHAR);
@@ -14522,7 +14700,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     act("$n is unable to get close enough to $N to complete $s attack.", FALSE, ch, 0, victim,
         TO_NOTVICT);
 
-    return (HIT_MISS);
+    hit_result = HIT_MISS;
+    goto finalize_projectile;
   }
 
   /* Once per round when your mount is hit in combat, you may attempt a Ride
@@ -14542,7 +14721,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
           TO_NOTVICT);
       MOUNTED_BLOCKS_LEFT(victim)
       --;
-      return (HIT_MISS);
+      hit_result = HIT_MISS;
+      goto finalize_projectile;
     }
   } /* end mounted combat check */
 
@@ -14553,7 +14733,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
    * attack doesn't count as an action. Unusually massive ranged weapons (such
    * as boulders or ballista bolts) and ranged attacks generated by natural
    * attacks or spell effects can't be deflected. */
-  if (attack_type == ATTACK_TYPE_RANGED && HAS_FEAT(victim, FEAT_DEFLECT_ARROWS) &&
+  if (is_ranged_weapon_attack(attack_type) && HAS_FEAT(victim, FEAT_DEFLECT_ARROWS) &&
       DEFLECT_ARROWS_LEFT(victim) > 0 && has_dex_bonus_to_ac(ch, victim) && HAS_FREE_HAND(victim))
   {
     if (HAS_FEAT(victim, FEAT_SNATCH_ARROWS))
@@ -14565,7 +14745,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
           victim, missile, ch, TO_VICT | TO_SLEEP);
       act("\tnWith inhuman dexterity $n snatches out of the air $o that $N fired!", FALSE, victim,
           missile, ch, TO_NOTVICT);
-      obj_to_char(missile, victim);
+      active_projectile->snatched = TRUE;
+      projectile_disposition = PROJECTILE_DISPOSITION_TARGET_INVENTORY;
     }
     else
     {
@@ -14575,22 +14756,26 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
           TO_VICT | TO_SLEEP);
       act("\tn$n deftly deflects $o out of the air, that was fired by $N!", FALSE, victim, missile,
           ch, TO_NOTVICT);
-      obj_to_room(missile, IN_ROOM(victim));
+      projectile_disposition = PROJECTILE_DISPOSITION_TARGET_ROOM;
     }
     DEFLECT_ARROWS_LEFT(victim)
     --;
-    return (HIT_MISS);
+    hit_result = HIT_MISS;
+    goto finalize_projectile;
   }
 
-  if (attack_type == ATTACK_TYPE_RANGED && AFF_FLAGGED(victim, AFF_WIND_WALL) && dice(1, 10) <= 3)
+  if (is_ranged_weapon_attack(attack_type) && AFF_FLAGGED(victim, AFF_WIND_WALL) &&
+      dice(1, 10) <= 3)
   {
     act("Your wall of wind throws aside $N's shot.", FALSE, victim, 0, ch, TO_CHAR);
     act("$n's wall of wind throws aside Your shot.", FALSE, victim, 0, ch, TO_VICT);
     act("$n's wall of wind throws aside $N's shot.", FALSE, victim, 0, ch, TO_NOTVICT);
-    return (HIT_MISS);
+    hit_result = HIT_MISS;
+    goto finalize_projectile;
   }
 
-  if (attack_type == ATTACK_TYPE_RANGED && affected_by_spell(victim, SPELL_PROTECTION_FROM_ARROWS))
+  if (is_ranged_weapon_attack(attack_type) &&
+      affected_by_spell(victim, SPELL_PROTECTION_FROM_ARROWS))
   {
     struct affected_type *afx = NULL;
     for (afx = victim->affected; afx; afx = afx->next)
@@ -14604,23 +14789,29 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
     act("An invisible barrier forces $n's shot wide.", FALSE, ch, 0, victim, TO_ROOM);
     act("An invisible barrier forces your shot wide.", FALSE, ch, 0, victim, TO_CHAR);
-    return (HIT_MISS);
+    hit_result = HIT_MISS;
+    goto finalize_projectile;
   }
 
   if (can_hit <= 0)
   {
     /* So if we have actually hit, then dam > 0. This is how we process a miss. */
-    handle_missed_attack(ch, victim, type, w_type, dam_type, attack_type, missile);
+    projectile_disposition =
+        handle_missed_attack(ch, victim, type, w_type, dam_type, attack_type, wielded, missile);
   }
   else
   {
     /* OK, attack should be a success at this stage */
     dam = handle_successful_attack(ch, victim, wielded, dam, w_type, type, diceroll, is_critical,
-                                   attack_type, dam_type, missile, &attack_context_invalidated);
+                                   attack_type, dam_type, missile, &attack_context_invalidated,
+                                   &projectile_disposition);
   }
 
   if (attack_context_invalidated)
-    return dam;
+  {
+    hit_result = dam;
+    goto finalize_projectile;
+  }
 
   if (is_critical)
   {
@@ -14864,7 +15055,17 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     }
   }
 
-  return dam;
+  hit_result = dam;
+
+finalize_projectile:
+  if (active_projectile)
+  {
+    finalize_physical_projectile(active_projectile, ch, victim, projectile_disposition);
+    if (is_thrown_attack(attack_type))
+      validate_thrown_projectile_mode(ch);
+  }
+
+  return hit_result;
 }
 
 /* ch dual wielding or is trelux */
@@ -15012,11 +15213,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   int ranged_attacks = 1; /* ranged combat gets 1 bonus attacks currently */
   bool dual = FALSE;
   bool perform_attack = FALSE;
+  bool projectile_ready = FALSE;
   /* so if ranged is not performed and we fall through to melee, we need to make
    * sure our attacks with max. BAB are maintained */
   int drop_an_attack_at_max_bab = 0;
   struct obj_data *wielded = NULL;
   int wpn_reload_status = 0;
+  int projectile_attack_type = ATTACK_TYPE_RANGED;
 
   /* Check position..  we don't check < POS_STUNNED anymore */
   if (GET_POS(ch) == POS_DEAD)
@@ -15203,9 +15406,22 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
    and then exit.  Otherwise you will fall through and perform a melee attack
    (unless you have a ranged weapon equipped, in which case exit) */
 
-  /* -- Process ranged attacks, determine base number of attacks irregardless of
-   * whether ch is in combat or not ------ */
-  if (can_fire_ammo(ch, TRUE))
+  if (mode == NORMAL_ATTACK_ROUTINE && IS_THROWN_MODE(ch))
+  {
+    projectile_attack_type = ATTACK_TYPE_THROWN;
+    projectile_ready = can_throw_projectile(ch, TRUE);
+  }
+  else if (mode == NORMAL_ATTACK_ROUTINE && IS_LAUNCHER_MODE(ch))
+  {
+    projectile_ready = can_fire_ammo(ch, TRUE);
+  }
+  else if (mode != NORMAL_ATTACK_ROUTINE)
+  {
+    projectile_ready = can_fire_ammo(ch, TRUE);
+  }
+
+  /* -- Process ranged attacks, determine base number of attacks. ------ */
+  if (projectile_ready)
   {
     /* Early Exits from ranged combat? */
 
@@ -15214,7 +15430,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     {
       send_to_char(ch, "You are too close to use your ranged weapon.\r\n");
       stop_fighting(ch);
-      clear_launcher_projectile_mode(ch);
+      clear_projectile_mode(ch);
       return 0;
     }
 
@@ -15230,14 +15446,15 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
       drop_an_attack_at_max_bab++;
 
-      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MANYSHOT))
+      if (is_launcher_attack(projectile_attack_type) && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_MANYSHOT))
       {
         ranged_attacks++;
         attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
         drop_an_attack_at_max_bab++;
       }
 
-      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_MANYSHOT))
+      if (is_launcher_attack(projectile_attack_type) && !IS_NPC(ch) &&
+          HAS_FEAT(ch, FEAT_EPIC_MANYSHOT))
       {
         ranged_attacks++;
         attacks_at_max_bab++; /* we have to drop this if this isn't a ranged attack! */
@@ -15250,7 +15467,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   /* Ranged attacker, lets process some penalties, etc. then start *processing*
    * Note:  This is not a display-info mode, so unique modifications to actual
    * combat are included here as opposed to above calculations */
-  if (can_fire_ammo(ch, TRUE) && IS_LAUNCHER_MODE(ch) && mode == NORMAL_ATTACK_ROUTINE)
+  if (projectile_ready && mode == NORMAL_ATTACK_ROUTINE &&
+      (IS_LAUNCHER_MODE(ch) || IS_THROWN_MODE(ch)))
   {
     if (is_tanking(ch))
     {
@@ -15312,22 +15530,37 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       }
       if (perform_attack)
       { /* correct phase for this attack? */
-        if (can_fire_ammo(ch, FALSE) && FIGHTING(ch))
-        {
-          /* FIRE! PEW-PEW!! */
-          wpn_reload_status =
-              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_RANGED);
+        bool attack_ready;
 
-          /* Quick Draw: chance to immediately make an extra ranged attack */
+        attack_ready = is_launcher_attack(projectile_attack_type) ? can_fire_ammo(ch, FALSE)
+                                                                  : can_throw_projectile(ch, FALSE);
+        if (attack_ready && FIGHTING(ch))
+        {
+          wpn_reload_status = hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty,
+                                  projectile_attack_type);
+
+          /* Quick Draw: chance to immediately make one extra physical-projectile attack. */
           if (wpn_reload_status != HIT_NEED_RELOAD)
           {
             int qd_chance = get_ranger_quick_draw_proc_chance(ch);
-            if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && can_fire_ammo(ch, TRUE))
+            bool quick_draw_ready = is_launcher_attack(projectile_attack_type)
+                                        ? can_fire_ammo(ch, TRUE)
+                                        : can_throw_projectile(ch, TRUE);
+            if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && quick_draw_ready)
             {
-              send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
-              act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+              if (is_launcher_attack(projectile_attack_type))
+              {
+                send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
+                act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+              }
+              else
+              {
+                send_to_char(ch, "Your Quick Draw lets you hurl another weapon!\r\n");
+                act("$n hurls another weapon with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+              }
               /* Extra shot uses the same current penalty to avoid inflating attack bonus */
-              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_RANGED);
+              hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty,
+                  projectile_attack_type);
             }
           }
 
@@ -15337,7 +15570,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
             penalty -= 5; /* cummulative penalty */
 
           /* here is our auto-reload system for xbows, etc */
-          if (IS_NPC(ch) ? MOB_FLAGGED(ch, MOB_ROL_ARCHER) : PRF_FLAGGED(ch, PRF_AUTORELOAD))
+          if (is_launcher_attack(projectile_attack_type) &&
+              (IS_NPC(ch) ? MOB_FLAGGED(ch, MOB_ROL_ARCHER) : PRF_FLAGGED(ch, PRF_AUTORELOAD)))
           {
             /* converted RoL archers have no reload step of their own, so
              * without this a crossbow archer fires once per load */
@@ -15354,7 +15588,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
            reason we are exiting ranged combat should be announced via
            can_fire_ammo() */
           stop_fighting(ch);
-          clear_launcher_projectile_mode(ch);
+          clear_projectile_mode(ch);
           return 0;
         }
       }
@@ -15367,10 +15601,12 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     /* in case your very last ranged attack above leaves you not able to
        fire, we will send one more message here using can_fire_ammo
        with silent-mode off */
-    if (!can_fire_ammo(ch, FALSE))
+    projectile_ready = is_launcher_attack(projectile_attack_type) ? can_fire_ammo(ch, FALSE)
+                                                                  : can_throw_projectile(ch, FALSE);
+    if (!projectile_ready)
     {
       stop_fighting(ch);
-      clear_launcher_projectile_mode(ch);
+      clear_projectile_mode(ch);
     }
 
     /* that is it, all done with ranged combat! */
@@ -16185,7 +16421,7 @@ void handle_cleave(struct char_data *ch)
   /* Great Cleave - feat or perk */
   if ((HAS_FEAT(ch, FEAT_GREAT_CLEAVE) || has_perk(ch, PERK_FIGHTER_GREAT_CLEAVE) ||
        has_berserker_cleaving_strikes(ch)) &&
-      !is_using_ranged_weapon(ch, TRUE))
+      !is_using_ranged_weapon(ch, TRUE) && !IS_THROWN_MODE(ch))
   {
     send_to_char(ch, "You great cleave to %s!\r\n", (CAN_SEE(ch, tch)) ? GET_NAME(tch) : "someone");
     act("$n great cleaves to $N!", TRUE, ch, 0, tch, TO_ROOM);
@@ -16313,7 +16549,8 @@ void perform_violence(struct char_data *ch, int phase)
       int warbeat_result;
 
       GET_WARBEAT_USED(ch) = 1;
-      if (IS_PERFORMING(ch) && FIGHTING(ch) && !is_using_ranged_weapon(ch, TRUE))
+      if (IS_PERFORMING(ch) && FIGHTING(ch) && !is_using_ranged_weapon(ch, TRUE) &&
+          !IS_THROWN_MODE(ch))
       {
         send_to_char(ch, "\tYYour warbeat drives an opening attack!\tn\r\n");
 #ifdef LUMINARI_CUTEST
@@ -16667,7 +16904,7 @@ void perform_violence(struct char_data *ch, int phase)
   }
 
   if (FIGHTING(ch) && AFF_FLAGGED(FIGHTING(ch), AFF_REPULSION) &&
-      !is_using_ranged_weapon(ch, TRUE) && !IS_CASTING(ch) &&
+      !is_using_ranged_weapon(ch, TRUE) && !IS_THROWN_MODE(ch) && !IS_CASTING(ch) &&
       (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_AUTOBLAST)) &&
       FIGHTING(ch)->char_specials.repulse_blacklist != NULL &&
       find_in_list(ch, FIGHTING(ch)->char_specials.repulse_blacklist) != NULL)
@@ -16765,7 +17002,7 @@ void perform_violence(struct char_data *ch, int phase)
     if (phase == 1 &&
         (HAS_FEAT(ch, FEAT_CLEAVE) || HAS_FEAT(ch, FEAT_GREAT_CLEAVE) ||
          has_perk(ch, PERK_FIGHTER_CLEAVING_STRIKE) || has_berserker_cleaving_strikes(ch)) &&
-        !is_using_ranged_weapon(ch, TRUE))
+        !is_using_ranged_weapon(ch, TRUE) && !IS_THROWN_MODE(ch))
       handle_cleave(ch);
   }
   /**/

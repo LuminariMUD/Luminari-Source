@@ -8,6 +8,9 @@
 #include "structs.h"
 #include "utils.h"
 #include "assign_wpn_armor.h"
+#include "comm.h"
+#include "db.h"
+#include "handler.h"
 #include "projectiles.h"
 #include "spec_abilities.h"
 
@@ -85,6 +88,53 @@ static struct obj_data *get_thrown_anchor(struct char_data *ch, obj_vnum anchor_
     return NULL;
 
   return anchor;
+}
+
+static bool character_is_live(const struct char_data *ch)
+{
+  const struct char_data *current;
+
+  if (!ch)
+    return FALSE;
+
+  for (current = character_list; current; current = current->next)
+  {
+    if (current == ch)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+static bool projectile_is_unplaced(const struct obj_data *projectile)
+{
+  return projectile && !projectile->carried_by && !projectile->worn_by && !projectile->in_obj &&
+         IN_ROOM(projectile) == NOWHERE;
+}
+
+static enum projectile_disposition
+get_existing_disposition(const struct projectile_attack_context *context,
+                         const struct obj_data *projectile, const struct char_data *attacker,
+                         const struct char_data *target)
+{
+  bool attacker_live;
+  bool target_live;
+
+  attacker_live = character_is_live(attacker);
+  target_live = character_is_live(target);
+
+  if (attacker_live && projectile->worn_by == attacker)
+    return PROJECTILE_DISPOSITION_ATTACKER_EQUIPMENT;
+  if (attacker_live && projectile->carried_by == attacker)
+    return PROJECTILE_DISPOSITION_ATTACKER_INVENTORY;
+  if (target_live && projectile->carried_by == target)
+    return PROJECTILE_DISPOSITION_TARGET_INVENTORY;
+  if (IN_ROOM(projectile) == context->target_room || projectile->in_obj)
+    return PROJECTILE_DISPOSITION_TARGET_ROOM;
+  if (attacker_live && IN_ROOM(projectile) == IN_ROOM(attacker))
+    return PROJECTILE_DISPOSITION_ATTACKER_ROOM;
+
+  return PROJECTILE_DISPOSITION_TARGET_ROOM;
 }
 
 bool is_launcher_attack(int attack_type)
@@ -266,6 +316,38 @@ bool set_thrown_projectile_mode(struct char_data *ch, obj_vnum anchor_vnum, int 
   return TRUE;
 }
 
+bool validate_thrown_projectile_mode(struct char_data *ch)
+{
+  if (!character_is_live(ch) || !IS_THROWN_MODE(ch))
+    return FALSE;
+
+  if (!get_thrown_anchor(ch, THROWN_ANCHOR_VNUM(ch), THROWN_ANCHOR_WEAR_SLOT(ch)))
+  {
+    clear_projectile_mode(ch);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+bool can_throw_projectile(struct char_data *ch, bool silent)
+{
+  struct projectile_attack_context context;
+
+  if (!ch || !IS_THROWN_MODE(ch))
+    return FALSE;
+
+  if (!select_thrown_projectile(ch, THROWN_ANCHOR_VNUM(ch), THROWN_ANCHOR_WEAR_SLOT(ch), &context))
+  {
+    if (!silent)
+      send_to_char(ch, "You no longer have the throwable weapon you readied.\r\n");
+    clear_projectile_mode(ch);
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
 void initialize_projectile_attack_context(struct projectile_attack_context *context,
                                           int attack_kind)
 {
@@ -279,6 +361,28 @@ void initialize_projectile_attack_context(struct projectile_attack_context *cont
   context->anchor_wear_slot = -1;
   context->target_room = NOWHERE;
   context->disposition = PROJECTILE_DISPOSITION_NONE;
+}
+
+bool prepare_launcher_projectile(struct char_data *ch, struct projectile_attack_context *context)
+{
+  int wear_slot;
+
+  if (!context)
+    return FALSE;
+
+  initialize_projectile_attack_context(context, ATTACK_TYPE_RANGED);
+  context->attack_weapon = find_equipped_launcher(ch, &wear_slot);
+  if (!context->attack_weapon)
+    return FALSE;
+
+  context->physical_projectile = find_compatible_launcher_ammo(ch, context->attack_weapon);
+  if (!context->physical_projectile)
+    return FALSE;
+
+  context->original_source = PROJECTILE_SOURCE_AMMO_POUCH;
+  context->anchor_vnum = GET_OBJ_VNUM(context->attack_weapon);
+  context->anchor_wear_slot = wear_slot;
+  return TRUE;
 }
 
 bool select_thrown_projectile(struct char_data *ch, obj_vnum anchor_vnum, int wear_slot,
@@ -332,4 +436,188 @@ bool select_thrown_projectile(struct char_data *ch, obj_vnum anchor_vnum, int we
   context->physical_projectile = anchor;
   context->original_source = PROJECTILE_SOURCE_WIELDED;
   return TRUE;
+}
+
+void set_projectile_target(struct projectile_attack_context *context,
+                           const struct char_data *target)
+{
+  if (!context || !target || IN_ROOM(target) == NOWHERE || IN_ROOM(target) > top_of_world)
+    return;
+
+  context->target_room = IN_ROOM(target);
+  context->target_x = world[context->target_room].coords[0];
+  context->target_y = world[context->target_room].coords[1];
+}
+
+bool detach_physical_projectile(struct char_data *ch, struct projectile_attack_context *context)
+{
+  struct obj_data *projectile;
+
+  if (!ch || !context || context->detached || !context->physical_projectile)
+    return FALSE;
+
+  projectile = context->physical_projectile;
+  switch (context->original_source)
+  {
+  case PROJECTILE_SOURCE_AMMO_POUCH:
+    if (!projectile->in_obj || projectile->in_obj != GET_EQ(ch, WEAR_AMMO_POUCH))
+      return FALSE;
+    obj_from_obj(projectile);
+    break;
+
+  case PROJECTILE_SOURCE_INVENTORY:
+    if (projectile->carried_by != ch || projectile->in_obj)
+      return FALSE;
+    obj_from_char(projectile);
+    break;
+
+  case PROJECTILE_SOURCE_WIELDED:
+    if (context->anchor_wear_slot < 0 || context->anchor_wear_slot >= NUM_WEARS ||
+        GET_EQ(ch, context->anchor_wear_slot) != projectile ||
+        unequip_char(ch, context->anchor_wear_slot) != projectile)
+      return FALSE;
+    break;
+
+  case PROJECTILE_SOURCE_NONE:
+  default:
+    return FALSE;
+  }
+
+  MISSILE_ID(projectile) = GET_IDNUM(ch);
+  context->detached = TRUE;
+  return TRUE;
+}
+
+bool projectile_object_is_live(const struct obj_data *obj)
+{
+  const struct obj_data *current;
+
+  if (!obj)
+    return FALSE;
+
+  for (current = object_list; current; current = current->next)
+  {
+    if (current == obj)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+void finalize_physical_projectile(struct projectile_attack_context *context,
+                                  struct char_data *attacker, struct char_data *target,
+                                  enum projectile_disposition disposition)
+{
+  struct obj_data *projectile;
+  room_rnum destination;
+  bool returning;
+
+  if (!context || !context->detached || context->disposition != PROJECTILE_DISPOSITION_NONE)
+    return;
+
+  projectile = context->physical_projectile;
+  if (!projectile_object_is_live(projectile))
+  {
+    context->physical_projectile = NULL;
+    context->disposition = PROJECTILE_DISPOSITION_DESTROYED;
+    return;
+  }
+
+  if (!projectile_is_unplaced(projectile))
+  {
+    context->disposition = get_existing_disposition(context, projectile, attacker, target);
+    return;
+  }
+
+  returning = is_thrown_attack(context->attack_kind) && !context->snatched &&
+              disposition != PROJECTILE_DISPOSITION_DESTROYED &&
+              obj_has_special_ability(projectile, WEAPON_SPECAB_RETURNING);
+
+  if (returning && character_is_live(attacker))
+  {
+    if (context->original_source == PROJECTILE_SOURCE_WIELDED && context->anchor_wear_slot >= 0 &&
+        context->anchor_wear_slot < NUM_WEARS && !GET_EQ(attacker, context->anchor_wear_slot))
+    {
+      act("$p arcs through the air and returns to your hand.", FALSE, attacker, projectile, 0,
+          TO_CHAR);
+      act("$p arcs through the air and returns to $n's hand.", FALSE, attacker, projectile, 0,
+          TO_ROOM);
+      MISSILE_ID(projectile) = NOBODY;
+      equip_char(attacker, projectile, context->anchor_wear_slot);
+      if (projectile->worn_by == attacker)
+      {
+        context->disposition = PROJECTILE_DISPOSITION_ATTACKER_EQUIPMENT;
+        return;
+      }
+      if (projectile->carried_by == attacker)
+      {
+        context->disposition = PROJECTILE_DISPOSITION_ATTACKER_INVENTORY;
+        return;
+      }
+    }
+
+    disposition = PROJECTILE_DISPOSITION_ATTACKER_INVENTORY;
+  }
+
+  destination = context->target_room;
+  if (destination == NOWHERE && character_is_live(attacker))
+    destination = IN_ROOM(attacker);
+
+  switch (disposition)
+  {
+  case PROJECTILE_DISPOSITION_DESTROYED:
+    context->physical_projectile = NULL;
+    context->disposition = PROJECTILE_DISPOSITION_DESTROYED;
+    extract_obj(projectile);
+    return;
+
+  case PROJECTILE_DISPOSITION_TARGET_INVENTORY:
+    if (character_is_live(target) && GET_POS(target) > POS_DEAD &&
+        (!context->snatched || CAN_CARRY_OBJ(target, projectile)))
+    {
+      obj_to_char(projectile, target);
+      context->disposition = PROJECTILE_DISPOSITION_TARGET_INVENTORY;
+      return;
+    }
+    break;
+
+  case PROJECTILE_DISPOSITION_ATTACKER_INVENTORY:
+    if (character_is_live(attacker) && CAN_CARRY_OBJ(attacker, projectile))
+    {
+      MISSILE_ID(projectile) = NOBODY;
+      obj_to_char(projectile, attacker);
+      context->disposition = PROJECTILE_DISPOSITION_ATTACKER_INVENTORY;
+      return;
+    }
+    if (character_is_live(attacker))
+    {
+      destination = IN_ROOM(attacker);
+      disposition = PROJECTILE_DISPOSITION_ATTACKER_ROOM;
+    }
+    break;
+
+  case PROJECTILE_DISPOSITION_ATTACKER_ROOM:
+    if (character_is_live(attacker))
+      destination = IN_ROOM(attacker);
+    break;
+
+  case PROJECTILE_DISPOSITION_TARGET_ROOM:
+  case PROJECTILE_DISPOSITION_ATTACKER_EQUIPMENT:
+  case PROJECTILE_DISPOSITION_NONE:
+  default:
+    break;
+  }
+
+  if (destination != NOWHERE && destination <= top_of_world)
+  {
+    obj_to_room(projectile, destination);
+    context->disposition = disposition == PROJECTILE_DISPOSITION_ATTACKER_ROOM
+                               ? PROJECTILE_DISPOSITION_ATTACKER_ROOM
+                               : PROJECTILE_DISPOSITION_TARGET_ROOM;
+    return;
+  }
+
+  context->physical_projectile = NULL;
+  context->disposition = PROJECTILE_DISPOSITION_DESTROYED;
+  extract_obj(projectile);
 }

@@ -5,6 +5,8 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/db.h"
+#include "../../src/handler.h"
+#include "../../src/act.h"
 #include "../../src/character/feats.h"
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/combat/projectiles.h"
@@ -311,6 +313,103 @@ void Test_ammo_pouch_admission_accepts_only_physical_projectiles(CuTest *tc)
   CuAssertTrue(tc, !can_store_projectile_in_ammo_pouch(&ch, &throwable));
 }
 
+void Test_mixed_projectile_pouch_survives_object_save_load(CuTest *tc)
+{
+  struct char_data ch;
+  struct obj_data pouch;
+  struct obj_data missile;
+  struct obj_data throwable;
+  struct obj_data *loaded;
+  struct obj_data *obj;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  obj_save_data *saved_objects;
+  room_rnum saved_top_of_world;
+  FILE *file;
+  bool found_missile;
+  bool found_throwable;
+
+  initialize_test_character(&ch, &player_specials);
+  initialize_test_object(&pouch, ITEM_AMMO_POUCH, 20);
+  initialize_test_object(&missile, ITEM_MISSILE, AMMO_TYPE_ARROW);
+  initialize_test_object(&throwable, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  memset(&room, 0, sizeof(room));
+
+  ch.player.name = (char *)"ProjectileSaver";
+  IN_ROOM(&ch) = 0;
+  GET_POS(&ch) = POS_STANDING;
+  SET_BIT_AR(GET_OBJ_WEAR(&pouch), ITEM_WEAR_AMMO_POUCH);
+  pouch.name = (char *)"mixed projectile pouch";
+  pouch.short_description = (char *)"a mixed projectile pouch";
+  pouch.description = (char *)"A mixed projectile pouch lies here.";
+  missile.name = (char *)"test arrow";
+  missile.short_description = (char *)"a test arrow";
+  missile.description = (char *)"A test arrow lies here.";
+  throwable.name = (char *)"test javelin";
+  throwable.short_description = (char *)"a test javelin";
+  throwable.description = (char *)"A test javelin lies here.";
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+  room.number = 100;
+
+  file = tmpfile();
+  CuAssertPtrNotNull(tc, file);
+  if (!file)
+  {
+    world = saved_world;
+    top_of_world = saved_top_of_world;
+    return;
+  }
+
+  CuAssertTrue(tc, test_objsave_save_obj_record(&throwable, &ch, file, -1));
+  CuAssertTrue(tc, test_objsave_save_obj_record(&missile, &ch, file, -1));
+  CuAssertTrue(tc, test_objsave_save_obj_record(&pouch, &ch, file, WEAR_AMMO_POUCH + 1));
+  fputs("$~\n", file);
+  rewind(file);
+
+  saved_objects = objsave_parse_objects(file);
+  fclose(file);
+  CuAssertPtrNotNull(tc, saved_objects);
+  if (!saved_objects)
+  {
+    world = saved_world;
+    top_of_world = saved_top_of_world;
+    return;
+  }
+
+  CuAssertIntEquals(tc, 3, test_restore_loaded_objects(&ch, saved_objects));
+  loaded = GET_EQ(&ch, WEAR_AMMO_POUCH);
+  CuAssertPtrNotNull(tc, loaded);
+  if (!loaded)
+  {
+    world = saved_world;
+    top_of_world = saved_top_of_world;
+    return;
+  }
+
+  CuAssertIntEquals(tc, ITEM_AMMO_POUCH, GET_OBJ_TYPE(loaded));
+  CuAssertIntEquals(tc, 20, GET_OBJ_VAL(loaded, 0));
+  found_missile = FALSE;
+  found_throwable = FALSE;
+  for (obj = loaded->contains; obj; obj = obj->next_content)
+  {
+    if (GET_OBJ_TYPE(obj) == ITEM_MISSILE && GET_OBJ_VAL(obj, 0) == AMMO_TYPE_ARROW)
+      found_missile = TRUE;
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == WEAPON_TYPE_JAVELIN)
+      found_throwable = TRUE;
+  }
+  CuAssertTrue(tc, found_missile);
+  CuAssertTrue(tc, found_throwable);
+
+  extract_obj(loaded);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
 void Test_projectile_mode_transitions_clear_anchor_state(CuTest *tc)
 {
   struct char_data ch;
@@ -467,4 +566,318 @@ void Test_thrown_projectile_selection_uses_exact_instances_and_source_order(CuTe
 
   for (i = 0; i < sizeof(selected) / sizeof(selected[0]); i++)
     CuAssertPtrNotNull(tc, selected[i]);
+}
+
+void Test_detached_projectile_miss_is_finalized_once_in_target_room(CuTest *tc)
+{
+  struct char_data attacker;
+  struct char_data target;
+  struct char_data *saved_character_list;
+  struct obj_data pouch;
+  struct obj_data projectile;
+  struct obj_data *saved_object_list;
+  struct player_special_data attacker_specials;
+  struct player_special_data target_specials;
+  struct projectile_attack_context context;
+  struct room_data rooms[2];
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  bool detached;
+  bool finalized_once;
+  bool finalized_idempotently;
+
+  initialize_test_character(&attacker, &attacker_specials);
+  initialize_test_character(&target, &target_specials);
+  initialize_test_object(&pouch, ITEM_AMMO_POUCH, 10);
+  initialize_test_object(&projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  memset(rooms, 0, sizeof(rooms));
+  attacker.player.name = (char *)"thrower";
+  target.player.name = (char *)"target";
+  IN_ROOM(&attacker) = 0;
+  IN_ROOM(&target) = 1;
+  GET_POS(&attacker) = POS_STANDING;
+  GET_POS(&target) = POS_STANDING;
+  rooms[0].number = 100;
+  rooms[1].number = 101;
+  rooms[0].people = &attacker;
+  rooms[1].people = &target;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_character_list = character_list;
+  saved_object_list = object_list;
+  world = rooms;
+  top_of_world = 1;
+  attacker.next = &target;
+  target.next = NULL;
+  character_list = &attacker;
+  projectile.next = &pouch;
+  pouch.next = NULL;
+  object_list = &projectile;
+
+  GET_EQ(&attacker, WEAR_AMMO_POUCH) = &pouch;
+  pouch.worn_by = &attacker;
+  pouch.worn_on = WEAR_AMMO_POUCH;
+  pouch.contains = &projectile;
+  projectile.in_obj = &pouch;
+  projectile.short_description = (char *)"a test javelin";
+
+  initialize_projectile_attack_context(&context, ATTACK_TYPE_THROWN);
+  context.attack_weapon = &projectile;
+  context.physical_projectile = &projectile;
+  context.original_source = PROJECTILE_SOURCE_AMMO_POUCH;
+  set_projectile_target(&context, &target);
+  detached = detach_physical_projectile(&attacker, &context);
+  finalize_physical_projectile(&context, &attacker, &target, PROJECTILE_DISPOSITION_TARGET_ROOM);
+  finalized_once = context.disposition == PROJECTILE_DISPOSITION_TARGET_ROOM &&
+                   IN_ROOM(&projectile) == 1 && rooms[1].contents == &projectile &&
+                   MISSILE_ID(&projectile) == GET_IDNUM(&attacker);
+  finalize_physical_projectile(&context, &attacker, &target,
+                               PROJECTILE_DISPOSITION_ATTACKER_INVENTORY);
+  finalized_idempotently = context.disposition == PROJECTILE_DISPOSITION_TARGET_ROOM &&
+                           IN_ROOM(&projectile) == 1 && projectile.carried_by == NULL;
+
+  object_list = saved_object_list;
+  character_list = saved_character_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, detached);
+  CuAssertTrue(tc, finalized_once);
+  CuAssertTrue(tc, finalized_idempotently);
+}
+
+void Test_returning_wielded_projectile_re_equips_original_anchor(CuTest *tc)
+{
+  struct char_data attacker;
+  struct char_data target;
+  struct char_data *saved_character_list;
+  struct obj_data projectile;
+  struct obj_data *saved_object_list;
+  struct obj_special_ability returning;
+  struct player_special_data attacker_specials;
+  struct player_special_data target_specials;
+  struct projectile_attack_context context;
+  struct room_data rooms[2];
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  bool detached;
+  bool returned;
+  bool mode_remained_valid;
+
+  initialize_test_character(&attacker, &attacker_specials);
+  initialize_test_character(&target, &target_specials);
+  initialize_test_object(&projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  memset(&returning, 0, sizeof(returning));
+  memset(rooms, 0, sizeof(rooms));
+  load_weapons();
+  attacker.player.name = (char *)"returning thrower";
+  target.player.name = (char *)"returning target";
+  attacker.real_abils.str = attacker.aff_abils.str = 10;
+  attacker.real_abils.dex = attacker.aff_abils.dex = 10;
+  target.real_abils.str = target.aff_abils.str = 10;
+  target.real_abils.dex = target.aff_abils.dex = 10;
+  IN_ROOM(&attacker) = 0;
+  IN_ROOM(&target) = 1;
+  GET_POS(&attacker) = POS_STANDING;
+  GET_POS(&target) = POS_STANDING;
+  rooms[0].number = 100;
+  rooms[1].number = 101;
+  rooms[0].people = &attacker;
+  rooms[1].people = &target;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_character_list = character_list;
+  saved_object_list = object_list;
+  world = rooms;
+  top_of_world = 1;
+  attacker.next = &target;
+  target.next = NULL;
+  character_list = &attacker;
+  projectile.next = NULL;
+  object_list = &projectile;
+
+  returning.ability = WEAPON_SPECAB_RETURNING;
+  projectile.special_abilities = &returning;
+  projectile.name = (char *)"returning test javelin";
+  projectile.short_description = (char *)"a returning test javelin";
+  GET_EQ(&attacker, WEAR_WIELD_1) = &projectile;
+  projectile.worn_by = &attacker;
+  projectile.worn_on = WEAR_WIELD_1;
+  set_thrown_projectile_mode(&attacker, NOTHING, WEAR_WIELD_1);
+
+  initialize_projectile_attack_context(&context, ATTACK_TYPE_THROWN);
+  context.attack_weapon = &projectile;
+  context.physical_projectile = &projectile;
+  context.original_source = PROJECTILE_SOURCE_WIELDED;
+  context.anchor_vnum = NOTHING;
+  context.anchor_wear_slot = WEAR_WIELD_1;
+  set_projectile_target(&context, &target);
+  detached = detach_physical_projectile(&attacker, &context);
+  finalize_physical_projectile(&context, &attacker, &target,
+                               PROJECTILE_DISPOSITION_TARGET_INVENTORY);
+  returned = context.disposition == PROJECTILE_DISPOSITION_ATTACKER_EQUIPMENT &&
+             GET_EQ(&attacker, WEAR_WIELD_1) == &projectile && projectile.worn_by == &attacker &&
+             MISSILE_ID(&projectile) == NOBODY;
+  mode_remained_valid = validate_thrown_projectile_mode(&attacker);
+
+  object_list = saved_object_list;
+  character_list = saved_character_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, detached);
+  CuAssertTrue(tc, returned);
+  CuAssertTrue(tc, mode_remained_valid);
+}
+
+void Test_snatch_precedes_returning_and_respects_carry_capacity(CuTest *tc)
+{
+  struct char_data attacker;
+  struct char_data target;
+  struct char_data *saved_character_list;
+  struct obj_data pouch;
+  struct obj_data projectile;
+  struct obj_data *saved_object_list;
+  struct obj_special_ability returning;
+  struct player_special_data attacker_specials;
+  struct player_special_data target_specials;
+  struct projectile_attack_context context;
+  struct room_data rooms[2];
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  bool detached;
+  bool fell_in_target_room;
+
+  initialize_test_character(&attacker, &attacker_specials);
+  initialize_test_character(&target, &target_specials);
+  initialize_test_object(&pouch, ITEM_AMMO_POUCH, 10);
+  initialize_test_object(&projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  memset(&returning, 0, sizeof(returning));
+  memset(rooms, 0, sizeof(rooms));
+  attacker.player.name = (char *)"snatched thrower";
+  target.player.name = (char *)"snatcher";
+  target.real_abils.str = target.aff_abils.str = 10;
+  target.real_abils.dex = target.aff_abils.dex = 10;
+  IN_ROOM(&attacker) = 0;
+  IN_ROOM(&target) = 1;
+  GET_POS(&attacker) = POS_STANDING;
+  GET_POS(&target) = POS_STANDING;
+  rooms[0].number = 100;
+  rooms[1].number = 101;
+  rooms[0].people = &attacker;
+  rooms[1].people = &target;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_character_list = character_list;
+  saved_object_list = object_list;
+  world = rooms;
+  top_of_world = 1;
+  attacker.next = &target;
+  target.next = NULL;
+  character_list = &attacker;
+  projectile.next = &pouch;
+  pouch.next = NULL;
+  object_list = &projectile;
+
+  returning.ability = WEAPON_SPECAB_RETURNING;
+  projectile.special_abilities = &returning;
+  projectile.short_description = (char *)"a snatched returning javelin";
+  GET_EQ(&attacker, WEAR_AMMO_POUCH) = &pouch;
+  pouch.worn_by = &attacker;
+  pouch.worn_on = WEAR_AMMO_POUCH;
+  pouch.contains = &projectile;
+  projectile.in_obj = &pouch;
+  IS_CARRYING_N(&target) = CAN_CARRY_N(&target);
+
+  initialize_projectile_attack_context(&context, ATTACK_TYPE_THROWN);
+  context.attack_weapon = &projectile;
+  context.physical_projectile = &projectile;
+  context.original_source = PROJECTILE_SOURCE_AMMO_POUCH;
+  context.snatched = TRUE;
+  set_projectile_target(&context, &target);
+  detached = detach_physical_projectile(&attacker, &context);
+  finalize_physical_projectile(&context, &attacker, &target,
+                               PROJECTILE_DISPOSITION_TARGET_INVENTORY);
+  fell_in_target_room = context.disposition == PROJECTILE_DISPOSITION_TARGET_ROOM &&
+                        IN_ROOM(&projectile) == 1 && projectile.carried_by == NULL &&
+                        projectile.worn_by == NULL;
+
+  object_list = saved_object_list;
+  character_list = saved_character_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, detached);
+  CuAssertTrue(tc, fell_in_target_room);
+}
+
+void Test_collect_recovers_throwables_from_room_and_corpse(CuTest *tc)
+{
+  struct char_data ch;
+  struct obj_data pouch;
+  struct obj_data room_throwable;
+  struct obj_data corpse;
+  struct obj_data corpse_throwable;
+  struct obj_data missile;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int collected;
+
+  initialize_test_character(&ch, &player_specials);
+  initialize_test_object(&pouch, ITEM_AMMO_POUCH, 1);
+  initialize_test_object(&room_throwable, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  initialize_test_object(&corpse, ITEM_CONTAINER, 0);
+  initialize_test_object(&corpse_throwable, ITEM_WEAPON, WEAPON_TYPE_DART);
+  initialize_test_object(&missile, ITEM_MISSILE, AMMO_TYPE_ARROW);
+  memset(&room, 0, sizeof(room));
+  load_weapons();
+
+  ch.player.name = (char *)"collector";
+  ch.real_abils.str = ch.aff_abils.str = 10;
+  ch.real_abils.dex = ch.aff_abils.dex = 10;
+  IN_ROOM(&ch) = 0;
+  GET_POS(&ch) = POS_STANDING;
+  room.number = 100;
+  room.people = &ch;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+
+  GET_EQ(&ch, WEAR_AMMO_POUCH) = &pouch;
+  pouch.worn_by = &ch;
+  pouch.worn_on = WEAR_AMMO_POUCH;
+  GET_OBJ_VAL(&corpse, 3) = 1;
+
+  MISSILE_ID(&room_throwable) = GET_IDNUM(&ch);
+  MISSILE_ID(&corpse_throwable) = GET_IDNUM(&ch);
+  MISSILE_ID(&missile) = GET_IDNUM(&ch);
+  IN_ROOM(&room_throwable) = 0;
+  IN_ROOM(&corpse) = 0;
+  IN_ROOM(&missile) = 0;
+  room.contents = &room_throwable;
+  room_throwable.next_content = &corpse;
+  corpse.next_content = &missile;
+  corpse.contains = &corpse_throwable;
+  corpse_throwable.in_obj = &corpse;
+
+  collected = perform_collect(&ch, TRUE);
+
+  CuAssertIntEquals(tc, 2, collected);
+  CuAssertPtrEquals(tc, &room_throwable, pouch.contains);
+  CuAssertPtrEquals(tc, &ch, corpse_throwable.carried_by);
+  CuAssertIntEquals(tc, NOBODY, MISSILE_ID(&corpse_throwable));
+  CuAssertPtrEquals(tc, &corpse, room.contents);
+  CuAssertPtrEquals(tc, &missile, corpse.next_content);
+  CuAssertIntEquals(tc, 0, IN_ROOM(&missile));
+  CuAssertIntEquals(tc, GET_IDNUM(&ch), MISSILE_ID(&missile));
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
 }

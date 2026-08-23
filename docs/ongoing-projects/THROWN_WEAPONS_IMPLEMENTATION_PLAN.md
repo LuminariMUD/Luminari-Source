@@ -1,6 +1,6 @@
 # Thrown Weapons Implementation Plan
 
-- Status: In progress; foundational metadata, state, pouch, and selection checkpoint implemented
+- Status: In progress; runtime combat, lifecycle, collection, and NPC checkpoint implemented
 - Analysis date: 2026-08-23
 - Environment reviewed: development
 
@@ -654,6 +654,40 @@ Verification at this checkpoint:
 Next checkpoint: characterize mixed-pouch persistence in the production save/load path, then make
 the attack lifecycle context-aware and centrally finalize detached missiles before wiring the
 `throw` command into combat.
+
+### 2026-08-23: Runtime thrown-combat checkpoint
+
+Implemented and covered by production-linked CuTest cases:
+
+- characterized mixed missile/throwable pouch persistence through the production object
+  save/parser/restore path and corrected its invalid-prototype sentinel check;
+- centralized launcher and thrown detachment/finalization around an explicit per-attack context,
+  removed global projectile rediscovery, and made repeated finalization idempotent;
+- registered `throw`, shared its same-room/adjacent-room target gates with `fire`, and added
+  persistent thrown combat rounds with pouch, inventory, then wielded-anchor depletion;
+- threaded the selected weapon and physical projectile through attack, damage, critical, poison,
+  script, artifact, and weapon-special paths, including extraction-safe boundaries;
+- applied shared ranged rules to thrown attacks while retaining launcher-only reload, Manyshot,
+  arrow-magic, and missile break behavior;
+- implemented Returning with re-equip/inventory/room fallback and Snatch/destruction precedence;
+- extended `collect` to recover throwable weapons from rooms and corpses, with compatible-pouch
+  priority and inventory fallback, and corrected ammo-pouch object-count capacity checks;
+- added `MOB_ROL_ARCHER` thrown selection only when no usable launcher exists, and added thrown
+  attack/damage diagnostic displays;
+- added focused persistence, lifecycle, Returning, Snatch, and collection regressions, bringing
+  the thrown-weapons suite to 14 tests.
+
+Verification at this checkpoint:
+
+- the production-linked test executable builds without compiler warnings;
+- all 14 thrown-weapon tests pass;
+- the full executable reports 821 runs, 819 passes, and only the two recorded baseline failures:
+  required database startup without local `lib/mysql_config`, and
+  `Test_spec_world_binding_source_inventory`.
+
+Next checkpoint: update and validate the RoL converter, audit native and converted world data,
+then finish OEDIT guidance, synchronized flat-file/database help, combat documentation, and the
+changelog.
 
 ## 10. Definition of done
 

@@ -39,6 +39,7 @@ struct projectile_attack_context
   int target_x;
   int target_y;
   bool detached;
+  bool snatched;
   enum projectile_disposition disposition;
 };
 
@@ -61,10 +62,20 @@ void clear_projectile_mode(struct char_data *ch);
 void clear_launcher_projectile_mode(struct char_data *ch);
 void set_launcher_projectile_mode(struct char_data *ch);
 bool set_thrown_projectile_mode(struct char_data *ch, obj_vnum anchor_vnum, int wear_slot);
+bool validate_thrown_projectile_mode(struct char_data *ch);
+bool can_throw_projectile(struct char_data *ch, bool silent);
 
 void initialize_projectile_attack_context(struct projectile_attack_context *context,
                                           int attack_kind);
+bool prepare_launcher_projectile(struct char_data *ch, struct projectile_attack_context *context);
 bool select_thrown_projectile(struct char_data *ch, obj_vnum anchor_vnum, int wear_slot,
                               struct projectile_attack_context *context);
+void set_projectile_target(struct projectile_attack_context *context,
+                           const struct char_data *target);
+bool detach_physical_projectile(struct char_data *ch, struct projectile_attack_context *context);
+bool projectile_object_is_live(const struct obj_data *obj);
+void finalize_physical_projectile(struct projectile_attack_context *context,
+                                  struct char_data *attacker, struct char_data *target,
+                                  enum projectile_disposition disposition);
 
 #endif /* PROJECTILES_H */

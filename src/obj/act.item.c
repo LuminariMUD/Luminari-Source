@@ -2031,7 +2031,8 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
     return;
   }
 
-  if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH && GET_OBJ_VAL(cont, 0) <= num_obj_in_obj(cont))
+  if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH &&
+      GET_OBJ_VAL(cont, 0) <= num_obj_in_obj(cont->contains))
   {
     snprintf(buf, sizeof(buf), "You can only fit %d $p into $P.", GET_OBJ_VAL(cont, 0));
     act(buf, FALSE, ch, obj, cont, TO_CHAR);

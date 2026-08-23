@@ -11314,19 +11314,167 @@ ACMD(do_reload)
   return;
 }
 
-/* ranged-weapons combat, archery
- * fire command, fires single arrow - checks can_fire_ammo()
- */
+struct projectile_command_target
+{
+  struct char_data *victim;
+  room_rnum room;
+  bool remote;
+};
+
+static bool resolve_projectile_command_target(struct char_data *ch, char *target_name,
+                                              char *direction_name, const char *verb,
+                                              struct projectile_command_target *result)
+{
+  struct char_data *tch;
+  struct char_data *victim;
+  room_rnum original_room;
+  room_rnum target_room;
+  int direction;
+
+  if (!ch || !result)
+    return FALSE;
+
+  original_room = IN_ROOM(ch);
+  target_room = original_room;
+  if (direction_name && *direction_name)
+  {
+    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_FAR_SHOT) && !has_perk(ch, PERK_RANGER_LONGSHOT))
+    {
+      send_to_char(ch,
+                   "You need the 'far shot' feat or 'long shot' perk to %s outside of your "
+                   "immediate area!\r\n",
+                   verb);
+      return FALSE;
+    }
+
+    direction = search_block(direction_name, dirs, FALSE);
+    if (direction < 0)
+    {
+      send_to_char(ch, "That is not a direction!\r\n");
+      return FALSE;
+    }
+    if (!CAN_GO(ch, direction))
+    {
+      send_to_char(ch, "You can't %s in that direction!\r\n", verb);
+      return FALSE;
+    }
+    target_room = EXIT(ch, direction)->to_room;
+  }
+
+  if (ROOM_FLAGGED(target_room, ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return FALSE;
+  }
+
+  if (!target_name || !*target_name)
+  {
+    send_to_char(ch, "You need to select a target!\r\n");
+    return FALSE;
+  }
+
+  char_from_room(ch);
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(target_room), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[target_room].coords[0];
+    Y_LOC(ch) = world[target_room].coords[1];
+  }
+  char_to_room(ch, target_room);
+  victim = get_char_room_vis(ch, target_name, NULL);
+
+  if (IN_ROOM(ch) == target_room)
+  {
+    char_from_room(ch);
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(original_room), ZONE_WILDERNESS))
+    {
+      X_LOC(ch) = world[original_room].coords[0];
+      Y_LOC(ch) = world[original_room].coords[1];
+    }
+    char_to_room(ch, original_room);
+  }
+
+  if (!victim)
+  {
+    send_to_char(ch, "%s at who?\r\n", verb);
+    return FALSE;
+  }
+  if (victim == ch)
+  {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return FALSE;
+  }
+
+  if (GROUP(ch) && target_room == original_room)
+  {
+    simple_list(NULL);
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    {
+      if (IN_ROOM(tch) != IN_ROOM(victim))
+        continue;
+      if (victim == tch)
+      {
+        victim = FIGHTING(victim);
+        break;
+      }
+    }
+    simple_list(NULL);
+  }
+
+  if (victim && IS_PET(victim) && victim->master == ch && target_room == original_room)
+    victim = FIGHTING(victim);
+  if (!victim)
+  {
+    send_to_char(ch, "%s at who?\r\n", verb);
+    return FALSE;
+  }
+
+  result->victim = victim;
+  result->room = target_room;
+  result->remote = target_room != original_room;
+  return TRUE;
+}
+
+static bool thrown_projectile_is_ready(struct char_data *ch)
+{
+  return can_throw_projectile(ch, TRUE);
+}
+
+static void try_projectile_quick_draw(struct char_data *ch, struct char_data *victim,
+                                      int attack_type)
+{
+  int chance;
+  bool ready;
+
+  if (!ch || !victim || IS_NPC(ch) || !has_perk(ch, PERK_RANGER_QUICK_DRAW))
+    return;
+
+  ready =
+      is_launcher_attack(attack_type) ? can_fire_ammo(ch, TRUE) : thrown_projectile_is_ready(ch);
+  chance = get_ranger_quick_draw_proc_chance(ch);
+  if (!ready || chance <= 0 || rand_number(1, 100) > chance)
+    return;
+
+  if (is_launcher_attack(attack_type))
+  {
+    send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
+    act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+  }
+  else
+  {
+    send_to_char(ch, "Your Quick Draw lets you hurl another weapon!\r\n");
+    act("$n hurls another weapon with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
+  }
+  hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, attack_type);
+}
+
+/* Ranged launcher combat. */
 ACMD(do_fire)
 {
-  struct char_data *vict = NULL, *tch = NULL;
+  struct projectile_command_target target;
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
-  room_rnum room = NOWHERE;
-  int direction = -1, original_loc = NOWHERE;
 
   PREREQ_NOT_NPC();
-
   PREREQ_NOT_PEACEFUL_ROOM();
 
   if (FIGHTING(ch) || PROJECTILE_MODE(ch) != PROJECTILE_MODE_NONE)
@@ -11336,169 +11484,84 @@ ACMD(do_fire)
   }
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
-
-  /* no 2nd argument?  target room has to be same room */
-  if (!*arg2)
-  {
-    room = IN_ROOM(ch);
-  }
-  else
-  {
-    if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_FAR_SHOT) && !has_perk(ch, PERK_RANGER_LONGSHOT))
-    {
-      send_to_char(ch, "You need the 'far shot' feat or 'long shot' perk to shoot outside of your "
-                       "immediate area!\r\n");
-      return;
-    }
-
-    /* try to find target room */
-    direction = search_block(arg2, dirs, FALSE);
-    if (direction < 0)
-    {
-      send_to_char(ch, "That is not a direction!\r\n");
-      return;
-    }
-    if (!CAN_GO(ch, direction))
-    {
-      send_to_char(ch, "You can't fire in that direction!\r\n");
-      return;
-    }
-    room = EXIT(ch, direction)->to_room;
-  }
-
-  /* since we could possible no longer be in room, check if combat is ok
-   in new room */
-  if (ROOM_FLAGGED(room, ROOM_PEACEFUL))
-  {
-    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+  if (!resolve_projectile_command_target(ch, arg1, arg2, "fire", &target) ||
+      !can_fire_ammo(ch, FALSE))
     return;
-  }
 
-  /* no arguments?  no go! */
-  if (!*arg1)
+  set_launcher_projectile_mode(ch);
+  if (target.remote && HAS_FEAT(ch, FEAT_FAR_SHOT) && has_perk(ch, PERK_RANGER_LONGSHOT))
+    GET_TEMP_ATTACK_ROLL_BONUS(ch) += 3;
+
+  hit(ch, target.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
+  try_projectile_quick_draw(ch, target.victim, ATTACK_TYPE_RANGED);
+
+  if (target.remote)
   {
-    send_to_char(ch, "You need to select a target!\r\n");
-    return;
-  }
-
-  /* a location has been found. */
-  original_loc = IN_ROOM(ch);
-  char_from_room(ch);
-
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_WILDERNESS))
-  {
-    X_LOC(ch) = world[room].coords[0];
-    Y_LOC(ch) = world[room].coords[1];
-  }
-
-  char_to_room(ch, room);
-  vict = get_char_room_vis(ch, arg1, NULL);
-
-  /* check if the char is still there */
-  if (IN_ROOM(ch) == room)
-  {
-    char_from_room(ch);
-
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(original_loc), ZONE_WILDERNESS))
-    {
-      X_LOC(ch) = world[original_loc].coords[0];
-      Y_LOC(ch) = world[original_loc].coords[1];
-    }
-
-    char_to_room(ch, original_loc);
-  }
-
-  if (!vict)
-  {
-    send_to_char(ch, "Fire at who?\r\n");
-    return;
-  }
-
-  if (vict == ch)
-  {
-    send_to_char(ch, "Aren't we funny today...\r\n");
-    return;
-  }
-
-  /* if target is group member, we presume you meant to assist */
-  if (GROUP(ch) && room == IN_ROOM(ch))
-  {
-    /* Beginner's Note: Reset simple_list iterator before use to prevent
-     * cross-contamination from previous iterations. Without this reset,
-     * if simple_list was used elsewhere and not completed, it would
-     * continue from where it left off instead of starting fresh. */
-    simple_list(NULL);
-
-    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
-    {
-      if (IN_ROOM(tch) != IN_ROOM(vict))
-        continue;
-      if (vict == tch)
-      {
-        vict = FIGHTING(vict);
-        break;
-      }
-    }
-    simple_list(NULL);
-  }
-
-  /* maybe its your pet?  so assist */
-  if (vict && IS_PET(vict) && vict->master == ch && room == IN_ROOM(ch))
-    vict = FIGHTING(vict);
-
-  if (can_fire_ammo(ch, FALSE))
-  {
-    if (ch && vict && IN_ROOM(ch) != IN_ROOM(vict))
-    {
-      /* Combined bonus: if player has Far Shot feat AND Longshot perk, +3 to attack when firing outside their room */
-      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAR_SHOT) && has_perk(ch, PERK_RANGER_LONGSHOT))
-      {
-        GET_TEMP_ATTACK_ROLL_BONUS(ch) += 3;
-      }
-
-      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
-      /* Quick Draw: flat 5% chance to immediately fire an extra shot */
-      if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_QUICK_DRAW))
-      {
-        int qd_chance = get_ranger_quick_draw_proc_chance(ch);
-        if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && can_fire_ammo(ch, TRUE))
-        {
-          send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
-          act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
-          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);
-        }
-      }
-      /* don't forget to remove the fight event! */
-      if (char_has_mud_event(ch, eCOMBAT_ROUND))
-      {
-        event_cancel_specific(ch, eCOMBAT_ROUND);
-      }
-
+    if (char_has_mud_event(ch, eCOMBAT_ROUND))
+      event_cancel_specific(ch, eCOMBAT_ROUND);
+    if (FIGHTING(ch))
       stop_fighting(ch);
-      USE_STANDARD_ACTION(ch);
-    }
     else
-    {
-      if (FIGHTING(ch))
-        USE_MOVE_ACTION(ch);
-      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
-      /* Quick Draw: flat 5% chance to immediately fire an extra shot */
-      if (!IS_NPC(ch) && has_perk(ch, PERK_RANGER_QUICK_DRAW))
-      {
-        int qd_chance = get_ranger_quick_draw_proc_chance(ch);
-        if (qd_chance > 0 && rand_number(1, 100) <= qd_chance && can_fire_ammo(ch, TRUE))
-        {
-          send_to_char(ch, "Your Quick Draw lets you snap off an extra shot!\r\n");
-          act("$n snaps off an extra shot with lightning speed!", FALSE, ch, 0, 0, TO_ROOM);
-          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);
-        }
-      }
-      set_launcher_projectile_mode(ch);
-    }
+      clear_projectile_mode(ch);
+    USE_STANDARD_ACTION(ch);
   }
-  else
+}
+
+/* Explicit thrown-weapon combat. */
+ACMD(do_throw)
+{
+  struct projectile_attack_context context;
+  struct projectile_command_target target;
+  struct obj_data *anchor;
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  int wear_slot;
+
+  PREREQ_NOT_NPC();
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (FIGHTING(ch) || PROJECTILE_MODE(ch) != PROJECTILE_MODE_NONE)
   {
-    /* arrived here?  can't fire, silent-mode from can-fire sent a message why */
+    send_to_char(ch, "You are too busy fighting to throw a weapon right now!\r\n");
+    return;
+  }
+
+  anchor = find_equipped_throwable(ch, &wear_slot);
+  if (!anchor)
+  {
+    send_to_char(ch, "You must wield an eligible throwable weapon first.\r\n");
+    return;
+  }
+  if (!select_thrown_projectile(ch, GET_OBJ_VNUM(anchor), wear_slot, &context))
+  {
+    send_to_char(ch, "You have no transferable copy of that weapon to throw.\r\n");
+    return;
+  }
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  if (!resolve_projectile_command_target(ch, arg1, arg2, "throw", &target))
+    return;
+  if (!set_thrown_projectile_mode(ch, GET_OBJ_VNUM(anchor), wear_slot))
+  {
+    send_to_char(ch, "Your readied weapon is no longer available.\r\n");
+    return;
+  }
+
+  if (target.remote && HAS_FEAT(ch, FEAT_FAR_SHOT) && has_perk(ch, PERK_RANGER_LONGSHOT))
+    GET_TEMP_ATTACK_ROLL_BONUS(ch) += 3;
+
+  hit(ch, target.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_THROWN);
+  try_projectile_quick_draw(ch, target.victim, ATTACK_TYPE_THROWN);
+
+  if (target.remote)
+  {
+    if (char_has_mud_event(ch, eCOMBAT_ROUND))
+      event_cancel_specific(ch, eCOMBAT_ROUND);
+    if (FIGHTING(ch))
+      stop_fighting(ch);
+    else
+      clear_projectile_mode(ch);
+    USE_STANDARD_ACTION(ch);
   }
 }
 
@@ -11677,7 +11740,50 @@ ACMD(do_autofire)
   }
 }
 
-/* function used to gather up all the ammo in the room/corpses-in-room */
+static bool collect_owned_projectile(struct char_data *ch, struct obj_data *obj,
+                                     struct obj_data *ammo_pouch, bool *fit, bool silent)
+{
+  bool is_missile;
+  bool is_throwable;
+  bool use_pouch;
+
+  if (!ch || !obj || MISSILE_ID(obj) != GET_IDNUM(ch))
+    return FALSE;
+
+  is_missile = GET_OBJ_TYPE(obj) == ITEM_MISSILE;
+  is_throwable = GET_OBJ_TYPE(obj) == ITEM_WEAPON && is_throwable_weapon(ch, obj);
+  if (!is_missile && !is_throwable)
+    return FALSE;
+
+  use_pouch = ammo_pouch && GET_OBJ_TYPE(ammo_pouch) == ITEM_AMMO_POUCH &&
+              num_obj_in_obj(ammo_pouch->contains) < GET_OBJ_VAL(ammo_pouch, 0) &&
+              can_store_projectile_in_ammo_pouch(ch, obj);
+  if (!use_pouch && (is_missile || !CAN_CARRY_OBJ(ch, obj)))
+  {
+    if (fit)
+      *fit = FALSE;
+    return FALSE;
+  }
+
+  if (obj->in_obj)
+    obj_from_obj(obj);
+  else
+    obj_from_room(obj);
+
+  if (use_pouch)
+    obj_to_obj(obj, ammo_pouch);
+  else
+  {
+    MISSILE_ID(obj) = NOBODY;
+    obj_to_char(obj, ch);
+  }
+
+  if (!silent)
+    act("You get $p.", FALSE, ch, obj, 0, TO_CHAR);
+  return TRUE;
+}
+
+/* function used to gather up all owned projectiles in the room/corpses-in-room */
 int perform_collect(struct char_data *ch, bool silent)
 {
   struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
@@ -11685,14 +11791,9 @@ int perform_collect(struct char_data *ch, bool silent)
   struct obj_data *nobj = NULL;
   struct obj_data *cobj = NULL;
   struct obj_data *next_obj = NULL;
-  int ammo = 0;
+  int projectiles = 0;
   bool fit = TRUE;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
-
-  if (!ammo_pouch)
-  {
-    return 0;
-  }
 
   for (obj = world[ch->in_room].contents; obj; obj = nobj)
   {
@@ -11707,70 +11808,32 @@ int perform_collect(struct char_data *ch, bool silent)
       for (cobj = obj->contains; cobj; cobj = next_obj)
       {
         next_obj = cobj->next_content;
-        if (GET_OBJ_TYPE(cobj) == ITEM_MISSILE && MISSILE_ID(cobj) == GET_IDNUM(ch))
-        {
-          if (num_obj_in_obj(ammo_pouch) < GET_OBJ_VAL(ammo_pouch, 0))
-          {
-            obj_from_obj(cobj);
-            obj_to_obj(cobj, ammo_pouch);
-            ammo++;
-            if (!silent)
-              act("You get $p.", FALSE, ch, cobj, 0, TO_CHAR);
-          }
-          else
-          {
-            fit = FALSE;
-            break;
-          }
-        }
+        if (collect_owned_projectile(ch, cobj, ammo_pouch, &fit, silent))
+          projectiles++;
       }
     }
     /* checking room for ammo */
-    else if (GET_OBJ_TYPE(obj) == ITEM_MISSILE && MISSILE_ID(obj) == GET_IDNUM(ch))
-    {
-      if (num_obj_in_obj(ammo_pouch) < GET_OBJ_VAL(ammo_pouch, 0))
-      {
-        obj_from_room(obj);
-        obj_to_obj(obj, ammo_pouch);
-        ammo++;
-        if (!silent)
-          act("You get $p.", FALSE, ch, obj, 0, TO_CHAR);
-      }
-      else
-      {
-        fit = FALSE;
-        break;
-      }
-    }
+    else if (collect_owned_projectile(ch, obj, ammo_pouch, &fit, silent))
+      projectiles++;
 
   } /*for loop*/
 
-  if (ammo && !silent)
+  if (projectiles && !silent)
   {
-    snprintf(buf, sizeof(buf), "You collected ammo:  %d.\r\n", ammo);
+    snprintf(buf, sizeof(buf), "You collected projectiles:  %d.\r\n", projectiles);
     send_to_char(ch, "%s", buf);
-    act("$n gathers $s ammunition.", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n gathers $s projectiles.", FALSE, ch, 0, 0, TO_ROOM);
   }
 
   if (!fit && !silent)
-    send_to_char(ch, "There are still some of your ammunition laying around that does not fit into "
-                     "your currently"
-                     " equipped ammo pouch.\r\n");
+    send_to_char(ch, "Some of your projectiles do not fit in your ammo pouch or inventory.\r\n");
 
-  return ammo;
+  return projectiles;
 }
 
 /* function used to gather up all the ammo in the room/corpses-in-room */
 ACMD(do_collect)
 {
-  struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH);
-
-  if (!ammo_pouch)
-  {
-    send_to_char(ch, "But you don't have an ammo pouch to collect to.\r\n");
-    return;
-  }
-
   perform_collect(ch, FALSE);
 }
 

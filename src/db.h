@@ -333,6 +333,9 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
                                FILE *fl, int location);
 #ifdef LUMINARI_CUTEST
 void test_auto_equip_loaded_object(struct char_data *ch, struct obj_data *obj, int location);
+int test_objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fl,
+                                 int location);
+int test_restore_loaded_objects(struct char_data *ch, obj_save_data *loaded);
 #endif
 /* Functions from players.c */
 void tag_argument(char *argument, char *tag);

@@ -25,6 +25,7 @@
 #include "graph.h"
 #include "combat/assign_wpn_armor.h"
 #include "combat/fight.h"
+#include "combat/projectiles.h"
 #include "mud_event.h" /* for eSTUNNED */
 #include "modify.h"
 #include "obj/shop.h"
@@ -446,6 +447,32 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
           break;
         }
       }
+      if (found)
+        continue;
+    }
+
+    /* Converted archers with a throwable anchor, but no usable launcher,
+     * use the same one-adjacent-room targeting contract as launcher archers. */
+    if (MOB_FLAGGED(ch, MOB_ROL_ARCHER) && !FIGHTING(ch) && !ch->master &&
+        !can_fire_ammo(ch, TRUE) && (obj = find_equipped_throwable(ch, &where)) != NULL &&
+        set_thrown_projectile_mode(ch, GET_OBJ_VNUM(obj), where))
+    {
+      found = FALSE;
+      for (door = 0; door < DIR_COUNT && !found; door++)
+      {
+        if (!CAN_GO(ch, door) || ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_PEACEFUL))
+          continue;
+        for (vict = world[EXIT(ch, door)->to_room].people; vict; vict = vict->next_in_room)
+        {
+          if ((IS_NPC(vict) && !IS_PET(vict)) || !CAN_SEE(ch, vict) ||
+              (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_NOHASSLE)))
+            continue;
+          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_THROWN);
+          found = TRUE;
+          break;
+        }
+      }
+      clear_projectile_mode(ch);
       if (found)
         continue;
     }
