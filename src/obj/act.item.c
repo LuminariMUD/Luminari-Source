@@ -35,6 +35,7 @@
 #include "actions.h"
 #include "combat/traps.h" /* for check_traps() */
 #include "combat/assign_wpn_armor.h"
+#include "combat/projectiles.h"
 #include "combat/spec_abilities.h"
 #include "item.h"
 #include "character/feats.h"
@@ -2024,9 +2025,9 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
     }
   }
 
-  if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH && GET_OBJ_TYPE(obj) != ITEM_MISSILE)
+  if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH && !can_store_projectile_in_ammo_pouch(ch, obj))
   {
-    act("You can only put ammo into $P.", FALSE, ch, obj, cont, TO_CHAR);
+    act("You can only put missiles or throwable weapons into $P.", FALSE, ch, obj, cont, TO_CHAR);
     return;
   }
 

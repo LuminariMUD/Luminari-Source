@@ -21,6 +21,7 @@
 #include "dgscript/dg_scripts.h"
 #include "character/class.h"
 #include "combat/fight.h"
+#include "combat/projectiles.h"
 #include "screen.h"
 #include "mud_event.h"
 #include "mudlim.h"
@@ -371,7 +372,7 @@ void pulse_luminari()
 
     /* safety check to make sure you aren't firing when not fighting */
     if (!FIGHTING(i))
-      FIRING(i) = FALSE;
+      clear_projectile_mode(i);
 
     /* a function meant to check for room-based hazards, like
        falling, drowning, lava, etc */

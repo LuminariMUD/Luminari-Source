@@ -32,6 +32,7 @@
 #include "actions.h"
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
+#include "projectiles.h"
 #include "character/feats.h"
 #include "quest/missions.h"
 #include "magic/domains_schools.h"
@@ -11309,7 +11310,7 @@ ACMD(do_reload)
 
   send_to_char(ch, "You reload %s.\r\n", wielded->short_description);
   if (FIGHTING(ch))
-    FIRING(ch) = TRUE;
+    set_launcher_projectile_mode(ch);
   return;
 }
 
@@ -11328,7 +11329,7 @@ ACMD(do_fire)
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
-  if (FIGHTING(ch) || FIRING(ch))
+  if (FIGHTING(ch) || PROJECTILE_MODE(ch) != PROJECTILE_MODE_NONE)
   {
     send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
     return;
@@ -11492,7 +11493,7 @@ ACMD(do_fire)
           hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);
         }
       }
-      FIRING(ch) = TRUE;
+      set_launcher_projectile_mode(ch);
     }
   }
   else
@@ -11590,7 +11591,7 @@ ACMD(do_assistblast)
 
 /* ranged-weapons combat, archery, a sort of ranged combat assist command
  * autofire command, fires single arrow - checks can_fire_ammo()
- * sets FIRING() */
+ * selects launcher projectile mode */
 ACMD(do_autofire)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -11602,7 +11603,7 @@ ACMD(do_autofire)
 
   one_argument(argument, arg, sizeof(arg));
 
-  if (FIGHTING(ch) || FIRING(ch))
+  if (FIGHTING(ch) || PROJECTILE_MODE(ch) != PROJECTILE_MODE_NONE)
   {
     send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
     return;
@@ -11667,7 +11668,7 @@ ACMD(do_autofire)
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2);
       }
     }
-    FIRING(ch) = TRUE;
+    set_launcher_projectile_mode(ch);
     USE_MOVE_ACTION(ch);
   }
   else

@@ -34,6 +34,7 @@
 #include "character/skill_lists.h"
 #include "character/class.h"
 #include "combat/fight.h"
+#include "combat/projectiles.h"
 #include "comms/mail.h" /* for has_mail() */
 #include "obj/shop.h"
 #include "quest/quest.h"
@@ -4612,7 +4613,7 @@ void wildshape_return(struct char_data *ch)
   IS_MORPHED(ch) = 0;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
 
-  FIRING(ch) = FALSE; /*just in case*/
+  clear_projectile_mode(ch); /* just in case */
 
   /* affect total, and save */
   affect_total(ch);
@@ -4727,7 +4728,7 @@ bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
   /* assign appropriate racial/mobile feats here */
   assign_wildshape_feats(ch);
 
-  FIRING(ch) = FALSE; /*just in case*/
+  clear_projectile_mode(ch); /* just in case */
 
   /* minor healing */
   GET_HIT(ch) += GET_LEVEL(ch);

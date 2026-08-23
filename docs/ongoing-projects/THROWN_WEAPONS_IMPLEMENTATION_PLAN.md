@@ -1,10 +1,11 @@
 # Thrown Weapons Implementation Plan
 
-- Status: Proposed; implementation not started
+- Status: In progress; foundational metadata, state, pouch, and selection checkpoint implemented
 - Analysis date: 2026-08-23
 - Environment reviewed: development
 
-This is a planning document, not a description of current game behavior.
+This document records both the locked implementation plan and checkpoint progress. Sections not
+explicitly marked complete remain planned behavior rather than current game behavior.
 
 ## 1. Goal
 
@@ -616,6 +617,43 @@ and combat stops without a surprise melee attack.
 | Rapid/iterative attacks create free projectiles | Resolve and detach one real object for every `hit()` call; stop when unavailable. |
 | Converter silently changes many objects | Extend drift tests, produce affected-object reports, review ambiguity, and apply only to development first. |
 | Help diverges | Ship matching flat-file and idempotent SQL help plus a verifier in the same change. |
+
+## 9.1 Implementation progress
+
+### 2026-08-23: Foundational projectile checkpoint
+
+Implemented and covered by production-linked CuTest cases:
+
+- preserved weapon IDs 0 through 79, appended `WEAPON_TYPE_BLOWGUN` at 80, and raised the count
+  to 81;
+- made native darts thrown-only and added the separate simple ranged blowgun profile and dart-ammo
+  pairing;
+- added launcher, thrown, shared-ranged, and physical-projectile predicates plus null-safe,
+  instance-aware throwable classification;
+- replaced the non-persistent firing boolean with explicit projectile mode, anchor VNUM, and wear
+  slot state and centralized state transitions;
+- consolidated eligible equipped-weapon priority and made launcher readiness scan mixed pouch
+  contents for the first compatible missile;
+- broadened ammo-pouch admission to compatible missiles and transferable throwable weapons;
+- added strict thrown-instance selection in pouch, top-level inventory, then wielded-anchor order,
+  including prototype-less-anchor and customized-instance safeguards;
+- added `src/combat/projectiles.[ch]` to both supported build manifests and added focused tests for
+  numeric stability, profiles, classification, modes, slot priority, pouch compatibility, and
+  exact source order.
+
+Verification at this checkpoint:
+
+- the production-linked test executable builds without compiler warnings;
+- all nine new thrown-weapon tests pass;
+- the full executable reports 816 runs, 814 passes, and the same two environment/baseline failures
+  recorded before implementation: required database startup without local `lib/mysql_config`, and
+  `Test_spec_world_binding_source_inventory`;
+- the root `make test` wrapper additionally remains blocked by the pre-existing missing root
+  `autorun` compatibility link in this worktree.
+
+Next checkpoint: characterize mixed-pouch persistence in the production save/load path, then make
+the attack lifecycle context-aware and centrally finalize detached missiles before wiring the
+`throw` command into combat.
 
 ## 10. Definition of done
 

@@ -42,6 +42,7 @@
 #include "actionqueues.h"
 #include "craft/craft.h"
 #include "assign_wpn_armor.h"
+#include "projectiles.h"
 #include "character/perks.h"
 #include "character/perks.h"
 #include "grapple.h"
@@ -1777,9 +1778,9 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   else
     delay = 4 RL_SEC;
 
-  /* make sure firing if appropriate */
-  if (can_fire_ammo(ch, TRUE))
-    FIRING(ch) = TRUE;
+  /* Infer launcher mode only when a command has not selected an explicit mode. */
+  if (PROJECTILE_MODE(ch) == PROJECTILE_MODE_NONE && can_fire_ammo(ch, TRUE))
+    set_launcher_projectile_mode(ch);
 
   if (has_aura_of_terror(vict) && ch->char_specials.terror_cooldown == 0)
   {
@@ -1854,7 +1855,7 @@ void stop_fighting(struct char_data *ch)
   ch->next_fighting = NULL;
   FIGHTING(ch) = NULL;
   GET_WARBEAT_USED(ch) = 0;
-  FIRING(ch) = FALSE;
+  clear_projectile_mode(ch);
   if (GET_POS(ch) == POS_FIGHTING) /* in case they are position fighting */
     change_position(ch, POS_STANDING);
   update_pos(ch);
@@ -14111,8 +14112,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
   bool same_room = FALSE; /* Is the victim in the same room as ch? */
 
-  struct obj_data *ammo_pouch = GET_EQ(ch, WEAR_AMMO_POUCH); /* For ranged combat. */
-  struct obj_data *missile = NULL;                           /* For ranged combat. */
+  struct obj_data *missile = NULL; /* For ranged combat. */
 
   if (!ch || !victim)
     return (HIT_MISS); /* ch and victim exist? */
@@ -14174,11 +14174,9 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
    examining obvious cases where the attack will fail */
   if (attack_type == ATTACK_TYPE_RANGED)
   {
-    if (ammo_pouch)
-      /* If we need a global variable to make some information available outside
-       *  this function, then we might have a bit of an issue with the design.
-       * Set the current missile to the first missile in the ammo pouch. */
-      last_missile = missile = ammo_pouch->contains;
+    /* Keep launcher execution aligned with mixed-pouch readiness until the
+     * projectile context replaces last_missile below. */
+    last_missile = missile = find_compatible_launcher_ammo(ch, wielded);
     if (!missile)
     { /* no ammo = miss for ranged attacks*/
       send_to_char(ch, "You have no ammo!\r\n");
@@ -14190,7 +14188,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     {
       if (!weapon_is_loaded(ch, wielded, FALSE))
       {
-        FIRING(ch) = FALSE;
+        clear_launcher_projectile_mode(ch);
         return (HIT_NEED_RELOAD);
       }
     }
@@ -15216,7 +15214,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     {
       send_to_char(ch, "You are too close to use your ranged weapon.\r\n");
       stop_fighting(ch);
-      FIRING(ch) = FALSE;
+      clear_launcher_projectile_mode(ch);
       return 0;
     }
 
@@ -15252,7 +15250,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   /* Ranged attacker, lets process some penalties, etc. then start *processing*
    * Note:  This is not a display-info mode, so unique modifications to actual
    * combat are included here as opposed to above calculations */
-  if (can_fire_ammo(ch, TRUE) && FIRING(ch) && mode == NORMAL_ATTACK_ROUTINE)
+  if (can_fire_ammo(ch, TRUE) && IS_LAUNCHER_MODE(ch) && mode == NORMAL_ATTACK_ROUTINE)
   {
     if (is_tanking(ch))
     {
@@ -15356,7 +15354,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
            reason we are exiting ranged combat should be announced via
            can_fire_ammo() */
           stop_fighting(ch);
-          FIRING(ch) = FALSE;
+          clear_launcher_projectile_mode(ch);
           return 0;
         }
       }
@@ -15372,7 +15370,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     if (!can_fire_ammo(ch, FALSE))
     {
       stop_fighting(ch);
-      FIRING(ch) = FALSE;
+      clear_launcher_projectile_mode(ch);
     }
 
     /* that is it, all done with ranged combat! */

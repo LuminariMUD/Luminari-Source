@@ -24,6 +24,7 @@
 #include "character/abilities.h"
 #include "character/class.h"
 #include "combat/fight.h"
+#include "combat/projectiles.h"
 #include "quest/quest.h"
 #include "mud_event.h"
 #include "wilderness/wilderness.h"
@@ -3165,7 +3166,7 @@ void extract_char_final(struct char_data *ch)
   /* stop any fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
-  FIRING(ch) = FALSE;
+  clear_projectile_mode(ch);
 
   if (!extraction_batch_active)
   {

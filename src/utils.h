@@ -1208,8 +1208,12 @@ void char_from_furniture(struct char_data *ch);
 #define HUNTING(ch) ((ch)->char_specials.hunting)
 /** Who is ch guarding? */
 #define GUARDING(ch) ((ch)->char_specials.guarding)
-/** Is ch firing a missile weapon? */
-#define FIRING(ch) ((ch)->char_specials.firing)
+/** Current physical-projectile combat mode. */
+#define PROJECTILE_MODE(ch) ((ch)->char_specials.projectile_mode)
+#define THROWN_ANCHOR_VNUM(ch) ((ch)->char_specials.thrown_anchor_vnum)
+#define THROWN_ANCHOR_WEAR_SLOT(ch) ((ch)->char_specials.thrown_anchor_wear_slot)
+#define IS_LAUNCHER_MODE(ch) (PROJECTILE_MODE(ch) == PROJECTILE_MODE_LAUNCHER)
+#define IS_THROWN_MODE(ch) (PROJECTILE_MODE(ch) == PROJECTILE_MODE_THROWN)
 /** is ch auto-eldritch-blasting? */
 #define BLASTING(ch) ((ch)->char_specials.blasting)
 /** Condensed Combat */
