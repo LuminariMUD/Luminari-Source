@@ -164,6 +164,8 @@ install-sh
 depcomp
 compile
 test-driver
+bsd_snprintf_fallback_test
+bsd_snprintf_fallback_test.trs
 .dirstamp
 stamp-h1
 # Temporary configure directories
