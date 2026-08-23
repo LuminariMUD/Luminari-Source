@@ -43,7 +43,6 @@
 #include "character/perks.h"
 #include "bardic_performance.h"
 #include "perfmon.h"
-#include "rol_spells.h"
 
 // external
 extern struct raff_node *raff_list;
@@ -3692,9 +3691,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
              (HAS_FEAT(victim, FEAT_IMPROVED_EVASION)))
       dam /= 2;
   }
-
-  if (IS_SET(spell_info[spellnum].routines, MAG_AREAS))
-    dam = rol_spell_adjust_area_damage(victim, dam);
 
   /* blinking between prime and ethereal planes - 20% dodge AoE spells */
   if (IS_SET(spell_info[spellnum].routines, MAG_AREAS) && AFF_FLAGGED(victim, AFF_BLINKING) &&

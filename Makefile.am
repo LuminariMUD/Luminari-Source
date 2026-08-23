@@ -276,7 +276,6 @@ luminari_SOURCES = \
 	src/obj/spec_artifacts.c \
 	src/magic/casting_visuals.c \
 	src/magic/spell_parser.c \
-	src/magic/rol_spells.c \
 	src/magic/spell_prep.c \
 	src/magic/spell_lists.c \
 	src/magic/spellbook_scroll.c \
@@ -364,7 +363,6 @@ cutest_SOURCES = \
 	unittests/CuTest/test_copyover_timer.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
-	unittests/CuTest/test_rol_spells.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_elf_build_id.c \
@@ -419,7 +417,6 @@ cutest_test_files = \
 	unittests/CuTest/test_copyover_timer.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
-	unittests/CuTest/test_rol_spells.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_elf_build_id.c \

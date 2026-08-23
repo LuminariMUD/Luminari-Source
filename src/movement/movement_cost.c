@@ -68,9 +68,6 @@ int get_speed(struct char_data *ch, sbyte to_display)
   if (affected_by_spell(ch, SPELL_SHADOW_WALK))
     speed = 400;
 
-  if (affected_by_spell(ch, SPELL_SONG_OF_TRAVEL))
-    speed += 20;
-
   // haste and exp. retreat don't stack for balance reasons
   if (AFF_FLAGGED(ch, AFF_HASTE))
     speed += 30;

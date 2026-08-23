@@ -1,9 +1,7 @@
 # RoL Spells Without a Close LuminariMUD Equivalent
 
-Status: implementation in progress. The source audit was completed and
-independently re-verified 2026-08-23 against `sparser.c`, `spells.h`,
-`spell_parser.c`, and `psionics.c`. The first implementation checkpoint ports
-22 of the 75 functional gaps.
+Status: source audit completed 2026-08-23; independently re-verified
+2026-08-23 against `sparser.c`, `spells.h`, `spell_parser.c`, and `psionics.c`.
 
 This list compares every unique spell registered through `SPELL_CREATE()` in
 Realms of Luminari with LuminariMUD's registered spells and closely equivalent
@@ -54,41 +52,6 @@ spell omitted here can still require an entry in `_SOURCE_SPELL_MAP` before
 scrolls, potions, wands, or staves containing it convert safely.
 
 ## Player-facing or functional gaps
-
-### Implementation checkpoint 1: foundational and defensive spells
-
-These spells are registered as distinct spells but deliberately have no class
-or domain assignment. They can be used by scripted content, magic items, and
-staff without changing any player class spell list.
-
-| Spell | Implemented gameplay purpose |
-|-------|------------------------------|
-| farsee | Timed far vision; `scan` range increases from three to six rooms. |
-| rejuvenate major | Permanently removes 1d3 years from a consenting group member. |
-| rejuvenate minor | Temporarily lowers displayed age. |
-| age | Permanently adds 2d8 years to a consenting group member. |
-| command undead | Charms a lower-level undead NPC as the caster's follower. |
-| command horde | Attempts command undead against eligible undead in the room. |
-| slow poison | Halves poison intensity for its duration. |
-| comprehend languages | Understands spoken languages without granting speech. |
-| fumble | Reduces the target's base Dexterity toward 1 on a failed save. |
-| stumble | Penalizes armor class, Reflex saves, initiative, and coordination. |
-| enervate | Reduces the target's base Constitution toward 1 on a failed save. |
-| protect undead | Gives an undead target armor and Will-save wards. |
-| protection from undead | Wards defenses and reduces undead-source damage by 25 percent. |
-| ancestral shield | Gives the caster's room group 25 percent area-spell mitigation. |
-| protection from animals | Wards defenses and reduces animal-source damage by 25 percent. |
-| pass without trace | Prevents tracking and greatly improves silent passage. |
-| greater realm of protection | Grants broad fire, cold, air, earth, acid, and electricity resistance. |
-| feign death | Ends combat involving the target and conceals the target as apparently dead. |
-| tranquility | Ends eligible fights in the room and temporarily pacifies those affected. |
-| agility | Improves armor class, Reflex saves, and initiative. |
-| natures blessing | Improves attacks and saves and reduces area-spell damage by 25 percent. |
-| song of travel | Restores group movement, grants flight, and increases travel speed. |
-
-The complete audited inventory remains below. Later checkpoints will move the
-remaining 53 entries into implementation groups while preserving this original
-source-to-target accounting.
 
 | RoL ID | RoL spell | RoL constant |
 |-------:|-----------|--------------|
