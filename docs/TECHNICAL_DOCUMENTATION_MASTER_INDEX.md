@@ -119,6 +119,9 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[ADDING_NEW_RACE_GUIDE.md](guides/ADDING_NEW_RACE_GUIDE.md)** - End-to-end
   playable-race ID, registry, creation, mechanics, persistence, help, testing,
   deployment, and rollback guide
+- **[ADDING_NEW_PLAYER_CLASS_GUIDE.md](guides/ADDING_NEW_PLAYER_CLASS_GUIDE.md)** - End-to-end
+  player-class ID, registry, progression, feats, spellcasting, creation, `gain`,
+  unlock, help, testing, deployment, and rollback guide
 - **[RESOURCE_SYSTEM_REFERENCE.md](guides/RESOURCE_SYSTEM_REFERENCE.md)** - Resource system player/admin reference
 - **[RESOURCE_REGENERATION_API.md](development/RESOURCE_REGENERATION_API.md)** - Resource regeneration API for developers
 - **[PHASE_4_INSTALLATION.md](guides/PHASE_4_INSTALLATION.md)** - Phase 4 region effects system setup and testing guide
