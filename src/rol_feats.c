@@ -102,6 +102,16 @@ static void shadow_tail_broken(struct char_data *tail, struct char_data *mark, b
   }
 }
 
+/* A tail moving independently loses a mark that is no longer in the room. */
+void shadow_movement_complete(struct char_data *ch)
+{
+  if (ch == NULL || SHADOWING(ch) == NULL)
+    return;
+
+  if (IN_ROOM(ch) == NOWHERE || IN_ROOM(SHADOWING(ch)) != IN_ROOM(ch))
+    shadow_tail_broken(ch, SHADOWING(ch), FALSE);
+}
+
 /* called from perform_move_full() once the mark has changed rooms */
 void shadowers_follow(struct char_data *ch, room_rnum was_in, int dir)
 {
@@ -347,26 +357,48 @@ static int camp_difficulty(struct char_data *ch)
   return dc;
 }
 
-/* extra hitpoint, movement and psp recovery for anyone resting in a camp */
+/* recover the persistent 32-bit room vnum packed into the affect's two short fields */
+static room_vnum camp_affect_room(const struct affected_type *af)
+{
+  uint32_t encoded_room = 0;
+
+  if (af == NULL)
+    return NOWHERE;
+
+  encoded_room = ((uint32_t)(uint16_t)af->specific << 16) | (uint16_t)af->modifier;
+  return (room_vnum)encoded_room;
+}
+
+/* extra hitpoint and movement recovery for anyone resting at their campsite */
 int camp_recovery_bonus(struct char_data *ch, int gain)
 {
-  if (ch == NULL || !affected_by_spell(ch, SKILL_CAMP))
+  struct affected_type *af = NULL;
+
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
     return 0;
 
   if (GET_POS(ch) < POS_SLEEPING || GET_POS(ch) > POS_SITTING)
     return 0;
 
-  return gain / 2;
+  for (af = ch->affected; af; af = af->next)
+    if (af->spell == SKILL_CAMP && camp_affect_room(af) == GET_ROOM_VNUM(IN_ROOM(ch)))
+      return gain / 2;
+
+  return 0;
 }
 
 /* shelter one camper */
 static void camp_shelter_char(struct char_data *ch, struct char_data *tch)
 {
   struct affected_type af;
+  uint32_t encoded_room = 0;
 
   new_affect(&af);
   af.spell = SKILL_CAMP;
   af.duration = CAMP_DURATION;
+  encoded_room = (uint32_t)GET_ROOM_VNUM(IN_ROOM(tch));
+  af.modifier = (sh_int)(uint16_t)(encoded_room & UINT16_MAX);
+  af.specific = (sh_int)(uint16_t)(encoded_room >> 16);
   affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
 
   if (!IS_NPC(tch))
@@ -375,6 +407,14 @@ static void camp_shelter_char(struct char_data *ch, struct char_data *tch)
   if (tch != ch)
     act("$n's camp is ready for you to settle into.", FALSE, ch, 0, tch, TO_VICT);
 }
+
+#ifdef LUMINARI_CUTEST
+void test_camp_shelter_char(struct char_data *ch)
+{
+  if (ch != NULL && VALID_ROOM_RNUM(IN_ROOM(ch)))
+    camp_shelter_char(ch, ch);
+}
+#endif
 
 ACMDCHECK(can_camp)
 {
@@ -492,12 +532,7 @@ ACMDCHECK(can_garrote)
   ACMDCHECK_TEMPFAIL_IF(!AFF_FLAGGED(ch, AFF_HIDE) || !AFF_FLAGGED(ch, AFF_SNEAK),
                         "You have to be sneaking and hiding (in that order) before you can "
                         "garrote anyone.\r\n");
-  ACMDCHECK_TEMPFAIL_IF(GET_EQ(ch, WEAR_WIELD_2H) != NULL,
-                        "Both of your hands are busy with your weapon.\r\n");
-  ACMDCHECK_TEMPFAIL_IF(GET_EQ(ch, WEAR_SHIELD) != NULL,
-                        "You cannot work a cord with a shield strapped on.\r\n");
-  ACMDCHECK_TEMPFAIL_IF(GET_EQ(ch, WEAR_WIELD_OFFHAND) != NULL,
-                        "You need a free hand to loop the cord.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(hands_available(ch) < 1, "You need a free hand to loop the cord.\r\n");
   return CAN_CMD;
 }
 
@@ -657,6 +692,9 @@ static bool accompanist_is_able(struct char_data *tch, struct char_data *lead)
     return FALSE;
 
   if (IN_ROOM(tch) != IN_ROOM(lead) || GET_POS(tch) <= POS_STUNNED)
+    return FALSE;
+
+  if (GROUP(tch) == NULL || GROUP(tch) != GROUP(lead))
     return FALSE;
 
   if (!HAS_FEAT(tch, FEAT_ACCOMPANY) || IS_PERFORMING(tch))

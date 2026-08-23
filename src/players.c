@@ -3921,6 +3921,9 @@ bool save_char_checked(struct char_data *ch, int mode)
       BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent),
                    get_daily_uses(ch, FEAT_DRAGOON_POINTS) -
                        daily_uses_remaining(ch, FEAT_DRAGOON_POINTS));
+    if ((pMudEvent = char_has_mud_event(ch, eROL_CALM)))
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent),
+                   get_daily_uses(ch, FEAT_CALM) - daily_uses_remaining(ch, FEAT_CALM));
     if ((pMudEvent = char_has_mud_event(ch, eC_DRAGONMOUNT)))
       BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent),
                    get_daily_uses(ch, FEAT_DRAGON_BOND) -

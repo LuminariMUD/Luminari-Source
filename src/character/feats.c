@@ -5948,16 +5948,16 @@ void assign_feats(void)
         "While sneaking you can begin covertly tailing a target with 'shadow <target>'.  Starting "
         "the tail is a contested stealth check against your mark's perception, and the contest is "
         "repeated every time your mark leaves the room.  While the tail holds you move with your "
-        "mark without joining $s group and without being announced to the room.  Type 'shadow' "
-        "alone to break off.  Losing a contest, being seen, entering combat or being unable to "
-        "keep pace all end the tail.");
+        "mark without joining the mark's group and without being announced to the room.  Type "
+        "'shadow' alone to break off.  Losing a contest, being seen, entering combat or being "
+        "unable to keep pace all end the tail.");
   feato(FEAT_CALM, "calm", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "chant that stops fights in the room",
         "You intone a calming chant that attempts to end every fight in the room.  Each combatant "
         "resists with a will save against 10 + half your level + your charisma bonus.  Those that "
-        "fail disengage and are left too settled to renew the fight for a few rounds.  Creatures "
-        "immune to mind-affecting effects ignore the chant entirely.  Calm is a standard action "
-        "and is usable a limited number of times per day.");
+        "fail disengage and cannot be affected by another calm for a few rounds.  Creatures immune "
+        "to mind-affecting effects ignore the chant entirely.  Calm is a standard action and is "
+        "usable a limited number of times per day.");
   feato(FEAT_ESTABLISH_CAMP, "establish camp", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "pitch a wilderness camp that speeds recovery",
         "With 'camp' you pitch a proper camp outdoors, which requires a survival check against a "
@@ -5967,23 +5967,24 @@ void assign_feats(void)
         "be pitched indoors, underwater, while flying or while in combat.");
   feato(FEAT_GARROTE, "garrote", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "strangling attack made from concealment",
-        "While both sneaking and hiding, and with at least one hand free of a shield or "
-        "two-handed weapon, you can loop a cord around the throat of a target that cannot see "
-        "you.  A successful attack deals strangling damage and, unless the target makes a "
-        "fortitude save against 10 + half your level + your dexterity bonus, leaves it choking: "
-        "silenced and staggered for a short time.  Targets that do not breathe cannot be "
-        "garroted.  Garrote is a standard and move action.");
-  feato(FEAT_ACCOMPANY, "accompany", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
+        "While both sneaking and hiding, and with at least one hand free, you can loop a cord "
+        "around the throat of a target that cannot see you.  A successful attack deals "
+        "strangling damage and, unless the target makes a fortitude save against 10 + half your "
+        "level + your dexterity bonus, leaves it choking: silenced and staggered for a short "
+        "time.  Targets that do not breathe cannot be garroted.  Garrote is a standard and move "
+        "action.");
+  feato(FEAT_ACCOMPANY, "accompany", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "join and support another performer's song",
-        "With 'accompany <performer>' you join the performance of a grouped bard in your room "
+        "With 'accompany <performer>' you join a grouped performer's song in your room "
         "instead of starting one of your own.  Your perform ability and instrument raise the "
         "quality of the lead performance, and if the lead falters you take the song over rather "
         "than letting it end.  Type 'accompany' alone to stop accompanying.");
-  feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 5);
-  feat_prereq_attribute(FEAT_CALM, AB_CHA, 13);
+  feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 21);
+  feat_prereq_attribute(FEAT_CALM, AB_CHA, 19);
   feat_prereq_ability(FEAT_ESTABLISH_CAMP, ABILITY_SURVIVAL, 3);
-  feat_prereq_ability(FEAT_GARROTE, ABILITY_STEALTH, 8);
-  feat_prereq_bab(FEAT_GARROTE, 4);
+  feat_prereq_ability(FEAT_GARROTE, ABILITY_STEALTH, 14);
+  feat_prereq_bab(FEAT_GARROTE, 8);
+  feat_prereq_ability(FEAT_ACCOMPANY, ABILITY_PERFORM, 5);
 
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat",

@@ -23,13 +23,13 @@ ACCOMPANY
 Usage: accompany <performer>
        accompany
 
-Requires:  the accompany feat, bard level 6
+Requires:  the accompany feat (any class; 5 ranks of perform); bards gain it
+           for free at level 2
 
-Instead of leading a song of your own, you back the performance of a bard
-you are grouped with in your room.  Your perform ability and instrument
-raise the quality of every verse the lead performs, up to a cap, and if the
-lead's performance falters or stutters you take the song over rather than
-letting it end.
+Instead of leading a song of your own, you back a grouped performer's song
+in your room.  Your perform ability and instrument raise the quality of every
+verse the lead performs, up to a cap, and if the lead's performance falters or
+stutters you take the song over rather than letting it end.
 
 Type accompany with no argument to stop accompanying.  You must stop your
 own performance before you can accompany someone else, and you cannot
@@ -3189,13 +3189,13 @@ the station is from your current location.  Travelling by carriage is completely
 safe from encounters.
 See Also:  SURVEY, WILDERNESS
 #0
-CALM
+CALM PACIFY
 
 Usage: calm
 
-Requires:  the calm feat
+Requires:  the calm feat (any class; charisma 19)
 Action  :  Standard Action
-Uses    :  limited per day, 1 plus your charisma bonus
+Uses    :  limited per day, at least 1 plus your charisma bonus
 
 You intone a settling chant that tries to end every fight in the room.  Each
 combatant resists with a will save against 10 + half your level + your
@@ -3210,12 +3210,12 @@ CAMP ESTABLISH-CAMP
 
 Usage: camp
 
-Requires:  the establish camp feat
+Requires:  the establish camp feat (any class; 3 ranks of survival)
 Action  :  Standard and Move Action
 Check   :  survival against a difficulty set by terrain and weather
 
 You clear a site, set your gear and get a fire going.  You and any grouped
-companions in the room recover hitpoints and movement far faster while
+companions in the room recover hitpoints and movement 50 percent faster while
 sleeping, reclining, resting or sitting in the camp, and the campsite becomes
 your return point, so quitting from camp brings you back to it.
 
@@ -10338,12 +10338,12 @@ prime-material plane, you will need to be _off_ of it.
 	YSee also:	n SPELLS CHARMEE
 	n
 #0
-GARROTE
+GARROTE STRANGLE
 
 Usage: garrote <target>
 
-Requires:  the garrote feat, sneaking and hiding (in that order),
-           no shield, no two-handed weapon and a free off hand
+Requires:  the garrote feat (any class; 14 ranks of stealth and BAB 8),
+           sneaking and hiding (in that order), and at least one free hand
 Action  :  Standard and Move Action
 
 You loop a cord around the throat of a target that cannot see you.  The
@@ -10353,7 +10353,8 @@ strangling damage, and unless the target makes a fortitude save against
 staggered for a short time.
 
 Creatures that do not breathe, such as undead, constructs, golems and
-elementals, cannot be garroted, and neither can anything incorporeal.
+elementals, cannot be garroted, and neither can anything incorporeal.  The
+target cannot be larger than you or more than one size category smaller.
 
 See also: FEAT INFO GARROTE, BACKSTAB, SAP, SNEAK, HIDE
 #0
@@ -21173,12 +21174,12 @@ POWER-SHADOW-BODY SHADOW-BODY
 	YSee also:	n PSIONICS
 	n
 #0
-SHADOW
+SHADOW TAIL
 
 Usage: shadow <target>
        shadow
 
-Requires:  the shadow feat, sneaking
+Requires:  the shadow feat (any class; 21 ranks of stealth), sneaking
 
 You covertly tail a target from room to room.  Taking up the trail is a
 contested stealth check against your mark's perception, and the contest is

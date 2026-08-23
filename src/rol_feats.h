@@ -11,10 +11,14 @@
 /* shadow: covert tailing */
 void stop_shadowing(struct char_data *ch, bool notify);
 void clear_shadow_links(struct char_data *ch);
+void shadow_movement_complete(struct char_data *ch);
 void shadowers_follow(struct char_data *ch, room_rnum was_in, int dir);
 
 /* establish camp: wilderness campsite */
 int camp_recovery_bonus(struct char_data *ch, int gain);
+#ifdef LUMINARI_CUTEST
+void test_camp_shelter_char(struct char_data *ch);
+#endif
 
 /* accompany: supporting another performer */
 void stop_accompanying(struct char_data *ch, bool notify);

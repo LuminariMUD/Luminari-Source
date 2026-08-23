@@ -1089,6 +1089,9 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
     if (!do_simple_move(ch, dir, need_specials_check))
       return (0);
 
+    /* moving independently ends a covert tail once the mark is left behind */
+    shadow_movement_complete(ch);
+
     /* anyone tailing this character tries to keep up, unannounced */
     shadowers_follow(ch, was_in, dir);
 

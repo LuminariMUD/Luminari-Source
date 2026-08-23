@@ -12,15 +12,16 @@
 #include "../../src/act.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/character/abilities.h"
+#include "../../src/constants.h"
 #include "../../src/character/feats.h"
 #include "../../src/combat/fight.h"
-#include "../../src/constants.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/magic/spells.h"
+#include "../../src/character/class.h"
 #include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
 #include "../../src/rol_feats.h"
@@ -29,9 +30,10 @@
 
 struct rol_feat_fixture
 {
-  struct room_data room;
+  struct room_data rooms[2];
   struct char_data lead;
   struct char_data second;
+  struct group_data group;
   struct player_special_data lead_specials;
   struct player_special_data second_specials;
   struct descriptor_data lead_descriptor;
@@ -43,6 +45,10 @@ struct rol_feat_fixture
   room_rnum saved_top_of_world;
   mob_rnum saved_top_of_mobt;
 };
+
+typedef void (*rol_command_handler)(struct char_data *ch, const char *argument, int cmd,
+                                    int subcmd);
+typedef int (*rol_command_check)(struct char_data *ch, const char *argument, bool show_error);
 
 static void setup_test_char(struct char_data *ch, struct player_special_data *specials,
                             struct descriptor_data *descriptor, const char *name)
@@ -87,11 +93,15 @@ static void begin_rol_feat_fixture(struct rol_feat_fixture *fixture)
 
   fixture->lead.next_in_room = &fixture->second;
   fixture->lead.next = &fixture->second;
+  fixture->group.leader = &fixture->lead;
+  fixture->lead.group = &fixture->group;
+  fixture->second.group = &fixture->group;
 
-  fixture->room.number = 100;
-  fixture->room.people = &fixture->lead;
-  world = &fixture->room;
-  top_of_world = 0;
+  fixture->rooms[0].number = 169900;
+  fixture->rooms[0].people = &fixture->lead;
+  fixture->rooms[1].number = 169901;
+  world = fixture->rooms;
+  top_of_world = 1;
   character_list = &fixture->lead;
   fixture->mob_index_entry.vnum = DG_CASTER_PROXY;
   mob_index = &fixture->mob_index_entry;
@@ -122,14 +132,34 @@ static void end_rol_feat_fixture(struct rol_feat_fixture *fixture)
   top_of_mobt = fixture->saved_top_of_mobt;
 }
 
-static void give_camp_affect(struct char_data *ch)
+static bool rol_feat_file_contains(const char *relative_path, const char *needle)
 {
-  struct affected_type af;
+  const char *root = NULL;
+  char line[MAX_STRING_LENGTH];
+  char path[PATH_MAX];
+  FILE *file = NULL;
 
-  new_affect(&af);
-  af.spell = SKILL_CAMP;
-  af.duration = 10;
-  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+  root = getenv("LUMINARI_TEST_ROOT");
+  if (root == NULL || *root == '\0')
+    root = ".";
+  if (snprintf(path, sizeof(path), "%s/%s", root, relative_path) >= (int)sizeof(path))
+    return FALSE;
+
+  file = fopen(path, "r");
+  if (file == NULL)
+    return FALSE;
+
+  while (fgets(line, sizeof(line), file) != NULL)
+  {
+    if (strstr(line, needle) != NULL)
+    {
+      fclose(file);
+      return TRUE;
+    }
+  }
+
+  fclose(file);
+  return FALSE;
 }
 
 /* A camp only speeds recovery for someone actually settled into it. */
@@ -142,14 +172,46 @@ void TestCampRecoveryRequiresRestingInCamp(CuTest *tc)
   GET_POS(&fixture.lead) = POS_RESTING;
   CuAssertIntEquals(tc, 0, camp_recovery_bonus(&fixture.lead, 40));
 
-  give_camp_affect(&fixture.lead);
+  test_camp_shelter_char(&fixture.lead);
   CuAssertIntEquals(tc, 20, camp_recovery_bonus(&fixture.lead, 40));
 
   GET_POS(&fixture.lead) = POS_SLEEPING;
   CuAssertIntEquals(tc, 20, camp_recovery_bonus(&fixture.lead, 40));
 
+  IN_ROOM(&fixture.lead) = 1;
+  CuAssertIntEquals(tc, 0, camp_recovery_bonus(&fixture.lead, 40));
+
+  IN_ROOM(&fixture.lead) = 0;
+  CuAssertIntEquals(tc, 20, camp_recovery_bonus(&fixture.lead, 40));
+
   GET_POS(&fixture.lead) = POS_STANDING;
   CuAssertIntEquals(tc, 0, camp_recovery_bonus(&fixture.lead, 40));
+
+  end_rol_feat_fixture(&fixture);
+}
+
+/* Calm's limited uses are wired to the generic daily-use event machinery. */
+void TestCalmUsesDailyCooldownRegistry(CuTest *tc)
+{
+  struct rol_feat_fixture fixture;
+  struct mud_event_data *event = NULL;
+  int uses = 0;
+
+  begin_rol_feat_fixture(&fixture);
+  if (feat_list[FEAT_CALM].name == NULL)
+    assign_feats();
+
+  GET_CHA(&fixture.lead) = 16;
+  uses = get_daily_uses(&fixture.lead, FEAT_CALM);
+
+  CuAssertIntEquals(tc, eROL_CALM, feat_list[FEAT_CALM].event);
+  CuAssertTrue(tc, uses > 1);
+  CuAssertIntEquals(tc, 1, start_daily_use_cooldown(&fixture.lead, FEAT_CALM));
+  CuAssertIntEquals(tc, uses - 1, daily_uses_remaining(&fixture.lead, FEAT_CALM));
+
+  event = char_has_mud_event(&fixture.lead, eROL_CALM);
+  CuAssertTrue(tc, event != NULL);
+  CuAssertStrEquals(tc, "uses:1", event->sVariables);
 
   end_rol_feat_fixture(&fixture);
 }
@@ -168,6 +230,10 @@ void TestAccompanimentBonusRequiresAnAbleAccompanist(CuTest *tc)
   CuAssertIntEquals(tc, 0, accompaniment_bonus(&fixture.lead));
 
   SET_FEAT(&fixture.second, FEAT_ACCOMPANY, 1);
+  fixture.second.group = NULL;
+  CuAssertIntEquals(tc, 0, accompaniment_bonus(&fixture.lead));
+
+  fixture.second.group = &fixture.group;
   bonus = accompaniment_bonus(&fixture.lead);
   CuAssertTrue(tc, bonus >= 1);
   CuAssertTrue(tc, bonus <= 12);
@@ -222,6 +288,33 @@ void TestAccompanyTakeoverNeedsTheSongFeat(CuTest *tc)
   end_rol_feat_fixture(&fixture);
 }
 
+/* Garrote accepts any equipment layout that leaves at least one hand free. */
+void TestGarroteRequiresAFreeHand(CuTest *tc)
+{
+  struct rol_feat_fixture fixture;
+  struct obj_data held_one;
+  struct obj_data held_two;
+
+  begin_rol_feat_fixture(&fixture);
+  memset(&held_one, 0, sizeof(held_one));
+  memset(&held_two, 0, sizeof(held_two));
+
+  SET_FEAT(&fixture.lead, FEAT_GARROTE, 1);
+  SET_BIT_AR(AFF_FLAGS(&fixture.lead), AFF_HIDE);
+  SET_BIT_AR(AFF_FLAGS(&fixture.lead), AFF_SNEAK);
+  CuAssertIntEquals(tc, CAN_CMD, can_garrote(&fixture.lead, "", FALSE));
+
+  GET_EQ(&fixture.lead, WEAR_HOLD_1) = &held_one;
+  CuAssertIntEquals(tc, CAN_CMD, can_garrote(&fixture.lead, "", FALSE));
+
+  GET_EQ(&fixture.lead, WEAR_HOLD_2) = &held_two;
+  CuAssertTrue(tc, can_garrote(&fixture.lead, "", FALSE) != CAN_CMD);
+
+  GET_EQ(&fixture.lead, WEAR_HOLD_1) = NULL;
+  GET_EQ(&fixture.lead, WEAR_HOLD_2) = NULL;
+  end_rol_feat_fixture(&fixture);
+}
+
 /* A tail cannot be kept up by someone who has stopped moving silently. */
 void TestShadowTailBreaksWithoutSneak(CuTest *tc)
 {
@@ -234,6 +327,24 @@ void TestShadowTailBreaksWithoutSneak(CuTest *tc)
 
   CuAssertPtrEquals(tc, NULL, SHADOWING(&fixture.second));
   CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.second));
+
+  end_rol_feat_fixture(&fixture);
+}
+
+/* Moving away independently ends the tail instead of leaving a stale link. */
+void TestShadowTailBreaksWhenTailMovesAway(CuTest *tc)
+{
+  struct rol_feat_fixture fixture;
+
+  begin_rol_feat_fixture(&fixture);
+
+  SHADOWING(&fixture.second) = &fixture.lead;
+  shadow_movement_complete(&fixture.second);
+  CuAssertPtrEquals(tc, &fixture.lead, SHADOWING(&fixture.second));
+
+  IN_ROOM(&fixture.second) = 1;
+  shadow_movement_complete(&fixture.second);
+  CuAssertPtrEquals(tc, NULL, SHADOWING(&fixture.second));
 
   end_rol_feat_fixture(&fixture);
 }
@@ -282,7 +393,17 @@ void TestShadowAndAccompanyLinksAreClearedBothWays(CuTest *tc)
 /* Every converted skill is reachable as a command and as a feat. */
 void TestConvertedRolSkillsAreRegistered(CuTest *tc)
 {
-  static const char *commands[] = {"shadow", "calm", "camp", "garrote", "accompany"};
+  static const struct
+  {
+    const char *name;
+    rol_command_handler handler;
+    rol_command_check check;
+    int actions;
+  } commands[] = {{"shadow", do_shadow, can_shadow, ACTION_MOVE},
+                  {"calm", do_calm, can_calm, ACTION_STANDARD},
+                  {"camp", do_camp, can_camp, ACTION_STANDARD | ACTION_MOVE},
+                  {"garrote", do_garrote, can_garrote, ACTION_STANDARD | ACTION_MOVE},
+                  {"accompany", do_accompany, can_accompany, ACTION_MOVE}};
   static const char *feats[] = {"shadow", "calm", "establish camp", "garrote", "accompany"};
   size_t i;
   int j;
@@ -293,9 +414,12 @@ void TestConvertedRolSkillsAreRegistered(CuTest *tc)
     found = FALSE;
     for (j = 0; *cmd_info[j].command != '\n'; j++)
     {
-      if (str_cmp(cmd_info[j].command, commands[i]) == 0)
+      if (str_cmp(cmd_info[j].command, commands[i].name) == 0)
       {
         found = TRUE;
+        CuAssertTrue(tc, cmd_info[j].command_pointer == commands[i].handler);
+        CuAssertTrue(tc, cmd_info[j].command_check_pointer == commands[i].check);
+        CuAssertIntEquals(tc, commands[i].actions, cmd_info[j].actions_required);
         break;
       }
     }
@@ -304,4 +428,135 @@ void TestConvertedRolSkillsAreRegistered(CuTest *tc)
 
   for (i = 0; i < sizeof(feats) / sizeof(feats[0]); i++)
     CuAssertTrue(tc, find_feat_num(feats[i]) > 0);
+}
+
+/* Both maintained help sources and their verifier cover every converted feat. */
+void TestConvertedRolFeatHelpSourcesAreComplete(CuTest *tc)
+{
+  static const char *flat_keywords[] = {"ACCOMPANY", "CALM PACIFY", "CAMP ESTABLISH-CAMP",
+                                        "GARROTE STRANGLE", "SHADOW TAIL"};
+  static const char *database_tags[] = {"VALUES ('ACCOMPANY'", "VALUES ('CALM'", "VALUES ('CAMP'",
+                                        "VALUES ('GARROTE'", "VALUES ('SHADOW'"};
+  static const char *prerequisite_text[] = {"5 ranks of perform",
+                                            "free at level 2",
+                                            "charisma 19",
+                                            "3 ranks of survival",
+                                            "14 ranks of stealth and BAB 8",
+                                            "21 ranks of stealth"};
+  size_t i = 0;
+
+  for (i = 0; i < sizeof(flat_keywords) / sizeof(flat_keywords[0]); i++)
+    CuAssertTrue(tc, rol_feat_file_contains("lib/text/help/help.hlp", flat_keywords[i]));
+
+  for (i = 0; i < sizeof(database_tags) / sizeof(database_tags[0]); i++)
+    CuAssertTrue(
+        tc, rol_feat_file_contains("sql/components/help_rol_feat_entries.sql", database_tags[i]));
+
+  for (i = 0; i < sizeof(prerequisite_text) / sizeof(prerequisite_text[0]); i++)
+  {
+    CuAssertTrue(tc, rol_feat_file_contains("lib/text/help/help.hlp", prerequisite_text[i]));
+    CuAssertTrue(tc, rol_feat_file_contains("sql/components/help_rol_feat_entries.sql",
+                                            prerequisite_text[i]));
+  }
+
+  CuAssertTrue(tc, rol_feat_file_contains("sql/components/verify_help_rol_feat_entries.sql",
+                                          "rol_feat_content"));
+  CuAssertTrue(tc, rol_feat_file_contains("sql/components/verify_help_rol_feat_entries.sql",
+                                          "rol_feat_command_keyword_owners"));
+  CuAssertTrue(tc, rol_feat_file_contains("sql/components/help_rol_feat_entries.sql",
+                                          "bards gain it for free at level 2"));
+}
+
+static int rol_feat_prerequisite_count(int feat_num)
+{
+  struct feat_prerequisite *prereq = NULL;
+  int count = 0;
+
+  for (prereq = feat_list[feat_num].prerequisite_list; prereq != NULL; prereq = prereq->next)
+    count++;
+
+  return count;
+}
+
+static bool rol_feat_has_prerequisite(int feat_num, int prerequisite_type, int value0, int value1)
+{
+  struct feat_prerequisite *prereq = NULL;
+
+  for (prereq = feat_list[feat_num].prerequisite_list; prereq != NULL; prereq = prereq->next)
+  {
+    if (prereq->prerequisite_type == prerequisite_type && prereq->values[0] == value0 &&
+        prereq->values[1] == value1)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+/* Converted feat selection gates stay aligned with their intended advancement bands. */
+void TestConvertedRolFeatPrerequisitesAreExact(CuTest *tc)
+{
+  if (feat_list[FEAT_SHADOW].name == NULL)
+    assign_feats();
+
+  CuAssertIntEquals(tc, 1, rol_feat_prerequisite_count(FEAT_SHADOW));
+  CuAssertTrue(tc,
+               rol_feat_has_prerequisite(FEAT_SHADOW, FEAT_PREREQ_ABILITY, ABILITY_STEALTH, 21));
+
+  CuAssertIntEquals(tc, 1, rol_feat_prerequisite_count(FEAT_CALM));
+  CuAssertTrue(tc, rol_feat_has_prerequisite(FEAT_CALM, FEAT_PREREQ_ATTRIBUTE, AB_CHA, 19));
+
+  CuAssertIntEquals(tc, 1, rol_feat_prerequisite_count(FEAT_ESTABLISH_CAMP));
+  CuAssertTrue(
+      tc, rol_feat_has_prerequisite(FEAT_ESTABLISH_CAMP, FEAT_PREREQ_ABILITY, ABILITY_SURVIVAL, 3));
+
+  CuAssertIntEquals(tc, 2, rol_feat_prerequisite_count(FEAT_GARROTE));
+  CuAssertTrue(tc,
+               rol_feat_has_prerequisite(FEAT_GARROTE, FEAT_PREREQ_ABILITY, ABILITY_STEALTH, 14));
+  CuAssertTrue(tc, rol_feat_has_prerequisite(FEAT_GARROTE, FEAT_PREREQ_BAB, 8, 0));
+
+  CuAssertIntEquals(tc, 1, rol_feat_prerequisite_count(FEAT_ACCOMPANY));
+  CuAssertTrue(tc,
+               rol_feat_has_prerequisite(FEAT_ACCOMPANY, FEAT_PREREQ_ABILITY, ABILITY_PERFORM, 5));
+}
+
+/* All five feats remain learnable; only bards receive Accompany for free. */
+void TestConvertedRolFeatsAreNormallyLearnableWithExactClassGrants(CuTest *tc)
+{
+  static const int feats[] = {FEAT_SHADOW, FEAT_CALM, FEAT_ESTABLISH_CAMP, FEAT_GARROTE,
+                              FEAT_ACCOMPANY};
+  struct class_feat_assign *assignment;
+  int accompany_assignments = 0;
+  size_t i;
+  int class_num;
+
+  if (feat_list[FEAT_SHADOW].name == NULL)
+    assign_feats();
+  if (class_list[CLASS_WIZARD].name == NULL)
+    load_class_list();
+
+  for (i = 0; i < sizeof(feats) / sizeof(feats[0]); i++)
+  {
+    CuAssertTrue(tc, feat_list[feats[i]].can_learn);
+    CuAssertTrue(tc, feat_list[feats[i]].feat_type > FEAT_TYPE_NONE);
+    CuAssertTrue(tc, feat_list[feats[i]].feat_type < NUM_LEARNABLE_FEAT_TYPES);
+
+    for (class_num = 0; class_num < NUM_CLASSES; class_num++)
+    {
+      for (assignment = class_list[class_num].featassign_list; assignment != NULL;
+           assignment = assignment->next)
+      {
+        if (assignment->feat_num != feats[i])
+          continue;
+
+        CuAssertIntEquals(tc, FEAT_ACCOMPANY, feats[i]);
+        CuAssertIntEquals(tc, CLASS_BARD, class_num);
+        CuAssertTrue(tc, assignment->is_classfeat);
+        CuAssertIntEquals(tc, 2, assignment->level_received);
+        CuAssertTrue(tc, !assignment->stacks);
+        accompany_assignments++;
+      }
+    }
+  }
+
+  CuAssertIntEquals(tc, 1, accompany_assignments);
 }

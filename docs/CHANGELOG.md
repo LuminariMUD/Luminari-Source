@@ -10,26 +10,40 @@
   feats in `src/rol_feats.c`, keeping RoL's gameplay purpose while expressing the mechanics with
   d20 checks, ability scores, and the existing feat and daily-use machinery.
   - `shadow` covertly tails a target between rooms. Taking up and keeping the trail are contested
-    stealth checks against the mark's perception, re-rolled on every room the mark leaves.
-    Granted to rogues at 6 and rangers at 8, learnable with 5 ranks of stealth.
+    stealth checks against the mark's perception, re-rolled on every room the mark leaves. It is
+    learnable by any class with 21 ranks of stealth.
   - `calm` chants to end every fight in the room, resisted with a will save against
     10 + half level + charisma bonus. Limited daily uses; mind-affecting immunity ignores it.
-    Granted to bards at 8, learnable with charisma 13.
+    It is learnable by any class with charisma 19.
   - `camp` pitches a wilderness campsite on a survival check set by terrain and weather, speeding
     hitpoint and movement recovery for the group while they rest and making the site their return
-    point. Granted to rangers and druids at 3, learnable with 3 ranks of survival.
+    point. It is learnable by any class with 3 ranks of survival.
   - `garrote` strangles a target that cannot see you from a hide-then-sneak posture, leaving it
-    silenced and staggered on a failed fortitude save. Granted to rogues at 10 and assassins at 3,
-    learnable with 8 ranks of stealth and base attack bonus 4.
-  - `accompany` lets a grouped bard back another bard's performance, raising its effectiveness and
-    taking the song over when the lead falters. Granted to bards at 6.
+    silenced and staggered on a failed fortitude save. It is learnable by any class with 14 ranks
+    of stealth and base attack bonus 8.
+  - `accompany` lets a grouped performer back another performer's song, raising its effectiveness
+    and taking the song over when the lead falters. It is learnable by any class with 5 ranks of
+    perform, and bards gain it for free at level 2.
 - Added flat-file and database help for all five, plus an idempotent SQL migration and verifier.
+
+#### Fixed
+
+- Kept campsite recovery bound to the saved campsite room, made accompaniment require continuing
+  shared group membership, and ended shadow links immediately when the tail moves away or enters
+  combat.
+- Persisted Calm's daily-use cooldown across logout and delegated Garrote's free-hand check to the
+  shared equipment accounting used by the rest of the game.
+- Aligned the flat and database help aliases, class-neutral prerequisites, implemented mechanics,
+  deterministic keyword ownership, and content verification.
 
 #### Tests
 
 - Added production-linked CuTest coverage for camp recovery gating, accompaniment bonus
   eligibility, performance handoff with and without the song's feat, tail breaks on lost stealth
-  and on combat, both-direction link cleanup, and command/feat registration.
+  and on combat, both-direction link cleanup, Garrote hand layouts, Calm's daily-use registry,
+  exact command wiring, prerequisite values, the Bard Accompany grant, normal learnability, and
+  both maintained help sources. The full
+  fixture-backed production-linked suite passes all 854 cases.
 
 ### Native thrown weapons
 
