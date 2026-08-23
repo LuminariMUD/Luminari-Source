@@ -68,7 +68,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *victim, struct 
 int compute_cmb(struct char_data *ch, int combat_maneuver_type);
 int compute_cmd(struct char_data *vict, int combat_maneuver_type);
 int damage(struct char_data *ch, struct char_data *victim, int dam, int attacktype, int dam_type,
-           int dualwield);
+           int attack_type);
 void death_cry(struct char_data *ch);
 void die(struct char_data *ch, struct char_data *killer);
 void free_messages(void);
@@ -82,13 +82,13 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
 void attacks_of_opportunity(struct char_data *victim, int penalty);
 int compute_attack_bonus(struct char_data *ch, struct char_data *victim, int attack_type);
 int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, int penalty,
-        int dualwield);
+        int attack_type);
 void load_messages(void);
 void perform_violence(struct char_data *ch, int phase);
 void raw_kill(struct char_data *ch, struct char_data *killer);
 bool set_fighting(struct char_data *ch, struct char_data *victim);
 int skill_message(int dam, struct char_data *ch, struct char_data *vict, int attacktype,
-                  int dualwield);
+                  int attack_type);
 void stop_fighting(struct char_data *ch);
 bool is_tanking(struct char_data *ch);
 void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo);

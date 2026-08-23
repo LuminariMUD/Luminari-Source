@@ -633,10 +633,10 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
     if (mode == ITEM_STAT_MODE_G_LORE)
       send_to_group(NULL, GROUP(ch),
-                    "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse?: %s\r\n",
+                    "Projectile capacity: %d, Lock Type: %s, Key Num: %d, Corpse?: %s\r\n",
                     GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2), YESNO(GET_OBJ_VAL(item, 3)));
     else
-      send_to_char(ch, "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse?: %s\r\n",
+      send_to_char(ch, "Projectile capacity: %d, Lock Type: %s, Key Num: %d, Corpse?: %s\r\n",
                    GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2), YESNO(GET_OBJ_VAL(item, 3)));
     break;
 
@@ -2031,16 +2031,14 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
     return;
   }
 
-  if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH &&
-      GET_OBJ_VAL(cont, 0) <= num_obj_in_obj(cont->contains))
+  if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH && !ammo_pouch_has_capacity(cont))
   {
     snprintf(buf, sizeof(buf), "You can only fit %d $p into $P.", GET_OBJ_VAL(cont, 0));
     act(buf, FALSE, ch, obj, cont, TO_CHAR);
     return;
   }
 
-
-  if ((GET_OBJ_VAL(cont, 0) > 0) &&
+  if (GET_OBJ_TYPE(cont) != ITEM_AMMO_POUCH && (GET_OBJ_VAL(cont, 0) > 0) &&
       (GET_OBJ_WEIGHT(cont) + GET_OBJ_WEIGHT(obj) > GET_OBJ_VAL(cont, 0)))
     act("$p won't fit in $P.", FALSE, ch, obj, cont, TO_CHAR);
   else if (OBJ_FLAGGED(obj, ITEM_NODROP) && IN_ROOM(cont) != NOWHERE)

@@ -30,7 +30,7 @@
 int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch,
                 int attack_number);
 int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
-           int offhand);
+           int attack_type);
 int is_player_grouped(struct char_data *target, struct char_data *group);
 
 const char *alchemical_discovery_names[NUM_ALC_DISCOVERIES] = {"normal bomb",

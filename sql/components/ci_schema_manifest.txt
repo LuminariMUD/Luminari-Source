@@ -21,6 +21,7 @@ apply help_oedit_values_armor_ac.sql
 apply help_rol_object_trap_entries.sql
 apply help_specproc_entries.sql
 apply help_system_indexes.sql
+apply help_thrown_weapons_entries.sql
 apply help_vessel_entries.sql
 apply help_worship_entries.sql
 apply insert_room_templates.sql
@@ -45,6 +46,7 @@ skip verify_help_intermud3_entries.sql
 skip verify_help_necromancer_entries.sql
 skip verify_help_rol_object_trap_entries.sql
 skip verify_help_specproc_entries.sql
+skip verify_help_thrown_weapons_entries.sql
 skip verify_help_vessel_entries.sql
 skip verify_help_worship_entries.sql
 skip verify_vessels_campaign_content.sql

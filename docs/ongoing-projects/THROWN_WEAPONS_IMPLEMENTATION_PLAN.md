@@ -1,6 +1,7 @@
 # Thrown Weapons Implementation Plan
 
-- Status: In progress; runtime combat, lifecycle, collection, and NPC checkpoint implemented
+- Status: Source implementation and offline validation complete; guarded development data
+  application and live QA pending
 - Analysis date: 2026-08-23
 - Environment reviewed: development
 
@@ -689,25 +690,69 @@ Next checkpoint: update and validate the RoL converter, audit native and convert
 then finish OEDIT guidance, synchronized flat-file/database help, combat documentation, and the
 changelog.
 
+### 2026-08-23: Converter, content, help, and validation checkpoint
+
+Implemented and verified:
+
+- split source dart and blowgun delivery in the converter: range/missile type 10 becomes thrown
+  `WEAPON_TYPE_DART`, while range type 16 becomes `WEAPON_TYPE_BLOWGUN` and missile type 16 remains
+  `AMMO_TYPE_DART`;
+- retained all 44 source quivers as object-count `ITEM_AMMO_POUCH` containers, including the 20
+  throwing quivers, and added full-corpus loadout assertions for all 42 `MOB_ROL_ARCHER` mobiles;
+- audited the minimal native world, every affected source dart/blowgun/quiver, and every archer
+  loadout in `THROWN_WEAPONS_CONVERSION_AUDIT.md`;
+- produced two identical full conversion candidates from the sealed Phase 7 inputs, each covering
+  71,680 records in 258 packages with zero active errors and passing runtime/preservation audits;
+- updated OEDIT prompts and displays so ammo-pouch capacity is consistently enforced as a number
+  of objects, including the legacy `-1` unlimited value;
+- hardened final weapon selection and lifecycle edges: invalid sentinel profiles and transformed
+  wielders are rejected, launcher slot priority is consistent, pending-death characters cannot
+  receive a projectile, and an exhausted opening attack cannot fall through into melee;
+- synchronized player-facing `THROW`, ranged-ammunition, and `COLLECT` help in the flat file and
+  idempotent database component, with a read-only SQL verifier;
+- updated combat, OEDIT, mobile-flag, converter, testing, help-system, changelog, and project-index
+  documentation, including regenerated web guides.
+
+Validation at this checkpoint:
+
+- `make test` passes the supervision, deployment, health, help, vessel, process-memory, and full
+  production-linked gates; CuTest reports 823 runs and zero failures, including 16 focused
+  thrown-weapon tests;
+- `make install` follows the root suite, installs a versioned `bin/luminari`, and leaves no
+  root-level `luminari` artifact;
+- the focused protocol parser reports 29 passing tests;
+- clean-checkout and full-corpus world-tool runs each report 489 passing tests; the full-corpus run
+  has only four unrelated optional-input skips;
+- all four database-help verifier rows report `PASS` after applying the component twice;
+- constants synchronization, generated documentation, compiler warnings, ASCII/LF checks, and
+  `git diff --check` pass.
+
+The generated world candidate has not been applied. This feature worktree intentionally lacks
+`lib/.env`, `lib/mysql_config`, and the established full development world baseline. Those guarded
+inputs must not be synthesized or copied from another checkout. Applying the sealed Phase 8 bundle
+and running the live manual matrix in Section 8 therefore remain release-environment gates rather
+than source implementation work.
+
 ## 10. Definition of done
 
 The feature is complete only when all of the following are true:
 
-- [ ] Wielding any native thrown-only weapon still permits ordinary melee combat.
-- [ ] `throw <target> [direction]` works through the existing ranged target and action gates.
-- [ ] Matching objects are consumed from equipped ammo pouch, then inventory, then the wielded
+- [x] Wielding any native thrown-only weapon still permits ordinary melee combat.
+- [x] `throw <target> [direction]` works through the existing ranged target and action gates.
+- [x] Matching objects are consumed from equipped ammo pouch, then inventory, then the wielded
       anchor, using strict VNUM identity and one actual instance per attack.
-- [ ] The last non-returning anchor is unequipped and thrown; mode stops without melee fallback.
-- [ ] Hit, miss, defenses, death, extraction, collection, and Returning have tested, unique object
+- [x] The last non-returning anchor is unequipped and thrown; mode stops without melee fallback.
+- [x] Hit, miss, defenses, death, extraction, collection, and Returning have tested, unique object
       ownership outcomes.
-- [ ] Dart and blowgun are separate append-only weapon profiles with correct melee/launcher
+- [x] Dart and blowgun are separate append-only weapon profiles with correct melee/launcher
       behavior and converter mappings.
-- [ ] Mixed ammo pouches work for launchers and thrown weapons and survive persistence.
+- [x] Mixed ammo pouches work for launchers and thrown weapons and survive persistence.
 - [ ] Converted throwing quivers and `MOB_ROL_ARCHER` throwers work in the development world.
-- [ ] Existing fire, reload, autofire, autoreload, archery feats, and missile collection regressions
+- [x] Existing fire, reload, autofire, autoreload, archery feats, and missile collection regressions
       pass.
-- [ ] Root `make test` passes, `make install` follows it, and no root `luminari` artifact remains.
-- [ ] Converter tests, SQL help verification, manual development QA, and `git diff --check` pass.
-- [ ] `lib/text/help/help.hlp`, database help components, OEDIT guide, combat documentation, and
+- [x] Root `make test` passes, `make install` follows it, and no root `luminari` artifact remains.
+- [x] Converter tests, SQL help verification, and `git diff --check` pass.
+- [ ] The guarded development data apply and manual development QA matrix pass.
+- [x] `lib/text/help/help.hlp`, database help components, OEDIT guide, combat documentation, and
       changelog are updated together.
-- [ ] No protected local header, credential file, or production environment was modified.
+- [x] No protected local header, credential file, or production environment was modified.

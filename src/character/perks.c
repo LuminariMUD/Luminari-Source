@@ -15431,7 +15431,7 @@ int get_ranger_ranged_tohit_bonus(struct char_data *ch, struct obj_data *wielded
     return 0;
 
   weapon_type = GET_OBJ_VAL(wielded, 0);
-  if (weapon_type < WEAPON_TYPE_UNDEFINED || weapon_type >= NUM_WEAPON_TYPES)
+  if (weapon_type <= WEAPON_TYPE_UNDEFINED || weapon_type >= NUM_WEAPON_TYPES)
     return 0;
 
   /* Archer's Focus I: +1 to-hit per rank (max 3 ranks) */
@@ -15467,7 +15467,7 @@ int get_ranger_ranged_damage_bonus(struct char_data *ch, struct obj_data *wielde
     return 0;
 
   weapon_type = GET_OBJ_VAL(wielded, 0);
-  if (weapon_type < WEAPON_TYPE_UNDEFINED || weapon_type >= NUM_WEAPON_TYPES)
+  if (weapon_type <= WEAPON_TYPE_UNDEFINED || weapon_type >= NUM_WEAPON_TYPES)
     return 0;
 
   /* Steady Aim I: +1 damage per rank (max 3 ranks) */

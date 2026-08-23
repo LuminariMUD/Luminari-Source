@@ -769,6 +769,7 @@ EXTRA_DIST = \
 	sql/components/help_arcane_mark_entries.sql \
 	sql/components/help_command_sweep_entries.sql \
 	sql/components/help_specproc_entries.sql \
+	sql/components/help_thrown_weapons_entries.sql \
 	sql/components/help_vessel_entries.sql \
 	sql/components/help_character_backgrounds.sql \
 	sql/components/help_necromancer_entries.sql \
@@ -781,6 +782,7 @@ EXTRA_DIST = \
 	sql/components/verify_help_necromancer_entries.sql \
 	sql/components/verify_help_rol_object_trap_entries.sql \
 	sql/components/verify_help_specproc_entries.sql \
+	sql/components/verify_help_thrown_weapons_entries.sql \
 	sql/components/verify_help_vessel_entries.sql \
 	sql/components/verify_help_worship_entries.sql \
 	sql/components/verify_vessels_schema.sql \

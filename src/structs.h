@@ -5268,7 +5268,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define ATTACK_TYPE_PRIMARY_EVO_TRAMPLE 21
 #define ATTACK_TYPE_THROWN 22
 
-/* Persistent combat intent for attacks that consume a physical projectile. */
+/* Non-persistent runtime intent for attacks that consume a physical projectile. */
 #define PROJECTILE_MODE_NONE 0
 #define PROJECTILE_MODE_LAUNCHER 1
 #define PROJECTILE_MODE_THROWN 2

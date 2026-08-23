@@ -46,6 +46,29 @@ This retains the tested binary and matching symbols under its immutable
 and removes the root-level `luminari` artifact that the test build may leave
 behind.
 
+## Thrown-Weapon Regression Ownership
+
+`unittests/CuTest/test_thrown_weapons.c` is the production-linked owner for launcher/thrown
+classification, append-only dart/blowgun identity, projectile mode state, mixed-pouch compatibility
+and capacity, pouch/inventory/wielded selection, persistence, detachment/finalization, Returning,
+Snatch Arrows, and collection. The suite calls production helpers in `src/combat/projectiles.c` and
+the production object persistence path; do not create a standalone mirror.
+
+The converter half is owned by `scripts/world/tests/test_rol_weapon_mapping.py`. With the ignored
+canonical RoL corpus installed at `EXAMPLE/RealmsOfLuminari`, it checks all relevant source records,
+including the dart/blowgun split, all 44 quivers, and all 42 `MOB_ROL_ARCHER` loadout outcomes. Run
+the complete world-tool suite because constant and documentation drift tests are cross-file:
+
+```sh
+make test-world-tools
+make test
+make install
+```
+
+Thrown-weapons help also requires applying its migration twice against a development database and
+running `sql/components/verify_help_thrown_weapons_entries.sql`; every verifier row must report
+`PASS`.
+
 ## Special Procedure Regression Ownership
 
 Phase 00 registry safety and observability is owned by eight production-linked test sources plus one

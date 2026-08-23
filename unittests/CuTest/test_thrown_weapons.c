@@ -179,7 +179,13 @@ void Test_throwable_weapon_classification_enforces_instance_rules(CuTest *tc)
   GET_OBJ_VAL(&obj, 0) = NUM_WEAPON_TYPES;
   CuAssertTrue(tc, !is_throwable_weapon(&ch, &obj));
 
+  special_ability.ability = WEAPON_SPECAB_THROWING;
+  obj.special_abilities = &special_ability;
+  GET_OBJ_VAL(&obj, 0) = WEAPON_TYPE_UNDEFINED;
+  CuAssertTrue(tc, !is_throwable_weapon(&ch, &obj));
+
   GET_OBJ_VAL(&obj, 0) = WEAPON_TYPE_LONG_SWORD;
+  obj.special_abilities = NULL;
   CuAssertTrue(tc, !is_throwable_weapon(&ch, &obj));
   special_ability.ability = WEAPON_SPECAB_RETURNING;
   obj.special_abilities = &special_ability;
@@ -201,6 +207,9 @@ void Test_throwable_weapon_classification_enforces_instance_rules(CuTest *tc)
   GET_OBJ_BOUND_ID(&obj) = NOBODY;
   CuAssertTrue(tc, !is_throwable_weapon(&ch, &obj));
   CuAssertTrue(tc, is_launcher_weapon(&obj));
+  special_ability.ability = WEAPON_SPECAB_THROWING;
+  obj.special_abilities = &special_ability;
+  CuAssertTrue(tc, !is_throwable_weapon(&ch, &obj));
   CuAssertTrue(tc, !is_throwable_weapon(NULL, &obj));
   CuAssertTrue(tc, !is_throwable_weapon(&ch, NULL));
 }
@@ -242,6 +251,13 @@ void Test_projectile_weapon_slot_priority_skips_ineligible_items(CuTest *tc)
   CuAssertIntEquals(tc, WEAR_WIELD_1, wear_slot);
   CuAssertPtrEquals(tc, &twohand, find_equipped_launcher(&ch, &wear_slot));
   CuAssertIntEquals(tc, WEAR_WIELD_2H, wear_slot);
+
+  ch.player_specials->saved.morphed = TRUE;
+  CuAssertPtrEquals(tc, NULL, find_equipped_throwable(&ch, &wear_slot));
+  CuAssertIntEquals(tc, -1, wear_slot);
+  CuAssertPtrEquals(tc, NULL, find_equipped_launcher(&ch, &wear_slot));
+  CuAssertIntEquals(tc, -1, wear_slot);
+  ch.player_specials->saved.morphed = FALSE;
 
   GET_OBJ_VAL(&twohand, 0) = WEAPON_TYPE_THROWING_AXE;
   CuAssertPtrEquals(tc, &twohand, find_equipped_throwable(&ch, &wear_slot));
@@ -311,6 +327,28 @@ void Test_ammo_pouch_admission_accepts_only_physical_projectiles(CuTest *tc)
 
   SET_BIT_AR(GET_OBJ_EXTRA(&throwable), ITEM_NODROP);
   CuAssertTrue(tc, !can_store_projectile_in_ammo_pouch(&ch, &throwable));
+}
+
+void Test_ammo_pouch_capacity_counts_objects_and_supports_unlimited(CuTest *tc)
+{
+  struct obj_data pouch;
+  struct obj_data first;
+  struct obj_data second;
+
+  initialize_test_object(&pouch, ITEM_AMMO_POUCH, 2);
+  initialize_test_object(&first, ITEM_MISSILE, AMMO_TYPE_ARROW);
+  initialize_test_object(&second, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+
+  CuAssertTrue(tc, ammo_pouch_has_capacity(&pouch));
+  pouch.contains = &first;
+  CuAssertTrue(tc, ammo_pouch_has_capacity(&pouch));
+  first.next_content = &second;
+  CuAssertTrue(tc, !ammo_pouch_has_capacity(&pouch));
+
+  GET_OBJ_VAL(&pouch, 0) = -1;
+  CuAssertTrue(tc, ammo_pouch_has_capacity(&pouch));
+  GET_OBJ_TYPE(&pouch) = ITEM_CONTAINER;
+  CuAssertTrue(tc, !ammo_pouch_has_capacity(&pouch));
 }
 
 void Test_mixed_projectile_pouch_survives_object_save_load(CuTest *tc)
@@ -812,6 +850,94 @@ void Test_snatch_precedes_returning_and_respects_carry_capacity(CuTest *tc)
 
   CuAssertTrue(tc, detached);
   CuAssertTrue(tc, fell_in_target_room);
+}
+
+void Test_projectile_finalizer_handles_pending_death_and_extraction(CuTest *tc)
+{
+  struct char_data attacker;
+  struct char_data target;
+  struct char_data *saved_character_list;
+  struct obj_data target_projectile;
+  struct obj_data returning_projectile;
+  struct obj_data extracted_projectile;
+  struct obj_data *saved_object_list;
+  struct obj_special_ability returning;
+  struct player_special_data attacker_specials;
+  struct player_special_data target_specials;
+  struct projectile_attack_context context;
+  struct room_data rooms[2];
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+
+  initialize_test_character(&attacker, &attacker_specials);
+  initialize_test_character(&target, &target_specials);
+  initialize_test_object(&target_projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  initialize_test_object(&returning_projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  initialize_test_object(&extracted_projectile, ITEM_WEAPON, WEAPON_TYPE_JAVELIN);
+  memset(&returning, 0, sizeof(returning));
+  memset(rooms, 0, sizeof(rooms));
+
+  attacker.player.name = (char *)"pending-death thrower";
+  target.player.name = (char *)"pending-death target";
+  IN_ROOM(&attacker) = 0;
+  IN_ROOM(&target) = 1;
+  GET_POS(&attacker) = POS_STANDING;
+  GET_POS(&target) = POS_STANDING;
+  rooms[0].number = 100;
+  rooms[1].number = 101;
+  rooms[0].people = &attacker;
+  rooms[1].people = &target;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_character_list = character_list;
+  saved_object_list = object_list;
+  world = rooms;
+  top_of_world = 1;
+  attacker.next = &target;
+  target.next = NULL;
+  character_list = &attacker;
+  target_projectile.next = &returning_projectile;
+  returning_projectile.next = NULL;
+  object_list = &target_projectile;
+
+  SET_BIT_AR(PLR_FLAGS(&target), PLR_NOTDEADYET);
+  initialize_projectile_attack_context(&context, ATTACK_TYPE_THROWN);
+  context.physical_projectile = &target_projectile;
+  context.detached = TRUE;
+  context.target_room = 1;
+  finalize_physical_projectile(&context, &attacker, &target,
+                               PROJECTILE_DISPOSITION_TARGET_INVENTORY);
+  CuAssertIntEquals(tc, PROJECTILE_DISPOSITION_TARGET_ROOM, context.disposition);
+  CuAssertPtrEquals(tc, NULL, target_projectile.carried_by);
+  CuAssertIntEquals(tc, 1, IN_ROOM(&target_projectile));
+
+  REMOVE_BIT_AR(PLR_FLAGS(&target), PLR_NOTDEADYET);
+  SET_BIT_AR(PLR_FLAGS(&attacker), PLR_NOTDEADYET);
+  returning.ability = WEAPON_SPECAB_RETURNING;
+  returning_projectile.special_abilities = &returning;
+  initialize_projectile_attack_context(&context, ATTACK_TYPE_THROWN);
+  context.physical_projectile = &returning_projectile;
+  context.original_source = PROJECTILE_SOURCE_INVENTORY;
+  context.detached = TRUE;
+  context.target_room = 1;
+  finalize_physical_projectile(&context, &attacker, &target, PROJECTILE_DISPOSITION_TARGET_ROOM);
+  CuAssertIntEquals(tc, PROJECTILE_DISPOSITION_TARGET_ROOM, context.disposition);
+  CuAssertPtrEquals(tc, NULL, returning_projectile.carried_by);
+  CuAssertIntEquals(tc, 1, IN_ROOM(&returning_projectile));
+
+  initialize_projectile_attack_context(&context, ATTACK_TYPE_THROWN);
+  context.physical_projectile = &extracted_projectile;
+  context.detached = TRUE;
+  context.target_room = 1;
+  finalize_physical_projectile(&context, &attacker, &target, PROJECTILE_DISPOSITION_TARGET_ROOM);
+  CuAssertIntEquals(tc, PROJECTILE_DISPOSITION_DESTROYED, context.disposition);
+  CuAssertPtrEquals(tc, NULL, context.physical_projectile);
+
+  object_list = saved_object_list;
+  character_list = saved_character_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
 }
 
 void Test_collect_recovers_throwables_from_room_and_corpse(CuTest *tc)

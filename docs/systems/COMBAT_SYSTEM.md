@@ -110,20 +110,24 @@ The system supports numerous attack types:
 #define ATTACK_TYPE_BOMB_TOSS     5    // Alchemist bombs
 #define ATTACK_TYPE_PRIMARY_SNEAK 6    // Sneak attack primary
 #define ATTACK_TYPE_OFFHAND_SNEAK 7    // Sneak attack off-hand
+#define ATTACK_TYPE_PSIONICS      8
+#define ATTACK_TYPE_ELDRITCH_BLAST 9
 
 // Evolution-based attacks (Eidolon/Summoner system)
-#define ATTACK_TYPE_PRIMARY_EVO_BITE     12
-#define ATTACK_TYPE_PRIMARY_EVO_CLAWS    13
-#define ATTACK_TYPE_PRIMARY_EVO_HOOVES   14
-#define ATTACK_TYPE_PRIMARY_EVO_PINCERS  15
-#define ATTACK_TYPE_PRIMARY_EVO_STING    16
-#define ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP 17
-#define ATTACK_TYPE_PRIMARY_EVO_TENTACLE 18
-#define ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET 19
-#define ATTACK_TYPE_PRIMARY_EVO_GORE     20
-#define ATTACK_TYPE_PRIMARY_EVO_RAKE     21
-#define ATTACK_TYPE_PRIMARY_EVO_REND     22
-#define ATTACK_TYPE_PRIMARY_EVO_TRAMPLE  23
+#define ATTACK_TYPE_PRIMARY_EVO_BITE      10
+#define ATTACK_TYPE_PRIMARY_EVO_CLAWS     11
+#define ATTACK_TYPE_PRIMARY_EVO_HOOVES    12
+#define ATTACK_TYPE_PRIMARY_EVO_PINCERS   13
+#define ATTACK_TYPE_PRIMARY_EVO_STING     14
+#define ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP 15
+#define ATTACK_TYPE_PRIMARY_EVO_TENTACLE  16
+#define ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET 17
+#define ATTACK_TYPE_PRIMARY_EVO_GORE      18
+#define ATTACK_TYPE_PRIMARY_EVO_RAKE      19
+#define ATTACK_TYPE_PRIMARY_EVO_REND      20
+#define ATTACK_TYPE_PRIMARY_EVO_TRAMPLE   21
+
+#define ATTACK_TYPE_THROWN 22
 ```
 
 ### 2. Attack Resolution
@@ -150,7 +154,49 @@ int compute_attack_bonus_full(struct char_data *ch, struct char_data *victim,
 4. Compare to AC for hit/miss
 5. Check for critical threats and confirmation
 
-### 3. Attack Bonus Calculation
+### 3. Launcher and thrown projectile combat
+
+`fire <target> [direction]` and `throw <target> [direction]` share same-room and one-adjacent-room
+target validation, action use, peaceful/PvP restrictions, visibility, and group-assist behavior.
+They remain distinct attack modes:
+
+- launcher mode requires a wielded ranged `ITEM_WEAPON` plus a compatible `ITEM_MISSILE` in the
+  equipped `WEAR_AMMO_POUCH` slot;
+- thrown mode requires an eligible wielded `ITEM_WEAPON`, identified by
+  `WEAPON_FLAG_THROWN` or its instance-level Throwing special ability;
+- an ordinary melee command continues to use a throwable weapon in melee; only `throw` selects
+  thrown mode;
+- darts are thrown weapon type 14, while blowguns are the append-only launcher type 80 paired with
+  `AMMO_TYPE_DART`.
+
+Every thrown attack resolves a fresh physical object matching the wielded anchor VNUM. Selection
+is deterministic: first a matching copy in the equipped ammo pouch, then a matching top-level
+inventory copy, then the wielded anchor. Ordinary containers, other equipment slots, and
+same-name objects with a different VNUM are not reserves. Throwing the anchor uses normal
+unequip bookkeeping and stops the mode if the slot can no longer validate.
+
+Mixed ammo pouches hold missiles and transferable throwable weapons. Capacity in `value[0]` is an
+object count; `-1` is unlimited. Launcher lookup scans past incompatible contents instead of
+assuming the first pouch object is usable.
+
+`projectile_attack_context` in `src/combat/projectiles.h` carries the exact attack weapon,
+physical projectile, origin, target location, and final disposition through `hit()`. One
+idempotent finalizer owns hit, miss, wind wall, protection, Deflect Arrows, Snatch Arrows,
+target-death, extraction, and Returning outcomes. Detached projectiles carry the thrower/firer
+owner ID so `collect` can recover them from the room or corpses without taking another player's
+objects.
+
+Thrown attacks use Dexterity for accuracy, the selected weapon's proficiency and family, and the
+shared ranged feats and defenses. They add the full Strength modifier, including a penalty, to
+damage. Rapid Shot and ranger Quick Draw can consume additional physical copies. Reload,
+Manyshot/Epic Manyshot, imbued arrows, missile break chance, and other arrow/launcher-only rules do
+not apply to thrown weapons.
+
+A Returning throwable resolves its attack before returning. A wielded anchor is re-equipped when
+its recorded slot remains empty; otherwise the object goes to inventory or the attacker's room.
+Successful Snatch Arrows and explicit object destruction take precedence over Returning.
+
+### 4. Attack Bonus Calculation
 
 Attack bonuses combine multiple factors (actual implementation in fight.c):
 
@@ -182,7 +228,7 @@ Attack bonuses combine multiple factors (actual implementation in fight.c):
 - Combat modes (Power Attack, Combat Expertise)
 - Conditions (prone, grappled, etc.)
 
-### 4. Armor Class Calculation
+### 5. Armor Class Calculation
 
 Armor Class is calculated with multiple modes:
 
@@ -240,8 +286,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   - Full STR for primary
   - 1.5x STR for two-handed
   - 0.5x STR for off-hand
-  - STR penalty (but not bonus) for ranged
-  - Special: Composite bows add limited STR
+  - Launcher attacks preserve their existing STR-penalty and composite-bow rules
+  - Thrown attacks add the full STR modifier, including a penalty
 - Enhancement bonuses
 - Critical multipliers (x2, x3, x4)
 

@@ -37,7 +37,7 @@ static bool is_valid_weapon_object(const struct obj_data *obj)
     return FALSE;
 
   weapon_type = GET_OBJ_VAL(obj, 0);
-  return weapon_type >= WEAPON_TYPE_UNDEFINED && weapon_type < NUM_WEAPON_TYPES;
+  return weapon_type > WEAPON_TYPE_UNDEFINED && weapon_type < NUM_WEAPON_TYPES;
 }
 
 static bool can_transfer_throwable(struct char_data *ch, const struct obj_data *obj)
@@ -59,7 +59,7 @@ static struct obj_data *find_equipped_matching(struct char_data *ch, int *wear_s
   if (wear_slot)
     *wear_slot = -1;
 
-  if (!ch)
+  if (!ch || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     return NULL;
 
   for (i = 0; i < sizeof(projectile_wear_slots) / sizeof(projectile_wear_slots[0]); i++)
@@ -104,6 +104,14 @@ static bool character_is_live(const struct char_data *ch)
   }
 
   return FALSE;
+}
+
+static bool character_can_receive_projectile(const struct char_data *ch)
+{
+  if (!character_is_live(ch))
+    return FALSE;
+
+  return !DEAD(ch) && GET_POS(ch) > POS_DEAD && IN_ROOM(ch) <= top_of_world;
 }
 
 static bool projectile_is_unplaced(const struct obj_data *projectile)
@@ -178,6 +186,8 @@ bool is_throwable_weapon(struct char_data *ch, const struct obj_data *obj)
   weapon_type = GET_OBJ_VAL(obj, 0);
   if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_THROWN))
     return TRUE;
+  if (IS_SET(weapon_list[weapon_type].weaponFlags, WEAPON_FLAG_RANGED))
+    return FALSE;
 
   return obj_has_special_ability((struct obj_data *)obj, WEAPON_SPECAB_THROWING);
 }
@@ -191,6 +201,17 @@ bool can_store_projectile_in_ammo_pouch(struct char_data *ch, const struct obj_d
     return TRUE;
 
   return is_throwable_weapon(ch, obj);
+}
+
+bool ammo_pouch_has_capacity(const struct obj_data *ammo_pouch)
+{
+  int capacity;
+
+  if (!ammo_pouch || GET_OBJ_TYPE(ammo_pouch) != ITEM_AMMO_POUCH)
+    return FALSE;
+
+  capacity = GET_OBJ_VAL(ammo_pouch, 0);
+  return capacity == -1 || num_obj_in_obj(ammo_pouch->contains) < capacity;
 }
 
 struct obj_data *find_equipped_launcher(struct char_data *ch, int *wear_slot)
@@ -533,7 +554,7 @@ void finalize_physical_projectile(struct projectile_attack_context *context,
               disposition != PROJECTILE_DISPOSITION_DESTROYED &&
               obj_has_special_ability(projectile, WEAPON_SPECAB_RETURNING);
 
-  if (returning && character_is_live(attacker))
+  if (returning && character_can_receive_projectile(attacker))
   {
     if (context->original_source == PROJECTILE_SOURCE_WIELDED && context->anchor_wear_slot >= 0 &&
         context->anchor_wear_slot < NUM_WEARS && !GET_EQ(attacker, context->anchor_wear_slot))
@@ -572,7 +593,7 @@ void finalize_physical_projectile(struct projectile_attack_context *context,
     return;
 
   case PROJECTILE_DISPOSITION_TARGET_INVENTORY:
-    if (character_is_live(target) && GET_POS(target) > POS_DEAD &&
+    if (character_can_receive_projectile(target) &&
         (!context->snatched || CAN_CARRY_OBJ(target, projectile)))
     {
       obj_to_char(projectile, target);
@@ -582,7 +603,7 @@ void finalize_physical_projectile(struct projectile_attack_context *context,
     break;
 
   case PROJECTILE_DISPOSITION_ATTACKER_INVENTORY:
-    if (character_is_live(attacker) && CAN_CARRY_OBJ(attacker, projectile))
+    if (character_can_receive_projectile(attacker) && CAN_CARRY_OBJ(attacker, projectile))
     {
       MISSILE_ID(projectile) = NOBODY;
       obj_to_char(projectile, attacker);

@@ -303,6 +303,17 @@ size, and wear slots from <code>weapon_list</code>.</li>
 <li>You can revisit <code>C</code> if you need to tweak damage dice or
 attack type; be aware that re-running <code>C</code> resets
 enhancements.</li>
+<li><code>ITEM_WEAPON</code> is the canonical type for melee weapons,
+launchers, and throwable weapons. The selected <code>weapon_list</code>
+profile decides which modes are legal.</li>
+<li>Weapon type 14 is a thrown dart. Weapon type 80 is the separate
+blowgun launcher. Build new bows, crossbows, slings, and blowguns as
+<code>ITEM_WEAPON</code>; do not create new <code>ITEM_FIREWEAPON</code>
+objects.</li>
+<li>A profile with <code>WEAPON_FLAG_THROWN</code> remains melee-usable
+and can also anchor the <code>throw</code> command. The Throwing special
+ability grants that eligibility to an individual weapon; Returning
+controls recovery but does not grant eligibility by itself.</li>
 </ul>
 <h3 id="armor-item_armor-and-item_clanarmor">Armor
 (<code>ITEM_ARMOR</code> and <code>ITEM_CLANARMOR</code>)</h3>
@@ -329,14 +340,22 @@ must identify an existing clan.</li>
 </ul>
 <h3 id="ammunition-ranged">Ammunition &amp; Ranged</h3>
 <ul>
-<li><code>ITEM_FIREWEAPON</code>: prompts for weapon type, damage dice,
-then break chance (2-98). Enhancement is <code>Value5</code>.</li>
+<li><code>ITEM_FIREWEAPON</code>: legacy/deprecated value prompts
+retained for old data. This type is not a working launcher and should
+not be used for new objects.</li>
 <li><code>ITEM_MISSILE</code>: prompts for ammo category, then break
 chance, then enhancement at <code>Value5</code>.</li>
-<li><code>ITEM_AMMO_POUCH</code> / <code>ITEM_CONTAINER</code>: capacity
-in pounds (<code>-1</code> unlimited), then a flag toggle for the
-closeable/lockable bits - enter <code>0</code> when done - then the key
-vnum (<code>-1</code> for none).</li>
+<li><code>ITEM_CONTAINER</code>: capacity in pounds (<code>-1</code>
+unlimited), then a flag toggle for the closeable/lockable bits - enter
+<code>0</code> when done - then the key vnum (<code>-1</code> for
+none).</li>
+<li><code>ITEM_AMMO_POUCH</code>: capacity is an object count
+(<code>-1</code> unlimited), not weight. It accepts
+<code>ITEM_MISSILE</code> objects and transferable
+<code>ITEM_WEAPON</code> objects that are throwable. It rejects ordinary
+melee weapons, launchers, nested containers, and other item types. Both
+archery and throwing quivers use this type and the
+<code>WEAR_AMMO_POUCH</code> slot.</li>
 </ul>
 <h3 id="consumables">Consumables</h3>
 <ul>
@@ -1606,7 +1625,8 @@ type stores in its value slots.</p>
 <td>5</td>
 <td>Weapon</td>
 <td>ITEM_WEAPON</td>
-<td>Melee weapon. Type selection auto-fills dice and stats.</td>
+<td>Canonical melee, launcher, or throwable weapon. Type selection
+auto-fills dice and stats.</td>
 </tr>
 <tr class="odd">
 <td>6</td>
@@ -1618,8 +1638,7 @@ type stores in its value slots.</p>
 <td>7</td>
 <td>Ranged-Weapon</td>
 <td>ITEM_FIREWEAPON</td>
-<td>Bows and crossbows. Marked deprecated in the source but still in
-use.</td>
+<td>Deprecated legacy type; do not use for new launchers.</td>
 </tr>
 <tr class="odd">
 <td>8</td>
@@ -1795,7 +1814,8 @@ application.</td>
 <td>36</td>
 <td>Ammo-Pouch</td>
 <td>ITEM_AMMO_POUCH</td>
-<td>Container specialized for ammunition.</td>
+<td>Object-count container for missiles and transferable throwable
+weapons.</td>
 </tr>
 <tr class="even">
 <td>37</td>
@@ -2304,10 +2324,10 @@ out)</td>
 </tr>
 <tr class="even">
 <td>Ammo-Pouch</td>
-<td>Max weight held (<code>-1</code> unlimited)</td>
+<td>Max projectile objects (<code>-1</code> unlimited)</td>
 <td>Container flags (bitvector)</td>
 <td>Key vnum (<code>-1</code> none)</td>
-<td>-</td>
+<td>Corpse flag</td>
 <td>-</td>
 </tr>
 <tr class="odd">

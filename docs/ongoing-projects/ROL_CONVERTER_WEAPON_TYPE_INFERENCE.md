@@ -1,7 +1,7 @@
 # RoL Converter: Weapon Type Inference -- Remaining Work
 
-Status: implementation and development release are complete. Only builder
-validation remains.
+Status: implementation is current through native thrown weapons. Builder
+validation and the next development data release remain.
 
 Context:
 [ROL_CONVERTER_OBJECT_FILE_REFERENCES.md](ROL_CONVERTER_OBJECT_FILE_REFERENCES.md)
@@ -37,28 +37,34 @@ Confirm each inferred type and decide whether every placeholder should convert
 at all. Record exclusion is a builder disposition decision, not a classifier
 rule.
 
-### 1.3 Ranged name/type disagreements and compromises
+### 1.3 Ranged name/type disagreements and resolved engine contracts
 
 The declared RoL ranged type currently wins when the object text suggests a
-different type. Review all 13 rows in `audit()["name_disagreements"]`; the
+different type. Review all 14 rows in `audit()["name_disagreements"]`; the
 current VNUMs are:
 
 `1011`, `4798`, `20112`, `20261`, `21721`, `58634`, `58912`, `58916`, `59366`,
-`83036`, `83217`, `91237`, and `94534`.
+`83036`, `83217`, `91237`, `94534`, and `94719`. VNUM `94719` is the deliberate
+physical-dart split: its declared source type makes it a thrown weapon even though the generic
+ammunition name rules recognize the word `dart`.
 
 Also review the target-engine compromises that are not all name disagreements:
 
-- Javelin records preserve `WEAPON_TYPE_JAVELIN`. The native type retains its
-  thrown flag but is no longer treated as an ammunition launcher, so javelins
-  remain melee-usable until the target gains a throwing command.
-- Source darts use the target dart weapon/ammunition pairing.
-- Thrown source ammunition becomes a melee weapon because the target has no
-  throwing command.
-- Three `MOB_ROL_ARCHER` mobiles equipped only with thrown weapons remain melee
-  combatants, and 13 receive no ranged item at all; their archer flag is inert.
+- Javelin records preserve `WEAPON_TYPE_JAVELIN`. Javelins remain ordinary melee weapons until a
+  player explicitly uses `throw`.
+- Source range type 10 and source missile type 10 become thrown `WEAPON_TYPE_DART` objects. Source
+  range type 16 becomes the append-only `WEAPON_TYPE_BLOWGUN`; its type-16 missile remains
+  `AMMO_TYPE_DART`. The current active corpus contains no authored type-16 record.
+- All 44 source quivers now become `ITEM_AMMO_POUCH`: 24 archery quivers and 20 throwing quivers.
+- Four `MOB_ROL_ARCHER` mobiles have throwable-only loadouts and now select thrown mode. Twenty-five
+  have launchers; the remaining 13 have no launcher or throwable reset and remain inactive under
+  the compatibility flag.
 - Joke, siege, improvised, body-part, and placeholder records need an explicit
   keep/change/exclude decision even when their mechanical classification is
   deterministic.
+
+The affected-object and NPC review is recorded in
+[THROWN_WEAPONS_CONVERSION_AUDIT.md](THROWN_WEAPONS_CONVERSION_AUDIT.md).
 
 ### 1.4 Completion gates
 

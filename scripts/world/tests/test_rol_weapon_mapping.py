@@ -9,7 +9,7 @@ import unittest
 from wtool_lib.constants import default_repo_root, load_manifest
 from wtool_lib.objects import parse_object_file
 from wtool_lib.rol_source import parse_active_rol_corpus, parse_rol_source_file
-from wtool_lib.rol_transform import EQUIPMENT_POSITION_MAP, emit_object
+from wtool_lib.rol_transform import EQUIPMENT_POSITION_MAP, MOB_ACTION_MAP, emit_object
 from wtool_lib.rol_weapon_table import weapon_table
 from wtool_lib import rol_weapon_mapping as mapping
 
@@ -25,7 +25,7 @@ _AMMO_PAIRS = {
     "AMMO_TYPE_ARROW": ("BOW",),
     "AMMO_TYPE_BOLT": ("CROSSBOW", "XBOW"),
     "AMMO_TYPE_STONE": ("SLING",),
-    "AMMO_TYPE_DART": ("DART",),
+    "AMMO_TYPE_DART": ("BLOWGUN",),
 }
 
 
@@ -199,6 +199,40 @@ class RolWeaponMappingTests(unittest.TestCase):
         self.assertEqual(mapping.TARGET_ITEM_WEAPON, item_type)
         self.assertEqual(mapping.WEAPON_TYPE_IDS["WEAPON_TYPE_JAVELIN"], values[0])
 
+  def test_dart_and_blowgun_delivery_types_stay_distinct(self) -> None:
+    thrown_dart = self._source_record(
+        b"#903\ndart throwing~\na throwing dart~\nA throwing dart lies here.~\n~\n"
+        b"6 0 0\n0 1 4 11 0 1 10 10\n1 20 0\n"
+    )
+    blowgun = self._source_record(
+        b"#904\nblowgun~\na wooden blowgun~\nA wooden blowgun lies here.~\n~\n"
+        b"6 0 0\n0 1 2 11 0 1 10 16\n1 20 0\n"
+    )
+    thrown_ammunition = self._source_record(
+        b"#905\ndart throwing~\na throwing dart~\nA throwing dart lies here.~\n~\n"
+        b"7 0 0\n1 4 10 10\n1 20 0\n"
+    )
+    blowgun_ammunition = self._source_record(
+        b"#906\nblowgun dart~\na blowgun dart~\nA blowgun dart lies here.~\n~\n"
+        b"7 0 0\n1 2 10 16\n1 20 0\n"
+    )
+
+    self.assertEqual(
+        "WEAPON_TYPE_DART", mapping.infer_ranged_weapon_type(thrown_dart).name
+    )
+    self.assertEqual(
+        "WEAPON_TYPE_BLOWGUN", mapping.infer_ranged_weapon_type(blowgun).name
+    )
+    self.assertEqual("WEAPON_TYPE_DART", mapping.infer_ammunition(thrown_ammunition).name)
+    self.assertEqual("AMMO_TYPE_DART", mapping.infer_ammunition(blowgun_ammunition).name)
+
+    _emitted, item_type, values, _economy, _blocks = self._emit(thrown_ammunition)
+    self.assertEqual(mapping.TARGET_ITEM_WEAPON, item_type)
+    self.assertEqual(mapping.WEAPON_TYPE_IDS["WEAPON_TYPE_DART"], values[0])
+    _emitted, item_type, values, _economy, _blocks = self._emit(blowgun_ammunition)
+    self.assertEqual(mapping.TARGET_ITEM_MISSILE, item_type)
+    self.assertEqual(mapping.AMMO_TYPE_IDS["AMMO_TYPE_DART"], values[0])
+
   def test_native_javelin_profile_is_thrown_but_not_an_ammo_launcher(self) -> None:
     entry = weapon_table()[mapping.WEAPON_TYPE_IDS["WEAPON_TYPE_JAVELIN"]]
     self.assertTrue(entry.weapon_flags & _WEAPON_FLAG_THROWN)
@@ -282,13 +316,13 @@ class RolWeaponMappingTests(unittest.TestCase):
     self.assertIsNotNone(count)
     self.assertEqual(int(count.group(1)), mapping.NUM_AMMO_TYPES)
 
-  def test_ammo_paired_weapon_types_match_has_ammo_in_pouch(self) -> None:
-    source = (self.root / "src/combat/assign_wpn_armor.c").read_text(
+  def test_ammo_paired_weapon_types_match_projectile_compatibility(self) -> None:
+    source = (self.root / "src/combat/projectiles.c").read_text(
         encoding="utf-8", errors="ignore"
     )
-    body = source[source.index("bool has_ammo_in_pouch("):]
+    body = source[source.index("bool is_compatible_launcher_ammo("):]
     body = body[: body.index("\n}\n")]
-    declared = set(re.findall(r"case (WEAPON_TYPE_\w+):", body))
+    declared = set(re.findall(r"WEAPON_TYPE_\w+", body))
     self.assertEqual(declared, set(mapping.AMMO_PAIRED_WEAPON_TYPES))
     # The current ranged engine requires an ammo pouch for every ranged type.
     self.assertEqual(mapping.AMMO_PAIRED_WEAPON_TYPES, mapping.RANGED_WEAPON_TYPES)
@@ -325,9 +359,9 @@ class RolWeaponMappingTests(unittest.TestCase):
       else:
         retyped += 1
         self.assertNotIn(inference.name, mapping.RANGED_WEAPON_TYPES, record.record_id)
-    # The target has no throwing command, so thrown source ammunition becomes
-    # the melee weapon it is instead of unusable ammo.
-    self.assertEqual(4, retyped)
+    # Physical thrown ammunition becomes an ITEM_WEAPON usable in melee or by
+    # the explicit throw command.
+    self.assertEqual(5, retyped)
 
   def test_declared_range_type_outranks_the_record_name(self) -> None:
     # 'a blackwood shortbow' is declared Long Bow. The declared type is what
@@ -346,7 +380,7 @@ class RolWeaponMappingTests(unittest.TestCase):
     self.assertEqual(1319, report["weapons"])
     self.assertEqual(51, report["ranged_weapons"])
     self.assertEqual(48, report["ammunition"])
-    self.assertEqual(4, report["retyped_ammunition"])
+    self.assertEqual(5, report["retyped_ammunition"])
     self.assertEqual(0, report["undefined"])
     self.assertEqual(0, report["undefined_ammo"])
 
@@ -446,9 +480,9 @@ class RolWeaponMappingTests(unittest.TestCase):
         continue
       retyped += 1
       self.assertEqual(0, values[3], record.record_id)
-    self.assertEqual(4, retyped)
+    self.assertEqual(5, retyped)
 
-  def test_source_quivers_split_by_the_kind_they_declare(self) -> None:
+  def test_source_quivers_share_the_ammo_pouch_contract(self) -> None:
     self._require_reference_corpus()
     kinds = {}
     for record in self.corpus.records:
@@ -456,19 +490,26 @@ class RolWeaponMappingTests(unittest.TestCase):
         continue
       if record.values.get("item_type") != mapping.SOURCE_ITEM_TYPE_QUIVER:
         continue
-      values = (list(record.values.get("values", [])) + [0] * 4)[:4]
       _emitted, item_type, emitted_values, _economy, _blocks = self._emit(record)
       kinds[item_type] = kinds.get(item_type, 0) + 1
-      expected = (
-          mapping.TARGET_ITEM_CONTAINER
-          if values[3] == mapping.SOURCE_QUIVER_THROWING
-          else mapping.TARGET_ITEM_AMMO_POUCH
-      )
-      self.assertEqual(expected, item_type, record.record_id)
+      self.assertEqual(mapping.TARGET_ITEM_AMMO_POUCH, item_type, record.record_id)
       # The target reads value[3] as the corpse flag.
       self.assertEqual(0, emitted_values[3], record.record_id)
     self.assertEqual(
-        {mapping.TARGET_ITEM_AMMO_POUCH: 24, mapping.TARGET_ITEM_CONTAINER: 20}, kinds
+        {mapping.TARGET_ITEM_AMMO_POUCH: 44}, kinds
+    )
+
+  def test_throwing_quiver_emits_as_an_ammo_pouch(self) -> None:
+    record = self._source_record(
+        b"#907\nquiver throwing~\na throwing quiver~\nA throwing quiver lies here.~\n~\n"
+        b"30 0 0\n20 0 -1 2\n1 20 0\n"
+    )
+    emitted, item_type, values, _economy, _blocks = self._emit(record)
+    self.assertEqual(mapping.TARGET_ITEM_AMMO_POUCH, item_type)
+    self.assertEqual([20, 0, -1, 0], values[:4])
+    self.assertIn(
+        "retained source throwing quiver as ITEM_AMMO_POUCH",
+        " ".join(emitted.diagnostics),
     )
 
   def test_hitroll_and_damroll_become_the_enhancement_bonus(self) -> None:
@@ -609,6 +650,71 @@ class RolWeaponMappingTests(unittest.TestCase):
                 f"zone {record.vnum} loads ammo {content} that its launcher cannot fire",
             )
     self.assertGreater(kits, 0)
+
+  def test_rol_archer_loadouts_cover_launcher_and_throwable_modes(self) -> None:
+    self._require_reference_corpus()
+    objects = {
+        record.vnum: record for record in self.corpus.records if record.kind == "obj"
+    }
+    mobiles = {
+        record.vnum: record for record in self.corpus.records if record.kind == "mob"
+    }
+    archers = {
+        vnum
+        for vnum, record in mobiles.items()
+        if int(record.values.get("flags", [0])[0]) & (1 << (17 - 1))
+    }
+    table = weapon_table()
+    loadouts: dict[int, set[str]] = {vnum: set() for vnum in archers}
+    unrelated_throwers: set[int] = set()
+
+    self.assertEqual(108, MOB_ACTION_MAP[17])
+    for zone in (record for record in self.corpus.records if record.kind == "zon"):
+      current_mobile = None
+      for directive in zone.directives:
+        arguments = [int(value) for value in directive.get("arguments", [])]
+        if directive["token"] == "M":
+          current_mobile = arguments[1] if len(arguments) >= 2 else None
+          continue
+        if (
+            current_mobile is None
+            or directive["token"] != "E"
+            or len(arguments) < 4
+            or arguments[3] not in {16, 17}
+        ):
+          continue
+        obj = objects.get(arguments[1])
+        if obj is None:
+          continue
+        source_type = obj.values.get("item_type")
+        if source_type == mapping.SOURCE_ITEM_TYPE_FIREWEAPON:
+          inference = mapping.infer_ranged_weapon_type(obj)
+        elif source_type == mapping.SOURCE_ITEM_TYPE_WEAPON:
+          inference = mapping.infer_weapon_type(obj)
+        else:
+          continue
+        flags = table[inference.weapon_type].weapon_flags
+        mode = (
+            "launcher"
+            if inference.name in mapping.RANGED_WEAPON_TYPES
+            else "throwable" if flags & _WEAPON_FLAG_THROWN else "melee"
+        )
+        if current_mobile in archers:
+          loadouts[current_mobile].add(mode)
+        elif mode == "throwable":
+          unrelated_throwers.add(current_mobile)
+
+    thrown_archers = {
+        vnum
+        for vnum, modes in loadouts.items()
+        if "throwable" in modes and "launcher" not in modes
+    }
+    launcher_archers = {vnum for vnum, modes in loadouts.items() if "launcher" in modes}
+    inactive_archers = archers - thrown_archers - launcher_archers
+    self.assertEqual({7983, 52811, 52824, 88904}, thrown_archers)
+    self.assertEqual(25, len(launcher_archers))
+    self.assertEqual(13, len(inactive_archers))
+    self.assertTrue(unrelated_throwers)
 
 if __name__ == "__main__":
   unittest.main()

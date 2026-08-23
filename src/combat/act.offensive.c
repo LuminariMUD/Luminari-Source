@@ -11321,6 +11321,22 @@ struct projectile_command_target
   bool remote;
 };
 
+static bool projectile_command_character_is_active(const struct char_data *character)
+{
+  const struct char_data *current;
+
+  if (!character)
+    return FALSE;
+
+  for (current = character_list; current; current = current->next)
+  {
+    if (current == character)
+      return !DEAD(current) && GET_POS(current) > POS_DEAD && IN_ROOM(current) != NOWHERE;
+  }
+
+  return FALSE;
+}
+
 static bool resolve_projectile_command_target(struct char_data *ch, char *target_name,
                                               char *direction_name, const char *verb,
                                               struct projectile_command_target *result)
@@ -11427,6 +11443,13 @@ static bool resolve_projectile_command_target(struct char_data *ch, char *target
     send_to_char(ch, "%s at who?\r\n", verb);
     return FALSE;
   }
+  if (victim == ch)
+  {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return FALSE;
+  }
+  if (!pvp_ok(ch, victim, TRUE))
+    return FALSE;
 
   result->victim = victim;
   result->room = target_room;
@@ -11440,12 +11463,14 @@ static bool thrown_projectile_is_ready(struct char_data *ch)
 }
 
 static void try_projectile_quick_draw(struct char_data *ch, struct char_data *victim,
-                                      int attack_type)
+                                      room_rnum victim_room, int attack_type)
 {
   int chance;
   bool ready;
 
-  if (!ch || !victim || IS_NPC(ch) || !has_perk(ch, PERK_RANGER_QUICK_DRAW))
+  if (!projectile_command_character_is_active(ch) ||
+      !projectile_command_character_is_active(victim) || IN_ROOM(victim) != victim_room ||
+      IS_NPC(ch) || !has_perk(ch, PERK_RANGER_QUICK_DRAW))
     return;
 
   ready =
@@ -11473,6 +11498,8 @@ ACMD(do_fire)
   struct projectile_command_target target;
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  room_rnum attacker_room;
+  bool target_active;
 
   PREREQ_NOT_NPC();
   PREREQ_NOT_PEACEFUL_ROOM();
@@ -11492,8 +11519,27 @@ ACMD(do_fire)
   if (target.remote && HAS_FEAT(ch, FEAT_FAR_SHOT) && has_perk(ch, PERK_RANGER_LONGSHOT))
     GET_TEMP_ATTACK_ROLL_BONUS(ch) += 3;
 
+  attacker_room = IN_ROOM(ch);
   hit(ch, target.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_RANGED);
-  try_projectile_quick_draw(ch, target.victim, ATTACK_TYPE_RANGED);
+  if (!projectile_command_character_is_active(ch))
+    return;
+  if (IN_ROOM(ch) != attacker_room)
+  {
+    clear_projectile_mode(ch);
+    return;
+  }
+
+  try_projectile_quick_draw(ch, target.victim, target.room, ATTACK_TYPE_RANGED);
+  if (!projectile_command_character_is_active(ch))
+    return;
+  if (IN_ROOM(ch) != attacker_room)
+  {
+    clear_projectile_mode(ch);
+    return;
+  }
+
+  target_active = projectile_command_character_is_active(target.victim) &&
+                  IN_ROOM(target.victim) == target.room;
 
   if (target.remote)
   {
@@ -11504,6 +11550,17 @@ ACMD(do_fire)
     else
       clear_projectile_mode(ch);
     USE_STANDARD_ACTION(ch);
+  }
+  else if (!target_active || FIGHTING(ch) != target.victim)
+  {
+    if (!target_active && FIGHTING(ch) == target.victim)
+      stop_fighting(ch);
+    else
+      clear_projectile_mode(ch);
+  }
+  else if (!IS_LAUNCHER_MODE(ch))
+  {
+    stop_fighting(ch);
   }
 }
 
@@ -11516,6 +11573,8 @@ ACMD(do_throw)
   char arg1[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
   int wear_slot;
+  room_rnum attacker_room;
+  bool target_active;
 
   PREREQ_NOT_NPC();
   PREREQ_NOT_PEACEFUL_ROOM();
@@ -11550,8 +11609,27 @@ ACMD(do_throw)
   if (target.remote && HAS_FEAT(ch, FEAT_FAR_SHOT) && has_perk(ch, PERK_RANGER_LONGSHOT))
     GET_TEMP_ATTACK_ROLL_BONUS(ch) += 3;
 
+  attacker_room = IN_ROOM(ch);
   hit(ch, target.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_THROWN);
-  try_projectile_quick_draw(ch, target.victim, ATTACK_TYPE_THROWN);
+  if (!projectile_command_character_is_active(ch))
+    return;
+  if (IN_ROOM(ch) != attacker_room)
+  {
+    clear_projectile_mode(ch);
+    return;
+  }
+
+  try_projectile_quick_draw(ch, target.victim, target.room, ATTACK_TYPE_THROWN);
+  if (!projectile_command_character_is_active(ch))
+    return;
+  if (IN_ROOM(ch) != attacker_room)
+  {
+    clear_projectile_mode(ch);
+    return;
+  }
+
+  target_active = projectile_command_character_is_active(target.victim) &&
+                  IN_ROOM(target.victim) == target.room;
 
   if (target.remote)
   {
@@ -11562,6 +11640,17 @@ ACMD(do_throw)
     else
       clear_projectile_mode(ch);
     USE_STANDARD_ACTION(ch);
+  }
+  else if (!target_active || FIGHTING(ch) != target.victim)
+  {
+    if (!target_active && FIGHTING(ch) == target.victim)
+      stop_fighting(ch);
+    else
+      clear_projectile_mode(ch);
+  }
+  else if (!IS_THROWN_MODE(ch))
+  {
+    stop_fighting(ch);
   }
 }
 
@@ -11755,9 +11844,7 @@ static bool collect_owned_projectile(struct char_data *ch, struct obj_data *obj,
   if (!is_missile && !is_throwable)
     return FALSE;
 
-  use_pouch = ammo_pouch && GET_OBJ_TYPE(ammo_pouch) == ITEM_AMMO_POUCH &&
-              num_obj_in_obj(ammo_pouch->contains) < GET_OBJ_VAL(ammo_pouch, 0) &&
-              can_store_projectile_in_ammo_pouch(ch, obj);
+  use_pouch = ammo_pouch_has_capacity(ammo_pouch) && can_store_projectile_in_ammo_pouch(ch, obj);
   if (!use_pouch && (is_missile || !CAN_CARRY_OBJ(ch, obj)))
   {
     if (fit)

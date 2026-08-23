@@ -10148,7 +10148,8 @@ int weapon_special(struct obj_data *wpn, struct char_data *ch, struct char_data 
  * Valid attack_type(s) are:
  *   ATTACK_TYPE_PRIMARY : Primary hand attack.
  *   ATTACK_TYPE_OFFHAND : Offhand attack.
- *   ATTACK_TYPE_RANGED  : Ranged attack
+ *   ATTACK_TYPE_RANGED  : Launcher attack.
+ *   ATTACK_TYPE_THROWN  : Thrown-weapon attack.
  *   ATTACK_TYPE_TWOHAND : Two-handed weapon attack.
  *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
  *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand
@@ -10164,6 +10165,8 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
     wielded = find_equipped_throwable(ch, NULL);
     break;
   case ATTACK_TYPE_RANGED:
+    wielded = find_equipped_launcher(ch, NULL);
+    break;
   case ATTACK_TYPE_PRIMARY:
   case ATTACK_TYPE_PRIMARY_SNEAK:
     wielded = GET_EQ(ch, WEAR_WIELD_1);

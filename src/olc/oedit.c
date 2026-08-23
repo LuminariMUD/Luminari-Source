@@ -1085,8 +1085,10 @@ static void oedit_disp_val1_menu(struct descriptor_data *d)
     oedit_disp_val2_menu(d);
     break;
   case ITEM_CONTAINER:
-  case ITEM_AMMO_POUCH:
     write_to_output(d, "Max weight to contain (-1 for unlimited) : ");
+    break;
+  case ITEM_AMMO_POUCH:
+    write_to_output(d, "Max number of projectiles (-1 for unlimited) : ");
     break;
   case ITEM_DRINKCON:
   case ITEM_FOUNTAIN:
@@ -2670,6 +2672,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       return;
 
     case ITEM_CONTAINER:
+      GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), -1, MAX_CONTAINER_SIZE);
+      break;
+
     case ITEM_AMMO_POUCH:
       GET_OBJ_VAL(OLC_OBJ(d), 0) = LIMIT(atoi(arg), -1, MAX_CONTAINER_SIZE);
       break;

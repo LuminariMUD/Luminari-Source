@@ -51,6 +51,7 @@ bool has_physical_projectile(int attack_type);
 bool is_launcher_weapon(const struct obj_data *obj);
 bool is_throwable_weapon(struct char_data *ch, const struct obj_data *obj);
 bool can_store_projectile_in_ammo_pouch(struct char_data *ch, const struct obj_data *obj);
+bool ammo_pouch_has_capacity(const struct obj_data *ammo_pouch);
 
 struct obj_data *find_equipped_launcher(struct char_data *ch, int *wear_slot);
 struct obj_data *find_equipped_throwable(struct char_data *ch, int *wear_slot);
