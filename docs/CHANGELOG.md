@@ -11,19 +11,19 @@
   d20 checks, ability scores, and the existing feat and daily-use machinery.
   - `shadow` covertly tails a target between rooms. Taking up and keeping the trail are contested
     stealth checks against the mark's perception, re-rolled on every room the mark leaves. It is
-    learnable by any class with 5 ranks of stealth.
+    learnable by any class with 21 ranks of stealth.
   - `calm` chants to end every fight in the room, resisted with a will save against
     10 + half level + charisma bonus. Limited daily uses; mind-affecting immunity ignores it.
-    It is learnable by any class with charisma 13.
+    It is learnable by any class with charisma 19.
   - `camp` pitches a wilderness campsite on a survival check set by terrain and weather, speeding
     hitpoint and movement recovery for the group while they rest and making the site their return
     point. It is learnable by any class with 3 ranks of survival.
   - `garrote` strangles a target that cannot see you from a hide-then-sneak posture, leaving it
-    silenced and staggered on a failed fortitude save. It is learnable by any class with 8 ranks of
-    stealth and base attack bonus 4.
+    silenced and staggered on a failed fortitude save. It is learnable by any class with 14 ranks
+    of stealth and base attack bonus 8.
   - `accompany` lets a grouped performer back another performer's song, raising its effectiveness
     and taking the song over when the lead falters. It is learnable by any class with 5 ranks of
-    perform.
+    perform, and bards gain it for free at level 2.
 - Added flat-file and database help for all five, plus an idempotent SQL migration and verifier.
 
 #### Fixed
@@ -41,8 +41,9 @@
 - Added production-linked CuTest coverage for camp recovery gating, accompaniment bonus
   eligibility, performance handoff with and without the song's feat, tail breaks on lost stealth
   and on combat, both-direction link cleanup, Garrote hand layouts, Calm's daily-use registry,
-  exact command wiring, class neutrality, and both maintained help sources. The full
-  fixture-backed production-linked suite passes all 853 cases.
+  exact command wiring, prerequisite values, the Bard Accompany grant, normal learnability, and
+  both maintained help sources. The full
+  fixture-backed production-linked suite passes all 854 cases.
 
 ### Native thrown weapons
 

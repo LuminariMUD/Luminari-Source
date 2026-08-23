@@ -5979,11 +5979,11 @@ void assign_feats(void)
         "instead of starting one of your own.  Your perform ability and instrument raise the "
         "quality of the lead performance, and if the lead falters you take the song over rather "
         "than letting it end.  Type 'accompany' alone to stop accompanying.");
-  feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 5);
-  feat_prereq_attribute(FEAT_CALM, AB_CHA, 13);
+  feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 21);
+  feat_prereq_attribute(FEAT_CALM, AB_CHA, 19);
   feat_prereq_ability(FEAT_ESTABLISH_CAMP, ABILITY_SURVIVAL, 3);
-  feat_prereq_ability(FEAT_GARROTE, ABILITY_STEALTH, 8);
-  feat_prereq_bab(FEAT_GARROTE, 4);
+  feat_prereq_ability(FEAT_GARROTE, ABILITY_STEALTH, 14);
+  feat_prereq_bab(FEAT_GARROTE, 8);
   feat_prereq_ability(FEAT_ACCOMPANY, ABILITY_PERFORM, 5);
 
   /* self explanatory */

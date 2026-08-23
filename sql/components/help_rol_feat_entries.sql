@@ -10,7 +10,7 @@ VALUES ('ACCOMPANY', 'Accompany
 Usage: accompany <performer>
        accompany
 
-Requires: the accompany feat (any class; 5 ranks of perform)
+Requires: the accompany feat (any class; 5 ranks of perform); bards gain it for free at level 2
 
 Instead of leading a song of your own, you back a grouped performer''s song in
 your room. Your perform ability and instrument raise the quality of every verse
@@ -32,7 +32,7 @@ VALUES ('CALM', 'Calm
 
 Usage: calm
 
-Requires: the calm feat (any class; charisma 13)
+Requires: the calm feat (any class; charisma 19)
 Action:   Standard Action
 Uses:     limited per day, at least 1 plus your charisma bonus
 
@@ -79,7 +79,7 @@ VALUES ('GARROTE', 'Garrote
 
 Usage: garrote <target>
 
-Requires: the garrote feat (any class; 8 ranks of stealth and BAB 4), sneaking
+Requires: the garrote feat (any class; 14 ranks of stealth and BAB 8), sneaking
           and hiding (in that order), and at least one free hand
 Action:   Standard and Move Action
 
@@ -106,7 +106,7 @@ VALUES ('SHADOW', 'Shadow
 Usage: shadow <target>
        shadow
 
-Requires: the shadow feat (any class; 5 ranks of stealth), sneaking
+Requires: the shadow feat (any class; 21 ranks of stealth), sneaking
 
 You covertly tail a target from room to room. Taking up the trail is a contested
 stealth check against your mark''s perception, and the contest is repeated every

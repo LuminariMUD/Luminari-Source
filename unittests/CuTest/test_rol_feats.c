@@ -437,6 +437,12 @@ void TestConvertedRolFeatHelpSourcesAreComplete(CuTest *tc)
                                         "GARROTE STRANGLE", "SHADOW TAIL"};
   static const char *database_tags[] = {"VALUES ('ACCOMPANY'", "VALUES ('CALM'", "VALUES ('CAMP'",
                                         "VALUES ('GARROTE'", "VALUES ('SHADOW'"};
+  static const char *prerequisite_text[] = {"5 ranks of perform",
+                                            "free at level 2",
+                                            "charisma 19",
+                                            "3 ranks of survival",
+                                            "14 ranks of stealth and BAB 8",
+                                            "21 ranks of stealth"};
   size_t i = 0;
 
   for (i = 0; i < sizeof(flat_keywords) / sizeof(flat_keywords[0]); i++)
@@ -446,18 +452,80 @@ void TestConvertedRolFeatHelpSourcesAreComplete(CuTest *tc)
     CuAssertTrue(
         tc, rol_feat_file_contains("sql/components/help_rol_feat_entries.sql", database_tags[i]));
 
+  for (i = 0; i < sizeof(prerequisite_text) / sizeof(prerequisite_text[0]); i++)
+  {
+    CuAssertTrue(tc, rol_feat_file_contains("lib/text/help/help.hlp", prerequisite_text[i]));
+    CuAssertTrue(tc, rol_feat_file_contains("sql/components/help_rol_feat_entries.sql",
+                                            prerequisite_text[i]));
+  }
+
   CuAssertTrue(tc, rol_feat_file_contains("sql/components/verify_help_rol_feat_entries.sql",
                                           "rol_feat_content"));
   CuAssertTrue(tc, rol_feat_file_contains("sql/components/verify_help_rol_feat_entries.sql",
                                           "rol_feat_command_keyword_owners"));
+  CuAssertTrue(tc, rol_feat_file_contains("sql/components/help_rol_feat_entries.sql",
+                                          "bards gain it for free at level 2"));
 }
 
-/* Converted RoL skills are selected normally and never granted by a class. */
-void TestConvertedRolFeatsAreClassNeutralAndLearnable(CuTest *tc)
+static int rol_feat_prerequisite_count(int feat_num)
+{
+  struct feat_prerequisite *prereq = NULL;
+  int count = 0;
+
+  for (prereq = feat_list[feat_num].prerequisite_list; prereq != NULL; prereq = prereq->next)
+    count++;
+
+  return count;
+}
+
+static bool rol_feat_has_prerequisite(int feat_num, int prerequisite_type, int value0, int value1)
+{
+  struct feat_prerequisite *prereq = NULL;
+
+  for (prereq = feat_list[feat_num].prerequisite_list; prereq != NULL; prereq = prereq->next)
+  {
+    if (prereq->prerequisite_type == prerequisite_type && prereq->values[0] == value0 &&
+        prereq->values[1] == value1)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+/* Converted feat selection gates stay aligned with their intended advancement bands. */
+void TestConvertedRolFeatPrerequisitesAreExact(CuTest *tc)
+{
+  if (feat_list[FEAT_SHADOW].name == NULL)
+    assign_feats();
+
+  CuAssertIntEquals(tc, 1, rol_feat_prerequisite_count(FEAT_SHADOW));
+  CuAssertTrue(tc,
+               rol_feat_has_prerequisite(FEAT_SHADOW, FEAT_PREREQ_ABILITY, ABILITY_STEALTH, 21));
+
+  CuAssertIntEquals(tc, 1, rol_feat_prerequisite_count(FEAT_CALM));
+  CuAssertTrue(tc, rol_feat_has_prerequisite(FEAT_CALM, FEAT_PREREQ_ATTRIBUTE, AB_CHA, 19));
+
+  CuAssertIntEquals(tc, 1, rol_feat_prerequisite_count(FEAT_ESTABLISH_CAMP));
+  CuAssertTrue(
+      tc, rol_feat_has_prerequisite(FEAT_ESTABLISH_CAMP, FEAT_PREREQ_ABILITY, ABILITY_SURVIVAL, 3));
+
+  CuAssertIntEquals(tc, 2, rol_feat_prerequisite_count(FEAT_GARROTE));
+  CuAssertTrue(tc,
+               rol_feat_has_prerequisite(FEAT_GARROTE, FEAT_PREREQ_ABILITY, ABILITY_STEALTH, 14));
+  CuAssertTrue(tc, rol_feat_has_prerequisite(FEAT_GARROTE, FEAT_PREREQ_BAB, 8, 0));
+
+  CuAssertIntEquals(tc, 1, rol_feat_prerequisite_count(FEAT_ACCOMPANY));
+  CuAssertTrue(tc,
+               rol_feat_has_prerequisite(FEAT_ACCOMPANY, FEAT_PREREQ_ABILITY, ABILITY_PERFORM, 5));
+}
+
+/* All five feats remain learnable; only bards receive Accompany for free. */
+void TestConvertedRolFeatsAreNormallyLearnableWithExactClassGrants(CuTest *tc)
 {
   static const int feats[] = {FEAT_SHADOW, FEAT_CALM, FEAT_ESTABLISH_CAMP, FEAT_GARROTE,
                               FEAT_ACCOMPANY};
   struct class_feat_assign *assignment;
+  int accompany_assignments = 0;
   size_t i;
   int class_num;
 
@@ -477,9 +545,18 @@ void TestConvertedRolFeatsAreClassNeutralAndLearnable(CuTest *tc)
       for (assignment = class_list[class_num].featassign_list; assignment != NULL;
            assignment = assignment->next)
       {
-        CuAssert(tc, "converted RoL feat unexpectedly assigned by a class",
-                 assignment->feat_num != feats[i]);
+        if (assignment->feat_num != feats[i])
+          continue;
+
+        CuAssertIntEquals(tc, FEAT_ACCOMPANY, feats[i]);
+        CuAssertIntEquals(tc, CLASS_BARD, class_num);
+        CuAssertTrue(tc, assignment->is_classfeat);
+        CuAssertIntEquals(tc, 2, assignment->level_received);
+        CuAssertTrue(tc, !assignment->stacks);
+        accompany_assignments++;
       }
     }
   }
+
+  CuAssertIntEquals(tc, 1, accompany_assignments);
 }

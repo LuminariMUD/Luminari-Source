@@ -53,24 +53,25 @@ WHERE (UPPER(keyword) = 'ACCOMPANY' AND BINARY help_tag <> 'ACCOMPANY')
 SELECT
   'rol_feat_content' AS check_name,
   COUNT(*) AS actual,
-  17 AS expected,
-  IF(COUNT(*) = 17, 'PASS', 'FAIL') AS result
+  18 AS expected,
+  IF(COUNT(*) = 18, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT 'ACCOMPANY' AS tag, 'any class; 5 ranks of perform' AS required_text
+  UNION ALL SELECT 'ACCOMPANY', 'bards gain it for free at level 2'
   UNION ALL SELECT 'ACCOMPANY', 'grouped performer'
   UNION ALL SELECT 'ACCOMPANY', 'take the song over'
-  UNION ALL SELECT 'CALM', 'any class; charisma 13'
+  UNION ALL SELECT 'CALM', 'any class; charisma 19'
   UNION ALL SELECT 'CALM', 'at least 1 plus your charisma bonus'
   UNION ALL SELECT 'CALM', 'mind-affecting'
   UNION ALL SELECT 'CAMP', 'any class; 3 ranks of survival'
   UNION ALL SELECT 'CAMP', '50 percent faster'
   UNION ALL SELECT 'CAMP', 'return point'
-  UNION ALL SELECT 'GARROTE', 'any class; 8 ranks of stealth and BAB 4'
+  UNION ALL SELECT 'GARROTE', 'any class; 14 ranks of stealth and BAB 8'
   UNION ALL SELECT 'GARROTE', 'at least one free hand'
   UNION ALL SELECT 'GARROTE', 'more than one size category smaller'
   UNION ALL SELECT 'GARROTE', 'silenced and staggered'
-  UNION ALL SELECT 'SHADOW', 'any class; 5 ranks of stealth'
+  UNION ALL SELECT 'SHADOW', 'any class; 21 ranks of stealth'
   UNION ALL SELECT 'SHADOW', 'contested stealth check'
   UNION ALL SELECT 'SHADOW', 'entering combat'
   UNION ALL SELECT 'SHADOW', 'without joining a group'

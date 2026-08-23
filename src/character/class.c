@@ -6240,6 +6240,7 @@ void load_class_list(void)
   feat_assignment(CLASS_BARD, FEAT_COUNTERSONG, Y, 1, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_HEALING, Y, 1, N);
   feat_assignment(CLASS_BARD, FEAT_DANCE_OF_PROTECTION, Y, 2, N);
+  feat_assignment(CLASS_BARD, FEAT_ACCOMPANY, Y, 2, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_FOCUSED_MIND, Y, 3, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_HEROISM, Y, 5, N);
   feat_assignment(CLASS_BARD, FEAT_ORATORY_OF_REJUVENATION, Y, 7, N);
