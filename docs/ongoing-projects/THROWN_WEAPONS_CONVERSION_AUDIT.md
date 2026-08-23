@@ -107,8 +107,12 @@ Run it with the ignored canonical reference corpus installed at
 `EXAMPLE/RealmsOfLuminari`. The test asserts the three dart records, the empty-corpus blowgun path,
 all 44 quivers, all 42 archer outcomes, numeric/header drift, and zero undefined types.
 
-Applying regenerated data is intentionally a separate guarded Phase 8 operation. This worktree has
-neither `lib/.env` nor `lib/mysql_config`, and its indexed world is the minimal artifact fixture.
-Those are required safety inputs, not files to synthesize or copy. A Phase 8 bundle must be sealed,
-backed up, applied, and verified in the established development checkout before any production
-release is considered.
+The guarded Phase 8 operation was completed against the established development checkout after an
+independently verified snapshot of the accepted Phase 7 baseline. Final release run
+`rol-phase8-release-eaebc9ec674e09b8` assembled 1,207 paths from 258 packages and 71,680 records at
+candidate hash `3ff3bae40d1dfc87c26758e8eb5d2b7bd268228917b8f4c566ddb3b38f7bfaa7`. Its repeated apply was a
+no-op, and completion run `rol-phase8-complete-880367fcc005c3ee` passed the candidate-tree,
+documentation, runtime-code, validation, and idempotency gates. Live development QA then verified
+the converted throwing quiver and natural `MOB_ROL_ARCHER` thornslinger behavior. No production
+operation was performed; production still requires the repository's normal explicit release
+approval.

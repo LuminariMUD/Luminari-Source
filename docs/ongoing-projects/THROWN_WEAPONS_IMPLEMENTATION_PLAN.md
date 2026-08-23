@@ -1,7 +1,6 @@
 # Thrown Weapons Implementation Plan
 
-- Status: Guarded development data applied; final live QA is in progress after a depletion
-  regression fix
+- Status: Complete
 - Analysis date: 2026-08-23
 - Environment reviewed: development
 
@@ -781,6 +780,55 @@ Next, commit and install the clean fix checkpoint, recapture candidate boot evid
 8 for the new binary identity, and repeat the complete live depletion and regression matrix before
 closing either remaining definition-of-done item.
 
+### 2026-08-23: Final Phase 8 and live-QA completion checkpoint
+
+Completed the corrected release and every remaining development gate:
+
+- committed and pushed clean source checkpoint
+  `72c86a2ef1816a64d641a2b0682b8f4fc818d892`, then built and installed it with dirty state 0,
+  ELF build ID `9dcef9807e303bc3686bd00706a16aa2f7deb50f`, and SHA-256
+  `aa9dc0cbace11da92fa90395ada7098216f2ca6cbd4fe4faf307c1dbd4fdb261`;
+- reran the root production-linked suite with 824 passing tests, followed it with `make install`,
+  and confirmed that no root-level `luminari` artifact remained;
+- reran the complete world-tool suite with 491 passes and 34 expected optional-corpus skips, the
+  focused protocol suite with 29 passes, and exact-binary candidate syntax and bounded runtime
+  boots through normal termination;
+- sealed ready-to-apply release `rol-phase8-release-eaebc9ec674e09b8` from 258 packages, 71,680
+  records, and 1,207 paths at candidate hash
+  `3ff3bae40d1dfc87c26758e8eb5d2b7bd268228917b8f4c566ddb3b38f7bfaa7`, with every code,
+  runtime, preservation, connection, mechanics-isolation, and read-only persistence gate passing;
+- verified the final persistence audit across 33 distinct RoL VNUMs and 35 database rows with no
+  missing or duplicate resolutions;
+- repeated the guarded development apply as a 1,207-path no-op and sealed completion run
+  `rol-phase8-complete-880367fcc005c3ee`, whose acceptance record reports complete,
+  documentation pass, candidate-tree match, unchanged runtime code, and repeat-apply no-op;
+- installed that exact binary in the authoritative development checkout and exercised a five-shot
+  two-pouch, two-inventory, wielded-anchor-last depletion. Exactly five distinct thorns moved,
+  both combatants reported no opponent after exhaustion, no unarmed fallback occurred, and
+  `collect` recovered exactly five objects;
+- exercised a mixed equipped pouch by firing its arrow with a composite longbow and then throwing
+  all three matching thorns, and verified that the same mixed arrow/throwable pouch survived a
+  logout and reconnect;
+- exercised a one-adjacent-room, wielded-anchor-only throw, critical and poison handling,
+  melee-by-default dart use, room and corpse collection, and peaceful-room rejection without
+  detaching or consuming the anchor;
+- observed a naturally reset converted thornslinger, equipped from the converted zone with a
+  sharp-thorn anchor and knotted-vine throwing quiver, throw three reserve darts across an exit;
+  a second naturally converted throwable-only archer also threw its equipped dagger;
+- verified all six authoritative player-help routes for `THROW`, `THROWN-WEAPONS`, `AMMO`,
+  `QUIVERS`, `FIRE`, and `COLLECT`; and
+- stopped the development server through `autorun.sh`; it exited with code 0 and logged normal
+  termination. The runtime rewrote only the generated timestamp in `world.artifact`; its semantic
+  rows remained byte-identical to the previously verified candidate state.
+
+The live passes cover player command integration, converted content, persistence, source order,
+launcher coexistence, adjacent targeting, collection, and shutdown behavior. Deterministic
+production-linked cases cover the forced defense, Returning, Snatch, carry-capacity, death,
+extraction, instance-identity, anchor-change, dual-wield priority, and idempotent-finalization
+branches that are not reliably induced in a live session. The complete 824-test regression run
+covers the existing launcher, reload, feat, melee, OEDIT, persistence, and world-loading surfaces.
+No production operation or protected local configuration change was performed.
+
 ## 10. Definition of done
 
 The feature is complete only when all of the following are true:
@@ -795,12 +843,12 @@ The feature is complete only when all of the following are true:
 - [x] Dart and blowgun are separate append-only weapon profiles with correct melee/launcher
       behavior and converter mappings.
 - [x] Mixed ammo pouches work for launchers and thrown weapons and survive persistence.
-- [ ] Converted throwing quivers and `MOB_ROL_ARCHER` throwers work in the development world.
+- [x] Converted throwing quivers and `MOB_ROL_ARCHER` throwers work in the development world.
 - [x] Existing fire, reload, autofire, autoreload, archery feats, and missile collection regressions
       pass.
 - [x] Root `make test` passes, `make install` follows it, and no root `luminari` artifact remains.
 - [x] Converter tests, SQL help verification, and `git diff --check` pass.
-- [ ] The guarded development data apply and manual development QA matrix pass.
+- [x] The guarded development data apply and manual development QA matrix pass.
 - [x] `lib/text/help/help.hlp`, database help components, OEDIT guide, combat documentation, and
       changelog are updated together.
 - [x] No protected local header, credential file, or production environment was modified.
