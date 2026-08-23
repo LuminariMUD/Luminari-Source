@@ -246,13 +246,26 @@ void Test_upstream_string_comparison_and_pruning(CuTest *tc)
   char crlf[] = "hello\r\n";
   char lf[] = "hello\n";
   char repeated[] = "hi\r\n\r\n";
+  char empty[] = "";
+  char cr_only[] = "\r\r";
+  char lf_only[] = "\n\n";
+  char newlines_only[] = "\r\n\r\n";
 
   prune_crlf(crlf);
   prune_crlf(lf);
   prune_crlf(repeated);
+  prune_crlf(empty);
+  prune_crlf(cr_only);
+  prune_crlf(lf_only);
+  prune_crlf(newlines_only);
+  prune_crlf(NULL);
   CuAssertStrEquals(tc, "hello", crlf);
   CuAssertStrEquals(tc, "hello", lf);
   CuAssertStrEquals(tc, "hi", repeated);
+  CuAssertStrEquals(tc, "", empty);
+  CuAssertStrEquals(tc, "", cr_only);
+  CuAssertStrEquals(tc, "", lf_only);
+  CuAssertStrEquals(tc, "", newlines_only);
 
   CuAssertIntEquals(tc, 0, str_cmp("Hello", "hello"));
   CuAssertTrue(tc, str_cmp("a", "b") < 0);
@@ -512,6 +525,128 @@ void Test_upstream_text_measurement_helpers(CuTest *tc)
   CuAssertIntEquals(tc, 5, count_non_protocol_chars("hello"));
   CuAssertIntEquals(tc, 5, count_non_protocol_chars("\r\nhello"));
   CuAssertIntEquals(tc, 2, count_non_protocol_chars("@[bold]hi"));
+  CuAssertIntEquals(tc, 0, count_non_protocol_chars(NULL));
+  CuAssertIntEquals(tc, 0, count_non_protocol_chars("@"));
+  CuAssertIntEquals(tc, 0, count_non_protocol_chars("\t"));
+  CuAssertIntEquals(tc, 0, count_non_protocol_chars("@["));
+  CuAssertIntEquals(tc, 0, count_non_protocol_chars("@[unterminated"));
+}
+
+static bool read_upstream_test_file(const char *path, char *buffer, size_t buffer_size)
+{
+  FILE *file;
+  size_t length;
+
+  if (path == NULL || buffer == NULL || buffer_size == 0 || !(file = fopen(path, "r")))
+    return false;
+  length = fread(buffer, 1, buffer_size - 1, file);
+  buffer[length] = '\0';
+  if (ferror(file) || fclose(file) != 0)
+    return false;
+  return true;
+}
+
+void Test_finish_file_save_replaces_only_after_durable_success(CuTest *tc)
+{
+  char directory[] = "/tmp/luminari-file-save-XXXXXX";
+  char temporary_path[PATH_MAX];
+  char destination_path[PATH_MAX];
+  char buffer[32];
+  FILE *file;
+
+  CuAssertPtrNotNull(tc, mkdtemp(directory));
+  snprintf(temporary_path, sizeof(temporary_path), "%s/candidate.tmp", directory);
+  snprintf(destination_path, sizeof(destination_path), "%s/live.dat", directory);
+
+  file = fopen(destination_path, "w");
+  CuAssertPtrNotNull(tc, file);
+  CuAssertTrue(tc, fputs("old", file) != EOF);
+  CuAssertIntEquals(tc, 0, fclose(file));
+
+  file = fopen(temporary_path, "w");
+  CuAssertPtrNotNull(tc, file);
+  CuAssertTrue(tc, fputs("new", file) != EOF);
+  CuAssertTrue(tc, finish_file_save(file, temporary_path, destination_path));
+  CuAssertTrue(tc, access(temporary_path, F_OK) != 0);
+  CuAssertTrue(tc, read_upstream_test_file(destination_path, buffer, sizeof(buffer)));
+  CuAssertStrEquals(tc, "new", buffer);
+
+  unlink(destination_path);
+  rmdir(directory);
+}
+
+void Test_finish_file_save_preserves_live_and_temporary_files_on_failure(CuTest *tc)
+{
+  char directory[] = "/tmp/luminari-file-save-failure-XXXXXX";
+  char actual_temporary_path[PATH_MAX];
+  char missing_temporary_path[PATH_MAX];
+  char destination_path[PATH_MAX];
+  char buffer[32];
+  FILE *file;
+
+  CuAssertPtrNotNull(tc, mkdtemp(directory));
+  snprintf(actual_temporary_path, sizeof(actual_temporary_path), "%s/candidate.tmp", directory);
+  snprintf(missing_temporary_path, sizeof(missing_temporary_path), "%s/missing.tmp", directory);
+  snprintf(destination_path, sizeof(destination_path), "%s/live.dat", directory);
+
+  file = fopen(destination_path, "w");
+  CuAssertPtrNotNull(tc, file);
+  CuAssertTrue(tc, fputs("old", file) != EOF);
+  CuAssertIntEquals(tc, 0, fclose(file));
+
+  file = fopen(actual_temporary_path, "w");
+  CuAssertPtrNotNull(tc, file);
+  CuAssertTrue(tc, fputs("candidate", file) != EOF);
+  CuAssertTrue(tc, !finish_file_save(file, missing_temporary_path, destination_path));
+  CuAssertTrue(tc, access(actual_temporary_path, F_OK) == 0);
+  CuAssertTrue(tc, read_upstream_test_file(destination_path, buffer, sizeof(buffer)));
+  CuAssertStrEquals(tc, "old", buffer);
+  CuAssertTrue(tc, read_upstream_test_file(actual_temporary_path, buffer, sizeof(buffer)));
+  CuAssertStrEquals(tc, "candidate", buffer);
+
+  unlink(actual_temporary_path);
+  unlink(destination_path);
+  rmdir(directory);
+}
+
+void Test_finish_file_save_preserves_files_on_write_failure(CuTest *tc)
+{
+#ifdef CIRCLE_WINDOWS
+  CuAssertTrue(tc, TRUE);
+#else
+  char directory[] = "/tmp/luminari-file-save-write-failure-XXXXXX";
+  char temporary_path[PATH_MAX];
+  char destination_path[PATH_MAX];
+  char buffer[32];
+  FILE *file;
+
+  CuAssertPtrNotNull(tc, mkdtemp(directory));
+  snprintf(temporary_path, sizeof(temporary_path), "%s/candidate.tmp", directory);
+  snprintf(destination_path, sizeof(destination_path), "%s/live.dat", directory);
+
+  file = fopen(destination_path, "w");
+  CuAssertPtrNotNull(tc, file);
+  CuAssertTrue(tc, fputs("old", file) != EOF);
+  CuAssertIntEquals(tc, 0, fclose(file));
+
+  file = fopen(temporary_path, "w");
+  CuAssertPtrNotNull(tc, file);
+  CuAssertTrue(tc, fputs("candidate", file) != EOF);
+  CuAssertIntEquals(tc, 0, fclose(file));
+
+  file = fopen("/dev/full", "w");
+  CuAssertPtrNotNull(tc, file);
+  CuAssertTrue(tc, fputs("unwritable", file) != EOF);
+  CuAssertTrue(tc, !finish_file_save(file, temporary_path, destination_path));
+  CuAssertTrue(tc, read_upstream_test_file(destination_path, buffer, sizeof(buffer)));
+  CuAssertStrEquals(tc, "old", buffer);
+  CuAssertTrue(tc, read_upstream_test_file(temporary_path, buffer, sizeof(buffer)));
+  CuAssertStrEquals(tc, "candidate", buffer);
+
+  unlink(temporary_path);
+  unlink(destination_path);
+  rmdir(directory);
+#endif
 }
 
 void Test_upstream_index_helpers(CuTest *tc)
@@ -704,4 +839,104 @@ void Test_upstream_script_formatter_nested_blocks(CuTest *tc)
              "end\r\n";
   CuAssertStrEquals(tc, expected, script);
   free(script);
+}
+
+void Test_upstream_script_formatter_requires_complete_control_tokens(CuTest *tc)
+{
+  const char *source = "ending\r\n"
+                       "done_work\r\n"
+                       "elsewhere\r\n"
+                       "casefold value\r\n"
+                       "defaulting\r\n"
+                       "breakfast\r\n";
+  char error[MAX_INPUT_LENGTH];
+  char *formatted = NULL;
+
+  CuAssertTrue(tc, dg_format_script_text(source, MAX_CMD_LENGTH, &formatted, error, sizeof(error)));
+  CuAssertPtrNotNull(tc, formatted);
+  CuAssertStrEquals(tc, source, formatted);
+  free(formatted);
+}
+
+void Test_upstream_script_formatter_rejects_invalid_structure_without_mutation(CuTest *tc)
+{
+  struct descriptor_data descriptor = {0};
+  char *script;
+  char *original;
+
+  script = strdup("if %enabled%\r\nsay yes\r\n");
+  original = strdup(script);
+  CuAssertPtrNotNull(tc, script);
+  CuAssertPtrNotNull(tc, original);
+  descriptor.str = &script;
+  descriptor.max_str = MAX_CMD_LENGTH;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+
+  CuAssertTrue(tc, !format_script(&descriptor));
+  CuAssertStrEquals(tc, original, script);
+
+  ProtocolDestroy(descriptor.pProtocol);
+  free(original);
+  free(script);
+}
+
+void Test_upstream_script_formatter_rejects_unmatched_and_incomplete_controls(CuTest *tc)
+{
+  static const char *const invalid_scripts[] = {"end\r\n",
+                                                "done\r\n",
+                                                "else\r\n",
+                                                "case value\r\n",
+                                                "default\r\n",
+                                                "break\r\n",
+                                                "if\r\n",
+                                                "elseif value\r\n",
+                                                "while\r\n",
+                                                "switch\r\n",
+                                                "switch value\r\ndefault\r\ndefault\r\nend\r\n",
+                                                "if value\r\nelse\r\nelse\r\nend\r\n",
+                                                NULL};
+  char error[MAX_INPUT_LENGTH];
+  char *formatted;
+  int index;
+
+  for (index = 0; invalid_scripts[index] != NULL; index++)
+  {
+    formatted = NULL;
+    CuAssertTrue(tc, !dg_format_script_text(invalid_scripts[index], MAX_CMD_LENGTH, &formatted,
+                                            error, sizeof(error)));
+    CuAssertPtrEquals(tc, NULL, formatted);
+    CuAssertTrue(tc, *error != '\0');
+  }
+}
+
+void Test_upstream_script_formatter_preserves_depth_line_and_output_limits(CuTest *tc)
+{
+  char deep_script[MAX_CMD_LENGTH] = {'\0'};
+  char long_line[READ_SIZE + 2];
+  char error[MAX_INPUT_LENGTH];
+  char *formatted;
+  int index;
+
+  for (index = 0; index <= 200; index++)
+    strlcat(deep_script, "if 1\r\n", sizeof(deep_script));
+  formatted = NULL;
+  CuAssertTrue(tc, !dg_format_script_text(deep_script, sizeof(deep_script), &formatted, error,
+                                          sizeof(error)));
+  CuAssertPtrEquals(tc, NULL, formatted);
+
+  memset(long_line, 'x', sizeof(long_line) - 3);
+  long_line[sizeof(long_line) - 3] = '\r';
+  long_line[sizeof(long_line) - 2] = '\n';
+  long_line[sizeof(long_line) - 1] = '\0';
+  formatted = NULL;
+  CuAssertTrue(tc,
+               !dg_format_script_text(long_line, MAX_CMD_LENGTH, &formatted, error, sizeof(error)));
+  CuAssertPtrEquals(tc, NULL, formatted);
+
+  formatted = NULL;
+  CuAssertTrue(tc, !dg_format_script_text("if 1\r\nend\r\n", 8, &formatted, error, sizeof(error)));
+  CuAssertPtrEquals(tc, NULL, formatted);
 }

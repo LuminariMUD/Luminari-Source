@@ -456,13 +456,12 @@ int save_shops(zone_rnum zone_num)
     }
   }
   fprintf(shop_file, "$~\n");
-  fclose(shop_file);
   snprintf(oldname, sizeof(oldname), "%s/%d.shp", SHP_PREFIX, zone_table[zone_num].number);
-  remove(oldname);
-  rename(fname, oldname);
+  if (!finish_file_save(shop_file, fname, oldname))
+    return FALSE;
 
-  if (num_shops > 0)
-    create_world_index(zone_table[zone_num].number, "shp");
+  if (num_shops > 0 && !create_world_index(zone_table[zone_num].number, "shp"))
+    return FALSE;
 
   if (in_save_list(zone_table[zone_num].number, SL_SHP))
     remove_from_save_list(zone_table[zone_num].number, SL_SHP);

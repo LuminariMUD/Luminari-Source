@@ -1393,11 +1393,7 @@ void artifact_save(void)
     fprintf(fl, "\n");
   }
 
-  fclose(fl);
-
-  if (rename(temp_file, ARTIFACT_FILE) != 0)
-    log("SYSERR: artifact_save: failed to rename %s to %s", temp_file, ARTIFACT_FILE);
-  else
+  if (finish_file_save(fl, temp_file, ARTIFACT_FILE))
     artifact_dirty = FALSE;
 }
 

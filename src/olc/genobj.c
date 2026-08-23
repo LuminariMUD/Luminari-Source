@@ -438,10 +438,9 @@ int save_objects(zone_rnum zone_num)
 
   /* Write the final line, close the file. */
   fprintf(fp, "$~\n");
-  fclose(fp);
   snprintf(buf, sizeof(buf), "%s/%d.obj", OBJ_PREFIX, zone_table[zone_num].number);
-  remove(buf);
-  rename(filename, buf);
+  if (!finish_file_save(fp, filename, buf))
+    return FALSE;
 
   if (in_save_list(zone_table[zone_num].number, SL_OBJ))
     remove_from_save_list(zone_table[zone_num].number, SL_OBJ);

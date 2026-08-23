@@ -31647,9 +31647,9 @@ NESTED-IFS
    A nested if is an if statement contained within another if or if...else 
 statement. Nested if's allow the creation of a decision tree or flow chart
 of events with multiple conclusions. 
-   Always use /f to format and indent your trigger. This will warn you if you
-do not have the correct number of ifs to ends. 	RWARNING:	n multiple unmatched
-if/ends will crash us. Make sure everything lines up with /f before you test.
+   Always use /f to validate, format, and indent your trigger. It checks complete
+control words and matching if/end, while/done, and switch/end blocks. If a
+problem is found, the script is left unchanged so you can correct it safely.
  
 Example: 	RTSTAT 1490, 41000	n
 #31
@@ -34040,7 +34040,8 @@ Editor command formats: /<letter>
                 usage: /ra 'pattern' 'replacement'
 	n/s         -  saves the text and exits the editor.
 
-NOTE: /f and /fi in trigedit will auto indent your trigger. PLEASE USE IT.
+NOTE: /f and /fi in trigedit validate and auto indent your trigger. Invalid or
+incomplete block structure is reported and the script is left unchanged.
 
 Commands such as /r, /n, /e#, /i#, /d# are invaluable and will make your job
 much easier. For example, say you mistype "the" with "teh" in a 10 line

@@ -25,7 +25,7 @@
 /* local functions */
 static void trigedit_disp_menu(struct descriptor_data *d);
 static void trigedit_disp_types(struct descriptor_data *d);
-static void trigedit_create_index(int znum, const char *type);
+static int trigedit_create_index(int znum, const char *type);
 static void trigedit_setup_new(struct descriptor_data *d);
 
 /* Trigedit */
@@ -669,7 +669,6 @@ void trigedit_save(struct descriptor_data *d)
   }
 
   fprintf(trig_file, "$%c\n", STRING_TERMINATOR);
-  fclose(trig_file);
 
 #ifdef CIRCLE_MAC
   snprintf(buf, sizeof(buf), "%s:%d.trg", TRG_PREFIX, zone);
@@ -677,14 +676,21 @@ void trigedit_save(struct descriptor_data *d)
   snprintf(buf, sizeof(buf), "%s/%d.trg", TRG_PREFIX, zone);
 #endif
 
-  remove(buf);
-  rename(fname, buf);
+  if (!finish_file_save(trig_file, fname, buf))
+  {
+    write_to_output(d, "Trigger save failed; the previous file is unchanged.\r\n");
+    return;
+  }
 
+  if (!trigedit_create_index(zone, "trg"))
+  {
+    write_to_output(d, "Trigger data saved, but the index update failed.\r\n");
+    return;
+  }
   write_to_output(d, "Trigger saved to disk.\r\n");
-  trigedit_create_index(zone, "trg");
 }
 
-static void trigedit_create_index(int znum, const char *type)
+static int trigedit_create_index(int znum, const char *type)
 {
   FILE *newfile, *oldfile;
   char new_name[128], old_name[128];
@@ -700,12 +706,13 @@ static void trigedit_create_index(int znum, const char *type)
   if (!(oldfile = fopen(old_name, "r")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: DG_OLC: Failed to open %s", old_name);
-    return;
+    return FALSE;
   }
   else if (!(newfile = fopen_restricted(new_name, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: DG_OLC: Failed to open %s", new_name);
-    return;
+    fclose(oldfile);
+    return FALSE;
   }
 
   /* Index contents must be in order: search through the old file for the right
@@ -736,12 +743,11 @@ static void trigedit_create_index(int znum, const char *type)
     fprintf(newfile, "%s\n", buf);
   }
 
-  fclose(newfile);
   fclose(oldfile);
 
-  /* Out with the old, in with the new. */
-  remove(old_name);
-  rename(new_name, old_name);
+  if (!finish_file_save(newfile, new_name, old_name))
+    return FALSE;
+  return TRUE;
 }
 
 void dg_olc_script_copy(struct descriptor_data *d)
@@ -957,166 +963,360 @@ void trigedit_string_cleanup(struct descriptor_data *d, int terminator __attribu
   }
 }
 
-int format_script(struct descriptor_data *d)
+enum format_block_type
 {
-  enum format_block_type
-  {
-    FORMAT_BLOCK_IF,
-    FORMAT_BLOCK_WHILE,
-    FORMAT_BLOCK_SWITCH
-  };
-  struct format_block
-  {
-    enum format_block_type type;
-    int base_indent;
-  };
+  FORMAT_BLOCK_IF,
+  FORMAT_BLOCK_WHILE,
+  FORMAT_BLOCK_SWITCH
+};
+
+enum format_control_type
+{
+  FORMAT_CONTROL_NONE,
+  FORMAT_CONTROL_IF,
+  FORMAT_CONTROL_ELSEIF,
+  FORMAT_CONTROL_ELSE,
+  FORMAT_CONTROL_END,
+  FORMAT_CONTROL_WHILE,
+  FORMAT_CONTROL_DONE,
+  FORMAT_CONTROL_SWITCH,
+  FORMAT_CONTROL_CASE,
+  FORMAT_CONTROL_DEFAULT,
+  FORMAT_CONTROL_BREAK
+};
+
+struct format_block
+{
+  enum format_block_type type;
+  int base_indent;
+  int opening_line;
+  bool else_seen;
+  bool default_seen;
+};
+
 #define FORMAT_SCRIPT_MAX_NESTING 200
-  char nsc[MAX_CMD_LENGTH], *t, line[READ_SIZE];
-  char *formatted, *sc;
+
+static bool format_token_equals(const char *token, size_t token_length, const char *expected)
+{
+  return strlen(expected) == token_length && !strn_cmp(token, expected, token_length);
+}
+
+static enum format_control_type format_control_command(char **line, char **argument)
+{
+  char *command, *end;
+  size_t command_length;
+
+  skip_spaces(line);
+  command = *line;
+  end = command;
+  while (*end && !isspace((unsigned char)*end))
+    end++;
+  command_length = (size_t)(end - command);
+  *argument = end;
+  skip_spaces(argument);
+
+  if (format_token_equals(command, command_length, "if"))
+    return FORMAT_CONTROL_IF;
+  if (format_token_equals(command, command_length, "elseif"))
+    return FORMAT_CONTROL_ELSEIF;
+  if (format_token_equals(command, command_length, "else"))
+    return FORMAT_CONTROL_ELSE;
+  if (format_token_equals(command, command_length, "end"))
+    return FORMAT_CONTROL_END;
+  if (format_token_equals(command, command_length, "while"))
+    return FORMAT_CONTROL_WHILE;
+  if (format_token_equals(command, command_length, "done"))
+    return FORMAT_CONTROL_DONE;
+  if (format_token_equals(command, command_length, "switch"))
+    return FORMAT_CONTROL_SWITCH;
+  if (format_token_equals(command, command_length, "case"))
+    return FORMAT_CONTROL_CASE;
+  if (format_token_equals(command, command_length, "default"))
+    return FORMAT_CONTROL_DEFAULT;
+  if (format_token_equals(command, command_length, "break"))
+    return FORMAT_CONTROL_BREAK;
+  return FORMAT_CONTROL_NONE;
+}
+
+static bool format_control_requires_argument(enum format_control_type control)
+{
+  return control == FORMAT_CONTROL_IF || control == FORMAT_CONTROL_ELSEIF ||
+         control == FORMAT_CONTROL_WHILE || control == FORMAT_CONTROL_SWITCH ||
+         control == FORMAT_CONTROL_CASE;
+}
+
+static bool validate_script_structure(const char *source, char *error, size_t error_size)
+{
+  char *copy, *line, *argument;
   struct format_block blocks[FORMAT_SCRIPT_MAX_NESTING];
-  size_t len = 0, nlen = 0, llen = 0;
-  int block_top = -1, indent = 0, line_indent, line_num = 0, ret, scan;
+  enum format_control_type control;
+  int block_top = -1, line_number = 0, scan;
 
-  if (!d->str || !*d->str)
+  if (source == NULL || error == NULL || error_size == 0)
     return FALSE;
+  *error = '\0';
 
-  sc = strdup(*d->str); /* we work on a copy, because of strtok() */
-  if (!sc)
+  copy = strdup(source);
+  if (copy == NULL)
   {
-    write_to_output(d, "Out of memory, formatting aborted.\r\n");
+    strlcpy(error, "Out of memory while validating the script.", error_size);
     return FALSE;
   }
-  t = strtok(sc, "\n\r");
-  *nsc = '\0';
 
-  while (t)
+  for (line = strtok(copy, "\n\r"); line; line = strtok(NULL, "\n\r"))
   {
-    line_num++;
-    skip_spaces(&t);
-    line_indent = indent;
+    line_number++;
+    control = format_control_command(&line, &argument);
 
-    if (!strn_cmp(t, "end", 3))
+    if (format_control_requires_argument(control) && !*argument)
     {
+      snprintf(error, error_size, "Line %d: control command requires an argument.", line_number);
+      free(copy);
+      return FALSE;
+    }
+
+    switch (control)
+    {
+    case FORMAT_CONTROL_IF:
+    case FORMAT_CONTROL_WHILE:
+    case FORMAT_CONTROL_SWITCH:
+      if (block_top + 1 >= FORMAT_SCRIPT_MAX_NESTING)
+      {
+        snprintf(error, error_size, "Line %d: script nesting is too deep.", line_number);
+        free(copy);
+        return FALSE;
+      }
+      block_top++;
+      blocks[block_top].type = control == FORMAT_CONTROL_IF      ? FORMAT_BLOCK_IF
+                               : control == FORMAT_CONTROL_WHILE ? FORMAT_BLOCK_WHILE
+                                                                 : FORMAT_BLOCK_SWITCH;
+      blocks[block_top].base_indent = 0;
+      blocks[block_top].opening_line = line_number;
+      blocks[block_top].else_seen = false;
+      blocks[block_top].default_seen = false;
+      break;
+    case FORMAT_CONTROL_ELSEIF:
       if (block_top < 0 || blocks[block_top].type == FORMAT_BLOCK_WHILE)
       {
-        write_to_output(d, "Unmatched 'end' (line %d)!\r\n", line_num);
-        free(sc);
+        snprintf(error, error_size, "Line %d: 'elseif' without a matching 'if'.", line_number);
+        free(copy);
         return FALSE;
       }
-      line_indent = blocks[block_top].base_indent;
-      indent = line_indent;
-      block_top--;
-    }
-    else if (!strn_cmp(t, "done", 4))
-    {
-      if (block_top < 0 || blocks[block_top].type != FORMAT_BLOCK_WHILE)
+      if (blocks[block_top].type != FORMAT_BLOCK_IF || blocks[block_top].else_seen)
       {
-        write_to_output(d, "Unmatched 'done' (line %d)!\r\n", line_num);
-        free(sc);
+        snprintf(error, error_size, "Line %d: 'elseif' is not valid after 'else'.", line_number);
+        free(copy);
         return FALSE;
       }
-      line_indent = blocks[block_top].base_indent;
-      indent = line_indent;
-      block_top--;
-    }
-    else if (!strn_cmp(t, "else", 4))
-    {
+      break;
+    case FORMAT_CONTROL_ELSE:
       if (block_top < 0 || blocks[block_top].type != FORMAT_BLOCK_IF)
       {
-        write_to_output(d, "Unmatched 'else' or 'elseif' (line %d)!\r\n", line_num);
-        free(sc);
+        snprintf(error, error_size, "Line %d: 'else' without a matching 'if'.", line_number);
+        free(copy);
         return FALSE;
       }
-      line_indent = blocks[block_top].base_indent;
-      indent = line_indent + 1;
-    }
-    else if (!strn_cmp(t, "case", 4) || !strn_cmp(t, "default", 7))
-    {
+      if (blocks[block_top].else_seen)
+      {
+        snprintf(error, error_size, "Line %d: duplicate 'else'.", line_number);
+        free(copy);
+        return FALSE;
+      }
+      blocks[block_top].else_seen = true;
+      break;
+    case FORMAT_CONTROL_END:
+      if (block_top < 0 || blocks[block_top].type == FORMAT_BLOCK_WHILE)
+      {
+        snprintf(error, error_size, "Line %d: unmatched 'end'.", line_number);
+        free(copy);
+        return FALSE;
+      }
+      block_top--;
+      break;
+    case FORMAT_CONTROL_DONE:
+      if (block_top < 0 || blocks[block_top].type != FORMAT_BLOCK_WHILE)
+      {
+        snprintf(error, error_size, "Line %d: unmatched 'done'.", line_number);
+        free(copy);
+        return FALSE;
+      }
+      block_top--;
+      break;
+    case FORMAT_CONTROL_CASE:
+    case FORMAT_CONTROL_DEFAULT:
       if (block_top < 0 || blocks[block_top].type != FORMAT_BLOCK_SWITCH)
       {
-        write_to_output(d, "Case/default outside switch (line %d)!\r\n", line_num);
-        free(sc);
+        snprintf(error, error_size, "Line %d: 'case/default' outside a 'switch'.", line_number);
+        free(copy);
         return FALSE;
       }
-      line_indent = blocks[block_top].base_indent + 1;
-      indent = line_indent + 1;
-    }
-    else if (!strn_cmp(t, "break", 5))
-    {
+      if (control == FORMAT_CONTROL_CASE && blocks[block_top].default_seen)
+      {
+        snprintf(error, error_size, "Line %d: 'case' cannot follow 'default'.", line_number);
+        free(copy);
+        return FALSE;
+      }
+      if (control == FORMAT_CONTROL_DEFAULT)
+      {
+        if (blocks[block_top].default_seen)
+        {
+          snprintf(error, error_size, "Line %d: duplicate 'default'.", line_number);
+          free(copy);
+          return FALSE;
+        }
+        blocks[block_top].default_seen = true;
+      }
+      break;
+    case FORMAT_CONTROL_BREAK:
       for (scan = block_top; scan >= 0; scan--)
         if (blocks[scan].type == FORMAT_BLOCK_WHILE || blocks[scan].type == FORMAT_BLOCK_SWITCH)
           break;
       if (scan < 0)
       {
-        write_to_output(d, "Break not in a switch or while block (line %d)!\r\n", line_num);
-        free(sc);
+        snprintf(error, error_size, "Line %d: 'break' outside a 'while' or 'switch'.", line_number);
+        free(copy);
         return FALSE;
       }
+      break;
+    case FORMAT_CONTROL_NONE:
+      break;
     }
-    else if (!strn_cmp(t, "if ", 3) || !strn_cmp(t, "while ", 6) || !strn_cmp(t, "switch ", 7))
+  }
+
+  if (block_top >= 0)
+  {
+    const char *block_name = blocks[block_top].type == FORMAT_BLOCK_IF      ? "if"
+                             : blocks[block_top].type == FORMAT_BLOCK_WHILE ? "while"
+                                                                            : "switch";
+    snprintf(error, error_size, "Line %d: block '%s' was never closed.",
+             blocks[block_top].opening_line, block_name);
+    free(copy);
+    return FALSE;
+  }
+
+  free(copy);
+  return TRUE;
+}
+
+bool dg_format_script_text(const char *source, size_t max_length, char **formatted, char *error,
+                           size_t error_size)
+{
+  char nsc[MAX_CMD_LENGTH], *copy, *text, *argument, line[READ_SIZE];
+  struct format_block blocks[FORMAT_SCRIPT_MAX_NESTING];
+  enum format_control_type control;
+  size_t len = 0, nlen, llen;
+  int block_top = -1, indent = 0, line_indent, line_number = 0, ret;
+
+  if (formatted == NULL || error == NULL || error_size == 0)
+    return FALSE;
+  *formatted = NULL;
+  *error = '\0';
+
+  if (source == NULL || max_length == 0)
+  {
+    strlcpy(error, "The script or output limit is invalid.", error_size);
+    return FALSE;
+  }
+  if (!validate_script_structure(source, error, error_size))
+    return FALSE;
+
+  copy = strdup(source);
+  if (copy == NULL)
+  {
+    strlcpy(error, "Out of memory while formatting the script.", error_size);
+    return FALSE;
+  }
+  *nsc = '\0';
+
+  for (text = strtok(copy, "\n\r"); text; text = strtok(NULL, "\n\r"))
+  {
+    line_number++;
+    control = format_control_command(&text, &argument);
+    line_indent = indent;
+
+    if (control == FORMAT_CONTROL_END || control == FORMAT_CONTROL_DONE)
     {
-      if (block_top + 1 >= FORMAT_SCRIPT_MAX_NESTING)
-      {
-        write_to_output(d, "Script nesting is too deep (line %d)!\r\n", line_num);
-        free(sc);
-        return FALSE;
-      }
-      block_top++;
-      blocks[block_top].base_indent = line_indent;
-      if (!strn_cmp(t, "if ", 3))
-        blocks[block_top].type = FORMAT_BLOCK_IF;
-      else if (!strn_cmp(t, "while ", 6))
-        blocks[block_top].type = FORMAT_BLOCK_WHILE;
-      else
-        blocks[block_top].type = FORMAT_BLOCK_SWITCH;
+      line_indent = blocks[block_top].base_indent;
+      indent = line_indent;
+      block_top--;
+    }
+    else if (control == FORMAT_CONTROL_ELSE || control == FORMAT_CONTROL_ELSEIF)
+    {
+      line_indent = blocks[block_top].base_indent;
+      indent = line_indent + 1;
+    }
+    else if (control == FORMAT_CONTROL_CASE || control == FORMAT_CONTROL_DEFAULT)
+    {
+      line_indent = blocks[block_top].base_indent + 1;
       indent = line_indent + 1;
     }
 
     if (line_indent < 0 || (size_t)line_indent > (sizeof(line) - 1) / 2)
     {
-      write_to_output(d, "Line indentation is too deep (line %d)!\r\n", line_num);
-      free(sc);
+      snprintf(error, error_size, "Line %d: indentation is too deep.", line_number);
+      free(copy);
       return FALSE;
     }
 
     nlen = (size_t)line_indent * 2;
     memset(line, ' ', nlen);
     line[nlen] = '\0';
-    ret = snprintf(line + nlen, sizeof(line) - nlen, "%s\r\n", t);
+    ret = snprintf(line + nlen, sizeof(line) - nlen, "%s\r\n", text);
     if (ret < 0 || (size_t)ret >= sizeof(line) - nlen)
     {
-      write_to_output(d, "Line too long, formatting aborted (line %d).\r\n", line_num);
-      free(sc);
+      snprintf(error, error_size, "Line %d: line is too long.", line_number);
+      free(copy);
       return FALSE;
     }
     llen = (size_t)ret;
-    if (nlen + llen >= sizeof(nsc) - len || !d->max_str || len >= d->max_str ||
-        nlen + llen > d->max_str - len - 1)
+    if (nlen + llen >= sizeof(nsc) - len || len >= max_length || nlen + llen > max_length - len - 1)
     {
-      write_to_output(d, "String too long, formatting aborted\r\n");
-      free(sc);
+      strlcpy(error, "The formatted script would exceed the allowed limit.", error_size);
+      free(copy);
       return FALSE;
     }
     memcpy(nsc + len, line, nlen + llen + 1);
     len += nlen + llen;
-    t = strtok(NULL, "\n\r");
+
+    if (control == FORMAT_CONTROL_IF || control == FORMAT_CONTROL_WHILE ||
+        control == FORMAT_CONTROL_SWITCH)
+    {
+      block_top++;
+      blocks[block_top].base_indent = line_indent;
+      if (control == FORMAT_CONTROL_IF)
+        blocks[block_top].type = FORMAT_BLOCK_IF;
+      else if (control == FORMAT_CONTROL_WHILE)
+        blocks[block_top].type = FORMAT_BLOCK_WHILE;
+      else
+        blocks[block_top].type = FORMAT_BLOCK_SWITCH;
+      indent = line_indent + 1;
+    }
   }
 
-  if (block_top >= 0)
-    write_to_output(d, "Unmatched if, while or switch ignored.\r\n");
-
-  formatted = strdup(nsc);
-  if (!formatted)
+  *formatted = strdup(nsc);
+  free(copy);
+  if (*formatted == NULL)
   {
-    write_to_output(d, "Out of memory, formatting aborted.\r\n");
-    free(sc);
+    strlcpy(error, "Out of memory while formatting the script.", error_size);
+    return FALSE;
+  }
+  return TRUE;
+}
+
+int format_script(struct descriptor_data *d)
+{
+  char error[MAX_INPUT_LENGTH];
+  char *formatted;
+
+  if (d == NULL || d->str == NULL || *d->str == NULL)
+    return FALSE;
+  if (!dg_format_script_text(*d->str, d->max_str, &formatted, error, sizeof(error)))
+  {
+    write_to_output(d, "Script not formatted: %s\r\n", error);
     return FALSE;
   }
 
   free(*d->str);
   *d->str = formatted;
-  free(sc);
-
   return TRUE;
-#undef FORMAT_SCRIPT_MAX_NESTING
 }

@@ -1,5 +1,28 @@
 # Changelog
 
+## [Unreleased] - August 23, 2026
+
+### Upstream pull request audit remediation
+
+#### Fixed
+
+- Made `prune_crlf()` safe for NULL, empty, and newline-only strings, and stopped
+  `count_non_protocol_chars()` from reading past trailing protocol markers or unterminated
+  detailed protocol codes.
+- Added a shared durable file replacement path that checks buffered writes, flushes,
+  synchronization, close, and atomic replacement. OLC world, trigger, index, clan, mail,
+  artifact, changelog, and last-log saves now preserve the live file and temporary recovery
+  data on failure, retain dirty/save-list state, and report failure instead of false success.
+- Corrected DG Script formatting to recognize complete control tokens, validate matching
+  `if`/`end`, `while`/`done`, and `switch`/`end` structure before formatting, and leave the
+  editor buffer unchanged when validation or output bounds fail.
+
+#### Tests
+
+- Added production-linked CuTest coverage for string edge cases, durable-save success and
+  forced write/rename failures, DG token-prefix false positives, unmatched and unclosed
+  blocks, nesting depth, long lines, output limits, and non-mutation on validation failure.
+
 ## [Unreleased] - August 22, 2026
 
 ### RoL converter: ranged weapons, ammunition, and weapon parity

@@ -38,7 +38,7 @@ const char *const hlqedit_command = "CIOMADTXFKUSPE";
 
 /* this is ported from old circlemud 3.0 for exclusive usage
    for the questing system */
-void zedit_create_index(int znum)
+static int zedit_create_index(int znum)
 {
   FILE *newfile, *oldfile;
   char new_name[32], old_name[32];
@@ -56,13 +56,14 @@ void zedit_create_index(int znum)
   {
     snprintf(buf, sizeof(buf), "SYSERR: OLC: Failed to open %s", old_name);
     log("%s", buf);
-    return;
+    return FALSE;
   }
   else if (!(newfile = fopen_restricted(new_name, "w")))
   {
     snprintf(buf, sizeof(buf), "SYSERR: OLC: Failed to open %s", new_name);
     log("%s", buf);
-    return;
+    fclose(oldfile);
+    return FALSE;
   }
 
   /*
@@ -95,13 +96,10 @@ void zedit_create_index(int znum)
     fprintf(newfile, "%s\n", buf);
   }
 
-  fclose(newfile);
   fclose(oldfile);
-  /*
-   * Out with the old, in with the new.
-   */
-  remove(old_name);
-  rename(new_name, old_name);
+  if (!finish_file_save(newfile, new_name, old_name))
+    return FALSE;
+  return TRUE;
 }
 
 /* lists classes appropriate for hlqedit
@@ -245,7 +243,7 @@ void hlqedit_addtoout(struct descriptor_data *d, struct quest_command *qcom)
    save with a separate command - it is now changed to autosave to
    disk whenever its saved internally
  */
-void hlqedit_save_internally(struct descriptor_data *d)
+int hlqedit_save_internally(struct descriptor_data *d)
 {
   struct char_data *i = NULL;
   struct char_data *ch = NULL;
@@ -265,12 +263,12 @@ void hlqedit_save_internally(struct descriptor_data *d)
   ch->mob_specials.quest = OLC_HLQUEST(d);
 
   /* going ahead and saving to disk now -zusuk */
-  hlqedit_save_to_disk(OLC_ZNUM(d));
+  return hlqedit_save_to_disk(OLC_ZNUM(d));
 }
 
 /* writing the hlq file to disk
  */
-void hlqedit_save_to_disk(zone_rnum zone_num)
+int hlqedit_save_to_disk(zone_rnum zone_num)
 {
   FILE *fp;
   struct char_data *ch;
@@ -287,14 +285,14 @@ void hlqedit_save_to_disk(zone_rnum zone_num)
   if (zone_num == NOWHERE || zone_num > top_of_zone_table)
   {
     log("SYSERR: hlqedit_save_to_disk: Invalid real zone passed!");
-    return;
+    return FALSE;
   }
 
   snprintf(buf, sizeof(buf), "%s/%u.new", HLQST_PREFIX, zone_table[zone_num].number);
   if (!(fp = fopen_restricted(buf, "w+")))
   {
     log("SYSERR: OLC: Cannot open hl quest file!");
-    return;
+    return FALSE;
   }
 
   zone = zone_table[zone_num].number;
@@ -316,7 +314,7 @@ void hlqedit_save_to_disk(zone_rnum zone_num)
         {
           log("SYSERR: OLC: Cannot write hl quest file!\r\n");
           fclose(fp);
-          return;
+          return FALSE;
         }
         for (quest = ch->mob_specials.quest; quest; quest = quest->next)
         {
@@ -355,19 +353,17 @@ void hlqedit_save_to_disk(zone_rnum zone_num)
   }
 
   fprintf(fp, "$~\n");
-  fclose(fp);
   snprintf(buf2, sizeof(buf2), "%s/%d.hlq", HLQST_PREFIX, zone_table[zone_num].number);
-  /*
-   * We're fubar'd if we crash between the two lines below.
-   */
-  remove(buf2);
-  rename(buf, buf2);
+  if (!finish_file_save(fp, buf, buf2))
+    return FALSE;
 
   /*
    * Since quests were not in from start, make sure that they are in index file
    * index files now do not add duplicates (Vhaerun)
    */
-  zedit_create_index(zone_table[zone_num].number);
+  if (!zedit_create_index(zone_table[zone_num].number))
+    return FALSE;
+  return TRUE;
 }
 /*------------------------------------------------------------------------*/
 
@@ -532,7 +528,7 @@ void hlqedit_init_replymsg(struct descriptor_data *d)
 
 void hlqedit_parse(struct descriptor_data *d, char *arg)
 {
-  int i;
+  int i, saved_to_disk;
   struct quest_entry *quest;
   struct quest_entry *qtmp;
   struct quest_command *qcom;
@@ -547,13 +543,17 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     {
     case 'y':
     case 'Y':
-      hlqedit_save_internally(d);
-      hlqedit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));
-      snprintf(buf, sizeof(buf), "OLC: %s edits hl quest %d.", GET_NAME(d->character), OLC_NUM(d));
+      saved_to_disk = hlqedit_save_internally(d);
+      snprintf(buf, sizeof(buf), "OLC: %s edits hl quest %d%s.", GET_NAME(d->character), OLC_NUM(d),
+               saved_to_disk ? "" : " (disk save failed)");
       log("%s", buf);
       OLC_MOB(d) = 0;
       cleanup_olc(d, CLEANUP_STRUCTS);
-      send_to_char(d->character, "HL Quest saved to memory and disk.\r\n");
+      if (saved_to_disk)
+        send_to_char(d->character, "HL Quest saved to memory and disk.\r\n");
+      else
+        send_to_char(d->character,
+                     "HL Quest saved to memory, but the disk save failed; please report it.\r\n");
       break;
     case 'n':
     case 'N':
@@ -1229,10 +1229,16 @@ ACMD(do_hlqedit)
     log("OLC: %s saves hlquest info for zone %u.", GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
 
     send_to_char(ch, "Saving to disk...");
-    hlqedit_save_to_disk(OLC_ZNUM(d));
+    if (hlqedit_save_to_disk(OLC_ZNUM(d)))
+      send_to_char(ch, "done.\r\n");
+    else
+      send_to_char(ch, "failed; the previous file remains available.\r\n");
     /* Save the mobiles. */
     send_to_char(ch, "Saving mobiles...");
-    save_mobiles(OLC_ZNUM(d));
+    if (save_mobiles(OLC_ZNUM(d)))
+      send_to_char(ch, "done.\r\n");
+    else
+      send_to_char(ch, "failed; the zone remains on the save list.\r\n");
 
     free(d->olc);
     d->olc = NULL;

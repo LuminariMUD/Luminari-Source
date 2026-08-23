@@ -72,7 +72,7 @@ bool hlquest_consume_coins(struct char_data *quest_mob, int amount);
 int hlquest_required_item_count(const struct quest_entry *quest, int object_vnum);
 void quest_room(struct char_data *ch);
 bool is_object_in_a_quest(struct obj_data *obj);
-void hlqedit_save_to_disk(zone_rnum zone_num);
+int hlqedit_save_to_disk(zone_rnum zone_num);
 void hlqedit_disp_menu(struct descriptor_data *d);
 /* end functions */
 

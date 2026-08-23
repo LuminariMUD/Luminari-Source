@@ -308,16 +308,15 @@ int save_quests(zone_rnum zone_num)
   }
   /* Write the final line and close it.  */
   fprintf(sf, "$~\n");
-  fclose(sf);
 
   /* Old file we're replacing. */
   snprintf(oldname, sizeof(oldname), "%s/%d.qst", QST_PREFIX, zone_table[zone_num].number);
-  remove(oldname);
-  rename(filename, oldname);
+  if (!finish_file_save(sf, filename, oldname))
+    return FALSE;
 
   /* Do we need to update the index file? */
-  if (num_quests > 0)
-    create_world_index(zone_table[zone_num].number, "qst");
+  if (num_quests > 0 && !create_world_index(zone_table[zone_num].number, "qst"))
+    return FALSE;
 
   if (in_save_list(zone_table[zone_num].number, SL_QST))
     remove_from_save_list(zone_table[zone_num].number, SL_QST);

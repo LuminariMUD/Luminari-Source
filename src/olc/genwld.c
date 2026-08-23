@@ -673,13 +673,12 @@ int save_rooms(zone_rnum rzone)
 
   /* Write the final line and close it. */
   fprintf(sf, "$~\n");
-  fclose(sf);
 
   /* Old file we're replacing. */
   snprintf(buf, sizeof(buf), "%s/%d.wld", WLD_PREFIX, zone_table[rzone].number);
 
-  remove(buf);
-  rename(filename, buf);
+  if (!finish_file_save(sf, filename, buf))
+    return FALSE;
 
   if (in_save_list(zone_table[rzone].number, SL_WLD))
     remove_from_save_list(zone_table[rzone].number, SL_WLD);
