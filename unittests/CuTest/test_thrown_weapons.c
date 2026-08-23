@@ -9,6 +9,7 @@
 #include "../../src/act.h"
 #include "../../src/character/feats.h"
 #include "../../src/combat/assign_wpn_armor.h"
+#include "../../src/combat/fight.h"
 #include "../../src/combat/projectiles.h"
 #include "../../src/combat/spec_abilities.h"
 
@@ -938,6 +939,51 @@ void Test_projectile_finalizer_handles_pending_death_and_extraction(CuTest *tc)
   character_list = saved_character_list;
   world = saved_world;
   top_of_world = saved_top_of_world;
+}
+
+void Test_final_thrown_anchor_exhaustion_stops_reciprocal_combat(CuTest *tc)
+{
+  struct char_data attacker;
+  struct char_data target;
+  struct char_data *saved_character_list;
+  struct char_data *saved_combat_list;
+  struct player_special_data attacker_specials;
+  struct player_special_data target_specials;
+
+  initialize_test_character(&attacker, &attacker_specials);
+  initialize_test_character(&target, &target_specials);
+  attacker.player.name = (char *)"exhausted thrower";
+  target.player.name = (char *)"reciprocal target";
+  GET_HIT(&attacker) = GET_MAX_HIT(&attacker) = 100;
+  GET_HIT(&target) = GET_MAX_HIT(&target) = 100;
+  GET_POS(&attacker) = POS_FIGHTING;
+  GET_POS(&target) = POS_FIGHTING;
+
+  saved_character_list = character_list;
+  saved_combat_list = combat_list;
+  attacker.next = &target;
+  target.next = NULL;
+  character_list = &attacker;
+  attacker.next_fighting = &target;
+  target.next_fighting = NULL;
+  combat_list = &attacker;
+  FIGHTING(&attacker) = &target;
+  FIGHTING(&target) = &attacker;
+  PROJECTILE_MODE(&attacker) = PROJECTILE_MODE_THROWN;
+  THROWN_ANCHOR_VNUM(&attacker) = 9001;
+  THROWN_ANCHOR_WEAR_SLOT(&attacker) = WEAR_WIELD_1;
+
+  test_finish_thrown_projectile_attack(&attacker);
+
+  CuAssertPtrEquals(tc, NULL, FIGHTING(&attacker));
+  CuAssertPtrEquals(tc, NULL, FIGHTING(&target));
+  CuAssertPtrEquals(tc, NULL, combat_list);
+  CuAssertIntEquals(tc, PROJECTILE_MODE_NONE, PROJECTILE_MODE(&attacker));
+  CuAssertIntEquals(tc, NOTHING, THROWN_ANCHOR_VNUM(&attacker));
+  CuAssertIntEquals(tc, -1, THROWN_ANCHOR_WEAR_SLOT(&attacker));
+
+  combat_list = saved_combat_list;
+  character_list = saved_character_list;
 }
 
 void Test_collect_recovers_throwables_from_room_and_corpse(CuTest *tc)

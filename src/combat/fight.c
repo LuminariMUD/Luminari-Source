@@ -1914,6 +1914,53 @@ void stop_fighting(struct char_data *ch)
   HAS_PERFORMED_DEMORALIZING_STRIKE(ch) = FALSE;
 }
 
+static bool character_is_in_live_list(const struct char_data *candidate)
+{
+  const struct char_data *ch;
+
+  if (!candidate)
+    return FALSE;
+
+  for (ch = character_list; ch; ch = ch->next)
+  {
+    if (ch == candidate)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+static void stop_projectile_combat(struct char_data *ch, int attack_type)
+{
+  struct char_data *opponent;
+
+  if (!character_is_in_live_list(ch))
+    return;
+
+  opponent = FIGHTING(ch);
+  if (is_thrown_attack(attack_type) && character_is_in_live_list(opponent) &&
+      FIGHTING(opponent) == ch)
+    stop_fighting(opponent);
+
+  if (FIGHTING(ch))
+    stop_fighting(ch);
+  else
+    clear_projectile_mode(ch);
+}
+
+static void finish_thrown_projectile_attack(struct char_data *ch)
+{
+  if (!validate_thrown_projectile_mode(ch))
+    stop_projectile_combat(ch, ATTACK_TYPE_THROWN);
+}
+
+#ifdef LUMINARI_CUTEST
+void test_finish_thrown_projectile_attack(struct char_data *ch)
+{
+  finish_thrown_projectile_attack(ch);
+}
+#endif
+
 /* threw together this function to make corpses on the whim, originally made for
      vampire npc mob proc spawns  -zusuk */
 struct obj_data *make_a_corpse_4_npcs(struct char_data *ch)
@@ -14317,8 +14364,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     {
       send_to_char(ch, "You no longer have the throwable weapon you readied.\r\n");
       clear_projectile_mode(ch);
-      if (FIGHTING(ch) == victim)
-        stop_fighting(ch);
+      stop_projectile_combat(ch, attack_type);
       return (HIT_MISS);
     }
     active_projectile = &projectile_context;
@@ -15065,7 +15111,7 @@ finalize_projectile:
   {
     finalize_physical_projectile(active_projectile, ch, victim, projectile_disposition);
     if (is_thrown_attack(attack_type))
-      validate_thrown_projectile_mode(ch);
+      finish_thrown_projectile_attack(ch);
   }
 
   return hit_result;
@@ -15413,6 +15459,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   {
     projectile_attack_type = ATTACK_TYPE_THROWN;
     projectile_ready = can_throw_projectile(ch, TRUE);
+    if (!projectile_ready)
+    {
+      stop_projectile_combat(ch, projectile_attack_type);
+      return 0;
+    }
   }
   else if (mode == NORMAL_ATTACK_ROUTINE && IS_LAUNCHER_MODE(ch))
   {
@@ -15432,8 +15483,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     if (is_tanking(ch) && !IS_NPC(ch) && !HAS_FEAT(ch, FEAT_POINT_BLANK_SHOT))
     {
       send_to_char(ch, "You are too close to use your ranged weapon.\r\n");
-      stop_fighting(ch);
-      clear_projectile_mode(ch);
+      stop_projectile_combat(ch, projectile_attack_type);
       return 0;
     }
 
@@ -15590,8 +15640,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
           /* we can't fire an arrow, we are NOT in silent-mode so the
            reason we are exiting ranged combat should be announced via
            can_fire_ammo() */
-          stop_fighting(ch);
-          clear_projectile_mode(ch);
+          stop_projectile_combat(ch, projectile_attack_type);
           return 0;
         }
       }
@@ -15607,10 +15656,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     projectile_ready = is_launcher_attack(projectile_attack_type) ? can_fire_ammo(ch, FALSE)
                                                                   : can_throw_projectile(ch, FALSE);
     if (!projectile_ready)
-    {
-      stop_fighting(ch);
-      clear_projectile_mode(ch);
-    }
+      stop_projectile_combat(ch, projectile_attack_type);
 
     /* that is it, all done with ranged combat! */
     return 0;

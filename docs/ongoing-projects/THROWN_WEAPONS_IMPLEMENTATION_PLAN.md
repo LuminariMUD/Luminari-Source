@@ -1,7 +1,7 @@
 # Thrown Weapons Implementation Plan
 
-- Status: Source implementation and offline validation complete; guarded development data
-  application and live QA are in progress
+- Status: Guarded development data applied; final live QA is in progress after a depletion
+  regression fix
 - Analysis date: 2026-08-23
 - Environment reviewed: development
 
@@ -752,6 +752,34 @@ No protected credential file or development-world file changed during preflight.
 install the exact checkpoint, capture candidate syntax/runtime boots, seal Phase 8, create and
 verify an independent development-world snapshot, apply the hash-guarded overlay, and execute the
 live matrix.
+
+### 2026-08-23: Phase 8 application and live depletion checkpoint
+
+Completed against the authoritative development checkout:
+
+- captured and independently verified a 4,995-file development-world snapshot at the accepted
+  Phase 7 hash before changing data;
+- sealed the 1,207-path Phase 8 bundle from 258 packages and 71,680 records, applied its 119
+  changed paths under the baseline/candidate hash guard, and verified a repeated completion apply
+  was a no-op at candidate hash `3ff3bae40d1dfc87c26758e8eb5d2b7bd268228917b8f4c566ddb3b38f7bfaa7`;
+- applied the idempotent database help component twice and verified all thrown-weapon help rows;
+- installed the exact feature binary through the versioned release mechanism, booted the
+  development server through `autorun.sh`, and verified converted dart, ammo-pouch, and
+  `MOB_ROL_ARCHER` data in game;
+- exercised pouch, inventory, and wielded-anchor depletion with unique object movement, room and
+  corpse collection, logout/reconnect persistence, and converted thornslinger targeting.
+
+The first complete live exhaustion pass exposed a real lifecycle defect: the thrower stopped after
+the final non-returning anchor, but the reciprocal target remained engaged and its next attack
+silently enrolled the unarmed thrower in melee. The server was stopped, and the source now ends
+both sides of that specific thrown engagement whenever the anchor is exhausted or invalid while
+leaving launcher termination unchanged. A production-linked regression asserts reciprocal combat
+cleanup, and the root suite now reports 824 passing tests with no failures. `make install` followed
+the suite and removed the root-level binary.
+
+Next, commit and install the clean fix checkpoint, recapture candidate boot evidence, reseal Phase
+8 for the new binary identity, and repeat the complete live depletion and regression matrix before
+closing either remaining definition-of-done item.
 
 ## 10. Definition of done
 

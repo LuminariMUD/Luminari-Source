@@ -116,6 +116,7 @@ int test_apply_bard_frostbite_rider(struct char_data *ch, struct char_data *vict
 int test_handle_successful_artifact_attack(struct char_data *ch, struct char_data *victim,
                                            struct obj_data *wielded, int dam, int is_critical,
                                            int dam_type);
+void test_finish_thrown_projectile_attack(struct char_data *ch);
 void test_apply_bard_warbeat_allies(struct char_data *ch);
 void test_reset_bard_warbeat_observations(void);
 int test_get_bard_warbeat_opening_attacks(void);
