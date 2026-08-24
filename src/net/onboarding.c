@@ -1875,10 +1875,24 @@ bool web_onboarding_has_active_outbound_transfer_for_test(struct descriptor_data
 
 const char *web_onboarding_race_media_key(int race)
 {
-  if (race < 0 || race >= NUM_RACES || race_media_keys[race] == NULL)
-    return "race/fallback";
+  if (race >= 0 && race < NUM_RACES && race_media_keys[race] != NULL)
+    return race_media_keys[race];
 
-  return race_media_keys[race];
+  switch (race)
+  {
+  case RACE_HALF_OGRE:
+    return "race/half-ogre";
+  case RACE_MYCONID:
+    return "race/myconid";
+  case RACE_WEMIC:
+    return "race/wemic";
+  case RACE_HALF_ILLITHID:
+    return "race/half-illithid";
+  case RACE_YUAN_TI:
+    return "race/yuan-ti";
+  default:
+    return "race/fallback";
+  }
 }
 
 const char *web_onboarding_class_media_key(int chclass)
@@ -1971,11 +1985,9 @@ static void catalog_page_bounds(struct descriptor_data *d, int state, int total,
 
 static bool race_is_selectable(struct descriptor_data *d, int race)
 {
-  if (d == NULL || d->character == NULL || race < 0 || race >= NUM_RACES)
+  if (d == NULL || d->character == NULL)
     return FALSE;
-  if (!race_list[race].is_pc)
-    return FALSE;
-  return !is_locked_race(race) || has_unlocked_race(d->character, race);
+  return race_is_selectable_for_creation(d->character, race);
 }
 
 /* Races the server would actually accept right now, using the same lock and
@@ -2002,7 +2014,7 @@ static void build_race_choices(struct json_writer *w, struct descriptor_data *d)
     (void)page_count;
   }
 
-  for (race = 0; race < NUM_RACES; race++)
+  for (race = 0; race < NUM_EXTENDED_RACES; race++)
   {
     if (!race_is_selectable(d, race))
       continue;
@@ -2396,7 +2408,7 @@ static void build_selection(struct json_writer *w, struct descriptor_data *d)
     json_field_string(w, "sex", GET_SEX(ch) == SEX_MALE ? "Male" : "Female", 16);
   }
 
-  if (selection_has_race(state) && GET_REAL_RACE(ch) >= 0 && GET_REAL_RACE(ch) < NUM_RACES)
+  if (selection_has_race(state) && GET_REAL_RACE(ch) >= 0 && GET_REAL_RACE(ch) < NUM_EXTENDED_RACES)
   {
     if (!first)
       json_raw(w, ",");
@@ -2797,7 +2809,7 @@ static int selectable_race_count(struct descriptor_data *d)
   int race = 0;
   int count = 0;
 
-  for (race = 0; race < NUM_RACES; race++)
+  for (race = 0; race < NUM_EXTENDED_RACES; race++)
     if (race_is_selectable(d, race))
       count++;
   return count;
@@ -3972,7 +3984,8 @@ static void build_selected_detail(struct json_writer *w, struct descriptor_data 
   if (ch == NULL)
     return;
 
-  if (screen->state == CON_QRACE_HELP && GET_REAL_RACE(ch) >= 0 && GET_REAL_RACE(ch) < NUM_RACES)
+  if (screen->state == CON_QRACE_HELP && GET_REAL_RACE(ch) >= 0 &&
+      GET_REAL_RACE(ch) < NUM_EXTENDED_RACES)
   {
     json_field_string(w, "mediaKey", web_onboarding_race_media_key(GET_REAL_RACE(ch)), 64);
     json_raw(w, ",");

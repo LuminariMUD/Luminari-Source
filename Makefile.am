@@ -344,6 +344,7 @@ bsd_snprintf_fallback_test_LDADD = -lm
 cutest_SOURCES = \
 	unittests/CuTest/test_syntax_check_boot.c \
 	unittests/CuTest/test_web_onboarding.c \
+	unittests/CuTest/test_race_equivalence.c \
 	unittests/CuTest/test_i3_client_production.c \
 	unittests/CuTest/test_msdp_production.c \
 	unittests/CuTest/test_necromancer.c \
@@ -403,6 +404,7 @@ cutest_test_files = \
 	unittests/CuTest/test_bounds_checking.c \
 	unittests/CuTest/test_help_sync.c \
 	unittests/CuTest/test_web_onboarding.c \
+	unittests/CuTest/test_race_equivalence.c \
 	unittests/CuTest/test_i3_client_production.c \
 	unittests/CuTest/test_msdp_production.c \
 	unittests/CuTest/test_necromancer.c \

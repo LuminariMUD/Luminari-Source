@@ -48,6 +48,8 @@ bitvector_t find_race_bitvector(const char *arg);
 int invalid_race(struct char_data *ch, struct obj_data *obj);
 int parse_race_long(const char *arg);
 void assign_races(void);
+bool race_is_creation_eligible(int race_num);
+bool race_is_selectable_for_creation(struct char_data *ch, int race_num);
 bool display_race_info(struct char_data *ch, const char *racename);
 int get_race_stat(int race, int stat);
 int get_random_basic_pc_race(void);

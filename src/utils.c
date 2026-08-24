@@ -4923,8 +4923,8 @@ int get_race_by_name(char *racename)
 {
   int i;
 
-  for (i = 0; i < NUM_RACES; i++)
-    if (is_abbrev(racename, race_list[i].type))
+  for (i = 0; i < NUM_EXTENDED_RACES; i++)
+    if (race_is_creation_eligible(i) && is_abbrev(racename, race_list[i].type))
       return (i);
 
   return (-1);
@@ -8414,6 +8414,31 @@ void calculate_max_hp(struct char_data *ch, bool display)
     max_hp += GET_LEVEL(ch) * 4;
     if (display)
       send_to_char(ch, "%-40s = +%d\r\n", "Vampire Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
+  }
+  if (GET_REAL_RACE(ch) == RACE_HALF_ILLITHID)
+  {
+    max_hp += GET_LEVEL(ch) * 4;
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Half-Illithid Racial Hit Point Bonus",
+                   GET_LEVEL(ch) * 4);
+  }
+  if (GET_REAL_RACE(ch) == RACE_MYCONID)
+  {
+    max_hp += GET_LEVEL(ch) * 4;
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Myconid Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
+  }
+  if (GET_REAL_RACE(ch) == RACE_HALF_OGRE)
+  {
+    max_hp += GET_LEVEL(ch) * 2;
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Half-Ogre Racial Hit Point Bonus", GET_LEVEL(ch) * 2);
+  }
+  if (GET_REAL_RACE(ch) == RACE_WEMIC)
+  {
+    max_hp += GET_LEVEL(ch);
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Wemic Racial Hit Point Bonus", GET_LEVEL(ch));
   }
 
   // perks

@@ -773,7 +773,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_GOBLIN 26
 #define RACE_HOBGOBLIN 27
 
-/* last playable race above +1 */
+/* End of the original dense creation range. New playable races may be sparse. */
 #define NUM_RACES 28
 
 #define RACE_DEEP_GNOME 26
@@ -871,6 +871,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_SHAMBLING_MOUND 112
 #define RACE_TREANT 113
 #define RACE_MYCANOID 114
+#define RACE_MYCONID RACE_MYCANOID
 #define RACE_SKELETON 115
 #define RACE_ZOMBIE 116
 #define RACE_WOLF 117
@@ -905,9 +906,16 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_DIRE_ROC 146
 #define RACE_PURPLE_WORM 147
 #define RACE_CRIMSON_WORM 148
+#define RACE_WEMIC 149
+#define RACE_HALF_ILLITHID 150
+#define RACE_ILLITHID RACE_HALF_ILLITHID
+#define RACE_YUAN_TI 151
+#define RACE_YUANTI RACE_YUAN_TI
 /**/
-/* Total Number of available (in-game) PC Races*/
-#define NUM_EXTENDED_RACES 149
+/* Number of creation-selectable races, independent of their numeric IDs. */
+#define NUM_CREATION_RACES 33
+/* Array bound for every concrete PC, NPC, and form race. */
+#define NUM_EXTENDED_RACES 152
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these
@@ -6162,7 +6170,7 @@ struct char_player_data
   struct time_data time;           /**< PC AGE in days */
   ubyte weight;                    /**< PC / NPC weight */
   ubyte height;                    /**< PC / NPC height */
-  byte race;                       // Race
+  sh_int race;                     // Persistent concrete race ID
   byte pc_subrace;                 // SubRace
   char *walkin;                    // NPC (for now) walkin message
   char *walkout;                   // NPC (for now) walkout message

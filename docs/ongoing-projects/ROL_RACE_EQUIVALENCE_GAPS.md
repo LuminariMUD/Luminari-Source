@@ -2,6 +2,40 @@
 
 Status: source audit completed 2026-08-23.
 
+## Implementation progress
+
+Checkpoint 2026-08-24 (core implementation builds):
+
+- The five gaps now have concrete Luminari identities: Barbarian maps to the
+  advanced Wemic, Ogre maps to the advanced Half-Ogre, Illithid maps to the
+  epic Half-Illithid, Yuan-Ti remains an advanced Yuan-Ti, and the unfinished
+  Myconid becomes an epic Myconid.
+- Persistent IDs preserve every released and reserved identity. Half-Ogre uses
+  its preassigned ID 28, Myconid corrects and aliases the existing `MYCANOID`
+  ID 114, and Wemic, Half-Illithid, and Yuan-Ti use new IDs 149 through 151.
+  The character race field is now a signed short so those IDs round-trip.
+- Character creation, account-XP purchase, terminal help dispatch, web
+  onboarding, media keys, race lookup, tracks, and initialization now use a
+  shared sparse-race policy. Lich and Vampire remain conversion-only even if
+  an unlock is forged.
+- Advanced races use adjustment 2, cost 1,000 account XP, and 2x experience.
+  Epic races use adjustment 10, cost 30,000 account XP, and 7x experience.
+- Registry data, racial statistics, size, family, language, level-one feat
+  packages, stacked natural armor, and racial hit-point progression are
+  implemented for all five races.
+- `unittests/CuTest/test_race_equivalence.c` covers ID width and uniqueness,
+  sparse selection count, tiers, stats, sizes, families, anatomy, parser
+  aliases, feat packages, and XP multipliers. Web media-key coverage includes
+  all five races. The production binary builds cleanly with GNU C23 and
+  `-Wall -Wextra`.
+
+Remaining at this checkpoint:
+
+- add matching SQL and flat-file help entries for all five races;
+- run the production-linked CuTest suite and install the tested binary;
+- perform local database/help and creation smoke checks where the development
+  environment permits them.
+
 This document accompanies `ROL_SPELL_EQUIVALENCE_GAPS.md` in the Realms of
 Luminari conversion series and compares RoL's player-character races with
 LuminariMUD's playable races.

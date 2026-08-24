@@ -2900,6 +2900,10 @@ void init_start_char(struct char_data *ch)
   case RACE_VAMPIRE:
     GET_MAX_HIT(ch) += 10; /* vital */
     break;
+  case RACE_HALF_ILLITHID:
+  case RACE_MYCONID:
+    GET_MAX_HIT(ch) += 10; /* vital */
+    break;
   case RACE_HALF_TROLL:
   case RACE_ARCANA_GOLEM:
   case RACE_DROW:
@@ -3534,6 +3538,16 @@ void advance_level(struct char_data *ch, int class)
   case RACE_VAMPIRE:
     add_hp += 4;
     break;
+  case RACE_HALF_ILLITHID:
+  case RACE_MYCONID:
+    add_hp += 4;
+    break;
+  case RACE_HALF_OGRE:
+    add_hp += 2;
+    break;
+  case RACE_WEMIC:
+    add_hp++;
+    break;
   default:
     break;
   }
@@ -3823,6 +3837,11 @@ long int level_exp(struct char_data *ch, int level)
   case RACE_DUERGAR:
     exp *= 2;
     break;
+  case RACE_WEMIC:
+  case RACE_HALF_OGRE:
+  case RACE_YUAN_TI:
+    exp *= 2;
+    break;
 
     /* epic races */
   case RACE_CRYSTAL_DWARF:
@@ -3834,6 +3853,11 @@ long int level_exp(struct char_data *ch, int level)
     break;
 
   case RACE_TRELUX:
+    exp *= 7;
+    break;
+
+  case RACE_HALF_ILLITHID:
+  case RACE_MYCONID:
     exp *= 7;
     break;
 

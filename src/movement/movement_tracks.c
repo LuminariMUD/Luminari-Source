@@ -216,7 +216,7 @@ void create_tracks(struct char_data *ch, int dir, int flag)
   else
   {
     race_idx = GET_RACE(ch);
-    if (race_idx >= 0 && race_idx < NUM_RACES && race_list[race_idx].name)
+    if (race_idx >= 0 && race_idx < NUM_EXTENDED_RACES && race_list[race_idx].name)
       race = race_list[race_idx].name;
   }
 

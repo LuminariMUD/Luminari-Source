@@ -484,12 +484,17 @@ void TestWebOnboardingMediaKeysAreStableAndBounded(CuTest *tc)
    * token spelling. */
   CuAssertStrEquals(tc, "race/tiefling", web_onboarding_race_media_key(RACE_TIEFLING));
   CuAssertStrEquals(tc, "race/human", web_onboarding_race_media_key(RACE_HUMAN));
+  CuAssertStrEquals(tc, "race/wemic", web_onboarding_race_media_key(RACE_WEMIC));
+  CuAssertStrEquals(tc, "race/half-ogre", web_onboarding_race_media_key(RACE_HALF_OGRE));
+  CuAssertStrEquals(tc, "race/half-illithid", web_onboarding_race_media_key(RACE_HALF_ILLITHID));
+  CuAssertStrEquals(tc, "race/yuan-ti", web_onboarding_race_media_key(RACE_YUAN_TI));
+  CuAssertStrEquals(tc, "race/myconid", web_onboarding_race_media_key(RACE_MYCONID));
   CuAssertStrEquals(tc, "class/wizard", web_onboarding_class_media_key(CLASS_WIZARD));
 
   /* Out-of-range and prestige entries resolve to the generic fallbacks rather
    * than reading past the table. */
   CuAssertStrEquals(tc, "race/fallback", web_onboarding_race_media_key(-1));
-  CuAssertStrEquals(tc, "race/fallback", web_onboarding_race_media_key(NUM_RACES));
+  CuAssertStrEquals(tc, "race/fallback", web_onboarding_race_media_key(NUM_EXTENDED_RACES));
   CuAssertStrEquals(tc, "class/fallback", web_onboarding_class_media_key(-1));
   CuAssertStrEquals(tc, "class/fallback", web_onboarding_class_media_key(NUM_CLASSES));
   CuAssertStrEquals(tc, "class/fallback", web_onboarding_class_media_key(CLASS_WEAPON_MASTER));

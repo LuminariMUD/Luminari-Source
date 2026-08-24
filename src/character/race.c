@@ -276,6 +276,30 @@ bool race_is_available(struct char_data *ch, int race_num)
   return TRUE;
 }
 
+/* Creation policy is deliberately independent of numeric density. */
+bool race_is_creation_eligible(int race_num)
+{
+  if (race_num < 0 || race_num >= NUM_EXTENDED_RACES)
+    return FALSE;
+
+  if (!race_list[race_num].is_pc)
+    return FALSE;
+
+  /* These races are acquired only by their existing conversion paths. */
+  if (race_num == RACE_LICH || race_num == RACE_VAMPIRE)
+    return FALSE;
+
+  return TRUE;
+}
+
+bool race_is_selectable_for_creation(struct char_data *ch, int race_num)
+{
+  if (!race_is_creation_eligible(race_num))
+    return FALSE;
+
+  return !is_locked_race(race_num) || has_unlocked_race(ch, race_num);
+}
+
 /*****************************/
 /*****************************/
 
@@ -1773,6 +1797,103 @@ void assign_races(void)
   /****************************************************************************/
 
   /****************************************************************************/
+  add_race(RACE_WEMIC, "wemic", "Wemic", "\tYWemic\tn", "Wemc", "\tYWemc\tn",
+           RACE_TYPE_MONSTROUS_HUMANOID, SIZE_LARGE, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_WEMIC,
+      "Wemics are leonine centaur-folk: proud hunters whose humanoid torsos rise from powerful "
+      "lion bodies. Their strength, speed, keen senses, and wilderness lore make them fearsome "
+      "front-line combatants and scouts. This race is the Luminari equivalent of the tribal "
+      "Barbarian people found in Realms of Luminari.",
+      "Your body broadens and a leonine lower body forms until you become a Wemic.",
+      "$n's body broadens and a leonine lower body forms until $e becomes a Wemic.");
+  set_race_genders(RACE_WEMIC, N, Y, Y);
+  set_race_abilities(RACE_WEMIC, 8, 4, -2, 2, 2, -2);
+  set_race_alignments(RACE_WEMIC, Y, Y, Y, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_WEMIC, N, N, N, N, Y, N, N, N, Y, N, N, N, N, N, N, N, N, N, N, N, N,
+                        Y, N, N);
+  feat_race_assignment(RACE_WEMIC, FEAT_INFRAVISION, 1, N);
+  feat_race_assignment(RACE_WEMIC, FEAT_NATURAL_ATHLETE, 1, N);
+  feat_race_assignment(RACE_WEMIC, FEAT_POWERFUL_BUILD, 1, N);
+  feat_race_assignment(RACE_WEMIC, FEAT_CLAWS_AND_BITE, 1, N);
+  feat_race_assignment(RACE_WEMIC, FEAT_SURVIVAL_INSTINCT, 1, N);
+  feat_race_assignment(RACE_WEMIC, FEAT_HARDY, 1, N);
+  race_list[RACE_WEMIC].racial_language = SKILL_LANG_COMMON;
+
+  /****************************************************************************/
+  add_race(RACE_HALF_OGRE, "half ogre", "Half-Ogre", "\trHalf-Ogre\tn", "HOgr", "\trHOgr\tn",
+           RACE_TYPE_GIANT, SIZE_LARGE, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_HALF_OGRE,
+      "Half-ogres combine a giant's raw power and reach with the adaptability of their smaller "
+      "kin. They are imposing, durable, and often underestimated as tacticians. This race is the "
+      "Luminari equivalent of the Ogre player race found in Realms of Luminari.",
+      "Your frame swells with giant blood until you become a Half-Ogre.",
+      "$n's frame swells with giant blood until $e becomes a Half-Ogre.");
+  set_race_genders(RACE_HALF_OGRE, N, Y, Y);
+  set_race_abilities(RACE_HALF_OGRE, 6, 2, -2, 0, -2, -2);
+  set_race_alignments(RACE_HALF_OGRE, Y, Y, Y, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_HALF_OGRE, Y, N, N, N, N, N, N, Y, N, N, N, N, N, Y, N, N, N, N, N, N,
+                        Y, N, N, N);
+  feat_race_assignment(RACE_HALF_OGRE, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_HALF_OGRE, FEAT_POWERFUL_BUILD, 1, N);
+  feat_race_assignment(RACE_HALF_OGRE, FEAT_STRONG_AGAINST_POISON, 1, N);
+  feat_race_assignment(RACE_HALF_OGRE, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_HALF_OGRE, FEAT_ARMOR_SKIN, 1, Y);
+  race_list[RACE_HALF_OGRE].racial_language = SKILL_LANG_GIANT;
+
+  /****************************************************************************/
+  add_race(RACE_HALF_ILLITHID, "half illithid", "Half-Illithid", "\tMHalf-Illithid\tn", "HIll",
+           "\tMHIll\tn", RACE_TYPE_ABERRATION, SIZE_MEDIUM, TRUE, 10, 30000, IS_EPIC_R);
+  set_race_details(
+      RACE_HALF_ILLITHID,
+      "Half-illithids bear the transformed mind and unsettling features of the illithid while "
+      "retaining a mortal ancestry. Their formidable intellect, will, psionic instinct, and "
+      "levitation make them an epic race. This race is the Luminari equivalent of the Illithid "
+      "player race found in Realms of Luminari.",
+      "Your thoughts expand as illithid traits reshape your face and mind.",
+      "$n shudders as illithid traits reshape $s face and mind.");
+  set_race_genders(RACE_HALF_ILLITHID, N, Y, Y);
+  set_race_abilities(RACE_HALF_ILLITHID, 0, 0, 4, 4, 0, 4);
+  set_race_alignments(RACE_HALF_ILLITHID, Y, Y, Y, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_HALF_ILLITHID, Y, N, N, N, N, N, N, N, N, N, Y, N, N, Y, N, N, N, N, N,
+                        N, N, N, N, N);
+  feat_race_assignment(RACE_HALF_ILLITHID, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_HALF_ILLITHID, FEAT_QUICK_MIND, 1, N);
+  feat_race_assignment(RACE_HALF_ILLITHID, FEAT_STUBBORN_MIND, 1, N);
+  feat_race_assignment(RACE_HALF_ILLITHID, FEAT_SLA_LEVITATE, 1, N);
+  feat_race_assignment(RACE_HALF_ILLITHID, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_HALF_ILLITHID, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_HALF_ILLITHID, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_HALF_ILLITHID, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_HALF_ILLITHID, FEAT_HARDY, 1, N);
+  race_list[RACE_HALF_ILLITHID].racial_language = SKILL_LANG_ABERRATION;
+
+  /****************************************************************************/
+  add_race(RACE_YUAN_TI, "yuan-ti", "Yuan-Ti", "\tgYuan-Ti\tn", "Yuan", "\tgYuan\tn",
+           RACE_TYPE_MONSTROUS_HUMANOID, SIZE_MEDIUM, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(
+      RACE_YUAN_TI,
+      "Yuan-ti are serpentfolk whose controlled minds, scaled bodies, venom, and innate magic "
+      "make them dangerous adversaries. Pureblooded yuan-ti can pass among humanoids, but their "
+      "reptilian heritage is never entirely hidden. This race directly preserves the Yuan-Ti "
+      "archetype found in Realms of Luminari.",
+      "Scales ripple across your skin as your form becomes Yuan-Ti.",
+      "Scales ripple across $n's skin as $s form becomes Yuan-Ti.");
+  set_race_genders(RACE_YUAN_TI, N, Y, Y);
+  set_race_abilities(RACE_YUAN_TI, 0, 0, 2, 0, 2, 2);
+  set_race_alignments(RACE_YUAN_TI, N, N, N, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_YUAN_TI, N, N, N, N, Y, N, N, N, N, N, Y, N, N, N, N, N, N, N, N, N, N,
+                        N, N, N);
+  feat_race_assignment(RACE_YUAN_TI, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_YUAN_TI, FEAT_POISON_BITE, 1, N);
+  feat_race_assignment(RACE_YUAN_TI, FEAT_POISON_IMMUNITY, 1, N);
+  feat_race_assignment(RACE_YUAN_TI, FEAT_STUBBORN_MIND, 1, N);
+  feat_race_assignment(RACE_YUAN_TI, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_YUAN_TI, FEAT_ARMOR_SKIN, 1, Y);
+  race_list[RACE_YUAN_TI].racial_language = SKILL_LANG_DRACONIC;
+
+  /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_LICH, "lich", "Lich", "\tLLich\tn", "Lich", "\tLLich\tn",
            /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
@@ -2407,14 +2528,36 @@ void assign_races(void)
 
   /****************************************************************************/
   /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
-  add_race(RACE_MYCANOID, "mycanoid", "Mycanoid", "Mycanoid", "Mycd", "Mycd",
+  add_race(RACE_MYCONID, "myconid", "Myconid", "\tgMyconid\tn", "Myco", "\tgMyco\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-           RACE_TYPE_PLANT, SIZE_MEDIUM, FALSE, 0, 0, IS_NORMAL);
-  set_race_attack_types(RACE_MYCANOID,
+           RACE_TYPE_PLANT, SIZE_LARGE, TRUE, 10, 30000, IS_EPIC_R);
+  set_race_details(
+      RACE_MYCONID,
+      "Myconids are communal fungal beings whose alien biology resists poison, paralysis, and "
+      "sleep. Powerful myconid adventurers combine immense physical resilience with a patient, "
+      "collective outlook. This epic race completes the unfinished Myconid player concept from "
+      "Realms of Luminari.",
+      "Fungal tissue spreads across your growing frame until you become a Myconid.",
+      "Fungal tissue spreads across $n's growing frame until $e becomes a Myconid.");
+  set_race_genders(RACE_MYCONID, Y, Y, Y);
+  set_race_abilities(RACE_MYCONID, 8, 6, -2, -2, -4, -4);
+  set_race_alignments(RACE_MYCONID, Y, Y, Y, Y, Y, Y, Y, Y, Y);
+  set_race_attack_types(RACE_MYCONID,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
                         N, N, N, N, N, Y, Y, Y, N, N, N, N,
                         /* blast punch stab slice thrust hack rake peck smash trample charge gore */
                         N, N, N, N, N, N, N, N, Y, N, N, N);
+  feat_race_assignment(RACE_MYCONID, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_MYCONID, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_MYCONID, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_MYCONID, FEAT_POISON_IMMUNITY, 1, N);
+  feat_race_assignment(RACE_MYCONID, FEAT_SLEEP_ENCHANTMENT_IMMUNITY, 1, N);
+  feat_race_assignment(RACE_MYCONID, FEAT_PARALYSIS_IMMUNITY, 1, N);
+  feat_race_assignment(RACE_MYCONID, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_MYCONID, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_MYCONID, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_MYCONID, FEAT_ARMOR_SKIN, 1, Y);
+  race_list[RACE_MYCONID].racial_language = SKILL_LANG_UNDERCOMMON;
   /****************************************************************************/
 
   /****************************************************************************/
@@ -2960,12 +3103,15 @@ int parse_race(char arg)
 /* accept short descrip, return race */
 int parse_race_long(const char *arg_in)
 {
-  size_t arg_sz = strlen(arg_in) + 1;
-  char arg_buf[arg_sz];
-  strlcpy(arg_buf, arg_in, arg_sz);
+  char arg_buf[MAX_INPUT_LENGTH];
   char *arg = arg_buf;
 
   int l = 0; /* string length */
+
+  if (arg_in == NULL)
+    return RACE_UNDEFINED;
+
+  strlcpy(arg_buf, arg_in, sizeof(arg_buf));
 
   for (l = 0; *(arg + l); l++) /* convert to lower case */
     *(arg + l) = LOWER(*(arg + l));
@@ -3062,6 +3208,12 @@ int parse_race_long(const char *arg_in)
     return RACE_HALF_TROLL;
   if (is_abbrev(arg, "half troll"))
     return RACE_HALF_TROLL;
+  if (is_abbrev(arg, "half-ogre"))
+    return RACE_HALF_OGRE;
+  if (is_abbrev(arg, "halfogre"))
+    return RACE_HALF_OGRE;
+  if (is_abbrev(arg, "half ogre"))
+    return RACE_HALF_OGRE;
   if (is_abbrev(arg, "arcanagolem"))
     return RACE_ARCANA_GOLEM;
   if (is_abbrev(arg, "arcana-golem"))
@@ -3130,6 +3282,26 @@ int parse_race_long(const char *arg_in)
     return RACE_SHADE;
   if (is_abbrev(arg, "goliath"))
     return RACE_GOLIATH;
+  if (is_abbrev(arg, "wemic"))
+    return RACE_WEMIC;
+  if (is_abbrev(arg, "half-illithid"))
+    return RACE_HALF_ILLITHID;
+  if (is_abbrev(arg, "halfillithid"))
+    return RACE_HALF_ILLITHID;
+  if (is_abbrev(arg, "half illithid"))
+    return RACE_HALF_ILLITHID;
+  if (is_abbrev(arg, "illithid"))
+    return RACE_HALF_ILLITHID;
+  if (is_abbrev(arg, "yuan-ti"))
+    return RACE_YUAN_TI;
+  if (is_abbrev(arg, "yuanti"))
+    return RACE_YUAN_TI;
+  if (is_abbrev(arg, "yuan ti"))
+    return RACE_YUAN_TI;
+  if (is_abbrev(arg, "myconid"))
+    return RACE_MYCONID;
+  if (is_abbrev(arg, "mycanoid"))
+    return RACE_MYCONID;
   if (is_abbrev(arg, "lich"))
     return RACE_LICH;
   if (is_abbrev(arg, "vampire"))
@@ -3207,16 +3379,21 @@ sbyte has_racial_abils_unchosen(struct char_data *ch)
 
 int get_random_basic_pc_race(void)
 {
-  int num = dice(1, NUM_RACES + 1);
-  num--;
+  int candidate = RACE_HUMAN;
+  int count = 0;
+  int race = 0;
 
-  while (race_list[num].epic_adv != IS_NORMAL)
+  for (race = 0; race < NUM_EXTENDED_RACES; race++)
   {
-    num = dice(1, NUM_RACES + 1);
-    num--;
+    if (!race_is_creation_eligible(race) || race_list[race].epic_adv != IS_NORMAL)
+      continue;
+
+    count++;
+    if (dice(1, count) == 1)
+      candidate = race;
   }
 
-  return num;
+  return candidate;
 }
 
 /* can a class be this race because of potential alignment issues? (character creation) */
@@ -3273,6 +3450,7 @@ bool is_furry(int race)
   switch (race)
   {
   case RACE_TABAXI:
+  case RACE_WEMIC:
   case LEGACY_RACE_MINOTAUR:
     return true;
   }
@@ -3295,6 +3473,7 @@ bool has_scales(int race)
   switch (race)
   {
   case RACE_DRAGONBORN:
+  case RACE_YUAN_TI:
   case LEGACY_RACE_AURAK_DRACONIAN:
   case LEGACY_RACE_BAAZ_DRACONIAN:
   case LEGACY_RACE_BOZAK_DRACONIAN:
@@ -3310,6 +3489,9 @@ bool race_has_no_hair(int race)
   switch (race)
   {
   case RACE_DRAGONBORN:
+  case RACE_HALF_ILLITHID:
+  case RACE_YUAN_TI:
+  case RACE_MYCONID:
   case LEGACY_RACE_AURAK_DRACONIAN:
   case LEGACY_RACE_BAAZ_DRACONIAN:
   case LEGACY_RACE_BOZAK_DRACONIAN:

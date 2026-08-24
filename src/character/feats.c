@@ -9364,7 +9364,7 @@ bool display_feat_info(struct char_data *ch, const char *featname)
   first = true;
   snprintf(buf, sizeof(buf), "\tn");
 
-  for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+  for (i = 0; i < NUM_EXTENDED_RACES; i++)
   {
     j = 0;
     while (level_feats[j][LF_FEAT] != FEAT_UNDEFINED)
