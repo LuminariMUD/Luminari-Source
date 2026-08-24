@@ -81,8 +81,23 @@ _SOURCE_LIQUID_MAP = {
     27: 21, # curative liquid -> herbal remedy
     28: 10, # eggnog -> milk
 }
-# Complete over live SPELL_CREATE IDs, positive SPELL_* values, and populated
-# magic-item spell IDs in the active source corpus.
+# Source affect and maintenance identities that cannot legally occupy a
+# castable world-data spell slot.
+_NON_CASTABLE_SOURCE_SPELLS: dict[int, str] = {
+    64: "xxxrecharger",
+    93: "xxxvitalize mana",
+    291: "elemental embodiment maintain",
+    292: "elemental embodiment maintain",
+    293: "elemental embodiment maintain",
+    294: "elemental embodiment maintain",
+    361: "simulacrum",
+    374: "special proc effect",
+    498: "elemental embodiment maintain",
+}
+
+# Complete over castable live SPELL_CREATE IDs, positive SPELL_* values, and
+# populated magic-item spell IDs in the active source corpus. Internal IDs are
+# accounted for separately above and fail closed if used as castable spells.
 _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     1: ("armor", 84),  # mage armor
     2: ("teleport", 2),  # teleport
@@ -138,7 +153,6 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     60: ("lightning breath", 30),  # lightning bolt
     62: ("farsee", 528),  # farsee
     63: ("fear", 391),  # cause fear
-    64: ("xxxrecharger", 24),  # enchant item
     65: ("vitality", 103),  # false life
     66: ("cure serious", 221),  # cure serious
     71: ("full harm", 27),  # harm
@@ -162,7 +176,6 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     90: ("cyclone", 603),  # cyclone
     91: ("bigbys clenched fist", 188),  # clenched fist
     92: ("conjure elemental", 299),  # elemental swarm
-    93: ("xxxvitalize mana", 440),  # restoration
     94: ("relocate", 2),  # teleport
     100: ("protection from good", 75),  # protection from good
     101: ("animate skeleton", 45),  # animate dead
@@ -241,10 +254,6 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     241: ("missile shield", 456),  # protection from arrows
     274: ("undead melee proc", 396),  # grave touch
     276: ("undead spell proc", 25),  # energy drain
-    291: ("elemental embodiment maintain", 488),  # geniekind
-    292: ("elemental embodiment maintain", 488),  # geniekind
-    293: ("elemental embodiment maintain", 488),  # geniekind
-    294: ("elemental embodiment maintain", 488),  # geniekind
     296: ("pain touch", 151),  # symbol of pain
     297: ("nerve dance", 546),  # nerve dance
     298: ("spectral hand", 547),  # spectral hand
@@ -307,7 +316,6 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     358: ("mirror image", 55),  # mirror image
     359: ("dimension shift", 563),  # dimension shift
     360: ("change self", 77),  # polymorph self
-    361: ("simulacrum", 9),  # clone
     362: ("shadow magic", 564),  # shadow magic
     363: ("shadow walk", 392),  # shadow walk
     364: ("phantom steed", 108),  # phantom steed
@@ -318,7 +326,6 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     370: ("soul bind", 566),  # soul bind
     371: ("death pact", 567),  # death pact
     372: ("abi wither", 191),  # horrid wilting
-    374: ("special proc effect", 514),  # arcane mark
     376: ("tazriks frenzied hound", 608),  # tazriks frenzied hound
     377: ("dark wrath", 600),  # dark wrath
     378: ("unholy aura", 601),  # unholy aura
@@ -387,10 +394,10 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     479: ("air blast", 589),  # air blast
     480: ("blizzard sphere", 162),  # freezing sphere
     481: ("earth darts", 525),  # splinter storm
-    482: ("elemental water embodiment", 488),  # geniekind
-    483: ("elemental fire embodiment", 488),  # geniekind
-    484: ("elemental earth embodiment", 488),  # geniekind
-    485: ("elemental air embodiment", 488),  # geniekind
+    482: ("elemental water embodiment", 609),
+    483: ("elemental fire embodiment", 610),
+    484: ("elemental earth embodiment", 611),
+    485: ("elemental air embodiment", 612),
     486: ("ice spear", 82),  # ice dagger
     487: ("lava burst", 605),  # lava burst
     488: ("ice layer", 606),  # ice layer
@@ -401,7 +408,6 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     495: ("beautify", 127),  # charisma
     496: ("summon elemental kin", 299),  # elemental swarm
     497: ("elemental ward", 433),  # protection from energy
-    498: ("elemental embodiment maintain", 488),  # geniekind
     499: ("divine blessing", 401),  # divine favor
     501: ("miracle", 28),  # heal
     502: ("ball of lightning", 71),  # ball of lightning
@@ -451,8 +457,8 @@ _SOURCE_QUEST_REWARD_MAP: dict[int, tuple[str, int | None]] = {
     438: ("ancestral shield", 89),
     465: ("scry remains", 294),
     477: ("nightmare", 154),
-    483: ("elemental fire embodiment", 132),
-    484: ("elemental earth embodiment", 56),
+    483: ("elemental fire embodiment", 610),
+    484: ("elemental earth embodiment", 611),
     504: ("time stop", 213),
     517: ("phantasmal tendrils", 174),
     521: ("song of recovery", 440),
@@ -2277,6 +2283,12 @@ def _object_values(
     source_spell = values[slot]
     if source_spell <= 0:
       continue
+    non_castable_name = _NON_CASTABLE_SOURCE_SPELLS.get(source_spell)
+    if non_castable_name is not None:
+      raise ValueError(
+          f"non-castable source spell ID {source_spell} ({non_castable_name}) "
+          f"in magic-item slot {slot} for source object {record.vnum}"
+      )
     mapped = _SOURCE_SPELL_MAP.get(source_spell)
     if mapped is None:
       raise ValueError(

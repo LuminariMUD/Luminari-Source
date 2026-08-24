@@ -36726,7 +36726,7 @@ log/perfmon-pre-copyover.txt with the complete current report. Only the newest s
 is retained; a failed snapshot leaves the prior complete file intact and does not stop
 the copyover.
 
-#0
+#34
 HEAL-UNDEAD
 
 Usage: cast 'heal undead' <target>
@@ -36880,5 +36880,88 @@ save or magic-resistance check. The spell never creates a persistent follower.
 
 See also: AREA SPELLS, FAITHFUL-HOUND, SUMMONING
 
-#34
+#0
+ELEMENTAL-WATER-EMBODIMENT SPELL-ELEMENTAL-WATER-EMBODIMENT
+
+Usage: cast 'elemental water embodiment' <target>
+Duration: Base 10, modified by the caster's spell-duration bonus
+School of Magic: Transmutation
+Target(s): One eligible player character in the room
+
+Elemental water embodiment transforms an eligible same-side player character.
+The target gains approximately 5 hit points per shared caster/target level,
+water breathing, 50 percent resistance to fire, poison, and acid, and 25
+percent additional height and weight. The hit-point bonus varies by up to five
+percent.
+
+The target must be unmounted and cannot already have an elemental embodiment.
+The caster can maintain only one elemental embodiment at a time. Removing or
+ending either side of the linked effect ends the transformation.
+
+See also: ELEMENTAL-FIRE-EMBODIMENT, ELEMENTAL-EARTH-EMBODIMENT,
+ELEMENTAL-AIR-EMBODIMENT, WATER-BREATHING
+
+#0
+ELEMENTAL-FIRE-EMBODIMENT SPELL-ELEMENTAL-FIRE-EMBODIMENT
+
+Usage: cast 'elemental fire embodiment' <target>
+Duration: Base 10, modified by the caster's spell-duration bonus
+School of Magic: Transmutation
+Target(s): One eligible player character in the room
+
+Elemental fire embodiment transforms an eligible same-side player character.
+The target gains approximately 7 hit points per shared caster/target level, +6
+natural armor, fire shield, haste, flight, 50 percent resistance to poison and
+fire, and 35 percent additional height and weight. The hit-point bonus varies
+by up to five percent.
+
+The target must be unmounted and cannot already have an elemental embodiment.
+The caster can maintain only one elemental embodiment at a time. Removing or
+ending either side of the linked effect ends the transformation.
+
+See also: ELEMENTAL-WATER-EMBODIMENT, ELEMENTAL-EARTH-EMBODIMENT,
+ELEMENTAL-AIR-EMBODIMENT, FIRE-SHIELD, HASTE
+
+#0
+ELEMENTAL-EARTH-EMBODIMENT SPELL-ELEMENTAL-EARTH-EMBODIMENT
+
+Usage: cast 'elemental earth embodiment' <target>
+Duration: Base 10, modified by the caster's spell-duration bonus
+School of Magic: Transmutation
+Target(s): One eligible player character in the room
+
+Elemental earth embodiment transforms an eligible same-side player character.
+The target gains approximately 7 hit points per shared caster/target level, 50
+percent resistance to poison and cold, and 50 percent additional height and
+weight. The hit-point bonus varies by up to five percent.
+
+The target must be unmounted and cannot already have an elemental embodiment.
+The caster can maintain only one elemental embodiment at a time. Removing or
+ending either side of the linked effect ends the transformation.
+
+See also: ELEMENTAL-WATER-EMBODIMENT, ELEMENTAL-FIRE-EMBODIMENT,
+ELEMENTAL-AIR-EMBODIMENT, COLD
+
+#0
+ELEMENTAL-AIR-EMBODIMENT SPELL-ELEMENTAL-AIR-EMBODIMENT
+
+Usage: cast 'elemental air embodiment' <target>
+Duration: Base 10, modified by the caster's spell-duration bonus
+School of Magic: Transmutation
+Target(s): One eligible player character in the room
+
+Elemental air embodiment transforms an eligible same-side player character.
+The target gains approximately 3 hit points per shared caster/target level, +5
+natural armor, haste, flight, 50 percent resistance to poison and acid, and 15
+percent additional height and weight. The hit-point bonus varies by up to five
+percent.
+
+The target must be unmounted and cannot already have an elemental embodiment.
+The caster can maintain only one elemental embodiment at a time. Removing or
+ending either side of the linked effect ends the transformation.
+
+See also: ELEMENTAL-WATER-EMBODIMENT, ELEMENTAL-FIRE-EMBODIMENT,
+ELEMENTAL-EARTH-EMBODIMENT, FLY, HASTE
+
+#0
 $~

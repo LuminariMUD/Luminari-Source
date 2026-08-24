@@ -479,9 +479,24 @@ void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, 
 
 /* TODO:  add strength/etc to affection struct, that'd help a lot especially
    here */
+static struct affected_type *first_dispellable_affect(struct char_data *ch)
+{
+  struct affected_type *af;
+
+  if (ch == NULL)
+    return NULL;
+
+  for (af = ch->affected; af != NULL; af = af->next)
+    if (!rol_elemental_embodiment_affect_is_transient(af->spell))
+      return af;
+
+  return NULL;
+}
+
 void perform_dispel(struct char_data *ch, struct char_data *vict, struct obj_data *obj,
                     int spellnum)
 {
+  struct affected_type *af;
   int i = 0, attempt = 0, challenge = 0, num_dispels = 0, msg = FALSE;
   bool wildshape = false;
 
@@ -526,11 +541,11 @@ void perform_dispel(struct char_data *ch, struct char_data *vict, struct obj_dat
   {
     send_to_char(ch, "You dispel all your own magic!\r\n");
     act("$n dispels all $s magic!", FALSE, ch, 0, 0, TO_ROOM);
-    while (ch->affected)
+    while ((af = first_dispellable_affect(ch)) != NULL)
     {
-      if (get_wearoff(ch->affected->spell))
-        send_to_char(ch, "%s\r\n", get_wearoff(ch->affected->spell));
-      affect_remove(ch, ch->affected);
+      if (get_wearoff(af->spell))
+        send_to_char(ch, "%s\r\n", get_wearoff(af->spell));
+      affect_remove(ch, af);
     }
     if (AFF_FLAGGED(ch, AFF_WILD_SHAPE))
       wildshape = true;
@@ -538,6 +553,8 @@ void perform_dispel(struct char_data *ch, struct char_data *vict, struct obj_dat
       AFF_FLAGS(ch)[i] = 0;
     if (wildshape)
       SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
+    if (ch->affected != NULL)
+      affect_total(ch);
     return;
   }
   else
@@ -553,16 +570,16 @@ void perform_dispel(struct char_data *ch, struct char_data *vict, struct obj_dat
       {
         if (attempt >= challenge)
         { // successful
-          if (vict->affected)
+          if ((af = first_dispellable_affect(vict)) != NULL)
           {
-            if (vict->affected[0].spell == WARLOCK_RETRIBUTIVE_INVISIBILITY)
+            if (af->spell == WARLOCK_RETRIBUTIVE_INVISIBILITY)
             {
               // this spell explodes.
               mag_areas(GET_WARLOCK_LEVEL(vict), vict, NULL, WARLOCK_RETRIBUTIVE_INVISIBILITY, 0,
                         SAVING_FORT, CAST_INNATE);
             }
             msg = TRUE;
-            affect_remove(vict, vict->affected);
+            affect_remove(vict, af);
             if (spellnum == WARLOCK_VORACIOUS_DISPELLING)
             {
               damage(ch, vict, CASTER_LEVEL(ch) / 2, WARLOCK_VORACIOUS_DISPELLING, DAM_FORCE, 0);
@@ -596,8 +613,8 @@ void perform_dispel(struct char_data *ch, struct char_data *vict, struct obj_dat
       { // successful
         send_to_char(ch, "You successfuly dispel some magic!\r\n");
         act("$n dispels some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);
-        if (vict->affected)
-          affect_remove(vict, vict->affected);
+        if ((af = first_dispellable_affect(vict)) != NULL)
+          affect_remove(vict, af);
       }
       else
       { // failed
@@ -5980,6 +5997,356 @@ ASPELL(spell_tazriks_frenzied_hound)
   NEW_EVENT(eROL_TAZRIKS_FRENZIED_HOUND, ch, state, PULSE_VIOLENCE);
 }
 
+#define ROL_ELEMENTAL_MAX_RESISTANCES 3
+#define ROL_ELEMENTAL_MAX_FLAGS 3
+#define ROL_ELEMENTAL_PROTECTION 50
+
+struct rol_elemental_embodiment_profile
+{
+  int spellnum;
+  int hp_factor;
+  int armor_bonus;
+  int size_percent;
+  int resistance_count;
+  int resistances[ROL_ELEMENTAL_MAX_RESISTANCES];
+  int flag_count;
+  int flags[ROL_ELEMENTAL_MAX_FLAGS];
+  const char *victim_message;
+  const char *room_message;
+};
+
+static bool get_rol_elemental_embodiment_profile(int spellnum,
+                                                 struct rol_elemental_embodiment_profile *profile)
+{
+  if (profile == NULL)
+    return false;
+
+  memset(profile, 0, sizeof(*profile));
+  profile->spellnum = spellnum;
+
+  switch (spellnum)
+  {
+  case SPELL_ELEMENTAL_WATER_EMBODIMENT:
+    profile->hp_factor = 5;
+    profile->size_percent = 25;
+    profile->resistance_count = 3;
+    profile->resistances[0] = APPLY_RES_FIRE;
+    profile->resistances[1] = APPLY_RES_POISON;
+    profile->resistances[2] = APPLY_RES_ACID;
+    profile->flag_count = 1;
+    profile->flags[0] = AFF_WATER_BREATH;
+    profile->victim_message =
+        "Your body begins to flow and liquefy as you embody elemental water.\r\n";
+    profile->room_message = "$n's body flows and liquefies into an embodiment of water.";
+    return true;
+  case SPELL_ELEMENTAL_FIRE_EMBODIMENT:
+    profile->hp_factor = 7;
+    profile->armor_bonus = 6;
+    profile->size_percent = 35;
+    profile->resistance_count = 2;
+    profile->resistances[0] = APPLY_RES_POISON;
+    profile->resistances[1] = APPLY_RES_FIRE;
+    profile->flag_count = 3;
+    profile->flags[0] = AFF_FSHIELD;
+    profile->flags[1] = AFF_HASTE;
+    profile->flags[2] = AFF_FLYING;
+    profile->victim_message =
+        "Your body begins to smolder and burn as you embody elemental fire.\r\n";
+    profile->room_message = "$n's body smolders and burns into an embodiment of fire.";
+    return true;
+  case SPELL_ELEMENTAL_EARTH_EMBODIMENT:
+    /* The live RoL handler uses the fire factor of seven; its declared earth factor is unused. */
+    profile->hp_factor = 7;
+    profile->size_percent = 50;
+    profile->resistance_count = 2;
+    profile->resistances[0] = APPLY_RES_POISON;
+    profile->resistances[1] = APPLY_RES_COLD;
+    profile->victim_message =
+        "Your body begins to harden and solidify as you embody elemental earth.\r\n";
+    profile->room_message = "$n's body hardens and solidifies into an embodiment of earth.";
+    return true;
+  case SPELL_ELEMENTAL_AIR_EMBODIMENT:
+    profile->hp_factor = 3;
+    profile->armor_bonus = 5;
+    profile->size_percent = 15;
+    profile->resistance_count = 2;
+    profile->resistances[0] = APPLY_RES_POISON;
+    profile->resistances[1] = APPLY_RES_ACID;
+    profile->flag_count = 2;
+    profile->flags[0] = AFF_HASTE;
+    profile->flags[1] = AFF_FLYING;
+    profile->victim_message =
+        "Your body begins to swirl and waver as you embody elemental air.\r\n";
+    profile->room_message = "$n's body swirls and wavers into an embodiment of air.";
+    return true;
+  default:
+    return false;
+  }
+}
+
+static bool rol_elemental_embodiment_spell(int spellnum)
+{
+  struct rol_elemental_embodiment_profile profile;
+
+  return get_rol_elemental_embodiment_profile(spellnum, &profile);
+}
+
+bool rol_elemental_embodiment_affect_is_transient(int spellnum)
+{
+  return spellnum == AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN ||
+         rol_elemental_embodiment_spell(spellnum);
+}
+
+bool rol_elemental_embodiment_active(struct char_data *ch)
+{
+  if (ch == NULL)
+    return false;
+
+  return affected_by_spell(ch, SPELL_ELEMENTAL_WATER_EMBODIMENT) ||
+         affected_by_spell(ch, SPELL_ELEMENTAL_FIRE_EMBODIMENT) ||
+         affected_by_spell(ch, SPELL_ELEMENTAL_EARTH_EMBODIMENT) ||
+         affected_by_spell(ch, SPELL_ELEMENTAL_AIR_EMBODIMENT);
+}
+
+static bool rol_elemental_embodiment_same_side(struct char_data *ch, struct char_data *victim)
+{
+  if (ch == NULL || victim == NULL)
+    return false;
+  if (IS_NPC(ch) || IS_NPC(victim) || GET_LEVEL(ch) >= LVL_IMMORT || are_grouped(ch, victim))
+    return true;
+
+  return !((rol_race_is_good(GET_RACE(ch)) && rol_race_is_evil(GET_RACE(victim))) ||
+           (rol_race_is_evil(GET_RACE(ch)) && rol_race_is_good(GET_RACE(victim))));
+}
+
+static int rol_elemental_embodiment_hp_bonus(struct char_data *ch, struct char_data *victim,
+                                             int factor)
+{
+  int base;
+  int bonus;
+  int variance;
+
+  base = MAX(0, MIN(GET_LEVEL(ch), GET_LEVEL(victim)) * factor);
+  variance = base * 5 / 100;
+  bonus = base + rand_number(-variance, variance);
+
+  if (GET_MAX_HIT(victim) > 30000 || bonus > 30000 - GET_MAX_HIT(victim))
+    return 0;
+
+  return MAX(0, bonus);
+}
+
+static int rol_elemental_embodiment_size_bonus(int current, int percent)
+{
+  if (current <= 0 || percent <= 0)
+    return 0;
+
+  return MIN(UCHAR_MAX - current, current * percent / 100);
+}
+
+static void apply_rol_elemental_embodiment_affect(struct char_data *victim, int spellnum,
+                                                  int duration, int location, int modifier,
+                                                  int bonus_type, const int *flags, int flag_count,
+                                                  long caster_id)
+{
+  struct affected_type af;
+  int index;
+
+  new_affect(&af);
+  af.spell = spellnum;
+  af.duration = duration;
+  af.location = location;
+  af.modifier = modifier;
+  af.bonus_type = bonus_type;
+  for (index = 0; index < flag_count; index++)
+    SET_BIT_AR(af.bitvector, flags[index]);
+  affect_to_char_source(victim, &af, caster_id);
+}
+
+static void apply_rol_elemental_embodiment(struct char_data *ch, struct char_data *victim,
+                                           int spellnum)
+{
+  struct rol_elemental_embodiment_profile profile;
+  struct affected_type maintenance;
+  long caster_id;
+  long victim_id;
+  int duration;
+  int height_bonus;
+  int hp_bonus;
+  int index;
+  int weight_bonus;
+
+  if (!get_rol_elemental_embodiment_profile(spellnum, &profile))
+    return;
+  if (ch == NULL || victim == NULL)
+    return;
+  if (IS_NPC(victim))
+  {
+    send_to_char(ch, "You cannot cast this spell on NPCs.\r\n");
+    return;
+  }
+  if (!rol_elemental_embodiment_same_side(ch, victim))
+  {
+    send_to_char(ch, "That person is not worthy of your spell.\r\n");
+    return;
+  }
+  if (affected_by_spell(ch, AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN))
+  {
+    send_to_char(ch, "You are already maintaining an elemental embodiment!\r\n");
+    return;
+  }
+  if (rol_elemental_embodiment_active(victim) || GET_ELEMENTAL_EMBODIMENT_TIMER(victim) > 0)
+  {
+    send_to_char(ch, "That person is already embodying an elemental force!\r\n");
+    return;
+  }
+  if (RIDING(victim) != NULL)
+  {
+    send_to_char(ch, "That person needs to dismount first!\r\n");
+    return;
+  }
+
+  caster_id = char_script_id(ch);
+  victim_id = char_script_id(victim);
+  duration = MAX(1, 10 * get_spell_duration_bonus(ch) / 100);
+  hp_bonus = rol_elemental_embodiment_hp_bonus(ch, victim, profile.hp_factor);
+  height_bonus = rol_elemental_embodiment_size_bonus(GET_HEIGHT(victim), profile.size_percent);
+  weight_bonus = rol_elemental_embodiment_size_bonus(GET_WEIGHT(victim), profile.size_percent);
+
+  affect_batch_begin(victim);
+  apply_rol_elemental_embodiment_affect(victim, spellnum, duration, APPLY_HIT, hp_bonus,
+                                        BONUS_TYPE_UNIVERSAL, NULL, 0, caster_id);
+  apply_rol_elemental_embodiment_affect(
+      victim, spellnum, duration, profile.armor_bonus > 0 ? APPLY_AC_NEW : APPLY_NONE,
+      profile.armor_bonus, BONUS_TYPE_NATURALARMOR, profile.flags, profile.flag_count, caster_id);
+  for (index = 0; index < profile.resistance_count; index++)
+    apply_rol_elemental_embodiment_affect(victim, spellnum, duration, profile.resistances[index],
+                                          ROL_ELEMENTAL_PROTECTION, BONUS_TYPE_ENHANCEMENT, NULL, 0,
+                                          caster_id);
+  if (height_bonus > 0)
+    apply_rol_elemental_embodiment_affect(victim, spellnum, duration, APPLY_CHAR_HEIGHT,
+                                          height_bonus, BONUS_TYPE_UNIVERSAL, NULL, 0, caster_id);
+  if (weight_bonus > 0)
+    apply_rol_elemental_embodiment_affect(victim, spellnum, duration, APPLY_CHAR_WEIGHT,
+                                          weight_bonus, BONUS_TYPE_UNIVERSAL, NULL, 0, caster_id);
+  affect_batch_end(victim);
+
+  GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + hp_bonus);
+
+  new_affect(&maintenance);
+  maintenance.spell = AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN;
+  maintenance.duration = duration;
+  maintenance.specific = spellnum;
+  affect_to_char_source(ch, &maintenance, victim_id);
+
+  send_to_char(victim, "%s", profile.victim_message);
+  if (IN_ROOM(victim) != NOWHERE)
+    act(profile.room_message, FALSE, victim, NULL, NULL, TO_ROOM);
+}
+
+ASPELL(spell_elemental_water_embodiment)
+{
+  apply_rol_elemental_embodiment(ch, victim, SPELL_ELEMENTAL_WATER_EMBODIMENT);
+}
+
+ASPELL(spell_elemental_fire_embodiment)
+{
+  apply_rol_elemental_embodiment(ch, victim, SPELL_ELEMENTAL_FIRE_EMBODIMENT);
+}
+
+ASPELL(spell_elemental_earth_embodiment)
+{
+  apply_rol_elemental_embodiment(ch, victim, SPELL_ELEMENTAL_EARTH_EMBODIMENT);
+}
+
+ASPELL(spell_elemental_air_embodiment)
+{
+  apply_rol_elemental_embodiment(ch, victim, SPELL_ELEMENTAL_AIR_EMBODIMENT);
+}
+
+static void remove_rol_elemental_embodiment_components(struct char_data *ch, int spellnum,
+                                                       long source_id, int specific)
+{
+  struct affected_type *af;
+  struct affected_type *next;
+
+  if (ch == NULL)
+    return;
+
+  for (af = ch->affected; af != NULL; af = next)
+  {
+    next = af->next;
+    if (af->spell != spellnum)
+      continue;
+    if (source_id > 0 && af->source_id != source_id)
+      continue;
+    if (specific > 0 && af->specific != specific)
+      continue;
+    affect_remove(ch, af);
+  }
+}
+
+void remove_rol_elemental_embodiment_affect(struct char_data *ch, int spellnum)
+{
+  struct affected_type *af;
+  struct char_data *counterpart;
+  long counterpart_id = 0;
+  long own_id;
+  int maintained_spell = 0;
+  int target_spell;
+
+  if (ch == NULL || !rol_elemental_embodiment_affect_is_transient(spellnum))
+    return;
+
+  own_id = char_script_id(ch);
+  for (af = ch->affected; af != NULL; af = af->next)
+  {
+    if (af->spell != spellnum)
+      continue;
+    counterpart_id = af->source_id;
+    maintained_spell = af->specific;
+    break;
+  }
+
+  remove_rol_elemental_embodiment_components(ch, spellnum, 0, 0);
+  if (rol_elemental_embodiment_spell(spellnum))
+  {
+    counterpart = find_char(counterpart_id);
+    remove_rol_elemental_embodiment_components(
+        counterpart, AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN, own_id, spellnum);
+    GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
+    return;
+  }
+
+  counterpart = find_char(counterpart_id);
+  if (counterpart == NULL)
+    return;
+  if (rol_elemental_embodiment_spell(maintained_spell))
+  {
+    remove_rol_elemental_embodiment_components(counterpart, maintained_spell, own_id, 0);
+  }
+  else
+  {
+    for (target_spell = SPELL_ELEMENTAL_WATER_EMBODIMENT;
+         target_spell <= SPELL_ELEMENTAL_AIR_EMBODIMENT; target_spell++)
+      remove_rol_elemental_embodiment_components(counterpart, target_spell, own_id, 0);
+  }
+  GET_HIT(counterpart) = MIN(GET_HIT(counterpart), GET_MAX_HIT(counterpart));
+}
+
+void remove_all_rol_elemental_embodiments(struct char_data *ch)
+{
+  int spellnum;
+
+  if (ch == NULL)
+    return;
+
+  remove_rol_elemental_embodiment_affect(ch, AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN);
+  for (spellnum = SPELL_ELEMENTAL_WATER_EMBODIMENT; spellnum <= SPELL_ELEMENTAL_AIR_EMBODIMENT;
+       spellnum++)
+    remove_rol_elemental_embodiment_affect(ch, spellnum);
+}
+
 #ifdef LUMINARI_CUTEST
 int test_call_lycanthrope_level(int caster_level)
 {
@@ -5994,6 +6361,11 @@ int test_call_lycanthrope_charm_save_target(int charisma)
 bool test_tazriks_event_state(const char *state, room_vnum *room, int *strike)
 {
   return tazriks_event_state(state, room, strike);
+}
+
+bool test_rol_elemental_embodiment_same_side(struct char_data *ch, struct char_data *victim)
+{
+  return rol_elemental_embodiment_same_side(ch, victim);
 }
 #endif
 
@@ -6023,6 +6395,9 @@ int adjust_damage_for_creature_wards(struct char_data *attacker, struct char_dat
 }
 
 #undef NO_AFFECT_FLAG
+#undef ROL_ELEMENTAL_MAX_RESISTANCES
+#undef ROL_ELEMENTAL_MAX_FLAGS
+#undef ROL_ELEMENTAL_PROTECTION
 
 #undef ZOCMD
 

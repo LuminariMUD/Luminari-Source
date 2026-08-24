@@ -8,6 +8,7 @@
 #include "../../src/utils.h"
 #include "../../src/character/evolutions.h"
 #include "../../src/combat/fight.h"
+#include "../../src/dgscript/dg_scripts.h"
 #include "../../src/handler.h"
 #include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
@@ -122,6 +123,60 @@ static const struct spell_registration_expectation damage_control_spells[] = {
 static const struct spell_registration_expectation summon_event_spells[] = {
     {SPELL_CALL_LYCANTHROPE, MAG_MANUAL},
     {SPELL_TAZRIKS_FRENZIED_HOUND, MAG_MANUAL},
+};
+
+static const struct spell_registration_expectation elemental_embodiment_spells[] = {
+    {SPELL_ELEMENTAL_WATER_EMBODIMENT, MAG_MANUAL},
+    {SPELL_ELEMENTAL_FIRE_EMBODIMENT, MAG_MANUAL},
+    {SPELL_ELEMENTAL_EARTH_EMBODIMENT, MAG_MANUAL},
+    {SPELL_ELEMENTAL_AIR_EMBODIMENT, MAG_MANUAL},
+};
+
+struct elemental_embodiment_expectation
+{
+  int spellnum;
+  int hp_factor;
+  int armor_bonus;
+  int size_percent;
+  int resistance_count;
+  int resistances[3];
+  int flag_count;
+  int flags[3];
+};
+
+static const struct elemental_embodiment_expectation elemental_embodiment_effects[] = {
+    {SPELL_ELEMENTAL_WATER_EMBODIMENT,
+     5,
+     0,
+     25,
+     3,
+     {APPLY_RES_FIRE, APPLY_RES_POISON, APPLY_RES_ACID},
+     1,
+     {AFF_WATER_BREATH, 0, 0}},
+    {SPELL_ELEMENTAL_FIRE_EMBODIMENT,
+     7,
+     6,
+     35,
+     2,
+     {APPLY_RES_POISON, APPLY_RES_FIRE, 0},
+     3,
+     {AFF_FSHIELD, AFF_HASTE, AFF_FLYING}},
+    {SPELL_ELEMENTAL_EARTH_EMBODIMENT,
+     7,
+     0,
+     50,
+     2,
+     {APPLY_RES_POISON, APPLY_RES_COLD, 0},
+     0,
+     {0, 0, 0}},
+    {SPELL_ELEMENTAL_AIR_EMBODIMENT,
+     3,
+     5,
+     15,
+     2,
+     {APPLY_RES_POISON, APPLY_RES_ACID, 0},
+     2,
+     {AFF_HASTE, AFF_FLYING, 0}},
 };
 
 static void add_test_affect(struct char_data *ch, int spellnum, int location, int modifier)
@@ -292,6 +347,32 @@ void TestSummonEventSpellsAreNativeAndUnassigned(CuTest *tc)
   }
 }
 
+void TestElementalEmbodimentSpellsAreNativeAndUnassigned(CuTest *tc)
+{
+  size_t index;
+  int class_num;
+  int domain_num;
+  int spellnum;
+
+  mag_assign_spells();
+
+  for (index = 0;
+       index < sizeof(elemental_embodiment_spells) / sizeof(elemental_embodiment_spells[0]);
+       index++)
+  {
+    spellnum = elemental_embodiment_spells[index].spellnum;
+    CuAssertTrue(tc, spell_info[spellnum].name != NULL);
+    CuAssertTrue(tc, spell_info[spellnum].name != unused_spellname);
+    CuAssertIntEquals(tc, elemental_embodiment_spells[index].routines,
+                      spell_info[spellnum].routines);
+
+    for (class_num = 0; class_num < NUM_CLASSES; class_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].min_level[class_num]);
+    for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].domain[domain_num]);
+  }
+}
+
 void TestCallLycanthropePreservesLevelAndCharmCheckBounds(CuTest *tc)
 {
   CuAssertIntEquals(tc, 1, test_call_lycanthrope_level(1));
@@ -322,6 +403,154 @@ void TestSummonEventRegistryUsesDedicatedHandlers(CuTest *tc)
                        event_rol_call_lycanthrope_charm);
   CuAssertTrue(tc, mud_event_index[eROL_TAZRIKS_FRENZIED_HOUND].func ==
                        event_rol_tazriks_frenzied_hound);
+}
+
+void TestElementalEmbodimentsPreserveProfilesAndLinkedCleanup(CuTest *tc)
+{
+  struct affected_type *af;
+  struct char_data caster;
+  struct char_data target;
+  struct player_special_data caster_specials;
+  struct player_special_data target_specials;
+  const struct elemental_embodiment_expectation *expected;
+  long caster_id;
+  long target_id;
+  size_t index;
+  int base_hp;
+  int flag_index;
+  int resistance_index;
+  int variance;
+
+  for (index = 0;
+       index < sizeof(elemental_embodiment_effects) / sizeof(elemental_embodiment_effects[0]);
+       index++)
+  {
+    expected = &elemental_embodiment_effects[index];
+    clear_char(&caster);
+    clear_char(&target);
+    memset(&caster_specials, 0, sizeof(caster_specials));
+    memset(&target_specials, 0, sizeof(target_specials));
+    caster.player_specials = &caster_specials;
+    target.player_specials = &target_specials;
+    caster.player.name = "elementalist";
+    target.player.name = "subject";
+    GET_LEVEL(&caster) = 20;
+    GET_LEVEL(&target) = 10;
+    GET_REAL_RACE(&caster) = RACE_HUMAN;
+    GET_REAL_RACE(&target) = RACE_HUMAN;
+    GET_REAL_MAX_HIT(&target) = GET_MAX_HIT(&target) = 500;
+    GET_HIT(&target) = 100;
+    GET_HEIGHT(&target) = 100;
+    GET_WEIGHT(&target) = 100;
+
+    switch (expected->spellnum)
+    {
+    case SPELL_ELEMENTAL_WATER_EMBODIMENT:
+      spell_elemental_water_embodiment(20, &caster, &target, NULL, CAST_SPELL);
+      break;
+    case SPELL_ELEMENTAL_FIRE_EMBODIMENT:
+      spell_elemental_fire_embodiment(20, &caster, &target, NULL, CAST_SPELL);
+      break;
+    case SPELL_ELEMENTAL_EARTH_EMBODIMENT:
+      spell_elemental_earth_embodiment(20, &caster, &target, NULL, CAST_SPELL);
+      break;
+    case SPELL_ELEMENTAL_AIR_EMBODIMENT:
+      spell_elemental_air_embodiment(20, &caster, &target, NULL, CAST_SPELL);
+      break;
+    }
+
+    caster_id = GET_ID(&caster);
+    target_id = GET_ID(&target);
+    CuAssertTrue(tc, caster_id > 0);
+    CuAssertTrue(tc, target_id > 0);
+    CuAssertTrue(tc, rol_elemental_embodiment_active(&target));
+
+    af = find_test_affect(&target, expected->spellnum, APPLY_HIT);
+    CuAssertPtrNotNull(tc, af);
+    base_hp = 10 * expected->hp_factor;
+    variance = base_hp * 5 / 100;
+    CuAssertTrue(tc, af->modifier >= base_hp - variance);
+    CuAssertTrue(tc, af->modifier <= base_hp + variance);
+    CuAssertIntEquals(tc, 10, af->duration);
+    CuAssertTrue(tc, af->source_id == caster_id);
+    CuAssertIntEquals(tc, 100 + af->modifier, GET_HIT(&target));
+
+    af = find_test_affect(&target, expected->spellnum, APPLY_CHAR_HEIGHT);
+    CuAssertPtrNotNull(tc, af);
+    CuAssertIntEquals(tc, expected->size_percent, af->modifier);
+    af = find_test_affect(&target, expected->spellnum, APPLY_CHAR_WEIGHT);
+    CuAssertPtrNotNull(tc, af);
+    CuAssertIntEquals(tc, expected->size_percent, af->modifier);
+
+    if (expected->armor_bonus > 0)
+    {
+      af = find_test_affect(&target, expected->spellnum, APPLY_AC_NEW);
+      CuAssertPtrNotNull(tc, af);
+      CuAssertIntEquals(tc, expected->armor_bonus, af->modifier);
+      CuAssertIntEquals(tc, BONUS_TYPE_NATURALARMOR, af->bonus_type);
+    }
+    else
+    {
+      CuAssertPtrEquals(tc, NULL, find_test_affect(&target, expected->spellnum, APPLY_AC_NEW));
+    }
+
+    for (resistance_index = 0; resistance_index < expected->resistance_count; resistance_index++)
+    {
+      af = find_test_affect(&target, expected->spellnum, expected->resistances[resistance_index]);
+      CuAssertPtrNotNull(tc, af);
+      CuAssertIntEquals(tc, 50, af->modifier);
+    }
+    for (flag_index = 0; flag_index < expected->flag_count; flag_index++)
+      CuAssertTrue(tc, AFF_FLAGGED(&target, expected->flags[flag_index]));
+
+    af = find_test_affect(&caster, AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN, APPLY_NONE);
+    CuAssertPtrNotNull(tc, af);
+    CuAssertIntEquals(tc, expected->spellnum, af->specific);
+    CuAssertTrue(tc, af->source_id == target_id);
+
+    if (index % 2 == 0)
+      affect_from_char(&caster, AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN);
+    else
+      affect_from_char(&target, expected->spellnum);
+    CuAssertTrue(tc, !rol_elemental_embodiment_active(&target));
+    CuAssertTrue(tc, !affected_by_spell(&caster, AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN));
+    CuAssertIntEquals(tc, 100, GET_HEIGHT(&target));
+    CuAssertIntEquals(tc, 100, GET_WEIGHT(&target));
+
+    remove_from_lookup_table(caster_id);
+    remove_from_lookup_table(target_id);
+  }
+}
+
+void TestElementalEmbodimentSharedEligibilityAndTransientIdentity(CuTest *tc)
+{
+  struct char_data caster;
+  struct char_data target;
+  struct player_special_data caster_specials;
+  struct player_special_data target_specials;
+
+  clear_char(&caster);
+  clear_char(&target);
+  memset(&caster_specials, 0, sizeof(caster_specials));
+  memset(&target_specials, 0, sizeof(target_specials));
+  caster.player_specials = &caster_specials;
+  target.player_specials = &target_specials;
+  GET_LEVEL(&caster) = 20;
+  GET_LEVEL(&target) = 20;
+  GET_REAL_RACE(&caster) = RACE_HUMAN;
+  GET_REAL_RACE(&target) = RACE_DROW;
+
+  CuAssertTrue(tc, !test_rol_elemental_embodiment_same_side(&caster, &target));
+  GET_LEVEL(&caster) = LVL_IMMORT;
+  CuAssertTrue(tc, test_rol_elemental_embodiment_same_side(&caster, &target));
+
+  CuAssertTrue(tc, rol_elemental_embodiment_affect_is_transient(SPELL_ELEMENTAL_WATER_EMBODIMENT));
+  CuAssertTrue(tc, rol_elemental_embodiment_affect_is_transient(SPELL_ELEMENTAL_FIRE_EMBODIMENT));
+  CuAssertTrue(tc, rol_elemental_embodiment_affect_is_transient(SPELL_ELEMENTAL_EARTH_EMBODIMENT));
+  CuAssertTrue(tc, rol_elemental_embodiment_affect_is_transient(SPELL_ELEMENTAL_AIR_EMBODIMENT));
+  CuAssertTrue(
+      tc, rol_elemental_embodiment_affect_is_transient(AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN));
+  CuAssertTrue(tc, !rol_elemental_embodiment_affect_is_transient(SPELL_GENIEKIND));
 }
 
 void TestCycloneUsesSourceWindThresholdOnlyForPlayerCasters(CuTest *tc)

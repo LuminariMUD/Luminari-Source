@@ -1127,6 +1127,18 @@ SAVING_WILL here...  */
     case SPELL_TAZRIKS_FRENZIED_HOUND:
       MANUAL_SPELL(spell_tazriks_frenzied_hound);
       break;
+    case SPELL_ELEMENTAL_WATER_EMBODIMENT:
+      MANUAL_SPELL(spell_elemental_water_embodiment);
+      break;
+    case SPELL_ELEMENTAL_FIRE_EMBODIMENT:
+      MANUAL_SPELL(spell_elemental_fire_embodiment);
+      break;
+    case SPELL_ELEMENTAL_EARTH_EMBODIMENT:
+      MANUAL_SPELL(spell_elemental_earth_embodiment);
+      break;
+    case SPELL_ELEMENTAL_AIR_EMBODIMENT:
+      MANUAL_SPELL(spell_elemental_air_embodiment);
+      break;
     case SPELL_GIRD_ALLIES:
       MANUAL_SPELL(spell_gird_allies);
       break;
@@ -6042,6 +6054,8 @@ void mag_assign_spells(void)
           "The manscorpion venom leaves your bloodstream.");
   affecto(AFFECT_ROL_BARBAZU_BERSERK, "RoL Barbazu berserk",
           "Your bloodlust-filled rage subsides.");
+  affecto(AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN, "RoL elemental embodiment link",
+          "Your elemental embodiment link dissolves.");
 
   affecto(SKILL_BLEEDING_ATTACK, "bleeding attack", "The bleeding from the attack stops.");
   affecto(SKILL_CRIPPLING_STRIKE, "crippling strike", "Your movement is no longer crippled.");
@@ -6457,6 +6471,18 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
          MAG_MANUAL, NULL, 2, 0, CONJURATION, FALSE);
   spello(SPELL_TAZRIKS_FRENZIED_HOUND, "tazriks frenzied hound", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
          TRUE, MAG_MANUAL, NULL, 3, 13, CONJURATION, FALSE);
+  spello(SPELL_ELEMENTAL_WATER_EMBODIMENT, "elemental water embodiment", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your flowing water embodiment recedes.", 4, 0,
+         TRANSMUTATION, FALSE);
+  spello(SPELL_ELEMENTAL_FIRE_EMBODIMENT, "elemental fire embodiment", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your burning fire embodiment gutters out.", 4, 0,
+         TRANSMUTATION, FALSE);
+  spello(SPELL_ELEMENTAL_EARTH_EMBODIMENT, "elemental earth embodiment", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your hardened earth embodiment crumbles away.", 4, 0,
+         TRANSMUTATION, FALSE);
+  spello(SPELL_ELEMENTAL_AIR_EMBODIMENT, "elemental air embodiment", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your swirling air embodiment settles.", 4, 0,
+         TRANSMUTATION, FALSE);
 
   /* Declaration of skills - this assigns categories and also will set it up
    * so that immortals can use these skills by default.  The min level to use

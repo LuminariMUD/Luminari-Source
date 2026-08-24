@@ -1622,6 +1622,12 @@ void affect_from_char(struct char_data *ch, int spell)
 {
   struct affected_type *hjp = NULL, *next = NULL;
 
+  if (rol_elemental_embodiment_affect_is_transient(spell))
+  {
+    remove_rol_elemental_embodiment_affect(ch, spell);
+    return;
+  }
+
   for (hjp = ch->affected; hjp; hjp = next)
   {
     next = hjp->next;
@@ -3057,6 +3063,7 @@ void extract_char_final(struct char_data *ch)
                                (enum perf_entity_reason)ch->perf_create_reason);
 
   mobile_activity_forget_character(ch);
+  remove_all_rol_elemental_embodiments(ch);
 
   PERF_prof_sect_init(&pr_last_attacker, "extract.last_attacker");
   PERF_prof_sect_enter(pr_last_attacker);

@@ -1,12 +1,12 @@
 # RoL Spells Without a Close LuminariMUD Equivalent
 
-Status: implementation incomplete. The source registry audit was completed and
-independently re-verified 2026-08-24 against `sparser.c`, `spells.h`,
-`spell_parser.c`, and `psionics.c`. Six implementation checkpoints added 85
-functional gaps through native magic paths and focused direct handlers. A
-follow-up handler-level review found 14 live RoL spells that had been
-incorrectly classified as covered by loose substitutes. Four of those spells
-still require native implementations.
+Status: implementation and validation complete. The source registry audit was
+completed and independently re-verified 2026-08-24 against
+`sparser.c`, `spells.h`, `spell_parser.c`, and `psionics.c`. Seven
+implementation checkpoints added all 89 functional gaps through native magic
+paths and focused direct handlers. A follow-up handler-level review found 14
+live RoL spells that had been incorrectly classified as covered by loose
+substitutes; all 14 now have native implementations.
 
 This list compares every unique spell registered through `SPELL_CREATE()` in
 Realms of Luminari with LuminariMUD's registered spells and closely equivalent
@@ -30,7 +30,7 @@ below and must not be treated as live RoL content.
 - RoL registrations reviewed: 332 (327 live, 5 never compiled)
 - Live registrations with a close LuminariMUD equivalent: 229
 - Live registrations without a close equivalent: 98
-- Player-facing or functional gaps: 89 (85 implemented, 4 remaining)
+- Player-facing or functional gaps: 89 (89 implemented, 0 remaining)
 - RoL internal or stub registrations without an equivalent: 9
 - Registered only inside `#if 0` (never compiled): 5
 
@@ -53,13 +53,14 @@ player-facing gaps were implemented. Playable race gaps are tracked in
 `ROL_RACE_EQUIVALENCE_GAPS.md`.
 
 This remains a feature-equivalence list. The corresponding magic-item
-converter map is numerically complete but not semantically complete.
-`_SOURCE_SPELL_MAP` contains 340 positive source IDs: all 327 live
+converter is numerically complete and routes every identified player-facing
+gap to a native implementation. `_SOURCE_SPELL_MAP` contains 331 castable
+positive source IDs. `_NON_CASTABLE_SOURCE_SPELLS` separately accounts for nine
+stub, maintenance, or proc-only IDs that must fail closed in a castable world-data
+slot. Their union covers all 340 required positive source IDs: all 327 live
 `SPELL_CREATE()` IDs, all 335 distinct positive `SPELL_*` numeric IDs in the
 source header, and the two non-spell IDs actually found in magic-item spell
-slots. Four live source spells currently map to substitutes that do not
-preserve their mechanics. Those mappings must move to the new native spell IDs
-after the remaining spells are implemented.
+slots.
 
 The active corpus check converts all 511 magic items: 71 potions, 251 scrolls,
 80 wands, and 109 staves. Those records contain 117 distinct positive source
@@ -77,24 +78,7 @@ positive target spell.
 
 ## Remaining player-facing or functional gaps
 
-These four live RoL spells require distinct native registrations and mechanics.
-The current converter targets are listed only to identify the inadequate
-substitutes; they are not acceptable final mappings.
-
-| RoL ID | RoL spell | Current substitute | Required source behavior |
-|-------:|-----------|--------------------|--------------------------|
-| 482 | elemental water embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 5 hit points per shared level, water breathing, fire/gas/acid protection, and 25 percent additional height and weight. |
-| 483 | elemental fire embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 7 hit points per shared level, fire shield, -65 source armor class, haste, flight, gas/fire protection, and 35 percent additional height and weight. |
-| 484 | elemental earth embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants gas/cold protection and 50 percent additional height and weight. The live RoL handler grants roughly 7 hit points per shared level because it uses `EFHP_FACTOR`; the separately declared `EEHP_FACTOR` value of 10 is unused and should be resolved deliberately during implementation. |
-| 485 | elemental air embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 3 hit points per shared level, -50 source armor class, haste, flight, gas/acid protection, and 15 percent additional height and weight. |
-
-All four elemental embodiment spells share additional behavior that must remain
-common in the target implementation: the target must be a same-side PC, the
-target must be unmounted and not already embodying an element, and the caster
-can maintain only one embodiment. Each spell creates a linked caster-side
-maintenance affect so expiration and removal can clean up the transformation.
-Geniekind is not a usable base for this behavior: it is self-only, selects a
-genie type, applies different traits, and summons a genie follower.
+None. All 89 player-facing or functional gaps have native implementations.
 
 ## Implemented player-facing or functional gaps
 
@@ -242,9 +226,41 @@ The converter marks only source mobile prototypes 525 and 526 with a dedicated
 summon-role flag, so call lycanthrope does not select unrelated lycanthropes.
 The converter's spell mappings now target both native registrations.
 
-The complete inventory of the 85 implemented gaps remains below, preserving
-the original source-to-target accounting. The four remaining gaps are listed in
-the preceding section.
+### Implementation checkpoint 7: linked elemental embodiments
+
+These four spells replace geniekind substitutes with a shared transformation
+and maintenance lifecycle. None has a class or domain assignment.
+
+| Spell | Implemented gameplay purpose |
+|-------|------------------------------|
+| elemental water embodiment | Grants roughly 5 hit points per shared level, water breathing, 50 percent fire/poison/acid resistance, and 25 percent additional height and weight. |
+| elemental fire embodiment | Grants roughly 7 hit points per shared level, fire shield, +6 natural armor, haste, flight, 50 percent poison/fire resistance, and 35 percent additional height and weight. |
+| elemental earth embodiment | Grants roughly 7 hit points per shared level, 50 percent poison/cold resistance, and 50 percent additional height and weight. The factor of 7 deliberately preserves the live RoL handler's use of `EFHP_FACTOR`; the unused declared `EEHP_FACTOR` value of 10 is not substituted. |
+| elemental air embodiment | Grants roughly 3 hit points per shared level, +5 natural armor, haste, flight, 50 percent poison/acid resistance, and 15 percent additional height and weight. |
+
+All four require a same-side, unmounted PC target that is not already using an
+elemental embodiment. A caster can maintain only one embodiment. Runtime source
+IDs link the target transformation to a caster-side maintenance affect, so
+explicit removal or either character leaving the game tears down both sides.
+The linked affects are transient: player and pet persistence omit them, and the
+source dispel exclusions are preserved. The base duration is ten before the
+caster's spell-duration modifier, and hit-point variation remains within five
+percent of the shared-level base.
+
+The converter now maps source IDs 482-485 to the four native registrations.
+Source stub IDs 64, 93, and 361; maintenance IDs 291-294 and 498; and proc
+marker 374 are explicit non-castable identities and cause a conversion error if
+found in a magic-item spell slot.
+
+Validation completed with a warning-free GNU C23 build and all 880
+production-linked CuTests under the documented isolated-test settings. The
+full world-tool suite passed, and the 132-test RoL transformer suite passed
+against the installed source corpus with two optional-pilot skips. The
+generated constants manifest is current, installation succeeds, and the four
+flat-file help topics match their development-database entries.
+
+The complete inventory of all 89 implemented gaps remains below, preserving
+the original source-to-target accounting.
 
 | RoL ID | RoL spell | RoL constant |
 |-------:|-----------|--------------|
@@ -322,6 +338,10 @@ the preceding section.
 | 476 | shadechill | `SPELL_SHADECHILL` |
 | 478 | agility | `SPELL_AGILITY` |
 | 479 | air blast | `SPELL_AIR_BLAST` |
+| 482 | elemental water embodiment | `SPELL_ELEMENTAL_WATER` |
+| 483 | elemental fire embodiment | `SPELL_ELEMENTAL_FIRE` |
+| 484 | elemental earth embodiment | `SPELL_ELEMENTAL_EARTH` |
+| 485 | elemental air embodiment | `SPELL_ELEMENTAL_AIR` |
 | 487 | lava burst | `SPELL_LAVA_BURST` |
 | 488 | ice layer | `SPELL_ICE_LAYER` |
 | 492 | shadow flux | `SPELL_SHADOW_FLUX` |
