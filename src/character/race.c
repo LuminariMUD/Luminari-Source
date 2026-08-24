@@ -1997,10 +1997,16 @@ void assign_races(void)
       "Scales ripple across your skin as your form becomes Yuan-Ti.",
       "Scales ripple across $n's skin as $s form becomes Yuan-Ti.");
   set_race_genders(RACE_YUAN_TI, N, Y, Y);
-  set_race_abilities(RACE_YUAN_TI, 0, 0, 2, 0, 2, 2);
+  set_race_abilities(RACE_YUAN_TI, 0, 0, 2, 0, 4, 2);
   set_race_alignments(RACE_YUAN_TI, N, N, N, Y, Y, Y, Y, Y, Y);
   set_race_attack_types(RACE_YUAN_TI, N, N, N, N, Y, N, N, N, N, N, Y, N, N, N, N, N, N, N, N, N, N,
                         N, N, N);
+  set_race_wear_restriction(RACE_YUAN_TI, WEAR_FACE,
+                            "Your serpentine anatomy cannot use face, leg, or foot equipment.");
+  set_race_wear_restriction(RACE_YUAN_TI, WEAR_LEGS,
+                            "Your serpentine anatomy cannot use face, leg, or foot equipment.");
+  set_race_wear_restriction(RACE_YUAN_TI, WEAR_FEET,
+                            "Your serpentine anatomy cannot use face, leg, or foot equipment.");
   feat_race_assignment(RACE_YUAN_TI, FEAT_ULTRAVISION, 1, N);
   feat_race_assignment(RACE_YUAN_TI, FEAT_POISON_BITE, 1, N);
   feat_race_assignment(RACE_YUAN_TI, FEAT_POISON_IMMUNITY, 1, N);

@@ -2,6 +2,20 @@
 
 ## [Unreleased] - August 23, 2026
 
+### Yuan-Ti anatomy and tail equipment
+
+#### Changed
+
+- Yuan-Ti player characters now have a dedicated tail equipment slot but no face, leg, or foot
+  slots. Any ring can use the tail slot, while dedicated tail gear remains tail-only.
+- Increased the Yuan-Ti racial Dexterity modifier from +2 to +4.
+- Updated matching flat-file and database help with the anatomy and ability-score rules.
+
+#### Tests
+
+- Added production-linked coverage for the exact Yuan-Ti slot policy, command, persistence, and
+  direct-equip enforcement, continued tail eligibility, and the +4 Dexterity modifier.
+
 ### RoL skill parity: five converted feats
 
 #### Added

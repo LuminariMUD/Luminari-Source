@@ -140,7 +140,7 @@ void TestRaceEquivalenceStatsSizesAndFamilies(CuTest *tc)
   const int races[] = {RACE_WEMIC, RACE_HALF_OGRE, RACE_HALF_ILLITHID, RACE_YUAN_TI, RACE_MYCONID};
   const int expected_stats[][6] = {
       {8, 4, -2, 2, 2, -2}, {6, 2, -2, 0, -2, -2},  {0, 0, 4, 4, 0, 4},
-      {0, 0, 2, 0, 2, 2},   {8, 6, -2, -2, -4, -4},
+      {0, 0, 2, 0, 4, 2},   {8, 6, -2, -2, -4, -4},
   };
   const int expected_sizes[] = {SIZE_LARGE, SIZE_LARGE, SIZE_MEDIUM, SIZE_MEDIUM, SIZE_LARGE};
   const int expected_languages[] = {SKILL_LANG_COMMON, SKILL_LANG_GIANT, SKILL_LANG_ABERRATION,
@@ -423,6 +423,7 @@ void TestRaceAnatomyWearSlotPolicy(CuTest *tc)
       WEAR_FINGER_R, WEAR_FINGER_L, WEAR_HANDS,  WEAR_SHIELD,  WEAR_WIELD_1, WEAR_WIELD_OFFHAND,
       WEAR_WIELD_2H, WEAR_HOLD_1,   WEAR_HOLD_2, WEAR_HOLD_2H, WEAR_LEGS,    WEAR_FEET,
   };
+  const int yuan_ti_restricted_slots[] = {WEAR_FACE, WEAR_LEGS, WEAR_FEET};
   struct char_data ch;
   struct player_special_data specials;
   struct descriptor_data descriptor;
@@ -442,6 +443,11 @@ void TestRaceAnatomyWearSlotPolicy(CuTest *tc)
   GET_REAL_RACE(&ch) = RACE_YUAN_TI;
   CuAssertTrue(tc, character_has_tail_wear_slot(&ch));
   CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_TAIL));
+  for (i = 0; i < sizeof(yuan_ti_restricted_slots) / sizeof(yuan_ti_restricted_slots[0]); i++)
+    CuAssertTrue(tc, !character_can_use_wear_slot(&ch, yuan_ti_restricted_slots[i]));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_BODY));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_ANKLE_R));
+  CuAssertPtrNotNull(tc, strstr(character_wear_slot_restriction(&ch, WEAR_FACE), "serpentine"));
 
   GET_REAL_RACE(&ch) = RACE_WEMIC;
   CuAssertTrue(tc, !character_can_use_wear_slot(&ch, WEAR_LEGS));
@@ -562,6 +568,7 @@ void TestRaceAnatomyRestrictionsCoverEquipmentEntryPaths(CuTest *tc)
   struct obj_data pants;
   struct obj_data boots;
   struct obj_data gloves;
+  struct obj_data face_covering;
 
   ensure_race_equivalence_registry();
   init_race_equivalence_character(&ch, &specials, &descriptor, &account);
@@ -594,6 +601,32 @@ void TestRaceAnatomyRestrictionsCoverEquipmentEntryPaths(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, GET_EQ(&ch, WEAR_HANDS));
   CuAssertPtrEquals(tc, &ch, gloves.carried_by);
   obj_from_char(&gloves);
+
+  GET_REAL_RACE(&ch) = RACE_YUAN_TI;
+  GET_REAL_SIZE(&ch) = SIZE_MEDIUM;
+  ch.points.size = SIZE_MEDIUM;
+  init_race_equipment_object(&face_covering, "a test face covering", ITEM_WEAR_FACE);
+  GET_OBJ_SIZE(&face_covering) = SIZE_MEDIUM;
+  obj_to_char(&face_covering, &ch);
+  perform_wear(&ch, &face_covering, WEAR_FACE);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&ch, WEAR_FACE));
+  CuAssertPtrEquals(tc, &ch, face_covering.carried_by);
+  CuAssertPtrNotNull(tc, strstr(descriptor.output, "serpentine anatomy"));
+  obj_from_char(&face_covering);
+
+  init_race_equipment_object(&pants, "a pair of Yuan-Ti test pants", ITEM_WEAR_LEGS);
+  GET_OBJ_SIZE(&pants) = SIZE_MEDIUM;
+  test_auto_equip_loaded_object(&ch, &pants, WEAR_LEGS + 1);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&ch, WEAR_LEGS));
+  CuAssertPtrEquals(tc, &ch, pants.carried_by);
+  obj_from_char(&pants);
+
+  init_race_equipment_object(&boots, "a pair of Yuan-Ti test boots", ITEM_WEAR_FEET);
+  GET_OBJ_SIZE(&boots) = SIZE_MEDIUM;
+  equip_char(&ch, &boots, WEAR_FEET);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&ch, WEAR_FEET));
+  CuAssertPtrEquals(tc, &ch, boots.carried_by);
+  obj_from_char(&boots);
   cleanup_race_equivalence_descriptor(&descriptor);
 }
 

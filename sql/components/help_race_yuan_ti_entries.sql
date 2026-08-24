@@ -12,14 +12,15 @@ among humanoids, but their reptilian heritage is never entirely hidden.
 Tier: Advanced (level adjustment 2)
 Unlock: 1,000 account experience
 Progression: 2x normal experience requirements
-Ability modifiers: +2 Int, +2 Dex, +2 Cha
+Ability modifiers: +2 Int, +4 Dex, +2 Cha
 Size: Medium
 Language: Draconic
 
 Racial feats include ultravision, Poison Bite, poison immunity, Stubborn Mind,
 and two stacking ranks of Armor Skin. Poison Bite applies when fighting
-bare-handed. Yuan-ti also have a tail equipment slot. They can wear any ring
-on the tail, or use dedicated tail gear that cannot be worn in another slot.
+bare-handed. Their serpentine anatomy has no face, leg, or foot equipment slots.
+Yuan-ti instead have a tail equipment slot, where they can wear any ring or use
+dedicated tail gear that cannot be worn in another slot.
 
 See also: ACCEXP, POISON, RACE, RACE-HALF-ILLITHID, WEAR', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),

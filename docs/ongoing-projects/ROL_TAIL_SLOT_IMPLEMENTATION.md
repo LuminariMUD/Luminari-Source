@@ -4,6 +4,21 @@ Status: complete
 
 ## Progress log
 
+### 2026-08-25 - Yuan-Ti anatomy and Dexterity follow-up implemented
+
+- Yuan-Ti player anatomy now rejects the face, legs, and feet equipment slots
+  through the shared command, direct-equip, reset, and persistence gate. The
+  tail slot remains available.
+- Increased the Yuan-Ti racial Dexterity modifier by an additional 2, from +2
+  to +4. No development player files use the newly added Yuan-Ti race yet, so
+  no pre-release character-data migration is required.
+- Extended production-linked coverage for the exact slot policy, all three
+  equipment entry paths, the tail-slot invariant, and the +4 Dexterity value.
+  All 901 CuTests pass.
+- Updated the flat-file and repeatable SQL player help. All seven development
+  database checks pass, and the normalized database entry exactly matches the
+  flat-file body and keywords.
+
 ### 2026-08-25 - Final validation complete
 
 - The complete world-tool suite passes all 504 tests, including full active

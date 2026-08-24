@@ -12,15 +12,17 @@ FROM help_keywords
 WHERE help_tag = 'RACE-YUAN-TI'
   AND UPPER(keyword) IN ('YUAN-TI', 'YUANTI', 'RACE-YUAN-TI');
 
-SELECT 'race_yuan_ti_content' AS check_name, COUNT(*) AS actual, 6 AS expected,
-       IF(COUNT(*) = 6, 'PASS', 'FAIL') AS result
+SELECT 'race_yuan_ti_content' AS check_name, COUNT(*) AS actual, 8 AS expected,
+       IF(COUNT(*) = 8, 'PASS', 'FAIL') AS result
 FROM help_entries AS h
 JOIN (
   SELECT '+2 Int' AS required_text
+  UNION ALL SELECT '+4 Dex'
   UNION ALL SELECT 'Advanced (level adjustment 2)'
   UNION ALL SELECT '1,000 account experience'
   UNION ALL SELECT '2x normal experience requirements'
   UNION ALL SELECT 'Poison Bite'
+  UNION ALL SELECT 'no face, leg, or foot equipment slots'
   UNION ALL SELECT 'tail equipment slot'
 ) AS expected_content ON INSTR(h.entry, expected_content.required_text) > 0
 WHERE h.tag = 'RACE-YUAN-TI';
