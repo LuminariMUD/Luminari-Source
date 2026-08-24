@@ -434,7 +434,14 @@ void TestRaceAnatomyWearSlotPolicy(CuTest *tc)
 
   GET_REAL_RACE(&ch) = RACE_HUMAN;
   for (i = 0; i < NUM_WEARS; i++)
-    CuAssertTrue(tc, character_can_use_wear_slot(&ch, (int)i));
+    CuAssertIntEquals(tc, i != WEAR_TAIL, character_can_use_wear_slot(&ch, (int)i));
+
+  CuAssertTrue(tc, !character_has_tail_wear_slot(&ch));
+  CuAssertPtrNotNull(tc, strstr(character_wear_slot_restriction(&ch, WEAR_TAIL), "tail equipment"));
+
+  GET_REAL_RACE(&ch) = RACE_YUAN_TI;
+  CuAssertTrue(tc, character_has_tail_wear_slot(&ch));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_TAIL));
 
   GET_REAL_RACE(&ch) = RACE_WEMIC;
   CuAssertTrue(tc, !character_can_use_wear_slot(&ch, WEAR_LEGS));
@@ -453,6 +460,97 @@ void TestRaceAnatomyWearSlotPolicy(CuTest *tc)
   CuAssertTrue(tc, !character_can_use_wear_slot(NULL, WEAR_BODY));
   CuAssertTrue(tc, !character_can_use_wear_slot(&ch, -1));
   CuAssertTrue(tc, !character_can_use_wear_slot(&ch, NUM_WEARS));
+}
+
+void TestTailSlotRingAndDedicatedGearContract(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  struct obj_data ring;
+  struct obj_data tail_armor;
+
+  ensure_race_equivalence_registry();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  if (descriptor.pProtocol == NULL)
+    return;
+  GET_REAL_RACE(&ch) = RACE_YUAN_TI;
+  GET_REAL_SIZE(&ch) = SIZE_MEDIUM;
+  ch.points.size = SIZE_MEDIUM;
+
+  init_race_equipment_object(&ring, "a plain test ring", ITEM_WEAR_FINGER);
+  GET_OBJ_SIZE(&ring) = SIZE_MEDIUM;
+  CuAssertTrue(tc, object_is_ring(&ring));
+  CuAssertTrue(tc, object_can_wear_on_tail(&ring));
+  CuAssertTrue(tc, !CAN_WEAR(&ring, ITEM_WEAR_TAIL));
+  obj_to_char(&ring, &ch);
+  CuAssertIntEquals(tc, WEAR_TAIL, find_eq_pos(&ch, &ring, NULL));
+  perform_wear(&ch, &ring, WEAR_TAIL);
+  CuAssertPtrEquals(tc, &ring, GET_EQ(&ch, WEAR_TAIL));
+  CuAssertPtrEquals(tc, &ring, unequip_char(&ch, WEAR_TAIL));
+
+  init_race_equipment_object(&tail_armor, "a set of test tail plates", ITEM_WEAR_TAIL);
+  GET_OBJ_SIZE(&tail_armor) = SIZE_MEDIUM;
+  SET_BIT_AR(GET_OBJ_WEAR(&tail_armor), ITEM_WEAR_BODY);
+  GET_OBJ_VAL(&tail_armor, 0) = 6;
+  CuAssertTrue(tc, !object_is_ring(&tail_armor));
+  CuAssertTrue(tc, object_is_dedicated_tail_gear(&tail_armor));
+  CuAssertIntEquals(tc, WEAR_TAIL, find_eq_pos(&ch, &tail_armor, NULL));
+  obj_to_char(&tail_armor, &ch);
+  perform_wear(&ch, &tail_armor, WEAR_BODY);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&ch, WEAR_BODY));
+  CuAssertPtrEquals(tc, &ch, tail_armor.carried_by);
+  CuAssertPtrNotNull(tc, strstr(descriptor.output, "only wear"));
+  perform_wear(&ch, &tail_armor, WEAR_TAIL);
+  CuAssertPtrEquals(tc, &tail_armor, GET_EQ(&ch, WEAR_TAIL));
+  CuAssertIntEquals(tc, 6, ch.points.armor);
+  CuAssertPtrEquals(tc, &tail_armor, unequip_char(&ch, WEAR_TAIL));
+  CuAssertIntEquals(tc, 0, ch.points.armor);
+
+  cleanup_race_equivalence_descriptor(&descriptor);
+}
+
+void TestTailSlotRestrictionsCoverDirectAndPersistenceEntryPaths(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  struct obj_data ring;
+  struct obj_data tail_gear;
+  struct obj_data body_gear;
+
+  ensure_race_equivalence_registry();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  GET_REAL_RACE(&ch) = RACE_HUMAN;
+
+  init_race_equipment_object(&ring, "a persistence test ring", ITEM_WEAR_FINGER);
+  test_auto_equip_loaded_object(&ch, &ring, WEAR_TAIL + 1);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&ch, WEAR_TAIL));
+  CuAssertPtrEquals(tc, &ch, ring.carried_by);
+  obj_from_char(&ring);
+
+  GET_REAL_RACE(&ch) = RACE_YUAN_TI;
+  init_race_equipment_object(&tail_gear, "a persistence tail guard", ITEM_WEAR_TAIL);
+  SET_BIT_AR(GET_OBJ_WEAR(&tail_gear), ITEM_WEAR_BODY);
+  test_auto_equip_loaded_object(&ch, &tail_gear, WEAR_BODY + 1);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&ch, WEAR_BODY));
+  CuAssertPtrEquals(tc, &ch, tail_gear.carried_by);
+  obj_from_char(&tail_gear);
+
+  init_race_equipment_object(&body_gear, "ordinary body armor", ITEM_WEAR_BODY);
+  equip_char(&ch, &body_gear, WEAR_TAIL);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&ch, WEAR_TAIL));
+  CuAssertPtrEquals(tc, &ch, body_gear.carried_by);
+  obj_from_char(&body_gear);
+
+  init_race_equipment_object(&ring, "a restored test ring", ITEM_WEAR_FINGER);
+  test_auto_equip_loaded_object(&ch, &ring, WEAR_TAIL + 1);
+  CuAssertPtrEquals(tc, &ring, GET_EQ(&ch, WEAR_TAIL));
+  CuAssertPtrEquals(tc, &ring, unequip_char(&ch, WEAR_TAIL));
 }
 
 void TestRaceAnatomyRestrictionsCoverEquipmentEntryPaths(CuTest *tc)

@@ -5026,6 +5026,7 @@ bool is_bonus_valid_for_where_slot(int bonus, int wear_slot)
   switch (wear_slot)
   {
   case ITEM_WEAR_FINGER:
+  case ITEM_WEAR_TAIL:
     if (is_resist_magic_apply(bonus))
       return true;
     switch (bonus)

@@ -162,6 +162,7 @@ const int eq_ordering_1[NUM_WEARS] = {
     WEAR_CRAFT_JEWEL_PLIERS,  //<worn as craft tool - jewel pliers>
     WEAR_CRAFT_NEEDLE,        //<worn as craft tool - needle>
     WEAR_CRAFT_WEAPON_HAMMER, //<worn as craft tool - weapon hammer>
+    WEAR_TAIL,                //<worn on tail>
 };
 
 /*******  UTILITY FUNCTIONS ***********/

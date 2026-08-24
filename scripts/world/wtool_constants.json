@@ -180,7 +180,7 @@
     },
     "NUM_WEARS": {
       "source": "src/structs.h:NUM_WEARS",
-      "value": 43
+      "value": 44
     },
     "PORTAL_CHECKFLAGS": {
       "source": "src/structs.h:PORTAL_CHECKFLAGS",
@@ -4033,6 +4033,13 @@
           "macro": "ITEM_WEAR_ON_BACK",
           "name": "On-Back",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 34,
+          "macro": "ITEM_WEAR_TAIL",
+          "name": "Tail",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,
@@ -5640,6 +5647,12 @@
           "name": "Worn on back",
           "required_wear_index": 33,
           "required_wear_macro": "ITEM_WEAR_ON_BACK"
+        },
+        {
+          "index": 43,
+          "name": "Worn on tail",
+          "required_wear_index": 34,
+          "required_wear_macro": "ITEM_WEAR_TAIL"
         }
       ],
       "source_names": "src/constants.c:equipment_types",

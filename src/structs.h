@@ -1766,8 +1766,9 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define WEAR_CRAFT_NEEDLE 40        /* sewing needle (tailoring) */
 #define WEAR_CRAFT_WEAPON_HAMMER 41 /* weaponsmith's hammer (weaponsmithing) */
 #define WEAR_ON_BACK 42             /* currently unused; reserved for compatibility */
+#define WEAR_TAIL 43                /* worn on the tail */
 /** Total number of available equipment lcoations */
-#define NUM_WEARS 43
+#define NUM_WEARS 44
 /**/
 
 /* ranged combat */
@@ -4617,8 +4618,9 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define ITEM_WEAR_CRAFT_NEEDLE 31        /* sewing needle (tailoring) */
 #define ITEM_WEAR_CRAFT_WEAPON_HAMMER 32 /* weaponsmith's hammer (weaponsmithing) */
 #define ITEM_WEAR_ON_BACK 33
+#define ITEM_WEAR_TAIL 34 /**< Item can be worn on the tail */
 /** Total number of item wears */
-#define NUM_ITEM_WEARS 34
+#define NUM_ITEM_WEARS 35
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
 #define ITEM_GLOW 0             /**< Item is glowing */

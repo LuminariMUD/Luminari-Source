@@ -2348,13 +2348,12 @@ int apply_ac(struct char_data *ch, int eq_pos)
   if (!(GET_OBJ_TYPE(GET_EQ(ch, eq_pos)) == ITEM_ARMOR))
     return (0);
 
-  /* Object value 0 is the armor-class apply for the five real armor slots
-     only.  Value 0 carries a different meaning for every other item type, and
-     the slot-gated penalties (compute_gear_spell_failure,
-     compute_gear_armor_penalty, compute_gear_max_dex) cover exactly these
-     positions, so armor class has to be gated the same way.  A slot outside
-     this list that should grant armor class must do it with an APPLY_AC_NEW
-     affection instead. */
+  /* Object value 0 is the armor-class apply for the real armor slots only.
+     Value 0 carries a different meaning for every other item type.  The tail
+     is the RoL-compatible exception to the normal body-armor positions: tail
+     armor contributes AC without participating in body-armor penalties.  A
+     slot outside this list that should grant armor class must do it with an
+     APPLY_AC_NEW affection instead. */
   switch (eq_pos)
   {
   case WEAR_BODY:
@@ -2362,6 +2361,7 @@ int apply_ac(struct char_data *ch, int eq_pos)
   case WEAR_LEGS:
   case WEAR_ARMS:
   case WEAR_SHIELD:
+  case WEAR_TAIL:
     factor = 1;
     break;
   default:
@@ -2468,6 +2468,23 @@ bool is_wearing(struct char_data *ch, obj_vnum vnum)
   return FALSE;
 }
 
+/* Finger-wearable objects are the target game's authoritative ring class.
+ * Crafting, treasure generation, and zone checks all use this same flag. */
+bool object_is_ring(const struct obj_data *obj)
+{
+  return obj != NULL && CAN_WEAR(obj, ITEM_WEAR_FINGER);
+}
+
+bool object_is_dedicated_tail_gear(const struct obj_data *obj)
+{
+  return obj != NULL && CAN_WEAR(obj, ITEM_WEAR_TAIL) && !object_is_ring(obj);
+}
+
+bool object_can_wear_on_tail(const struct obj_data *obj)
+{
+  return object_is_ring(obj) || object_is_dedicated_tail_gear(obj);
+}
+
 void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
 {
   int j;
@@ -2495,6 +2512,12 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
   if (IN_ROOM(obj) != NOWHERE)
   {
     log("SYSERR: EQUIP: Obj is in_room when equip.");
+    return;
+  }
+  if ((pos == WEAR_TAIL && !object_can_wear_on_tail(obj)) ||
+      (pos != WEAR_TAIL && object_is_dedicated_tail_gear(obj)))
+  {
+    obj_to_char(obj, ch);
     return;
   }
   if (!character_can_use_wear_slot(ch, pos))

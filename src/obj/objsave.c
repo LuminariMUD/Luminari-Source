@@ -797,10 +797,17 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
       if (!CAN_WEAR(obj, ITEM_WEAR_CRAFT_WEAPON_HAMMER))
         location = LOC_INVENTORY;
       break;
+    case WEAR_TAIL:
+      if (!object_can_wear_on_tail(obj))
+        location = LOC_INVENTORY;
+      break;
 
     default:
       location = LOC_INVENTORY;
     }
+
+    if (location > 0 && j != WEAR_TAIL && object_is_dedicated_tail_gear(obj))
+      location = LOC_INVENTORY;
 
     //    mudlog(BRF, LVL_IMMORT, TRUE, "DEBUG: autoeq for %s: %s worn in position %d.", GET_NAME(ch),obj->name, location);
 

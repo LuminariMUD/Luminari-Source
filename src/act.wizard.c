@@ -5759,6 +5759,7 @@ const struct zcheck_armor
     [ITEM_WEAR_CRAFT_NEEDLE] = {ITEM_WEAR_CRAFT_NEEDLE, 1, "Tailoring needle"},
     [ITEM_WEAR_CRAFT_WEAPON_HAMMER] = {ITEM_WEAR_CRAFT_WEAPON_HAMMER, 1, "Weaponsmith hammer"},
     [ITEM_WEAR_ON_BACK] = {ITEM_WEAR_ON_BACK, 1, "Back slot"},
+    [ITEM_WEAR_TAIL] = {ITEM_WEAR_TAIL, 15, "Tail gear"},
 };
 
 _Static_assert(sizeof(zarmor) / sizeof(zarmor[0]) == NUM_ITEM_WEARS,

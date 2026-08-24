@@ -1,6 +1,28 @@
 # RoL Tail Equipment Slot Implementation
 
-Status: source trace complete; LuminariMUD implementation not started
+Status: core runtime implementation in progress; converter, help, and full validation remain
+
+## Progress log
+
+### 2026-08-25 - Core runtime checkpoint implemented
+
+- Appended `WEAR_TAIL` and `ITEM_WEAR_TAIL` without renumbering existing
+  equipment positions or object wear flags.
+- Added the Yuan-Ti tail-anatomy predicate and enforced it in both command and
+  direct `equip_char()` paths, including NPC/reset equipment.
+- Defined the target ring predicate from the existing authoritative
+  `ITEM_WEAR_FINGER` classification used by crafting, treasure, and zone-check
+  code.
+- Added ring-or-dedicated-tail compatibility, dedicated tail-only enforcement,
+  explicit/default `wear ... tail` selection, equipment display, persistence,
+  DG Script lookup, zone-editor selection, and RoL-compatible tail-armor AC.
+- Added production-linked CuTest coverage for ring eligibility, dedicated
+  tail-only gear, anatomy rejection, direct equip, persistence restore, and AC.
+
+The production build and the 899-test CuTest executable pass at this checkpoint,
+and the checked-in world constants manifest has been refreshed. Pending: RoL
+converter normalization, builder/player documentation, synchronized help,
+final full test/install validation, and subsequent commits/pushes.
 
 RoL source root:
 `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/RealmsOfLuminari`

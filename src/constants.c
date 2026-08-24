@@ -1757,7 +1757,7 @@ const char *wear_where[] = {
     "\tC{Jeweler's Pliers}\tn   ", // WEAR_CRAFT_JEWEL_PLIERS
     "\tC{Sewing Needle}\tn      ", // WEAR_CRAFT_NEEDLE
     "\tC{Weaponsmith Hammer}\tn ", // WEAR_CRAFT_WEAPON_HAMMER
-    "\tY{Worn On Back}\tn       ",
+    "\tY{Worn On Back}\tn       ",    "\tY{Worn On Tail}\tn       ",
 };
 CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 
@@ -1807,6 +1807,7 @@ const char *equipment_types[] = {"Used as light", // 0
                                  "Sewing needle (tailoring)",           // WEAR_CRAFT_NEEDLE
                                  "Weaponsmith hammer (weaponsmithing)", // WEAR_CRAFT_WEAPON_HAMMER
                                  "Worn on back",
+                                 "Worn on tail",
                                  "\n"};
 CHECK_TABLE_SIZE(equipment_types, NUM_WEARS + 1);
 
@@ -1962,7 +1963,7 @@ const char *wear_bits[] = {"(Takeable)", // 0
                            "Ankle", "Sheath", "Gathering-Tool", "Forestry-Tool", "Hunting-Tool",
                            "Mining-Tool", "Alchemy-Tool", "Armorsmithing-Tool",
                            "Jewelcrafting-Tool", "Tailoring-Tool", "Weaponsmithing-Tool", "On-Back",
-                           "\n"};
+                           "Tail", "\n"};
 CHECK_TABLE_SIZE(wear_bits, NUM_ITEM_WEARS + 1);
 
 /** Describes the extra flags applied to an item.

@@ -4033,6 +4033,8 @@ static void wear_message(struct char_data *ch, struct obj_data *obj, int where)
 
       {"$n wears $p on $s back.", "You wear $p on your back."},
 
+      {"$n wears $p on $s tail.", "You wear $p on your tail."},
+
   };
 
   /* extinguished light! */
@@ -4231,7 +4233,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
                            ITEM_WEAR_CRAFT_JEWEL_PLIERS,
                            ITEM_WEAR_CRAFT_NEEDLE,
                            ITEM_WEAR_CRAFT_WEAPON_HAMMER,
-                           ITEM_WEAR_ON_BACK};
+                           ITEM_WEAR_ON_BACK,
+                           ITEM_WEAR_TAIL};
 
   const char *const already_wearing[NUM_WEARS] = {
       "You're already using a light.\r\n",                                  // 0
@@ -4276,7 +4279,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       "You already have jeweler's pliers equipped.\r\n",
       "You already have a sewing needle equipped.\r\n",
       "You already have a weaponsmith's hammer equipped.\r\n",
-      "You already have something equipped on your back.\r\n"};
+      "You already have something equipped on your back.\r\n",
+      "You are already wearing something on your tail.\r\n"};
 
   /* we are looking for some quick exits */
   if (IS_ANIMAL(ch))
@@ -4324,6 +4328,12 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
     return;
   }
 
+  if (where != WEAR_TAIL && object_is_dedicated_tail_gear(obj))
+  {
+    act("You can only wear $p on a tail.", FALSE, ch, obj, 0, TO_CHAR);
+    return;
+  }
+
   /* check to make sure you don't mix melee/ranged */
   if (where == WEAR_WIELD_1 && is_wielding_type(ch) != -1)
   {
@@ -4340,7 +4350,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
   }
 
   /* first, make sure that the wear position is valid. */
-  else if (!CAN_WEAR(obj, wear_bitvectors[where]))
+  else if ((where == WEAR_TAIL && !object_can_wear_on_tail(obj)) ||
+           (where != WEAR_TAIL && !CAN_WEAR(obj, wear_bitvectors[where])))
   {
     act("You can't wear $p there.", FALSE, ch, obj, 0, TO_CHAR);
     return;
@@ -4381,7 +4392,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       where != WEAR_CRAFT_AXE && where != WEAR_CRAFT_KNIFE && where != WEAR_CRAFT_PICKAXE &&
       where != WEAR_CRAFT_ALCHEMY && where != WEAR_CRAFT_ARMOR_HAMMER &&
       where != WEAR_CRAFT_JEWEL_PLIERS && where != WEAR_CRAFT_NEEDLE &&
-      where != WEAR_CRAFT_WEAPON_HAMMER && where != WEAR_ON_BACK)
+      where != WEAR_CRAFT_WEAPON_HAMMER && where != WEAR_ON_BACK &&
+      (where != WEAR_TAIL || !object_is_ring(obj)))
   {
     if (GET_OBJ_SIZE(obj) < GET_SIZE(ch))
     {
@@ -4493,6 +4505,8 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
                                                "jeweler's pliers",
                                                "sewing needle",
                                                "weaponsmith's hammer",
+                                               "on-back",
+                                               "tail",
                                                "\n"};
 
   if (!arg || !*arg)
@@ -4559,6 +4573,9 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
       where = WEAR_CRAFT_WEAPON_HAMMER;
     if (CAN_WEAR(obj, ITEM_WEAR_ON_BACK))
       where = WEAR_ON_BACK;
+    if (object_is_dedicated_tail_gear(obj) ||
+        (object_is_ring(obj) && character_has_tail_wear_slot(ch) && !GET_EQ(ch, WEAR_TAIL)))
+      where = WEAR_TAIL;
 
     /* this means we have an argument, does it match our keywords-array ?*/
   }

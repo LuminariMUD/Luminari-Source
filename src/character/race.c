@@ -133,11 +133,25 @@ static void set_race_wear_restriction(int race_num, int wear_slot, const char *m
   race_list[race_num].wear_slot_restrictions[wear_slot] = message;
 }
 
+bool character_has_tail_wear_slot(const struct char_data *ch)
+{
+  if (ch == NULL)
+    return false;
+
+  return GET_REAL_RACE(ch) == RACE_YUAN_TI;
+}
+
 const char *character_wear_slot_restriction(const struct char_data *ch, int wear_slot)
 {
   int race_num;
 
-  if (ch == NULL || IS_NPC(ch) || wear_slot < 0 || wear_slot >= NUM_WEARS)
+  if (ch == NULL || wear_slot < 0 || wear_slot >= NUM_WEARS)
+    return NULL;
+
+  if (wear_slot == WEAR_TAIL && !character_has_tail_wear_slot(ch))
+    return "Your anatomy does not provide a tail equipment slot.";
+
+  if (IS_NPC(ch))
     return NULL;
 
   race_num = GET_REAL_RACE(ch);

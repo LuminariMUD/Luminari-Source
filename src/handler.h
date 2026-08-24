@@ -83,6 +83,9 @@ void obj_from_craft(struct obj_data *object, struct char_data *ch);
 
 void equip_char(struct char_data *ch, struct obj_data *obj, int pos);
 struct obj_data *unequip_char(struct char_data *ch, int pos);
+bool object_is_ring(const struct obj_data *obj);
+bool object_is_dedicated_tail_gear(const struct obj_data *obj);
+bool object_can_wear_on_tail(const struct obj_data *obj);
 bool is_wearing(struct char_data *ch, obj_vnum vnum);
 int invalid_align(struct char_data *ch, struct obj_data *obj);
 int invalid_prof(struct char_data *ch, struct obj_data *obj);

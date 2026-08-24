@@ -230,22 +230,18 @@ int find_eq_pos_script(char *arg)
   {
     const char *pos;
     int where;
-  } eq_pos[] = {{"hold", WEAR_HOLD_1},      {"held", WEAR_HOLD_1},
-                {"hold1", WEAR_HOLD_1},     {"held1", WEAR_HOLD_1},
-                {"hold2", WEAR_HOLD_2},     {"held2", WEAR_HOLD_2},
-                {"hold2h", WEAR_HOLD_2H},   {"held2h", WEAR_HOLD_2H},
-                {"light", WEAR_LIGHT},      {"wield", WEAR_WIELD_1},
-                {"wield1", WEAR_WIELD_1},   {"wieldoffhand", WEAR_WIELD_OFFHAND},
-                {"wield2h", WEAR_WIELD_2H}, {"rfinger", WEAR_FINGER_R},
-                {"lfinger", WEAR_FINGER_L}, {"neck1", WEAR_NECK_1},
-                {"neck2", WEAR_NECK_2},     {"body", WEAR_BODY},
-                {"head", WEAR_HEAD},        {"legs", WEAR_LEGS},
-                {"feet", WEAR_FEET},        {"hands", WEAR_HANDS},
-                {"arms", WEAR_ARMS},        {"shield", WEAR_SHIELD},
-                {"about", WEAR_ABOUT},      {"waist", WEAR_WAIST},
-                {"rwrist", WEAR_WRIST_R},   {"lwrist", WEAR_WRIST_L},
-                {"rankle", WEAR_ANKLE_R},   {"lankle", WEAR_ANKLE_L},
-                {"onback", WEAR_ON_BACK},   {"none", -1}};
+  } eq_pos[] = {
+      {"hold", WEAR_HOLD_1},      {"held", WEAR_HOLD_1},      {"hold1", WEAR_HOLD_1},
+      {"held1", WEAR_HOLD_1},     {"hold2", WEAR_HOLD_2},     {"held2", WEAR_HOLD_2},
+      {"hold2h", WEAR_HOLD_2H},   {"held2h", WEAR_HOLD_2H},   {"light", WEAR_LIGHT},
+      {"wield", WEAR_WIELD_1},    {"wield1", WEAR_WIELD_1},   {"wieldoffhand", WEAR_WIELD_OFFHAND},
+      {"wield2h", WEAR_WIELD_2H}, {"rfinger", WEAR_FINGER_R}, {"lfinger", WEAR_FINGER_L},
+      {"neck1", WEAR_NECK_1},     {"neck2", WEAR_NECK_2},     {"body", WEAR_BODY},
+      {"head", WEAR_HEAD},        {"legs", WEAR_LEGS},        {"feet", WEAR_FEET},
+      {"hands", WEAR_HANDS},      {"arms", WEAR_ARMS},        {"shield", WEAR_SHIELD},
+      {"about", WEAR_ABOUT},      {"waist", WEAR_WAIST},      {"rwrist", WEAR_WRIST_R},
+      {"lwrist", WEAR_WRIST_L},   {"rankle", WEAR_ANKLE_R},   {"lankle", WEAR_ANKLE_L},
+      {"onback", WEAR_ON_BACK},   {"tail", WEAR_TAIL},        {"none", -1}};
 
   if (is_number(arg) && (i = atoi(arg)) >= 0 && i < NUM_WEARS)
     return i;
@@ -265,6 +261,9 @@ int find_eq_pos_script(char *arg)
  */
 int can_wear_on_pos(struct obj_data *obj, int pos)
 {
+  if (pos != WEAR_TAIL && object_is_dedicated_tail_gear(obj))
+    return FALSE;
+
   switch (pos)
   {
   case WEAR_HOLD_1:
@@ -310,6 +309,8 @@ int can_wear_on_pos(struct obj_data *obj, int pos)
     return CAN_WEAR(obj, ITEM_WEAR_WRIST);
   case WEAR_ON_BACK:
     return CAN_WEAR(obj, ITEM_WEAR_ON_BACK);
+  case WEAR_TAIL:
+    return object_can_wear_on_tail(obj);
   default:
     return FALSE;
   }

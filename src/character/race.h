@@ -64,6 +64,7 @@ bool has_scales(int race);
 bool has_horns(int race);
 bool is_furry(int race);
 bool race_has_no_hair(int race);
+bool character_has_tail_wear_slot(const struct char_data *ch);
 const char *character_wear_slot_restriction(const struct char_data *ch, int wear_slot);
 bool character_can_use_wear_slot(const struct char_data *ch, int wear_slot);
 int compare_races(const void *x, const void *y);
