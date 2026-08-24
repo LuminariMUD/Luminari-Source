@@ -36964,4 +36964,979 @@ See also: ELEMENTAL-WATER-EMBODIMENT, ELEMENTAL-FIRE-EMBODIMENT,
 ELEMENTAL-EARTH-EMBODIMENT, FLY, HASTE
 
 #0
+FARSEE SPELL-FARSEE
+
+Usage: cast 'farsee'
+Duration: Temporary
+School of Magic: Divination
+Target(s): Self only
+
+Farsee sharpens the caster's distant vision. While it lasts, the scan command
+can see as far as six rooms instead of its normal three-room range. The spell
+does not reveal anything that scan could not otherwise perceive.
+
+See also: SCAN, VISION, SPELLS
+
+#0
+REJUVENATE-MAJOR SPELL-REJUVENATE-MAJOR
+
+Usage: cast 'rejuvenate major' <target>
+Duration: Permanent
+School of Magic: Transmutation
+Target(s): Self or a consenting group member in the room
+
+Rejuvenate major permanently removes 1d3 years from the target's age. Another
+player must be grouped with the caster and must permit beneficial magic. The
+spell cannot reduce a character's age below the limits enforced by the game.
+
+See also: AGE, GROUP, REJUVENATE-MINOR
+
+#0
+REJUVENATE-MINOR SPELL-REJUVENATE-MINOR
+
+Usage: cast 'rejuvenate minor' <target>
+Duration: Temporary
+School of Magic: Transmutation
+Target(s): Self or a group member in the room
+
+Rejuvenate minor makes the target appear and feel younger for a limited time.
+It changes displayed age rather than the character's permanent birth date.
+
+See also: AGE, GROUP, REJUVENATE-MAJOR
+
+#0
+COMMAND-UNDEAD SPELL-COMMAND-UNDEAD
+
+Usage: cast 'command undead' <target>
+Duration: Temporary charm
+School of Magic: Necromancy
+Target(s): One undead mobile in the room
+
+Command undead attempts to bend an undead mobile to the caster's will. The
+target must be no higher than the caster's spell level and must pass the normal
+charm restrictions and saving throw. On success, it becomes a charmed follower.
+
+See also: CHARM, COMMAND-HORDE, FOLLOWERS, UNDEAD
+
+#0
+COMMAND-HORDE SPELL-COMMAND-HORDE
+
+Usage: cast 'command horde'
+Duration: Temporary charm
+School of Magic: Necromancy
+Target(s): Eligible undead mobiles in the caster's room
+
+Command horde attempts command undead against every eligible hostile undead
+mobile in the room. Creatures that are too powerful, protected from charm, or
+otherwise invalid are not brought under the caster's control.
+
+See also: CHARM, COMMAND-UNDEAD, FOLLOWERS, UNDEAD
+
+#0
+SLOW-POISON SPELL-SLOW-POISON
+
+Usage: cast 'slow poison' <target>
+Duration: Temporary
+School of Magic: Transmutation
+Target(s): One character in the room
+
+Slow poison steadies the target's body and halves the effective intensity of
+poisons for its duration. It delays their full effects; it does not remove the
+poison itself.
+
+See also: NEUTRALIZE-POISON, POISON, SPELLS
+
+#0
+COMPREHEND-LANGUAGES SPELL-COMPREHEND-LANGUAGES
+
+Usage: cast 'comprehend languages' <target>
+Duration: Temporary
+School of Magic: Divination
+Target(s): One character in the room
+
+Comprehend languages lets the target understand speech in unfamiliar
+languages. It does not teach those languages or grant the ability to speak
+them.
+
+See also: LANGUAGE, SPEAK, SPELLS
+
+#0
+FUMBLE SPELL-FUMBLE
+
+Usage: cast 'fumble' <target>
+Duration: Temporary
+School of Magic: Enchantment
+Target(s): One other character in the room
+
+Fumble drains the target's manual dexterity toward a score of 1 on a failed
+Will save. It cannot reduce an already lower Dexterity score further.
+
+See also: DEXTERITY, SAVING THROWS, STUMBLE
+
+#0
+STUMBLE SPELL-STUMBLE
+
+Usage: cast 'stumble' <target>
+Duration: Temporary
+School of Magic: Enchantment
+Target(s): One other character in the room
+
+Stumble ruins the target's balance on a failed Will save. The victim suffers a
+4-point penalty to armor class, Reflex saves, and initiative and becomes
+staggered for the spell's duration.
+
+See also: ARMOR-CLASS, FUMBLE, INITIATIVE, REFLEX
+
+#0
+ENERVATE SPELL-ENERVATE
+
+Usage: cast 'enervate' <target>
+Duration: Temporary
+School of Magic: Necromancy
+Target(s): One other character in the room
+
+Enervate drains the target's Constitution toward a score of 1 on a failed
+Fortitude save. It cannot reduce an already lower Constitution score further.
+
+See also: CONSTITUTION, ENERGY-DRAIN, FORTITUDE
+
+#0
+PROTECT-UNDEAD SPELL-PROTECT-UNDEAD
+
+Usage: cast 'protect undead' <target>
+Duration: Temporary
+School of Magic: Abjuration
+Target(s): One undead character in the room
+
+Protect undead places a dark ward around an undead target, granting 4 points
+of armor protection and a 2-point bonus to Will saves. Living targets cannot
+receive the spell.
+
+See also: PROTECTION-FROM-UNDEAD, UNDEAD, WILL
+
+#0
+PROTECTION-FROM-UNDEAD SPELL-PROTECTION-FROM-UNDEAD
+
+Usage: cast 'protection from undead' <target>
+Duration: Temporary
+School of Magic: Abjuration
+Target(s): One character in the room
+
+Protection from undead grants 2 points of armor protection, a 2-point Will
+save bonus, and reduces damage from undead attackers by 25 percent.
+
+See also: PROTECT-UNDEAD, UNDEAD, WILL
+
+#0
+ANCESTRAL-SHIELD SPELL-ANCESTRAL-SHIELD
+
+Usage: cast 'ancestral shield'
+Duration: Temporary
+School of Magic: Abjuration
+Target(s): The caster's group members in the room
+
+Ancestral shield gathers protective spirits around each nearby group member.
+While protected, a character takes 25 percent less damage from area spells.
+Overlapping quarter-reduction wards do not multiply their protection.
+
+See also: AREA SPELLS, GROUP, NATURES-BLESSING
+
+#0
+PROTECTION-FROM-ANIMALS SPELL-PROTECTION-FROM-ANIMALS
+
+Usage: cast 'protection from animals' <target>
+Duration: Temporary
+School of Magic: Abjuration
+Target(s): One character in the room
+
+Protection from animals grants 2 points of armor protection, a 2-point Reflex
+save bonus, and reduces damage from animal attackers by 25 percent.
+
+See also: ANIMALS, PROTECTION-FROM-UNDEAD, REFLEX
+
+#0
+PASS-WITHOUT-TRACE SPELL-PASS-WITHOUT-TRACE
+
+Usage: cast 'pass without trace'
+Duration: Temporary
+School of Magic: Transmutation
+Target(s): Self only
+
+Pass without trace prevents the caster from leaving tracks and greatly
+improves silent passage while moving. The effect ends normally when its
+duration expires.
+
+See also: HUNT, SNEAK, TRACK
+
+#0
+GREATER-REALM-OF-PROTECTION SPELL-GREATER-REALM-OF-PROTECTION
+
+Usage: cast 'greater realm of protection' <target>
+Duration: Temporary
+School of Magic: Abjuration
+Target(s): One character in the room
+
+Greater realm of protection surrounds the target with layered elemental
+wards. It grants level-scaled resistance to fire, cold, air, earth, acid, and
+electricity damage.
+
+See also: ENERGY-RESISTANCE, PROTECTION-FROM-ENERGY, RESIST-ENERGY
+
+#0
+FEIGN-DEATH SPELL-FEIGN-DEATH
+
+Usage: cast 'feign death' <target>
+Duration: Temporary
+School of Magic: Illusion
+Target(s): One character in the room
+
+Feign death ends all fights involving the target and leaves that character in
+a deathlike, sheltered state. The target remains alive and returns to normal
+when the illusion expires.
+
+See also: COMBAT, REFUGE, TRANQUILITY
+
+#0
+TRANQUILITY SPELL-TRANQUILITY
+
+Usage: cast 'tranquility'
+Duration: Temporary
+School of Magic: Enchantment
+Target(s): Eligible characters in the caster's room
+
+Tranquility ends eligible fights throughout the room and imposes a temporary
+docile state. The caster and grouped allies are included; normal area-target
+rules determine which other characters can be affected.
+
+See also: AREA SPELLS, COMBAT, FEIGN-DEATH
+
+#0
+AGILITY SPELL-AGILITY
+
+Usage: cast 'agility' <target>
+Duration: Temporary
+School of Magic: Transmutation
+Target(s): One character in the room
+
+Agility sharpens balance and reactions, granting a 4-point bonus to armor
+class, Reflex saves, and initiative for its duration.
+
+See also: ARMOR-CLASS, INITIATIVE, REFLEX
+
+#0
+NATURES-BLESSING SPELL-NATURES-BLESSING
+
+Usage: cast 'natures blessing'
+Duration: Temporary
+School of Magic: Abjuration
+Target(s): Self only
+
+Nature's blessing grants a level-scaled attack bonus and bonuses to Fortitude,
+Reflex, and Will saves. It also reduces area-spell damage by 25 percent;
+overlapping quarter-reduction wards do not multiply their protection.
+
+See also: ANCESTRAL-SHIELD, AREA SPELLS, SAVING THROWS
+
+#0
+SONG-OF-TRAVEL SPELL-SONG-OF-TRAVEL
+
+Usage: cast 'song of travel'
+Duration: Temporary
+School of Magic: Transmutation
+Target(s): The caster's group members in the room
+
+Song of travel restores movement to nearby group members, grants flight, and
+increases their travel speed for the spell's duration.
+
+See also: FLY, GROUP, MOVEMENT
+
+#0
+SANDBLAST SPELL-SANDBLAST
+
+Usage: cast 'sandblast' <target>
+Duration: Instantaneous damage; conditions are temporary
+School of Magic: Evocation
+Target(s): One other character in the room
+
+Sandblast scours the target with earth damage. It can blind a sighted victim;
+casting it on a victim already blinded by the spell can also silence that
+victim. Normal spell resistance and saving throws apply.
+
+See also: BLINDNESS, EARTH, SILENCE
+
+#0
+FELL-FROST SPELL-FELL-FROST
+
+Usage: cast 'fell frost' <target>
+Duration: Instantaneous damage; conditions are temporary
+School of Magic: Evocation
+Target(s): One other character in the room
+
+Fell frost deals heavy cold damage and can slow its victim. A target already
+slowed by fell frost can instead become frozen and unable to act. Normal spell
+resistance and saving throws apply.
+
+See also: COLD, FREEZE, SLOW
+
+#0
+NERVE-DANCE SPELL-NERVE-DANCE
+
+Usage: cast 'nerve dance' <target>
+Duration: Instantaneous
+School of Magic: Necromancy
+Target(s): One other character in the room
+
+Nerve dance wracks a living, corporeal, non-elemental target with negative
+energy. Undead, elementals, and creatures without a material body are not
+valid victims.
+
+See also: NEGATIVE-ENERGY, SPECTRAL-HAND, UNDEAD
+
+#0
+SPECTRAL-HAND SPELL-SPECTRAL-HAND
+
+Usage: cast 'spectral hand' <target>
+Duration: Instantaneous
+School of Magic: Necromancy
+Target(s): One other character in the room
+
+Spectral hand strikes one target with negative-energy spell damage. Normal
+spell resistance and saving throws apply.
+
+See also: NEGATIVE-ENERGY, NERVE-DANCE, TOUCH SPELLS
+
+#0
+RAIN-OF-BLOOD SPELL-RAIN-OF-BLOOD
+
+Usage: cast 'rain of blood'
+Duration: Instantaneous
+School of Magic: Necromancy
+Target(s): Eligible enemies in the caster's room
+
+Rain of blood drenches eligible room enemies in unholy damage. Group members
+and other protected area targets are excluded by the normal area-spell rules.
+
+See also: AREA SPELLS, ROT, UNHOLY
+
+#0
+ROT SPELL-ROT
+
+Usage: cast 'rot'
+Duration: Instantaneous
+School of Magic: Necromancy
+Target(s): Eligible living enemies in the caster's room
+
+Rot deals negative-energy damage throughout the room, but only to living,
+corporeal targets. Undead and immaterial creatures are unaffected.
+
+See also: AREA SPELLS, NEGATIVE-ENERGY, RAIN-OF-BLOOD
+
+#0
+ICE-TOMB SPELL-ICE-TOMB
+
+Usage: cast 'ice tomb' <target>
+Duration: Instantaneous damage; paralysis is temporary
+School of Magic: Necromancy
+Target(s): One other character in the room
+
+Ice tomb deals heavy cold damage. A badly wounded survivor can be sealed in
+ice and paralyzed if the secondary effect succeeds.
+
+See also: COLD, PARALYSIS, FELL-FROST
+
+#0
+CONSTRICTION SPELL-CONSTRICTION
+
+Usage: cast 'constriction' <target>
+Duration: Instantaneous damage; silence is temporary
+School of Magic: Evocation
+Target(s): One other character in the room
+
+Constriction crushes the target with force damage, interrupts an active spell
+cast, and can briefly silence the victim.
+
+See also: CASTING, FORCE, SILENCE
+
+#0
+SANDSTORM SPELL-SANDSTORM
+
+Usage: cast 'sandstorm'
+Duration: Instantaneous damage; conditions are temporary
+School of Magic: Evocation
+Target(s): Eligible enemies in the caster's room
+
+Sandstorm blasts eligible room enemies with earth damage and can leave its
+victims blinded and staggered. Normal area-spell defenses apply.
+
+See also: AREA SPELLS, BLINDNESS, EARTH, STAGGERED
+
+#0
+BLACKLIGHT-BURST SPELL-BLACKLIGHT-BURST
+
+Usage: cast 'blacklight burst'
+Duration: Instantaneous damage; slow is temporary
+School of Magic: Necromancy
+Target(s): Eligible enemies in the caster's room
+
+Blacklight burst deals unholy area damage and can slow its victims. Undead
+take reduced damage from the burst.
+
+See also: AREA SPELLS, SLOW, UNHOLY, UNDEAD
+
+#0
+MINUTE-METEORS SPELL-MINUTE-METEORS
+
+Usage: cast 'minute meteors' <target>
+Duration: Instantaneous
+School of Magic: Evocation
+Target(s): One other character in the room
+
+Minute meteors launches as many as five small fire projectiles at one target.
+Each projectile is resolved through the normal multi-projectile spell path.
+
+See also: FIRE, MAGIC-MISSILE, PROJECTILES
+
+#0
+THUNDER-LANCE SPELL-THUNDER-LANCE
+
+Usage: cast 'thunder lance' <target>
+Duration: Instantaneous
+School of Magic: Evocation
+Target(s): One other character in the room
+
+Thunder lance drives electrical damage through one target. Its disruptive
+force also shatters lesser globes and energy wards protecting the victim.
+
+See also: ELECTRICITY, GLOBE-OF-INVULNERABILITY, PROTECTION-FROM-ENERGY
+
+#0
+SHADOW-BOLT SPELL-SHADOW-BOLT
+
+Usage: cast 'shadow bolt' <target>
+Duration: Instantaneous
+School of Magic: Illusion
+Target(s): One other character in the room
+
+Shadow bolt launches as many as five bolts of illusion damage at a single
+target. Each bolt is resolved through the normal multi-projectile spell path.
+
+See also: ILLUSION, MINUTE-METEORS, PROJECTILES
+
+#0
+SHADOW-BURST SPELL-SHADOW-BURST
+
+Usage: cast 'shadow burst'
+Duration: Instantaneous
+School of Magic: Illusion
+Target(s): Eligible enemies in the caster's room
+
+Shadow burst floods the room with damaging illusion, striking eligible enemies
+under the normal area-spell rules.
+
+See also: AREA SPELLS, SHADOW-BOLT, SHADOW-MAGIC
+
+#0
+SHADOW-MAGIC SPELL-SHADOW-MAGIC
+
+Usage: cast 'shadow magic' <target>
+Duration: Instantaneous
+School of Magic: Illusion
+Target(s): One other character in the room
+
+Shadow magic shapes raw illusion into a damaging single-target attack. Normal
+spell resistance and saving throws apply.
+
+See also: ILLUSION, SHADOW-BOLT, SHADOW-BURST
+
+#0
+PHANTASMAL-BLADES SPELL-PHANTASMAL-BLADES
+
+Usage: cast 'phantasmal blades'
+Duration: Instantaneous
+School of Magic: Illusion
+Target(s): Eligible enemies in the caster's room
+
+Phantasmal blades fills the room with illusory edges that deal slashing damage
+to eligible enemies.
+
+See also: AREA SPELLS, ILLUSION, SHADOW-BURST
+
+#0
+NEEDLE-SWARM SPELL-NEEDLE-SWARM
+
+Usage: cast 'needle swarm' <target>
+Duration: Instantaneous
+School of Magic: Conjuration
+Target(s): One other character in the room
+
+Needle swarm conjures a cloud of sharp needles that deals puncture damage to
+one target.
+
+See also: CONJURATION, PUNCTURE, SNAPPING-TEETH
+
+#0
+SNAPPING-TEETH SPELL-SNAPPING-TEETH
+
+Usage: cast 'snapping teeth' <target>
+Duration: Instantaneous
+School of Magic: Conjuration
+Target(s): One other character in the room
+
+Snapping teeth conjures biting jaws that deal slashing damage to one target.
+
+See also: CONJURATION, NEEDLE-SWARM, SLASHING
+
+#0
+BELTYNS-BURNING-BLOOD SPELL-BELTYNS-BURNING-BLOOD
+
+Usage: cast 'beltyns burning blood' <target>
+Duration: Instantaneous damage; burning is temporary
+School of Magic: Necromancy
+Target(s): One other character in the room
+
+Beltyns burning blood damages a living target. If the victim is already
+wounded and the secondary effect succeeds, the victim's blood ignites and
+continues burning for a limited time.
+
+See also: BLACKMANTLE, BURNING, NECROMANCY
+
+#0
+BLACKMANTLE SPELL-BLACKMANTLE
+
+Usage: cast 'blackmantle' <target>
+Duration: Temporary
+School of Magic: Necromancy
+Target(s): One other character in the room
+
+Blackmantle surrounds the victim with deathly magic, suppressing normal hit
+point regeneration and reducing incoming healing while the effect lasts.
+
+See also: BELTYNS-BURNING-BLOOD, HEALING, REGENERATION
+
+#0
+EARTHBLOOD SPELL-EARTHBLOOD
+
+Usage: cast 'earthblood' <target>
+Duration: Instantaneous damage; rigidity is temporary
+School of Magic: Evocation
+Target(s): One other character in the room
+
+Earthblood deals earth damage and can solidify a living victim's body,
+briefly preventing movement.
+
+See also: EARTH, HOLD-PERSON, ROCK-TO-MUD
+
+#0
+SOUL-TEMPEST SPELL-SOUL-TEMPEST
+
+Usage: cast 'soul tempest'
+Duration: Instantaneous
+School of Magic: Necromancy
+Target(s): Eligible enemies in the caster's room
+
+Soul tempest tears through eligible room enemies with force damage. Normal
+area-spell defenses apply.
+
+See also: AREA SPELLS, FORCE, NECROMANCY
+
+#0
+DUST-DEVIL SPELL-DUST-DEVIL
+
+Usage: cast 'dust devil' <target>
+Duration: Instantaneous
+School of Magic: Conjuration
+Target(s): One other character in the room
+
+Dust devil deals air damage and can wrench a droppable weapon from the
+target's grasp. Bound, cursed, or otherwise protected weapons remain held.
+
+See also: AIR, DISARM, WEAPONS
+
+#0
+SUFFOCATE SPELL-SUFFOCATE
+
+Usage: cast 'suffocate' <target>
+Duration: Instantaneous damage; silence is temporary
+School of Magic: Transmutation
+Target(s): One other character in the room
+
+Suffocate tears the air from the target's lungs, dealing air damage and
+briefly preventing speech and spellcasting if the secondary effect succeeds.
+
+See also: AIR, CONSTRICTION, SILENCE
+
+#0
+BLACKTHORNS SPELL-BLACKTHORNS
+
+Usage: cast 'blackthorns' <target>
+Duration: Instantaneous
+School of Magic: Illusion
+Target(s): One other character in the room
+
+Blackthorns assails one target with illusory thorns that deal puncture damage.
+
+See also: ILLUSION, NEEDLE-SWARM, PUNCTURE
+
+#0
+SHADECHILL SPELL-SHADECHILL
+
+Usage: cast 'shadechill' <target>
+Duration: Instantaneous
+School of Magic: Illusion
+Target(s): One other character in the room
+
+Shadechill wraps one target in illusory cold and deals cold damage.
+
+See also: COLD, ILLUSION, SHADOW-MAGIC
+
+#0
+AIR-BLAST SPELL-AIR-BLAST
+
+Usage: cast 'air blast' <target>
+Duration: Instantaneous
+School of Magic: Evocation
+Target(s): One other character in the room
+
+Air blast strikes one target with concentrated air damage.
+
+See also: AIR, CYCLONE, DUST-DEVIL
+
+#0
+SHADOW-FLUX SPELL-SHADOW-FLUX
+
+Usage: cast 'shadow flux' <target>
+Duration: Temporary
+School of Magic: Illusion
+Target(s): One other character in the room
+
+Shadow flux tears at the target's magical defenses, temporarily removing a
+large amount of spell resistance.
+
+See also: ILLUSION, SPELL-RESISTANCE, SPELLS
+
+#0
+POLTERGEIST SPELL-POLTERGEIST
+
+Usage: cast 'poltergeist'
+Duration: Instantaneous
+School of Magic: Necromancy
+Target(s): Random eligible enemies in the caster's room
+
+Poltergeist calls up dark forms that hurl three force strikes. Each strike
+selects a random eligible corporeal target in the room; no persistent creature
+is summoned.
+
+See also: AREA SPELLS, FORCE, SUMMONING
+
+#0
+MINOR-CREATION SPELL-MINOR-CREATION
+
+Usage: cast 'minor creation' <item>
+Duration: Until lost, destroyed, or the world resets
+School of Magic: Conjuration
+Target(s): One selected mundane object
+
+Minor creation forms one plain object in the caster's room without using a
+world prototype. Choices are bag, ration, raft, robe, barrel, club, staff,
+spear, dagger, shield, torch, box, paper, or quill. Created objects have no
+sale or rent value and cannot be retained through rent.
+
+See also: CONJURATION, CREATE-FOOD, OBJECTS
+
+#0
+VENTRILOQUATE SPELL-VENTRILOQUATE
+
+Usage: cast 'ventriloquate' <target> <speech>
+Duration: Instantaneous
+School of Magic: Illusion
+Target(s): One nearby character or object
+
+Ventriloquate throws the supplied speech toward a visible character or object
+in the room. Listeners hear the words as if that target spoke them, although a
+successful Will save reveals the magical echo. Deaf listeners hear nothing.
+
+See also: ILLUSION, SAY, WILL
+
+#0
+PRESERVE SPELL-PRESERVE
+
+Usage: cast 'preserve' <corpse>
+Duration: Extends the corpse timer
+School of Magic: Necromancy
+Target(s): One corpse in the room
+
+Preserve slows a corpse's decay by extending its remaining timer. Player
+corpses receive a larger extension than ordinary corpses.
+
+See also: CORPSE, CORPSE-GLAMOR, EMBALM
+
+#0
+WRAITHFORM SPELL-WRAITHFORM
+
+Usage: cast 'wraithform'
+Duration: Temporary
+School of Magic: Illusion
+Target(s): Self only
+
+Wraithform ends combat involving the caster and turns the caster immaterial
+without removing or discarding equipment. The body becomes solid again when
+the effect expires.
+
+See also: ETHEREAL, IMMATERIAL, PHASE-DOOR
+
+#0
+CREATE-SPRING SPELL-CREATE-SPRING
+
+Usage: cast 'create spring'
+Duration: Temporary object
+School of Magic: Conjuration
+Target(s): The caster's outdoor room
+
+Create spring causes a clear fountain of water to burst from open outdoor
+ground. Its capacity and lifetime scale with spell level. The spring has no
+sale or rent value and eventually decays.
+
+See also: DRINK, FOUNTAIN, WATER
+
+#0
+MOONWELL SPELL-MOONWELL
+
+Usage: cast 'moonwell' <player>
+Duration: Temporary portals
+School of Magic: Conjuration
+Target(s): One player elsewhere in the world
+
+Moonwell creates paired pools of silver light between the caster's room and
+the target player's room. Both locations must be distinct, valid mortal
+destinations on the material plane and must permit summoning and teleportation.
+
+See also: PORTAL, SUMMONING, TELEPORT
+
+#0
+EMBALM SPELL-EMBALM
+
+Usage: cast 'embalm' <corpse>
+Duration: Extends the corpse timer
+School of Magic: Necromancy
+Target(s): One corpse in the room
+
+Embalm greatly extends a corpse's remaining decay timer, preserving it longer
+than the preserve spell.
+
+See also: CORPSE, CORPSE-GLAMOR, PRESERVE
+
+#0
+AIRY-WATER SPELL-AIRY-WATER
+
+Usage: cast 'airy water'
+Duration: Temporary room effect
+School of Magic: Transmutation
+Target(s): The caster's underwater room
+
+Airy water makes an underwater room breathable for the duration. It changes
+the local environment rather than granting water breathing to one character.
+
+See also: ROOM SPELLS, UNDERWATER, WATER-BREATHING
+
+#0
+UNSEEN-SERVANT SPELL-UNSEEN-SERVANT
+
+Usage: cast 'unseen servant'
+Duration: Temporary
+School of Magic: Conjuration
+Target(s): Self only
+
+Unseen servant calls an invisible helper that temporarily increases the
+caster's carrying capacity.
+
+See also: CARRYING, CONJURATION, SUMMONING
+
+#0
+MISLEAD SPELL-MISLEAD
+
+Usage: cast 'mislead'
+Duration: Temporary
+School of Magic: Illusion
+Target(s): Self only
+
+Mislead wraps the caster in deceptive shadows, concealing the caster from
+pursuit and preventing ordinary tracking while the effect lasts.
+
+See also: ILLUSION, PASS-WITHOUT-TRACE, TRACK
+
+#0
+SEQUESTER SPELL-SEQUESTER
+
+Usage: cast 'sequester' <target>
+Duration: Temporary
+School of Magic: Illusion
+Target(s): One character in the room
+
+Sequester cuts the target off from distant magic. Teleportation and summoning
+effects cannot target the subject until the sequester ends.
+
+See also: DIMENSIONAL-ANCHOR, SUMMONING, TELEPORT
+
+#0
+DIMENSION-SHIFT SPELL-DIMENSION-SHIFT
+
+Usage: cast 'dimension shift'
+Duration: Temporary
+School of Magic: Conjuration
+Target(s): The caster and group members in the room
+
+Dimension shift ends combat for affected group members and folds them into a
+sheltered pocket beyond ordinary material reach. Dimensional locks and
+teleport wards can prevent a character from joining the shift.
+
+See also: DIMENSIONAL-ANCHOR, GROUP, IMMATERIAL
+
+#0
+SOUL-BIND SPELL-SOUL-BIND
+
+Usage: cast 'soul bind' <target>
+Duration: Temporary
+School of Magic: Necromancy
+Target(s): One other character in the room
+
+Soul bind anchors the victim on a failed save and prevents teleportation while
+the binding remains in place.
+
+See also: DIMENSIONAL-ANCHOR, NECROMANCY, TELEPORT
+
+#0
+DEATH-PACT SPELL-DEATH-PACT
+
+Usage: cast 'death pact'
+Duration: Temporary
+School of Magic: Necromancy
+Target(s): The caster's group
+
+Death pact lets affected group members remain standing below the normal death
+threshold, down to -120 hit points. It does not restore hit points and ends
+when its duration expires.
+
+See also: DEATH, GROUP, HIT-POINTS
+
+#0
+SPIRIT-WALK SPELL-SPIRIT-WALK
+
+Usage: cast 'spirit walk' <player>
+Duration: Instantaneous travel
+School of Magic: Conjuration
+Target(s): One player with a corpse in the world
+
+Spirit walk follows the path of a dead character to that player's corpse. A
+different target must be grouped with the caster. Teleport wards, invalid
+destinations, or a corpse already in the room prevent travel.
+
+See also: CORPSE, GROUP, TELEPORT
+
+#0
+ROCK-TO-MUD SPELL-ROCK-TO-MUD
+
+Usage: cast 'rock to mud' [room|earth elemental]
+Duration: Temporary terrain or instantaneous damage
+School of Magic: Transmutation
+Target(s): The room or one earth elemental in it
+
+Against an earth elemental, rock to mud deals earth damage with normal spell
+defenses. Otherwise it softens the room into difficult terrain until the
+effect expires or mud to rock removes it.
+
+See also: DIFFICULT-TERRAIN, EARTH, MUD-TO-ROCK
+
+#0
+MUD-TO-ROCK SPELL-MUD-TO-ROCK
+
+Usage: cast 'mud to rock' [room|allied earth elemental]
+Duration: Instantaneous
+School of Magic: Transmutation
+Target(s): The room or one allied earth elemental in it
+
+Mud to rock removes rock-to-mud terrain from the room. When directed at an
+allied earth elemental, it instead hardens that creature's form and restores
+hit points.
+
+See also: EARTH, HEALING, ROCK-TO-MUD
+
+#0
+PHANTOM-HEAL SPELL-PHANTOM-HEAL
+
+Usage: cast 'phantom heal' <target>
+Duration: Temporary vitality
+School of Magic: Illusion
+Target(s): Self or a group member in the room
+
+Phantom heal lends temporary vitality to a target below half health, up to the
+half-health mark. The granted hit points are removed when the illusion ends;
+the spell cannot stack with itself.
+
+See also: GROUP, HEALING, TEMPORARY-HIT-POINTS
+
+#0
+CURSE-ITEM SPELL-CURSE-ITEM
+
+Usage: cast 'curse item' <object>
+Duration: Permanent object alteration
+School of Magic: Enchantment
+Target(s): One object in the caster's inventory
+
+Curse item makes an inventory object impossible to drop. If the object is a
+weapon, the curse also weakens its damage die.
+
+See also: CURSE, OBJECTS, REMOVE-CURSE
+
+#0
+CORPSE-GLAMOR SPELL-CORPSE-GLAMOR
+
+Usage: cast 'corpse glamor' <corpse>
+Duration: Permanent object alteration
+School of Magic: Illusion
+Target(s): One corpse in the room
+
+Corpse glamor disguises a corpse's bulk and reduces its weight to one. It does
+not extend the corpse's decay timer.
+
+See also: CORPSE, EMBALM, PRESERVE
+
+#0
+SUN-SHADOW SPELL-SUN-SHADOW
+
+Usage: cast 'sun shadow'
+Duration: Temporary room effect
+School of Magic: Illusion
+Target(s): The caster's room
+
+Sun shadow veils the room in supernatural darkness until the effect expires.
+
+See also: DARKNESS, LIGHT, ROOM SPELLS
+
+#0
+EARTH-FOG SPELL-EARTH-FOG
+
+Usage: cast 'earth fog'
+Duration: Temporary room effect
+School of Magic: Conjuration
+Target(s): The caster's room
+
+Earth fog fills the room with obscuring earthen mist. The fog remains until
+its room effect expires or is otherwise removed.
+
+See also: FOG, OBSCURING-MIST, ROOM SPELLS
+
+#0
+FIRE-FOG SPELL-FIRE-FOG
+
+Usage: cast 'fire fog'
+Duration: Temporary room effect
+School of Magic: Evocation
+Target(s): The caster's room
+
+Fire fog fills the room with luminous fiery mist, temporarily illuminating
+the area until the room effect expires or is otherwise removed.
+
+See also: EARTH-FOG, LIGHT, ROOM SPELLS
+
+#0
 $~

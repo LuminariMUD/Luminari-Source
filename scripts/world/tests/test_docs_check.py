@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import unittest
 
 from wtool_lib.constants import default_repo_root, load_manifest
@@ -67,6 +68,42 @@ class DocumentationCheckTests(unittest.TestCase):
     text, findings = _encoding_findings("fixture.md", "bad \N{RIGHTWARDS ARROW}\r\n".encode())
     self.assertIsNotNone(text)
     self.assertEqual({"DOC003", "DOC004"}, {finding.code for finding in findings})
+
+  def test_rol_spell_gap_inventory_has_flat_help_coverage(self) -> None:
+    gap_document = (
+        self.repo_root / "docs/ongoing-projects/ROL_SPELL_EQUIVALENCE_GAPS.md"
+    ).read_text(encoding="ascii")
+    inventory = gap_document.split(
+        "The complete inventory of all 89 implemented gaps remains below", 1
+    )[1].split("## RoL internal or stub registrations", 1)[0]
+    spell_names = [
+        name.strip()
+        for _, name in re.findall(
+            r"^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|", inventory, re.MULTILINE
+        )
+    ]
+
+    help_lines = (self.repo_root / "lib/text/help/help.hlp").read_text(
+        encoding="utf-8"
+    ).splitlines()
+    help_keywords: set[str] = set()
+    expect_header = True
+    for line in help_lines:
+      if expect_header:
+        if not line or line.startswith("#") or line == "$~":
+          continue
+        help_keywords.update(token.upper() for token in line.split())
+        expect_header = False
+      elif line.startswith("#"):
+        expect_header = True
+
+    expected_keywords = {
+        re.sub(r"[^A-Z0-9]+", "-", name.upper()).strip("-")
+        for name in spell_names
+    }
+    self.assertEqual(89, len(spell_names))
+    self.assertEqual(89, len(expected_keywords))
+    self.assertEqual(set(), expected_keywords - help_keywords)
 
 
 if __name__ == "__main__":

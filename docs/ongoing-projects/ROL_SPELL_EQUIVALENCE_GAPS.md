@@ -6,7 +6,9 @@ completed and independently re-verified 2026-08-24 against
 implementation checkpoints added all 89 functional gaps through native magic
 paths and focused direct handlers. A follow-up handler-level review found 14
 live RoL spells that had been incorrectly classified as covered by loose
-substitutes; all 14 now have native implementations.
+substitutes; all 14 now have native implementations. A final documentation
+audit added the 73 missing help topics from the first three checkpoints and
+synchronized canonical help coverage for all 89 spells.
 
 This list compares every unique spell registered through `SPELL_CREATE()` in
 Realms of Luminari with LuminariMUD's registered spells and closely equivalent
@@ -256,8 +258,23 @@ Validation completed with a warning-free GNU C23 build and all 880
 production-linked CuTests under the documented isolated-test settings. The
 full world-tool suite passed, and the 132-test RoL transformer suite passed
 against the installed source corpus with two optional-pilot skips. The
-generated constants manifest is current, installation succeeds, and the four
-flat-file help topics match their development-database entries.
+generated constants manifest is current, and installation succeeds.
+
+### Completion checkpoint 8: help and inventory parity
+
+The completion audit matched the 89 inventory rows below to 89 distinct
+positive converter targets, 89 live `spello()` registrations, and the same 89
+entries in the production-linked registration tests. All 45 registrations that
+use `MAG_MANUAL` have explicit dispatcher cases. The converter still covers
+all 340 required positive source identities as 331 castable mappings and nine
+explicit non-castable identities.
+
+The audit also found that 73 spells from implementation checkpoints 1-3 had
+never received canonical help topics. Those topics now exist in
+`lib/text/help/help.hlp`, bringing flat-file coverage to 89 of 89. All 89
+canonical entries and their searchable keywords are present in the development
+database, and every database body and level now byte-matches the flat-file
+source.
 
 The complete inventory of all 89 implemented gaps remains below, preserving
 the original source-to-target accounting.
