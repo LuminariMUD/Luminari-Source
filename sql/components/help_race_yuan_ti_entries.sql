@@ -18,9 +18,10 @@ Language: Draconic
 
 Racial feats include ultravision, Poison Bite, poison immunity, Stubborn Mind,
 and two stacking ranks of Armor Skin. Poison Bite applies when fighting
-bare-handed.
+bare-handed. Yuan-ti also have a tail equipment slot. They can wear any ring
+on the tail, or use dedicated tail gear that cannot be worn in another slot.
 
-See also: ACCEXP, POISON, RACE, RACE-HALF-ILLITHID', 0, FALSE)
+See also: ACCEXP, POISON, RACE, RACE-HALF-ILLITHID, WEAR', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 
@@ -31,5 +32,45 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
   ('RACE-YUAN-TI', 'YUAN-TI'),
   ('RACE-YUAN-TI', 'YUANTI'),
   ('RACE-YUAN-TI', 'RACE-YUAN-TI');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('WEAR', 'Usage: wear <item> [location]
+
+If you want to wear some clothes, armor or the likes.
+
+Also, to wear everything in your inventory (or at least try to, as wearing
+things like loaves of bread is not a good way to win friends and influence
+people) you can type "wear all".
+
+Optionally, you can specify what part of your body to wear the equipment on.
+
+Examples:
+
+  > wear boots
+  > wear all.bronze
+  > wear all
+  > wear ring finger
+  > wear ring tail
+
+Yuan-ti have one tail equipment slot. Any ring may be worn there, even when
+the ring is not specifically marked as tail gear. Items specifically made for
+the tail can only be worn in that slot. Characters without a tail slot cannot
+wear rings or dedicated gear there.
+
+See also: EQUIPMENT, REMOVE, RACE-YUAN-TI', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+
+DELETE FROM help_keywords
+WHERE help_tag = 'WEAR';
+
+DELETE FROM help_keywords
+WHERE UPPER(keyword) IN ('WEAR', 'TAIL-SLOT', 'TAIL-EQUIPMENT')
+  AND BINARY help_tag <> 'WEAR';
+
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES
+  ('WEAR', 'WEAR'),
+  ('WEAR', 'TAIL-SLOT'),
+  ('WEAR', 'TAIL-EQUIPMENT');
 
 COMMIT;

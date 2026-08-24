@@ -1,8 +1,24 @@
 # RoL Tail Equipment Slot Implementation
 
-Status: runtime and converter implemented; help, documentation, and final validation remain
+Status: implementation complete; final full validation remains
 
 ## Progress log
+
+### 2026-08-25 - Help and documentation checkpoint implemented
+
+- Added the active tail wear flag and its ring-versus-dedicated-gear contract
+  to the OEDIT guide, updated the object-format namespace count, and regenerated
+  the web builder guide.
+- Updated the `WEAR` and `RACE-YUAN-TI` player help entries in both
+  `lib/text/help/help.hlp` and the repeatable SQL help component.
+- Extended the SQL verifier for the new content and keywords, applied the help
+  component to the development database, and verified exact body/keyword
+  equality between the database and flat-file entries.
+- Confirmed the constants manifest and generated world documentation are
+  current with no findings.
+
+Pending: final world-tool, full production-linked CuTest, install, artifact,
+and worktree validation.
 
 ### 2026-08-25 - RoL converter checkpoint implemented
 

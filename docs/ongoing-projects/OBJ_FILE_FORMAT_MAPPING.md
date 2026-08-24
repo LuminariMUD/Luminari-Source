@@ -191,7 +191,7 @@ data shapes that triggered them:
 |-----------|-------|-----------------|
 | `ITEM_*` item types | `NUM_ITEM_TYPES` 58 | `src/structs.h:4495` |
 | `ITEM_*` extra flags | `NUM_ITEM_FLAGS` 125 | `src/structs.h:4882` |
-| `ITEM_WEAR_*` | `NUM_ITEM_WEARS` 34 | `src/structs.h` |
+| `ITEM_WEAR_*` | `NUM_ITEM_WEARS` 35 | `src/structs.h` |
 | `AFF_*` | `NUM_AFF_FLAGS` 127 | `src/structs.h:1705` |
 | `AFF2_*` | `NUM_AFF2_FLAGS` 5 | `src/structs.h:1709` |
 | `APPLY_*` | `NUM_APPLIES` 75 | `src/structs.h:4975` |

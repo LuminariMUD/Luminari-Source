@@ -463,13 +463,22 @@ up at all. Nearly every object needs it. An item with wear flags but without
 | 31 | 32 | Tailoring-Tool (unused; reserved) | ITEM_WEAR_CRAFT_NEEDLE |
 | 32 | 33 | Weaponsmithing-Tool (unused; reserved) | ITEM_WEAR_CRAFT_WEAPON_HAMMER |
 | 33 | 34 | On-Back (unused; reserved) | ITEM_WEAR_ON_BACK |
+| 34 | 35 | Tail | ITEM_WEAR_TAIL |
 
-**Total: 34 wear bits (0-33, `NUM_ITEM_WEARS`)**
+**Total: 35 wear bits (0-34, `NUM_ITEM_WEARS`)**
 
 Bits 21-33 are implemented as reserved compatibility positions but are
 currently unused: no active object prototype can occupy them. Do not assign
 these flags unless the corresponding equipment position is deliberately
 reactivated and supplied with supported game content.
+
+Bit 34 is the active Yuan-Ti tail slot. On a non-ring object, `ITEM_WEAR_TAIL`
+marks dedicated tail gear: the runtime rejects that object in every other
+slot, even if another wear bit is also set. Do not add the tail bit to ordinary
+rings. `ITEM_WEAR_FINGER` is the game's ring classification, and every such
+ring can already be worn on either a finger or a Yuan-Ti tail. If imported data
+contains both finger and tail bits, the ring rule wins and the object remains
+finger-or-tail gear.
 
 The nine reserved crafting-tool positions (bits 24-32) are separate from
 normal combat equipment positions and are hidden from the regular `equipment`

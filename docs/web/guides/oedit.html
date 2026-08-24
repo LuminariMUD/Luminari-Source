@@ -2179,14 +2179,28 @@ by staff loading it directly.</p>
 <td>On-Back (unused; reserved)</td>
 <td>ITEM_WEAR_ON_BACK</td>
 </tr>
+<tr class="odd">
+<td>34</td>
+<td>35</td>
+<td>Tail</td>
+<td>ITEM_WEAR_TAIL</td>
+</tr>
 </tbody>
 </table>
-<p><strong>Total: 34 wear bits (0-33,
+<p><strong>Total: 35 wear bits (0-34,
 <code>NUM_ITEM_WEARS</code>)</strong></p>
 <p>Bits 21-33 are implemented as reserved compatibility positions but
 are currently unused: no active object prototype can occupy them. Do not
 assign these flags unless the corresponding equipment position is
 deliberately reactivated and supplied with supported game content.</p>
+<p>Bit 34 is the active Yuan-Ti tail slot. On a non-ring object,
+<code>ITEM_WEAR_TAIL</code> marks dedicated tail gear: the runtime
+rejects that object in every other slot, even if another wear bit is
+also set. Do not add the tail bit to ordinary rings.
+<code>ITEM_WEAR_FINGER</code> is the game’s ring classification, and
+every such ring can already be worn on either a finger or a Yuan-Ti
+tail. If imported data contains both finger and tail bits, the ring rule
+wins and the object remains finger-or-tail gear.</p>
 <p>The nine reserved crafting-tool positions (bits 24-32) are separate
 from normal combat equipment positions and are hidden from the regular
 <code>equipment</code> display. They were designed to pair with

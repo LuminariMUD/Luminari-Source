@@ -39470,13 +39470,13 @@ WEAPONSMITHING
 
 Weaponsmithing is a crafting skill used to create metal weapons.
 #0
-WEAR
+WEAR TAIL-SLOT TAIL-EQUIPMENT
 
 Usage: wear <item> [location]
 
 If you want to wear some clothes, armor or the likes.
 
-Also, to wear everything in your inventory (or at least try to, as wearing 
+Also, to wear everything in your inventory (or at least try to, as wearing
 things like loaves of bread is not a good way to win friends and influence
 people) you can type "wear all".
 
@@ -39488,8 +39488,14 @@ Examples:
   > wear all.bronze
   > wear all
   > wear ring finger
+  > wear ring tail
 
-See also: EQUIPMENT, REMOVE
+Yuan-ti have one tail equipment slot. Any ring may be worn there, even when
+the ring is not specifically marked as tail gear. Items specifically made for
+the tail can only be worn in that slot. Characters without a tail slot cannot
+wear rings or dedicated gear there.
+
+See also: EQUIPMENT, REMOVE, RACE-YUAN-TI
 #0
 WEATHER
 
@@ -40925,9 +40931,10 @@ Language: Draconic
 
 Racial feats include ultravision, Poison Bite, poison immunity, Stubborn Mind,
 and two stacking ranks of Armor Skin. Poison Bite applies when fighting
-bare-handed.
+bare-handed. Yuan-ti also have a tail equipment slot. They can wear any ring
+on the tail, or use dedicated tail gear that cannot be worn in another slot.
 
-See also: ACCEXP, POISON, RACE, RACE-HALF-ILLITHID
+See also: ACCEXP, POISON, RACE, RACE-HALF-ILLITHID, WEAR
 #0
 MYCONID MYCANOID RACE-MYCONID
 
