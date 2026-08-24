@@ -29,11 +29,25 @@ Checkpoint 2026-08-24 (core implementation builds):
   all five races. The production binary builds cleanly with GNU C23 and
   `-Wall -Wextra`.
 
+Checkpoint 2026-08-24 (maintained help complete):
+
+- Each race now has an idempotent database migration, a read-only verifier,
+  and a matching player topic in `lib/text/help/help.hlp`. Canonical names,
+  RoL names, and legacy Mycanoid spelling are deterministic aliases.
+- All ten SQL files are packaged and classified for fresh-schema CI. The
+  component inventory also now classifies the pre-existing help-sync schema
+  and verifier, restoring the rule that every component appears exactly once.
+- An isolated temporary MariaDB test applied all five migrations twice and
+  returned `PASS` for all 22 entry, keyword, content, ownership, and aggregate
+  checks. No persistent database was changed because this worktree has no
+  `lib/.env` or `lib/mysql_config` identifying a development environment.
+
 Remaining at this checkpoint:
 
-- add matching SQL and flat-file help entries for all five races;
+- extend integration coverage for unlock selection, full web catalog
+  inclusion, racial feat application, and persistence-sensitive behavior;
 - run the production-linked CuTest suite and install the tested binary;
-- perform local database/help and creation smoke checks where the development
+- perform terminal and web creation smoke checks where the development
   environment permits them.
 
 This document accompanies `ROL_SPELL_EQUIVALENCE_GAPS.md` in the Realms of
