@@ -48,8 +48,12 @@ bitvector_t find_race_bitvector(const char *arg);
 int invalid_race(struct char_data *ch, struct obj_data *obj);
 int parse_race_long(const char *arg);
 void assign_races(void);
+bool race_is_creation_eligible(int race_num);
+bool race_is_selectable_for_creation(struct char_data *ch, int race_num);
 bool display_race_info(struct char_data *ch, const char *racename);
 int get_race_stat(int race, int stat);
+int race_starting_hp_bonus(int race_num);
+int race_hp_bonus_per_level(int race_num);
 int get_random_basic_pc_race(void);
 sbyte has_racial_abils_unchosen(struct char_data *ch);
 /* can a class be this race because of potential alignment issues? (character creation) */
@@ -60,6 +64,8 @@ bool has_scales(int race);
 bool has_horns(int race);
 bool is_furry(int race);
 bool race_has_no_hair(int race);
+const char *character_wear_slot_restriction(const struct char_data *ch, int wear_slot);
+bool character_can_use_wear_slot(const struct char_data *ch, int wear_slot);
 int compare_races(const void *x, const void *y);
 void sort_races(void);
 

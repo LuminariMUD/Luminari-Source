@@ -344,6 +344,7 @@ bsd_snprintf_fallback_test_LDADD = -lm
 cutest_SOURCES = \
 	unittests/CuTest/test_syntax_check_boot.c \
 	unittests/CuTest/test_web_onboarding.c \
+	unittests/CuTest/test_race_equivalence.c \
 	unittests/CuTest/test_i3_client_production.c \
 	unittests/CuTest/test_msdp_production.c \
 	unittests/CuTest/test_necromancer.c \
@@ -403,6 +404,7 @@ cutest_test_files = \
 	unittests/CuTest/test_bounds_checking.c \
 	unittests/CuTest/test_help_sync.c \
 	unittests/CuTest/test_web_onboarding.c \
+	unittests/CuTest/test_race_equivalence.c \
 	unittests/CuTest/test_i3_client_production.c \
 	unittests/CuTest/test_msdp_production.c \
 	unittests/CuTest/test_necromancer.c \
@@ -794,6 +796,12 @@ EXTRA_DIST = \
 	sql/components/help_command_sweep_entries.sql \
 	sql/components/help_dg_damage_trigger.sql \
 	sql/components/help_rol_feat_entries.sql \
+	sql/components/help_race_half_illithid_entries.sql \
+	sql/components/help_race_half_ogre_entries.sql \
+	sql/components/help_race_myconid_entries.sql \
+	sql/components/help_race_wemic_entries.sql \
+	sql/components/help_race_yuan_ti_entries.sql \
+	sql/components/help_trelux_equipment_entries.sql \
 	sql/components/help_specproc_entries.sql \
 	sql/components/help_thrown_weapons_entries.sql \
 	sql/components/help_vessel_entries.sql \
@@ -809,6 +817,12 @@ EXTRA_DIST = \
 	sql/components/verify_help_necromancer_entries.sql \
 	sql/components/verify_help_rol_feat_entries.sql \
 	sql/components/verify_help_rol_object_trap_entries.sql \
+	sql/components/verify_help_race_half_illithid_entries.sql \
+	sql/components/verify_help_race_half_ogre_entries.sql \
+	sql/components/verify_help_race_myconid_entries.sql \
+	sql/components/verify_help_race_wemic_entries.sql \
+	sql/components/verify_help_race_yuan_ti_entries.sql \
+	sql/components/verify_help_trelux_equipment_entries.sql \
 	sql/components/verify_help_specproc_entries.sql \
 	sql/components/verify_help_thrown_weapons_entries.sql \
 	sql/components/verify_help_vessel_entries.sql \

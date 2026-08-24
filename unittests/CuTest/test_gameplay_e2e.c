@@ -1026,6 +1026,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   int load_result;
   int loaded_level;
   int loaded_gold;
+  int loaded_race;
   int loaded_boarding;
   int legacy_loaded_boarding;
   int restore_result;
@@ -1066,6 +1067,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   GET_PFILEPOS(source) = 0;
   GET_IDNUM(source) = 4242;
   GET_LEVEL(source) = 7;
+  GET_REAL_RACE(source) = RACE_YUAN_TI;
   GET_GOLD(source) = 12345;
   SET_ABILITY(source, ABILITY_BOARDING, 9);
   GET_FACTION_STANDING(source, 1) = 111;
@@ -1097,6 +1099,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   load_result = -1;
   loaded_level = -1;
   loaded_gold = -1;
+  loaded_race = RACE_UNDEFINED;
   loaded_boarding = -1;
   legacy_loaded_boarding = -1;
   loaded_faction_one = 0;
@@ -1125,6 +1128,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
       {
         loaded_level = GET_LEVEL(loaded);
         loaded_gold = GET_GOLD(loaded);
+        loaded_race = GET_REAL_RACE(loaded);
         loaded_boarding = GET_ABILITY(loaded, ABILITY_BOARDING);
         loaded_faction_one = GET_FACTION_STANDING(loaded, 1);
         loaded_faction_two = GET_FACTION_STANDING(loaded, 2);
@@ -1163,6 +1167,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   CuAssertTrue(tc, loaded_name_matches);
   CuAssertIntEquals(tc, 7, loaded_level);
   CuAssertIntEquals(tc, 12345, loaded_gold);
+  CuAssertIntEquals(tc, RACE_YUAN_TI, loaded_race);
   CuAssertIntEquals(tc, 9, loaded_boarding);
   CuAssertTrue(tc, legacy_file_ready);
   CuAssertIntEquals(tc, 0, legacy_loaded_boarding);

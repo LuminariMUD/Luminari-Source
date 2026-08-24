@@ -65,6 +65,7 @@
 #include "magic/spells.h"
 #include "screen.h"
 #include "character/class.h"
+#include "character/race.h"
 #include "act.h"
 #include "account.h"
 #include "vessels/routing.h"
@@ -347,7 +348,7 @@ ACMD(do_accexp)
     int end = 0;
 
     start = 0;
-    end = NUM_RACES;
+    end = NUM_EXTENDED_RACES;
 
     /* No argument: list lockable races that are not yet unlocked */
     if (!*arg2)
@@ -356,7 +357,7 @@ ACMD(do_accexp)
 
       for (i = start; i < end; i++)
       {
-        if (!is_locked_race(i) || has_unlocked_race(ch, i))
+        if (!race_is_creation_eligible(i) || !is_locked_race(i) || has_unlocked_race(ch, i))
           continue;
 
         int cost = locked_race_cost(i);
@@ -367,7 +368,7 @@ ACMD(do_accexp)
     /* Identify the intended race to unlock by name abbreviation */
     for (i = start; i < end; i++)
     {
-      if (race_list[i].is_pc && is_abbrev(arg2, race_list[i].type) && is_locked_race(i) &&
+      if (race_is_creation_eligible(i) && is_abbrev(arg2, race_list[i].type) && is_locked_race(i) &&
           !has_unlocked_race(ch, i))
       {
         cost = locked_race_cost(i);

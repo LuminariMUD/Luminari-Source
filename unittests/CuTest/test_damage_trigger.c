@@ -13,6 +13,7 @@
 #include "../../src/combat/fight.h"
 #include "../../src/handler.h"
 #include "../../src/magic/spells.h"
+#include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
 #include "../../src/olc/genolc.h"
 #include "../../src/olc/oasis.h"

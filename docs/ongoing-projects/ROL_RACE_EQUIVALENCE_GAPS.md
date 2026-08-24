@@ -1,6 +1,106 @@
 # RoL Playable Races Without a Close LuminariMUD Equivalent
 
-Status: source audit completed 2026-08-23.
+Status: implementation and completion audit finished 2026-08-24.
+
+## Implementation progress
+
+Checkpoint 2026-08-24 (core implementation builds):
+
+- The five gaps now have concrete Luminari identities: Barbarian maps to the
+  advanced Wemic, Ogre maps to the advanced Half-Ogre, Illithid maps to the
+  epic Half-Illithid, Yuan-Ti remains an advanced Yuan-Ti, and the unfinished
+  Myconid becomes an epic Myconid.
+- Persistent IDs preserve every released and reserved identity. Half-Ogre uses
+  its preassigned ID 28, Myconid corrects and aliases the existing `MYCANOID`
+  ID 114, and Wemic, Half-Illithid, and Yuan-Ti use new IDs 149 through 151.
+  The character race field is now a signed short so those IDs round-trip.
+- Character creation, account-XP purchase, terminal help dispatch, web
+  onboarding, media keys, race lookup, tracks, and initialization now use a
+  shared sparse-race policy. Lich and Vampire remain conversion-only even if
+  an unlock is forged.
+- Advanced races use adjustment 2, cost 1,000 account XP, and 2x experience.
+  Epic races use adjustment 10, cost 30,000 account XP, and 7x experience.
+- Registry data, racial statistics, size, family, language, level-one feat
+  packages, stacked natural armor, and racial hit-point progression are
+  implemented for all five races.
+- `unittests/CuTest/test_race_equivalence.c` covers ID width and uniqueness,
+  sparse selection count, tiers, stats, sizes, families, anatomy, parser
+  aliases, feat packages, and XP multipliers. Web media-key coverage includes
+  all five races. The production binary builds cleanly with GNU C23 and
+  `-Wall -Wextra`.
+
+Checkpoint 2026-08-24 (maintained help complete):
+
+- Each race now has an idempotent database migration, a read-only verifier,
+  and a matching player topic in `lib/text/help/help.hlp`. Canonical names,
+  RoL names, and legacy Mycanoid spelling are deterministic aliases.
+- All ten SQL files are packaged and classified for fresh-schema CI. The
+  component inventory also now classifies the pre-existing help-sync schema
+  and verifier, restoring the rule that every component appears exactly once.
+- An isolated temporary MariaDB test applied all five migrations twice and
+  returned `PASS` for all 22 entry, keyword, content, ownership, and aggregate
+  checks. No persistent database was changed because this worktree has no
+  `lib/.env` or `lib/mysql_config` identifying a development environment.
+
+Checkpoint 2026-08-24 (implementation validation complete):
+
+- RoL parser aliases now resolve Barbarian to Wemic and Ogre to Half-Ogre in
+  addition to the Illithid, Yuan-Ti, and Myconid aliases.
+- Racial starting and per-level hit points use one shared policy in character
+  initialization, level advancement, and derived-stat rebuilding. This also
+  closes the pre-existing rebuild gap for the Vital races whose fixed starting
+  bonus was previously transient.
+- Integration coverage now verifies locked and unlocked creation policy,
+  conversion-only denial, every level-one racial feat grant and stack, derived
+  hit-point reconstruction, all pages of the web race catalog, and a sparse ID
+  151 player-file round trip.
+- At this checkpoint, the production-linked CuTest binary passed all 893 tests.
+  The complete root `make test` path also passed its fallback, help-sync,
+  autorun, deployment, healthcheck, background-help, vessel, and process-memory
+  checks when the committed special-procedure inventory fixture was selected
+  and the then-unavailable world boot was explicitly skipped. `make install`
+  installed `bin/luminari` and removed the root-level build artifact. The later
+  completion audit below removes that runtime limitation.
+
+Checkpoint 2026-08-24 (completion audit):
+
+- The canonical constant names are now `RACE_HALF_OGRE` and `RACE_MYCONID`;
+  the historical `RACE_H_OGRE` and misspelled `RACE_MYCANOID` names remain
+  compatibility aliases.
+- Production-flow coverage now submits every race through the terminal nanny,
+  rejects locked and forged conversion-only choices, purchases all five with
+  `accexp`, and applies every race through the premade-build stat path.
+- A live MariaDB integration test purchases the five unlocks for one account,
+  persists each purchase through the normal account save, reloads the account,
+  and verifies the exact five SQL rows and sparse IDs.
+- `docs/guides/ADDING_NEW_RACE_GUIDE.md` was re-audited against the completed
+  sparse registry, shared creation policy, widened race storage, and keyed web
+  media implementation so it no longer describes the pre-implementation
+  bounds as current behavior.
+- The repository-provided isolated runtime was prepared against a disposable
+  MariaDB instance. Both the focused binary and the complete root `make test`
+  path passed all 897 production-linked CuTests with the syntax/world boot,
+  SQL integration tests, and committed special-procedure fixture enabled.
+  No production or persistent development database was changed.
+
+Checkpoint 2026-08-24 (racial anatomy balance):
+
+- Wemic now grants the innate Leonine Frame feat at level one. Its four-legged
+  lower body cannot use the legs or feet equipment slots; ankle equipment
+  remains available.
+- Race definitions now carry per-slot anatomy restrictions and player-facing
+  rejection text. The wear command and the low-level equipment boundary share
+  this policy, so automatic slot selection, saved gear, and scripted or system
+  equipment placement cannot bypass it. Rejected low-level equipment is
+  returned safely to inventory.
+- The pre-existing Trelux exceptions now use the same policy. This preserves
+  the established ring, shield, wield, and hold restrictions and closes the
+  documented but previously unenforced glove, leg, and foot restrictions.
+  Disguises do not change either race's physical equipment slots.
+- Focused production-linked tests cover the policy matrix, Wemic feat grant,
+  normal wear flow, saved-equipment restoration, and direct low-level equip
+  calls. Matching flat-file and database help describe both races' available
+  slots.
 
 This document accompanies `ROL_SPELL_EQUIVALENCE_GAPS.md` in the Realms of
 Luminari conversion series and compares RoL's player-character races with
@@ -22,7 +122,8 @@ all is a gap.
 - Reserved empty slots for future PC races: 2
 - Races with a close LuminariMUD equivalent: 11
 - Races without a close equivalent: 5
-- LuminariMUD playable races, for comparison: 30
+- LuminariMUD registered PC races in the pre-implementation audit: 30
+- LuminariMUD creation-eligible races after this implementation: 33
 
 ## Player-facing gaps
 
@@ -35,6 +136,10 @@ all is a gap.
 | 15 | Myconid | `RACE_MYCONID` | PS | none | (placeholder row, copied from Lich) |
 
 ### Why each is a gap
+
+The descriptions in this section record the pre-implementation source audit.
+The implementation checkpoints above describe their current LuminariMUD
+equivalents.
 
 **Barbarian (2).** In RoL this is a race, not a class: a distinct human-variant
 people with its own racewar hometown and a three-class restriction. In
@@ -121,13 +226,14 @@ stat rows. There is nothing to port.
 
 ## LuminariMUD-side notes
 
-- LuminariMUD has 30 playable races against RoL's 14 selectable ones, so this
-  comparison is lopsided in LuminariMUD's favor overall. Races such as
+- Before this work, LuminariMUD had 30 registered PC races against RoL's 14
+  selectable ones. It now has 33 creation-eligible races after excluding the
+  conversion-only Lich and Vampire identities. Races such as
   Dragonborn, Tiefling, Aasimar, Tabaxi, Goliath, Shade, Fae, Trelux,
   Arcana Golem, Crystal Dwarf, Vampire, Goblin, and Hobgoblin have no RoL
   counterpart at all. That direction is out of scope here.
-- `RACE_H_OGRE` (28) is defined with `// not yet implemented` and is the
-  natural landing slot if Ogre is ported.
+- `RACE_H_OGRE` (28) was the natural landing slot and is now the implemented
+  Half-Ogre identity.
 - Watch the LuminariMUD race ID range when porting. `NUM_RACES` is 28, and the
   three constants immediately after it reuse live IDs:
   `RACE_DEEP_GNOME` 26 collides with `RACE_GOBLIN`, `RACE_ORC` 27 collides with

@@ -35247,11 +35247,14 @@ more challenging experience-chart.  Type 'levels' in-game to view
 #0
 TRELUX-EQ
 
-Due to their pincer-like hands, Trelux cannot wield weapons, hold items,
-wear gloves or wear rings.
+Trelux anatomy does not support several traditional equipment slots.
 
-Also due to their insect-like legs, Trelux cannot wear items on their
-legs and feet.
+Their pincer-like forelimbs cannot wield weapons, hold items, use shields,
+wear gloves, or wear rings. Their insect-like legs cannot wear leg or foot
+equipment. Arm, wrist, and ankle equipment slots remain available.
+
+These restrictions apply to ordinary wear commands, saved equipment, and
+equipment placed by game systems.
 #0
 TRELUX-EXOSKELETON
 
@@ -40838,4 +40841,113 @@ The 'list' shows all currently unlocked zones.
 
 See also: ZLOCK
 #31
+WEMIC RACE-WEMIC BARBARIAN RACE-BARBARIAN
+
+Wemic
+
+Wemics are Large monstrous humanoids with a humanoid torso and a leonine lower
+body. They are the Luminari equivalent of the Realms of Luminari Barbarian
+people, expressed as an actual Wemic ancestry rather than a class.
+
+Tier: Advanced (level adjustment 2)
+Unlock: 1,000 account experience
+Progression: 2x normal experience requirements
+Ability modifiers: +8 Str, +4 Con, -2 Int, +2 Wis, +2 Dex, -2 Cha
+Size: Large
+Language: Common
+
+Racial feats include low-light vision, Natural Athlete, Powerful Build,
+Claws and Bite, Survival Instinct, Hardy, and Leonine Frame. Wemics also gain
+one additional hit point per level.
+
+Leonine Frame represents a Wemic's four-legged lower body. Wemics cannot equip
+traditional leg or foot gear, including pants and boots. Their ankle equipment
+slots remain available.
+
+See also: ACCEXP, RACE, RACE-HALF-OGRE, RACE-YUAN-TI
+#0
+HALF-OGRE HALF-OGRE-RACE RACE-HALF-OGRE OGRE RACE-OGRE
+
+Half-Ogre
+
+Half-ogres are Large giant-blooded people who combine tremendous strength and
+reach with mortal adaptability. They are the Luminari equivalent of the Realms
+of Luminari Ogre player race, expressed as an actual Half-Ogre ancestry.
+
+Tier: Advanced (level adjustment 2)
+Unlock: 1,000 account experience
+Progression: 2x normal experience requirements
+Ability modifiers: +6 Str, +2 Con, -2 Int, -2 Dex, -2 Cha
+Size: Large
+Language: Giant
+
+Racial feats include ultravision, Powerful Build, strong poison resistance,
+and two stacking ranks of Armor Skin. Half-ogres gain two additional hit
+points per level.
+
+See also: ACCEXP, RACE, RACE-WEMIC, RACE-MYCONID
+#0
+HALF-ILLITHID HALF-ILLITHID-RACE RACE-HALF-ILLITHID ILLITHID RACE-ILLITHID
+
+Half-Illithid
+
+Half-illithids retain a mortal ancestry while bearing an illithid-transformed
+mind and unsettling physical traits. They are the Luminari equivalent of the
+Realms of Luminari Illithid player race, expressed as an actual Half-Illithid.
+
+Tier: Epic (level adjustment 10)
+Unlock: 30,000 account experience
+Progression: 7x normal experience requirements
+Ability modifiers: +4 Int, +4 Wis, +4 Cha
+Size: Medium
+Language: Aberration
+
+Racial feats include ultravision, Quick Mind, Stubborn Mind,
+innate Levitation, three stacking ranks of Armor Skin, Vital, and Hardy.
+Half-illithids gain four additional hit points per level.
+
+See also: ACCEXP, LEVITATE, PSIONICIST, RACE, RACE-YUAN-TI
+#0
+YUAN-TI YUANTI RACE-YUAN-TI
+
+Yuan-Ti
+
+Yuan-ti are serpentfolk whose controlled minds, scaled bodies, venom, and
+innate magic make them dangerous adventurers. Pureblooded yuan-ti can pass
+among humanoids, but their reptilian heritage is never entirely hidden.
+
+Tier: Advanced (level adjustment 2)
+Unlock: 1,000 account experience
+Progression: 2x normal experience requirements
+Ability modifiers: +2 Int, +2 Dex, +2 Cha
+Size: Medium
+Language: Draconic
+
+Racial feats include ultravision, Poison Bite, poison immunity, Stubborn Mind,
+and two stacking ranks of Armor Skin. Poison Bite applies when fighting
+bare-handed.
+
+See also: ACCEXP, POISON, RACE, RACE-HALF-ILLITHID
+#0
+MYCONID MYCANOID RACE-MYCONID
+
+Myconid
+
+Myconids are Large fungal beings whose alien plant biology resists poison,
+paralysis, and sleep. This epic ancestry completes the unfinished Myconid
+player concept from Realms of Luminari.
+
+Tier: Epic (level adjustment 10)
+Unlock: 30,000 account experience
+Progression: 7x normal experience requirements
+Ability modifiers: +8 Str, +6 Con, -2 Int, -2 Wis, -4 Dex, -4 Cha
+Size: Large
+Language: Undercommon
+
+Racial feats include ultravision, Vital, Hardy, poison immunity, sleep
+immunity, paralysis immunity, and four stacking ranks of Armor Skin. Myconids
+count as plants and gain four additional hit points per level.
+
+See also: ACCEXP, RACE, RACE-HALF-OGRE
+#0
 $~

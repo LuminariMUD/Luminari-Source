@@ -81,7 +81,7 @@
  *   2 if the character would normally be able to use the command, but temporarily can't.
  */
 #define ACMDCHECK(name)                                                                            \
-  int name(struct char_data *ch __attribute__((unused)),                                          \
+  int name(struct char_data *ch __attribute__((unused)),                                           \
            const char *argument __attribute__((unused)), bool show_error __attribute__((unused)))
 #define ACMD_ERRORMSG(error)                                                                       \
   if (show_error == true)                                                                          \
@@ -972,9 +972,9 @@ void char_from_furniture(struct char_data *ch);
 #define IS_EPIC(ch) (IS_EPIC_LEVEL(ch))
 
 #define TOTAL_STAT_POINTS(ch)                                                                      \
-  ((GET_REAL_RACE(ch) == RACE_HUMAN || GET_REAL_RACE(ch) == LEGACY_RACE_HUMAN)         ? 34            \
-   : (GET_REAL_RACE(ch) == RACE_HALF_ELF || GET_REAL_RACE(ch) == LEGACY_RACE_HALF_ELF) ? 32            \
-                                                                                   : 30)
+  ((GET_REAL_RACE(ch) == RACE_HUMAN || GET_REAL_RACE(ch) == LEGACY_RACE_HUMAN)         ? 34        \
+   : (GET_REAL_RACE(ch) == RACE_HALF_ELF || GET_REAL_RACE(ch) == LEGACY_RACE_HALF_ELF) ? 32        \
+                                                                                       : 30)
 #define MAX_POINTS_IN_A_STAT 10
 #define BASE_STAT 8
 
@@ -1005,8 +1005,7 @@ void char_from_furniture(struct char_data *ch);
        ? GET_LEVEL(ch)                                                                             \
        : (CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_NECROMANCER)))
 #define GET_PSIONIC_LEVEL(ch)                                                                      \
-  (((IS_NPC(ch) &&                                                                                 \
-     (GET_CLASS(ch) == CLASS_PSIONICIST || MOB_FLAGGED(ch, MOB_ROL_HAS_PS))) ||                    \
+  (((IS_NPC(ch) && (GET_CLASS(ch) == CLASS_PSIONICIST || MOB_FLAGGED(ch, MOB_ROL_HAS_PS))) ||      \
     GET_LEVEL(ch) >= LVL_IMMORT)                                                                   \
        ? GET_LEVEL(ch)                                                                             \
        : CLASS_LEVEL(ch, CLASS_PSIONICIST))
@@ -2226,15 +2225,14 @@ int ACTUAL_BAB(struct char_data *ch);
   (CLASS_LEVEL(ch, CLASS_CLERIC) || (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ROL_HAS_CL)))
 #define IS_INQUISITOR(ch) (CLASS_LEVEL(ch, CLASS_INQUISITOR))
 #define IS_DRUID(ch) (CLASS_LEVEL(ch, CLASS_DRUID))
-#define IS_ROGUE(ch)                                                                                \
+#define IS_ROGUE(ch)                                                                               \
   (CLASS_LEVEL(ch, CLASS_ROGUE) || (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ROL_HAS_TH)))
 #define IS_ROGUE_TYPE(ch)                                                                          \
-  (IS_ROGUE(ch) + CLASS_LEVEL(ch, CLASS_DUELIST) +                                                 \
-   CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + CLASS_LEVEL(ch, CLASS_ASSASSIN) +                        \
-   CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_RANGER) +                          \
-   CLASS_LEVEL(ch, CLASS_BARD))
+  (IS_ROGUE(ch) + CLASS_LEVEL(ch, CLASS_DUELIST) + CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) +          \
+   CLASS_LEVEL(ch, CLASS_ASSASSIN) + CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) +                        \
+   CLASS_LEVEL(ch, CLASS_RANGER) + CLASS_LEVEL(ch, CLASS_BARD))
 #define IS_PSI_TYPE(ch) (CLASS_LEVEL(ch, CLASS_PSIONICIST)) /* for expansion! */
-#define IS_WARRIOR(ch)                                                                              \
+#define IS_WARRIOR(ch)                                                                             \
   (CLASS_LEVEL(ch, CLASS_WARRIOR) || (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_ROL_HAS_WA)))
 #define IS_WEAPONMASTER(ch) (CLASS_LEVEL(ch, CLASS_WEAPON_MASTER))
 #define IS_STALWARTDEFENDER(ch) (CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER))
@@ -2296,7 +2294,8 @@ int ACTUAL_BAB(struct char_data *ch);
   (CHECK_PLAYER_SPECIAL(ch, (ch->player_specials->saved.necromancer_bonus_levels)))
 
 /* 1 if ch is race, 0 if not */
-#define IS_HUMAN(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_HUMAN || GET_RACE(ch) == LEGACY_RACE_HUMAN))
+#define IS_HUMAN(ch)                                                                               \
+  (!IS_NPC(ch) && (GET_RACE(ch) == RACE_HUMAN || GET_RACE(ch) == LEGACY_RACE_HUMAN))
 #define IS_ELF(ch)                                                                                 \
   (!IS_NPC(ch) &&                                                                                  \
    (GET_RACE(ch) == RACE_ELF || GET_RACE(ch) == RACE_WILD_ELF || GET_RACE(ch) == RACE_HIGH_ELF))
@@ -2327,6 +2326,11 @@ int ACTUAL_BAB(struct char_data *ch);
     (GET_SUBRACE(ch, 0) == SUBRACE_GOBLINOID || GET_SUBRACE(ch, 1) == SUBRACE_GOBLINOID ||         \
      GET_SUBRACE(ch, 2) == SUBRACE_GOBLINOID)) ||                                                  \
    (!IS_NPC(ch) && (GET_RACE(ch) == RACE_GOBLIN || GET_RACE(ch) == RACE_HOBGOBLIN)))
+#define IS_WEMIC(ch) (!IS_NPC(ch) && GET_REAL_RACE(ch) == RACE_WEMIC)
+#define IS_HALF_OGRE(ch) (!IS_NPC(ch) && GET_REAL_RACE(ch) == RACE_HALF_OGRE)
+#define IS_HALF_ILLITHID(ch) (!IS_NPC(ch) && GET_REAL_RACE(ch) == RACE_HALF_ILLITHID)
+#define IS_YUAN_TI(ch) (!IS_NPC(ch) && GET_REAL_RACE(ch) == RACE_YUAN_TI)
+#define IS_MYCONID(ch) (!IS_NPC(ch) && GET_REAL_RACE(ch) == RACE_MYCONID)
 
 // backwards compatibility for old circlemud code snippets
 #define SEND_TO_Q(buf, desc) (write_to_output(desc, "%s", buf))
@@ -2340,8 +2344,8 @@ int ACTUAL_BAB(struct char_data *ch);
 
 #define HIGH_ELF_CANTRIP(ch) (ch->player_specials->saved.high_elf_cantrip)
 #define CAN_CHOOSE_HIGH_ELF_CANTRIP(ch)                                                            \
-  (HIGH_ELF_CANTRIP(ch) ||                                                                         \
-   (GET_RACE(d->character) != RACE_HIGH_ELF && GET_RACE(d->character) != LEGACY_RACE_SILVANESTI_ELF))
+  (HIGH_ELF_CANTRIP(ch) || (GET_RACE(d->character) != RACE_HIGH_ELF &&                             \
+                            GET_RACE(d->character) != LEGACY_RACE_SILVANESTI_ELF))
 #define GET_RACIAL_MAGIC(ch, slot) (ch->player_specials->saved.racial_magic[slot])
 #define GET_RACIAL_COOLDOWN(ch, slot) (ch->player_specials->saved.racial_cooldown[slot])
 #define GET_DRAGONBORN_ANCESTRY(ch) (ch->player_specials->saved.dragonborn_draconic_ancestry)
@@ -2376,7 +2380,17 @@ int ACTUAL_BAB(struct char_data *ch);
    (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ELEMENTAL))
 #define IS_PLANT(ch)                                                                               \
   ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_PLANT) ||                                              \
-   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT))
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT) || IS_MYCONID(ch))
+#define IS_GIANT(ch)                                                                               \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_GIANT) ||                                              \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_GIANT) || IS_HALF_OGRE(ch))
+#define IS_ABERRATION(ch)                                                                          \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ABERRATION) ||                                         \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ABERRATION) || IS_HALF_ILLITHID(ch))
+#define IS_MONSTROUS_HUMANOID(ch)                                                                  \
+  ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_MONSTROUS_HUMANOID) ||                                 \
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_MONSTROUS_HUMANOID) || IS_WEMIC(ch) ||              \
+   IS_YUAN_TI(ch))
 #define IS_OOZE(ch)                                                                                \
   ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OOZE) ||                                               \
    (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OOZE))
@@ -2391,11 +2405,13 @@ int ACTUAL_BAB(struct char_data *ch);
    affected_by_spell(ch, SPELL_GREATER_PLANAR_HEALING))
 #define IS_HUMANOID(ch)                                                                            \
   ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_HUMANOID) ||                                           \
-   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_HUMANOID) || (!IS_NPC(ch) && !IS_MORPHED(ch)))
+   (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_HUMANOID) ||                                        \
+   (!IS_NPC(ch) && !IS_MORPHED(ch) && !IS_LICH(ch) && !IS_VAMPIRE(ch) && !IS_WEMIC(ch) &&          \
+    !IS_HALF_OGRE(ch) && !IS_HALF_ILLITHID(ch) && !IS_YUAN_TI(ch) && !IS_MYCONID(ch)))
 #define IS_DRACONIAN(ch)                                                                           \
   (IS_NPC(ch) &&                                                                                   \
-   (GET_RACE(ch) == LEGACY_RACE_BAAZ_DRACONIAN || GET_RACE(ch) == LEGACY_RACE_BOZAK_DRACONIAN ||           \
-    GET_RACE(ch) == LEGACY_RACE_KAPAK_DRACONIAN || GET_RACE(ch) == LEGACY_RACE_SIVAK_DRACONIAN ||          \
+   (GET_RACE(ch) == LEGACY_RACE_BAAZ_DRACONIAN || GET_RACE(ch) == LEGACY_RACE_BOZAK_DRACONIAN ||   \
+    GET_RACE(ch) == LEGACY_RACE_KAPAK_DRACONIAN || GET_RACE(ch) == LEGACY_RACE_SIVAK_DRACONIAN ||  \
     GET_RACE(ch) == LEGACY_RACE_AURAK_DRACONIAN))
 #define IS_LIVING(ch) (!IS_UNDEAD(ch) && !IS_CONSTRUCT(ch))
 #define IS_VAMPIRE(ch)                                                                             \

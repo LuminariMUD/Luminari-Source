@@ -2879,6 +2879,7 @@ void init_start_char(struct char_data *ch)
 
   /* setting racial size here */
   GET_REAL_SIZE(ch) = race_list[GET_RACE(ch)].size;
+  GET_REAL_MAX_HIT(ch) += race_starting_hp_bonus(GET_RACE(ch));
 
   /* some racial related modifications */
   switch (GET_RACE(ch))
@@ -2888,28 +2889,6 @@ void init_start_char(struct char_data *ch)
     GET_FEAT_POINTS(ch)++;
     trains += 3;
     break;
-  case RACE_CRYSTAL_DWARF:
-    GET_MAX_HIT(ch) += 10; /* vital */
-    break;
-  case RACE_TRELUX:
-    GET_MAX_HIT(ch) += 10; /* vital */
-    break;
-  case RACE_LICH:
-    GET_MAX_HIT(ch) += 10; /* vital */
-    break;
-  case RACE_VAMPIRE:
-    GET_MAX_HIT(ch) += 10; /* vital */
-    break;
-  case RACE_HALF_TROLL:
-  case RACE_ARCANA_GOLEM:
-  case RACE_DROW:
-  case RACE_ELF:
-  case RACE_DUERGAR:
-  case RACE_DWARF:
-  case RACE_HALFLING:
-  case RACE_H_ELF:
-  case RACE_H_ORC:
-  case RACE_GNOME:
   default:
     break;
   }
@@ -3515,28 +3494,10 @@ void advance_level(struct char_data *ch, int class)
   /* 'free' class feats gained that depend on previous class or feat choices */
   process_conditional_class_level_feats(ch, class);
 
-  // Racial Bonuses
-  switch (GET_RACE(ch))
-  {
-  case RACE_HUMAN:
-  case LEGACY_RACE_HUMAN:
+  /* Racial bonuses */
+  if (GET_RACE(ch) == RACE_HUMAN || GET_RACE(ch) == LEGACY_RACE_HUMAN)
     trains++;
-    break;
-  case RACE_CRYSTAL_DWARF:
-    add_hp += 4;
-    break;
-  case RACE_TRELUX:
-    add_hp += 4;
-    break;
-  case RACE_LICH:
-    add_hp += 4;
-    break;
-  case RACE_VAMPIRE:
-    add_hp += 4;
-    break;
-  default:
-    break;
-  }
+  add_hp += race_hp_bonus_per_level(GET_RACE(ch));
 
   if (class == CLASS_NECROMANCER && CLASS_LEVEL(ch, CLASS_NECROMANCER) == 6)
   {
@@ -3823,6 +3784,11 @@ long int level_exp(struct char_data *ch, int level)
   case RACE_DUERGAR:
     exp *= 2;
     break;
+  case RACE_WEMIC:
+  case RACE_HALF_OGRE:
+  case RACE_YUAN_TI:
+    exp *= 2;
+    break;
 
     /* epic races */
   case RACE_CRYSTAL_DWARF:
@@ -3834,6 +3800,11 @@ long int level_exp(struct char_data *ch, int level)
     break;
 
   case RACE_TRELUX:
+    exp *= 7;
+    break;
+
+  case RACE_HALF_ILLITHID:
+  case RACE_MYCONID:
     exp *= 7;
     break;
 

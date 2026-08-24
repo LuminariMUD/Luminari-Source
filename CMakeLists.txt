@@ -1178,6 +1178,7 @@ option(BUILD_TESTS "Build production-linked unit tests" OFF)
 set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_syntax_check_boot.c
     unittests/CuTest/test_web_onboarding.c
+    unittests/CuTest/test_race_equivalence.c
     unittests/CuTest/test_i3_client_production.c
     unittests/CuTest/test_msdp_production.c
     unittests/CuTest/test_necromancer.c

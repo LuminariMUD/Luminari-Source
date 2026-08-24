@@ -7875,9 +7875,9 @@ void nanny(struct descriptor_data *d, char *arg)
       return;
     }
     write_to_output(d, "Races of Luminari\r\n\r\n");
-    for (i = 0; i < NUM_RACES; i++)
+    for (i = 0; i < NUM_EXTENDED_RACES; i++)
     {
-      if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
+      if (race_is_selectable_for_creation(d->character, i))
         write_to_output(d, "%s\r\n", race_list[i].type);
     }
     write_to_output(d, "\r\nRace Selection (type 'human' if you do not know "
@@ -7895,7 +7895,12 @@ void nanny(struct descriptor_data *d, char *arg)
       write_to_output(d, "\r\nThat's not a race.\r\nRace: ");
       return;
     }
-    else if (is_locked_race(load_result) && !has_unlocked_race(d->character, load_result))
+    else if (!race_is_creation_eligible(load_result))
+    {
+      write_to_output(d, "\r\nThat race cannot be selected during character creation.\r\nRace: ");
+      return;
+    }
+    else if (!race_is_selectable_for_creation(d->character, load_result))
     {
       write_to_output(d, "\r\nYou have not unlocked that race yet, type 'account' "
                          "in-game to view your unlocked races.\r\nRace: ");
@@ -7990,6 +7995,21 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_HOBGOBLIN:
       perform_help(d, "race-hobgoblin");
       break;
+    case RACE_WEMIC:
+      perform_help(d, "race-wemic");
+      break;
+    case RACE_HALF_OGRE:
+      perform_help(d, "race-half-ogre");
+      break;
+    case RACE_HALF_ILLITHID:
+      perform_help(d, "race-half-illithid");
+      break;
+    case RACE_YUAN_TI:
+      perform_help(d, "race-yuan-ti");
+      break;
+    case RACE_MYCONID:
+      perform_help(d, "race-myconid");
+      break;
     default:
       write_to_output(d, "\r\nCommand not understood.\r\n");
       return;
@@ -8013,9 +8033,9 @@ void nanny(struct descriptor_data *d, char *arg)
     else
     {
       write_to_output(d, "Races of Luminari\r\n\r\n");
-      for (i = 0; i < NUM_RACES; i++)
+      for (i = 0; i < NUM_EXTENDED_RACES; i++)
       {
-        if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
+        if (race_is_selectable_for_creation(d->character, i))
           write_to_output(d, "%s\r\n", race_list[i].type);
       }
       // {

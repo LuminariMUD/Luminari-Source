@@ -13,6 +13,18 @@ from wtool_lib.docs_check import (
     _table_findings,
     validate_docs,
 )
+from wtool_lib.rol_transform import _SOURCE_SPELL_MAP
+
+
+ROL_IMPLEMENTED_GAP_SOURCE_IDS = (
+    20, 54, 62, 84, 88, 89, 90, 119, 154, 163, 171, 174, 175, 176, 181,
+    182, 228, 230, 231, 232, 233, 235, 237, 297, 298, 299, 301, 302, 303,
+    305, 319, 321, 322, 329, 332, 334, 341, 343, 349, 350, 351, 353, 354,
+    359, 362, 366, 370, 371, 376, 377, 378, 380, 381, 392, 397, 426, 435,
+    437, 438, 442, 445, 447, 450, 452, 453, 459, 467, 470, 471, 473, 475,
+    476, 478, 479, 482, 483, 484, 485, 487, 488, 492, 505, 514, 515, 518,
+    520, 522, 524, 525,
+)
 
 
 class DocumentationCheckTests(unittest.TestCase):
@@ -69,18 +81,10 @@ class DocumentationCheckTests(unittest.TestCase):
     self.assertIsNotNone(text)
     self.assertEqual({"DOC003", "DOC004"}, {finding.code for finding in findings})
 
-  def test_rol_spell_gap_inventory_has_flat_help_coverage(self) -> None:
-    gap_document = (
-        self.repo_root / "docs/ongoing-projects/ROL_SPELL_EQUIVALENCE_GAPS.md"
-    ).read_text(encoding="ascii")
-    inventory = gap_document.split(
-        "The complete inventory of all 89 implemented gaps remains below", 1
-    )[1].split("## RoL internal or stub registrations", 1)[0]
+  def test_rol_implemented_gap_spells_have_flat_help_coverage(self) -> None:
     spell_names = [
-        name.strip()
-        for _, name in re.findall(
-            r"^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|", inventory, re.MULTILINE
-        )
+        _SOURCE_SPELL_MAP[source_id][0]
+        for source_id in ROL_IMPLEMENTED_GAP_SOURCE_IDS
     ]
 
     help_lines = (self.repo_root / "lib/text/help/help.hlp").read_text(

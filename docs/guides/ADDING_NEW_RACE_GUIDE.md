@@ -1,6 +1,6 @@
 # Adding a New Player Race to LuminariMUD
 
-Status: source-backed developer guide, verified 2026-08-23.
+Status: source-backed developer guide, verified 2026-08-24.
 
 This guide covers the complete path for adding a player race to LuminariMUD.
 Most sections describe a race selected during character creation. It also
@@ -113,8 +113,9 @@ implementation choices, not formulas derived from the tier label:
 
 Half-Troll is inside the dense creation range, has `is_pc` true, and is parsed
 by `parse_race_long()`. Before purchase, the terminal and web creation catalogs
-omit it. `accexp race` finds it inside the `NUM_RACES` loop, stores ID 3 in
-`unlocked_races`, and creation accepts it after reload. Its `IS_ADVANCE` value
+omit it. `accexp race` finds it in the extended registry through the shared
+creation policy, stores ID 3 in `unlocked_races`, and creation accepts it after
+reload. Its `IS_ADVANCE` value
 only supplies the label; the 1,000 account-XP cost, adjustment 2 presentation,
 and 2x `level_exp()` multiplier are three separate registrations.
 
@@ -146,11 +147,12 @@ it. That flag does not mean "selectable at creation."
 
 The current lock has several layers:
 
-- terminal and web catalogs enumerate only `0..NUM_RACES - 1`;
-- `init_char()` rejects a new-character race outside that range;
-- `has_unlocked_race()` always returns false for Lich and Vampire, even if the
-  account array or database contains the ID;
-- account purchase also enumerates only `0..NUM_RACES - 1`;
+- terminal, web, account purchase, and `init_char()` all use
+  `race_is_creation_eligible()`, which explicitly denies Lich and Vampire;
+- `has_unlocked_race()` also always returns false for Lich and Vampire, even if
+  the account array or database contains the ID;
+- direct terminal submission uses the same creation predicate as the catalogs;
+  and
 - the nominal cost is 999,999,999 while account XP is capped at 100,000,000.
 
 The large cost is defense in depth, not the hard-lock implementation. A new
@@ -189,47 +191,52 @@ numeric race references. Never renumber or reuse a released ID.
 
 As of this guide's verification date, `src/structs.h` has these boundaries:
 
-- Selectable IDs are the dense range 0 through 27, with `NUM_RACES` set to 28.
+- IDs 0 through 27 remain the original dense creation range, with `NUM_RACES`
+  set to 28 for legacy positional tables. Creation eligibility is no longer
+  inferred from that bound.
 - IDs 26 and 27 are registered as Goblin and Hobgoblin. The stale
   `RACE_DEEP_GNOME` and `RACE_ORC` defines collide with those IDs; they are not
   spare slots or valid distinct persistent identities.
-- `RACE_H_OGRE` is already assigned ID 28 but is not implemented as a
-  selectable race.
-- IDs 29 through 54 are reserved legacy IDs. Lich 45 and Vampire 46 are
+- Half-Ogre is the creation-selectable ID 28.
+- IDs 29 through 54 remain reserved legacy IDs. Lich 45 and Vampire 46 are
   explicit quest-only exceptions inside that area.
 - IDs 55 through 59 are reserved by comment for future quest-only races.
-- Extended NPC/form IDs begin at 60 and currently continue through 148.
-- `NUM_EXTENDED_RACES` is 149, the array bound rather than a playable count.
-- `char_player_data.race` is a signed `byte`, so values above 127 cannot be
-  represented safely without changing that field and auditing every reader,
-  writer, serializer, and protocol consumer.
+- Extended NPC/form IDs begin at 60. Myconid promotes its existing conceptual
+  identity at ID 114 to a creation-selectable PC race without renumbering it.
+- Wemic, Half-Illithid, and Yuan-Ti are creation-selectable IDs 149 through
+  151. `NUM_EXTENDED_RACES` is therefore 152, the registry array bound, while
+  `NUM_CREATION_RACES` is the independent count 33.
+- `char_player_data.race` is a signed `sh_int`, so the full current registry is
+  representable. Player-file and account-unlock storage remain numeric.
 
-There is therefore no generic safe "next playable race ID" in the current
-layout.
+There is still no generic safe "next playable race ID." Every new identity
+requires the same persistence and compatibility review.
 
-### Creation-selectable implementation paths
+### Creation-selectable implementation path
 
-1. **Implement Half Ogre using its existing ID 28.** This is the only existing
-   named slot immediately after the dense player range. Bringing it into the
-   creation range requires raising `NUM_RACES` to 29 and updating every fixed
-   table, loop, test, and boundary that uses `NUM_RACES`. It does not authorize
-   using ID 29 for the following race.
+The registry now supports sparse creation-selectable IDs. Terminal creation,
+web onboarding, account purchase, initialization, lookup, tracks, and random
+basic-race selection scan `NUM_EXTENDED_RACES` and apply the shared creation
+policy where appropriate. Web media uses keyed cases for sparse IDs, and race
+storage is wide enough for the current bound.
 
-2. **Add any other new creation-selectable race.** Make a separate, reviewed
-   registry decision first. The change must either establish a safe non-dense
-   playable registry or widen and migrate race storage before allocating a new
-   ID. Do not consume a legacy, quest-only, or NPC/form ID merely because it
-   appears unused in one source file.
+For another race, make a separate reviewed ID decision. Do not consume a
+legacy, quest-only, or NPC/form ID merely because it appears unused in one
+source file. Promoting an existing NPC/form ID is valid only when it is the
+same persistent conceptual identity, as with Myconid, and still requires an
+audit of world references and changed registry behavior. Keep `NUM_RACES` as
+the legacy dense bound unless every positional consumer is deliberately
+migrated.
 
 ### Transformation-only allocation
 
 IDs 55 through 59 are reserved only by a source comment for future quest-only
 races. Using one still requires an explicit registry and persistence review.
-Do not raise `NUM_RACES`, because doing so would make every intervening ID part
-of dense creation iteration. Decide whether `NUM_EXTENDED_PC_RACES` should be
-replaced with keyed PC iteration rather than enlarged across legacy holes, and
-audit every consumer of the chosen ID. The hard-lock and conversion work in
-sections 7 and 8 is required in addition to ordinary registry mechanics.
+Do not raise `NUM_RACES` across legacy holes: creation no longer depends on
+that bound, while remaining positional consumers would acquire misleading or
+oversized ranges. Prefer the keyed extended-registry policy, and audit every
+consumer of the chosen ID. The hard-lock and conversion work in sections 7 and
+8 is required in addition to ordinary registry mechanics.
 
 An ID-layout change is a persistence migration and should be reviewed as such.
 The proposal must state the old and new bounds, the chosen stable ID, how
@@ -255,22 +262,22 @@ following common consumers:
 
 | Source | Why it matters |
 |--------|----------------|
-| `src/interpreter.c` | Terminal creation menus, parsing result, and race help dispatch |
-| `src/db.c` | `init_char()` rejects a selected race outside `NUM_RACES` |
-| `src/account.c` | Account-XP race listing and purchase loops use `NUM_RACES` |
-| `src/net/onboarding.c` | Web catalog bounds and a position-indexed media-key table |
-| `src/utils.c` | `get_race_by_name()` searches only `NUM_RACES` |
+| `src/interpreter.c` | Terminal creation menus, direct validation, and race help dispatch |
+| `src/db.c` | `init_char()` applies the shared creation-eligibility policy |
+| `src/account.c` | Account-XP listing and purchase apply the shared sparse policy |
+| `src/net/onboarding.c` | Web catalog policy and keyed sparse media lookup |
+| `src/utils.c` | `get_race_by_name()` scans creation-eligible sparse entries |
 | `src/character/race.c` | Random basic-race selection and extended registry allocation |
 | `src/constants.c` | `racial_spells[NUM_RACES][3]` has positional entries |
-| `src/character/feats.c` | Legacy race-feat display uses `NUM_EXTENDED_PC_RACES` |
-| `src/movement/movement_tracks.c` | PC race-name lookup is bounded by `NUM_RACES` |
+| `src/character/feats.c` | Legacy race-feat display scans the extended registry |
+| `src/movement/movement_tracks.c` | PC race-name lookup uses the extended bound |
 | `src/olc/medit.c` | One random PC-race display path uses `NUM_RACES` |
 | `unittests/CuTest/test_web_onboarding.c` | Media bounds and every-playable-race assertions |
 
-Also inspect `get_random_basic_pc_race()` before changing `NUM_RACES`. Its
-current `dice(1, NUM_RACES + 1)` followed by decrement can sample index
-`NUM_RACES`; expansion work must add a regression test and correct the
-selection boundary rather than copying it.
+Also inspect `get_random_basic_pc_race()` when changing race eligibility. It
+uses reservoir selection across creation-eligible normal races, so a new race
+must have the intended `epic_adv` category and remain covered by its regression
+test.
 
 ## 3. Add the registry constant and bounds
 
@@ -472,12 +479,11 @@ remain useful to `race info`, but creation must reject it as described in
 section 8.
 
 The terminal creation flow is in `nanny()` in `src/interpreter.c`. The menu and
-the submitted-name handler are separate policy surfaces: the menu enumerates
-`0..NUM_RACES - 1` and checks `is_pc` plus the account lock, while the current
-`CON_QRACE` handler parses any name known to `parse_race_long()` and checks only
-the lock. It does not independently reject an ID outside `NUM_RACES` or an
-entry whose `is_pc` is false. Do not treat absence from the printed menu as an
-access control.
+the submitted-name handler are separate control-flow surfaces, but both now
+apply `race_is_selectable_for_creation()`. The direct handler first applies
+`race_is_creation_eligible()` so a forged unlock cannot authorize a
+conversion-only or NPC/form race. Preserve this shared policy; absence from a
+printed menu is still not sufficient access control by itself.
 
 `race_is_available()` is not currently a creation-eligibility predicate. It
 accepts any ID below `NUM_EXTENDED_RACES` and is used to mark entries in the
@@ -489,15 +495,14 @@ selection-mode and creation-bound policy rather than reusing that helper alone.
    This is an ordered `is_abbrev()` chain, so test that the new prefixes do not
    steal an existing race's input and that the registry `type` sent as the web
    `wireValue` parses back to the intended ID.
-2. Make sure both enumeration and submitted-name validation require the
-   approved creation range, `race_list[i].is_pc`, and account unlock state.
-   Prefer one shared predicate for terminal and web onboarding.
+2. Make sure both enumeration and submitted-name validation use the shared
+   creation-eligibility and account-unlock predicates.
 3. Add a `CON_QRACE` switch case that calls
    `perform_help(d, "race-new-race")`.
 4. Confirm that `CON_QRACE_HELP` can return to the menu and that the selected
    race reaches class selection.
-5. Confirm `init_char()` in `src/db.c` accepts the ID instead of resetting it
-   to `RACE_UNDEFINED`.
+5. Confirm `init_char()` in `src/db.c` accepts the ID through
+   `race_is_creation_eligible()` instead of resetting it to `RACE_UNDEFINED`.
 
 `parse_race()` is the old single-character mapping used by legacy race
 bitvectors. It is not the main creation parser. Do not add an arbitrary letter
@@ -524,7 +529,8 @@ only the menu is not enforcement.
   supported configuration; use zero for a free race.
 
 For a creation-selectable locked race, verify all of these paths in
-`src/account.c`:
+`src/account.c`. Its race listing and purchase scan the extended registry but
+must filter every entry through `race_is_creation_eligible()`:
 
 - `accexp race` lists it with the correct cost;
 - `accexp race <name>` finds and purchases it;
@@ -553,10 +559,10 @@ after an economy change, and an unlock row can be inserted independently of a
 purchase. Under the current terminal handler, retain a positive nominal cost
 so the lock check runs, but make the explicit hard-denial policy authoritative.
 
-The current Lich/Vampire exception is an explicit denial in
-`has_unlocked_race()`. Their IDs are also outside `NUM_RACES`, so account
-purchase and both creation catalogs cannot enumerate them. Preserve all of
-these defenses for a new hard-locked race:
+The current Lich/Vampire exception is an explicit denial in both
+`race_is_creation_eligible()` and `has_unlocked_race()`. Their IDs being outside
+the old dense `NUM_RACES` range is no longer treated as access control.
+Preserve all of these defenses for a new hard-locked race:
 
 - a centralized policy denial that ignores a forged account unlock;
 - no account-XP listing or purchase match;
@@ -657,8 +663,8 @@ This section does not apply to a transformation-only race, which must have no
 web creation media entry or catalog choice. The web catalog is server-owned in
 `src/net/onboarding.c`; a client must not duplicate race eligibility rules.
 
-1. Add a stable `race/<slug>` entry to `race_media_keys` or to the replacement
-   keyed lookup introduced by a non-dense registry change.
+1. Add a stable `race/<slug>` entry to the dense `race_media_keys` table or the
+   keyed sparse cases in `web_onboarding_race_media_key()`.
 2. Keep the key independent of colored display text and spelling aliases.
 3. Ensure `race_is_selectable()` can address the new ID.
 4. Extend `TestWebOnboardingMediaKeysAreStableAndBounded()` in
@@ -668,20 +674,20 @@ web creation media entry or catalog choice. The web catalog is server-owned in
 6. Provision the matching image or fallback behavior in the web-client asset
    repository when the UI expects race art.
 
-The current `race_is_selectable()` separately implements the same bounds,
-`is_pc`, and account-lock policy expected by terminal creation; it does not
-call a shared terminal predicate. Keep both paths synchronized or introduce a
-shared eligibility function and test it through both transports.
+The web adapter calls `race_is_selectable_for_creation()`, the same policy used
+by terminal creation. Test the policy through both transports whenever it
+changes.
 
-The current media table is indexed directly by IDs from 0 through
-`NUM_RACES - 1`. A non-dense player ID cannot be added safely by merely making
-that array larger: the creation, bounds, fallback, and every-playable-race tests
-must be redesigned around the approved registry model.
+The legacy media table remains indexed directly by IDs from 0 through
+`NUM_RACES - 1`, while `web_onboarding_race_media_key()` has keyed cases for
+sparse player IDs. Do not enlarge the dense table across legacy and NPC holes;
+add a keyed mapping and extend the fallback, catalog, pagination, and
+wire-budget tests.
 
 `web_onboarding_race_media_key()` is also used when existing account characters
-are displayed. Because it is bounded by `NUM_RACES`, a current Lich or Vampire
-receives the fallback race image. If a transformation-only race needs distinct
-account-card art, separate display-media lookup from creation eligibility; do
+are displayed. Lich and Vampire currently have no keyed case and therefore
+receive the fallback race image. If a transformation-only race needs distinct
+account-card art, add display media without weakening creation eligibility; do
 not add the race to the creation catalog merely to obtain an image.
 
 ## 10. Add player help in both maintained stores
@@ -783,8 +789,8 @@ At minimum, add these assertions for either path:
 
 For a creation-selectable race, also assert:
 
-- terminal menu and direct-name submission use the same range, `is_pc`, and
-  lock policy;
+- terminal menu and direct-name submission use the same creation-eligibility
+  and lock policy;
 - locked and unlocked eligibility, account purchase, and account persistence;
 - at least one valid class/alignment path;
 - a non-fallback web media key and presence in the web race catalog; and

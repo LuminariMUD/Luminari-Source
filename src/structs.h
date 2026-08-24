@@ -773,14 +773,14 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_GOBLIN 26
 #define RACE_HOBGOBLIN 27
 
-/* last playable race above +1 */
+/* End of the original dense creation range. New playable races may be sparse. */
 #define NUM_RACES 28
 
 #define RACE_DEEP_GNOME 26
 #define RACE_SVIRFNEBLIN RACE_DEEP_GNOME
 #define RACE_ORC 27
-#define RACE_H_OGRE 28 // not yet implemented
-#define RACE_HALF_OGRE RACE_H_OGRE
+#define RACE_HALF_OGRE 28
+#define RACE_H_OGRE RACE_HALF_OGRE
 /* Retired race IDs remain reserved for persisted character and world data. */
 #define LEGACY_RACE_START 29
 #define LEGACY_RACE_HUMAN 29
@@ -870,7 +870,8 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_OWLBEAR 111
 #define RACE_SHAMBLING_MOUND 112
 #define RACE_TREANT 113
-#define RACE_MYCANOID 114
+#define RACE_MYCONID 114
+#define RACE_MYCANOID RACE_MYCONID
 #define RACE_SKELETON 115
 #define RACE_ZOMBIE 116
 #define RACE_WOLF 117
@@ -905,9 +906,16 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_DIRE_ROC 146
 #define RACE_PURPLE_WORM 147
 #define RACE_CRIMSON_WORM 148
+#define RACE_WEMIC 149
+#define RACE_HALF_ILLITHID 150
+#define RACE_ILLITHID RACE_HALF_ILLITHID
+#define RACE_YUAN_TI 151
+#define RACE_YUANTI RACE_YUAN_TI
 /**/
-/* Total Number of available (in-game) PC Races*/
-#define NUM_EXTENDED_RACES 149
+/* Number of creation-selectable races, independent of their numeric IDs. */
+#define NUM_CREATION_RACES 33
+/* Array bound for every concrete PC, NPC, and form race. */
+#define NUM_EXTENDED_RACES 152
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these
@@ -2985,11 +2993,12 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define FEAT_ESTABLISH_CAMP 1264
 #define FEAT_GARROTE 1265
 #define FEAT_ACCOMPANY 1266
+#define FEAT_LEONINE_FRAME 1267
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1267
+#define FEAT_LAST_FEAT 1268
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1268
+#define NUM_FEATS 1269
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -6162,7 +6171,7 @@ struct char_player_data
   struct time_data time;           /**< PC AGE in days */
   ubyte weight;                    /**< PC / NPC weight */
   ubyte height;                    /**< PC / NPC height */
-  byte race;                       // Race
+  sh_int race;                     // Persistent concrete race ID
   byte pc_subrace;                 // SubRace
   char *walkin;                    // NPC (for now) walkin message
   char *walkout;                   // NPC (for now) walkout message
@@ -8041,6 +8050,9 @@ struct race_data
   sbyte alignments[NUM_ALIGNMENTS];    /* acceptable alignments for this race */
   byte attack_types[NUM_ATTACK_TYPES]; /* race have this attack type? (when not wielding) */
 
+  /* NULL means this anatomy supports the slot; otherwise this is the rejection message. */
+  const char *wear_slot_restrictions[NUM_WEARS];
+
   /* linked lists */
   struct race_feat_assign *featassign_list; /* list of feat assigns */
   struct affect_assign *affassign_list;     /* list of affect assigns */
@@ -8049,7 +8061,6 @@ struct race_data
 
   /* these are only ideas for now */
 
-  /*int body_parts[NUM_WEARS];*/   /* for expansion - to add customized wear slots */
   /*byte favored_class[NUM_SEX];*/ /* favored class system, not yet implemented */
   /*ush_int language;*/            /* default language - not used yet */
 };
