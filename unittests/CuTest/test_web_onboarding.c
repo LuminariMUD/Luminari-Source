@@ -107,6 +107,24 @@ static int has_control_bytes(const char *text)
   return 0;
 }
 
+static int payload_has_action(const char *payload, const char *action)
+{
+  const char *actions = NULL;
+  const char *actions_end = NULL;
+  const char *match = NULL;
+  char quoted_action[80];
+
+  actions = strstr(payload, "\"actions\":[");
+  if (actions == NULL)
+    return 0;
+  actions_end = strchr(actions, ']');
+  if (actions_end == NULL)
+    return 0;
+  snprintf(quoted_action, sizeof(quoted_action), "\"%s\"", action);
+  match = strstr(actions, quoted_action);
+  return match != NULL && match < actions_end;
+}
+
 struct expected_background_identity
 {
   int background;
@@ -1365,14 +1383,24 @@ static void cleanup_editor_descriptor(struct descriptor_data *d)
 
 void TestPopulatedRaceCatalogStaysWithinTheOnboardingWireBudget(CuTest *tc)
 {
+  const char *expected_media_keys[] = {"race/wemic", "race/half-ogre", "race/half-illithid",
+                                       "race/yuan-ti", "race/myconid"};
   struct descriptor_data d;
   struct char_data ch;
   struct player_special_data specials;
   struct account_data account;
   char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+  bool found_media_keys[5] = {FALSE};
+  int visited_pages = 0;
+  size_t index = 0;
 
   memset(&account, 0, sizeof(account));
   assign_races();
+  account.races[0] = RACE_WEMIC;
+  account.races[1] = RACE_HALF_OGRE;
+  account.races[2] = RACE_HALF_ILLITHID;
+  account.races[3] = RACE_YUAN_TI;
+  account.races[4] = RACE_MYCONID;
   CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_QRACE));
   if (d.pProtocol == NULL)
     return;
@@ -1382,16 +1410,31 @@ void TestPopulatedRaceCatalogStaysWithinTheOnboardingWireBudget(CuTest *tc)
   CuAssertTrue(tc, strlen(payload) < WEB_ONBOARDING_MAX_PAYLOAD);
   CuAssertPtrNotNull(tc, strstr(payload, "\"screen\":\"race\""));
   CuAssertPtrNotNull(tc, strstr(payload, "\"page\":{\"index\":0"));
-  CuAssertPtrNotNull(tc, strstr(payload, "\"next-page\""));
+  CuAssertTrue(tc, payload_has_action(payload, "next-page"));
   CuAssertPtrNotNull(tc, strstr(payload, "\"description\":"));
   CuAssertPtrNotNull(tc, strstr(payload, "\"inspectable\":true"));
   CuAssertTrue(tc, strstr(payload, "\"cancel\"") == NULL);
 
-  CuAssertTrue(tc, web_onboarding_handle_catalog_control(&d, "__onboarding-next__"));
-  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
-  CuAssertTrue(tc, strlen(payload) < WEB_ONBOARDING_MAX_PAYLOAD);
-  CuAssertPtrNotNull(tc, strstr(payload, "\"page\":{\"index\":1"));
-  CuAssertPtrNotNull(tc, strstr(payload, "\"previous-page\""));
+  for (;;)
+  {
+    visited_pages++;
+    for (index = 0; index < sizeof(expected_media_keys) / sizeof(expected_media_keys[0]); index++)
+      if (strstr(payload, expected_media_keys[index]) != NULL)
+        found_media_keys[index] = TRUE;
+
+    if (!payload_has_action(payload, "next-page"))
+      break;
+    CuAssertTrue(tc, web_onboarding_handle_catalog_control(&d, "__onboarding-next__"));
+    CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+    CuAssertTrue(tc, strlen(payload) < WEB_ONBOARDING_MAX_PAYLOAD);
+    CuAssertTrue(tc, json_is_balanced(payload));
+    CuAssertTrue(tc, payload_has_action(payload, "previous-page"));
+    CuAssertTrue(tc, visited_pages < NUM_EXTENDED_RACES);
+  }
+
+  CuAssertTrue(tc, visited_pages > 1);
+  for (index = 0; index < sizeof(expected_media_keys) / sizeof(expected_media_keys[0]); index++)
+    CuAssertTrue(tc, found_media_keys[index]);
 
   /*
    * Protocol v1 has no pagination contract. Preserve its complete selectable

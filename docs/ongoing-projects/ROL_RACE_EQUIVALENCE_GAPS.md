@@ -1,6 +1,7 @@
 # RoL Playable Races Without a Close LuminariMUD Equivalent
 
-Status: source audit completed 2026-08-23.
+Status: implementation completed 2026-08-24. Development runtime smoke remains
+environment-dependent as described below.
 
 ## Implementation progress
 
@@ -42,13 +43,34 @@ Checkpoint 2026-08-24 (maintained help complete):
   checks. No persistent database was changed because this worktree has no
   `lib/.env` or `lib/mysql_config` identifying a development environment.
 
-Remaining at this checkpoint:
+Checkpoint 2026-08-24 (implementation validation complete):
 
-- extend integration coverage for unlock selection, full web catalog
-  inclusion, racial feat application, and persistence-sensitive behavior;
-- run the production-linked CuTest suite and install the tested binary;
-- perform terminal and web creation smoke checks where the development
-  environment permits them.
+- RoL parser aliases now resolve Barbarian to Wemic and Ogre to Half-Ogre in
+  addition to the Illithid, Yuan-Ti, and Myconid aliases.
+- Racial starting and per-level hit points use one shared policy in character
+  initialization, level advancement, and derived-stat rebuilding. This also
+  closes the pre-existing rebuild gap for the Vital races whose fixed starting
+  bonus was previously transient.
+- Integration coverage now verifies locked and unlocked creation policy,
+  conversion-only denial, every level-one racial feat grant and stack, derived
+  hit-point reconstruction, all pages of the web race catalog, and a sparse ID
+  151 player-file round trip.
+- The production-linked CuTest binary passes all 893 tests. The complete root
+  `make test` path also passes its fallback, help-sync, autorun, deployment,
+  healthcheck, background-help, vessel, and process-memory checks when the
+  committed special-procedure inventory fixture is selected and the unavailable
+  world boot is explicitly skipped. `make install` installed `bin/luminari` and
+  removed the root-level build artifact.
+
+Development runtime validation constraint:
+
+- This fresh worktree has neither `lib/.env` nor `lib/mysql_config`, and its
+  production world directories are unpopulated. The game correctly refuses a
+  real world boot without required MySQL initialization. Terminal creation and
+  in-game help lookup therefore could not be smoke-tested against a development
+  server without inventing an environment identity or credentials. The shared
+  terminal/web policy, web payloads, persistence, SQL help migrations, and flat
+  help projection are covered by the tests above.
 
 This document accompanies `ROL_SPELL_EQUIVALENCE_GAPS.md` in the Realms of
 Luminari conversion series and compares RoL's player-character races with
@@ -70,7 +92,8 @@ all is a gap.
 - Reserved empty slots for future PC races: 2
 - Races with a close LuminariMUD equivalent: 11
 - Races without a close equivalent: 5
-- LuminariMUD playable races, for comparison: 30
+- LuminariMUD registered PC races in the pre-implementation audit: 30
+- LuminariMUD creation-eligible races after this implementation: 33
 
 ## Player-facing gaps
 
@@ -83,6 +106,10 @@ all is a gap.
 | 15 | Myconid | `RACE_MYCONID` | PS | none | (placeholder row, copied from Lich) |
 
 ### Why each is a gap
+
+The descriptions in this section record the pre-implementation source audit.
+The implementation checkpoints above describe their current LuminariMUD
+equivalents.
 
 **Barbarian (2).** In RoL this is a race, not a class: a distinct human-variant
 people with its own racewar hometown and a three-class restriction. In
@@ -169,13 +196,14 @@ stat rows. There is nothing to port.
 
 ## LuminariMUD-side notes
 
-- LuminariMUD has 30 playable races against RoL's 14 selectable ones, so this
-  comparison is lopsided in LuminariMUD's favor overall. Races such as
+- Before this work, LuminariMUD had 30 registered PC races against RoL's 14
+  selectable ones. It now has 33 creation-eligible races after excluding the
+  conversion-only Lich and Vampire identities. Races such as
   Dragonborn, Tiefling, Aasimar, Tabaxi, Goliath, Shade, Fae, Trelux,
   Arcana Golem, Crystal Dwarf, Vampire, Goblin, and Hobgoblin have no RoL
   counterpart at all. That direction is out of scope here.
-- `RACE_H_OGRE` (28) is defined with `// not yet implemented` and is the
-  natural landing slot if Ogre is ported.
+- `RACE_H_OGRE` (28) was the natural landing slot and is now the implemented
+  Half-Ogre identity.
 - Watch the LuminariMUD race ID range when porting. `NUM_RACES` is 28, and the
   three constants immediately after it reuse live IDs:
   `RACE_DEEP_GNOME` 26 collides with `RACE_GOBLIN`, `RACE_ORC` 27 collides with

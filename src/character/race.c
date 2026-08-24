@@ -84,6 +84,42 @@ int get_race_stat(int race, int stat)
   return (race_list[race].ability_mods[stat]);
 }
 
+int race_starting_hp_bonus(int race_num)
+{
+  switch (race_num)
+  {
+  case RACE_CRYSTAL_DWARF:
+  case RACE_TRELUX:
+  case RACE_LICH:
+  case RACE_VAMPIRE:
+  case RACE_HALF_ILLITHID:
+  case RACE_MYCONID:
+    return 10;
+  default:
+    return 0;
+  }
+}
+
+int race_hp_bonus_per_level(int race_num)
+{
+  switch (race_num)
+  {
+  case RACE_CRYSTAL_DWARF:
+  case RACE_TRELUX:
+  case RACE_LICH:
+  case RACE_VAMPIRE:
+  case RACE_HALF_ILLITHID:
+  case RACE_MYCONID:
+    return 4;
+  case RACE_HALF_OGRE:
+    return 2;
+  case RACE_WEMIC:
+    return 1;
+  default:
+    return 0;
+  }
+}
+
 /* appropriate alignments for given race */
 void set_race_alignments(int race, int lg, int ng, int cg, int ln, int tn, int cn, int le, int ne,
                          int ce)
@@ -3214,6 +3250,8 @@ int parse_race_long(const char *arg_in)
     return RACE_HALF_OGRE;
   if (is_abbrev(arg, "half ogre"))
     return RACE_HALF_OGRE;
+  if (is_abbrev(arg, "ogre"))
+    return RACE_HALF_OGRE;
   if (is_abbrev(arg, "arcanagolem"))
     return RACE_ARCANA_GOLEM;
   if (is_abbrev(arg, "arcana-golem"))
@@ -3283,6 +3321,8 @@ int parse_race_long(const char *arg_in)
   if (is_abbrev(arg, "goliath"))
     return RACE_GOLIATH;
   if (is_abbrev(arg, "wemic"))
+    return RACE_WEMIC;
+  if (is_abbrev(arg, "barbarian"))
     return RACE_WEMIC;
   if (is_abbrev(arg, "half-illithid"))
     return RACE_HALF_ILLITHID;

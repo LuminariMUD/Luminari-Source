@@ -8204,6 +8204,8 @@ void calculate_max_hp(struct char_data *ch, bool display)
 
   int i = 0, j = 0;
   int max_hp = 20; // start point
+  int racial_hp_bonus = 0;
+  int racial_starting_hp_bonus = 0;
   int max_value[NUM_BONUS_TYPES];
   int max_val_spell[NUM_BONUS_TYPES];
   int max_val_worn_slot[NUM_BONUS_TYPES];
@@ -8389,57 +8391,15 @@ void calculate_max_hp(struct char_data *ch, bool display)
                    30 * HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS));
   }
 
-  // race
-  if (GET_REAL_RACE(ch) == RACE_CRYSTAL_DWARF)
-  {
-    max_hp += GET_LEVEL(ch) * 4;
-    if (display)
-      send_to_char(ch, "%-40s = +%d\r\n", "Crystal Dwarf Racial Hit Point Bonus",
-                   GET_LEVEL(ch) * 4);
-  }
-  if (GET_REAL_RACE(ch) == RACE_TRELUX)
-  {
-    max_hp += GET_LEVEL(ch) * 4;
-    if (display)
-      send_to_char(ch, "%-40s = +%d\r\n", "Trelux Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
-  }
-  if (GET_REAL_RACE(ch) == RACE_LICH)
-  {
-    max_hp += GET_LEVEL(ch) * 4;
-    if (display)
-      send_to_char(ch, "%-40s = +%d\r\n", "Lich Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
-  }
-  if (GET_REAL_RACE(ch) == RACE_VAMPIRE)
-  {
-    max_hp += GET_LEVEL(ch) * 4;
-    if (display)
-      send_to_char(ch, "%-40s = +%d\r\n", "Vampire Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
-  }
-  if (GET_REAL_RACE(ch) == RACE_HALF_ILLITHID)
-  {
-    max_hp += GET_LEVEL(ch) * 4;
-    if (display)
-      send_to_char(ch, "%-40s = +%d\r\n", "Half-Illithid Racial Hit Point Bonus",
-                   GET_LEVEL(ch) * 4);
-  }
-  if (GET_REAL_RACE(ch) == RACE_MYCONID)
-  {
-    max_hp += GET_LEVEL(ch) * 4;
-    if (display)
-      send_to_char(ch, "%-40s = +%d\r\n", "Myconid Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
-  }
-  if (GET_REAL_RACE(ch) == RACE_HALF_OGRE)
-  {
-    max_hp += GET_LEVEL(ch) * 2;
-    if (display)
-      send_to_char(ch, "%-40s = +%d\r\n", "Half-Ogre Racial Hit Point Bonus", GET_LEVEL(ch) * 2);
-  }
-  if (GET_REAL_RACE(ch) == RACE_WEMIC)
-  {
-    max_hp += GET_LEVEL(ch);
-    if (display)
-      send_to_char(ch, "%-40s = +%d\r\n", "Wemic Racial Hit Point Bonus", GET_LEVEL(ch));
-  }
+  /* Race */
+  racial_starting_hp_bonus = race_starting_hp_bonus(GET_REAL_RACE(ch));
+  racial_hp_bonus = GET_LEVEL(ch) * race_hp_bonus_per_level(GET_REAL_RACE(ch));
+  max_hp += racial_starting_hp_bonus + racial_hp_bonus;
+  if (display && racial_starting_hp_bonus > 0)
+    send_to_char(ch, "%-40s = +%d\r\n", "Racial Starting Hit Point Bonus",
+                 racial_starting_hp_bonus);
+  if (display && racial_hp_bonus > 0)
+    send_to_char(ch, "%-40s = +%d\r\n", "Racial Hit Point Bonus", racial_hp_bonus);
 
   // perks
   int perk_hp_bonus = get_perk_hp_bonus(ch);

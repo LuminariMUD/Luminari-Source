@@ -52,6 +52,8 @@ bool race_is_creation_eligible(int race_num);
 bool race_is_selectable_for_creation(struct char_data *ch, int race_num);
 bool display_race_info(struct char_data *ch, const char *racename);
 int get_race_stat(int race, int stat);
+int race_starting_hp_bonus(int race_num);
+int race_hp_bonus_per_level(int race_num);
 int get_random_basic_pc_race(void);
 sbyte has_racial_abils_unchosen(struct char_data *ch);
 /* can a class be this race because of potential alignment issues? (character creation) */
