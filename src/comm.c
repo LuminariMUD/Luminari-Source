@@ -1993,6 +1993,7 @@ void heartbeat(int heart_pulse)
 
   if (!(heart_pulse % PASSES_PER_SEC))
   { /* EVERY second */
+    help_sync_poll_reload();
     PERF_PROF_ENTER(pr_msdp_update_, "msdp_update");
     msdp_update();
     next_tick--;

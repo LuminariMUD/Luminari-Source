@@ -54,6 +54,7 @@ static void add_to_help_cache(const char *argument, int level, struct help_entry
 static struct help_entry_list *deep_copy_help_list(struct help_entry_list *src);
 static void free_help_entry_list(struct help_entry_list *entry);
 static void purge_old_cache_entries(void);
+static bool help_sync_write_reload_ack(const char *token);
 
 /* Centralized memory management for help entries - eliminates duplication */
 static void free_help_entry_single(struct help_entry_list *entry);
@@ -71,6 +72,164 @@ static struct help_keyword_list *alloc_help_keyword(void);
  * - Fallback to file-based help
  */
 #define HELP_DEBUG 0
+
+bool help_sync_barrier_active_at(const char *path, char *owner, size_t owner_size)
+{
+  FILE *lock_file;
+
+  if (owner != NULL && owner_size > 0)
+    owner[0] = '\0';
+  if (path == NULL || *path == '\0')
+    return FALSE;
+
+  lock_file = fopen(path, "r");
+  if (lock_file == NULL)
+    return errno == ENOENT ? FALSE : TRUE;
+
+  if (owner != NULL && owner_size > 0)
+  {
+    if (fgets(owner, owner_size, lock_file) == NULL)
+      strlcpy(owner, "unknown", owner_size);
+    else
+      owner[strcspn(owner, "\r\n")] = '\0';
+  }
+  fclose(lock_file);
+  return TRUE;
+}
+
+bool help_sync_barrier_active(char *owner, size_t owner_size)
+{
+  return help_sync_barrier_active_at(HELP_SYNC_LOCK_FILE, owner, owner_size);
+}
+
+bool help_sync_database_lock_acquire(unsigned int timeout_seconds)
+{
+  char query[256];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  bool acquired = FALSE;
+
+  if (!conn || !mysql_available)
+    return FALSE;
+
+  snprintf(query, sizeof(query), "SELECT GET_LOCK('%s', %u)", HELP_SYNC_DB_LOCK_NAME,
+           timeout_seconds);
+  if (mysql_query(conn, query) != 0)
+  {
+    log("SYSERR: Unable to acquire help synchronization database lock: %s", mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result(conn);
+  if (result != NULL)
+  {
+    row = mysql_fetch_row(result);
+    acquired = row != NULL && row[0] != NULL && atoi(row[0]) == 1;
+    mysql_free_result(result);
+  }
+  return acquired;
+}
+
+void help_sync_database_lock_release(void)
+{
+  MYSQL_RES *result;
+
+  if (!conn || !mysql_available)
+    return;
+  if (mysql_query(conn, "SELECT RELEASE_LOCK('" HELP_SYNC_DB_LOCK_NAME "')") != 0)
+  {
+    log("SYSERR: Unable to release help synchronization database lock: %s", mysql_error(conn));
+    return;
+  }
+  result = mysql_store_result(conn);
+  if (result != NULL)
+    mysql_free_result(result);
+}
+
+bool help_sync_reload_token_valid(const char *token)
+{
+  size_t i;
+
+  if (token == NULL || strlen(token) != 64)
+    return FALSE;
+  for (i = 0; token[i] != '\0'; i++)
+  {
+    if (!((token[i] >= '0' && token[i] <= '9') || (token[i] >= 'a' && token[i] <= 'f')))
+      return FALSE;
+  }
+  return TRUE;
+}
+
+static bool help_sync_write_reload_ack(const char *token)
+{
+  const char *temporary_path = HELP_SYNC_RELOAD_ACK_FILE ".tmp";
+  FILE *ack_file;
+
+  ack_file = fopen_restricted(temporary_path, "w");
+  if (ack_file == NULL)
+  {
+    log("SYSERR: Unable to create help synchronization reload acknowledgment: %s", strerror(errno));
+    return FALSE;
+  }
+  if (fprintf(ack_file, "%s ok\n", token) < 0 || fflush(ack_file) != 0 ||
+      fsync(fileno(ack_file)) != 0)
+  {
+    log("SYSERR: Unable to flush help synchronization reload acknowledgment: %s", strerror(errno));
+    fclose(ack_file);
+    unlink(temporary_path);
+    return FALSE;
+  }
+  if (fclose(ack_file) != 0)
+  {
+    log("SYSERR: Unable to close help synchronization reload acknowledgment: %s", strerror(errno));
+    unlink(temporary_path);
+    return FALSE;
+  }
+  if (rename(temporary_path, HELP_SYNC_RELOAD_ACK_FILE) != 0)
+  {
+    log("SYSERR: Unable to install help synchronization reload acknowledgment: %s",
+        strerror(errno));
+    unlink(temporary_path);
+    return FALSE;
+  }
+  return TRUE;
+}
+
+void help_sync_poll_reload(void)
+{
+  FILE *request_file;
+  char token[80];
+
+  request_file = fopen(HELP_SYNC_RELOAD_REQUEST_FILE, "r");
+  if (request_file == NULL)
+    return;
+  if (fgets(token, sizeof(token), request_file) == NULL)
+    token[0] = '\0';
+  fclose(request_file);
+  token[strcspn(token, "\r\n")] = '\0';
+
+  if (!help_sync_reload_token_valid(token))
+  {
+    log("SYSERR: Ignoring invalid help synchronization reload token");
+    if (unlink(HELP_SYNC_RELOAD_REQUEST_FILE) != 0 && errno != ENOENT)
+      log("SYSERR: Unable to remove invalid help synchronization reload request: %s",
+          strerror(errno));
+    return;
+  }
+
+  clear_help_cache();
+  if (help_table != NULL)
+    free_help_table();
+  index_boot(DB_BOOT_HLP);
+  if (!help_sync_write_reload_ack(token))
+    return;
+  if (unlink(HELP_SYNC_RELOAD_REQUEST_FILE) != 0 && errno != ENOENT)
+  {
+    log("SYSERR: Unable to remove processed help synchronization reload request: %s",
+        strerror(errno));
+  }
+  mudlog(CMP, LVL_IMMORT, TRUE, "Help synchronization reloaded runtime help data.");
+}
 
 /* puts -'s instead of spaces */
 void space_to_minus(char *str)

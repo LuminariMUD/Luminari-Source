@@ -1712,68 +1712,133 @@ int run_pet_persistence_migrations(void)
   return TRUE;
 }
 
-/* Run all pending migrations */
-void run_database_migrations(void)
+/* Run all pending help-system migrations. */
+int run_database_migrations(void)
 {
   if (!mysql_available || !conn)
   {
-    log("MySQL not available, skipping database migrations");
-    return;
+    log("SYSERR: MySQL not available while applying help-system migrations");
+    return FALSE;
   }
 
   /* Initialize migrations table */
   if (!init_database_migrations())
-    return;
+    return FALSE;
 
-  /* Migration 1: Add help_versions table for version control */
-  apply_migration(1, "Add help_versions table for version history",
-                  "CREATE TABLE IF NOT EXISTS help_versions ("
-                  "  id INT AUTO_INCREMENT PRIMARY KEY,"
-                  "  tag VARCHAR(50) NOT NULL,"
-                  "  entry TEXT,"
-                  "  min_level INT DEFAULT 0,"
-                  "  changed_by VARCHAR(50),"
-                  "  change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-                  "  change_type ENUM('CREATE', 'UPDATE', 'DELETE') DEFAULT 'UPDATE',"
-                  "  INDEX idx_tag_date (tag, change_date)"
-                  ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
-                  "COMMENT='Version history for help entries'");
+  /*
+   * Use date-based versions. Legacy versions 1-4 collide with migrations from
+   * older installations and therefore cannot prove that this contract exists.
+   */
+  if (!apply_migration(
+          2026082401, "Normalize help entry content columns",
+          "ALTER TABLE help_entries "
+          "ENGINE=InnoDB, "
+          "MODIFY COLUMN entry LONGTEXT NOT NULL, "
+          "ADD COLUMN IF NOT EXISTS alternate_keywords TEXT DEFAULT NULL AFTER tag, "
+          "ADD COLUMN IF NOT EXISTS category VARCHAR(50) NOT NULL DEFAULT 'general' "
+          "AFTER alternate_keywords, "
+          "ADD COLUMN IF NOT EXISTS max_level INT NOT NULL DEFAULT 1000 AFTER min_level, "
+          "ADD COLUMN IF NOT EXISTS auto_generated BOOLEAN NOT NULL DEFAULT FALSE "
+          "AFTER max_level, "
+          "ADD COLUMN IF NOT EXISTS last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP "
+          "ON UPDATE CURRENT_TIMESTAMP, "
+          "ADD INDEX IF NOT EXISTS idx_category (category), "
+          "ADD INDEX IF NOT EXISTS idx_auto_generated (auto_generated)"))
+    return FALSE;
 
-  /* Migration 2: Add help_search_history table */
-  apply_migration(2, "Add help_search_history table for analytics",
-                  "CREATE TABLE IF NOT EXISTS help_search_history ("
-                  "  id INT AUTO_INCREMENT PRIMARY KEY,"
-                  "  search_term VARCHAR(200) NOT NULL,"
-                  "  searcher_name VARCHAR(50),"
-                  "  searcher_level INT,"
-                  "  results_count INT DEFAULT 0,"
-                  "  search_type ENUM('keyword', 'fulltext', 'soundex') DEFAULT 'keyword',"
-                  "  search_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-                  "  INDEX idx_search_term (search_term),"
-                  "  INDEX idx_search_date (search_date)"
-                  ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
-                  "COMMENT='Tracks help searches for analytics'");
+  if (!apply_migration(2026082402, "Normalize help keyword content table",
+                       "ALTER TABLE help_keywords "
+                       "ENGINE=InnoDB, "
+                       "MODIFY COLUMN help_tag VARCHAR(50) NOT NULL, "
+                       "MODIFY COLUMN keyword VARCHAR(100) NOT NULL, "
+                       "ADD INDEX IF NOT EXISTS idx_help_keywords_composite (help_tag, keyword)"))
+    return FALSE;
 
-  /* Migration 3: Add categories to help entries */
-  apply_migration(3, "Add category support to help entries",
-                  "ALTER TABLE help_entries "
-                  "ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'general' "
-                  "COMMENT 'Help category for browsing' AFTER tag, "
-                  "ADD INDEX IF NOT EXISTS idx_category (category)");
+  if (!apply_migration(2026082403, "Create help related-topic content table",
+                       "CREATE TABLE IF NOT EXISTS help_related_topics ("
+                       "source_tag VARCHAR(50) NOT NULL, "
+                       "related_tag VARCHAR(50) NOT NULL, "
+                       "relevance_score DECIMAL(12,6) NOT NULL DEFAULT 1.0, "
+                       "PRIMARY KEY (source_tag, related_tag), "
+                       "INDEX idx_source (source_tag), "
+                       "INDEX idx_related (related_tag)"
+                       ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
+                       "COMMENT='Links between related help topics'"))
+    return FALSE;
 
-  /* Migration 4: Add related_topics table */
-  apply_migration(4, "Add related_topics table for help linking",
-                  "CREATE TABLE IF NOT EXISTS help_related_topics ("
-                  "  source_tag VARCHAR(50) NOT NULL,"
-                  "  related_tag VARCHAR(50) NOT NULL,"
-                  "  relevance_score FLOAT DEFAULT 1.0,"
-                  "  PRIMARY KEY (source_tag, related_tag),"
-                  "  INDEX idx_source (source_tag),"
-                  "  INDEX idx_related (related_tag)"
-                  ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
-                  "COMMENT='Links between related help topics'");
+  if (!apply_migration(2026082404, "Create help version history table",
+                       "CREATE TABLE IF NOT EXISTS help_versions ("
+                       "id BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                       "tag VARCHAR(50) NOT NULL, "
+                       "alternate_keywords TEXT DEFAULT NULL, "
+                       "entry LONGTEXT, "
+                       "min_level INT DEFAULT 0, "
+                       "max_level INT DEFAULT 1000, "
+                       "category VARCHAR(50) DEFAULT 'general', "
+                       "auto_generated BOOLEAN DEFAULT FALSE, "
+                       "changed_by VARCHAR(50), "
+                       "change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+                       "change_type ENUM('CREATE', 'UPDATE', 'DELETE') DEFAULT 'UPDATE', "
+                       "sync_plan_id VARCHAR(80) DEFAULT NULL, "
+                       "INDEX idx_tag_date (tag, change_date), "
+                       "INDEX idx_sync_plan_id (sync_plan_id)"
+                       ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
+                       "COMMENT='Version history for help entries'"))
+    return FALSE;
+
+  if (!apply_migration(2026082405, "Normalize help version history columns",
+                       "ALTER TABLE help_versions "
+                       "ENGINE=InnoDB, "
+                       "MODIFY COLUMN entry LONGTEXT, "
+                       "ADD COLUMN IF NOT EXISTS alternate_keywords TEXT DEFAULT NULL AFTER tag, "
+                       "ADD COLUMN IF NOT EXISTS max_level INT DEFAULT 1000 AFTER min_level, "
+                       "ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'general' "
+                       "AFTER max_level, "
+                       "ADD COLUMN IF NOT EXISTS auto_generated BOOLEAN DEFAULT FALSE "
+                       "AFTER category, "
+                       "ADD COLUMN IF NOT EXISTS changed_by VARCHAR(50) DEFAULT NULL, "
+                       "ADD COLUMN IF NOT EXISTS change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+                       "ADD COLUMN IF NOT EXISTS change_type "
+                       "ENUM('CREATE', 'UPDATE', 'DELETE') DEFAULT 'UPDATE', "
+                       "ADD COLUMN IF NOT EXISTS sync_plan_id VARCHAR(80) DEFAULT NULL, "
+                       "ADD INDEX IF NOT EXISTS idx_tag_date (tag, change_date), "
+                       "ADD INDEX IF NOT EXISTS idx_sync_plan_id (sync_plan_id)"))
+    return FALSE;
+
+  if (!apply_migration(2026082406, "Create help search analytics table",
+                       "CREATE TABLE IF NOT EXISTS help_search_history ("
+                       "id BIGINT AUTO_INCREMENT PRIMARY KEY, "
+                       "search_term VARCHAR(200) NOT NULL, "
+                       "searcher_name VARCHAR(50), "
+                       "searcher_level INT, "
+                       "results_count INT DEFAULT 0, "
+                       "search_type ENUM('keyword', 'fulltext', 'soundex') DEFAULT 'keyword', "
+                       "search_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+                       "INDEX idx_search_term (search_term), "
+                       "INDEX idx_search_date (search_date)"
+                       ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
+                       "COMMENT='Tracks help searches for analytics'"))
+    return FALSE;
+
+  if (!apply_migration(2026082407, "Add deterministic help lookup indexes",
+                       "ALTER TABLE help_entries "
+                       "ADD INDEX IF NOT EXISTS idx_help_tag (tag), "
+                       "ADD INDEX IF NOT EXISTS idx_min_level (min_level), "
+                       "ADD FULLTEXT INDEX IF NOT EXISTS idx_help_entries_fulltext (entry)"))
+    return FALSE;
+
+  if (!apply_migration(2026082408, "Normalize help related-topic content columns",
+                       "ALTER TABLE help_related_topics "
+                       "ENGINE=InnoDB, "
+                       "MODIFY COLUMN source_tag VARCHAR(50) NOT NULL, "
+                       "MODIFY COLUMN related_tag VARCHAR(50) NOT NULL, "
+                       "MODIFY COLUMN relevance_score DECIMAL(12,6) NOT NULL DEFAULT 1.0, "
+                       "ADD INDEX IF NOT EXISTS idx_source (source_tag), "
+                       "ADD INDEX IF NOT EXISTS idx_related (related_tag)"))
+    return FALSE;
 
   log("Info: Database migrations completed");
+  return TRUE;
 }
 
 void init_help_system_tables(void)
@@ -1791,16 +1856,19 @@ void init_help_system_tables(void)
       "CREATE TABLE IF NOT EXISTS help_entries ("
       "id INT AUTO_INCREMENT PRIMARY KEY, "
       "tag VARCHAR(50) UNIQUE NOT NULL, "
+      "alternate_keywords TEXT DEFAULT NULL, "
+      "category VARCHAR(50) NOT NULL DEFAULT 'general', "
       "entry LONGTEXT NOT NULL, "
       "min_level INT DEFAULT 0, "
       "max_level INT DEFAULT 1000, "
       "auto_generated BOOLEAN DEFAULT FALSE COMMENT 'TRUE if auto-generated, FALSE if manual', "
       "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-      "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+      "last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
       "INDEX idx_help_tag (tag), "
+      "INDEX idx_category (category), "
       "INDEX idx_min_level (min_level), "
       "INDEX idx_auto_generated (auto_generated)"
-      ")";
+      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
   if (mysql_query_safe(conn, create_help_entries))
   {
@@ -1818,7 +1886,7 @@ void init_help_system_tables(void)
       "INDEX idx_keyword (keyword), "
       "INDEX idx_help_tag (help_tag), "
       "UNIQUE KEY unique_tag_keyword (help_tag, keyword)"
-      ")";
+      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
   if (mysql_query_safe(conn, create_help_keywords))
   {
@@ -1882,7 +1950,8 @@ void init_help_system_tables(void)
   log("Info: Help system optimization indexes added");
 
   /* Run database migrations for new features */
-  run_database_migrations();
+  if (!run_database_migrations())
+    log("SYSERR: Help system migrations did not complete");
 }
 
 /* ===== DATABASE PROCEDURES AND FUNCTIONS ===== */

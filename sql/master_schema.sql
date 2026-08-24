@@ -705,14 +705,20 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Tracks database schema migrations';
 
 CREATE TABLE IF NOT EXISTS help_versions (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   tag VARCHAR(50) NOT NULL,
-  entry TEXT,
+  alternate_keywords TEXT DEFAULT NULL,
+  entry LONGTEXT,
   min_level INT DEFAULT 0,
+  max_level INT DEFAULT 1000,
+  category VARCHAR(50) DEFAULT 'general',
+  auto_generated BOOLEAN DEFAULT FALSE,
   changed_by VARCHAR(50),
   change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   change_type ENUM('CREATE', 'UPDATE', 'DELETE') DEFAULT 'UPDATE',
-  INDEX idx_tag_date (tag, change_date)
+  sync_plan_id VARCHAR(80) DEFAULT NULL,
+  INDEX idx_tag_date (tag, change_date),
+  INDEX idx_sync_plan_id (sync_plan_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Version history for help entries';
 
 CREATE TABLE IF NOT EXISTS help_search_history (
@@ -730,7 +736,7 @@ CREATE TABLE IF NOT EXISTS help_search_history (
 CREATE TABLE IF NOT EXISTS help_related_topics (
   source_tag VARCHAR(50) NOT NULL,
   related_tag VARCHAR(50) NOT NULL,
-  relevance_score FLOAT DEFAULT 1.0,
+  relevance_score DECIMAL(12,6) NOT NULL DEFAULT 1.0,
   PRIMARY KEY (source_tag, related_tag),
   INDEX idx_source (source_tag),
   INDEX idx_related (related_tag)
@@ -739,13 +745,14 @@ CREATE TABLE IF NOT EXISTS help_related_topics (
 CREATE TABLE IF NOT EXISTS help_entries (
   id INT AUTO_INCREMENT PRIMARY KEY,
   tag VARCHAR(50) NOT NULL,
+  alternate_keywords TEXT DEFAULT NULL,
   category VARCHAR(50) DEFAULT 'general' COMMENT 'Help category for browsing',
   entry LONGTEXT NOT NULL,
   min_level INT DEFAULT 0,
   max_level INT DEFAULT 1000,
   auto_generated BOOLEAN DEFAULT FALSE COMMENT 'TRUE if auto-generated, FALSE if manual',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY tag (tag),
   INDEX idx_help_tag (tag),
   INDEX idx_category (category),

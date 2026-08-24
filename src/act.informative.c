@@ -3347,8 +3347,12 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
   const char *const how_far[] = {"close by", "a ways off", "far off to the"};
 
   struct char_data *i;
+  size_t distance_index = distance < 0 ? 0 : (size_t)distance;
   int count = 0;
   *buf = '\0';
+
+  if (distance_index >= sizeof(how_far) / sizeof(how_far[0]))
+    distance_index = sizeof(how_far) / sizeof(how_far[0]) - 1;
 
   /* this loop is a quick, easy way to help make a grammatical sentence
      (i.e., "You see x, x, y, and z." with commas, "and", etc.) */
@@ -3382,7 +3386,7 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
       strlcat(buf, " and ", sizeof(buf));
     else
     {
-      snprintf(buf2, sizeof(buf2), " %s %s.\r\n", how_far[distance], dirs[door]);
+      snprintf(buf2, sizeof(buf2), " %s %s.\r\n", how_far[distance_index], dirs[door]);
       strlcat(buf, buf2, sizeof(buf));
     }
   }

@@ -34,6 +34,13 @@ int startup_database_init(void)
   /* Perform selective table initialization - only create missing tables */
   initialize_missing_tables();
 
+  /* Help migrations are required even when the base help tables already exist. */
+  if (!run_database_migrations())
+  {
+    log("SYSERR: Required help synchronization migrations failed during startup");
+    return FALSE;
+  }
+
   /* Required migrations run on every startup, even when all tables exist. */
   if (!run_pet_persistence_migrations())
   {

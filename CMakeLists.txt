@@ -1141,6 +1141,35 @@ if (TARGET rol_mob_calculator)
     add_dependencies(test-world-tools rol_mob_calculator)
 endif()
 
+set(HELP_SYNC_SOURCES
+    .agents/skills/help-sync/SKILL.md
+    .agents/skills/help-sync/agents/openai.yaml
+    docs/ongoing-projects/HELPFILE_SYNCHRONIZATION_DESIGN.md
+    scripts/help-sync/catalog.py
+    scripts/help-sync/endpoint.py
+    scripts/help-sync/help_sync.py
+    scripts/help-sync/requirements.txt
+    scripts/help-sync/tests/test_catalog.py
+    scripts/help-sync/tests/test_endpoint.py
+    scripts/help-sync/tests/test_endpoint_integration.py
+    sql/components/help_sync_schema.sql
+    sql/components/verify_help_sync_schema.sql)
+
+add_custom_target(test-help-sync
+    COMMAND ${Python3_EXECUTABLE} -m unittest discover
+            -s scripts/help-sync/tests -p test_*.py -v
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    SOURCES ${HELP_SYNC_SOURCES}
+    COMMENT "Running help synchronization unit tests")
+
+add_custom_target(test-help-sync-integration
+    COMMAND ${CMAKE_COMMAND} -E env LUMINARI_HELP_SYNC_INTEGRATION=1
+            ${Python3_EXECUTABLE} -m unittest
+            scripts/help-sync/tests/test_endpoint_integration.py -v
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    SOURCES ${HELP_SYNC_SOURCES}
+    COMMENT "Running isolated MariaDB help synchronization tests")
+
 # ========== Build unit tests AFTER main executable ==========
 # The focused protocol parser harness remains available under unittests/CuTest.
 option(BUILD_TESTS "Build production-linked unit tests" OFF)
@@ -1153,6 +1182,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_msdp_production.c
     unittests/CuTest/test_necromancer.c
     unittests/CuTest/test_bounds_checking.c
+    unittests/CuTest/test_help_sync.c
     unittests/CuTest/test_artifacts.c
     unittests/CuTest/test_artifact_integration.c
     unittests/CuTest/test_player_rename.c

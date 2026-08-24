@@ -555,10 +555,9 @@ ACMD(do_reboot)
     if (file_to_string_alloc(BACKGROUND_FILE, &background) < 0)
       send_to_char(ch, "Cannot read background\r\n");
     if (help_table)
-    {
       free_help_table();
-      index_boot(DB_BOOT_HLP);
-    }
+    index_boot(DB_BOOT_HLP);
+    clear_help_cache();
   }
   else if (!str_cmp(arg, "wizlist"))
   {
@@ -630,10 +629,9 @@ ACMD(do_reboot)
   else if (!str_cmp(arg, "xhelp"))
   {
     if (help_table)
-    {
       free_help_table();
-      index_boot(DB_BOOT_HLP);
-    }
+    index_boot(DB_BOOT_HLP);
+    clear_help_cache();
   }
   else if (!str_cmp(arg, "regions"))
   {

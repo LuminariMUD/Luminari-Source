@@ -710,6 +710,95 @@ ACMD(do_teleport)
   }
 }
 
+ACMD(do_roomtransfer)
+{
+  char source_arg[MAX_INPUT_LENGTH] = {'\0'};
+  char destination_arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *victim, *next_victim;
+  struct obj_data *object, *next_object;
+  room_vnum source_vnum, destination_vnum;
+  room_rnum source_room, destination_room;
+  int character_count = 0, object_count = 0;
+
+  if (GET_LEVEL(ch) < LVL_IMPL)
+  {
+    send_to_char(ch, "%s", CONFIG_HUH);
+    return;
+  }
+
+  two_arguments(argument, source_arg, sizeof(source_arg), destination_arg, sizeof(destination_arg));
+
+  if (!*source_arg || !*destination_arg)
+  {
+    send_to_char(ch, "Usage: roomtransfer <source room vnum> <destination room vnum>\r\n");
+    return;
+  }
+
+  source_vnum = atoidx(source_arg);
+  destination_vnum = atoidx(destination_arg);
+  if (source_vnum == NOWHERE || destination_vnum == NOWHERE)
+  {
+    send_to_char(ch, "Both room vnums must be valid non-negative numbers.\r\n");
+    return;
+  }
+
+  source_room = real_room(source_vnum);
+  if (source_room == NOWHERE)
+  {
+    send_to_char(ch, "Source room %" PRI_IDX " does not exist.\r\n", source_vnum);
+    return;
+  }
+
+  destination_room = real_room(destination_vnum);
+  if (destination_room == NOWHERE)
+  {
+    send_to_char(ch, "Destination room %" PRI_IDX " does not exist.\r\n", destination_vnum);
+    return;
+  }
+
+  if (source_room == destination_room)
+  {
+    send_to_char(ch, "The source and destination rooms must be different.\r\n");
+    return;
+  }
+
+  for (object = world[source_room].contents; object; object = next_object)
+  {
+    next_object = object->next_content;
+    obj_from_room(object);
+    obj_to_room(object, destination_room);
+    object_count++;
+  }
+
+  for (victim = world[source_room].people; victim; victim = next_victim)
+  {
+    next_victim = victim->next_in_room;
+    send_to_char(victim, "The world shifts around you.\r\n");
+    char_from_room(victim);
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(destination_room), ZONE_WILDERNESS))
+    {
+      X_LOC(victim) = world[destination_room].coords[0];
+      Y_LOC(victim) = world[destination_room].coords[1];
+    }
+
+    char_to_room(victim, destination_room);
+    look_at_room(victim, 0);
+    enter_wtrigger(&world[IN_ROOM(victim)], victim, -1);
+    character_count++;
+  }
+
+  mudlog(NRM, LVL_IMPL, TRUE,
+         "(GC) %s used ROOMTRANSFER: %d characters and %d objects from room %" PRI_IDX
+         " to room %" PRI_IDX,
+         GET_NAME(ch), character_count, object_count, source_vnum, destination_vnum);
+  send_to_char(ch,
+               "Transferred %d character%s and %d object%s from room %" PRI_IDX " to room %" PRI_IDX
+               ".\r\n",
+               character_count, character_count == 1 ? "" : "s", object_count,
+               object_count == 1 ? "" : "s", source_vnum, destination_vnum);
+}
+
 ACMD(do_vnum)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};

@@ -183,6 +183,7 @@ void list_item_activate_ability_cooldowns(struct char_data *ch);
 void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int mxp_type);
 #define SHOW_OBJ_SHORT 1
 void lore_id_vict(struct char_data *ch, struct char_data *tch);
+void list_scanned_chars(struct char_data *list, struct char_data *ch, int distance, int door);
 
 /** @todo Move to a utility library */
 char *find_exdesc(char *word, struct extra_descr_data *list);
@@ -1149,6 +1150,7 @@ ACMD_DECL(do_switch);
 ACMD_DECL(do_teleport);
 ACMD_DECL(do_terrainapi);
 ACMD_DECL(do_trans);
+ACMD_DECL(do_roomtransfer);
 ACMD_DECL(do_vnum);
 ACMD_DECL(do_vstat);
 ACMD_DECL(do_wizlock);

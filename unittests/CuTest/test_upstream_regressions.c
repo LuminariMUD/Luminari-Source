@@ -280,6 +280,209 @@ void Test_room_objects_preserve_money_identity_and_newest_first_lookup(CuTest *t
   CuAssertTrue(tc, newest_corpse_was_first);
 }
 
+void Test_roomtransfer_command_is_implementor_only(CuTest *tc)
+{
+  const struct command_info *command;
+  bool found = false;
+  bool correct_handler = false;
+  int minimum_level = -1;
+
+  for (command = cmd_info; *command->command != '\n'; command++)
+  {
+    if (str_cmp(command->command, "roomtransfer"))
+      continue;
+
+    found = true;
+    correct_handler = command->command_pointer == do_roomtransfer;
+    minimum_level = command->minimum_level;
+    break;
+  }
+
+  CuAssertTrue(tc, found);
+  CuAssertTrue(tc, correct_handler);
+  CuAssertIntEquals(tc, LVL_IMPL, minimum_level);
+}
+
+void Test_roomtransfer_moves_all_room_people_and_objects(CuTest *tc)
+{
+  struct room_data rooms[2];
+  struct zone_data zone;
+  struct char_data staff, player, mobile;
+  struct char_data *room_character;
+  struct player_special_data staff_specials, player_specials;
+  struct descriptor_data staff_descriptor, player_descriptor;
+  struct obj_data first_object, second_object;
+  struct obj_data *room_object;
+  struct room_data *saved_world;
+  struct zone_data *saved_zone_table;
+  struct char_data *saved_character_list;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone_table;
+  bool lower_level_was_denied;
+  bool same_room_was_rejected;
+  bool source_was_emptied;
+  bool all_characters_arrived;
+  bool all_objects_arrived;
+  bool success_was_reported;
+  bool player_found = false, mobile_found = false;
+  bool first_object_found = false, second_object_found = false;
+
+  memset(rooms, 0, sizeof(rooms));
+  memset(&zone, 0, sizeof(zone));
+  memset(&staff_descriptor, 0, sizeof(staff_descriptor));
+  memset(&player_descriptor, 0, sizeof(player_descriptor));
+  memset(&staff_specials, 0, sizeof(staff_specials));
+  memset(&player_specials, 0, sizeof(player_specials));
+  clear_char(&staff);
+  clear_char(&player);
+  clear_char(&mobile);
+  clear_object(&first_object);
+  clear_object(&second_object);
+
+  staff_descriptor.character = &staff;
+  staff_descriptor.connected = CON_PLAYING;
+  staff_descriptor.output = staff_descriptor.small_outbuf;
+  staff_descriptor.bufspace = SMALL_BUFSIZE - 1;
+  staff_descriptor.pProtocol = ProtocolCreate();
+  player_descriptor.character = &player;
+  player_descriptor.connected = CON_PLAYING;
+  player_descriptor.output = player_descriptor.small_outbuf;
+  player_descriptor.bufspace = SMALL_BUFSIZE - 1;
+  player_descriptor.pProtocol = ProtocolCreate();
+
+  if (staff_descriptor.pProtocol == NULL || player_descriptor.pProtocol == NULL)
+  {
+    ProtocolDestroy(staff_descriptor.pProtocol);
+    ProtocolDestroy(player_descriptor.pProtocol);
+    CuFail(tc, "could not initialize roomtransfer descriptor fixtures");
+    return;
+  }
+
+  staff.desc = &staff_descriptor;
+  staff.player_specials = &staff_specials;
+  staff.player.name = "roomtransfer implementor";
+  staff.player.title = "";
+  GET_LEVEL(&staff) = LVL_IMPL - 1;
+  GET_POS(&staff) = POS_STANDING;
+  IN_ROOM(&staff) = 1;
+
+  player.desc = &player_descriptor;
+  player.player_specials = &player_specials;
+  player.player.name = "roomtransfer player";
+  player.player.title = "";
+  GET_LEVEL(&player) = 1;
+  GET_POS(&player) = POS_STANDING;
+  IN_ROOM(&player) = 0;
+
+  mobile.player_specials = &dummy_mob;
+  mobile.player.short_descr = "a roomtransfer mobile";
+  SET_BIT_AR(MOB_FLAGS(&mobile), MOB_ISNPC);
+  GET_LEVEL(&mobile) = 1;
+  GET_POS(&mobile) = POS_STANDING;
+  IN_ROOM(&mobile) = 0;
+
+  rooms[0].number = 100;
+  rooms[0].name = "Roomtransfer Source";
+  rooms[0].description = "The source room used by the roomtransfer test.\r\n";
+  rooms[0].zone = 0;
+  rooms[0].sector_type = SECT_INSIDE;
+  rooms[0].people = &player;
+  player.next_in_room = &mobile;
+  rooms[1].number = 200;
+  rooms[1].name = "Roomtransfer Destination";
+  rooms[1].description = "The destination room used by the roomtransfer test.\r\n";
+  rooms[1].zone = 0;
+  rooms[1].sector_type = SECT_INSIDE;
+  rooms[1].people = &staff;
+
+  zone.number = 1;
+  zone.bot = 100;
+  zone.top = 200;
+  zone.min_level = -1;
+  zone.max_level = LVL_IMPL;
+
+  first_object.name = "first roomtransfer object";
+  first_object.short_description = "the first roomtransfer object";
+  first_object.description = "The first roomtransfer object is here.";
+  GET_OBJ_TYPE(&first_object) = ITEM_OTHER;
+  second_object.name = "second roomtransfer object";
+  second_object.short_description = "the second roomtransfer object";
+  second_object.description = "The second roomtransfer object is here.";
+  GET_OBJ_TYPE(&second_object) = ITEM_OTHER;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  saved_character_list = character_list;
+  world = rooms;
+  top_of_world = 1;
+  zone_table = &zone;
+  top_of_zone_table = 0;
+  character_list = &staff;
+  staff.next = &player;
+  player.next = &mobile;
+
+  obj_to_room(&first_object, 0);
+  obj_to_room(&second_object, 0);
+
+  do_roomtransfer(&staff, "100 200", 0, 0);
+  lower_level_was_denied = IN_ROOM(&player) == 0 && IN_ROOM(&mobile) == 0 &&
+                           IN_ROOM(&first_object) == 0 && IN_ROOM(&second_object) == 0;
+
+  reset_test_descriptor_output(&staff_descriptor);
+  GET_LEVEL(&staff) = LVL_IMPL;
+  do_roomtransfer(&staff, "100 100", 0, 0);
+  same_room_was_rejected = IN_ROOM(&player) == 0 && IN_ROOM(&mobile) == 0 &&
+                           IN_ROOM(&first_object) == 0 && IN_ROOM(&second_object) == 0;
+
+  reset_test_descriptor_output(&staff_descriptor);
+  do_roomtransfer(&staff, "100 200", 0, 0);
+
+  source_was_emptied = rooms[0].people == NULL && rooms[0].contents == NULL;
+  for (room_character = rooms[1].people; room_character;
+       room_character = room_character->next_in_room)
+  {
+    if (room_character == &player)
+      player_found = true;
+    else if (room_character == &mobile)
+      mobile_found = true;
+  }
+  all_characters_arrived =
+      player_found && mobile_found && IN_ROOM(&player) == 1 && IN_ROOM(&mobile) == 1;
+
+  for (room_object = rooms[1].contents; room_object; room_object = room_object->next_content)
+  {
+    if (room_object == &first_object)
+      first_object_found = true;
+    else if (room_object == &second_object)
+      second_object_found = true;
+  }
+  all_objects_arrived = first_object_found && second_object_found && IN_ROOM(&first_object) == 1 &&
+                        IN_ROOM(&second_object) == 1;
+  success_was_reported =
+      strstr(staff_descriptor.output, "Transferred 2 characters and 2 objects") != NULL;
+
+  character_list = saved_character_list;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  staff.desc = NULL;
+  player.desc = NULL;
+  reset_test_descriptor_output(&staff_descriptor);
+  reset_test_descriptor_output(&player_descriptor);
+  ProtocolDestroy(staff_descriptor.pProtocol);
+  ProtocolDestroy(player_descriptor.pProtocol);
+
+  CuAssertTrue(tc, lower_level_was_denied);
+  CuAssertTrue(tc, same_room_was_rejected);
+  CuAssertTrue(tc, source_was_emptied);
+  CuAssertTrue(tc, all_characters_arrived);
+  CuAssertTrue(tc, all_objects_arrived);
+  CuAssertTrue(tc, success_was_reported);
+}
+
 void Test_uint32_indices_parse_and_render_high_stat_vnums(CuTest *tc)
 {
   const IDXTYPE high_vnum = UINT32_C(4000000000);

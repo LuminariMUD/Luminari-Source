@@ -8,6 +8,11 @@
 #ifndef HELP_H
 #define HELP_H
 
+#define HELP_SYNC_DB_LOCK_NAME "luminari_help_sync_write"
+#define HELP_SYNC_LOCK_FILE "text/help/.help_sync.lock"
+#define HELP_SYNC_RELOAD_REQUEST_FILE "text/help/.help_sync.reload.request"
+#define HELP_SYNC_RELOAD_ACK_FILE "text/help/.help_sync.reload.ack"
+
 /* Data structure to hold a keyword list
  * for help entries for both display and storage. */
 struct help_keyword_list
@@ -53,6 +58,14 @@ ACMD_DECL(do_helpsearch);
 
 /* Cache management */
 void clear_help_cache(void);
+
+/* Cross-process help synchronization controls. */
+bool help_sync_barrier_active(char *owner, size_t owner_size);
+bool help_sync_barrier_active_at(const char *path, char *owner, size_t owner_size);
+bool help_sync_database_lock_acquire(unsigned int timeout_seconds);
+void help_sync_database_lock_release(void);
+bool help_sync_reload_token_valid(const char *token);
+void help_sync_poll_reload(void);
 
 /* Chain of Responsibility Pattern for Help System
  * This design eliminates deep nesting and makes the help system extensible.

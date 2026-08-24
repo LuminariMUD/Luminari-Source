@@ -10,7 +10,9 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/act.h"
 #include "../../src/magic/spells.h"
+#include "../../src/net/protocol.h"
 #include "../../src/wilderness/wilderness.h"
 
 /* External function declaration */
@@ -252,6 +254,50 @@ void Test_fopen_restricted_blocks_world_write(CuTest *tc)
   CuAssertTrue(tc, secure_mode);
 }
 
+void Test_scan_distance_labels_cover_every_farsee_range(CuTest *tc)
+{
+  static const char *const expected[] = {
+      "You see scan target close by north.\r\n",
+      "You see scan target a ways off north.\r\n",
+      "You see scan target far off to the north.\r\n",
+      "You see scan target far off to the north.\r\n",
+      "You see scan target far off to the north.\r\n",
+      "You see scan target far off to the north.\r\n",
+  };
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  size_t distance;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&descriptor, 0, sizeof(descriptor));
+  ch.player.name = "scan target";
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+
+  if (descriptor.pProtocol == NULL)
+  {
+    CuFail(tc, "could not initialize protocol output for the scan range test");
+    return;
+  }
+
+  for (distance = 0; distance < sizeof(expected) / sizeof(expected[0]); distance++)
+  {
+    list_scanned_chars(&ch, &ch, (int)distance, NORTH);
+    CuAssertStrEquals_Msg(tc, "scan output must be valid for every Farsee range",
+                          expected[distance], descriptor.output);
+    descriptor.small_outbuf[0] = '\0';
+    descriptor.output = descriptor.small_outbuf;
+    descriptor.bufptr = 0;
+    descriptor.bufspace = SMALL_BUFSIZE - 1;
+  }
+
+  ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+}
+
 /* Suite setup */
 CuSuite *BoundsCheckingSuite(void)
 {
@@ -265,5 +311,6 @@ CuSuite *BoundsCheckingSuite(void)
   SUITE_ADD_TEST(suite, Test_wilderness_map_truncates_an_oversized_glyph);
   SUITE_ADD_TEST(suite, Test_path_component_validation);
   SUITE_ADD_TEST(suite, Test_fopen_restricted_blocks_world_write);
+  SUITE_ADD_TEST(suite, Test_scan_distance_labels_cover_every_farsee_range);
   return suite;
 }

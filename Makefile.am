@@ -349,6 +349,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_necromancer.c \
 	unittests/CuTest/CuTest.c \
 	unittests/CuTest/test_bounds_checking.c \
+	unittests/CuTest/test_help_sync.c \
 	unittests/CuTest/test_artifacts.c \
 	unittests/CuTest/test_artifact_integration.c \
 	unittests/CuTest/test_player_rename.c \
@@ -400,6 +401,7 @@ cutest_LDADD = $(luminari_LDADD)
 cutest_test_files = \
 	unittests/CuTest/test_syntax_check_boot.c \
 	unittests/CuTest/test_bounds_checking.c \
+	unittests/CuTest/test_help_sync.c \
 	unittests/CuTest/test_web_onboarding.c \
 	unittests/CuTest/test_i3_client_production.c \
 	unittests/CuTest/test_msdp_production.c \
@@ -676,10 +678,25 @@ world_tool_support_files = \
 	docs/world_game-data/gear_guide.md \
 	docs/world_game-data/wilderness_system.md
 
+help_sync_sources = \
+	.agents/skills/help-sync/SKILL.md \
+	.agents/skills/help-sync/agents/openai.yaml \
+	docs/ongoing-projects/HELPFILE_SYNCHRONIZATION_DESIGN.md \
+	scripts/help-sync/catalog.py \
+	scripts/help-sync/endpoint.py \
+	scripts/help-sync/help_sync.py \
+	scripts/help-sync/requirements.txt \
+	scripts/help-sync/tests/test_catalog.py \
+	scripts/help-sync/tests/test_endpoint.py \
+	scripts/help-sync/tests/test_endpoint_integration.py \
+	sql/components/help_sync_schema.sql \
+	sql/components/verify_help_sync_schema.sql
+
 # Extra files to distribute
 EXTRA_DIST = \
 	$(world_tool_sources) \
 	$(world_tool_support_files) \
+	$(help_sync_sources) \
 	lib/world/artifacts/1699.mob \
 	lib/world/artifacts/1699.obj \
 	lib/world/artifacts/1699.wld \
@@ -846,12 +863,13 @@ EXTRA_DIST = \
 	README.md
 
 # Run unit tests
-test: check test-autorun-supervision test-versioned-binary-install \
+test: check test-help-sync test-autorun-supervision test-versioned-binary-install \
 	test-binary-name-static test-healthcheck \
 	test-background-help-entries test-vessel-tooling
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
-.PHONY: check-world-docs rol-mob-calculator test-all test-world-tools test-protocol test-protocol-fuzz test-character-rename-static \
+.PHONY: check-world-docs rol-mob-calculator test-all test-world-tools test-help-sync \
+	test-help-sync-integration test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-binary-name-static test-healthcheck \
 	test-vessel-tooling
@@ -868,6 +886,14 @@ test-world-tools: check-world-docs rol-mob-calculator
 	"$(abs_top_srcdir)/lib/world/validate-zone.sh" 100 \
 		--world-root "$(abs_top_srcdir)/scripts/world/tests/fixtures/phase2/complete" \
 		--json >/dev/null
+
+test-help-sync:
+	cd "$(abs_top_srcdir)" && python3 -m unittest discover \
+		-s scripts/help-sync/tests -p 'test_*.py' -v
+
+test-help-sync-integration:
+	cd "$(abs_top_srcdir)" && LUMINARI_HELP_SYNC_INTEGRATION=1 \
+		python3 -m unittest scripts/help-sync/tests/test_endpoint_integration.py -v
 
 test-protocol:
 	$(MAKE) -C "$(abs_top_srcdir)/unittests/CuTest" protocol-parser

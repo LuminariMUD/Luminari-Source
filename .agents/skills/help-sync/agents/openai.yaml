@@ -1,0 +1,4 @@
+interface:
+  display_name: "Luminari Help Sync"
+  short_description: "Reconcile dev and production help catalogs"
+  default_prompt: "Use $help-sync to prepare a safe two-way help reconciliation plan."

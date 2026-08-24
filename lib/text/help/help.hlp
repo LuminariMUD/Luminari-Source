@@ -33309,6 +33309,18 @@ Rlist gives you a list of the rooms within the parameters.
    
 See also: REDIT, OLC, DIG
 #31
+ROOMTRANSFER ROOM-TRANSFER
+
+Usage: roomtransfer <source room vnum> <destination room vnum>
+
+Moves every character, mobile, and loose floor object from the source room to
+the destination room. Carried and equipped objects move with their owners.
+Both rooms must already exist and must be different rooms.
+
+This command is restricted to implementors.
+
+See also: GOTO, TELEPORT, TRANSFER
+#34
 ROOM-TRIGGERS
 
  

@@ -40,14 +40,19 @@
 /* local functions */
 static void hedit_disp_menu(struct descriptor_data *);
 static void hedit_setup_new(struct descriptor_data *);
-static void hedit_save_to_disk(struct descriptor_data *);
-static void hedit_save_to_db(struct descriptor_data *);
-static void hedit_save_internally(struct descriptor_data *);
+static bool hedit_save_to_disk(struct descriptor_data *);
+static bool hedit_save_to_db(struct descriptor_data *);
+static bool hedit_save_internally(struct descriptor_data *);
 static void hedit_load_keywords(struct help_entry_list *entries);
 static bool validate_help_tag(const char *tag, struct descriptor_data *d);
 static bool validate_help_keyword(const char *keyword, struct descriptor_data *d);
 static bool validate_help_content(const char *content, struct descriptor_data *d);
 static bool validate_min_level(int level, struct descriptor_data *d);
+static bool helpgen_request_mutates(const char *argument);
+static void perform_helpgen(struct char_data *ch, const char *argument, int cmd, int subcmd);
+static bool hedit_execute_tag_statement(const char *query, const char *tag);
+static bool hedit_execute_two_string_statement(const char *query, const char *first,
+                                               const char *second);
 
 struct helpcheck_keyword_index
 {
@@ -392,6 +397,7 @@ static bool validate_min_level(int level, struct descriptor_data *d)
 ACMD(do_oasis_hedit)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char sync_owner[80] = {'\0'};
   struct descriptor_data *d;
 
   /* No building as a mob or while being forced. */
@@ -401,6 +407,13 @@ ACMD(do_oasis_hedit)
   if (!can_edit_zone(ch, HEDIT_PERMISSION))
   {
     send_to_char(ch, "You have not been granted access to edit help files.\r\n");
+    return;
+  }
+
+  if (help_sync_barrier_active(sync_owner, sizeof(sync_owner)))
+  {
+    send_to_char(ch, "Help editing is temporarily locked for synchronization plan %.64s.\r\n",
+                 *sync_owner ? sync_owner : "unknown");
     return;
   }
 
@@ -505,45 +518,47 @@ static void hedit_setup_new(struct descriptor_data *d)
   hedit_disp_menu(d);
 }
 
-static void hedit_save_internally(struct descriptor_data *d)
+static bool hedit_save_internally(struct descriptor_data *d)
 {
-  hedit_save_to_disk(d);
+  return hedit_save_to_disk(d);
 }
 
-static void hedit_save_to_disk(struct descriptor_data *d)
+static bool hedit_save_to_disk(struct descriptor_data *d)
 {
-  hedit_save_to_db(d);
+  return hedit_save_to_db(d);
 }
 
-static void hedit_save_to_db(struct descriptor_data *d)
+static bool hedit_save_to_db(struct descriptor_data *d)
 {
   char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char sync_owner[80] = {'\0'};
   struct help_keyword_list *keyword, *existing_keywords = NULL, *temp_keyword;
   PREPARED_STMT *pstmt;
   char tag_lower[MAX_HELP_TAG_LENGTH + 1];
-  int i, transaction_started = 0, error_occurred = 0;
+  int i, transaction_started = 0, error_occurred = 0, sync_lock_acquired = 0;
   int keyword_count = 0;
+  bool save_succeeded = FALSE;
 
   if (OLC_HELP(d) == NULL)
-    return;
+    return FALSE;
 
   /* Validate all data before attempting to save to database */
   if (!validate_help_tag(OLC_HELP(d)->tag, d))
   {
     write_to_output(d, "Cannot save: Invalid help tag.\r\n");
-    return;
+    return FALSE;
   }
 
   if (!validate_help_content(OLC_HELP(d)->entry, d))
   {
     write_to_output(d, "Cannot save: Invalid help content.\r\n");
-    return;
+    return FALSE;
   }
 
   if (!validate_min_level(OLC_HELP(d)->min_level, d))
   {
     write_to_output(d, "Cannot save: Invalid minimum level.\r\n");
-    return;
+    return FALSE;
   }
 
   /* Validate and count all keywords */
@@ -552,15 +567,32 @@ static void hedit_save_to_db(struct descriptor_data *d)
     if (!validate_help_keyword(keyword->keyword, d))
     {
       write_to_output(d, "Cannot save: Invalid keyword '%s'.\r\n", keyword->keyword);
-      return;
+      return FALSE;
     }
     keyword_count++;
     if (keyword_count > MAX_KEYWORDS_PER_ENTRY)
     {
       write_to_output(d, "Cannot save: Too many keywords (maximum %d).\r\n",
                       MAX_KEYWORDS_PER_ENTRY);
-      return;
+      return FALSE;
     }
+  }
+
+  if (!help_sync_database_lock_acquire(5))
+  {
+    write_to_output(d,
+                    "Help synchronization is busy. Your edit remains open; try saving again.\r\n");
+    return FALSE;
+  }
+  sync_lock_acquired = 1;
+  if (help_sync_barrier_active(sync_owner, sizeof(sync_owner)))
+  {
+    write_to_output(d,
+                    "Help synchronization plan %.64s locked writes before this save. "
+                    "Your edit remains open.\r\n",
+                    *sync_owner ? sync_owner : "unknown");
+    help_sync_database_lock_release();
+    return FALSE;
   }
 
   /* Prepare help entry content */
@@ -580,7 +612,8 @@ static void hedit_save_to_db(struct descriptor_data *d)
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to start transaction for help save: %s",
            mysql_error(conn));
     write_to_output(d, "Database error: Failed to start transaction. Help entry not saved.\r\n");
-    return;
+    help_sync_database_lock_release();
+    return FALSE;
   }
   transaction_started = 1;
 
@@ -597,8 +630,11 @@ static void hedit_save_to_db(struct descriptor_data *d)
 
   /* Archive current version if it exists */
   if (!mysql_stmt_prepare_query(
-          pstmt, "INSERT INTO help_versions (tag, entry, min_level, saved_by, version_date) "
-                 "SELECT tag, entry, min_level, ?, last_updated "
+          pstmt, "INSERT INTO help_versions "
+                 "(tag, alternate_keywords, entry, min_level, max_level, category, "
+                 "auto_generated, changed_by, change_date, change_type) "
+                 "SELECT tag, alternate_keywords, entry, min_level, max_level, category, "
+                 "auto_generated, ?, last_updated, 'UPDATE' "
                  "FROM help_entries WHERE tag = ?"))
   {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Failed to prepare version history query");
@@ -723,7 +759,7 @@ static void hedit_save_to_db(struct descriptor_data *d)
   pstmt = mysql_stmt_create(conn);
   if (pstmt)
   {
-    if (mysql_stmt_prepare_query(
+    if (!mysql_stmt_prepare_query(
             pstmt, "DELETE FROM help_keywords WHERE LOWER(help_tag) = ? AND keyword = ?"))
     {
       mysql_stmt_cleanup(pstmt);
@@ -844,9 +880,13 @@ cleanup:
         /* Clear runtime cache so subsequent HELP uses the updated text immediately. */
         clear_help_cache();
         write_to_output(d, "Help entry '%s' saved successfully to database.\r\n", OLC_HELP(d)->tag);
+        save_succeeded = TRUE;
       }
     }
   }
+  if (sync_lock_acquired)
+    help_sync_database_lock_release();
+  return save_succeeded;
 }
 
 /* Populate keyword_list for all retrieved help entries. */
@@ -982,61 +1022,89 @@ bool hedit_delete_keyword(struct help_entry_list *entry, int num)
   return found;
 }
 
-bool hedit_delete_entry(struct help_entry_list *entry)
+static bool hedit_execute_tag_statement(const char *query, const char *tag)
 {
-  bool retval = TRUE;
+  PREPARED_STMT *pstmt;
+  bool succeeded;
 
-  if (entry == NULL)
+  pstmt = mysql_stmt_create(conn);
+  if (pstmt == NULL)
+    return FALSE;
+  succeeded = mysql_stmt_prepare_query(pstmt, query) &&
+              mysql_stmt_bind_param_string(pstmt, 0, tag) && mysql_stmt_execute_prepared(pstmt);
+  mysql_stmt_cleanup(pstmt);
+  return succeeded;
+}
+
+static bool hedit_execute_two_string_statement(const char *query, const char *first,
+                                               const char *second)
+{
+  PREPARED_STMT *pstmt;
+  bool succeeded;
+
+  pstmt = mysql_stmt_create(conn);
+  if (pstmt == NULL)
+    return FALSE;
+  succeeded = mysql_stmt_prepare_query(pstmt, query) &&
+              mysql_stmt_bind_param_string(pstmt, 0, first) &&
+              mysql_stmt_bind_param_string(pstmt, 1, second) && mysql_stmt_execute_prepared(pstmt);
+  mysql_stmt_cleanup(pstmt);
+  return succeeded;
+}
+
+static bool hedit_delete_entry(struct help_entry_list *entry, const char *changed_by)
+{
+  if (entry == NULL || changed_by == NULL)
     return FALSE;
 
-  /* Clear out the old keywords. */
+  if (!hedit_execute_two_string_statement(
+          "INSERT INTO help_versions "
+          "(tag, alternate_keywords, entry, min_level, max_level, category, auto_generated, "
+          "changed_by, change_date, change_type) "
+          "SELECT tag, alternate_keywords, entry, min_level, max_level, category, auto_generated, "
+          "?, last_updated, 'DELETE' FROM help_entries WHERE LOWER(tag) = LOWER(?)",
+          changed_by, entry->tag))
+  {
+    log("SYSERR: Failed to archive help entry before deletion: %s", entry->tag);
+    return FALSE;
+  }
+
+  if (!hedit_execute_two_string_statement(
+          "DELETE FROM help_related_topics WHERE LOWER(source_tag) = LOWER(?) "
+          "OR LOWER(related_tag) = LOWER(?)",
+          entry->tag, entry->tag))
+  {
+    log("SYSERR: Failed to delete related topics for help entry: %s", entry->tag);
+    return FALSE;
+  }
+
+  if (!hedit_execute_tag_statement("DELETE FROM help_keywords WHERE LOWER(help_tag) = LOWER(?)",
+                                   entry->tag))
+  {
+    log("SYSERR: Failed to delete keywords for help entry: %s", entry->tag);
+    return FALSE;
+  }
+
+  if (!hedit_execute_tag_statement("DELETE FROM help_entries WHERE LOWER(tag) = LOWER(?)",
+                                   entry->tag))
+  {
+    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to delete help entry: %s", entry->tag);
+    return FALSE;
+  }
+
+  /* Clear the editor copy only after every transactional database write succeeded. */
   while (hedit_delete_keyword(entry, 1))
     ;
-
-  /* Use prepared statement for safe deletion */
-  PREPARED_STMT *pstmt = mysql_stmt_create(conn);
-  if (!pstmt)
-  {
-    log("SYSERR: Failed to create prepared statement for help entry deletion");
-    return FALSE;
-  }
-
-  /* Prepare DELETE query with parameter */
-  if (!mysql_stmt_prepare_query(pstmt, "DELETE FROM help_entries WHERE LOWER(tag) = LOWER(?)"))
-  {
-    log("SYSERR: Failed to prepare help entry deletion query");
-    mysql_stmt_cleanup(pstmt);
-    return FALSE;
-  }
-
-  /* Bind the tag parameter */
-  if (!mysql_stmt_bind_param_string(pstmt, 0, entry->tag))
-  {
-    log("SYSERR: Failed to bind tag parameter for help entry deletion");
-    mysql_stmt_cleanup(pstmt);
-    return FALSE;
-  }
-
-  /* Execute the delete */
-  if (!mysql_stmt_execute_prepared(pstmt))
-  {
-    mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Unable to delete from help_entries");
-    mysql_stmt_cleanup(pstmt);
-    retval = FALSE;
-  }
-  else
-  {
-    mudlog(NRM, LVL_STAFF, TRUE, "Deleted help entry: %s", entry->tag);
-  }
-
-  mysql_stmt_cleanup(pstmt);
-  return retval;
+  mudlog(NRM, LVL_STAFF, TRUE, "Deleted help entry: %s", entry->tag);
+  return TRUE;
 }
 
 void hedit_parse(struct descriptor_data *d, char *arg)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
+  char sync_owner[80] = {'\0'};
   char *oldtext = NULL;
+  bool deleted;
   int number;
   struct help_entry_list *tmp;
   struct help_keyword_list *new_keyword;
@@ -1060,10 +1128,15 @@ void hedit_parse(struct descriptor_data *d, char *arg)
         snprintf(buf, sizeof(buf), "OLC: %s edits help for %s.", GET_NAME(d->character),
                  OLC_HELP(d)->tag);
         mudlog(TRUE, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), CMP, "%s", buf);
-        write_to_output(d, "Help saved to disk.\r\n");
-        hedit_save_internally(d);
-
-        cleanup_olc(d, CLEANUP_ALL);
+        if (hedit_save_internally(d))
+        {
+          write_to_output(d, "Help saved successfully.\r\n");
+          cleanup_olc(d, CLEANUP_ALL);
+        }
+        else
+        {
+          hedit_disp_menu(d);
+        }
       }
       break;
     case 'n':
@@ -1140,8 +1213,45 @@ void hedit_parse(struct descriptor_data *d, char *arg)
     {
     case 'y':
     case 'Y':
-      // Actually delete the help entry and the keywords.
-      hedit_delete_entry(OLC_HELP(d));
+      if (help_sync_barrier_active(sync_owner, sizeof(sync_owner)))
+      {
+        write_to_output(d, "Help synchronization plan %.64s locked writes. Delete cancelled.\r\n",
+                        *sync_owner ? sync_owner : "unknown");
+        hedit_disp_menu(d);
+        break;
+      }
+      if (!help_sync_database_lock_acquire(5))
+      {
+        write_to_output(d, "Help synchronization is busy. Delete cancelled.\r\n");
+        hedit_disp_menu(d);
+        break;
+      }
+      if (help_sync_barrier_active(sync_owner, sizeof(sync_owner)))
+      {
+        help_sync_database_lock_release();
+        write_to_output(d, "Help synchronization plan %.64s locked writes. Delete cancelled.\r\n",
+                        *sync_owner ? sync_owner : "unknown");
+        hedit_disp_menu(d);
+        break;
+      }
+      if (mysql_query(conn, "START TRANSACTION") != 0)
+      {
+        help_sync_database_lock_release();
+        write_to_output(d, "Database error: Could not begin help deletion.\r\n");
+        hedit_disp_menu(d);
+        break;
+      }
+      deleted = hedit_delete_entry(OLC_HELP(d), GET_NAME(d->character));
+      if (!deleted || mysql_query(conn, "COMMIT") != 0)
+      {
+        mysql_query(conn, "ROLLBACK");
+        help_sync_database_lock_release();
+        write_to_output(d, "Database error: Help deletion was rolled back.\r\n");
+        hedit_disp_menu(d);
+        break;
+      }
+      help_sync_database_lock_release();
+      clear_help_cache();
       cleanup_olc(d, CLEANUP_ALL);
       write_to_output(d, "Help file deleted.\r\n");
       break;
@@ -2081,8 +2191,57 @@ static int generate_help_entry(struct char_data *ch, int cmd_index, bool force_o
   return 1;
 }
 
-/* Auto-generate help files for commands */
+static bool helpgen_request_mutates(const char *argument)
+{
+  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  if (!*arg1 || !str_cmp(arg1, "list"))
+    return FALSE;
+  if (!str_cmp(arg1, "clean") || !str_cmp(arg1, "repair"))
+    return *arg2 && !str_cmp(arg2, "force");
+  if (!str_cmp(arg1, "import") || !str_cmp(arg1, "export"))
+    return *arg2 && str_cmp(arg2, "preview");
+  return TRUE;
+}
+
+/* Auto-generate help files for commands. */
 ACMD(do_helpgen)
+{
+  char sync_owner[80] = {'\0'};
+  bool mutates;
+
+  mutates = helpgen_request_mutates(argument);
+  if (!mutates)
+  {
+    perform_helpgen(ch, argument, cmd, subcmd);
+    return;
+  }
+  if (help_sync_barrier_active(sync_owner, sizeof(sync_owner)))
+  {
+    send_to_char(ch, "Help synchronization plan %.64s currently locks help writes.\r\n",
+                 *sync_owner ? sync_owner : "unknown");
+    return;
+  }
+  if (!help_sync_database_lock_acquire(5))
+  {
+    send_to_char(ch, "Help synchronization is busy. Try again shortly.\r\n");
+    return;
+  }
+  if (help_sync_barrier_active(sync_owner, sizeof(sync_owner)))
+  {
+    help_sync_database_lock_release();
+    send_to_char(ch, "Help synchronization plan %.64s currently locks help writes.\r\n",
+                 *sync_owner ? sync_owner : "unknown");
+    return;
+  }
+  perform_helpgen(ch, argument, cmd, subcmd);
+  help_sync_database_lock_release();
+  clear_help_cache();
+}
+
+static void perform_helpgen(struct char_data *ch, const char *argument,
+                            int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int generated = 0, skipped = 0, errors = 0;

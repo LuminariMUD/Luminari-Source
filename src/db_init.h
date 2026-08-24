@@ -18,6 +18,7 @@
 #include "db.h"
 
 #define PET_PERSISTENCE_SCHEMA_VERSION 2026080504
+#define HELP_SYNC_SCHEMA_VERSION 2026082408
 
 /* ===== MAIN INITIALIZATION FUNCTIONS ===== */
 
@@ -88,6 +89,9 @@ int verify_database_integrity(void);
 /* Apply and verify the required pet persistence schema contract. */
 int run_pet_persistence_migrations(void);
 int verify_pet_persistence_schema(void);
+
+/* Apply the required lossless help synchronization schema contract. */
+int run_database_migrations(void);
 
 /* Show database initialization status */
 void show_database_status(struct char_data *ch);
