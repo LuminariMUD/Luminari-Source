@@ -114,6 +114,7 @@ void mysql_test_clear_query_failure(void);
 /* Pool-aware query functions - automatically acquire/release connections */
 int mysql_pool_query(const char *query, MYSQL_RES **result);
 void mysql_pool_free_result(MYSQL_RES *result);
+int get_cached_zone_wind_speed(zone_vnum zone, int fallback);
 
 /* String escaping for SQL injection prevention */
 char *mysql_escape_string_alloc(MYSQL *mysql_conn, const char *str);

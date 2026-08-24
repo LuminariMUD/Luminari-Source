@@ -159,7 +159,7 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     87: ("dexterity", 104),  # grace
     88: ("rejuvenate minor", 530),  # rejuvenate minor
     89: ("age", 531),  # age
-    90: ("cyclone", 308),  # whirlwind
+    90: ("cyclone", 603),  # cyclone
     91: ("bigbys clenched fist", 188),  # clenched fist
     92: ("conjure elemental", 299),  # elemental swarm
     93: ("xxxvitalize mana", 440),  # restoration
@@ -251,7 +251,7 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     299: ("rain of blood", 548),  # rain of blood
     301: ("embalm", 315),  # embalm
     302: ("rot", 549),  # rot
-    303: ("lich touch", 396),  # grave touch
+    303: ("lich touch", 604),  # lich touch
     304: ("life drain", 25),  # energy drain
     305: ("ice tomb", 550),  # ice tomb
     306: ("locate remains", 31),  # locate object
@@ -392,8 +392,8 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     484: ("elemental earth embodiment", 488),  # geniekind
     485: ("elemental air embodiment", 488),  # geniekind
     486: ("ice spear", 82),  # ice dagger
-    487: ("lava burst", 293),  # fire storm
-    488: ("ice layer", 80),  # grease
+    487: ("lava burst", 605),  # lava burst
+    488: ("ice layer", 606),  # ice layer
     489: ("whirlwind", 308),  # whirlwind
     492: ("shadow flux", 590),  # shadow flux
     493: ("dimensional fold", 216),  # portal
@@ -630,7 +630,8 @@ MOB_AUTOMATIC_RACE_AFFECTS = {
 # Retain its identity for source mechanics whose immunity lists distinguish
 # angels from other outsiders.
 MOB_SOURCE_RACE_IDENTITY_ACTIONS = {
-    "Z": frozenset({122}), # RACE_ANGEL
+    "Z": frozenset({122}),  # RACE_ANGEL
+    "OB": frozenset({126}),  # RACE_BEHOLDER
 }
 
 

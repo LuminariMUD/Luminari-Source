@@ -687,9 +687,13 @@
 #define SPELL_DARK_WRATH 600
 #define SPELL_UNHOLY_AURA 601
 #define SPELL_CAMOUFLAGE 602
+#define SPELL_CYCLONE 603
+#define SPELL_LICH_TOUCH 604
+#define SPELL_LAVA_BURST 605
+#define SPELL_ICE_LAYER 606
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 603
+#define NUM_SPELLS 607
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1905,8 +1909,17 @@ ASPELL(spell_heal_undead);
 ASPELL(spell_dark_wrath);
 ASPELL(spell_unholy_aura);
 ASPELL(spell_camouflage);
+ASPELL(spell_ice_layer);
 
 void remove_spell_camouflage(struct char_data *ch);
+
+#ifdef LUMINARI_CUTEST
+int test_cyclone_damage_percent(bool player_caster, int wind_speed);
+int test_adjust_lich_touch_damage(struct char_data *victim, int damage);
+bool test_ice_layer_target_is_immune(struct char_data *victim);
+bool test_lava_burst_should_ignite(int damage_result, int hit_before, int hit_after,
+                                   bool already_burning);
+#endif
 
 int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage);
 int adjust_damage_for_creature_wards(struct char_data *attacker, struct char_data *victim,

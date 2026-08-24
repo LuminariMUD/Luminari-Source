@@ -111,6 +111,13 @@ static const struct spell_registration_expectation remaining_support_spells[] = 
     {SPELL_CAMOUFLAGE, MAG_MANUAL},
 };
 
+static const struct spell_registration_expectation damage_control_spells[] = {
+    {SPELL_CYCLONE, MAG_AREAS},
+    {SPELL_LICH_TOUCH, MAG_DAMAGE | MAG_AFFECTS},
+    {SPELL_LAVA_BURST, MAG_AREAS},
+    {SPELL_ICE_LAYER, MAG_MANUAL},
+};
+
 static void add_test_affect(struct char_data *ch, int spellnum, int location, int modifier)
 {
   struct affected_type af;
@@ -231,6 +238,79 @@ void TestRemainingSupportSpellsAreNativeAndUnassigned(CuTest *tc)
     for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
       CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].domain[domain_num]);
   }
+}
+
+void TestDamageControlSpellsAreNativeAndUnassigned(CuTest *tc)
+{
+  size_t index;
+  int class_num;
+  int domain_num;
+  int spellnum;
+
+  mag_assign_spells();
+
+  for (index = 0; index < sizeof(damage_control_spells) / sizeof(damage_control_spells[0]); index++)
+  {
+    spellnum = damage_control_spells[index].spellnum;
+    CuAssertTrue(tc, spell_info[spellnum].name != NULL);
+    CuAssertTrue(tc, spell_info[spellnum].name != unused_spellname);
+    CuAssertIntEquals(tc, damage_control_spells[index].routines, spell_info[spellnum].routines);
+
+    for (class_num = 0; class_num < NUM_CLASSES; class_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].min_level[class_num]);
+    for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].domain[domain_num]);
+  }
+}
+
+void TestCycloneUsesSourceWindThresholdOnlyForPlayerCasters(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 50, test_cyclone_damage_percent(true, 25));
+  CuAssertIntEquals(tc, 100, test_cyclone_damage_percent(true, 26));
+  CuAssertIntEquals(tc, 100, test_cyclone_damage_percent(false, 0));
+}
+
+void TestLichTouchPreservesElementalAndShieldDamageInteractions(CuTest *tc)
+{
+  struct char_data victim;
+
+  clear_char(&victim);
+  SET_BIT_AR(MOB_FLAGS(&victim), MOB_ISNPC);
+  GET_REAL_RACE(&victim) = RACE_TYPE_ELEMENTAL;
+  GET_SUBRACE(&victim, 0) = SUBRACE_FIRE;
+
+  CuAssertIntEquals(tc, 125, test_adjust_lich_touch_damage(&victim, 100));
+  SET_BIT_AR(AFF_FLAGS(&victim), AFF_CSHIELD);
+  CuAssertIntEquals(tc, 62, test_adjust_lich_touch_damage(&victim, 100));
+  SET_BIT_AR(AFF_FLAGS(&victim), AFF_FSHIELD);
+  CuAssertIntEquals(tc, 112, test_adjust_lich_touch_damage(&victim, 100));
+}
+
+void TestIceLayerRecognizesPreservedSourceImmunities(CuTest *tc)
+{
+  struct char_data victim;
+
+  clear_char(&victim);
+  SET_BIT_AR(MOB_FLAGS(&victim), MOB_ISNPC);
+  GET_REAL_RACE(&victim) = RACE_TYPE_HUMANOID;
+  CuAssertTrue(tc, !test_ice_layer_target_is_immune(&victim));
+
+  SET_BIT_AR(MOB_FLAGS(&victim), MOB_ROL_BEHOLDER);
+  CuAssertTrue(tc, test_ice_layer_target_is_immune(&victim));
+  REMOVE_BIT_AR(MOB_FLAGS(&victim), MOB_ROL_BEHOLDER);
+  SET_BIT_AR(MOB_FLAGS(&victim), MOB_ROL_DEMON);
+  CuAssertTrue(tc, test_ice_layer_target_is_immune(&victim));
+  REMOVE_BIT_AR(MOB_FLAGS(&victim), MOB_ROL_DEMON);
+  GET_REAL_RACE(&victim) = RACE_TYPE_DRAGON;
+  CuAssertTrue(tc, test_ice_layer_target_is_immune(&victim));
+}
+
+void TestLavaBurstIgnitesOnlySuccessfullyDamagedSurvivors(CuTest *tc)
+{
+  CuAssertTrue(tc, test_lava_burst_should_ignite(0, 100, 75, false));
+  CuAssertTrue(tc, !test_lava_burst_should_ignite(-1, 100, 0, false));
+  CuAssertTrue(tc, !test_lava_burst_should_ignite(0, 100, 100, false));
+  CuAssertTrue(tc, !test_lava_burst_should_ignite(0, 100, 75, true));
 }
 
 void TestHealUndeadPreservesLichAndBlackmantleRules(CuTest *tc)

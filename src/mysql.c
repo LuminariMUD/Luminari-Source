@@ -739,6 +739,45 @@ void mysql_pool_free_result(MYSQL_RES *result)
   }
 }
 
+int get_cached_zone_wind_speed(zone_vnum zone, int fallback)
+{
+  MYSQL_RES *result = NULL;
+  MYSQL_ROW row;
+  char query[256];
+  char *end = NULL;
+  long wind_speed;
+  bool invalid;
+
+  if (!mysql_available || mysql_pool == NULL || !mysql_pool->initialized)
+    return fallback;
+
+  snprintf(query, sizeof(query),
+           "SELECT wind_speed FROM weather_cache WHERE zone_vnum = %d "
+           "ORDER BY (expires_at > CURRENT_TIMESTAMP) DESC, cached_at DESC LIMIT 1",
+           (int)zone);
+  if (mysql_pool_query(query, &result) != 0 || result == NULL)
+  {
+    mysql_pool_free_result(result);
+    return fallback;
+  }
+
+  row = mysql_fetch_row(result);
+  if (row == NULL || row[0] == NULL)
+  {
+    mysql_pool_free_result(result);
+    return fallback;
+  }
+
+  errno = 0;
+  wind_speed = strtol(row[0], &end, 10);
+  invalid = errno != 0 || end == row[0] || *end != '\0' || wind_speed < 0 || wind_speed > INT_MAX;
+  mysql_pool_free_result(result);
+  if (invalid)
+    return fallback;
+
+  return (int)wind_speed;
+}
+
 /* ========================================================================== */
 /* End of Connection Pool Implementation                                      */
 /* ========================================================================== */

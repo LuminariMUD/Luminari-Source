@@ -36784,5 +36784,65 @@ also end camouflage.
 
 See also: HIDE, SNEAK, SPELLS
 
+#0
+CYCLONE
+
+Usage: cast 'cyclone'
+Duration: Instantaneous
+School of Magic: Evocation
+Target(s): Eligible enemies in the caster's room
+
+Cyclone strikes eligible room enemies with air damage. Normal spell saves and
+area-spell defenses apply. For a player caster, a zone wind speed of 25 or lower
+halves the spell's damage. If no current weather reading exists, the spell safely
+uses the low-wind result.
+
+See also: AREA SPELLS, WEATHER, WHIRLWIND
+
+#0
+LICH-TOUCH
+
+Usage: cast 'lich touch' <target>
+Duration: Instantaneous damage; secondary effects vary
+School of Magic: Necromancy
+Target(s): One character in the room
+
+Lich touch deals direct unholy damage without a save for the initial damage. Fire
+elementals take additional damage, a cold shield halves it, and a fire shield adds
+damage. A separate Fortitude save resists one point of Strength loss and slow.
+Cold shields make that secondary save harder, while fire elementals resist it more
+easily. Strength loss can accumulate. Dragons ignore the secondary effects.
+
+See also: COLD-SHIELD, FIRE-SHIELD, SLOW, STRENGTH
+
+#0
+LAVA-BURST
+
+Usage: cast 'lava burst'
+Duration: Instantaneous damage; burning lasts 5 rounds
+School of Magic: Evocation
+Target(s): Eligible enemies in the caster's room
+
+Lava burst explodes across the room for fire damage. A survivor who actually loses
+hit points and is not already burning catches fire for five rounds, taking the
+normal ongoing fire damage each combat heartbeat.
+
+See also: AREA SPELLS, FIRE, FIRE-STORM
+
+#0
+ICE-LAYER
+
+Usage: cast 'ice layer' <target>
+Duration: Instantaneous
+School of Magic: Evocation
+Target(s): One standing opponent in the room
+
+Ice layer coats a corporeal standing opponent in treacherous ice. On a failed
+Reflex save, the target takes 2d10 bludgeoning damage, falls to the sitting/prone
+position, and loses one combat pulse to action lag. Demons, devils, angels,
+beholders, dragons, and immaterial targets are immune.
+
+See also: GREASE, POSITION, REFLEX SAVES
+
 #34
 $~

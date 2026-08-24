@@ -5679,6 +5679,59 @@ ASPELL(spell_camouflage)
     act("$n's appearance shifts and blends into the surroundings.", FALSE, ch, NULL, NULL, TO_ROOM);
 }
 
+static bool ice_layer_target_is_immune(struct char_data *victim)
+{
+  if (victim == NULL)
+    return true;
+
+  if (IS_INCORPOREAL(victim) || IS_DRAGON(victim) || HAS_SUBRACE(victim, SUBRACE_ANGEL))
+    return true;
+
+  return IS_NPC(victim) &&
+         (MOB_FLAGGED(victim, MOB_ROL_DEMON) || MOB_FLAGGED(victim, MOB_ROL_DEVIL) ||
+          MOB_FLAGGED(victim, MOB_ROL_ANGEL) || MOB_FLAGGED(victim, MOB_ROL_BEHOLDER));
+}
+
+#ifdef LUMINARI_CUTEST
+bool test_ice_layer_target_is_immune(struct char_data *victim)
+{
+  return ice_layer_target_is_immune(victim);
+}
+#endif
+
+ASPELL(spell_ice_layer)
+{
+  if (ch == NULL || victim == NULL)
+    return;
+  if (GET_POS(victim) <= POS_SITTING)
+  {
+    send_to_char(ch, "%s is already on the ground.\r\n", GET_NAME(victim));
+    return;
+  }
+  if (ice_layer_target_is_immune(victim))
+  {
+    send_to_char(ch, "The ice melts harmlessly beneath %s.\r\n", GET_NAME(victim));
+    return;
+  }
+
+  act("You conjure a sheet of slippery ice beneath $N!", FALSE, ch, NULL, victim, TO_CHAR);
+  act("$n conjures a sheet of slippery ice beneath you!", FALSE, ch, NULL, victim, TO_VICT);
+  act("$n conjures a sheet of slippery ice beneath $N!", FALSE, ch, NULL, victim, TO_NOTVICT);
+  if (savingthrow(ch, victim, SAVING_REFL, -1, casttype, level, EVOCATION))
+  {
+    act("$n slips, but manages to retain $s balance.", FALSE, victim, NULL, NULL, TO_ROOM);
+    send_to_char(victim, "You slip, but manage to retain your balance.\r\n");
+    return;
+  }
+
+  act("$n flails wildly and crashes to the ground!", FALSE, victim, NULL, NULL, TO_ROOM);
+  send_to_char(victim, "You flail wildly and crash to the ground!\r\n");
+  if (damage(ch, victim, dice(2, 10), SPELL_ICE_LAYER, DAM_BLUDGEON, FALSE) < 0)
+    return;
+  change_position(victim, POS_SITTING);
+  WAIT_STATE(victim, PULSE_VIOLENCE);
+}
+
 int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage)
 {
   if (victim == NULL || damage <= 0)

@@ -988,6 +988,7 @@ class RolTransformTests(unittest.TestCase):
         "Y": ({117}, {11, 28}),
         "MH": ({118}, {28}),
         "Z": ({122}, set()),
+        "OB": ({126}, set()),
     }
     for race_code, (expected_actions, expected_affects) in cases.items():
       with self.subTest(race_code=race_code):
@@ -1764,6 +1765,10 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(600, _SOURCE_SPELL_MAP[377][1])
     self.assertEqual(601, _SOURCE_SPELL_MAP[378][1])
     self.assertEqual(602, _SOURCE_SPELL_MAP[473][1])
+    self.assertEqual(603, _SOURCE_SPELL_MAP[90][1])
+    self.assertEqual(604, _SOURCE_SPELL_MAP[303][1])
+    self.assertEqual(605, _SOURCE_SPELL_MAP[487][1])
+    self.assertEqual(606, _SOURCE_SPELL_MAP[488][1])
     for source_spell, (source_name, target_spell) in _SOURCE_SPELL_MAP.items():
       with self.subTest(source_spell=source_spell, source_name=source_name):
         self.assertGreater(target_spell, 0)

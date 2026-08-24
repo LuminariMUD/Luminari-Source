@@ -1193,8 +1193,9 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define MOB_ROL_TOTEM_SPIRIT 123      /**< RoL: shaman totem spirit fades without a corpse */
 #define MOB_ROL_BLACK_VAPOR_DEATH 124 /**< RoL: undead uses Bloodstone's death message */
 #define MOB_ROL_ABYSS_FORGED 125      /**< RoL: wielded abyss-forged weapons dissolve on death */
+#define MOB_ROL_BEHOLDER 126          /**< RoL: preserves source beholder identity */
 /**********************/
-#define NUM_MOB_FLAGS 126
+#define NUM_MOB_FLAGS 127
 /**********************/
 /**********************/
 

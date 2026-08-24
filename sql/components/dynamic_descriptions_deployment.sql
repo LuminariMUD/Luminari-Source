@@ -311,6 +311,7 @@ CREATE TABLE IF NOT EXISTS weather_cache (
     y_coord INT NOT NULL,
     weather_value INT NOT NULL,  -- 0-255 wilderness weather value
     weather_type ENUM('clear', 'cloudy', 'rainy', 'stormy', 'lightning') NOT NULL,
+    wind_speed INT DEFAULT 5,
     cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NOT NULL,
 
