@@ -5552,7 +5552,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define PLR_DESC_LENGTH 4096             /**< Max length for PC description */
 #define MAX_HELP_ENTRY MAX_STRING_LENGTH /**< Max size of help entry */
 
-#define MAX_MESSAGES 200           /**< Max Different attack message types */
+#define MAX_MESSAGES 512           /**< Max Different attack message types */
 #define MAX_NAME_LENGTH 20         /**< Max PC/NPC name length */
 #define MAX_PWD_LENGTH 30          /**< Max PC password length */
 #define MAX_TITLE_LENGTH 80        /**< Max PC title length */
