@@ -1012,6 +1012,25 @@ class RolTransformTests(unittest.TestCase):
         self.assertTrue(expected_affects <= decode_tokens(mobile.affect_flags).bits)
         self.assertEqual("RoL Thief", mobile.spec_proc)
 
+  def test_call_lycanthrope_prototypes_preserve_their_summon_role(self) -> None:
+    for source_vnum in (525, 526):
+      with self.subTest(source_vnum=source_vnum):
+        source = self._source_record(
+            "mob",
+            (
+                f"#{source_vnum}\nlycanthrope~\na lycanthrope~\n"
+                "A lycanthrope waits here.~\n~\n"
+                "0 0 0 0 S\nL 0 0\n"
+                "20 0 0 1d1+0 1d1+0\n0 0\n131 131 0\n"
+            ).encode("ascii"),
+        )
+        emitted = emit_mobile(source, 2_000_000 + source_vnum)
+        path = self._target_path("mob", emitted.text)
+        result = parse_mobile_file(path, "mob/20001.mob", self.manifest, set())
+
+        self.assertTrue(result.complete)
+        self.assertIn(127, decode_tokens(result.records[0].action_flags).bits)
+
   def test_emitted_mobile_maps_all_action_dispositions_and_infers_primary_class(self) -> None:
     source_actions = (1, 4, 5, 13, 14, 16, 17, 19, 20, 21, 22, 23, 24, 26, 27, 29, 30, 32)
     action_mask = sum(1 << (flag - 1) for flag in source_actions)
@@ -1769,6 +1788,8 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(604, _SOURCE_SPELL_MAP[303][1])
     self.assertEqual(605, _SOURCE_SPELL_MAP[487][1])
     self.assertEqual(606, _SOURCE_SPELL_MAP[488][1])
+    self.assertEqual(607, _SOURCE_SPELL_MAP[343][1])
+    self.assertEqual(608, _SOURCE_SPELL_MAP[376][1])
     for source_spell, (source_name, target_spell) in _SOURCE_SPELL_MAP.items():
       with self.subTest(source_spell=source_spell, source_name=source_name):
         self.assertGreater(target_spell, 0)

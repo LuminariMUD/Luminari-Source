@@ -1121,6 +1121,12 @@ SAVING_WILL here...  */
     case SPELL_ICE_LAYER:
       MANUAL_SPELL(spell_ice_layer);
       break;
+    case SPELL_CALL_LYCANTHROPE:
+      MANUAL_SPELL(spell_call_lycanthrope);
+      break;
+    case SPELL_TAZRIKS_FRENZIED_HOUND:
+      MANUAL_SPELL(spell_tazriks_frenzied_hound);
+      break;
     case SPELL_GIRD_ALLIES:
       MANUAL_SPELL(spell_gird_allies);
       break;
@@ -6447,6 +6453,10 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   spello(SPELL_ICE_LAYER, "ice layer", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_MANUAL, NULL, 1, 1, EVOCATION,
          FALSE);
+  spello(SPELL_CALL_LYCANTHROPE, "call lycanthrope", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
+         MAG_MANUAL, NULL, 2, 0, CONJURATION, FALSE);
+  spello(SPELL_TAZRIKS_FRENZIED_HOUND, "tazriks frenzied hound", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+         TRUE, MAG_MANUAL, NULL, 3, 13, CONJURATION, FALSE);
 
   /* Declaration of skills - this assigns categories and also will set it up
    * so that immortals can use these skills by default.  The min level to use

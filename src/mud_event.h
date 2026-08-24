@@ -262,6 +262,8 @@ typedef enum
   eROL_SPIDERHAUNT_MAGGOTS,     /* Converted Spiderhaunt delayed maggot sensation */
   eDRAGON_ATTACK_COOLDOWN,      /* Shared short cooldown for innate dragon attacks */
   eROL_CALM,                    /* Calm feat daily use cooldown */
+  eROL_CALL_LYCANTHROPE_CHARM,  /* Converted call-lycanthrope charm check */
+  eROL_TAZRIKS_FRENZIED_HOUND,  /* Converted Tazrik's hound recurring strike */
   eMUD_EVENT_COUNT
 } event_id;
 
@@ -347,4 +349,6 @@ EVENTFUNC(event_aqueous_orb);
 EVENTFUNC(event_device_progress);
 EVENTFUNC(event_device_creation);
 EVENTFUNC(event_device_repair);
+EVENTFUNC(event_rol_call_lycanthrope_charm);
+EVENTFUNC(event_rol_tazriks_frenzied_hound);
 #endif /* _MUD_EVENT_H_ */

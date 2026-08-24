@@ -2011,6 +2011,16 @@ static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *
     bonus = 0;
     break;
 
+  case SPELL_TAZRIKS_FRENZIED_HOUND:
+    /* The source hound's bite has neither a save nor a magic-resistance check. */
+    save = -1;
+    mag_resist = FALSE;
+    element = DAM_PUNCTURE;
+    num_dice = MIN(40, MAX(1, level));
+    size_dice = 12;
+    bonus = 0;
+    break;
+
   case SPELL_DUST_DEVIL:
     save = SAVING_REFL;
     element = DAM_AIR;

@@ -5732,6 +5732,271 @@ ASPELL(spell_ice_layer)
   WAIT_STATE(victim, PULSE_VIOLENCE);
 }
 
+static int call_lycanthrope_level(int caster_level)
+{
+  return MIN(40, MAX(1, caster_level - 10));
+}
+
+static int call_lycanthrope_charm_save_target(int charisma)
+{
+  return MIN(20, MAX(1, charisma - 2));
+}
+
+static mob_vnum random_call_lycanthrope_vnum(void)
+{
+  mob_rnum index;
+  mob_vnum selected = NOBODY;
+  int candidates = 0;
+
+  if (mob_proto == NULL || mob_index == NULL)
+    return NOBODY;
+
+  for (index = 0; index <= top_of_mobt; index++)
+  {
+    if (!MOB_FLAGGED(&mob_proto[index], MOB_ROL_LYCANTHROPE_SUMMON))
+      continue;
+
+    candidates++;
+    if (rand_number(1, candidates) == 1)
+      selected = mob_index[index].vnum;
+  }
+
+  return selected;
+}
+
+EVENTFUNC(event_rol_call_lycanthrope_charm)
+{
+  struct mud_event_data *event;
+  struct char_data *master;
+  struct char_data *mob;
+
+  if (event_obj == NULL)
+    return 0;
+
+  event = (struct mud_event_data *)event_obj;
+  mob = (struct char_data *)event->pStruct;
+  if (mob == NULL || !IS_NPC(mob) || !MOB_FLAGGED(mob, MOB_ROL_LYCANTHROPE_SUMMON) ||
+      !AFF_FLAGGED(mob, AFF_CHARM) || mob->master == NULL)
+    return 0;
+
+  master = mob->master;
+  if (FIGHTING(mob) == NULL)
+  {
+    if (IN_ROOM(mob) != NOWHERE)
+      act("$n slips back through a black door as the charm expires.", FALSE, mob, NULL, NULL,
+          TO_ROOM);
+    stop_follower(mob);
+    extract_char(mob);
+    return 0;
+  }
+
+  if (rand_number(1, 20) < call_lycanthrope_charm_save_target(GET_CHA(master)))
+    return 30 * PASSES_PER_SEC;
+
+  stop_follower(mob);
+  act("$n breaks free of the charm and turns on you with a furious snarl!", FALSE, mob, NULL,
+      master, TO_VICT);
+  act("$n breaks free of the charm and turns on $N with a furious snarl!", FALSE, mob, NULL, master,
+      TO_NOTVICT);
+  end_fights_with(mob);
+  if (IN_ROOM(mob) != NOWHERE && IN_ROOM(mob) == IN_ROOM(master))
+    hit(mob, master, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+
+  return 0;
+}
+
+ASPELL(spell_call_lycanthrope)
+{
+  struct char_data *mob;
+  mob_vnum mob_vnum;
+  int hit_points;
+  int mob_level;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+  if (!can_add_follower_by_flag(ch, MOB_ROL_LYCANTHROPE_SUMMON))
+  {
+    send_to_char(ch, "You cannot control more than one lycanthrope at a time!\r\n");
+    return;
+  }
+
+  mob_vnum = random_call_lycanthrope_vnum();
+  if (mob_vnum == NOBODY ||
+      (mob = read_mobile_reason(mob_vnum, VIRTUAL, PERF_ENTITY_SPELL_SUMMON)) == NULL)
+  {
+    log("SYSERR: spell_call_lycanthrope could not find a converted summon prototype");
+    send_to_char(ch, "No lycanthrope answers your call. Please report this to staff.\r\n");
+    return;
+  }
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+  {
+    X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+    Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+  }
+  char_to_room(mob, IN_ROOM(ch));
+  IS_CARRYING_W(mob) = 0;
+  IS_CARRYING_N(mob) = 0;
+  GET_GOLD(mob) = 0;
+
+  while (mob->affected != NULL)
+    affect_remove(mob, mob->affected);
+
+  mob_level = call_lycanthrope_level(GET_LEVEL(ch));
+  GET_LEVEL(mob) = mob_level;
+  autoroll_mob(mob, TRUE, TRUE);
+  hit_points = MAX(1, dice(mob_level, 20) + GET_CON_BONUS(mob) * mob_level);
+  GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) = GET_HIT(mob) = hit_points;
+
+  act("A black door opens in space and $N leaps through!", FALSE, ch, NULL, mob, TO_ROOM);
+  act("A black door opens in space and $N leaps through!", FALSE, ch, NULL, mob, TO_CHAR);
+  SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+  load_mtrigger(mob);
+  add_follower(mob, ch);
+  if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    join_group(mob, GROUP(ch));
+  NEW_EVENT(eROL_CALL_LYCANTHROPE_CHARM, mob, NULL, 30 * PASSES_PER_SEC);
+}
+
+static bool tazriks_event_state(const char *state, room_vnum *room, int *strike)
+{
+  int parsed_room;
+  int parsed_strike;
+  char trailing;
+
+  if (state == NULL || sscanf(state, "%d %d %c", &parsed_room, &parsed_strike, &trailing) != 2 ||
+      parsed_room < 0 || parsed_strike < 0 || parsed_strike > 2)
+    return false;
+
+  if (room != NULL)
+    *room = (room_vnum)parsed_room;
+  if (strike != NULL)
+    *strike = parsed_strike;
+  return true;
+}
+
+static void tazriks_hound_disappears(room_rnum room)
+{
+  if (room != NOWHERE)
+    send_to_room(room, "The hellhound disappears in a puff of acrid black smoke.\r\n");
+}
+
+EVENTFUNC(event_rol_tazriks_frenzied_hound)
+{
+  struct mud_event_data *event;
+  struct char_data *caster;
+  struct char_data *target;
+  room_vnum stored_vnum;
+  room_rnum room;
+  char state[64];
+  char *next_state;
+  int eligible = 0;
+  int selected;
+  int strike;
+
+  if (event_obj == NULL)
+    return 0;
+
+  event = (struct mud_event_data *)event_obj;
+  caster = (struct char_data *)event->pStruct;
+  if (!tazriks_event_state(event->sVariables, &stored_vnum, &strike) ||
+      (room = real_room(stored_vnum)) == NOWHERE)
+    return 0;
+  if (caster == NULL || IN_ROOM(caster) == NOWHERE)
+  {
+    tazriks_hound_disappears(room);
+    return 0;
+  }
+
+  for (target = world[room].people; target; target = target->next_in_room)
+    if (target != caster && !IS_INCORPOREAL(target) &&
+        aoeOK(caster, target, SPELL_TAZRIKS_FRENZIED_HOUND))
+      eligible++;
+
+  if (eligible == 0)
+  {
+    tazriks_hound_disappears(room);
+    return 0;
+  }
+
+  selected = rand_number(1, eligible);
+  for (target = world[room].people; target; target = target->next_in_room)
+  {
+    if (target == caster || IS_INCORPOREAL(target) ||
+        !aoeOK(caster, target, SPELL_TAZRIKS_FRENZIED_HOUND))
+      continue;
+    if (--selected == 0)
+      break;
+  }
+
+  if (target == NULL)
+  {
+    tazriks_hound_disappears(room);
+    return 0;
+  }
+
+  send_to_char(caster, "The frenzied hound lunges from the vortex at %s!\r\n", GET_NAME(target));
+  act("A slavering hellhound lunges from the vortex and tears into you!", FALSE, target, NULL, NULL,
+      TO_CHAR);
+  act("A slavering hellhound lunges from the vortex and tears into $n!", FALSE, target, NULL, NULL,
+      TO_ROOM);
+  mag_damage(GET_LEVEL(caster), caster, target, NULL, SPELL_TAZRIKS_FRENZIED_HOUND, 0, -1,
+             CAST_SPELL);
+
+  if (strike >= 2)
+  {
+    tazriks_hound_disappears(room);
+    return 0;
+  }
+  if (IN_ROOM(caster) == NOWHERE)
+  {
+    tazriks_hound_disappears(room);
+    return 0;
+  }
+
+  snprintf(state, sizeof(state), "%d %d", world[IN_ROOM(caster)].number, strike + 1);
+  next_state = strdup(state);
+  if (next_state == NULL)
+  {
+    log("SYSERR: event_rol_tazriks_frenzied_hound could not update event state");
+    tazriks_hound_disappears(room);
+    return 0;
+  }
+  free(event->sVariables);
+  event->sVariables = next_state;
+  return PULSE_VIOLENCE;
+}
+
+ASPELL(spell_tazriks_frenzied_hound)
+{
+  char state[64];
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  send_to_room(IN_ROOM(ch),
+               "A vortex to the Abyss opens in midair. From it springs a slavering hellhound!\r\n");
+  snprintf(state, sizeof(state), "%d 0", world[IN_ROOM(ch)].number);
+  NEW_EVENT(eROL_TAZRIKS_FRENZIED_HOUND, ch, state, PULSE_VIOLENCE);
+}
+
+#ifdef LUMINARI_CUTEST
+int test_call_lycanthrope_level(int caster_level)
+{
+  return call_lycanthrope_level(caster_level);
+}
+
+int test_call_lycanthrope_charm_save_target(int charisma)
+{
+  return call_lycanthrope_charm_save_target(charisma);
+}
+
+bool test_tazriks_event_state(const char *state, room_vnum *room, int *strike)
+{
+  return tazriks_event_state(state, room, strike);
+}
+#endif
+
 int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage)
 {
   if (victim == NULL || damage <= 0)

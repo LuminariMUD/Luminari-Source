@@ -759,7 +759,7 @@ running automatic statistics.
 - `src/magic/spells.c` - Teleport target check (`spell_teleport()`)
 - `src/magic/magic.c` - Creation placement (`mag_creations()`)
 
-### RoL compatibility flags (Indices: 105-125)
+### RoL compatibility flags (Indices: 105-127)
 **Effect:** Preserve shared Realms of Luminari mobile behaviors during deterministic conversion.
 - `MOB_ROL_NICE_THIEF` allows stealing but suppresses automatic retaliation when caught
 - `MOB_ROL_STAY_SECTOR` restricts random wandering to the mobile's current sector
@@ -797,6 +797,10 @@ running automatic statistics.
   weapons dissolve on death. In the target it removes one-handed, off-hand, and two-handed
   wielded weapons before either special death handling or ordinary corpse creation, without
   consuming the persistent SpecProc slot.
+- `MOB_ROL_BEHOLDER` preserves source beholder identity for mechanics with explicit beholder
+  immunities.
+- `MOB_ROL_LYCANTHROPE_SUMMON` marks only the two converted prototypes selected by call
+  lycanthrope; ordinary lycanthropes do not receive the summon role.
 - These flags are converter-owned compatibility data; builders should use native flags
   and classes for new content unless reproducing converted RoL behavior
 
@@ -947,6 +951,8 @@ running automatic statistics.
 | 123 | MOB_ROL_TOTEM_SPIRIT | RoL-Totem-Spirit | Compatibility | Totem spirit fades without a corpse |
 | 124 | MOB_ROL_BLACK_VAPOR_DEATH | RoL-Black-Vapor-Death | Compatibility | Bloodstone undead becomes black vapor without a corpse |
 | 125 | MOB_ROL_ABYSS_FORGED | RoL-Abyss-Forged | Compatibility | Wielded abyss-forged weapons dissolve on death |
+| 126 | MOB_ROL_BEHOLDER | RoL-Beholder | Compatibility | Preserves source beholder identity for explicit immunities |
+| 127 | MOB_ROL_LYCANTHROPE_SUMMON | RoL-Lycanthrope-Summon | Compatibility | Prototype eligible for call lycanthrope |
 
 ---
 

@@ -289,7 +289,7 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     340: ("find familiar", 90),  # summon creature i
     341: ("unseen servant", 557),  # unseen servant
     342: ("call mount", 460),  # summon mount
-    343: ("call lycanthrope", 164),  # summon creature vi
+    343: ("call lycanthrope", 607),  # call lycanthrope
     344: ("control fiend", 466),  # control summoned creature
     345: ("minor horde", 268),  # summon swarm
     346: ("evards tentacles", 464),  # black tentacles
@@ -319,7 +319,7 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     371: ("death pact", 567),  # death pact
     372: ("abi wither", 191),  # horrid wilting
     374: ("special proc effect", 514),  # arcane mark
-    376: ("tazriks frenzied hound", 156),  # faithful hound
+    376: ("tazriks frenzied hound", 608),  # tazriks frenzied hound
     377: ("dark wrath", 600),  # dark wrath
     378: ("unholy aura", 601),  # unholy aura
     380: ("needle swarm", 568),  # needle swarm
@@ -632,6 +632,13 @@ MOB_AUTOMATIC_RACE_AFFECTS = {
 MOB_SOURCE_RACE_IDENTITY_ACTIONS = {
     "Z": frozenset({122}),  # RACE_ANGEL
     "OB": frozenset({126}),  # RACE_BEHOLDER
+}
+
+# Call lycanthrope chooses only the two source prototypes named by its live
+# handler. Preserve that role independently of their broader lycanthrope race.
+MOB_SOURCE_VNUM_IDENTITY_ACTIONS = {
+    525: frozenset({127}),
+    526: frozenset({127}),
 }
 
 
@@ -1918,6 +1925,7 @@ def emit_mobile(
   automatic_actions, automatic_affects = mobile_automatic_race_flags(record)
   target_actions.update(automatic_actions)
   target_actions.update(MOB_SOURCE_RACE_IDENTITY_ACTIONS.get(race_code, frozenset()))
+  target_actions.update(MOB_SOURCE_VNUM_IDENTITY_ACTIONS.get(record.vnum, frozenset()))
   target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
   target_affects.update(automatic_affects)
   target_affects.update(required_affect_bits)

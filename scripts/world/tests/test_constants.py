@@ -106,15 +106,19 @@ class ConstantsTests(unittest.TestCase):
     self.assertIn("POS_CRAWLING", positions[5]["aliases"])
     self.assertNotIn("MOB_DIRE_SPIDER", mob_macros)
 
-  def test_rol_death_flags_match_runtime_contract(self) -> None:
+  def test_rol_identity_flags_match_runtime_contract(self) -> None:
     entries = self.manifest["tables"]["mob"]["entries"]
-    self.assertEqual(126, len(entries))
+    self.assertEqual(128, len(entries))
     self.assertEqual("MOB_ROL_TOTEM_SPIRIT", entries[123]["macro"])
     self.assertEqual("RoL-Totem-Spirit", entries[123]["name"])
     self.assertEqual("MOB_ROL_BLACK_VAPOR_DEATH", entries[124]["macro"])
     self.assertEqual("RoL-Black-Vapor-Death", entries[124]["name"])
     self.assertEqual("MOB_ROL_ABYSS_FORGED", entries[125]["macro"])
     self.assertEqual("RoL-Abyss-Forged", entries[125]["name"])
+    self.assertEqual("MOB_ROL_BEHOLDER", entries[126]["macro"])
+    self.assertEqual("RoL-Beholder", entries[126]["name"])
+    self.assertEqual("MOB_ROL_LYCANTHROPE_SUMMON", entries[127]["macro"])
+    self.assertEqual("RoL-Lycanthrope-Summon", entries[127]["name"])
 
   def test_mobile_conversion_symbols_match_runtime_headers(self) -> None:
     symbols = self.manifest["symbols"]
@@ -149,7 +153,7 @@ class ConstantsTests(unittest.TestCase):
   def test_flag_above_31_round_trips_in_later_chunk(self) -> None:
     tokens = encode_bits({0, 41, 95, 126})
     self.assertEqual(("a", "j", "F", "E"), tokens)
-    decoded = decode_tokens(list(tokens), entry_count=127)
+    decoded = decode_tokens(list(tokens), entry_count=128)
     self.assertEqual({0, 41, 95, 126}, set(decoded.bits))
     self.assertEqual((), decoded.issues)
 
@@ -174,7 +178,7 @@ class ConstantsTests(unittest.TestCase):
     self.assertEqual(("a", "0", "0", "0"), encode_bits({0}))
 
   def test_high_local_decoder_bit_is_diagnosed(self) -> None:
-    decoded = decode_tokens(["G"], entry_count=127)
+    decoded = decode_tokens(["G"], entry_count=128)
     self.assertEqual("FLG002", decoded.issues[0].code)
 
   def test_all_invalid_flag_encoding_classes_are_diagnosed(self) -> None:

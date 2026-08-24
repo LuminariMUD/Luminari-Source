@@ -11,6 +11,7 @@
 #include "../../src/handler.h"
 #include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
+#include "../../src/mud_event.h"
 
 #include <string.h>
 
@@ -116,6 +117,11 @@ static const struct spell_registration_expectation damage_control_spells[] = {
     {SPELL_LICH_TOUCH, MAG_DAMAGE | MAG_AFFECTS},
     {SPELL_LAVA_BURST, MAG_AREAS},
     {SPELL_ICE_LAYER, MAG_MANUAL},
+};
+
+static const struct spell_registration_expectation summon_event_spells[] = {
+    {SPELL_CALL_LYCANTHROPE, MAG_MANUAL},
+    {SPELL_TAZRIKS_FRENZIED_HOUND, MAG_MANUAL},
 };
 
 static void add_test_affect(struct char_data *ch, int spellnum, int location, int modifier)
@@ -261,6 +267,61 @@ void TestDamageControlSpellsAreNativeAndUnassigned(CuTest *tc)
     for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
       CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].domain[domain_num]);
   }
+}
+
+void TestSummonEventSpellsAreNativeAndUnassigned(CuTest *tc)
+{
+  size_t index;
+  int class_num;
+  int domain_num;
+  int spellnum;
+
+  mag_assign_spells();
+
+  for (index = 0; index < sizeof(summon_event_spells) / sizeof(summon_event_spells[0]); index++)
+  {
+    spellnum = summon_event_spells[index].spellnum;
+    CuAssertTrue(tc, spell_info[spellnum].name != NULL);
+    CuAssertTrue(tc, spell_info[spellnum].name != unused_spellname);
+    CuAssertIntEquals(tc, summon_event_spells[index].routines, spell_info[spellnum].routines);
+
+    for (class_num = 0; class_num < NUM_CLASSES; class_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].min_level[class_num]);
+    for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].domain[domain_num]);
+  }
+}
+
+void TestCallLycanthropePreservesLevelAndCharmCheckBounds(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 1, test_call_lycanthrope_level(1));
+  CuAssertIntEquals(tc, 20, test_call_lycanthrope_level(30));
+  CuAssertIntEquals(tc, 40, test_call_lycanthrope_level(75));
+  CuAssertIntEquals(tc, 1, test_call_lycanthrope_charm_save_target(1));
+  CuAssertIntEquals(tc, 8, test_call_lycanthrope_charm_save_target(10));
+  CuAssertIntEquals(tc, 20, test_call_lycanthrope_charm_save_target(30));
+}
+
+void TestTazriksEventStateAllowsExactlyThreeStrikeIndices(CuTest *tc)
+{
+  room_vnum room = 0;
+  int strike = -1;
+
+  CuAssertTrue(tc, test_tazriks_event_state("2000123 0", &room, &strike));
+  CuAssertIntEquals(tc, 2000123, room);
+  CuAssertIntEquals(tc, 0, strike);
+  CuAssertTrue(tc, test_tazriks_event_state("2000123 2", &room, &strike));
+  CuAssertIntEquals(tc, 2, strike);
+  CuAssertTrue(tc, !test_tazriks_event_state("2000123 3", &room, &strike));
+  CuAssertTrue(tc, !test_tazriks_event_state("not event state", &room, &strike));
+}
+
+void TestSummonEventRegistryUsesDedicatedHandlers(CuTest *tc)
+{
+  CuAssertTrue(tc, mud_event_index[eROL_CALL_LYCANTHROPE_CHARM].func ==
+                       event_rol_call_lycanthrope_charm);
+  CuAssertTrue(tc, mud_event_index[eROL_TAZRIKS_FRENZIED_HOUND].func ==
+                       event_rol_tazriks_frenzied_hound);
 }
 
 void TestCycloneUsesSourceWindThresholdOnlyForPlayerCasters(CuTest *tc)

@@ -193,7 +193,7 @@ def _mechanics_markers(world) -> list[dict[str, Any]]:
       add("room", room.vnum, room.spec_proc)
   for mobile in world.mobiles:
     action_bits = decode_tokens(mobile.action_flags).bits
-    for bit in sorted(action_bits & set(range(105, 126))):
+    for bit in sorted(action_bits & set(range(105, 128))):
       add("mobile", mobile.vnum, f"mob_rol_flag_{bit}")
     if 4 in decode_tokens(mobile.affect2_flags).bits:
       add("mobile", mobile.vnum, "rol_docile")

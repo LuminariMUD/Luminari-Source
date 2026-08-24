@@ -36844,5 +36844,41 @@ beholders, dragons, and immaterial targets are immune.
 
 See also: GREASE, POSITION, REFLEX SAVES
 
+#0
+CALL-LYCANTHROPE
+
+Usage: cast 'call lycanthrope'
+Duration: Volatile; first charm check after 30 seconds
+School of Magic: Conjuration
+Target(s): No target
+
+Call lycanthrope opens a black door and brings through either the converted
+werewolf or weretiger summon. The creature's level is the caster's level minus
+10, with a minimum of 1 and a maximum of 40. Its hit points scale from that
+level and Constitution. A caster can control only one called lycanthrope.
+
+The creature is charmed and follows the caster. After 30 seconds, an idle
+lycanthrope returns through the door. A fighting lycanthrope tests the caster's
+Charisma: success maintains the charm for another 30 seconds, while failure
+breaks the charm and turns the creature against its former master.
+
+See also: CHARM, FOLLOWERS, SUMMONING
+
+#0
+TAZRIKS-FRENZIED-HOUND
+
+Usage: cast 'tazriks frenzied hound'
+Duration: Three combat pulses
+School of Magic: Conjuration
+Target(s): One randomly selected eligible enemy per pulse
+
+Tazrik's frenzied hound opens a temporary Abyssal vortex. Beginning one combat
+pulse after the spell resolves, the hound bites one random corporeal enemy in
+the stored room. It strikes once per combat pulse for three total strikes, then
+the vortex closes. Each bite uses level-scaled physical spell damage without a
+save or magic-resistance check. The spell never creates a persistent follower.
+
+See also: AREA SPELLS, FAITHFUL-HOUND, SUMMONING
+
 #34
 $~

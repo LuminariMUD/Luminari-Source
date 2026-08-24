@@ -691,9 +691,11 @@
 #define SPELL_LICH_TOUCH 604
 #define SPELL_LAVA_BURST 605
 #define SPELL_ICE_LAYER 606
+#define SPELL_CALL_LYCANTHROPE 607
+#define SPELL_TAZRIKS_FRENZIED_HOUND 608
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 607
+#define NUM_SPELLS 609
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1910,6 +1912,8 @@ ASPELL(spell_dark_wrath);
 ASPELL(spell_unholy_aura);
 ASPELL(spell_camouflage);
 ASPELL(spell_ice_layer);
+ASPELL(spell_call_lycanthrope);
+ASPELL(spell_tazriks_frenzied_hound);
 
 void remove_spell_camouflage(struct char_data *ch);
 
@@ -1919,6 +1923,9 @@ int test_adjust_lich_touch_damage(struct char_data *victim, int damage);
 bool test_ice_layer_target_is_immune(struct char_data *victim);
 bool test_lava_burst_should_ignite(int damage_result, int hit_before, int hit_after,
                                    bool already_burning);
+int test_call_lycanthrope_level(int caster_level);
+int test_call_lycanthrope_charm_save_target(int charisma);
+bool test_tazriks_event_state(const char *state, room_vnum *room, int *strike);
 #endif
 
 int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage);

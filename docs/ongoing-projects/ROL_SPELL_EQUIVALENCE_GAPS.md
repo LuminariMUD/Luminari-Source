@@ -2,10 +2,10 @@
 
 Status: implementation incomplete. The source registry audit was completed and
 independently re-verified 2026-08-24 against `sparser.c`, `spells.h`,
-`spell_parser.c`, and `psionics.c`. Five implementation checkpoints added 83
+`spell_parser.c`, and `psionics.c`. Six implementation checkpoints added 85
 functional gaps through native magic paths and focused direct handlers. A
 follow-up handler-level review found 14 live RoL spells that had been
-incorrectly classified as covered by loose substitutes. Six of those spells
+incorrectly classified as covered by loose substitutes. Four of those spells
 still require native implementations.
 
 This list compares every unique spell registered through `SPELL_CREATE()` in
@@ -30,7 +30,7 @@ below and must not be treated as live RoL content.
 - RoL registrations reviewed: 332 (327 live, 5 never compiled)
 - Live registrations with a close LuminariMUD equivalent: 229
 - Live registrations without a close equivalent: 98
-- Player-facing or functional gaps: 89 (83 implemented, 6 remaining)
+- Player-facing or functional gaps: 89 (85 implemented, 4 remaining)
 - RoL internal or stub registrations without an equivalent: 9
 - Registered only inside `#if 0` (never compiled): 5
 
@@ -57,7 +57,7 @@ converter map is numerically complete but not semantically complete.
 `_SOURCE_SPELL_MAP` contains 340 positive source IDs: all 327 live
 `SPELL_CREATE()` IDs, all 335 distinct positive `SPELL_*` numeric IDs in the
 source header, and the two non-spell IDs actually found in magic-item spell
-slots. Six live source spells currently map to substitutes that do not
+slots. Four live source spells currently map to substitutes that do not
 preserve their mechanics. Those mappings must move to the new native spell IDs
 after the remaining spells are implemented.
 
@@ -77,14 +77,12 @@ positive target spell.
 
 ## Remaining player-facing or functional gaps
 
-These six live RoL spells require distinct native registrations and mechanics.
+These four live RoL spells require distinct native registrations and mechanics.
 The current converter targets are listed only to identify the inadequate
 substitutes; they are not acceptable final mappings.
 
 | RoL ID | RoL spell | Current substitute | Required source behavior |
 |-------:|-----------|--------------------|--------------------------|
-| 343 | call lycanthrope | summon creature vi | Summons one randomly selected lycanthrope prototype, permits only one such follower, scales it to at most level 40 from caster level minus 10, assigns scaled hit points, charms it, and schedules charm expiration. Summon creature VI creates a dire tiger. |
-| 376 | tazriks frenzied hound | faithful hound | Opens a temporary vortex and makes a hellhound strike one randomly selected eligible room target once per combat pulse for three strikes. It does not create a persistent follower. |
 | 482 | elemental water embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 5 hit points per shared level, water breathing, fire/gas/acid protection, and 25 percent additional height and weight. |
 | 483 | elemental fire embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 7 hit points per shared level, fire shield, -65 source armor class, haste, flight, gas/fire protection, and 35 percent additional height and weight. |
 | 484 | elemental earth embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants gas/cold protection and 50 percent additional height and weight. The live RoL handler grants roughly 7 hit points per shared level because it uses `EFHP_FACTOR`; the separately declared `EEHP_FACTOR` value of 10 is unused and should be resolved deliberately during implementation. |
@@ -230,8 +228,22 @@ source-specific rules. None has a class or domain assignment.
 The converter now preserves RoL beholder identity with a dedicated converted
 mobile flag so ice layer can distinguish beholders from generic aberrations.
 
-The complete inventory of the 83 implemented gaps remains below, preserving
-the original source-to-target accounting. The six remaining gaps are listed in
+### Implementation checkpoint 6: volatile summons and recurring events
+
+These two spells replace persistent generic summon substitutes with their
+source-specific lifecycles. Neither has a class or domain assignment.
+
+| Spell | Implemented gameplay purpose |
+|-------|------------------------------|
+| call lycanthrope | Randomly selects one of the two converted summon prototypes, limits the caster to one, scales it from caster level minus 10 to a maximum of 40, assigns level- and Constitution-scaled hit points, and charms it. After 30 seconds an idle summon departs; a fighting summon checks the caster's Charisma and either remains charmed for another 30 seconds or breaks free and attacks its former master. |
+| tazriks frenzied hound | Opens an Abyssal vortex and schedules one unsaved, non-resistible physical bite against a random eligible corporeal target per combat pulse for exactly three strikes. No persistent mobile is created. |
+
+The converter marks only source mobile prototypes 525 and 526 with a dedicated
+summon-role flag, so call lycanthrope does not select unrelated lycanthropes.
+The converter's spell mappings now target both native registrations.
+
+The complete inventory of the 85 implemented gaps remains below, preserving
+the original source-to-target accounting. The four remaining gaps are listed in
 the preceding section.
 
 | RoL ID | RoL spell | RoL constant |
@@ -273,6 +285,7 @@ the preceding section.
 | 332 | blacklight burst | `SPELL_BLACKLIGHT_BURST` |
 | 334 | minute meteors | `SPELL_MINUTE_METEORS` |
 | 341 | unseen servant | `SPELL_UNSEEN_SERVANT` |
+| 343 | call lycanthrope | `SPELL_CALL_LYCANTHROPE` |
 | 349 | thunder lance | `SPELL_THUNDER_LANCE` |
 | 350 | shadow bolt | `SPELL_SHADOW_BOLT` |
 | 351 | shadow burst | `SPELL_SHADOW_BURST` |
@@ -283,6 +296,7 @@ the preceding section.
 | 366 | phantasmal blades | `SPELL_PHANTASMAL_BLADES` |
 | 370 | soul bind | `SPELL_SOUL_BIND` |
 | 371 | death pact | `SPELL_DEATH_PACT` |
+| 376 | tazriks frenzied hound | `SPELL_TAZRIKS_FRENZIED_HOUND` |
 | 377 | dark wrath | `SPELL_DARK_WRATH` |
 | 378 | unholy aura | `SPELL_UNHOLY_AURA` |
 | 380 | needle swarm | `SPELL_NEEDLE_SWARM` |
