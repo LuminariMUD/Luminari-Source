@@ -81,17 +81,349 @@ _SOURCE_LIQUID_MAP = {
     27: 21, # curative liquid -> herbal remedy
     28: 10, # eggnog -> milk
 }
-_SOURCE_SPELL_MAP: dict[int, tuple[str, int | None]] = {
-    9: ("full heal", 28),
-    36: ("stone skin", 56),
-    41: ("haste", 120),
-    91: ("bigby's clenched fist", 188),
-    108: ("fly", 53),
-    111: ("plane shift", 239),
-    121: ("protection from fire", 433),
-    194: ("globe of invulnerability", 172),
-    236: ("barkskin", 263),
-    453: ("mud to rock", None),
+# Complete over live SPELL_CREATE IDs, positive SPELL_* values, and populated
+# magic-item spell IDs in the active source corpus.
+_SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
+    1: ("armor", 84),  # mage armor
+    2: ("teleport", 2),  # teleport
+    3: ("bless", 3),  # bless
+    4: ("blindness", 4),  # blindness
+    5: ("burning hands", 5),  # burning hands
+    6: ("call lightning", 6),  # call lightning
+    7: ("charm person", 7),  # charm person
+    8: ("chill touch", 8),  # chill touch
+    9: ("full heal", 28),  # heal
+    10: ("cone of cold", 158),  # cone of cold
+    11: ("control weather", 11),  # control weather
+    12: ("create food", 12),  # create food
+    13: ("create water", 13),  # create water
+    14: ("cure blind", 14),  # cure blind
+    15: ("cure critic", 15),  # cure critical
+    16: ("cure light", 16),  # cure light
+    17: ("curse", 17),  # bestow curse
+    18: ("continual light", 316),  # continual light
+    19: ("detect invisibility", 19),  # detect invisibility
+    20: ("minor creation", 321),  # minor creation
+    21: ("flame strike", 68),  # flame strike
+    22: ("dispel evil", 22),  # dispel evil
+    23: ("earthquake", 23),  # earthquake
+    24: ("enchant weapon", 24),  # enchant item
+    25: ("energy drain", 25),  # energy drain
+    26: ("fireball", 26),  # fireball
+    27: ("harm", 27),  # harm
+    28: ("heal", 28),  # heal
+    29: ("invisibility", 29),  # invisibility
+    30: ("lightning bolt", 30),  # lightning bolt
+    31: ("locate object", 31),  # locate object
+    32: ("magic missile", 32),  # magic missile
+    33: ("poison", 33),  # poison
+    34: ("protection from evil", 34),  # protection from evil
+    35: ("remove curse", 35),  # remove curse
+    36: ("stone skin", 56),  # stone skin
+    37: ("shocking grasp", 37),  # shocking grasp
+    38: ("sleep", 38),  # sleep
+    39: ("strength", 39),  # strength
+    40: ("summon", 40),  # summon
+    41: ("haste", 120),  # haste
+    42: ("word of recall", 42),  # word of recall
+    43: ("remove poison", 43),  # remove poison
+    44: ("sense life", 44),  # sense life
+    53: ("identify", 52),  # identify
+    54: ("ventriloquate", 41),  # ventriloquate
+    55: ("firestorm", 293),  # fire storm
+    56: ("fire breath", 26),  # fireball
+    57: ("gas breath", 527),  # poison breath
+    58: ("frost breath", 158),  # cone of cold
+    59: ("acid breath", 163),  # acid fog
+    60: ("lightning breath", 30),  # lightning bolt
+    62: ("farsee", 528),  # farsee
+    63: ("fear", 391),  # cause fear
+    64: ("xxxrecharger", 24),  # enchant item
+    65: ("vitality", 103),  # false life
+    66: ("cure serious", 221),  # cure serious
+    71: ("full harm", 27),  # harm
+    72: ("meteorswarm", 74),  # meteor swarm
+    73: ("creeping doom", 292),  # creeping doom
+    75: ("minor globe of invulnerability", 139),  # minor globe
+    76: ("chain lightning", 73),  # chain lightning
+    77: ("dimension door", 2),  # teleport
+    78: ("vigorize light", 311),  # vigorize light
+    79: ("vigorize serious", 312),  # vigorize serious
+    80: ("vigorize critic", 313),  # vigorize critical
+    81: ("dispel invisible", 322),  # dispel invis
+    82: ("wizard eye", 131),  # wizard eye
+    83: ("clairvoyance", 118),  # clairvoyance
+    84: ("rejuvenate major", 529),  # rejuvenate major
+    85: ("ray of enfeeblement", 86),  # ray of enfeeblement
+    86: ("dispel good", 46),  # dispel good
+    87: ("dexterity", 104),  # grace
+    88: ("rejuvenate minor", 530),  # rejuvenate minor
+    89: ("age", 531),  # age
+    90: ("cyclone", 308),  # whirlwind
+    91: ("bigbys clenched fist", 188),  # clenched fist
+    92: ("conjure elemental", 299),  # elemental swarm
+    93: ("xxxvitalize mana", 440),  # restoration
+    94: ("relocate", 2),  # teleport
+    100: ("protection from good", 75),  # protection from good
+    101: ("animate skeleton", 45),  # animate dead
+    107: ("levitate", 309),  # levitate
+    108: ("fly", 53),  # fly
+    109: ("awareness", 171),  # true seeing
+    110: ("water breathing", 107),  # water breathe
+    111: ("plane shift", 239),  # plane shift
+    112: ("gate", 205),  # gate
+    113: ("resurrect", 319),  # resurrection
+    114: ("mass charm", 487),  # mass charm monster
+    115: ("detect evil", 18),  # detect alignment
+    116: ("detect good", 18),  # detect alignment
+    117: ("detect magic", 20),  # detect magic
+    118: ("dispel magic", 122),  # dispel magic
+    119: ("preserve", 318),  # preserve
+    120: ("mass invisibility", 116),  # mass invisibility
+    121: ("protection from fire", 433),  # protection from energy
+    122: ("protection from cold", 433),  # protection from energy
+    123: ("protection from lightning", 433),  # protection from energy
+    124: ("darkness", 93),  # darkness
+    125: ("minor paralysis", 114),  # hold person
+    126: ("major paralysis", 478),  # hold monster
+    127: ("slowness", 121),  # slow
+    128: ("wither", 273),  # blight
+    129: ("protection from gas", 183),  # protection from spells
+    130: ("protection from acid", 433),  # protection from energy
+    131: ("infravision", 50),  # infravision
+    133: ("prismatic spray", 181),  # prismatic spray
+    134: ("fireshield", 132),  # fire shield
+    135: ("displacement", 180),  # displacement
+    136: ("incendiary cloud", 189),  # incendiary cloud
+    137: ("ice storm", 70),  # ice storm
+    138: ("disintegrate", 69),  # destruction
+    139: ("cause light", 64),  # cause light wound
+    140: ("cause serious", 66),  # cause serious wound
+    141: ("cause critical", 67),  # cause critical wound
+    142: ("acid blast", 129),  # acid splash
+    143: ("faerie fire", 247),  # faerie fire
+    144: ("faerie fog", 224),  # faerie fog
+    145: ("power word kill", 207),  # power word kill
+    146: ("power word blind", 176),  # power word blind
+    147: ("power word stun", 182),  # power word stun
+    148: ("unholy word", 235),  # word of faith
+    149: ("holy word", 235),  # word of faith
+    150: ("sunray", 295),  # sunbeam
+    151: ("feeblemind", 153),  # feeblemind
+    152: ("silence", 320),  # silence
+    153: ("turn undead", 394),  # undeath to death
+    154: ("command undead", 532),  # command undead
+    163: ("slow poison", 533),  # slow poison
+    170: ("coldshield", 133),  # cold shield
+    171: ("comprehend languages", 534),  # comprehend languages
+    172: ("vampiric curse", 113),  # vampiric touch
+    173: ("group barkskin", 480),  # communal stone skin
+    174: ("fumble", 535),  # fumble
+    175: ("stumble", 536),  # stumble
+    176: ("enervate", 537),  # enervate
+    177: ("acid bolt", 96),  # acid arrow
+    178: ("holy shroud", 508),  # holy aura
+    181: ("sandblast", 538),  # sandblast
+    182: ("fell frost", 539),  # fell frost
+    191: ("archery", 91),  # true strike
+    194: ("globe of invulnerability", 172),  # globe of invuln
+    228: ("wraithform", 540),  # wraithform
+    229: ("vampiric touch", 113),  # vampiric touch
+    230: ("protect undead", 541),  # protect undead
+    231: ("protection from undead", 542),  # protection from undead
+    232: ("command horde", 543),  # command horde
+    233: ("heal undead", 85),  # negative energy ray
+    235: ("create spring", 544),  # create spring
+    236: ("barkskin", 263),  # barkskin
+    237: ("moonwell", 545),  # moonwell
+    239: ("group heal", 48),  # group heal
+    240: ("group full heal", 48),  # group heal
+    241: ("missile shield", 456),  # protection from arrows
+    274: ("undead melee proc", 396),  # grave touch
+    276: ("undead spell proc", 25),  # energy drain
+    291: ("elemental embodiment maintain", 488),  # geniekind
+    292: ("elemental embodiment maintain", 488),  # geniekind
+    293: ("elemental embodiment maintain", 488),  # geniekind
+    294: ("elemental embodiment maintain", 488),  # geniekind
+    296: ("pain touch", 151),  # symbol of pain
+    297: ("nerve dance", 546),  # nerve dance
+    298: ("spectral hand", 547),  # spectral hand
+    299: ("rain of blood", 548),  # rain of blood
+    301: ("embalm", 315),  # embalm
+    302: ("rot", 549),  # rot
+    303: ("lich touch", 396),  # grave touch
+    304: ("life drain", 25),  # energy drain
+    305: ("ice tomb", 550),  # ice tomb
+    306: ("locate remains", 31),  # locate object
+    307: ("banshee wail", 206),  # wail of the banshee
+    308: ("animate ghost", 192),  # greater animation
+    309: ("animate ghast", 192),  # greater animation
+    310: ("animate zombie", 45),  # animate dead
+    311: ("animate spectre", 192),  # greater animation
+    312: ("animate wraith", 192),  # greater animation
+    313: ("animate ghoul", 192),  # greater animation
+    314: ("heal lich", 85),  # negative energy ray
+    315: ("darkness breath", 93),  # darkness
+    316: ("venom", 33),  # poison
+    317: ("mage flame", 253),  # produce flame
+    318: ("blur", 54),  # blur
+    319: ("constriction", 551),  # constriction
+    320: ("repulsion", 437),  # wind wall
+    321: ("airy water", 552),  # airy water
+    322: ("blink", 553),  # blink
+    323: ("reduce", 141),  # reduce person
+    324: ("enlarge", 140),  # enlarge person
+    325: ("mind blank", 200),  # mind blank
+    326: ("solid fog", 163),  # acid fog
+    327: ("dragonscales", 201),  # iron skin
+    328: ("energy shield", 89),  # mage shield
+    329: ("sandstorm", 554),  # sandstorm
+    330: ("inferno", 293),  # fire storm
+    331: ("blazing beam", 101),  # scorching ray
+    332: ("blacklight burst", 555),  # blacklight burst
+    333: ("thunderblast", 184),  # thunderclap
+    334: ("minute meteors", 556),  # minute meteors
+    335: ("mordenkainens sword", 422),  # dancing weapon
+    336: ("force missiles", 72),  # missile storm
+    337: ("acidstorm", 163),  # acid fog
+    340: ("find familiar", 90),  # summon creature i
+    341: ("unseen servant", 557),  # unseen servant
+    342: ("call mount", 460),  # summon mount
+    343: ("call lycanthrope", 164),  # summon creature vi
+    344: ("control fiend", 466),  # control summoned creature
+    345: ("minor horde", 268),  # summon swarm
+    346: ("evards tentacles", 464),  # black tentacles
+    347: ("grease", 80),  # grease
+    348: ("glitterdust", 455),  # glitterdust
+    349: ("thunder lance", 558),  # thunder lance
+    350: ("shadow bolt", 559),  # shadow bolt
+    351: ("shadow burst", 560),  # shadow burst
+    352: ("phantom armor", 84),  # mage armor
+    353: ("mislead", 561),  # mislead
+    354: ("sequester", 562),  # sequester
+    355: ("nondetection", 119),  # nondetection
+    356: ("spook", 87),  # scare
+    357: ("phantasmal killer", 209),  # weird
+    358: ("mirror image", 55),  # mirror image
+    359: ("dimension shift", 563),  # dimension shift
+    360: ("change self", 77),  # polymorph self
+    361: ("simulacrum", 9),  # clone
+    362: ("shadow magic", 564),  # shadow magic
+    363: ("shadow walk", 392),  # shadow walk
+    364: ("phantom steed", 108),  # phantom steed
+    365: ("rainbow pattern", 137),  # rainbow pattern
+    366: ("phantasmal blades", 565),  # phantasmal blades
+    368: ("animate shadow", 192),  # greater animation
+    369: ("animate wight", 192),  # greater animation
+    370: ("soul bind", 566),  # soul bind
+    371: ("death pact", 567),  # death pact
+    372: ("abi wither", 191),  # horrid wilting
+    374: ("special proc effect", 514),  # arcane mark
+    376: ("tazriks frenzied hound", 156),  # faithful hound
+    377: ("dark wrath", 436),  # divine power
+    378: ("unholy aura", 132),  # fire shield
+    380: ("needle swarm", 568),  # needle swarm
+    381: ("snapping teeth", 569),  # snapping teeth
+    382: ("monster summoning", 204),  # summon creature ix
+    392: ("beltyns burning blood", 570),  # beltyns burning blood
+    393: ("abi dalzims horrid wilting", 191),  # horrid wilting
+    395: ("firewave", 293),  # fire storm
+    396: ("icewave", 70),  # ice storm
+    397: ("blackmantle", 571),  # blackmantle
+    425: ("caster stone", 56),  # stone skin
+    426: ("earthblood", 572),  # earthblood
+    427: ("ice tongue", 507),  # power word silence
+    428: ("faerie reduce", 141),  # reduce person
+    429: ("totem darts", 32),  # magic missile
+    430: ("spiritknife", 5),  # burning hands
+    431: ("jar the soul", 37),  # shocking grasp
+    432: ("unleash fetish", 30),  # lightning bolt
+    433: ("puppet", 26),  # fireball
+    434: ("hex", 17),  # bestow curse
+    435: ("soul tempest", 573),  # soul tempest
+    436: ("spirit wrack", 188),  # clenched fist
+    437: ("spirit walk", 574),  # spirit walk
+    438: ("ancestral shield", 575),  # ancestral shield
+    439: ("ancestral fury", 471),  # rage
+    440: ("goodberry", 248),  # goodberry
+    441: ("shillelagh", 8),  # chill touch
+    442: ("protection from animals", 576),  # protection from animals
+    443: ("sticks to snakes", 32),  # magic missile
+    444: ("summon insects", 280),  # insect plague
+    445: ("dust devil", 577),  # dust devil
+    446: ("transport via plants", 291),  # transport via plants
+    447: ("suffocate", 578),  # suffocate
+    448: ("insect plague", 280),  # insect plague
+    449: ("changestaff", 301),  # shambler
+    450: ("pass without trace", 579),  # pass without trace
+    451: ("flame blade", 264),  # flame blade
+    452: ("rock to mud", 580),  # rock to mud
+    453: ("mud to rock", 581),  # mud to rock
+    454: ("fire seeds", 284),  # fire seeds
+    455: ("hailstorm", 70),  # ice storm
+    456: ("entangle", 389),  # entangle
+    457: ("dessicate", 191),  # horrid wilting
+    458: ("revive", 319),  # resurrection
+    459: ("greater realm of protection", 582),  # greater realm of protection
+    460: ("ward undead", 513),  # disrupt undead
+    461: ("destroy undead", 394),  # undeath to death
+    462: ("eradicate undead", 427),  # holy javelin
+    463: ("silence person", 320),  # silence
+    464: ("conflagration", 293),  # fire storm
+    465: ("scry remains", 118),  # clairvoyance
+    466: ("doppleganger", 55),  # mirror image
+    467: ("blackthorns", 583),  # blackthorns
+    468: ("true sight", 171),  # true seeing
+    469: ("massmorph", 116),  # mass invisibility
+    470: ("feign death", 584),  # feign death
+    471: ("tranquility", 585),  # tranquility
+    472: ("deathbolt", 298),  # finger of death
+    473: ("camouflage", 29),  # invisibility
+    474: ("scarlet outline", 247),  # faerie fire
+    475: ("phantom heal", 586),  # phantom heal
+    476: ("shadechill", 587),  # shadechill
+    477: ("nightmare", 154),  # nightmare
+    478: ("agility", 588),  # agility
+    479: ("air blast", 589),  # air blast
+    480: ("blizzard sphere", 162),  # freezing sphere
+    481: ("earth darts", 525),  # splinter storm
+    482: ("elemental water embodiment", 488),  # geniekind
+    483: ("elemental fire embodiment", 488),  # geniekind
+    484: ("elemental earth embodiment", 488),  # geniekind
+    485: ("elemental air embodiment", 488),  # geniekind
+    486: ("ice spear", 82),  # ice dagger
+    487: ("lava burst", 293),  # fire storm
+    488: ("ice layer", 80),  # grease
+    489: ("whirlwind", 308),  # whirlwind
+    492: ("shadow flux", 590),  # shadow flux
+    493: ("dimensional fold", 216),  # portal
+    494: ("summon shade", 175),  # summon creature vii
+    495: ("beautify", 127),  # charisma
+    496: ("summon elemental kin", 299),  # elemental swarm
+    497: ("elemental ward", 433),  # protection from energy
+    498: ("elemental embodiment maintain", 488),  # geniekind
+    499: ("divine blessing", 401),  # divine favor
+    501: ("miracle", 28),  # heal
+    502: ("ball of lightning", 71),  # ball of lightning
+    503: ("caster scale", 56),  # stone skin
+    504: ("time stop", 213),  # timestop
+    505: ("natures blessing", 591),  # natures blessing
+    512: ("song of revelation", 171),  # true seeing
+    513: ("song of protection", 47),  # group shield of faith
+    514: ("song of travel", 592),  # song of travel
+    515: ("poltergeist", 593),  # poltergeist
+    516: ("annihilate undead", 394),  # undeath to death
+    517: ("phantasmal tendrils", 464),  # black tentacles
+    518: ("curse item", 594),  # curse item
+    519: ("greater thought", 125),  # cunning
+    520: ("corpse glamor", 595),  # corpse glamor
+    521: ("song of recovery", 440),  # restoration
+    522: ("sun shadow", 596),  # sun shadow
+    523: ("divine purification", 440),  # restoration
+    524: ("earth fog", 597),  # earth fog
+    525: ("fire fog", 598),  # fire fog
+    526: ("sanctuary / aura of the griffon", 36),  # sanctuary
+    527: ("artifact bonus", 489),  # grand destiny
 }
 
 _SOURCE_QUEST_REWARD_MAP: dict[int, tuple[str, int | None]] = {
@@ -110,7 +442,7 @@ _SOURCE_QUEST_REWARD_MAP: dict[int, tuple[str, int | None]] = {
     279: ("planar rift", 239),
     285: ("globe of darkness", 93),
     325: ("mind blank", 200),
-    327: ("dragonscales", 56),
+    327: ("dragonscales", 201),
     329: ("sandstorm", None),
     330: ("inferno", 293),
     359: ("dimension shift", 239),
@@ -1938,19 +2270,16 @@ def _object_values(
       continue
     mapped = _SOURCE_SPELL_MAP.get(source_spell)
     if mapped is None:
-      values[slot] = 0
-      diagnostics.append(
-          f"disabled unresolved source spell {source_spell} in magic-item slot {slot}"
+      raise ValueError(
+          f"unmapped positive source spell {source_spell} in magic-item slot {slot} "
+          f"for source object {record.vnum}"
       )
-      continue
     spell_name, target_spell = mapped
-    if target_spell is None:
-      values[slot] = 0
-      diagnostics.append(
-          f"disabled source spell {source_spell} ({spell_name}) in magic-item slot "
-          f"{slot}; target has no equivalent"
+    if target_spell <= 0:
+      raise ValueError(
+          f"invalid non-positive target spell {target_spell} for source spell "
+          f"{source_spell} ({spell_name})"
       )
-      continue
     values[slot] = target_spell
     diagnostics.append(
         f"mapped source spell {source_spell} ({spell_name}) to target spell "

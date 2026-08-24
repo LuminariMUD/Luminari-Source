@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
+import re
+import subprocess
 import tempfile
 import unittest
 
@@ -26,6 +28,7 @@ from wtool_lib.rol_transform import (
     SOURCE_INSTRUMENT_SUBTYPE_MAP,
     SOURCE_SAVING_THROW_APPLIES,
     TARGET_APPLY_AC_NEW,
+    _SOURCE_SPELL_MAP,
     convert_text,
     emit_mobile,
     emit_hlquest,
@@ -1645,7 +1648,7 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(34, result.records[0].values[0])
     self.assertEqual(188, result.records[0].values[3])
     self.assertIn(
-        "source spell 91 (bigby's clenched fist) to target spell 188",
+        "source spell 91 (bigbys clenched fist) to target spell 188",
         " ".join(emitted.diagnostics),
     )
 
@@ -1666,7 +1669,7 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(6, result.records[0].values[2])
     self.assertIn("raised source wand/staff maximum charges", " ".join(emitted.diagnostics))
 
-  def test_emitted_magic_item_disables_spell_without_target_equivalent(self) -> None:
+  def test_emitted_magic_item_maps_mud_to_rock_without_zeroing_slot(self) -> None:
     source = self._source_record(
         "obj",
         b"#200\nwand~\na wand~\nA wand is here.~\n~\n"
@@ -1678,8 +1681,179 @@ class RolTransformTests(unittest.TestCase):
     result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
 
     self.assertTrue(result.complete)
-    self.assertEqual(0, result.records[0].values[3])
+    self.assertEqual(581, result.records[0].values[3])
     self.assertIn("mud to rock", " ".join(emitted.diagnostics))
+
+  def test_emitted_magic_item_maps_dragonscales_to_iron_skin(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nwand~\na wand~\nA wand is here.~\n~\n"
+        b"3 0 1\n20 2 2 327\n1 1 0\n0\n0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(201, result.records[0].values[3])
+    self.assertIn(
+        "source spell 327 (dragonscales) to target spell 201",
+        " ".join(emitted.diagnostics),
+    )
+
+  def test_emitted_magic_item_maps_dimensional_fold_to_portal(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nwand~\na wand~\nA wand is here.~\n~\n"
+        b"3 0 1\n20 2 2 493\n1 1 0\n0\n0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(216, result.records[0].values[3])
+    self.assertIn(
+        "source spell 493 (dimensional fold) to target spell 216",
+        " ".join(emitted.diagnostics),
+    )
+
+  def test_emitted_magic_item_rejects_unmapped_positive_spell(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nwand~\na wand~\nA wand is here.~\n~\n"
+        b"3 0 1\n20 2 2 999\n1 1 0\n0\n0\n",
+    )
+
+    with self.assertRaisesRegex(ValueError, "unmapped positive source spell 999"):
+      emit_object(source, 2_000_200, _resolver)
+
+  def test_spell_map_targets_registered_luminari_spells(self) -> None:
+    spell_header = (self.root / "src/magic/spells.h").read_text(encoding="ascii")
+    num_spells_match = re.search(
+        r"^#define\s+NUM_SPELLS\s+(\d+)\b", spell_header, re.MULTILINE
+    )
+    self.assertIsNotNone(num_spells_match)
+    num_spells = int(num_spells_match.group(1))
+    preprocessed = subprocess.run(
+        [
+            "cc",
+            "-E",
+            "-P",
+            f"-I{self.root / 'src'}",
+            str(self.root / "src/magic/spell_parser.c"),
+        ],
+        cwd=self.root,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    target_registry: dict[int, str] = {}
+    for number, name in re.findall(
+        r'spello\((\d+),\s*"([^"]+)"', preprocessed
+    ):
+      spell_number = int(number)
+      if 0 < spell_number < num_spells:
+        target_registry[spell_number] = name
+
+    self.assertEqual(340, len(_SOURCE_SPELL_MAP))
+    for source_spell, (source_name, target_spell) in _SOURCE_SPELL_MAP.items():
+      with self.subTest(source_spell=source_spell, source_name=source_name):
+        self.assertGreater(target_spell, 0)
+        self.assertLess(target_spell, num_spells)
+        self.assertIn(target_spell, target_registry)
+        self.assertNotEqual("!UNUSED!", target_registry[target_spell])
+
+  def test_spell_map_covers_all_rol_spells_and_active_magic_items(self) -> None:
+    self._require_reference_paths(
+        "EXAMPLE/RealmsOfLuminari/areas",
+        "EXAMPLE/RealmsOfLuminari/src/sparser.c",
+        "EXAMPLE/RealmsOfLuminari/src/spells.h",
+    )
+    source_root = self.root / "EXAMPLE/RealmsOfLuminari"
+    preprocessed = subprocess.run(
+        [
+            "cc",
+            "-E",
+            "-P",
+            f"-I{source_root / 'src'}",
+            str(source_root / "src/sparser.c"),
+        ],
+        cwd=self.root,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    source_registry = {
+        int(number): name
+        for name, number in re.findall(
+            r'SPELL_CREATE\("([^"]+)",\s*(\d+)\s*,', preprocessed
+        )
+    }
+    source_header = (source_root / "src/spells.h").read_text(encoding="ascii")
+    source_spell_constants = {
+        int(number)
+        for number in re.findall(
+            r"^#define\s+SPELL_[A-Z0-9_]+\s+(\d+)\b",
+            source_header,
+            re.MULTILINE,
+        )
+        if int(number) > 0
+    }
+    corpus = parse_active_rol_corpus(source_root, self.root)
+    source_type_slots = {2: (1, 2, 3), 3: (3,), 4: (3,), 10: (1, 2, 3)}
+    source_type_counts = {source_type: 0 for source_type in source_type_slots}
+    referenced_source_spells: set[int] = set()
+    expected_spell_slots: dict[tuple[int, int], int] = {}
+    emitted_records: list[str] = []
+
+    self.assertTrue(corpus.complete)
+    for record in corpus.records:
+      if record.kind != "obj":
+        continue
+      source_type = int(record.values.get("item_type") or 0)
+      if source_type not in source_type_slots:
+        continue
+      source_type_counts[source_type] += 1
+      source_values = (list(record.values.get("values", [])) + [0] * 4)[:4]
+      destination_vnum = 2_600_000 + len(emitted_records)
+      for slot in source_type_slots[source_type]:
+        source_spell = source_values[slot]
+        if source_spell <= 0:
+          continue
+        referenced_source_spells.add(source_spell)
+        expected_spell_slots[(destination_vnum, slot)] = _SOURCE_SPELL_MAP[
+            source_spell
+        ][1]
+      emitted_records.append(emit_object(record, destination_vnum, _resolver).text)
+
+    required_source_spells = (
+        set(source_registry) | source_spell_constants | referenced_source_spells
+    )
+    self.assertEqual(327, len(source_registry))
+    self.assertEqual(335, len(source_spell_constants))
+    self.assertEqual(117, len(referenced_source_spells))
+    self.assertEqual(340, len(required_source_spells))
+    self.assertEqual(required_source_spells, set(_SOURCE_SPELL_MAP))
+    self.assertEqual({2: 71, 3: 80, 4: 109, 10: 251}, source_type_counts)
+    self.assertEqual(511, len(emitted_records))
+    self.assertEqual(734, len(expected_spell_slots))
+    for source_spell, source_name in source_registry.items():
+      self.assertEqual(source_name, _SOURCE_SPELL_MAP[source_spell][0])
+
+    path = self._target_path("obj", "".join(emitted_records))
+    result = parse_object_file(path, "obj/26000.obj", self.manifest, set())
+    actual_records = {record.vnum: record for record in result.records}
+
+    self.assertTrue(result.complete)
+    self.assertEqual(511, len(actual_records))
+    for (destination_vnum, slot), expected_spell in expected_spell_slots.items():
+      with self.subTest(destination_vnum=destination_vnum, slot=slot):
+        actual_spell = actual_records[destination_vnum].values[slot]
+        self.assertGreater(actual_spell, 0)
+        self.assertEqual(expected_spell, actual_spell)
 
   def test_second_affect_word_converts_on_its_own_bit_range(self) -> None:
     # Source affect word 2 carries bits 33..64. Bit 34 is ULTRAVISION, which
@@ -1922,6 +2096,22 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual([74, -100, 1000, 0], [item.value for item in give.output_commands])
     diagnostics = " ".join(emitted.diagnostics)
     self.assertIn("meteor swarm", diagnostics)
+
+  def test_emitted_hlquest_maps_dragonscales_to_iron_skin(self) -> None:
+    source = self._source_record(
+        "qst",
+        b"#300\nQ\ncomplete\n~\nR\nS 327\nS\n",
+    )
+    emitted = emit_hlquest(source, 2_000_300, _resolver)
+    path = self._target_path("hlq", emitted.text)
+    result = parse_hlquest_file(path, "hlq/20000.hlq", self.manifest)
+
+    self.assertTrue(result.complete)
+    self.assertEqual([], result.findings)
+    rewards = result.records[0].entries[0].output_commands
+    self.assertEqual(["T"], [reward.code for reward in rewards])
+    self.assertEqual([201], [reward.value for reward in rewards])
+    self.assertIn("dragonscales", " ".join(emitted.diagnostics))
 
   def test_selected_pilot_quests_all_emit_valid_target_records(self) -> None:
     self._require_reference_paths(

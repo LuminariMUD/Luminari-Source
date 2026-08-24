@@ -1,9 +1,12 @@
 # RoL Spells Without a Close LuminariMUD Equivalent
 
-Status: implementation complete. The source audit was completed and
-independently re-verified 2026-08-23 against `sparser.c`, `spells.h`,
-`spell_parser.c`, and `psionics.c`. Three implementation checkpoints add all
-75 functional gaps through native magic paths and focused direct handlers.
+Status: implementation incomplete. The source registry audit was completed and
+independently re-verified 2026-08-24 against `sparser.c`, `spells.h`,
+`spell_parser.c`, and `psionics.c`. Three implementation checkpoints added 75
+functional gaps through native magic paths and focused direct handlers. A
+follow-up handler-level review found 14 live RoL spells that had been
+incorrectly classified as covered by loose substitutes. Those 14 spells still
+require native implementations.
 
 This list compares every unique spell registered through `SPELL_CREATE()` in
 Realms of Luminari with LuminariMUD's registered spells and closely equivalent
@@ -25,9 +28,9 @@ below and must not be treated as live RoL content.
 ### `SPELL_CREATE()` registry
 
 - RoL registrations reviewed: 332 (327 live, 5 never compiled)
-- Live registrations with a close LuminariMUD equivalent: 243
-- Live registrations without a close equivalent: 84
-- Player-facing or functional gaps: 75
+- Live registrations with a close LuminariMUD equivalent: 229
+- Live registrations without a close equivalent: 98
+- Player-facing or functional gaps: 89 (75 implemented, 14 remaining)
 - RoL internal or stub registrations without an equivalent: 9
 - Registered only inside `#if 0` (never compiled): 5
 
@@ -43,17 +46,67 @@ below and must not be treated as live RoL content.
 
 - Total RoL spell and psionic registrations reviewed: 372
 - Live: 360. Never compiled: 12.
-- Live without a close equivalent: 85 (75 player-facing, 10 stub or internal)
+- Live without a close equivalent: 99 (89 player-facing, 10 stub or internal)
 
-RoL's non-psionic skill registry is audited separately in
-`ROL_SKILL_EQUIVALENCE_GAPS.md`, and its playable races in
+RoL's non-psionic skill registry was audited separately and all identified
+player-facing gaps were implemented. Playable race gaps are tracked in
 `ROL_RACE_EQUIVALENCE_GAPS.md`.
 
-This is a feature-equivalence list, not an item-converter mapping list. A RoL
-spell omitted here can still require an entry in `_SOURCE_SPELL_MAP` before
-scrolls, potions, wands, or staves containing it convert safely.
+This remains a feature-equivalence list. The corresponding magic-item
+converter map is numerically complete but not semantically complete.
+`_SOURCE_SPELL_MAP` contains 340 positive source IDs: all 327 live
+`SPELL_CREATE()` IDs, all 335 distinct positive `SPELL_*` numeric IDs in the
+source header, and the two non-spell IDs actually found in magic-item spell
+slots. Fourteen live source spells currently map to substitutes that do not
+preserve their mechanics. Those mappings must move to the new native spell IDs
+after the remaining spells are implemented.
 
-## Player-facing or functional gaps
+The active corpus check converts all 511 magic items: 71 potions, 251 scrolls,
+80 wands, and 109 staves. Those records contain 117 distinct positive source
+spell references across 734 populated spell slots. Every positive reference
+emits its mapped positive target ID in the same spell slot. A zero already
+present in an unused source slot remains an empty slot; the converter never
+creates zero as a fallback for a positive source spell. A future unknown
+positive ID is a conversion error, so registry growth cannot silently disable
+an item.
+
+Numerical conversion success therefore does not establish spell-equivalence
+or gameplay fidelity. Internal, disabled, and helper-only source IDs also must
+not be counted as covered merely because the map assigns them an unrelated
+positive target spell.
+
+## Remaining player-facing or functional gaps
+
+These 14 live RoL spells require distinct native registrations and mechanics.
+The current converter targets are listed only to identify the inadequate
+substitutes; they are not acceptable final mappings.
+
+| RoL ID | RoL spell | Current substitute | Required source behavior |
+|-------:|-----------|--------------------|--------------------------|
+| 90 | cyclone | whirlwind | Deals air damage to eligible enemies throughout the room, halves a PC caster's damage when the zone wind speed is 25 or lower, and allows the normal spell save and area-avoidance checks. Whirlwind lacks the environmental dependency and is not an adequate identity-preserving replacement. |
+| 233 | heal undead | negative energy ray | Heals only undead for `4d(level)` hit points, respects blackmantle, and uses a specialized 100-point heal for the RoL PC-lich-to-PC-lich case. Negative energy ray is an offensive ray that only incidentally heals undead through the generic negative-energy rule. |
+| 303 | lich touch | grave touch | Deals direct damage, interacts with cold and fire shields, and on a failed save applies a Strength penalty and slow; dragons ignore the secondary effects. Grave touch applies fear/shaken instead. LuminariMUD's racial lich-touch ability also has different healing, damage, paralysis, and daily-use mechanics and is not a normal spell. |
+| 343 | call lycanthrope | summon creature vi | Summons one randomly selected lycanthrope prototype, permits only one such follower, scales it to at most level 40 from caster level minus 10, assigns scaled hit points, charms it, and schedules charm expiration. Summon creature VI creates a dire tiger. |
+| 376 | tazriks frenzied hound | faithful hound | Opens a temporary vortex and makes a hellhound strike one randomly selected eligible room target once per combat pulse for three strikes. It does not create a persistent follower. |
+| 377 | dark wrath | divine power | Self-only and unavailable while fighting; grants a level-scaled damage-roll bonus of +1 to +3 and improves the generic spell save by 3 to 5 for a level-scaled duration. Divine power adds unrelated Strength, hit-roll, hit-point, and luck bonuses and lacks the spell-save benefit. |
+| 378 | unholy aura | fire shield | A distinct self-only spell that applies the fire-shield affect for a base source duration of three, modified by specialization. Sharing the underlying fire-shield flag does not preserve the spell identity, duration, script/item reference, or independent affect lifecycle. |
+| 473 | camouflage | invisibility | Self-only, cannot be used while mounted, ends the caster's combat and all attacks against the caster, and applies both hide and camouflage state. Invisibility uses a different detection state and does not provide this disengagement behavior. |
+| 482 | elemental water embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 5 hit points per shared level, water breathing, fire/gas/acid protection, and 25 percent additional height and weight. |
+| 483 | elemental fire embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 7 hit points per shared level, fire shield, -65 source armor class, haste, flight, gas/fire protection, and 35 percent additional height and weight. |
+| 484 | elemental earth embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants gas/cold protection and 50 percent additional height and weight. The live RoL handler grants roughly 7 hit points per shared level because it uses `EFHP_FACTOR`; the separately declared `EEHP_FACTOR` value of 10 is unused and should be resolved deliberately during implementation. |
+| 485 | elemental air embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 3 hit points per shared level, -50 source armor class, haste, flight, gas/acid protection, and 15 percent additional height and weight. |
+| 487 | lava burst | fire storm | Deals fire damage to eligible enemies throughout the room and starts persistent burning damage on survivors successfully damaged. It also participates in RoL's spell-merge check. Fire storm supplies only the initial area damage. |
+| 488 | ice layer | grease | Targets one corporeal standing opponent; on a failed Agility save it deals `2d10` direct damage, makes the target prone, and applies one combat pulse of action lag. Demons, devils, angels, beholders, dragons, and immaterial targets are immune. Grease applies a lasting movement penalty but neither damage nor prone. |
+
+All four elemental embodiment spells share additional behavior that must remain
+common in the target implementation: the target must be a same-side PC, the
+target must be unmounted and not already embodying an element, and the caster
+can maintain only one embodiment. Each spell creates a linked caster-side
+maintenance affect so expiration and removal can clean up the transformation.
+Geniekind is not a usable base for this behavior: it is self-only, selects a
+genie type, applies different traits, and summons a genie follower.
+
+## Implemented player-facing or functional gaps
 
 ### Implementation checkpoint 1: foundational and defensive spells
 
@@ -157,8 +210,9 @@ expressed by one native routine. None has a class or domain assignment.
 | earth fog | Temporarily fills the room with obscuring earthen fog. |
 | fire fog | Temporarily illuminates the room with fiery fog. |
 
-The complete audited inventory remains below, preserving the original
-source-to-target accounting.
+The complete inventory of the 75 implemented gaps remains below, preserving
+the original source-to-target accounting. The 14 remaining gaps are listed in
+the preceding section.
 
 | RoL ID | RoL spell | RoL constant |
 |-------:|-----------|--------------|
@@ -255,6 +309,20 @@ player-cast spells.
 | 361 | simulacrum | `SPELL_SIMULACRUM` |
 | 374 | special proc effect | `SPELL_PROC_SPECIAL` |
 | 498 | elemental embodiment maintain | `SPELL_ELEMENTAL_MAINTAIN` |
+
+`xxxrecharger` and `xxxvitalize mana` have lower-level function bodies in the
+RoL source, but their live registrations explicitly dispatch to
+`cast_spell_stub`, so they are disabled rather than missing playable spells.
+IDs 291-294 and 498 are caster-side embodiment maintenance records, and ID 374
+is an affect marker used by special-proc code. They must not become geniekind,
+arcane mark, restoration, enchant item, or any other castable spell. If one is
+encountered in a castable world-data spell slot, conversion should fail with a
+specific non-castable-source-ID diagnostic.
+
+`SPELL_HEAL_LICH` (source ID 314) is not registered through `SPELL_CREATE()`.
+It is a helper invoked only by `cast_heal_undead()` for the PC-lich-to-PC-lich
+case. Its behavior belongs inside the new heal-undead implementation; it does
+not require a separate target spell and must not map to negative energy ray.
 
 ## Spell registrations never compiled
 
@@ -366,11 +434,15 @@ The audit was reproduced mechanically before this revision:
 2. Every registration name in LuminariMUD's `spello()`, `skillo()`, and
    `psiono()` tables was extracted (831 unique names across
    `src/magic/spell_parser.c` and `src/magic/psionics.c`).
-3. Exact name matches (95) were accepted as equivalent. The remaining 233 RoL
-   names were each resolved by reading the RoL handler and searching
-   LuminariMUD for a functional counterpart.
+3. Exact name matches (95) were accepted provisionally as equivalent. The
+   remaining 233 RoL names were each resolved by reading the RoL handler and
+   searching LuminariMUD for a functional counterpart.
 4. Every RoL ID, constant, and name in the tables above was re-checked against
    `RealmsOfLuminari/src/spells.h` and `sparser.c`. All entries verify.
+5. A follow-up comparison of source and target handlers rejected 14 earlier
+   equivalence decisions. Similar names, elements, summon categories, or affect
+   flags were not accepted when targeting, timing, secondary effects, linked
+   state, or spell identity differed materially.
 
 `psiono()` registrations must be included in step 2. Omitting them produces at
 least one false gap (`SPELL_WITHER`, covered by `PSIONIC_WITHER`).
@@ -397,23 +469,19 @@ to have a close equivalent, and are deliberately not listed as gaps:
 | vitality | false life / mass false life |
 | greater thought | cunning / mass cunning |
 | beautify | charisma / mass charisma |
-| elemental air/earth/fire/water embodiment | wildshape elemental forms (`feats.c`) |
 | totem darts, spiritknife, jar the soul, unleash fetish, puppet, spirit wrack | shaman reskins of magic missile, burning hands, shocking grasp, lightning bolt, fireball, and clenched fist; the base spells all exist |
 | shillelagh, sticks to snakes | druid reskins of chill touch and magic missile |
-| ice layer (`SPELL_SLIPPERY_ICE`) | grease (knocks target prone) |
 | ice tongue | silence / power word silence |
 | aura of the griffon | mass fly |
 | group barkskin | communal stone skin / group shield of faith |
-| summon shade, call lycanthrope, control fiend, minor horde | charmed-follower summons; summon creature i-ix / summon swarm |
-| doppleganger, massmorph, camouflage | mirror image / mass invisibility / self concealment |
+| summon shade, control fiend, minor horde | charmed-follower summons; summon creature i-ix / summon swarm |
+| doppleganger, massmorph | mirror image / mass invisibility |
 | phantasmal tendrils | black tentacles / greater black tentacles |
-| lava burst, dessicate, cyclone, firewave, icewave, conflagration, inferno | area elemental damage; fire storm, ice storm, storm of vengeance |
+| dessicate, firewave, icewave, conflagration, inferno | area elemental damage; fire storm, ice storm, storm of vengeance |
 | ward undead, destroy/annihilate/eradicate undead | disrupt undead / undeath to death / holy javelin |
 | locate remains, scry remains | locate object / clairvoyance |
 | miracle, full heal, group full heal | heal / group heal / greater planar healing |
 | revive, resurrect | resurrection |
-| unholy aura | fire shield (RoL sets `AFF_FIRESHIELD`) |
-| dark wrath | divine might / destructive aura |
 | holy shroud | holy aura / sanctuary |
 | changestaff | treant-follower summon; summon creature series |
 
