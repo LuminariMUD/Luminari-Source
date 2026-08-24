@@ -23,6 +23,9 @@ project root from their own location where they need repository files.
 General one-off entry points remain directly under `scripts/`: clean builds, backups,
 artifact provisioning, and single-subsystem tests.
 
+Run `scripts/development/check_local_port_allocations.sh` to verify that the
+local MUD and auxiliary ports still match the shared workspace inventory.
+
 The server exposes readiness on the loopback Terrain API listener. Run
 `scripts/operations/healthcheck.sh` for a single check or add `--wait` during
 service startup. Override the default `http://127.0.0.1:8182/health` URL with

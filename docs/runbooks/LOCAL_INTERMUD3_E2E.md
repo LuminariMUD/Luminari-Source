@@ -16,7 +16,7 @@ Do not modify `lib/.env`, `lib/mysql_config`, or commit credentials.
 ```text
 MUD players
     |
-LuminariMUD :4100
+LuminariMUD :4101
     |
 JSON-RPC/TCP :8081
     |
@@ -35,7 +35,7 @@ the MUD identity, public router, local API ports, and the Luminari API key:
 
 ```text
 MUD_NAME=LuminariMUD
-MUD_PORT=4100
+MUD_PORT=4101
 I3_ROUTER_HOST=<public-router-host>
 I3_ROUTER_PORT=<public-router-port>
 API_PORT=8080
@@ -120,7 +120,7 @@ systemd-run --user \
   --property=Restart=on-failure \
   --property=RestartSec=5s \
   --property=TimeoutStopSec=20s \
-  /home/aiwithapex/projects/Luminari-Source/bin/luminari -d lib 4100
+  /home/aiwithapex/projects/Luminari-Source/bin/luminari -d lib 4101
 ```
 
 These are transient user units. They remain supervised for the current user
@@ -134,7 +134,7 @@ Check service state and listening ports:
 ```bash
 systemctl --user status i3-gateway-local.service --no-pager
 systemctl --user status luminari-local.service --no-pager
-ss -ltnp '( sport = :4100 or sport = :8080 or sport = :8081 )'
+ss -ltnp '( sport = :4101 or sport = :8080 or sport = :8081 )'
 curl -fsS http://127.0.0.1:8080/health
 ```
 
@@ -169,7 +169,7 @@ Counts vary with live network state. The MUD client supports fragmented
 snapshots larger than 4 KB and wakes the idle game loop when I3 events arrive,
 so these updates and incoming tells work even with zero players connected.
 
-Connect a MUD client to `127.0.0.1:4100`. Useful player checks are:
+Connect a MUD client to `127.0.0.1:4101`. Useful player checks are:
 
 ```text
 i3mudlist

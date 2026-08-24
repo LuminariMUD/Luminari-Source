@@ -118,12 +118,10 @@ Start the server against the repository runtime tree:
 ./bin/luminari -d lib
 ```
 
-The checked-in runtime configuration defaults to game port 4100. Supply a
-different port as the final positional argument when required:
-
-```bash
-./bin/luminari -d lib 4200
-```
+The checked-in local runtime configuration defaults to game port 4101. The
+production systemd unit explicitly supplies port 4100. A final positional port
+overrides the default, but reserve that port in the shared inventory before
+using it.
 
 Use direct startup for local development. For a supervised local process:
 

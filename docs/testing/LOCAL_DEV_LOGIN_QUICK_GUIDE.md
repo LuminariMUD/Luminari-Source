@@ -1505,7 +1505,7 @@ to perform the process manually.
 - `bin/luminari` must exist and be executable. Build and install first if it does
   not.
 - `expect`, `nc`, `ss`, `systemctl`, and `systemd-run` must be installed.
-- The helper reads `DFLT_PORT` from `lib/etc/config`; it is currently 4100.
+- The helper reads `DFLT_PORT` from `lib/etc/config`; it is currently 4101.
 
 The helper checks all of these automatically.
 
@@ -1520,7 +1520,7 @@ Start the server:
 Wait for `Entering game loop.`, then connect from a second terminal:
 
 ```bash
-nc 127.0.0.1 4100
+nc 127.0.0.1 4101
 ```
 
 Then follow this sequence:

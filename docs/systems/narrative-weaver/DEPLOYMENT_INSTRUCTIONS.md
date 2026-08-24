@@ -150,10 +150,10 @@ ls -la bin/luminari
 ### Step 6: Test In-Game (Optional but Recommended)
 ```bash
 # Start the game in test mode (if you have a test port)
-./bin/luminari 4000 > /tmp/test_narrative_weaver.log 2>&1 &
+./bin/luminari 4101 > /tmp/test_narrative_weaver.log 2>&1 &
 
 # Connect and test
-telnet localhost 4000
+telnet localhost 4101
 
 # In-game commands to test, in the Mosswood:
 # look           (check if enhanced descriptions appear)

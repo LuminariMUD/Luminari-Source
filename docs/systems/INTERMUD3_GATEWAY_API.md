@@ -2588,7 +2588,7 @@ See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for detailed troubleshooting g
 
 - [ ] **MUD Information Gathered**
   - MUD name (must be unique on I3 network)
-  - MUD port number (default: 4000-4100 range)
+  - MUD port number (4101 local development; 4100 production)
   - Admin email address
   - MUD type (Circle, LP, Tiny, ROM, etc.)
   - MUD status (open, closed, maintenance)

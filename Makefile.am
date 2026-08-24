@@ -739,6 +739,7 @@ EXTRA_DIST = \
 	scripts/deployment/move_bin.sh \
 	scripts/deployment/setup.sh \
 	scripts/deployment/test_versioned_binary_install.sh \
+	scripts/development/check_local_port_allocations.sh \
 	scripts/development/dev_create_test_character.sh \
 	scripts/development/dev_kohdee_login_smoke.sh \
 	scripts/mariadb/setup_mariadb_sudoers.sh \

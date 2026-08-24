@@ -107,20 +107,21 @@ Do not run initialization over an existing custom or production world.
 
 ### Port Conflict
 
-The checked-in default game port is 4100 and the loopback health port is 8182:
+The checked-in local game port is 4101 and the loopback health port is 8182:
 
 ```bash
-sudo lsof -i :4100
+sudo lsof -i :4101
 sudo lsof -i :8182
 ./scripts/autorun/autorun.sh status
 ```
 
 Resolve ownership before stopping a process. Use systemd or autorun control,
-not an unconditional `SIGKILL`. A direct development server accepts another
-game port as its final positional argument:
+not an unconditional `SIGKILL`. A direct development server accepts a game
+port as its final positional argument, but only use a port reserved for this
+project in the shared inventory:
 
 ```bash
-./bin/luminari -d lib 4200
+./bin/luminari -d lib 4101
 ```
 
 Set `TERRAIN_API_PORT` and the matching `LUMINARI_HEALTH_URL` when changing the

@@ -27,7 +27,7 @@ cd Luminari-Source
 ./bin/luminari -d lib
 ```
 
-That's it! Connect to `localhost:4100` with any MUD client.
+That's it! Connect to `localhost:4101` with any MUD client.
 
 **What it does:** The script automatically sets up the database, initializes world data, copies config files, and builds the MUD. World initialization is enabled by default (required for the server to start).
 
@@ -74,7 +74,7 @@ You can connect using any MUD client:
 
 **Basic Connection:**
 - Host: `localhost` or `127.0.0.1`
-- Port: `4100` (default)
+- Port: `4101` (local development default)
 
 ### First Login
 1. Create your first character (automatically gets admin privileges)
@@ -218,7 +218,7 @@ for MySQL/MariaDB setup details.
 **Can't connect:**
 - Verify server is running: `ps aux | grep luminari`
 - Check firewall settings
-- Try `telnet localhost 4100` to test
+- Try `telnet localhost 4101` to test
 
 **Build errors:**
 - Ensure all dependencies installed

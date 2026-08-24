@@ -22,8 +22,9 @@ Then start the server:
 ./bin/luminari -d lib
 ```
 
-The checked-in runtime configuration defaults to game port 4100. Connect a MUD
-client to `localhost:4100`. The deployment script supports noninteractive,
+The checked-in local runtime configuration defaults to the reserved development
+port 4101. Connect a MUD client to `localhost:4101`. The production systemd
+unit explicitly uses port 4100. The deployment script supports noninteractive,
 development, production, and managed-systemd modes; inspect the exact options
 with `./scripts/deployment/deploy.sh --help`.
 

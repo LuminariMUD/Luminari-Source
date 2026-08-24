@@ -120,7 +120,7 @@ After fixes:
 2. Remove all generated files and directories
 3. Run setup script from scratch
 4. Verify server starts and stays running
-5. Confirm can connect on port 4000
+5. Confirm a local development client can connect on port 4101
 
 ---
 

@@ -77,7 +77,7 @@ legacy warning where they remain linked.
   authority, link, naming, and audit corrections.
 - `docs/CODEOWNERS` retains organizational assignments while matching the current `src/combat/`,
   `src/magic/`, `src/vessels/`, `src/dgscript/`, build, and database paths.
-- `scripts/deployment/deploy.sh` reports port 4100, matching `src/config.c` and the autorun default.
+- Local defaults use reserved port 4101; `luminari.service` explicitly keeps production on 4100.
   `Makefile.am` distributes the renamed script and unit-test overviews.
 
 ### Overview Files Renamed
@@ -120,7 +120,7 @@ example project snapshots rather than current project entry points.
 | Finding | Evidence | Resolution |
 |---------|----------|------------|
 | Root README duplicated Quick Start and used obsolete commands | Root file compared with deploy/autorun help and Make targets | Replaced with one verified setup path and authoritative test/install gate |
-| User docs and deploy output said port 4000 | `src/config.c`, autorun default, systemd unit, and deploy completion output all default to 4100 | Updated docs and deploy completion output to 4100 |
+| User docs and deploy output said port 4000 | Current local defaults use 4101 and the systemd unit pins production to 4100 | Updated docs and deploy output for the environment-specific ports |
 | Environment guide invented staging URL, database, variables, and `--staging` | Deploy help has no staging option; repository state defines development/production safety only | Replaced with verified boundaries and variables |
 | Operator docs prescribed broad `kill -9`, firewall/sysctl writes, contacts, SLAs, and maintenance schedules | No repository authority supports those actions or policies | Replaced with read-only diagnosis, normal supervisor controls, and explicit external-policy gaps |
 | Setup guide referenced by deployment help was missing | `deploy.sh --help`, `AGENTS.md`, and `docs/web/index.html` named the absent path | Created the guide from current deploy/build/test sources |
@@ -140,7 +140,7 @@ example project snapshots rather than current project entry points.
 | Quick start | `README.md`, onboarding/build docs | `deploy.sh --help`; deploy build/database/world functions inspected | Updated |
 | Build/test commands | Development and contributing docs | `Makefile.am` test/test-all/install targets; dry-run target inspection | Verified |
 | CMake commands | Development/build docs | `CMakeLists.txt` `BUILD_TESTS` and install blocks | Verified |
-| Game port | README, getting started, environments, deployment | `src/config.c`, autorun default, systemd unit, deploy completion output | Aligned at 4100 |
+| Game port | README, getting started, environments, deployment | `src/config.c`, autorun default, systemd unit, deploy completion output | Local 4101; production 4100 |
 | Health API | API, deployment, environment, runbook docs | `terrain_bridge.c/.h`, healthcheck script, systemd unit, gameplay/shell regressions | Verified |
 | Operational commands | Deployment/runbook docs | Deploy, autorun, healthcheck, process-memory, and world-tool help surfaces | Verified |
 | CI/CD | `docs/deployment.md` | Six workflow trigger/job files plus `.github/dependabot.yml`; pipeline report | Verified |

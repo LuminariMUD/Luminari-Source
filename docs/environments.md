@@ -70,7 +70,7 @@ install, restart, or probe production.
 
 | Variable | Default | Consumer |
 |----------|---------|----------|
-| `MUD_PORT` | `4100` | Autorun game port |
+| `MUD_PORT` | `4101` | Local autorun game port |
 | `MUD_FLAGS` | `-q` | Autorun server flags |
 | `TERRAIN_API_PORT` | `8182` | Loopback Terrain and health listener |
 | `LUMINARI_HEALTH_URL` | `http://127.0.0.1:8182/health` | Readiness script |
@@ -79,7 +79,14 @@ install, restart, or probe production.
 | `LUMINARI_HEALTH_INTERVAL_SECONDS` | `2` | Readiness retry interval |
 
 When `TERRAIN_API_PORT` changes, set `LUMINARI_HEALTH_URL` to the matching
-loopback URL. Valid listener ports are 1025 through 65535.
+loopback URL. Valid listener ports are 1025 through 65535. The production
+systemd unit explicitly overrides `MUD_PORT` with its reserved port 4100.
+
+The shared development port inventory can be checked from this workspace with:
+
+```bash
+./scripts/development/check_local_port_allocations.sh
+```
 
 ## Data and Security
 

@@ -25,7 +25,7 @@ timeout 20m valgrind \
     --malloc-fill=0xAB \
     --free-fill=0xCD \
     --log-file="$LOG_DIR/valgrind_focused_${TIMESTAMP}.log" \
-    "$PROJECT_ROOT/bin/luminari" -q 4100
+    "$PROJECT_ROOT/bin/luminari" -q 4101
 
 echo ""
 echo "Analysis complete! Found the big problems in up to 20 minutes."
