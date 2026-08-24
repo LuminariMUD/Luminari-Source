@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from functools import lru_cache
 import re
@@ -858,6 +859,12 @@ ROL_OBJECT_TRAP_EFFECT_MASK = 0xFFF
 ROL_OBJECT_TRAP_DAMAGE_TYPES = frozenset((*range(1, 8), *range(11, 17), 30, 31))
 ROL_OBJECT_TRAP_VALUE_OFFSET = 10
 
+SOURCE_WEAR_TAKE = 0
+SOURCE_WEAR_FINGER = 1
+SOURCE_WEAR_TAIL = 22
+TARGET_WEAR_TAKE = 0
+TARGET_WEAR_TAIL = 34
+
 OBJECT_WEAR_MAP = {
     0: 0,
     1: 1,
@@ -881,7 +888,7 @@ OBJECT_WEAR_MAP = {
     19: 17,
     20: 16,
     21: 19,
-    22: 10,
+    SOURCE_WEAR_TAIL: TARGET_WEAR_TAIL,
 }
 
 # Object 10455 is one playing card among an otherwise identical deck. Its two
@@ -957,8 +964,9 @@ OBJECT_APPLY_DEFAULT_BONUS_TYPE = 23
 # (EXAMPLE/RealmsOfLuminari/src/structs.h:1120-1146), resolved at reset through
 # restore_wear[] (EXAMPLE/RealmsOfLuminari/src/files.c:547). It is not an index
 # into the source equipment_types[] display table, which omits SECONDARY_WEAPON
-# and therefore runs one short from 17 up. Source 25 (WEAR_TAIL) has no target
-# slot and its resets are dropped with a diagnostic.
+# and therefore runs one short from 17 up. Source 25 is the real WEAR_TAIL
+# position; source position 24 is also normalized contextually for tail objects
+# because affected RoL resets rely on try_wear() to recover from that bad slot.
 EQUIPMENT_POSITION_MAP = {
     **{position: position for position in range(17)},
     17: 18,  # SECONDARY_WEAPON -> WEAR_WIELD_OFFHAND
@@ -969,6 +977,7 @@ EQUIPMENT_POSITION_MAP = {
     22: 25,  # WEAR_EARRING_L -> WEAR_EAR_L
     23: 23,  # WEAR_QUIVER -> WEAR_AMMO_POUCH
     24: 27,  # GUILD_INSIGNIA -> WEAR_BADGE
+    25: 43,  # WEAR_TAIL -> WEAR_TAIL
 }
 
 # Source weapons store a one-based index into RoL's weapons[] verb table
@@ -993,7 +1002,6 @@ SOURCE_WEAPON_MESSAGE_MAP = {
 
 # Target wear bits a weapon carries after set_weapon_object()
 # (src/obj/treasure.c:2562) clears the word and sets these two.
-TARGET_WEAR_TAKE = 0
 TARGET_WEAR_WIELD = 13
 
 # Target object proficiency, the 'G' block. set_weapon_object() does not touch
@@ -1087,6 +1095,28 @@ def _source_mask_bits(mask: int, logical_offset: int) -> set[int]:
 
 def _mapped_bits(source_bits: set[int], mapping: dict[int, int]) -> set[int]:
   return {mapping[bit] for bit in source_bits if bit in mapping}
+
+
+def classify_source_tail_objects(
+    records: Iterable[RolRecord],
+) -> tuple[frozenset[int], frozenset[int]]:
+  """Return source VNUMs for dedicated tail gear and tail-capable rings."""
+
+  dedicated: set[int] = set()
+  rings: set[int] = set()
+  for record in records:
+    if record.kind != "obj":
+      continue
+    source_flags = record.values.get("flags", [])
+    wear_mask = source_flags[2] if len(source_flags) > 2 else 0
+    source_wear = _source_mask_bits(wear_mask, 0)
+    if SOURCE_WEAR_TAIL not in source_wear:
+      continue
+    if SOURCE_WEAR_FINGER in source_wear:
+      rings.add(record.vnum)
+    else:
+      dedicated.add(record.vnum)
+  return frozenset(dedicated), frozenset(rings)
 
 
 def _convert_armor_apply_modifier(modifier: int) -> int:
@@ -2633,6 +2663,27 @@ def emit_object(
   source_wear = _source_mask_bits(wear_mask, 0)
   target_extra = _mapped_bits(source_extra, OBJECT_EXTRA_MAP) | set(required_extra_bits)
   target_wear = _mapped_bits(source_wear, OBJECT_WEAR_MAP)
+  if SOURCE_WEAR_TAIL in source_wear:
+    if SOURCE_WEAR_FINGER in source_wear:
+      target_wear.discard(TARGET_WEAR_TAIL)
+      diagnostics.append(
+          "normalized source tail ring to a target ring; runtime ring handling "
+          "provides tail eligibility"
+      )
+    else:
+      normalized_tail_wear = {TARGET_WEAR_TAIL}
+      if SOURCE_WEAR_TAKE in source_wear:
+        normalized_tail_wear.add(TARGET_WEAR_TAKE)
+      removed_wear = sorted(target_wear - normalized_tail_wear)
+      target_wear = normalized_tail_wear
+      diagnostics.append(
+          "normalized source non-ring tail item to dedicated target tail gear"
+      )
+      if removed_wear:
+        diagnostics.append(
+            "normalized conflicting target wear flags out of dedicated tail gear: "
+            f"{removed_wear}"
+        )
   missing_extra = [
       flag
       for flag in _unmapped(source_extra, OBJECT_EXTRA_MAP)
@@ -2823,6 +2874,8 @@ def _reset_probability(command: str, arguments: list[int]) -> int:
 def _emit_reset(
     directive: dict[str, object],
     resolve: IdentityResolver,
+    source_tail_only_objects: frozenset[int],
+    source_tail_ring_objects: frozenset[int],
 ) -> tuple[str | None, list[str]]:
   command = str(directive["token"])
   arguments = [int(value) for value in directive.get("arguments", [])]
@@ -2845,6 +2898,7 @@ def _emit_reset(
       dependency, prototype, maximum, destination = arguments[:4]
       if prototype <= 0:
         raise ValueError(f"has non-positive prototype {prototype}")
+      source_prototype = prototype
       target_kind = "mob" if command == "M" else "obj"
       prototype = resolve(target_kind, prototype)
       if command in {"M", "O"}:
@@ -2852,10 +2906,29 @@ def _emit_reset(
       elif command == "P":
         destination = resolve("obj", destination)
       else:
-        mapped_position = EQUIPMENT_POSITION_MAP.get(destination)
-        if mapped_position is None:
-          raise ValueError(f"has unsupported equipment position {destination}")
-        destination = mapped_position
+        source_position = destination
+        if source_prototype in source_tail_only_objects:
+          destination = EQUIPMENT_POSITION_MAP[25]
+          if source_position != 25:
+            diagnostics.append(
+                f"normalized dedicated tail object {source_prototype} from source "
+                f"equipment position {source_position} to tail at source line {line}"
+            )
+        elif (
+            source_prototype in source_tail_ring_objects
+            and source_position in {24, 25}
+        ):
+          destination = EQUIPMENT_POSITION_MAP[25]
+          if source_position == 24:
+            diagnostics.append(
+                f"normalized source tail-ring reset {source_prototype} from the "
+                f"position-24 compatibility defect at source line {line}"
+            )
+        else:
+          mapped_position = EQUIPMENT_POSITION_MAP.get(source_position)
+          if mapped_position is None:
+            raise ValueError(f"has unsupported equipment position {source_position}")
+          destination = mapped_position
       probability = _reset_probability(command, arguments)
       return (
           f"{command} {dependency} {prototype} {maximum} {destination} {probability}\n",
@@ -2959,6 +3032,8 @@ def emit_zone(
     destination_vnum: int,
     destination_bottom: int,
     resolve: IdentityResolver,
+    source_tail_only_objects: frozenset[int] = frozenset(),
+    source_tail_ring_objects: frozenset[int] = frozenset(),
 ) -> TransformResult:
   """Emit a target zone and its normalized reset stream."""
 
@@ -3004,7 +3079,12 @@ def emit_zone(
           f"source line {directive['line']}"
       )
       continue
-    emitted, reset_diagnostics = _emit_reset(directive, resolve)
+    emitted, reset_diagnostics = _emit_reset(
+        directive,
+        resolve,
+        source_tail_only_objects,
+        source_tail_ring_objects,
+    )
     diagnostics.extend(reset_diagnostics)
     if emitted is not None:
       if emitted_count == 0:

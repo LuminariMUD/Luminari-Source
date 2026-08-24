@@ -36,6 +36,7 @@ from .rol_source import RolRecord
 from .rol_special import NativeSpecialBinding, SpecialCompilation, compile_special_bindings
 from .rol_transform import (
     TransformResult,
+    classify_source_tail_objects,
     emit_hlquest,
     emit_mobile,
     emit_object,
@@ -1259,6 +1260,9 @@ def write_phase7_bundle(
 
   actions, metadata = _augment_actions(discovery_dir, plan_dir)
   records, source_diagnostics = _source_records(repo_root, actions)
+  source_tail_only_objects, source_tail_ring_objects = classify_source_tail_objects(
+      records.values()
+  )
   actions, repaired_identities, source_repairs = _apply_source_record_repairs(
       actions, records
   )
@@ -1478,6 +1482,8 @@ def write_phase7_bundle(
         destination,
         destination_bottom,
         zone_resolve,
+        source_tail_only_objects,
+        source_tail_ring_objects,
     )
     filtered_text, filter_diagnostics = _filter_zone_door_resets(
         emitted.text, valid_exit_directions

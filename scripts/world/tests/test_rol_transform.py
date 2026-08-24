@@ -30,6 +30,7 @@ from wtool_lib.rol_transform import (
     TARGET_APPLY_AC_NEW,
     _NON_CASTABLE_SOURCE_SPELLS,
     _SOURCE_SPELL_MAP,
+    classify_source_tail_objects,
     convert_text,
     emit_mobile,
     emit_hlquest,
@@ -1093,6 +1094,49 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn("omitted source-only object apply 41", diagnostics)
     self.assertNotIn("unknown source item type", diagnostics)
 
+  def test_source_tail_ring_uses_runtime_tail_eligibility(self) -> None:
+    wear_mask = sum(1 << bit for bit in (0, 1, 22))
+    source = self._source_record(
+        "obj",
+        (
+            "#200\nring tail~\na tail-capable ring~\n"
+            "A tail-capable ring is here.~\n~\n"
+            f"9 0 {wear_mask}\n0 0 0 0\n1 1 0\n"
+        ).encode("ascii"),
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual({0, 1}, decode_tokens(result.records[0].wear_flags).bits)
+    self.assertIn(
+        "runtime ring handling provides tail eligibility",
+        " ".join(emitted.diagnostics),
+    )
+
+  def test_source_non_ring_tail_item_becomes_dedicated_tail_gear(self) -> None:
+    wear_mask = sum(1 << bit for bit in (0, 5, 22))
+    source = self._source_record(
+        "obj",
+        (
+            "#201\ntail plates~\na set of tail plates~\n"
+            "A set of tail plates is here.~\n~\n"
+            f"9 0 {wear_mask}\n6 0 0 0\n1 1 0\n"
+        ).encode("ascii"),
+    )
+
+    emitted = emit_object(source, 2_000_201, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual({0, 34}, decode_tokens(result.records[0].wear_flags).bits)
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertIn("normalized source non-ring tail item", diagnostics)
+    self.assertIn("normalized conflicting target wear flags", diagnostics)
+
   def test_converted_text_escapes_literal_at_for_target_color_parser(self) -> None:
     text, diagnostics = convert_text("mail me @ &+rdawn&N")
 
@@ -2012,14 +2056,13 @@ class RolTransformTests(unittest.TestCase):
         "WEAR_EARRING_L": "WEAR_EAR_L",
         "WEAR_QUIVER": "WEAR_AMMO_POUCH",
         "GUILD_INSIGNIA": "WEAR_BADGE",
+        "WEAR_TAIL": "WEAR_TAIL",
     }
     expected = {
         source_wear[source_name]: target_wear[target_name]
         for source_name, target_name in equivalents.items()
     }
     self.assertEqual(expected, EQUIPMENT_POSITION_MAP)
-    # WEAR_TAIL has no target equivalent and must stay unmapped.
-    self.assertNotIn(source_wear["WEAR_TAIL"], EQUIPMENT_POSITION_MAP)
 
   def test_emitted_zone_normalizes_extended_resets(self) -> None:
     source = self._source_record(
@@ -2039,14 +2082,56 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(result.complete)
     self.assertEqual([], result.findings)
     self.assertEqual(
-        ["K", "K", "R", "F", "M", "C", "X"],
+        ["K", "K", "R", "F", "M", "E", "C", "X"],
         [command.command for command in result.records[0].commands],
     )
     self.assertEqual(35, result.records[0].commands[2].probability)
     self.assertEqual(2, result.records[0].commands[3].dependency)
-    self.assertEqual(25, result.records[0].commands[6].probability)
+    self.assertEqual(43, result.records[0].commands[5].arguments[2])
+    self.assertEqual(25, result.records[0].commands[7].probability)
     self.assertIn(18, decode_tokens(result.records[0].flags).bits)
-    self.assertIn("unsupported equipment position 25", " ".join(emitted.diagnostics))
+
+  def test_emitted_zone_recovers_tail_objects_from_position_24(self) -> None:
+    dedicated = self._source_record(
+        "obj",
+        b"#200\ntail plates~\ntail plates~\nTail plates are here.~\n~\n"
+        b"9 0 4194305\n6 0 0 0\n1 1 0\n",
+    )
+    ring = self._source_record(
+        "obj",
+        b"#201\nring tail~\na tail ring~\nA tail ring is here.~\n~\n"
+        b"9 0 4194307\n0 0 0 0\n1 1 0\n",
+    )
+    tail_only_objects, tail_ring_objects = classify_source_tail_objects(
+        [dedicated, ring]
+    )
+    source = self._source_record(
+        "zon",
+        b"#100\nfile~\nPilot~\n199 30 2 0\n"
+        b"0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n"
+        b"M 0 300 1 100\nE 1 200 1 24\nE 1 201 1 24\nE 1 201 1 1\nS\n",
+    )
+
+    emitted = emit_zone(
+        source,
+        20_100,
+        2_000_100,
+        _resolver,
+        tail_only_objects,
+        tail_ring_objects,
+    )
+    positions = [
+        int(line.split()[4])
+        for line in emitted.text.splitlines()
+        if line.startswith("E ")
+    ]
+
+    self.assertEqual({200}, tail_only_objects)
+    self.assertEqual({201}, tail_ring_objects)
+    self.assertEqual([43, 43, 1], positions)
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertIn("normalized dedicated tail object 200", diagnostics)
+    self.assertIn("position-24 compatibility defect", diagnostics)
 
   def test_emitted_zone_normalizes_source_boolean_dependencies(self) -> None:
     source = self._source_record(

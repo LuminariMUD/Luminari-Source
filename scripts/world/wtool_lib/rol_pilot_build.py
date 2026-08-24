@@ -24,6 +24,7 @@ from .rol_source import RolRecord, parse_rol_source_file
 from .rol_special import NativeSpecialBinding, SpecialCompilation, compile_special_bindings
 from .rol_transform import (
     TransformResult,
+    classify_source_tail_objects,
     emit_hlquest,
     emit_mobile,
     emit_object,
@@ -681,6 +682,9 @@ def write_pilot_build_bundle(
   if len(actions) != 3001:
     raise RolPilotBuildError(f"expected 3001 selected actions, found {len(actions)}")
   source_records, source_diagnostics = _source_records(repo_root, actions)
+  source_tail_only_objects, source_tail_ring_objects = classify_source_tail_objects(
+      source_records.values()
+  )
   resolve = _identity_resolver(plan_dir)
   manifest = load_manifest(repo_root / "scripts/world/wtool_constants.json")
   validation_config = resolve_config(target_world, None)
@@ -819,7 +823,12 @@ def write_pilot_build_bundle(
         return stage_resolve(target_kind, source_vnum)
 
       emitted = emit_zone(
-          record, destination, min(room_destinations), zone_resolve
+          record,
+          destination,
+          min(room_destinations),
+          zone_resolve,
+          source_tail_only_objects,
+          source_tail_ring_objects,
       )
     elif kind == "qst":
       emitted = emit_hlquest(record, destination, stage_resolve)

@@ -45,6 +45,7 @@ from .rol_transform import (
     ZONE_SOURCE_ONLY_FLAGS,
     TransformResult,
     _source_mask_bits,
+    classify_source_tail_objects,
     emit_hlquest,
     emit_mobile,
     emit_object,
@@ -314,6 +315,8 @@ def _emit_record(
     zones: dict[str, int],
     rooms: dict[str, list[int]],
     source_zone_flags: dict[str, int],
+    source_tail_only_objects: frozenset[int],
+    source_tail_ring_objects: frozenset[int],
 ) -> TransformResult:
   kind = str(action["source_kind"])
   destination = int(action["destination_vnum"])
@@ -346,7 +349,14 @@ def _emit_record(
           return destination * 100 + (source_vnum - record.vnum * 100)
       return resolve(target_kind, source_vnum)
 
-    return emit_zone(record, destination, min(rooms[basename]), zone_resolve)
+    return emit_zone(
+        record,
+        destination,
+        min(rooms[basename]),
+        zone_resolve,
+        source_tail_only_objects,
+        source_tail_ring_objects,
+    )
   raise RolCapabilityAuditError(f"no full-corpus emitter for source kind {kind}")
 
 
@@ -369,6 +379,9 @@ def write_capability_audit_bundle(
   plan_manifest = _verify_bundle(plan_dir, 2)
   actions = _load_jsonl(plan_dir / "reconciliation.jsonl")
   records, source_diagnostics = _source_records(repo_root, actions)
+  source_tail_only_objects, source_tail_ring_objects = classify_source_tail_objects(
+      records.values()
+  )
   resolve = _identity_resolver(plan_dir)
   zones = _target_zone_by_basename(actions)
   source_zone_flags = _source_zone_flags_by_basename(records.values())
@@ -397,6 +410,8 @@ def write_capability_audit_bundle(
           zones,
           rooms,
           source_zone_flags,
+          source_tail_only_objects,
+          source_tail_ring_objects,
       )
       payload = emitted.text.encode("ascii")
     except (KeyError, TypeError, UnicodeError, ValueError) as error:

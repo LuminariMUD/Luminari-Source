@@ -1,8 +1,28 @@
 # RoL Tail Equipment Slot Implementation
 
-Status: core runtime implementation in progress; converter, help, and full validation remain
+Status: runtime and converter implemented; help, documentation, and final validation remain
 
 ## Progress log
+
+### 2026-08-25 - RoL converter checkpoint implemented
+
+- Corrected source `ITEM_WEAR_TAIL` conversion from the previous erroneous
+  about-body mapping to appended target wear bit 34.
+- Classified source tail objects before normalization: the active corpus has
+  12 dedicated non-ring tail items and one finger-and-tail ring (object
+  32644).
+- Normalized dedicated tail objects to take-plus-tail only, while source tail
+  rings remain ordinary target rings and receive tail eligibility from the
+  runtime ring rule.
+- Mapped source equipment position 25 to target `WEAR_TAIL` and recovered the
+  known source position-24 reset defect using the referenced object's wear
+  classification.
+- Threaded the classification through pilot, capability-audit, and Phase 7
+  generation paths and added converter regression coverage.
+
+The 135-test focused RoL transform suite passes at this checkpoint. Pending:
+builder/player documentation, synchronized help, final world-tool and full
+production test/install validation, and subsequent commits/pushes.
 
 ### 2026-08-25 - Core runtime checkpoint implemented
 
@@ -20,9 +40,7 @@ Status: core runtime implementation in progress; converter, help, and full valid
   tail-only gear, anatomy rejection, direct equip, persistence restore, and AC.
 
 The production build and the 899-test CuTest executable pass at this checkpoint,
-and the checked-in world constants manifest has been refreshed. Pending: RoL
-converter normalization, builder/player documentation, synchronized help,
-final full test/install validation, and subsequent commits/pushes.
+and the checked-in world constants manifest has been refreshed.
 
 RoL source root:
 `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/RealmsOfLuminari`
