@@ -1,8 +1,24 @@
 # RoL Tail Equipment Slot Implementation
 
-Status: implementation complete; final full validation remains
+Status: complete
 
 ## Progress log
+
+### 2026-08-25 - Final validation complete
+
+- The complete world-tool suite passes all 504 tests, including full active
+  RoL corpus emission and tail conversion coverage.
+- The full root `make test` target passes, including all 901 production-linked
+  CuTest cases and its help, deployment, healthcheck, process-memory, and vessel
+  support checks.
+- The final gate caught a player-message assertion that depended on room-aware
+  `act()` delivery. The dedicated-tail rejection now uses direct
+  `send_to_char()` delivery and the complete gate passes after that correction.
+- `make install` succeeds, installs the current binary at `bin/luminari`, and
+  removes the root-level `luminari` build artifact as required.
+- The constants manifest, generated OEDIT HTML, flat help, repeatable SQL help
+  component, and development database entries all pass their consistency
+  checks.
 
 ### 2026-08-25 - Help and documentation checkpoint implemented
 
@@ -16,9 +32,6 @@ Status: implementation complete; final full validation remains
   equality between the database and flat-file entries.
 - Confirmed the constants manifest and generated world documentation are
   current with no findings.
-
-Pending: final world-tool, full production-linked CuTest, install, artifact,
-and worktree validation.
 
 ### 2026-08-25 - RoL converter checkpoint implemented
 

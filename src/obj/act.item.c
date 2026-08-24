@@ -4330,7 +4330,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
 
   if (where != WEAR_TAIL && object_is_dedicated_tail_gear(obj))
   {
-    act("You can only wear $p on a tail.", FALSE, ch, obj, 0, TO_CHAR);
+    send_to_char(ch, "You can only wear %s on a tail.\r\n", GET_OBJ_SHORT(obj));
     return;
   }
 
