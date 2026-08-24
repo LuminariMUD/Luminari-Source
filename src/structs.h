@@ -779,8 +779,8 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_DEEP_GNOME 26
 #define RACE_SVIRFNEBLIN RACE_DEEP_GNOME
 #define RACE_ORC 27
-#define RACE_H_OGRE 28 // not yet implemented
-#define RACE_HALF_OGRE RACE_H_OGRE
+#define RACE_HALF_OGRE 28
+#define RACE_H_OGRE RACE_HALF_OGRE
 /* Retired race IDs remain reserved for persisted character and world data. */
 #define LEGACY_RACE_START 29
 #define LEGACY_RACE_HUMAN 29
@@ -870,8 +870,8 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RACE_OWLBEAR 111
 #define RACE_SHAMBLING_MOUND 112
 #define RACE_TREANT 113
-#define RACE_MYCANOID 114
-#define RACE_MYCONID RACE_MYCANOID
+#define RACE_MYCONID 114
+#define RACE_MYCANOID RACE_MYCONID
 #define RACE_SKELETON 115
 #define RACE_ZOMBIE 116
 #define RACE_WOLF 117

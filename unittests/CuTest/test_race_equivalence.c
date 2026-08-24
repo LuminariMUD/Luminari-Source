@@ -6,10 +6,14 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/act.h"
+#include "../../src/interpreter.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
+#include "../../src/character/premadebuilds.h"
 #include "../../src/character/race.h"
+#include "../../src/net/protocol.h"
 
 static void ensure_race_equivalence_registry(void)
 {
@@ -48,6 +52,21 @@ static int count_racial_feat(int race, int feat)
       count++;
 
   return count;
+}
+
+static void cleanup_race_equivalence_descriptor(struct descriptor_data *descriptor)
+{
+  if (descriptor->pProtocol != NULL)
+  {
+    ProtocolDestroy(descriptor->pProtocol);
+    descriptor->pProtocol = NULL;
+  }
+  if (descriptor->large_outbuf != NULL)
+  {
+    free(descriptor->large_outbuf->text);
+    free(descriptor->large_outbuf);
+    descriptor->large_outbuf = NULL;
+  }
 }
 
 void TestRaceEquivalenceIdsAreUniqueAndRepresentable(CuTest *tc)
@@ -200,6 +219,139 @@ void TestRaceEquivalenceCreationUnlockPolicy(CuTest *tc)
   CuAssertTrue(tc, !race_is_selectable_for_creation(&ch, RACE_VAMPIRE));
   CuAssertTrue(tc, !race_is_selectable_for_creation(&ch, -1));
   CuAssertTrue(tc, !race_is_selectable_for_creation(&ch, NUM_EXTENDED_RACES));
+}
+
+void TestRaceEquivalenceTerminalCreationPolicy(CuTest *tc)
+{
+  const int races[] = {RACE_WEMIC, RACE_HALF_OGRE, RACE_HALF_ILLITHID, RACE_YUAN_TI, RACE_MYCONID};
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  char input[MAX_INPUT_LENGTH];
+  size_t i = 0;
+
+  ensure_race_equivalence_registry();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  if (descriptor.pProtocol == NULL)
+    return;
+
+  for (i = 0; i < sizeof(races) / sizeof(races[0]); i++)
+    account.races[i] = races[i];
+  STATE(&descriptor) = CON_QSEX;
+  snprintf(input, sizeof(input), "m");
+  nanny(&descriptor, input);
+  CuAssertIntEquals(tc, CON_QRACE, STATE(&descriptor));
+  for (i = 0; i < sizeof(races) / sizeof(races[0]); i++)
+    CuAssertPtrNotNull(tc, strstr(descriptor.output, race_list[races[i]].type));
+  CuAssertTrue(tc, strstr(descriptor.output, "\r\nLich\r\n") == NULL);
+  CuAssertTrue(tc, strstr(descriptor.output, "\r\nVampire\r\n") == NULL);
+  cleanup_race_equivalence_descriptor(&descriptor);
+
+  for (i = 0; i < sizeof(races) / sizeof(races[0]); i++)
+  {
+    init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+    descriptor.pProtocol = ProtocolCreate();
+    CuAssertPtrNotNull(tc, descriptor.pProtocol);
+    if (descriptor.pProtocol == NULL)
+      return;
+    account.races[0] = races[i];
+    GET_REAL_RACE(&ch) = RACE_UNDEFINED;
+    STATE(&descriptor) = CON_QRACE;
+    snprintf(input, sizeof(input), "%s", race_list[races[i]].type);
+    nanny(&descriptor, input);
+    CuAssertIntEquals(tc, races[i], GET_REAL_RACE(&ch));
+    CuAssertIntEquals(tc, CON_QRACE_HELP, STATE(&descriptor));
+    cleanup_race_equivalence_descriptor(&descriptor);
+  }
+
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  if (descriptor.pProtocol == NULL)
+    return;
+  GET_REAL_RACE(&ch) = RACE_UNDEFINED;
+  STATE(&descriptor) = CON_QRACE;
+  snprintf(input, sizeof(input), "wemic");
+  nanny(&descriptor, input);
+  CuAssertIntEquals(tc, RACE_UNDEFINED, GET_REAL_RACE(&ch));
+  CuAssertIntEquals(tc, CON_QRACE, STATE(&descriptor));
+  CuAssertPtrNotNull(tc, strstr(descriptor.output, "not unlocked"));
+
+  account.races[0] = RACE_LICH;
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  snprintf(input, sizeof(input), "lich");
+  nanny(&descriptor, input);
+  CuAssertIntEquals(tc, RACE_UNDEFINED, GET_REAL_RACE(&ch));
+  CuAssertIntEquals(tc, CON_QRACE, STATE(&descriptor));
+  CuAssertPtrNotNull(tc, strstr(descriptor.output, "cannot be selected"));
+  cleanup_race_equivalence_descriptor(&descriptor);
+}
+
+void TestRaceEquivalenceAccountExperiencePurchase(CuTest *tc)
+{
+  const int races[] = {RACE_WEMIC, RACE_HALF_OGRE, RACE_HALF_ILLITHID, RACE_YUAN_TI, RACE_MYCONID};
+  const int costs[] = {1000, 1000, 30000, 1000, 30000};
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  char input[MAX_INPUT_LENGTH];
+  size_t i = 0;
+
+  ensure_race_equivalence_registry();
+  for (i = 0; i < sizeof(races) / sizeof(races[0]); i++)
+  {
+    init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+    descriptor.pProtocol = ProtocolCreate();
+    CuAssertPtrNotNull(tc, descriptor.pProtocol);
+    if (descriptor.pProtocol == NULL)
+      return;
+    account.experience = costs[i];
+    snprintf(input, sizeof(input), "race %s", race_list[races[i]].type);
+    do_accexp(&ch, input, 0, 0);
+    CuAssertIntEquals(tc, races[i], account.races[0]);
+    CuAssertIntEquals(tc, 0, account.experience);
+    CuAssertTrue(tc, has_unlocked_race(&ch, races[i]));
+    CuAssertPtrNotNull(tc, strstr(descriptor.output, "You have unlocked"));
+    cleanup_race_equivalence_descriptor(&descriptor);
+  }
+}
+
+void TestRaceEquivalencePremadeBuildStats(CuTest *tc)
+{
+  const int races[] = {RACE_WEMIC, RACE_HALF_OGRE, RACE_HALF_ILLITHID, RACE_YUAN_TI, RACE_MYCONID};
+  const int warrior_base_stats[] = {16, 16, 14, 10, 14, 8};
+  struct char_data ch;
+  struct player_special_data specials;
+  size_t i = 0;
+
+  ensure_race_equivalence_registry();
+  memset(&ch, 0, sizeof(ch));
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+
+  for (i = 0; i < sizeof(races) / sizeof(races[0]); i++)
+  {
+    GET_REAL_RACE(&ch) = races[i];
+    set_premade_stats(&ch, CLASS_WARRIOR, 1);
+    CuAssertIntEquals(tc, warrior_base_stats[0] + get_race_stat(races[i], R_STR_MOD),
+                      GET_REAL_STR(&ch));
+    CuAssertIntEquals(tc, warrior_base_stats[1] + get_race_stat(races[i], R_CON_MOD),
+                      GET_REAL_CON(&ch));
+    CuAssertIntEquals(tc, warrior_base_stats[2] + get_race_stat(races[i], R_INTEL_MOD),
+                      GET_REAL_INT(&ch));
+    CuAssertIntEquals(tc, warrior_base_stats[3] + get_race_stat(races[i], R_WIS_MOD),
+                      GET_REAL_WIS(&ch));
+    CuAssertIntEquals(tc, warrior_base_stats[4] + get_race_stat(races[i], R_DEX_MOD),
+                      GET_REAL_DEX(&ch));
+    CuAssertIntEquals(tc, warrior_base_stats[5] + get_race_stat(races[i], R_CHA_MOD),
+                      GET_REAL_CHA(&ch));
+  }
 }
 
 void TestRaceEquivalenceLevelOneFeatGrants(CuTest *tc)

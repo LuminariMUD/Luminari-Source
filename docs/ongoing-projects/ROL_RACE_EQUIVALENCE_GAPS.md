@@ -1,7 +1,6 @@
 # RoL Playable Races Without a Close LuminariMUD Equivalent
 
-Status: implementation completed 2026-08-24. Development runtime smoke remains
-environment-dependent as described below.
+Status: implementation and completion audit finished 2026-08-24.
 
 ## Implementation progress
 
@@ -55,22 +54,34 @@ Checkpoint 2026-08-24 (implementation validation complete):
   conversion-only denial, every level-one racial feat grant and stack, derived
   hit-point reconstruction, all pages of the web race catalog, and a sparse ID
   151 player-file round trip.
-- The production-linked CuTest binary passes all 893 tests. The complete root
-  `make test` path also passes its fallback, help-sync, autorun, deployment,
-  healthcheck, background-help, vessel, and process-memory checks when the
-  committed special-procedure inventory fixture is selected and the unavailable
-  world boot is explicitly skipped. `make install` installed `bin/luminari` and
-  removed the root-level build artifact.
+- At this checkpoint, the production-linked CuTest binary passed all 893 tests.
+  The complete root `make test` path also passed its fallback, help-sync,
+  autorun, deployment, healthcheck, background-help, vessel, and process-memory
+  checks when the committed special-procedure inventory fixture was selected
+  and the then-unavailable world boot was explicitly skipped. `make install`
+  installed `bin/luminari` and removed the root-level build artifact. The later
+  completion audit below removes that runtime limitation.
 
-Development runtime validation constraint:
+Checkpoint 2026-08-24 (completion audit):
 
-- This fresh worktree has neither `lib/.env` nor `lib/mysql_config`, and its
-  production world directories are unpopulated. The game correctly refuses a
-  real world boot without required MySQL initialization. Terminal creation and
-  in-game help lookup therefore could not be smoke-tested against a development
-  server without inventing an environment identity or credentials. The shared
-  terminal/web policy, web payloads, persistence, SQL help migrations, and flat
-  help projection are covered by the tests above.
+- The canonical constant names are now `RACE_HALF_OGRE` and `RACE_MYCONID`;
+  the historical `RACE_H_OGRE` and misspelled `RACE_MYCANOID` names remain
+  compatibility aliases.
+- Production-flow coverage now submits every race through the terminal nanny,
+  rejects locked and forged conversion-only choices, purchases all five with
+  `accexp`, and applies every race through the premade-build stat path.
+- A live MariaDB integration test purchases the five unlocks for one account,
+  persists each purchase through the normal account save, reloads the account,
+  and verifies the exact five SQL rows and sparse IDs.
+- `docs/guides/ADDING_NEW_RACE_GUIDE.md` was re-audited against the completed
+  sparse registry, shared creation policy, widened race storage, and keyed web
+  media implementation so it no longer describes the pre-implementation
+  bounds as current behavior.
+- The repository-provided isolated runtime was prepared against a disposable
+  MariaDB instance. Both the focused binary and the complete root `make test`
+  path passed all 897 production-linked CuTests with the syntax/world boot,
+  SQL integration tests, and committed special-procedure fixture enabled.
+  No production or persistent development database was changed.
 
 This document accompanies `ROL_SPELL_EQUIVALENCE_GAPS.md` in the Realms of
 Luminari conversion series and compares RoL's player-character races with

@@ -23,6 +23,7 @@ extern "C"
 void perform_do_account(struct char_data *ch, struct char_data *vict);
 int change_account_xp(struct char_data *ch, int change_val);
 void load_account_characters(struct account_data *account);
+void load_account_unlocks(struct account_data *account);
 bool link_character_to_account_checked(struct char_data *ch, struct account_data *account);
 bool save_account_checked(struct account_data *account);
 

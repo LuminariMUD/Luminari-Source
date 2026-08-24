@@ -4,10 +4,14 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/account.h"
+#include "../../src/act.h"
+#include "../../src/character/race.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
 #include "../../src/mysql.h"
+#include "../../src/net/protocol.h"
 #include "../../src/db_init.h"
 #include "../../src/mudlim.h"
 #include "../../src/magic/spells.h"
@@ -396,6 +400,137 @@ void Test_database_production_prepared_statement_round_trip(CuTest *tc)
   CuAssertTrue(tc, fetched);
   CuAssertTrue(tc, payload_matches);
   CuAssertIntEquals(tc, 42, stored_count);
+}
+
+void Test_race_equivalence_account_unlock_database_round_trip(CuTest *tc)
+{
+  const int races[] = {RACE_WEMIC, RACE_HALF_OGRE, RACE_HALF_ILLITHID, RACE_YUAN_TI, RACE_MYCONID};
+  const char *race_names[] = {"Wemic", "Half-Ogre", "Half-Illithid", "Yuan-Ti", "Myconid"};
+  const char *queries[] = {
+      "CREATE TEMPORARY TABLE account_data ("
+      "id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(64) NOT NULL, "
+      "password VARCHAR(64) NOT NULL, experience INT NOT NULL, email VARCHAR(255) NULL, "
+      "quit_survey_completed BOOLEAN NOT NULL) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE unlocked_races ("
+      "account_id INT NOT NULL, race_id INT NOT NULL, "
+      "UNIQUE KEY unique_account_race (account_id, race_id)) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE unlocked_classes ("
+      "account_id INT NOT NULL, class_id INT NOT NULL, "
+      "UNIQUE KEY unique_account_class (account_id, class_id)) ENGINE=InnoDB",
+      NULL};
+  const char *enabled;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data saved_account;
+  struct account_data loaded_account;
+  bool saved_available;
+  bool schema_created = true;
+  bool saved = false;
+  bool found = false;
+  bool protocol_created = false;
+  char command[MAX_INPUT_LENGTH];
+  char count_query[256];
+  int stored_count = -1;
+  int query_index = 0;
+  int race_index = 0;
+  int slot = 0;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  memset(&ch, 0, sizeof(ch));
+  memset(&specials, 0, sizeof(specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&saved_account, 0, sizeof(saved_account));
+  memset(&loaded_account, 0, sizeof(loaded_account));
+  ch.player_specials = &specials;
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.account = &saved_account;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  protocol_created = descriptor.pProtocol != NULL;
+  if (race_list[RACE_WEMIC].type == NULL)
+    assign_races();
+
+  for (query_index = 0; queries[query_index] != NULL; query_index++)
+    if (mysql_query(connection, queries[query_index]))
+    {
+      schema_created = false;
+      break;
+    }
+
+  if (schema_created && protocol_created)
+  {
+    saved_account.name = (char *)"RaceEquivalenceAccount";
+    strlcpy(saved_account.password, "test-password", sizeof(saved_account.password));
+    saved_account.experience = 63000;
+    for (race_index = 0; race_index < (int)(sizeof(races) / sizeof(races[0])); race_index++)
+    {
+      snprintf(command, sizeof(command), "race %s", race_names[race_index]);
+      do_accexp(&ch, command, 0, 0);
+    }
+    saved = saved_account.id > 0 && saved_account.experience == 0;
+  }
+
+  if (saved)
+  {
+    loaded_account.id = saved_account.id;
+    load_account_unlocks(&loaded_account);
+    snprintf(count_query, sizeof(count_query),
+             "SELECT COUNT(*) FROM unlocked_races WHERE account_id = %d", saved_account.id);
+    stored_count = query_single_int(connection, count_query, -1);
+  }
+
+  if (descriptor.pProtocol != NULL)
+  {
+    ProtocolDestroy(descriptor.pProtocol);
+    descriptor.pProtocol = NULL;
+  }
+  if (descriptor.large_outbuf != NULL)
+  {
+    free(descriptor.large_outbuf->text);
+    free(descriptor.large_outbuf);
+  }
+  mysql_close(connection);
+  conn = saved_conn;
+  mysql_available = saved_available;
+
+  CuAssertTrue(tc, schema_created);
+  CuAssertTrue(tc, protocol_created);
+  CuAssertTrue(tc, saved);
+  CuAssertTrue(tc, saved_account.id > 0);
+  CuAssertIntEquals(tc, (int)(sizeof(races) / sizeof(races[0])), stored_count);
+  for (race_index = 0; race_index < (int)(sizeof(races) / sizeof(races[0])); race_index++)
+  {
+    found = false;
+    for (slot = 0; slot < MAX_UNLOCKED_RACES; slot++)
+      if (loaded_account.races[slot] == races[race_index])
+      {
+        found = true;
+        break;
+      }
+    CuAssertTrue(tc, found);
+  }
 }
 
 void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
