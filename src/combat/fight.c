@@ -413,6 +413,8 @@ void appear(struct char_data *ch, bool forced)
   if (affected_by_spell(ch, SPELL_INVISIBLE))
     affect_from_char(ch, SPELL_INVISIBLE);
 
+  remove_spell_camouflage(ch);
+
   if (AFF_FLAGGED(ch, AFF_SNEAK))
   {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SNEAK);

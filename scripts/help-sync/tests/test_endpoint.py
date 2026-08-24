@@ -1,3 +1,6 @@
+from argparse import Namespace
+from contextlib import redirect_stdout
+import io
 from pathlib import Path
 import tempfile
 import threading
@@ -12,6 +15,7 @@ sys.path.insert(0, str(HELP_SYNC_DIRECTORY))
 
 from catalog import Catalog, HelpEntry, MergeResult  # noqa: E402
 from endpoint import (  # noqa: E402
+    ApplyFailure,
     EndpointError,
     HelpWriteBarrier,
     atomic_write,
@@ -19,14 +23,239 @@ from endpoint import (  # noqa: E402
     repair_missing_keywords,
     request_runtime_reload,
 )
-from help_sync import make_plan, prepare_merge_catalogs  # noqa: E402
+from help_sync import (  # noqa: E402
+    RemoteEndpoint,
+    make_plan,
+    prepare_merge_catalogs,
+    publish_production_plan,
+    synchronize_command,
+)
 
 
 def entry(tag="alpha", body="Alpha help.\n", keywords=("ALPHA",)):
     return HelpEntry(tag=tag, body=body, keywords=keywords)
 
 
+def autonomous_plan(deletions=0):
+    catalog = Catalog((entry(),))
+    counts = {"additions": 0, "updates": 0, "deletions": 0, "renames": 0}
+    production_counts = dict(counts)
+    production_counts["deletions"] = deletions
+    return {
+        "plan_id": "a" * 64,
+        "sealed": True,
+        "base_hash": catalog.content_hash,
+        "development_hash": catalog.content_hash,
+        "production_hash": catalog.content_hash,
+        "candidate_hash": catalog.content_hash,
+        "candidate": catalog.to_dict(),
+        "conflicts": [],
+        "authorized_deletions": [],
+        "renames": [],
+        "layer_repairs": {
+            "development_help_hlp": False,
+            "production_help_hlp": False,
+        },
+        "repair_integrity": True,
+        "repair_layers": True,
+        "integrity_blockers": [],
+        "development_delta": {"counts": counts},
+        "production_delta": {"counts": production_counts},
+    }
+
+
 class EndpointUnitTests(unittest.TestCase):
+    def test_autonomous_sync_follows_concurrent_development_edit_to_convergence(self):
+        plan = autonomous_plan()
+        catalog = Catalog.from_dict(plan["candidate"])
+        barrier = mock.Mock()
+        barrier.acquired = False
+
+        def acquire():
+            barrier.acquired = True
+
+        def release():
+            barrier.acquired = False
+
+        barrier.acquire.side_effect = acquire
+        barrier.release.side_effect = release
+        publications = [
+            {"converged": False, "status": "follow-up-required"},
+            {"converged": True, "status": "applied"},
+        ]
+        verification = {"status": "verified", "catalog_hash": catalog.content_hash}
+
+        with (
+            mock.patch("help_sync.require_development"),
+            mock.patch("help_sync.create_plan", return_value=plan),
+            mock.patch(
+                "help_sync.save_plan", return_value=Path("/state/plan.json")
+            ),
+            mock.patch(
+                "help_sync.apply_development_plan",
+                return_value={"status": "verified"},
+            ) as apply_development,
+            mock.patch("help_sync.HelpWriteBarrier", return_value=barrier),
+            mock.patch(
+                "help_sync.preview_production",
+                return_value=({"authorization_token": "fresh-token"}, mock.Mock()),
+            ),
+            mock.patch(
+                "help_sync.publish_production_plan", side_effect=publications
+            ) as publish_production,
+            mock.patch("help_sync.verify_endpoint", return_value=verification),
+            mock.patch("help_sync.load_common_baseline", return_value=catalog),
+            mock.patch("help_sync.RemoteEndpoint") as remote_endpoint,
+            redirect_stdout(io.StringIO()),
+        ):
+            remote = remote_endpoint.return_value
+            remote.verify.return_value = verification
+            remote.baseline.return_value = catalog
+            result = synchronize_command(
+                Path("/unused"),
+                Namespace(
+                    authorize_production=True,
+                    max_passes=5,
+                    repair_layers=False,
+                ),
+            )
+
+        self.assertEqual(result, 0)
+        self.assertEqual(apply_development.call_count, 2)
+        self.assertEqual(publish_production.call_count, 2)
+        for call in publish_production.call_args_list:
+            self.assertEqual(
+                call,
+                mock.call(
+                    Path("/unused"),
+                    plan,
+                    "fresh-token",
+                    tolerate_development_drift=True,
+                ),
+            )
+        self.assertEqual(barrier.acquire.call_count, 2)
+        self.assertEqual(barrier.release.call_count, 2)
+
+    def test_autonomous_sync_refuses_deletions_before_apply(self):
+        plan = autonomous_plan(deletions=1)
+        with (
+            mock.patch("help_sync.require_development"),
+            mock.patch("help_sync.create_plan", return_value=plan),
+            mock.patch(
+                "help_sync.save_plan", return_value=Path("/state/plan.json")
+            ),
+            mock.patch("help_sync.apply_development_plan") as apply_development,
+        ):
+            with self.assertRaisesRegex(EndpointError, "refuses deletions"):
+                synchronize_command(
+                    Path("/unused"),
+                    Namespace(
+                        authorize_production=True,
+                        max_passes=5,
+                        repair_layers=False,
+                    ),
+                )
+        apply_development.assert_not_called()
+
+    @mock.patch("help_sync.write_common_baseline")
+    @mock.patch("help_sync.verify_endpoint")
+    @mock.patch("help_sync.RemoteEndpoint")
+    @mock.patch("help_sync.preview_production")
+    def test_publish_checkpoints_then_reports_concurrent_development_drift(
+        self, preview_production, remote_endpoint, verify_endpoint, write_baseline
+    ):
+        plan = autonomous_plan()
+        catalog = Catalog.from_dict(plan["candidate"])
+        preview_production.return_value = (
+            {"authorization_token": "fresh-token"},
+            mock.Mock(),
+        )
+        remote = remote_endpoint.return_value
+        remote.apply.return_value = {"status": "applied"}
+        remote.verify.return_value = {"status": "verified"}
+        remote.write_baseline.return_value = {"catalog_hash": catalog.content_hash}
+        verify_endpoint.side_effect = EndpointError(
+            "database catalog hash does not match candidate"
+        )
+        write_baseline.return_value = {"catalog_hash": catalog.content_hash}
+
+        report = publish_production_plan(
+            Path("/unused"),
+            plan,
+            "fresh-token",
+            tolerate_development_drift=True,
+        )
+
+        self.assertFalse(report["converged"])
+        self.assertTrue(report["common_baseline_advanced"])
+        remote.write_baseline.assert_called_once_with(catalog, plan["plan_id"])
+        write_baseline.assert_called_once_with(
+            Path("/unused"), catalog, plan["plan_id"]
+        )
+
+    @mock.patch("help_sync.write_common_baseline")
+    @mock.patch("help_sync.verify_endpoint")
+    @mock.patch("help_sync.RemoteEndpoint")
+    @mock.patch("help_sync.preview_production")
+    def test_manual_publish_reports_follow_up_after_checkpoint(
+        self, preview_production, remote_endpoint, verify_endpoint, write_baseline
+    ):
+        plan = autonomous_plan()
+        preview_production.return_value = (
+            {"authorization_token": "fresh-token"},
+            mock.Mock(),
+        )
+        remote = remote_endpoint.return_value
+        remote.apply.return_value = {"status": "applied"}
+        remote.verify.return_value = {"status": "verified"}
+        remote.write_baseline.return_value = {"status": "written"}
+        verify_endpoint.side_effect = EndpointError(
+            "database catalog hash does not match candidate"
+        )
+        write_baseline.return_value = {"status": "written"}
+
+        with self.assertRaises(ApplyFailure) as context:
+            publish_production_plan(Path("/unused"), plan, "fresh-token")
+
+        self.assertTrue(context.exception.details["common_baseline_advanced"])
+
+    @mock.patch("help_sync.subprocess.run")
+    @mock.patch("help_sync.environment_config")
+    def test_remote_endpoint_runs_as_service_owner_without_exposing_password(
+        self, environment_config, run
+    ):
+        environment_config.return_value = {
+            "REMOTE_LOGIN_COMMAND": "ssh production.example",
+            "REMOTE_PROJECT_PATH": "/srv/luminari",
+            "REMOTE_LOGIN_SUDO_PASSWORD": "operator-secret",
+            "REMOTE_HELP_SYNC_USER": "mud-service",
+        }
+        run.return_value = mock.Mock(
+            returncode=0,
+            stdout=(
+                b"HELP_SYNC_JSON_BEGIN\n"
+                b'{"status":"ok"}\n'
+                b"HELP_SYNC_JSON_END\n"
+            ),
+            stderr=b"",
+        )
+
+        result = RemoteEndpoint(Path("/unused")).call(
+            "verify", payload={"candidate": "value"}
+        )
+
+        self.assertEqual(result, {"status": "ok"})
+        arguments = run.call_args.args[0]
+        self.assertNotIn("operator-secret", arguments)
+        self.assertIn(
+            "sudo -k -S -p '' -u mud-service -- python3",
+            arguments[-1],
+        )
+        transmitted = run.call_args.kwargs["input"]
+        password, payload = transmitted.split(b"\n", 1)
+        self.assertEqual(password, b"operator-secret")
+        self.assertEqual(payload, b'{"candidate":"value"}\n')
+
     def test_integrity_repairs_are_canonical_and_counted(self):
         repairs = normalize_integrity_repairs(
             {

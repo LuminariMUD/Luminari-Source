@@ -139,6 +139,8 @@ static void damage_trigger_free_prototypes(void)
 
 static void damage_trigger_fixture_end(struct damage_trigger_fixture *fixture)
 {
+  clear_char_event_list(&fixture->actor);
+  clear_char_event_list(&fixture->victim);
   FIGHTING(&fixture->actor) = NULL;
   FIGHTING(&fixture->victim) = NULL;
   fixture->actor.next_fighting = NULL;
@@ -274,6 +276,8 @@ static int damage_trigger_run_body(const char *body, int pending_damage)
 
 static void damage_trigger_reset_output(struct descriptor_data *descriptor)
 {
+  if (descriptor->output != NULL)
+    comm_test_retain_unsent_output(descriptor, descriptor->output, descriptor->bufptr);
   descriptor->output = descriptor->small_outbuf;
   descriptor->small_outbuf[0] = '\0';
   descriptor->bufptr = 0;
@@ -349,6 +353,7 @@ void Test_damage_trigger_olc_uses_attachment_specific_type_counts(CuTest *tc)
   CuAssertTrue(tc, !IS_SET(GET_TRIG_TYPE(&trigger), MTRIG_DAMAGE));
   CuAssertPtrNotNull(tc, strstr(descriptor.output, "20)"));
   CuAssertTrue(tc, strstr(descriptor.output, "21)") == NULL);
+  damage_trigger_reset_output(&descriptor);
   ProtocolDestroy(descriptor.pProtocol);
 }
 
@@ -712,7 +717,8 @@ void Test_damage_trigger_pre_hook_rejections_do_not_run_script(CuTest *tc)
 void Test_damage_trigger_builder_documentation_sources_are_complete(CuTest *tc)
 {
   CuAssertTrue(tc, damage_trigger_file_contains("lib/text/help/help.hlp",
-                                                "TRIGEDIT-MOB-DAMAGE MOB-DAMAGE-TRIGGER"));
+                                                "MOB-DAMAGE-TRIGGER MTRIG-DAMAGE "
+                                                "TRIGEDIT-MOB-DAMAGE"));
   CuAssertTrue(tc, damage_trigger_file_contains("lib/text/help/help.hlp", "21) Damage"));
   CuAssertTrue(tc, damage_trigger_file_contains("lib/text/help/help.hlp", "%attackmode%"));
   CuAssertTrue(tc, damage_trigger_file_contains("sql/components/help_dg_damage_trigger.sql",

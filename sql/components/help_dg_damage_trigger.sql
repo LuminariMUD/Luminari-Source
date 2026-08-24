@@ -4,6 +4,40 @@
 -- flat-file help and is safe to apply repeatedly.
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('MOB-TRIGGERS', ' 1) Global      \tRHELP TRIGEDIT-MOB-GLOBAL\tn
+ 2) Random      \tRHELP TRIGEDIT-MOB-RANDOM\tn
+ 3) Command     \tRHELP TRIGEDIT-MOB-COMMAND\tn
+ 4) Speech      \tRHELP TRIGEDIT-MOB-SPEECH\tn
+ 5) Act         \tRHELP TRIGEDIT-MOB-ACT\tn
+ 6) Death       \tRHELP TRIGEDIT-MOB-DEATH\tn
+ 7) Greet       \tRHELP TRIGEDIT-MOB-GREET\tn
+ 8) Greet-All   \tRHELP TRIGEDIT-MOB-GREET-ALL\tn
+ 9) Entry       \tRHELP TRIGEDIT-MOB-ENTRY\tn
+10) Receive     \tRHELP TRIGEDIT-MOB-RECEIVE\tn
+11) Fight       \tRHELP TRIGEDIT-MOB-FIGHT\tn
+12) HitPrcnt    \tRHELP TRIGEDIT-MOB-HITPRCNT\tn
+13) Bribe       \tRHELP TRIGEDIT-MOB-BRIBE\tn
+14) Load        \tRHELP TRIGEDIT-MOB-LOAD\tn
+15) Memory      \tRHELP TRIGEDIT-MOB-MEMORY\tn
+16) Cast        \tRHELP TRIGEDIT-MOB-CAST\tn
+17) Leave       \tRHELP TRIGEDIT-MOB-LEAVE\tn
+18) Door        \tRHELP TRIGEDIT-MOB-DOOR\tn
+19) UNUSED
+20) Time        \tRHELP TRIGEDIT-MOB-TIME\tn
+21) Damage      \tRHELP TRIGEDIT-MOB-DAMAGE\tn', 31, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+
+DELETE FROM help_keywords
+WHERE help_tag = 'MOB-TRIGGERS' AND keyword NOT IN ('MOB-TRIGGERS');
+
+DELETE FROM help_keywords
+WHERE keyword = 'MOB-TRIGGERS' AND help_tag <> 'MOB-TRIGGERS';
+
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('MOB-TRIGGERS', 'MOB-TRIGGERS');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('TRIGEDIT-MOB-DAMAGE', 'Mobile Damage Trigger
 
 Activated before positive pending damage routed through the combat damage()

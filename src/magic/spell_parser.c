@@ -1106,6 +1106,39 @@ SAVING_WILL here...  */
     case SPELL_PHANTOM_HEAL:
       MANUAL_SPELL(spell_phantom_heal);
       break;
+    case SPELL_HEAL_UNDEAD:
+      MANUAL_SPELL(spell_heal_undead);
+      break;
+    case SPELL_DARK_WRATH:
+      MANUAL_SPELL(spell_dark_wrath);
+      break;
+    case SPELL_UNHOLY_AURA:
+      MANUAL_SPELL(spell_unholy_aura);
+      break;
+    case SPELL_CAMOUFLAGE:
+      MANUAL_SPELL(spell_camouflage);
+      break;
+    case SPELL_ICE_LAYER:
+      MANUAL_SPELL(spell_ice_layer);
+      break;
+    case SPELL_CALL_LYCANTHROPE:
+      MANUAL_SPELL(spell_call_lycanthrope);
+      break;
+    case SPELL_TAZRIKS_FRENZIED_HOUND:
+      MANUAL_SPELL(spell_tazriks_frenzied_hound);
+      break;
+    case SPELL_ELEMENTAL_WATER_EMBODIMENT:
+      MANUAL_SPELL(spell_elemental_water_embodiment);
+      break;
+    case SPELL_ELEMENTAL_FIRE_EMBODIMENT:
+      MANUAL_SPELL(spell_elemental_fire_embodiment);
+      break;
+    case SPELL_ELEMENTAL_EARTH_EMBODIMENT:
+      MANUAL_SPELL(spell_elemental_earth_embodiment);
+      break;
+    case SPELL_ELEMENTAL_AIR_EMBODIMENT:
+      MANUAL_SPELL(spell_elemental_air_embodiment);
+      break;
     case SPELL_GIRD_ALLIES:
       MANUAL_SPELL(spell_gird_allies);
       break;
@@ -4189,6 +4222,10 @@ void unused_spell(int spl)
 {
   int i;
 
+  /* Release the owned wear-off text before resetting an initialized slot. */
+  if (spell_info[spl].wear_off_msg && spell_info[spl].wear_off_msg != unused_wearoff)
+    free((char *)spell_info[spl].wear_off_msg);
+
   for (i = 0; i < NUM_CLASSES; i++)
     spell_info[spl].min_level[i] = LVL_IMPL + 1;
   for (i = 0; i < NUM_DOMAINS; i++)
@@ -6021,6 +6058,8 @@ void mag_assign_spells(void)
           "The manscorpion venom leaves your bloodstream.");
   affecto(AFFECT_ROL_BARBAZU_BERSERK, "RoL Barbazu berserk",
           "Your bloodlust-filled rage subsides.");
+  affecto(AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN, "RoL elemental embodiment link",
+          "Your elemental embodiment link dissolves.");
 
   affecto(SKILL_BLEEDING_ATTACK, "bleeding attack", "The bleeding from the attack stops.");
   affecto(SKILL_CRIPPLING_STRIKE, "crippling strike", "Your movement is no longer crippled.");
@@ -6414,6 +6453,40 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
          "The earthen fog settles out of the air.", 2, 2, CONJURATION, FALSE);
   spello(SPELL_FIRE_FOG, "fire fog", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_ROOM,
          "The fiery fog dims and dissipates.", 2, 2, EVOCATION, FALSE);
+  spello(SPELL_HEAL_UNDEAD, "heal undead", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         NULL, 5, 5, NECROMANCY, FALSE);
+  spello(SPELL_DARK_WRATH, "dark wrath", 0, 0, 0, POS_STANDING, TAR_SELF_ONLY, FALSE, MAG_MANUAL,
+         "Your god's dark favor leaves you.", 9, 9, ENCHANTMENT, FALSE);
+  spello(SPELL_UNHOLY_AURA, "unholy aura", 0, 0, 0, POS_FIGHTING, TAR_SELF_ONLY, FALSE, MAG_MANUAL,
+         "The unholy flames around you gutter out.", 10, 10, ENCHANTMENT, FALSE);
+  spello(SPELL_CAMOUFLAGE, "camouflage", 0, 0, 0, POS_FIGHTING, TAR_SELF_ONLY, FALSE, MAG_MANUAL,
+         "Your camouflage falls away.", 7, 7, ILLUSION, FALSE);
+  spello(SPELL_CYCLONE, "cyclone", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS, NULL, 2, 13,
+         EVOCATION, FALSE);
+  spello(SPELL_LICH_TOUCH, "lich touch", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT,
+         TRUE, MAG_DAMAGE | MAG_AFFECTS, "The weakness left by the lich touch fades.", 2, 16,
+         NECROMANCY, FALSE);
+  spello(SPELL_LAVA_BURST, "lava burst", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_AREAS,
+         "The clinging lava finally cools.", 2, 14, EVOCATION, FALSE);
+  spello(SPELL_ICE_LAYER, "ice layer", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_MANUAL, NULL, 1, 1, EVOCATION,
+         FALSE);
+  spello(SPELL_CALL_LYCANTHROPE, "call lycanthrope", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
+         MAG_MANUAL, NULL, 2, 0, CONJURATION, FALSE);
+  spello(SPELL_TAZRIKS_FRENZIED_HOUND, "tazriks frenzied hound", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+         TRUE, MAG_MANUAL, NULL, 3, 13, CONJURATION, FALSE);
+  spello(SPELL_ELEMENTAL_WATER_EMBODIMENT, "elemental water embodiment", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your flowing water embodiment recedes.", 4, 0,
+         TRANSMUTATION, FALSE);
+  spello(SPELL_ELEMENTAL_FIRE_EMBODIMENT, "elemental fire embodiment", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your burning fire embodiment gutters out.", 4, 0,
+         TRANSMUTATION, FALSE);
+  spello(SPELL_ELEMENTAL_EARTH_EMBODIMENT, "elemental earth embodiment", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your hardened earth embodiment crumbles away.", 4, 0,
+         TRANSMUTATION, FALSE);
+  spello(SPELL_ELEMENTAL_AIR_EMBODIMENT, "elemental air embodiment", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL, "Your swirling air embodiment settles.", 4, 0,
+         TRANSMUTATION, FALSE);
 
   /* Declaration of skills - this assigns categories and also will set it up
    * so that immortals can use these skills by default.  The min level to use

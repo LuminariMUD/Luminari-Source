@@ -25,11 +25,20 @@ Classify the request as one or more of these modes:
 - `plan`: reconcile the last common baseline, development, and production into a sealed plan;
 - `apply-dev`: apply and prove an exact sealed candidate on development;
 - `apply-prod`: publish that already-proven candidate to production after a fresh drift check;
+- `sync`: run a user-authorized, zero-deletion reconciliation through development, production,
+  runtime reload, baseline advancement, and final verification without conversational pauses;
 - `verify`: prove database, file projection, and candidate hashes agree; or
 - `rollback`: restore a named run from its validated backups and verify the restored state.
 
 Default an ambiguous operational request to read-only `audit` or `plan`. Do not infer permission to
 apply, delete, roll back, restart, or mutate production from skill invocation alone.
+
+A direct request to sync, reconcile, publish, or complete the help synchronization end to end is not
+ambiguous. Treat that request as authorization for one bounded
+`sync --authorize-production` run. Do not stop merely to ask the user to repeat the same production
+authorization after preview. The command must still emit the exact preview, bind its fresh token,
+refuse conflicts, deletions, and renames, and verify both endpoints. A request only to inspect,
+audit, preview, explain, or report status does not authorize this mode.
 
 ## Establish the capability and environment
 
@@ -65,6 +74,7 @@ show <plan>
 apply-dev <plan>
 preview-prod <plan>
 apply-prod <plan> --authorize-plan <plan-id> --authorize-preview <token>
+sync --authorize-production [--repair-layers] [--max-passes <1-10>]
 verify <plan> --environment <development|production|both>
 rollback <run-id> --environment <development|production> \
   --expected-current-hash <hash> [--authorize-run <run-id>]
@@ -136,9 +146,11 @@ true:
 
 1. the exact candidate passed development apply and verification;
 2. every conflict and required policy decision is resolved;
-3. the user has been shown the sealed plan ID, hashes, row counts, deletions, and backup
-   destination;
-4. the user explicitly authorizes that exact production apply after seeing the preview;
+3. the sealed plan ID, hashes, row counts, deletions, and backup destination are emitted before
+   mutation;
+4. either the user explicitly authorizes that exact manual apply after preview, or the current user
+   request explicitly authorizes a bounded end-to-end sync whose command refuses all deletions,
+   renames, and unresolved conflicts;
 5. the HEDIT write barrier is active;
 6. a fresh production export still matches the plan's expected production hash; and
 7. validated targeted database and `help.hlp` backups exist.
@@ -153,6 +165,34 @@ transaction. Install the generated file atomically, invalidate the runtime cache
 supported mechanism, and verify database, file projection, runtime lookups, logs, and service
 health. Record the new common baseline only after every verification passes, then release the HEDIT
 barrier.
+
+## Run bounded end-to-end synchronization
+
+For a direct user request to complete synchronization, run:
+
+```text
+python3 scripts/help-sync/help_sync.py sync --authorize-production [--repair-layers]
+```
+
+This is the preferred autonomous route after the first common baseline exists. It creates and saves
+the plan, includes supported integrity repairs, applies and proves development, emits a fresh
+production preview, publishes using that exact token, acknowledges the runtime reload, advances
+both baseline artifacts, and independently verifies both endpoints. It holds the development HEDIT
+barrier across the production window and makes follow-up passes when a supported concurrent edit
+arrives.
+
+Run the read-only audit first. If a file differs from its database projection, inspect the parsed
+file difference for legitimate file-only work. Normalize legitimate file-only entries into the
+development database through the ordinary reviewed help-editing path. When the drift is only a
+stale projection, add `--repair-layers`; this is an internal execution decision and does not require
+another conversational confirmation.
+
+Do not ask for another routine confirmation during this bounded run. Stop only when the tool proves
+that judgment or authority is genuinely required: an uninitialized baseline, an unresolved
+conflict, any deletion or rename, legitimate file-only work that has not been normalized into the
+development database, an unavailable credential or target, exhausted concurrent-edit passes, or a
+failed apply/rollback/verification invariant. Fix discoverable environment or dependency problems
+autonomously when they are within the authorized help-sync scope.
 
 ## Roll back and report
 

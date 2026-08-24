@@ -1,12 +1,14 @@
 # RoL Spells Without a Close LuminariMUD Equivalent
 
-Status: implementation incomplete. The source registry audit was completed and
-independently re-verified 2026-08-24 against `sparser.c`, `spells.h`,
-`spell_parser.c`, and `psionics.c`. Three implementation checkpoints added 75
-functional gaps through native magic paths and focused direct handlers. A
-follow-up handler-level review found 14 live RoL spells that had been
-incorrectly classified as covered by loose substitutes. Those 14 spells still
-require native implementations.
+Status: implementation and validation complete. The source registry audit was
+completed and independently re-verified 2026-08-24 against
+`sparser.c`, `spells.h`, `spell_parser.c`, and `psionics.c`. Seven
+implementation checkpoints added all 89 functional gaps through native magic
+paths and focused direct handlers. A follow-up handler-level review found 14
+live RoL spells that had been incorrectly classified as covered by loose
+substitutes; all 14 now have native implementations. A final documentation
+audit added the 73 missing help topics from the first three checkpoints and
+synchronized canonical help coverage for all 89 spells.
 
 This list compares every unique spell registered through `SPELL_CREATE()` in
 Realms of Luminari with LuminariMUD's registered spells and closely equivalent
@@ -30,7 +32,7 @@ below and must not be treated as live RoL content.
 - RoL registrations reviewed: 332 (327 live, 5 never compiled)
 - Live registrations with a close LuminariMUD equivalent: 229
 - Live registrations without a close equivalent: 98
-- Player-facing or functional gaps: 89 (75 implemented, 14 remaining)
+- Player-facing or functional gaps: 89 (89 implemented, 0 remaining)
 - RoL internal or stub registrations without an equivalent: 9
 - Registered only inside `#if 0` (never compiled): 5
 
@@ -53,13 +55,14 @@ player-facing gaps were implemented. Playable race gaps are tracked in
 `ROL_RACE_EQUIVALENCE_GAPS.md`.
 
 This remains a feature-equivalence list. The corresponding magic-item
-converter map is numerically complete but not semantically complete.
-`_SOURCE_SPELL_MAP` contains 340 positive source IDs: all 327 live
+converter is numerically complete and routes every identified player-facing
+gap to a native implementation. `_SOURCE_SPELL_MAP` contains 331 castable
+positive source IDs. `_NON_CASTABLE_SOURCE_SPELLS` separately accounts for nine
+stub, maintenance, or proc-only IDs that must fail closed in a castable world-data
+slot. Their union covers all 340 required positive source IDs: all 327 live
 `SPELL_CREATE()` IDs, all 335 distinct positive `SPELL_*` numeric IDs in the
 source header, and the two non-spell IDs actually found in magic-item spell
-slots. Fourteen live source spells currently map to substitutes that do not
-preserve their mechanics. Those mappings must move to the new native spell IDs
-after the remaining spells are implemented.
+slots.
 
 The active corpus check converts all 511 magic items: 71 potions, 251 scrolls,
 80 wands, and 109 staves. Those records contain 117 distinct positive source
@@ -77,34 +80,7 @@ positive target spell.
 
 ## Remaining player-facing or functional gaps
 
-These 14 live RoL spells require distinct native registrations and mechanics.
-The current converter targets are listed only to identify the inadequate
-substitutes; they are not acceptable final mappings.
-
-| RoL ID | RoL spell | Current substitute | Required source behavior |
-|-------:|-----------|--------------------|--------------------------|
-| 90 | cyclone | whirlwind | Deals air damage to eligible enemies throughout the room, halves a PC caster's damage when the zone wind speed is 25 or lower, and allows the normal spell save and area-avoidance checks. Whirlwind lacks the environmental dependency and is not an adequate identity-preserving replacement. |
-| 233 | heal undead | negative energy ray | Heals only undead for `4d(level)` hit points, respects blackmantle, and uses a specialized 100-point heal for the RoL PC-lich-to-PC-lich case. Negative energy ray is an offensive ray that only incidentally heals undead through the generic negative-energy rule. |
-| 303 | lich touch | grave touch | Deals direct damage, interacts with cold and fire shields, and on a failed save applies a Strength penalty and slow; dragons ignore the secondary effects. Grave touch applies fear/shaken instead. LuminariMUD's racial lich-touch ability also has different healing, damage, paralysis, and daily-use mechanics and is not a normal spell. |
-| 343 | call lycanthrope | summon creature vi | Summons one randomly selected lycanthrope prototype, permits only one such follower, scales it to at most level 40 from caster level minus 10, assigns scaled hit points, charms it, and schedules charm expiration. Summon creature VI creates a dire tiger. |
-| 376 | tazriks frenzied hound | faithful hound | Opens a temporary vortex and makes a hellhound strike one randomly selected eligible room target once per combat pulse for three strikes. It does not create a persistent follower. |
-| 377 | dark wrath | divine power | Self-only and unavailable while fighting; grants a level-scaled damage-roll bonus of +1 to +3 and improves the generic spell save by 3 to 5 for a level-scaled duration. Divine power adds unrelated Strength, hit-roll, hit-point, and luck bonuses and lacks the spell-save benefit. |
-| 378 | unholy aura | fire shield | A distinct self-only spell that applies the fire-shield affect for a base source duration of three, modified by specialization. Sharing the underlying fire-shield flag does not preserve the spell identity, duration, script/item reference, or independent affect lifecycle. |
-| 473 | camouflage | invisibility | Self-only, cannot be used while mounted, ends the caster's combat and all attacks against the caster, and applies both hide and camouflage state. Invisibility uses a different detection state and does not provide this disengagement behavior. |
-| 482 | elemental water embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 5 hit points per shared level, water breathing, fire/gas/acid protection, and 25 percent additional height and weight. |
-| 483 | elemental fire embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 7 hit points per shared level, fire shield, -65 source armor class, haste, flight, gas/fire protection, and 35 percent additional height and weight. |
-| 484 | elemental earth embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants gas/cold protection and 50 percent additional height and weight. The live RoL handler grants roughly 7 hit points per shared level because it uses `EFHP_FACTOR`; the separately declared `EEHP_FACTOR` value of 10 is unused and should be resolved deliberately during implementation. |
-| 485 | elemental air embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 3 hit points per shared level, -50 source armor class, haste, flight, gas/acid protection, and 15 percent additional height and weight. |
-| 487 | lava burst | fire storm | Deals fire damage to eligible enemies throughout the room and starts persistent burning damage on survivors successfully damaged. It also participates in RoL's spell-merge check. Fire storm supplies only the initial area damage. |
-| 488 | ice layer | grease | Targets one corporeal standing opponent; on a failed Agility save it deals `2d10` direct damage, makes the target prone, and applies one combat pulse of action lag. Demons, devils, angels, beholders, dragons, and immaterial targets are immune. Grease applies a lasting movement penalty but neither damage nor prone. |
-
-All four elemental embodiment spells share additional behavior that must remain
-common in the target implementation: the target must be a same-side PC, the
-target must be unmounted and not already embodying an element, and the caster
-can maintain only one embodiment. Each spell creates a linked caster-side
-maintenance affect so expiration and removal can clean up the transformation.
-Geniekind is not a usable base for this behavior: it is self-only, selects a
-genie type, applies different traits, and summons a genie follower.
+None. All 89 player-facing or functional gaps have native implementations.
 
 ## Implemented player-facing or functional gaps
 
@@ -210,9 +186,98 @@ expressed by one native routine. None has a class or domain assignment.
 | earth fog | Temporarily fills the room with obscuring earthen fog. |
 | fire fog | Temporarily illuminates the room with fiery fog. |
 
-The complete inventory of the 75 implemented gaps remains below, preserving
-the original source-to-target accounting. The 14 remaining gaps are listed in
-the preceding section.
+### Implementation checkpoint 4: undead healing, divine wards, and concealment
+
+These four spells preserve source-specific identities and lifecycle rules that
+their former substitutes could not represent. None has a class or domain
+assignment.
+
+| Spell | Implemented gameplay purpose |
+|-------|------------------------------|
+| heal undead | Heals only undead for `4d(level)`, respects blackmantle, and restores 100 hit points in the PC-lich-to-PC-lich case. |
+| dark wrath | While out of combat, grants the source level-scaled damage and all-spell-save bonuses for the source duration bands. |
+| unholy aura | Applies its own duration-scaled affect identity while supplying the fire-shield state. |
+| camouflage | Ends all combat involving the unmounted caster and applies persistent hide under a distinct spell affect until concealment breaks. |
+
+### Implementation checkpoint 5: environmental damage and direct control
+
+These four spells replace loose damage or control substitutes with their traced
+source-specific rules. None has a class or domain assignment.
+
+| Spell | Implemented gameplay purpose |
+|-------|------------------------------|
+| cyclone | Deals room-wide air damage and halves a PC caster's damage when the latest cached zone wind speed is 25 or lower. A missing cache safely uses the low-wind fallback. |
+| lich touch | Deals unsaved unholy touch damage, applies the source fire-elemental and shield adjustments, and separately saves against accumulating Strength loss and slow; dragons ignore the secondary effects. |
+| lava burst | Deals room-wide fire damage and ignites successfully damaged survivors for five rounds. RoL calls its merge hook, but its live merge table has no lava-burst pairing, so there is no additional merge behavior to reproduce. |
+| ice layer | Uses Reflex as the target system's Agility-save counterpart, deals `2d10` bludgeoning damage on failure, knocks the target to the sitting/prone state, and applies one combat pulse of lag while preserving all source immunities. |
+
+The converter now preserves RoL beholder identity with a dedicated converted
+mobile flag so ice layer can distinguish beholders from generic aberrations.
+
+### Implementation checkpoint 6: volatile summons and recurring events
+
+These two spells replace persistent generic summon substitutes with their
+source-specific lifecycles. Neither has a class or domain assignment.
+
+| Spell | Implemented gameplay purpose |
+|-------|------------------------------|
+| call lycanthrope | Randomly selects one of the two converted summon prototypes, limits the caster to one, scales it from caster level minus 10 to a maximum of 40, assigns level- and Constitution-scaled hit points, and charms it. After 30 seconds an idle summon departs; a fighting summon checks the caster's Charisma and either remains charmed for another 30 seconds or breaks free and attacks its former master. |
+| tazriks frenzied hound | Opens an Abyssal vortex and schedules one unsaved, non-resistible physical bite against a random eligible corporeal target per combat pulse for exactly three strikes. No persistent mobile is created. |
+
+The converter marks only source mobile prototypes 525 and 526 with a dedicated
+summon-role flag, so call lycanthrope does not select unrelated lycanthropes.
+The converter's spell mappings now target both native registrations.
+
+### Implementation checkpoint 7: linked elemental embodiments
+
+These four spells replace geniekind substitutes with a shared transformation
+and maintenance lifecycle. None has a class or domain assignment.
+
+| Spell | Implemented gameplay purpose |
+|-------|------------------------------|
+| elemental water embodiment | Grants roughly 5 hit points per shared level, water breathing, 50 percent fire/poison/acid resistance, and 25 percent additional height and weight. |
+| elemental fire embodiment | Grants roughly 7 hit points per shared level, fire shield, +6 natural armor, haste, flight, 50 percent poison/fire resistance, and 35 percent additional height and weight. |
+| elemental earth embodiment | Grants roughly 7 hit points per shared level, 50 percent poison/cold resistance, and 50 percent additional height and weight. The factor of 7 deliberately preserves the live RoL handler's use of `EFHP_FACTOR`; the unused declared `EEHP_FACTOR` value of 10 is not substituted. |
+| elemental air embodiment | Grants roughly 3 hit points per shared level, +5 natural armor, haste, flight, 50 percent poison/acid resistance, and 15 percent additional height and weight. |
+
+All four require a same-side, unmounted PC target that is not already using an
+elemental embodiment. A caster can maintain only one embodiment. Runtime source
+IDs link the target transformation to a caster-side maintenance affect, so
+explicit removal or either character leaving the game tears down both sides.
+The linked affects are transient: player and pet persistence omit them, and the
+source dispel exclusions are preserved. The base duration is ten before the
+caster's spell-duration modifier, and hit-point variation remains within five
+percent of the shared-level base.
+
+The converter now maps source IDs 482-485 to the four native registrations.
+Source stub IDs 64, 93, and 361; maintenance IDs 291-294 and 498; and proc
+marker 374 are explicit non-castable identities and cause a conversion error if
+found in a magic-item spell slot.
+
+Validation completed with a warning-free GNU C23 build and all 880
+production-linked CuTests under the documented isolated-test settings. The
+full world-tool suite passed, and the 132-test RoL transformer suite passed
+against the installed source corpus with two optional-pilot skips. The
+generated constants manifest is current, and installation succeeds.
+
+### Completion checkpoint 8: help and inventory parity
+
+The completion audit matched the 89 inventory rows below to 89 distinct
+positive converter targets, 89 live `spello()` registrations, and the same 89
+entries in the production-linked registration tests. All 45 registrations that
+use `MAG_MANUAL` have explicit dispatcher cases. The converter still covers
+all 340 required positive source identities as 331 castable mappings and nine
+explicit non-castable identities.
+
+The audit also found that 73 spells from implementation checkpoints 1-3 had
+never received canonical help topics. Those topics now exist in
+`lib/text/help/help.hlp`, bringing flat-file coverage to 89 of 89. All 89
+canonical entries and their searchable keywords are present in the development
+database, and every database body and level now byte-matches the flat-file
+source.
+
+The complete inventory of all 89 implemented gaps remains below, preserving
+the original source-to-target accounting.
 
 | RoL ID | RoL spell | RoL constant |
 |-------:|-----------|--------------|
@@ -222,6 +287,7 @@ the preceding section.
 | 84 | rejuvenate major | `SPELL_REJUVENATE_MAJOR` |
 | 88 | rejuvenate minor | `SPELL_REJUVENATE_MINOR` |
 | 89 | age | `SPELL_AGE` |
+| 90 | cyclone | `SPELL_CYCLONE` |
 | 119 | preserve | `SPELL_PRESERVE` |
 | 154 | command undead | `SPELL_COMMAND_UNDEAD` |
 | 163 | slow poison | `SPELL_SLOW_POISON` |
@@ -235,6 +301,7 @@ the preceding section.
 | 230 | protect undead | `SPELL_PROT_UNDEAD` |
 | 231 | protection from undead | `SPELL_PROT_FROM_UNDEAD` |
 | 232 | command horde | `SPELL_COMMAND_HORDE` |
+| 233 | heal undead | `SPELL_HEAL_UNDEAD` |
 | 235 | create spring | `SPELL_CREATE_SPRING` |
 | 237 | moonwell | `SPELL_MOONWELL` |
 | 297 | nerve dance | `SPELL_NERVE_DANCE` |
@@ -242,6 +309,7 @@ the preceding section.
 | 299 | rain of blood | `SPELL_RAIN_OF_BLOOD` |
 | 301 | embalm | `SPELL_EMBALM` |
 | 302 | rot | `SPELL_ROT` |
+| 303 | lich touch | `SPELL_LICH_TOUCH` |
 | 305 | ice tomb | `SPELL_ICE_TOMB` |
 | 319 | constriction | `SPELL_CONSTRICTION` |
 | 321 | airy water | `SPELL_AIRY_WATER` |
@@ -250,6 +318,7 @@ the preceding section.
 | 332 | blacklight burst | `SPELL_BLACKLIGHT_BURST` |
 | 334 | minute meteors | `SPELL_MINUTE_METEORS` |
 | 341 | unseen servant | `SPELL_UNSEEN_SERVANT` |
+| 343 | call lycanthrope | `SPELL_CALL_LYCANTHROPE` |
 | 349 | thunder lance | `SPELL_THUNDER_LANCE` |
 | 350 | shadow bolt | `SPELL_SHADOW_BOLT` |
 | 351 | shadow burst | `SPELL_SHADOW_BURST` |
@@ -260,6 +329,9 @@ the preceding section.
 | 366 | phantasmal blades | `SPELL_PHANTASMAL_BLADES` |
 | 370 | soul bind | `SPELL_SOUL_BIND` |
 | 371 | death pact | `SPELL_DEATH_PACT` |
+| 376 | tazriks frenzied hound | `SPELL_TAZRIKS_FRENZIED_HOUND` |
+| 377 | dark wrath | `SPELL_DARK_WRATH` |
+| 378 | unholy aura | `SPELL_UNHOLY_AURA` |
 | 380 | needle swarm | `SPELL_NEEDLE_SWARM` |
 | 381 | snapping teeth | `SPELL_SNAPPING_TEETH` |
 | 392 | beltyns burning blood | `SPELL_BELTYNS_BURNING_BLOOD` |
@@ -278,10 +350,17 @@ the preceding section.
 | 467 | blackthorns | `SPELL_BLACKTHORNS` |
 | 470 | feign death | `SPELL_FEIGN_DEATH` |
 | 471 | tranquility | `SPELL_TRANQUILITY` |
+| 473 | camouflage | `SPELL_CAMOUFLAGE` |
 | 475 | phantom heal | `SPELL_PHANTOM_HEAL` |
 | 476 | shadechill | `SPELL_SHADECHILL` |
 | 478 | agility | `SPELL_AGILITY` |
 | 479 | air blast | `SPELL_AIR_BLAST` |
+| 482 | elemental water embodiment | `SPELL_ELEMENTAL_WATER` |
+| 483 | elemental fire embodiment | `SPELL_ELEMENTAL_FIRE` |
+| 484 | elemental earth embodiment | `SPELL_ELEMENTAL_EARTH` |
+| 485 | elemental air embodiment | `SPELL_ELEMENTAL_AIR` |
+| 487 | lava burst | `SPELL_LAVA_BURST` |
+| 488 | ice layer | `SPELL_ICE_LAYER` |
 | 492 | shadow flux | `SPELL_SHADOW_FLUX` |
 | 505 | natures blessing | `SPELL_NATURES_BLESSING` |
 | 514 | song of travel | `BARD_TRAVEL` |

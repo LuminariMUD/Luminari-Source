@@ -72,7 +72,7 @@ JOIN (
   UNION ALL SELECT 'GARROTE', 'more than one size category smaller'
   UNION ALL SELECT 'GARROTE', 'silenced and staggered'
   UNION ALL SELECT 'SHADOW', 'any class; 21 ranks of stealth'
-  UNION ALL SELECT 'SHADOW', 'contested stealth check'
+  UNION ALL SELECT 'SHADOW', 'stealth check against'
   UNION ALL SELECT 'SHADOW', 'entering combat'
   UNION ALL SELECT 'SHADOW', 'without joining a group'
 ) AS expected_content ON BINARY h.tag = expected_content.tag

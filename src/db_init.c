@@ -653,6 +653,13 @@ void init_wilderness_resource_tables(void)
     return;
   }
 
+  if (mysql_query_safe(
+          conn, "ALTER TABLE weather_cache ADD COLUMN IF NOT EXISTS wind_speed INT DEFAULT 5"))
+  {
+    log("SYSERR: Failed to add weather_cache.wind_speed: %s", mysql_error(conn));
+    return;
+  }
+
   /* room_description_settings - Per-room customization options */
   const char *create_room_description_settings =
       "CREATE TABLE IF NOT EXISTS room_description_settings ("

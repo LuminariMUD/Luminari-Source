@@ -3949,7 +3949,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     for (i = 0; i < MAX_AFFECT; i++)
     {
       aff = &tmp_aff[i];
-      if (aff->spell)
+      if (aff->spell && !rol_elemental_embodiment_affect_is_transient(aff->spell))
         BUFFER_WRITE("%d %d %d %d %d %d %d %d %d %d %d %d %d %d\n", aff->spell, aff->duration,
                      aff->modifier, aff->location, aff->bitvector[0], aff->bitvector[1],
                      aff->bitvector[2], aff->bitvector[3], aff->bonus_type, aff->specific,
@@ -4850,6 +4850,8 @@ static void load_affects(FILE *fl, struct char_data *ch, int affect_file_version
         /* Equipment-derived artifact passives and bonuses are restored dynamically on equip */
         continue;
       }
+      if (rol_elemental_embodiment_affect_is_transient(af.spell))
+        continue;
       affect_to_char(ch, &af);
       i++;
     }
@@ -6066,6 +6068,8 @@ static char *serialize_pet_runtime_state(struct char_data *pet)
   affect_count = 0;
   for (af = pet->affected; af; af = af->next)
   {
+    if (rol_elemental_embodiment_affect_is_transient(af->spell))
+      continue;
     if (affect_count >= MAX_AFFECT)
       break;
     PET_STATE_APPEND("A %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n", af->spell, af->duration,
@@ -6331,6 +6335,8 @@ static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runt
   for (i = state->affect_count - 1; i >= 0; i--)
   {
     af = state->affects[i];
+    if (rol_elemental_embodiment_affect_is_transient(af.spell))
+      continue;
     af.next = NULL;
     affect_to_char(pet, &af);
   }

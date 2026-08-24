@@ -11,6 +11,9 @@
 - All documentation must be valid ASCII, UTF-8, LF line endings.
 - Always trace code; never assume naming conventions.
 - Helpfiles have to be updated in two places: the database and `lib/text/help/help.hlp`
+- For an explicit request to synchronize help end to end, use the help-sync skill's bounded sync
+  workflow without pausing for duplicate confirmation; deletions, renames, and conflicts still
+  require explicit review.
 - When adding or updating features and relevant, make sure to update documentation and helpfiles
 - Check `lib/.env` whether this is dev or production environment.  We don't modify production code.  We do not create new branches / worktress from production.
 - For running the MUD on local/dev, don't use `luminari.service`, use `autorun.sh`

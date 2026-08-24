@@ -49,6 +49,8 @@ extern EVENTFUNC(event_rol_barbazu_bloodloss);
 extern EVENTFUNC(event_rol_drow_decay);
 extern EVENTFUNC(event_rol_deaths_head_seed);
 extern EVENTFUNC(event_rol_spiderhaunt_maggots);
+extern EVENTFUNC(event_rol_call_lycanthrope_charm);
+extern EVENTFUNC(event_rol_tazriks_frenzied_hound);
 
 /* The mud_event_index[] with extended data for table-driven handling
  * Format: {name, func, type, completion_msg, recovery_msg, feat, daily_uses} */
@@ -528,6 +530,10 @@ struct mud_event_list mud_event_index[] = {
     {"Dragon Attack Cooldown", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Calm Cooldown", event_daily_use_cooldown, EVENT_CHAR, NULL,
      "One of your calm uses has recovered.", FEAT_CALM, 0},
+    {"RoL Call Lycanthrope Charm", event_rol_call_lycanthrope_charm, EVENT_CHAR, NULL, NULL,
+     FEAT_UNDEFINED, 0},
+    {"RoL Tazrik's Frenzied Hound", event_rol_tazriks_frenzied_hound, EVENT_CHAR, NULL, NULL,
+     FEAT_UNDEFINED, 0},
 };
 
 /* Expose registry count for validation */

@@ -2166,7 +2166,8 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       /* Reset the counter for spellbooks. */
       j = 0;
 
-      /* Continue processing the object properties - do NOT skip */
+      /* The record header is not an object property. */
+      continue;
     }
 
     /* If "temp" is NULL, we are most likely progressing through

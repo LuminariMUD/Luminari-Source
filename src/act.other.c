@@ -6417,6 +6417,7 @@ ACMD(do_hide)
 
   if (AFF_FLAGGED(ch, AFF_HIDE))
   {
+    remove_spell_camouflage(ch);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...\r\n");
     return;

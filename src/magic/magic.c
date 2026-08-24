@@ -43,6 +43,7 @@
 #include "character/perks.h"
 #include "bardic_performance.h"
 #include "perfmon.h"
+#include "mysql.h"
 
 // external
 extern struct raff_node *raff_list;
@@ -50,6 +51,46 @@ extern struct raff_node *raff_list;
 static int paralyzing_touch_duration(void)
 {
   return dice(1, 4) + 1;
+}
+
+static int cyclone_damage_percent(bool player_caster, int wind_speed)
+{
+  return player_caster && wind_speed <= 25 ? 50 : 100;
+}
+
+static bool is_fire_elemental_target(struct char_data *victim)
+{
+  if (victim == NULL)
+    return FALSE;
+
+  return (IS_ELEMENTAL(victim) && HAS_SUBRACE(victim, SUBRACE_FIRE)) ||
+         GET_RACE(victim) == RACE_SMALL_FIRE_ELEMENTAL ||
+         GET_RACE(victim) == RACE_MEDIUM_FIRE_ELEMENTAL ||
+         GET_RACE(victim) == RACE_LARGE_FIRE_ELEMENTAL ||
+         GET_RACE(victim) == RACE_HUGE_FIRE_ELEMENTAL ||
+         GET_RACE(victim) == RACE_GARGANTUAN_FIRE_ELEMENTAL ||
+         GET_RACE(victim) == RACE_COLOSSAL_FIRE_ELEMENTAL;
+}
+
+static int adjust_lich_touch_damage(struct char_data *victim, int damage)
+{
+  if (victim == NULL || damage <= 0)
+    return MAX(0, damage);
+
+  if (is_fire_elemental_target(victim))
+    damage += damage / 4;
+  if (AFF_FLAGGED(victim, AFF_CSHIELD))
+    damage /= 2;
+  if (AFF_FLAGGED(victim, AFF_FSHIELD))
+    damage += 50;
+
+  return MAX(0, damage);
+}
+
+static bool lava_burst_should_ignite(int damage_result, int hit_before, int hit_after,
+                                     bool already_burning)
+{
+  return damage_result != -1 && hit_after < hit_before && !already_burning;
 }
 
 static bool is_necromancer_touch_ability(int spellnum)
@@ -111,6 +152,22 @@ int test_get_last_savingthrow_challenge(void)
 int test_paralyzing_touch_duration(void)
 {
   return paralyzing_touch_duration();
+}
+
+int test_cyclone_damage_percent(bool player_caster, int wind_speed)
+{
+  return cyclone_damage_percent(player_caster, wind_speed);
+}
+
+int test_adjust_lich_touch_damage(struct char_data *victim, int damage)
+{
+  return adjust_lich_touch_damage(victim, damage);
+}
+
+bool test_lava_burst_should_ignite(int damage_result, int hit_before, int hit_after,
+                                   bool already_burning)
+{
+  return lava_burst_should_ignite(damage_result, hit_before, hit_after, already_burning);
 }
 
 int test_resolve_affect_cast_level(struct char_data *ch, int spellnum, int supplied_level,
@@ -521,6 +578,7 @@ static bool spell_has_ability_penalty(int spellnum)
   case SPELL_POISON:
   case SPELL_ENFEEBLEMENT:
   case SPELL_RAY_OF_ENFEEBLEMENT:
+  case SPELL_LICH_TOUCH:
   case PSIONIC_DECELERATION:
   case PSIONIC_DEMORALIZE:
   case MOB_ABILITY_CORRUPTION:
@@ -1612,13 +1670,13 @@ void mag_loops(int level, struct char_data *ch, struct char_data *victim, struct
 // default    ->  magic resistance
 // returns damage, -1 if dead
 
-int mag_damage(int level, struct char_data *ch, struct char_data *victim,
-               struct obj_data *wpn __attribute__((unused)), int spellnum, int metamagic,
-               int savetype, int casttype)
+static int mag_damage_scaled(int level, struct char_data *ch, struct char_data *victim,
+                             struct obj_data *wpn __attribute__((unused)), int spellnum,
+                             int metamagic, int savetype, int casttype, int damage_percent)
 {
   int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0, min_dice_roll = 0,
       bonus = 0, mag_resist = TRUE, spell_school = NOSCHOOL, save_negates = FALSE,
-      mag_resist_bonus = 0, dc_mod = 0, crescendo_sonic_dam = 0, result;
+      mag_resist_bonus = 0, dc_mod = 0, crescendo_sonic_dam = 0, result, hit_before = 0;
   bool apply_crescendo;
   char desc[200];
 
@@ -1926,6 +1984,41 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = MIN(18, MAX(1, level));
     size_dice = 8;
     bonus = level / 2;
+    break;
+
+  case SPELL_CYCLONE:
+    save = SAVING_REFL;
+    element = DAM_AIR;
+    num_dice = MIN(40, MAX(1, level));
+    size_dice = 12;
+    bonus = 0;
+    break;
+
+  case SPELL_LICH_TOUCH:
+    /* The source save gates the debuffs, not the initial touch damage. */
+    save = -1;
+    element = DAM_UNHOLY;
+    num_dice = MIN(50, MAX(1, level));
+    size_dice = 16;
+    bonus = 0;
+    break;
+
+  case SPELL_LAVA_BURST:
+    save = SAVING_REFL;
+    element = DAM_FIRE;
+    num_dice = MIN(45, MAX(1, level));
+    size_dice = 13;
+    bonus = 0;
+    break;
+
+  case SPELL_TAZRIKS_FRENZIED_HOUND:
+    /* The source hound's bite has neither a save nor a magic-resistance check. */
+    save = -1;
+    mag_resist = FALSE;
+    element = DAM_PUNCTURE;
+    num_dice = MIN(40, MAX(1, level));
+    size_dice = 12;
+    bonus = 0;
     break;
 
   case SPELL_DUST_DEVIL:
@@ -3759,6 +3852,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     }
   }
 
+  if (spellnum == SPELL_LICH_TOUCH)
+    dam = adjust_lich_touch_damage(victim, dam);
+
+  damage_percent = MAX(0, MIN(100, damage_percent));
+  if (damage_percent != 100)
+    dam = dam * damage_percent / 100;
+
   if (spellnum == SPELL_CIRCLE_OF_DEATH && !IS_LIVING(victim))
   {
     act("You ignore the spell affect, as it only affects the living.", TRUE, ch, 0, victim,
@@ -4081,7 +4181,23 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       crescendo_sonic_dam = dice(GET_CRESCENDO_DICE(ch), 6);
     }
 
+    hit_before = GET_HIT(victim);
     result = damage(ch, victim, dam, spellnum, element, FALSE);
+
+    if (spellnum == SPELL_LAVA_BURST && result != -1 &&
+        lava_burst_should_ignite(result, hit_before, GET_HIT(victim),
+                                 AFF_FLAGGED(victim, AFF_ON_FIRE)))
+    {
+      struct affected_type burning;
+
+      new_affect(&burning);
+      burning.spell = SPELL_LAVA_BURST;
+      burning.duration = 5;
+      SET_BIT_AR(burning.bitvector, AFF_ON_FIRE);
+      affect_to_char(victim, &burning);
+      send_to_char(victim, "Molten lava clings to you and continues to burn!\r\n");
+      act("Molten lava clings to $n and continues to burn!", FALSE, victim, NULL, NULL, TO_ROOM);
+    }
 
     if (spellnum == SPELL_THUNDER_LANCE && result != -1)
     {
@@ -4248,6 +4364,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
     return result;
   }
+}
+
+int mag_damage(int level, struct char_data *ch, struct char_data *victim, struct obj_data *wpn,
+               int spellnum, int metamagic, int savetype, int casttype)
+{
+  return mag_damage_scaled(level, ch, victim, wpn, spellnum, metamagic, savetype, casttype, 100);
 }
 /* Affect durations are combat rounds and update once per PULSE_VIOLENCE. */
 
@@ -10734,6 +10856,33 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "Your movements slow beneath the black light!";
     break;
 
+  case SPELL_LICH_TOUCH:
+    if (IS_DRAGON(victim))
+      return;
+
+    misc_bonus = -1;
+    if (AFF_FLAGGED(victim, AFF_CSHIELD))
+      misc_bonus -= 2;
+    if (is_fire_elemental_target(victim))
+      misc_bonus++;
+    if (mag_resistance(ch, victim, 0) ||
+        savingthrow(ch, victim, SAVING_FORT, misc_bonus, casttype, level, NECROMANCY))
+      return;
+
+    af[0].location = APPLY_STR;
+    af[0].modifier = -1;
+    af[0].duration = 2;
+    accum_duration = TRUE;
+    if (!AFF_FLAGGED(victim, AFF_SLOW))
+    {
+      af[1].spell = SPELL_SLOW;
+      af[1].duration = MAX(1, level >> 4);
+      SET_BIT_AR(af[1].bitvector, AFF_SLOW);
+    }
+    to_room = "$n shivers as $s strength and movements ebb away!";
+    to_vict = "A deathly touch saps your strength and slows your movements!";
+    break;
+
   case SPELL_BELTYNS_BURNING_BLOOD:
     if (!can_bleed(victim) || GET_HIT(victim) >= GET_MAX_HIT(victim) ||
         mag_resistance(ch, victim, 0) ||
@@ -11662,10 +11811,13 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
   struct char_data *tch = NULL, *next_tch = NULL;
   const char *to_char = NULL, *to_room = NULL;
   int isEffect = FALSE, is_eff_and_dam = FALSE, is_uneffect = FALSE;
-  int temp_meta = 0, temp_class = GET_CASTING_CLASS(ch);
+  int temp_meta = 0, temp_class, damage_percent = 100, wind_speed = 5;
+  zone_rnum zone;
 
   if (ch == NULL)
     return;
+
+  temp_class = GET_CASTING_CLASS(ch);
 
   /* to add spells just add the message here plus an entry in mag_damage for
    * the damaging part of the spell.   */
@@ -11715,6 +11867,29 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
   case SPELL_SOUL_TEMPEST:
     to_char = "You call forth a tempest of howling spirits!";
     to_room = "$n calls forth a tempest of howling spirits!";
+    break;
+  case SPELL_CYCLONE:
+    to_char = "You call down a fierce cyclone upon the area!";
+    to_room = "$n calls down a fierce cyclone upon the area!";
+    if (!IS_NPC(ch) && IN_ROOM(ch) != NOWHERE)
+    {
+      zone = GET_ROOM_ZONE(IN_ROOM(ch));
+      if (zone != NOWHERE && zone <= top_of_zone_table)
+        wind_speed = get_cached_zone_wind_speed(zone_table[zone].number, 5);
+      damage_percent = cyclone_damage_percent(true, wind_speed);
+      if (damage_percent < 100)
+      {
+        if (OUTSIDE(ch))
+          send_to_char(ch, "The lack of wind reduces the cyclone's force.\r\n");
+        else
+          send_to_char(ch, "Being indoors reduces the cyclone's force.\r\n");
+      }
+    }
+    break;
+  case SPELL_LAVA_BURST:
+    /* RoL invokes its merge hook here, but its merge table has no lava-burst pairing. */
+    to_char = "The area explodes in a massive burst of red-hot lava!";
+    to_room = "The area explodes in a massive burst of red-hot lava around $n!";
     break;
   case WARLOCK_CHILLING_TENTACLES:
     to_char = "You call forth many writhing, frost-covered tentacles from the ground!";
@@ -12096,7 +12271,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
       {
         metamagic = temp_meta;
         GET_CASTING_CLASS(ch) = temp_class;
-        mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
+        if (spellnum == SPELL_CYCLONE)
+          mag_damage_scaled(level, ch, tch, obj, spellnum, metamagic, 1, casttype, damage_percent);
+        else
+          mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
 
         /* Add meteor swarm impact effects after damage is dealt */
         if (spellnum == SPELL_METEOR_SWARM &&

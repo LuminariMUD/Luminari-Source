@@ -5999,6 +5999,7 @@ void command_interpreter(struct char_data *ch, char *argument)
   else if (AFF_FLAGGED(ch, AFF_HIDE) && !AFF_FLAGGED(ch, AFF_SNEAK) &&
            !is_abbrev(complete_cmd_info[cmd].command, "sneak"))
   {
+    remove_spell_camouflage(ch);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You slowly step out of the shadows... (command removed hide, try sneaking "
                      "before hiding)\r\n");
@@ -6081,12 +6082,14 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "wearlocations") &&
            !is_abbrev(complete_cmd_info[cmd].command, "attackqueue"))
   {
+    remove_spell_camouflage(ch);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...  (command removed hide)\r\n");
   }
   else if (AFF_FLAGGED(ch, AFF_HIDE) && AFF_FLAGGED(ch, AFF_SNEAK) &&
            is_abbrev(complete_cmd_info[cmd].command, "cast") && !HAS_FEAT(ch, FEAT_MAGICAL_AMBUSH))
   {
+    remove_spell_camouflage(ch);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
     send_to_char(ch, "You step out of the shadows...  (attempting to cast without 'magical ambush' "
                      "removes hidden status)\r\n");

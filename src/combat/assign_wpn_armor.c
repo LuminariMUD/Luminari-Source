@@ -822,6 +822,8 @@ static void setweapon(int type, const char *name, int numDice, int diceSize, int
                       int range, int weaponFamily, int size, int material, int handle_type,
                       int head_type, const char *description)
 {
+  if (weapon_type[type] != NULL)
+    free((char *)weapon_type[type]);
   weapon_type[type] = strdup(name);
   weapon_list[type].name = name;
   weapon_list[type].numDice = numDice;

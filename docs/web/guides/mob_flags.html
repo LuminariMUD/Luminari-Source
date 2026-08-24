@@ -807,8 +807,8 @@ zone reset assumes stays put</p>
 Teleport target check (<code>spell_teleport()</code>) -
 <code>src/magic/magic.c</code> - Creation placement
 (<code>mag_creations()</code>)</p>
-<h3 id="rol-compatibility-flags-indices-105-125">RoL compatibility flags
-(Indices: 105-125)</h3>
+<h3 id="rol-compatibility-flags-indices-105-127">RoL compatibility flags
+(Indices: 105-127)</h3>
 <p><strong>Effect:</strong> Preserve shared Realms of Luminari mobile
 behaviors during deterministic conversion. -
 <code>MOB_ROL_NICE_THIEF</code> allows stealing but suppresses automatic
@@ -856,9 +856,14 @@ slot. - <code>MOB_ROL_ABYSS_FORGED</code> marks only the source demon
 prototypes whose primary and secondary weapons dissolve on death. In the
 target it removes one-handed, off-hand, and two-handed wielded weapons
 before either special death handling or ordinary corpse creation,
-without consuming the persistent SpecProc slot. - These flags are
-converter-owned compatibility data; builders should use native flags and
-classes for new content unless reproducing converted RoL behavior</p>
+without consuming the persistent SpecProc slot. -
+<code>MOB_ROL_BEHOLDER</code> preserves source beholder identity for
+mechanics with explicit beholder immunities. -
+<code>MOB_ROL_LYCANTHROPE_SUMMON</code> marks only the two converted
+prototypes selected by call lycanthrope; ordinary lycanthropes do not
+receive the summon role. - These flags are converter-owned compatibility
+data; builders should use native flags and classes for new content
+unless reproducing converted RoL behavior</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
 Movement, archery, and race aggression - <code>src/combat/fight.c</code>
 - Delayed hunter activation -
@@ -1771,6 +1776,20 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>RoL-Abyss-Forged</td>
 <td>Compatibility</td>
 <td>Wielded abyss-forged weapons dissolve on death</td>
+</tr>
+<tr class="odd">
+<td>126</td>
+<td>MOB_ROL_BEHOLDER</td>
+<td>RoL-Beholder</td>
+<td>Compatibility</td>
+<td>Preserves source beholder identity for explicit immunities</td>
+</tr>
+<tr class="even">
+<td>127</td>
+<td>MOB_ROL_LYCANTHROPE_SUMMON</td>
+<td>RoL-Lycanthrope-Summon</td>
+<td>Compatibility</td>
+<td>Prototype eligible for call lycanthrope</td>
 </tr>
 </tbody>
 </table>

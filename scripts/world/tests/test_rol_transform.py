@@ -28,6 +28,7 @@ from wtool_lib.rol_transform import (
     SOURCE_INSTRUMENT_SUBTYPE_MAP,
     SOURCE_SAVING_THROW_APPLIES,
     TARGET_APPLY_AC_NEW,
+    _NON_CASTABLE_SOURCE_SPELLS,
     _SOURCE_SPELL_MAP,
     convert_text,
     emit_mobile,
@@ -988,6 +989,7 @@ class RolTransformTests(unittest.TestCase):
         "Y": ({117}, {11, 28}),
         "MH": ({118}, {28}),
         "Z": ({122}, set()),
+        "OB": ({126}, set()),
     }
     for race_code, (expected_actions, expected_affects) in cases.items():
       with self.subTest(race_code=race_code):
@@ -1010,6 +1012,25 @@ class RolTransformTests(unittest.TestCase):
         self.assertTrue(expected_actions <= decode_tokens(mobile.action_flags).bits)
         self.assertTrue(expected_affects <= decode_tokens(mobile.affect_flags).bits)
         self.assertEqual("RoL Thief", mobile.spec_proc)
+
+  def test_call_lycanthrope_prototypes_preserve_their_summon_role(self) -> None:
+    for source_vnum in (525, 526):
+      with self.subTest(source_vnum=source_vnum):
+        source = self._source_record(
+            "mob",
+            (
+                f"#{source_vnum}\nlycanthrope~\na lycanthrope~\n"
+                "A lycanthrope waits here.~\n~\n"
+                "0 0 0 0 S\nL 0 0\n"
+                "20 0 0 1d1+0 1d1+0\n0 0\n131 131 0\n"
+            ).encode("ascii"),
+        )
+        emitted = emit_mobile(source, 2_000_000 + source_vnum)
+        path = self._target_path("mob", emitted.text)
+        result = parse_mobile_file(path, "mob/20001.mob", self.manifest, set())
+
+        self.assertTrue(result.complete)
+        self.assertIn(127, decode_tokens(result.records[0].action_flags).bits)
 
   def test_emitted_mobile_maps_all_action_dispositions_and_infers_primary_class(self) -> None:
     source_actions = (1, 4, 5, 13, 14, 16, 17, 19, 20, 21, 22, 23, 24, 26, 27, 29, 30, 32)
@@ -1730,6 +1751,19 @@ class RolTransformTests(unittest.TestCase):
     with self.assertRaisesRegex(ValueError, "unmapped positive source spell 999"):
       emit_object(source, 2_000_200, _resolver)
 
+  def test_emitted_magic_item_rejects_non_castable_source_spell_id(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nwand~\na wand~\nA wand is here.~\n~\n"
+        b"3 0 1\n20 2 2 291\n1 1 0\n0\n0\n",
+    )
+
+    with self.assertRaisesRegex(
+        ValueError,
+        r"non-castable source spell ID 291 \(elemental embodiment maintain\)",
+    ):
+      emit_object(source, 2_000_200, _resolver)
+
   def test_spell_map_targets_registered_luminari_spells(self) -> None:
     spell_header = (self.root / "src/magic/spells.h").read_text(encoding="ascii")
     num_spells_match = re.search(
@@ -1758,7 +1792,27 @@ class RolTransformTests(unittest.TestCase):
       if 0 < spell_number < num_spells:
         target_registry[spell_number] = name
 
-    self.assertEqual(340, len(_SOURCE_SPELL_MAP))
+    self.assertEqual(331, len(_SOURCE_SPELL_MAP))
+    self.assertEqual(
+        {64, 93, 291, 292, 293, 294, 361, 374, 498},
+        set(_NON_CASTABLE_SOURCE_SPELLS),
+    )
+    self.assertFalse(set(_SOURCE_SPELL_MAP) & set(_NON_CASTABLE_SOURCE_SPELLS))
+    self.assertEqual(599, _SOURCE_SPELL_MAP[233][1])
+    self.assertEqual(599, _SOURCE_SPELL_MAP[314][1])
+    self.assertEqual(600, _SOURCE_SPELL_MAP[377][1])
+    self.assertEqual(601, _SOURCE_SPELL_MAP[378][1])
+    self.assertEqual(602, _SOURCE_SPELL_MAP[473][1])
+    self.assertEqual(603, _SOURCE_SPELL_MAP[90][1])
+    self.assertEqual(604, _SOURCE_SPELL_MAP[303][1])
+    self.assertEqual(605, _SOURCE_SPELL_MAP[487][1])
+    self.assertEqual(606, _SOURCE_SPELL_MAP[488][1])
+    self.assertEqual(607, _SOURCE_SPELL_MAP[343][1])
+    self.assertEqual(608, _SOURCE_SPELL_MAP[376][1])
+    self.assertEqual(609, _SOURCE_SPELL_MAP[482][1])
+    self.assertEqual(610, _SOURCE_SPELL_MAP[483][1])
+    self.assertEqual(611, _SOURCE_SPELL_MAP[484][1])
+    self.assertEqual(612, _SOURCE_SPELL_MAP[485][1])
     for source_spell, (source_name, target_spell) in _SOURCE_SPELL_MAP.items():
       with self.subTest(source_spell=source_spell, source_name=source_name):
         self.assertGreater(target_spell, 0)
@@ -1836,12 +1890,19 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(335, len(source_spell_constants))
     self.assertEqual(117, len(referenced_source_spells))
     self.assertEqual(340, len(required_source_spells))
-    self.assertEqual(required_source_spells, set(_SOURCE_SPELL_MAP))
+    self.assertFalse(referenced_source_spells & set(_NON_CASTABLE_SOURCE_SPELLS))
+    self.assertEqual(
+        required_source_spells,
+        set(_SOURCE_SPELL_MAP) | set(_NON_CASTABLE_SOURCE_SPELLS),
+    )
     self.assertEqual({2: 71, 3: 80, 4: 109, 10: 251}, source_type_counts)
     self.assertEqual(511, len(emitted_records))
     self.assertEqual(734, len(expected_spell_slots))
     for source_spell, source_name in source_registry.items():
-      self.assertEqual(source_name, _SOURCE_SPELL_MAP[source_spell][0])
+      if source_spell in _NON_CASTABLE_SOURCE_SPELLS:
+        self.assertEqual(source_name, _NON_CASTABLE_SOURCE_SPELLS[source_spell])
+      else:
+        self.assertEqual(source_name, _SOURCE_SPELL_MAP[source_spell][0])
 
     path = self._target_path("obj", "".join(emitted_records))
     result = parse_object_file(path, "obj/26000.obj", self.manifest, set())

@@ -7,6 +7,7 @@ import argparse
 from dataclasses import replace
 import json
 from pathlib import Path
+import re
 import shlex
 import subprocess
 import sys
@@ -29,7 +30,9 @@ from endpoint import (
     ApplyFailure,
     EndpointError,
     EndpointSnapshot,
+    HelpWriteBarrier,
     STATE_DIRECTORY_NAME,
+    StalePlanError,
     apply_plan_to_endpoint,
     atomic_write_json,
     environment_config,
@@ -48,6 +51,21 @@ from endpoint import (
 JSON_BEGIN = "HELP_SYNC_JSON_BEGIN"
 JSON_END = "HELP_SYNC_JSON_END"
 PLAN_SUFFIX = ".json"
+REMOTE_USER_RE = re.compile(r"^[a-z_][a-z0-9_-]*[$]?$", re.IGNORECASE)
+DEFAULT_SYNC_PASSES = 5
+MAX_SYNC_PASSES = 10
+RETRYABLE_SYNC_DRIFT = (
+    "authorization token from a fresh preview",
+    "changed after planning",
+    "changed during apply",
+    "changed after the plan snapshot",
+    "database catalog hash does not match candidate",
+    "help.hlp is not the deterministic candidate projection",
+    "old-hash precondition failed",
+    "planned addition",
+    "production catalog changed after planning",
+    "stale plan:",
+)
 
 
 def repository_root() -> Path:
@@ -120,8 +138,14 @@ class RemoteEndpoint:
             )
         self.login = shlex.split(login)
         self.project = project
+        self.sudo_password = values.get("REMOTE_LOGIN_SUDO_PASSWORD", "")
+        self.endpoint_user = values.get("REMOTE_HELP_SYNC_USER", "luminari").strip()
         if not self.login:
             raise EndpointError("REMOTE_LOGIN_COMMAND is empty")
+        if "\n" in self.sudo_password or "\r" in self.sudo_password:
+            raise EndpointError("REMOTE_LOGIN_SUDO_PASSWORD must be a single line")
+        if self.sudo_password and not REMOTE_USER_RE.fullmatch(self.endpoint_user):
+            raise EndpointError("REMOTE_HELP_SYNC_USER is not a valid local user name")
 
     def call(
         self,
@@ -137,10 +161,24 @@ class RemoteEndpoint:
             action,
             *arguments,
         ]
+        if self.sudo_password:
+            remote_arguments = [
+                "sudo",
+                "-k",
+                "-S",
+                "-p",
+                "",
+                "-u",
+                self.endpoint_user,
+                "--",
+                *remote_arguments,
+            ]
         remote_command = (
             f"cd {shlex.quote(self.project)} && " + shlex.join(remote_arguments)
         )
         input_bytes = canonical_json_bytes(payload) + b"\n" if payload is not None else None
+        if self.sudo_password:
+            input_bytes = self.sudo_password.encode("utf-8") + b"\n" + (input_bytes or b"")
         try:
             completed = subprocess.run(
                 [*self.login, remote_command],
@@ -659,29 +697,88 @@ def resolve_command(root: Path, args: argparse.Namespace) -> int:
     return 0 if resolved.get("sealed") else 3
 
 
-def apply_development_command(root: Path, args: argparse.Namespace) -> int:
-    require_development(root)
-    plan = load_plan(root, args.plan)
+def apply_development_plan(root: Path, plan: Mapping[str, Any]) -> dict[str, Any]:
+    """Apply and prove one already-loaded plan on development."""
+
     result = apply_plan_to_endpoint(root, "development", plan)
     candidate = Catalog.from_dict(plan["candidate"])
     verification = verify_endpoint(root, "development", candidate)
     proof = write_development_proof(root, plan, result, verification)
+    return {
+        "mode": "apply-dev",
+        "plan_id": plan["plan_id"],
+        "apply": result,
+        "verification": verification,
+        "proof": proof,
+        "common_baseline_advanced": False,
+    }
+
+
+def apply_development_command(root: Path, args: argparse.Namespace) -> int:
+    require_development(root)
+    report = apply_development_plan(root, load_plan(root, args.plan))
     print(
         json.dumps(
-            {
-                "mode": "apply-dev",
-                "plan_id": plan["plan_id"],
-                "apply": result,
-                "verification": verification,
-                "proof": proof,
-                "common_baseline_advanced": False,
-            },
+            report,
             ensure_ascii=False,
             sort_keys=True,
             indent=2,
         )
     )
     return 0
+
+
+def publish_production_plan(
+    root: Path,
+    plan: Mapping[str, Any],
+    authorization_token: str,
+    *,
+    tolerate_development_drift: bool = False,
+) -> dict[str, Any]:
+    """Publish one proven plan and checkpoint it before following new dev work."""
+
+    preview, _ = preview_production(root, plan)
+    if authorization_token != preview["authorization_token"]:
+        raise EndpointError(
+            "authorization token must equal the token from a fresh preview-prod result"
+        )
+    remote = RemoteEndpoint(root)
+    apply_result = remote.apply(plan)
+    candidate = Catalog.from_dict(plan["candidate"])
+    production_verification = remote.verify(candidate)
+    development_verification: dict[str, Any] | None = None
+    development_drift: str | None = None
+    try:
+        development_verification = verify_endpoint(root, "development", candidate)
+    except EndpointError as exc:
+        development_drift = str(exc)
+
+    # The candidate was already applied and proven on development before the
+    # production mutation. Once production independently verifies it, that
+    # candidate is the last common lineage point even if development acquired
+    # a newer edit during publication. Checkpoint it, then let autonomous sync
+    # create a follow-up plan for the newer development state.
+    remote_baseline = remote.write_baseline(candidate, str(plan["plan_id"]))
+    local_baseline = write_common_baseline(root, candidate, str(plan["plan_id"]))
+    report = {
+        "mode": "apply-prod",
+        "plan_id": plan["plan_id"],
+        "apply": apply_result,
+        "development_verification": development_verification,
+        "development_drift": development_drift,
+        "production_verification": production_verification,
+        "development_baseline": local_baseline,
+        "production_baseline": remote_baseline,
+        "common_baseline_advanced": True,
+        "converged": development_drift is None,
+    }
+    if development_drift is not None and not tolerate_development_drift:
+        raise ApplyFailure(
+            "production applied and verified, but development changed concurrently; "
+            "the common checkpoint advanced and a follow-up plan is required",
+            report,
+        )
+    return report
 
 
 def apply_production_command(root: Path, args: argparse.Namespace) -> int:
@@ -689,36 +786,179 @@ def apply_production_command(root: Path, args: argparse.Namespace) -> int:
     plan = load_plan(root, args.plan)
     if args.authorize_plan != plan["plan_id"]:
         raise EndpointError("--authorize-plan must exactly equal the sealed plan ID")
-    preview, _ = preview_production(root, plan)
-    if args.authorize_preview != preview["authorization_token"]:
-        raise EndpointError(
-            "--authorize-preview must equal the token from a fresh preview-prod result"
-        )
-    remote = RemoteEndpoint(root)
-    apply_result = remote.apply(plan)
-    candidate = Catalog.from_dict(plan["candidate"])
-    production_verification = remote.verify(candidate)
-    development_verification = verify_endpoint(root, "development", candidate)
-    remote_baseline = remote.write_baseline(candidate, str(plan["plan_id"]))
-    local_baseline = write_common_baseline(root, candidate, str(plan["plan_id"]))
+    report = publish_production_plan(root, plan, args.authorize_preview)
     print(
         json.dumps(
-            {
-                "mode": "apply-prod",
-                "plan_id": plan["plan_id"],
-                "apply": apply_result,
-                "development_verification": development_verification,
-                "production_verification": production_verification,
-                "development_baseline": local_baseline,
-                "production_baseline": remote_baseline,
-                "common_baseline_advanced": True,
-            },
+            report,
             ensure_ascii=False,
             sort_keys=True,
             indent=2,
         )
     )
     return 0
+
+
+def validate_autonomous_plan(plan: Mapping[str, Any], stored_at: Path) -> None:
+    """Refuse policy decisions that an end-to-end run must not make itself."""
+
+    summary = plan_summary(plan)
+    if not plan.get("sealed"):
+        raise EndpointError(
+            "autonomous sync requires explicit conflict resolution; inspect "
+            f"{stored_at}: {json.dumps(summary, sort_keys=True)}"
+        )
+
+    deletion_count = sum(
+        int(plan[f"{side}_delta"]["counts"]["deletions"])
+        for side in ("development", "production")
+    )
+    if (
+        deletion_count
+        or plan.get("authorized_deletions")
+        or plan.get("renames")
+    ):
+        raise EndpointError(
+            "autonomous sync refuses deletions and renames; inspect the sealed plan "
+            f"{stored_at} and use the explicit reviewed workflow"
+        )
+
+
+def retryable_sync_drift(error: Exception) -> bool:
+    message = str(error).lower()
+    return isinstance(error, StalePlanError) or any(
+        fragment in message for fragment in RETRYABLE_SYNC_DRIFT
+    )
+
+
+def synchronize_command(root: Path, args: argparse.Namespace) -> int:
+    """Run one explicitly authorized, non-destructive sync through both endpoints."""
+
+    require_development(root)
+    if not args.authorize_production:
+        raise EndpointError(
+            "sync requires --authorize-production for this bounded end-to-end run"
+        )
+    if args.max_passes < 1 or args.max_passes > MAX_SYNC_PASSES:
+        raise EndpointError(
+            f"--max-passes must be between 1 and {MAX_SYNC_PASSES}"
+        )
+
+    attempts: list[dict[str, Any]] = []
+    for pass_number in range(1, args.max_passes + 1):
+        plan = create_plan(
+            root,
+            {"development": [], "production": []},
+            (),
+            repair_integrity=True,
+            repair_layers=args.repair_layers,
+        )
+        stored_at = save_plan(root, plan)
+        validate_autonomous_plan(plan, stored_at)
+        candidate = Catalog.from_dict(plan["candidate"])
+        barrier = HelpWriteBarrier(root, str(plan["plan_id"]))
+        development_report: dict[str, Any] | None = None
+        preview: dict[str, Any] | None = None
+        publication: dict[str, Any] | None = None
+
+        try:
+            development_report = apply_development_plan(root, plan)
+            barrier.acquire()
+            preview, _ = preview_production(root, plan)
+            print(
+                json.dumps(
+                    {
+                        "mode": "sync-preview",
+                        "pass": pass_number,
+                        "preview": preview,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    indent=2,
+                ),
+                flush=True,
+            )
+            publication = publish_production_plan(
+                root,
+                plan,
+                str(preview["authorization_token"]),
+                tolerate_development_drift=True,
+            )
+            if not publication["converged"]:
+                attempts.append(
+                    {
+                        "pass": pass_number,
+                        "plan": plan_summary(plan),
+                        "development": development_report,
+                        "production": publication,
+                        "status": "follow-up-required",
+                    }
+                )
+                continue
+
+            development_verification = verify_endpoint(
+                root, "development", candidate
+            )
+            remote = RemoteEndpoint(root)
+            production_verification = remote.verify(candidate)
+            development_baseline = load_common_baseline(root)
+            production_baseline = remote.baseline()
+            if (
+                development_baseline.content_hash != candidate.content_hash
+                or production_baseline.content_hash != candidate.content_hash
+            ):
+                raise EndpointError(
+                    "common baseline did not advance to the verified candidate"
+                )
+
+            attempts.append(
+                {
+                    "pass": pass_number,
+                    "plan": plan_summary(plan),
+                    "development": development_report,
+                    "production": publication,
+                    "status": "verified",
+                }
+            )
+            print(
+                json.dumps(
+                    {
+                        "mode": "sync",
+                        "status": "verified",
+                        "passes": attempts,
+                        "final_plan_id": plan["plan_id"],
+                        "catalog_hash": candidate.content_hash,
+                        "entry_count": len(candidate.entries),
+                        "relationship_count": candidate.relationship_count,
+                        "development_verification": development_verification,
+                        "production_verification": production_verification,
+                        "common_baseline_advanced": True,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    indent=2,
+                )
+            )
+            return 0
+        except ApplyFailure:
+            raise
+        except EndpointError as exc:
+            attempts.append(
+                {
+                    "pass": pass_number,
+                    "plan": plan_summary(plan),
+                    "status": "retrying-drift",
+                    "reason": str(exc),
+                }
+            )
+            if not retryable_sync_drift(exc) or pass_number == args.max_passes:
+                raise
+        finally:
+            if barrier.acquired:
+                barrier.release()
+
+    raise EndpointError(
+        f"help catalogs did not quiesce after {args.max_passes} sync passes"
+    )
 
 
 def verify_command(root: Path, args: argparse.Namespace) -> int:
@@ -859,6 +1099,33 @@ def build_parser() -> argparse.ArgumentParser:
     apply_prod.add_argument("--authorize-plan", required=True)
     apply_prod.add_argument("--authorize-preview", required=True)
 
+    sync = subparsers.add_parser(
+        "sync",
+        help="run an explicitly authorized zero-deletion sync through dev and production",
+    )
+    sync.add_argument(
+        "--authorize-production",
+        action="store_true",
+        help="authorize this bounded run to publish its exact fresh preview",
+    )
+    sync.add_argument(
+        "--max-passes",
+        type=int,
+        default=DEFAULT_SYNC_PASSES,
+        help=(
+            "maximum reconciliation passes when supported concurrent edits arrive "
+            f"(default: {DEFAULT_SYNC_PASSES}, maximum: {MAX_SYNC_PASSES})"
+        ),
+    )
+    sync.add_argument(
+        "--repair-layers",
+        action="store_true",
+        help=(
+            "regenerate drifted help.hlp projections after file-only work has "
+            "been reviewed and normalized"
+        ),
+    )
+
     verify = subparsers.add_parser("verify", help="verify exact database/file candidate equality")
     verify.add_argument("plan")
     verify.add_argument(
@@ -912,6 +1179,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     if args.command == "apply-prod":
         return apply_production_command(root, args)
+    if args.command == "sync":
+        return synchronize_command(root, args)
     if args.command == "verify":
         return verify_command(root, args)
     if args.command == "rollback":

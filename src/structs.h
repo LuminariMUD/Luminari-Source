@@ -1171,30 +1171,32 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define MOB_NO_BLOCK_BYPASS                                                                        \
   102                 /**< Prevents Ghost perk and similar abilities from bypassing mob blocking */
 #define MOB_GOLEM 103 /**< Mob is a constructed golem (for follower tracking) */
-#define MOB_NOTELEPORT 104            /**< Mob cannot be teleported */
-#define MOB_ROL_NICE_THIEF 105        /**< RoL: caught theft does not provoke retaliation */
-#define MOB_ROL_STAY_SECTOR 106       /**< RoL: random movement remains in the same sector */
-#define MOB_ROL_DELAY_HUNTER 107      /**< RoL: become a hunter after taking material damage */
-#define MOB_ROL_ARCHER 108            /**< RoL: fire a ranged weapon into an adjacent room */
-#define MOB_ROL_HAS_PS 109            /**< RoL: psionic mobile behavior role */
-#define MOB_ROL_HAS_CL 110            /**< RoL: divine-caster mobile behavior role */
-#define MOB_ROL_HAS_MU 111            /**< RoL: arcane-caster mobile behavior role */
-#define MOB_ROL_HAS_TH 112            /**< RoL: rogue mobile behavior role */
-#define MOB_ROL_HAS_WA 113            /**< RoL: warrior mobile behavior role */
-#define MOB_ROL_AGGR_RACE_EVIL 114    /**< RoL: aggressive toward evil source races */
-#define MOB_ROL_AGGR_RACE_GOOD 115    /**< RoL: aggressive toward good source races */
-#define MOB_ROL_DEMON 116             /**< RoL: implicit standard demon behavior */
-#define MOB_ROL_DEVIL 117             /**< RoL: implicit standard devil behavior */
-#define MOB_ROL_UMBERHULK 118         /**< RoL: implicit standard umber-hulk behavior */
-#define MOB_ROL_FADE_FAMILIAR 119     /**< RoL: familiar fades without a corpse */
-#define MOB_ROL_FADE_MOUNT 120        /**< RoL: conjured mount fades without a corpse */
-#define MOB_ROL_FADE_MONSTER 121      /**< RoL: conjured monster fades without a corpse */
-#define MOB_ROL_ANGEL 122             /**< RoL: preserves source angel identity */
-#define MOB_ROL_TOTEM_SPIRIT 123      /**< RoL: shaman totem spirit fades without a corpse */
-#define MOB_ROL_BLACK_VAPOR_DEATH 124 /**< RoL: undead uses Bloodstone's death message */
-#define MOB_ROL_ABYSS_FORGED 125      /**< RoL: wielded abyss-forged weapons dissolve on death */
+#define MOB_NOTELEPORT 104             /**< Mob cannot be teleported */
+#define MOB_ROL_NICE_THIEF 105         /**< RoL: caught theft does not provoke retaliation */
+#define MOB_ROL_STAY_SECTOR 106        /**< RoL: random movement remains in the same sector */
+#define MOB_ROL_DELAY_HUNTER 107       /**< RoL: become a hunter after taking material damage */
+#define MOB_ROL_ARCHER 108             /**< RoL: fire a ranged weapon into an adjacent room */
+#define MOB_ROL_HAS_PS 109             /**< RoL: psionic mobile behavior role */
+#define MOB_ROL_HAS_CL 110             /**< RoL: divine-caster mobile behavior role */
+#define MOB_ROL_HAS_MU 111             /**< RoL: arcane-caster mobile behavior role */
+#define MOB_ROL_HAS_TH 112             /**< RoL: rogue mobile behavior role */
+#define MOB_ROL_HAS_WA 113             /**< RoL: warrior mobile behavior role */
+#define MOB_ROL_AGGR_RACE_EVIL 114     /**< RoL: aggressive toward evil source races */
+#define MOB_ROL_AGGR_RACE_GOOD 115     /**< RoL: aggressive toward good source races */
+#define MOB_ROL_DEMON 116              /**< RoL: implicit standard demon behavior */
+#define MOB_ROL_DEVIL 117              /**< RoL: implicit standard devil behavior */
+#define MOB_ROL_UMBERHULK 118          /**< RoL: implicit standard umber-hulk behavior */
+#define MOB_ROL_FADE_FAMILIAR 119      /**< RoL: familiar fades without a corpse */
+#define MOB_ROL_FADE_MOUNT 120         /**< RoL: conjured mount fades without a corpse */
+#define MOB_ROL_FADE_MONSTER 121       /**< RoL: conjured monster fades without a corpse */
+#define MOB_ROL_ANGEL 122              /**< RoL: preserves source angel identity */
+#define MOB_ROL_TOTEM_SPIRIT 123       /**< RoL: shaman totem spirit fades without a corpse */
+#define MOB_ROL_BLACK_VAPOR_DEATH 124  /**< RoL: undead uses Bloodstone's death message */
+#define MOB_ROL_ABYSS_FORGED 125       /**< RoL: wielded abyss-forged weapons dissolve on death */
+#define MOB_ROL_BEHOLDER 126           /**< RoL: preserves source beholder identity */
+#define MOB_ROL_LYCANTHROPE_SUMMON 127 /**< RoL: call lycanthrope summon prototype */
 /**********************/
-#define NUM_MOB_FLAGS 126
+#define NUM_MOB_FLAGS 128
 /**********************/
 /**********************/
 

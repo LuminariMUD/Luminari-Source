@@ -683,9 +683,23 @@
 #define SPELL_SUN_SHADOW 596
 #define SPELL_EARTH_FOG 597
 #define SPELL_FIRE_FOG 598
+#define SPELL_HEAL_UNDEAD 599
+#define SPELL_DARK_WRATH 600
+#define SPELL_UNHOLY_AURA 601
+#define SPELL_CAMOUFLAGE 602
+#define SPELL_CYCLONE 603
+#define SPELL_LICH_TOUCH 604
+#define SPELL_LAVA_BURST 605
+#define SPELL_ICE_LAYER 606
+#define SPELL_CALL_LYCANTHROPE 607
+#define SPELL_TAZRIKS_FRENZIED_HOUND 608
+#define SPELL_ELEMENTAL_WATER_EMBODIMENT 609
+#define SPELL_ELEMENTAL_FIRE_EMBODIMENT 610
+#define SPELL_ELEMENTAL_EARTH_EMBODIMENT 611
+#define SPELL_ELEMENTAL_AIR_EMBODIMENT 612
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 599
+#define NUM_SPELLS 613
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -841,6 +855,7 @@
 #define AFFECT_ROL_UNDEAD_SPELL_DRAIN 1338
 #define AFFECT_ROL_MANSCORPION_VENOM 1339
 #define AFFECT_ROL_BARBAZU_BERSERK 1340
+#define AFFECT_ROL_ELEMENTAL_EMBODIMENT_MAINTAIN 1341
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -1897,6 +1912,35 @@ ASPELL(spell_spirit_walk);
 ASPELL(spell_rock_to_mud);
 ASPELL(spell_mud_to_rock);
 ASPELL(spell_phantom_heal);
+ASPELL(spell_heal_undead);
+ASPELL(spell_dark_wrath);
+ASPELL(spell_unholy_aura);
+ASPELL(spell_camouflage);
+ASPELL(spell_ice_layer);
+ASPELL(spell_call_lycanthrope);
+ASPELL(spell_tazriks_frenzied_hound);
+ASPELL(spell_elemental_water_embodiment);
+ASPELL(spell_elemental_fire_embodiment);
+ASPELL(spell_elemental_earth_embodiment);
+ASPELL(spell_elemental_air_embodiment);
+
+void remove_spell_camouflage(struct char_data *ch);
+bool rol_elemental_embodiment_affect_is_transient(int spellnum);
+bool rol_elemental_embodiment_active(struct char_data *ch);
+void remove_rol_elemental_embodiment_affect(struct char_data *ch, int spellnum);
+void remove_all_rol_elemental_embodiments(struct char_data *ch);
+
+#ifdef LUMINARI_CUTEST
+int test_cyclone_damage_percent(bool player_caster, int wind_speed);
+int test_adjust_lich_touch_damage(struct char_data *victim, int damage);
+bool test_ice_layer_target_is_immune(struct char_data *victim);
+bool test_lava_burst_should_ignite(int damage_result, int hit_before, int hit_after,
+                                   bool already_burning);
+int test_call_lycanthrope_level(int caster_level);
+int test_call_lycanthrope_charm_save_target(int charisma);
+bool test_tazriks_event_state(const char *state, room_vnum *room, int *strike);
+bool test_rol_elemental_embodiment_same_side(struct char_data *ch, struct char_data *victim);
+#endif
 
 int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage);
 int adjust_damage_for_creature_wards(struct char_data *attacker, struct char_data *victim,

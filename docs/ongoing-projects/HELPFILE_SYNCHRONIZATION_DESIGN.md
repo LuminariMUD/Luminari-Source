@@ -1,7 +1,7 @@
 # Helpfile Two-Way Synchronization Design
 
-Status: implementation complete and isolated end-to-end tests passing; production deployment and
-first common-baseline initialization remain pending
+Status: implementation complete; bounded end-to-end orchestration passes isolated two-endpoint
+tests, and the guarded live production workflow was verified on 2026-08-24
 
 Analysis date: 2026-08-24
 
@@ -323,6 +323,8 @@ scripts/help-sync/help_sync.py apply-dev <plan>
 scripts/help-sync/help_sync.py preview-prod <plan>
 scripts/help-sync/help_sync.py apply-prod <plan> --authorize-plan <id> \
   --authorize-preview <token>
+scripts/help-sync/help_sync.py sync --authorize-production [--repair-layers] \
+  [--max-passes <1-10>]
 scripts/help-sync/help_sync.py verify <plan> --environment both
 scripts/help-sync/help_sync.py rollback <run-id> --environment <target> \
   --expected-current-hash <hash>
@@ -338,6 +340,16 @@ All modes must call the same implementation so their normalization, conflict,
 and validation rules cannot diverge. A later split into separate reconcile and
 apply skills is unnecessary unless real usage shows that the single entry point
 causes routing or safety problems.
+
+The `sync --authorize-production` command is the bounded autonomous composition of those same
+primitives. It is valid only for an explicit user request to complete synchronization. It generates
+and stores a fresh plan, automatically includes supported integrity repairs, applies and proves
+development, emits the exact production preview, binds the fresh preview token internally,
+publishes, reloads, advances the common baseline, and verifies both endpoints. It refuses unresolved
+conflicts, deletions, and renames. It also holds the development HEDIT barrier across publication
+and can make bounded follow-up passes if supported concurrent edits arrive. Database-to-file layer
+repair remains explicit through `--repair-layers` after file-only work has been inspected and, when
+legitimate, normalized into the development database.
 
 ## 9. Verification requirements
 
@@ -358,6 +370,8 @@ At minimum, automated tests should cover:
 - cache invalidation or restart verification;
 - exact post-apply re-export hashes;
 - idempotent repeat application;
+- service-owner remote execution without credentials in command arguments;
+- bounded end-to-end orchestration and concurrent-development follow-up passes;
 - environment and target-path refusal gates; and
 - proof that analytics and unrelated tables are untouched.
 
@@ -368,14 +382,15 @@ Implementation evidence recorded on 2026-08-24:
 
 - `make test` passed, including all 868 production-linked CuTests and the two
   help-sync runtime guard tests.
-- Python discovery passed 22 active unit tests; the six MariaDB tests are
+- Python discovery passed 27 active unit tests; the eight MariaDB tests are
   intentionally skipped unless their explicit environment gate is set.
-- The separately gated isolated MariaDB run passed all seven tests, covering
+- The separately gated isolated MariaDB run passed all eight tests, covering
   apply, exact verification, idempotence, explicit rollback, automatic rollback
   after file failure, transaction rollback after database failure, stale-plan
   refusal after either a database or file edit, environment refusal,
-  unrelated-table preservation, and the exact embedded collision-safe migration
-  sequence.
+  unrelated-table preservation, the exact embedded collision-safe migration
+  sequence, and bounded autonomous reconciliation across isolated development
+  and production endpoints.
 - Both Autotools and CMake help-sync test targets passed, `ruff` passed, the
   normal C build completed without warnings, `make install` succeeded, and no
   root-level `luminari` artifact remained.
@@ -400,9 +415,9 @@ All five implementation phases are present in the development checkout:
    production preview, exact plan and preview authorization values, a
    last-moment source check, the HEDIT barrier, the MySQL advisory lock, and the
    same backup/apply/verify/rollback implementation.
-5. The repository-local skill describes the guarded workflow. Scheduled audit
-   automation is optional and has not been enabled; automatic production writes
-   remain disabled.
+5. The repository-local skill describes both the guarded manual workflow and the explicitly
+   authorized bounded `sync` workflow. Scheduled audit automation is optional and has not been
+   enabled; unattended or scheduled production writes remain disabled.
 
 The database contract is enforced by collision-safe migrations numbered
 2026082401 through 2026082408. Startup now fails if those migrations cannot make
@@ -454,6 +469,18 @@ python3 scripts/help-sync/help_sync.py apply-prod <plan-id> \
   --authorize-plan <plan-id> --authorize-preview <fresh-preview-token>
 python3 scripts/help-sync/help_sync.py verify <plan-id> --environment both
 ```
+
+After the first common baseline exists, an explicit user request for a complete, non-destructive
+sync can use the bounded route instead:
+
+```bash
+python3 scripts/help-sync/help_sync.py sync --authorize-production [--repair-layers]
+```
+
+This command does not authorize tombstones, renames, or conflict resolution. Those remain explicit
+review decisions. The production flag authorizes only the exact zero-deletion plans and fresh
+preview tokens created during that single invocation; bounded re-planning handles supported edits
+that arrive during the run.
 
 The first baseline source is an operator decision. Select `production` instead
 of `development` when production is the approved common starting catalog, or

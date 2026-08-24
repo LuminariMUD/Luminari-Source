@@ -164,7 +164,7 @@
     },
     "NUM_SPELLS": {
       "source": "src/magic/spells.h:NUM_SPELLS",
-      "value": 599
+      "value": 613
     },
     "NUM_SUB_RACES": {
       "source": "src/structs.h:NUM_SUB_RACES",
@@ -2889,6 +2889,20 @@
           "index": 125,
           "macro": "MOB_ROL_ABYSS_FORGED",
           "name": "RoL-Abyss-Forged",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 126,
+          "macro": "MOB_ROL_BEHOLDER",
+          "name": "RoL-Beholder",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 127,
+          "macro": "MOB_ROL_LYCANTHROPE_SUMMON",
+          "name": "RoL-Lycanthrope-Summon",
           "reserved": false
         }
       ],

@@ -1,4 +1,7 @@
+from argparse import Namespace
 import ast
+from contextlib import redirect_stdout
+import io
 import os
 from pathlib import Path
 import re
@@ -22,7 +25,14 @@ HELP_SYNC_DIRECTORY = Path(__file__).resolve().parents[1]
 REPOSITORY_ROOT = HELP_SYNC_DIRECTORY.parents[1]
 sys.path.insert(0, str(HELP_SYNC_DIRECTORY))
 
-from catalog import Catalog, HelpEntry, MergeResult, build_plan_core, seal_plan  # noqa: E402
+from catalog import (  # noqa: E402
+    Catalog,
+    HelpEntry,
+    MergeResult,
+    build_plan_core,
+    render_help_hlp,
+    seal_plan,
+)
 import endpoint  # noqa: E402
 from endpoint import (  # noqa: E402
     ApplyFailure,
@@ -36,7 +46,9 @@ from endpoint import (  # noqa: E402
     rollback_endpoint,
     take_snapshot,
     verify_endpoint,
+    write_common_baseline,
 )
+from help_sync import synchronize_command  # noqa: E402
 
 
 SCHEMA_STATEMENTS = (
@@ -315,6 +327,153 @@ class EndpointDatabaseIntegrationTests(unittest.TestCase):
                 return next(iter(row.values()))
         finally:
             connection.close()
+
+    def test_bounded_autonomous_sync_reconciles_two_isolated_endpoints(self):
+        production_database = "luminari_help_sync_prod_" + uuid.uuid4().hex[:12]
+        production_root = self.root.parent / ("production-" + uuid.uuid4().hex[:12])
+        production_help = production_root / "lib" / "text" / "help"
+        production_help.mkdir(parents=True)
+        (production_root / "lib" / ".env").write_text(
+            "APP_ENV=production\n", encoding="ascii"
+        )
+        production_mysql = (
+            f"mysql_host={self.server_config.host}\n"
+            f"mysql_port={self.server_config.port}\n"
+            f"mysql_database={production_database}\n"
+            f"mysql_username={self.server_config.username}\n"
+            f"mysql_password={self.server_config.password}\n"
+            f"mysql_charset={self.server_config.charset}\n"
+        )
+        production_config_path = production_root / "lib" / "mysql_config"
+        production_config_path.write_text(production_mysql, encoding="utf-8")
+        production_config_path.chmod(0o600)
+        production_config = DatabaseConfig.from_root(production_root)
+
+        with self.server_connection.cursor() as cursor:
+            cursor.execute(
+                f"CREATE DATABASE `{production_database}` CHARACTER SET utf8mb4"
+            )
+        try:
+            production_connection = production_config.connect(autocommit=True)
+            with production_connection.cursor() as cursor:
+                for statement in SCHEMA_STATEMENTS:
+                    cursor.execute(statement)
+                cursor.execute(
+                    "INSERT INTO help_entries "
+                    "(tag, alternate_keywords, entry, min_level, max_level, category, "
+                    "auto_generated) VALUES "
+                    "('alpha', 'FIRST', 'Alpha old.\\n', 0, 1000, 'general', FALSE), "
+                    "('beta', NULL, 'Beta old.\\n', 1, 1000, 'general', FALSE)"
+                )
+                cursor.execute(
+                    "INSERT INTO help_keywords (help_tag, keyword) VALUES "
+                    "('alpha', 'ALPHA'), ('beta', 'BETA')"
+                )
+                cursor.execute(
+                    "INSERT INTO help_search_history (search_term) VALUES ('keep-me')"
+                )
+                cursor.execute(
+                    "INSERT INTO unrelated_sentinel (id, value_text) "
+                    "VALUES (1, 'untouched')"
+                )
+            production_connection.close()
+
+            development_connection = self.config.connect(autocommit=True)
+            with development_connection.cursor() as cursor:
+                cursor.execute("DELETE FROM help_keywords WHERE help_tag='ghost'")
+                cursor.execute(
+                    "INSERT INTO help_keywords (help_tag, keyword) VALUES ('beta', 'BETA')"
+                )
+            development_connection.close()
+
+            development_snapshot = take_snapshot(self.root, "development")
+            production_snapshot = take_snapshot(production_root, "production")
+            self.assertEqual(
+                development_snapshot.catalog.content_hash,
+                production_snapshot.catalog.content_hash,
+            )
+            baseline = development_snapshot.catalog
+            (self.root / "lib" / "text" / "help" / "help.hlp").write_bytes(
+                render_help_hlp(baseline)
+            )
+            (production_help / "help.hlp").write_bytes(render_help_hlp(baseline))
+            write_common_baseline(self.root, baseline, baseline.content_hash)
+            write_common_baseline(
+                production_root, baseline, baseline.content_hash
+            )
+
+            development_connection = self.config.connect(autocommit=True)
+            with development_connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE help_entries SET entry='Alpha autonomous.\\n' "
+                    "WHERE tag='alpha'"
+                )
+            development_connection.close()
+
+            class LocalProductionEndpoint:
+                def __init__(self, _root):
+                    pass
+
+                def snapshot(self):
+                    return take_snapshot(production_root, "production")
+
+                def baseline(self):
+                    return endpoint.load_common_baseline(production_root)
+
+                def apply(self, plan):
+                    return apply_plan_to_endpoint(production_root, "production", plan)
+
+                def verify(self, candidate):
+                    return verify_endpoint(production_root, "production", candidate)
+
+                def write_baseline(self, catalog, plan_id):
+                    return write_common_baseline(production_root, catalog, plan_id)
+
+            with (
+                mock.patch("help_sync.RemoteEndpoint", LocalProductionEndpoint),
+                mock.patch("endpoint._process_is_running", return_value=True),
+                mock.patch(
+                    "endpoint.request_runtime_reload",
+                    return_value="runtime cache and fallback table reloaded",
+                ),
+                redirect_stdout(io.StringIO()),
+            ):
+                result = synchronize_command(
+                    self.root,
+                    Namespace(
+                        authorize_production=True,
+                        max_passes=3,
+                        repair_layers=True,
+                    ),
+                )
+
+            self.assertEqual(result, 0)
+            development_after = take_snapshot(self.root, "development")
+            production_after = take_snapshot(production_root, "production")
+            self.assertEqual(
+                development_after.catalog.content_hash,
+                production_after.catalog.content_hash,
+            )
+            self.assertTrue(development_after.file_matches)
+            self.assertTrue(production_after.file_matches)
+            self.assertEqual(
+                development_after.catalog.by_tag["alpha"].body,
+                "Alpha autonomous.\n",
+            )
+            self.assertEqual(self.scalar("SELECT COUNT(*) FROM help_search_history"), 1)
+            production_connection = production_config.connect()
+            with production_connection.cursor() as cursor:
+                cursor.execute("SELECT value_text FROM unrelated_sentinel WHERE id=1")
+                self.assertEqual(cursor.fetchone()["value_text"], "untouched")
+            production_connection.close()
+        finally:
+            with self.server_connection.cursor() as cursor:
+                cursor.execute(f"DROP DATABASE IF EXISTS `{production_database}`")
+            shutil.rmtree(production_root, ignore_errors=True)
+            shutil.rmtree(
+                self.root / "lib" / "text" / "help" / ".help-sync",
+                ignore_errors=True,
+            )
 
     def test_apply_verify_idempotence_unrelated_tables_and_rollback(self):
         plan, before = self.build_plan(self.changed_candidate)
