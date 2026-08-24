@@ -7,6 +7,8 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/act.h"
+#include "../../src/db.h"
+#include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
@@ -67,6 +69,18 @@ static void cleanup_race_equivalence_descriptor(struct descriptor_data *descript
     free(descriptor->large_outbuf);
     descriptor->large_outbuf = NULL;
   }
+}
+
+static void init_race_equipment_object(struct obj_data *obj, const char *name, int wear_flag)
+{
+  clear_object(obj);
+  obj->name = (char *)name;
+  obj->short_description = (char *)name;
+  obj->description = (char *)name;
+  GET_OBJ_TYPE(obj) = ITEM_ARMOR;
+  GET_OBJ_SIZE(obj) = SIZE_LARGE;
+  SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_TAKE);
+  SET_BIT_AR(GET_OBJ_WEAR(obj), wear_flag);
 }
 
 void TestRaceEquivalenceIdsAreUniqueAndRepresentable(CuTest *tc)
@@ -183,6 +197,7 @@ void TestRaceEquivalenceParsersAndRacialFeats(CuTest *tc)
   CuAssertIntEquals(tc, RACE_MYCONID, parse_race_long("Mycanoid"));
 
   CuAssertIntEquals(tc, 1, count_racial_feat(RACE_WEMIC, FEAT_CLAWS_AND_BITE));
+  CuAssertIntEquals(tc, 1, count_racial_feat(RACE_WEMIC, FEAT_LEONINE_FRAME));
   CuAssertIntEquals(tc, 2, count_racial_feat(RACE_HALF_OGRE, FEAT_ARMOR_SKIN));
   CuAssertIntEquals(tc, 1, count_racial_feat(RACE_HALF_ILLITHID, FEAT_SLA_LEVITATE));
   CuAssertIntEquals(tc, 3, count_racial_feat(RACE_HALF_ILLITHID, FEAT_ARMOR_SKIN));
@@ -369,6 +384,7 @@ void TestRaceEquivalenceLevelOneFeatGrants(CuTest *tc)
   GET_REAL_RACE(&ch) = RACE_WEMIC;
   process_race_level_feats(&ch);
   CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_CLAWS_AND_BITE));
+  CuAssertIntEquals(tc, 1, HAS_REAL_FEAT(&ch, FEAT_LEONINE_FRAME));
 
   memset(ch.char_specials.saved.feats, 0, sizeof(ch.char_specials.saved.feats));
   GET_REAL_RACE(&ch) = RACE_HALF_OGRE;
@@ -399,6 +415,88 @@ void TestRaceEquivalenceLevelOneFeatGrants(CuTest *tc)
   GET_LEVEL(&ch) = 2;
   process_race_level_feats(&ch);
   CuAssertIntEquals(tc, 4, HAS_REAL_FEAT(&ch, FEAT_ARMOR_SKIN));
+}
+
+void TestRaceAnatomyWearSlotPolicy(CuTest *tc)
+{
+  const int trelux_restricted_slots[] = {
+      WEAR_FINGER_R, WEAR_FINGER_L, WEAR_HANDS,  WEAR_SHIELD,  WEAR_WIELD_1, WEAR_WIELD_OFFHAND,
+      WEAR_WIELD_2H, WEAR_HOLD_1,   WEAR_HOLD_2, WEAR_HOLD_2H, WEAR_LEGS,    WEAR_FEET,
+  };
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  size_t i;
+
+  ensure_race_equivalence_registry();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+
+  GET_REAL_RACE(&ch) = RACE_HUMAN;
+  for (i = 0; i < NUM_WEARS; i++)
+    CuAssertTrue(tc, character_can_use_wear_slot(&ch, (int)i));
+
+  GET_REAL_RACE(&ch) = RACE_WEMIC;
+  CuAssertTrue(tc, !character_can_use_wear_slot(&ch, WEAR_LEGS));
+  CuAssertTrue(tc, !character_can_use_wear_slot(&ch, WEAR_FEET));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_ANKLE_R));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_HANDS));
+  CuAssertPtrNotNull(tc, strstr(character_wear_slot_restriction(&ch, WEAR_LEGS), "leonine"));
+
+  GET_REAL_RACE(&ch) = RACE_TRELUX;
+  GET_DISGUISE_RACE(&ch) = RACE_HUMAN;
+  for (i = 0; i < sizeof(trelux_restricted_slots) / sizeof(trelux_restricted_slots[0]); i++)
+    CuAssertTrue(tc, !character_can_use_wear_slot(&ch, trelux_restricted_slots[i]));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_ARMS));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_WRIST_R));
+  CuAssertTrue(tc, character_can_use_wear_slot(&ch, WEAR_ANKLE_R));
+  CuAssertTrue(tc, !character_can_use_wear_slot(NULL, WEAR_BODY));
+  CuAssertTrue(tc, !character_can_use_wear_slot(&ch, -1));
+  CuAssertTrue(tc, !character_can_use_wear_slot(&ch, NUM_WEARS));
+}
+
+void TestRaceAnatomyRestrictionsCoverEquipmentEntryPaths(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  struct obj_data pants;
+  struct obj_data boots;
+  struct obj_data gloves;
+
+  ensure_race_equivalence_registry();
+  init_race_equivalence_character(&ch, &specials, &descriptor, &account);
+  descriptor.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, descriptor.pProtocol);
+  if (descriptor.pProtocol == NULL)
+    return;
+  GET_REAL_RACE(&ch) = RACE_WEMIC;
+  GET_REAL_SIZE(&ch) = SIZE_LARGE;
+  ch.points.size = SIZE_LARGE;
+
+  init_race_equipment_object(&pants, "a pair of test pants", ITEM_WEAR_LEGS);
+  obj_to_char(&pants, &ch);
+  CuAssertIntEquals(tc, WEAR_LEGS, find_eq_pos(&ch, &pants, NULL));
+  perform_wear(&ch, &pants, WEAR_LEGS);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&ch, WEAR_LEGS));
+  CuAssertPtrEquals(tc, &ch, pants.carried_by);
+  CuAssertPtrNotNull(tc, strstr(descriptor.output, "leonine frame"));
+  obj_from_char(&pants);
+
+  init_race_equipment_object(&boots, "a pair of test boots", ITEM_WEAR_FEET);
+  test_auto_equip_loaded_object(&ch, &boots, WEAR_FEET + 1);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&ch, WEAR_FEET));
+  CuAssertPtrEquals(tc, &ch, boots.carried_by);
+  obj_from_char(&boots);
+
+  GET_REAL_RACE(&ch) = RACE_TRELUX;
+  init_race_equipment_object(&gloves, "a pair of test gloves", ITEM_WEAR_HANDS);
+  equip_char(&ch, &gloves, WEAR_HANDS);
+  CuAssertPtrEquals(tc, NULL, GET_EQ(&ch, WEAR_HANDS));
+  CuAssertPtrEquals(tc, &ch, gloves.carried_by);
+  obj_from_char(&gloves);
+  cleanup_race_equivalence_descriptor(&descriptor);
 }
 
 void TestRaceEquivalenceHitPointPolicyAndDerivedRebuild(CuTest *tc)

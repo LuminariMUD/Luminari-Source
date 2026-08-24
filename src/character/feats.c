@@ -957,7 +957,8 @@ void assign_feats(void)
   feato(FEAT_TRELUX_EQ, "trelux eq", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "can't use some eq slots",
         "Due to their pincer-like hands, Trelux cannot wield weapons, hold items, use shields or "
-        "wear rings.");
+        "wear gloves or rings. Their insect-like legs also prevent them from wearing leg or foot "
+        "equipment.");
   feato(FEAT_TRELUX_PINCERS, "trelux pincers", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "trelux natural pincer weapon",
         "Trelux don't have hands, they have insect-like pincers.  These pincers can "
@@ -5979,6 +5980,10 @@ void assign_feats(void)
         "instead of starting one of your own.  Your perform ability and instrument raise the "
         "quality of the lead performance, and if the lead falters you take the song over rather "
         "than letting it end.  Type 'accompany' alone to stop accompanying.");
+  feato(FEAT_LEONINE_FRAME, "leonine frame", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "cannot wear leg or foot equipment",
+        "Your humanoid torso rises from a powerful four-legged leonine body. This anatomy "
+        "prevents you from wearing equipment in the legs and feet slots.");
   feat_prereq_ability(FEAT_SHADOW, ABILITY_STEALTH, 21);
   feat_prereq_attribute(FEAT_CALM, AB_CHA, 19);
   feat_prereq_ability(FEAT_ESTABLISH_CAMP, ABILITY_SURVIVAL, 3);

@@ -46,6 +46,7 @@
 #include "craft/crafts.h"
 #include "quest/hunts.h"
 #include "character/class.h"
+#include "character/race.h"
 #include "magic/spell_prep.h"
 #include "olc/genobj.h"
 #include "character/backgrounds.h"
@@ -4185,6 +4186,7 @@ int is_wielding_type(struct char_data *ch)
 void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  const char *wear_restriction = NULL;
 
   /* TAKE is used for objects that don't require special bits, ex. HOLD */
   int wear_bitvectors[] = {ITEM_WEAR_TAKE,
@@ -4283,6 +4285,13 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
     return;
   }
 
+  wear_restriction = character_wear_slot_restriction(ch, where);
+  if (wear_restriction != NULL)
+  {
+    send_to_char(ch, "%s\r\n", wear_restriction);
+    return;
+  }
+
   /* see hands_needed() for notes */
   int handsNeeded = hands_needed(ch, obj);
   if (handsNeeded == -1)
@@ -4353,12 +4362,6 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
     }
   }
 
-  if (GET_RACE(ch) == RACE_TRELUX && (where == WEAR_FINGER_R || where == WEAR_FINGER_L))
-  {
-    send_to_char(ch, "Your anatomy does not allow you to wear that...\r\n");
-    return;
-  }
-
   if ((where == WEAR_AMMO_POUCH && GET_EQ(ch, WEAR_SHEATH)) ||
       (where == WEAR_SHEATH && GET_EQ(ch, WEAR_AMMO_POUCH)))
   {
@@ -4403,12 +4406,6 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       where == WEAR_HOLD_2 || where == WEAR_SHIELD || where == WEAR_WIELD_2H ||
       where == WEAR_HOLD_2H)
   {
-    if (GET_RACE(ch) == RACE_TRELUX)
-    {
-      send_to_char(ch, "You have no hands!\r\n");
-      return;
-    }
-
     if (handsNeeded == 2 && where == WEAR_WIELD_1)
       where = WEAR_WIELD_2H;
     if (handsNeeded == 2 && where == WEAR_HOLD_1)

@@ -23,6 +23,7 @@
 #include "act.h"
 #include "character/abilities.h"
 #include "character/class.h"
+#include "character/race.h"
 #include "combat/fight.h"
 #include "combat/projectiles.h"
 #include "quest/quest.h"
@@ -2494,6 +2495,11 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
   if (IN_ROOM(obj) != NOWHERE)
   {
     log("SYSERR: EQUIP: Obj is in_room when equip.");
+    return;
+  }
+  if (!character_can_use_wear_slot(ch, pos))
+  {
+    obj_to_char(obj, ch);
     return;
   }
   /*  Changed this - proficiencies are handles in the places where they apply penalties.

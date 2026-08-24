@@ -35247,11 +35247,14 @@ more challenging experience-chart.  Type 'levels' in-game to view
 #0
 TRELUX-EQ
 
-Due to their pincer-like hands, Trelux cannot wield weapons, hold items,
-wear gloves or wear rings.
+Trelux anatomy does not support several traditional equipment slots.
 
-Also due to their insect-like legs, Trelux cannot wear items on their
-legs and feet.
+Their pincer-like forelimbs cannot wield weapons, hold items, use shields,
+wear gloves, or wear rings. Their insect-like legs cannot wear leg or foot
+equipment. Arm, wrist, and ankle equipment slots remain available.
+
+These restrictions apply to ordinary wear commands, saved equipment, and
+equipment placed by game systems.
 #0
 TRELUX-EXOSKELETON
 
@@ -40854,8 +40857,12 @@ Size: Large
 Language: Common
 
 Racial feats include low-light vision, Natural Athlete, Powerful Build,
-Claws and Bite, Survival Instinct, and Hardy. Wemics also gain one additional
-hit point per level.
+Claws and Bite, Survival Instinct, Hardy, and Leonine Frame. Wemics also gain
+one additional hit point per level.
+
+Leonine Frame represents a Wemic's four-legged lower body. Wemics cannot equip
+traditional leg or foot gear, including pants and boots. Their ankle equipment
+slots remain available.
 
 See also: ACCEXP, RACE, RACE-HALF-OGRE, RACE-YUAN-TI
 #0

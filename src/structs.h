@@ -2993,11 +2993,12 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define FEAT_ESTABLISH_CAMP 1264
 #define FEAT_GARROTE 1265
 #define FEAT_ACCOMPANY 1266
+#define FEAT_LEONINE_FRAME 1267
 
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1267
+#define FEAT_LAST_FEAT 1268
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1268
+#define NUM_FEATS 1269
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -8049,6 +8050,9 @@ struct race_data
   sbyte alignments[NUM_ALIGNMENTS];    /* acceptable alignments for this race */
   byte attack_types[NUM_ATTACK_TYPES]; /* race have this attack type? (when not wielding) */
 
+  /* NULL means this anatomy supports the slot; otherwise this is the rejection message. */
+  const char *wear_slot_restrictions[NUM_WEARS];
+
   /* linked lists */
   struct race_feat_assign *featassign_list; /* list of feat assigns */
   struct affect_assign *affassign_list;     /* list of affect assigns */
@@ -8057,7 +8061,6 @@ struct race_data
 
   /* these are only ideas for now */
 
-  /*int body_parts[NUM_WEARS];*/   /* for expansion - to add customized wear slots */
   /*byte favored_class[NUM_SEX];*/ /* favored class system, not yet implemented */
   /*ush_int language;*/            /* default language - not used yet */
 };

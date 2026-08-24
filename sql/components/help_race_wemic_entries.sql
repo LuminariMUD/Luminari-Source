@@ -17,8 +17,12 @@ Size: Large
 Language: Common
 
 Racial feats include low-light vision, Natural Athlete, Powerful Build,
-Claws and Bite, Survival Instinct, and Hardy. Wemics also gain one additional
-hit point per level.
+Claws and Bite, Survival Instinct, Hardy, and Leonine Frame. Wemics also gain
+one additional hit point per level.
+
+Leonine Frame represents a Wemic''s four-legged lower body. Wemics cannot equip
+traditional leg or foot gear, including pants and boots. Their ankle equipment
+slots remain available.
 
 See also: ACCEXP, RACE, RACE-HALF-OGRE, RACE-YUAN-TI', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),

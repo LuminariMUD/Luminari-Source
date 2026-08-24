@@ -83,6 +83,25 @@ Checkpoint 2026-08-24 (completion audit):
   SQL integration tests, and committed special-procedure fixture enabled.
   No production or persistent development database was changed.
 
+Checkpoint 2026-08-24 (racial anatomy balance):
+
+- Wemic now grants the innate Leonine Frame feat at level one. Its four-legged
+  lower body cannot use the legs or feet equipment slots; ankle equipment
+  remains available.
+- Race definitions now carry per-slot anatomy restrictions and player-facing
+  rejection text. The wear command and the low-level equipment boundary share
+  this policy, so automatic slot selection, saved gear, and scripted or system
+  equipment placement cannot bypass it. Rejected low-level equipment is
+  returned safely to inventory.
+- The pre-existing Trelux exceptions now use the same policy. This preserves
+  the established ring, shield, wield, and hold restrictions and closes the
+  documented but previously unenforced glove, leg, and foot restrictions.
+  Disguises do not change either race's physical equipment slots.
+- Focused production-linked tests cover the policy matrix, Wemic feat grant,
+  normal wear flow, saved-equipment restoration, and direct low-level equip
+  calls. Matching flat-file and database help describe both races' available
+  slots.
+
 This document accompanies `ROL_SPELL_EQUIVALENCE_GAPS.md` in the Realms of
 Luminari conversion series and compares RoL's player-character races with
 LuminariMUD's playable races.

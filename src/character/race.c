@@ -120,6 +120,41 @@ int race_hp_bonus_per_level(int race_num)
   }
 }
 
+/* Register an equipment slot that a race's anatomy does not possess. */
+static void set_race_wear_restriction(int race_num, int wear_slot, const char *message)
+{
+  if (race_num < 0 || race_num >= NUM_EXTENDED_RACES || wear_slot < 0 || wear_slot >= NUM_WEARS ||
+      message == NULL)
+  {
+    log("SYSERR: Invalid race wear restriction: race %d, slot %d.", race_num, wear_slot);
+    return;
+  }
+
+  race_list[race_num].wear_slot_restrictions[wear_slot] = message;
+}
+
+const char *character_wear_slot_restriction(const struct char_data *ch, int wear_slot)
+{
+  int race_num;
+
+  if (ch == NULL || IS_NPC(ch) || wear_slot < 0 || wear_slot >= NUM_WEARS)
+    return NULL;
+
+  race_num = GET_REAL_RACE(ch);
+  if (race_num < 0 || race_num >= NUM_EXTENDED_RACES)
+    return NULL;
+
+  return race_list[race_num].wear_slot_restrictions[wear_slot];
+}
+
+bool character_can_use_wear_slot(const struct char_data *ch, int wear_slot)
+{
+  if (ch == NULL || wear_slot < 0 || wear_slot >= NUM_WEARS)
+    return false;
+
+  return character_wear_slot_restriction(ch, wear_slot) == NULL;
+}
+
 /* appropriate alignments for given race */
 void set_race_alignments(int race, int lg, int ng, int cg, int ln, int tn, int cn, int le, int ne,
                          int ce)
@@ -171,7 +206,7 @@ void set_race_attack_types(int race, int hit, int sting, int whip, int slash, in
 /* function to initialize the whole race list to empty values */
 void initialize_races(void)
 {
-  int i = 0;
+  int i = 0, wear_slot = 0;
 
   for (i = 0; i < NUM_EXTENDED_RACES; i++)
   {
@@ -201,6 +236,8 @@ void initialize_races(void)
     set_race_alignments(i, N, N, N, N, N, N, N, N, N);
     set_race_attack_types(i, Y, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N, N,
                           N);
+    for (wear_slot = 0; wear_slot < NUM_WEARS; wear_slot++)
+      race_list[i].wear_slot_restrictions[wear_slot] = NULL;
 
     /* any linked lists to initailze? */
   }
@@ -1616,6 +1653,30 @@ void assign_races(void)
                         N, N, N, N, Y, N, N, N, Y, N, N, Y,
                         /* blast punch stab slice thrust hack rake peck smash trample charge gore */
                         N, N, Y, N, N, N, N, N, N, N, N, N);
+  set_race_wear_restriction(RACE_TRELUX, WEAR_FINGER_R,
+                            "Your pincer-like forelimbs cannot use equipment made for hands.");
+  set_race_wear_restriction(RACE_TRELUX, WEAR_FINGER_L,
+                            "Your pincer-like forelimbs cannot use equipment made for hands.");
+  set_race_wear_restriction(RACE_TRELUX, WEAR_HANDS,
+                            "Your pincer-like forelimbs cannot use equipment made for hands.");
+  set_race_wear_restriction(RACE_TRELUX, WEAR_SHIELD,
+                            "Your pincer-like forelimbs cannot use equipment made for hands.");
+  set_race_wear_restriction(RACE_TRELUX, WEAR_WIELD_1,
+                            "Your pincer-like forelimbs cannot use equipment made for hands.");
+  set_race_wear_restriction(RACE_TRELUX, WEAR_WIELD_OFFHAND,
+                            "Your pincer-like forelimbs cannot use equipment made for hands.");
+  set_race_wear_restriction(RACE_TRELUX, WEAR_WIELD_2H,
+                            "Your pincer-like forelimbs cannot use equipment made for hands.");
+  set_race_wear_restriction(RACE_TRELUX, WEAR_HOLD_1,
+                            "Your pincer-like forelimbs cannot use equipment made for hands.");
+  set_race_wear_restriction(RACE_TRELUX, WEAR_HOLD_2,
+                            "Your pincer-like forelimbs cannot use equipment made for hands.");
+  set_race_wear_restriction(RACE_TRELUX, WEAR_HOLD_2H,
+                            "Your pincer-like forelimbs cannot use equipment made for hands.");
+  set_race_wear_restriction(RACE_TRELUX, WEAR_LEGS,
+                            "Your insect-like legs cannot wear leg or foot equipment.");
+  set_race_wear_restriction(RACE_TRELUX, WEAR_FEET,
+                            "Your insect-like legs cannot wear leg or foot equipment.");
   /* feat assignment */
   /*                   race-num    feat                  lvl stack */
   feat_race_assignment(RACE_TRELUX, FEAT_ULTRAVISION, 1, N);
@@ -1848,12 +1909,17 @@ void assign_races(void)
   set_race_alignments(RACE_WEMIC, Y, Y, Y, Y, Y, Y, Y, Y, Y);
   set_race_attack_types(RACE_WEMIC, N, N, N, N, Y, N, N, N, Y, N, N, N, N, N, N, N, N, N, N, N, N,
                         Y, N, N);
+  set_race_wear_restriction(RACE_WEMIC, WEAR_LEGS,
+                            "Your leonine frame cannot wear leg or foot equipment.");
+  set_race_wear_restriction(RACE_WEMIC, WEAR_FEET,
+                            "Your leonine frame cannot wear leg or foot equipment.");
   feat_race_assignment(RACE_WEMIC, FEAT_INFRAVISION, 1, N);
   feat_race_assignment(RACE_WEMIC, FEAT_NATURAL_ATHLETE, 1, N);
   feat_race_assignment(RACE_WEMIC, FEAT_POWERFUL_BUILD, 1, N);
   feat_race_assignment(RACE_WEMIC, FEAT_CLAWS_AND_BITE, 1, N);
   feat_race_assignment(RACE_WEMIC, FEAT_SURVIVAL_INSTINCT, 1, N);
   feat_race_assignment(RACE_WEMIC, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_WEMIC, FEAT_LEONINE_FRAME, 1, N);
   race_list[RACE_WEMIC].racial_language = SKILL_LANG_COMMON;
 
   /****************************************************************************/
