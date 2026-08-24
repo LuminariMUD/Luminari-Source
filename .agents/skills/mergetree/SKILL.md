@@ -17,3 +17,8 @@ Operate autonomously after invocation. Do not pause for routine approval when st
 published, recoverable, and semantically unambiguous. Treat invocation as authorization for the
 workflow's scoped commits, fast-forward synchronization, and ordinary non-force pushes. Stop only
 at the explicit safety boundaries in the reference.
+
+Ordinary dirty-worktree ambiguity is not a user-facing approval boundary. Preserve uncertain work
+losslessly, isolate the merge from it, and continue through publication using the recovery procedure
+in the reference. Do not mark the task blocked merely because another process or user has unrelated
+changes in the canonical worktree.

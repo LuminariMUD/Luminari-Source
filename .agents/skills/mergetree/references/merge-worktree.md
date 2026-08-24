@@ -48,6 +48,8 @@ Enforce these invariants:
   and regenerate. `unittests/CuTest/AllTests.c` is generated from `Test*` functions.
 - Preserve unrelated user changes. Classify and resolve dirty state autonomously through the
   preflight below; never fold unrelated work into the merge commit or discard uncertain changes.
+  Ordinary uncertainty about ownership is handled by lossless recovery and isolation, not by asking
+  the user to clean the worktree.
 - Keep documentation ASCII, UTF-8, and LF. Do not add AI attribution anywhere, including commits.
 
 If a risky action seems necessary, stop and explain the need instead of running it.
@@ -71,9 +73,19 @@ Make cleanliness and publication the first gate, before deep feature analysis:
    - For provably incidental generated state, restore the exact tracked file or remove the
      untracked artifact. Add an appropriate ignore rule in a separate target cleanup when recurrence
      is likely.
-   - Stop only when ownership or intent remains ambiguous, a secret or protected file is involved,
-     or safe partitioning is impossible. Never guess, discard uncertain work, or publish credentials.
-4. Require both worktrees to be clean after preflight. Determine each branch's upstream and compare
+   - For ordinary work whose ownership or intent remains uncertain, preserve it before continuing.
+     Create a uniquely named, non-overwriting recovery ref that contains the exact tracked, staged,
+     and untracked state, verify that the snapshot is complete, and isolate the merge in a temporary
+     worktree at the reviewed target ref. Leave the original worktree and its active edits untouched.
+     After publication, fast-forward the canonical checkout only when Git proves the preserved edits
+     are compatible; otherwise retain both the recovery ref and isolated worktree and report their
+     paths without turning the successful remote merge into a blocked task.
+   - Retry a stable snapshot when another process changes ordinary files during inspection. Stop
+     only for production state, protected or secret material, destructive history requirements,
+     unsafe remote divergence, or a state that cannot be captured losslessly after bounded retries.
+     Never guess, discard uncertain work, or publish credentials.
+4. Require the source worktree and the selected merge worktree to be clean after preflight. Determine
+   each branch's upstream and compare
    it with `git rev-list --left-right --count HEAD...@{upstream}`.
    - If a clean named branch lacks an upstream, publish it with an ordinary `git push -u` to the
      configured remote.
@@ -114,9 +126,10 @@ approval gate.
 
 ## 4. Merge execution
 
-Return to the canonical worktree and recheck `pwd`, environment, branch, HEAD, clean status, and
-upstream publication. Recheck that the source ref still names the reviewed, published commit. If
-either ref changed after reconnaissance, repeat the affected analysis automatically before merging.
+Return to the canonical worktree, or to the isolated merge worktree selected during dirty-state
+preservation, and recheck `pwd`, environment, branch, HEAD, clean status, and upstream publication.
+Recheck that the source ref still names the reviewed, published commit. If either ref changed after
+reconnaissance, repeat the affected analysis automatically before merging.
 
 If synchronization changed target HEAD, preserve the original safety ref and create a second unique
 safety ref at the updated HEAD. Never move or overwrite the original ref.
@@ -190,8 +203,9 @@ After tests pass:
    commit succeeded but left related hook changes, review and validate them before a separate
    follow-up commit. Stop only if their intent is ambiguous. Never silently amend or bypass the hook.
 3. Inspect `git diff --stat HEAD^1..HEAD`, `git diff --check HEAD^1..HEAD`, the merge commit
-   summary, and final `git status --short --branch`. Require a clean worktree and no unresolved
-   markers.
+   summary, and final `git status --short --branch`. Require no merge-introduced dirt and no
+   unresolved markers. Pre-existing edits restored from a verified recovery snapshot are reported
+   separately and are not a failed merge.
 4. Fetch the configured target remote again. Verify the upstream target is an ancestor of the
    validated local target, then publish with an ordinary non-force push. If the push is rejected,
    fetch and repeat the synchronization, conflict-resolution, and validation path; never force.
