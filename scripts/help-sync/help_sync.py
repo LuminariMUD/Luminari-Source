@@ -55,7 +55,7 @@ REMOTE_USER_RE = re.compile(r"^[a-z_][a-z0-9_-]*[$]?$", re.IGNORECASE)
 DEFAULT_SYNC_PASSES = 5
 MAX_SYNC_PASSES = 10
 RETRYABLE_SYNC_DRIFT = (
-    "authorization token from a fresh preview",
+    "authorization token must equal",
     "changed after planning",
     "changed during apply",
     "changed after the plan snapshot",

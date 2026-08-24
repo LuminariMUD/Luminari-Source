@@ -28,6 +28,7 @@ from help_sync import (  # noqa: E402
     make_plan,
     prepare_merge_catalogs,
     publish_production_plan,
+    retryable_sync_drift,
     synchronize_command,
 )
 
@@ -65,6 +66,12 @@ def autonomous_plan(deletions=0):
 
 
 class EndpointUnitTests(unittest.TestCase):
+    def test_fresh_preview_token_race_is_retryable(self):
+        error = EndpointError(
+            "authorization token must equal the token from a fresh preview-prod result"
+        )
+        self.assertTrue(retryable_sync_drift(error))
+
     def test_autonomous_sync_follows_concurrent_development_edit_to_convergence(self):
         plan = autonomous_plan()
         catalog = Catalog.from_dict(plan["candidate"])
