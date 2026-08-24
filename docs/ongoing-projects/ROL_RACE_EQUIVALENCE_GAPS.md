@@ -2,9 +2,9 @@
 
 Status: source audit completed 2026-08-23.
 
-Third document in the Realms of Luminari conversion series, after
-`ROL_SPELL_EQUIVALENCE_GAPS.md` and `ROL_SKILL_EQUIVALENCE_GAPS.md`. This one
-compares RoL's player-character races with LuminariMUD's playable races.
+This document accompanies `ROL_SPELL_EQUIVALENCE_GAPS.md` in the Realms of
+Luminari conversion series and compares RoL's player-character races with
+LuminariMUD's playable races.
 
 Unfinished RoL races are in scope. A race counts as in scope if it occupies a
 slot in RoL's player-race range, whether or not a player can currently select
@@ -72,8 +72,7 @@ tail-sweep kit. Stats: STR 95, DEX 100, AGI 125, CON 95, INT 125, WIS 150,
 CHA 90. Base age 20, moves 96, mana 75/300, no HP bonus.
 
 **Myconid (15).** Fungal race. Unfinished in RoL as well as absent from
-LuminariMUD; see the next section and the myconid notes in
-`ROL_SKILL_EQUIVALENCE_GAPS.md`. Stats: STR 210, DEX 60, AGI 75, CON 150,
+LuminariMUD; see the next section. Stats: STR 210, DEX 60, AGI 75, CON 150,
 INT 75, WIS 60, CHA 50. Base age 12, moves 105, mana 35/75, +1 HP bonus. No
 innate abilities.
 

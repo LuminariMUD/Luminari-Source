@@ -2,15 +2,16 @@
 
 Status: source audit completed 2026-08-23.
 
-Fourth document in the Realms of Luminari conversion series, after
-`ROL_SPELL_EQUIVALENCE_GAPS.md`, `ROL_SKILL_EQUIVALENCE_GAPS.md`, and
-`ROL_RACE_EQUIVALENCE_GAPS.md`. This document compares RoL's player classes
-with LuminariMUD's current class, prestige-class, specialty-school, race, feat,
-and multiclass systems.
+This document accompanies `ROL_SPELL_EQUIVALENCE_GAPS.md` and
+`ROL_RACE_EQUIVALENCE_GAPS.md` in the Realms of Luminari conversion series. It
+compares RoL's player classes with LuminariMUD's current class,
+prestige-class, specialty-school, race, feat, and multiclass systems.
 
-All 75 audited functional spell gaps are now implemented, but they deliberately
-have no class or domain assignments. References below therefore describe
-remaining class-kit integration, not missing spell handlers.
+The 75 spells in this class-assignment inventory are implemented, but they
+deliberately have no class or domain assignments. A later handler-level review
+identified 14 additional missing spells; those remain in the spell audit and
+are not yet included in this class-assignment analysis. References below
+therefore describe class-kit integration for the implemented inventory.
 
 This is necessarily a best-effort comparison. RoL stores one current class and
 advances it to mortal level 50. LuminariMUD supports multiclass characters,
@@ -291,10 +292,10 @@ Rogue. Psionicist was cross-checked against the separate live psionic registry
 in the spell audit; its zero is not an artifact of looking only at ordinary
 spells.
 
-`ROL_SKILL_EQUIVALENCE_GAPS.md` records that all five formerly missing live
-non-psionic skill equivalents have now been ported. Consequently there is no
-separate outstanding class-by-class skill-gap table here. This says nothing
-about exact learn rates, level gates, percentage caps, or class progression.
+All five formerly missing live non-psionic skill equivalents have now been
+ported. Consequently there is no separate outstanding class-by-class skill-gap
+table here. This says nothing about exact learn rates, level gates, percentage
+caps, or class progression.
 
 ## Defined but unavailable in RoL
 
@@ -430,6 +431,5 @@ Recommended sequence:
   `src/quest/quest.c`
 - Operational RoL class conversion map:
   `scripts/world/rol_conversion_policy.json`
-- Existing kit-gap audits:
-  `docs/ongoing-projects/ROL_SPELL_EQUIVALENCE_GAPS.md`,
-  `docs/ongoing-projects/ROL_SKILL_EQUIVALENCE_GAPS.md`
+- Existing kit-gap audit:
+  `docs/ongoing-projects/ROL_SPELL_EQUIVALENCE_GAPS.md`
