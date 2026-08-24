@@ -232,7 +232,7 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     230: ("protect undead", 541),  # protect undead
     231: ("protection from undead", 542),  # protection from undead
     232: ("command horde", 543),  # command horde
-    233: ("heal undead", 85),  # negative energy ray
+    233: ("heal undead", 599),  # heal undead
     235: ("create spring", 544),  # create spring
     236: ("barkskin", 263),  # barkskin
     237: ("moonwell", 545),  # moonwell
@@ -262,7 +262,7 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     311: ("animate spectre", 192),  # greater animation
     312: ("animate wraith", 192),  # greater animation
     313: ("animate ghoul", 192),  # greater animation
-    314: ("heal lich", 85),  # negative energy ray
+    314: ("heal lich", 599),  # handled by heal undead
     315: ("darkness breath", 93),  # darkness
     316: ("venom", 33),  # poison
     317: ("mage flame", 253),  # produce flame
@@ -320,8 +320,8 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     372: ("abi wither", 191),  # horrid wilting
     374: ("special proc effect", 514),  # arcane mark
     376: ("tazriks frenzied hound", 156),  # faithful hound
-    377: ("dark wrath", 436),  # divine power
-    378: ("unholy aura", 132),  # fire shield
+    377: ("dark wrath", 600),  # dark wrath
+    378: ("unholy aura", 601),  # unholy aura
     380: ("needle swarm", 568),  # needle swarm
     381: ("snapping teeth", 569),  # snapping teeth
     382: ("monster summoning", 204),  # summon creature ix
@@ -378,7 +378,7 @@ _SOURCE_SPELL_MAP: dict[int, tuple[str, int]] = {
     470: ("feign death", 584),  # feign death
     471: ("tranquility", 585),  # tranquility
     472: ("deathbolt", 298),  # finger of death
-    473: ("camouflage", 29),  # invisibility
+    473: ("camouflage", 602),  # camouflage
     474: ("scarlet outline", 247),  # faerie fire
     475: ("phantom heal", 586),  # phantom heal
     476: ("shadechill", 587),  # shadechill

@@ -104,6 +104,13 @@ static const struct spell_registration_expectation utility_spells[] = {
     {SPELL_FIRE_FOG, MAG_ROOM},
 };
 
+static const struct spell_registration_expectation remaining_support_spells[] = {
+    {SPELL_HEAL_UNDEAD, MAG_MANUAL},
+    {SPELL_DARK_WRATH, MAG_MANUAL},
+    {SPELL_UNHOLY_AURA, MAG_MANUAL},
+    {SPELL_CAMOUFLAGE, MAG_MANUAL},
+};
+
 static void add_test_affect(struct char_data *ch, int spellnum, int location, int modifier)
 {
   struct affected_type af;
@@ -120,6 +127,17 @@ static void remove_test_affects(struct char_data *ch)
 {
   while (ch->affected != NULL)
     affect_remove_no_total(ch, ch->affected);
+}
+
+static struct affected_type *find_test_affect(struct char_data *ch, int spellnum, int location)
+{
+  struct affected_type *af;
+
+  for (af = ch->affected; af != NULL; af = af->next)
+    if (af->spell == spellnum && af->location == location)
+      return af;
+
+  return NULL;
 }
 
 void TestFoundationalSpellsAreRegisteredWithoutClassAssignments(CuTest *tc)
@@ -189,6 +207,122 @@ void TestUtilitySpellsUseNativeRoutinesWithoutClassAssignments(CuTest *tc)
     for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
       CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].domain[domain_num]);
   }
+}
+
+void TestRemainingSupportSpellsAreNativeAndUnassigned(CuTest *tc)
+{
+  size_t index;
+  int class_num;
+  int domain_num;
+  int spellnum;
+
+  mag_assign_spells();
+
+  for (index = 0; index < sizeof(remaining_support_spells) / sizeof(remaining_support_spells[0]);
+       index++)
+  {
+    spellnum = remaining_support_spells[index].spellnum;
+    CuAssertTrue(tc, spell_info[spellnum].name != NULL);
+    CuAssertTrue(tc, spell_info[spellnum].name != unused_spellname);
+    CuAssertIntEquals(tc, remaining_support_spells[index].routines, spell_info[spellnum].routines);
+
+    for (class_num = 0; class_num < NUM_CLASSES; class_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].min_level[class_num]);
+    for (domain_num = 0; domain_num < NUM_DOMAINS; domain_num++)
+      CuAssertIntEquals(tc, LVL_IMMORT, spell_info[spellnum].domain[domain_num]);
+  }
+}
+
+void TestHealUndeadPreservesLichAndBlackmantleRules(CuTest *tc)
+{
+  struct char_data caster;
+  struct char_data target;
+  struct player_special_data caster_specials;
+  struct player_special_data target_specials;
+
+  clear_char(&caster);
+  clear_char(&target);
+  memset(&caster_specials, 0, sizeof(caster_specials));
+  memset(&target_specials, 0, sizeof(target_specials));
+  caster.player_specials = &caster_specials;
+  target.player_specials = &target_specials;
+  GET_REAL_RACE(&caster) = RACE_LICH;
+  GET_REAL_RACE(&target) = RACE_LICH;
+  GET_MAX_HIT(&target) = 500;
+  GET_HIT(&target) = 100;
+
+  spell_heal_undead(30, &caster, &target, NULL, CAST_SPELL);
+  CuAssertIntEquals(tc, 200, GET_HIT(&target));
+
+  SET_BIT_AR(AFF_FLAGS(&target), AFF_BLACKMANTLE);
+  spell_heal_undead(30, &caster, &target, NULL, CAST_SPELL);
+  CuAssertIntEquals(tc, 200, GET_HIT(&target));
+}
+
+void TestDarkWrathAppliesSourceBonusesToAllSpellSaves(CuTest *tc)
+{
+  struct affected_type *af;
+  struct char_data ch;
+  struct player_special_data specials;
+
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+
+  spell_dark_wrath(45, &ch, &ch, NULL, CAST_SPELL);
+
+  af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_DAMROLL);
+  CuAssertPtrNotNull(tc, af);
+  CuAssertIntEquals(tc, 1, af->modifier);
+  CuAssertTrue(tc, af->duration >= 5 && af->duration <= 8);
+  af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_SAVING_FORT);
+  CuAssertPtrNotNull(tc, af);
+  CuAssertIntEquals(tc, 3, af->modifier);
+  af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_SAVING_REFL);
+  CuAssertPtrNotNull(tc, af);
+  CuAssertIntEquals(tc, 3, af->modifier);
+  af = find_test_affect(&ch, SPELL_DARK_WRATH, APPLY_SAVING_WILL);
+  CuAssertPtrNotNull(tc, af);
+  CuAssertIntEquals(tc, 3, af->modifier);
+
+  remove_test_affects(&ch);
+}
+
+void TestUnholyAuraKeepsItsOwnFireShieldAffect(CuTest *tc)
+{
+  struct affected_type *af;
+  struct char_data ch;
+  struct player_special_data specials;
+
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+
+  spell_unholy_aura(30, &ch, &ch, NULL, CAST_SPELL);
+  af = find_test_affect(&ch, SPELL_UNHOLY_AURA, APPLY_NONE);
+  CuAssertPtrNotNull(tc, af);
+  CuAssertIntEquals(tc, 3, af->duration);
+  CuAssertTrue(tc, AFF_FLAGGED(&ch, AFF_FSHIELD));
+
+  remove_test_affects(&ch);
+}
+
+void TestCamouflageHasDistinctStateAndBreaksCleanly(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data specials;
+
+  clear_char(&ch);
+  memset(&specials, 0, sizeof(specials));
+  ch.player_specials = &specials;
+
+  spell_camouflage(30, &ch, &ch, NULL, CAST_SPELL);
+  CuAssertTrue(tc, affected_by_spell(&ch, SPELL_CAMOUFLAGE));
+  CuAssertTrue(tc, AFF_FLAGGED(&ch, AFF_HIDE));
+
+  remove_spell_camouflage(&ch);
+  CuAssertTrue(tc, !affected_by_spell(&ch, SPELL_CAMOUFLAGE));
+  CuAssertTrue(tc, !AFF_FLAGGED(&ch, AFF_HIDE));
 }
 
 void TestUnseenServantAddsOnlyItsStoredCarryCapacity(CuTest *tc)

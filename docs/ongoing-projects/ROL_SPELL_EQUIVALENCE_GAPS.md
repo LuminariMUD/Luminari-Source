@@ -2,11 +2,11 @@
 
 Status: implementation incomplete. The source registry audit was completed and
 independently re-verified 2026-08-24 against `sparser.c`, `spells.h`,
-`spell_parser.c`, and `psionics.c`. Three implementation checkpoints added 75
+`spell_parser.c`, and `psionics.c`. Four implementation checkpoints added 79
 functional gaps through native magic paths and focused direct handlers. A
 follow-up handler-level review found 14 live RoL spells that had been
-incorrectly classified as covered by loose substitutes. Those 14 spells still
-require native implementations.
+incorrectly classified as covered by loose substitutes. Ten of those spells
+still require native implementations.
 
 This list compares every unique spell registered through `SPELL_CREATE()` in
 Realms of Luminari with LuminariMUD's registered spells and closely equivalent
@@ -30,7 +30,7 @@ below and must not be treated as live RoL content.
 - RoL registrations reviewed: 332 (327 live, 5 never compiled)
 - Live registrations with a close LuminariMUD equivalent: 229
 - Live registrations without a close equivalent: 98
-- Player-facing or functional gaps: 89 (75 implemented, 14 remaining)
+- Player-facing or functional gaps: 89 (79 implemented, 10 remaining)
 - RoL internal or stub registrations without an equivalent: 9
 - Registered only inside `#if 0` (never compiled): 5
 
@@ -57,7 +57,7 @@ converter map is numerically complete but not semantically complete.
 `_SOURCE_SPELL_MAP` contains 340 positive source IDs: all 327 live
 `SPELL_CREATE()` IDs, all 335 distinct positive `SPELL_*` numeric IDs in the
 source header, and the two non-spell IDs actually found in magic-item spell
-slots. Fourteen live source spells currently map to substitutes that do not
+slots. Ten live source spells currently map to substitutes that do not
 preserve their mechanics. Those mappings must move to the new native spell IDs
 after the remaining spells are implemented.
 
@@ -77,20 +77,16 @@ positive target spell.
 
 ## Remaining player-facing or functional gaps
 
-These 14 live RoL spells require distinct native registrations and mechanics.
+These 10 live RoL spells require distinct native registrations and mechanics.
 The current converter targets are listed only to identify the inadequate
 substitutes; they are not acceptable final mappings.
 
 | RoL ID | RoL spell | Current substitute | Required source behavior |
 |-------:|-----------|--------------------|--------------------------|
 | 90 | cyclone | whirlwind | Deals air damage to eligible enemies throughout the room, halves a PC caster's damage when the zone wind speed is 25 or lower, and allows the normal spell save and area-avoidance checks. Whirlwind lacks the environmental dependency and is not an adequate identity-preserving replacement. |
-| 233 | heal undead | negative energy ray | Heals only undead for `4d(level)` hit points, respects blackmantle, and uses a specialized 100-point heal for the RoL PC-lich-to-PC-lich case. Negative energy ray is an offensive ray that only incidentally heals undead through the generic negative-energy rule. |
 | 303 | lich touch | grave touch | Deals direct damage, interacts with cold and fire shields, and on a failed save applies a Strength penalty and slow; dragons ignore the secondary effects. Grave touch applies fear/shaken instead. LuminariMUD's racial lich-touch ability also has different healing, damage, paralysis, and daily-use mechanics and is not a normal spell. |
 | 343 | call lycanthrope | summon creature vi | Summons one randomly selected lycanthrope prototype, permits only one such follower, scales it to at most level 40 from caster level minus 10, assigns scaled hit points, charms it, and schedules charm expiration. Summon creature VI creates a dire tiger. |
 | 376 | tazriks frenzied hound | faithful hound | Opens a temporary vortex and makes a hellhound strike one randomly selected eligible room target once per combat pulse for three strikes. It does not create a persistent follower. |
-| 377 | dark wrath | divine power | Self-only and unavailable while fighting; grants a level-scaled damage-roll bonus of +1 to +3 and improves the generic spell save by 3 to 5 for a level-scaled duration. Divine power adds unrelated Strength, hit-roll, hit-point, and luck bonuses and lacks the spell-save benefit. |
-| 378 | unholy aura | fire shield | A distinct self-only spell that applies the fire-shield affect for a base source duration of three, modified by specialization. Sharing the underlying fire-shield flag does not preserve the spell identity, duration, script/item reference, or independent affect lifecycle. |
-| 473 | camouflage | invisibility | Self-only, cannot be used while mounted, ends the caster's combat and all attacks against the caster, and applies both hide and camouflage state. Invisibility uses a different detection state and does not provide this disengagement behavior. |
 | 482 | elemental water embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 5 hit points per shared level, water breathing, fire/gas/acid protection, and 25 percent additional height and weight. |
 | 483 | elemental fire embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants roughly 7 hit points per shared level, fire shield, -65 source armor class, haste, flight, gas/fire protection, and 35 percent additional height and weight. |
 | 484 | elemental earth embodiment | geniekind | Transforms an eligible allied PC for a base duration of ten, modified by specialization; grants gas/cold protection and 50 percent additional height and weight. The live RoL handler grants roughly 7 hit points per shared level because it uses `EFHP_FACTOR`; the separately declared `EEHP_FACTOR` value of 10 is unused and should be resolved deliberately during implementation. |
@@ -210,8 +206,21 @@ expressed by one native routine. None has a class or domain assignment.
 | earth fog | Temporarily fills the room with obscuring earthen fog. |
 | fire fog | Temporarily illuminates the room with fiery fog. |
 
-The complete inventory of the 75 implemented gaps remains below, preserving
-the original source-to-target accounting. The 14 remaining gaps are listed in
+### Implementation checkpoint 4: undead healing, divine wards, and concealment
+
+These four spells preserve source-specific identities and lifecycle rules that
+their former substitutes could not represent. None has a class or domain
+assignment.
+
+| Spell | Implemented gameplay purpose |
+|-------|------------------------------|
+| heal undead | Heals only undead for `4d(level)`, respects blackmantle, and restores 100 hit points in the PC-lich-to-PC-lich case. |
+| dark wrath | While out of combat, grants the source level-scaled damage and all-spell-save bonuses for the source duration bands. |
+| unholy aura | Applies its own duration-scaled affect identity while supplying the fire-shield state. |
+| camouflage | Ends all combat involving the unmounted caster and applies persistent hide under a distinct spell affect until concealment breaks. |
+
+The complete inventory of the 79 implemented gaps remains below, preserving
+the original source-to-target accounting. The 10 remaining gaps are listed in
 the preceding section.
 
 | RoL ID | RoL spell | RoL constant |
@@ -235,6 +244,7 @@ the preceding section.
 | 230 | protect undead | `SPELL_PROT_UNDEAD` |
 | 231 | protection from undead | `SPELL_PROT_FROM_UNDEAD` |
 | 232 | command horde | `SPELL_COMMAND_HORDE` |
+| 233 | heal undead | `SPELL_HEAL_UNDEAD` |
 | 235 | create spring | `SPELL_CREATE_SPRING` |
 | 237 | moonwell | `SPELL_MOONWELL` |
 | 297 | nerve dance | `SPELL_NERVE_DANCE` |
@@ -260,6 +270,8 @@ the preceding section.
 | 366 | phantasmal blades | `SPELL_PHANTASMAL_BLADES` |
 | 370 | soul bind | `SPELL_SOUL_BIND` |
 | 371 | death pact | `SPELL_DEATH_PACT` |
+| 377 | dark wrath | `SPELL_DARK_WRATH` |
+| 378 | unholy aura | `SPELL_UNHOLY_AURA` |
 | 380 | needle swarm | `SPELL_NEEDLE_SWARM` |
 | 381 | snapping teeth | `SPELL_SNAPPING_TEETH` |
 | 392 | beltyns burning blood | `SPELL_BELTYNS_BURNING_BLOOD` |
@@ -278,6 +290,7 @@ the preceding section.
 | 467 | blackthorns | `SPELL_BLACKTHORNS` |
 | 470 | feign death | `SPELL_FEIGN_DEATH` |
 | 471 | tranquility | `SPELL_TRANQUILITY` |
+| 473 | camouflage | `SPELL_CAMOUFLAGE` |
 | 475 | phantom heal | `SPELL_PHANTOM_HEAL` |
 | 476 | shadechill | `SPELL_SHADECHILL` |
 | 478 | agility | `SPELL_AGILITY` |

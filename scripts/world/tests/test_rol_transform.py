@@ -1759,6 +1759,11 @@ class RolTransformTests(unittest.TestCase):
         target_registry[spell_number] = name
 
     self.assertEqual(340, len(_SOURCE_SPELL_MAP))
+    self.assertEqual(599, _SOURCE_SPELL_MAP[233][1])
+    self.assertEqual(599, _SOURCE_SPELL_MAP[314][1])
+    self.assertEqual(600, _SOURCE_SPELL_MAP[377][1])
+    self.assertEqual(601, _SOURCE_SPELL_MAP[378][1])
+    self.assertEqual(602, _SOURCE_SPELL_MAP[473][1])
     for source_spell, (source_name, target_spell) in _SOURCE_SPELL_MAP.items():
       with self.subTest(source_spell=source_spell, source_name=source_name):
         self.assertGreater(target_spell, 0)

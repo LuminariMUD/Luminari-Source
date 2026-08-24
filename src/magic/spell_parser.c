@@ -1106,6 +1106,18 @@ SAVING_WILL here...  */
     case SPELL_PHANTOM_HEAL:
       MANUAL_SPELL(spell_phantom_heal);
       break;
+    case SPELL_HEAL_UNDEAD:
+      MANUAL_SPELL(spell_heal_undead);
+      break;
+    case SPELL_DARK_WRATH:
+      MANUAL_SPELL(spell_dark_wrath);
+      break;
+    case SPELL_UNHOLY_AURA:
+      MANUAL_SPELL(spell_unholy_aura);
+      break;
+    case SPELL_CAMOUFLAGE:
+      MANUAL_SPELL(spell_camouflage);
+      break;
     case SPELL_GIRD_ALLIES:
       MANUAL_SPELL(spell_gird_allies);
       break;
@@ -6414,6 +6426,14 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
          "The earthen fog settles out of the air.", 2, 2, CONJURATION, FALSE);
   spello(SPELL_FIRE_FOG, "fire fog", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_ROOM,
          "The fiery fog dims and dissipates.", 2, 2, EVOCATION, FALSE);
+  spello(SPELL_HEAL_UNDEAD, "heal undead", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         NULL, 5, 5, NECROMANCY, FALSE);
+  spello(SPELL_DARK_WRATH, "dark wrath", 0, 0, 0, POS_STANDING, TAR_SELF_ONLY, FALSE, MAG_MANUAL,
+         "Your god's dark favor leaves you.", 9, 9, ENCHANTMENT, FALSE);
+  spello(SPELL_UNHOLY_AURA, "unholy aura", 0, 0, 0, POS_FIGHTING, TAR_SELF_ONLY, FALSE, MAG_MANUAL,
+         "The unholy flames around you gutter out.", 10, 10, ENCHANTMENT, FALSE);
+  spello(SPELL_CAMOUFLAGE, "camouflage", 0, 0, 0, POS_FIGHTING, TAR_SELF_ONLY, FALSE, MAG_MANUAL,
+         "Your camouflage falls away.", 7, 7, ILLUSION, FALSE);
 
   /* Declaration of skills - this assigns categories and also will set it up
    * so that immortals can use these skills by default.  The min level to use

@@ -683,9 +683,13 @@
 #define SPELL_SUN_SHADOW 596
 #define SPELL_EARTH_FOG 597
 #define SPELL_FIRE_FOG 598
+#define SPELL_HEAL_UNDEAD 599
+#define SPELL_DARK_WRATH 600
+#define SPELL_UNHOLY_AURA 601
+#define SPELL_CAMOUFLAGE 602
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 599
+#define NUM_SPELLS 603
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1897,6 +1901,12 @@ ASPELL(spell_spirit_walk);
 ASPELL(spell_rock_to_mud);
 ASPELL(spell_mud_to_rock);
 ASPELL(spell_phantom_heal);
+ASPELL(spell_heal_undead);
+ASPELL(spell_dark_wrath);
+ASPELL(spell_unholy_aura);
+ASPELL(spell_camouflage);
+
+void remove_spell_camouflage(struct char_data *ch);
 
 int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage);
 int adjust_damage_for_creature_wards(struct char_data *attacker, struct char_data *victim,

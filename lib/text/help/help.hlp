@@ -36726,5 +36726,63 @@ log/perfmon-pre-copyover.txt with the complete current report. Only the newest s
 is retained; a failed snapshot leaves the prior complete file intact and does not stop
 the copyover.
 
+#0
+HEAL-UNDEAD
+
+Usage: cast 'heal undead' <target>
+Duration: Instantaneous
+School of Magic: Necromancy
+Target(s): One undead character in the room
+
+Heal undead restores 4d(caster level) hit points to an undead target. It has no
+effect on a living target, and blackmantle prevents the healing. When one player
+lich casts it on another player lich, it restores 100 hit points instead.
+
+See also: BLACKMANTLE, HEAL, UNDEAD
+
+#0
+DARK-WRATH
+
+Usage: cast 'dark wrath'
+Duration: 5-12 rounds, based on caster level
+School of Magic: Enchantment
+Target(s): Self only
+Restrictions: Cannot be cast while fighting
+
+Dark wrath grants a +1 to +3 damage-roll bonus and a +3 to +5 bonus to Fortitude,
+Reflex, and Will saves. Both bonuses improve at caster levels 46 and 50. The spell
+cannot be renewed while it remains active.
+
+See also: SAVING THROWS, SPELLS
+
+#0
+UNHOLY-AURA
+
+Usage: cast 'unholy aura'
+Duration: 3 rounds before spell-duration modifiers
+School of Magic: Enchantment
+Target(s): Self only
+
+Unholy aura surrounds the caster with retaliatory flame under its own spell
+identity. It supplies the fire-shield state, so it cannot be combined with another
+effect that already provides that state.
+
+See also: FIRE-SHIELD, SPELLS
+
+#0
+CAMOUFLAGE
+
+Usage: cast 'camouflage'
+Duration: Until concealment is broken
+School of Magic: Illusion
+Target(s): Self only
+Restrictions: Cannot be cast while mounted
+
+Camouflage blends the caster into the surroundings, ends every fight involving the
+caster, and applies the hidden state. Actions that normally reveal a hidden character
+also end camouflage.
+
+See also: HIDE, SNEAK, SPELLS
+
 #34
 $~

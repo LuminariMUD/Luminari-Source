@@ -4450,7 +4450,7 @@ static void apply_spell_effect(struct char_data *victim, int spellnum, int durat
 
   new_affect(&af);
   af.spell = spellnum;
-  af.duration = MAX(1, duration);
+  af.duration = duration < 0 ? -1 : MAX(1, duration);
   af.location = location;
   af.modifier = modifier;
   if (affect_flag > AFF_DONTUSE)
@@ -5534,6 +5534,149 @@ ASPELL(spell_phantom_heal)
                "points.\r\n",
                amount);
   act("A healthy illusion settles over $n's wounds.", FALSE, victim, NULL, NULL, TO_ROOM);
+}
+
+ASPELL(spell_heal_undead)
+{
+  int amount;
+
+  if (ch == NULL || victim == NULL)
+    return;
+  if (!IS_UNDEAD(victim))
+  {
+    if (victim == ch)
+      send_to_char(ch, "You are not undead.\r\n");
+    else
+      send_to_char(ch, "%s is not undead.\r\n", GET_NAME(victim));
+    return;
+  }
+  if (AFF_FLAGGED(victim, AFF_BLACKMANTLE))
+  {
+    send_to_char(ch, "The black mantle smothers your healing magic.\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch) && !IS_NPC(victim) && IS_LICH(ch) && IS_LICH(victim))
+    amount = 100;
+  else
+    amount = dice(4, MAX(1, level));
+
+  amount = MIN(amount, MAX(0, GET_MAX_HIT(victim) - GET_HIT(victim)));
+  if (amount <= 0)
+  {
+    if (victim == ch)
+      send_to_char(ch, "You are already at full strength.\r\n");
+    else
+      send_to_char(ch, "%s is already at full strength.\r\n", GET_NAME(victim));
+    return;
+  }
+
+  GET_HIT(victim) += amount;
+  update_pos(victim);
+  send_to_char(victim, "Dark power knits your undead form together, restoring %d hit points.\r\n",
+               amount);
+  if (victim != ch)
+    send_to_char(ch, "You restore %d hit points to %s's undead form.\r\n", amount,
+                 GET_NAME(victim));
+}
+
+ASPELL(spell_dark_wrath)
+{
+  int damage_bonus;
+  int duration;
+  int save_bonus;
+
+  if (ch == NULL)
+    return;
+  if (FIGHTING(ch) != NULL)
+  {
+    send_to_char(ch, "You cannot invite dark wrath while already fighting.\r\n");
+    return;
+  }
+  if (affected_by_spell(ch, SPELL_DARK_WRATH))
+  {
+    send_to_char(ch, "Dark wrath already empowers you.\r\n");
+    return;
+  }
+
+  if (level < 46)
+  {
+    duration = rand_number(5, 8);
+    damage_bonus = 1;
+    save_bonus = 3;
+  }
+  else if (level < 50)
+  {
+    duration = rand_number(7, 10);
+    damage_bonus = 2;
+    save_bonus = 4;
+  }
+  else
+  {
+    duration = rand_number(9, 12);
+    damage_bonus = 3;
+    save_bonus = 5;
+  }
+
+  apply_spell_effect(ch, SPELL_DARK_WRATH, duration, APPLY_DAMROLL, damage_bonus, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  apply_spell_effect(ch, SPELL_DARK_WRATH, duration, APPLY_SAVING_FORT, save_bonus, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  apply_spell_effect(ch, SPELL_DARK_WRATH, duration, APPLY_SAVING_REFL, save_bonus, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  apply_spell_effect(ch, SPELL_DARK_WRATH, duration, APPLY_SAVING_WILL, save_bonus, NO_AFFECT_FLAG,
+                     NO_AFFECT_FLAG);
+  send_to_char(ch, "Your god smiles upon your destructive soul.\r\n");
+}
+
+ASPELL(spell_unholy_aura)
+{
+  int duration;
+
+  if (ch == NULL)
+    return;
+  if (AFF_FLAGGED(ch, AFF_FSHIELD))
+  {
+    send_to_char(ch, "Flames already surround you.\r\n");
+    return;
+  }
+
+  duration = MAX(1, 3 * get_spell_duration_bonus(ch) / 100);
+  apply_spell_effect(ch, SPELL_UNHOLY_AURA, duration, APPLY_NONE, 0, AFF_FSHIELD, NO_AFFECT_FLAG);
+  send_to_char(ch, "Unholy flames flare into an aura around you.\r\n");
+  if (IN_ROOM(ch) != NOWHERE)
+    act("Unholy flames flare into an aura around $n.", FALSE, ch, NULL, NULL, TO_ROOM);
+}
+
+void remove_spell_camouflage(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+
+  if (affected_by_spell(ch, SPELL_CAMOUFLAGE))
+    affect_from_char(ch, SPELL_CAMOUFLAGE);
+}
+
+ASPELL(spell_camouflage)
+{
+  if (ch == NULL)
+    return;
+  if (AFF_FLAGGED(ch, AFF_HIDE))
+  {
+    send_to_char(ch, "You are already hidden from view.\r\n");
+    return;
+  }
+  if (RIDING(ch) != NULL)
+  {
+    send_to_char(ch, "You cannot blend into the surroundings while mounted.\r\n");
+    return;
+  }
+
+  end_fights_with(ch);
+  apply_spell_effect(ch, SPELL_CAMOUFLAGE, -1, APPLY_NONE, 0, AFF_HIDE, NO_AFFECT_FLAG);
+  send_to_char(ch, "Your appearance shifts until you blend into the surroundings.\r\n");
+  if (IN_ROOM(ch) != NOWHERE)
+    act("$n's appearance shifts and blends into the surroundings.", FALSE, ch, NULL, NULL, TO_ROOM);
 }
 
 int adjust_area_damage_for_spell_wards(struct char_data *victim, int damage)
