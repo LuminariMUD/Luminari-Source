@@ -1960,6 +1960,12 @@ the item can be picked up at all. Nearly every object needs it. An item
 with wear flags but without <code>(Takeable)</code> can be equipped only
 by staff loading it directly.</p>
 <table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 27%" />
+<col style="width: 20%" />
+<col style="width: 34%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th>Bit</th>
@@ -2098,90 +2104,94 @@ by staff loading it directly.</p>
 <tr class="even">
 <td>21</td>
 <td>22</td>
-<td>Shoulders</td>
+<td>Shoulders (unused; reserved)</td>
 <td>ITEM_WEAR_SHOULDERS</td>
 </tr>
 <tr class="odd">
 <td>22</td>
 <td>23</td>
-<td>Ankle</td>
+<td>Ankle (unused; reserved)</td>
 <td>ITEM_WEAR_ANKLE</td>
 </tr>
 <tr class="even">
 <td>23</td>
 <td>24</td>
-<td>Sheath</td>
+<td>Sheath (unused; reserved)</td>
 <td>ITEM_WEAR_SHEATH</td>
 </tr>
 <tr class="odd">
 <td>24</td>
 <td>25</td>
-<td>Gathering-Tool</td>
+<td>Gathering-Tool (unused; reserved)</td>
 <td>ITEM_WEAR_CRAFT_SICKLE</td>
 </tr>
 <tr class="even">
 <td>25</td>
 <td>26</td>
-<td>Forestry-Tool</td>
+<td>Forestry-Tool (unused; reserved)</td>
 <td>ITEM_WEAR_CRAFT_AXE</td>
 </tr>
 <tr class="odd">
 <td>26</td>
 <td>27</td>
-<td>Hunting-Tool</td>
+<td>Hunting-Tool (unused; reserved)</td>
 <td>ITEM_WEAR_CRAFT_KNIFE</td>
 </tr>
 <tr class="even">
 <td>27</td>
 <td>28</td>
-<td>Mining-Tool</td>
+<td>Mining-Tool (unused; reserved)</td>
 <td>ITEM_WEAR_CRAFT_PICKAXE</td>
 </tr>
 <tr class="odd">
 <td>28</td>
 <td>29</td>
-<td>Alchemy-Tool</td>
+<td>Alchemy-Tool (unused; reserved)</td>
 <td>ITEM_WEAR_CRAFT_ALCHEMY</td>
 </tr>
 <tr class="even">
 <td>29</td>
 <td>30</td>
-<td>Armorsmithing-Tool</td>
+<td>Armorsmithing-Tool (unused; reserved)</td>
 <td>ITEM_WEAR_CRAFT_ARMOR_HAMMER</td>
 </tr>
 <tr class="odd">
 <td>30</td>
 <td>31</td>
-<td>Jewelcrafting-Tool</td>
+<td>Jewelcrafting-Tool (unused; reserved)</td>
 <td>ITEM_WEAR_CRAFT_JEWEL_PLIERS</td>
 </tr>
 <tr class="even">
 <td>31</td>
 <td>32</td>
-<td>Tailoring-Tool</td>
+<td>Tailoring-Tool (unused; reserved)</td>
 <td>ITEM_WEAR_CRAFT_NEEDLE</td>
 </tr>
 <tr class="odd">
 <td>32</td>
 <td>33</td>
-<td>Weaponsmithing-Tool</td>
+<td>Weaponsmithing-Tool (unused; reserved)</td>
 <td>ITEM_WEAR_CRAFT_WEAPON_HAMMER</td>
 </tr>
 <tr class="even">
 <td>33</td>
 <td>34</td>
-<td>On-Back</td>
+<td>On-Back (unused; reserved)</td>
 <td>ITEM_WEAR_ON_BACK</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Total: 34 wear bits (0-33,
 <code>NUM_ITEM_WEARS</code>)</strong></p>
-<p>The nine crafting-tool slots (bits 24-32) are worn simultaneously
-with normal gear and pair with <code>ITEM_CRAFTING_TOOL</code> objects.
-A gathering sickle occupies <code>Gathering-Tool</code>, not
-<code>Hold</code>, so carrying a full tool set costs a player no combat
-slots.</p>
+<p>Bits 21-33 are implemented as reserved compatibility positions but
+are currently unused: no active object prototype can occupy them. Do not
+assign these flags unless the corresponding equipment position is
+deliberately reactivated and supplied with supported game content.</p>
+<p>The nine reserved crafting-tool positions (bits 24-32) are separate
+from normal combat equipment positions and are hidden from the regular
+<code>equipment</code> display. They were designed to pair with
+<code>ITEM_CRAFTING_TOOL</code> objects, but no active prototypes of
+that type currently exist.</p>
 <h2 id="object-value-reference">Object Value Reference</h2>
 <p>Every object carries 16 integer value slots. What they mean is
 decided entirely by the item type - there is no shared meaning across

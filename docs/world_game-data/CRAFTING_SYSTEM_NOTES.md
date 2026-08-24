@@ -24,7 +24,9 @@ learn crafting skills, and create custom equipment.
 * Material acquisition methods are undocumented.
 * The crafting station flags (`ITEM_CRAFTING_FORGE`, `ITEM_CRAFTING_LOOM`, and
   the rest - see the [OEDIT Guide](OEDIT_GUIDE.md)) are not covered here at all.
-* The nine crafting-tool wear slots are likewise uncovered.
+* The nine crafting-tool wear slots are reserved but currently unused; no
+  active `ITEM_CRAFTING_TOOL` prototypes exist. See the
+  [OEDIT Guide](OEDIT_GUIDE.md#wear-flags-reference) for their assigned bits.
 
 ## Weapon Resize Chart
 

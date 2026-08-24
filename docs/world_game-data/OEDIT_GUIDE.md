@@ -450,26 +450,31 @@ up at all. Nearly every object needs it. An item with wear flags but without
 | 18 | 19 | Eyes | ITEM_WEAR_EYES |
 | 19 | 20 | Badge | ITEM_WEAR_BADGE |
 | 20 | 21 | Instrument | ITEM_WEAR_INSTRUMENT |
-| 21 | 22 | Shoulders | ITEM_WEAR_SHOULDERS |
-| 22 | 23 | Ankle | ITEM_WEAR_ANKLE |
-| 23 | 24 | Sheath | ITEM_WEAR_SHEATH |
-| 24 | 25 | Gathering-Tool | ITEM_WEAR_CRAFT_SICKLE |
-| 25 | 26 | Forestry-Tool | ITEM_WEAR_CRAFT_AXE |
-| 26 | 27 | Hunting-Tool | ITEM_WEAR_CRAFT_KNIFE |
-| 27 | 28 | Mining-Tool | ITEM_WEAR_CRAFT_PICKAXE |
-| 28 | 29 | Alchemy-Tool | ITEM_WEAR_CRAFT_ALCHEMY |
-| 29 | 30 | Armorsmithing-Tool | ITEM_WEAR_CRAFT_ARMOR_HAMMER |
-| 30 | 31 | Jewelcrafting-Tool | ITEM_WEAR_CRAFT_JEWEL_PLIERS |
-| 31 | 32 | Tailoring-Tool | ITEM_WEAR_CRAFT_NEEDLE |
-| 32 | 33 | Weaponsmithing-Tool | ITEM_WEAR_CRAFT_WEAPON_HAMMER |
-| 33 | 34 | On-Back | ITEM_WEAR_ON_BACK |
+| 21 | 22 | Shoulders (unused; reserved) | ITEM_WEAR_SHOULDERS |
+| 22 | 23 | Ankle (unused; reserved) | ITEM_WEAR_ANKLE |
+| 23 | 24 | Sheath (unused; reserved) | ITEM_WEAR_SHEATH |
+| 24 | 25 | Gathering-Tool (unused; reserved) | ITEM_WEAR_CRAFT_SICKLE |
+| 25 | 26 | Forestry-Tool (unused; reserved) | ITEM_WEAR_CRAFT_AXE |
+| 26 | 27 | Hunting-Tool (unused; reserved) | ITEM_WEAR_CRAFT_KNIFE |
+| 27 | 28 | Mining-Tool (unused; reserved) | ITEM_WEAR_CRAFT_PICKAXE |
+| 28 | 29 | Alchemy-Tool (unused; reserved) | ITEM_WEAR_CRAFT_ALCHEMY |
+| 29 | 30 | Armorsmithing-Tool (unused; reserved) | ITEM_WEAR_CRAFT_ARMOR_HAMMER |
+| 30 | 31 | Jewelcrafting-Tool (unused; reserved) | ITEM_WEAR_CRAFT_JEWEL_PLIERS |
+| 31 | 32 | Tailoring-Tool (unused; reserved) | ITEM_WEAR_CRAFT_NEEDLE |
+| 32 | 33 | Weaponsmithing-Tool (unused; reserved) | ITEM_WEAR_CRAFT_WEAPON_HAMMER |
+| 33 | 34 | On-Back (unused; reserved) | ITEM_WEAR_ON_BACK |
 
 **Total: 34 wear bits (0-33, `NUM_ITEM_WEARS`)**
 
-The nine crafting-tool slots (bits 24-32) are worn simultaneously with normal
-gear and pair with `ITEM_CRAFTING_TOOL` objects. A gathering sickle occupies
-`Gathering-Tool`, not `Hold`, so carrying a full tool set costs a player no
-combat slots.
+Bits 21-33 are implemented as reserved compatibility positions but are
+currently unused: no active object prototype can occupy them. Do not assign
+these flags unless the corresponding equipment position is deliberately
+reactivated and supplied with supported game content.
+
+The nine reserved crafting-tool positions (bits 24-32) are separate from
+normal combat equipment positions and are hidden from the regular `equipment`
+display. They were designed to pair with `ITEM_CRAFTING_TOOL` objects, but no
+active prototypes of that type currently exist.
 
 ## Object Value Reference
 

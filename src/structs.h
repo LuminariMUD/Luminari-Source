@@ -1750,12 +1750,12 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define WEAR_EAR_L 25         /* worn on/in left ear */
 #define WEAR_EYES 26          /* worn in/over eye(s) */
 #define WEAR_BADGE 27         /* attached to your body armor as a badge */
-#define WEAR_SHOULDERS 28
-#define WEAR_ANKLE_R 29
-#define WEAR_ANKLE_L 30
-#define WEAR_SHEATH 31
+#define WEAR_SHOULDERS 28     /* currently unused; reserved for compatibility */
+#define WEAR_ANKLE_R 29       /* currently unused; reserved for compatibility */
+#define WEAR_ANKLE_L 30       /* currently unused; reserved for compatibility */
+#define WEAR_SHEATH 31        /* currently unused; reserved for compatibility */
 #define WEAR_INSTRUMENT 32
-/* Crafting tool equipment slots - not shown in regular equipment command */
+/* Currently unused crafting-tool slots; reserved and hidden from the equipment command. */
 #define WEAR_CRAFT_SICKLE 33        /* harvesting sickle (gathering) */
 #define WEAR_CRAFT_AXE 34           /* chopping axe (forestry) */
 #define WEAR_CRAFT_KNIFE 35         /* skinning knife (hunting) */
@@ -1765,7 +1765,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define WEAR_CRAFT_JEWEL_PLIERS 39  /* jewel's pliers (jewelcraft) */
 #define WEAR_CRAFT_NEEDLE 40        /* sewing needle (tailoring) */
 #define WEAR_CRAFT_WEAPON_HAMMER 41 /* weaponsmith's hammer (weaponsmithing) */
-#define WEAR_ON_BACK 42             /* worn on back (quiver, etc) */
+#define WEAR_ON_BACK 42             /* currently unused; reserved for compatibility */
 /** Total number of available equipment lcoations */
 #define NUM_WEARS 43
 /**/
@@ -4603,6 +4603,7 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define ITEM_WEAR_EYES 18  // item can be worn on eyes
 #define ITEM_WEAR_BADGE 19 // item can be worn as badge
 #define ITEM_WEAR_INSTRUMENT 20
+/* Currently unused object wear flags; reserved for compatibility. */
 #define ITEM_WEAR_SHOULDERS 21
 #define ITEM_WEAR_ANKLE 22
 #define ITEM_WEAR_SHEATH 23
