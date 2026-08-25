@@ -1004,6 +1004,67 @@ void Test_domain_command_labels_granted_spell_circles(CuTest *tc)
   CuAssertTrue(tc, found_circle);
 }
 
+void Test_inquisitor_war_domain_power_word_kill_uses_sixth_circle_level_gate(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  const char *output;
+
+  if (spell_info[SPELL_POWER_WORD_KILL].name == NULL ||
+      spell_info[SPELL_POWER_WORD_KILL].name == unused_spellname)
+    mag_assign_spells();
+  assign_domains();
+
+  clear_char(&ch);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  ch.player.name = "inquisitor power word kill test character";
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  GET_LEVEL(&ch) = 16;
+  GET_CLASS(&ch) = CLASS_INQUISITOR;
+  CLASS_LEVEL((&ch), CLASS_INQUISITOR) = 16;
+  GET_1ST_DOMAIN(&ch) = DOMAIN_WAR;
+  GET_REAL_WIS(&ch) = 16;
+  GET_WIS(&ch) = 16;
+  GET_POS(&ch) = POS_STANDING;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize protocol output for the inquisitor domain spell test");
+    return;
+  }
+
+  CuAssertIntEquals(tc, 6,
+                    compute_spells_circle(&ch, CLASS_INQUISITOR, SPELL_POWER_WORD_KILL,
+                                          METAMAGIC_NONE, GET_1ST_DOMAIN(&ch)));
+  CuAssertTrue(tc, is_a_known_spell(&ch, CLASS_INQUISITOR, SPELL_POWER_WORD_KILL));
+  CuAssertTrue(tc, is_min_level_for_spell(&ch, CLASS_INQUISITOR, SPELL_POWER_WORD_KILL));
+
+  GET_LEVEL(&ch) = 15;
+  CLASS_LEVEL((&ch), CLASS_INQUISITOR) = 15;
+  CuAssertTrue(tc, !is_min_level_for_spell(&ch, CLASS_INQUISITOR, SPELL_POWER_WORD_KILL));
+  GET_LEVEL(&ch) = 16;
+  CLASS_LEVEL((&ch), CLASS_INQUISITOR) = 16;
+
+  do_gen_cast(&ch, " 'power word kill' ", 0, SCMD_CAST_SPELL);
+  output = descriptor.output;
+
+  CuAssert(tc, "eligible inquisitor domain spell must pass the cast-time level gate",
+           strstr(output, "You do not know that Spell!") == NULL);
+  CuAssert(tc, "cast attempt should advance to target selection",
+           strstr(output, "Upon who") != NULL);
+
+  ch.desc = NULL;
+  cleanup_test_descriptor(&descriptor);
+}
+
 void Test_inquisitor_domain_feats_reconcile_and_restore_on_class_init(CuTest *tc)
 {
   struct char_data ch;

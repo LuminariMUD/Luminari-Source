@@ -2920,9 +2920,9 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum)
       return FALSE;
     }
     break;
-  case CLASS_INQUISITOR: /* Single domain system */
-    min_level = MIN_SPELL_LVL(spellnum, CLASS_INQUISITOR, GET_1ST_DOMAIN(ch));
-    if ((BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, CLASS_INQUISITOR)) < min_level)
+  case CLASS_INQUISITOR: /* Single domain system with compressed six-circle progression */
+    if (compute_spells_circle(ch, class, spellnum, METAMAGIC_NONE, GET_1ST_DOMAIN(ch)) >
+        get_class_highest_circle(ch, class))
     {
       return FALSE;
     }

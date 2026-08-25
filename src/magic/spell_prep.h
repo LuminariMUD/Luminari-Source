@@ -791,7 +791,8 @@ void stop_all_preparations(struct char_data *ch);
      * @spellnum: Spell to verify access to
      *
      * Checks if character level (including bonuses) meets minimum
-     * for the spell. Includes domain spell access for clerics.
+     * for the spell. Includes domain spell access for clerics and the
+     * inquisitor's compressed six-circle progression.
      * Returns: TRUE if high enough level, FALSE otherwise
      */
 bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum);
