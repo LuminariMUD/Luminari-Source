@@ -45,7 +45,7 @@ int main(void)
   const unsigned char *filename_char;
   char *newline_pos;
   FILE *index = NULL, *outfile = NULL;
-  int file_count = 0;
+  int file_count = 0, next_char;
 
   printf("Split utility - reading from stdin...\n");
   printf("Use lines starting with '=' to specify output filenames.\n");
@@ -66,6 +66,18 @@ int main(void)
       if (newline_pos)
       {
         *newline_pos = '\0';
+      }
+      else
+      {
+        next_char = fgetc(stdin);
+        if (next_char != '\n' && next_char != EOF)
+        {
+          fprintf(stderr, "Input marker line too long.\n");
+          fclose(index);
+          if (outfile)
+            fclose(outfile);
+          exit(1);
+        }
       }
 
       filename_char = (const unsigned char *)(line + 1);

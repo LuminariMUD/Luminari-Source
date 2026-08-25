@@ -320,6 +320,14 @@ void walkdir(FILE *index_file, char *dir)
           continue;
         }
 
+        if (findLine(mail_file, "MlID:") == NULL || findLine(mail_file, "Send:") == NULL ||
+            findLine(mail_file, "Reci:") == NULL || findLine(mail_file, "Sent:") == NULL)
+        {
+          fprintf(stderr, "Skipping malformed mail file: %s\n", filename_qfd);
+          fclose(mail_file);
+          continue;
+        }
+
         id = parse_mailid(mail_file);
         sender = parse_sender(mail_file);
         recipient = parse_recipient(mail_file);

@@ -32,15 +32,74 @@ static char *invalid_list[MAX_INVALID_NAMES];
 /* local utility functions */
 static void write_ban_list(void);
 static void _write_one_node(FILE *fp, struct ban_list_element *node);
+static int parse_ban_record(const char *line, struct ban_list_element *record);
+static int read_ban_record(FILE *fl, struct ban_list_element *record);
 
 static const char *ban_types[] = {"no", "new", "select", "all", "ERROR"};
+
+static int parse_ban_record(const char *line, struct ban_list_element *record)
+{
+  char ban_type[100], site_name[BANNED_SITE_LENGTH + 1], name[MAX_NAME_LENGTH + 1], extra;
+  int date, type;
+
+  if (line == NULL || record == NULL ||
+      sscanf(line, " %99s %50s %d %20s %c", ban_type, site_name, &date, name, &extra) != 4)
+    return FALSE;
+
+  for (type = BAN_NOT; type <= BAN_ALL; type++)
+    if (!strcmp(ban_type, ban_types[type]))
+      break;
+  if (type > BAN_ALL)
+    return FALSE;
+
+  strlcpy(record->site, site_name, sizeof(record->site));
+  strlcpy(record->name, name, sizeof(record->name));
+  record->date = date;
+  record->type = type;
+  record->next = NULL;
+  return TRUE;
+}
+
+static int read_ban_record(FILE *fl, struct ban_list_element *record)
+{
+  char line[READ_SIZE];
+  int c;
+
+  if (fl == NULL || record == NULL)
+    return FALSE;
+
+  while (fgets(line, sizeof(line), fl))
+  {
+    if (!strchr(line, '\n') && !feof(fl))
+    {
+      while ((c = fgetc(fl)) != '\n' && c != EOF)
+        ;
+      continue;
+    }
+
+    if (parse_ban_record(line, record))
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+#ifdef LUMINARI_CUTEST
+int ban_parse_record_for_test(const char *line, struct ban_list_element *record)
+{
+  return parse_ban_record(line, record);
+}
+
+int ban_read_record_for_test(FILE *fl, struct ban_list_element *record)
+{
+  return read_ban_record(fl, record);
+}
+#endif
 
 void load_banned(void)
 {
   FILE *fl;
-  int i, date;
-  char site_name[BANNED_SITE_LENGTH + 1], ban_type[100];
-  char name[MAX_NAME_LENGTH + 1];
+  struct ban_list_element record;
   struct ban_list_element *next_node;
 
   ban_list = 0;
@@ -55,19 +114,10 @@ void load_banned(void)
       log("   Ban file '%s' doesn't exist.", BAN_FILE);
     return;
   }
-  while (fscanf(fl, " %s %s %d %s ", ban_type, site_name, &date, name) == 4)
+  while (read_ban_record(fl, &record))
   {
     CREATE(next_node, struct ban_list_element, 1);
-    strncpy(next_node->site, site_name,
-            BANNED_SITE_LENGTH); /* strncpy: OK (n_n->site:BANNED_SITE_LENGTH+1) */
-    next_node->site[BANNED_SITE_LENGTH] = '\0';
-    strncpy(next_node->name, name, MAX_NAME_LENGTH); /* strncpy: OK (n_n->name:MAX_NAME_LENGTH+1) */
-    next_node->name[MAX_NAME_LENGTH] = '\0';
-    next_node->date = date;
-
-    for (i = BAN_NOT; i <= BAN_ALL; i++)
-      if (!strcmp(ban_type, ban_types[i]))
-        next_node->type = i;
+    *next_node = record;
 
     next_node->next = ban_list;
     ban_list = next_node;

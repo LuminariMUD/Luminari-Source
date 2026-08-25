@@ -41,6 +41,10 @@ int isbanned(char *hostname);
 int valid_name(char *newname);
 void read_invalid_list(void);
 void free_invalid_list(void);
+#ifdef LUMINARI_CUTEST
+int ban_parse_record_for_test(const char *line, struct ban_list_element *record);
+int ban_read_record_for_test(FILE *fl, struct ban_list_element *record);
+#endif
 /* Command functions without subcommands */
 ACMD_DECL(do_ban);
 ACMD_DECL(do_unban);

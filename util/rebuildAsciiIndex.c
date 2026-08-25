@@ -25,7 +25,7 @@
 /* Function prototypes */
 int atoi(const char *str);
 long atol(const char *str);
-void walkdir(FILE *index_file, char *dir);
+int walkdir(FILE *index_file, char *dir);
 int get_line(FILE *fl, char *buf);
 char *parsename(char *filename);
 char *findLine(FILE *plr_file, char *tag);
@@ -49,6 +49,7 @@ long parselast(FILE *plr_file);
 int main(int argc, char **argv)
 {
   FILE *index_file;
+  int errors;
 
   if (argc == 1)
   {
@@ -69,12 +70,12 @@ int main(int argc, char **argv)
   }
 
   printf("Scanning player files and rebuilding index...\n");
-  walkdir(index_file, ".");
+  errors = walkdir(index_file, ".");
 
   fprintf(index_file, "~\n");
   fclose(index_file);
   printf("Index rebuild complete.\n");
-  return 0;
+  return errors ? 1 : 0;
 }
 
 /**
@@ -136,7 +137,7 @@ char *findLine(FILE *plr_file, char *tag)
 long parseid(FILE *plr_file)
 {
   char *id_str = findLine(plr_file, "Id  :");
-  return id_str ? atol(id_str) : 0;
+  return id_str ? atol(id_str) : -1;
 }
 
 /**
@@ -148,7 +149,7 @@ long parseid(FILE *plr_file)
 int parselevel(FILE *plr_file)
 {
   char *level_str = findLine(plr_file, "Levl:");
-  return level_str ? atoi(level_str) : 0;
+  return level_str ? atoi(level_str) : -1;
 }
 
 /**
@@ -180,7 +181,7 @@ int parseadminlevel(FILE *plr_file, int level)
 long parselast(FILE *plr_file)
 {
   char *last_str = findLine(plr_file, "Last:");
-  return last_str ? atol(last_str) : 0;
+  return last_str ? atol(last_str) : -1;
 }
 
 /**
@@ -192,7 +193,7 @@ long parselast(FILE *plr_file)
  * @param index_file Output file for the index
  * @param dir Directory to scan
  */
-void walkdir(FILE *index_file, char *dir)
+int walkdir(FILE *index_file, char *dir)
 {
   char filename_qfd[1000];
   struct dirent *dp;
@@ -201,12 +202,12 @@ void walkdir(FILE *index_file, char *dir)
   char *name;
   FILE *plr_file;
   long id, last;
-  int level, adminlevel, entry_fd, open_flags;
+  int level, adminlevel, entry_fd, open_flags, errors = 0;
 
   if ((dfd = opendir(dir)) == NULL)
   {
     fprintf(stderr, "Can't open %s\n", dir);
-    return;
+    return 1;
   }
 
   while ((dp = readdir(dfd)) != NULL)
@@ -217,6 +218,7 @@ void walkdir(FILE *index_file, char *dir)
         (int)sizeof(filename_qfd))
     {
       fprintf(stdout, "Path is too long: %s/%s\n", dir, dp->d_name);
+      errors++;
       continue;
     }
 
@@ -230,13 +232,14 @@ void walkdir(FILE *index_file, char *dir)
       fprintf(stdout, "Unable to open file: %s\n", filename_qfd);
       if (entry_fd >= 0)
         close(entry_fd);
+      errors++;
       continue;
     }
 
     if (S_ISDIR(stbuf.st_mode))
     {
       close(entry_fd);
-      walkdir(index_file, filename_qfd);
+      errors += walkdir(index_file, filename_qfd);
     }
     else
     {
@@ -249,15 +252,40 @@ void walkdir(FILE *index_file, char *dir)
         {
           fprintf(stderr, "Warning: Could not open player file %s\n", filename_qfd);
           close(entry_fd);
+          errors++;
           continue;
         }
 
         id = parseid(plr_file);
+        if (id < 0)
+        {
+          fprintf(stderr, "Skipping %s: missing Id field\n", filename_qfd);
+          fclose(plr_file);
+          errors++;
+          continue;
+        }
+
         level = parselevel(plr_file);
+        if (level < 0)
+        {
+          fprintf(stderr, "Skipping %s: missing Levl field\n", filename_qfd);
+          fclose(plr_file);
+          errors++;
+          continue;
+        }
+
+        last = parselast(plr_file);
+        if (last < 0)
+        {
+          fprintf(stderr, "Skipping %s: missing Last field\n", filename_qfd);
+          fclose(plr_file);
+          errors++;
+          continue;
+        }
+
         adminlevel = parseadminlevel(plr_file, level);
         if (level > 30)
           level = 30;
-        last = parselast(plr_file);
 
         fprintf(index_file, "%ld %s %d %d 0 %ld\n", id, name, level, adminlevel, last);
 
@@ -268,6 +296,7 @@ void walkdir(FILE *index_file, char *dir)
     }
   }
   closedir(dfd);
+  return errors;
 }
 
 /**

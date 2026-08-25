@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/act.h"
+#include "../../src/ban.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
@@ -73,6 +74,75 @@ static void reset_test_descriptor_output(struct descriptor_data *descriptor)
   descriptor->output[0] = '\0';
   descriptor->bufptr = 0;
   descriptor->bufspace = SMALL_BUFSIZE - 1;
+}
+
+void Test_ban_records_are_bounded_and_reject_malformed_fields(CuTest *tc)
+{
+  struct ban_list_element record;
+  char overlong_site[BANNED_SITE_LENGTH + 2];
+  char line[READ_SIZE];
+  int parsed_valid;
+  int rejected_extra;
+  int rejected_type;
+  int rejected_overlong_site;
+
+  memset(&record, 0, sizeof(record));
+  parsed_valid = ban_parse_record_for_test("all example.org 1234 Admin\n", &record);
+  rejected_extra = !ban_parse_record_for_test("all example.org 1234 Admin trailing\n", &record);
+  rejected_type = !ban_parse_record_for_test("bogus example.org 1234 Admin\n", &record);
+
+  memset(overlong_site, 'x', sizeof(overlong_site) - 1);
+  overlong_site[sizeof(overlong_site) - 1] = '\0';
+  snprintf(line, sizeof(line), "all %s 1234 Admin\n", overlong_site);
+  rejected_overlong_site = !ban_parse_record_for_test(line, &record);
+
+  CuAssertTrue(tc, parsed_valid);
+  CuAssertStrEquals(tc, "example.org", record.site);
+  CuAssertStrEquals(tc, "Admin", record.name);
+  CuAssertIntEquals(tc, BAN_ALL, record.type);
+  CuAssertTrue(tc, record.date == (time_t)1234);
+  CuAssertTrue(tc, rejected_extra);
+  CuAssertTrue(tc, rejected_type);
+  CuAssertTrue(tc, rejected_overlong_site);
+}
+
+void Test_ban_file_reader_skips_malformed_and_overlong_records(CuTest *tc)
+{
+  FILE *fixture;
+  struct ban_list_element record;
+  int index;
+  int read_first;
+  int read_second;
+  int reached_end;
+
+  fixture = tmpfile();
+  if (fixture == NULL)
+  {
+    CuFail(tc, "could not create the ban-file parser fixture");
+    return;
+  }
+
+  fputs("all first.example 100 First\n", fixture);
+  fputs("malformed record\n", fixture);
+  for (index = 0; index < READ_SIZE + 20; index++)
+    fputc('x', fixture);
+  fputc('\n', fixture);
+  fputs("new second.example 200 Second\n", fixture);
+  rewind(fixture);
+
+  read_first = ban_read_record_for_test(fixture, &record);
+  CuAssertTrue(tc, read_first);
+  CuAssertStrEquals(tc, "first.example", record.site);
+  CuAssertIntEquals(tc, BAN_ALL, record.type);
+
+  read_second = ban_read_record_for_test(fixture, &record);
+  CuAssertTrue(tc, read_second);
+  CuAssertStrEquals(tc, "second.example", record.site);
+  CuAssertIntEquals(tc, BAN_NEW, record.type);
+
+  reached_end = !ban_read_record_for_test(fixture, &record);
+  fclose(fixture);
+  CuAssertTrue(tc, reached_end);
 }
 
 void Test_room_trigger_attachments_are_idempotent_and_reset_restorable(CuTest *tc)
