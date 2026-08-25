@@ -7452,7 +7452,8 @@ ACMD(do_who)
        classes_list[MAX_INPUT_LENGTH] = {'\0'};
   char mode;
   int low = 0, high = LVL_IMPL, localwho = 0, questwho = 0;
-  int showclass = 0, short_list = 0, outlaws = 0;
+  bitvector_t showclass = 0;
+  int short_list = 0, outlaws = 0;
   int who_room = 0, showgroup = 0, showleader = 0;
   int showrace = 0;
   int mortals = 0, staff = 0;
@@ -7586,7 +7587,7 @@ ACMD(do_who)
         continue;
       if (who_room && (IN_ROOM(tch) != IN_ROOM(ch)))
         continue;
-      if (showclass && !(showclass & (1 << GET_CLASS(tch))))
+      if (showclass && !(showclass & ((bitvector_t)1 << GET_CLASS(tch))))
         continue;
       if (showrace && !(showrace & (1 << GET_RACE(tch))))
         continue;
@@ -7675,7 +7676,7 @@ ACMD(do_who)
         continue;
       if (who_room && (IN_ROOM(tch) != IN_ROOM(ch)))
         continue;
-      if (showclass && !(showclass & (1 << GET_CLASS(tch))))
+      if (showclass && !(showclass & ((bitvector_t)1 << GET_CLASS(tch))))
         continue;
       if (showrace && !(showrace & (1 << GET_RACE(tch))))
         continue;
@@ -7863,7 +7864,8 @@ ACMD(do_users)
   struct char_data *tch;
   struct descriptor_data *d;
   int low = 0, high = LVL_IMPL, num_can_see = 0;
-  int showclass = 0, outlaws = 0, playing = 0, deadweight = 0;
+  bitvector_t showclass = 0;
+  int outlaws = 0, playing = 0, deadweight = 0;
   char buf[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
 
   host_search[0] = name_search[0] = '\0';
@@ -7949,7 +7951,7 @@ ACMD(do_users)
         continue;
       if (outlaws && !PLR_FLAGGED(tch, PLR_KILLER) && !PLR_FLAGGED(tch, PLR_THIEF))
         continue;
-      if (showclass && !(showclass & (1 << GET_CLASS(tch))))
+      if (showclass && !(showclass & ((bitvector_t)1 << GET_CLASS(tch))))
         continue;
       if (GET_INVIS_LEV(tch) > GET_LEVEL(ch))
         continue;

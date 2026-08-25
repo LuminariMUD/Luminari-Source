@@ -25,7 +25,6 @@
 /* local functions */
 static void trigedit_disp_menu(struct descriptor_data *d);
 static void trigedit_disp_types(struct descriptor_data *d);
-static int trigedit_create_index(int znum, const char *type);
 static void trigedit_setup_new(struct descriptor_data *d);
 
 static const char **trigedit_types_for_attachment(int attach_type)
@@ -741,72 +740,12 @@ void trigedit_save(struct descriptor_data *d)
     return;
   }
 
-  if (!trigedit_create_index(zone, "trg"))
+  if (!create_world_index(zone, "trg"))
   {
     write_to_output(d, "Trigger data saved, but the index update failed.\r\n");
     return;
   }
   write_to_output(d, "Trigger saved to disk.\r\n");
-}
-
-static int trigedit_create_index(int znum, const char *type)
-{
-  FILE *newfile, *oldfile;
-  char new_name[128], old_name[128];
-  const char *prefix;
-  char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[MAX_STRING_LENGTH] = {'\0'};
-  int num, found = FALSE;
-
-  prefix = TRG_PREFIX;
-
-  snprintf(old_name, sizeof(old_name), "%s/index", prefix);
-  snprintf(new_name, sizeof(new_name), "%s/newindex", prefix);
-
-  if (!(oldfile = fopen(old_name, "r")))
-  {
-    mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: DG_OLC: Failed to open %s", old_name);
-    return FALSE;
-  }
-  else if (!(newfile = fopen_restricted(new_name, "w")))
-  {
-    mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: DG_OLC: Failed to open %s", new_name);
-    fclose(oldfile);
-    return FALSE;
-  }
-
-  /* Index contents must be in order: search through the old file for the right
-   * place, insert the new file, then copy the rest over. */
-  snprintf(buf1, sizeof(buf1), "%d.%s", znum, type);
-  while (get_line(oldfile, buf))
-  {
-    if (*buf == '$')
-    {
-      fprintf(newfile, "%s\n$\n", (!found ? buf1 : ""));
-      break;
-    }
-    else if (!found)
-    {
-      if (sscanf(buf, "%d", &num) != 1)
-      {
-        mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: Invalid trigger index entry: %s", buf);
-        continue;
-      }
-      if (num == znum)
-        found = TRUE;
-      else if (num > znum)
-      {
-        found = TRUE;
-        fprintf(newfile, "%s\n", buf1);
-      }
-    }
-    fprintf(newfile, "%s\n", buf);
-  }
-
-  fclose(oldfile);
-
-  if (!finish_file_save(newfile, new_name, old_name))
-    return FALSE;
-  return TRUE;
 }
 
 void dg_olc_script_copy(struct descriptor_data *d)

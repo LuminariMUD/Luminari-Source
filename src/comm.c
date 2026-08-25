@@ -3793,7 +3793,7 @@ static int process_input(struct descriptor_data *t)
 
     *write_point = '\0';
 
-    if ((space_left <= 0) && (ptr < nl_pos))
+    if (ptr < nl_pos)
     {
       char buffer[MAX_INPUT_LENGTH + 64];
 
@@ -3872,6 +3872,13 @@ static int process_input(struct descriptor_data *t)
 
   return (1);
 }
+
+#if defined(LUMINARI_CUTEST)
+int process_input_for_test(struct descriptor_data *t)
+{
+  return process_input(t);
+}
+#endif
 
 /* Perform substitution for the '^..^' csh-esque syntax orig is the orig string,
  * i.e. the one being modified.  subst contains the substition string, i.e.
@@ -4057,7 +4064,12 @@ void close_socket(struct descriptor_data *d)
   case CON_HLQEDIT:
   case CON_STUDY:
   case CON_MSGEDIT:
+  case CON_PREFEDIT:
+  case CON_IBTEDIT:
     cleanup_olc(d, CLEANUP_ALL);
+    break;
+  case CON_CEDIT:
+    cleanup_olc(d, CLEANUP_CONFIG);
     break;
   default:
     break;

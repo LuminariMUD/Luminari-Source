@@ -339,6 +339,9 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
 
   /* Find what zone that room was in so we can update the loading table. */
   for (zone = 0; zone <= top_of_zone_table; zone++)
+  {
+    bool zone_touched = false;
+
     for (j = 0; ZCMD(zone, j).command != 'S'; j++)
       switch (ZCMD(zone, j).command)
       {
@@ -347,9 +350,15 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
       case 'T':
       case 'V':
         if (ZCMD(zone, j).arg3 == (int)rnum)
+        {
           ZCMD(zone, j).command = '*'; /* Cancel command. */
+          zone_touched = true;
+        }
         else if (ZCMD(zone, j).arg3 > (int)rnum)
+        {
           ZCMD(zone, j).arg3 -= (ZCMD(zone, j).arg3 != (int)NOWHERE);
+          zone_touched = true;
+        }
         break;
       case 'D':
       case 'R':
@@ -357,9 +366,15 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
       case 'K':
       case 'X':
         if (ZCMD(zone, j).arg1 == (int)rnum)
+        {
           ZCMD(zone, j).command = '*'; /* Cancel command. */
+          zone_touched = true;
+        }
         else if (ZCMD(zone, j).arg1 > (int)rnum)
+        {
           ZCMD(zone, j).arg1 -= (ZCMD(zone, j).arg1 != (int)NOWHERE);
+          zone_touched = true;
+        }
         break;
       case 'G':
       case 'P':
@@ -374,6 +389,10 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
       default:
         mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: GenOLC: delete_room: Unknown zone entry found!");
       }
+
+    if (persistent && zone_touched)
+      add_to_save_list(zone_table[zone].number, SL_ZON);
+  }
 
   /* Remove this room from all shop lists. */
   for (shop = 0; shop <= top_shop; shop++)

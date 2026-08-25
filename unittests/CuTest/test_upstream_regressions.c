@@ -29,6 +29,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <time.h>
 
 static size_t longest_visible_output_line(const char *output)
@@ -383,6 +384,260 @@ void Test_delete_mobile_does_not_queue_prototype_extraction(CuTest *tc)
 
   CuAssertIntEquals(tc, 0, deleted);
   CuAssertIntEquals(tc, pending_before, pending_after);
+}
+
+void Test_delete_mobile_queues_prototype_and_changed_zone_files(CuTest *tc)
+{
+  struct char_data *original_mob_proto;
+  struct index_data *original_mob_index;
+  struct save_list_data *saved_save_list;
+  struct shop_data *saved_shop_index;
+  struct zone_data *saved_zone_table;
+  struct zone_data *test_zone_table;
+  struct char_data *test_mob_proto;
+  struct index_data *test_mob_index;
+  mob_rnum saved_top_of_mobt;
+  zone_rnum saved_top_of_zone_table;
+  int deleted;
+  bool queued_mobile;
+  bool queued_zone;
+  bool command_renumbered;
+
+  test_zone_table = calloc(1, sizeof(*test_zone_table));
+  test_mob_proto = calloc(2, sizeof(*test_mob_proto));
+  test_mob_index = calloc(2, sizeof(*test_mob_index));
+  if (test_zone_table == NULL || test_mob_proto == NULL || test_mob_index == NULL)
+  {
+    free(test_zone_table);
+    free(test_mob_proto);
+    free(test_mob_index);
+    CuFail(tc, "could not allocate the mobile save-list fixture");
+    return;
+  }
+
+  test_zone_table[0].number = 1;
+  test_zone_table[0].bot = 100;
+  test_zone_table[0].top = 199;
+  test_zone_table[0].cmd = calloc(3, sizeof(*test_zone_table[0].cmd));
+  if (test_zone_table[0].cmd == NULL)
+  {
+    free(test_zone_table);
+    free(test_mob_proto);
+    free(test_mob_index);
+    CuFail(tc, "could not allocate the mobile zone-command fixture");
+    return;
+  }
+  test_zone_table[0].cmd[0].command = 'M';
+  test_zone_table[0].cmd[0].arg1 = 0;
+  test_zone_table[0].cmd[1].command = 'M';
+  test_zone_table[0].cmd[1].arg1 = 1;
+  test_zone_table[0].cmd[2].command = 'S';
+
+  test_mob_index[0].vnum = 123;
+  test_mob_index[1].vnum = 456;
+  test_mob_proto[0].nr = 0;
+  test_mob_proto[1].nr = 1;
+  test_mob_proto[0].player_specials = &dummy_mob;
+  test_mob_proto[1].player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&test_mob_proto[0]), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(&test_mob_proto[1]), MOB_ISNPC);
+
+  original_mob_proto = mob_proto;
+  original_mob_index = mob_index;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  saved_top_of_mobt = top_of_mobt;
+  saved_shop_index = shop_index;
+  saved_save_list = save_list;
+
+  mob_proto = test_mob_proto;
+  mob_index = test_mob_index;
+  top_of_mobt = 1;
+  zone_table = test_zone_table;
+  top_of_zone_table = 0;
+  shop_index = NULL;
+  save_list = NULL;
+
+  deleted = delete_mobile(0);
+  queued_mobile = in_save_list(1, SL_MOB);
+  queued_zone = in_save_list(1, SL_ZON);
+  command_renumbered = test_zone_table[0].cmd[0].command == 'M' &&
+                       test_zone_table[0].cmd[0].arg1 == 0 &&
+                       test_zone_table[0].cmd[1].command == 'S';
+
+  free_save_list();
+  save_list = saved_save_list;
+  free(mob_proto);
+  free(mob_index);
+  mob_proto = original_mob_proto;
+  mob_index = original_mob_index;
+  top_of_mobt = saved_top_of_mobt;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+  shop_index = saved_shop_index;
+  free(test_zone_table[0].cmd);
+  free(test_zone_table);
+
+  CuAssertIntEquals(tc, 0, deleted);
+  CuAssertTrue(tc, queued_mobile);
+  CuAssertTrue(tc, queued_zone);
+  CuAssertTrue(tc, command_renumbered);
+}
+
+void Test_create_new_zone_rejects_duplicate_final_entry(CuTest *tc)
+{
+  struct zone_data test_zone;
+  struct zone_data *saved_zone_table;
+  zone_rnum saved_top_of_zone_table;
+  zone_rnum result;
+  const char *error;
+
+  memset(&test_zone, 0, sizeof(test_zone));
+  test_zone.number = 77;
+  test_zone.bot = 7700;
+  test_zone.top = 7799;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  zone_table = &test_zone;
+  top_of_zone_table = 0;
+  error = NULL;
+
+  result = create_new_zone(77, 7700, 7799, &error);
+
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+
+  CuAssertTrue(tc, result == NOWHERE);
+  CuAssertStrEquals(tc, "That virtual zone already exists.\r\n", error);
+}
+
+void Test_medit_numeric_validation_preserves_named_input_modes(CuTest *tc)
+{
+  CuAssertTrue(tc, medit_mode_requires_number_for_test(MEDIT_LEVEL));
+  CuAssertTrue(tc, medit_mode_requires_number_for_test(MEDIT_COPY));
+  CuAssertTrue(tc, !medit_mode_requires_number_for_test(MEDIT_DELETE));
+  CuAssertTrue(tc, !medit_mode_requires_number_for_test(MEDIT_ADD_FEATS));
+  CuAssertTrue(tc, !medit_mode_requires_number_for_test(MEDIT_ADD_SPELLS));
+  CuAssertTrue(tc, !medit_mode_requires_number_for_test(MEDIT_SPEC_PROC));
+}
+
+void Test_redit_prunes_only_unused_exit_shells(CuTest *tc)
+{
+  struct room_data room;
+
+  memset(&room, 0, sizeof(room));
+  room.dir_option[NORTH] = calloc(1, sizeof(*room.dir_option[NORTH]));
+  room.dir_option[SOUTH] = calloc(1, sizeof(*room.dir_option[SOUTH]));
+  if (room.dir_option[NORTH] == NULL || room.dir_option[SOUTH] == NULL)
+  {
+    free(room.dir_option[NORTH]);
+    free(room.dir_option[SOUTH]);
+    CuFail(tc, "could not allocate the room-exit fixture");
+    return;
+  }
+
+  room.dir_option[NORTH]->to_room = NOWHERE;
+  room.dir_option[SOUTH]->to_room = NOWHERE;
+  room.dir_option[SOUTH]->keyword = strdup("door");
+  if (room.dir_option[SOUTH]->keyword == NULL)
+  {
+    free(room.dir_option[NORTH]);
+    free(room.dir_option[SOUTH]);
+    CuFail(tc, "could not allocate the room-exit keyword fixture");
+    return;
+  }
+
+  redit_prune_empty_exits_for_test(&room);
+
+  CuAssertPtrEquals(tc, NULL, room.dir_option[NORTH]);
+  CuAssertPtrNotNull(tc, room.dir_option[SOUTH]);
+  free(room.dir_option[SOUTH]->keyword);
+  free(room.dir_option[SOUTH]);
+}
+
+void Test_class_filter_uses_a_reserved_bit_for_unknown_letters(CuTest *tc)
+{
+  bitvector_t known;
+  bitvector_t unknown;
+
+  known = find_class_bitvector("3");
+  unknown = find_class_bitvector("6");
+
+  CuAssertTrue(tc, known == ((bitvector_t)1 << CLASS_NECROMANCER));
+  CuAssertTrue(tc, unknown == CLASS_BIT_UNKNOWN);
+  CuAssertTrue(tc, (known & CLASS_BIT_UNKNOWN) == 0);
+}
+
+void Test_process_input_reports_plain_text_truncation(CuTest *tc)
+{
+  struct descriptor_data descriptor;
+  struct txt_block *input_block;
+  char payload[MAX_INPUT_LENGTH + 2];
+  char response[MAX_INPUT_LENGTH + 128];
+  int sockets[2];
+  int result;
+  ssize_t received;
+  int index;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) != 0)
+  {
+    CuFail(tc, "could not create the input socket fixture");
+    return;
+  }
+
+  descriptor.descriptor = sockets[0];
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.history = calloc(HISTORY_SIZE, sizeof(*descriptor.history));
+  descriptor.pProtocol = ProtocolCreate();
+  if (descriptor.history == NULL || descriptor.pProtocol == NULL)
+  {
+    free(descriptor.history);
+    if (descriptor.pProtocol != NULL)
+      ProtocolDestroy(descriptor.pProtocol);
+    close(sockets[0]);
+    close(sockets[1]);
+    CuFail(tc, "could not initialize the input descriptor fixture");
+    return;
+  }
+
+  memset(payload, 'a', MAX_INPUT_LENGTH);
+  payload[MAX_INPUT_LENGTH] = '\n';
+  payload[MAX_INPUT_LENGTH + 1] = '\0';
+  if (write(sockets[1], payload, MAX_INPUT_LENGTH + 1) != (ssize_t)(MAX_INPUT_LENGTH + 1))
+  {
+    ProtocolDestroy(descriptor.pProtocol);
+    free(descriptor.history);
+    close(sockets[0]);
+    close(sockets[1]);
+    CuFail(tc, "could not write the input socket fixture");
+    return;
+  }
+
+  result = process_input_for_test(&descriptor);
+  received = recv(sockets[1], response, sizeof(response) - 1, MSG_DONTWAIT);
+  if (received >= 0)
+    response[received] = '\0';
+  else
+    response[0] = '\0';
+
+  while (descriptor.input.head != NULL)
+  {
+    input_block = descriptor.input.head;
+    descriptor.input.head = input_block->next;
+    free(input_block->text);
+    free(input_block);
+  }
+  for (index = 0; index < HISTORY_SIZE; index++)
+    free(descriptor.history[index]);
+  free(descriptor.history);
+  ProtocolDestroy(descriptor.pProtocol);
+  close(sockets[0]);
+  close(sockets[1]);
+
+  CuAssertIntEquals(tc, 1, result);
+  CuAssertTrue(tc, strstr(response, "Line too long.  Truncated to:") != NULL);
 }
 
 void Test_room_trigger_attachments_are_idempotent_and_reset_restorable(CuTest *tc)

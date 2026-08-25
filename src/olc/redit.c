@@ -37,6 +37,32 @@ static void redit_disp_exit_flag_menu(struct descriptor_data *d);
 static void redit_disp_flag_menu(struct descriptor_data *d);
 static void redit_disp_sector_menu(struct descriptor_data *d);
 static void redit_disp_menu(struct descriptor_data *d);
+static void redit_prune_empty_exits(struct room_data *room);
+
+static void redit_prune_empty_exits(struct room_data *room)
+{
+  int direction;
+
+  for (direction = 0; direction < DIR_COUNT; direction++)
+  {
+    struct room_direction_data *exit;
+
+    exit = room->dir_option[direction];
+    if (exit != NULL && exit->to_room == NOWHERE && exit->exit_info == 0 && exit->keyword == NULL &&
+        exit->general_description == NULL)
+    {
+      free(exit);
+      room->dir_option[direction] = NULL;
+    }
+  }
+}
+
+#if defined(LUMINARI_CUTEST)
+void redit_prune_empty_exits_for_test(struct room_data *room)
+{
+  redit_prune_empty_exits(room);
+}
+#endif
 
 static bool redit_has_named_room_binding(const struct spec_binding *binding,
                                          spec_legacy_handler handler)
@@ -339,6 +365,7 @@ void redit_save_internally(struct descriptor_data *d)
   OLC_ROOM(d)->number = OLC_NUM(d);
   /* FIXME: Why is this not set elsewhere? */
   OLC_ROOM(d)->zone = OLC_ZNUM(d);
+  redit_prune_empty_exits(OLC_ROOM(d));
 
   if (!spec_binding_copy(&OLC_ROOM(d)->spec_binding, OLC_SPECROOM_BINDING(d), binding_error,
                          sizeof(binding_error)))
@@ -490,6 +517,7 @@ static void redit_disp_extradesc_menu(struct descriptor_data *d)
 {
   struct extra_descr_data *extra_desc = OLC_DESC(d);
 
+  get_char_colors(d->character);
   clear_screen(d);
   write_to_output(d,
                   "(To delete an extra description, clear the description "
@@ -1208,7 +1236,11 @@ void redit_parse(struct descriptor_data *d, char *arg)
     if (*arg == 'y' || *arg == 'Y')
     {
       if (delete_room(real_room(OLC_ROOM(d)->number)))
+      {
         write_to_output(d, "Room deleted.\r\n");
+        if (CONFIG_OLC_SAVE)
+          save_all();
+      }
       else
         write_to_output(d, "Couldn't delete the room!.\r\n");
 

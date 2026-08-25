@@ -2521,7 +2521,7 @@ void setup_dir(FILE *fl, room_rnum room, int dir)
   int t[5], serialized_flag;
   char line[READ_SIZE], buf2[128];
 
-  snprintf(buf2, sizeof(buf2), "room #%d, direction D%d", GET_ROOM_VNUM(room) + 1, dir);
+  snprintf(buf2, sizeof(buf2), "room #%d, direction D%d", world[room].number, dir);
 
   if (!CONFIG_DIAGONAL_DIRS && IS_DIAGONAL(dir))
   {

@@ -231,6 +231,8 @@ int delete_mobile(mob_rnum refpt)
   /* Update zone table. */
   for (zone = 0; zone <= top_of_zone_table; zone++)
   {
+    bool zone_touched = false;
+
     cmd_no = 0;
     while (ZCMD(zone, cmd_no).command != 'S')
     {
@@ -239,10 +241,14 @@ int delete_mobile(mob_rnum refpt)
         if (ZCMD(zone, cmd_no).arg1 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg1 == refpt)
         {
           delete_zone_command(&zone_table[zone], cmd_no);
+          zone_touched = true;
           continue;
         }
         if (ZCMD(zone, cmd_no).arg1 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg1 > refpt)
+        {
           ZCMD(zone, cmd_no).arg1--;
+          zone_touched = true;
+        }
       }
       else if (ZCMD(zone, cmd_no).command == 'F')
       {
@@ -250,25 +256,39 @@ int delete_mobile(mob_rnum refpt)
             (ZCMD(zone, cmd_no).arg3 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg3 == refpt))
         {
           delete_zone_command(&zone_table[zone], cmd_no);
+          zone_touched = true;
           continue;
         }
         if (ZCMD(zone, cmd_no).arg2 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg2 > refpt)
+        {
           ZCMD(zone, cmd_no).arg2--;
+          zone_touched = true;
+        }
         if (ZCMD(zone, cmd_no).arg3 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg3 > refpt)
+        {
           ZCMD(zone, cmd_no).arg3--;
+          zone_touched = true;
+        }
       }
       else if (ZCMD(zone, cmd_no).command == 'X')
       {
         if (ZCMD(zone, cmd_no).arg2 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg2 == refpt)
         {
           delete_zone_command(&zone_table[zone], cmd_no);
+          zone_touched = true;
           continue;
         }
         if (ZCMD(zone, cmd_no).arg2 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg2 > refpt)
+        {
           ZCMD(zone, cmd_no).arg2--;
+          zone_touched = true;
+        }
       }
       cmd_no++;
     }
+
+    if (zone_touched)
+      add_to_save_list(zone_table[zone].number, SL_ZON);
   }
 
   /* Update shop keepers. */
@@ -277,7 +297,9 @@ int delete_mobile(mob_rnum refpt)
       if (SHOP_KEEPER(shop) != NOBODY && SHOP_KEEPER(shop) >= refpt)
         SHOP_KEEPER(shop)--;
 
-  save_mobiles(real_zone_by_thing(vnum));
+  zone = real_zone_by_thing(vnum);
+  if (zone != NOWHERE)
+    add_to_save_list(zone_table[zone].number, SL_MOB);
 
   return refpt;
 }

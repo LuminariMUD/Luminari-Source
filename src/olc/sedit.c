@@ -7,6 +7,7 @@
 
 #include "conf.h"
 #include "sysdep.h"
+#include <math.h>
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
@@ -31,6 +32,24 @@ static void sedit_shop_flags_menu(struct descriptor_data *d);
 static void sedit_no_trade_menu(struct descriptor_data *d);
 static void sedit_types_menu(struct descriptor_data *d);
 static void sedit_disp_menu(struct descriptor_data *d);
+static bool sedit_numeric_input_is_valid(int mode, const char *arg);
+
+static bool sedit_numeric_input_is_valid(int mode, const char *arg)
+{
+  char *end;
+  float value;
+
+  if (mode <= SEDIT_NUMERICAL_RESPONSE)
+    return true;
+  if (mode != SEDIT_BUY_PROFIT && mode != SEDIT_SELL_PROFIT)
+    return is_number(arg);
+  if (arg == NULL || *arg == '\0')
+    return false;
+
+  end = NULL;
+  value = strtof(arg, &end);
+  return end != arg && *end == '\0' && isfinite(value);
+}
 
 void sedit_save_internally(struct descriptor_data *d)
 {
@@ -449,13 +468,10 @@ void sedit_parse(struct descriptor_data *d, char *arg)
 {
   int i;
 
-  if (OLC_MODE(d) > SEDIT_NUMERICAL_RESPONSE)
+  if (!sedit_numeric_input_is_valid(OLC_MODE(d), arg))
   {
-    if (!isdigit(arg[0]) && ((*arg == '-') && (!isdigit(arg[1]))))
-    {
-      write_to_output(d, "Field must be numerical, try again : ");
-      return;
-    }
+    write_to_output(d, "Field must be numerical, try again : ");
+    return;
   }
   switch (OLC_MODE(d))
   {
@@ -756,7 +772,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
         write_to_output(d, "That object does not exist, try again : ");
         return;
       }
-    if (i > 0)
+    if (i >= 0)
       add_shop_to_int_list(&(S_PRODUCTS(OLC_SHOP(d))), i);
     sedit_products_menu(d);
     return;

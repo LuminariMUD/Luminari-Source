@@ -1704,10 +1704,20 @@ int parse_class_long(const char *arg_in)
  * the limit of your bitvector_t, typically 0-31. */
 bitvector_t find_class_bitvector(const char *arg)
 {
-  size_t rpos, ret = 0;
+  size_t rpos, length;
+  bitvector_t ret = 0;
 
-  for (rpos = 0; (size_t)rpos < strlen(arg); rpos++)
-    ret |= (1 << parse_class(arg[rpos]));
+  length = strlen(arg);
+  for (rpos = 0; rpos < length; rpos++)
+  {
+    int chclass;
+
+    chclass = parse_class(arg[rpos]);
+    if (chclass == CLASS_UNDEFINED || chclass >= (int)(sizeof(bitvector_t) * CHAR_BIT - 1))
+      ret |= CLASS_BIT_UNKNOWN;
+    else
+      ret |= ((bitvector_t)1 << chclass);
+  }
 
   return (ret);
 }

@@ -13,8 +13,11 @@
 #ifndef _CLASS_H_
 #define _CLASS_H_
 
+#include <limits.h>
+
 /* defines */
 #define NUM_CHURCHES 13
+#define CLASS_BIT_UNKNOWN ((bitvector_t)1 << (sizeof(bitvector_t) * CHAR_BIT - 1))
 
 #define LF_CLASS 0
 #define LF_RACE 1

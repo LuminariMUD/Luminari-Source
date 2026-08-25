@@ -3475,7 +3475,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     if (*arg == 'y' || *arg == 'Y')
     {
       if (delete_object(GET_OBJ_RNUM(OLC_OBJ(d))) != (int)NOTHING)
+      {
         write_to_output(d, "Object deleted.\r\n");
+        if (CONFIG_OLC_SAVE)
+          save_all();
+      }
       else
         write_to_output(d, "Couldn't delete the object!\r\n");
 

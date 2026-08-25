@@ -1022,8 +1022,13 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm)
     if (!CAN_SEE(ch, k))
       continue;
 
-    column += send_to_char(ch, "%s %s(%s)", found++ ? "," : "", GET_NAME(k),
-                           !IS_NPC(k) ? "PC" : (!IS_MOB(k) ? "NPC" : "MOB"));
+    {
+      char list_entry[MAX_INPUT_LENGTH];
+
+      column += snprintf(list_entry, sizeof(list_entry), "%s %s(%s)", found++ ? "," : "",
+                         GET_NAME(k), !IS_NPC(k) ? "PC" : (!IS_MOB(k) ? "NPC" : "MOB"));
+      send_to_char(ch, "%s", list_entry);
+    }
     if (column >= 62)
     {
       send_to_char(ch, "%s\r\n", k->next_in_room ? "," : "");
@@ -1032,6 +1037,8 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm)
     }
   }
   send_to_char(ch, "%s", CCNRM(ch, C_NRM));
+  if (column != 0)
+    send_to_char(ch, "\r\n");
 
   if (rm->contents)
   {
@@ -1043,7 +1050,13 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm)
       if (!CAN_SEE_OBJ(ch, j))
         continue;
 
-      column += send_to_char(ch, "%s %s", found++ ? "," : "", j->short_description);
+      {
+        char list_entry[MAX_INPUT_LENGTH];
+
+        column += snprintf(list_entry, sizeof(list_entry), "%s %s", found++ ? "," : "",
+                           j->short_description);
+        send_to_char(ch, "%s", list_entry);
+      }
       if (column >= 62)
       {
         send_to_char(ch, "%s\r\n", j->next_content ? "," : "");
@@ -1052,6 +1065,8 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm)
       }
     }
     send_to_char(ch, "%s", CCNRM(ch, C_NRM));
+    if (column != 0)
+      send_to_char(ch, "\r\n");
   }
 
   for (i = 0; i < DIR_COUNT; i++)
@@ -1494,15 +1509,22 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
       ch,
       "\tC=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\tn\r\n");
 
-  column = send_to_char(ch, "\tCMaster is: \tn%s\tC, Followers are:\tn",
-                        k->master ? GET_NAME(k->master) : "<none>");
+  column = snprintf(buf, sizeof(buf), "\tCMaster is: \tn%s\tC, Followers are:\tn",
+                    k->master ? GET_NAME(k->master) : "<none>");
+  send_to_char(ch, "%s", buf);
   if (!k->followers)
     send_to_char(ch, " <none>\r\n");
   else
   {
     for (fol = k->followers; fol; fol = fol->next)
     {
-      column += send_to_char(ch, "%s %s", found++ ? "," : "", PERS(fol->follower, ch));
+      {
+        char list_entry[MAX_INPUT_LENGTH];
+
+        column += snprintf(list_entry, sizeof(list_entry), "%s %s", found++ ? "," : "",
+                           PERS(fol->follower, ch));
+        send_to_char(ch, "%s", list_entry);
+      }
       if (column >= 62)
       {
         send_to_char(ch, "%s\r\n", fol->next ? "," : "");
@@ -3816,7 +3838,7 @@ ACMD(do_show)
                  "  %5zu lists\r\n"
                  "  %9zu movement trails\r\n",
                  i, con, top_of_p_table + 1, j, top_of_mobt + 1, k, top_of_objt + 1,
-                 top_of_world + 1, top_of_zone_table + 1, top_of_trigt + 1, top_shop + 1,
+                 top_of_world + 1, top_of_zone_table + 1, top_of_trigt, top_shop + 1,
                  buf_largecount, total_quests, q_approved, q_total, buf_switches, buf_overflows,
                  global_lists->iSize, movement_trail_count);
     break;

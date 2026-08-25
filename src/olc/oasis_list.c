@@ -214,7 +214,17 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
   char buf2[256];
 
   *buf2 = '\0';
+  if (!is_number(arg))
+  {
+    send_to_char(ch, "Not a valid item type.\r\n");
+    return;
+  }
   itemtype = atoi(arg);
+  if (itemtype < 0 || itemtype >= NUM_ITEM_TYPES)
+  {
+    send_to_char(ch, "Not a valid item type.\r\n");
+    return;
+  }
 
   len = snprintf(buf, sizeof(buf), "Listing all objects of type %s[%s]%s\r\n", QYEL,
                  item_types[itemtype], QNRM);

@@ -88,6 +88,8 @@ void split_argument(char *argument, char *tag);
 void send_cannot_edit(struct char_data *ch, zone_vnum zone);
 #ifdef LUMINARI_CUTEST
 void zedit_append_room_commands_for_test(struct descriptor_data *d);
+bool medit_mode_requires_number_for_test(int mode);
+void redit_prune_empty_exits_for_test(struct room_data *room);
 #endif
 
 /* OLC structures. */

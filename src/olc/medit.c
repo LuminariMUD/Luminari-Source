@@ -48,10 +48,35 @@ static void medit_disp_size(struct descriptor_data *d);
 static void medit_disp_tier(struct descriptor_data *d);
 static void medit_disp_attack_types(struct descriptor_data *d);
 static bool medit_illegal_mob_flag(int fl);
+static bool medit_mode_requires_number(int mode);
 static int medit_get_mob_flag_by_number(int num);
 static void medit_disp_mob_flags(struct descriptor_data *d);
 static void medit_disp_aff_flags(struct descriptor_data *d);
 static void medit_disp_menu(struct descriptor_data *d);
+
+static bool medit_mode_requires_number(int mode)
+{
+  if (mode <= MEDIT_NUMERICAL_RESPONSE)
+    return false;
+
+  switch (mode)
+  {
+  case MEDIT_DELETE:
+  case MEDIT_ADD_FEATS:
+  case MEDIT_ADD_SPELLS:
+  case MEDIT_SPEC_PROC:
+    return false;
+  default:
+    return true;
+  }
+}
+
+#if defined(LUMINARI_CUTEST)
+bool medit_mode_requires_number_for_test(int mode)
+{
+  return medit_mode_requires_number(mode);
+}
+#endif
 
 void medit_add_class_feats(struct descriptor_data *d)
 {
@@ -1031,14 +1056,14 @@ void medit_parse(struct descriptor_data *d, char *arg)
   char *oldtext = NULL;
   char t_buf[200];
 
-  if (OLC_MODE(d) > MEDIT_NUMERICAL_RESPONSE)
+  if (medit_mode_requires_number(OLC_MODE(d)))
   {
-    i = atoi(arg);
-    if (!*arg || (!isdigit(arg[0]) && ((*arg == '-') && !isdigit(arg[1]))))
+    if (!is_number(arg))
     {
       write_to_output(d, "Try again : ");
       return;
     }
+    i = atoi(arg);
   }
   else
   { /* String response. */
@@ -2440,7 +2465,11 @@ void medit_parse(struct descriptor_data *d, char *arg)
     if (*arg == 'y' || *arg == 'Y')
     {
       if (delete_mobile(GET_MOB_RNUM(OLC_MOB(d))) != (int)NOBODY)
+      {
         write_to_output(d, "Mobile deleted.\r\n");
+        if (CONFIG_OLC_SAVE)
+          save_all();
+      }
       else
         write_to_output(d, "Couldn't delete the mobile!\r\n");
 

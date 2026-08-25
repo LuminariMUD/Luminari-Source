@@ -650,6 +650,8 @@ int delete_object(obj_rnum rnum)
   /* Renumber zone table. */
   for (zone = 0; zone <= top_of_zone_table; zone++)
   {
+    bool zone_touched = false;
+
     for (cmd_no = 0; ZCMD(zone, cmd_no).command != 'S'; cmd_no++)
     {
       switch (ZCMD(zone, cmd_no).command)
@@ -658,11 +660,15 @@ int delete_object(obj_rnum rnum)
         if (ZCMD(zone, cmd_no).arg3 == (int)rnum)
         {
           delete_zone_command(&zone_table[zone], cmd_no);
+          zone_touched = true;
           cmd_no--;
           break;
         }
-        else
-          ZCMD(zone, cmd_no).arg3 -= (ZCMD(zone, cmd_no).arg3 > (int)rnum);
+        else if (ZCMD(zone, cmd_no).arg3 > (int)rnum)
+        {
+          ZCMD(zone, cmd_no).arg3--;
+          zone_touched = true;
+        }
         __attribute__((fallthrough));
       case 'O':
       case 'G':
@@ -670,25 +676,37 @@ int delete_object(obj_rnum rnum)
         if (ZCMD(zone, cmd_no).arg1 == (int)rnum)
         {
           delete_zone_command(&zone_table[zone], cmd_no);
+          zone_touched = true;
           cmd_no--;
         }
-        else
-          ZCMD(zone, cmd_no).arg1 -= (ZCMD(zone, cmd_no).arg1 > (int)rnum);
+        else if (ZCMD(zone, cmd_no).arg1 > (int)rnum)
+        {
+          ZCMD(zone, cmd_no).arg1--;
+          zone_touched = true;
+        }
         break;
       case 'R':
         if (ZCMD(zone, cmd_no).arg2 == (int)rnum)
         {
           delete_zone_command(&zone_table[zone], cmd_no);
+          zone_touched = true;
           cmd_no--;
         }
-        else
-          ZCMD(zone, cmd_no).arg2 -= (ZCMD(zone, cmd_no).arg2 > (int)rnum);
+        else if (ZCMD(zone, cmd_no).arg2 > (int)rnum)
+        {
+          ZCMD(zone, cmd_no).arg2--;
+          zone_touched = true;
+        }
         break;
       }
     }
+
+    if (zone_touched)
+      add_to_save_list(zone_table[zone].number, SL_ZON);
   }
 
-  save_objects(zrnum);
+  if (zrnum != NOWHERE)
+    add_to_save_list(zone_table[zrnum].number, SL_OBJ);
 
   return rnum;
 }

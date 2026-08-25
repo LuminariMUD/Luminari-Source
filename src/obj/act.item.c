@@ -1713,7 +1713,11 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
 
       for (found = 0, j2 = j->contains; j2; j2 = j2->next_content)
       {
-        column += send_to_char(ch, "%s %s", found++ ? "," : "", j2->short_description);
+        char list_entry[MAX_INPUT_LENGTH];
+
+        column += snprintf(list_entry, sizeof(list_entry), "%s %s", found++ ? "," : "",
+                           j2->short_description);
+        send_to_char(ch, "%s", list_entry);
         if (column >= 79)
         {
           send_to_char(ch, "%s\r\n", j2->next_content ? "," : "");
@@ -1721,6 +1725,8 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
           column = 0;
         }
       }
+      if (column != 0)
+        send_to_char(ch, "\r\n");
     }
   }
 
@@ -5058,7 +5064,7 @@ ACMD(do_sac)
     obj_from_obj(jj);
 
     if (j->carried_by)
-      obj_to_room(jj, IN_ROOM(j));
+      obj_to_room(jj, IN_ROOM(j->carried_by));
     else if (IN_ROOM(j) != NOWHERE)
       obj_to_room(jj, IN_ROOM(j));
     else
