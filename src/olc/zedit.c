@@ -40,6 +40,46 @@ static void zedit_disp_arg1(struct descriptor_data *d);
 static void zedit_disp_arg2(struct descriptor_data *d);
 static void zedit_disp_arg3(struct descriptor_data *d);
 
+static void zedit_append_room_commands(struct descriptor_data *d)
+{
+  int mobloaded = FALSE, objloaded = FALSE, subcmd, pos;
+
+  for (subcmd = 0, pos = 0; MYCMD.command != 'S'; subcmd++)
+  {
+    switch (MYCMD.command)
+    {
+    case 'G':
+    case 'E':
+      if (mobloaded)
+        break;
+      write_to_output(d, "Equip/Give command not saved since no mob was loaded first.\r\n");
+      continue;
+    case 'P':
+      if (objloaded)
+        break;
+      write_to_output(d, "Put command not saved since another object was not loaded first.\r\n");
+      continue;
+    case 'M':
+      mobloaded = TRUE;
+      break;
+    case 'O':
+      objloaded = TRUE;
+      break;
+    default:
+      mobloaded = objloaded = FALSE;
+      break;
+    }
+    add_cmd_to_list(&(zone_table[OLC_ZNUM(d)].cmd), &MYCMD, pos++);
+  }
+}
+
+#ifdef LUMINARI_CUTEST
+void zedit_append_room_commands_for_test(struct descriptor_data *d)
+{
+  zedit_append_room_commands(d);
+}
+#endif
+
 ACMD(do_oasis_zedit)
 {
   room_vnum number = NOWHERE;
@@ -372,7 +412,7 @@ static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum 
  * the current zone table. */
 static void zedit_save_internally(struct descriptor_data *d)
 {
-  int mobloaded = FALSE, objloaded = FALSE, subcmd, i;
+  int i;
   room_rnum room_num = real_room(OLC_NUM(d));
 
   if (room_num == NOWHERE)
@@ -383,43 +423,8 @@ static void zedit_save_internally(struct descriptor_data *d)
 
   remove_room_zone_commands(OLC_ZNUM(d), room_num);
 
-  /* Now add all the entries in the players descriptor list */
-  for (subcmd = 0; MYCMD.command != 'S'; subcmd++)
-  {
-    /* Since Circle does not keep track of what rooms the 'G', 'E', and
-     * 'P' commands are exitted in, but OasisOLC groups zone commands
-     * by rooms, this creates interesting problems when builders use these
-     * commands without loading a mob or object first.  This fix prevents such
-     * commands from being saved and 'wandering' through the zone command
-     * list looking for mobs/objects to latch onto.
-     * C.Raehl 4/27/99 */
-    switch (MYCMD.command)
-    {
-      /* Possible fail cases. */
-    case 'G':
-    case 'E':
-      if (mobloaded)
-        break;
-      write_to_output(d, "Equip/Give command not saved since no mob was loaded first.\r\n");
-      continue;
-    case 'P':
-      if (objloaded)
-        break;
-      write_to_output(d, "Put command not saved since another object was not loaded first.\r\n");
-      continue;
-      /* Pass cases. */
-    case 'M':
-      mobloaded = TRUE;
-      break;
-    case 'O':
-      objloaded = TRUE;
-      break;
-    default:
-      mobloaded = objloaded = FALSE;
-      break;
-    }
-    add_cmd_to_list(&(zone_table[OLC_ZNUM(d)].cmd), &MYCMD, subcmd);
-  }
+  /* Invalid dependent commands are skipped without advancing the insert position. */
+  zedit_append_room_commands(d);
 
   /* Finally, if zone headers have been changed, copy over */
   if (OLC_ZONE(d)->number)

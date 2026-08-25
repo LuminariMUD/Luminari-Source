@@ -30,6 +30,7 @@
 static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
                                    struct spec_binding *binding_copy,
                                    struct spec_effective_binding *effective_copy);
+static void adjust_room_references_for_insert(room_rnum inserted_room);
 
 static const char *room_persisted_spec_name(const struct room_data *room)
 {
@@ -42,6 +43,59 @@ static const char *room_persisted_spec_name(const struct room_data *room)
   return NULL;
 }
 
+static void adjust_room_references_for_insert(room_rnum inserted_room)
+{
+  struct char_data *tch;
+  zone_rnum zone;
+  int command;
+
+  /* Reset commands can target rooms outside the zone that owns the command. */
+  for (zone = 0; zone <= top_of_zone_table; zone++)
+    for (command = 0; ZCMD(zone, command).command != 'S'; command++)
+      switch (ZCMD(zone, command).command)
+      {
+      case 'M':
+      case 'O':
+      case 'T':
+      case 'V':
+        ZCMD(zone, command).arg3 += (ZCMD(zone, command).arg3 != (int)NOWHERE &&
+                                     ZCMD(zone, command).arg3 >= (int)inserted_room);
+        break;
+      case 'D':
+      case 'R':
+      case 'F':
+      case 'K':
+      case 'X':
+        ZCMD(zone, command).arg1 += (ZCMD(zone, command).arg1 != (int)NOWHERE &&
+                                     ZCMD(zone, command).arg1 >= (int)inserted_room);
+        break;
+      case 'G':
+      case 'P':
+      case 'E':
+      case 'J':
+      case 'I':
+      case 'L':
+      case 'C':
+      case '*':
+        break;
+      default:
+        mudlog(BRF, LVL_STAFF, TRUE,
+               "SYSERR: GenOLC: add_room: Unknown zone entry found! Zone: %d CMD: %c", zone,
+               ZCMD(zone, command).command);
+      }
+
+  /* Idled characters in the void are not reachable through world[].people. */
+  for (tch = character_list; tch; tch = tch->next)
+    GET_WAS_IN(tch) += (GET_WAS_IN(tch) != NOWHERE && GET_WAS_IN(tch) >= inserted_room);
+}
+
+#ifdef LUMINARI_CUTEST
+void adjust_room_references_for_insert_for_test(room_rnum inserted_room)
+{
+  adjust_room_references_for_insert(inserted_room);
+}
+#endif
+
 static room_rnum add_room_internal(struct room_data *room, bool persistent)
 {
   struct char_data *tch;
@@ -50,6 +104,7 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
   struct spec_effective_binding *effective_copy = NULL;
   char binding_error[256];
   int j;
+  byte live_light;
   room_rnum i, found = 0;
 
   if (room == NULL)
@@ -75,9 +130,11 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
       extract_script(&world[i].script);
     tch = world[i].people;
     tobj = world[i].contents;
+    live_light = world[i].light;
     copy_room_with_bindings(&world[i], room, binding_copy, effective_copy);
     world[i].people = tch;
     world[i].contents = tobj;
+    world[i].light = live_light;
     if (persistent)
       add_to_save_list(zone_table[room->zone].number, SL_WLD);
     log("GenOLC: add_room: Updated existing room #%d.", room->number);
@@ -144,39 +201,7 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
   log("GenOLC: add_room: Added room %d at index #%d.", room->number, found);
   /* found is equal to the array index where we added the room. */
 
-  /* Find what zone that room was in so we can update the loading table. */
-  for (i = room->zone; i <= top_of_zone_table; i++)
-    for (j = 0; ZCMD(i, j).command != 'S'; j++)
-      switch (ZCMD(i, j).command)
-      {
-      case 'M':
-      case 'O':
-      case 'T':
-      case 'V':
-        ZCMD(i, j).arg3 += (ZCMD(i, j).arg3 != (int)NOWHERE && ZCMD(i, j).arg3 >= (int)found);
-        break;
-      case 'D':
-      case 'R':
-      case 'F':
-      case 'K':
-      case 'X':
-        ZCMD(i, j).arg1 += (ZCMD(i, j).arg1 != (int)NOWHERE && ZCMD(i, j).arg1 >= (int)found);
-        break;
-      case 'G':
-      case 'P':
-      case 'E':
-      case 'J':
-      case 'I':
-      case 'L':
-      case 'C':
-      case '*':
-        /* Known zone entries we don't care about. */
-        break;
-      default:
-        mudlog(BRF, LVL_STAFF, TRUE,
-               "SYSERR: GenOLC: add_room: Unknown zone entry found! Zone: %d CMD: %c", i,
-               ZCMD(i, j).command);
-      }
+  adjust_room_references_for_insert(found);
 
   /* Update the loadroom table. Adds 1 or 0. */
   r_mortal_start_room += (r_mortal_start_room >= found);

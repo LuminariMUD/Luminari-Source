@@ -190,7 +190,6 @@ static void extract_mobile_all(mob_vnum vnum)
 int delete_mobile(mob_rnum refpt)
 {
   struct char_data *live_mob;
-  struct char_data *proto;
   mob_rnum counter;
   int shop, cmd_no;
   mob_vnum vnum;
@@ -208,10 +207,8 @@ int delete_mobile(mob_rnum refpt)
   }
 
   vnum = mob_index[refpt].vnum;
-  proto = &mob_proto[refpt];
 
   extract_mobile_all(vnum);
-  extract_char(proto);
   spec_binding_free(&mob_index[refpt].spec_binding);
   spec_effective_binding_free(&mob_index[refpt].effective_binding);
 

@@ -22,5 +22,8 @@ room_rnum duplicate_room(room_vnum to, room_rnum from);
 int copy_room_strings(struct room_data *dest, struct room_data *source);
 int free_room_strings(struct room_data *);
 void free_trail_data_list(struct trail_data_list *trail);
+#ifdef LUMINARI_CUTEST
+void adjust_room_references_for_insert_for_test(room_rnum inserted_room);
+#endif
 
 #endif /* _GENWLD_H_ */

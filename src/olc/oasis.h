@@ -86,6 +86,9 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type);
 void get_char_colors(struct char_data *ch);
 void split_argument(char *argument, char *tag);
 void send_cannot_edit(struct char_data *ch, zone_vnum zone);
+#ifdef LUMINARI_CUTEST
+void zedit_append_room_commands_for_test(struct descriptor_data *d);
+#endif
 
 /* OLC structures. */
 

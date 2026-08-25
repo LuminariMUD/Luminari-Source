@@ -14,7 +14,10 @@
 #include "../../src/modify.h"
 #include "../../src/comms/boards.h"
 #include "../../src/obj/item.h"
+#include "../../src/olc/genmob.h"
 #include "../../src/olc/genolc.h"
+#include "../../src/olc/genwld.h"
+#include "../../src/olc/genzon.h"
 #include "../../src/olc/oasis.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
@@ -143,6 +146,243 @@ void Test_ban_file_reader_skips_malformed_and_overlong_records(CuTest *tc)
   reached_end = !ban_read_record_for_test(fixture, &record);
   fclose(fixture);
   CuAssertTrue(tc, reached_end);
+}
+
+void Test_existing_room_update_preserves_live_light_count(CuTest *tc)
+{
+  struct room_data edited_room;
+  struct char_data occupant;
+  struct obj_data object;
+  struct room_data *saved_world;
+  struct room_data *test_world;
+  room_rnum saved_top_of_world;
+  room_rnum result;
+  bool preserved_light;
+  bool preserved_occupants;
+
+  test_world = calloc(1, sizeof(*test_world));
+  if (test_world == NULL)
+  {
+    CuFail(tc, "could not allocate the room update fixture");
+    return;
+  }
+
+  memset(&edited_room, 0, sizeof(edited_room));
+  memset(&occupant, 0, sizeof(occupant));
+  memset(&object, 0, sizeof(object));
+  test_world[0].number = 900;
+  test_world[0].light = 7;
+  test_world[0].people = &occupant;
+  test_world[0].contents = &object;
+  edited_room.number = 900;
+  edited_room.light = 1;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = test_world;
+  top_of_world = 0;
+
+  result = add_runtime_room(&edited_room);
+  preserved_light = result == 0 && world[0].light == 7;
+  preserved_occupants = world[0].people == &occupant && world[0].contents == &object;
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  free(test_world);
+
+  CuAssertTrue(tc, preserved_light);
+  CuAssertTrue(tc, preserved_occupants);
+}
+
+void Test_room_insert_updates_cross_zone_and_idle_room_references(CuTest *tc)
+{
+  struct reset_com first_zone_commands[2];
+  struct reset_com second_zone_commands[2];
+  struct zone_data test_zones[2];
+  struct char_data idle_character;
+  struct char_data *saved_character_list;
+  struct zone_data *saved_zone_table;
+  zone_rnum saved_top_of_zone_table;
+
+  memset(first_zone_commands, 0, sizeof(first_zone_commands));
+  memset(second_zone_commands, 0, sizeof(second_zone_commands));
+  memset(test_zones, 0, sizeof(test_zones));
+  clear_char(&idle_character);
+
+  first_zone_commands[0].command = 'D';
+  first_zone_commands[0].arg1 = 5;
+  first_zone_commands[1].command = 'S';
+  second_zone_commands[0].command = 'M';
+  second_zone_commands[0].arg3 = 7;
+  second_zone_commands[1].command = 'S';
+  test_zones[0].cmd = first_zone_commands;
+  test_zones[1].cmd = second_zone_commands;
+  GET_WAS_IN(&idle_character) = 6;
+
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  saved_character_list = character_list;
+  zone_table = test_zones;
+  top_of_zone_table = 1;
+  character_list = &idle_character;
+
+  adjust_room_references_for_insert_for_test(5);
+
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+  character_list = saved_character_list;
+
+  CuAssertIntEquals(tc, 6, first_zone_commands[0].arg1);
+  CuAssertIntEquals(tc, 8, second_zone_commands[0].arg3);
+  CuAssertTrue(tc, GET_WAS_IN(&idle_character) == (room_rnum)7);
+}
+
+void Test_zedit_skipped_dependency_preserves_later_commands(CuTest *tc)
+{
+  struct descriptor_data descriptor;
+  struct oasis_olc_data olc;
+  struct reset_com scratch_commands[4];
+  struct zone_data scratch_zone;
+  struct zone_data target_zone;
+  struct zone_data *saved_zone_table;
+  zone_rnum saved_top_of_zone_table;
+  int saved_count;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&olc, 0, sizeof(olc));
+  memset(scratch_commands, 0, sizeof(scratch_commands));
+  memset(&scratch_zone, 0, sizeof(scratch_zone));
+  memset(&target_zone, 0, sizeof(target_zone));
+
+  target_zone.cmd = calloc(1, sizeof(*target_zone.cmd));
+  if (target_zone.cmd == NULL)
+  {
+    CuFail(tc, "could not allocate the zedit command fixture");
+    return;
+  }
+  target_zone.cmd[0].command = 'S';
+
+  scratch_commands[0].command = 'G';
+  scratch_commands[1].command = 'O';
+  scratch_commands[2].command = 'R';
+  scratch_commands[3].command = 'S';
+  scratch_zone.cmd = scratch_commands;
+  olc.zone_num = 0;
+  olc.zone = &scratch_zone;
+  descriptor.olc = &olc;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  if (descriptor.pProtocol == NULL)
+  {
+    free(target_zone.cmd);
+    CuFail(tc, "could not initialize the zedit output fixture");
+    return;
+  }
+
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  zone_table = &target_zone;
+  top_of_zone_table = 0;
+
+  zedit_append_room_commands_for_test(&descriptor);
+  saved_count = count_commands(target_zone.cmd);
+
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+
+  CuAssertIntEquals(tc, 2, saved_count);
+  CuAssertIntEquals(tc, 'O', target_zone.cmd[0].command);
+  CuAssertIntEquals(tc, 'R', target_zone.cmd[1].command);
+  CuAssertTrue(tc, strstr(descriptor.output, "not saved") != NULL);
+
+  free(target_zone.cmd);
+  ProtocolDestroy(descriptor.pProtocol);
+  reset_test_descriptor_output(&descriptor);
+}
+
+void Test_delete_mobile_does_not_queue_prototype_extraction(CuTest *tc)
+{
+  struct char_data *saved_character_list;
+  struct char_data *test_mob_proto;
+  struct index_data *test_mob_index;
+  struct shop_data *saved_shop_index;
+  struct zone_data *saved_zone_table;
+  struct reset_com *test_commands;
+  struct zone_data *test_zone_table;
+  mob_rnum saved_top_of_mobt;
+  zone_rnum saved_top_of_zone_table;
+  int pending_before;
+  int pending_after;
+  int deleted;
+
+  test_commands = calloc(1, sizeof(*test_commands));
+  test_zone_table = calloc(1, sizeof(*test_zone_table));
+  test_mob_proto = calloc(2, sizeof(*test_mob_proto));
+  test_mob_index = calloc(2, sizeof(*test_mob_index));
+  if (test_commands == NULL || test_zone_table == NULL || test_mob_proto == NULL ||
+      test_mob_index == NULL)
+  {
+    free(test_commands);
+    free(test_zone_table);
+    free(test_mob_proto);
+    free(test_mob_index);
+    CuFail(tc, "could not allocate the mobile deletion fixture");
+    return;
+  }
+
+  test_commands[0].command = 'S';
+  test_zone_table[0].bot = 1000;
+  test_zone_table[0].top = 1099;
+  test_zone_table[0].cmd = test_commands;
+  test_mob_index[0].vnum = 123;
+  test_mob_index[1].vnum = 456;
+  test_mob_proto[0].nr = 0;
+  test_mob_proto[1].nr = 1;
+  test_mob_proto[0].player_specials = &dummy_mob;
+  test_mob_proto[1].player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&test_mob_proto[0]), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(&test_mob_proto[1]), MOB_ISNPC);
+
+  {
+    struct char_data *original_mob_proto;
+    struct index_data *original_mob_index;
+
+    original_mob_proto = mob_proto;
+    original_mob_index = mob_index;
+    saved_zone_table = zone_table;
+    saved_top_of_zone_table = top_of_zone_table;
+    saved_top_of_mobt = top_of_mobt;
+    saved_character_list = character_list;
+    saved_shop_index = shop_index;
+
+    mob_proto = test_mob_proto;
+    mob_index = test_mob_index;
+    top_of_mobt = 1;
+    zone_table = test_zone_table;
+    top_of_zone_table = 0;
+    character_list = NULL;
+    shop_index = NULL;
+
+    pending_before = pending_extractions_count();
+    deleted = delete_mobile(0);
+    pending_after = pending_extractions_count();
+
+    free(mob_proto);
+    free(mob_index);
+    mob_proto = original_mob_proto;
+    mob_index = original_mob_index;
+    top_of_mobt = saved_top_of_mobt;
+    zone_table = saved_zone_table;
+    top_of_zone_table = saved_top_of_zone_table;
+    character_list = saved_character_list;
+    shop_index = saved_shop_index;
+  }
+  free(test_commands);
+  free(test_zone_table);
+
+  CuAssertIntEquals(tc, 0, deleted);
+  CuAssertIntEquals(tc, pending_before, pending_after);
 }
 
 void Test_room_trigger_attachments_are_idempotent_and_reset_restorable(CuTest *tc)

@@ -3280,7 +3280,8 @@ void extract_char_final(struct char_data *ch)
     /* note - this is deprecated, switched value back to 0 */
     save_char(ch, 0);
 
-    Crash_delete_crashfile(ch);
+    if (GET_PFILEPOS(ch) >= 0)
+      Crash_delete_crashfile(ch);
   }
   PERF_prof_sect_exit(pr_world_remove);
 

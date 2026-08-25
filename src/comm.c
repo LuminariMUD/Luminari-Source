@@ -775,6 +775,7 @@ static void init_game(ush_int local_port)
   game_loop(mother_desc);
 
   Crash_save_all();
+  House_save_all();
 
   /* Save all vessel states to database */
   log("Saving vessel states to database.");
