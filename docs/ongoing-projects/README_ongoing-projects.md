@@ -20,6 +20,7 @@ their own analysis dates. Most retained legacy notes are grouped in
 
 | Document | Status | What remains |
 |----------|--------|--------------|
+| [EVENT_DRIVEN_CORE_REFACTOR_SPEC.md](EVENT_DRIVEN_CORE_REFACTOR_SPEC.md) | Draft architecture specification; implementation not started | Review and accept the scheduler invariants, timing-wheel geometry, lifecycle and ownership contract, migration gates, and encounter semantics; then complete the Phase 0 event inventory and performance baseline before writing runtime code. |
 | [HELPFILE_SYNCHRONIZATION_DESIGN.md](HELPFILE_SYNCHRONIZATION_DESIGN.md) | Implementation complete; isolated end-to-end tests passing | Deploy the same revision to both endpoints, restart to apply schema version 2026082408, run a read-only live audit, explicitly choose the first common baseline, and perform the first separately authorized development/production rehearsal. No production mutation has been performed. |
 | [CAMPAIGN_VARIANT_RETIREMENT_LIVE_TEST_REPORT.md](todo-zusuk/CAMPAIGN_VARIANT_RETIREMENT_LIVE_TEST_REPORT.md) | Live regression test passed | Gameplay evidence, test limits, state restoration, and six non-blocking follow-up findings for the retirement branch. |
 | [OBJ_FILE_FORMAT_MAPPING.md](OBJ_FILE_FORMAT_MAPPING.md) | Research complete | Field-by-field reference for the Luminari and Realms of Luminari `.obj` formats, traced to their loaders and writers, with a side-by-side comparison and the conversion hazards that follow from it. Reference material for the RoL converter work; nothing to implement here. |

@@ -1,5 +1,12 @@
 ## Unifying LuminariMUD Event Systems
 
+> **Superseded for future planning:** This narrow cleanup proposal is retained
+> as historical groundwork. Its remaining scope is incorporated into
+> [`EVENT_DRIVEN_CORE_REFACTOR_SPEC.md`](../EVENT_DRIVEN_CORE_REFACTOR_SPEC.md),
+> which is the authoritative plan for the scheduler, ownership model, migration,
+> and gameplay consumers. Some cleanup-callback groundwork described here has
+> already been implemented.
+
 Goal: consolidate the base DG event queue (generic timed events) and the higher-level MUD event layer (entity-scoped, table-driven) into a single, simple, clean system without reducing safety or features.
 
 ### 1) Current State (What we have)
