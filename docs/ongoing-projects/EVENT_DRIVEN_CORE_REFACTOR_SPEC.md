@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - standalone scheduler core implemented and unused
-**Document version:** 0.4
+**Status:** In progress - Phase 1 scheduler accepted and unused
+**Document version:** 0.5
 **Started:** 2026-08-29
 **Last source review:** 2026-08-30
-**Implementation status:** Phase 1 implementation tranche complete; Phase 1 gate remains open
+**Implementation status:** Phase 1 complete; Phase 2 legacy adapter ready to begin
 
 > This remains the controlling planning specification. The standalone Phase 1
 > scheduler is compiled and tested but has no runtime consumer. Current game
@@ -428,8 +428,9 @@ The accepted Phase 1 wheel uses five levels with 64 slots per level and a
 A sparse overflow structure, provisionally a min-heap, handles deadlines beyond
 the L4 horizon. It is expected to remain nearly empty.
 
-Future geometry changes require benchmarks demonstrating memory, cascade, or
-real delay-distribution benefit and must preserve the private API contract.
+Future geometry changes require Phase 4 observed-workload benchmarks
+demonstrating memory, cascade, or delay-distribution benefit and must preserve
+the private API contract.
 
 ### 8.2 Placement
 
@@ -665,9 +666,9 @@ Each main-loop iteration has both:
 When either is reached, remaining ready events stay ordered for the next loop.
 They are not dropped or moved back through the wheel.
 
-Budgets must be configurable or derived from measured server timing. Phase 0
-records the current event callback distribution and network-loop latency before
-numeric acceptance thresholds are frozen.
+Budgets must be configurable or derived from measured server timing. Phase 2
+adds aggregate telemetry, and Phase 4 records representative callback and
+reactor latency before numeric acceptance thresholds are frozen.
 
 ## 14. Recurrence and Lateness
 
@@ -1035,15 +1036,16 @@ Deliverables:
 - Review and accept scheduler invariants.
 - Inventory all base-event and MUD-event call sites.
 - Classify current events by owner, recurrence, persistence, and cleanup.
-- Record queue depth, delay distribution, callback rate, slow handlers, and
-  heartbeat/network latency under representative load.
+- Record the available queue, callback, heartbeat, and reactor baseline and
+  identify telemetry that the current queue cannot provide.
 - Freeze the deterministic ordering and stall behavior expected from legacy
   compatibility mode.
 - Resolve open decisions required for Phase 1.
 
 Gate:
 
-- Approved specification and reproducible baseline report.
+- Approved specification, reproducible build/test/runtime baseline, and an
+  explicit record of deferred workload measurements.
 
 Rollback:
 
@@ -1062,8 +1064,8 @@ Deliverables:
 
 Gate:
 
-- Complete deterministic test matrix, sanitizer pass, and benchmark against
-  the Phase 0 delay distribution.
+- Complete deterministic boundary and lifecycle matrix, sanitizer and static
+  analysis passes, capacity testing, and a synthetic mixed-delay benchmark.
 
 Rollback:
 
@@ -1097,16 +1099,19 @@ Implementation record, 2026-08-29:
   UndefinedBehaviorSanitizer, and the core passes GCC static analysis. An
   optimized local run of the 22-test harness, including admission and dispatch
   of 10,000 mixed-deadline events, completed in 0.01 seconds with 4,484 KiB
-  maximum resident memory on the validation host. This is a development smoke
-  benchmark, not a substitute for the still-missing representative Phase 0
-  production delay trace.
+  maximum resident memory on the validation host. This is the accepted Phase 1
+  synthetic capacity and mixed-delay benchmark. Representative observed
+  workload measurement is deferred to Phase 4, after Phase 2 can supply the
+  aggregate telemetry needed to collect it.
 - The implementation is listed in both Autotools and CMake. It does not alter
   `comm.c`, `dg_event.c`, `mud_event.c`, combat, networking, or live scheduling
   behavior.
 
-The deterministic matrix and sanitizer portions of the Phase 1 gate are met.
-The gate remains open until a representative production delay distribution is
-captured and compared, followed by maintainer review of this tranche.
+The Phase 1 gate is met by the deterministic matrix, sanitizers, static
+analysis, capacity workload, build integration, and full production-linked
+suite. The standalone scheduler is accepted for compatibility integration. Its
+private wheel geometry remains measurable and replaceable if Phase 4 data later
+demonstrates a better configuration.
 
 ### Phase 2: Legacy compatibility adapter
 
@@ -1117,6 +1122,13 @@ Deliverables:
 - Preserve diagnostics and event names.
 - Add trace-comparison tests using identical fake-clock scenarios against the
   old and new queue implementations.
+- Inventory legacy event call sites and construct a source-derived workload
+  corpus covering their real delay ranges, recurrence, cancellation, and
+  cleanup patterns.
+- Add passive aggregate telemetry for delay buckets, callback/profile identity,
+  queue depth and high-water mark, fired/cancelled outcomes, recurrence, due
+  batch size, and callback duration. Telemetry records no payload, character,
+  account, descriptor content, or other player-sensitive data.
 - Continue driving the scheduler from the existing heartbeat temporarily; this
   phase changes timed-event storage, not the main-loop driver.
 
@@ -1172,6 +1184,14 @@ Deliverables:
   storm tests.
 - Exercise representative world, spell, cooldown, DG wait, AI, and resource
   events and compare PERFMON behavior to Phase 0.
+- Collect an observed workload sample from an approved representative
+  environment using the Phase 2 aggregate telemetry. An idle local copy is not
+  described as representative merely because it contains production content.
+- Compare observed delay buckets, queue depth, cancellation, recurrence, due
+  batches, callback cost, wheel placement, cascade activity, and overflow use
+  against the source-derived and synthetic workloads.
+- Review wheel geometry only if the measurements demonstrate a material reason
+  to change it; the compatibility API and behavior remain unchanged.
 - Remove diagnostic paths capable of invoking the same gameplay callback from
   both timed backends.
 
@@ -1179,6 +1199,8 @@ Gate:
 
 - No known correctness regression, leak, use-after-free, ordering mismatch,
   command starvation, connection starvation, or unbounded latency regression.
+  The observed-workload report is reproducible, privacy-safe, and sufficient to
+  accept the current geometry or justify a separately tested replacement.
 
 Rollback:
 
@@ -1476,8 +1498,8 @@ No test phase may leave a root-level `luminari` artifact.
 
 ## 25. Performance Requirements
 
-Numeric thresholds will be frozen after Phase 0 measurement. The architectural
-requirements are:
+Numeric operational thresholds will be frozen after Phase 4 representative
+measurement. The architectural requirements are:
 
 - Normal wheel insertion and queued cancellation are O(1) expected time.
 - The scheduler does not scan all live events every tick.
@@ -1563,6 +1585,7 @@ working document is retired according to the ongoing-project policy.
 | D20 | Active-world lifecycle | Active, cooling-down, and dormant | Provisional | Phase 7 |
 | D21 | Primary activities | At most one primary intentional activity per character initially | Provisional | Phase 10 |
 | D22 | Residual heartbeat | Explicit global scheduled work only; remove compatibility pulse | Accepted | Phase 11 |
+| D23 | Workload measurement | Source-derived and synthetic in Phase 2; privacy-safe observed sample in Phase 4 | Accepted | Phase 4 |
 
 ## 29. Risks and Mitigations
 
@@ -1577,7 +1600,7 @@ working document is retired according to the ongoing-project policy.
 | Encounter joins grant extra actions | Next-round eligibility and not-before guards during merge |
 | Movement invalidates round iteration | Immediate inactive marker plus deferred compaction |
 | Copyover restores stale owners | Typed generation validation and new process-local event IDs |
-| Timing wheel geometry needs later tuning | Private backend API and production delay/cascade measurements before any geometry change |
+| Timing wheel geometry needs later tuning | Private backend API and Phase 4 observed delay/cascade measurements before any geometry change |
 | Reactor rewrite expands blast radius | Independent compatibility phase preserves the heartbeat and has a boot-time `select()` fallback |
 | Domain handlers create hidden control flow | Typed registration, deterministic order, causal-chain diagnostics, and decision hooks separated from notifications |
 | Nested domain events recurse indefinitely | Hard depth and causal-count limits with fail-closed diagnostics |
@@ -1640,6 +1663,8 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 - [ ] Owner generation semantics cover PCs, NPCs, objects, rooms, and runtime
       subsystem owners.
 - [ ] Dispatch budgets and event-storm behavior are operationally acceptable.
+- [ ] Phase 4 observed-workload telemetry is privacy-safe and representative
+      enough to accept or retune scheduler geometry.
 - [ ] Copyover and reboot classifications are sufficient.
 - [ ] Legacy compatibility and rollback do not permit double callback execution.
 - [ ] `libevent` integration preserves descriptor, interpreter, copyover,
@@ -1663,3 +1688,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 0.2 | 2026-08-29 | Recorded the clean local build, database, test, install, and runtime baseline plus known nonfatal content findings before implementation. |
 | 0.3 | 2026-08-29 | Recorded the inert Phase 1 scheduler tranche, accepted D1-D7 for the core, documented validation evidence, and left the production-distribution benchmark gate open. |
 | 0.4 | 2026-08-30 | Restored the libevent-backed reactor as an early required phase, specified command and active-world boundaries, added the typed domain-event contract and current pub/sub retirement, expanded activities, and rebuilt the remaining migration and validation plan. |
+| 0.5 | 2026-08-30 | Accepted the Phase 1 gate on deterministic and synthetic evidence, added privacy-safe aggregate telemetry and a source-derived Phase 2 workload, and moved representative observed-workload measurement and geometry review to Phase 4. |
