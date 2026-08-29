@@ -1,14 +1,14 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** Draft for architecture review
-**Document version:** 0.2
+**Status:** In progress - standalone scheduler core implemented and unused
+**Document version:** 0.3
 **Started:** 2026-08-29
 **Last source review:** 2026-08-29
-**Implementation status:** Not started
+**Implementation status:** Phase 1 implementation tranche complete; Phase 1 gate remains open
 
-> This is a planning specification, not a description of current behavior.
-> No implementation phase may begin until the applicable design gates in this
-> document have been reviewed and accepted.
+> This remains the controlling planning specification. The standalone Phase 1
+> scheduler is compiled and tested but has no runtime consumer. Current game
+> behavior still uses the legacy event systems described below.
 
 ## 1. Purpose
 
@@ -853,6 +853,45 @@ Rollback:
 
 - New core is unused and can be removed without affecting the live queue.
 
+Implementation record, 2026-08-29:
+
+- [`src/game_scheduler.c`](../../src/game_scheduler.c) and
+  [`src/game_scheduler.h`](../../src/game_scheduler.h) implement the private,
+  main-thread scheduler API. No call site outside its tests creates a scheduler.
+- The implementation uses the accepted five-level, 64-slot, 100 ms timing
+  wheel, a sparse overflow min-heap, deadline/sequence ready ordering, opaque
+  64-bit IDs, and ordinary per-event allocation.
+- Admission transfers ownership only after success. Non-NULL payloads require
+  a type cleanup hook, and completion, failure, cancellation, failed
+  rescheduling, and shutdown all converge on one cleanup path.
+- Absolute and relative deadlines at or before the current tick normalize to
+  the next tick. Scheduling from a callback therefore cannot recurse or execute
+  again in the same tick.
+- Callback-count and injected-monotonic-time budgets leave the ordered ready
+  backlog intact for a later dispatch cycle.
+- Recurring handlers return an explicit tagged result. Run-once, coalesce,
+  skip-missed, and bounded-catch-up lateness policies are implemented with no
+  unbounded callback burst.
+- [`unittests/CuTest/test_game_scheduler.c`](../../unittests/CuTest/test_game_scheduler.c)
+  supplies a fake tick clock and fake microsecond clock. Its 22 tests cover
+  every wheel placement edge, overflow promotion, a bounded large-advance
+  path, ordering, lifecycle and cleanup routes, recurrence, budgets, capacity,
+  shutdown, and integer wrap defenses.
+- The scheduler-specific tests pass under AddressSanitizer and
+  UndefinedBehaviorSanitizer, and the core passes GCC static analysis. An
+  optimized local run of the 22-test harness, including admission and dispatch
+  of 10,000 mixed-deadline events, completed in 0.01 seconds with 4,484 KiB
+  maximum resident memory on the validation host. This is a development smoke
+  benchmark, not a substitute for the still-missing representative Phase 0
+  production delay trace.
+- The implementation is listed in both Autotools and CMake. It does not alter
+  `comm.c`, `dg_event.c`, `mud_event.c`, combat, networking, or live scheduling
+  behavior.
+
+The deterministic matrix and sanitizer portions of the Phase 1 gate are met.
+The gate remains open until a representative production delay distribution is
+captured and compared, followed by maintainer review of this tranche.
+
 ### Phase 2: Legacy compatibility adapter
 
 Deliverables:
@@ -1125,23 +1164,23 @@ working document is retired according to the ongoing-project policy.
 
 ## 27. Open Decisions
 
-| ID | Decision | Provisional recommendation | Required by |
-|----|----------|----------------------------|-------------|
-| D1 | Wheel geometry | Five levels, 64 slots, 100 ms base tick | Phase 1 |
-| D2 | Beyond-wheel storage | Sparse min-heap | Phase 1 |
-| D3 | Event ID representation | Monotonic unsigned 64-bit opaque ID | Phase 1 |
-| D4 | Ready ordering container | Deadline/sequence ordered detached list or small heap | Phase 1 |
-| D5 | Event allocation | Ordinary allocation first; add slab only if measured | Phase 1 |
-| D6 | Handler result API | Explicit tagged result, legacy return adapter | Phase 1 |
-| D7 | Same-tick scheduling | Eligible next dispatch cycle, never recursive | Phase 1 |
-| D8 | Owner registry | Typed runtime ID plus generation | Phase 3 |
-| D9 | Persistent event store | Per-type serialization and rehydration | Phase 3 |
-| D10 | Old/new backend selection | Boot-time only with empty scheduler | Phase 2 |
-| D11 | Combat join eligibility | Next encounter round | Phase 5 |
-| D12 | Encounter merge clock | Preserve survivor clock plus participant not-before guards | Phase 5 |
-| D13 | Encounter splitting | Defer unless correctness or profiling requires it | Phase 5 |
-| D14 | Linkdead combat policy | Preserve current behavior until separately reviewed | Phase 5 |
-| D15 | Reactor library | Decide only after scheduler stabilization | Phase 8 |
+| ID | Decision | Selection | Status | Required by |
+|----|----------|-----------|--------|-------------|
+| D1 | Wheel geometry | Five levels, 64 slots, 100 ms base tick | Accepted for Phase 1 | Phase 1 |
+| D2 | Beyond-wheel storage | Sparse min-heap | Accepted for Phase 1 | Phase 1 |
+| D3 | Event ID representation | Monotonic unsigned 64-bit opaque ID | Accepted for Phase 1 | Phase 1 |
+| D4 | Ready ordering container | Deadline/sequence min-heap | Accepted for Phase 1 | Phase 1 |
+| D5 | Event allocation | Ordinary allocation first; add slab only if measured | Accepted for Phase 1 | Phase 1 |
+| D6 | Handler result API | Explicit tagged result; legacy adapter deferred | Core accepted | Phase 1 |
+| D7 | Same-tick scheduling | Normalize to next tick, never recursive | Accepted for Phase 1 | Phase 1 |
+| D8 | Owner registry | Typed runtime ID plus generation | Provisional | Phase 3 |
+| D9 | Persistent event store | Per-type serialization and rehydration | Provisional | Phase 3 |
+| D10 | Old/new backend selection | Boot-time only with empty scheduler | Provisional | Phase 2 |
+| D11 | Combat join eligibility | Next encounter round | Provisional | Phase 5 |
+| D12 | Encounter merge clock | Preserve survivor clock plus participant not-before guards | Provisional | Phase 5 |
+| D13 | Encounter splitting | Defer unless correctness or profiling requires it | Provisional | Phase 5 |
+| D14 | Linkdead combat policy | Preserve current behavior until separately reviewed | Provisional | Phase 5 |
+| D15 | Reactor library | Decide only after scheduler stabilization | Provisional | Phase 8 |
 
 ## 28. Risks and Mitigations
 
@@ -1189,10 +1228,10 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 
 - [ ] Scope and non-goals are correct.
 - [ ] Current-state description matches the source.
-- [ ] Time and lateness semantics are unambiguous.
-- [ ] Wheel geometry and overflow behavior are accepted.
-- [ ] Payload ownership and failed-admission behavior are explicit.
-- [ ] Cancellation during dispatch cannot double-clean or revive an event.
+- [x] Time and lateness semantics are unambiguous for the standalone core.
+- [x] Wheel geometry and overflow behavior are accepted for Phase 1.
+- [x] Payload ownership and failed-admission behavior are explicit.
+- [x] Cancellation during dispatch cannot double-clean or revive an event.
 - [ ] Owner generation semantics cover PCs, NPCs, objects, rooms, and runtime
       subsystem owners.
 - [ ] Dispatch budgets and event-storm behavior are operationally acceptable.
@@ -1208,3 +1247,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 |---------|------|---------|
 | 0.1 | 2026-08-29 | Initial source-grounded specification covering the scheduler foundation, timing wheel, ownership, lifecycle, migration, encounter consumer, testing, and open decisions. |
 | 0.2 | 2026-08-29 | Recorded the clean local build, database, test, install, and runtime baseline plus known nonfatal content findings before implementation. |
+| 0.3 | 2026-08-29 | Recorded the inert Phase 1 scheduler tranche, accepted D1-D7 for the core, documented validation evidence, and left the production-distribution benchmark gate open. |

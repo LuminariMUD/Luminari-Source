@@ -112,6 +112,8 @@ luminari_SOURCES = \
 	src/olc/genshp.c \
 	src/olc/genwld.c \
 	src/olc/genzon.c \
+	src/game_scheduler.c \
+	src/game_scheduler.h \
 	src/graph.c \
 	src/combat/grapple.c \
 	src/handler.c \
@@ -363,6 +365,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
+	unittests/CuTest/test_game_scheduler.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
 	unittests/CuTest/test_unassigned_spells.c \
@@ -420,6 +423,7 @@ cutest_test_files = \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
+	unittests/CuTest/test_game_scheduler.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
 	unittests/CuTest/test_unassigned_spells.c \

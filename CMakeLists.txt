@@ -520,6 +520,8 @@ set(SRC_C_FILES
     src/olc/genshp.c
     src/olc/genwld.c
     src/olc/genzon.c
+    src/game_scheduler.c
+    src/game_scheduler.h
     src/graph.c
     src/combat/grapple.c
     src/handler.c
@@ -1144,7 +1146,6 @@ endif()
 set(HELP_SYNC_SOURCES
     .agents/skills/help-sync/SKILL.md
     .agents/skills/help-sync/agents/openai.yaml
-    docs/ongoing-projects/HELPFILE_SYNCHRONIZATION_DESIGN.md
     scripts/help-sync/catalog.py
     scripts/help-sync/endpoint.py
     scripts/help-sync/help_sync.py
@@ -1196,6 +1197,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_lists_production.c
     unittests/CuTest/test_mob_autoroll.c
     unittests/CuTest/test_copyover_timer.c
+    unittests/CuTest/test_game_scheduler.c
     unittests/CuTest/test_bardic_performance.c
     unittests/CuTest/test_rol_feats.c
     unittests/CuTest/test_unassigned_spells.c
