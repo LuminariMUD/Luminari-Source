@@ -1,9 +1,9 @@
 # Event-Driven Core Refactor Specification
 
 **Status:** In progress - standalone scheduler core implemented and unused
-**Document version:** 0.3
+**Document version:** 0.4
 **Started:** 2026-08-29
-**Last source review:** 2026-08-29
+**Last source review:** 2026-08-30
 **Implementation status:** Phase 1 implementation tranche complete; Phase 1 gate remains open
 
 > This remains the controlling planning specification. The standalone Phase 1
@@ -16,11 +16,17 @@ LuminariMUD currently combines a fixed-rate Diku-style game loop, a bucketed
 DG event queue, an entity-scoped MUD event layer, per-character combat events,
 action cooldown events, and many subsystem-specific heartbeat checks.
 
-This project will establish one reliable, robust, simple scheduling core for
-all delayed and recurring game work. Later phases can use that core to replace
-global scans, introduce encounter-level combat scheduling, model interruptible
-activities, and eventually modernize network readiness handling without tying
-gameplay semantics to a particular I/O library.
+This project will replace the fixed-cadence Diku orchestration model with a
+deadline-driven, `libevent`-backed reactor, one reliable scheduling core for
+delayed and recurring work, and a separate typed domain-event core for
+synchronous gameplay notifications. The command interpreter remains the entry
+point for player commands; event-driven does not mean scheduling every command.
+
+The principal scalability objective is to make processing cost follow active
+world work rather than total world size. Migrated mobs, rooms, objects, effects,
+encounters, and activities wake because work is due or a relevant domain event
+occurred. Dormant entities are not repeatedly scanned merely to discover that
+they have nothing to do.
 
 The first deliverable is the scheduling backend. Gameplay migration is a
 consumer of that backend, not part of its correctness foundation.
@@ -29,9 +35,9 @@ consumer of that backend, not part of its correctness foundation.
 
 The following principles are normative for this project:
 
-1. Luminari owns gameplay scheduling semantics. `libevent`, `libev`, or another
-   reactor may provide readiness and wakeups, but it must not become the game
-   rules engine.
+1. `libevent` is the selected reactor for readiness, timers, signals, and
+   cross-thread wakeups. Luminari owns gameplay scheduling semantics, and
+   `libevent` types or callbacks must not become the game rules API.
 2. The scheduler handles future work. Immediate commands remain immediate, and
    synchronous domain notifications remain separate from timed scheduling.
 3. Game action economy is determined by Pathfinder/D20 rules, never by callback
@@ -47,6 +53,11 @@ The following principles are normative for this project:
    reviewed project changes that rule.
 10. Migration must be incremental, behavior-preserving, measurable, and
     reversible at each release gate.
+11. Domain events report state changes that have occurred. They do not replace
+    scheduled work, player commands, explicit rule checks, or cancellable
+    decision APIs.
+12. Processing cost for migrated systems is proportional to active or due work,
+    not to the total number of dormant world entities.
 
 The central gameplay invariant is:
 
@@ -66,19 +77,27 @@ The central gameplay invariant is:
 - Shutdown, reboot, and copyover behavior.
 - A compatibility facade for the current DG and MUD event APIs.
 - Incremental migration of existing event producers.
-- Encounter-level combat scheduling as the first major gameplay consumer.
-- A later activity system for interruptible timed character work.
-- An eventual reactor integration boundary for network I/O.
+- A `libevent` reactor hidden behind a Luminari-owned integration boundary.
+- One reactor timer armed from the game scheduler's nearest deadline.
+- A typed, synchronous, in-process domain-event core.
+- Replacement and retirement of the current database-backed pub/sub subsystem.
+- Explicit active, cooling-down, and dormant world lifecycle policies.
+- Encounter-level combat scheduling as a separately gated major consumer.
+- A first-class activity system for interruptible timed character work.
+- Gradual decomposition of obsolete heartbeat scans and `WAIT_STATE` uses.
 
 ### 3.2 Out of scope for the scheduler foundation
 
 - Rewriting all commands as events.
+- Calling `libevent` directly from gameplay subsystems.
 - Making combat continuous real-time or weapon-cooldown based.
 - Changing Pathfinder action-economy balance.
 - Introducing concurrent mutation of game state.
 - Replacing all raw gameplay pointers throughout the entire codebase.
-- Selecting or integrating `libevent` or `libev` before the scheduler contract
-  is stable.
+- Replacing the command interpreter, aliases, nanny states, or descriptor input
+  queues with scheduled callbacks.
+- Preserving the existing pub/sub implementation merely because it uses event
+  terminology.
 - Persisting every transient event across a normal reboot.
 - Changing player-visible combat behavior during backend parity phases.
 - Refactoring unrelated large source files merely because this project touches
@@ -153,7 +172,28 @@ standard, move, and swift availability using separate timed cooldown events.
 The existing action queue and action rules must remain usable during early
 combat migration, but they do not yet provide one authoritative round budget.
 
-### 4.6 Existing consolidation plan
+### 4.6 Current pub/sub subsystem
+
+The current subsystem in [`src/pubsub/`](../../src/pubsub/) is a
+database-backed player/topic messaging system rather than the typed synchronous
+domain-event core required by this project. It includes string topics, player
+subscriptions, persistent messages and metadata, priority queues, periodic
+heartbeat processing, staff/player commands, and character-name database
+dependencies.
+
+Its external integration is comparatively narrow: boot initialization,
+once-per-second queue processing, interpreter commands, player-rename schema
+handling, database administration, and limited wilderness spatial metadata.
+Gameplay systems do not broadly publish typed state changes through it.
+
+This project will replace that subsystem rather than use it as the gameplay
+domain bus. Any player-facing notification feature proven worth retaining must
+be specified separately and may consume domain events, but it must not impose
+database, string-topic, or delivery-queue semantics on the domain core.
+Existing pub/sub database tables are deprecated before removal; no production
+data is dropped automatically or without a separately reviewed migration.
+
+### 4.7 Existing consolidation plan
 
 [`MERGE_MUD_EVENTS.md`](todo-zusuk/MERGE_MUD_EVENTS.md) proposed unifying cleanup
 through per-event destructor callbacks. Cleanup callback groundwork now exists
@@ -161,7 +201,7 @@ in the base event structure and its tests. This specification absorbs the
 remaining goals of that narrower plan and extends them to scheduling,
 ownership, dispatch, timing, migration, and gameplay consumers.
 
-### 4.7 Validated local baseline
+### 4.8 Validated local baseline
 
 Phase 0 environment validation was completed on 2026-08-29 against master
 commit `8cac912bf11fd1e09a4e6fad4328d31a54d2544d` before this project branch was
@@ -215,12 +255,15 @@ future boot-log comparisons.
 
 | Term | Meaning |
 |------|---------|
-| Reactor | Waits for socket readiness, cross-thread wakeups, and the next scheduler deadline. |
+| Reactor | `libevent` integration that waits for socket readiness, signals, cross-thread wakeups, and the next scheduler deadline. |
 | Scheduler | Owns timed-event admission, ordering, cancellation, and dispatch readiness. |
 | Timing wheel | Hierarchical collection of time slots used to place scheduled events. |
 | Cascade | Movement of events from a coarse wheel level to a finer level as their deadlines approach. |
 | Timed event | A request to invoke a registered handler at or after a monotonic deadline. |
-| Domain event | A synchronous notification that something already happened; it is not inherently scheduled. |
+| Domain event | A typed synchronous notification that something already happened; it is not scheduled and cannot silently veto the completed operation. |
+| Decision hook | Explicit synchronous rule query used before a cancellable operation; separate from domain-event notification. |
+| Command | Parsed player intent entering through the existing interpreter. |
+| Action | Rule-governed operation that may consume standard, move, swift, immediate, or other game resources. |
 | Event type | Stable registered identity defining handler, payload, policy, and diagnostics. |
 | Event ID | Process-unique opaque identifier for one scheduled event instance. |
 | Owner handle | Stable entity kind, runtime ID, and generation tuple. |
@@ -229,14 +272,20 @@ future boot-log comparisons.
 | Lateness policy | Rule governing what a recurring event does after one or more deadlines were missed. |
 | Encounter | Runtime combat session containing participants, hostility, initiative, and one round clock. |
 | Activity | Timed, interruptible work occupying some part of a character's attention or action economy. |
+| Active set | Entities or subsystem instances currently capable of producing work; dormant entities are excluded. |
 
 ## 6. Target Architecture
 
 ```mermaid
 flowchart TD
-    R[Network reactor or current select loop] --> S[Game scheduler]
-    R --> I[Immediate input processing]
-    X[Cross-thread submissions] --> R
+    R[libevent reactor] --> N[Socket readiness adapter]
+    R --> T[Scheduler deadline wakeup]
+    X[Bounded cross-thread submissions] --> R
+
+    N --> I[Descriptor input queue]
+    I --> C[Command interpreter]
+    C --> L[Game logic]
+    T --> S[Game scheduler]
 
     S --> W[Hierarchical timing wheel]
     W --> Q[Ready list]
@@ -249,16 +298,83 @@ flowchart TD
     D --> G[DG scripts]
     D --> Z[World systems]
 
-    I --> B[Synchronous domain event bus]
-    C --> B
-    A --> B
-    M --> B
-    F --> B
-    Z --> B
+    D --> L
+    L --> B[Typed synchronous domain events]
+    B --> U[Registered game subscribers]
+    U --> S
 ```
 
 There is one timed scheduler. Logical event categories do not receive separate
 physical timer queues unless profiling later proves that isolation is required.
+
+### 6.1 Reactor boundary
+
+After the compatibility gate, one `event_base` becomes the authoritative
+blocking wait mechanism. It owns:
+
+- Listener and descriptor read/write readiness registration.
+- A scheduler wakeup timer armed for the nearest scheduler deadline.
+- Signal integration needed for clean shutdown and operational behavior.
+- Bounded wakeups for submissions from I3, Discord, AI, database, or future
+  worker threads.
+
+Initially, a 100 ms compatibility timer may invoke the existing pulse and
+heartbeat path unchanged. This permits reactor parity to be validated without
+simultaneously changing gameplay cadence. As heartbeat consumers migrate, the
+compatibility timer loses responsibilities and is ultimately removed or
+retained only as an explicitly justified low-frequency global clock.
+
+The scheduler does not allocate one `libevent` timer per game event. It stores
+game events in the timing wheel and exposes the nearest deadline. The reactor
+bridge maintains at most one scheduler wakeup timer and rearms it whenever the
+earliest deadline changes or dispatch leaves more ready work.
+
+No `libevent` type may appear in combat, movement, magic, quest, activity,
+entity, or world-system APIs. A boot-time compatibility selector may choose the
+old `select()` driver or the `libevent` driver while migration is incomplete;
+live switching is prohibited.
+
+### 6.2 Command, action, activity, and notification boundaries
+
+Socket readiness does not execute game commands directly. Existing descriptor
+input processing continues to parse complete lines into the input queue, and
+the existing command interpreter remains responsible for aliases, nanny states,
+and command dispatch.
+
+Commands select one of three execution models:
+
+1. Immediate interaction, such as `look`, `score`, inventory, or speech, runs
+   synchronously when dequeued.
+2. Rule-governed actions, especially in combat, enter the existing action and
+   intent machinery and execute only when the rules grant the required budget.
+3. Timed and interruptible work enters the activity manager, which uses the
+   scheduler for future progress or completion.
+
+After game logic commits a state change, it may publish a typed domain event.
+Notifications are not scheduler entries and do not acquire wall-clock delay.
+Operations that can be vetoed or modified before commitment use a separately
+typed decision hook with an explicit aggregation rule; ordinary domain-event
+handlers cannot retroactively cancel completed state.
+
+### 6.3 Active world and residual heartbeat
+
+Migrated world entities use an explicit lifecycle:
+
+- Active: currently relevant and allowed to own scheduled or reactive work.
+- Cooling down: no immediate participant requires the entity, but a bounded
+  deadline or pending condition may return it to active work.
+- Dormant: owns no recurring think/poll event and contributes no periodic scan
+  cost.
+
+Entry, hostility, script activation, explicit world changes, and relevant
+domain events may wake an entity. Departure or loss of relevance begins a
+subsystem-defined cooling-down transition. Cooling-down completion either
+returns the entity to active work or makes it dormant without a global scan.
+
+Legitimate global work remains possible for metrics, watchdogs, the world
+clock, weather coordination, persistence, maintenance, and diagnostics. Each
+such task must be an explicit scheduled owner that publishes state changes; it
+must not become a disguised scan of every room, mobile, object, or character.
 
 ## 7. Time Model
 
@@ -296,10 +412,10 @@ The timing wheel itself is never serialized as a data structure.
 
 ## 8. Hierarchical Timing Wheel
 
-### 8.1 Proposed geometry
+### 8.1 Accepted Phase 1 geometry
 
-The provisional wheel uses five levels with 64 slots per level and a 100 ms
-base tick.
+The accepted Phase 1 wheel uses five levels with 64 slots per level and a
+100 ms base tick.
 
 | Level | Slot width | Level horizon | Typical work |
 |-------|------------|---------------|--------------|
@@ -312,8 +428,8 @@ base tick.
 A sparse overflow structure, provisionally a min-heap, handles deadlines beyond
 the L4 horizon. It is expected to remain nearly empty.
 
-The exact geometry remains a review decision until Phase 1 benchmarks confirm
-memory use, cascade cost, and the distribution of real Luminari event delays.
+Future geometry changes require benchmarks demonstrating memory, cascade, or
+real delay-distribution benefit and must preserve the private API contract.
 
 ### 8.2 Placement
 
@@ -697,18 +813,97 @@ The facade must not preserve unsafe behavior merely for compatibility. Where a
 behavioral correction is required, it receives a dedicated migration phase,
 test, release note, and rollback decision.
 
-## 20. Combat Encounter Consumer Specification
+## 20. Domain Event Core and Pub/Sub Retirement
 
-Encounter scheduling is not part of scheduler Phase 1, but it is the first major
+### 20.1 Purpose and separation
+
+The domain-event core reports typed gameplay facts synchronously after state is
+committed. Examples include character movement, damage, death, extraction,
+combat-state changes, object movement, door-state changes, and activity
+transitions. Subscribers may update derived state, notify scripts or quests, or
+schedule future work.
+
+The domain core is not:
+
+- A timer queue or delayed-work facility.
+- A player-configurable topic system.
+- A durable message broker or message-history store.
+- A replacement for the command interpreter or action queue.
+- A generic veto mechanism for operations that already completed.
+
+The existing database-backed subsystem in `src/pubsub/` is not reused as this
+core. Its strings, database records, player subscriptions, delivery priorities,
+and periodic queue are incompatible with typed in-process game notification.
+
+### 20.2 Type and dispatch contract
+
+Each domain-event type is registered at boot with a stable symbolic identity,
+diagnostic name, payload type/size contract, and a fixed handler list. Runtime
+player data cannot create event types or install handlers.
+
+Publication rules are:
+
+- Publication and handlers execute synchronously on the main game thread.
+- The payload is immutable and borrowed only for the duration of publication;
+  handlers cannot retain it.
+- Entity references use typed generation-aware handles. A handler resolves and
+  revalidates a handle before mutation.
+- Handler order is deterministic by explicit priority and registration
+  sequence. Hash or link order is never observable behavior.
+- A handler may publish another domain event or schedule future work, subject
+  to bounded nested depth and a bounded causal-chain event count.
+- Nested publication is depth-first and completes before the nested publish
+  call returns. Exceeding either bound stops the causal chain with diagnostics
+  rather than recursing without limit.
+- Registration is immutable after boot. Dispatch therefore never traverses a
+  handler list being modified by another handler.
+- Handlers perform no blocking database, network, or external-service work.
+
+The bus records publication and handler counts, maximum depth, rejected causal
+chains, total and maximum handler time, and slow-handler samples by event type
+and handler identity.
+
+### 20.3 Decision hooks
+
+Some operations need synchronous preconditions, replacement values, or vetoes.
+Those use a distinct typed decision API whose caller defines how multiple
+answers combine. Examples include movement permission, activity interruption,
+or damage modification.
+
+Notifications such as `CharacterEnteredRoom` or `CharacterDamaged` are
+published only after the corresponding state transition. A notification
+handler cannot report a failure that silently rolls the completed operation
+back. This separation keeps causal order and rollback behavior explicit.
+
+### 20.4 Retirement contract
+
+Replacing the existing pub/sub subsystem includes:
+
+- Removing its heartbeat queue processing and boot initialization.
+- Removing player/staff topic, subscription, publish, and queue commands unless
+  a separately specified user-facing messaging feature retains them.
+- Removing obsolete wilderness pub/sub metadata and test-only integration.
+- Removing character-rename cache hooks and schema requirements after the
+  associated feature is retired.
+- Updating build manifests, help content, database setup, system documentation,
+  and administrative diagnostics.
+
+Database tables are first marked deprecated and ignored by runtime code. Their
+eventual removal requires an explicit schema migration, backup/rollback plan,
+and production review; this refactor never drops them opportunistically.
+
+## 21. Combat Encounter Consumer Specification
+
+Encounter scheduling is not part of scheduler Phase 1. It is a major gameplay
 consumer and constrains the scheduler owner model.
 
-### 20.1 Naming
+### 21.1 Naming
 
 The repository's current `encounter_data` describes generated wilderness
 encounter content. A runtime fight session must use an unambiguous name such as
 `combat_encounter_data`; it must not overload the existing structure.
 
-### 20.2 Encounter authority
+### 21.2 Encounter authority
 
 One live combat encounter owns:
 
@@ -726,7 +921,7 @@ One live combat encounter owns:
 `FIGHTING(ch)` may remain a selected target during migration, but it must not be
 the encounter lifetime authority.
 
-### 20.3 Joining
+### 21.3 Joining
 
 A character does not join merely by entering the room. Joining occurs when a
 hostile relationship is established or an assist action connects the character
@@ -742,7 +937,7 @@ The provisional fair-play rule is that a new participant first becomes eligible
 on the next encounter round. Immediate reactions remain possible only through
 the normal reaction budget.
 
-### 20.4 Leaving
+### 21.4 Leaving
 
 Departure sequence:
 
@@ -759,7 +954,7 @@ leaves.
 Departure reasons include movement, flee, teleport, death, extraction,
 disconnect policy, combat-ending effects, and administrative movement.
 
-### 20.5 Merge and split
+### 21.5 Merge and split
 
 Connecting two encounters requires a merge so one fight is never governed by
 two clocks. The surviving encounter adopts all participants. Absorbed
@@ -770,14 +965,14 @@ Splitting a disconnected hostility graph is an optimization, not an initial
 correctness requirement. A temporarily over-inclusive encounter remains valid
 as long as participant and hostility checks are correct.
 
-### 20.6 Ending
+### 21.6 Ending
 
 After every membership change and round resolution, the encounter evaluates
 whether two hostile sides remain. If not, it cancels its one scheduled event,
 clears encounter-scoped state, detaches participants, and releases its registry
 entry.
 
-### 20.7 Combat migration modes
+### 21.7 Combat migration modes
 
 The first encounter implementation may preserve current visible cadence by
 running one encounter-owned event every two seconds and invoking the existing
@@ -787,27 +982,48 @@ round every six seconds with explicit action budgets.
 
 Backend migration and combat-rules redesign must not be combined in one release.
 
-## 21. Activity Consumer Requirements
+## 22. Activity Consumer Requirements
 
 The future activity system will use the same scheduler but own its gameplay
 state separately. Activities cover lockpicking, trap searching, camp building,
 crafting, harvesting, treating wounds, ritual casting, and similar work.
 
-An activity will need:
+One character initially owns at most one primary intentional activity. Hidden
+state, effects, concentration, tracking markers, and similar persistent state
+are not additional primary activities. An activity has:
 
 - Character owner handle and target handle.
 - Activity type and explicit lifecycle state.
-- Occupied action/attention resources.
+- Exclusive or shared capability claims such as movement, hands, attention,
+  vision, speech, standard, move, swift, and immediate actions.
+- Semantic traits such as stationary, distracted, hands occupied, fine
+  manipulation, or obvious activity. Other systems derive modifiers from
+  traits instead of hard-coding every activity type.
 - Progress model: atomic, progressive, or continuous.
 - Interruption policy by movement, damage, attack, room change, target loss,
-  and combat state.
+  command class, and combat state. Outcomes include ignore, cancel, pause,
+  delay, and recheck.
 - Temporary conditions and vulnerability modifiers.
+- Explicit ownership of progress. Character work may disappear on cancel,
+  while world progress such as a partly built campfire may remain on its target.
 - One completion/progress event, not repeated world scans.
 
-Activity policy remains outside the scheduler. The scheduler only invokes the
-activity handler at its next deadline.
+Informational commands normally remain immediate and do not interrupt an
+activity. An incompatible action command either explicitly cancels the current
+activity and proceeds or is rejected according to that activity and command's
+policy; this behavior must never emerge from unrelated command-handler checks.
 
-## 22. Migration Plan
+Movement, damage, extraction, combat transitions, and target lifecycle publish
+domain events that activities consume through typed interruption rules.
+Activities may use wall-clock progress outside combat and semantic per-round
+commitments inside combat. The activity manager and action system define that
+translation; the scheduler never grants standard, move, swift, immediate, or
+reaction resources.
+
+Activity policy and state remain outside the scheduler. The scheduler only
+invokes the activity handler at its next deadline.
+
+## 23. Migration Plan
 
 Each phase requires an independently reviewable change set. No phase may bundle
 unrelated gameplay redesign.
@@ -901,6 +1117,8 @@ Deliverables:
 - Preserve diagnostics and event names.
 - Add trace-comparison tests using identical fake-clock scenarios against the
   old and new queue implementations.
+- Continue driving the scheduler from the existing heartbeat temporarily; this
+  phase changes timed-event storage, not the main-loop driver.
 
 Gate:
 
@@ -912,7 +1130,62 @@ Rollback:
 - Boot-time backend selection returns to the old queue. Backend selection must
   occur only with an empty scheduler; live switching is prohibited.
 
-### Phase 3: MUD event ownership adapter
+### Phase 3: Libevent compatibility reactor
+
+Deliverables:
+
+- Add the selected `libevent` dependency to Autotools, CMake, setup, and
+  deployment documentation.
+- Introduce a Luminari-owned reactor boundary; no gameplay header exposes a
+  `libevent` type.
+- Drive listener readiness, descriptor read/write readiness, required signals,
+  and bounded cross-thread wakeups through one `event_base`.
+- Preserve `process_input()`, descriptor input queues, aliases, nanny states,
+  command ordering, and `command_interpreter()`.
+- Invoke the existing pulse/heartbeat path from a 100 ms compatibility timer so
+  gameplay timing remains unchanged in this phase.
+- Provide a boot-time `select()`/`libevent` driver selection with no live
+  switching.
+
+Gate:
+
+- Connection, protocol, descriptor lifecycle, output backpressure, copyover,
+  signal, idle-server, and bounded connection-load tests are equivalent under
+  both drivers.
+
+Rollback:
+
+- Select the existing `select()` driver at boot; the scheduler and gameplay
+  event facade remain unchanged.
+
+### Phase 4: Scheduler/reactor bridge and production hardening
+
+Deliverables:
+
+- Arm one reactor timer from `game_scheduler_next_deadline()` and rearm it when
+  the earliest deadline changes.
+- Dispatch due scheduler work with count and wall-time budgets, then yield to
+  the reactor before continuing a ready backlog.
+- Retain the 100 ms compatibility heartbeat only for unmigrated pulse work.
+- Run the complete production-linked test suite and protocol harness.
+- Add event churn, capacity, cascade, stall, copyover, long-soak, and due-event
+  storm tests.
+- Exercise representative world, spell, cooldown, DG wait, AI, and resource
+  events and compare PERFMON behavior to Phase 0.
+- Remove diagnostic paths capable of invoking the same gameplay callback from
+  both timed backends.
+
+Gate:
+
+- No known correctness regression, leak, use-after-free, ordering mismatch,
+  command starvation, connection starvation, or unbounded latency regression.
+
+Rollback:
+
+- Return scheduler advancement to the compatibility heartbeat or select the old
+  queue at boot. No live scheduler conversion is allowed.
+
+### Phase 5: MUD event ownership adapter
 
 Deliverables:
 
@@ -931,29 +1204,64 @@ Rollback:
 
 - Return MUD facade to the legacy backend without changing gameplay callers.
 
-### Phase 4: Production parity and hardening
+### Phase 6: Typed domain events and pub/sub retirement
 
 Deliverables:
 
-- Run the complete production-linked test suite and protocol harness.
-- Add event churn, capacity, cascade, stall, copyover, and long-soak tests.
-- Exercise representative world, spell, cooldown, DG wait, AI, and resource
-  events.
-- Compare PERFMON behavior to Phase 0.
-- Remove any temporary dual-backend diagnostic code that can execute callbacks
-  twice.
+- Implement the typed synchronous domain-event registry and dispatcher.
+- Add bounded nesting, deterministic handler order, immutable borrowed payloads,
+  typed handles, and publication/handler diagnostics.
+- Add separate decision hooks where pre-operation veto or modification is
+  genuinely required.
+- Introduce foundational movement, damage, death, extraction, combat-state,
+  object-movement, door-state, and activity-transition events as their owning
+  subsystems migrate.
+- Remove runtime initialization and heartbeat processing for `src/pubsub/`.
+- Remove or separately re-specify its player/staff commands and wilderness
+  metadata; update help, documentation, database setup, and rename handling.
+- Deprecate its database tables without dropping production data.
 
 Gate:
 
-- No known correctness regression, leak, use-after-free, ordering mismatch, or
-  unbounded latency regression.
+- Deterministic order, nested publication, entity extraction during handlers,
+  stale handles, causal-chain limits, and slow-handler diagnostics pass under
+  sanitizers and Valgrind. No runtime gameplay path depends on the old pub/sub
+  queue.
 
 Rollback:
 
-- Retain the old backend for one release boundary if maintenance cost remains
-  acceptable; otherwise rollback by revision rather than live conversion.
+- Retain the old pub/sub feature behind a boot-time migration boundary until
+  its commands and data obligations are reviewed. Never publish one gameplay
+  fact through both systems in a mode that duplicates side effects.
 
-### Phase 5: Encounter-level combat compatibility
+### Phase 7: Active world and scan reduction
+
+Deliverables:
+
+- Inventory every remaining heartbeat/global scan by cadence, population, and
+  reason for scanning.
+- Introduce active/cooling-down/dormant registries for selected high-value
+  subsystems.
+- Convert mob thinking, effects, room/world activity, resource work, or other
+  selected scans incrementally to scheduled owners and domain-event wakeups.
+- Retain explicit scheduled global events only for genuinely global work such
+  as metrics, watchdogs, world clock, weather coordination, persistence, and
+  maintenance.
+- Add admission and cancellation limits for high-cardinality AI and world
+  events.
+
+Gate:
+
+- Each converted subsystem demonstrates behavioral parity, bounded event
+  counts, lifecycle cleanup, no dormant-entity scan, and measured cost tied to
+  active work rather than total instantiated world size.
+
+Rollback:
+
+- A per-subsystem boot-time feature gate returns that consumer to its former
+  heartbeat path. Active and legacy paths never run simultaneously.
+
+### Phase 8: Encounter-level combat compatibility
 
 Deliverables:
 
@@ -973,7 +1281,7 @@ Rollback:
 - Restore per-character `eCOMBAT_ROUND` scheduling behind a boot-time feature
   selection. Do not convert an active encounter between models.
 
-### Phase 6: Semantic combat rounds
+### Phase 9: Semantic combat rounds
 
 Deliverables:
 
@@ -994,50 +1302,45 @@ Rollback:
 - Return to encounter-owned compatibility phases without reverting the event
   backend.
 
-### Phase 7: Activities and scan reduction
+### Phase 10: Activity manager and command-time decomposition
 
 Deliverables:
 
-- Activity manager and first migrated timed commands.
-- Measured conversion of selected heartbeat/global scans to scheduled owners.
-- Admission and cancellation limits for high-cardinality AI/world events.
+- Implement one primary activity per character with typed actor and target
+  handles, explicit lifecycle, capability claims, traits, and progress
+  ownership.
+- Implement policy-driven ignore, cancel, pause, delay, and recheck responses
+  to domain events and incompatible commands.
+- Integrate wall-clock activity progress outside combat with semantic action
+  commitments inside combat without letting timers grant actions.
+- Migrate an independently reviewed first set such as lockpicking, trap search,
+  or camp building.
+- Inventory and gradually replace relevant `WAIT_STATE`, timer-variable, and
+  special-case busy flags; generic command throttling may remain where it is
+  still the correct model.
 
 Gate:
 
-- Each converted subsystem demonstrates parity, bounded event counts, lifecycle
-  cleanup, and measurable or architectural benefit.
+- Informational input remains responsive; movement, damage, target extraction,
+  combat entry, cancellation, pause/resume, progress preservation, and action
+  resource tests pass with no duplicate completion or stale target access.
 
 Rollback:
 
-- Per-subsystem feature gate returns that consumer to its former update path.
+- Per-activity feature gates return migrated commands to their prior behavior;
+  the scheduler, reactor, and domain bus remain authoritative.
 
-### Phase 8: Reactor modernization
-
-Deliverables:
-
-- Decide `libevent`, `libev`, or retained native polling based on measured
-  requirements.
-- Integrate socket readiness, scheduler deadline wakeups, signals, and
-  cross-thread notifications.
-- Preserve descriptor, copyover, protocol, health endpoint, and operational
-  behavior.
-
-Gate:
-
-- Independent network/reactor specification and full connection, protocol,
-  copyover, load, and rollback validation.
-
-Rollback:
-
-- Restore the existing `select()` reactor while retaining the scheduler.
-
-### Phase 9: Legacy removal
+### Phase 11: Legacy pulse and compatibility removal
 
 Deliverables:
 
 - Remove old queue implementation and temporary backend selection.
 - Remove raw event-pointer APIs and obsolete cleanup branches.
-- Remove migrated heartbeat scans.
+- Remove migrated heartbeat scans and the 100 ms compatibility heartbeat when
+  no remaining semantic dependency requires it.
+- Remove the old `select()` driver after the `libevent` reactor has completed
+  its stable rollback period.
+- Complete approved old pub/sub source and schema retirement.
 - Publish permanent system, testing, operational, and developer documentation.
 
 Gate:
@@ -1045,9 +1348,9 @@ Gate:
 - At least one stable release period on the new backend, no rollback dependency,
   and explicit maintainer approval.
 
-## 23. Verification Strategy
+## 24. Verification Strategy
 
-### 23.1 Deterministic unit tests
+### 24.1 Deterministic scheduler tests
 
 The scheduler test harness must use a fake clock and cover:
 
@@ -1069,7 +1372,7 @@ The scheduler test harness must use a fake clock and cover:
 - Overflow-heap entry and return to the wheel.
 - Shutdown with queued, ready, and dispatching events.
 
-### 23.2 Compatibility tests
+### 24.2 Timed-event compatibility tests
 
 - Legacy positive return reschedules at the expected pulse.
 - Legacy zero return completes and cleans up.
@@ -1079,7 +1382,7 @@ The scheduler test harness must use a fake clock and cover:
 - DG wait and AI direct-event callers retain behavior.
 - Event cleanup tests in `test_syntax_check_boot.c` continue to pass.
 
-### 23.3 Integration tests
+### 24.3 Scheduler integration tests
 
 - Character extraction with multiple queued events.
 - Object extraction and room/region lifecycle changes.
@@ -1087,9 +1390,51 @@ The scheduler test harness must use a fake clock and cover:
 - Server stall without combat, AI, or cooldown bursts.
 - Sustained event creation/cancellation churn.
 - Event-capacity exhaustion without memory corruption.
-- Main-loop input/output responsiveness under a due-event storm.
+- Reactor input/output responsiveness under a due-event storm.
 
-### 23.4 Encounter tests
+### 24.4 Reactor tests
+
+- Listener accept and descriptor close/error behavior under both drivers.
+- Partial input, multiple queued commands, aliases, nanny transitions, and
+  command ordering remain identical.
+- Partial output and output backpressure do not busy-loop or starve timers.
+- Idle server blocks until listener, signal, cross-thread wakeup, compatibility
+  heartbeat, or scheduler deadline readiness.
+- Earlier schedule and cancellation correctly rearm the single scheduler timer.
+- Ready scheduler backlog yields to descriptor service within the dispatch
+  budget.
+- Shutdown, signals, copyover, and restart preserve current operational
+  behavior.
+- Reactor callbacks do not expose `libevent` state to gameplay handlers.
+
+### 24.5 Domain-event tests
+
+- Event type and handler registration reject duplicates and invalid contracts.
+- Handlers execute by explicit priority and registration sequence.
+- Nested publication is deterministic and respects depth and causal-count
+  limits.
+- Payload lifetime ends when publication returns and no handler retains it.
+- Entity extraction, movement, or generation reuse during a handler cannot make
+  a later handler dereference stale state.
+- Notification failures cannot retroactively veto completed game state.
+- Decision hooks apply their documented aggregation rule.
+- Slow handlers and rejected causal chains are attributed correctly.
+- No old pub/sub heartbeat queue or runtime initialization remains after its
+  retirement gate.
+
+### 24.6 Active-world tests
+
+- An active entity schedules only the work allowed by its subsystem policy.
+- Cooling-down completion chooses active or dormant without a global scan.
+- A dormant room, mobile, object, or subsystem instance owns no recurring think
+  event unless an explicit dormant policy requires one.
+- Entry, hostility, scripts, world changes, and domain events wake the correct
+  entity exactly once.
+- Owner extraction cancels active and cooling-down work exactly once.
+- Increasing dormant world population does not materially increase periodic
+  CPU work for the converted subsystem.
+
+### 24.7 Encounter tests
 
 - Two characters start and end a fight.
 - A third character joins before, during, and after round dispatch.
@@ -1103,7 +1448,21 @@ The scheduler test harness must use a fake clock and cover:
 - Reactions occur before successful departure.
 - No hostile sides remain and the one shared event is canceled exactly once.
 
-### 23.5 Tooling and release validation
+### 24.8 Activity tests
+
+- One character cannot acquire conflicting primary activities.
+- Capability claims block only the commands and actions they actually occupy.
+- Informational commands remain immediate and do not cancel activity.
+- Movement, damage, combat entry, target loss, and extraction apply the
+  activity's typed interruption policy.
+- Pause/resume, delay, recheck, cancel, and completion each clean scheduler and
+  activity state exactly once.
+- Character-owned and world-owned progress survive or disappear according to
+  explicit policy.
+- Wall-clock progress and combat-round commitments cannot grant duplicate
+  actions or completions.
+
+### 24.9 Tooling and release validation
 
 - `make test`
 - `make install` after the root production-linked suite
@@ -1115,14 +1474,16 @@ The scheduler test harness must use a fake clock and cover:
 
 No test phase may leave a root-level `luminari` artifact.
 
-## 24. Performance Requirements
+## 25. Performance Requirements
 
 Numeric thresholds will be frozen after Phase 0 measurement. The architectural
 requirements are:
 
 - Normal wheel insertion and queued cancellation are O(1) expected time.
 - The scheduler does not scan all live events every tick.
-- Empty world size does not determine scheduled-work CPU cost.
+- Dormant world size does not determine periodic CPU cost for migrated systems.
+- Each migrated subsystem processes its active set or due work rather than its
+  total entity population.
 - Ready dispatch cost is proportional to due work, bounded by the dispatch
   budget.
 - Cascade cost is observable and bounded by events actually present in the
@@ -1130,9 +1491,14 @@ requirements are:
 - Owner destruction does not scan the global event population.
 - Encounter scheduling uses one recurring event per active encounter, not per
   character or attack.
-- Network input/output continues to receive service during an event storm.
+- The reactor blocks until readiness or a real deadline rather than enforcing a
+  100 ms wakeup after compatibility pulse removal.
+- Input/output and command processing continue to receive service during an
+  event or domain-notification storm.
+- Domain-event dispatch cost is proportional to handlers registered for the
+  published type, not to all domain types or all world entities.
 
-## 25. Security and Robustness Requirements
+## 26. Security and Robustness Requirements
 
 - Event admission limits must prevent command, script, or external-input event
   amplification from exhausting memory.
@@ -1145,24 +1511,33 @@ requirements are:
 - Owner resolution validates both type and generation before casting.
 - No scheduler callback performs blocking network or database work.
 - Cancel, shutdown, and failed admission paths are sanitizer-clean.
+- Domain-event payloads are immutable during publication and cannot outlive the
+  publishing call without an explicit copy.
+- Nested domain publication has hard depth and causal-count limits.
+- `libevent` objects are owned by the reactor layer and cannot be mutated by
+  gameplay code.
 
-## 26. Documentation Requirements
+## 27. Documentation Requirements
 
 During implementation:
 
 - This document records accepted architectural decisions and phase status.
 - [`docs/systems/MUD_EVENTS.md`](../systems/MUD_EVENTS.md) continues to describe
   current production behavior until the new backend becomes authoritative.
-- An ADR records the final scheduler and reactor decisions.
+- An ADR records the scheduler, selected `libevent` reactor, domain-event, and
+  command/action/activity boundaries.
 - Testing documentation records fake-clock, churn, soak, and failure tests.
 - Operator documentation covers diagnostics, overload, copyover, and rollback.
 - Combat and command/help documentation changes only when player-visible
   behavior changes.
+- Pub/sub command removal or replacement updates database setup, rename,
+  wilderness, operator, and system documentation plus both help storage
+  locations in the same phase.
 
 On completion, durable material moves to the formal documentation tree and this
 working document is retired according to the ongoing-project policy.
 
-## 27. Open Decisions
+## 28. Open Decisions
 
 | ID | Decision | Selection | Status | Required by |
 |----|----------|-----------|--------|-------------|
@@ -1173,16 +1548,23 @@ working document is retired according to the ongoing-project policy.
 | D5 | Event allocation | Ordinary allocation first; add slab only if measured | Accepted for Phase 1 | Phase 1 |
 | D6 | Handler result API | Explicit tagged result; legacy adapter deferred | Core accepted | Phase 1 |
 | D7 | Same-tick scheduling | Normalize to next tick, never recursive | Accepted for Phase 1 | Phase 1 |
-| D8 | Owner registry | Typed runtime ID plus generation | Provisional | Phase 3 |
-| D9 | Persistent event store | Per-type serialization and rehydration | Provisional | Phase 3 |
+| D8 | Owner registry | Typed runtime ID plus generation | Provisional | Phase 5 |
+| D9 | Persistent event store | Per-type serialization and rehydration | Provisional | Phase 5 |
 | D10 | Old/new backend selection | Boot-time only with empty scheduler | Provisional | Phase 2 |
-| D11 | Combat join eligibility | Next encounter round | Provisional | Phase 5 |
-| D12 | Encounter merge clock | Preserve survivor clock plus participant not-before guards | Provisional | Phase 5 |
-| D13 | Encounter splitting | Defer unless correctness or profiling requires it | Provisional | Phase 5 |
-| D14 | Linkdead combat policy | Preserve current behavior until separately reviewed | Provisional | Phase 5 |
-| D15 | Reactor library | Decide only after scheduler stabilization | Provisional | Phase 8 |
+| D11 | Combat join eligibility | Next encounter round | Provisional | Phase 8 |
+| D12 | Encounter merge clock | Preserve survivor clock plus participant not-before guards | Provisional | Phase 8 |
+| D13 | Encounter splitting | Defer unless correctness or profiling requires it | Provisional | Phase 8 |
+| D14 | Linkdead combat policy | Preserve current behavior until separately reviewed | Provisional | Phase 8 |
+| D15 | Reactor library | `libevent` behind a Luminari-owned boundary | Accepted | Phase 3 |
+| D16 | Scheduler reactor timers | One wakeup armed from nearest deadline | Accepted | Phase 4 |
+| D17 | Domain dispatch | Typed, synchronous, main-thread, immutable borrowed payload | Accepted | Phase 6 |
+| D18 | Existing pub/sub | Replace runtime subsystem; deprecate data before reviewed removal | Accepted | Phase 6 |
+| D19 | Nested domain publication | Depth-first with hard depth and causal-count limits | Accepted | Phase 6 |
+| D20 | Active-world lifecycle | Active, cooling-down, and dormant | Provisional | Phase 7 |
+| D21 | Primary activities | At most one primary intentional activity per character initially | Provisional | Phase 10 |
+| D22 | Residual heartbeat | Explicit global scheduled work only; remove compatibility pulse | Accepted | Phase 11 |
 
-## 28. Risks and Mitigations
+## 29. Risks and Mitigations
 
 | Risk | Mitigation |
 |------|------------|
@@ -1195,14 +1577,25 @@ working document is retired according to the ongoing-project policy.
 | Encounter joins grant extra actions | Next-round eligibility and not-before guards during merge |
 | Movement invalidates round iteration | Immediate inactive marker plus deferred compaction |
 | Copyover restores stale owners | Typed generation validation and new process-local event IDs |
-| Timing wheel is optimized prematurely | Provisional geometry, measurements, and private backend API |
-| Reactor rewrite expands blast radius | Reactor is the final independent phase |
+| Timing wheel geometry needs later tuning | Private backend API and production delay/cascade measurements before any geometry change |
+| Reactor rewrite expands blast radius | Independent compatibility phase preserves the heartbeat and has a boot-time `select()` fallback |
+| Domain handlers create hidden control flow | Typed registration, deterministic order, causal-chain diagnostics, and decision hooks separated from notifications |
+| Nested domain events recurse indefinitely | Hard depth and causal-count limits with fail-closed diagnostics |
+| Pub/sub retirement loses stored data | Runtime deprecation precedes any separately reviewed and backed-up schema removal |
+| Dormant entities miss required work | Typed wake sources, cooling-down deadlines, active-registry diagnostics, and parity tests |
+| Activity rules leak across commands | Central capability claims, traits, and interruption policy rather than command-specific busy flags |
 
-## 29. Project Acceptance Criteria
+## 30. Project Acceptance Criteria
 
 The complete refactor is accepted only when:
 
 - One physical timed scheduler serves all migrated event producers.
+- One `libevent` reactor owns readiness and deadline waiting without exposing
+  its types to gameplay code.
+- The existing descriptor input queue and command interpreter remain the
+  authoritative player-command path.
+- One reactor timer follows the scheduler's nearest deadline; game events do
+  not allocate independent `libevent` timers.
 - The timing wheel and overflow path pass deterministic boundary tests.
 - Event cancellation and cleanup are safe and exactly-once in every state.
 - Runtime owners are resolved through typed generation-aware handles.
@@ -1211,18 +1604,30 @@ The complete refactor is accepted only when:
 - Copyover, shutdown, and persistence classifications are explicit and tested.
 - Legacy event behavior remains compatible until each consumer receives its own
   approved migration.
+- Typed synchronous domain events replace the runtime pub/sub queue without
+  database or string-topic coupling.
+- Existing pub/sub commands, code, documentation, rename hooks, and schema are
+  either retired through their reviewed migration or moved to a distinctly
+  specified player-notification subsystem.
+- Converted world systems process active or due work and do not periodically
+  scan dormant populations.
 - Combat uses one recurring scheduled event per live encounter.
 - Joining, leaving, merging, death, movement, and extraction are deterministic
   and cannot grant extra actions.
 - Player-visible semantic combat changes have separate design and balance
   approval.
+- Activities enforce capability, interruption, progress, and action-resource
+  rules without scheduling informational commands.
 - Existing production-linked, protocol, sanitizer, static, and operational test
   gates pass.
 - Permanent developer, system, testing, and operations documentation is current.
 - The legacy queue, raw event-pointer public API, and obsolete heartbeat scans
   have approved removal evidence.
+- The old `select()` driver and 100 ms compatibility pulse are removed after
+  their stable rollback period. Explicitly approved global work remains as
+  named scheduled events, not as a generic pulse scan.
 
-## 30. Review Checklist
+## 31. Review Checklist
 
 Before accepting version 1.0 of this specification, reviewers should confirm:
 
@@ -1237,14 +1642,24 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 - [ ] Dispatch budgets and event-storm behavior are operationally acceptable.
 - [ ] Copyover and reboot classifications are sufficient.
 - [ ] Legacy compatibility and rollback do not permit double callback execution.
+- [ ] `libevent` integration preserves descriptor, interpreter, copyover,
+      signal, and operational behavior without leaking reactor types.
+- [ ] Domain events, decision hooks, nested publication, and payload lifetime
+      rules are unambiguous.
+- [ ] Existing pub/sub commands, data, documentation, and retirement obligations
+      have an approved disposition.
+- [ ] Active/cooling-down/dormant wake and sleep rules cannot lose required work.
 - [ ] Encounter join, leave, merge, and termination rules are fair and complete.
+- [ ] Activity capability, trait, interruption, progress, and combat-time rules
+      are coherent.
 - [ ] Migration phases are independently testable and reversible.
 - [ ] Documentation and help obligations are assigned to the correct phases.
 
-## 31. Revision Log
+## 32. Revision Log
 
 | Version | Date | Summary |
 |---------|------|---------|
 | 0.1 | 2026-08-29 | Initial source-grounded specification covering the scheduler foundation, timing wheel, ownership, lifecycle, migration, encounter consumer, testing, and open decisions. |
 | 0.2 | 2026-08-29 | Recorded the clean local build, database, test, install, and runtime baseline plus known nonfatal content findings before implementation. |
 | 0.3 | 2026-08-29 | Recorded the inert Phase 1 scheduler tranche, accepted D1-D7 for the core, documented validation evidence, and left the production-distribution benchmark gate open. |
+| 0.4 | 2026-08-30 | Restored the libevent-backed reactor as an early required phase, specified command and active-world boundaries, added the typed domain-event contract and current pub/sub retirement, expanded activities, and rebuilt the remaining migration and validation plan. |
