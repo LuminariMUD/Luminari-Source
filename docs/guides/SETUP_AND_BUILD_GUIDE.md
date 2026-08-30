@@ -23,7 +23,8 @@ flags with `./scripts/deployment/deploy.sh --help`.
 sudo apt-get update
 sudo apt-get install -y build-essential git make autoconf automake libtool \
   cmake pkg-config mariadb-server libmariadb-dev libcrypt-dev libgd-dev \
-  libcurl4-openssl-dev libssl-dev libjson-c-dev gdb valgrind
+  libcurl4-openssl-dev libssl-dev libjson-c-dev zlib1g-dev mariadb-client \
+  pandoc gdb valgrind
 ```
 
 ## Existing Configured Checkout
@@ -60,6 +61,7 @@ test -e src/campaign.h || cp src/campaign.example.h src/campaign.h
 test -e src/mud_options.h || cp src/mud_options.example.h src/mud_options.h
 test -e src/vnums.h || cp src/vnums.example.h src/vnums.h
 test -e lib/mysql_config || install -m 600 lib/mysql_config_example lib/mysql_config
+test -e lib/.env || install -m 600 lib/.env_example lib/.env
 ```
 
 Edit local configuration without committing it. Never overwrite an existing

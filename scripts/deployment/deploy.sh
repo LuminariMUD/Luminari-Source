@@ -104,7 +104,8 @@ install_dependencies() {
             sudo apt-get install -y \
                 build-essential cmake autoconf automake libtool pkg-config \
                 libcrypt-dev libgd-dev libmariadb-dev libcurl4-openssl-dev \
-                libssl-dev libjson-c-dev mariadb-server curl git make
+                libssl-dev libjson-c-dev zlib1g-dev mariadb-server \
+                mariadb-client curl git make pandoc
 
             if [[ "$BUILD_TYPE" == "development" ]]; then
                 sudo apt-get install -y gdb valgrind
@@ -172,6 +173,16 @@ setup_config_files() {
         cp "$PROJECT_ROOT"/src/vnums.example.h "$PROJECT_ROOT"/src/vnums.h
     else
         print_msg "$YELLOW" "vnums.h already exists, skipping..."
+    fi
+
+    if [[ ! -f "$PROJECT_ROOT/lib/.env" ]]; then
+        print_msg "$GREEN" "Creating lib/.env from template..."
+        install -m 600 "$PROJECT_ROOT/lib/.env_example" "$PROJECT_ROOT/lib/.env"
+        if [[ "$BUILD_TYPE" == "development" ]]; then
+            sed -i 's/^APP_ENV=.*/APP_ENV=development/' "$PROJECT_ROOT/lib/.env"
+        fi
+    else
+        print_msg "$YELLOW" "lib/.env already exists, skipping..."
     fi
 }
 
@@ -366,12 +377,22 @@ build_project() {
 
 # Function to initialize minimal world data
 initialize_world_data() {
+    local world_ready=true
+    local world_type
+
     print_msg "$GREEN" "Initializing minimal world data..."
     print_msg "$YELLOW" "This step is REQUIRED - server will not start without world files!"
 
-    # Check if world needs initialization (skip if exists, unless force flag is set)
-    if [[ ! -f "$PROJECT_ROOT/lib/world/zon/index" ]] || [[ "$FORCE_INIT_WORLD" == true ]]; then
-        if [[ "$FORCE_INIT_WORLD" == true ]] && [[ -f "$PROJECT_ROOT/lib/world/zon/index" ]]; then
+    for world_type in zon wld mob obj shp trg qst hlq; do
+        if [[ ! -f "$PROJECT_ROOT/lib/world/$world_type/index" ]]; then
+            world_ready=false
+            break
+        fi
+    done
+
+    # Check every required world index before treating the runtime as initialized.
+    if [[ "$world_ready" != true ]] || [[ "$FORCE_INIT_WORLD" == true ]]; then
+        if [[ "$FORCE_INIT_WORLD" == true ]] && [[ "$world_ready" == true ]]; then
             print_msg "$YELLOW" "Force reinitializing world files (--init-world flag detected)..."
         else
             print_msg "$YELLOW" "Setting up minimal world files..."
@@ -609,7 +630,7 @@ siteok_everyone = 1
 nameserver_is_slow = 0
 
 # Port Settings
-# (Set via command line with -q flag)
+DFLT_PORT = 4101
 
 # Gameplay Settings
 pk_allowed = 1
@@ -652,6 +673,10 @@ create_misc_files() {
         echo '*' > "$PROJECT_ROOT"/lib/misc/messages
     fi
 
+    if [[ ! -f "$PROJECT_ROOT/lib/misc/xnames" ]]; then
+        echo '$' > "$PROJECT_ROOT"/lib/misc/xnames
+    fi
+
     # Create socials file
     if [[ ! -f "$PROJECT_ROOT/lib/misc/socials.new" ]]; then
         echo '$' > "$PROJECT_ROOT"/lib/misc/socials.new
@@ -686,9 +711,11 @@ setup_environment() {
     # Create misc files
     create_misc_files
 
-    # Set permissions
-    chmod -R 755 "$PROJECT_ROOT"/lib/
-    chmod -R 755 "$PROJECT_ROOT"/log/
+    # Make runtime directories traversable without exposing local credentials.
+    find "$PROJECT_ROOT/lib" "$PROJECT_ROOT/log" -type d -exec chmod 755 {} +
+    [[ ! -f "$PROJECT_ROOT/lib/mysql_config" ]] || \
+        chmod 600 "$PROJECT_ROOT/lib/mysql_config"
+    [[ ! -f "$PROJECT_ROOT/lib/.env" ]] || chmod 600 "$PROJECT_ROOT/lib/.env"
 
     # Create systemd service file (optional)
     if [[ "$AUTO_MODE" == false ]]; then
