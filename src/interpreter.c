@@ -60,6 +60,7 @@
 #include "combat/grapple.h"
 #include "combat/assign_wpn_armor.h"
 #include "bardic_performance.h"
+#include "character_periodic.h"
 #include "magic/spell_prep.h"
 #include "craft/crafts.h" /* NewCraft */
 #include "comms/new_mail.h"
@@ -6654,7 +6655,10 @@ static int perform_dupe_check(struct descriptor_data *d)
         mode = UNSWITCH;
       }
       if (k->character)
+      {
         k->character->desc = NULL;
+        character_periodic_sync(k->character);
+      }
       k->character = NULL;
       k->original = NULL;
     }
@@ -6676,6 +6680,7 @@ static int perform_dupe_check(struct descriptor_data *d)
         mode = USURP;
       }
       k->character->desc = NULL;
+      character_periodic_sync(k->character);
       k->character = NULL;
       k->original = NULL;
       write_to_output(k, "\r\nMultiple login detected -- disconnecting.\r\n");
@@ -6748,6 +6753,7 @@ static int perform_dupe_check(struct descriptor_data *d)
   REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_MAILING);
   REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
   STATE(d) = CON_PLAYING;
+  character_periodic_sync(d->character);
   MXPSendTag(d, "<VERSION>");
 
   switch (mode)
@@ -6817,6 +6823,7 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d)
       {
         /* Boot the older one */
         k->character->desc = NULL;
+        character_periodic_sync(k->character);
         k->character = NULL;
         k->original = NULL;
         write_to_output(k, "\r\nMultiple login detected -- disconnecting.\r\n");
@@ -6831,12 +6838,14 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d)
       {
         /* Something went VERY wrong, boot both chars */
         k->character->desc = NULL;
+        character_periodic_sync(k->character);
         k->character = NULL;
         k->original = NULL;
         write_to_output(k, "\r\nMultiple login detected -- disconnecting.\r\n");
         STATE(k) = CON_CLOSE;
 
         d->character->desc = NULL;
+        character_periodic_sync(d->character);
         d->character = NULL;
         d->original = NULL;
         write_to_output(
@@ -9141,6 +9150,7 @@ void nanny(struct descriptor_data *d, char *arg)
       update_player_last_on();
 
       STATE(d) = CON_PLAYING;
+      character_periodic_sync(d->character);
       // MXPSendTag( d, "<VERSION>" ); this is already called in perform_dupe_check() before we get here, shouldn't be needed here.. -Nashak
       if (GET_LEVEL(d->character) == 0)
       {

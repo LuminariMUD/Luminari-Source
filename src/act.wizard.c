@@ -68,6 +68,7 @@
 #include "mud_event.h"
 #include "character/premadebuilds.h"
 #include "perfmon.h"
+#include "character_periodic.h"
 #include "quest/missions.h"
 #include "character/deities.h"
 #include "character/backgrounds.h"
@@ -1983,6 +1984,8 @@ ACMD(do_switch)
 
     victim->desc = ch->desc;
     ch->desc = NULL;
+    character_periodic_sync(ch);
+    character_periodic_sync(victim);
   }
 }
 
@@ -2036,7 +2039,9 @@ ACMD(do_return)
 
     /* And our body's pointer to descriptor now points to our descriptor. */
     ch->desc->character->desc = ch->desc;
+    character_periodic_sync(ch->desc->character);
     ch->desc = NULL;
+    character_periodic_sync(ch);
   }
 }
 

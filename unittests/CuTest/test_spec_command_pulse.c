@@ -940,14 +940,21 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
   char *affected_gate;
   char *affect_call;
   char *d20_call;
+  char *character_gate;
+  char *psp_call;
+  char *walk_call;
+  char *bard_call;
+  char *hint_call;
   bool source_loaded;
   bool moving_schedule_matches;
   bool pulse_order_matches;
+  bool character_rollback_matches;
 
   source = NULL;
   source_loaded = spec_pulse_read_source("src/comm.c", &source);
   moving_schedule_matches = false;
   pulse_order_matches = false;
+  character_rollback_matches = false;
   if (source_loaded)
   {
     moving_gate = strstr(source, "if (!(heart_pulse % (PASSES_PER_SEC * 10)))");
@@ -974,6 +981,13 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
         violence_gate != NULL ? strstr(violence_gate, "if (!affected_owner_events_enabled())") : NULL;
     affect_call = affected_gate != NULL ? strstr(affected_gate, "affect_update();") : NULL;
     d20_call = violence_gate != NULL ? strstr(violence_gate, "proc_d20_round();") : NULL;
+    character_gate = strstr(source, "!character_periodic_events_enabled()");
+    psp_call = character_gate != NULL ? strstr(source, "regen_psp();") : NULL;
+    walk_call = psp_call != NULL ? strstr(psp_call, "process_walkto_actions();") : NULL;
+    bard_call = walk_call != NULL ? strstr(walk_call, "pulse_bardic_performance();") : NULL;
+    hint_call = bard_call != NULL ? strstr(bard_call, "show_hints();") : NULL;
+    character_rollback_matches = character_gate != NULL && psp_call != NULL &&
+                                 walk_call != NULL && bard_call != NULL && hint_call != NULL;
     pulse_order_matches = mobile_call != NULL && mobile_gate != NULL && autoproc_gate != NULL &&
                           proc_call != NULL && avernus_call != NULL && violence_gate != NULL &&
                           affected_gate != NULL && affect_call != NULL && d20_call != NULL &&
@@ -987,4 +1001,31 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
   CuAssertTrue(tc, source_loaded);
   CuAssertTrue(tc, moving_schedule_matches);
   CuAssertTrue(tc, pulse_order_matches);
+  CuAssertTrue(tc, character_rollback_matches);
+}
+
+void Test_spec_character_periodic_control_transfers_resync_owners(CuTest *tc)
+{
+  const char *paths[] = {"src/act.wizard.c", "src/magic/spells.c", "src/character/evolutions.c"};
+  const char *transfer_markers[] = {"victim->desc = ch->desc;", "eye->desc = ch->desc;",
+                                    "eidolon->desc = ch->desc;"};
+  const char *new_owner_syncs[] = {"character_periodic_sync(victim);",
+                                   "character_periodic_sync(eye);",
+                                   "character_periodic_sync(eidolon);"};
+  size_t i;
+
+  for (i = 0; i < sizeof(paths) / sizeof(paths[0]); i++)
+  {
+    char *source = NULL;
+    char *transfer;
+    char *old_owner_sync;
+    char *new_owner_sync;
+
+    CuAssertTrue(tc, spec_pulse_read_source(paths[i], &source));
+    transfer = strstr(source, transfer_markers[i]);
+    old_owner_sync = transfer != NULL ? strstr(transfer, "character_periodic_sync(ch);") : NULL;
+    new_owner_sync = transfer != NULL ? strstr(transfer, new_owner_syncs[i]) : NULL;
+    CuAssertTrue(tc, transfer != NULL && old_owner_sync != NULL && new_owner_sync != NULL);
+    free(source);
+  }
 }

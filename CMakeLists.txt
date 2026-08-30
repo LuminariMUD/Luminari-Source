@@ -529,6 +529,8 @@ set(SRC_C_FILES
     src/active_world.h
     src/affected_owners.c
     src/affected_owners.h
+    src/character_periodic.c
+    src/character_periodic.h
     src/periodic_owners.c
     src/periodic_owners.h
     src/domain_events.c

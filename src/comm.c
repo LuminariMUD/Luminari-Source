@@ -104,6 +104,7 @@
 #include "domain_event_runtime.h"
 #include "active_world.h"
 #include "affected_owners.h"
+#include "character_periodic.h"
 #include "periodic_owners.h"
 #include "elf_build_id.h"
 #include "mysql.h"
@@ -698,6 +699,7 @@ void copyover_recover()
         GET_LOADROOM(d->character) = NOWHERE;
 
       d->connected = CON_PLAYING;
+      character_periodic_sync(d->character);
       look_at_room(d->character, 0);
 
       /* Add to the list of 'recent' players (since last reboot) with copyover flag */
@@ -2161,7 +2163,7 @@ void heartbeat(int heart_pulse)
     update_supply_slots_for_all_players();
   }
 
-  if (!(heart_pulse % (PASSES_PER_SEC * 5)))
+  if (!(heart_pulse % (PASSES_PER_SEC * 5)) && !character_periodic_events_enabled())
   {
     regen_psp();
   }
@@ -2240,7 +2242,7 @@ void heartbeat(int heart_pulse)
     PERF_prof_sect_exit(pr_vessel_tick);
   }
 
-  if (!(heart_pulse % (int)(PASSES_PER_SEC * 0.75)))
+  if (!(heart_pulse % (int)(PASSES_PER_SEC * 0.75)) && !character_periodic_events_enabled())
     process_walkto_actions();
 
   if (!(heart_pulse % (PASSES_PER_SEC * 60)))
@@ -2315,13 +2317,13 @@ void heartbeat(int heart_pulse)
   }
 
   /* last time I checked this was every 11 seconds */
-  if (!(pulse % PULSE_VERSE_INTERVAL))
+  if (!(pulse % PULSE_VERSE_INTERVAL) && !character_periodic_events_enabled())
   {
     pulse_bardic_performance();
   }
 
   /* every 300 sec show a random hint if they have it toggled */
-  if (!(pulse % PULSE_HINTS))
+  if (!(pulse % PULSE_HINTS) && !character_periodic_events_enabled())
   {
     show_hints();
   }
@@ -4108,6 +4110,7 @@ void close_socket(struct descriptor_data *d)
 
     /* If we're switched, this resets the mobile taken. */
     d->character->desc = NULL;
+    character_periodic_sync(d->character);
 
     /* Plug memory leak, from Eric Green. */
     if (!IS_NPC(d->character) && PLR_FLAGGED(d->character, PLR_MAILING) && d->str)
@@ -4154,7 +4157,10 @@ void close_socket(struct descriptor_data *d)
 
   /* JE 2/22/95 -- part of my unending quest to make switch stable */
   if (d->original && d->original->desc)
+  {
     d->original->desc = NULL;
+    character_periodic_sync(d->original);
+  }
 
   /* Clear the command history. */
   if (d->history)

@@ -7400,6 +7400,10 @@ struct char_data
   bool affected_registered;              /**< Runtime affected-owner registry state. */
   bool affected_registry_live;           /**< Eligible live-world registry owner. */
   struct event *affected_event;           /**< Sole affect-duration event. */
+  struct char_data *character_periodic_next; /**< Character periodic-owner registry link. */
+  struct char_data *character_periodic_prev; /**< Character periodic-owner registry link. */
+  struct event *character_periodic_event; /**< Nearest character periodic deadline. */
+  bool character_periodic_registered;    /**< Character periodic registry membership. */
   struct char_data *active_world_next;    /**< Scheduled-mobile registry link. */
   struct char_data *active_world_prev;    /**< Scheduled-mobile registry link. */
   struct event *active_world_event;       /**< Sole scheduled mobile-think event. */

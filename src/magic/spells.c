@@ -41,6 +41,7 @@
 #include "character/feats.h"
 #include "vessels/routing.h"
 #include "movement/movement_validation.h"
+#include "character_periodic.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
@@ -3838,6 +3839,8 @@ ASPELL(spell_wizard_eye)
   ch->desc->original = ch;
   eye->desc = ch->desc;
   ch->desc = NULL;
+  character_periodic_sync(ch);
+  character_periodic_sync(eye);
 }
 
 ASPELL(psionic_concussive_onslaught)

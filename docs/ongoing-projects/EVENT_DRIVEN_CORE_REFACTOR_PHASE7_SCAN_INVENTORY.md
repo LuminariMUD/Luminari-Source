@@ -14,21 +14,21 @@ it does not mean that its cadence has already moved off the heartbeat.
 | Every pulse | pending character extraction | Pending extraction list | Active-work cleanup; retain as a bounded safety drain. |
 | Every pulse | minute persistence step | Stable-ID task snapshot | Already budgeted to one operation per pulse; later move its next deadline into the scheduler. |
 | 0.5 s | vessel autopilot, hunters, combat, events, wages, upkeep, trade, weather, encounters, MSDP | Loaded vessels and subsystem registries | Mixed active/global work; vessel-owned deadline conversion is a later Phase 7 slice. |
-| 0.7 s | walk-to actions | Characters with walk-to state | Create an eligible-character registry and owner deadline. |
+| 0.7 s | walk-to actions | Characters with walk-to state | **Converted:** the character periodic-owner event wakes on the next shared walk boundary only while walk-to state exists. |
 | 1 s | help reload poll | One filesystem control point | Genuine service/watchdog work; scheduled global service is acceptable. |
 | 1 s | MSDP update | Connected descriptors | Active connection work; convert to descriptor deadlines or one connection registry event. |
 | 1 s | travel, self-buff, crafting, supply slots | Characters/connected players with relevant state | Split into eligible owner registries and deadlines. |
 | 1 s | I3 ingress and presence | Cross-thread queue/connected players | Queue wake already signals the reactor; presence is genuine coordinated service work. |
 | 2.5 s | converted RoL ships | Converted ship list | Vessel-owner deadline candidate. |
 | 3 s | zone reset | Zone reset queue | Due-work queue, not a world scan; migrate queue deadline without changing reset semantics. |
-| 5 s | PSP regeneration | Characters eligible to regenerate | Character-owner deadline candidate. |
+| 5 s | PSP regeneration | Characters eligible to regenerate | **Converted:** connected character owners retain the exact shared PSP boundary; combat and room eligibility remain callback checks. |
 | 5 s | Luminari pulse | Mixed character/system work | Decompose by owner before migration; do not preserve as one opaque scheduled callback. |
 | 6 s | NPC thinking | Previously every character | **Converted:** one distributed owner deadline per autonomous NPC; player absence does not suspend patrols, wandering, scripts, or NPC wars. Only out-of-world, extracting, and `MOB_NO_AI` owners are dormant. |
 | 6 s | object auto-procs | `ITEM_AUTOPROC` registry | **Converted:** one distributed object-owner deadline invokes the existing gateway; lifecycle flag/OLC/extraction boundaries cancel it. |
 | 6 s | character and room-affect duration | Affected-character and affected-room owner registries | **Converted:** one exact round-boundary deadline per affected character and per affected room. MSDP remains immediate mutation plus the existing connected-descriptor refresh. |
 | 6 s | D20 round procedure | Encounter/combat state | Phase 8 owns encounter-level scheduling. |
 | 6 s | damage/effects and player misc | Character/descriptor state | Split named effects from generic player maintenance, then schedule owners. |
-| 11 s | bardic performance | Performing characters/groups | Owner-event candidate; preserve song audience semantics. |
+| 11 s | bardic performance | Performing characters/groups | **Converted:** performing PC and NPC owners wake on the shared verse boundary and execute the existing audience/effect engine. |
 | 13 s | DG random triggers | Mobile/object/room random-trigger registries | **Converted:** one distributed deadline per eligible script owner with attach/detach/extraction cancellation. Existing `GLOBAL` versus empty-zone semantics are preserved. |
 | 30 s | idle passwords | Non-playing descriptors | Descriptor registry/deadline candidate. |
 | 30 s | auction/other thirty-second work | Auction and subsystem globals | Audit each member; auction deadline may be a genuine service event. |
@@ -41,7 +41,7 @@ it does not mean that its cadence has already moved off the heartbeat.
 | 75 s mud hour | vessel schedules | Scheduled vessel departures | Vessel deadline queue candidate. |
 | 75 s mud hour | trail cleanup | Existing trail records | Bounded record registry; genuine maintenance deadline. |
 | 24 mud hours | clan investments | Clan investment rows | Genuine scheduled global economic event. |
-| 5 min | usage record and hints | Descriptors/players plus metrics | Metrics are explicitly global; hints belong to connected player owners. |
+| 5 min | usage record and hints | Descriptors/players plus metrics | **Partly converted:** hints use connected character owners; usage metrics remain explicitly global. |
 | 30 min | world-time save | One world record | Genuine persistence event. |
 | 2 h | hunt creation | Hunt/world policy | Genuine coordinated world event if implementation does not scan dormant owners. |
 | 10 s | moving rooms | Configured moving-room list | Active configured world objects; move each route to a room/service owner deadline. |

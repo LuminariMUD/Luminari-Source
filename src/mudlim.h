@@ -34,6 +34,7 @@ void regen_update(struct char_data *ch);
 int psp_gain(struct char_data *ch);
 int apply_slow_poison_reduction(struct char_data *ch, int damage);
 void regen_psp(void);
+void regen_psp_one(struct char_data *ch);
 int hit_gain(struct char_data *ch);
 int move_gain(struct char_data *ch);
 void set_title(struct char_data *ch, char *title);

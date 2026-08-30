@@ -722,6 +722,10 @@ void Test_dg_random_registry_tracks_owners_and_safe_removal(CuTest *tc)
 void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
 {
   char report[16384];
+  const char *character_section;
+  const char *character_section_end;
+  const char *line;
+  const char *line_end;
 
   PERF_reset();
   PERF_note_mobile_created(1234, 12, PERF_ENTITY_ENCOUNTER);
@@ -735,6 +739,22 @@ void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "5678"));
   CuAssertPtrNotNull(tc, strstr(report, "Population sweep telemetry"));
   CuAssertPtrNotNull(tc, strstr(report, "autoproc"));
+  character_section = strstr(report, "Character owners:");
+  character_section_end =
+      character_section != NULL ? strstr(character_section, "Active world:") : NULL;
+  CuAssertPtrNotNull(tc, character_section);
+  CuAssertPtrNotNull(tc, character_section_end);
+  CuAssertPtrNotNull(tc, strstr(character_section, "  registry: members="));
+  CuAssertPtrNotNull(tc, strstr(character_section, "  validation: mismatch="));
+  CuAssertPtrNotNull(tc, strstr(character_section, "  capacity: limit="));
+  for (line = character_section; line != NULL && line < character_section_end; line = line_end + 2)
+  {
+    line_end = strstr(line, "\n\r");
+    CuAssertTrue(tc, line_end != NULL && line_end <= character_section_end);
+    if (line_end == NULL || line_end > character_section_end)
+      break;
+    CuAssertTrue(tc, (size_t)(line_end - line) <= 80U);
+  }
 }
 
 void Test_perfmon_copyover_snapshot_replaces_one_complete_file(CuTest *tc)

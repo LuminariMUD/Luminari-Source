@@ -306,6 +306,18 @@ character and room duration events are scheduler work and do not publish a
 domain fact merely to invoke expiry behavior; see
 [`AFFECTED_OWNER_EVENTS.md`](AFFECTED_OWNER_EVENTS.md).
 
+Walk-to progress, connected PSP regeneration, bardic verses, and player hints
+also use scheduler work without synthetic domain facts. One character-owner
+event waits for that owner's nearest relevant legacy boundary, invokes the
+existing single-character gameplay routine, and then selects the next
+boundary. Connected characters own walk/PSP/hint service; active NPC
+performers are admitted independently. Dormant NPCs own no character-periodic
+event. The registry is capped at 32,768 owners and refills released capacity
+from registered active owners without scanning `character_list`.
+`perfmon entities` presents the character-owner mode, registry, validation,
+capacity, callbacks, and service work on seven labeled rows that remain within
+80 columns.
+
 ## 6. Table-Driven Registry (mud_event_index)
 
 - The registry lives in [C.mud_event_index[]](../../src/mud_event_list.c#L46)
@@ -435,13 +447,19 @@ domain fact merely to invoke expiry behavior; see
   - Default: `LUMINARI_EVENT_BACKEND=scheduler`
   - Rollback: `LUMINARI_EVENT_BACKEND=legacy`
   - Restart after changing the value; live backend switching is unsupported
+- Character-periodic selection:
+  - Default: `LUMINARI_CHARACTER_EVENTS=scheduled`
+  - Rollback: `LUMINARI_CHARACTER_EVENTS=legacy`
+  - The selection jointly controls walk-to, PSP, bardic verse, and hint work;
+    scheduled and heartbeat paths never run together.
 - Startup logs one `Event backend initialized:` line naming the effective
   backend.
 - `perf event total` and the PERFMON CSV representation include lifecycle,
   delay-distribution, queue-depth, due-batch, and callback-duration aggregates.
-- The scheduler backend is still driven by the ten-Hz heartbeat. Phase 3 will
-  add the compatibility reactor; networking, descriptor polling, command
-  parsing, and interpreter behavior are unchanged in Phase 2.5.
+- The libevent reactor arms the scheduler's nearest deadline while the ten-Hz
+  compatibility heartbeat remains for unmigrated pulse consumers. The select
+  driver and legacy event queue remain boot-time rollback options until the
+  Phase 11 retirement gate.
 
 - World events:
   - Global list is created in [C.init_events()](../../src/mud_event.c#L66) and defined at [src/mud_event.c](../../src/mud_event.c#L58)

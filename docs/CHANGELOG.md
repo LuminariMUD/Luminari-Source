@@ -2,6 +2,27 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Character-owned periodic gameplay
+
+#### Changed
+
+- Replaced global walk-to, connected PSP regeneration, bardic-performance, and
+  hint scans with one nearest-deadline event per relevant character.
+- Preserved the existing gameplay routines and shared 0.7-second, 5-second,
+  11-second, and 300-second cadence boundaries.
+- Added direct login, copyover, switch, disconnect, extraction, walk-start, and
+  performance lifecycle synchronization plus bounded active-owner refill.
+
+#### Operations
+
+- Added `LUMINARI_CHARACTER_EVENTS=legacy` as the boot-time rollback for all
+  four scans and compact character-owner telemetry to `perfmon entities`.
+
+#### Tests
+
+- Added nearest-deadline, gameplay-callback, capacity-refill, lifecycle,
+  registry-validation, and exclusive-heartbeat rollback coverage.
+
 ### Native world phenomena and pub/sub retirement
 
 #### Added

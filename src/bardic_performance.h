@@ -20,6 +20,7 @@ extern struct room_data *world;
 extern void clearMemory(struct char_data *ch);
 extern const char *spells[];
 void pulse_bardic_performance(void);
+void pulse_bardic_performance_one(struct char_data *ch);
 bool is_valid_performance(int performance_num);
 int can_perform(struct char_data *ch, int performance_num, bool need_check, bool silent);
 int performance_effects(struct char_data *ch, struct char_data *tch, int spellnum,

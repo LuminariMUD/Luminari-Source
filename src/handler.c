@@ -43,6 +43,7 @@
 #include "perfmon.h"
 #include "mob/mob_act.h"
 #include "active_world.h"
+#include "character_periodic.h"
 #include "affected_owners.h"
 #include "domain_event_runtime.h"
 
@@ -3101,6 +3102,7 @@ void extract_char_final(struct char_data *ch)
                                (enum perf_entity_reason)ch->perf_create_reason);
 
   domain_event_runtime_character_extracted(ch, 0U);
+  character_periodic_forget(ch);
   active_world_forget_character(ch);
   mobile_activity_forget_character(ch);
   remove_all_rol_elemental_embodiments(ch);

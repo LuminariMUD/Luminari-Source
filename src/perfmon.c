@@ -27,6 +27,7 @@
 #include "perfmon.h"
 #include "active_world.h"
 #include "affected_owners.h"
+#include "character_periodic.h"
 #include "periodic_owners.h"
 
 /* ========================================================================
@@ -1221,6 +1222,7 @@ void PERF_reset(void)
   active_world_reset_telemetry();
   periodic_owners_reset_telemetry();
   affected_owners_reset_telemetry();
+  character_periodic_reset_telemetry();
   memset(&combat_context, 0, sizeof(combat_context));
   memset(slow_combats, 0, sizeof(slow_combats));
   slow_combat_index = 0;
@@ -2581,6 +2583,23 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  affected_owner_admission_rejections(), affected_character_callbacks(),
                  affected_character_nodes_processed(), affected_room_callbacks(),
                  affected_room_nodes_processed()),
+        n - written);
+  if (!csv && written < n - 1)
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "Character owners: %s\n\r"
+                 "  registry: members=%zu scheduled=%zu\n\r"
+                 "  validation: mismatch=%zu\n\r"
+                 "  capacity: limit=%zu rejected=%" PRIu64 "\n\r"
+                 "  callbacks=%" PRIu64 "\n\r"
+                 "  work: walk=%" PRIu64 " psp=%" PRIu64 "\n\r"
+                 "  work: bard=%" PRIu64 " hints=%" PRIu64 "\n\r",
+                 character_periodic_events_enabled() ? "scheduled" : "legacy heartbeat",
+                 character_periodic_owner_count(), character_periodic_scheduled_count(),
+                 character_periodic_registry_validate(), character_periodic_admission_limit(),
+                 character_periodic_admission_rejections(), character_periodic_callbacks(),
+                 character_periodic_walk_executions(), character_periodic_psp_executions(),
+                 character_periodic_bardic_executions(), character_periodic_hint_executions()),
         n - written);
   if (!csv && written < n - 1)
     written += bounded_format_length(

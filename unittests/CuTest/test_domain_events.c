@@ -8,6 +8,7 @@
 #include "../../src/handler.h"
 #include "../../src/active_world.h"
 #include "../../src/affected_owners.h"
+#include "../../src/character_periodic.h"
 #include "../../src/periodic_owners.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
@@ -17,6 +18,7 @@
 #include "../../src/domain_event_runtime.h"
 #include "../../src/domain_event_world.h"
 #include "../../src/magic/spells.h"
+#include "../../src/bardic_performance.h"
 #include "../../src/net/protocol.h"
 #include "../../src/olc/genwld.h"
 #include "../../src/wilderness/spatial_events.h"
@@ -1248,6 +1250,137 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
   raff_list = saved_raff_list;
   world = saved_world;
   top_of_world = saved_top_of_world;
+  pulse = saved_pulse;
+}
+
+void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data specials;
+  struct char_data *saved_character_list = character_list;
+  unsigned long saved_pulse = pulse;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&specials, 0, sizeof(specials));
+  clear_char(&ch);
+  ch.player_specials = &specials;
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  STATE(&descriptor) = CON_PLAYING;
+  SET_BIT_AR(PRF_FLAGS(&ch), PRF_NOHINT);
+  IN_ROOM(&ch) = NOWHERE;
+  specials.walkto_location = 103009;
+  character_list = NULL;
+
+  event_free_all();
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 700U;
+  event_init();
+  character_periodic_init();
+  character_periodic_sync(&ch);
+
+  CuAssertTrue(tc, character_periodic_events_enabled());
+  CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
+  CuAssertIntEquals(tc, 7, (int)event_time(ch.character_periodic_event));
+
+  pulse = 707U;
+  event_process();
+  CuAssertIntEquals(tc, 0, specials.walkto_location);
+  CuAssertIntEquals(tc, 1, (int)character_periodic_walk_executions());
+  CuAssertIntEquals(tc, 43, (int)event_time(ch.character_periodic_event));
+
+  pulse = 750U;
+  event_process();
+  CuAssertIntEquals(tc, 1, (int)character_periodic_psp_executions());
+
+  IS_PERFORMING(&ch) = TRUE;
+  GET_PERFORMING(&ch) = PERFORMANCE_NONE;
+  GET_SECONDARY_PERFORMING(&ch) = PERFORMANCE_NONE;
+  character_periodic_sync(&ch);
+  CuAssertIntEquals(tc, 20, (int)event_time(ch.character_periodic_event));
+
+  pulse = 770U;
+  event_process();
+  CuAssertIntEquals(tc, 1, (int)character_periodic_bardic_executions());
+  CuAssertTrue(tc, !IS_PERFORMING(&ch));
+
+  pulse = 3000U;
+  event_process();
+  CuAssertIntEquals(tc, 1, (int)character_periodic_hint_executions());
+  CuAssertIntEquals(tc, 0, (int)character_periodic_registry_validate());
+
+  character_periodic_forget(&ch);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  character_periodic_reset_for_test();
+  event_free_all();
+  character_list = saved_character_list;
+  pulse = saved_pulse;
+}
+
+void TestCharacterPeriodicCapacityRefillsAndLegacyIsExclusive(CuTest *tc)
+{
+  struct char_data first;
+  struct char_data second;
+  struct descriptor_data first_descriptor;
+  struct descriptor_data second_descriptor;
+  struct char_data *saved_character_list = character_list;
+  unsigned long saved_pulse = pulse;
+
+  memset(&first_descriptor, 0, sizeof(first_descriptor));
+  memset(&second_descriptor, 0, sizeof(second_descriptor));
+  clear_char(&first);
+  clear_char(&second);
+  first.desc = &first_descriptor;
+  second.desc = &second_descriptor;
+  first_descriptor.character = &first;
+  second_descriptor.character = &second;
+  STATE(&first_descriptor) = CON_PLAYING;
+  STATE(&second_descriptor) = CON_PLAYING;
+  character_list = NULL;
+
+  event_free_all();
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(true);
+  character_periodic_set_limit_for_test(1U);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 1000U;
+  event_init();
+  character_periodic_init();
+  character_periodic_sync(&first);
+  character_periodic_sync(&second);
+
+  CuAssertIntEquals(tc, 2, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
+  CuAssertIntEquals(tc, 1, (int)character_periodic_admission_rejections());
+  CuAssertPtrNotNull(tc, first.character_periodic_event);
+  CuAssertPtrEquals(tc, NULL, second.character_periodic_event);
+
+  character_periodic_forget(&first);
+  CuAssertPtrNotNull(tc, second.character_periodic_event);
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+  second.desc = NULL;
+  character_periodic_sync(&second);
+  CuAssertIntEquals(tc, 0, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  character_periodic_reset_for_test();
+  event_free_all();
+
+  character_periodic_select_for_test(false);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  character_periodic_init();
+  first.desc = &first_descriptor;
+  character_periodic_sync(&first);
+  CuAssertTrue(tc, !character_periodic_events_enabled());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  character_periodic_reset_for_test();
+  event_free_all();
+  character_list = saved_character_list;
   pulse = saved_pulse;
 }
 

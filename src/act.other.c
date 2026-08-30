@@ -9764,6 +9764,19 @@ static const char *const hints[] = {
 
 static const size_t NUM_HINTS = sizeof(hints) / sizeof(hints[0]);
 
+static void show_hint_index(struct char_data *ch, int roll)
+{
+  if (ch == NULL || IS_NPC(ch) || !ch->desc || PRF_FLAGGED(ch, PRF_NOHINT) ||
+      PLR_FLAGGED(ch, PLR_WRITING))
+    return;
+  send_to_char(ch, "%s", hints[roll]);
+}
+
+void show_hint_one(struct char_data *ch)
+{
+  show_hint_index(ch, dice(1, NUM_HINTS) - 1);
+}
+
 void show_hints(void)
 {
   int roll = dice(1, NUM_HINTS) - 1;
@@ -9772,18 +9785,7 @@ void show_hints(void)
   for (ch = character_list; ch; ch = next_char)
   {
     next_char = ch->next;
-
-    if (IS_NPC(ch) || !ch->desc)
-      continue;
-
-    if (PRF_FLAGGED(ch, PRF_NOHINT))
-      continue;
-
-    /* player is in a menu */
-    if (PLR_FLAGGED(ch, PLR_WRITING))
-      continue;
-
-    send_to_char(ch, "%s", hints[roll]);
+    show_hint_index(ch, roll);
   }
 }
 

@@ -959,59 +959,60 @@ void regen_update(struct char_data *ch)
  * that a character's age will now only affect the HMV gain per tick, and _not_
  * the HMV maximums. */
 
+void regen_psp_one(struct char_data *ch)
+{
+  int psp_before;
+
+  if (ch == NULL || ch->desc == NULL || STATE(ch->desc) != CON_PLAYING || IN_ROOM(ch) == NOWHERE ||
+      FIGHTING(ch))
+    return;
+
+  psp_before = GET_PSP(ch);
+
+  if (GET_PSP(ch) < GET_MAX_PSP(ch))
+    GET_PSP(ch)++;
+
+  if (!FIGHTING(ch))
+    GET_PSP(ch) += get_psp_regen_amount(ch);
+
+  if (GET_PSP(ch) < GET_MAX_PSP(ch))
+    if (HAS_FEAT(ch, FEAT_PSIONIC_RECOVERY))
+      GET_PSP(ch) += (HAS_FEAT(ch, FEAT_PSIONIC_RECOVERY) * 2);
+
+  switch (GET_POS(ch))
+  {
+  case POS_SLEEPING:
+  case POS_RECLINING:
+  /*case POS_CRAWLING:*/
+  case POS_RESTING:
+  case POS_SITTING:
+    if (GET_PSP(ch) < GET_MAX_PSP(ch))
+      GET_PSP(ch) += 2 + (GET_PSIONIC_LEVEL(ch) / 7);
+    break;
+  default:
+    break;
+  }
+
+  /* we also have a de-regen if over max in another function */
+  if (GET_PSP(ch) > GET_MAX_PSP(ch))
+    GET_PSP(ch)--;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PSP_REGEN) && GET_PSP(ch) > psp_before)
+    GET_PSP(ch) += GET_PSP(ch) - psp_before;
+
+  if (GET_PSP(ch) > GET_MAX_PSP(ch))
+    GET_PSP(ch) = GET_MAX_PSP(ch);
+}
+
 void regen_psp(void)
 {
   struct descriptor_data *d = NULL;
-  int psp_before;
 
   for (d = descriptor_list; d; d = d->next)
   {
-    if (STATE(d) != CON_PLAYING)
-      continue;
     if (!d->character)
       continue;
-    if (IN_ROOM(d->character) == NOWHERE)
-      continue;
-    if (FIGHTING(d->character))
-      continue;
-
-    psp_before = GET_PSP(d->character);
-
-    if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
-      GET_PSP(d->character)++;
-
-    if (!FIGHTING(d->character))
-      GET_PSP(d->character) += get_psp_regen_amount(d->character);
-
-    if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
-      if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY))
-        GET_PSP(d->character) += (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY) * 2);
-
-    switch (GET_POS(d->character))
-    {
-    case POS_SLEEPING:
-    case POS_RECLINING:
-    /*case POS_CRAWLING:*/
-    case POS_RESTING:
-    case POS_SITTING:
-      if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
-        GET_PSP(d->character) += 2 + (GET_PSIONIC_LEVEL(d->character) / 7);
-      break;
-    default:
-      break;
-    }
-
-    /* we also have a de-regen if over max in another function */
-    if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
-      GET_PSP(d->character)--;
-
-    if (ROOM_FLAGGED(IN_ROOM(d->character), ROOM_PSP_REGEN) && GET_PSP(d->character) > psp_before)
-    {
-      GET_PSP(d->character) += GET_PSP(d->character) - psp_before;
-    }
-
-    if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
-      GET_PSP(d->character) = GET_MAX_PSP(d->character);
+    regen_psp_one(d->character);
   }
 }
 

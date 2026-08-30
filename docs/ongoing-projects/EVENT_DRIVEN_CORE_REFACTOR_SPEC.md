@@ -1728,6 +1728,19 @@ Rollback:
 - A per-subsystem boot-time feature gate returns that consumer to its former
   heartbeat path. Active and legacy paths never run simultaneously.
 
+**Character-state slice accepted 2026-08-31.** Walk-to progress, connected PSP
+regeneration, bardic verses, and player hints now share one bounded
+nearest-deadline event per relevant character. Deadlines remain aligned to the
+legacy 0.7-second, 5-second, 11-second, and 300-second boundaries. Login,
+copyover, switching, disconnect, extraction, walk start, and performance
+transitions synchronize ownership directly; released capacity refills only
+from the active owner registry. `LUMINARI_CHARACTER_EVENTS=legacy` restores all
+four former heartbeat scans as one exclusive rollback selection. Evidence is
+recorded in
+[`EVENT_DRIVEN_CORE_REFACTOR_PHASE7D_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE7D_VALIDATION.md).
+Character-owner diagnostics use seven labeled rows whose maximum printed
+width remains within the normal 80-column client setting.
+
 ### Phase 8: Encounter-level combat compatibility
 
 Deliverables:
@@ -2167,3 +2180,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.6 | 2026-08-30 | Accepted the first Phase 7 slice after inventorying heartbeat work and replacing the global mobile scan with bounded owner deadlines and typed lifecycle wakeups. Off-screen patrols, scripts, and NPC wars remain active; the eight-mode local matrix, live profiler evidence, 970-test sanitizer/Valgrind/database gates, and remote Build & Test/Security workflows passed. `ITEM_AUTOPROC` and DG random-trigger owners are next. |
 | 1.7 | 2026-08-30 | Accepted the second Phase 7 slice after replacing `ITEM_AUTOPROC` and DG mobile/object/room random-trigger scans with bounded owner deadlines, direct lifecycle cancellation, independent rollback, and diagnostics. Existing six/thirteen-second gameplay and DG `GLOBAL` empty-zone semantics are preserved; the 16-mode local matrix, live diagnostics, and 972-test sanitizer/Valgrind/database gates passed. Affected character and room owners are next. |
 | 1.8 | 2026-08-31 | Accepted the affected-owner Phase 7 slice after replacing the six-second character and room-duration sweeps with exact shared-round owner deadlines, preserving wear-off and room-affect semantics, separating MSDP connection refresh, adding lifecycle refill under subsystem pressure, and retaining independent heartbeat rollback. The shared event ceiling is now 262,144, leaving 98,304 slots beyond all current high-cardinality owner limits. Explicit character-state and mixed-pulse decomposition continue Phase 7. |
+| 1.9 | 2026-08-31 | Accepted the explicit character-state Phase 7 slice after replacing walk-to, connected PSP, bardic verse, and hint discovery scans with one bounded nearest-deadline event per relevant character. Exact legacy boundaries, existing gameplay routines, active-registry refill, direct connection/performance lifecycle synchronization, diagnostics, and exclusive `LUMINARI_CHARACTER_EVENTS` rollback are preserved. Declared high-cardinality owner limits total 196,608 under the shared 262,144-event ceiling, retaining 65,536 slots for other work. Remaining room behavior and mixed Luminari/player-maintenance pulses continue Phase 7. |

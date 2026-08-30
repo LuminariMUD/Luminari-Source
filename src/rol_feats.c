@@ -33,6 +33,7 @@
 #include "character/evolutions.h"
 #include "magic/domains_schools.h"
 #include "movement/movement.h"
+#include "character_periodic.h"
 #include "bardic_performance.h"
 #include "rol_feats.h"
 
@@ -752,6 +753,7 @@ bool accompany_takeover(struct char_data *ch, int performance_num)
     GET_PERFORMING(tch) = performance_num;
     GET_SECONDARY_PERFORMING(tch) = PERFORMANCE_NONE;
     IS_PERFORMING(tch) = TRUE;
+    character_periodic_sync(tch);
 
     act("$N picks the song up where you dropped it.", FALSE, ch, 0, tch, TO_CHAR);
     act("You pick the song up where $n dropped it.", FALSE, ch, 0, tch, TO_VICT);
