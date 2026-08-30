@@ -20,6 +20,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "game_scheduler.h"
+
 /** How often will heartbeat() call the 'wait' event function?
  * @deprecated Currently not used. */
 #define PULSE_DG_EVENT 1
@@ -57,6 +59,7 @@ struct event
   bool dispatching;                /**< Callback is currently executing. */
   bool cancel_requested;           /**< In-flight cancellation must beat recurrence. */
   bool callback_terminal;          /**< Terminal cleanup follows legacy callback ownership. */
+  struct game_event_owner owner;   /**< Stable runtime owner for scheduler indexing. */
 };
 /**************************************************************************
  * End event structures and defines.
@@ -118,6 +121,9 @@ struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
                                  const char *profile_name);
 struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
                                               const char *profile_name, event_cleanup_func cleanup);
+struct event *event_create_owned_named(EVENTFUNC(*func), void *event_obj, long when,
+                                       const char *profile_name,
+                                       struct game_event_owner owner);
 #define event_create(func, event_obj, when) event_create_named((func), (event_obj), (when), #func)
 #define event_create_with_cleanup(func, event_obj, when, cleanup)                                  \
   event_create_named_with_cleanup((func), (event_obj), (when), #func, (cleanup))

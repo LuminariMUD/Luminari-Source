@@ -1,5 +1,30 @@
 # Changelog
 
+## [Unreleased] - August 30, 2026
+
+### Event-driven core owner and lifecycle foundation
+
+#### Added
+
+- Added typed, generation-aware scheduler owner handles, independent owner
+  indexing, bulk owner cancellation and inspection, per-owner admission limits,
+  and owner lifecycle/rejection telemetry.
+- Added process-local generations and lifecycle-ordered MUD event teardown for
+  characters, objects, descriptors, rooms, and regions while preserving both
+  selectable timed backends.
+
+#### Fixed
+
+- Deferred in-flight MUD payload cleanup until its callback returns and detached
+  owner lists before lifecycle cancellation, preventing teardown from freeing a
+  running callback's payload or touching released owner memory.
+
+#### Tests
+
+- Added dual-backend owner validation, capacity, generation reuse,
+  dispatch-time cancellation, inspection, telemetry, and cleanup-once coverage;
+  accepted the tranche under ASan/UBSan, Valgrind, and GCC static analysis.
+
 ## [Unreleased] - August 23, 2026
 
 ### Yuan-Ti anatomy and tail equipment

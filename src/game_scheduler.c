@@ -22,8 +22,12 @@ struct game_event_type
   enum game_event_lateness_policy lateness_policy;
   uint32_t catch_up_limit;
   size_t max_events;
+  size_t max_events_per_owner;
+  bool requires_owner;
   size_t live_events;
 };
+
+struct game_event_owner_entry;
 
 struct game_event
 {
@@ -37,6 +41,10 @@ struct game_event
   uint32_t catch_up_runs;
   void *payload;
   bool payload_owned;
+  struct game_event_owner owner;
+  struct game_event_owner_entry *owner_entry;
+  struct game_event *owner_previous;
+  struct game_event *owner_next;
 
   struct game_event *wheel_previous;
   struct game_event *wheel_next;
@@ -48,6 +56,15 @@ struct game_event
 
   struct game_event *registry_previous;
   struct game_event *registry_next;
+};
+
+struct game_event_owner_entry
+{
+  struct game_event_owner owner;
+  struct game_event *events_head;
+  struct game_event *events_tail;
+  size_t live_events;
+  struct game_event_owner_entry *hash_next;
 };
 
 struct game_event_heap
@@ -84,6 +101,9 @@ struct game_scheduler
 
   struct game_event **registry_buckets;
   size_t registry_bucket_count;
+  struct game_event_owner_entry **owner_buckets;
+  size_t owner_bucket_count;
+  size_t owner_count;
   struct game_event_type *event_types;
   size_t event_type_count;
   size_t event_count;
@@ -93,6 +113,9 @@ struct game_scheduler
   uint64_t total_cancelled;
   uint64_t total_completed;
   uint64_t total_failed;
+  uint64_t total_invalid_owner_rejections;
+  uint64_t total_owner_capacity_rejections;
+  uint64_t total_owner_type_capacity_rejections;
 };
 
 static bool event_less(const struct game_event *left, const struct game_event *right)
@@ -351,6 +374,119 @@ static void registry_remove(struct game_scheduler *scheduler, struct game_event 
   event->registry_next = NULL;
 }
 
+static uint64_t hash_owner(struct game_event_owner owner)
+{
+  uint64_t value;
+
+  value = hash_event_id(owner.runtime_id);
+  value ^= hash_event_id(owner.generation + UINT64_C(0x9e3779b97f4a7c15));
+  value ^= hash_event_id((uint64_t)owner.kind + UINT64_C(0x517cc1b727220a95));
+  return hash_event_id(value);
+}
+
+static size_t owner_bucket(const struct game_scheduler *scheduler, struct game_event_owner owner)
+{
+  return (size_t)(hash_owner(owner) & (scheduler->owner_bucket_count - 1U));
+}
+
+static struct game_event_owner_entry *owner_find(const struct game_scheduler *scheduler,
+                                                 struct game_event_owner owner)
+{
+  struct game_event_owner_entry *entry;
+  size_t bucket;
+
+  if (scheduler == NULL || !game_event_owner_is_valid(owner))
+    return NULL;
+  bucket = owner_bucket(scheduler, owner);
+  for (entry = scheduler->owner_buckets[bucket]; entry != NULL; entry = entry->hash_next)
+  {
+    if (game_event_owner_equal(entry->owner, owner))
+      return entry;
+  }
+  return NULL;
+}
+
+static void owner_entry_insert(struct game_scheduler *scheduler,
+                               struct game_event_owner_entry *entry)
+{
+  size_t bucket;
+
+  bucket = owner_bucket(scheduler, entry->owner);
+  entry->hash_next = scheduler->owner_buckets[bucket];
+  scheduler->owner_buckets[bucket] = entry;
+  scheduler->owner_count++;
+}
+
+static void owner_entry_remove(struct game_scheduler *scheduler,
+                               struct game_event_owner_entry *entry)
+{
+  struct game_event_owner_entry **cursor;
+  size_t bucket;
+
+  bucket = owner_bucket(scheduler, entry->owner);
+  cursor = &scheduler->owner_buckets[bucket];
+  while (*cursor != NULL && *cursor != entry)
+    cursor = &(*cursor)->hash_next;
+  if (*cursor == entry)
+    *cursor = entry->hash_next;
+  if (scheduler->owner_count > 0)
+    scheduler->owner_count--;
+  free(entry);
+}
+
+static void owner_event_insert(struct game_event_owner_entry *entry, struct game_event *event)
+{
+  event->owner_entry = entry;
+  event->owner_previous = entry->events_tail;
+  event->owner_next = NULL;
+  if (entry->events_tail != NULL)
+    entry->events_tail->owner_next = event;
+  else
+    entry->events_head = event;
+  entry->events_tail = event;
+  entry->live_events++;
+}
+
+static void owner_event_remove(struct game_scheduler *scheduler, struct game_event *event)
+{
+  struct game_event_owner_entry *entry;
+
+  entry = event->owner_entry;
+  if (entry == NULL)
+    return;
+  if (event->owner_previous != NULL)
+    event->owner_previous->owner_next = event->owner_next;
+  else
+    entry->events_head = event->owner_next;
+  if (event->owner_next != NULL)
+    event->owner_next->owner_previous = event->owner_previous;
+  else
+    entry->events_tail = event->owner_previous;
+  event->owner_entry = NULL;
+  event->owner_previous = NULL;
+  event->owner_next = NULL;
+  if (entry->live_events > 0)
+    entry->live_events--;
+  if (entry->live_events == 0)
+    owner_entry_remove(scheduler, entry);
+}
+
+static size_t owner_type_event_count(const struct game_event_owner_entry *entry,
+                                     game_event_type_id_t event_type)
+{
+  const struct game_event *event;
+  size_t count;
+
+  count = 0;
+  for (event = entry != NULL ? entry->events_head : NULL; event != NULL;
+       event = event->owner_next)
+  {
+    if (event->event_type == event_type)
+      count++;
+  }
+  return count;
+}
+
 static struct game_event_type *find_event_type(struct game_scheduler *scheduler,
                                                game_event_type_id_t event_type)
 {
@@ -546,6 +682,7 @@ static void finalize_event(struct game_scheduler *scheduler, struct game_event *
   event->state = terminal_state;
   event->location = GAME_EVENT_LOCATION_NONE;
   deadline_heap_remove(&scheduler->deadline_heap, event);
+  owner_event_remove(scheduler, event);
   registry_remove(scheduler, event);
   if (event_type != NULL && event_type->live_events > 0)
     event_type->live_events--;
@@ -924,6 +1061,7 @@ static void dispatch_ready_events(struct game_scheduler *scheduler,
     context.now_tick = scheduler->current_tick;
     context.missed_occurrences =
         event_type->lateness_policy == GAME_EVENT_LATENESS_RUN_ONCE ? 0 : missed_occurrences;
+    context.owner = event->owner;
     context.payload = event->payload;
 
     event->state = GAME_EVENT_STATE_DISPATCHING;
@@ -1001,6 +1139,31 @@ struct game_event_result game_event_result_failed(uint32_t diagnostic_code)
   return result;
 }
 
+struct game_event_owner game_event_owner_none(void)
+{
+  struct game_event_owner owner;
+
+  memset(&owner, 0, sizeof(owner));
+  return owner;
+}
+
+bool game_event_owner_is_none(struct game_event_owner owner)
+{
+  return owner.kind == GAME_EVENT_OWNER_NONE && owner.runtime_id == 0 && owner.generation == 0;
+}
+
+bool game_event_owner_is_valid(struct game_event_owner owner)
+{
+  return owner.kind > GAME_EVENT_OWNER_NONE && owner.kind <= GAME_EVENT_OWNER_SERVICE &&
+         owner.runtime_id != 0 && owner.generation != 0;
+}
+
+bool game_event_owner_equal(struct game_event_owner left, struct game_event_owner right)
+{
+  return left.kind == right.kind && left.runtime_id == right.runtime_id &&
+         left.generation == right.generation;
+}
+
 struct game_scheduler *game_scheduler_create(const struct game_scheduler_config *config,
                                              enum game_scheduler_status *status)
 {
@@ -1046,6 +1209,7 @@ struct game_scheduler *game_scheduler_create(const struct game_scheduler_config 
   }
   scheduler->config = resolved;
   scheduler->registry_bucket_count = registry_buckets;
+  scheduler->owner_bucket_count = registry_buckets;
   scheduler->overflow_heap.capacity = resolved.max_events;
   scheduler->overflow_heap.location = GAME_EVENT_LOCATION_OVERFLOW;
   scheduler->ready_heap.capacity = resolved.max_events;
@@ -1058,12 +1222,14 @@ struct game_scheduler *game_scheduler_create(const struct game_scheduler_config 
   scheduler->ready_heap.items = calloc(resolved.max_events, sizeof(struct game_event *));
   scheduler->deadline_heap.items = calloc(resolved.max_events, sizeof(struct game_event *));
   scheduler->registry_buckets = calloc(registry_buckets, sizeof(struct game_event *));
+  scheduler->owner_buckets = calloc(registry_buckets, sizeof(struct game_event_owner_entry *));
   scheduler->event_types = calloc(resolved.max_event_types, sizeof(struct game_event_type));
   if (scheduler->overflow_heap.items == NULL || scheduler->ready_heap.items == NULL ||
       scheduler->deadline_heap.items == NULL || scheduler->registry_buckets == NULL ||
-      scheduler->event_types == NULL)
+      scheduler->owner_buckets == NULL || scheduler->event_types == NULL)
   {
     free(scheduler->event_types);
+    free(scheduler->owner_buckets);
     free(scheduler->registry_buckets);
     free(scheduler->deadline_heap.items);
     free(scheduler->ready_heap.items);
@@ -1128,6 +1294,7 @@ enum game_scheduler_status game_scheduler_destroy(struct game_scheduler *schedul
   for (event_type = 0; event_type < scheduler->event_type_count; event_type++)
     free(scheduler->event_types[event_type].name);
   free(scheduler->event_types);
+  free(scheduler->owner_buckets);
   free(scheduler->registry_buckets);
   free(scheduler->deadline_heap.items);
   free(scheduler->ready_heap.items);
@@ -1180,6 +1347,8 @@ enum game_scheduler_status game_scheduler_register_type(struct game_scheduler *s
   registered->lateness_policy = config->lateness_policy;
   registered->catch_up_limit = config->catch_up_limit;
   registered->max_events = config->max_events;
+  registered->max_events_per_owner = config->max_events_per_owner;
+  registered->requires_owner = config->requires_owner;
   scheduler->event_type_count++;
   *event_type = (game_event_type_id_t)scheduler->event_type_count;
   return GAME_SCHEDULER_OK;
@@ -1187,9 +1356,11 @@ enum game_scheduler_status game_scheduler_register_type(struct game_scheduler *s
 
 static enum game_scheduler_status schedule_normalized(struct game_scheduler *scheduler,
                                                       game_event_type_id_t event_type,
+                                                      struct game_event_owner owner,
                                                       game_tick_t deadline_tick, void *payload,
                                                       game_event_id_t *event_id)
 {
+  struct game_event_owner_entry *owner_entry;
   struct game_event_type *registered_type;
   struct game_event *event;
   game_event_id_t assigned_id;
@@ -1200,6 +1371,16 @@ static enum game_scheduler_status schedule_normalized(struct game_scheduler *sch
     return GAME_SCHEDULER_INVALID_TYPE;
   if (payload != NULL && registered_type->cleanup == NULL)
     return GAME_SCHEDULER_INVALID_PAYLOAD;
+  if (!game_event_owner_is_none(owner) && !game_event_owner_is_valid(owner))
+  {
+    scheduler->total_invalid_owner_rejections++;
+    return GAME_SCHEDULER_INVALID_OWNER;
+  }
+  if (registered_type->requires_owner && game_event_owner_is_none(owner))
+  {
+    scheduler->total_invalid_owner_rejections++;
+    return GAME_SCHEDULER_INVALID_OWNER;
+  }
   if (scheduler->event_count >= scheduler->config.max_events)
     return GAME_SCHEDULER_CAPACITY_REACHED;
   if (registered_type->max_events > 0 &&
@@ -1208,11 +1389,37 @@ static enum game_scheduler_status schedule_normalized(struct game_scheduler *sch
   if (scheduler->event_id_exhausted || scheduler->insertion_sequence_exhausted)
     return GAME_SCHEDULER_ID_EXHAUSTED;
 
+  owner_entry = game_event_owner_is_none(owner) ? NULL : owner_find(scheduler, owner);
+  if (owner_entry != NULL && scheduler->config.max_events_per_owner > 0 &&
+      owner_entry->live_events >= scheduler->config.max_events_per_owner)
+  {
+    scheduler->total_owner_capacity_rejections++;
+    return GAME_SCHEDULER_OWNER_CAPACITY_REACHED;
+  }
+  if (owner_entry != NULL && registered_type->max_events_per_owner > 0 &&
+      owner_type_event_count(owner_entry, event_type) >= registered_type->max_events_per_owner)
+  {
+    scheduler->total_owner_type_capacity_rejections++;
+    return GAME_SCHEDULER_OWNER_TYPE_CAPACITY_REACHED;
+  }
+
   event = calloc(1, sizeof(*event));
   if (event == NULL)
     return GAME_SCHEDULER_ALLOCATION_FAILED;
+  if (!game_event_owner_is_none(owner) && owner_entry == NULL)
+  {
+    owner_entry = calloc(1, sizeof(*owner_entry));
+    if (owner_entry == NULL)
+    {
+      free(event);
+      return GAME_SCHEDULER_ALLOCATION_FAILED;
+    }
+    owner_entry->owner = owner;
+  }
   if (!assign_event_identity(scheduler, &assigned_id, &assigned_sequence))
   {
+    if (owner_entry != NULL && owner_entry->live_events == 0)
+      free(owner_entry);
     free(event);
     return GAME_SCHEDULER_ID_EXHAUSTED;
   }
@@ -1224,6 +1431,7 @@ static enum game_scheduler_status schedule_normalized(struct game_scheduler *sch
   event->deadline_tick = deadline_tick;
   event->insertion_sequence = assigned_sequence;
   event->payload = payload;
+  event->owner = owner;
   event->wheel_level = UINT32_MAX;
   event->wheel_slot = UINT32_MAX;
   event->location_heap_index = GAME_SCHEDULER_INVALID_INDEX;
@@ -1231,10 +1439,18 @@ static enum game_scheduler_status schedule_normalized(struct game_scheduler *sch
 
   if (!queue_event(scheduler, event))
   {
+    if (owner_entry != NULL && owner_entry->live_events == 0)
+      free(owner_entry);
     free(event);
     return GAME_SCHEDULER_ALLOCATION_FAILED;
   }
   registry_insert(scheduler, event);
+  if (owner_entry != NULL)
+  {
+    if (owner_entry->live_events == 0)
+      owner_entry_insert(scheduler, owner_entry);
+    owner_event_insert(owner_entry, event);
+  }
   event->payload_owned = (payload != NULL);
   scheduler->event_count++;
   registered_type->live_events++;
@@ -1258,7 +1474,8 @@ enum game_scheduler_status game_scheduler_schedule_at(struct game_scheduler *sch
   status = normalize_deadline(scheduler, deadline_tick, &normalized);
   if (status != GAME_SCHEDULER_OK)
     return status;
-  return schedule_normalized(scheduler, event_type, normalized, payload, event_id);
+  return schedule_normalized(scheduler, event_type, game_event_owner_none(), normalized, payload,
+                             event_id);
 }
 
 enum game_scheduler_status game_scheduler_schedule_after(struct game_scheduler *scheduler,
@@ -1276,7 +1493,44 @@ enum game_scheduler_status game_scheduler_schedule_after(struct game_scheduler *
   status = deadline_after(scheduler, delay_ticks, &deadline_tick);
   if (status != GAME_SCHEDULER_OK)
     return status;
-  return schedule_normalized(scheduler, event_type, deadline_tick, payload, event_id);
+  return schedule_normalized(scheduler, event_type, game_event_owner_none(), deadline_tick, payload,
+                             event_id);
+}
+
+enum game_scheduler_status game_scheduler_schedule_owned_at(
+    struct game_scheduler *scheduler, game_event_type_id_t event_type,
+    struct game_event_owner owner, game_tick_t deadline_tick, void *payload,
+    game_event_id_t *event_id)
+{
+  enum game_scheduler_status status;
+  game_tick_t normalized;
+
+  if (scheduler == NULL || event_id == NULL)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  if (scheduler->shutting_down)
+    return GAME_SCHEDULER_SHUTTING_DOWN;
+  status = normalize_deadline(scheduler, deadline_tick, &normalized);
+  if (status != GAME_SCHEDULER_OK)
+    return status;
+  return schedule_normalized(scheduler, event_type, owner, normalized, payload, event_id);
+}
+
+enum game_scheduler_status game_scheduler_schedule_owned_after(
+    struct game_scheduler *scheduler, game_event_type_id_t event_type,
+    struct game_event_owner owner, game_tick_t delay_ticks, void *payload,
+    game_event_id_t *event_id)
+{
+  enum game_scheduler_status status;
+  game_tick_t deadline_tick;
+
+  if (scheduler == NULL || event_id == NULL)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  if (scheduler->shutting_down)
+    return GAME_SCHEDULER_SHUTTING_DOWN;
+  status = deadline_after(scheduler, delay_ticks, &deadline_tick);
+  if (status != GAME_SCHEDULER_OK)
+    return status;
+  return schedule_normalized(scheduler, event_type, owner, deadline_tick, payload, event_id);
 }
 
 enum game_event_cancel_result game_scheduler_cancel(struct game_scheduler *scheduler,
@@ -1298,6 +1552,38 @@ enum game_event_cancel_result game_scheduler_cancel(struct game_scheduler *sched
   deadline_heap_remove(&scheduler->deadline_heap, event);
   finalize_event(scheduler, event, GAME_EVENT_STATE_CANCELLED);
   return GAME_EVENT_CANCELLED;
+}
+
+enum game_scheduler_status game_scheduler_cancel_owner(struct game_scheduler *scheduler,
+                                                       struct game_event_owner owner,
+                                                       size_t *cancelled_count)
+{
+  struct game_event_owner_entry *entry;
+  struct game_event *event;
+  struct game_event *next;
+  size_t count;
+
+  if (scheduler == NULL || cancelled_count == NULL)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  *cancelled_count = 0;
+  if (!game_event_owner_is_valid(owner))
+    return GAME_SCHEDULER_INVALID_OWNER;
+
+  entry = owner_find(scheduler, owner);
+  if (entry == NULL)
+    return GAME_SCHEDULER_OK;
+
+  count = 0;
+  event = entry->events_head;
+  while (event != NULL)
+  {
+    next = event->owner_next;
+    game_scheduler_cancel(scheduler, event->event_id);
+    count++;
+    event = next;
+  }
+  *cancelled_count = count;
+  return GAME_SCHEDULER_OK;
 }
 
 static enum game_scheduler_status reschedule_normalized(struct game_scheduler *scheduler,
@@ -1461,12 +1747,57 @@ enum game_scheduler_status game_scheduler_inspect(const struct game_scheduler *s
   snapshot->insertion_sequence = event->insertion_sequence;
   snapshot->wheel_level = event->wheel_level;
   snapshot->wheel_slot = event->wheel_slot;
+  snapshot->owner = event->owner;
+  return GAME_SCHEDULER_OK;
+}
+
+enum game_scheduler_status game_scheduler_inspect_owner(
+    const struct game_scheduler *scheduler, struct game_event_owner owner,
+    struct game_event_snapshot *snapshots, size_t snapshot_capacity, size_t *event_count)
+{
+  struct game_event_owner_entry *entry;
+  struct game_event *event;
+  size_t index;
+
+  if (scheduler == NULL || event_count == NULL ||
+      (snapshot_capacity > 0 && snapshots == NULL))
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  *event_count = 0;
+  if (!game_event_owner_is_valid(owner))
+    return GAME_SCHEDULER_INVALID_OWNER;
+  entry = owner_find(scheduler, owner);
+  if (entry == NULL)
+    return GAME_SCHEDULER_OK;
+
+  index = 0;
+  for (event = entry->events_head; event != NULL; event = event->owner_next)
+  {
+    if (index < snapshot_capacity)
+    {
+      memset(&snapshots[index], 0, sizeof(snapshots[index]));
+      snapshots[index].event_id = event->event_id;
+      snapshots[index].event_type = event->event_type;
+      snapshots[index].state = event->state;
+      snapshots[index].location = event->location;
+      snapshots[index].deadline_tick = event->deadline_tick;
+      snapshots[index].interval_ticks = event->interval_ticks;
+      snapshots[index].insertion_sequence = event->insertion_sequence;
+      snapshots[index].wheel_level = event->wheel_level;
+      snapshots[index].wheel_slot = event->wheel_slot;
+      snapshots[index].owner = event->owner;
+    }
+    index++;
+  }
+  *event_count = index;
   return GAME_SCHEDULER_OK;
 }
 
 void game_scheduler_get_stats(const struct game_scheduler *scheduler,
                               struct game_scheduler_stats *stats)
 {
+  const struct game_event_owner_entry *owner_entry;
+  size_t bucket;
+
   if (stats == NULL)
     return;
   memset(stats, 0, sizeof(*stats));
@@ -1478,11 +1809,22 @@ void game_scheduler_get_stats(const struct game_scheduler *scheduler,
   stats->ready_count = scheduler->ready_heap.count;
   stats->overflow_count = scheduler->overflow_heap.count;
   stats->registered_type_count = scheduler->event_type_count;
+  stats->owner_count = scheduler->owner_count;
+  for (bucket = 0; bucket < scheduler->owner_bucket_count; bucket++)
+  {
+    for (owner_entry = scheduler->owner_buckets[bucket]; owner_entry != NULL;
+         owner_entry = owner_entry->hash_next)
+      stats->owner_counts[owner_entry->owner.kind]++;
+  }
   stats->total_scheduled = scheduler->total_scheduled;
   stats->total_callbacks = scheduler->total_callbacks;
   stats->total_cancelled = scheduler->total_cancelled;
   stats->total_completed = scheduler->total_completed;
   stats->total_failed = scheduler->total_failed;
+  stats->total_invalid_owner_rejections = scheduler->total_invalid_owner_rejections;
+  stats->total_owner_capacity_rejections = scheduler->total_owner_capacity_rejections;
+  stats->total_owner_type_capacity_rejections =
+      scheduler->total_owner_type_capacity_rejections;
 }
 
 #ifdef LUMINARI_CUTEST

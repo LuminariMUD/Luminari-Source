@@ -21,7 +21,8 @@ enum test_event_behavior
   TEST_EVENT_CANCEL_TARGET,
   TEST_EVENT_SCHEDULE_CHILD,
   TEST_EVENT_FAIL,
-  TEST_EVENT_SHUTDOWN
+  TEST_EVENT_SHUTDOWN,
+  TEST_EVENT_CANCEL_OWNER
 };
 
 struct test_clock
@@ -49,6 +50,8 @@ struct test_event_payload
   struct test_event_payload *child_payload;
   game_event_id_t *child_id;
   enum game_scheduler_status *schedule_status;
+  struct game_event_owner owner;
+  size_t *owner_cancel_count;
 };
 
 static game_tick_t test_tick_now(void *context)
@@ -122,6 +125,12 @@ static struct game_event_result test_event_handler(const struct game_event_conte
   case TEST_EVENT_SHUTDOWN:
     game_scheduler_shutdown(context->scheduler);
     return game_event_result_complete();
+  case TEST_EVENT_CANCEL_OWNER:
+    schedule_status =
+        game_scheduler_cancel_owner(context->scheduler, payload->owner, payload->owner_cancel_count);
+    if (payload->schedule_status != NULL)
+      *payload->schedule_status = schedule_status;
+    return game_event_result_reschedule_after(payload->delay_ticks);
   case TEST_EVENT_COMPLETE:
   default:
     return game_event_result_complete();
@@ -140,6 +149,27 @@ static struct game_scheduler *create_test_scheduler(CuTest *tc, struct test_cloc
   config.max_event_types = 32U;
   config.tick_now = test_tick_now;
   config.monotonic_usec_now = include_usec_clock ? test_usec_now : NULL;
+  config.clock_context = clock;
+  scheduler = game_scheduler_create(&config, &status);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, status);
+  CuAssertPtrNotNull(tc, scheduler);
+  return scheduler;
+}
+
+static struct game_scheduler *create_owner_test_scheduler(CuTest *tc, struct test_clock *clock,
+                                                          size_t max_events,
+                                                          size_t max_events_per_owner)
+{
+  struct game_scheduler_config config;
+  struct game_scheduler *scheduler;
+  enum game_scheduler_status status;
+
+  memset(&config, 0, sizeof(config));
+  config.max_events = max_events;
+  config.max_event_types = 32U;
+  config.max_events_per_owner = max_events_per_owner;
+  config.tick_now = test_tick_now;
+  config.monotonic_usec_now = test_usec_now;
   config.clock_context = clock;
   scheduler = game_scheduler_create(&config, &status);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, status);
@@ -927,6 +957,157 @@ void Test_game_scheduler_enforces_global_and_per_type_capacity(CuTest *tc)
   free(fourth);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
   CuAssertIntEquals(tc, 2, cleanups);
+}
+
+void Test_game_scheduler_owner_contract_validates_limits_and_inspection(CuTest *tc)
+{
+  struct game_event_type_config type_config;
+  struct game_event_snapshot snapshots[2];
+  struct game_scheduler_stats stats;
+  struct game_scheduler *scheduler;
+  struct test_event_payload *payload;
+  struct test_clock clock;
+  struct game_event_owner owner;
+  struct game_event_owner malformed;
+  game_event_type_id_t limited_type;
+  game_event_type_id_t other_type;
+  game_event_id_t event_id;
+  enum game_scheduler_status status;
+  size_t event_count;
+  size_t cancelled_count;
+  int cleanups;
+
+  memset(&clock, 0, sizeof(clock));
+  cleanups = 0;
+  scheduler = create_owner_test_scheduler(tc, &clock, 8U, 2U);
+  memset(&type_config, 0, sizeof(type_config));
+  type_config.name = "owner-limited";
+  type_config.handler = test_event_handler;
+  type_config.cleanup = test_payload_cleanup;
+  type_config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  type_config.max_events_per_owner = 1U;
+  type_config.requires_owner = true;
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    game_scheduler_register_type(scheduler, &type_config, &limited_type));
+  other_type =
+      register_test_type(tc, scheduler, "owner-other", GAME_EVENT_LATENESS_RUN_ONCE, 0U, 0U);
+
+  owner.kind = GAME_EVENT_OWNER_CHARACTER;
+  owner.runtime_id = 42U;
+  owner.generation = 7U;
+  malformed = owner;
+  malformed.generation = 0;
+
+  payload = create_test_payload(tc, NULL, &cleanups);
+  status = game_scheduler_schedule_after(scheduler, limited_type, 10U, payload, &event_id);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_INVALID_OWNER, status);
+  free(payload);
+  payload = create_test_payload(tc, NULL, &cleanups);
+  status = game_scheduler_schedule_owned_after(scheduler, limited_type, malformed, 10U, payload,
+                                               &event_id);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_INVALID_OWNER, status);
+  free(payload);
+
+  payload = create_test_payload(tc, NULL, &cleanups);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    game_scheduler_schedule_owned_after(scheduler, limited_type, owner, 10U,
+                                                        payload, &event_id));
+  payload = create_test_payload(tc, NULL, &cleanups);
+  status = game_scheduler_schedule_owned_after(scheduler, limited_type, owner, 10U, payload,
+                                               &event_id);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OWNER_TYPE_CAPACITY_REACHED, status);
+  free(payload);
+  payload = create_test_payload(tc, NULL, &cleanups);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    game_scheduler_schedule_owned_after(scheduler, other_type, owner, 20U, payload,
+                                                        &event_id));
+  payload = create_test_payload(tc, NULL, &cleanups);
+  status = game_scheduler_schedule_owned_after(scheduler, other_type, owner, 30U, payload, &event_id);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OWNER_CAPACITY_REACHED, status);
+  free(payload);
+
+  memset(snapshots, 0, sizeof(snapshots));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    game_scheduler_inspect_owner(scheduler, owner, snapshots, 2U, &event_count));
+  CuAssertIntEquals(tc, 2, (int)event_count);
+  CuAssertTrue(tc, game_event_owner_equal(owner, snapshots[0].owner));
+  CuAssertTrue(tc, game_event_owner_equal(owner, snapshots[1].owner));
+  game_scheduler_get_stats(scheduler, &stats);
+  CuAssertIntEquals(tc, 1, (int)stats.owner_count);
+  CuAssertIntEquals(tc, 1, (int)stats.owner_counts[GAME_EVENT_OWNER_CHARACTER]);
+  CuAssertIntEquals(tc, 2, (int)stats.total_invalid_owner_rejections);
+  CuAssertIntEquals(tc, 1, (int)stats.total_owner_capacity_rejections);
+  CuAssertIntEquals(tc, 1, (int)stats.total_owner_type_capacity_rejections);
+
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    game_scheduler_cancel_owner(scheduler, owner, &cancelled_count));
+  CuAssertIntEquals(tc, 2, (int)cancelled_count);
+  CuAssertIntEquals(tc, 2, cleanups);
+  game_scheduler_get_stats(scheduler, &stats);
+  CuAssertIntEquals(tc, 0, (int)stats.owner_count);
+  CuAssertIntEquals(tc, 0, (int)stats.owner_counts[GAME_EVENT_OWNER_CHARACTER]);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
+}
+
+void Test_game_scheduler_cancel_owner_is_dispatch_safe_and_generation_scoped(CuTest *tc)
+{
+  struct game_scheduler_dispatch_report report;
+  struct game_scheduler *scheduler;
+  struct test_event_payload *canceller;
+  struct test_event_payload *target;
+  struct test_event_payload *survivor;
+  struct test_clock clock;
+  struct game_event_owner first_generation;
+  struct game_event_owner second_generation;
+  game_event_type_id_t event_type;
+  game_event_id_t event_id;
+  enum game_scheduler_status cancel_status;
+  size_t cancelled_count;
+  int calls;
+  int cleanups;
+
+  memset(&clock, 0, sizeof(clock));
+  calls = 0;
+  cleanups = 0;
+  cancelled_count = 0;
+  cancel_status = GAME_SCHEDULER_INVALID_ARGUMENT;
+  scheduler = create_owner_test_scheduler(tc, &clock, 8U, 0U);
+  event_type =
+      register_test_type(tc, scheduler, "owner-dispatch", GAME_EVENT_LATENESS_RUN_ONCE, 0U, 0U);
+  first_generation.kind = GAME_EVENT_OWNER_CHARACTER;
+  first_generation.runtime_id = 99U;
+  first_generation.generation = 1U;
+  second_generation = first_generation;
+  second_generation.generation = 2U;
+
+  canceller = create_test_payload(tc, &calls, &cleanups);
+  canceller->behavior = TEST_EVENT_CANCEL_OWNER;
+  canceller->delay_ticks = 10U;
+  canceller->owner = first_generation;
+  canceller->owner_cancel_count = &cancelled_count;
+  canceller->schedule_status = &cancel_status;
+  target = create_test_payload(tc, &calls, &cleanups);
+  survivor = create_test_payload(tc, &calls, &cleanups);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    game_scheduler_schedule_owned_at(scheduler, event_type, first_generation, 5U,
+                                                     canceller, &event_id));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    game_scheduler_schedule_owned_at(scheduler, event_type, first_generation, 5U,
+                                                     target, &event_id));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    game_scheduler_schedule_owned_at(scheduler, event_type, second_generation, 5U,
+                                                     survivor, &event_id));
+
+  clock.tick = 5U;
+  report = advance_scheduler(tc, scheduler, NULL);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, cancel_status);
+  CuAssertIntEquals(tc, 2, (int)cancelled_count);
+  CuAssertIntEquals(tc, 2, calls);
+  CuAssertIntEquals(tc, 3, cleanups);
+  CuAssertIntEquals(tc, 2, (int)report.callbacks);
+  CuAssertIntEquals(tc, 1, (int)report.cancelled);
+  CuAssertIntEquals(tc, 0, (int)report.events_remaining);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
 }
 
 void Test_game_scheduler_handles_capacity_scale_mixed_deadlines(CuTest *tc)

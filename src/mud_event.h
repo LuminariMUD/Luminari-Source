@@ -291,6 +291,8 @@ struct mud_event_data
   event_id iId;         /***< General ID reference */
   void *pStruct;        /***< Pointer to NULL, Descriptor, Character .... */
   char *sVariables;     /***< String variable */
+  struct game_event_owner owner; /***< Stable scheduler owner handle. */
+  bool owner_detached;  /***< Owner list was detached before deferred cleanup. */
 };
 
 /* Externals */
@@ -308,6 +310,8 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId);  
 struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId);       // Ornir
 struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iId); // Ornir
 void clear_char_event_list(struct char_data *ch);
+void clear_descriptor_event_list(struct descriptor_data *d);
+void clear_obj_event_list(struct obj_data *obj);
 void clear_room_event_list(struct room_data *rm);
 void clear_region_event_list(struct region_data *reg);
 void change_event_duration(struct char_data *ch, event_id iId, long time);

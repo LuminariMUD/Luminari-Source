@@ -2992,24 +2992,7 @@ void extract_obj(struct obj_data *obj)
   if (SCRIPT(obj))
     extract_script(&obj->script);
 
-  if (obj->events != NULL)
-  {
-    if (obj->events->iSize > 0)
-    {
-      struct event *pEvent;
-
-      /* Beginner's Note: Reset simple_list iterator before use to prevent
-       * cross-contamination from previous iterations. Without this reset,
-       * if simple_list was used elsewhere and not completed, it would
-       * continue from where it left off instead of starting fresh. */
-      simple_list(NULL);
-
-      while ((pEvent = simple_list(obj->events)) != NULL)
-        event_cancel(pEvent);
-    }
-    free_list(obj->events);
-    obj->events = NULL;
-  }
+  clear_obj_event_list(obj);
 
   if (GET_OBJ_RNUM(obj) == NOTHING ||
       obj->proto_script != obj_proto[GET_OBJ_RNUM(obj)].proto_script)
@@ -3288,50 +3271,7 @@ void extract_char_final(struct char_data *ch)
   PERF_prof_sect_init(&pr_events, "extract.events");
   PERF_prof_sect_enter(pr_events);
   /* Cancel all events associated with this character */
-  if (ch->events != NULL)
-  {
-    if (ch->events->iSize > 0)
-    {
-      struct event *pEvent = NULL;
-      struct item_data *pItem = NULL;
-      struct item_data *pNextItem = NULL;
-      struct list_data *temp_list = NULL;
-
-      /* Create a temporary list to hold events that need to be cancelled */
-      temp_list = create_list();
-
-      /* First pass: collect all events into temporary list */
-      pItem = ch->events->pFirstItem;
-      while (pItem)
-      {
-        pNextItem = pItem->pNextItem; /* Cache next pointer */
-        pEvent = (struct event *)pItem->pContent;
-
-        if (pEvent && event_is_queued(pEvent))
-          add_to_list(pEvent, temp_list);
-
-        pItem = pNextItem;
-      }
-
-      /* Second pass: cancel the collected events using safe iteration */
-      pItem = temp_list->pFirstItem;
-      while (pItem)
-      {
-        pNextItem = pItem->pNextItem; /* Cache next pointer before event_cancel */
-        pEvent = (struct event *)pItem->pContent;
-
-        if (pEvent)
-          event_cancel(pEvent);
-
-        pItem = pNextItem;
-      }
-
-      /* Clean up the temporary list */
-      free_list(temp_list);
-    }
-    free_list(ch->events);
-    ch->events = NULL;
-  }
+  clear_char_event_list(ch);
   PERF_prof_sect_exit(pr_events);
 
   PERF_prof_sect_init(&pr_finalize, "extract.finalize");

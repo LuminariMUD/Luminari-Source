@@ -1,9 +1,10 @@
 # LuminariMUD Event Systems
 
 This document explains the current compatibility timing infrastructure used by
-LuminariMUD. The public DG event API now selects either the game scheduler or
-the retained legacy queue implementation at boot, while the higher-level,
-entity-scoped MUD event layer remains unchanged above that facade.
+LuminariMUD. The public DG event API selects either the game scheduler or the
+retained legacy queue implementation at boot. The higher-level MUD event layer
+now supplies generation-aware owner handles while preserving its entity-scoped
+compatibility lists and query API.
 
 Core source files:
 - [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
@@ -56,6 +57,8 @@ the next independently gated phase.
 
 - Event function signature: [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28)
 - Event structure fields: see [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h). The record contains the callback and payload plus backend-specific identity and explicit dispatch/cancellation state.
+- Owned events also carry a typed `(kind, runtime_id, generation)` handle. The
+  scheduler indexes this handle independently of timing-wheel location.
 - Production defaults to the timing-wheel scheduler. Set `LUMINARI_EVENT_BACKEND=legacy` before boot to select the rollback queue.
 - Selection reads the process environment first and then `lib/.env`, occurs only in `event_init()`, and cannot change until `event_free_all()` has emptied and destroyed the active backend.
 - Unknown values log a warning and use the scheduler. Scheduler initialization failure logs the error and falls back to the legacy queue.
@@ -75,6 +78,8 @@ the next independently gated phase.
   - For MUD events, it invokes [C.free_mud_event()](../../src/mud_event.c#L607) if event_obj still present
 - Cancel: [C.event_cancel()](../../src/dgscript/dg_event.c)
   - In-flight cancellation becomes cancel-pending and always wins over a positive callback return
+  - In-flight payload cleanup runs after the callback returns, so the callback
+    retains valid payload storage for the rest of its invocation
   - Queued cancellation detaches and cleans up synchronously
   - For MUD events, cleanup delegates to [C.free_mud_event()](../../src/mud_event.c#L607)
 - Query remaining pulses: [C.event_time()](../../src/dgscript/dg_event.c)
@@ -98,7 +103,8 @@ the next independently gated phase.
 ## 3. MUD Event Layer
 
 The MUD layer adds:
-- Entity-scoped lists (character, object, room, region, world)
+- Entity-scoped lists (character, object, descriptor, room, region, world)
+- Typed, generation-aware scheduler ownership and lifecycle cancellation
 - Central registry of event metadata (names, messages, feat linkage)
 - Memory ownership rules for attached data (especially VNUM copies for rooms/regions)
 - Utility helpers for querying, clearing, and modifying events
@@ -116,14 +122,28 @@ The MUD layer adds:
 - Allocate payload: [C.new_mud_event()](../../src/mud_event.c#L579)
   - Duplicates sVariables string if provided (ownership sits with the MUD event)
 - Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c#L437)
-  - Internally calls [C.event_create()](../../src/dgscript/dg_event.c#L61) with handler from registry
+  - Builds the owner's typed handle and calls `event_create_owned_named()` with
+    the registry handler
   - Adds the struct event pointer to the owner's event list (ch->events, obj->events, room->events, region->events, or world_events)
   - Special memory handling:
     - For EVENT_ROOM: copies the room VNUM into newly allocated memory and stores that pointer in pStruct; validates room existence; see attach switch case at [C.attach_mud_event()](../../src/mud_event.c#L437)
     - For EVENT_REGION: same pattern for region VNUM; see [C.attach_mud_event()](../../src/mud_event.c#L437)
   - Macro helper: [C.NEW_EVENT()](../../src/mud_event.h#L27) wraps allocation + attach
 
-### 3.3 Processing and Completion (Common Handlers)
+### 3.3 Owner Handles and Lifecycle
+
+- Character, object, and descriptor handles use the allocated instance address
+  plus a lazy process-local generation.
+- Room and region handles use stable VNUM identity plus a generation that is
+  invalidated on replacement or reload. World work uses one boot-generation
+  singleton handle.
+- Generations and scheduler IDs are never serialized through copyover.
+  Reconstructed descriptor work receives a new-process handle after validation.
+- The scheduler enforces global, per-owner, and per-owner/type capacity and
+  exposes owner-filtered inspection, bulk cancellation, owner-kind counts, and
+  owner rejection telemetry.
+
+### 3.4 Processing and Completion (Common Handlers)
 
 - Generic countdown handler: [C.event_countdown()](../../src/mud_event.c#L75)
   - Emits standard messages defined in registry (completion_msg) if applicable
@@ -139,7 +159,7 @@ The MUD layer adds:
     - Character feat-derived daily uses via get_daily_uses
   - Carefully handles overflow and division by zero; see math and guards at [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
 
-### 3.4 Freeing MUD Events
+### 3.5 Freeing MUD Events
 
 - Main payload cleanup: [C.free_mud_event()](../../src/mud_event.c#L607)
   - Removes the event from the owning entity list, with post-cleanup to free empty lists
@@ -149,7 +169,7 @@ The MUD layer adds:
   - Frees sVariables if present
   - Nulls the event's event_obj to avoid accidental reuse
 
-### 3.5 Entity-Scoped Query Helpers
+### 3.6 Entity-Scoped Query Helpers
 
 - Characters: [C.char_has_mud_event()](../../src/mud_event.c#L764)
 - Rooms: [C.room_has_mud_event()](../../src/mud_event.c#L799)
@@ -157,17 +177,16 @@ The MUD layer adds:
 - Regions: [C.region_has_mud_event()](../../src/mud_event.c#L863)
 - World (global list): [C.world_has_mud_event()](../../src/mud_event.c#L905)
 
-### 3.6 Clearing All Events for an Entity
+### 3.7 Clearing All Events for an Entity
 
-Robust patterns are used to avoid iterator invalidation and double-free:
+Character, object, descriptor, room, and region clear helpers use one lifecycle
+order: invalidate the generation, detach the compatibility list, mark each MUD
+payload owner-detached, and cancel every event from the detached list. This
+includes an event currently dispatching. Its payload remains valid until the
+callback returns, while terminal cleanup cannot dereference owner memory that
+may already have been released.
 
-- Characters: two-pass staging approach; see [C.clear_char_event_list()](../../src/mud_event.c#L998)
-  - Pass 1 copies only queued events into a temporary list (events currently executing are not queued)
-  - Pass 2 cancels each staged event
-- Rooms: same two-pass technique using simple_list iterator; see [C.clear_room_event_list()](../../src/mud_event.c#L1072)
-- Regions: process-first-until-empty pattern to avoid holding stale pointers; see [C.clear_region_event_list()](../../src/mud_event.c#L1120)
-
-### 3.7 Modifying Existing Events
+### 3.8 Modifying Existing Events
 
 - Change duration: [C.change_event_duration()](../../src/mud_event.c#L1216)
   - Finds the event, duplicates its sVariables, creates a new event with new time, cancels old, attaches new
@@ -198,8 +217,8 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 - For EVENT_ROOM and EVENT_REGION:
   - Always store a heap-allocated copy of VNUMs on attach (do not keep pointers to stack or external memory)
   - On free, copy the VNUM out before freeing the pStruct; then validate real_room/real_region prior to dereferencing world/region_table
-- Only cancel queued events:
-  - Guard with [C.event_is_queued()](../../src/dgscript/dg_event.h#L110) before calling [C.event_cancel()](../../src/dgscript/dg_event.c#L133)
+- Use the entity clear helpers during extraction, descriptor close, room
+  replacement, and region reload. They safely cancel queued and in-flight work.
 - sVariables ownership:
   - Always strdup on creation ([C.new_mud_event()](../../src/mud_event.c#L578))
   - Always free on payload free ([C.free_mud_event()](../../src/mud_event.c#L607))
@@ -258,7 +277,8 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 - Avoid touching owner lists directly; rely on attach/free helpers
 
 8) Test cancel and rescheduling:
-- Ensure [C.event_is_queued()](../../src/dgscript/dg_event.h#L110) guards before cancel calls
+- Test queued cancellation, in-flight cancellation, owner teardown, and
+  generation reuse
 - If your handler sometimes needs to loop, return the next delay explicitly
 
 ## 9. Utility and Query APIs (MUD Layer)
@@ -283,8 +303,7 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 - Free-then-use in Region/Room cleanup:
   - Fixed by copying VNUM before freeing and validating indices; see [C.free_mud_event()](../../src/mud_event.c#L607) and [C.free_mud_event()](../../src/mud_event.c#L607)
 - Modifying lists during iteration:
-  - Use two-pass staging for character/room clears: [C.clear_char_event_list()](../../src/mud_event.c#L998), [C.clear_room_event_list()](../../src/mud_event.c#L1072)
-  - Use process-first-until-empty for regions: [C.clear_region_event_list()](../../src/mud_event.c#L1120)
+  - Use the owner-specific clear helper; it detaches the list before cancellation
 - Overflows and div-by-zero in cooldown math:
   - Guarded and clamped in [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
 - Attaching to invalid rooms/regions:
@@ -309,8 +328,9 @@ Robust patterns are used to avoid iterator invalidation and double-free:
   backend.
 - `perf event total` and the PERFMON CSV representation include lifecycle,
   delay-distribution, queue-depth, due-batch, and callback-duration aggregates.
-- The scheduler backend is still driven by the ten-Hz heartbeat. No networking,
-  descriptor polling, command parsing, or interpreter behavior changes here.
+- The scheduler backend is still driven by the ten-Hz heartbeat. Phase 3 will
+  add the compatibility reactor; networking, descriptor polling, command
+  parsing, and interpreter behavior are unchanged in Phase 2.5.
 
 - World events:
   - Global list is created in [C.init_events()](../../src/mud_event.c#L66) and defined at [src/mud_event.c](../../src/mud_event.c#L58)
@@ -341,7 +361,7 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 - Row added to [C.mud_event_index[]](../../src/mud_event_list.c#L46) with correct type and messages
 - Attach paths validated for entity type (and VNUM copying for room/region)
 - sVariables allocation and free verified
-- Cancel paths guarded with [C.event_is_queued()](../../src/dgscript/dg_event.h#L110)
+- Lifecycle cancellation uses the appropriate owner clear helper
 - Reschedule returns are in pulses or using RL_SEC as appropriate
 - Negative/zero divisions guarded, long math used for multiplications
 - Unit/system tests cover attach, process, reschedule, cancel, and free flows

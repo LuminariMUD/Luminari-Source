@@ -24,11 +24,25 @@ static EVENTFUNC(test_profiled_event_callback)
 }
 
 static int test_event_cancel_cleanup_calls;
+static int test_inflight_owner_cancel_payload_reads;
 
 static void test_event_cancel_cleanup(struct event *event)
 {
   test_event_cancel_cleanup_calls++;
   free(event->event_obj);
+}
+
+static EVENTFUNC(test_inflight_owner_cancel_callback)
+{
+  struct mud_event_data *mud_event;
+  struct obj_data *object;
+
+  mud_event = (struct mud_event_data *)event_obj;
+  object = (struct obj_data *)mud_event->pStruct;
+  clear_obj_event_list(object);
+  if (mud_event->sVariables != NULL && strcmp(mud_event->sVariables, "payload-live") == 0)
+    test_inflight_owner_cancel_payload_reads++;
+  return 10;
 }
 
 #define SYNTAX_CHECK_OUTPUT_SIZE (1024 * 1024)
@@ -171,6 +185,107 @@ void Test_global_event_cleanup_detaches_live_object_owner(CuTest *tc)
   event_free_all();
 
   CuAssertPtrEquals(tc, NULL, obj.events);
+}
+
+static void verify_mud_event_owner_generation(CuTest *tc, enum event_backend_kind backend)
+{
+  struct game_event_owner first_owner;
+  struct descriptor_data descriptor;
+  struct obj_data object;
+  uint64_t first_descriptor_generation;
+
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(backend));
+  event_init();
+
+  memset(&object, 0, sizeof(object));
+  attach_mud_event(new_mud_event(eARMOR_SPECAB_BLINDING, &object, NULL), 100);
+  attach_mud_event(new_mud_event(eITEM_SPECAB_HORN_OF_SUMMONING, &object, NULL), 100);
+  CuAssertPtrNotNull(tc, object.events);
+  CuAssertIntEquals(tc, 2, object.events->iSize);
+  CuAssertTrue(tc, object.event_owner_generation != 0);
+  first_owner = ((struct event *)object.events->pFirstItem->pContent)->owner;
+  CuAssertIntEquals(tc, GAME_EVENT_OWNER_OBJECT, first_owner.kind);
+  CuAssertTrue(tc, first_owner.runtime_id == (uint64_t)(uintptr_t)&object);
+  CuAssertTrue(tc, first_owner.generation == object.event_owner_generation);
+  CuAssertTrue(tc, game_event_owner_equal(
+                       first_owner,
+                       ((struct event *)object.events->pLastItem->pContent)->owner));
+  clear_obj_event_list(&object);
+  CuAssertPtrEquals(tc, NULL, object.events);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  memset(&object, 0, sizeof(object));
+  attach_mud_event(new_mud_event(eARMOR_SPECAB_BLINDING, &object, NULL), 100);
+  CuAssertPtrNotNull(tc, object.events);
+  CuAssertTrue(tc, object.event_owner_generation != first_owner.generation);
+  clear_obj_event_list(&object);
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.events = create_list();
+  attach_mud_event(new_mud_event(ePROTOCOLS, &descriptor, NULL), 100);
+  CuAssertPtrNotNull(tc, descriptor.events);
+  CuAssertIntEquals(tc, 1, descriptor.events->iSize);
+  first_descriptor_generation = descriptor.event_owner_generation;
+  clear_descriptor_event_list(&descriptor);
+  CuAssertPtrEquals(tc, NULL, descriptor.events);
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.events = create_list();
+  attach_mud_event(new_mud_event(ePROTOCOLS, &descriptor, NULL), 100);
+  CuAssertTrue(tc, descriptor.event_owner_generation != first_descriptor_generation);
+  clear_descriptor_event_list(&descriptor);
+  event_free_all();
+}
+
+void Test_mud_event_owners_are_generation_aware_on_both_backends(CuTest *tc)
+{
+  verify_mud_event_owner_generation(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  verify_mud_event_owner_generation(tc, EVENT_BACKEND_GAME_SCHEDULER);
+}
+
+static void verify_inflight_owner_cancel_payload_lifetime(CuTest *tc,
+                                                          enum event_backend_kind backend)
+{
+  struct game_event_owner owner;
+  struct mud_event_data *mud_event;
+  struct obj_data object;
+  struct event *event;
+  unsigned long saved_pulse;
+
+  saved_pulse = pulse;
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(backend));
+  event_init();
+  memset(&object, 0, sizeof(object));
+  object.event_owner_generation = backend + 100U;
+  object.events = create_list();
+  owner.kind = GAME_EVENT_OWNER_OBJECT;
+  owner.runtime_id = (uint64_t)(uintptr_t)&object;
+  owner.generation = object.event_owner_generation;
+  mud_event = new_mud_event(eARMOR_SPECAB_BLINDING, &object, "payload-live");
+  mud_event->owner = owner;
+  event = event_create_owned_named(test_inflight_owner_cancel_callback, mud_event, 1,
+                                   "in-flight owner cancellation", owner);
+  CuAssertPtrNotNull(tc, event);
+  event->isMudEvent = TRUE;
+  mud_event->pEvent = event;
+  add_to_list(event, object.events);
+
+  pulse++;
+  event_process();
+  CuAssertPtrEquals(tc, NULL, object.events);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  event_free_all();
+  pulse = saved_pulse;
+}
+
+void Test_mud_event_inflight_owner_cancel_defers_payload_cleanup_on_both_backends(CuTest *tc)
+{
+  test_inflight_owner_cancel_payload_reads = 0;
+  verify_inflight_owner_cancel_payload_lifetime(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  verify_inflight_owner_cancel_payload_lifetime(tc, EVENT_BACKEND_GAME_SCHEDULER);
+  CuAssertIntEquals(tc, 2, test_inflight_owner_cancel_payload_reads);
 }
 
 void Test_global_event_cleanup_invokes_custom_destructor(CuTest *tc)

@@ -142,6 +142,7 @@ struct region_data
 {
   region_vnum vnum; /* Vnum for this region. */
   region_rnum rnum; /* Array index for this region. */
+  uint64_t event_owner_generation; /* Runtime region incarnation. */
 
   zone_rnum zone; /* Zone that contains this region. */
   char *name;     /* Name of the region. */

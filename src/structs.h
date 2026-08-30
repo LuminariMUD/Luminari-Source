@@ -5906,6 +5906,7 @@ struct obj_data
 {
   obj_rnum item_number; /**< The unique id of this object instance. */
   room_rnum in_room;    /**< What room is the object lying in, or -1? */
+  uint64_t event_owner_generation; /**< Process-local timed-event owner generation. */
 
   struct obj_flag_data obj_flags;                    /**< Object information */
   struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
@@ -6072,6 +6073,7 @@ struct spec_effective_binding;
 struct room_data
 {
   room_vnum number;                                    /**< Rooms number (vnum) */
+  uint64_t event_owner_generation;                     /**< Runtime room incarnation. */
   zone_rnum zone;                                      /**< Room zone (for resetting) */
   int coords[2];                                       /**< Room coordinates (for wilderness) */
   int sector_type;                                     /**< sector type (move/hide) */
@@ -7364,6 +7366,7 @@ struct char_data
   int coords[2];         /**< Current coordinate location, used in wilderness. */
   room_rnum in_room;     /**< Current location (real room number) */
   room_rnum was_in_room; /**< Previous location for linkdead people  */
+  uint64_t event_owner_generation; /**< Runtime character incarnation. */
   int wait;              /**< wait for how many loops before taking action. */
 
   struct char_player_data player;              /**< General PC/NPC data */
@@ -7482,6 +7485,7 @@ struct descriptor_data
   byte idle_tics;                    /**< tics idle at password prompt		*/
   int connected;                     /**< mode of 'connectedness'		*/
   int desc_num;                      /**< unique num assigned to desc		*/
+  uint64_t event_owner_generation;  /**< Connection-scoped event generation. */
   time_t login_time;                 /**< when the person connected		*/
   char *showstr_head;                /**< for keeping track of an internal str	*/
   char **showstr_vector;             /**< for paging through texts		*/

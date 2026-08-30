@@ -31,6 +31,8 @@
 #include "perfmon.h"
 #include <limits.h> /* For LONG_MAX used in overflow checks */
 
+#define LEGACY_EVENT_MAX_EVENTS_PER_OWNER 1024U
+
 /***************************************************************************
  * Begin mud specific event queue functions
  **************************************************************************/
@@ -209,6 +211,7 @@ static int initialize_scheduler_backend(void)
   memset(&scheduler_config, 0, sizeof(scheduler_config));
   scheduler_config.max_events = MAX_EVENTS;
   scheduler_config.max_event_types = 1U;
+  scheduler_config.max_events_per_owner = LEGACY_EVENT_MAX_EVENTS_PER_OWNER;
   scheduler_config.tick_now = legacy_scheduler_tick;
   scheduler_config.monotonic_usec_now = NULL;
   scheduler_config.clock_context = NULL;
@@ -288,8 +291,9 @@ struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
  * freed in bulk. The event function remains responsible for normal completion.
  * @retval event * Returns a pointer to the newly created event, or NULL on error.
  * */
-struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
-                                              const char *profile_name, event_cleanup_func cleanup)
+static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, long when,
+                                           const char *profile_name, event_cleanup_func cleanup,
+                                           struct game_event_owner owner)
 {
   struct event *new_event = NULL;
   enum game_scheduler_status scheduler_status;
@@ -310,6 +314,11 @@ struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj,
   if (!func)
   {
     log("SYSERR: event_create called with NULL function pointer");
+    return NULL;
+  }
+  if (!game_event_owner_is_none(owner) && !game_event_owner_is_valid(owner))
+  {
+    log("SYSERR: event_create called with invalid owner handle");
     return NULL;
   }
 
@@ -342,12 +351,17 @@ struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj,
   new_event->dispatching = false;
   new_event->cancel_requested = false;
   new_event->callback_terminal = false;
+  new_event->owner = owner;
 
   if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
     scheduler_id = 0;
-    scheduler_status = game_scheduler_schedule_after(event_scheduler, legacy_event_type,
-                                                     (game_tick_t)when, new_event, &scheduler_id);
+    if (game_event_owner_is_none(owner))
+      scheduler_status = game_scheduler_schedule_after(event_scheduler, legacy_event_type,
+                                                       (game_tick_t)when, new_event, &scheduler_id);
+    else
+      scheduler_status = game_scheduler_schedule_owned_after(
+          event_scheduler, legacy_event_type, owner, (game_tick_t)when, new_event, &scheduler_id);
     if (scheduler_status != GAME_SCHEDULER_OK)
     {
       log("SYSERR: Unable to schedule legacy event '%s' (status %d).",
@@ -386,6 +400,21 @@ struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj,
   return new_event;
 }
 
+struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
+                                              const char *profile_name,
+                                              event_cleanup_func cleanup)
+{
+  return event_create_internal(func, event_obj, when, profile_name, cleanup,
+                               game_event_owner_none());
+}
+
+struct event *event_create_owned_named(EVENTFUNC(*func), void *event_obj, long when,
+                                       const char *profile_name,
+                                       struct game_event_owner owner)
+{
+  return event_create_internal(func, event_obj, when, profile_name, NULL, owner);
+}
+
 /** Removes an event from event_q and frees the event.
  * @param event Pointer to the event to be dequeued and removed.
  */
@@ -412,22 +441,9 @@ void event_cancel(struct event *event)
     event->callback_terminal = true;
     PERF_note_event_cancelled(event->profile_index);
 
-    /* IMPORTANT: We only handle mud events here. For non-mud events,
-     * the event function itself is responsible for freeing event_obj.
-     * We just need to prevent event_process() from double-freeing mud events. */
-    if (event->isMudEvent && event->event_obj)
-    {
-      /* For mud events, we free the data and set to NULL to prevent
-       * event_process() from trying to free it again.
-       *
-       * CRITICAL: We must free mud_event_data directly here, NOT call
-       * cleanup_event_obj(), because cleanup_event_obj() would also
-       * free non-mud events which we must NOT do during processing! */
-      struct mud_event_data *mud_event = (struct mud_event_data *)event->event_obj;
-      free_mud_event(mud_event);
-      event->event_obj = NULL;
-    }
-    /* For non-mud events, do NOT touch event_obj - the event function handles it */
+    /* The callback may continue reading its payload after requesting
+     * cancellation. The active dispatcher performs terminal cleanup after
+     * the callback returns. */
 
     if (event->backend == EVENT_BACKEND_GAME_SCHEDULER)
     {
@@ -596,6 +612,8 @@ void event_process(void)
 
     if (the_event->cancel_requested)
     {
+      if (the_event->isMudEvent && the_event->event_obj != NULL)
+        free_mud_event((struct mud_event_data *)the_event->event_obj);
       free(the_event);
       decrement_event_count("in-flight legacy cancellation");
     }

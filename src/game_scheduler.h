@@ -31,7 +31,33 @@ enum game_scheduler_status
   GAME_SCHEDULER_SHUTTING_DOWN,
   GAME_SCHEDULER_NOT_FOUND,
   GAME_SCHEDULER_BUSY,
-  GAME_SCHEDULER_ID_EXHAUSTED
+  GAME_SCHEDULER_ID_EXHAUSTED,
+  GAME_SCHEDULER_INVALID_OWNER,
+  GAME_SCHEDULER_OWNER_CAPACITY_REACHED,
+  GAME_SCHEDULER_OWNER_TYPE_CAPACITY_REACHED
+};
+
+enum game_event_owner_kind
+{
+  GAME_EVENT_OWNER_NONE = 0,
+  GAME_EVENT_OWNER_WORLD,
+  GAME_EVENT_OWNER_DESCRIPTOR,
+  GAME_EVENT_OWNER_CHARACTER,
+  GAME_EVENT_OWNER_ROOM,
+  GAME_EVENT_OWNER_REGION,
+  GAME_EVENT_OWNER_OBJECT,
+  GAME_EVENT_OWNER_ZONE,
+  GAME_EVENT_OWNER_ENCOUNTER,
+  GAME_EVENT_OWNER_VESSEL,
+  GAME_EVENT_OWNER_SERVICE,
+  GAME_EVENT_OWNER_KIND_COUNT
+};
+
+struct game_event_owner
+{
+  enum game_event_owner_kind kind;
+  uint64_t runtime_id;
+  uint64_t generation;
 };
 
 enum game_event_state
@@ -93,6 +119,7 @@ struct game_event_context
   game_tick_t deadline_tick;
   game_tick_t now_tick;
   uint64_t missed_occurrences;
+  struct game_event_owner owner;
   void *payload;
 };
 
@@ -110,6 +137,7 @@ struct game_scheduler_config
 {
   size_t max_events;
   size_t max_event_types;
+  size_t max_events_per_owner;
   game_scheduler_tick_source tick_now;
   game_scheduler_usec_source monotonic_usec_now;
   void *clock_context;
@@ -123,6 +151,8 @@ struct game_event_type_config
   enum game_event_lateness_policy lateness_policy;
   uint32_t catch_up_limit;
   size_t max_events;
+  size_t max_events_per_owner;
+  bool requires_owner;
 };
 
 struct game_scheduler_budget
@@ -161,6 +191,7 @@ struct game_event_snapshot
   uint64_t insertion_sequence;
   uint32_t wheel_level;
   uint32_t wheel_slot;
+  struct game_event_owner owner;
 };
 
 struct game_scheduler_stats
@@ -170,17 +201,26 @@ struct game_scheduler_stats
   size_t ready_count;
   size_t overflow_count;
   size_t registered_type_count;
+  size_t owner_count;
+  size_t owner_counts[GAME_EVENT_OWNER_KIND_COUNT];
   uint64_t total_scheduled;
   uint64_t total_callbacks;
   uint64_t total_cancelled;
   uint64_t total_completed;
   uint64_t total_failed;
+  uint64_t total_invalid_owner_rejections;
+  uint64_t total_owner_capacity_rejections;
+  uint64_t total_owner_type_capacity_rejections;
 };
 
 struct game_event_result game_event_result_complete(void);
 struct game_event_result game_event_result_reschedule_at(game_tick_t deadline_tick);
 struct game_event_result game_event_result_reschedule_after(game_tick_t delay_ticks);
 struct game_event_result game_event_result_failed(uint32_t diagnostic_code);
+struct game_event_owner game_event_owner_none(void);
+bool game_event_owner_is_none(struct game_event_owner owner);
+bool game_event_owner_is_valid(struct game_event_owner owner);
+bool game_event_owner_equal(struct game_event_owner left, struct game_event_owner right);
 
 struct game_scheduler *game_scheduler_create(const struct game_scheduler_config *config,
                                              enum game_scheduler_status *status);
@@ -199,8 +239,19 @@ enum game_scheduler_status game_scheduler_schedule_after(struct game_scheduler *
                                                          game_event_type_id_t event_type,
                                                          game_tick_t delay_ticks, void *payload,
                                                          game_event_id_t *event_id);
+enum game_scheduler_status game_scheduler_schedule_owned_at(
+    struct game_scheduler *scheduler, game_event_type_id_t event_type,
+    struct game_event_owner owner, game_tick_t deadline_tick, void *payload,
+    game_event_id_t *event_id);
+enum game_scheduler_status game_scheduler_schedule_owned_after(
+    struct game_scheduler *scheduler, game_event_type_id_t event_type,
+    struct game_event_owner owner, game_tick_t delay_ticks, void *payload,
+    game_event_id_t *event_id);
 enum game_event_cancel_result game_scheduler_cancel(struct game_scheduler *scheduler,
                                                     game_event_id_t event_id);
+enum game_scheduler_status game_scheduler_cancel_owner(struct game_scheduler *scheduler,
+                                                       struct game_event_owner owner,
+                                                       size_t *cancelled_count);
 enum game_scheduler_status game_scheduler_reschedule_at(struct game_scheduler *scheduler,
                                                         game_event_id_t event_id,
                                                         game_tick_t deadline_tick);
@@ -221,6 +272,9 @@ enum game_scheduler_status game_scheduler_next_deadline(const struct game_schedu
 enum game_scheduler_status game_scheduler_inspect(const struct game_scheduler *scheduler,
                                                   game_event_id_t event_id,
                                                   struct game_event_snapshot *snapshot);
+enum game_scheduler_status game_scheduler_inspect_owner(
+    const struct game_scheduler *scheduler, struct game_event_owner owner,
+    struct game_event_snapshot *snapshots, size_t snapshot_capacity, size_t *event_count);
 void game_scheduler_get_stats(const struct game_scheduler *scheduler,
                               struct game_scheduler_stats *stats);
 

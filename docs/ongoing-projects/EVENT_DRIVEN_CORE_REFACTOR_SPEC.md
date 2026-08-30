@@ -1,17 +1,16 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 2 accepted; pre-reactor hardening required
-**Document version:** 0.8
+**Status:** In progress - Phase 2.5 accepted; reactor compatibility is next
+**Document version:** 0.9
 **Started:** 2026-08-29
 **Last source review:** 2026-08-30
-**Implementation status:** Phases 1 and 2 complete; Phase 2.5 is the next gate
+**Implementation status:** Phases 1, 2, and 2.5 complete; Phase 3 is the next gate
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
-> existing heartbeat still drives it; `libevent`, networking, commands, combat
-> semantics, and generation-aware MUD-event ownership have not yet migrated.
-> Phase 3 is not authorized until the Phase 2.5 owner and lifecycle contract is
-> implemented and accepted.
+> existing heartbeat still drives it. Generation-aware MUD-event ownership and
+> lifecycle cancellation now form the accepted pre-reactor foundation;
+> `libevent`, networking, commands, and combat semantics have not migrated.
 
 ## 1. Purpose
 
@@ -176,9 +175,10 @@ ordering contract.
 - Completion and recovery messages.
 - Special ownership rules for strings and room/region VNUM copies.
 
-`struct mud_event_data` still stores an untyped `void *pStruct`. Character and
-object safety relies heavily on canceling attached events before their owners
-are freed.
+`struct mud_event_data` retains `void *pStruct` for callback compatibility, but
+each admitted event now also carries a typed, generation-aware owner handle.
+Bulk owner teardown invalidates the generation, detaches the compatibility
+list, and cancels queued or dispatching work before owner memory is released.
 
 ### 4.4 Current combat scheduling
 
@@ -530,9 +530,7 @@ stalls, largest cascades, and reactor latency before accepting or changing it.
 
 ### 9.1 Conceptual event record
 
-The following names describe the target record after Phase 2.5; owner fields
-are not present in the accepted Phase 1/2 scheduler and must not be represented
-as already implemented:
+The following names describe the implemented record after Phase 2.5:
 
 ```text
 game_event
@@ -1412,7 +1410,65 @@ Rollback:
 
 - Select the retained legacy timed backend at boot. The owner-aware scheduler
   path is never activated simultaneously with the legacy MUD storage path.
-- Phase 3 is blocked until this gate is accepted.
+- Phase 3 remained blocked until this gate was accepted.
+
+Implementation record, 2026-08-30:
+
+- Scheduler events now carry `(owner_kind, runtime_id, generation)` and a
+  dedicated owner-index link. The hash index is maintained independently of
+  wheel, overflow, ready, and dispatch location, so owner inspection and bulk
+  cancellation never scan the global event registry.
+- Owner-aware admission has distinct invalid-owner, per-owner-capacity, and
+  owner/type-capacity results. Statistics expose live owner counts by kind and
+  cumulative rejection counts for all three owner admission failures.
+- Character, object, descriptor, room, and region instances receive lazy,
+  process-local generations. Runtime pointers identify allocated character,
+  object, and connection instances; room and region handles combine their
+  stable VNUM with a generation that changes on replacement or reload. World
+  work uses a boot-generation singleton handle.
+- `attach_mud_event()` validates and copies room/region keys before admission,
+  then schedules through the owner-aware compatibility entry point. Existing
+  owner lists and query helpers remain the compatibility view for both timed
+  backends.
+- Bulk lifecycle teardown first invalidates the owner's generation and detaches
+  its compatibility list, then cancels each indexed event. Dispatching MUD
+  payloads remain valid until their callback returns; terminal cleanup knows
+  the owner list was detached and cannot dereference released owner memory.
+  Character/object extraction, room replacement, region reload, and descriptor
+  close use this order.
+- Descriptor events remain transient. Copyover does not serialize a scheduler
+  ID, wheel node, pointer, or old-process generation; recovered descriptors are
+  new connection instances and explicitly reconstructed work receives a new
+  process-local handle after validation.
+
+Legacy `sVariables` payload classification:
+
+| Payload family | Current examples | Typed replacement owner |
+|----------------|------------------|-------------------------|
+| No payload | Most cooldown, status, purge, and one-shot events | Replace with the owning consumer's typed event; no payload schema is required. |
+| Scalar decimal | Falling, action/combat phase, strikes, quests, traps, spell class, crafting, invention, and copyover values | Phase 5 for persisted values, Phase 7 for world/effect state, Phases 8-9 for combat, and Phase 10 for activities/actions. |
+| `uses:N` counter | Feat, perk, paladin, item, and other daily-use recovery | Phase 5 defines durable state; the consuming phase replaces the string with a typed counter. |
+| Structured delimited text | Devices, brewing, crafting, tracks, encounter rooms, and Tazrik state | Phase 7 owns world state, Phase 10 owns activities, and Phase 5 owns persistent members. |
+| Serialized player-event compatibility | Event ID, duration, and optional string restored by `players.c` | Phase 5 replaces it with a typed, versioned restore record. |
+| Combat mutable strings | Combat rounds, crippling criticals, fist effects, and combat daily-use state | Phases 8-9 move these fields into typed encounter and combatant state. |
+
+Acceptance evidence:
+
+- The production-linked Autotools suite passed 945 tests under both
+  `LUMINARI_EVENT_BACKEND=scheduler` and `legacy`, using the isolated CI runtime
+  and a complete syntax-check world boot.
+- Deterministic scheduler tests cover owner validation, capacity, inspection,
+  owner-kind statistics, rejection telemetry, generation reuse, dispatch-time
+  owner cancellation, and cleanup exactly once. MUD compatibility tests cover
+  object and descriptor generation reuse plus in-flight owner teardown on both
+  backends.
+- The CMake AddressSanitizer/UndefinedBehaviorSanitizer build passed all 945
+  tests with leak detection enabled. Valgrind passed the same suite with zero
+  errors and no definitely, indirectly, or possibly lost allocations.
+- `src/game_scheduler.c`, `src/dgscript/dg_event.c`, and `src/mud_event.c`
+  passed GCC `-fanalyzer` with the normal warning set.
+
+The Phase 2.5 gate is met. Phase 3 reactor implementation is authorized.
 
 ### Phase 3: Libevent compatibility reactor
 
@@ -2000,7 +2056,7 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 - [x] Payload ownership and failed-admission behavior are explicit.
 - [x] Cancellation during dispatch cannot double-clean or revive an event.
 - [x] Adversarial findings have an explicit resolution or owning phase in v0.8.
-- [ ] Owner generation semantics cover PCs, NPCs, objects, rooms, and runtime
+- [x] Owner generation semantics cover PCs, NPCs, objects, rooms, and runtime
       subsystem owners.
 - [ ] Dispatch budgets and event-storm behavior are operationally acceptable.
 - [ ] Phase 4 observed-workload telemetry is privacy-safe and representative
@@ -2034,3 +2090,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 0.6 | 2026-08-30 | Recorded the Phase 2 compatibility adapter, boot-time scheduler/legacy selection, corrected deterministic compatibility contract, source-derived producer and delay inventory, passive event telemetry, and parity validation scope. |
 | 0.7 | 2026-08-30 | Accepted the Phase 2 gate after 941 production-linked tests, dual-backend syntax boots, sanitizer-instrumented CMake boots, and static analysis; confirmed scheduler default and legacy rollback readiness. |
 | 0.8 | 2026-08-30 | Incorporated the adversarial review; inserted a blocking Phase 2.5 owner/lifecycle gate, corrected cascade and lifecycle contracts, assigned monotonic clock and full copyover/fd/signal/dependency/CI requirements to Phase 3, split typed events from pub/sub retirement, and made large-advance, encounter, activity, observability, and rollback obligations testable. |
+| 0.9 | 2026-08-30 | Accepted Phase 2.5 after implementing generation-aware owner handles and indexing, owner admission limits and diagnostics, lifecycle-ordered bulk cancellation, dual-backend MUD adaptation, payload classification, and sanitizer/Valgrind/static-analysis validation. Phase 3 is now authorized. |

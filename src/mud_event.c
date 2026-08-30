@@ -57,6 +57,8 @@
 
 /* Global List */
 struct list_data *world_events = NULL;
+static uint64_t next_event_owner_generation = 1U;
+static uint64_t world_event_owner_generation = 0;
 
 /* The mud_event_index[] is defined in mud_event_list.c */
 extern struct mud_event_list mud_event_index[];
@@ -486,165 +488,179 @@ EVENTFUNC(event_daily_use_cooldown)
  * freed after this function returns. We need the vnum to persist
  * for the entire lifetime of the event!
  */
+static uint64_t ensure_event_owner_generation(uint64_t *generation)
+{
+  if (*generation != 0)
+    return *generation;
+  if (next_event_owner_generation == 0)
+    return 0;
+  *generation = next_event_owner_generation;
+  if (next_event_owner_generation == UINT64_MAX)
+    next_event_owner_generation = 0;
+  else
+    next_event_owner_generation++;
+  return *generation;
+}
+
+static struct game_event_owner make_mud_event_owner(enum game_event_owner_kind kind,
+                                                    uint64_t runtime_id,
+                                                    uint64_t *generation)
+{
+  struct game_event_owner owner;
+
+  owner = game_event_owner_none();
+  owner.kind = kind;
+  owner.runtime_id = runtime_id;
+  owner.generation = ensure_event_owner_generation(generation);
+  return owner;
+}
+
 void attach_mud_event(struct mud_event_data *pMudEvent, long time)
 {
-  struct event *pEvent = NULL;
-
   struct descriptor_data *d = NULL;
   struct char_data *ch = NULL;
   struct room_data *room = NULL;
   struct region_data *region = NULL;
   struct obj_data *obj = NULL;
-
+  struct event *pEvent = NULL;
   room_vnum *rvnum = NULL;
   region_vnum *regvnum = NULL;
+  room_rnum room_index;
+  region_rnum region_index;
+  int event_type;
+  bool copied_owner_key = false;
 
   if (pMudEvent == NULL)
     return;
+  if (pMudEvent->iId <= eNULL || pMudEvent->iId >= eMUD_EVENT_COUNT)
+    goto admission_failed;
 
-  /* Timed stun is a second status ingress independent of AFF_STUN. */
+  event_type = mud_event_index[pMudEvent->iId].iEvent_Type;
   if (pMudEvent->iId == eSTUNNED && !can_stun((struct char_data *)pMudEvent->pStruct))
+    goto admission_failed;
+
+  switch (event_type)
   {
-    free(pMudEvent->sVariables);
-    free(pMudEvent);
-    return;
+  case EVENT_WORLD:
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_WORLD, 1U,
+                                            &world_event_owner_generation);
+    if (world_events == NULL)
+      world_events = create_list();
+    break;
+  case EVENT_DESC:
+    d = (struct descriptor_data *)pMudEvent->pStruct;
+    if (d == NULL)
+      goto admission_failed;
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_DESCRIPTOR,
+                                            (uint64_t)(uintptr_t)d,
+                                            &d->event_owner_generation);
+    if (d->events == NULL)
+      d->events = create_list();
+    break;
+  case EVENT_CHAR:
+    ch = (struct char_data *)pMudEvent->pStruct;
+    if (ch == NULL)
+      goto admission_failed;
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_CHARACTER,
+                                            (uint64_t)(uintptr_t)ch,
+                                            &ch->event_owner_generation);
+    if (ch->events == NULL)
+      ch->events = create_list();
+    break;
+  case EVENT_OBJECT:
+    obj = (struct obj_data *)pMudEvent->pStruct;
+    if (obj == NULL)
+      goto admission_failed;
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_OBJECT,
+                                            (uint64_t)(uintptr_t)obj,
+                                            &obj->event_owner_generation);
+    if (obj->events == NULL)
+      obj->events = create_list();
+    break;
+  case EVENT_ROOM:
+    if (pMudEvent->pStruct == NULL)
+      goto admission_failed;
+    CREATE(rvnum, room_vnum, 1);
+    *rvnum = *((room_vnum *)pMudEvent->pStruct);
+    room_index = real_room(*rvnum);
+    if (room_index == NOWHERE)
+    {
+      log("SYSERR: Attempt to attach event to non-existent room vnum %d!", *rvnum);
+      free(rvnum);
+      goto admission_failed;
+    }
+    pMudEvent->pStruct = rvnum;
+    copied_owner_key = true;
+    room = &world[room_index];
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_ROOM,
+                                            (uint64_t)(uint32_t)*rvnum + 1U,
+                                            &room->event_owner_generation);
+    if (room->events == NULL)
+      room->events = create_list();
+    break;
+  case EVENT_REGION:
+    if (pMudEvent->pStruct == NULL)
+      goto admission_failed;
+    CREATE(regvnum, region_vnum, 1);
+    *regvnum = *((region_vnum *)pMudEvent->pStruct);
+    region_index = real_region(*regvnum);
+    if (region_index == NOWHERE)
+    {
+      log("SYSERR: Attempt to add event to out-of-range region!");
+      free(regvnum);
+      goto admission_failed;
+    }
+    pMudEvent->pStruct = regvnum;
+    copied_owner_key = true;
+    region = &region_table[region_index];
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_REGION,
+                                            (uint64_t)(uint32_t)*regvnum + 1U,
+                                            &region->event_owner_generation);
+    if (region->events == NULL)
+      region->events = create_list();
+    break;
+  default:
+    goto admission_failed;
   }
 
-  /* Create the actual event and set its timer.
-   * event_create() adds it to the global event queue. */
-  pEvent = event_create_named(mud_event_index[pMudEvent->iId].func, pMudEvent, time,
-                              mud_event_index[pMudEvent->iId].event_name);
+  if (!game_event_owner_is_valid(pMudEvent->owner))
+    goto admission_failed;
+  pEvent = event_create_owned_named(mud_event_index[pMudEvent->iId].func, pMudEvent, time,
+                                    mud_event_index[pMudEvent->iId].event_name,
+                                    pMudEvent->owner);
   if (pEvent == NULL)
-  {
-    free(pMudEvent->sVariables);
-    free(pMudEvent);
-    return;
-  }
+    goto admission_failed;
   pEvent->isMudEvent = TRUE;
   pMudEvent->pEvent = pEvent;
 
-  /* Add event to the appropriate entity's event list.
-   * Each entity type maintains its own list of active events. */
-  switch (mud_event_index[pMudEvent->iId].iEvent_Type)
+  switch (event_type)
   {
   case EVENT_WORLD:
     add_to_list(pEvent, world_events);
     break;
   case EVENT_DESC:
-    d = (struct descriptor_data *)pMudEvent->pStruct;
     add_to_list(pEvent, d->events);
     break;
   case EVENT_CHAR:
-    ch = (struct char_data *)pMudEvent->pStruct;
-
-    if (ch->events == NULL)
-      ch->events = create_list();
-
     add_to_list(pEvent, ch->events);
     break;
   case EVENT_OBJECT:
-    obj = (struct obj_data *)pMudEvent->pStruct;
-
-    if (obj->events == NULL)
-      obj->events = create_list();
-
     add_to_list(pEvent, obj->events);
     break;
   case EVENT_ROOM:
-    /* CRITICAL FIX: The original code had a memory leak here.
-     * pMudEvent->pStruct initially points to a room_vnum passed from the caller.
-     * We need to copy this value to our own allocated memory that we'll manage,
-     * but we must NOT lose the original pointer if it was dynamically allocated.
-     *
-     * For ROOM events, pStruct should contain a room_vnum that was passed in.
-     * We create our own copy because the event system needs to own this memory
-     * for the lifetime of the event. */
-
-    /* Create new memory to store the room vnum for this event */
-    CREATE(rvnum, room_vnum, 1);
-
-    /* Copy the vnum value from the original pointer to our new memory */
-    *rvnum = *((room_vnum *)pMudEvent->pStruct);
-
-    /* Now update pStruct to point to our newly allocated memory.
-     * The original pointer passed in is NOT freed here because we don't
-     * own it - the caller is responsible for their own memory. */
-    pMudEvent->pStruct = rvnum;
-
-    /* BOUNDS CHECK: Ensure the room exists before accessing the world array.
-     * real_room() returns NOWHERE (-1) if the vnum doesn't exist.
-     * Accessing world[-1] would cause memory corruption! */
-    room_rnum room_index = real_room(*rvnum);
-    if (room_index == NOWHERE)
-    {
-      log("SYSERR: Attempt to attach event to non-existent room vnum %d!", *rvnum);
-      free(rvnum); /* Clean up the memory we just allocated */
-      /* CRITICAL: We must cancel the event that was already created above!
-       * Otherwise it will fire with invalid data and could crash the game. */
-      event_cancel(pEvent);
-      /* Note: event_cancel will free pMudEvent, so we just return */
-      return;
-    }
-
-    /* Now safe to get the room data */
-    room = &world[room_index];
-
-    /* log("[DEBUG] Adding Event %s to room %d",mud_event_index[pMudEvent->iId].event_name, room->number); */
-
-    /* Create the event list for this room if it doesn't exist yet */
-    if (room->events == NULL)
-      room->events = create_list();
-
-    /* Add this event to the room's event list */
     add_to_list(pEvent, room->events);
     break;
   case EVENT_REGION:
-    /* CRITICAL FIX: Same memory management as ROOM events.
-     * We need to copy the region vnum to our own allocated memory
-     * that the event system will manage for the lifetime of the event.
-     *
-     * IMPORTANT: Just like with ROOM events, we don't free the original
-     * pointer because we don't own it - the caller owns that memory. */
-
-    /* Allocate memory for storing the region vnum */
-    CREATE(regvnum, region_vnum, 1);
-
-    /* Copy the vnum value from the caller's pointer to our memory */
-    *regvnum = *((region_vnum *)pMudEvent->pStruct);
-
-    /* Update pStruct to point to our newly allocated memory */
-    pMudEvent->pStruct = regvnum;
-
-    /* Debug logging for region events - comment out when not debugging */
-    /* log("Region event attached: vnum %d (rnum %d) for event %s",
-        *((region_vnum *)pMudEvent->pStruct), real_region(*regvnum),
-        event_name(pMudEvent->iId)); */
-
-    /* SAFETY CHECK: Ensure the region vnum corresponds to a valid region.
-     * real_region() returns NOWHERE (-1) if the vnum doesn't exist. */
-    if (real_region(*regvnum) == NOWHERE)
-    {
-      log("SYSERR: Attempt to add event to out-of-range region!");
-      /* Clean up the memory we just allocated since we can't use it */
-      free(regvnum);
-      /* CRITICAL: Cancel the already-created event to prevent it from
-       * firing with invalid data. event_cancel will free pMudEvent. */
-      event_cancel(pEvent);
-      return;
-    }
-
-    /* Get the actual region data from the region_table array.
-     * We've already verified the index is valid above. */
-    region = &region_table[real_region(*regvnum)];
-
-    /* Create the event list for this region if it doesn't exist yet */
-    if (region->events == NULL)
-      region->events = create_list();
-
-    /* Add this event to the region's event list */
     add_to_list(pEvent, region->events);
     break;
   }
+  return;
+
+admission_failed:
+  if (copied_owner_key)
+    free(pMudEvent->pStruct);
+  free(pMudEvent->sVariables);
+  free(pMudEvent);
 }
 
 struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sVariables)
@@ -671,6 +687,8 @@ struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sV
   pMudEvent->pStruct = pStruct;
   pMudEvent->sVariables = varString;
   pMudEvent->pEvent = NULL;
+  pMudEvent->owner = game_event_owner_none();
+  pMudEvent->owner_detached = false;
 
   return (pMudEvent);
 }
@@ -701,16 +719,22 @@ void free_mud_event(struct mud_event_data *pMudEvent)
   switch (mud_event_index[pMudEvent->iId].iEvent_Type)
   {
   case EVENT_WORLD:
-    remove_from_list(pMudEvent->pEvent, world_events);
+    if (!pMudEvent->owner_detached)
+      remove_from_list(pMudEvent->pEvent, world_events);
     break;
   case EVENT_DESC:
-    d = (struct descriptor_data *)pMudEvent->pStruct;
-    remove_from_list(pMudEvent->pEvent, d->events);
+    if (!pMudEvent->owner_detached)
+    {
+      d = (struct descriptor_data *)pMudEvent->pStruct;
+      remove_from_list(pMudEvent->pEvent, d->events);
+    }
     break;
   case EVENT_CHAR:
+    if (pMudEvent->owner_detached)
+      break;
+
     ch = (struct char_data *)pMudEvent->pStruct;
     remove_from_list(pMudEvent->pEvent, ch->events);
-
     if (ch->events && ch->events->iSize == 0)
     {
       free_list(ch->events);
@@ -718,6 +742,9 @@ void free_mud_event(struct mud_event_data *pMudEvent)
     }
     break;
   case EVENT_OBJECT:
+    if (pMudEvent->owner_detached)
+      break;
+
     obj = (struct obj_data *)pMudEvent->pStruct;
     remove_from_list(pMudEvent->pEvent, obj->events);
 
@@ -748,10 +775,14 @@ void free_mud_event(struct mud_event_data *pMudEvent)
      * It returns NOWHERE (-1) if the room doesn't exist.
      * Accessing world[-1] would crash the game! */
     room_vnum vnum_copy = *rvnum; /* Save vnum before freeing */
-    room_rnum room_index = real_room(vnum_copy);
 
     /* Always free the allocated memory to prevent leaks */
     free(pMudEvent->pStruct);
+
+    if (pMudEvent->owner_detached)
+      break;
+
+    room_rnum room_index = real_room(vnum_copy);
 
     /* Safety: Only proceed if room exists */
     if (room_index == NOWHERE)
@@ -798,10 +829,13 @@ void free_mud_event(struct mud_event_data *pMudEvent)
     /* Verify region exists. Regions can be reloaded/deleted dynamically.
      * real_region() returns NOWHERE if the region doesn't exist.
      * Accessing region_table[NOWHERE] would be out of bounds! */
-    region_rnum rnum = real_region(reg_vnum_copy);
-
     /* NOW safe to free the memory */
     free(pMudEvent->pStruct);
+
+    if (pMudEvent->owner_detached)
+      break;
+
+    region_rnum rnum = real_region(reg_vnum_copy);
 
     if (rnum != NOWHERE)
     {
@@ -1068,219 +1102,67 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
   return;
 }
 
+static void clear_owned_event_list(struct list_data **owner_events, uint64_t *generation)
+{
+  struct event *event;
+  struct item_data *item;
+  struct list_data *pending;
+
+  if (generation != NULL)
+    *generation = 0;
+  if (owner_events == NULL || *owner_events == NULL)
+    return;
+
+  pending = create_list();
+  for (item = (*owner_events)->pFirstItem; item != NULL; item = item->pNextItem)
+  {
+    event = (struct event *)item->pContent;
+    if (event == NULL)
+      continue;
+    if (event->isMudEvent && event->event_obj != NULL)
+      ((struct mud_event_data *)event->event_obj)->owner_detached = true;
+    add_to_list(event, pending);
+  }
+
+  free_list(*owner_events);
+  *owner_events = NULL;
+  while (pending->pFirstItem != NULL)
+  {
+    event = (struct event *)pending->pFirstItem->pContent;
+    remove_from_list(event, pending);
+    event_cancel(event);
+  }
+  free_list(pending);
+}
+
 void clear_char_event_list(struct char_data *ch)
 {
-  /* BEGINNER'S GUIDE: This function clears all events from a character.
-   * This is typically called when a character dies or leaves the game.
-   *
-   * CRITICAL SAFETY: We use a TWO-PASS algorithm to prevent crashes:
-   * Pass 1: Collect all events that need to be cancelled
-   * Pass 2: Cancel the collected events
-   *
-   * Why two passes? If we cancel events while iterating the original list,
-   * the cancellation might modify the list we're iterating, causing crashes! */
+  if (ch != NULL)
+    clear_owned_event_list(&ch->events, &ch->event_owner_generation);
+}
 
-  struct event *pEvent = NULL;
-  struct item_data *pItem = NULL;
-  struct item_data *pNextItem = NULL;
-  struct list_data *temp_list = NULL;
+void clear_descriptor_event_list(struct descriptor_data *d)
+{
+  if (d != NULL)
+    clear_owned_event_list(&d->events, &d->event_owner_generation);
+}
 
-  /* Safety check: If character has no event list, nothing to do */
-  if (ch->events == NULL)
-    return;
-
-  /* Double-check: Ensure events list exists and has items */
-  if (!ch->events || ch->events->iSize == 0)
-    return;
-
-  /* Create a temporary list to safely collect events for cancellation.
-   * This is our "staging area" - we'll copy references to events here,
-   * then cancel them all at once. This avoids the dreaded "modifying
-   * a list while iterating it" problem. */
-  temp_list = create_list();
-
-  /* PASS 1: Collect all events that need cancelling
-   * We iterate through the character's events and copy REFERENCES
-   * (not the events themselves) to our temporary list. */
-  pItem = ch->events->pFirstItem;
-  while (pItem)
-  {
-    /* CRITICAL: Cache the next pointer BEFORE doing anything!
-     * Why? Because if something modifies the list, pItem->pNextItem
-     * might become invalid. By caching it now, we're safe. */
-    pNextItem = pItem->pNextItem;
-    pEvent = (struct event *)pItem->pContent;
-
-    /* IMPORTANT EDGE CASE: Death during event execution
-     * If a character dies WHILE one of their events is executing,
-     * we must NOT cancel the currently-executing event or the game crashes!
-     * event_is_queued() returns FALSE for currently-executing events,
-     * so we only collect events that are queued (waiting to execute). */
-    if (pEvent && event_is_queued(pEvent))
-      add_to_list(pEvent, temp_list);
-
-    pItem = pNextItem;
-  }
-
-  /* PASS 2: Cancel all the collected events
-   * Now that we have a stable list of events to cancel,
-   * we can safely cancel them without worrying about list corruption. */
-  pItem = temp_list->pFirstItem;
-  while (pItem)
-  {
-    /* Again, cache next pointer before cancellation */
-    pNextItem = pItem->pNextItem;
-    pEvent = (struct event *)pItem->pContent;
-
-    if (pEvent)
-      event_cancel(pEvent); /* This will free memory and remove from original list */
-
-    pItem = pNextItem;
-  }
-
-  /* Clean up our temporary list (the events themselves are already freed) */
-  free_list(temp_list);
+void clear_obj_event_list(struct obj_data *obj)
+{
+  if (obj != NULL)
+    clear_owned_event_list(&obj->events, &obj->event_owner_generation);
 }
 
 void clear_room_event_list(struct room_data *rm)
 {
-  /* BEGINNER'S GUIDE: This function clears all events from a room.
-   * Rooms can have events like darkness timers, respawn timers, etc.
-   * This is called when a room is being deleted or reset.
-   *
-   * Like clear_char_event_list, we use a TWO-PASS algorithm for safety. */
-
-  struct event *pEvent = NULL;
-  struct list_data *temp_list = NULL;
-
-  /* Safety check: No event list means nothing to do */
-  if (rm->events == NULL)
-    return;
-
-  /* Safety check: Empty list means nothing to do */
-  if (rm->events->iSize == 0)
-    return;
-
-  /* Create a temporary "staging area" for events to be cancelled.
-   * This prevents list corruption during iteration. */
-  temp_list = create_list();
-
-  /* PASS 1: Collect all events that need cancelling
-   * simple_list() is a special iterator that's safe for list traversal.
-   * Calling it with NULL resets the iterator. */
-  simple_list(NULL); /* Reset the iterator */
-  while ((pEvent = (struct event *)simple_list(rm->events)) != NULL)
-  {
-    /* Only collect events that are queued (not currently executing) */
-    if (event_is_queued(pEvent))
-      add_to_list(pEvent, temp_list);
-  }
-  simple_list(NULL); /* Clean up the iterator state */
-
-  /* PASS 2: Cancel all the collected events
-   * Now we iterate through our temporary list and cancel each event. */
-  simple_list(NULL); /* Reset for the temp list */
-  while ((pEvent = (struct event *)simple_list(temp_list)) != NULL)
-  {
-    event_cancel(pEvent); /* Cancel and free the event */
-  }
-  simple_list(NULL); /* Clean up the iterator state */
-
-  /* Free our temporary list (events are already freed by event_cancel) */
-  free_list(temp_list);
+  if (rm != NULL)
+    clear_owned_event_list(&rm->events, &rm->event_owner_generation);
 }
 
 void clear_region_event_list(struct region_data *reg)
 {
-  struct event *pEvent = NULL;
-
-  /* BEGINNER'S GUIDE: This function clears all events from a region.
-   * A region is a collection of rooms/areas in the game world.
-   * This is called when a region is being deleted or reset.
-   *
-   * CRITICAL: We must be very careful here to avoid double-free bugs!
-   * A double-free happens when we try to free the same memory twice,
-   * which causes the game to crash. */
-
-  /* Safety check: If there's no event list, nothing to do */
-  if (reg->events == NULL)
-    return;
-
-  /* Safety check: If the list exists but is empty, nothing to do */
-  if (reg->events->iSize == 0)
-    return;
-
-  /* IMPORTANT ALGORITHM: Process-First-Until-Empty Pattern
-   * Instead of iterating through all items (which can cause problems when
-   * the list is modified during iteration), we repeatedly process just the
-   * FIRST item until the list is empty.
-   *
-   * Why this works:
-   * 1. We always get the first item from the list
-   * 2. When we cancel an event, it removes itself from the list
-   * 3. The "next" first item is what was previously the second item
-   * 4. We continue until no items remain
-   *
-   * This pattern PREVENTS double-free because we never hold pointers
-   * to items that might get freed during the cancellation process. */
-  while (reg->events && reg->events->iSize > 0)
-  {
-    /* Always work with the first event in the list.
-     * After we process it, it will be removed, and the next event
-     * will become the new first event. */
-    pEvent = (struct event *)reg->events->pFirstItem->pContent;
-
-    /* Check if this event is valid and queued (scheduled to run) */
-    if (pEvent && event_is_queued(pEvent))
-    {
-      /* Cancel the event. This does THREE important things:
-       * 1. Stops the event from executing
-       * 2. Calls free_mud_event() to clean up memory
-       * 3. Removes the event from reg->events list
-       *
-       * After this call, pEvent is no longer valid! */
-      event_cancel(pEvent);
-    }
-    else
-    {
-      /* Event exists but is not queued (maybe already executed?) */
-      if (pEvent)
-      {
-        /* Just remove it from the list without canceling */
-        remove_from_list(pEvent, reg->events);
-      }
-      else
-      {
-        /* CORRUPTION HANDLING: The list item exists but has no content.
-         * This shouldn't happen, but we handle it gracefully to prevent crashes.
-         * We manually remove the corrupted item from the linked list. */
-        struct item_data *pItem = reg->events->pFirstItem;
-
-        /* Update the list's first item pointer to skip the corrupted item */
-        reg->events->pFirstItem = pItem->pNextItem;
-
-        /* Fix the backward link of the new first item (if it exists) */
-        if (reg->events->pFirstItem)
-          reg->events->pFirstItem->pPrevItem = NULL;
-        else
-          reg->events->pLastItem = NULL; /* List is now empty */
-
-        /* Update the list size counter */
-        reg->events->iSize--;
-
-        /* Free the corrupted list item structure */
-        free(pItem);
-      }
-    }
-  }
-
-  /* Final cleanup: If the list still exists but is empty, free it.
-   * This saves memory and ensures reg->events is NULL when no events exist. */
-  if (reg->events && reg->events->iSize == 0)
-  {
-    free_list(reg->events);
-    reg->events = NULL;
-  }
+  if (reg != NULL)
+    clear_owned_event_list(&reg->events, &reg->event_owner_generation);
 }
 
 /* ripley's version of change_event_duration
