@@ -5907,6 +5907,7 @@ struct obj_data
   obj_rnum item_number; /**< The unique id of this object instance. */
   room_rnum in_room;    /**< What room is the object lying in, or -1? */
   uint64_t event_owner_generation; /**< Process-local timed-event owner generation. */
+  uint64_t periodic_event_generation; /**< Periodic-owner incarnation. */
 
   struct obj_flag_data obj_flags;                    /**< Object information */
   struct obj_affected_type affected[MAX_OBJ_AFFECT]; /**< affects */
@@ -5985,6 +5986,7 @@ struct obj_data
   struct obj_data *autoproc_next;
   struct obj_data *autoproc_prev;
   bool autoproc_registered;
+  struct event *autoproc_event;
 
   /* PERFMON lifecycle attribution; runtime-only and never serialized. */
   int perf_origin_zone_vnum;
@@ -6074,6 +6076,7 @@ struct room_data
 {
   room_vnum number;                                    /**< Rooms number (vnum) */
   uint64_t event_owner_generation;                     /**< Runtime room incarnation. */
+  uint64_t periodic_event_generation;                  /**< Periodic-owner incarnation. */
   zone_rnum zone;                                      /**< Room zone (for resetting) */
   int coords[2];                                       /**< Room coordinates (for wilderness) */
   int sector_type;                                     /**< sector type (move/hide) */
@@ -7369,6 +7372,7 @@ struct char_data
   room_rnum domain_previous_room; /**< Origin retained across char_from/to_room. */
   uint64_t event_owner_generation; /**< Runtime character incarnation. */
   uint64_t domain_event_generation; /**< Typed-event character incarnation. */
+  uint64_t periodic_event_generation; /**< Periodic-owner incarnation. */
   int wait;              /**< wait for how many loops before taking action. */
 
   struct char_player_data player;              /**< General PC/NPC data */

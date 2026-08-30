@@ -665,13 +665,50 @@ obj_data *get_obj_by_room(room_data *room, char *name)
   return NULL;
 }
 
-/* checks every PULSE_SCRIPT for random triggers */
-void script_trigger_check(void)
+bool dg_random_trigger_run_one(void *owner, int owner_type)
 {
   char_data *ch;
   obj_data *obj;
   struct room_data *room;
   struct script_data *sc;
+
+  if (owner == NULL)
+    return false;
+  switch (owner_type)
+  {
+  case MOB_TRIGGER:
+    ch = owner;
+    sc = SCRIPT(ch);
+    if (sc != NULL && IN_ROOM(ch) != NOWHERE &&
+        (IS_SET(SCRIPT_TYPES(sc), MTRIG_GLOBAL) || !is_empty(world[IN_ROOM(ch)].zone)))
+    {
+      random_mtrigger(ch);
+      return true;
+    }
+    break;
+  case OBJ_TRIGGER:
+    obj = owner;
+    random_otrigger(obj);
+    return true;
+  case WLD_TRIGGER:
+    room = owner;
+    sc = SCRIPT(room);
+    if (sc != NULL && (IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL) || !is_empty(room->zone)))
+    {
+      random_wtrigger(room);
+      return true;
+    }
+    break;
+  }
+  return false;
+}
+
+/* Legacy rollback path: checks every PULSE_SCRIPT for random triggers. */
+void script_trigger_check(void)
+{
+  char_data *ch;
+  obj_data *obj;
+  struct room_data *room;
   uint64_t acted;
   uint64_t eligible;
   uint64_t visited;
@@ -683,13 +720,8 @@ void script_trigger_check(void)
        ch = dg_random_registry_iteration_next())
   {
     visited++;
-    sc = SCRIPT(ch);
-    if (IN_ROOM(ch) != NOWHERE &&
-        (!is_empty(world[IN_ROOM(ch)].zone) || IS_SET(SCRIPT_TYPES(sc), MTRIG_GLOBAL)))
-    {
-      random_mtrigger(ch);
+    if (dg_random_trigger_run_one(ch, MOB_TRIGGER))
       acted++;
-    }
   }
   dg_random_registry_iteration_end();
   PERF_note_sweep(PERF_SWEEP_DG_MOBILE_RANDOM, visited, eligible, acted);
@@ -701,8 +733,8 @@ void script_trigger_check(void)
        obj = dg_random_registry_iteration_next())
   {
     visited++;
-    random_otrigger(obj);
-    acted++;
+    if (dg_random_trigger_run_one(obj, OBJ_TRIGGER))
+      acted++;
   }
   dg_random_registry_iteration_end();
   PERF_note_sweep(PERF_SWEEP_DG_OBJECT_RANDOM, visited, eligible, acted);
@@ -714,12 +746,8 @@ void script_trigger_check(void)
        room = dg_random_registry_iteration_next())
   {
     visited++;
-    sc = SCRIPT(room);
-    if (!is_empty(room->zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL))
-    {
-      random_wtrigger(room);
+    if (dg_random_trigger_run_one(room, WLD_TRIGGER))
       acted++;
-    }
   }
   dg_random_registry_iteration_end();
   PERF_note_sweep(PERF_SWEEP_DG_ROOM_RANDOM, visited, eligible, acted);

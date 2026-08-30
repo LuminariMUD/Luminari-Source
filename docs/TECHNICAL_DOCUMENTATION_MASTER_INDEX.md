@@ -44,6 +44,8 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - Verified system overview, component boundaries, and data flow
 - **[CORE_SERVER_ARCHITECTURE.md](systems/CORE_SERVER_ARCHITECTURE.md)** - Game loop, networking, and core engine
 - **[MUD_EVENTS.md](systems/MUD_EVENTS.md)** - Timed-event backends, owner lifecycle, persistence, and typed domain-event foundation
+- **[ACTIVE_WORLD.md](systems/ACTIVE_WORLD.md)** - Autonomous NPC owner deadlines and off-screen simulation rules
+- **[PERIODIC_OWNER_EVENTS.md](systems/PERIODIC_OWNER_EVENTS.md)** - Automatic object and DG random-trigger owner deadlines, lifecycle, diagnostics, and rollback
 - **[ADR 0002](adr/0002-event-driven-core-boundaries.md)** - Scheduler, reactor, domain-event, command, and migration boundaries
 - **[Special-Procedure Boot Control Plane](systems/CORE_SERVER_ARCHITECTURE.md#special-procedure-boot-control-plane)** - Definition, authored/effective binding, boot precedence, diagnostics, and compatibility boundaries
 - **[DATA_STRUCTURES_AND_MEMORY.md](development/DATA_STRUCTURES_AND_MEMORY.md)** - Memory management and data structures

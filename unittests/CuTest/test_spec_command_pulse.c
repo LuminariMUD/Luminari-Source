@@ -931,6 +931,11 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
   char *mobile_gate;
   char *mobile_call;
   char *proc_call;
+  char *autoproc_gate;
+  char *avernus_call;
+  char *dg_gate;
+  char *dg_rollback;
+  char *event_process_call;
   char *violence_gate;
   bool source_loaded;
   bool moving_schedule_matches;
@@ -953,11 +958,20 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
     mobile_gate =
         mobile_call != NULL ? strstr(mobile_call, "if (!(heart_pulse % PULSE_MOBILE))") : NULL;
     proc_call = mobile_gate != NULL ? strstr(mobile_gate, "proc_update();") : NULL;
+    autoproc_gate = mobile_gate != NULL ? strstr(mobile_gate, "if (!periodic_autoproc_enabled())") : NULL;
+    avernus_call = mobile_gate != NULL ? strstr(mobile_gate, "rol_avernus_room_pulse();") : NULL;
+    event_process_call = strstr(source, "event_process_compatibility_pulse();");
+    dg_gate = event_process_call != NULL
+                  ? strstr(event_process_call, "if (!(heart_pulse % PULSE_DG_SCRIPT)")
+                  : NULL;
+    dg_rollback = dg_gate != NULL ? strstr(dg_gate, "!periodic_dg_random_enabled()") : NULL;
     violence_gate =
         mobile_gate != NULL ? strstr(mobile_gate, "if (!(heart_pulse % PULSE_VIOLENCE))") : NULL;
-    pulse_order_matches = mobile_call != NULL && mobile_gate != NULL && proc_call != NULL &&
-                          violence_gate != NULL && mobile_call < proc_call &&
-                          proc_call < violence_gate;
+    pulse_order_matches = mobile_call != NULL && mobile_gate != NULL && autoproc_gate != NULL &&
+                          proc_call != NULL && avernus_call != NULL && violence_gate != NULL &&
+                          dg_gate != NULL && dg_rollback != NULL && mobile_call < proc_call &&
+                          autoproc_gate < proc_call && proc_call < avernus_call &&
+                          avernus_call < violence_gate;
   }
   free(source);
 

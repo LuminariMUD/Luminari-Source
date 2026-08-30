@@ -116,6 +116,8 @@ luminari_SOURCES = \
 	src/game_scheduler.h \
 	src/active_world.c \
 	src/active_world.h \
+	src/periodic_owners.c \
+	src/periodic_owners.h \
 	src/domain_events.c \
 	src/domain_events.h \
 	src/domain_event_types.c \

@@ -6,8 +6,10 @@
 #include "../../src/utils.h"
 #include "../../src/db.h"
 #include "../../src/active_world.h"
+#include "../../src/periodic_owners.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
+#include "../../src/dgscript/dg_scripts.h"
 #include "../../src/domain_event_types.h"
 #include "../../src/domain_events.h"
 #include "../../src/domain_event_runtime.h"
@@ -691,6 +693,186 @@ void TestActiveWorldAdmissionAndLegacyGateAreExclusive(CuTest *tc)
   top_of_world = saved_top_of_world;
   top_of_mobt = saved_top_of_mobt;
   character_list = saved_characters;
+}
+
+void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
+{
+  struct room_data room;
+  struct room_data *saved_world = world;
+  struct char_data mobile;
+  struct char_data *saved_characters = character_list;
+  struct obj_data *obj;
+  struct obj_data *saved_objects = object_list;
+  struct script_data mobile_script;
+  struct script_data object_script;
+  struct script_data room_script;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+
+  memset(&room, 0, sizeof(room));
+  memset(&mobile_script, 0, sizeof(mobile_script));
+  memset(&object_script, 0, sizeof(object_script));
+  memset(&room_script, 0, sizeof(room_script));
+  clear_char(&mobile);
+  room.number = 100;
+  world = &room;
+  top_of_world = 0;
+  IN_ROOM(&mobile) = 0;
+  SCRIPT(&mobile) = &mobile_script;
+  mobile_script.types = MTRIG_RANDOM | MTRIG_GLOBAL;
+  character_list = &mobile;
+
+  event_free_all();
+  periodic_owners_reset_for_test();
+  autoproc_registry_reset_for_test();
+  dg_random_registry_reset_for_test();
+  periodic_owners_select_for_test(true, true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 1000U;
+  event_init();
+  periodic_owners_init();
+
+  obj = create_obj();
+  IN_ROOM(obj) = 0;
+  GET_OBJ_TYPE(obj) = ITEM_WEAPON;
+  GET_OBJ_VAL(obj, 0) = 0;
+  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_AUTOPROC);
+  SCRIPT(obj) = &object_script;
+  object_script.types = OTRIG_RANDOM;
+  SCRIPT(&room) = &room_script;
+  room_script.types = WTRIG_RANDOM | WTRIG_GLOBAL;
+  autoproc_registry_sync(obj);
+  dg_script_bind_owner(&mobile_script, &mobile, MOB_TRIGGER);
+  dg_script_bind_owner(&object_script, obj, OBJ_TRIGGER);
+  dg_script_bind_owner(&room_script, &room, WLD_TRIGGER);
+
+  CuAssertTrue(tc, periodic_autoproc_enabled());
+  CuAssertTrue(tc, periodic_dg_random_enabled());
+  CuAssertIntEquals(tc, 1, (int)periodic_autoproc_scheduled_count());
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_scheduled_count(MOB_TRIGGER));
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_scheduled_count(OBJ_TRIGGER));
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_scheduled_count(WLD_TRIGGER));
+  CuAssertIntEquals(tc, 4, event_queue_depth());
+
+  pulse += PULSE_DG_SCRIPT;
+  event_process();
+  CuAssertIntEquals(tc, 1, (int)periodic_autoproc_callbacks());
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_callbacks(MOB_TRIGGER));
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_callbacks(OBJ_TRIGGER));
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_callbacks(WLD_TRIGGER));
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_executions(MOB_TRIGGER));
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_executions(OBJ_TRIGGER));
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_executions(WLD_TRIGGER));
+  CuAssertIntEquals(tc, 4, event_queue_depth());
+
+  REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_AUTOPROC);
+  autoproc_registry_sync(obj);
+  mobile_script.owner = NULL;
+  object_script.owner = NULL;
+  room_script.owner = NULL;
+  dg_random_registry_sync(&mobile_script);
+  dg_random_registry_sync(&object_script);
+  dg_random_registry_sync(&room_script);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  CuAssertPtrEquals(tc, NULL, obj->autoproc_event);
+  CuAssertPtrEquals(tc, NULL, mobile_script.random_event);
+  CuAssertPtrEquals(tc, NULL, object_script.random_event);
+  CuAssertPtrEquals(tc, NULL, room_script.random_event);
+
+  SCRIPT(&mobile) = NULL;
+  SCRIPT(obj) = NULL;
+  SCRIPT(&room) = NULL;
+  periodic_owners_shutdown();
+  event_free_all();
+  autoproc_registry_reset_for_test();
+  dg_random_registry_reset_for_test();
+  object_list = saved_objects;
+  free(obj);
+  periodic_owners_reset_for_test();
+  pulse = saved_pulse;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  character_list = saved_characters;
+}
+
+void TestPeriodicOwnerAdmissionAndRollbackGatesAreIndependent(CuTest *tc)
+{
+  struct obj_data first;
+  struct obj_data second;
+  struct script_data first_script;
+  struct script_data second_script;
+  unsigned long saved_pulse = pulse;
+
+  memset(&first, 0, sizeof(first));
+  memset(&second, 0, sizeof(second));
+  memset(&first_script, 0, sizeof(first_script));
+  memset(&second_script, 0, sizeof(second_script));
+  IN_ROOM(&first) = NOWHERE;
+  IN_ROOM(&second) = NOWHERE;
+  SET_BIT_AR(GET_OBJ_EXTRA(&first), ITEM_AUTOPROC);
+  SET_BIT_AR(GET_OBJ_EXTRA(&second), ITEM_AUTOPROC);
+  SCRIPT(&first) = &first_script;
+  SCRIPT(&second) = &second_script;
+  first_script.types = OTRIG_RANDOM;
+  second_script.types = OTRIG_RANDOM;
+
+  event_free_all();
+  periodic_owners_reset_for_test();
+  autoproc_registry_reset_for_test();
+  dg_random_registry_reset_for_test();
+  periodic_owners_select_for_test(true, true);
+  periodic_owners_set_limits_for_test(1U, 1U);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 2000U;
+  event_init();
+  periodic_owners_init();
+  autoproc_registry_sync(&first);
+  autoproc_registry_sync(&second);
+  dg_script_bind_owner(&first_script, &first, OBJ_TRIGGER);
+  dg_script_bind_owner(&second_script, &second, OBJ_TRIGGER);
+  CuAssertIntEquals(tc, 1, (int)periodic_autoproc_scheduled_count());
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_scheduled_count(OBJ_TRIGGER));
+  CuAssertIntEquals(tc, 1, (int)periodic_autoproc_admission_rejections());
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_admission_rejections());
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+
+  autoproc_registry_remove(&first);
+  autoproc_registry_remove(&second);
+  first_script.owner = NULL;
+  second_script.owner = NULL;
+  dg_random_registry_sync(&first_script);
+  dg_random_registry_sync(&second_script);
+  SCRIPT(&first) = NULL;
+  SCRIPT(&second) = NULL;
+  periodic_owners_shutdown();
+  event_free_all();
+  autoproc_registry_reset_for_test();
+  dg_random_registry_reset_for_test();
+
+  periodic_owners_reset_for_test();
+  periodic_owners_select_for_test(false, false);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  periodic_owners_init();
+  SET_BIT_AR(GET_OBJ_EXTRA(&first), ITEM_AUTOPROC);
+  first_script.types = OTRIG_RANDOM;
+  SCRIPT(&first) = &first_script;
+  autoproc_registry_sync(&first);
+  dg_script_bind_owner(&first_script, &first, OBJ_TRIGGER);
+  CuAssertTrue(tc, !periodic_autoproc_enabled());
+  CuAssertTrue(tc, !periodic_dg_random_enabled());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  autoproc_registry_remove(&first);
+  first_script.owner = NULL;
+  dg_random_registry_sync(&first_script);
+  SCRIPT(&first) = NULL;
+  periodic_owners_shutdown();
+  event_free_all();
+  autoproc_registry_reset_for_test();
+  dg_random_registry_reset_for_test();
+  periodic_owners_reset_for_test();
+  pulse = saved_pulse;
 }
 
 void TestWorldPhenomenonRoomPropagation(CuTest *tc)

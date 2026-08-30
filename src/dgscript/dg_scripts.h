@@ -191,6 +191,7 @@ struct script_data
   bool random_registered;
   struct script_data *random_next;
   struct script_data *random_prev;
+  struct event *random_event;
 };
 
 /* The event data for the wait command */
@@ -391,11 +392,13 @@ void extract_trigger(struct trig_data *trig);
 void extract_script(struct script_data **script);
 void dg_script_bind_owner(struct script_data *script, void *owner, int owner_type);
 void dg_random_registry_sync(struct script_data *script);
+void *dg_random_registry_resolve_owner(struct script_data *script);
 void *dg_random_registry_iteration_begin(int owner_type);
 void *dg_random_registry_iteration_next(void);
 void dg_random_registry_iteration_end(void);
 size_t dg_random_registry_count(int owner_type);
 size_t dg_random_registry_validate(int owner_type);
+bool dg_random_trigger_run_one(void *owner, int owner_type);
 #ifdef LUMINARI_CUTEST
 void dg_random_registry_reset_for_test(void);
 #endif

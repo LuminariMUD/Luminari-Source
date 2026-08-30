@@ -24,12 +24,12 @@ it does not mean that its cadence has already moved off the heartbeat.
 | 5 s | PSP regeneration | Characters eligible to regenerate | Character-owner deadline candidate. |
 | 5 s | Luminari pulse | Mixed character/system work | Decompose by owner before migration; do not preserve as one opaque scheduled callback. |
 | 6 s | NPC thinking | Previously every character | **Converted:** one distributed owner deadline per autonomous NPC; player absence does not suspend patrols, wandering, scripts, or NPC wars. Only out-of-world, extracting, and `MOB_NO_AI` owners are dormant. |
-| 6 s | object auto-procs | `ITEM_AUTOPROC` registry | Already eligibility-bounded; object-owner scheduling is a next-slice candidate. |
+| 6 s | object auto-procs | `ITEM_AUTOPROC` registry | **Converted:** one distributed object-owner deadline invokes the existing gateway; lifecycle flag/OLC/extraction boundaries cancel it. |
 | 6 s | character affects | Affected-character registry plus room-affect list and connected-PC MSDP refresh | Already eligibility-bounded; split character and room owners before scheduling. |
 | 6 s | D20 round procedure | Encounter/combat state | Phase 8 owns encounter-level scheduling. |
 | 6 s | damage/effects and player misc | Character/descriptor state | Split named effects from generic player maintenance, then schedule owners. |
 | 11 s | bardic performance | Performing characters/groups | Owner-event candidate; preserve song audience semantics. |
-| 13 s | DG random triggers | Mobile/object/room random-trigger registries | Already eligibility-bounded; schedule script owners with OLC/extraction cancellation. |
+| 13 s | DG random triggers | Mobile/object/room random-trigger registries | **Converted:** one distributed deadline per eligible script owner with attach/detach/extraction cancellation. Existing `GLOBAL` versus empty-zone semantics are preserved. |
 | 30 s | idle passwords | Non-playing descriptors | Descriptor registry/deadline candidate. |
 | 30 s | auction/other thirty-second work | Auction and subsystem globals | Audit each member; auction deadline may be a genuine service event. |
 | 60 s | shutdown/happy-hour checks, activated items | Service state and eligible activated objects | Keep service checks global; move item recharge to owners/registry. |
@@ -53,10 +53,8 @@ diagnostic paths, not normal gameplay orchestration.
 
 ## Priority after NPC thinking
 
-1. `ITEM_AUTOPROC` object owners and DG random-trigger owners, because their
-   lifecycle registries already exist.
-2. Affected character and room owners, after separating connected-PC MSDP
+1. Affected character and room owners, after separating connected-PC MSDP
    refresh from duration expiry.
-3. Walk-to, regeneration, bardic performance, hints, and similar explicit
+2. Walk-to, regeneration, bardic performance, hints, and similar explicit
    character state.
-4. Vessel tick decomposition and the mixed `point_update()`/Luminari pulses.
+3. Vessel tick decomposition and the mixed `point_update()`/Luminari pulses.

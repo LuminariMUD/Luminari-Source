@@ -88,6 +88,7 @@ void echo_off(struct descriptor_data *d);
 void echo_on(struct descriptor_data *d);
 void game_loop(socket_t mother_desc);
 void heartbeat(int heart_pulse);
+bool object_auto_proc_run_one(struct obj_data *obj);
 size_t persistence_scheduler_repr(char *out_buf, size_t n);
 void persistence_scheduler_reset_telemetry(void);
 void copyover_recover(void);

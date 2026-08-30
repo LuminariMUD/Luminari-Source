@@ -26,6 +26,7 @@
 #include "mysql.h"
 #include "perfmon.h"
 #include "active_world.h"
+#include "periodic_owners.h"
 
 /* ========================================================================
  * CONSTANTS
@@ -1217,6 +1218,7 @@ void PERF_reset(void)
   object_vnum_overflow = 0;
   entity_zone_overflow = 0;
   active_world_reset_telemetry();
+  periodic_owners_reset_telemetry();
   memset(&combat_context, 0, sizeof(combat_context));
   memset(slow_combats, 0, sizeof(slow_combats));
   slow_combat_index = 0;
@@ -2526,19 +2528,39 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                                 n - written);
   }
   if (!csv && written < n - 1)
-    written +=
-        bounded_format_length(snprintf(out_buf + written, n - written,
-                                       "Autoproc registry: members=%zu validation_mismatch=%zu\n\r",
-                                       autoproc_registry_count(), autoproc_registry_validate()),
-                              n - written);
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "Autoproc owners: mode=%s members=%zu scheduled=%zu limit=%zu rejected=%" PRIu64
+                 " callbacks=%" PRIu64 " validation_mismatch=%zu\n\r",
+                 periodic_autoproc_enabled() ? "scheduled" : "legacy",
+                 autoproc_registry_count(), periodic_autoproc_scheduled_count(),
+                 periodic_autoproc_admission_limit(), periodic_autoproc_admission_rejections(),
+                 periodic_autoproc_callbacks(), autoproc_registry_validate()),
+        n - written);
   if (!csv && written < n - 1)
     written += bounded_format_length(
         snprintf(out_buf + written, n - written,
-                 "DG random registries: mob=%zu/%zu obj=%zu/%zu room=%zu/%zu "
-                 "(members/mismatch)\n\r",
-                 dg_random_registry_count(MOB_TRIGGER), dg_random_registry_validate(MOB_TRIGGER),
-                 dg_random_registry_count(OBJ_TRIGGER), dg_random_registry_validate(OBJ_TRIGGER),
-                 dg_random_registry_count(WLD_TRIGGER), dg_random_registry_validate(WLD_TRIGGER)),
+                 "DG random owners: mode=%s mob=%zu/%zu/%zu obj=%zu/%zu/%zu "
+                 "room=%zu/%zu/%zu (members/scheduled/mismatch) limit=%zu rejected=%" PRIu64
+                 " callbacks=%" PRIu64 "/%" PRIu64 "/%" PRIu64
+                 " executions=%" PRIu64 "/%" PRIu64 "/%" PRIu64 "\n\r",
+                 periodic_dg_random_enabled() ? "scheduled" : "legacy",
+                 dg_random_registry_count(MOB_TRIGGER),
+                 periodic_dg_random_scheduled_count(MOB_TRIGGER),
+                 dg_random_registry_validate(MOB_TRIGGER),
+                 dg_random_registry_count(OBJ_TRIGGER),
+                 periodic_dg_random_scheduled_count(OBJ_TRIGGER),
+                 dg_random_registry_validate(OBJ_TRIGGER),
+                 dg_random_registry_count(WLD_TRIGGER),
+                 periodic_dg_random_scheduled_count(WLD_TRIGGER),
+                 dg_random_registry_validate(WLD_TRIGGER), periodic_dg_random_admission_limit(),
+                 periodic_dg_random_admission_rejections(),
+                 periodic_dg_random_callbacks(MOB_TRIGGER),
+                 periodic_dg_random_callbacks(OBJ_TRIGGER),
+                 periodic_dg_random_callbacks(WLD_TRIGGER),
+                 periodic_dg_random_executions(MOB_TRIGGER),
+                 periodic_dg_random_executions(OBJ_TRIGGER),
+                 periodic_dg_random_executions(WLD_TRIGGER)),
         n - written);
   if (!csv && written < n - 1)
     written +=

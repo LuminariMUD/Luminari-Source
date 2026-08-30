@@ -103,6 +103,7 @@
 #include "reactor.h"
 #include "domain_event_runtime.h"
 #include "active_world.h"
+#include "periodic_owners.h"
 #include "elf_build_id.h"
 #include "mysql.h"
 #include "net/onboarding.h"
@@ -1734,7 +1735,16 @@ void game_loop(socket_t local_mother_desc)
   io_reactor = NULL;
 }
 
-/*  This was ported to accomodate the HL objects that were imported */
+bool object_auto_proc_run_one(struct obj_data *obj)
+{
+  if (obj == NULL ||
+      (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0))
+    return false;
+  spec_gateway_object_auto_pulse(obj);
+  return true;
+}
+
+/* This was ported to accommodate the HL objects that were imported. */
 void proc_update()
 {
   struct obj_data *obj;
@@ -1747,15 +1757,11 @@ void proc_update()
        obj = autoproc_registry_iteration_next())
   {
     visited++;
-    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0)
-      continue;
-
-    spec_gateway_object_auto_pulse(obj);
-    acted++;
+    if (object_auto_proc_run_one(obj))
+      acted++;
   }
   autoproc_registry_iteration_end();
   PERF_note_sweep(PERF_SWEEP_AUTOPROC, visited, autoproc_registry_count(), acted);
-  rol_avernus_room_pulse();
 }
 
 enum persistence_task
@@ -2103,7 +2109,7 @@ void heartbeat(int heart_pulse)
     PERF_note_schedule(PERF_SCHEDULE_5_SECONDS);
   if (!(heart_pulse % (6 * PASSES_PER_SEC)))
     PERF_note_schedule(PERF_SCHEDULE_6_SECONDS);
-  if (!(heart_pulse % PULSE_DG_SCRIPT))
+  if (!(heart_pulse % PULSE_DG_SCRIPT) && !periodic_dg_random_enabled())
     PERF_note_schedule(PERF_SCHEDULE_13_SECONDS);
   if (!(heart_pulse % (30 * PASSES_PER_SEC)))
     PERF_note_schedule(PERF_SCHEDULE_30_SECONDS);
@@ -2123,7 +2129,7 @@ void heartbeat(int heart_pulse)
   event_process_compatibility_pulse();
   PERF_prof_sect_exit(pr_event_process);
 
-  if (!(heart_pulse % PULSE_DG_SCRIPT))
+  if (!(heart_pulse % PULSE_DG_SCRIPT) && !periodic_dg_random_enabled())
   {
     PERF_PROF_ENTER_SAMPLED(pr_script_trigger_, "script_trigger_check");
     script_trigger_check();
@@ -2270,9 +2276,13 @@ void heartbeat(int heart_pulse)
   /* Keep non-mobile special-procedure updates on their established cadence. */
   if (!(heart_pulse % PULSE_MOBILE))
   {
-    PERF_PROF_ENTER_SAMPLED(pr_proc_update_, "proc_update");
-    proc_update();
-    PERF_PROF_EXIT(pr_proc_update_);
+    if (!periodic_autoproc_enabled())
+    {
+      PERF_PROF_ENTER_SAMPLED(pr_proc_update_, "proc_update");
+      proc_update();
+      PERF_PROF_EXIT(pr_proc_update_);
+    }
+    rol_avernus_room_pulse();
   }
 
   /* this is the rate of a combat round before event-driven combat */

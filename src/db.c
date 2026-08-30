@@ -27,6 +27,7 @@
 #include "dgscript/dg_scripts.h"
 #include "dgscript/dg_event.h"
 #include "domain_event_runtime.h"
+#include "periodic_owners.h"
 #include "act.h"
 #include "ban.h"
 #include "obj/treasure.h"
@@ -4935,7 +4936,10 @@ void autoproc_registry_sync(struct obj_data *obj)
     autoproc_object_list = obj;
     obj->autoproc_registered = true;
     autoproc_object_count++;
+    periodic_autoproc_sync(obj);
   }
+  else if (eligible)
+    periodic_autoproc_sync(obj);
   else if (!eligible && obj->autoproc_registered)
   {
     autoproc_registry_remove(obj);
@@ -4944,6 +4948,7 @@ void autoproc_registry_sync(struct obj_data *obj)
 
 void autoproc_registry_remove(struct obj_data *obj)
 {
+  periodic_autoproc_forget(obj);
   if (obj == NULL || !obj->autoproc_registered)
     return;
 
@@ -5018,6 +5023,17 @@ size_t autoproc_registry_validate(void)
 #ifdef LUMINARI_CUTEST
 void autoproc_registry_reset_for_test(void)
 {
+  struct obj_data *obj;
+  struct obj_data *next;
+
+  for (obj = autoproc_object_list; obj != NULL; obj = next)
+  {
+    next = obj->autoproc_next;
+    periodic_autoproc_forget(obj);
+    obj->autoproc_next = NULL;
+    obj->autoproc_prev = NULL;
+    obj->autoproc_registered = false;
+  }
   autoproc_object_list = NULL;
   autoproc_iteration_next = NULL;
   autoproc_object_count = 0;

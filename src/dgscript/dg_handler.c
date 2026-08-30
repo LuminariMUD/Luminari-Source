@@ -23,6 +23,7 @@
 #include "magic/spells.h"
 #include "dg_event.h"
 #include "constants.h"
+#include "periodic_owners.h"
 
 #define DG_RANDOM_OWNER_TYPES 3
 
@@ -35,6 +36,7 @@ static void dg_random_registry_remove(struct script_data *script)
 {
   int owner_type;
 
+  periodic_dg_random_forget(script);
   if (script == NULL || !script->random_registered)
     return;
   owner_type = script->owner_type;
@@ -69,7 +71,10 @@ void dg_random_registry_sync(struct script_data *script)
     return;
   }
   if (script->random_registered)
+  {
+    periodic_dg_random_sync(script);
     return;
+  }
   script->random_prev = NULL;
   script->random_next = dg_random_heads[owner_type];
   if (script->random_next != NULL)
@@ -77,6 +82,7 @@ void dg_random_registry_sync(struct script_data *script)
   dg_random_heads[owner_type] = script;
   script->random_registered = true;
   dg_random_counts[owner_type]++;
+  periodic_dg_random_sync(script);
 }
 
 void dg_script_bind_owner(struct script_data *script, void *owner, int owner_type)
@@ -91,7 +97,7 @@ void dg_script_bind_owner(struct script_data *script, void *owner, int owner_typ
   dg_random_registry_sync(script);
 }
 
-static void *dg_random_registry_resolve_owner(struct script_data *script)
+void *dg_random_registry_resolve_owner(struct script_data *script)
 {
   room_rnum room;
 
@@ -196,6 +202,19 @@ size_t dg_random_registry_validate(int owner_type)
 #ifdef LUMINARI_CUTEST
 void dg_random_registry_reset_for_test(void)
 {
+  struct script_data *script;
+  struct script_data *next;
+  int owner_type;
+
+  for (owner_type = MOB_TRIGGER; owner_type <= WLD_TRIGGER; owner_type++)
+    for (script = dg_random_heads[owner_type]; script != NULL; script = next)
+    {
+      next = script->random_next;
+      periodic_dg_random_forget(script);
+      script->random_next = NULL;
+      script->random_prev = NULL;
+      script->random_registered = false;
+    }
   memset(dg_random_heads, 0, sizeof(dg_random_heads));
   memset(dg_random_counts, 0, sizeof(dg_random_counts));
   dg_random_iteration_next = NULL;

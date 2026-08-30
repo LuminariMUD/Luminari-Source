@@ -3,6 +3,7 @@
 #include "active_world.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
+#include "periodic_owners.h"
 #include "wilderness/spatial_events.h"
 
 static struct domain_event_bus *runtime_bus;
@@ -16,6 +17,7 @@ enum domain_event_status domain_event_runtime_init(void)
   runtime_bus = domain_event_bus_create(NULL, &status);
   if (runtime_bus == NULL)
     return status;
+  periodic_owners_init();
   status = domain_event_register_foundation_types(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
     status = domain_event_world_register_resolvers(runtime_bus);
@@ -28,6 +30,7 @@ enum domain_event_status domain_event_runtime_init(void)
   if (status != DOMAIN_EVENT_OK)
   {
     active_world_shutdown();
+    periodic_owners_shutdown();
     domain_event_bus_destroy(runtime_bus);
     runtime_bus = NULL;
   }
@@ -41,6 +44,7 @@ enum domain_event_status domain_event_runtime_shutdown(void)
   if (runtime_bus == NULL)
     return DOMAIN_EVENT_OK;
   active_world_shutdown();
+  periodic_owners_shutdown();
   status = domain_event_bus_destroy(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
     runtime_bus = NULL;

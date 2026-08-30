@@ -540,12 +540,11 @@ registered count, registry capacity, top-16 report limit, and unregistered overf
 rows are ranked by cumulative execution time and include call count, total, average, p50, p95,
 p99, and maximum microseconds.
 
-Mobile activity holds a cursor over the character list and divides the remaining cycle-boundary
-nodes across the remaining pulses in the six-second interval. It counts the list once per interval
-instead of filtering a full traversal on every 100 ms pulse. Extraction advances the cursor before
-the current node leaves the list. Newly inserted head nodes join the next interval. Combat AI runs
-normally, while idle NPC spell-up, psionic power-up, and companion creation require a player in the
-same room so unloaded areas do not create background affects or followers.
+The active-world manager gives every autonomous in-world NPC one owner-scoped deadline distributed
+across the six-second mobile interval. Player proximity does not define activity: patrols,
+wandering, scripts, special procedures, and NPC wars continue off-screen. Movement and combat facts
+re-evaluate only their directly affected owners and rooms; extraction cancels the owner. See
+[`ACTIVE_WORLD.md`](ACTIVE_WORLD.md).
 
 DG Script wait events rely on the attachment lifetime contract: extracting an attached script
 cancels `GET_TRIG_WAIT`, and room relocation updates wait owners. A resumed wait therefore enters
@@ -568,9 +567,12 @@ serialization no longer rewrites account unlock tables. Pet saves use a stable s
 unchanged owners avoid the delete-and-reinsert transaction.
 
 Eligible-owner registries remove three measured global scans: `ITEM_AUTOPROC` objects, DG random
-trigger owners by mobile/object/room type, and affected characters. Registry updates occur at the
-same attach, detach, flag-change, extraction, and OLC replacement boundaries that change
-eligibility. Staff entity reports perform debug full-list validation; normal heartbeat paths do not.
+trigger owners by mobile/object/room type, and affected characters. Automatic objects and DG random
+owners now each hold one distributed periodic deadline, while affected-owner conversion remains the
+next Phase 7 slice. Registry updates occur at the same attach, detach, flag-change, extraction, and
+OLC replacement boundaries that change eligibility. Staff entity reports perform debug full-list
+validation; normal scheduled paths do not. See
+[`PERIODIC_OWNER_EVENTS.md`](PERIODIC_OWNER_EVENTS.md).
 
 Combat callback timing separates action queues, attack generation, assist fan-out, specials, and
 backlash. A bounded slow-combat ring stores safe numeric context for callbacks above 100 ms. Per

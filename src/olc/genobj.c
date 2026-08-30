@@ -82,9 +82,13 @@ static int update_all_objects(struct obj_data *refobj)
     obj->next_content = swap.next_content;
     obj->next = swap.next;
     obj->sitting_here = swap.sitting_here;
+    obj->events = swap.events;
+    obj->event_owner_generation = swap.event_owner_generation;
+    obj->periodic_event_generation = swap.periodic_event_generation;
     obj->autoproc_next = NULL;
     obj->autoproc_prev = NULL;
     obj->autoproc_registered = false;
+    obj->autoproc_event = NULL;
     autoproc_registry_sync(obj);
   }
 
@@ -548,14 +552,26 @@ int copy_object_main(struct obj_data *to, struct obj_data *from,
 {
   struct obj_data *autoproc_next;
   struct obj_data *autoproc_prev;
+  struct event *autoproc_event;
+  struct list_data *events;
+  uint64_t event_owner_generation;
+  uint64_t periodic_event_generation;
   bool autoproc_registered;
 
   autoproc_next = to->autoproc_next;
   autoproc_prev = to->autoproc_prev;
+  autoproc_event = to->autoproc_event;
+  events = to->events;
+  event_owner_generation = to->event_owner_generation;
+  periodic_event_generation = to->periodic_event_generation;
   autoproc_registered = to->autoproc_registered;
   *to = *from;
   to->autoproc_next = autoproc_next;
   to->autoproc_prev = autoproc_prev;
+  to->autoproc_event = autoproc_event;
+  to->events = events;
+  to->event_owner_generation = event_owner_generation;
+  to->periodic_event_generation = periodic_event_generation;
   to->autoproc_registered = autoproc_registered;
   copy_object_strings(to, from);
   return TRUE;
