@@ -7,6 +7,8 @@
 **Reviewer posture:** adversarial - the goal is to find what the specification
 gets wrong, leaves undefined, or claims without evidence. Nothing below is a
 recommendation to abandon the project.
+**Disposition:** Incorporated into controlling specification v0.8 on
+2026-08-30; this document remains the historical review record.
 
 ## 0. Summary Judgment
 
@@ -642,3 +644,26 @@ The Phase 1 core is good work and should not be reverted. The gap is between
 what the specification promises as a contract and what the accepted core
 implements, and it is closable by amending the specification, moving the owner
 index into Phase 1, or both.
+
+---
+
+## 7. Version 0.8 Disposition
+
+Specification v0.8 incorporates all findings while preserving this review as
+the source record:
+
+- F1, F6, F10, F11, F15, F16, and F22 are assigned to a new blocking Phase 2.5
+  owner and lifecycle foundation before reactor work.
+- F2, F8, F13, F14, and F21 are corrected directly in the normative contract.
+- F3, F4, F9, F19, and F20 now have concrete Phase 3 monotonic-clock,
+  dependency, fd, signal, copyover, and CI obligations.
+- F5 is resolved by separating typed domain-event introduction from the
+  independently revertible pub/sub retirement commit.
+- F7, F12, F17, and F18 are reflected in baseline or Phase 4 measurement
+  requirements.
+- F23 through F25 retain the verified implementation evidence and update the
+  review checklist; F26 and F27 gain explicit Phase 10 and encounter rules.
+- F28 is resolved in the ongoing-project index.
+
+These dispositions make the specification ready to guide Phase 2.5. They do
+not mark the corresponding runtime requirements implemented or accept v1.0.

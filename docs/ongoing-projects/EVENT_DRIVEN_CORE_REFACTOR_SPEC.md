@@ -1,15 +1,17 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 2 compatibility adapter accepted
-**Document version:** 0.7
+**Status:** In progress - Phase 2 accepted; pre-reactor hardening required
+**Document version:** 0.8
 **Started:** 2026-08-29
 **Last source review:** 2026-08-30
-**Implementation status:** Phases 1 and 2 complete; Phase 3 reactor ready to begin
+**Implementation status:** Phases 1 and 2 complete; Phase 2.5 is the next gate
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
 > existing heartbeat still drives it; `libevent`, networking, commands, combat
-> semantics, and MUD-event ownership have not yet migrated.
+> semantics, and generation-aware MUD-event ownership have not yet migrated.
+> Phase 3 is not authorized until the Phase 2.5 owner and lifecycle contract is
+> implemented and accepted.
 
 ## 1. Purpose
 
@@ -64,6 +66,25 @@ The central gameplay invariant is:
 
 > Wall-clock frequency must never determine action economy.
 
+### 2.1 Adversarial review disposition
+
+The adversarial review of v0.4 is retained in
+[`EVENT_DRIVEN_CORE_REFACTOR_SPEC_REVIEW.md`](EVENT_DRIVEN_CORE_REFACTOR_SPEC_REVIEW.md).
+Version 0.8 resolves or assigns every finding rather than treating the review as
+a one-time checklist.
+
+| Findings | v0.8 disposition |
+|----------|------------------|
+| F1, F6, F10, F11, F15, F16, F22 | Phase 2.5 now owns the owner record, index, cancellation, capacity, lifecycle matrix, diagnostics, and MUD-event adaptation before reactor work. The public contract is explicitly phased and its error set is complete. |
+| F2, F8, F13, F14, F21 | Corrected the cascade rule, diagram identity, next-tick vocabulary, failed lifecycle, and shutdown callback policy. |
+| F3, F4, F9, F19, F20 | Phase 3 now owns monotonic pacing, the complete descriptor/fd inventory, copyover and signal lifecycle, a concrete libevent dependency contract, and the dual-driver/backend CI matrix. |
+| F5 | Phase 6 is split into reversible introduction and irreversible retirement subphases. |
+| F7, F17, F18 | The baseline records the intentionally deferred representative workload, existing missed-pulse behavior, and combat string-payload hazard. |
+| F12 | Large-advance implementation cost and the Phase 4 measurement gate are explicit. |
+| F23-F25 | Checklist status, verified wheel geometry, and accepted test evidence are retained and updated. |
+| F26, F27 | Activity capability claims require a separately accepted policy matrix; encounter joining now covers resolving encounters explicitly. |
+| F28 | The ongoing-project index is updated with this revision and review status. |
+
 ## 3. Scope
 
 ### 3.1 In scope
@@ -111,6 +132,12 @@ The central gameplay invariant is:
 The server runs a `select()`-based main loop and advances at ten pulses per
 second. The heartbeat calls `event_process()` every pulse and directly schedules
 many other subsystem updates at fixed modulo intervals.
+
+The loop currently computes elapsed time with `gettimeofday()`. When more than
+one pulse elapsed it records missed-pulse telemetry and resynchronizes, but it
+does not replay every missed heartbeat callback. The compatibility reactor must
+preserve that no-burst behavior while replacing runtime pacing with a monotonic
+source.
 
 Relevant sources:
 
@@ -163,6 +190,11 @@ delay. Three phases collectively represent the nominal six-second combat round.
 
 The global `combat_list` remains initiative-sorted, but scheduling authority is
 distributed across character-owned recurring events.
+
+Several combat events still carry free-form string payloads through the MUD
+event compatibility layer. Phase 2.5 must classify and preserve their cleanup
+behavior; typed conversion removes the string schema in the owning consumer
+phase rather than changing combat behavior during reactor work.
 
 ### 4.5 Current action queue and action availability
 
@@ -293,7 +325,7 @@ flowchart TD
     W --> Q[Ready list]
     Q --> D[Typed event dispatcher]
 
-    D --> C[Combat encounters]
+    D --> K[Combat encounters]
     D --> A[Activities]
     D --> M[Mob AI]
     D --> F[Effects and cooldowns]
@@ -317,8 +349,10 @@ blocking wait mechanism. It owns:
 - Listener and descriptor read/write readiness registration.
 - A scheduler wakeup timer armed for the nearest scheduler deadline.
 - Signal integration needed for clean shutdown and operational behavior.
-- Bounded wakeups for submissions from I3, Discord, AI, database, or future
-  worker threads.
+- Readiness for ordinary main-thread sockets, including listener, player
+  descriptors, I3, Discord, and operational endpoints discovered by the Phase
+  3 fd inventory.
+- Bounded cross-thread wakeups for AI, database, or future worker submissions.
 
 Initially, a 100 ms compatibility timer may invoke the existing pulse and
 heartbeat path unchanged. This permits reactor parity to be validated without
@@ -335,6 +369,11 @@ No `libevent` type may appear in combat, movement, magic, quest, activity,
 entity, or world-system APIs. A boot-time compatibility selector may choose the
 old `select()` driver or the `libevent` driver while migration is incomplete;
 live switching is prohibited.
+
+Workers never call into `event_base` directly. They enqueue immutable bounded
+submission records and signal a reactor-owned pipe or platform event fd. The
+main thread drains and admits those records, so the core libevent component is
+sufficient and no libevent threading API is part of the game-state contract.
 
 ### 6.2 Command, action, activity, and notification boundaries
 
@@ -391,6 +430,11 @@ must not become a disguised scan of every room, mobile, object, or character.
   wraparound during any realistic process lifetime. A 64-bit tick is the
   expected representation.
 - Relative delays MUST be converted to absolute deadlines at admission.
+- Phase 3 MUST replace production pulse pacing with a monotonic source such as
+  `clock_gettime(CLOCK_MONOTONIC)` on supported Unix platforms. Wall time remains
+  available only for calendar, logging, and explicitly durable-time semantics.
+- A platform without an accepted monotonic source fails configuration for the
+  libevent driver; it must not silently fall back to wall-clock pacing.
 
 ### 7.2 Semantic time
 
@@ -453,12 +497,15 @@ retains its exact deadline even while stored in a coarse slot.
 For each elapsed scheduler tick:
 
 1. Advance the current tick.
-2. If L0 wrapped, detach the current L1 slot and reinsert its events according
-   to their remaining time.
-3. If L1 also wrapped, cascade from L2 before cascading L1.
-4. Repeat for higher levels as required.
-5. Detach the current L0 slot into the ready list.
-6. Dispatch ready events within the current processing budget.
+2. Determine the highest wheel level whose boundary wrapped on that tick.
+3. Cascade affected slots from that coarsest level down toward L1, reinserting
+   each detached event from its exact deadline.
+4. Detach the current L0 slot into the ready list.
+5. Dispatch ready events within the current processing budget.
+
+After cascading, no event whose remaining time is below a level's slot width
+may remain stored at that level. This coarse-to-fine rule is the behavior of
+the accepted Phase 1 implementation.
 
 Callbacks are never invoked while a wheel slot is being traversed.
 
@@ -472,11 +519,20 @@ tick.
 The wheel may advance structural cursors and cascade affected slots, but handler
 execution remains governed by per-type lateness policy and the dispatch budget.
 
+The accepted implementation switches to its bounded structural advance path
+when the elapsed delta exceeds 4,096 ticks. Its cost is proportional to the
+wheel levels and inspected slots plus live events that require reclassification,
+not to one callback pass per missed tick. This threshold is implementation
+policy rather than a frozen performance budget; Phase 4 must measure long
+stalls, largest cascades, and reactor latency before accepting or changing it.
+
 ## 9. Event Model
 
 ### 9.1 Conceptual event record
 
-The following names are illustrative and not yet a frozen C API:
+The following names describe the target record after Phase 2.5; owner fields
+are not present in the accepted Phase 1/2 scheduler and must not be represented
+as already implemented:
 
 ```text
 game_event
@@ -528,7 +584,11 @@ is a boot error in development/test and must never silently replace a handler.
 
 ## 10. Public Scheduling Contract
 
-The final names remain open, but the public concepts are:
+The final names remain open. The Phase 1/2 core implements event admission,
+ID cancellation, remaining time, rescheduling, advancement, and nearest
+deadline. Phase 2.5 adds owner admission, `cancel_owner()`, owner capacity, and
+owner-filtered inspection. Phase 4 completes operational filtering and reactor
+metrics. The target public concepts are:
 
 ```text
 schedule_at(type, owner, deadline, payload) -> event_id or error
@@ -544,15 +604,44 @@ inspect(filter) -> diagnostic snapshot
 
 API rules:
 
-- A zero or past relative deadline is normalized according to admission policy;
-  it must not recurse into the current callback.
+- A zero or past deadline is normalized to `current_tick + 1`; it must not
+  recurse into the current callback.
 - Scheduling during dispatch is allowed.
 - Canceling an unknown or already terminal event is a safe no-op with a
   distinguishable result.
 - Rescheduling preserves event identity only if the event is not terminal.
 - Callers cannot mutate scheduler-owned payloads or linkage.
-- The API returns structured errors for invalid type, invalid owner, capacity,
-  invalid deadline, and shutdown state.
+- The API returns structured errors and never collapses admission failures into
+  one generic result.
+
+The accepted Phase 1/2 status set is:
+
+| Status | Meaning |
+|--------|---------|
+| `OK` | Operation completed. |
+| `INVALID_ARGUMENT` | Required pointer or argument combination is invalid. |
+| `INVALID_TYPE` | Event type is absent or not registered. |
+| `INVALID_PAYLOAD` | Payload violates the event type contract. |
+| `INVALID_DEADLINE` | Deadline arithmetic or representation is invalid. |
+| `CLOCK_REVERSED` | Injected scheduler time moved backward. |
+| `CAPACITY_REACHED` | Global event capacity is exhausted. |
+| `TYPE_CAPACITY_REACHED` | Event-type capacity is exhausted. |
+| `ALLOCATION_FAILED` | Required allocation failed. |
+| `SHUTTING_DOWN` | Scheduler is no longer admitting work. |
+| `NOT_FOUND` | Event ID does not identify a live event. |
+| `BUSY` | Requested transition conflicts with current dispatch state. |
+| `ID_EXHAUSTED` | No safe event ID or insertion sequence remains. |
+
+Phase 2.5 adds distinguishable invalid-owner, owner-capacity, and owner/type
+capacity results and tests each failed-admission ownership path.
+
+Caller obligations are also explicit: invalid arguments, types, payloads, and
+deadlines are programmer/configuration defects; capacity results require the
+producer's documented degrade-or-fail policy; allocation failure leaves payload
+ownership with the caller; clock reversal performs no advancement; shutdown and
+busy results defer or reject by lifecycle policy; not-found is safe for
+idempotent cancellation; ID exhaustion requires controlled shutdown rather than
+identity reuse.
 
 ## 11. Lifecycle and Cancellation
 
@@ -569,10 +658,12 @@ stateDiagram-v2
     Ready --> Cancelled: cancel
     Dispatching --> CancelPending: cancel during callback
     Dispatching --> Completed: one-shot complete
+    Dispatching --> Failed: handler failure
     Dispatching --> Queued: explicit reschedule
     CancelPending --> Cancelled: callback returns
     Completed --> [*]
     Cancelled --> [*]
+    Failed --> [*]
     Rejected --> [*]
 ```
 
@@ -637,6 +728,24 @@ World, zone, room, region, descriptor, combat encounter, vessel, and other
 owners may use the same owner-handle shape if they have a lifecycle registry.
 Static database identifiers and runtime generations remain distinct concepts.
 
+### 12.4 Owner lifecycle matrix
+
+Phase 2.5 must accept and test this minimum matrix before Phase 3 begins:
+
+| Owner kind | Runtime identity and generation boundary | Terminal behavior |
+|------------|------------------------------------------|-------------------|
+| PC, NPC, object | Live instance registry entry; extraction or replacement advances the generation | Remove registry visibility, cancel owned events, then release memory. |
+| Room | Runtime room instance, distinct from persistent VNUM | Cancel on unload/replacement; a reloaded room receives a new generation. |
+| Descriptor | Connection instance, never account or character identity | Cancel on close; copyover-preserved descriptors are rebound to new process-local handles after validation. |
+| Region, vessel | Runtime subsystem instance, not only static database identity | Cancel on destruction/reload and advance generation on recreation. |
+| Combat encounter | Registry ID plus generation | Cancel its one event before releasing participant and registry state. |
+| Zone, world service | Named runtime singleton or instance with explicit boot generation | Reconstruct declared work at boot; never treat a stale process generation as live. |
+
+Descriptor ownership is intentionally connection-scoped. A character event
+does not become descriptor-owned merely because the player is online, and a
+descriptor event does not survive reconnect unless its event type explicitly
+serializes and rebinds it during copyover.
+
 ## 13. Dispatch Semantics
 
 ### 13.1 Deterministic ordering
@@ -651,9 +760,9 @@ ordering for equal deadlines.
 
 ### 13.2 Reentrancy boundary
 
-An event scheduled during a callback for `now` becomes eligible no earlier than
-the next scheduler dispatch cycle. Immediate causal reactions use direct calls
-or the synchronous domain-event bus instead.
+An event scheduled during a callback at or before `current_tick` is normalized
+to `current_tick + 1`. Immediate causal reactions use direct calls or the
+synchronous domain-event bus instead.
 
 This prevents accidental infinite same-tick scheduling and makes callback
 graphs understandable.
@@ -764,7 +873,9 @@ Every event type is classified as one of:
 Requirements:
 
 - The scheduler can stop admitting new work during shutdown.
-- Shutdown cleanup drains no gameplay callbacks unless explicitly requested.
+- Shutdown cleanup invokes no gameplay callbacks unless an event type has an
+  explicit, separately tested shutdown-dispatch policy. The default is cleanup
+  without dispatch.
 - Every remaining payload is cleaned exactly once.
 - Copyover serialization records typed events, not wheel slots or node pointers.
 - Restored events receive new process-local event IDs.
@@ -793,6 +904,11 @@ dumped into logs or staff output by default.
 Existing PERFMON event metrics should be preserved and extended rather than
 replaced with an unrelated telemetry path.
 
+Phase 2.5 owns owner-kind counts, owner-filtered inspection, and per-owner
+admission metrics. Phase 4 owns wheel/cascade, ready-backlog, reactor-latency,
+cross-thread-ingress, and production workload reporting. A requirement in this
+section is not considered implemented merely because the final API names it.
+
 ## 19. Legacy Compatibility Architecture
 
 There will be one physical scheduler during migration.
@@ -804,13 +920,14 @@ legacy MUD event facade ---------------+
 new typed scheduling API --------------+
 ```
 
-The legacy facade preserves:
+The Phase 2 base-event facade preserves:
 
 - Minimum one-pulse delay behavior.
 - Positive callback return as a relative reschedule request.
 - Existing event names and PERFMON attribution.
-- Existing owner-list query helpers.
-- Existing specialized cleanup until each owner type migrates.
+- Existing MUD owner-list query helpers indirectly through the unchanged MUD
+  layer above it.
+- Existing specialized cleanup until Phase 2.5 adapts each owner type.
 
 The Phase 2 compatibility contract additionally fixes these details:
 
@@ -951,6 +1068,12 @@ to the fight.
 - One party has an encounter: add the other party.
 - Both have the same encounter: update hostility/targeting only.
 - Parties have different encounters: merge the encounters.
+- Either encounter is currently resolving: queue additions and any merge on
+  the affected encounter pending-mutation lists; do not mutate the participant
+  snapshot being dispatched or grant eligibility in the current round.
+- An encounter already marked terminal with no hostile sides cannot be revived.
+  Complete its teardown and generation invalidation, then apply the ordinary
+  no-encounter or one-active-encounter rule to the new hostility.
 
 A participant added while a round is resolving is placed on a pending-add list.
 The provisional fair-play rule is that a new participant first becomes eligible
@@ -1042,6 +1165,12 @@ reaction resources.
 
 Activity policy and state remain outside the scheduler. The scheduler only
 invokes the activity handler at its next deadline.
+
+For the initial implementation, the one-primary-activity admission limit is
+authoritative. Capability claims do not permit two primary activities; they
+define which commands, reactions, and secondary state are compatible with the
+one admitted activity. Any later concurrent-primary design requires a separate
+rules and user-interface review.
 
 ## 23. Migration Plan
 
@@ -1246,31 +1375,90 @@ Phase 2 acceptance evidence, 2026-08-30:
 
 The Phase 2 gate is met. The scheduler is now the default storage backend for
 the existing event facade, while the retained queue remains an independently
-booted rollback path. Phase 3 may introduce the `libevent` compatibility
-reactor without changing commands, gameplay timing, or event ownership.
+booted rollback path. Phase 2.5 must now complete the owner and lifecycle
+foundation before the `libevent` compatibility reactor begins.
+
+### Phase 2.5: Owner and lifecycle foundation
+
+Deliverables:
+
+- Extend the private scheduler event record and admission API with typed,
+  generation-aware owner handles.
+- Maintain an owner index across admission, queued/ready/dispatching
+  cancellation, recurrence, rescheduling, failure, and every terminal cleanup
+  route.
+- Add `cancel_owner()`, owner-filtered inspection, per-owner and owner/type
+  admission limits, and distinguishable owner errors.
+- Implement the Section 12.4 lifecycle matrix and descriptor copyover rebinding
+  contract; registry visibility is removed before owner memory is released.
+- Route MUD event attachment through the owner-aware scheduler adapter while
+  preserving character, object, room, region, descriptor, and world list/query
+  behavior and existing specialized payload cleanup.
+- Classify existing free-form MUD payloads, including combat strings, and record
+  the typed consumer phase that will replace each one.
+- Assign and expose the owner observability required by Sections 15 and 18.
+
+Gate:
+
+- Owner extraction, generation reuse, bulk cancellation, per-owner capacity,
+  owner-filtered inspection, room/region replacement, descriptor close and
+  copyover rebind, in-flight self/owner cancellation, shutdown, and cleanup
+  exactly once pass for both selectable timed backends under sanitizers and
+  Valgrind.
+- The scheduler and MUD facade contain no owner-removal path that scans the
+  global event population.
+
+Rollback:
+
+- Select the retained legacy timed backend at boot. The owner-aware scheduler
+  path is never activated simultaneously with the legacy MUD storage path.
+- Phase 3 is blocked until this gate is accepted.
 
 ### Phase 3: Libevent compatibility reactor
 
 Deliverables:
 
-- Add the selected `libevent` dependency to Autotools, CMake, setup, and
-  deployment documentation.
+- Require system `libevent` 2.1.12-stable or newer, using its core component
+  under the BSD license. Prefer normal dynamic system linkage; do not vendor or
+  statically bundle it in this phase. Autotools and CMake fail with one clear
+  diagnostic when the supported build cannot provide it.
 - Introduce a Luminari-owned reactor boundary; no gameplay header exposes a
   `libevent` type.
-- Drive listener readiness, descriptor read/write readiness, required signals,
-  and bounded cross-thread wakeups through one `event_base`.
+- Inventory every fd and its current owner before conversion, including the
+  listener, player descriptors, I3, Discord, terrain/health or policy sockets,
+  self-pipe/event-fd wakeups, and any platform-specific operational endpoint.
+- Drive all ordinary main-thread socket readiness, required signals, and the
+  bounded worker-ingress wake fd through one `event_base`. Workers never call
+  libevent or mutate game state directly, so `event_pthreads` is not required.
 - Preserve `process_input()`, descriptor input queues, aliases, nanny states,
   command ordering, and `command_interpreter()`.
 - Invoke the existing pulse/heartbeat path from a 100 ms compatibility timer so
-  gameplay timing remains unchanged in this phase.
+  gameplay timing and no-burst missed-pulse semantics remain unchanged.
+- Replace `gettimeofday()` runtime pacing with an accepted monotonic source;
+  retain wall time only for calendar, logging, and durable-time conversions.
+- Define signal ownership under each driver and prove that each installed
+  handler, ignored signal, and shutdown/copyover trigger has exactly one owner.
+- Inventory the `ITIMER_VIRTUAL` checkpoint timer and `SIGVTALRM` ownership. If
+  it remains outside libevent for compatibility, disarm it before copyover exec
+  and recreate it exactly once after signal setup in the new process.
+- Define copyover ordering: stop admission, quiesce reactor callbacks, serialize
+  typed preserved state, detach events, destroy the `event_base`, verify
+  inherited descriptor `O_NONBLOCK` and `FD_CLOEXEC` policy, then `execl`.
+  Recreate the base, events, signal registrations, and process-local handles in
+  the new process before resuming input.
 - Provide a boot-time `select()`/`libevent` driver selection with no live
   switching.
+- Build and test the 2x2 migration matrix: legacy/scheduler timed backend by
+  select/libevent I/O driver. Reactor, protocol, connection, copyover, and
+  signal tests run under both I/O drivers; scheduler parity tests run under both
+  timed backends.
 
 Gate:
 
-- Connection, protocol, descriptor lifecycle, output backpressure, copyover,
-  signal, idle-server, and bounded connection-load tests are equivalent under
-  both drivers.
+- Connection, protocol, descriptor lifecycle, fd inventory, output
+  backpressure, copyover, signal, monotonic-clock adjustment, idle-server, and
+  bounded connection-load tests are equivalent under both drivers and the
+  supported 2x2 matrix passes in CI.
 
 Rollback:
 
@@ -1297,6 +1485,9 @@ Deliverables:
 - Compare observed delay buckets, queue depth, cancellation, recurrence, due
   batches, callback cost, wheel placement, cascade activity, and overflow use
   against the source-derived and synthetic workloads.
+- Measure the 4,096-tick large-advance threshold, structural work, largest
+  cascade, ready latency, and descriptor service during debugger/suspend-scale
+  jumps; accept a numeric operational budget or make a separately tested change.
 - Review wheel geometry only if the measurements demonstrate a material reason
   to change it; the compatibility API and behavior remain unchanged.
 - Remove diagnostic paths capable of invoking the same gameplay callback from
@@ -1314,26 +1505,33 @@ Rollback:
 - Return scheduler advancement to the compatibility heartbeat or select the old
   queue at boot. No live scheduler conversion is allowed.
 
-### Phase 5: MUD event ownership adapter
+### Phase 5: Persistent and reconstructable event ownership
 
 Deliverables:
 
-- Route MUD event attachment through the same scheduler.
-- Preserve character/object/room/region/world query behavior.
-- Replace cleanup branching with one explicit cleanup contract.
-- Introduce generation-aware owner resolution where lifecycle support exists.
-- Retain compatibility shims for unmigrated owner types.
+- Audit every event type classified as transient, reconstructable,
+  copyover-preserved, or persisted.
+- Add per-type schema versions, owner validation, offline-elapsed policy, and
+  process-local ID rehydration where persistence is required.
+- Reconstruct declared world/service work at boot without serializing wheel
+  slots or stale runtime generations.
+- Remove compatibility serialization branches only after their replacement
+  passes parity and rollback review.
 
 Gate:
 
-- Owner extraction, room/region removal, in-flight cancellation, shutdown, and
-  bulk-clear tests pass under sanitizers and Valgrind.
+- Version mismatch, stale owner, malformed payload, duplicate restore,
+  copyover, full reboot, rollback, and cleanup exactly once pass under
+  sanitizers and Valgrind.
 
 Rollback:
 
-- Return MUD facade to the legacy backend without changing gameplay callers.
+- Retain the prior per-type serialization path until the replacement for that
+  type has completed its stable migration window.
 
 ### Phase 6: Typed domain events and pub/sub retirement
+
+#### Phase 6a: Typed domain-event introduction
 
 Deliverables:
 
@@ -1345,6 +1543,23 @@ Deliverables:
 - Introduce foundational movement, damage, death, extraction, combat-state,
   object-movement, door-state, and activity-transition events as their owning
   subsystems migrate.
+
+Gate:
+
+- Deterministic order, nested publication, entity extraction during handlers,
+  stale handles, causal-chain limits, and slow-handler diagnostics pass under
+  sanitizers and Valgrind.
+
+Rollback:
+
+- Disable each typed publisher/subscriber pair behind its migration boundary.
+  The old pub/sub runtime remains unchanged in Phase 6a, and no gameplay fact
+  is published through both paths in a mode that duplicates side effects.
+
+#### Phase 6b: Pub/sub runtime retirement
+
+Deliverables:
+
 - Remove runtime initialization and heartbeat processing for `src/pubsub/`.
 - Remove or separately re-specify its player/staff commands and wilderness
   metadata; update help, documentation, database setup, and rename handling.
@@ -1352,16 +1567,16 @@ Deliverables:
 
 Gate:
 
-- Deterministic order, nested publication, entity extraction during handlers,
-  stale handles, causal-chain limits, and slow-handler diagnostics pass under
-  sanitizers and Valgrind. No runtime gameplay path depends on the old pub/sub
-  queue.
+- No runtime gameplay path depends on the old pub/sub queue; command, help,
+  wilderness, rename, database setup, and operator obligations have an accepted
+  disposition. The retirement commit and schema deprecation plan are reviewed
+  together.
 
 Rollback:
 
-- Retain the old pub/sub feature behind a boot-time migration boundary until
-  its commands and data obligations are reviewed. Never publish one gameplay
-  fact through both systems in a mode that duplicates side effects.
+- Revert the Phase 6b retirement commit while retaining the accepted Phase 6a
+  typed core. Database tables remain intact and ignored until a later,
+  separately authorized schema-removal migration.
 
 ### Phase 7: Active world and scan reduction
 
@@ -1450,9 +1665,11 @@ Deliverables:
 
 Gate:
 
-- Informational input remains responsive; movement, damage, target extraction,
-  combat entry, cancellation, pause/resume, progress preservation, and action
-  resource tests pass with no duplicate completion or stale target access.
+- A separately reviewed capability/trait/interruption matrix is accepted before
+  implementation. Informational input remains responsive; movement, damage,
+  target extraction, combat entry, cancellation, pause/resume, progress
+  preservation, and action resource tests pass with no duplicate completion or
+  stale target access.
 
 Rollback:
 
@@ -1523,6 +1740,8 @@ The scheduler test harness must use a fake clock and cover:
 
 ### 24.4 Reactor tests
 
+- The supported CI matrix runs legacy and scheduler timed backends under both
+  `select()` and `libevent` I/O drivers.
 - Listener accept and descriptor close/error behavior under both drivers.
 - Partial input, multiple queued commands, aliases, nanny transitions, and
   command ordering remain identical.
@@ -1534,6 +1753,10 @@ The scheduler test harness must use a fake clock and cover:
   budget.
 - Shutdown, signals, copyover, and restart preserve current operational
   behavior.
+- Forward and backward wall-clock adjustments do not alter monotonic pulse or
+  scheduler cadence.
+- Copyover verifies event-base destruction/recreation and inherited descriptor
+  nonblocking and close-on-exec policy.
 - Reactor callbacks do not expose `libevent` state to gameplay handlers.
 
 ### 24.5 Domain-event tests
@@ -1567,6 +1790,7 @@ The scheduler test harness must use a fake clock and cover:
 
 - Two characters start and end a fight.
 - A third character joins before, during, and after round dispatch.
+- A fourth character connects two encounters while either or both are resolving.
 - A participant leaves through movement, flee, teleport, death, extraction, and
   disconnect policy.
 - Two encounters merge without any participant receiving an extra turn.
@@ -1600,6 +1824,8 @@ The scheduler test harness must use a fake clock and cover:
 - Valgrind event churn and shutdown scenarios
 - Static analysis and CodeQL
 - Local server startup, copyover, shutdown, and soak testing
+- The complete timed-backend by I/O-driver 2x2 matrix while both rollback
+  implementations are supported
 
 No test phase may leave a root-level `luminari` artifact.
 
@@ -1677,14 +1903,14 @@ working document is retired according to the ongoing-project policy.
 | D5 | Event allocation | Ordinary allocation first; add slab only if measured | Accepted for Phase 1 | Phase 1 |
 | D6 | Handler result API | Explicit tagged result; legacy adapter deferred | Core accepted | Phase 1 |
 | D7 | Same-tick scheduling | Normalize to next tick, never recursive | Accepted for Phase 1 | Phase 1 |
-| D8 | Owner registry | Typed runtime ID plus generation | Provisional | Phase 5 |
+| D8 | Owner registry | Typed runtime ID plus generation and owner index | Accepted for implementation | Phase 2.5 |
 | D9 | Persistent event store | Per-type serialization and rehydration | Provisional | Phase 5 |
 | D10 | Old/new backend selection | Process environment, then `.env`; scheduler default, legacy rollback; immutable until shutdown | Accepted | Phase 2 |
 | D11 | Combat join eligibility | Next encounter round | Provisional | Phase 8 |
 | D12 | Encounter merge clock | Preserve survivor clock plus participant not-before guards | Provisional | Phase 8 |
 | D13 | Encounter splitting | Defer unless correctness or profiling requires it | Provisional | Phase 8 |
 | D14 | Linkdead combat policy | Preserve current behavior until separately reviewed | Provisional | Phase 8 |
-| D15 | Reactor library | `libevent` behind a Luminari-owned boundary | Accepted | Phase 3 |
+| D15 | Reactor library | System libevent 2.1.12-stable or newer, core component, behind a Luminari-owned boundary | Accepted | Phase 3 |
 | D16 | Scheduler reactor timers | One wakeup armed from nearest deadline | Accepted | Phase 4 |
 | D17 | Domain dispatch | Typed, synchronous, main-thread, immutable borrowed payload | Accepted | Phase 6 |
 | D18 | Existing pub/sub | Replace runtime subsystem; deprecate data before reviewed removal | Accepted | Phase 6 |
@@ -1693,6 +1919,10 @@ working document is retired according to the ongoing-project policy.
 | D21 | Primary activities | At most one primary intentional activity per character initially | Provisional | Phase 10 |
 | D22 | Residual heartbeat | Explicit global scheduled work only; remove compatibility pulse | Accepted | Phase 11 |
 | D23 | Workload measurement | Source-derived and synthetic in Phase 2; privacy-safe observed sample in Phase 4 | Accepted | Phase 4 |
+| D24 | Cross-thread reactor wake | Bounded queue plus reactor-owned pipe/event fd; workers do not call libevent | Accepted | Phase 3 |
+| D25 | Runtime clock | Monotonic pacing in Phase 3; wall clock only for calendar and durable semantics | Accepted | Phase 3 |
+| D26 | Copyover reactor lifecycle | Quiesce and destroy old process base before exec; rebuild and rebind after exec | Accepted | Phase 3 |
+| D27 | Migration CI matrix | Both timed backends by both I/O drivers while rollback paths remain supported | Accepted | Phase 3 |
 
 ## 29. Risks and Mitigations
 
@@ -1709,6 +1939,8 @@ working document is retired according to the ongoing-project policy.
 | Copyover restores stale owners | Typed generation validation and new process-local event IDs |
 | Timing wheel geometry needs later tuning | Private backend API and Phase 4 observed delay/cascade measurements before any geometry change |
 | Reactor rewrite expands blast radius | Independent compatibility phase preserves the heartbeat and has a boot-time `select()` fallback |
+| Copyover inherits stale reactor state or wrong fd flags | Explicit quiesce/destroy/rebuild order plus inherited-fd flag tests under both drivers |
+| Wall-clock adjustment perturbs action timing | Phase 3 monotonic pacing and forward/backward clock-adjustment tests |
 | Domain handlers create hidden control flow | Typed registration, deterministic order, causal-chain diagnostics, and decision hooks separated from notifications |
 | Nested domain events recurse indefinitely | Hard depth and causal-count limits with fail-closed diagnostics |
 | Pub/sub retirement loses stored data | Runtime deprecation precedes any separately reviewed and backed-up schema removal |
@@ -1767,6 +1999,7 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 - [x] Wheel geometry and overflow behavior are accepted for Phase 1.
 - [x] Payload ownership and failed-admission behavior are explicit.
 - [x] Cancellation during dispatch cannot double-clean or revive an event.
+- [x] Adversarial findings have an explicit resolution or owning phase in v0.8.
 - [ ] Owner generation semantics cover PCs, NPCs, objects, rooms, and runtime
       subsystem owners.
 - [ ] Dispatch budgets and event-storm behavior are operationally acceptable.
@@ -1786,6 +2019,8 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
       are coherent.
 - [ ] Migration phases are independently testable and reversible.
 - [ ] Documentation and help obligations are assigned to the correct phases.
+- [x] Pre-reactor owner, dependency, fd, signal, copyover, and CI obligations
+      are assigned to explicit gates.
 
 ## 32. Revision Log
 
@@ -1798,3 +2033,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 0.5 | 2026-08-30 | Accepted the Phase 1 gate on deterministic and synthetic evidence, added privacy-safe aggregate telemetry and a source-derived Phase 2 workload, and moved representative observed-workload measurement and geometry review to Phase 4. |
 | 0.6 | 2026-08-30 | Recorded the Phase 2 compatibility adapter, boot-time scheduler/legacy selection, corrected deterministic compatibility contract, source-derived producer and delay inventory, passive event telemetry, and parity validation scope. |
 | 0.7 | 2026-08-30 | Accepted the Phase 2 gate after 941 production-linked tests, dual-backend syntax boots, sanitizer-instrumented CMake boots, and static analysis; confirmed scheduler default and legacy rollback readiness. |
+| 0.8 | 2026-08-30 | Incorporated the adversarial review; inserted a blocking Phase 2.5 owner/lifecycle gate, corrected cascade and lifecycle contracts, assigned monotonic clock and full copyover/fd/signal/dependency/CI requirements to Phase 3, split typed events from pub/sub retirement, and made large-advance, encounter, activity, observability, and rollback obligations testable. |
