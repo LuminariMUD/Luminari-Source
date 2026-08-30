@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 6b accepted; Phase 7 scan reduction underway
-**Document version:** 1.5
+**Status:** In progress - Phase 7 NPC-thinking slice accepted; scan reduction continues
+**Document version:** 1.6
 **Started:** 2026-08-29
 **Last source review:** 2026-08-30
-**Implementation status:** Phases 1, 2, 2.5, 3, 4, 5, 6a, and 6b complete; Phase 7 is the next gate
+**Implementation status:** Phases 1 through 6b complete; Phase 7 inventory and autonomous NPC thinking accepted
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -2164,3 +2164,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.3 | 2026-08-30 | Accepted Phase 6a after adding a boot-sealed typed domain-event runtime, eight foundational fact contracts, deterministic bounded depth-first dispatch, generation-aware resolver boundaries, and per-bus/type/handler diagnostics; passed the 967-test rollback matrix, sanitizer, and Valgrind gates without enabling gameplay publishers or changing old pub/sub. Phase 6b is now authorized. |
 | 1.4 | 2026-08-30 | Accepted Phase 6b after retiring the database-backed pub/sub runtime without dropping its data, adding native coordinate and room-graph sensory propagation through `WorldPhenomenon`, and migrating Meteor Swarm as the first production publisher. Phase 7 active-world and scan reduction is now authorized. |
 | 1.5 | 2026-08-30 | Clarified the Phase 7 lifecycle after gameplay review: player proximity does not define NPC relevance. Autonomous off-screen movement, scripts, and NPC-versus-NPC wars remain active simulation; only genuinely inert NPC owners may become dormant. |
+| 1.6 | 2026-08-30 | Accepted the first Phase 7 slice after inventorying heartbeat work and replacing the global mobile scan with bounded owner deadlines and typed lifecycle wakeups. Off-screen patrols, scripts, and NPC wars remain active; the eight-mode local matrix, live profiler evidence, 970-test sanitizer/Valgrind/database gates, and remote Build & Test/Security workflows passed. `ITEM_AUTOPROC` and DG random-trigger owners are next. |

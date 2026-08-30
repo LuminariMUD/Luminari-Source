@@ -1,6 +1,6 @@
 # Event-Driven Core Refactor Phase 7 Validation
 
-**Status:** Local pass; remote CI pending
+**Status:** Pass
 **Date:** 2026-08-30
 **Branch:** `event-driven-core-refactor`
 **Scope:** Scan inventory and first active-world migration, NPC thinking
@@ -71,8 +71,14 @@ The production-linked suite proves:
   totals together with the scheduler and entity telemetry it reports.
 
 Local logs are retained under `.ci-runtime/phase7-*` and are intentionally
-untracked. Remote workflow and security results will be appended after the
-candidate commit is pushed.
+untracked. Remote acceptance for candidate `bfbd763ca` also passed:
+
+- [Build & Test run 33333179836](https://github.com/LuminariMUD/Luminari-Source/actions/runs/33333179836):
+  all nine jobs passed, including the production matrix, MariaDB coverage,
+  sanitizer/fuzzer, Valgrind, behavioral, and world-tool jobs.
+- [Security run 33333179782](https://github.com/LuminariMUD/Luminari-Source/actions/runs/33333179782):
+  CodeQL and Gitleaks passed. Dependency review was correctly skipped for the
+  branch push because it only runs for pull requests.
 
 ## Rollback and Next Slice
 
