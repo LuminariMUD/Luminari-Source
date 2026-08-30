@@ -76,7 +76,6 @@
 #include "net/discord_bridge.h"
 #include "character/evolutions.h"
 #include "character/deities.h"
-#include "pubsub/pubsub.h"
 #include "mudlim.h"
 #include "character/backgrounds.h"
 #include "roleplay.h"
@@ -3192,28 +3191,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"perfmon", "perfmon", POS_DEAD, do_perfmon, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"priceset", "priceset", POS_RECLINING, do_priceset, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"pets", "pets", POS_RECLINING, do_pets, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"pubsub", "pubs", POS_DEAD, do_pubsub, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"pubsubtopic",
-     "pubsubt",
-     POS_DEAD,
-     do_pubsubtopic,
-     LVL_GRSTAFF,
-     0,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-    {"pubsubqueue",
-     "pubsubq",
-     POS_DEAD,
-     do_pubsubqueue,
-     LVL_IMMORT,
-     0,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
-
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"queue", "q", POS_DEAD, do_queue, 0, SCMD_ACTION_QUEUE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -4282,9 +4259,6 @@ cpp_extern const struct command_info cmd_info[] = {
      NULL},
     {"summon", "summon", POS_RECLINING, do_summon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"statcap", "statcap", POS_RECLINING, do_statcap, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    /*pubsub*/
-    {"subscribe", "sub", POS_DEAD, do_subscribe, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"tell", "t", POS_DEAD, do_tell, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -4490,10 +4464,6 @@ cpp_extern const struct command_info cmd_info[] = {
      NULL},
     {"tnl", "tnl", POS_DEAD, do_tnl, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"todo", "todo", POS_DEAD, do_todo, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    /*pubsub*/
-    {"topics", "topics", POS_DEAD, do_topics, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-
-
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"unholyweapon", "unholyw", POS_DEAD, do_holyweapon, 1, 1, FALSE, ACTION_NONE, {0, 0}, NULL},

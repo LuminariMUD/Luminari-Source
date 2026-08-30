@@ -79,10 +79,13 @@ to diagnose, not work to race against entity mutation.
 
 ## Implementation Notes
 
-The Phase 6a foundation registers eight fact contracts at boot but publishes no
-gameplay facts yet. Publisher/subscriber pairs land behind separate migration
-boundaries. Broad scan removal begins only after the owning system can prove
-equivalent behavior, lifecycle safety, bounded work, and rollback.
+The Phase 6a foundation registered eight inert fact contracts. Phase 6b added
+the first production publisher/subscriber pair: `WorldPhenomenon` routes sights
+and sounds through coordinate or bounded room-graph propagation, and Meteor
+Swarm publishes it directly. Other publisher/subscriber pairs still land behind
+separate migration boundaries. Broad scan removal begins only after the owning
+system proves equivalent behavior, lifecycle safety, bounded work, and
+rollback.
 
 ## References
 

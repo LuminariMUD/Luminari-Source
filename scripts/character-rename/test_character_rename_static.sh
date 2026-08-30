@@ -47,8 +47,6 @@ rename_keys=(
   "player_quest_progress|character_name"
   "player_supply_orders|player_name"
   "supply_orders_available|player_name"
-  "pubsub_player_settings|player_name"
-  "pubsub_subscriptions|player_name"
   "player_levelups|character_name"
   "player_levels|char_name"
   "vessel_bounties|player_name"
@@ -84,8 +82,9 @@ assert_contains "$rename_source" "ctx->files[i].source_digest"
 assert_contains "$rename_source" "rename_scan_pfile_line"
 assert_contains "$project_root/unittests/CuTest/test_player_rename.c" \
   "Test_player_rename_ignores_identity_tags_in_nested_records"
-assert_contains "$rename_source" "pubsub_invalidate_player_cache(ctx->old_display_name)"
-assert_contains "$rename_source" "pubsub_invalidate_player_cache(ctx->new_display_name)"
+assert_not_contains "$rename_source" "pubsub_player_settings"
+assert_not_contains "$rename_source" "pubsub_subscriptions"
+assert_not_contains "$rename_source" "pubsub_invalidate_player_cache"
 assert_contains "$rename_source" "load_account_characters(refresh->account)"
 failure_points=(
   PLAYER_RENAME_TEST_FAIL_AUXILIARY_MOVE

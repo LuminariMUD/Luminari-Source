@@ -1,8 +1,16 @@
 #include "CuTest.h"
 
+#include "../../src/conf.h"
+#include "../../src/sysdep.h"
+#include "../../src/structs.h"
+#include "../../src/utils.h"
+#include "../../src/db.h"
 #include "../../src/domain_event_types.h"
 #include "../../src/domain_events.h"
 #include "../../src/domain_event_runtime.h"
+#include "../../src/domain_event_world.h"
+#include "../../src/net/protocol.h"
+#include "../../src/wilderness/spatial_events.h"
 
 #include <pthread.h>
 #include <stdint.h>
@@ -256,10 +264,14 @@ void TestDomainEventFoundationContracts(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_get_type_stats(bus, DOMAIN_EVENT_ACTIVITY_TRANSITIONED, &stats));
   domain_event_bus_get_stats(bus, &bus_stats);
-  CuAssertIntEquals(tc, 8, (int)bus_stats.registered_type_count);
+  CuAssertIntEquals(tc, 9, (int)bus_stats.registered_type_count);
   CuAssertStrEquals(tc, "ActivityTransitioned", stats.name);
   CuAssertIntEquals(tc, (int)sizeof(struct domain_activity_transitioned),
                     (int)stats.payload_size);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_get_type_stats(bus, DOMAIN_EVENT_WORLD_PHENOMENON, &stats));
+  CuAssertStrEquals(tc, "WorldPhenomenon", stats.name);
+  CuAssertIntEquals(tc, (int)sizeof(struct domain_world_phenomenon), (int)stats.payload_size);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
 }
 
@@ -477,10 +489,119 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   CuAssertPtrNotNull(tc, domain_event_runtime_bus());
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
-  CuAssertIntEquals(tc, 8, (int)stats.registered_type_count);
+  CuAssertIntEquals(tc, 9, (int)stats.registered_type_count);
+  CuAssertIntEquals(tc, 1, (int)stats.registered_handler_count);
   CuAssertTrue(tc, stats.sealed);
   CuAssertIntEquals(tc, DOMAIN_EVENT_BUSY, domain_event_runtime_init());
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
   CuAssertPtrEquals(tc, NULL, domain_event_runtime_bus());
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+}
+
+void TestWorldPhenomenonRoomPropagation(CuTest *tc)
+{
+  struct room_data rooms[3];
+  struct room_direction_data first_exit;
+  struct room_direction_data second_exit;
+  struct char_data adjacent;
+  struct char_data distant;
+  struct player_special_data adjacent_specials;
+  struct player_special_data distant_specials;
+  struct descriptor_data adjacent_desc;
+  struct descriptor_data distant_desc;
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
+  struct domain_world_phenomenon phenomenon;
+
+  memset(rooms, 0, sizeof(rooms));
+  memset(&first_exit, 0, sizeof(first_exit));
+  memset(&second_exit, 0, sizeof(second_exit));
+  memset(&adjacent_specials, 0, sizeof(adjacent_specials));
+  memset(&distant_specials, 0, sizeof(distant_specials));
+  memset(&adjacent_desc, 0, sizeof(adjacent_desc));
+  memset(&distant_desc, 0, sizeof(distant_desc));
+  memset(&phenomenon, 0, sizeof(phenomenon));
+  clear_char(&adjacent);
+  clear_char(&distant);
+
+  rooms[0].number = 100;
+  rooms[1].number = 200;
+  rooms[2].number = 300;
+  first_exit.to_room = 1;
+  SET_BIT(first_exit.exit_info, EX_CLOSED);
+  second_exit.to_room = 2;
+  rooms[0].dir_option[EAST] = &first_exit;
+  rooms[1].dir_option[EAST] = &second_exit;
+
+  adjacent.player_specials = &adjacent_specials;
+  adjacent.player.name = "Adjacent observer";
+  adjacent.desc = &adjacent_desc;
+  IN_ROOM(&adjacent) = 1;
+  adjacent_desc.character = &adjacent;
+  adjacent_desc.output = adjacent_desc.small_outbuf;
+  adjacent_desc.bufspace = SMALL_BUFSIZE - 1;
+  adjacent_desc.pProtocol = ProtocolCreate();
+  STATE(&adjacent_desc) = CON_PLAYING;
+  rooms[1].people = &adjacent;
+
+  distant.player_specials = &distant_specials;
+  distant.player.name = "Distant observer";
+  distant.desc = &distant_desc;
+  IN_ROOM(&distant) = 2;
+  distant_desc.character = &distant;
+  distant_desc.output = distant_desc.small_outbuf;
+  distant_desc.bufspace = SMALL_BUFSIZE - 1;
+  distant_desc.pProtocol = ProtocolCreate();
+  STATE(&distant_desc) = CON_PLAYING;
+  rooms[2].people = &distant;
+
+  world = rooms;
+  top_of_world = 2;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_register_foundation_types(bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_world_register_resolvers(bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, spatial_event_register_handlers(bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
+
+  phenomenon.source_room = domain_event_room_handle(0);
+  phenomenon.visual_range = 2;
+  phenomenon.audio_range = 2;
+  phenomenon.minimum_range = 1;
+  phenomenon.channels = DOMAIN_WORLD_PHENOMENON_VISUAL | DOMAIN_WORLD_PHENOMENON_AUDIBLE;
+  phenomenon.propagation = DOMAIN_WORLD_PROPAGATE_ROOMS;
+  phenomenon.visual_description = "A flash lights the next room.";
+  phenomenon.audio_description = "A fireball explodes nearby.";
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(bus, DOMAIN_EVENT_WORLD_PHENOMENON, &phenomenon));
+  CuAssertPtrEquals(tc, NULL, strstr(adjacent_desc.output, phenomenon.visual_description));
+  CuAssertPtrNotNull(tc, strstr(adjacent_desc.output, phenomenon.audio_description));
+  CuAssertPtrNotNull(tc, strstr(distant_desc.output, phenomenon.audio_description));
+
+  adjacent_desc.output[0] = '\0';
+  adjacent_desc.bufptr = 0;
+  adjacent_desc.bufspace = SMALL_BUFSIZE - 1;
+  distant_desc.output[0] = '\0';
+  distant_desc.bufptr = 0;
+  distant_desc.bufspace = SMALL_BUFSIZE - 1;
+  REMOVE_BIT(first_exit.exit_info, EX_CLOSED);
+  phenomenon.channels = DOMAIN_WORLD_PHENOMENON_VISUAL;
+  phenomenon.visual_range = 1;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(bus, DOMAIN_EVENT_WORLD_PHENOMENON, &phenomenon));
+  CuAssertPtrNotNull(tc, strstr(adjacent_desc.output, phenomenon.visual_description));
+  CuAssertPtrEquals(tc, NULL, strstr(distant_desc.output, phenomenon.visual_description));
+
+  adjacent_desc.output[0] = '\0';
+  adjacent_desc.bufptr = 0;
+  adjacent_desc.bufspace = SMALL_BUFSIZE - 1;
+  rooms[0].event_owner_generation++;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(bus, DOMAIN_EVENT_WORLD_PHENOMENON, &phenomenon));
+  CuAssertPtrEquals(tc, NULL, strstr(adjacent_desc.output, phenomenon.visual_description));
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
+  ProtocolDestroy(adjacent_desc.pProtocol);
+  ProtocolDestroy(distant_desc.pProtocol);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
 }

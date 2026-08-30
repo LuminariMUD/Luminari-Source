@@ -140,9 +140,7 @@ struct spatial_system visual_system = {.system_name = "Visual",
                                        .modifiers = &weather_terrain_modifier_strategy,
                                        .enabled = TRUE,
                                        .global_range_multiplier = 1.0f,
-                                       .global_intensity_multiplier = 1.0f,
-                                       .pubsub_topic = "visual_wilderness",
-                                       .pubsub_handler = "visual_stimulus_handler"};
+                                       .global_intensity_multiplier = 1.0f};
 
 /*
  * Visual Stimulus Strategy Implementation
@@ -708,21 +706,21 @@ int spatial_visual_init(void)
   return SPATIAL_SUCCESS;
 }
 
-/*
- * Test function - simulate a ship passing by
- */
-int spatial_visual_test_ship_passing(int ship_x, int ship_y, const char *ship_desc)
+/* Deliver one event-driven sight to eligible active wilderness players. */
+int spatial_visual_emit(int source_x, int source_y, int source_z, const char *description,
+                        float intensity, int range)
 {
   struct spatial_context *ctx;
   struct char_data *ch;
   int processed_count = 0;
 
-  if (!ship_desc)
+  if (!description)
   {
     return SPATIAL_ERROR_INVALID_PARAM;
   }
 
-  spatial_log("Testing ship passing at (%d, %d): %s", ship_x, ship_y, ship_desc);
+  spatial_log("Emitting visual event at (%d, %d, %d): %s", source_x, source_y, source_z,
+              description);
 
   /* Create properly initialized context */
   ctx = spatial_create_context();
@@ -733,11 +731,11 @@ int spatial_visual_test_ship_passing(int ship_x, int ship_y, const char *ship_de
   }
 
   /* Set source information */
-  ctx->source_x = ship_x;
-  ctx->source_y = ship_y;
-  ctx->source_z = 0; /* Sea level */
-  ctx->source_description = strdup(ship_desc);
-  ctx->base_intensity = 1.0;
+  ctx->source_x = source_x;
+  ctx->source_y = source_y;
+  ctx->source_z = source_z;
+  ctx->source_description = strdup(description);
+  ctx->base_intensity = intensity;
 
   /* Process for all wilderness players */
   for (ch = character_list; ch; ch = ch->next)
@@ -745,6 +743,10 @@ int spatial_visual_test_ship_passing(int ship_x, int ship_y, const char *ship_de
     if (IS_NPC(ch) || !ch->desc)
       continue;
     if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+      continue;
+    if (spatial_calculate_3d_distance(X_LOC(ch), Y_LOC(ch),
+                                      get_modified_elevation(X_LOC(ch), Y_LOC(ch)), source_x,
+                                      source_y, source_z) > range)
       continue;
 
     /* Set observer information */
@@ -754,7 +756,7 @@ int spatial_visual_test_ship_passing(int ship_x, int ship_y, const char *ship_de
     ctx->observer_z = get_modified_elevation(X_LOC(ch), Y_LOC(ch));
     ctx->active_system = &visual_system;
 
-    spatial_log("Testing visual for player %s at (%d, %d, %d)", GET_NAME(ch), ctx->observer_x,
+    spatial_log("Processing visual for player %s at (%d, %d, %d)", GET_NAME(ch), ctx->observer_x,
                 ctx->observer_y, ctx->observer_z);
 
     /* Process visual stimulus */
@@ -776,7 +778,7 @@ int spatial_visual_test_ship_passing(int ship_x, int ship_y, const char *ship_de
   /* Cleanup */
   spatial_free_context(ctx);
 
-  spatial_log("Ship passing test processed for %d players", processed_count);
+  spatial_log("Visual event processed for %d players", processed_count);
   return SPATIAL_SUCCESS;
 }
 

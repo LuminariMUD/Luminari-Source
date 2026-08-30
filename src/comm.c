@@ -112,7 +112,6 @@
 #include "bardic_performance.h" /* for the bard performance pulse */
 #include "craft/crafting_new.h"
 #include "ai_service.h"                /* for shutdown_ai_service() */
-#include "pubsub/pubsub.h"             /* for automatic queue processing */
 #include "net/discord_bridge.h"        /* Discord bridge integration */
 #include "wilderness/terrain_bridge.h" /* Terrain bridge API server */
 #include "net/i3_client.h"             /* Intermud3 client */
@@ -2146,8 +2145,6 @@ void heartbeat(int heart_pulse)
     travel_tickdown();
     self_buffing();
     craft_update();
-    /* Process PubSub message queue automatically */
-    pubsub_process_message_queue();
     /* Process Intermud3 events from the I3 thread */
     i3_process_events();
     /* Publish I3 presence from the main thread */

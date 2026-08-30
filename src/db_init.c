@@ -17,7 +17,6 @@
 #include "comm.h"
 #include "mysql.h"
 #include "db_init.h"
-#include "pubsub/pubsub.h"
 #include "vessels/vessels.h"
 
 /* Internal helpers */
@@ -50,16 +49,6 @@ void init_luminari_database(void)
 
   /* Create database procedures and functions */
   create_database_procedures();
-
-  /* Ensure PubSub schemas are ready */
-  if (pubsub_db_create_tables() != PUBSUB_SUCCESS)
-  {
-    log("SYSERR: Failed to initialize PubSub tables during database setup");
-  }
-  else if (pubsub_db_create_v3_tables() != PUBSUB_SUCCESS)
-  {
-    log("SYSERR: Failed to initialize PubSub V3 tables during database setup");
-  }
 
   /* Populate standard reference data */
   populate_resource_types_data();

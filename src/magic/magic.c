@@ -36,9 +36,8 @@
 #include "psionics.h"
 #include "combat/combat_modes.h"
 #include "character/evolutions.h"
-#include "wilderness/spatial_core.h"
-#include "wilderness/spatial_visual.h"
-#include "wilderness/spatial_audio.h"
+#include "domain_event_runtime.h"
+#include "domain_event_types.h"
 #include "wilderness/wilderness.h"
 #include "character/perks.h"
 #include "bardic_performance.h"
@@ -47,6 +46,32 @@
 
 // external
 extern struct raff_node *raff_list;
+
+static void publish_coordinate_phenomenon(int source_x, int source_y, int source_z,
+                                          int visual_range, int audio_range, float intensity,
+                                          const char *visual_description,
+                                          const char *audio_description)
+{
+  struct domain_world_phenomenon phenomenon = {0};
+  enum domain_event_status status;
+
+  phenomenon.source_x = source_x;
+  phenomenon.source_y = source_y;
+  phenomenon.source_z = source_z;
+  phenomenon.visual_range = visual_range;
+  phenomenon.audio_range = audio_range;
+  phenomenon.intensity = intensity;
+  phenomenon.channels = (visual_description != NULL ? DOMAIN_WORLD_PHENOMENON_VISUAL : 0U) |
+                        (audio_description != NULL ? DOMAIN_WORLD_PHENOMENON_AUDIBLE : 0U);
+  phenomenon.propagation = DOMAIN_WORLD_PROPAGATE_COORDINATES;
+  phenomenon.audio_frequency = DOMAIN_WORLD_AUDIO_LOW;
+  phenomenon.visual_description = visual_description;
+  phenomenon.audio_description = audio_description;
+  status = DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(), DOMAIN_EVENT_WORLD_PHENOMENON,
+                                &phenomenon);
+  if (status != DOMAIN_EVENT_OK)
+    log("SYSERR: Unable to publish wilderness phenomenon: %s", domain_event_status_name(status));
+}
 
 static int paralyzing_touch_duration(void)
 {
@@ -11992,26 +12017,20 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
           ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) ? "YES" : "NO");
       log("DEBUG: Character coordinates: X_LOC=%d, Y_LOC=%d", X_LOC(ch), Y_LOC(ch));
 
-      /* Phase 1: Distant visual - meteors appearing in the sky */
-      log("DEBUG: Phase 1 - Meteor approach with range 5");
-      spatial_visual_meteor_approach(
-          X_LOC(ch), Y_LOC(ch),
-          "brilliant streaks of crimson and gold fire tear across the starlit heavens", 5);
-
-      /* Phase 2: Audio - whistling approach sounds from high altitude */
-      int meteor_audio_elevation = get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 30;
-      spatial_audio_test_sound_effect(
-          X_LOC(ch), Y_LOC(ch), meteor_audio_elevation,
+      /* Distant visual and audio are one synchronous world fact. */
+      publish_coordinate_phenomenon(
+          X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 30, 5, 8, 1.5f,
+          "brilliant streaks of crimson and gold fire tear across the starlit heavens",
           "an ominous crescendo of ethereal whistling and deep atmospheric rumbling as the very "
-          "air trembles before celestial wrath",
-          AUDIO_FREQ_LOW, 8);
+          "air trembles before celestial wrath");
 
       /* Phase 3: Close visual - meteors descending toward target */
       log("DEBUG: Phase 3 - Meteor descent with range 3");
-      spatial_visual_meteor_descent(X_LOC(ch), Y_LOC(ch),
-                                    "colossal blazing meteorites plummet through the atmosphere, "
-                                    "trailed by molten starfire crackling with primordial flame",
-                                    3);
+      publish_coordinate_phenomenon(
+          X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)) + 10, 3, 0, 2.0f,
+          "colossal blazing meteorites plummet through the atmosphere, trailed by molten starfire "
+          "crackling with primordial flame",
+          NULL);
 
       /* Phase 4: Impact audio will be added after damage processing */
     }
@@ -12280,20 +12299,12 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
         if (spellnum == SPELL_METEOR_SWARM &&
             ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
         {
-          /* Impact visual effect - fiery explosions */
-          spatial_visual_meteor_impact(
-              X_LOC(ch), Y_LOC(ch),
+          publish_coordinate_phenomenon(
+              X_LOC(ch), Y_LOC(ch), get_modified_elevation(X_LOC(ch), Y_LOC(ch)), 2, 20, 2.5f,
               "cataclysmic eruptions of azure and crimson flame burst from the earth as celestial "
               "hammers shatter the ground, sending waves of molten rock skyward",
-              2);
-
-          /* Impact audio effect - thunderous crashes from ground level */
-          int ground_audio_elevation = get_modified_elevation(X_LOC(ch), Y_LOC(ch));
-          spatial_audio_test_sound_effect(
-              X_LOC(ch), Y_LOC(ch), ground_audio_elevation,
               "earth-shaking detonations rivaling mountain avalanches as cosmic forces unleash "
-              "devastating fury upon the mortal realm",
-              AUDIO_FREQ_LOW, 20);
+              "devastating fury upon the mortal realm");
         }
 
         /* Add shockwave knockdown effect after damage is dealt */

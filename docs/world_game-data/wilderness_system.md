@@ -1,6 +1,6 @@
 # Luminari MUD Wilderness System Documentation
 
-*Last Updated: 2026-08-04*
+*Last Updated: 2026-08-30*
 
 > **About the code samples.** The `#define` blocks in
 > [Configuration](#configuration) were re-derived from the headers on
@@ -9,6 +9,13 @@
 > functions they name (`create_wilderness_exits()`, `find_downhill_direction()`,
 > `spatial_init()`, `debug_wilderness_memory()`) do not exist under `src/`.
 > For the implementation, read `src/wilderness/`.
+>
+> **Retirement notice.** The database-backed PubSub topic/subscription queue
+> was retired in Event-Driven Core Phase 6b. It no longer initializes, runs,
+> exposes commands, or mediates wilderness effects. Older PubSub examples later
+> in this long-form design record are historical only. The independent spatial
+> visual/audio engine remains active behind the native typed
+> `WorldPhenomenon` subscriber.
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -19,7 +26,7 @@
 6. [Regions and Paths](#regions-and-paths)
 7. [Weather System](#weather-system)
 8. [Resource System](#resource-system)
-9. [PubSub Integration](#pubsub-integration)
+9. [Retired PubSub Adapter](#retired-pubsub-adapter)
 10. [Spatial Audio System](#spatial-audio-system)
 11. [Player Experience](#player-experience)
 12. [Builder Tools](#builder-tools)
@@ -38,7 +45,6 @@ The Luminari MUD Wilderness System is a sophisticated procedural terrain generat
 - **Path System**: Creates roads, rivers, and other linear features
 - **Weather Integration**: Location-specific weather patterns
 - **Resource System**: Comprehensive natural resource discovery and management
-- **PubSub Messaging**: Event-driven communication and spatial audio
 - **Spatial Audio**: 3D positional audio for wilderness events
 - **Coordinate-Based Navigation**: X,Y coordinate system for precise positioning
 
@@ -48,7 +54,6 @@ The Luminari MUD Wilderness System is a sophisticated procedural terrain generat
 - **Realistic Terrain**: Elevation, moisture, and temperature-based biome generation
 - **Natural Resources**: 10 resource types with procedural distribution and depletion
 - **Spatial Communication**: 3D audio and visual effects with distance-based delivery
-- **Event-Driven Architecture**: PubSub system for real-time wilderness events
 - **Performance Optimized**: KD-Tree indexing and dynamic room pooling
 - **Builder Friendly**: OLC integration and buildwalk support
 - **Player Immersive**: Integrated mapping, weather, resource discovery, and spatial audio
@@ -66,11 +71,9 @@ movement/movement.c              - Movement handling
 redit.c                     - OLC wilderness room editing
 resource_system.c/h         - Natural resource management
 resource_descriptions.c/h   - Resource discovery and mapping
-pubsub.c/h                  - Event-driven messaging system
 spatial_core.c/h            - 3D spatial audio/visual systems
 spatial_audio.c/h           - Wilderness audio positioning
 spatial_visual.c/h          - Visual event transmission
-systems/pubsub/*            - PubSub subsystem components
 systems/spatial/*           - Spatial system components
 ```
 
@@ -79,8 +82,8 @@ systems/spatial/*           - Spatial system components
 ```
 Player Movement -> Coordinate Calculation -> Room Lookup/Creation ->
 Terrain Generation -> Resource Calculation -> Region/Path Application ->
-Room Assignment -> Weather/Description Generation -> Spatial Event Processing ->
-PubSub Event Distribution -> Player Display/Audio Delivery
+Room Assignment -> Weather/Description Generation -> WorldPhenomenon Publication ->
+Spatial Subscriber -> Player Display/Audio Delivery
 ```
 
 ### System Integration
@@ -89,10 +92,9 @@ The wilderness system integrates multiple subsystems:
 
 1. **Terrain Engine**: Procedural generation using Perlin noise
 2. **Resource Engine**: Natural resource distribution and tracking
-3. **Event Engine**: PubSub messaging for real-time communication
-4. **Spatial Engine**: 3D audio/visual positioning and delivery
-5. **Database Engine**: Persistent storage for regions, paths, and resources
-6. **Weather Engine**: Environmental conditions affecting gameplay
+3. **Spatial Engine**: 3D audio/visual positioning and delivery
+4. **Database Engine**: Persistent storage for regions, paths, and resources
+5. **Weather Engine**: Environmental conditions affecting gameplay
 
 ## Coordinate System
 
@@ -710,81 +712,22 @@ resourceadmin cleanup       # Force cleanup of old resource nodes
 - Database-backed persistence for depletion
 - Optimized queries for large-scale resource analysis
 
-## PubSub Integration
+## Retired PubSub Adapter
 
-The Wilderness System integrates with the PubSub (Publish/Subscribe) messaging system to provide real-time event-driven communication and spatial audio/visual effects.
+The old database-backed topic, subscription, and message queue was not the
+typed gameplay event system. Phase 6b removed its runtime, commands, heartbeat
+callback, wilderness adapter, and spatial metadata. No replacement player
+notification feature was specified because no production gameplay path
+depended on it.
 
-### System Overview
+The `pubsub_*` database tables remain untouched as deprecated data. Runtime
+database initialization and character rename ignore them. A later table removal
+requires its own reviewed backup and migration plan.
 
-The PubSub system provides:
-- **Topic-Based Messaging**: Players can subscribe to various wilderness topics
-- **Spatial Audio**: 3D positional audio for wilderness events
-- **Event Broadcasting**: Real-time distribution of wilderness events
-- **Message Queuing**: Reliable delivery with queue management
-- **Multiple Handlers**: Different message processing strategies
-
-### Wilderness Integration
-
-**Spatial Audio Broadcasting:**
-```c
-// Publish spatial audio to wilderness area
-pubsub_publish_wilderness_audio(source_x, source_y, source_z,
-                               sender_name, content,
-                               max_distance, priority);
-```
-
-**Coordinate-Based Delivery:**
-- Messages delivered based on 3D distance calculations
-- Elevation affects audio transmission (Z-axis positioning)
-- Range-based filtering ensures appropriate audience
-- Terrain and weather can modify transmission
-
-### Player Commands
-
-**Basic PubSub Commands:**
-```
-pubsub status                - Show system status
-pubsub list                  - List available topics  
-pubsub create <name> <desc>  - Create a new topic
-pubsub send <topic> <msg>    - Send message to topic
-pubsub subscribe <topic>     - Subscribe to a topic
-pubsub unsubscribe <topic>   - Unsubscribe from topic
-```
-
-**Wilderness-Specific Features:**
-```
-pubsub spatial              - Test spatial systems (wilderness only, admin)
-pubsubqueue spatial         - Test wilderness spatial audio
-```
-
-### Message Handlers
-
-The system includes specialized handlers for wilderness:
-
-1. **spatial_audio**: Basic spatial audio processing with distance
-2. **wilderness_spatial**: Enhanced 3D spatial audio for wilderness
-3. **audio_mixing**: Multiple simultaneous audio source mixing
-4. **send_text**: Plain text message delivery
-5. **send_formatted**: Formatted message with color codes
-
-### Technical Implementation
-
-**Core Integration Points:**
-- `pubsub_publish_wilderness_audio()` - Main wilderness audio function
-- Distance calculation using `sqrt(pow(x_diff, 2) + pow(y_diff, 2) + pow(z_diff/4, 2))`
-- Range checking with configurable maximum distances
-- Player filtering based on wilderness zone flags
-
-**Database Tables:**
-- `pubsub_topics` - Topic definitions and metadata
-- `pubsub_subscriptions` - Player subscription tracking
-- `pubsub_messages` - Message history and delivery tracking
-
-**Event Processing:**
-- Automatic queue processing every 3 pulses (~0.75 seconds)
-- Message TTL (Time To Live) management
-- Delivery attempt tracking and retry logic
-- Statistics collection for performance monitoring
+Spatial audio and visual behavior remain available through
+`src/wilderness/spatial_core.c`, `spatial_audio.c`, and `spatial_visual.c`.
+Gameplay such as Meteor Swarm publishes a typed `WorldPhenomenon`; the spatial
+subscriber owns delivery.
 
 ## Spatial Audio System
 
@@ -843,17 +786,8 @@ float distance = sqrt(pow(X_LOC(target) - source_x, 2) +
 
 ### Administrative Tools
 
-**Testing Commands:**
-```
-pubsub spatial              # Test both visual and audio systems
-pubsubqueue spatial         # Test wilderness spatial audio specifically
-```
-
-**Performance Monitoring:**
-```
-pubsub stats               # System-wide statistics
-pubsubqueue status         # Queue processing statistics
-```
+Spatial behavior is covered by source-linked strategy and domain-event tests.
+The retired PubSub commands are no longer available.
 
 ### Technical Architecture
 
@@ -864,7 +798,6 @@ pubsubqueue status         # Queue processing statistics
 - `systems/spatial/` - Modular spatial subsystems
 
 **Integration Points:**
-- PubSub message queue for reliable delivery
 - Wilderness coordinate system for positioning
 - Character filtering based on online status and location
 - Dynamic range calculation based on content and environment
@@ -872,8 +805,7 @@ pubsubqueue status         # Queue processing statistics
 **Performance Optimizations:**
 - Efficient distance calculations
 - Player filtering before expensive operations
-- Queue-based processing to avoid lag spikes
-- Configurable processing intervals
+- Early range filtering before detailed processing
 
 ## Player Experience
 
@@ -898,10 +830,8 @@ pubsubqueue status         # Queue processing statistics
 - Player-generated spatial audio events
 
 **Communication Systems:**
-- PubSub topic subscription for real-time wilderness events
 - Spatial audio communication with realistic range limitations
-- Event-driven notifications for wilderness activities
-- Personal message delivery with location awareness
+- Direct gameplay-generated environmental effects
 
 ### Advanced Features
 
@@ -919,8 +849,7 @@ pubsubqueue status         # Queue processing statistics
 
 **Administrative Tools (Immortal+):**
 - `resourceadmin` suite for resource system management
-- `pubsub admin` commands for system administration
-- Spatial audio testing and debugging tools
+- Spatial audio logging and source-linked tests
 - Performance monitoring and statistics
 
 ## Builder Tools
@@ -1179,10 +1108,6 @@ void boot_world(void) {
     // 4. Initialize wilderness systems
     initialize_wilderness_lists();   // KD-Tree indexing for static rooms
 
-    // 5. Initialize enhanced systems
-    log("Initializing PubSub system...");
-    pubsub_init();                   // Event-driven messaging system
-
     log("Initializing Resource System...");
     init_wilderness_resource_tables(); // Resource system database
 
@@ -1197,9 +1122,8 @@ void boot_world(void) {
 3. **Region Data**: Loads polygonal regions from MySQL database
 4. **Path Data**: Loads linear paths (roads, rivers) from MySQL database
 5. **Wilderness Initialization**: Builds KD-Tree indexes for performance
-6. **PubSub Initialization**: Sets up event-driven messaging and handlers
-7. **Resource System**: Initializes resource tables and caching
-8. **Spatial Systems**: Configures 3D audio/visual positioning systems
+6. **Resource System**: Initializes resource tables and caching
+7. **Spatial Systems**: Configures 3D audio/visual positioning systems
 
 ### Dynamic Content Generation
 
@@ -1220,7 +1144,6 @@ The wilderness system supports various forms of dynamic content generation:
 - Real-time resource mapping and visualization
 
 **Event Generation:**
-- PubSub event distribution based on player locations
 - Spatial audio events with 3D positioning
 - Weather-based environmental audio
 - Player action broadcasts with range limitations
@@ -1378,10 +1301,9 @@ This memory management pattern ensures system stability while maintaining perfor
 - `resource_depletion` - Location-based resource depletion tracking
 - Resource cache tables for performance optimization
 
-**PubSub System Tables:**
-- `pubsub_topics` - Topic definitions and metadata
-- `pubsub_subscriptions` - Player subscription tracking
-- `pubsub_messages` - Message history and delivery tracking
+**Deprecated Data:**
+- Legacy `pubsub_*` tables may remain for data preservation, but wilderness and
+  database initialization do not read, write, or create them.
 
 **Key Features:**
 - GEOMETRY columns with SPATIAL INDEX for efficient queries
@@ -1509,31 +1431,6 @@ Resource levels are plain floats in the range 0.0 to 1.0; there are no named
 minimum and maximum constants. The resource map radius defaults to 7 and is
 set inline in `show_resource_map()` rather than by a constant.
 
-### PubSub System Configuration
-
-From `src/pubsub/pubsub.h`:
-
-```c
-/* System versioning and features */
-#define PUBSUB_VERSION 1                   /* Current PubSub system version */
-#define PUBSUB_DEVELOPMENT_MODE 0          /* Set to 0 for production */
-
-/* Message and queue limits */
-#define PUBSUB_DEFAULT_MESSAGE_TTL 3600    /* Default message TTL (1 hour) */
-#define PUBSUB_QUEUE_BATCH_SIZE 50         /* Messages processed per batch */
-#define SUBSCRIPTION_CACHE_SIZE 1024       /* Player subscription cache size */
-
-/* Topic and handler limits */
-#define PUBSUB_MAX_TOPIC_NAME_LENGTH 255   /* Maximum topic name length */
-#define PUBSUB_MAX_HANDLER_NAME_LENGTH 64  /* Maximum handler name length */
-
-/* Priorities */
-#define PUBSUB_PRIORITY_NORMAL 2           /* Normal message priority */
-```
-
-There is no `PUBSUB_DEFAULT_SPATIAL_RANGE`; spatial range comes from the
-spatial system below.
-
 ### Spatial System Configuration
 
 From `src/wilderness/spatial_core.h`:
@@ -1602,20 +1499,9 @@ From `src/wilderness/spatial_core.h`:
 
 ### PubSub System Issues
 
-**PubSub Commands Not Working:**
-- Check if PubSub system initialized successfully during startup
-- Verify MySQL database connectivity
-- Test with `pubsub status` to check system state
-
-**Spatial Audio Not Working:**
-- Must be in wilderness zone for spatial audio tests
-- Check if other players are within range for testing
-- Verify PubSub message queue is processing (`pubsubqueue status`)
-
-**Subscription Issues:**
-- Check subscription limits and topic availability
-- Verify handler names are correct (case-sensitive)
-- Test basic functionality with `pubsub list` and `pubsub info <topic>`
+The PubSub runtime and commands are intentionally retired. Their absence is not
+an initialization or database error. Diagnose spatial behavior through its
+startup logs, typed publisher/subscriber boundary, and source-linked tests.
 
 ### Spatial System Issues
 
@@ -1632,18 +1518,16 @@ From `src/wilderness/spatial_core.h`:
 ### Performance Issues
 
 **System Lag with New Features:**
-- Monitor PubSub queue processing intervals (default: every 3 pulses)
 - Check resource system cache performance
-- Use `pubsub stats` and `resourceadmin cache` for diagnostics
+- Use `resourceadmin cache` for diagnostics
 
 **Database Performance:**
 - Ensure spatial indexes are properly created
-- Monitor MySQL query performance for resource and PubSub queries
+- Monitor MySQL query performance for resource queries
 - Check database connection stability
 
 **Memory Usage:**
 - Resource system uses coordinate-based caching
-- PubSub maintains message queues and subscription caches
 - Monitor memory usage with administrative commands
 
 ### Debug Commands
@@ -1660,21 +1544,12 @@ From `src/wilderness/spatial_core.h`:
 - `resourceadmin debug` - Advanced debug information
 - `resourceadmin cache` - Cache statistics and management
 
-**PubSub System:**
-- `pubsub status` - System status and configuration
-- `pubsub stats` - Performance statistics and metrics
-- `pubsub admin status` - Administrative system information
-- `pubsubqueue status` - Message queue diagnostics
-
 **Spatial Systems:**
-- `pubsub spatial` - Test spatial audio and visual systems
-- `pubsubqueue spatial` - Test wilderness spatial audio
 - Spatial system debug logging in server logs
 
 **Build Tools:**
 - `buildwalk` (toggle/reset/sector/name/desc)
 - Resource system integration with OLC
-- PubSub topic creation and management
 
 ### Maintenance
 
@@ -1689,9 +1564,9 @@ From `src/wilderness/spatial_core.h`:
 
 **Combat:** Terrain modifiers, cover/concealment, environmental hazards
 **Quests:** Static destinations, region triggers, exploration rewards, resource-based objectives
-**Scripts:** DG triggers, region events, weather scripts, PubSub event handlers
+**Scripts:** DG triggers, region events, and weather scripts
 **Players:** Movement, coordinate tracking, automap, resource discovery, spatial audio
-**Events:** Timed events, seasonal changes, dynamic spawning, ecological notifications
+**Events:** Timed events and typed sensory phenomena
 
 ### Enhanced Integrations
 
@@ -1701,30 +1576,29 @@ From `src/wilderness/spatial_core.h`:
 - Conservation systems impact player environmental scores
 - Ecological cascades create realistic resource interdependencies
 
-**Communication Integration:**
-- PubSub topics for real-time wilderness event notifications
+**Sensory Event Integration:**
+- Typed `WorldPhenomenon` facts for sights and sounds
+- Coordinate propagation for long-range wilderness phenomena
+- Room-graph propagation for local and adjacent-room effects
 - Spatial audio for immersive environmental experiences
-- Event-driven messaging for player coordination
-- Distance-based communication with realistic limitations
 
 **Database Integration:**
 - MySQL spatial queries for region and path detection
 - Resource tracking with persistent depletion data
-- PubSub message history and subscription management
+- Deprecated PubSub rows are ignored by active database systems
 - Indexed lookups for performance optimization
 - Coordinate-based caching for efficient resource calculations
 
 ### Advanced Features
 
 **Event-Driven Architecture:**
-- PubSub system enables real-time wilderness event distribution
-- Spatial events with 3D positioning and range-based delivery
-- Automated ecological notifications and conservation alerts
-- Player action broadcasting with environmental context
+- Typed domain events trigger sensory delivery when phenomena occur
+- Spatial events use 3D positioning and range-based delivery
+- Future ecological and player-action publishers use the same typed contract
 
 **Performance Monitoring:**
 - Resource system cache statistics and optimization
-- PubSub queue processing and message delivery metrics
+- Domain-event and spatial-handler timing diagnostics
 - Spatial system performance tracking and diagnostics
 - Database query optimization and index maintenance
 
@@ -1741,10 +1615,9 @@ From `src/wilderness/spatial_core.h`:
 - Elevation-based audio transmission calculations with realistic sound propagation
 
 **Event-Driven Features:**
-- Real-time PubSub event distribution for wilderness activities
+- Immediate typed phenomenon publication by gameplay owners
 - Spatial audio events with 3D positioning and environmental factors
-- Automated ecological notifications and conservation alerts
-- Player action broadcasting with coordinate-based filtering
+- Future ecological and player-action publishers use the same typed contract
 
 **Interactive Features:**
 - Resource mapping with customizable visualization radius
@@ -1761,7 +1634,7 @@ From `src/wilderness/spatial_core.h`:
 - Coordinate-based resource caching for consistent calculations
 
 **Enhanced Systems:**
-- PubSub message queue processing with configurable batch sizes
+- Bounded event-time sensory propagation
 - Resource system caching with automatic cache cleanup
 - Spatial system optimization with distance-based filtering
 - Database query optimization with prepared statements and indexes
@@ -1776,7 +1649,7 @@ From `src/wilderness/spatial_core.h`:
 
 **System Customization:**
 - Resource type definitions with custom distribution algorithms
-- PubSub handler registration for specialized message processing
+- Typed phenomenon publishers for specialized sights and sounds
 - Spatial system configuration with custom distance calculations
 - Database schema extensions for additional functionality
 
@@ -1796,12 +1669,9 @@ From `src/wilderness/spatial_core.h`:
 - `resource_descriptions.c/h` - Resource discovery and mapping functionality
 - `resource_*.c/h` - Specialized resource subsystems
 
-**PubSub System:**
-- `pubsub.c/h` - Core PubSub messaging and topic management
-- `systems/pubsub/pubsub_commands.c` - Player command interface
-- `systems/pubsub/pubsub_handlers.c` - Message handler implementations
-- `systems/pubsub/pubsub_spatial.c` - Spatial audio integration
-- `systems/pubsub/pubsub_*.c` - Additional subsystem components
+**Retired PubSub System:**
+- Runtime sources and command adapters were removed in Event-Driven Core Phase
+  6b. Preserved SQL is archival data, not a wilderness component.
 
 **Spatial Systems:**
 - `spatial_core.c/h` - 3D positioning and distance calculations
@@ -1821,17 +1691,14 @@ From `src/wilderness/spatial_core.h`:
 - `resource_depletion` - Location-based depletion tracking
 - Resource cache tables for performance optimization
 
-**Communication Systems:**
-- `pubsub_topics` - Topic definitions and metadata
-- `pubsub_subscriptions` - Player subscription tracking  
-- `pubsub_messages` - Message history and delivery tracking
+**Deprecated Communication Data:**
+- Legacy `pubsub_*` tables are preserved but ignored by the runtime.
 
 ### Documentation References
 
 **System Guides:**
 - `RESOURCE_SYSTEM_REFERENCE.md` - Complete resource system documentation
 - `WILDERNESS_BUILDER_GUIDE.md` - Builder tools and procedures
-- `PUBSUB_API_REFERENCE.md` - PubSub system API documentation
 
 **Technical Documentation:**
 - Database schema documentation for spatial features
@@ -1960,7 +1827,7 @@ The Luminari MUD Wilderness System is a comprehensive, integrated environment th
 - **Resource Management**: 10 resource types with real-time discovery and conservation tracking  
 - **Material Subtypes**: Phase 4.5 system with specific named materials and rarities
 - **Ecological Cascades**: Phase 7 interdependency system modeling ecosystem relationships
-- **Event Communication**: PubSub messaging system with spatial audio and real-time event distribution
+- **Spatial Effects**: Direct visual/audio gameplay effects
 - **3D Audio**: Spatial positioning system with elevation-aware distance calculations
 - **Performance Optimization**: KD-Tree indexing, caching systems, and efficient database queries
 - **Administrative Tools**: Comprehensive debugging and management interfaces
@@ -1977,12 +1844,12 @@ The Luminari MUD Wilderness System is a comprehensive, integrated environment th
 **Key Features for Builders**:
 - OLC integration with coordinate-based room creation
 - Resource system integration with terrain types
-- PubSub event handlers for custom wilderness behaviors
+- Direct spatial APIs for custom wilderness behaviors
 - Administrative tools for system monitoring and debugging
 
 **Key Features for Developers**:
 - Modular architecture with clear separation of concerns
-- Event-driven design with extensible handler registration
+- Modular spatial strategy design
 - Comprehensive API for custom system integration
 - Performance monitoring and optimization tools
 

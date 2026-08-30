@@ -59,7 +59,6 @@
 #include "character/perks.h"
 #include "combat/spec_abilities.h"
 #include "help.h"
-#include "pubsub/pubsub.h"
 #include "wilderness/spatial_core.h"
 #include "wilderness/spatial_visual.h"
 #include "wilderness/spatial_audio.h"
@@ -1462,9 +1461,6 @@ void boot_db(void)
     log("Loading clan zone claim info.");
     load_claims();
   }
-
-  log("Initializing PubSub system.");
-  pubsub_init();
 
   log("Initializing spatial system.");
   spatial_init_system();

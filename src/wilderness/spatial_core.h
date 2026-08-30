@@ -234,9 +234,6 @@ struct spatial_system
   int successful_transmissions;
   float avg_processing_time_ms;
 
-  /* Integration with PubSub */
-  char *pubsub_topic;
-  char *pubsub_handler;
 };
 
 /* Core Processing Functions */

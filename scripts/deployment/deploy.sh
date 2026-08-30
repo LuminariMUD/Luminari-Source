@@ -286,11 +286,6 @@ EOF
         print_msg "$YELLOW" "master_schema.sql not found at $PROJECT_ROOT/sql/master_schema.sql"
     fi
 
-    if [[ -f "$PROJECT_ROOT/sql/pubsub_v3_schema.sql" ]]; then
-        print_msg "$GREEN" "Loading pubsub schema..."
-        mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$PROJECT_ROOT"/sql/pubsub_v3_schema.sql
-    fi
-
     # Clean up temp file
     rm -f /tmp/luminari_db_setup.sql
 

@@ -2,6 +2,30 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native world phenomena and pub/sub retirement
+
+#### Added
+
+- Added the typed `WorldPhenomenon` fact for visual, audible, or combined
+  phenomena with independent ranges and either wilderness-coordinate or
+  bounded room-graph propagation.
+- Added native sensory delivery for distant weather, vessels, creatures, epic
+  spells, terrain events, explosions, and nearby-room combat without a
+  heartbeat scan. Meteor Swarm is the first production publisher.
+
+#### Changed
+
+- Retired the database-backed pub/sub runtime, periodic queue, commands,
+  wilderness adapter, player-rename hooks, and automatic schema setup.
+- Preserved all old pub/sub tables as explicitly deprecated archival data; no
+  drop migration is included.
+
+#### Tests
+
+- Added static retirement and schema-preservation checks and extended the
+  production-linked domain-event suite for the ninth contract and registered
+  sensory subscriber.
+
 ### Typed domain-event foundation
 
 #### Added

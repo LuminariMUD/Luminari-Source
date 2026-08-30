@@ -1,5 +1,11 @@
 # End-to-End Character Rename Fix
 
+> **2026-08-30 update:** The database-backed PubSub runtime is retired.
+> `pubsub_player_settings` and `pubsub_subscriptions` are preserved deprecated
+> data, not active rename keys. Character rename does not inspect or mutate
+> them and has no PubSub cache hook. Historical incident/audit references below
+> remain as context for the schema that existed when this design was written.
+
 ## Purpose
 
 This document is the developer handoff for fixing character renames throughout
@@ -174,9 +180,8 @@ columns in place instead.
 ### 5. Other subsystems also use character names as keys
 
 The current source and production schema contain more character-name keys,
-including mail state, quest state, loot timers, crafting orders, level
-history, and pubsub settings/subscriptions. These must be deliberately
-classified and migrated.
+including mail state, quest state, loot timers, crafting orders, and level
+history. These must be deliberately classified and migrated.
 
 Two easy-to-miss active keys are:
 
@@ -205,10 +210,8 @@ Each descriptor can own a separate `account_data` instance. Updating one
 descriptor's `character_names[]` does not update every descriptor already
 logged into the same account.
 
-Pubsub also hashes and caches subscriptions by player name. See
-[`pubsub_invalidate_player_cache()`](../../src/pubsub/pubsub_db.c#L440).
-Both the old-name and new-name cache entries must be invalidated after a
-successful rename.
+The retired PubSub tables are intentionally outside this live cache and rename
+boundary. Their original player-name snapshots remain unchanged.
 
 ### 7. Current file and error handling is not reliable enough
 
@@ -399,7 +402,7 @@ legacy table rollback-safe. Migrate nontransactional current-state tables
 before relying on atomic rename behavior.
 
 The 2026-07-23 deployed-schema audit found the object, pet, eidolon, loot,
-quest, crafting, and pubsub current-state tables on InnoDB. It also found all
+quest and crafting current-state tables on InnoDB. It also found all
 three active mail tables on MyISAM:
 
 ```text
@@ -434,8 +437,6 @@ The active/core rename map is:
 | `player_quest_progress` | `character_name` | Per-character quest progress |
 | `player_supply_orders` | `player_name` | Crafting order state, where this table exists |
 | `supply_orders_available` | `player_name` | Crafting order availability |
-| `pubsub_player_settings` | `player_name` | Per-character pubsub limits/settings |
-| `pubsub_subscriptions` | `player_name` | Per-character subscriptions |
 | `player_levelups` | `character_name` | Newer level-history path, where present |
 | `player_levels` | `char_name` | Legacy level-history path, where present |
 
@@ -665,7 +666,6 @@ After a successful commit:
   `load_account_characters(d->account)`.
 - Ensure an online victim's `GET_ACCOUNT_NAME()` still names the owning
   account.
-- Invalidate pubsub caches for both `old_name` and `new_name`.
 - Update any protocol/MSDP character-name value if the target is online.
 - Refresh exact generated-name references still present in the live world,
   even when the rename target was loaded through `set file`:
@@ -782,7 +782,7 @@ Create a disposable account and character with:
 - eidolon descriptions;
 - sent and received `player_mail`, including read/deleted state;
 - quest/loot/crafting state;
-- pubsub settings/subscriptions;
+- deprecated PubSub settings/subscriptions retained under their historical name;
 - level history where those tables are enabled;
 - another offline player whose `Intr:` block contains the old name;
 - an online character whose introduction list contains the old name;
@@ -828,7 +828,7 @@ After the command:
 - an ordinary pet's authored descriptions remain unchanged;
 - a saved clone derives `Hartof` after load instead of restoring `Bartof`;
 - sent and received mail, plus read/deleted state, remains accessible;
-- mail, quest, loot, crafting, pubsub, and level-history state remains
+- mail, quest, loot, crafting, and level-history state remains
   accessible;
 - `level_30_characters`, when applicable, reflects the new name through its
   view definition without a direct update;
@@ -840,7 +840,7 @@ After the command:
 - no current-state ownership row remains under `Bartof`;
 - no new duplicate row was created;
 - active descriptors on the same account see `Hartof` without reconnecting;
-- pubsub operations use the new name; and
+- deprecated PubSub rows remain untouched under their historical name; and
 - restart/copyover retains every assertion.
 
 ### Failure-injection assertions
@@ -1015,7 +1015,7 @@ development/staging environment:
 - Sent/received mail and mail read/deleted state work under the new name.
 - Introduction references remain valid independent of the feature's current
   on/off setting.
-- Account and pubsub caches refresh after commit.
+- Account caches refresh after commit.
 - Generated live references (clone, trail, owned corpse, and mission mob) are
   refreshed without rewriting arbitrary user-authored text.
 - Numeric/non-name-ID systems (clans, houses, vehicles, object bindings, board
@@ -1040,7 +1040,7 @@ database row ID already has the same value or semantics.
 
 A later schema migration should replace columns such as
 `player_save_objs.name`, `pet_data.owner_name`, `player_eidolons.owner`,
-`player_mail.sender`/`receiver`, and `pubsub_subscriptions.player_name` with a
+and `player_mail.sender`/`receiver` with a
 canonical `player_id`. Introduction lists should store the same immutable ID.
 Historical display names can remain as snapshots where useful, but lookups and
 ownership should use the immutable ID.

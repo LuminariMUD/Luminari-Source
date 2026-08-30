@@ -117,6 +117,8 @@ luminari_SOURCES = \
 	src/domain_events.c \
 	src/domain_events.h \
 	src/domain_event_types.c \
+	src/domain_event_world.c \
+	src/domain_event_world.h \
 	src/domain_event_types.h \
 	src/domain_event_runtime.c \
 	src/domain_event_runtime.h \
@@ -182,16 +184,11 @@ luminari_SOURCES = \
 	src/net/msdp_json.h \
 	src/net/protocol.c \
 	src/magic/psionics.c \
-	src/pubsub/pubsub.c \
-	src/pubsub/pubsub_handlers.c \
-	src/pubsub/pubsub_db.c \
-	src/pubsub/pubsub_commands.c \
-	src/pubsub/pubsub_queue.c \
-	src/pubsub/pubsub_spatial.c \
-	src/pubsub/pubsub_event_handlers.c \
 	src/wilderness/spatial_core.c \
 	src/wilderness/spatial_visual.c \
 	src/wilderness/spatial_audio.c \
+	src/wilderness/spatial_events.c \
+	src/wilderness/spatial_events.h \
 	src/wilderness/terrain_bridge.c \
 	src/wilderness/region_hints.c \
 	src/wilderness/narrative_weaver.c \
@@ -760,6 +757,7 @@ EXTRA_DIST = \
 	scripts/development/check_local_port_allocations.sh \
 	scripts/development/dev_create_test_character.sh \
 	scripts/development/dev_kohdee_login_smoke.sh \
+	scripts/events/test_pubsub_retirement.sh \
 	scripts/mariadb/setup_mariadb_sudoers.sh \
 	scripts/mariadb/start_mariadb.sh \
 	scripts/move_bin.sh \
@@ -774,7 +772,6 @@ EXTRA_DIST = \
 	scripts/provision_artifacts.sh \
 	scripts/setup.sh \
 	scripts/test_background_help_entries.sh \
-	scripts/test_pubsub.sh \
 	scripts/vessels/analyze_vessel_memory_samples.sh \
 	scripts/vessels/provision_vessel_campaign.sh \
 	scripts/vessels/provision_vessel_derelict.sh \
@@ -898,14 +895,14 @@ EXTRA_DIST = \
 # Run unit tests
 test: check test-help-sync test-autorun-supervision test-versioned-binary-install \
 	test-binary-name-static test-healthcheck \
-	test-background-help-entries test-vessel-tooling
+	test-background-help-entries test-pubsub-retirement test-vessel-tooling
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
 .PHONY: check-world-docs rol-mob-calculator test-all test-world-tools test-help-sync \
 	test-help-sync-integration test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-binary-name-static test-healthcheck \
-	test-vessel-tooling
+	test-pubsub-retirement test-vessel-tooling
 
 check-world-docs:
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check
@@ -942,6 +939,9 @@ test-character-rename-schema:
 
 test-background-help-entries:
 	./scripts/test_background_help_entries.sh
+
+test-pubsub-retirement:
+	./scripts/events/test_pubsub_retirement.sh
 
 test-autorun-supervision:
 	./scripts/autorun/test_autorun_supervision.sh

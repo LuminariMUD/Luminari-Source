@@ -12,7 +12,27 @@ enum luminari_domain_event_type
   DOMAIN_EVENT_COMBAT_STATE_CHANGED = 0x1005,
   DOMAIN_EVENT_OBJECT_MOVED = 0x1006,
   DOMAIN_EVENT_DOOR_STATE_CHANGED = 0x1007,
-  DOMAIN_EVENT_ACTIVITY_TRANSITIONED = 0x1008
+  DOMAIN_EVENT_ACTIVITY_TRANSITIONED = 0x1008,
+  DOMAIN_EVENT_WORLD_PHENOMENON = 0x1009
+};
+
+enum domain_world_phenomenon_channel
+{
+  DOMAIN_WORLD_PHENOMENON_VISUAL = (1U << 0),
+  DOMAIN_WORLD_PHENOMENON_AUDIBLE = (1U << 1)
+};
+
+enum domain_world_audio_frequency
+{
+  DOMAIN_WORLD_AUDIO_LOW = 0,
+  DOMAIN_WORLD_AUDIO_MID,
+  DOMAIN_WORLD_AUDIO_HIGH
+};
+
+enum domain_world_phenomenon_propagation
+{
+  DOMAIN_WORLD_PROPAGATE_COORDINATES = 0,
+  DOMAIN_WORLD_PROPAGATE_ROOMS
 };
 
 struct domain_character_moved
@@ -71,6 +91,24 @@ struct domain_activity_transitioned
   uint32_t activity_type;
   uint32_t previous_state;
   uint32_t current_state;
+};
+
+/* Descriptions are borrowed for synchronous dispatch and are never retained. */
+struct domain_world_phenomenon
+{
+  struct domain_entity_handle source_room;
+  int source_x;
+  int source_y;
+  int source_z;
+  int visual_range;
+  int audio_range;
+  int minimum_range;
+  float intensity;
+  uint32_t channels;
+  uint32_t propagation;
+  int audio_frequency;
+  const char *visual_description;
+  const char *audio_description;
 };
 
 enum domain_event_status domain_event_register_foundation_types(struct domain_event_bus *bus);

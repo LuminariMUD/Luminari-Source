@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 6a accepted; pub/sub retirement is next
-**Document version:** 1.3
+**Status:** In progress - Phase 6b accepted; active-world scan reduction is next
+**Document version:** 1.4
 **Started:** 2026-08-29
 **Last source review:** 2026-08-30
-**Implementation status:** Phases 1, 2, 2.5, 3, 4, 5, and 6a complete; Phase 6b is the next gate
+**Implementation status:** Phases 1, 2, 2.5, 3, 4, 5, 6a, and 6b complete; Phase 7 is the next gate
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -17,10 +17,11 @@
 > rebuild fresh process-local timers, while transient and boot-reconstructed
 > work has an explicit policy.
 > The process now owns a boot-sealed typed domain-event registry with bounded
-> synchronous dispatch, generation-aware resolution, and diagnostics. Eight
-> foundational fact contracts exist, but no gameplay publisher is enabled yet;
-> old pub/sub and heartbeat consumers remain unchanged pending their owning
-> migration phases.
+> synchronous dispatch, generation-aware resolution, and diagnostics. Nine
+> fact contracts exist. `WorldPhenomenon` is the first production-published
+> fact and routes wilderness-distance or room-graph sights and sounds without a
+> polling scan. The old database-backed pub/sub runtime, queue, and commands are
+> retired; its tables remain untouched as deprecated archival data.
 
 ## 1. Purpose
 
@@ -216,9 +217,9 @@ standard, move, and swift availability using separate timed cooldown events.
 The existing action queue and action rules must remain usable during early
 combat migration, but they do not yet provide one authoritative round budget.
 
-### 4.6 Current pub/sub subsystem
+### 4.6 Retired pub/sub subsystem
 
-The current subsystem in [`src/pubsub/`](../../src/pubsub/) is a
+The subsystem formerly in `src/pubsub/` was a
 database-backed player/topic messaging system rather than the typed synchronous
 domain-event core required by this project. It includes string topics, player
 subscriptions, persistent messages and metadata, priority queues, periodic
@@ -230,12 +231,14 @@ once-per-second queue processing, interpreter commands, player-rename schema
 handling, database administration, and limited wilderness spatial metadata.
 Gameplay systems do not broadly publish typed state changes through it.
 
-This project will replace that subsystem rather than use it as the gameplay
-domain bus. Any player-facing notification feature proven worth retaining must
-be specified separately and may consume domain events, but it must not impose
-database, string-topic, or delivery-queue semantics on the domain core.
-Existing pub/sub database tables are deprecated before removal; no production
-data is dropped automatically or without a separately reviewed migration.
+Phase 6b replaced that subsystem rather than using it as the gameplay domain
+bus. Its runtime, queue, commands, rename hooks, and wilderness adapter are
+gone. The native `WorldPhenomenon` fact preserves and generalizes the intended
+gameplay capability for distant sights and sounds, including weather, flying
+creatures and vessels, epic spells, terrain events, nearby combat, and
+explosions. Existing pub/sub database tables remain deprecated archival data;
+no production data is dropped automatically or without a separately reviewed
+migration.
 
 ### 4.7 Existing consolidation plan
 
@@ -1682,6 +1685,18 @@ Rollback:
   typed core. Database tables remain intact and ignored until a later,
   separately authorized schema-removal migration.
 
+**Accepted 2026-08-30.** Runtime initialization, heartbeat queue processing,
+commands, rename dependencies, automatic schema setup, and the old wilderness
+adapter are removed with no remaining gameplay caller. The tables and archival
+world-renumber mappings remain untouched and explicitly deprecated. The ninth
+typed fact, `WorldPhenomenon`, natively routes independently ranged visual and
+audible observations through either wilderness coordinates or a bounded room
+graph; Meteor Swarm is the first migrated production publisher. Coordinate
+delivery scans only connected wilderness players when a fact is published,
+while room delivery visits at most eight hops and 256 rooms and never scans the
+dormant world. Acceptance evidence is recorded in
+[`EVENT_DRIVEN_CORE_REFACTOR_PHASE6B_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE6B_VALIDATION.md).
+
 ### Phase 7: Active world and scan reduction
 
 Deliverables:
@@ -2115,7 +2130,7 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
       signal, and operational behavior without leaking reactor types.
 - [x] Domain events, decision hooks, nested publication, and payload lifetime
       rules are unambiguous.
-- [ ] Existing pub/sub commands, data, documentation, and retirement obligations
+- [x] Existing pub/sub commands, data, documentation, and retirement obligations
       have an approved disposition.
 - [ ] Active/cooling-down/dormant wake and sleep rules cannot lose required work.
 - [ ] Encounter join, leave, merge, and termination rules are fair and complete.
@@ -2143,3 +2158,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.1 | 2026-08-30 | Accepted Phase 4 after bridging scheduler deadlines into the reactor, bounding due work with count and wall-time budgets, separating compatibility and scheduler dispatch paths, retaining the measured wheel geometry, and passing representative workload, churn, cascade, stall, storm, copyover, matrix, sanitizer, and Valgrind gates. Phase 5 is now authorized. |
 | 1.2 | 2026-08-30 | Accepted Phase 5 after exhaustively classifying MUD events, adding versioned player-event records with stable-owner and payload validation, preserving explicit offline-pause behavior, rehydrating fresh process-local identity, retaining legacy read/write rollback, fixing the account-menu cooldown overwrite found by live audit, and passing matrix, reboot, copyover, sanitizer, and Valgrind gates. Phase 6a is now authorized. |
 | 1.3 | 2026-08-30 | Accepted Phase 6a after adding a boot-sealed typed domain-event runtime, eight foundational fact contracts, deterministic bounded depth-first dispatch, generation-aware resolver boundaries, and per-bus/type/handler diagnostics; passed the 967-test rollback matrix, sanitizer, and Valgrind gates without enabling gameplay publishers or changing old pub/sub. Phase 6b is now authorized. |
+| 1.4 | 2026-08-30 | Accepted Phase 6b after retiring the database-backed pub/sub runtime without dropping its data, adding native coordinate and room-graph sensory propagation through `WorldPhenomenon`, and migrating Meteor Swarm as the first production publisher. Phase 7 active-world and scan reduction is now authorized. |

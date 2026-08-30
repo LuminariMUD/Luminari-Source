@@ -857,11 +857,9 @@ int spatial_audio_test_shout(int source_x, int source_y, const char *shout_messa
   return SPATIAL_SUCCESS;
 }
 
-/*
- * Generic sound effect test function
- */
-int spatial_audio_test_sound_effect(int source_x, int source_y, int source_z,
-                                    const char *sound_desc, int frequency, int range)
+/* Deliver one event-driven sound to eligible active wilderness players. */
+int spatial_audio_emit(int source_x, int source_y, int source_z, const char *sound_desc,
+                       float intensity, int frequency, int range)
 {
   struct spatial_context *ctx;
   struct char_data *ch;
@@ -872,7 +870,7 @@ int spatial_audio_test_sound_effect(int source_x, int source_y, int source_z,
     return SPATIAL_ERROR_INVALID_PARAM;
   }
 
-  spatial_log("Testing sound effect at (%d, %d, %d): %s", source_x, source_y, source_z, sound_desc);
+  spatial_log("Emitting sound at (%d, %d, %d): %s", source_x, source_y, source_z, sound_desc);
 
   /* Create properly initialized context */
   ctx = spatial_create_context();
@@ -887,7 +885,7 @@ int spatial_audio_test_sound_effect(int source_x, int source_y, int source_z,
   ctx->source_y = source_y;
   ctx->source_z = source_z;
   ctx->source_description = strdup(sound_desc);
-  ctx->base_intensity = 1.0;
+  ctx->base_intensity = intensity;
   ctx->audio_frequency = frequency;
 
   /* Set effective range */
@@ -946,6 +944,6 @@ int spatial_audio_test_sound_effect(int source_x, int source_y, int source_z,
   /* Cleanup */
   spatial_free_context(ctx);
 
-  spatial_log("Sound effect test processed for %d players", processed_count);
+  spatial_log("Sound event processed for %d players", processed_count);
   return SPATIAL_SUCCESS;
 }

@@ -528,6 +528,8 @@ set(SRC_C_FILES
     src/domain_events.c
     src/domain_events.h
     src/domain_event_types.c
+    src/domain_event_world.c
+    src/domain_event_world.h
     src/domain_event_types.h
     src/domain_event_runtime.c
     src/domain_event_runtime.h
@@ -594,7 +596,6 @@ set(SRC_C_FILES
     src/net/msdp_json.h
     src/net/protocol.c
     src/magic/psionics.c
-    src/pubsub/pubsub.c
     src/olc/qedit.c
     src/quest/quest.c
     src/quest/quest_services.c
@@ -743,15 +744,11 @@ set(SRC_C_FILES
     src/movement/movement_messages.c
     src/movement/movement_tracks.c
     src/movement/movement_events.c
-    src/pubsub/pubsub_handlers.c
-    src/pubsub/pubsub_db.c
-    src/pubsub/pubsub_commands.c
-    src/pubsub/pubsub_queue.c
-    src/pubsub/pubsub_spatial.c
-    src/pubsub/pubsub_event_handlers.c
     src/wilderness/spatial_core.c
     src/wilderness/spatial_visual.c
     src/wilderness/spatial_audio.c
+    src/wilderness/spatial_events.c
+    src/wilderness/spatial_events.h
     src/wilderness/terrain_bridge.c
     src/wilderness/region_hints.c
     src/wilderness/narrative_weaver.c

@@ -32517,13 +32517,10 @@ immediately stabilizes, halting further bleeding and loss of hit points.
 
 See also: CANTRIPS, MEDICINE, CURE-LIGHT
 #0
-; ACCONVERT ANALYZEWORLD BOARDFIND COMTEST DATABASE DB_INIT_SYSTEM EFFECTSADMIN EXPORTMAP EXPORTWORLDMAP FORTEST HELPGEN IEDIT MATERIALADMIN MEDTEST MEMTEST OBJCHECK OBJLIST OLISTAPPLIES PERFMON PUBSUBQUEUE PUBSUBTOPIC QUITLOG REDESC REGENADMIN RELOCK REPLACE RESETPASSWORD RESOURCEADMIN ROOMVNUM SAVEEVERYTHING SAVEMOBS SAVEOBJSTODB SETMATERIALS SETROOMDESC SETROOMFLAGS SETROOMNAME SETROOMSECT SETTESTCHAR SETTESTKIT SETTIME SETWEATHER SETWORLDSECT SHOPLIST SHOPSTAT SHOWWEAROFF SHUTDOW SHUTDOWN
+; ACCONVERT ANALYZEWORLD BOARDFIND COMTEST DATABASE DB_INIT_SYSTEM EFFECTSADMIN EXPORTMAP EXPORTWORLDMAP FORTEST HELPGEN IEDIT MATERIALADMIN MEDTEST MEMTEST OBJCHECK OBJLIST OLISTAPPLIES PERFMON QUITLOG REDESC REGENADMIN RELOCK REPLACE RESETPASSWORD RESOURCEADMIN ROOMVNUM SAVEEVERYTHING SAVEMOBS SAVEOBJSTODB SETMATERIALS SETROOMDESC SETROOMFLAGS SETROOMNAME SETROOMSECT SETTESTCHAR SETTESTKIT SETTIME SETWEATHER SETWORLDSECT SHOPLIST SHOPSTAT SHOWWEAROFF SHUTDOW SHUTDOWN
 
 Topic  : Staff, Builder, and Administrator Toolset
 Usage  : ; <message>
-         pubsub
-         pubsubtopic
-         pubsubqueue
          perfmon
          quitlog
          relock
@@ -32578,7 +32575,6 @@ Usage  : ; <message>
 
 STAFF TOOLS & WORLD EDITORS:
 - ; (wiznet)        : Immortal communication broadcast channel.
-- pubsub tools      : PubSub diagnostic event bus inspections.
 - perfmon           : Server performance and frame tick profiling monitor.
 - resourceadmin     : Wilderness resource density and regeneration manager.
 - setroom*          : Instant room modification commands (name, desc, flags, sector).
@@ -32595,9 +32591,6 @@ STAFF-ADMIN-COMMANDS TALENTO TEDIT TERRAINAPI TESTARTIFACT VNUM VSTAT WIZNET ZPU
 
 Topic  : Staff, Builder, and Administrator Toolset
 Usage  : ; <message>
-         pubsub
-         pubsubtopic
-         pubsubqueue
          perfmon
          quitlog
          relock
@@ -32652,7 +32645,6 @@ Usage  : ; <message>
 
 STAFF TOOLS & WORLD EDITORS:
 - ; (wiznet)        : Immortal communication broadcast channel.
-- pubsub tools      : PubSub diagnostic event bus inspections.
 - perfmon           : Server performance and frame tick profiling monitor.
 - resourceadmin     : Wilderness resource density and regeneration manager.
 - setroom*          : Instant room modification commands (name, desc, flags, sector).

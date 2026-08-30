@@ -15,6 +15,7 @@ Core source files:
 - [src/domain_events.c](../../src/domain_events.c)
 - [src/domain_event_types.h](../../src/domain_event_types.h)
 - [src/domain_event_runtime.c](../../src/domain_event_runtime.c)
+- [WORLD_PHENOMENA.md](WORLD_PHENOMENA.md)
 - [src/mud_event.h](../../src/mud_event.h)
 - [src/mud_event.c](../../src/mud_event.c)
 - [src/mud_event_list.c](../../src/mud_event_list.c)
@@ -245,13 +246,14 @@ and saved cooldowns now prove they belong to the character before returning
 after logout or reboot.
 
 The typed domain-event runtime now exists and owns one sealed main-thread
-registry from boot through world teardown. Its eight foundational contracts are
+registry from boot through world teardown. Eight foundational contracts cover
 character movement, damage, death, extraction, combat-state change, object
-movement, door-state change, and activity transition. Registration and handler
+movement, door-state change, and activity transition. A ninth production
+contract, `WorldPhenomenon`, carries sensory facts. Registration and handler
 lists cannot change after boot; publication is synchronous and depth-first,
 with hard nesting and causal-count limits.
 
-No gameplay owner publishes those facts yet. Combat is still the existing
+No gameplay owner publishes those eight foundational facts yet. Combat is still the existing
 combat system, player commands still enter through the interpreter, and most
 heartbeat consumers still run at their old cadence. This intentionally avoids
 running an old and new side-effect path at once. Owning-system migrations will
@@ -285,9 +287,20 @@ heartbeat scan.
 - Notification callbacks return no gameplay decision and cannot retroactively
   veto completed state. No current migration needs a decision hook; a future
   pre-operation rule must define a separate typed aggregation contract.
+- `WorldPhenomenon` is the first production-published fact. It routes visual and
+  audible events through coordinate or bounded room-graph propagation. Meteor
+  Swarm now publishes this contract; airships, dragons, weather, terrain
+  changes, nearby combat, and explosions can migrate through the same boundary.
 
-The legacy database-backed `src/pubsub/` subsystem is unchanged. It is not the
-typed domain-event core and remains scheduled for a separate retirement gate.
+The former database-backed `src/pubsub/` subsystem was retired in Phase 6b. It
+has no boot hook, heartbeat callback, commands, or runtime readers/writers. Its
+database tables remain in `sql/master_schema.sql` only to preserve existing
+production data; the game ignores them. Dropping those tables requires a
+separate reviewed migration and backup plan.
+
+This removal does not itself make gameplay event-driven. The typed bus reports
+facts synchronously, while the scheduler determines when due work runs. Phase 7
+uses those two pieces to replace broad heartbeat scans owner by owner.
 
 ## 6. Table-Driven Registry (mud_event_index)
 

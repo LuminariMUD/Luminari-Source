@@ -13,6 +13,7 @@ enum domain_event_status domain_event_register_foundation_types(struct domain_ev
       {DOMAIN_EVENT_DOOR_STATE_CHANGED, "DoorStateChanged", sizeof(struct domain_door_state_changed)},
       {DOMAIN_EVENT_ACTIVITY_TRANSITIONED, "ActivityTransitioned",
        sizeof(struct domain_activity_transitioned)},
+      {DOMAIN_EVENT_WORLD_PHENOMENON, "WorldPhenomenon", sizeof(struct domain_world_phenomenon)},
   };
   size_t index;
 
