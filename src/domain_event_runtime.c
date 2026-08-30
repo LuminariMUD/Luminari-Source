@@ -1,5 +1,6 @@
 #include "domain_event_runtime.h"
 
+#include "active_world.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
 #include "wilderness/spatial_events.h"
@@ -21,9 +22,12 @@ enum domain_event_status domain_event_runtime_init(void)
   if (status == DOMAIN_EVENT_OK)
     status = spatial_event_register_handlers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
+    status = active_world_register_handlers(runtime_bus);
+  if (status == DOMAIN_EVENT_OK)
     status = domain_event_seal(runtime_bus);
   if (status != DOMAIN_EVENT_OK)
   {
+    active_world_shutdown();
     domain_event_bus_destroy(runtime_bus);
     runtime_bus = NULL;
   }
@@ -36,6 +40,7 @@ enum domain_event_status domain_event_runtime_shutdown(void)
 
   if (runtime_bus == NULL)
     return DOMAIN_EVENT_OK;
+  active_world_shutdown();
   status = domain_event_bus_destroy(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
     runtime_bus = NULL;
@@ -45,4 +50,45 @@ enum domain_event_status domain_event_runtime_shutdown(void)
 struct domain_event_bus *domain_event_runtime_bus(void)
 {
   return runtime_bus;
+}
+
+enum domain_event_status domain_event_runtime_character_moved(struct char_data *ch,
+                                                              room_rnum from_room,
+                                                              room_rnum to_room, int direction)
+{
+  struct domain_character_moved event;
+
+  if (runtime_bus == NULL || ch == NULL)
+    return DOMAIN_EVENT_NOT_FOUND;
+  event.character = domain_event_character_handle(ch);
+  event.from_room = domain_event_room_handle(from_room);
+  event.to_room = domain_event_room_handle(to_room);
+  event.direction = direction;
+  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_CHARACTER_MOVED, &event);
+}
+
+enum domain_event_status domain_event_runtime_combat_state_changed(struct char_data *ch,
+                                                                   struct char_data *opponent,
+                                                                   bool in_combat)
+{
+  struct domain_combat_state_changed event;
+
+  if (runtime_bus == NULL || ch == NULL)
+    return DOMAIN_EVENT_NOT_FOUND;
+  event.character = domain_event_character_handle(ch);
+  event.opponent = domain_event_character_handle(opponent);
+  event.in_combat = in_combat;
+  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_COMBAT_STATE_CHANGED, &event);
+}
+
+enum domain_event_status domain_event_runtime_character_extracted(struct char_data *ch,
+                                                                  uint32_t reason)
+{
+  struct domain_entity_extracted event;
+
+  if (runtime_bus == NULL || ch == NULL)
+    return DOMAIN_EVENT_NOT_FOUND;
+  event.entity = domain_event_character_handle(ch);
+  event.reason = reason;
+  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_ENTITY_EXTRACTED, &event);
 }

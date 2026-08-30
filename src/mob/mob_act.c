@@ -598,6 +598,12 @@ void mobile_activity(void)
   run_mobile_activity(character_list, (size_t)-1, NULL);
 }
 
+void mobile_activity_run_one(struct char_data *ch)
+{
+  if (ch != NULL)
+    run_mobile_activity(ch, 1U, NULL);
+}
+
 void mobile_activity_reset(void)
 {
   mobile_activity_cursor = NULL;

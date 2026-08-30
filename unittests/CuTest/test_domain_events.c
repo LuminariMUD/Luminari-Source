@@ -5,6 +5,9 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/db.h"
+#include "../../src/active_world.h"
+#include "../../src/comm.h"
+#include "../../src/dgscript/dg_event.h"
 #include "../../src/domain_event_types.h"
 #include "../../src/domain_events.h"
 #include "../../src/domain_event_runtime.h"
@@ -486,16 +489,208 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   struct domain_event_bus_stats stats;
 
   domain_event_runtime_shutdown();
+  active_world_reset_for_test();
+  active_world_select_for_test(true);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   CuAssertPtrNotNull(tc, domain_event_runtime_bus());
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
   CuAssertIntEquals(tc, 9, (int)stats.registered_type_count);
-  CuAssertIntEquals(tc, 1, (int)stats.registered_handler_count);
+  CuAssertIntEquals(tc, 4, (int)stats.registered_handler_count);
   CuAssertTrue(tc, stats.sealed);
   CuAssertIntEquals(tc, DOMAIN_EVENT_BUSY, domain_event_runtime_init());
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
   CuAssertPtrEquals(tc, NULL, domain_event_runtime_bus());
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  active_world_reset_for_test();
+}
+
+static void active_world_prepare_character(struct char_data *ch, bool npc, room_rnum room)
+{
+  clear_char(ch);
+  IN_ROOM(ch) = room;
+  ch->player.name = npc ? "scheduled mobile" : "observing player";
+  if (npc)
+  {
+    SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+    GET_MOB_RNUM(ch) = 0;
+  }
+}
+
+void TestActiveWorldSchedulesAutonomousMobilesWithoutPlayers(CuTest *tc)
+{
+  struct room_data rooms[2];
+  struct char_data player;
+  struct player_special_data player_specials;
+  struct char_data nearby;
+  struct char_data distant;
+  struct room_data *saved_world;
+  struct char_data *saved_characters;
+  room_rnum saved_top_of_world;
+  mob_rnum saved_top_of_mobt;
+  unsigned long saved_pulse;
+  uint64_t callbacks_before;
+
+  saved_world = world;
+  saved_characters = character_list;
+  saved_top_of_world = top_of_world;
+  saved_top_of_mobt = top_of_mobt;
+  saved_pulse = pulse;
+  memset(rooms, 0, sizeof(rooms));
+  memset(&player_specials, 0, sizeof(player_specials));
+  rooms[0].number = 100;
+  rooms[1].number = 200;
+  active_world_prepare_character(&player, false, 0);
+  player.player_specials = &player_specials;
+  active_world_prepare_character(&nearby, true, 0);
+  active_world_prepare_character(&distant, true, 1);
+  player.next = &nearby;
+  nearby.next = &distant;
+  player.next_in_room = &nearby;
+  rooms[0].people = &player;
+  rooms[1].people = &distant;
+  world = rooms;
+  top_of_world = 1;
+  top_of_mobt = 0;
+  character_list = &player;
+
+  event_free_all();
+  active_world_reset_for_test();
+  active_world_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 100U;
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&distant, NOWHERE, 1, -1));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&player, NOWHERE, 0, -1));
+  CuAssertIntEquals(tc, 2,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_COOLING));
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+  CuAssertPtrNotNull(tc, nearby.active_world_event);
+  CuAssertPtrNotNull(tc, distant.active_world_event);
+
+  callbacks_before = active_world_mobile_callbacks();
+  pulse += PULSE_MOBILE;
+  event_process();
+  CuAssertIntEquals(tc, (int)(callbacks_before + 2U),
+                    (int)active_world_mobile_callbacks());
+
+  rooms[0].people = &nearby;
+  nearby.next_in_room = NULL;
+  player.next_in_room = &distant;
+  rooms[1].people = &player;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&player, 0, 1, -1));
+  CuAssertIntEquals(tc, 2,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_COOLING));
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+
+  pulse += PULSE_MOBILE;
+  event_process();
+  CuAssertIntEquals(tc, (int)(callbacks_before + 4U),
+                    (int)active_world_mobile_callbacks());
+  CuAssertIntEquals(tc, ACTIVE_WORLD_MOBILE_ACTIVE, nearby.active_world_state);
+  CuAssertPtrNotNull(tc, nearby.active_world_event);
+  CuAssertIntEquals(tc, ACTIVE_WORLD_MOBILE_ACTIVE, distant.active_world_state);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_extracted(&distant, 1U));
+  CuAssertIntEquals(tc, 1,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  active_world_reset_for_test();
+  pulse = saved_pulse;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  top_of_mobt = saved_top_of_mobt;
+  character_list = saved_characters;
+}
+
+void TestActiveWorldAdmissionAndLegacyGateAreExclusive(CuTest *tc)
+{
+  struct room_data room;
+  struct char_data player;
+  struct player_special_data player_specials;
+  struct char_data first;
+  struct char_data second;
+  struct room_data *saved_world;
+  struct char_data *saved_characters;
+  room_rnum saved_top_of_world;
+  mob_rnum saved_top_of_mobt;
+  unsigned long saved_pulse;
+
+  saved_world = world;
+  saved_characters = character_list;
+  saved_top_of_world = top_of_world;
+  saved_top_of_mobt = top_of_mobt;
+  saved_pulse = pulse;
+  memset(&room, 0, sizeof(room));
+  memset(&player_specials, 0, sizeof(player_specials));
+  room.number = 100;
+  active_world_prepare_character(&player, false, 0);
+  player.player_specials = &player_specials;
+  active_world_prepare_character(&first, true, 0);
+  active_world_prepare_character(&second, true, 0);
+  player.next = &first;
+  first.next = &second;
+  player.next_in_room = &first;
+  first.next_in_room = &second;
+  room.people = &player;
+  world = &room;
+  top_of_world = 0;
+  top_of_mobt = 0;
+  character_list = &player;
+
+  event_free_all();
+  active_world_reset_for_test();
+  active_world_select_for_test(true);
+  active_world_set_admission_limit_for_test(1U);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 200U;
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&player, NOWHERE, 0, -1));
+  CuAssertIntEquals(tc, 1,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_admission_rejections());
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+  active_world_reset_telemetry();
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_admission_rejections());
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_callbacks());
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+
+  active_world_reset_for_test();
+  active_world_select_for_test(false);
+  first.active_world_state = ACTIVE_WORLD_MOBILE_DORMANT;
+  second.active_world_state = ACTIVE_WORLD_MOBILE_DORMANT;
+  first.active_world_event = NULL;
+  second.active_world_event = NULL;
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  CuAssertTrue(tc, !active_world_enabled());
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&player, NOWHERE, 0, -1));
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  CuAssertIntEquals(tc, 0,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  active_world_reset_for_test();
+  pulse = saved_pulse;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  top_of_mobt = saved_top_of_mobt;
+  character_list = saved_characters;
 }
 
 void TestWorldPhenomenonRoomPropagation(CuTest *tc)

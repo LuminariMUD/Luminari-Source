@@ -7366,7 +7366,9 @@ struct char_data
   int coords[2];         /**< Current coordinate location, used in wilderness. */
   room_rnum in_room;     /**< Current location (real room number) */
   room_rnum was_in_room; /**< Previous location for linkdead people  */
+  room_rnum domain_previous_room; /**< Origin retained across char_from/to_room. */
   uint64_t event_owner_generation; /**< Runtime character incarnation. */
+  uint64_t domain_event_generation; /**< Typed-event character incarnation. */
   int wait;              /**< wait for how many loops before taking action. */
 
   struct char_player_data player;              /**< General PC/NPC data */
@@ -7384,6 +7386,10 @@ struct char_data
   struct char_data *affected_prev;       /**< Runtime affected-owner registry link. */
   bool affected_registered;              /**< Runtime affected-owner registry state. */
   bool affected_registry_live;           /**< Eligible live-world registry owner. */
+  struct char_data *active_world_next;    /**< Scheduled-mobile registry link. */
+  struct char_data *active_world_prev;    /**< Scheduled-mobile registry link. */
+  struct event *active_world_event;       /**< Sole scheduled mobile-think event. */
+  unsigned char active_world_state;       /**< Active, cooling, or dormant state. */
   struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */
 
   struct obj_data *carrying;    /**< List head for objects in inventory */

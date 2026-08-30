@@ -21,6 +21,7 @@
 
 /* Main mobile activity function */
 void mobile_activity(void);
+void mobile_activity_run_one(struct char_data *ch);
 void mobile_activity_pulse(int heart_pulse);
 void mobile_activity_reset(void);
 void mobile_activity_forget_character(struct char_data *ch);

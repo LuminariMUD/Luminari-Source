@@ -1,7 +1,7 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 6b accepted; active-world scan reduction is next
-**Document version:** 1.4
+**Status:** In progress - Phase 6b accepted; Phase 7 scan reduction underway
+**Document version:** 1.5
 **Started:** 2026-08-29
 **Last source review:** 2026-08-30
 **Implementation status:** Phases 1, 2, 2.5, 3, 4, 5, 6a, and 6b complete; Phase 7 is the next gate
@@ -415,10 +415,14 @@ handlers cannot retroactively cancel completed state.
 Migrated world entities use an explicit lifecycle:
 
 - Active: currently relevant and allowed to own scheduled or reactive work.
+  Relevance is subsystem-defined and is not synonymous with player proximity.
+  An autonomous NPC remains active while off-screen because patrols, wandering,
+  scripts, and NPC-versus-NPC conflicts are persistent gameplay.
 - Cooling down: no immediate participant requires the entity, but a bounded
   deadline or pending condition may return it to active work.
 - Dormant: owns no recurring think/poll event and contributes no periodic scan
-  cost.
+  cost. For NPC thinking this is limited to genuinely inert owners, including
+  out-of-world, extracting, and `MOB_NO_AI` characters.
 
 Entry, hostility, script activation, explicit world changes, and relevant
 domain events may wake an entity. Departure or loss of relevance begins a
@@ -2159,3 +2163,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.2 | 2026-08-30 | Accepted Phase 5 after exhaustively classifying MUD events, adding versioned player-event records with stable-owner and payload validation, preserving explicit offline-pause behavior, rehydrating fresh process-local identity, retaining legacy read/write rollback, fixing the account-menu cooldown overwrite found by live audit, and passing matrix, reboot, copyover, sanitizer, and Valgrind gates. Phase 6a is now authorized. |
 | 1.3 | 2026-08-30 | Accepted Phase 6a after adding a boot-sealed typed domain-event runtime, eight foundational fact contracts, deterministic bounded depth-first dispatch, generation-aware resolver boundaries, and per-bus/type/handler diagnostics; passed the 967-test rollback matrix, sanitizer, and Valgrind gates without enabling gameplay publishers or changing old pub/sub. Phase 6b is now authorized. |
 | 1.4 | 2026-08-30 | Accepted Phase 6b after retiring the database-backed pub/sub runtime without dropping its data, adding native coordinate and room-graph sensory propagation through `WorldPhenomenon`, and migrating Meteor Swarm as the first production publisher. Phase 7 active-world and scan reduction is now authorized. |
+| 1.5 | 2026-08-30 | Clarified the Phase 7 lifecycle after gameplay review: player proximity does not define NPC relevance. Autonomous off-screen movement, scripts, and NPC-versus-NPC wars remain active simulation; only genuinely inert NPC owners may become dormant. |

@@ -95,7 +95,7 @@ struct event
  * BEGINNERS NOTE: This is a safety limit. Normal gameplay should
  * never reach this limit. If it does, either there's a bug creating
  * too many events, or this limit needs to be increased. */
-#define MAX_EVENTS 10000
+#define MAX_EVENTS 131072
 
 /** The priority queue. */
 struct dg_queue
@@ -124,6 +124,10 @@ struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj,
 struct event *event_create_owned_named(EVENTFUNC(*func), void *event_obj, long when,
                                        const char *profile_name,
                                        struct game_event_owner owner);
+struct event *event_create_owned_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
+                                                    const char *profile_name,
+                                                    event_cleanup_func cleanup,
+                                                    struct game_event_owner owner);
 #define event_create(func, event_obj, when) event_create_named((func), (event_obj), (when), #func)
 #define event_create_with_cleanup(func, event_obj, when, cleanup)                                  \
   event_create_named_with_cleanup((func), (event_obj), (when), #func, (cleanup))

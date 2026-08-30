@@ -42,6 +42,8 @@
 #include "graph.h"
 #include "perfmon.h"
 #include "mob/mob_act.h"
+#include "active_world.h"
+#include "domain_event_runtime.h"
 
 /* local file scope variables */
 static int extractions_pending = 0;
@@ -1866,6 +1868,8 @@ void char_from_room(struct char_data *ch)
     exit(1);
   }
 
+  ch->domain_previous_room = IN_ROOM(ch);
+
   if (FIGHTING(ch) != NULL)
     stop_fighting(ch);
 
@@ -2035,6 +2039,9 @@ void char_to_room(struct char_data *ch, room_rnum room)
     ch->next_in_room = world[room].people;
     world[room].people = ch;
     IN_ROOM(ch) = room;
+
+    domain_event_runtime_character_moved(ch, ch->domain_previous_room, room, -1);
+    ch->domain_previous_room = NOWHERE;
 
     /* Trigger lazy regeneration for wilderness rooms (Phase 6) */
     if (is_wilderness_room && !IS_NPC(ch))
@@ -3074,6 +3081,8 @@ void extract_char_final(struct char_data *ch)
     PERF_note_mobile_extracted(GET_MOB_VNUM(ch), ch->perf_origin_zone_vnum,
                                (enum perf_entity_reason)ch->perf_create_reason);
 
+  domain_event_runtime_character_extracted(ch, 0U);
+  active_world_forget_character(ch);
   mobile_activity_forget_character(ch);
   remove_all_rol_elemental_embodiments(ch);
 

@@ -102,6 +102,7 @@
 #include "perfmon.h"
 #include "reactor.h"
 #include "domain_event_runtime.h"
+#include "active_world.h"
 #include "elf_build_id.h"
 #include "mysql.h"
 #include "net/onboarding.h"
@@ -2258,11 +2259,13 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % PULSE_IDLEPWD)) /* 15 seconds */
     check_idle_passwords();
 
-  /* Visit one bounded list segment per pulse so every cycle-boundary mobile
-   * retains its six-second cadence without rescanning the full population. */
-  PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "mobile_activity");
-  mobile_activity_pulse(heart_pulse);
-  PERF_PROF_EXIT(pr_mob_activity_);
+  if (!active_world_enabled())
+  {
+    /* Boot-time rollback path. The scheduled and heartbeat paths are exclusive. */
+    PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "mobile_activity");
+    mobile_activity_pulse(heart_pulse);
+    PERF_PROF_EXIT(pr_mob_activity_);
+  }
 
   /* Keep non-mobile special-procedure updates on their established cadence. */
   if (!(heart_pulse % PULSE_MOBILE))

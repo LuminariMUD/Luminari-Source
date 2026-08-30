@@ -25,6 +25,7 @@
 #include "dgscript/dg_scripts.h"
 #include "mysql.h"
 #include "perfmon.h"
+#include "active_world.h"
 
 /* ========================================================================
  * CONSTANTS
@@ -1215,6 +1216,7 @@ void PERF_reset(void)
   mobile_vnum_overflow = 0;
   object_vnum_overflow = 0;
   entity_zone_overflow = 0;
+  active_world_reset_telemetry();
   memset(&combat_context, 0, sizeof(combat_context));
   memset(slow_combats, 0, sizeof(slow_combats));
   slow_combat_index = 0;
@@ -2544,6 +2546,17 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                                        "Affected registry: members=%zu validation_mismatch=%zu\n\r",
                                        affected_registry_count(), affected_registry_validate()),
                               n - written);
+  if (!csv && written < n - 1)
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "Active world: mode=%s active=%zu cooling=%zu limit=%zu rejected=%" PRIu64
+                 " callbacks=%" PRIu64 "\n\r",
+                 active_world_enabled() ? "scheduled" : "legacy",
+                 active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE),
+                 active_world_mobile_count(ACTIVE_WORLD_MOBILE_COOLING),
+                 active_world_mobile_admission_limit(),
+                 active_world_mobile_admission_rejections(), active_world_mobile_callbacks()),
+        n - written);
   return written;
 }
 /* ========================================================================

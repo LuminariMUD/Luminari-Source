@@ -7459,6 +7459,7 @@ void clear_char(struct char_data *ch)
   GET_PFILEPOS(ch) = -1;
   GET_MOB_RNUM(ch) = NOBODY;
   GET_WAS_IN(ch) = NOWHERE;
+  ch->domain_previous_room = NOWHERE;
   GET_POS(ch) = POS_STANDING;
   ch->mob_specials.default_pos = POS_STANDING;
   ch->events = NULL;

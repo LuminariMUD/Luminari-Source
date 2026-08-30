@@ -422,6 +422,14 @@ struct event *event_create_owned_named(EVENTFUNC(*func), void *event_obj, long w
   return event_create_internal(func, event_obj, when, profile_name, NULL, owner);
 }
 
+struct event *event_create_owned_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
+                                                    const char *profile_name,
+                                                    event_cleanup_func cleanup,
+                                                    struct game_event_owner owner)
+{
+  return event_create_internal(func, event_obj, when, profile_name, cleanup, owner);
+}
+
 /** Removes an event from event_q and frees the event.
  * @param event Pointer to the event to be dequeued and removed.
  */

@@ -59,6 +59,7 @@
 #include "movement/movement_cost.h"
 #include "perfmon.h"
 #include "rol_feats.h"
+#include "domain_event_runtime.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -1781,6 +1782,7 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   }
 
   FIGHTING(ch) = vict;
+  domain_event_runtime_combat_state_changed(ch, vict, true);
   GET_WARBEAT_USED(ch) = 0;
 
   /* entering combat immediately ends any covert tail this character held */
@@ -1863,6 +1865,7 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
 void stop_fighting(struct char_data *ch)
 {
   struct char_data *temp = NULL;
+  struct char_data *opponent = FIGHTING(ch);
 
   if (ch == next_combat_list)
     next_combat_list = ch->next_fighting;
@@ -1870,6 +1873,7 @@ void stop_fighting(struct char_data *ch)
   REMOVE_FROM_LIST(ch, combat_list, next_fighting);
   ch->next_fighting = NULL;
   FIGHTING(ch) = NULL;
+  domain_event_runtime_combat_state_changed(ch, opponent, false);
   GET_WARBEAT_USED(ch) = 0;
   clear_projectile_mode(ch);
   if (GET_POS(ch) == POS_FIGHTING) /* in case they are position fighting */
