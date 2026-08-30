@@ -937,6 +937,9 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
   char *dg_rollback;
   char *event_process_call;
   char *violence_gate;
+  char *affected_gate;
+  char *affect_call;
+  char *d20_call;
   bool source_loaded;
   bool moving_schedule_matches;
   bool pulse_order_matches;
@@ -967,11 +970,17 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
     dg_rollback = dg_gate != NULL ? strstr(dg_gate, "!periodic_dg_random_enabled()") : NULL;
     violence_gate =
         mobile_gate != NULL ? strstr(mobile_gate, "if (!(heart_pulse % PULSE_VIOLENCE))") : NULL;
+    affected_gate =
+        violence_gate != NULL ? strstr(violence_gate, "if (!affected_owner_events_enabled())") : NULL;
+    affect_call = affected_gate != NULL ? strstr(affected_gate, "affect_update();") : NULL;
+    d20_call = violence_gate != NULL ? strstr(violence_gate, "proc_d20_round();") : NULL;
     pulse_order_matches = mobile_call != NULL && mobile_gate != NULL && autoproc_gate != NULL &&
                           proc_call != NULL && avernus_call != NULL && violence_gate != NULL &&
+                          affected_gate != NULL && affect_call != NULL && d20_call != NULL &&
                           dg_gate != NULL && dg_rollback != NULL && mobile_call < proc_call &&
                           autoproc_gate < proc_call && proc_call < avernus_call &&
-                          avernus_call < violence_gate;
+                          avernus_call < violence_gate && affected_gate < affect_call &&
+                          affect_call < d20_call;
   }
   free(source);
 

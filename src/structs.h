@@ -6063,7 +6063,10 @@ struct raff_node
   int dc;               // save dc, if specified
   bool special;         // true if a special affect associated with the room affect applies
 
-  struct raff_node *next; /* link to the next node */
+  struct raff_node *next;      /* link to the global room-affect list */
+  struct raff_node *room_next; /* next affect owned by the same room */
+  struct raff_node *room_prev; /* previous affect owned by the same room */
+  bool room_registered;        /* linked into its room's owner list */
 };
 
 /* From trails.h */
@@ -6099,6 +6102,12 @@ struct room_data
   struct char_data *people;                         /**< List of NPCs / PCs in room */
 
   struct list_data *events; // room events
+  struct raff_node *affected_head; /**< Runtime room-affect owner list. */
+  struct room_data *affected_next; /**< Runtime affected-room registry link. */
+  struct room_data *affected_prev; /**< Runtime affected-room registry link. */
+  struct event *affected_event;    /**< Sole room-affect duration event. */
+  size_t affected_count;           /**< Room-affect nodes owned by this room. */
+  bool affected_registered;        /**< Runtime affected-room registry state. */
 
   struct trail_data_list *trail_tracks;
   // struct trail_data_list *trail_scent;
@@ -7390,6 +7399,7 @@ struct char_data
   struct char_data *affected_prev;       /**< Runtime affected-owner registry link. */
   bool affected_registered;              /**< Runtime affected-owner registry state. */
   bool affected_registry_live;           /**< Eligible live-world registry owner. */
+  struct event *affected_event;           /**< Sole affect-duration event. */
   struct char_data *active_world_next;    /**< Scheduled-mobile registry link. */
   struct char_data *active_world_prev;    /**< Scheduled-mobile registry link. */
   struct event *active_world_event;       /**< Sole scheduled mobile-think event. */

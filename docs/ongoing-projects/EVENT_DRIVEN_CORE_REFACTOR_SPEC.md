@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 7 NPC-thinking slice accepted; scan reduction continues
-**Document version:** 1.6
+**Status:** In progress - three Phase 7 owner slices accepted; scan reduction continues
+**Document version:** 1.8
 **Started:** 2026-08-29
-**Last source review:** 2026-08-30
-**Implementation status:** Phases 1 through 6b complete; Phase 7 inventory and autonomous NPC thinking accepted
+**Last source review:** 2026-08-31
+**Implementation status:** Phases 1 through 6b complete; Phase 7 NPC, periodic-object/script, and affected-owner slices accepted
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -2166,3 +2166,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.5 | 2026-08-30 | Clarified the Phase 7 lifecycle after gameplay review: player proximity does not define NPC relevance. Autonomous off-screen movement, scripts, and NPC-versus-NPC wars remain active simulation; only genuinely inert NPC owners may become dormant. |
 | 1.6 | 2026-08-30 | Accepted the first Phase 7 slice after inventorying heartbeat work and replacing the global mobile scan with bounded owner deadlines and typed lifecycle wakeups. Off-screen patrols, scripts, and NPC wars remain active; the eight-mode local matrix, live profiler evidence, 970-test sanitizer/Valgrind/database gates, and remote Build & Test/Security workflows passed. `ITEM_AUTOPROC` and DG random-trigger owners are next. |
 | 1.7 | 2026-08-30 | Accepted the second Phase 7 slice after replacing `ITEM_AUTOPROC` and DG mobile/object/room random-trigger scans with bounded owner deadlines, direct lifecycle cancellation, independent rollback, and diagnostics. Existing six/thirteen-second gameplay and DG `GLOBAL` empty-zone semantics are preserved; the 16-mode local matrix, live diagnostics, and 972-test sanitizer/Valgrind/database gates passed. Affected character and room owners are next. |
+| 1.8 | 2026-08-31 | Accepted the affected-owner Phase 7 slice after replacing the six-second character and room-duration sweeps with exact shared-round owner deadlines, preserving wear-off and room-affect semantics, separating MSDP connection refresh, adding lifecycle refill under subsystem pressure, and retaining independent heartbeat rollback. The shared event ceiling is now 262,144, leaving 98,304 slots beyond all current high-cardinality owner limits. Explicit character-state and mixed-pulse decomposition continue Phase 7. |

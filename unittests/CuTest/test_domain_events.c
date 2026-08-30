@@ -5,7 +5,9 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/db.h"
+#include "../../src/handler.h"
 #include "../../src/active_world.h"
+#include "../../src/affected_owners.h"
 #include "../../src/periodic_owners.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
@@ -14,7 +16,9 @@
 #include "../../src/domain_events.h"
 #include "../../src/domain_event_runtime.h"
 #include "../../src/domain_event_world.h"
+#include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"
+#include "../../src/olc/genwld.h"
 #include "../../src/wilderness/spatial_events.h"
 
 #include <pthread.h>
@@ -872,6 +876,378 @@ void TestPeriodicOwnerAdmissionAndRollbackGatesAreIndependent(CuTest *tc)
   autoproc_registry_reset_for_test();
   dg_random_registry_reset_for_test();
   periodic_owners_reset_for_test();
+  pulse = saved_pulse;
+}
+
+void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
+{
+  struct affected_type affect;
+  struct char_data ch;
+  struct raff_node *raff;
+  struct raff_node *saved_raff_list = raff_list;
+  struct room_data room;
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+
+  memset(&room, 0, sizeof(room));
+  clear_char(&ch);
+  ch.player_specials = &dummy_mob;
+  ch.player.short_descr = (char *)"affected owner test character";
+  room.number = 100;
+  world = &room;
+  top_of_world = 0;
+  raff_list = NULL;
+
+  event_free_all();
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  affected_owners_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = PULSE_VIOLENCE * 20U;
+  event_init();
+  affected_owners_init();
+
+  new_affect(&affect);
+  affect.spell = SPELL_ARMOR;
+  affect.duration = 1;
+  affect_to_char(&ch, &affect);
+  affected_registry_attach(&ch);
+
+  CREATE(raff, struct raff_node, 1);
+  raff->room = 0;
+  raff->timer = 2;
+  raff->affection = RAFF_FOG;
+  raff->spell = SPELL_ARMOR;
+  raff->next = raff_list;
+  raff_list = raff;
+  SET_BIT(room.room_affections, RAFF_FOG);
+  affected_room_owner_add(raff);
+
+  CuAssertTrue(tc, affected_owner_events_enabled());
+  CuAssertIntEquals(tc, 1, (int)affected_character_scheduled_count());
+  CuAssertIntEquals(tc, 1, (int)affected_room_owner_count());
+  CuAssertIntEquals(tc, 1, (int)affected_room_scheduled_count());
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+
+  pulse += PULSE_VIOLENCE;
+  event_process();
+  CuAssertPtrNotNull(tc, ch.affected);
+  CuAssertIntEquals(tc, 0, ch.affected->duration);
+  CuAssertIntEquals(tc, 1, raff->timer);
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+
+  pulse += PULSE_VIOLENCE;
+  event_process();
+  CuAssertPtrEquals(tc, NULL, ch.affected);
+  CuAssertPtrEquals(tc, NULL, raff_list);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  CuAssertIntEquals(tc, 2, (int)affected_character_callbacks());
+  CuAssertIntEquals(tc, 2, (int)affected_room_callbacks());
+  CuAssertIntEquals(tc, 2, (int)affected_character_nodes_processed());
+  CuAssertIntEquals(tc, 2, (int)affected_room_nodes_processed());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
+
+  affected_registry_detach(&ch);
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  event_free_all();
+  raff_list = saved_raff_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  pulse = saved_pulse;
+  CuAssertIntEquals(tc, 0, (int)affected_room_owner_count());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
+}
+
+void TestAffectedOwnerAdmissionAndLegacyRollbackAreExclusive(CuTest *tc)
+{
+  struct affected_type affect;
+  struct char_data ch;
+  struct raff_node *raff;
+  struct raff_node *saved_raff_list = raff_list;
+  struct room_data room;
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+
+  memset(&room, 0, sizeof(room));
+  clear_char(&ch);
+  ch.player_specials = &dummy_mob;
+  ch.player.short_descr = (char *)"affected rollback test character";
+  room.number = 101;
+  world = &room;
+  top_of_world = 0;
+  raff_list = NULL;
+
+  event_free_all();
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  affected_owners_select_for_test(true);
+  affected_owners_set_limits_for_test(0U, 0U);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = PULSE_VIOLENCE * 30U;
+  event_init();
+  affected_owners_init();
+
+  new_affect(&affect);
+  affect.spell = SPELL_ARMOR;
+  affect.duration = 1;
+  affect_to_char(&ch, &affect);
+  affected_registry_attach(&ch);
+  CREATE(raff, struct raff_node, 1);
+  raff->room = 0;
+  raff->timer = 1;
+  raff->affection = RAFF_FOG;
+  raff->spell = SPELL_ARMOR;
+  raff->next = raff_list;
+  raff_list = raff;
+  affected_room_owner_add(raff);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  CuAssertIntEquals(tc, 2, (int)affected_owner_admission_rejections());
+
+  affected_registry_detach(&ch);
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+  rem_room_aff(raff);
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  event_free_all();
+  memset(&room, 0, sizeof(room));
+  clear_char(&ch);
+  ch.player_specials = &dummy_mob;
+  ch.player.short_descr = (char *)"affected rollback test character";
+  room.number = 101;
+  raff_list = NULL;
+
+  affected_owners_select_for_test(false);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  affected_owners_init();
+  new_affect(&affect);
+  affect.spell = SPELL_ARMOR;
+  affect.duration = 1;
+  affect_to_char(&ch, &affect);
+  affected_registry_attach(&ch);
+  CREATE(raff, struct raff_node, 1);
+  raff->room = 0;
+  raff->timer = 2;
+  raff->affection = RAFF_FOG;
+  raff->spell = SPELL_ARMOR;
+  raff->next = raff_list;
+  raff_list = raff;
+  affected_room_owner_add(raff);
+  CuAssertTrue(tc, !affected_owner_events_enabled());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  affect_update();
+  affect_update();
+  CuAssertPtrEquals(tc, NULL, ch.affected);
+  CuAssertPtrEquals(tc, NULL, raff_list);
+
+  affected_registry_detach(&ch);
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  event_free_all();
+  raff_list = saved_raff_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  pulse = saved_pulse;
+  CuAssertIntEquals(tc, 0, (int)affected_room_owner_count());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
+}
+
+void TestAffectedOwnerCapacityRefillsAfterLifecycleCancellation(CuTest *tc)
+{
+  struct affected_type first_affect;
+  struct affected_type second_affect;
+  struct char_data first;
+  struct char_data second;
+  struct raff_node *first_raff;
+  struct raff_node *second_raff;
+  struct raff_node *saved_raff_list = raff_list;
+  struct room_data rooms[2];
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+
+  memset(rooms, 0, sizeof(rooms));
+  clear_char(&first);
+  clear_char(&second);
+  first.player_specials = &dummy_mob;
+  second.player_specials = &dummy_mob;
+  first.player.short_descr = (char *)"first refill test character";
+  second.player.short_descr = (char *)"second refill test character";
+  rooms[0].number = 102;
+  rooms[1].number = 103;
+  world = rooms;
+  top_of_world = 1;
+  raff_list = NULL;
+
+  event_free_all();
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  affected_owners_select_for_test(true);
+  affected_owners_set_limits_for_test(1U, 1U);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = PULSE_VIOLENCE * 40U;
+  event_init();
+  affected_owners_init();
+
+  new_affect(&first_affect);
+  first_affect.spell = SPELL_ARMOR;
+  first_affect.duration = 1;
+  affect_to_char(&first, &first_affect);
+  affected_registry_attach(&first);
+  new_affect(&second_affect);
+  second_affect.spell = SPELL_ARMOR;
+  second_affect.duration = 1;
+  affect_to_char(&second, &second_affect);
+  affected_registry_attach(&second);
+
+  CREATE(first_raff, struct raff_node, 1);
+  first_raff->room = 0;
+  first_raff->timer = 2;
+  first_raff->affection = RAFF_FOG;
+  first_raff->spell = SPELL_ARMOR;
+  first_raff->next = raff_list;
+  raff_list = first_raff;
+  affected_room_owner_add(first_raff);
+  affected_room_owner_add(first_raff);
+  CREATE(second_raff, struct raff_node, 1);
+  second_raff->room = 1;
+  second_raff->timer = 2;
+  second_raff->affection = RAFF_FOG;
+  second_raff->spell = SPELL_ARMOR;
+  second_raff->next = raff_list;
+  raff_list = second_raff;
+  affected_room_owner_add(second_raff);
+
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+  CuAssertIntEquals(tc, 2, (int)affected_owner_admission_rejections());
+  CuAssertIntEquals(tc, 1, (int)rooms[0].affected_count);
+  CuAssertPtrEquals(tc, NULL, second.affected_event);
+  CuAssertPtrEquals(tc, NULL, rooms[1].affected_event);
+
+  CuAssertPtrNotNull(tc, affected_registry_iteration_begin());
+  affected_registry_detach(&first);
+  CuAssertPtrEquals(tc, NULL, second.affected_event);
+  affected_registry_iteration_end();
+  rem_room_aff(first_raff);
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+  CuAssertPtrNotNull(tc, second.affected_event);
+  CuAssertPtrNotNull(tc, rooms[1].affected_event);
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
+
+  while (first.affected != NULL)
+    affect_remove_no_total(&first, first.affected);
+  affected_registry_detach(&second);
+  while (second.affected != NULL)
+    affect_remove_no_total(&second, second.affected);
+  rem_room_aff(second_raff);
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  event_free_all();
+  raff_list = saved_raff_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  pulse = saved_pulse;
+  CuAssertIntEquals(tc, 0, (int)affected_room_owner_count());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
+}
+
+void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
+{
+  struct event *saved_event;
+  struct raff_node *raff;
+  struct raff_node *saved_raff_list = raff_list;
+  struct room_data original[2];
+  struct room_data moved[3];
+  struct room_data edited;
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+
+  memset(original, 0, sizeof(original));
+  memset(moved, 0, sizeof(moved));
+  memset(&edited, 0, sizeof(edited));
+  original[0].number = 100;
+  original[1].number = 200;
+  world = original;
+  top_of_world = 1;
+  raff_list = NULL;
+
+  event_free_all();
+  affected_owners_reset_for_test();
+  affected_owners_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = PULSE_VIOLENCE * 50U;
+  event_init();
+  affected_owners_init();
+
+  CREATE(raff, struct raff_node, 1);
+  raff->room = 1;
+  raff->timer = 2;
+  raff->affection = RAFF_FOG;
+  raff->spell = SPELL_ARMOR;
+  raff->next = raff_list;
+  raff_list = raff;
+  SET_BIT(original[1].room_affections, RAFF_FOG);
+  affected_room_owner_add(raff);
+  saved_event = original[1].affected_event;
+  CuAssertPtrNotNull(tc, saved_event);
+
+  edited.number = original[1].number;
+  edited.room_affections = 0L;
+  CuAssertIntEquals(tc, TRUE, copy_room(&original[1], &edited));
+  CuAssertPtrEquals(tc, raff, original[1].affected_head);
+  CuAssertPtrEquals(tc, saved_event, original[1].affected_event);
+  CuAssertTrue(tc, ROOM_AFFECTED(1, RAFF_FOG));
+
+  affected_room_owners_prepare_world_reindex();
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  moved[0] = original[0];
+  moved[1].number = 150;
+  moved[2] = original[1];
+  world = moved;
+  top_of_world = 2;
+  affected_room_owners_finish_world_reindex(1U, true);
+
+  CuAssertIntEquals(tc, 2, (int)raff->room);
+  CuAssertPtrEquals(tc, raff, moved[2].affected_head);
+  CuAssertPtrNotNull(tc, moved[2].affected_event);
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
+
+  pulse += PULSE_VIOLENCE;
+  event_process();
+  CuAssertIntEquals(tc, 1, raff->timer);
+
+  affected_room_owners_prepare_world_reindex();
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  original[0] = moved[0];
+  original[1] = moved[2];
+  world = original;
+  top_of_world = 1;
+  affected_room_owners_finish_world_reindex(1U, false);
+
+  CuAssertIntEquals(tc, 1, (int)raff->room);
+  CuAssertPtrEquals(tc, raff, original[1].affected_head);
+  CuAssertPtrNotNull(tc, original[1].affected_event);
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
+
+  pulse += PULSE_VIOLENCE;
+  event_process();
+  CuAssertPtrEquals(tc, NULL, raff_list);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
+
+  affected_owners_reset_for_test();
+  event_free_all();
+  free_room_strings(&original[1]);
+  raff_list = saved_raff_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
   pulse = saved_pulse;
 }
 

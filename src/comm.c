@@ -103,6 +103,7 @@
 #include "reactor.h"
 #include "domain_event_runtime.h"
 #include "active_world.h"
+#include "affected_owners.h"
 #include "periodic_owners.h"
 #include "elf_build_id.h"
 #include "mysql.h"
@@ -2290,9 +2291,12 @@ void heartbeat(int heart_pulse)
   {
     /* Next line removed as part of conversion from pulse to event-based combat */
     //    perform_violence();
-    PERF_PROF_ENTER_SAMPLED(pr_aff_update_, "affect_update");
-    affect_update(); // affect updates transformed into "rounds"
-    PERF_PROF_EXIT(pr_aff_update_);
+    if (!affected_owner_events_enabled())
+    {
+      PERF_PROF_ENTER_SAMPLED(pr_aff_update_, "affect_update");
+      affect_update(); // affect updates transformed into "rounds"
+      PERF_PROF_EXIT(pr_aff_update_);
+    }
     proc_d20_round(); /* for encounter code */
     hunt_reset_timer--;
   }

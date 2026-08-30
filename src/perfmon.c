@@ -26,6 +26,7 @@
 #include "mysql.h"
 #include "perfmon.h"
 #include "active_world.h"
+#include "affected_owners.h"
 #include "periodic_owners.h"
 
 /* ========================================================================
@@ -1219,6 +1220,7 @@ void PERF_reset(void)
   entity_zone_overflow = 0;
   active_world_reset_telemetry();
   periodic_owners_reset_telemetry();
+  affected_owners_reset_telemetry();
   memset(&combat_context, 0, sizeof(combat_context));
   memset(slow_combats, 0, sizeof(slow_combats));
   slow_combat_index = 0;
@@ -2563,11 +2565,23 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  periodic_dg_random_executions(WLD_TRIGGER)),
         n - written);
   if (!csv && written < n - 1)
-    written +=
-        bounded_format_length(snprintf(out_buf + written, n - written,
-                                       "Affected registry: members=%zu validation_mismatch=%zu\n\r",
-                                       affected_registry_count(), affected_registry_validate()),
-                              n - written);
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "Affected owners: %s\n\r"
+                 "  chars: members=%zu scheduled=%zu mismatch=%zu\n\r"
+                 "  rooms: members=%zu scheduled=%zu mismatch=%zu\n\r"
+                 "  limits: chars=%zu rooms=%zu rejected=%" PRIu64 "\n\r"
+                 "  char work: callbacks=%" PRIu64 " affects=%" PRIu64 "\n\r"
+                 "  room work: callbacks=%" PRIu64 " affects=%" PRIu64 "\n\r",
+                 affected_owner_events_enabled() ? "scheduled" : "legacy heartbeat",
+                 affected_registry_count(), affected_character_scheduled_count(),
+                 affected_registry_validate(), affected_room_owner_count(),
+                 affected_room_scheduled_count(), affected_room_registry_validate(),
+                 affected_character_admission_limit(), affected_room_admission_limit(),
+                 affected_owner_admission_rejections(), affected_character_callbacks(),
+                 affected_character_nodes_processed(), affected_room_callbacks(),
+                 affected_room_nodes_processed()),
+        n - written);
   if (!csv && written < n - 1)
     written += bounded_format_length(
         snprintf(out_buf + written, n - written,

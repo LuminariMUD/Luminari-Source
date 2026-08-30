@@ -42,6 +42,7 @@
 #include "character/perks.h"
 #include "bardic_performance.h"
 #include "perfmon.h"
+#include "affected_owners.h"
 #include "mysql.h"
 
 // external
@@ -1363,6 +1364,7 @@ void rem_room_aff(struct raff_node *raff)
   room = raff->room;
   affection = raff->affection;
   spell = raff->spell;
+  affected_room_owner_remove(raff);
   REMOVE_FROM_LIST(raff, raff_list, next)
   free(raff);
 
@@ -1406,114 +1408,109 @@ static void dispatch_affect_wearoff(struct char_data *ch, int spell)
   }
 }
 
-/* affect_update: called from comm.c (causes spells to wear off) */
-void affect_update(void)
+size_t affect_update_character_one(struct char_data *ch)
 {
   struct affected_type *af, *next;
-  struct char_data *i;
-  struct descriptor_data *descriptor;
-  struct raff_node *raff, *next_raff;
   int *wearoff_spells;
-  static int update_count = 0;
   size_t expired_count, wearoff_count, wearoff_index;
-  int char_count = 0, npc_count = 0, pc_count = 0;
-  int affected_chars = 0, processed_affects = 0;
+  size_t processed_affects = 0U;
   int phantom_healing;
   bool update_position_after_expiry;
-  size_t eligible_count;
 
-  update_count++;
+  if (ch == NULL)
+    return 0U;
+  expired_count = 0U;
+  for (af = ch->affected; af; af = af->next)
+    if (af->duration == 0)
+      expired_count++;
 
-  eligible_count = affected_registry_count();
-  for (i = affected_registry_iteration_begin(); i != NULL; i = affected_registry_iteration_next())
+  wearoff_spells = NULL;
+  if (expired_count > 0U)
+    CREATE(wearoff_spells, int, expired_count);
+  wearoff_count = 0U;
+
+  for (af = ch->affected; af; af = next)
   {
-    char_count++;
-    if (IS_NPC(i))
-      npc_count++;
+    processed_affects++;
+    next = af->next;
+    if (af->duration >= 1)
+      af->duration--;
+    else if (af->duration <= -1)
+      ;
     else
-      pc_count++;
+    {
+      phantom_healing = 0;
+      update_position_after_expiry = FALSE;
+      if (af->spell == SPELL_PHANTOM_HEAL && af->location == APPLY_SPECIAL)
+        phantom_healing = MAX(0, af->modifier);
+      if (af->spell == SPELL_DEATH_PACT)
+        update_position_after_expiry = TRUE;
 
-    affected_chars++;
+      if (af->spell > 0 && af->spell < TOP_SPELL_DEFINE &&
+          (!af->next || af->next->spell != af->spell || af->next->duration > 0))
+        wearoff_spells[wearoff_count++] = af->spell;
 
-    expired_count = 0;
-    for (af = i->affected; af; af = af->next)
-      if (af->duration == 0)
-        expired_count++;
-
-    wearoff_spells = NULL;
-    if (expired_count > 0)
-      CREATE(wearoff_spells, int, expired_count);
-    wearoff_count = 0;
-
-    for (af = i->affected; af; af = next)
-    { /* loop his/her aff list */
-      processed_affects++;
-      next = af->next;
-      if (af->duration >= 1) /* duration > 0, decrement */
-        af->duration--;
-      else if (af->duration <= -1) /* unlimited duration */
-        ;
-      else
-      { /* affect wore off! */
-        phantom_healing = 0;
-        update_position_after_expiry = FALSE;
-        if (af->spell == SPELL_PHANTOM_HEAL && af->location == APPLY_SPECIAL)
-          phantom_healing = MAX(0, af->modifier);
-        if (af->spell == SPELL_DEATH_PACT)
-          update_position_after_expiry = TRUE;
-
-        /* Queue one wear-off dispatch for the last adjacent component. The
-         * dispatch happens after traversal because it may mutate this list. */
-        if (af->spell > 0 && af->spell < TOP_SPELL_DEFINE &&
-            (!af->next || af->next->spell != af->spell || af->next->duration > 0))
-          wearoff_spells[wearoff_count++] = af->spell;
-
-        affect_remove(i, af);
-        if (phantom_healing > 0)
-        {
-          GET_HIT(i) = MAX(-10, GET_HIT(i) - phantom_healing);
-          update_pos(i);
-        }
-        else if (update_position_after_expiry)
-          update_pos(i);
+      affect_remove(ch, af);
+      if (phantom_healing > 0)
+      {
+        GET_HIT(ch) = MAX(-10, GET_HIT(ch) - phantom_healing);
+        update_pos(ch);
       }
+      else if (update_position_after_expiry)
+        update_pos(ch);
     }
-
-    for (wearoff_index = 0; wearoff_index < wearoff_count; wearoff_index++)
-      dispatch_affect_wearoff(i, wearoff_spells[wearoff_index]);
-    free(wearoff_spells);
-
-    /* Only update MSDP for player characters with active descriptors */
-    if (!IS_NPC(i) && i->desc)
-      update_msdp_affects(i);
   }
-  affected_registry_iteration_end();
 
-  /* Unaffected connected PCs still need their established MSDP refresh. */
-  for (descriptor = descriptor_list; descriptor != NULL; descriptor = descriptor->next)
-    if (descriptor->character != NULL && !IS_NPC(descriptor->character) &&
-        descriptor->character->affected == NULL)
-      update_msdp_affects(descriptor->character);
+  for (wearoff_index = 0U; wearoff_index < wearoff_count; wearoff_index++)
+    dispatch_affect_wearoff(ch, wearoff_spells[wearoff_index]);
+  free(wearoff_spells);
+  return processed_affects;
+}
 
-  PERF_note_sweep(PERF_SWEEP_AFFECT, (uint64_t)char_count, (uint64_t)eligible_count,
-                  (uint64_t)processed_affects);
+size_t affect_update_room_one(struct room_data *room)
+{
+  struct raff_node *raff;
+  struct raff_node *next;
+  size_t processed = 0U;
 
-  /* update the room affections */
-  for (raff = raff_list; raff; raff = next_raff)
+  if (room == NULL)
+    return 0U;
+  for (raff = room->affected_head; raff != NULL; raff = next)
   {
-    next_raff = raff->next;
+    next = raff->room_next;
+    processed++;
     raff->timer--;
-
     if (raff->timer <= 0)
       rem_room_aff(raff);
   }
+  return processed;
+}
 
-  /* Log performance metrics every 100 updates (10 minutes) only if affects processed is high */
-  if (update_count % 100 == 0 && processed_affects > 150000)
+/* Legacy rollback path: expire every affected owner on the round heartbeat. */
+void affect_update(void)
+{
+  struct char_data *ch;
+  struct raff_node *raff;
+  struct raff_node *next_raff;
+  size_t eligible_count = affected_registry_count();
+  uint64_t char_count = 0U;
+  uint64_t processed_affects = 0U;
+
+  for (ch = affected_registry_iteration_begin(); ch != NULL;
+       ch = affected_registry_iteration_next())
   {
-    log("PERF: affect_update() - Total: %d chars (%d NPCs, %d PCs), Affected: %d, Affects "
-        "processed: %d",
-        char_count, npc_count, pc_count, affected_chars, processed_affects);
+    char_count++;
+    processed_affects += affect_update_character_one(ch);
+  }
+  affected_registry_iteration_end();
+  PERF_note_sweep(PERF_SWEEP_AFFECT, char_count, (uint64_t)eligible_count, processed_affects);
+
+  for (raff = raff_list; raff != NULL; raff = next_raff)
+  {
+    next_raff = raff->next;
+    raff->timer--;
+    if (raff->timer <= 0)
+      rem_room_aff(raff);
   }
 }
 
@@ -15237,6 +15234,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     raff->spell = spellnum;
     raff->next = raff_list;
     raff_list = raff;
+    affected_room_owner_add(raff);
 
     /* set the affection */
     SET_BIT(ROOM_AFFECTIONS(raff->room), aff);

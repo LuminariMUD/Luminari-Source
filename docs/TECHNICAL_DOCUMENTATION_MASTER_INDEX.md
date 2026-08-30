@@ -1,7 +1,7 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2026-08-30
-Version: 1.6
+Last Updated: 2026-08-31
+Version: 1.7
 
 ## Documentation Overview
 
@@ -46,6 +46,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[MUD_EVENTS.md](systems/MUD_EVENTS.md)** - Timed-event backends, owner lifecycle, persistence, and typed domain-event foundation
 - **[ACTIVE_WORLD.md](systems/ACTIVE_WORLD.md)** - Autonomous NPC owner deadlines and off-screen simulation rules
 - **[PERIODIC_OWNER_EVENTS.md](systems/PERIODIC_OWNER_EVENTS.md)** - Automatic object and DG random-trigger owner deadlines, lifecycle, diagnostics, and rollback
+- **[AFFECTED_OWNER_EVENTS.md](systems/AFFECTED_OWNER_EVENTS.md)** - Character and room-affect duration deadlines, exact round semantics, MSDP separation, diagnostics, and rollback
 - **[ADR 0002](adr/0002-event-driven-core-boundaries.md)** - Scheduler, reactor, domain-event, command, and migration boundaries
 - **[Special-Procedure Boot Control Plane](systems/CORE_SERVER_ARCHITECTURE.md#special-procedure-boot-control-plane)** - Definition, authored/effective binding, boot precedence, diagnostics, and compatibility boundaries
 - **[DATA_STRUCTURES_AND_MEMORY.md](development/DATA_STRUCTURES_AND_MEMORY.md)** - Memory management and data structures

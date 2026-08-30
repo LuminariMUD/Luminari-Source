@@ -253,12 +253,13 @@ contract, `WorldPhenomenon`, carries sensory facts. Registration and handler
 lists cannot change after boot; publication is synchronous and depth-first,
 with hard nesting and causal-count limits.
 
-No gameplay owner publishes those eight foundational facts yet. Combat is still the existing
-combat system, player commands still enter through the interpreter, and most
-heartbeat consumers still run at their old cadence. This intentionally avoids
-running an old and new side-effect path at once. Owning-system migrations will
-add generation-aware resolvers, publishers, and subscribers one boundary at a
-time.
+Movement, combat-state, and extraction boundaries now publish their
+foundational facts to maintain autonomous NPC ownership. Combat mechanics are
+still the existing combat system, player commands still enter through the
+interpreter, and many heartbeat consumers still run at their old cadence. This
+incremental migration avoids running an old and new side-effect path at once.
+Other owning systems will add generation-aware resolvers, publishers, and
+subscribers one boundary at a time.
 
 In game-loop terms, the scheduler is the alarm clock for when an owner should
 work, while domain events are immediate facts that can wake relevant owners.
@@ -300,7 +301,10 @@ separate reviewed migration and backup plan.
 
 This removal does not itself make gameplay event-driven. The typed bus reports
 facts synchronously, while the scheduler determines when due work runs. Phase 7
-uses those two pieces to replace broad heartbeat scans owner by owner.
+uses those two pieces to replace broad heartbeat scans owner by owner. Affected
+character and room duration events are scheduler work and do not publish a
+domain fact merely to invoke expiry behavior; see
+[`AFFECTED_OWNER_EVENTS.md`](AFFECTED_OWNER_EVENTS.md).
 
 ## 6. Table-Driven Registry (mud_event_index)
 

@@ -43,6 +43,7 @@
 #include "perfmon.h"
 #include "mob/mob_act.h"
 #include "active_world.h"
+#include "affected_owners.h"
 #include "domain_event_runtime.h"
 
 /* local file scope variables */
@@ -75,7 +76,10 @@ void affected_registry_sync(struct char_data *ch)
     affected_character_list = ch;
     ch->affected_registered = true;
     affected_character_count++;
+    affected_character_owner_sync(ch);
   }
+  else if (ch->affected != NULL)
+    affected_character_owner_sync(ch);
   else if (ch->affected == NULL && ch->affected_registered)
   {
     affected_registry_remove(ch);
@@ -100,6 +104,7 @@ void affected_registry_detach(struct char_data *ch)
 
 void affected_registry_remove(struct char_data *ch)
 {
+  affected_character_owner_forget(ch);
   if (ch == NULL || !ch->affected_registered)
     return;
   if (affected_iteration_active && affected_iteration_next == ch)
@@ -145,7 +150,10 @@ void affected_registry_iteration_end(void)
 {
   affected_iteration_next = NULL;
   affected_iteration_active = false;
+  affected_character_owner_refill();
 }
+
+bool affected_registry_iteration_in_progress(void) { return affected_iteration_active; }
 
 size_t affected_registry_count(void)
 {
@@ -173,6 +181,17 @@ size_t affected_registry_validate(void)
 #ifdef LUMINARI_CUTEST
 void affected_registry_reset_for_test(void)
 {
+  struct char_data *ch;
+  struct char_data *next;
+
+  for (ch = affected_character_list; ch != NULL; ch = next)
+  {
+    next = ch->affected_next;
+    affected_character_owner_forget(ch);
+    ch->affected_next = NULL;
+    ch->affected_prev = NULL;
+    ch->affected_registered = false;
+  }
   affected_character_list = NULL;
   affected_iteration_next = NULL;
   affected_character_count = 0;

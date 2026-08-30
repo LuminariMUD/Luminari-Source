@@ -95,7 +95,7 @@ struct event
  * BEGINNERS NOTE: This is a safety limit. Normal gameplay should
  * never reach this limit. If it does, either there's a bug creating
  * too many events, or this limit needs to be increased. */
-#define MAX_EVENTS 131072
+#define MAX_EVENTS 262144
 
 /** The priority queue. */
 struct dg_queue

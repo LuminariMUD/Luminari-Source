@@ -31,6 +31,7 @@ void affected_registry_remove(struct char_data *ch);
 struct char_data *affected_registry_iteration_begin(void);
 struct char_data *affected_registry_iteration_next(void);
 void affected_registry_iteration_end(void);
+bool affected_registry_iteration_in_progress(void);
 size_t affected_registry_count(void);
 size_t affected_registry_validate(void);
 #ifdef LUMINARI_CUTEST

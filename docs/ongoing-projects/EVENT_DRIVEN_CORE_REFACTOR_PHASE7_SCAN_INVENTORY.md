@@ -25,7 +25,7 @@ it does not mean that its cadence has already moved off the heartbeat.
 | 5 s | Luminari pulse | Mixed character/system work | Decompose by owner before migration; do not preserve as one opaque scheduled callback. |
 | 6 s | NPC thinking | Previously every character | **Converted:** one distributed owner deadline per autonomous NPC; player absence does not suspend patrols, wandering, scripts, or NPC wars. Only out-of-world, extracting, and `MOB_NO_AI` owners are dormant. |
 | 6 s | object auto-procs | `ITEM_AUTOPROC` registry | **Converted:** one distributed object-owner deadline invokes the existing gateway; lifecycle flag/OLC/extraction boundaries cancel it. |
-| 6 s | character affects | Affected-character registry plus room-affect list and connected-PC MSDP refresh | Already eligibility-bounded; split character and room owners before scheduling. |
+| 6 s | character and room-affect duration | Affected-character and affected-room owner registries | **Converted:** one exact round-boundary deadline per affected character and per affected room. MSDP remains immediate mutation plus the existing connected-descriptor refresh. |
 | 6 s | D20 round procedure | Encounter/combat state | Phase 8 owns encounter-level scheduling. |
 | 6 s | damage/effects and player misc | Character/descriptor state | Split named effects from generic player maintenance, then schedule owners. |
 | 11 s | bardic performance | Performing characters/groups | Owner-event candidate; preserve song audience semantics. |
@@ -53,8 +53,8 @@ diagnostic paths, not normal gameplay orchestration.
 
 ## Priority after NPC thinking
 
-1. Affected character and room owners, after separating connected-PC MSDP
-   refresh from duration expiry.
-2. Walk-to, regeneration, bardic performance, hints, and similar explicit
+1. Walk-to, regeneration, bardic performance, hints, and similar explicit
    character state.
-3. Vessel tick decomposition and the mixed `point_update()`/Luminari pulses.
+2. Room-affect behavior ticks, player maintenance, and the remaining mixed
+   Luminari pulse.
+3. Vessel tick decomposition and the mixed `point_update()` pulse.

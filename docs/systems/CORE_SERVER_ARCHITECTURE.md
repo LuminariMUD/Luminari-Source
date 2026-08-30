@@ -566,13 +566,15 @@ and class unlocks. Successful writes advance only the saved generations; ordinar
 serialization no longer rewrites account unlock tables. Pet saves use a stable state fingerprint so
 unchanged owners avoid the delete-and-reinsert transaction.
 
-Eligible-owner registries remove three measured global scans: `ITEM_AUTOPROC` objects, DG random
-trigger owners by mobile/object/room type, and affected characters. Automatic objects and DG random
-owners now each hold one distributed periodic deadline, while affected-owner conversion remains the
-next Phase 7 slice. Registry updates occur at the same attach, detach, flag-change, extraction, and
-OLC replacement boundaries that change eligibility. Staff entity reports perform debug full-list
-validation; normal scheduled paths do not. See
-[`PERIODIC_OWNER_EVENTS.md`](PERIODIC_OWNER_EVENTS.md).
+Eligible-owner registries remove four measured cadence scans: autonomous NPCs, `ITEM_AUTOPROC`
+objects, DG random-trigger owners by mobile/object/room type, and affected characters plus rooms.
+Each eligible affected character owns one round-boundary duration event; all room affects in one
+room share one event. Connected-player MSDP remains connection work and is refreshed by the existing
+one-second descriptor path and immediate affect mutations. Registry updates occur at the same attach,
+detach, flag-change, extraction, and OLC replacement boundaries that change eligibility. Staff entity
+reports perform debug full-list validation; normal scheduled paths do not. See
+[`PERIODIC_OWNER_EVENTS.md`](PERIODIC_OWNER_EVENTS.md) and
+[`AFFECTED_OWNER_EVENTS.md`](AFFECTED_OWNER_EVENTS.md).
 
 Combat callback timing separates action queues, attack generation, assist fan-out, specials, and
 backlash. A bounded slow-combat ring stores safe numeric context for callbacks above 100 ms. Per

@@ -34,8 +34,9 @@ callback is safe because in-flight cancellation wins over recurrence.
 At most 65,536 active plus cooling NPCs may own thinking events. Admission above
 that limit fails closed, remains dormant, and emits a rate-limited warning.
 Automatic object and DG random-owner limits reserve 16,384 more slots beneath
-the production legacy-adapter queue's 131,072-event ceiling. Dispatch
-callback/time budgets still apply independently.
+the then-current production queue ceiling. The affected-owner migration raised
+the shared ceiling to 262,144 while retaining per-subsystem admission limits.
+Dispatch callback/time budgets still apply independently.
 
 `perfmon entities` reports mode, active and cooling counts, the admission
 limit, rejected admissions, and callback count. Scheduler callback telemetry
