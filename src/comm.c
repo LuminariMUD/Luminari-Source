@@ -100,6 +100,7 @@
 #include "wilderness/wilderness.h"
 #include "magic/spell_prep.h"
 #include "perfmon.h"
+#include "reactor.h"
 #include "elf_build_id.h"
 #include "mysql.h"
 #include "net/onboarding.h"
@@ -146,6 +147,7 @@ int buf_switches = 0;                                /* # of switches from small
 int circle_shutdown = 0;                             /* clean shutdown */
 int circle_reboot = 0;                               /* reboot the game after a shutdown */
 static volatile sig_atomic_t shutdown_requested = 0; /* flag for signal-triggered shutdown */
+static volatile sig_atomic_t shutdown_signal = 0;
 int no_specials = 0;                                 /* Suppress ass. of special routines */
 int scheck = 0;                                      /* for syntax checking mode */
 FILE *logfile = NULL;                                /* Where to send the log messages. */
@@ -165,6 +167,7 @@ static byte emergency_unban;             /* signal: SIGUSR2 */
 static int dg_act_check;                 /* toggle for act_trigger */
 static bool fCopyOver;                   /* Are we booting in copyover mode? */
 static char *last_act_message = NULL;
+static struct luminari_reactor *io_reactor = NULL;
 #ifdef CIRCLE_UNIX
 static struct itimerval checkpoint_timer_before_copyover;
 static bool checkpoint_timer_suspended = FALSE;
@@ -178,10 +181,10 @@ static RETSIGTYPE checkpointing(int sig);
 static RETSIGTYPE hupsig(int sig);
 static ssize_t perform_socket_read(socket_t desc, char *read_point, size_t space_left);
 static ssize_t perform_socket_write(socket_t desc, const char *txt, size_t length);
-static void circle_sleep(struct timeval *timeout);
 static int get_from_q(struct txt_q *queue, char *dest, int *aliased);
 static void init_game(ush_int port);
 static void signal_setup(void);
+static bool initialize_io_reactor(void);
 static socket_t init_socket(ush_int port);
 static int new_descriptor(socket_t s);
 static int get_max_players(void);
@@ -199,6 +202,13 @@ static void check_idle_passwords(void);
 static void init_descriptor(struct descriptor_data *newd, int desc);
 static void persistence_schedule_minute(int include_crash_and_houses);
 static void persistence_scheduler_step(uint64_t heart_pulse);
+static void monotonic_timeval(struct timeval *value);
+static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd,
+                                fd_set *input_set, fd_set *output_set,
+                                fd_set *error_set, const struct timeval *timeout);
+#ifdef CIRCLE_UNIX
+static void reactor_signal_dispatch(int signal_number, void *context);
+#endif
 
 static struct in_addr *get_bind_addr(void);
 static int parse_ip(const char *addr, struct in_addr *inaddr);
@@ -735,8 +745,13 @@ static void init_game(ush_int local_port)
   boot_db();
 
 #if defined(CIRCLE_UNIX) || defined(CIRCLE_MACINTOSH)
+  if (!initialize_io_reactor())
+    exit(1);
   log("Signal trapping.");
   signal_setup();
+#else
+  if (!initialize_io_reactor())
+    exit(1);
 #endif
 
   /* If we made it this far, we will be able to restart without problem. */
@@ -822,7 +837,7 @@ static void init_game(ush_int local_port)
   if (shutdown_requested)
   {
     circle_shutdown = 1;
-    log("Shutdown initiated by signal - performing cleanup...");
+    log("Shutdown initiated by signal %d - performing cleanup...", (int)shutdown_signal);
   }
 
   log("Normal termination of game.");
@@ -1005,6 +1020,83 @@ static int get_max_players(void)
 #endif /* CIRCLE_UNIX */
 }
 
+static void monotonic_timeval(struct timeval *value)
+{
+  uint64_t usec;
+
+  usec = luminari_reactor_monotonic_usec();
+  value->tv_sec = (time_t)(usec / UINT64_C(1000000));
+  value->tv_usec = (suseconds_t)(usec % UINT64_C(1000000));
+}
+
+static bool initialize_io_reactor(void)
+{
+  enum luminari_reactor_status status;
+  enum luminari_io_driver driver;
+  const char *configured_driver;
+  bool recognized_driver;
+
+  if (io_reactor != NULL)
+    return TRUE;
+  configured_driver = getenv("LUMINARI_IO_DRIVER");
+  driver = luminari_io_driver_from_string(configured_driver, &recognized_driver);
+  if (!recognized_driver)
+    log("WARNING: Unknown LUMINARI_IO_DRIVER '%s'; using libevent.", configured_driver);
+  io_reactor = luminari_reactor_create(driver, &status);
+  if (io_reactor == NULL)
+  {
+    log("SYSERR: Unable to initialize %s I/O driver (status %d).",
+        luminari_io_driver_name(driver), status);
+    return FALSE;
+  }
+  log("I/O driver initialized: %s (libevent %s).", luminari_io_driver_name(driver),
+      luminari_reactor_library_version());
+  return TRUE;
+}
+
+static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd,
+                                fd_set *input_set, fd_set *output_set,
+                                fd_set *error_set, const struct timeval *timeout)
+{
+  enum luminari_reactor_status status;
+  uint64_t timeout_usec;
+  int fd;
+
+  status = luminari_reactor_begin_cycle(reactor);
+  if (status != LUMINARI_REACTOR_OK)
+    return -1;
+  for (fd = 0; fd <= max_fd; fd++)
+  {
+    unsigned int interests = 0;
+
+    if (FD_ISSET(fd, input_set))
+      interests |= LUMINARI_REACTOR_READ;
+    if (FD_ISSET(fd, output_set))
+      interests |= LUMINARI_REACTOR_WRITE;
+    if (FD_ISSET(fd, error_set))
+      interests |= LUMINARI_REACTOR_ERROR;
+    if (interests != 0 && luminari_reactor_watch(reactor, fd, interests) != LUMINARI_REACTOR_OK)
+      return -1;
+  }
+  timeout_usec = (uint64_t)timeout->tv_sec * UINT64_C(1000000) + (uint64_t)timeout->tv_usec;
+  status = luminari_reactor_wait(reactor, timeout_usec);
+  if (status != LUMINARI_REACTOR_OK)
+    return -1;
+  FD_ZERO(input_set);
+  FD_ZERO(output_set);
+  FD_ZERO(error_set);
+  for (fd = 0; fd <= max_fd; fd++)
+  {
+    if (luminari_reactor_ready(reactor, fd, LUMINARI_REACTOR_READ))
+      FD_SET(fd, input_set);
+    if (luminari_reactor_ready(reactor, fd, LUMINARI_REACTOR_WRITE))
+      FD_SET(fd, output_set);
+    if (luminari_reactor_ready(reactor, fd, LUMINARI_REACTOR_ERROR))
+      FD_SET(fd, error_set);
+  }
+  return 0;
+}
+
 /* game_loop contains the main loop which drives the entire MUD.  It
  * cycles once every 0.10 seconds and is responsible for accepting new
  * new connections, polling existing connections for input, dequeueing
@@ -1012,12 +1104,13 @@ static int get_max_players(void)
  * such as mobile_activity(). */
 void game_loop(socket_t local_mother_desc)
 {
-  fd_set input_set, output_set, exc_set, null_set;
+  fd_set input_set, output_set, exc_set;
   struct timeval last_time, opt_time, process_time, temp_time;
   struct timeval before_sleep, now, timeout, perf_start;
   char comm[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d = NULL, *next_d = NULL;
   int missed_pulses = 0, maxdesc = 0, aliased = 0;
+  int i3_event_fd = -1;
   int requested_missed_pulses = 0;
   int requested_heartbeats = 0;
   int replayed_heartbeats = 0;
@@ -1044,15 +1137,18 @@ void game_loop(socket_t local_mother_desc)
   static uint64_t catchup_log_budget_exhausted = 0;
   static uint64_t catchup_log_max_requested = 0;
   static uint64_t catchup_log_max_remaining = 0;
+  enum luminari_io_driver io_driver;
 
   /* initialize various time values */
   null_time.tv_sec = 0;
   null_time.tv_usec = 0;
   opt_time.tv_usec = OPT_USEC;
   opt_time.tv_sec = 0;
-  FD_ZERO(&null_set);
+  if (!initialize_io_reactor())
+    return;
+  io_driver = luminari_reactor_driver(io_reactor);
 
-  gettimeofday(&last_time, (struct timezone *)0);
+  monotonic_timeval(&last_time);
   perf_start = last_time;
 
   /* The Main Loop.  The Big Cheese.  The Top Dog.  The Head Honcho.  The.. */
@@ -1063,57 +1159,6 @@ void game_loop(socket_t local_mother_desc)
    * Checking both ensures clean exit in all cases. */
   while (!circle_shutdown && !shutdown_requested)
   {
-    /* Sleep if we don't have any connections */
-    if (descriptor_list == NULL)
-    {
-      int i3_event_fd;
-      int max_sleep_desc;
-      int select_result;
-
-      log("No connections.  Going to sleep.");
-      FD_ZERO(&input_set);
-      FD_SET(local_mother_desc, &input_set);
-
-      max_sleep_desc = local_mother_desc;
-      i3_event_fd = i3_get_event_fd();
-      if (i3_event_fd >= 0)
-      {
-        FD_SET(i3_event_fd, &input_set);
-        if (i3_event_fd > max_sleep_desc)
-        {
-          max_sleep_desc = i3_event_fd;
-        }
-      }
-
-      /* Add terrain bridge server socket to wake up on API connections */
-      if (terrain_api_is_running())
-      {
-        struct terrain_api_server *terrain_server = get_terrain_api_server();
-        if (terrain_server && terrain_server->server_socket != INVALID_SOCKET)
-        {
-          FD_SET(terrain_server->server_socket, &input_set);
-          if (terrain_server->server_socket > max_sleep_desc)
-            max_sleep_desc = terrain_server->server_socket;
-        }
-      }
-
-      select_result = select(max_sleep_desc + 1, &input_set, (fd_set *)0, (fd_set *)0, NULL);
-      if (select_result < 0)
-      {
-        if (errno == EINTR)
-          log("Waking up to process signal.");
-        else
-          perror("SYSERR: Select coma");
-      }
-      else if (i3_event_fd >= 0 && FD_ISSET(i3_event_fd, &input_set))
-      {
-        i3_process_events();
-      }
-      else
-        log("New connection.  Waking up.");
-      gettimeofday(&last_time, (struct timezone *)0);
-      perf_start = last_time;
-    }
     /* Set up the input, output, and exception sets for select(). */
     FD_ZERO(&input_set);
     FD_ZERO(&output_set);
@@ -1121,6 +1166,42 @@ void game_loop(socket_t local_mother_desc)
     FD_SET(local_mother_desc, &input_set);
 
     maxdesc = local_mother_desc;
+
+    i3_event_fd = i3_get_event_fd();
+    if (i3_event_fd >= 0)
+    {
+      FD_SET(i3_event_fd, &input_set);
+      if (i3_event_fd > maxdesc)
+        maxdesc = i3_event_fd;
+    }
+
+    if (terrain_api_is_running())
+    {
+      struct terrain_api_server *terrain_server = get_terrain_api_server();
+      int terrain_client_index;
+
+      if (terrain_server != NULL && terrain_server->server_socket != INVALID_SOCKET)
+      {
+        FD_SET(terrain_server->server_socket, &input_set);
+        if (terrain_server->server_socket > maxdesc)
+          maxdesc = terrain_server->server_socket;
+      }
+      if (terrain_server != NULL)
+      {
+        for (terrain_client_index = 0; terrain_client_index < terrain_server->max_clients;
+             terrain_client_index++)
+        {
+          socket_t terrain_client_socket = terrain_server->clients[terrain_client_index].socket;
+
+          if (terrain_client_socket == INVALID_SOCKET)
+            continue;
+          FD_SET(terrain_client_socket, &input_set);
+          FD_SET(terrain_client_socket, &exc_set);
+          if (terrain_client_socket > maxdesc)
+            maxdesc = terrain_client_socket;
+        }
+      }
+    }
 
     /* Add Discord bridge sockets to select sets */
     if (discord_bridge)
@@ -1148,7 +1229,8 @@ void game_loop(socket_t local_mother_desc)
         maxdesc = d->descriptor;
 #endif
       FD_SET(d->descriptor, &input_set);
-      FD_SET(d->descriptor, &output_set);
+      if (*(d->output))
+        FD_SET(d->descriptor, &output_set);
       FD_SET(d->descriptor, &exc_set);
     }
 
@@ -1157,7 +1239,7 @@ void game_loop(socket_t local_mother_desc)
      * to sleep until the next 0.1 second tick.  The first step is to
      * calculate how long we took processing the previous iteration. */
 
-    gettimeofday(&before_sleep, (struct timezone *)0); /* current time */
+    monotonic_timeval(&before_sleep);
     timediff(&process_time, &before_sleep, &perf_start);
 
     {
@@ -1237,7 +1319,7 @@ void game_loop(socket_t local_mother_desc)
     }
 
     /* just in case, re-calculate after PERF logging */
-    gettimeofday(&before_sleep, (struct timezone *)0);
+    monotonic_timeval(&before_sleep);
     timediff(&process_time, &before_sleep, &last_time);
 
     /* If we were asleep for more than one pass, count missed pulses and sleep
@@ -1263,30 +1345,28 @@ void game_loop(socket_t local_mother_desc)
     timeadd(&last_time, &before_sleep, &temp_time);
 
     /* Now keep sleeping until that time has come */
-    gettimeofday(&now, (struct timezone *)0);
+    monotonic_timeval(&now);
     timediff(&timeout, &last_time, &now);
 
-    /* Go to sleep */
-    do
+    /* Wait for fd readiness or the next compatibility heartbeat. */
+    if (reactor_poll_fd_sets(io_reactor, maxdesc, &input_set, &output_set, &exc_set, &timeout) < 0)
     {
-      circle_sleep(&timeout);
-      gettimeofday(&now, (struct timezone *)0);
-      timediff(&timeout, &last_time, &now);
-    } while (timeout.tv_usec || timeout.tv_sec);
+      log("SYSERR: %s I/O driver poll failed: %s", luminari_io_driver_name(io_driver),
+          strerror(errno));
+      break;
+    }
+    monotonic_timeval(&now);
 
     perf_start = now;
     PERF_prof_reset();
     PERF_PROF_ENTER_SAMPLED(pr_main_loop_, "Main Loop");
 
-    /* Poll (without blocking) for new input, output, and exceptions */
-    if (select(maxdesc + 1, &input_set, &output_set, &exc_set, &null_time) < 0)
-    {
-      perror("SYSERR: Select poll");
-      return;
-    }
     /* If there are new connections waiting, accept them. */
     if (FD_ISSET(local_mother_desc, &input_set))
       new_descriptor(local_mother_desc);
+
+    if (i3_event_fd >= 0 && FD_ISSET(i3_event_fd, &input_set))
+      i3_process_events();
 
     /* Process Discord bridge */
     if (discord_bridge)
@@ -1588,6 +1668,9 @@ void game_loop(socket_t local_mother_desc)
 #endif
     PERF_PROF_EXIT(pr_main_loop_);
   }
+
+  luminari_reactor_destroy(io_reactor);
+  io_reactor = NULL;
 }
 
 /*  This was ported to accomodate the HL objects that were imported */
@@ -4199,8 +4282,6 @@ static RETSIGTYPE reap(int sig __attribute__((unused)))
 {
   while (waitpid(-1, NULL, WNOHANG) > 0)
     ;
-
-  my_signal(SIGCHLD, reap);
 }
 
 /* Dying anyway... */
@@ -4231,11 +4312,35 @@ static RETSIGTYPE hupsig(int sig)
    *
    * The 'volatile sig_atomic_t' type ensures the variable can be safely
    * modified in a signal handler and read in the main program. */
-  log("SYSERR: Received SIGHUP, SIGINT, or SIGTERM [%d].  Initiating graceful shutdown...", sig);
+  shutdown_signal = sig;
   shutdown_requested = 1; /* Set flag for main loop to check */
 
   /* Do NOT call exit() here! That would skip all cleanup code and leak memory.
    * The main game loop will detect shutdown_requested and exit cleanly. */
+}
+
+static void reactor_signal_dispatch(int signal_number, void *context)
+{
+  (void)context;
+  switch (signal_number)
+  {
+  case SIGUSR1:
+    reread_wizlists(signal_number);
+    break;
+  case SIGUSR2:
+    unrestrict_game(signal_number);
+    break;
+  case SIGCHLD:
+    reap(signal_number);
+    break;
+  case SIGHUP:
+  case SIGINT:
+  case SIGTERM:
+    hupsig(signal_number);
+    break;
+  default:
+    break;
+  }
 }
 
 #endif /* CIRCLE_UNIX */
@@ -4277,13 +4382,35 @@ static void signal_setup(void)
 #ifndef CIRCLE_MACINTOSH
   struct itimerval itime;
   struct timeval interval;
+  bool libevent_signals =
+      io_reactor != NULL && luminari_reactor_driver(io_reactor) == LUMINARI_IO_DRIVER_LIBEVENT;
 
-  /* user signal 1: reread wizlists.  Used by autowiz system. */
-  my_signal(SIGUSR1, reread_wizlists);
+  if (libevent_signals)
+  {
+    const int reactor_signals[] = {SIGUSR1, SIGUSR2, SIGHUP, SIGCHLD, SIGINT, SIGTERM};
+    size_t index;
 
-  /* user signal 2: unrestrict game.  Used for emergencies if you lock
-   * yourself out of the MUD somehow. */
-  my_signal(SIGUSR2, unrestrict_game);
+    for (index = 0; index < sizeof(reactor_signals) / sizeof(reactor_signals[0]); index++)
+    {
+      enum luminari_reactor_status status = luminari_reactor_add_signal(
+          io_reactor, reactor_signals[index], reactor_signal_dispatch, NULL);
+      if (status != LUMINARI_REACTOR_OK)
+      {
+        log("SYSERR: Unable to register signal %d with libevent (status %d).",
+            reactor_signals[index], status);
+        exit(1);
+      }
+    }
+  }
+  else
+  {
+    my_signal(SIGUSR1, reread_wizlists);
+    my_signal(SIGUSR2, unrestrict_game);
+    my_signal(SIGHUP, hupsig);
+    my_signal(SIGCHLD, reap);
+    my_signal(SIGINT, hupsig);
+    my_signal(SIGTERM, hupsig);
+  }
 
   /* set up the deadlock-protection so that the MUD aborts itself if it gets
    * caught in an infinite loop for more than 3 minutes. */
@@ -4295,12 +4422,11 @@ static void signal_setup(void)
   if (setitimer(ITIMER_VIRTUAL, &itime, NULL) != 0)
     log("SYSERR: Unable to start the virtual checkpoint timer: %s", strerror(errno));
 
-  /* just to be on the safe side: */
-  my_signal(SIGHUP, hupsig);
-  my_signal(SIGCHLD, reap);
 #endif /* CIRCLE_MACINTOSH */
+#ifdef CIRCLE_MACINTOSH
   my_signal(SIGINT, hupsig);
   my_signal(SIGTERM, hupsig);
+#endif
   my_signal(SIGPIPE, SIG_IGN);
   my_signal(SIGALRM, SIG_IGN);
 }
@@ -4353,6 +4479,70 @@ bool resume_checkpoint_timer(void)
   checkpoint_timer_suspended = FALSE;
 #endif
 
+  return TRUE;
+}
+
+static bool verify_copyover_descriptor_flags(int fd, const char *owner)
+{
+#ifdef CIRCLE_UNIX
+  int descriptor_flags;
+  int status_flags;
+
+  descriptor_flags = fcntl(fd, F_GETFD);
+  status_flags = fcntl(fd, F_GETFL);
+  if (descriptor_flags < 0 || status_flags < 0)
+  {
+    log("SYSERR: Copyover cannot inspect %s descriptor %d: %s", owner, fd, strerror(errno));
+    return FALSE;
+  }
+  if ((status_flags & O_NONBLOCK) == 0)
+  {
+    log("SYSERR: Copyover %s descriptor %d is not O_NONBLOCK", owner, fd);
+    return FALSE;
+  }
+  if ((descriptor_flags & FD_CLOEXEC) != 0)
+  {
+    log("SYSERR: Copyover %s descriptor %d unexpectedly has FD_CLOEXEC", owner, fd);
+    return FALSE;
+  }
+#else
+  (void)fd;
+  (void)owner;
+#endif
+  return TRUE;
+}
+
+bool prepare_io_reactor_copyover(void)
+{
+  struct descriptor_data *d;
+
+  if (!verify_copyover_descriptor_flags(mother_desc, "listener"))
+    return FALSE;
+  for (d = descriptor_list; d != NULL; d = d->next)
+  {
+    if (!verify_copyover_descriptor_flags(d->descriptor, "player"))
+      return FALSE;
+  }
+  if (io_reactor != NULL)
+  {
+    log("Copyover: quiescing %s I/O driver and destroying reactor base.",
+        luminari_io_driver_name(luminari_reactor_driver(io_reactor)));
+    luminari_reactor_destroy(io_reactor);
+    io_reactor = NULL;
+  }
+  return TRUE;
+}
+
+bool restore_io_reactor_after_copyover_failure(void)
+{
+  if (io_reactor != NULL)
+    return TRUE;
+  if (!initialize_io_reactor())
+    return FALSE;
+#if defined(CIRCLE_UNIX) || defined(CIRCLE_MACINTOSH)
+  signal_setup();
+#endif
+  log("Copyover: restored reactor and signal ownership after failed exec.");
   return TRUE;
 }
 
@@ -4934,30 +5124,6 @@ static int open_logfile(const char *filename, FILE *stderr_fp)
   printf("SYSERR: Error opening file '%s': %s\n", filename, strerror(errno));
   return (FALSE);
 }
-
-/* This may not be pretty but it keeps game_loop() neater than if it was inline. */
-#if defined(CIRCLE_WINDOWS)
-
-void circle_sleep(struct timeval *timeout)
-{
-  Sleep(timeout->tv_sec * 1000 + timeout->tv_usec / 1000);
-}
-
-#else
-
-static void circle_sleep(struct timeval *timeout)
-{
-  if (select(0, (fd_set *)0, (fd_set *)0, (fd_set *)0, timeout) < 0)
-  {
-    if (errno != EINTR)
-    {
-      perror("SYSERR: Select sleep");
-      exit(1);
-    }
-  }
-}
-
-#endif /* CIRCLE_WINDOWS */
 
 #define MODE_NORMAL_HIT 0      // Normal damage calculating in hit()
 #define MODE_DISPLAY_PRIMARY 2 // Display damage info primary

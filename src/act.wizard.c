@@ -7107,6 +7107,12 @@ void perform_do_copyover()
   disconnect_from_mysql2();
   disconnect_from_mysql3();
 
+  /* Stop worker ingress before detaching the main-thread reactor.  This joins
+   * the I3 worker and closes its gateway socket and wake pipe before exec. */
+  extern void i3_shutdown(void);
+  i3_shutdown();
+  COPYOVER_DEBUG("copyover: I3 worker and wake descriptors shut down for copyover");
+
   /* Shutdown Discord bridge before copyover */
   extern void shutdown_discord_bridge(void);
   shutdown_discord_bridge();
@@ -7134,14 +7140,24 @@ void perform_do_copyover()
    * default fatal disposition while boot_db() runs before signal_setup(). */
   if (suspend_checkpoint_timer())
   {
-    log_copyover_phase("EXECL", "Calling execl()");
-    exec_attempted = TRUE;
-    execl(copyover_executable, "luminari", buf2, buf, (char *)NULL);
-    exec_errno = errno;
+    if (prepare_io_reactor_copyover())
+    {
+      log_copyover_phase("EXECL", "Calling execl()");
+      exec_attempted = TRUE;
+      execl(copyover_executable, "luminari", buf2, buf, (char *)NULL);
+      exec_errno = errno;
+    }
+    else
+    {
+      exec_errno = errno != 0 ? errno : EINVAL;
+      log_copyover_phase("FAILED", "Descriptor policy or reactor quiesce failed");
+    }
 
     /* A successful exec never returns.  Keep the current process protected if
      * exec failed and copyover recovery allows the game loop to continue. */
     resume_checkpoint_timer();
+    if (!restore_io_reactor_after_copyover_failure())
+      log("SYSERR: Copyover failure left the I/O reactor unavailable");
   }
   else
   {

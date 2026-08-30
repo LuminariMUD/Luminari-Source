@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
 project(LuminariMUD VERSION 2.5062 LANGUAGES C)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBEVENT REQUIRED IMPORTED_TARGET libevent_core>=2.1.12)
+
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -522,6 +525,8 @@ set(SRC_C_FILES
     src/olc/genzon.c
     src/game_scheduler.c
     src/game_scheduler.h
+    src/reactor.c
+    src/reactor.h
     src/graph.c
     src/combat/grapple.c
     src/handler.c
@@ -841,7 +846,7 @@ if (NOT HAVE_SOCKLEN_T)
 endif()
 
 # Link required libraries
-target_link_libraries(luminari ${EXTRA_LIBS} m pthread)
+target_link_libraries(luminari ${EXTRA_LIBS} m pthread PkgConfig::LIBEVENT)
 
 # Find and link additional libraries
 find_library(CURL_LIBRARY curl)
@@ -1197,6 +1202,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_lists_production.c
     unittests/CuTest/test_mob_autoroll.c
     unittests/CuTest/test_copyover_timer.c
+    unittests/CuTest/test_reactor.c
     unittests/CuTest/test_game_scheduler.c
     unittests/CuTest/test_legacy_event_adapter.c
     unittests/CuTest/test_bardic_performance.c

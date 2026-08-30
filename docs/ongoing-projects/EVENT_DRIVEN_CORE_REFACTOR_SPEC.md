@@ -1,16 +1,18 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 2.5 accepted; reactor compatibility is next
-**Document version:** 0.9
+**Status:** In progress - Phase 3 accepted; scheduler/reactor bridge is next
+**Document version:** 1.0
 **Started:** 2026-08-29
 **Last source review:** 2026-08-30
-**Implementation status:** Phases 1, 2, and 2.5 complete; Phase 3 is the next gate
+**Implementation status:** Phases 1, 2, 2.5, and 3 complete; Phase 4 is the next gate
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
-> existing heartbeat still drives it. Generation-aware MUD-event ownership and
-> lifecycle cancellation now form the accepted pre-reactor foundation;
-> `libevent`, networking, commands, and combat semantics have not migrated.
+> existing compatibility heartbeat still drives it. Generation-aware MUD-event
+> ownership and lifecycle cancellation form the accepted scheduler foundation.
+> A private `libevent` compatibility reactor now owns production readiness and
+> signals, with boot-time `select()` rollback; gameplay semantics have not
+> migrated.
 
 ## 1. Purpose
 
@@ -1516,6 +1518,17 @@ Gate:
   bounded connection-load tests are equivalent under both drivers and the
   supported 2x2 matrix passes in CI.
 
+Acceptance:
+
+- Accepted on 2026-08-30. The implementation and reproducible evidence are
+  recorded in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE3_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE3_VALIDATION.md).
+- The production-linked 948-test suite passed under all four timed-backend and
+  I/O-driver combinations, plus ASan/UBSan and strict Valgrind runs.
+- Real socket sessions covered account and character creation, world entry,
+  commands, output, logout, both-driver copyover continuity, reactor-owned
+  signals, and bounded parallel connection load.
+
 Rollback:
 
 - Select the existing `select()` driver at boot; the scheduler and gameplay
@@ -2063,7 +2076,7 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
       enough to accept or retune scheduler geometry.
 - [ ] Copyover and reboot classifications are sufficient.
 - [x] Legacy compatibility and rollback do not permit double callback execution.
-- [ ] `libevent` integration preserves descriptor, interpreter, copyover,
+- [x] `libevent` integration preserves descriptor, interpreter, copyover,
       signal, and operational behavior without leaking reactor types.
 - [ ] Domain events, decision hooks, nested publication, and payload lifetime
       rules are unambiguous.
@@ -2091,3 +2104,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 0.7 | 2026-08-30 | Accepted the Phase 2 gate after 941 production-linked tests, dual-backend syntax boots, sanitizer-instrumented CMake boots, and static analysis; confirmed scheduler default and legacy rollback readiness. |
 | 0.8 | 2026-08-30 | Incorporated the adversarial review; inserted a blocking Phase 2.5 owner/lifecycle gate, corrected cascade and lifecycle contracts, assigned monotonic clock and full copyover/fd/signal/dependency/CI requirements to Phase 3, split typed events from pub/sub retirement, and made large-advance, encounter, activity, observability, and rollback obligations testable. |
 | 0.9 | 2026-08-30 | Accepted Phase 2.5 after implementing generation-aware owner handles and indexing, owner admission limits and diagnostics, lifecycle-ordered bulk cancellation, dual-backend MUD adaptation, payload classification, and sanitizer/Valgrind/static-analysis validation. Phase 3 is now authorized. |
+| 1.0 | 2026-08-30 | Accepted Phase 3 after adding the private libevent/select compatibility reactor, monotonic pacing, complete main-thread fd and signal ownership, copyover teardown and reconstruction, the system dependency contract, the 2x2 CI matrix, and live protocol, copyover, signal, load, sanitizer, and Valgrind evidence. Phase 4 is now authorized. |

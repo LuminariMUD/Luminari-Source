@@ -16,6 +16,9 @@ AC_CHECK_PROGS(MORE, less most more cat)
 
 dnl Checks for programs.
 AC_PROG_CC
+PKG_PROG_PKG_CONFIG
+PKG_CHECK_MODULES([LIBEVENT], [libevent_core >= 2.1.12], [],
+  [AC_MSG_ERROR([libevent core 2.1.12-stable or newer is required; install the libevent development package])])
 
 dnl Require GNU C23. Older compilers may expose the required feature set
 dnl under the pre-publication gnu2x flag spelling.
@@ -121,6 +124,8 @@ AC_CHECK_HEADERS(limits.h sys/time.h sys/select.h sys/types.h unistd.h)
 AC_CHECK_HEADERS(memory.h crypt.h assert.h arpa/telnet.h arpa/inet.h)
 AC_CHECK_HEADERS(sys/stat.h sys/socket.h sys/resource.h netinet/in.h netdb.h)
 AC_CHECK_HEADERS(signal.h sys/uio.h mcheck.h)
+AC_CHECK_HEADERS(event2/event.h, [],
+  [AC_MSG_ERROR([libevent headers are required; install the libevent development package])])
 
 dnl AC_UNSAFE_CRYPT removed - was a custom macro
 

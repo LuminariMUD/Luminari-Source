@@ -93,6 +93,8 @@ void persistence_scheduler_reset_telemetry(void);
 void copyover_recover(void);
 bool suspend_checkpoint_timer(void);
 bool resume_checkpoint_timer(void);
+bool prepare_io_reactor_copyover(void);
+bool restore_io_reactor_after_copyover_failure(void);
 
 /* global buffering system - allow access to global variables within comm.c */
 #ifndef __COMM_C__

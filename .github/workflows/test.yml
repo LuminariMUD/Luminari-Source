@@ -71,7 +71,7 @@ jobs:
       - name: Install documentation dependency
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf automake build-essential pandoc
+          sudo apt-get install -y autoconf automake build-essential libevent-dev pandoc
 
       - name: Build mobile conversion calculator
         run: |
@@ -147,7 +147,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev libgd-dev \
+            autoconf automake build-essential libcurl4-openssl-dev libevent-dev libgd-dev \
             libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client zlib1g-dev
 
       - name: Copy config headers
@@ -177,8 +177,13 @@ jobs:
           test ! -e circle
 
   unit-tests:
-    name: Production-linked tests
+    name: Production-linked tests (${{ matrix.event-backend }}, ${{ matrix.io-driver }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        event-backend: [scheduler, legacy]
+        io-driver: [libevent, select]
     services:
       mariadb:
         image: mariadb:10.11
@@ -203,6 +208,8 @@ jobs:
       LUMINARI_TEST_MYSQL_PORT: '3306'
       LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
       LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
+      LUMINARI_EVENT_BACKEND: ${{ matrix.event-backend }}
+      LUMINARI_IO_DRIVER: ${{ matrix.io-driver }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -211,7 +218,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev libgd-dev \
+            autoconf automake build-essential libcurl4-openssl-dev libevent-dev libgd-dev \
             libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client \
             mariadb-server pandoc ripgrep zlib1g-dev
 
@@ -245,7 +252,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            autoconf automake build-essential clang libcurl4-openssl-dev \
+            autoconf automake build-essential clang libcurl4-openssl-dev libevent-dev \
             libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool zlib1g-dev
 
       - name: Copy config headers
@@ -285,7 +292,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev libgd-dev \
+            autoconf automake build-essential libcurl4-openssl-dev libevent-dev libgd-dev \
             libjson-c-dev libmariadb-dev libssl-dev libtool valgrind zlib1g-dev
 
       - name: Copy config headers
@@ -350,7 +357,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            autoconf automake build-essential libcurl4-openssl-dev \
+            autoconf automake build-essential libcurl4-openssl-dev libevent-dev \
             libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client zlib1g-dev
 
       - name: Install coverage tool

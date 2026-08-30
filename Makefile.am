@@ -114,6 +114,8 @@ luminari_SOURCES = \
 	src/olc/genzon.c \
 	src/game_scheduler.c \
 	src/game_scheduler.h \
+	src/reactor.c \
+	src/reactor.h \
 	src/graph.c \
 	src/combat/grapple.c \
 	src/handler.c \
@@ -331,7 +333,7 @@ luminari_SOURCES = \
 	src/zmalloc.c
 
 # Libraries to link
-luminari_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread -ljson-c
+luminari_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ @LIBEVENT_LIBS@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread -ljson-c
 
 
 # Unit testing with CuTest and the bundled snprintf fallback
@@ -365,6 +367,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
+	unittests/CuTest/test_reactor.c \
 	unittests/CuTest/test_game_scheduler.c \
 	unittests/CuTest/test_legacy_event_adapter.c \
 	unittests/CuTest/test_bardic_performance.c \
@@ -424,6 +427,7 @@ cutest_test_files = \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
 	unittests/CuTest/test_copyover_timer.c \
+	unittests/CuTest/test_reactor.c \
 	unittests/CuTest/test_game_scheduler.c \
 	unittests/CuTest/test_legacy_event_adapter.c \
 	unittests/CuTest/test_bardic_performance.c \
