@@ -59,6 +59,7 @@ static enum event_backend_kind test_backend_override = EVENT_BACKEND_UNINITIALIZ
 #endif
 
 static game_tick_t legacy_scheduler_tick(void *context);
+static uint64_t legacy_scheduler_usec(void *context);
 static struct game_event_result
 legacy_scheduler_event_handler(const struct game_event_context *context);
 static void legacy_scheduler_event_cleanup(void *payload);
@@ -116,6 +117,12 @@ static game_tick_t legacy_scheduler_tick(void *context)
 {
   (void)context;
   return (game_tick_t)pulse;
+}
+
+static uint64_t legacy_scheduler_usec(void *context)
+{
+  (void)context;
+  return PERF_monotonic_usec();
 }
 
 static void decrement_event_count(const char *context)
@@ -213,7 +220,7 @@ static int initialize_scheduler_backend(void)
   scheduler_config.max_event_types = 1U;
   scheduler_config.max_events_per_owner = LEGACY_EVENT_MAX_EVENTS_PER_OWNER;
   scheduler_config.tick_now = legacy_scheduler_tick;
-  scheduler_config.monotonic_usec_now = NULL;
+  scheduler_config.monotonic_usec_now = legacy_scheduler_usec;
   scheduler_config.clock_context = NULL;
   event_scheduler = game_scheduler_create(&scheduler_config, &status);
   if (event_scheduler == NULL)
@@ -534,7 +541,9 @@ void cleanup_event_obj(struct event *event)
  * executes any events that are scheduled to run now. Events can reschedule
  * themselves by returning a positive value (the delay until next run).
  */
-void event_process(void)
+static enum game_scheduler_status
+event_process_backend(const struct game_scheduler_budget *budget,
+                      struct game_scheduler_dispatch_report *caller_report)
 {
   struct event *the_event = NULL;
   struct game_scheduler_dispatch_report scheduler_report;
@@ -552,12 +561,12 @@ void event_process(void)
   if (active_backend == EVENT_BACKEND_UNINITIALIZED)
   {
     log("SYSERR: event_process called before event_init()");
-    return;
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
   }
   if (processing_events)
   {
     log("SYSERR: Recursive event_process call rejected.");
-    return;
+    return GAME_SCHEDULER_BUSY;
   }
 
   queue_depth_before = total_events;
@@ -567,7 +576,7 @@ void event_process(void)
   if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
     memset(&scheduler_report, 0, sizeof(scheduler_report));
-    scheduler_status = game_scheduler_advance(event_scheduler, NULL, &scheduler_report);
+    scheduler_status = game_scheduler_advance(event_scheduler, budget, &scheduler_report);
     queue_depth_after = total_events;
     created_during_process = events_created_during_process;
     processing_events = 0;
@@ -575,7 +584,9 @@ void event_process(void)
       log("SYSERR: Timing-wheel event dispatch failed with status %d.", scheduler_status);
     PERF_note_event_process((uint64_t)queue_depth_before, (uint64_t)queue_depth_after,
                             (uint64_t)scheduler_report.callbacks, created_during_process);
-    return;
+    if (caller_report != NULL)
+      *caller_report = scheduler_report;
+    return scheduler_status;
   }
 
   while ((long)pulse >= queue_key(event_q))
@@ -646,6 +657,42 @@ void event_process(void)
   processing_events = 0;
   PERF_note_event_process((uint64_t)queue_depth_before, (uint64_t)queue_depth_after,
                           callbacks_processed, created_during_process);
+  return GAME_SCHEDULER_OK;
+}
+
+void event_process(void)
+{
+  (void)event_process_backend(NULL, NULL);
+}
+
+void event_process_compatibility_pulse(void)
+{
+  if (active_backend == EVENT_BACKEND_LEGACY_QUEUE)
+    (void)event_process_backend(NULL, NULL);
+}
+
+enum game_scheduler_status event_process_scheduler(
+    const struct game_scheduler_budget *budget,
+    struct game_scheduler_dispatch_report *report)
+{
+  if (report == NULL)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  memset(report, 0, sizeof(*report));
+  if (active_backend != EVENT_BACKEND_GAME_SCHEDULER || event_scheduler == NULL)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  return event_process_backend(budget, report);
+}
+
+enum game_scheduler_status event_scheduler_next_deadline(game_tick_t *deadline_tick,
+                                                         bool *has_deadline)
+{
+  if (deadline_tick == NULL || has_deadline == NULL)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  *deadline_tick = 0;
+  *has_deadline = false;
+  if (active_backend != EVENT_BACKEND_GAME_SCHEDULER || event_scheduler == NULL)
+    return GAME_SCHEDULER_OK;
+  return game_scheduler_next_deadline(event_scheduler, deadline_tick, has_deadline);
 }
 
 /** Returns the time remaining before the event as how many pulses from now.

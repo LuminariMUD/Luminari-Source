@@ -11,7 +11,6 @@
 #define GAME_SCHEDULER_WHEEL_BITS 6U
 #define GAME_SCHEDULER_WHEEL_MASK (GAME_SCHEDULER_WHEEL_SLOTS - 1U)
 #define GAME_SCHEDULER_WHEEL_HORIZON (UINT64_C(1) << 30U)
-#define GAME_SCHEDULER_LARGE_ADVANCE_TICKS (UINT64_C(1) << 12U)
 #define GAME_SCHEDULER_INVALID_INDEX SIZE_MAX
 
 struct game_event_type
@@ -116,6 +115,13 @@ struct game_scheduler
   uint64_t total_invalid_owner_rejections;
   uint64_t total_owner_capacity_rejections;
   uint64_t total_owner_type_capacity_rejections;
+  uint64_t total_ticks_advanced;
+  uint64_t total_cascade_slots;
+  uint64_t total_cascaded_events;
+  uint64_t total_overflow_promotions;
+  uint64_t total_large_advances;
+  uint64_t total_large_advance_events;
+  uint64_t largest_cascade;
 };
 
 static bool event_less(const struct game_event *left, const struct game_event *right)
@@ -730,6 +736,7 @@ static void promote_overflow(struct game_scheduler *scheduler)
     }
     location_heap_pop(&scheduler->overflow_heap);
     place_event_storage(scheduler, event);
+    scheduler->total_overflow_promotions++;
   }
 }
 
@@ -737,7 +744,9 @@ static void cascade_wheel_slot(struct game_scheduler *scheduler, uint32_t level,
 {
   struct game_event *event;
   struct game_event *next;
+  uint64_t cascaded;
 
+  cascaded = 0;
   event = scheduler->wheel_head[level][slot];
   scheduler->wheel_head[level][slot] = NULL;
   scheduler->wheel_tail[level][slot] = NULL;
@@ -750,7 +759,15 @@ static void cascade_wheel_slot(struct game_scheduler *scheduler, uint32_t level,
     event->wheel_slot = UINT32_MAX;
     event->location = GAME_EVENT_LOCATION_NONE;
     place_event_storage(scheduler, event);
+    cascaded++;
     event = next;
+  }
+  if (cascaded > 0)
+  {
+    scheduler->total_cascade_slots++;
+    scheduler->total_cascaded_events += cascaded;
+    if (cascaded > scheduler->largest_cascade)
+      scheduler->largest_cascade = cascaded;
   }
 }
 
@@ -806,7 +823,9 @@ static void advance_large(struct game_scheduler *scheduler, game_tick_t now_tick
   struct game_event *next;
   uint32_t level;
   uint32_t slot;
+  uint64_t reclassified;
 
+  reclassified = 0;
   detached_head = NULL;
   detached_tail = NULL;
   for (level = 0; level < GAME_SCHEDULER_WHEEL_LEVELS; level++)
@@ -829,6 +848,7 @@ static void advance_large(struct game_scheduler *scheduler, game_tick_t now_tick
         else
           detached_head = event;
         detached_tail = event;
+        reclassified++;
         event = next;
       }
     }
@@ -845,6 +865,8 @@ static void advance_large(struct game_scheduler *scheduler, game_tick_t now_tick
     event = next;
   }
   promote_overflow(scheduler);
+  scheduler->total_large_advances++;
+  scheduler->total_large_advance_events += reclassified;
 }
 
 static bool calculate_first_future_deadline(game_tick_t deadline_tick, game_tick_t interval_ticks,
@@ -1672,6 +1694,10 @@ enum game_scheduler_status game_scheduler_advance(struct game_scheduler *schedul
 {
   game_tick_t now_tick;
   game_tick_t delta;
+  uint64_t cascade_slots_before;
+  uint64_t cascaded_events_before;
+  uint64_t overflow_promotions_before;
+  uint64_t large_advance_events_before;
 
   if (scheduler == NULL || report == NULL)
     return GAME_SCHEDULER_INVALID_ARGUMENT;
@@ -1684,10 +1710,15 @@ enum game_scheduler_status game_scheduler_advance(struct game_scheduler *schedul
 
   memset(report, 0, sizeof(*report));
   report->previous_tick = scheduler->current_tick;
+  cascade_slots_before = scheduler->total_cascade_slots;
+  cascaded_events_before = scheduler->total_cascaded_events;
+  overflow_promotions_before = scheduler->total_overflow_promotions;
+  large_advance_events_before = scheduler->total_large_advance_events;
   now_tick = scheduler->config.tick_now(scheduler->config.clock_context);
   if (now_tick < scheduler->current_tick)
     return GAME_SCHEDULER_CLOCK_REVERSED;
   delta = now_tick - scheduler->current_tick;
+  scheduler->total_ticks_advanced += delta;
   if (delta > GAME_SCHEDULER_LARGE_ADVANCE_TICKS)
   {
     advance_large(scheduler, now_tick);
@@ -1701,6 +1732,12 @@ enum game_scheduler_status game_scheduler_advance(struct game_scheduler *schedul
 
   dispatch_ready_events(scheduler, budget, report);
   report->current_tick = scheduler->current_tick;
+  report->ticks_advanced = delta;
+  report->cascade_slots = scheduler->total_cascade_slots - cascade_slots_before;
+  report->cascaded_events = scheduler->total_cascaded_events - cascaded_events_before;
+  report->overflow_promotions = scheduler->total_overflow_promotions - overflow_promotions_before;
+  report->large_advance_events =
+      scheduler->total_large_advance_events - large_advance_events_before;
   report->ready_remaining = scheduler->ready_heap.count;
   report->events_remaining = scheduler->event_count;
   return GAME_SCHEDULER_OK;
@@ -1825,6 +1862,13 @@ void game_scheduler_get_stats(const struct game_scheduler *scheduler,
   stats->total_owner_capacity_rejections = scheduler->total_owner_capacity_rejections;
   stats->total_owner_type_capacity_rejections =
       scheduler->total_owner_type_capacity_rejections;
+  stats->total_ticks_advanced = scheduler->total_ticks_advanced;
+  stats->total_cascade_slots = scheduler->total_cascade_slots;
+  stats->total_cascaded_events = scheduler->total_cascaded_events;
+  stats->total_overflow_promotions = scheduler->total_overflow_promotions;
+  stats->total_large_advances = scheduler->total_large_advances;
+  stats->total_large_advance_events = scheduler->total_large_advance_events;
+  stats->largest_cascade = scheduler->largest_cascade;
 }
 
 #ifdef LUMINARI_CUTEST

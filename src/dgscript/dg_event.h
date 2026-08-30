@@ -129,6 +129,12 @@ struct event *event_create_owned_named(EVENTFUNC(*func), void *event_obj, long w
   event_create_named_with_cleanup((func), (event_obj), (when), #func, (cleanup))
 void event_cancel(struct event *event);
 void event_process(void);
+void event_process_compatibility_pulse(void);
+enum game_scheduler_status event_process_scheduler(
+    const struct game_scheduler_budget *budget,
+    struct game_scheduler_dispatch_report *report);
+enum game_scheduler_status event_scheduler_next_deadline(game_tick_t *deadline_tick,
+                                                         bool *has_deadline);
 long event_time(struct event *event);
 void event_free_all(void);
 void cleanup_event_obj(struct event *event);

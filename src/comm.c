@@ -128,6 +128,8 @@
 /* Keep socket processing responsive when replaying missed heartbeats. */
 #define HEARTBEAT_CATCHUP_BUDGET_USEC ((uint64_t)OPT_USEC)
 #define HEARTBEAT_CATCHUP_LOG_INTERVAL 60
+#define EVENT_SCHEDULER_CALLBACK_BUDGET 256U
+#define EVENT_SCHEDULER_TIME_BUDGET_USEC UINT64_C(5000)
 #define STAFF_COMMAND_LATENCY_BUDGET_USEC 100000
 #define PERSISTENCE_PULSE_BUDGET_USEC 20000
 #define PERSISTENCE_HARD_LIMIT_USEC 50000
@@ -192,7 +194,6 @@ static int process_output(struct descriptor_data *t);
 static void retain_unsent_output(struct descriptor_data *t, const char *output, int result);
 static int process_input(struct descriptor_data *t);
 static void timediff(struct timeval *diff, struct timeval *a, struct timeval *b);
-static void timeadd(struct timeval *sum, struct timeval *a, struct timeval *b);
 static void flush_queues(struct descriptor_data *d);
 static void nonblock(socket_t s);
 static int perform_subst(struct descriptor_data *t, char *orig, char *subst);
@@ -1105,8 +1106,7 @@ static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd,
 void game_loop(socket_t local_mother_desc)
 {
   fd_set input_set, output_set, exc_set;
-  struct timeval last_time, opt_time, process_time, temp_time;
-  struct timeval before_sleep, now, timeout, perf_start;
+  struct timeval before_sleep, now, timeout, perf_start, process_time;
   char comm[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d = NULL, *next_d = NULL;
   int missed_pulses = 0, maxdesc = 0, aliased = 0;
@@ -1123,6 +1123,18 @@ void game_loop(socket_t local_mother_desc)
   uint64_t command_start_usec = 0;
   uint64_t command_end_usec = 0;
   uint64_t command_elapsed_usec = 0;
+  uint64_t next_heartbeat_usec = 0;
+  uint64_t before_sleep_usec = 0;
+  uint64_t now_usec = 0;
+  uint64_t heartbeat_timeout_usec = 0;
+  uint64_t scheduler_timeout_usec = 0;
+  uint64_t scheduler_tick_delta = 0;
+  game_tick_t scheduler_deadline = 0;
+  bool scheduler_has_deadline = false;
+  bool heartbeat_due = false;
+  struct game_scheduler_budget scheduler_budget;
+  struct game_scheduler_dispatch_report scheduler_report;
+  enum game_scheduler_status scheduler_status;
   time_t catchup_log_now = 0;
   char command_name[MAX_INPUT_LENGTH] = {'\0'};
   char command_player[MAX_NAME_LENGTH + 1] = {'\0'};
@@ -1142,14 +1154,15 @@ void game_loop(socket_t local_mother_desc)
   /* initialize various time values */
   null_time.tv_sec = 0;
   null_time.tv_usec = 0;
-  opt_time.tv_usec = OPT_USEC;
-  opt_time.tv_sec = 0;
   if (!initialize_io_reactor())
     return;
   io_driver = luminari_reactor_driver(io_reactor);
 
-  monotonic_timeval(&last_time);
-  perf_start = last_time;
+  monotonic_timeval(&perf_start);
+  next_heartbeat_usec = (uint64_t)perf_start.tv_sec * UINT64_C(1000000) +
+                        (uint64_t)perf_start.tv_usec + (uint64_t)OPT_USEC;
+  scheduler_budget.max_callbacks = EVENT_SCHEDULER_CALLBACK_BUDGET;
+  scheduler_budget.max_usec = EVENT_SCHEDULER_TIME_BUDGET_USEC;
 
   /* The Main Loop.  The Big Cheese.  The Top Dog.  The Head Honcho.  The.. */
   /* Beginner's Note: Main game loop runs until shutdown is requested.
@@ -1318,35 +1331,43 @@ void game_loop(socket_t local_mother_desc)
       }
     }
 
-    /* just in case, re-calculate after PERF logging */
+    /* Select the single reactor wakeup from the compatibility pulse and the
+     * scheduler's earliest deadline. A ready backlog requests one zero-time
+     * reactor turn so descriptors are serviced between bounded batches. */
     monotonic_timeval(&before_sleep);
-    timediff(&process_time, &before_sleep, &last_time);
-
-    /* If we were asleep for more than one pass, count missed pulses and sleep
-     * until we're resynchronized with the next upcoming pulse. */
-    if (process_time.tv_sec == 0 && process_time.tv_usec < OPT_USEC)
+    before_sleep_usec = (uint64_t)before_sleep.tv_sec * UINT64_C(1000000) +
+                        (uint64_t)before_sleep.tv_usec;
+    heartbeat_timeout_usec = before_sleep_usec >= next_heartbeat_usec
+                                 ? 0
+                                 : next_heartbeat_usec - before_sleep_usec;
+    scheduler_timeout_usec = heartbeat_timeout_usec;
+    scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
+    if (scheduler_status != GAME_SCHEDULER_OK)
     {
-      missed_pulses = 0;
+      log("SYSERR: Unable to query timing-wheel deadline (status %d).", scheduler_status);
+      scheduler_has_deadline = false;
     }
-    else
+    if (scheduler_has_deadline)
     {
-      missed_pulses = process_time.tv_sec * PASSES_PER_SEC;
-      missed_pulses += process_time.tv_usec / OPT_USEC;
-      process_time.tv_sec = 0;
-      process_time.tv_usec = process_time.tv_usec % OPT_USEC;
+      if (scheduler_deadline <= (game_tick_t)pulse)
+      {
+        scheduler_timeout_usec = 0;
+      }
+      else
+      {
+        scheduler_tick_delta = scheduler_deadline - (game_tick_t)pulse;
+        if (scheduler_tick_delta - 1U >
+            (UINT64_MAX - heartbeat_timeout_usec) / (uint64_t)OPT_USEC)
+          scheduler_timeout_usec = UINT64_MAX;
+        else
+          scheduler_timeout_usec = heartbeat_timeout_usec +
+                                   (scheduler_tick_delta - 1U) * (uint64_t)OPT_USEC;
+      }
     }
-    if (missed_pulses > 0)
-    {
-      PERF_note_missed_pulses((uint64_t)missed_pulses);
-    }
-
-    /* Calculate the time we should wake up */
-    timediff(&temp_time, &opt_time, &process_time);
-    timeadd(&last_time, &before_sleep, &temp_time);
-
-    /* Now keep sleeping until that time has come */
-    monotonic_timeval(&now);
-    timediff(&timeout, &last_time, &now);
+    if (scheduler_timeout_usec < heartbeat_timeout_usec)
+      heartbeat_timeout_usec = scheduler_timeout_usec;
+    timeout.tv_sec = (time_t)(heartbeat_timeout_usec / UINT64_C(1000000));
+    timeout.tv_usec = (suseconds_t)(heartbeat_timeout_usec % UINT64_C(1000000));
 
     /* Wait for fd readiness or the next compatibility heartbeat. */
     if (reactor_poll_fd_sets(io_reactor, maxdesc, &input_set, &output_set, &exc_set, &timeout) < 0)
@@ -1356,6 +1377,11 @@ void game_loop(socket_t local_mother_desc)
       break;
     }
     monotonic_timeval(&now);
+    now_usec = (uint64_t)now.tv_sec * UINT64_C(1000000) + (uint64_t)now.tv_usec;
+    heartbeat_due = now_usec >= next_heartbeat_usec;
+    missed_pulses = heartbeat_due ? (int)((now_usec - next_heartbeat_usec) / OPT_USEC) : 0;
+    if (missed_pulses > 0)
+      PERF_note_missed_pulses((uint64_t)missed_pulses);
 
     perf_start = now;
     PERF_prof_reset();
@@ -1561,84 +1587,99 @@ void game_loop(socket_t local_mother_desc)
         close_socket(d);
     }
 
-    /* Run the current heartbeat and recover missed pulses within the bounded
-     * wall-clock budget below. */
-    requested_missed_pulses = missed_pulses;
-    requested_heartbeats = requested_missed_pulses + 1;
-
-    if (requested_heartbeats <= 0)
+    if (heartbeat_due)
     {
-      log("SYSERR: **BAD** MISSED_PULSES NONPOSITIVE (%d), TIME GOING BACKWARDS!!",
-          requested_heartbeats);
-      requested_missed_pulses = 0;
-      requested_heartbeats = 1;
-    }
+      next_heartbeat_usec += ((uint64_t)missed_pulses + 1U) * (uint64_t)OPT_USEC;
 
-    /* Always run the current heartbeat, then replay missed heartbeats only while
-     * the work fits inside one normal outer-loop time budget. Any remainder is
-     * deliberately discarded rather than carried into a self-reinforcing loop;
-     * logical timers advance only for heartbeats that actually run. */
-    replayed_heartbeats = 0;
-    catchup_budget_exhausted = 0;
-    heartbeat_replay_start_usec = PERF_monotonic_usec();
-    while (replayed_heartbeats < requested_heartbeats)
-    {
-      PERF_PROF_ENTER_SAMPLED(pr_heartbeat, "heartbeat");
-      heartbeat(++pulse);
-      PERF_PROF_EXIT(pr_heartbeat);
-      replayed_heartbeats++;
+      /* Run the current heartbeat and recover missed pulses within the bounded
+       * wall-clock budget below. */
+      requested_missed_pulses = missed_pulses;
+      requested_heartbeats = requested_missed_pulses + 1;
 
-      if (replayed_heartbeats < requested_heartbeats)
+      if (requested_heartbeats <= 0)
       {
-        heartbeat_replay_now_usec = PERF_monotonic_usec();
-        heartbeat_replay_elapsed_usec =
-            heartbeat_replay_now_usec >= heartbeat_replay_start_usec
-                ? heartbeat_replay_now_usec - heartbeat_replay_start_usec
-                : 0;
-        if (heartbeat_replay_elapsed_usec >= HEARTBEAT_CATCHUP_BUDGET_USEC)
+        log("SYSERR: **BAD** MISSED_PULSES NONPOSITIVE (%d), TIME GOING BACKWARDS!!",
+            requested_heartbeats);
+        requested_missed_pulses = 0;
+        requested_heartbeats = 1;
+      }
+
+      /* Always run the current heartbeat, then replay missed heartbeats only while
+       * the work fits inside one normal outer-loop time budget. Any remainder is
+       * deliberately discarded rather than carried into a self-reinforcing loop;
+       * logical timers advance only for heartbeats that actually run. */
+      replayed_heartbeats = 0;
+      catchup_budget_exhausted = 0;
+      heartbeat_replay_start_usec = PERF_monotonic_usec();
+      while (replayed_heartbeats < requested_heartbeats)
+      {
+        PERF_PROF_ENTER_SAMPLED(pr_heartbeat, "heartbeat");
+        heartbeat(++pulse);
+        PERF_PROF_EXIT(pr_heartbeat);
+        replayed_heartbeats++;
+
+        if (replayed_heartbeats < requested_heartbeats)
         {
-          catchup_budget_exhausted = 1;
-          break;
+          heartbeat_replay_now_usec = PERF_monotonic_usec();
+          heartbeat_replay_elapsed_usec =
+              heartbeat_replay_now_usec >= heartbeat_replay_start_usec
+                  ? heartbeat_replay_now_usec - heartbeat_replay_start_usec
+                  : 0;
+          if (heartbeat_replay_elapsed_usec >= HEARTBEAT_CATCHUP_BUDGET_USEC)
+          {
+            catchup_budget_exhausted = 1;
+            break;
+          }
+        }
+      }
+
+      replayed_missed_pulses = replayed_heartbeats - 1;
+      remaining_backlog = requested_missed_pulses - replayed_missed_pulses;
+      if (remaining_backlog < 0)
+        remaining_backlog = 0;
+
+      if (requested_missed_pulses > 0)
+      {
+        PERF_note_catchup_pass((uint64_t)requested_missed_pulses, (uint64_t)replayed_missed_pulses,
+                               (uint64_t)remaining_backlog, catchup_budget_exhausted);
+
+        if (catchup_log_passes < UINT64_MAX)
+          catchup_log_passes++;
+        if (catchup_budget_exhausted && catchup_log_budget_exhausted < UINT64_MAX)
+          catchup_log_budget_exhausted++;
+        if ((uint64_t)requested_missed_pulses > catchup_log_max_requested)
+          catchup_log_max_requested = (uint64_t)requested_missed_pulses;
+        if ((uint64_t)remaining_backlog > catchup_log_max_remaining)
+          catchup_log_max_remaining = (uint64_t)remaining_backlog;
+
+        catchup_log_now = time(NULL);
+        if (last_catchup_log_time == 0 ||
+            catchup_log_now - last_catchup_log_time >= HEARTBEAT_CATCHUP_LOG_INTERVAL)
+        {
+          log("PERFMON [CATCHUP]: window_passes=%llu budget_exhausted=%llu max_requested=%llu "
+              "max_remaining=%llu latest_requested=%d latest_replayed=%d latest_remaining=%d",
+              (unsigned long long)catchup_log_passes,
+              (unsigned long long)catchup_log_budget_exhausted,
+              (unsigned long long)catchup_log_max_requested,
+              (unsigned long long)catchup_log_max_remaining, requested_missed_pulses,
+              replayed_missed_pulses, remaining_backlog);
+          last_catchup_log_time = catchup_log_now;
+          catchup_log_passes = 0;
+          catchup_log_budget_exhausted = 0;
+          catchup_log_max_requested = 0;
+          catchup_log_max_remaining = 0;
         }
       }
     }
 
-    replayed_missed_pulses = replayed_heartbeats - 1;
-    remaining_backlog = requested_missed_pulses - replayed_missed_pulses;
-    if (remaining_backlog < 0)
-      remaining_backlog = 0;
-
-    if (requested_missed_pulses > 0)
+    scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
+    if (scheduler_status == GAME_SCHEDULER_OK && scheduler_has_deadline &&
+        scheduler_deadline <= (game_tick_t)pulse)
     {
-      PERF_note_catchup_pass((uint64_t)requested_missed_pulses, (uint64_t)replayed_missed_pulses,
-                             (uint64_t)remaining_backlog, catchup_budget_exhausted);
-
-      if (catchup_log_passes < UINT64_MAX)
-        catchup_log_passes++;
-      if (catchup_budget_exhausted && catchup_log_budget_exhausted < UINT64_MAX)
-        catchup_log_budget_exhausted++;
-      if ((uint64_t)requested_missed_pulses > catchup_log_max_requested)
-        catchup_log_max_requested = (uint64_t)requested_missed_pulses;
-      if ((uint64_t)remaining_backlog > catchup_log_max_remaining)
-        catchup_log_max_remaining = (uint64_t)remaining_backlog;
-
-      catchup_log_now = time(NULL);
-      if (last_catchup_log_time == 0 ||
-          catchup_log_now - last_catchup_log_time >= HEARTBEAT_CATCHUP_LOG_INTERVAL)
-      {
-        log("PERFMON [CATCHUP]: window_passes=%llu budget_exhausted=%llu max_requested=%llu "
-            "max_remaining=%llu latest_requested=%d latest_replayed=%d latest_remaining=%d",
-            (unsigned long long)catchup_log_passes,
-            (unsigned long long)catchup_log_budget_exhausted,
-            (unsigned long long)catchup_log_max_requested,
-            (unsigned long long)catchup_log_max_remaining, requested_missed_pulses,
-            replayed_missed_pulses, remaining_backlog);
-        last_catchup_log_time = catchup_log_now;
-        catchup_log_passes = 0;
-        catchup_log_budget_exhausted = 0;
-        catchup_log_max_requested = 0;
-        catchup_log_max_remaining = 0;
-      }
+      memset(&scheduler_report, 0, sizeof(scheduler_report));
+      scheduler_status = event_process_scheduler(&scheduler_budget, &scheduler_report);
+      if (scheduler_status != GAME_SCHEDULER_OK)
+        log("SYSERR: Timing-wheel reactor dispatch failed with status %d.", scheduler_status);
     }
 
     /* Process terrain bridge API requests */
@@ -2059,7 +2100,7 @@ void heartbeat(int heart_pulse)
   PERF_prof_sect_init(&pr_event_process, "event_process");
   PERF_prof_sect_enable_sampling(pr_event_process);
   PERF_prof_sect_enter(pr_event_process);
-  event_process();
+  event_process_compatibility_pulse();
   PERF_prof_sect_exit(pr_event_process);
 
   if (!(heart_pulse % PULSE_DG_SCRIPT))
@@ -2367,19 +2408,6 @@ static void timediff(struct timeval *rslt, struct timeval *a, struct timeval *b)
     }
     else
       rslt->tv_usec = a->tv_usec - b->tv_usec;
-  }
-}
-
-/* Add 2 time values.  Patch sent by "d. hall" to fix 'static' usage. */
-static void timeadd(struct timeval *rslt, struct timeval *a, struct timeval *b)
-{
-  rslt->tv_sec = a->tv_sec + b->tv_sec;
-  rslt->tv_usec = a->tv_usec + b->tv_usec;
-
-  while (rslt->tv_usec >= 1000000)
-  {
-    rslt->tv_usec -= 1000000;
-    rslt->tv_sec++;
   }
 }
 

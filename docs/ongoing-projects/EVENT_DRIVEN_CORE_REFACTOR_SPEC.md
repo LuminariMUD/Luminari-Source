@@ -1,14 +1,15 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 3 accepted; scheduler/reactor bridge is next
-**Document version:** 1.0
+**Status:** In progress - Phase 4 accepted; persistent ownership is next
+**Document version:** 1.1
 **Started:** 2026-08-29
 **Last source review:** 2026-08-30
-**Implementation status:** Phases 1, 2, 2.5, and 3 complete; Phase 4 is the next gate
+**Implementation status:** Phases 1, 2, 2.5, 3, and 4 complete; Phase 5 is the next gate
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
-> existing compatibility heartbeat still drives it. Generation-aware MUD-event
+> scheduler deadlines now drive bounded reactor dispatch, while the compatibility
+> heartbeat remains only for unmigrated pulse work. Generation-aware MUD-event
 > ownership and lifecycle cancellation form the accepted scheduler foundation.
 > A private `libevent` compatibility reactor now owns production readiness and
 > signals, with boot-time `select()` rollback; gameplay semantics have not
@@ -1574,6 +1575,13 @@ Rollback:
 - Return scheduler advancement to the compatibility heartbeat or select the old
   queue at boot. No live scheduler conversion is allowed.
 
+Acceptance evidence is recorded in
+[`EVENT_DRIVEN_CORE_REFACTOR_PHASE4_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE4_VALIDATION.md).
+The accepted reactor dispatch budget is 256 callbacks or 5 ms per turn. The
+five-level, 64-slot wheel and the greater-than-4,096-tick large-advance policy
+remain unchanged after the representative workload, cascade, stall, storm,
+copyover, sanitizer, and Valgrind measurements.
+
 ### Phase 5: Persistent and reconstructable event ownership
 
 Deliverables:
@@ -2071,8 +2079,8 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 - [x] Adversarial findings have an explicit resolution or owning phase in v0.8.
 - [x] Owner generation semantics cover PCs, NPCs, objects, rooms, and runtime
       subsystem owners.
-- [ ] Dispatch budgets and event-storm behavior are operationally acceptable.
-- [ ] Phase 4 observed-workload telemetry is privacy-safe and representative
+- [x] Dispatch budgets and event-storm behavior are operationally acceptable.
+- [x] Phase 4 observed-workload telemetry is privacy-safe and representative
       enough to accept or retune scheduler geometry.
 - [ ] Copyover and reboot classifications are sufficient.
 - [x] Legacy compatibility and rollback do not permit double callback execution.
@@ -2105,3 +2113,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 0.8 | 2026-08-30 | Incorporated the adversarial review; inserted a blocking Phase 2.5 owner/lifecycle gate, corrected cascade and lifecycle contracts, assigned monotonic clock and full copyover/fd/signal/dependency/CI requirements to Phase 3, split typed events from pub/sub retirement, and made large-advance, encounter, activity, observability, and rollback obligations testable. |
 | 0.9 | 2026-08-30 | Accepted Phase 2.5 after implementing generation-aware owner handles and indexing, owner admission limits and diagnostics, lifecycle-ordered bulk cancellation, dual-backend MUD adaptation, payload classification, and sanitizer/Valgrind/static-analysis validation. Phase 3 is now authorized. |
 | 1.0 | 2026-08-30 | Accepted Phase 3 after adding the private libevent/select compatibility reactor, monotonic pacing, complete main-thread fd and signal ownership, copyover teardown and reconstruction, the system dependency contract, the 2x2 CI matrix, and live protocol, copyover, signal, load, sanitizer, and Valgrind evidence. Phase 4 is now authorized. |
+| 1.1 | 2026-08-30 | Accepted Phase 4 after bridging scheduler deadlines into the reactor, bounding due work with count and wall-time budgets, separating compatibility and scheduler dispatch paths, retaining the measured wheel geometry, and passing representative workload, churn, cascade, stall, storm, copyover, matrix, sanitizer, and Valgrind gates. Phase 5 is now authorized. |

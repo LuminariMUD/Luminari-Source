@@ -307,14 +307,14 @@ void Test_legacy_event_rejects_recursive_dispatch_on_both_backends(CuTest *tc)
 void Test_legacy_event_source_workload_populates_private_telemetry(CuTest *tc)
 {
   static const struct workload_case workload[] = {
-      {"Quest Completed!", 1},
-      {"Falling", 5},
+      {"World Quest Completion", 1},
+      {"World Falling", 5},
       {"Spell Preparation", 10},
-      {"Combat Round", 20},
-      {"Encounter Region Reset", 600},
-      {"Magic Food", 3000},
-      {"Mob Purge", 14400},
-      {"Midnight Edict", 864000},
+      {"Cooldown Expiry", 20},
+      {"DG Wait Resume", 600},
+      {"AI Combat Round", 3000},
+      {"Resource Regeneration", 14400},
+      {"World Midnight Edict", 864000},
   };
   struct event *events[sizeof(workload) / sizeof(workload[0])];
   char report[32768];
@@ -362,6 +362,58 @@ void Test_legacy_event_source_workload_populates_private_telemetry(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "# event_delay_pulses_6001_36000=1"));
   CuAssertPtrNotNull(tc, strstr(report, "# event_delay_pulses_gt_36000=1"));
 
+  event_free_all();
+  pulse = saved_pulse;
+}
+
+void Test_legacy_event_scheduler_bridge_yields_without_dual_dispatch(CuTest *tc)
+{
+  struct game_scheduler_budget budget;
+  struct game_scheduler_dispatch_report report;
+  struct event_trace trace;
+  struct event_trace_payload *payload;
+  game_tick_t deadline;
+  bool has_deadline;
+  unsigned long saved_pulse;
+  int index;
+
+  saved_pulse = pulse;
+  memset(&trace, 0, sizeof(trace));
+  memset(&budget, 0, sizeof(budget));
+  budget.max_callbacks = 1U;
+  begin_backend_test(tc, EVENT_BACKEND_GAME_SCHEDULER, 500U);
+  for (index = 0; index < 3; index++)
+  {
+    payload = new_trace_payload(&trace, (char)('A' + index), 1, 0);
+    CuAssertPtrNotNull(tc, payload);
+    CuAssertPtrNotNull(tc,
+                       event_create_named(event_trace_callback, payload, 1, "bridge-storm"));
+  }
+
+  pulse = 501U;
+  event_process_compatibility_pulse();
+  CuAssertIntEquals(tc, 0, trace.count);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_scheduler_next_deadline(&deadline, &has_deadline));
+  CuAssertTrue(tc, has_deadline);
+  CuAssertTrue(tc, deadline == 501U);
+
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_process_scheduler(&budget, &report));
+  CuAssertIntEquals(tc, 1, trace.count);
+  CuAssertIntEquals(tc, 2, (int)report.ready_remaining);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_process_scheduler(&budget, &report));
+  CuAssertIntEquals(tc, 2, trace.count);
+  CuAssertIntEquals(tc, 1, (int)report.ready_remaining);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_process_scheduler(&budget, &report));
+  CuAssertIntEquals(tc, 3, trace.count);
+  CuAssertIntEquals(tc, 0, (int)report.ready_remaining);
+  CuAssertIntEquals(tc, 501, (int)pulse);
+
+  event_process_compatibility_pulse();
+  CuAssertIntEquals(tc, 3, trace.count);
   event_free_all();
   pulse = saved_pulse;
 }

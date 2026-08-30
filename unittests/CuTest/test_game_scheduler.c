@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/game_scheduler.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1264,5 +1265,148 @@ void Test_game_scheduler_cleans_payload_when_callback_reschedule_overflows(CuTes
   CuAssertIntEquals(tc, 1, cleanups);
   CuAssertIntEquals(tc, GAME_SCHEDULER_NOT_FOUND,
                     game_scheduler_inspect(scheduler, event_id, &(struct game_event_snapshot){0}));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
+}
+
+void Test_game_scheduler_reports_threshold_cascade_and_large_advance_work(CuTest *tc)
+{
+  struct game_scheduler_dispatch_report report;
+  struct game_scheduler_stats stats;
+  struct game_scheduler *scheduler;
+  struct test_event_payload *payload;
+  struct test_clock clock;
+  game_event_type_id_t event_type;
+  game_event_id_t event_id;
+  uint64_t threshold_cascade_slots;
+  uint64_t threshold_cascaded_events;
+  int calls;
+  int cleanups;
+
+  memset(&clock, 0, sizeof(clock));
+  calls = 0;
+  cleanups = 0;
+  scheduler = create_test_scheduler(tc, &clock, 4U, false);
+  event_type = register_test_type(tc, scheduler, "structural-work",
+                                  GAME_EVENT_LATENESS_RUN_ONCE, 0U, 0U);
+  payload = create_test_payload(tc, &calls, &cleanups);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    game_scheduler_schedule_at(scheduler, event_type, 64U, payload, &event_id));
+
+  clock.tick = GAME_SCHEDULER_LARGE_ADVANCE_TICKS;
+  report = advance_scheduler(tc, scheduler, NULL);
+  CuAssertTrue(tc, !report.used_large_advance);
+  CuAssertTrue(tc, report.ticks_advanced == GAME_SCHEDULER_LARGE_ADVANCE_TICKS);
+  CuAssertTrue(tc, report.cascade_slots > 0);
+  CuAssertTrue(tc, report.cascaded_events > 0);
+  threshold_cascade_slots = report.cascade_slots;
+  threshold_cascaded_events = report.cascaded_events;
+  CuAssertIntEquals(tc, 1, calls);
+
+  payload = create_test_payload(tc, &calls, &cleanups);
+  CuAssertIntEquals(
+      tc, GAME_SCHEDULER_OK,
+      game_scheduler_schedule_after(scheduler, event_type,
+                                    GAME_SCHEDULER_LARGE_ADVANCE_TICKS + 100U,
+                                    payload, &event_id));
+  clock.tick += GAME_SCHEDULER_LARGE_ADVANCE_TICKS + 1U;
+  report = advance_scheduler(tc, scheduler, NULL);
+  CuAssertTrue(tc, report.used_large_advance);
+  CuAssertTrue(tc, report.large_advance_events == 1U);
+  CuAssertIntEquals(tc, 1, (int)report.events_remaining);
+
+  game_scheduler_get_stats(scheduler, &stats);
+  CuAssertTrue(tc, stats.total_ticks_advanced ==
+                      GAME_SCHEDULER_LARGE_ADVANCE_TICKS * 2U + 1U);
+  CuAssertTrue(tc, stats.total_large_advances == 1U);
+  CuAssertTrue(tc, stats.total_large_advance_events == 1U);
+  CuAssertTrue(tc, stats.largest_cascade > 0U);
+  if (getenv("LUMINARI_PHASE4_REPORT") != NULL)
+    fprintf(stderr,
+            "PHASE4 threshold_ticks=%" PRIu64 " cascade_slots=%" PRIu64
+            " cascaded_events=%" PRIu64 " large_jump_ticks=%" PRIu64
+            " large_reclassified=%" PRIu64 " largest_cascade=%" PRIu64 "\n",
+            GAME_SCHEDULER_LARGE_ADVANCE_TICKS, threshold_cascade_slots,
+            threshold_cascaded_events, GAME_SCHEDULER_LARGE_ADVANCE_TICKS + 1U,
+            report.large_advance_events, stats.largest_cascade);
+  CuAssertIntEquals(tc, GAME_EVENT_CANCELLED,
+                    game_scheduler_cancel(scheduler, event_id));
+  CuAssertIntEquals(tc, 2, cleanups);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
+}
+
+void Test_game_scheduler_long_soak_churn_and_due_storm_remain_bounded(CuTest *tc)
+{
+  struct game_scheduler_budget budget;
+  struct game_scheduler_dispatch_report report;
+  struct game_scheduler_stats stats;
+  struct game_scheduler *scheduler;
+  struct test_event_payload *payload;
+  struct test_clock clock;
+  game_event_type_id_t event_type;
+  game_event_id_t event_ids[512];
+  size_t ready_turns;
+  int calls;
+  int cleanups;
+  int round;
+  int index;
+
+  memset(&clock, 0, sizeof(clock));
+  memset(&budget, 0, sizeof(budget));
+  budget.max_callbacks = 32U;
+  calls = 0;
+  cleanups = 0;
+  scheduler = create_test_scheduler(tc, &clock, 512U, false);
+  event_type = register_test_type(tc, scheduler, "soak-storm",
+                                  GAME_EVENT_LATENESS_RUN_ONCE, 0U, 0U);
+
+  for (round = 0; round < 100; round++)
+  {
+    for (index = 0; index < 64; index++)
+    {
+      payload = create_test_payload(tc, &calls, &cleanups);
+      CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                        game_scheduler_schedule_after(scheduler, event_type, 1U, payload,
+                                                      &event_ids[index]));
+      if ((index % 2) == 0)
+        CuAssertIntEquals(tc, GAME_EVENT_CANCELLED,
+                          game_scheduler_cancel(scheduler, event_ids[index]));
+    }
+    clock.tick++;
+    do
+    {
+      report = advance_scheduler(tc, scheduler, &budget);
+      CuAssertTrue(tc, report.callbacks <= budget.max_callbacks);
+    } while (report.ready_remaining > 0);
+    CuAssertIntEquals(tc, 0, (int)report.events_remaining);
+  }
+
+  for (index = 0; index < 512; index++)
+  {
+    payload = create_test_payload(tc, &calls, &cleanups);
+    CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                      game_scheduler_schedule_after(scheduler, event_type, 1U, payload,
+                                                    &event_ids[index]));
+  }
+  clock.tick++;
+  ready_turns = 0;
+  do
+  {
+    report = advance_scheduler(tc, scheduler, &budget);
+    ready_turns++;
+    CuAssertTrue(tc, report.callbacks <= budget.max_callbacks);
+  } while (report.ready_remaining > 0);
+
+  CuAssertIntEquals(tc, 16, (int)ready_turns);
+  CuAssertIntEquals(tc, 0, (int)report.events_remaining);
+  CuAssertIntEquals(tc, 3712, calls);
+  CuAssertIntEquals(tc, 6912, cleanups);
+  game_scheduler_get_stats(scheduler, &stats);
+  CuAssertTrue(tc, stats.largest_cascade == 512U);
+  if (getenv("LUMINARI_PHASE4_REPORT") != NULL)
+    fprintf(stderr,
+            "PHASE4 soak_rounds=100 churn_events=6400 storm_events=512 "
+            "callback_budget=32 ready_turns=%zu max_ready_latency_turns=%zu "
+            "largest_cascade=%" PRIu64 "\n",
+            ready_turns, ready_turns - 1U, stats.largest_cascade);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
 }

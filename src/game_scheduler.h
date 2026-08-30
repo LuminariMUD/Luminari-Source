@@ -10,6 +10,7 @@
 #define GAME_SCHEDULER_WHEEL_SLOTS 64U
 #define GAME_SCHEDULER_DEFAULT_MAX_EVENTS 10000U
 #define GAME_SCHEDULER_DEFAULT_MAX_EVENT_TYPES 256U
+#define GAME_SCHEDULER_LARGE_ADVANCE_TICKS UINT64_C(4096)
 
 typedef uint64_t game_tick_t;
 typedef uint64_t game_event_id_t;
@@ -178,6 +179,11 @@ struct game_scheduler_dispatch_report
   bool callback_budget_exhausted;
   bool time_budget_exhausted;
   bool used_large_advance;
+  uint64_t ticks_advanced;
+  uint64_t cascade_slots;
+  uint64_t cascaded_events;
+  uint64_t overflow_promotions;
+  uint64_t large_advance_events;
 };
 
 struct game_event_snapshot
@@ -211,6 +217,13 @@ struct game_scheduler_stats
   uint64_t total_invalid_owner_rejections;
   uint64_t total_owner_capacity_rejections;
   uint64_t total_owner_type_capacity_rejections;
+  uint64_t total_ticks_advanced;
+  uint64_t total_cascade_slots;
+  uint64_t total_cascaded_events;
+  uint64_t total_overflow_promotions;
+  uint64_t total_large_advances;
+  uint64_t total_large_advance_events;
+  uint64_t largest_cascade;
 };
 
 struct game_event_result game_event_result_complete(void);

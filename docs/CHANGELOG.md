@@ -2,6 +2,28 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Event-driven scheduler/reactor bridge
+
+#### Added
+
+- Armed reactor waits from the nearest compatibility-heartbeat or scheduler
+  deadline and added structural telemetry for cascade and large-advance work.
+- Added explicit compatibility-heartbeat and budgeted scheduler dispatch paths,
+  preventing a scheduler callback from running through both timed backends.
+
+#### Changed
+
+- Bounded scheduler work to 256 callbacks or 5 ms per reactor turn and serviced
+  descriptors before continuing a ready backlog.
+- Retained the 100 ms heartbeat for unmigrated work and accepted the existing
+  timing-wheel geometry after measured threshold, cascade, and workload review.
+
+#### Tests
+
+- Added representative consumer, threshold, churn, long-soak, due-storm, and
+  no-dual-dispatch coverage; passed the 951-test 2x2 backend/driver matrix,
+  ASan/UBSan, strict Valgrind, and a logged-in live copyover session.
+
 ### Event-driven core owner and lifecycle foundation
 
 #### Added
