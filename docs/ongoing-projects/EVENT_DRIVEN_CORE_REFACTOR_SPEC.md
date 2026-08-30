@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 4 accepted; persistent ownership is next
-**Document version:** 1.1
+**Status:** In progress - Phase 5 accepted; typed domain events are next
+**Document version:** 1.2
 **Started:** 2026-08-29
 **Last source review:** 2026-08-30
-**Implementation status:** Phases 1, 2, 2.5, 3, and 4 complete; Phase 5 is the next gate
+**Implementation status:** Phases 1, 2, 2.5, 3, 4, and 5 complete; Phase 6a is the next gate
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -13,7 +13,9 @@
 > ownership and lifecycle cancellation form the accepted scheduler foundation.
 > A private `libevent` compatibility reactor now owns production readiness and
 > signals, with boot-time `select()` rollback; gameplay semantics have not
-> migrated.
+> migrated. Versioned player-event records now validate stable ownership and
+> rebuild fresh process-local timers, while transient and boot-reconstructed
+> work has an explicit policy.
 
 ## 1. Purpose
 
@@ -1606,6 +1608,13 @@ Rollback:
 - Retain the prior per-type serialization path until the replacement for that
   type has completed its stable migration window.
 
+**Accepted 2026-08-30.** The 232 usable registry types are classified as 93
+persisted, one reconstructable, zero copyover-only, and 138 transient. Persisted
+player timers use versioned per-type records, stable player ownership, explicit
+offline-pause policy, validated typed payloads, and fresh runtime identity on
+restore. Legacy read/write rollback remains available. The 955-test matrix,
+live reboot/copyover/rollback sessions, ASan/UBSan, and Valgrind gates pass.
+
 ### Phase 6: Typed domain events and pub/sub retirement
 
 #### Phase 6a: Typed domain-event introduction
@@ -1981,7 +1990,7 @@ working document is retired according to the ongoing-project policy.
 | D6 | Handler result API | Explicit tagged result; legacy adapter deferred | Core accepted | Phase 1 |
 | D7 | Same-tick scheduling | Normalize to next tick, never recursive | Accepted for Phase 1 | Phase 1 |
 | D8 | Owner registry | Typed runtime ID plus generation and owner index | Accepted for implementation | Phase 2.5 |
-| D9 | Persistent event store | Per-type serialization and rehydration | Provisional | Phase 5 |
+| D9 | Persistent event store | Versioned per-type player records with stable owner validation, explicit offline policy, and fresh runtime rehydration; boot-derived world work remains reconstructable | Accepted | Phase 5 |
 | D10 | Old/new backend selection | Process environment, then `.env`; scheduler default, legacy rollback; immutable until shutdown | Accepted | Phase 2 |
 | D11 | Combat join eligibility | Next encounter round | Provisional | Phase 8 |
 | D12 | Encounter merge clock | Preserve survivor clock plus participant not-before guards | Provisional | Phase 8 |
@@ -2082,7 +2091,7 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 - [x] Dispatch budgets and event-storm behavior are operationally acceptable.
 - [x] Phase 4 observed-workload telemetry is privacy-safe and representative
       enough to accept or retune scheduler geometry.
-- [ ] Copyover and reboot classifications are sufficient.
+- [x] Copyover and reboot classifications are sufficient.
 - [x] Legacy compatibility and rollback do not permit double callback execution.
 - [x] `libevent` integration preserves descriptor, interpreter, copyover,
       signal, and operational behavior without leaking reactor types.
@@ -2114,3 +2123,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 0.9 | 2026-08-30 | Accepted Phase 2.5 after implementing generation-aware owner handles and indexing, owner admission limits and diagnostics, lifecycle-ordered bulk cancellation, dual-backend MUD adaptation, payload classification, and sanitizer/Valgrind/static-analysis validation. Phase 3 is now authorized. |
 | 1.0 | 2026-08-30 | Accepted Phase 3 after adding the private libevent/select compatibility reactor, monotonic pacing, complete main-thread fd and signal ownership, copyover teardown and reconstruction, the system dependency contract, the 2x2 CI matrix, and live protocol, copyover, signal, load, sanitizer, and Valgrind evidence. Phase 4 is now authorized. |
 | 1.1 | 2026-08-30 | Accepted Phase 4 after bridging scheduler deadlines into the reactor, bounding due work with count and wall-time budgets, separating compatibility and scheduler dispatch paths, retaining the measured wheel geometry, and passing representative workload, churn, cascade, stall, storm, copyover, matrix, sanitizer, and Valgrind gates. Phase 5 is now authorized. |
+| 1.2 | 2026-08-30 | Accepted Phase 5 after exhaustively classifying MUD events, adding versioned player-event records with stable-owner and payload validation, preserving explicit offline-pause behavior, rehydrating fresh process-local identity, retaining legacy read/write rollback, fixing the account-menu cooldown overwrite found by live audit, and passing matrix, reboot, copyover, sanitizer, and Valgrind gates. Phase 6a is now authorized. |

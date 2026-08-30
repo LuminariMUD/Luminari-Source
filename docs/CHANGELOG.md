@@ -2,6 +2,34 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Event persistence ownership
+
+#### Added
+
+- Classified all MUD event types as transient, reconstructable, copyover-only,
+  or persisted, with explicit per-type schema, payload, and offline policy.
+- Added versioned player-event records that validate stable player ownership and
+  create fresh process-local scheduler identity during restore.
+
+#### Changed
+
+- Kept all previously saved player cooldowns paused while offline, rebuilt
+  encounter-region reset work from world data at boot, and retained the legacy
+  player-event reader plus a boot-time legacy-writer rollback switch.
+
+#### Fixed
+
+- Prevented character-menu return from overwriting a correctly saved cooldown
+  section after world extraction had cleared runtime events.
+- Rejected malformed, unknown, wrong-schema, wrong-owner, stale, and duplicate
+  durable event records without admitting unsafe callbacks.
+
+#### Tests
+
+- Added exhaustive policy and restore coverage and passed 955 production-linked
+  tests in the 2x2 backend/driver matrix, ASan/UBSan, strict Valgrind, and live
+  full-reboot, logged-in copyover, and legacy rollback sessions.
+
 ### Event-driven scheduler/reactor bridge
 
 #### Added

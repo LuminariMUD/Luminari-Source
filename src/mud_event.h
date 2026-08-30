@@ -15,6 +15,7 @@
 
 #include "dgscript/dg_event.h"
 
+struct char_data;
 struct region_data;
 
 #define EVENT_WORLD 0
@@ -23,6 +24,46 @@ struct region_data;
 #define EVENT_ROOM 3
 #define EVENT_REGION 4
 #define EVENT_OBJECT 5
+
+#define MUD_EVENT_DURABLE_FORMAT_VERSION 1U
+#define MUD_EVENT_MAX_PERSISTED_USES 100000
+
+enum mud_event_storage_class
+{
+  MUD_EVENT_TRANSIENT = 0,
+  MUD_EVENT_RECONSTRUCTABLE,
+  MUD_EVENT_COPYOVER_PRESERVED,
+  MUD_EVENT_PERSISTED
+};
+
+enum mud_event_offline_policy
+{
+  MUD_EVENT_OFFLINE_DISCARD = 0,
+  MUD_EVENT_OFFLINE_RECONSTRUCT,
+  MUD_EVENT_OFFLINE_PAUSE,
+  MUD_EVENT_OFFLINE_ELAPSE
+};
+
+enum mud_event_payload_policy
+{
+  MUD_EVENT_PAYLOAD_NONE = 0,
+  MUD_EVENT_PAYLOAD_USES
+};
+
+enum mud_event_restore_status
+{
+  MUD_EVENT_RESTORE_OK = 0,
+  MUD_EVENT_RESTORE_EXPIRED,
+  MUD_EVENT_RESTORE_INVALID_ARGUMENT,
+  MUD_EVENT_RESTORE_INVALID_FORMAT,
+  MUD_EVENT_RESTORE_UNKNOWN_TYPE,
+  MUD_EVENT_RESTORE_CLASS_MISMATCH,
+  MUD_EVENT_RESTORE_SCHEMA_MISMATCH,
+  MUD_EVENT_RESTORE_OWNER_MISMATCH,
+  MUD_EVENT_RESTORE_PAYLOAD_MALFORMED,
+  MUD_EVENT_RESTORE_DUPLICATE,
+  MUD_EVENT_RESTORE_ADMISSION_FAILED
+};
 
 #define NEW_EVENT(event_id, struct, var, time)                                                     \
   (attach_mud_event(new_mud_event(event_id, struct, var), time))
@@ -295,6 +336,24 @@ struct mud_event_data
   bool owner_detached;  /***< Owner list was detached before deferred cleanup. */
 };
 
+struct mud_event_persistence_policy
+{
+  enum mud_event_storage_class storage_class;
+  enum mud_event_offline_policy offline_policy;
+  enum mud_event_payload_policy payload_policy;
+  unsigned int schema_version;
+};
+
+struct mud_event_durable_record
+{
+  event_id event_type;
+  unsigned int schema_version;
+  int64_t owner_id;
+  int64_t remaining_ticks;
+  int64_t saved_at_epoch;
+  int payload_value;
+};
+
 /* Externals */
 extern struct list_data *world_events;
 extern struct mud_event_list mud_event_index[];
@@ -302,6 +361,17 @@ extern const size_t mud_event_index_count;
 
 /* Local Functions */
 void init_events(void);
+const struct mud_event_persistence_policy *mud_event_persistence_policy(event_id iId);
+const char *mud_event_storage_class_name(enum mud_event_storage_class storage_class);
+const char *mud_event_restore_status_name(enum mud_event_restore_status status);
+bool mud_event_legacy_persistence_writer_enabled(void);
+bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *pMudEvent,
+                                   int64_t saved_at_epoch,
+                                   struct mud_event_durable_record *record);
+enum mud_event_restore_status
+mud_event_restore_character_record(struct char_data *ch,
+                                   const struct mud_event_durable_record *record,
+                                   int64_t now_epoch);
 struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sVariables);
 void attach_mud_event(struct mud_event_data *pMudEvent, long time);
 void free_mud_event(struct mud_event_data *pMudEvent);
@@ -355,4 +425,9 @@ EVENTFUNC(event_device_creation);
 EVENTFUNC(event_device_repair);
 EVENTFUNC(event_rol_call_lycanthrope_charm);
 EVENTFUNC(event_rol_tazriks_frenzied_hound);
+
+#ifdef LUMINARI_CUTEST
+void mud_event_test_reset_cleanup_count(void);
+int mud_event_test_cleanup_count(void);
+#endif
 #endif /* _MUD_EVENT_H_ */

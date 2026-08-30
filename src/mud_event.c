@@ -59,9 +59,313 @@
 struct list_data *world_events = NULL;
 static uint64_t next_event_owner_generation = 1U;
 static uint64_t world_event_owner_generation = 0;
+static struct mud_event_persistence_policy persistence_policies[eMUD_EVENT_COUNT];
+static bool persistence_policies_initialized = false;
+#ifdef LUMINARI_CUTEST
+static int mud_event_cleanup_count = 0;
+#endif
 
 /* The mud_event_index[] is defined in mud_event_list.c */
 extern struct mud_event_list mud_event_index[];
+
+static void initialize_mud_event_persistence_policies(void)
+{
+  size_t i;
+
+  if (persistence_policies_initialized)
+    return;
+
+  for (i = 0; i < (size_t)eMUD_EVENT_COUNT; i++)
+  {
+    persistence_policies[i].storage_class = MUD_EVENT_TRANSIENT;
+    persistence_policies[i].offline_policy = MUD_EVENT_OFFLINE_DISCARD;
+    persistence_policies[i].payload_policy = MUD_EVENT_PAYLOAD_NONE;
+    persistence_policies[i].schema_version = 0U;
+  }
+
+  persistence_policies[eENCOUNTER_REG_RESET].storage_class = MUD_EVENT_RECONSTRUCTABLE;
+  persistence_policies[eENCOUNTER_REG_RESET].offline_policy = MUD_EVENT_OFFLINE_RECONSTRUCT;
+
+#define PERSIST_CHARACTER_EVENT(event_id)                                                         \
+  do                                                                                              \
+  {                                                                                               \
+    persistence_policies[(event_id)].storage_class = MUD_EVENT_PERSISTED;                         \
+    persistence_policies[(event_id)].offline_policy = MUD_EVENT_OFFLINE_PAUSE;                    \
+    persistence_policies[(event_id)].payload_policy =                                             \
+        mud_event_index[(event_id)].func == event_daily_use_cooldown ? MUD_EVENT_PAYLOAD_USES     \
+                                                                      : MUD_EVENT_PAYLOAD_NONE;   \
+    persistence_policies[(event_id)].schema_version = 1U;                                         \
+  } while (0)
+
+  PERSIST_CHARACTER_EVENT(eINVISIBLE_ROGUE);
+  PERSIST_CHARACTER_EVENT(eVANISHED);
+  PERSIST_CHARACTER_EVENT(eVANISH);
+  PERSIST_CHARACTER_EVENT(eTAUNT);
+  PERSIST_CHARACTER_EVENT(eTAUNTED);
+  PERSIST_CHARACTER_EVENT(eINTIMIDATED);
+  PERSIST_CHARACTER_EVENT(eINTIMIDATE_COOLDOWN);
+  PERSIST_CHARACTER_EVENT(eRAGE);
+  PERSIST_CHARACTER_EVENT(eSACRED_FLAMES);
+  PERSIST_CHARACTER_EVENT(eINNER_FIRE);
+  PERSIST_CHARACTER_EVENT(eMUTAGEN);
+  PERSIST_CHARACTER_EVENT(eCRIPPLING_CRITICAL);
+  PERSIST_CHARACTER_EVENT(eDEFENSIVE_STANCE);
+  PERSIST_CHARACTER_EVENT(eINSECTBEING);
+  PERSIST_CHARACTER_EVENT(eCRYSTALFIST);
+  PERSIST_CHARACTER_EVENT(eCRYSTALBODY);
+  PERSIST_CHARACTER_EVENT(eSLA_STRENGTH);
+  PERSIST_CHARACTER_EVENT(eSLA_ENLARGE);
+  PERSIST_CHARACTER_EVENT(eSLA_INVIS);
+  PERSIST_CHARACTER_EVENT(eSLA_LEVITATE);
+  PERSIST_CHARACTER_EVENT(eSLA_DARKNESS);
+  PERSIST_CHARACTER_EVENT(eSLA_FAERIE_FIRE);
+  PERSIST_CHARACTER_EVENT(eAASIMAR_HEALING_HANDS);
+  PERSIST_CHARACTER_EVENT(eAASIMAR_LIGHT_BEARER);
+  PERSIST_CHARACTER_EVENT(eLAYONHANDS);
+  PERSIST_CHARACTER_EVENT(eTOUCHOFCORRUPTION);
+  PERSIST_CHARACTER_EVENT(eJUDGEMENT);
+  PERSIST_CHARACTER_EVENT(eTRUEJUDGEMENT);
+  PERSIST_CHARACTER_EVENT(eCHILDRENOFTHENIGHT);
+  PERSIST_CHARACTER_EVENT(eVAMPIREENERGYDRAIN);
+  PERSIST_CHARACTER_EVENT(eVAMPIREBLOODDRAIN);
+  PERSIST_CHARACTER_EVENT(eBANE);
+  PERSIST_CHARACTER_EVENT(eMASTERMIND);
+  PERSIST_CHARACTER_EVENT(eDANCINGWEAPON);
+  PERSIST_CHARACTER_EVENT(eSPIRITUALWEAPON);
+  PERSIST_CHARACTER_EVENT(eCHANNELENERGY);
+  PERSIST_CHARACTER_EVENT(eEMPTYBODY);
+  PERSIST_CHARACTER_EVENT(eWHOLENESSOFBODY);
+  PERSIST_CHARACTER_EVENT(eRENEWEDDEFENSE);
+  PERSIST_CHARACTER_EVENT(eRENEWEDVIGOR);
+  PERSIST_CHARACTER_EVENT(eTREATINJURY);
+  PERSIST_CHARACTER_EVENT(eMUMMYDUST);
+  PERSIST_CHARACTER_EVENT(eDRAGONKNIGHT);
+  PERSIST_CHARACTER_EVENT(eGREATERRUIN);
+  PERSIST_CHARACTER_EVENT(eHELLBALL);
+  PERSIST_CHARACTER_EVENT(eEPICMAGEARMOR);
+  PERSIST_CHARACTER_EVENT(eEPICWARDING);
+  PERSIST_CHARACTER_EVENT(eDEATHARROW);
+  PERSIST_CHARACTER_EVENT(eQUIVERINGPALM);
+  PERSIST_CHARACTER_EVENT(eANIMATEDEAD);
+  PERSIST_CHARACTER_EVENT(eSTUNNINGFIST);
+  PERSIST_CHARACTER_EVENT(eSURPRISE_ACCURACY);
+  PERSIST_CHARACTER_EVENT(eCOME_AND_GET_ME);
+  PERSIST_CHARACTER_EVENT(ePOWERFUL_BLOW);
+  PERSIST_CHARACTER_EVENT(eD_ROLL);
+  PERSIST_CHARACTER_EVENT(eLAST_WORD);
+  PERSIST_CHARACTER_EVENT(ePURIFY);
+  PERSIST_CHARACTER_EVENT(eC_ANIMAL);
+  PERSIST_CHARACTER_EVENT(eC_DRAGONMOUNT);
+  PERSIST_CHARACTER_EVENT(eC_EIDOLON);
+  PERSIST_CHARACTER_EVENT(eC_FAMILIAR);
+  PERSIST_CHARACTER_EVENT(eC_MOUNT);
+  PERSIST_CHARACTER_EVENT(eSUMMONSHADOW);
+  PERSIST_CHARACTER_EVENT(eTURN_UNDEAD);
+  PERSIST_CHARACTER_EVENT(eSPELLBATTLE);
+  PERSIST_CHARACTER_EVENT(eDRACBREATH);
+  PERSIST_CHARACTER_EVENT(eDRACCLAWS);
+  PERSIST_CHARACTER_EVENT(eDRAGBREATH);
+  PERSIST_CHARACTER_EVENT(eCATSCLAWS);
+  PERSIST_CHARACTER_EVENT(eARCANEADEPT);
+  PERSIST_CHARACTER_EVENT(eCHANNELSPELL);
+  PERSIST_CHARACTER_EVENT(ePSIONICFOCUS);
+  PERSIST_CHARACTER_EVENT(eDOUBLEMANIFEST);
+  PERSIST_CHARACTER_EVENT(eSHADOWCALL);
+  PERSIST_CHARACTER_EVENT(eSHADOWJUMP);
+  PERSIST_CHARACTER_EVENT(eSHADOWILLUSION);
+  PERSIST_CHARACTER_EVENT(eSHADOWPOWER);
+  PERSIST_CHARACTER_EVENT(eEVOBREATH);
+  PERSIST_CHARACTER_EVENT(eTOUCHOFUNDEATH);
+  PERSIST_CHARACTER_EVENT(eSTRENGTHOFHONOR);
+  PERSIST_CHARACTER_EVENT(eCROWNOFKNIGHTHOOD);
+  PERSIST_CHARACTER_EVENT(eSOULOFKNIGHTHOOD);
+  PERSIST_CHARACTER_EVENT(eINSPIRECOURAGE);
+  PERSIST_CHARACTER_EVENT(eWISDOMOFTHEMEASURE);
+  PERSIST_CHARACTER_EVENT(eFINALSTAND);
+  PERSIST_CHARACTER_EVENT(eKNIGHTHOODSFLOWER);
+  PERSIST_CHARACTER_EVENT(eRALLYINGCRY);
+  PERSIST_CHARACTER_EVENT(eCOSMICUNDERSTANDING);
+  PERSIST_CHARACTER_EVENT(eDRAGOONPOINTS);
+  PERSIST_CHARACTER_EVENT(eROL_CALM);
+  PERSIST_CHARACTER_EVENT(eSMITE_EVIL);
+  PERSIST_CHARACTER_EVENT(eSMITE_GOOD);
+  PERSIST_CHARACTER_EVENT(eSMITE_DESTRUCTION);
+
+#undef PERSIST_CHARACTER_EVENT
+  persistence_policies_initialized = true;
+}
+
+const struct mud_event_persistence_policy *mud_event_persistence_policy(event_id iId)
+{
+  initialize_mud_event_persistence_policies();
+  if (iId < eNULL || iId >= eMUD_EVENT_COUNT)
+    return NULL;
+  return &persistence_policies[iId];
+}
+
+const char *mud_event_storage_class_name(enum mud_event_storage_class storage_class)
+{
+  switch (storage_class)
+  {
+  case MUD_EVENT_TRANSIENT:
+    return "transient";
+  case MUD_EVENT_RECONSTRUCTABLE:
+    return "reconstructable";
+  case MUD_EVENT_COPYOVER_PRESERVED:
+    return "copyover-preserved";
+  case MUD_EVENT_PERSISTED:
+    return "persisted";
+  default:
+    return "invalid";
+  }
+}
+
+const char *mud_event_restore_status_name(enum mud_event_restore_status status)
+{
+  switch (status)
+  {
+  case MUD_EVENT_RESTORE_OK:
+    return "restored";
+  case MUD_EVENT_RESTORE_EXPIRED:
+    return "expired offline";
+  case MUD_EVENT_RESTORE_INVALID_ARGUMENT:
+    return "invalid argument";
+  case MUD_EVENT_RESTORE_INVALID_FORMAT:
+    return "invalid format";
+  case MUD_EVENT_RESTORE_UNKNOWN_TYPE:
+    return "unknown event type";
+  case MUD_EVENT_RESTORE_CLASS_MISMATCH:
+    return "event is not persisted";
+  case MUD_EVENT_RESTORE_SCHEMA_MISMATCH:
+    return "schema mismatch";
+  case MUD_EVENT_RESTORE_OWNER_MISMATCH:
+    return "owner mismatch";
+  case MUD_EVENT_RESTORE_PAYLOAD_MALFORMED:
+    return "malformed payload";
+  case MUD_EVENT_RESTORE_DUPLICATE:
+    return "duplicate event";
+  case MUD_EVENT_RESTORE_ADMISSION_FAILED:
+    return "scheduler admission failed";
+  default:
+    return "unknown restore status";
+  }
+}
+
+bool mud_event_legacy_persistence_writer_enabled(void)
+{
+  const char *format;
+
+  format = getenv("LUMINARI_EVENT_PERSISTENCE_FORMAT");
+  return format != NULL && !strcasecmp(format, "legacy");
+}
+
+bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *pMudEvent,
+                                   int64_t saved_at_epoch,
+                                   struct mud_event_durable_record *record)
+{
+  const struct mud_event_persistence_policy *policy;
+  long remaining_ticks;
+  int uses;
+
+  if (ch == NULL || pMudEvent == NULL || record == NULL || saved_at_epoch <= 0)
+    return false;
+  policy = mud_event_persistence_policy(pMudEvent->iId);
+  if (policy == NULL || policy->storage_class != MUD_EVENT_PERSISTED ||
+      mud_event_index[pMudEvent->iId].iEvent_Type != EVENT_CHAR || pMudEvent->pStruct != ch ||
+      pMudEvent->pEvent == NULL || pMudEvent->owner.kind != GAME_EVENT_OWNER_CHARACTER ||
+      pMudEvent->owner.runtime_id != (uint64_t)(uintptr_t)ch ||
+      pMudEvent->owner.generation == 0 ||
+      pMudEvent->owner.generation != ch->event_owner_generation || GET_IDNUM(ch) <= 0)
+    return false;
+
+  remaining_ticks = event_time(pMudEvent->pEvent);
+  if (remaining_ticks <= 0)
+    return false;
+
+  uses = -1;
+  if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
+  {
+    if (pMudEvent->sVariables == NULL ||
+        sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1 || uses <= 0 ||
+        uses > MUD_EVENT_MAX_PERSISTED_USES)
+      return false;
+  }
+
+  memset(record, 0, sizeof(*record));
+  record->event_type = pMudEvent->iId;
+  record->schema_version = policy->schema_version;
+  record->owner_id = GET_IDNUM(ch);
+  record->remaining_ticks = remaining_ticks;
+  record->saved_at_epoch = saved_at_epoch;
+  record->payload_value = uses;
+  return true;
+}
+
+enum mud_event_restore_status
+mud_event_restore_character_record(struct char_data *ch,
+                                   const struct mud_event_durable_record *record,
+                                   int64_t now_epoch)
+{
+  const struct mud_event_persistence_policy *policy;
+  struct mud_event_data *restored_event;
+  int64_t remaining_ticks;
+  int64_t elapsed_seconds;
+  char payload[64];
+  const char *payload_text;
+
+  if (ch == NULL || record == NULL || now_epoch <= 0)
+    return MUD_EVENT_RESTORE_INVALID_ARGUMENT;
+  if (record->event_type <= eNULL || record->event_type >= eMUD_EVENT_COUNT)
+    return MUD_EVENT_RESTORE_UNKNOWN_TYPE;
+
+  policy = mud_event_persistence_policy(record->event_type);
+  if (policy == NULL || policy->storage_class != MUD_EVENT_PERSISTED ||
+      mud_event_index[record->event_type].iEvent_Type != EVENT_CHAR)
+    return MUD_EVENT_RESTORE_CLASS_MISMATCH;
+  if (record->schema_version != policy->schema_version)
+    return MUD_EVENT_RESTORE_SCHEMA_MISMATCH;
+  if (GET_IDNUM(ch) <= 0 || record->owner_id != GET_IDNUM(ch))
+    return MUD_EVENT_RESTORE_OWNER_MISMATCH;
+  if (record->remaining_ticks <= 0 || record->remaining_ticks > LONG_MAX ||
+      record->saved_at_epoch <= 0 || record->saved_at_epoch > now_epoch + 300)
+    return MUD_EVENT_RESTORE_INVALID_FORMAT;
+  if (char_has_mud_event(ch, record->event_type) != NULL)
+    return MUD_EVENT_RESTORE_DUPLICATE;
+
+  payload_text = NULL;
+  if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
+  {
+    if (record->payload_value <= 0 || record->payload_value > MUD_EVENT_MAX_PERSISTED_USES)
+      return MUD_EVENT_RESTORE_PAYLOAD_MALFORMED;
+    snprintf(payload, sizeof(payload), "uses:%d", record->payload_value);
+    payload_text = payload;
+  }
+  else if (record->payload_value != -1)
+  {
+    return MUD_EVENT_RESTORE_PAYLOAD_MALFORMED;
+  }
+
+  remaining_ticks = record->remaining_ticks;
+  if (policy->offline_policy == MUD_EVENT_OFFLINE_ELAPSE)
+  {
+    elapsed_seconds = now_epoch - record->saved_at_epoch;
+    if (elapsed_seconds > 0 && elapsed_seconds > INT64_MAX / PASSES_PER_SEC)
+      return MUD_EVENT_RESTORE_EXPIRED;
+    remaining_ticks -= elapsed_seconds * PASSES_PER_SEC;
+    if (remaining_ticks <= 0)
+      return MUD_EVENT_RESTORE_EXPIRED;
+  }
+  else if (policy->offline_policy != MUD_EVENT_OFFLINE_PAUSE)
+  {
+    return MUD_EVENT_RESTORE_CLASS_MISMATCH;
+  }
+
+  restored_event = new_mud_event(record->event_type, ch, payload_text);
+  attach_mud_event(restored_event, (long)remaining_ticks);
+  if (char_has_mud_event(ch, record->event_type) == NULL)
+    return MUD_EVENT_RESTORE_ADMISSION_FAILED;
+  return MUD_EVENT_RESTORE_OK;
+}
 
 /* init_events() is the ideal function for starting global events. This
  * might be the case if you were to move the contents of heartbeat() into
@@ -71,6 +375,8 @@ void init_events(void)
   /* Allocate Event List */
   world_events = create_list();
   size_t i;
+
+  initialize_mud_event_persistence_policies();
 
   /* Validate registry size vs enum last value to catch drift */
   {
@@ -525,6 +831,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
   struct event *pEvent = NULL;
   room_vnum *rvnum = NULL;
   region_vnum *regvnum = NULL;
+
   room_rnum room_index;
   region_rnum region_index;
   int event_type;
@@ -714,6 +1021,10 @@ void free_mud_event(struct mud_event_data *pMudEvent)
   room_vnum *rvnum = NULL;
   region_vnum *regvnum = NULL;
 
+#ifdef LUMINARI_CUTEST
+  mud_event_cleanup_count++;
+#endif
+
   /* Remove event from appropriate list based on entity type.
    * Each entity type (char, room, etc.) maintains its own event list. */
   switch (mud_event_index[pMudEvent->iId].iEvent_Type)
@@ -866,6 +1177,18 @@ void free_mud_event(struct mud_event_data *pMudEvent)
   pMudEvent->pEvent->event_obj = NULL;
   free(pMudEvent);
 }
+
+#ifdef LUMINARI_CUTEST
+void mud_event_test_reset_cleanup_count(void)
+{
+  mud_event_cleanup_count = 0;
+}
+
+int mud_event_test_cleanup_count(void)
+{
+  return mud_event_cleanup_count;
+}
+#endif
 
 struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId)
 {

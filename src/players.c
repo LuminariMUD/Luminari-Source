@@ -45,6 +45,7 @@
 #include "vessels/vessels.h"
 #include "bardic_performance.h"
 #include "perfmon.h"
+#include <inttypes.h>
 #include <stdint.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -87,6 +88,7 @@ long top_idnum = 0;
 /* local functions */
 static void load_dr(FILE *fl, struct char_data *ch);
 static void load_events(FILE *fl, struct char_data *ch);
+static void load_events_v2(FILE *fl, struct char_data *ch, const char *header);
 static void load_affects(FILE *fl, struct char_data *ch, int affect_file_version);
 static void load_skills(FILE *fl, struct char_data *ch);
 static void load_feats(FILE *fl, struct char_data *ch);
@@ -1177,6 +1179,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_EXP(ch) = atoi(line);
         else if (!strcmp(tag, "Evnt"))
           load_events(fl, ch);
+        else if (!strcmp(tag, "Evn2"))
+          load_events_v2(fl, ch, line);
         else if (!strcmp(tag, "Evol"))
           load_evolutions(fl, ch);
         else if (!strcmp(tag, "Ecfp"))
@@ -3605,6 +3609,39 @@ bool save_char_checked(struct char_data *ch, int mode)
      before extract_char_final() in extract_char() -Zusuk */
   if (mode != 1)
   {
+    if (!mud_event_legacy_persistence_writer_enabled())
+    {
+      struct mud_event_durable_record record;
+      struct event *persisted_event;
+      int64_t saved_at_epoch;
+
+      saved_at_epoch = (int64_t)time(NULL);
+      BUFFER_WRITE("Evn2: %u\n", MUD_EVENT_DURABLE_FORMAT_VERSION);
+      simple_list(NULL);
+      while (ch->events != NULL &&
+             (persisted_event = (struct event *)simple_list(ch->events)) != NULL)
+      {
+        if (!persisted_event->isMudEvent)
+          continue;
+        pMudEvent = (struct mud_event_data *)persisted_event->event_obj;
+        if (mud_event_persistence_policy(pMudEvent->iId)->storage_class != MUD_EVENT_PERSISTED)
+          continue;
+        if (!mud_event_make_durable_record(ch, pMudEvent, saved_at_epoch, &record))
+        {
+          log("SYSERR: Unable to serialize persisted event %d (%s) for %s.", pMudEvent->iId,
+              mud_event_index[pMudEvent->iId].event_name, GET_NAME(ch));
+          save_ok = FALSE;
+          continue;
+        }
+        BUFFER_WRITE("%d %u %" PRId64 " %" PRId64 " %" PRId64 " %d\n", record.event_type,
+                     record.schema_version, record.owner_id, record.remaining_ticks,
+                     record.saved_at_epoch, record.payload_value);
+      }
+      simple_list(NULL);
+      BUFFER_WRITE("-1\n");
+    }
+    else
+    {
     /* Save events */
     /* Not going to save every event */
     BUFFER_WRITE("Evnt:\n");
@@ -3940,6 +3977,7 @@ bool save_char_checked(struct char_data *ch, int mode)
                        daily_uses_remaining(ch, FEAT_DESTRUCTIVE_SMITE));
 
     BUFFER_WRITE("-1 -1\n");
+    }
   }
 
   /* Save affects */
@@ -5599,29 +5637,101 @@ void load_skill_focus(FILE *fl, struct char_data *ch)
 
 static void load_events(FILE *fl, struct char_data *ch)
 {
-  int num = 0;
-  long num2 = 0;
-  int num3 = 0;
+  const struct mud_event_persistence_policy *policy;
+  struct mud_event_durable_record record;
+  enum mud_event_restore_status restore_status;
+  int fields;
+  int num;
+  long num2;
+  int num3;
+  char trailing;
   char line[MAX_INPUT_LENGTH + 1];
-  char uses[SMALL_STRING];
 
-  do
+  while (get_line(fl, line))
   {
-    get_line(fl, line);
-    if (sscanf(line, "%d %ld %d", &num, &num2, &num3) == 2)
+    num = 0;
+    num2 = 0;
+    num3 = -1;
+    fields = sscanf(line, "%d %ld %d %c", &num, &num2, &num3, &trailing);
+    if (fields >= 1 && num == -1)
+      return;
+    if ((fields != 2 && fields != 3) ||
+        (fields == 2 && sscanf(line, "%*d %*ld %c", &trailing) == 1))
     {
-      if (num != -1)
-        attach_mud_event(new_mud_event(num, ch, NULL), num2);
+      log("SYSERR: Ignoring malformed legacy persisted event record for %s.", GET_NAME(ch));
+      continue;
     }
-    else
+    if (num <= eNULL || num >= eMUD_EVENT_COUNT)
     {
-      if (num != -1)
-      {
-        snprintf(uses, sizeof(uses), "uses:%d", num3);
-        attach_mud_event(new_mud_event(num, ch, uses), num2);
-      }
+      log("SYSERR: Ignoring unknown legacy persisted event type %d for %s.", num, GET_NAME(ch));
+      continue;
     }
-  } while (num != -1);
+    policy = mud_event_persistence_policy((event_id)num);
+    memset(&record, 0, sizeof(record));
+    record.event_type = (event_id)num;
+    record.schema_version = policy->schema_version;
+    record.owner_id = GET_IDNUM(ch);
+    record.remaining_ticks = num2;
+    record.saved_at_epoch = (int64_t)time(NULL);
+    record.payload_value = fields == 3 ? num3 : -1;
+    restore_status =
+        mud_event_restore_character_record(ch, &record, record.saved_at_epoch);
+    if (restore_status != MUD_EVENT_RESTORE_OK)
+      log("SYSERR: Ignoring legacy persisted event %d for %s: %s.", num, GET_NAME(ch),
+          mud_event_restore_status_name(restore_status));
+  }
+
+  log("SYSERR: Unterminated legacy persisted event section for %s.", GET_NAME(ch));
+}
+
+static void load_events_v2(FILE *fl, struct char_data *ch, const char *header)
+{
+  struct mud_event_durable_record record;
+  enum mud_event_restore_status restore_status;
+  unsigned int format_version;
+  long long owner_id;
+  long long remaining_ticks;
+  long long saved_at_epoch;
+  int event_type;
+  int payload_value;
+  unsigned int schema_version;
+  char trailing;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  if (header == NULL || sscanf(header, "%u %c", &format_version, &trailing) != 1 ||
+      format_version != MUD_EVENT_DURABLE_FORMAT_VERSION)
+  {
+    log("SYSERR: Unsupported durable event section version for %s.", GET_NAME(ch));
+    while (get_line(fl, line) && strcmp(line, "-1"))
+      ;
+    return;
+  }
+
+  while (get_line(fl, line))
+  {
+    if (!strcmp(line, "-1"))
+      return;
+    if (sscanf(line, "%d %u %lld %lld %lld %d %c", &event_type, &schema_version, &owner_id,
+               &remaining_ticks, &saved_at_epoch, &payload_value, &trailing) != 6)
+    {
+      log("SYSERR: Ignoring malformed durable event record for %s.", GET_NAME(ch));
+      continue;
+    }
+
+    memset(&record, 0, sizeof(record));
+    record.event_type = (event_id)event_type;
+    record.schema_version = schema_version;
+    record.owner_id = owner_id;
+    record.remaining_ticks = remaining_ticks;
+    record.saved_at_epoch = saved_at_epoch;
+    record.payload_value = payload_value;
+    restore_status = mud_event_restore_character_record(ch, &record, (int64_t)time(NULL));
+    if (restore_status != MUD_EVENT_RESTORE_OK && restore_status != MUD_EVENT_RESTORE_EXPIRED)
+      log("SYSERR: Ignoring durable event %d for %s: %s.", event_type, GET_NAME(ch),
+          mud_event_restore_status_name(restore_status));
+  }
+
+  log("SYSERR: Unterminated durable event section for %s.", GET_NAME(ch));
 }
 
 void load_quests(FILE *fl, struct char_data *ch)

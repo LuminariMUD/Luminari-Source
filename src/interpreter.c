@@ -9126,7 +9126,8 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_ACCOUNT_MENU;
       roleplay_pending_clear(d);
       show_account_menu(d);
-      save_char(d->character, 0);
+      /* extract_char_final() already saved before clearing runtime events.
+       * Saving this menu copy again would erase persisted cooldowns. */
       free_char(d->character);
       break;
 

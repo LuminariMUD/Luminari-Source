@@ -1,10 +1,10 @@
 # LuminariMUD Event Systems
 
-This document explains the current compatibility timing infrastructure used by
-LuminariMUD. The public DG event API selects either the game scheduler or the
-retained legacy queue implementation at boot. The higher-level MUD event layer
-now supplies generation-aware owner handles while preserving its entity-scoped
-compatibility lists and query API.
+This document explains the current timing infrastructure used by LuminariMUD.
+The public DG event API selects either the game scheduler or the retained legacy
+queue implementation at boot. The higher-level MUD event layer supplies
+generation-aware owner handles, explicit persistence policy, and entity-scoped
+compatibility lists and queries.
 
 Core source files:
 - [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
@@ -46,10 +46,10 @@ Key entry points (clickable declarations):
   - The game runs on "pulses" (tick frequency). Many helpers express real-life seconds using a macro RL_SEC which multiplies by PASSES_PER_SEC (10 ticks/sec), as discussed in [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
   - Events return the number of pulses until they should run again; returning 0 means "do not reschedule"
 
-The existing heartbeat still calls `event_process()` once per executed game
-pulse. This phase changes timed-event storage, cancellation, and diagnostics;
-it does not introduce `libevent` or replace the main loop. That reactor work is
-the next independently gated phase.
+The compatibility heartbeat still runs unmigrated pulse work. Scheduler
+deadlines also drive the reactor directly, with bounded event dispatch after
+descriptor input, commands, and output. Gameplay handlers remain on the main
+game thread.
 
 ## 2. Timed-Event Compatibility Facade
 
@@ -195,7 +195,57 @@ may already have been released.
 - Cancel a specific char event by ID: [C.event_cancel_specific()](../../src/mud_event.c#L947)
   - Uses event_is_queued guard before calling cancel
 
-## 4. Table-Driven Registry (mud_event_index)
+### 3.9 Persistence and Reconstruction
+
+Every registry event has an explicit storage class. Of 232 usable event types,
+93 player cooldown and recovery timers are persisted, one encounter-region reset
+timer is reconstructed from database-backed world state at boot, and 138 are
+transient. There are currently no copyover-only timers: the player timers use
+the same durable character record for copyover and full reboot.
+
+Persisted records use the versioned `Evn2` player-file section. They contain a
+type, per-type schema, stable player ID, remaining pulses, save timestamp, and a
+validated daily-use integer where required. Scheduler IDs, wheel locations,
+pointers, runtime IDs, and owner generations are process-local and never go to
+disk. Restore validates the durable owner and payload, rejects duplicate event
+types, then admits a newly allocated event with fresh runtime identity.
+
+Existing player-timer behavior is preserved: remaining pulses pause while the
+character is offline. This is an explicit policy, rather than an accidental
+consequence of the old format. Legacy `Evnt` records remain readable and can be
+written by setting `LUMINARI_EVENT_PERSISTENCE_FORMAT=legacy` before boot.
+
+Transient examples include combat rounds, casting, preparation, action waits,
+descriptor protocol work, DG waits, AI requests, and live room/object effects.
+They are tied to a live runtime owner and are discarded when that owner or the
+process ends.
+
+## 4. What This Means In The Game
+
+The scheduler is the game's alarm clock. It remembers when a cooldown ends,
+when another combat round is due, or when some delayed effect should act. The
+timing wheel is only how that alarm clock is organized internally.
+
+The reactor is the server's front desk. It sleeps until a player connection,
+server signal, or scheduler deadline needs attention, then gives player input
+and output a turn before running a bounded batch of due alarms. “Network” in
+this project means the socket connections between the MUD server and its
+players. It does not add web requests, internet gameplay, or a new command
+system.
+
+For a player, the intended result so far is deliberately boring: commands,
+round timing, cooldown messages, and copyover connections should behave as they
+did. The difference is reliability underneath. Timers cannot keep a deleted
+character or room alive, a burst of due timers cannot monopolize the server,
+and saved cooldowns now prove they belong to the character before returning
+after logout or reboot.
+
+Gameplay has not yet been converted to the future typed domain-event model.
+Combat is still the existing combat system, player commands still enter through
+the existing interpreter, and most heartbeat consumers still run at their old
+cadence. Those migrations are later tranches built on this foundation.
+
+## 5. Table-Driven Registry (mud_event_index)
 
 - The registry lives in [C.mud_event_index[]](../../src/mud_event_list.c#L46)
 - Each entry contains:
@@ -207,7 +257,7 @@ may already have been released.
 - Special cases use message fields for UX, but core logic sits in the handler implementations
 - Addition of new rows enables features without spreading logic across multiple files
 
-## 5. Important Safety and Memory Practices
+## 6. Important Safety and Memory Practices
 
 - Never free or relink `struct event` directly during execution. Use
   [C.event_cancel()](../../src/dgscript/dg_event.c); the facade safely records
@@ -223,7 +273,7 @@ may already have been released.
   - Always strdup on creation ([C.new_mud_event()](../../src/mud_event.c#L578))
   - Always free on payload free ([C.free_mud_event()](../../src/mud_event.c#L607))
 
-## 6. Timing Semantics and Conversions
+## 7. Timing Semantics and Conversions
 
 - Pulses are internal ticks; event functions return pulses to reschedule
 - Conversion helpers:

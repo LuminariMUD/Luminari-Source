@@ -436,3 +436,191 @@ void Test_mud_event_registry_matches_enum(CuTest *tc)
              mud_event_index[i].feat_num != FEAT_UNDEFINED || mud_event_index[i].daily_uses > 0);
   }
 }
+
+void Test_mud_event_persistence_policy_classifies_entire_registry(CuTest *tc)
+{
+  const struct mud_event_persistence_policy *policy;
+  size_t persisted;
+  size_t reconstructable;
+  size_t transient;
+  size_t i;
+
+  persisted = 0;
+  reconstructable = 0;
+  transient = 0;
+  for (i = 0; i < mud_event_index_count; i++)
+  {
+    policy = mud_event_persistence_policy((event_id)i);
+    CuAssertPtrNotNull(tc, policy);
+    switch (policy->storage_class)
+    {
+    case MUD_EVENT_TRANSIENT:
+      transient++;
+      CuAssertIntEquals(tc, MUD_EVENT_OFFLINE_DISCARD, policy->offline_policy);
+      CuAssertIntEquals(tc, 0, (int)policy->schema_version);
+      break;
+    case MUD_EVENT_RECONSTRUCTABLE:
+      reconstructable++;
+      CuAssertIntEquals(tc, MUD_EVENT_OFFLINE_RECONSTRUCT, policy->offline_policy);
+      break;
+    case MUD_EVENT_PERSISTED:
+      persisted++;
+      CuAssertIntEquals(tc, MUD_EVENT_OFFLINE_PAUSE, policy->offline_policy);
+      CuAssertIntEquals(tc, 1, (int)policy->schema_version);
+      CuAssertIntEquals(tc, EVENT_CHAR, mud_event_index[i].iEvent_Type);
+      break;
+    case MUD_EVENT_COPYOVER_PRESERVED:
+    default:
+      CuFail(tc, "Unexpected or invalid MUD event persistence class");
+      return;
+    }
+  }
+
+  CuAssertIntEquals(tc, 93, (int)persisted);
+  CuAssertIntEquals(tc, 1, (int)reconstructable);
+  CuAssertTrue(tc, transient + persisted + reconstructable == mud_event_index_count);
+  CuAssertIntEquals(tc, MUD_EVENT_RECONSTRUCTABLE,
+                    mud_event_persistence_policy(eENCOUNTER_REG_RESET)->storage_class);
+  CuAssertIntEquals(tc, MUD_EVENT_TRANSIENT,
+                    mud_event_persistence_policy(ePROTOCOLS)->storage_class);
+  CuAssertIntEquals(tc, MUD_EVENT_TRANSIENT,
+                    mud_event_persistence_policy(eCOMBAT_ROUND)->storage_class);
+}
+
+static void initialize_persistence_test_character(struct char_data *ch,
+                                                  struct player_special_data *specials,
+                                                  long idnum)
+{
+  memset(ch, 0, sizeof(*ch));
+  memset(specials, 0, sizeof(*specials));
+  ch->player_specials = specials;
+  GET_IDNUM(ch) = idnum;
+}
+
+void Test_mud_event_durable_restore_rehydrates_fresh_runtime_identity(CuTest *tc)
+{
+  struct mud_event_durable_record record;
+  struct player_special_data source_specials;
+  struct player_special_data restored_specials;
+  struct mud_event_data *source_event;
+  struct mud_event_data *restored_event;
+  struct char_data source;
+  struct char_data restored;
+  uint64_t source_scheduler_id;
+  uint64_t source_generation;
+  unsigned long saved_pulse;
+
+  saved_pulse = pulse;
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  initialize_persistence_test_character(&source, &source_specials, 4242L);
+  initialize_persistence_test_character(&restored, &restored_specials, 4242L);
+  mud_event_test_reset_cleanup_count();
+
+  attach_mud_event(new_mud_event(eLAYONHANDS, &source, "uses:2"), 77);
+  source_event = char_has_mud_event(&source, eLAYONHANDS);
+  CuAssertPtrNotNull(tc, source_event);
+  source_scheduler_id = source_event->pEvent->scheduler_id;
+  source_generation = source_event->owner.generation;
+  CuAssertTrue(tc, source_scheduler_id != 0);
+  CuAssertTrue(tc, mud_event_make_durable_record(&source, source_event, 1000, &record));
+  CuAssertIntEquals(tc, eLAYONHANDS, record.event_type);
+  CuAssertIntEquals(tc, 2, record.payload_value);
+
+  clear_char_event_list(&source);
+  CuAssertIntEquals(tc, 1, mud_event_test_cleanup_count());
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_OK,
+                    mud_event_restore_character_record(&restored, &record, 87400));
+  restored_event = char_has_mud_event(&restored, eLAYONHANDS);
+  CuAssertPtrNotNull(tc, restored_event);
+  CuAssertIntEquals(tc, 77, (int)event_time(restored_event->pEvent));
+  CuAssertStrEquals(tc, "uses:2", restored_event->sVariables);
+  CuAssertTrue(tc, restored_event->pEvent->scheduler_id != source_scheduler_id);
+  CuAssertTrue(tc, restored_event->owner.generation != source_generation);
+  CuAssertTrue(tc, restored_event->owner.runtime_id == (uint64_t)(uintptr_t)&restored);
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_DUPLICATE,
+                    mud_event_restore_character_record(&restored, &record, 87400));
+
+  clear_char_event_list(&restored);
+  clear_char_event_list(&restored);
+  CuAssertIntEquals(tc, 2, mud_event_test_cleanup_count());
+  event_free_all();
+  pulse = saved_pulse;
+}
+
+void Test_mud_event_durable_restore_rejects_invalid_records(CuTest *tc)
+{
+  struct mud_event_durable_record record;
+  struct player_special_data specials;
+  struct char_data ch;
+
+  initialize_persistence_test_character(&ch, &specials, 77L);
+  memset(&record, 0, sizeof(record));
+  record.event_type = eLAYONHANDS;
+  record.schema_version = 1U;
+  record.owner_id = 77;
+  record.remaining_ticks = 50;
+  record.saved_at_epoch = 1000;
+  record.payload_value = 1;
+
+  record.schema_version = 2U;
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_SCHEMA_MISMATCH,
+                    mud_event_restore_character_record(&ch, &record, 1100));
+  record.schema_version = 1U;
+  record.owner_id = 78;
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_OWNER_MISMATCH,
+                    mud_event_restore_character_record(&ch, &record, 1100));
+  record.owner_id = 77;
+  record.payload_value = 0;
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_PAYLOAD_MALFORMED,
+                    mud_event_restore_character_record(&ch, &record, 1100));
+  record.payload_value = 1;
+  record.saved_at_epoch = 2000;
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_INVALID_FORMAT,
+                    mud_event_restore_character_record(&ch, &record, 1100));
+  record.saved_at_epoch = 1000;
+  record.event_type = eCOMBAT_ROUND;
+  record.schema_version = 0U;
+  record.payload_value = -1;
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_CLASS_MISMATCH,
+                    mud_event_restore_character_record(&ch, &record, 1100));
+  record.event_type = eMUD_EVENT_COUNT;
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_UNKNOWN_TYPE,
+                    mud_event_restore_character_record(&ch, &record, 1100));
+}
+
+static void verify_mud_event_restore_rollback_backend(CuTest *tc,
+                                                     enum event_backend_kind backend)
+{
+  struct mud_event_durable_record record;
+  struct player_special_data specials;
+  struct mud_event_data *restored_event;
+  struct char_data ch;
+
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(backend));
+  event_init();
+  initialize_persistence_test_character(&ch, &specials, 8080L);
+  memset(&record, 0, sizeof(record));
+  record.event_type = eTREATINJURY;
+  record.schema_version = 1U;
+  record.owner_id = 8080;
+  record.remaining_ticks = 25;
+  record.saved_at_epoch = 5000;
+  record.payload_value = -1;
+
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_OK,
+                    mud_event_restore_character_record(&ch, &record, 5000));
+  restored_event = char_has_mud_event(&ch, eTREATINJURY);
+  CuAssertPtrNotNull(tc, restored_event);
+  CuAssertIntEquals(tc, backend, restored_event->pEvent->backend);
+  clear_char_event_list(&ch);
+  event_free_all();
+}
+
+void Test_mud_event_durable_restore_supports_both_timed_backends(CuTest *tc)
+{
+  verify_mud_event_restore_rollback_backend(tc, EVENT_BACKEND_GAME_SCHEDULER);
+  verify_mud_event_restore_rollback_backend(tc, EVENT_BACKEND_LEGACY_QUEUE);
+}
