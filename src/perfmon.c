@@ -37,6 +37,7 @@
 #define EVENT_PROFILE_NAME_SIZE 64    /* Includes terminating NUL */
 #define EVENT_PROFILE_REPORT_LIMIT 16 /* Maximum callback rows per report */
 #define EVENT_SAMPLE_CAPACITY 1024    /* Per-callback rolling latency window */
+#define EVENT_DELAY_BUCKET_COUNT 7    /* Privacy-safe requested-delay histogram */
 #define SQL_SAMPLE_CAPACITY 4096      /* Main/worker rolling query latency window */
 #define SQL_FAMILY_CAPACITY 128       /* Bounded normalized owner/verb/table registry */
 #define SQL_FAMILY_NAME_SIZE 80       /* Includes terminating NUL */
@@ -117,9 +118,15 @@ struct PERF_prof_sect
 struct perf_event_callback
 {
   char identity[EVENT_PROFILE_NAME_SIZE];
+  uint64_t pulse_scheduled;
+  uint64_t pulse_cancelled;
+  uint64_t pulse_rescheduled;
   uint64_t pulse_calls;
   uint64_t pulse_total_usec;
   uint64_t pulse_max_usec;
+  uint64_t total_scheduled;
+  uint64_t total_cancelled;
+  uint64_t total_rescheduled;
   uint64_t total_calls;
   uint64_t total_usec;
   uint64_t total_max_usec;
@@ -138,6 +145,15 @@ struct perf_event_process_stats
   uint64_t latest_depth;
   uint64_t max_depth_before;
   uint64_t max_depth_after;
+  uint64_t max_callbacks_per_call;
+};
+
+struct perf_event_lifecycle_stats
+{
+  uint64_t scheduled;
+  uint64_t cancelled;
+  uint64_t rescheduled;
+  uint64_t delay_buckets[EVENT_DELAY_BUCKET_COUNT];
 };
 
 struct perf_extraction_stats
@@ -330,6 +346,10 @@ static size_t event_profile_count;
 static struct perf_event_callback event_profile_overflow;
 static struct perf_event_process_stats pulse_event_process_stats;
 static struct perf_event_process_stats total_event_process_stats;
+static struct perf_event_lifecycle_stats pulse_event_lifecycle_stats;
+static struct perf_event_lifecycle_stats total_event_lifecycle_stats;
+static const uint64_t event_delay_bucket_max[EVENT_DELAY_BUCKET_COUNT - 1] = {1U,   10U,   60U,
+                                                                              600U, 6000U, 36000U};
 static struct perf_extraction_stats pulse_extraction_stats;
 static struct perf_extraction_stats total_extraction_stats;
 static struct perf_catchup_stats pulse_catchup_stats;
@@ -777,10 +797,16 @@ static void reset_event_callback_pulse_stats(void)
 
   for (i = 0; i < event_profile_count; i++)
   {
+    event_profiles[i].pulse_scheduled = 0;
+    event_profiles[i].pulse_cancelled = 0;
+    event_profiles[i].pulse_rescheduled = 0;
     event_profiles[i].pulse_calls = 0;
     event_profiles[i].pulse_total_usec = 0;
     event_profiles[i].pulse_max_usec = 0;
   }
+  event_profile_overflow.pulse_scheduled = 0;
+  event_profile_overflow.pulse_cancelled = 0;
+  event_profile_overflow.pulse_rescheduled = 0;
   event_profile_overflow.pulse_calls = 0;
   event_profile_overflow.pulse_total_usec = 0;
   event_profile_overflow.pulse_max_usec = 0;
@@ -792,6 +818,9 @@ static void reset_event_callback_total_stats(void)
 
   for (i = 0; i < event_profile_count; i++)
   {
+    event_profiles[i].total_scheduled = 0;
+    event_profiles[i].total_cancelled = 0;
+    event_profiles[i].total_rescheduled = 0;
     event_profiles[i].total_calls = 0;
     event_profiles[i].total_usec = 0;
     event_profiles[i].total_max_usec = 0;
@@ -799,6 +828,9 @@ static void reset_event_callback_total_stats(void)
     event_profiles[i].sample_count = 0;
     event_profiles[i].samples_seen = 0;
   }
+  event_profile_overflow.total_scheduled = 0;
+  event_profile_overflow.total_cancelled = 0;
+  event_profile_overflow.total_rescheduled = 0;
   event_profile_overflow.total_calls = 0;
   event_profile_overflow.total_usec = 0;
   event_profile_overflow.total_max_usec = 0;
@@ -823,6 +855,8 @@ static void update_event_process_stats(struct perf_event_process_stats *stats,
     stats->max_depth_before = depth_before;
   if (depth_after > stats->max_depth_after)
     stats->max_depth_after = depth_after;
+  if (callbacks_processed > stats->max_callbacks_per_call)
+    stats->max_callbacks_per_call = callbacks_processed;
 }
 
 static void update_extraction_stats(struct perf_extraction_stats *stats, uint64_t pending_before,
@@ -1209,6 +1243,8 @@ void PERF_reset(void)
   reset_event_callback_total_stats();
   memset(&pulse_event_process_stats, 0, sizeof(pulse_event_process_stats));
   memset(&total_event_process_stats, 0, sizeof(total_event_process_stats));
+  memset(&pulse_event_lifecycle_stats, 0, sizeof(pulse_event_lifecycle_stats));
+  memset(&total_event_lifecycle_stats, 0, sizeof(total_event_lifecycle_stats));
   memset(&pulse_extraction_stats, 0, sizeof(pulse_extraction_stats));
   memset(&total_extraction_stats, 0, sizeof(total_extraction_stats));
   memset(&pulse_catchup_stats, 0, sizeof(pulse_catchup_stats));
@@ -1336,14 +1372,74 @@ int PERF_register_event_callback(const char *identity)
   return (int)(event_profile_count - 1);
 }
 
+static struct perf_event_callback *event_profile_for_index(int profile_index)
+{
+  if (profile_index < 0 || (size_t)profile_index >= event_profile_count)
+    return &event_profile_overflow;
+  return &event_profiles[profile_index];
+}
+
+static void note_event_delay(struct perf_event_lifecycle_stats *stats, uint64_t delay_pulses)
+{
+  size_t bucket;
+
+  bucket = 0;
+  while (bucket < EVENT_DELAY_BUCKET_COUNT - 1 && delay_pulses > event_delay_bucket_max[bucket])
+    bucket++;
+  stats->delay_buckets[bucket] = saturating_add_u64(stats->delay_buckets[bucket], 1);
+}
+
+void PERF_note_event_scheduled(int profile_index, uint64_t delay_pulses)
+{
+  struct perf_event_callback *profile;
+
+  ensure_initialized();
+  profile = event_profile_for_index(profile_index);
+  profile->pulse_scheduled = saturating_add_u64(profile->pulse_scheduled, 1);
+  profile->total_scheduled = saturating_add_u64(profile->total_scheduled, 1);
+  pulse_event_lifecycle_stats.scheduled =
+      saturating_add_u64(pulse_event_lifecycle_stats.scheduled, 1);
+  total_event_lifecycle_stats.scheduled =
+      saturating_add_u64(total_event_lifecycle_stats.scheduled, 1);
+  note_event_delay(&pulse_event_lifecycle_stats, delay_pulses);
+  note_event_delay(&total_event_lifecycle_stats, delay_pulses);
+}
+
+void PERF_note_event_cancelled(int profile_index)
+{
+  struct perf_event_callback *profile;
+
+  ensure_initialized();
+  profile = event_profile_for_index(profile_index);
+  profile->pulse_cancelled = saturating_add_u64(profile->pulse_cancelled, 1);
+  profile->total_cancelled = saturating_add_u64(profile->total_cancelled, 1);
+  pulse_event_lifecycle_stats.cancelled =
+      saturating_add_u64(pulse_event_lifecycle_stats.cancelled, 1);
+  total_event_lifecycle_stats.cancelled =
+      saturating_add_u64(total_event_lifecycle_stats.cancelled, 1);
+}
+
+void PERF_note_event_rescheduled(int profile_index, uint64_t delay_pulses)
+{
+  struct perf_event_callback *profile;
+
+  ensure_initialized();
+  profile = event_profile_for_index(profile_index);
+  profile->pulse_rescheduled = saturating_add_u64(profile->pulse_rescheduled, 1);
+  profile->total_rescheduled = saturating_add_u64(profile->total_rescheduled, 1);
+  pulse_event_lifecycle_stats.rescheduled =
+      saturating_add_u64(pulse_event_lifecycle_stats.rescheduled, 1);
+  total_event_lifecycle_stats.rescheduled =
+      saturating_add_u64(total_event_lifecycle_stats.rescheduled, 1);
+  note_event_delay(&pulse_event_lifecycle_stats, delay_pulses);
+  note_event_delay(&total_event_lifecycle_stats, delay_pulses);
+}
+
 void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec)
 {
   struct perf_event_callback *profile;
 
-  if (profile_index < 0 || (size_t)profile_index >= event_profile_count)
-    profile = &event_profile_overflow;
-  else
-    profile = &event_profiles[profile_index];
+  profile = event_profile_for_index(profile_index);
 
   profile->pulse_calls = saturating_add_u64(profile->pulse_calls, 1);
   profile->pulse_total_usec = saturating_add_u64(profile->pulse_total_usec, elapsed_usec);
@@ -2588,6 +2684,7 @@ void PERF_prof_reset(void)
   }
   reset_event_callback_pulse_stats();
   memset(&pulse_event_process_stats, 0, sizeof(pulse_event_process_stats));
+  memset(&pulse_event_lifecycle_stats, 0, sizeof(pulse_event_lifecycle_stats));
   memset(&pulse_extraction_stats, 0, sizeof(pulse_extraction_stats));
   memset(&pulse_catchup_stats, 0, sizeof(pulse_catchup_stats));
   pulse_schedule_flags = 0;
@@ -2725,6 +2822,7 @@ static size_t collect_top_event_profiles(size_t *top_indices, int is_total)
 static size_t format_event_telemetry(char *buf, size_t n, int is_total)
 {
   const struct perf_event_process_stats *process_stats;
+  const struct perf_event_lifecycle_stats *lifecycle_stats;
   const struct perf_extraction_stats *extraction_stats;
   const struct perf_catchup_stats *catchup_stats;
   const struct perf_event_callback *profile;
@@ -2744,12 +2842,14 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
   if (is_total)
   {
     process_stats = &total_event_process_stats;
+    lifecycle_stats = &total_event_lifecycle_stats;
     extraction_stats = &total_extraction_stats;
     catchup_stats = &total_catchup_stats;
   }
   else
   {
     process_stats = &pulse_event_process_stats;
+    lifecycle_stats = &pulse_event_lifecycle_stats;
     extraction_stats = &pulse_extraction_stats;
     catchup_stats = &pulse_catchup_stats;
   }
@@ -2757,44 +2857,54 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
       is_total ? event_profile_overflow.total_calls : event_profile_overflow.pulse_calls;
 
   written = bounded_format_length(
-      snprintf(buf, n,
-               "\n\r%s game-loop telemetry\n\r"
-               "Event queue: calls=%" PRIu64 " callbacks=%" PRIu64 " created=%" PRIu64
-               " depth=%" PRIu64 "->%" PRIu64 " max_before=%" PRIu64 " max_after=%" PRIu64 "\n\r"
-               "Extractions: calls=%" PRIu64 " pending_before=%" PRIu64 " processed=%" PRIu64
-               " pending_after=%" PRIu64 " max_processed=%" PRIu64 " max_pending_before=%" PRIu64
-               " max_pending_after=%" PRIu64 "\n\r"
-               "Catch-up: passes=%" PRIu64 " budget_exhausted=%" PRIu64 " requested_missed=%" PRIu64
-               " replayed_missed=%" PRIu64 " dropped_missed=%" PRIu64 " max_requested=%" PRIu64
-               " max_dropped=%" PRIu64 "\n\r"
-               "Event callback registry: registered=%zu/%d report_limit=%d overflow_calls=%" PRIu64
-               "\n\r",
-               is_total ? "Cumulative" : "Pulse", process_stats->calls,
-               process_stats->callbacks_processed, process_stats->events_created,
-               process_stats->initial_depth, process_stats->latest_depth,
-               process_stats->max_depth_before, process_stats->max_depth_after,
-               extraction_stats->calls, extraction_stats->pending_before,
-               extraction_stats->processed, extraction_stats->pending_after,
-               extraction_stats->max_processed, extraction_stats->max_pending_before,
-               extraction_stats->max_pending_after, catchup_stats->passes,
-               catchup_stats->budget_exhausted_passes, catchup_stats->requested_missed,
-               catchup_stats->replayed_missed, catchup_stats->remaining_backlog,
-               catchup_stats->max_requested_missed, catchup_stats->max_remaining_backlog,
-               event_profile_count, EVENT_PROFILE_CAPACITY, EVENT_PROFILE_REPORT_LIMIT,
-               overflow_calls),
+      snprintf(
+          buf, n,
+          "\n\r%s game-loop telemetry\n\r"
+          "Event queue: calls=%" PRIu64 " callbacks=%" PRIu64 " created=%" PRIu64 " depth=%" PRIu64
+          "->%" PRIu64 " max_before=%" PRIu64 " max_after=%" PRIu64 " max_batch=%" PRIu64 "\n\r"
+          "Event lifecycle: scheduled=%" PRIu64 " cancelled=%" PRIu64 " recurrences=%" PRIu64 "\n\r"
+          "Requested delay buckets (pulses): <=1=%" PRIu64 " 2-10=%" PRIu64 " 11-60=%" PRIu64
+          " 61-600=%" PRIu64 " 601-6000=%" PRIu64 " 6001-36000=%" PRIu64 " >36000=%" PRIu64 "\n\r"
+          "Extractions: calls=%" PRIu64 " pending_before=%" PRIu64 " processed=%" PRIu64
+          " pending_after=%" PRIu64 " max_processed=%" PRIu64 " max_pending_before=%" PRIu64
+          " max_pending_after=%" PRIu64 "\n\r"
+          "Catch-up: passes=%" PRIu64 " budget_exhausted=%" PRIu64 " requested_missed=%" PRIu64
+          " replayed_missed=%" PRIu64 " dropped_missed=%" PRIu64 " max_requested=%" PRIu64
+          " max_dropped=%" PRIu64 "\n\r"
+          "Event callback registry: registered=%zu/%d report_limit=%d overflow_calls=%" PRIu64
+          "\n\r",
+          is_total ? "Cumulative" : "Pulse", process_stats->calls,
+          process_stats->callbacks_processed, process_stats->events_created,
+          process_stats->initial_depth, process_stats->latest_depth,
+          process_stats->max_depth_before, process_stats->max_depth_after,
+          process_stats->max_callbacks_per_call, lifecycle_stats->scheduled,
+          lifecycle_stats->cancelled, lifecycle_stats->rescheduled,
+          lifecycle_stats->delay_buckets[0], lifecycle_stats->delay_buckets[1],
+          lifecycle_stats->delay_buckets[2], lifecycle_stats->delay_buckets[3],
+          lifecycle_stats->delay_buckets[4], lifecycle_stats->delay_buckets[5],
+          lifecycle_stats->delay_buckets[6], extraction_stats->calls,
+          extraction_stats->pending_before, extraction_stats->processed,
+          extraction_stats->pending_after, extraction_stats->max_processed,
+          extraction_stats->max_pending_before, extraction_stats->max_pending_after,
+          catchup_stats->passes, catchup_stats->budget_exhausted_passes,
+          catchup_stats->requested_missed, catchup_stats->replayed_missed,
+          catchup_stats->remaining_backlog, catchup_stats->max_requested_missed,
+          catchup_stats->max_remaining_backlog, event_profile_count, EVENT_PROFILE_CAPACITY,
+          EVENT_PROFILE_REPORT_LIMIT, overflow_calls),
       n);
 
   if (written >= n - 1)
     return written;
 
   written += bounded_format_length(
-      snprintf(buf + written, n - written,
-               "Event callbacks (top %d by total time)\n\r"
-               "Identity                            |    Calls|  Total usec|  Avg usec| P50 usec|"
-               " P95 usec| P99 usec|  Max usec|Samples stored/seen\n\r"
-               "-----------------------------------------------------------------------------------"
-               "-----------------------------------------------\n\r",
-               EVENT_PROFILE_REPORT_LIMIT),
+      snprintf(
+          buf + written, n - written,
+          "Event callbacks (top %d by total time)\n\r"
+          "Identity                            |    Calls|  Total usec|  Avg usec| P50 usec|"
+          " P95 usec| P99 usec|  Max usec|Samples stored/seen|    Sched|   Cancel|    Recur\n\r"
+          "-----------------------------------------------------------------------------------"
+          "-----------------------------------------------\n\r",
+          EVENT_PROFILE_REPORT_LIMIT),
       n - written);
 
   top_count = collect_top_event_profiles(top_indices, is_total);
@@ -2810,9 +2920,10 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
       written += bounded_format_length(
           snprintf(buf + written, n - written,
                    "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%9.2f|%9.2f|%9.2f|%10" PRIu64
-                   "|%7zu/%" PRIu64 "\n\r",
+                   "|%7zu/%" PRIu64 "|%9" PRIu64 "|%9" PRIu64 "|%9" PRIu64 "\n\r",
                    profile->identity, profile->total_calls, profile->total_usec, average, median,
-                   p95, p99, profile->total_max_usec, profile->sample_count, profile->samples_seen),
+                   p95, p99, profile->total_max_usec, profile->sample_count, profile->samples_seen,
+                   profile->total_scheduled, profile->total_cancelled, profile->total_rescheduled),
           n - written);
     }
     else
@@ -2823,10 +2934,11 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
       written += bounded_format_length(
           snprintf(buf + written, n - written,
                    "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%9.2f|%9.2f|%9.2f|%10" PRIu64
-                   "|%7zu/%" PRIu64 "\n\r",
+                   "|%7zu/%" PRIu64 "|%9" PRIu64 "|%9" PRIu64 "|%9" PRIu64 "\n\r",
                    profile->identity, profile->pulse_calls, profile->pulse_total_usec, average,
                    median, p95, p99, profile->pulse_max_usec, profile->sample_count,
-                   profile->samples_seen),
+                   profile->samples_seen, profile->pulse_scheduled, profile->pulse_cancelled,
+                   profile->pulse_rescheduled),
           n - written);
     }
   }
@@ -2847,9 +2959,12 @@ static size_t format_event_telemetry(char *buf, size_t n, int is_total)
     written += bounded_format_length(
         snprintf(buf + written, n - written,
                  "%-36.36s|%9" PRIu64 "|%12" PRIu64 "|%10.2f|%9.2f|%9.2f|%9.2f|%10" PRIu64
-                 "|%7zu/%" PRIu64 "\n\r",
+                 "|%7zu/%" PRIu64 "|%9" PRIu64 "|%9" PRIu64 "|%9" PRIu64 "\n\r",
                  "[unregistered overflow]", calls, total_usec, average, median, p95, p99, max_usec,
-                 profile->sample_count, profile->samples_seen),
+                 profile->sample_count, profile->samples_seen,
+                 is_total ? profile->total_scheduled : profile->pulse_scheduled,
+                 is_total ? profile->total_cancelled : profile->pulse_cancelled,
+                 is_total ? profile->total_rescheduled : profile->pulse_rescheduled),
         n - written);
   }
 
@@ -2872,45 +2987,65 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
     return 0;
 
   written = bounded_format_length(
-      snprintf(buf, n,
-               "# event_process_calls=%" PRIu64 "\n\r"
-               "# event_callbacks_processed=%" PRIu64 "\n\r"
-               "# events_created_during_processing=%" PRIu64 "\n\r"
-               "# event_queue_depth_initial=%" PRIu64 "\n\r"
-               "# event_queue_depth_latest=%" PRIu64 "\n\r"
-               "# event_queue_depth_max_before=%" PRIu64 "\n\r"
-               "# event_queue_depth_max_after=%" PRIu64 "\n\r"
-               "# extraction_calls=%" PRIu64 "\n\r"
-               "# extractions_pending_before=%" PRIu64 "\n\r"
-               "# extractions_processed=%" PRIu64 "\n\r"
-               "# extractions_pending_after=%" PRIu64 "\n\r"
-               "# max_extractions_per_call=%" PRIu64 "\n\r"
-               "# max_extractions_pending_before=%" PRIu64 "\n\r"
-               "# max_extractions_pending_after=%" PRIu64 "\n\r"
-               "# catchup_passes=%" PRIu64 "\n\r"
-               "# catchup_budget_exhausted_passes=%" PRIu64 "\n\r"
-               "# catchup_requested_missed=%" PRIu64 "\n\r"
-               "# catchup_replayed_missed=%" PRIu64 "\n\r"
-               "# catchup_dropped_missed=%" PRIu64 "\n\r"
-               "# catchup_max_requested_missed=%" PRIu64 "\n\r"
-               "# catchup_max_dropped_missed=%" PRIu64 "\n\r"
-               "# event_profile_registered=%zu\n\r"
-               "# event_profile_capacity=%d\n\r"
-               "# event_profile_report_limit=%d\n\r"
-               "# event_profile_overflow_calls=%" PRIu64 "\n\r",
-               total_event_process_stats.calls, total_event_process_stats.callbacks_processed,
-               total_event_process_stats.events_created, total_event_process_stats.initial_depth,
-               total_event_process_stats.latest_depth, total_event_process_stats.max_depth_before,
-               total_event_process_stats.max_depth_after, total_extraction_stats.calls,
-               total_extraction_stats.pending_before, total_extraction_stats.processed,
-               total_extraction_stats.pending_after, total_extraction_stats.max_processed,
-               total_extraction_stats.max_pending_before, total_extraction_stats.max_pending_after,
-               total_catchup_stats.passes, total_catchup_stats.budget_exhausted_passes,
-               total_catchup_stats.requested_missed, total_catchup_stats.replayed_missed,
-               total_catchup_stats.remaining_backlog, total_catchup_stats.max_requested_missed,
-               total_catchup_stats.max_remaining_backlog, event_profile_count,
-               EVENT_PROFILE_CAPACITY, EVENT_PROFILE_REPORT_LIMIT,
-               event_profile_overflow.total_calls),
+      snprintf(
+          buf, n,
+          "# event_process_calls=%" PRIu64 "\n\r"
+          "# event_callbacks_processed=%" PRIu64 "\n\r"
+          "# events_created_during_processing=%" PRIu64 "\n\r"
+          "# event_queue_depth_initial=%" PRIu64 "\n\r"
+          "# event_queue_depth_latest=%" PRIu64 "\n\r"
+          "# event_queue_depth_max_before=%" PRIu64 "\n\r"
+          "# event_queue_depth_max_after=%" PRIu64 "\n\r"
+          "# event_due_batch_max=%" PRIu64 "\n\r"
+          "# events_scheduled=%" PRIu64 "\n\r"
+          "# events_cancelled=%" PRIu64 "\n\r"
+          "# events_rescheduled=%" PRIu64 "\n\r"
+          "# event_delay_pulses_le_1=%" PRIu64 "\n\r"
+          "# event_delay_pulses_2_10=%" PRIu64 "\n\r"
+          "# event_delay_pulses_11_60=%" PRIu64 "\n\r"
+          "# event_delay_pulses_61_600=%" PRIu64 "\n\r"
+          "# event_delay_pulses_601_6000=%" PRIu64 "\n\r"
+          "# event_delay_pulses_6001_36000=%" PRIu64 "\n\r"
+          "# event_delay_pulses_gt_36000=%" PRIu64 "\n\r"
+          "# extraction_calls=%" PRIu64 "\n\r"
+          "# extractions_pending_before=%" PRIu64 "\n\r"
+          "# extractions_processed=%" PRIu64 "\n\r"
+          "# extractions_pending_after=%" PRIu64 "\n\r"
+          "# max_extractions_per_call=%" PRIu64 "\n\r"
+          "# max_extractions_pending_before=%" PRIu64 "\n\r"
+          "# max_extractions_pending_after=%" PRIu64 "\n\r"
+          "# catchup_passes=%" PRIu64 "\n\r"
+          "# catchup_budget_exhausted_passes=%" PRIu64 "\n\r"
+          "# catchup_requested_missed=%" PRIu64 "\n\r"
+          "# catchup_replayed_missed=%" PRIu64 "\n\r"
+          "# catchup_dropped_missed=%" PRIu64 "\n\r"
+          "# catchup_max_requested_missed=%" PRIu64 "\n\r"
+          "# catchup_max_dropped_missed=%" PRIu64 "\n\r"
+          "# event_profile_registered=%zu\n\r"
+          "# event_profile_capacity=%d\n\r"
+          "# event_profile_report_limit=%d\n\r"
+          "# event_profile_overflow_calls=%" PRIu64 "\n\r",
+          total_event_process_stats.calls, total_event_process_stats.callbacks_processed,
+          total_event_process_stats.events_created, total_event_process_stats.initial_depth,
+          total_event_process_stats.latest_depth, total_event_process_stats.max_depth_before,
+          total_event_process_stats.max_depth_after,
+          total_event_process_stats.max_callbacks_per_call, total_event_lifecycle_stats.scheduled,
+          total_event_lifecycle_stats.cancelled, total_event_lifecycle_stats.rescheduled,
+          total_event_lifecycle_stats.delay_buckets[0],
+          total_event_lifecycle_stats.delay_buckets[1],
+          total_event_lifecycle_stats.delay_buckets[2],
+          total_event_lifecycle_stats.delay_buckets[3],
+          total_event_lifecycle_stats.delay_buckets[4],
+          total_event_lifecycle_stats.delay_buckets[5],
+          total_event_lifecycle_stats.delay_buckets[6], total_extraction_stats.calls,
+          total_extraction_stats.pending_before, total_extraction_stats.processed,
+          total_extraction_stats.pending_after, total_extraction_stats.max_processed,
+          total_extraction_stats.max_pending_before, total_extraction_stats.max_pending_after,
+          total_catchup_stats.passes, total_catchup_stats.budget_exhausted_passes,
+          total_catchup_stats.requested_missed, total_catchup_stats.replayed_missed,
+          total_catchup_stats.remaining_backlog, total_catchup_stats.max_requested_missed,
+          total_catchup_stats.max_remaining_backlog, event_profile_count, EVENT_PROFILE_CAPACITY,
+          EVENT_PROFILE_REPORT_LIMIT, event_profile_overflow.total_calls),
       n);
   if (written >= n - 1)
     return written;
@@ -2918,7 +3053,8 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
   written +=
       bounded_format_length(snprintf(buf + written, n - written,
                                      "event_identity,calls,total_usec,average_usec,p50_usec,"
-                                     "p95_usec,p99_usec,max_usec,samples_stored,samples_seen\n\r"),
+                                     "p95_usec,p99_usec,max_usec,samples_stored,samples_seen,"
+                                     "scheduled,cancelled,rescheduled\n\r"),
                             n - written);
   top_count = collect_top_event_profiles(top_indices, 1);
   for (i = 0; i < top_count && written < n - 1; i++)
@@ -2929,9 +3065,11 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
     calculate_percentile_set(profile->samples, profile->sample_count, &median, &p95, &p99);
     written += bounded_format_length(
         snprintf(buf + written, n - written,
-                 "%s,%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%" PRIu64 ",%zu,%" PRIu64 "\n\r",
+                 "%s,%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%" PRIu64 ",%zu,%" PRIu64
+                 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 "\n\r",
                  profile->identity, profile->total_calls, profile->total_usec, average, median, p95,
-                 p99, profile->total_max_usec, profile->sample_count, profile->samples_seen),
+                 p99, profile->total_max_usec, profile->sample_count, profile->samples_seen,
+                 profile->total_scheduled, profile->total_cancelled, profile->total_rescheduled),
         n - written);
   }
 
@@ -2943,9 +3081,10 @@ static size_t format_event_telemetry_csv(char *buf, size_t n)
     written += bounded_format_length(
         snprintf(buf + written, n - written,
                  "[unregistered overflow],%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%" PRIu64
-                 ",%zu,%" PRIu64 "\n\r",
+                 ",%zu,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 "\n\r",
                  profile->total_calls, profile->total_usec, average, median, p95, p99,
-                 profile->total_max_usec, profile->sample_count, profile->samples_seen),
+                 profile->total_max_usec, profile->sample_count, profile->samples_seen,
+                 profile->total_scheduled, profile->total_cancelled, profile->total_rescheduled),
         n - written);
   }
 
@@ -3250,6 +3389,8 @@ void PERF_cleanup(void)
   event_profile_count = 0;
   memset(&pulse_event_process_stats, 0, sizeof(pulse_event_process_stats));
   memset(&total_event_process_stats, 0, sizeof(total_event_process_stats));
+  memset(&pulse_event_lifecycle_stats, 0, sizeof(pulse_event_lifecycle_stats));
+  memset(&total_event_lifecycle_stats, 0, sizeof(total_event_lifecycle_stats));
   memset(&pulse_extraction_stats, 0, sizeof(pulse_extraction_stats));
   memset(&total_extraction_stats, 0, sizeof(total_extraction_stats));
   memset(&pulse_catchup_stats, 0, sizeof(pulse_catchup_stats));

@@ -120,6 +120,15 @@ int PERF_register_event_callback(const char *identity);
  */
 void PERF_note_event_callback(int profile_index, uint64_t elapsed_usec);
 
+/** Record a successfully admitted event and its requested delay in pulses. */
+void PERF_note_event_scheduled(int profile_index, uint64_t delay_pulses);
+
+/** Record cancellation of a live event. */
+void PERF_note_event_cancelled(int profile_index);
+
+/** Record a callback-requested recurrence and its delay in pulses. */
+void PERF_note_event_rescheduled(int profile_index, uint64_t delay_pulses);
+
 /**
  * @brief Record one event_process() queue pass
  */

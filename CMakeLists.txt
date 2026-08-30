@@ -1198,6 +1198,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_mob_autoroll.c
     unittests/CuTest/test_copyover_timer.c
     unittests/CuTest/test_game_scheduler.c
+    unittests/CuTest/test_legacy_event_adapter.c
     unittests/CuTest/test_bardic_performance.c
     unittests/CuTest/test_rol_feats.c
     unittests/CuTest/test_unassigned_spells.c

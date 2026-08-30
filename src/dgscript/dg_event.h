@@ -17,6 +17,9 @@
 #ifndef _DG_EVENT_H_
 #define _DG_EVENT_H_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 /** How often will heartbeat() call the 'wait' event function?
  * @deprecated Currently not used. */
 #define PULSE_DG_EVENT 1
@@ -29,19 +32,31 @@
 
 struct event;
 
+/** Timed-event storage selected once during event_init(). */
+enum event_backend_kind
+{
+  EVENT_BACKEND_UNINITIALIZED = 0,
+  EVENT_BACKEND_LEGACY_QUEUE,
+  EVENT_BACKEND_GAME_SCHEDULER
+};
+
 /** Optional cleanup invoked when a queued event is canceled or freed in bulk. */
 typedef void (*event_cleanup_func)(struct event *event);
 
-/** The event structure. Events get attached to the queue and are executed
- * when their turn comes up in the queue. */
+/** Compatibility event record owned by the selected timed-event backend. */
 struct event
 {
-  EVENTFUNC(*func);           /**< The function called when this event comes up. */
-  void *event_obj;            /**< event_obj is passed to func when func is called */
-  struct q_element *q_el;     /**< Where this event is located in the queue */
-  bool isMudEvent;            /**< used by the memory routines */
-  event_cleanup_func cleanup; /**< Optional cancellation and bulk cleanup hook. */
-  int profile_index;          /**< PERFMON event callback aggregate slot */
+  EVENTFUNC(*func);                /**< The function called when this event comes up. */
+  void *event_obj;                 /**< event_obj is passed to func when func is called */
+  struct q_element *q_el;          /**< Fallback queue location; NULL on scheduler backend. */
+  bool isMudEvent;                 /**< used by the memory routines */
+  event_cleanup_func cleanup;      /**< Optional cancellation and bulk cleanup hook. */
+  int profile_index;               /**< PERFMON event callback aggregate slot */
+  uint64_t scheduler_id;           /**< Opaque timing-wheel ID; zero for the legacy queue. */
+  enum event_backend_kind backend; /**< Storage backend that owns this event. */
+  bool dispatching;                /**< Callback is currently executing. */
+  bool cancel_requested;           /**< In-flight cancellation must beat recurrence. */
+  bool callback_terminal;          /**< Terminal cleanup follows legacy callback ownership. */
 };
 /**************************************************************************
  * End event structures and defines.
@@ -112,6 +127,8 @@ long event_time(struct event *event);
 void event_free_all(void);
 void cleanup_event_obj(struct event *event);
 int event_queue_depth(void);
+enum event_backend_kind event_backend_current(void);
+const char *event_backend_name(void);
 
 /* - queues - function protos need by other modules */
 struct dg_queue *queue_init(void);
@@ -127,6 +144,7 @@ int event_is_queued(struct event *event);
 void event_test_reset_lifecycle_counts(void);
 int event_test_init_call_count(void);
 int event_test_free_all_call_count(void);
+int event_test_select_backend(enum event_backend_kind backend);
 #endif
 
 #endif /* _DG_EVENT_H_ */

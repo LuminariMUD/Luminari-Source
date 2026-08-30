@@ -1,14 +1,15 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 1 scheduler accepted and unused
-**Document version:** 0.5
+**Status:** In progress - Phase 2 compatibility adapter accepted
+**Document version:** 0.7
 **Started:** 2026-08-29
 **Last source review:** 2026-08-30
-**Implementation status:** Phase 1 complete; Phase 2 legacy adapter ready to begin
+**Implementation status:** Phases 1 and 2 complete; Phase 3 reactor ready to begin
 
-> This remains the controlling planning specification. The standalone Phase 1
-> scheduler is compiled and tested but has no runtime consumer. Current game
-> behavior still uses the legacy event systems described below.
+> This remains the controlling planning specification. The Phase 1 scheduler
+> now stores legacy timed events through the Phase 2 compatibility facade. The
+> existing heartbeat still drives it; `libevent`, networking, commands, combat
+> semantics, and MUD-event ownership have not yet migrated.
 
 ## 1. Purpose
 
@@ -117,23 +118,24 @@ Relevant sources:
 - [`src/structs.h`](../../src/structs.h), including `PASSES_PER_SEC`, `RL_SEC`,
   and pulse intervals
 
-### 4.2 DG event queue
+### 4.2 Timed-event compatibility facade
 
-The base queue in [`src/dgscript/dg_event.c`](../../src/dgscript/dg_event.c) and
-[`src/dgscript/dg_event.h`](../../src/dgscript/dg_event.h):
+The public facade in [`src/dgscript/dg_event.c`](../../src/dgscript/dg_event.c)
+and [`src/dgscript/dg_event.h`](../../src/dgscript/dg_event.h) preserves the
+current `event_create*`, `EVENTFUNC`, cancellation, query, and callback-return
+contract. It now defaults to the Phase 1 timing-wheel scheduler and retains the
+old ten-bucket queue as a boot-time rollback backend.
 
-- Uses ten buckets selected by absolute due pulse modulo ten.
-- Maintains sorted linked lists inside the buckets.
-- Processes all due events every heartbeat pulse.
-- Lets a callback return a positive delay to reschedule itself.
-- Uses `q_el == NULL` as an in-dispatch marker.
-- Supports an optional cleanup callback, specialized MUD-event cleanup, and a
-  global 10,000-event limit.
-- Profiles callbacks and records event-processing activity.
+The scheduler adapter stores an opaque scheduler ID, explicit dispatch and
+cancel-pending state, callback identity, and the existing payload ownership
+metadata in each compatibility record. One internal scheduler event type serves
+all compatibility callbacks; PERFMON continues to attribute work to the
+individual callback or MUD-event name. Both backends enforce the existing
+10,000-event ceiling and one-pulse minimum delay.
 
-This is a useful discrete-event foundation, but it is not a hierarchical timing
-wheel. Lifecycle, payload ownership, in-flight cancellation, and MUD-specific
-cleanup remain coupled to queue internals.
+The legacy queue remains private fallback storage. Its equal-deadline insertion
+was corrected to FIFO so both selectable backends obey the accepted deterministic
+ordering contract.
 
 ### 4.3 MUD event layer
 
@@ -810,6 +812,23 @@ The legacy facade preserves:
 - Existing owner-list query helpers.
 - Existing specialized cleanup until each owner type migrates.
 
+The Phase 2 compatibility contract additionally fixes these details:
+
+- Events with the same exact deadline run in FIFO admission order. The legacy
+  queue previously inserted equal keys in LIFO order; its fallback comparator
+  now matches the accepted scheduler contract.
+- Self-cancellation always wins over a positive callback return, so a stale
+  recurrence result cannot revive a cancelled event.
+- A positive legacy callback return is relative to the pulse at which that
+  callback actually ran, matching the existing event API rather than the new
+  scheduler's previous-deadline recurrence option.
+- Work scheduled from a callback has a minimum one-pulse delay and cannot run
+  recursively in the same dispatch.
+
+These are compatibility-foundation correctness rules, not player-visible game
+balance changes. The Phase 2 parity suite applies them to both selectable
+backends, so rollback does not restore the unsafe or nondeterministic variant.
+
 The facade must not preserve unsafe behavior merely for compatibility. Where a
 behavioral correction is required, it receives a dedicated migration phase,
 test, release note, and rollback decision.
@@ -1141,6 +1160,94 @@ Rollback:
 
 - Boot-time backend selection returns to the old queue. Backend selection must
   occur only with an empty scheduler; live switching is prohibited.
+
+Implementation record, 2026-08-30:
+
+- `event_init()` selects `scheduler` by default. `LUMINARI_EVENT_BACKEND=legacy`
+  selects the retained queue before any event can be admitted. The process
+  environment takes precedence over `.env`; unknown values warn and select the
+  scheduler, while scheduler initialization failure logs and falls back to the
+  queue. Selection is immutable until `event_free_all()` destroys an emptying
+  backend.
+- The adapter routes creation, heartbeat dispatch, callback-return recurrence,
+  cancellation, remaining-time queries, queued-state queries, and shutdown
+  through the selected backend. No gameplay producer, MUD-event registry row,
+  owner list, command, combat rule, or networking path was converted.
+- Scheduler completion, failure, cancellation, and shutdown converge on one
+  adapter cleanup callback. Normal legacy completion preserves callback-owned
+  non-MUD payloads and MUD-specific cleanup; queued cancellation and shutdown
+  preserve custom cleanup hooks, MUD cleanup, and the generic payload fallback.
+- PERFMON now records scheduled, cancelled, and rescheduled counts by callback
+  profile, aggregate requested-delay buckets, maximum callbacks due in one
+  processing pass, queue depth/high-water data, and existing callback duration.
+  The telemetry contains identities and counters only, never payload or player
+  content.
+- [`unittests/CuTest/test_legacy_event_adapter.c`](../../unittests/CuTest/test_legacy_event_adapter.c)
+  runs identical pulse traces against both backends and verifies FIFO ordering,
+  callback-relative recurrence, queued cancellation, cleanup exactly once,
+  self-cancel precedence, remaining-time queries, queue depth, and the
+  source-derived delay corpus. Existing syntax-boot tests continue to cover DG
+  wait cleanup and MUD owner detachment during global shutdown.
+
+Source inventory:
+
+- Two direct base-event producers live in `src/ai_events.c`; both are one-shot,
+  use callback-owned compound payloads on normal completion, and request delays
+  from one pulse through the bounded retry backoff range.
+- DG `wait` in `src/dgscript/dg_scripts.c` is the only production user of the
+  custom base cleanup hook. Its data owns a trigger back-reference that must be
+  detached on trigger extraction, OLC replacement, cancellation, or shutdown.
+- `attach_mud_event()` is the common admission point for MUD events. Calls occur
+  across 36 production C files and cover world, descriptor, character, object,
+  room, and region owner lists. Entity extraction, trigger teardown, duration
+  replacement, copyover/shutdown, and explicit list clears exercise cancellation.
+- Recurring callback-return families include per-character combat phases,
+  encounter-region resets, and daily-use recovery. Other multi-step systems may
+  create a successor event explicitly rather than return a recurrence delay.
+- Player MUD events retain their current serialization and rehydration path in
+  `src/players.c`; persistent-time redesign remains a later ownership phase.
+
+The deterministic source-derived workload spans every passive delay bucket:
+
+| Profile | Pulses | Source behavior represented |
+|---------|--------|-----------------------------|
+| Quest Completed! | 1 | Minimum-delay character completion |
+| Falling | 5 | Short recurring movement consequence |
+| Spell Preparation | 10 | One-second preparation progress |
+| Combat Round | 20 | Current callback-return combat phase recurrence |
+| Encounter Region Reset | 600 | Current callback-return region recurrence |
+| Magic Food | 3,000 | Five-minute character cooldown |
+| Mob Purge | 14,400 | Long delayed NPC extraction |
+| Midnight Edict | 864,000 | Real-day perk lockout and overflow-wheel path |
+
+The validation corpus intentionally combines this source trace with the Phase 1
+10,000-event synthetic capacity case. Representative production distribution
+remains deferred to Phase 4 because the approved local copy cannot provide
+representative player activity.
+
+Phase 2 acceptance evidence, 2026-08-30:
+
+- The production-linked Autotools suite passed all 941 tests with the local
+  MariaDB-backed syntax boot. The compatibility tests ran identical traces
+  against both backends, including callback-relative recurrence, FIFO ties,
+  queued and in-flight cancellation, cleanup exactly once, all seven delay
+  buckets, and rejection of recursive `event_process()` dispatch.
+- Scheduler and legacy syntax boots both loaded the complete local world and
+  its production event workload, then shut down cleanly. The same two boots
+  passed in a full CMake production build instrumented with AddressSanitizer
+  and UndefinedBehaviorSanitizer.
+- `src/game_scheduler.c`, `src/dgscript/dg_event.c`, and `src/perfmon.c` passed
+  GCC static analysis with `-fanalyzer` and the normal warning set.
+- The CMake manifest includes the new compatibility suite, and the complete
+  CMake server target compiled after supplying this copy's protected local VNUM
+  definitions as compile flags. No protected configuration file was changed.
+- `make install` installed the tested Autotools binary and removed the
+  root-level `luminari` artifact.
+
+The Phase 2 gate is met. The scheduler is now the default storage backend for
+the existing event facade, while the retained queue remains an independently
+booted rollback path. Phase 3 may introduce the `libevent` compatibility
+reactor without changing commands, gameplay timing, or event ownership.
 
 ### Phase 3: Libevent compatibility reactor
 
@@ -1572,7 +1679,7 @@ working document is retired according to the ongoing-project policy.
 | D7 | Same-tick scheduling | Normalize to next tick, never recursive | Accepted for Phase 1 | Phase 1 |
 | D8 | Owner registry | Typed runtime ID plus generation | Provisional | Phase 5 |
 | D9 | Persistent event store | Per-type serialization and rehydration | Provisional | Phase 5 |
-| D10 | Old/new backend selection | Boot-time only with empty scheduler | Provisional | Phase 2 |
+| D10 | Old/new backend selection | Process environment, then `.env`; scheduler default, legacy rollback; immutable until shutdown | Accepted | Phase 2 |
 | D11 | Combat join eligibility | Next encounter round | Provisional | Phase 8 |
 | D12 | Encounter merge clock | Preserve survivor clock plus participant not-before guards | Provisional | Phase 8 |
 | D13 | Encounter splitting | Defer unless correctness or profiling requires it | Provisional | Phase 8 |
@@ -1666,7 +1773,7 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 - [ ] Phase 4 observed-workload telemetry is privacy-safe and representative
       enough to accept or retune scheduler geometry.
 - [ ] Copyover and reboot classifications are sufficient.
-- [ ] Legacy compatibility and rollback do not permit double callback execution.
+- [x] Legacy compatibility and rollback do not permit double callback execution.
 - [ ] `libevent` integration preserves descriptor, interpreter, copyover,
       signal, and operational behavior without leaking reactor types.
 - [ ] Domain events, decision hooks, nested publication, and payload lifetime
@@ -1689,3 +1796,5 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 0.3 | 2026-08-29 | Recorded the inert Phase 1 scheduler tranche, accepted D1-D7 for the core, documented validation evidence, and left the production-distribution benchmark gate open. |
 | 0.4 | 2026-08-30 | Restored the libevent-backed reactor as an early required phase, specified command and active-world boundaries, added the typed domain-event contract and current pub/sub retirement, expanded activities, and rebuilt the remaining migration and validation plan. |
 | 0.5 | 2026-08-30 | Accepted the Phase 1 gate on deterministic and synthetic evidence, added privacy-safe aggregate telemetry and a source-derived Phase 2 workload, and moved representative observed-workload measurement and geometry review to Phase 4. |
+| 0.6 | 2026-08-30 | Recorded the Phase 2 compatibility adapter, boot-time scheduler/legacy selection, corrected deterministic compatibility contract, source-derived producer and delay inventory, passive event telemetry, and parity validation scope. |
+| 0.7 | 2026-08-30 | Accepted the Phase 2 gate after 941 production-linked tests, dual-backend syntax boots, sanitizer-instrumented CMake boots, and static analysis; confirmed scheduler default and legacy rollback readiness. |

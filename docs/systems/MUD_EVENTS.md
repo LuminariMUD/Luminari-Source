@@ -1,22 +1,27 @@
 # LuminariMUD Event Systems
 
-This document explains the complete timing and event infrastructure used by LuminariMUD, covering the base discrete-event queue (“DG event system”) and the higher-level, entity-scoped “MUD event” layer built on top of it.
+This document explains the current compatibility timing infrastructure used by
+LuminariMUD. The public DG event API now selects either the game scheduler or
+the retained legacy queue implementation at boot, while the higher-level,
+entity-scoped MUD event layer remains unchanged above that facade.
 
 Core source files:
 - [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
 - [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c)
+- [src/game_scheduler.h](../../src/game_scheduler.h)
+- [src/game_scheduler.c](../../src/game_scheduler.c)
 - [src/mud_event.h](../../src/mud_event.h)
 - [src/mud_event.c](../../src/mud_event.c)
 - [src/mud_event_list.c](../../src/mud_event_list.c)
 
 Key entry points (clickable declarations):
 - [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28): standard signature for all event functions
-- [C.event_create()](../../src/dgscript/dg_event.c#L61): schedule an event
-- [C.event_process()](../../src/dgscript/dg_event.c#L249): run due events every pulse
-- [C.event_cancel()](../../src/dgscript/dg_event.c#L133): cancel a queued or in-flight event safely
-- [C.cleanup_event_obj()](../../src/dgscript/dg_event.c#L217): free event payloads (MUD or generic)
-- [C.event_time()](../../src/dgscript/dg_event.c#L357): remaining pulses until an event fires
-- [C.event_free_all()](../../src/dgscript/dg_event.c#L374): bulk free of all events (shutdown/reset)
+- [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c): schedule through the active backend
+- [C.event_process()](../../src/dgscript/dg_event.c): advance and dispatch the active backend every pulse
+- [C.event_cancel()](../../src/dgscript/dg_event.c): cancel a queued or in-flight event safely
+- [C.cleanup_event_obj()](../../src/dgscript/dg_event.c): free event payloads (MUD or generic)
+- [C.event_time()](../../src/dgscript/dg_event.c): remaining pulses until an event fires
+- [C.event_free_all()](../../src/dgscript/dg_event.c): bulk free all events (shutdown/reset)
 - [C.attach_mud_event()](../../src/mud_event.c#L437): attach a MUD event to an entity and queue it
 - [C.free_mud_event()](../../src/mud_event.c#L607): remove from entity lists and free payload
 - [C.new_mud_event()](../../src/mud_event.c#L579): allocate a MUD event payload
@@ -31,44 +36,64 @@ Key entry points (clickable declarations):
 ## 1. Architecture Overview
 
 - The event system is layered:
-  - Base queue + processing: [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c) and [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
+  - Compatibility facade and backend selection: [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c) and [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
+  - Default hierarchical timing-wheel backend: [src/game_scheduler.c](../../src/game_scheduler.c) and [src/game_scheduler.h](../../src/game_scheduler.h)
+  - Boot-time rollback backend: the legacy ten-bucket queue retained inside `dg_event.c`
   - Higher-level MUD events with entity-scoped lists and safety/memory semantics: [src/mud_event.c](../../src/mud_event.c) and [src/mud_event.h](../../src/mud_event.h)
   - Table-driven registry: [src/mud_event_list.c](../../src/mud_event_list.c) binds event IDs to functions, types, messages, and feat metadata
 - Time model:
-  - The game runs on “pulses” (tick frequency). Many helpers express real-life seconds using a macro RL_SEC which multiplies by PASSES_PER_SEC (10 ticks/sec), as discussed in [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
-  - Events return the number of pulses until they should run again; returning 0 means “do not reschedule”
+  - The game runs on "pulses" (tick frequency). Many helpers express real-life seconds using a macro RL_SEC which multiplies by PASSES_PER_SEC (10 ticks/sec), as discussed in [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
+  - Events return the number of pulses until they should run again; returning 0 means "do not reschedule"
 
-## 2. Base Queue (DG Event System)
+The existing heartbeat still calls `event_process()` once per executed game
+pulse. This phase changes timed-event storage, cancellation, and diagnostics;
+it does not introduce `libevent` or replace the main loop. That reactor work is
+the next independently gated phase.
+
+## 2. Timed-Event Compatibility Facade
 
 ### 2.1 Data Structures and Signatures
 
 - Event function signature: [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28)
-- Event structure fields: see [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h) (struct event contains func, event_obj, q_el, isMudEvent)
-- Priority queue (multi-bucket) internals: [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h) and [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c)
-  - Buckets reduce enqueue costs by distributing events based on (key % NUM_EVENT_QUEUES)
+- Event structure fields: see [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h). The record contains the callback and payload plus backend-specific identity and explicit dispatch/cancellation state.
+- Production defaults to the timing-wheel scheduler. Set `LUMINARI_EVENT_BACKEND=legacy` before boot to select the rollback queue.
+- Selection reads the process environment first and then `lib/.env`, occurs only in `event_init()`, and cannot change until `event_free_all()` has emptied and destroyed the active backend.
+- Unknown values log a warning and use the scheduler. Scheduler initialization failure logs the error and falls back to the legacy queue.
+- `event_backend_name()` and `event_backend_current()` expose the selected backend for diagnostics and tests.
 
 ### 2.2 Lifecycle (Base)
 
-- Create/schedule: [C.event_create()](../../src/dgscript/dg_event.c#L61)
+- Create/schedule: [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c)
   - Ensures a minimum delay of 1 pulse
+  - Preserves the registered callback name for PERFMON even though all compatibility events share one internal scheduler event type
   - Returns a heap-allocated struct event whose payload is event_obj (type-specific)
-- Process every pulse: [C.event_process()](../../src/dgscript/dg_event.c#L249)
-  - Dequeues due events by current pulse
-  - Sets event->q_el = NULL to mark "currently processing"
-  - Calls the event's function; if it returns > 0, re-enqueues with that delay; otherwise frees
+- Process every pulse: [C.event_process()](../../src/dgscript/dg_event.c)
+  - Advances the timing wheel to the current game pulse, or processes the current bucket on the rollback backend
+  - Marks the event explicitly as dispatching before invoking its callback
+  - Calls the event function; a positive result reschedules relative to the callback pulse, while zero or a negative result completes it
+  - Dispatch order is exact deadline followed by FIFO insertion order
   - For MUD events, it invokes [C.free_mud_event()](../../src/mud_event.c#L607) if event_obj still present
-- Cancel: [C.event_cancel()](../../src/dgscript/dg_event.c#L133)
-  - If q_el is NULL, the event is being processed; it does not free the event structure (prevents double-free)
-  - For MUD events, calls [C.cleanup_event_obj()](../../src/dgscript/dg_event.c#L217) which delegates to [C.free_mud_event()](../../src/mud_event.c#L607)
-- Query remaining pulses: [C.event_time()](../../src/dgscript/dg_event.c#L357)
+- Cancel: [C.event_cancel()](../../src/dgscript/dg_event.c)
+  - In-flight cancellation becomes cancel-pending and always wins over a positive callback return
+  - Queued cancellation detaches and cleans up synchronously
+  - For MUD events, cleanup delegates to [C.free_mud_event()](../../src/mud_event.c#L607)
+- Query remaining pulses: [C.event_time()](../../src/dgscript/dg_event.c)
+- Inspect queued state: [C.event_is_queued()](../../src/dgscript/dg_event.c)
 
 ### 2.3 Safety Guards (Base)
 
 - Double-free prevention:
-  - In cancel: detection via q_el == NULL; see comments at [C.event_cancel()](../../src/dgscript/dg_event.c#L133)
-  - In process: only free mud_event payload if not already nulled by cancel; see [C.event_process()](../../src/dgscript/dg_event.c#L249)
+  - Explicit dispatch and cancel-pending flags define in-flight ownership
+  - Scheduler terminal states converge on one cleanup callback
+  - The rollback queue follows the same self-cancel-wins rule
 - Global reentrancy guard:
-  - Flag processing_events used to disallow bulk frees during active processing; see [C.event_process()](../../src/dgscript/dg_event.c#L249), [C.event_free_all()](../../src/dgscript/dg_event.c#L374), and queue_free function
+  - `processing_events` rejects recursive dispatch and disallows bulk
+    destruction during active processing
+- Capacity protection:
+  - Both backends enforce the existing 10,000-event global ceiling
+- Passive telemetry:
+  - PERFMON records callback identity and duration, scheduled/cancelled/rescheduled totals, queue depth, maximum due batch, and aggregate requested-delay buckets
+  - No event payload, player text, account data, descriptor data, or other player-sensitive content is recorded
 
 ## 3. MUD Event Layer
 
@@ -92,7 +117,7 @@ The MUD layer adds:
   - Duplicates sVariables string if provided (ownership sits with the MUD event)
 - Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c#L437)
   - Internally calls [C.event_create()](../../src/dgscript/dg_event.c#L61) with handler from registry
-  - Adds the struct event pointer to the owner’s event list (ch->events, obj->events, room->events, region->events, or world_events)
+  - Adds the struct event pointer to the owner's event list (ch->events, obj->events, room->events, region->events, or world_events)
   - Special memory handling:
     - For EVENT_ROOM: copies the room VNUM into newly allocated memory and stores that pointer in pStruct; validates room existence; see attach switch case at [C.attach_mud_event()](../../src/mud_event.c#L437)
     - For EVENT_REGION: same pattern for region VNUM; see [C.attach_mud_event()](../../src/mud_event.c#L437)
@@ -106,9 +131,9 @@ The MUD layer adds:
     - eDARKNESS (room): removes ROOM_DARK and sends message; see [C.event_countdown()](../../src/mud_event.c#L75)
     - ePURGEMOB: extracts character from world; see [C.event_countdown()](../../src/mud_event.c#L75)
     - eQUEST_COMPLETE: parses quest vnum and calls complete_quest; see [C.event_countdown()](../../src/mud_event.c#L75)
-    - eENCOUNTER_REG_RESET (region): tokenizes encounter rooms, repositions them to random valid coords, then reschedules itself with “return 60 RL_SEC”; see [C.event_countdown()](../../src/mud_event.c#L75)
+    - eENCOUNTER_REG_RESET (region): tokenizes encounter rooms, repositions them to random valid coords, then reschedules itself with "return 60 RL_SEC"; see [C.event_countdown()](../../src/mud_event.c#L75)
 - Daily-use unified handler: [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
-  - Reads “uses:N” from sVariables and decrements per completion
+  - Reads "uses:N" from sVariables and decrements per completion
   - Computes reschedule cooldown using either:
     - Table-provided daily_uses (non-feat abilities)
     - Character feat-derived daily uses via get_daily_uses
@@ -122,7 +147,7 @@ The MUD layer adds:
     - Rooms: pStruct stores a heap copy of room_vnum; copy it before free, compute room_rnum, free pStruct, and only touch world array if room still exists; see [C.free_mud_event()](../../src/mud_event.c#L607)
     - Regions: same for region_vnum; copy before free, validate against table, remove safely; see [C.free_mud_event()](../../src/mud_event.c#L607)
   - Frees sVariables if present
-  - Nulls the event’s event_obj to avoid accidental reuse
+  - Nulls the event's event_obj to avoid accidental reuse
 
 ### 3.5 Entity-Scoped Query Helpers
 
@@ -165,10 +190,11 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 
 ## 5. Important Safety and Memory Practices
 
-- Never free or modify the struct event directly during execution:
-  - [C.event_process()](../../src/dgscript/dg_event.c#L249) marks in-flight events via q_el = NULL
-  - [C.event_cancel()](../../src/dgscript/dg_event.c#L133) detects in-flight events and avoids double-free
-- Never call [C.event_free_all()](../../src/dgscript/dg_event.c#L374) while processing is active; it is guarded, but treat it as shutdown-only
+- Never free or relink `struct event` directly during execution. Use
+  [C.event_cancel()](../../src/dgscript/dg_event.c); the facade safely records
+  in-flight cancellation and prevents recurrence from reviving the event.
+- Never call [C.event_free_all()](../../src/dgscript/dg_event.c) while processing
+  is active; it is guarded, but treat it as shutdown-only.
 - For EVENT_ROOM and EVENT_REGION:
   - Always store a heap-allocated copy of VNUMs on attach (do not keep pointers to stack or external memory)
   - On free, copy the VNUM out before freeing the pStruct; then validate real_room/real_region prior to dereferencing world/region_table
@@ -182,8 +208,8 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 
 - Pulses are internal ticks; event functions return pulses to reschedule
 - Conversion helpers:
-  - RL_SEC multiplies by PASSES_PER_SEC (10 ticks/sec), so “X RL_SEC” equals X seconds × 10
-  - e.g., “return 60 RL_SEC;” means run again in 60 seconds × 10 ticks = 600 pulses; see [C.event_countdown()](../../src/mud_event.c#L75)
+  - RL_SEC multiplies by PASSES_PER_SEC (10 ticks/sec), so "X RL_SEC" equals X seconds * 10
+  - e.g., "return 60 RL_SEC;" means run again in 60 seconds * 10 ticks = 600 pulses; see [C.event_countdown()](../../src/mud_event.c#L75)
 - Daily-use math safeguards in [C.event_daily_use_cooldown()](../../src/mud_event.c#L284):
   - Use long math to avoid overflow
   - Clamp to sane maximums (e.g., 1 real day)
@@ -194,7 +220,7 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 - Attach a simple countdown to a character:
   - Use [C.NEW_EVENT()](../../src/mud_event.h#L27) with an event_id mapped to [C.event_countdown()](../../src/mud_event.c#L75) in the registry
 - Start a daily-use recovery cycle:
-  - Create a MUD event with sVariables “uses:N” and handler [C.event_daily_use_cooldown()](../../src/mud_event.c#L284); it will decrement and reschedule until uses exhaust
+  - Create a MUD event with sVariables "uses:N" and handler [C.event_daily_use_cooldown()](../../src/mud_event.c#L284); it will decrement and reschedule until uses exhaust
 - Room-based timed effects:
   - Attach EVENT_ROOM events using the VNUM value; the attach logic will copy and validate the room
   - eDARKNESS removal happens via countdown special case; see [C.event_countdown()](../../src/mud_event.c#L75)
@@ -251,7 +277,9 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 ## 10. Common Pitfalls and Defenses
 
 - Double-free during execution:
-  - Handled by q_el==NULL guard in [C.event_cancel()](../../src/dgscript/dg_event.c#L133) and checks in [C.event_process()](../../src/dgscript/dg_event.c#L249)
+  - Handled by explicit dispatch/cancel-pending state in
+    [C.event_cancel()](../../src/dgscript/dg_event.c) and the backend terminal
+    cleanup path
 - Free-then-use in Region/Room cleanup:
   - Fixed by copying VNUM before freeing and validating indices; see [C.free_mud_event()](../../src/mud_event.c#L607) and [C.free_mud_event()](../../src/mud_event.c#L607)
 - Modifying lists during iteration:
@@ -273,11 +301,22 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 
 ## 12. Operational Notes
 
+- Backend selection:
+  - Default: `LUMINARI_EVENT_BACKEND=scheduler`
+  - Rollback: `LUMINARI_EVENT_BACKEND=legacy`
+  - Restart after changing the value; live backend switching is unsupported
+- Startup logs one `Event backend initialized:` line naming the effective
+  backend.
+- `perf event total` and the PERFMON CSV representation include lifecycle,
+  delay-distribution, queue-depth, due-batch, and callback-duration aggregates.
+- The scheduler backend is still driven by the ten-Hz heartbeat. No networking,
+  descriptor polling, command parsing, or interpreter behavior changes here.
+
 - World events:
   - Global list is created in [C.init_events()](../../src/mud_event.c#L66) and defined at [src/mud_event.c](../../src/mud_event.c#L58)
   - Query via [C.world_has_mud_event()](../../src/mud_event.c#L905)
 - Descriptor events:
-  - Protocol detection is a descriptor-level event (“Protocol”) in the registry mapped to [C.get_protocols()](../../src/mud_event_list.c#L18)
+  - Protocol detection is a descriptor-level event ("Protocol") in the registry mapped to [C.get_protocols()](../../src/mud_event_list.c#L18)
 - Iteration helpers:
   - simple_list and merge_iterator are used to safely traverse owner lists where appropriate (see various query functions)
 
@@ -285,7 +324,7 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 
 - Registry row: handler [C.event_daily_use_cooldown()](../../src/mud_event.c#L284), type EVENT_CHAR (or EVENT_OBJECT), recovery_msg set, feat_num set (or daily_uses if non-feat)
 - On use:
-  - Create sVariables "uses:N" where N is the number of recoveries remaining for this “chain”
+  - Create sVariables "uses:N" where N is the number of recoveries remaining for this "chain"
   - Attach via [C.NEW_EVENT()](../../src/mud_event.h#L27) with initial delay of ((SECS_PER_MUD_DAY / uses_per_day) RL_SEC)
 - On completion:
   - The handler decrements uses and either reschedules or ends, emitting messages as configured

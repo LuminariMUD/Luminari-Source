@@ -25,6 +25,8 @@
 #include "dg_event.h"
 #include "constants.h"
 #include "comm.h" /* For access to the game pulse */
+#include "dotenv.h"
+#include "game_scheduler.h"
 #include "mud_event.h"
 #include "perfmon.h"
 #include <limits.h> /* For LONG_MAX used in overflow checks */
@@ -35,6 +37,12 @@
 /* file scope variables */
 /** The mud specific queue of events. */
 static struct dg_queue *event_q = NULL;
+/** Timing-wheel backend used through the legacy event facade. */
+static struct game_scheduler *event_scheduler = NULL;
+/** One scheduler type owns all legacy callbacks; PERFMON retains callback identity. */
+static game_event_type_id_t legacy_event_type = 0;
+/** Backend selection is immutable between event_init() and event_free_all(). */
+static enum event_backend_kind active_backend = EVENT_BACKEND_UNINITIALIZED;
 /** Flag to track if we're currently processing events (prevents dangerous operations) */
 static int processing_events = 0;
 /** Counter to track total number of events in the system (resource exhaustion protection) */
@@ -45,7 +53,190 @@ static uint64_t events_created_during_process = 0;
 #if defined(LUMINARI_CUTEST)
 static int event_init_calls = 0;
 static int event_free_all_calls = 0;
+static enum event_backend_kind test_backend_override = EVENT_BACKEND_UNINITIALIZED;
 #endif
+
+static game_tick_t legacy_scheduler_tick(void *context);
+static struct game_event_result
+legacy_scheduler_event_handler(const struct game_event_context *context);
+static void legacy_scheduler_event_cleanup(void *payload);
+static enum event_backend_kind configured_event_backend(void);
+static int initialize_scheduler_backend(void);
+static void decrement_event_count(const char *context);
+
+static const char *backend_kind_name(enum event_backend_kind backend)
+{
+  switch (backend)
+  {
+  case EVENT_BACKEND_LEGACY_QUEUE:
+    return "legacy";
+  case EVENT_BACKEND_GAME_SCHEDULER:
+    return "scheduler";
+  case EVENT_BACKEND_UNINITIALIZED:
+  default:
+    return "uninitialized";
+  }
+}
+
+enum event_backend_kind event_backend_current(void)
+{
+  return active_backend;
+}
+
+const char *event_backend_name(void)
+{
+  return backend_kind_name(active_backend);
+}
+
+static enum event_backend_kind configured_event_backend(void)
+{
+  const char *configured;
+
+#if defined(LUMINARI_CUTEST)
+  if (test_backend_override != EVENT_BACKEND_UNINITIALIZED)
+    return test_backend_override;
+#endif
+
+  configured = getenv("LUMINARI_EVENT_BACKEND");
+  if (configured == NULL || *configured == '\0')
+    configured = get_env_value("LUMINARI_EVENT_BACKEND");
+  if (configured == NULL || *configured == '\0' || !strcasecmp(configured, "scheduler") ||
+      !strcasecmp(configured, "timing-wheel") || !strcasecmp(configured, "timing_wheel"))
+    return EVENT_BACKEND_GAME_SCHEDULER;
+  if (!strcasecmp(configured, "legacy") || !strcasecmp(configured, "queue"))
+    return EVENT_BACKEND_LEGACY_QUEUE;
+
+  log("WARNING: Unknown LUMINARI_EVENT_BACKEND '%s'; using scheduler.", configured);
+  return EVENT_BACKEND_GAME_SCHEDULER;
+}
+
+static game_tick_t legacy_scheduler_tick(void *context)
+{
+  (void)context;
+  return (game_tick_t)pulse;
+}
+
+static void decrement_event_count(const char *context)
+{
+  total_events--;
+  if (total_events < 0)
+  {
+    log("SYSERR: Event counter went negative during %s; resetting to zero.", context);
+    total_events = 0;
+  }
+}
+
+static void legacy_scheduler_event_cleanup(void *payload)
+{
+  struct event *event;
+
+  event = (struct event *)payload;
+  if (event == NULL)
+    return;
+
+  if (event->callback_terminal)
+  {
+    if (event->isMudEvent && event->event_obj != NULL)
+      free_mud_event((struct mud_event_data *)event->event_obj);
+  }
+  else if (event->event_obj != NULL)
+  {
+    cleanup_event_obj(event);
+  }
+
+  free(event);
+  decrement_event_count("scheduler cleanup");
+}
+
+static struct game_event_result
+legacy_scheduler_event_handler(const struct game_event_context *context)
+{
+  struct event *event;
+  long next_delay;
+  game_tick_t target_tick;
+  uint64_t callback_start_usec;
+  uint64_t callback_end_usec;
+  uint64_t callback_elapsed_usec;
+
+  event = context != NULL ? (struct event *)context->payload : NULL;
+  if (event == NULL || event->func == NULL)
+  {
+    log("SYSERR: Invalid legacy event reached the timing-wheel dispatcher.");
+    return game_event_result_failed(1U);
+  }
+
+  event->dispatching = true;
+  event->cancel_requested = false;
+  event->callback_terminal = false;
+  callback_start_usec = PERF_monotonic_usec();
+  next_delay = (event->func)(event->event_obj);
+  callback_end_usec = PERF_monotonic_usec();
+  callback_elapsed_usec =
+      callback_end_usec >= callback_start_usec ? callback_end_usec - callback_start_usec : 0;
+  PERF_note_event_callback(event->profile_index, callback_elapsed_usec);
+  event->dispatching = false;
+
+  if (event->cancel_requested)
+  {
+    event->callback_terminal = true;
+    return game_event_result_complete();
+  }
+  if (next_delay <= 0)
+  {
+    event->callback_terminal = true;
+    return game_event_result_complete();
+  }
+
+  if (context->now_tick > LONG_MAX || next_delay > LONG_MAX - (long)context->now_tick)
+  {
+    log("WARNING: event re-queue overflow prevented. Event scheduled for maximum future time.");
+    target_tick = LONG_MAX;
+  }
+  else
+  {
+    target_tick = context->now_tick + (game_tick_t)next_delay;
+  }
+  PERF_note_event_rescheduled(event->profile_index, (uint64_t)next_delay);
+  return game_event_result_reschedule_at(target_tick);
+}
+
+static int initialize_scheduler_backend(void)
+{
+  struct game_scheduler_config scheduler_config;
+  struct game_event_type_config type_config;
+  enum game_scheduler_status status;
+
+  memset(&scheduler_config, 0, sizeof(scheduler_config));
+  scheduler_config.max_events = MAX_EVENTS;
+  scheduler_config.max_event_types = 1U;
+  scheduler_config.tick_now = legacy_scheduler_tick;
+  scheduler_config.monotonic_usec_now = NULL;
+  scheduler_config.clock_context = NULL;
+  event_scheduler = game_scheduler_create(&scheduler_config, &status);
+  if (event_scheduler == NULL)
+  {
+    log("SYSERR: Unable to create timing-wheel event backend (status %d).", status);
+    return 0;
+  }
+
+  memset(&type_config, 0, sizeof(type_config));
+  type_config.name = "legacy_event";
+  type_config.handler = legacy_scheduler_event_handler;
+  type_config.cleanup = legacy_scheduler_event_cleanup;
+  type_config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  type_config.max_events = MAX_EVENTS;
+  status = game_scheduler_register_type(event_scheduler, &type_config, &legacy_event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: Unable to register legacy event adapter (status %d).", status);
+    game_scheduler_destroy(event_scheduler);
+    event_scheduler = NULL;
+    legacy_event_type = 0;
+    return 0;
+  }
+
+  return 1;
+}
 
 /** Initializes the main event queue event_q.
  * @post The main event queue, event_q, has been created and initialized.
@@ -56,13 +247,22 @@ void event_init(void)
   event_init_calls++;
 #endif
 
-  if (event_q != NULL)
+  if (active_backend != EVENT_BACKEND_UNINITIALIZED || event_q != NULL || event_scheduler != NULL)
   {
-    log("SYSERR: event_init called while the event queue is already initialized");
+    log("SYSERR: event_init called while the event system is already initialized");
     return;
   }
 
-  event_q = queue_init();
+  active_backend = configured_event_backend();
+  if (active_backend == EVENT_BACKEND_GAME_SCHEDULER && !initialize_scheduler_backend())
+  {
+    log("WARNING: Falling back to the legacy event queue during initialization.");
+    active_backend = EVENT_BACKEND_LEGACY_QUEUE;
+  }
+  if (active_backend == EVENT_BACKEND_LEGACY_QUEUE)
+    event_q = queue_init();
+
+  log("Event backend initialized: %s.", event_backend_name());
 }
 
 /** Creates a named event with no custom cancellation cleanup.
@@ -74,8 +274,8 @@ struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
   return event_create_named_with_cleanup(func, event_obj, when, profile_name, NULL);
 }
 
-/** Creates a new event 'object' that is then enqueued to the global event_q.
- * @post If the newly created event is valid, it is always added to event_q.
+/** Creates a new event object and admits it to the active backend.
+ * @post If the newly created event is valid, it is owned by the active backend.
  * @param func The function to be called when this event fires. This function
  * will be passed event_obj when it fires. The function must match the form
  * described by EVENTFUNC.
@@ -92,10 +292,12 @@ struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj,
                                               const char *profile_name, event_cleanup_func cleanup)
 {
   struct event *new_event = NULL;
+  enum game_scheduler_status scheduler_status;
+  game_event_id_t scheduler_id;
   long target_time;
 
-  /* Safety check: ensure event_q is initialized */
-  if (!event_q)
+  /* Safety check: ensure one backend is initialized. */
+  if (active_backend == EVENT_BACKEND_UNINITIALIZED)
   {
     log("SYSERR: event_create called before event_init()");
     return NULL;
@@ -128,36 +330,58 @@ struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj,
   if (when < 1) /* make sure its in the future */
     when = 1;
 
-  /* FIX FOR INTEGER OVERFLOW:
-   *
-   * PROBLEM: If 'when' and 'pulse' are both very large, adding them
-   * could overflow and wrap around to a small or negative number.
-   * This would cause the event to fire at the wrong time!
-   *
-   * SOLUTION: Check for overflow before doing the addition.
-   * If overflow would occur, cap at maximum safe value. */
-  if (pulse > LONG_MAX || when > LONG_MAX - (long)pulse)
-  {
-    log("WARNING: event_create overflow prevented. Event scheduled for maximum future time.");
-    target_time = LONG_MAX;
-  }
-  else
-  {
-    target_time = when + (long)pulse;
-  }
-
   CREATE(new_event, struct event, 1);
   new_event->func = func;
   new_event->event_obj = event_obj;
-  new_event->q_el = queue_enq(event_q, new_event, target_time);
+  new_event->q_el = NULL;
   new_event->isMudEvent = FALSE;
   new_event->cleanup = cleanup;
   new_event->profile_index = PERF_register_event_callback(profile_name);
+  new_event->scheduler_id = 0;
+  new_event->backend = active_backend;
+  new_event->dispatching = false;
+  new_event->cancel_requested = false;
+  new_event->callback_terminal = false;
+
+  if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    scheduler_id = 0;
+    scheduler_status = game_scheduler_schedule_after(event_scheduler, legacy_event_type,
+                                                     (game_tick_t)when, new_event, &scheduler_id);
+    if (scheduler_status != GAME_SCHEDULER_OK)
+    {
+      log("SYSERR: Unable to schedule legacy event '%s' (status %d).",
+          profile_name != NULL ? profile_name : "unnamed", scheduler_status);
+      free(new_event);
+      return NULL;
+    }
+    new_event->scheduler_id = scheduler_id;
+  }
+  else
+  {
+    /* The fallback queue stores absolute pulse keys in signed long values. */
+    if (pulse > LONG_MAX || when > LONG_MAX - (long)pulse)
+    {
+      log("WARNING: event_create overflow prevented. Event scheduled for maximum future time.");
+      target_time = LONG_MAX;
+    }
+    else
+    {
+      target_time = when + (long)pulse;
+    }
+    new_event->q_el = queue_enq(event_q, new_event, target_time);
+    if (new_event->q_el == NULL)
+    {
+      free(new_event);
+      return NULL;
+    }
+  }
 
   /* Increment our event counter for resource tracking */
   total_events++;
   if (processing_events && events_created_during_process < UINT64_MAX)
     events_created_during_process++;
+  PERF_note_event_scheduled(new_event->profile_index, (uint64_t)when);
 
   return new_event;
 }
@@ -167,35 +391,26 @@ struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj,
  */
 void event_cancel(struct event *event)
 {
+  enum game_event_cancel_result cancel_result;
+  int profile_index;
+
   if (!event)
   {
     log("SYSERR:  Attempted to cancel a NULL event");
     return;
   }
 
-  /* CRITICAL FIX: Double-free prevention
-   *
-   * PROBLEM EXPLAINED FOR BEGINNERS:
-   * When event_process() runs an event, it sets q_el to NULL (line ~142)
-   * BEFORE calling the event's function. This tells us the event is
-   * currently being processed.
-   *
-   * If an event tries to cancel ITSELF while running (calls event_cancel
-   * on itself), we must NOT free it here because event_process() will
-   * free it when the event function returns (line ~153).
-   *
-   * Freeing the same memory twice (double-free) causes crashes and
-   * memory corruption!
-   *
-   * SOLUTION:
-   * If q_el is NULL, the event is being processed right now.
-   * We only clean up the event_obj but do NOT free the event structure.
-   * event_process() will handle freeing it when done.
-   */
-  if (!event->q_el)
+  /* The active dispatcher owns the event record until the callback returns.
+   * A self-cancel records terminal intent and converges on the backend's
+   * single cleanup path after the callback. */
+  if (event->dispatching)
   {
-    /* Event is currently being processed - DO NOT free the event structure! */
-    log("WARNING: Attempted to cancel an event during its execution.");
+    if (event->cancel_requested)
+      return;
+
+    event->cancel_requested = true;
+    event->callback_terminal = true;
+    PERF_note_event_cancelled(event->profile_index);
 
     /* IMPORTANT: We only handle mud events here. For non-mud events,
      * the event function itself is responsible for freeing event_obj.
@@ -214,24 +429,43 @@ void event_cancel(struct event *event)
     }
     /* For non-mud events, do NOT touch event_obj - the event function handles it */
 
-    return; /* DO NOT free the event structure - event_process() will do it */
+    if (event->backend == EVENT_BACKEND_GAME_SCHEDULER)
+    {
+      cancel_result = game_scheduler_cancel(event_scheduler, event->scheduler_id);
+      if (cancel_result == GAME_EVENT_CANCEL_NOT_FOUND)
+        log("SYSERR: In-flight legacy event was absent from the timing-wheel scheduler.");
+    }
+
+    return; /* The dispatcher owns the event structure until the callback returns. */
+  }
+
+  if (event->backend == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    profile_index = event->profile_index;
+    cancel_result = game_scheduler_cancel(event_scheduler, event->scheduler_id);
+    if (cancel_result == GAME_EVENT_CANCEL_NOT_FOUND)
+      log("SYSERR: Attempted to cancel an event absent from the timing-wheel scheduler.");
+    else
+      PERF_note_event_cancelled(profile_index);
+    return;
+  }
+
+  if (event->q_el == NULL)
+  {
+    log("SYSERR: Attempted to cancel an event that is neither queued nor dispatching.");
+    return;
   }
 
   /* Event is in the queue and not currently running - safe to fully cancel */
   queue_deq(event_q, event->q_el);
+  event->q_el = NULL;
+  PERF_note_event_cancelled(event->profile_index);
 
   if (event->event_obj)
     cleanup_event_obj(event);
 
   free(event);
-
-  /* Decrement event counter since we freed an event */
-  total_events--;
-  if (total_events < 0)
-  {
-    log("SYSERR: Event counter went negative! This indicates a serious bug.");
-    total_events = 0; /* Reset to prevent further issues */
-  }
+  decrement_event_count("legacy cancellation");
 }
 
 /* The memory freeing routine tied into the mud event system.
@@ -287,6 +521,8 @@ void cleanup_event_obj(struct event *event)
 void event_process(void)
 {
   struct event *the_event = NULL;
+  struct game_scheduler_dispatch_report scheduler_report;
+  enum game_scheduler_status scheduler_status;
   long new_time = 0;
   unsigned long target_time;
   uint64_t callback_start_usec;
@@ -297,18 +533,34 @@ void event_process(void)
   int queue_depth_before;
   int queue_depth_after;
 
-  /* Safety check: ensure event_q is initialized */
-  if (!event_q)
+  if (active_backend == EVENT_BACKEND_UNINITIALIZED)
   {
     log("SYSERR: event_process called before event_init()");
-    return; /* No need to clear processing_events - it was never set */
+    return;
+  }
+  if (processing_events)
+  {
+    log("SYSERR: Recursive event_process call rejected.");
+    return;
   }
 
-  /* Set flag to indicate we're processing events.
-   * This prevents dangerous operations like queue_free() during processing. */
   queue_depth_before = total_events;
   events_created_during_process = 0;
   processing_events = 1;
+
+  if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    memset(&scheduler_report, 0, sizeof(scheduler_report));
+    scheduler_status = game_scheduler_advance(event_scheduler, NULL, &scheduler_report);
+    queue_depth_after = total_events;
+    created_during_process = events_created_during_process;
+    processing_events = 0;
+    if (scheduler_status != GAME_SCHEDULER_OK)
+      log("SYSERR: Timing-wheel event dispatch failed with status %d.", scheduler_status);
+    PERF_note_event_process((uint64_t)queue_depth_before, (uint64_t)queue_depth_after,
+                            (uint64_t)scheduler_report.callbacks, created_during_process);
+    return;
+  }
 
   while ((long)pulse >= queue_key(event_q))
   {
@@ -318,43 +570,21 @@ void event_process(void)
       break;
     }
 
-    /* Set the_event->q_el to NULL so that any functions called beneath
-     * event_process can tell if they're being called beneath the actual
-     * event function.
-     *
-     * IMPORTANT FOR BEGINNERS:
-     * Setting q_el to NULL serves as a flag that this event is currently
-     * being processed. If event_cancel() is called on this event while
-     * it's running, it will see q_el is NULL and know NOT to free the
-     * event structure (to prevent double-free). */
     the_event->q_el = NULL;
+    the_event->dispatching = true;
+    the_event->cancel_requested = false;
+    the_event->callback_terminal = false;
 
-    /* CRITICAL: Validate function pointer before calling.
-     *
-     * BEGINNERS NOTE: Even though we check func in event_create(), we
-     * double-check here for safety. Memory corruption or bugs elsewhere
-     * could potentially null out the function pointer. Better safe than
-     * crashing the entire game! */
     if (!the_event->func)
     {
       log("SYSERR: Event with NULL function pointer detected in event_process!");
-      /* Clean up the broken event */
       if (the_event->event_obj != NULL)
         cleanup_event_obj(the_event);
       free(the_event);
-
-      /* Decrement event counter since we freed a broken event */
-      total_events--;
-      if (total_events < 0)
-      {
-        log("SYSERR: Event counter went negative (broken event)! This indicates a serious bug.");
-        total_events = 0; /* Reset to prevent further issues */
-      }
-
-      continue; /* Skip to next event */
+      decrement_event_count("invalid legacy callback");
+      continue;
     }
 
-    /* Time only the callback so queue management remains outside its cost. */
     callback_start_usec = PERF_monotonic_usec();
     new_time = (the_event->func)(the_event->event_obj);
     callback_end_usec = PERF_monotonic_usec();
@@ -362,12 +592,15 @@ void event_process(void)
         callback_end_usec >= callback_start_usec ? callback_end_usec - callback_start_usec : 0;
     PERF_note_event_callback(the_event->profile_index, callback_elapsed_usec);
     callbacks_processed++;
+    the_event->dispatching = false;
 
-    /* Re-enqueue multi-use events when the callback requests another run. */
-    if (new_time > 0)
+    if (the_event->cancel_requested)
     {
-      /* FIX FOR INTEGER OVERFLOW when re-queueing:
-       * Same overflow check as in event_create() */
+      free(the_event);
+      decrement_event_count("in-flight legacy cancellation");
+    }
+    else if (new_time > 0)
+    {
       if (pulse > LONG_MAX || new_time > LONG_MAX - (long)pulse)
       {
         log("WARNING: event re-queue overflow prevented. Event scheduled for maximum future time.");
@@ -378,30 +611,18 @@ void event_process(void)
         target_time = new_time + (long)pulse;
       }
       the_event->q_el = queue_enq(event_q, the_event, target_time);
+      PERF_note_event_rescheduled(the_event->profile_index, (uint64_t)new_time);
     }
     else
     {
-      /* CLEANUP NOTE FOR BEGINNERS:
-       * If the event canceled itself during execution, event_cancel() will
-       * have set event_obj to NULL to prevent double-free. We check for NULL
-       * before trying to free mud events. */
+      the_event->callback_terminal = true;
       if (the_event->isMudEvent && the_event->event_obj != NULL)
         free_mud_event((struct mud_event_data *)the_event->event_obj);
-
-      /* It is assumed that the_event will already have freed ->event_obj. */
       free(the_event);
-
-      /* Decrement event counter since we freed an event */
-      total_events--;
-      if (total_events < 0)
-      {
-        log("SYSERR: Event counter went negative in event_process! This indicates a serious bug.");
-        total_events = 0; /* Reset to prevent further issues */
-      }
+      decrement_event_count("legacy completion");
     }
   }
 
-  /* Clear the processing flag - safe to do bulk operations again */
   queue_depth_after = total_events;
   created_during_process = events_created_during_process;
   processing_events = 0;
@@ -414,11 +635,31 @@ void event_process(void)
  * @retval long Number of pulses before this event will fire. */
 long event_time(struct event *event)
 {
+  struct game_event_snapshot snapshot;
+  enum game_scheduler_status status;
+  uint64_t remaining;
   long when = 0;
 
-  when = queue_elmt_key(event->q_el);
+  if (event == NULL)
+    return 0;
+  if (event->backend == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    if (event_scheduler == NULL || event->scheduler_id == 0)
+      return 0;
+    status = game_scheduler_inspect(event_scheduler, event->scheduler_id, &snapshot);
+    if (status != GAME_SCHEDULER_OK || snapshot.deadline_tick <= (game_tick_t)pulse)
+      return 0;
+    remaining = snapshot.deadline_tick - (game_tick_t)pulse;
+    return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
+  }
 
-  return (when - pulse);
+  if (event->q_el == NULL)
+    return 0;
+  when = queue_elmt_key(event->q_el);
+  if (when <= 0 || pulse >= (unsigned long)when)
+    return 0;
+  remaining = (uint64_t)(unsigned long)when - (uint64_t)pulse;
+  return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
 }
 
 /** Frees all events from event_q.
@@ -447,11 +688,33 @@ void event_free_all(void)
     return;
   }
 
-  if (event_q == NULL)
+  if (active_backend == EVENT_BACKEND_UNINITIALIZED)
     return;
 
-  queue_free(event_q);
-  event_q = NULL;
+  if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    if (event_scheduler != NULL && game_scheduler_destroy(event_scheduler) != GAME_SCHEDULER_OK)
+    {
+      log("SYSERR: Failed to destroy timing-wheel event backend.");
+      return;
+    }
+    event_scheduler = NULL;
+    legacy_event_type = 0;
+  }
+  else
+  {
+    queue_free(event_q);
+    event_q = NULL;
+  }
+
+  active_backend = EVENT_BACKEND_UNINITIALIZED;
+  if (total_events != 0)
+  {
+    log("SYSERR: Event backend shutdown left %d tracked events; resetting the counter.",
+        total_events);
+    total_events = 0;
+  }
+  events_created_during_process = 0;
 }
 
 #if defined(LUMINARI_CUTEST)
@@ -470,6 +733,17 @@ int event_test_free_all_call_count(void)
 {
   return event_free_all_calls;
 }
+
+int event_test_select_backend(enum event_backend_kind backend)
+{
+  if (active_backend != EVENT_BACKEND_UNINITIALIZED || event_q != NULL || event_scheduler != NULL)
+    return 0;
+  if (backend != EVENT_BACKEND_LEGACY_QUEUE && backend != EVENT_BACKEND_GAME_SCHEDULER)
+    return 0;
+
+  test_backend_override = backend;
+  return 1;
+}
 #endif
 
 /** Boolean function to tell whether an event is queued or not. Does this by
@@ -478,13 +752,23 @@ int event_test_free_all_call_count(void)
  * queued. */
 int event_is_queued(struct event *event)
 {
+  struct game_event_snapshot snapshot;
+  enum game_scheduler_status status;
+
   if (!event)
     return 0;
 
-  if (event->q_el)
-    return 1;
-  else
-    return 0;
+  if (event->backend == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    if (event_scheduler == NULL || event->scheduler_id == 0 || event->dispatching)
+      return 0;
+    status = game_scheduler_inspect(event_scheduler, event->scheduler_id, &snapshot);
+    if (status != GAME_SCHEDULER_OK)
+      return 0;
+    return snapshot.state == GAME_EVENT_STATE_QUEUED || snapshot.state == GAME_EVENT_STATE_READY;
+  }
+
+  return event->q_el != NULL;
 }
 /***************************************************************************
  * End mud specific event queue functions
@@ -562,7 +846,7 @@ struct q_element *queue_enq(struct dg_queue *q, void *data, long key)
   {
     for (i = q->tail[bucket]; i; i = i->prev)
     {
-      if (i->key < key)
+      if (i->key <= key)
       { /* found insertion point */
         if (i == q->tail[bucket])
           q->tail[bucket] = qe;
@@ -770,7 +1054,7 @@ void queue_free(struct dg_queue *q)
         free(event);
 
         /* Decrement event counter since we freed an event during shutdown */
-        total_events--;
+        decrement_event_count("legacy shutdown");
       }
       /* Free the queue element that held this event */
       free(qe);
