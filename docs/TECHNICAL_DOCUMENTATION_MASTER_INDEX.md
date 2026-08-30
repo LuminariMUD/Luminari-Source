@@ -1,7 +1,7 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2026-08-23
-Version: 1.5
+Last Updated: 2026-08-30
+Version: 1.6
 
 ## Documentation Overview
 
@@ -43,6 +43,8 @@ This master index provides a comprehensive guide to all technical documentation 
 ### System Architecture
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - Verified system overview, component boundaries, and data flow
 - **[CORE_SERVER_ARCHITECTURE.md](systems/CORE_SERVER_ARCHITECTURE.md)** - Game loop, networking, and core engine
+- **[MUD_EVENTS.md](systems/MUD_EVENTS.md)** - Timed-event backends, owner lifecycle, persistence, and typed domain-event foundation
+- **[ADR 0002](adr/0002-event-driven-core-boundaries.md)** - Scheduler, reactor, domain-event, command, and migration boundaries
 - **[Special-Procedure Boot Control Plane](systems/CORE_SERVER_ARCHITECTURE.md#special-procedure-boot-control-plane)** - Definition, authored/effective binding, boot precedence, diagnostics, and compatibility boundaries
 - **[DATA_STRUCTURES_AND_MEMORY.md](development/DATA_STRUCTURES_AND_MEMORY.md)** - Memory management and data structures
 - **[COMMAND_SYSTEM_AND_INTERPRETER.md](systems/COMMAND_SYSTEM_AND_INTERPRETER.md)** - Command parsing and execution

@@ -114,6 +114,12 @@ luminari_SOURCES = \
 	src/olc/genzon.c \
 	src/game_scheduler.c \
 	src/game_scheduler.h \
+	src/domain_events.c \
+	src/domain_events.h \
+	src/domain_event_types.c \
+	src/domain_event_types.h \
+	src/domain_event_runtime.c \
+	src/domain_event_runtime.h \
 	src/reactor.c \
 	src/reactor.h \
 	src/graph.c \
@@ -369,6 +375,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_copyover_timer.c \
 	unittests/CuTest/test_reactor.c \
 	unittests/CuTest/test_game_scheduler.c \
+	unittests/CuTest/test_domain_events.c \
 	unittests/CuTest/test_legacy_event_adapter.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \
@@ -429,6 +436,7 @@ cutest_test_files = \
 	unittests/CuTest/test_copyover_timer.c \
 	unittests/CuTest/test_reactor.c \
 	unittests/CuTest/test_game_scheduler.c \
+	unittests/CuTest/test_domain_events.c \
 	unittests/CuTest/test_legacy_event_adapter.c \
 	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_rol_feats.c \

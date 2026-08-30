@@ -2,6 +2,32 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Typed domain-event foundation
+
+#### Added
+
+- Added a boot-sealed, synchronous main-thread domain-event registry with exact
+  payload contracts, deterministic priority/registration order, bounded
+  depth-first nesting, and causal-chain failure diagnostics.
+- Added generation-aware entity handles and resolver boundaries plus eight
+  foundational movement, damage, death, extraction, combat, object, door, and
+  activity fact types.
+- Added per-bus, per-type, and per-handler timing/count diagnostics without
+  retaining or logging borrowed payload data.
+
+#### Changed
+
+- The game now creates the typed registry during normal and syntax-check boot
+  and destroys it before world teardown. No gameplay publishers are enabled in
+  this foundation, and the existing database pub/sub runtime is unchanged.
+
+#### Tests
+
+- Added deterministic order, nested publication, extraction, stale generation,
+  depth/count limit, slow-handler, main-thread, lifecycle, payload, registry,
+  and production-runtime tests; passed 967 production-linked tests across the
+  2x2 timing-backend/I/O-driver matrix.
+
 ### Event persistence ownership
 
 #### Added

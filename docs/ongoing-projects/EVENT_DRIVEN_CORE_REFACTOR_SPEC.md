@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 5 accepted; typed domain events are next
-**Document version:** 1.2
+**Status:** In progress - Phase 6a accepted; pub/sub retirement is next
+**Document version:** 1.3
 **Started:** 2026-08-29
 **Last source review:** 2026-08-30
-**Implementation status:** Phases 1, 2, 2.5, 3, 4, and 5 complete; Phase 6a is the next gate
+**Implementation status:** Phases 1, 2, 2.5, 3, 4, 5, and 6a complete; Phase 6b is the next gate
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -16,6 +16,11 @@
 > migrated. Versioned player-event records now validate stable ownership and
 > rebuild fresh process-local timers, while transient and boot-reconstructed
 > work has an explicit policy.
+> The process now owns a boot-sealed typed domain-event registry with bounded
+> synchronous dispatch, generation-aware resolution, and diagnostics. Eight
+> foundational fact contracts exist, but no gameplay publisher is enabled yet;
+> old pub/sub and heartbeat consumers remain unchanged pending their owning
+> migration phases.
 
 ## 1. Purpose
 
@@ -1642,6 +1647,19 @@ Rollback:
   The old pub/sub runtime remains unchanged in Phase 6a, and no gameplay fact
   is published through both paths in a mode that duplicates side effects.
 
+**Accepted 2026-08-30.** Normal and syntax-check boot create one sealed registry
+containing the eight foundational fact contracts, and teardown destroys it
+before world entities. Dispatch is main-thread, synchronous, depth-first, and
+ordered by explicit priority plus registration sequence. Exact borrowed payload
+sizes, generation-aware resolver boundaries, 16-level nesting and 1,024-event
+causal limits, fail-closed chain aborts, and privacy-safe timing/count
+diagnostics are implemented. No current migrated operation requires a decision
+hook, so no generic veto API was added; notifications remain unable to veto by
+contract. No gameplay fact is published and `src/pubsub/` is unchanged. The
+967-test 2x2 rollback matrix, normal build, ASan/UBSan, and strict Valgrind gates
+pass. Acceptance evidence is recorded in
+[`EVENT_DRIVEN_CORE_REFACTOR_PHASE6A_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE6A_VALIDATION.md).
+
 #### Phase 6b: Pub/sub runtime retirement
 
 Deliverables:
@@ -1998,7 +2016,7 @@ working document is retired according to the ongoing-project policy.
 | D14 | Linkdead combat policy | Preserve current behavior until separately reviewed | Provisional | Phase 8 |
 | D15 | Reactor library | System libevent 2.1.12-stable or newer, core component, behind a Luminari-owned boundary | Accepted | Phase 3 |
 | D16 | Scheduler reactor timers | One wakeup armed from nearest deadline | Accepted | Phase 4 |
-| D17 | Domain dispatch | Typed, synchronous, main-thread, immutable borrowed payload | Accepted | Phase 6 |
+| D17 | Domain dispatch | Typed, synchronous, main-thread, immutable borrowed payload | Accepted in Phase 6a | Phase 6 |
 | D18 | Existing pub/sub | Replace runtime subsystem; deprecate data before reviewed removal | Accepted | Phase 6 |
 | D19 | Nested domain publication | Depth-first with hard depth and causal-count limits | Accepted | Phase 6 |
 | D20 | Active-world lifecycle | Active, cooling-down, and dormant | Provisional | Phase 7 |
@@ -2095,7 +2113,7 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 - [x] Legacy compatibility and rollback do not permit double callback execution.
 - [x] `libevent` integration preserves descriptor, interpreter, copyover,
       signal, and operational behavior without leaking reactor types.
-- [ ] Domain events, decision hooks, nested publication, and payload lifetime
+- [x] Domain events, decision hooks, nested publication, and payload lifetime
       rules are unambiguous.
 - [ ] Existing pub/sub commands, data, documentation, and retirement obligations
       have an approved disposition.
@@ -2124,3 +2142,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.0 | 2026-08-30 | Accepted Phase 3 after adding the private libevent/select compatibility reactor, monotonic pacing, complete main-thread fd and signal ownership, copyover teardown and reconstruction, the system dependency contract, the 2x2 CI matrix, and live protocol, copyover, signal, load, sanitizer, and Valgrind evidence. Phase 4 is now authorized. |
 | 1.1 | 2026-08-30 | Accepted Phase 4 after bridging scheduler deadlines into the reactor, bounding due work with count and wall-time budgets, separating compatibility and scheduler dispatch paths, retaining the measured wheel geometry, and passing representative workload, churn, cascade, stall, storm, copyover, matrix, sanitizer, and Valgrind gates. Phase 5 is now authorized. |
 | 1.2 | 2026-08-30 | Accepted Phase 5 after exhaustively classifying MUD events, adding versioned player-event records with stable-owner and payload validation, preserving explicit offline-pause behavior, rehydrating fresh process-local identity, retaining legacy read/write rollback, fixing the account-menu cooldown overwrite found by live audit, and passing matrix, reboot, copyover, sanitizer, and Valgrind gates. Phase 6a is now authorized. |
+| 1.3 | 2026-08-30 | Accepted Phase 6a after adding a boot-sealed typed domain-event runtime, eight foundational fact contracts, deterministic bounded depth-first dispatch, generation-aware resolver boundaries, and per-bus/type/handler diagnostics; passed the 967-test rollback matrix, sanitizer, and Valgrind gates without enabling gameplay publishers or changing old pub/sub. Phase 6b is now authorized. |

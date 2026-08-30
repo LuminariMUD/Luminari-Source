@@ -101,6 +101,7 @@
 #include "magic/spell_prep.h"
 #include "perfmon.h"
 #include "reactor.h"
+#include "domain_event_runtime.h"
 #include "elf_build_id.h"
 #include "mysql.h"
 #include "net/onboarding.h"
@@ -505,7 +506,17 @@ int main(int argc, char **argv)
 
   if (scheck)
   {
+    enum domain_event_status domain_status;
+
     event_init();
+    domain_status = domain_event_runtime_init();
+    if (domain_status != DOMAIN_EVENT_OK)
+    {
+      log("SYSERR: Unable to initialize the typed domain-event runtime: %s.",
+          domain_event_status_name(domain_status));
+      event_free_all();
+      return EXIT_FAILURE;
+    }
     boot_world();
   }
   else
@@ -716,6 +727,8 @@ void copyover_recover()
 /* Init sockets, run game, and cleanup sockets */
 static void init_game(ush_int local_port)
 {
+  enum domain_event_status domain_status;
+
   /* We don't want to restart if we crash before we get up. */
   touch(KILLSCRIPT_FILE);
 
@@ -739,6 +752,13 @@ static void init_game(ush_int local_port)
   }
 
   event_init();
+  domain_status = domain_event_runtime_init();
+  if (domain_status != DOMAIN_EVENT_OK)
+  {
+    log("SYSERR: Unable to initialize the typed domain-event runtime: %s.",
+        domain_event_status_name(domain_status));
+    exit(1);
+  }
 
   /* set up hash table for find_char() */
   init_lookup_table();

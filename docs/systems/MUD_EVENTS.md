@@ -11,6 +11,10 @@ Core source files:
 - [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c)
 - [src/game_scheduler.h](../../src/game_scheduler.h)
 - [src/game_scheduler.c](../../src/game_scheduler.c)
+- [src/domain_events.h](../../src/domain_events.h)
+- [src/domain_events.c](../../src/domain_events.c)
+- [src/domain_event_types.h](../../src/domain_event_types.h)
+- [src/domain_event_runtime.c](../../src/domain_event_runtime.c)
 - [src/mud_event.h](../../src/mud_event.h)
 - [src/mud_event.c](../../src/mud_event.c)
 - [src/mud_event_list.c](../../src/mud_event_list.c)
@@ -240,12 +244,52 @@ character or room alive, a burst of due timers cannot monopolize the server,
 and saved cooldowns now prove they belong to the character before returning
 after logout or reboot.
 
-Gameplay has not yet been converted to the future typed domain-event model.
-Combat is still the existing combat system, player commands still enter through
-the existing interpreter, and most heartbeat consumers still run at their old
-cadence. Those migrations are later tranches built on this foundation.
+The typed domain-event runtime now exists and owns one sealed main-thread
+registry from boot through world teardown. Its eight foundational contracts are
+character movement, damage, death, extraction, combat-state change, object
+movement, door-state change, and activity transition. Registration and handler
+lists cannot change after boot; publication is synchronous and depth-first,
+with hard nesting and causal-count limits.
 
-## 5. Table-Driven Registry (mud_event_index)
+No gameplay owner publishes those facts yet. Combat is still the existing
+combat system, player commands still enter through the interpreter, and most
+heartbeat consumers still run at their old cadence. This intentionally avoids
+running an old and new side-effect path at once. Owning-system migrations will
+add generation-aware resolvers, publishers, and subscribers one boundary at a
+time.
+
+In game-loop terms, the scheduler is the alarm clock for when an owner should
+work, while domain events are immediate facts that can wake relevant owners.
+Together they will replace broad scans; the typed bus alone does not remove a
+heartbeat scan.
+
+## 5. Typed Domain-Event Foundation
+
+- `domain_event_runtime_init()` creates the process registry during normal and
+  syntax-check boot; `domain_event_runtime_shutdown()` destroys it before world
+  entities are released.
+- Every type has a stable numeric identity, diagnostic name, and exact payload
+  size. Handlers run by ascending explicit priority and then registration
+  sequence.
+- Payload pointers are `const`, borrowed for the publishing call, never copied
+  into diagnostics, and never retained by the bus.
+- Entity payload members are `(kind, runtime_id, generation)` handles. A handler
+  resolves immediately before mutation; extraction or generation reuse makes a
+  later resolution return `NULL`.
+- The default bounds are 16 nested publications and 1,024 publications in one
+  causal chain. Reaching either limit aborts the remaining chain and records
+  the rejected type.
+- Bus, event-type, and handler statistics expose publication counts, calls,
+  maximum depth, total and maximum handler time, slow calls, and rejected
+  chains without recording payload data.
+- Notification callbacks return no gameplay decision and cannot retroactively
+  veto completed state. No current migration needs a decision hook; a future
+  pre-operation rule must define a separate typed aggregation contract.
+
+The legacy database-backed `src/pubsub/` subsystem is unchanged. It is not the
+typed domain-event core and remains scheduled for a separate retirement gate.
+
+## 6. Table-Driven Registry (mud_event_index)
 
 - The registry lives in [C.mud_event_index[]](../../src/mud_event_list.c#L46)
 - Each entry contains:
@@ -257,7 +301,7 @@ cadence. Those migrations are later tranches built on this foundation.
 - Special cases use message fields for UX, but core logic sits in the handler implementations
 - Addition of new rows enables features without spreading logic across multiple files
 
-## 6. Important Safety and Memory Practices
+## 7. Important Safety and Memory Practices
 
 - Never free or relink `struct event` directly during execution. Use
   [C.event_cancel()](../../src/dgscript/dg_event.c); the facade safely records
@@ -273,7 +317,7 @@ cadence. Those migrations are later tranches built on this foundation.
   - Always strdup on creation ([C.new_mud_event()](../../src/mud_event.c#L578))
   - Always free on payload free ([C.free_mud_event()](../../src/mud_event.c#L607))
 
-## 7. Timing Semantics and Conversions
+## 8. Timing Semantics and Conversions
 
 - Pulses are internal ticks; event functions return pulses to reschedule
 - Conversion helpers:

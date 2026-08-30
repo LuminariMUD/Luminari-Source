@@ -2,7 +2,11 @@
 
 ## Overview
 
-LuminariMUD uses a single-threaded, event-driven server architecture based on the classic CircleMUD/tbaMUD design. The server handles all client connections, game logic, and world simulation in a single main loop that executes approximately 10 times per second (every 0.1 seconds).
+LuminariMUD uses a single-threaded, event-driven server architecture based on
+the classic CircleMUD/tbaMUD design. A private reactor waits for descriptor,
+signal, heartbeat, or scheduler-deadline readiness; gameplay remains on the
+main thread. The migration still retains a 100 ms compatibility heartbeat for
+unconverted broad scans.
 
 ## Main Server Components
 
@@ -50,8 +54,9 @@ static void init_game(ush_int local_port)
     if (!fCopyOver)
         mother_desc = init_socket(local_port);
 
-    // 5. Initialize event system
+    // 5. Initialize timed events and seal typed domain-event contracts
     event_init();
+    domain_event_runtime_init();
 
     // 6. Setup character lookup hash table
     init_lookup_table();
@@ -91,8 +96,8 @@ void game_loop(socket_t local_mother_desc)
         // 1. Handle no-connection sleep state
         // 2. Setup file descriptor sets
         // 3. Calculate timing for next iteration
-        // 4. Sleep until next pulse
-        // 5. Poll for network activity (select())
+        // 4. Arm the nearest heartbeat or scheduler deadline
+        // 5. Wait for readiness (libevent, with select rollback)
         // 6. Accept new connections
         // 7. Handle exceptions and disconnections
         // 8. Process input from all descriptors
@@ -106,8 +111,16 @@ void game_loop(socket_t local_mother_desc)
 
 **Timing System:**
 - **Pulse Rate:** 10 pulses per second (0.1 second intervals)
-- **Optimal Time:** `OPT_USEC` microseconds per pulse
-- **Sleep Mechanism:** Precise timing using `select()` with timeout
+- **Compatibility heartbeat:** `OPT_USEC` microseconds until remaining scans migrate
+- **Sleep mechanism:** reactor readiness plus the nearest real scheduler deadline
+- **Timed work:** generation-aware owner events on the scheduler or legacy rollback queue
+- **Typed facts:** synchronous, bounded domain events from committed state changes
+
+The target architecture does not schedule every player command. Commands remain
+direct interpreter work. Timings, regeneration, automatic actions, combat,
+activities, AI, and active-world processing migrate to owner-scheduled work;
+typed domain facts wake only affected owners. Phases 7 through 11 remove the
+remaining whole-world heartbeat scans after parity and rollback validation.
 
 ## Network Architecture
 

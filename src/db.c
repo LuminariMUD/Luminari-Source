@@ -26,6 +26,7 @@
 #include "olc/oasis.h"
 #include "dgscript/dg_scripts.h"
 #include "dgscript/dg_event.h"
+#include "domain_event_runtime.h"
 #include "act.h"
 #include "ban.h"
 #include "obj/treasure.h"
@@ -944,6 +945,7 @@ void destroy_db(void)
   ssize_t cnt = 0, itr = 0;
   struct char_data *chtmp = NULL;
   struct obj_data *objtmp = NULL;
+  enum domain_event_status domain_status;
 
   /* Persist sub-threshold XP and other pending registry changes. */
   artifact_save_if_dirty();
@@ -953,6 +955,10 @@ void destroy_db(void)
   /* Mud events detach themselves from character, object, room, and region
    * owner lists while being freed. Their owners must remain alive until the
    * global event queue has been drained. */
+  domain_status = domain_event_runtime_shutdown();
+  if (domain_status != DOMAIN_EVENT_OK)
+    log("SYSERR: Unable to shut down the typed domain-event runtime: %s.",
+        domain_event_status_name(domain_status));
   event_free_all();
 
   /* Active Mobiles & Players */
