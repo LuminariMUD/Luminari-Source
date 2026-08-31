@@ -747,6 +747,8 @@ void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(character_section, "  registry: members="));
   CuAssertPtrNotNull(tc, strstr(character_section, "  validation: mismatch="));
   CuAssertPtrNotNull(tc, strstr(character_section, "  capacity: limit="));
+  CuAssertPtrNotNull(tc, strstr(character_section, "  work: luminari="));
+  CuAssertPtrNotNull(tc, strstr(character_section, "  work: player-misc="));
   for (line = character_section; line != NULL && line < character_section_end; line = line_end + 2)
   {
     line_end = strstr(line, "\n\r");

@@ -1004,6 +1004,86 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
   CuAssertTrue(tc, character_rollback_matches);
 }
 
+void Test_spec_mixed_owner_pulses_have_independent_rollback_gates(CuTest *tc)
+{
+  char *comm_source = NULL;
+  char *limits_source = NULL;
+  char *runtime_source = NULL;
+  char *periodic_source = NULL;
+  char *handler_source = NULL;
+  char *luminari_gate;
+  char *luminari_call;
+  char *affected_term;
+  char *character_term;
+  char *round_gate;
+  char *round_character_term;
+  char *damage_call;
+  char *misc_call;
+  char *room_legacy_gate;
+  char *room_legacy_loop;
+  char *character_legacy_gate;
+  char *character_legacy_loop;
+  bool sources_loaded;
+  bool heartbeat_contract;
+  bool wrapper_contract;
+  bool movement_contract;
+
+  sources_loaded = spec_pulse_read_source("src/comm.c", &comm_source) &&
+                   spec_pulse_read_source("src/limits.c", &limits_source) &&
+                   spec_pulse_read_source("src/domain_event_runtime.c", &runtime_source) &&
+                   spec_pulse_read_source("src/character_periodic.c", &periodic_source) &&
+                   spec_pulse_read_source("src/handler.c", &handler_source);
+  heartbeat_contract = false;
+  wrapper_contract = false;
+  movement_contract = false;
+  if (sources_loaded)
+  {
+    luminari_gate = strstr(comm_source, "if (!(pulse % PULSE_LUMINARI)");
+    luminari_call = luminari_gate != NULL ? strstr(luminari_gate, "pulse_luminari();") : NULL;
+    affected_term =
+        luminari_gate != NULL ? strstr(luminari_gate, "!affected_owner_events_enabled()") : NULL;
+    character_term =
+        luminari_gate != NULL ? strstr(luminari_gate, "!character_periodic_events_enabled()") : NULL;
+    round_gate = strstr(comm_source, "if (!(heart_pulse % (6 * PASSES_PER_SEC)) &&");
+    round_character_term =
+        round_gate != NULL ? strstr(round_gate, "!character_periodic_events_enabled()") : NULL;
+    damage_call =
+        round_gate != NULL ? strstr(round_gate, "update_damage_and_effects_over_time();") : NULL;
+    misc_call = round_gate != NULL ? strstr(round_gate, "update_player_misc();") : NULL;
+    heartbeat_contract = luminari_gate != NULL && luminari_call != NULL && affected_term != NULL &&
+                         character_term != NULL && affected_term < luminari_call &&
+                         character_term < luminari_call && round_gate != NULL &&
+                         round_character_term != NULL && damage_call != NULL && misc_call != NULL &&
+                         round_character_term < damage_call && damage_call < misc_call;
+
+    room_legacy_gate = strstr(limits_source, "if (!affected_owner_events_enabled())");
+    room_legacy_loop =
+        room_legacy_gate != NULL ? strstr(room_legacy_gate, "for (raff = raff_list;") : NULL;
+    character_legacy_gate = strstr(limits_source, "if (!character_periodic_events_enabled())");
+    character_legacy_loop = character_legacy_gate != NULL
+                                ? strstr(character_legacy_gate, "for (ch = character_list;")
+                                : NULL;
+    wrapper_contract = room_legacy_gate != NULL && room_legacy_loop != NULL &&
+                       character_legacy_gate != NULL && character_legacy_loop != NULL;
+
+    movement_contract = strstr(runtime_source, "character_periodic_register_handlers(runtime_bus)") !=
+                            NULL &&
+                        strstr(periodic_source, "DOMAIN_EVENT_CHARACTER_MOVED") != NULL &&
+                        strstr(periodic_source, "character_periodic_sync(ch);") != NULL &&
+                        strstr(handler_source, "domain_event_runtime_character_moved(") != NULL;
+  }
+
+  free(comm_source);
+  free(limits_source);
+  free(runtime_source);
+  free(periodic_source);
+  free(handler_source);
+  CuAssertTrue(tc, sources_loaded);
+  CuAssertTrue(tc, heartbeat_contract);
+  CuAssertTrue(tc, wrapper_contract);
+  CuAssertTrue(tc, movement_contract);
+}
+
 void Test_spec_character_periodic_control_transfers_resync_owners(CuTest *tc)
 {
   const char *paths[] = {"src/act.wizard.c", "src/magic/spells.c", "src/character/evolutions.c"};

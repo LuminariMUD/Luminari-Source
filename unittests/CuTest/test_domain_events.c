@@ -503,7 +503,7 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   CuAssertPtrNotNull(tc, domain_event_runtime_bus());
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
   CuAssertIntEquals(tc, 9, (int)stats.registered_type_count);
-  CuAssertIntEquals(tc, 4, (int)stats.registered_handler_count);
+  CuAssertIntEquals(tc, 5, (int)stats.registered_handler_count);
   CuAssertTrue(tc, stats.sealed);
   CuAssertIntEquals(tc, DOMAIN_EVENT_BUSY, domain_event_runtime_init());
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
@@ -564,6 +564,8 @@ void TestActiveWorldSchedulesAutonomousMobilesWithoutPlayers(CuTest *tc)
   event_free_all();
   active_world_reset_for_test();
   active_world_select_for_test(true);
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(false);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   pulse = 100U;
   event_init();
@@ -614,6 +616,7 @@ void TestActiveWorldSchedulesAutonomousMobilesWithoutPlayers(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
   event_free_all();
   active_world_reset_for_test();
+  character_periodic_reset_for_test();
   pulse = saved_pulse;
   world = saved_world;
   top_of_world = saved_top_of_world;
@@ -660,6 +663,8 @@ void TestActiveWorldAdmissionAndLegacyGateAreExclusive(CuTest *tc)
   active_world_reset_for_test();
   active_world_select_for_test(true);
   active_world_set_admission_limit_for_test(1U);
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(false);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   pulse = 200U;
   event_init();
@@ -694,6 +699,7 @@ void TestActiveWorldAdmissionAndLegacyGateAreExclusive(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
   event_free_all();
   active_world_reset_for_test();
+  character_periodic_reset_for_test();
   pulse = saved_pulse;
   world = saved_world;
   top_of_world = saved_top_of_world;
@@ -932,20 +938,35 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)affected_room_scheduled_count());
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
-  pulse += PULSE_VIOLENCE;
+  pulse += PULSE_LUMINARI;
+  event_process();
+  CuAssertIntEquals(tc, 1, ch.affected->duration);
+  CuAssertIntEquals(tc, 2, raff->timer);
+  CuAssertIntEquals(tc, 1, (int)affected_room_behavior_executions());
+  CuAssertIntEquals(tc, 1, (int)affected_room_behavior_nodes_processed());
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+
+  pulse += PULSE_VIOLENCE - PULSE_LUMINARI;
   event_process();
   CuAssertPtrNotNull(tc, ch.affected);
   CuAssertIntEquals(tc, 0, ch.affected->duration);
   CuAssertIntEquals(tc, 1, raff->timer);
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
-  pulse += PULSE_VIOLENCE;
+  pulse += PULSE_LUMINARI - (PULSE_VIOLENCE - PULSE_LUMINARI);
+  event_process();
+  CuAssertIntEquals(tc, 2, (int)affected_room_behavior_executions());
+  CuAssertIntEquals(tc, 2, (int)affected_room_behavior_nodes_processed());
+  CuAssertIntEquals(tc, 1, raff->timer);
+
+  pulse += PULSE_VIOLENCE -
+           (PULSE_LUMINARI - (PULSE_VIOLENCE - PULSE_LUMINARI));
   event_process();
   CuAssertPtrEquals(tc, NULL, ch.affected);
   CuAssertPtrEquals(tc, NULL, raff_list);
   CuAssertIntEquals(tc, 0, event_queue_depth());
   CuAssertIntEquals(tc, 2, (int)affected_character_callbacks());
-  CuAssertIntEquals(tc, 2, (int)affected_room_callbacks());
+  CuAssertIntEquals(tc, 4, (int)affected_room_callbacks());
   CuAssertIntEquals(tc, 2, (int)affected_character_nodes_processed());
   CuAssertIntEquals(tc, 2, (int)affected_room_nodes_processed());
   CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
@@ -960,6 +981,66 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   pulse = saved_pulse;
   CuAssertIntEquals(tc, 0, (int)affected_room_owner_count());
   CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
+}
+
+void TestAffectedRoomOwnerExpiresBeforeCoincidentBehavior(CuTest *tc)
+{
+  struct raff_node *raff;
+  struct raff_node *saved_raff_list = raff_list;
+  struct room_data room;
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+
+  memset(&room, 0, sizeof(room));
+  room.number = 102;
+  world = &room;
+  top_of_world = 0;
+  raff_list = NULL;
+
+  event_free_all();
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  affected_owners_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = PULSE_VIOLENCE * 4U;
+  event_init();
+  affected_owners_init();
+
+  CREATE(raff, struct raff_node, 1);
+  raff->room = 0;
+  raff->timer = 1;
+  raff->affection = RAFF_FOG;
+  raff->spell = SPELL_ARMOR;
+  raff->next = raff_list;
+  raff_list = raff;
+  SET_BIT(room.room_affections, RAFF_FOG);
+  affected_room_owner_add(raff);
+
+  pulse += PULSE_LUMINARI - (pulse % PULSE_LUMINARI);
+  event_process();
+  CuAssertIntEquals(tc, 1, (int)affected_room_behavior_executions());
+  CuAssertIntEquals(tc, 1, (int)affected_room_behavior_nodes_processed());
+  CuAssertIntEquals(tc, 1, raff->timer);
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+
+  pulse += PULSE_LUMINARI;
+  event_process();
+  CuAssertPtrEquals(tc, NULL, raff_list);
+  CuAssertIntEquals(tc, 1, (int)affected_room_behavior_executions());
+  CuAssertIntEquals(tc, 1, (int)affected_room_behavior_nodes_processed());
+  CuAssertIntEquals(tc, 1, (int)affected_room_nodes_processed());
+  CuAssertIntEquals(tc, 2, (int)affected_room_callbacks());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
+
+  affected_owners_reset_for_test();
+  affected_registry_reset_for_test();
+  event_free_all();
+  raff_list = saved_raff_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  pulse = saved_pulse;
 }
 
 void TestAffectedOwnerAdmissionAndLegacyRollbackAreExclusive(CuTest *tc)
@@ -1318,6 +1399,163 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   character_periodic_reset_for_test();
   event_free_all();
   character_list = saved_character_list;
+  pulse = saved_pulse;
+}
+
+void TestCharacterPeriodicSchedulesInWorldMixedWorkByOwner(CuTest *tc)
+{
+  struct char_data npc;
+  struct char_data player;
+  struct descriptor_data descriptor;
+  struct player_special_data specials;
+  struct room_data room;
+  struct char_data *saved_character_list = character_list;
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&specials, 0, sizeof(specials));
+  memset(&room, 0, sizeof(room));
+  clear_char(&npc);
+  clear_char(&player);
+
+  room.number = 1400;
+  room.sector_type = SECT_INSIDE;
+  world = &room;
+  top_of_world = 0;
+
+  npc.player_specials = &dummy_mob;
+  npc.player.short_descr = (char *)"periodic test mobile";
+  SET_BIT_AR(MOB_FLAGS(&npc), MOB_ISNPC);
+  IN_ROOM(&npc) = 0;
+  GET_LEVEL(&npc) = 1;
+  GET_HIT(&npc) = GET_REAL_MAX_HIT(&npc) = GET_MAX_HIT(&npc) = 100;
+  GET_MOVE(&npc) = GET_REAL_MAX_MOVE(&npc) = GET_MAX_MOVE(&npc) = 100;
+  GET_PSP(&npc) = GET_REAL_MAX_PSP(&npc) = GET_MAX_PSP(&npc) = 100;
+  npc.char_specials.daze_cooldown = 2;
+
+  player.player_specials = &specials;
+  player.player.name = (char *)"Periodic test player";
+  player.desc = &descriptor;
+  descriptor.character = &player;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  STATE(&descriptor) = CON_PLAYING;
+  IN_ROOM(&player) = 0;
+  GET_LEVEL(&player) = 1;
+  GET_HIT(&player) = GET_REAL_MAX_HIT(&player) = GET_MAX_HIT(&player) = 100;
+  GET_MOVE(&player) = GET_REAL_MAX_MOVE(&player) = GET_MAX_MOVE(&player) = 100;
+  GET_PSP(&player) = GET_REAL_MAX_PSP(&player) = GET_MAX_PSP(&player) = 100;
+  player.char_specials.daze_cooldown = 2;
+  specials.saved.mission_cooldown = 2;
+
+  player.next = &npc;
+  player.next_in_room = &npc;
+  room.people = &player;
+  character_list = &player;
+
+  event_free_all();
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = PULSE_VIOLENCE * 20U;
+  event_init();
+  character_periodic_init();
+
+  CuAssertIntEquals(tc, 2, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 2, (int)character_periodic_scheduled_count());
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+
+  pulse += PULSE_LUMINARI;
+  event_process();
+  CuAssertIntEquals(tc, 2, (int)character_periodic_luminari_executions());
+  CuAssertIntEquals(tc, 0, (int)character_periodic_damage_effect_executions());
+  CuAssertIntEquals(tc, 0, (int)character_periodic_player_misc_executions());
+  CuAssertIntEquals(tc, 2, npc.char_specials.daze_cooldown);
+  CuAssertIntEquals(tc, 2, specials.saved.mission_cooldown);
+
+  pulse += PULSE_VIOLENCE - PULSE_LUMINARI;
+  event_process();
+  CuAssertIntEquals(tc, 2, (int)character_periodic_damage_effect_executions());
+  CuAssertIntEquals(tc, 1, (int)character_periodic_player_misc_executions());
+  CuAssertIntEquals(tc, 1, npc.char_specials.daze_cooldown);
+  CuAssertIntEquals(tc, 1, player.char_specials.daze_cooldown);
+  CuAssertIntEquals(tc, 1, specials.saved.mission_cooldown);
+  CuAssertIntEquals(tc, 4, (int)character_periodic_callbacks());
+  CuAssertIntEquals(tc, 0, (int)character_periodic_registry_validate());
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+
+  character_periodic_reset_for_test();
+  event_free_all();
+  ProtocolDestroy(descriptor.pProtocol);
+  character_list = saved_character_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  pulse = saved_pulse;
+}
+
+void TestCharacterPeriodicTypedMovementAdmitsInWorldOwner(CuTest *tc)
+{
+  struct char_data ch;
+  struct domain_character_moved moved;
+  struct domain_event_bus *bus;
+  struct room_data room;
+  struct char_data *saved_character_list = character_list;
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+
+  memset(&room, 0, sizeof(room));
+  memset(&moved, 0, sizeof(moved));
+  clear_char(&ch);
+  ch.player_specials = &dummy_mob;
+  ch.player.short_descr = (char *)"movement-admitted mobile";
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
+  room.number = 1401;
+  room.sector_type = SECT_INSIDE;
+  world = &room;
+  top_of_world = 0;
+  character_list = NULL;
+
+  event_free_all();
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 1400U;
+  event_init();
+  character_periodic_init();
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  IN_ROOM(&ch) = 0;
+  room.people = &ch;
+  character_list = &ch;
+  bus = create_bus(tc, 4U, 16U, NULL, 100U);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_register_foundation_types(bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_world_register_resolvers(bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, character_periodic_register_handlers(bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
+  moved.character = domain_event_character_handle(&ch);
+  moved.from_room = domain_entity_handle_none();
+  moved.to_room = domain_event_room_handle(0);
+  moved.direction = -1;
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(bus, DOMAIN_EVENT_CHARACTER_MOVED, &moved));
+  CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
+  CuAssertPtrNotNull(tc, ch.character_periodic_event);
+  CuAssertIntEquals(tc, 0, (int)character_periodic_registry_validate());
+
+  character_periodic_forget(&ch);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
+  character_periodic_reset_for_test();
+  event_free_all();
+  character_list = saved_character_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
   pulse = saved_pulse;
 }
 

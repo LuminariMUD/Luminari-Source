@@ -9,6 +9,7 @@
 #include "affected_owners.h"
 #include "dgscript/dg_event.h"
 #include "magic/spells.h"
+#include "mudlim.h"
 
 #define AFFECTED_CHARACTER_MAX_OWNERS 32768U
 #define AFFECTED_ROOM_MAX_OWNERS 16384U
@@ -29,6 +30,8 @@ static uint64_t character_callback_count;
 static uint64_t room_callback_count;
 static uint64_t character_nodes_processed;
 static uint64_t room_nodes_processed;
+static uint64_t room_behavior_executions;
+static uint64_t room_behavior_nodes_processed;
 static uint64_t next_generation = 1U;
 #ifdef LUMINARI_CUTEST
 static bool test_selection_set;
@@ -97,6 +100,17 @@ static long next_round_delay(void)
   unsigned long remainder = pulse % PULSE_VIOLENCE;
 
   return remainder == 0U ? PULSE_VIOLENCE : (long)(PULSE_VIOLENCE - remainder);
+}
+
+static long next_room_delay(void)
+{
+  unsigned long luminari_remainder = pulse % PULSE_LUMINARI;
+  long luminari_delay = luminari_remainder == 0U
+                            ? PULSE_LUMINARI
+                            : (long)(PULSE_LUMINARI - luminari_remainder);
+  long round_delay = next_round_delay();
+
+  return luminari_delay < round_delay ? luminari_delay : round_delay;
 }
 
 static void borrowed_owner_cleanup(struct event *event)
@@ -180,8 +194,26 @@ static EVENTFUNC(affected_room_event)
     refill_room_capacity();
     return 0;
   }
-  room_nodes_processed += affect_update_room_one(room);
-  return PULSE_VIOLENCE;
+  if (pulse % PULSE_VIOLENCE == 0U)
+  {
+    room_nodes_processed += affect_update_room_one(room);
+    if (!room->affected_registered || room->affected_head == NULL || room->affected_event == NULL)
+    {
+      refill_room_capacity();
+      return 0;
+    }
+  }
+  if (pulse % PULSE_LUMINARI == 0U)
+  {
+    room_behavior_executions++;
+    room_behavior_nodes_processed += pulse_luminari_room_one(room);
+    if (!room->affected_registered || room->affected_head == NULL || room->affected_event == NULL)
+    {
+      refill_room_capacity();
+      return 0;
+    }
+  }
+  return next_room_delay();
 }
 
 void affected_character_owner_sync(struct char_data *ch)
@@ -240,7 +272,7 @@ static void affected_room_schedule(struct room_data *room)
   if (!game_event_owner_is_valid(owner))
     return;
   room->affected_event = event_create_owned_named_with_cleanup(
-      affected_room_event, room, next_round_delay(), "affected_room", borrowed_owner_cleanup,
+      affected_room_event, room, next_room_delay(), "affected_room", borrowed_owner_cleanup,
       owner);
   if (room->affected_event == NULL)
   {
@@ -469,6 +501,8 @@ uint64_t affected_character_callbacks(void) { return character_callback_count; }
 uint64_t affected_room_callbacks(void) { return room_callback_count; }
 uint64_t affected_character_nodes_processed(void) { return character_nodes_processed; }
 uint64_t affected_room_nodes_processed(void) { return room_nodes_processed; }
+uint64_t affected_room_behavior_executions(void) { return room_behavior_executions; }
+uint64_t affected_room_behavior_nodes_processed(void) { return room_behavior_nodes_processed; }
 
 static bool room_is_in_current_world(const struct room_data *room)
 {
@@ -545,6 +579,8 @@ void affected_owners_reset_telemetry(void)
   room_callback_count = 0U;
   character_nodes_processed = 0U;
   room_nodes_processed = 0U;
+  room_behavior_executions = 0U;
+  room_behavior_nodes_processed = 0U;
 }
 
 #ifdef LUMINARI_CUTEST

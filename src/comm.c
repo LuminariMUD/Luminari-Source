@@ -226,12 +226,9 @@ static sigfunc *my_signal(int signo, sigfunc *func);
 #endif
 static void msdp_update(void); /* KaVir plugin*/
 void update_msdp_affects(struct char_data *ch);
-void update_damage_and_effects_over_time(void);
 void update_player_last_on(void);
 void check_auto_shutdown(void);
-void update_player_misc(void);
 void check_auto_happy_hour(void);
-void regen_psp(void);
 void process_walkto_actions(void);
 void self_buffing(void);
 void recharge_activated_items(void);
@@ -2309,7 +2306,8 @@ void heartbeat(int heart_pulse)
    *  a full grasp on the event system, otherwise it would have
    *  been implemented differently.  -Zusuk
    */
-  if (!(pulse % PULSE_LUMINARI))
+  if (!(pulse % PULSE_LUMINARI) &&
+      (!affected_owner_events_enabled() || !character_periodic_events_enabled()))
   { /* 5 sec */
     PERF_PROF_ENTER_SAMPLED(pr_lum_, "pulse_luminari");
     pulse_luminari(); // limits.c
@@ -2329,7 +2327,7 @@ void heartbeat(int heart_pulse)
   }
 
   /* every 6 seconds, update damage and effects over time AND update player misc()*/
-  if (!(heart_pulse % (6 * PASSES_PER_SEC)))
+  if (!(heart_pulse % (6 * PASSES_PER_SEC)) && !character_periodic_events_enabled())
   {
     PERF_PROF_ENTER_SAMPLED(pr_upd_, "update_damage_and_effects_over_time");
     update_damage_and_effects_over_time();

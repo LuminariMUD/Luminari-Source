@@ -2,6 +2,30 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Mixed room and character periodic gameplay
+
+#### Changed
+
+- Moved five-second room-affect behavior onto each affected room's existing
+  nearest-deadline event.
+- Moved five-second Luminari character work and six-second damage/effect work
+  onto each in-world character's existing owner event; connected players also
+  receive the established six-second maintenance routine there.
+- Kept autonomous off-screen NPCs active and added typed `CharacterMoved`
+  admission for characters entering the world.
+
+#### Operations
+
+- Kept `LUMINARI_AFFECT_EVENTS` and `LUMINARI_CHARACTER_EVENTS` independent;
+  each legacy mode restores only its half of mixed heartbeat work.
+- Added compact room-behavior, character Luminari, damage, and player-misc
+  counters to `perfmon entities`, with character rows bounded to 80 columns.
+
+#### Tests
+
+- Added exact five/six-second owner-boundary, off-screen NPC, connected-player,
+  typed movement, independent rollback, registry, and readable-output coverage.
+
 ### Character-owned periodic gameplay
 
 #### Changed

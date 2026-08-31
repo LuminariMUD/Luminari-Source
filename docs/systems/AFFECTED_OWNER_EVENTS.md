@@ -1,18 +1,20 @@
 # Affected Owner Events
 
 Phase 7 moves character-affect and room-affect duration expiry from one
-six-second cadence sweep to owner-scoped scheduler deadlines. The eligibility
+six-second cadence sweep to owner-scoped scheduler deadlines. The affected-room
+event also owns its five-second room-affect behavior boundary. The eligibility
 registries remain available for boot reconstruction and staff validation, but
 normal scheduled operation visits only owners whose deadline is due.
 
 ## Gameplay Behavior
 
-Every live affected character owns one duration event. Every room containing
-one or more room affects owns one event shared by all of those affects. Both
-run on the same global `PULSE_VIOLENCE` boundary as the old heartbeat, then
-recur every six seconds. Initial deadlines are not spread because affect
-durations are authored in shared D20 rounds and must retain their ordering
-relative to other round work.
+Every live affected character owns one duration event on the global
+`PULSE_VIOLENCE` boundary. Every room containing one or more room affects owns
+one event shared by all of those affects. The room event selects the nearer of
+the established five-second `PULSE_LUMINARI` behavior boundary and six-second
+duration boundary. Initial deadlines are not spread because both behaviors
+are authored against shared world cadence and must retain their boundary
+ordering.
 
 The callback uses the established expiry functions. Positive character
 durations decrement, negative durations remain unlimited, and a zero-duration
@@ -22,8 +24,9 @@ decrement together; expiry removes the room affect and clears its room bit only
 when no same-kind affect remains.
 
 This changes how due owners are found, not spell duration or combat behavior.
-Room-affect behavior such as fog or blade-barrier ticks still belongs to the
-separate five-second Luminari pulse until that mixed pulse is decomposed.
+Room-affect behavior such as fog or blade-barrier ticks now runs from the room
+owner event. Removing the final room affect during either behavior or duration
+work cancels that event before it can recur.
 
 ## MSDP Boundary
 
@@ -56,23 +59,23 @@ warning. Releasing capacity immediately schedules waiting owners, so an affect
 cannot remain frozen after pressure subsides.
 
 The shared compatibility event ceiling is 262,144. Current high-cardinality
-owner limits total 163,840, leaving at least 98,304 slots for combat, waits,
+owner limits total 196,608, leaving at least 65,536 slots for combat, waits,
 activities, and services when every owner subsystem reaches its own limit.
 
 ## Diagnostics And Rollback
 
 `perfmon entities` reports scheduled or legacy mode, eligible and scheduled
 character and room counts, validation mismatches, limits, rejections,
-callbacks, and processed affects. The affected section uses short labeled
-lines intended for an ordinary 80-column client. `perfmon reset` clears work
-counters without changing owners or deadlines. Callback telemetry is recorded
-under `affected_character` and `affected_room`.
+callbacks, duration work, and room-behavior work. The affected section uses
+short labeled lines intended for an ordinary 80-column client. `perfmon reset`
+clears work counters without changing owners or deadlines. Callback telemetry
+is recorded under `affected_character` and `affected_room`.
 
 Selection is immutable for one boot:
 
 - `LUMINARI_AFFECT_EVENTS=scheduled` is the default; and
 - `LUMINARI_AFFECT_EVENTS=legacy` restores the six-second `affect_update()`
-  compatibility sweep.
+  compatibility sweep and the room half of the five-second Luminari pulse.
 
 The `active`, `event`, `heartbeat`, and `off` aliases follow the other Phase 7
 owner gates. Scheduled and legacy duration paths cannot execute together. A

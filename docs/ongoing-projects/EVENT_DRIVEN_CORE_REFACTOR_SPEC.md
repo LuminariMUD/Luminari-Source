@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - three Phase 7 owner slices accepted; scan reduction continues
-**Document version:** 1.8
+**Status:** In progress - five Phase 7 owner slices accepted; scan reduction continues
+**Document version:** 1.10
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 6b complete; Phase 7 NPC, periodic-object/script, and affected-owner slices accepted
+**Implementation status:** Phases 1 through 6b complete; Phase 7 NPC, periodic-object/script, affected-owner, character-state, and mixed-pulse slices accepted
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -1741,6 +1741,21 @@ recorded in
 Character-owner diagnostics use seven labeled rows whose maximum printed
 width remains within the normal 80-column client setting.
 
+**Mixed room/character slice accepted 2026-08-31.** Affected rooms now use
+their existing owner event for both five-second room-affect behavior and
+six-second duration expiry, selecting whichever aligned boundary is nearest.
+Every in-world character, including autonomous off-screen NPCs, uses its
+existing character-owner event for five-second Luminari work and six-second
+damage/effect work. Connected in-world players receive the established
+six-second player-maintenance routine from the same event. Typed
+`CharacterMoved` facts admit characters entering the world, while extraction
+and existing connection lifecycle boundaries cancel them. The affected and
+character boot selections independently restore only the legacy portions they
+own, so mixed scheduled/legacy rollback cannot skip or duplicate either half.
+Character-owner diagnostics now use nine labeled rows within 80 columns.
+Evidence is recorded in
+[`EVENT_DRIVEN_CORE_REFACTOR_PHASE7E_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE7E_VALIDATION.md).
+
 ### Phase 8: Encounter-level combat compatibility
 
 Deliverables:
@@ -2181,3 +2196,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.7 | 2026-08-30 | Accepted the second Phase 7 slice after replacing `ITEM_AUTOPROC` and DG mobile/object/room random-trigger scans with bounded owner deadlines, direct lifecycle cancellation, independent rollback, and diagnostics. Existing six/thirteen-second gameplay and DG `GLOBAL` empty-zone semantics are preserved; the 16-mode local matrix, live diagnostics, and 972-test sanitizer/Valgrind/database gates passed. Affected character and room owners are next. |
 | 1.8 | 2026-08-31 | Accepted the affected-owner Phase 7 slice after replacing the six-second character and room-duration sweeps with exact shared-round owner deadlines, preserving wear-off and room-affect semantics, separating MSDP connection refresh, adding lifecycle refill under subsystem pressure, and retaining independent heartbeat rollback. The shared event ceiling is now 262,144, leaving 98,304 slots beyond all current high-cardinality owner limits. Explicit character-state and mixed-pulse decomposition continue Phase 7. |
 | 1.9 | 2026-08-31 | Accepted the explicit character-state Phase 7 slice after replacing walk-to, connected PSP, bardic verse, and hint discovery scans with one bounded nearest-deadline event per relevant character. Exact legacy boundaries, existing gameplay routines, active-registry refill, direct connection/performance lifecycle synchronization, diagnostics, and exclusive `LUMINARI_CHARACTER_EVENTS` rollback are preserved. Declared high-cardinality owner limits total 196,608 under the shared 262,144-event ceiling, retaining 65,536 slots for other work. Remaining room behavior and mixed Luminari/player-maintenance pulses continue Phase 7. |
+| 1.10 | 2026-08-31 | Accepted the mixed room/character Phase 7 slice after moving five-second room-affect behavior, five-second per-character Luminari work, six-second damage/effect work, and connected player maintenance onto existing nearest-deadline owner events. All in-world NPCs remain active without player proximity, typed movement admits new owners, affected and character rollback remain independent, and focused production-linked coverage proves exact five/six-second boundaries without duplicate execution. Vessel decomposition and the mixed `point_update()` pulse are next. |

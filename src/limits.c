@@ -41,6 +41,8 @@
 #include "magic/moon_bonus_spells.h"
 #include "obj/spec_artifacts.h"
 #include "rol_feats.h"
+#include "affected_owners.h"
+#include "character_periodic.h"
 
 // external functions
 bool save_char_pets(struct char_data *ch);
@@ -348,75 +350,101 @@ void hazard_tick(struct char_data *ch)
  *  Also should be noted, its nice to keep this off-beat with
  *  PULSE_VIOLENCE, it has a little nicer feel to it
  */
-void pulse_luminari()
+size_t pulse_luminari_room_one(struct room_data *room)
 {
-  struct char_data *i = NULL;
-  struct raff_node *raff = NULL, *next_raff = NULL;
+  struct raff_node *raff;
+  struct raff_node *next_raff;
+  size_t processed = 0U;
 
-  // room-affections, loop through em
-  for (raff = raff_list; raff; raff = next_raff)
+  if (room == NULL)
+    return 0U;
+  for (raff = room->affected_head; raff != NULL; raff = next_raff)
   {
-    next_raff = raff->next;
-
-    /* will check a room it has room affection to fire */
+    next_raff = raff->room_next;
     room_aff_tick(raff);
+    processed++;
   }
+  return processed;
+}
 
-  // looping through char list, what needs to be done?
-  for (i = character_list; i; i = i->next)
+void pulse_luminari_character_one(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+
+  /* dummy check + added for falling event */
+  if (death_check(ch))
+    return;
+
+  /* 04/07/13 - added position check since pos_fighting is deprecated */
+  if (GET_POS(ch) == POS_FIGHTING && !FIGHTING(ch))
+    change_position(ch, POS_STANDING);
+
+  /* safety check to make sure you aren't firing when not fighting */
+  if (!FIGHTING(ch))
+    clear_projectile_mode(ch);
+
+  /* a function meant to check for room-based hazards, like
+     falling, drowning, lava, etc */
+  hazard_tick(ch);
+
+  /* mount clean-up */
+  mount_cleanup(ch);
+
+  /* vitals regeneration */
+  if (GET_HIT(ch) != GET_MAX_HIT(ch) || GET_MOVE(ch) != GET_MAX_MOVE(ch) ||
+      GET_PSP(ch) != GET_MAX_PSP(ch) || AFF_FLAGGED(ch, AFF_POISON) ||
+      AFF_FLAGGED(ch, AFF_ACID_COAT))
+    regen_update(ch);
+
+  /* weapon spells */
+  idle_weapon_spells(ch);
+
+  /* an assortment of affliction types */
+  affliction_tick(ch);
+
+  /* Bard Spellsinger: Sustaining Melody - recover PC spell slots (spontaneous) */
+  if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_BARD) > 0 && FIGHTING(ch) && IS_PERFORMING(ch) &&
+      has_bard_sustaining_melody(ch))
   {
-    /* dummy check + added for falling event */
-    if (death_check(i))
-      continue; // i is dead
-
-    /* 04/07/13 - added position check since pos_fighting is deprecated */
-    if (GET_POS(i) == POS_FIGHTING && !FIGHTING(i))
-      change_position(i, POS_STANDING);
-
-    /* safety check to make sure you aren't firing when not fighting */
-    if (!FIGHTING(i))
-      clear_projectile_mode(i);
-
-    /* a function meant to check for room-based hazards, like
-       falling, drowning, lava, etc */
-    hazard_tick(i);
-
-    /* mount clean-up */
-    mount_cleanup(i);
-
-    /* vitals regeneration */
-    if (GET_HIT(i) == GET_MAX_HIT(i) && GET_MOVE(i) == GET_MAX_MOVE(i) &&
-        GET_PSP(i) == GET_MAX_PSP(i) && !AFF_FLAGGED(i, AFF_POISON) &&
-        !AFF_FLAGGED(i, AFF_ACID_COAT))
-      ;
-    else
-      regen_update(i);
-
-    /* weapon spells */
-    // weapon spells call (in fight.c currently)
-    idle_weapon_spells(i);
-
-    /* an assortment of affliction types */
-    affliction_tick(i);
-
-    /* Bard Spellsinger: Sustaining Melody - recover PC spell slots (spontaneous) */
-    if (!IS_NPC(i) && CLASS_LEVEL(i, CLASS_BARD) > 0 && FIGHTING(i) && IS_PERFORMING(i) &&
-        has_bard_sustaining_melody(i))
+    /* 20% chance per five-second Luminari pulse to recover one Bard slot. */
+    if (rand_number(1, 100) <= 20)
     {
-      /* 20% chance per five-second Luminari pulse to recover one Bard slot. */
-      if (rand_number(1, 100) <= 20)
+      if (sustain_melody_recover_one_slot(ch, CLASS_BARD))
       {
-        if (sustain_melody_recover_one_slot(i, CLASS_BARD))
-        {
-          send_to_char(i, "\tYYour sustaining melody recovers a spell slot!\tn\r\n");
-        }
+        send_to_char(ch, "\tYYour sustaining melody recovers a spell slot!\tn\r\n");
       }
     }
+  }
 
-    /* grapple cleanup */
-    grapple_cleanup(i);
+  /* grapple cleanup */
+  grapple_cleanup(ch);
+}
 
-  } // end char list loop
+void pulse_luminari()
+{
+  struct char_data *ch;
+  struct char_data *next_ch;
+  struct raff_node *raff;
+  struct raff_node *next_raff;
+
+  if (!affected_owner_events_enabled())
+  {
+    for (raff = raff_list; raff != NULL; raff = next_raff)
+    {
+      next_raff = raff->next;
+      room_aff_tick(raff);
+    }
+  }
+
+  if (!character_periodic_events_enabled())
+  {
+    for (ch = character_list; ch != NULL; ch = next_ch)
+    {
+      next_ch = ch->next;
+      pulse_luminari_character_one(ch);
+    }
+  }
 }
 
 /* When age < 15 return the value p0
@@ -1826,307 +1854,306 @@ bool save_player_pets(void)
   return all_saved;
 }
 
-void update_player_misc(void)
+void update_player_misc_one(struct char_data *ch)
 {
-  struct descriptor_data *d = NULL;
-  struct char_data *ch = NULL;
   int i = 0;
 
-  for (d = descriptor_list; d; d = d->next)
+  if (ch == NULL || ch->desc == NULL || STATE(ch->desc) != CON_PLAYING)
+    return;
+
+  affect_total(ch);
+
+  if (GET_MISSION_COOLDOWN(ch) > 0)
+    GET_MISSION_COOLDOWN(ch)--;
+
+  if (GET_FORAGE_COOLDOWN(ch) > 0)
   {
-    ch = d->character;
-    if (!ch)
-      continue;
-
-    if (STATE(d) != CON_PLAYING)
-      continue;
-
-    affect_total(ch);
-
-    if (GET_MISSION_COOLDOWN(ch) > 0)
-      GET_MISSION_COOLDOWN(ch)--;
-
-    if (GET_FORAGE_COOLDOWN(ch) > 0)
+    GET_FORAGE_COOLDOWN(ch)--;
+    if (GET_FORAGE_COOLDOWN(ch) == 0)
     {
-      GET_FORAGE_COOLDOWN(ch)--;
-      if (GET_FORAGE_COOLDOWN(ch) == 0)
-      {
-        send_to_char(ch, "You can now forage for food again.\r\n");
-      }
+      send_to_char(ch, "You can now forage for food again.\r\n");
     }
+  }
 
-    /* Decrement Nature's Wrath cooldown if active */
-    if (!IS_NPC(ch) && ch->natures_wrath_cooldown > 0)
+  /* Decrement Nature's Wrath cooldown if active */
+  if (!IS_NPC(ch) && ch->natures_wrath_cooldown > 0)
+  {
+    ch->natures_wrath_cooldown--;
+  }
+
+  if (GET_SCROUNGE_COOLDOWN(ch) > 0)
+  {
+    GET_SCROUNGE_COOLDOWN(ch)--;
+    if (GET_SCROUNGE_COOLDOWN(ch) == 0)
     {
-      ch->natures_wrath_cooldown--;
+      send_to_char(ch, "You can now scrounge for supplies again.\r\n");
     }
+  }
 
-    if (GET_SCROUNGE_COOLDOWN(ch) > 0)
+  if (GET_SPIRITUAL_WEAPON_COOLDOWN(ch) > 0)
+  {
+    GET_SPIRITUAL_WEAPON_COOLDOWN(ch)--;
+    if (GET_SPIRITUAL_WEAPON_COOLDOWN(ch) == 0)
     {
-      GET_SCROUNGE_COOLDOWN(ch)--;
-      if (GET_SCROUNGE_COOLDOWN(ch) == 0)
-      {
-        send_to_char(ch, "You can now scrounge for supplies again.\r\n");
-      }
+      send_to_char(ch, "You can now summon a spiritual weapon again.\r\n");
     }
+  }
 
-    if (GET_SPIRITUAL_WEAPON_COOLDOWN(ch) > 0)
+  if (GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) > 0)
+  {
+    GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch)--;
+    if (GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) == 0)
     {
-      GET_SPIRITUAL_WEAPON_COOLDOWN(ch)--;
-      if (GET_SPIRITUAL_WEAPON_COOLDOWN(ch) == 0)
-      {
-        send_to_char(ch, "You can now summon a spiritual weapon again.\r\n");
-      }
+      send_to_char(ch, "You can now use irresistible magic again.\r\n");
     }
+  }
 
-    if (GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) > 0)
+  if (GET_QUICK_CAST_COOLDOWN(ch) > 0)
+  {
+    GET_QUICK_CAST_COOLDOWN(ch)--;
+    if (GET_QUICK_CAST_COOLDOWN(ch) == 0)
     {
-      GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch)--;
-      if (GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch) == 0)
-      {
-        send_to_char(ch, "You can now use irresistible magic again.\r\n");
-      }
+      send_to_char(ch, "You can now use quick cast again.\r\n");
     }
+  }
 
-    if (GET_QUICK_CAST_COOLDOWN(ch) > 0)
+  if (GET_SPELL_RECALL_COOLDOWN(ch) > 0)
+  {
+    GET_SPELL_RECALL_COOLDOWN(ch)--;
+    if (GET_SPELL_RECALL_COOLDOWN(ch) == 0)
     {
-      GET_QUICK_CAST_COOLDOWN(ch)--;
-      if (GET_QUICK_CAST_COOLDOWN(ch) == 0)
-      {
-        send_to_char(ch, "You can now use quick cast again.\r\n");
-      }
+      send_to_char(ch, "You can now use spell recall again.\r\n");
     }
+  }
 
-    if (GET_SPELL_RECALL_COOLDOWN(ch) > 0)
+  if (IN_ROOM(ch) == 0 || IN_ROOM(ch) == NOWHERE ||
+      GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_MORTAL_START ||
+      GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_IMMORTAL_START)
+    ;
+  else
+    GET_LAST_ROOM(ch) = GET_ROOM_VNUM(IN_ROOM(ch));
+
+  if (GET_RETAINER_COOLDOWN(ch) > 0)
+  {
+    GET_RETAINER_COOLDOWN(ch)--;
+    if (GET_RETAINER_COOLDOWN(ch) == 0)
     {
-      GET_SPELL_RECALL_COOLDOWN(ch)--;
-      if (GET_SPELL_RECALL_COOLDOWN(ch) == 0)
-      {
-        send_to_char(ch, "You can now use spell recall again.\r\n");
-      }
+      send_to_char(ch, "You can now call your retainer again.\r\n");
     }
+  }
 
-    if (IN_ROOM(ch) == 0 || IN_ROOM(ch) == NOWHERE ||
-        GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_MORTAL_START ||
-        GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_IMMORTAL_START)
-      ;
-    else
-      GET_LAST_ROOM(ch) = GET_ROOM_VNUM(IN_ROOM(ch));
-
-    if (GET_RETAINER_COOLDOWN(ch) > 0)
-    {
-      GET_RETAINER_COOLDOWN(ch)--;
-      if (GET_RETAINER_COOLDOWN(ch) == 0)
-      {
-        send_to_char(ch, "You can now call your retainer again.\r\n");
-      }
-    }
-
-    /* Bonus spell slot regeneration - regenerate 1 slot per 5 minutes (5 ticks) */
-    if (GET_BONUS_DOMAIN_SLOTS_USED(ch) > 0)
-    {
-      /* Increment regeneration counter */
-      if (!GET_BONUS_DOMAIN_REGEN_TIMER(ch))
-        GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
-
-      GET_BONUS_DOMAIN_REGEN_TIMER(ch)++;
-
-      /* Regenerate 1 slot every 5 ticks (5 minutes) */
-      if (GET_BONUS_DOMAIN_REGEN_TIMER(ch) >= 5)
-      {
-        GET_BONUS_DOMAIN_SLOTS_USED(ch)--;
-        GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
-        send_to_char(ch, "You feel a bonus domain spell slot restore.\r\n");
-      }
-    }
-    else
-    {
+  /* Bonus spell slot regeneration - regenerate 1 slot per 5 minutes (5 ticks) */
+  if (GET_BONUS_DOMAIN_SLOTS_USED(ch) > 0)
+  {
+    /* Increment regeneration counter */
+    if (!GET_BONUS_DOMAIN_REGEN_TIMER(ch))
       GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
-    }
 
-    if (GET_BONUS_SLOTS_USED(ch) > 0)
+    GET_BONUS_DOMAIN_REGEN_TIMER(ch)++;
+
+    /* Regenerate 1 slot every 5 ticks (5 minutes) */
+    if (GET_BONUS_DOMAIN_REGEN_TIMER(ch) >= 5)
     {
-      /* Increment regeneration counter */
-      if (!GET_BONUS_SLOTS_REGEN_TIMER(ch))
-        GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
-
-      GET_BONUS_SLOTS_REGEN_TIMER(ch)++;
-
-      /* Regenerate 1 slot every 5 ticks (5 minutes) */
-      if (GET_BONUS_SLOTS_REGEN_TIMER(ch) >= 5)
-      {
-        GET_BONUS_SLOTS_USED(ch)--;
-        GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
-        send_to_char(ch, "You feel a bonus spell slot restore.\r\n");
-      }
+      GET_BONUS_DOMAIN_SLOTS_USED(ch)--;
+      GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
+      send_to_char(ch, "You feel a bonus domain spell slot restore.\r\n");
     }
-    else
-    {
+  }
+  else
+  {
+    GET_BONUS_DOMAIN_REGEN_TIMER(ch) = 0;
+  }
+
+  if (GET_BONUS_SLOTS_USED(ch) > 0)
+  {
+    /* Increment regeneration counter */
+    if (!GET_BONUS_SLOTS_REGEN_TIMER(ch))
       GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
-    }
 
-    if (HAS_FEAT(ch, FEAT_DETECT_ALIGNMENT))
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_DETECT_ALIGN);
+    GET_BONUS_SLOTS_REGEN_TIMER(ch)++;
 
-    if (!are_mission_mobs_loaded(ch))
+    /* Regenerate 1 slot every 5 ticks (5 minutes) */
+    if (GET_BONUS_SLOTS_REGEN_TIMER(ch) >= 5)
     {
-      apply_mission_rewards(ch);
-      clear_mission(ch);
+      GET_BONUS_SLOTS_USED(ch)--;
+      GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
+      send_to_char(ch, "You feel a bonus spell slot restore.\r\n");
     }
+  }
+  else
+  {
+    GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
+  }
 
-    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_PREP))
+  if (HAS_FEAT(ch, FEAT_DETECT_ALIGNMENT))
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_DETECT_ALIGN);
+
+  if (!are_mission_mobs_loaded(ch))
+  {
+    apply_mission_rewards(ch);
+    clear_mission(ch);
+  }
+
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTO_PREP))
+  {
+    for (i = 0; i < NUM_CLASSES; i++)
     {
-      for (i = 0; i < NUM_CLASSES; i++)
+      if (is_spellcasting_class(i))
       {
-        if (is_spellcasting_class(i))
+        if (CLASS_LEVEL(ch, i) > 0)
         {
-          if (CLASS_LEVEL(ch, i) > 0)
+          if (SPELL_PREP_QUEUE(ch, i))
           {
-            if (SPELL_PREP_QUEUE(ch, i))
-            {
-              begin_preparing(ch, i);
-              break;
-            }
+            begin_preparing(ch, i);
+            break;
           }
         }
       }
     }
+  }
 
-    if (ch->player_specials->concussive_onslaught_duration > 0)
+  if (ch->player_specials->concussive_onslaught_duration > 0)
+  {
+    ch->player_specials->concussive_onslaught_duration--;
+    if (ch->player_specials->concussive_onslaught_duration <= 0)
     {
-      ch->player_specials->concussive_onslaught_duration--;
-      if (ch->player_specials->concussive_onslaught_duration <= 0)
-      {
-        send_to_char(ch, "Your concussive onslaught ends.\r\n");
-        act("Waves of concussive force stop emenating from $n.", FALSE, ch, 0, 0, TO_ROOM);
-      }
-    }
-
-    if (IS_VAMPIRE(ch) && GET_SETCLOAK_TIMER(ch) > 0)
-    {
-      GET_SETCLOAK_TIMER(ch)--;
-      if (GET_SETCLOAK_TIMER(ch) == 0)
-      {
-        send_to_char(ch,
-                     "You can now set your vampire cloak bonuses again. (setcloak command)\r\n");
-      }
-    }
-
-    if (HAS_FEAT(ch, FEAT_EFREETI_MAGIC) && IS_EFREETI(ch) && EFREETI_MAGIC_TIMER(ch) > 0)
-    {
-      EFREETI_MAGIC_TIMER(ch)--;
-      if (EFREETI_MAGIC_TIMER(ch) <= 0)
-      {
-        EFREETI_MAGIC_TIMER(ch) = 0;
-        EFREETI_MAGIC_USES(ch) = EFREETI_MAGIC_USES_PER_DAY;
-        send_to_char(ch, "Your efreeti magic uses have been refreshed.\r\n");
-      }
-    }
-    if (HAS_FEAT(ch, FEAT_DRAGON_MAGIC) && IS_DRAGON(ch) && DRAGON_MAGIC_TIMER(ch) > 0)
-    {
-      DRAGON_MAGIC_TIMER(ch)--;
-      if (DRAGON_MAGIC_TIMER(ch) <= 0)
-      {
-        DRAGON_MAGIC_TIMER(ch) = 0;
-        DRAGON_MAGIC_USES(ch) = DRAGON_MAGIC_USES_PER_DAY;
-        send_to_char(ch, "Your dragon magic uses have been refreshed.\r\n");
-      }
-    }
-    if (HAS_FEAT(ch, FEAT_PIXIE_DUST) && IS_PIXIE(ch) && PIXIE_DUST_TIMER(ch) > 0)
-    {
-      PIXIE_DUST_TIMER(ch)--;
-      if (PIXIE_DUST_TIMER(ch) <= 0)
-      {
-        PIXIE_DUST_TIMER(ch) = 0;
-        PIXIE_DUST_USES(ch) = PIXIE_DUST_USES_PER_DAY(ch);
-        send_to_char(ch, "Your pixie dust uses have been refreshed.\r\n");
-      }
-    }
-    if (HAS_FEAT(ch, FEAT_LAUGHING_TOUCH) && LAUGHING_TOUCH_TIMER(ch) > 0)
-    {
-      LAUGHING_TOUCH_TIMER(ch)--;
-      if (LAUGHING_TOUCH_TIMER(ch) <= 0)
-      {
-        LAUGHING_TOUCH_TIMER(ch) = 0;
-        LAUGHING_TOUCH_USES(ch) = LAUGHING_TOUCH_USES_PER_DAY(ch);
-        send_to_char(ch, "Your laughing touch uses have been refreshed.\r\n");
-      }
-    }
-    if (HAS_FEAT(ch, FEAT_FLEETING_GLANCE) && FLEETING_GLANCE_TIMER(ch) > 0)
-    {
-      FLEETING_GLANCE_TIMER(ch)--;
-      if (FLEETING_GLANCE_TIMER(ch) <= 0)
-      {
-        FLEETING_GLANCE_TIMER(ch) = 0;
-        FLEETING_GLANCE_USES(ch) = FLEETING_GLANCE_USES_PER_DAY;
-        send_to_char(ch, "Your fleeting glance uses have been refreshed.\r\n");
-      }
-    }
-    if (HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY) && FEY_SHADOW_WALK_TIMER(ch) > 0)
-    {
-      FEY_SHADOW_WALK_TIMER(ch)--;
-      if (FEY_SHADOW_WALK_TIMER(ch) <= 0)
-      {
-        FEY_SHADOW_WALK_TIMER(ch) = 0;
-        FEY_SHADOW_WALK_USES(ch) = FEY_SHADOW_WALK_USES_PER_DAY;
-        send_to_char(ch, "Your fey shadow walk uses have been refreshed.\r\n");
-      }
-    }
-    if (HAS_FEAT(ch, FEAT_GRAVE_TOUCH) && GRAVE_TOUCH_TIMER(ch) > 0)
-    {
-      GRAVE_TOUCH_TIMER(ch)--;
-      if (GRAVE_TOUCH_TIMER(ch) <= 0)
-      {
-        GRAVE_TOUCH_TIMER(ch) = 0;
-        GRAVE_TOUCH_USES(ch) = GRAVE_TOUCH_USES_PER_DAY(ch);
-        send_to_char(ch, "Your grave touch uses have been refreshed.\r\n");
-      }
-    }
-    if (HAS_FEAT(ch, FEAT_GRASP_OF_THE_DEAD) && GRASP_OF_THE_DEAD_TIMER(ch) > 0)
-    {
-      GRASP_OF_THE_DEAD_TIMER(ch)--;
-      if (GRASP_OF_THE_DEAD_TIMER(ch) <= 0)
-      {
-        GRASP_OF_THE_DEAD_TIMER(ch) = 0;
-        GRASP_OF_THE_DEAD_USES(ch) = GRASP_OF_THE_DEAD_USES_PER_DAY(ch);
-        send_to_char(ch, "Your grasp of the dead uses have been refreshed.\r\n");
-      }
-    }
-    if (HAS_FEAT(ch, FEAT_INCORPOREAL_FORM) && INCORPOREAL_FORM_TIMER(ch) > 0)
-    {
-      INCORPOREAL_FORM_TIMER(ch)--;
-      if (INCORPOREAL_FORM_TIMER(ch) <= 0)
-      {
-        INCORPOREAL_FORM_TIMER(ch) = 0;
-        INCORPOREAL_FORM_USES(ch) = INCORPOREAL_FORM_USES_PER_DAY(ch);
-        send_to_char(ch, "Your incorporeal form (undead bloodline) uses have been refreshed.\r\n");
-      }
-    }
-
-    if (GET_MARK(ch))
-    {
-      /* Assassin death attack uses 3 rounds; Ranger Hunter's Mark uses 5 rounds */
-      int max_rounds = 0;
-      if (!IS_NPC(ch))
-      {
-        if (has_perk(ch, PERK_RANGER_HUNTERS_MARK))
-          max_rounds = 5;
-        else if (CLASS_LEVEL(ch, CLASS_ASSASSIN) > 0)
-          max_rounds = 3;
-      }
-
-      if (max_rounds > 0 && GET_MARK_ROUNDS(ch) < max_rounds)
-      {
-        GET_MARK_ROUNDS(ch) += 1;
-        if (GET_MARK_ROUNDS(ch) >= max_rounds || HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
-        {
-          send_to_char(ch, "You have finished marking your target.\r\n");
-        }
-        else
-          send_to_char(ch, "You continue to mark your target.\r\n");
-      }
+      send_to_char(ch, "Your concussive onslaught ends.\r\n");
+      act("Waves of concussive force stop emenating from $n.", FALSE, ch, 0, 0, TO_ROOM);
     }
   }
+
+  if (IS_VAMPIRE(ch) && GET_SETCLOAK_TIMER(ch) > 0)
+  {
+    GET_SETCLOAK_TIMER(ch)--;
+    if (GET_SETCLOAK_TIMER(ch) == 0)
+    {
+      send_to_char(ch,
+                   "You can now set your vampire cloak bonuses again. (setcloak command)\r\n");
+    }
+  }
+
+  if (HAS_FEAT(ch, FEAT_EFREETI_MAGIC) && IS_EFREETI(ch) && EFREETI_MAGIC_TIMER(ch) > 0)
+  {
+    EFREETI_MAGIC_TIMER(ch)--;
+    if (EFREETI_MAGIC_TIMER(ch) <= 0)
+    {
+      EFREETI_MAGIC_TIMER(ch) = 0;
+      EFREETI_MAGIC_USES(ch) = EFREETI_MAGIC_USES_PER_DAY;
+      send_to_char(ch, "Your efreeti magic uses have been refreshed.\r\n");
+    }
+  }
+  if (HAS_FEAT(ch, FEAT_DRAGON_MAGIC) && IS_DRAGON(ch) && DRAGON_MAGIC_TIMER(ch) > 0)
+  {
+    DRAGON_MAGIC_TIMER(ch)--;
+    if (DRAGON_MAGIC_TIMER(ch) <= 0)
+    {
+      DRAGON_MAGIC_TIMER(ch) = 0;
+      DRAGON_MAGIC_USES(ch) = DRAGON_MAGIC_USES_PER_DAY;
+      send_to_char(ch, "Your dragon magic uses have been refreshed.\r\n");
+    }
+  }
+  if (HAS_FEAT(ch, FEAT_PIXIE_DUST) && IS_PIXIE(ch) && PIXIE_DUST_TIMER(ch) > 0)
+  {
+    PIXIE_DUST_TIMER(ch)--;
+    if (PIXIE_DUST_TIMER(ch) <= 0)
+    {
+      PIXIE_DUST_TIMER(ch) = 0;
+      PIXIE_DUST_USES(ch) = PIXIE_DUST_USES_PER_DAY(ch);
+      send_to_char(ch, "Your pixie dust uses have been refreshed.\r\n");
+    }
+  }
+  if (HAS_FEAT(ch, FEAT_LAUGHING_TOUCH) && LAUGHING_TOUCH_TIMER(ch) > 0)
+  {
+    LAUGHING_TOUCH_TIMER(ch)--;
+    if (LAUGHING_TOUCH_TIMER(ch) <= 0)
+    {
+      LAUGHING_TOUCH_TIMER(ch) = 0;
+      LAUGHING_TOUCH_USES(ch) = LAUGHING_TOUCH_USES_PER_DAY(ch);
+      send_to_char(ch, "Your laughing touch uses have been refreshed.\r\n");
+    }
+  }
+  if (HAS_FEAT(ch, FEAT_FLEETING_GLANCE) && FLEETING_GLANCE_TIMER(ch) > 0)
+  {
+    FLEETING_GLANCE_TIMER(ch)--;
+    if (FLEETING_GLANCE_TIMER(ch) <= 0)
+    {
+      FLEETING_GLANCE_TIMER(ch) = 0;
+      FLEETING_GLANCE_USES(ch) = FLEETING_GLANCE_USES_PER_DAY;
+      send_to_char(ch, "Your fleeting glance uses have been refreshed.\r\n");
+    }
+  }
+  if (HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY) && FEY_SHADOW_WALK_TIMER(ch) > 0)
+  {
+    FEY_SHADOW_WALK_TIMER(ch)--;
+    if (FEY_SHADOW_WALK_TIMER(ch) <= 0)
+    {
+      FEY_SHADOW_WALK_TIMER(ch) = 0;
+      FEY_SHADOW_WALK_USES(ch) = FEY_SHADOW_WALK_USES_PER_DAY;
+      send_to_char(ch, "Your fey shadow walk uses have been refreshed.\r\n");
+    }
+  }
+  if (HAS_FEAT(ch, FEAT_GRAVE_TOUCH) && GRAVE_TOUCH_TIMER(ch) > 0)
+  {
+    GRAVE_TOUCH_TIMER(ch)--;
+    if (GRAVE_TOUCH_TIMER(ch) <= 0)
+    {
+      GRAVE_TOUCH_TIMER(ch) = 0;
+      GRAVE_TOUCH_USES(ch) = GRAVE_TOUCH_USES_PER_DAY(ch);
+      send_to_char(ch, "Your grave touch uses have been refreshed.\r\n");
+    }
+  }
+  if (HAS_FEAT(ch, FEAT_GRASP_OF_THE_DEAD) && GRASP_OF_THE_DEAD_TIMER(ch) > 0)
+  {
+    GRASP_OF_THE_DEAD_TIMER(ch)--;
+    if (GRASP_OF_THE_DEAD_TIMER(ch) <= 0)
+    {
+      GRASP_OF_THE_DEAD_TIMER(ch) = 0;
+      GRASP_OF_THE_DEAD_USES(ch) = GRASP_OF_THE_DEAD_USES_PER_DAY(ch);
+      send_to_char(ch, "Your grasp of the dead uses have been refreshed.\r\n");
+    }
+  }
+  if (HAS_FEAT(ch, FEAT_INCORPOREAL_FORM) && INCORPOREAL_FORM_TIMER(ch) > 0)
+  {
+    INCORPOREAL_FORM_TIMER(ch)--;
+    if (INCORPOREAL_FORM_TIMER(ch) <= 0)
+    {
+      INCORPOREAL_FORM_TIMER(ch) = 0;
+      INCORPOREAL_FORM_USES(ch) = INCORPOREAL_FORM_USES_PER_DAY(ch);
+      send_to_char(ch, "Your incorporeal form (undead bloodline) uses have been refreshed.\r\n");
+    }
+  }
+
+  if (GET_MARK(ch))
+  {
+    /* Assassin death attack uses 3 rounds; Ranger Hunter's Mark uses 5 rounds */
+    int max_rounds = 0;
+    if (!IS_NPC(ch))
+    {
+      if (has_perk(ch, PERK_RANGER_HUNTERS_MARK))
+        max_rounds = 5;
+      else if (CLASS_LEVEL(ch, CLASS_ASSASSIN) > 0)
+        max_rounds = 3;
+    }
+
+    if (max_rounds > 0 && GET_MARK_ROUNDS(ch) < max_rounds)
+    {
+      GET_MARK_ROUNDS(ch) += 1;
+      if (GET_MARK_ROUNDS(ch) >= max_rounds || HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
+      {
+        send_to_char(ch, "You have finished marking your target.\r\n");
+      }
+      else
+        send_to_char(ch, "You continue to mark your target.\r\n");
+    }
+  }
+}
+
+void update_player_misc(void)
+{
+  struct descriptor_data *d;
+
+  for (d = descriptor_list; d != NULL; d = d->next)
+    update_player_misc_one(d->character);
 }
 
 // every 6 seconds
@@ -2837,270 +2864,274 @@ void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
   return;
 }
 
-void update_damage_and_effects_over_time(void)
+void update_damage_and_effects_over_time_one(struct char_data *ch)
 {
   int dam = 0, x = 0;
   struct affected_type *affects = NULL;
-  struct char_data *ch = NULL, *next_char = NULL;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  for (ch = character_list; ch; ch = next_char)
+  if (ch == NULL)
+    return;
+
+  if (HAS_EVOLUTION(ch, EVOLUTION_GILLS))
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+
+  // Disabled as causes issues with different things, such as wildshape
+  // This code handles ability score damage which can be healed with various 'restoration' spells
+  // if (GET_STR(ch) <= 0 || GET_DEX(ch) <= 0 || GET_INT(ch) <= 0 || GET_WIS(ch) <= 0 ||
+  //     GET_CHA(ch) <= 0 || GET_CON(ch) <= 0)
+  // {
+  //   struct affected_type af;
+  //   new_affect(&af);
+  //   af.spell = ABILITY_SCORE_DAMAGE;
+  //   af.duration = 5;
+  //   SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+  //   affect_to_char(ch, &af);
+
+  //   if (GET_STR(ch) <= 0)
+  //     act("Your strength has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+  //   if (GET_CON(ch) <= 0)
+  //     act("Your constitution has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+  //   if (GET_DEX(ch) <= 0)
+  //     act("Your dexterity has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+  //   if (GET_INT(ch) <= 0)
+  //     act("Your intelligence has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+  //   if (GET_WIS(ch) <= 0)
+  //     act("Your wisdom has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+  //   if (GET_CHA(ch) <= 0)
+  //     act("Your charisma has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+
+  //   act("$n collapses into a helpless heap, looking completely drained.", TRUE, ch, 0, 0, TO_ROOM);
+  // }
+
+  if (GET_NODAZE_COOLDOWN(ch) > 0)
   {
-    next_char = ch->next;
+    GET_NODAZE_COOLDOWN(ch)--;
+  }
 
-    /* dummy check */
-    if (!ch)
-      return;
+  if (affected_by_spell(ch, ABILITY_BLOOD_DRAIN))
+  {
+    vamp_blood_drain(ch, FIGHTING(ch));
+  }
 
-    if (HAS_EVOLUTION(ch, EVOLUTION_GILLS))
-      SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+  if (IS_VAMPIRE(ch) && TIME_SINCE_LAST_FEEDING(ch) <= 100)
+  {
+    TIME_SINCE_LAST_FEEDING(ch)++;
+  }
 
-    // Disabled as causes issues with different things, such as wildshape
-    // This code handles ability score damage which can be healed with various 'restoration' spells
-    // if (GET_STR(ch) <= 0 || GET_DEX(ch) <= 0 || GET_INT(ch) <= 0 || GET_WIS(ch) <= 0 ||
-    //     GET_CHA(ch) <= 0 || GET_CON(ch) <= 0)
-    // {
-    //   struct affected_type af;
-    //   new_affect(&af);
-    //   af.spell = ABILITY_SCORE_DAMAGE;
-    //   af.duration = 5;
-    //   SET_BIT_AR(af.bitvector, AFF_PARALYZED);
-    //   affect_to_char(ch, &af);
+  if (AFF_FLAGGED(ch, AFF_ON_FIRE))
+  {
+    damage(ch, ch, dice(2, 6), TYPE_ON_FIRE, DAM_FIRE, FALSE);
+  }
 
-    //   if (GET_STR(ch) <= 0)
-    //     act("Your strength has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
-    //   if (GET_CON(ch) <= 0)
-    //     act("Your constitution has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
-    //   if (GET_DEX(ch) <= 0)
-    //     act("Your dexterity has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
-    //   if (GET_INT(ch) <= 0)
-    //     act("Your intelligence has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
-    //   if (GET_WIS(ch) <= 0)
-    //     act("Your wisdom has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
-    //   if (GET_CHA(ch) <= 0)
-    //     act("Your charisma has sapped completely, rendering you immoble.", FALSE, ch, 0, 0, TO_CHAR);
+  // set this to false every round so banishing blade can be attempted again
+  if (ch->char_specials.banishing_blade_procced_this_round)
+    ch->char_specials.banishing_blade_procced_this_round = FALSE;
 
-    //   act("$n collapses into a helpless heap, looking completely drained.", TRUE, ch, 0, 0, TO_ROOM);
-    // }
-
-    if (GET_NODAZE_COOLDOWN(ch) > 0)
+  if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT &&
+      !affected_by_spell(ch, AFFECT_RECENTLY_DIED) &&
+      !affected_by_spell(ch, AFFECT_RECENTLY_RESPECED))
+  {
+    if (IN_SUNLIGHT(ch) && !is_covered(ch))
     {
-      GET_NODAZE_COOLDOWN(ch)--;
+      damage(ch, ch, dice(2, 6), TYPE_SUN_DAMAGE, DAM_SUNLIGHT, FALSE);
     }
-
-    if (affected_by_spell(ch, ABILITY_BLOOD_DRAIN))
+    if (IN_MOVING_WATER(ch))
     {
-      vamp_blood_drain(ch, FIGHTING(ch));
+      damage(ch, ch, GET_MAX_HIT(ch) / 3, TYPE_MOVING_WATER, DAM_WATER, FALSE);
     }
+  }
 
-    if (IS_VAMPIRE(ch) && TIME_SINCE_LAST_FEEDING(ch) <= 100)
+  for (x = 0; x < NUM_ELDRITCH_BLAST_COOLDOWNS; x++)
+  {
+    if (ch->char_specials.eldritch_blast_cooldowns[x] > 0)
     {
-      TIME_SINCE_LAST_FEEDING(ch)++;
+      ch->char_specials.eldritch_blast_cooldowns[x]--;
     }
+  }
 
-    if (AFF_FLAGGED(ch, AFF_ON_FIRE))
+  if (AFF_FLAGGED(ch, AFF_BLEED))
+  {
+    for (affects = ch->affected; affects; affects = affects->next)
     {
-      damage(ch, ch, dice(2, 6), TYPE_ON_FIRE, DAM_FIRE, FALSE);
-    }
-
-    // set this to false every round so banishing blade can be attempted again
-    if (ch->char_specials.banishing_blade_procced_this_round)
-      ch->char_specials.banishing_blade_procced_this_round = FALSE;
-
-    if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT &&
-        !affected_by_spell(ch, AFFECT_RECENTLY_DIED) &&
-        !affected_by_spell(ch, AFFECT_RECENTLY_RESPECED))
-    {
-      if (IN_SUNLIGHT(ch) && !is_covered(ch))
+      if (IS_SET_AR(affects->bitvector, AFF_BLEED))
       {
-        damage(ch, ch, dice(2, 6), TYPE_SUN_DAMAGE, DAM_SUNLIGHT, FALSE);
-      }
-      if (IN_MOVING_WATER(ch))
-      {
-        damage(ch, ch, GET_MAX_HIT(ch) / 3, TYPE_MOVING_WATER, DAM_WATER, FALSE);
-      }
-    }
+        dam =
+            damage(ch, ch, affects->modifier, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
 
-    for (x = 0; x < NUM_ELDRITCH_BLAST_COOLDOWNS; x++)
-    {
-      if (ch->char_specials.eldritch_blast_cooldowns[x] > 0)
-      {
-        ch->char_specials.eldritch_blast_cooldowns[x]--;
-      }
-    }
-
-    if (AFF_FLAGGED(ch, AFF_BLEED))
-    {
-      for (affects = ch->affected; affects; affects = affects->next)
-      {
-        if (IS_SET_AR(affects->bitvector, AFF_BLEED))
-        {
-          dam =
-              damage(ch, ch, affects->modifier, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
-
-          if (dam <= 0)
-          { /* they died */
-            break;
-          }
-        }
-      }
-    }
-
-    if (affected_by_spell(ch, BOMB_AFFECT_ACID))
-    {
-      for (affects = ch->affected; affects; affects = affects->next)
-      {
-        if (affects->spell == BOMB_AFFECT_ACID)
-        {
-          act("You suffer in pain as acid continues to burn you.", FALSE, ch, 0, 0, TO_CHAR);
-          act("$n suffers in pain as acid continues to burn $m.", FALSE, ch, 0, 0, TO_ROOM);
-
-          dam = damage(ch, ch, affects->modifier, SKILL_BOMB_TOSS, DAM_ACID, SKILL_BOMB_TOSS);
-
-          if (dam <= 0)
-          { /* they died */
-            break;
-          }
-
-          affects->duration--;
-          if (affects->duration <= 0)
-            affect_from_char(ch, BOMB_AFFECT_ACID);
-
+        if (dam <= 0)
+        { /* they died */
           break;
         }
       }
-    } // end acid bombs
+    }
+  }
 
-    if (affected_by_spell(ch, AFFECT_CAUSTIC_BLOOD_DAMAGE))
+  if (affected_by_spell(ch, BOMB_AFFECT_ACID))
+  {
+    for (affects = ch->affected; affects; affects = affects->next)
     {
-      for (affects = ch->affected; affects; affects = affects->next)
+      if (affects->spell == BOMB_AFFECT_ACID)
       {
-        if (affects->spell == AFFECT_CAUSTIC_BLOOD_DAMAGE)
-        {
-          dam =
-              damage(ch, ch, dice(affects->modifier, 6), AFFECT_CAUSTIC_BLOOD_DAMAGE, DAM_ACID, 0);
+        act("You suffer in pain as acid continues to burn you.", FALSE, ch, 0, 0, TO_CHAR);
+        act("$n suffers in pain as acid continues to burn $m.", FALSE, ch, 0, 0, TO_ROOM);
 
-          if (dam <= 0)
-          { /* they died */
-            break;
-          }
+        dam = damage(ch, ch, affects->modifier, SKILL_BOMB_TOSS, DAM_ACID, SKILL_BOMB_TOSS);
+
+        if (dam <= 0)
+        { /* they died */
+          break;
         }
-      }
-    } // end acid bombs
 
-    if (affected_by_spell(ch, BOMB_AFFECT_BONESHARD))
+        affects->duration--;
+        if (affects->duration <= 0)
+          affect_from_char(ch, BOMB_AFFECT_ACID);
+
+        break;
+      }
+    }
+  } // end acid bombs
+
+  if (affected_by_spell(ch, AFFECT_CAUSTIC_BLOOD_DAMAGE))
+  {
+    for (affects = ch->affected; affects; affects = affects->next)
     {
-      for (affects = ch->affected; affects; affects = affects->next)
+      if (affects->spell == AFFECT_CAUSTIC_BLOOD_DAMAGE)
       {
-        if (affects->spell == BOMB_AFFECT_BONESHARD)
-        {
-          act("You suffer in pain as shards of bone embed themselves in your flesh.", FALSE, ch, 0,
-              0, TO_CHAR);
-          act("$n suffers in pain as shards of bone embed themselves in $s flesh.", FALSE, ch, 0, 0,
-              TO_ROOM);
-          dam = damage(ch, ch, dice(1, 4), SKILL_BOMB_TOSS, DAM_PUNCTURE, SKILL_BOMB_TOSS);
-          if (dam <= 0)
-          { /* they died */
-            break;
-          }
-          affects->duration--;
-          if (affects->duration <= 0)
-            affect_from_char(ch, BOMB_AFFECT_BONESHARD);
+        dam =
+            damage(ch, ch, dice(affects->modifier, 6), AFFECT_CAUSTIC_BLOOD_DAMAGE, DAM_ACID, 0);
+
+        if (dam <= 0)
+        { /* they died */
           break;
         }
       }
-    } // end boneshard bombs
+    }
+  } // end acid bombs
 
-    if (GET_STICKY_BOMB(ch, 0) != BOMB_NONE)
+  if (affected_by_spell(ch, BOMB_AFFECT_BONESHARD))
+  {
+    for (affects = ch->affected; affects; affects = affects->next)
     {
-      if (GET_STICKY_BOMB(ch, 0) != BOMB_FIRE_BRAND && GET_STICKY_BOMB(ch, 0) != BOMB_HEALING)
+      if (affects->spell == BOMB_AFFECT_BONESHARD)
       {
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again causing you %s damage.",
-                 bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
-        act(buf, FALSE, ch, 0, 0, TO_CHAR);
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes on $n again causing $m %s damage.",
-                 bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
-        act(buf, FALSE, ch, 0, 0, TO_ROOM);
-        dam = damage(ch, ch, GET_STICKY_BOMB(ch, 2), SKILL_BOMB_TOSS, GET_STICKY_BOMB(ch, 1),
-                     SKILL_BOMB_TOSS);
-        GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
+        act("You suffer in pain as shards of bone embed themselves in your flesh.", FALSE, ch, 0,
+            0, TO_CHAR);
+        act("$n suffers in pain as shards of bone embed themselves in $s flesh.", FALSE, ch, 0, 0,
+            TO_ROOM);
+        dam = damage(ch, ch, dice(1, 4), SKILL_BOMB_TOSS, DAM_PUNCTURE, SKILL_BOMB_TOSS);
+        if (dam <= 0)
+        { /* they died */
+          break;
+        }
+        affects->duration--;
+        if (affects->duration <= 0)
+          affect_from_char(ch, BOMB_AFFECT_BONESHARD);
+        break;
       }
-      else if (GET_STICKY_BOMB(ch, 0) == BOMB_HEALING)
-      {
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing you for more.",
-                 bomb_types[GET_STICKY_BOMB(ch, 0)]);
-        act(buf, FALSE, ch, 0, 0, TO_CHAR);
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing $n for more.",
-                 bomb_types[GET_STICKY_BOMB(ch, 0)]);
-        act(buf, FALSE, ch, 0, 0, TO_ROOM);
-        perform_bomb_direct_healing(ch, ch, BOMB_HEALING);
-        GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
-      }
-      else if (GET_STICKY_BOMB(ch, 0) == BOMB_FIRE_BRAND)
-      {
-        snprintf(buf, sizeof(buf),
-                 "A sticky %s bomb explodes again, setting your weapons aflame anew.",
-                 bomb_types[GET_STICKY_BOMB(ch, 0)]);
-        act(buf, FALSE, ch, 0, 0, TO_CHAR);
-        snprintf(buf, sizeof(buf),
-                 "A sticky %s bomb explodes again, setting $n's weapons aflame anew.",
-                 bomb_types[GET_STICKY_BOMB(ch, 0)]);
-        act(buf, FALSE, ch, 0, 0, TO_ROOM);
-        perform_bomb_self_effect(ch, ch, BOMB_FIRE_BRAND);
-        GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
-      }
+    }
+  } // end boneshard bombs
 
-    } // sticky bomb effects
-
-    // fast healing grand discovery affect
-    if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_FAST_HEALING && GET_HIT(ch) < GET_MAX_HIT(ch))
+  if (GET_STICKY_BOMB(ch, 0) != BOMB_NONE)
+  {
+    if (GET_STICKY_BOMB(ch, 0) != BOMB_FIRE_BRAND && GET_STICKY_BOMB(ch, 0) != BOMB_HEALING)
     {
-      GET_HIT(ch) += 5;
-      if (GET_HIT(ch) > GET_MAX_HIT(ch))
-        GET_HIT(ch)--;
+      snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again causing you %s damage.",
+               bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
+      act(buf, FALSE, ch, 0, 0, TO_CHAR);
+      snprintf(buf, sizeof(buf), "A sticky %s bomb explodes on $n again causing $m %s damage.",
+               bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
+      act(buf, FALSE, ch, 0, 0, TO_ROOM);
+      dam = damage(ch, ch, GET_STICKY_BOMB(ch, 2), SKILL_BOMB_TOSS, GET_STICKY_BOMB(ch, 1),
+                   SKILL_BOMB_TOSS);
+      GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
+    }
+    else if (GET_STICKY_BOMB(ch, 0) == BOMB_HEALING)
+    {
+      snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing you for more.",
+               bomb_types[GET_STICKY_BOMB(ch, 0)]);
+      act(buf, FALSE, ch, 0, 0, TO_CHAR);
+      snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing $n for more.",
+               bomb_types[GET_STICKY_BOMB(ch, 0)]);
+      act(buf, FALSE, ch, 0, 0, TO_ROOM);
+      perform_bomb_direct_healing(ch, ch, BOMB_HEALING);
+      GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
+    }
+    else if (GET_STICKY_BOMB(ch, 0) == BOMB_FIRE_BRAND)
+    {
+      snprintf(buf, sizeof(buf),
+               "A sticky %s bomb explodes again, setting your weapons aflame anew.",
+               bomb_types[GET_STICKY_BOMB(ch, 0)]);
+      act(buf, FALSE, ch, 0, 0, TO_CHAR);
+      snprintf(buf, sizeof(buf),
+               "A sticky %s bomb explodes again, setting $n's weapons aflame anew.",
+               bomb_types[GET_STICKY_BOMB(ch, 0)]);
+      act(buf, FALSE, ch, 0, 0, TO_ROOM);
+      perform_bomb_self_effect(ch, ch, BOMB_FIRE_BRAND);
+      GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
     }
 
-    // judgement of healing
-    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_HEALING) &&
-        !ch->player.exploit_weaknesses && GET_HIT(ch) < GET_MAX_HIT(ch))
-      GET_HIT(ch) += get_judgement_bonus(ch, INQ_JUDGEMENT_HEALING);
+  } // sticky bomb effects
+
+  // fast healing grand discovery affect
+  if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_FAST_HEALING && GET_HIT(ch) < GET_MAX_HIT(ch))
+  {
+    GET_HIT(ch) += 5;
     if (GET_HIT(ch) > GET_MAX_HIT(ch))
       GET_HIT(ch)--;
+  }
 
-    // paladin fast healing mercy effect
-    if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING) && GET_HIT(ch) < GET_MAX_HIT(ch))
-    {
-      GET_HIT(ch) +=
-          get_char_affect_modifier(ch, PALADIN_MERCY_INJURED_FAST_HEALING, APPLY_SPECIAL);
-      if (GET_HIT(ch) > GET_MAX_HIT(ch))
-        GET_HIT(ch)--;
-    }
+  // judgement of healing
+  if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_HEALING) &&
+      !ch->player.exploit_weaknesses && GET_HIT(ch) < GET_MAX_HIT(ch))
+    GET_HIT(ch) += get_judgement_bonus(ch, INQ_JUDGEMENT_HEALING);
+  if (GET_HIT(ch) > GET_MAX_HIT(ch))
+    GET_HIT(ch)--;
 
-    if (affected_by_spell(ch, BOMB_AFFECT_IMMOLATION))
+  // paladin fast healing mercy effect
+  if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING) && GET_HIT(ch) < GET_MAX_HIT(ch))
+  {
+    GET_HIT(ch) +=
+        get_char_affect_modifier(ch, PALADIN_MERCY_INJURED_FAST_HEALING, APPLY_SPECIAL);
+    if (GET_HIT(ch) > GET_MAX_HIT(ch))
+      GET_HIT(ch)--;
+  }
+
+  if (affected_by_spell(ch, BOMB_AFFECT_IMMOLATION))
+  {
+    for (affects = ch->affected; affects; affects = affects->next)
     {
-      for (affects = ch->affected; affects; affects = affects->next)
+      if (affects->spell == BOMB_AFFECT_IMMOLATION)
       {
-        if (affects->spell == BOMB_AFFECT_IMMOLATION)
-        {
-          act("You suffer in pain as liquid flames consume you.", FALSE, ch, 0, 0, TO_CHAR);
-          act("$n suffers in pain as liquid flames consume $m.", FALSE, ch, 0, 0, TO_ROOM);
-          dam = damage(ch, ch, affects->modifier, SKILL_BOMB_TOSS, DAM_FIRE, SKILL_BOMB_TOSS);
-          if (dam <= 0)
-          { /* they died */
-            break;
-          }
-          affects->duration--;
-          if (affects->duration <= 0)
-            affect_from_char(ch, BOMB_AFFECT_IMMOLATION);
+        act("You suffer in pain as liquid flames consume you.", FALSE, ch, 0, 0, TO_CHAR);
+        act("$n suffers in pain as liquid flames consume $m.", FALSE, ch, 0, 0, TO_ROOM);
+        dam = damage(ch, ch, affects->modifier, SKILL_BOMB_TOSS, DAM_FIRE, SKILL_BOMB_TOSS);
+        if (dam <= 0)
+        { /* they died */
           break;
         }
+        affects->duration--;
+        if (affects->duration <= 0)
+          affect_from_char(ch, BOMB_AFFECT_IMMOLATION);
+        break;
       }
-    } // end immolation bombs
+    }
+  } // end immolation bombs
 
-    /* Moon-based bonus spell slot regeneration */
-    regenerate_moon_bonus_spell(ch);
+  /* Moon-based bonus spell slot regeneration */
+  regenerate_moon_bonus_spell(ch);
+}
 
-  } // end character_list loop
+void update_damage_and_effects_over_time(void)
+{
+  struct char_data *ch;
+  struct char_data *next_char;
+
+  for (ch = character_list; ch != NULL; ch = next_char)
+  {
+    next_char = ch->next;
+    update_damage_and_effects_over_time_one(ch);
+  }
 }
 
 void check_auto_happy_hour(void)

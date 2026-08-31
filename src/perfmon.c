@@ -2574,7 +2574,8 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "  rooms: members=%zu scheduled=%zu mismatch=%zu\n\r"
                  "  limits: chars=%zu rooms=%zu rejected=%" PRIu64 "\n\r"
                  "  char work: callbacks=%" PRIu64 " affects=%" PRIu64 "\n\r"
-                 "  room work: callbacks=%" PRIu64 " affects=%" PRIu64 "\n\r",
+                 "  room work: callbacks=%" PRIu64 " affects=%" PRIu64 "\n\r"
+                 "  room behavior: runs=%" PRIu64 " affects=%" PRIu64 "\n\r",
                  affected_owner_events_enabled() ? "scheduled" : "legacy heartbeat",
                  affected_registry_count(), affected_character_scheduled_count(),
                  affected_registry_validate(), affected_room_owner_count(),
@@ -2582,7 +2583,8 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  affected_character_admission_limit(), affected_room_admission_limit(),
                  affected_owner_admission_rejections(), affected_character_callbacks(),
                  affected_character_nodes_processed(), affected_room_callbacks(),
-                 affected_room_nodes_processed()),
+                 affected_room_nodes_processed(), affected_room_behavior_executions(),
+                 affected_room_behavior_nodes_processed()),
         n - written);
   if (!csv && written < n - 1)
     written += bounded_format_length(
@@ -2593,12 +2595,17 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "  capacity: limit=%zu rejected=%" PRIu64 "\n\r"
                  "  callbacks=%" PRIu64 "\n\r"
                  "  work: walk=%" PRIu64 " psp=%" PRIu64 "\n\r"
+                 "  work: luminari=%" PRIu64 " damage=%" PRIu64 "\n\r"
+                 "  work: player-misc=%" PRIu64 "\n\r"
                  "  work: bard=%" PRIu64 " hints=%" PRIu64 "\n\r",
                  character_periodic_events_enabled() ? "scheduled" : "legacy heartbeat",
                  character_periodic_owner_count(), character_periodic_scheduled_count(),
                  character_periodic_registry_validate(), character_periodic_admission_limit(),
                  character_periodic_admission_rejections(), character_periodic_callbacks(),
                  character_periodic_walk_executions(), character_periodic_psp_executions(),
+                 character_periodic_luminari_executions(),
+                 character_periodic_damage_effect_executions(),
+                 character_periodic_player_misc_executions(),
                  character_periodic_bardic_executions(), character_periodic_hint_executions()),
         n - written);
   if (!csv && written < n - 1)

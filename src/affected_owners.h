@@ -31,6 +31,8 @@ uint64_t affected_character_callbacks(void);
 uint64_t affected_room_callbacks(void);
 uint64_t affected_character_nodes_processed(void);
 uint64_t affected_room_nodes_processed(void);
+uint64_t affected_room_behavior_executions(void);
+uint64_t affected_room_behavior_nodes_processed(void);
 size_t affected_room_registry_validate(void);
 
 void affected_owners_reset_telemetry(void);

@@ -26,6 +26,8 @@ enum domain_event_status domain_event_runtime_init(void)
   if (status == DOMAIN_EVENT_OK)
     status = domain_event_world_register_resolvers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
+    status = character_periodic_register_handlers(runtime_bus);
+  if (status == DOMAIN_EVENT_OK)
     status = spatial_event_register_handlers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
     status = active_world_register_handlers(runtime_bus);

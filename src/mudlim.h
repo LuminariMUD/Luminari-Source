@@ -28,6 +28,8 @@ extern "C"
 
 /* limits.c functions */
 void pulse_luminari();
+size_t pulse_luminari_room_one(struct room_data *room);
+void pulse_luminari_character_one(struct char_data *ch);
 bool death_check(struct char_data *ch);
 int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6);
 void regen_update(struct char_data *ch);
@@ -35,6 +37,10 @@ int psp_gain(struct char_data *ch);
 int apply_slow_poison_reduction(struct char_data *ch, int damage);
 void regen_psp(void);
 void regen_psp_one(struct char_data *ch);
+void update_damage_and_effects_over_time(void);
+void update_damage_and_effects_over_time_one(struct char_data *ch);
+void update_player_misc(void);
+void update_player_misc_one(struct char_data *ch);
 int hit_gain(struct char_data *ch);
 int move_gain(struct char_data *ch);
 void set_title(struct char_data *ch, char *title);

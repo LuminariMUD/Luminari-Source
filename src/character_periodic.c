@@ -8,6 +8,8 @@
 #include "act.h"
 #include "bardic_performance.h"
 #include "character_periodic.h"
+#include "domain_event_types.h"
+#include "domain_event_world.h"
 #include "mudlim.h"
 #include "vessels/transport.h"
 #include "dgscript/dg_event.h"
@@ -33,6 +35,9 @@ static uint64_t walk_executions;
 static uint64_t psp_executions;
 static uint64_t bardic_executions;
 static uint64_t hint_executions;
+static uint64_t luminari_executions;
+static uint64_t damage_effect_executions;
+static uint64_t player_misc_executions;
 static uint64_t next_generation = 1U;
 #ifdef LUMINARI_CUTEST
 static bool test_selection_set;
@@ -90,9 +95,15 @@ static bool has_walk_state(const struct char_data *ch)
          GET_WALKTO_LOC(ch) != 0;
 }
 
+static bool is_in_world(const struct char_data *ch)
+{
+  return ch != NULL && world != NULL && IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) <= top_of_world;
+}
+
 static bool is_owner_eligible(const struct char_data *ch)
 {
-  return ch != NULL && (ch->desc != NULL || has_walk_state(ch) || IS_PERFORMING(ch));
+  return ch != NULL &&
+         (is_in_world(ch) || ch->desc != NULL || has_walk_state(ch) || IS_PERFORMING(ch));
 }
 
 static long boundary_delay(long cadence)
@@ -123,6 +134,15 @@ static long next_owner_delay(const struct char_data *ch)
       if (candidate < delay)
         delay = candidate;
     }
+  }
+  if (is_in_world(ch))
+  {
+    candidate = boundary_delay(PULSE_LUMINARI);
+    if (candidate < delay)
+      delay = candidate;
+    candidate = boundary_delay(PULSE_VIOLENCE);
+    if (candidate < delay)
+      delay = candidate;
   }
   if (has_walk_state(ch))
   {
@@ -220,6 +240,12 @@ static EVENTFUNC(character_periodic_event)
     psp_executions++;
     regen_psp_one(ch);
   }
+  if (callback_owner_still_live() && is_in_world(ch) &&
+      pulse % (unsigned long)PULSE_LUMINARI == 0U)
+  {
+    luminari_executions++;
+    pulse_luminari_character_one(ch);
+  }
   if (callback_owner_still_live() && IS_PERFORMING(ch) &&
       pulse % (unsigned long)PULSE_VERSE_INTERVAL == 0U)
   {
@@ -231,6 +257,18 @@ static EVENTFUNC(character_periodic_event)
   {
     hint_executions++;
     show_hint_one(ch);
+  }
+  if (callback_owner_still_live() && is_in_world(ch) &&
+      pulse % (unsigned long)PULSE_VIOLENCE == 0U)
+  {
+    damage_effect_executions++;
+    update_damage_and_effects_over_time_one(ch);
+  }
+  if (callback_owner_still_live() && ch->desc != NULL && is_in_world(ch) &&
+      pulse % (unsigned long)PULSE_VIOLENCE == 0U)
+  {
+    player_misc_executions++;
+    update_player_misc_one(ch);
   }
 
   if (!callback_owner_still_live())
@@ -352,6 +390,33 @@ void character_periodic_forget(struct char_data *ch)
   refill_capacity();
 }
 
+static void handle_character_moved(const struct domain_event_context *context,
+                                   void *handler_context)
+{
+  const struct domain_character_moved *event;
+  struct char_data *ch;
+
+  (void)handler_context;
+  event = context->payload;
+  ch = domain_event_resolve(context->bus, event->character, DOMAIN_ENTITY_CHARACTER);
+  character_periodic_sync(ch);
+}
+
+enum domain_event_status character_periodic_register_handlers(struct domain_event_bus *bus)
+{
+  struct domain_event_handler_config handler = {
+      DOMAIN_EVENT_CHARACTER_MOVED,
+      "character-periodic-moved",
+      90,
+      handle_character_moved,
+      NULL,
+  };
+
+  if (bus == NULL)
+    return DOMAIN_EVENT_INVALID_ARGUMENT;
+  return domain_event_register_handler(bus, &handler);
+}
+
 void character_periodic_init(void)
 {
   struct char_data *ch;
@@ -407,6 +472,9 @@ uint64_t character_periodic_walk_executions(void) { return walk_executions; }
 uint64_t character_periodic_psp_executions(void) { return psp_executions; }
 uint64_t character_periodic_bardic_executions(void) { return bardic_executions; }
 uint64_t character_periodic_hint_executions(void) { return hint_executions; }
+uint64_t character_periodic_luminari_executions(void) { return luminari_executions; }
+uint64_t character_periodic_damage_effect_executions(void) { return damage_effect_executions; }
+uint64_t character_periodic_player_misc_executions(void) { return player_misc_executions; }
 
 size_t character_periodic_registry_validate(void)
 {
@@ -440,6 +508,9 @@ void character_periodic_reset_telemetry(void)
   psp_executions = 0U;
   bardic_executions = 0U;
   hint_executions = 0U;
+  luminari_executions = 0U;
+  damage_effect_executions = 0U;
+  player_misc_executions = 0U;
 }
 
 #ifdef LUMINARI_CUTEST

@@ -306,17 +306,19 @@ character and room duration events are scheduler work and do not publish a
 domain fact merely to invoke expiry behavior; see
 [`AFFECTED_OWNER_EVENTS.md`](AFFECTED_OWNER_EVENTS.md).
 
-Walk-to progress, connected PSP regeneration, bardic verses, and player hints
-also use scheduler work without synthetic domain facts. One character-owner
-event waits for that owner's nearest relevant legacy boundary, invokes the
-existing single-character gameplay routine, and then selects the next
-boundary. Connected characters own walk/PSP/hint service; active NPC
-performers are admitted independently. Dormant NPCs own no character-periodic
-event. The registry is capped at 32,768 owners and refills released capacity
-from registered active owners without scanning `character_list`.
-`perfmon entities` presents the character-owner mode, registry, validation,
-capacity, callbacks, and service work on seven labeled rows that remain within
-80 columns.
+Walk-to progress, connected PSP regeneration, bardic verses, player hints,
+five-second Luminari character work, six-second damage/effect work, and
+connected player maintenance also use scheduler work without synthetic domain
+facts. One character-owner event waits for that owner's nearest relevant
+legacy boundary, invokes only the due single-character routines, and then
+selects the next boundary. Every in-world character is admitted, including
+autonomous NPCs in rooms without players. Connected characters are also
+admitted for connection-scoped services, and active NPC performers remain
+eligible outside the world. Typed movement facts admit characters entering the
+world. The registry is capped at 32,768 owners and refills released capacity
+from registered active owners without scanning `character_list`. `perfmon
+entities` presents the character-owner mode, registry, validation, capacity,
+callbacks, and service work on nine labeled rows that remain within 80 columns.
 
 ## 6. Table-Driven Registry (mud_event_index)
 
@@ -450,8 +452,15 @@ capacity, callbacks, and service work on seven labeled rows that remain within
 - Character-periodic selection:
   - Default: `LUMINARI_CHARACTER_EVENTS=scheduled`
   - Rollback: `LUMINARI_CHARACTER_EVENTS=legacy`
-  - The selection jointly controls walk-to, PSP, bardic verse, and hint work;
+  - The selection jointly controls walk-to, PSP, bardic verse, hint,
+    per-character Luminari, damage/effect, and player-maintenance work;
     scheduled and heartbeat paths never run together.
+- Affected-owner selection:
+  - Default: `LUMINARI_AFFECT_EVENTS=scheduled`
+  - Rollback: `LUMINARI_AFFECT_EVENTS=legacy`
+  - The selection controls affected-character and affected-room duration work
+    plus affected-room Luminari behavior. It is independent of the character
+    selection, and each legacy wrapper runs only the half it owns.
 - Startup logs one `Event backend initialized:` line naming the effective
   backend.
 - `perf event total` and the PERFMON CSV representation include lifecycle,
