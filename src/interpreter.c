@@ -6153,7 +6153,7 @@ void command_interpreter(struct char_data *ch, char *argument)
        * admitted to the action queue. */
       return;
     }
-    else if (pending_actions(ch) > MAX_QUEUE_SIZE)
+    else if (pending_actions(ch) >= MAX_QUEUE_SIZE)
     {
       send_to_char(ch, "The action queue is full.\r\n");
     }

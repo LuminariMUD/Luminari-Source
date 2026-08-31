@@ -20,7 +20,8 @@ their own analysis dates. Most retained legacy notes are grouped in
 
 | Document | Status | What remains |
 |----------|--------|--------------|
-| [EVENT_DRIVEN_CORE_REFACTOR_SPEC.md](EVENT_DRIVEN_CORE_REFACTOR_SPEC.md) | Controlling specification v1.14; Phases 1 through 8 plus the immortal observability gate accepted | Phase 9 semantic combat rounds and gameplay-design approval. |
+| [EVENT_DRIVEN_CORE_REFACTOR_SPEC.md](EVENT_DRIVEN_CORE_REFACTOR_SPEC.md) | Controlling specification v1.15; Phases 1 through 9 plus the immortal observability gate accepted | Phase 10 activity manager and command-time decomposition. |
+| [EVENT_DRIVEN_CORE_REFACTOR_PHASE9_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE9_VALIDATION.md) | Phase 9 semantic-combat acceptance evidence complete 2026-08-31 | Shared six-second rounds, deterministic initiative, pre-initiative round/reaction state, one FIFO intent per turn, help, diagnostics, idle-clock repair, and full validation evidence. |
 | [EVENT_DRIVEN_CORE_REFACTOR_PHASE8_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE8_VALIDATION.md) | Phase 8 encounter compatibility acceptance evidence complete 2026-08-31 | One event per fight, compatibility cadence, safe joins/merges/departure, rollback, diagnostics, and full validation evidence. |
 | [EVENT_DRIVEN_CORE_REFACTOR_OBSERVABILITY_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_OBSERVABILITY_VALIDATION.md) | Immortal observability acceptance evidence complete 2026-08-31 | Backend-neutral queue inspection, compact metrics, safe filters, ingress visibility, redaction, and width bounds. |
 | [EVENT_DRIVEN_CORE_REFACTOR_PHASE7G_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE7G_VALIDATION.md) | Phase 7 mud-hour point-update acceptance evidence complete 2026-08-31 | Aligned service dispatch, PC and active-object registries, full timer/decay lifecycle, rollback, compact diagnostics, and validation evidence. |

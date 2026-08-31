@@ -266,19 +266,37 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   combat_encounter_get_stats(&encounter_stats);
   debug_output_line(&output, "");
   debug_output_line(&output, "Combat encounters");
-  debug_output_line(&output, "  mode: %s",
-                    encounter_stats.encounter_mode ? "encounter" : "character rollback");
+  debug_output_line(
+      &output, "  mode: %s",
+      !encounter_stats.encounter_mode
+          ? "character rollback"
+          : encounter_stats.semantic_rounds ? "six-second semantic" : "compatibility phases");
   debug_output_line(&output, "  active: %zu encounters / %zu participants",
                     encounter_stats.active_encounters, encounter_stats.active_participants);
   debug_output_line(&output, "  scheduled events: %zu", encounter_stats.scheduled_events);
   debug_output_line(&output, "  created/ended/merged: %" PRIu64 "/%" PRIu64 "/%" PRIu64,
                     encounter_stats.encounters_created, encounter_stats.encounters_ended,
                     encounter_stats.encounters_merged);
-  debug_output_line(&output, "  callbacks/phases/terminal: %" PRIu64 "/%" PRIu64 "/%" PRIu64,
-                    encounter_stats.encounter_callbacks, encounter_stats.compatibility_phases,
-                    encounter_stats.compatibility_terminal);
-  debug_output_line(&output, "  compatibility attempts: %" PRIu64,
-                    encounter_stats.compatibility_attempts);
+  debug_output_line(&output, "  callbacks: %" PRIu64, encounter_stats.encounter_callbacks);
+  if (encounter_stats.semantic_rounds)
+  {
+    debug_output_line(&output, "  semantic rounds/turns: %" PRIu64 "/%" PRIu64,
+                      encounter_stats.semantic_rounds_resolved,
+                      encounter_stats.semantic_turns_resolved);
+    debug_output_line(&output, "  intents sent/held: %" PRIu64 "/%" PRIu64,
+                      encounter_stats.intents_dispatched,
+                      encounter_stats.intent_dispatch_blocks);
+    debug_output_line(&output, "  action/reaction spend: %" PRIu64 "/%" PRIu64,
+                      encounter_stats.action_budgets_spent, encounter_stats.reactions_spent);
+  }
+  else
+  {
+    debug_output_line(&output, "  phases/terminal: %" PRIu64 "/%" PRIu64,
+                      encounter_stats.compatibility_phases,
+                      encounter_stats.compatibility_terminal);
+    debug_output_line(&output, "  compatibility attempts: %" PRIu64,
+                      encounter_stats.compatibility_attempts);
+  }
   debug_output_line(&output, "  comparison mismatch: %" PRIu64,
                     encounter_stats.compatibility_mismatches);
   debug_output_line(&output, "  admission/stale: %" PRIu64 "/%" PRIu64,

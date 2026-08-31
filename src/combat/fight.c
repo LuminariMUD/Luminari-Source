@@ -6040,12 +6040,22 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
       (affected_by_spell(victim, PSIONIC_FORCE_SCREEN) ||
        affected_by_spell(victim, PSIONIC_INERTIAL_ARMOR)))
   {
-    if (!char_has_mud_event(victim, eDEFLECTIVE_SCREEN_HIT_THIS_ROUND))
+    bool semantic_used = false;
+    bool semantic_managed = combat_encounter_round_flag_query(
+        victim, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED, &semantic_used);
+
+    if ((semantic_managed && !semantic_used) ||
+        (!semantic_managed &&
+         !char_has_mud_event(victim, eDEFLECTIVE_SCREEN_HIT_THIS_ROUND)))
     {
       int dr = get_deflective_screen_first_hit_dr(victim);
       dam = MAX(0, dam - dr);
-      attach_mud_event(new_mud_event(eDEFLECTIVE_SCREEN_HIT_THIS_ROUND, victim, NULL),
-                       10 * PASSES_PER_SEC);
+      if (semantic_managed)
+        combat_encounter_round_flag_mark(
+            victim, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED);
+      else
+        attach_mud_event(new_mud_event(eDEFLECTIVE_SCREEN_HIT_THIS_ROUND, victim, NULL),
+                         10 * PASSES_PER_SEC);
     }
   }
 
@@ -6384,7 +6394,9 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   /* Perfect Tempo perk: Track that this character was hit this round */
   if (dam > 0 && !IS_NPC(victim) && has_bard_perfect_tempo(victim))
   {
-    if (!char_has_mud_event(victim, ePERFECT_TEMPO_HIT_THIS_ROUND))
+    if (!combat_encounter_round_flag_mark(victim,
+                                          COMBAT_ENCOUNTER_ROUND_PERFECT_TEMPO_HIT) &&
+        !char_has_mud_event(victim, ePERFECT_TEMPO_HIT_THIS_ROUND))
     {
       /* Attach event to track that they were hit this round (lasts 1 round) */
       attach_mud_event(new_mud_event(ePERFECT_TEMPO_HIT_THIS_ROUND, victim, NULL),
@@ -12027,6 +12039,7 @@ int attack_roll_with_critical(struct char_data *ch,     /* Attacker */
 int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int penalty)
 {
   int max_aoo = 1; /* Base 1 AoO per round */
+  bool reaction_managed;
 
   /* Ghost perk: immune to attacks of opportunity */
   if (!IS_NPC(victim) && has_ghost(victim))
@@ -12049,6 +12062,12 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
   /* Opportunist perk (Rogue) */
   if (!IS_NPC(ch))
     max_aoo += get_perk_aoo_bonus(ch);
+
+  if (combat_encounter_reaction_try_use(ch, (unsigned int)MAX(0, max_aoo),
+                                        &reaction_managed))
+    return hit(ch, victim, TYPE_ATTACK_OF_OPPORTUNITY, DAM_RESERVED_DBC, penalty, FALSE);
+  if (reaction_managed)
+    return 0;
 
   if (GET_TOTAL_AOO(ch) < max_aoo)
   {
@@ -13735,8 +13754,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (ch != victim && affected_by_spell(victim, SKILL_COME_AND_GET_ME) &&
       affected_by_spell(victim, SKILL_RAGE))
   {
-    GET_TOTAL_AOO(victim)
-    --; /* free aoo and will be incremented in the function */
+    if (!combat_encounter_reaction_refund(victim))
+      GET_TOTAL_AOO(victim)--; /* free aoo and will be incremented in the function */
     attack_of_opportunity(victim, ch, 0);
 
     /* dummy check */
@@ -15426,6 +15445,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
    *  attack mode) skip all phases but the first. */
   if ((mode == NORMAL_ATTACK_ROUTINE) && !is_action_available(ch, atSTANDARD, FALSE))
     return (0);
+  else if ((mode == NORMAL_ATTACK_ROUTINE) && phase == PHASE_0 &&
+           (AFF_FLAGGED(ch, AFF_STAGGERED) || !is_action_available(ch, atMOVE, FALSE)))
+    phase = PHASE_1;
   else if ((mode == NORMAL_ATTACK_ROUTINE) && (phase != PHASE_1) &&
            !is_action_available(ch, atMOVE, FALSE))
     return (0);
@@ -16555,6 +16577,80 @@ bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase)
   return true;
 }
 
+bool combat_run_semantic_round(struct char_data *ch, bool was_hit)
+{
+  struct affected_type af;
+
+  if (!ch || IN_ROOM(ch) == NOWHERE || GET_POS(ch) <= POS_DEAD)
+    return false;
+  if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_NOTDEADYET))
+    return false;
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOTDEADYET))
+    return false;
+  if ((!IS_NPC(ch) && ch->desc != NULL && !IS_PLAYING(ch->desc)) || FIGHTING(ch) == NULL)
+  {
+    stop_fighting(ch);
+    return false;
+  }
+  if (GET_POS(FIGHTING(ch)) <= POS_DEAD || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch)))
+  {
+    stop_fighting(ch);
+    return false;
+  }
+
+  PERF_combat_round_begin(ch);
+
+  if (AFF2_FLAGGED(ch, AFF2_COWERING) && rand_number(1, 100) <= 10)
+  {
+    send_to_char(ch, "\tRYou are too afraid to act!\tn\r\n");
+    act("$n cowers in fear, unable to act!", FALSE, ch, 0, 0, TO_ROOM);
+    USE_STANDARD_ACTION(ch);
+    USE_MOVE_ACTION(ch);
+    USE_SWIFT_ACTION(ch);
+  }
+
+  if (!IS_NPC(ch) && has_bard_perfect_tempo(ch) && !is_affected_by_perfect_tempo(ch) &&
+      !was_hit)
+  {
+    new_affect(&af);
+    af.spell = AFFECT_BARD_PERFECT_TEMPO;
+    af.duration = 2;
+    af.location = APPLY_HITROLL;
+    af.modifier = 4;
+    affect_to_char(ch, &af);
+    send_to_char(ch,
+                 "\tY[PERFECT TEMPO]\tn You flow perfectly with the combat, ready to strike!\r\n");
+    act("\tY[PERFECT TEMPO]\tn $n flows perfectly with the combat!", FALSE, ch, 0, 0,
+        TO_ROOM);
+  }
+
+  {
+    PERF_PROF_ENTER_SAMPLED(combat_action_queue, "combat.action_queue");
+    execute_next_action(ch);
+    PERF_PROF_EXIT(combat_action_queue);
+  }
+  {
+    PERF_PROF_ENTER_SAMPLED(combat_perform_violence, "combat.perform_violence");
+    perform_violence(ch, 0);
+    PERF_PROF_EXIT(combat_perform_violence);
+  }
+  {
+    PERF_PROF_ENTER_SAMPLED(combat_backlash, "combat.backlash");
+    if (is_alchemist_unstable_mutagen_on(ch) && affected_by_spell(ch, SKILL_MUTAGEN) &&
+        !has_alchemist_perfect_mutagen(ch) && rand_number(1, 100) <= 10)
+    {
+      int backlash = MAX(1, GET_LEVEL(ch));
+      send_to_char(ch, "Your unstable mutagen backlashes, harming you!\r\n");
+      act("$n winces as unstable mutagenic energies lash back.", FALSE, ch, 0, 0, TO_ROOM);
+      damage(ch, ch, backlash, TYPE_UNDEFINED, DAM_RESERVED_DBC, FALSE);
+    }
+    PERF_PROF_EXIT(combat_backlash);
+  }
+
+  PERF_combat_round_end();
+  return true;
+}
+
 /* Per-character rollback event for the compatibility combat phases. */
 EVENTFUNC(event_combat_round)
 {
@@ -16628,9 +16724,16 @@ void handle_cleave(struct char_data *ch)
 void handle_smash_defense(struct char_data *ch)
 {
   struct char_data *vict = FIGHTING(ch);
+  bool semantic_used = false;
+  bool semantic_managed;
 
   /* general dummy checks */
   if (IN_ROOM(ch) == NOWHERE || !vict || IN_ROOM(vict) != IN_ROOM(ch))
+    return;
+  semantic_managed = combat_encounter_round_flag_query(
+      ch, COMBAT_ENCOUNTER_ROUND_SMASH_DEFENSE_USED, &semantic_used);
+  if ((semantic_managed && semantic_used) ||
+      (!semantic_managed && char_has_mud_event(ch, eSMASH_DEFENSE)))
     return;
 
   /* some automatic disqualifiers, we will silently return from these */
@@ -16654,11 +16757,10 @@ void handle_smash_defense(struct char_data *ch)
   send_to_char(ch, "\tW[Smash Defense]\tn");
   perform_knockdown(ch, vict, SKILL_BASH, true, true);
 
-  /* tag with event to make sure this only happens once per round! */
-  if (!char_has_mud_event(ch, eSMASH_DEFENSE))
-  {
+  if (semantic_managed)
+    combat_encounter_round_flag_mark(ch, COMBAT_ENCOUNTER_ROUND_SMASH_DEFENSE_USED);
+  else
     attach_mud_event(new_mud_event(eSMASH_DEFENSE, ch, NULL), 6 * PASSES_PER_SEC);
-  }
 
   return;
 }
@@ -16724,7 +16826,8 @@ void perform_violence(struct char_data *ch, int phase)
   struct list_data *room_list = NULL;
 
   /* Reset combat data */
-  GET_TOTAL_AOO(ch) = 0;
+  if (!combat_encounter_semantic_manages(ch))
+    GET_TOTAL_AOO(ch) = 0;
   HAS_PERFORMED_DEMORALIZING_STRIKE(ch) = FALSE;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
 
@@ -16985,7 +17088,7 @@ void perform_violence(struct char_data *ch, int phase)
     return;
   }
 
-  if (IS_NPC(ch) && (phase == 1))
+  if (IS_NPC(ch) && (phase == 0 || phase == 1))
   {
     if (GET_MOB_WAIT(ch) > 0 || HAS_WAIT(ch))
     {
@@ -17180,9 +17283,12 @@ void perform_violence(struct char_data *ch, int phase)
 
   else
   {
+    bool had_move_action = is_action_available(ch, atMOVE, FALSE);
+    bool had_standard_action = is_action_available(ch, atSTANDARD, FALSE);
+
     /* handle smash defense */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_SMASH_DEFENSE) && PRF_FLAGGED(ch, PRF_SMASH_DEFENSE) &&
-        affected_by_spell(ch, SKILL_DEFENSIVE_STANCE) && !char_has_mud_event(ch, eSMASH_DEFENSE))
+        affected_by_spell(ch, SKILL_DEFENSIVE_STANCE))
       handle_smash_defense(ch);
 
 #define NORMAL_ATTACK_ROUTINE 0
@@ -17193,8 +17299,15 @@ void perform_violence(struct char_data *ch, int phase)
     }
 #undef NORMAL_ATTACK_ROUTINE
 
+    if (combat_encounter_semantic_manages(ch) && had_standard_action)
+    {
+      USE_STANDARD_ACTION(ch);
+      if (had_move_action && !AFF_FLAGGED(ch, AFF_STAGGERED))
+        USE_MOVE_ACTION(ch);
+    }
+
     /* handle cleave - now includes Cleaving Strike perks */
-    if (phase == 1 &&
+    if ((phase == 0 || phase == 1) &&
         (HAS_FEAT(ch, FEAT_CLEAVE) || HAS_FEAT(ch, FEAT_GREAT_CLEAVE) ||
          has_perk(ch, PERK_FIGHTER_CLEAVING_STRIKE) || has_berserker_cleaving_strikes(ch)) &&
         !is_using_ranged_weapon(ch, TRUE) && !IS_THROWN_MODE(ch))

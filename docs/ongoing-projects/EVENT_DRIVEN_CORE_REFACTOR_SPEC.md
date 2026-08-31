@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 8 accepted; Phase 9 next
-**Document version:** 1.14
+**Status:** In progress - Phases 1 through 9 accepted; Phase 10 next
+**Document version:** 1.15
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 8 plus the dedicated immortal event-observability gate complete
+**Implementation status:** Phases 1 through 9 plus the dedicated immortal event-observability gate complete
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -13,8 +13,8 @@
 > ownership and lifecycle cancellation form the accepted scheduler foundation.
 > A private `libevent` compatibility reactor now owns production readiness and
 > signals, with boot-time `select()` rollback. Gameplay timing ownership is
-> migrating while semantic combat redesign remains gated. Versioned player-event
-> records now validate stable ownership and
+> migrating, and encounter-owned six-second semantic combat is now accepted.
+> Versioned player-event records now validate stable ownership and
 > rebuild fresh process-local timers, while transient and boot-reconstructed
 > work has an explicit policy.
 > The process now owns a boot-sealed typed domain-event registry with bounded
@@ -1812,8 +1812,20 @@ failed generation resolution feeds stale-owner telemetry. `eventdebug` reports
 the selected mode, encounter and participant counts, shared events, lifecycle,
 phase outcomes, and comparison invariants. Evidence is recorded in
 [`EVENT_DRIVEN_CORE_REFACTOR_PHASE8_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE8_VALIDATION.md).
-Phase 9 semantic combat rounds are next and remain a separate gameplay-design
-gate.
+**Phase 9 accepted 2026-08-31.** Each encounter now resolves one shared
+six-second round in deterministic initiative, Dexterity, and runtime-ID order.
+Participants own explicit standard, move, swift, reaction, and once-per-round
+state. Reactions and round flags reset once before initiative so state spent by
+an earlier combatant cannot refresh at the defender's turn. One prevalidated
+FIFO intent dispatches at each turn boundary before
+automatic attacks; standard-only turns receive the first attack portion and
+standard-plus-move turns retain the established full rotation. Cooldowns,
+joins, and merges cross the shared clock conservatively. The default semantic
+path and `LUMINARI_COMBAT_ROUNDS=compatibility` rollback are exclusive, and
+compact diagnostics plus player help describe the selected behavior. Live
+adversarial testing also corrected scheduler-facade admission after an idle
+clock gap. Evidence is recorded in
+[`EVENT_DRIVEN_CORE_REFACTOR_PHASE9_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE9_VALIDATION.md).
 
 ### Phase 8: Encounter-level combat compatibility
 
@@ -1855,6 +1867,16 @@ Rollback:
 
 - Return to encounter-owned compatibility phases without reverting the event
   backend.
+
+Acceptance:
+
+- Accepted on 2026-08-31. Semantic rounds are the default gameplay path, with
+  the implementation, balance contract, help, 1,017-test suite, sanitizer,
+  Valgrind, boot matrix, database, and isolated live-MUD evidence recorded in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE9_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE9_VALIDATION.md).
+- Exhaustive gameplay and memory-safety validation follows the semantic path.
+  Compatibility phases retain compile, syntax-boot, and focused rollback smoke
+  coverage until Phase 11 removes them.
 
 ### Phase 10: Activity manager and command-time decomposition
 
@@ -2125,7 +2147,7 @@ working document is retired according to the ongoing-project policy.
 | D17 | Domain dispatch | Typed, synchronous, main-thread, immutable borrowed payload | Accepted in Phase 6a | Phase 6 |
 | D18 | Existing pub/sub | Replace runtime subsystem; deprecate data before reviewed removal | Accepted | Phase 6 |
 | D19 | Nested domain publication | Depth-first with hard depth and causal-count limits | Accepted | Phase 6 |
-| D20 | Active-world lifecycle | Active, cooling-down, and dormant | Provisional | Phase 7 |
+| D20 | Active-world lifecycle | Active, cooling-down, and dormant, with autonomous off-screen simulation remaining active | Accepted in Phase 7 | Phase 7 |
 | D21 | Primary activities | At most one primary intentional activity per character initially | Provisional | Phase 10 |
 | D22 | Residual heartbeat | Explicit global scheduled work only; remove compatibility pulse | Accepted | Phase 11 |
 | D23 | Workload measurement | Source-derived and synthetic in Phase 2; privacy-safe observed sample in Phase 4 | Accepted | Phase 4 |
@@ -2133,6 +2155,7 @@ working document is retired according to the ongoing-project policy.
 | D25 | Runtime clock | Monotonic pacing in Phase 3; wall clock only for calendar and durable semantics | Accepted | Phase 3 |
 | D26 | Copyover reactor lifecycle | Quiesce and destroy old process base before exec; rebuild and rebind after exec | Accepted | Phase 3 |
 | D27 | Migration CI matrix | Both timed backends by both I/O drivers while rollback paths remain supported | Accepted | Phase 3 |
+| D28 | Semantic combat model | One shared six-second encounter round; initiative/Dexterity/runtime-ID order; explicit action/reaction budgets; one FIFO intent per turn | Accepted | Phase 9 |
 
 ## 29. Risks and Mitigations
 
@@ -2260,3 +2283,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.12 | 2026-08-31 | Accepted the mud-hour point-update Phase 7 slice after replacing normal player/object discovery scans with one aligned service deadline and lifecycle-owned PC and active-object registries. Global-player-object ordering, timer/decay/corpse/idle gameplay, timer-trigger extraction, OLC/DG replacement safety, exclusive rollback, and compact diagnostics are preserved; the 991-test database/sanitizer/Valgrind, eight-mode syntax, and live-MUD gates pass. Immortal event observability is next before Phase 8. |
 | 1.13 | 2026-08-31 | Accepted the immortal observability gate after adding backend-neutral payload-free event inspection, readable paginated filters and profiles, complete scheduler queue/lifecycle/capacity telemetry, typed domain-handler views, and bounded I3 worker-ingress counters with an 80-column default and 120-column hard ceiling. Phase 8 encounter compatibility is next. |
 | 1.14 | 2026-08-31 | Accepted Phase 8 after replacing per-character combat clocks with one generation-aware event per encounter, preserving existing phase/action behavior, implementing safe joins, deferred mutation, encounter merges, all departure classes, typed lifecycle facts, compact diagnostics, and exclusive character-event rollback. Phase 9 semantic combat rounds are next. |
+| 1.15 | 2026-08-31 | Accepted Phase 9 after making six-second semantic encounter rounds authoritative, defining deterministic initiative and explicit action/reaction budgets, dispatching one bounded FIFO intent per turn, migrating round flags and cooldown boundaries, updating help and diagnostics, and passing the 1,017-test, boot-matrix, database, sanitizer, Valgrind, and isolated live-MUD gates. Adversarial testing fixed scheduler-facade admission against a stale internal tick and moved reaction/round-flag resets ahead of initiative so earlier combatants cannot grant a defender a second budget. Phase 10 activities are next. |

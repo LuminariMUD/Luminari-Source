@@ -203,6 +203,37 @@ void Test_legacy_event_backends_produce_identical_order_and_recurrence(CuTest *t
   pulse = saved_pulse;
 }
 
+void Test_legacy_event_scheduler_uses_live_pulse_after_idle(CuTest *tc)
+{
+  struct event_trace trace;
+  struct event_trace_payload *payload;
+  struct event *event;
+  unsigned long saved_pulse;
+
+  saved_pulse = pulse;
+  memset(&trace, 0, sizeof(trace));
+  begin_backend_test(tc, EVENT_BACKEND_GAME_SCHEDULER, 100U);
+  pulse = 500U;
+  payload = new_trace_payload(&trace, 'A', 1, 0);
+  CuAssertPtrNotNull(tc, payload);
+  event = event_create_named(event_trace_callback, payload, 6, "live-pulse-deadline");
+  CuAssertPtrNotNull(tc, event);
+  CuAssertIntEquals(tc, 6, (int)event_time(event));
+
+  pulse = 505U;
+  event_process();
+  CuAssertIntEquals(tc, 0, trace.count);
+  CuAssertIntEquals(tc, 1, (int)event_time(event));
+  pulse = 506U;
+  event_process();
+  CuAssertIntEquals(tc, 1, trace.count);
+  CuAssertTrue(tc, trace.pulses[0] == 506U);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  event_free_all();
+  pulse = saved_pulse;
+}
+
 static void verify_external_cancel(CuTest *tc, enum event_backend_kind backend)
 {
   struct event *event;

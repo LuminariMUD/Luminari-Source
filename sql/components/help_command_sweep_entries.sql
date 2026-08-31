@@ -17,7 +17,11 @@ action can enter the action queue only after a non-mutating availability check
 validates their current arguments. Commands without a safe advance check are
 not queued; retry those commands after the required action becomes available.
 
-QUEUE displays pending actions. QUEUE CLEAR removes all pending actions.
+The queue is first-in, first-out and holds at most 10 commands. During combat,
+one queued command is considered at the start of each six-second turn. If the
+first command still lacks its required action, it remains at the front. Queued
+commands do not drain between turns. QUEUE displays pending actions, and QUEUE
+CLEAR removes all pending actions.
 
 See also: ACTIONS, ATTACK-QUEUE, COMBAT', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),

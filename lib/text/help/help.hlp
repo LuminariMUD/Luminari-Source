@@ -623,7 +623,11 @@ action can enter the action queue only after a non-mutating availability check
 validates their current arguments. Commands without a safe advance check are
 not queued; retry those commands after the required action becomes available.
 
-QUEUE displays pending actions. QUEUE CLEAR removes all pending actions.
+The queue is first-in, first-out and holds at most 10 commands. During combat,
+one queued command is considered at the start of each six-second turn. If the
+first command still lacks its required action, it remains at the front. Queued
+commands do not drain between turns. QUEUE displays pending actions, and QUEUE
+CLEAR removes all pending actions.
 
 See also: ACTIONS, ATTACK-QUEUE, COMBAT
 #0
@@ -6547,25 +6551,23 @@ Combat may also be initiated via a CM, trip for example : trip <name>.  This
 command will initiate combat with a trip CM.
  
 Combat Rounds:
-The combat round lasts 6 seconds, divided into 3 2-second phases.  The attacks 
-in your attack rotation (help ATTACKS) are divided up between these phases in 
-the following way:
- 
-Phase 1: attacks 1, 4, 7
-Phase 2: attacks 2, 5, 8
-Phase 3: attacks 3, 6, 9
+One encounter round lasts 6 seconds. Everyone whose turn is ready acts from
+highest initiative to lowest. Ties use Dexterity and then a stable final order.
+Someone joining a fight becomes eligible on the encounter's next round; joining
+or merging fights never grants an extra early turn.
  
 You can check the number of attacks you have in your rotation by using the ATTACKS 
 command.  The number of attacks available is directly based on your Base Attack
 Bonus (BAB), which increases based on your class and level.
  
 Actions in Combat:
-Combat is directly affected by the actions you have available.  If you have 
-both a standard action and a move action available, you will automatically 
-perform a full attack every combat round, utilizing your entire attack rotation.
-If you have only a standard action, then only attacks in the first phase will be 
-performed.  If your character has neither a move nor a standard action, no 
-attacks will be made in this round.  See 'help ACTIONS' for more information.
+Your reaction allowance refreshes before initiative begins each round. At the
+start of your turn, due standard, move, and swift actions recover. One valid queued
+command is attempted first.
+Any actions it spends are unavailable to your automatic attack. If both your
+standard and move actions remain, you perform your full attack rotation. With
+only a standard action, you perform the first attack portion. With no standard
+action, you make no automatic attack. See 'help ACTIONS' and 'help ACTION-QUEUE'.
  
 Combat Modes:
 There are a number of combat modes available that change the way you fight.  

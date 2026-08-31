@@ -81,6 +81,9 @@ game thread.
 
 - Create/schedule: [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c)
   - Ensures a minimum delay of 1 pulse
+  - Converts the relative request to an absolute `live game pulse + delay`
+    scheduler deadline, so admission after an idle wheel interval cannot fire
+    early from a stale internal scheduler tick
   - Preserves the registered callback name for PERFMON even though all compatibility events share one internal scheduler event type
   - Returns a heap-allocated struct event whose payload is event_obj (type-specific)
 - Process every pulse: [C.event_process()](../../src/dgscript/dg_event.c)
@@ -281,12 +284,12 @@ this project means the socket connections between the MUD server and its
 players. It does not add web requests, internet gameplay, or a new command
 system.
 
-For a player, the intended result so far is deliberately boring: commands,
-round timing, cooldown messages, and copyover connections should behave as they
-did. The difference is reliability underneath. Timers cannot keep a deleted
-character or room alive, a burst of due timers cannot monopolize the server,
-and saved cooldowns now prove they belong to the character before returning
-after logout or reboot.
+Combat is now one player-visible use of that architecture. One event owns each
+fight and wakes a shared six-second round. Due combatants act by initiative;
+their standard, move, swift, and reaction resources are participant state, not
+independent timer callbacks. One prevalidated queued command runs at the start
+of a turn before automatic attacks. The connection loop does not poll that
+queue while the encounter owns it.
 
 The typed domain-event runtime now exists and owns one sealed main-thread
 registry from boot through world teardown. Eight foundational contracts cover
@@ -581,6 +584,14 @@ Payloads and participant identities are not displayed.
   - The selection is immutable for the boot. Encounter mode owns one event per
     fight; legacy mode owns one `eCOMBAT_ROUND` event per active character. The
     paths never execute together and active fights are not converted live.
+- Encounter-round rules:
+  - Default: `LUMINARI_COMBAT_ROUNDS=semantic`
+  - Rollback: `LUMINARI_COMBAT_ROUNDS=compatibility`
+  - Semantic mode resolves one initiative-ordered D20 round every six seconds
+    with participant-owned action, reaction, intent, and once-per-round state.
+    Compatibility mode retains the encounter-owned three-phase rules. This
+    selection is read only when encounter combat initializes and never converts
+    a live fight.
 - Startup logs one `Event backend initialized:` line naming the effective
   backend.
 - `perf event total` and the PERFMON CSV representation include lifecycle,

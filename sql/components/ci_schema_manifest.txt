@@ -26,6 +26,7 @@ apply help_race_half_ogre_entries.sql
 apply help_race_myconid_entries.sql
 apply help_race_wemic_entries.sql
 apply help_race_yuan_ti_entries.sql
+apply help_semantic_combat_entries.sql
 apply help_trelux_equipment_entries.sql
 apply help_specproc_entries.sql
 apply help_sync_schema.sql
@@ -61,6 +62,7 @@ skip verify_help_race_half_ogre_entries.sql
 skip verify_help_race_myconid_entries.sql
 skip verify_help_race_wemic_entries.sql
 skip verify_help_race_yuan_ti_entries.sql
+skip verify_help_semantic_combat_entries.sql
 skip verify_help_trelux_equipment_entries.sql
 skip verify_help_specproc_entries.sql
 skip verify_help_sync_schema.sql

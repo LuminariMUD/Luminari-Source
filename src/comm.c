@@ -70,6 +70,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
+#include "combat/combat_encounters.h"
 #include "obj/house.h"
 #include "olc/oasis.h"
 #include "olc/genolc.h"
@@ -1560,7 +1561,8 @@ void game_loop(socket_t local_mother_desc)
         }
       }
       else if (d->character && STATE(d) == CON_PLAYING && pending_actions(d->character) &&
-               !d->showstr_count && !d->str)
+               !combat_encounter_semantic_manages(d->character) && !d->showstr_count &&
+               !d->str)
       {
         d->has_prompt = TRUE;
         execute_next_action(d->character);

@@ -2,6 +2,45 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Semantic encounter rounds
+
+#### Changed
+
+- Replaced compatibility combat phases by default with one shared six-second
+  encounter round, resolved by initiative, Dexterity, and stable runtime ID.
+- Moved standard, move, swift, reaction, and four once-per-round gates into
+  participant state, including conservative cooldown transfer at combat
+  boundaries and staggered-action coupling.
+- Reset reactions and round flags once before encounter initiative begins, so
+  defenses spent against an earlier combatant cannot refresh at the defender's
+  own turn. Routed Come and Get Me's free counterattack through that same
+  reaction budget.
+- Defined the bounded action queue as a 10-command FIFO with one prevalidated
+  intent dispatched per turn before automatic attacks; semantic combat queues
+  are no longer polled by the connection loop.
+- Coalesced late joins and merged fights onto one encounter clock while
+  retaining not-before eligibility, so a merge cannot grant an early turn.
+- Corrected timing-wheel facade admission to schedule from the live game pulse,
+  preventing a newly created encounter event from firing early after an idle
+  scheduler interval.
+
+#### Operations
+
+- Added `LUMINARI_COMBAT_ROUNDS=compatibility` as the encounter-owned gameplay
+  rollback while `semantic` remains the default.
+- Extended `eventdebug` with semantic round, turn, intent, action, and reaction
+  counters, retaining compact 80-column output.
+
+#### Tests
+
+- Added initiative and tie-break ordering, shared-clock join/merge, action and
+  reaction budgets, staggered coupling, FIFO intent, cooldown transfer,
+  round-flag, callback-join, and full-attack regression coverage.
+- Added idle-clock scheduler and semantic-combat regressions that require the
+  first two participant turns exactly six seconds after encounter admission.
+- Added adversarial initiative-order coverage for reaction and round-flag state
+  triggered before the affected participant's turn.
+
 ### Encounter-owned combat scheduling
 
 #### Changed

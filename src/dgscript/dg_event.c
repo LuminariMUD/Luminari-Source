@@ -353,6 +353,7 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
 {
   struct event *new_event = NULL;
   enum game_scheduler_status scheduler_status;
+  game_tick_t scheduler_deadline;
   game_event_id_t scheduler_id;
   long target_time;
 
@@ -411,13 +412,22 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
 
   if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
+    if ((game_tick_t)when > UINT64_MAX - (game_tick_t)pulse)
+    {
+      log("WARNING: event_create overflow prevented. Event scheduled for maximum future time.");
+      scheduler_deadline = UINT64_MAX;
+    }
+    else
+    {
+      scheduler_deadline = (game_tick_t)pulse + (game_tick_t)when;
+    }
     scheduler_id = 0;
     if (game_event_owner_is_none(owner))
-      scheduler_status = game_scheduler_schedule_after(event_scheduler, legacy_event_type,
-                                                       (game_tick_t)when, new_event, &scheduler_id);
+      scheduler_status = game_scheduler_schedule_at(event_scheduler, legacy_event_type,
+                                                    scheduler_deadline, new_event, &scheduler_id);
     else
-      scheduler_status = game_scheduler_schedule_owned_after(
-          event_scheduler, legacy_event_type, owner, (game_tick_t)when, new_event, &scheduler_id);
+      scheduler_status = game_scheduler_schedule_owned_at(
+          event_scheduler, legacy_event_type, owner, scheduler_deadline, new_event, &scheduler_id);
     if (scheduler_status != GAME_SCHEDULER_OK)
     {
       log("SYSERR: Unable to schedule legacy event '%s' (status %d).",

@@ -835,6 +835,7 @@ EXTRA_DIST = \
 	sql/components/help_race_myconid_entries.sql \
 	sql/components/help_race_wemic_entries.sql \
 	sql/components/help_race_yuan_ti_entries.sql \
+	sql/components/help_semantic_combat_entries.sql \
 	sql/components/help_trelux_equipment_entries.sql \
 	sql/components/help_specproc_entries.sql \
 	sql/components/help_thrown_weapons_entries.sql \
@@ -856,6 +857,7 @@ EXTRA_DIST = \
 	sql/components/verify_help_race_myconid_entries.sql \
 	sql/components/verify_help_race_wemic_entries.sql \
 	sql/components/verify_help_race_yuan_ti_entries.sql \
+	sql/components/verify_help_semantic_combat_entries.sql \
 	sql/components/verify_help_trelux_equipment_entries.sql \
 	sql/components/verify_help_specproc_entries.sql \
 	sql/components/verify_help_thrown_weapons_entries.sql \

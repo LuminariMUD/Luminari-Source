@@ -86,6 +86,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 void load_messages(void);
 void perform_violence(struct char_data *ch, int phase);
 bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase);
+bool combat_run_semantic_round(struct char_data *ch, bool was_hit);
 void raw_kill(struct char_data *ch, struct char_data *killer);
 bool set_fighting(struct char_data *ch, struct char_data *victim);
 int skill_message(int dam, struct char_data *ch, struct char_data *vict, int attacktype,

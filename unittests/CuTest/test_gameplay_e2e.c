@@ -602,7 +602,8 @@ void Test_gameplay_e2e_staff_all_feats_melee_rotation_executes(CuTest *tc)
   struct gameplay_fixture fixture;
   struct char_data *staff;
   int expected_attacks;
-  int attempted_attacks;
+  int compatibility_attempts;
+  int semantic_attempts;
   int remaining_hit_points;
   int i;
 
@@ -655,11 +656,15 @@ void Test_gameplay_e2e_staff_all_feats_melee_rotation_executes(CuTest *tc)
   SET_BIT_AR(PRF_FLAGS(staff), PRF_CONDENSED);
   init_condensed_combat_data(staff);
 #define NORMAL_ATTACK_ROUTINE 0
+  perform_attacks(staff, NORMAL_ATTACK_ROUTINE, 0);
+  semantic_attempts = CNDNSD(staff)->num_times_attacking;
+  init_condensed_combat_data(staff);
+  GET_HIT(&fixture.victim) = 100000;
   perform_attacks(staff, NORMAL_ATTACK_ROUTINE, 1);
   perform_attacks(staff, NORMAL_ATTACK_ROUTINE, 2);
   perform_attacks(staff, NORMAL_ATTACK_ROUTINE, 3);
 #undef NORMAL_ATTACK_ROUTINE
-  attempted_attacks = CNDNSD(staff)->num_times_attacking;
+  compatibility_attempts = CNDNSD(staff)->num_times_attacking;
   remaining_hit_points = GET_HIT(&fixture.victim);
 
   FIGHTING(staff) = NULL;
@@ -672,7 +677,8 @@ void Test_gameplay_e2e_staff_all_feats_melee_rotation_executes(CuTest *tc)
   end_gameplay_fixture(&fixture);
 
   CuAssertTrue(tc, expected_attacks > 0);
-  CuAssertIntEquals(tc, expected_attacks, attempted_attacks);
+  CuAssertIntEquals(tc, expected_attacks, semantic_attempts);
+  CuAssertIntEquals(tc, expected_attacks, compatibility_attempts);
   CuAssertTrue(tc, remaining_hit_points < 100000);
 }
 
