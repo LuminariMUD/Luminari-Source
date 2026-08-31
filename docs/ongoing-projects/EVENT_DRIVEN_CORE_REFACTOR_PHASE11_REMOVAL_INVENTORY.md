@@ -8,6 +8,14 @@
 
 **Decision:** Phase 11 irreversible removal gate is not satisfied
 
+**Current implementation audit:** Phase 11m completed the final reversible
+source audit on 2026-09-01. Normal gameplay has zero raw compatibility callers,
+autonomous work is demand-driven, consumed NPC spell resources own exact
+recovery deadlines, and all default runtime services are bounded, indexed,
+fixed, or singleton work. Only the external stable-release and operator gate
+prevents the physical removals inventoried below. See
+[`EVENT_DRIVEN_CORE_REFACTOR_PHASE11M_FINAL_AUDIT.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11M_FINAL_AUDIT.md).
+
 ## 1. Scope and conclusion
 
 Phase 11 removes rollback infrastructure only after one stable release period

@@ -32,6 +32,11 @@ Recurring work is reserved for behavior that is actually periodic:
 - scavenging while eligible room objects remain;
 - recovery while a consumed mobile resource is below maximum.
 
+Class spell slots recover one unit every five minutes and known-spell uses
+recover one unit every minute. The first expenditure starts the corresponding
+owner deadline. Recovery pauses during combat or incapacitation, retries only
+that NPC, and removes the work reason as soon as both resource pools are full.
+
 Combat rounds belong to the encounter manager. Aggression and memory recognition
 are reactions to character entry. Guards, helpers, and listeners react to combat
 state changes. Scavengers wake when room objects change. Sentinel posture
@@ -88,6 +93,6 @@ Output defaults to 80 columns and never exceeds 120 columns.
 
 ## Rollback
 
-`LUMINARI_ACTIVE_WORLD=legacy` restores `mobile_activity_pulse()` for a complete
+`LUMINARI_ACTIVE_WORLD=legacy` restores `mobile_activity_run_legacy_slice()` for a complete
 boot. Scheduled and legacy paths are exclusive. The rollback remains until the
 Phase 11 stable-release gate permits physical removal.

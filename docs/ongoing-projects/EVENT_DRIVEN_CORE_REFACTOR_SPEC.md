@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration, production-scale scheduling correction, and intent naming are implemented; irreversible removal gate pending
-**Document version:** 1.31
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible implementation and final source audit are complete; irreversible removal gate pending
+**Document version:** 1.32
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas, active DG/trail registries, constant-time domain owner resolution, and gameplay intent naming are implemented; final adversarial acceptance and the irreversible removal gate remain
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, and the final adversarial source audit are implemented; only the externally gated physical rollback removal remains
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -49,6 +49,12 @@
 > points are explicitly named as legacy rollback, and a source contract rejects
 > new gameplay `pulse_*` or `*_pulse` function definitions while retaining the
 > small exact set of physical timing and performance pulse APIs.
+> The final source audit closed the remaining autonomous-resource gap: spending
+> an NPC class spell slot or known-spell use now admits one exact owner-local
+> recovery deadline, combat or incapacitation postpones only that owner, and a
+> full resource pool retires the agenda. It also classified all 14 default
+> runtime services as bounded connected-owner, fixed/indexed global, or
+> singleton work; broad character/object/mobile scans are rollback-only.
 > Runtime ticks now derive from monotonic elapsed time independently of a pulse
 > callback. The reactor sleeps to the nearest I/O, scheduler, or queued
 > `WAIT_STATE` deadline, and deferred extraction has an explicit safe point.
@@ -2093,6 +2099,12 @@ Readiness audit, 2026-08-31:
   live in a private facade/test header. Gameplay's raw-event caller count is
   zero. Evidence is recorded in
   [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11I_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11I_VALIDATION.md).
+- The final adversarial audit verified that normal autonomous callbacks do not
+  rediscover work through population scans, classified every default runtime
+  service, corrected permanent operational documentation, and added exact
+  owner-local recovery for consumed NPC spell resources. Evidence is recorded
+  in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11M_FINAL_AUDIT.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11M_FINAL_AUDIT.md).
 
 ## 24. Verification Strategy
 
@@ -2468,3 +2480,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.29 | 2026-08-31 | Rejected full-population recurring owners as distributed polling after a 61,000-NPC copied-world run produced about 20 million callbacks in eleven minutes at about 97% CPU. Made explicit pending work, rather than entity existence, the mandatory admission predicate; defined typed NPC responsibilities and lifecycle wake/retire rules; retained off-screen wandering, hunts, scripts, and wars without player-proximity gating; and prohibited normal callbacks from rediscovering work through global population scans. |
 | 1.30 | 2026-09-01 | Implemented and production-validated demand-driven autonomous agendas. Explicit bootstrap suppressed false arrival reactions; immutable owner payloads, external scheduled-mobile state, and owner-wide cancellation made extraction safe; generation-keyed character/object registries removed hidden resolution scans; and NPC movement ceased waking unrelated observers. A copied-world run retained about 39,000 real agendas while settling at 2.6% CPU with zero ready backlog, overdue pulses, late callbacks, registry mismatches, or stale-owner outcomes. |
 | 1.31 | 2026-09-01 | Renamed gameplay pulse-oriented functions and object automatic-event vocabulary according to domain intent while preserving cadence, ordering, flags, and behavior. Whole-population entry points now advertise legacy rollback, and the admission policy rejects new gameplay pulse-named definitions outside an exact infrastructure allowlist. |
+| 1.32 | 2026-09-01 | Completed the final adversarial source audit, classified all default runtime services, corrected permanent architecture and CLI documentation, and closed the NPC spell-resource gap with consumption-triggered owner deadlines that retire at full capacity. Reversible implementation is complete; physical queue, heartbeat, select-driver, legacy-writer, and archival-schema removal remain prohibited until the stable-release and operator gate closes. |

@@ -92,6 +92,19 @@ static bool mobile_has_scavenge_work(struct char_data *ch)
   return false;
 }
 
+static bool mobile_resource_recovery_blocked(const struct char_data *ch)
+{
+  return FIGHTING(ch) != NULL || !AWAKE(ch) || IS_CASTING(ch) ||
+         AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
+         AFF_FLAGGED(ch, AFF_DAZED) || char_has_mud_event((struct char_data *)ch, eSTUNNED) ||
+         AFF_FLAGGED(ch, AFF_NAUSEATED);
+}
+
+static bool mobile_has_resource_recovery_work(const struct char_data *ch)
+{
+  return mob_spell_slots_need_recovery(ch) || known_spell_slots_need_recovery(ch);
+}
+
 mobile_work_mask mobile_activity_room_reaction_reasons(const struct char_data *ch)
 {
   if (!mobile_activity_owner_eligible(ch) || FIGHTING(ch))
@@ -119,7 +132,11 @@ mobile_work_mask mobile_activity_recurring_reasons(struct char_data *ch)
 {
   mobile_work_mask reasons = MOBILE_WORK_NONE;
 
-  if (!mobile_activity_owner_eligible(ch) || FIGHTING(ch))
+  if (!mobile_activity_owner_eligible(ch))
+    return reasons;
+  if (mobile_has_resource_recovery_work(ch))
+    reasons |= MOBILE_WORK_RESOURCE_RECOVERY;
+  if (FIGHTING(ch))
     return reasons;
   if (mobile_has_activity_spec(ch))
     reasons |= MOBILE_WORK_SPEC_ACTIVITY;
@@ -138,6 +155,30 @@ mobile_work_mask mobile_activity_recurring_reasons(struct char_data *ch)
       GET_MOB_LOADROOM(ch) == IN_ROOM(ch) && GET_POS(ch) != GET_DEFAULT_POS(ch))
     reasons |= MOBILE_WORK_POSTURE;
   return reasons;
+}
+
+long mobile_activity_next_resource_recovery_delay(const struct char_data *ch)
+{
+  time_t now;
+  time_t deadline = 0;
+  time_t candidate;
+  time_t seconds;
+
+  if (!mobile_activity_owner_eligible(ch) || !mobile_has_resource_recovery_work(ch))
+    return 0L;
+  now = time(0);
+  candidate = mob_spell_slot_recovery_deadline(ch);
+  if (candidate > 0)
+    deadline = candidate;
+  candidate = known_spell_slot_recovery_deadline(ch);
+  if (candidate > 0 && (deadline == 0 || candidate < deadline))
+    deadline = candidate;
+  if (deadline <= now)
+    return mobile_resource_recovery_blocked(ch) ? (long)PULSE_MOBILE : 1L;
+  seconds = deadline - now;
+  if (seconds > LONG_MAX / PASSES_PER_SEC)
+    return LONG_MAX;
+  return (long)seconds * PASSES_PER_SEC;
 }
 
 long mobile_activity_next_wander_delay(void)
@@ -245,9 +286,8 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     if (!AWAKE(ch) || IS_CASTING(ch))
       continue;
 
-    if (legacy_dispatch)
+    if (legacy_dispatch || (requested_work & MOBILE_WORK_RESOURCE_RECOVERY))
     {
-      /* Exact resource deadlines replace these polls in the resource-owner slice. */
       regenerate_mob_spell_slot(ch);
       regenerate_known_spell_slot(ch);
     }

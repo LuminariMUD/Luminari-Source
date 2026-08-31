@@ -365,6 +365,8 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
                     active_world_mobile_reason_count(MOBILE_WORK_POSTURE),
                     active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION),
                     active_world_mobile_reason_count(MOBILE_WORK_COMBAT_REACTION));
+  debug_output_line(&output, "  resource recovery: %zu",
+                    active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
   debug_output_line(&output, "  agenda callbacks: %" PRIu64,
                     active_world_mobile_callbacks());
   debug_output_line(&output, "  capacity/rejected: %zu/%" PRIu64,

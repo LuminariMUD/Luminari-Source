@@ -2744,6 +2744,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "  reasons: spec=%zu echo=%zu scavenge=%zu\n\r"
                  "  reasons: patrol=%zu hunt=%zu wander=%zu\n\r"
                  "  reasons: posture=%zu room=%zu combat=%zu\n\r"
+                 "  reasons: resource-recovery=%zu\n\r"
                  "  capacity: limit=%zu rejected=%" PRIu64 "\n\r"
                  "  agenda callbacks=%" PRIu64 "\n\r",
                  active_world_enabled() ? "scheduled" : "legacy",
@@ -2758,6 +2759,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  active_world_mobile_reason_count(MOBILE_WORK_POSTURE),
                  active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION),
                  active_world_mobile_reason_count(MOBILE_WORK_COMBAT_REACTION),
+                 active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY),
                  active_world_mobile_admission_limit(),
                  active_world_mobile_admission_rejections(),
                  active_world_mobile_callbacks()),

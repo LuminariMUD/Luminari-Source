@@ -242,7 +242,7 @@ void check_auto_happy_hour(void);
 void process_walkto_actions(void);
 void self_buffing(void);
 void recharge_activated_items(void);
-void check_thirty_seconds(void);
+void process_auction_and_legacy_device_recovery(void);
 void craft_update(void);
 
 /* externally defined functions, used locally */
@@ -2227,13 +2227,13 @@ enum runtime_service_kind
   RUNTIME_SERVICE_ZONE,
   RUNTIME_SERVICE_IDLE_PASSWORD,
   RUNTIME_SERVICE_MOBILE_ACTIVITY,
-  RUNTIME_SERVICE_MOBILE_PROCEDURES,
-  RUNTIME_SERVICE_ENCOUNTER_ROUND,
+  RUNTIME_SERVICE_AUTOMATIC_PROCEDURES,
+  RUNTIME_SERVICE_HUNT_CLOCK_AND_ROUND_ROLLBACK,
   RUNTIME_SERVICE_LUMINARI,
   RUNTIME_SERVICE_BARDIC,
   RUNTIME_SERVICE_HINTS,
   RUNTIME_SERVICE_CHARACTER_SIX_SECOND,
-  RUNTIME_SERVICE_THIRTY_SECOND,
+  RUNTIME_SERVICE_AUCTION_AND_DEVICE_RECOVERY,
   RUNTIME_SERVICE_MINUTE_PERSISTENCE,
   RUNTIME_SERVICE_HUNT_CREATION,
   RUNTIME_SERVICE_MUD_HOUR,
@@ -2277,9 +2277,10 @@ static struct runtime_service runtime_service_table[] = {
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ZONE, "service.zone", PULSE_ZONE),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_IDLE_PASSWORD, "service.idle_password", PULSE_IDLEPWD),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MOBILE_ACTIVITY, "service.mobile_activity_rollback", 1),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MOBILE_PROCEDURES, "service.mobile_procedures",
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUTOMATIC_PROCEDURES, "service.automatic_procedures",
                           PULSE_MOBILE),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ENCOUNTER_ROUND, "service.encounter_round",
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CLOCK_AND_ROUND_ROLLBACK,
+                          "service.hunt_clock_round_rollback",
                           PULSE_VIOLENCE),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_LUMINARI, "service.luminari_rollback", PULSE_LUMINARI),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_BARDIC, "service.bardic_rollback",
@@ -2287,7 +2288,8 @@ static struct runtime_service runtime_service_table[] = {
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HINTS, "service.hints_rollback", PULSE_HINTS),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_CHARACTER_SIX_SECOND,
                           "service.character_six_second_rollback", PASSES_PER_SEC * 6),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_THIRTY_SECOND, "service.thirty_second",
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUCTION_AND_DEVICE_RECOVERY,
+                          "service.auction_device_recovery",
                           PASSES_PER_SEC * 30),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MINUTE_PERSISTENCE, "service.minute_persistence",
                           PASSES_PER_SEC * 60),
@@ -2482,11 +2484,11 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     check_idle_passwords();
     break;
   case RUNTIME_SERVICE_MOBILE_ACTIVITY:
-    PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "mobile_activity");
+    PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "legacy_mobile_activity");
     mobile_activity_run_legacy_slice((int)(now_tick % (unsigned long)PULSE_MOBILE));
     PERF_PROF_EXIT(pr_mob_activity_);
     break;
-  case RUNTIME_SERVICE_MOBILE_PROCEDURES:
+  case RUNTIME_SERVICE_AUTOMATIC_PROCEDURES:
     if (!periodic_autoproc_enabled())
     {
       PERF_PROF_ENTER_SAMPLED(pr_proc_update_, "proc_update");
@@ -2495,7 +2497,7 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     }
     rol_avernus_process_garden_activity();
     break;
-  case RUNTIME_SERVICE_ENCOUNTER_ROUND:
+  case RUNTIME_SERVICE_HUNT_CLOCK_AND_ROUND_ROLLBACK:
     if (!affected_owner_events_enabled())
     {
       PERF_PROF_ENTER_SAMPLED(pr_aff_update_, "affect_update");
@@ -2525,9 +2527,9 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     PERF_PROF_EXIT(pr_upd_);
     update_player_misc();
     break;
-  case RUNTIME_SERVICE_THIRTY_SECOND:
+  case RUNTIME_SERVICE_AUCTION_AND_DEVICE_RECOVERY:
     PERF_note_schedule(PERF_SCHEDULE_30_SECONDS);
-    check_thirty_seconds();
+    process_auction_and_legacy_device_recovery();
     break;
   case RUNTIME_SERVICE_MINUTE_PERSISTENCE:
   {
@@ -3014,7 +3016,7 @@ void heartbeat(int heart_pulse)
   if (!active_world_enabled())
   {
     /* Boot-time rollback path. The scheduled and heartbeat paths are exclusive. */
-    PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "mobile_activity");
+    PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "legacy_mobile_activity");
     mobile_activity_run_legacy_slice(heart_pulse);
     PERF_PROF_EXIT(pr_mob_activity_);
   }
@@ -3085,7 +3087,7 @@ void heartbeat(int heart_pulse)
   /* auction check every 30 seconds */
   if (!(heart_pulse % (30 * PASSES_PER_SEC)))
   {
-    check_thirty_seconds();
+    process_auction_and_legacy_device_recovery();
   }
 
   /* save characters and their pets once per minute */

@@ -32,7 +32,8 @@ int main(int argc, char **argv)
 - `-o <file>` - Specify log file
 - `-d <dir>` - Set data directory
 - `-C<socket>` - Copyover recovery mode
-- `-s` - Syntax check mode only
+- `-c` - Syntax check mode only
+- `-s` - Suppress assignment of special procedures
 - `<port>` - Port number to listen on
 
 ### 2. Game Initialization (`init_game()`)
@@ -227,22 +228,27 @@ Normal cadence work is admitted as named service-owned events at its established
 interval. Only services required by the selected subsystem modes are scheduled:
 
 ```c
-service.dg_random             // 0.5 seconds
-service.one_second            // protocol, travel, crafting, and related work
-service.mobile_procedures     // established mobile-procedure cadence
-service.zone                  // zone reset cadence
-service.thirty_second         // periodic character/object maintenance
-service.minute_persistence    // starts bounded save cycles
-service.persistence_batch     // dynamic one-operation persistence step
-service.mud_hour              // weather, quests, diplomacy, point work
-service.mud_day               // daily world work
+service.moving_rooms                 // active moving-room list
+service.one_second                   // connected protocol and player work
+service.minute_maintenance           // global state and active-item recovery
+service.zone                         // zone reset scheduler
+service.idle_password                // bounded login descriptors
+service.automatic_procedures         // fixed Avernus garden; object rollback off
+service.hunt_clock_round_rollback    // hunt singleton; owner rollback off
+service.auction_device_recovery      // auction singleton; device rollback off
+service.minute_persistence           // starts bounded save cycles
+service.hunt_creation                // hunt table creation
+service.mud_hour                     // clock, registries, diplomacy, clans
+service.mud_day                      // clan investment work
+service.usage                        // connected-usage accounting
+service.time_save                    // singleton clock persistence
 ```
 
-Additional definitions preserve moving rooms, idle-password checks, usage and
-time saves, hunt creation, and subsystem rollback callbacks. A default live
-boot currently admits 14 of 24 definitions because migrated owner systems do
-not need their rollback service. Startup admission is all-or-nothing; failure
-restores `LUMINARI_RUNTIME_SERVICES=legacy` behavior for that boot.
+Those are the 14 services admitted by a default live boot. Ten additional
+definitions preserve subsystem rollback, including the 13-second DG random
+scan and six-second whole-mobile cycle; migrated owner systems do not admit
+them. Startup admission is all-or-nothing; failure restores
+`LUMINARI_RUNTIME_SERVICES=legacy` behavior for that boot.
 
 Named services preserve existing routines and ordering within each cadence.
 Some are legitimate global maintenance or still call bounded connected/active

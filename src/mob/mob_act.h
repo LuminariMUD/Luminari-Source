@@ -35,15 +35,17 @@ enum mobile_work_reason
   MOBILE_WORK_WANDER = (1U << 5),
   MOBILE_WORK_POSTURE = (1U << 6),
   MOBILE_WORK_ROOM_REACTION = (1U << 7),
-  MOBILE_WORK_COMBAT_REACTION = (1U << 8)
+  MOBILE_WORK_COMBAT_REACTION = (1U << 8),
+  MOBILE_WORK_RESOURCE_RECOVERY = (1U << 9)
 };
 
 #define MOBILE_WORK_RECURRING_MASK                                                         \
   (MOBILE_WORK_SPEC_ACTIVITY | MOBILE_WORK_ECHO | MOBILE_WORK_SCAVENGE |                  \
-   MOBILE_WORK_PATROL | MOBILE_WORK_HUNT | MOBILE_WORK_WANDER | MOBILE_WORK_POSTURE)
+   MOBILE_WORK_PATROL | MOBILE_WORK_HUNT | MOBILE_WORK_WANDER | MOBILE_WORK_POSTURE |      \
+   MOBILE_WORK_RESOURCE_RECOVERY)
 #define MOBILE_WORK_REACTION_MASK (MOBILE_WORK_ROOM_REACTION | MOBILE_WORK_COMBAT_REACTION)
 #define MOBILE_WORK_FIXED_CADENCE_MASK                                                     \
-  (MOBILE_WORK_RECURRING_MASK & ~MOBILE_WORK_WANDER)
+  (MOBILE_WORK_RECURRING_MASK & ~(MOBILE_WORK_WANDER | MOBILE_WORK_RESOURCE_RECOVERY))
 
 void mobile_activity_run_legacy_cycle(void);
 void mobile_activity_run_one(struct char_data *ch);
@@ -52,6 +54,7 @@ mobile_work_mask mobile_activity_recurring_reasons(struct char_data *ch);
 mobile_work_mask mobile_activity_room_reaction_reasons(const struct char_data *ch);
 mobile_work_mask mobile_activity_combat_reaction_reasons(const struct char_data *ch);
 long mobile_activity_next_wander_delay(void);
+long mobile_activity_next_resource_recovery_delay(const struct char_data *ch);
 void mobile_activity_run_legacy_slice(int heart_pulse);
 void mobile_activity_reset(void);
 void mobile_activity_forget_character(struct char_data *ch);

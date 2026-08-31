@@ -74,5 +74,4 @@ exact allowlist. This is a source contract, not a style suggestion.
   paths, Perlin generators, and resource initialization.
 - The legacy-event admission contract passes and rejects new cadence-oriented
   gameplay function definitions.
-- GitHub Build & Test and Security workflows will provide the independent
-  post-push acceptance result.
+- GitHub Build & Test and Security workflows passed independently after push.

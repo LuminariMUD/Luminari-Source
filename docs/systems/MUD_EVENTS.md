@@ -150,8 +150,8 @@ the facade contains no MUD-specific flag or destructor branch.
     early from a stale internal scheduler tick
   - Preserves the registered callback name for PERFMON even though all compatibility events share one internal scheduler event type
   - Returns only a generation-safe opaque handle
-- Process every pulse: [C.event_process()](../../src/dgscript/dg_event.c)
-  - Advances the timing wheel to the current game pulse, or processes the current bucket on the rollback backend
+- Process due work: [C.event_process()](../../src/dgscript/dg_event.c)
+  - Advances the timing wheel to the current monotonic game tick when the nearest deadline is due; only the physical rollback queue requires compatibility-pulse advancement
   - Marks the event explicitly as dispatching before invoking its callback
   - Calls the event function; a positive result reschedules relative to the callback pulse, while zero or a negative result completes it
   - Dispatch order is exact deadline followed by FIFO insertion order

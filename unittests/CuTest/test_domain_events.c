@@ -21,6 +21,8 @@
 #include "../../src/domain_event_world.h"
 #include "../../src/magic/spells.h"
 #include "../../src/mob/mob_act.h"
+#include "../../src/mob/mob_known_spells.h"
+#include "../../src/mob/mob_spellslots.h"
 #include "../../src/movement/movement_tracks.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/net/protocol.h"
@@ -791,6 +793,105 @@ void TestActiveWorldDemandDrivenAdmissionAndLegacyGateAreExclusive(CuTest *tc)
   CuAssertIntEquals(tc, 0, event_queue_depth());
   CuAssertIntEquals(tc, 0,
                     (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  active_world_reset_for_test();
+  character_periodic_reset_for_test();
+  point_update_periodic_reset_for_test();
+  pulse = saved_pulse;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  top_of_mobt = saved_top_of_mobt;
+  character_list = saved_characters;
+}
+
+void TestActiveWorldResourceRecoveryWakesAndRetiresOneOwner(CuTest *tc)
+{
+  struct room_data room;
+  struct char_data mobile;
+  struct char_data opponent;
+  struct room_data *saved_world = world;
+  struct char_data *saved_characters = character_list;
+  room_rnum saved_top_of_world = top_of_world;
+  mob_rnum saved_top_of_mobt = top_of_mobt;
+  unsigned long saved_pulse = pulse;
+  const int spellnum = SPELL_MAGIC_MISSILE;
+  int spell_circle;
+
+  memset(&room, 0, sizeof(room));
+  room.number = 100;
+  active_world_prepare_character(&mobile, true, 0);
+  active_world_prepare_character(&opponent, true, 0);
+  mobile.player_specials = &dummy_mob;
+  opponent.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&mobile), MOB_SENTINEL);
+  SET_BIT_AR(MOB_FLAGS(&opponent), MOB_SENTINEL);
+  MOB_KNOWS_SPELL(&mobile, spellnum) = TRUE;
+  mobile.mob_specials.known_spell_slots[spellnum] = 2;
+  mobile.mob_specials.last_known_slot_regen = time(0);
+  mobile.next = &opponent;
+  mobile.next_in_room = &opponent;
+  room.people = &mobile;
+  world = &room;
+  top_of_world = 0;
+  top_of_mobt = 0;
+  character_list = &mobile;
+
+  event_free_all();
+  active_world_reset_for_test();
+  active_world_select_for_test(true);
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(false);
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(false);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 250U;
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  active_world_begin_bootstrap();
+  active_world_end_bootstrap();
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  consume_known_spell_slot(&mobile, spellnum);
+  CuAssertIntEquals(tc, 1, mobile.mob_specials.known_spell_slots[spellnum]);
+  CuAssertIntEquals(tc, 1,
+                    (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+  CuAssertIntEquals(tc, 60 * PASSES_PER_SEC,
+                    (int)event_handle_time(mobile.active_world_event_handle));
+
+  mobile.mob_specials.last_known_slot_regen = time(0) - 60;
+  FIGHTING(&mobile) = &opponent;
+  process_scheduler_pulses(60U * PASSES_PER_SEC);
+  CuAssertIntEquals(tc, 1, mobile.mob_specials.known_spell_slots[spellnum]);
+  CuAssertIntEquals(tc, PULSE_MOBILE,
+                    (int)event_handle_time(mobile.active_world_event_handle));
+
+  FIGHTING(&mobile) = NULL;
+  process_scheduler_pulses(PULSE_MOBILE);
+  CuAssertIntEquals(tc, 2, mobile.mob_specials.known_spell_slots[spellnum]);
+  CuAssertIntEquals(tc, 0,
+                    (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  GET_CLASS(&mobile) = CLASS_WIZARD;
+  spell_circle = get_spell_circle(spellnum, GET_CLASS(&mobile));
+  CuAssertTrue(tc, spell_circle >= 0 && spell_circle <= 9);
+  mobile.mob_specials.max_spell_slots[spell_circle] = 1;
+  mobile.mob_specials.spell_slots[spell_circle] = 1;
+  consume_spell_slot(&mobile, spellnum);
+  CuAssertIntEquals(tc, 0, mobile.mob_specials.spell_slots[spell_circle]);
+  CuAssertIntEquals(tc, 1,
+                    (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
+  CuAssertIntEquals(tc, 300 * PASSES_PER_SEC,
+                    (int)event_handle_time(mobile.active_world_event_handle));
+  mobile.mob_specials.last_slot_regen = time(0) - 300;
+  process_scheduler_pulses(300U * PASSES_PER_SEC);
+  CuAssertIntEquals(tc, 1, mobile.mob_specials.spell_slots[spell_circle]);
+  CuAssertIntEquals(tc, 0,
+                    (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
   event_free_all();
   active_world_reset_for_test();

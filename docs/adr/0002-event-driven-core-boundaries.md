@@ -31,9 +31,11 @@ LuminariMUD uses four explicit boundaries:
   post-operation domain notifications.
 
 Activities, combat, regeneration, automatic actions, AI, and active-world work
-will migrate incrementally to owner-scheduled callbacks and domain-event
-wakeups. The compatibility heartbeat remains until every scan has an explicit
-replacement and rollback gate.
+now use owner-scheduled callbacks and domain-event wakeups. Autonomous NPCs own
+an agenda only while concrete work exists; spent resources, active behavior,
+and bounded local facts add work, while completion and lifecycle teardown remove
+it. The compatibility heartbeat remains only behind explicit rollback selectors
+until the stable-release removal gate closes.
 
 ## Consequences
 
@@ -46,7 +48,8 @@ replacement and rollback gate.
 
 ### Negative
 
-- During migration, the scheduler, typed bus, and old heartbeat coexist.
+- Until the removal gate closes, the scheduler, typed bus, and isolated rollback
+  heartbeat coexist.
 - Each publisher and subscriber needs an owning-system audit to prevent dual
   side effects.
 - Hidden synchronous handler chains require strict diagnostics and causal
@@ -79,13 +82,14 @@ to diagnose, not work to race against entity mutation.
 
 ## Implementation Notes
 
-The Phase 6a foundation registered eight inert fact contracts. Phase 6b added
-the first production publisher/subscriber pair: `WorldPhenomenon` routes sights
-and sounds through coordinate or bounded room-graph propagation, and Meteor
-Swarm publishes it directly. Other publisher/subscriber pairs still land behind
-separate migration boundaries. Broad scan removal begins only after the owning
-system proves equivalent behavior, lifecycle safety, bounded work, and
-rollback.
+The Phase 6a foundation registered typed fact contracts. Phase 6b added the
+first production publisher/subscriber pair: `WorldPhenomenon` routes sights and
+sounds through coordinate or bounded room-graph propagation, and Meteor Swarm
+publishes it directly. Subsequent phases moved combat, activities, periodic
+owners, autonomous mobiles, automatic procedures, DG triggers, vessels, and
+active trail locations behind explicit ownership. Normal callbacks use stable
+registries or bounded local graphs; population scans remain only in bootstrap,
+staff validation, and boot-selected rollback paths.
 
 ## References
 

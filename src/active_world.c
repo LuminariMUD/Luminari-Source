@@ -14,7 +14,7 @@
 
 #define ACTIVE_WORLD_MAX_MOBILES 65536U
 #define ACTIVE_WORLD_REJECTION_LOG_INTERVAL 100U
-#define ACTIVE_WORLD_REASON_COUNT 9U
+#define ACTIVE_WORLD_REASON_COUNT 10U
 #define ACTIVE_WORLD_REGISTRY_BUCKETS 8192U
 
 struct active_world_registry_entry
@@ -263,6 +263,9 @@ static long next_mobile_delay(struct char_data *ch)
   candidate = deadline_delay(ch->active_world_reaction_due);
   if (candidate < delay)
     delay = candidate;
+  candidate = deadline_delay(ch->active_world_resource_due);
+  if (candidate < delay)
+    delay = candidate;
   return delay == LONG_MAX ? 0L : delay;
 }
 
@@ -320,6 +323,7 @@ static void retire_current_mobile(struct char_data *ch)
   ch->active_world_fixed_due = 0U;
   ch->active_world_wander_due = 0U;
   ch->active_world_reaction_due = 0U;
+  ch->active_world_resource_due = 0U;
   ch->active_world_event_handle = EVENT_HANDLE_NONE;
 }
 
@@ -333,10 +337,10 @@ static EVENTFUNC(active_world_mobile_event)
   if (!initial_snapshot_logged)
   {
     log("Active-world initial agendas: %zu; reasons spec=%zu echo=%zu scavenge=%zu patrol=%zu "
-        "hunt=%zu wander=%zu posture=%zu room=%zu combat=%zu.",
+        "hunt=%zu wander=%zu posture=%zu room=%zu combat=%zu recovery=%zu.",
         active_mobile_count, reason_counts[0], reason_counts[1], reason_counts[2],
         reason_counts[3], reason_counts[4], reason_counts[5], reason_counts[6],
-        reason_counts[7], reason_counts[8]);
+        reason_counts[7], reason_counts[8], reason_counts[9]);
     initial_snapshot_logged = true;
   }
   if (payload == NULL)
@@ -369,6 +373,11 @@ static EVENTFUNC(active_world_mobile_event)
   {
     due |= ch->active_world_work_reasons & MOBILE_WORK_WANDER;
     ch->active_world_wander_due = pulse + (unsigned long)mobile_activity_next_wander_delay();
+  }
+  if (deadline_due(ch->active_world_resource_due))
+  {
+    due |= ch->active_world_work_reasons & MOBILE_WORK_RESOURCE_RECOVERY;
+    ch->active_world_resource_due = 0U;
   }
 
   if (due != MOBILE_WORK_NONE)
@@ -426,6 +435,12 @@ static void refresh_deadlines(struct char_data *ch, mobile_work_mask old_reasons
     ch->active_world_reaction_due = pulse + 1U;
   else if (!(new_reasons & MOBILE_WORK_REACTION_MASK))
     ch->active_world_reaction_due = 0U;
+
+  if ((new_reasons & MOBILE_WORK_RESOURCE_RECOVERY) && ch->active_world_resource_due == 0U)
+    ch->active_world_resource_due =
+        pulse + (unsigned long)mobile_activity_next_resource_recovery_delay(ch);
+  else if (!(new_reasons & MOBILE_WORK_RESOURCE_RECOVERY))
+    ch->active_world_resource_due = 0U;
 }
 
 static void reschedule_mobile(struct char_data *ch)
@@ -523,6 +538,7 @@ void active_world_forget_character(struct char_data *ch)
   ch->active_world_fixed_due = 0U;
   ch->active_world_wander_due = 0U;
   ch->active_world_reaction_due = 0U;
+  ch->active_world_resource_due = 0U;
   if (ch->active_world_event_handle == EVENT_HANDLE_NONE)
     return;
   handle = ch->active_world_event_handle;

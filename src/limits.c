@@ -2651,7 +2651,7 @@ void check_devices(void)
   }
 }
 
-void check_thirty_seconds(void)
+void process_auction_and_legacy_device_recovery(void)
 {
   check_auction();
   if (!character_periodic_events_enabled())

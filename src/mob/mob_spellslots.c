@@ -19,6 +19,10 @@
 #include "constants.h"
 #include "magic/spell_prep.h"
 #include "character/class.h"
+#include "active_world.h"
+#include "mob_spellslots.h"
+
+#define MOB_SPELL_SLOT_RECOVERY_SECONDS 300
 
 /* External functions */
 extern int compute_slots_by_circle(struct char_data *ch, int class_num, int circle);
@@ -267,6 +271,7 @@ bool has_spell_slot(struct char_data *ch, int spellnum)
 void consume_spell_slot(struct char_data *ch, int spellnum)
 {
   int circle, char_class;
+  bool recovery_already_pending;
 
   if (!ch || !IS_NPC(ch))
     return; /* PCs handle their own slots */
@@ -288,7 +293,11 @@ void consume_spell_slot(struct char_data *ch, int spellnum)
   /* Consume the slot */
   if (ch->mob_specials.spell_slots[circle] > 0)
   {
+    recovery_already_pending = mob_spell_slots_need_recovery(ch);
     ch->mob_specials.spell_slots[circle]--;
+    if (!recovery_already_pending)
+      ch->mob_specials.last_slot_regen = time(0);
+    active_world_sync_mobile(ch);
 
     /* Optional: Log slot consumption for debugging - DISABLED (too spammy)
     if (ch->mob_specials.spell_slots[circle] == 0)
@@ -298,6 +307,25 @@ void consume_spell_slot(struct char_data *ch, int spellnum)
     }
     */
   }
+}
+
+bool mob_spell_slots_need_recovery(const struct char_data *ch)
+{
+  int circle;
+
+  if (ch == NULL || !IS_NPC(ch) || MOB_FLAGGED(ch, MOB_UNLIMITED_SPELL_SLOTS))
+    return false;
+  for (circle = 0; circle < 10; circle++)
+    if (ch->mob_specials.spell_slots[circle] < ch->mob_specials.max_spell_slots[circle])
+      return true;
+  return false;
+}
+
+time_t mob_spell_slot_recovery_deadline(const struct char_data *ch)
+{
+  if (!mob_spell_slots_need_recovery(ch))
+    return 0;
+  return ch->mob_specials.last_slot_regen + MOB_SPELL_SLOT_RECOVERY_SECONDS;
 }
 
 /**
@@ -379,7 +407,7 @@ void regenerate_mob_spell_slot(struct char_data *ch)
 
   /* Check if enough time has elapsed (300 seconds = 5 minutes) */
   current_time = time(0);
-  if (current_time - ch->mob_specials.last_slot_regen < 300)
+  if (current_time - ch->mob_specials.last_slot_regen < MOB_SPELL_SLOT_RECOVERY_SECONDS)
     return;
 
   /* Build list of circles with less than maximum slots */
