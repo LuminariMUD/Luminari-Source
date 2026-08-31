@@ -2863,9 +2863,9 @@ ACMD(do_universalmutagen)
 
   /* Check 30-minute lockout */
   struct mud_event_data *lock = char_has_mud_event(ch, eUNIVERSAL_MUTAGEN_COOLDOWN);
-  if (lock && lock->pEvent)
+  if (lock && lock->event_handle)
   {
-    long pulses = event_time(lock->pEvent);
+    long pulses = event_handle_time(lock->event_handle);
     int seconds = (int)(pulses / 10); /* RL_SEC is 10 pulses */
     int minutes = seconds / 60;
     send_to_char(ch, "You must wait %d minute%s before arming Universal Mutagen again.\r\n",

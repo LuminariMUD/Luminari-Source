@@ -222,7 +222,7 @@ EVENTFUNC(event_rol_drow_decay)
   if (rol_drow_decay_once(obj))
   {
     /* Detach the running event before extraction so object cleanup cannot cancel it twice. */
-    free_mud_event(event);
+    mud_event_detach_owner(event);
     extract_obj(obj);
     return 0;
   }

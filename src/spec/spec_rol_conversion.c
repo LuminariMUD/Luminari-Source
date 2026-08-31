@@ -3893,7 +3893,9 @@ static void rol_lich_energy_drain_stun(struct char_data *victim)
     return;
   }
 
-  remaining = stun_event->pEvent != NULL ? event_time(stun_event->pEvent) : 0;
+  remaining = stun_event->event_handle != EVENT_HANDLE_NONE
+                  ? event_handle_time(stun_event->event_handle)
+                  : 0;
   duration = rol_lich_energy_drain_stun_duration(remaining);
   change_event_duration(victim, eSTUNNED, duration);
 }

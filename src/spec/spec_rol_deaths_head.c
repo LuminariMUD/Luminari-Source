@@ -479,7 +479,7 @@ static bool rol_deaths_head_extract_running_seed(struct mud_event_data *event,
 {
   if (event == NULL || seed == NULL)
     return false;
-  free_mud_event(event);
+  mud_event_detach_owner(event);
   extract_obj(seed);
   return true;
 }

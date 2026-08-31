@@ -1716,17 +1716,18 @@ The `reloadimm regions` command reloads wilderness regions from the MySQL databa
 
 #### 1. MUD Event System (mud_event.c/h)
 - **new_mud_event()** - Creates event data structures with strdup'd variables
-- **attach_mud_event()** - Attaches events to the global event queue
-- **free_mud_event()** - Frees events and removes from associated lists
+- **attach_mud_event()** - Schedules an owned event and adds its payload to the region list
+- **event_handle_t** - Opaque identity stored by each MUD payload
+- **mud_event_detach_owner()** - Detaches an executing event before owner extraction
 - **clear_region_event_list()** - Safely cancels all events for a region
 - **EVENT_REGION** type events for encounter resets
 
-#### 2. DG Event Queue System (dg_event.c/h)
-- **event_create()** - Creates events and enqueues them
-- **event_cancel()** - Dequeues and frees events (calls cleanup_event_obj)
-- **queue_enq() / queue_deq()** - Queue management functions
-- **event_q** - The global event queue (static queue pointer)
-- **cleanup_event_obj()** - Calls free_mud_event for mud events
+#### 2. Timed-Event Facade (dg_event.c/h)
+- **event_schedule_owned_named_with_terminal_cleanup()** - Admits MUD work through the selected backend
+- **event_handle_cancel()** - Cancels queued or in-flight work through opaque identity
+- **event_handle_time()** - Reads remaining pulses without exposing scheduler records
+- The timing-wheel scheduler is the default backend; the legacy queue remains a boot-time rollback
+- MUD terminal cleanup runs exactly once after completion, cancellation, or shutdown
 
 #### 3. Custom List System (lists.c/h)
 - **create_list()** - Creates linked lists for event management
@@ -1767,33 +1768,27 @@ region_table[i].events = NULL;  /* CRITICAL: Initialize events list to NULL */
 #### Issue 2: Double Free in Event Cleanup
 **Problem:** The original clear_region_event_list used a temp_list approach that caused double-free errors because event_cancel removes events from the region's list.
 
-**Fix:** Process events directly from the region's list one at a time:
+**Fix:** The common owner-clear helper detaches the whole payload list before
+canceling each opaque handle. Cleanup therefore cannot mutate the list being
+walked:
 ```c
-while (reg->events && reg->events->iSize > 0) {
-    pEvent = (struct event *)reg->events->pFirstItem->pContent;
-    if (pEvent && event_is_queued(pEvent))
-        event_cancel(pEvent);  /* This removes event from reg->events */
-}
+clear_region_event_list(reg);
 ```
 
-#### Issue 3: NOWHERE Check in free_mud_event
+#### Issue 3: NOWHERE Check During Terminal Cleanup
 **Problem:** During reload, real_region() may return NOWHERE (-1) causing buffer underflow when accessing region_table[-1].
 
-**Fix:** Check for NOWHERE before accessing region_table:
-```c
-region_rnum rnum = real_region(*regvnum);
-if (rnum != NOWHERE) {
-    region = &region_table[rnum];
-    remove_from_list(pMudEvent->pEvent, region->events);
-}
-```
+**Fix:** Owner detachment resolves the copied region VNUM and touches
+`region_table` only when the region still exists. Terminal cleanup always frees
+the copied VNUM independently of lookup success.
 
 ### Event Lifecycle During Reload
 
 1. **Clear Phase:** All existing region events are cancelled
    - clear_region_event_list() called for each region
-   - event_cancel() -> cleanup_event_obj() -> free_mud_event()
-   - Events removed from both event_q and region->events
+   - The region generation and payload list are detached first
+   - event_handle_cancel() requests terminal cleanup for every payload
+   - In-flight payloads remain valid until their callbacks return
 
 2. **Free Phase:** Region memory is freed
    - Region names, vertices, reset_data freed
@@ -1807,7 +1802,7 @@ if (rnum != NOWHERE) {
 4. **Event Creation Phase:** New events created
    - For REGION_ENCOUNTER types with reset_time > 0
    - NEW_EVENT macro creates and attaches events
-   - Events added to both event_q and region->events
+   - Each payload stores an opaque handle and is added to `region->events`
 
 ### Memory Safety Patterns
 

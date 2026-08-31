@@ -9188,7 +9188,7 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
             af.spell = SKILL_CRIPPLING_CRITICAL;
             af.location = APPLY_STR;
             af.modifier = -dice(1, 4);
-            af.duration = MAX(1, (int)(event_time(pMudEvent->pEvent) / 60));
+            af.duration = MAX(1, (int)(event_handle_time(pMudEvent->event_handle) / 60));
             SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
             affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
             break;
@@ -9197,7 +9197,7 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
             af.spell = SKILL_CRIPPLING_CRITICAL;
             af.location = APPLY_DEX;
             af.modifier = -dice(1, 4);
-            af.duration = MAX(1, (int)(event_time(pMudEvent->pEvent) / 60));
+            af.duration = MAX(1, (int)(event_handle_time(pMudEvent->event_handle) / 60));
             SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
             affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
             break;
@@ -9206,7 +9206,7 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
             af.spell = SKILL_CRIPPLING_CRITICAL;
             af.location = APPLY_SAVING_FORT;
             af.modifier = -4;
-            af.duration = MAX(1, (int)(event_time(pMudEvent->pEvent) / 60));
+            af.duration = MAX(1, (int)(event_handle_time(pMudEvent->event_handle) / 60));
             SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
             affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
             break;
@@ -9215,7 +9215,7 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
             af.spell = SKILL_CRIPPLING_CRITICAL;
             af.location = APPLY_SAVING_REFL;
             af.modifier = -4;
-            af.duration = MAX(1, (int)(event_time(pMudEvent->pEvent) / 60));
+            af.duration = MAX(1, (int)(event_handle_time(pMudEvent->event_handle) / 60));
             SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
             affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
             break;
@@ -9224,7 +9224,7 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
             af.spell = SKILL_CRIPPLING_CRITICAL;
             af.location = APPLY_SAVING_WILL;
             af.modifier = -4;
-            af.duration = MAX(1, (int)(event_time(pMudEvent->pEvent) / 60));
+            af.duration = MAX(1, (int)(event_handle_time(pMudEvent->event_handle) / 60));
             SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
             affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
             break;
@@ -9233,7 +9233,7 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
             af.spell = SKILL_CRIPPLING_CRITICAL;
             af.location = APPLY_AC_NEW;
             af.modifier = -4;
-            af.duration = MAX(1, (int)(event_time(pMudEvent->pEvent) / 60));
+            af.duration = MAX(1, (int)(event_handle_time(pMudEvent->event_handle) / 60));
             SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
             affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
             break;

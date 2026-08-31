@@ -55,9 +55,9 @@ struct event
   EVENTFUNC(*func);                /**< The function called when this event comes up. */
   void *event_obj;                 /**< event_obj is passed to func when func is called */
   struct q_element *q_el;          /**< Fallback queue location; NULL on scheduler backend. */
-  bool isMudEvent;                 /**< used by the memory routines */
   event_cleanup_func cleanup;      /**< Optional cancellation and bulk cleanup hook. */
   event_handle_cleanup_func handle_cleanup; /**< Opaque-handle cleanup for migrated callers. */
+  bool cleanup_on_completion;      /**< Handle cleanup also owns normal completion. */
   event_handle_t handle;           /**< Generation-safe public identity. */
   int profile_index;               /**< PERFMON event callback aggregate slot */
   uint64_t scheduler_id;           /**< Opaque timing-wheel ID; zero for the legacy queue. */
@@ -151,6 +151,9 @@ event_handle_t event_schedule_owned_named(EVENTFUNC(*func), void *event_obj, lon
                                           const char *profile_name,
                                           struct game_event_owner owner);
 event_handle_t event_schedule_owned_named_with_cleanup(
+    EVENTFUNC(*func), void *event_obj, long when, const char *profile_name,
+    event_handle_cleanup_func cleanup, struct game_event_owner owner);
+event_handle_t event_schedule_owned_named_with_terminal_cleanup(
     EVENTFUNC(*func), void *event_obj, long when, const char *profile_name,
     event_handle_cleanup_func cleanup, struct game_event_owner owner);
 #define event_schedule(func, event_obj, when)                                                       \

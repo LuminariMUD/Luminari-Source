@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
 **Status:** In progress - Phases 1 through 10 accepted; Phase 11 owner migration in progress and removal gate pending
-**Document version:** 1.22
+**Document version:** 1.23
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 opaque-handle migration has reached MUD events
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner-handle migration complete through MUD events, with residual heartbeat decomposition next
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -22,9 +22,10 @@
 > now store generation-safe opaque event handles instead of public
 > compatibility-record pointers. Their timing, recurrence, teardown,
 > diagnostics, and rollback behavior are unchanged.
-> Vessel owners, the vessel/point-update singleton services, and DG waits also
-> use opaque handles. Only the MUD-event layer still exposes compatibility
-> records outside the facade.
+> Vessel owners, the vessel/point-update singleton services, DG waits, and MUD
+> events also use opaque handles. The compatibility record is now private to
+> its facade; two one-shot AI producers still call the raw creation entry point
+> without retaining its return value.
 > The process now owns a boot-sealed typed domain-event registry with bounded
 > synchronous dispatch, generation-aware resolution, and diagnostics. Nine
 > fact contracts exist. `WorldPhenomenon` is the first production-published
@@ -1982,6 +1983,14 @@ Readiness audit, 2026-08-31:
 - Vessel and point-update owners now use opaque handles as recorded in
   [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11D_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11D_VALIDATION.md).
   The unused Greyhawk action-event field was confirmed caller-free and removed.
+- DG waits and all MUD-event owner lists now use opaque handles. MUD payloads
+  have a handle-native terminal destructor that runs exactly once after normal
+  completion, cancellation, or shutdown; recurrence retains the same payload
+  and identity. Remaining-time, persistence, duration-change, extraction, and
+  scripted-special callers no longer inspect a compatibility record. The raw
+  record now has zero external declarations, while two ignored-return AI
+  creation calls remain for the zero-caller slice. Evidence is recorded in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11F_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11F_VALIDATION.md).
 
 ## 24. Verification Strategy
 
@@ -2348,3 +2357,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.20 | 2026-08-31 | Migrated the shared Phase 7 owners for autonomous mobiles, character and room affects, nearest-deadline character work, object automatic procedures, and DG random triggers to opaque event handles. Callback cadence, off-screen simulation, lifecycle refill, OLC/reindex behavior, both backends, and rollback selectors remain unchanged; external raw compatibility references fell from 62 across 18 files to 42 across 11 files. |
 | 1.21 | 2026-08-31 | Migrated Greyhawk and fixed-RoL vessel owners plus vessel and point-update singleton services to opaque handles, preserving every established cadence and lifecycle path. Removed one proven-unused Greyhawk action-event field and narrowed external compatibility references to 29 across seven DG-wait/MUD-event files. |
 | 1.22 | 2026-08-31 | Migrated DG trigger waits to opaque handles while preserving wait grammar, timing, resume, OLC replacement, room relocation, and cancellation semantics. Split the remaining MUD-event terminal-cleanup and persistence work into dedicated Phase 11f; external raw declarations now total 26 across five MUD-event files. |
+| 1.23 | 2026-08-31 | Migrated the complete MUD-event layer to opaque handles and payload owner lists. Added handle-native exactly-once cleanup for normal completion as well as cancellation and shutdown, preserved recurrence and persistence across both backends, and reduced external raw compatibility declarations to zero; only two ignored-return AI raw scheduling calls remain for the zero-caller audit. |

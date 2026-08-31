@@ -50,6 +50,14 @@ struct handle_self_cancel_payload
   struct handle_cleanup_trace *cleanup_trace;
 };
 
+struct terminal_cleanup_payload
+{
+  event_handle_t handle;
+  struct handle_cleanup_trace *cleanup_trace;
+  int runs_remaining;
+  long recurrence_delay;
+};
+
 struct reentrant_payload
 {
   struct event_trace *trace;
@@ -105,6 +113,15 @@ static EVENTFUNC(handle_self_cancel_callback)
   return 3;
 }
 
+static EVENTFUNC(terminal_cleanup_callback)
+{
+  struct terminal_cleanup_payload *payload;
+
+  payload = (struct terminal_cleanup_payload *)event_obj;
+  payload->runs_remaining--;
+  return payload->runs_remaining > 0 ? payload->recurrence_delay : 0;
+}
+
 static EVENTFUNC(workload_callback)
 {
   free(event_obj);
@@ -151,6 +168,20 @@ static void self_cancel_handle_cleanup(event_handle_t handle, void *event_obj)
   struct handle_cleanup_trace *trace;
 
   payload = (struct handle_self_cancel_payload *)event_obj;
+  trace = payload->cleanup_trace;
+  trace->seen_handle = handle;
+  trace->seen_payload = event_obj;
+  trace->live_during_cleanup = event_handle_is_live(handle);
+  trace->calls++;
+  free(payload);
+}
+
+static void terminal_handle_cleanup(event_handle_t handle, void *event_obj)
+{
+  struct terminal_cleanup_payload *payload;
+  struct handle_cleanup_trace *trace;
+
+  payload = (struct terminal_cleanup_payload *)event_obj;
   trace = payload->cleanup_trace;
   trace->seen_handle = handle;
   trace->seen_payload = event_obj;
@@ -420,6 +451,81 @@ void Test_event_opaque_handles_are_generation_safe_on_both_backends(CuTest *tc)
   saved_pulse = pulse;
   verify_opaque_handle_lifecycle(tc, EVENT_BACKEND_LEGACY_QUEUE);
   verify_opaque_handle_lifecycle(tc, EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = saved_pulse;
+}
+
+static event_handle_t schedule_terminal_cleanup_test_event(
+    CuTest *tc, struct handle_cleanup_trace *trace, int runs, long recurrence_delay,
+    long initial_delay, const char *profile_name)
+{
+  struct terminal_cleanup_payload *payload;
+  event_handle_t handle;
+
+  payload = malloc(sizeof(*payload));
+  CuAssertPtrNotNull(tc, payload);
+  payload->handle = EVENT_HANDLE_NONE;
+  payload->cleanup_trace = trace;
+  payload->runs_remaining = runs;
+  payload->recurrence_delay = recurrence_delay;
+  handle = event_schedule_owned_named_with_terminal_cleanup(
+      terminal_cleanup_callback, payload, initial_delay, profile_name,
+      terminal_handle_cleanup, game_event_owner_none());
+  CuAssertTrue(tc, handle != EVENT_HANDLE_NONE);
+  payload->handle = handle;
+  return handle;
+}
+
+static void verify_terminal_cleanup_lifecycle(CuTest *tc, enum event_backend_kind backend)
+{
+  struct handle_cleanup_trace cancellation_trace;
+  struct handle_cleanup_trace completion_trace;
+  struct handle_cleanup_trace shutdown_trace;
+  event_handle_t cancelled;
+  event_handle_t completed;
+  event_handle_t shutdown;
+
+  memset(&cancellation_trace, 0, sizeof(cancellation_trace));
+  memset(&completion_trace, 0, sizeof(completion_trace));
+  memset(&shutdown_trace, 0, sizeof(shutdown_trace));
+  begin_backend_test(tc, backend, 275U);
+
+  completed = schedule_terminal_cleanup_test_event(
+      tc, &completion_trace, 2, 2, 1, "terminal-cleanup-completion");
+  pulse = 276U;
+  event_process();
+  CuAssertIntEquals(tc, 0, completion_trace.calls);
+  CuAssertTrue(tc, event_handle_is_live(completed));
+  pulse = 278U;
+  event_process();
+  CuAssertIntEquals(tc, 1, completion_trace.calls);
+  CuAssertTrue(tc, completion_trace.seen_handle == completed);
+  CuAssertTrue(tc, completion_trace.live_during_cleanup);
+  CuAssertTrue(tc, !event_handle_is_live(completed));
+
+  cancelled = schedule_terminal_cleanup_test_event(
+      tc, &cancellation_trace, 1, 0, 10, "terminal-cleanup-cancellation");
+  CuAssertTrue(tc, event_handle_cancel(cancelled));
+  CuAssertIntEquals(tc, 1, cancellation_trace.calls);
+  CuAssertTrue(tc, cancellation_trace.seen_handle == cancelled);
+  CuAssertTrue(tc, cancellation_trace.live_during_cleanup);
+  CuAssertTrue(tc, !event_handle_is_live(cancelled));
+
+  shutdown = schedule_terminal_cleanup_test_event(
+      tc, &shutdown_trace, 1, 0, 10, "terminal-cleanup-shutdown");
+  event_free_all();
+  CuAssertIntEquals(tc, 1, shutdown_trace.calls);
+  CuAssertTrue(tc, shutdown_trace.seen_handle == shutdown);
+  CuAssertTrue(tc, shutdown_trace.live_during_cleanup);
+  CuAssertTrue(tc, !event_handle_is_live(shutdown));
+}
+
+void Test_event_terminal_cleanup_runs_once_on_both_backends(CuTest *tc)
+{
+  unsigned long saved_pulse;
+
+  saved_pulse = pulse;
+  verify_terminal_cleanup_lifecycle(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  verify_terminal_cleanup_lifecycle(tc, EVENT_BACKEND_GAME_SCHEDULER);
   pulse = saved_pulse;
 }
 

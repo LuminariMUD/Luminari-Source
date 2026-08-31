@@ -27,7 +27,6 @@
 #include "comm.h" /* For access to the game pulse */
 #include "dotenv.h"
 #include "game_scheduler.h"
-#include "mud_event.h"
 #include "perfmon.h"
 #include <limits.h> /* For LONG_MAX used in overflow checks */
 
@@ -314,7 +313,7 @@ static void legacy_scheduler_event_cleanup(void *payload)
   if (event->callback_terminal)
   {
     if (event->event_obj != NULL &&
-        (event->isMudEvent ||
+        (event->cleanup_on_completion ||
          (event->cancel_requested &&
           (event->cleanup != NULL || event->handle_cleanup != NULL))))
       cleanup_event_obj(event);
@@ -471,6 +470,7 @@ struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
 static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, long when,
                                            const char *profile_name, event_cleanup_func cleanup,
                                            event_handle_cleanup_func handle_cleanup,
+                                           bool cleanup_on_completion,
                                            struct game_event_owner owner)
 {
   struct event *new_event = NULL;
@@ -522,9 +522,9 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
   new_event->func = func;
   new_event->event_obj = event_obj;
   new_event->q_el = NULL;
-  new_event->isMudEvent = FALSE;
   new_event->cleanup = cleanup;
   new_event->handle_cleanup = handle_cleanup;
+  new_event->cleanup_on_completion = cleanup_on_completion;
   new_event->handle = EVENT_HANDLE_NONE;
   new_event->profile_index = PERF_register_event_callback(profile_name);
   new_event->scheduler_id = 0;
@@ -603,15 +603,15 @@ struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj,
                                               const char *profile_name,
                                               event_cleanup_func cleanup)
 {
-  return event_create_internal(func, event_obj, when, profile_name, cleanup,
-                               NULL, game_event_owner_none());
+  return event_create_internal(func, event_obj, when, profile_name, cleanup, NULL, false,
+                               game_event_owner_none());
 }
 
 struct event *event_create_owned_named(EVENTFUNC(*func), void *event_obj, long when,
                                        const char *profile_name,
                                        struct game_event_owner owner)
 {
-  return event_create_internal(func, event_obj, when, profile_name, NULL, NULL, owner);
+  return event_create_internal(func, event_obj, when, profile_name, NULL, NULL, false, owner);
 }
 
 struct event *event_create_owned_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
@@ -619,7 +619,7 @@ struct event *event_create_owned_named_with_cleanup(EVENTFUNC(*func), void *even
                                                     event_cleanup_func cleanup,
                                                     struct game_event_owner owner)
 {
-  return event_create_internal(func, event_obj, when, profile_name, cleanup, NULL, owner);
+  return event_create_internal(func, event_obj, when, profile_name, cleanup, NULL, false, owner);
 }
 
 event_handle_t event_schedule_named(EVENTFUNC(*func), void *event_obj, long when,
@@ -634,7 +634,7 @@ event_handle_t event_schedule_named_with_cleanup(EVENTFUNC(*func), void *event_o
 {
   struct event *event;
 
-  event = event_create_internal(func, event_obj, when, profile_name, NULL, cleanup,
+  event = event_create_internal(func, event_obj, when, profile_name, NULL, cleanup, false,
                                 game_event_owner_none());
   return event != NULL ? event->handle : EVENT_HANDLE_NONE;
 }
@@ -653,7 +653,19 @@ event_handle_t event_schedule_owned_named_with_cleanup(
 {
   struct event *event;
 
-  event = event_create_internal(func, event_obj, when, profile_name, NULL, cleanup, owner);
+  event = event_create_internal(func, event_obj, when, profile_name, NULL, cleanup, false, owner);
+  return event != NULL ? event->handle : EVENT_HANDLE_NONE;
+}
+
+event_handle_t event_schedule_owned_named_with_terminal_cleanup(
+    EVENTFUNC(*func), void *event_obj, long when, const char *profile_name,
+    event_handle_cleanup_func cleanup, struct game_event_owner owner)
+{
+  struct event *event;
+
+  if (cleanup == NULL)
+    return EVENT_HANDLE_NONE;
+  event = event_create_internal(func, event_obj, when, profile_name, NULL, cleanup, true, owner);
   return event != NULL ? event->handle : EVENT_HANDLE_NONE;
 }
 
@@ -741,17 +753,14 @@ bool event_handle_cancel(event_handle_t handle)
   return true;
 }
 
-/* The memory freeing routine tied into the mud event system.
+/* Release the payload associated with an event record.
  *
- * IMPORTANT FOR BEGINNERS:
- * This function cleans up the data associated with an event when the event
- * is being removed from the system. There are three types of events:
- * 1. Mud Events: Complex events with structured data (freed via free_mud_event)
- * 2. Custom Events: Events with a cleanup hook for owner detachment
- * 3. Simple Events: Basic events with malloc'd data (freed via free)
+ * Handle-native owners provide a cleanup hook for lifecycle detachment and
+ * payload destruction. Compatibility callers may provide a record cleanup
+ * hook. Payloads without either hook are assumed to be heap allocations.
  *
  * CRITICAL DESIGN NOTE:
- * For non-mud events, we assume event_obj was dynamically allocated (malloc'd).
+ * Without a cleanup hook, event_obj must be dynamically allocated (malloc'd).
  * If event_obj points to static or stack memory, calling free() will crash!
  * Currently, ALL non-mud events in the codebase use malloc'd memory, so this
  * is safe. If this changes in the future, we'd need a new flag or callback
@@ -759,8 +768,6 @@ bool event_handle_cancel(event_handle_t handle)
  */
 void cleanup_event_obj(struct event *event)
 {
-  struct mud_event_data *mud_event = NULL;
-
   /* Safety check - don't try to free NULL pointers */
   if (!event || !event->event_obj)
     return;
@@ -772,13 +779,6 @@ void cleanup_event_obj(struct event *event)
   else if (event->cleanup)
   {
     event->cleanup(event);
-  }
-  else if (event->isMudEvent)
-  {
-    /* Mud events have their own cleanup function that knows
-     * how to properly free all the complex data structures */
-    mud_event = (struct mud_event_data *)event->event_obj;
-    free_mud_event(mud_event);
   }
   else
   {
@@ -877,8 +877,7 @@ event_process_backend(const struct game_scheduler_budget *budget,
     if (the_event->cancel_requested)
     {
       if (the_event->event_obj != NULL &&
-          (the_event->isMudEvent || the_event->cleanup != NULL ||
-           the_event->handle_cleanup != NULL))
+          (the_event->cleanup != NULL || the_event->handle_cleanup != NULL))
         cleanup_event_obj(the_event);
       event_record_free(the_event, "in-flight legacy cancellation");
     }
@@ -899,8 +898,8 @@ event_process_backend(const struct game_scheduler_budget *budget,
     else
     {
       the_event->callback_terminal = true;
-      if (the_event->isMudEvent && the_event->event_obj != NULL)
-        free_mud_event((struct mud_event_data *)the_event->event_obj);
+      if (the_event->cleanup_on_completion && the_event->event_obj != NULL)
+        cleanup_event_obj(the_event);
       event_record_free(the_event, "legacy completion");
     }
   }

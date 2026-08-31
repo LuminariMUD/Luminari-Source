@@ -25,6 +25,7 @@ static EVENTFUNC(test_profiled_event_callback)
 
 static int test_event_cancel_cleanup_calls;
 static int test_inflight_owner_cancel_payload_reads;
+static int test_mud_event_recurrence_runs;
 
 static void test_event_cancel_cleanup(struct event *event)
 {
@@ -43,6 +44,17 @@ static EVENTFUNC(test_inflight_owner_cancel_callback)
   if (mud_event->sVariables != NULL && strcmp(mud_event->sVariables, "payload-live") == 0)
     test_inflight_owner_cancel_payload_reads++;
   return 10;
+}
+
+static EVENTFUNC(test_mud_event_recurrence_callback)
+{
+  struct mud_event_data *mud_event;
+
+  mud_event = (struct mud_event_data *)event_obj;
+  if (mud_event != NULL && mud_event->sVariables != NULL &&
+      strcmp(mud_event->sVariables, "recurrence-live") == 0)
+    test_mud_event_recurrence_runs++;
+  return test_mud_event_recurrence_runs % 2 == 1 ? 2 : 0;
 }
 
 #define SYNTAX_CHECK_OUTPUT_SIZE (1024 * 1024)
@@ -190,6 +202,8 @@ void Test_global_event_cleanup_detaches_live_object_owner(CuTest *tc)
 static void verify_mud_event_owner_generation(CuTest *tc, enum event_backend_kind backend)
 {
   struct game_event_owner first_owner;
+  struct mud_event_data *first_event;
+  struct mud_event_data *last_event;
   struct descriptor_data descriptor;
   struct obj_data object;
   uint64_t first_descriptor_generation;
@@ -204,13 +218,13 @@ static void verify_mud_event_owner_generation(CuTest *tc, enum event_backend_kin
   CuAssertPtrNotNull(tc, object.events);
   CuAssertIntEquals(tc, 2, object.events->iSize);
   CuAssertTrue(tc, object.event_owner_generation != 0);
-  first_owner = ((struct event *)object.events->pFirstItem->pContent)->owner;
+  first_event = (struct mud_event_data *)object.events->pFirstItem->pContent;
+  last_event = (struct mud_event_data *)object.events->pLastItem->pContent;
+  first_owner = first_event->owner;
   CuAssertIntEquals(tc, GAME_EVENT_OWNER_OBJECT, first_owner.kind);
   CuAssertTrue(tc, first_owner.runtime_id == (uint64_t)(uintptr_t)&object);
   CuAssertTrue(tc, first_owner.generation == object.event_owner_generation);
-  CuAssertTrue(tc, game_event_owner_equal(
-                       first_owner,
-                       ((struct event *)object.events->pLastItem->pContent)->owner));
+  CuAssertTrue(tc, game_event_owner_equal(first_owner, last_event->owner));
   clear_obj_event_list(&object);
   CuAssertPtrEquals(tc, NULL, object.events);
   CuAssertIntEquals(tc, 0, event_queue_depth());
@@ -247,10 +261,9 @@ void Test_mud_event_owners_are_generation_aware_on_both_backends(CuTest *tc)
 static void verify_inflight_owner_cancel_payload_lifetime(CuTest *tc,
                                                           enum event_backend_kind backend)
 {
-  struct game_event_owner owner;
   struct mud_event_data *mud_event;
   struct obj_data object;
-  struct event *event;
+  EVENTFUNC(*saved_callback);
   unsigned long saved_pulse;
 
   saved_pulse = pulse;
@@ -258,24 +271,20 @@ static void verify_inflight_owner_cancel_payload_lifetime(CuTest *tc,
   CuAssertIntEquals(tc, 1, event_test_select_backend(backend));
   event_init();
   memset(&object, 0, sizeof(object));
-  object.event_owner_generation = backend + 100U;
-  object.events = create_list();
-  owner.kind = GAME_EVENT_OWNER_OBJECT;
-  owner.runtime_id = (uint64_t)(uintptr_t)&object;
-  owner.generation = object.event_owner_generation;
+  mud_event_test_reset_cleanup_count();
+  saved_callback = mud_event_index[eARMOR_SPECAB_BLINDING].func;
+  mud_event_index[eARMOR_SPECAB_BLINDING].func = test_inflight_owner_cancel_callback;
   mud_event = new_mud_event(eARMOR_SPECAB_BLINDING, &object, "payload-live");
-  mud_event->owner = owner;
-  event = event_create_owned_named(test_inflight_owner_cancel_callback, mud_event, 1,
-                                   "in-flight owner cancellation", owner);
-  CuAssertPtrNotNull(tc, event);
-  event->isMudEvent = TRUE;
-  mud_event->pEvent = event;
-  add_to_list(event, object.events);
+  attach_mud_event(mud_event, 1);
+  CuAssertPtrNotNull(tc, object.events);
+  CuAssertTrue(tc, mud_event->event_handle != EVENT_HANDLE_NONE);
 
   pulse++;
   event_process();
+  mud_event_index[eARMOR_SPECAB_BLINDING].func = saved_callback;
   CuAssertPtrEquals(tc, NULL, object.events);
   CuAssertIntEquals(tc, 0, event_queue_depth());
+  CuAssertIntEquals(tc, 1, mud_event_test_cleanup_count());
   event_free_all();
   pulse = saved_pulse;
 }
@@ -286,6 +295,53 @@ void Test_mud_event_inflight_owner_cancel_defers_payload_cleanup_on_both_backend
   verify_inflight_owner_cancel_payload_lifetime(tc, EVENT_BACKEND_LEGACY_QUEUE);
   verify_inflight_owner_cancel_payload_lifetime(tc, EVENT_BACKEND_GAME_SCHEDULER);
   CuAssertIntEquals(tc, 2, test_inflight_owner_cancel_payload_reads);
+}
+
+static void verify_mud_event_terminal_recurrence(CuTest *tc,
+                                                 enum event_backend_kind backend)
+{
+  struct mud_event_data *mud_event;
+  struct obj_data object;
+  event_handle_t handle;
+  EVENTFUNC(*saved_callback);
+  unsigned long saved_pulse;
+
+  saved_pulse = pulse;
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(backend));
+  event_init();
+  memset(&object, 0, sizeof(object));
+  mud_event_test_reset_cleanup_count();
+  test_mud_event_recurrence_runs = 0;
+  saved_callback = mud_event_index[eARMOR_SPECAB_BLINDING].func;
+  mud_event_index[eARMOR_SPECAB_BLINDING].func = test_mud_event_recurrence_callback;
+  mud_event = new_mud_event(eARMOR_SPECAB_BLINDING, &object, "recurrence-live");
+  attach_mud_event(mud_event, 1);
+  handle = mud_event->event_handle;
+
+  pulse++;
+  event_process();
+  CuAssertIntEquals(tc, 1, test_mud_event_recurrence_runs);
+  CuAssertIntEquals(tc, 0, mud_event_test_cleanup_count());
+  CuAssertPtrNotNull(tc, object.events);
+  CuAssertTrue(tc, event_handle_is_live(handle));
+  CuAssertIntEquals(tc, 2, (int)event_handle_time(handle));
+
+  pulse += 2U;
+  event_process();
+  mud_event_index[eARMOR_SPECAB_BLINDING].func = saved_callback;
+  CuAssertIntEquals(tc, 2, test_mud_event_recurrence_runs);
+  CuAssertIntEquals(tc, 1, mud_event_test_cleanup_count());
+  CuAssertPtrEquals(tc, NULL, object.events);
+  CuAssertTrue(tc, !event_handle_is_live(handle));
+  event_free_all();
+  pulse = saved_pulse;
+}
+
+void Test_mud_event_terminal_recurrence_cleans_up_once_on_both_backends(CuTest *tc)
+{
+  verify_mud_event_terminal_recurrence(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  verify_mud_event_terminal_recurrence(tc, EVENT_BACKEND_GAME_SCHEDULER);
 }
 
 void Test_global_event_cleanup_invokes_custom_destructor(CuTest *tc)
@@ -506,7 +562,7 @@ void Test_mud_event_durable_restore_rehydrates_fresh_runtime_identity(CuTest *tc
   struct mud_event_data *restored_event;
   struct char_data source;
   struct char_data restored;
-  uint64_t source_scheduler_id;
+  event_handle_t source_handle;
   uint64_t source_generation;
   unsigned long saved_pulse;
 
@@ -521,22 +577,24 @@ void Test_mud_event_durable_restore_rehydrates_fresh_runtime_identity(CuTest *tc
   attach_mud_event(new_mud_event(eLAYONHANDS, &source, "uses:2"), 77);
   source_event = char_has_mud_event(&source, eLAYONHANDS);
   CuAssertPtrNotNull(tc, source_event);
-  source_scheduler_id = source_event->pEvent->scheduler_id;
+  source_handle = source_event->event_handle;
   source_generation = source_event->owner.generation;
-  CuAssertTrue(tc, source_scheduler_id != 0);
+  CuAssertTrue(tc, source_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, event_handle_is_live(source_handle));
   CuAssertTrue(tc, mud_event_make_durable_record(&source, source_event, 1000, &record));
   CuAssertIntEquals(tc, eLAYONHANDS, record.event_type);
   CuAssertIntEquals(tc, 2, record.payload_value);
 
   clear_char_event_list(&source);
+  CuAssertTrue(tc, !event_handle_is_live(source_handle));
   CuAssertIntEquals(tc, 1, mud_event_test_cleanup_count());
   CuAssertIntEquals(tc, MUD_EVENT_RESTORE_OK,
                     mud_event_restore_character_record(&restored, &record, 87400));
   restored_event = char_has_mud_event(&restored, eLAYONHANDS);
   CuAssertPtrNotNull(tc, restored_event);
-  CuAssertIntEquals(tc, 77, (int)event_time(restored_event->pEvent));
+  CuAssertIntEquals(tc, 77, (int)event_handle_time(restored_event->event_handle));
   CuAssertStrEquals(tc, "uses:2", restored_event->sVariables);
-  CuAssertTrue(tc, restored_event->pEvent->scheduler_id != source_scheduler_id);
+  CuAssertTrue(tc, restored_event->event_handle != source_handle);
   CuAssertTrue(tc, restored_event->owner.generation != source_generation);
   CuAssertTrue(tc, restored_event->owner.runtime_id == (uint64_t)(uintptr_t)&restored);
   CuAssertIntEquals(tc, MUD_EVENT_RESTORE_DUPLICATE,
@@ -614,7 +672,8 @@ static void verify_mud_event_restore_rollback_backend(CuTest *tc,
                     mud_event_restore_character_record(&ch, &record, 5000));
   restored_event = char_has_mud_event(&ch, eTREATINJURY);
   CuAssertPtrNotNull(tc, restored_event);
-  CuAssertIntEquals(tc, backend, restored_event->pEvent->backend);
+  CuAssertIntEquals(tc, backend, event_backend_current());
+  CuAssertTrue(tc, event_handle_is_live(restored_event->event_handle));
   clear_char_event_list(&ch);
   event_free_all();
 }

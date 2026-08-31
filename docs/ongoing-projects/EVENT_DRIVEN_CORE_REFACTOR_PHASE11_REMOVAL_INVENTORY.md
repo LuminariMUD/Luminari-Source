@@ -120,6 +120,18 @@ references across five files. All remaining external declarations are in MUD
 event storage and its diagnostics/persistence paths. Phase 11f owns that larger
 terminal-cleanup and persistence migration.
 
+Phase 11f migrates the complete MUD-event layer, its entity owner lists,
+remaining-time consumers, duration and payload replacement, scripted-special
+extraction, and durable-record inspection. Owner lists now contain MUD payload
+pointers with opaque handles, and a handle-native terminal destructor owns
+normal completion, cancellation, and shutdown cleanup. The source inventory is
+now 58 `struct event *` occurrences across three files: three libevent
+declarations in `src/reactor.c` and 55 private facade references in
+`src/dgscript/dg_event.[ch]`. No external compatibility-record declaration
+remains. Two one-shot producers in `src/ai_events.c` still call
+`event_create()` while ignoring its return; the zero-caller slice owns their
+conversion before the raw API can become private or be removed.
+
 Combat cadence, semantic rounds, activity timing, autonomous off-screen mobile
 simulation, affects, periodic character work, automatic procedures, DG random
 triggers, cancellation, recurrence, diagnostics, and boot-time rollback

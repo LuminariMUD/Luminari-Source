@@ -880,7 +880,7 @@ void Test_combat_semantic_round_transfers_action_cooldown_across_combat(CuTest *
   encounter_test_leave(&first, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
   restored = char_has_mud_event(&first, eSTANDARDACTION);
   CuAssertPtrNotNull(tc, restored);
-  CuAssertTrue(tc, event_time(restored->pEvent) >= 12 RL_SEC);
+  CuAssertTrue(tc, event_handle_time(restored->event_handle) >= 12 RL_SEC);
   encounter_test_leave(&second, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
   encounter_test_end(saved_pulse);
 }

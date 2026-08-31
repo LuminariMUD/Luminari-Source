@@ -328,7 +328,7 @@ struct mud_event_list
 
 struct mud_event_data
 {
-  struct event *pEvent; /***< Pointer reference to the event */
+  event_handle_t event_handle; /***< Generation-safe timed-event identity */
   event_id iId;         /***< General ID reference */
   void *pStruct;        /***< Pointer to NULL, Descriptor, Character .... */
   char *sVariables;     /***< String variable */
@@ -374,7 +374,7 @@ mud_event_restore_character_record(struct char_data *ch,
                                    int64_t now_epoch);
 struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sVariables);
 void attach_mud_event(struct mud_event_data *pMudEvent, long time);
-void free_mud_event(struct mud_event_data *pMudEvent);
+void mud_event_detach_owner(struct mud_event_data *pMudEvent);
 struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId);
 struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId);      // Ornir
 struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId);       // Ornir

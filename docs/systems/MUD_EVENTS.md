@@ -4,7 +4,7 @@ This document explains the current timing infrastructure used by LuminariMUD.
 The public DG event API selects either the game scheduler or the retained legacy
 queue implementation at boot. The higher-level MUD event layer supplies
 generation-aware owner handles, explicit persistence policy, and entity-scoped
-compatibility lists and queries.
+payload lists and queries without exposing scheduler records.
 
 Core source files:
 - [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
@@ -33,14 +33,14 @@ Key entry points (clickable declarations):
 - [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28): standard signature for all event functions
 - [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c): schedule through the active backend
 - [C.event_schedule_named_with_cleanup()](../../src/dgscript/dg_event.c): schedule through an opaque compatibility handle
+- [C.event_schedule_owned_named_with_terminal_cleanup()](../../src/dgscript/dg_event.c): schedule owned payloads with cleanup on every terminal path
 - [C.event_process()](../../src/dgscript/dg_event.c): advance and dispatch the active backend every pulse
 - [C.event_cancel()](../../src/dgscript/dg_event.c): cancel a queued or in-flight event safely
 - [C.event_handle_cancel()](../../src/dgscript/dg_event.c): cancel without exposing a compatibility record
-- [C.cleanup_event_obj()](../../src/dgscript/dg_event.c): free event payloads (MUD or generic)
 - [C.event_time()](../../src/dgscript/dg_event.c): remaining pulses until an event fires
 - [C.event_free_all()](../../src/dgscript/dg_event.c): bulk free all events (shutdown/reset)
 - [C.attach_mud_event()](../../src/mud_event.c#L437): attach a MUD event to an entity and queue it
-- [C.free_mud_event()](../../src/mud_event.c#L607): remove from entity lists and free payload
+- [C.mud_event_detach_owner()](../../src/mud_event.c): detach an executing payload before its owner is extracted
 - [C.new_mud_event()](../../src/mud_event.c#L579): allocate a MUD event payload
 - [C.init_events()](../../src/mud_event.c#L66): initialize global world event list
 - [C.event_countdown()](../../src/mud_event.c#L75): generic "countdown" handler with special cases
@@ -103,6 +103,14 @@ final opportunity to detach the handle from its owner and remains responsible
 for releasing its payload. Normal completion remains the event callback's
 payload responsibility and also invalidates the handle after it returns.
 
+`event_schedule_owned_named_with_terminal_cleanup()` extends that contract for
+payloads whose destructor must run after normal completion as well as
+cancellation and shutdown. A positive callback return retains both payload and
+handle for recurrence. A terminal return invokes cleanup exactly once while the
+handle is still live, then invalidates the handle. The MUD-event layer uses
+this form so its owner-list detachment and payload destruction do not depend on
+the public compatibility record.
+
 The original pointer API remains available only while existing owner categories
 are migrated and release rollback is required. Both API families use the same
 record, admission limit, scheduler, recurrence semantics, and exactly-once
@@ -126,6 +134,10 @@ DG script waits also store opaque handles. Their trigger-owned payload pointer
 exists only for room OLC owner relocation; normal completion and cancellation
 clear both fields without exposing the scheduler compatibility record.
 
+MUD events store opaque handles too. Entity lists contain `mud_event_data`
+payload pointers, remaining-time and cancellation callers use handle APIs, and
+the facade contains no MUD-specific flag or destructor branch.
+
 ### 2.3 Lifecycle (Base)
 
 - Create/schedule: [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c)
@@ -134,19 +146,19 @@ clear both fields without exposing the scheduler compatibility record.
     scheduler deadline, so admission after an idle wheel interval cannot fire
     early from a stale internal scheduler tick
   - Preserves the registered callback name for PERFMON even though all compatibility events share one internal scheduler event type
-  - Returns a heap-allocated struct event whose payload is event_obj (type-specific)
+  - The raw compatibility API returns a heap-allocated internal record; migrated callers retain only its opaque handle
 - Process every pulse: [C.event_process()](../../src/dgscript/dg_event.c)
   - Advances the timing wheel to the current game pulse, or processes the current bucket on the rollback backend
   - Marks the event explicitly as dispatching before invoking its callback
   - Calls the event function; a positive result reschedules relative to the callback pulse, while zero or a negative result completes it
   - Dispatch order is exact deadline followed by FIFO insertion order
-  - For MUD events, it invokes [C.free_mud_event()](../../src/mud_event.c#L607) if event_obj still present
+  - Terminal-cleanup owners invoke their registered payload destructor after a terminal callback return
 - Cancel: [C.event_cancel()](../../src/dgscript/dg_event.c)
   - In-flight cancellation becomes cancel-pending and always wins over a positive callback return
   - In-flight payload cleanup runs after the callback returns, so the callback
     retains valid payload storage for the rest of its invocation
   - Queued cancellation detaches and cleans up synchronously
-  - For MUD events, cleanup delegates to [C.free_mud_event()](../../src/mud_event.c#L607)
+  - Queued and in-flight cancellation invoke the registered cleanup exactly once
 - Query remaining pulses: [C.event_time()](../../src/dgscript/dg_event.c)
 - Inspect queued state: [C.event_is_queued()](../../src/dgscript/dg_event.c)
 
@@ -223,9 +235,12 @@ The MUD layer adds:
 - Allocate payload: [C.new_mud_event()](../../src/mud_event.c#L579)
   - Duplicates sVariables string if provided (ownership sits with the MUD event)
 - Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c#L437)
-  - Builds the owner's typed handle and calls `event_create_owned_named()` with
-    the registry handler
-  - Adds the struct event pointer to the owner's event list (ch->events, obj->events, room->events, region->events, or world_events)
+  - Builds the owner's typed handle and calls
+    `event_schedule_owned_named_with_terminal_cleanup()` with the registry
+    handler and private MUD destructor
+  - Stores the returned `event_handle_t` in the MUD payload
+  - Adds the `mud_event_data` pointer to the owner's event list (`ch->events`,
+    `obj->events`, `room->events`, `region->events`, or `world_events`)
   - Special memory handling:
     - For EVENT_ROOM: copies the room VNUM into newly allocated memory and stores that pointer in pStruct; validates room existence; see attach switch case at [C.attach_mud_event()](../../src/mud_event.c#L437)
     - For EVENT_REGION: same pattern for region VNUM; see [C.attach_mud_event()](../../src/mud_event.c#L437)
@@ -260,15 +275,22 @@ The MUD layer adds:
     - Character feat-derived daily uses via get_daily_uses
   - Carefully handles overflow and division by zero; see math and guards at [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
 
-### 3.5 Freeing MUD Events
+### 3.5 Terminal MUD-Event Cleanup
 
-- Main payload cleanup: [C.free_mud_event()](../../src/mud_event.c#L607)
-  - Removes the event from the owning entity list, with post-cleanup to free empty lists
-  - Room/Region safety:
-    - Rooms: pStruct stores a heap copy of room_vnum; copy it before free, compute room_rnum, free pStruct, and only touch world array if room still exists; see [C.free_mud_event()](../../src/mud_event.c#L607)
-    - Regions: same for region_vnum; copy before free, validate against table, remove safely; see [C.free_mud_event()](../../src/mud_event.c#L607)
-  - Frees sVariables if present
-  - Nulls the event's event_obj to avoid accidental reuse
+- The scheduler invokes the private MUD cleanup after normal completion,
+  queued cancellation, in-flight cancellation, or shutdown.
+- Cleanup clears the payload's handle, detaches it from the owning entity list,
+  frees the list when that owner type uses empty-list cleanup, releases the
+  room/region VNUM copy and `sVariables`, then frees the payload.
+- A positive callback return is not terminal: the same payload, handle, owner,
+  and list entry remain live for the next callback-relative deadline.
+- [C.mud_event_detach_owner()](../../src/mud_event.c) is only for an executing
+  callback that must extract its owner before returning. It removes the list
+  entry immediately but deliberately leaves payload destruction to terminal
+  scheduler cleanup after the callback finishes.
+- Room and region payloads retain heap-owned VNUM keys. Detachment resolves the
+  key only while the owner remains present; terminal cleanup always frees the
+  key even if OLC or reload already removed the owner.
 
 ### 3.6 Entity-Scoped Query Helpers
 
@@ -281,7 +303,7 @@ The MUD layer adds:
 ### 3.7 Clearing All Events for an Entity
 
 Character, object, descriptor, room, and region clear helpers use one lifecycle
-order: invalidate the generation, detach the compatibility list, mark each MUD
+order: invalidate the generation, detach the payload list, mark each MUD
 payload owner-detached, and cancel every event from the detached list. This
 includes an event currently dispatching. Its payload remains valid until the
 callback returns, while terminal cleanup cannot dereference owner memory that
@@ -294,7 +316,7 @@ may already have been released.
 - Change sVariables: [C.change_event_svariables()](../../src/mud_event.c#L1267)
   - Captures remaining time, creates new event with new sVariables, cancels old, reattaches with preserved time
 - Cancel a specific char event by ID: [C.event_cancel_specific()](../../src/mud_event.c#L947)
-  - Uses event_is_queued guard before calling cancel
+  - Uses the payload's opaque handle and queued-state guard
 
 ### 3.9 Persistence and Reconstruction
 
@@ -514,9 +536,9 @@ manager counters.
 
 ## 7. Important Safety and Memory Practices
 
-- Never free or relink `struct event` directly during execution. Use
-  [C.event_cancel()](../../src/dgscript/dg_event.c); the facade safely records
-  in-flight cancellation and prevents recurrence from reviving the event.
+- Never access or relink the private `struct event` record from MUD gameplay.
+  Use `event_handle_cancel()` or the owner clear helpers; the facade safely
+  records in-flight cancellation and prevents recurrence from reviving work.
 - Never call [C.event_free_all()](../../src/dgscript/dg_event.c) while processing
   is active; it is guarded, but treat it as shutdown-only.
 - For EVENT_ROOM and EVENT_REGION:
@@ -526,7 +548,7 @@ manager counters.
   replacement, and region reload. They safely cancel queued and in-flight work.
 - sVariables ownership:
   - Always strdup on creation ([C.new_mud_event()](../../src/mud_event.c#L578))
-  - Always free on payload free ([C.free_mud_event()](../../src/mud_event.c#L607))
+  - Terminal cleanup always frees it after the callback no longer runs
 
 ## 8. Timing Semantics and Conversions
 
@@ -578,8 +600,8 @@ manager counters.
 - recovery_msg for daily-use recoveries
 
 7) Validate memory and lifecycle:
-- If you store additional state in sVariables, strdup on creation and free on completion
-- Avoid touching owner lists directly; rely on attach/free helpers
+- If you store additional state in `sVariables`, let MUD terminal cleanup own it
+- Avoid touching owner lists directly; rely on attach, handle cancellation, and owner clear helpers
 
 8) Test cancel and rescheduling:
 - Test queued cancellation, in-flight cancellation, owner teardown, and
@@ -606,7 +628,7 @@ manager counters.
     [C.event_cancel()](../../src/dgscript/dg_event.c) and the backend terminal
     cleanup path
 - Free-then-use in Region/Room cleanup:
-  - Fixed by copying VNUM before freeing and validating indices; see [C.free_mud_event()](../../src/mud_event.c#L607) and [C.free_mud_event()](../../src/mud_event.c#L607)
+  - Prevented by resolving the owned VNUM key during detachment and freeing it only in terminal cleanup
 - Modifying lists during iteration:
   - Use the owner-specific clear helper; it detaches the list before cancellation
 - Overflows and div-by-zero in cooldown math:

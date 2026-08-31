@@ -34,7 +34,7 @@
  *    - new_mud_event(): Creates the event data structure
  *    - attach_mud_event(): Attaches event to an entity and starts timer
  *    - event_countdown(): Executes when the timer expires
- *    - free_mud_event(): Cleans up memory when event is done
+ *    - cleanup_mud_event(): Cleans up memory on every terminal path
  *
  **************************************************************************/
 
@@ -67,6 +67,8 @@ static int mud_event_cleanup_count = 0;
 
 /* The mud_event_index[] is defined in mud_event_list.c */
 extern struct mud_event_list mud_event_index[];
+
+static void cleanup_mud_event(event_handle_t handle, void *event_obj);
 
 static void initialize_mud_event_persistence_policies(void)
 {
@@ -272,13 +274,14 @@ bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *
   policy = mud_event_persistence_policy(pMudEvent->iId);
   if (policy == NULL || policy->storage_class != MUD_EVENT_PERSISTED ||
       mud_event_index[pMudEvent->iId].iEvent_Type != EVENT_CHAR || pMudEvent->pStruct != ch ||
-      pMudEvent->pEvent == NULL || pMudEvent->owner.kind != GAME_EVENT_OWNER_CHARACTER ||
+      pMudEvent->event_handle == EVENT_HANDLE_NONE ||
+      pMudEvent->owner.kind != GAME_EVENT_OWNER_CHARACTER ||
       pMudEvent->owner.runtime_id != (uint64_t)(uintptr_t)ch ||
       pMudEvent->owner.generation == 0 ||
       pMudEvent->owner.generation != ch->event_owner_generation || GET_IDNUM(ch) <= 0)
     return false;
 
-  remaining_ticks = event_time(pMudEvent->pEvent);
+  remaining_ticks = event_handle_time(pMudEvent->event_handle);
   if (remaining_ticks <= 0)
     return false;
 
@@ -828,7 +831,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
   struct room_data *room = NULL;
   struct region_data *region = NULL;
   struct obj_data *obj = NULL;
-  struct event *pEvent = NULL;
+  event_handle_t event_handle;
   room_vnum *rvnum = NULL;
   region_vnum *regvnum = NULL;
 
@@ -932,33 +935,32 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
 
   if (!game_event_owner_is_valid(pMudEvent->owner))
     goto admission_failed;
-  pEvent = event_create_owned_named(mud_event_index[pMudEvent->iId].func, pMudEvent, time,
-                                    mud_event_index[pMudEvent->iId].event_name,
-                                    pMudEvent->owner);
-  if (pEvent == NULL)
+  event_handle = event_schedule_owned_named_with_terminal_cleanup(
+      mud_event_index[pMudEvent->iId].func, pMudEvent, time,
+      mud_event_index[pMudEvent->iId].event_name, cleanup_mud_event, pMudEvent->owner);
+  if (event_handle == EVENT_HANDLE_NONE)
     goto admission_failed;
-  pEvent->isMudEvent = TRUE;
-  pMudEvent->pEvent = pEvent;
+  pMudEvent->event_handle = event_handle;
 
   switch (event_type)
   {
   case EVENT_WORLD:
-    add_to_list(pEvent, world_events);
+    add_to_list(pMudEvent, world_events);
     break;
   case EVENT_DESC:
-    add_to_list(pEvent, d->events);
+    add_to_list(pMudEvent, d->events);
     break;
   case EVENT_CHAR:
-    add_to_list(pEvent, ch->events);
+    add_to_list(pMudEvent, ch->events);
     break;
   case EVENT_OBJECT:
-    add_to_list(pEvent, obj->events);
+    add_to_list(pMudEvent, obj->events);
     break;
   case EVENT_ROOM:
-    add_to_list(pEvent, room->events);
+    add_to_list(pMudEvent, room->events);
     break;
   case EVENT_REGION:
-    add_to_list(pEvent, region->events);
+    add_to_list(pMudEvent, region->events);
     break;
   }
   return;
@@ -989,193 +991,117 @@ struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sV
    *   NOTE: For ROOM/REGION events, attach_mud_event() will create
    *   its own copy of this data to prevent memory leaks
    * - sVariables: Our copy of any event-specific data
-   * - pEvent: Will be set when event is attached */
+   * - event_handle: Will be set when the event is attached */
   pMudEvent->iId = iId;
   pMudEvent->pStruct = pStruct;
   pMudEvent->sVariables = varString;
-  pMudEvent->pEvent = NULL;
+  pMudEvent->event_handle = EVENT_HANDLE_NONE;
   pMudEvent->owner = game_event_owner_none();
   pMudEvent->owner_detached = false;
 
   return (pMudEvent);
 }
 
-void free_mud_event(struct mud_event_data *pMudEvent)
+void mud_event_detach_owner(struct mud_event_data *pMudEvent)
 {
-  /* BEGINNER'S GUIDE: This is the cleanup function for MUD events.
-   * It's called when an event completes or is cancelled.
-   *
-   * CRITICAL RESPONSIBILITY: This function must:
-   * 1. Remove the event from the entity's event list
-   * 2. Free all dynamically allocated memory
-   * 3. Handle special cases for ROOM and REGION events
-   *
-   * Memory leaks here will cause the game to eventually crash! */
-
   struct descriptor_data *d = NULL;
   struct char_data *ch = NULL;
   struct room_data *room = NULL;
   struct region_data *region = NULL;
   struct obj_data *obj = NULL;
+  room_rnum room_index;
+  region_rnum region_index;
 
-  room_vnum *rvnum = NULL;
-  region_vnum *regvnum = NULL;
+  if (pMudEvent == NULL || pMudEvent->owner_detached)
+    return;
+  pMudEvent->owner_detached = true;
 
-#ifdef LUMINARI_CUTEST
-  mud_event_cleanup_count++;
-#endif
-
-  /* Remove event from appropriate list based on entity type.
-   * Each entity type (char, room, etc.) maintains its own event list. */
   switch (mud_event_index[pMudEvent->iId].iEvent_Type)
   {
   case EVENT_WORLD:
-    if (!pMudEvent->owner_detached)
-      remove_from_list(pMudEvent->pEvent, world_events);
+    remove_from_list(pMudEvent, world_events);
     break;
   case EVENT_DESC:
-    if (!pMudEvent->owner_detached)
-    {
-      d = (struct descriptor_data *)pMudEvent->pStruct;
-      remove_from_list(pMudEvent->pEvent, d->events);
-    }
+    d = (struct descriptor_data *)pMudEvent->pStruct;
+    if (d != NULL)
+      remove_from_list(pMudEvent, d->events);
     break;
   case EVENT_CHAR:
-    if (pMudEvent->owner_detached)
-      break;
-
     ch = (struct char_data *)pMudEvent->pStruct;
-    remove_from_list(pMudEvent->pEvent, ch->events);
-    if (ch->events && ch->events->iSize == 0)
+    if (ch != NULL)
     {
-      free_list(ch->events);
-      ch->events = NULL;
+      remove_from_list(pMudEvent, ch->events);
+      if (ch->events != NULL && ch->events->iSize == 0)
+      {
+        free_list(ch->events);
+        ch->events = NULL;
+      }
     }
     break;
   case EVENT_OBJECT:
-    if (pMudEvent->owner_detached)
-      break;
-
     obj = (struct obj_data *)pMudEvent->pStruct;
-    remove_from_list(pMudEvent->pEvent, obj->events);
-
-    if (obj->events && obj->events->iSize == 0)
+    if (obj != NULL)
     {
-      free_list(obj->events);
-      obj->events = NULL;
+      remove_from_list(pMudEvent, obj->events);
+      if (obj->events != NULL && obj->events->iSize == 0)
+      {
+        free_list(obj->events);
+        obj->events = NULL;
+      }
     }
     break;
   case EVENT_ROOM:
-    /* CRITICAL SECTION: Room Event Cleanup
-     *
-     * PROBLEM: Rooms can be deleted/modified by OLC (online creation) while
-     * events are attached to them. We store room VNUMs (virtual numbers)
-     * not pointers, because pointers can become invalid.
-     *
-     * SOLUTION: Always verify the room still exists before accessing it! */
-
-    rvnum = (room_vnum *)pMudEvent->pStruct;
-
-    /* CRITICAL BOUNDS CHECK - THIS PREVENTS CRASHES!
-     * Step 1: Save the vnum value BEFORE freeing the memory
-     * Step 2: Check if the room still exists in the world
-     * Step 3: Free the memory regardless (prevent memory leak)
-     * Step 4: Only access the room if it exists
-     *
-     * real_room() converts a VNUM to an array index (RNUM).
-     * It returns NOWHERE (-1) if the room doesn't exist.
-     * Accessing world[-1] would crash the game! */
-    room_vnum vnum_copy = *rvnum; /* Save vnum before freeing */
-
-    /* Always free the allocated memory to prevent leaks */
-    free(pMudEvent->pStruct);
-
-    if (pMudEvent->owner_detached)
+    if (pMudEvent->pStruct == NULL)
       break;
-
-    room_rnum room_index = real_room(vnum_copy);
-
-    /* Safety: Only proceed if room exists */
+    room_index = real_room(*(room_vnum *)pMudEvent->pStruct);
     if (room_index == NOWHERE)
-    {
-      log("Info: Event for room vnum %d cancelled, but room no longer exists", vnum_copy);
-      break; /* Exit early - can't remove from non-existent room's list */
-    }
-
-    /* Now safe to access the room via world array */
+      break;
     room = &world[room_index];
-
-    /* log("[DEBUG] Removing Event %s from room %d, which has %d events.",mud_event_index[pMudEvent->iId].event_name, room->number, (room->events == NULL ? 0 : room->events->iSize)); */
-
-    remove_from_list(pMudEvent->pEvent, room->events);
-
-    if (room->events && room->events->iSize == 0)
-    { /* Added the null check here. - Ornir*/
+    remove_from_list(pMudEvent, room->events);
+    if (room->events != NULL && room->events->iSize == 0)
+    {
       free_list(room->events);
       room->events = NULL;
     }
     break;
   case EVENT_REGION:
-    /* CRITICAL SECTION: Region Event Cleanup
-     *
-     * BUG HISTORY: The original code had a USE-AFTER-FREE bug!
-     * It freed the memory first, then tried to use the freed memory
-     * in a log message. This caused random crashes.
-     *
-     * CORRECT ORDER:
-     * 1. Get the pointer to the vnum
-     * 2. Copy the vnum value to a local variable
-     * 3. Free the memory
-     * 4. Use the local copy (not the freed memory!)
-     *
-     * This is a classic C programming pitfall that beginners often hit! */
-
-    regvnum = (region_vnum *)pMudEvent->pStruct;
-
-    /* CRITICAL: Copy the vnum BEFORE freeing!
-     * After free(), the memory contents are undefined.
-     * Accessing freed memory is undefined behavior (UB) in C. */
-    region_vnum reg_vnum_copy = *regvnum;
-
-    /* Verify region exists. Regions can be reloaded/deleted dynamically.
-     * real_region() returns NOWHERE if the region doesn't exist.
-     * Accessing region_table[NOWHERE] would be out of bounds! */
-    /* NOW safe to free the memory */
-    free(pMudEvent->pStruct);
-
-    if (pMudEvent->owner_detached)
+    if (pMudEvent->pStruct == NULL)
       break;
-
-    region_rnum rnum = real_region(reg_vnum_copy);
-
-    if (rnum != NOWHERE)
+    region_index = real_region(*(region_vnum *)pMudEvent->pStruct);
+    if (region_index != NOWHERE)
     {
-      /* Region exists - safe to remove event from its list */
-      region = &region_table[rnum];
-      remove_from_list(pMudEvent->pEvent, region->events);
-
-      /* Clean up empty event list */
-      if (region->events && region->events->iSize == 0)
+      region = &region_table[region_index];
+      remove_from_list(pMudEvent, region->events);
+      if (region->events != NULL && region->events->iSize == 0)
       {
         free_list(region->events);
         region->events = NULL;
       }
     }
-    else
-    {
-      /* Region no longer exists - this can happen during reload.
-       * We use reg_vnum_copy here, which is safe because we copied it
-       * before freeing the memory. */
-      log("Info: Event for region vnum %d cancelled, but region no longer exists", reg_vnum_copy);
-    }
     break;
   }
+}
 
-  if (pMudEvent->sVariables != NULL)
-    free(pMudEvent->sVariables);
+static void cleanup_mud_event(event_handle_t handle, void *event_obj)
+{
+  struct mud_event_data *pMudEvent = event_obj;
+  int event_type;
 
-  pMudEvent->pEvent->event_obj = NULL;
+  if (pMudEvent == NULL)
+    return;
+#ifdef LUMINARI_CUTEST
+  mud_event_cleanup_count++;
+#endif
+
+  event_type = mud_event_index[pMudEvent->iId].iEvent_Type;
+  pMudEvent->event_handle = EVENT_HANDLE_NONE;
+  mud_event_detach_owner(pMudEvent);
+  if ((event_type == EVENT_ROOM || event_type == EVENT_REGION) && pMudEvent->pStruct != NULL)
+    free(pMudEvent->pStruct);
+
+  free(pMudEvent->sVariables);
   free(pMudEvent);
+  (void)handle;
 }
 
 #ifdef LUMINARI_CUTEST
@@ -1192,7 +1118,6 @@ int mud_event_test_cleanup_count(void)
 
 struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
   struct iterator_data it;
@@ -1206,12 +1131,9 @@ struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId)
     return NULL;
 
 
-  for (pEvent = (struct event *)merge_iterator(&it, ch->events); pEvent != NULL;
-       pEvent = next_in_list(&it))
+  for (pMudEvent = merge_iterator(&it, ch->events); pMudEvent != NULL;
+       pMudEvent = next_in_list(&it))
   {
-    if (!pEvent->isMudEvent)
-      continue;
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -1228,7 +1150,6 @@ struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId)
 
 struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
@@ -1239,11 +1160,8 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId)
     return NULL;
 
   simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(rm->events)) != NULL)
+  while ((pMudEvent = simple_list(rm->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -1260,7 +1178,6 @@ struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId)
 
 struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
@@ -1271,11 +1188,8 @@ struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId)
     return NULL;
 
   simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(obj->events)) != NULL)
+  while ((pMudEvent = simple_list(obj->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -1292,7 +1206,6 @@ struct mud_event_data *obj_has_mud_event(struct obj_data *obj, event_id iId)
 
 struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iId)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
@@ -1303,11 +1216,8 @@ struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iI
     return NULL;
 
   simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(reg->events)) != NULL)
+  while ((pMudEvent = simple_list(reg->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -1334,7 +1244,6 @@ struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iI
  */
 struct mud_event_data *world_has_mud_event(event_id iId)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
@@ -1349,15 +1258,8 @@ struct mud_event_data *world_has_mud_event(event_id iId)
   /* Search through all world events for one matching the requested ID.
    * We use simple_list() for safe iteration. */
   simple_list(NULL); /* Reset the iterator */
-  while ((pEvent = (struct event *)simple_list(world_events)) != NULL)
+  while ((pMudEvent = simple_list(world_events)) != NULL)
   {
-    /* Skip non-MUD events (shouldn't be any in world_events, but be safe) */
-    if (!pEvent->isMudEvent)
-      continue;
-
-    /* Get the MUD event data from this event */
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
-
     /* Check if this is the event we're looking for */
     if (pMudEvent->iId == iId)
     {
@@ -1376,7 +1278,6 @@ struct mud_event_data *world_has_mud_event(event_id iId)
 
 void event_cancel_specific(struct char_data *ch, event_id iId)
 {
-  struct event *pEvent;
   struct mud_event_data *pMudEvent = NULL;
   bool found = FALSE;
 
@@ -1396,11 +1297,8 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
 
   /* Use simple_list for safer iteration when we're going to modify the list */
   simple_list(NULL); /* Reset the simple list iterator */
-  while ((pEvent = (struct event *)simple_list(ch->events)) != NULL)
+  while ((pMudEvent = simple_list(ch->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -1413,8 +1311,8 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
   {
     /* act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM); */
     /* send_to_char(ch, "Event found: %d.\r\n", iId); */
-    if (event_is_queued(pEvent))
-      event_cancel(pEvent);
+    if (event_handle_is_queued(pMudEvent->event_handle))
+      (void)event_handle_cancel(pMudEvent->event_handle);
   }
   else
   {
@@ -1427,7 +1325,7 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
 
 static void clear_owned_event_list(struct list_data **owner_events, uint64_t *generation)
 {
-  struct event *event;
+  struct mud_event_data *mud_event;
   struct item_data *item;
   struct list_data *pending;
 
@@ -1439,21 +1337,20 @@ static void clear_owned_event_list(struct list_data **owner_events, uint64_t *ge
   pending = create_list();
   for (item = (*owner_events)->pFirstItem; item != NULL; item = item->pNextItem)
   {
-    event = (struct event *)item->pContent;
-    if (event == NULL)
+    mud_event = item->pContent;
+    if (mud_event == NULL)
       continue;
-    if (event->isMudEvent && event->event_obj != NULL)
-      ((struct mud_event_data *)event->event_obj)->owner_detached = true;
-    add_to_list(event, pending);
+    mud_event->owner_detached = true;
+    add_to_list(mud_event, pending);
   }
 
   free_list(*owner_events);
   *owner_events = NULL;
   while (pending->pFirstItem != NULL)
   {
-    event = (struct event *)pending->pFirstItem->pContent;
-    remove_from_list(event, pending);
-    event_cancel(event);
+    mud_event = pending->pFirstItem->pContent;
+    remove_from_list(mud_event, pending);
+    (void)event_handle_cancel(mud_event->event_handle);
   }
   free_list(pending);
 }
@@ -1493,7 +1390,6 @@ void clear_region_event_list(struct region_data *reg)
  */
 void change_event_duration(struct char_data *ch, event_id iId, long time)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   struct mud_event_data *pNewMudEvent = NULL;
   bool found = FALSE;
@@ -1504,13 +1400,8 @@ void change_event_duration(struct char_data *ch, event_id iId, long time)
     return;
 
   simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(ch->events)) != NULL)
+  while ((pMudEvent = simple_list(ch->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
-
     if (pMudEvent->iId == iId)
     {
       found = TRUE;
@@ -1528,8 +1419,8 @@ void change_event_duration(struct char_data *ch, event_id iId, long time)
     pNewMudEvent = new_mud_event(iId, ch, sVarCopy);
 
     /* Cancel the old event */
-    if (event_is_queued(pEvent))
-      event_cancel(pEvent);
+    if (event_handle_is_queued(pMudEvent->event_handle))
+      (void)event_handle_cancel(pMudEvent->event_handle);
 
     /* Now attach the new event */
     attach_mud_event(pNewMudEvent, time);
@@ -1543,7 +1434,6 @@ void change_event_duration(struct char_data *ch, event_id iId, long time)
 /* zusuk: change an event's svariables value */
 void change_event_svariables(struct char_data *ch, event_id iId, char *sVariables)
 {
-  struct event *pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
   struct mud_event_data *pNewMudEvent = NULL;
   bool found = FALSE;
@@ -1554,16 +1444,11 @@ void change_event_svariables(struct char_data *ch, event_id iId, char *sVariable
     return;
 
   simple_list(NULL);
-  while ((pEvent = (struct event *)simple_list(ch->events)) != NULL)
+  while ((pMudEvent = simple_list(ch->events)) != NULL)
   {
-    if (!pEvent->isMudEvent)
-      continue;
-
-    pMudEvent = (struct mud_event_data *)pEvent->event_obj;
-
     if (pMudEvent->iId == iId)
     {
-      time = event_time(pMudEvent->pEvent);
+      time = event_handle_time(pMudEvent->event_handle);
       found = TRUE;
       break;
     }
@@ -1576,8 +1461,8 @@ void change_event_svariables(struct char_data *ch, event_id iId, char *sVariable
     pNewMudEvent = new_mud_event(iId, ch, sVariables);
 
     /* Cancel the old event */
-    if (event_is_queued(pEvent))
-      event_cancel(pEvent);
+    if (event_handle_is_queued(pMudEvent->event_handle))
+      (void)event_handle_cancel(pMudEvent->event_handle);
 
     /* Now attach the new event */
     attach_mud_event(pNewMudEvent, time);
