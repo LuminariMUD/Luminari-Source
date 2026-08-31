@@ -108,6 +108,11 @@ record, admission limit, scheduler, recurrence semantics, and exactly-once
 terminal cleanup. Do not convert a caller by casting between a handle and a
 pointer.
 
+The first production owners migrated to this API are the encounter round clock
+and the primary-activity timer. Both retain their existing callback-relative
+recurrence and owner teardown behavior. This infrastructure migration does not
+alter combat rules, activity rules, or Establish Camp's skill selection.
+
 ### 2.3 Lifecycle (Base)
 
 - Create/schedule: [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c)

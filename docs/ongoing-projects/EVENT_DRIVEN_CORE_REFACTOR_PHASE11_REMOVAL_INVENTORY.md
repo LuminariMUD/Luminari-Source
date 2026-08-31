@@ -89,6 +89,21 @@ cleanup, owner cancellation, remaining-time queries, diagnostics, and MUD
 event persistence while each owner category moves. Remove the compatibility
 record only after a zero-caller source check and production-linked tests pass.
 
+### Migration progress after the audited baseline
+
+Phase 11a added the opaque-handle registry and API inside the facade, increasing
+the raw source count from 115 to 129 without adding an external caller. Phase
+11b then migrated encounter-owned combat rounds and primary-activity timers.
+At the Phase 11b tree, the same source check reports 119 occurrences across 21
+files: three libevent declarations, 54 private facade declarations, and 62
+external compatibility occurrences across 18 files. This slice therefore
+removes ten raw-pointer occurrences and two external raw-pointer-owning files.
+
+Combat cadence, semantic rounds, activity timing, cancellation, recurrence,
+diagnostics, and boot-time rollback selection are unchanged. Establish Camp
+continues to use the existing `ABILITY_SURVIVAL` behavior; changing its
+Survival/Nature model remains a separate human gameplay decision.
+
 `LUMINARI_EVENT_PERSISTENCE_FORMAT=legacy` also retains the Phase 5 legacy
 writer while the loader accepts old and versioned records. Removing that writer
 requires evidence that rollback no longer depends on it. Removing old-record
