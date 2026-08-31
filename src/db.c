@@ -27,6 +27,7 @@
 #include "dgscript/dg_scripts.h"
 #include "dgscript/dg_event.h"
 #include "domain_event_runtime.h"
+#include "activity_manager.h"
 #include "periodic_owners.h"
 #include "act.h"
 #include "ban.h"
@@ -6971,6 +6972,7 @@ void free_char(struct char_data *ch)
   int i = 0;
   struct alias_data *a = NULL;
 
+  primary_activity_forget_character(ch);
   point_update_character_forget(ch);
   affected_registry_detach(ch);
 

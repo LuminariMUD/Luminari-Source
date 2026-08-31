@@ -62,6 +62,7 @@
 #include "domain_event_runtime.h"
 #include "point_update_periodic.h"
 #include "combat/combat_encounters.h"
+#include "activity_manager.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -6339,6 +6340,8 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   }
 
   GET_HIT(victim) -= dam;
+  if (dam > 0)
+    (void)domain_event_runtime_character_damaged(victim, ch, dam, dam_type);
 
   activate_rol_delayed_hunter(victim, dam);
 
@@ -16626,6 +16629,7 @@ bool combat_run_semantic_round(struct char_data *ch, bool was_hit)
 
   {
     PERF_PROF_ENTER_SAMPLED(combat_action_queue, "combat.action_queue");
+    primary_activity_on_semantic_turn(ch);
     execute_next_action(ch);
     PERF_PROF_EXIT(combat_action_queue);
   }

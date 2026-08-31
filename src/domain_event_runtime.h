@@ -10,6 +10,9 @@ struct domain_event_bus *domain_event_runtime_bus(void);
 enum domain_event_status domain_event_runtime_character_moved(struct char_data *ch,
                                                               room_rnum from_room,
                                                               room_rnum to_room, int direction);
+enum domain_event_status domain_event_runtime_character_damaged(struct char_data *target,
+                                                                struct char_data *source,
+                                                                int amount, int damage_type);
 enum domain_event_status domain_event_runtime_combat_state_changed(struct char_data *ch,
                                                                    struct char_data *opponent,
                                                                    bool in_combat);

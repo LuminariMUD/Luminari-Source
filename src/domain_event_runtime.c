@@ -1,6 +1,7 @@
 #include "domain_event_runtime.h"
 
 #include "active_world.h"
+#include "activity_manager.h"
 #include "affected_owners.h"
 #include "character_periodic.h"
 #include "combat/combat_encounters.h"
@@ -31,6 +32,8 @@ enum domain_event_status domain_event_runtime_init(void)
   if (status == DOMAIN_EVENT_OK)
     status = domain_event_world_register_resolvers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
+    status = primary_activity_manager_init(runtime_bus);
+  if (status == DOMAIN_EVENT_OK)
     status = combat_encounter_runtime_init(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
     status = character_periodic_register_handlers(runtime_bus);
@@ -42,6 +45,7 @@ enum domain_event_status domain_event_runtime_init(void)
     status = domain_event_seal(runtime_bus);
   if (status != DOMAIN_EVENT_OK)
   {
+    primary_activity_manager_shutdown();
     active_world_shutdown();
     combat_encounter_runtime_shutdown();
     periodic_owners_shutdown();
@@ -61,6 +65,7 @@ enum domain_event_status domain_event_runtime_shutdown(void)
 
   if (runtime_bus == NULL)
     return DOMAIN_EVENT_OK;
+  primary_activity_manager_shutdown();
   active_world_shutdown();
   combat_encounter_runtime_shutdown();
   periodic_owners_shutdown();
@@ -92,6 +97,21 @@ enum domain_event_status domain_event_runtime_character_moved(struct char_data *
   event.to_room = domain_event_room_handle(to_room);
   event.direction = direction;
   return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_CHARACTER_MOVED, &event);
+}
+
+enum domain_event_status domain_event_runtime_character_damaged(struct char_data *target,
+                                                                struct char_data *source,
+                                                                int amount, int damage_type)
+{
+  struct domain_character_damaged event;
+
+  if (runtime_bus == NULL || target == NULL)
+    return DOMAIN_EVENT_NOT_FOUND;
+  event.target = domain_event_character_handle(target);
+  event.source = domain_event_character_handle(source);
+  event.amount = amount;
+  event.damage_type = damage_type;
+  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_CHARACTER_DAMAGED, &event);
 }
 
 enum domain_event_status domain_event_runtime_combat_state_changed(struct char_data *ch,

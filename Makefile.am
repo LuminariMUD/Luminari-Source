@@ -118,6 +118,8 @@ luminari_SOURCES = \
 	src/game_scheduler.h \
 	src/active_world.c \
 	src/active_world.h \
+	src/activity_manager.c \
+	src/activity_manager.h \
 	src/affected_owners.c \
 	src/affected_owners.h \
 	src/character_periodic.c \
@@ -383,6 +385,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_combat_encounters.c \
+	unittests/CuTest/test_activity_manager.c \
 	unittests/CuTest/test_thrown_weapons.c \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
@@ -445,6 +448,7 @@ cutest_test_files = \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_combat_encounters.c \
+	unittests/CuTest/test_activity_manager.c \
 	unittests/CuTest/test_thrown_weapons.c \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \

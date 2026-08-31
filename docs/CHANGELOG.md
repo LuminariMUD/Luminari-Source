@@ -2,6 +2,41 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Primary activities and Establish Camp
+
+#### Added
+
+- Added one typed, lifecycle-owned primary activity per character with explicit
+  progress ownership, capability claims, traits, interruption policy, and
+  generation-safe actor and target resolution.
+- Added `activity` status, cancel, pause, and resume controls with output
+  wrapped for an 80-column client.
+- Added compact primary-activity lifecycle, delay, command-rejection, and stale
+  callback counters to `eventdebug`.
+
+#### Changed
+
+- Migrated the existing `camp` command from immediate resolution to three
+  two-second steps while preserving its Survival roll, action costs, shelter,
+  recovery, and return-point behavior.
+- Kept informational and communication commands responsive during work;
+  movement cancels camp, damage delays it, combat pauses it, and conflicting
+  actions are explicitly rejected.
+
+#### Operations
+
+- Added `LUMINARI_CAMP_ACTIVITY=legacy` as the boot-time rollback to the prior
+  immediate camp command.
+- Extended the database and flat-file help sources with timed camp behavior and
+  the `activity` command, including idempotent exact-keyword verification.
+
+#### Tests
+
+- Added manager lifecycle, command admission, wall-time and semantic-turn,
+  domain interruption, callback re-entry, extraction, 80-column UX, direct
+  camp parity, rollback, sanitizer, Valgrind, boot-matrix, database, and
+  isolated live-MUD coverage.
+
 ### Semantic encounter rounds
 
 #### Changed

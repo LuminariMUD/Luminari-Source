@@ -4564,16 +4564,35 @@ Requires: the establish camp feat (any class; 3 ranks of survival)
 Action:   Standard and Move Action
 Check:    survival against a difficulty set by terrain and weather
 
-You clear a site, set your gear and get a fire going. You and any grouped
-companions in the room recover hitpoints and movement 50 percent faster while
-sleeping, reclining, resting or sitting in the camp, and the campsite becomes
-your return point, so quitting from camp brings you back to it.
+You spend about six seconds clearing a site, setting your gear and getting a
+fire going. Use activity to inspect, pause, resume or cancel the work. Moving
+ends the attempt, damage delays it, and entering combat pauses it until the
+fight ends. You and any grouped companions in the room recover hitpoints and
+movement 50 percent faster while sleeping, reclining, resting or sitting in
+the camp, and the campsite becomes your return point, so quitting from camp
+brings you back to it.
 
 Camps cannot be pitched indoors, on or under water, while flying, or during
 combat. Rough ground such as desert, marsh, mountains and the deep underdark
 raises the difficulty, as does rain or a lightning storm.
 
 See also: FEAT INFO ESTABLISH CAMP, SURVEY, HARVEST, WILDERNESS
+#0
+ACTIVITY PRIMARY-ACTIVITY
+
+Primary Activity
+
+Usage: activity
+       activity cancel
+       activity pause
+       activity resume
+
+Shows your current timed activity, progress, occupied capabilities, traits and
+the clock that will request its next step. Informational and communication
+commands remain available during an activity. Incompatible actions report the
+conflict instead of silently interrupting your work.
+
+See also: CAMP, ACTIONS, COOLDOWNS
 #0
 %ACTOR.CANBESEEN% %CANBESEEN% CANBESEEN
 

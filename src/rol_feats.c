@@ -36,6 +36,8 @@
 #include "character_periodic.h"
 #include "bardic_performance.h"
 #include "rol_feats.h"
+#include "activity_manager.h"
+#include "domain_event_world.h"
 
 /* the contested check both ends of a tail make */
 #define SHADOW_STEALTH_ROLL(ch) (compute_ability((ch), ABILITY_STEALTH) + d20(ch))
@@ -425,9 +427,96 @@ ACMDCHECK(can_camp)
   return CAN_CMD;
 }
 
-ACMD(do_camp)
+struct camp_activity_context
+{
+  bool successful_check;
+};
+
+static bool camp_site_is_usable(struct char_data *ch)
+{
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) || FIGHTING(ch) != NULL ||
+      ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS) || affected_by_spell(ch, SKILL_CAMP) ||
+      AFF_FLAGGED(ch, AFF_FLYING))
+    return false;
+  switch (SECT(IN_ROOM(ch)))
+  {
+  case SECT_WATER_SWIM:
+  case SECT_WATER_NOSWIM:
+  case SECT_UNDERWATER:
+  case SECT_OCEAN:
+  case SECT_UD_WATER:
+  case SECT_UD_NOSWIM:
+  case SECT_FLYING:
+    return false;
+  default:
+    return true;
+  }
+}
+
+static void camp_apply_result(struct char_data *ch, bool successful_check)
 {
   struct char_data *tch = NULL;
+
+  if (!successful_check)
+  {
+    act("You work at a camp, but the site defeats you.", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n tries to make camp, without much success.", FALSE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+  act("You clear a site, set your gear and get a fire going.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n clears a site, sets $s gear and gets a fire going.", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "Rest here and you will recover far more quickly.\r\n");
+  camp_shelter_char(ch, ch);
+  if (GROUP(ch))
+  {
+    simple_list(NULL);
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
+    {
+      if (tch == ch || IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      camp_shelter_char(ch, tch);
+    }
+    simple_list(NULL);
+  }
+}
+
+static bool camp_activity_recheck(struct char_data *ch, void *target, void *context)
+{
+  (void)context;
+  return camp_site_is_usable(ch) && target == &world[IN_ROOM(ch)];
+}
+
+static void camp_activity_progress(struct char_data *ch, void *target,
+                                   uint32_t completed_steps, uint32_t total_steps,
+                                   void *context)
+{
+  (void)target;
+  (void)total_steps;
+  (void)context;
+  if (completed_steps == 1U)
+    act("You clear the ground and gather material for the camp.", FALSE, ch, 0, 0, TO_CHAR);
+  else
+    act("You arrange the shelter and prepare a safe fire.", FALSE, ch, 0, 0, TO_CHAR);
+}
+
+static void camp_activity_complete(struct char_data *ch, void *target, void *context)
+{
+  struct camp_activity_context *camp = context;
+
+  (void)target;
+  camp_apply_result(ch, camp != NULL && camp->successful_check);
+}
+
+static void camp_activity_context_cleanup(void *context)
+{
+  free(context);
+}
+
+ACMD(do_camp)
+{
+  struct primary_activity_definition definition;
+  struct camp_activity_context *context;
+  bool successful_check;
   int dc = 0, check = 0;
 
   PREREQ_NOT_NPC();
@@ -468,38 +557,59 @@ ACMD(do_camp)
 
   dc = camp_difficulty(ch);
   check = compute_ability(ch, ABILITY_SURVIVAL) + d20(ch);
-
-  if (check < dc)
+  if (!primary_activity_feature_enabled(PRIMARY_ACTIVITY_CAMP))
   {
-    act("You work at a camp, but the site defeats you.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n tries to make camp, without much success.", FALSE, ch, 0, 0, TO_ROOM);
+    camp_apply_result(ch, check >= dc);
     USE_STANDARD_ACTION(ch);
+    if (check >= dc)
+      USE_MOVE_ACTION(ch);
     return;
   }
-
-  act("You clear a site, set your gear and get a fire going.", FALSE, ch, 0, 0, TO_CHAR);
-  act("$n clears a site, sets $s gear and gets a fire going.", FALSE, ch, 0, 0, TO_ROOM);
-  send_to_char(ch, "Rest here and you will recover far more quickly.\r\n");
-
-  camp_shelter_char(ch, ch);
-
-  if (GROUP(ch))
+  context = calloc(1U, sizeof(*context));
+  if (context == NULL)
   {
-    /* IMPORTANT: reset the iterator before walking the group list */
-    simple_list(NULL);
-
-    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
-    {
-      if (tch == ch || IN_ROOM(tch) != IN_ROOM(ch))
-        continue;
-      camp_shelter_char(ch, tch);
-    }
-
-    simple_list(NULL);
+    send_to_char(ch, "You cannot begin making camp right now.\r\n");
+    return;
   }
-
+  successful_check = check >= dc;
+  context->successful_check = successful_check;
+  memset(&definition, 0, sizeof(definition));
+  definition.type = PRIMARY_ACTIVITY_CAMP;
+  definition.display_name = "building camp";
+  definition.capabilities = PRIMARY_ACTIVITY_CAP_MOVEMENT | PRIMARY_ACTIVITY_CAP_HANDS |
+                            PRIMARY_ACTIVITY_CAP_ATTENTION | PRIMARY_ACTIVITY_CAP_STANDARD |
+                            PRIMARY_ACTIVITY_CAP_MOVE;
+  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY |
+                      PRIMARY_ACTIVITY_TRAIT_DISTRACTED |
+                      PRIMARY_ACTIVITY_TRAIT_HANDS_OCCUPIED |
+                      PRIMARY_ACTIVITY_TRAIT_OBVIOUS;
+  definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
+  definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
+  definition.total_steps = 3U;
+  definition.step_interval = 2 RL_SEC;
+  definition.combat_actions_required = ACTION_STANDARD | ACTION_MOVE;
+  definition.movement_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.damage_response = PRIMARY_ACTIVITY_RESPONSE_DELAY;
+  definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_PAUSE;
+  definition.target_loss_response = PRIMARY_ACTIVITY_RESPONSE_CANCEL;
+  definition.command_response = PRIMARY_ACTIVITY_RESPONSE_REJECT;
+  definition.delay_pulses = 2 RL_SEC;
+  definition.recheck = camp_activity_recheck;
+  definition.progress = camp_activity_progress;
+  definition.complete = camp_activity_complete;
+  definition.cleanup_context = camp_activity_context_cleanup;
+  definition.context = context;
+  if (!primary_activity_start(ch, domain_event_room_handle(IN_ROOM(ch)), &definition))
+  {
+    free(context);
+    send_to_char(ch, "You are already occupied or cannot begin making camp right now.\r\n");
+    return;
+  }
+  act("You begin clearing a site and laying out your camp.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n begins clearing a site and laying out a camp.", FALSE, ch, 0, 0, TO_ROOM);
   USE_STANDARD_ACTION(ch);
-  USE_MOVE_ACTION(ch);
+  if (successful_check)
+    USE_MOVE_ACTION(ch);
 }
 
 /*****************************************************************************

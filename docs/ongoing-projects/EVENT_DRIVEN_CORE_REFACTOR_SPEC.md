@@ -1,7 +1,7 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 9 accepted; Phase 10 next
-**Document version:** 1.15
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 next
+**Document version:** 1.16
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
 **Implementation status:** Phases 1 through 9 plus the dedicated immortal event-observability gate complete
@@ -1908,6 +1908,19 @@ Rollback:
 - Per-activity feature gates return migrated commands to their prior behavior;
   the scheduler, reactor, and domain bus remain authoritative.
 
+Acceptance:
+
+- Accepted on 2026-08-31. One lifecycle-owned primary activity per character,
+  typed actor/target identity, policy-driven interruption, central command
+  admission, wall-time and semantic-turn progress, the reviewed Establish Camp
+  migration, compact in-game UX, and independent rollback are implemented.
+- The matrix, inventory, adversarial fixes, 1,029-test suite, sanitizer,
+  Valgrind, boot matrix, database, and isolated live-MUD evidence are recorded
+  in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE10_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE10_VALIDATION.md).
+- The older Survival/Nature naming ambiguity is explicitly deferred; this
+  tranche preserves the existing `ABILITY_SURVIVAL` call and persisted slot.
+
 ### Phase 11: Legacy pulse and compatibility removal
 
 Deliverables:
@@ -2148,7 +2161,7 @@ working document is retired according to the ongoing-project policy.
 | D18 | Existing pub/sub | Replace runtime subsystem; deprecate data before reviewed removal | Accepted | Phase 6 |
 | D19 | Nested domain publication | Depth-first with hard depth and causal-count limits | Accepted | Phase 6 |
 | D20 | Active-world lifecycle | Active, cooling-down, and dormant, with autonomous off-screen simulation remaining active | Accepted in Phase 7 | Phase 7 |
-| D21 | Primary activities | At most one primary intentional activity per character initially | Provisional | Phase 10 |
+| D21 | Primary activities | At most one primary intentional activity per character initially | Accepted in Phase 10 | Phase 10 |
 | D22 | Residual heartbeat | Explicit global scheduled work only; remove compatibility pulse | Accepted | Phase 11 |
 | D23 | Workload measurement | Source-derived and synthetic in Phase 2; privacy-safe observed sample in Phase 4 | Accepted | Phase 4 |
 | D24 | Cross-thread reactor wake | Bounded queue plus reactor-owned pipe/event fd; workers do not call libevent | Accepted | Phase 3 |
@@ -2248,10 +2261,10 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
       have an approved disposition.
 - [x] Active/cooling-down/dormant wake and sleep rules cannot lose required work.
 - [x] Encounter join, leave, merge, and termination rules are fair and complete.
-- [ ] Activity capability, trait, interruption, progress, and combat-time rules
+- [x] Activity capability, trait, interruption, progress, and combat-time rules
       are coherent.
-- [ ] Migration phases are independently testable and reversible.
-- [ ] Documentation and help obligations are assigned to the correct phases.
+- [x] Migration phases are independently testable and reversible.
+- [x] Documentation and help obligations are assigned to the correct phases.
 - [x] Pre-reactor owner, dependency, fd, signal, copyover, and CI obligations
       are assigned to explicit gates.
 
@@ -2284,3 +2297,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.13 | 2026-08-31 | Accepted the immortal observability gate after adding backend-neutral payload-free event inspection, readable paginated filters and profiles, complete scheduler queue/lifecycle/capacity telemetry, typed domain-handler views, and bounded I3 worker-ingress counters with an 80-column default and 120-column hard ceiling. Phase 8 encounter compatibility is next. |
 | 1.14 | 2026-08-31 | Accepted Phase 8 after replacing per-character combat clocks with one generation-aware event per encounter, preserving existing phase/action behavior, implementing safe joins, deferred mutation, encounter merges, all departure classes, typed lifecycle facts, compact diagnostics, and exclusive character-event rollback. Phase 9 semantic combat rounds are next. |
 | 1.15 | 2026-08-31 | Accepted Phase 9 after making six-second semantic encounter rounds authoritative, defining deterministic initiative and explicit action/reaction budgets, dispatching one bounded FIFO intent per turn, migrating round flags and cooldown boundaries, updating help and diagnostics, and passing the 1,017-test, boot-matrix, database, sanitizer, Valgrind, and isolated live-MUD gates. Adversarial testing fixed scheduler-facade admission against a stale internal tick and moved reaction/round-flag resets ahead of initiative so earlier combatants cannot grant a defender a second budget. Phase 10 activities are next. |
+| 1.16 | 2026-08-31 | Accepted Phase 10 after implementing one typed, lifecycle-owned primary activity per character, central capability-aware command admission, policy-driven domain interruption, wall-time and semantic-turn progress, compact activity/debug UX, and the existing Establish Camp command as a reversible three-step migration. Adversarial review corrected teardown and callback re-entry, extraction mutation, combat-turn commitment, pause/resume timing, rollback selection, and database-help idempotence; the 1,029-test, sanitizer, Valgrind, boot-matrix, database, and isolated live-MUD gates passed. The historical Survival/Nature naming decision remains explicitly deferred. Phase 11 compatibility removal is next. |

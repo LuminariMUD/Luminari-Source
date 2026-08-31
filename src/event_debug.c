@@ -9,6 +9,7 @@
 #include "domain_events.h"
 #include "event_debug.h"
 #include "combat/combat_encounters.h"
+#include "activity_manager.h"
 #include "net/i3_client.h"
 #include "perfmon.h"
 
@@ -170,6 +171,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   struct domain_event_bus_stats domain_stats;
   struct i3_ingress_stats ingress_stats;
   struct combat_encounter_stats encounter_stats;
+  struct primary_activity_stats activity_stats;
   struct domain_event_bus *bus;
 
   debug_output_init(&output, buffer, capacity, width);
@@ -302,6 +304,19 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "  admission/stale: %" PRIu64 "/%" PRIu64,
                     encounter_stats.admission_failures,
                     encounter_stats.stale_encounter_callbacks);
+  memset(&activity_stats, 0, sizeof(activity_stats));
+  primary_activity_get_stats(&activity_stats);
+  debug_output_line(&output, "");
+  debug_output_line(&output, "Primary activities");
+  debug_output_line(&output, "  active/high-water: %zu/%zu", activity_stats.active,
+                    activity_stats.high_water);
+  debug_output_line(&output, "  started/completed: %" PRIu64 "/%" PRIu64,
+                    activity_stats.started, activity_stats.completed);
+  debug_output_line(&output, "  cancelled/paused/resumed: %" PRIu64 "/%" PRIu64 "/%" PRIu64,
+                    activity_stats.cancelled, activity_stats.paused, activity_stats.resumed);
+  debug_output_line(&output, "  delayed/rejected: %" PRIu64 "/%" PRIu64,
+                    activity_stats.delayed, activity_stats.rejected_commands);
+  debug_output_line(&output, "  stale callbacks: %" PRIu64, activity_stats.stale_callbacks);
   memset(&ingress_stats, 0, sizeof(ingress_stats));
   i3_get_ingress_stats(&ingress_stats);
   debug_output_line(&output, "");

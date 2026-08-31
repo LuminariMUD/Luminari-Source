@@ -7420,6 +7420,7 @@ struct char_data
   struct char_data *active_world_prev;    /**< Scheduled-mobile registry link. */
   struct event *active_world_event;       /**< Sole scheduled mobile-think event. */
   unsigned char active_world_state;       /**< Active, cooling, or dormant state. */
+  struct primary_activity *primary_activity; /**< One intentional timed activity. */
   struct combat_encounter_data *combat_encounter; /**< Runtime fight-session owner. */
   struct combat_encounter_participant *combat_encounter_participant; /**< Membership node. */
   struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */

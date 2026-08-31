@@ -529,6 +529,8 @@ set(SRC_C_FILES
     src/game_scheduler.h
     src/active_world.c
     src/active_world.h
+    src/activity_manager.c
+    src/activity_manager.h
     src/affected_owners.c
     src/affected_owners.h
     src/character_periodic.c
@@ -1218,6 +1220,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_traps_production.c
     unittests/CuTest/test_combat_production.c
     unittests/CuTest/test_combat_encounters.c
+    unittests/CuTest/test_activity_manager.c
     unittests/CuTest/test_thrown_weapons.c
     unittests/CuTest/test_lists_production.c
     unittests/CuTest/test_mob_autoroll.c

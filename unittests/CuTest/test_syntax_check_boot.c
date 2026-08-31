@@ -413,7 +413,7 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
     fprintf(stderr, "Syntax-check child output:\n%s\n", output);
   CuAssert(tc, "syntax-check child did not exit normally", WIFEXITED(child_status));
   CuAssertIntEquals(tc, EXIT_SUCCESS, WEXITSTATUS(child_status));
-  CuAssertPtrNotNull(tc, strstr(output, "Creating encounter reset event"));
+  CuAssertPtrNotNull(tc, strstr(output, "Combat round scheduling:"));
   CuAssertPtrEquals(tc, NULL, strstr(output, "event_create called before event_init"));
   CuAssertPtrEquals(tc, NULL, strstr(output, "remove_from_list() called with NULL list pointer"));
   CuAssertPtrNotNull(tc, strstr(output, "Done."));

@@ -402,12 +402,15 @@ on five labeled rows bounded to the normal 80-column display.
 ### 5.1 Combat Encounter Scheduling
 
 Combat defaults to one scheduled `combat_encounter_round` event per live fight.
-The process-local encounter registry supplies a typed ID and generation, while
-each participant stores its own next deadline and current compatibility phase.
-The one shared callback runs due participants in deadline and insertion order
-through `combat_run_compatibility_phase()`, the same routine used by the old
-per-character event. Existing two-second phases, six-second rounds, action
-queues, attacks, reactions, and effects therefore retain their behavior.
+The process-local encounter registry supplies a typed ID and generation.
+Semantic mode resolves one round every six seconds in initiative, Dexterity,
+and stable runtime-ID order. Each participant owns its standard, move, swift,
+reaction, bounded FIFO intent, and once-per-round state. One prevalidated intent
+may dispatch before automatic actions on that participant's turn.
+
+`LUMINARI_COMBAT_ROUNDS=compatibility` retains the encounter-owned three-phase
+rules, and `LUMINARI_COMBAT_EVENTS=legacy` is the deeper per-character event
+rollback. These modes are exclusive for the boot and never convert live fights.
 
 Hostility creates, extends, or merges encounters. A join or merge during a
 callback is queued until the active participant iteration is safe to compact.
@@ -423,6 +426,29 @@ idempotent final guard.
 generation, and due time. The summary comparison count covers both the
 one-event-per-encounter invariant and phase terminal-accounting invariant.
 Payloads and participant identities are not displayed.
+
+### 5.2 Primary Activities
+
+The primary activity manager owns at most one intentional activity per
+character. Each activity stores generation-aware actor and target handles,
+explicit progress ownership, capability claims, observable traits, and policy
+responses for movement, damage, combat, target loss, and incompatible commands.
+Terminal teardown detaches the owned timer and manager links before completion
+or cancellation callbacks and before publishing the scalar
+`ActivityTransitioned` fact.
+
+Outside combat, one owned timer requests each progress step. Inside combat, a
+timer cannot grant actions: an eligible activity advances only from the
+character's semantic turn after consuming already available action resources.
+Command-table metadata keeps information, speech, movement, and `activity`
+control behavior centralized and conservative for unclassified commands.
+
+Establish Camp is the first migrated command. It uses three two-second steps,
+preserves the existing Survival result and camp benefits, cancels on movement,
+delays on damage, pauses across combat, and rechecks its typed room target.
+`LUMINARI_CAMP_ACTIVITY=legacy` restores immediate camp resolution for the
+boot. Use `activity` for player status/control and `eventdebug` for compact
+manager counters.
 
 ## 6. Table-Driven Registry (mud_event_index)
 
@@ -592,6 +618,12 @@ Payloads and participant identities are not displayed.
     Compatibility mode retains the encounter-owned three-phase rules. This
     selection is read only when encounter combat initializes and never converts
     a live fight.
+- Primary-activity selection:
+  - Default: managed Establish Camp activity
+  - Rollback: `LUMINARI_CAMP_ACTIVITY=legacy`
+  - The selector is immutable after manager initialization. It changes only
+    camp command decomposition; scheduler, reactor, domain, and combat modes
+    remain authoritative.
 - Startup logs one `Event backend initialized:` line naming the effective
   backend.
 - `perf event total` and the PERFMON CSV representation include lifecycle,
