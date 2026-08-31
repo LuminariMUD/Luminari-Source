@@ -74,7 +74,7 @@ static struct cmdlist_element *find_done(struct cmdlist_element *cl);
 static struct char_data *find_char_by_uid_in_lookup_table(long uid);
 static struct obj_data *find_obj_by_uid_in_lookup_table(long uid);
 static EVENTFUNC(trig_wait_event);
-static void cleanup_trig_wait_event(struct event *event);
+static void cleanup_trig_wait_event(event_handle_t handle, void *event_obj);
 
 /* Return pointer to first occurrence of string ct in cs, or NULL if not
  * present.  Case insensitive. All of ct must be found in cs for it to be
@@ -812,11 +812,15 @@ static EVENTFUNC(trig_wait_event)
   go = wait_event_obj->go;
   type = wait_event_obj->type;
 
+  if (GET_TRIG_WAIT_DATA(trig) == wait_event_obj)
+  {
+    GET_TRIG_WAIT_HANDLE(trig) = EVENT_HANDLE_NONE;
+    GET_TRIG_WAIT_DATA(trig) = NULL;
+  }
   free(wait_event_obj);
-  GET_TRIG_WAIT(trig) = NULL;
 
   /* Owner teardown extracts attached scripts, and trigger extraction cancels
-   * GET_TRIG_WAIT. Reaching this callback therefore proves the owner remains
+   * GET_TRIG_WAIT_HANDLE. Reaching this callback therefore proves the owner remains
    * valid without scanning every character, object, or room. */
 
   {
@@ -828,16 +832,19 @@ static EVENTFUNC(trig_wait_event)
   return 0;
 }
 
-static void cleanup_trig_wait_event(struct event *event)
+static void cleanup_trig_wait_event(event_handle_t handle, void *event_obj)
 {
-  struct wait_event_data *wait_event_obj;
+  struct wait_event_data *wait_event_obj = event_obj;
 
-  if (event == NULL || event->event_obj == NULL)
+  if (wait_event_obj == NULL)
     return;
 
-  wait_event_obj = (struct wait_event_data *)event->event_obj;
-  if (wait_event_obj->trigger != NULL && GET_TRIG_WAIT(wait_event_obj->trigger) == event)
-    GET_TRIG_WAIT(wait_event_obj->trigger) = NULL;
+  if (wait_event_obj->trigger != NULL &&
+      GET_TRIG_WAIT_HANDLE(wait_event_obj->trigger) == handle)
+  {
+    GET_TRIG_WAIT_HANDLE(wait_event_obj->trigger) = EVENT_HANDLE_NONE;
+    GET_TRIG_WAIT_DATA(wait_event_obj->trigger) = NULL;
+  }
 
   free(wait_event_obj);
 }
@@ -960,10 +967,10 @@ static void script_stat(char_data *ch, struct script_data *sc)
                  buf1, GET_TRIG_NARG(t),
                  ((GET_TRIG_ARG(t) && *GET_TRIG_ARG(t)) ? GET_TRIG_ARG(t) : "None"));
 
-    if (GET_TRIG_WAIT(t))
+    if (GET_TRIG_WAIT_HANDLE(t) != EVENT_HANDLE_NONE)
     {
       send_to_char(ch, "    \tCWait:\tn %ld\tC, Current line: \tn%s\r\n",
-                   event_time(GET_TRIG_WAIT(t)),
+                   event_handle_time(GET_TRIG_WAIT_HANDLE(t)),
                    t->curr_state ? t->curr_state->cmd : "End of Script");
       send_to_char(ch, "  \tCVariables: \tn%s\r\n", GET_TRIG_VARS(t) ? "" : "None");
 
@@ -1937,10 +1944,12 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
   wait_event_obj->go = go;
   wait_event_obj->type = type;
 
-  GET_TRIG_WAIT(trig) =
-      event_create_with_cleanup(trig_wait_event, wait_event_obj, when, cleanup_trig_wait_event);
-  if (GET_TRIG_WAIT(trig) == NULL)
+  GET_TRIG_WAIT_DATA(trig) = wait_event_obj;
+  GET_TRIG_WAIT_HANDLE(trig) =
+      event_schedule_with_cleanup(trig_wait_event, wait_event_obj, when, cleanup_trig_wait_event);
+  if (GET_TRIG_WAIT_HANDLE(trig) == EVENT_HANDLE_NONE)
   {
+    GET_TRIG_WAIT_DATA(trig) = NULL;
     free(wait_event_obj);
     return;
   }

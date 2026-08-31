@@ -112,6 +112,14 @@ across 10 files: three libevent declarations, 54 private facade references,
 and 29 external compatibility references across seven files. Those seven files
 are limited to DG waits, MUD events, and MUD-event diagnostics/persistence.
 
+Phase 11e migrates DG trigger waits, including cancellation cleanup,
+remaining-time diagnostics, OLC replacement, and room-owner relocation. The
+source inventory is now 83 occurrences across eight files: three libevent
+declarations, 54 private facade references, and 26 external compatibility
+references across five files. All remaining external declarations are in MUD
+event storage and its diagnostics/persistence paths. Phase 11f owns that larger
+terminal-cleanup and persistence migration.
+
 Combat cadence, semantic rounds, activity timing, autonomous off-screen mobile
 simulation, affects, periodic character work, automatic procedures, DG random
 triggers, cancellation, recurrence, diagnostics, and boot-time rollback

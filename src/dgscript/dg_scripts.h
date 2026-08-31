@@ -152,6 +152,8 @@ struct trig_var_data
   struct trig_var_data *next;
 };
 
+struct wait_event_data;
+
 /** structure for triggers */
 struct trig_data
 {
@@ -166,7 +168,8 @@ struct trig_data
   char *arglist;                      /**< argument list                   */
   int depth;                          /**< depth into nest ifs/whiles/etc  */
   int loops;                          /**< loop iteration counter          */
-  struct event *wait_event;           /**< event to pause the trigger  */
+  event_handle_t wait_event_handle;   /**< event that pauses the trigger */
+  struct wait_event_data *wait_event_data; /**< payload used by room OLC */
   ubyte purged;                       /**< trigger is set to be purged     */
   struct trig_var_data *var_list;     /**< list of local vars for trigger  */
 
@@ -482,7 +485,8 @@ void wld_command_interpreter(room_data *room, char *argument);
 #define GET_TRIG_NARG(t) ((t)->narg)
 #define GET_TRIG_ARG(t) ((t)->arglist)
 #define GET_TRIG_VARS(t) ((t)->var_list)
-#define GET_TRIG_WAIT(t) ((t)->wait_event)
+#define GET_TRIG_WAIT_HANDLE(t) ((t)->wait_event_handle)
+#define GET_TRIG_WAIT_DATA(t) ((t)->wait_event_data)
 #define GET_TRIG_DEPTH(t) ((t)->depth)
 #define GET_TRIG_LOOPS(t) ((t)->loops)
 

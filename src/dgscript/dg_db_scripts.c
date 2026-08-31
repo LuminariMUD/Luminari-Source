@@ -119,7 +119,8 @@ static void trig_data_init(trig_data *this_data)
   this_data->narg = 0;
   this_data->arglist = NULL;
   this_data->depth = 0;
-  this_data->wait_event = NULL;
+  this_data->wait_event_handle = EVENT_HANDLE_NONE;
+  this_data->wait_event_data = NULL;
   this_data->purged = FALSE;
   this_data->var_list = NULL;
 

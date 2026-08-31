@@ -434,6 +434,7 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
 {
   struct damage_trigger_fixture fixture;
   struct trig_data *trigger;
+  event_handle_t cancelled_handle;
   unsigned long saved_pulse;
   long wait_pulses;
   int hit_points_after_damage;
@@ -448,14 +449,15 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   hit_points_after_damage = GET_HIT(&fixture.victim);
   CuAssertIntEquals(tc, 17, result);
   CuAssertIntEquals(tc, 83, hit_points_after_damage);
-  CuAssertPtrNotNull(tc, GET_TRIG_WAIT(trigger));
+  CuAssertTrue(tc, GET_TRIG_WAIT_HANDLE(trigger) != EVENT_HANDLE_NONE);
 
   saved_pulse = pulse;
-  wait_pulses = event_time(GET_TRIG_WAIT(trigger));
+  wait_pulses = event_handle_time(GET_TRIG_WAIT_HANDLE(trigger));
   pulse += wait_pulses;
   event_process();
   CuAssertIntEquals(tc, hit_points_after_damage, GET_HIT(&fixture.victim));
-  CuAssertTrue(tc, GET_TRIG_WAIT(trigger) == NULL);
+  CuAssertTrue(tc, GET_TRIG_WAIT_HANDLE(trigger) == EVENT_HANDLE_NONE);
+  CuAssertPtrEquals(tc, NULL, GET_TRIG_WAIT_DATA(trigger));
   pulse = saved_pulse;
   damage_trigger_fixture_end(&fixture);
 
@@ -469,13 +471,27 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   CuAssertIntEquals(tc, 95, hit_points_after_damage);
 
   saved_pulse = pulse;
-  wait_pulses = event_time(GET_TRIG_WAIT(trigger));
+  wait_pulses = event_handle_time(GET_TRIG_WAIT_HANDLE(trigger));
   pulse += wait_pulses;
   event_process();
   CuAssertIntEquals(tc, hit_points_after_damage, GET_HIT(&fixture.victim));
-  CuAssertTrue(tc, GET_TRIG_WAIT(trigger) == NULL);
+  CuAssertTrue(tc, GET_TRIG_WAIT_HANDLE(trigger) == EVENT_HANDLE_NONE);
+  CuAssertPtrEquals(tc, NULL, GET_TRIG_WAIT_DATA(trigger));
   pulse = saved_pulse;
   damage_trigger_fixture_end(&fixture);
+
+  CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
+  CuAssertTrue(tc,
+               damage_trigger_fixture_add(&fixture, "Cancelled wait", "u", 100,
+                                          "wait 100\nreturn 9"));
+  trigger = TRIGGERS(SCRIPT(&fixture.victim));
+  CuAssertIntEquals(
+      tc, 17,
+      damage(&fixture.actor, &fixture.victim, 17, TYPE_HIT, DAM_BLUDGEON, ATTACK_TYPE_PRIMARY));
+  cancelled_handle = GET_TRIG_WAIT_HANDLE(trigger);
+  CuAssertTrue(tc, event_handle_is_live(cancelled_handle));
+  damage_trigger_fixture_end(&fixture);
+  CuAssertTrue(tc, !event_handle_is_live(cancelled_handle));
   event_free_all();
 }
 

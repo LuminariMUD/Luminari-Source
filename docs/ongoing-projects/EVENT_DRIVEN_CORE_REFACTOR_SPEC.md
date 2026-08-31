@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
 **Status:** In progress - Phases 1 through 10 accepted; Phase 11 owner migration in progress and removal gate pending
-**Document version:** 1.21
+**Document version:** 1.22
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 opaque-handle migration has reached DG waits and MUD events
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 opaque-handle migration has reached MUD events
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -22,8 +22,8 @@
 > now store generation-safe opaque event handles instead of public
 > compatibility-record pointers. Their timing, recurrence, teardown,
 > diagnostics, and rollback behavior are unchanged.
-> Vessel owners and the vessel/point-update singleton services also use opaque
-> handles. Only DG waits and the MUD-event layer still expose compatibility
+> Vessel owners, the vessel/point-update singleton services, and DG waits also
+> use opaque handles. Only the MUD-event layer still exposes compatibility
 > records outside the facade.
 > The process now owns a boot-sealed typed domain-event registry with bounded
 > synchronous dispatch, generation-aware resolution, and diagnostics. Nine
@@ -2347,3 +2347,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.19 | 2026-08-31 | Completed the first reversible Phase 11 owner slice: encounter-owned combat rounds and primary-activity timers now schedule, cancel, query, recur, and detach through generation-safe opaque handles. Existing combat and activity semantics, both physical backends, and all rollback selectors remain intact; the separate Survival/Nature camp-rule decision is explicitly deferred. |
 | 1.20 | 2026-08-31 | Migrated the shared Phase 7 owners for autonomous mobiles, character and room affects, nearest-deadline character work, object automatic procedures, and DG random triggers to opaque event handles. Callback cadence, off-screen simulation, lifecycle refill, OLC/reindex behavior, both backends, and rollback selectors remain unchanged; external raw compatibility references fell from 62 across 18 files to 42 across 11 files. |
 | 1.21 | 2026-08-31 | Migrated Greyhawk and fixed-RoL vessel owners plus vessel and point-update singleton services to opaque handles, preserving every established cadence and lifecycle path. Removed one proven-unused Greyhawk action-event field and narrowed external compatibility references to 29 across seven DG-wait/MUD-event files. |
+| 1.22 | 2026-08-31 | Migrated DG trigger waits to opaque handles while preserving wait grammar, timing, resume, OLC replacement, room relocation, and cancellation semantics. Split the remaining MUD-event terminal-cleanup and persistence work into dedicated Phase 11f; external raw declarations now total 26 across five MUD-event files. |

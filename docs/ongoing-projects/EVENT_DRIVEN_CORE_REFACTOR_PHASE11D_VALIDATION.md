@@ -65,7 +65,7 @@ the deferred Survival/Nature gameplay decision remains untouched.
 
 ## Next Slice
 
-Phase 11e migrates DG trigger waits and the MUD-event compatibility layer,
+Phase 11e migrates DG trigger waits. The larger MUD-event compatibility layer,
 including list storage, duration changes, persistence inspection, and player
-diagnostics. It must preserve versioned/legacy persistence rollback and every
-entity lifecycle contract.
+diagnostics, follows as Phase 11f so its terminal-cleanup and persistence
+contracts receive a dedicated validation slice.

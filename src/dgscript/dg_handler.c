@@ -322,8 +322,8 @@ void free_trigger(struct trig_data *trig)
     free_varlist(trig->var_list);
     trig->var_list = NULL;
   }
-  if (GET_TRIG_WAIT(trig))
-    event_cancel(GET_TRIG_WAIT(trig));
+  if (GET_TRIG_WAIT_HANDLE(trig) != EVENT_HANDLE_NONE)
+    (void)event_handle_cancel(GET_TRIG_WAIT_HANDLE(trig));
 
   free(trig);
 }
@@ -333,10 +333,9 @@ void extract_trigger(struct trig_data *trig)
 {
   struct trig_data *temp;
 
-  if (GET_TRIG_WAIT(trig))
+  if (GET_TRIG_WAIT_HANDLE(trig) != EVENT_HANDLE_NONE)
   {
-    event_cancel(GET_TRIG_WAIT(trig));
-    GET_TRIG_WAIT(trig) = NULL;
+    (void)event_handle_cancel(GET_TRIG_WAIT_HANDLE(trig));
   }
 
   trig_index[trig->nr]->number--;
@@ -486,9 +485,9 @@ void update_wait_events(struct room_data *to, struct room_data *from)
 
   for (trig = TRIGGERS(SCRIPT(from)); trig; trig = trig->next)
   {
-    if (!GET_TRIG_WAIT(trig))
+    if (GET_TRIG_WAIT_HANDLE(trig) == EVENT_HANDLE_NONE || GET_TRIG_WAIT_DATA(trig) == NULL)
       continue;
 
-    ((struct wait_event_data *)GET_TRIG_WAIT(trig)->event_obj)->go = to;
+    GET_TRIG_WAIT_DATA(trig)->go = to;
   }
 }

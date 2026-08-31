@@ -122,6 +122,10 @@ point-update service also store opaque handles. Singleton service callbacks use
 a borrowed handle-slot payload solely so cancellation cleanup can detach the
 current identity; they do not expose or own gameplay payload data.
 
+DG script waits also store opaque handles. Their trigger-owned payload pointer
+exists only for room OLC owner relocation; normal completion and cancellation
+clear both fields without exposing the scheduler compatibility record.
+
 ### 2.3 Lifecycle (Base)
 
 - Create/schedule: [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c)
