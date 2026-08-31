@@ -41,7 +41,7 @@
 #define USEC_PER_SEC 1000000          /* Microseconds per second */
 #define PROF_SAMPLE_CAPACITY 16384    /* Per-section rolling percentile window */
 #define EVENT_PROFILE_CAPACITY 512    /* Fixed callback identity registry */
-#define EVENT_PROFILE_NAME_SIZE 64    /* Includes terminating NUL */
+#define EVENT_PROFILE_NAME_SIZE PERF_EVENT_IDENTITY_SIZE
 #define EVENT_PROFILE_REPORT_LIMIT 16 /* Maximum callback rows per report */
 #define EVENT_SAMPLE_CAPACITY 1024    /* Per-callback rolling latency window */
 #define EVENT_DELAY_BUCKET_COUNT 7    /* Privacy-safe requested-delay histogram */
@@ -1389,6 +1389,84 @@ static struct perf_event_callback *event_profile_for_index(int profile_index)
   if (profile_index < 0 || (size_t)profile_index >= event_profile_count)
     return &event_profile_overflow;
   return &event_profiles[profile_index];
+}
+
+const char *PERF_event_callback_identity(int profile_index)
+{
+  ensure_initialized();
+  if (profile_index < 0 || (size_t)profile_index >= event_profile_count)
+    return "[unregistered overflow]";
+  return event_profiles[profile_index].identity;
+}
+
+void PERF_get_event_summary(struct PERF_event_summary *summary)
+{
+  if (summary == NULL)
+    return;
+  ensure_initialized();
+  memset(summary, 0, sizeof(*summary));
+  summary->process_calls = total_event_process_stats.calls;
+  summary->callbacks = total_event_process_stats.callbacks_processed;
+  summary->current_depth = total_event_process_stats.latest_depth;
+  summary->high_water_depth = MAX(total_event_process_stats.max_depth_before,
+                                  total_event_process_stats.max_depth_after);
+  summary->maximum_batch = total_event_process_stats.max_callbacks_per_call;
+  summary->scheduled = total_event_lifecycle_stats.scheduled;
+  summary->cancelled = total_event_lifecycle_stats.cancelled;
+  summary->rescheduled = total_event_lifecycle_stats.rescheduled;
+  summary->registered_profiles = event_profile_count;
+  summary->overflow_calls = event_profile_overflow.total_calls;
+}
+
+static int event_profile_snapshot_before(const struct PERF_event_profile_snapshot *left,
+                                         const struct PERF_event_profile_snapshot *right)
+{
+  if (left->total_usec != right->total_usec)
+    return left->total_usec > right->total_usec;
+  if (left->calls != right->calls)
+    return left->calls > right->calls;
+  if (left->scheduled != right->scheduled)
+    return left->scheduled > right->scheduled;
+  return strcmp(left->identity, right->identity) < 0;
+}
+
+size_t PERF_get_event_profiles(struct PERF_event_profile_snapshot *snapshots,
+                               size_t snapshot_capacity)
+{
+  struct PERF_event_profile_snapshot candidate;
+  size_t copied;
+  size_t index;
+  size_t position;
+
+  ensure_initialized();
+  if (snapshots == NULL || snapshot_capacity == 0)
+    return event_profile_count;
+  copied = 0;
+  for (index = 0; index < event_profile_count; index++)
+  {
+    memset(&candidate, 0, sizeof(candidate));
+    copy_event_identity(candidate.identity, sizeof(candidate.identity),
+                        event_profiles[index].identity);
+    candidate.calls = event_profiles[index].total_calls;
+    candidate.total_usec = event_profiles[index].total_usec;
+    candidate.maximum_usec = event_profiles[index].total_max_usec;
+    candidate.scheduled = event_profiles[index].total_scheduled;
+    candidate.cancelled = event_profiles[index].total_cancelled;
+    candidate.rescheduled = event_profiles[index].total_rescheduled;
+
+    position = copied;
+    while (position > 0 && event_profile_snapshot_before(&candidate, &snapshots[position - 1]))
+      position--;
+    if (position >= snapshot_capacity)
+      continue;
+    if (copied < snapshot_capacity)
+      copied++;
+    if (copied > position + 1)
+      memmove(&snapshots[position + 1], &snapshots[position],
+              (copied - position - 1) * sizeof(*snapshots));
+    snapshots[position] = candidate;
+  }
+  return event_profile_count;
 }
 
 static void note_event_delay(struct perf_event_lifecycle_stats *stats, uint64_t delay_pulses)

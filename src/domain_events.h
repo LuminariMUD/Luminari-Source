@@ -174,6 +174,13 @@ enum domain_event_status domain_event_get_type_stats(const struct domain_event_b
 enum domain_event_status domain_event_get_handler_stats(
     const struct domain_event_bus *bus, domain_event_type_id_t type, const char *identity,
     struct domain_event_handler_stats *stats);
+size_t domain_event_inspect_types(const struct domain_event_bus *bus,
+                                  struct domain_event_type_stats *snapshots,
+                                  size_t snapshot_capacity);
+size_t domain_event_inspect_handlers(const struct domain_event_bus *bus,
+                                     domain_event_type_id_t type,
+                                     struct domain_event_handler_stats *snapshots,
+                                     size_t snapshot_capacity);
 const char *domain_event_status_name(enum domain_event_status status);
 
 #endif /* DOMAIN_EVENTS_H */

@@ -332,6 +332,7 @@ void Test_game_scheduler_places_every_wheel_boundary_and_overflow(CuTest *tc)
   static const uint32_t levels[] = {0U, 0U, 0U, 1U, 1U, 1U, 2U, 2U,
                                     2U, 3U, 3U, 3U, 4U, 4U, 4U, UINT32_MAX};
   struct game_event_snapshot snapshot;
+  struct game_scheduler_stats stats;
   struct game_scheduler *scheduler;
   struct test_clock clock;
   game_event_type_id_t event_type;
@@ -353,6 +354,11 @@ void Test_game_scheduler_places_every_wheel_boundary_and_overflow(CuTest *tc)
     CuAssertIntEquals(tc, locations[index], snapshot.location);
     CuAssertTrue(tc, snapshot.wheel_level == levels[index]);
   }
+
+  game_scheduler_get_stats(scheduler, &stats);
+  for (index = 0; index < GAME_SCHEDULER_WHEEL_LEVELS; index++)
+    CuAssertIntEquals(tc, 3, (int)stats.wheel_level_counts[index]);
+  CuAssertIntEquals(tc, 1, (int)stats.overflow_count);
 
   for (index = 0; index < sizeof(delays) / sizeof(delays[0]); index++)
     CuAssertIntEquals(tc, GAME_EVENT_CANCELLED, game_scheduler_cancel(scheduler, event_ids[index]));
@@ -684,6 +690,7 @@ void Test_game_scheduler_callback_count_budget_preserves_ready_order(CuTest *tc)
 {
   struct game_scheduler_budget budget;
   struct game_scheduler_dispatch_report report;
+  struct game_scheduler_stats stats;
   struct game_scheduler *scheduler;
   struct test_event_payload *payload;
   struct test_clock clock;
@@ -714,11 +721,13 @@ void Test_game_scheduler_callback_count_budget_preserves_ready_order(CuTest *tc)
                       game_scheduler_schedule_at(scheduler, event_type, 5U, payload, &event_id));
   }
 
-  clock.tick = 5U;
+  clock.tick = 8U;
   report = advance_scheduler(tc, scheduler, &budget);
   CuAssertIntEquals(tc, 1, (int)report.callbacks);
   CuAssertIntEquals(tc, 2, (int)report.ready_remaining);
   CuAssertTrue(tc, report.callback_budget_exhausted);
+  game_scheduler_get_stats(scheduler, &stats);
+  CuAssertTrue(tc, stats.oldest_overdue_ticks == 3U);
   report = advance_scheduler(tc, scheduler, &budget);
   CuAssertIntEquals(tc, 1, (int)report.callbacks);
   CuAssertIntEquals(tc, 1, (int)report.ready_remaining);
@@ -825,6 +834,7 @@ void Test_game_scheduler_coalesces_missed_recurrences(CuTest *tc)
 {
   struct game_event_snapshot snapshot;
   struct game_scheduler_dispatch_report report;
+  struct game_scheduler_stats stats;
   struct game_scheduler *scheduler;
   struct test_event_payload *payload;
   struct test_clock clock;
@@ -850,6 +860,13 @@ void Test_game_scheduler_coalesces_missed_recurrences(CuTest *tc)
   CuAssertTrue(tc, missed == 2U);
   CuAssertTrue(tc, report.missed_occurrences == 2U);
   CuAssertTrue(tc, report.skipped_occurrences == 0U);
+  CuAssertTrue(tc, report.coalesced_occurrences == 2U);
+  game_scheduler_get_stats(scheduler, &stats);
+  CuAssertTrue(tc, stats.total_rescheduled == 2U);
+  CuAssertTrue(tc, stats.total_late_callbacks == 1U);
+  CuAssertTrue(tc, stats.total_missed_occurrences == 2U);
+  CuAssertTrue(tc, stats.total_skipped_occurrences == 0U);
+  CuAssertTrue(tc, stats.total_coalesced_occurrences == 2U);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_inspect(scheduler, event_id, &snapshot));
   CuAssertTrue(tc, snapshot.deadline_tick == 50U);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
@@ -922,6 +939,7 @@ void Test_game_scheduler_bounded_catch_up_enforces_limit(CuTest *tc)
 
 void Test_game_scheduler_enforces_global_and_per_type_capacity(CuTest *tc)
 {
+  struct game_scheduler_stats stats;
   struct game_scheduler *scheduler;
   struct test_event_payload *first;
   struct test_event_payload *second;
@@ -954,6 +972,9 @@ void Test_game_scheduler_enforces_global_and_per_type_capacity(CuTest *tc)
                     game_scheduler_schedule_after(scheduler, other_type, 1U, third, &event_id));
   status = game_scheduler_schedule_after(scheduler, other_type, 1U, fourth, &event_id);
   CuAssertIntEquals(tc, GAME_SCHEDULER_CAPACITY_REACHED, status);
+  game_scheduler_get_stats(scheduler, &stats);
+  CuAssertTrue(tc, stats.total_type_capacity_rejections == 1U);
+  CuAssertTrue(tc, stats.total_capacity_rejections == 1U);
   CuAssertIntEquals(tc, 0, cleanups);
   free(fourth);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));

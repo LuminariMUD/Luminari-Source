@@ -591,6 +591,55 @@ enum domain_event_status domain_event_get_handler_stats(
   return DOMAIN_EVENT_NOT_FOUND;
 }
 
+size_t domain_event_inspect_types(const struct domain_event_bus *bus,
+                                  struct domain_event_type_stats *snapshots,
+                                  size_t snapshot_capacity)
+{
+  size_t index;
+
+  if (bus == NULL)
+    return 0;
+  for (index = 0; index < bus->type_count && index < snapshot_capacity; index++)
+  {
+    if (snapshots != NULL)
+      (void)domain_event_get_type_stats(bus, bus->types[index]->type, &snapshots[index]);
+  }
+  return bus->type_count;
+}
+
+size_t domain_event_inspect_handlers(const struct domain_event_bus *bus,
+                                     domain_event_type_id_t type_id,
+                                     struct domain_event_handler_stats *snapshots,
+                                     size_t snapshot_capacity)
+{
+  struct domain_event_type_entry *type;
+  struct domain_event_handler_entry *handler;
+  size_t index;
+
+  if (bus == NULL)
+    return 0;
+  type = find_type(bus, type_id);
+  if (type == NULL)
+    return 0;
+  index = 0;
+  for (handler = type->handlers; handler != NULL; handler = handler->next)
+  {
+    if (snapshots != NULL && index < snapshot_capacity)
+    {
+      snapshots[index].type = type_id;
+      snapshots[index].identity = handler->identity;
+      snapshots[index].priority = handler->priority;
+      snapshots[index].registration_sequence = handler->registration_sequence;
+      snapshots[index].calls = handler->calls;
+      snapshots[index].total_usec = handler->total_usec;
+      snapshots[index].maximum_usec = handler->maximum_usec;
+      snapshots[index].slow_calls = handler->slow_calls;
+    }
+    index++;
+  }
+  return index;
+}
+
 const char *domain_event_status_name(enum domain_event_status status)
 {
   static const char *const names[] = {

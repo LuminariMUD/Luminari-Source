@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - seven Phase 7 owner slices accepted; observability continues
-**Document version:** 1.12
+**Status:** In progress - Phase 7 and the immortal observability gate accepted; Phase 8 next
+**Document version:** 1.13
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 6b complete; Phase 7 NPC, periodic-object/script, affected-owner, character-state, mixed-pulse, vessel, and mud-hour point-update slices accepted
+**Implementation status:** Phases 1 through 7 plus the dedicated immortal event-observability gate complete
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -1785,8 +1785,16 @@ point phases, and global, player, then object order is retained.
 `LUMINARI_POINT_UPDATE_EVENTS=legacy` restores the former whole-list
 heartbeat path exclusively. Evidence is recorded in
 [`EVENT_DRIVEN_CORE_REFACTOR_PHASE7G_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE7G_VALIDATION.md).
-The dedicated immortal event-observability tranche is next, followed by Phase
-8 encounter compatibility.
+**Immortal observability gate accepted 2026-08-31.** `eventdebug` provides a
+payload-free backend-neutral live registry, paginated queue inspection, safe
+ID/type/owner/deadline/state filters, callback and domain-handler timing, wheel
+and backlog metrics, admission/lifecycle totals, and bounded I3 worker-ingress
+telemetry. Invalid client widths default to 80 columns and every line is capped
+at 120. Compatibility owner teardown cancels before stale dispatch; typed
+consumers introduced from Phase 8 onward must count failed generation-aware
+resolution as a stale-owner outcome. Evidence is recorded in
+[`EVENT_DRIVEN_CORE_REFACTOR_OBSERVABILITY_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_OBSERVABILITY_VALIDATION.md).
+Phase 8 encounter compatibility is next.
 
 ### Phase 8: Encounter-level combat compatibility
 
@@ -2231,3 +2239,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.10 | 2026-08-31 | Accepted the mixed room/character Phase 7 slice after moving five-second room-affect behavior, five-second per-character Luminari work, six-second damage/effect work, and connected player maintenance onto existing nearest-deadline owner events. All in-world NPCs remain active without player proximity, typed movement admits new owners, affected and character rollback remain independent, and focused production-linked coverage proves exact five/six-second boundaries without duplicate execution. Vessel decomposition and the mixed `point_update()` pulse are next. |
 | 1.11 | 2026-08-31 | Accepted the vessel Phase 7 slice after replacing Greyhawk fleet sweeps and converted-RoL object discovery with bounded lifecycle-owned deadlines, retaining exact half-second, 2.5-second, and mud-hour boundaries and established gameplay routines. One service event retains genuinely global vessel work, startup and boot-time rollback are all-or-nothing, diagnostics fit 80 columns, and the 987-test database/sanitizer/Valgrind plus eight-mode syntax and live-MUD gates pass. The mixed `point_update()` pulse is next. |
 | 1.12 | 2026-08-31 | Accepted the mud-hour point-update Phase 7 slice after replacing normal player/object discovery scans with one aligned service deadline and lifecycle-owned PC and active-object registries. Global-player-object ordering, timer/decay/corpse/idle gameplay, timer-trigger extraction, OLC/DG replacement safety, exclusive rollback, and compact diagnostics are preserved; the 991-test database/sanitizer/Valgrind, eight-mode syntax, and live-MUD gates pass. Immortal event observability is next before Phase 8. |
+| 1.13 | 2026-08-31 | Accepted the immortal observability gate after adding backend-neutral payload-free event inspection, readable paginated filters and profiles, complete scheduler queue/lifecycle/capacity telemetry, typed domain-handler views, and bounded I3 worker-ingress counters with an 80-column default and 120-column hard ceiling. Phase 8 encounter compatibility is next. |

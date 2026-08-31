@@ -60,6 +60,10 @@ struct event
   bool cancel_requested;           /**< In-flight cancellation must beat recurrence. */
   bool callback_terminal;          /**< Terminal cleanup follows legacy callback ownership. */
   struct game_event_owner owner;   /**< Stable runtime owner for scheduler indexing. */
+  uint64_t debug_id;               /**< Backend-neutral read-only diagnostic identity. */
+  bool debug_registered;           /**< Linked into the diagnostic registry. */
+  struct event *debug_previous;    /**< Diagnostic registry linkage. */
+  struct event *debug_next;        /**< Diagnostic registry linkage. */
 };
 /**************************************************************************
  * End event structures and defines.
@@ -145,6 +149,67 @@ void cleanup_event_obj(struct event *event);
 int event_queue_depth(void);
 enum event_backend_kind event_backend_current(void);
 const char *event_backend_name(void);
+
+#define EVENT_DEBUG_NAME_SIZE 64
+
+enum event_debug_state
+{
+  EVENT_DEBUG_QUEUED = 0,
+  EVENT_DEBUG_READY,
+  EVENT_DEBUG_RUNNING,
+  EVENT_DEBUG_CANCEL_PENDING,
+  EVENT_DEBUG_UNKNOWN
+};
+
+struct event_debug_filter
+{
+  bool event_id_set;
+  uint64_t event_id;
+  const char *type_contains;
+  const char *type_equals;
+  bool owner_set;
+  struct game_event_owner owner;
+  bool owner_generation_set;
+  bool minimum_remaining_set;
+  uint64_t minimum_remaining;
+  bool maximum_remaining_set;
+  uint64_t maximum_remaining;
+  bool state_set;
+  enum event_debug_state state;
+};
+
+struct event_debug_snapshot
+{
+  uint64_t event_id;
+  char type_name[EVENT_DEBUG_NAME_SIZE];
+  enum event_backend_kind backend;
+  enum event_debug_state state;
+  uint64_t remaining_pulses;
+  struct game_event_owner owner;
+};
+
+struct event_debug_stats
+{
+  enum event_backend_kind backend;
+  uint64_t current_pulse;
+  size_t live_events;
+  size_t high_water_events;
+  size_t registry_mismatches;
+  uint64_t stale_owner_outcomes;
+  size_t owner_event_counts[GAME_EVENT_OWNER_KIND_COUNT];
+  bool scheduler_stats_available;
+  struct game_scheduler_stats scheduler;
+};
+
+void event_note_stale_owner_outcome(void);
+void event_debug_get_stats(struct event_debug_stats *stats);
+size_t event_debug_inspect(const struct event_debug_filter *filter,
+                           struct event_debug_snapshot *snapshots,
+                           size_t snapshot_capacity, size_t *returned_count);
+const char *event_debug_state_name(enum event_debug_state state);
+const char *event_debug_owner_kind_name(enum game_event_owner_kind kind);
+bool event_debug_parse_owner_kind(const char *name, enum game_event_owner_kind *kind);
+bool event_debug_parse_state(const char *name, enum event_debug_state *state);
 
 /* - queues - function protos need by other modules */
 struct dg_queue *queue_init(void);

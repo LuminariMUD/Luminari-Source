@@ -65,6 +65,7 @@ void Test_command_dispatch_lookup(CuTest *tc)
 {
   int look_command;
   int help_command;
+  int eventdebug_command;
   bool created_command_list;
 
   created_command_list = false;
@@ -76,10 +77,14 @@ void Test_command_dispatch_lookup(CuTest *tc)
 
   look_command = find_command("look");
   help_command = find_command("help");
+  eventdebug_command = find_command("eventdebug");
 
   CuAssertTrue(tc, look_command >= 0);
   CuAssertTrue(tc, help_command >= 0);
   CuAssertTrue(tc, look_command != help_command);
+  CuAssertTrue(tc, eventdebug_command >= 0);
+  CuAssertIntEquals(tc, LVL_IMMORT,
+                    complete_cmd_info[eventdebug_command].minimum_level);
   CuAssertIntEquals(tc, -1, find_command("not-a-real-command"));
 
   if (created_command_list)

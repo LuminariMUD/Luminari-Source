@@ -265,6 +265,42 @@ void TestDomainEventRegistryContracts(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
 }
 
+void TestDomainEventInspectionEnumeratesTypesAndHandlers(CuTest *tc)
+{
+  struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
+  struct domain_event_type_stats types[2];
+  struct domain_event_handler_stats handlers[2];
+  struct handler_fixture fixture = {0};
+  size_t total;
+
+  register_test_type(tc, bus, TEST_EVENT_OUTER, "FirstObserved");
+  register_test_type(tc, bus, TEST_EVENT_INNER, "SecondObserved");
+  register_handler(tc, bus, TEST_EVENT_OUTER, "late-observer", 10, record_handler, &fixture);
+  register_handler(tc, bus, TEST_EVENT_OUTER, "early-observer", -10, record_handler, &fixture);
+
+  memset(types, 0, sizeof(types));
+  total = domain_event_inspect_types(bus, types, 1U);
+  CuAssertIntEquals(tc, 2, (int)total);
+  CuAssertTrue(tc, types[0].type == TEST_EVENT_OUTER);
+  CuAssertStrEquals(tc, "FirstObserved", types[0].name);
+  total = domain_event_inspect_types(bus, types, 2U);
+  CuAssertIntEquals(tc, 2, (int)total);
+  CuAssertTrue(tc, types[1].type == TEST_EVENT_INNER);
+  CuAssertStrEquals(tc, "SecondObserved", types[1].name);
+
+  memset(handlers, 0, sizeof(handlers));
+  total = domain_event_inspect_handlers(bus, TEST_EVENT_OUTER, handlers, 1U);
+  CuAssertIntEquals(tc, 2, (int)total);
+  CuAssertStrEquals(tc, "early-observer", handlers[0].identity);
+  CuAssertIntEquals(tc, -10, handlers[0].priority);
+  total = domain_event_inspect_handlers(bus, TEST_EVENT_OUTER, handlers, 2U);
+  CuAssertIntEquals(tc, 2, (int)total);
+  CuAssertStrEquals(tc, "early-observer", handlers[0].identity);
+  CuAssertStrEquals(tc, "late-observer", handlers[1].identity);
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
+}
+
 void TestDomainEventFoundationContracts(CuTest *tc)
 {
   struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);

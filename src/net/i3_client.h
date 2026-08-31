@@ -10,7 +10,9 @@
 #ifndef _I3_CLIENT_H_
 #define _I3_CLIENT_H_
 
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /* Configuration constants */
 #define I3_MAX_STRING_LENGTH 4096
@@ -153,6 +155,9 @@ typedef struct
   unsigned long messages_received;
   unsigned long errors;
   unsigned long reconnects;
+  uint64_t event_ingress_high_water;
+  uint64_t event_ingress_rejections;
+  uint64_t event_ingress_wake_failures;
 
   /* Configuration */
   int enable_tell;
@@ -171,6 +176,16 @@ typedef struct
 /* Global I3 client instance */
 extern i3_client_t *i3_client;
 
+struct i3_ingress_stats
+{
+  bool available;
+  size_t depth;
+  size_t capacity;
+  uint64_t high_water;
+  uint64_t rejections;
+  uint64_t wake_failures;
+};
+
 /* Core functions */
 int i3_initialize(void);
 void i3_shutdown(void);
@@ -183,6 +198,7 @@ int i3_reconnect_backoff(int base_delay, unsigned int failure_count);
 void *i3_client_thread(void *arg);
 void i3_process_events(void);
 int i3_sync_presence(void);
+void i3_get_ingress_stats(struct i3_ingress_stats *stats);
 int i3_get_event_fd(void);
 
 /* Command functions */

@@ -51,6 +51,13 @@ static int processing_events = 0;
 static int total_events = 0;
 /** New events created by callbacks during the current event_process() call. */
 static uint64_t events_created_during_process = 0;
+/** Backend-neutral, payload-free registry used by read-only staff diagnostics. */
+static struct event *debug_event_head = NULL;
+static struct event *debug_event_tail = NULL;
+static size_t debug_event_count = 0;
+static size_t debug_event_high_water = 0;
+static uint64_t next_debug_event_id = 1;
+static uint64_t stale_owner_outcomes = 0;
 
 #if defined(LUMINARI_CUTEST)
 static int event_init_calls = 0;
@@ -66,6 +73,8 @@ static void legacy_scheduler_event_cleanup(void *payload);
 static enum event_backend_kind configured_event_backend(void);
 static int initialize_scheduler_backend(void);
 static void decrement_event_count(const char *context);
+static void debug_event_link(struct event *event);
+static void debug_event_unlink(struct event *event);
 
 static const char *backend_kind_name(enum event_backend_kind backend)
 {
@@ -135,6 +144,45 @@ static void decrement_event_count(const char *context)
   }
 }
 
+static void debug_event_link(struct event *event)
+{
+  if (event == NULL || event->debug_registered)
+    return;
+  event->debug_id = next_debug_event_id++;
+  if (next_debug_event_id == 0)
+    next_debug_event_id = 1;
+  event->debug_previous = debug_event_tail;
+  event->debug_next = NULL;
+  if (debug_event_tail != NULL)
+    debug_event_tail->debug_next = event;
+  else
+    debug_event_head = event;
+  debug_event_tail = event;
+  event->debug_registered = true;
+  debug_event_count++;
+  if (debug_event_count > debug_event_high_water)
+    debug_event_high_water = debug_event_count;
+}
+
+static void debug_event_unlink(struct event *event)
+{
+  if (event == NULL || !event->debug_registered)
+    return;
+  if (event->debug_previous != NULL)
+    event->debug_previous->debug_next = event->debug_next;
+  else if (debug_event_head == event)
+    debug_event_head = event->debug_next;
+  if (event->debug_next != NULL)
+    event->debug_next->debug_previous = event->debug_previous;
+  else if (debug_event_tail == event)
+    debug_event_tail = event->debug_previous;
+  event->debug_previous = NULL;
+  event->debug_next = NULL;
+  event->debug_registered = false;
+  if (debug_event_count > 0)
+    debug_event_count--;
+}
+
 static void legacy_scheduler_event_cleanup(void *payload)
 {
   struct event *event;
@@ -153,6 +201,7 @@ static void legacy_scheduler_event_cleanup(void *payload)
     cleanup_event_obj(event);
   }
 
+  debug_event_unlink(event);
   free(event);
   decrement_event_count("scheduler cleanup");
 }
@@ -399,6 +448,7 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
   }
 
   /* Increment our event counter for resource tracking */
+  debug_event_link(new_event);
   total_events++;
   if (processing_events && events_created_during_process < UINT64_MAX)
     events_created_during_process++;
@@ -495,6 +545,7 @@ void event_cancel(struct event *event)
   if (event->event_obj)
     cleanup_event_obj(event);
 
+  debug_event_unlink(event);
   free(event);
   decrement_event_count("legacy cancellation");
 }
@@ -615,6 +666,7 @@ event_process_backend(const struct game_scheduler_budget *budget,
       log("SYSERR: Event with NULL function pointer detected in event_process!");
       if (the_event->event_obj != NULL)
         cleanup_event_obj(the_event);
+      debug_event_unlink(the_event);
       free(the_event);
       decrement_event_count("invalid legacy callback");
       continue;
@@ -633,6 +685,7 @@ event_process_backend(const struct game_scheduler_budget *budget,
     {
       if (the_event->isMudEvent && the_event->event_obj != NULL)
         free_mud_event((struct mud_event_data *)the_event->event_obj);
+      debug_event_unlink(the_event);
       free(the_event);
       decrement_event_count("in-flight legacy cancellation");
     }
@@ -655,6 +708,7 @@ event_process_backend(const struct game_scheduler_budget *budget,
       the_event->callback_terminal = true;
       if (the_event->isMudEvent && the_event->event_obj != NULL)
         free_mud_event((struct mud_event_data *)the_event->event_obj);
+      debug_event_unlink(the_event);
       free(the_event);
       decrement_event_count("legacy completion");
     }
@@ -788,6 +842,14 @@ void event_free_all(void)
     total_events = 0;
   }
   events_created_during_process = 0;
+  if (debug_event_count != 0 || debug_event_head != NULL || debug_event_tail != NULL)
+    log("SYSERR: Event diagnostic registry was not empty after backend shutdown.");
+  debug_event_head = NULL;
+  debug_event_tail = NULL;
+  debug_event_count = 0;
+  debug_event_high_water = 0;
+  next_debug_event_id = 1;
+  stale_owner_outcomes = 0;
 }
 
 #if defined(LUMINARI_CUTEST)
@@ -1124,6 +1186,7 @@ void queue_free(struct dg_queue *q)
           cleanup_event_obj(event);
 
         /* Free the event structure itself */
+        debug_event_unlink(event);
         free(event);
 
         /* Decrement event counter since we freed an event during shutdown */
@@ -1148,4 +1211,247 @@ void queue_free(struct dg_queue *q)
 int event_queue_depth(void)
 {
   return total_events;
+}
+
+void event_note_stale_owner_outcome(void)
+{
+  if (stale_owner_outcomes < UINT64_MAX)
+    stale_owner_outcomes++;
+}
+
+const char *event_debug_owner_kind_name(enum game_event_owner_kind kind)
+{
+  static const char *const names[GAME_EVENT_OWNER_KIND_COUNT] = {
+      "none",      "world",  "descriptor", "character", "room",    "region",
+      "object",    "zone",   "encounter",  "vessel",    "service",
+  };
+
+  if (kind < GAME_EVENT_OWNER_NONE || kind >= GAME_EVENT_OWNER_KIND_COUNT)
+    return "unknown";
+  return names[kind];
+}
+
+bool event_debug_parse_owner_kind(const char *name, enum game_event_owner_kind *kind)
+{
+  enum game_event_owner_kind candidate;
+
+  if (name == NULL || kind == NULL)
+    return false;
+  for (candidate = GAME_EVENT_OWNER_NONE; candidate < GAME_EVENT_OWNER_KIND_COUNT; candidate++)
+  {
+    if (!strcasecmp(name, event_debug_owner_kind_name(candidate)) ||
+        (candidate == GAME_EVENT_OWNER_CHARACTER && !strcasecmp(name, "char")) ||
+        (candidate == GAME_EVENT_OWNER_DESCRIPTOR && !strcasecmp(name, "desc")) ||
+        (candidate == GAME_EVENT_OWNER_OBJECT && !strcasecmp(name, "obj")))
+    {
+      *kind = candidate;
+      return true;
+    }
+  }
+  return false;
+}
+
+const char *event_debug_state_name(enum event_debug_state state)
+{
+  switch (state)
+  {
+  case EVENT_DEBUG_QUEUED:
+    return "queued";
+  case EVENT_DEBUG_READY:
+    return "ready";
+  case EVENT_DEBUG_RUNNING:
+    return "running";
+  case EVENT_DEBUG_CANCEL_PENDING:
+    return "cancel-pending";
+  case EVENT_DEBUG_UNKNOWN:
+  default:
+    return "unknown";
+  }
+}
+
+bool event_debug_parse_state(const char *name, enum event_debug_state *state)
+{
+  enum event_debug_state candidate;
+
+  if (name == NULL || state == NULL)
+    return false;
+  for (candidate = EVENT_DEBUG_QUEUED; candidate <= EVENT_DEBUG_UNKNOWN; candidate++)
+  {
+    if (!strcasecmp(name, event_debug_state_name(candidate)) ||
+        (candidate == EVENT_DEBUG_RUNNING && !strcasecmp(name, "dispatching")) ||
+        (candidate == EVENT_DEBUG_CANCEL_PENDING && !strcasecmp(name, "cancel")))
+    {
+      *state = candidate;
+      return true;
+    }
+  }
+  return false;
+}
+
+static enum event_debug_state scheduler_debug_state(enum game_event_state state)
+{
+  switch (state)
+  {
+  case GAME_EVENT_STATE_QUEUED:
+    return EVENT_DEBUG_QUEUED;
+  case GAME_EVENT_STATE_READY:
+    return EVENT_DEBUG_READY;
+  case GAME_EVENT_STATE_DISPATCHING:
+    return EVENT_DEBUG_RUNNING;
+  case GAME_EVENT_STATE_CANCEL_PENDING:
+    return EVENT_DEBUG_CANCEL_PENDING;
+  default:
+    return EVENT_DEBUG_UNKNOWN;
+  }
+}
+
+static void event_debug_snapshot_one(const struct event *event,
+                                     struct event_debug_snapshot *snapshot)
+{
+  struct game_event_snapshot scheduler_snapshot;
+  long remaining;
+
+  memset(snapshot, 0, sizeof(*snapshot));
+  snapshot->event_id = event->debug_id;
+  snprintf(snapshot->type_name, sizeof(snapshot->type_name), "%s",
+           PERF_event_callback_identity(event->profile_index));
+  snapshot->backend = event->backend;
+  snapshot->owner = event->owner;
+  if (event->cancel_requested)
+    snapshot->state = EVENT_DEBUG_CANCEL_PENDING;
+  else if (event->dispatching)
+    snapshot->state = EVENT_DEBUG_RUNNING;
+  else if (event->backend == EVENT_BACKEND_GAME_SCHEDULER && event_scheduler != NULL &&
+           game_scheduler_inspect(event_scheduler, event->scheduler_id, &scheduler_snapshot) ==
+               GAME_SCHEDULER_OK)
+    snapshot->state = scheduler_debug_state(scheduler_snapshot.state);
+  else
+    snapshot->state = EVENT_DEBUG_QUEUED;
+  remaining = event_time((struct event *)event);
+  snapshot->remaining_pulses = remaining > 0 ? (uint64_t)remaining : 0;
+}
+
+static bool event_debug_filter_matches(const struct event_debug_filter *filter,
+                                       const struct event_debug_snapshot *snapshot)
+{
+  if (filter == NULL)
+    return true;
+  if (filter->event_id_set && snapshot->event_id != filter->event_id)
+    return false;
+  if (filter->type_contains != NULL && *filter->type_contains != '\0' &&
+      strcasestr(snapshot->type_name, filter->type_contains) == NULL)
+    return false;
+  if (filter->type_equals != NULL &&
+      strcmp(snapshot->type_name, filter->type_equals) != 0)
+    return false;
+  if (filter->owner_set &&
+      (snapshot->owner.kind != filter->owner.kind ||
+       snapshot->owner.runtime_id != filter->owner.runtime_id ||
+       (filter->owner_generation_set &&
+        snapshot->owner.generation != filter->owner.generation)))
+    return false;
+  if (filter->minimum_remaining_set &&
+      snapshot->remaining_pulses < filter->minimum_remaining)
+    return false;
+  if (filter->maximum_remaining_set &&
+      snapshot->remaining_pulses > filter->maximum_remaining)
+    return false;
+  if (filter->state_set && snapshot->state != filter->state)
+    return false;
+  return true;
+}
+
+static int event_debug_snapshot_compare(const void *left_pointer, const void *right_pointer)
+{
+  const struct event_debug_snapshot *left = left_pointer;
+  const struct event_debug_snapshot *right = right_pointer;
+
+  if (left->remaining_pulses < right->remaining_pulses)
+    return -1;
+  if (left->remaining_pulses > right->remaining_pulses)
+    return 1;
+  if (left->event_id < right->event_id)
+    return -1;
+  if (left->event_id > right->event_id)
+    return 1;
+  return 0;
+}
+
+size_t event_debug_inspect(const struct event_debug_filter *filter,
+                           struct event_debug_snapshot *snapshots,
+                           size_t snapshot_capacity, size_t *returned_count)
+{
+  struct event_debug_snapshot candidate;
+  struct event *event;
+  size_t copied;
+  size_t matched;
+  size_t worst;
+  size_t index;
+
+  copied = 0;
+  matched = 0;
+  for (event = debug_event_head; event != NULL; event = event->debug_next)
+  {
+    event_debug_snapshot_one(event, &candidate);
+    if (!event_debug_filter_matches(filter, &candidate))
+      continue;
+    matched++;
+    if (snapshots == NULL || snapshot_capacity == 0)
+      continue;
+    if (copied < snapshot_capacity)
+    {
+      snapshots[copied++] = candidate;
+      continue;
+    }
+    worst = 0;
+    for (index = 1; index < copied; index++)
+      if (event_debug_snapshot_compare(&snapshots[worst], &snapshots[index]) < 0)
+        worst = index;
+    if (event_debug_snapshot_compare(&candidate, &snapshots[worst]) < 0)
+      snapshots[worst] = candidate;
+  }
+  if (copied > 1)
+    qsort(snapshots, copied, sizeof(*snapshots), event_debug_snapshot_compare);
+  if (returned_count != NULL)
+    *returned_count = copied;
+  return matched;
+}
+
+void event_debug_get_stats(struct event_debug_stats *stats)
+{
+  const struct event *event;
+  const struct event *previous;
+  size_t counted;
+  size_t mismatches;
+
+  if (stats == NULL)
+    return;
+  memset(stats, 0, sizeof(*stats));
+  stats->backend = active_backend;
+  stats->current_pulse = pulse;
+  stats->live_events = debug_event_count;
+  stats->high_water_events = debug_event_high_water;
+  stats->stale_owner_outcomes = stale_owner_outcomes;
+  counted = 0;
+  mismatches = 0;
+  previous = NULL;
+  for (event = debug_event_head; event != NULL; event = event->debug_next)
+  {
+    counted++;
+    if (event->owner.kind >= GAME_EVENT_OWNER_NONE &&
+        event->owner.kind < GAME_EVENT_OWNER_KIND_COUNT)
+      stats->owner_event_counts[event->owner.kind]++;
+    if (!event->debug_registered || event->debug_previous != previous)
+      mismatches++;
+    previous = event;
+  }
+  if (previous != debug_event_tail || counted != debug_event_count ||
+      counted != (size_t)MAX(total_events, 0))
+    mismatches++;
+  stats->registry_mismatches = mismatches;
+  if (active_backend == EVENT_BACKEND_GAME_SCHEDULER && event_scheduler != NULL)
+  {
+    game_scheduler_get_stats(event_scheduler, &stats->scheduler);
+    stats->scheduler_stats_available = true;
+  }
 }

@@ -2,6 +2,30 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Immortal event diagnostics
+
+#### Added
+
+- Added the paginated `eventdebug` command for immortals, with compact summary,
+  queue, ID, type, owner, deadline-range, state, callback-profile, and typed
+  domain-event views.
+- Added a payload-free backend-neutral live-event registry so the same safe
+  queue inspection works with scheduler and legacy timed backends.
+
+#### Operations
+
+- Defaulted invalid screen widths to 80 columns and hard-clamped every output
+  line to 120 columns.
+- Exposed wheel occupancy, ready backlog and overdue age, lifecycle/coalescing,
+  capacity rejection, stale-owner, callback timing, domain-handler, and bounded
+  I3 worker-ingress telemetry without displaying event payloads.
+
+#### Tests
+
+- Added dual-backend filtering, lifecycle, width, payload-redaction,
+  scheduler-metric, domain-inspection, I3-ingress, and immortal command-access
+  coverage.
+
 ### Mud-hour point-update ownership
 
 #### Changed

@@ -112,6 +112,13 @@ struct game_scheduler
   uint64_t total_cancelled;
   uint64_t total_completed;
   uint64_t total_failed;
+  uint64_t total_rescheduled;
+  uint64_t total_late_callbacks;
+  uint64_t total_missed_occurrences;
+  uint64_t total_skipped_occurrences;
+  uint64_t total_coalesced_occurrences;
+  uint64_t total_capacity_rejections;
+  uint64_t total_type_capacity_rejections;
   uint64_t total_invalid_owner_rejections;
   uint64_t total_owner_capacity_rejections;
   uint64_t total_owner_type_capacity_rejections;
@@ -962,7 +969,9 @@ static bool reschedule_dispatched_event(struct game_scheduler *scheduler, struct
                                              &future_tick, &skipped))
           return false;
         deadline_tick = future_tick;
-        if (event_type->lateness_policy != GAME_EVENT_LATENESS_COALESCE)
+        if (event_type->lateness_policy == GAME_EVENT_LATENESS_COALESCE)
+          report->coalesced_occurrences += skipped;
+        else
           report->skipped_occurrences += skipped;
         event->catch_up_runs = 0;
       }
@@ -1404,10 +1413,16 @@ static enum game_scheduler_status schedule_normalized(struct game_scheduler *sch
     return GAME_SCHEDULER_INVALID_OWNER;
   }
   if (scheduler->event_count >= scheduler->config.max_events)
+  {
+    scheduler->total_capacity_rejections++;
     return GAME_SCHEDULER_CAPACITY_REACHED;
+  }
   if (registered_type->max_events > 0 &&
       registered_type->live_events >= registered_type->max_events)
+  {
+    scheduler->total_type_capacity_rejections++;
     return GAME_SCHEDULER_TYPE_CAPACITY_REACHED;
+  }
   if (scheduler->event_id_exhausted || scheduler->insertion_sequence_exhausted)
     return GAME_SCHEDULER_ID_EXHAUSTED;
 
@@ -1740,6 +1755,11 @@ enum game_scheduler_status game_scheduler_advance(struct game_scheduler *schedul
       scheduler->total_large_advance_events - large_advance_events_before;
   report->ready_remaining = scheduler->ready_heap.count;
   report->events_remaining = scheduler->event_count;
+  scheduler->total_rescheduled += report->rescheduled;
+  scheduler->total_late_callbacks += report->late_callbacks;
+  scheduler->total_missed_occurrences += report->missed_occurrences;
+  scheduler->total_skipped_occurrences += report->skipped_occurrences;
+  scheduler->total_coalesced_occurrences += report->coalesced_occurrences;
   return GAME_SCHEDULER_OK;
 }
 
@@ -1833,7 +1853,10 @@ void game_scheduler_get_stats(const struct game_scheduler *scheduler,
                               struct game_scheduler_stats *stats)
 {
   const struct game_event_owner_entry *owner_entry;
+  const struct game_event *event;
   size_t bucket;
+  size_t level;
+  size_t slot;
 
   if (stats == NULL)
     return;
@@ -1845,6 +1868,19 @@ void game_scheduler_get_stats(const struct game_scheduler *scheduler,
   stats->event_count = scheduler->event_count;
   stats->ready_count = scheduler->ready_heap.count;
   stats->overflow_count = scheduler->overflow_heap.count;
+  for (level = 0; level < GAME_SCHEDULER_WHEEL_LEVELS; level++)
+  {
+    for (slot = 0; slot < GAME_SCHEDULER_WHEEL_SLOTS; slot++)
+    {
+      for (event = scheduler->wheel_head[level][slot]; event != NULL;
+           event = event->wheel_next)
+        stats->wheel_level_counts[level]++;
+    }
+  }
+  if (scheduler->ready_heap.count > 0 &&
+      scheduler->ready_heap.items[0]->deadline_tick < scheduler->current_tick)
+    stats->oldest_overdue_ticks =
+        scheduler->current_tick - scheduler->ready_heap.items[0]->deadline_tick;
   stats->registered_type_count = scheduler->event_type_count;
   stats->owner_count = scheduler->owner_count;
   for (bucket = 0; bucket < scheduler->owner_bucket_count; bucket++)
@@ -1858,6 +1894,13 @@ void game_scheduler_get_stats(const struct game_scheduler *scheduler,
   stats->total_cancelled = scheduler->total_cancelled;
   stats->total_completed = scheduler->total_completed;
   stats->total_failed = scheduler->total_failed;
+  stats->total_rescheduled = scheduler->total_rescheduled;
+  stats->total_late_callbacks = scheduler->total_late_callbacks;
+  stats->total_missed_occurrences = scheduler->total_missed_occurrences;
+  stats->total_skipped_occurrences = scheduler->total_skipped_occurrences;
+  stats->total_coalesced_occurrences = scheduler->total_coalesced_occurrences;
+  stats->total_capacity_rejections = scheduler->total_capacity_rejections;
+  stats->total_type_capacity_rejections = scheduler->total_type_capacity_rejections;
   stats->total_invalid_owner_rejections = scheduler->total_invalid_owner_rejections;
   stats->total_owner_capacity_rejections = scheduler->total_owner_capacity_rejections;
   stats->total_owner_type_capacity_rejections =

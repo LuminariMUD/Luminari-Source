@@ -6,6 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
+#include "../../src/event_debug.h"
 #include "../../src/perfmon.h"
 
 #include <stdlib.h>
@@ -415,5 +416,165 @@ void Test_legacy_event_scheduler_bridge_yields_without_dual_dispatch(CuTest *tc)
   event_process_compatibility_pulse();
   CuAssertIntEquals(tc, 3, trace.count);
   event_free_all();
+  pulse = saved_pulse;
+}
+
+static void assert_debug_output_width(CuTest *tc, const char *output, size_t expected_width)
+{
+  const char *line;
+  const char *cursor;
+  size_t line_length;
+
+  CuAssertPtrNotNull(tc, output);
+  line = output;
+  for (cursor = output; *cursor != '\0'; cursor++)
+  {
+    if (*cursor != '\r' && *cursor != '\n')
+      continue;
+    line_length = (size_t)(cursor - line);
+    CuAssertTrue(tc, line_length <= expected_width);
+    if (*cursor == '\r' && cursor[1] == '\n')
+      cursor++;
+    line = cursor + 1;
+  }
+  CuAssertTrue(tc, (size_t)(cursor - line) <= expected_width);
+}
+
+static void verify_event_debug_registry(CuTest *tc, enum event_backend_kind backend)
+{
+  struct game_event_owner owner;
+  struct event_debug_filter filter;
+  struct event_debug_snapshot snapshots[2];
+  struct event_debug_stats stats;
+  struct event *alpha;
+  struct event *beta;
+  char output[32768];
+  size_t matched;
+  size_t returned;
+  size_t width_index;
+  static const int widths[] = {40, 80, 120};
+
+  begin_backend_test(tc, backend, 700U);
+  PERF_reset();
+  owner.kind = GAME_EVENT_OWNER_SERVICE;
+  owner.runtime_id = 7U;
+  owner.generation = 3U;
+  alpha = event_create_owned_named(workload_callback, NULL, 20, "debug-alpha-type", owner);
+  beta = event_create_named(workload_callback, NULL, 5, "debug-beta-type");
+  CuAssertPtrNotNull(tc, alpha);
+  CuAssertPtrNotNull(tc, beta);
+
+  event_debug_get_stats(&stats);
+  CuAssertIntEquals(tc, backend, stats.backend);
+  CuAssertIntEquals(tc, 2, (int)stats.live_events);
+  CuAssertIntEquals(tc, 2, (int)stats.high_water_events);
+  CuAssertIntEquals(tc, 0, (int)stats.registry_mismatches);
+  CuAssertTrue(tc, stats.stale_owner_outcomes == 0U);
+  CuAssertIntEquals(tc, 1, (int)stats.owner_event_counts[GAME_EVENT_OWNER_NONE]);
+  CuAssertIntEquals(tc, 1, (int)stats.owner_event_counts[GAME_EVENT_OWNER_SERVICE]);
+  CuAssertIntEquals(tc, backend == EVENT_BACKEND_GAME_SCHEDULER,
+                    stats.scheduler_stats_available);
+
+  memset(&filter, 0, sizeof(filter));
+  matched = event_debug_inspect(&filter, snapshots, 2U, &returned);
+  CuAssertIntEquals(tc, 2, (int)matched);
+  CuAssertIntEquals(tc, 2, (int)returned);
+  CuAssertStrEquals(tc, "debug-beta-type", snapshots[0].type_name);
+  CuAssertTrue(tc, snapshots[0].remaining_pulses == 5U);
+  CuAssertStrEquals(tc, "debug-alpha-type", snapshots[1].type_name);
+  CuAssertTrue(tc, snapshots[1].remaining_pulses == 20U);
+  CuAssertIntEquals(tc, EVENT_DEBUG_QUEUED, snapshots[0].state);
+  CuAssertIntEquals(tc, EVENT_DEBUG_QUEUED, snapshots[1].state);
+
+  memset(&filter, 0, sizeof(filter));
+  filter.type_contains = "ALPHA";
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, snapshots, 2U, &returned));
+  CuAssertIntEquals(tc, 1, (int)returned);
+  CuAssertStrEquals(tc, "debug-alpha-type", snapshots[0].type_name);
+
+  memset(&filter, 0, sizeof(filter));
+  filter.type_equals = "debug-beta-type";
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, snapshots, 2U, &returned));
+  filter.type_equals = "debug-beta";
+  CuAssertIntEquals(tc, 0, (int)event_debug_inspect(&filter, snapshots, 2U, &returned));
+
+  memset(&filter, 0, sizeof(filter));
+  filter.owner_set = true;
+  filter.owner = owner;
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, snapshots, 2U, &returned));
+  filter.owner_generation_set = true;
+  filter.owner.generation = 4U;
+  CuAssertIntEquals(tc, 0, (int)event_debug_inspect(&filter, snapshots, 2U, &returned));
+
+  memset(&filter, 0, sizeof(filter));
+  filter.maximum_remaining_set = true;
+  filter.maximum_remaining = 5U;
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, snapshots, 2U, &returned));
+  CuAssertStrEquals(tc, "debug-beta-type", snapshots[0].type_name);
+
+  memset(&filter, 0, sizeof(filter));
+  filter.minimum_remaining_set = true;
+  filter.minimum_remaining = 10U;
+  filter.maximum_remaining_set = true;
+  filter.maximum_remaining = 20U;
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, snapshots, 2U, &returned));
+  CuAssertStrEquals(tc, "debug-alpha-type", snapshots[0].type_name);
+
+  memset(&filter, 0, sizeof(filter));
+  filter.state_set = true;
+  filter.state = EVENT_DEBUG_QUEUED;
+  CuAssertIntEquals(tc, 2, (int)event_debug_inspect(&filter, snapshots, 2U, &returned));
+
+  memset(&filter, 0, sizeof(filter));
+  filter.event_id_set = true;
+  filter.event_id = alpha->debug_id;
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, snapshots, 2U, &returned));
+  CuAssertTrue(tc, snapshots[0].event_id == alpha->debug_id);
+
+  memset(&filter, 0, sizeof(filter));
+  for (width_index = 0; width_index < sizeof(widths) / sizeof(widths[0]); width_index++)
+  {
+    event_debug_render_help(output, sizeof(output), widths[width_index]);
+    assert_debug_output_width(tc, output, (size_t)widths[width_index]);
+    CuAssertPtrNotNull(tc, strstr(output, "eventdebug range"));
+    event_debug_render_summary(output, sizeof(output), widths[width_index]);
+    assert_debug_output_width(tc, output, (size_t)widths[width_index]);
+    CuAssertPtrNotNull(tc, strstr(output, "Live events by owner"));
+    event_debug_render_queue(output, sizeof(output), widths[width_index], &filter, 2U);
+    assert_debug_output_width(tc, output, (size_t)widths[width_index]);
+    CuAssertPtrNotNull(tc, strstr(output, "Payloads: redacted"));
+    CuAssertPtrNotNull(tc, strstr(output, "debug-alpha-type"));
+    CuAssertPtrNotNull(tc, strstr(output, "debug-beta-type"));
+    event_debug_render_profiles(output, sizeof(output), widths[width_index], 10U);
+    assert_debug_output_width(tc, output, (size_t)widths[width_index]);
+    CuAssertPtrNotNull(tc, strstr(output, "  live: 1"));
+    event_debug_render_domain(output, sizeof(output), widths[width_index], NULL);
+    assert_debug_output_width(tc, output, (size_t)widths[width_index]);
+  }
+
+  event_cancel(alpha);
+  event_cancel(beta);
+  event_debug_get_stats(&stats);
+  CuAssertIntEquals(tc, 0, (int)stats.live_events);
+  CuAssertIntEquals(tc, 2, (int)stats.high_water_events);
+  CuAssertIntEquals(tc, 0, (int)stats.registry_mismatches);
+  event_note_stale_owner_outcome();
+  event_debug_get_stats(&stats);
+  CuAssertTrue(tc, stats.stale_owner_outcomes == 1U);
+  event_free_all();
+}
+
+void Test_event_debug_registry_is_backend_neutral_filterable_and_width_bounded(CuTest *tc)
+{
+  unsigned long saved_pulse;
+
+  saved_pulse = pulse;
+  CuAssertIntEquals(tc, 80, event_debug_effective_width(0));
+  CuAssertIntEquals(tc, 80, event_debug_effective_width(39));
+  CuAssertIntEquals(tc, 40, event_debug_effective_width(40));
+  CuAssertIntEquals(tc, 80, event_debug_effective_width(80));
+  CuAssertIntEquals(tc, 120, event_debug_effective_width(121));
+  verify_event_debug_registry(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  verify_event_debug_registry(tc, EVENT_BACKEND_GAME_SCHEDULER);
   pulse = saved_pulse;
 }

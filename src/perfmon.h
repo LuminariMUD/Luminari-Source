@@ -13,6 +13,32 @@
 #include <stdint.h>
 
 #define PERFMON_COPYOVER_SNAPSHOT_FILE "../log/perfmon-pre-copyover.txt"
+#define PERF_EVENT_IDENTITY_SIZE 64
+
+struct PERF_event_summary
+{
+  uint64_t process_calls;
+  uint64_t callbacks;
+  uint64_t current_depth;
+  uint64_t high_water_depth;
+  uint64_t maximum_batch;
+  uint64_t scheduled;
+  uint64_t cancelled;
+  uint64_t rescheduled;
+  size_t registered_profiles;
+  uint64_t overflow_calls;
+};
+
+struct PERF_event_profile_snapshot
+{
+  char identity[PERF_EVENT_IDENTITY_SIZE];
+  uint64_t calls;
+  uint64_t total_usec;
+  uint64_t maximum_usec;
+  uint64_t scheduled;
+  uint64_t cancelled;
+  uint64_t rescheduled;
+};
 
 /* Heartbeat schedule classes retained in slow-pulse flight records. */
 enum perf_schedule_flag
@@ -114,6 +140,14 @@ uint64_t PERF_monotonic_usec(void);
  * @return Non-negative aggregate slot, or -1 when the registry is full
  */
 int PERF_register_event_callback(const char *identity);
+
+/** Return a stable read-only identity for one callback registry slot. */
+const char *PERF_event_callback_identity(int profile_index);
+
+/** Copy cumulative event telemetry into compact operator-facing records. */
+void PERF_get_event_summary(struct PERF_event_summary *summary);
+size_t PERF_get_event_profiles(struct PERF_event_profile_snapshot *snapshots,
+                               size_t snapshot_capacity);
 
 /**
  * @brief Record one completed event callback invocation

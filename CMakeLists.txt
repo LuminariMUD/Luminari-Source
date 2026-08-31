@@ -545,6 +545,8 @@ set(SRC_C_FILES
     src/domain_event_types.h
     src/domain_event_runtime.c
     src/domain_event_runtime.h
+    src/event_debug.c
+    src/event_debug.h
     src/reactor.c
     src/reactor.h
     src/graph.c

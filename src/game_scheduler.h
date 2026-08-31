@@ -174,6 +174,7 @@ struct game_scheduler_dispatch_report
   size_t late_callbacks;
   uint64_t missed_occurrences;
   uint64_t skipped_occurrences;
+  uint64_t coalesced_occurrences;
   size_t ready_remaining;
   size_t events_remaining;
   bool callback_budget_exhausted;
@@ -206,6 +207,8 @@ struct game_scheduler_stats
   size_t event_count;
   size_t ready_count;
   size_t overflow_count;
+  size_t wheel_level_counts[GAME_SCHEDULER_WHEEL_LEVELS];
+  uint64_t oldest_overdue_ticks;
   size_t registered_type_count;
   size_t owner_count;
   size_t owner_counts[GAME_EVENT_OWNER_KIND_COUNT];
@@ -214,6 +217,13 @@ struct game_scheduler_stats
   uint64_t total_cancelled;
   uint64_t total_completed;
   uint64_t total_failed;
+  uint64_t total_rescheduled;
+  uint64_t total_late_callbacks;
+  uint64_t total_missed_occurrences;
+  uint64_t total_skipped_occurrences;
+  uint64_t total_coalesced_occurrences;
+  uint64_t total_capacity_rejections;
+  uint64_t total_type_capacity_rejections;
   uint64_t total_invalid_owner_rejections;
   uint64_t total_owner_capacity_rejections;
   uint64_t total_owner_type_capacity_rejections;

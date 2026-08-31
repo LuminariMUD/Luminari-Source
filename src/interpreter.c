@@ -38,6 +38,7 @@
 #include "config.h"
 #include "modify.h" /* for do_skillset... */
 #include "perfmon.h"
+#include "event_debug.h"
 #include "quest/quest.h"
 #include "quest/hlquest.h"
 #include "asciimap.h"
@@ -1676,6 +1677,8 @@ cpp_extern const struct command_info cmd_info[] = {
      FALSE,
      ACTION_STANDARD | ACTION_MOVE,
      {6, 6},
+     NULL},
+    {"eventdebug", "eventdebug", POS_DEAD, do_eventdebug, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0},
      NULL},
     {"evobreath",
      "evobreath",

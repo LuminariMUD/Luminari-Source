@@ -15,6 +15,8 @@ Core source files:
 - [src/domain_events.c](../../src/domain_events.c)
 - [src/domain_event_types.h](../../src/domain_event_types.h)
 - [src/domain_event_runtime.c](../../src/domain_event_runtime.c)
+- [src/event_debug.h](../../src/event_debug.h)
+- [src/event_debug.c](../../src/event_debug.c)
 - [src/point_update_periodic.h](../../src/point_update_periodic.h)
 - [src/point_update_periodic.c](../../src/point_update_periodic.c)
 - [src/vessels/vessel_periodic.h](../../src/vessels/vessel_periodic.h)
@@ -108,6 +110,41 @@ game thread.
 - Passive telemetry:
   - PERFMON records callback identity and duration, scheduled/cancelled/rescheduled totals, queue depth, maximum due batch, and aggregate requested-delay buckets
   - No event payload, player text, account data, descriptor data, or other player-sensitive content is recorded
+
+### 2.4 Immortal Diagnostics
+
+`eventdebug` is a read-only `LVL_IMMORT` command. It uses the character's
+configured screen width, defaults to 80 columns when the setting is invalid,
+and clamps every rendered line to 120 columns. Long reports use the normal MUD
+pager. Event payloads are never copied into the diagnostic registry or shown.
+
+Useful views:
+
+- `eventdebug` shows backend, live/high-water counts, owner-kind counts,
+  timing-wheel occupancy, ready/overdue work, lifecycle totals, admission
+  failures, stale-owner outcomes, bounded I3 worker ingress, and domain-bus
+  totals.
+- `eventdebug queue [limit]` lists the earliest live compatibility events.
+- `eventdebug id <id>` selects one diagnostic event ID.
+- `eventdebug type <text> [limit]` filters callback identities.
+- `eventdebug owner <kind> <id> [generation]` filters typed owners.
+- `eventdebug due <max-pulses> [limit]` and
+  `eventdebug range <min> <max> [limit]` filter deadlines.
+- `eventdebug state <state> [limit]` filters queued, ready, running, or
+  cancel-pending events.
+- `eventdebug types [limit]` ranks callback profiles by cumulative time and
+  includes live, call, timing, scheduling, cancellation, and recurrence data.
+- `eventdebug domain [type]` reports registered domain types and handlers with
+  bounded publication and callback telemetry.
+
+Diagnostic IDs are process-local and are reset at event-system teardown. The
+registry is backend-neutral, so queue inspection remains available during a
+boot with `LUMINARI_EVENT_BACKEND=legacy`; timing-wheel internals are naturally
+reported only by the scheduler backend. Compatibility-owner teardown removes
+events before owner memory is released, so it has no post-lookup stale-owner
+outcome. Typed consumers introduced in later phases must count failed
+generation-aware resolution with `event_note_stale_owner_outcome()` rather than
+silently folding it into completion.
 
 ## 3. MUD Event Layer
 
