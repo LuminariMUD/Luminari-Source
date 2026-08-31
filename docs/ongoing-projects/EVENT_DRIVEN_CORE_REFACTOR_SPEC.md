@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 next
-**Document version:** 1.16
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 release gate pending
+**Document version:** 1.17
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 9 plus the dedicated immortal event-observability gate complete
+**Implementation status:** Phases 1 through 10 plus the dedicated immortal event-observability gate complete
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -1939,6 +1939,27 @@ Gate:
 - At least one stable release period on the new backend, no rollback dependency,
   and explicit maintainer approval.
 
+Readiness audit, 2026-08-31:
+
+- The irreversible removal gate is not satisfied. Commit
+  `0d86b4d2bb80bb7fff62d67dafa763842fcc65a4` exists only on the development
+  branch and has no containing release tag, merge, deployment record, or stable
+  release period. Passing development CI does not substitute for that evidence.
+- The old queue and `select()` driver remain isolated rollback implementations,
+  but the public compatibility record still has 112 raw pointer occurrences in
+  22 tracked source/header files, including 72 occurrences in 20 external
+  caller files. The 100 ms heartbeat still paces runtime ticks, `WAIT_STATE`,
+  safe-point extraction, and named global work that must be scheduled before
+  pulse removal.
+- Old PubSub runtime source remains retired. Its deprecated archival schema may
+  be removed only by a separately reviewed backup, retention, drop-order, and
+  restore migration with production approval.
+- The source-grounded inventory and required post-release removal sequence are
+  recorded in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11_REMOVAL_INVENTORY.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11_REMOVAL_INVENTORY.md).
+- The deferred Survival/Nature and Establish Camp ability decision is outside
+  this retirement tranche and remains unchanged.
+
 ## 24. Verification Strategy
 
 ### 24.1 Deterministic scheduler tests
@@ -2298,3 +2319,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.14 | 2026-08-31 | Accepted Phase 8 after replacing per-character combat clocks with one generation-aware event per encounter, preserving existing phase/action behavior, implementing safe joins, deferred mutation, encounter merges, all departure classes, typed lifecycle facts, compact diagnostics, and exclusive character-event rollback. Phase 9 semantic combat rounds are next. |
 | 1.15 | 2026-08-31 | Accepted Phase 9 after making six-second semantic encounter rounds authoritative, defining deterministic initiative and explicit action/reaction budgets, dispatching one bounded FIFO intent per turn, migrating round flags and cooldown boundaries, updating help and diagnostics, and passing the 1,017-test, boot-matrix, database, sanitizer, Valgrind, and isolated live-MUD gates. Adversarial testing fixed scheduler-facade admission against a stale internal tick and moved reaction/round-flag resets ahead of initiative so earlier combatants cannot grant a defender a second budget. Phase 10 activities are next. |
 | 1.16 | 2026-08-31 | Accepted Phase 10 after implementing one typed, lifecycle-owned primary activity per character, central capability-aware command admission, policy-driven domain interruption, wall-time and semantic-turn progress, compact activity/debug UX, and the existing Establish Camp command as a reversible three-step migration. Adversarial review corrected teardown and callback re-entry, extraction mutation, combat-turn commitment, pause/resume timing, rollback selection, and database-help idempotence; the 1,029-test, sanitizer, Valgrind, boot-matrix, database, and isolated live-MUD gates passed. The historical Survival/Nature naming decision remains explicitly deferred. Phase 11 compatibility removal is next. |
+| 1.17 | 2026-08-31 | Recorded the Phase 11 source-grounded removal-readiness audit. The irreversible gate remains unsatisfied because this development commit has not completed a stable release period, raw compatibility pointers and residual pulse semantics still have enumerated callers, and archival PubSub schema removal still requires an approved backup/restore migration. |
