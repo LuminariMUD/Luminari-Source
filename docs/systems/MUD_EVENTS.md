@@ -73,7 +73,8 @@ remain on the main game thread.
 ### 2.1 Data Structures and Signatures
 
 - Event function signature: [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28)
-- Event structure fields: see [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h). The record contains the callback and payload plus backend-specific identity and explicit dispatch/cancellation state.
+- The compatibility record is private to `dg_event.c` through
+  `dg_event_internal.h`. Gameplay modules cannot declare or inspect it.
 - Owned events also carry a typed `(kind, runtime_id, generation)` handle. The
   scheduler indexes this handle independently of timing-wheel location.
 - Production defaults to the timing-wheel scheduler. Set `LUMINARI_EVENT_BACKEND=legacy` before boot to select the rollback queue.
@@ -83,7 +84,8 @@ remain on the main game thread.
 
 ### 2.2 Opaque Handle Migration API
 
-New and migrated owners should store `event_handle_t`, not `struct event *`.
+Owners store `event_handle_t`; the raw pointer type is not part of the public
+gameplay API.
 `EVENT_HANDLE_NONE` is the only empty value. `event_schedule*()` admits work
 through either selected backend and returns an opaque handle; callers use
 `event_handle_cancel()`, `event_handle_time()`, `event_handle_is_live()`, and
@@ -112,11 +114,11 @@ handle is still live, then invalidates the handle. The MUD-event layer uses
 this form so its owner-list detachment and payload destruction do not depend on
 the public compatibility record.
 
-The original pointer API remains available only while existing owner categories
-are migrated and release rollback is required. Both API families use the same
-record, admission limit, scheduler, recurrence semantics, and exactly-once
-terminal cleanup. Do not convert a caller by casting between a handle and a
-pointer.
+The old pointer API and queue declarations are private to the facade and two
+low-level parity tests. New production code must include `dg_event.h` and use
+only `event_schedule*()` plus handle operations. The private API remains solely
+to preserve the physical rollback backend until its external release gate
+closes.
 
 Production owners migrated to this API are encounter round clocks,
 primary-activity timers, autonomous mobiles, character and room affected
@@ -141,27 +143,27 @@ the facade contains no MUD-specific flag or destructor branch.
 
 ### 2.3 Lifecycle (Base)
 
-- Create/schedule: [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c)
+- Create/schedule: [C.event_schedule_named_with_cleanup()](../../src/dgscript/dg_event.c)
   - Ensures a minimum delay of 1 pulse
   - Converts the relative request to an absolute `live game pulse + delay`
     scheduler deadline, so admission after an idle wheel interval cannot fire
     early from a stale internal scheduler tick
   - Preserves the registered callback name for PERFMON even though all compatibility events share one internal scheduler event type
-  - The raw compatibility API returns a heap-allocated internal record; migrated callers retain only its opaque handle
+  - Returns only a generation-safe opaque handle
 - Process every pulse: [C.event_process()](../../src/dgscript/dg_event.c)
   - Advances the timing wheel to the current game pulse, or processes the current bucket on the rollback backend
   - Marks the event explicitly as dispatching before invoking its callback
   - Calls the event function; a positive result reschedules relative to the callback pulse, while zero or a negative result completes it
   - Dispatch order is exact deadline followed by FIFO insertion order
   - Terminal-cleanup owners invoke their registered payload destructor after a terminal callback return
-- Cancel: [C.event_cancel()](../../src/dgscript/dg_event.c)
+- Cancel: [C.event_handle_cancel()](../../src/dgscript/dg_event.c)
   - In-flight cancellation becomes cancel-pending and always wins over a positive callback return
   - In-flight payload cleanup runs after the callback returns, so the callback
     retains valid payload storage for the rest of its invocation
   - Queued cancellation detaches and cleans up synchronously
   - Queued and in-flight cancellation invoke the registered cleanup exactly once
-- Query remaining pulses: [C.event_time()](../../src/dgscript/dg_event.c)
-- Inspect queued state: [C.event_is_queued()](../../src/dgscript/dg_event.c)
+- Query remaining pulses: [C.event_handle_time()](../../src/dgscript/dg_event.c)
+- Inspect queued state: [C.event_handle_is_queued()](../../src/dgscript/dg_event.c)
 
 ### 2.4 Safety Guards (Base)
 

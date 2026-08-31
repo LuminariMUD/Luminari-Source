@@ -251,6 +251,11 @@ void queue_ai_request_retry(const char *prompt, int request_type,
                             int retry_count, /* Retry with backoff */
                             struct char_data *ch, struct char_data *npc);
 
+#if defined(LUMINARI_CUTEST)
+void ai_event_test_reset_cleanup_count(void);
+int ai_event_test_cleanup_count(void);
+#endif
+
 /* Async API Functions
  * INTERNAL USE - Called by retry system
  */

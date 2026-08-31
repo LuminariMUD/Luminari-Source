@@ -144,6 +144,15 @@ multi-use recovery arithmetically. A separate player-file checkpoint advances
 persisted six-second counters without replaying player or world update loops.
 The timestamp-free legacy event writer remains an explicit rollback limitation.
 
+Phase 11i converts the final two `src/ai_events.c` raw creation calls to opaque
+handle scheduling. Their response/backend and retry/prompt payloads now have
+explicit cleanup on cancellation, shutdown, failed admission, invalid-owner
+exit, and normal completion. `dg_event.h` no longer exposes `struct event`, raw
+pointer operations, or queue declarations; those are isolated in
+`dg_event_internal.h`, included only by the facade and two low-level adapter
+test files. Production gameplay now has zero raw compatibility callers while
+the physical rollback implementation remains available behind the facade.
+
 Combat cadence, semantic rounds, activity timing, autonomous off-screen mobile
 simulation, affects, periodic character work, automatic procedures, DG random
 triggers, cancellation, recurrence, diagnostics, and boot-time rollback
@@ -271,7 +280,13 @@ git branch -r --contains HEAD
 git tag --contains HEAD
 git grep -n 'struct event \*' -- 'src/*.c' 'src/*.h' 'src/**/*.c' 'src/**/*.h'
 git grep -n 'struct event \*' -- 'src/*.c' 'src/*.h' 'src/**/*.c' 'src/**/*.h' \
-  | grep -v '^src/reactor\.[ch]:'
+  | grep -v '^src/reactor\.[ch]:' \
+  | grep -v '^src/dgscript/dg_event\.c:' \
+  | grep -v '^src/dgscript/dg_event_internal\.h:'
+rg -n '\b(event_create|event_cancel|event_time|event_is_queued)\b' src \
+  --glob '*.[ch]' --glob '!src/dgscript/dg_event.c' \
+  --glob '!src/dgscript/dg_event_internal.h'
+rg -l 'dg_event_internal\.h' src unittests --glob '*.[ch]'
 rg -n 'LUMINARI_EVENT_BACKEND|LUMINARI_IO_DRIVER|EVENT_BACKEND_LEGACY_QUEUE' src .github unittests
 rg -n 'void heartbeat|event_process_compatibility_pulse' src/comm.c src/dgscript
 git ls-files src/pubsub sql/components/pubsub_v3_schema.sql

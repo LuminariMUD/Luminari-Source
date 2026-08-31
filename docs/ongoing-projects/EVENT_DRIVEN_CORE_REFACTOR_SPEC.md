@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration complete through offline cooldown recovery; removal gate pending
-**Document version:** 1.25
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration has a handle-only gameplay API; irreversible removal gate pending
+**Document version:** 1.26
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, and elapsed offline cooldown recovery implemented, with zero-caller and final release-gate audits next
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, and the raw-event zero-caller gate are implemented, with the final release-gate audit next
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -24,9 +24,9 @@
 > compatibility-record pointers. Their timing, recurrence, teardown,
 > diagnostics, and rollback behavior are unchanged.
 > Vessel owners, the vessel/point-update singleton services, DG waits, and MUD
-> events also use opaque handles. The compatibility record is now private to
-> its facade; two one-shot AI producers still call the raw creation entry point
-> without retaining its return value.
+> events and one-shot AI jobs also use opaque handles. The compatibility
+> record, pointer API, and rollback queue declarations are private to the
+> facade and its low-level parity tests; gameplay has zero raw callers.
 > Runtime ticks now derive from monotonic elapsed time independently of a pulse
 > callback. The reactor sleeps to the nearest I/O, scheduler, or queued
 > `WAIT_STATE` deadline, and deferred extraction has an explicit safe point.
@@ -1964,8 +1964,9 @@ Readiness audit, 2026-08-31:
   branch and has no containing release tag, merge, deployment record, or stable
   release period. Passing development CI does not substitute for that evidence.
 - The old queue and `select()` driver remain isolated rollback implementations.
-  External compatibility-record declarations are zero and only two ignored-
-  return AI producers still call the raw creation entry point. Scheduled
+  External compatibility-record declarations and raw creation callers are
+  zero; the pointer record and queue API are private to the facade and low-level
+  parity tests. Scheduled
   runtime-service mode derives ticks monotonically, arms exact scheduler and
   queued-`WAIT_STATE` deadlines, drains extraction at an explicit safe point,
   and does not run the generic 100 ms heartbeat. The heartbeat remains required
@@ -2013,6 +2014,12 @@ Readiness audit, 2026-08-31:
   older saved counters use a separate checkpoint and bounded arithmetic catch-
   up without replaying gameplay loops. Evidence is recorded in
   [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11H_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11H_VALIDATION.md).
+- The final two raw AI producers now use handle scheduling and own complete
+  payload cleanup. The public timed-event header no longer exposes the
+  compatibility record, pointer functions, or rollback queue; those declarations
+  live in a private facade/test header. Gameplay's raw-event caller count is
+  zero. Evidence is recorded in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11I_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11I_VALIDATION.md).
 
 ## 24. Verification Strategy
 
@@ -2382,3 +2389,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.23 | 2026-08-31 | Migrated the complete MUD-event layer to opaque handles and payload owner lists. Added handle-native exactly-once cleanup for normal completion as well as cancellation and shutdown, preserved recurrence and persistence across both backends, and reduced external raw compatibility declarations to zero; only two ignored-return AI raw scheduling calls remain for the zero-caller audit. |
 | 1.24 | 2026-08-31 | Replaced the default residual 100 ms heartbeat with named actual-cadence runtime services, a monotonic runtime tick, exact queued-WAIT_STATE reactor deadlines, an explicit extraction safe point, and event-owned persistence batches. Full-heartbeat and legacy-backend rollback remain available; the 1,034-test, sanitizer, Valgrind, syntax-matrix, live-MUD, and real-copyover gates pass. Zero-caller and final scan classification audits follow. |
 | 1.25 | 2026-08-31 | Corrected durable player timing to elapsed wall-clock semantics. All 93 persisted character-event policies now use schema 2 and elapse while logged out; schema 1 reads migrate, multi-use recovery catches up arithmetically without callback bursts, and expired coupled Spellbattle state is reconciled. A separate `CkAt` player-file checkpoint advances saved six-second cooldown counters and staged/full-refresh uses on load while avoiding world-dependent gameplay replay. Copyover retains deadlines; the timestamp-free legacy event format remains a rollback reader/writer with no retrospective elapsed-time claim. Zero-caller and final audits follow. |
+| 1.26 | 2026-08-31 | Closed the raw-event zero-caller gate. AI response and retry jobs now schedule through opaque handles with explicit nested-payload cleanup on every ownership path. The compatibility record, pointer functions, and rollback queue declarations moved out of the public header into a private facade/test header; no gameplay source can declare or call them. The physical legacy backend remains intact pending the stable-release removal gate. |

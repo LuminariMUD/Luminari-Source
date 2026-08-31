@@ -5,7 +5,8 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/comm.h"
-#include "../../src/dgscript/dg_event.h"
+#include "../../src/dgscript/dg_event_internal.h"
+#include "../../src/ai_service.h"
 #include "../../src/event_debug.h"
 #include "../../src/perfmon.h"
 
@@ -213,6 +214,42 @@ static void begin_backend_test(CuTest *tc, enum event_backend_kind backend,
   CuAssertIntEquals(tc, 1, event_test_select_backend(backend));
   event_init();
   CuAssertIntEquals(tc, backend, event_backend_current());
+}
+
+static void verify_ai_event_shutdown_cleanup(CuTest *tc, enum event_backend_kind backend)
+{
+  struct char_data player;
+  struct char_data npc;
+  struct char_data *saved_character_list;
+  int queued_events;
+
+  memset(&player, 0, sizeof(player));
+  memset(&npc, 0, sizeof(npc));
+  saved_character_list = character_list;
+  player.next = &npc;
+  character_list = &player;
+
+  begin_backend_test(tc, backend, 0U);
+  ai_event_test_reset_cleanup_count();
+  queue_ai_response(&player, &npc, "test response", "test backend", false);
+  queue_ai_request_retry("test prompt", AI_REQUEST_NPC_DIALOGUE, 0, NULL, NULL);
+  queued_events = event_queue_depth();
+  character_list = saved_character_list;
+
+  event_free_all();
+  CuAssertIntEquals(tc, 2, queued_events);
+  CuAssertIntEquals(tc, 2, ai_event_test_cleanup_count());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+}
+
+void Test_ai_event_producers_use_owned_cleanup_on_both_backends(CuTest *tc)
+{
+  unsigned long saved_pulse;
+
+  saved_pulse = pulse;
+  verify_ai_event_shutdown_cleanup(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  verify_ai_event_shutdown_cleanup(tc, EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = saved_pulse;
 }
 
 static void run_parity_trace(CuTest *tc, enum event_backend_kind backend, struct event_trace *trace)

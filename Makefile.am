@@ -85,6 +85,7 @@ luminari_SOURCES = \
 	src/net/discord_bridge.c \
 	src/dgscript/dg_db_scripts.c \
 	src/dgscript/dg_event.c \
+	src/dgscript/dg_event_internal.h \
 	src/dgscript/dg_handler.c \
 	src/dgscript/dg_misc.c \
 	src/dgscript/dg_mobcmd.c \

@@ -2,6 +2,28 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Handle-only timed-event API
+
+#### Changed
+
+- Converted the final two raw timed-event producers, AI response delivery and
+  request retry, to opaque-handle scheduling.
+- Moved the compatibility event record, pointer functions, and rollback queue
+  declarations into a private header used only by the facade implementation
+  and its low-level parity tests. Gameplay code now sees only handle APIs.
+
+#### Fixed
+
+- Added explicit nested-payload cleanup for AI events on cancellation,
+  shutdown, failed admission, invalid character state, and normal completion.
+  This also closes missing backend-string cleanup on early response exits.
+
+#### Tests
+
+- Added scheduler/legacy shutdown coverage proving both AI payload destructors
+  run exactly once, and retained the low-level rollback parity tests through
+  the private compatibility header.
+
 ### Offline cooldown and charge recovery
 
 #### Changed

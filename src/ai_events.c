@@ -64,6 +64,49 @@ struct ai_request_retry_event
   struct char_data *npc; /* Optional: NPC character */
 };
 
+#if defined(LUMINARI_CUTEST)
+static int ai_event_cleanup_count;
+
+void ai_event_test_reset_cleanup_count(void)
+{
+  ai_event_cleanup_count = 0;
+}
+
+int ai_event_test_cleanup_count(void)
+{
+  return ai_event_cleanup_count;
+}
+#endif
+
+static void cleanup_ai_response_event(event_handle_t handle, void *event_obj)
+{
+  struct ai_response_event *data = event_obj;
+
+  (void)handle;
+  if (data == NULL)
+    return;
+  free(data->response);
+  free(data->backend);
+  free(data);
+#if defined(LUMINARI_CUTEST)
+  ai_event_cleanup_count++;
+#endif
+}
+
+static void cleanup_ai_request_retry_event(event_handle_t handle, void *event_obj)
+{
+  struct ai_request_retry_event *data = event_obj;
+
+  (void)handle;
+  if (data == NULL)
+    return;
+  free(data->prompt);
+  free(data);
+#if defined(LUMINARI_CUTEST)
+  ai_event_cleanup_count++;
+#endif
+}
+
 /* Event function prototypes */
 EVENTFUNC(ai_response_event);
 EVENTFUNC(ai_request_retry_event);
@@ -111,9 +154,7 @@ EVENTFUNC(ai_response_event)
   {
     AI_DEBUG("ERROR: Missing required data (ch=%s, npc=%s, response=%s)", data->ch ? "OK" : "NULL",
              data->npc ? "OK" : "NULL", data->response ? "OK" : "NULL");
-    if (data->response)
-      free(data->response);
-    free(data);
+    cleanup_ai_response_event(EVENT_HANDLE_NONE, data);
     return 0;
   }
 
@@ -139,8 +180,7 @@ EVENTFUNC(ai_response_event)
   {
     /* One or both characters have been freed */
     AI_DEBUG("Characters no longer exist, cleaning up");
-    free(data->response);
-    free(data);
+    cleanup_ai_response_event(EVENT_HANDLE_NONE, data);
     return 0;
   }
 
@@ -166,9 +206,7 @@ EVENTFUNC(ai_response_event)
 
   /* Cleanup */
   AI_DEBUG("Cleaning up event data");
-  free(data->response);
-  free(data->backend);
-  free(data);
+  cleanup_ai_response_event(EVENT_HANDLE_NONE, data);
   return 0;
 }
 
@@ -257,6 +295,13 @@ void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *
     return;
   }
   event_data->backend = backend ? strdup(backend) : strdup("unknown");
+  if (!event_data->backend)
+  {
+    log("SYSERR: Failed to allocate memory for AI backend name");
+    AI_DEBUG("ERROR: backend strdup failed");
+    cleanup_ai_response_event(EVENT_HANDLE_NONE, event_data);
+    return;
+  }
   event_data->from_cache = from_cache;
   AI_DEBUG("Response duplicated (length=%zu), backend=%s", strlen(event_data->response),
            event_data->backend);
@@ -269,7 +314,13 @@ void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *
 
   /* Create the event */
   AI_DEBUG("Creating event with %d second delay (%d pulses)", delay, delay * PASSES_PER_SEC);
-  event_create(ai_response_event, event_data, delay * PASSES_PER_SEC);
+  if (event_schedule_with_cleanup(ai_response_event, event_data, delay * PASSES_PER_SEC,
+                                  cleanup_ai_response_event) == EVENT_HANDLE_NONE)
+  {
+    cleanup_ai_response_event(EVENT_HANDLE_NONE, event_data);
+    log("SYSERR: Failed to queue AI response event");
+    return;
+  }
   AI_DEBUG("AI response event queued successfully");
 }
 
@@ -309,12 +360,7 @@ EVENTFUNC(ai_request_retry_event)
   {
     AI_DEBUG("ERROR: Invalid event data (data=%p, prompt=%p)", (void *)data,
              data ? (void *)data->prompt : NULL);
-    if (data)
-    {
-      if (data->prompt)
-        free(data->prompt);
-      free(data);
-    }
+    cleanup_ai_request_retry_event(EVENT_HANDLE_NONE, data);
     return 0;
   }
 
@@ -344,8 +390,7 @@ EVENTFUNC(ai_request_retry_event)
     if ((data->ch && !ch_valid) || (data->npc && !npc_valid))
     {
       AI_DEBUG("Characters no longer valid, aborting retry");
-      free(data->prompt);
-      free(data);
+      cleanup_ai_request_retry_event(EVENT_HANDLE_NONE, data);
       return 0;
     }
   }
@@ -380,8 +425,7 @@ EVENTFUNC(ai_request_retry_event)
 
   /* Cleanup */
   AI_DEBUG("Cleaning up retry event data");
-  free(data->prompt);
-  free(data);
+  cleanup_ai_request_retry_event(EVENT_HANDLE_NONE, data);
   return 0;
 }
 
@@ -472,6 +516,12 @@ void queue_ai_request_retry(const char *prompt, int request_type, int retry_coun
 
   /* Create the event */
   AI_DEBUG("Creating retry event with %d second delay (%d pulses)", delay, delay * PASSES_PER_SEC);
-  event_create(ai_request_retry_event, event_data, delay * PASSES_PER_SEC);
+  if (event_schedule_with_cleanup(ai_request_retry_event, event_data, delay * PASSES_PER_SEC,
+                                  cleanup_ai_request_retry_event) == EVENT_HANDLE_NONE)
+  {
+    cleanup_ai_request_retry_event(EVENT_HANDLE_NONE, event_data);
+    log("SYSERR: Failed to queue AI request retry event");
+    return;
+  }
   AI_DEBUG("AI request retry event queued successfully");
 }
