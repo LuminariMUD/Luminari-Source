@@ -31,8 +31,10 @@ Core source files:
 Key entry points (clickable declarations):
 - [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28): standard signature for all event functions
 - [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c): schedule through the active backend
+- [C.event_schedule_named_with_cleanup()](../../src/dgscript/dg_event.c): schedule through an opaque compatibility handle
 - [C.event_process()](../../src/dgscript/dg_event.c): advance and dispatch the active backend every pulse
 - [C.event_cancel()](../../src/dgscript/dg_event.c): cancel a queued or in-flight event safely
+- [C.event_handle_cancel()](../../src/dgscript/dg_event.c): cancel without exposing a compatibility record
 - [C.cleanup_event_obj()](../../src/dgscript/dg_event.c): free event payloads (MUD or generic)
 - [C.event_time()](../../src/dgscript/dg_event.c): remaining pulses until an event fires
 - [C.event_free_all()](../../src/dgscript/dg_event.c): bulk free all events (shutdown/reset)
@@ -77,7 +79,36 @@ game thread.
 - Unknown values log a warning and use the scheduler. Scheduler initialization failure logs the error and falls back to the legacy queue.
 - `event_backend_name()` and `event_backend_current()` expose the selected backend for diagnostics and tests.
 
-### 2.2 Lifecycle (Base)
+### 2.2 Opaque Handle Migration API
+
+New and migrated owners should store `event_handle_t`, not `struct event *`.
+`EVENT_HANDLE_NONE` is the only empty value. `event_schedule*()` admits work
+through either selected backend and returns an opaque handle; callers use
+`event_handle_cancel()`, `event_handle_time()`, `event_handle_is_live()`, and
+`event_handle_is_queued()` for control and inspection.
+
+The process-local registry is a fixed, bounded array with constant-time lookup.
+A handle encodes a one-based 19-bit slot and a 45-bit generation. Releasing an
+event advances its generation before the slot can be reused, so stale handles
+fail without dereferencing released memory. A generation never wraps: the
+impractical exhaustion case retires that slot permanently. Handles are neither
+serialized nor valid across `event_free_all()` or process restart.
+
+`event_schedule*_with_cleanup()` accepts a cancellation/shutdown cleanup
+callback that receives the opaque handle and owned payload rather than the
+internal compatibility record. When that cleanup runs, the handle remains live
+for its duration and becomes stale immediately afterward. It therefore has one
+final opportunity to detach the handle from its owner and remains responsible
+for releasing its payload. Normal completion remains the event callback's
+payload responsibility and also invalidates the handle after it returns.
+
+The original pointer API remains available only while existing owner categories
+are migrated and release rollback is required. Both API families use the same
+record, admission limit, scheduler, recurrence semantics, and exactly-once
+terminal cleanup. Do not convert a caller by casting between a handle and a
+pointer.
+
+### 2.3 Lifecycle (Base)
 
 - Create/schedule: [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c)
   - Ensures a minimum delay of 1 pulse
@@ -101,7 +132,7 @@ game thread.
 - Query remaining pulses: [C.event_time()](../../src/dgscript/dg_event.c)
 - Inspect queued state: [C.event_is_queued()](../../src/dgscript/dg_event.c)
 
-### 2.3 Safety Guards (Base)
+### 2.4 Safety Guards (Base)
 
 - Double-free prevention:
   - Explicit dispatch and cancel-pending flags define in-flight ownership
@@ -111,12 +142,13 @@ game thread.
   - `processing_events` rejects recursive dispatch and disallows bulk
     destruction during active processing
 - Capacity protection:
-  - Both backends enforce the existing 10,000-event global ceiling
+  - Both backends and the opaque-handle registry enforce the 262,144-event
+    global ceiling
 - Passive telemetry:
   - PERFMON records callback identity and duration, scheduled/cancelled/rescheduled totals, queue depth, maximum due batch, and aggregate requested-delay buckets
   - No event payload, player text, account data, descriptor data, or other player-sensitive content is recorded
 
-### 2.4 Immortal Diagnostics
+### 2.5 Immortal Diagnostics
 
 `eventdebug` is a read-only `LVL_IMMORT` command. It uses the character's
 configured screen width, defaults to 80 columns when the setting is invalid,

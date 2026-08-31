@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 release gate pending
-**Document version:** 1.17
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 preparation in progress and removal gate pending
+**Document version:** 1.18
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 10 plus the dedicated immortal event-observability gate complete
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 opaque-handle migration foundation implemented
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -1957,6 +1957,13 @@ Readiness audit, 2026-08-31:
 - The source-grounded inventory and required post-release removal sequence are
   recorded in
   [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11_REMOVAL_INVENTORY.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11_REMOVAL_INVENTORY.md).
+- Reversible preparation may continue before that gate. The compatibility
+  facade now assigns every admitted event a bounded generation-safe opaque
+  handle and offers pointer-free scheduling, cancellation, query, and payload
+  cleanup APIs on both backends. Existing pointer callers remain valid while
+  owner categories migrate in focused slices; no rollback path was removed.
+  The implementation and validation contract are recorded in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11A_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11A_VALIDATION.md).
 - The deferred Survival/Nature and Establish Camp ability decision is outside
   this retirement tranche and remains unchanged.
 
@@ -2320,3 +2327,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.15 | 2026-08-31 | Accepted Phase 9 after making six-second semantic encounter rounds authoritative, defining deterministic initiative and explicit action/reaction budgets, dispatching one bounded FIFO intent per turn, migrating round flags and cooldown boundaries, updating help and diagnostics, and passing the 1,017-test, boot-matrix, database, sanitizer, Valgrind, and isolated live-MUD gates. Adversarial testing fixed scheduler-facade admission against a stale internal tick and moved reaction/round-flag resets ahead of initiative so earlier combatants cannot grant a defender a second budget. Phase 10 activities are next. |
 | 1.16 | 2026-08-31 | Accepted Phase 10 after implementing one typed, lifecycle-owned primary activity per character, central capability-aware command admission, policy-driven domain interruption, wall-time and semantic-turn progress, compact activity/debug UX, and the existing Establish Camp command as a reversible three-step migration. Adversarial review corrected teardown and callback re-entry, extraction mutation, combat-turn commitment, pause/resume timing, rollback selection, and database-help idempotence; the 1,029-test, sanitizer, Valgrind, boot-matrix, database, and isolated live-MUD gates passed. The historical Survival/Nature naming decision remains explicitly deferred. Phase 11 compatibility removal is next. |
 | 1.17 | 2026-08-31 | Recorded the Phase 11 source-grounded removal-readiness audit. The irreversible gate remains unsatisfied because this development commit has not completed a stable release period, raw compatibility pointers and residual pulse semantics still have enumerated callers, and archival PubSub schema removal still requires an approved backup/restore migration. |
+| 1.18 | 2026-08-31 | Added the reversible Phase 11a migration foundation: every compatibility event now has a bounded 64-bit opaque handle with constant-time generation validation, pointer-free schedule/cancel/query/cleanup APIs, stale-handle rejection, exactly-once lifecycle behavior, and fail-closed slot retirement rather than generation wrap. Both scheduler and legacy backends remain supported, no caller or rollback path was removed, and the irreversible release gate remains pending. |

@@ -34,6 +34,11 @@
 
 struct event;
 
+/** Generation-safe identity for a compatibility event; zero is never live. */
+typedef uint64_t event_handle_t;
+
+#define EVENT_HANDLE_NONE UINT64_C(0)
+
 /** Timed-event storage selected once during event_init(). */
 enum event_backend_kind
 {
@@ -42,8 +47,11 @@ enum event_backend_kind
   EVENT_BACKEND_GAME_SCHEDULER
 };
 
-/** Optional cleanup invoked when a queued event is canceled or freed in bulk. */
+/** Optional cleanup invoked by queued/in-flight cancellation or shutdown. */
 typedef void (*event_cleanup_func)(struct event *event);
+
+/** Cancellation/shutdown cleanup that does not expose the compatibility record. */
+typedef void (*event_handle_cleanup_func)(event_handle_t handle, void *event_obj);
 
 /** Compatibility event record owned by the selected timed-event backend. */
 struct event
@@ -53,6 +61,8 @@ struct event
   struct q_element *q_el;          /**< Fallback queue location; NULL on scheduler backend. */
   bool isMudEvent;                 /**< used by the memory routines */
   event_cleanup_func cleanup;      /**< Optional cancellation and bulk cleanup hook. */
+  event_handle_cleanup_func handle_cleanup; /**< Opaque-handle cleanup for migrated callers. */
+  event_handle_t handle;           /**< Generation-safe public identity. */
   int profile_index;               /**< PERFMON event callback aggregate slot */
   uint64_t scheduler_id;           /**< Opaque timing-wheel ID; zero for the legacy queue. */
   enum event_backend_kind backend; /**< Storage backend that owns this event. */
@@ -135,6 +145,28 @@ struct event *event_create_owned_named_with_cleanup(EVENTFUNC(*func), void *even
 #define event_create(func, event_obj, when) event_create_named((func), (event_obj), (when), #func)
 #define event_create_with_cleanup(func, event_obj, when, cleanup)                                  \
   event_create_named_with_cleanup((func), (event_obj), (when), #func, (cleanup))
+
+event_handle_t event_schedule_named(EVENTFUNC(*func), void *event_obj, long when,
+                                    const char *profile_name);
+event_handle_t event_schedule_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
+                                                 const char *profile_name,
+                                                 event_handle_cleanup_func cleanup);
+event_handle_t event_schedule_owned_named(EVENTFUNC(*func), void *event_obj, long when,
+                                          const char *profile_name,
+                                          struct game_event_owner owner);
+event_handle_t event_schedule_owned_named_with_cleanup(
+    EVENTFUNC(*func), void *event_obj, long when, const char *profile_name,
+    event_handle_cleanup_func cleanup, struct game_event_owner owner);
+#define event_schedule(func, event_obj, when)                                                       \
+  event_schedule_named((func), (event_obj), (when), #func)
+#define event_schedule_with_cleanup(func, event_obj, when, cleanup)                                 \
+  event_schedule_named_with_cleanup((func), (event_obj), (when), #func, (cleanup))
+
+bool event_handle_is_live(event_handle_t handle);
+bool event_handle_cancel(event_handle_t handle);
+long event_handle_time(event_handle_t handle);
+bool event_handle_is_queued(event_handle_t handle);
+
 void event_cancel(struct event *event);
 void event_process(void);
 void event_process_compatibility_pulse(void);
@@ -226,6 +258,8 @@ void event_test_reset_lifecycle_counts(void);
 int event_test_init_call_count(void);
 int event_test_free_all_call_count(void);
 int event_test_select_backend(enum event_backend_kind backend);
+event_handle_t event_test_force_handle_generation_exhaustion(event_handle_t handle);
+uint32_t event_test_handle_slot(event_handle_t handle);
 #endif
 
 #endif /* _DG_EVENT_H_ */

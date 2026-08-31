@@ -35,6 +35,21 @@ struct self_cancel_payload
   int *runs;
 };
 
+struct handle_cleanup_trace
+{
+  event_handle_t seen_handle;
+  void *seen_payload;
+  int calls;
+  bool live_during_cleanup;
+};
+
+struct handle_self_cancel_payload
+{
+  event_handle_t handle;
+  int *runs;
+  struct handle_cleanup_trace *cleanup_trace;
+};
+
 struct reentrant_payload
 {
   struct event_trace *trace;
@@ -80,6 +95,16 @@ static EVENTFUNC(self_cancel_callback)
   return 3;
 }
 
+static EVENTFUNC(handle_self_cancel_callback)
+{
+  struct handle_self_cancel_payload *payload;
+
+  payload = (struct handle_self_cancel_payload *)event_obj;
+  (*payload->runs)++;
+  event_handle_cancel(payload->handle);
+  return 3;
+}
+
 static EVENTFUNC(workload_callback)
 {
   free(event_obj);
@@ -107,6 +132,31 @@ static void counted_event_cleanup(struct event *event)
 
   cleanup_count = (int *)event->event_obj;
   (*cleanup_count)++;
+}
+
+static void traced_handle_cleanup(event_handle_t handle, void *event_obj)
+{
+  struct handle_cleanup_trace *trace;
+
+  trace = (struct handle_cleanup_trace *)event_obj;
+  trace->seen_handle = handle;
+  trace->seen_payload = event_obj;
+  trace->live_during_cleanup = event_handle_is_live(handle);
+  trace->calls++;
+}
+
+static void self_cancel_handle_cleanup(event_handle_t handle, void *event_obj)
+{
+  struct handle_self_cancel_payload *payload;
+  struct handle_cleanup_trace *trace;
+
+  payload = (struct handle_self_cancel_payload *)event_obj;
+  trace = payload->cleanup_trace;
+  trace->seen_handle = handle;
+  trace->seen_payload = event_obj;
+  trace->live_during_cleanup = event_handle_is_live(handle);
+  trace->calls++;
+  free(payload);
 }
 
 static struct event_trace_payload *new_trace_payload(struct event_trace *trace, char label,
@@ -256,6 +306,120 @@ void Test_legacy_event_backends_cancel_and_cleanup_once(CuTest *tc)
   saved_pulse = pulse;
   verify_external_cancel(tc, EVENT_BACKEND_LEGACY_QUEUE);
   verify_external_cancel(tc, EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = saved_pulse;
+}
+
+static void verify_opaque_handle_lifecycle(CuTest *tc, enum event_backend_kind backend)
+{
+  struct handle_cleanup_trace cleanup_trace;
+  struct handle_cleanup_trace self_cancel_trace;
+  struct handle_cleanup_trace shutdown_trace;
+  struct handle_self_cancel_payload *self_cancel;
+  event_handle_t cancelled;
+  event_handle_t completed;
+  event_handle_t exhausted;
+  event_handle_t exhaustion_seed;
+  event_handle_t post_exhaustion;
+  event_handle_t self_cancelled;
+  event_handle_t shutdown_handle;
+  void *completion_payload;
+  void *exhaustion_payload;
+  void *post_exhaustion_payload;
+  int self_cancel_runs;
+
+  memset(&cleanup_trace, 0, sizeof(cleanup_trace));
+  memset(&self_cancel_trace, 0, sizeof(self_cancel_trace));
+  memset(&shutdown_trace, 0, sizeof(shutdown_trace));
+  self_cancel_runs = 0;
+  begin_backend_test(tc, backend, 250U);
+
+  cancelled = event_schedule_named_with_cleanup(workload_callback, &cleanup_trace, 10,
+                                                 "opaque-cancel", traced_handle_cleanup);
+  CuAssertTrue(tc, cancelled != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, event_handle_is_live(cancelled));
+  CuAssertTrue(tc, event_handle_is_queued(cancelled));
+  CuAssertIntEquals(tc, 10, (int)event_handle_time(cancelled));
+  CuAssertTrue(tc, event_handle_cancel(cancelled));
+  CuAssertIntEquals(tc, 1, cleanup_trace.calls);
+  CuAssertTrue(tc, cleanup_trace.seen_handle == cancelled);
+  CuAssertPtrEquals(tc, &cleanup_trace, cleanup_trace.seen_payload);
+  CuAssertTrue(tc, cleanup_trace.live_during_cleanup);
+  CuAssertTrue(tc, !event_handle_is_live(cancelled));
+  CuAssertTrue(tc, !event_handle_is_queued(cancelled));
+  CuAssertIntEquals(tc, 0, (int)event_handle_time(cancelled));
+  CuAssertTrue(tc, !event_handle_cancel(cancelled));
+
+  completion_payload = malloc(1U);
+  CuAssertPtrNotNull(tc, completion_payload);
+  completed = event_schedule(workload_callback, completion_payload, 1);
+  CuAssertTrue(tc, completed != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, completed != cancelled);
+  CuAssertIntEquals(tc, (int)event_test_handle_slot(cancelled),
+                    (int)event_test_handle_slot(completed));
+  pulse = 251U;
+  event_process();
+  CuAssertTrue(tc, !event_handle_is_live(completed));
+
+  exhaustion_payload = malloc(1U);
+  CuAssertPtrNotNull(tc, exhaustion_payload);
+  exhaustion_seed = event_schedule(workload_callback, exhaustion_payload, 10);
+  CuAssertTrue(tc, exhaustion_seed != EVENT_HANDLE_NONE);
+  exhausted = event_test_force_handle_generation_exhaustion(exhaustion_seed);
+  CuAssertTrue(tc, exhausted != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, exhausted != exhaustion_seed);
+  CuAssertTrue(tc, !event_handle_is_live(exhaustion_seed));
+  CuAssertTrue(tc, !event_handle_cancel(exhaustion_seed));
+  CuAssertTrue(tc, event_handle_is_live(exhausted));
+  CuAssertTrue(tc, event_handle_cancel(exhausted));
+  CuAssertTrue(tc, !event_handle_is_live(exhausted));
+
+  post_exhaustion_payload = malloc(1U);
+  CuAssertPtrNotNull(tc, post_exhaustion_payload);
+  post_exhaustion = event_schedule(workload_callback, post_exhaustion_payload, 10);
+  CuAssertTrue(tc, post_exhaustion != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, event_test_handle_slot(post_exhaustion) != event_test_handle_slot(exhausted));
+  CuAssertTrue(tc, event_handle_cancel(post_exhaustion));
+
+  self_cancel = malloc(sizeof(*self_cancel));
+  CuAssertPtrNotNull(tc, self_cancel);
+  self_cancel->handle = EVENT_HANDLE_NONE;
+  self_cancel->runs = &self_cancel_runs;
+  self_cancel->cleanup_trace = &self_cancel_trace;
+  self_cancelled = event_schedule_named_with_cleanup(
+      handle_self_cancel_callback, self_cancel, 1, "opaque-self-cancel",
+      self_cancel_handle_cleanup);
+  CuAssertTrue(tc, self_cancelled != EVENT_HANDLE_NONE);
+  self_cancel->handle = self_cancelled;
+  pulse = 252U;
+  event_process();
+  pulse = 255U;
+  event_process();
+  CuAssertIntEquals(tc, 1, self_cancel_runs);
+  CuAssertIntEquals(tc, 1, self_cancel_trace.calls);
+  CuAssertTrue(tc, self_cancel_trace.seen_handle == self_cancelled);
+  CuAssertPtrEquals(tc, self_cancel, self_cancel_trace.seen_payload);
+  CuAssertTrue(tc, self_cancel_trace.live_during_cleanup);
+  CuAssertTrue(tc, !event_handle_is_live(self_cancelled));
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  shutdown_handle = event_schedule_named_with_cleanup(
+      workload_callback, &shutdown_trace, 10, "opaque-shutdown", traced_handle_cleanup);
+  CuAssertTrue(tc, shutdown_handle != EVENT_HANDLE_NONE);
+  event_free_all();
+  CuAssertIntEquals(tc, 1, shutdown_trace.calls);
+  CuAssertTrue(tc, shutdown_trace.seen_handle == shutdown_handle);
+  CuAssertPtrEquals(tc, &shutdown_trace, shutdown_trace.seen_payload);
+  CuAssertTrue(tc, shutdown_trace.live_during_cleanup);
+  CuAssertTrue(tc, !event_handle_is_live(shutdown_handle));
+}
+
+void Test_event_opaque_handles_are_generation_safe_on_both_backends(CuTest *tc)
+{
+  unsigned long saved_pulse;
+
+  saved_pulse = pulse;
+  verify_opaque_handle_lifecycle(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  verify_opaque_handle_lifecycle(tc, EVENT_BACKEND_GAME_SCHEDULER);
   pulse = saved_pulse;
 }
 

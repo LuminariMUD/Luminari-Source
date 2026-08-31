@@ -32,6 +32,13 @@
 #include <limits.h> /* For LONG_MAX used in overflow checks */
 
 #define LEGACY_EVENT_MAX_EVENTS_PER_OWNER 1024U
+#define EVENT_HANDLE_FREE_NONE UINT32_MAX
+#define EVENT_HANDLE_SLOT_BITS 19U
+#define EVENT_HANDLE_SLOT_MASK ((UINT64_C(1) << EVENT_HANDLE_SLOT_BITS) - UINT64_C(1))
+#define EVENT_HANDLE_GENERATION_MAX (UINT64_MAX >> EVENT_HANDLE_SLOT_BITS)
+
+_Static_assert(MAX_EVENTS <= EVENT_HANDLE_SLOT_MASK,
+               "event handle slot field must represent every compatibility event");
 
 /***************************************************************************
  * Begin mud specific event queue functions
@@ -58,6 +65,13 @@ static size_t debug_event_count = 0;
 static size_t debug_event_high_water = 0;
 static uint64_t next_debug_event_id = 1;
 static uint64_t stale_owner_outcomes = 0;
+/** Constant-time generation-safe handle registry for migrated event owners. */
+static struct event *event_handle_slots[MAX_EVENTS];
+static uint64_t event_handle_generations[MAX_EVENTS];
+static uint32_t event_handle_next_free[MAX_EVENTS];
+static uint32_t event_handle_free_head = EVENT_HANDLE_FREE_NONE;
+static uint32_t event_handle_next_unused = 0U;
+static size_t event_handle_live_count = 0U;
 
 #if defined(LUMINARI_CUTEST)
 static int event_init_calls = 0;
@@ -75,6 +89,10 @@ static int initialize_scheduler_backend(void);
 static void decrement_event_count(const char *context);
 static void debug_event_link(struct event *event);
 static void debug_event_unlink(struct event *event);
+static event_handle_t event_handle_admit(struct event *event);
+static struct event *event_handle_resolve(event_handle_t handle);
+static void event_handle_release(struct event *event);
+static void event_record_free(struct event *event, const char *context);
 
 static const char *backend_kind_name(enum event_backend_kind backend)
 {
@@ -144,6 +162,108 @@ static void decrement_event_count(const char *context)
   }
 }
 
+static event_handle_t event_handle_admit(struct event *event)
+{
+  event_handle_t handle;
+  uint64_t generation;
+  uint32_t slot;
+
+  if (event == NULL || event->handle != EVENT_HANDLE_NONE)
+    return EVENT_HANDLE_NONE;
+  if (event_handle_free_head != EVENT_HANDLE_FREE_NONE)
+  {
+    slot = event_handle_free_head;
+    event_handle_free_head = event_handle_next_free[slot];
+  }
+  else
+  {
+    if (event_handle_next_unused >= MAX_EVENTS)
+      return EVENT_HANDLE_NONE;
+    slot = event_handle_next_unused++;
+  }
+  generation = event_handle_generations[slot];
+  if (generation == 0U)
+  {
+    generation = 1U;
+    event_handle_generations[slot] = generation;
+  }
+  handle = (generation << EVENT_HANDLE_SLOT_BITS) | ((event_handle_t)slot + 1U);
+  event_handle_slots[slot] = event;
+  event->handle = handle;
+  event_handle_live_count++;
+  return handle;
+}
+
+static struct event *event_handle_resolve(event_handle_t handle)
+{
+  struct event *event;
+  uint32_t encoded_slot;
+  uint64_t generation;
+  uint32_t slot;
+
+  if (handle == EVENT_HANDLE_NONE)
+    return NULL;
+  encoded_slot = (uint32_t)(handle & EVENT_HANDLE_SLOT_MASK);
+  generation = handle >> EVENT_HANDLE_SLOT_BITS;
+  if (encoded_slot == 0U || encoded_slot > MAX_EVENTS || generation == 0U)
+    return NULL;
+  slot = encoded_slot - 1U;
+  if (event_handle_generations[slot] != generation)
+    return NULL;
+  event = event_handle_slots[slot];
+  return event != NULL && event->handle == handle ? event : NULL;
+}
+
+static void event_handle_release(struct event *event)
+{
+  event_handle_t handle;
+  uint64_t generation;
+  uint32_t encoded_slot;
+  uint32_t slot;
+
+  if (event == NULL || event->handle == EVENT_HANDLE_NONE)
+    return;
+  handle = event->handle;
+  encoded_slot = (uint32_t)(handle & EVENT_HANDLE_SLOT_MASK);
+  if (encoded_slot == 0U || encoded_slot > MAX_EVENTS)
+  {
+    log("SYSERR: Invalid event handle slot during release.");
+    event->handle = EVENT_HANDLE_NONE;
+    return;
+  }
+  slot = encoded_slot - 1U;
+  if (event_handle_slots[slot] != event)
+  {
+    log("SYSERR: Event handle registry mismatch during release.");
+    event->handle = EVENT_HANDLE_NONE;
+    return;
+  }
+  event_handle_slots[slot] = NULL;
+  generation = event_handle_generations[slot];
+  /* A generation is never allowed to wrap: an exhausted slot is retired. */
+  if (generation < EVENT_HANDLE_GENERATION_MAX)
+  {
+    event_handle_generations[slot] = generation + 1U;
+    event_handle_next_free[slot] = event_handle_free_head;
+    event_handle_free_head = slot;
+  }
+  event->handle = EVENT_HANDLE_NONE;
+  if (event_handle_live_count > 0U)
+    event_handle_live_count--;
+  else
+    log("SYSERR: Event handle registry count underflow.");
+}
+
+static void event_record_free(struct event *event, const char *context)
+{
+  if (event == NULL)
+    return;
+  debug_event_unlink(event);
+  event_handle_release(event);
+  free(event);
+  decrement_event_count(context);
+}
+
 static void debug_event_link(struct event *event)
 {
   if (event == NULL || event->debug_registered)
@@ -193,17 +313,18 @@ static void legacy_scheduler_event_cleanup(void *payload)
 
   if (event->callback_terminal)
   {
-    if (event->isMudEvent && event->event_obj != NULL)
-      free_mud_event((struct mud_event_data *)event->event_obj);
+    if (event->event_obj != NULL &&
+        (event->isMudEvent ||
+         (event->cancel_requested &&
+          (event->cleanup != NULL || event->handle_cleanup != NULL))))
+      cleanup_event_obj(event);
   }
   else if (event->event_obj != NULL)
   {
     cleanup_event_obj(event);
   }
 
-  debug_event_unlink(event);
-  free(event);
-  decrement_event_count("scheduler cleanup");
+  event_record_free(event, "scheduler cleanup");
 }
 
 static struct game_event_result
@@ -343,12 +464,13 @@ struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
  * pass in NULL.
  * @param when Number of pulses between firing(s) of this event.
  * @param profile_name Stable callback identity used by PERFMON reports.
- * @param cleanup Optional callback used when a queued event is canceled or
- * freed in bulk. The event function remains responsible for normal completion.
+ * @param cleanup Optional callback used when an event is canceled or freed in
+ * bulk. The event function remains responsible for normal completion.
  * @retval event * Returns a pointer to the newly created event, or NULL on error.
  * */
 static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, long when,
                                            const char *profile_name, event_cleanup_func cleanup,
+                                           event_handle_cleanup_func handle_cleanup,
                                            struct game_event_owner owner)
 {
   struct event *new_event = NULL;
@@ -402,6 +524,8 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
   new_event->q_el = NULL;
   new_event->isMudEvent = FALSE;
   new_event->cleanup = cleanup;
+  new_event->handle_cleanup = handle_cleanup;
+  new_event->handle = EVENT_HANDLE_NONE;
   new_event->profile_index = PERF_register_event_callback(profile_name);
   new_event->scheduler_id = 0;
   new_event->backend = active_backend;
@@ -409,6 +533,12 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
   new_event->cancel_requested = false;
   new_event->callback_terminal = false;
   new_event->owner = owner;
+  if (event_handle_admit(new_event) == EVENT_HANDLE_NONE)
+  {
+    log("SYSERR: Maximum number of event handles (%d) reached.", MAX_EVENTS);
+    free(new_event);
+    return NULL;
+  }
 
   if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
@@ -432,6 +562,7 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
     {
       log("SYSERR: Unable to schedule legacy event '%s' (status %d).",
           profile_name != NULL ? profile_name : "unnamed", scheduler_status);
+      event_handle_release(new_event);
       free(new_event);
       return NULL;
     }
@@ -452,6 +583,7 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
     new_event->q_el = queue_enq(event_q, new_event, target_time);
     if (new_event->q_el == NULL)
     {
+      event_handle_release(new_event);
       free(new_event);
       return NULL;
     }
@@ -472,14 +604,14 @@ struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj,
                                               event_cleanup_func cleanup)
 {
   return event_create_internal(func, event_obj, when, profile_name, cleanup,
-                               game_event_owner_none());
+                               NULL, game_event_owner_none());
 }
 
 struct event *event_create_owned_named(EVENTFUNC(*func), void *event_obj, long when,
                                        const char *profile_name,
                                        struct game_event_owner owner)
 {
-  return event_create_internal(func, event_obj, when, profile_name, NULL, owner);
+  return event_create_internal(func, event_obj, when, profile_name, NULL, NULL, owner);
 }
 
 struct event *event_create_owned_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
@@ -487,7 +619,42 @@ struct event *event_create_owned_named_with_cleanup(EVENTFUNC(*func), void *even
                                                     event_cleanup_func cleanup,
                                                     struct game_event_owner owner)
 {
-  return event_create_internal(func, event_obj, when, profile_name, cleanup, owner);
+  return event_create_internal(func, event_obj, when, profile_name, cleanup, NULL, owner);
+}
+
+event_handle_t event_schedule_named(EVENTFUNC(*func), void *event_obj, long when,
+                                    const char *profile_name)
+{
+  return event_schedule_named_with_cleanup(func, event_obj, when, profile_name, NULL);
+}
+
+event_handle_t event_schedule_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
+                                                 const char *profile_name,
+                                                 event_handle_cleanup_func cleanup)
+{
+  struct event *event;
+
+  event = event_create_internal(func, event_obj, when, profile_name, NULL, cleanup,
+                                game_event_owner_none());
+  return event != NULL ? event->handle : EVENT_HANDLE_NONE;
+}
+
+event_handle_t event_schedule_owned_named(EVENTFUNC(*func), void *event_obj, long when,
+                                          const char *profile_name,
+                                          struct game_event_owner owner)
+{
+  return event_schedule_owned_named_with_cleanup(func, event_obj, when, profile_name, NULL,
+                                                  owner);
+}
+
+event_handle_t event_schedule_owned_named_with_cleanup(
+    EVENTFUNC(*func), void *event_obj, long when, const char *profile_name,
+    event_handle_cleanup_func cleanup, struct game_event_owner owner)
+{
+  struct event *event;
+
+  event = event_create_internal(func, event_obj, when, profile_name, NULL, cleanup, owner);
+  return event != NULL ? event->handle : EVENT_HANDLE_NONE;
 }
 
 /** Removes an event from event_q and frees the event.
@@ -555,9 +722,23 @@ void event_cancel(struct event *event)
   if (event->event_obj)
     cleanup_event_obj(event);
 
-  debug_event_unlink(event);
-  free(event);
-  decrement_event_count("legacy cancellation");
+  event_record_free(event, "legacy cancellation");
+}
+
+bool event_handle_is_live(event_handle_t handle)
+{
+  return event_handle_resolve(handle) != NULL;
+}
+
+bool event_handle_cancel(event_handle_t handle)
+{
+  struct event *event;
+
+  event = event_handle_resolve(handle);
+  if (event == NULL)
+    return false;
+  event_cancel(event);
+  return true;
 }
 
 /* The memory freeing routine tied into the mud event system.
@@ -584,7 +765,11 @@ void cleanup_event_obj(struct event *event)
   if (!event || !event->event_obj)
     return;
 
-  if (event->cleanup)
+  if (event->handle_cleanup)
+  {
+    event->handle_cleanup(event->handle, event->event_obj);
+  }
+  else if (event->cleanup)
   {
     event->cleanup(event);
   }
@@ -676,9 +861,7 @@ event_process_backend(const struct game_scheduler_budget *budget,
       log("SYSERR: Event with NULL function pointer detected in event_process!");
       if (the_event->event_obj != NULL)
         cleanup_event_obj(the_event);
-      debug_event_unlink(the_event);
-      free(the_event);
-      decrement_event_count("invalid legacy callback");
+      event_record_free(the_event, "invalid legacy callback");
       continue;
     }
 
@@ -693,11 +876,11 @@ event_process_backend(const struct game_scheduler_budget *budget,
 
     if (the_event->cancel_requested)
     {
-      if (the_event->isMudEvent && the_event->event_obj != NULL)
-        free_mud_event((struct mud_event_data *)the_event->event_obj);
-      debug_event_unlink(the_event);
-      free(the_event);
-      decrement_event_count("in-flight legacy cancellation");
+      if (the_event->event_obj != NULL &&
+          (the_event->isMudEvent || the_event->cleanup != NULL ||
+           the_event->handle_cleanup != NULL))
+        cleanup_event_obj(the_event);
+      event_record_free(the_event, "in-flight legacy cancellation");
     }
     else if (new_time > 0)
     {
@@ -718,9 +901,7 @@ event_process_backend(const struct game_scheduler_budget *budget,
       the_event->callback_terminal = true;
       if (the_event->isMudEvent && the_event->event_obj != NULL)
         free_mud_event((struct mud_event_data *)the_event->event_obj);
-      debug_event_unlink(the_event);
-      free(the_event);
-      decrement_event_count("legacy completion");
+      event_record_free(the_event, "legacy completion");
     }
   }
 
@@ -799,6 +980,11 @@ long event_time(struct event *event)
   return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
 }
 
+long event_handle_time(event_handle_t handle)
+{
+  return event_time(event_handle_resolve(handle));
+}
+
 /** Frees all events from event_q.
  * WARNING: This function should NEVER be called while event_process() is running!
  * Doing so would cause double-free crashes and memory corruption.
@@ -860,6 +1046,31 @@ void event_free_all(void)
   debug_event_high_water = 0;
   next_debug_event_id = 1;
   stale_owner_outcomes = 0;
+  if (event_handle_live_count != 0U)
+  {
+    uint32_t index;
+
+    log("SYSERR: Event handle registry retained %zu live handles after shutdown; invalidating.",
+        event_handle_live_count);
+    event_handle_free_head = EVENT_HANDLE_FREE_NONE;
+    for (index = event_handle_next_unused; index > 0U; index--)
+    {
+      uint32_t slot = index - 1U;
+
+      if (event_handle_slots[slot] != NULL)
+      {
+        if (event_handle_generations[slot] < EVENT_HANDLE_GENERATION_MAX)
+          event_handle_generations[slot]++;
+      }
+      event_handle_slots[slot] = NULL;
+      if (event_handle_generations[slot] < EVENT_HANDLE_GENERATION_MAX)
+      {
+        event_handle_next_free[slot] = event_handle_free_head;
+        event_handle_free_head = slot;
+      }
+    }
+    event_handle_live_count = 0U;
+  }
 }
 
 #if defined(LUMINARI_CUTEST)
@@ -889,6 +1100,29 @@ int event_test_select_backend(enum event_backend_kind backend)
   test_backend_override = backend;
   return 1;
 }
+
+event_handle_t event_test_force_handle_generation_exhaustion(event_handle_t handle)
+{
+  struct event *event;
+  event_handle_t exhausted_handle;
+  uint32_t encoded_slot;
+  uint32_t slot;
+
+  event = event_handle_resolve(handle);
+  if (event == NULL)
+    return EVENT_HANDLE_NONE;
+  encoded_slot = (uint32_t)(handle & EVENT_HANDLE_SLOT_MASK);
+  slot = encoded_slot - 1U;
+  event_handle_generations[slot] = EVENT_HANDLE_GENERATION_MAX;
+  exhausted_handle = (EVENT_HANDLE_GENERATION_MAX << EVENT_HANDLE_SLOT_BITS) | encoded_slot;
+  event->handle = exhausted_handle;
+  return exhausted_handle;
+}
+
+uint32_t event_test_handle_slot(event_handle_t handle)
+{
+  return (uint32_t)(handle & EVENT_HANDLE_SLOT_MASK);
+}
 #endif
 
 /** Boolean function to tell whether an event is queued or not. Does this by
@@ -914,6 +1148,11 @@ int event_is_queued(struct event *event)
   }
 
   return event->q_el != NULL;
+}
+
+bool event_handle_is_queued(event_handle_t handle)
+{
+  return event_is_queued(event_handle_resolve(handle)) != 0;
 }
 /***************************************************************************
  * End mud specific event queue functions
@@ -1195,12 +1434,7 @@ void queue_free(struct dg_queue *q)
         if (event->event_obj)
           cleanup_event_obj(event);
 
-        /* Free the event structure itself */
-        debug_event_unlink(event);
-        free(event);
-
-        /* Decrement event counter since we freed an event during shutdown */
-        decrement_event_count("legacy shutdown");
+        event_record_free(event, "legacy shutdown");
       }
       /* Free the queue element that held this event */
       free(qe);
