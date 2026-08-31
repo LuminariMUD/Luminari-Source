@@ -17,6 +17,8 @@ Core source files:
 - [src/domain_event_runtime.c](../../src/domain_event_runtime.c)
 - [src/event_debug.h](../../src/event_debug.h)
 - [src/event_debug.c](../../src/event_debug.c)
+- [src/combat/combat_encounters.h](../../src/combat/combat_encounters.h)
+- [src/combat/combat_encounters.c](../../src/combat/combat_encounters.c)
 - [src/point_update_periodic.h](../../src/point_update_periodic.h)
 - [src/point_update_periodic.c](../../src/point_update_periodic.c)
 - [src/vessels/vessel_periodic.h](../../src/vessels/vessel_periodic.h)
@@ -394,6 +396,31 @@ retain their behavior. Current-owner extraction is iteration-safe, including
 idle rent and object timer triggers. `perfmon entities` reports this subsystem
 on five labeled rows bounded to the normal 80-column display.
 
+### 5.1 Combat Encounter Scheduling
+
+Combat defaults to one scheduled `combat_encounter_round` event per live fight.
+The process-local encounter registry supplies a typed ID and generation, while
+each participant stores its own next deadline and current compatibility phase.
+The one shared callback runs due participants in deadline and insertion order
+through `combat_run_compatibility_phase()`, the same routine used by the old
+per-character event. Existing two-second phases, six-second rounds, action
+queues, attacks, reactions, and effects therefore retain their behavior.
+
+Hostility creates, extends, or merges encounters. A join or merge during a
+callback is queued until the active participant iteration is safe to compact.
+Participant deadlines survive a merge, and an in-dispatch join has a
+six-second not-before guard. A participant leaving is inactive immediately;
+the event continues for the rest of the fight and is canceled exactly once
+when no active hostility remains. Movement, committed death, and extraction
+facts use generation-aware resolution, with direct extraction cleanup as an
+idempotent final guard.
+
+`eventdebug` includes a compact Combat encounters block. Use
+`eventdebug type combat_encounter_round` to inspect the shared event, owner ID,
+generation, and due time. The summary comparison count covers both the
+one-event-per-encounter invariant and phase terminal-accounting invariant.
+Payloads and participant identities are not displayed.
+
 ## 6. Table-Driven Registry (mud_event_index)
 
 - The registry lives in [C.mud_event_index[]](../../src/mud_event_list.c#L46)
@@ -548,6 +575,12 @@ on five labeled rows bounded to the normal 80-column display.
   - The selection jointly controls global, player, and object mud-hour point
     phases. Startup service-admission failure falls back to the whole legacy
     traversal; partial scheduled mode is not allowed.
+- Combat-round selection:
+  - Default: `LUMINARI_COMBAT_EVENTS=encounter`
+  - Rollback: `LUMINARI_COMBAT_EVENTS=legacy`
+  - The selection is immutable for the boot. Encounter mode owns one event per
+    fight; legacy mode owns one `eCOMBAT_ROUND` event per active character. The
+    paths never execute together and active fights are not converted live.
 - Startup logs one `Event backend initialized:` line naming the effective
   backend.
 - `perf event total` and the PERFMON CSV representation include lifecycle,

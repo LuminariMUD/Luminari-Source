@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phase 7 and the immortal observability gate accepted; Phase 8 next
-**Document version:** 1.13
+**Status:** In progress - Phases 1 through 8 accepted; Phase 9 next
+**Document version:** 1.14
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 7 plus the dedicated immortal event-observability gate complete
+**Implementation status:** Phases 1 through 8 plus the dedicated immortal event-observability gate complete
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -12,8 +12,9 @@
 > heartbeat remains only for unmigrated pulse work. Generation-aware MUD-event
 > ownership and lifecycle cancellation form the accepted scheduler foundation.
 > A private `libevent` compatibility reactor now owns production readiness and
-> signals, with boot-time `select()` rollback; gameplay semantics have not
-> migrated. Versioned player-event records now validate stable ownership and
+> signals, with boot-time `select()` rollback. Gameplay timing ownership is
+> migrating while semantic combat redesign remains gated. Versioned player-event
+> records now validate stable ownership and
 > rebuild fresh process-local timers, while transient and boot-reconstructed
 > work has an explicit policy.
 > The process now owns a boot-sealed typed domain-event registry with bounded
@@ -1794,7 +1795,25 @@ at 120. Compatibility owner teardown cancels before stale dispatch; typed
 consumers introduced from Phase 8 onward must count failed generation-aware
 resolution as a stale-owner outcome. Evidence is recorded in
 [`EVENT_DRIVEN_CORE_REFACTOR_OBSERVABILITY_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_OBSERVABILITY_VALIDATION.md).
-Phase 8 encounter compatibility is next.
+
+**Phase 8 accepted 2026-08-31.** A generation-aware
+`combat_encounter_data` registry now gives each live fight one typed encounter
+event, independent of the existing wilderness `encounter_data`. Participants
+retain their individual compatibility phase and deadline under that shared
+clock. Hostile joins create, extend, or merge encounters; additions and merges
+during dispatch are deferred, due times survive merges, and an in-dispatch
+join receives a six-second not-before guard. Immediate inactive marking plus
+deferred compaction makes movement, death, extraction, combat stop, and
+callback mutation safe. The existing combat phase and action-queue routine is
+shared by the encounter path and the retained per-character rollback path, so
+cadence and mechanics do not execute twice or diverge. Typed death, movement,
+and extraction facts plus direct extraction cleanup enforce lifecycle, while
+failed generation resolution feeds stale-owner telemetry. `eventdebug` reports
+the selected mode, encounter and participant counts, shared events, lifecycle,
+phase outcomes, and comparison invariants. Evidence is recorded in
+[`EVENT_DRIVEN_CORE_REFACTOR_PHASE8_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE8_VALIDATION.md).
+Phase 9 semantic combat rounds are next and remain a separate gameplay-design
+gate.
 
 ### Phase 8: Encounter-level combat compatibility
 
@@ -2097,10 +2116,10 @@ working document is retired according to the ongoing-project policy.
 | D8 | Owner registry | Typed runtime ID plus generation and owner index | Accepted for implementation | Phase 2.5 |
 | D9 | Persistent event store | Versioned per-type player records with stable owner validation, explicit offline policy, and fresh runtime rehydration; boot-derived world work remains reconstructable | Accepted | Phase 5 |
 | D10 | Old/new backend selection | Process environment, then `.env`; scheduler default, legacy rollback; immutable until shutdown | Accepted | Phase 2 |
-| D11 | Combat join eligibility | Next encounter round | Provisional | Phase 8 |
-| D12 | Encounter merge clock | Preserve survivor clock plus participant not-before guards | Provisional | Phase 8 |
-| D13 | Encounter splitting | Defer unless correctness or profiling requires it | Provisional | Phase 8 |
-| D14 | Linkdead combat policy | Preserve current behavior until separately reviewed | Provisional | Phase 8 |
+| D11 | Combat join eligibility | Preserve ordinary initial initiative deadlines; defer in-dispatch joins with a six-second not-before guard | Accepted | Phase 8 |
+| D12 | Encounter merge clock | Preserve the earliest live event plus every participant deadline and not-before guard | Accepted | Phase 8 |
+| D13 | Encounter splitting | Defer unless correctness or profiling requires it | Accepted | Phase 8 |
+| D14 | Linkdead combat policy | Preserve current continued-combat behavior until separately reviewed | Accepted | Phase 8 |
 | D15 | Reactor library | System libevent 2.1.12-stable or newer, core component, behind a Luminari-owned boundary | Accepted | Phase 3 |
 | D16 | Scheduler reactor timers | One wakeup armed from nearest deadline | Accepted | Phase 4 |
 | D17 | Domain dispatch | Typed, synchronous, main-thread, immutable borrowed payload | Accepted in Phase 6a | Phase 6 |
@@ -2204,8 +2223,8 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
       rules are unambiguous.
 - [x] Existing pub/sub commands, data, documentation, and retirement obligations
       have an approved disposition.
-- [ ] Active/cooling-down/dormant wake and sleep rules cannot lose required work.
-- [ ] Encounter join, leave, merge, and termination rules are fair and complete.
+- [x] Active/cooling-down/dormant wake and sleep rules cannot lose required work.
+- [x] Encounter join, leave, merge, and termination rules are fair and complete.
 - [ ] Activity capability, trait, interruption, progress, and combat-time rules
       are coherent.
 - [ ] Migration phases are independently testable and reversible.
@@ -2240,3 +2259,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.11 | 2026-08-31 | Accepted the vessel Phase 7 slice after replacing Greyhawk fleet sweeps and converted-RoL object discovery with bounded lifecycle-owned deadlines, retaining exact half-second, 2.5-second, and mud-hour boundaries and established gameplay routines. One service event retains genuinely global vessel work, startup and boot-time rollback are all-or-nothing, diagnostics fit 80 columns, and the 987-test database/sanitizer/Valgrind plus eight-mode syntax and live-MUD gates pass. The mixed `point_update()` pulse is next. |
 | 1.12 | 2026-08-31 | Accepted the mud-hour point-update Phase 7 slice after replacing normal player/object discovery scans with one aligned service deadline and lifecycle-owned PC and active-object registries. Global-player-object ordering, timer/decay/corpse/idle gameplay, timer-trigger extraction, OLC/DG replacement safety, exclusive rollback, and compact diagnostics are preserved; the 991-test database/sanitizer/Valgrind, eight-mode syntax, and live-MUD gates pass. Immortal event observability is next before Phase 8. |
 | 1.13 | 2026-08-31 | Accepted the immortal observability gate after adding backend-neutral payload-free event inspection, readable paginated filters and profiles, complete scheduler queue/lifecycle/capacity telemetry, typed domain-handler views, and bounded I3 worker-ingress counters with an 80-column default and 120-column hard ceiling. Phase 8 encounter compatibility is next. |
+| 1.14 | 2026-08-31 | Accepted Phase 8 after replacing per-character combat clocks with one generation-aware event per encounter, preserving existing phase/action behavior, implementing safe joins, deferred mutation, encounter merges, all departure classes, typed lifecycle facts, compact diagnostics, and exclusive character-event rollback. Phase 9 semantic combat rounds are next. |

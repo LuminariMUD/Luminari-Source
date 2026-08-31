@@ -2,6 +2,33 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Encounter-owned combat scheduling
+
+#### Changed
+
+- Replaced per-character combat clocks with one generation-aware scheduled
+  event per live encounter while retaining the existing combat phase and
+  action-queue implementation.
+- Added safe encounter creation, participant admission, deferred callback
+  mutation, encounter merging with preserved deadlines, immediate departure,
+  terminal teardown, and generation reuse.
+- Published committed character death through the typed domain-event runtime;
+  movement, death, extraction, and direct cleanup now enforce encounter
+  lifecycle without polling combatants.
+
+#### Operations
+
+- Added `LUMINARI_COMBAT_EVENTS=legacy` as the exclusive boot-time rollback to
+  per-character `eCOMBAT_ROUND` events.
+- Added compact encounter mode, population, shared-event, lifecycle, phase,
+  comparison, admission, and stale-owner counters to `eventdebug`.
+
+#### Tests
+
+- Added join-timing, callback mutation, merge fairness, bridge departure,
+  terminal replacement, generation reuse, all-departure, rollback, sanitizer,
+  Valgrind, boot-matrix, database, and live-MUD coverage.
+
 ### Immortal event diagnostics
 
 #### Added

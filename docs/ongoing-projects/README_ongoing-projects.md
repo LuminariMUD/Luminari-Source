@@ -20,7 +20,8 @@ their own analysis dates. Most retained legacy notes are grouped in
 
 | Document | Status | What remains |
 |----------|--------|--------------|
-| [EVENT_DRIVEN_CORE_REFACTOR_SPEC.md](EVENT_DRIVEN_CORE_REFACTOR_SPEC.md) | Controlling specification v1.13; Phases 1 through 7 plus the immortal observability gate accepted | Phase 8 encounter-level combat compatibility. |
+| [EVENT_DRIVEN_CORE_REFACTOR_SPEC.md](EVENT_DRIVEN_CORE_REFACTOR_SPEC.md) | Controlling specification v1.14; Phases 1 through 8 plus the immortal observability gate accepted | Phase 9 semantic combat rounds and gameplay-design approval. |
+| [EVENT_DRIVEN_CORE_REFACTOR_PHASE8_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE8_VALIDATION.md) | Phase 8 encounter compatibility acceptance evidence complete 2026-08-31 | One event per fight, compatibility cadence, safe joins/merges/departure, rollback, diagnostics, and full validation evidence. |
 | [EVENT_DRIVEN_CORE_REFACTOR_OBSERVABILITY_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_OBSERVABILITY_VALIDATION.md) | Immortal observability acceptance evidence complete 2026-08-31 | Backend-neutral queue inspection, compact metrics, safe filters, ingress visibility, redaction, and width bounds. |
 | [EVENT_DRIVEN_CORE_REFACTOR_PHASE7G_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE7G_VALIDATION.md) | Phase 7 mud-hour point-update acceptance evidence complete 2026-08-31 | Aligned service dispatch, PC and active-object registries, full timer/decay lifecycle, rollback, compact diagnostics, and validation evidence. |
 | [EVENT_DRIVEN_CORE_REFACTOR_PHASE7F_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE7F_VALIDATION.md) | Phase 7 vessel-owner acceptance evidence complete 2026-08-31 | Greyhawk and fixed-RoL ownership, global service work, exact cadence, lifecycle, rollback, diagnostics, and full validation evidence. |

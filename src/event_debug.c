@@ -8,6 +8,7 @@
 #include "domain_event_runtime.h"
 #include "domain_events.h"
 #include "event_debug.h"
+#include "combat/combat_encounters.h"
 #include "net/i3_client.h"
 #include "perfmon.h"
 
@@ -168,6 +169,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   struct PERF_event_summary perf_stats;
   struct domain_event_bus_stats domain_stats;
   struct i3_ingress_stats ingress_stats;
+  struct combat_encounter_stats encounter_stats;
   struct domain_event_bus *bus;
 
   debug_output_init(&output, buffer, capacity, width);
@@ -260,6 +262,28 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   }
   else
     debug_output_line(&output, "Legacy storage metrics unavailable.");
+  memset(&encounter_stats, 0, sizeof(encounter_stats));
+  combat_encounter_get_stats(&encounter_stats);
+  debug_output_line(&output, "");
+  debug_output_line(&output, "Combat encounters");
+  debug_output_line(&output, "  mode: %s",
+                    encounter_stats.encounter_mode ? "encounter" : "character rollback");
+  debug_output_line(&output, "  active: %zu encounters / %zu participants",
+                    encounter_stats.active_encounters, encounter_stats.active_participants);
+  debug_output_line(&output, "  scheduled events: %zu", encounter_stats.scheduled_events);
+  debug_output_line(&output, "  created/ended/merged: %" PRIu64 "/%" PRIu64 "/%" PRIu64,
+                    encounter_stats.encounters_created, encounter_stats.encounters_ended,
+                    encounter_stats.encounters_merged);
+  debug_output_line(&output, "  callbacks/phases/terminal: %" PRIu64 "/%" PRIu64 "/%" PRIu64,
+                    encounter_stats.encounter_callbacks, encounter_stats.compatibility_phases,
+                    encounter_stats.compatibility_terminal);
+  debug_output_line(&output, "  compatibility attempts: %" PRIu64,
+                    encounter_stats.compatibility_attempts);
+  debug_output_line(&output, "  comparison mismatch: %" PRIu64,
+                    encounter_stats.compatibility_mismatches);
+  debug_output_line(&output, "  admission/stale: %" PRIu64 "/%" PRIu64,
+                    encounter_stats.admission_failures,
+                    encounter_stats.stale_encounter_callbacks);
   memset(&ingress_stats, 0, sizeof(ingress_stats));
   i3_get_ingress_stats(&ingress_stats);
   debug_output_line(&output, "");

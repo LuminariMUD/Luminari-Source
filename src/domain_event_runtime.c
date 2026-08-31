@@ -3,6 +3,7 @@
 #include "active_world.h"
 #include "affected_owners.h"
 #include "character_periodic.h"
+#include "combat/combat_encounters.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
 #include "periodic_owners.h"
@@ -30,6 +31,8 @@ enum domain_event_status domain_event_runtime_init(void)
   if (status == DOMAIN_EVENT_OK)
     status = domain_event_world_register_resolvers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
+    status = combat_encounter_runtime_init(runtime_bus);
+  if (status == DOMAIN_EVENT_OK)
     status = character_periodic_register_handlers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
     status = spatial_event_register_handlers(runtime_bus);
@@ -40,6 +43,7 @@ enum domain_event_status domain_event_runtime_init(void)
   if (status != DOMAIN_EVENT_OK)
   {
     active_world_shutdown();
+    combat_encounter_runtime_shutdown();
     periodic_owners_shutdown();
     affected_owners_shutdown();
     character_periodic_shutdown();
@@ -58,6 +62,7 @@ enum domain_event_status domain_event_runtime_shutdown(void)
   if (runtime_bus == NULL)
     return DOMAIN_EVENT_OK;
   active_world_shutdown();
+  combat_encounter_runtime_shutdown();
   periodic_owners_shutdown();
   affected_owners_shutdown();
   character_periodic_shutdown();
@@ -101,6 +106,18 @@ enum domain_event_status domain_event_runtime_combat_state_changed(struct char_d
   event.opponent = domain_event_character_handle(opponent);
   event.in_combat = in_combat;
   return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_COMBAT_STATE_CHANGED, &event);
+}
+
+enum domain_event_status domain_event_runtime_character_died(struct char_data *ch,
+                                                             struct char_data *killer)
+{
+  struct domain_character_died event;
+
+  if (runtime_bus == NULL || ch == NULL)
+    return DOMAIN_EVENT_NOT_FOUND;
+  event.character = domain_event_character_handle(ch);
+  event.killer = domain_event_character_handle(killer);
+  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_CHARACTER_DIED, &event);
 }
 
 enum domain_event_status domain_event_runtime_character_extracted(struct char_data *ch,

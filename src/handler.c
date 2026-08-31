@@ -47,6 +47,7 @@
 #include "point_update_periodic.h"
 #include "affected_owners.h"
 #include "domain_event_runtime.h"
+#include "combat/combat_encounters.h"
 #include "vessels/vessels_rol.h"
 
 /* local file scope variables */
@@ -3115,6 +3116,7 @@ void extract_char_final(struct char_data *ch)
                                (enum perf_entity_reason)ch->perf_create_reason);
 
   domain_event_runtime_character_extracted(ch, 0U);
+  combat_encounter_forget_character(ch, COMBAT_ENCOUNTER_DEPARTURE_EXTRACTED);
   character_periodic_forget(ch);
   point_update_character_forget(ch);
   active_world_forget_character(ch);

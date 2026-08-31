@@ -1288,6 +1288,9 @@ ACMD(do_mtransform)
   mob_rnum this_rnum = GET_MOB_RNUM(ch);
   struct char_data *affected_next;
   struct char_data *affected_prev;
+  struct combat_encounter_data *combat_encounter;
+  struct combat_encounter_participant *combat_encounter_participant;
+  uint64_t domain_event_generation;
   int old_origin_zone_vnum;
   int old_create_reason;
   bool affected_registered;
@@ -1376,12 +1379,18 @@ ACMD(do_mtransform)
     affected_next = ch->affected_next;
     affected_prev = ch->affected_prev;
     affected_registered = ch->affected_registered;
+    combat_encounter = ch->combat_encounter;
+    combat_encounter_participant = ch->combat_encounter_participant;
+    domain_event_generation = ch->domain_event_generation;
 
     tmpmob.id = ch->id;
     tmpmob.affected = ch->affected;
     tmpmob.affected_next = affected_next;
     tmpmob.affected_prev = affected_prev;
     tmpmob.affected_registered = affected_registered;
+    tmpmob.combat_encounter = combat_encounter;
+    tmpmob.combat_encounter_participant = combat_encounter_participant;
+    tmpmob.domain_event_generation = domain_event_generation;
     tmpmob.perf_origin_zone_vnum = old_origin_zone_vnum;
     tmpmob.perf_create_reason = (unsigned char)old_create_reason;
     tmpmob.carrying = ch->carrying;

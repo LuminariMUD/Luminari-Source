@@ -33,6 +33,9 @@
 // code are defined in one place, so you can review and change them easily.
 #include "vnums.h"
 
+struct combat_encounter_data;
+struct combat_encounter_participant;
+
 /** Intended use of this macro is to allow external packages to work with a
  * variety of versions without modifications.  For instance, an IS_CORPSE()
  * macro was introduced in pl13.  Any future code add-ons could take into
@@ -7417,6 +7420,8 @@ struct char_data
   struct char_data *active_world_prev;    /**< Scheduled-mobile registry link. */
   struct event *active_world_event;       /**< Sole scheduled mobile-think event. */
   unsigned char active_world_state;       /**< Active, cooling, or dormant state. */
+  struct combat_encounter_data *combat_encounter; /**< Runtime fight-session owner. */
+  struct combat_encounter_participant *combat_encounter_participant; /**< Membership node. */
   struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */
 
   struct obj_data *carrying;    /**< List head for objects in inventory */

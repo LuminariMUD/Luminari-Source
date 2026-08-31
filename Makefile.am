@@ -100,6 +100,8 @@ luminari_SOURCES = \
 	src/elf_build_id.c \
 	src/elf_build_id.h \
 	src/combat/encounters.c \
+	src/combat/combat_encounters.c \
+	src/combat/combat_encounters.h \
 	src/character/evolutions.c \
 	src/character/feats.c \
 	src/character/talents.c \
@@ -380,6 +382,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_combat_encounters.c \
 	unittests/CuTest/test_thrown_weapons.c \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \
@@ -441,6 +444,7 @@ cutest_test_files = \
 	unittests/CuTest/test_transport_production.c \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
+	unittests/CuTest/test_combat_encounters.c \
 	unittests/CuTest/test_thrown_weapons.c \
 	unittests/CuTest/test_lists_production.c \
 	unittests/CuTest/test_mob_autoroll.c \

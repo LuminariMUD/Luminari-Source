@@ -61,6 +61,7 @@
 #include "rol_feats.h"
 #include "domain_event_runtime.h"
 #include "point_update_periodic.h"
+#include "combat/combat_encounters.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -1714,7 +1715,7 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
     ;
   }
 
-  if (char_has_mud_event(ch, eCOMBAT_ROUND))
+  if (!combat_encounter_events_enabled() && char_has_mud_event(ch, eCOMBAT_ROUND))
   {
     return FALSE;
     ;
@@ -1854,8 +1855,18 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
     }
   }
 
-  /* start the combat loop, making sure we begin with phase "1" */
-  attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, "1"), delay);
+  /* Start the selected combat clock with phase one. */
+  if (combat_encounter_events_enabled())
+  {
+    if (!combat_encounter_join(ch, vict, delay))
+    {
+      log("SYSERR: Unable to admit %s to an encounter-owned combat event.", GET_NAME(ch));
+      stop_fighting(ch);
+      return FALSE;
+    }
+  }
+  else
+    attach_mud_event(new_mud_event(eCOMBAT_ROUND, ch, "1"), delay);
 
   HAS_PERFORMED_DEMORALIZING_STRIKE(ch) = FALSE;
 
@@ -1875,6 +1886,7 @@ void stop_fighting(struct char_data *ch)
   ch->next_fighting = NULL;
   FIGHTING(ch) = NULL;
   domain_event_runtime_combat_state_changed(ch, opponent, false);
+  combat_encounter_leave(ch, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
   GET_WARBEAT_USED(ch) = 0;
   clear_projectile_mode(ch);
   if (GET_POS(ch) == POS_FIGHTING) /* in case they are position fighting */
@@ -2442,6 +2454,8 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
 {
   struct char_data *k, *temp;
   struct affected_type af = {0}; /* Zero-initialize to prevent stack garbage */
+
+  domain_event_runtime_character_died(ch, killer);
 
   /* stop relevant fighting */
   if (FIGHTING(ch))
@@ -16465,32 +16479,19 @@ void autoDiagnose(struct char_data *ch)
   }
 }
 
-/* Fight control event.  Replaces the violence loop. */
-EVENTFUNC(event_combat_round)
+bool combat_run_compatibility_phase(struct char_data *ch, unsigned int phase)
 {
-  struct char_data *ch = NULL;
-  struct mud_event_data *pMudEvent = NULL;
-
-  /*  This is just a dummy check, but we'll do it anyway */
-  if (event_obj == NULL)
-    return 0;
-
-  /*  For the sake of simplicity, we will place the event data in easily
-   * referenced pointers */
-  pMudEvent = (struct mud_event_data *)event_obj;
-  ch = (struct char_data *)pMudEvent->pStruct;
-
   /* Safety check: Validate character state before processing combat */
   if (!ch || IN_ROOM(ch) == NOWHERE || GET_POS(ch) <= POS_DEAD)
-    return 0;
+    return false;
 
   /* Check if character is pending extraction */
   if (!IS_NPC(ch) && PLR_FLAGGED(ch, PLR_NOTDEADYET))
-    return 0;
+    return false;
 
   /* Additional check for NPCs pending extraction */
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOTDEADYET))
-    return 0;
+    return false;
 
   if ((!IS_NPC(ch) && (ch->desc != NULL && !IS_PLAYING(ch->desc))) || (FIGHTING(ch) == NULL))
   {
@@ -16499,24 +16500,22 @@ EVENTFUNC(event_combat_round)
       send_to_char(ch, "DEBUG: RETURNING 0 FROM COMBAT EVENT.\r\n");
     }
     stop_fighting(ch);
-    return 0;
+    return false;
   }
 
   if (FIGHTING(ch) == NULL)
-  {
-    return 0;
-  }
+    return false;
 
   if (GET_POS(FIGHTING(ch)) <= POS_DEAD || GET_POS(ch) <= POS_DEAD)
   {
     stop_fighting(ch);
-    return 0;
+    return false;
   }
 
   if (IN_ROOM(ch) != IN_ROOM(FIGHTING(ch)))
   {
     stop_fighting(ch);
-    return 0;
+    return false;
   }
 
   PERF_combat_round_begin(ch);
@@ -16530,9 +16529,7 @@ EVENTFUNC(event_combat_round)
   /* execute phase */
   {
     PERF_PROF_ENTER_SAMPLED(combat_perform_violence, "combat.perform_violence");
-    perform_violence(ch, (pMudEvent->sVariables != NULL && is_number(pMudEvent->sVariables)
-                              ? atoi(pMudEvent->sVariables)
-                              : 0));
+    perform_violence(ch, (int)phase);
     PERF_PROF_EXIT(combat_perform_violence);
   }
 
@@ -16554,12 +16551,28 @@ EVENTFUNC(event_combat_round)
     PERF_PROF_EXIT(combat_backlash);
   }
 
-  /* set the next phase */
-  if (pMudEvent->sVariables != NULL)
-    sprintf(pMudEvent->sVariables, "%d",
-            (atoi(pMudEvent->sVariables) < 3 ? atoi(pMudEvent->sVariables) + 1 : 1));
-
   PERF_combat_round_end();
+  return true;
+}
+
+/* Per-character rollback event for the compatibility combat phases. */
+EVENTFUNC(event_combat_round)
+{
+  struct char_data *ch;
+  struct mud_event_data *pMudEvent;
+  unsigned int phase;
+
+  if (event_obj == NULL)
+    return 0;
+  pMudEvent = event_obj;
+  ch = pMudEvent->pStruct;
+  phase = pMudEvent->sVariables != NULL && is_number(pMudEvent->sVariables)
+              ? (unsigned int)atoi(pMudEvent->sVariables)
+              : 0U;
+  if (!combat_run_compatibility_phase(ch, phase))
+    return 0;
+  if (pMudEvent->sVariables != NULL)
+    sprintf(pMudEvent->sVariables, "%u", phase < 3U ? phase + 1U : 1U);
   return 2 RL_SEC; /* 6 second rounds, hack! */
 }
 
