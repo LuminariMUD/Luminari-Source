@@ -17,6 +17,8 @@
 #include "db.h"
 #include "handler.h"
 #include "interpreter.h"
+#include "dgscript/dg_event.h"
+#include "vessel_periodic.h"
 #include "vessels_rol.h"
 
 #define ROL_SHIP_NONE (-1)
@@ -58,6 +60,8 @@ struct rol_ship_state
   const char *route_path;
   room_vnum route_destination;
   struct char_data *last_help_victim;
+  struct event *periodic_event;
+  uint64_t periodic_generation;
 };
 
 static const struct rol_ship_definition rol_ship_definitions[] = {
@@ -88,10 +92,100 @@ static const struct rol_ship_definition rol_ship_definitions[] = {
 
 static struct rol_ship_state
     rol_ship_states[sizeof(rol_ship_definitions) / sizeof(rol_ship_definitions[0])];
+static bool rol_periodic_initialized;
+static uint64_t rol_next_generation = 1U;
+static uint64_t rol_periodic_callback_count;
 
 static int rol_ship_count(void)
 {
   return (int)(sizeof(rol_ship_definitions) / sizeof(rol_ship_definitions[0]));
+}
+
+static long rol_ship_boundary_delay(void)
+{
+  unsigned long cadence = (unsigned long)(PASSES_PER_SEC * 5 / 2);
+  unsigned long remainder = pulse % cadence;
+
+  return remainder == 0U ? (long)cadence : (long)(cadence - remainder);
+}
+
+static void rol_ship_event_cleanup(struct event *event)
+{
+  int ship_index;
+
+  if (event == NULL)
+    return;
+  ship_index = (int)(intptr_t)event->event_obj - 1;
+  if (ship_index >= 0 && ship_index < rol_ship_count() &&
+      rol_ship_states[ship_index].periodic_event == event)
+    rol_ship_states[ship_index].periodic_event = NULL;
+  event->event_obj = NULL;
+}
+
+static EVENTFUNC(rol_ship_owner_event)
+{
+  int ship_index = (int)(intptr_t)event_obj - 1;
+  struct rol_ship_state *state;
+
+  if (ship_index < 0 || ship_index >= rol_ship_count())
+    return 0;
+  rol_periodic_callback_count++;
+  state = &rol_ship_states[ship_index];
+  if (!rol_periodic_initialized || !vessel_periodic_events_enabled() || state->hull == NULL ||
+      IN_ROOM(state->hull) == NOWHERE || IN_ROOM(state->hull) > top_of_world)
+  {
+    state->periodic_event = NULL;
+    return 0;
+  }
+  rol_ship_activity_one(ship_index);
+  return PASSES_PER_SEC * 5 / 2;
+}
+
+static void rol_ship_schedule(int ship_index)
+{
+  struct game_event_owner owner = game_event_owner_none();
+  struct rol_ship_state *state;
+
+  if (!rol_periodic_initialized || !vessel_periodic_events_enabled() || ship_index < 0 ||
+      ship_index >= rol_ship_count())
+    return;
+  state = &rol_ship_states[ship_index];
+  if (state->hull == NULL || state->periodic_event != NULL || IN_ROOM(state->hull) == NOWHERE ||
+      IN_ROOM(state->hull) > top_of_world)
+    return;
+  if (state->periodic_generation == 0U)
+  {
+    if (rol_next_generation == 0U)
+      return;
+    state->periodic_generation = rol_next_generation;
+    if (rol_next_generation == UINT64_MAX)
+      rol_next_generation = 0U;
+    else
+      rol_next_generation++;
+  }
+  owner.kind = GAME_EVENT_OWNER_VESSEL;
+  owner.runtime_id = 0x524f4c00U + (uint64_t)ship_index + 1U;
+  owner.generation = state->periodic_generation;
+  state->periodic_event = event_create_owned_named_with_cleanup(
+      rol_ship_owner_event, (void *)(intptr_t)(ship_index + 1), rol_ship_boundary_delay(),
+      "rol_ship_periodic", rol_ship_event_cleanup, owner);
+}
+
+static void rol_ship_cancel(int ship_index)
+{
+  struct rol_ship_state *state;
+  struct event *event;
+
+  if (ship_index < 0 || ship_index >= rol_ship_count())
+    return;
+  state = &rol_ship_states[ship_index];
+  if (state->periodic_event != NULL)
+  {
+    event = state->periodic_event;
+    state->periodic_event = NULL;
+    event_cancel(event);
+  }
+  state->periodic_generation = 0U;
 }
 
 int rol_ship_definition_count(void)
@@ -146,33 +240,10 @@ static void rol_ship_reset_state(int ship_index, struct obj_data *hull)
 static struct obj_data *rol_ship_find_hull(int ship_index)
 {
   struct rol_ship_state *state;
-  struct obj_data *obj;
-  bool cached_is_live;
 
   state = &rol_ship_states[ship_index];
-  cached_is_live = false;
-  for (obj = object_list; obj != NULL; obj = obj->next)
-  {
-    if (obj == state->hull && IN_ROOM(obj) != NOWHERE)
-    {
-      cached_is_live = true;
-      break;
-    }
-  }
-
-  if (cached_is_live)
+  if (state->hull != NULL && IN_ROOM(state->hull) != NOWHERE && IN_ROOM(state->hull) <= top_of_world)
     return state->hull;
-
-  for (obj = object_list; obj != NULL; obj = obj->next)
-  {
-    if (GET_OBJ_VNUM(obj) == rol_ship_definitions[ship_index].hull_vnum && IN_ROOM(obj) != NOWHERE)
-    {
-      rol_ship_reset_state(ship_index, obj);
-      return obj;
-    }
-  }
-
-  rol_ship_reset_state(ship_index, NULL);
   return NULL;
 }
 
@@ -913,33 +984,140 @@ static void rol_ship_route_tick(int ship_index)
   }
 }
 
-void rol_ship_activity(void)
+void rol_ship_activity_one(int ship_index)
 {
   struct rol_ship_state *state;
+
+  if (ship_index < 0 || ship_index >= rol_ship_count())
+    return;
+  state = &rol_ship_states[ship_index];
+  if (!rol_ship_is_valid(ship_index))
+    return;
+
+  rol_ship_route_tick(ship_index);
+  if (state->action_timer > 0)
+    state->action_timer--;
+  if (state->move_timer > 0)
+    state->move_timer--;
+  if (state->repeat > 0 && state->move_timer == 0 && state->velocity > 0)
+  {
+    state->move_timer = rol_ship_move_delay_for_speed(state->velocity);
+    if (!rol_ship_move(ship_index, state->last_direction, NULL))
+      state->repeat = 0;
+    else
+      state->repeat--;
+  }
+}
+
+void rol_ship_activity(void)
+{
+  int ship_index;
+
+  for (ship_index = 0; ship_index < rol_ship_count(); ship_index++)
+    rol_ship_activity_one(ship_index);
+}
+
+void rol_ship_note_object_placed(struct obj_data *obj)
+{
+  int ship_index;
+
+  if (obj == NULL)
+    return;
+  for (ship_index = 0; ship_index < rol_ship_count(); ship_index++)
+  {
+    if (GET_OBJ_VNUM(obj) != rol_ship_definitions[ship_index].hull_vnum)
+      continue;
+    if (rol_ship_states[ship_index].hull == NULL)
+      rol_ship_reset_state(ship_index, obj);
+    if (rol_ship_states[ship_index].hull == obj)
+      rol_ship_schedule(ship_index);
+    return;
+  }
+}
+
+void rol_ship_note_object_extracted(struct obj_data *obj)
+{
+  int ship_index;
+
+  if (obj == NULL)
+    return;
+  for (ship_index = 0; ship_index < rol_ship_count(); ship_index++)
+  {
+    if (rol_ship_states[ship_index].hull != obj)
+      continue;
+    rol_ship_cancel(ship_index);
+    rol_ship_reset_state(ship_index, NULL);
+    return;
+  }
+}
+
+void rol_ship_periodic_init(void)
+{
+  int ship_index;
+
+  rol_periodic_initialized = true;
+  for (ship_index = 0; ship_index < rol_ship_count(); ship_index++)
+    rol_ship_schedule(ship_index);
+}
+
+void rol_ship_periodic_shutdown(void)
+{
+  int ship_index;
+
+  for (ship_index = 0; ship_index < rol_ship_count(); ship_index++)
+    rol_ship_cancel(ship_index);
+  rol_periodic_initialized = false;
+}
+
+size_t rol_ship_periodic_loaded_count(void)
+{
+  size_t count = 0U;
   int ship_index;
 
   for (ship_index = 0; ship_index < rol_ship_count(); ship_index++)
   {
-    rol_ship_find_hull(ship_index);
-    state = &rol_ship_states[ship_index];
-    if (state->hull == NULL)
-      continue;
-
-    rol_ship_route_tick(ship_index);
-    if (state->action_timer > 0)
-      state->action_timer--;
-    if (state->move_timer > 0)
-      state->move_timer--;
-    if (state->repeat > 0 && state->move_timer == 0 && state->velocity > 0)
-    {
-      state->move_timer = rol_ship_move_delay_for_speed(state->velocity);
-      if (!rol_ship_move(ship_index, state->last_direction, NULL))
-        state->repeat = 0;
-      else
-        state->repeat--;
-    }
+    if (rol_ship_states[ship_index].hull != NULL &&
+        IN_ROOM(rol_ship_states[ship_index].hull) != NOWHERE &&
+        IN_ROOM(rol_ship_states[ship_index].hull) <= top_of_world)
+      count++;
   }
+  return count;
 }
+
+size_t rol_ship_periodic_scheduled_count(void)
+{
+  size_t count = 0U;
+  int ship_index;
+
+  for (ship_index = 0; ship_index < rol_ship_count(); ship_index++)
+  {
+    if (rol_ship_states[ship_index].periodic_event != NULL)
+      count++;
+  }
+  return count;
+}
+
+size_t rol_ship_periodic_validate(void)
+{
+  struct rol_ship_state *state;
+  size_t mismatches = 0U;
+  int ship_index;
+  bool loaded;
+
+  for (ship_index = 0; ship_index < rol_ship_count(); ship_index++)
+  {
+    state = &rol_ship_states[ship_index];
+    loaded = state->hull != NULL && IN_ROOM(state->hull) != NOWHERE &&
+             IN_ROOM(state->hull) <= top_of_world;
+    if ((state->periodic_event != NULL) != (vessel_periodic_events_enabled() && loaded))
+      mismatches++;
+    if (state->periodic_event != NULL && state->periodic_generation == 0U)
+      mismatches++;
+  }
+  return mismatches;
+}
+
+uint64_t rol_ship_periodic_callbacks(void) { return rol_periodic_callback_count; }
 
 static void rol_ship_call_helpers(struct char_data *navigator, int ship_index)
 {

@@ -15,6 +15,8 @@ Core source files:
 - [src/domain_events.c](../../src/domain_events.c)
 - [src/domain_event_types.h](../../src/domain_event_types.h)
 - [src/domain_event_runtime.c](../../src/domain_event_runtime.c)
+- [src/vessels/vessel_periodic.h](../../src/vessels/vessel_periodic.h)
+- [src/vessels/vessel_periodic.c](../../src/vessels/vessel_periodic.c)
 - [WORLD_PHENOMENA.md](WORLD_PHENOMENA.md)
 - [src/mud_event.h](../../src/mud_event.h)
 - [src/mud_event.c](../../src/mud_event.c)
@@ -320,6 +322,21 @@ from registered active owners without scanning `character_list`. `perfmon
 entities` presents the character-owner mode, registry, validation, capacity,
 callbacks, and service work on nine labeled rows that remain within 80 columns.
 
+Vessel periodic work follows the same ownership boundary. Every valid
+Greyhawk fleet slot has at most one generation-aware event, aligned to the
+next 0.5-second boundary and reused for the 75-second mud-hour schedule
+boundary. It invokes the established per-vessel autopilot, hunter, combat,
+crew, upkeep, narrative, weather, encounter, and schedule routines. A single
+service-owned event runs global vessel event reconciliation, trade restocking,
+MSDP refresh, and mud-hour merchant work. Converted fixed-interior RoL ships
+have one 2.5-second event per loaded canonical hull, admitted and canceled by
+direct object lifecycle hooks rather than an `object_list` scan. Vessel
+eligibility does not depend on player presence, so unattended routes, NPC
+fleets, and combat continue normally. The Greyhawk registry is capped at all
+501 fleet slots and refills released capacity from registered owners.
+`perfmon entities` reports the vessel mode and lifecycle on compact labeled
+rows within 80 columns.
+
 ## 6. Table-Driven Registry (mud_event_index)
 
 - The registry lives in [C.mud_event_index[]](../../src/mud_event_list.c#L46)
@@ -461,6 +478,13 @@ callbacks, and service work on nine labeled rows that remain within 80 columns.
   - The selection controls affected-character and affected-room duration work
     plus affected-room Luminari behavior. It is independent of the character
     selection, and each legacy wrapper runs only the half it owns.
+- Vessel-periodic selection:
+  - Default: `LUMINARI_VESSEL_EVENTS=scheduled`
+  - Rollback: `LUMINARI_VESSEL_EVENTS=legacy`
+  - The selection controls all Greyhawk owner work, global vessel service
+    work, mud-hour vessel/merchant work, and fixed-RoL ship movement. Startup
+    admission failure selects the legacy path for the whole subsystem;
+    scheduled and heartbeat paths never run together.
 - Startup logs one `Event backend initialized:` line naming the effective
   backend.
 - `perf event total` and the PERFMON CSV representation include lifecycle,

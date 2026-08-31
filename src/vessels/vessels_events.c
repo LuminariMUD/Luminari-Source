@@ -12,6 +12,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "vessels.h"
+#include "vessel_periodic.h"
 #include "wilderness/wilderness.h"
 #include "act.h"
 #include "mysql.h"
@@ -539,6 +540,7 @@ static bool vessel_event_retire_ship(int shipnum, const char *reason)
     }
   }
 
+  vessel_periodic_forget(ship);
   memset(ship, 0, sizeof(*ship));
   vessel_event_remove_runtime(shipnum);
   log("Info: Retired vessel event ship %d '%s'", shipnum, ship_name);

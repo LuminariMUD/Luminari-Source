@@ -724,6 +724,8 @@ void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
   char report[16384];
   const char *character_section;
   const char *character_section_end;
+  const char *vessel_section;
+  const char *vessel_section_end;
   const char *line;
   const char *line_end;
 
@@ -741,7 +743,7 @@ void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "autoproc"));
   character_section = strstr(report, "Character owners:");
   character_section_end =
-      character_section != NULL ? strstr(character_section, "Active world:") : NULL;
+      character_section != NULL ? strstr(character_section, "Vessel owners:") : NULL;
   CuAssertPtrNotNull(tc, character_section);
   CuAssertPtrNotNull(tc, character_section_end);
   CuAssertPtrNotNull(tc, strstr(character_section, "  registry: members="));
@@ -754,6 +756,23 @@ void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
     line_end = strstr(line, "\n\r");
     CuAssertTrue(tc, line_end != NULL && line_end <= character_section_end);
     if (line_end == NULL || line_end > character_section_end)
+      break;
+    CuAssertTrue(tc, (size_t)(line_end - line) <= 80U);
+  }
+  vessel_section = character_section_end;
+  vessel_section_end = vessel_section != NULL ? strstr(vessel_section, "Active world:") : NULL;
+  CuAssertPtrNotNull(tc, vessel_section);
+  CuAssertPtrNotNull(tc, vessel_section_end);
+  CuAssertPtrNotNull(tc, strstr(vessel_section, "  registry: members="));
+  CuAssertPtrNotNull(tc, strstr(vessel_section, "  validation: mismatch="));
+  CuAssertPtrNotNull(tc, strstr(vessel_section, "  callbacks: owners="));
+  CuAssertPtrNotNull(tc, strstr(vessel_section, "  RoL fixed: loaded="));
+  CuAssertPtrNotNull(tc, strstr(vessel_section, "  RoL check: mismatch="));
+  for (line = vessel_section; line != NULL && line < vessel_section_end; line = line_end + 2)
+  {
+    line_end = strstr(line, "\n\r");
+    CuAssertTrue(tc, line_end != NULL && line_end <= vessel_section_end);
+    if (line_end == NULL || line_end > vessel_section_end)
       break;
     CuAssertTrue(tc, (size_t)(line_end - line) <= 80U);
   }

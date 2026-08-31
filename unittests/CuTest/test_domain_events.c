@@ -21,6 +21,8 @@
 #include "../../src/bardic_performance.h"
 #include "../../src/net/protocol.h"
 #include "../../src/olc/genwld.h"
+#include "../../src/vessels/vessel_periodic.h"
+#include "../../src/vessels/vessels.h"
 #include "../../src/wilderness/spatial_events.h"
 
 #include <pthread.h>
@@ -29,6 +31,8 @@
 
 #define TEST_EVENT_OUTER UINT32_C(0x2001)
 #define TEST_EVENT_INNER UINT32_C(0x2002)
+
+extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
 struct test_payload
 {
@@ -1620,6 +1624,157 @@ void TestCharacterPeriodicCapacityRefillsAndLegacyIsExclusive(CuTest *tc)
   event_free_all();
   character_list = saved_character_list;
   pulse = saved_pulse;
+}
+
+void TestVesselPeriodicSchedulesLoadedOwnersAndKeepsLegacyExclusive(CuTest *tc)
+{
+  const int slot = GREYHAWK_MAXSHIPS - 1;
+  struct greyhawk_ship_data saved_ship = greyhawk_ships[slot];
+  struct greyhawk_ship_data *ship = &greyhawk_ships[slot];
+  unsigned long saved_pulse = pulse;
+  int saved_vessel_system = CONFIG_VESSEL_SYSTEM;
+  uint64_t first_generation;
+
+  event_free_all();
+  vessel_periodic_reset_for_test();
+  memset(ship, 0, sizeof(*ship));
+  ship->active = true;
+  ship->shipnum = slot;
+  ship->slot[0].type = 1;
+  ship->slot[0].timer = 2;
+  CONFIG_VESSEL_SYSTEM = 1;
+  vessel_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 100U;
+  event_init();
+  vessel_periodic_init();
+  vessel_periodic_sync(ship);
+
+  CuAssertTrue(tc, vessel_periodic_events_enabled());
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_scheduled_count());
+  CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
+  CuAssertTrue(tc, event_queue_depth() >= 2);
+  first_generation = ship->periodic_generation;
+
+  pulse += AUTOPILOT_TICK_INTERVAL;
+  event_process();
+  CuAssertIntEquals(tc, 1, ship->slot[0].timer);
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_callbacks());
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_service_callbacks());
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_fast_executions());
+  CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
+
+  CONFIG_VESSEL_SYSTEM = 0;
+  vessel_periodic_feature_changed();
+  CuAssertIntEquals(tc, 0, (int)vessel_periodic_owner_count());
+  CuAssertIntEquals(tc, 0, (int)vessel_periodic_scheduled_count());
+  CuAssertPtrEquals(tc, NULL, ship->periodic_event);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  CONFIG_VESSEL_SYSTEM = 1;
+  vessel_periodic_feature_changed();
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_scheduled_count());
+  CuAssertPtrNotNull(tc, ship->periodic_event);
+  CuAssertTrue(tc, event_queue_depth() >= 2);
+  CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
+
+  vessel_periodic_forget(ship);
+  memset(ship, 0, sizeof(*ship));
+  ship->active = true;
+  ship->shipnum = slot;
+  vessel_periodic_sync(ship);
+  CuAssertTrue(tc, ship->periodic_generation != 0U);
+  CuAssertTrue(tc, ship->periodic_generation != first_generation);
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_owner_count());
+  CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
+
+  vessel_periodic_reset_for_test();
+  event_free_all();
+  vessel_periodic_select_for_test(false);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  vessel_periodic_init();
+  vessel_periodic_sync(ship);
+  CuAssertTrue(tc, !vessel_periodic_events_enabled());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  ship->slot[0].type = 1;
+  ship->slot[0].timer = 2;
+  vessel_combat_tick();
+  CuAssertIntEquals(tc, 1, ship->slot[0].timer);
+
+  vessel_periodic_reset_for_test();
+  event_free_all();
+  greyhawk_ships[slot] = saved_ship;
+  CONFIG_VESSEL_SYSTEM = saved_vessel_system;
+  pulse = saved_pulse;
+}
+
+void TestVesselPeriodicCapacityRefillsAfterOwnerCancellation(CuTest *tc)
+{
+  const int first_slot = GREYHAWK_MAXSHIPS - 2;
+  const int second_slot = GREYHAWK_MAXSHIPS - 1;
+  struct greyhawk_ship_data saved_first = greyhawk_ships[first_slot];
+  struct greyhawk_ship_data saved_second = greyhawk_ships[second_slot];
+  struct greyhawk_ship_data *first = &greyhawk_ships[first_slot];
+  struct greyhawk_ship_data *second = &greyhawk_ships[second_slot];
+  unsigned long saved_pulse = pulse;
+  int saved_vessel_system = CONFIG_VESSEL_SYSTEM;
+
+  event_free_all();
+  vessel_periodic_reset_for_test();
+  memset(first, 0, sizeof(*first));
+  memset(second, 0, sizeof(*second));
+  first->active = true;
+  first->shipnum = first_slot;
+  second->active = true;
+  second->shipnum = second_slot;
+  CONFIG_VESSEL_SYSTEM = 1;
+  vessel_periodic_select_for_test(true);
+  vessel_periodic_set_admission_limit_for_test(1U);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 200U;
+  event_init();
+  vessel_periodic_init();
+  vessel_periodic_sync(first);
+  vessel_periodic_sync(second);
+
+  CuAssertIntEquals(tc, 2, (int)vessel_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_scheduled_count());
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_admission_rejections());
+  CuAssertPtrNotNull(tc, first->periodic_event);
+  CuAssertPtrEquals(tc, NULL, second->periodic_event);
+  CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
+
+  vessel_periodic_forget(first);
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)vessel_periodic_scheduled_count());
+  CuAssertPtrNotNull(tc, second->periodic_event);
+  CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
+
+  vessel_periodic_reset_for_test();
+  event_free_all();
+  greyhawk_ships[first_slot] = saved_first;
+  greyhawk_ships[second_slot] = saved_second;
+  CONFIG_VESSEL_SYSTEM = saved_vessel_system;
+  pulse = saved_pulse;
+}
+
+void TestVesselPeriodicFallsBackWhenServiceCannotStart(CuTest *tc)
+{
+  int saved_vessel_system = CONFIG_VESSEL_SYSTEM;
+
+  event_free_all();
+  vessel_periodic_reset_for_test();
+  CONFIG_VESSEL_SYSTEM = 1;
+  vessel_periodic_select_for_test(true);
+  vessel_periodic_init();
+
+  CuAssertTrue(tc, !vessel_periodic_events_enabled());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  vessel_periodic_reset_for_test();
+  CONFIG_VESSEL_SYSTEM = saved_vessel_system;
 }
 
 void TestWorldPhenomenonRoomPropagation(CuTest *tc)

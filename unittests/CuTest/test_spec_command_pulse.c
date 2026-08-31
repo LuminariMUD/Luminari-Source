@@ -1084,6 +1084,46 @@ void Test_spec_mixed_owner_pulses_have_independent_rollback_gates(CuTest *tc)
   CuAssertTrue(tc, movement_contract);
 }
 
+void Test_spec_vessel_owner_pulses_have_lifecycle_and_rollback_gates(CuTest *tc)
+{
+  char *comm_source = NULL;
+  char *periodic_source = NULL;
+  char *rol_source = NULL;
+  char *handler_source = NULL;
+  char *edit_source = NULL;
+  char *combat_source = NULL;
+  bool sources_loaded;
+
+  sources_loaded = spec_pulse_read_source("src/comm.c", &comm_source) &&
+                   spec_pulse_read_source("src/vessels/vessel_periodic.c", &periodic_source) &&
+                   spec_pulse_read_source("src/vessels/vessels_rol.c", &rol_source) &&
+                   spec_pulse_read_source("src/handler.c", &handler_source) &&
+                   spec_pulse_read_source("src/vessels/vessels_edit.c", &edit_source) &&
+                   spec_pulse_read_source("src/vessels/vessels_combat.c", &combat_source);
+  if (sources_loaded)
+  {
+    CuAssertPtrNotNull(tc, strstr(comm_source, "!vessel_periodic_events_enabled()"));
+    CuAssertPtrNotNull(tc, strstr(periodic_source, "LUMINARI_VESSEL_EVENTS"));
+    CuAssertPtrNotNull(tc, strstr(periodic_source, "GAME_EVENT_OWNER_VESSEL"));
+    CuAssertPtrNotNull(tc, strstr(periodic_source, "autopilot_tick_one(ship);"));
+    CuAssertPtrNotNull(tc, strstr(periodic_source, "schedule_tick_one(ship);"));
+    CuAssertPtrNotNull(tc, strstr(rol_source, "rol_ship_owner_event"));
+    CuAssertPtrEquals(tc, NULL, strstr(rol_source, "object_list"));
+    CuAssertPtrNotNull(tc, strstr(handler_source, "rol_ship_note_object_placed(object);"));
+    CuAssertPtrNotNull(tc, strstr(handler_source, "rol_ship_note_object_extracted(obj);"));
+    CuAssertPtrNotNull(tc, strstr(edit_source, "vessel_periodic_sync(ship);"));
+    CuAssertPtrNotNull(tc, strstr(combat_source, "vessel_periodic_forget(ship);"));
+  }
+
+  free(comm_source);
+  free(periodic_source);
+  free(rol_source);
+  free(handler_source);
+  free(edit_source);
+  free(combat_source);
+  CuAssertTrue(tc, sources_loaded);
+}
+
 void Test_spec_character_periodic_control_transfers_resync_owners(CuTest *tc)
 {
   const char *paths[] = {"src/act.wizard.c", "src/magic/spells.c", "src/character/evolutions.c"};

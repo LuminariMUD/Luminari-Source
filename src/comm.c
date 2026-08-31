@@ -122,6 +122,7 @@
 #include "vessels/vessels.h"           /* Vessel persistence */
 #include "vessels/vessels_moving_rooms.h"
 #include "vessels/vessels_rol.h"
+#include "vessels/vessel_periodic.h"
 #include "asciimap.h"
 #include "obj/spec_artifacts.h"
 
@@ -2166,11 +2167,12 @@ void heartbeat(int heart_pulse)
   }
 
   /* Converted RoL ships retain their original 2.5-second movement cadence. */
-  if (!(heart_pulse % (PASSES_PER_SEC * 5 / 2)))
+  if (!(heart_pulse % (PASSES_PER_SEC * 5 / 2)) && !vessel_periodic_events_enabled())
     rol_ship_activity();
 
   /* Autopilot vessel movement tick - every AUTOPILOT_TICK_INTERVAL pulses (0.5 sec) */
-  if (CONFIG_VESSEL_SYSTEM && !(heart_pulse % AUTOPILOT_TICK_INTERVAL))
+  if (CONFIG_VESSEL_SYSTEM && !(heart_pulse % AUTOPILOT_TICK_INTERVAL) &&
+      !vessel_periodic_events_enabled())
   {
     PERF_prof_sect_init(&pr_vessel_tick, "vessel_tick");
     PERF_prof_sect_enable_sampling(pr_vessel_tick);
@@ -2372,7 +2374,7 @@ void heartbeat(int heart_pulse)
     check_timed_quests();
     check_diplomacy(); /* Reduce the diplomacy pause for online players */
     update_clans();    /* Update clan war timers and other periodic clan tasks */
-    if (CONFIG_VESSEL_SYSTEM)
+    if (CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled())
     {
       PERF_prof_sect_init(&pr_vessel_schedules, "vessel_schedules");
       PERF_prof_sect_enable_sampling(pr_vessel_schedules);

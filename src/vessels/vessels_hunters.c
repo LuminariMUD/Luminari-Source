@@ -14,6 +14,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "vessels.h"
+#include "vessel_periodic.h"
 #include "mysql.h"
 #include "wilderness/wilderness.h"
 #include "constants.h"
@@ -576,6 +577,7 @@ static bool vessel_hunter_retire_runtime_ship(int shipnum, const char *message)
   }
 
   log("Info: Retired bounty-hunter ship %d '%s'", shipnum, ship->name);
+  vessel_periodic_forget(ship);
   memset(ship, 0, sizeof(*ship));
   return TRUE;
 }
@@ -939,9 +941,8 @@ static bool vessel_hunter_finish_runtime(struct greyhawk_ship_data *hunter, cons
  * Pursue the current owned hull, keep proactive fire armed, and retire after
  * the durable duration, pardon, or bounded absence grace.
  */
-void vessel_hunter_tick(void)
+void vessel_hunter_tick_one(struct greyhawk_ship_data *hunter)
 {
-  struct greyhawk_ship_data *hunter;
   struct greyhawk_ship_data *target;
   struct waypoint waypoint;
   time_t now;
@@ -950,96 +951,93 @@ void vessel_hunter_tick(void)
   int target_y;
   int target_z;
   int speed;
-  int i;
 
   now = time(0);
-  for (i = 2; i < GREYHAWK_MAXSHIPS; i++)
+  if (!is_valid_ship(hunter) || !hunter->bounty_hunter)
+    return;
+
+  if (hunter->hunter_expires_at <= now)
   {
-    hunter = &greyhawk_ships[i];
-    if (!is_valid_ship(hunter) || !hunter->bounty_hunter)
-    {
-      continue;
-    }
+    vessel_hunter_finish_runtime(hunter, "hunt expired", TRUE, FALSE);
+    return;
+  }
 
-    if (hunter->hunter_expires_at <= now)
+  hunter->hunter_bounty_check_ticks++;
+  if (hunter->hunter_bounty_check_ticks >= VESSEL_HUNTER_BOUNTY_CHECK_INTERVAL)
+  {
+    hunter->hunter_bounty_check_ticks = 0;
+    if (vessel_get_bounty(hunter->hunter_target_name) < hunter->hunter_min_bounty)
     {
-      vessel_hunter_finish_runtime(hunter, "hunt expired", TRUE, FALSE);
-      continue;
+      vessel_hunter_finish_runtime(hunter, "target pardoned", TRUE, FALSE);
+      return;
     }
+  }
 
-    hunter->hunter_bounty_check_ticks++;
-    if (hunter->hunter_bounty_check_ticks >= VESSEL_HUNTER_BOUNTY_CHECK_INTERVAL)
+  target = vessel_hunter_find_target(hunter);
+  if (target == NULL)
+  {
+    hunter->last_attacker = 0;
+    hunter->speed = 0;
+    hunter->setspeed = 0;
+    if (hunter->hunter_target_missing_since == 0)
+      hunter->hunter_target_missing_since = now;
+    if (now - hunter->hunter_target_missing_since >= hunter->hunter_target_grace_seconds)
+      vessel_hunter_finish_runtime(hunter, "target left the vessel", TRUE, FALSE);
+    return;
+  }
+
+  hunter->hunter_target_missing_since = 0;
+  target_changed = hunter->hunter_target_ship_id != target->shipnum;
+  hunter->hunter_target_ship_id = target->shipnum;
+  hunter->last_attacker = target->shipnum;
+  speed = MIN(hunter->hunter_pursuit_speed, MAX(1, hunter->maxspeed));
+  hunter->speed = speed;
+  hunter->setspeed = speed;
+  hunter->setheading = (short int)greyhawk_bearing(hunter->x, hunter->y, target->x, target->y);
+  hunter->heading = hunter->setheading;
+
+  memset(&waypoint, 0, sizeof(waypoint));
+  waypoint.x = target->x;
+  waypoint.y = target->y;
+  waypoint.z = target->z;
+  if (vessel_autopilot_next_position(hunter, &waypoint, (float)speed, &target_x, &target_y,
+                                     &target_z) &&
+      (target_x != (int)hunter->x || target_y != (int)hunter->y || target_z != (int)hunter->z))
+  {
+    update_ship_wilderness_position(hunter->shipnum, target_x, target_y, target_z);
+  }
+
+  if (target_changed ||
+      now - hunter->hunter_last_runtime_save >= VESSEL_HUNTER_RUNTIME_SAVE_INTERVAL)
+  {
+    char escaped_target[129];
+    char query[MAX_STRING_LENGTH];
+
+    hunter->hunter_last_runtime_save = now;
+    vessel_db_save_runtime(hunter);
+    if (target_changed)
     {
-      hunter->hunter_bounty_check_ticks = 0;
-      if (vessel_get_bounty(hunter->hunter_target_name) < hunter->hunter_min_bounty)
+      mysql_real_escape_string(conn, escaped_target, hunter->hunter_target_name,
+                               strlen(hunter->hunter_target_name));
+      snprintf(query, sizeof(query),
+               "UPDATE vessel_bounty_hunts SET target_ship_id = %d "
+               "WHERE target_player = '%s' AND hunter_ship_id = %d "
+               "AND status = 'active'",
+               target->shipnum, escaped_target, hunter->shipnum);
+      if (mysql_query(conn, query))
       {
-        vessel_hunter_finish_runtime(hunter, "target pardoned", TRUE, FALSE);
-        continue;
-      }
-    }
-
-    target = vessel_hunter_find_target(hunter);
-    if (target == NULL)
-    {
-      hunter->last_attacker = 0;
-      hunter->speed = 0;
-      hunter->setspeed = 0;
-      if (hunter->hunter_target_missing_since == 0)
-      {
-        hunter->hunter_target_missing_since = now;
-      }
-      if (now - hunter->hunter_target_missing_since >= hunter->hunter_target_grace_seconds)
-      {
-        vessel_hunter_finish_runtime(hunter, "target left the vessel", TRUE, FALSE);
-      }
-      continue;
-    }
-
-    hunter->hunter_target_missing_since = 0;
-    target_changed = hunter->hunter_target_ship_id != target->shipnum;
-    hunter->hunter_target_ship_id = target->shipnum;
-    hunter->last_attacker = target->shipnum;
-    speed = MIN(hunter->hunter_pursuit_speed, MAX(1, hunter->maxspeed));
-    hunter->speed = speed;
-    hunter->setspeed = speed;
-    hunter->setheading = (short int)greyhawk_bearing(hunter->x, hunter->y, target->x, target->y);
-    hunter->heading = hunter->setheading;
-
-    memset(&waypoint, 0, sizeof(waypoint));
-    waypoint.x = target->x;
-    waypoint.y = target->y;
-    waypoint.z = target->z;
-    if (vessel_autopilot_next_position(hunter, &waypoint, (float)speed, &target_x, &target_y,
-                                       &target_z) &&
-        (target_x != (int)hunter->x || target_y != (int)hunter->y || target_z != (int)hunter->z))
-    {
-      update_ship_wilderness_position(i, target_x, target_y, target_z);
-    }
-
-    if (target_changed ||
-        now - hunter->hunter_last_runtime_save >= VESSEL_HUNTER_RUNTIME_SAVE_INTERVAL)
-    {
-      char escaped_target[129];
-      char query[MAX_STRING_LENGTH];
-
-      hunter->hunter_last_runtime_save = now;
-      vessel_db_save_runtime(hunter);
-      if (target_changed)
-      {
-        mysql_real_escape_string(conn, escaped_target, hunter->hunter_target_name,
-                                 strlen(hunter->hunter_target_name));
-        snprintf(query, sizeof(query),
-                 "UPDATE vessel_bounty_hunts SET target_ship_id = %d "
-                 "WHERE target_player = '%s' AND hunter_ship_id = %d "
-                 "AND status = 'active'",
-                 target->shipnum, escaped_target, hunter->shipnum);
-        if (mysql_query(conn, query))
-        {
-          log("SYSERR: Could not update bounty-hunt target ship: %s", mysql_error(conn));
-        }
+        log("SYSERR: Could not update bounty-hunt target ship: %s", mysql_error(conn));
       }
     }
   }
+}
+
+void vessel_hunter_tick(void)
+{
+  int i;
+
+  for (i = 2; i < GREYHAWK_MAXSHIPS; i++)
+    vessel_hunter_tick_one(&greyhawk_ships[i]);
 }
 
 /**

@@ -2401,82 +2401,63 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
   }
 }
 
-/**
- * Main autopilot tick function.
- *
- * Called from the game heartbeat every AUTOPILOT_TICK_INTERVAL pulses.
- * Iterates through all ships in greyhawk_ships[] and processes
- * those with active autopilot.
- */
+bool autopilot_tick_one(struct greyhawk_ship_data *ship)
+{
+  struct autopilot_data *ap;
+
+  if (!is_valid_ship(ship))
+    return false;
+
+  ap = ship->autopilot;
+  if (ap == NULL)
+    return false;
+
+  switch (ap->state)
+  {
+  case AUTOPILOT_TRAVELING:
+    process_traveling_vessel(ship);
+    return true;
+
+  case AUTOPILOT_WAITING:
+    process_waiting_vessel(ship);
+    return true;
+
+  case AUTOPILOT_PAUSED:
+    return true;
+
+  case AUTOPILOT_OFF:
+    if (ap->pilot_mob_vnum != -1 && ap->current_route != NULL &&
+        ap->current_route->num_waypoints > 0)
+    {
+      if (get_pilot_from_ship(ship) != NULL)
+      {
+        autopilot_start(ship, ap->current_route);
+        send_to_ship(ship, "The pilot engages autopilot.\r\n");
+        return true;
+      }
+    }
+    return false;
+
+  case AUTOPILOT_COMPLETE:
+  default:
+    return false;
+  }
+}
+
+/** Process every loaded vessel on the legacy heartbeat path. */
 void autopilot_tick(void)
 {
-  struct greyhawk_ship_data *ship;
-  struct autopilot_data *ap;
+  int active_count = 0;
   int i;
-  int active_count;
-
-  active_count = 0;
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
-    ship = &greyhawk_ships[i];
-
-    if (!is_valid_ship(ship))
-    {
-      continue;
-    }
-
-    /* Skip ships without autopilot */
-    ap = ship->autopilot;
-    if (ap == NULL)
-    {
-      continue;
-    }
-
-    /* Process based on autopilot state */
-    switch (ap->state)
-    {
-    case AUTOPILOT_TRAVELING:
-      process_traveling_vessel(ship);
+    if (autopilot_tick_one(&greyhawk_ships[i]))
       active_count++;
-      break;
-
-    case AUTOPILOT_WAITING:
-      process_waiting_vessel(ship);
-      active_count++;
-      break;
-
-    case AUTOPILOT_PAUSED:
-      /* Paused ships don't move but count as active */
-      active_count++;
-      break;
-
-    case AUTOPILOT_OFF:
-      /* Auto-engage if pilot assigned with route */
-      if (ap->pilot_mob_vnum != -1 && ap->current_route != NULL &&
-          ap->current_route->num_waypoints > 0)
-      {
-        /* Verify pilot is still present */
-        if (get_pilot_from_ship(ship) != NULL)
-        {
-          autopilot_start(ship, ap->current_route);
-          send_to_ship(ship, "The pilot engages autopilot.\r\n");
-          active_count++;
-        }
-      }
-      break;
-
-    case AUTOPILOT_COMPLETE:
-    default:
-      /* No processing needed */
-      break;
-    }
   }
 
   if (active_count > 0)
-  {
     VSSL_DEBUG_AUTO("Autopilot tick processed %d active ship(s)", active_count);
-  }
 }
 
 /* ========================================================================= */
@@ -4190,6 +4171,12 @@ int schedule_trigger_departure(struct greyhawk_ship_data *ship)
  * Timer tick for schedule processing.
  * Called once per MUD hour to check and trigger scheduled departures.
  */
+void schedule_tick_one(struct greyhawk_ship_data *ship)
+{
+  if (is_valid_ship(ship) && schedule_check_trigger(ship) && schedule_trigger_departure(ship))
+    log("Info: schedule_tick triggered departure for ship %d", ship->shipnum);
+}
+
 void schedule_tick(void)
 {
   int i;

@@ -14,6 +14,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "vessels.h"
+#include "vessel_periodic.h"
 #include "mysql.h"
 #include "wilderness/wilderness.h"
 #include "quest/missions.h"
@@ -502,6 +503,7 @@ static void vessel_merchant_abort_spawn(struct greyhawk_ship_data *ship)
   {
     log("SYSERR: Could not roll back failed NPC merchant ship %d", ship->shipnum);
   }
+  vessel_periodic_forget(ship);
   memset(ship, 0, sizeof(*ship));
 }
 

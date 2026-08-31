@@ -513,6 +513,7 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause);
 void vessel_sink(int shipnum);
 void vessel_check_grounding(int shipnum);
 void vessel_combat_tick(void);
+void vessel_combat_tick_one(struct greyhawk_ship_data *ship);
 
 ACMD_DECL(do_shipfire);   /* Fire a weapon slot at another ship */
 ACMD_DECL(do_shiprepair); /* Slow at-sea repairs while stationary */
@@ -584,6 +585,7 @@ const char *vessel_upgrade_name(int index);
 int vessel_upgrade_bit(int index);
 int vessel_upgrade_cost(int index, enum vessel_class vessel_type);
 void vessel_upkeep_tick(void);
+void vessel_upkeep_tick_one(struct greyhawk_ship_data *ship);
 void vessel_db_save_extras(struct greyhawk_ship_data *ship);
 void vessel_db_load_extras(struct greyhawk_ship_data *ship);
 void vessel_pay_insurance(struct greyhawk_ship_data *ship);
@@ -712,9 +714,13 @@ bool vessel_build_ambient_message(enum vessel_class vessel_type, int weather, in
                                   int maxspeed, int z, char *output, size_t output_size);
 char *vessel_create_at_sea_description(struct char_data *ch, const struct greyhawk_ship_data *ship);
 void vessel_narrative_tick(void);
+void vessel_narrative_tick_one(struct greyhawk_ship_data *ship);
 bool vessel_narrative_force_ship(struct greyhawk_ship_data *ship);
 void vessel_weather_tick(void);
+void vessel_weather_tick_one(struct greyhawk_ship_data *ship);
 void vessel_encounter_tick(void);
+void vessel_encounter_tick_begin(void);
+void vessel_encounter_tick_one(struct greyhawk_ship_data *ship);
 void vessel_encounter_force_check(void);
 bool vessel_encounter_reload_config(void);
 bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *region_vnum);
@@ -734,6 +740,7 @@ int vessel_lookout_bonus(const struct greyhawk_ship_data *ship);
 void vessel_hunter_ensure_schema(void);
 void vessel_hunter_boot(void);
 void vessel_hunter_tick(void);
+void vessel_hunter_tick_one(struct greyhawk_ship_data *ship);
 int vessel_hunter_load_config(int encounter_id, struct vessel_hunter_config *config);
 bool vessel_hunter_config_is_valid(const struct vessel_hunter_config *config);
 bool vessel_hunter_lifecycle_allows_spawn(const char *status, time_t next_eligible_at, time_t now);
@@ -885,6 +892,9 @@ int vessel_crew_departure_delete_query(char *query, size_t query_size, const int
                                        const int *positions, int count);
 void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship);
 void vessel_crew_wage_tick(void);
+int vessel_crew_wage_begin_tick(void);
+int vessel_crew_wage_tick_one(struct greyhawk_ship_data *ship, int current_batch);
+void vessel_crew_delete_departure(int ship_slot, int position);
 void vessel_db_save_crew(struct greyhawk_ship_data *ship);
 void vessel_db_load_crew(struct greyhawk_ship_data *ship);
 
@@ -1335,6 +1345,11 @@ struct greyhawk_ship_data
 
   /* Events */
   struct event *action; /* Ship action event */
+  struct event *periodic_event;
+  uint64_t periodic_generation;
+  bool periodic_registered;
+  struct greyhawk_ship_data *periodic_prev;
+  struct greyhawk_ship_data *periodic_next;
 
   /* Phase 2: Multi-room additions */
   enum vessel_class vessel_type;  /* Type of vessel (raft, ship, warship, etc.) */
@@ -1638,6 +1653,7 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship);
 void process_waiting_vessel(struct greyhawk_ship_data *ship);
 void process_traveling_vessel(struct greyhawk_ship_data *ship);
 void autopilot_tick(void);
+bool autopilot_tick_one(struct greyhawk_ship_data *ship);
 
 /* ========================================================================= */
 /* WAYPOINT/ROUTE DATABASE PERSISTENCE                                       */
@@ -1694,6 +1710,7 @@ void save_all_schedules(void);
 
 /* Schedule Timer Functions */
 void schedule_tick(void);
+void schedule_tick_one(struct greyhawk_ship_data *ship);
 int schedule_check_trigger(struct greyhawk_ship_data *ship);
 int schedule_trigger_departure(struct greyhawk_ship_data *ship);
 void schedule_calculate_next_departure(struct vessel_schedule *sched);

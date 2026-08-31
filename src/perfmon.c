@@ -28,6 +28,8 @@
 #include "active_world.h"
 #include "affected_owners.h"
 #include "character_periodic.h"
+#include "vessels/vessel_periodic.h"
+#include "vessels/vessels_rol.h"
 #include "periodic_owners.h"
 
 /* ========================================================================
@@ -2607,6 +2609,26 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  character_periodic_damage_effect_executions(),
                  character_periodic_player_misc_executions(),
                  character_periodic_bardic_executions(), character_periodic_hint_executions()),
+        n - written);
+  if (!csv && written < n - 1)
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "Vessel owners: %s\n\r"
+                 "  registry: members=%zu scheduled=%zu\n\r"
+                 "  validation: mismatch=%zu\n\r"
+                 "  capacity: limit=%zu rejected=%" PRIu64 "\n\r"
+                 "  callbacks: owners=%" PRIu64 " service=%" PRIu64 "\n\r"
+                 "  RoL fixed: loaded=%zu scheduled=%zu\n\r"
+                 "  RoL check: mismatch=%zu callbacks=%" PRIu64 "\n\r"
+                 "  work: fast=%" PRIu64 " schedules=%" PRIu64 "\n\r",
+                 vessel_periodic_events_enabled() ? "scheduled" : "legacy heartbeat",
+                 vessel_periodic_owner_count(), vessel_periodic_scheduled_count(),
+                 vessel_periodic_registry_validate(), vessel_periodic_admission_limit(),
+                 vessel_periodic_admission_rejections(), vessel_periodic_callbacks(),
+                 vessel_periodic_service_callbacks(), rol_ship_periodic_loaded_count(),
+                 rol_ship_periodic_scheduled_count(), rol_ship_periodic_validate(),
+                 rol_ship_periodic_callbacks(), vessel_periodic_fast_executions(),
+                 vessel_periodic_schedule_executions()),
         n - written);
   if (!csv && written < n - 1)
     written += bounded_format_length(

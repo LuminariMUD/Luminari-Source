@@ -14,6 +14,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "vessels.h"
+#include "vessel_periodic.h"
 #include "wilderness/wilderness.h"
 #include "net/protocol.h"
 #include "act.h"
@@ -615,6 +616,7 @@ ACMD(do_shippurge)
     }
   }
 
+  vessel_periodic_forget(ship);
   memset(ship, 0, sizeof(*ship));
 
   send_to_char(ch, "Purged ship %d '%s': reclaimed %d room%s and released %d vehicle%s.\r\n", slot,

@@ -79,6 +79,7 @@
 #include "combat/grapple.h"
 #include "character/race.h"
 #include "vessels/vessels.h"
+#include "vessels/vessel_periodic.h"
 #include "vessels/vessels_moving_rooms.h"
 #include "magic/spell_prep.h"
 #include "craft/crafts.h" /* NewCraft */
@@ -1432,6 +1433,7 @@ void boot_db(void)
   vessel_hunter_boot();
   vessel_merchant_boot();
   vessel_event_boot();
+  vessel_periodic_rebuild();
 
   log("Loading vehicles from database...");
   vehicle_load_all();

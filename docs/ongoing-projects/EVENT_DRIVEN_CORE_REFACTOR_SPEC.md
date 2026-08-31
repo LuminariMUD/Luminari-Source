@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - five Phase 7 owner slices accepted; scan reduction continues
-**Document version:** 1.10
+**Status:** In progress - six Phase 7 owner slices accepted; scan reduction continues
+**Document version:** 1.11
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 6b complete; Phase 7 NPC, periodic-object/script, affected-owner, character-state, and mixed-pulse slices accepted
+**Implementation status:** Phases 1 through 6b complete; Phase 7 NPC, periodic-object/script, affected-owner, character-state, mixed-pulse, and vessel slices accepted
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -1756,6 +1756,21 @@ Character-owner diagnostics now use nine labeled rows within 80 columns.
 Evidence is recorded in
 [`EVENT_DRIVEN_CORE_REFACTOR_PHASE7E_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE7E_VALIDATION.md).
 
+**Vessel slice accepted 2026-08-31.** Every valid Greyhawk vessel now uses one
+bounded owner event for its nearest half-second or mud-hour boundary. The
+established one-vessel autopilot, hunter, combat, crew, upkeep, narrative,
+weather, encounter, and schedule routines retain their gameplay and
+per-vessel order. One global service event owns genuinely global vessel event,
+trade, MSDP, and merchant work. The seven converted RoL ships use direct hull
+lifecycle hooks and one 2.5-second event per loaded canonical hull, with no
+`object_list` discovery scan. `LUMINARI_VESSEL_EVENTS=legacy` restores all
+former vessel heartbeat paths as one exclusive selection. Startup failure
+falls back as a whole subsystem, lifecycle cancellation is generation-aware,
+and capacity refill is bounded to the 501-slot fleet registry. Evidence is
+recorded in
+[`EVENT_DRIVEN_CORE_REFACTOR_PHASE7F_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE7F_VALIDATION.md).
+The mixed mud-hour `point_update()` scan is next.
+
 ### Phase 8: Encounter-level combat compatibility
 
 Deliverables:
@@ -2197,3 +2212,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.8 | 2026-08-31 | Accepted the affected-owner Phase 7 slice after replacing the six-second character and room-duration sweeps with exact shared-round owner deadlines, preserving wear-off and room-affect semantics, separating MSDP connection refresh, adding lifecycle refill under subsystem pressure, and retaining independent heartbeat rollback. The shared event ceiling is now 262,144, leaving 98,304 slots beyond all current high-cardinality owner limits. Explicit character-state and mixed-pulse decomposition continue Phase 7. |
 | 1.9 | 2026-08-31 | Accepted the explicit character-state Phase 7 slice after replacing walk-to, connected PSP, bardic verse, and hint discovery scans with one bounded nearest-deadline event per relevant character. Exact legacy boundaries, existing gameplay routines, active-registry refill, direct connection/performance lifecycle synchronization, diagnostics, and exclusive `LUMINARI_CHARACTER_EVENTS` rollback are preserved. Declared high-cardinality owner limits total 196,608 under the shared 262,144-event ceiling, retaining 65,536 slots for other work. Remaining room behavior and mixed Luminari/player-maintenance pulses continue Phase 7. |
 | 1.10 | 2026-08-31 | Accepted the mixed room/character Phase 7 slice after moving five-second room-affect behavior, five-second per-character Luminari work, six-second damage/effect work, and connected player maintenance onto existing nearest-deadline owner events. All in-world NPCs remain active without player proximity, typed movement admits new owners, affected and character rollback remain independent, and focused production-linked coverage proves exact five/six-second boundaries without duplicate execution. Vessel decomposition and the mixed `point_update()` pulse are next. |
+| 1.11 | 2026-08-31 | Accepted the vessel Phase 7 slice after replacing Greyhawk fleet sweeps and converted-RoL object discovery with bounded lifecycle-owned deadlines, retaining exact half-second, 2.5-second, and mud-hour boundaries and established gameplay routines. One service event retains genuinely global vessel work, startup and boot-time rollback are all-or-nothing, diagnostics fit 80 columns, and the 987-test database/sanitizer/Valgrind plus eight-mode syntax and live-MUD gates pass. The mixed `point_update()` pulse is next. |

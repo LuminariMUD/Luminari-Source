@@ -46,6 +46,7 @@
 #include "character_periodic.h"
 #include "affected_owners.h"
 #include "domain_event_runtime.h"
+#include "vessels/vessels_rol.h"
 
 /* local file scope variables */
 static int extractions_pending = 0;
@@ -2824,6 +2825,7 @@ void obj_to_room(struct obj_data *object, room_rnum room)
 
     /* Falling objects are not implemented yet; retain float-message side effects. */
     (void)obj_should_fall(object);
+    rol_ship_note_object_placed(object);
   }
 }
 
@@ -2963,6 +2965,7 @@ void extract_obj(struct obj_data *obj)
   if (!obj)
     return;
 
+  rol_ship_note_object_extracted(obj);
   autoproc_registry_remove(obj);
   PERF_note_object_extracted(GET_OBJ_VNUM(obj), obj->perf_origin_zone_vnum,
                              (enum perf_entity_reason)obj->perf_create_reason);

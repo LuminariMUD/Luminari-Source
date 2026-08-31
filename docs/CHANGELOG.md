@@ -2,6 +2,33 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Vessel-owned periodic gameplay
+
+#### Changed
+
+- Replaced Greyhawk fleet sweeps with one bounded nearest-deadline event per
+  valid vessel for autopilot, hunters, combat, crew, upkeep, narrative,
+  weather, encounters, and schedules.
+- Retained genuinely global vessel event, trade-restock, MSDP, and merchant
+  work on one service event.
+- Replaced converted-RoL `object_list` discovery with direct hull lifecycle
+  hooks and one 2.5-second event per loaded canonical ship.
+
+#### Operations
+
+- Added `LUMINARI_VESSEL_EVENTS=legacy` as the all-or-nothing boot-time
+  rollback and compact vessel owner/service telemetry to `perfmon entities`.
+- Wired the existing `cedit` vessel-system kill switch to immediate owner
+  cancellation and rebuild without requiring a process restart.
+- Updated the measured base vessel structure to 5,104 bytes, still within the
+  5 KiB per-vessel and about 3 MiB fleet budgets.
+
+#### Tests
+
+- Added exact cadence, weapon timer, lifecycle generation, capacity refill,
+  startup fallback, fixed-RoL ownership, source-boundary, and readable-output
+  coverage; the 987-test database, sanitizer, and Valgrind gates pass.
+
 ### Mixed room and character periodic gameplay
 
 #### Changed

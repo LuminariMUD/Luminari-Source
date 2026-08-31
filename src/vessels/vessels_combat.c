@@ -15,6 +15,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "vessels.h"
+#include "vessel_periodic.h"
 #include "wilderness/wilderness.h"
 #include "constants.h"
 #include "act.h"
@@ -454,6 +455,7 @@ void vessel_sink(int shipnum)
   }
 
   /* Free the fleet slot after every runtime and persistent reference is gone. */
+  vessel_periodic_forget(ship);
   memset(ship, 0, sizeof(*ship));
 }
 
@@ -742,33 +744,34 @@ static void vessel_ai_return_fire(int shipnum)
  * Combat tick: count down weapon reload timers for every active ship and
  * run NPC return-fire doctrine. Shares the autopilot tick cadence in comm.c.
  */
-void vessel_combat_tick(void)
+void vessel_combat_tick_one(struct greyhawk_ship_data *ship)
 {
-  int i, s;
+  int s;
 
-  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  if (!is_valid_ship(ship))
+    return;
+  for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
   {
-    if (!is_valid_ship(&greyhawk_ships[i]))
+    if (ship->slot[s].timer > 0)
     {
-      continue;
-    }
-    for (s = 0; s < GREYHAWK_MAXSLOTS; s++)
-    {
-      if (greyhawk_ships[i].slot[s].timer > 0)
+      ship->slot[s].timer--;
+      if (ship->slot[s].timer == 0 && ship->slot[s].type == 1)
       {
-        greyhawk_ships[i].slot[s].timer--;
-        if (greyhawk_ships[i].slot[s].timer == 0 && greyhawk_ships[i].slot[s].type == 1)
-        {
-          send_to_ship_throttled(&greyhawk_ships[i], VESSEL_MESSAGE_COMBAT_RELOAD,
-                                 VESSEL_COMBAT_MESSAGE_COOLDOWN, "%s is reloaded and ready.",
-                                 greyhawk_ships[i].slot[s].desc[0] ? greyhawk_ships[i].slot[s].desc
-                                                                   : "A weapon");
-        }
+        send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RELOAD,
+                               VESSEL_COMBAT_MESSAGE_COOLDOWN, "%s is reloaded and ready.",
+                               ship->slot[s].desc[0] ? ship->slot[s].desc : "A weapon");
       }
     }
-
-    vessel_ai_return_fire(i);
   }
+  vessel_ai_return_fire(ship->shipnum);
+}
+
+void vessel_combat_tick(void)
+{
+  int i;
+
+  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+    vessel_combat_tick_one(&greyhawk_ships[i]);
 }
 
 /**

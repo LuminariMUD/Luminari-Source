@@ -13,13 +13,13 @@ it does not mean that its cadence has already moved off the heartbeat.
 | Every pulse | compatibility event dispatch | Due timed events | Scheduler deadlines already drive the reactor; retain until Phase 11 removes the legacy queue. |
 | Every pulse | pending character extraction | Pending extraction list | Active-work cleanup; retain as a bounded safety drain. |
 | Every pulse | minute persistence step | Stable-ID task snapshot | Already budgeted to one operation per pulse; later move its next deadline into the scheduler. |
-| 0.5 s | vessel autopilot, hunters, combat, events, wages, upkeep, trade, weather, encounters, MSDP | Loaded vessels and subsystem registries | Mixed active/global work; vessel-owned deadline conversion is a later Phase 7 slice. |
+| 0.5 s | vessel autopilot, hunters, combat, events, wages, upkeep, trade, weather, encounters, MSDP | Loaded vessels and subsystem registries | **Converted:** one owner event per valid vessel runs per-hull work; one service event retains genuinely global event, trade, and MSDP work. |
 | 0.7 s | walk-to actions | Characters with walk-to state | **Converted:** the character periodic-owner event wakes on the next shared walk boundary only while walk-to state exists. |
 | 1 s | help reload poll | One filesystem control point | Genuine service/watchdog work; scheduled global service is acceptable. |
 | 1 s | MSDP update | Connected descriptors | Active connection work; convert to descriptor deadlines or one connection registry event. |
 | 1 s | travel, self-buff, crafting, supply slots | Characters/connected players with relevant state | Split into eligible owner registries and deadlines. |
 | 1 s | I3 ingress and presence | Cross-thread queue/connected players | Queue wake already signals the reactor; presence is genuine coordinated service work. |
-| 2.5 s | converted RoL ships | Converted ship list | Vessel-owner deadline candidate. |
+| 2.5 s | converted RoL ships | Loaded canonical hulls | **Converted:** direct object lifecycle hooks maintain one event per loaded fixed hull; no `object_list` discovery scan remains. |
 | 3 s | zone reset | Zone reset queue | Due-work queue, not a world scan; migrate queue deadline without changing reset semantics. |
 | 5 s | PSP regeneration | Characters eligible to regenerate | **Converted:** connected character owners retain the exact shared PSP boundary; combat and room eligibility remain callback checks. |
 | 5 s | Luminari pulse | Mixed character and affected-room work | **Converted:** each in-world character runs the established character routine from its nearest owner deadline; each affected room runs behavior from its shared room-owner event. Independent rollback wrappers retain only the unscheduled half. |
@@ -38,7 +38,7 @@ it does not mean that its cadence has already moved off the heartbeat.
 | 75 s mud hour | DG time triggers | All scripted character/object/room owners | Add time-trigger eligible registries, then schedule owners or one bounded time boundary dispatch. |
 | 75 s mud hour | point update | Characters, objects, conditions | High-value mixed scan; decompose regeneration, consumables, and lifecycle owners. |
 | 75 s mud hour | timed quests, diplomacy, clans | Active players/quests/clans | Use stable registries and explicit deadlines. |
-| 75 s mud hour | vessel schedules | Scheduled vessel departures | Vessel deadline queue candidate. |
+| 75 s mud hour | vessel schedules and merchant fleet | Valid vessels and global merchant policy | **Converted:** vessel owners run one-hull schedule work; the vessel service event runs global merchant reconciliation. |
 | 75 s mud hour | trail cleanup | Existing trail records | Bounded record registry; genuine maintenance deadline. |
 | 24 mud hours | clan investments | Clan investment rows | Genuine scheduled global economic event. |
 | 5 min | usage record and hints | Descriptors/players plus metrics | **Partly converted:** hints use connected character owners; usage metrics remain explicitly global. |
@@ -51,10 +51,12 @@ cross-thread wakeups are not heartbeat scans and are outside this inventory.
 Staff validation routines may deliberately traverse full lists; they are
 diagnostic paths, not normal gameplay orchestration.
 
-## Priority after mixed room/character work
+## Priority after vessel work
 
 1. **Completed:** walk-to, PSP regeneration, bardic performance, hints, and
    explicit character state.
 2. **Completed:** room-affect behavior ticks, player maintenance, damage and
    effects, and the mixed Luminari pulse.
-3. **Next:** vessel tick decomposition and the mixed `point_update()` pulse.
+3. **Completed:** Greyhawk vessel work, converted RoL ship movement, vessel
+   schedules, and global vessel service work.
+4. **Next:** decompose the mixed `point_update()` pulse.

@@ -250,6 +250,7 @@ void Test_arcane_mark_staff_character_stat_reports_signature(CuTest *tc)
   struct player_special_data target_specials;
   struct room_data room;
   struct room_data *saved_world;
+  struct char_data *saved_character_list;
   room_rnum saved_top_of_world;
   bool stat_displayed;
 
@@ -288,13 +289,16 @@ void Test_arcane_mark_staff_character_stat_reports_signature(CuTest *tc)
 
   saved_world = world;
   saved_top_of_world = top_of_world;
+  saved_character_list = character_list;
   world = &room;
   top_of_world = 0;
+  character_list = &target;
 
   if (descriptor.pProtocol == NULL)
   {
     world = saved_world;
     top_of_world = saved_top_of_world;
+    character_list = saved_character_list;
     free(GET_ARCANE_MARK(&target));
     GET_ARCANE_MARK(&target) = NULL;
     staff.desc = NULL;
@@ -308,6 +312,7 @@ void Test_arcane_mark_staff_character_stat_reports_signature(CuTest *tc)
 
   world = saved_world;
   top_of_world = saved_top_of_world;
+  character_list = saved_character_list;
   free(GET_ARCANE_MARK(&target));
   GET_ARCANE_MARK(&target) = NULL;
   staff.desc = NULL;
