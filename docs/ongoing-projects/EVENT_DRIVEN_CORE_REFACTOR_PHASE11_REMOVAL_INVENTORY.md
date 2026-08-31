@@ -138,6 +138,12 @@ exact reactor deadline, moves deferred extraction to an explicit safe point,
 and gives persistence batches an owned event. The complete heartbeat remains
 available only as runtime-service rollback or to advance the legacy queue.
 
+Phase 11h corrects durable character timing to elapsed wall-clock semantics.
+Versioned MUD-event records use schema 2, migrate schema 1 on read, and catch up
+multi-use recovery arithmetically. A separate player-file checkpoint advances
+persisted six-second counters without replaying player or world update loops.
+The timestamp-free legacy event writer remains an explicit rollback limitation.
+
 Combat cadence, semantic rounds, activity timing, autonomous off-screen mobile
 simulation, affects, periodic character work, automatic procedures, DG random
 triggers, cancellation, recurrence, diagnostics, and boot-time rollback

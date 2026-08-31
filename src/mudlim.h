@@ -41,6 +41,8 @@ void update_damage_and_effects_over_time(void);
 void update_damage_and_effects_over_time_one(struct char_data *ch);
 void update_player_misc(void);
 void update_player_misc_one(struct char_data *ch);
+void reconcile_player_offline_cooldowns(struct char_data *ch, int64_t saved_at_epoch,
+                                        int64_t now_epoch);
 int hit_gain(struct char_data *ch);
 int move_gain(struct char_data *ch);
 void set_title(struct char_data *ch, char *title);

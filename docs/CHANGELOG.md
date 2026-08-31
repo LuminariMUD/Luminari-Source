@@ -2,6 +2,35 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Offline cooldown and charge recovery
+
+#### Changed
+
+- Made all versioned player MUD-event cooldowns and timed states continue
+  against wall time while the character is logged out. Single-use records
+  expire normally; multi-use abilities recover each elapsed use without
+  replaying callback bursts.
+- Advanced saved six-second cooldown counters, staggered bonus slots, moon
+  bonus uses, and full-refresh racial or bloodline pools from a dedicated
+  player-file checkpoint when the character loads.
+- Migrated schema 1 event records on read and write schema 2 by default. The
+  timestamp-free legacy writer remains available only as rollback and cannot
+  reconstruct time that passed while its record was offline.
+
+#### Fixed
+
+- Cleared coupled Spellbattle state when its durable timer expires offline.
+- Made Fight to the Death's ten-minute cooldown advance during ordinary online
+  play instead of only while self-buffing, and report its seconds value without
+  an erroneous six-times multiplier.
+- Preserved active deadlines through copyover while preventing login from
+  replaying world effects, automatic actions, damage, or maintenance loops.
+
+#### Tests
+
+- Added boundary, clock-skew, schema migration, staggered-use, full-expiry,
+  dual-backend restore, and real player-file save/backdate/load coverage.
+
 ### Deadline-driven runtime services
 
 #### Changed

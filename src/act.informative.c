@@ -2855,7 +2855,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
                  GET_KAPAK_SALIVA_HEALING_COOLDOWN(k) * 6);
   if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(k) > 0)
     send_to_char(ch, "Fight to the Death - Duration: %d seconds\r\n",
-                 GET_FIGHT_TO_THE_DEATH_COOLDOWN(k) * 6);
+                 GET_FIGHT_TO_THE_DEATH_COOLDOWN(k));
   if (ch->char_specials.terror_cooldown > 0)
     send_to_char(ch, "Aura of Terror Immunity - Duration: %d seconds\r\n",
                  ch->char_specials.terror_cooldown * 6);

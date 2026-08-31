@@ -7,6 +7,7 @@
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/mud_event.h"
+#include "../../src/mudlim.h"
 #include "../../src/perfmon.h"
 
 #include <limits.h>
@@ -521,8 +522,8 @@ void Test_mud_event_persistence_policy_classifies_entire_registry(CuTest *tc)
       break;
     case MUD_EVENT_PERSISTED:
       persisted++;
-      CuAssertIntEquals(tc, MUD_EVENT_OFFLINE_PAUSE, policy->offline_policy);
-      CuAssertIntEquals(tc, 1, (int)policy->schema_version);
+      CuAssertIntEquals(tc, MUD_EVENT_OFFLINE_ELAPSE, policy->offline_policy);
+      CuAssertIntEquals(tc, 2, (int)policy->schema_version);
       CuAssertIntEquals(tc, EVENT_CHAR, mud_event_index[i].iEvent_Type);
       break;
     case MUD_EVENT_COPYOVER_PRESERVED:
@@ -583,13 +584,14 @@ void Test_mud_event_durable_restore_rehydrates_fresh_runtime_identity(CuTest *tc
   CuAssertTrue(tc, event_handle_is_live(source_handle));
   CuAssertTrue(tc, mud_event_make_durable_record(&source, source_event, 1000, &record));
   CuAssertIntEquals(tc, eLAYONHANDS, record.event_type);
+  CuAssertIntEquals(tc, 2, (int)record.schema_version);
   CuAssertIntEquals(tc, 2, record.payload_value);
 
   clear_char_event_list(&source);
   CuAssertTrue(tc, !event_handle_is_live(source_handle));
   CuAssertIntEquals(tc, 1, mud_event_test_cleanup_count());
   CuAssertIntEquals(tc, MUD_EVENT_RESTORE_OK,
-                    mud_event_restore_character_record(&restored, &record, 87400));
+                    mud_event_restore_character_record(&restored, &record, 1000));
   restored_event = char_has_mud_event(&restored, eLAYONHANDS);
   CuAssertPtrNotNull(tc, restored_event);
   CuAssertIntEquals(tc, 77, (int)event_handle_time(restored_event->event_handle));
@@ -598,7 +600,7 @@ void Test_mud_event_durable_restore_rehydrates_fresh_runtime_identity(CuTest *tc
   CuAssertTrue(tc, restored_event->owner.generation != source_generation);
   CuAssertTrue(tc, restored_event->owner.runtime_id == (uint64_t)(uintptr_t)&restored);
   CuAssertIntEquals(tc, MUD_EVENT_RESTORE_DUPLICATE,
-                    mud_event_restore_character_record(&restored, &record, 87400));
+                    mud_event_restore_character_record(&restored, &record, 1000));
 
   clear_char_event_list(&restored);
   clear_char_event_list(&restored);
@@ -616,16 +618,16 @@ void Test_mud_event_durable_restore_rejects_invalid_records(CuTest *tc)
   initialize_persistence_test_character(&ch, &specials, 77L);
   memset(&record, 0, sizeof(record));
   record.event_type = eLAYONHANDS;
-  record.schema_version = 1U;
+  record.schema_version = 2U;
   record.owner_id = 77;
   record.remaining_ticks = 50;
   record.saved_at_epoch = 1000;
   record.payload_value = 1;
 
-  record.schema_version = 2U;
+  record.schema_version = 3U;
   CuAssertIntEquals(tc, MUD_EVENT_RESTORE_SCHEMA_MISMATCH,
                     mud_event_restore_character_record(&ch, &record, 1100));
-  record.schema_version = 1U;
+  record.schema_version = 2U;
   record.owner_id = 78;
   CuAssertIntEquals(tc, MUD_EVENT_RESTORE_OWNER_MISMATCH,
                     mud_event_restore_character_record(&ch, &record, 1100));
@@ -662,7 +664,7 @@ static void verify_mud_event_restore_rollback_backend(CuTest *tc,
   initialize_persistence_test_character(&ch, &specials, 8080L);
   memset(&record, 0, sizeof(record));
   record.event_type = eTREATINJURY;
-  record.schema_version = 1U;
+  record.schema_version = 2U;
   record.owner_id = 8080;
   record.remaining_ticks = 25;
   record.saved_at_epoch = 5000;
@@ -682,4 +684,114 @@ void Test_mud_event_durable_restore_supports_both_timed_backends(CuTest *tc)
 {
   verify_mud_event_restore_rollback_backend(tc, EVENT_BACKEND_GAME_SCHEDULER);
   verify_mud_event_restore_rollback_backend(tc, EVENT_BACKEND_LEGACY_QUEUE);
+}
+
+void Test_mud_event_durable_restore_elapses_offline_and_migrates_schema_one(CuTest *tc)
+{
+  struct mud_event_durable_record record;
+  struct player_special_data specials;
+  struct mud_event_data *restored_event;
+  struct char_data ch;
+
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  initialize_persistence_test_character(&ch, &specials, 9001L);
+  memset(&record, 0, sizeof(record));
+  record.event_type = eTREATINJURY;
+  record.schema_version = 1U;
+  record.owner_id = 9001;
+  record.remaining_ticks = 100;
+  record.saved_at_epoch = 1000;
+  record.payload_value = -1;
+
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_OK,
+                    mud_event_restore_character_record(&ch, &record, 1005));
+  restored_event = char_has_mud_event(&ch, eTREATINJURY);
+  CuAssertPtrNotNull(tc, restored_event);
+  CuAssertIntEquals(tc, 50, (int)event_handle_time(restored_event->event_handle));
+  clear_char_event_list(&ch);
+
+  SPELLBATTLE(&ch) = 8;
+  record.event_type = eSPELLBATTLE;
+  record.schema_version = 2U;
+  record.remaining_ticks = 50;
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_EXPIRED,
+                    mud_event_restore_character_record(&ch, &record, 1005));
+  CuAssertIntEquals(tc, 0, SPELLBATTLE(&ch));
+  CuAssertPtrEquals(tc, NULL, char_has_mud_event(&ch, eSPELLBATTLE));
+  event_free_all();
+}
+
+void Test_mud_event_durable_restore_catches_up_staggered_daily_uses(CuTest *tc)
+{
+  struct mud_event_durable_record record;
+  struct player_special_data specials;
+  struct mud_event_data *restored_event;
+  struct char_data ch;
+
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  initialize_persistence_test_character(&ch, &specials, 9002L);
+  memset(&record, 0, sizeof(record));
+  record.event_type = eSLA_INVIS;
+  record.schema_version = 2U;
+  record.owner_id = 9002;
+  record.remaining_ticks = 1000;
+  record.saved_at_epoch = 2000;
+  record.payload_value = 3;
+
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_OK,
+                    mud_event_restore_character_record(&ch, &record, 2125));
+  restored_event = char_has_mud_event(&ch, eSLA_INVIS);
+  CuAssertPtrNotNull(tc, restored_event);
+  CuAssertIntEquals(tc, 5750, (int)event_handle_time(restored_event->event_handle));
+  CuAssertStrEquals(tc, "uses:2", restored_event->sVariables);
+  clear_char_event_list(&ch);
+
+  CuAssertIntEquals(tc, MUD_EVENT_RESTORE_EXPIRED,
+                    mud_event_restore_character_record(&ch, &record, 3300));
+  CuAssertPtrEquals(tc, NULL, char_has_mud_event(&ch, eSLA_INVIS));
+  event_free_all();
+}
+
+void Test_player_offline_cooldowns_restore_counters_and_staggered_uses(CuTest *tc)
+{
+  struct player_special_data specials;
+  struct char_data ch;
+  struct char_data *player;
+
+  initialize_persistence_test_character(&ch, &specials, 9003L);
+  player = &ch;
+  player->player_specials->saved.mission_cooldown = 10;
+  GET_FORAGE_COOLDOWN(player) = 2;
+  CALL_EIDOLON_COOLDOWN(player) = 3;
+  GET_FIGHT_TO_THE_DEATH_COOLDOWN(player) = 10;
+  GET_BONUS_DOMAIN_SLOTS_USED(player) = 2;
+  GET_BONUS_DOMAIN_REGEN_TIMER(player) = 4;
+  ch.player_specials->saved.moon_bonus_spells_used = 2;
+  ch.player_specials->saved.moon_bonus_regen_timer = 2;
+  EFREETI_MAGIC_USES(player) = 1;
+  EFREETI_MAGIC_TIMER(player) = 2;
+
+  reconcile_player_offline_cooldowns(player, 1000, 1018);
+  CuAssertIntEquals(tc, 7, player->player_specials->saved.mission_cooldown);
+  CuAssertIntEquals(tc, 0, GET_FORAGE_COOLDOWN(player));
+  CuAssertIntEquals(tc, 0, CALL_EIDOLON_COOLDOWN(player));
+  CuAssertIntEquals(tc, 0, GET_FIGHT_TO_THE_DEATH_COOLDOWN(player));
+  CuAssertIntEquals(tc, 1, GET_BONUS_DOMAIN_SLOTS_USED(player));
+  CuAssertIntEquals(tc, 2, GET_BONUS_DOMAIN_REGEN_TIMER(player));
+  CuAssertIntEquals(tc, 1, ch.player_specials->saved.moon_bonus_spells_used);
+  CuAssertIntEquals(tc, 2999, ch.player_specials->saved.moon_bonus_regen_timer);
+  CuAssertIntEquals(tc, 0, EFREETI_MAGIC_TIMER(player));
+  CuAssertIntEquals(tc, EFREETI_MAGIC_USES_PER_DAY, EFREETI_MAGIC_USES(player));
+
+  reconcile_player_offline_cooldowns(player, 1018, 1012);
+  CuAssertIntEquals(tc, 7, player->player_specials->saved.mission_cooldown);
+  reconcile_player_offline_cooldowns(player, 1018, 1018 + 18000);
+  CuAssertIntEquals(tc, 0, player->player_specials->saved.mission_cooldown);
+  CuAssertIntEquals(tc, 0, GET_BONUS_DOMAIN_SLOTS_USED(player));
+  CuAssertIntEquals(tc, 0, ch.player_specials->saved.moon_bonus_spells_used);
+  CuAssertIntEquals(tc, 0, ch.player_specials->saved.moon_bonus_regen_timer);
 }

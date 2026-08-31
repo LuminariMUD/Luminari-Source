@@ -99,6 +99,87 @@ static const char *test_source_root(void)
   return root != NULL && *root != '\0' ? root : ".";
 }
 
+static bool player_file_has_cooldown_checkpoint(const char *filename)
+{
+  FILE *file;
+  char line[MAX_INPUT_LENGTH];
+  long long checkpoint;
+  bool found;
+
+  file = fopen(filename, "r");
+  if (file == NULL)
+    return false;
+  found = false;
+  while (fgets(line, sizeof(line), file) != NULL)
+  {
+    if (sscanf(line, "CkAt: %lld", &checkpoint) == 1 && checkpoint > 0)
+    {
+      found = true;
+      break;
+    }
+  }
+  if (fclose(file) != 0)
+    return false;
+  return found;
+}
+
+static bool rewrite_player_cooldown_checkpoint(const char *filename, int64_t checkpoint)
+{
+  FILE *input;
+  FILE *output;
+  char line[MAX_STRING_LENGTH];
+  char temp_filename[MAX_FILEPATH + 16];
+  bool saw_checkpoint;
+  bool write_ok;
+
+  if (snprintf(temp_filename, sizeof(temp_filename), "%s.cooldown", filename) >=
+      (int)sizeof(temp_filename))
+    return false;
+
+  input = fopen(filename, "r");
+  if (input == NULL)
+    return false;
+  output = fopen(temp_filename, "w");
+  if (output == NULL)
+  {
+    fclose(input);
+    return false;
+  }
+
+  saw_checkpoint = false;
+  write_ok = true;
+  while (fgets(line, sizeof(line), input) != NULL)
+  {
+    if (strncmp(line, "CkAt:", 5) == 0)
+    {
+      if (fprintf(output, "CkAt: %" PRId64 "\n", checkpoint) < 0)
+      {
+        write_ok = false;
+        break;
+      }
+      saw_checkpoint = true;
+      continue;
+    }
+    if (fputs(line, output) == EOF)
+    {
+      write_ok = false;
+      break;
+    }
+  }
+
+  if (ferror(input) || fflush(output) != 0)
+    write_ok = false;
+  if (fclose(input) != 0)
+    write_ok = false;
+  if (fclose(output) != 0)
+    write_ok = false;
+  if (write_ok && saw_checkpoint && rename(temp_filename, filename) == 0)
+    return true;
+
+  unlink(temp_filename);
+  return false;
+}
+
 static bool rewrite_psychic_sundering_as_legacy(const char *filename)
 {
   FILE *input;
@@ -1032,6 +1113,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   int load_result;
   int loaded_level;
   int loaded_gold;
+  int loaded_mission_cooldown;
   int loaded_race;
   int loaded_boarding;
   int legacy_loaded_boarding;
@@ -1047,6 +1129,8 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   bool changed_directory;
   bool filename_ready;
   bool legacy_file_ready;
+  bool cooldown_checkpoint_written;
+  bool cooldown_checkpoint_backdated;
   char original_directory[PATH_MAX];
   char lib_directory[PATH_MAX];
   char filename[MAX_FILEPATH];
@@ -1075,6 +1159,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   GET_LEVEL(source) = 7;
   GET_REAL_RACE(source) = RACE_YUAN_TI;
   GET_GOLD(source) = 12345;
+  GET_MISSION_COOLDOWN(source) = 10;
   SET_ABILITY(source, ABILITY_BOARDING, 9);
   GET_FACTION_STANDING(source, 1) = 111;
   GET_FACTION_STANDING(source, 2) = -222;
@@ -1105,6 +1190,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   load_result = -1;
   loaded_level = -1;
   loaded_gold = -1;
+  loaded_mission_cooldown = -1;
   loaded_race = RACE_UNDEFINED;
   loaded_boarding = -1;
   legacy_loaded_boarding = -1;
@@ -1117,6 +1203,8 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   loaded_supremacy_migrated = false;
   loaded_stones_endurance_preserved = false;
   legacy_file_ready = false;
+  cooldown_checkpoint_written = false;
+  cooldown_checkpoint_backdated = false;
   restore_result = 0;
 
   if (getcwd(original_directory, sizeof(original_directory)) != NULL &&
@@ -1129,11 +1217,16 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
     if (filename_ready)
     {
       save_char(source, TRUE);
-      load_result = load_char(player_name, loaded);
+      cooldown_checkpoint_written = player_file_has_cooldown_checkpoint(filename);
+      cooldown_checkpoint_backdated =
+          rewrite_player_cooldown_checkpoint(filename, (int64_t)time(NULL) - 120);
+      if (cooldown_checkpoint_backdated)
+        load_result = load_char(player_name, loaded);
       if (load_result >= 0)
       {
         loaded_level = GET_LEVEL(loaded);
         loaded_gold = GET_GOLD(loaded);
+        loaded_mission_cooldown = GET_MISSION_COOLDOWN(loaded);
         loaded_race = GET_REAL_RACE(loaded);
         loaded_boarding = GET_ABILITY(loaded, ABILITY_BOARDING);
         loaded_faction_one = GET_FACTION_STANDING(loaded, 1);
@@ -1169,10 +1262,13 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   CuAssertTrue(tc, changed_directory);
   CuAssertIntEquals(tc, 0, restore_result);
   CuAssertTrue(tc, filename_ready);
+  CuAssertTrue(tc, cooldown_checkpoint_written);
+  CuAssertTrue(tc, cooldown_checkpoint_backdated);
   CuAssertTrue(tc, load_result >= 0);
   CuAssertTrue(tc, loaded_name_matches);
   CuAssertIntEquals(tc, 7, loaded_level);
   CuAssertIntEquals(tc, 12345, loaded_gold);
+  CuAssertIntEquals(tc, 0, loaded_mission_cooldown);
   CuAssertIntEquals(tc, RACE_YUAN_TI, loaded_race);
   CuAssertIntEquals(tc, 9, loaded_boarding);
   CuAssertTrue(tc, legacy_file_ready);

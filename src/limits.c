@@ -49,6 +49,158 @@
 // external functions
 bool save_char_pets(struct char_data *ch);
 
+#define PLAYER_COOLDOWN_TICK_SECONDS 6
+#define BONUS_SLOT_REGEN_TICKS 5
+
+static void elapse_cooldown_counter(int *counter, int64_t elapsed_ticks)
+{
+  if (counter == NULL || *counter <= 0 || elapsed_ticks <= 0)
+    return;
+  *counter = elapsed_ticks >= *counter ? 0 : *counter - (int)elapsed_ticks;
+}
+
+static void elapse_fight_to_death_cooldown(struct char_data *ch, int64_t elapsed_seconds,
+                                           bool notify)
+{
+  int previous;
+
+  if (ch == NULL || elapsed_seconds <= 0)
+    return;
+  previous = GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch);
+  elapse_cooldown_counter(&GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch), elapsed_seconds);
+  if (notify && previous > 0 && GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) == 0)
+    send_to_char(ch, "You can now fight to the death again.\r\n");
+}
+
+static void elapse_full_refresh(int *timer, int *uses, int maximum_uses,
+                                int64_t elapsed_ticks)
+{
+  if (timer == NULL || uses == NULL || *timer <= 0 || elapsed_ticks <= 0)
+    return;
+  if (elapsed_ticks < *timer)
+  {
+    *timer -= (int)elapsed_ticks;
+    return;
+  }
+  *timer = 0;
+  *uses = MAX(0, maximum_uses);
+}
+
+static void elapse_staggered_countup(int *uses, int *progress, int interval,
+                                     int64_t elapsed_ticks)
+{
+  int64_t recovered;
+  int64_t total_progress;
+
+  if (uses == NULL || progress == NULL || interval <= 0 || elapsed_ticks <= 0)
+    return;
+  if (*uses <= 0)
+  {
+    *uses = 0;
+    *progress = 0;
+    return;
+  }
+  total_progress = MAX(0, *progress) + elapsed_ticks;
+  recovered = total_progress / interval;
+  if (recovered >= *uses)
+  {
+    *uses = 0;
+    *progress = 0;
+    return;
+  }
+  *uses -= (int)recovered;
+  *progress = (int)(total_progress % interval);
+}
+
+static void elapse_staggered_countdown(int *uses, int *remaining, int interval,
+                                       int64_t elapsed_ticks)
+{
+  int64_t after_first;
+  int64_t recovered;
+  int first_deadline;
+
+  if (uses == NULL || remaining == NULL || interval <= 0 || elapsed_ticks <= 0)
+    return;
+  if (*uses <= 0)
+  {
+    *uses = 0;
+    *remaining = 0;
+    return;
+  }
+  first_deadline = *remaining > 0 ? *remaining : 1;
+  if (elapsed_ticks < first_deadline)
+  {
+    *remaining = first_deadline - (int)elapsed_ticks;
+    return;
+  }
+  after_first = elapsed_ticks - first_deadline;
+  recovered = 1 + after_first / interval;
+  if (recovered >= *uses)
+  {
+    *uses = 0;
+    *remaining = 0;
+    return;
+  }
+  *uses -= (int)recovered;
+  *remaining = interval - (int)(after_first % interval);
+}
+
+void reconcile_player_offline_cooldowns(struct char_data *ch, int64_t saved_at_epoch,
+                                        int64_t now_epoch)
+{
+  int64_t elapsed_seconds;
+  int64_t elapsed_ticks;
+
+  if (ch == NULL || IS_NPC(ch) || ch->player_specials == NULL || saved_at_epoch <= 0 ||
+      now_epoch <= 0 || (saved_at_epoch > now_epoch && saved_at_epoch - now_epoch > 300))
+    return;
+  elapsed_seconds = MAX(0, now_epoch - saved_at_epoch);
+  elapse_fight_to_death_cooldown(ch, elapsed_seconds, false);
+  elapsed_ticks = elapsed_seconds / PLAYER_COOLDOWN_TICK_SECONDS;
+  if (elapsed_ticks <= 0)
+    return;
+
+  elapse_cooldown_counter(&GET_MISSION_COOLDOWN(ch), elapsed_ticks);
+  elapse_cooldown_counter(&GET_FORAGE_COOLDOWN(ch), elapsed_ticks);
+  elapse_cooldown_counter(&GET_SCROUNGE_COOLDOWN(ch), elapsed_ticks);
+  elapse_cooldown_counter(&GET_SPIRITUAL_WEAPON_COOLDOWN(ch), elapsed_ticks);
+  elapse_cooldown_counter(&GET_IRRESISTIBLE_MAGIC_COOLDOWN(ch), elapsed_ticks);
+  elapse_cooldown_counter(&GET_QUICK_CAST_COOLDOWN(ch), elapsed_ticks);
+  elapse_cooldown_counter(&GET_SPELL_RECALL_COOLDOWN(ch), elapsed_ticks);
+  elapse_cooldown_counter(&GET_RETAINER_COOLDOWN(ch), elapsed_ticks);
+  elapse_cooldown_counter(&GET_SETCLOAK_TIMER(ch), elapsed_ticks);
+  elapse_cooldown_counter(&CALL_EIDOLON_COOLDOWN(ch), elapsed_ticks);
+  elapse_cooldown_counter(&GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch), elapsed_ticks);
+
+  elapse_staggered_countup(&GET_BONUS_DOMAIN_SLOTS_USED(ch),
+                           &GET_BONUS_DOMAIN_REGEN_TIMER(ch), BONUS_SLOT_REGEN_TICKS,
+                           elapsed_ticks);
+  elapse_staggered_countup(&GET_BONUS_SLOTS_USED(ch), &GET_BONUS_SLOTS_REGEN_TIMER(ch),
+                           BONUS_SLOT_REGEN_TICKS, elapsed_ticks);
+  elapse_staggered_countdown(&ch->player_specials->saved.moon_bonus_spells_used,
+                             &ch->player_specials->saved.moon_bonus_regen_timer,
+                             MOON_BONUS_REGEN_TICKS, elapsed_ticks);
+
+  elapse_full_refresh(&EFREETI_MAGIC_TIMER(ch), &EFREETI_MAGIC_USES(ch),
+                      EFREETI_MAGIC_USES_PER_DAY, elapsed_ticks);
+  elapse_full_refresh(&DRAGON_MAGIC_TIMER(ch), &DRAGON_MAGIC_USES(ch),
+                      DRAGON_MAGIC_USES_PER_DAY, elapsed_ticks);
+  elapse_full_refresh(&PIXIE_DUST_TIMER(ch), &PIXIE_DUST_USES(ch),
+                      PIXIE_DUST_USES_PER_DAY(ch), elapsed_ticks);
+  elapse_full_refresh(&LAUGHING_TOUCH_TIMER(ch), &LAUGHING_TOUCH_USES(ch),
+                      LAUGHING_TOUCH_USES_PER_DAY(ch), elapsed_ticks);
+  elapse_full_refresh(&FLEETING_GLANCE_TIMER(ch), &FLEETING_GLANCE_USES(ch),
+                      FLEETING_GLANCE_USES_PER_DAY, elapsed_ticks);
+  elapse_full_refresh(&FEY_SHADOW_WALK_TIMER(ch), &FEY_SHADOW_WALK_USES(ch),
+                      FEY_SHADOW_WALK_USES_PER_DAY, elapsed_ticks);
+  elapse_full_refresh(&GRAVE_TOUCH_TIMER(ch), &GRAVE_TOUCH_USES(ch),
+                      GRAVE_TOUCH_USES_PER_DAY(ch), elapsed_ticks);
+  elapse_full_refresh(&GRASP_OF_THE_DEAD_TIMER(ch), &GRASP_OF_THE_DEAD_USES(ch),
+                      GRASP_OF_THE_DEAD_USES_PER_DAY(ch), elapsed_ticks);
+  elapse_full_refresh(&INCORPOREAL_FORM_TIMER(ch), &INCORPOREAL_FORM_USES(ch),
+                      INCORPOREAL_FORM_USES_PER_DAY(ch), elapsed_ticks);
+}
+
 /* added this for falling event, general dummy check */
 bool death_check(struct char_data *ch)
 {
@@ -1928,6 +2080,8 @@ void update_player_misc_one(struct char_data *ch)
     }
   }
 
+  elapse_fight_to_death_cooldown(ch, PLAYER_COOLDOWN_TICK_SECONDS, true);
+
   if (IN_ROOM(ch) == 0 || IN_ROOM(ch) == NOWHERE ||
       GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_MORTAL_START ||
       GET_ROOM_VNUM(IN_ROOM(ch)) == CONFIG_IMMORTAL_START)
@@ -3154,15 +3308,6 @@ void self_buffing(void)
 
     if (!IS_BUFFING(ch))
       continue;
-
-    if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) > 0)
-    {
-      GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch)--;
-      if (GET_FIGHT_TO_THE_DEATH_COOLDOWN(ch) == 0)
-      {
-        send_to_char(ch, "You can now fight to the death again.\r\n");
-      }
-    }
 
     while (GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 0) == 0 &&
            GET_CURRENT_BUFF_SLOT(ch) < (MAX_BUFFS + 1))

@@ -11,6 +11,8 @@
 #ifndef MOON_BONUS_SPELLS_H
 #define MOON_BONUS_SPELLS_H
 
+#define MOON_BONUS_REGEN_TICKS (5 * 60 * PASSES_PER_SEC)
+
 /* Function declarations for moon bonus spell system */
 
 /**

@@ -334,10 +334,26 @@ pointers, runtime IDs, and owner generations are process-local and never go to
 disk. Restore validates the durable owner and payload, rejects duplicate event
 types, then admits a newly allocated event with fresh runtime identity.
 
-Existing player-timer behavior is preserved: remaining pulses pause while the
-character is offline. This is an explicit policy, rather than an accidental
-consequence of the old format. Legacy `Evnt` records remain readable and can be
-written by setting `LUMINARI_EVENT_PERSISTENCE_FORMAT=legacy` before boot.
+Current schema 2 character timers use elapsed wall-clock policy. Restore
+subtracts offline time from one-shot cooldowns and active timed states. Daily-use
+records recover every charge whose deadline passed and schedule only the next
+remaining deadline; they never replay a burst of recovery callbacks. If all
+uses recovered, no event is admitted. Schema 1 `Evn2` records migrate through
+the same elapsed policy. Expired Spellbattle records also clear their coupled
+numeric marker.
+
+Saved six-second player counters use the independent `CkAt` checkpoint. Loading
+advances ordinary countdowns, staggered bonus slots, moon bonus uses, and
+full-refresh racial or bloodline use pools arithmetically. It does not replay
+world-dependent player maintenance, messages, damage, mission cleanup, or
+automatic actions. Older player files fall back to `Last` once, then gain a
+`CkAt` checkpoint on their next save.
+
+Legacy `Evnt` records remain readable and can be written by setting
+`LUMINARI_EVENT_PERSISTENCE_FORMAT=legacy` before boot. That rollback format has
+no save timestamp, so it resumes its stored remaining duration and cannot
+retrospectively apply offline elapsed time. A later default save upgrades it to
+`Evn2` schema 2.
 
 Transient examples include combat rounds, casting, preparation, action waits,
 descriptor protocol work, DG waits, AI requests, and live room/object effects.

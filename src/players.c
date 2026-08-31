@@ -28,6 +28,7 @@
 #include "magic/spells.h"
 #include "clan.h"
 #include "mud_event.h"
+#include "mudlim.h"
 #include "craft/craft.h" // crafting (auto craft quest inits)
 #include "magic/spell_prep.h"
 #include "craft/alchemy.h"
@@ -487,6 +488,7 @@ char *get_name_by_id(long id)
 int load_char(const char *name, struct char_data *ch)
 {
   int id, i, j, parsed;
+  int64_t cooldown_saved_at_epoch = 0;
   bool boarding_ability_current = FALSE;
   FILE *fl;
   char filename[40];
@@ -997,6 +999,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_CLASS(ch) = atoi(line);
         else if (!strcmp(tag, "ClkT"))
           GET_SETCLOAK_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "CkAt"))
+          cooldown_saved_at_epoch = strtoll(line, NULL, 10);
         else if (!strcmp(tag, "Coll"))
           load_spell_collection(fl, ch);
         else if (!strcmp(tag, "Con "))
@@ -2118,6 +2122,10 @@ int load_char(const char *name, struct char_data *ch)
 
   affect_total(ch);
 
+  if (cooldown_saved_at_epoch <= 0)
+    cooldown_saved_at_epoch = (int64_t)ch->player.time.logon;
+  reconcile_player_offline_cooldowns(ch, cooldown_saved_at_epoch, (int64_t)time(NULL));
+
   /* initialization for imms */
   if (GET_LEVEL(ch) >= LVL_IMMORT)
   {
@@ -2286,6 +2294,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   char filename[40] = {'\0'}, bits[127] = {'\0'}, bits2[127] = {'\0'}, bits3[127] = {'\0'},
        bits4[127] = {'\0'};
   int i = 0, j = 0, id = 0, save_index = FALSE;
+  int64_t save_epoch;
   int aff_count = 0, saved_aff_count = 0;
   struct affected_type *aff = NULL;
   struct affected_type tmp_aff[MAX_AFFECT] = {{0}};
@@ -2306,6 +2315,14 @@ bool save_char_checked(struct char_data *ch, int mode)
 
   if (IS_NPC(ch) || GET_PFILEPOS(ch) < 0)
   {
+    PERF_PROF_EXIT(pr_save_char_checked_);
+    return FALSE;
+  }
+
+  save_epoch = (int64_t)time(NULL);
+  if (save_epoch <= 0)
+  {
+    log("SYSERR: save_char: Unable to obtain cooldown checkpoint time for %s", GET_NAME(ch));
     PERF_PROF_EXIT(pr_save_char_checked_);
     return FALSE;
   }
@@ -2547,6 +2564,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   BUFFER_WRITE("BrdV: %d\n", BOARDING_ABILITY_PFILE_VERSION);
   BUFFER_WRITE("Plyd: %d\n", ch->player.time.played);
   BUFFER_WRITE("Last: %ld\n", (long)ch->player.time.logon);
+  BUFFER_WRITE("CkAt: %" PRId64 "\n", save_epoch);
   BUFFER_WRITE("LstR: %d\n", GET_LAST_ROOM(ch));
 
   if (GET_LAST_MOTD(ch) != PFDEF_LASTMOTD)
@@ -3612,9 +3630,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     if (!mud_event_legacy_persistence_writer_enabled())
     {
       struct mud_event_durable_record record;
-      int64_t saved_at_epoch;
 
-      saved_at_epoch = (int64_t)time(NULL);
       BUFFER_WRITE("Evn2: %u\n", MUD_EVENT_DURABLE_FORMAT_VERSION);
       simple_list(NULL);
       while (ch->events != NULL &&
@@ -3622,7 +3638,7 @@ bool save_char_checked(struct char_data *ch, int mode)
       {
         if (mud_event_persistence_policy(pMudEvent->iId)->storage_class != MUD_EVENT_PERSISTED)
           continue;
-        if (!mud_event_make_durable_record(ch, pMudEvent, saved_at_epoch, &record))
+        if (!mud_event_make_durable_record(ch, pMudEvent, save_epoch, &record))
         {
           log("SYSERR: Unable to serialize persisted event %d (%s) for %s.", pMudEvent->iId,
               mud_event_index[pMudEvent->iId].event_name, GET_NAME(ch));

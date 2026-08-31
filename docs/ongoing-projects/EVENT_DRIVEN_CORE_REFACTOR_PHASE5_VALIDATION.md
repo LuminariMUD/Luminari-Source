@@ -1,9 +1,15 @@
 # Event-Driven Core Refactor Phase 5 Validation
 
-**Status:** Pass
+**Status:** Pass; offline-pause decision superseded by Phase 11h on 2026-08-31
 **Date:** 2026-08-30
 **Branch:** `event-driven-core-refactor`
 **Scope:** Persistent and reconstructable event ownership
+
+> This document preserves the Phase 5 acceptance evidence. Its offline-pause
+> statements describe that historical implementation, not current behavior.
+> Phase 11h changed the 93 persisted character events to schema 2 elapsed
+> wall-time recovery and added elapsed recovery for older saved counters. See
+> `EVENT_DRIVEN_CORE_REFACTOR_PHASE11H_VALIDATION.md` for the current contract.
 
 ## 1. Specification Audit
 

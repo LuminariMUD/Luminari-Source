@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration complete through residual heartbeat decomposition; removal gate pending
-**Document version:** 1.24
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration complete through offline cooldown recovery; removal gate pending
+**Document version:** 1.25
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles and named runtime services implemented, with zero-caller and final release-gate audits next
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, and elapsed offline cooldown recovery implemented, with zero-caller and final release-gate audits next
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -15,9 +15,9 @@
 > A private `libevent` compatibility reactor now owns production readiness and
 > signals, with boot-time `select()` rollback. Gameplay timing ownership is
 > migrating, and encounter-owned six-second semantic combat is now accepted.
-> Versioned player-event records now validate stable ownership and
-> rebuild fresh process-local timers, while transient and boot-reconstructed
-> work has an explicit policy.
+> Versioned player-event records now validate stable ownership, apply elapsed
+> wall time to durable cooldowns, and rebuild fresh process-local timers, while
+> transient and boot-reconstructed work has an explicit policy.
 > Encounter rounds, primary activities, autonomous mobiles, affected owners,
 > character periodic work, object automatic procedures, and DG random triggers
 > now store generation-safe opaque event handles instead of public
@@ -483,7 +483,10 @@ Persistent events use a separate serialization policy:
 1. Store a durable event-type-specific deadline or remaining duration.
 2. On boot or copyover recovery, validate the owner and payload.
 3. Convert the durable representation to a new monotonic deadline.
-4. Apply that event type's offline-elapsed policy.
+4. Apply that event type's offline-elapsed policy. Player ability cooldowns and
+   charge recovery continue against wall time while the player is logged out;
+   elapsed single-use records expire, and multi-use records catch up only the
+   bounded arithmetic number of recovered uses without replaying callbacks.
 
 The timing wheel itself is never serialized as a data structure.
 
@@ -1634,12 +1637,14 @@ Rollback:
 - Retain the prior per-type serialization path until the replacement for that
   type has completed its stable migration window.
 
-**Accepted 2026-08-30.** The 232 usable registry types are classified as 93
+**Accepted 2026-08-30; offline policy corrected 2026-08-31.** The 232 usable registry types are classified as 93
 persisted, one reconstructable, zero copyover-only, and 138 transient. Persisted
 player timers use versioned per-type records, stable player ownership, explicit
-offline-pause policy, validated typed payloads, and fresh runtime identity on
-restore. Legacy read/write rollback remains available. The 955-test matrix,
-live reboot/copyover/rollback sessions, ASan/UBSan, and Valgrind gates pass.
+offline-elapsed wall-time policy, validated typed payloads, and fresh runtime
+identity on restore. Schema 1 records migrate on read; schema 2 is current.
+Legacy read/write rollback remains available, although timestamp-free legacy
+records cannot retrospectively elapse. The original Phase 5 gates passed; the
+corrected policy and later evidence are recorded in the Phase 11h validation.
 
 ### Phase 6: Typed domain events and pub/sub retirement
 
@@ -2003,6 +2008,11 @@ Readiness audit, 2026-08-31:
   explicit safe point. Full-heartbeat rollback remains available. Evidence is
   recorded in
   [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11G_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11G_VALIDATION.md).
+- Durable player cooldowns and recoverable uses now elapse against wall time
+  while logged out. Versioned events use schema 2 with schema 1 read migration;
+  older saved counters use a separate checkpoint and bounded arithmetic catch-
+  up without replaying gameplay loops. Evidence is recorded in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11H_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11H_VALIDATION.md).
 
 ## 24. Verification Strategy
 
@@ -2214,7 +2224,7 @@ working document is retired according to the ongoing-project policy.
 | D6 | Handler result API | Explicit tagged result; legacy adapter deferred | Core accepted | Phase 1 |
 | D7 | Same-tick scheduling | Normalize to next tick, never recursive | Accepted for Phase 1 | Phase 1 |
 | D8 | Owner registry | Typed runtime ID plus generation and owner index | Accepted for implementation | Phase 2.5 |
-| D9 | Persistent event store | Versioned per-type player records with stable owner validation, explicit offline policy, and fresh runtime rehydration; boot-derived world work remains reconstructable | Accepted | Phase 5 |
+| D9 | Persistent event store | Versioned per-type player records with stable owner validation, elapsed wall-time cooldown/charge recovery, and fresh runtime rehydration; boot-derived world work remains reconstructable | Accepted; corrected in Phase 11h | Phase 5 / 11h |
 | D10 | Old/new backend selection | Process environment, then `.env`; scheduler default, legacy rollback; immutable until shutdown | Accepted | Phase 2 |
 | D11 | Combat join eligibility | Preserve ordinary initial initiative deadlines; defer in-dispatch joins with a six-second not-before guard | Accepted | Phase 8 |
 | D12 | Encounter merge clock | Preserve the earliest live event plus every participant deadline and not-before guard | Accepted | Phase 8 |
@@ -2371,3 +2381,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.22 | 2026-08-31 | Migrated DG trigger waits to opaque handles while preserving wait grammar, timing, resume, OLC replacement, room relocation, and cancellation semantics. Split the remaining MUD-event terminal-cleanup and persistence work into dedicated Phase 11f; external raw declarations now total 26 across five MUD-event files. |
 | 1.23 | 2026-08-31 | Migrated the complete MUD-event layer to opaque handles and payload owner lists. Added handle-native exactly-once cleanup for normal completion as well as cancellation and shutdown, preserved recurrence and persistence across both backends, and reduced external raw compatibility declarations to zero; only two ignored-return AI raw scheduling calls remain for the zero-caller audit. |
 | 1.24 | 2026-08-31 | Replaced the default residual 100 ms heartbeat with named actual-cadence runtime services, a monotonic runtime tick, exact queued-WAIT_STATE reactor deadlines, an explicit extraction safe point, and event-owned persistence batches. Full-heartbeat and legacy-backend rollback remain available; the 1,034-test, sanitizer, Valgrind, syntax-matrix, live-MUD, and real-copyover gates pass. Zero-caller and final scan classification audits follow. |
+| 1.25 | 2026-08-31 | Corrected durable player timing to elapsed wall-clock semantics. All 93 persisted character-event policies now use schema 2 and elapse while logged out; schema 1 reads migrate, multi-use recovery catches up arithmetically without callback bursts, and expired coupled Spellbattle state is reconciled. A separate `CkAt` player-file checkpoint advances saved six-second cooldown counters and staged/full-refresh uses on load while avoiding world-dependent gameplay replay. Copyover retains deadlines; the timestamp-free legacy event format remains a rollback reader/writer with no retrospective elapsed-time claim. Zero-caller and final audits follow. |

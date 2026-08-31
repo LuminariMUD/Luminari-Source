@@ -70,6 +70,44 @@ extern struct mud_event_list mud_event_index[];
 
 static void cleanup_mud_event(event_handle_t handle, void *event_obj);
 
+static int64_t daily_use_cooldown_ticks(struct char_data *ch, event_id event_type)
+{
+  int daily_uses;
+  int featnum;
+  int nonfeat_daily_uses;
+  int64_t cooldown;
+
+  if (ch == NULL || event_type <= eNULL || event_type >= eMUD_EVENT_COUNT)
+    return 0;
+
+  featnum = mud_event_index[event_type].feat_num;
+  nonfeat_daily_uses = mud_event_index[event_type].daily_uses;
+  if (featnum == FEAT_UNDEFINED)
+    daily_uses = nonfeat_daily_uses;
+  else
+    daily_uses = get_daily_uses(ch, featnum);
+  if (daily_uses <= 0)
+    return 0;
+
+  cooldown = ((int64_t)SECS_PER_MUD_DAY / daily_uses) * PASSES_PER_SEC;
+  return MIN(cooldown, 864000);
+}
+
+static void reconcile_expired_character_event(struct char_data *ch, event_id event_type)
+{
+  if (ch == NULL)
+    return;
+
+  switch (event_type)
+  {
+  case eSPELLBATTLE:
+    SPELLBATTLE(ch) = 0;
+    break;
+  default:
+    break;
+  }
+}
+
 static void initialize_mud_event_persistence_policies(void)
 {
   size_t i;
@@ -92,11 +130,11 @@ static void initialize_mud_event_persistence_policies(void)
   do                                                                                              \
   {                                                                                               \
     persistence_policies[(event_id)].storage_class = MUD_EVENT_PERSISTED;                         \
-    persistence_policies[(event_id)].offline_policy = MUD_EVENT_OFFLINE_PAUSE;                    \
+    persistence_policies[(event_id)].offline_policy = MUD_EVENT_OFFLINE_ELAPSE;                    \
     persistence_policies[(event_id)].payload_policy =                                             \
         mud_event_index[(event_id)].func == event_daily_use_cooldown ? MUD_EVENT_PAYLOAD_USES     \
                                                                       : MUD_EVENT_PAYLOAD_NONE;   \
-    persistence_policies[(event_id)].schema_version = 1U;                                         \
+    persistence_policies[(event_id)].schema_version = 2U;                                         \
   } while (0)
 
   PERSIST_CHARACTER_EVENT(eINVISIBLE_ROGUE);
@@ -313,6 +351,11 @@ mud_event_restore_character_record(struct char_data *ch,
   struct mud_event_data *restored_event;
   int64_t remaining_ticks;
   int64_t elapsed_seconds;
+  int64_t elapsed_ticks;
+  int64_t interval_ticks;
+  int64_t elapsed_after_first;
+  int64_t recovered_uses;
+  int remaining_uses;
   char payload[64];
   const char *payload_text;
 
@@ -325,12 +368,13 @@ mud_event_restore_character_record(struct char_data *ch,
   if (policy == NULL || policy->storage_class != MUD_EVENT_PERSISTED ||
       mud_event_index[record->event_type].iEvent_Type != EVENT_CHAR)
     return MUD_EVENT_RESTORE_CLASS_MISMATCH;
-  if (record->schema_version != policy->schema_version)
+  if (record->schema_version == 0U || record->schema_version > policy->schema_version)
     return MUD_EVENT_RESTORE_SCHEMA_MISMATCH;
   if (GET_IDNUM(ch) <= 0 || record->owner_id != GET_IDNUM(ch))
     return MUD_EVENT_RESTORE_OWNER_MISMATCH;
   if (record->remaining_ticks <= 0 || record->remaining_ticks > LONG_MAX ||
-      record->saved_at_epoch <= 0 || record->saved_at_epoch > now_epoch + 300)
+      record->saved_at_epoch <= 0 ||
+      (record->saved_at_epoch > now_epoch && record->saved_at_epoch - now_epoch > 300))
     return MUD_EVENT_RESTORE_INVALID_FORMAT;
   if (char_has_mud_event(ch, record->event_type) != NULL)
     return MUD_EVENT_RESTORE_DUPLICATE;
@@ -353,10 +397,40 @@ mud_event_restore_character_record(struct char_data *ch,
   {
     elapsed_seconds = now_epoch - record->saved_at_epoch;
     if (elapsed_seconds > 0 && elapsed_seconds > INT64_MAX / PASSES_PER_SEC)
+    {
+      reconcile_expired_character_event(ch, record->event_type);
       return MUD_EVENT_RESTORE_EXPIRED;
-    remaining_ticks -= elapsed_seconds * PASSES_PER_SEC;
-    if (remaining_ticks <= 0)
+    }
+    elapsed_ticks = MAX(0, elapsed_seconds) * PASSES_PER_SEC;
+    if (elapsed_ticks >= remaining_ticks && policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
+    {
+      interval_ticks = daily_use_cooldown_ticks(ch, record->event_type);
+      if (interval_ticks <= 0)
+      {
+        reconcile_expired_character_event(ch, record->event_type);
+        return MUD_EVENT_RESTORE_EXPIRED;
+      }
+      elapsed_after_first = elapsed_ticks - remaining_ticks;
+      recovered_uses = 1 + elapsed_after_first / interval_ticks;
+      if (recovered_uses >= record->payload_value)
+      {
+        reconcile_expired_character_event(ch, record->event_type);
+        return MUD_EVENT_RESTORE_EXPIRED;
+      }
+      remaining_uses = record->payload_value - (int)recovered_uses;
+      remaining_ticks = interval_ticks - elapsed_after_first % interval_ticks;
+      snprintf(payload, sizeof(payload), "uses:%d", remaining_uses);
+      payload_text = payload;
+    }
+    else
+    {
+      remaining_ticks -= elapsed_ticks;
+    }
+    if (remaining_ticks <= 0 || remaining_ticks > LONG_MAX)
+    {
+      reconcile_expired_character_event(ch, record->event_type);
       return MUD_EVENT_RESTORE_EXPIRED;
+    }
   }
   else if (policy->offline_policy != MUD_EVENT_OFFLINE_PAUSE)
   {
@@ -641,8 +715,6 @@ EVENTFUNC(event_daily_use_cooldown)
   /* struct obj_data *obj = NULL; */ /* Unused variable */
   int cooldown = 0;
   int uses = 0;
-  int nonfeat_daily_uses = 0;
-  int featnum = 0;
   char buf[128];
 
   pMudEvent = (struct mud_event_data *)event_obj;
@@ -682,10 +754,6 @@ EVENTFUNC(event_daily_use_cooldown)
     }
   }
 
-  /* Get feat and daily uses from the table */
-  featnum = mud_event_index[pMudEvent->iId].feat_num;
-  nonfeat_daily_uses = mud_event_index[pMudEvent->iId].daily_uses;
-
   /* Send recovery message from table if available */
   if (mud_event_index[pMudEvent->iId].recovery_msg && ch)
   {
@@ -706,75 +774,7 @@ EVENTFUNC(event_daily_use_cooldown)
     snprintf(buf, sizeof(buf), "uses:%d", uses);
     pMudEvent->sVariables = strdup(buf);
 
-    if ((featnum == FEAT_UNDEFINED) && (nonfeat_daily_uses > 0))
-    {
-      /*
-        This is a 'daily' feature that is not controlled by a feat - for example a weapon or armor special ability.
-        In this case, the daily uses must be set above - variable nonfeat_daily_uses.
-      */
-
-      /* CRITICAL FIX: Integer Overflow Prevention
-       * Before: cooldown = (SECS_PER_MUD_DAY / nonfeat_daily_uses) RL_SEC;
-       * Problem: The multiplication could overflow if the division result is large.
-       * Solution: Use long math to avoid overflow, then ensure result fits in int range.
-       *
-       * IMPORTANT: RL_SEC is defined as *PASSES_PER_SEC (which equals *10)
-       * So the original line expands to: (SECS_PER_MUD_DAY / nonfeat_daily_uses) * 10
-       *
-       * Math explanation for beginners:
-       * - SECS_PER_MUD_DAY = 24 * 75 = 1800 (MUD seconds in a MUD day)
-       * - PASSES_PER_SEC = 10 (game ticks per real second)
-       * - If nonfeat_daily_uses is 1: 1800 * 10 = 18000 pulses = 1800 real seconds (30 minutes)
-       * - This converts MUD time to real-time ticks
-       */
-      long temp_cooldown = ((long)SECS_PER_MUD_DAY / nonfeat_daily_uses) RL_SEC;
-
-      /* Clamp to reasonable maximum (1 real-time day) */
-      if (temp_cooldown > 864000)
-      { /* 86400 seconds * 10 ticks/sec */
-        log("WARNING: Cooldown overflow prevented for non-feat daily ability, clamping to 1 day");
-        cooldown = 864000;
-      }
-      else
-      {
-        cooldown = (int)temp_cooldown;
-      }
-    }
-    else if (get_daily_uses(ch, featnum) > 0) /* Fixed: Check > 0 instead of just != 0 */
-    {
-      /* CRITICAL FIX: Division by Zero Check Enhanced
-       * Before: else if (get_daily_uses(ch, featnum))
-       * Problem: Only checked for non-zero, but negative values would still crash
-       * Solution: Explicitly check for positive values
-       *
-       * Also applying the same overflow protection as above
-       */
-      int daily_uses = get_daily_uses(ch, featnum);
-
-      /* Extra safety: Ensure daily_uses is positive */
-      if (daily_uses <= 0)
-      {
-        log("SYSERR: Invalid daily_uses %d for feat %d on character %s", daily_uses, featnum,
-            GET_NAME(ch));
-        cooldown = 0; /* No cooldown if invalid */
-      }
-      else
-      {
-        /* RL_SEC expands to *PASSES_PER_SEC, so we need the parentheses */
-        long temp_cooldown = ((long)SECS_PER_MUD_DAY / daily_uses) RL_SEC;
-
-        /* Clamp to reasonable maximum (1 real-time day) */
-        if (temp_cooldown > 864000)
-        { /* 86400 seconds * 10 ticks/sec */
-          log("WARNING: Cooldown overflow prevented for feat %d, clamping to 1 day", featnum);
-          cooldown = 864000;
-        }
-        else
-        {
-          cooldown = (int)temp_cooldown;
-        }
-      }
-    }
+    cooldown = (int)daily_use_cooldown_ticks(ch, pMudEvent->iId);
   }
 
   return cooldown;
