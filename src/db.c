@@ -27,7 +27,9 @@
 #include "dgscript/dg_scripts.h"
 #include "dgscript/dg_event.h"
 #include "domain_event_runtime.h"
+#include "domain_event_world.h"
 #include "activity_manager.h"
+#include "active_world.h"
 #include "periodic_owners.h"
 #include "act.h"
 #include "ban.h"
@@ -39,7 +41,7 @@
 #include "olc/genzon.h"
 #include "olc/genolc.h"
 #include "olc/genobj.h" /* for free_object_strings */
-#include "olc/genwld.h" /* for free_trail_data_list */
+#include "olc/genwld.h"
 #include "config.h"     /* for the default config values. */
 #include "combat/fight.h"
 #include "combat/projectiles.h"
@@ -1011,6 +1013,9 @@ void destroy_db(void)
     free_obj(objtmp);
   }
 
+  /* The trail registry owns stable-location nodes independently of room storage. */
+  movement_trail_registry_shutdown();
+
   /* Rooms */
   for (cnt = 0; cnt <= top_of_world; cnt++)
   {
@@ -1037,10 +1042,6 @@ void destroy_db(void)
       free_trap_list(world[cnt].traps);
       world[cnt].traps = NULL;
     }
-
-    /* Trail lists are allocated for every loaded room, regardless of wilderness mode. */
-    free_trail_data_list(world[cnt].trail_tracks);
-    world[cnt].trail_tracks = NULL;
 
     /* freeing room events */
     clear_room_event_list(&world[cnt]);
@@ -2205,17 +2206,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
   world[room_nr].name = fread_string(fl, buf2);
   world[room_nr].description = fread_string(fl, buf2);
 
-  /* Initialize trails */
-  CREATE(world[room_nr].trail_tracks, struct trail_data_list, 1);
-  world[room_nr].trail_tracks->head = NULL;
-  world[room_nr].trail_tracks->tail = NULL;
-  //  CREATE(world[room_nr].trail_scent, struct trail_data_list, 1);
-  //  world[room_nr].trail_scent->head = NULL;
-  //  world[room_nr].trail_scent->tail = NULL;
-  //  CREATE(world[room_nr].trail_blood, struct trail_data_list, 1);
-  //  world[room_nr].trail_blood->head = NULL;
-  //  world[room_nr].trail_blood->tail = NULL;
-
   if (!get_line(fl, line))
   {
     log("SYSERR: Expecting roomflags/sector type of room #%d but file ended!", virtual_nr);
@@ -2224,8 +2214,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       free(world[room_nr].name);
     if (world[room_nr].description)
       free(world[room_nr].description);
-    if (world[room_nr].trail_tracks)
-      free(world[room_nr].trail_tracks);
     exit(1);
   }
 
@@ -2239,8 +2227,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       free(world[room_nr].name);
     if (world[room_nr].description)
       free(world[room_nr].description);
-    if (world[room_nr].trail_tracks)
-      free(world[room_nr].trail_tracks);
     exit(1);
   }
   else if ((retval == 3) && (bitwarning == FALSE))
@@ -2300,8 +2286,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       free(world[room_nr].name);
     if (world[room_nr].description)
       free(world[room_nr].description);
-    if (world[room_nr].trail_tracks)
-      free(world[room_nr].trail_tracks);
     exit(1);
   }
 
@@ -2335,8 +2319,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
         free(world[room_nr].name);
       if (world[room_nr].description)
         free(world[room_nr].description);
-      if (world[room_nr].trail_tracks)
-        free(world[room_nr].trail_tracks);
       /* Also free any extra descriptions allocated in this loop */
       free_extra_descriptions(world[room_nr].ex_description);
       exit(1);
@@ -2494,8 +2476,6 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
         free(world[room_nr].name);
       if (world[room_nr].description)
         free(world[room_nr].description);
-      if (world[room_nr].trail_tracks)
-        free(world[room_nr].trail_tracks);
       /* Also free any extra descriptions allocated in this loop */
       free_extra_descriptions(world[room_nr].ex_description);
       exit(1);
@@ -6956,6 +6936,7 @@ void free_char(struct char_data *ch)
   int i = 0;
   struct alias_data *a = NULL;
 
+  active_world_forget_character(ch);
   primary_activity_forget_character(ch);
   point_update_character_forget(ch);
   affected_registry_detach(ch);
@@ -7204,6 +7185,7 @@ void free_char(struct char_data *ch)
   if (GET_ID(ch) != 0)
     remove_from_lookup_table(GET_ID(ch));
 
+  domain_event_world_forget_character(ch);
   free(ch);
 }
 
@@ -7266,6 +7248,7 @@ void free_obj(struct obj_data *obj)
   if (GET_ID(obj) != 0)
     remove_from_lookup_table(GET_ID(obj));
 
+  domain_event_world_forget_object(obj);
   free(obj);
 }
 

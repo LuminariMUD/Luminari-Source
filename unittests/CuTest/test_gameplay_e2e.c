@@ -357,9 +357,6 @@ static void begin_gameplay_fixture(struct gameplay_fixture *fixture)
   fixture->rooms[1].sector_type = SECT_INSIDE;
   fixture->rooms[1].name = "End-to-end destination";
   fixture->rooms[1].description = "A second production-linked test room.\r\n";
-  fixture->rooms[0].trail_tracks = calloc(1, sizeof(*fixture->rooms[0].trail_tracks));
-  fixture->rooms[1].trail_tracks = calloc(1, sizeof(*fixture->rooms[1].trail_tracks));
-
   fixture->exits[0].key = NOTHING;
   fixture->exits[0].to_room = 1;
   fixture->exits[1].key = NOTHING;
@@ -381,6 +378,7 @@ static void begin_gameplay_fixture(struct gameplay_fixture *fixture)
   top_of_zone_table = 0;
   mob_index = fixture->mobile_index;
   top_of_mobt = 0;
+  movement_trail_registry_shutdown();
 
   initialize_test_npc(&fixture->actor, "fixture actor", 0);
   initialize_test_npc(&fixture->victim, "fixture victim", 0);
@@ -404,10 +402,7 @@ static void end_gameplay_fixture(struct gameplay_fixture *fixture)
     affect_remove_no_total(&fixture->victim, fixture->victim.affected);
   clear_repulsion_lists(&fixture->actor);
   clear_repulsion_lists(&fixture->victim);
-  if (fixture->rooms[0].trail_tracks != NULL)
-    free_trail_data_list(fixture->rooms[0].trail_tracks);
-  if (fixture->rooms[1].trail_tracks != NULL)
-    free_trail_data_list(fixture->rooms[1].trail_tracks);
+  movement_trail_registry_shutdown();
 
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;
@@ -936,6 +931,7 @@ void Test_gameplay_e2e_npc_movement_does_not_retain_trails(CuTest *tc)
 void Test_gameplay_e2e_movement_trails_refresh_and_remain_bounded(CuTest *tc)
 {
   struct gameplay_fixture fixture;
+  const struct trail_data_list *trails;
   struct trail_data *trail;
   char name[32];
   size_t trail_count;
@@ -943,26 +939,27 @@ void Test_gameplay_e2e_movement_trails_refresh_and_remain_bounded(CuTest *tc)
 
   begin_gameplay_fixture(&fixture);
 
-  movement_trail_record(fixture.rooms[0].trail_tracks, "repeat walker", "human", DIR_NONE, NORTH,
-                        100);
-  movement_trail_record(fixture.rooms[0].trail_tracks, "repeat walker", "human", DIR_NONE, NORTH,
-                        200);
+  movement_trail_record_at_room(&fixture.rooms[0], "repeat walker", "human", DIR_NONE, NORTH, 100);
+  movement_trail_record_at_room(&fixture.rooms[0], "repeat walker", "human", DIR_NONE, NORTH, 200);
+  trails = movement_trails_at_room(&fixture.rooms[0]);
   trail_count = count_live_movement_trails();
   CuAssertIntEquals(tc, 1, (int)trail_count);
-  CuAssertIntEquals(tc, 200, (int)fixture.rooms[0].trail_tracks->head->age);
+  CuAssertPtrNotNull(tc, trails);
+  CuAssertIntEquals(tc, 200, (int)trails->head->age);
 
   for (i = 0; i < TRAIL_MAX_PER_ROOM + 5; i++)
   {
     snprintf(name, sizeof(name), "walker %d", i);
-    movement_trail_record(fixture.rooms[0].trail_tracks, name, "human", DIR_NONE, NORTH, 300 + i);
+    movement_trail_record_at_room(&fixture.rooms[0], name, "human", DIR_NONE, NORTH, 300 + i);
   }
+  trails = movement_trails_at_room(&fixture.rooms[0]);
   trail_count = count_live_movement_trails();
-  trail = fixture.rooms[0].trail_tracks->head;
+  trail = trails->head;
 
   CuAssertIntEquals(tc, TRAIL_MAX_PER_ROOM, (int)trail_count);
   CuAssertTrue(tc, trail != NULL);
   CuAssertIntEquals(tc, 300 + TRAIL_MAX_PER_ROOM + 4, (int)trail->age);
-  CuAssertTrue(tc, fixture.rooms[0].trail_tracks->tail != NULL);
+  CuAssertTrue(tc, trails->tail != NULL);
 
   end_gameplay_fixture(&fixture);
 }
@@ -1674,8 +1671,6 @@ void Test_gameplay_e2e_actual_minimal_world_parse(CuTest *tc)
       free_proto_script(&parsed_world[i].proto_script);
       spec_binding_free(&parsed_world[i].spec_binding);
       free_room_strings(&parsed_world[i]);
-      if (parsed_world[i].trail_tracks != NULL)
-        free_trail_data_list(parsed_world[i].trail_tracks);
     }
   }
   free(parsed_world);

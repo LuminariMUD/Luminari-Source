@@ -26,6 +26,7 @@
 #include "combat/fight.h"
 #include "obj/shop.h" /* shop keepers and mhunt */
 #include "clan.h"     /* clan system */
+#include "active_world.h"
 
 /* Local file scope functions. */
 static void mob_log(char_data *mob, const char *format, ...);
@@ -1358,6 +1359,7 @@ ACMD(do_mtransform)
 
     /* put the mob in the same room as ch so extract will work */
     char_to_room(m, IN_ROOM(ch));
+    active_world_forget_character(m);
 
     memcpy(&tmpmob, m, sizeof(*m));
 
@@ -1416,6 +1418,7 @@ ACMD(do_mtransform)
     IS_CARRYING_N(&tmpmob) = IS_CARRYING_N(ch);
     FIGHTING(&tmpmob) = FIGHTING(ch);
     HUNTING(&tmpmob) = HUNTING(ch);
+    active_world_forget_character(ch);
     memcpy(ch, &tmpmob, sizeof(*ch));
 
     for (pos = 0; pos < NUM_WEARS; pos++)
@@ -1426,6 +1429,7 @@ ACMD(do_mtransform)
 
     ch->nr = this_rnum;
     extract_char(m);
+    active_world_sync_mobile(ch);
   }
 }
 

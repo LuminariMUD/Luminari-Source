@@ -709,12 +709,11 @@ void Test_player_live_entry_registers_for_point_updates(CuTest *tc)
   event_free_all();
 }
 
-void Test_world_cleanup_owns_every_loaded_room_trail_list(CuTest *tc)
+void Test_world_cleanup_owns_stable_location_trail_registry(CuTest *tc)
 {
   CuAssertTrue(tc,
-               perfmon_file_contains("src/db.c", "free_trail_data_list(world[cnt].trail_tracks);"));
-  CuAssertTrue(tc,
-               perfmon_file_contains("src/db.c", "world[cnt].trail_tracks = NULL;"));
+               perfmon_file_contains("src/db.c", "movement_trail_registry_shutdown();"));
+  CuAssertTrue(tc, !perfmon_file_contains("src/structs.h", "trail_tracks"));
 }
 
 void Test_dg_random_registry_tracks_owners_and_safe_removal(CuTest *tc)
@@ -794,6 +793,7 @@ void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(character_section, "  registry: members="));
   CuAssertPtrNotNull(tc, strstr(character_section, "  validation: mismatch="));
   CuAssertPtrNotNull(tc, strstr(character_section, "  capacity: limit="));
+  CuAssertPtrNotNull(tc, strstr(character_section, "  callbacks: owners="));
   CuAssertPtrNotNull(tc, strstr(character_section, "  work: luminari="));
   CuAssertPtrNotNull(tc, strstr(character_section, "  work: player-misc="));
   for (line = character_section; line != NULL && line < character_section_end; line = line_end + 2)

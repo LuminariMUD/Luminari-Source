@@ -2844,11 +2844,19 @@ static int rename_plan_generated_live_string(struct rename_context *ctx, char **
   return rename_add_live_string(ctx, field, replacement);
 }
 
+static bool rename_prepare_live_trail(struct trail_data *trail, void *context)
+{
+  struct rename_context *ctx = context;
+
+  if (trail->name != NULL && !strcasecmp(trail->name, ctx->old_display_name))
+    return rename_plan_exact_live_string(ctx, &trail->name) != FALSE;
+  return true;
+}
+
 static int rename_prepare_live_strings(struct rename_context *ctx)
 {
   struct char_data *character;
   struct obj_data *object;
-  room_rnum room;
   int i;
 
   for (character = character_list; character; character = character->next)
@@ -2873,15 +2881,8 @@ static int rename_prepare_live_strings(struct rename_context *ctx)
         return FALSE;
   }
 
-  for (room = 0; room <= top_of_world; room++)
-    if (world[room].trail_tracks)
-    {
-      struct trail_data *trail;
-      for (trail = world[room].trail_tracks->head; trail; trail = trail->next)
-        if (trail->name && !strcasecmp(trail->name, ctx->old_display_name))
-          if (!rename_plan_exact_live_string(ctx, &trail->name))
-            return FALSE;
-    }
+  if (!movement_trail_visit_all(rename_prepare_live_trail, ctx))
+    return FALSE;
 
   for (object = object_list; object; object = object->next)
     if (object->name && !strncmp(object->name, "pcorpse ", 8) &&

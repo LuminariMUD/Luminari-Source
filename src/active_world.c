@@ -14,15 +14,38 @@
 
 #define ACTIVE_WORLD_MAX_MOBILES 65536U
 #define ACTIVE_WORLD_REJECTION_LOG_INTERVAL 100U
+#define ACTIVE_WORLD_REASON_COUNT 9U
+#define ACTIVE_WORLD_REGISTRY_BUCKETS 8192U
 
-static struct char_data *scheduled_mobiles;
+struct active_world_registry_entry
+{
+  struct domain_entity_handle handle;
+  struct char_data *character;
+  struct active_world_registry_entry *previous;
+  struct active_world_registry_entry *next;
+  struct active_world_registry_entry *hash_next;
+};
+
+struct active_world_event_payload
+{
+  struct domain_entity_handle character;
+};
+
+static struct active_world_registry_entry *scheduled_mobiles;
+static struct active_world_registry_entry *registry_buckets[ACTIVE_WORLD_REGISTRY_BUCKETS];
+static struct char_data *dispatching_mobile;
+static bool dispatching_mobile_forgotten;
 static size_t active_mobile_count;
 static size_t cooling_mobile_count;
+static size_t reason_counts[ACTIVE_WORLD_REASON_COUNT];
 static uint64_t admission_rejections;
 static uint64_t mobile_callbacks;
+static bool initial_snapshot_logged;
 static bool initialized;
 static bool enabled;
+static bool bootstrap_loading;
 static size_t admission_limit = ACTIVE_WORLD_MAX_MOBILES;
+
 #ifdef LUMINARI_CUTEST
 static bool test_selection_set;
 static bool test_selection;
@@ -49,31 +72,131 @@ static bool configured_enabled(void)
   return true;
 }
 
-static bool mobile_should_be_active(struct char_data *ch)
+static bool mobile_is_live(struct char_data *ch)
 {
-  return ch != NULL && IS_MOB(ch) && IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) <= top_of_world &&
-         !MOB_FLAGGED(ch, MOB_NOTDEADYET) && !MOB_FLAGGED(ch, MOB_NO_AI);
+  return ch != NULL && IS_MOB(ch) && world != NULL && IN_ROOM(ch) != NOWHERE &&
+         IN_ROOM(ch) <= top_of_world && !MOB_FLAGGED(ch, MOB_NOTDEADYET) &&
+         !MOB_FLAGGED(ch, MOB_NO_AI);
 }
 
-static void registry_insert(struct char_data *ch)
+static int reason_index(uint32_t reason)
 {
-  ch->active_world_prev = NULL;
-  ch->active_world_next = scheduled_mobiles;
+  unsigned int index;
+
+  if (reason == 0U || (reason & (reason - 1U)) != 0U)
+    return -1;
+  for (index = 0U; index < ACTIVE_WORLD_REASON_COUNT; index++)
+    if (reason == (1U << index))
+      return (int)index;
+  return -1;
+}
+
+static void set_reasons(struct char_data *ch, mobile_work_mask reasons)
+{
+  mobile_work_mask changed;
+  unsigned int index;
+
+  if (ch == NULL || ch->active_world_work_reasons == reasons)
+    return;
+  changed = ch->active_world_work_reasons ^ reasons;
+  for (index = 0U; index < ACTIVE_WORLD_REASON_COUNT; index++)
+  {
+    mobile_work_mask bit = (mobile_work_mask)(1U << index);
+
+    if (!(changed & bit))
+      continue;
+    if (reasons & bit)
+      reason_counts[index]++;
+    else if (reason_counts[index] > 0U)
+      reason_counts[index]--;
+  }
+  ch->active_world_work_reasons = reasons;
+}
+
+static size_t registry_bucket(uint64_t runtime_id)
+{
+  runtime_id ^= runtime_id >> 33U;
+  runtime_id *= UINT64_C(0xff51afd7ed558ccd);
+  runtime_id ^= runtime_id >> 33U;
+  return (size_t)runtime_id & (ACTIVE_WORLD_REGISTRY_BUCKETS - 1U);
+}
+
+static struct active_world_registry_entry *registry_find(struct domain_entity_handle handle)
+{
+  struct active_world_registry_entry *entry;
+
+  if (!domain_entity_handle_is_valid(handle) || handle.kind != DOMAIN_ENTITY_CHARACTER)
+    return NULL;
+  for (entry = registry_buckets[registry_bucket(handle.runtime_id)]; entry != NULL;
+       entry = entry->hash_next)
+    if (domain_entity_handle_equal(entry->handle, handle))
+      return entry;
+  return NULL;
+}
+
+static struct active_world_registry_entry *registry_find_character(struct char_data *ch)
+{
+  struct active_world_registry_entry *entry;
+  uint64_t runtime_id;
+
+  if (ch == NULL)
+    return NULL;
+  runtime_id = (uint64_t)(uintptr_t)ch;
+  for (entry = registry_buckets[registry_bucket(runtime_id)]; entry != NULL;
+       entry = entry->hash_next)
+    if (entry->character == ch)
+      return entry;
+  return NULL;
+}
+
+static bool registry_insert(struct char_data *ch)
+{
+  struct active_world_registry_entry *entry;
+  struct domain_entity_handle handle;
+  size_t bucket;
+
+  if (registry_find_character(ch) != NULL)
+    return true;
+  handle = domain_event_character_handle(ch);
+  if (!domain_entity_handle_is_valid(handle))
+    return false;
+  entry = calloc(1, sizeof(*entry));
+  if (entry == NULL)
+    return false;
+  entry->handle = handle;
+  entry->character = ch;
+  entry->next = scheduled_mobiles;
   if (scheduled_mobiles != NULL)
-    scheduled_mobiles->active_world_prev = ch;
-  scheduled_mobiles = ch;
+    scheduled_mobiles->previous = entry;
+  scheduled_mobiles = entry;
+  bucket = registry_bucket(handle.runtime_id);
+  entry->hash_next = registry_buckets[bucket];
+  registry_buckets[bucket] = entry;
+  return true;
 }
 
 static void registry_remove(struct char_data *ch)
 {
-  if (ch->active_world_prev != NULL)
-    ch->active_world_prev->active_world_next = ch->active_world_next;
-  else if (scheduled_mobiles == ch)
-    scheduled_mobiles = ch->active_world_next;
-  if (ch->active_world_next != NULL)
-    ch->active_world_next->active_world_prev = ch->active_world_prev;
-  ch->active_world_next = NULL;
-  ch->active_world_prev = NULL;
+  struct active_world_registry_entry **cursor;
+  struct active_world_registry_entry *entry;
+  size_t bucket;
+
+  entry = registry_find_character(ch);
+  if (entry == NULL)
+    return;
+  if (entry->previous != NULL)
+    entry->previous->next = entry->next;
+  else
+    scheduled_mobiles = entry->next;
+  if (entry->next != NULL)
+    entry->next->previous = entry->previous;
+  bucket = registry_bucket(entry->handle.runtime_id);
+  cursor = &registry_buckets[bucket];
+  while (*cursor != NULL && *cursor != entry)
+    cursor = &(*cursor)->hash_next;
+  if (*cursor == entry)
+    *cursor = entry->hash_next;
+  free(entry);
 }
 
 static void set_state(struct char_data *ch, enum active_world_mobile_state state)
@@ -83,9 +206,9 @@ static void set_state(struct char_data *ch, enum active_world_mobile_state state
   previous = (enum active_world_mobile_state)ch->active_world_state;
   if (previous == state)
     return;
-  if (previous == ACTIVE_WORLD_MOBILE_ACTIVE && active_mobile_count > 0)
+  if (previous == ACTIVE_WORLD_MOBILE_ACTIVE && active_mobile_count > 0U)
     active_mobile_count--;
-  else if (previous == ACTIVE_WORLD_MOBILE_COOLING && cooling_mobile_count > 0)
+  else if (previous == ACTIVE_WORLD_MOBILE_COOLING && cooling_mobile_count > 0U)
     cooling_mobile_count--;
   if (state == ACTIVE_WORLD_MOBILE_ACTIVE)
     active_mobile_count++;
@@ -109,129 +232,318 @@ static struct game_event_owner mobile_owner(struct char_data *ch)
   return owner;
 }
 
+static bool deadline_due(unsigned long deadline)
+{
+  return deadline != 0U && (long)(pulse - deadline) >= 0L;
+}
+
+static long deadline_delay(unsigned long deadline)
+{
+  unsigned long distance;
+
+  if (deadline == 0U)
+    return LONG_MAX;
+  if (deadline_due(deadline))
+    return 1L;
+  distance = deadline - pulse;
+  return distance > (unsigned long)LONG_MAX ? LONG_MAX : (long)distance;
+}
+
+static long next_mobile_delay(struct char_data *ch)
+{
+  long delay = LONG_MAX;
+  long candidate;
+
+  candidate = deadline_delay(ch->active_world_fixed_due);
+  if (candidate < delay)
+    delay = candidate;
+  candidate = deadline_delay(ch->active_world_wander_due);
+  if (candidate < delay)
+    delay = candidate;
+  candidate = deadline_delay(ch->active_world_reaction_due);
+  if (candidate < delay)
+    delay = candidate;
+  return delay == LONG_MAX ? 0L : delay;
+}
+
 static void active_world_mobile_cleanup(event_handle_t handle, void *event_obj)
 {
   (void)handle;
-  (void)event_obj;
+  free(event_obj);
+}
+
+static EVENTFUNC(active_world_mobile_event);
+
+static bool schedule_mobile(struct char_data *ch)
+{
+  struct active_world_event_payload *payload;
+  struct game_event_owner owner;
+  long delay;
+
+  delay = next_mobile_delay(ch);
+  if (delay <= 0L)
+    return false;
+  owner = mobile_owner(ch);
+  if (!game_event_owner_is_valid(owner))
+    return false;
+  payload = malloc(sizeof(*payload));
+  if (payload == NULL)
+    return false;
+  payload->character.kind = DOMAIN_ENTITY_CHARACTER;
+  payload->character.runtime_id = owner.runtime_id;
+  payload->character.generation = owner.generation;
+  ch->active_world_event_handle = event_schedule_owned_named_with_terminal_cleanup(
+      active_world_mobile_event, payload, delay, "active_world_mobile_agenda",
+      active_world_mobile_cleanup, owner);
+  if (ch->active_world_event_handle == EVENT_HANDLE_NONE)
+    free(payload);
+  return ch->active_world_event_handle != EVENT_HANDLE_NONE;
+}
+
+static void note_admission_rejection(void)
+{
+  admission_rejections++;
+  if (admission_rejections == 1U ||
+      admission_rejections % ACTIVE_WORLD_REJECTION_LOG_INTERVAL == 0U)
+    log("WARNING: Active-world agenda limit reached or scheduling failed (%u); rejected=%llu.",
+        (unsigned int)admission_limit, (unsigned long long)admission_rejections);
+}
+
+static void retire_current_mobile(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+  registry_remove(ch);
+  if (ch->active_world_state != ACTIVE_WORLD_MOBILE_DORMANT)
+    set_state(ch, ACTIVE_WORLD_MOBILE_DORMANT);
+  set_reasons(ch, MOBILE_WORK_NONE);
+  ch->active_world_fixed_due = 0U;
+  ch->active_world_wander_due = 0U;
+  ch->active_world_reaction_due = 0U;
+  ch->active_world_event_handle = EVENT_HANDLE_NONE;
 }
 
 static EVENTFUNC(active_world_mobile_event)
 {
+  struct active_world_event_payload *payload = event_obj;
+  struct active_world_registry_entry *entry;
   struct char_data *ch;
+  mobile_work_mask due = MOBILE_WORK_NONE;
 
-  ch = event_obj;
-  if (ch == NULL)
-    return 0;
-  mobile_callbacks++;
-
-  if (!mobile_should_be_active(ch))
+  if (!initial_snapshot_logged)
   {
-    if (ch->active_world_state == ACTIVE_WORLD_MOBILE_ACTIVE)
-    {
-      set_state(ch, ACTIVE_WORLD_MOBILE_COOLING);
-      return PULSE_MOBILE;
-    }
-    if (ch->active_world_state == ACTIVE_WORLD_MOBILE_COOLING)
-    {
-      registry_remove(ch);
-      set_state(ch, ACTIVE_WORLD_MOBILE_DORMANT);
-      ch->active_world_event_handle = EVENT_HANDLE_NONE;
-      mobile_activity_run_one(ch);
-      return 0;
-    }
-    ch->active_world_event_handle = EVENT_HANDLE_NONE;
+    log("Active-world initial agendas: %zu; reasons spec=%zu echo=%zu scavenge=%zu patrol=%zu "
+        "hunt=%zu wander=%zu posture=%zu room=%zu combat=%zu.",
+        active_mobile_count, reason_counts[0], reason_counts[1], reason_counts[2],
+        reason_counts[3], reason_counts[4], reason_counts[5], reason_counts[6],
+        reason_counts[7], reason_counts[8]);
+    initial_snapshot_logged = true;
+  }
+  if (payload == NULL)
+    return 0;
+  entry = registry_find(payload->character);
+  if (entry == NULL)
+  {
+    event_note_stale_owner_outcome();
+    return 0;
+  }
+  ch = entry->character;
+  if (!mobile_is_live(ch) || ch->active_world_work_reasons == MOBILE_WORK_NONE)
+  {
+    retire_current_mobile(ch);
     return 0;
   }
 
-  set_state(ch, ACTIVE_WORLD_MOBILE_ACTIVE);
-  mobile_activity_run_one(ch);
-  return PULSE_MOBILE;
+  if (deadline_due(ch->active_world_reaction_due))
+  {
+    due |= ch->active_world_work_reasons & MOBILE_WORK_REACTION_MASK;
+    set_reasons(ch, ch->active_world_work_reasons & ~MOBILE_WORK_REACTION_MASK);
+    ch->active_world_reaction_due = 0U;
+  }
+  if (deadline_due(ch->active_world_fixed_due))
+  {
+    due |= ch->active_world_work_reasons & MOBILE_WORK_FIXED_CADENCE_MASK;
+    ch->active_world_fixed_due = pulse + (unsigned long)PULSE_MOBILE;
+  }
+  if (deadline_due(ch->active_world_wander_due))
+  {
+    due |= ch->active_world_work_reasons & MOBILE_WORK_WANDER;
+    ch->active_world_wander_due = pulse + (unsigned long)mobile_activity_next_wander_delay();
+  }
+
+  if (due != MOBILE_WORK_NONE)
+  {
+    mobile_callbacks++;
+    dispatching_mobile = ch;
+    dispatching_mobile_forgotten = false;
+    mobile_activity_run_scheduled(ch, due);
+    if (dispatching_mobile_forgotten)
+    {
+      dispatching_mobile = NULL;
+      return 0;
+    }
+    active_world_sync_mobile(ch);
+    dispatching_mobile = NULL;
+  }
+
+  if (!mobile_is_live(ch) || ch->active_world_work_reasons == MOBILE_WORK_NONE)
+  {
+    retire_current_mobile(ch);
+    return 0;
+  }
+  return next_mobile_delay(ch);
 }
 
-static bool schedule_mobile(struct char_data *ch)
+static unsigned long fixed_initial_deadline(struct char_data *ch)
 {
-  struct game_event_owner owner;
+  struct game_event_owner owner = mobile_owner(ch);
   uint64_t spread;
 
-  owner = mobile_owner(ch);
   if (!game_event_owner_is_valid(owner))
-    return false;
+    return pulse + 1U;
   spread = (owner.runtime_id >> 4U) ^ owner.generation;
   spread *= UINT64_C(11400714819323198485);
-  ch->active_world_event_handle = event_schedule_owned_named_with_cleanup(
-      active_world_mobile_event, ch,
-      (long)(spread % (uint64_t)PULSE_MOBILE) + 1L,
-      "active_world_mobile", active_world_mobile_cleanup, owner);
-  return ch->active_world_event_handle != EVENT_HANDLE_NONE;
+  return pulse + (unsigned long)(spread % (uint64_t)PULSE_MOBILE) + 1U;
+}
+
+static void refresh_deadlines(struct char_data *ch, mobile_work_mask old_reasons,
+                              mobile_work_mask new_reasons)
+{
+  if ((new_reasons & MOBILE_WORK_FIXED_CADENCE_MASK) &&
+      !(old_reasons & MOBILE_WORK_FIXED_CADENCE_MASK))
+    ch->active_world_fixed_due = fixed_initial_deadline(ch);
+  else if (!(new_reasons & MOBILE_WORK_FIXED_CADENCE_MASK))
+    ch->active_world_fixed_due = 0U;
+
+  if ((new_reasons & MOBILE_WORK_WANDER) && !(old_reasons & MOBILE_WORK_WANDER))
+    ch->active_world_wander_due =
+        pulse + (unsigned long)mobile_activity_next_wander_delay();
+  else if (!(new_reasons & MOBILE_WORK_WANDER))
+    ch->active_world_wander_due = 0U;
+
+  if ((new_reasons & MOBILE_WORK_REACTION_MASK) &&
+      !(old_reasons & MOBILE_WORK_REACTION_MASK))
+    ch->active_world_reaction_due = pulse + 1U;
+  else if (!(new_reasons & MOBILE_WORK_REACTION_MASK))
+    ch->active_world_reaction_due = 0U;
+}
+
+static void reschedule_mobile(struct char_data *ch)
+{
+  event_handle_t handle;
+  long delay;
+
+  if (ch == dispatching_mobile)
+    return;
+  delay = next_mobile_delay(ch);
+  if (delay <= 0L)
+    return;
+  if (ch->active_world_event_handle != EVENT_HANDLE_NONE &&
+      event_handle_time(ch->active_world_event_handle) == delay)
+    return;
+  if (ch->active_world_event_handle != EVENT_HANDLE_NONE)
+  {
+    handle = ch->active_world_event_handle;
+    ch->active_world_event_handle = EVENT_HANDLE_NONE;
+    (void)event_handle_cancel(handle);
+  }
+  if (!schedule_mobile(ch))
+  {
+    note_admission_rejection();
+    retire_current_mobile(ch);
+  }
 }
 
 void active_world_sync_mobile(struct char_data *ch)
 {
-  enum active_world_mobile_state state;
+  mobile_work_mask old_reasons;
+  mobile_work_mask new_reasons;
 
   if (!initialized || !enabled || ch == NULL || !IS_NPC(ch))
     return;
-  state = (enum active_world_mobile_state)ch->active_world_state;
-  if (mobile_should_be_active(ch))
+  old_reasons = ch->active_world_work_reasons;
+  new_reasons = old_reasons & MOBILE_WORK_REACTION_MASK;
+  new_reasons |= mobile_activity_recurring_reasons(ch);
+  refresh_deadlines(ch, old_reasons, new_reasons);
+  set_reasons(ch, new_reasons);
+
+  if (new_reasons == MOBILE_WORK_NONE)
   {
-    if (state == ACTIVE_WORLD_MOBILE_ACTIVE)
-      return;
-    if (state == ACTIVE_WORLD_MOBILE_COOLING)
-    {
-      set_state(ch, ACTIVE_WORLD_MOBILE_ACTIVE);
-      return;
-    }
-    if (active_mobile_count + cooling_mobile_count >= admission_limit)
-    {
-      admission_rejections++;
-      if (admission_rejections == 1 ||
-          admission_rejections % ACTIVE_WORLD_REJECTION_LOG_INTERVAL == 0)
-        log("WARNING: Active-world mobile admission limit reached (%u); rejected=%llu.",
-            (unsigned int)admission_limit, (unsigned long long)admission_rejections);
-      return;
-    }
-    registry_insert(ch);
-    set_state(ch, ACTIVE_WORLD_MOBILE_ACTIVE);
-    if (!schedule_mobile(ch))
-    {
-      registry_remove(ch);
-      set_state(ch, ACTIVE_WORLD_MOBILE_DORMANT);
-      admission_rejections++;
-    }
+    active_world_forget_character(ch);
     return;
   }
+  if (registry_find_character(ch) == NULL)
+  {
+    if (active_mobile_count + cooling_mobile_count >= admission_limit)
+    {
+      note_admission_rejection();
+      retire_current_mobile(ch);
+      return;
+    }
+    if (!registry_insert(ch))
+    {
+      note_admission_rejection();
+      retire_current_mobile(ch);
+      return;
+    }
+    set_state(ch, ACTIVE_WORLD_MOBILE_ACTIVE);
+  }
+  reschedule_mobile(ch);
+}
 
-  if (state == ACTIVE_WORLD_MOBILE_ACTIVE)
-    set_state(ch, ACTIVE_WORLD_MOBILE_COOLING);
+static void wake_mobile(struct char_data *ch, mobile_work_mask reason)
+{
+  mobile_work_mask old_reasons;
+  mobile_work_mask new_reasons;
+
+  if (!initialized || !enabled || !mobile_is_live(ch))
+    return;
+  reason &= MOBILE_WORK_REACTION_MASK;
+  if (reason == MOBILE_WORK_NONE)
+    return;
+  old_reasons = ch->active_world_work_reasons;
+  new_reasons = old_reasons | reason;
+  refresh_deadlines(ch, old_reasons, new_reasons);
+  set_reasons(ch, new_reasons);
+  active_world_sync_mobile(ch);
 }
 
 void active_world_forget_character(struct char_data *ch)
 {
-  enum active_world_mobile_state state;
+  event_handle_t handle;
 
   if (ch == NULL)
     return;
-  state = (enum active_world_mobile_state)ch->active_world_state;
-  if (state != ACTIVE_WORLD_MOBILE_DORMANT)
-  {
-    registry_remove(ch);
+  if (dispatching_mobile == ch)
+    dispatching_mobile_forgotten = true;
+  registry_remove(ch);
+  if (ch->active_world_state != ACTIVE_WORLD_MOBILE_DORMANT)
     set_state(ch, ACTIVE_WORLD_MOBILE_DORMANT);
-  }
-  if (ch->active_world_event_handle != EVENT_HANDLE_NONE)
-  {
-    event_handle_t handle = ch->active_world_event_handle;
-    ch->active_world_event_handle = EVENT_HANDLE_NONE;
+  set_reasons(ch, MOBILE_WORK_NONE);
+  ch->active_world_fixed_due = 0U;
+  ch->active_world_wander_due = 0U;
+  ch->active_world_reaction_due = 0U;
+  if (ch->active_world_event_handle == EVENT_HANDLE_NONE)
+    return;
+  handle = ch->active_world_event_handle;
+  ch->active_world_event_handle = EVENT_HANDLE_NONE;
+  if (dispatching_mobile != ch)
     (void)event_handle_cancel(handle);
-  }
 }
 
-static void sync_room(struct domain_event_bus *bus, struct domain_entity_handle handle)
+static struct room_data *resolve_room(struct domain_event_bus *bus,
+                                      struct domain_entity_handle handle)
 {
-  struct room_data *room;
+  if (handle.kind != DOMAIN_ENTITY_ROOM)
+    return NULL;
+  return domain_event_resolve(bus, handle, DOMAIN_ENTITY_ROOM);
+}
+
+static void sync_room_mobiles(struct room_data *room)
+{
   struct char_data *ch;
   struct char_data *next;
 
-  room = domain_event_resolve(bus, handle, DOMAIN_ENTITY_ROOM);
   if (room == NULL)
     return;
   for (ch = room->people; ch != NULL; ch = next)
@@ -241,39 +553,119 @@ static void sync_room(struct domain_event_bus *bus, struct domain_entity_handle 
   }
 }
 
+static void wake_room(struct room_data *room, bool combat)
+{
+  struct char_data *ch;
+  struct char_data *next;
+
+  if (room == NULL)
+    return;
+  for (ch = room->people; ch != NULL; ch = next)
+  {
+    mobile_work_mask reason;
+
+    next = ch->next_in_room;
+    reason = combat ? mobile_activity_combat_reaction_reasons(ch)
+                    : mobile_activity_room_reaction_reasons(ch);
+    wake_mobile(ch, reason);
+  }
+}
+
+static void wake_adjacent(room_rnum room, bool combat)
+{
+  int direction;
+
+  if (room == NOWHERE || room > top_of_world)
+    return;
+  for (direction = 0; direction < DIR_COUNT; direction++)
+  {
+    struct room_direction_data *exit = world[room].dir_option[direction];
+    struct char_data *ch;
+    struct char_data *next;
+
+    if (exit == NULL || exit->to_room == NOWHERE || exit->to_room > top_of_world)
+      continue;
+    for (ch = world[exit->to_room].people; ch != NULL; ch = next)
+    {
+      next = ch->next_in_room;
+      if (combat && MOB_FLAGGED(ch, MOB_LISTEN))
+        wake_mobile(ch, MOBILE_WORK_COMBAT_REACTION);
+      else if (!combat && MOB_FLAGGED(ch, MOB_ROL_ARCHER))
+        wake_mobile(ch, MOBILE_WORK_ROOM_REACTION);
+    }
+  }
+}
+
 static void handle_character_moved(const struct domain_event_context *context,
                                    void *handler_context)
 {
-  const struct domain_character_moved *event;
+  const struct domain_character_moved *event = context->payload;
+  struct char_data *ch;
+  struct room_data *to_room;
 
   (void)handler_context;
-  event = context->payload;
-  sync_room(context->bus, event->from_room);
-  sync_room(context->bus, event->to_room);
+  if (bootstrap_loading)
+    return;
+  ch = domain_event_resolve(context->bus, event->character, DOMAIN_ENTITY_CHARACTER);
+  if (ch == NULL)
+    return;
+  to_room = resolve_room(context->bus, event->to_room);
+  if (IS_NPC(ch))
+  {
+    active_world_sync_mobile(ch);
+    wake_mobile(ch, mobile_activity_room_reaction_reasons(ch));
+    if (!IS_PET(ch))
+      return;
+  }
+  wake_room(to_room, false);
+  if (to_room != NULL)
+    wake_adjacent((room_rnum)(to_room - world), false);
 }
 
 static void handle_combat_state_changed(const struct domain_event_context *context,
                                         void *handler_context)
 {
-  const struct domain_combat_state_changed *event;
+  const struct domain_combat_state_changed *event = context->payload;
   struct char_data *ch;
+  room_rnum room;
 
   (void)handler_context;
-  event = context->payload;
+  if (bootstrap_loading)
+    return;
   ch = domain_event_resolve(context->bus, event->character, DOMAIN_ENTITY_CHARACTER);
-  active_world_sync_mobile(ch);
-  ch = domain_event_resolve(context->bus, event->opponent, DOMAIN_ENTITY_CHARACTER);
-  active_world_sync_mobile(ch);
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world)
+    return;
+  room = IN_ROOM(ch);
+  sync_room_mobiles(&world[room]);
+  if (event->in_combat)
+  {
+    wake_room(&world[room], true);
+    wake_adjacent(room, true);
+  }
+}
+
+static void handle_object_moved(const struct domain_event_context *context,
+                                void *handler_context)
+{
+  const struct domain_object_moved *event = context->payload;
+  struct room_data *room;
+
+  (void)handler_context;
+  if (bootstrap_loading)
+    return;
+  room = resolve_room(context->bus, event->from_owner);
+  sync_room_mobiles(room);
+  room = resolve_room(context->bus, event->to_owner);
+  sync_room_mobiles(room);
 }
 
 static void handle_entity_extracted(const struct domain_event_context *context,
                                     void *handler_context)
 {
-  const struct domain_entity_extracted *event;
+  const struct domain_entity_extracted *event = context->payload;
   struct char_data *ch;
 
   (void)handler_context;
-  event = context->payload;
   if (event->entity.kind != DOMAIN_ENTITY_CHARACTER)
     return;
   ch = domain_event_resolve(context->bus, event->entity, DOMAIN_ENTITY_CHARACTER);
@@ -287,6 +679,8 @@ enum domain_event_status active_world_register_handlers(struct domain_event_bus 
        handle_character_moved, NULL},
       {DOMAIN_EVENT_COMBAT_STATE_CHANGED, "active-world-combat-state", 100,
        handle_combat_state_changed, NULL},
+      {DOMAIN_EVENT_OBJECT_MOVED, "active-world-object-moved", 100,
+       handle_object_moved, NULL},
       {DOMAIN_EVENT_ENTITY_EXTRACTED, "active-world-entity-extracted", 100,
        handle_entity_extracted, NULL},
   };
@@ -297,34 +691,68 @@ enum domain_event_status active_world_register_handlers(struct domain_event_bus 
     return DOMAIN_EVENT_INVALID_ARGUMENT;
   enabled = configured_enabled();
   initialized = true;
-  log("Active-world mobile scheduling: %s (autonomous owner limit %u).",
-      enabled ? "active" : "legacy heartbeat", (unsigned int)admission_limit);
+  log("Active-world mobile scheduling: %s (explicit agenda limit %u).",
+      enabled ? "demand driven" : "legacy heartbeat", (unsigned int)admission_limit);
   if (!enabled)
     return DOMAIN_EVENT_OK;
-  for (index = 0; index < sizeof(handlers) / sizeof(handlers[0]); index++)
+  for (index = 0U; index < sizeof(handlers) / sizeof(handlers[0]); index++)
   {
     status = domain_event_register_handler(bus, &handlers[index]);
     if (status != DOMAIN_EVENT_OK)
       return status;
   }
+
   return DOMAIN_EVENT_OK;
+}
+
+void active_world_begin_bootstrap(void)
+{
+  if (initialized)
+    bootstrap_loading = true;
+}
+
+void active_world_end_bootstrap(void)
+{
+  struct char_data *ch;
+
+  if (!initialized)
+    return;
+  bootstrap_loading = false;
+  if (!enabled)
+    return;
+
+  /* Final world state is the sole permitted population discovery pass. */
+  for (ch = character_list; ch != NULL; ch = ch->next)
+    active_world_sync_mobile(ch);
 }
 
 void active_world_shutdown(void)
 {
+  struct active_world_registry_entry *entry;
   struct char_data *ch;
-  struct char_data *next;
 
-  for (ch = scheduled_mobiles; ch != NULL; ch = next)
+  while ((entry = scheduled_mobiles) != NULL)
   {
-    next = ch->active_world_next;
-    active_world_forget_character(ch);
+    ch = entry->character;
+    if (ch != NULL)
+      active_world_forget_character(ch);
+    else
+    {
+      scheduled_mobiles = entry->next;
+      free(entry);
+    }
   }
   scheduled_mobiles = NULL;
-  active_mobile_count = 0;
-  cooling_mobile_count = 0;
+  memset(registry_buckets, 0, sizeof(registry_buckets));
+  dispatching_mobile = NULL;
+  dispatching_mobile_forgotten = false;
+  active_mobile_count = 0U;
+  cooling_mobile_count = 0U;
+  memset(reason_counts, 0, sizeof(reason_counts));
+  initial_snapshot_logged = false;
   initialized = false;
   enabled = false;
+  bootstrap_loading = false;
 }
 
 bool active_world_enabled(void)
@@ -338,12 +766,19 @@ size_t active_world_mobile_count(enum active_world_mobile_state state)
     return active_mobile_count;
   if (state == ACTIVE_WORLD_MOBILE_COOLING)
     return cooling_mobile_count;
-  return 0;
+  return 0U;
 }
 
 size_t active_world_mobile_admission_limit(void)
 {
   return admission_limit;
+}
+
+size_t active_world_mobile_reason_count(uint32_t reason)
+{
+  int index = reason_index(reason);
+
+  return index < 0 ? 0U : reason_counts[index];
 }
 
 uint64_t active_world_mobile_callbacks(void)
@@ -358,8 +793,8 @@ uint64_t active_world_mobile_admission_rejections(void)
 
 void active_world_reset_telemetry(void)
 {
-  admission_rejections = 0;
-  mobile_callbacks = 0;
+  admission_rejections = 0U;
+  mobile_callbacks = 0U;
 }
 
 #ifdef LUMINARI_CUTEST

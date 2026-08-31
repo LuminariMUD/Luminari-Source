@@ -753,6 +753,41 @@ bool event_handle_cancel(event_handle_t handle)
   return true;
 }
 
+size_t event_cancel_owner(struct game_event_owner owner)
+{
+  struct event *event;
+  struct event *next;
+  enum game_scheduler_status status;
+  size_t cancelled;
+
+  if (!game_event_owner_is_valid(owner) ||
+      active_backend == EVENT_BACKEND_UNINITIALIZED)
+    return 0U;
+  if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    cancelled = 0U;
+    status = game_scheduler_cancel_owner(event_scheduler, owner, &cancelled);
+    if (status != GAME_SCHEDULER_OK)
+    {
+      log("SYSERR: Unable to cancel events for owner kind %d (status %d).",
+          (int)owner.kind, (int)status);
+      return 0U;
+    }
+    return cancelled;
+  }
+
+  cancelled = 0U;
+  for (event = debug_event_head; event != NULL; event = next)
+  {
+    next = event->debug_next;
+    if (!game_event_owner_equal(event->owner, owner))
+      continue;
+    event_cancel(event);
+    cancelled++;
+  }
+  return cancelled;
+}
+
 /* Release the payload associated with an event record.
  *
  * Handle-native owners provide a cleanup hook for lifecycle detachment and

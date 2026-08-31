@@ -7,6 +7,7 @@
 #include "combat/combat_encounters.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
+#include "dgscript/dg_event.h"
 #include "periodic_owners.h"
 #include "point_update_periodic.h"
 #include "vessels/vessel_periodic.h"
@@ -54,6 +55,7 @@ enum domain_event_status domain_event_runtime_init(void)
     point_update_periodic_shutdown();
     vessel_periodic_shutdown();
     domain_event_bus_destroy(runtime_bus);
+    domain_event_world_shutdown();
     runtime_bus = NULL;
   }
   return status;
@@ -75,7 +77,10 @@ enum domain_event_status domain_event_runtime_shutdown(void)
   vessel_periodic_shutdown();
   status = domain_event_bus_destroy(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
+  {
+    domain_event_world_shutdown();
     runtime_bus = NULL;
+  }
   return status;
 }
 
@@ -144,10 +149,35 @@ enum domain_event_status domain_event_runtime_character_extracted(struct char_da
                                                                   uint32_t reason)
 {
   struct domain_entity_extracted event;
+  struct game_event_owner owner;
+  enum domain_event_status status;
 
   if (runtime_bus == NULL || ch == NULL)
     return DOMAIN_EVENT_NOT_FOUND;
   event.entity = domain_event_character_handle(ch);
   event.reason = reason;
-  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_ENTITY_EXTRACTED, &event);
+  status = DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_ENTITY_EXTRACTED, &event);
+  if (domain_entity_handle_is_valid(event.entity))
+  {
+    owner = game_event_owner_none();
+    owner.kind = GAME_EVENT_OWNER_CHARACTER;
+    owner.runtime_id = event.entity.runtime_id;
+    owner.generation = event.entity.generation;
+    (void)event_cancel_owner(owner);
+  }
+  return status;
+}
+
+enum domain_event_status domain_event_runtime_object_moved(struct obj_data *obj,
+                                                           room_rnum from_room,
+                                                           room_rnum to_room)
+{
+  struct domain_object_moved event;
+
+  if (runtime_bus == NULL || obj == NULL)
+    return DOMAIN_EVENT_NOT_FOUND;
+  event.object = domain_event_object_handle(obj);
+  event.from_owner = domain_event_room_handle(from_room);
+  event.to_owner = domain_event_room_handle(to_room);
+  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_OBJECT_MOVED, &event);
 }

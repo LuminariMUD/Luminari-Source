@@ -153,6 +153,37 @@ pointer operations, or queue declarations; those are isolated in
 test files. Production gameplay now has zero raw compatibility callers while
 the physical rollback implementation remains available behind the facade.
 
+Phase 11j moves six-second D20 maintenance, thirty-second device recovery, and
+mud-hour timed quests into existing character-owner dispatch. Hunt target
+retirement observes a lazy generation boundary instead of scanning every
+mobile. The compatibility-adapter producer and dependency inventory is sealed
+by a normal-suite source contract.
+
+Phase 11k replaces DG time-trigger discovery across every character, object,
+and room with lifecycle-maintained owner registries. Movement-trail cleanup
+similarly indexes only locations containing trails. DG room owners and ordinary
+trail locations use stable vnums across OLC/world reindexing; wilderness trails
+instead use stable zone-vnum and coordinate identity because dynamic room vnums
+are reusable allocator slots. Explicit `eventdebug` validation may still scan
+populations on staff request; normal mud-hour dispatch no longer does so.
+
+The production-scale correction also removes population-shaped autonomous
+mobile coordination. A mobile is scheduled only while it has a concrete work
+agenda: a special procedure, echo, scavenging, patrol, hunt, randomized wander,
+posture deadline, or one-shot local/combat reaction. Its callback performs only
+that agenda's due work and schedules the next meaningful deadline. NPC movement
+does not wake every nearby NPC; player/pet arrival and combat facts retain their
+bounded local reactions. Offscreen patrols, hunts, wandering, scripted behavior,
+and NPC wars therefore continue without player-proximity admission.
+
+Character and object domain handles now resolve through generation-keyed,
+lifecycle-maintained registries rather than walking `character_list` or
+`object_list` for each fact. Active-mobile callback ownership uses an external
+generation-safe registry, and extraction cancels every remaining event for the
+owner. On the copied 91,735-room, 27,067-mobile production world this leaves no
+ready backlog or overdue callbacks and settles at approximately 2.6% of one CPU
+core, with approximately 39,000 concrete autonomous agendas.
+
 The remaining opaque compatibility-adapter producers are now an enforced
 burn-down inventory in `scripts/events/test_legacy_event_admission.sh`. New
 production scheduling calls, raw pointer/queue calls, private-header includes,
@@ -216,8 +247,9 @@ safe point. Minute persistence owns a dynamic named batch-step event.
 This decomposition removes generic pulse pacing, but does not by itself prove
 that every callback is owner-local. The one-second service still invokes
 established connected-player and active gameplay routines; minute maintenance
-may inspect connected inventories; and mud-hour work includes time triggers,
-timed quests, diplomacy, trails, and world maintenance. The final adversarial
+may inspect connected inventories; and mud-hour work includes diplomacy and
+world maintenance. Time triggers, timed quests, and trails now use owner or
+active-location registries. The final adversarial
 audit must classify each internal traversal as legitimate global work, bounded
 active-owner work, or a remaining high-cardinality discovery scan.
 

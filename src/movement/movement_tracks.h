@@ -13,6 +13,8 @@
 #define _MOVEMENT_TRACKS_H_
 
 #include <stddef.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <time.h>
 
 /* Trail pruning threshold - 1 in-game week */
@@ -67,13 +69,35 @@ void movement_trail_record(struct trail_data_list *list, const char *name, const
                            int from, int to, time_t age);
 
 /**
- * Clean up old trails in all rooms
+ * Record or query trails at one stable gameplay location.
+ *
+ * Ordinary locations use the room vnum. Wilderness locations use the zone
+ * vnum and coordinates because dynamic wilderness room vnums are recyclable
+ * allocator slots rather than place identities.
+ */
+void movement_trail_record_at_room(const struct room_data *room, const char *name,
+                                   const char *race, int from, int to, time_t age);
+const struct trail_data_list *movement_trails_at_room(const struct room_data *room);
+
+typedef bool (*movement_trail_visitor)(struct trail_data *trail, void *context);
+bool movement_trail_visit_all(movement_trail_visitor visitor, void *context);
+
+/**
+ * Clean up old trails in rooms in the active trail registry.
  * Called periodically from heartbeat or events
  */
 void cleanup_all_trails(void);
+void movement_trail_registry_forget(room_vnum vnum);
+void movement_trail_registry_shutdown(void);
+size_t movement_trail_active_location_count(void);
+size_t movement_trail_registry_validate(void);
+uint64_t movement_trail_cleanup_runs(void);
+uint64_t movement_trail_locations_visited(void);
+uint64_t movement_trail_entries_removed(void);
+size_t movement_trail_last_cleanup_locations_visited(void);
 
 /**
- * Count movement trails currently retained by all world rooms
+ * Count movement trails currently retained by the stable-location registry.
  * @return Number of live trail_data entries
  */
 size_t count_live_movement_trails(void);

@@ -754,50 +754,61 @@ void script_trigger_check(void)
   PERF_note_sweep(PERF_SWEEP_DG_ROOM_RANDOM, visited, eligible, acted);
 }
 
-void check_time_triggers(void)
+bool dg_time_trigger_run_one(void *owner, int owner_type)
 {
-  char_data *ch, *next_ch;
+  char_data *ch;
   obj_data *obj;
-  struct room_data *room = NULL;
-  room_rnum nr;
+  struct room_data *room;
   struct script_data *sc;
 
-  for (ch = character_list; ch; ch = next_ch)
+  if (owner == NULL)
+    return false;
+  switch (owner_type)
   {
-    next_ch = ch->next; /* Cache next char before potential script extraction */
-
-    if (SCRIPT(ch))
-    {
-      sc = SCRIPT(ch);
-
-      if (IS_SET(SCRIPT_TYPES(sc), WTRIG_TIME) &&
-          (!is_empty(world[IN_ROOM(ch)].zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
-        time_mtrigger(ch);
-    }
+  case MOB_TRIGGER:
+    ch = owner;
+    sc = SCRIPT(ch);
+    if (sc == NULL || !IS_SET(SCRIPT_TYPES(sc), MTRIG_TIME) || world == NULL ||
+        !VALID_ROOM_RNUM(IN_ROOM(ch)) ||
+        (is_empty(world[IN_ROOM(ch)].zone) && !IS_SET(SCRIPT_TYPES(sc), MTRIG_GLOBAL)))
+      return false;
+    time_mtrigger(ch);
+    return true;
+  case OBJ_TRIGGER:
+    obj = owner;
+    sc = SCRIPT(obj);
+    if (sc == NULL || !IS_SET(SCRIPT_TYPES(sc), OTRIG_TIME))
+      return false;
+    time_otrigger(obj);
+    return true;
+  case WLD_TRIGGER:
+    room = owner;
+    sc = SCRIPT(room);
+    if (sc == NULL || !IS_SET(SCRIPT_TYPES(sc), WTRIG_TIME) ||
+        (is_empty(room->zone) && !IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
+      return false;
+    time_wtrigger(room);
+    return true;
+  default:
+    return false;
   }
+}
 
-  for (obj = object_list; obj; obj = obj->next)
+void check_time_triggers(void)
+{
+  void *owner;
+  int owner_type;
+  bool executed;
+
+  for (owner_type = MOB_TRIGGER; owner_type <= WLD_TRIGGER; owner_type++)
   {
-    if (SCRIPT(obj))
+    for (owner = dg_time_registry_iteration_begin(owner_type); owner != NULL;
+         owner = dg_time_registry_iteration_next())
     {
-      sc = SCRIPT(obj);
-
-      if (IS_SET(SCRIPT_TYPES(sc), OTRIG_TIME))
-        time_otrigger(obj);
+      executed = dg_time_trigger_run_one(owner, owner_type);
+      dg_time_registry_note_dispatch(owner_type, executed);
     }
-  }
-
-  for (nr = 0; nr <= top_of_world; nr++)
-  {
-    if (SCRIPT(&world[nr]))
-    {
-      room = &world[nr];
-      sc = SCRIPT(room);
-
-      if (IS_SET(SCRIPT_TYPES(sc), WTRIG_TIME) &&
-          (!is_empty(room->zone) || IS_SET(SCRIPT_TYPES(sc), WTRIG_GLOBAL)))
-        time_wtrigger(room);
-    }
+    dg_time_registry_iteration_end();
   }
 }
 
@@ -1063,6 +1074,7 @@ void add_trigger(struct script_data *sc, trig_data *t, int loc)
 
   SCRIPT_TYPES(sc) |= GET_TRIG_TYPE(t);
   dg_random_registry_sync(sc);
+  dg_time_registry_sync(sc);
   if (sc->owner_type == OBJ_TRIGGER)
     point_update_object_sync(sc->owner);
 
@@ -1302,6 +1314,7 @@ static int remove_trigger(struct script_data *sc, char *name)
     for (i = TRIGGERS(sc); i; i = i->next)
       SCRIPT_TYPES(sc) |= GET_TRIG_TYPE(i);
     dg_random_registry_sync(sc);
+    dg_time_registry_sync(sc);
     if (sc->owner_type == OBJ_TRIGGER)
       point_update_object_sync(sc->owner);
 

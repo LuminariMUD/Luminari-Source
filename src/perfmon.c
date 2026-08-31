@@ -32,6 +32,7 @@
 #include "vessels/vessel_periodic.h"
 #include "vessels/vessels_rol.h"
 #include "periodic_owners.h"
+#include "mob/mob_act.h"
 
 /* ========================================================================
  * CONSTANTS
@@ -2681,7 +2682,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "  registry: members=%zu scheduled=%zu\n\r"
                  "  validation: mismatch=%zu\n\r"
                  "  capacity: limit=%zu rejected=%" PRIu64 "\n\r"
-                 "  callbacks=%" PRIu64 "\n\r"
+                 "  callbacks: owners=%" PRIu64 "\n\r"
                  "  work: walk=%" PRIu64 " psp=%" PRIu64 "\n\r"
                  "  work: luminari=%" PRIu64 " damage=%" PRIu64 "\n\r"
                  "  work: player-misc=%" PRIu64 "\n\r"
@@ -2738,13 +2739,28 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
   if (!csv && written < n - 1)
     written += bounded_format_length(
         snprintf(out_buf + written, n - written,
-                 "Active world: mode=%s active=%zu cooling=%zu limit=%zu rejected=%" PRIu64
-                 " callbacks=%" PRIu64 "\n\r",
+                 "Active world: %s\n\r"
+                 "  registry: active=%zu cooling=%zu\n\r"
+                 "  reasons: spec=%zu echo=%zu scavenge=%zu\n\r"
+                 "  reasons: patrol=%zu hunt=%zu wander=%zu\n\r"
+                 "  reasons: posture=%zu room=%zu combat=%zu\n\r"
+                 "  capacity: limit=%zu rejected=%" PRIu64 "\n\r"
+                 "  agenda callbacks=%" PRIu64 "\n\r",
                  active_world_enabled() ? "scheduled" : "legacy",
                  active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE),
                  active_world_mobile_count(ACTIVE_WORLD_MOBILE_COOLING),
+                 active_world_mobile_reason_count(MOBILE_WORK_SPEC_ACTIVITY),
+                 active_world_mobile_reason_count(MOBILE_WORK_ECHO),
+                 active_world_mobile_reason_count(MOBILE_WORK_SCAVENGE),
+                 active_world_mobile_reason_count(MOBILE_WORK_PATROL),
+                 active_world_mobile_reason_count(MOBILE_WORK_HUNT),
+                 active_world_mobile_reason_count(MOBILE_WORK_WANDER),
+                 active_world_mobile_reason_count(MOBILE_WORK_POSTURE),
+                 active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION),
+                 active_world_mobile_reason_count(MOBILE_WORK_COMBAT_REACTION),
                  active_world_mobile_admission_limit(),
-                 active_world_mobile_admission_rejections(), active_world_mobile_callbacks()),
+                 active_world_mobile_admission_rejections(),
+                 active_world_mobile_callbacks()),
         n - written);
   return written;
 }

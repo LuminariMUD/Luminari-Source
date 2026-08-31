@@ -315,13 +315,6 @@ void redit_setup_existing(struct descriptor_data *d, int real_num, int mode __at
     }
   }
 
-  /* Create trail data objects for the new room */
-  struct trail_data_list *trails;
-  CREATE(trails, struct trail_data_list, 1);
-  room->trail_tracks = trails;
-  // room->trail_scent =
-  // room->trail_blood =
-
   /* Attach copy of room to player's descriptor. */
   OLC_ROOM(d) = room;
   OLC_VAL(d) = 0;
@@ -387,13 +380,6 @@ void redit_save_internally(struct descriptor_data *d)
   /* Apply selected spec proc to room */
   world[room_num].func = OLC(d)->specroom;
 
-  /* Debug: Log trail_tracks pointer before script operations */
-  if (world[room_num].trail_tracks)
-  {
-    log("DEBUG: Room %d trail_tracks before script update: head=%p, tail=%p", room_num,
-        world[room_num].trail_tracks->head, world[room_num].trail_tracks->tail);
-  }
-
   /* Update triggers and free old proto list */
   if (world[room_num].proto_script && world[room_num].proto_script != OLC_SCRIPT(d))
     free_proto_script(&world[room_num].proto_script);
@@ -401,23 +387,6 @@ void redit_save_internally(struct descriptor_data *d)
   world[room_num].proto_script = OLC_SCRIPT(d);
   assign_room_triggers(&world[room_num]);
   /* end trigger update */
-
-  /* Debug: Log trail_tracks pointer after script operations */
-  if (world[room_num].trail_tracks)
-  {
-    log("DEBUG: Room %d trail_tracks after script update: head=%p, tail=%p", room_num,
-        world[room_num].trail_tracks->head, world[room_num].trail_tracks->tail);
-  }
-
-  if (world[room_num].trail_tracks == NULL)
-  {
-    /* Create trail data objects */
-    struct trail_data_list *trails;
-    CREATE(trails, struct trail_data_list, 1);
-    world[room_num].trail_tracks = trails;
-    // room->trail_scent =
-    // room->trail_blood =
-  }
 
   /* Don't adjust numbers on a room update. */
   if (!new_room)
@@ -464,31 +433,6 @@ void redit_save_to_disk(zone_vnum zone_num)
   save_rooms(zone_num); /* :) */
 }
 
-void free_trail_data_list(struct trail_data_list *trail)
-{
-  struct trail_data *cur;
-  struct trail_data *next;
-
-  if (trail == NULL)
-  {
-    /* Nothing to free. */
-    return;
-  }
-
-  for (cur = trail->head; cur != NULL; cur = next)
-  {
-    next = cur->next;
-    if (cur->name != NULL)
-      free(cur->name);
-    if (cur->race != NULL)
-      free(cur->race);
-    free(cur);
-  }
-
-  /* Free the list structure itself */
-  free(trail);
-}
-
 void free_room(struct room_data *room)
 {
   /* Free the strings (Mythran). */
@@ -501,11 +445,6 @@ void free_room(struct room_data *room)
   if (SCRIPT(room))
     extract_script(&room->script);
   free_proto_script(&room->proto_script);
-
-  /* Trail lists are allocated for every room, independent of wilderness mode. */
-  free_trail_data_list(room->trail_tracks);
-  // free_trail_data_list(room->trail_scent);
-  // free_trail_data_list(room->trail_blood);
 
   /* Free the room. */
   free(room); /* XXX ? */

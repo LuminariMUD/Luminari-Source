@@ -1,60 +1,93 @@
 # Active World
 
-The active-world manager replaces the global character-list scan with one
-owner-scoped deadline for every NPC capable of autonomous behavior. It is the
-first Phase 7 consumer of the scheduler and typed domain-event runtime.
+The active-world manager schedules concrete autonomous NPC work. It does not
+schedule an NPC merely because that NPC is loaded, and it never walks the global
+character list during normal dispatch.
 
-## States
+## Core Contract
 
-- **Active:** the NPC is in the world and may perform autonomous behavior.
-  Exactly one owner-scoped thinking event is scheduled.
-- **Cooling:** the NPC has just become ineligible for autonomous work. Its
-  existing owner event receives a bounded final transition callback.
-- **Dormant:** the NPC is outside the world, pending extraction, or explicitly
-  marked `MOB_NO_AI`. It owns no thinking event.
+LuminariMUD has one global timing wheel. Active-world entries are typed work in
+that scheduler, not a separate scheduler per mobile class.
 
-Player presence is deliberately not an eligibility rule. Patrols continue,
-ordinary mobs wander, hunters pursue targets, scripts and special procedures
-run, and NPC factions can start or continue battles when no player is nearby.
-This persistent simulation is gameplay: players may later encounter its
-results, sneak past a battle, or join it.
+- Entity existence is never sufficient for admission.
+- Every scheduled NPC reports at least one explicit work reason.
+- Losing the final reason cancels the NPC deadline immediately.
+- A callback dispatches only registered due work, not every possible AI branch.
+- Extraction and generation change invalidate every owned deadline.
+- Player proximity is not an admission rule.
 
-`CharacterMoved` synchronously re-evaluates NPCs in only the origin and
-destination rooms. `CombatStateChanged` re-evaluates only its two character
-owners. `EntityExtracted` removes registry membership and cancels the owner's
-event. No handler traverses `character_list` to discover work.
+An owner may coalesce several due reasons behind one earliest-deadline handle.
+That is an agenda of known work, not a periodic check for unknown work. An empty
+agenda has no event.
 
-Scheduled deadlines are distributed across the six-second mobile interval.
-This retains the old cadence without releasing every active NPC in one due
-batch. A callback may reschedule only itself. Movement or extraction during a
-callback is safe because in-flight cancellation wins over recurrence.
+## Work Reasons
 
-## Bounds and Diagnostics
+Recurring work is reserved for behavior that is actually periodic:
 
-At most 65,536 active plus cooling NPCs may own thinking events. Admission above
-that limit fails closed, remains dormant, and emits a rate-limited warning.
-Automatic object and DG random-owner limits reserve 16,384 more slots beneath
-the then-current production queue ceiling. The affected-owner migration raised
-the shared ceiling to 262,144 while retaining per-subsystem admission limits.
-Dispatch callback/time budgets still apply independently.
+- wander decisions for eligible non-sentinel NPCs;
+- configured patrol steps;
+- active hunt steps with a valid target;
+- special procedures that declare mobile-activity support;
+- configured mobile echoes;
+- scavenging while eligible room objects remain;
+- recovery while a consumed mobile resource is below maximum.
 
-`perfmon entities` reports mode, active and cooling counts, the admission
-limit, rejected admissions, and callback count. Scheduler callback telemetry
-reports `active_world_mobile` cost and delay distribution. `perfmon reset`
-starts a new window for both sets of counters without changing registry state
-or scheduled deadlines.
+Combat rounds belong to the encounter manager. Aggression and memory recognition
+are reactions to character entry. Guards, helpers, and listeners react to combat
+state changes. Scavengers wake when room objects change. Sentinel posture
+restoration exists only while posture differs. Gated creatures use their exact
+expiry deadline. These are one-shot or state-owned events, not permanent mobile
+heartbeats.
+
+Off-screen simulation remains authoritative. A wanderer continues wandering, a
+patrol continues its route, a hunter continues hunting, and NPC wars continue
+through encounter events whether or not a player is present.
+
+## Local Reactions
+
+Typed domain facts update only affected owners. A movement fact may inspect the
+destination room and bounded adjacent rooms; a combat-state fact may inspect the
+participants, their room, and nearby listeners. Normal gameplay dispatch never
+traverses `character_list`, `object_list`, or every room to discover work.
+
+NPC movement wakes the moving NPC's own relevant arrival behavior. It does not
+wake every other NPC in the room: ordinary NPCs are not aggression, memory,
+pre-buff, or archery targets. Player and pet arrivals wake eligible observers
+in the destination and bounded adjacent rooms. Combat facts independently wake
+guards, helpers, assisting mobs, and listeners, so NPC wars remain active
+without a player present.
+
+Scheduled-mobile and domain-entity registries are external, generation-keyed
+hash tables. Callbacks resolve immutable handles in expected constant time
+before touching character memory. Extraction removes the registry entry and
+cancels all events indexed to the exact owner generation.
+
+## Production Correction
+
+The original Phase 7 implementation assigned one recurring event to nearly
+every AI-enabled NPC. A copied production world contained about 61,000 NPCs and
+about 60,500 mobile owners. Even after queue ownership was coalesced, the server
+processed about 20 million callbacks in eleven minutes and used about 97% of one
+CPU core. That implementation was a distributed version of the old mob loop and
+is rejected by specification version 1.29.
+
+Production acceptance now requires event counts and callback cost to track
+explicit pending behavior, with no scheduler backlog, no overdue work, and lower
+cost than the compatibility loop on the same copied world.
+
+The corrected copied-world run retained about 39,000 real agendas, including
+about 37,000 off-screen wanderers, while settling at 2.6% of one core. The
+timing wheel reported zero ready events, zero overdue pulses, and zero late
+callbacks. About 193,000 agenda callbacks averaged roughly 4 microseconds.
+
+## Diagnostics
+
+`eventdebug` reports owner counts by work reason, scheduled owners, one-shot
+reactions, callbacks by reason, admission rejections, and registry mismatches.
+Output defaults to 80 columns and never exceeds 120 columns.
 
 ## Rollback
 
-Selection is immutable for one boot:
-
-- `LUMINARI_ACTIVE_WORLD=active` is the default.
-- `LUMINARI_ACTIVE_WORLD=legacy` restores `mobile_activity_pulse()`.
-
-The heartbeat checks `active_world_enabled()` and never invokes the legacy path
-while scheduled mode is active. Changing the variable requires a restart.
-
-Each due NPC callback invokes the existing `mobile_activity` behavior for that
-owner, preserving the old six-second semantics without rediscovering work by
-walking `character_list`. Initial deadlines are spread across that interval so
-the migration also removes the old synchronized burst.
+`LUMINARI_ACTIVE_WORLD=legacy` restores `mobile_activity_pulse()` for a complete
+boot. Scheduled and legacy paths are exclusive. The rollback remains until the
+Phase 11 stable-release gate permits physical removal.

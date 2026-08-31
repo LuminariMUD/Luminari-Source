@@ -377,6 +377,57 @@ void Test_legacy_event_backends_cancel_and_cleanup_once(CuTest *tc)
   pulse = saved_pulse;
 }
 
+static void verify_owner_cancel(CuTest *tc, enum event_backend_kind backend)
+{
+  struct game_event_owner owner;
+  struct game_event_owner other_owner;
+  struct handle_cleanup_trace first_trace;
+  struct handle_cleanup_trace second_trace;
+  struct handle_cleanup_trace other_trace;
+  event_handle_t first;
+  event_handle_t second;
+  event_handle_t other;
+
+  memset(&first_trace, 0, sizeof(first_trace));
+  memset(&second_trace, 0, sizeof(second_trace));
+  memset(&other_trace, 0, sizeof(other_trace));
+  owner = game_event_owner_none();
+  owner.kind = GAME_EVENT_OWNER_CHARACTER;
+  owner.runtime_id = 101U;
+  owner.generation = 7U;
+  other_owner = owner;
+  other_owner.runtime_id = 202U;
+
+  event_free_all();
+  event_test_select_backend(backend);
+  event_init();
+  first = event_schedule_owned_named_with_cleanup(
+      workload_callback, &first_trace, 20, "owner-cancel-first", traced_handle_cleanup, owner);
+  second = event_schedule_owned_named_with_cleanup(
+      workload_callback, &second_trace, 30, "owner-cancel-second", traced_handle_cleanup, owner);
+  other = event_schedule_owned_named_with_cleanup(
+      workload_callback, &other_trace, 40, "owner-cancel-other", traced_handle_cleanup,
+      other_owner);
+
+  CuAssertTrue(tc, first != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, second != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, other != EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, 2, (int)event_cancel_owner(owner));
+  CuAssertIntEquals(tc, 1, first_trace.calls);
+  CuAssertIntEquals(tc, 1, second_trace.calls);
+  CuAssertIntEquals(tc, 0, other_trace.calls);
+  CuAssertTrue(tc, !event_handle_is_live(first));
+  CuAssertTrue(tc, !event_handle_is_live(second));
+  CuAssertTrue(tc, event_handle_is_live(other));
+  CuAssertTrue(tc, event_handle_cancel(other));
+}
+
+void Test_owned_event_cancellation_retires_every_owner_event(CuTest *tc)
+{
+  verify_owner_cancel(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  verify_owner_cancel(tc, EVENT_BACKEND_GAME_SCHEDULER);
+}
+
 static void verify_opaque_handle_lifecycle(CuTest *tc, enum event_backend_kind backend)
 {
   struct handle_cleanup_trace cleanup_trace;

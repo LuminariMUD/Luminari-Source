@@ -20,5 +20,8 @@ enum domain_event_status domain_event_runtime_character_died(struct char_data *c
                                                              struct char_data *killer);
 enum domain_event_status domain_event_runtime_character_extracted(struct char_data *ch,
                                                                   uint32_t reason);
+enum domain_event_status domain_event_runtime_object_moved(struct obj_data *obj,
+                                                           room_rnum from_room,
+                                                           room_rnum to_room);
 
 #endif /* DOMAIN_EVENT_RUNTIME_H */

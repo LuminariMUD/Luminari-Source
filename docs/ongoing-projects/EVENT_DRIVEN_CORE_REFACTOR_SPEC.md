@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration has a handle-only gameplay API and enforced compatibility admission freeze; irreversible removal gate pending
-**Document version:** 1.26
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration and production-scale scheduling correction are in progress; irreversible removal gate pending
+**Document version:** 1.30
 **Started:** 2026-08-29
-**Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, and owner-driven residual character work are implemented; DG time-trigger/trail registries and the final release-gate audit remain
+**Last source review:** 2026-09-01
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas, active DG/trail registries, and constant-time domain owner resolution are implemented; final acceptance validation, intent naming, and the irreversible removal gate remain
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -27,6 +27,23 @@
 > events and one-shot AI jobs also use opaque handles. The compatibility
 > record, pointer API, and rollback queue declarations are private to the
 > facade and its low-level parity tests; gameplay has zero raw callers.
+> Mud-hour DG time triggers now dispatch from lifecycle-maintained owner
+> registries, and trail expiry visits only locations with live trail data. DG
+> rooms and ordinary trails use stable room vnums; wilderness trails use zone
+> vnum plus coordinates so reusable dynamic room slots cannot move evidence.
+> Both expose compact registry health in `eventdebug`.
+> Production-world validation rejected the former full-population recurring
+> owner design. About 61,000 loaded NPCs produced about 20 million callbacks in
+> eleven minutes and consumed about 97% of one CPU core. Replacing a list walk
+> with one unconditional recurring event per entity is distributed polling,
+> not the event-driven gameplay architecture required here. Version 1.29 makes
+> explicit pending work, rather than entity existence, the admission contract.
+> Version 1.30 records the corrected implementation and copied-world evidence:
+> about 39,000 concrete autonomous agendas, zero ready or overdue scheduler
+> work, and 2.6% settled CPU. Boot placement is now an explicit non-gameplay
+> lifecycle phase. Character and object handles resolve through
+> generation-keyed lifecycle registries rather than global population scans,
+> and NPC movement no longer fans arrival reactions out to unrelated NPCs.
 > Runtime ticks now derive from monotonic elapsed time independently of a pulse
 > callback. The reactor sleeps to the nearest I/O, scheduler, or queued
 > `WAIT_STATE` deadline, and deferred extraction has an explicit safe point.
@@ -426,22 +443,63 @@ handlers cannot retroactively cancel completed state.
 
 ### 6.3 Active world and residual heartbeat
 
-Migrated world entities use an explicit lifecycle:
+The active world is demand-driven. A loaded entity is not automatically active
+and entity existence MUST NOT be an event-admission predicate. Each scheduled
+owner MUST identify at least one explicit pending gameplay responsibility. When
+the final responsibility is completed, cancelled, or becomes ineligible, the
+owner deadline MUST be cancelled without waiting for a discovery scan.
 
-- Active: currently relevant and allowed to own scheduled or reactive work.
-  Relevance is subsystem-defined and is not synonymous with player proximity.
-  An autonomous NPC remains active while off-screen because patrols, wandering,
-  scripts, and NPC-versus-NPC conflicts are persistent gameplay.
-- Cooling down: no immediate participant requires the entity, but a bounded
-  deadline or pending condition may return it to active work.
-- Dormant: owns no recurring think/poll event and contributes no periodic scan
-  cost. For NPC thinking this is limited to genuinely inert owners, including
-  out-of-world, extracting, and `MOB_NO_AI` characters.
+World entities use an explicit lifecycle:
 
-Entry, hostility, script activation, explicit world changes, and relevant
-domain events may wake an entity. Departure or loss of relevance begins a
-subsystem-defined cooling-down transition. Cooling-down completion either
-returns the entity to active work or makes it dormant without a global scan.
+- Active: owns concrete scheduled work or is a participant in reactive work.
+  Relevance is subsystem-defined and is never synonymous with player
+  proximity. Off-screen wandering, patrols, scripts, hunts, and NPC-versus-NPC
+  conflicts remain active gameplay.
+- Cooling down: owns a bounded final deadline or pending condition that may
+  reactivate concrete work. Cooling down is not permission for a generic poll.
+- Dormant: owns no scheduled work and contributes no periodic callback cost.
+  A dormant NPC may still be loaded and visible; a domain or lifecycle event
+  wakes it when concrete work appears.
+
+Entry, hostility, script activation, resource expenditure, effect application,
+explicit world changes, and relevant domain events add or update typed work.
+Completion, extraction, state loss, and resource recovery remove it. A local
+reaction may inspect the affected room or bounded adjacent-room graph; it MUST
+NOT traverse `character_list`, `object_list`, or the world to rediscover work.
+
+There is one global timing wheel, not one scheduler per gameplay class. Typed
+records in that wheel describe concrete intent. An owner may retain one
+earliest-deadline handle backed by an explicit agenda, or multiple typed handles
+when that is simpler, but a callback MUST dispatch registered due work rather
+than test every possible responsibility. Empty agenda means no event.
+
+For NPC gameplay the required ownership is:
+
+| Responsibility | Admission | Retirement |
+|---|---|---|
+| Wander decision | AI-enabled, mobile, standing NPC with no controlling master | Sentinel/disabled state, position or control change, extraction |
+| Patrol step | Non-empty configured path and eligible movement state | Path completion/removal, combat suspension, extraction |
+| Hunt step | Valid generation-aware hunt target | Target loss, combat admission, hunt cancellation, extraction |
+| Mobile special activity | Bound procedure explicitly supporting mobile activity | Binding/flag removal, disabled owner, extraction |
+| Mobile echo | Non-empty echo definition | Definition removal or extraction |
+| Scavenge attempt | Scavenger and eligible room object work | No eligible room objects, flag removal, extraction; object mutation wakes it |
+| Resource recovery | A consumed recoverable resource with a future deadline | Resource full, owner invalid, extraction |
+| Encounter turn | Membership in a live encounter | Encounter departure/end; encounter owns the clock |
+| Room reaction | Character/object entry or combat-state fact affecting that room | One-shot completion or invalidated fact |
+| Timed expiry/effect | Concrete effect, cooldown, hazard, or expiry deadline | Expiry, removal, recovery, extraction |
+
+Aggression, memory recognition, guarding, assistance, nearby-combat listening,
+and adjacent archery are reactions to movement or combat facts, not permanent
+six-second events. Position restoration is scheduled only while position
+differs. Gated-creature expiry uses its actual deadline. Cooldowns use absolute
+deadlines; missing vitals schedule regeneration only until full.
+
+Some behavior is inherently periodic. A wander-capable NPC may therefore own a
+recurring decision event even without players nearby. That cost is tied to an
+explicit configured behavior, not to all instantiated NPCs. Naturally shared
+work such as weather or a mud-hour trigger boundary may use one service event
+over an indexed subscriber set; the subscriber set, never the world population,
+defines its bound.
 
 Legitimate global work remains possible for metrics, watchdogs, the world
 clock, weather coordination, persistence, maintenance, and diagnostics. Each
@@ -1775,6 +1833,16 @@ Character-owner diagnostics now use nine labeled rows within 80 columns.
 Evidence is recorded in
 [`EVENT_DRIVEN_CORE_REFACTOR_PHASE7E_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE7E_VALIDATION.md).
 
+**Production correction required 2026-08-31.** The copied full world disproved
+the owner-selection premise of the original mobile and mixed-character slices.
+Scheduling every in-world NPC for generic five- and six-second callbacks merely
+distributed the old loop: about 60,500 mobile owners generated about 20 million
+callbacks in eleven minutes at about 97% of one core. Those slices remain useful
+handle/lifecycle infrastructure, but their full-population admission and generic
+callback dispatch are not accepted final architecture. Version 1.29 supersedes
+that policy with the explicit-work contract in Section 6.3. Phase 11 cannot
+close until demand-driven production measurements pass.
+
 **Vessel slice accepted 2026-08-31.** Every valid Greyhawk vessel now uses one
 bounded owner event for its nearest half-second or mud-hour boundary. The
 established one-vessel autopilot, hunter, combat, crew, upkeep, narrative,
@@ -2391,3 +2459,6 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.25 | 2026-08-31 | Corrected durable player timing to elapsed wall-clock semantics. All 93 persisted character-event policies now use schema 2 and elapse while logged out; schema 1 reads migrate, multi-use recovery catches up arithmetically without callback bursts, and expired coupled Spellbattle state is reconciled. A separate `CkAt` player-file checkpoint advances saved six-second cooldown counters and staged/full-refresh uses on load while avoiding world-dependent gameplay replay. Copyover retains deadlines; the timestamp-free legacy event format remains a rollback reader/writer with no retrospective elapsed-time claim. Zero-caller and final audits follow. |
 | 1.26 | 2026-08-31 | Closed the raw-event zero-caller gate. AI response and retry jobs now schedule through opaque handles with explicit nested-payload cleanup on every ownership path. The compatibility record, pointer functions, and rollback queue declarations moved out of the public header into a private facade/test header; no gameplay source can declare or call them. The physical legacy backend remains intact pending the stable-release removal gate. |
 | 1.27 | 2026-08-31 | Removed the remaining default-path character discovery sweeps for six-second D20 maintenance, artificer-device recovery, timed quests, and hunt-target retirement. Existing character owner events now dispatch those responsibilities at their established cadences; hunt resets use a lazy generation boundary rather than scanning every mobile. Added an exact compatibility-adapter burn-down contract that rejects new old-architecture producers and dependencies while externally gated rollback code remains physically present. DG time-trigger and active-trail registries follow. |
+| 1.28 | 2026-08-31 | Recorded the DG time-trigger and movement-trail registry implementation plus the first copied production-world boot. That boot invalidated the accepted per-character periodic capacity assumption: synchronized owner callbacks exceed the 32,768 subsystem ceiling, and merely doubling that ceiling consumes queue capacity without changing work. A production-scale cadence/ownership correction is now a blocking gate before this registry slice can be accepted. |
+| 1.29 | 2026-08-31 | Rejected full-population recurring owners as distributed polling after a 61,000-NPC copied-world run produced about 20 million callbacks in eleven minutes at about 97% CPU. Made explicit pending work, rather than entity existence, the mandatory admission predicate; defined typed NPC responsibilities and lifecycle wake/retire rules; retained off-screen wandering, hunts, scripts, and wars without player-proximity gating; and prohibited normal callbacks from rediscovering work through global population scans. |
+| 1.30 | 2026-09-01 | Implemented and production-validated demand-driven autonomous agendas. Explicit bootstrap suppressed false arrival reactions; immutable owner payloads, external scheduled-mobile state, and owner-wide cancellation made extraction safe; generation-keyed character/object registries removed hidden resolution scans; and NPC movement ceased waking unrelated observers. A copied-world run retained about 39,000 real agendas while settling at 2.6% CPU with zero ready backlog, overdue pulses, late callbacks, registry mismatches, or stale-owner outcomes. |

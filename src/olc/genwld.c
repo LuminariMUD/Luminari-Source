@@ -27,6 +27,7 @@
 #include "vessels/vessels_moving_rooms.h"
 #include "combat/traps.h"
 #include "affected_owners.h"
+#include "movement/movement_tracks.h"
 
 static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
                                    struct spec_binding *binding_copy,
@@ -806,6 +807,7 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   long room_affections;
   uint64_t event_owner_generation;
   uint64_t periodic_event_generation;
+  room_rnum live_room;
 
   trap_copy = copy_trap_list(from->traps);
   affected_head = to->affected_head;
@@ -819,12 +821,9 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   periodic_event_generation = to->periodic_event_generation;
 
   /* Trail data is runtime state and is never retained across an OLC copy. */
-  if (to->trail_tracks)
-  {
-    free_trail_data_list(to->trail_tracks);
-    to->trail_tracks = NULL;
-  }
-
+  live_room = real_room(to->number);
+  if (live_room != NOWHERE && &world[live_room] == to)
+    movement_trail_registry_forget(to->number);
   free_room_strings(to);
   free_trap_list(to->traps);
   spec_binding_free(&to->spec_binding);
@@ -845,16 +844,10 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   to->event_owner_generation = event_owner_generation;
   to->periodic_event_generation = periodic_event_generation;
 
-  /* Trail data is runtime data - don't copy it, start fresh */
-  free_trail_data_list(from->trail_tracks);
-  to->trail_tracks = NULL;
-
   /* Don't put people and objects in two locations. Should this be done here? */
   from->people = NULL;
   from->contents = NULL;
   from->events = NULL;
-  from->trail_tracks = NULL;
-
   return TRUE;
 }
 

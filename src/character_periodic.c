@@ -106,23 +106,85 @@ static bool is_in_world(const struct char_data *ch)
   return ch != NULL && world != NULL && IN_ROOM(ch) != NOWHERE && IN_ROOM(ch) <= top_of_world;
 }
 
-static bool is_owner_eligible(const struct char_data *ch)
+static bool npc_has_periodic_work(const struct char_data *ch)
 {
-  return ch != NULL && !DEAD(ch) &&
-         (is_in_world(ch) || ch->desc != NULL || has_walk_state(ch) || IS_PERFORMING(ch));
+  int index;
+
+  if (ch == NULL || !IS_NPC(ch) || !is_in_world(ch))
+    return false;
+  if (ch->affected != NULL || GET_HIT(ch) != GET_MAX_HIT(ch) ||
+      GET_MOVE(ch) != GET_MAX_MOVE(ch) || GET_PSP(ch) != GET_MAX_PSP(ch) ||
+      RIDING(ch) != NULL || RIDDEN_BY(ch) != NULL ||
+      (GET_POS(ch) == POS_FIGHTING && FIGHTING(ch) == NULL))
+    return true;
+  if (GET_NODAZE_COOLDOWN(ch) > 0 || ch->char_specials.terror_cooldown > 0 ||
+      ch->char_specials.has_been_pushed > 0 || ch->char_specials.sickening_aura_timer > 0 ||
+      ch->char_specials.frightful_presence_timer > 0 || ch->char_specials.swindle_cooldown > 0 ||
+      ch->char_specials.entertain_cooldown > 0 || ch->char_specials.tribute_cooldown > 0 ||
+      ch->char_specials.recently_slammed > 0 || ch->char_specials.recently_kicked > 0 ||
+      ch->char_specials.banishing_blade_procced_this_round ||
+      ch->sticky_bomb[0] != 0)
+    return true;
+  for (index = 0; index < NUM_ELDRITCH_BLAST_COOLDOWNS; index++)
+    if (ch->char_specials.eldritch_blast_cooldowns[index] > 0)
+      return true;
+  if (MOB_FLAGGED(ch, MOB_HUNTS_TARGET))
+    return true;
+  return MOB_FLAGGED(ch, MOB_ENCOUNTER) &&
+         (ch->mob_specials.extract_timer > 0 || ch->mob_specials.peaceful_timer > 0 ||
+          ch->mob_specials.aggro_timer > 0);
 }
 
-static long boundary_delay(long cadence)
+static bool is_owner_eligible(const struct char_data *ch)
 {
+  if (ch == NULL || DEAD(ch))
+    return false;
+  if (IS_NPC(ch))
+    return npc_has_periodic_work(ch);
+  return is_in_world(ch) || ch->desc != NULL || has_walk_state(ch) || IS_PERFORMING(ch);
+}
+
+static unsigned long owner_cadence_phase(struct char_data *ch, long cadence)
+{
+  uint64_t spread;
+
+  if (ch == NULL || cadence <= 0 || !IS_NPC(ch))
+    return 0U;
+  spread = ensure_generation(ch);
+  spread ^= spread >> 30U;
+  spread *= UINT64_C(0xbf58476d1ce4e5b9);
+  spread ^= spread >> 27U;
+  spread *= UINT64_C(0x94d049bb133111eb);
+  spread ^= spread >> 31U;
+  return (unsigned long)(spread % (uint64_t)cadence);
+}
+
+static bool cadence_due(struct char_data *ch, long cadence)
+{
+  if (cadence <= 0)
+    return false;
+  return pulse % (unsigned long)cadence == owner_cadence_phase(ch, cadence);
+}
+
+static long cadence_delay(struct char_data *ch, long cadence)
+{
+  unsigned long interval;
+  unsigned long phase;
   unsigned long remainder;
 
   if (cadence <= 0)
     return 1L;
-  remainder = pulse % (unsigned long)cadence;
-  return remainder == 0U ? cadence : cadence - (long)remainder;
+  interval = (unsigned long)cadence;
+  phase = owner_cadence_phase(ch, cadence);
+  remainder = pulse % interval;
+  if (remainder == phase)
+    return cadence;
+  if (remainder < phase)
+    return (long)(phase - remainder);
+  return (long)(interval - (remainder - phase));
 }
 
-static long next_owner_delay(const struct char_data *ch)
+static long next_owner_delay(struct char_data *ch)
 {
   long delay = LONG_MAX;
   long candidate;
@@ -131,43 +193,43 @@ static long next_owner_delay(const struct char_data *ch)
     return 0L;
   if (ch->desc != NULL)
   {
-    candidate = boundary_delay(CHARACTER_PSP_CADENCE);
+    candidate = cadence_delay(ch, CHARACTER_PSP_CADENCE);
     if (candidate < delay)
       delay = candidate;
     if (!IS_NPC(ch))
     {
-      candidate = boundary_delay(PULSE_HINTS);
+      candidate = cadence_delay(ch, PULSE_HINTS);
       if (candidate < delay)
         delay = candidate;
     }
   }
   if (is_in_world(ch))
   {
-    candidate = boundary_delay(PULSE_LUMINARI);
+    candidate = cadence_delay(ch, PULSE_LUMINARI);
     if (candidate < delay)
       delay = candidate;
-    candidate = boundary_delay(PULSE_VIOLENCE);
+    candidate = cadence_delay(ch, PULSE_VIOLENCE);
     if (candidate < delay)
       delay = candidate;
   }
   if (is_in_world(ch) || ch->desc != NULL)
   {
-    candidate = boundary_delay(CHARACTER_DEVICE_CADENCE);
+    candidate = cadence_delay(ch, CHARACTER_DEVICE_CADENCE);
     if (candidate < delay)
       delay = candidate;
-    candidate = boundary_delay(CHARACTER_QUEST_CADENCE);
+    candidate = cadence_delay(ch, CHARACTER_QUEST_CADENCE);
     if (candidate < delay)
       delay = candidate;
   }
   if (has_walk_state(ch))
   {
-    candidate = boundary_delay(CHARACTER_WALK_CADENCE);
+    candidate = cadence_delay(ch, CHARACTER_WALK_CADENCE);
     if (candidate < delay)
       delay = candidate;
   }
   if (IS_PERFORMING(ch))
   {
-    candidate = boundary_delay(PULSE_VERSE_INTERVAL);
+    candidate = cadence_delay(ch, PULSE_VERSE_INTERVAL);
     if (candidate < delay)
       delay = candidate;
   }
@@ -224,6 +286,81 @@ static bool callback_owner_still_live(void)
   return !dispatching_owner_forgotten;
 }
 
+static bool dispatch_due_work(struct char_data *ch)
+{
+  dispatching_owner = ch;
+  dispatching_owner_forgotten = false;
+  if (has_walk_state(ch) && cadence_due(ch, CHARACTER_WALK_CADENCE))
+  {
+    walk_executions++;
+    process_walkto_action(ch);
+  }
+  if (callback_owner_still_live() && ch->desc != NULL &&
+      cadence_due(ch, CHARACTER_PSP_CADENCE))
+  {
+    psp_executions++;
+    regen_psp_one(ch);
+  }
+  if (callback_owner_still_live() && is_in_world(ch) &&
+      cadence_due(ch, PULSE_LUMINARI))
+  {
+    luminari_executions++;
+    pulse_luminari_character_one(ch);
+  }
+  if (callback_owner_still_live() && IS_PERFORMING(ch) &&
+      cadence_due(ch, PULSE_VERSE_INTERVAL))
+  {
+    bardic_executions++;
+    pulse_bardic_performance_one(ch);
+  }
+  if (callback_owner_still_live() && ch->desc != NULL && !IS_NPC(ch) &&
+      cadence_due(ch, PULSE_HINTS))
+  {
+    hint_executions++;
+    show_hint_one(ch);
+  }
+  if (callback_owner_still_live() && is_in_world(ch) &&
+      cadence_due(ch, PULSE_VIOLENCE))
+  {
+    d20_round_executions++;
+    proc_d20_round_one(ch);
+    if (DEAD(ch))
+      character_periodic_forget(ch);
+  }
+  if (callback_owner_still_live() && is_in_world(ch) &&
+      cadence_due(ch, PULSE_VIOLENCE))
+  {
+    damage_effect_executions++;
+    update_damage_and_effects_over_time_one(ch);
+  }
+  if (callback_owner_still_live() && ch->desc != NULL && is_in_world(ch) &&
+      cadence_due(ch, PULSE_VIOLENCE))
+  {
+    player_misc_executions++;
+    update_player_misc_one(ch);
+  }
+  if (callback_owner_still_live() && (is_in_world(ch) || ch->desc != NULL) &&
+      cadence_due(ch, CHARACTER_DEVICE_CADENCE))
+  {
+    device_executions++;
+    check_device_one(ch);
+  }
+  if (callback_owner_still_live() && (is_in_world(ch) || ch->desc != NULL) &&
+      cadence_due(ch, CHARACTER_QUEST_CADENCE))
+  {
+    timed_quest_executions++;
+    check_timed_quests_one(ch);
+  }
+
+  if (!callback_owner_still_live())
+  {
+    dispatching_owner = NULL;
+    return false;
+  }
+  dispatching_owner = NULL;
+  return is_owner_eligible(ch);
+}
+
 static EVENTFUNC(character_periodic_event)
 {
   struct char_data *ch = event_obj;
@@ -242,76 +379,11 @@ static EVENTFUNC(character_periodic_event)
     return 0;
   }
 
-  dispatching_owner = ch;
-  dispatching_owner_forgotten = false;
-  if (has_walk_state(ch) && pulse % (unsigned long)CHARACTER_WALK_CADENCE == 0U)
+  if (!dispatch_due_work(ch))
   {
-    walk_executions++;
-    process_walkto_action(ch);
-  }
-  if (callback_owner_still_live() && ch->desc != NULL &&
-      pulse % (unsigned long)CHARACTER_PSP_CADENCE == 0U)
-  {
-    psp_executions++;
-    regen_psp_one(ch);
-  }
-  if (callback_owner_still_live() && is_in_world(ch) &&
-      pulse % (unsigned long)PULSE_LUMINARI == 0U)
-  {
-    luminari_executions++;
-    pulse_luminari_character_one(ch);
-  }
-  if (callback_owner_still_live() && IS_PERFORMING(ch) &&
-      pulse % (unsigned long)PULSE_VERSE_INTERVAL == 0U)
-  {
-    bardic_executions++;
-    pulse_bardic_performance_one(ch);
-  }
-  if (callback_owner_still_live() && ch->desc != NULL && !IS_NPC(ch) &&
-      pulse % (unsigned long)PULSE_HINTS == 0U)
-  {
-    hint_executions++;
-    show_hint_one(ch);
-  }
-  if (callback_owner_still_live() && is_in_world(ch) &&
-      pulse % (unsigned long)PULSE_VIOLENCE == 0U)
-  {
-    d20_round_executions++;
-    proc_d20_round_one(ch);
-    if (DEAD(ch))
-      character_periodic_forget(ch);
-  }
-  if (callback_owner_still_live() && is_in_world(ch) &&
-      pulse % (unsigned long)PULSE_VIOLENCE == 0U)
-  {
-    damage_effect_executions++;
-    update_damage_and_effects_over_time_one(ch);
-  }
-  if (callback_owner_still_live() && ch->desc != NULL && is_in_world(ch) &&
-      pulse % (unsigned long)PULSE_VIOLENCE == 0U)
-  {
-    player_misc_executions++;
-    update_player_misc_one(ch);
-  }
-  if (callback_owner_still_live() && (is_in_world(ch) || ch->desc != NULL) &&
-      pulse % (unsigned long)CHARACTER_DEVICE_CADENCE == 0U)
-  {
-    device_executions++;
-    check_device_one(ch);
-  }
-  if (callback_owner_still_live() && (is_in_world(ch) || ch->desc != NULL) &&
-      pulse % (unsigned long)CHARACTER_QUEST_CADENCE == 0U)
-  {
-    timed_quest_executions++;
-    check_timed_quests_one(ch);
-  }
-
-  if (!callback_owner_still_live())
-  {
-    dispatching_owner = NULL;
+    character_periodic_forget(ch);
     return 0;
   }
-  dispatching_owner = NULL;
   if (!is_owner_eligible(ch))
   {
     ch->character_periodic_event_handle = EVENT_HANDLE_NONE;
@@ -438,19 +510,38 @@ static void handle_character_moved(const struct domain_event_context *context,
   character_periodic_sync(ch);
 }
 
+static void handle_character_damaged(const struct domain_event_context *context,
+                                     void *handler_context)
+{
+  const struct domain_character_damaged *event;
+  struct char_data *ch;
+
+  (void)handler_context;
+  event = context->payload;
+  ch = domain_event_resolve(context->bus, event->target, DOMAIN_ENTITY_CHARACTER);
+  character_periodic_sync(ch);
+}
+
 enum domain_event_status character_periodic_register_handlers(struct domain_event_bus *bus)
 {
-  struct domain_event_handler_config handler = {
-      DOMAIN_EVENT_CHARACTER_MOVED,
-      "character-periodic-moved",
-      90,
-      handle_character_moved,
-      NULL,
+  struct domain_event_handler_config handlers[] = {
+      {DOMAIN_EVENT_CHARACTER_MOVED, "character-periodic-moved", 90,
+       handle_character_moved, NULL},
+      {DOMAIN_EVENT_CHARACTER_DAMAGED, "character-periodic-damaged", 90,
+       handle_character_damaged, NULL},
   };
+  size_t index;
+  enum domain_event_status status;
 
   if (bus == NULL)
     return DOMAIN_EVENT_INVALID_ARGUMENT;
-  return domain_event_register_handler(bus, &handler);
+  for (index = 0U; index < sizeof(handlers) / sizeof(handlers[0]); index++)
+  {
+    status = domain_event_register_handler(bus, &handlers[index]);
+    if (status != DOMAIN_EVENT_OK)
+      return status;
+  }
+  return DOMAIN_EVENT_OK;
 }
 
 void character_periodic_init(void)

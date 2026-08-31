@@ -6079,8 +6079,6 @@ struct raff_node
   bool room_registered;        /* linked into its room's owner list */
 };
 
-/* From trails.h */
-struct trail_data_list;
 struct spec_binding;
 struct spec_effective_binding;
 
@@ -6119,10 +6117,6 @@ struct room_data
   size_t affected_count;           /**< Room-affect nodes owned by this room. */
   bool affected_registered;        /**< Runtime affected-room registry state. */
 
-  struct trail_data_list *trail_tracks;
-  // struct trail_data_list *trail_scent;
-  // struct trail_data_list *trail_blood;
-  //// struct trail_data_list *trail_magic;
   struct moving_room_data *mover; /*  if it's a moving room       */
 
   int harvest_material;
@@ -7420,10 +7414,12 @@ struct char_data
   struct char_data *point_update_next;    /**< Mud-hour player registry link. */
   struct char_data *point_update_prev;    /**< Mud-hour player registry link. */
   bool point_update_registered;           /**< Mud-hour player registry membership. */
-  struct char_data *active_world_next;    /**< Scheduled-mobile registry link. */
-  struct char_data *active_world_prev;    /**< Scheduled-mobile registry link. */
-  event_handle_t active_world_event_handle; /**< Sole scheduled mobile-think event. */
   unsigned char active_world_state;       /**< Active, cooling, or dormant state. */
+  uint32_t active_world_work_reasons;     /**< Explicit autonomous work agenda. */
+  unsigned long active_world_fixed_due;   /**< Next fixed-cadence agenda deadline. */
+  unsigned long active_world_wander_due;  /**< Next randomized wander decision. */
+  unsigned long active_world_reaction_due; /**< Next one-shot local reaction. */
+  event_handle_t active_world_event_handle; /**< Earliest autonomous-work deadline. */
   struct primary_activity *primary_activity; /**< One intentional timed activity. */
   struct combat_encounter_data *combat_encounter; /**< Runtime fight-session owner. */
   struct combat_encounter_participant *combat_encounter_participant; /**< Membership node. */

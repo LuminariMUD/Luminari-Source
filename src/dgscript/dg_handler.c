@@ -27,11 +27,81 @@
 #include "point_update_periodic.h"
 
 #define DG_RANDOM_OWNER_TYPES 3
+#define DG_TIME_OWNER_TYPES 3
 
 static struct script_data *dg_random_heads[DG_RANDOM_OWNER_TYPES];
 static size_t dg_random_counts[DG_RANDOM_OWNER_TYPES];
 static struct script_data *dg_random_iteration_next;
 static bool dg_random_iteration_active;
+static struct script_data *dg_time_heads[DG_TIME_OWNER_TYPES];
+static size_t dg_time_counts[DG_TIME_OWNER_TYPES];
+static uint64_t dg_time_visited_counts[DG_TIME_OWNER_TYPES];
+static uint64_t dg_time_executed_counts[DG_TIME_OWNER_TYPES];
+static struct script_data *dg_time_iteration_next;
+static bool dg_time_iteration_active;
+
+static long dg_time_trigger_mask(int owner_type)
+{
+  switch (owner_type)
+  {
+  case MOB_TRIGGER:
+    return MTRIG_TIME;
+  case OBJ_TRIGGER:
+    return OTRIG_TIME;
+  case WLD_TRIGGER:
+    return WTRIG_TIME;
+  default:
+    return 0L;
+  }
+}
+
+static void dg_time_registry_remove(struct script_data *script)
+{
+  int owner_type;
+
+  if (script == NULL || !script->time_registered)
+    return;
+  owner_type = script->owner_type;
+  if (dg_time_iteration_active && dg_time_iteration_next == script)
+    dg_time_iteration_next = script->time_next;
+  if (script->time_prev != NULL)
+    script->time_prev->time_next = script->time_next;
+  else if (owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER)
+    dg_time_heads[owner_type] = script->time_next;
+  if (script->time_next != NULL)
+    script->time_next->time_prev = script->time_prev;
+  script->time_next = NULL;
+  script->time_prev = NULL;
+  script->time_registered = false;
+  if (owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER && dg_time_counts[owner_type] > 0)
+    dg_time_counts[owner_type]--;
+}
+
+void dg_time_registry_sync(struct script_data *script)
+{
+  int owner_type;
+  bool eligible;
+
+  if (script == NULL)
+    return;
+  owner_type = script->owner_type;
+  eligible = script->owner != NULL && owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER &&
+             IS_SET(SCRIPT_TYPES(script), dg_time_trigger_mask(owner_type));
+  if (!eligible)
+  {
+    dg_time_registry_remove(script);
+    return;
+  }
+  if (script->time_registered)
+    return;
+  script->time_prev = NULL;
+  script->time_next = dg_time_heads[owner_type];
+  if (script->time_next != NULL)
+    script->time_next->time_prev = script;
+  dg_time_heads[owner_type] = script;
+  script->time_registered = true;
+  dg_time_counts[owner_type]++;
+}
 
 static void dg_random_registry_remove(struct script_data *script)
 {
@@ -90,14 +160,159 @@ void dg_script_bind_owner(struct script_data *script, void *owner, int owner_typ
 {
   if (script == NULL || owner == NULL || owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
     return;
-  if (script->random_registered)
-    dg_random_registry_remove(script);
+  dg_random_registry_remove(script);
+  dg_time_registry_remove(script);
   script->owner = owner;
   script->owner_type = (byte)owner_type;
   script->owner_vnum = owner_type == WLD_TRIGGER ? ((struct room_data *)owner)->number : NOWHERE;
   dg_random_registry_sync(script);
+  dg_time_registry_sync(script);
   if (owner_type == OBJ_TRIGGER)
     point_update_object_sync(owner);
+}
+
+void *dg_time_registry_resolve_owner(struct script_data *script)
+{
+  room_rnum room;
+
+  if (script == NULL)
+    return NULL;
+  switch (script->owner_type)
+  {
+  case MOB_TRIGGER:
+    if (script->owner != NULL && SCRIPT((struct char_data *)script->owner) == script)
+      return script->owner;
+    break;
+  case OBJ_TRIGGER:
+    if (script->owner != NULL && SCRIPT((struct obj_data *)script->owner) == script)
+      return script->owner;
+    break;
+  case WLD_TRIGGER:
+    room = real_room(script->owner_vnum);
+    if (room != NOWHERE && SCRIPT(&world[room]) == script)
+      return &world[room];
+    break;
+  }
+  dg_time_registry_remove(script);
+  return NULL;
+}
+
+void *dg_time_registry_iteration_next(void)
+{
+  struct script_data *script;
+  void *owner;
+
+  if (!dg_time_iteration_active)
+    return NULL;
+  while ((script = dg_time_iteration_next) != NULL)
+  {
+    dg_time_iteration_next = script->time_next;
+    owner = dg_time_registry_resolve_owner(script);
+    if (owner != NULL)
+      return owner;
+  }
+  return NULL;
+}
+
+void *dg_time_registry_iteration_begin(int owner_type)
+{
+  if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
+    return NULL;
+  if (dg_time_iteration_active)
+  {
+    log("SYSERR: Nested DG time-owner registry iteration rejected.");
+    return NULL;
+  }
+  dg_time_iteration_active = true;
+  dg_time_iteration_next = dg_time_heads[owner_type];
+  return dg_time_registry_iteration_next();
+}
+
+void dg_time_registry_iteration_end(void)
+{
+  dg_time_iteration_next = NULL;
+  dg_time_iteration_active = false;
+}
+
+size_t dg_time_registry_count(int owner_type)
+{
+  if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
+    return 0;
+  return dg_time_counts[owner_type];
+}
+
+uint64_t dg_time_registry_visited(int owner_type)
+{
+  if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
+    return 0U;
+  return dg_time_visited_counts[owner_type];
+}
+
+uint64_t dg_time_registry_executed(int owner_type)
+{
+  if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
+    return 0U;
+  return dg_time_executed_counts[owner_type];
+}
+
+size_t dg_time_registry_validate(int owner_type)
+{
+  struct char_data *ch;
+  struct obj_data *obj;
+  struct script_data *script;
+  room_rnum room;
+  size_t expected = 0U;
+  size_t actual = 0U;
+  size_t invalid = 0U;
+
+  if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
+    return 0U;
+  if (owner_type == MOB_TRIGGER)
+    for (ch = character_list; ch != NULL; ch = ch->next)
+      if (SCRIPT(ch) != NULL && IS_SET(SCRIPT_TYPES(SCRIPT(ch)), MTRIG_TIME))
+        expected++;
+  if (owner_type == OBJ_TRIGGER)
+    for (obj = object_list; obj != NULL; obj = obj->next)
+      if (SCRIPT(obj) != NULL && IS_SET(SCRIPT_TYPES(SCRIPT(obj)), OTRIG_TIME))
+        expected++;
+  if (owner_type == WLD_TRIGGER && world != NULL)
+    for (room = 0; room <= top_of_world; room++)
+      if (SCRIPT(&world[room]) != NULL && IS_SET(SCRIPT_TYPES(SCRIPT(&world[room])), WTRIG_TIME))
+        expected++;
+  for (script = dg_time_heads[owner_type]; script != NULL; script = script->time_next)
+  {
+    actual++;
+    if (!script->time_registered || script->owner_type != owner_type || script->owner == NULL ||
+        !IS_SET(SCRIPT_TYPES(script), dg_time_trigger_mask(owner_type)))
+    {
+      invalid++;
+      continue;
+    }
+    if (owner_type == MOB_TRIGGER && SCRIPT((struct char_data *)script->owner) != script)
+      invalid++;
+    else if (owner_type == OBJ_TRIGGER && SCRIPT((struct obj_data *)script->owner) != script)
+      invalid++;
+    else if (owner_type == WLD_TRIGGER)
+    {
+      room = real_room(script->owner_vnum);
+      if (room == NOWHERE || SCRIPT(&world[room]) != script)
+        invalid++;
+    }
+  }
+  if (expected == actual && actual == dg_time_counts[owner_type] && invalid == 0U)
+    return 0U;
+  return invalid + (expected > actual ? expected - actual : actual - expected) +
+         (actual > dg_time_counts[owner_type] ? actual - dg_time_counts[owner_type]
+                                              : dg_time_counts[owner_type] - actual);
+}
+
+void dg_time_registry_note_dispatch(int owner_type, bool executed)
+{
+  if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
+    return;
+  dg_time_visited_counts[owner_type]++;
+  if (executed)
+    dg_time_executed_counts[owner_type]++;
 }
 
 void *dg_random_registry_resolve_owner(struct script_data *script)
@@ -222,6 +437,28 @@ void dg_random_registry_reset_for_test(void)
   memset(dg_random_counts, 0, sizeof(dg_random_counts));
   dg_random_iteration_next = NULL;
   dg_random_iteration_active = false;
+}
+
+void dg_time_registry_reset_for_test(void)
+{
+  struct script_data *script;
+  struct script_data *next;
+  int owner_type;
+
+  for (owner_type = MOB_TRIGGER; owner_type <= WLD_TRIGGER; owner_type++)
+    for (script = dg_time_heads[owner_type]; script != NULL; script = next)
+    {
+      next = script->time_next;
+      script->time_next = NULL;
+      script->time_prev = NULL;
+      script->time_registered = false;
+    }
+  memset(dg_time_heads, 0, sizeof(dg_time_heads));
+  memset(dg_time_counts, 0, sizeof(dg_time_counts));
+  memset(dg_time_visited_counts, 0, sizeof(dg_time_visited_counts));
+  memset(dg_time_executed_counts, 0, sizeof(dg_time_executed_counts));
+  dg_time_iteration_next = NULL;
+  dg_time_iteration_active = false;
 }
 #endif
 
@@ -358,6 +595,7 @@ void extract_script(struct script_data **script)
   sc = *script;
   *script = NULL;
   dg_random_registry_remove(sc);
+  dg_time_registry_remove(sc);
   if (sc->owner_type == OBJ_TRIGGER)
     point_update_object_sync(sc->owner);
 

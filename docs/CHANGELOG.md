@@ -2,6 +2,61 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Demand-driven autonomous world correction
+
+#### Changed
+
+- Replaced full-population NPC admission with explicit autonomous work agendas
+  for special activity, echoes, scavenging opportunities, patrols, active
+  hunts, wandering, posture repair, and one-shot local reactions.
+- Added an explicit bootstrap boundary: world placement does not simulate
+  gameplay arrival, and one final reconciliation derives initial agendas.
+- Replaced character and object domain resolution scans with lifecycle-owned,
+  generation-keyed hash registries.
+- Restricted NPC movement facts to the moving NPC's own arrival behavior;
+  player and pet arrivals retain bounded room and adjacent-room reactions.
+- Added owner-wide event cancellation and made `mtransform` detach and rebuild
+  autonomous scheduling around its legacy whole-character replacement.
+
+#### Fixed
+
+- Prevented stale autonomous callbacks from dereferencing extracted characters
+  by using immutable owner payloads and an external scheduled-mobile registry.
+- Removed a production-world reaction cascade and hidden `character_list`
+  resolution scan that saturated one CPU core despite a bounded event count.
+
+#### Validation
+
+- Passed 1,046 production-linked tests and a copied-world live run with about
+  39,000 autonomous agendas at 2.6% settled CPU, zero ready backlog, zero
+  overdue pulses, zero late callbacks, and zero registry mismatches.
+- Passed all four event-backend/I/O-driver combinations, authoritative
+  `make test-all`, AddressSanitizer, UndefinedBehaviorSanitizer, strict
+  Valgrind with zero lost bytes, and the full copied-world syntax boot.
+
+### Active DG time-trigger and trail discovery
+
+#### Changed
+
+- Replaced mud-hour scans of every character, object, and room for DG time
+  triggers with lifecycle-maintained mobile, object, and room registries.
+- Replaced trail cleanup's full world-room scan with a stable-location registry
+  of rooms that currently contain movement trails. Ordinary rooms use their
+  vnum; wilderness rooms use zone vnum plus coordinates so recycled dynamic
+  room slots cannot carry trails to another place.
+- Preserved time-trigger category ordering, empty-zone/global behavior, trail
+  expiry rules, and safe room identity across world reindexing, OLC edits, and
+  wilderness dynamic-room reuse.
+- Added compact DG-time and trail membership, mismatch, visit, execution, and
+  cleanup counters to `eventdebug`.
+#### Tests
+
+- Added production-linked coverage proving dispatch and cleanup visit only
+  registered owners, survive world-array reindexing, and leave zero registry
+  mismatches.
+- Added a dynamic-wilderness reuse test proving a trail remains at its original
+  coordinate when the allocator reuses the same room vnum elsewhere.
+
 ### Legacy event admission freeze
 
 #### Changed

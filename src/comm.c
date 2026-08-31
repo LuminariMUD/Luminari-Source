@@ -527,7 +527,9 @@ int main(int argc, char **argv)
       event_free_all();
       return EXIT_FAILURE;
     }
+    active_world_begin_bootstrap();
     boot_world();
+    active_world_end_bootstrap();
     (void)runtime_services_init();
   }
   else
@@ -771,6 +773,7 @@ static void init_game(ush_int local_port)
         domain_event_status_name(domain_status));
     exit(1);
   }
+  active_world_begin_bootstrap();
 
   /* set up hash table for find_char() */
   init_lookup_table();
@@ -796,6 +799,7 @@ static void init_game(ush_int local_port)
     COPYOVER_DEBUG("init_game: fCopyOver is true, calling copyover_recover()");
     copyover_recover();
   }
+  active_world_end_bootstrap();
 
   /* Initialize Discord bridge */
   log("Initializing Discord bridge.");

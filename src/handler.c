@@ -1446,6 +1446,7 @@ void affect_to_char_source(struct char_data *ch, struct affected_type *af, long 
   affected_alloc->next = ch->affected;
   ch->affected = affected_alloc;
   affected_registry_sync(ch);
+  character_periodic_sync(ch);
 
   /*affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);*/
   affect_modify_ar(ch, af->location, 0, af->bitvector, TRUE);
@@ -1525,6 +1526,7 @@ void affect_remove_no_total(struct char_data *ch, struct affected_type *af)
   REMOVE_FROM_LIST(af, ch->affected, next);
   free_affect(af);
   affected_registry_sync(ch);
+  character_periodic_sync(ch);
 
   if (removes_repulsion)
     clear_repulsion_lists(ch);
@@ -2831,6 +2833,7 @@ void obj_to_room(struct obj_data *object, room_rnum room)
     (void)obj_should_fall(object);
     rol_ship_note_object_placed(object);
     point_update_object_sync(object);
+    (void)domain_event_runtime_object_moved(object, NOWHERE, room);
   }
 }
 
@@ -2839,6 +2842,7 @@ void obj_from_room(struct obj_data *object)
 {
   struct obj_data *temp;
   struct char_data *t, *tempch;
+  room_rnum previous_room;
 
   if (!object || IN_ROOM(object) == NOWHERE)
   {
@@ -2858,12 +2862,14 @@ void obj_from_room(struct obj_data *object)
     }
   }
 
+  previous_room = IN_ROOM(object);
   REMOVE_FROM_LIST(object, world[IN_ROOM(object)].contents, next_content);
 
   if (ROOM_FLAGGED(IN_ROOM(object), ROOM_HOUSE))
     SET_BIT_AR(ROOM_FLAGS(IN_ROOM(object)), ROOM_HOUSE_CRASH);
   IN_ROOM(object) = NOWHERE;
   object->next_content = NULL;
+  (void)domain_event_runtime_object_moved(object, previous_room, NOWHERE);
 }
 
 /* put an object in an object (quaint)  */

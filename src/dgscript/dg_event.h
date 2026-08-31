@@ -64,6 +64,7 @@ event_handle_t event_schedule_owned_named_with_terminal_cleanup(
 
 bool event_handle_is_live(event_handle_t handle);
 bool event_handle_cancel(event_handle_t handle);
+size_t event_cancel_owner(struct game_event_owner owner);
 long event_handle_time(event_handle_t handle);
 bool event_handle_is_queued(event_handle_t handle);
 

@@ -9,8 +9,12 @@
 #include "domain_events.h"
 #include "event_debug.h"
 #include "combat/combat_encounters.h"
+#include "active_world.h"
 #include "activity_manager.h"
 #include "character_periodic.h"
+#include "dgscript/dg_scripts.h"
+#include "movement/movement_tracks.h"
+#include "mob/mob_act.h"
 #include "net/i3_client.h"
 #include "perfmon.h"
 
@@ -334,14 +338,61 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "Character owners");
   debug_output_line(&output, "  mode: %s",
                     character_periodic_events_enabled() ? "scheduled" : "legacy heartbeat");
-  debug_output_line(&output, "  members/live/mismatch: %zu/%zu/%zu",
+  debug_output_line(&output, "  members/scheduled/mismatch: %zu/%zu/%zu",
                     character_periodic_owner_count(), character_periodic_scheduled_count(),
                     character_periodic_registry_validate());
-  debug_output_line(&output, "  callbacks: %" PRIu64, character_periodic_callbacks());
+  debug_output_line(&output, "  owner callbacks: %" PRIu64,
+                    character_periodic_callbacks());
   debug_output_line(&output, "  d20/devices/quests: %" PRIu64 "/%" PRIu64 "/%" PRIu64,
                     character_periodic_d20_round_executions(),
                     character_periodic_device_executions(),
                     character_periodic_timed_quest_executions());
+  debug_output_line(&output, "");
+  debug_output_line(&output, "Autonomous mobile agendas");
+  debug_output_line(&output, "  mode: %s", active_world_enabled() ? "scheduled" : "legacy");
+  debug_output_line(&output, "  active/cooling: %zu/%zu",
+                    active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE),
+                    active_world_mobile_count(ACTIVE_WORLD_MOBILE_COOLING));
+  debug_output_line(&output, "  spec/echo/scavenge: %zu/%zu/%zu",
+                    active_world_mobile_reason_count(MOBILE_WORK_SPEC_ACTIVITY),
+                    active_world_mobile_reason_count(MOBILE_WORK_ECHO),
+                    active_world_mobile_reason_count(MOBILE_WORK_SCAVENGE));
+  debug_output_line(&output, "  patrol/hunt/wander: %zu/%zu/%zu",
+                    active_world_mobile_reason_count(MOBILE_WORK_PATROL),
+                    active_world_mobile_reason_count(MOBILE_WORK_HUNT),
+                    active_world_mobile_reason_count(MOBILE_WORK_WANDER));
+  debug_output_line(&output, "  posture/room/combat: %zu/%zu/%zu",
+                    active_world_mobile_reason_count(MOBILE_WORK_POSTURE),
+                    active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION),
+                    active_world_mobile_reason_count(MOBILE_WORK_COMBAT_REACTION));
+  debug_output_line(&output, "  agenda callbacks: %" PRIu64,
+                    active_world_mobile_callbacks());
+  debug_output_line(&output, "  capacity/rejected: %zu/%" PRIu64,
+                    active_world_mobile_admission_limit(),
+                    active_world_mobile_admission_rejections());
+  debug_output_line(&output, "");
+  debug_output_line(&output, "Discovery registries");
+  debug_output_line(&output, "  DG time members m/o/r: %zu/%zu/%zu",
+                    dg_time_registry_count(MOB_TRIGGER), dg_time_registry_count(OBJ_TRIGGER),
+                    dg_time_registry_count(WLD_TRIGGER));
+  debug_output_line(&output, "  DG time mismatch m/o/r: %zu/%zu/%zu",
+                    dg_time_registry_validate(MOB_TRIGGER),
+                    dg_time_registry_validate(OBJ_TRIGGER),
+                    dg_time_registry_validate(WLD_TRIGGER));
+  debug_output_line(&output, "  DG time visited m/o/r: %" PRIu64 "/%" PRIu64 "/%" PRIu64,
+                    dg_time_registry_visited(MOB_TRIGGER),
+                    dg_time_registry_visited(OBJ_TRIGGER),
+                    dg_time_registry_visited(WLD_TRIGGER));
+  debug_output_line(&output, "  DG time executed m/o/r: %" PRIu64 "/%" PRIu64 "/%" PRIu64,
+                    dg_time_registry_executed(MOB_TRIGGER),
+                    dg_time_registry_executed(OBJ_TRIGGER),
+                    dg_time_registry_executed(WLD_TRIGGER));
+  debug_output_line(&output, "  trail locations/mismatch: %zu/%zu",
+                    movement_trail_active_location_count(), movement_trail_registry_validate());
+  debug_output_line(&output, "  trail cleanup runs/visited/removed: %" PRIu64 "/%" PRIu64
+                             "/%" PRIu64,
+                    movement_trail_cleanup_runs(), movement_trail_locations_visited(),
+                    movement_trail_entries_removed());
   memset(&ingress_stats, 0, sizeof(ingress_stats));
   i3_get_ingress_stats(&ingress_stats);
   debug_output_line(&output, "");

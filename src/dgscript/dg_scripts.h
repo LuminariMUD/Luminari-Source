@@ -196,6 +196,11 @@ struct script_data
   struct script_data *random_next;
   struct script_data *random_prev;
   event_handle_t random_event_handle;
+
+  /* Runtime-only time-trigger owner registry metadata. */
+  bool time_registered;
+  struct script_data *time_next;
+  struct script_data *time_prev;
 };
 
 /* The event data for the wait command */
@@ -405,6 +410,20 @@ size_t dg_random_registry_validate(int owner_type);
 bool dg_random_trigger_run_one(void *owner, int owner_type);
 #ifdef LUMINARI_CUTEST
 void dg_random_registry_reset_for_test(void);
+#endif
+void dg_time_registry_sync(struct script_data *script);
+void *dg_time_registry_resolve_owner(struct script_data *script);
+void *dg_time_registry_iteration_begin(int owner_type);
+void *dg_time_registry_iteration_next(void);
+void dg_time_registry_iteration_end(void);
+size_t dg_time_registry_count(int owner_type);
+size_t dg_time_registry_validate(int owner_type);
+uint64_t dg_time_registry_visited(int owner_type);
+uint64_t dg_time_registry_executed(int owner_type);
+void dg_time_registry_note_dispatch(int owner_type, bool executed);
+bool dg_time_trigger_run_one(void *owner, int owner_type);
+#ifdef LUMINARI_CUTEST
+void dg_time_registry_reset_for_test(void);
 #endif
 void extract_script_mem(struct script_memory *sc);
 void free_proto_script(struct trig_proto_list **proto_script);
