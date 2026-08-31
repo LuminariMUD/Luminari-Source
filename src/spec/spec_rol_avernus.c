@@ -1298,7 +1298,7 @@ static bool rol_avernus_has_dagger_follower(const struct char_data *owner,
   return false;
 }
 
-static int rol_avernus_dagger_object_pulse(struct char_data *owner, struct obj_data *obj)
+static int rol_avernus_restore_dancing_dagger(struct char_data *owner, struct obj_data *obj)
 {
   if (!OBJ_FLAGGED(obj, ITEM_HIDDEN))
     return FALSE;
@@ -1425,8 +1425,8 @@ static int rol_avernus_bel_sword_restrict(struct spec_event_context *context,
   return TRUE;
 }
 
-static int rol_avernus_bel_sword_pulse(struct spec_event_context *context, struct char_data *owner,
-                                       struct obj_data *obj)
+static int rol_avernus_enforce_bel_sword_owner(struct spec_event_context *context,
+                                               struct char_data *owner, struct obj_data *obj)
 {
   struct char_data *bel;
   bool punish;
@@ -1537,12 +1537,12 @@ int rol_avernus_object_typed(struct spec_event_context *context)
     if (profile->effect == ROL_AVERNUS_OBJECT_DANCING_DAGGER)
       return rol_avernus_dagger_object_command(context, ch, obj);
     return FALSE;
-  case SPEC_EVENT_OBJECT_AUTO_PULSE:
+  case SPEC_EVENT_OBJECT_AUTOMATIC:
     ch = rol_avernus_object_owner(obj);
     if (profile->effect == ROL_AVERNUS_OBJECT_DANCING_DAGGER)
-      return rol_avernus_dagger_object_pulse(ch, obj);
+      return rol_avernus_restore_dancing_dagger(ch, obj);
     if (profile->effect == ROL_AVERNUS_OBJECT_BEL_SWORD)
-      return rol_avernus_bel_sword_pulse(context, ch, obj);
+      return rol_avernus_enforce_bel_sword_owner(context, ch, obj);
     return FALSE;
   case SPEC_EVENT_ITEM_IDENTIFY:
     if (profile->effect == ROL_AVERNUS_OBJECT_DANCING_DAGGER)
@@ -1658,7 +1658,7 @@ int rol_avernus_garden_typed(struct spec_event_context *context)
   return FALSE;
 }
 
-void rol_avernus_room_pulse(void)
+void rol_avernus_process_garden_activity(void)
 {
   room_rnum garden = real_room(ROL_AVERNUS_GARDEN_FIRST_VNUM);
 

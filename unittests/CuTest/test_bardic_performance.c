@@ -779,7 +779,7 @@ void Test_linkless_bard_does_not_retain_room_blocking_state(CuTest *tc)
   IS_PERFORMING(&fixture.bard) = TRUE;
   GET_PERFORMING(&fixture.bard) = 0;
 
-  pulse_bardic_performance();
+  advance_legacy_bardic_performers();
 
   CuAssertTrue(tc, !IS_PERFORMING(&fixture.bard));
   CuAssertIntEquals(tc, PERFORMANCE_NONE, GET_PERFORMING(&fixture.bard));
@@ -830,7 +830,7 @@ void Test_active_npc_bard_receives_performance_pulses(CuTest *tc)
   fixture.room.people = &npc;
   character_list = &npc;
 
-  pulse_bardic_performance();
+  advance_legacy_bardic_performers();
 
   CuAssertTrue(tc, GET_HIT(&npc) > 1);
   clear_char_event_list(&npc);
@@ -1824,7 +1824,7 @@ void Test_symphonic_resonance_obeys_success_save_pk_and_resource_contracts(CuTes
   GET_HIT(&fixture.bard) = GET_MAX_HIT(&fixture.bard);
   circle_srandom(1);
   for (i = 0; i < 20; i++)
-    test_pulse_bard_symphonic_resonance(&fixture.bard);
+    test_apply_bard_symphonic_resonance_verse(&fixture.bard);
   CuAssertTrue(tc, GET_HIT(&fixture.bard) > GET_MAX_HIT(&fixture.bard));
   CuAssertTrue(tc,
                GET_HIT(&fixture.bard) <= GET_MAX_HIT(&fixture.bard) + BARDIC_SYMPHONIC_TEMP_HP_CAP);
@@ -1835,7 +1835,7 @@ void Test_symphonic_resonance_obeys_success_save_pk_and_resource_contracts(CuTes
   {
     recovering_slot->circle = 2;
     INNATE_MAGIC(&fixture.bard, CLASS_BARD) = recovering_slot;
-    test_pulse_bard_endless_refrain(&fixture.bard);
+    test_apply_bard_endless_refrain_verse(&fixture.bard);
     CuAssertPtrEquals(tc, NULL, INNATE_MAGIC(&fixture.bard, CLASS_BARD));
   }
 
@@ -2063,7 +2063,7 @@ void Test_winters_war_march_hits_each_foe_once_with_fortitude_and_cold_resistanc
   GET_REAL_RESISTANCES(&failed_target, DAM_COLD) = 100;
   GET_RESISTANCES(&failed_target, DAM_COLD) = 100;
   circle_srandom(1);
-  test_pulse_bard_winters_war_march(&fixture.bard);
+  test_apply_bard_winters_war_march_verse(&fixture.bard);
 
   CuAssertIntEquals(tc, 1000, GET_HIT(&failed_target));
   CuAssertIntEquals(tc, 1, count_spell_affects(&failed_target, AFFECT_BARD_WINTERS_WAR_MARCH));

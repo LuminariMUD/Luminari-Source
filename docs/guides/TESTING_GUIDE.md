@@ -94,7 +94,7 @@ Phase 00 registry safety and observability is owned by eight production-linked t
 shared fixture source:
 
 - `test_spec_registry_persistence.c` - 10 registry, persistence, loader, and baseline OLC tests;
-- `test_spec_command_pulse.c` - 13 command, activity, auto-pulse, moving-room, and schedule tests;
+- `test_spec_command_pulse.c` - 13 command, activity, automatic-object, moving-room, and schedule tests;
 - `test_spec_combat_secondary.c` - 15 combat-token, ignored-return, shop, quest, and typed-nesting
   tests;
 - `test_spec_registry_validation.c` - 13 immutable metadata, bounds, and boot-failure tests;

@@ -27,9 +27,9 @@ extern "C"
 #define GAIN_EXP_MODE_TRAP 10
 
 /* limits.c functions */
-void pulse_luminari();
-size_t pulse_luminari_room_one(struct room_data *room);
-void pulse_luminari_character_one(struct char_data *ch);
+void process_legacy_luminari_maintenance(void);
+size_t process_room_affect_activity(struct room_data *room);
+void process_character_environment_and_recovery(struct char_data *ch);
 bool death_check(struct char_data *ch);
 int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6);
 void regen_update(struct char_data *ch);

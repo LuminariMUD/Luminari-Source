@@ -17,8 +17,8 @@ int rol_avernus_object_typed(struct spec_event_context *context);
 int rol_avernus_garden(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_avernus_garden_typed(struct spec_event_context *context);
 
-/** Schedule the one authored Avernus garden room binding on the mobile pulse. */
-void rol_avernus_room_pulse(void);
+/** Process the one authored Avernus garden room binding. */
+void rol_avernus_process_garden_activity(void);
 
 /** Compose Avernus lifecycle behavior with the shared monster-combat profile. */
 int rol_avernus_mobile_event(struct spec_event_context *context, struct char_data *mobile);

@@ -288,7 +288,7 @@ void Test_spec_typed_registry_preserves_callback_and_persisted_identities(CuTest
   CuAssertTrue(tc, spec_definition_supports_event(tarrasque_definition, SPEC_OWNER_MOBILE,
                                                   SPEC_EVENT_MOBILE_DEATH));
   CuAssertTrue(tc, spec_definition_supports_event(tarrasque_definition, SPEC_OWNER_OBJECT,
-                                                  SPEC_EVENT_OBJECT_AUTO_PULSE));
+                                                  SPEC_EVENT_OBJECT_AUTOMATIC));
   CuAssertTrue(tc,
                spec_registry_find_by_handler(rol_command_sentinel) == command_sentinel_definition);
   CuAssertTrue(tc, spec_definition_supports_event(command_sentinel_definition, SPEC_OWNER_MOBILE,

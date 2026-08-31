@@ -39,9 +39,9 @@ typed-handler conversion, or composition.
 | Command (room) | `spec_gateway_command_room` | `special()` in `src/interpreter.c` | Consume the command, stop later owner traversal |
 | Command (object) | `spec_gateway_command_object` | `special()` | Same |
 | Command (mobile) | `spec_gateway_command_mobile` | `special()` | Same |
-| Mobile activity | `spec_gateway_mobile_activity` | `mobile_activity()` in `src/mob/mob_act.c` | Skip remaining default activity for this mobile |
+| Mobile activity | `spec_gateway_mobile_activity` | owner-local mobile agenda execution in `src/mob/mob_act.c` | Skip remaining default activity for this mobile |
 | Mobile combat turn | `spec_gateway_mobile_combat_turn` | `perform_violence()` in `src/combat/fight.c` | None; notification only |
-| Object auto-pulse | `spec_gateway_object_auto_pulse` | `proc_update()` in `src/comm.c` | Skip the carried-object fallback invocation |
+| Object automatic activity | `spec_gateway_object_automatic_activity` | object automatic owner execution in `src/comm.c` | Skip the carried-object fallback invocation |
 | Item identify | `spec_gateway_item_identify` | item display in `src/obj/act.item.c` | None; notification only |
 | Weapon hit | `spec_gateway_weapon_hit` | `weapon_special()` in `src/combat/fight.c` | None; raw legacy return is passed through |
 | Defense reaction | `spec_gateway_defense_reaction` | `skill_message()` and total-defense paths in `src/combat/fight.c` | None; notification only |
@@ -56,7 +56,7 @@ Preserved exactly:
 - Command traversal order stays room, equipped objects in wear-slot order, carried objects, mobiles
   in room-list order, then room contents; the first nonzero result still stops later owner
   traversal.
-- `mobile_activity()` still owns the `MOB_SPEC`-without-pointer diagnostic and flag removal; the
+- Mobile activity execution still owns the `MOB_SPEC`-without-pointer diagnostic and flag removal; the
   gateway receives the already-resolved handler so that behavior is not duplicated or moved.
 - `proc_update()` still gates on `ITEM_AUTOPROC` and the zero-value weapon check before the gateway
   runs, and the worn-then-carried fallback ordering is unchanged.
@@ -74,7 +74,7 @@ Data the gateways now capture at the call site, which a handler-side wrapper cou
 | Actual target | weapon hit, defense reaction, combat maneuver, mount charge | The caller's own victim/attacker pointer rather than ambient `FIGHTING()` inference at the handler |
 | Reaction and maneuver identity | defense reaction, combat maneuver | The existing token, now also carried as typed event identity |
 | Moving-room state and destination | moving room | `struct moving_room_data *` and the destination virtual number |
-| Actor versus explicit null | object auto-pulse, moving room | `worn_by` / `carried_by`, and the deliberate null relocation actor |
+| Actor versus explicit null | object automatic activity, moving room | `worn_by` / `carried_by`, and the deliberate null relocation actor |
 
 `damage` and `critical` fields exist in the context but stay zero: the current weapon-hit caller
 never held those values, and Phase 01 does not invent them. They are populated when a consumer
@@ -97,14 +97,14 @@ mobile traversal in `special()` also caches `next_in_room`.
 
 | Test Source | Tests | Contract Owner |
 |-------------|------:|----------------|
-| `unittests/CuTest/test_spec_dispatch.c` | 12 | Gateway translation exactness, gateway-local flow, null-safety, auto-pulse fallback, moving-room nulls, secondary forwarding, and both successor-caching corrections. |
+| `unittests/CuTest/test_spec_dispatch.c` | 12 | Gateway translation exactness, gateway-local flow, null-safety, automatic-activity fallback, moving-room nulls, secondary forwarding, and both successor-caching corrections. |
 | `unittests/CuTest/test_spec_command_pulse.c` | 13 | Unchanged Phase 00 characterization: traversal order, stop rules, `no_specials`, pulse scheduling. Passes without modification. |
 | `unittests/CuTest/test_spec_combat_secondary.c` | 14 | Combat and secondary characterization. Four source-shape assertions were updated to the gateway call shape; every runtime assertion is unchanged. |
 
 Phase 01 test coverage:
 
 - `Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events` - STOP is produced only for
-  command, mobile activity, and object auto-pulse; notification events keep CONTINUE while still
+  command, mobile activity, and object automatic activity; notification events keep CONTINUE while still
   reporting the raw legacy return.
 - `Test_spec_dispatch_legacy_tolerates_missing_handler_context_and_owner` - null handler, null owner,
   and null context are safe and invoke nothing.
@@ -116,7 +116,7 @@ Phase 01 test coverage:
   `"shieldblock"`, `"shieldpunch"`, and `"charge"` reach handlers unchanged with `cmd == 0`.
 - `Test_spec_dispatch_weapon_hit_returns_raw_legacy_value` - the weapon-hit gateway passes the raw
   legacy value through, matching `weapon_special()`.
-- `Test_spec_dispatch_auto_pulse_runs_carried_fallback_only_after_zero` - worn-then-carried fallback
+- `Test_spec_dispatch_automatic_activity_runs_carried_fallback_only_after_zero` - worn-then-carried fallback
   with null actor and both return variations.
 - `Test_spec_dispatch_moving_room_preserves_null_actor_and_argument` - NULL actor and NULL argument
   survive; an unbound or absent room invokes nothing.

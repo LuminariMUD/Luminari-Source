@@ -78,4 +78,18 @@ if ! diff -u "$expected" "$actual"; then
   fail "legacy runtime admission surface changed; remove dependencies instead of adding one"
 fi
 
+# Gameplay APIs describe intent. Pulse terminology is reserved for the physical
+# compatibility tick and perfmon's measurement of that tick.
+gameplay_pulse_definitions=$(
+  rg -n --glob '*.[ch]' \
+    '^[[:space:]]*(static[[:space:]]+)?[A-Za-z_][A-Za-z0-9_ *]*[[:space:]]+(pulse_[A-Za-z0-9_]+|[A-Za-z0-9_]+_pulse)[[:space:]]*\(' \
+    "$project_root/src" \
+    | rg -v '\b(capture_slow_pulse|PERF_log_pulse|PERF_prof_repr_pulse|event_process_compatibility_pulse)[[:space:]]*\(' \
+    || true
+)
+if [[ -n $gameplay_pulse_definitions ]]; then
+  printf '%s\n' "$gameplay_pulse_definitions" >&2
+  fail "gameplay pulse-named API found; name the callback for its responsibility"
+fi
+
 echo "legacy event admission test: PASS"

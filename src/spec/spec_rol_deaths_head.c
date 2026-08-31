@@ -564,7 +564,7 @@ int rol_deaths_head_typed(struct spec_event_context *context)
   if (context->owner_type == SPEC_OWNER_OBJECT)
   {
     seed = context->owner;
-    if (context->event != SPEC_EVENT_OBJECT_AUTO_PULSE ||
+    if (context->event != SPEC_EVENT_OBJECT_AUTOMATIC ||
         !rol_deaths_head_seed_profile(GET_OBJ_VNUM(seed)))
       return FALSE;
     if (!seed->rol_deaths_head_seed_initialized)

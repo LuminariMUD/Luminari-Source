@@ -200,7 +200,7 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   bool command_stops;
   bool activity_stops;
   bool death_stops;
-  bool auto_pulse_stops;
+  bool automatic_activity_stops;
   bool identify_continues;
   bool weapon_hit_continues;
   bool mobile_hit_continues;
@@ -244,12 +244,12 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   (void)spec_dispatch_legacy(&context, spec_dispatch_record);
   death_stops = context.flow == SPEC_FLOW_STOP;
 
-  context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
+  context.event = SPEC_EVENT_OBJECT_AUTOMATIC;
   context.owner_type = SPEC_OWNER_OBJECT;
   context.owner = &fixture.objects[0];
   context.actor = NULL;
   (void)spec_dispatch_legacy(&context, spec_dispatch_record);
-  auto_pulse_stops = context.flow == SPEC_FLOW_STOP;
+  automatic_activity_stops = context.flow == SPEC_FLOW_STOP;
 
   context.event = SPEC_EVENT_ITEM_IDENTIFY;
   context.actor = &fixture.actor;
@@ -277,7 +277,7 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   CuAssertTrue(tc, command_stops);
   CuAssertTrue(tc, activity_stops);
   CuAssertTrue(tc, death_stops);
-  CuAssertTrue(tc, auto_pulse_stops);
+  CuAssertTrue(tc, automatic_activity_stops);
   CuAssertTrue(tc, identify_continues);
   CuAssertTrue(tc, weapon_hit_continues);
   CuAssertTrue(tc, mobile_hit_continues);
@@ -566,7 +566,7 @@ void Test_spec_dispatch_weapon_hit_returns_raw_legacy_value(CuTest *tc)
   CuAssertTrue(tc, missing_weapon_returns_zero);
 }
 
-void Test_spec_dispatch_auto_pulse_runs_carried_fallback_only_after_zero(CuTest *tc)
+void Test_spec_dispatch_automatic_activity_runs_carried_fallback_only_after_zero(CuTest *tc)
 {
   struct spec_dispatch_fixture fixture;
   bool fallback_ran;
@@ -582,7 +582,7 @@ void Test_spec_dispatch_auto_pulse_runs_carried_fallback_only_after_zero(CuTest 
   fixture.objects[0].worn_by = NULL;
   fixture.objects[0].carried_by = &fixture.actor;
 
-  spec_gateway_object_auto_pulse(&fixture.objects[0]);
+  spec_gateway_object_automatic_activity(&fixture.objects[0]);
   fallback_ran = fixture.call_count == 2 &&
                  spec_dispatch_call_is(&fixture, 0, NULL, &fixture.objects[0], 0, "") &&
                  spec_dispatch_call_is(&fixture, 1, &fixture.actor, &fixture.objects[0], 0, "");
@@ -591,7 +591,7 @@ void Test_spec_dispatch_auto_pulse_runs_carried_fallback_only_after_zero(CuTest 
   fixture.return_count = 1;
   fixture.returns[0] = 1;
   fixture.objects[0].worn_by = &fixture.target;
-  spec_gateway_object_auto_pulse(&fixture.objects[0]);
+  spec_gateway_object_automatic_activity(&fixture.objects[0]);
   fallback_skipped = fixture.call_count == 1 && spec_dispatch_call_is(&fixture, 0, &fixture.target,
                                                                       &fixture.objects[0], 0, "");
 

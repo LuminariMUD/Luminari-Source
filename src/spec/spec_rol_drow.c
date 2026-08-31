@@ -251,7 +251,7 @@ int rol_drow_equipment_typed(struct spec_event_context *context)
   if (!rol_drow_equipment_profile(GET_OBJ_VNUM(obj)))
     return FALSE;
 
-  if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
+  if (context->event == SPEC_EVENT_OBJECT_AUTOMATIC)
   {
     if (!obj->rol_drow_decay_initialized)
     {

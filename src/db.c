@@ -930,10 +930,10 @@ static void report_effective_spec_bindings(void)
       {
         const struct spec_definition *def = spec_registry_find_by_handler(obj_index[object].func);
         if (def != NULL && def->typed_handler != NULL &&
-            !spec_definition_supports_event(def, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE))
+            !spec_definition_supports_event(def, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTOMATIC))
         {
           log("SYSERR: Object prototype #%d has ITEM_AUTOPROC flag but special procedure '%s' does "
-              "not support auto-pulse.",
+              "not support automatic activity.",
               obj_index[object].vnum, def->canonical_name);
         }
       }

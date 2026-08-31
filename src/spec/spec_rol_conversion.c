@@ -7686,7 +7686,7 @@ static int rol_weapon_holy_hit(struct char_data *ch, struct obj_data *obj, int s
   return TRUE;
 }
 
-static int rol_weapon_holy_pulse(struct char_data *ch, struct obj_data *obj, int slot)
+static int rol_weapon_holy_sustain(struct char_data *ch, struct obj_data *obj, int slot)
 {
   if (IS_EVIL(ch) || IS_NEUTRAL(ch))
     return rol_weapon_holy_reject(ch, obj, slot);
@@ -8411,8 +8411,8 @@ static int rol_balor_whip(struct spec_event_context *context, struct char_data *
   return TRUE;
 }
 
-static int rol_balor_weapon_pulse(struct spec_event_context *context, struct char_data *ch,
-                                  struct obj_data *obj)
+static int rol_balor_weapon_enforce_owner(struct spec_event_context *context, struct char_data *ch,
+                                          struct obj_data *obj)
 {
   if (rol_balor_weapon_owner_allowed(ch, true))
     return TRUE;
@@ -8468,8 +8468,8 @@ static int rol_gelugon_freeze_spear(struct char_data *ch, struct obj_data *obj,
   return TRUE;
 }
 
-static int rol_gelugon_freeze_spear_pulse(struct spec_event_context *context, struct char_data *ch,
-                                          struct obj_data *obj)
+static int rol_gelugon_freeze_spear_enforce_owner(struct spec_event_context *context,
+                                                  struct char_data *ch, struct obj_data *obj)
 {
   if (ch == NULL || (obj->worn_by != ch && obj->carried_by != ch))
     return FALSE;
@@ -8499,7 +8499,7 @@ static struct char_data *rol_weapon_object_owner(struct obj_data *obj)
   return NULL;
 }
 
-static int rol_astral_forged_pulse(struct obj_data *obj)
+static int rol_astral_forged_refresh_bonus(struct obj_data *obj)
 {
   struct char_data *wearer;
   room_rnum room;
@@ -8591,7 +8591,8 @@ static void rol_torin_restore_prototype(struct obj_data *obj)
     affect_total(wearer);
 }
 
-static int rol_torin_general_pulse(struct spec_event_context *context, struct obj_data *obj)
+static int rol_torin_general_enforce_owner(struct spec_event_context *context,
+                                           struct obj_data *obj)
 {
   struct char_data *owner;
 
@@ -8614,7 +8615,7 @@ static int rol_torin_general_pulse(struct spec_event_context *context, struct ob
   return TRUE;
 }
 
-static int rol_weapon_seelie_staff_pulse(struct char_data *ch, struct obj_data *obj)
+static int rol_weapon_seelie_staff_restore_preparation(struct char_data *ch, struct obj_data *obj)
 {
   int threshold;
 
@@ -8632,8 +8633,8 @@ static int rol_weapon_seelie_staff_pulse(struct char_data *ch, struct obj_data *
   return TRUE;
 }
 
-static int rol_weapon_bhaal_pulse(struct char_data *ch, struct obj_data *obj,
-                                  enum rol_weapon_effect effect)
+static int rol_weapon_bhaal_grant_boon(struct char_data *ch, struct obj_data *obj,
+                                       enum rol_weapon_effect effect)
 {
   static const int mage_spells[] = {SPELL_STRENGTH,     SPELL_HASTE,  SPELL_DETECT_INVIS,
                                     SPELL_DETECT_MAGIC, SPELL_SHIELD, SPELL_FLY};
@@ -8784,7 +8785,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
   return FALSE;
 }
 
-static int rol_weapon_oblivion_pulse(struct char_data *ch, struct obj_data *obj)
+static int rol_weapon_oblivion_invoke(struct char_data *ch, struct obj_data *obj)
 {
   struct char_data *victim;
   int amount;
@@ -9512,36 +9513,36 @@ int rol_weapon_proc_typed(struct spec_event_context *context)
       return rol_weapon_phase6_command(context, profile, ch, obj);
     }
   }
-  if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
+  if (context->event == SPEC_EVENT_OBJECT_AUTOMATIC)
   {
     if (profile->effect == ROL_WEAPON_UM2_ASTRAL_FORGED)
-      return rol_astral_forged_pulse(obj);
+      return rol_astral_forged_refresh_bonus(obj);
     if (profile->effect == ROL_WEAPON_UM2_TORIN_GENERAL ||
         profile->effect == ROL_WEAPON_UM2_TORIN_CHAIN_LIGHTNING)
-      return rol_torin_general_pulse(context, obj);
+      return rol_torin_general_enforce_owner(context, obj);
     if (ch == NULL)
       return FALSE;
     if (profile->effect == ROL_WEAPON_SEELIE_STAFF)
-      return rol_weapon_seelie_staff_pulse(ch, obj);
+      return rol_weapon_seelie_staff_restore_preparation(ch, obj);
     if (profile->effect == ROL_WEAPON_BHAAL_MAGE || profile->effect == ROL_WEAPON_BHAAL_PRIEST)
-      return rol_weapon_bhaal_pulse(ch, obj, profile->effect);
+      return rol_weapon_bhaal_grant_boon(ch, obj, profile->effect);
     if (profile->effect == ROL_WEAPON_TF_OBLIVION)
-      return rol_weapon_oblivion_pulse(ch, obj);
+      return rol_weapon_oblivion_invoke(ch, obj);
     if (profile->effect == ROL_WEAPON_BALOR_WHIP ||
         profile->effect == ROL_WEAPON_BALOR_LIGHTNING_SWORD)
     {
       if (obj->worn_by != ch && obj->carried_by != ch)
         return FALSE;
-      return rol_balor_weapon_pulse(context, ch, obj);
+      return rol_balor_weapon_enforce_owner(context, ch, obj);
     }
     if (profile->effect == ROL_WEAPON_GELUGON_FREEZE_SPEAR)
-      return rol_gelugon_freeze_spear_pulse(context, ch, obj);
+      return rol_gelugon_freeze_spear_enforce_owner(context, ch, obj);
     if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID ||
         (slot = rol_weapon_slot(ch, obj)) < 0)
       return FALSE;
     if (profile->effect == ROL_WEAPON_HOLY)
     {
-      (void)rol_weapon_holy_pulse(ch, obj, slot);
+      (void)rol_weapon_holy_sustain(ch, obj, slot);
       return TRUE;
     }
     if (profile->effect == ROL_WEAPON_KOR_BATTLEAXE)

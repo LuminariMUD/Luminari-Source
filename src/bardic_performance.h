@@ -19,8 +19,8 @@ extern "C"
 extern struct room_data *world;
 extern void clearMemory(struct char_data *ch);
 extern const char *spells[];
-void pulse_bardic_performance(void);
-void pulse_bardic_performance_one(struct char_data *ch);
+void advance_legacy_bardic_performers(void);
+void advance_bardic_performance(struct char_data *ch);
 bool is_valid_performance(int performance_num);
 int can_perform(struct char_data *ch, int performance_num, bool need_check, bool silent);
 int performance_effects(struct char_data *ch, struct char_data *tch, int spellnum,
@@ -36,9 +36,9 @@ void handle_bardic_spell_performance(struct char_data *ch);
 int process_bardic_performance_slot(struct char_data *ch, int slot);
 int get_active_bardic_resonant_voice_bonus(struct char_data *ch);
 #ifdef LUMINARI_CUTEST
-void test_pulse_bard_winters_war_march(struct char_data *ch);
-void test_pulse_bard_symphonic_resonance(struct char_data *ch);
-void test_pulse_bard_endless_refrain(struct char_data *ch);
+void test_apply_bard_winters_war_march_verse(struct char_data *ch);
+void test_apply_bard_symphonic_resonance_verse(struct char_data *ch);
+void test_apply_bard_endless_refrain_verse(struct char_data *ch);
 int test_process_bardic_performance_slot_without_stutter(struct char_data *ch, int slot);
 void test_bardic_instrument_modifiers(const struct obj_data *instrument, int ideal_subtype,
                                       int *difficulty_reduction, int *effectiveness_adjustment);

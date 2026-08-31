@@ -207,7 +207,7 @@ static EVENTFUNC(affected_room_event)
   if (pulse % PULSE_LUMINARI == 0U)
   {
     room_behavior_executions++;
-    room_behavior_nodes_processed += pulse_luminari_room_one(room);
+    room_behavior_nodes_processed += process_room_affect_activity(room);
     if (!room->affected_registered || room->affected_head == NULL ||
         room->affected_event_handle == EVENT_HANDLE_NONE)
     {

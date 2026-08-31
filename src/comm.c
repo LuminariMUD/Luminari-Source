@@ -1190,8 +1190,8 @@ static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd,
 /* game_loop contains the main loop which drives the entire MUD.  It
  * cycles once every 0.10 seconds and is responsible for accepting new
  * new connections, polling existing connections for input, dequeueing
- * output and sending it out to players, and calling "heartbeat" functions
- * such as mobile_activity(). */
+ * output and sending it out to players. Scheduled services own normal gameplay
+ * deadlines; the heartbeat below remains a rollback driver. */
 void game_loop(socket_t local_mother_desc)
 {
   fd_set input_set, output_set, exc_set;
@@ -1869,7 +1869,7 @@ bool object_auto_proc_run_one(struct obj_data *obj)
   if (obj == NULL ||
       (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0))
     return false;
-  spec_gateway_object_auto_pulse(obj);
+  spec_gateway_object_automatic_activity(obj);
   return true;
 }
 
@@ -2483,7 +2483,7 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     break;
   case RUNTIME_SERVICE_MOBILE_ACTIVITY:
     PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "mobile_activity");
-    mobile_activity_pulse((int)(now_tick % (unsigned long)PULSE_MOBILE));
+    mobile_activity_run_legacy_slice((int)(now_tick % (unsigned long)PULSE_MOBILE));
     PERF_PROF_EXIT(pr_mob_activity_);
     break;
   case RUNTIME_SERVICE_MOBILE_PROCEDURES:
@@ -2493,7 +2493,7 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
       proc_update();
       PERF_PROF_EXIT(pr_proc_update_);
     }
-    rol_avernus_room_pulse();
+    rol_avernus_process_garden_activity();
     break;
   case RUNTIME_SERVICE_ENCOUNTER_ROUND:
     if (!affected_owner_events_enabled())
@@ -2508,12 +2508,12 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     break;
   case RUNTIME_SERVICE_LUMINARI:
     PERF_note_schedule(PERF_SCHEDULE_5_SECONDS);
-    PERF_PROF_ENTER_SAMPLED(pr_lum_, "pulse_luminari");
-    pulse_luminari();
+    PERF_PROF_ENTER_SAMPLED(pr_lum_, "legacy_luminari_maintenance");
+    process_legacy_luminari_maintenance();
     PERF_PROF_EXIT(pr_lum_);
     break;
   case RUNTIME_SERVICE_BARDIC:
-    pulse_bardic_performance();
+    advance_legacy_bardic_performers();
     break;
   case RUNTIME_SERVICE_HINTS:
     show_hints();
@@ -3015,7 +3015,7 @@ void heartbeat(int heart_pulse)
   {
     /* Boot-time rollback path. The scheduled and heartbeat paths are exclusive. */
     PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "mobile_activity");
-    mobile_activity_pulse(heart_pulse);
+    mobile_activity_run_legacy_slice(heart_pulse);
     PERF_PROF_EXIT(pr_mob_activity_);
   }
 
@@ -3028,7 +3028,7 @@ void heartbeat(int heart_pulse)
       proc_update();
       PERF_PROF_EXIT(pr_proc_update_);
     }
-    rol_avernus_room_pulse();
+    rol_avernus_process_garden_activity();
   }
 
   /* this is the rate of a combat round before event-driven combat */
@@ -3056,15 +3056,15 @@ void heartbeat(int heart_pulse)
   if (!(pulse % PULSE_LUMINARI) &&
       (!affected_owner_events_enabled() || !character_periodic_events_enabled()))
   { /* 5 sec */
-    PERF_PROF_ENTER_SAMPLED(pr_lum_, "pulse_luminari");
-    pulse_luminari(); // limits.c
+    PERF_PROF_ENTER_SAMPLED(pr_lum_, "legacy_luminari_maintenance");
+    process_legacy_luminari_maintenance();
     PERF_PROF_EXIT(pr_lum_);
   }
 
   /* last time I checked this was every 11 seconds */
   if (!(pulse % PULSE_VERSE_INTERVAL) && !character_periodic_events_enabled())
   {
-    pulse_bardic_performance();
+    advance_legacy_bardic_performers();
   }
 
   /* every 300 sec show a random hint if they have it toggled */

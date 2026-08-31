@@ -1,6 +1,6 @@
 /**************************************************************************
  *  File: mob_act.c                                   Part of LuminariMUD *
- *  Usage: Main mobile activity loop and coordination                     *
+ *  Usage: Mobile agenda behavior execution and legacy rollback           *
  *  Rewritten by Zusuk                                                    *
  *                                                                         *
  *  All rights reserved.  See license for complete information.           *
@@ -47,7 +47,7 @@ bool mob_knows_assigned_spells(struct char_data *ch);
 
 static struct char_data *mobile_activity_cursor = NULL;
 static size_t mobile_activity_nodes_remaining = 0;
-static int mobile_activity_pulses_remaining = 0;
+static int legacy_mobile_activity_slices_remaining = 0;
 static bool mobile_activity_cursor_running = false;
 
 #define MOBILE_WORK_LEGACY_ALL UINT32_MAX
@@ -706,7 +706,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
   return ch;
 }
 
-void mobile_activity(void)
+void mobile_activity_run_legacy_cycle(void)
 {
   run_mobile_activity(character_list, (size_t)-1, NULL, MOBILE_WORK_LEGACY_ALL);
 }
@@ -727,7 +727,7 @@ void mobile_activity_reset(void)
 {
   mobile_activity_cursor = NULL;
   mobile_activity_nodes_remaining = 0;
-  mobile_activity_pulses_remaining = 0;
+  legacy_mobile_activity_slices_remaining = 0;
   mobile_activity_cursor_running = false;
 }
 
@@ -743,7 +743,7 @@ void mobile_activity_forget_character(struct char_data *ch)
     mobile_activity_nodes_remaining = 0;
 }
 
-void mobile_activity_pulse(int heart_pulse)
+void mobile_activity_run_legacy_slice(int heart_pulse)
 {
   int cycle_pulse;
   size_t node_budget;
@@ -754,17 +754,17 @@ void mobile_activity_pulse(int heart_pulse)
   if (cycle_pulse < 0)
     cycle_pulse += PULSE_MOBILE;
 
-  if (cycle_pulse == 0 || mobile_activity_pulses_remaining <= 0)
+  if (cycle_pulse == 0 || legacy_mobile_activity_slices_remaining <= 0)
   {
     mobile_activity_cursor = character_list;
     mobile_activity_nodes_remaining = count_mobile_activity_nodes();
-    mobile_activity_pulses_remaining = PULSE_MOBILE;
+    legacy_mobile_activity_slices_remaining = PULSE_MOBILE;
   }
 
   if (mobile_activity_nodes_remaining > 0 && mobile_activity_cursor != NULL)
   {
-    node_budget = mobile_activity_nodes_remaining / (size_t)mobile_activity_pulses_remaining;
-    if (mobile_activity_nodes_remaining % (size_t)mobile_activity_pulses_remaining != 0)
+    node_budget = mobile_activity_nodes_remaining / (size_t)legacy_mobile_activity_slices_remaining;
+    if (mobile_activity_nodes_remaining % (size_t)legacy_mobile_activity_slices_remaining != 0)
       node_budget++;
 
     total_nodes_visited = 0;
@@ -786,5 +786,5 @@ void mobile_activity_pulse(int heart_pulse)
       mobile_activity_nodes_remaining -= total_nodes_visited;
   }
 
-  mobile_activity_pulses_remaining--;
+  legacy_mobile_activity_slices_remaining--;
 }

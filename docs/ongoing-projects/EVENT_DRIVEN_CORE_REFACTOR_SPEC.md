@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration and production-scale scheduling correction are in progress; irreversible removal gate pending
-**Document version:** 1.30
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration, production-scale scheduling correction, and intent naming are implemented; irreversible removal gate pending
+**Document version:** 1.31
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas, active DG/trail registries, and constant-time domain owner resolution are implemented; final acceptance validation, intent naming, and the irreversible removal gate remain
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas, active DG/trail registries, constant-time domain owner resolution, and gameplay intent naming are implemented; final adversarial acceptance and the irreversible removal gate remain
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -44,6 +44,11 @@
 > lifecycle phase. Character and object handles resolve through
 > generation-keyed lifecycle registries rather than global population scans,
 > and NPC movement no longer fans arrival reactions out to unrelated NPCs.
+> Gameplay callbacks now describe their domain responsibility rather than the
+> heartbeat cadence that historically invoked them. Whole-population entry
+> points are explicitly named as legacy rollback, and a source contract rejects
+> new gameplay `pulse_*` or `*_pulse` function definitions while retaining the
+> small exact set of physical timing and performance pulse APIs.
 > Runtime ticks now derive from monotonic elapsed time independently of a pulse
 > callback. The reactor sleeps to the nearest I/O, scheduler, or queued
 > `WAIT_STATE` deadline, and deferred extraction has an explicit safe point.
@@ -2462,3 +2467,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.28 | 2026-08-31 | Recorded the DG time-trigger and movement-trail registry implementation plus the first copied production-world boot. That boot invalidated the accepted per-character periodic capacity assumption: synchronized owner callbacks exceed the 32,768 subsystem ceiling, and merely doubling that ceiling consumes queue capacity without changing work. A production-scale cadence/ownership correction is now a blocking gate before this registry slice can be accepted. |
 | 1.29 | 2026-08-31 | Rejected full-population recurring owners as distributed polling after a 61,000-NPC copied-world run produced about 20 million callbacks in eleven minutes at about 97% CPU. Made explicit pending work, rather than entity existence, the mandatory admission predicate; defined typed NPC responsibilities and lifecycle wake/retire rules; retained off-screen wandering, hunts, scripts, and wars without player-proximity gating; and prohibited normal callbacks from rediscovering work through global population scans. |
 | 1.30 | 2026-09-01 | Implemented and production-validated demand-driven autonomous agendas. Explicit bootstrap suppressed false arrival reactions; immutable owner payloads, external scheduled-mobile state, and owner-wide cancellation made extraction safe; generation-keyed character/object registries removed hidden resolution scans; and NPC movement ceased waking unrelated observers. A copied-world run retained about 39,000 real agendas while settling at 2.6% CPU with zero ready backlog, overdue pulses, late callbacks, registry mismatches, or stale-owner outcomes. |
+| 1.31 | 2026-09-01 | Renamed gameplay pulse-oriented functions and object automatic-event vocabulary according to domain intent while preserving cadence, ordering, flags, and behavior. Whole-population entry points now advertise legacy rollback, and the admission policy rejects new gameplay pulse-named definitions outside an exact infrastructure allowlist. |

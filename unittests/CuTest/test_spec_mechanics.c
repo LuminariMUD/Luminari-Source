@@ -1867,7 +1867,7 @@ void Test_spec_rol_deaths_head_initializes_tree_and_grows_carried_seed(CuTest *t
   GET_MOB_RNUM(&fixture.actor) = 0;
   GET_MOB_RNUM(&fixture.target) = 0;
   context.owner_type = SPEC_OWNER_OBJECT;
-  context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
+  context.event = SPEC_EVENT_OBJECT_AUTOMATIC;
   context.owner = &seed;
   context.actor = NULL;
   CuAssertIntEquals(tc, FALSE, rol_deaths_head_typed(&context));
@@ -2694,7 +2694,7 @@ void Test_spec_rol_undermountain_forged_pulses_and_chain_profile(CuTest *tc)
   IN_ROOM(&fixture.worn) = 0;
   memset(&context, 0, sizeof(context));
   context.owner_type = SPEC_OWNER_OBJECT;
-  context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
+  context.event = SPEC_EVENT_OBJECT_AUTOMATIC;
   context.owner = &fixture.worn;
   CuAssertIntEquals(tc, TRUE, rol_weapon_proc_typed(&context));
   CuAssertIntEquals(tc, APPLY_HITROLL, fixture.worn.affected[0].location);
@@ -3052,7 +3052,7 @@ void Test_spec_rol_undermountain_lifecycle_profiles_preserve_source_contracts(Cu
   GET_OBJ_RNUM(&fixture.copy) = 0;
   memset(&context, 0, sizeof(context));
   context.owner_type = SPEC_OWNER_OBJECT;
-  context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
+  context.event = SPEC_EVENT_OBJECT_AUTOMATIC;
   context.owner = &fixture.copy;
   CuAssertIntEquals(tc, FALSE, rol_utility_object_typed(&context));
   CuAssertTrue(tc, OBJ_FLAGGED(&fixture.copy, ITEM_DECAY));

@@ -327,7 +327,7 @@ void room_aff_tick(struct raff_node *raff)
   }
 }
 
-/* engine for 'afflictions' related to pulse_luminari */
+/* Advance character afflictions during environment and recovery work. */
 void affliction_tick(struct char_data *ch)
 {
   /* cloudkill */
@@ -496,16 +496,7 @@ void hazard_tick(struct char_data *ch)
   }
 }
 
-/*  pulse_luminari was built to throw in customized Luminari
- *  procedures that we want called in a similar manner as the
- *  other pulses.  The whole concept was created before I had
- *  a full grasp on the event system, otherwise it would have
- *  been implemented differently.  -Zusuk
- *
- *  Also should be noted, its nice to keep this off-beat with
- *  PULSE_VIOLENCE, it has a little nicer feel to it
- */
-size_t pulse_luminari_room_one(struct room_data *room)
+size_t process_room_affect_activity(struct room_data *room)
 {
   struct raff_node *raff;
   struct raff_node *next_raff;
@@ -522,7 +513,7 @@ size_t pulse_luminari_room_one(struct room_data *room)
   return processed;
 }
 
-void pulse_luminari_character_one(struct char_data *ch)
+void process_character_environment_and_recovery(struct char_data *ch)
 {
   if (ch == NULL)
     return;
@@ -562,7 +553,7 @@ void pulse_luminari_character_one(struct char_data *ch)
   if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_BARD) > 0 && FIGHTING(ch) && IS_PERFORMING(ch) &&
       has_bard_sustaining_melody(ch))
   {
-    /* 20% chance per five-second Luminari pulse to recover one Bard slot. */
+    /* 20% chance per five-second character-maintenance run to recover one Bard slot. */
     if (rand_number(1, 100) <= 20)
     {
       if (sustain_melody_recover_one_slot(ch, CLASS_BARD))
@@ -576,7 +567,7 @@ void pulse_luminari_character_one(struct char_data *ch)
   grapple_cleanup(ch);
 }
 
-void pulse_luminari()
+void process_legacy_luminari_maintenance(void)
 {
   struct char_data *ch;
   struct char_data *next_ch;
@@ -597,7 +588,7 @@ void pulse_luminari()
     for (ch = character_list; ch != NULL; ch = next_ch)
     {
       next_ch = ch->next;
-      pulse_luminari_character_one(ch);
+      process_character_environment_and_recovery(ch);
     }
   }
 }

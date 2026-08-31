@@ -1639,7 +1639,7 @@ int process_bardic_performance_slot(struct char_data *ch, int slot)
   return process_bardic_performance_slot_internal(ch, slot, TRUE);
 }
 
-static void pulse_bard_winters_war_march(struct char_data *ch)
+static void apply_bard_winters_war_march_verse(struct char_data *ch)
 {
   struct char_data *tch;
   struct char_data *next_tch;
@@ -1688,7 +1688,7 @@ static void pulse_bard_winters_war_march(struct char_data *ch)
   }
 }
 
-static void pulse_bard_symphonic_resonance(struct char_data *ch)
+static void apply_bard_symphonic_resonance_verse(struct char_data *ch)
 {
   int temp_hp_dice;
   int temp_hp;
@@ -1707,7 +1707,7 @@ static void pulse_bard_symphonic_resonance(struct char_data *ch)
   }
 }
 
-static void pulse_bard_endless_refrain(struct char_data *ch)
+static void apply_bard_endless_refrain_verse(struct char_data *ch)
 {
   int slot_regen;
   int recovered;
@@ -1729,19 +1729,19 @@ static void pulse_bard_endless_refrain(struct char_data *ch)
 }
 
 #ifdef LUMINARI_CUTEST
-void test_pulse_bard_winters_war_march(struct char_data *ch)
+void test_apply_bard_winters_war_march_verse(struct char_data *ch)
 {
-  pulse_bard_winters_war_march(ch);
+  apply_bard_winters_war_march_verse(ch);
 }
 
-void test_pulse_bard_symphonic_resonance(struct char_data *ch)
+void test_apply_bard_symphonic_resonance_verse(struct char_data *ch)
 {
-  pulse_bard_symphonic_resonance(ch);
+  apply_bard_symphonic_resonance_verse(ch);
 }
 
-void test_pulse_bard_endless_refrain(struct char_data *ch)
+void test_apply_bard_endless_refrain_verse(struct char_data *ch)
 {
-  pulse_bard_endless_refrain(ch);
+  apply_bard_endless_refrain_verse(ch);
 }
 
 int test_process_bardic_performance_slot_without_stutter(struct char_data *ch, int slot)
@@ -1758,7 +1758,7 @@ void test_bardic_instrument_modifiers(const struct obj_data *instrument, int ide
 #endif
 
 /* Process every active performer. Linkless players are stopped; NPCs can use this engine directly. */
-void pulse_bardic_performance_one(struct char_data *ch)
+void advance_bardic_performance(struct char_data *ch)
 {
   if (ch == NULL || !IS_PERFORMING(ch))
     return;
@@ -1814,16 +1814,16 @@ void pulse_bardic_performance_one(struct char_data *ch)
 
   /* Tier 4 Warchanter: room-wide cold damage and slow once per verse. */
   if (!IS_NPC(ch) && IS_PERFORMING(ch))
-    pulse_bard_winters_war_march(ch);
+    apply_bard_winters_war_march_verse(ch);
 
   /* Tier 4 Spellsinger: Symphonic Resonance - grant temporary HP each verse. */
-  pulse_bard_symphonic_resonance(ch);
+  apply_bard_symphonic_resonance_verse(ch);
 
   /* Tier 4 Spellsinger: Endless Refrain - recover one Bard slot each verse. */
-  pulse_bard_endless_refrain(ch);
+  apply_bard_endless_refrain_verse(ch);
 }
 
-void pulse_bardic_performance()
+void advance_legacy_bardic_performers(void)
 {
   struct char_data *ch;
   struct char_data *next_ch;
@@ -1831,7 +1831,7 @@ void pulse_bardic_performance()
   for (ch = character_list; ch; ch = next_ch)
   {
     next_ch = ch->next;
-    pulse_bardic_performance_one(ch);
+    advance_bardic_performance(ch);
   }
 }
 

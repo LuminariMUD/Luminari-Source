@@ -108,10 +108,11 @@ Two production-only costs found during live validation were also removed:
 
 ## 4. Remaining Work
 
-A behavior-preserving intent audit follows. It will rename or narrowly
-decompose misleading cadence-oriented functions such as `pulse_*` according to
-their gameplay responsibility, without changing timing or rules. Establish
-Camp's historical Survival/Nature decision remains explicitly deferred.
+Phase 11l completed the behavior-preserving intent audit. Gameplay functions
+now describe their responsibility, whole-population paths advertise legacy
+rollback, and a source contract rejects new gameplay pulse-named definitions.
+Establish Camp's historical Survival/Nature decision remains explicitly
+deferred.
 
 The physical legacy queue, backend and reactor selectors, compatibility
 heartbeat, legacy persistence writer, and archival PubSub schema remain behind

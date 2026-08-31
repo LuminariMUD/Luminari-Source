@@ -1,6 +1,6 @@
 /**************************************************************************
  *  File: mob_act.h                                   Part of LuminariMUD *
- *  Usage: Main header for mobile activity coordination                   *
+ *  Usage: Mobile agenda behavior execution and legacy rollback           *
  *                                                                         *
  *  All rights reserved.  See license for complete information.           *
  *                                                                         *
@@ -21,7 +21,7 @@
 #include "mob_class.h"
 #include "mob_spells.h"
 
-/* Main mobile activity function */
+/* Concrete autonomous-work reasons used by owner-local agendas. */
 typedef uint32_t mobile_work_mask;
 
 enum mobile_work_reason
@@ -45,14 +45,14 @@ enum mobile_work_reason
 #define MOBILE_WORK_FIXED_CADENCE_MASK                                                     \
   (MOBILE_WORK_RECURRING_MASK & ~MOBILE_WORK_WANDER)
 
-void mobile_activity(void);
+void mobile_activity_run_legacy_cycle(void);
 void mobile_activity_run_one(struct char_data *ch);
 void mobile_activity_run_scheduled(struct char_data *ch, mobile_work_mask reasons);
 mobile_work_mask mobile_activity_recurring_reasons(struct char_data *ch);
 mobile_work_mask mobile_activity_room_reaction_reasons(const struct char_data *ch);
 mobile_work_mask mobile_activity_combat_reaction_reasons(const struct char_data *ch);
 long mobile_activity_next_wander_delay(void);
-void mobile_activity_pulse(int heart_pulse);
+void mobile_activity_run_legacy_slice(int heart_pulse);
 void mobile_activity_reset(void);
 void mobile_activity_forget_character(struct char_data *ch);
 

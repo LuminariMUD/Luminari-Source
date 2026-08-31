@@ -169,7 +169,7 @@ void clear_grapple(struct char_data *ch, struct char_data *vict)
   }
 }
 
-/* called by pulse_luminari to make sure we don't have extraneous funky
+/* Called by character maintenance to make sure we don't have extraneous funky
    grappling situations */
 void grapple_cleanup(struct char_data *ch)
 {

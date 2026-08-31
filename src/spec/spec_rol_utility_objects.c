@@ -403,7 +403,7 @@ static int rol_utility_hyssk_skeleton(struct char_data *ch, struct obj_data *obj
 static int rol_utility_tattered_cloak(struct spec_event_context *context, struct char_data *ch,
                                       struct obj_data *obj)
 {
-  if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
+  if (context->event == SPEC_EVENT_OBJECT_AUTOMATIC)
   {
     if (ch != NULL && obj->worn_by == ch)
       GET_OBJ_VAL(obj, 3) = MIN(144, GET_OBJ_VAL(obj, 3) + 1);
@@ -1202,7 +1202,7 @@ int rol_utility_object_typed(struct spec_event_context *context)
       GET_OBJ_VNUM(obj) == ROL_SMOKE_STUN_SHIELD_VNUM && context->actor != NULL)
     return rol_utility_smoke_shield(context, context->actor, obj);
 
-  if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
+  if (context->event == SPEC_EVENT_OBJECT_AUTOMATIC)
   {
     if (rol_utility_acheron_portal_vnum(GET_OBJ_VNUM(obj)) &&
         GET_OBJ_VNUM(obj) != ROL_ACHERON_ENTRANCE_PORTAL_VNUM)

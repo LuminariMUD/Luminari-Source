@@ -305,13 +305,13 @@ static bool dispatch_due_work(struct char_data *ch)
       cadence_due(ch, PULSE_LUMINARI))
   {
     luminari_executions++;
-    pulse_luminari_character_one(ch);
+    process_character_environment_and_recovery(ch);
   }
   if (callback_owner_still_live() && IS_PERFORMING(ch) &&
       cadence_due(ch, PULSE_VERSE_INTERVAL))
   {
     bardic_executions++;
-    pulse_bardic_performance_one(ch);
+    advance_bardic_performance(ch);
   }
   if (callback_owner_still_live() && ch->desc != NULL && !IS_NPC(ch) &&
       cadence_due(ch, PULSE_HINTS))

@@ -1062,7 +1062,7 @@ void Test_gameplay_e2e_winters_war_march_failed_save_slow_expires(CuTest *tc)
   forced_failure.duration = 1;
   affect_to_char(bard, &forced_failure);
 
-  test_pulse_bard_winters_war_march(bard);
+  test_apply_bard_winters_war_march_verse(bard);
 
   slow_duration = -1;
   for (effect = fixture.victim.affected; effect; effect = effect->next)

@@ -2,6 +2,25 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Gameplay event intent naming
+
+#### Changed
+
+- Renamed Luminari maintenance, bardic performance, object automatic special
+  events, and RoL content callbacks according to the gameplay responsibility
+  they perform instead of their historical pulse cadence.
+- Marked whole-population mobile and Luminari entry points explicitly as legacy
+  rollback paths; normal scheduling continues to invoke owner-local work.
+- Retained pulse vocabulary only for duration constants, the physical legacy
+  timed-event tick, and reactor/performance pulse measurements.
+
+#### Tests
+
+- Added a source admission contract that rejects new gameplay functions named
+  `pulse_*` or `*_pulse` outside the exact infrastructure allowlist.
+- Retained the object automatic-event flag's numeric value and verified all
+  1,046 production-linked tests after the behavior-preserving rename.
+
 ### Demand-driven autonomous world correction
 
 #### Changed

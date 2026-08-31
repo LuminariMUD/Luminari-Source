@@ -102,7 +102,7 @@ static void rol_tarrasque_sudden_death(struct char_data *victim, struct char_dat
   die(victim, killer);
 }
 
-static int rol_tarrasque_stomach_pulse(struct obj_data *acid)
+static int rol_tarrasque_apply_stomach_acid(struct obj_data *acid)
 {
   struct char_data *target;
   struct char_data *next;
@@ -417,8 +417,8 @@ int rol_tarrasque_typed(struct spec_event_context *context)
   switch (GET_OBJ_VNUM(obj))
   {
   case ROL_TARRASQUE_STOMACH_ACID_VNUM:
-    if (context->event == SPEC_EVENT_OBJECT_AUTO_PULSE)
-      return rol_tarrasque_stomach_pulse(obj);
+    if (context->event == SPEC_EVENT_OBJECT_AUTOMATIC)
+      return rol_tarrasque_apply_stomach_acid(obj);
     break;
   case ROL_TARRASQUE_CORPSE_VNUM:
     if (context->event == SPEC_EVENT_COMMAND)

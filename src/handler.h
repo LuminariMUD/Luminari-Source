@@ -158,8 +158,8 @@ int generic_find(const char *arg, bitvector_t bitvector, struct char_data *ch,
 /* prototypes from mobact.c */
 void forget(struct char_data *ch, struct char_data *victim);
 void remember(struct char_data *ch, struct char_data *victim);
-void mobile_activity(void);
-void mobile_activity_pulse(int heart_pulse);
+void mobile_activity_run_legacy_cycle(void);
+void mobile_activity_run_legacy_slice(int heart_pulse);
 void mobile_echos(struct char_data *ch);
 void clearMemory(struct char_data *ch);
 
