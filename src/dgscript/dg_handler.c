@@ -24,6 +24,7 @@
 #include "dg_event.h"
 #include "constants.h"
 #include "periodic_owners.h"
+#include "point_update_periodic.h"
 
 #define DG_RANDOM_OWNER_TYPES 3
 
@@ -95,6 +96,8 @@ void dg_script_bind_owner(struct script_data *script, void *owner, int owner_typ
   script->owner_type = (byte)owner_type;
   script->owner_vnum = owner_type == WLD_TRIGGER ? ((struct room_data *)owner)->number : NOWHERE;
   dg_random_registry_sync(script);
+  if (owner_type == OBJ_TRIGGER)
+    point_update_object_sync(owner);
 }
 
 void *dg_random_registry_resolve_owner(struct script_data *script)
@@ -356,6 +359,8 @@ void extract_script(struct script_data **script)
   sc = *script;
   *script = NULL;
   dg_random_registry_remove(sc);
+  if (sc->owner_type == OBJ_TRIGGER)
+    point_update_object_sync(sc->owner);
 
   /* zusuk disabled this debug 10/15/2017 */
 #if 0 /* debugging */

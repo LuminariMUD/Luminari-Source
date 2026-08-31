@@ -60,6 +60,7 @@
 #include "perfmon.h"
 #include "rol_feats.h"
 #include "domain_event_runtime.h"
+#include "point_update_periodic.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -12377,6 +12378,7 @@ void imbued_arrow(struct char_data *ch, struct char_data *vict, struct obj_data 
 
   /* clear the imbued spell on the arrow */
   GET_OBJ_VAL(missile, 1) = 0;
+  point_update_object_sync(missile);
 
   return;
 }

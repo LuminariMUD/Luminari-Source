@@ -44,6 +44,7 @@
 #include "perfmon.h"
 #include "affected_owners.h"
 #include "mysql.h"
+#include "point_update_periodic.h"
 
 // external
 extern struct raff_node *raff_list;
@@ -14425,6 +14426,7 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int s
     if (IS_CORPSE(obj))
     {
       GET_OBJ_TIMER(obj) += MAX(1, level * (GET_OBJ_VAL(obj, 4) ? 3 : 1));
+      point_update_object_sync(obj);
       to_char = "A cool stillness settles over $p, slowing its decay.";
     }
     break;
@@ -14432,6 +14434,7 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int s
     if (IS_CORPSE(obj))
     {
       GET_OBJ_TIMER(obj) += MAX(1, level * 20);
+      point_update_object_sync(obj);
       to_char = "A dark preservative sheen settles over $p.";
     }
     break;
@@ -14840,6 +14843,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     /* set it to a tick duration */
     GET_OBJ_TIMER(tobj) = 2;
     GET_OBJ_TIMER(portal) = 2;
+    point_update_object_sync(tobj);
+    point_update_object_sync(portal);
     /* set it to a normal portal */
     tobj->obj_flags.value[0] = PORTAL_NORMAL;
     portal->obj_flags.value[0] = PORTAL_NORMAL;
@@ -14886,6 +14891,8 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     /* set it to a tick duration */
     GET_OBJ_TIMER(tobj) = 2;
     GET_OBJ_TIMER(portal) = 2;
+    point_update_object_sync(tobj);
+    point_update_object_sync(portal);
     /* set it to a normal portal */
     tobj->obj_flags.value[0] = PORTAL_NORMAL;
     portal->obj_flags.value[0] = PORTAL_NORMAL;

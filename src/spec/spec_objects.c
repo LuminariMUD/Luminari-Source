@@ -45,6 +45,7 @@
 #include "spec/spec_context.h"
 #include "spec/spec_cooldown.h"
 #include "spec/spec_phrase.h"
+#include "point_update_periodic.h"
 
 /*****************************************/
 /****  object procs general functions ****/
@@ -391,7 +392,7 @@ SPECIAL(ches)
       act("\tC$n whispers to $s $p", FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
 
       call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_WEAPON_SPELL);
-      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
+      point_update_object_spec_timer_set((struct obj_data *)me, 0, 12);
       return TRUE;
     }
   }
@@ -455,7 +456,7 @@ SPECIAL(courage)
     if (is_wearing(ch, UPGRADED_COURAGE_MACE))
       call_magic(ch, ch, NULL, SPELL_PRAYER, 0, wpn_level, CAST_WEAPON_SPELL);
 
-    GET_OBJ_SPECTIMER(courage, 0) = 72;
+    point_update_object_spec_timer_set(courage, 0, 72);
     return TRUE;
   }
 
@@ -755,7 +756,7 @@ SPECIAL(haste_bracers)
           "\tW$n moves with \tCl\tci\tCg\tch\tCt\tW speed.\tn\r\n",
           FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
       call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_WEAPON_SPELL);
-      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 84;
+      point_update_object_spec_timer_set((struct obj_data *)me, 0, 84);
       return TRUE;
     }
   }
@@ -1481,7 +1482,7 @@ SPECIAL(fog_dagger)
       stop_fighting(vict);
       clearMemory(vict);
 
-      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
+      point_update_object_spec_timer_set((struct obj_data *)me, 0, 24);
       return TRUE;
     }
     // Now check if they are trying to backstab
@@ -1624,7 +1625,7 @@ SPECIAL(spiderdagger)
       call_magic(ch, ch, 0, SPELL_NON_DETECTION, 0, 30, CAST_WEAPON_SPELL);
       call_magic(ch, ch, 0, SPELL_CIRCLE_A_GOOD, 0, 30, CAST_WEAPON_SPELL);
 
-      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
+      point_update_object_spec_timer_set((struct obj_data *)me, 0, 24);
       return TRUE;
     }
   }
@@ -1765,7 +1766,7 @@ SPECIAL(whisperwind)
         GET_MAX_HIT(pet) = GET_MAX_HIT(ch);
         GET_HIT(pet) = GET_MAX_HIT(pet);
 
-        GET_OBJ_SPECTIMER(whisperwind, 1) = 72;
+        point_update_object_spec_timer_set(whisperwind, 1, 72);
 
         return TRUE;
       }
@@ -1838,7 +1839,7 @@ SPECIAL(whisperwind)
           break;
       }
 
-      GET_OBJ_SPECTIMER(whisperwind, 0) = 24;
+      point_update_object_spec_timer_set(whisperwind, 0, 24);
 
       return TRUE; /* end for */
     } /* end if-fighting */
@@ -1898,7 +1899,7 @@ SPECIAL(whisperwind)
             break;
         }
 
-        GET_OBJ_SPECTIMER(whisperwind, 2) = 6;
+        point_update_object_spec_timer_set(whisperwind, 2, 6);
 
         return TRUE;
       }
@@ -1982,7 +1983,7 @@ SPECIAL(ancient_moonblade)
         GET_MAX_HIT(pet) = GET_MAX_HIT(ch);
         GET_HIT(pet) = GET_MAX_HIT(pet);
 
-        GET_OBJ_SPECTIMER(whisperwind, 1) = 72;
+        point_update_object_spec_timer_set(whisperwind, 1, 72);
 
         return TRUE;
       }
@@ -2055,7 +2056,7 @@ SPECIAL(ancient_moonblade)
           break;
       }
 
-      GET_OBJ_SPECTIMER(whisperwind, 0) = 24;
+      point_update_object_spec_timer_set(whisperwind, 0, 24);
 
       return TRUE; /* end for */
     } /* end if-fighting */
@@ -2115,7 +2116,7 @@ SPECIAL(ancient_moonblade)
             break;
         }
 
-        GET_OBJ_SPECTIMER(whisperwind, 2) = 6;
+        point_update_object_spec_timer_set(whisperwind, 2, 6);
 
         return TRUE;
       }
@@ -2190,7 +2191,7 @@ SPECIAL(celestial_sword)
       /* think we're good, lets fire! */
       if (call_magic(ch, ch, obj, SPELL_RESURRECT, 0, 30, CAST_WEAPON_SPELL))
       {
-        GET_OBJ_SPECTIMER(celestial, 0) = 48;
+        point_update_object_spec_timer_set(celestial, 0, 48);
         return TRUE;
       }
     } /* end for loop */
@@ -2242,7 +2243,7 @@ SPECIAL(celestial_sword)
 
     if (found)
     {
-      GET_OBJ_SPECTIMER(celestial, 0) = 96;
+      point_update_object_spec_timer_set(celestial, 0, 96);
       return TRUE;
     }
 
@@ -2254,7 +2255,7 @@ SPECIAL(celestial_sword)
     call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL);
     call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL);
     call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL);
-    GET_OBJ_SPECTIMER(celestial, 0) = 12;
+    point_update_object_spec_timer_set(celestial, 0, 12);
 
     return TRUE; /* made it! */
   }
@@ -2925,7 +2926,7 @@ SPECIAL(air_sphere)
 
       call_magic(ch, 0, 0, SPELL_CHAIN_LIGHTNING, 0, 20, CAST_WEAPON_SPELL);
 
-      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
+      point_update_object_spec_timer_set((struct obj_data *)me, 0, 24);
       return TRUE;
     }
   }
@@ -3568,7 +3569,7 @@ SPECIAL(angel_leggings)
 
     call_magic(ch, ch, 0, SPELL_FLY, 0, 30, CAST_WEAPON_SPELL);
 
-    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
+    point_update_object_spec_timer_set((struct obj_data *)me, 0, 48);
 
     return TRUE;
   }
@@ -3642,7 +3643,7 @@ SPECIAL(dragon_robes)
 
     call_magic(ch, ch, 0, SPELL_DISPLACEMENT, 0, 30, CAST_WEAPON_SPELL);
 
-    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
+    point_update_object_spec_timer_set((struct obj_data *)me, 0, 48);
 
     return TRUE;
   }
@@ -3760,7 +3761,7 @@ SPECIAL(clang_bracer)
                     "blow clear as if it were yesterday.  You feel your muscles tighten "
                     "then relax as the skill of ancient warriors is merged with your own.\r\n");
       call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, 30, CAST_WEAPON_SPELL);
-      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
+      point_update_object_spec_timer_set((struct obj_data *)me, 0, 24);
       return TRUE;
     }
   }

@@ -29,6 +29,7 @@
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act.h"
 #include "modify.h"
+#include "point_update_periodic.h"
 
 /* Enable this to debug DG script parameter corruption issues */
 /* #define SCRIPT_DEBUG */
@@ -1055,6 +1056,8 @@ void add_trigger(struct script_data *sc, trig_data *t, int loc)
 
   SCRIPT_TYPES(sc) |= GET_TRIG_TYPE(t);
   dg_random_registry_sync(sc);
+  if (sc->owner_type == OBJ_TRIGGER)
+    point_update_object_sync(sc->owner);
 
   t->next_in_world = trigger_list;
   trigger_list = t;
@@ -1292,6 +1295,8 @@ static int remove_trigger(struct script_data *sc, char *name)
     for (i = TRIGGERS(sc); i; i = i->next)
       SCRIPT_TYPES(sc) |= GET_TRIG_TYPE(i);
     dg_random_registry_sync(sc);
+    if (sc->owner_type == OBJ_TRIGGER)
+      point_update_object_sync(sc->owner);
 
     return 1;
   }

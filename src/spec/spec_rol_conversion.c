@@ -35,6 +35,7 @@
 #include "spec_rol_darkhold.h"
 #include "spec_rol_conversion.h"
 #include "spec_rol_totem.h"
+#include "point_update_periodic.h"
 
 #include <limits.h>
 
@@ -7941,7 +7942,7 @@ static int rol_weapon_moonblade_command(struct char_data *ch, struct obj_data *o
   for (target = world[IN_ROOM(ch)].people; target != NULL; target = target->next_in_room)
     if (target == ch || (GROUP(ch) != NULL && GROUP(target) == GROUP(ch)))
       rol_weapon_cast(ch, obj, target, SPELL_BARKSKIN, 30);
-  GET_OBJ_SPECTIMER(obj, 0) = 168;
+  point_update_object_spec_timer_set(obj, 0, 168);
   return TRUE;
 }
 
@@ -7986,7 +7987,7 @@ static int rol_weapon_elemental_command(struct char_data *ch, struct obj_data *o
   act("$n speaks words of power to $p, and a small prismatic elemental swirls into being!", FALSE,
       ch, obj, victim, TO_ROOM);
   set_fighting(summoned, victim);
-  GET_OBJ_SPECTIMER(obj, 0) = ROL_WEAPON_CALLED_COOLDOWN_HOURS;
+  point_update_object_spec_timer_set(obj, 0, ROL_WEAPON_CALLED_COOLDOWN_HOURS);
   return TRUE;
 }
 
@@ -8036,7 +8037,8 @@ static int rol_weapon_necromancer_command(struct char_data *ch, struct obj_data 
       TO_ROOM);
   GET_OBJ_TIMER(corpse) =
       GET_OBJ_TIMER(corpse) > INT_MAX - 1000 ? INT_MAX : GET_OBJ_TIMER(corpse) + 1000;
-  GET_OBJ_SPECTIMER(obj, 0) = ROL_WEAPON_CALLED_COOLDOWN_HOURS;
+  point_update_object_sync(corpse);
+  point_update_object_spec_timer_set(obj, 0, ROL_WEAPON_CALLED_COOLDOWN_HOURS);
   return TRUE;
 }
 
@@ -8722,7 +8724,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
     rol_weapon_extra_attacks(ch, obj, victim, attacks,
                              rol_weapon_slot(ch, obj) == WEAR_WIELD_OFFHAND ? ATTACK_TYPE_OFFHAND
                                                                             : ATTACK_TYPE_PRIMARY);
-    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    point_update_object_spec_timer_set(obj, 0, 24);
     return TRUE;
   }
   if (profile->effect == ROL_WEAPON_UM_FADE && !str_cmp(argument, "fade out"))
@@ -8731,7 +8733,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
       return TRUE;
     rol_weapon_cast(ch, obj, ch, SPELL_DETECT_INVIS, 35);
     rol_weapon_cast(ch, obj, ch, SPELL_INVISIBLE, 35);
-    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    point_update_object_spec_timer_set(obj, 0, 24);
     return TRUE;
   }
   if (profile->effect == ROL_WEAPON_UM_MAGEBANE && !str_cmp(argument, "mage defend"))
@@ -8739,7 +8741,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
     if (GET_OBJ_SPECTIMER(obj, 0) > 0)
       return TRUE;
     rol_weapon_cast(ch, obj, ch, SPELL_GLOBE_OF_INVULN, 35);
-    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    point_update_object_spec_timer_set(obj, 0, 24);
     return TRUE;
   }
   if (profile->effect == ROL_WEAPON_UM_WOUNDHEALER && !str_cmp(argument, "wound heal"))
@@ -8747,7 +8749,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
     if (GET_OBJ_SPECTIMER(obj, 0) > 0)
       return TRUE;
     rol_weapon_cast(ch, obj, ch, SPELL_HEAL, 35);
-    GET_OBJ_SPECTIMER(obj, 0) = 24;
+    point_update_object_spec_timer_set(obj, 0, 24);
     return TRUE;
   }
   if (profile->effect == ROL_WEAPON_UM_UNDEAD_TRIDENT && !str_cmp(argument, "undead army"))
@@ -8762,7 +8764,7 @@ static int rol_weapon_phase6_command(struct spec_event_context *context,
     add_follower(zombie, ch);
     SET_BIT_AR(AFF_FLAGS(zombie), AFF_CHARM);
     load_mtrigger(zombie);
-    GET_OBJ_SPECTIMER(obj, 0) = 168;
+    point_update_object_spec_timer_set(obj, 0, 168);
     return TRUE;
   }
   if (profile->effect == ROL_WEAPON_UM_FLAME_NORTH && !str_cmp(argument, "flame on"))
@@ -9073,7 +9075,7 @@ static int rol_weapon_hit(struct spec_event_context *context,
     {
       result = rol_weapon_damage(ch, victim, 200, DAM_NEGATIVE);
       rol_weapon_mark_target_invalidation(context, result);
-      GET_OBJ_SPECTIMER(obj, 1) = 24;
+      point_update_object_spec_timer_set(obj, 1, 24);
     }
     return TRUE;
   case ROL_WEAPON_UM_MAGEBANE:
@@ -9087,13 +9089,13 @@ static int rol_weapon_hit(struct spec_event_context *context,
     if (GET_OBJ_SPECTIMER(obj, 0) == 0 && !AFF_FLAGGED(ch, AFF_HASTE))
     {
       rol_weapon_cast(ch, obj, ch, SPELL_HASTE, 15);
-      GET_OBJ_SPECTIMER(obj, 0) = 24;
+      point_update_object_spec_timer_set(obj, 0, 24);
     }
     if (!context->critical || (!IS_NPC(ch) && GET_OBJ_SPECTIMER(obj, 1) > 0))
       return FALSE;
     rol_weapon_cast(ch, obj, victim, IS_NPC(ch) ? SPELL_CHAIN_LIGHTNING : SPELL_LIGHTNING_BOLT, 35);
     if (!IS_NPC(ch))
-      GET_OBJ_SPECTIMER(obj, 1) = 24;
+      point_update_object_spec_timer_set(obj, 1, 24);
     return TRUE;
   case ROL_WEAPON_UM_WOUNDHEALER:
     if (rand_number(0, 10) != 0 || (!IS_NPC(ch) && GET_OBJ_SPECTIMER(obj, 1) > 0))
@@ -9104,7 +9106,7 @@ static int rol_weapon_hit(struct spec_event_context *context,
     if (!AFF_FLAGGED(ch, AFF_BLACKMANTLE))
       GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + (IS_NPC(ch) ? amount : amount / 2));
     if (!IS_NPC(ch))
-      GET_OBJ_SPECTIMER(obj, 1) = 1;
+      point_update_object_spec_timer_set(obj, 1, 1);
     return TRUE;
   case ROL_WEAPON_UM_FLAME_NORTH:
     if (!OBJ_FLAGGED(obj, ITEM_GLOW) || !context->critical ||
@@ -9112,7 +9114,7 @@ static int rol_weapon_hit(struct spec_event_context *context,
       return FALSE;
     rol_weapon_cast(ch, obj, victim, SPELL_FLAME_STRIKE, 35);
     if (!IS_NPC(ch))
-      GET_OBJ_SPECTIMER(obj, 1) = 24;
+      point_update_object_spec_timer_set(obj, 1, 24);
     return TRUE;
   case ROL_WEAPON_GREYCLOAK_PESTILENCE:
     if (rand_number(0, 15) != 0)

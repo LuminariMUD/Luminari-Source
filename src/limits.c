@@ -43,6 +43,7 @@
 #include "rol_feats.h"
 #include "affected_owners.h"
 #include "character_periodic.h"
+#include "point_update_periodic.h"
 
 // external functions
 bool save_char_pets(struct char_data *ch);
@@ -2494,15 +2495,8 @@ void check_thirty_seconds(void)
   check_devices();
 }
 
-/* Update PCs, NPCs, and objects */
-void point_update(void)
+void point_update_global_one(void)
 {
-  struct char_data *i = NULL, *next_char = NULL;
-  struct obj_data *j = NULL, *next_thing, *jj = NULL, *next_thing2 = NULL;
-  int counter = 0;
-
-  /** general **/
-
   /* Take 1 from the happy-hour tick counter, and end happy-hour if zero */
   if (HAPPY_TIME > 1)
     HAPPY_TIME--;
@@ -2519,187 +2513,163 @@ void point_update(void)
 
   /* this is the staff event code for regular maintenance */
   staff_event_tick();
+}
 
-  /* end general */
+void point_update_character_one(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+  gain_condition(ch, HUNGER, -1);
+  gain_condition(ch, DRUNK, -1);
+  gain_condition(ch, THIRST, -1);
 
-  /** characters **/
-  for (i = character_list; i; i = next_char)
+  if (!IS_NPC(ch))
   {
-    next_char = i->next;
+    update_char_objects(ch);
+    artifact_burn_tick(ch);
+    ch->char_specials.timer++;
+    if (GET_LEVEL(ch) < CONFIG_IDLE_MAX_LEVEL)
+      check_idling(ch);
+    if (!FIGHTING(ch) && HAS_ELDRITCH_SPELL_CRIT(ch))
+      HAS_ELDRITCH_SPELL_CRIT(ch) = false;
+  }
+}
 
-    gain_condition(i, HUNGER, -1);
-    gain_condition(i, DRUNK, -1);
-    gain_condition(i, THIRST, -1);
+bool point_update_object_one(struct obj_data *obj)
+{
+  struct obj_data *contained;
+  struct obj_data *next_contained;
+  int counter;
 
-    /* old tick regen code use to be here -zusuk */
-
-    if (!IS_NPC(i)) // players only
+  if (obj == NULL)
+    return false;
+  for (counter = 0; counter < SPEC_TIMER_MAX; counter++)
+  {
+    if (GET_OBJ_SPECTIMER(obj, counter) > 0)
     {
-      update_char_objects(i);
-      artifact_burn_tick(i);
-      (i->char_specials.timer)++;
-      if (GET_LEVEL(i) < CONFIG_IDLE_MAX_LEVEL)
-        check_idling(i);
-
-      // eldritch knight spell crit expires after combat ends if not used.
-      if (!FIGHTING(i) && HAS_ELDRITCH_SPELL_CRIT(i))
-        HAS_ELDRITCH_SPELL_CRIT(i) = false;
-    }
-    else // mobs only
-    {
+      GET_OBJ_SPECTIMER(obj, counter)--;
+      if (GET_OBJ_SPECTIMER(obj, counter) <= 0)
+      {
+        if (obj->carried_by)
+          act("$p briefly flares as the imbued magic returns.", FALSE, obj->carried_by, obj, 0,
+              TO_CHAR);
+        else if (obj->in_obj && obj->in_obj->carried_by)
+          act("$p briefly flares as the imbued magic returns.", FALSE, obj->in_obj->carried_by, obj,
+              0, TO_CHAR);
+        else if (obj->worn_by)
+          act("$p briefly flares as the imbued magic returns.", FALSE, obj->worn_by, obj, 0,
+              TO_CHAR);
+      }
     }
   }
 
-  /** objects **/
-  /* Make sure there is only one way to decrement each object timer */
-  for (j = object_list; j; j = next_thing)
+  if (GET_OBJ_TIMER(obj) > 0)
+    GET_OBJ_TIMER(obj)--;
+
+  if (GET_OBJ_TYPE(obj) == ITEM_MISSILE && GET_OBJ_VAL(obj, 1))
   {
-    next_thing = j->next; /* Next in object list */
-
-    if (!j)
-      continue;
-
-    /* object spec timers, for old school object procs */
-    for (counter = 0; counter < SPEC_TIMER_MAX; counter++)
+    if (GET_OBJ_TIMER(obj) <= 0)
     {
-      if (GET_OBJ_SPECTIMER(j, counter) > 0)
-      {
-        GET_OBJ_SPECTIMER(j, counter)
-        --;
-
-        if (GET_OBJ_SPECTIMER(j, counter) <= 0)
-        {
-          /*obj timer is back to 0*/
-
-          if (j->carried_by) /* carried in your inventory */
-            act("$p briefly flares as the imbued magic returns.", FALSE, j->carried_by, j, 0,
-                TO_CHAR);
-          else if (j->in_obj && j->in_obj->carried_by) /* object carrying the missile */
-            act("$p briefly flares as the imbued magic returns.", FALSE, j->in_obj->carried_by, j,
-                0, TO_CHAR);
-          else if (j->worn_by)
-            act("$p briefly flares as the imbued magic returns.", FALSE, j->worn_by, j, 0, TO_CHAR);
-        }
-      }
+      GET_OBJ_VAL(obj, 1) = 0;
+      if (obj->carried_by)
+        act("$p briefly shudders as the imbued magic fades.", FALSE, obj->carried_by, obj, 0,
+            TO_CHAR);
+      if (obj->in_obj && obj->in_obj->carried_by)
+        act("$p briefly shudders as the imbued magic fades.", FALSE, obj->in_obj->carried_by, obj,
+            0, TO_CHAR);
     }
+  }
 
-    /* decrement timer */
-    if (GET_OBJ_TIMER(j) > 0)
-      GET_OBJ_TIMER(j)
-    --;
+  /* Timer triggers must precede countdowns that can extract the object. */
+  if (GET_OBJ_TIMER(obj) <= 0 && timer_otrigger(obj))
+    return false;
 
-    /* timer counting down that doesn't result in extraction */
-
-    /** Arrow (that is imbued) */
-    if (GET_OBJ_TYPE(j) == ITEM_MISSILE && GET_OBJ_VAL(j, 1))
+  if (IS_DECAYING_PORTAL(obj))
+  {
+    if (GET_OBJ_TIMER(obj) <= 0)
     {
-      /* imbued arrow lost its spell! */
-      if (GET_OBJ_TIMER(j) <= 0)
+      if (IN_ROOM(obj) != NOWHERE && world[IN_ROOM(obj)].people)
       {
-        /* simple mechanic is reset obj-val 1 to 0 */
-        GET_OBJ_VAL(j, 1) = 0;
-        /* now send a message if appropriate */
-        if (j->carried_by) /* carried in your inventory */
-          act("$p briefly shudders as the imbued magic fades.", FALSE, j->carried_by, j, 0,
-              TO_CHAR);
-        if (j->in_obj && j->in_obj->carried_by) /* object carrying the missile */
-          act("$p briefly shudders as the imbued magic fades.", FALSE, j->in_obj->carried_by, j, 0,
-              TO_CHAR);
+        act("\tnYou watch as $p \tCs\tMh\tCi\tMm\tCm\tMe\tCr\tMs\tn then "
+            "fades, then disappears.",
+            TRUE, world[IN_ROOM(obj)].people, obj, 0, TO_ROOM);
+        act("\tnYou watch as $p \tCs\tMh\tCi\tMm\tCm\tMe\tCr\tMs\tn then "
+            "fades, then disappears.",
+            TRUE, world[IN_ROOM(obj)].people, obj, 0, TO_CHAR);
       }
+      extract_obj(obj);
+      return false;
     }
+  }
 
-    /** for timed object triggers, make sure this is LAST before countdowns
-     * that cause extraction!! **/
-    if (GET_OBJ_TIMER(j) <= 0)
+  if (OBJ_FLAGGED(obj, ITEM_DECAY))
+  {
+    if (GET_OBJ_TIMER(obj) <= 0)
     {
-      /* timer_otrigger returns 1 if object was purged */
-      if (timer_otrigger(j))
+      if (IN_ROOM(obj) != NOWHERE && world[IN_ROOM(obj)].people)
       {
-        continue; /* object was purged, skip to next object */
+        act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(obj)].people, obj, 0,
+            TO_ROOM);
+        act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(obj)].people, obj, 0,
+            TO_CHAR);
       }
+      extract_obj(obj);
+      return false;
     }
+  }
 
-    /* END timer counting down that doesn't result in extraction */
-
-    /* start timer counting down that results in extraction */
-
-    /** portals that fade **/
-    if (IS_DECAYING_PORTAL(j))
+  if (IS_CORPSE(obj))
+  {
+    if (GET_OBJ_TIMER(obj) <= 0)
     {
-      /* the portal fades */
-      if (GET_OBJ_TIMER(j) <= 0)
+      if (obj->carried_by)
+        act("$p decays in your hands.", FALSE, obj->carried_by, obj, 0, TO_CHAR);
+      else if (IN_ROOM(obj) != NOWHERE && world[IN_ROOM(obj)].people)
       {
-        /* send message if it makes sense */
-        if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people))
-        {
-          act("\tnYou watch as $p \tCs\tMh\tCi\tMm\tCm\tMe\tCr\tMs\tn then "
-              "fades, then disappears.",
-              TRUE, world[IN_ROOM(j)].people, j, 0, TO_ROOM);
-          act("\tnYou watch as $p \tCs\tMh\tCi\tMm\tCm\tMe\tCr\tMs\tn then "
-              "fades, then disappears.",
-              TRUE, world[IN_ROOM(j)].people, j, 0, TO_CHAR);
-        }
-        extract_obj(j);
-        continue; /* object is gone */
+        act("A quivering horde of maggots consumes $p.", TRUE, world[IN_ROOM(obj)].people, obj, 0,
+            TO_ROOM);
+        act("A quivering horde of maggots consumes $p.", TRUE, world[IN_ROOM(obj)].people, obj, 0,
+            TO_CHAR);
       }
-    } /* end portal fade */
-
-    /** general item that fade **/
-    if (OBJ_FLAGGED(j, ITEM_DECAY))
-    {
-      /* the object fades */
-      if (GET_OBJ_TIMER(j) <= 0)
+      for (contained = obj->contains; contained; contained = next_contained)
       {
-        /* send message if it makes sense */
-        if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people))
-        {
-          act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(j)].people, j, 0,
-              TO_ROOM);
-          act("\tnYou watch as $p fades, then disappears.", TRUE, world[IN_ROOM(j)].people, j, 0,
-              TO_CHAR);
-        }
-        extract_obj(j);
-        continue; /* object is gone */
+        next_contained = contained->next_content;
+        obj_from_obj(contained);
+        if (obj->in_obj)
+          obj_to_obj(contained, obj->in_obj);
+        else if (obj->carried_by)
+          obj_to_room(contained, IN_ROOM(obj->carried_by));
+        else if (IN_ROOM(obj) != NOWHERE)
+          obj_to_room(contained, IN_ROOM(obj));
+        else
+          core_dump();
       }
-    } /* end 'general' fade */
-
-    /** If this is a corpse **/
-    if (IS_CORPSE(j))
-    {
-      /* corpse decayed */
-      if (GET_OBJ_TIMER(j) <= 0)
-      {
-        if (j->carried_by)
-          act("$p decays in your hands.", FALSE, j->carried_by, j, 0, TO_CHAR);
-        else if ((IN_ROOM(j) != NOWHERE) && (world[IN_ROOM(j)].people))
-        {
-          act("A quivering horde of maggots consumes $p.", TRUE, world[IN_ROOM(j)].people, j, 0,
-              TO_ROOM);
-          act("A quivering horde of maggots consumes $p.", TRUE, world[IN_ROOM(j)].people, j, 0,
-              TO_CHAR);
-        }
-
-        for (jj = j->contains; jj; jj = next_thing2)
-        {
-          next_thing2 = jj->next_content; /* Next in inventory */
-          obj_from_obj(jj);
-
-          if (j->in_obj)
-            obj_to_obj(jj, j->in_obj);
-          else if (j->carried_by)
-            obj_to_room(jj, IN_ROOM(j->carried_by));
-          else if (IN_ROOM(j) != NOWHERE)
-            obj_to_room(jj, IN_ROOM(j));
-          else
-            core_dump();
-        }
-        if (j)
-          extract_obj(j);
-        continue;
-      }
+      extract_obj(obj);
+      return false;
     }
+  }
+  return true;
+}
 
-  } /* end object loop */
+/* Legacy rollback path: retain the original whole-world traversal order. */
+void point_update(void)
+{
+  struct char_data *ch;
+  struct char_data *next_ch;
+  struct obj_data *obj;
+  struct obj_data *next_obj;
+
+  point_update_global_one();
+  for (ch = character_list; ch != NULL; ch = next_ch)
+  {
+    next_ch = ch->next;
+    point_update_character_one(ch);
+  }
+  for (obj = object_list; obj != NULL; obj = next_obj)
+  {
+    next_obj = obj->next;
+    point_update_object_one(obj);
+  }
 }
 
 /* Note: amt may be negative */

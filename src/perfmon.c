@@ -28,6 +28,7 @@
 #include "active_world.h"
 #include "affected_owners.h"
 #include "character_periodic.h"
+#include "point_update_periodic.h"
 #include "vessels/vessel_periodic.h"
 #include "vessels/vessels_rol.h"
 #include "periodic_owners.h"
@@ -1225,6 +1226,7 @@ void PERF_reset(void)
   periodic_owners_reset_telemetry();
   affected_owners_reset_telemetry();
   character_periodic_reset_telemetry();
+  point_update_periodic_reset_telemetry();
   memset(&combat_context, 0, sizeof(combat_context));
   memset(slow_combats, 0, sizeof(slow_combats));
   slow_combat_index = 0;
@@ -2609,6 +2611,21 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  character_periodic_damage_effect_executions(),
                  character_periodic_player_misc_executions(),
                  character_periodic_bardic_executions(), character_periodic_hint_executions()),
+        n - written);
+  if (!csv && written < n - 1)
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written,
+                 "Point update: %s\n\r"
+                 "  registry: players=%zu objects=%zu\n\r"
+                 "  validation: players=%zu objects=%zu\n\r"
+                 "  callbacks: service=%" PRIu64 " dispatches=%" PRIu64 "\n\r"
+                 "  work: players=%" PRIu64 " objects=%" PRIu64 "\n\r",
+                 point_update_events_enabled() ? "scheduled" : "legacy heartbeat",
+                 point_update_character_count(), point_update_object_count(),
+                 point_update_character_registry_validate(),
+                 point_update_object_registry_validate(), point_update_service_callbacks(),
+                 point_update_dispatches(), point_update_character_executions(),
+                 point_update_object_executions()),
         n - written);
   if (!csv && written < n - 1)
     written += bounded_format_length(

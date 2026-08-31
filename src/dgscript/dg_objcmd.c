@@ -20,6 +20,7 @@
 #include "constants.h"
 #include "olc/genzon.h"   /* for access to real_zone_by_thing */
 #include "combat/fight.h" /* for die() */
+#include "point_update_periodic.h"
 
 /* Local functions */
 #define OCMD(name)                                                                                 \
@@ -299,7 +300,10 @@ static OCMD(do_otimer)
   else if (!isdigit(*arg))
     obj_log(obj, "otimer: bad argument");
   else
+  {
     GET_OBJ_TIMER(obj) = atoi(arg);
+    point_update_object_sync(obj);
+  }
 }
 
 /* Transform into a different object. Note: this shouldn't be used with
@@ -333,6 +337,10 @@ static OCMD(do_otransform)
       unequip_char(obj->worn_by, pos);
     }
 
+    autoproc_registry_remove(obj);
+    autoproc_registry_remove(o);
+    point_update_object_forget(obj);
+    point_update_object_forget(o);
     /* move new obj info over to old object and delete new obj */
     memcpy(&tmpobj, o, sizeof(*o));
     tmpobj.in_room = IN_ROOM(obj);
@@ -353,6 +361,8 @@ static OCMD(do_otransform)
       equip_char(wearer, obj, pos);
     }
 
+    autoproc_registry_sync(obj);
+    point_update_object_sync(obj);
     extract_obj(o);
   }
 }
@@ -815,6 +825,7 @@ static OCMD(do_osetval)
     }
 
     GET_OBJ_VAL(obj, position) = new_value;
+    point_update_object_sync(obj);
 
     if (worn_by != NULL)
     {

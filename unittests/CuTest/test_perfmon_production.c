@@ -6,11 +6,13 @@
 #include "../../src/utils.h"
 #include "../../src/combat/fight.h"
 #include "../../src/db.h"
+#include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/handler.h"
 #include "../../src/magic/spells.h"
 #include "../../src/olc/hedit.h"
 #include "../../src/perfmon.h"
+#include "../../src/point_update_periodic.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -674,6 +676,47 @@ void Test_player_live_entry_registers_loaded_timed_affects(CuTest *tc)
   CuAssertIntEquals(tc, 1, remaining_duration);
 }
 
+void Test_player_live_entry_registers_for_point_updates(CuTest *tc)
+{
+  struct char_data player;
+  struct char_data *saved_character_list;
+  bool entry_hook_present;
+
+  event_free_all();
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  point_update_periodic_init();
+  clear_char(&player);
+  player.player_specials = &dummy_mob;
+  player.player.short_descr = (char *)"point update player";
+
+  saved_character_list = character_list;
+  player.next = saved_character_list;
+  character_list = &player;
+  entry_hook_present =
+      perfmon_file_contains("src/interpreter.c", "point_update_character_sync(d->character);");
+  point_update_character_sync(&player);
+
+  CuAssertTrue(tc, entry_hook_present);
+  CuAssertIntEquals(tc, 1, (int)point_update_character_count());
+  CuAssertIntEquals(tc, 0, (int)point_update_character_registry_validate());
+
+  point_update_character_forget(&player);
+  character_list = saved_character_list;
+  point_update_periodic_reset_for_test();
+  event_free_all();
+}
+
+void Test_world_cleanup_owns_every_loaded_room_trail_list(CuTest *tc)
+{
+  CuAssertTrue(tc,
+               perfmon_file_contains("src/db.c", "free_trail_data_list(world[cnt].trail_tracks);"));
+  CuAssertTrue(tc,
+               perfmon_file_contains("src/db.c", "world[cnt].trail_tracks = NULL;"));
+}
+
 void Test_dg_random_registry_tracks_owners_and_safe_removal(CuTest *tc)
 {
   struct char_data first;
@@ -724,6 +767,8 @@ void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
   char report[16384];
   const char *character_section;
   const char *character_section_end;
+  const char *point_section;
+  const char *point_section_end;
   const char *vessel_section;
   const char *vessel_section_end;
   const char *line;
@@ -743,7 +788,7 @@ void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "autoproc"));
   character_section = strstr(report, "Character owners:");
   character_section_end =
-      character_section != NULL ? strstr(character_section, "Vessel owners:") : NULL;
+      character_section != NULL ? strstr(character_section, "Point update:") : NULL;
   CuAssertPtrNotNull(tc, character_section);
   CuAssertPtrNotNull(tc, character_section_end);
   CuAssertPtrNotNull(tc, strstr(character_section, "  registry: members="));
@@ -759,7 +804,23 @@ void Test_perfmon_entity_and_sweep_reports_are_actionable(CuTest *tc)
       break;
     CuAssertTrue(tc, (size_t)(line_end - line) <= 80U);
   }
-  vessel_section = character_section_end;
+  point_section = character_section_end;
+  point_section_end = point_section != NULL ? strstr(point_section, "Vessel owners:") : NULL;
+  CuAssertPtrNotNull(tc, point_section);
+  CuAssertPtrNotNull(tc, point_section_end);
+  CuAssertPtrNotNull(tc, strstr(point_section, "  registry: players="));
+  CuAssertPtrNotNull(tc, strstr(point_section, "  validation: players="));
+  CuAssertPtrNotNull(tc, strstr(point_section, "  callbacks: service="));
+  CuAssertPtrNotNull(tc, strstr(point_section, "  work: players="));
+  for (line = point_section; line != NULL && line < point_section_end; line = line_end + 2)
+  {
+    line_end = strstr(line, "\n\r");
+    CuAssertTrue(tc, line_end != NULL && line_end <= point_section_end);
+    if (line_end == NULL || line_end > point_section_end)
+      break;
+    CuAssertTrue(tc, (size_t)(line_end - line) <= 80U);
+  }
+  vessel_section = point_section_end;
   vessel_section_end = vessel_section != NULL ? strstr(vessel_section, "Active world:") : NULL;
   CuAssertPtrNotNull(tc, vessel_section);
   CuAssertPtrNotNull(tc, vessel_section_end);

@@ -27,6 +27,7 @@
 #include "spec/spec_rol_avernus.h"
 #include "spec/spec_rol_conversion.h"
 #include "spec/spec_rol_darkhold.h"
+#include "point_update_periodic.h"
 
 #define ROL_BALOR_WHIP_VNUM 2093227
 #define ROL_BALOR_SWORD_VNUM 2093228
@@ -5055,7 +5056,7 @@ static int rol_monster_zombie_lord_hit(struct char_data *ch)
   GET_MOB_LOADROOM(zombie) = IN_ROOM(ch);
   add_follower(zombie, ch);
   SET_BIT_AR(AFF_FLAGS(zombie), AFF_CHARM);
-  GET_OBJ_SPECTIMER(trident, 0) = 168;
+  point_update_object_spec_timer_set(trident, 0, 168);
   act("$n raises $p and summons an undead warrior!", TRUE, ch, trident, NULL, TO_ROOM);
   return TRUE;
 }

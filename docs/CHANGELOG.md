@@ -2,6 +2,33 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Mud-hour point-update ownership
+
+#### Changed
+
+- Replaced normal mud-hour `character_list` and `object_list` discovery scans
+  with one aligned service deadline, an all-PC lifecycle registry, and an
+  active timer/trigger/decay/corpse object registry.
+- Preserved weather and time-trigger ordering plus the established global,
+  player, and object routines for conditions, idle rent, artifact burn,
+  cooldowns, timer scripts, decay, and corpses.
+- Made OLC instance editing and DG object transformation detach and rebuild
+  runtime registries without copying intrusive links or admitting editor-only
+  objects.
+
+#### Operations
+
+- Added `LUMINARI_POINT_UPDATE_EVENTS=legacy` as the exclusive boot-time
+  rollback for all three point phases.
+- Added a five-row point-update block to `perfmon entities`, with labels and
+  line widths tested for an 80-column client.
+
+#### Tests
+
+- Added exact-boundary, active-owner, mutation, extraction, startup-fallback,
+  rollback, registry-validation, and readable-output coverage; the 991-test
+  database, sanitizer, and Valgrind gates pass.
+
 ### Vessel-owned periodic gameplay
 
 #### Changed

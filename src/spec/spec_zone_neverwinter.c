@@ -41,6 +41,7 @@
 #include "quest/quest.h"
 #include "character/backgrounds.h"
 #include "character/perks.h"
+#include "point_update_periodic.h"
 
 SPECIAL(neverwinter_button_control)
 {
@@ -75,7 +76,7 @@ SPECIAL(neverwinter_button_control)
     for (i = character_list; i; i = i->next)
       if (world[obj->in_room].zone == world[i->in_room].zone)
         send_to_char(i, "\tLYou hear a slight rumbling.\tn\r\n");
-    GET_OBJ_SPECTIMER(obj, 0) = 9999;
+    point_update_object_spec_timer_set(obj, 0, 9999);
   }
 
   return FALSE;

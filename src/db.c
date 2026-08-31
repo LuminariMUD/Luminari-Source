@@ -80,6 +80,7 @@
 #include "character/race.h"
 #include "vessels/vessels.h"
 #include "vessels/vessel_periodic.h"
+#include "point_update_periodic.h"
 #include "vessels/vessels_moving_rooms.h"
 #include "magic/spell_prep.h"
 #include "craft/crafts.h" /* NewCraft */
@@ -1035,12 +1036,9 @@ void destroy_db(void)
       world[cnt].traps = NULL;
     }
 
-    /* free trail data */
-    if (CONFIG_WILDERNESS_SYSTEM == 2)
-    {
-      if (world[cnt].trail_tracks != NULL)
-        free_trail_data_list(world[cnt].trail_tracks);
-    }
+    /* Trail lists are allocated for every loaded room, regardless of wilderness mode. */
+    free_trail_data_list(world[cnt].trail_tracks);
+    world[cnt].trail_tracks = NULL;
 
     /* freeing room events */
     if (world[cnt].events != NULL)
@@ -4748,6 +4746,7 @@ struct char_data *create_char(void)
   ch->next = character_list;
   character_list = ch;
   affected_registry_attach(ch);
+  point_update_character_sync(ch);
 
   GET_ID(ch) = 0;
 
@@ -4795,6 +4794,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   mob->next = character_list;
   character_list = mob;
   affected_registry_attach(mob);
+  point_update_character_sync(mob);
 
   new_mobile_data(mob);
   /* Allocate mobile event list */
@@ -4908,6 +4908,7 @@ struct obj_data *create_obj(void)
   clear_object(obj);
   obj->next = object_list;
   object_list = obj;
+  obj->object_list_member = true;
 
   obj->events = NULL;
   obj->special_abilities = NULL; /* Ornir 19/08/2013 */
@@ -5137,6 +5138,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   *obj = obj_proto[i];
   obj->next = object_list;
   object_list = obj;
+  obj->object_list_member = true;
 
   obj->events = NULL;
 
@@ -5256,6 +5258,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   obj->perf_create_reason = (unsigned char)reason;
   PERF_note_object_created(GET_OBJ_VNUM(obj), obj->perf_origin_zone_vnum, reason);
   autoproc_registry_sync(obj);
+  point_update_object_sync(obj);
 
   return (obj);
 }
@@ -6968,6 +6971,7 @@ void free_char(struct char_data *ch)
   int i = 0;
   struct alias_data *a = NULL;
 
+  point_update_character_forget(ch);
   affected_registry_detach(ch);
 
   /* Free the action queues for ALL characters, not just those with player_specials */
@@ -7235,6 +7239,7 @@ void free_obj_special_abilities(struct obj_special_ability *list)
 
 void free_obj(struct obj_data *obj)
 {
+  point_update_object_forget(obj);
   autoproc_registry_remove(obj);
 
   if (GET_OBJ_RNUM(obj) == NOWHERE)

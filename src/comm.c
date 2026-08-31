@@ -105,6 +105,7 @@
 #include "active_world.h"
 #include "affected_owners.h"
 #include "character_periodic.h"
+#include "point_update_periodic.h"
 #include "periodic_owners.h"
 #include "elf_build_id.h"
 #include "mysql.h"
@@ -2370,7 +2371,10 @@ void heartbeat(int heart_pulse)
     next_tick = SECS_PER_MUD_HOUR; /* Reset tick coundown */
     weather_and_time(1);
     check_time_triggers();
-    point_update();
+    if (point_update_events_enabled())
+      point_update_periodic_dispatch_due();
+    else
+      point_update();
     check_timed_quests();
     check_diplomacy(); /* Reduce the diplomacy pause for online players */
     update_clans();    /* Update clan war timers and other periodic clan tasks */
@@ -2388,6 +2392,10 @@ void heartbeat(int heart_pulse)
 
     PERF_PROF_EXIT(pr_ost_);
   }
+
+  /* A scheduler budget may deliver the deadline just after the aligned pulse. */
+  if (point_update_events_enabled())
+    point_update_periodic_dispatch_due();
 
   /* Process clan investments once per mud day (24 mud hours) */
   if (!(heart_pulse % (SECS_PER_MUD_HOUR * 24 * PASSES_PER_SEC)))

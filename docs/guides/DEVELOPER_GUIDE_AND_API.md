@@ -216,9 +216,9 @@ replace combat, affects, artifact ownership, or the legacy callback ABI.
   spaces may be skipped, and only when the rule requests it; case, punctuation, tabs, and trailing
   whitespace remain significant. Treat `SPEC_PHRASE_UNRELATED` as normal fallthrough.
 - `src/spec/spec_cooldown.h` serves only legacy object `spec_timer[]` counters. Slots are
-  `[0, SPEC_TIMER_MAX)`, values are MUD hours decremented by `point_update()`, storage belongs to the
-  instance, and objsave does not persist it. Validate and execute first, then commit a positive
-  duration.
+  `[0, SPEC_TIMER_MAX)`, values are MUD hours decremented by the point-update owner service,
+  storage belongs to the instance, and objsave does not persist it. Validate and execute first,
+  then commit a positive duration.
 - `src/spec/spec_combat.h` applies damage only to a live colocated current opponent. Preserve the
   returned `legacy_result`; after `SPEC_DAMAGE_TARGET_INVALIDATED`, do not dereference the target.
 - `src/spec/spec_effects.h` creates stable negative source identities from a namespace and key, then

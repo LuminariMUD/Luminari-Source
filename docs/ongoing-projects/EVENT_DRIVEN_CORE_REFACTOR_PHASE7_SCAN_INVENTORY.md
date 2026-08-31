@@ -36,7 +36,7 @@ it does not mean that its cadence has already moved off the heartbeat.
 | 60 s | minute persistence admission | Connected players, dirty pets/artifacts/houses | Admission is global maintenance; execution is already budgeted active work. |
 | 75 s mud hour | world clock/weather | World state | Genuine scheduled global coordination. |
 | 75 s mud hour | DG time triggers | All scripted character/object/room owners | Add time-trigger eligible registries, then schedule owners or one bounded time boundary dispatch. |
-| 75 s mud hour | point update | Characters, objects, conditions | High-value mixed scan; decompose regeneration, consumables, and lifecycle owners. |
+| 75 s mud hour | point update | Characters, objects, conditions | **Converted:** one aligned service deadline runs global work, every PC is in a lifecycle registry, and only timer/trigger/decay/corpse objects are visited. |
 | 75 s mud hour | timed quests, diplomacy, clans | Active players/quests/clans | Use stable registries and explicit deadlines. |
 | 75 s mud hour | vessel schedules and merchant fleet | Valid vessels and global merchant policy | **Converted:** vessel owners run one-hull schedule work; the vessel service event runs global merchant reconciliation. |
 | 75 s mud hour | trail cleanup | Existing trail records | Bounded record registry; genuine maintenance deadline. |
@@ -51,7 +51,7 @@ cross-thread wakeups are not heartbeat scans and are outside this inventory.
 Staff validation routines may deliberately traverse full lists; they are
 diagnostic paths, not normal gameplay orchestration.
 
-## Priority after vessel work
+## Priority after point-update work
 
 1. **Completed:** walk-to, PSP regeneration, bardic performance, hints, and
    explicit character state.
@@ -59,4 +59,8 @@ diagnostic paths, not normal gameplay orchestration.
    effects, and the mixed Luminari pulse.
 3. **Completed:** Greyhawk vessel work, converted RoL ship movement, vessel
    schedules, and global vessel service work.
-4. **Next:** decompose the mixed `point_update()` pulse.
+4. **Completed:** global/player/object mud-hour point phases, PC ownership, and
+   timer/trigger/decay/corpse object ownership.
+5. **Next:** readable immortal event diagnostics, then Phase 8 encounter-level
+   combat compatibility. Remaining service and descriptor candidates stay in
+   this inventory for their owning later phase.

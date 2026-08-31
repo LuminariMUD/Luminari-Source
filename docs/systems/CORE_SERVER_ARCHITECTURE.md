@@ -250,7 +250,7 @@ void heartbeat(int heart_pulse)
     // Every MUD hour (75 seconds default)
     if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC))) {
         weather_and_time(1);            // Weather/time
-        point_update();                 // HP/MP regeneration
+        point_update_periodic_dispatch_due(); // Global/player/active-object work
         check_timed_quests();           // Quest timers
     }
 
@@ -575,6 +575,15 @@ detach, flag-change, extraction, and OLC replacement boundaries that change elig
 reports perform debug full-list validation; normal scheduled paths do not. See
 [`PERIODIC_OWNER_EVENTS.md`](PERIODIC_OWNER_EVENTS.md) and
 [`AFFECTED_OWNER_EVENTS.md`](AFFECTED_OWNER_EVENTS.md).
+
+The mud-hour point service adds no per-entity event. One aligned deadline makes
+the global/player/object phases due; an intrusive registry contains every PC,
+and another contains only timer, timer-trigger, imbued-missile, decay, and
+corpse objects. Direct lifecycle and mutation hooks maintain both registries.
+This preserves weather/time-trigger ordering and the old owner routines while
+removing normal `character_list` and `object_list` discovery scans. Set
+`LUMINARI_POINT_UPDATE_EVENTS=legacy` at boot for exclusive whole-list
+rollback. See [`MUD_EVENTS.md`](MUD_EVENTS.md).
 
 Combat callback timing separates action queues, attack generation, assist fan-out, specials, and
 backlash. A bounded slow-combat ring stores safe numeric context for callbacks above 100 ms. Per

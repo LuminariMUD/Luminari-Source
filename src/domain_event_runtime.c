@@ -6,6 +6,7 @@
 #include "domain_event_types.h"
 #include "domain_event_world.h"
 #include "periodic_owners.h"
+#include "point_update_periodic.h"
 #include "vessels/vessel_periodic.h"
 #include "wilderness/spatial_events.h"
 
@@ -23,6 +24,7 @@ enum domain_event_status domain_event_runtime_init(void)
   periodic_owners_init();
   affected_owners_init();
   character_periodic_init();
+  point_update_periodic_init();
   vessel_periodic_init();
   status = domain_event_register_foundation_types(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
@@ -41,6 +43,7 @@ enum domain_event_status domain_event_runtime_init(void)
     periodic_owners_shutdown();
     affected_owners_shutdown();
     character_periodic_shutdown();
+    point_update_periodic_shutdown();
     vessel_periodic_shutdown();
     domain_event_bus_destroy(runtime_bus);
     runtime_bus = NULL;
@@ -58,6 +61,7 @@ enum domain_event_status domain_event_runtime_shutdown(void)
   periodic_owners_shutdown();
   affected_owners_shutdown();
   character_periodic_shutdown();
+  point_update_periodic_shutdown();
   vessel_periodic_shutdown();
   status = domain_event_bus_destroy(runtime_bus);
   if (status == DOMAIN_EVENT_OK)

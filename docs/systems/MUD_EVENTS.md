@@ -15,6 +15,8 @@ Core source files:
 - [src/domain_events.c](../../src/domain_events.c)
 - [src/domain_event_types.h](../../src/domain_event_types.h)
 - [src/domain_event_runtime.c](../../src/domain_event_runtime.c)
+- [src/point_update_periodic.h](../../src/point_update_periodic.h)
+- [src/point_update_periodic.c](../../src/point_update_periodic.c)
 - [src/vessels/vessel_periodic.h](../../src/vessels/vessel_periodic.h)
 - [src/vessels/vessel_periodic.c](../../src/vessels/vessel_periodic.c)
 - [WORLD_PHENOMENA.md](WORLD_PHENOMENA.md)
@@ -337,6 +339,24 @@ fleets, and combat continue normally. The Greyhawk registry is capped at all
 `perfmon entities` reports the vessel mode and lifecycle on compact labeled
 rows within 80 columns.
 
+Mud-hour point work uses one aligned service event and two intrusive owner
+registries. The service callback only marks the old point phase due, allowing
+the heartbeat adapter to preserve weather, DG time-trigger, global, player,
+object, and quest ordering. Every PC is registered because condition, carried
+object, artifact, and idle-rent behavior remains relevant. An object is
+registered only while it has a positive ordinary or legacy special timer, a
+timer trigger, an imbued-missile state, a decay flag, or corpse state. Setting
+or clearing those properties synchronizes membership at the mutation boundary;
+normal scheduled execution never searches `character_list` or `object_list`.
+
+The global phase invokes happy-hour, activated-item, saved-damage, and staff
+maintenance work once. Player and object phases invoke the established
+single-owner helpers, so hunger, thirst, sobriety, idle handling, artifact
+burn, cooldown recovery, timer scripts, item/portal decay, and corpse decay
+retain their behavior. Current-owner extraction is iteration-safe, including
+idle rent and object timer triggers. `perfmon entities` reports this subsystem
+on five labeled rows bounded to the normal 80-column display.
+
 ## 6. Table-Driven Registry (mud_event_index)
 
 - The registry lives in [C.mud_event_index[]](../../src/mud_event_list.c#L46)
@@ -485,6 +505,12 @@ rows within 80 columns.
     work, mud-hour vessel/merchant work, and fixed-RoL ship movement. Startup
     admission failure selects the legacy path for the whole subsystem;
     scheduled and heartbeat paths never run together.
+- Point-update selection:
+  - Default: `LUMINARI_POINT_UPDATE_EVENTS=scheduled`
+  - Rollback: `LUMINARI_POINT_UPDATE_EVENTS=legacy`
+  - The selection jointly controls global, player, and object mud-hour point
+    phases. Startup service-admission failure falls back to the whole legacy
+    traversal; partial scheduled mode is not allowed.
 - Startup logs one `Event backend initialized:` line naming the effective
   backend.
 - `perf event total` and the PERFMON CSV representation include lifecycle,

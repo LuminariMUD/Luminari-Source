@@ -20,7 +20,8 @@ their own analysis dates. Most retained legacy notes are grouped in
 
 | Document | Status | What remains |
 |----------|--------|--------------|
-| [EVENT_DRIVEN_CORE_REFACTOR_SPEC.md](EVENT_DRIVEN_CORE_REFACTOR_SPEC.md) | Controlling specification v1.11; Phases 1 through 6b and six Phase 7 owner slices accepted | Decompose the mixed mud-hour `point_update()` pulse before encounter compatibility. |
+| [EVENT_DRIVEN_CORE_REFACTOR_SPEC.md](EVENT_DRIVEN_CORE_REFACTOR_SPEC.md) | Controlling specification v1.12; Phases 1 through 6b and seven Phase 7 owner slices accepted | Add readable immortal event diagnostics before encounter compatibility. |
+| [EVENT_DRIVEN_CORE_REFACTOR_PHASE7G_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE7G_VALIDATION.md) | Phase 7 mud-hour point-update acceptance evidence complete 2026-08-31 | Aligned service dispatch, PC and active-object registries, full timer/decay lifecycle, rollback, compact diagnostics, and validation evidence. |
 | [EVENT_DRIVEN_CORE_REFACTOR_PHASE7F_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE7F_VALIDATION.md) | Phase 7 vessel-owner acceptance evidence complete 2026-08-31 | Greyhawk and fixed-RoL ownership, global service work, exact cadence, lifecycle, rollback, diagnostics, and full validation evidence. |
 | [EVENT_DRIVEN_CORE_REFACTOR_PHASE7C_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE7C_VALIDATION.md) | Phase 7 affected-owner acceptance evidence complete 2026-08-31 | Character and room duration deadlines, exact round-boundary parity, MSDP separation, capacity refill, rollback, and validation evidence. |
 | [EVENT_DRIVEN_CORE_REFACTOR_PHASE6B_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE6B_VALIDATION.md) | Phase 6b acceptance evidence complete 2026-08-30 | Old pub/sub runtime retirement, no-drop archival data policy, native wilderness and adjacent-room sensory events, first Meteor Swarm publisher, and full validation evidence. |

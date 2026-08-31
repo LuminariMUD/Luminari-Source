@@ -5932,6 +5932,7 @@ struct obj_data
   struct obj_data *next_gitem;    /**< For group loot list   */
   struct obj_data *next_content;  /**< For 'contains' lists   */
   struct obj_data *next;          /**< For the object list */
+  bool object_list_member;        /**< Runtime membership in object_list. */
   struct char_data *sitting_here; /**< For furniture, who is sitting in it */
 
   bool has_spells; // used to keep track if weapon has weapon_spells
@@ -5987,6 +5988,11 @@ struct obj_data
   struct obj_data *autoproc_prev;
   bool autoproc_registered;
   struct event *autoproc_event;
+
+  /* Runtime-only mud-hour point-update registry links. */
+  struct obj_data *point_update_next;
+  struct obj_data *point_update_prev;
+  bool point_update_registered;
 
   /* PERFMON lifecycle attribution; runtime-only and never serialized. */
   int perf_origin_zone_vnum;
@@ -7404,6 +7410,9 @@ struct char_data
   struct char_data *character_periodic_prev; /**< Character periodic-owner registry link. */
   struct event *character_periodic_event; /**< Nearest character periodic deadline. */
   bool character_periodic_registered;    /**< Character periodic registry membership. */
+  struct char_data *point_update_next;    /**< Mud-hour player registry link. */
+  struct char_data *point_update_prev;    /**< Mud-hour player registry link. */
+  bool point_update_registered;           /**< Mud-hour player registry membership. */
   struct char_data *active_world_next;    /**< Scheduled-mobile registry link. */
   struct char_data *active_world_prev;    /**< Scheduled-mobile registry link. */
   struct event *active_world_event;       /**< Sole scheduled mobile-think event. */

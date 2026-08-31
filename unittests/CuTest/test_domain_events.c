@@ -10,6 +10,7 @@
 #include "../../src/affected_owners.h"
 #include "../../src/character_periodic.h"
 #include "../../src/periodic_owners.h"
+#include "../../src/point_update_periodic.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
@@ -570,6 +571,8 @@ void TestActiveWorldSchedulesAutonomousMobilesWithoutPlayers(CuTest *tc)
   active_world_select_for_test(true);
   character_periodic_reset_for_test();
   character_periodic_select_for_test(false);
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(false);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   pulse = 100U;
   event_init();
@@ -621,6 +624,7 @@ void TestActiveWorldSchedulesAutonomousMobilesWithoutPlayers(CuTest *tc)
   event_free_all();
   active_world_reset_for_test();
   character_periodic_reset_for_test();
+  point_update_periodic_reset_for_test();
   pulse = saved_pulse;
   world = saved_world;
   top_of_world = saved_top_of_world;
@@ -669,6 +673,8 @@ void TestActiveWorldAdmissionAndLegacyGateAreExclusive(CuTest *tc)
   active_world_set_admission_limit_for_test(1U);
   character_periodic_reset_for_test();
   character_periodic_select_for_test(false);
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(false);
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   pulse = 200U;
   event_init();
@@ -704,6 +710,7 @@ void TestActiveWorldAdmissionAndLegacyGateAreExclusive(CuTest *tc)
   event_free_all();
   active_world_reset_for_test();
   character_periodic_reset_for_test();
+  point_update_periodic_reset_for_test();
   pulse = saved_pulse;
   world = saved_world;
   top_of_world = saved_top_of_world;
@@ -1624,6 +1631,198 @@ void TestCharacterPeriodicCapacityRefillsAndLegacyIsExclusive(CuTest *tc)
   event_free_all();
   character_list = saved_character_list;
   pulse = saved_pulse;
+}
+
+void TestPointUpdateSchedulesOnlyDuePlayersAndObjects(CuTest *tc)
+{
+  struct char_data player;
+  struct char_data npc;
+  struct player_special_data specials;
+  struct obj_data timed;
+  struct obj_data dormant;
+  struct char_data *saved_character_list = character_list;
+  struct obj_data *saved_object_list = object_list;
+  struct happyhour saved_happy = happy_data;
+  int saved_idle_max_level = CONFIG_IDLE_MAX_LEVEL;
+  unsigned long saved_pulse = pulse;
+
+  memset(&specials, 0, sizeof(specials));
+  clear_char(&player);
+  clear_char(&npc);
+  clear_object(&timed);
+  clear_object(&dormant);
+  player.player_specials = &specials;
+  GET_LEVEL(&player) = 1;
+  GET_COND(&player, HUNGER) = 10;
+  GET_COND(&player, DRUNK) = 10;
+  GET_COND(&player, THIRST) = 10;
+  npc.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&npc), MOB_ISNPC);
+  player.next = &npc;
+  character_list = &player;
+  timed.object_list_member = true;
+  dormant.object_list_member = true;
+  timed.next = &dormant;
+  object_list = &timed;
+  GET_OBJ_TIMER(&timed) = 2;
+  GET_OBJ_SPECTIMER(&timed, 0) = 2;
+  CONFIG_IDLE_MAX_LEVEL = 0;
+  HAPPY_TIME = 3;
+
+  event_free_all();
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 100U;
+  event_init();
+  point_update_periodic_init();
+
+  CuAssertTrue(tc, point_update_events_enabled());
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+  CuAssertIntEquals(tc, 1, (int)point_update_character_count());
+  CuAssertIntEquals(tc, 1, (int)point_update_object_count());
+  CuAssertIntEquals(tc, 0, (int)point_update_character_registry_validate());
+  CuAssertIntEquals(tc, 0, (int)point_update_object_registry_validate());
+
+  pulse = SECS_PER_MUD_HOUR * PASSES_PER_SEC;
+  event_process();
+  CuAssertIntEquals(tc, 1, (int)point_update_service_callbacks());
+  CuAssertIntEquals(tc, 3, HAPPY_TIME);
+  CuAssertIntEquals(tc, 10, GET_COND(&player, HUNGER));
+  CuAssertIntEquals(tc, 2, GET_OBJ_TIMER(&timed));
+
+  CuAssertTrue(tc, point_update_periodic_dispatch_due());
+  CuAssertIntEquals(tc, 2, HAPPY_TIME);
+  CuAssertIntEquals(tc, 9, GET_COND(&player, HUNGER));
+  CuAssertIntEquals(tc, 9, GET_COND(&player, DRUNK));
+  CuAssertIntEquals(tc, 9, GET_COND(&player, THIRST));
+  CuAssertIntEquals(tc, 1, player.char_specials.timer);
+  CuAssertIntEquals(tc, 1, GET_OBJ_TIMER(&timed));
+  CuAssertIntEquals(tc, 1, GET_OBJ_SPECTIMER(&timed, 0));
+  CuAssertIntEquals(tc, 1, (int)point_update_character_executions());
+  CuAssertIntEquals(tc, 1, (int)point_update_object_executions());
+  CuAssertTrue(tc, !point_update_periodic_dispatch_due());
+
+  pulse += SECS_PER_MUD_HOUR * PASSES_PER_SEC;
+  event_process();
+  CuAssertTrue(tc, point_update_periodic_dispatch_due());
+  CuAssertIntEquals(tc, 0, GET_OBJ_TIMER(&timed));
+  CuAssertIntEquals(tc, 0, GET_OBJ_SPECTIMER(&timed, 0));
+  CuAssertIntEquals(tc, 0, (int)point_update_object_count());
+  CuAssertIntEquals(tc, 2, (int)point_update_dispatches());
+
+  point_update_periodic_reset_for_test();
+  event_free_all();
+  character_list = saved_character_list;
+  object_list = saved_object_list;
+  happy_data = saved_happy;
+  CONFIG_IDLE_MAX_LEVEL = saved_idle_max_level;
+  pulse = saved_pulse;
+}
+
+void TestPointUpdateMutationHooksAndLegacyGateAreExclusive(CuTest *tc)
+{
+  struct obj_data live;
+  struct obj_data editor_draft;
+  struct obj_data *saved_object_list = object_list;
+  unsigned long saved_pulse = pulse;
+
+  clear_object(&live);
+  clear_object(&editor_draft);
+  live.object_list_member = true;
+  object_list = &live;
+
+  event_free_all();
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 200U;
+  event_init();
+  point_update_periodic_init();
+  CuAssertIntEquals(tc, 0, (int)point_update_object_count());
+
+  point_update_object_spec_timer_set(&live, 0, 4);
+  CuAssertIntEquals(tc, 1, (int)point_update_object_count());
+  point_update_object_spec_timer_set(&live, 0, 0);
+  CuAssertIntEquals(tc, 0, (int)point_update_object_count());
+
+  GET_OBJ_TIMER(&editor_draft) = 5;
+  point_update_object_sync(&editor_draft);
+  CuAssertIntEquals(tc, 0, (int)point_update_object_count());
+  GET_OBJ_TIMER(&live) = 5;
+  point_update_object_sync(&live);
+  CuAssertIntEquals(tc, 1, (int)point_update_object_count());
+  point_update_object_forget(&live);
+  CuAssertIntEquals(tc, 0, (int)point_update_object_count());
+
+  point_update_periodic_reset_for_test();
+  event_free_all();
+  point_update_periodic_select_for_test(false);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  point_update_periodic_init();
+  point_update_object_sync(&live);
+  CuAssertTrue(tc, !point_update_events_enabled());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  CuAssertIntEquals(tc, 0, (int)point_update_object_count());
+
+  point_update_periodic_reset_for_test();
+  event_free_all();
+  object_list = saved_object_list;
+  pulse = saved_pulse;
+}
+
+void TestPointUpdateObjectDecayRemainsExtractionSafe(CuTest *tc)
+{
+  struct obj_data *first;
+  struct obj_data *second;
+  struct obj_data *saved_object_list = object_list;
+  unsigned long saved_pulse = pulse;
+
+  object_list = NULL;
+  event_free_all();
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 100U;
+  event_init();
+  point_update_periodic_init();
+
+  first = create_obj();
+  second = create_obj();
+  SET_BIT_AR(GET_OBJ_EXTRA(first), ITEM_DECAY);
+  SET_BIT_AR(GET_OBJ_EXTRA(second), ITEM_DECAY);
+  GET_OBJ_TIMER(first) = 1;
+  GET_OBJ_TIMER(second) = 1;
+  point_update_object_sync(first);
+  point_update_object_sync(second);
+  CuAssertIntEquals(tc, 2, (int)point_update_object_count());
+
+  pulse = SECS_PER_MUD_HOUR * PASSES_PER_SEC;
+  event_process();
+  CuAssertTrue(tc, point_update_periodic_dispatch_due());
+  CuAssertPtrEquals(tc, NULL, object_list);
+  CuAssertIntEquals(tc, 0, (int)point_update_object_count());
+  CuAssertIntEquals(tc, 2, (int)point_update_object_executions());
+  CuAssertIntEquals(tc, 0, (int)point_update_object_registry_validate());
+
+  point_update_periodic_reset_for_test();
+  event_free_all();
+  object_list = saved_object_list;
+  pulse = saved_pulse;
+}
+
+void TestPointUpdateFallsBackWhenServiceCannotStart(CuTest *tc)
+{
+  event_free_all();
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(true);
+  point_update_periodic_init();
+
+  CuAssertTrue(tc, !point_update_events_enabled());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  point_update_periodic_reset_for_test();
 }
 
 void TestVesselPeriodicSchedulesLoadedOwnersAndKeepsLegacyExclusive(CuTest *tc)

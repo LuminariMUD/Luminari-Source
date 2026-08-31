@@ -44,6 +44,7 @@
 #include "mob/mob_act.h"
 #include "active_world.h"
 #include "character_periodic.h"
+#include "point_update_periodic.h"
 #include "affected_owners.h"
 #include "domain_event_runtime.h"
 #include "vessels/vessels_rol.h"
@@ -2170,6 +2171,7 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
       // log("T10: %s", object->short_description);
       MSDPFlush(ch->desc, eMSDP_INVENTORY);
     }
+    point_update_object_sync(object);
     // log("T11: %s", object->short_description);
   }
   else
@@ -2243,6 +2245,7 @@ void obj_to_bag(struct char_data *ch, struct obj_data *object, int bagnum)
       update_msdp_inventory(ch);
       MSDPFlush(ch->desc, eMSDP_INVENTORY);
     }
+    point_update_object_sync(object);
   }
   else
     log("SYSERR: NULL obj (%p) or char (%p) passed to obj_to_bag.", object, ch);
@@ -2826,6 +2829,7 @@ void obj_to_room(struct obj_data *object, room_rnum room)
     /* Falling objects are not implemented yet; retain float-message side effects. */
     (void)obj_should_fall(object);
     rol_ship_note_object_placed(object);
+    point_update_object_sync(object);
   }
 }
 
@@ -2900,6 +2904,7 @@ void obj_to_obj(struct obj_data *obj, struct obj_data *obj_to)
     if (tmp_obj->carried_by)
       IS_CARRYING_W(tmp_obj->carried_by) += GET_OBJ_WEIGHT(obj);
   }
+  point_update_object_sync(obj);
 }
 
 /* remove an object from an object */
@@ -3001,6 +3006,7 @@ void extract_obj(struct obj_data *obj)
     extract_obj(obj->contains);
 
   REMOVE_FROM_LIST(obj, object_list, next);
+  obj->object_list_member = false;
 
   /* Remove object from rnum hash table */
   remove_obj_from_rnum_hash(obj);
@@ -3028,6 +3034,7 @@ void extract_obj(struct obj_data *obj)
       obj->proto_script != obj_proto[GET_OBJ_RNUM(obj)].proto_script)
     free_proto_script(&obj->proto_script);
 
+  point_update_object_forget(obj);
   free_obj(obj);
 }
 
@@ -3035,7 +3042,10 @@ static void update_object(struct obj_data *obj, int use)
 {
   /* dont update objects with a timer trigger */
   if (!SCRIPT_CHECK(obj, OTRIG_TIMER) && (GET_OBJ_TIMER(obj) > 0))
+  {
     GET_OBJ_TIMER(obj) -= use;
+    point_update_object_sync(obj);
+  }
   if (obj->contains)
     update_object(obj->contains, use);
   if (obj->next_content)
@@ -3106,6 +3116,7 @@ void extract_char_final(struct char_data *ch)
 
   domain_event_runtime_character_extracted(ch, 0U);
   character_periodic_forget(ch);
+  point_update_character_forget(ch);
   active_world_forget_character(ch);
   mobile_activity_forget_character(ch);
   remove_all_rol_elemental_embodiments(ch);

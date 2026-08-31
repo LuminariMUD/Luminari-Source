@@ -61,6 +61,7 @@
 #include "combat/assign_wpn_armor.h"
 #include "bardic_performance.h"
 #include "character_periodic.h"
+#include "point_update_periodic.h"
 #include "magic/spell_prep.h"
 #include "craft/crafts.h" /* NewCraft */
 #include "comms/new_mail.h"
@@ -6916,6 +6917,7 @@ int enter_player_game(struct descriptor_data *d)
   d->character->next = character_list;
   character_list = d->character;
   affected_registry_attach(d->character);
+  point_update_character_sync(d->character);
   char_to_room(d->character, load_room);
   load_result = Crash_load(d->character);
 

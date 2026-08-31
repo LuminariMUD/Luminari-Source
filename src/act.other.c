@@ -65,6 +65,7 @@
 #include "constants.h"
 #include "craft/crafting_new.h" /* For golem repair functions */
 #include "olc/genolc.h"
+#include "point_update_periodic.h"
 #include <time.h>
 
 /* some defines for gain/respec */
@@ -1314,6 +1315,7 @@ ACMD(do_imbuearrow)
 
   /* start wear-off timer for the spell placed on the arrow */
   GET_OBJ_TIMER(arrow) = 8; /* should be 8 hours right? */
+  point_update_object_sync(arrow);
 
   USE_MOVE_ACTION(ch);
 
