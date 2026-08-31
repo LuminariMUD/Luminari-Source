@@ -1067,12 +1067,6 @@ int outcast_ship_look_out_room(int room, struct char_data *ch, int cmd, char *ar
  * range constants (SHRTRANGE/MEDRANGE/LNGRANGE), and GREYHAWK_ITEM_SHIP are now defined
  * unconditionally above (lines 65-88) to avoid duplication. */
 
-/* Greyhawk Ship Action Event Structure (unique to this conditional block) */
-struct greyhawk_ship_action_event
-{
-  int shipnum; /* Ship performing action */
-};
-
 /* GREYHAWK SHIP SYSTEM MACROS (subset used by implementation) */
 #define GREYHAWK_SHIPMAXFARMOR(in_room) world[(in_room)].ship->maxfarmor
 #define GREYHAWK_SHIPMAXRARMOR(in_room) world[(in_room)].ship->maxrarmor
@@ -1344,8 +1338,7 @@ struct greyhawk_ship_data
   short int speed, setspeed;    /* Current and target speed */
 
   /* Events */
-  struct event *action; /* Ship action event */
-  struct event *periodic_event;
+  event_handle_t periodic_event_handle;
   uint64_t periodic_generation;
   bool periodic_registered;
   struct greyhawk_ship_data *periodic_prev;

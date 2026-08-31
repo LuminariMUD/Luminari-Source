@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
 **Status:** In progress - Phases 1 through 10 accepted; Phase 11 owner migration in progress and removal gate pending
-**Document version:** 1.20
+**Document version:** 1.21
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 opaque-handle foundation and shared owner migrations implemented
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 opaque-handle migration has reached DG waits and MUD events
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -22,6 +22,9 @@
 > now store generation-safe opaque event handles instead of public
 > compatibility-record pointers. Their timing, recurrence, teardown,
 > diagnostics, and rollback behavior are unchanged.
+> Vessel owners and the vessel/point-update singleton services also use opaque
+> handles. Only DG waits and the MUD-event layer still expose compatibility
+> records outside the facade.
 > The process now owns a boot-sealed typed domain-event registry with bounded
 > synchronous dispatch, generation-aware resolution, and diagnostics. Nine
 > fact contracts exist. `WorldPhenomenon` is the first production-published
@@ -1976,6 +1979,9 @@ Readiness audit, 2026-08-31:
   to still-unmigrated vessel, point-update, DG-wait, and MUD-event callers. The
   implementation and evidence are recorded in
   [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11C_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11C_VALIDATION.md).
+- Vessel and point-update owners now use opaque handles as recorded in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11D_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11D_VALIDATION.md).
+  The unused Greyhawk action-event field was confirmed caller-free and removed.
 
 ## 24. Verification Strategy
 
@@ -2340,3 +2346,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.18 | 2026-08-31 | Added the reversible Phase 11a migration foundation: every compatibility event now has a bounded 64-bit opaque handle with constant-time generation validation, pointer-free schedule/cancel/query/cleanup APIs, stale-handle rejection, exactly-once lifecycle behavior, and fail-closed slot retirement rather than generation wrap. Both scheduler and legacy backends remain supported, no caller or rollback path was removed, and the irreversible release gate remains pending. |
 | 1.19 | 2026-08-31 | Completed the first reversible Phase 11 owner slice: encounter-owned combat rounds and primary-activity timers now schedule, cancel, query, recur, and detach through generation-safe opaque handles. Existing combat and activity semantics, both physical backends, and all rollback selectors remain intact; the separate Survival/Nature camp-rule decision is explicitly deferred. |
 | 1.20 | 2026-08-31 | Migrated the shared Phase 7 owners for autonomous mobiles, character and room affects, nearest-deadline character work, object automatic procedures, and DG random triggers to opaque event handles. Callback cadence, off-screen simulation, lifecycle refill, OLC/reindex behavior, both backends, and rollback selectors remain unchanged; external raw compatibility references fell from 62 across 18 files to 42 across 11 files. |
+| 1.21 | 2026-08-31 | Migrated Greyhawk and fixed-RoL vessel owners plus vessel and point-update singleton services to opaque handles, preserving every established cadence and lifecycle path. Removed one proven-unused Greyhawk action-event field and narrowed external compatibility references to 29 across seven DG-wait/MUD-event files. |

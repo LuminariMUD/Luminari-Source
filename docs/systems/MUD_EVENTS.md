@@ -117,6 +117,11 @@ recurrence and owner teardown behavior. This infrastructure migration does not
 alter combat, activity, affected, mobile, automatic-procedure, DG, or Establish
 Camp gameplay rules.
 
+Greyhawk vessels, fixed RoL ships, the global vessel service, and the mud-hour
+point-update service also store opaque handles. Singleton service callbacks use
+a borrowed handle-slot payload solely so cancellation cleanup can detach the
+current identity; they do not expose or own gameplay payload data.
+
 ### 2.3 Lifecycle (Base)
 
 - Create/schedule: [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c)

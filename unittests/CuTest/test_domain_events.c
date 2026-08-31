@@ -1916,13 +1916,13 @@ void TestVesselPeriodicSchedulesLoadedOwnersAndKeepsLegacyExclusive(CuTest *tc)
   vessel_periodic_feature_changed();
   CuAssertIntEquals(tc, 0, (int)vessel_periodic_owner_count());
   CuAssertIntEquals(tc, 0, (int)vessel_periodic_scheduled_count());
-  CuAssertPtrEquals(tc, NULL, ship->periodic_event);
+  CuAssertTrue(tc, ship->periodic_event_handle == EVENT_HANDLE_NONE);
   CuAssertIntEquals(tc, 0, event_queue_depth());
   CONFIG_VESSEL_SYSTEM = 1;
   vessel_periodic_feature_changed();
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_scheduled_count());
-  CuAssertPtrNotNull(tc, ship->periodic_event);
+  CuAssertTrue(tc, ship->periodic_event_handle != EVENT_HANDLE_NONE);
   CuAssertTrue(tc, event_queue_depth() >= 2);
   CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
 
@@ -1989,14 +1989,14 @@ void TestVesselPeriodicCapacityRefillsAfterOwnerCancellation(CuTest *tc)
   CuAssertIntEquals(tc, 2, (int)vessel_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_scheduled_count());
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_admission_rejections());
-  CuAssertPtrNotNull(tc, first->periodic_event);
-  CuAssertPtrEquals(tc, NULL, second->periodic_event);
+  CuAssertTrue(tc, first->periodic_event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, second->periodic_event_handle == EVENT_HANDLE_NONE);
   CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
 
   vessel_periodic_forget(first);
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_scheduled_count());
-  CuAssertPtrNotNull(tc, second->periodic_event);
+  CuAssertTrue(tc, second->periodic_event_handle != EVENT_HANDLE_NONE);
   CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
 
   vessel_periodic_reset_for_test();

@@ -60,7 +60,7 @@ struct rol_ship_state
   const char *route_path;
   room_vnum route_destination;
   struct char_data *last_help_victim;
-  struct event *periodic_event;
+  event_handle_t periodic_event_handle;
   uint64_t periodic_generation;
 };
 
@@ -109,17 +109,14 @@ static long rol_ship_boundary_delay(void)
   return remainder == 0U ? (long)cadence : (long)(cadence - remainder);
 }
 
-static void rol_ship_event_cleanup(struct event *event)
+static void rol_ship_event_cleanup(event_handle_t handle, void *event_obj)
 {
   int ship_index;
 
-  if (event == NULL)
-    return;
-  ship_index = (int)(intptr_t)event->event_obj - 1;
+  ship_index = (int)(intptr_t)event_obj - 1;
   if (ship_index >= 0 && ship_index < rol_ship_count() &&
-      rol_ship_states[ship_index].periodic_event == event)
-    rol_ship_states[ship_index].periodic_event = NULL;
-  event->event_obj = NULL;
+      rol_ship_states[ship_index].periodic_event_handle == handle)
+    rol_ship_states[ship_index].periodic_event_handle = EVENT_HANDLE_NONE;
 }
 
 static EVENTFUNC(rol_ship_owner_event)
@@ -134,7 +131,7 @@ static EVENTFUNC(rol_ship_owner_event)
   if (!rol_periodic_initialized || !vessel_periodic_events_enabled() || state->hull == NULL ||
       IN_ROOM(state->hull) == NOWHERE || IN_ROOM(state->hull) > top_of_world)
   {
-    state->periodic_event = NULL;
+    state->periodic_event_handle = EVENT_HANDLE_NONE;
     return 0;
   }
   rol_ship_activity_one(ship_index);
@@ -150,7 +147,8 @@ static void rol_ship_schedule(int ship_index)
       ship_index >= rol_ship_count())
     return;
   state = &rol_ship_states[ship_index];
-  if (state->hull == NULL || state->periodic_event != NULL || IN_ROOM(state->hull) == NOWHERE ||
+  if (state->hull == NULL || state->periodic_event_handle != EVENT_HANDLE_NONE ||
+      IN_ROOM(state->hull) == NOWHERE ||
       IN_ROOM(state->hull) > top_of_world)
     return;
   if (state->periodic_generation == 0U)
@@ -166,7 +164,7 @@ static void rol_ship_schedule(int ship_index)
   owner.kind = GAME_EVENT_OWNER_VESSEL;
   owner.runtime_id = 0x524f4c00U + (uint64_t)ship_index + 1U;
   owner.generation = state->periodic_generation;
-  state->periodic_event = event_create_owned_named_with_cleanup(
+  state->periodic_event_handle = event_schedule_owned_named_with_cleanup(
       rol_ship_owner_event, (void *)(intptr_t)(ship_index + 1), rol_ship_boundary_delay(),
       "rol_ship_periodic", rol_ship_event_cleanup, owner);
 }
@@ -174,16 +172,16 @@ static void rol_ship_schedule(int ship_index)
 static void rol_ship_cancel(int ship_index)
 {
   struct rol_ship_state *state;
-  struct event *event;
+  event_handle_t handle;
 
   if (ship_index < 0 || ship_index >= rol_ship_count())
     return;
   state = &rol_ship_states[ship_index];
-  if (state->periodic_event != NULL)
+  if (state->periodic_event_handle != EVENT_HANDLE_NONE)
   {
-    event = state->periodic_event;
-    state->periodic_event = NULL;
-    event_cancel(event);
+    handle = state->periodic_event_handle;
+    state->periodic_event_handle = EVENT_HANDLE_NONE;
+    (void)event_handle_cancel(handle);
   }
   state->periodic_generation = 0U;
 }
@@ -1091,7 +1089,7 @@ size_t rol_ship_periodic_scheduled_count(void)
 
   for (ship_index = 0; ship_index < rol_ship_count(); ship_index++)
   {
-    if (rol_ship_states[ship_index].periodic_event != NULL)
+    if (rol_ship_states[ship_index].periodic_event_handle != EVENT_HANDLE_NONE)
       count++;
   }
   return count;
@@ -1109,9 +1107,10 @@ size_t rol_ship_periodic_validate(void)
     state = &rol_ship_states[ship_index];
     loaded = state->hull != NULL && IN_ROOM(state->hull) != NOWHERE &&
              IN_ROOM(state->hull) <= top_of_world;
-    if ((state->periodic_event != NULL) != (vessel_periodic_events_enabled() && loaded))
+    if ((state->periodic_event_handle != EVENT_HANDLE_NONE) !=
+        (vessel_periodic_events_enabled() && loaded))
       mismatches++;
-    if (state->periodic_event != NULL && state->periodic_generation == 0U)
+    if (state->periodic_event_handle != EVENT_HANDLE_NONE && state->periodic_generation == 0U)
       mismatches++;
   }
   return mismatches;

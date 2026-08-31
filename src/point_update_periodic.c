@@ -19,7 +19,7 @@ static bool shutting_down;
 static bool dispatch_due;
 static bool character_iteration_active;
 static bool object_iteration_active;
-static struct event *service_event;
+static event_handle_t service_event_handle;
 static struct char_data *character_owners;
 static struct char_data *character_iteration_next;
 static struct obj_data *object_owners;
@@ -188,12 +188,11 @@ void point_update_object_spec_timer_set(struct obj_data *obj, int slot, int dura
   point_update_object_sync(obj);
 }
 
-static void service_cleanup(struct event *event)
+static void service_cleanup(event_handle_t handle, void *event_obj)
 {
-  if (event != NULL && service_event == event)
-    service_event = NULL;
-  if (event != NULL)
-    event->event_obj = NULL;
+  (void)event_obj;
+  if (service_event_handle == handle)
+    service_event_handle = EVENT_HANDLE_NONE;
 }
 
 static EVENTFUNC(point_update_service_event)
@@ -202,7 +201,7 @@ static EVENTFUNC(point_update_service_event)
 
   if (!initialized || !scheduled)
   {
-    service_event = NULL;
+    service_event_handle = EVENT_HANDLE_NONE;
     return 0;
   }
   service_callbacks++;
@@ -212,15 +211,15 @@ static EVENTFUNC(point_update_service_event)
 
 static bool schedule_service(void)
 {
-  if (service_event != NULL)
+  if (service_event_handle != EVENT_HANDLE_NONE)
     return true;
   if (!initialized || !scheduled || shutting_down ||
       event_backend_current() == EVENT_BACKEND_UNINITIALIZED)
     return false;
-  service_event = event_create_owned_named_with_cleanup(
-      point_update_service_event, NULL, boundary_delay(), "point_update_service", service_cleanup,
-      service_owner());
-  return service_event != NULL;
+  service_event_handle = event_schedule_owned_named_with_cleanup(
+      point_update_service_event, &service_event_handle, boundary_delay(), "point_update_service",
+      service_cleanup, service_owner());
+  return service_event_handle != EVENT_HANDLE_NONE;
 }
 
 bool point_update_periodic_dispatch_due(void)
@@ -293,16 +292,16 @@ void point_update_periodic_shutdown(void)
   struct char_data *next_ch;
   struct obj_data *obj;
   struct obj_data *next_obj;
-  struct event *event;
+  event_handle_t handle;
 
   if (!initialized)
     return;
   shutting_down = true;
-  if (service_event != NULL)
+  if (service_event_handle != EVENT_HANDLE_NONE)
   {
-    event = service_event;
-    service_event = NULL;
-    event_cancel(event);
+    handle = service_event_handle;
+    service_event_handle = EVENT_HANDLE_NONE;
+    (void)event_handle_cancel(handle);
   }
   for (ch = character_owners; ch != NULL; ch = next_ch)
   {

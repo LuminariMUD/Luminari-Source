@@ -106,6 +106,12 @@ inventory is now 99 occurrences across 14 files: three libevent declarations,
 11 files. The remaining external files belong to vessel owners, point-update,
 DG waits, MUD events, and their diagnostics/persistence callers.
 
+Phase 11d migrates Greyhawk and fixed-RoL vessel owners plus the vessel and
+point-update singleton services. The source inventory is now 86 occurrences
+across 10 files: three libevent declarations, 54 private facade references,
+and 29 external compatibility references across seven files. Those seven files
+are limited to DG waits, MUD events, and MUD-event diagnostics/persistence.
+
 Combat cadence, semantic rounds, activity timing, autonomous off-screen mobile
 simulation, affects, periodic character work, automatic procedures, DG random
 triggers, cancellation, recurrence, diagnostics, and boot-time rollback
