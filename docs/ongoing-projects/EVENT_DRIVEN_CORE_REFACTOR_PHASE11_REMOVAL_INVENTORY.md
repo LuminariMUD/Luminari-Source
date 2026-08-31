@@ -132,6 +132,12 @@ remains. Two one-shot producers in `src/ai_events.c` still call
 `event_create()` while ignoring its return; the zero-caller slice owns their
 conversion before the raw API can become private or be removed.
 
+Phase 11g decomposes the residual heartbeat into named actual-cadence services,
+derives runtime ticks from monotonic elapsed time, gives queued wait state an
+exact reactor deadline, moves deferred extraction to an explicit safe point,
+and gives persistence batches an owned event. The complete heartbeat remains
+available only as runtime-service rollback or to advance the legacy queue.
+
 Combat cadence, semantic rounds, activity timing, autonomous off-screen mobile
 simulation, affects, periodic character work, automatic procedures, DG random
 triggers, cancellation, recurrence, diagnostics, and boot-time rollback
@@ -147,10 +153,11 @@ player event file; it must not be inferred merely from current writer defaults.
 
 ## 5. Compatibility heartbeat
 
-The main loop still advances `pulse` and calls `heartbeat()` every 100 ms. That
-function no longer needs to discover work for the migrated high-cardinality
-owners when their scheduled modes are active, but it still has real semantic
-responsibilities.
+The default main loop derives `pulse` from monotonic elapsed time and schedules
+the residual cadence groups as named service events. It does not wake or call
+`heartbeat()` every 100 ms. `LUMINARI_RUNTIME_SERVICES=legacy` restores the
+whole dispatcher, and the legacy timed-event backend still requires the 100 ms
+adapter tick to advance its physical queue.
 
 ### Migrated rollback scans
 
@@ -174,27 +181,22 @@ Their selectors are `LUMINARI_ACTIVE_WORLD`, `LUMINARI_AUTOPROC_EVENTS`,
 single Establish Camp migration. These paths cannot be deleted before their
 release rollback period closes.
 
-### Remaining semantic work
+### Named scheduled work
 
-The 100 ms cadence also currently owns or paces:
+Twenty-four service definitions cover the former cadence groups at their real
+intervals; only definitions required by the selected subsystem modes are
+admitted. A normal live boot currently schedules 14. The reactor includes an
+exact queued-input or pending-action `WAIT_STATE` expiry, and wait state consumes
+monotonic elapsed ticks. Deferred extraction runs at an explicit post-dispatch
+safe point. Minute persistence owns a dynamic named batch-step event.
 
-- scheduler tick time and due-event dispatch eligibility;
-- descriptor `WAIT_STATE` countdown;
-- deferred character extraction;
-- one-second help reload, MSDP, travel, crafting, self-buff, I3, presence, and
-  supply-slot work;
-- moving-room, zone, idle-password, Avernus room, d20, hunt, weather/time,
-  quest, diplomacy, clan, trail, maintenance, persistence, usage, and time-save
-  services at their established cadences;
-- minute persistence batching and its bounded stepper;
-- mud-hour and mud-day work.
-
-Phase 11 must not replace this list with one recurring 100 ms scheduler event.
-Approved global work should become named service-owned scheduled events at its
-actual cadence. The runtime tick source must become monotonic and independent
-of `heartbeat()`, `WAIT_STATE` must consume elapsed ticks or a deadline rather
-than loop iterations, and deferred extraction needs an explicit safe-point
-queue drain. Only then can the generic pulse and catch-up machinery be removed.
+This decomposition removes generic pulse pacing, but does not by itself prove
+that every callback is owner-local. The one-second service still invokes
+established connected-player and active gameplay routines; minute maintenance
+may inspect connected inventories; and mud-hour work includes time triggers,
+timed quests, diplomacy, trails, and world maintenance. The final adversarial
+audit must classify each internal traversal as legitimate global work, bounded
+active-owner work, or a remaining high-cardinality discovery scan.
 
 ## 6. `select()` compatibility driver
 
@@ -240,9 +242,10 @@ No schema change is authorized by this source audit.
 2. Replace remaining compatibility-record pointers by owner category with
    opaque scheduler identities and payload cleanup, retaining focused parity
    tests after each category.
-3. Convert the residual heartbeat responsibilities into named service events,
-   adopt a monotonic runtime tick, and separate deferred safe-point drains from
-   time cadence.
+3. Completed on the development branch: convert residual heartbeat
+   responsibilities into named service events, adopt a monotonic runtime tick,
+   and separate deferred safe-point drains from time cadence. Retain rollback
+   until the release gate closes.
 4. Remove migrated gameplay rollback branches and selectors after verifying no
    production rollback dependency, and retire the legacy persistence writer
    only after durable-record compatibility is accounted for.

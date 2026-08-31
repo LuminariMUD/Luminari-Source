@@ -1,15 +1,16 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 owner migration in progress and removal gate pending
-**Document version:** 1.23
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration complete through residual heartbeat decomposition; removal gate pending
+**Document version:** 1.24
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner-handle migration complete through MUD events, with residual heartbeat decomposition next
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles and named runtime services implemented, with zero-caller and final release-gate audits next
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
-> scheduler deadlines now drive bounded reactor dispatch, while the compatibility
-> heartbeat remains only for unmigrated pulse work. Generation-aware MUD-event
+> scheduler deadlines now drive bounded reactor dispatch. Named service events
+> own the remaining cadence work by default; the compatibility heartbeat remains
+> only for explicit runtime-service or timed-backend rollback. Generation-aware MUD-event
 > ownership and lifecycle cancellation form the accepted scheduler foundation.
 > A private `libevent` compatibility reactor now owns production readiness and
 > signals, with boot-time `select()` rollback. Gameplay timing ownership is
@@ -26,6 +27,9 @@
 > events also use opaque handles. The compatibility record is now private to
 > its facade; two one-shot AI producers still call the raw creation entry point
 > without retaining its return value.
+> Runtime ticks now derive from monotonic elapsed time independently of a pulse
+> callback. The reactor sleeps to the nearest I/O, scheduler, or queued
+> `WAIT_STATE` deadline, and deferred extraction has an explicit safe point.
 > The process now owns a boot-sealed typed domain-event registry with bounded
 > synchronous dispatch, generation-aware resolution, and diagnostics. Nine
 > fact contracts exist. `WorldPhenomenon` is the first production-published
@@ -1954,12 +1958,13 @@ Readiness audit, 2026-08-31:
   `0d86b4d2bb80bb7fff62d67dafa763842fcc65a4` exists only on the development
   branch and has no containing release tag, merge, deployment record, or stable
   release period. Passing development CI does not substitute for that evidence.
-- The old queue and `select()` driver remain isolated rollback implementations,
-  but the public compatibility record still has 112 raw pointer occurrences in
-  22 tracked source/header files, including 72 occurrences in 20 external
-  caller files. The 100 ms heartbeat still paces runtime ticks, `WAIT_STATE`,
-  safe-point extraction, and named global work that must be scheduled before
-  pulse removal.
+- The old queue and `select()` driver remain isolated rollback implementations.
+  External compatibility-record declarations are zero and only two ignored-
+  return AI producers still call the raw creation entry point. Scheduled
+  runtime-service mode derives ticks monotonically, arms exact scheduler and
+  queued-`WAIT_STATE` deadlines, drains extraction at an explicit safe point,
+  and does not run the generic 100 ms heartbeat. The heartbeat remains required
+  by the legacy timed backend and `LUMINARI_RUNTIME_SERVICES=legacy` rollback.
 - Old PubSub runtime source remains retired. Its deprecated archival schema may
   be removed only by a separately reviewed backup, retention, drop-order, and
   restore migration with production approval.
@@ -1991,6 +1996,13 @@ Readiness audit, 2026-08-31:
   record now has zero external declarations, while two ignored-return AI
   creation calls remain for the zero-caller slice. Evidence is recorded in
   [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11F_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11F_VALIDATION.md).
+- Residual cadence work now runs as named service-owned scheduler events at its
+  established cadence. Startup is all-or-nothing, the monotonic runtime clock
+  is independent of heartbeat execution, queued waits arm exact reactor
+  deadlines, persistence stepping is event-owned, and extraction has an
+  explicit safe point. Full-heartbeat rollback remains available. Evidence is
+  recorded in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11G_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11G_VALIDATION.md).
 
 ## 24. Verification Strategy
 
@@ -2358,3 +2370,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.21 | 2026-08-31 | Migrated Greyhawk and fixed-RoL vessel owners plus vessel and point-update singleton services to opaque handles, preserving every established cadence and lifecycle path. Removed one proven-unused Greyhawk action-event field and narrowed external compatibility references to 29 across seven DG-wait/MUD-event files. |
 | 1.22 | 2026-08-31 | Migrated DG trigger waits to opaque handles while preserving wait grammar, timing, resume, OLC replacement, room relocation, and cancellation semantics. Split the remaining MUD-event terminal-cleanup and persistence work into dedicated Phase 11f; external raw declarations now total 26 across five MUD-event files. |
 | 1.23 | 2026-08-31 | Migrated the complete MUD-event layer to opaque handles and payload owner lists. Added handle-native exactly-once cleanup for normal completion as well as cancellation and shutdown, preserved recurrence and persistence across both backends, and reduced external raw compatibility declarations to zero; only two ignored-return AI raw scheduling calls remain for the zero-caller audit. |
+| 1.24 | 2026-08-31 | Replaced the default residual 100 ms heartbeat with named actual-cadence runtime services, a monotonic runtime tick, exact queued-WAIT_STATE reactor deadlines, an explicit extraction safe point, and event-owned persistence batches. Full-heartbeat and legacy-backend rollback remain available; the 1,034-test, sanitizer, Valgrind, syntax-matrix, live-MUD, and real-copyover gates pass. Zero-caller and final scan classification audits follow. |

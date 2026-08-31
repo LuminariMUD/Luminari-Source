@@ -20,7 +20,8 @@ their own analysis dates. Most retained legacy notes are grouped in
 
 | Document | Status | What remains |
 |----------|--------|--------------|
-| [EVENT_DRIVEN_CORE_REFACTOR_SPEC.md](EVENT_DRIVEN_CORE_REFACTOR_SPEC.md) | Controlling specification v1.23; Phases 1 through 10 plus the immortal observability gate accepted | Phase 11 owner-handle migration is complete through MUD events; residual heartbeat decomposition and the release gates remain open. |
+| [EVENT_DRIVEN_CORE_REFACTOR_SPEC.md](EVENT_DRIVEN_CORE_REFACTOR_SPEC.md) | Controlling specification v1.24; Phases 1 through 10 plus the immortal observability gate accepted | Phase 11 owner handles and residual runtime-service decomposition are implemented; zero-caller, final scan classification, and release gates remain open. |
+| [EVENT_DRIVEN_CORE_REFACTOR_PHASE11G_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE11G_VALIDATION.md) | Residual heartbeat decomposition implemented 2026-08-31 | Named actual-cadence services, monotonic runtime ticks, exact queued-wait deadlines, explicit extraction safe point, rollback, and full validation evidence. |
 | [EVENT_DRIVEN_CORE_REFACTOR_PHASE11F_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE11F_VALIDATION.md) | MUD-event owner migration implemented 2026-08-31 | Entity lists store payloads with opaque handles and exactly-once terminal cleanup; residual heartbeat decomposition follows. |
 | [EVENT_DRIVEN_CORE_REFACTOR_PHASE11E_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE11E_VALIDATION.md) | DG trigger-wait owner migration implemented 2026-08-31 | DG waits use opaque handles; MUD-event storage, terminal cleanup, diagnostics, and persistence follow as Phase 11f. |
 | [EVENT_DRIVEN_CORE_REFACTOR_PHASE11D_VALIDATION.md](EVENT_DRIVEN_CORE_REFACTOR_PHASE11D_VALIDATION.md) | Vessel and service owner migration implemented 2026-08-31 | Greyhawk, fixed-RoL, vessel-service, and point-update timers use opaque handles; DG waits followed in Phase 11e. |

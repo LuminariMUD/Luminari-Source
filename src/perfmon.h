@@ -113,6 +113,7 @@ void PERF_log_pulse(double val);
 
 /** Record the logical heartbeat most recently executed in this outer loop. */
 void PERF_note_heartbeat(uint64_t pulse_number);
+void PERF_note_runtime_advance(uint64_t pulse_number, uint64_t elapsed_ticks);
 
 /** Add one or more schedule-class bits to the current outer-loop context. */
 void PERF_note_schedule(uint64_t schedule_flags);

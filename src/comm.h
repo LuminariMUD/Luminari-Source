@@ -56,6 +56,14 @@ protocol_error_t set_msdp_plain_text_for_test(struct descriptor_data *d, variabl
                                               const char *value);
 void comm_test_retain_unsent_output(struct descriptor_data *d, const char *output, int result);
 int process_input_for_test(struct descriptor_data *d);
+void runtime_services_set_scheduled_for_test(bool scheduled);
+void runtime_services_reset_selection_for_test(void);
+bool runtime_services_init_for_test(void);
+bool runtime_services_start_empty_persistence_for_test(void);
+bool runtime_services_persistence_pending_for_test(void);
+void comm_wait_state_advance_for_test(struct char_data *ch, uint64_t now_tick);
+uint64_t comm_wait_state_deadline_usec_for_test(const struct char_data *ch,
+                                                uint64_t runtime_epoch_usec);
 #endif
 
 /* Act type settings and flags */
@@ -91,6 +99,20 @@ void heartbeat(int heart_pulse);
 bool object_auto_proc_run_one(struct obj_data *obj);
 size_t persistence_scheduler_repr(char *out_buf, size_t n);
 void persistence_scheduler_reset_telemetry(void);
+
+struct runtime_service_stats
+{
+  bool initialized;
+  bool scheduled;
+  size_t configured_services;
+  size_t live_services;
+  uint64_t callbacks;
+  uint64_t schedule_failures;
+};
+
+bool runtime_services_enabled(void);
+void runtime_services_get_stats(struct runtime_service_stats *stats);
+void runtime_services_shutdown(void);
 void copyover_recover(void);
 bool suspend_checkpoint_timer(void);
 bool resume_checkpoint_timer(void);

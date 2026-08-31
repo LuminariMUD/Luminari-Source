@@ -958,6 +958,7 @@ void destroy_db(void)
   /* Mud events detach themselves from character, object, room, and region
    * owner lists while being freed. Their owners must remain alive until the
    * global event queue has been drained. */
+  runtime_services_shutdown();
   domain_status = domain_event_runtime_shutdown();
   if (domain_status != DOMAIN_EVENT_OK)
     log("SYSERR: Unable to shut down the typed domain-event runtime: %s.",

@@ -4,9 +4,10 @@
 
 LuminariMUD uses a single-threaded, event-driven server architecture based on
 the classic CircleMUD/tbaMUD design. A private reactor waits for descriptor,
-signal, heartbeat, or scheduler-deadline readiness; gameplay remains on the
-main thread. The migration still retains a 100 ms compatibility heartbeat for
-unconverted broad scans.
+signal, scheduler, or queued-action deadline readiness; gameplay remains on the
+main thread. Named scheduler services own normal cadence work. A 100 ms
+compatibility heartbeat remains available only for explicit rollback and the
+legacy timed-event backend.
 
 ## Main Server Components
 
@@ -64,17 +65,20 @@ static void init_game(ush_int local_port)
     // 7. Load world data
     boot_db();
 
-    // 8. Setup signal handlers
+    // 8. Admit named runtime services
+    runtime_services_init();
+
+    // 9. Setup signal handlers
     signal_setup();
 
-    // 9. Handle copyover recovery if needed
+    // 10. Handle copyover recovery if needed
     if (fCopyOver)
         copyover_recover();
 
-    // 10. Enter main game loop
+    // 11. Enter main game loop
     game_loop(mother_desc);
 
-    // 11. Shutdown sequence
+    // 12. Shutdown sequence
     // - Save all player data
     // - Close all sockets
     // - Save world state
@@ -96,31 +100,34 @@ void game_loop(socket_t local_mother_desc)
         // 1. Handle no-connection sleep state
         // 2. Setup file descriptor sets
         // 3. Calculate timing for next iteration
-        // 4. Arm the nearest heartbeat or scheduler deadline
+        // 4. Arm the nearest scheduler, queued-wait, or rollback deadline
         // 5. Wait for readiness (libevent, with select rollback)
         // 6. Accept new connections
         // 7. Handle exceptions and disconnections
         // 8. Process input from all descriptors
         // 9. Execute commands and game logic
         // 10. Process output to all descriptors
-        // 11. Run heartbeat functions
-        // 12. Performance monitoring
+        // 11. Dispatch a bounded scheduler batch
+        // 12. Drain deferred extraction at the explicit safe point
+        // 13. Run compatibility heartbeat only when rollback requires it
+        // 14. Performance monitoring
     }
 }
 ```
 
 **Timing System:**
-- **Pulse Rate:** 10 pulses per second (0.1 second intervals)
-- **Compatibility heartbeat:** `OPT_USEC` microseconds until remaining scans migrate
-- **Sleep mechanism:** reactor readiness plus the nearest real scheduler deadline
+- **Runtime resolution:** monotonic 100 ms ticks, without a mandatory 100 ms wake
+- **Compatibility heartbeat:** `OPT_USEC` only for runtime-service or legacy-backend rollback
+- **Sleep mechanism:** reactor readiness plus the nearest scheduler or queued-wait deadline
 - **Timed work:** generation-aware owner events on the scheduler or legacy rollback queue
 - **Typed facts:** synchronous, bounded domain events from committed state changes
 
 The target architecture does not schedule every player command. Commands remain
 direct interpreter work. Timings, regeneration, automatic actions, combat,
 activities, AI, and active-world processing migrate to owner-scheduled work;
-typed domain facts wake only affected owners. Phases 7 through 11 remove the
-remaining whole-world heartbeat scans after parity and rollback validation.
+typed domain facts wake only affected owners. Phases 7 through 11 remove broad
+discovery scans where ownership is available and isolate legitimate global
+maintenance as named work.
 
 ## Network Architecture
 
@@ -214,53 +221,33 @@ these boundaries:
 - Rollback to the integrated Luminari Web proxy until source-native behavior has
   equivalent security, operations, parser, and client-contract coverage.
 
-## Heartbeat System
+## Runtime Service Scheduling
 
-The heartbeat function runs various game subsystems at different intervals:
+Normal cadence work is admitted as named service-owned events at its established
+interval. Only services required by the selected subsystem modes are scheduled:
 
 ```c
-void heartbeat(int heart_pulse)
-{
-    // Every pulse (0.1 seconds)
-    event_process();                    // Event system
-
-    // Every 0.5 seconds  
-    if (!(heart_pulse % PULSE_DG_SCRIPT))
-        script_trigger_check();         // DG Scripts
-
-    // Every second
-    if (!(heart_pulse % PASSES_PER_SEC)) {
-        msdp_update();                  // Protocol updates
-        travel_tickdown();              // Movement timers
-        craft_update();                 // Crafting system
-        // ... other per-second updates
-    }
-
-    // Every pulse, process a bounded part of the six-second NPC cycle
-    mobile_activity_pulse(heart_pulse); // NPC actions
-
-    // Every 6 seconds
-    if (!(heart_pulse % PULSE_MOBILE))
-        proc_update();                  // Non-mobile special procedures
-
-    // Every 30 seconds  
-    if (!(heart_pulse % PULSE_ZONE))
-        zone_update();                  // Zone resets
-
-    // Every MUD hour (75 seconds default)
-    if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC))) {
-        weather_and_time(1);            // Weather/time
-        point_update_periodic_dispatch_due(); // Global/player/active-object work
-        check_timed_quests();           // Quest timers
-    }
-
-    // Every minute
-    if (!(heart_pulse % PULSE_AUTOSAVE)) {
-        Crash_save_all();               // Player saves
-        House_save_all();               // House saves
-    }
-}
+service.dg_random             // 0.5 seconds
+service.one_second            // protocol, travel, crafting, and related work
+service.mobile_procedures     // established mobile-procedure cadence
+service.zone                  // zone reset cadence
+service.thirty_second         // periodic character/object maintenance
+service.minute_persistence    // starts bounded save cycles
+service.persistence_batch     // dynamic one-operation persistence step
+service.mud_hour              // weather, quests, diplomacy, point work
+service.mud_day               // daily world work
 ```
+
+Additional definitions preserve moving rooms, idle-password checks, usage and
+time saves, hunt creation, and subsystem rollback callbacks. A default live
+boot currently admits 14 of 24 definitions because migrated owner systems do
+not need their rollback service. Startup admission is all-or-nothing; failure
+restores `LUMINARI_RUNTIME_SERVICES=legacy` behavior for that boot.
+
+Named services preserve existing routines and ordering within each cadence.
+Some are legitimate global maintenance or still call bounded connected/active
+owner traversals; the service name does not imply every inner routine is
+owner-local.
 
 ## Signal Handling
 
@@ -590,18 +577,18 @@ backlash. A bounded slow-combat ring stores safe numeric context for callbacks a
 round attack and special-procedure limits prevent recursive proc chains from monopolizing the game
 loop and report every truncation.
 
-### Missed-Pulse Recovery
+### Monotonic Runtime Ticks and Rollback
 
-`game_loop()` always executes the current heartbeat. When wall-clock delay requests additional
-heartbeats, it replays them only while the heartbeat batch remains inside one normal 100 ms
-outer-loop budget. Any unreplayed remainder is reported and deliberately discarded rather than
-carried into a self-reinforcing backlog.
+`game_loop()` derives the global runtime tick from `CLOCK_MONOTONIC` elapsed
+time, independently of callback execution. Scheduler deadlines therefore remain
+eligible after a quiet reactor sleep without replaying empty 100 ms turns.
+`WAIT_STATE` consumes the elapsed tick delta, and queued input or a pending
+action adds its exact wait expiry to the reactor timeout.
 
-The global `pulse` value advances only for heartbeats that run. Event deadlines, casting, combat
-rounds, action cooldowns, spell preparation, and vessel heartbeat schedules therefore remain in
-their established logical order, but they run later in wall-clock time during overload. The policy
-favors command and socket responsiveness over wall-clock catch-up; it does not coalesce individual
-callback types.
+The legacy timed-event backend still needs one compatibility tick to advance
+its queue. `LUMINARI_RUNTIME_SERVICES=legacy` restores the whole heartbeat and
+its bounded catch-up behavior. PERFMON records runtime advances separately from
+legacy requested, replayed, and dropped heartbeats.
 
 ### Staff Command
 

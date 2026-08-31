@@ -2,6 +2,30 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Deadline-driven runtime services
+
+#### Changed
+
+- Replaced the default residual 100 ms heartbeat with named service-owned
+  events scheduled at their established cadences, backed by a monotonic runtime
+  tick that advances independently of callback execution.
+- Made queued input and pending actions arm their exact `WAIT_STATE` expiry,
+  moved deferred character extraction to an explicit safe point, and gave
+  persistence batches a dynamic owned event.
+- Retained `LUMINARI_RUNTIME_SERVICES=legacy` for whole-heartbeat rollback and
+  the 100 ms adapter required by the legacy timed-event backend.
+
+#### Operations
+
+- Added compact runtime-service mode, live/configured, callback, and failure
+  counters to `eventdebug`, with named service queue and profile filters.
+
+#### Tests
+
+- Passed 1,034 production-linked tests, the complete local test suite, four
+  runtime/backend syntax boots, ASan/UBSan, strict Valgrind, an isolated live
+  Ornir session, and a same-PID copyover that rebuilt all configured services.
+
 ### Primary activities and Establish Camp
 
 #### Added

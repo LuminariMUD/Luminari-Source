@@ -879,3 +879,79 @@ void Test_event_debug_registry_is_backend_neutral_filterable_and_width_bounded(C
   verify_event_debug_registry(tc, EVENT_BACKEND_GAME_SCHEDULER);
   pulse = saved_pulse;
 }
+
+static void verify_runtime_service_registry(CuTest *tc, enum event_backend_kind backend)
+{
+  struct runtime_service_stats stats;
+  unsigned long start_pulse;
+
+  begin_backend_test(tc, backend, 0U);
+  start_pulse = pulse;
+  runtime_services_set_scheduled_for_test(true);
+  CuAssertTrue(tc, runtime_services_init_for_test());
+  memset(&stats, 0, sizeof(stats));
+  runtime_services_get_stats(&stats);
+  CuAssertTrue(tc, stats.initialized);
+  CuAssertTrue(tc, stats.scheduled);
+  CuAssertTrue(tc, stats.configured_services >= 14U);
+  CuAssertIntEquals(tc, (int)stats.configured_services, (int)stats.live_services);
+  CuAssertIntEquals(tc, (int)stats.live_services, event_queue_depth());
+
+  CuAssertTrue(tc, runtime_services_start_empty_persistence_for_test());
+  CuAssertTrue(tc, runtime_services_persistence_pending_for_test());
+  pulse = start_pulse + 1U;
+  event_process();
+  CuAssertTrue(tc, !runtime_services_persistence_pending_for_test());
+  CuAssertTrue(tc, runtime_services_start_empty_persistence_for_test());
+  CuAssertTrue(tc, runtime_services_persistence_pending_for_test());
+
+  runtime_services_shutdown();
+  memset(&stats, 0, sizeof(stats));
+  runtime_services_get_stats(&stats);
+  CuAssertTrue(tc, !stats.initialized);
+  CuAssertTrue(tc, !stats.scheduled);
+  CuAssertIntEquals(tc, 0, (int)stats.live_services);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  runtime_services_reset_selection_for_test();
+  event_free_all();
+}
+
+void Test_runtime_services_are_named_owned_events_on_both_backends(CuTest *tc)
+{
+  unsigned long saved_pulse = pulse;
+
+  verify_runtime_service_registry(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  verify_runtime_service_registry(tc, EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = saved_pulse;
+}
+
+void Test_wait_state_consumes_monotonic_elapsed_ticks(CuTest *tc)
+{
+  struct char_data ch;
+  uint64_t deadline;
+
+  memset(&ch, 0, sizeof(ch));
+  GET_WAIT_STATE(&ch) = 5;
+  comm_wait_state_advance_for_test(&ch, 100U);
+  CuAssertIntEquals(tc, 5, GET_WAIT_STATE(&ch));
+  comm_wait_state_advance_for_test(&ch, 102U);
+  CuAssertIntEquals(tc, 3, GET_WAIT_STATE(&ch));
+  comm_wait_state_advance_for_test(&ch, 102U);
+  CuAssertIntEquals(tc, 3, GET_WAIT_STATE(&ch));
+  comm_wait_state_advance_for_test(&ch, 200U);
+  CuAssertIntEquals(tc, 0, GET_WAIT_STATE(&ch));
+
+  GET_WAIT_STATE(&ch) = 4;
+  comm_wait_state_advance_for_test(&ch, 199U);
+  CuAssertIntEquals(tc, 4, GET_WAIT_STATE(&ch));
+  comm_wait_state_advance_for_test(&ch, 201U);
+  CuAssertIntEquals(tc, 2, GET_WAIT_STATE(&ch));
+
+  deadline = comm_wait_state_deadline_usec_for_test(&ch, 1000U);
+  CuAssertTrue(tc, deadline == 1000U + 203U * (uint64_t)OPT_USEC);
+  GET_WAIT_STATE(&ch) = 0;
+  CuAssertTrue(tc, comm_wait_state_deadline_usec_for_test(&ch, 1000U) == UINT64_MAX);
+  GET_WAIT_STATE(&ch) = 2;
+  ch.wait_last_tick = UINT64_MAX;
+  CuAssertTrue(tc, comm_wait_state_deadline_usec_for_test(&ch, 1000U) == UINT64_MAX);
+}

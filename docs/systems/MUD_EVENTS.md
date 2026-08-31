@@ -34,7 +34,7 @@ Key entry points (clickable declarations):
 - [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c): schedule through the active backend
 - [C.event_schedule_named_with_cleanup()](../../src/dgscript/dg_event.c): schedule through an opaque compatibility handle
 - [C.event_schedule_owned_named_with_terminal_cleanup()](../../src/dgscript/dg_event.c): schedule owned payloads with cleanup on every terminal path
-- [C.event_process()](../../src/dgscript/dg_event.c): advance and dispatch the active backend every pulse
+- [C.event_process()](../../src/dgscript/dg_event.c): compatibility entry point for advancing the active backend
 - [C.event_cancel()](../../src/dgscript/dg_event.c): cancel a queued or in-flight event safely
 - [C.event_handle_cancel()](../../src/dgscript/dg_event.c): cancel without exposing a compatibility record
 - [C.event_time()](../../src/dgscript/dg_event.c): remaining pulses until an event fires
@@ -59,13 +59,14 @@ Key entry points (clickable declarations):
   - Higher-level MUD events with entity-scoped lists and safety/memory semantics: [src/mud_event.c](../../src/mud_event.c) and [src/mud_event.h](../../src/mud_event.h)
   - Table-driven registry: [src/mud_event_list.c](../../src/mud_event_list.c) binds event IDs to functions, types, messages, and feat metadata
 - Time model:
-  - The game runs on "pulses" (tick frequency). Many helpers express real-life seconds using a macro RL_SEC which multiplies by PASSES_PER_SEC (10 ticks/sec), as discussed in [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
+  - Runtime time is a monotonic 100 ms tick, but scheduled mode does not wake every tick. Many helpers express real-life seconds using a macro RL_SEC which multiplies by PASSES_PER_SEC (10 ticks/sec), as discussed in [C.event_daily_use_cooldown()](../../src/mud_event.c#L284)
   - Events return the number of pulses until they should run again; returning 0 means "do not reschedule"
 
-The compatibility heartbeat still runs unmigrated pulse work. Scheduler
-deadlines also drive the reactor directly, with bounded event dispatch after
-descriptor input, commands, and output. Gameplay handlers remain on the main
-game thread.
+Scheduler deadlines drive the reactor directly, with bounded event dispatch
+after descriptor input, commands, and output. Named service events own normal
+cadence work. The compatibility heartbeat runs only for explicit runtime-
+service rollback or to advance the legacy timed backend. Gameplay handlers
+remain on the main game thread.
 
 ## 2. Timed-Event Compatibility Facade
 
@@ -371,13 +372,12 @@ contract, `WorldPhenomenon`, carries sensory facts. Registration and handler
 lists cannot change after boot; publication is synchronous and depth-first,
 with hard nesting and causal-count limits.
 
-Movement, combat-state, and extraction boundaries now publish their
-foundational facts to maintain autonomous NPC ownership. Combat mechanics are
-still the existing combat system, player commands still enter through the
-interpreter, and many heartbeat consumers still run at their old cadence. This
-incremental migration avoids running an old and new side-effect path at once.
-Other owning systems will add generation-aware resolvers, publishers, and
-subscribers one boundary at a time.
+Movement, combat-state, and extraction boundaries publish foundational facts
+to maintain autonomous NPC ownership. Combat mechanics remain the existing
+combat system and player commands still enter through the interpreter. The
+remaining cadence groups run as named scheduler services at their established
+intervals; subsystem selectors prevent old and new side-effect paths from
+running together.
 
 In game-loop terms, the scheduler is the alarm clock for when an owner should
 work, while domain events are immediate facts that can wake relevant owners.
@@ -454,9 +454,9 @@ fleets, and combat continue normally. The Greyhawk registry is capped at all
 rows within 80 columns.
 
 Mud-hour point work uses one aligned service event and two intrusive owner
-registries. The service callback only marks the old point phase due, allowing
-the heartbeat adapter to preserve weather, DG time-trigger, global, player,
-object, and quest ordering. Every PC is registered because condition, carried
+registries. The named mud-hour service preserves weather, DG time-trigger,
+global, player, object, and quest ordering before dispatching due point work.
+Every PC is registered because condition, carried
 object, artifact, and idle-rent behavior remains relevant. An object is
 registered only while it has a positive ordinary or legacy special timer, a
 timer trigger, an imbued-missile state, a decay flag, or corpse state. Setting
@@ -651,12 +651,19 @@ manager counters.
   - Default: `LUMINARI_EVENT_BACKEND=scheduler`
   - Rollback: `LUMINARI_EVENT_BACKEND=legacy`
   - Restart after changing the value; live backend switching is unsupported
+- Runtime-service selection:
+  - Default: `LUMINARI_RUNTIME_SERVICES=scheduled`
+  - Rollback: `LUMINARI_RUNTIME_SERVICES=legacy`
+  - Scheduled mode derives runtime ticks monotonically and admits named cadence
+    events all-or-nothing. Legacy mode restores the complete 100 ms heartbeat.
+    The legacy timed backend also retains a 100 ms adapter tick for queue
+    advancement even when named runtime services remain selected.
 - Character-periodic selection:
   - Default: `LUMINARI_CHARACTER_EVENTS=scheduled`
   - Rollback: `LUMINARI_CHARACTER_EVENTS=legacy`
   - The selection jointly controls walk-to, PSP, bardic verse, hint,
     per-character Luminari, damage/effect, and player-maintenance work;
-    scheduled and heartbeat paths never run together.
+    scheduled and rollback paths never run together.
 - Affected-owner selection:
   - Default: `LUMINARI_AFFECT_EVENTS=scheduled`
   - Rollback: `LUMINARI_AFFECT_EVENTS=legacy`
@@ -669,7 +676,7 @@ manager counters.
   - The selection controls all Greyhawk owner work, global vessel service
     work, mud-hour vessel/merchant work, and fixed-RoL ship movement. Startup
     admission failure selects the legacy path for the whole subsystem;
-    scheduled and heartbeat paths never run together.
+    scheduled and rollback paths never run together.
 - Point-update selection:
   - Default: `LUMINARI_POINT_UPDATE_EVENTS=scheduled`
   - Rollback: `LUMINARI_POINT_UPDATE_EVENTS=legacy`
@@ -700,10 +707,9 @@ manager counters.
   backend.
 - `perf event total` and the PERFMON CSV representation include lifecycle,
   delay-distribution, queue-depth, due-batch, and callback-duration aggregates.
-- The libevent reactor arms the scheduler's nearest deadline while the ten-Hz
-  compatibility heartbeat remains for unmigrated pulse consumers. The select
-  driver and legacy event queue remain boot-time rollback options until the
-  Phase 11 retirement gate.
+- The libevent reactor arms the nearest scheduler or queued-wait deadline.
+  The select driver, legacy event queue, and full heartbeat remain boot-time
+  rollback options until the Phase 11 retirement gate.
 
 - World events:
   - Global list is created in [C.init_events()](../../src/mud_event.c#L66) and defined at [src/mud_event.c](../../src/mud_event.c#L58)

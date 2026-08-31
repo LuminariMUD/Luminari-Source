@@ -7392,7 +7392,9 @@ struct char_data
   uint64_t event_owner_generation; /**< Runtime character incarnation. */
   uint64_t domain_event_generation; /**< Typed-event character incarnation. */
   uint64_t periodic_event_generation; /**< Periodic-owner incarnation. */
-  int wait;              /**< wait for how many loops before taking action. */
+  int wait;              /**< Remaining 100 ms action-delay ticks. */
+  uint64_t wait_last_tick; /**< Last monotonic runtime tick applied to wait. */
+  bool wait_tick_initialized; /**< Whether wait_last_tick has a valid baseline. */
 
   struct char_player_data player;              /**< General PC/NPC data */
   struct char_ability_data real_abils;         /**< Abilities without modifiers */

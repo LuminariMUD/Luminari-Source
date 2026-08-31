@@ -35,6 +35,25 @@ argument and command parsing, transport and autopilot behavior, combat,
 spells and skills, MariaDB prepared statements, DG scripts, and world index
 lookups.
 
+### Event Runtime Boot Matrix
+
+Changes to scheduling, the game loop, wait state, persistence cadence, or
+copyover must syntax-boot all runtime-service and timed-backend combinations:
+
+```sh
+LUMINARI_RUNTIME_SERVICES=scheduled LUMINARI_EVENT_BACKEND=scheduler ./luminari -c
+LUMINARI_RUNTIME_SERVICES=scheduled LUMINARI_EVENT_BACKEND=legacy    ./luminari -c
+LUMINARI_RUNTIME_SERVICES=legacy    LUMINARI_EVENT_BACKEND=scheduler ./luminari -c
+LUMINARI_RUNTIME_SERVICES=legacy    LUMINARI_EVENT_BACKEND=legacy    ./luminari -c
+```
+
+Run these from a prepared `lib/` data directory or pass its absolute path with
+`-d`. Database-linked tests must use the repository's isolated test fixture;
+do not point a test run at a shared development or production database. A game-
+loop release candidate also requires a logged-in live test and a real copyover
+that verifies descriptor survival, service reconstruction, callback progress,
+handoff cleanup, and port closure.
+
 After `make test`, always run:
 
 ```sh

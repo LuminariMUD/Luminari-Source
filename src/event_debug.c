@@ -172,6 +172,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   struct i3_ingress_stats ingress_stats;
   struct combat_encounter_stats encounter_stats;
   struct primary_activity_stats activity_stats;
+  struct runtime_service_stats service_stats;
   struct domain_event_bus *bus;
 
   debug_output_init(&output, buffer, capacity, width);
@@ -187,6 +188,17 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "Stale-owner outcomes: %" PRIu64,
                     event_stats.stale_owner_outcomes);
   render_live_owner_counts(&output, &event_stats);
+  memset(&service_stats, 0, sizeof(service_stats));
+  runtime_services_get_stats(&service_stats);
+  debug_output_line(&output, "");
+  debug_output_line(&output, "Runtime services");
+  debug_output_line(&output, "  mode: %s",
+                    service_stats.scheduled ? "named scheduled events" : "legacy heartbeat");
+  debug_output_line(&output, "  live/configured: %zu/%zu", service_stats.live_services,
+                    service_stats.configured_services);
+  debug_output_line(&output, "  callbacks: %" PRIu64, service_stats.callbacks);
+  debug_output_line(&output, "  schedule failures: %" PRIu64,
+                    service_stats.schedule_failures);
   debug_output_line(&output, "");
   debug_output_line(&output, "Compatibility adapter");
   debug_output_line(&output, "  process passes: %" PRIu64, perf_stats.process_calls);

@@ -108,6 +108,7 @@
 #include "character_periodic.h"
 #include "point_update_periodic.h"
 #include "periodic_owners.h"
+#include "dotenv.h"
 #include "elf_build_id.h"
 #include "mysql.h"
 #include "net/onboarding.h"
@@ -210,6 +211,12 @@ static void check_idle_passwords(void);
 static void init_descriptor(struct descriptor_data *newd, int desc);
 static void persistence_schedule_minute(int include_crash_and_houses);
 static void persistence_scheduler_step(uint64_t heart_pulse);
+static bool persistence_step_schedule(void);
+static bool runtime_services_init(void);
+static void runtime_services_safe_point(void);
+static void comm_wait_state_advance(struct char_data *ch, uint64_t now_tick);
+static uint64_t comm_wait_state_deadline_usec(const struct char_data *ch,
+                                              uint64_t runtime_epoch_usec);
 static void monotonic_timeval(struct timeval *value);
 static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd,
                                 fd_set *input_set, fd_set *output_set,
@@ -521,6 +528,7 @@ int main(int argc, char **argv)
       return EXIT_FAILURE;
     }
     boot_world();
+    (void)runtime_services_init();
   }
   else
   {
@@ -768,6 +776,7 @@ static void init_game(ush_int local_port)
   init_lookup_table();
 
   boot_db();
+  (void)runtime_services_init();
 
 #if defined(CIRCLE_UNIX) || defined(CIRCLE_MACINTOSH)
   if (!initialize_io_reactor())
@@ -1054,6 +1063,58 @@ static void monotonic_timeval(struct timeval *value)
   value->tv_usec = (suseconds_t)(usec % UINT64_C(1000000));
 }
 
+static void comm_wait_state_advance(struct char_data *ch, uint64_t now_tick)
+{
+  uint64_t elapsed;
+
+  if (ch == NULL)
+    return;
+  if (!ch->wait_tick_initialized || now_tick < ch->wait_last_tick)
+  {
+    ch->wait_last_tick = now_tick;
+    ch->wait_tick_initialized = true;
+    return;
+  }
+  elapsed = now_tick - ch->wait_last_tick;
+  ch->wait_last_tick = now_tick;
+  if (GET_WAIT_STATE(ch) <= 0 || elapsed == 0)
+    return;
+  if (elapsed >= (uint64_t)GET_WAIT_STATE(ch))
+    GET_WAIT_STATE(ch) = 0;
+  else
+    GET_WAIT_STATE(ch) -= (int)elapsed;
+}
+
+static uint64_t comm_wait_state_deadline_usec(const struct char_data *ch,
+                                              uint64_t runtime_epoch_usec)
+{
+  uint64_t deadline_tick;
+  uint64_t baseline_tick;
+
+  if (ch == NULL || GET_WAIT_STATE(ch) <= 0)
+    return UINT64_MAX;
+  baseline_tick = ch->wait_tick_initialized ? ch->wait_last_tick : (uint64_t)pulse;
+  if (baseline_tick > UINT64_MAX - (uint64_t)GET_WAIT_STATE(ch))
+    return UINT64_MAX;
+  deadline_tick = baseline_tick + (uint64_t)GET_WAIT_STATE(ch);
+  if (deadline_tick > (UINT64_MAX - runtime_epoch_usec) / (uint64_t)OPT_USEC)
+    return UINT64_MAX;
+  return runtime_epoch_usec + deadline_tick * (uint64_t)OPT_USEC;
+}
+
+#ifdef LUMINARI_CUTEST
+void comm_wait_state_advance_for_test(struct char_data *ch, uint64_t now_tick)
+{
+  comm_wait_state_advance(ch, now_tick);
+}
+
+uint64_t comm_wait_state_deadline_usec_for_test(const struct char_data *ch,
+                                                uint64_t runtime_epoch_usec)
+{
+  return comm_wait_state_deadline_usec(ch, runtime_epoch_usec);
+}
+#endif
+
 static bool initialize_io_reactor(void)
 {
   enum luminari_reactor_status status;
@@ -1148,14 +1209,20 @@ void game_loop(socket_t local_mother_desc)
   uint64_t command_end_usec = 0;
   uint64_t command_elapsed_usec = 0;
   uint64_t next_heartbeat_usec = 0;
+  uint64_t runtime_epoch_usec = 0;
+  uint64_t runtime_tick_value = 0;
+  uint64_t previous_runtime_tick_value = 0;
+  uint64_t scheduler_deadline_usec = 0;
+  uint64_t wait_deadline_usec = 0;
   uint64_t before_sleep_usec = 0;
   uint64_t now_usec = 0;
   uint64_t heartbeat_timeout_usec = 0;
   uint64_t scheduler_timeout_usec = 0;
-  uint64_t scheduler_tick_delta = 0;
   game_tick_t scheduler_deadline = 0;
   bool scheduler_has_deadline = false;
   bool heartbeat_due = false;
+  bool compatibility_tick_required = false;
+  unsigned long heartbeat_tick = 0;
   struct game_scheduler_budget scheduler_budget;
   struct game_scheduler_dispatch_report scheduler_report;
   enum game_scheduler_status scheduler_status;
@@ -1183,8 +1250,9 @@ void game_loop(socket_t local_mother_desc)
   io_driver = luminari_reactor_driver(io_reactor);
 
   monotonic_timeval(&perf_start);
-  next_heartbeat_usec = (uint64_t)perf_start.tv_sec * UINT64_C(1000000) +
-                        (uint64_t)perf_start.tv_usec + (uint64_t)OPT_USEC;
+  runtime_epoch_usec = (uint64_t)perf_start.tv_sec * UINT64_C(1000000) +
+                       (uint64_t)perf_start.tv_usec;
+  next_heartbeat_usec = runtime_epoch_usec + (uint64_t)OPT_USEC;
   scheduler_budget.max_callbacks = EVENT_SCHEDULER_CALLBACK_BUDGET;
   scheduler_budget.max_usec = EVENT_SCHEDULER_TIME_BUDGET_USEC;
 
@@ -1355,16 +1423,24 @@ void game_loop(socket_t local_mother_desc)
       }
     }
 
-    /* Select the single reactor wakeup from the compatibility pulse and the
-     * scheduler's earliest deadline. A ready backlog requests one zero-time
-     * reactor turn so descriptors are serviced between bounded batches. */
+    /* The runtime tick is derived from monotonic elapsed time, independently
+     * of whether the compatibility heartbeat is active. */
     monotonic_timeval(&before_sleep);
     before_sleep_usec = (uint64_t)before_sleep.tv_sec * UINT64_C(1000000) +
                         (uint64_t)before_sleep.tv_usec;
-    heartbeat_timeout_usec = before_sleep_usec >= next_heartbeat_usec
-                                 ? 0
-                                 : next_heartbeat_usec - before_sleep_usec;
-    scheduler_timeout_usec = heartbeat_timeout_usec;
+    runtime_tick_value = before_sleep_usec >= runtime_epoch_usec
+                             ? (before_sleep_usec - runtime_epoch_usec) / (uint64_t)OPT_USEC
+                             : 0;
+    pulse = runtime_tick_value > ULONG_MAX ? ULONG_MAX : (unsigned long)runtime_tick_value;
+
+    compatibility_tick_required =
+        event_backend_current() == EVENT_BACKEND_LEGACY_QUEUE || !runtime_services_enabled();
+    heartbeat_timeout_usec = compatibility_tick_required
+                                 ? (before_sleep_usec >= next_heartbeat_usec
+                                        ? 0
+                                        : next_heartbeat_usec - before_sleep_usec)
+                                 : UINT64_MAX;
+    scheduler_timeout_usec = UINT64_MAX;
     scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
     if (scheduler_status != GAME_SCHEDULER_OK)
     {
@@ -1373,27 +1449,46 @@ void game_loop(socket_t local_mother_desc)
     }
     if (scheduler_has_deadline)
     {
-      if (scheduler_deadline <= (game_tick_t)pulse)
+      if (scheduler_deadline > (UINT64_MAX - runtime_epoch_usec) / (uint64_t)OPT_USEC)
+        scheduler_deadline_usec = UINT64_MAX;
+      else
+        scheduler_deadline_usec = runtime_epoch_usec +
+                                  (uint64_t)scheduler_deadline * (uint64_t)OPT_USEC;
+      if (scheduler_deadline_usec <= before_sleep_usec)
       {
         scheduler_timeout_usec = 0;
       }
       else
-      {
-        scheduler_tick_delta = scheduler_deadline - (game_tick_t)pulse;
-        if (scheduler_tick_delta - 1U >
-            (UINT64_MAX - heartbeat_timeout_usec) / (uint64_t)OPT_USEC)
-          scheduler_timeout_usec = UINT64_MAX;
-        else
-          scheduler_timeout_usec = heartbeat_timeout_usec +
-                                   (scheduler_tick_delta - 1U) * (uint64_t)OPT_USEC;
-      }
+        scheduler_timeout_usec = scheduler_deadline_usec - before_sleep_usec;
     }
     if (scheduler_timeout_usec < heartbeat_timeout_usec)
       heartbeat_timeout_usec = scheduler_timeout_usec;
+    for (d = descriptor_list; d; d = d->next)
+    {
+      bool queued_action;
+
+      if (d->character == NULL || GET_WAIT_STATE(d->character) <= 0)
+        continue;
+      queued_action = STATE(d) == CON_PLAYING && pending_actions(d->character) &&
+                      !combat_encounter_semantic_manages(d->character) && !d->showstr_count &&
+                      !d->str;
+      if (d->input.head == NULL && !queued_action)
+        continue;
+      wait_deadline_usec = comm_wait_state_deadline_usec(d->character, runtime_epoch_usec);
+      if (wait_deadline_usec <= before_sleep_usec)
+      {
+        heartbeat_timeout_usec = 0;
+        break;
+      }
+      if (wait_deadline_usec - before_sleep_usec < heartbeat_timeout_usec)
+        heartbeat_timeout_usec = wait_deadline_usec - before_sleep_usec;
+    }
+    if (heartbeat_timeout_usec == UINT64_MAX)
+      heartbeat_timeout_usec = UINT64_C(60000000);
     timeout.tv_sec = (time_t)(heartbeat_timeout_usec / UINT64_C(1000000));
     timeout.tv_usec = (suseconds_t)(heartbeat_timeout_usec % UINT64_C(1000000));
 
-    /* Wait for fd readiness or the next compatibility heartbeat. */
+    /* Wait for I/O, the next scheduler deadline, or a required legacy tick. */
     if (reactor_poll_fd_sets(io_reactor, maxdesc, &input_set, &output_set, &exc_set, &timeout) < 0)
     {
       log("SYSERR: %s I/O driver poll failed: %s", luminari_io_driver_name(io_driver),
@@ -1402,8 +1497,19 @@ void game_loop(socket_t local_mother_desc)
     }
     monotonic_timeval(&now);
     now_usec = (uint64_t)now.tv_sec * UINT64_C(1000000) + (uint64_t)now.tv_usec;
-    heartbeat_due = now_usec >= next_heartbeat_usec;
-    missed_pulses = heartbeat_due ? (int)((now_usec - next_heartbeat_usec) / OPT_USEC) : 0;
+    runtime_tick_value = now_usec >= runtime_epoch_usec
+                             ? (now_usec - runtime_epoch_usec) / (uint64_t)OPT_USEC
+                             : 0;
+    pulse = runtime_tick_value > ULONG_MAX ? ULONG_MAX : (unsigned long)runtime_tick_value;
+    if (runtime_services_enabled() && runtime_tick_value > previous_runtime_tick_value)
+      PERF_note_runtime_advance(runtime_tick_value,
+                                runtime_tick_value - previous_runtime_tick_value);
+    previous_runtime_tick_value = runtime_tick_value;
+    heartbeat_due = compatibility_tick_required && now_usec >= next_heartbeat_usec;
+    if (heartbeat_due && (now_usec - next_heartbeat_usec) / OPT_USEC > INT_MAX)
+      missed_pulses = INT_MAX;
+    else
+      missed_pulses = heartbeat_due ? (int)((now_usec - next_heartbeat_usec) / OPT_USEC) : 0;
     if (missed_pulses > 0)
       PERF_note_missed_pulses((uint64_t)missed_pulses);
 
@@ -1479,13 +1585,9 @@ void game_loop(socket_t local_mother_desc)
     {
       next_d = d->next;
 
-      /* Not combined to retain --(d->wait) behavior. -gg 2/20/98 If no wait
-       * state, no subtraction.  If there is a wait state then 1 is subtracted.
-       * Therefore we don't go less than 0 ever and don't require an 'if'
-       * bracket. -gg 2/27/99 */
       if (d->character)
       {
-        GET_WAIT_STATE(d->character) -= (GET_WAIT_STATE(d->character) > 0);
+        comm_wait_state_advance(d->character, (uint64_t)pulse);
 
         if (GET_WAIT_STATE(d->character))
           continue;
@@ -1614,7 +1716,14 @@ void game_loop(socket_t local_mother_desc)
 
     if (heartbeat_due)
     {
-      next_heartbeat_usec += ((uint64_t)missed_pulses + 1U) * (uint64_t)OPT_USEC;
+      if (runtime_services_enabled())
+      {
+        next_heartbeat_usec += ((uint64_t)missed_pulses + 1U) * (uint64_t)OPT_USEC;
+        event_process_compatibility_pulse();
+      }
+      else
+      {
+        next_heartbeat_usec += ((uint64_t)missed_pulses + 1U) * (uint64_t)OPT_USEC;
 
       /* Run the current heartbeat and recover missed pulses within the bounded
        * wall-clock budget below. */
@@ -1635,11 +1744,15 @@ void game_loop(socket_t local_mother_desc)
        * logical timers advance only for heartbeats that actually run. */
       replayed_heartbeats = 0;
       catchup_budget_exhausted = 0;
+      heartbeat_tick = pulse >= (unsigned long)requested_missed_pulses
+                           ? pulse - (unsigned long)requested_missed_pulses - 1U
+                           : 0U;
       heartbeat_replay_start_usec = PERF_monotonic_usec();
       while (replayed_heartbeats < requested_heartbeats)
       {
         PERF_PROF_ENTER_SAMPLED(pr_heartbeat, "heartbeat");
-        heartbeat(++pulse);
+        pulse = ++heartbeat_tick;
+        heartbeat((int)pulse);
         PERF_PROF_EXIT(pr_heartbeat);
         replayed_heartbeats++;
 
@@ -1657,6 +1770,7 @@ void game_loop(socket_t local_mother_desc)
           }
         }
       }
+      pulse = runtime_tick_value > ULONG_MAX ? ULONG_MAX : (unsigned long)runtime_tick_value;
 
       replayed_missed_pulses = replayed_heartbeats - 1;
       remaining_backlog = requested_missed_pulses - replayed_missed_pulses;
@@ -1695,6 +1809,7 @@ void game_loop(socket_t local_mother_desc)
           catchup_log_max_remaining = 0;
         }
       }
+      }
     }
 
     scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
@@ -1706,6 +1821,12 @@ void game_loop(socket_t local_mother_desc)
       if (scheduler_status != GAME_SCHEDULER_OK)
         log("SYSERR: Timing-wheel reactor dispatch failed with status %d.", scheduler_status);
     }
+
+    /* Extraction is an explicit mutation safe point, independent of cadence. */
+    PERF_PROF_ENTER_SAMPLED(pr_extract_pending_safe_point_, "extract_pending_chars");
+    extract_pending_chars();
+    PERF_PROF_EXIT(pr_extract_pending_safe_point_);
+    runtime_services_safe_point();
 
     /* Process terrain bridge API requests */
     terrain_api_process();
@@ -1866,14 +1987,18 @@ static void persistence_schedule_minute(int include_crash_and_houses)
   {
     if (!persistence_begin_cycle(include_crash_and_houses))
       persistence_scheduler.pending_cycle = 1;
-    return;
   }
-  persistence_scheduler.pending_cycle = 1;
-  if (include_crash_and_houses)
+  else
   {
-    persistence_scheduler.crash_pending = 1;
-    persistence_scheduler.house_pending = 1;
+    persistence_scheduler.pending_cycle = 1;
+    if (include_crash_and_houses)
+    {
+      persistence_scheduler.crash_pending = 1;
+      persistence_scheduler.house_pending = 1;
+    }
   }
+  if (runtime_services_enabled() && persistence_scheduler.active)
+    (void)persistence_step_schedule();
 }
 
 static int persistence_players_complete(void)
@@ -2085,12 +2210,613 @@ void persistence_scheduler_reset_telemetry(void)
   persistence_scheduler.max_operation_usec = 0;
 }
 
+enum runtime_service_kind
+{
+  RUNTIME_SERVICE_DG_RANDOM = 0,
+  RUNTIME_SERVICE_MOVING_ROOMS,
+  RUNTIME_SERVICE_ONE_SECOND,
+  RUNTIME_SERVICE_PSP,
+  RUNTIME_SERVICE_ROL_SHIP,
+  RUNTIME_SERVICE_VESSEL,
+  RUNTIME_SERVICE_WALK,
+  RUNTIME_SERVICE_MINUTE_MAINTENANCE,
+  RUNTIME_SERVICE_ZONE,
+  RUNTIME_SERVICE_IDLE_PASSWORD,
+  RUNTIME_SERVICE_MOBILE_ACTIVITY,
+  RUNTIME_SERVICE_MOBILE_PROCEDURES,
+  RUNTIME_SERVICE_ENCOUNTER_ROUND,
+  RUNTIME_SERVICE_LUMINARI,
+  RUNTIME_SERVICE_BARDIC,
+  RUNTIME_SERVICE_HINTS,
+  RUNTIME_SERVICE_CHARACTER_SIX_SECOND,
+  RUNTIME_SERVICE_THIRTY_SECOND,
+  RUNTIME_SERVICE_MINUTE_PERSISTENCE,
+  RUNTIME_SERVICE_HUNT_CREATION,
+  RUNTIME_SERVICE_MUD_HOUR,
+  RUNTIME_SERVICE_MUD_DAY,
+  RUNTIME_SERVICE_USAGE,
+  RUNTIME_SERVICE_TIME_SAVE,
+  RUNTIME_SERVICE_COUNT
+};
+
+struct runtime_service
+{
+  enum runtime_service_kind kind;
+  const char *name;
+  long cadence;
+  uint64_t owner_id;
+  event_handle_t handle;
+  uint64_t callbacks;
+};
+
+#define RUNTIME_SERVICE_OWNER_BASE UINT64_C(0x52530000)
+#define RUNTIME_SERVICE_ENTRY(kind_name, profile_name, cadence_ticks)                              \
+  {                                                                                                \
+    kind_name, profile_name, cadence_ticks, RUNTIME_SERVICE_OWNER_BASE + kind_name,                \
+        EVENT_HANDLE_NONE, 0                                                                       \
+  }
+
+static struct runtime_service runtime_service_table[] = {
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_DG_RANDOM, "service.dg_random", PULSE_DG_SCRIPT),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MOVING_ROOMS, "service.moving_rooms",
+                          PASSES_PER_SEC * 10),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ONE_SECOND, "service.one_second", PASSES_PER_SEC),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_PSP, "service.psp_rollback", PASSES_PER_SEC * 5),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ROL_SHIP, "service.rol_ship_rollback",
+                          PASSES_PER_SEC * 5 / 2),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_VESSEL, "service.vessel_rollback",
+                          AUTOPILOT_TICK_INTERVAL),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_WALK, "service.walk_rollback",
+                          (int)(PASSES_PER_SEC * 0.75)),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MINUTE_MAINTENANCE, "service.minute_maintenance",
+                          PASSES_PER_SEC * 60),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ZONE, "service.zone", PULSE_ZONE),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_IDLE_PASSWORD, "service.idle_password", PULSE_IDLEPWD),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MOBILE_ACTIVITY, "service.mobile_activity_rollback", 1),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MOBILE_PROCEDURES, "service.mobile_procedures",
+                          PULSE_MOBILE),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_ENCOUNTER_ROUND, "service.encounter_round",
+                          PULSE_VIOLENCE),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_LUMINARI, "service.luminari_rollback", PULSE_LUMINARI),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_BARDIC, "service.bardic_rollback",
+                          PULSE_VERSE_INTERVAL),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HINTS, "service.hints_rollback", PULSE_HINTS),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_CHARACTER_SIX_SECOND,
+                          "service.character_six_second_rollback", PASSES_PER_SEC * 6),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_THIRTY_SECOND, "service.thirty_second",
+                          PASSES_PER_SEC * 30),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MINUTE_PERSISTENCE, "service.minute_persistence",
+                          PASSES_PER_SEC * 60),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CREATION, "service.hunt_creation",
+                          (60 * PASSES_PER_SEC) * 60 * 2),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MUD_HOUR, "service.mud_hour",
+                          SECS_PER_MUD_HOUR * PASSES_PER_SEC),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MUD_DAY, "service.mud_day",
+                          SECS_PER_MUD_HOUR * 24 * PASSES_PER_SEC),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_USAGE, "service.usage", PULSE_USAGE),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_TIME_SAVE, "service.time_save", PULSE_TIMESAVE),
+};
+
+_Static_assert(sizeof(runtime_service_table) / sizeof(runtime_service_table[0]) ==
+                   RUNTIME_SERVICE_COUNT,
+               "runtime service table must cover every service kind");
+
+static bool runtime_services_initialized;
+static bool runtime_services_scheduled;
+static bool runtime_services_shutting_down;
+static uint64_t runtime_service_schedule_failures;
+static event_handle_t persistence_step_handle;
+static uint64_t persistence_fallback_tick = UINT64_MAX;
+static unsigned long runtime_service_next_crashsave_tick;
+#ifdef LUMINARI_CUTEST
+static bool runtime_services_test_selection_set;
+static bool runtime_services_test_scheduled_selection;
+#endif
+
+static bool runtime_services_configured_scheduled(void)
+{
+  const char *value;
+
+#ifdef LUMINARI_CUTEST
+  if (runtime_services_test_selection_set)
+    return runtime_services_test_scheduled_selection;
+#endif
+  value = getenv("LUMINARI_RUNTIME_SERVICES");
+  if (value == NULL || *value == '\0')
+    value = get_env_value("LUMINARI_RUNTIME_SERVICES");
+  if (value == NULL || *value == '\0' || !strcasecmp(value, "scheduled") ||
+      !strcasecmp(value, "event") || !strcasecmp(value, "active"))
+    return true;
+  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") ||
+      !strcasecmp(value, "off"))
+    return false;
+  log("WARNING: Unknown LUMINARI_RUNTIME_SERVICES '%s'; using scheduled services.", value);
+  return true;
+}
+
+static bool runtime_service_needed(enum runtime_service_kind kind)
+{
+  switch (kind)
+  {
+  case RUNTIME_SERVICE_DG_RANDOM:
+    return !periodic_dg_random_enabled();
+  case RUNTIME_SERVICE_PSP:
+  case RUNTIME_SERVICE_WALK:
+  case RUNTIME_SERVICE_BARDIC:
+  case RUNTIME_SERVICE_HINTS:
+  case RUNTIME_SERVICE_CHARACTER_SIX_SECOND:
+    return !character_periodic_events_enabled();
+  case RUNTIME_SERVICE_ROL_SHIP:
+  case RUNTIME_SERVICE_VESSEL:
+    return CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled();
+  case RUNTIME_SERVICE_MOBILE_ACTIVITY:
+    return !active_world_enabled();
+  case RUNTIME_SERVICE_LUMINARI:
+    return !affected_owner_events_enabled() || !character_periodic_events_enabled();
+  default:
+    return true;
+  }
+}
+
+static long runtime_service_boundary_delay(const struct runtime_service *service)
+{
+  unsigned long cadence;
+  unsigned long remainder;
+
+  if (service == NULL || service->cadence <= 0)
+    return 0;
+  cadence = (unsigned long)service->cadence;
+  remainder = pulse % cadence;
+  return remainder == 0U ? service->cadence : (long)(cadence - remainder);
+}
+
+static struct game_event_owner runtime_service_owner(const struct runtime_service *service)
+{
+  struct game_event_owner owner = game_event_owner_none();
+
+  owner.kind = GAME_EVENT_OWNER_SERVICE;
+  owner.runtime_id = service != NULL ? service->owner_id : RUNTIME_SERVICE_OWNER_BASE;
+  owner.generation = 1U;
+  return owner;
+}
+
+static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned long now_tick)
+{
+  switch (kind)
+  {
+  case RUNTIME_SERVICE_DG_RANDOM:
+    PERF_note_schedule(PERF_SCHEDULE_13_SECONDS);
+    PERF_PROF_ENTER_SAMPLED(pr_script_trigger_, "script_trigger_check");
+    script_trigger_check();
+    PERF_PROF_EXIT(pr_script_trigger_);
+    break;
+  case RUNTIME_SERVICE_MOVING_ROOMS:
+    moving_rooms_update();
+    break;
+  case RUNTIME_SERVICE_ONE_SECOND:
+  {
+    unsigned long mud_hour_cadence = (unsigned long)(SECS_PER_MUD_HOUR * PASSES_PER_SEC);
+    unsigned long remaining = mud_hour_cadence - (now_tick % mud_hour_cadence);
+
+    PERF_note_schedule(PERF_SCHEDULE_1_SECOND);
+    help_sync_poll_reload();
+    PERF_PROF_ENTER(pr_msdp_update_, "msdp_update");
+    msdp_update();
+    PERF_PROF_EXIT(pr_msdp_update_);
+    next_tick = (int)((remaining + PASSES_PER_SEC - 1U) / PASSES_PER_SEC);
+    travel_tickdown();
+    self_buffing();
+    craft_update();
+    i3_process_events();
+    i3_sync_presence();
+    update_supply_slots_for_all_players();
+    break;
+  }
+  case RUNTIME_SERVICE_PSP:
+    PERF_note_schedule(PERF_SCHEDULE_5_SECONDS);
+    regen_psp();
+    break;
+  case RUNTIME_SERVICE_ROL_SHIP:
+    rol_ship_activity();
+    break;
+  case RUNTIME_SERVICE_VESSEL:
+  {
+    PERF_PROF_ENTER_SAMPLED(pr_vessel_tick, "vessel_tick");
+    PERF_PROF_ENTER_SAMPLED(pr_vessel_autopilot, "vessel_autopilot");
+    autopilot_tick();
+    PERF_PROF_EXIT(pr_vessel_autopilot);
+    PERF_PROF_ENTER_SAMPLED(pr_vessel_hunters, "vessel_hunters");
+    vessel_hunter_tick();
+    PERF_PROF_EXIT(pr_vessel_hunters);
+    PERF_PROF_ENTER_SAMPLED(pr_vessel_combat, "vessel_combat");
+    vessel_combat_tick();
+    PERF_PROF_EXIT(pr_vessel_combat);
+    PERF_PROF_ENTER_SAMPLED(pr_vessel_events, "vessel_events");
+    vessel_event_tick();
+    PERF_PROF_EXIT(pr_vessel_events);
+    PERF_PROF_ENTER_SAMPLED(pr_vessel_crew_wages, "vessel_crew_wages");
+    vessel_crew_wage_tick();
+    PERF_PROF_EXIT(pr_vessel_crew_wages);
+    PERF_PROF_ENTER_SAMPLED(pr_vessel_upkeep, "vessel_upkeep");
+    vessel_upkeep_tick();
+    PERF_PROF_EXIT(pr_vessel_upkeep);
+    PERF_PROF_ENTER_SAMPLED(pr_vessel_trade, "vessel_trade");
+    vessel_trade_restock_tick();
+    PERF_PROF_EXIT(pr_vessel_trade);
+    PERF_PROF_ENTER_SAMPLED(pr_vessel_weather, "vessel_weather");
+    vessel_weather_tick();
+    PERF_PROF_EXIT(pr_vessel_weather);
+    PERF_PROF_ENTER_SAMPLED(pr_vessel_encounters, "vessel_encounters");
+    vessel_encounter_tick();
+    PERF_PROF_EXIT(pr_vessel_encounters);
+    PERF_PROF_ENTER_SAMPLED(pr_vessel_msdp, "vessel_msdp");
+    vessel_msdp_tick();
+    PERF_PROF_EXIT(pr_vessel_msdp);
+    PERF_PROF_EXIT(pr_vessel_tick);
+    break;
+  }
+  case RUNTIME_SERVICE_WALK:
+    process_walkto_actions();
+    break;
+  case RUNTIME_SERVICE_MINUTE_MAINTENANCE:
+    PERF_note_schedule(PERF_SCHEDULE_60_SECONDS);
+    PERF_PROF_ENTER_SAMPLED(pr_minute_maintenance_, "minute.maintenance");
+    check_auto_shutdown();
+    check_auto_happy_hour();
+    recharge_activated_items();
+    PERF_PROF_EXIT(pr_minute_maintenance_);
+    PERF_PROF_ENTER_SAMPLED(pr_minute_memory_, "minute.memory_sample");
+    PERF_memory_periodic_check();
+    PERF_PROF_EXIT(pr_minute_memory_);
+    break;
+  case RUNTIME_SERVICE_ZONE:
+    PERF_PROF_ENTER_SAMPLED(pr_zone_update_, "zone_update");
+    zone_update();
+    PERF_PROF_EXIT(pr_zone_update_);
+    break;
+  case RUNTIME_SERVICE_IDLE_PASSWORD:
+    check_idle_passwords();
+    break;
+  case RUNTIME_SERVICE_MOBILE_ACTIVITY:
+    PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "mobile_activity");
+    mobile_activity_pulse((int)(now_tick % (unsigned long)PULSE_MOBILE));
+    PERF_PROF_EXIT(pr_mob_activity_);
+    break;
+  case RUNTIME_SERVICE_MOBILE_PROCEDURES:
+    if (!periodic_autoproc_enabled())
+    {
+      PERF_PROF_ENTER_SAMPLED(pr_proc_update_, "proc_update");
+      proc_update();
+      PERF_PROF_EXIT(pr_proc_update_);
+    }
+    rol_avernus_room_pulse();
+    break;
+  case RUNTIME_SERVICE_ENCOUNTER_ROUND:
+    if (!affected_owner_events_enabled())
+    {
+      PERF_PROF_ENTER_SAMPLED(pr_aff_update_, "affect_update");
+      affect_update();
+      PERF_PROF_EXIT(pr_aff_update_);
+    }
+    proc_d20_round();
+    hunt_reset_timer--;
+    break;
+  case RUNTIME_SERVICE_LUMINARI:
+    PERF_note_schedule(PERF_SCHEDULE_5_SECONDS);
+    PERF_PROF_ENTER_SAMPLED(pr_lum_, "pulse_luminari");
+    pulse_luminari();
+    PERF_PROF_EXIT(pr_lum_);
+    break;
+  case RUNTIME_SERVICE_BARDIC:
+    pulse_bardic_performance();
+    break;
+  case RUNTIME_SERVICE_HINTS:
+    show_hints();
+    break;
+  case RUNTIME_SERVICE_CHARACTER_SIX_SECOND:
+    PERF_note_schedule(PERF_SCHEDULE_6_SECONDS);
+    PERF_PROF_ENTER_SAMPLED(pr_upd_, "update_damage_and_effects_over_time");
+    update_damage_and_effects_over_time();
+    PERF_PROF_EXIT(pr_upd_);
+    update_player_misc();
+    break;
+  case RUNTIME_SERVICE_THIRTY_SECOND:
+    PERF_note_schedule(PERF_SCHEDULE_30_SECONDS);
+    check_thirty_seconds();
+    break;
+  case RUNTIME_SERVICE_MINUTE_PERSISTENCE:
+  {
+    unsigned long autosave_interval;
+    unsigned long first_delay;
+    int include_crash_and_houses = FALSE;
+
+    if (CONFIG_AUTO_SAVE && CONFIG_AUTOSAVE_TIME > 0)
+    {
+      autosave_interval = (unsigned long)CONFIG_AUTOSAVE_TIME * 60U * PASSES_PER_SEC;
+      if (runtime_service_next_crashsave_tick == 0U)
+      {
+        first_delay = autosave_interval > 60U * PASSES_PER_SEC
+                          ? autosave_interval - 60U * PASSES_PER_SEC
+                          : 0U;
+        runtime_service_next_crashsave_tick =
+            now_tick > ULONG_MAX - first_delay ? ULONG_MAX : now_tick + first_delay;
+      }
+      if (now_tick >= runtime_service_next_crashsave_tick)
+      {
+        include_crash_and_houses = TRUE;
+        runtime_service_next_crashsave_tick = now_tick > ULONG_MAX - autosave_interval
+                                                  ? ULONG_MAX
+                                                  : now_tick + autosave_interval;
+      }
+    }
+    persistence_schedule_minute(include_crash_and_houses);
+    break;
+  }
+  case RUNTIME_SERVICE_HUNT_CREATION:
+    PERF_note_schedule(PERF_SCHEDULE_LONG_INTERVAL);
+    create_hunts();
+    break;
+  case RUNTIME_SERVICE_MUD_HOUR:
+    PERF_note_schedule(PERF_SCHEDULE_75_SECONDS);
+    PERF_PROF_ENTER_SAMPLED(pr_ost_, "old skool tick");
+    next_tick = SECS_PER_MUD_HOUR;
+    weather_and_time(1);
+    check_time_triggers();
+    if (point_update_events_enabled())
+      point_update_periodic_dispatch_due();
+    else
+      point_update();
+    check_timed_quests();
+    check_diplomacy();
+    update_clans();
+    if (CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled())
+    {
+      PERF_PROF_ENTER_SAMPLED(pr_vessel_schedules, "vessel_schedules");
+      schedule_tick();
+      PERF_PROF_EXIT(pr_vessel_schedules);
+    }
+    cleanup_all_trails();
+    PERF_PROF_EXIT(pr_ost_);
+    break;
+  case RUNTIME_SERVICE_MUD_DAY:
+    process_clan_investments();
+    save_clan_investments();
+    break;
+  case RUNTIME_SERVICE_USAGE:
+    PERF_note_schedule(PERF_SCHEDULE_LONG_INTERVAL);
+    record_usage();
+    break;
+  case RUNTIME_SERVICE_TIME_SAVE:
+    PERF_note_schedule(PERF_SCHEDULE_LONG_INTERVAL);
+    save_mud_time(&time_info);
+    break;
+  case RUNTIME_SERVICE_COUNT:
+    break;
+  }
+}
+
+static void runtime_service_cleanup(event_handle_t handle, void *event_obj)
+{
+  struct runtime_service *service = event_obj;
+
+  if (service != NULL && service->handle == handle)
+    service->handle = EVENT_HANDLE_NONE;
+}
+
+static EVENTFUNC(runtime_service_event)
+{
+  struct runtime_service *service = event_obj;
+
+  if (!runtime_services_initialized || !runtime_services_scheduled ||
+      runtime_services_shutting_down || service == NULL || !runtime_service_needed(service->kind))
+    return 0;
+  service->callbacks++;
+  runtime_service_dispatch(service->kind, pulse);
+  return runtime_service_boundary_delay(service);
+}
+
+static bool runtime_service_schedule(struct runtime_service *service)
+{
+  if (service == NULL || service->handle != EVENT_HANDLE_NONE)
+    return service != NULL;
+  if (!runtime_service_needed(service->kind))
+    return true;
+  service->handle = event_schedule_owned_named_with_terminal_cleanup(
+      runtime_service_event, service, runtime_service_boundary_delay(service), service->name,
+      runtime_service_cleanup, runtime_service_owner(service));
+  if (service->handle == EVENT_HANDLE_NONE)
+  {
+    runtime_service_schedule_failures++;
+    return false;
+  }
+  return true;
+}
+
+static void persistence_step_cleanup(event_handle_t handle, void *event_obj)
+{
+  (void)event_obj;
+  if (persistence_step_handle == handle)
+    persistence_step_handle = EVENT_HANDLE_NONE;
+}
+
+static EVENTFUNC(persistence_step_event)
+{
+  (void)event_obj;
+  if (!runtime_services_enabled() || !persistence_scheduler.active)
+    return 0;
+  persistence_scheduler_step((uint64_t)pulse);
+  return persistence_scheduler.active ? 1 : 0;
+}
+
+static bool persistence_step_schedule(void)
+{
+  struct game_event_owner owner;
+
+  if (!runtime_services_enabled() || !persistence_scheduler.active)
+    return false;
+  if (persistence_step_handle != EVENT_HANDLE_NONE)
+    return true;
+  owner = game_event_owner_none();
+  owner.kind = GAME_EVENT_OWNER_SERVICE;
+  owner.runtime_id = RUNTIME_SERVICE_OWNER_BASE + RUNTIME_SERVICE_COUNT;
+  owner.generation = 1U;
+  persistence_step_handle = event_schedule_owned_named_with_terminal_cleanup(
+      persistence_step_event, &persistence_step_handle, 1, "service.persistence_batch",
+      persistence_step_cleanup, owner);
+  if (persistence_step_handle == EVENT_HANDLE_NONE)
+  {
+    runtime_service_schedule_failures++;
+    return false;
+  }
+  return true;
+}
+
+static bool runtime_services_init(void)
+{
+  size_t index;
+
+  if (runtime_services_initialized)
+    return runtime_services_scheduled;
+  runtime_services_initialized = true;
+  runtime_services_shutting_down = false;
+  runtime_services_scheduled = runtime_services_configured_scheduled();
+  if (runtime_services_scheduled)
+  {
+    for (index = 0; index < RUNTIME_SERVICE_COUNT; index++)
+    {
+      if (!runtime_service_schedule(&runtime_service_table[index]))
+      {
+        log("WARNING: unable to schedule runtime service '%s'; restoring the legacy heartbeat.",
+            runtime_service_table[index].name);
+        runtime_services_scheduled = false;
+        runtime_services_shutdown();
+        runtime_services_initialized = true;
+        break;
+      }
+    }
+  }
+  log("Runtime services: %s.",
+      runtime_services_scheduled ? "scheduled by named cadence" : "legacy heartbeat");
+  return runtime_services_scheduled;
+}
+
+void runtime_services_shutdown(void)
+{
+  size_t index;
+  event_handle_t handle;
+
+  if (!runtime_services_initialized)
+    return;
+  runtime_services_shutting_down = true;
+  if (persistence_step_handle != EVENT_HANDLE_NONE)
+  {
+    handle = persistence_step_handle;
+    persistence_step_handle = EVENT_HANDLE_NONE;
+    (void)event_handle_cancel(handle);
+  }
+  for (index = 0; index < RUNTIME_SERVICE_COUNT; index++)
+  {
+    if (runtime_service_table[index].handle == EVENT_HANDLE_NONE)
+      continue;
+    handle = runtime_service_table[index].handle;
+    runtime_service_table[index].handle = EVENT_HANDLE_NONE;
+    (void)event_handle_cancel(handle);
+  }
+  free(persistence_scheduler.player_ids);
+  persistence_scheduler.player_ids = NULL;
+  persistence_scheduler.player_count = 0;
+  persistence_scheduler.active = 0;
+  persistence_scheduler.pending_cycle = 0;
+  runtime_services_initialized = false;
+  runtime_services_scheduled = false;
+  runtime_services_shutting_down = false;
+  persistence_fallback_tick = UINT64_MAX;
+  runtime_service_next_crashsave_tick = 0U;
+}
+
+bool runtime_services_enabled(void)
+{
+  return runtime_services_initialized && runtime_services_scheduled;
+}
+
+void runtime_services_get_stats(struct runtime_service_stats *stats)
+{
+  size_t index;
+
+  if (stats == NULL)
+    return;
+  memset(stats, 0, sizeof(*stats));
+  stats->initialized = runtime_services_initialized;
+  stats->scheduled = runtime_services_scheduled;
+  stats->schedule_failures = runtime_service_schedule_failures;
+  for (index = 0; index < RUNTIME_SERVICE_COUNT; index++)
+  {
+    if (runtime_service_needed(runtime_service_table[index].kind))
+      stats->configured_services++;
+    if (runtime_service_table[index].handle != EVENT_HANDLE_NONE)
+      stats->live_services++;
+    stats->callbacks += runtime_service_table[index].callbacks;
+  }
+  if (persistence_step_handle != EVENT_HANDLE_NONE)
+    stats->live_services++;
+}
+
+static void runtime_services_safe_point(void)
+{
+  if (!runtime_services_enabled() || !persistence_scheduler.active ||
+      persistence_step_handle != EVENT_HANDLE_NONE || persistence_fallback_tick == pulse)
+    return;
+  persistence_fallback_tick = pulse;
+  if (!persistence_step_schedule())
+    persistence_scheduler_step((uint64_t)pulse);
+}
+
+#ifdef LUMINARI_CUTEST
+void runtime_services_set_scheduled_for_test(bool scheduled)
+{
+  runtime_services_test_selection_set = true;
+  runtime_services_test_scheduled_selection = scheduled;
+}
+
+void runtime_services_reset_selection_for_test(void)
+{
+  runtime_services_test_selection_set = false;
+  runtime_services_test_scheduled_selection = false;
+}
+
+bool runtime_services_init_for_test(void) { return runtime_services_init(); }
+
+bool runtime_services_start_empty_persistence_for_test(void)
+{
+  if (!runtime_services_enabled())
+    return false;
+  free(persistence_scheduler.player_ids);
+  persistence_scheduler.player_ids = NULL;
+  persistence_scheduler.player_count = 0U;
+  persistence_scheduler.character_index = 0U;
+  persistence_scheduler.pet_index = 0U;
+  persistence_scheduler.last_online_index = 0U;
+  persistence_scheduler.artifact_pending = 0;
+  persistence_scheduler.crash_pending = 0;
+  persistence_scheduler.house_pending = 0;
+  persistence_scheduler.pending_cycle = 0;
+  persistence_scheduler.next_task = PERSISTENCE_TASK_CHARACTER;
+  memset(persistence_scheduler.retry_after, 0, sizeof(persistence_scheduler.retry_after));
+  persistence_scheduler.active = 1;
+  return persistence_step_schedule();
+}
+
+bool runtime_services_persistence_pending_for_test(void)
+{
+  return persistence_step_handle != EVENT_HANDLE_NONE;
+}
+#endif
+
 /* here she is, heartbeat function - called every 1/10th of a second */
 void heartbeat(int heart_pulse)
 {
   static int mins_since_crashsave = 0;
   static struct PERF_prof_sect *pr_event_process = NULL;
-  static struct PERF_prof_sect *pr_extract_pending_chars = NULL;
   static struct PERF_prof_sect *pr_vessel_tick = NULL;
   static struct PERF_prof_sect *pr_vessel_autopilot = NULL;
   static struct PERF_prof_sect *pr_vessel_hunters = NULL;
@@ -2103,6 +2829,15 @@ void heartbeat(int heart_pulse)
   static struct PERF_prof_sect *pr_vessel_encounters = NULL;
   static struct PERF_prof_sect *pr_vessel_msdp = NULL;
   static struct PERF_prof_sect *pr_vessel_schedules = NULL;
+
+  /* The named runtime services own all cadence work in scheduled mode. The
+   * legacy queue still needs a 100 ms adapter advance, but must not duplicate
+   * any service callback. */
+  if (runtime_services_enabled())
+  {
+    event_process_compatibility_pulse();
+    return;
+  }
 
   PERF_note_heartbeat(heart_pulse >= 0 ? (uint64_t)heart_pulse : 0);
   if (!(heart_pulse % PASSES_PER_SEC))
@@ -2416,13 +3151,6 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % PULSE_TIMESAVE))
     save_mud_time(&time_info);
 
-
-  /* Every pulse! Don't want them to stink the place up... */
-  PERF_prof_sect_init(&pr_extract_pending_chars, "extract_pending_chars");
-  PERF_prof_sect_enable_sampling(pr_extract_pending_chars);
-  PERF_prof_sect_enter(pr_extract_pending_chars);
-  extract_pending_chars();
-  PERF_prof_sect_exit(pr_extract_pending_chars);
 }
 
 /* new code to calculate time differences, which works on systems for which

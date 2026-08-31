@@ -1334,6 +1334,12 @@ void PERF_note_heartbeat(uint64_t pulse_number)
   total_heartbeats_executed = saturating_add_u64(total_heartbeats_executed, 1);
 }
 
+void PERF_note_runtime_advance(uint64_t pulse_number, uint64_t elapsed_ticks)
+{
+  pulse_last_heartbeat = pulse_number;
+  total_heartbeats_executed = saturating_add_u64(total_heartbeats_executed, elapsed_ticks);
+}
+
 void PERF_note_schedule(uint64_t schedule_flags)
 {
   pulse_schedule_flags |= schedule_flags;
