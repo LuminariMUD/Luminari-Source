@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration has a handle-only gameplay API; irreversible removal gate pending
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible migration has a handle-only gameplay API and enforced compatibility admission freeze; irreversible removal gate pending
 **Document version:** 1.26
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, and the raw-event zero-caller gate are implemented, with the final release-gate audit next
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, and owner-driven residual character work are implemented; DG time-trigger/trail registries and the final release-gate audit remain
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -2390,3 +2390,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.24 | 2026-08-31 | Replaced the default residual 100 ms heartbeat with named actual-cadence runtime services, a monotonic runtime tick, exact queued-WAIT_STATE reactor deadlines, an explicit extraction safe point, and event-owned persistence batches. Full-heartbeat and legacy-backend rollback remain available; the 1,034-test, sanitizer, Valgrind, syntax-matrix, live-MUD, and real-copyover gates pass. Zero-caller and final scan classification audits follow. |
 | 1.25 | 2026-08-31 | Corrected durable player timing to elapsed wall-clock semantics. All 93 persisted character-event policies now use schema 2 and elapse while logged out; schema 1 reads migrate, multi-use recovery catches up arithmetically without callback bursts, and expired coupled Spellbattle state is reconciled. A separate `CkAt` player-file checkpoint advances saved six-second cooldown counters and staged/full-refresh uses on load while avoiding world-dependent gameplay replay. Copyover retains deadlines; the timestamp-free legacy event format remains a rollback reader/writer with no retrospective elapsed-time claim. Zero-caller and final audits follow. |
 | 1.26 | 2026-08-31 | Closed the raw-event zero-caller gate. AI response and retry jobs now schedule through opaque handles with explicit nested-payload cleanup on every ownership path. The compatibility record, pointer functions, and rollback queue declarations moved out of the public header into a private facade/test header; no gameplay source can declare or call them. The physical legacy backend remains intact pending the stable-release removal gate. |
+| 1.27 | 2026-08-31 | Removed the remaining default-path character discovery sweeps for six-second D20 maintenance, artificer-device recovery, timed quests, and hunt-target retirement. Existing character owner events now dispatch those responsibilities at their established cadences; hunt resets use a lazy generation boundary rather than scanning every mobile. Added an exact compatibility-adapter burn-down contract that rejects new old-architecture producers and dependencies while externally gated rollback code remains physically present. DG time-trigger and active-trail registries follow. |

@@ -153,6 +153,14 @@ pointer operations, or queue declarations; those are isolated in
 test files. Production gameplay now has zero raw compatibility callers while
 the physical rollback implementation remains available behind the facade.
 
+The remaining opaque compatibility-adapter producers are now an enforced
+burn-down inventory in `scripts/events/test_legacy_event_admission.sh`. New
+production scheduling calls, raw pointer/queue calls, private-header includes,
+legacy-backend dependencies, or compatibility-heartbeat dependencies fail the
+normal test suite. The inventory may only shrink as native event types replace
+the listed callers; rollback retention is no longer permission for new code to
+enter the old architecture.
+
 Combat cadence, semantic rounds, activity timing, autonomous off-screen mobile
 simulation, affects, periodic character work, automatic procedures, DG random
 triggers, cancellation, recurrence, diagnostics, and boot-time rollback

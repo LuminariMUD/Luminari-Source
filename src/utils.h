@@ -293,6 +293,8 @@ size_t sprinttype(int type, const char *names[], char *result, size_t reslen);
 bool is_flying(struct char_data *ch);
 bool can_flee_speed(struct char_data *ch);
 void proc_d20_round(void);
+void proc_d20_round_one(struct char_data *ch);
+void check_device_one(struct char_data *ch);
 bool can_fly(struct char_data *ch);
 int get_first_spellcasting_classes(struct char_data *ch);
 void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result);

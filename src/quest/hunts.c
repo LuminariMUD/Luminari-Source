@@ -43,6 +43,7 @@ struct hunt_type hunt_table[NUM_HUNT_TYPES];
 
 int active_hunts[AHUNT_1][AHUNT_2];
 int hunt_reset_timer;
+static uint64_t hunt_generation = 1U;
 
 void add_hunt(int hunt_type, int level, const char *name, const char *description,
               const char *long_description, int char_class, int alignment, int race_type,
@@ -370,10 +371,11 @@ void create_hunts(void)
 {
   int i = 0, j = 0;
   int which_hunt = 0;
-  struct char_data *ch = NULL;
 
   // let's reset the timer.  This timer is used only to show players/staff how long before the next reset
   hunt_reset_timer = 1200;
+
+  hunt_generation = hunt_generation == UINT64_MAX ? 1U : hunt_generation + 1U;
 
   // let's erase existing active hunt table
   for (i = 0; i < AHUNT_1; i++)
@@ -382,17 +384,6 @@ void create_hunts(void)
     {
       active_hunts[i][j] = 0;
     }
-  }
-
-  // now let's set a cooldown timer of 5 minutes on any existing hunt mobs
-
-  for (ch = character_list; ch; ch = ch->next)
-  {
-    if (!IS_NPC(ch))
-      continue;
-    if (!MOB_FLAGGED(ch, MOB_HUNTS_TARGET))
-      continue;
-    ch->mob_specials.hunt_cooldown = 50;
   }
 
   // now let's load new hunts
@@ -486,6 +477,7 @@ void create_hunt_mob(room_rnum room, int which_hunt)
   GET_SUBRACE(mob, 1) = hunt_table[which_hunt].subrace[1];
   GET_SUBRACE(mob, 2) = hunt_table[which_hunt].subrace[2];
   mob->mob_specials.hunt_cooldown = -1;
+  mob->mob_specials.hunt_generation = hunt_generation;
   mob->mob_specials.hunt_type = which_hunt;
 
   // set stats
@@ -512,6 +504,34 @@ void create_hunt_mob(room_rnum room, int which_hunt)
 
   send_to_room(room, "\tYYou've come across a hunt target: %s!\tn\r\n", mob->player.short_descr);
 }
+
+void hunt_target_periodic_one(struct char_data *ch)
+{
+  if (ch == NULL || !IS_NPC(ch) || !MOB_FLAGGED(ch, MOB_HUNTS_TARGET))
+    return;
+  if (ch->mob_specials.hunt_generation != hunt_generation)
+  {
+    ch->mob_specials.hunt_generation = hunt_generation;
+    ch->mob_specials.hunt_cooldown = 50;
+  }
+  if (ch->mob_specials.hunt_cooldown <= 0)
+    return;
+  ch->mob_specials.hunt_cooldown--;
+  if (ch->mob_specials.hunt_cooldown == 0)
+    extract_char(ch);
+}
+
+#ifdef LUMINARI_CUTEST
+void hunt_target_set_generation_for_test(uint64_t generation)
+{
+  hunt_generation = generation == 0U ? 1U : generation;
+}
+
+uint64_t hunt_target_generation_for_test(void)
+{
+  return hunt_generation;
+}
+#endif
 
 int get_hunt_room(int start, int x, int y)
 {

@@ -2,6 +2,20 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Legacy event admission freeze
+
+#### Changed
+
+- Froze the remaining opaque compatibility-adapter producer set as a burn-down
+  inventory. New gameplay must register a native owner or service event type;
+  retained rollback code is no longer an extension point.
+
+#### Tests
+
+- Added a normal-suite source contract that rejects new compatibility-adapter
+  producers, raw pointer or queue APIs, private-header leakage, legacy-backend
+  dependencies, and compatibility-heartbeat dependencies.
+
 ### Handle-only timed-event API
 
 #### Changed

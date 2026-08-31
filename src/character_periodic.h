@@ -31,6 +31,9 @@ uint64_t character_periodic_hint_executions(void);
 uint64_t character_periodic_luminari_executions(void);
 uint64_t character_periodic_damage_effect_executions(void);
 uint64_t character_periodic_player_misc_executions(void);
+uint64_t character_periodic_d20_round_executions(void);
+uint64_t character_periodic_device_executions(void);
+uint64_t character_periodic_timed_quest_executions(void);
 void character_periodic_reset_telemetry(void);
 
 #ifdef LUMINARI_CUTEST

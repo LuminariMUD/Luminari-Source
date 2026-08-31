@@ -2498,7 +2498,8 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
       affect_update();
       PERF_PROF_EXIT(pr_aff_update_);
     }
-    proc_d20_round();
+    if (!character_periodic_events_enabled())
+      proc_d20_round();
     hunt_reset_timer--;
     break;
   case RUNTIME_SERVICE_LUMINARI:
@@ -2566,7 +2567,8 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
       point_update_periodic_dispatch_due();
     else
       point_update();
-    check_timed_quests();
+    if (!character_periodic_events_enabled())
+      check_timed_quests();
     check_diplomacy();
     update_clans();
     if (CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled())
@@ -3036,7 +3038,8 @@ void heartbeat(int heart_pulse)
       affect_update(); // affect updates transformed into "rounds"
       PERF_PROF_EXIT(pr_aff_update_);
     }
-    proc_d20_round(); /* for encounter code */
+    if (!character_periodic_events_enabled())
+      proc_d20_round(); /* legacy character discovery */
     hunt_reset_timer--;
   }
 
@@ -3112,7 +3115,8 @@ void heartbeat(int heart_pulse)
       point_update_periodic_dispatch_due();
     else
       point_update();
-    check_timed_quests();
+    if (!character_periodic_events_enabled())
+      check_timed_quests();
     check_diplomacy(); /* Reduce the diplomacy pause for online players */
     update_clans();    /* Update clan war timers and other periodic clan tasks */
     if (CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled())

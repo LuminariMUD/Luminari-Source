@@ -34,6 +34,7 @@
 #include "craft/alchemy.h"
 #include "quest/staff_events.h"
 #include "quest/missions.h"
+#include "quest/hunts.h"
 #include "account.h"
 #include "magic/psionics.h"
 #include "character/evolutions.h"
@@ -2312,283 +2313,336 @@ void update_player_misc(void)
     update_player_misc_one(d->character);
 }
 
-// every 6 seconds
-void proc_d20_round(void)
+void proc_d20_round_one(struct char_data *i)
 {
-  struct char_data *i = NULL, *tch = NULL;
+  struct char_data *tch = NULL;
   struct raff_node *raff, *next_raff;
   struct affected_type af;
   int x = 0;
 
-  for (i = character_list; i; i = i->next)
+  if (i == NULL)
+    return;
+
+  /* Cowering: 10% chance per round to be too afraid to act */
+  if (!combat_encounter_semantic_manages(i) && FIGHTING(i) &&
+      AFF2_FLAGGED(i, AFF2_COWERING) && rand_number(1, 100) <= 10)
   {
-    /* Cowering: 10% chance per round to be too afraid to act */
-    if (!combat_encounter_semantic_manages(i) && FIGHTING(i) &&
-        AFF2_FLAGGED(i, AFF2_COWERING) && rand_number(1, 100) <= 10)
-    {
-      send_to_char(i, "\tRYou are too afraid to act!\tn\r\n");
-      act("$n cowers in fear, unable to act!", FALSE, i, 0, 0, TO_ROOM);
-      /* Consume all actions - the character can't do anything this round */
-      USE_STANDARD_ACTION(i);
-      USE_MOVE_ACTION(i);
-      USE_SWIFT_ACTION(i);
-    }
+    send_to_char(i, "\tRYou are too afraid to act!\tn\r\n");
+    act("$n cowers in fear, unable to act!", FALSE, i, 0, 0, TO_ROOM);
+    /* Consume all actions - the character can't do anything this round */
+    USE_STANDARD_ACTION(i);
+    USE_MOVE_ACTION(i);
+    USE_SWIFT_ACTION(i);
+  }
 
-    /* Perfect Tempo perk: Apply buff if character avoided all hits this round */
-    if (!combat_encounter_semantic_manages(i) && FIGHTING(i) && has_bard_perfect_tempo(i) &&
-        !is_affected_by_perfect_tempo(i))
+  /* Perfect Tempo perk: Apply buff if character avoided all hits this round */
+  if (!combat_encounter_semantic_manages(i) && FIGHTING(i) && has_bard_perfect_tempo(i) &&
+      !is_affected_by_perfect_tempo(i))
+  {
+    /* Check if they were hit this round (ePERFECT_TEMPO_HIT_THIS_ROUND event) */
+    if (!char_has_mud_event(i, ePERFECT_TEMPO_HIT_THIS_ROUND))
     {
-      /* Check if they were hit this round (ePERFECT_TEMPO_HIT_THIS_ROUND event) */
-      if (!char_has_mud_event(i, ePERFECT_TEMPO_HIT_THIS_ROUND))
-      {
-        /* They avoided all hits - apply the buff */
-        new_affect(&af);
-        af.spell = AFFECT_BARD_PERFECT_TEMPO;
-        af.duration = 2; /* 2 rounds */
-        af.location = APPLY_HITROLL;
-        af.modifier = 4; /* +4 to-hit */
-        affect_to_char(i, &af);
+      /* They avoided all hits - apply the buff */
+      new_affect(&af);
+      af.spell = AFFECT_BARD_PERFECT_TEMPO;
+      af.duration = 2; /* 2 rounds */
+      af.location = APPLY_HITROLL;
+      af.modifier = 4; /* +4 to-hit */
+      affect_to_char(i, &af);
 
-        send_to_char(
-            i, "\tY[PERFECT TEMPO]\tn You flow perfectly with the combat, ready to strike!\r\n");
-        act("\tY[PERFECT TEMPO]\tn $n flows perfectly with the combat!", FALSE, i, 0, 0, TO_ROOM);
-      }
-      else
-      {
-        /* They were hit this round, remove the tracking event for next round */
-        event_cancel_specific(i, ePERFECT_TEMPO_HIT_THIS_ROUND);
-      }
+      send_to_char(
+          i, "\tY[PERFECT TEMPO]\tn You flow perfectly with the combat, ready to strike!\r\n");
+      act("\tY[PERFECT TEMPO]\tn $n flows perfectly with the combat!", FALSE, i, 0, 0, TO_ROOM);
     }
+    else
+    {
+      /* They were hit this round, remove the tracking event for next round */
+      event_cancel_specific(i, ePERFECT_TEMPO_HIT_THIS_ROUND);
+    }
+  }
 
-    if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(i) > 0)
+  if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(i) > 0)
+  {
+    GET_KAPAK_SALIVA_HEALING_COOLDOWN(i)--;
+    if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(i) == 0)
     {
-      GET_KAPAK_SALIVA_HEALING_COOLDOWN(i)--;
-      if (GET_KAPAK_SALIVA_HEALING_COOLDOWN(i) == 0)
-      {
-        send_to_char(i, "You can now be healed with kapak saliva again.\r\n");
-      }
+      send_to_char(i, "You can now be healed with kapak saliva again.\r\n");
     }
+  }
 
-    if (i->char_specials.terror_cooldown > 0)
+  if (i->char_specials.terror_cooldown > 0)
+  {
+    i->char_specials.terror_cooldown--;
+    if (i->char_specials.terror_cooldown == 0)
     {
-      i->char_specials.terror_cooldown--;
-      if (i->char_specials.terror_cooldown == 0)
-      {
-        send_to_char(i, "You are no longer immune to auras of terror.\r\n");
-      }
+      send_to_char(i, "You are no longer immune to auras of terror.\r\n");
     }
+  }
 
-    if (GET_PUSHED_TIMER(i) > 0)
+  if (GET_PUSHED_TIMER(i) > 0)
+  {
+    GET_PUSHED_TIMER(i)--;
+  }
+  if (GET_SICKENING_AURA_TIMER(i) > 0)
+  {
+    GET_SICKENING_AURA_TIMER(i)--;
+  }
+  if (GET_FRIGHTFUL_PRESENCE_TIMER(i) > 0)
+  {
+    GET_FRIGHTFUL_PRESENCE_TIMER(i)--;
+  }
+  if (GET_DEFENSIVE_CASTING_TIMER(i) > 0)
+  {
+    GET_DEFENSIVE_CASTING_TIMER(i)--;
+    if (GET_DEFENSIVE_CASTING_TIMER(i) <= 0)
     {
-      GET_PUSHED_TIMER(i)--;
+      send_to_char(i, "Your defensive casting bonus fades.\r\n");
     }
-    if (GET_SICKENING_AURA_TIMER(i) > 0)
+  }
+  if (GET_SPELL_SHIELD_TIMER(i) > 0)
+  {
+    GET_SPELL_SHIELD_TIMER(i)--;
+    if (GET_SPELL_SHIELD_TIMER(i) <= 0)
     {
-      GET_SICKENING_AURA_TIMER(i)--;
+      send_to_char(i, "Your arcane shield dissipates.\r\n");
     }
-    if (GET_FRIGHTFUL_PRESENCE_TIMER(i) > 0)
+  }
+  if (GET_ELEMENTAL_EMBODIMENT_TIMER(i) > 0)
+  {
+    GET_ELEMENTAL_EMBODIMENT_TIMER(i)--;
+    if (GET_ELEMENTAL_EMBODIMENT_TIMER(i) <= 0)
     {
-      GET_FRIGHTFUL_PRESENCE_TIMER(i)--;
+      GET_ELEMENTAL_EMBODIMENT_TYPE(i) = 0;
+      send_to_char(i, "Your elemental embodiment transformation fades.\r\n");
     }
-    if (GET_DEFENSIVE_CASTING_TIMER(i) > 0)
+  }
+  if (CALL_EIDOLON_COOLDOWN(i) > 0)
+  {
+    CALL_EIDOLON_COOLDOWN(i)--;
+    if (CALL_EIDOLON_COOLDOWN(i) <= 0)
     {
-      GET_DEFENSIVE_CASTING_TIMER(i)--;
-      if (GET_DEFENSIVE_CASTING_TIMER(i) <= 0)
+      send_to_char(i, "You can now summon your eidolon again.\r\n");
+    }
+  }
+  if (MERGE_FORMS_TIMER(i) > 0)
+  {
+    MERGE_FORMS_TIMER(i)--;
+    if (MERGE_FORMS_TIMER(i) <= 0)
+    {
+      act("Your eidolon's form departs from your own.", FALSE, i, 0, 0, TO_CHAR);
+      for (x = 0; x < NUM_EVOLUTIONS; x++)
       {
-        send_to_char(i, "Your defensive casting bonus fades.\r\n");
+        if (HAS_TEMP_EVOLUTION(i, x))
+          HAS_TEMP_EVOLUTION(i, x) = 0;
       }
     }
-    if (GET_SPELL_SHIELD_TIMER(i) > 0)
+  }
+
+  if (i->char_specials.swindle_cooldown > 0)
+    i->char_specials.swindle_cooldown--;
+  if (i->char_specials.entertain_cooldown > 0)
+    i->char_specials.entertain_cooldown--;
+  if (i->char_specials.tribute_cooldown > 0)
+    i->char_specials.tribute_cooldown--;
+
+  if (i->char_specials.recently_slammed > 0)
+    i->char_specials.recently_slammed--;
+  if (i->char_specials.recently_kicked > 0)
+    i->char_specials.recently_kicked--;
+
+  if (AFF_FLAGGED(i, AFF_WIND_WALL))
+  {
+    if (IN_ROOM(i) != NOWHERE)
     {
-      GET_SPELL_SHIELD_TIMER(i)--;
-      if (GET_SPELL_SHIELD_TIMER(i) <= 0)
+      for (raff = raff_list; raff; raff = next_raff)
       {
-        send_to_char(i, "Your arcane shield dissipates.\r\n");
-      }
-    }
-    if (GET_ELEMENTAL_EMBODIMENT_TIMER(i) > 0)
-    {
-      GET_ELEMENTAL_EMBODIMENT_TIMER(i)--;
-      if (GET_ELEMENTAL_EMBODIMENT_TIMER(i) <= 0)
-      {
-        GET_ELEMENTAL_EMBODIMENT_TYPE(i) = 0;
-        send_to_char(i, "Your elemental embodiment transformation fades.\r\n");
-      }
-    }
-    if (CALL_EIDOLON_COOLDOWN(i) > 0)
-    {
-      CALL_EIDOLON_COOLDOWN(i)--;
-      if (CALL_EIDOLON_COOLDOWN(i) <= 0)
-      {
-        send_to_char(i, "You can now summon your eidolon again.\r\n");
-      }
-    }
-    if (MERGE_FORMS_TIMER(i) > 0)
-    {
-      MERGE_FORMS_TIMER(i)--;
-      if (MERGE_FORMS_TIMER(i) <= 0)
-      {
-        act("Your eidolon's form departs from your own.", FALSE, i, 0, 0, TO_CHAR);
-        for (x = 0; x < NUM_EVOLUTIONS; x++)
+        next_raff = raff->next;
+
+        if (raff->room == IN_ROOM(i))
         {
-          if (HAS_TEMP_EVOLUTION(i, x))
-            HAS_TEMP_EVOLUTION(i, x) = 0;
-        }
-      }
-    }
-
-    if (i->char_specials.swindle_cooldown > 0)
-      i->char_specials.swindle_cooldown--;
-    if (i->char_specials.entertain_cooldown > 0)
-      i->char_specials.entertain_cooldown--;
-    if (i->char_specials.tribute_cooldown > 0)
-      i->char_specials.tribute_cooldown--;
-
-    if (i->char_specials.recently_slammed > 0)
-      i->char_specials.recently_slammed--;
-    if (i->char_specials.recently_kicked > 0)
-      i->char_specials.recently_kicked--;
-
-    if (AFF_FLAGGED(i, AFF_WIND_WALL))
-    {
-      if (IN_ROOM(i) != NOWHERE)
-      {
-        for (raff = raff_list; raff; raff = next_raff)
-        {
-          next_raff = raff->next;
-
-          if (raff->room == IN_ROOM(i))
+          if (raff->affection == RAFF_OBSCURING_MIST)
           {
-            if (raff->affection == RAFF_OBSCURING_MIST)
-            {
-              rem_room_aff(raff);
-              act("Your wall of wind dissipates the obscuring mist.", FALSE, i, 0, 0, TO_CHAR);
-              act("$n's wall of wind dissipates the obscuring mist.", FALSE, i, 0, 0, TO_ROOM);
-            }
-            else if (raff->affection == RAFF_ACID_FOG)
-            {
-              rem_room_aff(raff);
-              act("Your wall of wind dissipates the acid fog.", FALSE, i, 0, 0, TO_CHAR);
-              act("$n's wall of wind dissipates the acid fog.", FALSE, i, 0, 0, TO_ROOM);
-            }
-            else if (raff->affection == RAFF_BILLOWING)
-            {
-              rem_room_aff(raff);
-              act("Your wall of wind dissipates the billowing cloud.", FALSE, i, 0, 0, TO_CHAR);
-              act("$n's wall of wind dissipates the billowing cloud.", FALSE, i, 0, 0, TO_ROOM);
-            }
-            else if (raff->affection == RAFF_STINK)
-            {
-              rem_room_aff(raff);
-              act("Your wall of wind dissipates the stinking cloud.", FALSE, i, 0, 0, TO_CHAR);
-              act("$n's wall of wind dissipates the stinking cloud.", FALSE, i, 0, 0, TO_ROOM);
-            }
-            else if (raff->affection == RAFF_FOG)
-            {
-              rem_room_aff(raff);
-              act("Your wall of wind dissipates the wall of fog.", FALSE, i, 0, 0, TO_CHAR);
-              act("$n's wall of wind dissipates the wall of fog.", FALSE, i, 0, 0, TO_ROOM);
-            }
+            rem_room_aff(raff);
+            act("Your wall of wind dissipates the obscuring mist.", FALSE, i, 0, 0, TO_CHAR);
+            act("$n's wall of wind dissipates the obscuring mist.", FALSE, i, 0, 0, TO_ROOM);
+          }
+          else if (raff->affection == RAFF_ACID_FOG)
+          {
+            rem_room_aff(raff);
+            act("Your wall of wind dissipates the acid fog.", FALSE, i, 0, 0, TO_CHAR);
+            act("$n's wall of wind dissipates the acid fog.", FALSE, i, 0, 0, TO_ROOM);
+          }
+          else if (raff->affection == RAFF_BILLOWING)
+          {
+            rem_room_aff(raff);
+            act("Your wall of wind dissipates the billowing cloud.", FALSE, i, 0, 0, TO_CHAR);
+            act("$n's wall of wind dissipates the billowing cloud.", FALSE, i, 0, 0, TO_ROOM);
+          }
+          else if (raff->affection == RAFF_STINK)
+          {
+            rem_room_aff(raff);
+            act("Your wall of wind dissipates the stinking cloud.", FALSE, i, 0, 0, TO_CHAR);
+            act("$n's wall of wind dissipates the stinking cloud.", FALSE, i, 0, 0, TO_ROOM);
+          }
+          else if (raff->affection == RAFF_FOG)
+          {
+            rem_room_aff(raff);
+            act("Your wall of wind dissipates the wall of fog.", FALSE, i, 0, 0, TO_CHAR);
+            act("$n's wall of wind dissipates the wall of fog.", FALSE, i, 0, 0, TO_ROOM);
           }
         }
       }
-      if (GET_SICKENING_AURA_TIMER(i) <= 0)
-        for (tch = world[IN_ROOM(i)].people; tch; tch = tch->next_in_room)
-        {
-          if (AFF_FLAGGED(tch, AFF_SICKENING_AURA) && aoeOK(tch, i, EVOLUTION_SICKENING_EFFECT))
-          {
-            if (savingthrow(tch, i, SAVING_FORT, 0, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(tch),
-                            NOSCHOOL))
-            {
-              act("$N is unaffected by your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
-              act("You are unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);
-              act("$N is unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_NOTVICT);
-            }
-            else
-            {
-              act("$N succumbs to your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
-              act("You succumb to $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);
-              act("$N succumbs to $n's sickening aura.", TRUE, tch, 0, i, TO_NOTVICT);
-
-              new_affect(&af);
-              af.spell = EVOLUTION_SICKENING_EFFECT;
-              af.location = APPLY_CON;
-              af.modifier = -2;
-              af.duration = 1;
-              SET_BIT_AR(af.bitvector, AFF_SICKENED);
-              affect_to_char(i, &af);
-            }
-            GET_SICKENING_AURA_TIMER(i) = 10;
-          }
-        }
     }
-
-    if (!IS_NPC(i)) // players only
-    {
-    }
-    else // mobs only
-    {
-      if (MOB_FLAGGED(i, MOB_HUNTS_TARGET))
+    if (GET_SICKENING_AURA_TIMER(i) <= 0)
+      for (tch = world[IN_ROOM(i)].people; tch; tch = tch->next_in_room)
       {
-        if (i->mob_specials.hunt_cooldown > 0)
+        if (AFF_FLAGGED(tch, AFF_SICKENING_AURA) && aoeOK(tch, i, EVOLUTION_SICKENING_EFFECT))
         {
-          i->mob_specials.hunt_cooldown--;
-          if (i->mob_specials.hunt_cooldown == 0)
+          if (savingthrow(tch, i, SAVING_FORT, 0, CAST_INNATE, GET_CALL_EIDOLON_LEVEL(tch),
+                          NOSCHOOL))
           {
-            extract_char(i);
+            act("$N is unaffected by your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
+            act("You are unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);
+            act("$N is unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_NOTVICT);
           }
+          else
+          {
+            act("$N succumbs to your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
+            act("You succumb to $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);
+            act("$N succumbs to $n's sickening aura.", TRUE, tch, 0, i, TO_NOTVICT);
+
+            new_affect(&af);
+            af.spell = EVOLUTION_SICKENING_EFFECT;
+            af.location = APPLY_CON;
+            af.modifier = -2;
+            af.duration = 1;
+            SET_BIT_AR(af.bitvector, AFF_SICKENED);
+            affect_to_char(i, &af);
+          }
+          GET_SICKENING_AURA_TIMER(i) = 10;
         }
       }
-      if (MOB_FLAGGED(i, MOB_ENCOUNTER))
+  }
+
+  if (!IS_NPC(i)) // players only
+  {
+  }
+  else // mobs only
+  {
+    hunt_target_periodic_one(i);
+    if (MOB_FLAGGED(i, MOB_NOTDEADYET))
+      return;
+    if (MOB_FLAGGED(i, MOB_ENCOUNTER))
+    {
+      if (i->mob_specials.extract_timer > 0)
       {
-        if (i->mob_specials.extract_timer > 0)
+        i->mob_specials.extract_timer--;
+        if (i->mob_specials.extract_timer == 0)
         {
-          i->mob_specials.extract_timer--;
-          if (i->mob_specials.extract_timer == 0)
-          {
-            extract_char(i);
-          }
+          extract_char(i);
         }
+      }
 
-        if (i->mob_specials.peaceful_timer > 0)
+      if (i->mob_specials.peaceful_timer > 0)
+      {
+        i->mob_specials.peaceful_timer--;
+        if (i->mob_specials.peaceful_timer == 0)
         {
-          i->mob_specials.peaceful_timer--;
-          if (i->mob_specials.peaceful_timer == 0)
-          {
-            i->mob_specials.peaceful_timer = -1;
-            act("$n is no longer peaceful and will have to be dealt with again in some manner. "
-                "(HELP ENCOUNTERS)\r\n",
-                false, i, 0, 0, TO_ROOM);
-          }
+          i->mob_specials.peaceful_timer = -1;
+          act("$n is no longer peaceful and will have to be dealt with again in some manner. "
+              "(HELP ENCOUNTERS)\r\n",
+              false, i, 0, 0, TO_ROOM);
         }
+      }
 
-        if (!FIGHTING(i) && i->mob_specials.aggro_timer > 0 && i->mob_specials.peaceful_timer == -1)
+      if (!FIGHTING(i) && i->mob_specials.aggro_timer > 0 && i->mob_specials.peaceful_timer == -1)
+      {
+        switch (i->mob_specials.aggro_timer)
         {
-          switch (i->mob_specials.aggro_timer)
-          {
-          case 5:
-            act("\tR$n looks very hostile towards you.\tn", true, i, 0, 0, TO_ROOM);
-            break;
-          case 4:
-            act("\tR$n seems to be getting even more hostile.\tN", true, i, 0, 0, TO_ROOM);
-            break;
-          case 3:
-            act("\tR$n looks to be losing $s patience.\tN", true, i, 0, 0, TO_ROOM);
-            break;
-          case 2:
-            act("\tR$n looks like $e may attack you.\tN", true, i, 0, 0, TO_ROOM);
-            break;
-          case 1:
-            act("\tR$n is preparing to attack you.\tN", true, i, 0, 0, TO_ROOM);
-            break;
-          }
-          i->mob_specials.aggro_timer--;
-          if (i->mob_specials.aggro_timer == 0)
-          {
-            SET_BIT_AR(MOB_FLAGS(i), MOB_AGGRESSIVE);
-            REMOVE_BIT_AR(MOB_FLAGS(i), MOB_HELPER); // helper and aggro flags conflict
-          }
+        case 5:
+          act("\tR$n looks very hostile towards you.\tn", true, i, 0, 0, TO_ROOM);
+          break;
+        case 4:
+          act("\tR$n seems to be getting even more hostile.\tN", true, i, 0, 0, TO_ROOM);
+          break;
+        case 3:
+          act("\tR$n looks to be losing $s patience.\tN", true, i, 0, 0, TO_ROOM);
+          break;
+        case 2:
+          act("\tR$n looks like $e may attack you.\tN", true, i, 0, 0, TO_ROOM);
+          break;
+        case 1:
+          act("\tR$n is preparing to attack you.\tN", true, i, 0, 0, TO_ROOM);
+          break;
         }
+        i->mob_specials.aggro_timer--;
+        if (i->mob_specials.aggro_timer == 0)
+        {
+          SET_BIT_AR(MOB_FLAGS(i), MOB_AGGRESSIVE);
+          REMOVE_BIT_AR(MOB_FLAGS(i), MOB_HELPER); // helper and aggro flags conflict
+        }
+      }
+    }
+  }
+}
+
+// every 6 seconds
+void proc_d20_round(void)
+{
+  struct char_data *ch;
+  struct char_data *next;
+
+  for (ch = character_list; ch != NULL; ch = next)
+  {
+    next = ch->next;
+    proc_d20_round_one(ch);
+  }
+}
+
+void check_device_one(struct char_data *i)
+{
+  int artificer_level, max_uses;
+
+  if (i == NULL)
+    return;
+
+  /* Artificer device recharge: Every 30 seconds recharge 1 use or reduce DC penalty */
+  if (CLASS_LEVEL(i, CLASS_ARTIFICER) > 0 && !FIGHTING(i) && i->player_specials != NULL &&
+      i->player_specials->saved.num_inventions > 0)
+  {
+    artificer_level = CLASS_LEVEL(i, CLASS_ARTIFICER);
+    max_uses = 1 + (artificer_level / 2);
+    if (HAS_FEAT(i, FEAT_GNOMISH_TINKERING))
+      max_uses += 1;
+
+    /* Find the first device that can be recharged (working from top of list) */
+    int dev_idx;
+    for (dev_idx = 0; dev_idx < i->player_specials->saved.num_inventions; dev_idx++)
+    {
+      struct player_invention *inv = &i->player_specials->saved.inventions[dev_idx];
+
+      /* Skip broken devices - they cannot be recharged until repaired */
+      if (inv->broken)
+        continue;
+
+      /* Process device if it has been used or has DC penalty */
+      if (inv->uses > 0 || inv->dc_penalty > 0)
+      {
+        /* If device has DC penalty, reduce it instead of recharging uses */
+        if (inv->dc_penalty > 0)
+        {
+          inv->dc_penalty = MAX(0, inv->dc_penalty - 4);
+          send_to_char(i, "\tgYour device '%s' stabilizes. (DC penalty: +%d)\tn\r\n",
+                       inv->short_description, inv->dc_penalty);
+        }
+        /* Only recharge uses if DC penalty is now 0 and device has been used */
+        else if (inv->uses > 0)
+        {
+          inv->uses--;
+          send_to_char(i, "\tgYour device '%s' has recharged. (Uses remaining: %d/%d)\tn\r\n",
+                       inv->short_description, max_uses - inv->uses, max_uses);
+        }
+        break; /* Only process one device per 30 seconds */
       }
     }
   }
@@ -2596,60 +2650,21 @@ void proc_d20_round(void)
 
 void check_devices(void)
 {
-  struct char_data *i = NULL, *next_char = NULL;
-  int artificer_level, max_uses;
+  struct char_data *ch;
+  struct char_data *next;
 
-  for (i = character_list; i; i = next_char)
+  for (ch = character_list; ch != NULL; ch = next)
   {
-    next_char = i->next;
-
-    /* Artificer device recharge: Every 30 seconds recharge 1 use or reduce DC penalty */
-    if (CLASS_LEVEL(i, CLASS_ARTIFICER) > 0 && !FIGHTING(i) &&
-        i->player_specials->saved.num_inventions > 0)
-    {
-      artificer_level = CLASS_LEVEL(i, CLASS_ARTIFICER);
-      max_uses = 1 + (artificer_level / 2);
-      if (HAS_FEAT(i, FEAT_GNOMISH_TINKERING))
-        max_uses += 1;
-
-      /* Find the first device that can be recharged (working from top of list) */
-      int dev_idx;
-      for (dev_idx = 0; dev_idx < i->player_specials->saved.num_inventions; dev_idx++)
-      {
-        struct player_invention *inv = &i->player_specials->saved.inventions[dev_idx];
-
-        /* Skip broken devices - they cannot be recharged until repaired */
-        if (inv->broken)
-          continue;
-
-        /* Process device if it has been used or has DC penalty */
-        if (inv->uses > 0 || inv->dc_penalty > 0)
-        {
-          /* If device has DC penalty, reduce it instead of recharging uses */
-          if (inv->dc_penalty > 0)
-          {
-            inv->dc_penalty = MAX(0, inv->dc_penalty - 4);
-            send_to_char(i, "\tgYour device '%s' stabilizes. (DC penalty: +%d)\tn\r\n",
-                         inv->short_description, inv->dc_penalty);
-          }
-          /* Only recharge uses if DC penalty is now 0 and device has been used */
-          else if (inv->uses > 0)
-          {
-            inv->uses--;
-            send_to_char(i, "\tgYour device '%s' has recharged. (Uses remaining: %d/%d)\tn\r\n",
-                         inv->short_description, max_uses - inv->uses, max_uses);
-          }
-          break; /* Only process one device per 30 seconds */
-        }
-      }
-    }
+    next = ch->next;
+    check_device_one(ch);
   }
 }
 
 void check_thirty_seconds(void)
 {
   check_auction();
-  check_devices();
+  if (!character_periodic_events_enabled())
+    check_devices();
 }
 
 void point_update_global_one(void)

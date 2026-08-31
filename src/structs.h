@@ -7115,6 +7115,7 @@ struct mob_special_data
       [5]; // used for encounters to track if they've been coerced before (intimidate, bluff, stealth and diplomacy)
   int hunt_type; // for hunts, used to track which hunt entry it is on the huhnt table
   int hunt_cooldown; // for hunts, when hunt expires, this is set to 5 minutes, at which point it will be extracted
+  uint64_t hunt_generation; /* Active-hunt generation this target belongs to. */
   int temp_feat;
   byte spells_known[MAX_SPELLS]; /* Changed from int to byte - saves 6KB per mob! */
 

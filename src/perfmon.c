@@ -2685,6 +2685,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "  work: walk=%" PRIu64 " psp=%" PRIu64 "\n\r"
                  "  work: luminari=%" PRIu64 " damage=%" PRIu64 "\n\r"
                  "  work: player-misc=%" PRIu64 "\n\r"
+                 "  work: d20=%" PRIu64 " devices=%" PRIu64 " quests=%" PRIu64 "\n\r"
                  "  work: bard=%" PRIu64 " hints=%" PRIu64 "\n\r",
                  character_periodic_events_enabled() ? "scheduled" : "legacy heartbeat",
                  character_periodic_owner_count(), character_periodic_scheduled_count(),
@@ -2694,6 +2695,9 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  character_periodic_luminari_executions(),
                  character_periodic_damage_effect_executions(),
                  character_periodic_player_misc_executions(),
+                 character_periodic_d20_round_executions(),
+                 character_periodic_device_executions(),
+                 character_periodic_timed_quest_executions(),
                  character_periodic_bardic_executions(), character_periodic_hint_executions()),
         n - written);
   if (!csv && written < n - 1)

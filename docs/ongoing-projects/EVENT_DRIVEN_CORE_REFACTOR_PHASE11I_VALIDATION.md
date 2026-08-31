@@ -75,8 +75,8 @@ payload and invokes the same destructor during cancellation or shutdown.
   the affected scheduling/cancellation paths are exercised through the
   production-linked binary on both timed backends. Phase 11h already supplied
   the adjacent login/logout and real-copyover live evidence.
-- Remote Build & Test and Security workflow results are appended to this
-  record after the commit is pushed.
+- Remote Build & Test run `33411294759` and Security run `33411294824` both
+  passed on the pushed branch commit.
 
 ## 5. Deferred Removal
 

@@ -11,6 +11,7 @@
 #include "domain_event_types.h"
 #include "domain_event_world.h"
 #include "mudlim.h"
+#include "quest/quest.h"
 #include "vessels/transport.h"
 #include "dgscript/dg_event.h"
 
@@ -18,6 +19,8 @@
 #define CHARACTER_PERIODIC_REJECTION_LOG_INTERVAL 100U
 #define CHARACTER_WALK_CADENCE ((long)(PASSES_PER_SEC * 3 / 4))
 #define CHARACTER_PSP_CADENCE ((long)(PASSES_PER_SEC * 5))
+#define CHARACTER_DEVICE_CADENCE ((long)(PASSES_PER_SEC * 30))
+#define CHARACTER_QUEST_CADENCE ((long)(SECS_PER_MUD_HOUR * PASSES_PER_SEC))
 
 static bool initialized;
 static bool scheduled;
@@ -38,6 +41,9 @@ static uint64_t hint_executions;
 static uint64_t luminari_executions;
 static uint64_t damage_effect_executions;
 static uint64_t player_misc_executions;
+static uint64_t d20_round_executions;
+static uint64_t device_executions;
+static uint64_t timed_quest_executions;
 static uint64_t next_generation = 1U;
 #ifdef LUMINARI_CUTEST
 static bool test_selection_set;
@@ -102,7 +108,7 @@ static bool is_in_world(const struct char_data *ch)
 
 static bool is_owner_eligible(const struct char_data *ch)
 {
-  return ch != NULL &&
+  return ch != NULL && !DEAD(ch) &&
          (is_in_world(ch) || ch->desc != NULL || has_walk_state(ch) || IS_PERFORMING(ch));
 }
 
@@ -141,6 +147,15 @@ static long next_owner_delay(const struct char_data *ch)
     if (candidate < delay)
       delay = candidate;
     candidate = boundary_delay(PULSE_VIOLENCE);
+    if (candidate < delay)
+      delay = candidate;
+  }
+  if (is_in_world(ch) || ch->desc != NULL)
+  {
+    candidate = boundary_delay(CHARACTER_DEVICE_CADENCE);
+    if (candidate < delay)
+      delay = candidate;
+    candidate = boundary_delay(CHARACTER_QUEST_CADENCE);
     if (candidate < delay)
       delay = candidate;
   }
@@ -261,6 +276,14 @@ static EVENTFUNC(character_periodic_event)
   if (callback_owner_still_live() && is_in_world(ch) &&
       pulse % (unsigned long)PULSE_VIOLENCE == 0U)
   {
+    d20_round_executions++;
+    proc_d20_round_one(ch);
+    if (DEAD(ch))
+      character_periodic_forget(ch);
+  }
+  if (callback_owner_still_live() && is_in_world(ch) &&
+      pulse % (unsigned long)PULSE_VIOLENCE == 0U)
+  {
     damage_effect_executions++;
     update_damage_and_effects_over_time_one(ch);
   }
@@ -269,6 +292,18 @@ static EVENTFUNC(character_periodic_event)
   {
     player_misc_executions++;
     update_player_misc_one(ch);
+  }
+  if (callback_owner_still_live() && (is_in_world(ch) || ch->desc != NULL) &&
+      pulse % (unsigned long)CHARACTER_DEVICE_CADENCE == 0U)
+  {
+    device_executions++;
+    check_device_one(ch);
+  }
+  if (callback_owner_still_live() && (is_in_world(ch) || ch->desc != NULL) &&
+      pulse % (unsigned long)CHARACTER_QUEST_CADENCE == 0U)
+  {
+    timed_quest_executions++;
+    check_timed_quests_one(ch);
   }
 
   if (!callback_owner_still_live())
@@ -476,6 +511,9 @@ uint64_t character_periodic_hint_executions(void) { return hint_executions; }
 uint64_t character_periodic_luminari_executions(void) { return luminari_executions; }
 uint64_t character_periodic_damage_effect_executions(void) { return damage_effect_executions; }
 uint64_t character_periodic_player_misc_executions(void) { return player_misc_executions; }
+uint64_t character_periodic_d20_round_executions(void) { return d20_round_executions; }
+uint64_t character_periodic_device_executions(void) { return device_executions; }
+uint64_t character_periodic_timed_quest_executions(void) { return timed_quest_executions; }
 
 size_t character_periodic_registry_validate(void)
 {
@@ -512,6 +550,9 @@ void character_periodic_reset_telemetry(void)
   luminari_executions = 0U;
   damage_effect_executions = 0U;
   player_misc_executions = 0U;
+  d20_round_executions = 0U;
+  device_executions = 0U;
+  timed_quest_executions = 0U;
 }
 
 #ifdef LUMINARI_CUTEST

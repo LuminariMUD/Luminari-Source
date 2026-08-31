@@ -10,6 +10,7 @@
 #include "event_debug.h"
 #include "combat/combat_encounters.h"
 #include "activity_manager.h"
+#include "character_periodic.h"
 #include "net/i3_client.h"
 #include "perfmon.h"
 
@@ -329,6 +330,18 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "  delayed/rejected: %" PRIu64 "/%" PRIu64,
                     activity_stats.delayed, activity_stats.rejected_commands);
   debug_output_line(&output, "  stale callbacks: %" PRIu64, activity_stats.stale_callbacks);
+  debug_output_line(&output, "");
+  debug_output_line(&output, "Character owners");
+  debug_output_line(&output, "  mode: %s",
+                    character_periodic_events_enabled() ? "scheduled" : "legacy heartbeat");
+  debug_output_line(&output, "  members/live/mismatch: %zu/%zu/%zu",
+                    character_periodic_owner_count(), character_periodic_scheduled_count(),
+                    character_periodic_registry_validate());
+  debug_output_line(&output, "  callbacks: %" PRIu64, character_periodic_callbacks());
+  debug_output_line(&output, "  d20/devices/quests: %" PRIu64 "/%" PRIu64 "/%" PRIu64,
+                    character_periodic_d20_round_executions(),
+                    character_periodic_device_executions(),
+                    character_periodic_timed_quest_executions());
   memset(&ingress_stats, 0, sizeof(ingress_stats));
   i3_get_ingress_stats(&ingress_stats);
   debug_output_line(&output, "");

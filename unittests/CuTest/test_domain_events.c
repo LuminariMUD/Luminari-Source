@@ -11,6 +11,7 @@
 #include "../../src/character_periodic.h"
 #include "../../src/periodic_owners.h"
 #include "../../src/point_update_periodic.h"
+#include "../../src/quest/hunts.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
@@ -1493,6 +1494,7 @@ void TestCharacterPeriodicSchedulesInWorldMixedWorkByOwner(CuTest *tc)
   GET_MOVE(&npc) = GET_REAL_MAX_MOVE(&npc) = GET_MAX_MOVE(&npc) = 100;
   GET_PSP(&npc) = GET_REAL_MAX_PSP(&npc) = GET_MAX_PSP(&npc) = 100;
   npc.char_specials.daze_cooldown = 2;
+  npc.char_specials.terror_cooldown = 2;
 
   player.player_specials = &specials;
   player.player.name = (char *)"Periodic test player";
@@ -1509,6 +1511,8 @@ void TestCharacterPeriodicSchedulesInWorldMixedWorkByOwner(CuTest *tc)
   GET_PSP(&player) = GET_REAL_MAX_PSP(&player) = GET_MAX_PSP(&player) = 100;
   player.char_specials.daze_cooldown = 2;
   specials.saved.mission_cooldown = 2;
+  GET_QUEST(&player, 0) = 1000;
+  GET_QUEST_TIME(&player, 0) = 2;
 
   player.next = &npc;
   player.next_in_room = &npc;
@@ -1540,11 +1544,19 @@ void TestCharacterPeriodicSchedulesInWorldMixedWorkByOwner(CuTest *tc)
   CuAssertIntEquals(tc, 2, (int)character_periodic_damage_effect_executions());
   CuAssertIntEquals(tc, 1, (int)character_periodic_player_misc_executions());
   CuAssertIntEquals(tc, 1, npc.char_specials.daze_cooldown);
+  CuAssertIntEquals(tc, 1, npc.char_specials.terror_cooldown);
   CuAssertIntEquals(tc, 1, player.char_specials.daze_cooldown);
   CuAssertIntEquals(tc, 1, specials.saved.mission_cooldown);
+  CuAssertIntEquals(tc, 2, (int)character_periodic_d20_round_executions());
   CuAssertIntEquals(tc, 4, (int)character_periodic_callbacks());
   CuAssertIntEquals(tc, 0, (int)character_periodic_registry_validate());
   CuAssertIntEquals(tc, 2, event_queue_depth());
+
+  pulse = SECS_PER_MUD_HOUR * PASSES_PER_SEC * 2U;
+  event_process();
+  CuAssertIntEquals(tc, 2, (int)character_periodic_device_executions());
+  CuAssertIntEquals(tc, 2, (int)character_periodic_timed_quest_executions());
+  CuAssertIntEquals(tc, 1, GET_QUEST_TIME(&player, 0));
 
   character_periodic_reset_for_test();
   event_free_all();
@@ -1553,6 +1565,29 @@ void TestCharacterPeriodicSchedulesInWorldMixedWorkByOwner(CuTest *tc)
   world = saved_world;
   top_of_world = saved_top_of_world;
   pulse = saved_pulse;
+}
+
+void TestHuntTargetsObserveResetThroughOwnerGeneration(CuTest *tc)
+{
+  struct char_data hunt_target;
+
+  clear_char(&hunt_target);
+  hunt_target.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&hunt_target), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(&hunt_target), MOB_HUNTS_TARGET);
+  hunt_target.mob_specials.hunt_generation = 40U;
+  hunt_target.mob_specials.hunt_cooldown = -1;
+  hunt_target_set_generation_for_test(41U);
+
+  hunt_target_periodic_one(&hunt_target);
+  CuAssertIntEquals(tc, 41, (int)hunt_target.mob_specials.hunt_generation);
+  CuAssertIntEquals(tc, 49, hunt_target.mob_specials.hunt_cooldown);
+
+  hunt_target_periodic_one(&hunt_target);
+  CuAssertIntEquals(tc, 48, hunt_target.mob_specials.hunt_cooldown);
+  CuAssertIntEquals(tc, 41, (int)hunt_target_generation_for_test());
+
+  hunt_target_set_generation_for_test(1U);
 }
 
 void TestCharacterPeriodicTypedMovementAdmitsInWorldOwner(CuTest *tc)
