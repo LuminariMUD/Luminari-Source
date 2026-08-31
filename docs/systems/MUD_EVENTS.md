@@ -11,6 +11,7 @@ Core source files:
 - [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c)
 - [src/game_scheduler.h](../../src/game_scheduler.h)
 - [src/game_scheduler.c](../../src/game_scheduler.c)
+- [src/event_handle.h](../../src/event_handle.h)
 - [src/domain_events.h](../../src/domain_events.h)
 - [src/domain_events.c](../../src/domain_events.c)
 - [src/domain_event_types.h](../../src/domain_event_types.h)
@@ -108,10 +109,13 @@ record, admission limit, scheduler, recurrence semantics, and exactly-once
 terminal cleanup. Do not convert a caller by casting between a handle and a
 pointer.
 
-The first production owners migrated to this API are the encounter round clock
-and the primary-activity timer. Both retain their existing callback-relative
+Production owners migrated to this API are encounter round clocks,
+primary-activity timers, autonomous mobiles, character and room affected
+owners, nearest-deadline character periodic owners, object automatic
+procedures, and DG random triggers. They retain existing callback-relative
 recurrence and owner teardown behavior. This infrastructure migration does not
-alter combat rules, activity rules, or Establish Camp's skill selection.
+alter combat, activity, affected, mobile, automatic-procedure, DG, or Establish
+Camp gameplay rules.
 
 ### 2.3 Lifecycle (Base)
 

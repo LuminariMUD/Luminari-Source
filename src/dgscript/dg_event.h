@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "event_handle.h"
 #include "game_scheduler.h"
 
 /** How often will heartbeat() call the 'wait' event function?
@@ -33,11 +34,6 @@
 #define EVENTFUNC(name) long(name)(void *event_obj __attribute__((unused)))
 
 struct event;
-
-/** Generation-safe identity for a compatibility event; zero is never live. */
-typedef uint64_t event_handle_t;
-
-#define EVENT_HANDLE_NONE UINT64_C(0)
 
 /** Timed-event storage selected once during event_init(). */
 enum event_backend_kind

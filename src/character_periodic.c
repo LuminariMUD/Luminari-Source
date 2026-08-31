@@ -159,10 +159,10 @@ static long next_owner_delay(const struct char_data *ch)
   return delay == LONG_MAX ? 0L : delay;
 }
 
-static void borrowed_owner_cleanup(struct event *event)
+static void borrowed_owner_cleanup(event_handle_t handle, void *event_obj)
 {
-  if (event != NULL)
-    event->event_obj = NULL;
+  (void)handle;
+  (void)event_obj;
 }
 
 static void registry_add(struct char_data *ch)
@@ -219,7 +219,7 @@ static EVENTFUNC(character_periodic_event)
   callback_count++;
   if (!ch->character_periodic_registered || !is_owner_eligible(ch))
   {
-    ch->character_periodic_event = NULL;
+    ch->character_periodic_event_handle = EVENT_HANDLE_NONE;
     if (scheduled_count > 0U)
       scheduled_count--;
     registry_remove(ch);
@@ -279,7 +279,7 @@ static EVENTFUNC(character_periodic_event)
   dispatching_owner = NULL;
   if (!is_owner_eligible(ch))
   {
-    ch->character_periodic_event = NULL;
+    ch->character_periodic_event_handle = EVENT_HANDLE_NONE;
     if (scheduled_count > 0U)
       scheduled_count--;
     registry_remove(ch);
@@ -297,7 +297,8 @@ static bool schedule_owner(struct char_data *ch)
 
   if (!initialized || !scheduled || shutting_down || ch == NULL ||
       event_backend_current() == EVENT_BACKEND_UNINITIALIZED ||
-      !ch->character_periodic_registered || ch->character_periodic_event != NULL)
+      !ch->character_periodic_registered ||
+      ch->character_periodic_event_handle != EVENT_HANDLE_NONE)
     return false;
   if (scheduled_count >= admission_limit)
   {
@@ -310,9 +311,9 @@ static bool schedule_owner(struct char_data *ch)
   owner = character_owner(ch);
   if (!game_event_owner_is_valid(owner))
     return false;
-  ch->character_periodic_event = event_create_owned_named_with_cleanup(
+  ch->character_periodic_event_handle = event_schedule_owned_named_with_cleanup(
       character_periodic_event, ch, delay, "character_periodic", borrowed_owner_cleanup, owner);
-  if (ch->character_periodic_event == NULL)
+  if (ch->character_periodic_event_handle == EVENT_HANDLE_NONE)
   {
     note_rejection();
     return false;
@@ -332,7 +333,7 @@ static void refill_capacity(void)
   for (ch = owner_list; ch != NULL && scheduled_count < admission_limit;
        ch = ch->character_periodic_next)
   {
-    if (ch->character_periodic_event == NULL)
+    if (ch->character_periodic_event_handle == EVENT_HANDLE_NONE)
       schedule_owner(ch);
   }
   refilling = false;
@@ -340,7 +341,7 @@ static void refill_capacity(void)
 
 void character_periodic_sync(struct char_data *ch)
 {
-  struct event *event;
+  event_handle_t handle;
   long delay;
 
   if (!initialized || !scheduled || event_backend_current() == EVENT_BACKEND_UNINITIALIZED ||
@@ -354,37 +355,37 @@ void character_periodic_sync(struct char_data *ch)
     return;
   }
   registry_add(ch);
-  if (ch->character_periodic_event == NULL)
+  if (ch->character_periodic_event_handle == EVENT_HANDLE_NONE)
   {
     schedule_owner(ch);
     return;
   }
   delay = next_owner_delay(ch);
-  if (delay <= 0L || event_time(ch->character_periodic_event) <= delay)
+  if (delay <= 0L || event_handle_time(ch->character_periodic_event_handle) <= delay)
     return;
-  event = ch->character_periodic_event;
-  ch->character_periodic_event = NULL;
+  handle = ch->character_periodic_event_handle;
+  ch->character_periodic_event_handle = EVENT_HANDLE_NONE;
   if (scheduled_count > 0U)
     scheduled_count--;
-  event_cancel(event);
+  (void)event_handle_cancel(handle);
   schedule_owner(ch);
 }
 
 void character_periodic_forget(struct char_data *ch)
 {
-  struct event *event;
+  event_handle_t handle;
 
   if (ch == NULL)
     return;
   if (dispatching_owner == ch)
     dispatching_owner_forgotten = true;
-  if (ch->character_periodic_event != NULL)
+  if (ch->character_periodic_event_handle != EVENT_HANDLE_NONE)
   {
-    event = ch->character_periodic_event;
-    ch->character_periodic_event = NULL;
+    handle = ch->character_periodic_event_handle;
+    ch->character_periodic_event_handle = EVENT_HANDLE_NONE;
     if (scheduled_count > 0U)
       scheduled_count--;
-    event_cancel(event);
+    (void)event_handle_cancel(handle);
   }
   registry_remove(ch);
   refill_capacity();
@@ -489,7 +490,7 @@ size_t character_periodic_registry_validate(void)
         !is_owner_eligible(ch))
       return owner_count + 1U;
     members++;
-    if (ch->character_periodic_event != NULL)
+    if (ch->character_periodic_event_handle != EVENT_HANDLE_NONE)
       events++;
     if (members > owner_count)
       return members;

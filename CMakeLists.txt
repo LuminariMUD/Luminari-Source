@@ -527,6 +527,7 @@ set(SRC_C_FILES
     src/olc/genzon.c
     src/game_scheduler.c
     src/game_scheduler.h
+    src/event_handle.h
     src/active_world.c
     src/active_world.h
     src/activity_manager.c

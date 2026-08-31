@@ -119,10 +119,10 @@ static long spread_delay(struct game_event_owner owner, long cadence, uint64_t s
   return (long)(spread % (uint64_t)cadence) + 1L;
 }
 
-static void borrowed_owner_cleanup(struct event *event)
+static void borrowed_owner_cleanup(event_handle_t handle, void *event_obj)
 {
-  if (event != NULL)
-    event->event_obj = NULL;
+  (void)handle;
+  (void)event_obj;
 }
 
 static EVENTFUNC(periodic_autoproc_event)
@@ -134,7 +134,7 @@ static EVENTFUNC(periodic_autoproc_event)
   autoproc_callback_count++;
   if (!obj->autoproc_registered || !OBJ_FLAGGED(obj, ITEM_AUTOPROC))
   {
-    obj->autoproc_event = NULL;
+    obj->autoproc_event_handle = EVENT_HANDLE_NONE;
     if (autoproc_count > 0U)
       autoproc_count--;
     return 0;
@@ -154,7 +154,7 @@ static EVENTFUNC(periodic_dg_random_event)
   owner_type = script->owner_type;
   if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER || !script->random_registered)
   {
-    script->random_event = NULL;
+    script->random_event_handle = EVENT_HANDLE_NONE;
     if (owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER &&
         dg_random_counts[owner_type] > 0U)
       dg_random_counts[owner_type]--;
@@ -174,7 +174,7 @@ void periodic_autoproc_sync(struct obj_data *obj)
   struct game_event_owner owner;
 
   if (!initialized || !autoproc_scheduled || obj == NULL || !obj->autoproc_registered ||
-      obj->autoproc_event != NULL)
+      obj->autoproc_event_handle != EVENT_HANDLE_NONE)
     return;
   if (autoproc_count >= autoproc_limit)
   {
@@ -188,10 +188,10 @@ void periodic_autoproc_sync(struct obj_data *obj)
   owner = object_owner(obj);
   if (!game_event_owner_is_valid(owner))
     return;
-  obj->autoproc_event = event_create_owned_named_with_cleanup(
+  obj->autoproc_event_handle = event_schedule_owned_named_with_cleanup(
       periodic_autoproc_event, obj, spread_delay(owner, PULSE_MOBILE, UINT64_C(0xa17f0c)),
       "periodic_autoproc", borrowed_owner_cleanup, owner);
-  if (obj->autoproc_event == NULL)
+  if (obj->autoproc_event_handle == EVENT_HANDLE_NONE)
   {
     autoproc_rejections++;
     return;
@@ -201,15 +201,15 @@ void periodic_autoproc_sync(struct obj_data *obj)
 
 void periodic_autoproc_forget(struct obj_data *obj)
 {
-  struct event *event;
+  event_handle_t handle;
 
-  if (obj == NULL || obj->autoproc_event == NULL)
+  if (obj == NULL || obj->autoproc_event_handle == EVENT_HANDLE_NONE)
     return;
-  event = obj->autoproc_event;
-  obj->autoproc_event = NULL;
+  handle = obj->autoproc_event_handle;
+  obj->autoproc_event_handle = EVENT_HANDLE_NONE;
   if (autoproc_count > 0U)
     autoproc_count--;
-  event_cancel(event);
+  (void)event_handle_cancel(handle);
 }
 
 void periodic_dg_random_sync(struct script_data *script)
@@ -219,7 +219,7 @@ void periodic_dg_random_sync(struct script_data *script)
   int owner_type;
 
   if (!initialized || !dg_random_scheduled || script == NULL || !script->random_registered ||
-      script->random_event != NULL)
+      script->random_event_handle != EVENT_HANDLE_NONE)
     return;
   owner_type = script->owner_type;
   if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
@@ -238,11 +238,11 @@ void periodic_dg_random_sync(struct script_data *script)
   owner = script_owner(script);
   if (!game_event_owner_is_valid(owner))
     return;
-  script->random_event = event_create_owned_named_with_cleanup(
+  script->random_event_handle = event_schedule_owned_named_with_cleanup(
       periodic_dg_random_event, script,
       spread_delay(owner, PULSE_DG_SCRIPT, UINT64_C(0xd672a9) + (uint64_t)owner_type),
       "periodic_dg_random", borrowed_owner_cleanup, owner);
-  if (script->random_event == NULL)
+  if (script->random_event_handle == EVENT_HANDLE_NONE)
   {
     dg_random_rejections++;
     return;
@@ -252,18 +252,18 @@ void periodic_dg_random_sync(struct script_data *script)
 
 void periodic_dg_random_forget(struct script_data *script)
 {
-  struct event *event;
+  event_handle_t handle;
   int owner_type;
 
-  if (script == NULL || script->random_event == NULL)
+  if (script == NULL || script->random_event_handle == EVENT_HANDLE_NONE)
     return;
   owner_type = script->owner_type;
-  event = script->random_event;
-  script->random_event = NULL;
+  handle = script->random_event_handle;
+  script->random_event_handle = EVENT_HANDLE_NONE;
   if (owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER &&
       dg_random_counts[owner_type] > 0U)
     dg_random_counts[owner_type]--;
-  event_cancel(event);
+  (void)event_handle_cancel(handle);
 }
 
 void periodic_owners_init(void)

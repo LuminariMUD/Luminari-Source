@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
 **Status:** In progress - Phases 1 through 10 accepted; Phase 11 owner migration in progress and removal gate pending
-**Document version:** 1.19
+**Document version:** 1.20
 **Started:** 2026-08-29
 **Last source review:** 2026-08-31
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 opaque-handle foundation and first owner migration implemented
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 opaque-handle foundation and shared owner migrations implemented
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -17,9 +17,11 @@
 > Versioned player-event records now validate stable ownership and
 > rebuild fresh process-local timers, while transient and boot-reconstructed
 > work has an explicit policy.
-> Encounter rounds and primary-activity timers now store generation-safe opaque
-> event handles instead of public compatibility-record pointers. Their timing,
-> recurrence, teardown, diagnostics, and rollback behavior are unchanged.
+> Encounter rounds, primary activities, autonomous mobiles, affected owners,
+> character periodic work, object automatic procedures, and DG random triggers
+> now store generation-safe opaque event handles instead of public
+> compatibility-record pointers. Their timing, recurrence, teardown,
+> diagnostics, and rollback behavior are unchanged.
 > The process now owns a boot-sealed typed domain-event registry with bounded
 > synchronous dispatch, generation-aware resolution, and diagnostics. Nine
 > fact contracts exist. `WorldPhenomenon` is the first production-published
@@ -1969,6 +1971,11 @@ Readiness audit, 2026-08-31:
   [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11A_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11A_VALIDATION.md).
 - The deferred Survival/Nature and Establish Camp ability decision is outside
   this retirement tranche and remains unchanged.
+- Shared Phase 7 owners now use the same pointer-free API. The handle type has
+  a lightweight shared header, while the compatibility record remains private
+  to still-unmigrated vessel, point-update, DG-wait, and MUD-event callers. The
+  implementation and evidence are recorded in
+  [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11C_VALIDATION.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11C_VALIDATION.md).
 
 ## 24. Verification Strategy
 
@@ -2332,3 +2339,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.17 | 2026-08-31 | Recorded the Phase 11 source-grounded removal-readiness audit. The irreversible gate remains unsatisfied because this development commit has not completed a stable release period, raw compatibility pointers and residual pulse semantics still have enumerated callers, and archival PubSub schema removal still requires an approved backup/restore migration. |
 | 1.18 | 2026-08-31 | Added the reversible Phase 11a migration foundation: every compatibility event now has a bounded 64-bit opaque handle with constant-time generation validation, pointer-free schedule/cancel/query/cleanup APIs, stale-handle rejection, exactly-once lifecycle behavior, and fail-closed slot retirement rather than generation wrap. Both scheduler and legacy backends remain supported, no caller or rollback path was removed, and the irreversible release gate remains pending. |
 | 1.19 | 2026-08-31 | Completed the first reversible Phase 11 owner slice: encounter-owned combat rounds and primary-activity timers now schedule, cancel, query, recur, and detach through generation-safe opaque handles. Existing combat and activity semantics, both physical backends, and all rollback selectors remain intact; the separate Survival/Nature camp-rule decision is explicitly deferred. |
+| 1.20 | 2026-08-31 | Migrated the shared Phase 7 owners for autonomous mobiles, character and room affects, nearest-deadline character work, object automatic procedures, and DG random triggers to opaque event handles. Callback cadence, off-screen simulation, lifecycle refill, OLC/reindex behavior, both backends, and rollback selectors remain unchanged; external raw compatibility references fell from 62 across 18 files to 42 across 11 files. |

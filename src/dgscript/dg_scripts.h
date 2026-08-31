@@ -15,6 +15,7 @@
 #ifndef _DG_SCRIPTS_H_
 #define _DG_SCRIPTS_H_
 
+#include "event_handle.h"
 #include "utils.h" /* To make sure ACMD is defined */
 
 #define MOB_TRIGGER 0
@@ -191,7 +192,7 @@ struct script_data
   bool random_registered;
   struct script_data *random_next;
   struct script_data *random_prev;
-  struct event *random_event;
+  event_handle_t random_event_handle;
 };
 
 /* The event data for the wait command */

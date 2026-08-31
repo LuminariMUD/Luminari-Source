@@ -99,10 +99,19 @@ files: three libevent declarations, 54 private facade declarations, and 62
 external compatibility occurrences across 18 files. This slice therefore
 removes ten raw-pointer occurrences and two external raw-pointer-owning files.
 
-Combat cadence, semantic rounds, activity timing, cancellation, recurrence,
-diagnostics, and boot-time rollback selection are unchanged. Establish Camp
-continues to use the existing `ABILITY_SURVIVAL` behavior; changing its
-Survival/Nature model remains a separate human gameplay decision.
+Phase 11c migrates autonomous-mobile, affected character/room, character
+periodic, object automatic-procedure, and DG random-trigger owners. The source
+inventory is now 99 occurrences across 14 files: three libevent declarations,
+54 private facade references, and 42 external compatibility references across
+11 files. The remaining external files belong to vessel owners, point-update,
+DG waits, MUD events, and their diagnostics/persistence callers.
+
+Combat cadence, semantic rounds, activity timing, autonomous off-screen mobile
+simulation, affects, periodic character work, automatic procedures, DG random
+triggers, cancellation, recurrence, diagnostics, and boot-time rollback
+selection are unchanged. Establish Camp continues to use the existing
+`ABILITY_SURVIVAL` behavior; changing its Survival/Nature model remains a
+separate human gameplay decision.
 
 `LUMINARI_EVENT_PERSISTENCE_FORMAT=legacy` also retains the Phase 5 legacy
 writer while the loader accepts old and versioned records. Removing that writer

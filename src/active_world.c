@@ -109,10 +109,10 @@ static struct game_event_owner mobile_owner(struct char_data *ch)
   return owner;
 }
 
-static void active_world_mobile_cleanup(struct event *event)
+static void active_world_mobile_cleanup(event_handle_t handle, void *event_obj)
 {
-  if (event != NULL)
-    event->event_obj = NULL;
+  (void)handle;
+  (void)event_obj;
 }
 
 static EVENTFUNC(active_world_mobile_event)
@@ -135,11 +135,11 @@ static EVENTFUNC(active_world_mobile_event)
     {
       registry_remove(ch);
       set_state(ch, ACTIVE_WORLD_MOBILE_DORMANT);
-      ch->active_world_event = NULL;
+      ch->active_world_event_handle = EVENT_HANDLE_NONE;
       mobile_activity_run_one(ch);
       return 0;
     }
-    ch->active_world_event = NULL;
+    ch->active_world_event_handle = EVENT_HANDLE_NONE;
     return 0;
   }
 
@@ -158,11 +158,11 @@ static bool schedule_mobile(struct char_data *ch)
     return false;
   spread = (owner.runtime_id >> 4U) ^ owner.generation;
   spread *= UINT64_C(11400714819323198485);
-  ch->active_world_event = event_create_owned_named_with_cleanup(
+  ch->active_world_event_handle = event_schedule_owned_named_with_cleanup(
       active_world_mobile_event, ch,
       (long)(spread % (uint64_t)PULSE_MOBILE) + 1L,
       "active_world_mobile", active_world_mobile_cleanup, owner);
-  return ch->active_world_event != NULL;
+  return ch->active_world_event_handle != EVENT_HANDLE_NONE;
 }
 
 void active_world_sync_mobile(struct char_data *ch)
@@ -217,11 +217,11 @@ void active_world_forget_character(struct char_data *ch)
     registry_remove(ch);
     set_state(ch, ACTIVE_WORLD_MOBILE_DORMANT);
   }
-  if (ch->active_world_event != NULL)
+  if (ch->active_world_event_handle != EVENT_HANDLE_NONE)
   {
-    struct event *event = ch->active_world_event;
-    ch->active_world_event = NULL;
-    event_cancel(event);
+    event_handle_t handle = ch->active_world_event_handle;
+    ch->active_world_event_handle = EVENT_HANDLE_NONE;
+    (void)event_handle_cancel(handle);
   }
 }
 

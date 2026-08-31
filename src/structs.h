@@ -17,6 +17,7 @@
 #include <time.h>         /* for time_t */
 #include <stddef.h>       /* for size_t */
 #include "bool.h"         /* for bool */
+#include "event_handle.h"
 #include "net/protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
@@ -5990,7 +5991,7 @@ struct obj_data
   struct obj_data *autoproc_next;
   struct obj_data *autoproc_prev;
   bool autoproc_registered;
-  struct event *autoproc_event;
+  event_handle_t autoproc_event_handle;
 
   /* Runtime-only mud-hour point-update registry links. */
   struct obj_data *point_update_next;
@@ -6114,7 +6115,7 @@ struct room_data
   struct raff_node *affected_head; /**< Runtime room-affect owner list. */
   struct room_data *affected_next; /**< Runtime affected-room registry link. */
   struct room_data *affected_prev; /**< Runtime affected-room registry link. */
-  struct event *affected_event;    /**< Sole room-affect duration event. */
+  event_handle_t affected_event_handle; /**< Sole room-affect duration event. */
   size_t affected_count;           /**< Room-affect nodes owned by this room. */
   bool affected_registered;        /**< Runtime affected-room registry state. */
 
@@ -7408,17 +7409,17 @@ struct char_data
   struct char_data *affected_prev;       /**< Runtime affected-owner registry link. */
   bool affected_registered;              /**< Runtime affected-owner registry state. */
   bool affected_registry_live;           /**< Eligible live-world registry owner. */
-  struct event *affected_event;           /**< Sole affect-duration event. */
+  event_handle_t affected_event_handle; /**< Sole affect-duration event. */
   struct char_data *character_periodic_next; /**< Character periodic-owner registry link. */
   struct char_data *character_periodic_prev; /**< Character periodic-owner registry link. */
-  struct event *character_periodic_event; /**< Nearest character periodic deadline. */
+  event_handle_t character_periodic_event_handle; /**< Nearest periodic deadline. */
   bool character_periodic_registered;    /**< Character periodic registry membership. */
   struct char_data *point_update_next;    /**< Mud-hour player registry link. */
   struct char_data *point_update_prev;    /**< Mud-hour player registry link. */
   bool point_update_registered;           /**< Mud-hour player registry membership. */
   struct char_data *active_world_next;    /**< Scheduled-mobile registry link. */
   struct char_data *active_world_prev;    /**< Scheduled-mobile registry link. */
-  struct event *active_world_event;       /**< Sole scheduled mobile-think event. */
+  event_handle_t active_world_event_handle; /**< Sole scheduled mobile-think event. */
   unsigned char active_world_state;       /**< Active, cooling, or dormant state. */
   struct primary_activity *primary_activity; /**< One intentional timed activity. */
   struct combat_encounter_data *combat_encounter; /**< Runtime fight-session owner. */

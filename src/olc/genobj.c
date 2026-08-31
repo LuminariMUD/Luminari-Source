@@ -90,7 +90,7 @@ static int update_all_objects(struct obj_data *refobj)
     obj->autoproc_next = NULL;
     obj->autoproc_prev = NULL;
     obj->autoproc_registered = false;
-    obj->autoproc_event = NULL;
+    obj->autoproc_event_handle = EVENT_HANDLE_NONE;
     autoproc_registry_sync(obj);
     obj->point_update_next = swap.point_update_next;
     obj->point_update_prev = swap.point_update_prev;
@@ -558,7 +558,7 @@ int copy_object_main(struct obj_data *to, struct obj_data *from,
 {
   struct obj_data *autoproc_next;
   struct obj_data *autoproc_prev;
-  struct event *autoproc_event;
+  event_handle_t autoproc_event_handle;
   struct obj_data *point_update_next;
   struct obj_data *point_update_prev;
   struct list_data *events;
@@ -570,7 +570,7 @@ int copy_object_main(struct obj_data *to, struct obj_data *from,
 
   autoproc_next = to->autoproc_next;
   autoproc_prev = to->autoproc_prev;
-  autoproc_event = to->autoproc_event;
+  autoproc_event_handle = to->autoproc_event_handle;
   events = to->events;
   event_owner_generation = to->event_owner_generation;
   periodic_event_generation = to->periodic_event_generation;
@@ -582,7 +582,7 @@ int copy_object_main(struct obj_data *to, struct obj_data *from,
   *to = *from;
   to->autoproc_next = autoproc_next;
   to->autoproc_prev = autoproc_prev;
-  to->autoproc_event = autoproc_event;
+  to->autoproc_event_handle = autoproc_event_handle;
   to->events = events;
   to->event_owner_generation = event_owner_generation;
   to->periodic_event_generation = periodic_event_generation;
