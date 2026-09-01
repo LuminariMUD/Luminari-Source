@@ -687,8 +687,10 @@ manager counters.
   - Default: `LUMINARI_CHARACTER_EVENTS=scheduled`
   - Rollback: `LUMINARI_CHARACTER_EVENTS=legacy`
   - The selection jointly controls walk-to, PSP, bardic verse, hint,
-    per-character Luminari, damage/effect, and player-maintenance work;
-    scheduled and rollback paths never run together.
+    per-character Luminari, damage/effect, player-maintenance, six-second D20
+    round, thirty-second artificer device-recovery (gated by
+    `check_thirty_seconds()`), and mud-hour timed-quest work; scheduled and
+    rollback paths never run together.
 - Affected-owner selection:
   - Default: `LUMINARI_AFFECT_EVENTS=scheduled`
   - Rollback: `LUMINARI_AFFECT_EVENTS=legacy`

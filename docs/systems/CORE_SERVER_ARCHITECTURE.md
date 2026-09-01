@@ -107,9 +107,9 @@ void game_loop(socket_t local_mother_desc)
         // 8. Process input from all descriptors
         // 9. Execute commands and game logic
         // 10. Process output to all descriptors
-        // 11. Dispatch a bounded scheduler batch
-        // 12. Drain deferred extraction at the explicit safe point
-        // 13. Run compatibility heartbeat only when rollback requires it
+        // 11. Run compatibility heartbeat only when rollback requires it
+        // 12. Dispatch a bounded scheduler batch
+        // 13. Drain deferred extraction at the explicit safe point
         // 14. Performance monitoring
     }
 }
@@ -227,7 +227,7 @@ Normal cadence work is admitted as named service-owned events at its established
 interval. Only services required by the selected subsystem modes are scheduled:
 
 ```c
-service.dg_random             // 0.5 seconds
+service.dg_random             // 13 seconds
 service.one_second            // protocol, travel, crafting, and related work
 service.mobile_procedures     // established mobile-procedure cadence
 service.zone                  // zone reset cadence

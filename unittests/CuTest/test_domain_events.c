@@ -1477,6 +1477,16 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
   pulse = saved_pulse;
 }
 
+void TestDeviceRecoverySkipsCharacterWithoutPlayerSpecials(CuTest *tc)
+{
+  struct char_data ch;
+
+  memset(&ch, 0, sizeof(ch));
+  CuAssertPtrEquals(tc, NULL, ch.player_specials);
+  check_device_one(&ch);
+  CuAssertPtrEquals(tc, NULL, ch.player_specials);
+}
+
 void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
 {
   struct char_data ch;

@@ -849,6 +849,28 @@ static EVENTFUNC(trig_wait_event)
   return 0;
 }
 
+static event_handle_t schedule_trig_wait(struct trig_data *trig, void *go, int type, long when,
+                                         EVENTFUNC(*callback))
+{
+  struct wait_event_data *wait_event_obj;
+
+  if (trig == NULL || callback == NULL)
+    return EVENT_HANDLE_NONE;
+  CREATE(wait_event_obj, struct wait_event_data, 1);
+  wait_event_obj->trigger = trig;
+  wait_event_obj->go = go;
+  wait_event_obj->type = type;
+  GET_TRIG_WAIT_DATA(trig) = wait_event_obj;
+  GET_TRIG_WAIT_HANDLE(trig) = event_schedule_with_cleanup(
+      callback, wait_event_obj, when, cleanup_trig_wait_event);
+  if (GET_TRIG_WAIT_HANDLE(trig) == EVENT_HANDLE_NONE)
+  {
+    GET_TRIG_WAIT_DATA(trig) = NULL;
+    free(wait_event_obj);
+  }
+  return GET_TRIG_WAIT_HANDLE(trig);
+}
+
 static void cleanup_trig_wait_event(event_handle_t handle, void *event_obj)
 {
   struct wait_event_data *wait_event_obj = event_obj;
@@ -889,22 +911,7 @@ static EVENTFUNC(test_inflight_trigger_free_event)
 static event_handle_t schedule_test_wait(struct trig_data *trig, long when,
                                          EVENTFUNC(*callback))
 {
-  struct wait_event_data *wait_event_obj;
-
-  if (trig == NULL || callback == NULL)
-    return EVENT_HANDLE_NONE;
-  CREATE(wait_event_obj, struct wait_event_data, 1);
-  wait_event_obj->trigger = trig;
-  wait_event_obj->type = WLD_TRIGGER;
-  GET_TRIG_WAIT_DATA(trig) = wait_event_obj;
-  GET_TRIG_WAIT_HANDLE(trig) = event_schedule_named_with_cleanup(
-      callback, wait_event_obj, when, "dg_wait_test", cleanup_trig_wait_event);
-  if (GET_TRIG_WAIT_HANDLE(trig) == EVENT_HANDLE_NONE)
-  {
-    GET_TRIG_WAIT_DATA(trig) = NULL;
-    free(wait_event_obj);
-  }
-  return GET_TRIG_WAIT_HANDLE(trig);
+  return schedule_trig_wait(trig, NULL, WLD_TRIGGER, when, callback);
 }
 
 event_handle_t dg_wait_schedule_for_test(struct trig_data *trig, long when)
@@ -1966,7 +1973,6 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
                          struct cmdlist_element *cl)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'}, *arg;
-  struct wait_event_data *wait_event_obj;
   long when = 0, hr = 0, min = 0, ntime = 0;
   char c = '\0';
 
@@ -2021,20 +2027,8 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
     }
   }
 
-  CREATE(wait_event_obj, struct wait_event_data, 1);
-  wait_event_obj->trigger = trig;
-  wait_event_obj->go = go;
-  wait_event_obj->type = type;
-
-  GET_TRIG_WAIT_DATA(trig) = wait_event_obj;
-  GET_TRIG_WAIT_HANDLE(trig) =
-      event_schedule_with_cleanup(trig_wait_event, wait_event_obj, when, cleanup_trig_wait_event);
-  if (GET_TRIG_WAIT_HANDLE(trig) == EVENT_HANDLE_NONE)
-  {
-    GET_TRIG_WAIT_DATA(trig) = NULL;
-    free(wait_event_obj);
+  if (schedule_trig_wait(trig, go, type, when, trig_wait_event) == EVENT_HANDLE_NONE)
     return;
-  }
 
   trig->curr_state = cl->next;
 }

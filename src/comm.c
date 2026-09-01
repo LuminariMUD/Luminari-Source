@@ -2351,6 +2351,7 @@ static bool runtime_service_needed(enum runtime_service_kind kind)
   case RUNTIME_SERVICE_CHARACTER_SIX_SECOND:
     return !character_periodic_events_enabled();
   case RUNTIME_SERVICE_ROL_SHIP:
+    return true;
   case RUNTIME_SERVICE_VESSEL:
     return CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled();
   case RUNTIME_SERVICE_MOBILE_ACTIVITY:
@@ -2791,6 +2792,20 @@ void runtime_services_reset_selection_for_test(void)
 }
 
 bool runtime_services_init_for_test(void) { return runtime_services_init(); }
+
+bool runtime_service_named_needed_for_test(const char *name)
+{
+  size_t index;
+
+  if (name == NULL)
+    return false;
+  for (index = 0U; index < RUNTIME_SERVICE_COUNT; index++)
+  {
+    if (!strcmp(runtime_service_table[index].name, name))
+      return runtime_service_needed(runtime_service_table[index].kind);
+  }
+  return false;
+}
 
 bool runtime_services_start_empty_persistence_for_test(void)
 {
