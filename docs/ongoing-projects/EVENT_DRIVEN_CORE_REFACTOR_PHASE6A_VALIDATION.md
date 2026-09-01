@@ -82,8 +82,8 @@ There is intentionally no player-visible gameplay change. The scheduler is the
 alarm clock for owner-specific due work; this new bus is the immediate fact
 channel that can wake affected owners. The old broad scans still run.
 
-Phase 6b next retires the unrelated database-backed pub/sub runtime and its
-heartbeat queue under a schema-data rollback plan. Phase 7 then starts the
+Phase 6b retired the unrelated database-backed pub/sub runtime and its
+heartbeat queue under the schema-data rollback plan. Phase 7 starts the
 player-relevant active-world migration: entities enter active, cooling-down, or
 dormant states and only active owners schedule work. Combat, regeneration,
 automatic actions, and activities follow in their specified phases.

@@ -169,11 +169,11 @@ static int audio_calculate_intensity(struct spatial_context *ctx)
     }
   }
 
-  /* Base intensity starts at 1.0 and is modified by distance and frequency */
-  ctx->base_intensity = distance_factor;
+  ctx->distance_attenuation = distance_factor;
 
   spatial_log("SPATIAL: Audio intensity calculated: %.6f at distance %.2f (freq: %d)",
-              ctx->base_intensity, ctx->distance, ctx->audio_frequency);
+              ctx->base_intensity * ctx->distance_attenuation, ctx->distance,
+              ctx->audio_frequency);
   spatial_log("SPATIAL: Audio distance calculation: distance=%.2f, factor=%.6f", ctx->distance,
               distance_factor);
 

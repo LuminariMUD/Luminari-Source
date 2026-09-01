@@ -126,13 +126,13 @@ The MUD layer adds:
 
 - Allocate payload: [C.new_mud_event()](../../src/mud_event.c#L579)
   - Duplicates sVariables string if provided (ownership sits with the MUD event)
-- Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c#L437)
+- Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c)
   - Builds the owner's typed handle and calls `event_create_owned_named()` with
     the registry handler
   - Adds the struct event pointer to the owner's event list (ch->events, obj->events, room->events, region->events, or world_events)
   - Special memory handling:
-    - For EVENT_ROOM: copies the room VNUM into newly allocated memory and stores that pointer in pStruct; validates room existence; see attach switch case at [C.attach_mud_event()](../../src/mud_event.c#L437)
-    - For EVENT_REGION: same pattern for region VNUM; see [C.attach_mud_event()](../../src/mud_event.c#L437)
+    - For EVENT_ROOM: copies the room VNUM into newly allocated memory and stores that pointer in pStruct; validates room existence; see [C.attach_mud_event()](../../src/mud_event.c)
+    - For EVENT_REGION: same pattern for region VNUM; see [C.attach_mud_event()](../../src/mud_event.c)
   - Macro helper: [C.NEW_EVENT()](../../src/mud_event.h#L27) wraps allocation + attach
 
 ### 3.3 Owner Handles and Lifecycle

@@ -251,7 +251,8 @@ sql -e "
   INSERT INTO pubsub_player_settings (player_name, max_subscriptions)
     VALUES ('Sourcechar', 19);
   INSERT INTO pubsub_subscriptions (topic_id, player_name, status)
-    VALUES (@topic_id, 'Sourcechar', 1);
+    VALUES (@topic_id, 'Sourcechar', 1),
+           (@topic_id, 'Sourcechar', 2);
   INSERT INTO player_levelups (character_name, event_payload)
     VALUES ('Sourcechar', 'new level history payload');
   INSERT INTO player_levels (char_name, event_payload)
@@ -340,8 +341,9 @@ deprecated_pubsub_before=$(sql -e "
   SELECT SHA2(CONCAT_WS('|',
     (SELECT CONCAT_WS(':', setting_id, player_name, max_subscriptions)
        FROM pubsub_player_settings WHERE player_name='Sourcechar'),
-    (SELECT CONCAT_WS(':', subscription_id, topic_id, player_name, status,
+    (SELECT GROUP_CONCAT(CONCAT_WS(':', subscription_id, topic_id, player_name, status,
              DATE_FORMAT(subscribed_at, '%Y-%m-%d %H:%i:%s'))
+             ORDER BY subscription_id SEPARATOR ';')
        FROM pubsub_subscriptions WHERE player_name='Sourcechar')
   ), 256);
 ")
@@ -525,8 +527,9 @@ deprecated_pubsub_after=$(sql -e "
   SELECT SHA2(CONCAT_WS('|',
     (SELECT CONCAT_WS(':', setting_id, player_name, max_subscriptions)
        FROM pubsub_player_settings WHERE player_name='Sourcechar'),
-    (SELECT CONCAT_WS(':', subscription_id, topic_id, player_name, status,
+    (SELECT GROUP_CONCAT(CONCAT_WS(':', subscription_id, topic_id, player_name, status,
              DATE_FORMAT(subscribed_at, '%Y-%m-%d %H:%i:%s'))
+             ORDER BY subscription_id SEPARATOR ';')
        FROM pubsub_subscriptions WHERE player_name='Sourcechar')
   ), 256);
 ")
