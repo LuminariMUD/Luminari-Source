@@ -86,7 +86,7 @@ generation-safe `event_handle_t` values and payload destructors receive owned
 payloads. The internal header is included by the facade plus two low-level
 adapter tests; it is not a gameplay API.
 
-There are 18 opaque compatibility-adapter scheduling calls across 13 production
+There are 16 opaque compatibility-adapter scheduling calls across 12 production
 files. Their exact burn-down inventory is enforced by
 `scripts/events/test_legacy_event_admission.sh`; additions fail the normal test
 suite. Those callers are compatible with a scheduler-only facade after the old
@@ -203,6 +203,11 @@ triggers, cancellation, recurrence, diagnostics, and boot-time rollback
 selection are unchanged. Establish Camp continues to use the existing
 `ABILITY_SURVIVAL` behavior; changing its Survival/Nature model remains a
 separate human gameplay decision.
+
+The native-runtime migration first removed the two affected-owner producers.
+Character-affect and room-affect work now register distinct semantic types and
+store native runtime handles; their legacy-backend rollback is the existing
+affected-owner heartbeat rather than the compatibility scheduler facade.
 
 Phase 11o additionally freezes the concrete-owner agenda architecture in
 `scripts/events/test_demand_driven_architecture.sh`. A production-linked test

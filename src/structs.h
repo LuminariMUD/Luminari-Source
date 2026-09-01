@@ -6113,7 +6113,7 @@ struct room_data
   struct raff_node *affected_head; /**< Runtime room-affect owner list. */
   struct room_data *affected_next; /**< Runtime affected-room registry link. */
   struct room_data *affected_prev; /**< Runtime affected-room registry link. */
-  event_handle_t affected_event_handle; /**< Sole room-affect duration event. */
+  struct event_runtime_handle affected_event_handle; /**< Sole room-affect duration event. */
   size_t affected_count;           /**< Room-affect nodes owned by this room. */
   bool affected_registered;        /**< Runtime affected-room registry state. */
 
@@ -7406,7 +7406,7 @@ struct char_data
   struct char_data *affected_prev;       /**< Runtime affected-owner registry link. */
   bool affected_registered;              /**< Runtime affected-owner registry state. */
   bool affected_registry_live;           /**< Eligible live-world registry owner. */
-  event_handle_t affected_event_handle; /**< Sole affect-duration event. */
+  struct event_runtime_handle affected_event_handle; /**< Sole affect-duration event. */
   struct char_data *character_periodic_next; /**< Character periodic-owner registry link. */
   struct char_data *character_periodic_prev; /**< Character periodic-owner registry link. */
   event_handle_t character_periodic_event_handle; /**< Nearest periodic deadline. */

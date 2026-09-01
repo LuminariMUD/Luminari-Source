@@ -1487,6 +1487,13 @@ void queue_free(struct dg_queue *q)
 
 int event_queue_depth(void)
 {
+  struct game_scheduler_stats stats;
+
+  if (active_backend == EVENT_BACKEND_GAME_SCHEDULER && event_runtime_is_initialized())
+  {
+    event_runtime_get_stats(&stats);
+    return stats.event_count > (size_t)INT_MAX ? INT_MAX : (int)stats.event_count;
+  }
   return total_events;
 }
 

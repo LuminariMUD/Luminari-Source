@@ -96,9 +96,14 @@ therefore cannot resolve to later events. Runtime shutdown invalidates every
 remaining handle and invokes each admitted payload's cleanup exactly once.
 
 The compatibility adapter registers one temporary `legacy_event` type in this
-same runtime. Its retained 18 production schedules therefore coexist on the
+same runtime. Its retained 16 production schedules therefore coexist on the
 wheel with native types during migration, but the adapter no longer creates,
 owns, advances, inspects, or destroys a scheduler itself.
+
+Character-affect duration and room-affect duration/behavior are the first
+production owners migrated directly to native types. Their stable names are
+`affected.character.duration` and `affected.room.duration`; each owner may
+hold at most one event of its corresponding type.
 
 ## 2. Timed-Event Compatibility Facade
 

@@ -21,8 +21,9 @@ late registration is rejected explicitly.
 The DG facade remains temporarily available for rollback and caller migration,
 but it is now a client of the runtime. It registers `legacy_event` on the same
 wheel and no longer creates, owns, advances, inspects, or destroys a scheduler.
-The 18 compatibility schedules in 13 production files are intentionally
-unchanged and remain frozen by the admission test.
+The foundation initially retained 18 compatibility schedules in 13 production
+files, frozen by the admission test. The first producer slice has since moved
+the two affected-owner schedules to native semantic types.
 
 ## Lifecycle Guarantees
 
@@ -54,10 +55,14 @@ unchanged and remain frozen by the admission test.
   server then shut down cleanly. Evidence is retained under
   `.ci-runtime/native-runtime-live.Xm1uf7/`.
 
-## Next Slice
+## First Producer Slice
 
-Register the production semantic event-type catalog and migrate the frozen 18
-compatibility schedules in behavior-preserving groups. Each migrated callback
+`affected.character.duration` and `affected.room.duration` are now native
+owner-required types. Their owner-local callbacks preserve established affect
+expiry, room behavior, cancellation, capacity refill, and OLC/reindex behavior.
+The frozen compatibility inventory is now 16 schedules across 12 files.
+
+Remaining callbacks continue to migrate in behavior-preserving groups. Each
 must retain its cadence, owner lifecycle, cleanup, and recurrence policy while
 becoming visible by semantic scheduler type rather than only by compatibility
 profile.

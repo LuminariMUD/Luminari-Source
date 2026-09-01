@@ -19,6 +19,7 @@
 #include "../../src/domain_events.h"
 #include "../../src/domain_event_runtime.h"
 #include "../../src/domain_event_world.h"
+#include "../../src/event_runtime.h"
 #include "../../src/magic/spells.h"
 #include "../../src/mob/mob_act.h"
 #include "../../src/mob/mob_known_spells.h"
@@ -1543,11 +1544,15 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
 {
   struct affected_type affect;
   struct char_data ch;
+  struct game_event_owner owner;
+  struct game_event_snapshot snapshot;
+  struct game_scheduler_stats scheduler_stats;
   struct raff_node *raff;
   struct raff_node *saved_raff_list = raff_list;
   struct room_data room;
   struct room_data *saved_world = world;
   room_rnum saved_top_of_world = top_of_world;
+  size_t event_count;
   unsigned long saved_pulse = pulse;
 
   memset(&room, 0, sizeof(room));
@@ -1567,6 +1572,9 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   pulse = PULSE_VIOLENCE * 20U;
   event_init();
   affected_owners_init();
+  event_runtime_get_stats(&scheduler_stats);
+  CuAssertIntEquals(tc, 3, (int)scheduler_stats.registered_type_count);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_seal_types());
 
   new_affect(&affect);
   affect.spell = SPELL_ARMOR;
@@ -1589,6 +1597,27 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)affected_room_owner_count());
   CuAssertIntEquals(tc, 1, (int)affected_room_scheduled_count());
   CuAssertIntEquals(tc, 2, event_queue_depth());
+
+  owner = game_event_owner_none();
+  owner.kind = GAME_EVENT_OWNER_CHARACTER;
+  owner.runtime_id = (uint64_t)(uintptr_t)&ch;
+  owner.generation = ch.periodic_event_generation;
+  event_count = 0U;
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_inspect_owner(owner, &snapshot, 1U, &event_count));
+  CuAssertIntEquals(tc, 1, (int)event_count);
+  CuAssertStrEquals(tc, "affected.character.duration",
+                    event_runtime_type_name(snapshot.event_type));
+
+  owner.kind = GAME_EVENT_OWNER_ROOM;
+  owner.runtime_id = (uint64_t)(uint32_t)room.number + 1U;
+  owner.generation = room.periodic_event_generation;
+  event_count = 0U;
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_inspect_owner(owner, &snapshot, 1U, &event_count));
+  CuAssertIntEquals(tc, 1, (int)event_count);
+  CuAssertStrEquals(tc, "affected.room.duration",
+                    event_runtime_type_name(snapshot.event_type));
 
   pulse += PULSE_LUMINARI;
   event_process();
@@ -1755,8 +1784,8 @@ void TestAffectedOwnerAdmissionAndLegacyRollbackAreExclusive(CuTest *tc)
   room.number = 101;
   raff_list = NULL;
 
-  affected_owners_select_for_test(false);
-  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  affected_owners_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
   event_init();
   affected_owners_init();
   new_affect(&affect);
@@ -1860,17 +1889,17 @@ void TestAffectedOwnerCapacityRefillsAfterLifecycleCancellation(CuTest *tc)
   CuAssertIntEquals(tc, 2, event_queue_depth());
   CuAssertIntEquals(tc, 2, (int)affected_owner_admission_rejections());
   CuAssertIntEquals(tc, 1, (int)rooms[0].affected_count);
-  CuAssertTrue(tc, second.affected_event_handle == EVENT_HANDLE_NONE);
-  CuAssertTrue(tc, rooms[1].affected_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, event_runtime_handle_is_none(second.affected_event_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(rooms[1].affected_event_handle));
 
   CuAssertPtrNotNull(tc, affected_registry_iteration_begin());
   affected_registry_detach(&first);
-  CuAssertTrue(tc, second.affected_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, event_runtime_handle_is_none(second.affected_event_handle));
   affected_registry_iteration_end();
   rem_room_aff(first_raff);
   CuAssertIntEquals(tc, 2, event_queue_depth());
-  CuAssertTrue(tc, second.affected_event_handle != EVENT_HANDLE_NONE);
-  CuAssertTrue(tc, rooms[1].affected_event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(second.affected_event_handle));
+  CuAssertTrue(tc, !event_runtime_handle_is_none(rooms[1].affected_event_handle));
   CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
 
   while (first.affected != NULL)
@@ -1892,7 +1921,7 @@ void TestAffectedOwnerCapacityRefillsAfterLifecycleCancellation(CuTest *tc)
 
 void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
 {
-  event_handle_t saved_event_handle;
+  struct event_runtime_handle saved_event_handle;
   struct raff_node *raff;
   struct raff_node *saved_raff_list = raff_list;
   struct room_data original[2];
@@ -1929,13 +1958,14 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
   SET_BIT(original[1].room_affections, RAFF_FOG);
   affected_room_owner_add(raff);
   saved_event_handle = original[1].affected_event_handle;
-  CuAssertTrue(tc, saved_event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(saved_event_handle));
 
   edited.number = original[1].number;
   edited.room_affections = 0L;
   CuAssertIntEquals(tc, TRUE, copy_room(&original[1], &edited));
   CuAssertPtrEquals(tc, raff, original[1].affected_head);
-  CuAssertTrue(tc, saved_event_handle == original[1].affected_event_handle);
+  CuAssertTrue(tc, event_runtime_handles_equal(saved_event_handle,
+                                              original[1].affected_event_handle));
   CuAssertTrue(tc, ROOM_AFFECTED(1, RAFF_FOG));
 
   affected_room_owners_prepare_world_reindex();
@@ -1949,7 +1979,7 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
 
   CuAssertIntEquals(tc, 2, (int)raff->room);
   CuAssertPtrEquals(tc, raff, moved[2].affected_head);
-  CuAssertTrue(tc, moved[2].affected_event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(moved[2].affected_event_handle));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
 
@@ -1967,7 +1997,7 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
 
   CuAssertIntEquals(tc, 1, (int)raff->room);
   CuAssertPtrEquals(tc, raff, original[1].affected_head);
-  CuAssertTrue(tc, original[1].affected_event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(original[1].affected_event_handle));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   CuAssertIntEquals(tc, 0, (int)affected_room_registry_validate());
 

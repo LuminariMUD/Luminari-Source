@@ -56,7 +56,7 @@ static void clear_new_room_runtime_ownership(struct room_data *room)
   room->affected_head = NULL;
   room->affected_next = NULL;
   room->affected_prev = NULL;
-  room->affected_event_handle = EVENT_HANDLE_NONE;
+  room->affected_event_handle = EVENT_RUNTIME_HANDLE_NONE;
   room->affected_count = 0U;
   room->affected_registered = false;
 }
@@ -801,7 +801,7 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   struct raff_node *affected_head;
   struct room_data *affected_next;
   struct room_data *affected_prev;
-  event_handle_t affected_event_handle;
+  struct event_runtime_handle affected_event_handle;
   size_t affected_count;
   bool affected_registered;
   long room_affections;

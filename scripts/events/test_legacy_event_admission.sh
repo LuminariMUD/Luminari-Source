@@ -36,7 +36,6 @@ collect_counts '(^|[^[:alnum:]_])event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(' 
 cat >"$expected" <<'EOF'
 src/active_world.c 1
 src/activity_manager.c 1
-src/affected_owners.c 2
 src/ai_events.c 2
 src/character_periodic.c 1
 src/combat/combat_encounters.c 1

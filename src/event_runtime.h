@@ -1,6 +1,7 @@
 #ifndef EVENT_RUNTIME_H
 #define EVENT_RUNTIME_H
 
+#include "event_handle.h"
 #include "game_scheduler.h"
 
 /*
@@ -8,13 +9,6 @@
  * runtime instance, so a stale handle cannot resolve to a later event before
  * that runtime is shut down.
  */
-struct event_runtime_handle
-{
-  game_event_id_t id;
-};
-
-#define EVENT_RUNTIME_HANDLE_NONE ((struct event_runtime_handle){0})
-
 enum game_scheduler_status
 event_runtime_init(const struct game_scheduler_config *config);
 enum game_scheduler_status event_runtime_shutdown(void);

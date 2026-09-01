@@ -7,7 +7,7 @@
 #include "dotenv.h"
 #include "handler.h"
 #include "affected_owners.h"
-#include "dgscript/dg_event.h"
+#include "event_runtime.h"
 #include "magic/spells.h"
 #include "mudlim.h"
 
@@ -33,6 +33,8 @@ static uint64_t room_nodes_processed;
 static uint64_t room_behavior_executions;
 static uint64_t room_behavior_nodes_processed;
 static uint64_t next_generation = 1U;
+static game_event_type_id_t affected_character_event_type;
+static game_event_type_id_t affected_room_event_type;
 #ifdef LUMINARI_CUTEST
 static bool test_selection_set;
 static bool test_scheduled_selection;
@@ -113,10 +115,45 @@ static long next_room_delay(void)
   return luminari_delay < round_delay ? luminari_delay : round_delay;
 }
 
-static void borrowed_owner_cleanup(event_handle_t handle, void *event_obj)
+static bool runtime_handle_matches(struct event_runtime_handle handle,
+                                   const struct game_event_context *context)
 {
-  (void)handle;
-  (void)event_obj;
+  return context != NULL && handle.id == context->event_id;
+}
+
+static void borrowed_owner_cleanup(void *payload)
+{
+  (void)payload;
+}
+
+static bool register_event_type(const char *name, game_event_handler handler,
+                                size_t max_events, game_event_type_id_t *event_type)
+{
+  struct game_event_type_config config;
+  const char *registered_name;
+  enum game_scheduler_status status;
+
+  if (!event_runtime_is_initialized() || event_type == NULL)
+    return false;
+  registered_name = event_runtime_type_name(*event_type);
+  if (registered_name != NULL && !strcmp(registered_name, name))
+    return true;
+  *event_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = name;
+  config.handler = handler;
+  config.cleanup = borrowed_owner_cleanup;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.max_events = max_events;
+  config.max_events_per_owner = 1U;
+  config.requires_owner = true;
+  status = event_runtime_register_type(&config, event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: unable to register native event type '%s' (status %d).", name, status);
+    return false;
+  }
+  return true;
 }
 
 static void note_rejection(const char *kind, size_t limit)
@@ -160,48 +197,58 @@ static void refill_room_capacity(void)
   refilling = false;
 }
 
-static EVENTFUNC(affected_character_event)
+static struct game_event_result affected_character_event(
+    const struct game_event_context *context)
 {
-  struct char_data *ch = event_obj;
+  struct char_data *ch = context != NULL ? context->payload : NULL;
 
   if (ch == NULL)
-    return 0;
+    return game_event_result_complete();
   character_callback_count++;
   if (!ch->affected_registered || !ch->affected_registry_live || ch->affected == NULL)
   {
-    ch->affected_event_handle = EVENT_HANDLE_NONE;
-    if (character_scheduled_count > 0U)
-      character_scheduled_count--;
+    if (runtime_handle_matches(ch->affected_event_handle, context))
+    {
+      ch->affected_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+      if (character_scheduled_count > 0U)
+        character_scheduled_count--;
+    }
     affected_character_owner_refill();
-    return 0;
+    return game_event_result_complete();
   }
   character_nodes_processed += affect_update_character_one(ch);
-  return PULSE_VIOLENCE;
+  if (!runtime_handle_matches(ch->affected_event_handle, context))
+    return game_event_result_complete();
+  return game_event_result_reschedule_after(PULSE_VIOLENCE);
 }
 
-static EVENTFUNC(affected_room_event)
+static struct game_event_result affected_room_event(
+    const struct game_event_context *context)
 {
-  struct room_data *room = event_obj;
+  struct room_data *room = context != NULL ? context->payload : NULL;
 
   if (room == NULL)
-    return 0;
+    return game_event_result_complete();
   room_callback_count++;
   if (!room->affected_registered || room->affected_head == NULL)
   {
-    room->affected_event_handle = EVENT_HANDLE_NONE;
-    if (room_scheduled_count > 0U)
-      room_scheduled_count--;
+    if (runtime_handle_matches(room->affected_event_handle, context))
+    {
+      room->affected_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+      if (room_scheduled_count > 0U)
+        room_scheduled_count--;
+    }
     refill_room_capacity();
-    return 0;
+    return game_event_result_complete();
   }
   if (pulse % PULSE_VIOLENCE == 0U)
   {
     room_nodes_processed += affect_update_room_one(room);
     if (!room->affected_registered || room->affected_head == NULL ||
-        room->affected_event_handle == EVENT_HANDLE_NONE)
+        event_runtime_handle_is_none(room->affected_event_handle))
     {
       refill_room_capacity();
-      return 0;
+      return game_event_result_complete();
     }
   }
   if (pulse % PULSE_LUMINARI == 0U)
@@ -209,13 +256,15 @@ static EVENTFUNC(affected_room_event)
     room_behavior_executions++;
     room_behavior_nodes_processed += process_room_affect_activity(room);
     if (!room->affected_registered || room->affected_head == NULL ||
-        room->affected_event_handle == EVENT_HANDLE_NONE)
+        event_runtime_handle_is_none(room->affected_event_handle))
     {
       refill_room_capacity();
-      return 0;
+      return game_event_result_complete();
     }
   }
-  return next_room_delay();
+  if (!runtime_handle_matches(room->affected_event_handle, context))
+    return game_event_result_complete();
+  return game_event_result_reschedule_after((game_tick_t)next_room_delay());
 }
 
 void affected_character_owner_sync(struct char_data *ch)
@@ -224,7 +273,7 @@ void affected_character_owner_sync(struct char_data *ch)
 
   if (!initialized || !scheduled || ch == NULL || !ch->affected_registered ||
       !ch->affected_registry_live || ch->affected == NULL ||
-      ch->affected_event_handle != EVENT_HANDLE_NONE)
+      !event_runtime_handle_is_none(ch->affected_event_handle))
     return;
   if (character_scheduled_count >= character_limit)
   {
@@ -234,10 +283,9 @@ void affected_character_owner_sync(struct char_data *ch)
   owner = character_owner(ch);
   if (!game_event_owner_is_valid(owner))
     return;
-  ch->affected_event_handle = event_schedule_owned_named_with_cleanup(
-      affected_character_event, ch, next_round_delay(), "affected_character",
-      borrowed_owner_cleanup, owner);
-  if (ch->affected_event_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_schedule_owned_after(affected_character_event_type, owner,
+                                         (game_tick_t)next_round_delay(), ch,
+                                         &ch->affected_event_handle) != GAME_SCHEDULER_OK)
   {
     note_rejection("character", character_limit);
     return;
@@ -247,15 +295,15 @@ void affected_character_owner_sync(struct char_data *ch)
 
 void affected_character_owner_forget(struct char_data *ch)
 {
-  event_handle_t handle;
+  struct event_runtime_handle handle;
 
-  if (ch == NULL || ch->affected_event_handle == EVENT_HANDLE_NONE)
+  if (ch == NULL || event_runtime_handle_is_none(ch->affected_event_handle))
     return;
   handle = ch->affected_event_handle;
-  ch->affected_event_handle = EVENT_HANDLE_NONE;
+  ch->affected_event_handle = EVENT_RUNTIME_HANDLE_NONE;
   if (character_scheduled_count > 0U)
     character_scheduled_count--;
-  (void)event_handle_cancel(handle);
+  (void)event_runtime_cancel(handle);
   affected_character_owner_refill();
 }
 
@@ -264,7 +312,7 @@ static void affected_room_schedule(struct room_data *room)
   struct game_event_owner owner;
 
   if (!initialized || !scheduled || room == NULL || !room->affected_registered ||
-      room->affected_head == NULL || room->affected_event_handle != EVENT_HANDLE_NONE)
+      room->affected_head == NULL || !event_runtime_handle_is_none(room->affected_event_handle))
     return;
   if (room_scheduled_count >= room_limit)
   {
@@ -274,10 +322,9 @@ static void affected_room_schedule(struct room_data *room)
   owner = room_owner(room);
   if (!game_event_owner_is_valid(owner))
     return;
-  room->affected_event_handle = event_schedule_owned_named_with_cleanup(
-      affected_room_event, room, next_room_delay(), "affected_room", borrowed_owner_cleanup,
-      owner);
-  if (room->affected_event_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_schedule_owned_after(affected_room_event_type, owner,
+                                         (game_tick_t)next_room_delay(), room,
+                                         &room->affected_event_handle) != GAME_SCHEDULER_OK)
   {
     note_rejection("room", room_limit);
     return;
@@ -287,15 +334,15 @@ static void affected_room_schedule(struct room_data *room)
 
 static void affected_room_forget(struct room_data *room)
 {
-  event_handle_t handle;
+  struct event_runtime_handle handle;
 
-  if (room == NULL || room->affected_event_handle == EVENT_HANDLE_NONE)
+  if (room == NULL || event_runtime_handle_is_none(room->affected_event_handle))
     return;
   handle = room->affected_event_handle;
-  room->affected_event_handle = EVENT_HANDLE_NONE;
+  room->affected_event_handle = EVENT_RUNTIME_HANDLE_NONE;
   if (room_scheduled_count > 0U)
     room_scheduled_count--;
-  (void)event_handle_cancel(handle);
+  (void)event_runtime_cancel(handle);
   refill_room_capacity();
 }
 
@@ -388,12 +435,12 @@ void affected_room_owners_prepare_world_reindex(void)
   for (room = affected_room_list; room != NULL; room = next_room)
   {
     next_room = room->affected_next;
-    if (room->affected_event_handle != EVENT_HANDLE_NONE)
+    if (!event_runtime_handle_is_none(room->affected_event_handle))
     {
-      event_handle_t handle = room->affected_event_handle;
+      struct event_runtime_handle handle = room->affected_event_handle;
 
-      room->affected_event_handle = EVENT_HANDLE_NONE;
-      (void)event_handle_cancel(handle);
+      room->affected_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+      (void)event_runtime_cancel(handle);
     }
     for (raff = room->affected_head; raff != NULL; raff = next_raff)
     {
@@ -445,16 +492,27 @@ void affected_owners_init(void)
 {
   struct char_data *ch;
   struct room_data *room;
+  bool native_ready;
+  bool requested;
 
   if (initialized)
     return;
 #ifdef LUMINARI_CUTEST
-  scheduled = test_selection_set ? test_scheduled_selection : configured_scheduled();
+  requested = test_selection_set ? test_scheduled_selection : configured_scheduled();
 #else
-  scheduled = configured_scheduled();
+  requested = configured_scheduled();
 #endif
+  native_ready = event_runtime_is_initialized() &&
+                 register_event_type("affected.character.duration", affected_character_event,
+                                     AFFECTED_CHARACTER_MAX_OWNERS,
+                                     &affected_character_event_type) &&
+                 register_event_type("affected.room.duration", affected_room_event,
+                                     AFFECTED_ROOM_MAX_OWNERS, &affected_room_event_type);
+  scheduled = requested && native_ready;
   initialized = true;
   shutting_down = false;
+  if (requested && !native_ready)
+    log("WARNING: native affected-owner event types unavailable; using legacy heartbeat.");
   log("Affected-owner scheduling: %s (character limit %zu, room limit %zu).",
       scheduled ? "scheduled" : "legacy heartbeat", character_limit, room_limit);
   if (!scheduled)
@@ -556,7 +614,7 @@ size_t affected_room_registry_validate(void)
     }
     if (room_nodes != room->affected_count)
       return list_rooms + list_nodes + 1U;
-    if (room->affected_event_handle != EVENT_HANDLE_NONE)
+    if (!event_runtime_handle_is_none(room->affected_event_handle))
       list_scheduled++;
     previous_room = room;
   }
@@ -564,7 +622,7 @@ size_t affected_room_registry_validate(void)
     for (index = 0; index <= top_of_world; index++)
       if (world[index].affected_head != NULL || world[index].affected_registered ||
           world[index].affected_count != 0U ||
-          world[index].affected_event_handle != EVENT_HANDLE_NONE)
+          !event_runtime_handle_is_none(world[index].affected_event_handle))
       {
         world_rooms++;
         world_nodes += world[index].affected_count;
@@ -612,7 +670,7 @@ void affected_owners_reset_for_test(void)
     room->affected_prev = NULL;
     room->affected_count = 0U;
     room->affected_registered = false;
-    room->affected_event_handle = EVENT_HANDLE_NONE;
+    room->affected_event_handle = EVENT_RUNTIME_HANDLE_NONE;
   }
   affected_room_list = NULL;
   room_owner_count = 0U;

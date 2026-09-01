@@ -2,6 +2,29 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native affected-owner events
+
+#### Changed
+
+- Registered `affected.character.duration` and `affected.room.duration` as
+  distinct boot-time native event types on the process runtime.
+- Migrated character-affect expiry and room-affect expiry/behavior directly to
+  native owner handles while preserving six-second and five-second boundaries,
+  lifecycle refill, cancellation during dispatch, and room OLC/reindex state.
+- Made the queue-depth compatibility query report all events on the scheduler,
+  including native types, rather than only compatibility-adapter records.
+- Reduced the frozen compatibility-adapter inventory from 18 schedules across
+  13 files to 16 schedules across 12 files. The legacy timed backend now uses
+  the existing affected-owner heartbeat rollback instead of adapting these
+  producers back through the old queue.
+
+#### Tests
+
+- Extended production-linked affected-owner coverage to seal the registry,
+  inspect both owner records, and verify their semantic type identities.
+- Retained exact expiry cadence, coincident room behavior ordering, capacity
+  refill, cancellation, and OLC/world-reindex coverage; all 1,050 tests pass.
+
 ### Native timed-event runtime foundation
 
 #### Changed
