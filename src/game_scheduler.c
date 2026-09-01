@@ -105,6 +105,7 @@ struct game_scheduler
   size_t owner_count;
   struct game_event_type *event_types;
   size_t event_type_count;
+  bool event_types_sealed;
   size_t event_count;
 
   uint64_t total_scheduled;
@@ -1348,6 +1349,8 @@ enum game_scheduler_status game_scheduler_register_type(struct game_scheduler *s
     return GAME_SCHEDULER_INVALID_ARGUMENT;
   if (scheduler->shutting_down)
     return GAME_SCHEDULER_SHUTTING_DOWN;
+  if (scheduler->event_types_sealed)
+    return GAME_SCHEDULER_REGISTRATION_CLOSED;
   if (config->lateness_policy < GAME_EVENT_LATENESS_RUN_ONCE ||
       config->lateness_policy > GAME_EVENT_LATENESS_CATCH_UP_BOUNDED ||
       (config->lateness_policy == GAME_EVENT_LATENESS_CATCH_UP_BOUNDED &&
@@ -1383,6 +1386,29 @@ enum game_scheduler_status game_scheduler_register_type(struct game_scheduler *s
   scheduler->event_type_count++;
   *event_type = (game_event_type_id_t)scheduler->event_type_count;
   return GAME_SCHEDULER_OK;
+}
+
+enum game_scheduler_status game_scheduler_seal_types(struct game_scheduler *scheduler)
+{
+  if (scheduler == NULL)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  if (scheduler->shutting_down)
+    return GAME_SCHEDULER_SHUTTING_DOWN;
+  scheduler->event_types_sealed = true;
+  return GAME_SCHEDULER_OK;
+}
+
+bool game_scheduler_types_are_sealed(const struct game_scheduler *scheduler)
+{
+  return scheduler != NULL && scheduler->event_types_sealed;
+}
+
+const char *game_scheduler_type_name(const struct game_scheduler *scheduler,
+                                     game_event_type_id_t event_type)
+{
+  if (scheduler == NULL || event_type == 0 || event_type > scheduler->event_type_count)
+    return NULL;
+  return scheduler->event_types[event_type - 1U].name;
 }
 
 static enum game_scheduler_status schedule_normalized(struct game_scheduler *scheduler,

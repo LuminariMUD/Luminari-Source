@@ -7,6 +7,8 @@ generation-aware owner handles, explicit persistence policy, and entity-scoped
 payload lists and queries without exposing scheduler records.
 
 Core source files:
+- [src/event_runtime.h](../../src/event_runtime.h)
+- [src/event_runtime.c](../../src/event_runtime.c)
 - [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
 - [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c)
 - [src/game_scheduler.h](../../src/game_scheduler.h)
@@ -53,7 +55,12 @@ Key entry points (clickable declarations):
 ## 1. Architecture Overview
 
 - The event system is layered:
-  - Compatibility facade and backend selection: [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c) and [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
+  - Process-wide native scheduler ownership and typed scheduling API:
+    [src/event_runtime.c](../../src/event_runtime.c) and
+    [src/event_runtime.h](../../src/event_runtime.h)
+  - Compatibility facade and boot-time backend selection:
+    [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c) and
+    [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
   - Default hierarchical timing-wheel backend: [src/game_scheduler.c](../../src/game_scheduler.c) and [src/game_scheduler.h](../../src/game_scheduler.h)
   - Boot-time rollback backend: the legacy ten-bucket queue retained inside `dg_event.c`
   - Higher-level MUD events with entity-scoped lists and safety/memory semantics: [src/mud_event.c](../../src/mud_event.c) and [src/mud_event.h](../../src/mud_event.h)
@@ -67,6 +74,31 @@ after descriptor input, commands, and output. Named service events own normal
 cadence work. The compatibility heartbeat runs only for explicit runtime-
 service rollback or to advance the legacy timed backend. Gameplay handlers
 remain on the main game thread.
+
+### 1.1 Native timed-event runtime
+
+There is exactly one production `event_runtime` and one timing wheel. It owns
+creation, shutdown, advancement, nearest-deadline inspection, semantic type
+registration, scheduling, cancellation, owner cancellation, rescheduling, and
+diagnostic snapshots. No gameplay module owns or stores the scheduler singleton;
+the lower-level handler context retains only its dispatch-scoped scheduler
+reference for callback-safe cancellation and admission contracts.
+
+Native types register a stable diagnostic name, handler, cleanup policy,
+lateness policy, owner contract, and admission limits during boot. Normal,
+syntax-check, and copyover startup seal that registry after world and runtime-
+service initialization. Scheduling remains available after sealing, while late
+or accidental type registration returns `GAME_SCHEDULER_REGISTRATION_CLOSED`.
+
+`struct event_runtime_handle` contains a process-local event identity that is
+never reused during one runtime generation. Completed or cancelled handles
+therefore cannot resolve to later events. Runtime shutdown invalidates every
+remaining handle and invokes each admitted payload's cleanup exactly once.
+
+The compatibility adapter registers one temporary `legacy_event` type in this
+same runtime. Its retained 18 production schedules therefore coexist on the
+wheel with native types during migration, but the adapter no longer creates,
+owns, advances, inspects, or destroys a scheduler itself.
 
 ## 2. Timed-Event Compatibility Facade
 

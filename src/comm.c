@@ -102,6 +102,7 @@
 #include "magic/spell_prep.h"
 #include "perfmon.h"
 #include "reactor.h"
+#include "event_runtime.h"
 #include "domain_event_runtime.h"
 #include "active_world.h"
 #include "affected_owners.h"
@@ -531,6 +532,13 @@ int main(int argc, char **argv)
     boot_world();
     active_world_end_bootstrap();
     (void)runtime_services_init();
+    if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
+        event_runtime_seal_types() != GAME_SCHEDULER_OK)
+    {
+      log("SYSERR: Unable to seal the timed-event type registry.");
+      event_free_all();
+      return EXIT_FAILURE;
+    }
   }
   else
   {
@@ -780,6 +788,12 @@ static void init_game(ush_int local_port)
 
   boot_db();
   (void)runtime_services_init();
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
+      event_runtime_seal_types() != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: Unable to seal the timed-event type registry.");
+    exit(1);
+  }
 
 #if defined(CIRCLE_UNIX) || defined(CIRCLE_MACINTOSH)
   if (!initialize_io_reactor())

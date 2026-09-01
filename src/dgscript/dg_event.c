@@ -26,7 +26,7 @@
 #include "constants.h"
 #include "comm.h" /* For access to the game pulse */
 #include "dotenv.h"
-#include "game_scheduler.h"
+#include "event_runtime.h"
 #include "perfmon.h"
 #include <limits.h> /* For LONG_MAX used in overflow checks */
 
@@ -45,8 +45,6 @@ _Static_assert(MAX_EVENTS <= EVENT_HANDLE_SLOT_MASK,
 /* file scope variables */
 /** The mud specific queue of events. */
 static struct dg_queue *event_q = NULL;
-/** Timing-wheel backend used through the legacy event facade. */
-static struct game_scheduler *event_scheduler = NULL;
 /** One scheduler type owns all legacy callbacks; PERFMON retains callback identity. */
 static game_event_type_id_t legacy_event_type = 0;
 /** Backend selection is immutable between event_init() and event_free_all(). */
@@ -386,13 +384,13 @@ static int initialize_scheduler_backend(void)
 
   memset(&scheduler_config, 0, sizeof(scheduler_config));
   scheduler_config.max_events = MAX_EVENTS;
-  scheduler_config.max_event_types = 1U;
+  scheduler_config.max_event_types = GAME_SCHEDULER_DEFAULT_MAX_EVENT_TYPES;
   scheduler_config.max_events_per_owner = LEGACY_EVENT_MAX_EVENTS_PER_OWNER;
   scheduler_config.tick_now = legacy_scheduler_tick;
   scheduler_config.monotonic_usec_now = legacy_scheduler_usec;
   scheduler_config.clock_context = NULL;
-  event_scheduler = game_scheduler_create(&scheduler_config, &status);
-  if (event_scheduler == NULL)
+  status = event_runtime_init(&scheduler_config);
+  if (status != GAME_SCHEDULER_OK)
   {
     log("SYSERR: Unable to create timing-wheel event backend (status %d).", status);
     return 0;
@@ -404,12 +402,11 @@ static int initialize_scheduler_backend(void)
   type_config.cleanup = legacy_scheduler_event_cleanup;
   type_config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
   type_config.max_events = MAX_EVENTS;
-  status = game_scheduler_register_type(event_scheduler, &type_config, &legacy_event_type);
+  status = event_runtime_register_type(&type_config, &legacy_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
     log("SYSERR: Unable to register legacy event adapter (status %d).", status);
-    game_scheduler_destroy(event_scheduler);
-    event_scheduler = NULL;
+    event_runtime_shutdown();
     legacy_event_type = 0;
     return 0;
   }
@@ -426,7 +423,8 @@ void event_init(void)
   event_init_calls++;
 #endif
 
-  if (active_backend != EVENT_BACKEND_UNINITIALIZED || event_q != NULL || event_scheduler != NULL)
+  if (active_backend != EVENT_BACKEND_UNINITIALIZED || event_q != NULL ||
+      event_runtime_is_initialized())
   {
     log("SYSERR: event_init called while the event system is already initialized");
     return;
@@ -476,7 +474,7 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
   struct event *new_event = NULL;
   enum game_scheduler_status scheduler_status;
   game_tick_t scheduler_deadline;
-  game_event_id_t scheduler_id;
+  struct event_runtime_handle scheduler_handle;
   long target_time;
 
   /* Safety check: ensure one backend is initialized. */
@@ -527,7 +525,7 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
   new_event->cleanup_on_completion = cleanup_on_completion;
   new_event->handle = EVENT_HANDLE_NONE;
   new_event->profile_index = PERF_register_event_callback(profile_name);
-  new_event->scheduler_id = 0;
+  new_event->scheduler_handle = EVENT_RUNTIME_HANDLE_NONE;
   new_event->backend = active_backend;
   new_event->dispatching = false;
   new_event->cancel_requested = false;
@@ -551,13 +549,13 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
     {
       scheduler_deadline = (game_tick_t)pulse + (game_tick_t)when;
     }
-    scheduler_id = 0;
+    scheduler_handle = EVENT_RUNTIME_HANDLE_NONE;
     if (game_event_owner_is_none(owner))
-      scheduler_status = game_scheduler_schedule_at(event_scheduler, legacy_event_type,
-                                                    scheduler_deadline, new_event, &scheduler_id);
+      scheduler_status = event_runtime_schedule_at(legacy_event_type, scheduler_deadline,
+                                                   new_event, &scheduler_handle);
     else
-      scheduler_status = game_scheduler_schedule_owned_at(
-          event_scheduler, legacy_event_type, owner, scheduler_deadline, new_event, &scheduler_id);
+      scheduler_status = event_runtime_schedule_owned_at(
+          legacy_event_type, owner, scheduler_deadline, new_event, &scheduler_handle);
     if (scheduler_status != GAME_SCHEDULER_OK)
     {
       log("SYSERR: Unable to schedule legacy event '%s' (status %d).",
@@ -566,7 +564,7 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
       free(new_event);
       return NULL;
     }
-    new_event->scheduler_id = scheduler_id;
+    new_event->scheduler_handle = scheduler_handle;
   }
   else
   {
@@ -701,7 +699,7 @@ void event_cancel(struct event *event)
 
     if (event->backend == EVENT_BACKEND_GAME_SCHEDULER)
     {
-      cancel_result = game_scheduler_cancel(event_scheduler, event->scheduler_id);
+      cancel_result = event_runtime_cancel(event->scheduler_handle);
       if (cancel_result == GAME_EVENT_CANCEL_NOT_FOUND)
         log("SYSERR: In-flight legacy event was absent from the timing-wheel scheduler.");
     }
@@ -712,7 +710,7 @@ void event_cancel(struct event *event)
   if (event->backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
     profile_index = event->profile_index;
-    cancel_result = game_scheduler_cancel(event_scheduler, event->scheduler_id);
+    cancel_result = event_runtime_cancel(event->scheduler_handle);
     if (cancel_result == GAME_EVENT_CANCEL_NOT_FOUND)
       log("SYSERR: Attempted to cancel an event absent from the timing-wheel scheduler.");
     else
@@ -766,7 +764,7 @@ size_t event_cancel_owner(struct game_event_owner owner)
   if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
     cancelled = 0U;
-    status = game_scheduler_cancel_owner(event_scheduler, owner, &cancelled);
+    status = event_runtime_cancel_owner(owner, &cancelled);
     if (status != GAME_SCHEDULER_OK)
     {
       log("SYSERR: Unable to cancel events for owner kind %d (status %d).",
@@ -865,7 +863,7 @@ event_process_backend(const struct game_scheduler_budget *budget,
   if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
     memset(&scheduler_report, 0, sizeof(scheduler_report));
-    scheduler_status = game_scheduler_advance(event_scheduler, budget, &scheduler_report);
+    scheduler_status = event_runtime_advance(budget, &scheduler_report);
     queue_depth_after = total_events;
     created_during_process = events_created_during_process;
     processing_events = 0;
@@ -965,7 +963,7 @@ enum game_scheduler_status event_process_scheduler(
   if (report == NULL)
     return GAME_SCHEDULER_INVALID_ARGUMENT;
   memset(report, 0, sizeof(*report));
-  if (active_backend != EVENT_BACKEND_GAME_SCHEDULER || event_scheduler == NULL)
+  if (active_backend != EVENT_BACKEND_GAME_SCHEDULER || !event_runtime_is_initialized())
     return GAME_SCHEDULER_INVALID_ARGUMENT;
   return event_process_backend(budget, report);
 }
@@ -977,9 +975,9 @@ enum game_scheduler_status event_scheduler_next_deadline(game_tick_t *deadline_t
     return GAME_SCHEDULER_INVALID_ARGUMENT;
   *deadline_tick = 0;
   *has_deadline = false;
-  if (active_backend != EVENT_BACKEND_GAME_SCHEDULER || event_scheduler == NULL)
+  if (active_backend != EVENT_BACKEND_GAME_SCHEDULER || !event_runtime_is_initialized())
     return GAME_SCHEDULER_OK;
-  return game_scheduler_next_deadline(event_scheduler, deadline_tick, has_deadline);
+  return event_runtime_next_deadline(deadline_tick, has_deadline);
 }
 
 /** Returns the time remaining before the event as how many pulses from now.
@@ -996,9 +994,9 @@ long event_time(struct event *event)
     return 0;
   if (event->backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
-    if (event_scheduler == NULL || event->scheduler_id == 0)
+    if (!event_runtime_is_initialized() || event->scheduler_handle.id == 0)
       return 0;
-    status = game_scheduler_inspect(event_scheduler, event->scheduler_id, &snapshot);
+    status = event_runtime_inspect(event->scheduler_handle, &snapshot);
     if (status != GAME_SCHEDULER_OK || snapshot.deadline_tick <= (game_tick_t)pulse)
       return 0;
     remaining = snapshot.deadline_tick - (game_tick_t)pulse;
@@ -1050,12 +1048,11 @@ void event_free_all(void)
 
   if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
-    if (event_scheduler != NULL && game_scheduler_destroy(event_scheduler) != GAME_SCHEDULER_OK)
+    if (event_runtime_shutdown() != GAME_SCHEDULER_OK)
     {
       log("SYSERR: Failed to destroy timing-wheel event backend.");
       return;
     }
-    event_scheduler = NULL;
     legacy_event_type = 0;
   }
   else
@@ -1126,7 +1123,8 @@ int event_test_free_all_call_count(void)
 
 int event_test_select_backend(enum event_backend_kind backend)
 {
-  if (active_backend != EVENT_BACKEND_UNINITIALIZED || event_q != NULL || event_scheduler != NULL)
+  if (active_backend != EVENT_BACKEND_UNINITIALIZED || event_q != NULL ||
+      event_runtime_is_initialized())
     return 0;
   if (backend != EVENT_BACKEND_LEGACY_QUEUE && backend != EVENT_BACKEND_GAME_SCHEDULER)
     return 0;
@@ -1173,9 +1171,10 @@ int event_is_queued(struct event *event)
 
   if (event->backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
-    if (event_scheduler == NULL || event->scheduler_id == 0 || event->dispatching)
+    if (!event_runtime_is_initialized() || event->scheduler_handle.id == 0 ||
+        event->dispatching)
       return 0;
-    status = game_scheduler_inspect(event_scheduler, event->scheduler_id, &snapshot);
+    status = event_runtime_inspect(event->scheduler_handle, &snapshot);
     if (status != GAME_SCHEDULER_OK)
       return 0;
     return snapshot.state == GAME_EVENT_STATE_QUEUED || snapshot.state == GAME_EVENT_STATE_READY;
@@ -1599,8 +1598,9 @@ static void event_debug_snapshot_one(const struct event *event,
     snapshot->state = EVENT_DEBUG_CANCEL_PENDING;
   else if (event->dispatching)
     snapshot->state = EVENT_DEBUG_RUNNING;
-  else if (event->backend == EVENT_BACKEND_GAME_SCHEDULER && event_scheduler != NULL &&
-           game_scheduler_inspect(event_scheduler, event->scheduler_id, &scheduler_snapshot) ==
+  else if (event->backend == EVENT_BACKEND_GAME_SCHEDULER &&
+           event_runtime_is_initialized() &&
+           event_runtime_inspect(event->scheduler_handle, &scheduler_snapshot) ==
                GAME_SCHEDULER_OK)
     snapshot->state = scheduler_debug_state(scheduler_snapshot.state);
   else
@@ -1727,9 +1727,9 @@ void event_debug_get_stats(struct event_debug_stats *stats)
       counted != (size_t)MAX(total_events, 0))
     mismatches++;
   stats->registry_mismatches = mismatches;
-  if (active_backend == EVENT_BACKEND_GAME_SCHEDULER && event_scheduler != NULL)
+  if (active_backend == EVENT_BACKEND_GAME_SCHEDULER && event_runtime_is_initialized())
   {
-    game_scheduler_get_stats(event_scheduler, &stats->scheduler);
+    event_runtime_get_stats(&stats->scheduler);
     stats->scheduler_stats_available = true;
   }
 }

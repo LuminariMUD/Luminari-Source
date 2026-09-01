@@ -3,6 +3,7 @@
 
 /* Private compatibility and rollback surface. Gameplay code uses dg_event.h. */
 #include "dg_event.h"
+#include "event_runtime.h"
 
 #define NUM_EVENT_QUEUES 10
 #define MAX_EVENTS 262144
@@ -21,7 +22,7 @@ struct event
   bool cleanup_on_completion;
   event_handle_t handle;
   int profile_index;
-  uint64_t scheduler_id;
+  struct event_runtime_handle scheduler_handle;
   enum event_backend_kind backend;
   bool dispatching;
   bool cancel_requested;

@@ -2129,6 +2129,13 @@ Readiness audit, 2026-08-31:
   Source counts remain unchanged, all three admission/retirement/architecture
   contracts pass, Build & Test and Security are green for the exact source,
   and no containing release, production deployment, or removal approval exists.
+- The native-runtime correction moved the one production timing wheel out of
+  the compatibility facade, added boot-sealed semantic type registration and
+  opaque non-reused native handles, and routed the adapter/reactor boundary
+  through that owner. Two native types and the temporary adapter are proven to
+  share the wheel. The frozen 18-call compatibility inventory remains the
+  explicit migration backlog. Evidence is recorded in
+  [`EVENT_DRIVEN_CORE_NATIVE_RUNTIME_FOUNDATION.md`](EVENT_DRIVEN_CORE_NATIVE_RUNTIME_FOUNDATION.md).
 
 ## 24. Verification Strategy
 

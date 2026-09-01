@@ -2,6 +2,28 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native timed-event runtime foundation
+
+#### Changed
+
+- Moved ownership of the production timing wheel out of the DG compatibility
+  facade and into one process-wide `event_runtime` used by the reactor,
+  compatibility adapter, and future native gameplay event types.
+- Added boot-only semantic type registration, immutable registry sealing,
+  stable type-name inspection, and opaque non-reused native event handles.
+- Sealed the timed-event registry after world and runtime-service bootstrap in
+  normal, syntax-check, and copyover startup paths.
+
+#### Tests
+
+- Added production-linked coverage proving two semantic native event types and
+  the compatibility adapter share one wheel, preserve deadline/FIFO behavior,
+  recur correctly, cancel by generation-aware owner, reject late type
+  registration, invalidate stale handles, and clean payloads exactly once.
+- Retained the frozen inventory of 18 compatibility schedules across 13
+  production files; those callers are the next migration work, not part of
+  this ownership-only tranche.
+
 ### Gameplay event intent naming
 
 #### Changed

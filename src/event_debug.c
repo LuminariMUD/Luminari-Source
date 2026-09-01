@@ -8,6 +8,7 @@
 #include "domain_event_runtime.h"
 #include "domain_events.h"
 #include "event_debug.h"
+#include "event_runtime.h"
 #include "combat/combat_encounters.h"
 #include "active_world.h"
 #include "activity_manager.h"
@@ -218,6 +219,9 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   {
     debug_output_line(&output, "");
     debug_output_line(&output, "Scheduler queues");
+    debug_output_line(&output, "  types: %zu (%s)",
+                      event_stats.scheduler.registered_type_count,
+                      event_runtime_types_are_sealed() ? "sealed" : "open");
     debug_output_line(&output, "  ready: %zu", event_stats.scheduler.ready_count);
     debug_output_line(&output, "  oldest overdue: %" PRIu64 " pulses",
                       event_stats.scheduler.oldest_overdue_ticks);
