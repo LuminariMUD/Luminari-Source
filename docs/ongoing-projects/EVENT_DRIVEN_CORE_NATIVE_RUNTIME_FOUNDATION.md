@@ -68,6 +68,10 @@ gameplay/service semantic types now schedule directly on the native runtime.
 The subsequent DG-wait slice raises that total to 39 with native
 `dg.trigger.wait`; one localized adapter remains solely for physical legacy
 rollback, so the frozen compatibility-call count does not change in that slice.
+The native MUD-event slice adds all 232 usable table-driven IDs, bringing the
+normal runtime to 271 gameplay/service semantic types. Their single localized
+adapter also remains solely for physical legacy rollback, so the frozen call
+count again does not change.
 
 Remaining callbacks continue to migrate in behavior-preserving groups. Each
 must retain its cadence, owner lifecycle, cleanup, and recurrence policy while

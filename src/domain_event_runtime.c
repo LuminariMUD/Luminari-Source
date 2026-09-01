@@ -9,6 +9,7 @@
 #include "domain_event_world.h"
 #include "dgscript/dg_event.h"
 #include "dgscript/dg_scripts.h"
+#include "mud_event.h"
 #include "periodic_owners.h"
 #include "point_update_periodic.h"
 #include "vessels/vessel_periodic.h"
@@ -27,11 +28,15 @@ enum domain_event_status domain_event_runtime_init(void)
     return status;
   periodic_owners_init();
   (void)dg_wait_runtime_init();
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
+      !mud_event_runtime_init())
+    status = DOMAIN_EVENT_ALLOCATION_FAILED;
   affected_owners_init();
   character_periodic_init();
   point_update_periodic_init();
   vessel_periodic_init();
-  status = domain_event_register_foundation_types(runtime_bus);
+  if (status == DOMAIN_EVENT_OK)
+    status = domain_event_register_foundation_types(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
     status = domain_event_world_register_resolvers(runtime_bus);
   if (status == DOMAIN_EVENT_OK)

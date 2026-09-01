@@ -3660,331 +3660,331 @@ bool save_char_checked(struct char_data *ch, int mode)
     /* Order:  Event-ID   Duration */
     /* eSTRUGGLE - don't need to save this */
     if ((pMudEvent = char_has_mud_event(ch, eINVISIBLE_ROGUE)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_INVISIBLE_ROGUE) -
                        daily_uses_remaining(ch, FEAT_INVISIBLE_ROGUE));
     if ((pMudEvent = char_has_mud_event(ch, eVANISHED)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_VANISH) - daily_uses_remaining(ch, FEAT_VANISH));
     if ((pMudEvent = char_has_mud_event(ch, eVANISH)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_VANISH) - daily_uses_remaining(ch, FEAT_VANISH));
     if ((pMudEvent = char_has_mud_event(ch, eTAUNT)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eTAUNTED)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eINTIMIDATED)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eINTIMIDATE_COOLDOWN)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eRAGE)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_RAGE) - daily_uses_remaining(ch, FEAT_RAGE));
     if ((pMudEvent = char_has_mud_event(ch, eSACRED_FLAMES)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SACRED_FLAMES) -
                        daily_uses_remaining(ch, FEAT_SACRED_FLAMES));
     if ((pMudEvent = char_has_mud_event(ch, eINNER_FIRE)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_INNER_FIRE) - daily_uses_remaining(ch, FEAT_INNER_FIRE));
     if ((pMudEvent = char_has_mud_event(ch, eMUTAGEN)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_MUTAGEN) - daily_uses_remaining(ch, FEAT_MUTAGEN));
     if ((pMudEvent = char_has_mud_event(ch, eCRIPPLING_CRITICAL)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_CRIPPLING_CRITICAL) -
                        daily_uses_remaining(ch, FEAT_CRIPPLING_CRITICAL));
     if ((pMudEvent = char_has_mud_event(ch, eDEFENSIVE_STANCE)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_DEFENSIVE_STANCE) -
                        daily_uses_remaining(ch, FEAT_DEFENSIVE_STANCE));
     if ((pMudEvent = char_has_mud_event(ch, eINSECTBEING)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_INSECTBEING) -
                        daily_uses_remaining(ch, FEAT_INSECTBEING));
     if ((pMudEvent = char_has_mud_event(ch, eCRYSTALFIST)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_CRYSTAL_FIST) -
                        daily_uses_remaining(ch, FEAT_CRYSTAL_FIST));
     if ((pMudEvent = char_has_mud_event(ch, eCRYSTALBODY)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_CRYSTAL_BODY) -
                        daily_uses_remaining(ch, FEAT_CRYSTAL_BODY));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_STRENGTH)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SLA_STRENGTH) -
                        daily_uses_remaining(ch, FEAT_SLA_STRENGTH));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_ENLARGE)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SLA_ENLARGE) -
                        daily_uses_remaining(ch, FEAT_SLA_ENLARGE));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_INVIS)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SLA_INVIS) - daily_uses_remaining(ch, FEAT_SLA_INVIS));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_LEVITATE)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SLA_LEVITATE) -
                        daily_uses_remaining(ch, FEAT_SLA_LEVITATE));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_DARKNESS)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SLA_DARKNESS) -
                        daily_uses_remaining(ch, FEAT_SLA_DARKNESS));
     if ((pMudEvent = char_has_mud_event(ch, eSLA_FAERIE_FIRE)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SLA_FAERIE_FIRE) -
                        daily_uses_remaining(ch, FEAT_SLA_FAERIE_FIRE));
     if ((pMudEvent = char_has_mud_event(ch, eAASIMAR_HEALING_HANDS)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_AASIMAR_HEALING_HANDS) -
                        daily_uses_remaining(ch, FEAT_AASIMAR_HEALING_HANDS));
     if ((pMudEvent = char_has_mud_event(ch, eAASIMAR_LIGHT_BEARER)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_AASIMAR_LIGHT_BEARER) -
                        daily_uses_remaining(ch, FEAT_AASIMAR_LIGHT_BEARER));
     if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_LAYHANDS) - daily_uses_remaining(ch, FEAT_LAYHANDS));
     if ((pMudEvent = char_has_mud_event(ch, eTOUCHOFCORRUPTION)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_TOUCH_OF_CORRUPTION) -
                        daily_uses_remaining(ch, FEAT_TOUCH_OF_CORRUPTION));
     if ((pMudEvent = char_has_mud_event(ch, eJUDGEMENT)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_JUDGEMENT) - daily_uses_remaining(ch, FEAT_JUDGEMENT));
     if ((pMudEvent = char_has_mud_event(ch, eTRUEJUDGEMENT)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_TRUE_JUDGEMENT) -
                        daily_uses_remaining(ch, FEAT_TRUE_JUDGEMENT));
     if ((pMudEvent = char_has_mud_event(ch, eCHILDRENOFTHENIGHT)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT) -
                        daily_uses_remaining(ch, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT));
     if ((pMudEvent = char_has_mud_event(ch, eVAMPIREENERGYDRAIN)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_VAMPIRE_ENERGY_DRAIN) -
                        daily_uses_remaining(ch, FEAT_VAMPIRE_ENERGY_DRAIN));
     if ((pMudEvent = char_has_mud_event(ch, eVAMPIREBLOODDRAIN)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_VAMPIRE_BLOOD_DRAIN) -
                        daily_uses_remaining(ch, FEAT_VAMPIRE_BLOOD_DRAIN));
     if ((pMudEvent = char_has_mud_event(ch, eBANE)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_BANE) - daily_uses_remaining(ch, FEAT_BANE));
     if ((pMudEvent = char_has_mud_event(ch, eMASTERMIND)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_MASTER_OF_THE_MIND) -
                        daily_uses_remaining(ch, FEAT_MASTER_OF_THE_MIND));
     if ((pMudEvent = char_has_mud_event(ch, eDANCINGWEAPON)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eSPIRITUALWEAPON)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eCHANNELENERGY)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_CHANNEL_ENERGY) -
                        daily_uses_remaining(ch, FEAT_CHANNEL_ENERGY));
     if ((pMudEvent = char_has_mud_event(ch, eEMPTYBODY)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_EMPTY_BODY) - daily_uses_remaining(ch, FEAT_EMPTY_BODY));
     if ((pMudEvent = char_has_mud_event(ch, eWHOLENESSOFBODY)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_WHOLENESS_OF_BODY) -
                        daily_uses_remaining(ch, FEAT_WHOLENESS_OF_BODY));
     if ((pMudEvent = char_has_mud_event(ch, eRENEWEDDEFENSE)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_RENEWED_DEFENSE) -
                        daily_uses_remaining(ch, FEAT_RENEWED_DEFENSE));
     if ((pMudEvent = char_has_mud_event(ch, eRENEWEDVIGOR)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_RP_RENEWED_VIGOR) -
                        daily_uses_remaining(ch, FEAT_RP_RENEWED_VIGOR));
     if ((pMudEvent = char_has_mud_event(ch, eTREATINJURY)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eMUMMYDUST)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eDRAGONKNIGHT)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eGREATERRUIN)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eHELLBALL)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eEPICMAGEARMOR)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eEPICWARDING)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eDEATHARROW)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eQUIVERINGPALM)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eANIMATEDEAD)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_ANIMATE_DEAD) -
                        daily_uses_remaining(ch, FEAT_ANIMATE_DEAD));
     if ((pMudEvent = char_has_mud_event(ch, eSTUNNINGFIST)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_STUNNING_FIST) -
                        daily_uses_remaining(ch, FEAT_STUNNING_FIST));
     if ((pMudEvent = char_has_mud_event(ch, eSURPRISE_ACCURACY)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_RP_SURPRISE_ACCURACY) -
                        daily_uses_remaining(ch, FEAT_RP_SURPRISE_ACCURACY));
     if ((pMudEvent = char_has_mud_event(ch, eCOME_AND_GET_ME)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_RP_COME_AND_GET_ME) -
                        daily_uses_remaining(ch, FEAT_RP_COME_AND_GET_ME));
     if ((pMudEvent = char_has_mud_event(ch, ePOWERFUL_BLOW)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_RP_POWERFUL_BLOW) -
                        daily_uses_remaining(ch, FEAT_RP_POWERFUL_BLOW));
     if ((pMudEvent = char_has_mud_event(ch, eD_ROLL)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_DEFENSIVE_ROLL) -
                        daily_uses_remaining(ch, FEAT_DEFENSIVE_ROLL));
     if ((pMudEvent = char_has_mud_event(ch, eLAST_WORD)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_LAST_WORD) - daily_uses_remaining(ch, FEAT_LAST_WORD));
     if ((pMudEvent = char_has_mud_event(ch, ePURIFY)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_REMOVE_DISEASE) -
                        daily_uses_remaining(ch, FEAT_REMOVE_DISEASE));
     if ((pMudEvent = char_has_mud_event(ch, eC_ANIMAL)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_ANIMAL_COMPANION) -
                        daily_uses_remaining(ch, FEAT_ANIMAL_COMPANION));
     if ((pMudEvent = char_has_mud_event(ch, eC_DRAGONMOUNT)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_DRAGON_BOND) -
                        daily_uses_remaining(ch, FEAT_DRAGON_BOND));
     if ((pMudEvent = char_has_mud_event(ch, eC_EIDOLON)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_EIDOLON) - daily_uses_remaining(ch, FEAT_EIDOLON));
     if ((pMudEvent = char_has_mud_event(ch, eC_FAMILIAR)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SUMMON_FAMILIAR) -
                        daily_uses_remaining(ch, FEAT_SUMMON_FAMILIAR));
     if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_CALL_MOUNT) - daily_uses_remaining(ch, FEAT_CALL_MOUNT));
     if ((pMudEvent = char_has_mud_event(ch, eSUMMONSHADOW)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SUMMON_SHADOW) -
                        daily_uses_remaining(ch, FEAT_SUMMON_SHADOW));
     if ((pMudEvent = char_has_mud_event(ch, eTURN_UNDEAD)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_TURN_UNDEAD) -
                        daily_uses_remaining(ch, FEAT_TURN_UNDEAD));
     if ((pMudEvent = char_has_mud_event(ch, eSPELLBATTLE)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     // if ((pMudEvent = char_has_mud_event(ch, eQUEST_COMPLETE)))
-    //   BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+    //   BUFFER_WRITE( "%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eDRACBREATH)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON) -
                        daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_BREATHWEAPON));
     if ((pMudEvent = char_has_mud_event(ch, eDRACCLAWS)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_DRACONIC_HERITAGE_CLAWS) -
                        daily_uses_remaining(ch, FEAT_DRACONIC_HERITAGE_CLAWS));
     if ((pMudEvent = char_has_mud_event(ch, eDRAGBREATH)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_DRAGONBORN_BREATH) -
                        daily_uses_remaining(ch, FEAT_DRAGONBORN_BREATH));
     if ((pMudEvent = char_has_mud_event(ch, eCATSCLAWS)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_TABAXI_CATS_CLAWS) -
                        daily_uses_remaining(ch, FEAT_TABAXI_CATS_CLAWS));
     if ((pMudEvent = char_has_mud_event(ch, eARCANEADEPT)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_METAMAGIC_ADEPT) -
                        daily_uses_remaining(ch, FEAT_METAMAGIC_ADEPT));
     if ((pMudEvent = char_has_mud_event(ch, eCHANNELSPELL)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_CHANNEL_SPELL) -
                        daily_uses_remaining(ch, FEAT_CHANNEL_SPELL));
     if ((pMudEvent = char_has_mud_event(ch, ePSIONICFOCUS)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_PSIONIC_FOCUS) -
                        daily_uses_remaining(ch, FEAT_PSIONIC_FOCUS));
     if ((pMudEvent = char_has_mud_event(ch, eDOUBLEMANIFEST)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_DOUBLE_MANIFEST) -
                        daily_uses_remaining(ch, FEAT_DOUBLE_MANIFEST));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWCALL)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SHADOW_CALL) -
                        daily_uses_remaining(ch, FEAT_SHADOW_CALL));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWJUMP)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SHADOW_JUMP) -
                        daily_uses_remaining(ch, FEAT_SHADOW_JUMP));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWILLUSION)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SHADOW_ILLUSION) -
                        daily_uses_remaining(ch, FEAT_SHADOW_ILLUSION));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWPOWER)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SHADOW_POWER) -
                        daily_uses_remaining(ch, FEAT_SHADOW_POWER));
     if ((pMudEvent = char_has_mud_event(ch, eEVOBREATH)))
-      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle));
+      BUFFER_WRITE("%d %ld\n", pMudEvent->iId, mud_event_remaining(pMudEvent));
     if ((pMudEvent = char_has_mud_event(ch, eTOUCHOFUNDEATH)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_TOUCH_OF_UNDEATH) -
                        daily_uses_remaining(ch, FEAT_TOUCH_OF_UNDEATH));
     if ((pMudEvent = char_has_mud_event(ch, eSTRENGTHOFHONOR)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_STRENGTH_OF_HONOR) -
                        daily_uses_remaining(ch, FEAT_STRENGTH_OF_HONOR));
     if ((pMudEvent = char_has_mud_event(ch, eCROWNOFKNIGHTHOOD)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_CROWN_OF_KNIGHTHOOD) -
                        daily_uses_remaining(ch, FEAT_CROWN_OF_KNIGHTHOOD));
     if ((pMudEvent = char_has_mud_event(ch, eSOULOFKNIGHTHOOD)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SOUL_OF_KNIGHTHOOD) -
                        daily_uses_remaining(ch, FEAT_SOUL_OF_KNIGHTHOOD));
     if ((pMudEvent = char_has_mud_event(ch, eINSPIRECOURAGE)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_INSPIRE_COURAGE) -
                        daily_uses_remaining(ch, FEAT_INSPIRE_COURAGE));
     if ((pMudEvent = char_has_mud_event(ch, eWISDOMOFTHEMEASURE)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_WISDOM_OF_THE_MEASURE) -
                        daily_uses_remaining(ch, FEAT_WISDOM_OF_THE_MEASURE));
     if ((pMudEvent = char_has_mud_event(ch, eFINALSTAND)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_FINAL_STAND) -
                        daily_uses_remaining(ch, FEAT_FINAL_STAND));
     if ((pMudEvent = char_has_mud_event(ch, eKNIGHTHOODSFLOWER)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_KNIGHTHOODS_FLOWER) -
                        daily_uses_remaining(ch, FEAT_KNIGHTHOODS_FLOWER));
     if ((pMudEvent = char_has_mud_event(ch, eRALLYINGCRY)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_RALLYING_CRY) -
                        daily_uses_remaining(ch, FEAT_RALLYING_CRY));
     if ((pMudEvent = char_has_mud_event(ch, eCOSMICUNDERSTANDING)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_COSMIC_UNDERSTANDING) -
                        daily_uses_remaining(ch, FEAT_COSMIC_UNDERSTANDING));
     if ((pMudEvent = char_has_mud_event(ch, eDRAGOONPOINTS)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_DRAGOON_POINTS) -
                        daily_uses_remaining(ch, FEAT_DRAGOON_POINTS));
     if ((pMudEvent = char_has_mud_event(ch, eROL_CALM)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_CALM) - daily_uses_remaining(ch, FEAT_CALM));
     if ((pMudEvent = char_has_mud_event(ch, eC_DRAGONMOUNT)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_DRAGON_BOND) -
                        daily_uses_remaining(ch, FEAT_DRAGON_BOND));
     if ((pMudEvent = char_has_mud_event(ch, eSMITE_EVIL)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SMITE_EVIL) - daily_uses_remaining(ch, FEAT_SMITE_EVIL));
     if ((pMudEvent = char_has_mud_event(ch, eSMITE_GOOD)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_SMITE_GOOD) - daily_uses_remaining(ch, FEAT_SMITE_GOOD));
     if ((pMudEvent = char_has_mud_event(ch, eSMITE_DESTRUCTION)))
-      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_handle_time(pMudEvent->event_handle),
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, mud_event_remaining(pMudEvent),
                    get_daily_uses(ch, FEAT_DESTRUCTIVE_SMITE) -
                        daily_uses_remaining(ch, FEAT_DESTRUCTIVE_SMITE));
 

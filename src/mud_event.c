@@ -44,6 +44,7 @@
 #include "utils.h"
 #include "db.h"
 #include "dgscript/dg_event.h"
+#include "event_runtime.h"
 #include "constants.h"
 #include "comm.h" /* For access to the game pulse */
 #include "lists.h"
@@ -61,6 +62,7 @@ static uint64_t next_event_owner_generation = 1U;
 static uint64_t world_event_owner_generation = 0;
 static struct mud_event_persistence_policy persistence_policies[eMUD_EVENT_COUNT];
 static bool persistence_policies_initialized = false;
+static game_event_type_id_t mud_event_type_ids[eMUD_EVENT_COUNT];
 #ifdef LUMINARI_CUTEST
 static int mud_event_cleanup_count = 0;
 #endif
@@ -68,7 +70,12 @@ static int mud_event_cleanup_count = 0;
 /* The mud_event_index[] is defined in mud_event_list.c */
 extern struct mud_event_list mud_event_index[];
 
-static void cleanup_mud_event(event_handle_t handle, void *event_obj);
+#define MUD_EVENT_SEMANTIC_NAME_SIZE 96U
+
+static struct game_event_result mud_event_dispatch(
+    const struct game_event_context *context);
+static void cleanup_mud_event_native(void *event_obj);
+static void cleanup_mud_event_rollback(event_handle_t handle, void *event_obj);
 
 static int64_t daily_use_cooldown_ticks(struct char_data *ch, event_id event_type)
 {
@@ -312,14 +319,14 @@ bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *
   policy = mud_event_persistence_policy(pMudEvent->iId);
   if (policy == NULL || policy->storage_class != MUD_EVENT_PERSISTED ||
       mud_event_index[pMudEvent->iId].iEvent_Type != EVENT_CHAR || pMudEvent->pStruct != ch ||
-      pMudEvent->event_handle == EVENT_HANDLE_NONE ||
+      !mud_event_is_live(pMudEvent) ||
       pMudEvent->owner.kind != GAME_EVENT_OWNER_CHARACTER ||
       pMudEvent->owner.runtime_id != (uint64_t)(uintptr_t)ch ||
       pMudEvent->owner.generation == 0 ||
       pMudEvent->owner.generation != ch->event_owner_generation || GET_IDNUM(ch) <= 0)
     return false;
 
-  remaining_ticks = event_handle_time(pMudEvent->event_handle);
+  remaining_ticks = mud_event_remaining(pMudEvent);
   if (remaining_ticks <= 0)
     return false;
 
@@ -444,6 +451,87 @@ mud_event_restore_character_record(struct char_data *ch,
   return MUD_EVENT_RESTORE_OK;
 }
 
+static void mud_event_semantic_name(event_id id, char *name, size_t capacity)
+{
+  const char *source;
+  size_t length;
+  bool separator;
+
+  if (name == NULL || capacity == 0U)
+    return;
+  length = (size_t)snprintf(name, capacity, "mud.%03u.", (unsigned int)id);
+  if (length >= capacity)
+  {
+    name[capacity - 1U] = '\0';
+    return;
+  }
+  source = mud_event_index[id].event_name;
+  separator = false;
+  while (source != NULL && *source != '\0' && length + 1U < capacity)
+  {
+    unsigned char c = (unsigned char)*source++;
+
+    if (isalnum(c))
+    {
+      name[length++] = (char)tolower(c);
+      separator = false;
+    }
+    else if (!separator && length > 0U)
+    {
+      name[length++] = '_';
+      separator = true;
+    }
+  }
+  if (length > 0U && name[length - 1U] == '_')
+    length--;
+  name[length] = '\0';
+}
+
+bool mud_event_runtime_init(void)
+{
+  struct game_event_type_config config;
+  enum game_scheduler_status status;
+  char expected[MUD_EVENT_SEMANTIC_NAME_SIZE];
+  event_id id;
+
+  if (!event_runtime_is_initialized())
+    return false;
+  mud_event_semantic_name(ePROTOCOLS, expected, sizeof(expected));
+  if (mud_event_type_ids[ePROTOCOLS] != 0U &&
+      event_runtime_type_name(mud_event_type_ids[ePROTOCOLS]) != NULL &&
+      !strcmp(event_runtime_type_name(mud_event_type_ids[ePROTOCOLS]), expected))
+  {
+    mud_event_semantic_name((event_id)(eMUD_EVENT_COUNT - 1), expected,
+                            sizeof(expected));
+    return mud_event_type_ids[eMUD_EVENT_COUNT - 1] != 0U &&
+           event_runtime_type_name(mud_event_type_ids[eMUD_EVENT_COUNT - 1]) != NULL &&
+           !strcmp(event_runtime_type_name(mud_event_type_ids[eMUD_EVENT_COUNT - 1]),
+                   expected);
+  }
+  if (event_runtime_types_are_sealed())
+    return false;
+
+  memset(mud_event_type_ids, 0, sizeof(mud_event_type_ids));
+  memset(&config, 0, sizeof(config));
+  config.handler = mud_event_dispatch;
+  config.cleanup = cleanup_mud_event_native;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.requires_owner = true;
+  for (id = ePROTOCOLS; id < eMUD_EVENT_COUNT; id++)
+  {
+    mud_event_semantic_name(id, expected, sizeof(expected));
+    config.name = expected;
+    status = event_runtime_register_type(&config, &mud_event_type_ids[id]);
+    if (status != GAME_SCHEDULER_OK)
+    {
+      log("SYSERR: unable to register native MUD event type %d '%s' (status %d).",
+          id, expected, status);
+      return false;
+    }
+  }
+  return true;
+}
+
 /* init_events() is the ideal function for starting global events. This
  * might be the case if you were to move the contents of heartbeat() into
  * the event system */
@@ -454,6 +542,10 @@ void init_events(void)
   size_t i;
 
   initialize_mud_event_persistence_policies();
+
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
+      !mud_event_runtime_init())
+    log("SYSERR: Native MUD event types are unavailable during init_events().");
 
   /* Validate registry size vs enum last value to catch drift */
   {
@@ -824,6 +916,41 @@ static struct game_event_owner make_mud_event_owner(enum game_event_owner_kind k
   return owner;
 }
 
+bool mud_event_is_live(const struct mud_event_data *pMudEvent)
+{
+  if (pMudEvent == NULL)
+    return false;
+  if (!event_runtime_handle_is_none(pMudEvent->runtime_handle))
+    return event_runtime_handle_is_live(pMudEvent->runtime_handle);
+  return event_handle_is_live(pMudEvent->rollback_handle);
+}
+
+long mud_event_remaining(const struct mud_event_data *pMudEvent)
+{
+  game_tick_t remaining;
+
+  if (pMudEvent == NULL)
+    return 0;
+  if (!event_runtime_handle_is_none(pMudEvent->runtime_handle))
+  {
+    if (event_runtime_remaining(pMudEvent->runtime_handle, &remaining) !=
+        GAME_SCHEDULER_OK)
+      return 0;
+    return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
+  }
+  return event_handle_time(pMudEvent->rollback_handle);
+}
+
+void mud_event_cancel(struct mud_event_data *pMudEvent)
+{
+  if (pMudEvent == NULL)
+    return;
+  if (!event_runtime_handle_is_none(pMudEvent->runtime_handle))
+    (void)event_runtime_cancel(pMudEvent->runtime_handle);
+  else if (pMudEvent->rollback_handle != EVENT_HANDLE_NONE)
+    (void)event_handle_cancel(pMudEvent->rollback_handle);
+}
+
 void attach_mud_event(struct mud_event_data *pMudEvent, long time)
 {
   struct descriptor_data *d = NULL;
@@ -831,7 +958,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
   struct room_data *room = NULL;
   struct region_data *region = NULL;
   struct obj_data *obj = NULL;
-  event_handle_t event_handle;
+  enum game_scheduler_status status;
   room_vnum *rvnum = NULL;
   region_vnum *regvnum = NULL;
 
@@ -935,12 +1062,27 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
 
   if (!game_event_owner_is_valid(pMudEvent->owner))
     goto admission_failed;
-  event_handle = event_schedule_owned_named_with_terminal_cleanup(
-      mud_event_index[pMudEvent->iId].func, pMudEvent, time,
-      mud_event_index[pMudEvent->iId].event_name, cleanup_mud_event, pMudEvent->owner);
-  if (event_handle == EVENT_HANDLE_NONE)
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    if (!mud_event_runtime_init())
+      status = GAME_SCHEDULER_REGISTRATION_CLOSED;
+    else
+      status = event_runtime_schedule_owned_after(
+          mud_event_type_ids[pMudEvent->iId], pMudEvent->owner,
+          (game_tick_t)MAX(time, 1L), pMudEvent, &pMudEvent->runtime_handle);
+    if (status != GAME_SCHEDULER_OK)
+      pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
+  }
+  else
+  {
+    pMudEvent->rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
+        mud_event_index[pMudEvent->iId].func, pMudEvent, time,
+        mud_event_index[pMudEvent->iId].event_name, cleanup_mud_event_rollback,
+        pMudEvent->owner);
+  }
+  if (event_runtime_handle_is_none(pMudEvent->runtime_handle) &&
+      pMudEvent->rollback_handle == EVENT_HANDLE_NONE)
     goto admission_failed;
-  pMudEvent->event_handle = event_handle;
 
   switch (event_type)
   {
@@ -991,11 +1133,12 @@ struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sV
    *   NOTE: For ROOM/REGION events, attach_mud_event() will create
    *   its own copy of this data to prevent memory leaks
    * - sVariables: Our copy of any event-specific data
-   * - event_handle: Will be set when the event is attached */
+   * - runtime/rollback handles: Set by the selected timed backend on attach. */
   pMudEvent->iId = iId;
   pMudEvent->pStruct = pStruct;
   pMudEvent->sVariables = varString;
-  pMudEvent->event_handle = EVENT_HANDLE_NONE;
+  pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
+  pMudEvent->rollback_handle = EVENT_HANDLE_NONE;
   pMudEvent->owner = game_event_owner_none();
   pMudEvent->owner_detached = false;
 
@@ -1082,7 +1225,26 @@ void mud_event_detach_owner(struct mud_event_data *pMudEvent)
   }
 }
 
-static void cleanup_mud_event(event_handle_t handle, void *event_obj)
+static struct game_event_result mud_event_dispatch(
+    const struct game_event_context *context)
+{
+  struct mud_event_data *pMudEvent;
+  long next_delay;
+
+  pMudEvent = context != NULL ? context->payload : NULL;
+  if (pMudEvent == NULL || pMudEvent->iId <= eNULL ||
+      pMudEvent->iId >= eMUD_EVENT_COUNT ||
+      pMudEvent->runtime_handle.id != context->event_id ||
+      mud_event_index[pMudEvent->iId].func == NULL)
+    return game_event_result_complete();
+
+  next_delay = mud_event_index[pMudEvent->iId].func(pMudEvent);
+  if (next_delay <= 0)
+    return game_event_result_complete();
+  return game_event_result_reschedule_after((game_tick_t)next_delay);
+}
+
+static void cleanup_mud_event_payload(void *event_obj)
 {
   struct mud_event_data *pMudEvent = event_obj;
   int event_type;
@@ -1094,14 +1256,25 @@ static void cleanup_mud_event(event_handle_t handle, void *event_obj)
 #endif
 
   event_type = mud_event_index[pMudEvent->iId].iEvent_Type;
-  pMudEvent->event_handle = EVENT_HANDLE_NONE;
+  pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
+  pMudEvent->rollback_handle = EVENT_HANDLE_NONE;
   mud_event_detach_owner(pMudEvent);
   if ((event_type == EVENT_ROOM || event_type == EVENT_REGION) && pMudEvent->pStruct != NULL)
     free(pMudEvent->pStruct);
 
   free(pMudEvent->sVariables);
   free(pMudEvent);
+}
+
+static void cleanup_mud_event_native(void *event_obj)
+{
+  cleanup_mud_event_payload(event_obj);
+}
+
+static void cleanup_mud_event_rollback(event_handle_t handle, void *event_obj)
+{
   (void)handle;
+  cleanup_mud_event_payload(event_obj);
 }
 
 #ifdef LUMINARI_CUTEST
@@ -1311,8 +1484,8 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
   {
     /* act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM); */
     /* send_to_char(ch, "Event found: %d.\r\n", iId); */
-    if (event_handle_is_queued(pMudEvent->event_handle))
-      (void)event_handle_cancel(pMudEvent->event_handle);
+    if (mud_event_is_live(pMudEvent))
+      mud_event_cancel(pMudEvent);
   }
   else
   {
@@ -1350,7 +1523,7 @@ static void clear_owned_event_list(struct list_data **owner_events, uint64_t *ge
   {
     mud_event = pending->pFirstItem->pContent;
     remove_from_list(mud_event, pending);
-    (void)event_handle_cancel(mud_event->event_handle);
+    mud_event_cancel(mud_event);
   }
   free_list(pending);
 }
@@ -1419,8 +1592,8 @@ void change_event_duration(struct char_data *ch, event_id iId, long time)
     pNewMudEvent = new_mud_event(iId, ch, sVarCopy);
 
     /* Cancel the old event */
-    if (event_handle_is_queued(pMudEvent->event_handle))
-      (void)event_handle_cancel(pMudEvent->event_handle);
+    if (mud_event_is_live(pMudEvent))
+      mud_event_cancel(pMudEvent);
 
     /* Now attach the new event */
     attach_mud_event(pNewMudEvent, time);
@@ -1448,7 +1621,7 @@ void change_event_svariables(struct char_data *ch, event_id iId, char *sVariable
   {
     if (pMudEvent->iId == iId)
     {
-      time = event_handle_time(pMudEvent->event_handle);
+      time = mud_event_remaining(pMudEvent);
       found = TRUE;
       break;
     }
@@ -1461,8 +1634,8 @@ void change_event_svariables(struct char_data *ch, event_id iId, char *sVariable
     pNewMudEvent = new_mud_event(iId, ch, sVariables);
 
     /* Cancel the old event */
-    if (event_handle_is_queued(pMudEvent->event_handle))
-      (void)event_handle_cancel(pMudEvent->event_handle);
+    if (mud_event_is_live(pMudEvent))
+      mud_event_cancel(pMudEvent);
 
     /* Now attach the new event */
     attach_mud_event(pNewMudEvent, time);

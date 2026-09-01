@@ -6,6 +6,8 @@
 #include "../../src/utils.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event_internal.h"
+#include "../../src/event_debug.h"
+#include "../../src/event_runtime.h"
 #include "../../src/mud_event.h"
 #include "../../src/mudlim.h"
 #include "../../src/perfmon.h"
@@ -278,7 +280,7 @@ static void verify_inflight_owner_cancel_payload_lifetime(CuTest *tc,
   mud_event = new_mud_event(eARMOR_SPECAB_BLINDING, &object, "payload-live");
   attach_mud_event(mud_event, 1);
   CuAssertPtrNotNull(tc, object.events);
-  CuAssertTrue(tc, mud_event->event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, mud_event_is_live(mud_event));
 
   pulse++;
   event_process();
@@ -303,7 +305,8 @@ static void verify_mud_event_terminal_recurrence(CuTest *tc,
 {
   struct mud_event_data *mud_event;
   struct obj_data object;
-  event_handle_t handle;
+  struct event_runtime_handle runtime_handle;
+  event_handle_t rollback_handle;
   EVENTFUNC(*saved_callback);
   unsigned long saved_pulse;
 
@@ -318,15 +321,16 @@ static void verify_mud_event_terminal_recurrence(CuTest *tc,
   mud_event_index[eARMOR_SPECAB_BLINDING].func = test_mud_event_recurrence_callback;
   mud_event = new_mud_event(eARMOR_SPECAB_BLINDING, &object, "recurrence-live");
   attach_mud_event(mud_event, 1);
-  handle = mud_event->event_handle;
+  runtime_handle = mud_event->runtime_handle;
+  rollback_handle = mud_event->rollback_handle;
 
   pulse++;
   event_process();
   CuAssertIntEquals(tc, 1, test_mud_event_recurrence_runs);
   CuAssertIntEquals(tc, 0, mud_event_test_cleanup_count());
   CuAssertPtrNotNull(tc, object.events);
-  CuAssertTrue(tc, event_handle_is_live(handle));
-  CuAssertIntEquals(tc, 2, (int)event_handle_time(handle));
+  CuAssertTrue(tc, mud_event_is_live(mud_event));
+  CuAssertIntEquals(tc, 2, (int)mud_event_remaining(mud_event));
 
   pulse += 2U;
   event_process();
@@ -334,7 +338,10 @@ static void verify_mud_event_terminal_recurrence(CuTest *tc,
   CuAssertIntEquals(tc, 2, test_mud_event_recurrence_runs);
   CuAssertIntEquals(tc, 1, mud_event_test_cleanup_count());
   CuAssertPtrEquals(tc, NULL, object.events);
-  CuAssertTrue(tc, !event_handle_is_live(handle));
+  if (backend == EVENT_BACKEND_GAME_SCHEDULER)
+    CuAssertTrue(tc, !event_runtime_handle_is_live(runtime_handle));
+  else
+    CuAssertTrue(tc, !event_handle_is_live(rollback_handle));
   event_free_all();
   pulse = saved_pulse;
 }
@@ -343,6 +350,48 @@ void Test_mud_event_terminal_recurrence_cleans_up_once_on_both_backends(CuTest *
 {
   verify_mud_event_terminal_recurrence(tc, EVENT_BACKEND_LEGACY_QUEUE);
   verify_mud_event_terminal_recurrence(tc, EVENT_BACKEND_GAME_SCHEDULER);
+}
+
+void Test_mud_event_native_types_are_entity_filterable(CuTest *tc)
+{
+  struct event_debug_filter filter;
+  struct event_debug_snapshot snapshot;
+  struct game_scheduler_stats before;
+  struct game_scheduler_stats after;
+  struct char_data character;
+  size_t returned_count;
+
+  event_free_all();
+  CuAssertIntEquals(tc, 1,
+                    event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  memset(&before, 0, sizeof(before));
+  event_runtime_get_stats(&before);
+
+  CuAssertTrue(tc, mud_event_runtime_init());
+  memset(&after, 0, sizeof(after));
+  event_runtime_get_stats(&after);
+  CuAssertIntEquals(tc, eMUD_EVENT_COUNT - ePROTOCOLS,
+                    (int)(after.registered_type_count - before.registered_type_count));
+
+  memset(&character, 0, sizeof(character));
+  attach_mud_event(new_mud_event(eLAYONHANDS, &character, NULL), 25);
+  CuAssertPtrNotNull(tc, character.events);
+
+  memset(&filter, 0, sizeof(filter));
+  filter.owner_set = true;
+  filter.owner.kind = GAME_EVENT_OWNER_CHARACTER;
+  filter.owner.runtime_id = (uint64_t)(uintptr_t)&character;
+  filter.type_contains = "mud.";
+  CuAssertIntEquals(tc, 1,
+                    (int)event_debug_inspect(&filter, &snapshot, 1U,
+                                             &returned_count));
+  CuAssertIntEquals(tc, 1, (int)returned_count);
+  CuAssertStrEquals(tc, "mud.004.lay_on_hands", snapshot.type_name);
+  CuAssertTrue(tc, snapshot.remaining_pulses == 25U);
+
+  clear_char_event_list(&character);
+  event_free_all();
 }
 
 void Test_global_event_cleanup_invokes_custom_destructor(CuTest *tc)
@@ -563,7 +612,7 @@ void Test_mud_event_durable_restore_rehydrates_fresh_runtime_identity(CuTest *tc
   struct mud_event_data *restored_event;
   struct char_data source;
   struct char_data restored;
-  event_handle_t source_handle;
+  struct event_runtime_handle source_handle;
   uint64_t source_generation;
   unsigned long saved_pulse;
 
@@ -578,25 +627,26 @@ void Test_mud_event_durable_restore_rehydrates_fresh_runtime_identity(CuTest *tc
   attach_mud_event(new_mud_event(eLAYONHANDS, &source, "uses:2"), 77);
   source_event = char_has_mud_event(&source, eLAYONHANDS);
   CuAssertPtrNotNull(tc, source_event);
-  source_handle = source_event->event_handle;
+  source_handle = source_event->runtime_handle;
   source_generation = source_event->owner.generation;
-  CuAssertTrue(tc, source_handle != EVENT_HANDLE_NONE);
-  CuAssertTrue(tc, event_handle_is_live(source_handle));
+  CuAssertTrue(tc, !event_runtime_handle_is_none(source_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_live(source_handle));
   CuAssertTrue(tc, mud_event_make_durable_record(&source, source_event, 1000, &record));
   CuAssertIntEquals(tc, eLAYONHANDS, record.event_type);
   CuAssertIntEquals(tc, 2, (int)record.schema_version);
   CuAssertIntEquals(tc, 2, record.payload_value);
 
   clear_char_event_list(&source);
-  CuAssertTrue(tc, !event_handle_is_live(source_handle));
+  CuAssertTrue(tc, !event_runtime_handle_is_live(source_handle));
   CuAssertIntEquals(tc, 1, mud_event_test_cleanup_count());
   CuAssertIntEquals(tc, MUD_EVENT_RESTORE_OK,
                     mud_event_restore_character_record(&restored, &record, 1000));
   restored_event = char_has_mud_event(&restored, eLAYONHANDS);
   CuAssertPtrNotNull(tc, restored_event);
-  CuAssertIntEquals(tc, 77, (int)event_handle_time(restored_event->event_handle));
+  CuAssertIntEquals(tc, 77, (int)mud_event_remaining(restored_event));
   CuAssertStrEquals(tc, "uses:2", restored_event->sVariables);
-  CuAssertTrue(tc, restored_event->event_handle != source_handle);
+  CuAssertTrue(tc,
+               !event_runtime_handles_equal(restored_event->runtime_handle, source_handle));
   CuAssertTrue(tc, restored_event->owner.generation != source_generation);
   CuAssertTrue(tc, restored_event->owner.runtime_id == (uint64_t)(uintptr_t)&restored);
   CuAssertIntEquals(tc, MUD_EVENT_RESTORE_DUPLICATE,
@@ -675,7 +725,7 @@ static void verify_mud_event_restore_rollback_backend(CuTest *tc,
   restored_event = char_has_mud_event(&ch, eTREATINJURY);
   CuAssertPtrNotNull(tc, restored_event);
   CuAssertIntEquals(tc, backend, event_backend_current());
-  CuAssertTrue(tc, event_handle_is_live(restored_event->event_handle));
+  CuAssertTrue(tc, mud_event_is_live(restored_event));
   clear_char_event_list(&ch);
   event_free_all();
 }
@@ -709,7 +759,7 @@ void Test_mud_event_durable_restore_elapses_offline_and_migrates_schema_one(CuTe
                     mud_event_restore_character_record(&ch, &record, 1005));
   restored_event = char_has_mud_event(&ch, eTREATINJURY);
   CuAssertPtrNotNull(tc, restored_event);
-  CuAssertIntEquals(tc, 50, (int)event_handle_time(restored_event->event_handle));
+  CuAssertIntEquals(tc, 50, (int)mud_event_remaining(restored_event));
   clear_char_event_list(&ch);
 
   SPELLBATTLE(&ch) = 8;
@@ -746,7 +796,7 @@ void Test_mud_event_durable_restore_catches_up_staggered_daily_uses(CuTest *tc)
                     mud_event_restore_character_record(&ch, &record, 2125));
   restored_event = char_has_mud_event(&ch, eSLA_INVIS);
   CuAssertPtrNotNull(tc, restored_event);
-  CuAssertIntEquals(tc, 5750, (int)event_handle_time(restored_event->event_handle));
+  CuAssertIntEquals(tc, 5750, (int)mud_event_remaining(restored_event));
   CuAssertStrEquals(tc, "uses:2", restored_event->sVariables);
   clear_char_event_list(&ch);
 

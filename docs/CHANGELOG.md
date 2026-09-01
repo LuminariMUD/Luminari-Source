@@ -2,6 +2,30 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native semantic MUD events
+
+#### Changed
+
+- Registered all 232 usable table-driven MUD event IDs as distinct native,
+  owner-required scheduler types such as `mud.004.lay_on_hands`.
+- Migrated normal MUD-event admission, recurrence, cancellation, remaining-time
+  queries, mutation, durable reconstruction, and terminal cleanup directly to
+  native runtime handles.
+- Preserved one localized admission adapter only when the physical legacy
+  backend is explicitly selected; the frozen compatibility inventory remains
+  four calls across three files until rollback removal.
+- Increased the fixed boot-time type registry capacity from 256 to 512 for the
+  271 current gameplay/service semantic types plus bounded future growth.
+- Made ability cooldowns and other MUD timers visible by exact semantic type in
+  the entity-focused `eventdebug` views.
+
+#### Tests
+
+- Added full MUD type-registration-count and entity-filter diagnostic coverage.
+- Retained dual-backend owner, recurrence, in-flight cancellation, durable
+  restore, elapsed offline cooldown, and combat-transfer tests; all 1,051
+  production-linked tests pass.
+
 ### Native DG waits and entity-focused diagnostics
 
 #### Changed

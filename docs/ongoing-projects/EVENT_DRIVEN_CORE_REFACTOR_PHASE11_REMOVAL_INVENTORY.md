@@ -92,7 +92,8 @@ production files:
 - two AI response/retry jobs in `src/ai_events.c`;
 - one DG trigger-wait fallback used only by the physical legacy backend in
   `src/dgscript/dg_scripts.c`; and
-- one MUD-event admission path in `src/mud_event.c`.
+- one MUD-event fallback admission used only by the physical legacy backend in
+  `src/mud_event.c`.
 
 Their exact burn-down inventory is enforced by
 `scripts/events/test_legacy_event_admission.sh`; additions fail the normal test
@@ -112,6 +113,13 @@ continues to execute authored waits; that call leaves with the rollback backend,
 not as a permanent gameplay API. Entity diagnostics can now select all events
 for a live player, mobile, object, or room and can further restrict the view to
 `dg.` script events.
+
+The native MUD-event slice makes 232 distinct `mud.<id>.<name>` types
+authoritative whenever the game scheduler is selected. Entity lists retain
+their table-driven payloads, but admission, recurrence, cancellation,
+remaining-time queries, mutation, persistence restore, and cleanup use native
+runtime handles. The one MUD adapter call counted above is confined to the
+physical legacy-backend branch and leaves with that rollback implementation.
 
 Phase 11a added the opaque-handle registry and API inside the facade, increasing
 the raw source count from 115 to 129 without adding an external caller. Phase

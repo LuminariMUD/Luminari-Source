@@ -328,7 +328,8 @@ struct mud_event_list
 
 struct mud_event_data
 {
-  event_handle_t event_handle; /***< Generation-safe timed-event identity */
+  struct event_runtime_handle runtime_handle; /***< Native timed-event identity. */
+  event_handle_t rollback_handle; /***< Temporary physical-legacy fallback. */
   event_id iId;         /***< General ID reference */
   void *pStruct;        /***< Pointer to NULL, Descriptor, Character .... */
   char *sVariables;     /***< String variable */
@@ -361,6 +362,7 @@ extern const size_t mud_event_index_count;
 
 /* Local Functions */
 void init_events(void);
+bool mud_event_runtime_init(void);
 const struct mud_event_persistence_policy *mud_event_persistence_policy(event_id iId);
 const char *mud_event_storage_class_name(enum mud_event_storage_class storage_class);
 const char *mud_event_restore_status_name(enum mud_event_restore_status status);
@@ -374,6 +376,9 @@ mud_event_restore_character_record(struct char_data *ch,
                                    int64_t now_epoch);
 struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sVariables);
 void attach_mud_event(struct mud_event_data *pMudEvent, long time);
+bool mud_event_is_live(const struct mud_event_data *pMudEvent);
+long mud_event_remaining(const struct mud_event_data *pMudEvent);
+void mud_event_cancel(struct mud_event_data *pMudEvent);
 void mud_event_detach_owner(struct mud_event_data *pMudEvent);
 struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId);
 struct mud_event_data *room_has_mud_event(struct room_data *rm, event_id iId);      // Ornir

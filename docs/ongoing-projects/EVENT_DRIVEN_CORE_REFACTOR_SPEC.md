@@ -1,7 +1,7 @@
 # Event-Driven Core Refactor Specification
 
 **Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible implementation and final source audit are complete; irreversible removal gate pending
-**Document version:** 1.43
+**Document version:** 1.44
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
 **Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, the final adversarial source audit, the executable demand-driven architecture lock, and the current-SHA operator release-gate handoff are implemented; only the externally gated physical rollback removal remains
@@ -22,12 +22,14 @@
 > character periodic work, object automatic procedures, DG random triggers,
 > mud-hour work, and vessel agendas now schedule as distinct native semantic
 > types on the single process timing wheel. Named runtime services and bounded
-> persistence batches now do the same. DG script waits are native typed events
+> persistence batches now do the same. DG script waits and all 232 table-driven
+> MUD event IDs are native typed events
 > on the normal scheduler path and can be inspected together with every event
 > for a selected live entity. Their owner-local timing, recurrence, teardown,
 > and diagnostics remain unchanged. Four compatibility schedules across three
 > production files remain because physical legacy rollback still owns a small
-> DG-wait adapter alongside the remaining MUD-event and AI migrations.
+> DG-wait adapter, MUD-event adapter, and two AI jobs. The MUD adapter is never
+> used by the normal scheduler path; it leaves with physical rollback.
 > Vessel owners, the vessel/point-update singleton services, DG waits, and MUD
 > events and one-shot AI jobs also use opaque handles. The compatibility
 > record, pointer API, and rollback queue declarations are private to the
@@ -2528,3 +2530,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.41 | 2026-09-01 | Migrated autonomous-mobile agendas, primary-activity wall-clock steps, and encounter-owned rounds to native `mobile.autonomous.agenda`, `activity.primary.step`, and `combat.encounter.round` types. Preserved owner-local recurrence, off-screen simulation, activity interruption and re-entry, encounter mutation/merge safety, and semantic six-second rounds without population discovery; six adapter schedules remain across four files. |
 | 1.42 | 2026-09-01 | Migrated all named runtime services and the bounded persistence worker from compatibility scheduling to native service-owner types. Added timing-wheel-wide inspection so native events remain visible through the readable `eventdebug queue` filters, isolated scheduler-dependent tests from leaked runtime globals, and reduced compatibility admission to four calls across three files. |
 | 1.43 | 2026-09-01 | Migrated DG trigger waits to native owner-required `dg.trigger.wait` events on the normal scheduler path while retaining one localized adapter for explicit physical legacy rollback. Added readable `eventdebug` entity views for live players, mobiles, objects, and rooms plus DG-script-only filtering for those entities; owner identity intentionally spans subsystem generations and payloads remain redacted. |
+| 1.44 | 2026-09-01 | Registered all 232 usable table-driven MUD IDs as distinct native owner-required types on the normal scheduler path, with readable names such as `mud.004.lay_on_hands`. Migrated admission, recurrence, cancellation, duration and payload mutation, durable reconstruction, and external remaining-time consumers to native runtime handles; retained one localized adapter solely for physical legacy rollback. Entity-focused `eventdebug` now identifies ability cooldowns and other MUD timers by semantic type. |

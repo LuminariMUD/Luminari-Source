@@ -2,8 +2,9 @@
 
 This document explains the current timing infrastructure used by LuminariMUD.
 The public DG event API selects either the game scheduler or the retained legacy
-queue implementation at boot. The higher-level MUD event layer supplies
-generation-aware owner handles, explicit persistence policy, and entity-scoped
+queue implementation at boot. On the normal scheduler path, the higher-level
+MUD event layer schedules each table entry as its own native semantic type. It
+supplies generation-aware owners, explicit persistence policy, and entity-scoped
 payload lists and queries without exposing scheduler records.
 
 Core source files:
@@ -100,6 +101,14 @@ same runtime. Its retained four production schedules therefore coexist on the
 wheel with native types during migration, but the adapter no longer creates,
 owns, advances, inspects, or destroys a scheduler itself.
 
+All 232 usable MUD event IDs register as native owner-required types. Names use
+the stable form `mud.<three-digit-id>.<readable-name>`, for example
+`mud.004.lay_on_hands`. The ID prevents collisions if two display names are
+similar. The normal path stores a native runtime handle and dispatches the
+existing table callback directly; a positive result reschedules the same event,
+and a terminal result invokes one owner-detaching payload cleanup. The physical
+legacy backend alone uses the localized rollback handle.
+
 Character-affect duration and room-affect duration/behavior are the first
 production owners migrated directly to native types. Their stable names are
 `affected.character.duration` and `affected.room.duration`; each owner may
@@ -190,9 +199,10 @@ type through `event_runtime` and use native handles. Compatibility scheduling
 is limited to the frozen migration inventory and remains solely to preserve the
 physical rollback backend until its external release gate closes.
 
-Compatibility work still awaiting native semantic types is limited to AI
-response/retry jobs, named runtime-service and persistence work, DG trigger
-waits, and the MUD-event admission layer. Encounter rounds, primary activities,
+Compatibility work still awaiting native semantic types is limited to the two
+AI response/retry jobs. Named runtime services, persistence batches, DG waits,
+and all MUD-event IDs are native on the normal scheduler path, with localized
+fallback calls retained only for physical legacy rollback. Encounter rounds, primary activities,
 autonomous mobiles, character and room affected owners, nearest-deadline
 character maintenance, object automatic procedures, DG random triggers,
 mud-hour point updates, and vessel agendas now schedule directly through
@@ -209,9 +219,11 @@ DG script waits also store opaque handles. Their trigger-owned payload pointer
 exists only for room OLC owner relocation; normal completion and cancellation
 clear both fields without exposing the scheduler compatibility record.
 
-MUD events store opaque handles too. Entity lists contain `mud_event_data`
-payload pointers, remaining-time and cancellation callers use handle APIs, and
-the facade contains no MUD-specific flag or destructor branch.
+MUD events store native runtime handles on the normal path and a separate,
+localized rollback handle only on the physical legacy path. Entity lists
+contain `mud_event_data` payload pointers; callers use `mud_event_is_live()`,
+`mud_event_remaining()`, and `mud_event_cancel()` without knowing the selected
+backend. The facade contains no MUD-specific flag or destructor branch.
 
 ### 2.3 Lifecycle (Base)
 

@@ -2349,7 +2349,7 @@ ACMD(do_dismiss)
       if (MOB_FLAGGED(vict, MOB_C_ANIMAL))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_ANIMAL)) &&
-            event_handle_time(pMudEvent->event_handle) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_ANIMAL, (59 * PASSES_PER_SEC));
         }
@@ -2357,7 +2357,7 @@ ACMD(do_dismiss)
       if (MOB_FLAGGED(vict, MOB_C_DRAGON))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_DRAGONMOUNT)) &&
-            event_handle_time(pMudEvent->event_handle) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_DRAGONMOUNT, (59 * PASSES_PER_SEC));
         }
@@ -2365,7 +2365,7 @@ ACMD(do_dismiss)
       else if (MOB_FLAGGED(vict, MOB_C_FAMILIAR))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_FAMILIAR)) &&
-            event_handle_time(pMudEvent->event_handle) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_FAMILIAR, (59 * PASSES_PER_SEC));
         }
@@ -2373,7 +2373,7 @@ ACMD(do_dismiss)
       else if (MOB_FLAGGED(vict, MOB_C_MOUNT))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)) &&
-            event_handle_time(pMudEvent->event_handle) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_MOUNT, (59 * PASSES_PER_SEC));
         }
@@ -2381,7 +2381,7 @@ ACMD(do_dismiss)
       else if (MOB_FLAGGED(vict, MOB_SHADOW))
       {
         if ((pMudEvent = char_has_mud_event(ch, eSUMMONSHADOW)) &&
-            event_handle_time(pMudEvent->event_handle) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eSUMMONSHADOW, (59 * PASSES_PER_SEC));
         }
@@ -2389,7 +2389,7 @@ ACMD(do_dismiss)
       else if (MOB_FLAGGED(vict, MOB_EIDOLON))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_EIDOLON)) &&
-            event_handle_time(pMudEvent->event_handle) > (59 * PASSES_PER_SEC))
+            mud_event_remaining(pMudEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_EIDOLON, (59 * PASSES_PER_SEC));
         }
@@ -11825,31 +11825,9 @@ ACMDU(do_device)
     /* Start the creation event */
     attach_mud_event(new_mud_event(eDEVICE_CREATION, ch, event_data),
                      creation_time * PASSES_PER_SEC);
-    {
-      struct mud_event_data *ce = char_has_mud_event(ch, eDEVICE_CREATION);
-      if (ce && ce->event_handle)
-      {
-        /* device creation event attached */
-      }
-      else
-      {
-        /* device creation event missing immediately after attach */
-      }
-    }
 
     /* Start progress updates every 10 seconds */
     attach_mud_event(new_mud_event(eDEVICE_PROGRESS, ch, NULL), 10 * PASSES_PER_SEC);
-    {
-      struct mud_event_data *pe = char_has_mud_event(ch, eDEVICE_PROGRESS);
-      if (pe && pe->event_handle)
-      {
-        /* device progress event attached */
-      }
-      else
-      {
-        /* device progress event missing immediately after attach */
-      }
-    }
 
     /* Build spell list for user feedback */
     char spell_list[MAX_STRING_LENGTH * 4];
@@ -13230,7 +13208,7 @@ EVENTFUNC(event_device_progress)
   }
 
   /* Get time remaining on creation event */
-  long time_remaining_passes = event_handle_time(creation_event->event_handle);
+  long time_remaining_passes = mud_event_remaining(creation_event);
   int time_remaining_seconds = time_remaining_passes / PASSES_PER_SEC;
 
   /* Safety: if time remaining is <= 0, finalize immediately (fallback) */

@@ -441,7 +441,7 @@ static void import_semantic_state(struct combat_encounter_participant *participa
     event_data = char_has_mud_event(participant->character, action_event_ids[index]);
     if (event_data == NULL)
       continue;
-    rounds = semantic_rounds_for_delay(event_handle_time(event_data->event_handle));
+    rounds = semantic_rounds_for_delay(mud_event_remaining(event_data));
     participant->action_ready_turn[index] = participant->turns_started + rounds;
     participant->action_notice_pending[index] = true;
     event_cancel_specific(participant->character, action_event_ids[index]);
