@@ -60,9 +60,11 @@
 #include "perfmon.h"
 #include "rol_feats.h"
 #include "domain_event_runtime.h"
+#include "domain_event_world.h"
 #include "point_update_periodic.h"
 #include "combat/combat_encounters.h"
 #include "combat/combat_damage.h"
+#include "combat/combat_death.h"
 #include "combat/combat_reactions.h"
 #include "activity_manager.h"
 
@@ -2454,7 +2456,8 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
  * restoring corpse creation upon creation of a good corpse
  * saving solution so we do not have to worry about copyover
  * or crashes deleting all of the PC's gear */
-void raw_kill(struct char_data *ch, struct char_data *killer)
+static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
+                                enum combat_death_cause cause)
 {
   struct char_data *k, *temp;
   struct affected_type af = {0}; /* Zero-initialize to prevent stack garbage */
@@ -2536,7 +2539,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     death_cry(ch);
 
   GET_POS(ch) = POS_DEAD;
-  domain_event_runtime_character_died(ch, killer);
+  domain_event_runtime_character_died_with_cause(ch, killer, (uint32_t)cause);
   /* end making ordinary commands work in scripts */
 
   /* make sure group gets credit for kill if ch involved in autoquest auto-quest */
@@ -2698,13 +2701,25 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   }
 }
 
+void raw_kill(struct char_data *ch, struct char_data *killer)
+{
+  raw_kill_with_cause(ch, killer,
+                      killer != NULL ? COMBAT_DEATH_COMBAT : COMBAT_DEATH_UNSPECIFIED);
+}
+
 /* called after striking the mortal blow to ch */
 #define XP_LOSS_FACTOR 5 /*20%*/
 
-void die(struct char_data *ch, struct char_data *killer)
+struct combat_death_result combat_death_apply(struct char_data *ch, struct char_data *killer,
+                                              enum combat_death_cause cause)
 {
+  struct combat_death_result result = {0};
+
+  result.victim = domain_event_character_handle(ch);
+  result.killer = domain_event_character_handle(killer);
+  result.cause = cause;
   if (ch == NULL)
-    return;
+    return result;
 
   struct char_data *temp;
   struct descriptor_data *pt;
@@ -2871,7 +2886,15 @@ void die(struct char_data *ch, struct char_data *killer)
     /* The flag/state for this is set implicitly by the cleave logic */
   }
 
-  raw_kill(ch, killer);
+  raw_kill_with_cause(ch, killer, cause);
+  result.processed = true;
+  return result;
+}
+
+void die(struct char_data *ch, struct char_data *killer)
+{
+  (void)combat_death_apply(ch, killer,
+                           killer != NULL ? COMBAT_DEATH_COMBAT : COMBAT_DEATH_UNSPECIFIED);
 }
 
 /* called for splitting xp in a group (engine) */

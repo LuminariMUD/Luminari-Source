@@ -519,6 +519,7 @@ set(SRC_C_FILES
     src/combat/encounters.c
     src/combat/combat_encounters.c
     src/combat/combat_damage.c
+    src/combat/combat_death.h
     src/combat/combat_reactions.c
     src/combat/combat_encounters.h
     src/character/evolutions.c
