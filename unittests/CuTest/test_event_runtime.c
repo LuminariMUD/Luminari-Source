@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event.h"
+#include "../../src/dgscript/dg_event_rollback.h"
 #include "../../src/event_runtime.h"
 
 #include <stdlib.h>

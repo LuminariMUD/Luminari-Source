@@ -7220,7 +7220,7 @@ void perform_do_copyover()
   return;
 }
 
-EVENTFUNC(event_copyover)
+MUD_EVENT_CALLBACK(event_copyover)
 {
   struct mud_event_data *copyover_event = NULL;
   struct descriptor_data *pt = NULL;

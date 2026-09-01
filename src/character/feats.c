@@ -6081,7 +6081,7 @@ void assign_feats(void)
   epicfeat(FEAT_CONSTRUCT_IRON_GOLEM);
 
   /* Feats with "Daily Use" Mechanic, make sure to add to
-   * EVENTFUNC(event_daily_use_cooldown) and mud_event.c */
+   * MUD_EVENT_CALLBACK(event_daily_use_cooldown) and mud_event.c */
   dailyfeat(FEAT_QUIVERING_PALM, eQUIVERINGPALM);
   dailyfeat(FEAT_ARROW_OF_DEATH, eDEATHARROW);
   dailyfeat(FEAT_STUNNING_FIST, eSTUNNINGFIST);

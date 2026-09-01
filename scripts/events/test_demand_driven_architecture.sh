@@ -9,7 +9,8 @@ runtime_services="$project_root/src/comm.c"
 agenda_body=$(mktemp)
 scheduled_body=$(mktemp)
 service_needed_body=$(mktemp)
-trap 'rm -f "$agenda_body" "$scheduled_body" "$service_needed_body"' EXIT
+default_comm=$(mktemp)
+trap 'rm -f "$agenda_body" "$scheduled_body" "$service_needed_body" "$default_comm"' EXIT
 
 fail()
 {
@@ -48,8 +49,13 @@ awk '
 ' "$runtime_services" >"$service_needed_body"
 
 tr '\n' ' ' <"$service_needed_body" |
-  grep -Eq 'case RUNTIME_SERVICE_MOBILE_ACTIVITY:[[:space:]]+return !active_world_enabled\(\);' ||
-  fail "whole-mobile rollback service is not exclusively gated behind active-world disablement"
+  grep -Eq 'case RUNTIME_SERVICE_MOBILE_ACTIVITY:.*LUMINARI_ENABLE_EVENT_ROLLBACK.*return !active_world_enabled\(\);.*return false;' ||
+  fail "whole-mobile rollback service is not quarantined behind the rollback build option"
+
+"${CC:-cc}" -E -P -I"$project_root/src" "$runtime_services" >"$default_comm"
+if grep -Eq '^[[:space:]]*mobile_activity_run_legacy_(cycle|slice)[[:space:]]*\(' "$default_comm"; then
+  fail "the default preprocessed runtime still dispatches whole-mobile rollback work"
+fi
 
 legacy_dispatch_count=$(grep -Eoc 'mobile_activity_run_legacy_(cycle|slice)[[:space:]]*\(' \
   "$runtime_services" || true)

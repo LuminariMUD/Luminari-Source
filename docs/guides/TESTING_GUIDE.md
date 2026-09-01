@@ -38,14 +38,33 @@ lookups.
 ### Event Runtime Boot Matrix
 
 Changes to scheduling, the game loop, wait state, persistence cadence, or
-copyover must syntax-boot all runtime-service and timed-backend combinations:
+copyover must first syntax-boot the ordinary scheduler-only build. The old
+queue, compatibility heartbeat, and population-loop implementations are not
+compiled into that executable:
 
 ```sh
-LUMINARI_RUNTIME_SERVICES=scheduled LUMINARI_EVENT_BACKEND=scheduler ./luminari -c
-LUMINARI_RUNTIME_SERVICES=scheduled LUMINARI_EVENT_BACKEND=legacy    ./luminari -c
-LUMINARI_RUNTIME_SERVICES=legacy    LUMINARI_EVENT_BACKEND=scheduler ./luminari -c
-LUMINARI_RUNTIME_SERVICES=legacy    LUMINARI_EVENT_BACKEND=legacy    ./luminari -c
+cmake -S . -B build-native
+cmake --build build-native -j"$(nproc)"
+build-native/bin/luminari -c
 ```
+
+During the externally approved rollback-retention period, also build a separate
+rollback executable and syntax-boot its two physical timing backends and both
+runtime-service paths:
+
+```sh
+cmake -S . -B build-rollback -DLUMINARI_ENABLE_EVENT_ROLLBACK=ON
+cmake --build build-rollback -j"$(nproc)"
+LUMINARI_EVENT_BACKEND=scheduler LUMINARI_RUNTIME_SERVICES=scheduled build-rollback/bin/luminari -c
+LUMINARI_EVENT_BACKEND=legacy LUMINARI_RUNTIME_SERVICES=scheduled build-rollback/bin/luminari -c
+LUMINARI_EVENT_BACKEND=scheduler LUMINARI_RUNTIME_SERVICES=legacy build-rollback/bin/luminari -c
+LUMINARI_EVENT_BACKEND=legacy LUMINARI_RUNTIME_SERVICES=legacy build-rollback/bin/luminari -c
+```
+
+Autotools uses `./configure --enable-event-rollback`; the default is disabled.
+Runtime rollback selectors have no effect in an ordinary build. Selecting the
+physical legacy queue in a rollback build also selects the complete legacy
+heartbeat, because native named services require the native timing wheel.
 
 Run these from a prepared `lib/` data directory or pass its absolute path with
 `-d`. Database-linked tests must use the repository's isolated test fixture;

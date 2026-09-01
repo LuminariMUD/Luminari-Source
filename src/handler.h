@@ -158,8 +158,10 @@ int generic_find(const char *arg, bitvector_t bitvector, struct char_data *ch,
 /* prototypes from mobact.c */
 void forget(struct char_data *ch, struct char_data *victim);
 void remember(struct char_data *ch, struct char_data *victim);
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 void mobile_activity_run_legacy_cycle(void);
 void mobile_activity_run_legacy_slice(int heart_pulse);
+#endif
 void mobile_echos(struct char_data *ch);
 void clearMemory(struct char_data *ch);
 

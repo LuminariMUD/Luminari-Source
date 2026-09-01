@@ -13178,7 +13178,7 @@ ACMD(do_shadowstep)
 }
 
 
-EVENTFUNC(event_device_progress)
+MUD_EVENT_CALLBACK(event_device_progress)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
@@ -13295,7 +13295,7 @@ EVENTFUNC(event_device_progress)
   return 0;
 }
 
-EVENTFUNC(event_device_creation)
+MUD_EVENT_CALLBACK(event_device_creation)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
@@ -13448,7 +13448,7 @@ EVENTFUNC(event_device_creation)
 }
 
 /* Event handler for device repair */
-EVENTFUNC(event_device_repair)
+MUD_EVENT_CALLBACK(event_device_repair)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;

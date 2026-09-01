@@ -117,6 +117,8 @@ endif()
 # Static analysis is opt-in so normal builds are reproducible regardless of
 # whether clang-tidy happens to be installed on the build machine.
 option(STATIC_ANALYSIS "Enable static analysis with clang-tidy" OFF)
+option(LUMINARI_ENABLE_EVENT_ROLLBACK
+       "Compile the quarantined legacy timed-event queue and heartbeat rollback" OFF)
 
 if(STATIC_ANALYSIS)
     find_program(CLANG_TIDY_EXE NAMES clang-tidy)
@@ -802,6 +804,7 @@ add_dependencies(luminari refresh_build_identity)
 
 # Add compile definitions based on detected features
 target_compile_definitions(luminari PRIVATE
+    $<$<BOOL:${LUMINARI_ENABLE_EVENT_ROLLBACK}>:LUMINARI_ENABLE_EVENT_ROLLBACK>
     $<$<BOOL:${CIRCLE_MYSQL}>:CIRCLE_MYSQL>
     $<$<BOOL:${CIRCLE_UNIX}>:CIRCLE_UNIX>
     $<$<BOOL:${CIRCLE_CRYPT}>:CIRCLE_CRYPT>
@@ -1313,7 +1316,8 @@ if (BUILD_TESTS)
         luminari COMPILE_DEFINITIONS)
     target_compile_definitions(cutest PRIVATE
         ${LUMINARI_COMPILE_DEFINITIONS}
-        LUMINARI_CUTEST)
+        LUMINARI_CUTEST
+        LUMINARI_EVENT_ROLLBACK_TESTS)
 
     get_target_property(LUMINARI_COMPILE_OPTIONS luminari COMPILE_OPTIONS)
     if (LUMINARI_COMPILE_OPTIONS)

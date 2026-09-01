@@ -43,6 +43,17 @@ struct event_debug_output
   size_t width;
 };
 
+static const char *event_debug_mode(bool scheduled)
+{
+  if (scheduled)
+    return "scheduled";
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+  return "rollback";
+#else
+  return "unavailable";
+#endif
+}
+
 int event_debug_effective_width(int configured_width)
 {
   if (configured_width < EVENT_DEBUG_MIN_WIDTH)
@@ -183,7 +194,9 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
 {
   struct event_debug_output output;
   struct event_debug_stats event_stats;
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   struct PERF_event_summary perf_stats;
+#endif
   struct domain_event_bus_stats domain_stats;
   struct i3_ingress_stats ingress_stats;
   struct ai_event_ingress_stats ai_ingress_stats;
@@ -194,7 +207,9 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
 
   debug_output_init(&output, buffer, capacity, width);
   event_debug_get_stats(&event_stats);
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   PERF_get_event_summary(&perf_stats);
+#endif
   debug_output_title(&output, "Event Debug Summary");
   debug_output_line(&output, "Backend: %s", event_backend_name());
   debug_output_line(&output, "Pulse: %" PRIu64, event_stats.current_pulse);
@@ -210,12 +225,14 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "");
   debug_output_line(&output, "Runtime services");
   debug_output_line(&output, "  mode: %s",
-                    service_stats.scheduled ? "named scheduled events" : "legacy heartbeat");
+                    service_stats.scheduled ? "named scheduled events" :
+                                              event_debug_mode(false));
   debug_output_line(&output, "  live/configured: %zu/%zu", service_stats.live_services,
                     service_stats.configured_services);
   debug_output_line(&output, "  callbacks: %" PRIu64, service_stats.callbacks);
   debug_output_line(&output, "  schedule failures: %" PRIu64,
                     service_stats.schedule_failures);
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   debug_output_line(&output, "");
   debug_output_line(&output, "Compatibility adapter");
   debug_output_line(&output, "  process passes: %" PRIu64, perf_stats.process_calls);
@@ -226,6 +243,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "  recurrences: %" PRIu64, perf_stats.rescheduled);
   debug_output_line(&output, "  profiles: %zu", perf_stats.registered_profiles);
   debug_output_line(&output, "  overflow calls: %" PRIu64, perf_stats.overflow_calls);
+#endif
   if (event_stats.scheduler_stats_available)
   {
     debug_output_line(&output, "");
@@ -352,7 +370,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "");
   debug_output_line(&output, "Character owners");
   debug_output_line(&output, "  mode: %s",
-                    character_periodic_events_enabled() ? "scheduled" : "legacy heartbeat");
+                    event_debug_mode(character_periodic_events_enabled()));
   debug_output_line(&output, "  members/scheduled/mismatch: %zu/%zu/%zu",
                     character_periodic_owner_count(), character_periodic_scheduled_count(),
                     character_periodic_registry_validate());
@@ -364,7 +382,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
                     character_periodic_timed_quest_executions());
   debug_output_line(&output, "");
   debug_output_line(&output, "Autonomous mobile agendas");
-  debug_output_line(&output, "  mode: %s", active_world_enabled() ? "scheduled" : "legacy");
+  debug_output_line(&output, "  mode: %s", event_debug_mode(active_world_enabled()));
   debug_output_line(&output, "  active/cooling: %zu/%zu",
                     active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE),
                     active_world_mobile_count(ACTIVE_WORLD_MOBILE_COOLING));

@@ -41,6 +41,7 @@ static struct game_event_result periodic_dg_random_event(
 
 static bool configured_scheduled(const char *name)
 {
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   const char *value;
 
   value = getenv(name);
@@ -54,6 +55,10 @@ static bool configured_scheduled(const char *name)
     return false;
   log("WARNING: Unknown %s '%s'; using scheduled owner events.", name, value);
   return true;
+#else
+  (void)name;
+  return true;
+#endif
 }
 
 static uint64_t ensure_owner_generation(uint64_t *generation)
@@ -352,13 +357,28 @@ void periodic_owners_init(void)
   dg_random_scheduled = dg_random_requested && dg_random_ready;
   initialized = true;
   if (autoproc_requested && !autoproc_ready)
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     log("WARNING: native automatic-procedure event type unavailable; using legacy heartbeat.");
+#else
+    log("SYSERR: native automatic-procedure event type is unavailable.");
+#endif
   if (dg_random_requested && !dg_random_ready)
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     log("WARNING: native DG random-trigger event type unavailable; using legacy heartbeat.");
+#else
+    log("SYSERR: native DG random-trigger event type is unavailable.");
+#endif
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   log("ITEM_AUTOPROC scheduling: %s (owner limit %zu).",
       autoproc_scheduled ? "scheduled" : "legacy heartbeat", autoproc_limit);
   log("DG random-trigger scheduling: %s (combined owner limit %zu).",
       dg_random_scheduled ? "scheduled" : "legacy heartbeat", dg_random_limit);
+#else
+  log("ITEM_AUTOPROC scheduling: %s (owner limit %zu).",
+      autoproc_scheduled ? "scheduled" : "unavailable", autoproc_limit);
+  log("DG random-trigger scheduling: %s (combined owner limit %zu).",
+      dg_random_scheduled ? "scheduled" : "unavailable", dg_random_limit);
+#endif
 
   if (autoproc_scheduled)
   {

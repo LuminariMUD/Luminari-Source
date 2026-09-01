@@ -2280,7 +2280,7 @@ void finishCasting(struct char_data *ch)
   resetCastingData(ch);
 }
 
-EVENTFUNC(event_casting)
+MUD_EVENT_CALLBACK(event_casting)
 {
   struct char_data *ch;
   struct mud_event_data *pMudEvent;

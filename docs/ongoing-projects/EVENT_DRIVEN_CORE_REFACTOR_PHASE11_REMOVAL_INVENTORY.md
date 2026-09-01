@@ -19,6 +19,11 @@ prevents the physical removals inventoried below. See
 and
 [`EVENT_DRIVEN_CORE_REFACTOR_PHASE11O_ARCHITECTURE_LOCK.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11O_ARCHITECTURE_LOCK.md).
 
+The later rollback-quarantine tranche also removed this code from every normal
+binary. Physical sources remain for the external retention gate, but they are
+compiled only when `LUMINARI_ENABLE_EVENT_ROLLBACK` is explicitly enabled. See
+[`EVENT_DRIVEN_CORE_ROLLBACK_QUARANTINE.md`](EVENT_DRIVEN_CORE_ROLLBACK_QUARANTINE.md).
+
 ## 1. Scope and conclusion
 
 Phase 11 removes rollback infrastructure only after one stable release period
@@ -55,9 +60,10 @@ evidence. The operator evidence procedure and sign-off record are defined in
 ## 3. Old timed-event queue
 
 The ten-bucket queue is private to `src/dgscript/dg_event.c` and
-`src/dgscript/dg_event_internal.h`. Production defaults to the timing wheel, but
-`LUMINARI_EVENT_BACKEND=legacy` and the CuTest selector can still instantiate
-the queue. The retained implementation includes:
+`src/dgscript/dg_event_internal.h`. It is absent from ordinary production
+binaries. An explicitly compiled rollback binary may instantiate it with
+`LUMINARI_EVENT_BACKEND=legacy`, and test builds retain parity coverage. The
+retained implementation includes:
 
 - `EVENT_BACKEND_LEGACY_QUEUE`, `event_q`, and backend selection;
 - `dg_queue`, `q_element`, and ten queue buckets;
@@ -66,7 +72,7 @@ the queue. The retained implementation includes:
 - queue-specific payload ownership and callback-terminal cleanup branches;
 - dual-backend parity tests and the backend dimension of CI/boot matrices.
 
-No normal scheduler-mode gameplay caller directly uses `dg_queue`. Once the
+No ordinary gameplay binary contains `dg_queue`. Once the
 release gate closes, this is mechanically removable together with the backend
 selector and queue-only tests. It must not be removed while it is still the
 documented production rollback.

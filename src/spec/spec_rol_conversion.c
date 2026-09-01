@@ -1901,7 +1901,7 @@ static struct char_data *rol_yggdrasil_juiciest(struct char_data *caller)
   return juiciest;
 }
 
-EVENTFUNC(event_rol_yggdrasil_release)
+MUD_EVENT_CALLBACK(event_rol_yggdrasil_release)
 {
   struct mud_event_data *event = event_obj;
   struct char_data *victim;
@@ -1917,7 +1917,7 @@ EVENTFUNC(event_rol_yggdrasil_release)
   return 0;
 }
 
-EVENTFUNC(event_rol_barbazu_bloodloss)
+MUD_EVENT_CALLBACK(event_rol_barbazu_bloodloss)
 {
   struct mud_event_data *event = event_obj;
   struct char_data *victim;

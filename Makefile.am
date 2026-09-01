@@ -432,7 +432,7 @@ cutest_SOURCES = \
 	unittests/CuTest/AllTests.c \
 	$(luminari_SOURCES)
 
-cutest_CFLAGS = $(AM_CFLAGS) -DLUMINARI_CUTEST
+cutest_CFLAGS = $(AM_CFLAGS) -DLUMINARI_CUTEST -DLUMINARI_EVENT_ROLLBACK_TESTS
 cutest_LDADD = $(luminari_LDADD)
 
 cutest_test_files = \

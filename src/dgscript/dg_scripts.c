@@ -76,9 +76,13 @@ static struct cmdlist_element *find_done(struct cmdlist_element *cl);
 static struct char_data *find_char_by_uid_in_lookup_table(long uid);
 static struct obj_data *find_obj_by_uid_in_lookup_table(long uid);
 static struct game_event_result trig_wait_event(const struct game_event_context *context);
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 static EVENTFUNC(trig_wait_rollback_event);
+#endif
 static void cleanup_trig_wait_event(void *event_obj);
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 static void cleanup_trig_wait_rollback_event(event_handle_t handle, void *event_obj);
+#endif
 
 static game_event_type_id_t dg_wait_event_type;
 
@@ -859,7 +863,9 @@ static void detach_trig_wait(struct wait_event_data *wait_event_obj)
       GET_TRIG_WAIT_DATA(trig) != wait_event_obj)
     return;
   GET_TRIG_WAIT_HANDLE(trig) = EVENT_RUNTIME_HANDLE_NONE;
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   trig->wait_rollback_handle = EVENT_HANDLE_NONE;
+#endif
   GET_TRIG_WAIT_DATA(trig) = NULL;
 }
 
@@ -896,11 +902,13 @@ static struct game_event_result trig_wait_event(const struct game_event_context 
   return game_event_result_complete();
 }
 
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 static EVENTFUNC(trig_wait_rollback_event)
 {
   resume_trig_wait(event_obj);
   return 0;
 }
+#endif
 
 static void cleanup_trig_wait_event(void *event_obj)
 {
@@ -910,6 +918,7 @@ static void cleanup_trig_wait_event(void *event_obj)
   free(wait_event_obj);
 }
 
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 static void cleanup_trig_wait_rollback_event(event_handle_t handle, void *event_obj)
 {
   struct wait_event_data *wait_event_obj = event_obj;
@@ -922,6 +931,7 @@ static void cleanup_trig_wait_rollback_event(event_handle_t handle, void *event_
     detach_trig_wait(wait_event_obj);
   free(wait_event_obj);
 }
+#endif
 
 bool dg_wait_runtime_init(void)
 {
@@ -957,7 +967,11 @@ bool dg_trigger_wait_is_live(const struct trig_data *trig)
     return false;
   if (!event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)))
     return event_runtime_handle_is_live(GET_TRIG_WAIT_HANDLE(trig));
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   return event_handle_is_live(trig->wait_rollback_handle);
+#else
+  return false;
+#endif
 }
 
 long dg_trigger_wait_remaining(const struct trig_data *trig)
@@ -973,7 +987,11 @@ long dg_trigger_wait_remaining(const struct trig_data *trig)
       return 0;
     return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
   }
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   return event_handle_time(trig->wait_rollback_handle);
+#else
+  return 0;
+#endif
 }
 
 void dg_trigger_wait_cancel(struct trig_data *trig)
@@ -982,8 +1000,10 @@ void dg_trigger_wait_cancel(struct trig_data *trig)
     return;
   if (!event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)))
     (void)event_runtime_cancel(GET_TRIG_WAIT_HANDLE(trig));
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   else if (trig->wait_rollback_handle != EVENT_HANDLE_NONE)
     (void)event_handle_cancel(trig->wait_rollback_handle);
+#endif
 }
 
 static void do_stat_trigger(struct char_data *ch, trig_data *trig)
@@ -2108,12 +2128,19 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
   }
   else
   {
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     trig->wait_rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
         trig_wait_rollback_event, wait_event_obj, when, "dg.trigger.wait.rollback",
         cleanup_trig_wait_rollback_event, owner);
+#else
+    status = GAME_SCHEDULER_INVALID_ARGUMENT;
+#endif
   }
-  if (event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)) &&
-      trig->wait_rollback_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig))
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+      && trig->wait_rollback_handle == EVENT_HANDLE_NONE
+#endif
+  )
   {
     GET_TRIG_WAIT_DATA(trig) = NULL;
     free(wait_event_obj);

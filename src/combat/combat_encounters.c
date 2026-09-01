@@ -114,6 +114,10 @@ static bool configured_encounter_mode(void)
 {
   const char *value;
 
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+  if (event_backend_current() != EVENT_BACKEND_GAME_SCHEDULER)
+    return false;
+#endif
 #ifdef LUMINARI_CUTEST
   if (test_selection_set)
     return test_encounter_mode;

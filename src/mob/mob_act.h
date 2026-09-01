@@ -47,7 +47,9 @@ enum mobile_work_reason
 #define MOBILE_WORK_FIXED_CADENCE_MASK                                                     \
   (MOBILE_WORK_RECURRING_MASK & ~(MOBILE_WORK_WANDER | MOBILE_WORK_RESOURCE_RECOVERY))
 
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 void mobile_activity_run_legacy_cycle(void);
+#endif
 void mobile_activity_run_one(struct char_data *ch);
 void mobile_activity_run_scheduled(struct char_data *ch, mobile_work_mask reasons);
 mobile_work_mask mobile_activity_recurring_reasons(struct char_data *ch);
@@ -55,7 +57,9 @@ mobile_work_mask mobile_activity_room_reaction_reasons(const struct char_data *c
 mobile_work_mask mobile_activity_combat_reaction_reasons(const struct char_data *ch);
 long mobile_activity_next_wander_delay(void);
 long mobile_activity_next_resource_recovery_delay(const struct char_data *ch);
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 void mobile_activity_run_legacy_slice(int heart_pulse);
+#endif
 void mobile_activity_reset(void);
 void mobile_activity_forget_character(struct char_data *ch);
 

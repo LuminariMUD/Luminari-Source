@@ -1,8 +1,9 @@
 #ifndef _DG_EVENT_INTERNAL_H_
 #define _DG_EVENT_INTERNAL_H_
 
-/* Private compatibility and rollback surface. Gameplay code uses dg_event.h. */
+/* Private physical-rollback queue surface. */
 #include "dg_event.h"
+#include "dg_event_rollback.h"
 #include "event_runtime.h"
 
 #define NUM_EVENT_QUEUES 10

@@ -510,7 +510,7 @@ static bool rol_deaths_head_try_germinate(struct mud_event_data *event, struct o
   return true;
 }
 
-EVENTFUNC(event_rol_deaths_head_seed)
+MUD_EVENT_CALLBACK(event_rol_deaths_head_seed)
 {
   struct mud_event_data *event = event_obj;
   struct obj_data *seed;

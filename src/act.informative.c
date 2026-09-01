@@ -10079,7 +10079,7 @@ ACMD(do_track) {
  */
 
 /* Event function for tracks, causing decay and eventual removal. */
-EVENTFUNC(event_tracks)
+MUD_EVENT_CALLBACK(event_tracks)
 {
   struct mud_event_data *pMudEvent = NULL;
   char buf[128];

@@ -780,7 +780,7 @@ void perform_eternalmountaindefense(struct char_data *ch)
     start_daily_use_cooldown(ch, FEAT_STUNNING_FIST);
 }
 /* Event handler for Fist of Four Thunders lightning strikes */
-EVENTFUNC(event_fist_of_four_thunders)
+MUD_EVENT_CALLBACK(event_fist_of_four_thunders)
 {
   struct char_data *ch = NULL, *vict = NULL, *next_vict = NULL;
   struct mud_event_data *pMudEvent = NULL;
@@ -3119,7 +3119,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
 }
 
 /* this is the event function for whirlwind */
-EVENTFUNC(event_whirlwind)
+MUD_EVENT_CALLBACK(event_whirlwind)
 {
   struct char_data *ch = NULL, *tch = NULL;
   struct mud_event_data *pMudEvent = NULL;
@@ -10155,7 +10155,7 @@ ACMD(do_radiantaura)
  * Event handler for Radiant Aura periodic damage
  * Damages undead in the room every 6 seconds
  */
-EVENTFUNC(event_radiant_aura)
+MUD_EVENT_CALLBACK(event_radiant_aura)
 {
   struct char_data *ch = NULL, *vict = NULL, *next_vict = NULL;
   struct mud_event_data *pMudEvent = NULL;

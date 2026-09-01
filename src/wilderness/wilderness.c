@@ -1709,7 +1709,7 @@ void show_wilderness_map(struct char_data *ch, int size, int x, int y)
  * and will be safely managed by assign_wilderness_room() when the room
  * is reused. This prevents memory corruption during room recycling.
  */
-EVENTFUNC(event_check_occupied)
+MUD_EVENT_CALLBACK(event_check_occupied)
 {
   struct mud_event_data *pMudEvent = NULL;
   struct room_data *room = NULL;

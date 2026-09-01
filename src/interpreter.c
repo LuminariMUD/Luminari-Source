@@ -7097,7 +7097,7 @@ int enter_player_game(struct descriptor_data *d)
 }
 
 /* protocol handling event */
-EVENTFUNC(get_protocols)
+MUD_EVENT_CALLBACK(get_protocols)
 {
   struct descriptor_data *d;
   struct mud_event_data *pMudEvent;

@@ -84,7 +84,7 @@ void update_msdp_actions(struct char_data *ch)
  *
  * If a player has one of these events, that signifies that they do NOT have
  * that action available. */
-EVENTFUNC(event_action_cooldown)
+MUD_EVENT_CALLBACK(event_action_cooldown)
 {
   struct mud_event_data *pMudEvent;
   struct char_data *ch = NULL;

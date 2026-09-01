@@ -208,7 +208,7 @@ static bool rol_drow_decay_once(struct obj_data *obj)
   return false;
 }
 
-EVENTFUNC(event_rol_drow_decay)
+MUD_EVENT_CALLBACK(event_rol_drow_decay)
 {
   struct mud_event_data *event = event_obj;
   struct obj_data *obj;

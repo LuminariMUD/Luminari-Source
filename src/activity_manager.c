@@ -720,8 +720,6 @@ enum domain_event_status primary_activity_manager_init(struct domain_event_bus *
     return DOMAIN_EVENT_INVALID_ARGUMENT;
   if (initialized)
     return DOMAIN_EVENT_BUSY;
-  if (!register_primary_activity_event_type())
-    return DOMAIN_EVENT_BUSY;
   memset(&activity_stats, 0, sizeof(activity_stats));
   activity_bus = bus;
   shutting_down = false;
@@ -731,6 +729,12 @@ enum domain_event_status primary_activity_manager_init(struct domain_event_bus *
   if (test_camp_selection)
     managed_camp = test_managed_camp;
 #endif
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+  if (event_backend_current() != EVENT_BACKEND_GAME_SCHEDULER)
+    managed_camp = false;
+#endif
+  if (managed_camp && !register_primary_activity_event_type())
+    return DOMAIN_EVENT_BUSY;
   for (index = 0U; index < sizeof(handlers) / sizeof(handlers[0]); index++)
   {
     status = domain_event_register_handler(bus, &handlers[index]);

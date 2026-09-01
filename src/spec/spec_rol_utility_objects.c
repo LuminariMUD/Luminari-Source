@@ -224,7 +224,7 @@ bool rol_utility_acheron_platform_room_allowed(int current_vnum, int destination
          abs(destination_vnum - current_vnum) > 3;
 }
 
-EVENTFUNC(event_rol_spiderhaunt_maggots)
+MUD_EVENT_CALLBACK(event_rol_spiderhaunt_maggots)
 {
   struct mud_event_data *event_data;
   struct char_data *ch;

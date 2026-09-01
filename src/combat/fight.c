@@ -16656,7 +16656,7 @@ bool combat_run_semantic_round(struct char_data *ch, bool was_hit)
 }
 
 /* Per-character rollback event for the compatibility combat phases. */
-EVENTFUNC(event_combat_round)
+MUD_EVENT_CALLBACK(event_combat_round)
 {
   struct char_data *ch;
   struct mud_event_data *pMudEvent;

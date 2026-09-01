@@ -45,7 +45,7 @@
 extern void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch, const char *argument,
                                                   int cmd, int subcmd);
 /* Prototype for the event function. */
-EVENTFUNC(event_action_recover);
+MUD_EVENT_CALLBACK(event_action_recover);
 
 /* - Cooldown utilities --------------- */
 bool is_action_available(struct char_data *ch, action_type act_type, bool msg_to_char);

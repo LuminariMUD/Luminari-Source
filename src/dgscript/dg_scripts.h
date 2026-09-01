@@ -15,7 +15,10 @@
 #ifndef _DG_SCRIPTS_H_
 #define _DG_SCRIPTS_H_
 
-#include "event_handle.h"
+#include "event_runtime.h"
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#include "dg_event_rollback.h"
+#endif
 #include "utils.h" /* To make sure ACMD is defined */
 
 #define MOB_TRIGGER 0
@@ -169,7 +172,9 @@ struct trig_data
   int depth;                          /**< depth into nest ifs/whiles/etc  */
   int loops;                          /**< loop iteration counter          */
   struct event_runtime_handle wait_event_handle; /**< Native event that pauses the trigger. */
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   event_handle_t wait_rollback_handle; /**< Temporary legacy-backend fallback. */
+#endif
   struct wait_event_data *wait_event_data; /**< payload used by room OLC */
   ubyte purged;                       /**< trigger is set to be purged     */
   struct trig_var_data *var_list;     /**< list of local vars for trigger  */

@@ -214,6 +214,9 @@ static void persistence_schedule_minute(int include_crash_and_houses);
 static void persistence_scheduler_step(uint64_t heart_pulse);
 static bool persistence_step_schedule(void);
 static bool runtime_services_init(void);
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+static bool runtime_services_configured_scheduled(void);
+#endif
 static void runtime_services_safe_point(void);
 static void comm_wait_state_advance(struct char_data *ch, uint64_t now_tick);
 static uint64_t comm_wait_state_deadline_usec(const struct char_data *ch,
@@ -531,7 +534,16 @@ int main(int argc, char **argv)
     active_world_begin_bootstrap();
     boot_world();
     active_world_end_bootstrap();
-    (void)runtime_services_init();
+    if (!runtime_services_init()
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+        && runtime_services_configured_scheduled()
+#endif
+    )
+    {
+      log("SYSERR: Unable to initialize required native runtime services.");
+      event_free_all();
+      return EXIT_FAILURE;
+    }
     if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
         event_runtime_seal_types() != GAME_SCHEDULER_OK)
     {
@@ -787,7 +799,15 @@ static void init_game(ush_int local_port)
   init_lookup_table();
 
   boot_db();
-  (void)runtime_services_init();
+  if (!runtime_services_init()
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+      && runtime_services_configured_scheduled()
+#endif
+  )
+  {
+    log("SYSERR: Unable to initialize required native runtime services.");
+    exit(1);
+  }
   if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
       event_runtime_seal_types() != GAME_SCHEDULER_OK)
   {
@@ -1215,6 +1235,7 @@ void game_loop(socket_t local_mother_desc)
   int missed_pulses = 0, maxdesc = 0, aliased = 0;
   int i3_event_fd = -1;
   int ai_event_fd = -1;
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   int requested_missed_pulses = 0;
   int requested_heartbeats = 0;
   int replayed_heartbeats = 0;
@@ -1224,6 +1245,7 @@ void game_loop(socket_t local_mother_desc)
   uint64_t heartbeat_replay_start_usec = 0;
   uint64_t heartbeat_replay_now_usec = 0;
   uint64_t heartbeat_replay_elapsed_usec = 0;
+#endif
   uint64_t command_start_usec = 0;
   uint64_t command_end_usec = 0;
   uint64_t command_elapsed_usec = 0;
@@ -1241,11 +1263,15 @@ void game_loop(socket_t local_mother_desc)
   bool scheduler_has_deadline = false;
   bool heartbeat_due = false;
   bool compatibility_tick_required = false;
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   unsigned long heartbeat_tick = 0;
+#endif
   struct game_scheduler_budget scheduler_budget;
   struct game_scheduler_dispatch_report scheduler_report;
   enum game_scheduler_status scheduler_status;
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   time_t catchup_log_now = 0;
+#endif
   char command_name[MAX_INPUT_LENGTH] = {'\0'};
   char command_player[MAX_NAME_LENGTH + 1] = {'\0'};
   int command_level = 0;
@@ -1254,11 +1280,13 @@ void game_loop(socket_t local_mother_desc)
   static time_t last_severe_log_time = 0;
   static time_t last_critical_log_time = 0;
   static int perf_log_suppressed = 0;
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   static time_t last_catchup_log_time = 0;
   static uint64_t catchup_log_passes = 0;
   static uint64_t catchup_log_budget_exhausted = 0;
   static uint64_t catchup_log_max_requested = 0;
   static uint64_t catchup_log_max_remaining = 0;
+#endif
   enum luminari_io_driver io_driver;
 
   /* initialize various time values */
@@ -1460,8 +1488,12 @@ void game_loop(socket_t local_mother_desc)
                              : 0;
     pulse = runtime_tick_value > ULONG_MAX ? ULONG_MAX : (unsigned long)runtime_tick_value;
 
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     compatibility_tick_required =
         event_backend_current() == EVENT_BACKEND_LEGACY_QUEUE || !runtime_services_enabled();
+#else
+    compatibility_tick_required = false;
+#endif
     heartbeat_timeout_usec = compatibility_tick_required
                                  ? (before_sleep_usec >= next_heartbeat_usec
                                         ? 0
@@ -1745,6 +1777,7 @@ void game_loop(socket_t local_mother_desc)
         close_socket(d);
     }
 
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     if (heartbeat_due)
     {
       if (runtime_services_enabled())
@@ -1842,6 +1875,7 @@ void game_loop(socket_t local_mother_desc)
       }
       }
     }
+#endif
 
     scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
     if (scheduler_status == GAME_SCHEDULER_OK && scheduler_has_deadline &&
@@ -2350,8 +2384,11 @@ static bool runtime_services_test_scheduled_selection;
 
 static bool runtime_services_configured_scheduled(void)
 {
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   const char *value;
 
+  if (event_backend_current() != EVENT_BACKEND_GAME_SCHEDULER)
+    return false;
 #ifdef LUMINARI_CUTEST
   if (runtime_services_test_selection_set)
     return runtime_services_test_scheduled_selection;
@@ -2367,6 +2404,9 @@ static bool runtime_services_configured_scheduled(void)
     return false;
   log("WARNING: Unknown LUMINARI_RUNTIME_SERVICES '%s'; using scheduled services.", value);
   return true;
+#else
+  return true;
+#endif
 }
 
 static bool runtime_service_needed(enum runtime_service_kind kind)
@@ -2374,20 +2414,40 @@ static bool runtime_service_needed(enum runtime_service_kind kind)
   switch (kind)
   {
   case RUNTIME_SERVICE_DG_RANDOM:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     return !periodic_dg_random_enabled();
+#else
+    return false;
+#endif
   case RUNTIME_SERVICE_PSP:
   case RUNTIME_SERVICE_WALK:
   case RUNTIME_SERVICE_BARDIC:
   case RUNTIME_SERVICE_HINTS:
   case RUNTIME_SERVICE_CHARACTER_SIX_SECOND:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     return !character_periodic_events_enabled();
+#else
+    return false;
+#endif
   case RUNTIME_SERVICE_ROL_SHIP:
   case RUNTIME_SERVICE_VESSEL:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     return CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled();
+#else
+    return false;
+#endif
   case RUNTIME_SERVICE_MOBILE_ACTIVITY:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     return !active_world_enabled();
+#else
+    return false;
+#endif
   case RUNTIME_SERVICE_LUMINARI:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     return !affected_owner_events_enabled() || !character_periodic_events_enabled();
+#else
+    return false;
+#endif
   default:
     return true;
   }
@@ -2420,10 +2480,12 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
   switch (kind)
   {
   case RUNTIME_SERVICE_DG_RANDOM:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     PERF_note_schedule(PERF_SCHEDULE_13_SECONDS);
     PERF_PROF_ENTER_SAMPLED(pr_script_trigger_, "script_trigger_check");
     script_trigger_check();
     PERF_PROF_EXIT(pr_script_trigger_);
+#endif
     break;
   case RUNTIME_SERVICE_MOVING_ROOMS:
     moving_rooms_update();
@@ -2448,14 +2510,19 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     break;
   }
   case RUNTIME_SERVICE_PSP:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     PERF_note_schedule(PERF_SCHEDULE_5_SECONDS);
     regen_psp();
+#endif
     break;
   case RUNTIME_SERVICE_ROL_SHIP:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     rol_ship_activity();
+#endif
     break;
   case RUNTIME_SERVICE_VESSEL:
   {
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     PERF_PROF_ENTER_SAMPLED(pr_vessel_tick, "vessel_tick");
     PERF_PROF_ENTER_SAMPLED(pr_vessel_autopilot, "vessel_autopilot");
     autopilot_tick();
@@ -2488,10 +2555,13 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     vessel_msdp_tick();
     PERF_PROF_EXIT(pr_vessel_msdp);
     PERF_PROF_EXIT(pr_vessel_tick);
+#endif
     break;
   }
   case RUNTIME_SERVICE_WALK:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     process_walkto_actions();
+#endif
     break;
   case RUNTIME_SERVICE_MINUTE_MAINTENANCE:
     PERF_note_schedule(PERF_SCHEDULE_60_SECONDS);
@@ -2513,20 +2583,25 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     check_idle_passwords();
     break;
   case RUNTIME_SERVICE_MOBILE_ACTIVITY:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     PERF_PROF_ENTER_SAMPLED(pr_mob_activity_, "legacy_mobile_activity");
     mobile_activity_run_legacy_slice((int)(now_tick % (unsigned long)PULSE_MOBILE));
     PERF_PROF_EXIT(pr_mob_activity_);
+#endif
     break;
   case RUNTIME_SERVICE_AUTOMATIC_PROCEDURES:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     if (!periodic_autoproc_enabled())
     {
       PERF_PROF_ENTER_SAMPLED(pr_proc_update_, "proc_update");
       proc_update();
       PERF_PROF_EXIT(pr_proc_update_);
     }
+#endif
     rol_avernus_process_garden_activity();
     break;
   case RUNTIME_SERVICE_HUNT_CLOCK_AND_ROUND_ROLLBACK:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     if (!affected_owner_events_enabled())
     {
       PERF_PROF_ENTER_SAMPLED(pr_aff_update_, "affect_update");
@@ -2535,26 +2610,35 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     }
     if (!character_periodic_events_enabled())
       proc_d20_round();
+#endif
     hunt_reset_timer--;
     break;
   case RUNTIME_SERVICE_LUMINARI:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     PERF_note_schedule(PERF_SCHEDULE_5_SECONDS);
     PERF_PROF_ENTER_SAMPLED(pr_lum_, "legacy_luminari_maintenance");
     process_legacy_luminari_maintenance();
     PERF_PROF_EXIT(pr_lum_);
+#endif
     break;
   case RUNTIME_SERVICE_BARDIC:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     advance_legacy_bardic_performers();
+#endif
     break;
   case RUNTIME_SERVICE_HINTS:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     show_hints();
+#endif
     break;
   case RUNTIME_SERVICE_CHARACTER_SIX_SECOND:
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     PERF_note_schedule(PERF_SCHEDULE_6_SECONDS);
     PERF_PROF_ENTER_SAMPLED(pr_upd_, "update_damage_and_effects_over_time");
     update_damage_and_effects_over_time();
     PERF_PROF_EXIT(pr_upd_);
     update_player_misc();
+#endif
     break;
   case RUNTIME_SERVICE_AUCTION_AND_DEVICE_RECOVERY:
     PERF_note_schedule(PERF_SCHEDULE_30_SECONDS);
@@ -2598,20 +2682,23 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
     next_tick = SECS_PER_MUD_HOUR;
     weather_and_time(1);
     check_time_triggers();
-    if (point_update_events_enabled())
-      point_update_periodic_dispatch_due();
-    else
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+    if (!point_update_events_enabled())
       point_update();
     if (!character_periodic_events_enabled())
       check_timed_quests();
+#endif
+    point_update_periodic_dispatch_due();
     check_diplomacy();
     update_clans();
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     if (CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled())
     {
       PERF_PROF_ENTER_SAMPLED(pr_vessel_schedules, "vessel_schedules");
       schedule_tick();
       PERF_PROF_EXIT(pr_vessel_schedules);
     }
+#endif
     cleanup_all_trails();
     PERF_PROF_EXIT(pr_ost_);
     break;
@@ -2784,8 +2871,13 @@ static bool runtime_services_init(void)
     {
       if (!runtime_service_schedule(&runtime_service_table[index]))
       {
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
         log("WARNING: unable to schedule runtime service '%s'; restoring the legacy heartbeat.",
             runtime_service_table[index].name);
+#else
+        log("SYSERR: unable to schedule required native runtime service '%s'.",
+            runtime_service_table[index].name);
+#endif
         runtime_services_scheduled = false;
         runtime_services_shutdown();
         runtime_services_initialized = true;
@@ -2793,8 +2885,13 @@ static bool runtime_services_init(void)
       }
     }
   }
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   log("Runtime services: %s.",
       runtime_services_scheduled ? "scheduled by named cadence" : "legacy heartbeat");
+#else
+  log("Runtime services: %s.",
+      runtime_services_scheduled ? "scheduled by named cadence" : "unavailable");
+#endif
   return runtime_services_scheduled;
 }
 
@@ -2914,6 +3011,7 @@ bool runtime_services_persistence_pending_for_test(void)
 /* here she is, heartbeat function - called every 1/10th of a second */
 void heartbeat(int heart_pulse)
 {
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   static int mins_since_crashsave = 0;
   static struct PERF_prof_sect *pr_event_process = NULL;
   static struct PERF_prof_sect *pr_vessel_tick = NULL;
@@ -3252,6 +3350,9 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % PULSE_TIMESAVE))
     save_mud_time(&time_info);
 
+#else
+  (void)heart_pulse;
+#endif
 }
 
 /* new code to calculate time differences, which works on systems for which

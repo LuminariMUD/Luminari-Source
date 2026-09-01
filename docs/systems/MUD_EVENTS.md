@@ -33,13 +33,12 @@ Core source files:
 - [src/mud_event_list.c](../../src/mud_event_list.c)
 
 Key entry points (clickable declarations):
-- [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28): standard signature for all event functions
-- [C.event_create_named_with_cleanup()](../../src/dgscript/dg_event.c): schedule through the active backend
-- [C.event_schedule_named_with_cleanup()](../../src/dgscript/dg_event.c): schedule through an opaque compatibility handle
-- [C.event_schedule_owned_named_with_terminal_cleanup()](../../src/dgscript/dg_event.c): schedule owned payloads with cleanup on every terminal path
-- [C.event_process()](../../src/dgscript/dg_event.c): compatibility entry point for advancing the active backend
-- [C.event_cancel()](../../src/dgscript/dg_event.c): cancel a queued or in-flight event safely
-- [C.event_handle_cancel()](../../src/dgscript/dg_event.c): cancel without exposing a compatibility record
+- [C.event_runtime_register_type()](../../src/event_runtime.c): register one immutable semantic event type during boot
+- [C.event_runtime_schedule_owned_after()](../../src/event_runtime.c): schedule typed owner work and receive a generation-safe native handle
+- [C.event_runtime_cancel()](../../src/event_runtime.c): cancel queued or in-flight work safely
+- [C.event_runtime_cancel_owner()](../../src/event_runtime.c): cancel every event for one typed owner
+- [C.event_process_scheduler()](../../src/dgscript/dg_event.c): advance the one process-owned timing wheel
+- `MUD_EVENT_CALLBACK` in [src/mud_event_callback.h](../../src/mud_event_callback.h): callback ABI for table-driven MUD timers
 - [C.event_time()](../../src/dgscript/dg_event.c): remaining pulses until an event fires
 - [C.event_free_all()](../../src/dgscript/dg_event.c): bulk free all events (shutdown/reset)
 - [C.attach_mud_event()](../../src/mud_event.c#L437): attach a MUD event to an entity and queue it
@@ -147,24 +146,33 @@ they do not discover autonomous mobile work. `service.persistence_batch` is a
 separate one-owner worker that performs bounded incremental persistence and
 reschedules one tick later only while that cycle remains active.
 
-## 2. Timed-Event Compatibility Facade
+## 2. Native Runtime and Rollback Facade
 
 ### 2.1 Data Structures and Signatures
 
-- Event function signature: [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28)
+- Rollback callback signature: `EVENTFUNC` in
+  [src/dgscript/dg_event_rollback.h](../../src/dgscript/dg_event_rollback.h)
 - The compatibility record is private to `dg_event.c` through
   `dg_event_internal.h`. Gameplay modules cannot declare or inspect it.
 - Owned events also carry a typed `(kind, runtime_id, generation)` handle. The
   scheduler indexes this handle independently of timing-wheel location.
-- Production defaults to the timing-wheel scheduler. Set `LUMINARI_EVENT_BACKEND=legacy` before boot to select the rollback queue.
-- Selection reads the process environment first and then `lib/.env`, occurs only in `event_init()`, and cannot change until `event_free_all()` has emptied and destroyed the active backend.
-- Unknown values log a warning and use the scheduler. Scheduler initialization failure logs the error and falls back to the legacy queue.
+- Production contains only the process-owned timing-wheel scheduler. Scheduler
+  initialization failure aborts startup instead of silently entering the old
+  architecture.
+- The old queue and its selector exist only in a separately compiled rollback
+  executable (`-DLUMINARI_ENABLE_EVENT_ROLLBACK=ON` in CMake or
+  `./configure --enable-event-rollback` in Autotools).
+- In that rollback executable, selection reads `LUMINARI_EVENT_BACKEND` once
+  during `event_init()` and remains immutable until shutdown. The ordinary
+  executable does not contain or recognize the selector.
 - `event_backend_name()` and `event_backend_current()` expose the selected backend for diagnostics and tests.
 
-### 2.2 Opaque Handle Migration API
+### 2.2 Quarantined Rollback Handle API
 
-Owners store `event_handle_t`; the raw pointer type is not part of the public
-gameplay API.
+Normal owners store native `event_runtime_handle` values. The following opaque
+facade exists only for guarded physical-rollback adapters and parity tests; it
+is declared in `dg_event_rollback.h`, not the public runtime header. The raw
+pointer type is not part of the gameplay API.
 `EVENT_HANDLE_NONE` is the only empty value. `event_schedule*()` admits work
 through either selected backend and returns an opaque handle; callers use
 `event_handle_cancel()`, `event_handle_time()`, `event_handle_is_live()`, and
@@ -226,7 +234,7 @@ contain `mud_event_data` payload pointers; callers use `mud_event_is_live()`,
 `mud_event_remaining()`, and `mud_event_cancel()` without knowing the selected
 backend. The facade contains no MUD-specific flag or destructor branch.
 
-### 2.3 Lifecycle (Base)
+### 2.3 Quarantined Rollback Lifecycle
 
 - Create/schedule: [C.event_schedule_named_with_cleanup()](../../src/dgscript/dg_event.c)
   - Ensures a minimum delay of 1 pulse
@@ -304,10 +312,10 @@ Useful views:
   bounded publication and callback telemetry.
 
 Diagnostic IDs are process-local and are reset at event-system teardown. Native
-entries use their scheduler IDs. Inspection is backend-neutral, so the queue
-view remains available during a
-boot with `LUMINARI_EVENT_BACKEND=legacy`; timing-wheel internals are naturally
-reported only by the scheduler backend. Compatibility-owner teardown removes
+entries use their scheduler IDs. Inspection is backend-neutral in an explicit
+rollback build, so the queue view also remains available during a boot with
+`LUMINARI_EVENT_BACKEND=legacy`. Timing-wheel internals are naturally reported
+only by the scheduler backend. Compatibility-owner teardown removes
 events before owner memory is released, so it has no post-lookup stale-owner
 outcome. Typed consumers introduced in later phases must count failed
 generation-aware resolution with `event_note_stale_owner_outcome()` rather than
@@ -649,7 +657,7 @@ manager counters.
 
 - The registry lives in [C.mud_event_index[]](../../src/mud_event_list.c#L46)
 - Each entry contains:
-  - Name and event handler function (EVENTFUNC)
+  - Name and `MUD_EVENT_CALLBACK` handler function
   - Event type (which owner list to attach to)
   - Optional messages: completion_msg (one-shot countdown) and recovery_msg (daily-use)
   - Feat association: feat_num, or FEAT_UNDEFINED if non-feat
@@ -659,9 +667,9 @@ manager counters.
 
 ## 7. Important Safety and Memory Practices
 
-- Never access or relink the private `struct event` record from MUD gameplay.
-  Use `event_handle_cancel()` or the owner clear helpers; the facade safely
-  records in-flight cancellation and prevents recurrence from reviving work.
+- Never access or relink the quarantined `struct event` record from MUD
+  gameplay. Use native runtime cancellation or the owner clear helpers; they
+  record in-flight cancellation and prevent recurrence from reviving work.
 - Never call [C.event_free_all()](../../src/dgscript/dg_event.c) while processing
   is active; it is guarded, but treat it as shutdown-only.
 - For EVENT_ROOM and EVENT_REGION:
@@ -702,10 +710,11 @@ manager counters.
 - Add a new enumerator to event_id in [src/mud_event.h](../../src/mud_event.h)
 
 2) Declare handler prototype:
-- Ensure there is an EVENTFUNC prototype like [C.EVENTFUNC()](../../src/mud_event.h#L252) for your function
+- Use `MUD_EVENT_CALLBACK(my_event_handler)` in the declaration.
 
 3) Implement the handler:
-- Implement long my_event_handler(void *event_obj) using [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28) semantics
+- Implement `MUD_EVENT_CALLBACK(my_event_handler)` and cast `event_obj` to the
+  expected owned payload.
 - Return value:
   - > 0: number of pulses until reschedule
   - 0: do not reschedule, event completes
@@ -770,42 +779,17 @@ manager counters.
 
 ## 12. Operational Notes
 
-- Backend selection:
-  - Default: `LUMINARI_EVENT_BACKEND=scheduler`
-  - Rollback: `LUMINARI_EVENT_BACKEND=legacy`
-  - Restart after changing the value; live backend switching is unsupported
-- Runtime-service selection:
-  - Default: `LUMINARI_RUNTIME_SERVICES=scheduled`
-  - Rollback: `LUMINARI_RUNTIME_SERVICES=legacy`
-  - Scheduled mode derives runtime ticks monotonically and admits named cadence
-    events all-or-nothing. Legacy mode restores the complete 100 ms heartbeat.
-    The legacy timed backend also retains a 100 ms adapter tick for queue
-    advancement even when named runtime services remain selected.
-- Character-periodic selection:
-  - Default: `LUMINARI_CHARACTER_EVENTS=scheduled`
-  - Rollback: `LUMINARI_CHARACTER_EVENTS=legacy`
-  - The selection jointly controls walk-to, PSP, bardic verse, hint,
-    per-character Luminari, damage/effect, and player-maintenance work;
-    scheduled and rollback paths never run together.
-- Affected-owner selection:
-  - Default: `LUMINARI_AFFECT_EVENTS=scheduled`
-  - Rollback: `LUMINARI_AFFECT_EVENTS=legacy`
-  - The selection controls affected-character and affected-room duration work
-    plus affected-room Luminari behavior. It is independent of the character
-    selection, and each legacy wrapper runs only the half it owns.
-- Vessel-periodic selection:
-  - Default: `LUMINARI_VESSEL_EVENTS=scheduled`
-  - Rollback: `LUMINARI_VESSEL_EVENTS=legacy`
-  - The selection controls all Greyhawk owner work, global vessel service
-    work, mud-hour vessel/merchant work, and fixed-RoL ship movement. Startup
-    admission failure selects the legacy path for the whole subsystem;
-    scheduled and rollback paths never run together.
-- Point-update selection:
-  - Default: `LUMINARI_POINT_UPDATE_EVENTS=scheduled`
-  - Rollback: `LUMINARI_POINT_UPDATE_EVENTS=legacy`
-  - The selection jointly controls global, player, and object mud-hour point
-    phases. Startup service-admission failure falls back to the whole legacy
-    traversal; partial scheduled mode is not allowed.
+- The ordinary build is scheduler-only. It contains no old event queue,
+  compatibility heartbeat, whole-mobile activity loop, or selectors for the
+  affected, character-periodic, point-update, vessel, active-world, timed-event,
+  and runtime-service rollback paths.
+- Native event and runtime-service initialization is all-or-nothing. Admission
+  failure aborts startup rather than silently enabling population scans.
+- A retained rollback executable must be built explicitly with
+  `LUMINARI_ENABLE_EVENT_ROLLBACK`. Only that executable recognizes
+  `LUMINARI_EVENT_BACKEND`, `LUMINARI_RUNTIME_SERVICES`, and the subsystem
+  rollback selectors. Restart after changing them; live conversion is not
+  supported.
 - Combat-round selection:
   - Default: `LUMINARI_COMBAT_EVENTS=encounter`
   - Rollback: `LUMINARI_COMBAT_EVENTS=legacy`
@@ -827,12 +811,12 @@ manager counters.
     camp command decomposition; scheduler, reactor, domain, and combat modes
     remain authoritative.
 - Startup logs one `Event backend initialized:` line naming the effective
-  backend.
+  backend. An ordinary build always reports `scheduler`.
 - `perf event total` and the PERFMON CSV representation include lifecycle,
   delay-distribution, queue-depth, due-batch, and callback-duration aggregates.
-- The libevent reactor arms the nearest scheduler or queued-wait deadline.
-  The select driver, legacy event queue, and full heartbeat remain boot-time
-  rollback options until the Phase 11 retirement gate.
+- The libevent reactor arms the nearest scheduler or queued-wait deadline. The
+  old queue and full heartbeat remain available only in the separately compiled
+  rollback executable until the Phase 11 retirement gate.
 
 - World events:
   - Global list is created in [C.init_events()](../../src/mud_event.c#L66) and defined at [src/mud_event.c](../../src/mud_event.c#L58)
@@ -859,7 +843,7 @@ manager counters.
 ## 15. Checklist Before Merging New Event Code
 
 - Event ID added to enum in [src/mud_event.h](../../src/mud_event.h)
-- Handler implemented with [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28)
+- Handler implemented with `MUD_EVENT_CALLBACK` from `mud_event_callback.h`
 - Row added to [C.mud_event_index[]](../../src/mud_event_list.c#L46) with correct type and messages
 - Attach paths validated for entity type (and VNUM copying for room/region)
 - sVariables allocation and free verified

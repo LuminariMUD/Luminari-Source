@@ -1,7 +1,7 @@
 # Event-Driven Core Refactor Specification
 
 **Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible implementation and final source audit are complete; irreversible removal gate pending
-**Document version:** 1.45
+**Document version:** 1.46
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
 **Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, the final adversarial source audit, the executable demand-driven architecture lock, and the current-SHA operator release-gate handoff are implemented; only the externally gated physical rollback removal remains
@@ -9,8 +9,9 @@
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
 > scheduler deadlines now drive bounded reactor dispatch. Named service events
-> own the remaining cadence work by default; the compatibility heartbeat remains
-> only for explicit runtime-service or timed-backend rollback. Generation-aware MUD-event
+> own the remaining cadence work in every ordinary build. The compatibility
+> heartbeat, old queue, and population loops are excluded unless a separate
+> rollback executable is intentionally compiled. Generation-aware MUD-event
 > ownership and lifecycle cancellation form the accepted scheduler foundation.
 > A private `libevent` compatibility reactor now owns production readiness and
 > signals, with boot-time `select()` rollback. Gameplay timing ownership is
@@ -2143,6 +2144,17 @@ Readiness audit, 2026-08-31:
   share the wheel. The frozen 18-call compatibility inventory remains the
   explicit migration backlog. Evidence is recorded in
   [`EVENT_DRIVEN_CORE_NATIVE_RUNTIME_FOUNDATION.md`](EVENT_DRIVEN_CORE_NATIVE_RUNTIME_FOUNDATION.md).
+- The rollback-quarantine tranche completed the reversible portion of Phase 11
+  removal. Normal CMake and Autotools builds compile one native timing wheel,
+  typed event callbacks, named services, and no runtime selector for the old
+  queue or heartbeat. The old queue, facade, heartbeat body, whole-mobile loop,
+  adapter branches, and subsystem selectors remain physically present only
+  under the default-disabled `LUMINARI_ENABLE_EVENT_ROLLBACK` build option or
+  the test-only parity definition. Native initialization now fails startup
+  closed. The public runtime header no longer exports the rollback facade or a
+  legacy backend enum in normal builds. Evidence and operator instructions are
+  recorded in
+  [`EVENT_DRIVEN_CORE_ROLLBACK_QUARANTINE.md`](EVENT_DRIVEN_CORE_ROLLBACK_QUARANTINE.md).
 
 ## 24. Verification Strategy
 
@@ -2533,3 +2545,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.43 | 2026-09-01 | Migrated DG trigger waits to native owner-required `dg.trigger.wait` events on the normal scheduler path while retaining one localized adapter for explicit physical legacy rollback. Added readable `eventdebug` entity views for live players, mobiles, objects, and rooms plus DG-script-only filtering for those entities; owner identity intentionally spans subsystem generations and payloads remain redacted. |
 | 1.44 | 2026-09-01 | Registered all 232 usable table-driven MUD IDs as distinct native owner-required types on the normal scheduler path, with readable names such as `mud.004.lay_on_hands`. Migrated admission, recurrence, cancellation, duration and payload mutation, durable reconstruction, and external remaining-time consumers to native runtime handles; retained one localized adapter solely for physical legacy rollback. Entity-focused `eventdebug` now identifies ability cooldowns and other MUD timers by semantic type. |
 | 1.45 | 2026-09-01 | Migrated asynchronous AI response delivery and retry admission to native owner-required `ai.response.delivery` and `ai.request.retry` types. Added a bounded mutex-protected worker ingress with a nonblocking reactor wake pipe, generation-safe player/NPC handles, main-thread cache mutation and scheduler admission, exactly-once payload cleanup, worker joining across shutdown/copyover, and compact AI ingress telemetry in `eventdebug`; physical legacy rollback retains localized adapters only. |
+| 1.46 | 2026-09-01 | Quarantined the old timed-event queue, compatibility facade, heartbeat body, whole-mobile loop, physical rollback adapters, and subsystem selectors behind a default-disabled build option. Ordinary binaries now contain only the native scheduler path and fail startup closed; rollback builds remain available for the externally gated retention period, and parity tests use an explicit test-only definition. |

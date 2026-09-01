@@ -2654,8 +2654,10 @@ void check_devices(void)
 void process_auction_and_legacy_device_recovery(void)
 {
   check_auction();
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   if (!character_periodic_events_enabled())
     check_devices();
+#endif
 }
 
 void point_update_global_one(void)

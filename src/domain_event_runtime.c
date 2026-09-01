@@ -10,6 +10,7 @@
 #include "domain_event_world.h"
 #include "dgscript/dg_event.h"
 #include "dgscript/dg_scripts.h"
+#include "event_runtime.h"
 #include "mud_event.h"
 #include "periodic_owners.h"
 #include "point_update_periodic.h"
@@ -28,7 +29,9 @@ enum domain_event_status domain_event_runtime_init(void)
   if (runtime_bus == NULL)
     return status;
   periodic_owners_init();
-  (void)dg_wait_runtime_init();
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
+      !dg_wait_runtime_init())
+    status = DOMAIN_EVENT_ALLOCATION_FAILED;
   if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
       !mud_event_runtime_init())
     status = DOMAIN_EVENT_ALLOCATION_FAILED;
@@ -39,6 +42,13 @@ enum domain_event_status domain_event_runtime_init(void)
   character_periodic_init();
   point_update_periodic_init();
   vessel_periodic_init();
+#if !defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && !defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+  if (!periodic_autoproc_enabled() || !periodic_dg_random_enabled() ||
+      !affected_owner_events_enabled() || !character_periodic_events_enabled() ||
+      !point_update_events_enabled() ||
+      (CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled()))
+    status = DOMAIN_EVENT_ALLOCATION_FAILED;
+#endif
   if (status == DOMAIN_EVENT_OK)
     status = domain_event_register_foundation_types(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
@@ -162,6 +172,7 @@ enum domain_event_status domain_event_runtime_character_extracted(struct char_da
   struct domain_entity_extracted event;
   struct game_event_owner owner;
   enum domain_event_status status;
+  size_t cancelled;
 
   if (runtime_bus == NULL || ch == NULL)
     return DOMAIN_EVENT_NOT_FOUND;
@@ -174,7 +185,8 @@ enum domain_event_status domain_event_runtime_character_extracted(struct char_da
     owner.kind = GAME_EVENT_OWNER_CHARACTER;
     owner.runtime_id = event.entity.runtime_id;
     owner.generation = event.entity.generation;
-    (void)event_cancel_owner(owner);
+    cancelled = 0U;
+    (void)event_runtime_cancel_owner(owner, &cancelled);
   }
   return status;
 }

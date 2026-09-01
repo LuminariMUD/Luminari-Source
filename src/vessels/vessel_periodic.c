@@ -59,6 +59,7 @@ static struct game_event_result vessel_service_event(
 
 static bool configured_scheduled(void)
 {
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   const char *value;
 
 #ifdef LUMINARI_CUTEST
@@ -76,6 +77,9 @@ static bool configured_scheduled(void)
     return false;
   log("WARNING: Unknown LUMINARI_VESSEL_EVENTS '%s'; using scheduled owner events.", value);
   return true;
+#else
+  return true;
+#endif
 }
 
 static long boundary_delay(long cadence)
@@ -459,12 +463,18 @@ void vessel_periodic_feature_changed(void)
   {
     if (!schedule_service_event())
     {
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
       log("WARNING: unable to restore the vessel periodic service event; using the legacy "
           "heartbeat.");
+#else
+      log("SYSERR: unable to restore the required native vessel periodic service event.");
+#endif
       scheduled = false;
       cancel_owner_registry();
       rol_ship_periodic_shutdown();
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
       rol_ship_periodic_init();
+#endif
       return;
     }
     vessel_periodic_rebuild();
@@ -493,19 +503,32 @@ void vessel_periodic_init(void)
   shutting_down = false;
   prepared_pulse = ULONG_MAX;
   if (requested && !native_ready)
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     log("WARNING: native vessel event types unavailable; using the legacy heartbeat.");
+#else
+    log("SYSERR: native vessel event types are unavailable.");
+#endif
   if (scheduled && CONFIG_VESSEL_SYSTEM)
   {
     if (!schedule_service_event())
     {
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
       log("WARNING: unable to schedule the vessel periodic service event; using the legacy "
           "heartbeat.");
+#else
+      log("SYSERR: unable to schedule the required native vessel service event.");
+#endif
       scheduled = false;
     }
   }
   rol_ship_periodic_init();
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   log("Vessel periodic scheduling: %s (owner limit %zu).",
       scheduled ? "scheduled" : "legacy heartbeat", admission_limit);
+#else
+  log("Vessel periodic scheduling: %s (owner limit %zu).",
+      scheduled ? "scheduled" : "unavailable", admission_limit);
+#endif
 }
 
 void vessel_periodic_shutdown(void)

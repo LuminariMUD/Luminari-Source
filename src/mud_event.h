@@ -13,7 +13,12 @@
 #ifndef _MUD_EVENT_H_
 #define _MUD_EVENT_H_
 
-#include "dgscript/dg_event.h"
+#include "event_runtime.h"
+#include "mud_event_callback.h"
+
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#include "dgscript/dg_event_rollback.h"
+#endif
 
 struct char_data;
 struct region_data;
@@ -316,7 +321,7 @@ typedef enum
 struct mud_event_list
 {
   const char *event_name;
-  EVENTFUNC(*func);
+  mud_event_callback_func func;
   int iEvent_Type;
 
   /* Extended fields for centralized handling */
@@ -329,7 +334,9 @@ struct mud_event_list
 struct mud_event_data
 {
   struct event_runtime_handle runtime_handle; /***< Native timed-event identity. */
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   event_handle_t rollback_handle; /***< Temporary physical-legacy fallback. */
+#endif
   event_id iId;         /***< General ID reference */
   void *pStruct;        /***< Pointer to NULL, Descriptor, Character .... */
   char *sVariables;     /***< String variable */
@@ -398,38 +405,38 @@ void event_cancel_specific(struct char_data *ch, event_id iId);
 #define SET_WAIT(ch, wait) attach_mud_event(new_mud_event(eWAIT, ch, NULL), wait)
 
 /* Events */
-EVENTFUNC(event_countdown);
-EVENTFUNC(event_daily_use_cooldown);
-EVENTFUNC(get_protocols);
-EVENTFUNC(event_whirlwind);
-EVENTFUNC(event_casting);
-EVENTFUNC(event_preparing);
-EVENTFUNC(event_crafting);
-EVENTFUNC(event_acid_arrow);
-EVENTFUNC(event_concussive_onslaught);
-EVENTFUNC(event_power_leech);
-EVENTFUNC(event_implode);
-EVENTFUNC(event_ice_storm);
-EVENTFUNC(event_chain_lightning);
-EVENTFUNC(event_falling);
-EVENTFUNC(event_check_occupied);
-EVENTFUNC(event_tracks);
-EVENTFUNC(event_combat_round);
-EVENTFUNC(event_action_cooldown);
-EVENTFUNC(event_trap_triggered);
-EVENTFUNC(event_preparation);
-EVENTFUNC(event_craft); /* NewCraft */
-EVENTFUNC(event_copyover);
-EVENTFUNC(event_spiritual_weapon);
-EVENTFUNC(event_dancing_weapon);
-EVENTFUNC(event_holy_javelin);
-EVENTFUNC(event_moonbeam);
-EVENTFUNC(event_aqueous_orb);
-EVENTFUNC(event_device_progress);
-EVENTFUNC(event_device_creation);
-EVENTFUNC(event_device_repair);
-EVENTFUNC(event_rol_call_lycanthrope_charm);
-EVENTFUNC(event_rol_tazriks_frenzied_hound);
+MUD_EVENT_CALLBACK(event_countdown);
+MUD_EVENT_CALLBACK(event_daily_use_cooldown);
+MUD_EVENT_CALLBACK(get_protocols);
+MUD_EVENT_CALLBACK(event_whirlwind);
+MUD_EVENT_CALLBACK(event_casting);
+MUD_EVENT_CALLBACK(event_preparing);
+MUD_EVENT_CALLBACK(event_crafting);
+MUD_EVENT_CALLBACK(event_acid_arrow);
+MUD_EVENT_CALLBACK(event_concussive_onslaught);
+MUD_EVENT_CALLBACK(event_power_leech);
+MUD_EVENT_CALLBACK(event_implode);
+MUD_EVENT_CALLBACK(event_ice_storm);
+MUD_EVENT_CALLBACK(event_chain_lightning);
+MUD_EVENT_CALLBACK(event_falling);
+MUD_EVENT_CALLBACK(event_check_occupied);
+MUD_EVENT_CALLBACK(event_tracks);
+MUD_EVENT_CALLBACK(event_combat_round);
+MUD_EVENT_CALLBACK(event_action_cooldown);
+MUD_EVENT_CALLBACK(event_trap_triggered);
+MUD_EVENT_CALLBACK(event_preparation);
+MUD_EVENT_CALLBACK(event_craft); /* NewCraft */
+MUD_EVENT_CALLBACK(event_copyover);
+MUD_EVENT_CALLBACK(event_spiritual_weapon);
+MUD_EVENT_CALLBACK(event_dancing_weapon);
+MUD_EVENT_CALLBACK(event_holy_javelin);
+MUD_EVENT_CALLBACK(event_moonbeam);
+MUD_EVENT_CALLBACK(event_aqueous_orb);
+MUD_EVENT_CALLBACK(event_device_progress);
+MUD_EVENT_CALLBACK(event_device_creation);
+MUD_EVENT_CALLBACK(event_device_repair);
+MUD_EVENT_CALLBACK(event_rol_call_lycanthrope_charm);
+MUD_EVENT_CALLBACK(event_rol_tazriks_frenzied_hound);
 
 #ifdef LUMINARI_CUTEST
 void mud_event_test_reset_cleanup_count(void);

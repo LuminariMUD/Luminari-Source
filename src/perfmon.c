@@ -34,6 +34,17 @@
 #include "periodic_owners.h"
 #include "mob/mob_act.h"
 
+static const char *PERF_event_mode_name(bool scheduled)
+{
+  if (scheduled)
+    return "scheduled";
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+  return "rollback";
+#else
+  return "unavailable";
+#endif
+}
+
 /* ========================================================================
  * CONSTANTS
  * ======================================================================== */
@@ -2625,7 +2636,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
         snprintf(out_buf + written, n - written,
                  "Autoproc owners: mode=%s members=%zu scheduled=%zu limit=%zu rejected=%" PRIu64
                  " callbacks=%" PRIu64 " validation_mismatch=%zu\n\r",
-                 periodic_autoproc_enabled() ? "scheduled" : "legacy",
+                 PERF_event_mode_name(periodic_autoproc_enabled()),
                  autoproc_registry_count(), periodic_autoproc_scheduled_count(),
                  periodic_autoproc_admission_limit(), periodic_autoproc_admission_rejections(),
                  periodic_autoproc_callbacks(), autoproc_registry_validate()),
@@ -2637,7 +2648,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "room=%zu/%zu/%zu (members/scheduled/mismatch) limit=%zu rejected=%" PRIu64
                  " callbacks=%" PRIu64 "/%" PRIu64 "/%" PRIu64
                  " executions=%" PRIu64 "/%" PRIu64 "/%" PRIu64 "\n\r",
-                 periodic_dg_random_enabled() ? "scheduled" : "legacy",
+                 PERF_event_mode_name(periodic_dg_random_enabled()),
                  dg_random_registry_count(MOB_TRIGGER),
                  periodic_dg_random_scheduled_count(MOB_TRIGGER),
                  dg_random_registry_validate(MOB_TRIGGER),
@@ -2665,7 +2676,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "  char work: callbacks=%" PRIu64 " affects=%" PRIu64 "\n\r"
                  "  room work: callbacks=%" PRIu64 " affects=%" PRIu64 "\n\r"
                  "  room behavior: runs=%" PRIu64 " affects=%" PRIu64 "\n\r",
-                 affected_owner_events_enabled() ? "scheduled" : "legacy heartbeat",
+                 PERF_event_mode_name(affected_owner_events_enabled()),
                  affected_registry_count(), affected_character_scheduled_count(),
                  affected_registry_validate(), affected_room_owner_count(),
                  affected_room_scheduled_count(), affected_room_registry_validate(),
@@ -2688,7 +2699,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "  work: player-misc=%" PRIu64 "\n\r"
                  "  work: d20=%" PRIu64 " devices=%" PRIu64 " quests=%" PRIu64 "\n\r"
                  "  work: bard=%" PRIu64 " hints=%" PRIu64 "\n\r",
-                 character_periodic_events_enabled() ? "scheduled" : "legacy heartbeat",
+                 PERF_event_mode_name(character_periodic_events_enabled()),
                  character_periodic_owner_count(), character_periodic_scheduled_count(),
                  character_periodic_registry_validate(), character_periodic_admission_limit(),
                  character_periodic_admission_rejections(), character_periodic_callbacks(),
@@ -2709,7 +2720,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "  validation: players=%zu objects=%zu\n\r"
                  "  callbacks: service=%" PRIu64 " dispatches=%" PRIu64 "\n\r"
                  "  work: players=%" PRIu64 " objects=%" PRIu64 "\n\r",
-                 point_update_events_enabled() ? "scheduled" : "legacy heartbeat",
+                 PERF_event_mode_name(point_update_events_enabled()),
                  point_update_character_count(), point_update_object_count(),
                  point_update_character_registry_validate(),
                  point_update_object_registry_validate(), point_update_service_callbacks(),
@@ -2727,7 +2738,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "  RoL fixed: loaded=%zu scheduled=%zu\n\r"
                  "  RoL check: mismatch=%zu callbacks=%" PRIu64 "\n\r"
                  "  work: fast=%" PRIu64 " schedules=%" PRIu64 "\n\r",
-                 vessel_periodic_events_enabled() ? "scheduled" : "legacy heartbeat",
+                 PERF_event_mode_name(vessel_periodic_events_enabled()),
                  vessel_periodic_owner_count(), vessel_periodic_scheduled_count(),
                  vessel_periodic_registry_validate(), vessel_periodic_admission_limit(),
                  vessel_periodic_admission_rejections(), vessel_periodic_callbacks(),
@@ -2747,7 +2758,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "  reasons: resource-recovery=%zu\n\r"
                  "  capacity: limit=%zu rejected=%" PRIu64 "\n\r"
                  "  agenda callbacks=%" PRIu64 "\n\r",
-                 active_world_enabled() ? "scheduled" : "legacy",
+                 PERF_event_mode_name(active_world_enabled()),
                  active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE),
                  active_world_mobile_count(ACTIVE_WORLD_MOBILE_COOLING),
                  active_world_mobile_reason_count(MOBILE_WORK_SPEC_ACTIVITY),
