@@ -2,6 +2,20 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Character maintenance owner lifetime
+
+#### Fixed
+
+- Replaced borrowed character pointers in scheduled maintenance payloads with
+  generation-aware domain handles that resolve immediately before dispatch.
+- Detached character maintenance during `free_char()` so duplicate-login
+  cleanup cannot leave a released character in the capacity-refill registry.
+
+#### Tests
+
+- Added a capacity-refill regression covering character release and verified
+  repeated linkdead reconnects under GDB with character-scoped event output.
+
 ### Scoped domain subscriptions and ready actions
 
 #### Added

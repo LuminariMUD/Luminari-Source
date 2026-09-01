@@ -2557,6 +2557,7 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
 {
   struct char_data ch;
   struct descriptor_data descriptor;
+  struct domain_entity_handle character_handle;
   struct game_event_owner owner;
   struct game_event_snapshot snapshot;
   struct game_scheduler_stats scheduler_stats;
@@ -2594,10 +2595,11 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
   CuAssertIntEquals(tc, 7, (int)native_event_remaining(tc, ch.character_periodic_event_handle));
   CuAssertIntEquals(tc, 1, event_queue_depth());
+  character_handle = domain_event_character_handle(&ch);
   owner = game_event_owner_none();
   owner.kind = GAME_EVENT_OWNER_CHARACTER;
-  owner.runtime_id = (uint64_t)(uintptr_t)&ch;
-  owner.generation = ch.periodic_event_generation;
+  owner.runtime_id = character_handle.runtime_id;
+  owner.generation = character_handle.generation;
   event_count = 0U;
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     event_runtime_inspect_owner(owner, &snapshot, 1U, &event_count));
@@ -2994,6 +2996,62 @@ void TestCharacterPeriodicCapacityRefillsAndLegacyIsExclusive(CuTest *tc)
   first.desc = &first_descriptor;
   character_periodic_sync(&first);
   CuAssertTrue(tc, !character_periodic_events_enabled());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  character_periodic_reset_for_test();
+  event_free_all();
+  character_list = saved_character_list;
+  pulse = saved_pulse;
+}
+
+void TestCharacterPeriodicFreeCharDetachesOwnerBeforeRelease(CuTest *tc)
+{
+  struct char_data *first;
+  struct char_data *second;
+  struct descriptor_data first_descriptor;
+  struct descriptor_data second_descriptor;
+  struct char_data *saved_character_list = character_list;
+  unsigned long saved_pulse = pulse;
+
+  memset(&first_descriptor, 0, sizeof(first_descriptor));
+  memset(&second_descriptor, 0, sizeof(second_descriptor));
+  first = new_char();
+  second = new_char();
+  first->desc = &first_descriptor;
+  second->desc = &second_descriptor;
+  first_descriptor.character = first;
+  second_descriptor.character = second;
+  STATE(&first_descriptor) = CON_PLAYING;
+  STATE(&second_descriptor) = CON_PLAYING;
+  character_list = NULL;
+
+  event_free_all();
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(true);
+  character_periodic_set_limit_for_test(1U);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 1000U;
+  event_init();
+  character_periodic_init();
+  character_periodic_sync(first);
+  character_periodic_sync(second);
+
+  CuAssertIntEquals(tc, 2, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
+  CuAssertTrue(tc, !event_runtime_handle_is_none(first->character_periodic_event_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(second->character_periodic_event_handle));
+
+  free_char(first);
+  CuAssertPtrEquals(tc, NULL, first_descriptor.character);
+  CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
+  CuAssertTrue(tc, !event_runtime_handle_is_none(second->character_periodic_event_handle));
+  CuAssertIntEquals(tc, 0, (int)character_periodic_registry_validate());
+
+  free_char(second);
+  CuAssertPtrEquals(tc, NULL, second_descriptor.character);
+  CuAssertIntEquals(tc, 0, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 0, (int)character_periodic_scheduled_count());
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   character_periodic_reset_for_test();

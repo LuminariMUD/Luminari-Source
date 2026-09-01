@@ -10,6 +10,7 @@
 #include "character_periodic.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
+#include "dgscript/dg_event.h"
 #include "mudlim.h"
 #include "quest/quest.h"
 #include "vessels/transport.h"
@@ -55,6 +56,11 @@ static void refill_capacity(void);
 static struct game_event_result character_periodic_event(
     const struct game_event_context *context);
 
+struct character_periodic_payload
+{
+  struct domain_entity_handle character;
+};
+
 static bool configured_scheduled(void)
 {
 #if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
@@ -91,16 +97,21 @@ static uint64_t ensure_generation(struct char_data *ch)
   return ch->periodic_event_generation;
 }
 
-static struct game_event_owner character_owner(struct char_data *ch)
+static struct game_event_owner character_owner(struct domain_entity_handle handle)
 {
   struct game_event_owner owner = game_event_owner_none();
 
-  if (ch == NULL)
+  if (!domain_entity_handle_is_valid(handle) || handle.kind != DOMAIN_ENTITY_CHARACTER)
     return owner;
   owner.kind = GAME_EVENT_OWNER_CHARACTER;
-  owner.runtime_id = (uint64_t)(uintptr_t)ch;
-  owner.generation = ensure_generation(ch);
+  owner.runtime_id = handle.runtime_id;
+  owner.generation = handle.generation;
   return owner;
+}
+
+static struct char_data *resolve_character(struct domain_entity_handle handle)
+{
+  return domain_event_world_resolve_character(handle);
 }
 
 static bool has_walk_state(const struct char_data *ch)
@@ -262,17 +273,23 @@ static bool runtime_handle_matches(struct event_runtime_handle handle,
   return context != NULL && handle.id == context->event_id;
 }
 
-static void borrowed_owner_cleanup(void *payload)
+static void character_owner_cleanup(void *event_payload)
 {
-  struct char_data *ch = payload;
+  struct character_periodic_payload *payload = event_payload;
+  struct char_data *ch;
 
-  if (ch == NULL || event_runtime_handle_is_none(ch->character_periodic_event_handle) ||
-      event_runtime_handle_is_live(ch->character_periodic_event_handle))
+  if (payload == NULL)
     return;
-  ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
-  ch->character_periodic_due_pulse = 0U;
-  if (scheduled_count > 0U)
-    scheduled_count--;
+  ch = resolve_character(payload->character);
+  if (ch != NULL && !event_runtime_handle_is_none(ch->character_periodic_event_handle) &&
+      !event_runtime_handle_is_live(ch->character_periodic_event_handle))
+  {
+    ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+    ch->character_periodic_due_pulse = 0U;
+    if (scheduled_count > 0U)
+      scheduled_count--;
+  }
+  free(payload);
 }
 
 static bool register_character_maintenance_type(void)
@@ -290,7 +307,7 @@ static bool register_character_maintenance_type(void)
   memset(&config, 0, sizeof(config));
   config.name = "character.maintenance";
   config.handler = character_periodic_event;
-  config.cleanup = borrowed_owner_cleanup;
+  config.cleanup = character_owner_cleanup;
   config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
   config.max_events = CHARACTER_PERIODIC_MAX_OWNERS;
   config.max_events_per_owner = 1U;
@@ -427,12 +444,19 @@ static bool dispatch_due_work(struct char_data *ch, unsigned long earliest_due)
 static struct game_event_result character_periodic_event(
     const struct game_event_context *context)
 {
-  struct char_data *ch = context != NULL ? context->payload : NULL;
+  struct character_periodic_payload *payload = context != NULL ? context->payload : NULL;
+  struct char_data *ch;
   unsigned long earliest_due;
   long delay;
 
-  if (ch == NULL)
+  if (payload == NULL)
     return game_event_result_complete();
+  ch = resolve_character(payload->character);
+  if (ch == NULL)
+  {
+    event_note_stale_owner_outcome();
+    return game_event_result_complete();
+  }
   callback_count++;
   if (!ch->character_periodic_registered || !is_owner_eligible(ch))
   {
@@ -477,6 +501,8 @@ static struct game_event_result character_periodic_event(
 
 static bool schedule_owner(struct char_data *ch)
 {
+  struct character_periodic_payload *payload;
+  struct domain_entity_handle handle;
   struct game_event_owner owner;
   long delay;
 
@@ -489,17 +515,27 @@ static bool schedule_owner(struct char_data *ch)
     note_rejection();
     return false;
   }
+  (void)ensure_generation(ch);
   delay = next_owner_delay(ch);
   if (delay <= 0L)
     return false;
-  owner = character_owner(ch);
+  handle = domain_event_character_handle(ch);
+  owner = character_owner(handle);
   if (!game_event_owner_is_valid(owner))
     return false;
+  payload = malloc(sizeof(*payload));
+  if (payload == NULL)
+  {
+    note_rejection();
+    return false;
+  }
+  payload->character = handle;
   if (event_runtime_schedule_owned_after(character_maintenance_event_type, owner,
-                                         (game_tick_t)delay, ch,
+                                         (game_tick_t)delay, payload,
                                          &ch->character_periodic_event_handle) !=
       GAME_SCHEDULER_OK)
   {
+    free(payload);
     ch->character_periodic_due_pulse = 0U;
     note_rejection();
     return false;

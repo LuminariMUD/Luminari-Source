@@ -122,9 +122,7 @@ static void *resolve_room(struct domain_entity_handle handle, void *resolver_con
 static void *resolve_character(struct domain_entity_handle handle, void *resolver_context)
 {
   (void)resolver_context;
-  if (handle.runtime_id == 0U)
-    return NULL;
-  return registry_resolve(character_registry, handle.runtime_id, handle.generation);
+  return domain_event_world_resolve_character(handle);
 }
 
 static void *resolve_object(struct domain_entity_handle handle, void *resolver_context)
@@ -162,6 +160,13 @@ void domain_event_world_forget_character(struct char_data *ch)
 void domain_event_world_forget_object(struct obj_data *obj)
 {
   registry_forget(object_registry, obj);
+}
+
+struct char_data *domain_event_world_resolve_character(struct domain_entity_handle handle)
+{
+  if (!domain_entity_handle_is_valid(handle) || handle.kind != DOMAIN_ENTITY_CHARACTER)
+    return NULL;
+  return registry_resolve(character_registry, handle.runtime_id, handle.generation);
 }
 
 struct domain_entity_handle domain_event_character_handle(struct char_data *ch)

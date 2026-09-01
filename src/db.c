@@ -83,6 +83,7 @@
 #include "character/race.h"
 #include "vessels/vessels.h"
 #include "vessels/vessel_periodic.h"
+#include "character_periodic.h"
 #include "point_update_periodic.h"
 #include "vessels/vessels_moving_rooms.h"
 #include "magic/spell_prep.h"
@@ -6941,6 +6942,7 @@ void free_char(struct char_data *ch)
 
   active_world_forget_character(ch);
   primary_activity_forget_character(ch);
+  character_periodic_forget(ch);
   point_update_character_forget(ch);
   affected_registry_detach(ch);
 
