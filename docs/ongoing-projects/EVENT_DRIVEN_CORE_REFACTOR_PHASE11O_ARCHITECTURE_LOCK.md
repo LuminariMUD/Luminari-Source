@@ -4,7 +4,7 @@
 
 **Branch:** `event-driven-core-refactor`
 
-**Status:** Implemented and locally accepted
+**Status:** Implemented and accepted
 
 ## Decision
 
@@ -75,6 +75,9 @@ an NPC class does not receive a coordinator that scans all members.
   1,048 tests
 - strict Valgrind: PASS for all 1,048 tests with zero errors and zero definite,
   indirect, or possible leaks
+- Build & Test run `33456813692`: PASS for exact source
+  `85504e5afec35b073d9d401a32821225354e4fa1`
+- Security run `33456854683`: PASS for the same exact source
 - existing copied production-world evidence: about 39,000 concrete autonomous
   agendas, 2.6% settled CPU, and no ready backlog, overdue work, late callbacks,
   registry mismatches, or stale-owner outcomes

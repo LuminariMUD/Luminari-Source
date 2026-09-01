@@ -2,19 +2,22 @@
 
 **Audit date:** 2026-09-01
 
-**Audited source:** `43ed4062a4a5f6900c1b994b1c7e5ec12bea1e4f`
+**Audited source:** `85504e5afec35b073d9d401a32821225354e4fa1`
 
 **Branch:** `event-driven-core-refactor`
 
 **Decision:** Phase 11 irreversible removal gate is not satisfied
 
 **Current implementation audit:** Phase 11m completed the final reversible
-source audit on 2026-09-01. Normal gameplay has zero raw compatibility callers,
+source audit on 2026-09-01, and Phase 11o mechanically locked its demand-driven
+mobile architecture. Normal gameplay has zero raw compatibility callers,
 autonomous work is demand-driven, consumed NPC spell resources own exact
 recovery deadlines, and all default runtime services are bounded, indexed,
 fixed, or singleton work. Only the external stable-release and operator gate
 prevents the physical removals inventoried below. See
-[`EVENT_DRIVEN_CORE_REFACTOR_PHASE11M_FINAL_AUDIT.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11M_FINAL_AUDIT.md).
+[`EVENT_DRIVEN_CORE_REFACTOR_PHASE11M_FINAL_AUDIT.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11M_FINAL_AUDIT.md)
+and
+[`EVENT_DRIVEN_CORE_REFACTOR_PHASE11O_ARCHITECTURE_LOCK.md`](EVENT_DRIVEN_CORE_REFACTOR_PHASE11O_ARCHITECTURE_LOCK.md).
 
 ## 1. Scope and conclusion
 
@@ -39,7 +42,7 @@ symbol and persisted slot until a human gameplay decision is made.
 
 | Requirement | Evidence at audited commit | State |
 |-------------|----------------------------|-------|
-| Scheduler/libevent stable release period | Commit `43ed4062a` and passing CI exist, but no tag, merge, release, deployment record, or elapsed release period contains it | Pending |
+| Scheduler/libevent stable release period | Commit `85504e5af` and passing CI exist, but no tag, merge, release, deployment record, or elapsed release period contains it | Pending |
 | No rollback dependency | Default paths pass locally and in CI, but fallback selectors have not been observed unused through a deployed release period | Pending |
 | Explicit maintainer approval | The maintainer authorized continued tranche implementation, but has not approved overriding the stable-release or database-retirement requirements | Pending |
 | PubSub backup and rollback plan | Runtime is retired and tables are ignored; no reviewed production backup, export, retention, or drop migration exists | Pending |
@@ -200,6 +203,14 @@ triggers, cancellation, recurrence, diagnostics, and boot-time rollback
 selection are unchanged. Establish Camp continues to use the existing
 `ABILITY_SURVIVAL` behavior; changing its Survival/Nature model remains a
 separate human gameplay decision.
+
+Phase 11o additionally freezes the concrete-owner agenda architecture in
+`scripts/events/test_demand_driven_architecture.sh`. A production-linked test
+loads 512 dormant sentinels and one off-screen wanderer and proves that the
+normal path creates one owner, one reason, one queued deadline, and one due
+callback rather than work proportional to loaded population. The source policy
+rejects population discovery, reason-blind dispatch, or unconditional rollback
+service admission from the normal mobile agenda.
 
 `LUMINARI_EVENT_PERSISTENCE_FORMAT=legacy` also retains the Phase 5 legacy
 writer while the loader accepts old and versioned records. Removing that writer
