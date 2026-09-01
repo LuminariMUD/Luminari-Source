@@ -169,14 +169,13 @@ static int visual_calculate_intensity(struct spatial_context *ctx)
     distance_factor = 1.0f / (1.0f + (ctx->distance / 100.0f));
   }
 
-  /* Base intensity starts at 1.0 and is modified by distance */
-  ctx->base_intensity = distance_factor;
+  ctx->distance_attenuation = distance_factor;
 
   spatial_debug("Visual intensity calculated: %.3f (distance: %.1f, factor: %.3f)",
-                ctx->base_intensity, ctx->distance, distance_factor);
+                ctx->base_intensity * ctx->distance_attenuation, ctx->distance, distance_factor);
 
-  spatial_log("SPATIAL: Base intensity for visual: %.6f at distance %.2f", ctx->base_intensity,
-              ctx->distance);
+  spatial_log("SPATIAL: Visual intensity %.6f from source %.6f at distance %.2f",
+              ctx->base_intensity * ctx->distance_attenuation, ctx->base_intensity, ctx->distance);
 
   return SPATIAL_SUCCESS;
 }

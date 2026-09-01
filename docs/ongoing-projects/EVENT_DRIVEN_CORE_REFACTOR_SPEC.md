@@ -1317,15 +1317,20 @@ Implementation record, 2026-08-30:
   cancellation, remaining-time queries, queued-state queries, and shutdown
   through the selected backend. No gameplay producer, MUD-event registry row,
   owner list, command, combat rule, or networking path was converted.
-- Scheduler completion, failure, cancellation, and shutdown converge on one
-  adapter cleanup callback. Normal legacy completion preserves callback-owned
-  non-MUD payloads and MUD-specific cleanup; queued cancellation and shutdown
-  preserve custom cleanup hooks, MUD cleanup, and the generic payload fallback.
-- PERFMON now records scheduled, cancelled, and rescheduled counts by callback
-  profile, aggregate requested-delay buckets, maximum callbacks due in one
-  processing pass, queue depth/high-water data, and existing callback duration.
-  The telemetry contains identities and counters only, never payload or player
-  content.
+- Scheduler-owned completion, failure, queued cancellation, and shutdown
+  converge on one adapter cleanup callback. In-flight MUD self-cancellation is
+  the documented exception: it directly frees the MUD payload and clears
+  `event_obj` before scheduler completion so the adapter cannot clean it twice.
+  Normal legacy completion preserves callback-owned non-MUD payloads; queued
+  cancellation and shutdown preserve custom cleanup hooks, MUD cleanup, and
+  the generic payload fallback.
+- PERFMON now records scheduled and cancelled counts plus callback-requested
+  reschedule counts by callback profile. The reschedule counter records a
+  recurrence request before scheduler acceptance, not a guaranteed successful
+  queue insertion. It also records aggregate requested-delay buckets, maximum
+  callbacks due in one processing pass, queue depth/high-water data, and
+  existing callback duration. The telemetry contains identities and counters
+  only, never payload or player content.
 - [`unittests/CuTest/test_legacy_event_adapter.c`](../../unittests/CuTest/test_legacy_event_adapter.c)
   runs identical pulse traces against both backends and verifies FIFO ordering,
   callback-relative recurrence, queued cancellation, cleanup exactly once,
@@ -2117,7 +2122,7 @@ The complete refactor is accepted only when:
 Before accepting version 1.0 of this specification, reviewers should confirm:
 
 - [ ] Scope and non-goals are correct.
-- [ ] Current-state description matches the source.
+- [x] Current-state description matches the source.
 - [x] Time and lateness semantics are unambiguous for the standalone core.
 - [x] Wheel geometry and overflow behavior are accepted for Phase 1.
 - [x] Payload ownership and failed-admission behavior are explicit.
