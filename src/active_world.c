@@ -30,6 +30,7 @@ struct active_world_registry_entry
 struct active_world_event_payload
 {
   struct domain_entity_handle character;
+  struct event_runtime_handle event_handle;
 };
 
 static struct active_world_registry_entry *scheduled_mobiles;
@@ -279,7 +280,24 @@ static bool runtime_handle_matches(struct event_runtime_handle handle,
 
 static void active_world_mobile_cleanup(void *event_obj)
 {
-  free(event_obj);
+  struct active_world_event_payload *payload = event_obj;
+  struct active_world_registry_entry *entry;
+  struct char_data *ch;
+
+  if (payload == NULL)
+    return;
+  entry = registry_find(payload->character);
+  if (entry != NULL)
+  {
+    ch = entry->character;
+    if (ch != NULL && ch->active_world_event_handle.id == payload->event_handle.id)
+    {
+      ch->active_world_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+      registry_remove(ch);
+      set_state(ch, ACTIVE_WORLD_MOBILE_DORMANT);
+    }
+  }
+  free(payload);
 }
 
 static struct game_event_result
@@ -334,6 +352,7 @@ static bool schedule_mobile(struct char_data *ch)
   payload->character.kind = DOMAIN_ENTITY_CHARACTER;
   payload->character.runtime_id = owner.runtime_id;
   payload->character.generation = owner.generation;
+  payload->event_handle = EVENT_RUNTIME_HANDLE_NONE;
   if (event_runtime_schedule_owned_after(mobile_agenda_event_type, owner,
                                          (game_tick_t)delay, payload,
                                          &ch->active_world_event_handle) !=
@@ -342,6 +361,7 @@ static bool schedule_mobile(struct char_data *ch)
     free(payload);
     return false;
   }
+  payload->event_handle = ch->active_world_event_handle;
   return true;
 }
 

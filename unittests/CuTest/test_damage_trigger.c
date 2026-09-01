@@ -527,6 +527,7 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   filter.type_contains = "dg.";
   CuAssertIntEquals(tc, 1,
                     (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)returned_count);
   CuAssertStrEquals(tc, "dg.trigger.wait.rollback", snapshot.type_name);
   wait_pulses = dg_trigger_wait_remaining(trigger);
   pulse += wait_pulses;

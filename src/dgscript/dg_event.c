@@ -1126,7 +1126,8 @@ int event_test_select_backend(enum event_backend_kind backend)
   if (active_backend != EVENT_BACKEND_UNINITIALIZED || event_q != NULL ||
       event_runtime_is_initialized())
     return 0;
-  if (backend != EVENT_BACKEND_LEGACY_QUEUE && backend != EVENT_BACKEND_GAME_SCHEDULER)
+  if (backend != EVENT_BACKEND_UNINITIALIZED && backend != EVENT_BACKEND_LEGACY_QUEUE &&
+      backend != EVENT_BACKEND_GAME_SCHEDULER)
     return 0;
 
   test_backend_override = backend;

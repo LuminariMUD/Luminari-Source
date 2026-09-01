@@ -7,7 +7,7 @@
 > 2026-08-04 and are accurate. The longer C listings elsewhere are
 > **illustrative** - they show the algorithm, not the literal source. A few
 > functions they name (`create_wilderness_exits()`, `find_downhill_direction()`,
-> `spatial_init()`, `debug_wilderness_memory()`) do not exist under `src/`.
+> `debug_wilderness_memory()`) do not exist under `src/`.
 > For the implementation, read `src/wilderness/`.
 >
 > **Retirement notice.** The database-backed PubSub topic/subscription queue
@@ -1112,7 +1112,7 @@ void boot_world(void) {
     init_wilderness_resource_tables(); // Resource system database
 
     log("Initializing Spatial Systems...");
-    spatial_init();                  // 3D spatial audio/visual systems
+    spatial_init_system();           // 3D spatial audio/visual systems
 }
 ```
 

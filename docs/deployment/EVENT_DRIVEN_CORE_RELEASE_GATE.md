@@ -141,9 +141,19 @@ Take a full consistent backup before any retirement migration so dependencies
 outside the discovered name family cannot be missed:
 
 ```sh
-mysqldump --defaults-extra-file="$db_client_config" \
+backup_tmp=$(mktemp "${backup_path}.partial.XXXXXX") || exit 1
+trap 'rm -f "$backup_tmp"' 0 HUP INT TERM
+if ! mysqldump --defaults-extra-file="$db_client_config" \
   --single-transaction --routines --triggers --events --hex-blob \
-  "$db_name" > "$backup_path"
+  "$db_name" > "$backup_tmp"
+then
+  exit 1
+fi
+if ! mv "$backup_tmp" "$backup_path"
+then
+  exit 1
+fi
+trap - 0 HUP INT TERM
 sha256sum "$backup_path" > "$backup_path.sha256"
 sha256sum --check "$backup_path.sha256"
 ```
@@ -162,7 +172,10 @@ production schema.
 3. Re-run the object inventory and exact row counts for every discovered
    PubSub table on both source and restored databases.
 4. Compare `SHOW CREATE` output for every discovered table, view, routine, and
-   trigger.
+   trigger. Compare normalized `SHOW CREATE EVENT` output for every discovered
+   event and compare its `EVENT_DEFINITION`, `EVENT_TYPE`, `EXECUTE_AT`,
+   `INTERVAL_VALUE`, `INTERVAL_FIELD`, `STARTS`, `ENDS`, `STATUS`,
+   `ON_COMPLETION`, and `TIME_ZONE` fields from `information_schema.EVENTS`.
 5. Verify each view, routine, trigger, and event `DEFINER` exists in the
    rehearsal environment or document an explicitly reviewed definer-rewrite
    policy. Do not silently strip security identities from a production dump.

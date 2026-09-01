@@ -299,6 +299,57 @@ void Test_ai_event_producers_use_owned_cleanup_on_both_backends(CuTest *tc)
   pulse = saved_pulse;
 }
 
+static void verify_service_ai_retry_dispatch(CuTest *tc, enum event_backend_kind backend)
+{
+  struct ai_event_ingress_stats ingress_stats;
+
+  begin_backend_test(tc, backend, 0U);
+  ai_events_ingress_shutdown();
+  CuAssertTrue(tc, ai_events_ingress_init());
+  ai_event_test_reset_cleanup_count();
+  queue_ai_request_retry("service retry", AI_REQUEST_NPC_DIALOGUE, 0, NULL, NULL);
+  ai_events_process_ingress();
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+
+  pulse = PASSES_PER_SEC;
+  event_process();
+  memset(&ingress_stats, 0, sizeof(ingress_stats));
+  ai_events_get_ingress_stats(&ingress_stats);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  CuAssertIntEquals(tc, 1, (int)ingress_stats.depth);
+  CuAssertIntEquals(tc, 1, ai_event_test_cleanup_count());
+
+  ai_events_ingress_shutdown();
+  event_free_all();
+}
+
+void Test_service_owned_ai_retries_dispatch_on_both_backends(CuTest *tc)
+{
+  unsigned long saved_pulse;
+
+  saved_pulse = pulse;
+  verify_service_ai_retry_dispatch(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  verify_service_ai_retry_dispatch(tc, EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = saved_pulse;
+}
+
+void Test_ai_shutdown_interrupts_worker_backoff(CuTest *tc)
+{
+  struct timespec started;
+  struct timespec finished;
+  double elapsed_seconds;
+
+  CuAssertIntEquals(tc, 0, clock_gettime(CLOCK_MONOTONIC, &started));
+  CuAssertTrue(tc, ai_service_test_start_waiting_worker());
+  shutdown_ai_service();
+  CuAssertIntEquals(tc, 0, clock_gettime(CLOCK_MONOTONIC, &finished));
+  elapsed_seconds = (double)(finished.tv_sec - started.tv_sec) +
+                    (double)(finished.tv_nsec - started.tv_nsec) / 1000000000.0;
+  CuAssertIntEquals(tc, 0, (int)ai_service_test_active_workers());
+  CuAssertTrue(tc, elapsed_seconds < 2.0);
+  ai_service_test_reset_worker_state();
+}
+
 static void run_parity_trace(CuTest *tc, enum event_backend_kind backend, struct event_trace *trace)
 {
   struct event_trace_payload *payload;
@@ -754,12 +805,14 @@ void Test_legacy_event_source_workload_populates_private_telemetry(CuTest *tc)
       {"World Midnight Edict", 864000},
   };
   struct event *events[sizeof(workload) / sizeof(workload[0])];
+  struct char_data *saved_character_list;
   char report[32768];
   unsigned long saved_pulse;
   size_t index;
 
   saved_pulse = pulse;
   begin_backend_test(tc, EVENT_BACKEND_GAME_SCHEDULER, 400U);
+  saved_character_list = character_list;
   character_list = NULL;
   PERF_reset();
   memset(events, 0, sizeof(events));
@@ -801,6 +854,7 @@ void Test_legacy_event_source_workload_populates_private_telemetry(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "# event_delay_pulses_gt_36000=1"));
 
   event_free_all();
+  character_list = saved_character_list;
   pulse = saved_pulse;
 }
 
@@ -1092,6 +1146,17 @@ void Test_runtime_services_are_native_owned_events_with_legacy_fallback(CuTest *
   runtime_services_reset_selection_for_test();
   event_free_all();
   pulse = saved_pulse;
+}
+
+void Test_runtime_services_keep_rol_ship_independent_of_vessel_feature(CuTest *tc)
+{
+  int saved_vessel_system = CONFIG_VESSEL_SYSTEM;
+
+  CONFIG_VESSEL_SYSTEM = 0;
+  CuAssertTrue(tc, runtime_service_named_needed_for_test("service.rol_ship_rollback"));
+  CuAssertTrue(tc, !runtime_service_named_needed_for_test("service.vessel_rollback"));
+  CuAssertTrue(tc, !runtime_service_named_needed_for_test("missing.service"));
+  CONFIG_VESSEL_SYSTEM = saved_vessel_system;
 }
 
 void Test_wait_state_consumes_monotonic_elapsed_ticks(CuTest *tc)

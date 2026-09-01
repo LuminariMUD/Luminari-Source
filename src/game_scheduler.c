@@ -23,6 +23,7 @@ struct game_event_type
   size_t max_events;
   size_t max_events_per_owner;
   bool requires_owner;
+  bool cleanup_on_null_payload;
   size_t live_events;
 };
 
@@ -39,7 +40,7 @@ struct game_event
   uint64_t insertion_sequence;
   uint32_t catch_up_runs;
   void *payload;
-  bool payload_owned;
+  bool cleanup_pending;
   struct game_event_owner owner;
   struct game_event_owner_entry *owner_entry;
   struct game_event *owner_previous;
@@ -703,11 +704,11 @@ static void finalize_event(struct game_scheduler *scheduler, struct game_event *
   if (scheduler->event_count > 0)
     scheduler->event_count--;
 
-  if (event->payload_owned && event->payload != NULL)
+  if (event->cleanup_pending)
   {
     if (event_type != NULL && event_type->cleanup != NULL)
       event_type->cleanup(event->payload);
-    event->payload_owned = false;
+    event->cleanup_pending = false;
     event->payload = NULL;
   }
 
@@ -1383,6 +1384,7 @@ enum game_scheduler_status game_scheduler_register_type(struct game_scheduler *s
   registered->max_events = config->max_events;
   registered->max_events_per_owner = config->max_events_per_owner;
   registered->requires_owner = config->requires_owner;
+  registered->cleanup_on_null_payload = config->cleanup_on_null_payload;
   scheduler->event_type_count++;
   *event_type = (game_event_type_id_t)scheduler->event_type_count;
   return GAME_SCHEDULER_OK;
@@ -1514,7 +1516,9 @@ static enum game_scheduler_status schedule_normalized(struct game_scheduler *sch
       owner_entry_insert(scheduler, owner_entry);
     owner_event_insert(owner_entry, event);
   }
-  event->payload_owned = (payload != NULL);
+  event->cleanup_pending =
+      (payload != NULL || registered_type->cleanup_on_null_payload) &&
+      registered_type->cleanup != NULL;
   scheduler->event_count++;
   registered_type->live_events++;
   scheduler->total_scheduled++;

@@ -546,6 +546,18 @@ int remove_var(struct trig_var_data **var_list, char *name)
  * trigger and is only freed when the prototype is destroyed in destroy_db(). */
 void free_trigger(struct trig_data *trig)
 {
+  struct wait_event_data *wait_event_obj;
+
+  if (trig == NULL)
+    return;
+  wait_event_obj = GET_TRIG_WAIT_DATA(trig);
+  if (wait_event_obj != NULL && dg_trigger_wait_is_dispatching(trig))
+  {
+    wait_event_obj->destroy_trigger_after_cleanup = true;
+    dg_trigger_wait_cancel(trig);
+    return;
+  }
+
   free(trig->name);
   trig->name = NULL;
 

@@ -81,6 +81,21 @@ static void test_payload_cleanup(void *payload)
   free(test_payload);
 }
 
+static int null_payload_cleanups;
+
+static void test_null_payload_cleanup(void *payload)
+{
+  if (payload == NULL)
+    null_payload_cleanups++;
+}
+
+static struct game_event_result
+test_null_payload_handler(const struct game_event_context *context)
+{
+  (void)context;
+  return game_event_result_complete();
+}
+
 static struct game_event_result test_event_handler(const struct game_event_context *context)
 {
   struct test_event_payload *payload;
@@ -255,6 +270,42 @@ void Test_game_scheduler_validates_types_payloads_and_duplicate_names(CuTest *tc
   status = game_scheduler_schedule_after(scheduler, event_type + 1U, 1U, NULL, &event_id);
   CuAssertIntEquals(tc, GAME_SCHEDULER_INVALID_TYPE, status);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
+}
+
+void Test_game_scheduler_runs_cleanup_for_null_payloads(CuTest *tc)
+{
+  struct game_scheduler *scheduler;
+  struct game_event_type_config config;
+  struct test_clock clock;
+  game_event_type_id_t event_type;
+  game_event_id_t event_id;
+  enum game_scheduler_status status;
+
+  memset(&clock, 0, sizeof(clock));
+  scheduler = create_test_scheduler(tc, &clock, 8U, true);
+  memset(&config, 0, sizeof(config));
+  config.name = "nullable-payload";
+  config.handler = test_null_payload_handler;
+  config.cleanup = test_null_payload_cleanup;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.cleanup_on_null_payload = true;
+  status = game_scheduler_register_type(scheduler, &config, &event_type);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, status);
+
+  null_payload_cleanups = 0;
+  status = game_scheduler_schedule_after(scheduler, event_type, 1U, NULL, &event_id);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, status);
+  clock.tick = 1U;
+  advance_scheduler(tc, scheduler, NULL);
+  CuAssertIntEquals(tc, 1, null_payload_cleanups);
+
+  status = game_scheduler_schedule_after(scheduler, event_type, 1U, NULL, &event_id);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, status);
+  CuAssertIntEquals(tc, GAME_EVENT_CANCELLED,
+                    game_scheduler_cancel(scheduler, event_id));
+  CuAssertIntEquals(tc, 2, null_payload_cleanups);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
+  CuAssertIntEquals(tc, 2, null_payload_cleanups);
 }
 
 void Test_game_scheduler_normalizes_deadlines_and_rejects_overflow(CuTest *tc)

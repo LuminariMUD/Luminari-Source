@@ -35,8 +35,11 @@
 #include "domain_event_world.h"
 #include "dotenv.h"
 #include <curl/curl.h>
-#include <unistd.h>
 #include <pthread.h>
+#include <stdatomic.h>
+#include <unistd.h>
+
+#define AI_SHUTDOWN_WAIT_SECONDS 5U
 
 /* Global AI Service State
  * This global state is shared across all AI components:
@@ -70,6 +73,7 @@ static pthread_cond_t ai_worker_idle = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t ai_request_mutex = PTHREAD_MUTEX_INITIALIZER;
 static size_t ai_active_workers;
 static bool ai_accepting_workers;
+static atomic_bool ai_shutdown_requested = false;
 
 /* CURL Response Buffer */
 struct curl_response
@@ -95,6 +99,41 @@ static bool start_ai_thread_request(const char *prompt, const char *cache_key,
                                     struct domain_entity_handle npc);
 static int json_escape_string(char *dest, size_t dest_size, const char *src);
 /* static void derive_key_from_seed(unsigned char *key); */
+
+static bool ai_shutdown_is_requested(void)
+{
+  return atomic_load_explicit(&ai_shutdown_requested, memory_order_acquire);
+}
+
+static int ai_curl_progress_callback(void *clientp, curl_off_t download_total,
+                                     curl_off_t download_now, curl_off_t upload_total,
+                                     curl_off_t upload_now)
+{
+  (void)clientp;
+  (void)download_total;
+  (void)download_now;
+  (void)upload_total;
+  (void)upload_now;
+  return ai_shutdown_is_requested() ? 1 : 0;
+}
+
+static bool ai_backoff_wait(unsigned int seconds)
+{
+  struct timespec deadline;
+  int wait_status;
+
+  if (ai_shutdown_is_requested())
+    return false;
+  if (clock_gettime(CLOCK_REALTIME, &deadline) != 0)
+    return false;
+  deadline.tv_sec += (time_t)seconds;
+  pthread_mutex_lock(&ai_worker_mutex);
+  wait_status = 0;
+  while (!ai_shutdown_is_requested() && wait_status != ETIMEDOUT)
+    wait_status = pthread_cond_timedwait(&ai_worker_idle, &ai_worker_mutex, &deadline);
+  pthread_mutex_unlock(&ai_worker_mutex);
+  return !ai_shutdown_is_requested();
+}
 
 /**
  * CURL write callback for receiving API responses
@@ -159,13 +198,29 @@ static void derive_key_from_seed(unsigned char *key) {
  */
 void init_ai_service(void)
 {
+  bool rearm_workers;
+
   AI_DEBUG("Starting AI service initialization");
   AI_DEBUG("AI state at start: initialized=%d, config=%p, limiter=%p, cache_size=%d",
            ai_state.initialized, (void *)ai_state.config, (void *)ai_state.limiter,
            ai_state.cache_size);
 
+  rearm_workers = false;
   if (ai_state.initialized)
+  {
+    pthread_mutex_lock(&ai_worker_mutex);
+    if (ai_shutdown_is_requested() && ai_active_workers == 0U)
+    {
+      atomic_store_explicit(&ai_shutdown_requested, false, memory_order_release);
+      ai_accepting_workers = true;
+      rearm_workers = true;
+    }
+    pthread_mutex_unlock(&ai_worker_mutex);
+    if (rearm_workers)
+      (void)ai_events_ingress_init();
     return;
+  }
+  atomic_store_explicit(&ai_shutdown_requested, false, memory_order_release);
 
   /* Initialize CURL globally */
   AI_DEBUG("Initializing CURL library with CURL_GLOBAL_ALL flags");
@@ -309,14 +364,33 @@ void init_ai_service(void)
 void shutdown_ai_service(void)
 {
   struct ai_cache_entry *entry, *next;
+  struct timespec deadline;
+  size_t remaining_workers;
+  int wait_status;
 
   AI_DEBUG("Starting AI service shutdown");
 
   pthread_mutex_lock(&ai_worker_mutex);
   ai_accepting_workers = false;
-  while (ai_active_workers > 0U)
-    pthread_cond_wait(&ai_worker_idle, &ai_worker_mutex);
+  atomic_store_explicit(&ai_shutdown_requested, true, memory_order_release);
+  pthread_cond_broadcast(&ai_worker_idle);
+  wait_status = clock_gettime(CLOCK_REALTIME, &deadline);
+  if (wait_status == 0)
+  {
+    deadline.tv_sec += AI_SHUTDOWN_WAIT_SECONDS;
+    while (ai_active_workers > 0U && wait_status != ETIMEDOUT)
+      wait_status = pthread_cond_timedwait(&ai_worker_idle, &ai_worker_mutex, &deadline);
+  }
+  remaining_workers = ai_active_workers;
   pthread_mutex_unlock(&ai_worker_mutex);
+
+  if (remaining_workers > 0U)
+  {
+    log("WARNING: AI service shutdown timed out with %zu worker(s) active; "
+        "retaining shared provider and ingress state.",
+        remaining_workers);
+    return;
+  }
   ai_events_ingress_shutdown();
 
   if (!ai_state.initialized)
@@ -649,6 +723,8 @@ static char *make_api_request_single(const char *prompt)
   AI_DEBUG("make_api_request_single() called with prompt: '%.50s%s'", prompt,
            strlen(prompt) > 50 ? "..." : "");
 
+  if (ai_shutdown_is_requested())
+    return NULL;
   if (!ai_state.initialized)
   {
     log("SYSERR: AI Service not initialized");
@@ -750,6 +826,10 @@ static char *make_api_request_single(const char *prompt)
   AI_DEBUG("  Write callback set to ai_curl_write_callback");
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
   AI_DEBUG("  Write data pointer set to response buffer");
+  curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+  curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, ai_curl_progress_callback);
+  curl_easy_setopt(curl, CURLOPT_XFERINFODATA, NULL);
+  curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 
   /* Safely set timeout - clamp to reasonable range (1ms to 300000ms/5 minutes) */
   long timeout_ms = ai_state.config->timeout_ms;
@@ -808,6 +888,10 @@ static char *make_api_request_single(const char *prompt)
       AI_DEBUG("HTTP error response: %.200s%s", response.data ? response.data : "(null)",
                response.data && strlen(response.data) > 200 ? "..." : "");
     }
+  }
+  else if (res == CURLE_ABORTED_BY_CALLBACK && ai_shutdown_is_requested())
+  {
+    AI_DEBUG("OpenAI request interrupted for service shutdown");
   }
   else
   {
@@ -879,13 +963,16 @@ static char *make_api_request(const char *prompt)
     retry_count++;
     if (retry_count < max_retries)
     {
-      /* Simple exponential backoff using sleep */
+      /* Exponential backoff that shutdown can interrupt. */
       int sleep_time = 1 << retry_count;
       AI_DEBUG("Request failed, sleeping for %d seconds before retry", sleep_time);
-      sleep(sleep_time);
+      if (!ai_backoff_wait((unsigned int)sleep_time))
+        break;
     }
   }
 
+  if (ai_shutdown_is_requested())
+    return NULL;
   AI_DEBUG("All %d OpenAI attempts failed, trying Ollama fallback", max_retries);
 
   /* Try Ollama as a fallback when OpenAI fails */
@@ -1873,6 +1960,8 @@ static char *make_ollama_request(const char *prompt)
   AI_DEBUG("make_ollama_request() called with prompt: '%.50s%s'", prompt,
            strlen(prompt) > 50 ? "..." : "");
 
+  if (ai_shutdown_is_requested())
+    return NULL;
   /* Get settings from config or use defaults */
   if (ai_state.config)
   {
@@ -1912,6 +2001,10 @@ static char *make_ollama_request(const char *prompt)
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ai_curl_write_callback);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
   curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, timeout_ms);
+  curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+  curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, ai_curl_progress_callback);
+  curl_easy_setopt(curl, CURLOPT_XFERINFODATA, NULL);
+  curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 
   AI_DEBUG("Executing Ollama request to %s (timeout: %ld ms)", endpoint, timeout_ms);
   res = curl_easy_perform(curl);
@@ -1960,6 +2053,10 @@ static char *make_ollama_request(const char *prompt)
                  strlen(response.data) > 200 ? "..." : "");
       }
     }
+  }
+  else if (res == CURLE_ABORTED_BY_CALLBACK && ai_shutdown_is_requested())
+  {
+    AI_DEBUG("Ollama request interrupted for service shutdown");
   }
   else
   {
@@ -2159,6 +2256,64 @@ static void ai_worker_finished(void)
   pthread_mutex_unlock(&ai_worker_mutex);
 }
 
+#ifdef LUMINARI_CUTEST
+static void *ai_test_waiting_worker(void *unused)
+{
+  (void)unused;
+  (void)ai_backoff_wait(60U);
+  ai_worker_finished();
+  return NULL;
+}
+
+bool ai_service_test_start_waiting_worker(void)
+{
+  pthread_attr_t attr;
+  pthread_t thread;
+  int create_status;
+
+  pthread_mutex_lock(&ai_worker_mutex);
+  if (ai_active_workers != 0U)
+  {
+    pthread_mutex_unlock(&ai_worker_mutex);
+    return false;
+  }
+  atomic_store_explicit(&ai_shutdown_requested, false, memory_order_release);
+  ai_accepting_workers = true;
+  ai_active_workers++;
+  pthread_mutex_unlock(&ai_worker_mutex);
+
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+  create_status = pthread_create(&thread, &attr, ai_test_waiting_worker, NULL);
+  pthread_attr_destroy(&attr);
+  if (create_status == 0)
+    return true;
+  ai_worker_finished();
+  return false;
+}
+
+size_t ai_service_test_active_workers(void)
+{
+  size_t active_workers;
+
+  pthread_mutex_lock(&ai_worker_mutex);
+  active_workers = ai_active_workers;
+  pthread_mutex_unlock(&ai_worker_mutex);
+  return active_workers;
+}
+
+void ai_service_test_reset_worker_state(void)
+{
+  pthread_mutex_lock(&ai_worker_mutex);
+  if (ai_active_workers == 0U)
+  {
+    ai_accepting_workers = false;
+    atomic_store_explicit(&ai_shutdown_requested, false, memory_order_release);
+  }
+  pthread_mutex_unlock(&ai_worker_mutex);
+}
+#endif
+
 static bool start_ai_thread_request(const char *prompt, const char *cache_key,
                                     int request_type, int retry_count,
                                     struct domain_entity_handle player,
@@ -2254,7 +2409,7 @@ static void *ai_thread_worker(void *arg)
 
   /* Make the blocking API call in this thread */
   /* Track which backend ultimately provides the response */
-  if (is_ai_enabled())
+  if (!ai_shutdown_is_requested() && is_ai_enabled())
   {
     /* Try OpenAI first (with retries) */
     int retry_count = MAX(req->retry_count, 0);
@@ -2270,12 +2425,13 @@ static void *ai_thread_worker(void *arg)
       if (retry_count < max_retries)
       {
         int sleep_time = 1 << retry_count;
-        sleep(sleep_time);
+        if (!ai_backoff_wait((unsigned int)sleep_time))
+          break;
       }
     }
 
     /* If OpenAI failed, try Ollama */
-    if (!response)
+    if (!response && !ai_shutdown_is_requested())
     {
       ollama_response = make_ollama_request(req->prompt);
       if (ollama_response)
@@ -2286,7 +2442,7 @@ static void *ai_thread_worker(void *arg)
       }
     }
   }
-  else
+  else if (!ai_shutdown_is_requested())
   {
     /* AI disabled, try Ollama directly */
     ollama_response = make_ollama_request(req->prompt);
@@ -2299,7 +2455,7 @@ static void *ai_thread_worker(void *arg)
   }
 
   /* If all AI failed, get generic fallback (don't call generate_fallback_response as it tries Ollama again) */
-  if (!response)
+  if (!response && !ai_shutdown_is_requested())
   {
     static char *fallback_responses[] = {"I don't understand what you're saying.",
                                          "Could you repeat that?",
@@ -2320,7 +2476,7 @@ static void *ai_thread_worker(void *arg)
   }
   pthread_mutex_unlock(&ai_request_mutex);
 
-  if (response)
+  if (response && !ai_shutdown_is_requested())
   {
     /* The main-thread ingress owns cache mutation and scheduler admission. */
     queue_ai_response_for_entities(req->player, req->npc, response,
@@ -2331,6 +2487,7 @@ static void *ai_thread_worker(void *arg)
   }
   else
   {
+    free(response);
     AI_DEBUG("Thread worker failed to get any response");
   }
 

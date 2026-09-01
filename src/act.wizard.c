@@ -6575,6 +6575,7 @@ void perform_do_copyover()
   int playing_count = 0, total_count = 0, saved_count = 0;
   int exec_errno = 0;
   bool exec_attempted = FALSE;
+  bool reactor_prepare_failed = FALSE;
 
   if (realpath("../" EXE_FILE, copyover_executable) == NULL)
   {
@@ -7160,6 +7161,7 @@ void perform_do_copyover()
     else
     {
       exec_errno = errno != 0 ? errno : EINVAL;
+      reactor_prepare_failed = TRUE;
       log_copyover_phase("FAILED", "Descriptor policy or reactor quiesce failed");
     }
 
@@ -7182,6 +7184,12 @@ void perform_do_copyover()
     log_execl_failure(exec_errno);
     log_copyover_phase("FAILED", "execl() failed");
     log("SYSERR: do_copyover: execl() failed - %s (errno %d)", strerror(exec_errno), exec_errno);
+  }
+  else if (reactor_prepare_failed)
+  {
+    log("SYSERR: do_copyover: Refusing to exec after descriptor policy or reactor quiesce "
+        "failure - %s (errno %d)",
+        strerror(exec_errno), exec_errno);
   }
   else
   {

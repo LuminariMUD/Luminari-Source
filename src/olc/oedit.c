@@ -41,6 +41,8 @@
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);
+static struct obj_special_ability *iedit_copy_special_abilities(
+    const struct obj_special_ability *source);
 static void iedit_commit_existing(struct obj_data *live, struct obj_data *edited);
 static void oedit_disp_mob_recipient_menu(struct descriptor_data *d);
 static void oedit_setup_new(struct descriptor_data *d);
@@ -3982,15 +3984,39 @@ void oedit_string_cleanup(struct descriptor_data *d, int terminator __attribute_
 
 /* this is all iedit stuff */
 
+static struct obj_special_ability *iedit_copy_special_abilities(
+    const struct obj_special_ability *source)
+{
+  struct obj_special_ability *copy;
+  struct obj_special_ability *head = NULL;
+  struct obj_special_ability *tail = NULL;
+
+  for (; source != NULL; source = source->next)
+  {
+    CREATE(copy, struct obj_special_ability, 1);
+    *copy = *source;
+    copy->command_word = source->command_word != NULL ? strdup(source->command_word) : NULL;
+    copy->next = NULL;
+    if (tail != NULL)
+      tail->next = copy;
+    else
+      head = copy;
+    tail = copy;
+  }
+  return head;
+}
+
 static void iedit_commit_existing(struct obj_data *live, struct obj_data *edited)
 {
   struct obj_data runtime;
+  struct obj_special_ability *old_special_abilities;
   obj_rnum robj;
 
   if (live == NULL || edited == NULL)
     return;
 
   runtime = *live;
+  old_special_abilities = live->special_abilities;
   autoproc_registry_remove(live);
   point_update_object_forget(live);
   if (SCRIPT(live) != NULL)
@@ -3998,6 +4024,9 @@ static void iedit_commit_existing(struct obj_data *live, struct obj_data *edited
   free_proto_script(&live->proto_script);
 
   copy_object(live, edited);
+  if (old_special_abilities != edited->special_abilities)
+    free_obj_special_abilities(old_special_abilities);
+  edited->special_abilities = NULL;
   GET_ID(live) = runtime.id;
   IN_ROOM(live) = runtime.in_room;
   live->carried_by = runtime.carried_by;
@@ -4036,6 +4065,7 @@ void iedit_setup_existing(struct descriptor_data *d, struct obj_data *real_num)
   clear_object(obj);
 
   copy_object(obj, real_num);
+  obj->special_abilities = iedit_copy_special_abilities(real_num->special_abilities);
   SCRIPT(obj) = NULL;
   obj->proto_script = NULL;
 

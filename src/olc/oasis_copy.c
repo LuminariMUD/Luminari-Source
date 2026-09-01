@@ -463,6 +463,7 @@ int buildwalk(struct char_data *ch, int dir)
       {
         OLC_ROOM(d)->coords[0] = new_x;
         OLC_ROOM(d)->coords[1] = new_y;
+        OLC_ROOM(d)->wilderness_coordinates_set = true;
       }
 
       /* Save the new room to memory. redit_save_internally handles adding the
