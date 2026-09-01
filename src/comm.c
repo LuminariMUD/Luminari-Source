@@ -4151,6 +4151,7 @@ void close_socket(struct descriptor_data *d)
     {
       mudlog(CMP, LVL_IMMORT, TRUE, "Losing player: %s.",
              GET_NAME(d->character) ? GET_NAME(d->character) : "<null>");
+      character_periodic_forget(d->character);
       free_char(d->character);
     }
   }

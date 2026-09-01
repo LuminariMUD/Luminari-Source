@@ -1197,3 +1197,24 @@ void Test_spec_character_periodic_control_transfers_resync_owners(CuTest *tc)
     free(source);
   }
 }
+
+void Test_spec_descriptor_cleanup_forgets_character_periodic_before_free(CuTest *tc)
+{
+  char *source = NULL;
+  char *close_socket;
+  char *close_socket_end;
+  char *forget_call;
+  char *free_call;
+
+  CuAssertTrue(tc, spec_pulse_read_source("src/comm.c", &source));
+  close_socket = strstr(source, "void close_socket(struct descriptor_data *d)");
+  close_socket_end =
+      close_socket != NULL ? strstr(close_socket, "static void check_idle_passwords(void)") : NULL;
+  forget_call = spec_pulse_find_in_region(
+      close_socket, close_socket_end, "character_periodic_forget(d->character);");
+  free_call = spec_pulse_find_in_region(close_socket, close_socket_end, "free_char(d->character);");
+
+  CuAssertTrue(tc, close_socket != NULL && close_socket_end != NULL && forget_call != NULL &&
+                       free_call != NULL && forget_call < free_call);
+  free(source);
+}
