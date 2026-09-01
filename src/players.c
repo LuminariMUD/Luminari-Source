@@ -5636,6 +5636,7 @@ static void load_events(FILE *fl, struct char_data *ch)
   const struct mud_event_persistence_policy *policy;
   struct mud_event_durable_record record;
   enum mud_event_restore_status restore_status;
+  int consumed;
   int fields;
   int num;
   long num2;
@@ -5648,11 +5649,13 @@ static void load_events(FILE *fl, struct char_data *ch)
     num = 0;
     num2 = 0;
     num3 = -1;
+    consumed = 0;
     fields = sscanf(line, "%d %ld %d %c", &num, &num2, &num3, &trailing);
     if (fields >= 1 && num == -1)
       return;
     if ((fields != 2 && fields != 3) ||
-        (fields == 2 && sscanf(line, "%*d %*ld %c", &trailing) == 1))
+        (fields == 2 &&
+         (sscanf(line, "%d %ld %n", &num, &num2, &consumed) != 2 || line[consumed] != '\0')))
     {
       log("SYSERR: Ignoring malformed legacy persisted event record for %s.", GET_NAME(ch));
       continue;
@@ -5669,7 +5672,8 @@ static void load_events(FILE *fl, struct char_data *ch)
     record.owner_id = GET_IDNUM(ch);
     record.remaining_ticks = num2;
     record.saved_at_epoch = (int64_t)time(NULL);
-    record.payload_value = fields == 3 ? num3 : -1;
+    record.payload_value =
+        policy->payload_policy == MUD_EVENT_PAYLOAD_USES && fields == 3 && num3 > 0 ? num3 : -1;
     restore_status =
         mud_event_restore_character_record(ch, &record, record.saved_at_epoch);
     if (restore_status != MUD_EVENT_RESTORE_OK)
@@ -5679,6 +5683,30 @@ static void load_events(FILE *fl, struct char_data *ch)
 
   log("SYSERR: Unterminated legacy persisted event section for %s.", GET_NAME(ch));
 }
+
+static bool skip_durable_event_section(FILE *fl)
+{
+  char line[MAX_INPUT_LENGTH + 1];
+
+  while (get_line(fl, line))
+  {
+    if (!strcmp(line, "-1"))
+      return true;
+  }
+  return false;
+}
+
+#ifdef LUMINARI_CUTEST
+void load_legacy_events_for_test(FILE *fl, struct char_data *ch)
+{
+  load_events(fl, ch);
+}
+
+bool skip_durable_event_section_for_test(FILE *fl)
+{
+  return skip_durable_event_section(fl);
+}
+#endif
 
 static void load_events_v2(FILE *fl, struct char_data *ch, const char *header)
 {
@@ -5698,8 +5726,10 @@ static void load_events_v2(FILE *fl, struct char_data *ch, const char *header)
       format_version != MUD_EVENT_DURABLE_FORMAT_VERSION)
   {
     log("SYSERR: Unsupported durable event section version for %s.", GET_NAME(ch));
-    while (get_line(fl, line) && strcmp(line, "-1"))
-      ;
+    if (!skip_durable_event_section(fl))
+      log("SYSERR: Unterminated unsupported durable event section for %s; remaining player-file "
+          "tags were discarded.",
+          GET_NAME(ch));
     return;
   }
 

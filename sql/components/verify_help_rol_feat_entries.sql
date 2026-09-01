@@ -48,6 +48,7 @@ SELECT
 FROM help_keywords
 WHERE (UPPER(keyword) = 'ACCOMPANY' AND BINARY help_tag <> 'ACCOMPANY')
    OR (UPPER(keyword) = 'ACTIVITY' AND BINARY help_tag <> 'ACTIVITY')
+   OR (UPPER(keyword) = 'PRIMARY-ACTIVITY' AND BINARY help_tag <> 'ACTIVITY')
    OR (UPPER(keyword) = 'CALM' AND BINARY help_tag <> 'CALM')
    OR (UPPER(keyword) = 'CAMP' AND BINARY help_tag <> 'CAMP')
    OR (UPPER(keyword) = 'GARROTE' AND BINARY help_tag <> 'GARROTE')

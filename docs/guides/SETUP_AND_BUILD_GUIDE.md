@@ -24,7 +24,7 @@ sudo apt-get update
 sudo apt-get install -y build-essential git make autoconf automake libtool \
   cmake pkg-config mariadb-server libmariadb-dev libcrypt-dev libgd-dev \
   libcurl4-openssl-dev libssl-dev libjson-c-dev zlib1g-dev mariadb-client \
-  pandoc gdb valgrind
+  curl pandoc gdb valgrind
 ```
 
 ## Existing Configured Checkout

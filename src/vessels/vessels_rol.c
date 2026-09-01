@@ -128,8 +128,9 @@ static EVENTFUNC(rol_ship_owner_event)
     return 0;
   rol_periodic_callback_count++;
   state = &rol_ship_states[ship_index];
-  if (!rol_periodic_initialized || !vessel_periodic_events_enabled() || state->hull == NULL ||
-      IN_ROOM(state->hull) == NOWHERE || IN_ROOM(state->hull) > top_of_world)
+  if (!rol_periodic_initialized || !CONFIG_VESSEL_SYSTEM ||
+      !vessel_periodic_events_enabled() || state->hull == NULL || IN_ROOM(state->hull) == NOWHERE ||
+      IN_ROOM(state->hull) > top_of_world)
   {
     state->periodic_event_handle = EVENT_HANDLE_NONE;
     return 0;
@@ -143,8 +144,8 @@ static void rol_ship_schedule(int ship_index)
   struct game_event_owner owner = game_event_owner_none();
   struct rol_ship_state *state;
 
-  if (!rol_periodic_initialized || !vessel_periodic_events_enabled() || ship_index < 0 ||
-      ship_index >= rol_ship_count())
+  if (!rol_periodic_initialized || !CONFIG_VESSEL_SYSTEM ||
+      !vessel_periodic_events_enabled() || ship_index < 0 || ship_index >= rol_ship_count())
     return;
   state = &rol_ship_states[ship_index];
   if (state->hull == NULL || state->periodic_event_handle != EVENT_HANDLE_NONE ||
@@ -1108,7 +1109,7 @@ size_t rol_ship_periodic_validate(void)
     loaded = state->hull != NULL && IN_ROOM(state->hull) != NOWHERE &&
              IN_ROOM(state->hull) <= top_of_world;
     if ((state->periodic_event_handle != EVENT_HANDLE_NONE) !=
-        (vessel_periodic_events_enabled() && loaded))
+        (CONFIG_VESSEL_SYSTEM && vessel_periodic_events_enabled() && loaded))
       mismatches++;
     if (state->periodic_event_handle != EVENT_HANDLE_NONE && state->periodic_generation == 0U)
       mismatches++;
