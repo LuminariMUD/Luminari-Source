@@ -303,6 +303,9 @@ enum game_scheduler_status game_scheduler_inspect(const struct game_scheduler *s
 enum game_scheduler_status game_scheduler_inspect_owner(
     const struct game_scheduler *scheduler, struct game_event_owner owner,
     struct game_event_snapshot *snapshots, size_t snapshot_capacity, size_t *event_count);
+enum game_scheduler_status game_scheduler_inspect_all(
+    const struct game_scheduler *scheduler, struct game_event_snapshot *snapshots,
+    size_t snapshot_capacity, size_t *event_count);
 void game_scheduler_get_stats(const struct game_scheduler *scheduler,
                               struct game_scheduler_stats *stats);
 

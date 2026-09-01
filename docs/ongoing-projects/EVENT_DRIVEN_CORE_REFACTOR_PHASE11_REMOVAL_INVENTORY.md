@@ -86,11 +86,10 @@ generation-safe `event_handle_t` values and payload destructors receive owned
 payloads. The internal header is included by the facade plus two low-level
 adapter tests; it is not a gameplay API.
 
-There are six opaque compatibility-adapter scheduling calls across four
+There are four opaque compatibility-adapter scheduling calls across three
 production files:
 
 - two AI response/retry jobs in `src/ai_events.c`;
-- two named runtime-service/persistence jobs in `src/comm.c`;
 - one DG trigger wait in `src/dgscript/dg_scripts.c`; and
 - one MUD-event admission path in `src/mud_event.c`.
 
@@ -233,6 +232,14 @@ owner agendas, shared vessel service agenda, and fixed-RoL ship agendas as
 `world.mud_hour_update`, `vessel.greyhawk.agenda`, `vessel.shared.agenda`, and
 `vessel.rol.agenda`. Their due-owner registries, boundary alignment, feature
 rebuild, extraction cancellation, and heartbeat rollback remain unchanged.
+
+The native runtime-service slice registered each named cadence in `comm.c` as
+its own semantic service-owner type and moved bounded persistence work to
+`service.persistence_batch`. The service callbacks perform one responsibility
+at their established boundary and return the next delay; `comm.c` no longer
+uses the compatibility scheduler facade. `eventdebug queue` now merges direct
+native scheduler records with the remaining compatibility records without
+duplicating their native `legacy_event` wrappers.
 
 Phase 11o additionally freezes the concrete-owner agenda architecture in
 `scripts/events/test_demand_driven_architecture.sh`. A production-linked test

@@ -21,9 +21,10 @@
 > Encounter rounds, primary activities, autonomous mobiles, affected owners,
 > character periodic work, object automatic procedures, DG random triggers,
 > mud-hour work, and vessel agendas now schedule as distinct native semantic
-> types on the single process timing wheel. Their owner-local timing,
-> recurrence, teardown, and diagnostics remain unchanged. Six compatibility
-> schedules across four production files remain in the migration backlog.
+> types on the single process timing wheel. Named runtime services and bounded
+> persistence batches now do the same. Their owner-local timing, recurrence,
+> teardown, and diagnostics remain unchanged. Four compatibility schedules
+> across three production files remain in the migration backlog.
 > Vessel owners, the vessel/point-update singleton services, DG waits, and MUD
 > events and one-shot AI jobs also use opaque handles. The compatibility
 > record, pointer API, and rollback queue declarations are private to the
@@ -2522,3 +2523,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.39 | 2026-09-01 | Migrated object automatic procedures and DG mobile/object/room random triggers to native `object.automatic_procedure` and `dg.random_trigger` types. Preserved six- and thirteen-second recurrence, off-screen execution, authored DG `GLOBAL` semantics, lifecycle cancellation, admission bounds, and independent heartbeat rollback; 13 adapter schedules remain across 10 files. |
 | 1.40 | 2026-09-01 | Migrated the mud-hour point-update service, Greyhawk owner agendas, shared vessel service agenda, and fixed-RoL ship agendas to four native semantic types. Preserved due-owner registries, cadence alignment, extraction-safe mutation, feature rebuild, owner generation, capacity refill, and physical-backend heartbeat fallback; nine adapter schedules remain across seven files. |
 | 1.41 | 2026-09-01 | Migrated autonomous-mobile agendas, primary-activity wall-clock steps, and encounter-owned rounds to native `mobile.autonomous.agenda`, `activity.primary.step`, and `combat.encounter.round` types. Preserved owner-local recurrence, off-screen simulation, activity interruption and re-entry, encounter mutation/merge safety, and semantic six-second rounds without population discovery; six adapter schedules remain across four files. |
+| 1.42 | 2026-09-01 | Migrated all named runtime services and the bounded persistence worker from compatibility scheduling to native service-owner types. Added timing-wheel-wide inspection so native events remain visible through the readable `eventdebug queue` filters, isolated scheduler-dependent tests from leaked runtime globals, and reduced compatibility admission to four calls across three files. |

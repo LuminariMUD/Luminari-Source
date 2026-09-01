@@ -582,14 +582,15 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
 {
   struct domain_event_bus_stats stats;
   struct char_data victim;
-  struct char_data *saved_character_list;
 
-  saved_character_list = character_list;
   clear_char(&victim);
   victim.player.name = "domain event death victim";
   victim.next = NULL;
   character_list = &victim;
-  domain_event_runtime_shutdown();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
   active_world_reset_for_test();
   active_world_select_for_test(true);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
@@ -604,10 +605,11 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)stats.publications);
   CuAssertIntEquals(tc, DOMAIN_EVENT_BUSY, domain_event_runtime_init());
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
   CuAssertPtrEquals(tc, NULL, domain_event_runtime_bus());
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
   active_world_reset_for_test();
-  character_list = saved_character_list;
+  character_list = NULL;
 }
 
 static void active_world_prepare_character(struct char_data *ch, bool npc, room_rnum room)

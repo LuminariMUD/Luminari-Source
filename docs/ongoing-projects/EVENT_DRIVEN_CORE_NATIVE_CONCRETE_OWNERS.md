@@ -62,10 +62,11 @@ delay to the single timing wheel.
   scheduler failures. Both the isolated instance and the user test instance
   were shut down after validation.
 
-The compatibility inventory is now six schedules across four production files.
+At this slice boundary the compatibility inventory was six schedules across
+four production files. The following native service slice reduced it again.
 
 ## Next Slice
 
-Migrate named runtime services and persistence work from `src/comm.c` to native
-service types. Then migrate DG waits, MUD events and durable reconstruction,
-and AI response/retry jobs in behavior-preserving slices.
+Named runtime services and persistence work have now migrated. Next migrate DG
+waits, MUD events and durable reconstruction, and AI response/retry jobs in
+behavior-preserving slices.

@@ -1875,6 +1875,44 @@ enum game_scheduler_status game_scheduler_inspect_owner(
   return GAME_SCHEDULER_OK;
 }
 
+enum game_scheduler_status game_scheduler_inspect_all(
+    const struct game_scheduler *scheduler, struct game_event_snapshot *snapshots,
+    size_t snapshot_capacity, size_t *event_count)
+{
+  struct game_event *event;
+  size_t bucket;
+  size_t index;
+
+  if (scheduler == NULL || event_count == NULL ||
+      (snapshot_capacity > 0 && snapshots == NULL))
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  index = 0;
+  for (bucket = 0; bucket < scheduler->registry_bucket_count; bucket++)
+  {
+    for (event = scheduler->registry_buckets[bucket]; event != NULL;
+         event = event->registry_next)
+    {
+      if (index < snapshot_capacity)
+      {
+        memset(&snapshots[index], 0, sizeof(snapshots[index]));
+        snapshots[index].event_id = event->event_id;
+        snapshots[index].event_type = event->event_type;
+        snapshots[index].state = event->state;
+        snapshots[index].location = event->location;
+        snapshots[index].deadline_tick = event->deadline_tick;
+        snapshots[index].interval_ticks = event->interval_ticks;
+        snapshots[index].insertion_sequence = event->insertion_sequence;
+        snapshots[index].wheel_level = event->wheel_level;
+        snapshots[index].wheel_slot = event->wheel_slot;
+        snapshots[index].owner = event->owner;
+      }
+      index++;
+    }
+  }
+  *event_count = index;
+  return GAME_SCHEDULER_OK;
+}
+
 void game_scheduler_get_stats(const struct game_scheduler *scheduler,
                               struct game_scheduler_stats *stats)
 {

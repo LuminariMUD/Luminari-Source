@@ -35,7 +35,6 @@ collect_counts()
 collect_counts '(^|[^[:alnum:]_])event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(' >"$actual"
 cat >"$expected" <<'EOF'
 src/ai_events.c 2
-src/comm.c 2
 src/dgscript/dg_scripts.c 1
 src/mud_event.c 1
 EOF

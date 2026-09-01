@@ -2,6 +2,26 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native runtime services and persistence batches
+
+#### Changed
+
+- Registered each named runtime service as its own native service-owner event
+  type and registered `service.persistence_batch` as a separate bounded worker.
+- Migrated service cadence recurrence and incremental persistence steps from
+  compatibility handles to native runtime handles with one event per owner.
+- Extended `eventdebug queue` and its filters to include native scheduler
+  events while suppressing duplicate compatibility-wrapper records.
+- Reduced the frozen compatibility inventory to four schedules across three
+  production files.
+
+#### Tests
+
+- Added native service/persistence ownership, lifecycle, recurrence, fallback,
+  and diagnostic inspection coverage.
+- Made scheduler-dependent domain, camp, point-update, and PERFMON fixtures
+  initialize and isolate their own runtime state; all 1,050 tests pass.
+
 ### Native concrete-owner gameplay events
 
 #### Changed

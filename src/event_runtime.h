@@ -54,6 +54,9 @@ enum game_scheduler_status event_runtime_inspect(struct event_runtime_handle han
 enum game_scheduler_status event_runtime_inspect_owner(
     struct game_event_owner owner, struct game_event_snapshot *snapshots,
     size_t snapshot_capacity, size_t *event_count);
+enum game_scheduler_status event_runtime_inspect_all(
+    struct game_event_snapshot *snapshots, size_t snapshot_capacity,
+    size_t *event_count);
 void event_runtime_get_stats(struct game_scheduler_stats *stats);
 
 #endif /* EVENT_RUNTIME_H */

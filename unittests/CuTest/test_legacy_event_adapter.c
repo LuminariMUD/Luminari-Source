@@ -8,6 +8,7 @@
 #include "../../src/dgscript/dg_event_internal.h"
 #include "../../src/ai_service.h"
 #include "../../src/event_debug.h"
+#include "../../src/event_runtime.h"
 #include "../../src/perfmon.h"
 
 #include <stdlib.h>
@@ -713,6 +714,7 @@ void Test_legacy_event_source_workload_populates_private_telemetry(CuTest *tc)
 
   saved_pulse = pulse;
   begin_backend_test(tc, EVENT_BACKEND_GAME_SCHEDULER, 400U);
+  character_list = NULL;
   PERF_reset();
   memset(events, 0, sizeof(events));
 
@@ -970,7 +972,11 @@ void Test_event_debug_registry_is_backend_neutral_filterable_and_width_bounded(C
 
 static void verify_runtime_service_registry(CuTest *tc, enum event_backend_kind backend)
 {
+  struct event_debug_filter filter;
+  struct event_debug_snapshot snapshot;
+  struct game_scheduler_stats scheduler_stats;
   struct runtime_service_stats stats;
+  size_t returned_count;
   unsigned long start_pulse;
 
   begin_backend_test(tc, backend, 0U);
@@ -983,10 +989,24 @@ static void verify_runtime_service_registry(CuTest *tc, enum event_backend_kind 
   CuAssertTrue(tc, stats.scheduled);
   CuAssertTrue(tc, stats.configured_services >= 14U);
   CuAssertIntEquals(tc, (int)stats.configured_services, (int)stats.live_services);
+  memset(&scheduler_stats, 0, sizeof(scheduler_stats));
+  event_runtime_get_stats(&scheduler_stats);
+  CuAssertIntEquals(tc, (int)stats.live_services, (int)scheduler_stats.event_count);
   CuAssertIntEquals(tc, (int)stats.live_services, event_queue_depth());
+  memset(&filter, 0, sizeof(filter));
+  filter.type_equals = "service.one_second";
+  CuAssertIntEquals(tc, 1,
+                    (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)returned_count);
+  CuAssertIntEquals(tc, GAME_EVENT_OWNER_SERVICE, snapshot.owner.kind);
 
   CuAssertTrue(tc, runtime_services_start_empty_persistence_for_test());
   CuAssertTrue(tc, runtime_services_persistence_pending_for_test());
+  event_runtime_get_stats(&scheduler_stats);
+  CuAssertIntEquals(tc, (int)stats.live_services + 1, (int)scheduler_stats.event_count);
+  filter.type_equals = "service.persistence_batch";
+  CuAssertIntEquals(tc, 1,
+                    (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
   pulse = start_pulse + 1U;
   event_process();
   CuAssertTrue(tc, !runtime_services_persistence_pending_for_test());
@@ -1000,16 +1020,30 @@ static void verify_runtime_service_registry(CuTest *tc, enum event_backend_kind 
   CuAssertTrue(tc, !stats.scheduled);
   CuAssertIntEquals(tc, 0, (int)stats.live_services);
   CuAssertIntEquals(tc, 0, event_queue_depth());
+  event_runtime_get_stats(&scheduler_stats);
+  CuAssertIntEquals(tc, 0, (int)scheduler_stats.event_count);
   runtime_services_reset_selection_for_test();
   event_free_all();
 }
 
-void Test_runtime_services_are_named_owned_events_on_both_backends(CuTest *tc)
+void Test_runtime_services_are_native_owned_events_with_legacy_fallback(CuTest *tc)
 {
   unsigned long saved_pulse = pulse;
+  struct runtime_service_stats stats;
 
-  verify_runtime_service_registry(tc, EVENT_BACKEND_LEGACY_QUEUE);
   verify_runtime_service_registry(tc, EVENT_BACKEND_GAME_SCHEDULER);
+
+  begin_backend_test(tc, EVENT_BACKEND_LEGACY_QUEUE, 0U);
+  runtime_services_set_scheduled_for_test(true);
+  CuAssertTrue(tc, !runtime_services_init_for_test());
+  memset(&stats, 0, sizeof(stats));
+  runtime_services_get_stats(&stats);
+  CuAssertTrue(tc, stats.initialized);
+  CuAssertTrue(tc, !stats.scheduled);
+  CuAssertIntEquals(tc, 0, (int)stats.live_services);
+  runtime_services_shutdown();
+  runtime_services_reset_selection_for_test();
+  event_free_all();
   pulse = saved_pulse;
 }
 

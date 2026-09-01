@@ -651,8 +651,9 @@ void Test_player_live_entry_registers_loaded_timed_affects(CuTest *tc)
   affect.duration = 2;
   affect_to_char(&player, &affect);
 
-  saved_character_list = character_list;
-  player.next = saved_character_list;
+  saved_character_list = NULL;
+  character_list = NULL;
+  player.next = NULL;
   character_list = &player;
   entry_hook_present =
       perfmon_file_contains("src/interpreter.c", "affected_registry_attach(d->character);");
@@ -692,8 +693,9 @@ void Test_player_live_entry_registers_for_point_updates(CuTest *tc)
   player.player_specials = &dummy_mob;
   player.player.short_descr = (char *)"point update player";
 
-  saved_character_list = character_list;
-  player.next = saved_character_list;
+  saved_character_list = NULL;
+  character_list = NULL;
+  player.next = NULL;
   character_list = &player;
   entry_hook_present =
       perfmon_file_contains("src/interpreter.c", "point_update_character_sync(d->character);");
@@ -860,6 +862,7 @@ void Test_perfmon_copyover_snapshot_replaces_one_complete_file(CuTest *tc)
   close(snapshot_fd);
   CuAssertIntEquals(tc, (int)(sizeof(stale_marker) - 1), (int)seed_written);
 
+  character_list = NULL;
   PERF_reset();
   write_result = PERF_write_copyover_snapshot(snapshot_path);
   snprintf(temp_path, sizeof(temp_path), "%s.tmp", snapshot_path);

@@ -2263,7 +2263,8 @@ struct runtime_service
   const char *name;
   long cadence;
   uint64_t owner_id;
-  event_handle_t handle;
+  game_event_type_id_t event_type;
+  struct event_runtime_handle handle;
   uint64_t callbacks;
 };
 
@@ -2271,7 +2272,7 @@ struct runtime_service
 #define RUNTIME_SERVICE_ENTRY(kind_name, profile_name, cadence_ticks)                              \
   {                                                                                                \
     kind_name, profile_name, cadence_ticks, RUNTIME_SERVICE_OWNER_BASE + kind_name,                \
-        EVENT_HANDLE_NONE, 0                                                                       \
+        0U, EVENT_RUNTIME_HANDLE_NONE, 0                                                           \
   }
 
 static struct runtime_service runtime_service_table[] = {
@@ -2325,7 +2326,8 @@ static bool runtime_services_initialized;
 static bool runtime_services_scheduled;
 static bool runtime_services_shutting_down;
 static uint64_t runtime_service_schedule_failures;
-static event_handle_t persistence_step_handle;
+static game_event_type_id_t persistence_step_event_type;
+static struct event_runtime_handle persistence_step_handle = EVENT_RUNTIME_HANDLE_NONE;
 static uint64_t persistence_fallback_tick = UINT64_MAX;
 static unsigned long runtime_service_next_crashsave_tick;
 #ifdef LUMINARI_CUTEST
@@ -2617,36 +2619,39 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
   }
 }
 
-static void runtime_service_cleanup(event_handle_t handle, void *event_obj)
+static void runtime_service_cleanup(void *event_obj)
 {
   struct runtime_service *service = event_obj;
 
-  if (service != NULL && service->handle == handle)
-    service->handle = EVENT_HANDLE_NONE;
+  if (service != NULL)
+    service->handle = EVENT_RUNTIME_HANDLE_NONE;
 }
 
-static EVENTFUNC(runtime_service_event)
+static struct game_event_result
+runtime_service_event(const struct game_event_context *context)
 {
-  struct runtime_service *service = event_obj;
+  struct runtime_service *service = context != NULL ? context->payload : NULL;
 
   if (!runtime_services_initialized || !runtime_services_scheduled ||
-      runtime_services_shutting_down || service == NULL || !runtime_service_needed(service->kind))
-    return 0;
+      runtime_services_shutting_down || service == NULL ||
+      service->handle.id != context->event_id || !runtime_service_needed(service->kind))
+    return game_event_result_complete();
   service->callbacks++;
   runtime_service_dispatch(service->kind, pulse);
-  return runtime_service_boundary_delay(service);
+  return game_event_result_reschedule_after(
+      (game_tick_t)runtime_service_boundary_delay(service));
 }
 
 static bool runtime_service_schedule(struct runtime_service *service)
 {
-  if (service == NULL || service->handle != EVENT_HANDLE_NONE)
+  if (service == NULL || !event_runtime_handle_is_none(service->handle))
     return service != NULL;
   if (!runtime_service_needed(service->kind))
     return true;
-  service->handle = event_schedule_owned_named_with_terminal_cleanup(
-      runtime_service_event, service, runtime_service_boundary_delay(service), service->name,
-      runtime_service_cleanup, runtime_service_owner(service));
-  if (service->handle == EVENT_HANDLE_NONE)
+  if (event_runtime_schedule_owned_after(
+          service->event_type, runtime_service_owner(service),
+          (game_tick_t)runtime_service_boundary_delay(service), service,
+          &service->handle) != GAME_SCHEDULER_OK)
   {
     runtime_service_schedule_failures++;
     return false;
@@ -2654,20 +2659,77 @@ static bool runtime_service_schedule(struct runtime_service *service)
   return true;
 }
 
-static void persistence_step_cleanup(event_handle_t handle, void *event_obj)
+static void persistence_step_cleanup(void *event_obj)
 {
   (void)event_obj;
-  if (persistence_step_handle == handle)
-    persistence_step_handle = EVENT_HANDLE_NONE;
+  persistence_step_handle = EVENT_RUNTIME_HANDLE_NONE;
 }
 
-static EVENTFUNC(persistence_step_event)
+static struct game_event_result
+persistence_step_event(const struct game_event_context *context)
 {
-  (void)event_obj;
-  if (!runtime_services_enabled() || !persistence_scheduler.active)
-    return 0;
+  if (context == NULL || persistence_step_handle.id != context->event_id ||
+      !runtime_services_enabled() || !persistence_scheduler.active)
+    return game_event_result_complete();
   persistence_scheduler_step((uint64_t)pulse);
-  return persistence_scheduler.active ? 1 : 0;
+  return persistence_scheduler.active ? game_event_result_reschedule_after(1U)
+                                      : game_event_result_complete();
+}
+
+static bool runtime_services_register_types(void)
+{
+  struct game_event_type_config config;
+  enum game_scheduler_status status;
+  size_t index;
+
+  if (!event_runtime_is_initialized())
+    return false;
+  for (index = 0; index < RUNTIME_SERVICE_COUNT; index++)
+  {
+    if (event_runtime_type_name(runtime_service_table[index].event_type) != NULL &&
+        !strcmp(event_runtime_type_name(runtime_service_table[index].event_type),
+                runtime_service_table[index].name))
+      continue;
+    runtime_service_table[index].event_type = 0U;
+    memset(&config, 0, sizeof(config));
+    config.name = runtime_service_table[index].name;
+    config.handler = runtime_service_event;
+    config.cleanup = runtime_service_cleanup;
+    config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+    config.max_events = 1U;
+    config.max_events_per_owner = 1U;
+    config.requires_owner = true;
+    status = event_runtime_register_type(&config, &runtime_service_table[index].event_type);
+    if (status != GAME_SCHEDULER_OK)
+    {
+      log("SYSERR: unable to register native service event type '%s' (status %d).",
+          runtime_service_table[index].name, status);
+      return false;
+    }
+  }
+
+  if (event_runtime_type_name(persistence_step_event_type) != NULL &&
+      !strcmp(event_runtime_type_name(persistence_step_event_type),
+              "service.persistence_batch"))
+    return true;
+  persistence_step_event_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = "service.persistence_batch";
+  config.handler = persistence_step_event;
+  config.cleanup = persistence_step_cleanup;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.max_events = 1U;
+  config.max_events_per_owner = 1U;
+  config.requires_owner = true;
+  status = event_runtime_register_type(&config, &persistence_step_event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: unable to register native service event type "
+        "'service.persistence_batch' (status %d).",
+        status);
+    return false;
+  }
+  return true;
 }
 
 static bool persistence_step_schedule(void)
@@ -2676,16 +2738,15 @@ static bool persistence_step_schedule(void)
 
   if (!runtime_services_enabled() || !persistence_scheduler.active)
     return false;
-  if (persistence_step_handle != EVENT_HANDLE_NONE)
+  if (!event_runtime_handle_is_none(persistence_step_handle))
     return true;
   owner = game_event_owner_none();
   owner.kind = GAME_EVENT_OWNER_SERVICE;
   owner.runtime_id = RUNTIME_SERVICE_OWNER_BASE + RUNTIME_SERVICE_COUNT;
   owner.generation = 1U;
-  persistence_step_handle = event_schedule_owned_named_with_terminal_cleanup(
-      persistence_step_event, &persistence_step_handle, 1, "service.persistence_batch",
-      persistence_step_cleanup, owner);
-  if (persistence_step_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_schedule_owned_after(persistence_step_event_type, owner, 1U,
+                                         &persistence_step_handle,
+                                         &persistence_step_handle) != GAME_SCHEDULER_OK)
   {
     runtime_service_schedule_failures++;
     return false;
@@ -2702,6 +2763,8 @@ static bool runtime_services_init(void)
   runtime_services_initialized = true;
   runtime_services_shutting_down = false;
   runtime_services_scheduled = runtime_services_configured_scheduled();
+  if (runtime_services_scheduled && !runtime_services_register_types())
+    runtime_services_scheduled = false;
   if (runtime_services_scheduled)
   {
     for (index = 0; index < RUNTIME_SERVICE_COUNT; index++)
@@ -2725,24 +2788,24 @@ static bool runtime_services_init(void)
 void runtime_services_shutdown(void)
 {
   size_t index;
-  event_handle_t handle;
+  struct event_runtime_handle handle;
 
   if (!runtime_services_initialized)
     return;
   runtime_services_shutting_down = true;
-  if (persistence_step_handle != EVENT_HANDLE_NONE)
+  if (!event_runtime_handle_is_none(persistence_step_handle))
   {
     handle = persistence_step_handle;
-    persistence_step_handle = EVENT_HANDLE_NONE;
-    (void)event_handle_cancel(handle);
+    persistence_step_handle = EVENT_RUNTIME_HANDLE_NONE;
+    (void)event_runtime_cancel(handle);
   }
   for (index = 0; index < RUNTIME_SERVICE_COUNT; index++)
   {
-    if (runtime_service_table[index].handle == EVENT_HANDLE_NONE)
+    if (event_runtime_handle_is_none(runtime_service_table[index].handle))
       continue;
     handle = runtime_service_table[index].handle;
-    runtime_service_table[index].handle = EVENT_HANDLE_NONE;
-    (void)event_handle_cancel(handle);
+    runtime_service_table[index].handle = EVENT_RUNTIME_HANDLE_NONE;
+    (void)event_runtime_cancel(handle);
   }
   free(persistence_scheduler.player_ids);
   persistence_scheduler.player_ids = NULL;
@@ -2775,18 +2838,19 @@ void runtime_services_get_stats(struct runtime_service_stats *stats)
   {
     if (runtime_service_needed(runtime_service_table[index].kind))
       stats->configured_services++;
-    if (runtime_service_table[index].handle != EVENT_HANDLE_NONE)
+    if (!event_runtime_handle_is_none(runtime_service_table[index].handle))
       stats->live_services++;
     stats->callbacks += runtime_service_table[index].callbacks;
   }
-  if (persistence_step_handle != EVENT_HANDLE_NONE)
+  if (!event_runtime_handle_is_none(persistence_step_handle))
     stats->live_services++;
 }
 
 static void runtime_services_safe_point(void)
 {
   if (!runtime_services_enabled() || !persistence_scheduler.active ||
-      persistence_step_handle != EVENT_HANDLE_NONE || persistence_fallback_tick == pulse)
+      !event_runtime_handle_is_none(persistence_step_handle) ||
+      persistence_fallback_tick == pulse)
     return;
   persistence_fallback_tick = pulse;
   if (!persistence_step_schedule())
@@ -2830,7 +2894,7 @@ bool runtime_services_start_empty_persistence_for_test(void)
 
 bool runtime_services_persistence_pending_for_test(void)
 {
-  return persistence_step_handle != EVENT_HANDLE_NONE;
+  return !event_runtime_handle_is_none(persistence_step_handle);
 }
 #endif
 

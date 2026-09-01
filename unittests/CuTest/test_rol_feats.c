@@ -211,6 +211,9 @@ void TestCampCommandUsesManagedActivityBeforeApplyingExistingBenefits(CuTest *tc
   SET_ABILITY(&fixture.lead, ABILITY_SURVIVAL, 40);
 
   primary_activity_manager_shutdown();
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
   bus = domain_event_bus_create(NULL, &status);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, status);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_register_foundation_types(bus));
@@ -248,6 +251,7 @@ void TestCampCommandUsesManagedActivityBeforeApplyingExistingBenefits(CuTest *tc
 
   primary_activity_manager_shutdown();
   domain_event_bus_destroy(bus);
+  event_free_all();
   fixture.lead.group = NULL;
   fixture.second.group = NULL;
   free_list(fixture.group.members);
@@ -272,6 +276,9 @@ void TestCampCommandLegacySelectorPreservesImmediateRollback(CuTest *tc)
   SET_ABILITY(&fixture.lead, ABILITY_SURVIVAL, 40);
 
   primary_activity_manager_shutdown();
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
   bus = domain_event_bus_create(NULL, &status);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, status);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_register_foundation_types(bus));
@@ -288,6 +295,7 @@ void TestCampCommandLegacySelectorPreservesImmediateRollback(CuTest *tc)
   primary_activity_test_select_camp(true);
   primary_activity_manager_shutdown();
   domain_event_bus_destroy(bus);
+  event_free_all();
   fixture.lead.group = NULL;
   fixture.second.group = NULL;
   free_list(fixture.group.members);

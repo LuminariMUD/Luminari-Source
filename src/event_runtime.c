@@ -219,6 +219,16 @@ enum game_scheduler_status event_runtime_inspect_owner(
                                       snapshot_capacity, event_count);
 }
 
+enum game_scheduler_status event_runtime_inspect_all(
+    struct game_event_snapshot *snapshots, size_t snapshot_capacity,
+    size_t *event_count)
+{
+  if (runtime_required() != GAME_SCHEDULER_OK)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  return game_scheduler_inspect_all(runtime_scheduler, snapshots, snapshot_capacity,
+                                    event_count);
+}
+
 void event_runtime_get_stats(struct game_scheduler_stats *stats)
 {
   game_scheduler_get_stats(runtime_scheduler, stats);

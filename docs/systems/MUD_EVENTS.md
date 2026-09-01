@@ -96,7 +96,7 @@ therefore cannot resolve to later events. Runtime shutdown invalidates every
 remaining handle and invokes each admitted payload's cleanup exactly once.
 
 The compatibility adapter registers one temporary `legacy_event` type in this
-same runtime. Its retained six production schedules therefore coexist on the
+same runtime. Its retained four production schedules therefore coexist on the
 wheel with native types during migration, but the adapter no longer creates,
 owns, advances, inspects, or destroys a scheduler itself.
 
@@ -130,6 +130,13 @@ character's active wall-clock activity. `combat.encounter.round` advances one
 encounter and its already-indexed participants at the established semantic
 round boundary. None of these callbacks scans a general population to discover
 work.
+
+Every named runtime cadence in `comm.c` is a distinct native service-owner
+type. These are coarse clocks for responsibilities such as zone updates,
+weather/time boundaries, usage recording, and persistence-cycle admission;
+they do not discover autonomous mobile work. `service.persistence_batch` is a
+separate one-owner worker that performs bounded incremental persistence and
+reschedules one tick later only while that cycle remains active.
 
 ## 2. Timed-Event Compatibility Facade
 
@@ -259,7 +266,8 @@ Useful views:
   timing-wheel occupancy, ready/overdue work, lifecycle totals, admission
   failures, stale-owner outcomes, bounded I3 worker ingress, and domain-bus
   totals.
-- `eventdebug queue [limit]` lists the earliest live compatibility events.
+- `eventdebug queue [limit]` lists the earliest live compatibility and native
+  scheduler events without duplicating compatibility-wrapper records.
 - `eventdebug id <id>` selects one diagnostic event ID.
 - `eventdebug type <text> [limit]` filters callback identities.
 - `eventdebug owner <kind> <id> [generation]` filters typed owners.
@@ -272,8 +280,9 @@ Useful views:
 - `eventdebug domain [type]` reports registered domain types and handlers with
   bounded publication and callback telemetry.
 
-Diagnostic IDs are process-local and are reset at event-system teardown. The
-registry is backend-neutral, so queue inspection remains available during a
+Diagnostic IDs are process-local and are reset at event-system teardown. Native
+entries use their scheduler IDs. Inspection is backend-neutral, so the queue
+view remains available during a
 boot with `LUMINARI_EVENT_BACKEND=legacy`; timing-wheel internals are naturally
 reported only by the scheduler backend. Compatibility-owner teardown removes
 events before owner memory is released, so it has no post-lookup stale-owner

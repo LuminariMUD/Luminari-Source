@@ -1596,7 +1596,9 @@ static void event_debug_snapshot_one(const struct event *event,
   long remaining;
 
   memset(snapshot, 0, sizeof(*snapshot));
-  snapshot->event_id = event->debug_id;
+  snapshot->event_id = event->backend == EVENT_BACKEND_GAME_SCHEDULER
+                           ? event->scheduler_handle.id
+                           : event->debug_id;
   snprintf(snapshot->type_name, sizeof(snapshot->type_name), "%s",
            PERF_event_callback_identity(event->profile_index));
   snapshot->backend = event->backend;
@@ -1662,15 +1664,57 @@ static int event_debug_snapshot_compare(const void *left_pointer, const void *ri
   return 0;
 }
 
+static void event_debug_consider_snapshot(const struct event_debug_snapshot *candidate,
+                                          struct event_debug_snapshot *snapshots,
+                                          size_t snapshot_capacity, size_t *copied)
+{
+  size_t worst;
+  size_t index;
+
+  if (candidate == NULL || snapshots == NULL || snapshot_capacity == 0 || copied == NULL)
+    return;
+  if (*copied < snapshot_capacity)
+  {
+    snapshots[(*copied)++] = *candidate;
+    return;
+  }
+  worst = 0;
+  for (index = 1; index < *copied; index++)
+    if (event_debug_snapshot_compare(&snapshots[worst], &snapshots[index]) < 0)
+      worst = index;
+  if (event_debug_snapshot_compare(candidate, &snapshots[worst]) < 0)
+    snapshots[worst] = *candidate;
+}
+
+static void event_debug_snapshot_native(const struct game_event_snapshot *event,
+                                        struct event_debug_snapshot *snapshot)
+{
+  const char *type_name;
+
+  memset(snapshot, 0, sizeof(*snapshot));
+  snapshot->event_id = event->event_id;
+  type_name = event_runtime_type_name(event->event_type);
+  snprintf(snapshot->type_name, sizeof(snapshot->type_name), "%s",
+           type_name != NULL ? type_name : "unknown");
+  snapshot->backend = EVENT_BACKEND_GAME_SCHEDULER;
+  snapshot->state = scheduler_debug_state(event->state);
+  snapshot->remaining_pulses =
+      event->deadline_tick > (game_tick_t)pulse ? event->deadline_tick - (game_tick_t)pulse : 0U;
+  snapshot->owner = event->owner;
+}
+
 size_t event_debug_inspect(const struct event_debug_filter *filter,
                            struct event_debug_snapshot *snapshots,
                            size_t snapshot_capacity, size_t *returned_count)
 {
   struct event_debug_snapshot candidate;
+  struct game_event_snapshot *native_snapshots;
+  struct game_scheduler_stats scheduler_stats;
   struct event *event;
+  const char *type_name;
+  size_t native_count;
   size_t copied;
   size_t matched;
-  size_t worst;
   size_t index;
 
   copied = 0;
@@ -1681,20 +1725,35 @@ size_t event_debug_inspect(const struct event_debug_filter *filter,
     if (!event_debug_filter_matches(filter, &candidate))
       continue;
     matched++;
-    if (snapshots == NULL || snapshot_capacity == 0)
-      continue;
-    if (copied < snapshot_capacity)
-    {
-      snapshots[copied++] = candidate;
-      continue;
-    }
-    worst = 0;
-    for (index = 1; index < copied; index++)
-      if (event_debug_snapshot_compare(&snapshots[worst], &snapshots[index]) < 0)
-        worst = index;
-    if (event_debug_snapshot_compare(&candidate, &snapshots[worst]) < 0)
-      snapshots[worst] = candidate;
+    event_debug_consider_snapshot(&candidate, snapshots, snapshot_capacity, &copied);
   }
+
+  native_snapshots = NULL;
+  native_count = 0;
+  memset(&scheduler_stats, 0, sizeof(scheduler_stats));
+  if (active_backend == EVENT_BACKEND_GAME_SCHEDULER && event_runtime_is_initialized())
+  {
+    event_runtime_get_stats(&scheduler_stats);
+    if (scheduler_stats.event_count > 0)
+      native_snapshots = calloc(scheduler_stats.event_count, sizeof(*native_snapshots));
+    if (native_snapshots != NULL &&
+        event_runtime_inspect_all(native_snapshots, scheduler_stats.event_count,
+                                  &native_count) == GAME_SCHEDULER_OK)
+    {
+      for (index = 0; index < native_count; index++)
+      {
+        type_name = event_runtime_type_name(native_snapshots[index].event_type);
+        if (type_name != NULL && !strcmp(type_name, "legacy_event"))
+          continue;
+        event_debug_snapshot_native(&native_snapshots[index], &candidate);
+        if (!event_debug_filter_matches(filter, &candidate))
+          continue;
+        matched++;
+        event_debug_consider_snapshot(&candidate, snapshots, snapshot_capacity, &copied);
+      }
+    }
+  }
+  free(native_snapshots);
   if (copied > 1)
     qsort(snapshots, copied, sizeof(*snapshots), event_debug_snapshot_compare);
   if (returned_count != NULL)
