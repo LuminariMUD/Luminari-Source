@@ -86,7 +86,7 @@ generation-safe `event_handle_t` values and payload destructors receive owned
 payloads. The internal header is included by the facade plus two low-level
 adapter tests; it is not a gameplay API.
 
-There are 16 opaque compatibility-adapter scheduling calls across 12 production
+There are 15 opaque compatibility-adapter scheduling calls across 11 production
 files. Their exact burn-down inventory is enforced by
 `scripts/events/test_legacy_event_admission.sh`; additions fail the normal test
 suite. Those callers are compatible with a scheduler-only facade after the old
@@ -208,6 +208,12 @@ The native-runtime migration first removed the two affected-owner producers.
 Character-affect and room-affect work now register distinct semantic types and
 store native runtime handles; their legacy-backend rollback is the existing
 affected-owner heartbeat rather than the compatibility scheduler facade.
+
+The next native slice migrated the one-per-character nearest-deadline
+maintenance agenda. It remains one owner event that selects only work due for
+that character; it does not create one timer per maintenance responsibility or
+scan the character population. Legacy-backend rollback uses the established
+character heartbeat.
 
 Phase 11o additionally freezes the concrete-owner agenda architecture in
 `scripts/events/test_demand_driven_architecture.sh`. A production-linked test

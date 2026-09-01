@@ -7409,7 +7409,7 @@ struct char_data
   struct event_runtime_handle affected_event_handle; /**< Sole affect-duration event. */
   struct char_data *character_periodic_next; /**< Character periodic-owner registry link. */
   struct char_data *character_periodic_prev; /**< Character periodic-owner registry link. */
-  event_handle_t character_periodic_event_handle; /**< Nearest periodic deadline. */
+  struct event_runtime_handle character_periodic_event_handle; /**< Nearest maintenance deadline. */
   bool character_periodic_registered;    /**< Character periodic registry membership. */
   struct char_data *point_update_next;    /**< Mud-hour player registry link. */
   struct char_data *point_update_prev;    /**< Mud-hour player registry link. */

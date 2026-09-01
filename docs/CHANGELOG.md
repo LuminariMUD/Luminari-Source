@@ -2,6 +2,31 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native character-maintenance agenda
+
+#### Changed
+
+- Registered `character.maintenance` as one native, owner-required,
+  nearest-deadline event type for walking, PSP recovery, environment/recovery,
+  bardic verses, hints, D20 maintenance, damage/effects, player maintenance,
+  device recovery, and timed quests.
+- Preserved the existing concrete-owner agenda: one eligible character owns one
+  event, and only responsibilities due at that deadline execute. Off-screen NPC
+  work remains independent of player presence.
+- Migrated character maintenance handles, remaining-time queries, lifecycle
+  cancellation, callback recurrence, and capacity refill directly to the native
+  runtime.
+- Reduced the frozen compatibility inventory to 15 schedules across 11 files.
+  The legacy timed backend uses the existing character heartbeat rollback.
+
+#### Tests
+
+- Added sealed-registry and owner-inspection assertions for
+  `character.maintenance`, while retaining exact nearest-deadline, mixed-work,
+  typed-movement admission, capacity-refill, and retirement coverage.
+- Verified the physical legacy queue cannot admit the native agenda and instead
+  selects heartbeat rollback; all 1,050 tests pass.
+
 ### Native affected-owner events
 
 #### Changed

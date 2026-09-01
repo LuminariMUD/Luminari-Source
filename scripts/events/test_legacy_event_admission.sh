@@ -37,7 +37,6 @@ cat >"$expected" <<'EOF'
 src/active_world.c 1
 src/activity_manager.c 1
 src/ai_events.c 2
-src/character_periodic.c 1
 src/combat/combat_encounters.c 1
 src/comm.c 2
 src/dgscript/dg_scripts.c 1

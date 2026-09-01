@@ -632,6 +632,14 @@ static void process_scheduler_pulses(unsigned long count)
   }
 }
 
+static game_tick_t native_event_remaining(CuTest *tc, struct event_runtime_handle handle)
+{
+  game_tick_t remaining = 0U;
+
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_remaining(handle, &remaining));
+  return remaining;
+}
+
 void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc)
 {
   struct room_data room;
@@ -2020,8 +2028,12 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
 {
   struct char_data ch;
   struct descriptor_data descriptor;
+  struct game_event_owner owner;
+  struct game_event_snapshot snapshot;
+  struct game_scheduler_stats scheduler_stats;
   struct player_special_data specials;
   struct char_data *saved_character_list = character_list;
+  size_t event_count;
   unsigned long saved_pulse = pulse;
 
   memset(&descriptor, 0, sizeof(descriptor));
@@ -2043,18 +2055,32 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   pulse = 700U;
   event_init();
   character_periodic_init();
+  event_runtime_get_stats(&scheduler_stats);
+  CuAssertIntEquals(tc, 2, (int)scheduler_stats.registered_type_count);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_seal_types());
   character_periodic_sync(&ch);
 
   CuAssertTrue(tc, character_periodic_events_enabled());
   CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
-  CuAssertIntEquals(tc, 7, (int)event_handle_time(ch.character_periodic_event_handle));
+  CuAssertIntEquals(tc, 7, (int)native_event_remaining(tc, ch.character_periodic_event_handle));
   CuAssertIntEquals(tc, 1, event_queue_depth());
+  owner = game_event_owner_none();
+  owner.kind = GAME_EVENT_OWNER_CHARACTER;
+  owner.runtime_id = (uint64_t)(uintptr_t)&ch;
+  owner.generation = ch.periodic_event_generation;
+  event_count = 0U;
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_inspect_owner(owner, &snapshot, 1U, &event_count));
+  CuAssertIntEquals(tc, 1, (int)event_count);
+  CuAssertStrEquals(tc, "character.maintenance",
+                    event_runtime_type_name(snapshot.event_type));
 
   process_scheduler_pulses(7U);
   CuAssertIntEquals(tc, 0, specials.walkto_location);
   CuAssertIntEquals(tc, 1, (int)character_periodic_walk_executions());
-  CuAssertIntEquals(tc, 43, (int)event_handle_time(ch.character_periodic_event_handle));
+  CuAssertIntEquals(tc, 43,
+                    (int)native_event_remaining(tc, ch.character_periodic_event_handle));
 
   process_scheduler_pulses(43U);
   CuAssertIntEquals(tc, 1, (int)character_periodic_psp_executions());
@@ -2063,7 +2089,8 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   GET_PERFORMING(&ch) = PERFORMANCE_NONE;
   GET_SECONDARY_PERFORMING(&ch) = PERFORMANCE_NONE;
   character_periodic_sync(&ch);
-  CuAssertIntEquals(tc, 20, (int)event_handle_time(ch.character_periodic_event_handle));
+  CuAssertIntEquals(tc, 20,
+                    (int)native_event_remaining(tc, ch.character_periodic_event_handle));
 
   process_scheduler_pulses(20U);
   CuAssertIntEquals(tc, 1, (int)character_periodic_bardic_executions());
@@ -2258,7 +2285,7 @@ void TestCharacterPeriodicTypedMovementAdmitsInWorldOwner(CuTest *tc)
                     DOMAIN_EVENT_PUBLISH(bus, DOMAIN_EVENT_CHARACTER_MOVED, &moved));
   CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
-  CuAssertTrue(tc, ch.character_periodic_event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(ch.character_periodic_event_handle));
   CuAssertIntEquals(tc, 0, (int)character_periodic_registry_validate());
 
   character_periodic_forget(&ch);
@@ -2308,11 +2335,11 @@ void TestCharacterPeriodicCapacityRefillsAndLegacyIsExclusive(CuTest *tc)
   CuAssertIntEquals(tc, 2, (int)character_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
   CuAssertIntEquals(tc, 1, (int)character_periodic_admission_rejections());
-  CuAssertTrue(tc, first.character_periodic_event_handle != EVENT_HANDLE_NONE);
-  CuAssertTrue(tc, second.character_periodic_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(first.character_periodic_event_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(second.character_periodic_event_handle));
 
   character_periodic_forget(&first);
-  CuAssertTrue(tc, second.character_periodic_event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(second.character_periodic_event_handle));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   second.desc = NULL;
   character_periodic_sync(&second);
@@ -2321,8 +2348,8 @@ void TestCharacterPeriodicCapacityRefillsAndLegacyIsExclusive(CuTest *tc)
   character_periodic_reset_for_test();
   event_free_all();
 
-  character_periodic_select_for_test(false);
-  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  character_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
   event_init();
   character_periodic_init();
   first.desc = &first_descriptor;

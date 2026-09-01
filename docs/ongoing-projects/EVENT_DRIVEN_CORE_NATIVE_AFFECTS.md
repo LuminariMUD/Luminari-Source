@@ -61,6 +61,5 @@ records for these native producers.
 
 ## Next Slice
 
-Migrate the nearest-deadline character maintenance producer so walking, PSP
-recovery, bardic verses, hints, environment/recovery, D20 maintenance, devices,
-and timed quests retain one concrete owner agenda under a semantic native type.
+Completed by the native `character.maintenance` slice. The next producer group
+is object automatic procedures and DG random triggers.

@@ -13,7 +13,7 @@
 #include "mudlim.h"
 #include "quest/quest.h"
 #include "vessels/transport.h"
-#include "dgscript/dg_event.h"
+#include "event_runtime.h"
 
 #define CHARACTER_PERIODIC_MAX_OWNERS 32768U
 #define CHARACTER_PERIODIC_REJECTION_LOG_INTERVAL 100U
@@ -45,12 +45,15 @@ static uint64_t d20_round_executions;
 static uint64_t device_executions;
 static uint64_t timed_quest_executions;
 static uint64_t next_generation = 1U;
+static game_event_type_id_t character_maintenance_event_type;
 #ifdef LUMINARI_CUTEST
 static bool test_selection_set;
 static bool test_scheduled_selection;
 #endif
 
 static void refill_capacity(void);
+static struct game_event_result character_periodic_event(
+    const struct game_event_context *context);
 
 static bool configured_scheduled(void)
 {
@@ -236,10 +239,45 @@ static long next_owner_delay(struct char_data *ch)
   return delay == LONG_MAX ? 0L : delay;
 }
 
-static void borrowed_owner_cleanup(event_handle_t handle, void *event_obj)
+static bool runtime_handle_matches(struct event_runtime_handle handle,
+                                   const struct game_event_context *context)
 {
-  (void)handle;
-  (void)event_obj;
+  return context != NULL && handle.id == context->event_id;
+}
+
+static void borrowed_owner_cleanup(void *payload)
+{
+  (void)payload;
+}
+
+static bool register_character_maintenance_type(void)
+{
+  struct game_event_type_config config;
+  const char *registered_name;
+  enum game_scheduler_status status;
+
+  if (!event_runtime_is_initialized())
+    return false;
+  registered_name = event_runtime_type_name(character_maintenance_event_type);
+  if (registered_name != NULL && !strcmp(registered_name, "character.maintenance"))
+    return true;
+  character_maintenance_event_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = "character.maintenance";
+  config.handler = character_periodic_event;
+  config.cleanup = borrowed_owner_cleanup;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.max_events = CHARACTER_PERIODIC_MAX_OWNERS;
+  config.max_events_per_owner = 1U;
+  config.requires_owner = true;
+  status = event_runtime_register_type(&config, &character_maintenance_event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: unable to register native event type 'character.maintenance' (status %d).",
+        status);
+    return false;
+  }
+  return true;
 }
 
 static void registry_add(struct char_data *ch)
@@ -361,40 +399,50 @@ static bool dispatch_due_work(struct char_data *ch)
   return is_owner_eligible(ch);
 }
 
-static EVENTFUNC(character_periodic_event)
+static struct game_event_result character_periodic_event(
+    const struct game_event_context *context)
 {
-  struct char_data *ch = event_obj;
+  struct char_data *ch = context != NULL ? context->payload : NULL;
   long delay;
 
   if (ch == NULL)
-    return 0;
+    return game_event_result_complete();
   callback_count++;
   if (!ch->character_periodic_registered || !is_owner_eligible(ch))
   {
-    ch->character_periodic_event_handle = EVENT_HANDLE_NONE;
-    if (scheduled_count > 0U)
-      scheduled_count--;
+    if (runtime_handle_matches(ch->character_periodic_event_handle, context))
+    {
+      ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+      if (scheduled_count > 0U)
+        scheduled_count--;
+    }
     registry_remove(ch);
     refill_capacity();
-    return 0;
+    return game_event_result_complete();
   }
 
   if (!dispatch_due_work(ch))
   {
     character_periodic_forget(ch);
-    return 0;
+    return game_event_result_complete();
   }
   if (!is_owner_eligible(ch))
   {
-    ch->character_periodic_event_handle = EVENT_HANDLE_NONE;
-    if (scheduled_count > 0U)
-      scheduled_count--;
+    if (runtime_handle_matches(ch->character_periodic_event_handle, context))
+    {
+      ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+      if (scheduled_count > 0U)
+        scheduled_count--;
+    }
     registry_remove(ch);
     refill_capacity();
-    return 0;
+    return game_event_result_complete();
   }
+  if (!runtime_handle_matches(ch->character_periodic_event_handle, context))
+    return game_event_result_complete();
   delay = next_owner_delay(ch);
-  return delay > 0L ? delay : 0L;
+  return delay > 0L ? game_event_result_reschedule_after((game_tick_t)delay)
+                    : game_event_result_complete();
 }
 
 static bool schedule_owner(struct char_data *ch)
@@ -403,9 +451,8 @@ static bool schedule_owner(struct char_data *ch)
   long delay;
 
   if (!initialized || !scheduled || shutting_down || ch == NULL ||
-      event_backend_current() == EVENT_BACKEND_UNINITIALIZED ||
       !ch->character_periodic_registered ||
-      ch->character_periodic_event_handle != EVENT_HANDLE_NONE)
+      !event_runtime_handle_is_none(ch->character_periodic_event_handle))
     return false;
   if (scheduled_count >= admission_limit)
   {
@@ -418,9 +465,10 @@ static bool schedule_owner(struct char_data *ch)
   owner = character_owner(ch);
   if (!game_event_owner_is_valid(owner))
     return false;
-  ch->character_periodic_event_handle = event_schedule_owned_named_with_cleanup(
-      character_periodic_event, ch, delay, "character_periodic", borrowed_owner_cleanup, owner);
-  if (ch->character_periodic_event_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_schedule_owned_after(character_maintenance_event_type, owner,
+                                         (game_tick_t)delay, ch,
+                                         &ch->character_periodic_event_handle) !=
+      GAME_SCHEDULER_OK)
   {
     note_rejection();
     return false;
@@ -440,7 +488,7 @@ static void refill_capacity(void)
   for (ch = owner_list; ch != NULL && scheduled_count < admission_limit;
        ch = ch->character_periodic_next)
   {
-    if (ch->character_periodic_event_handle == EVENT_HANDLE_NONE)
+    if (event_runtime_handle_is_none(ch->character_periodic_event_handle))
       schedule_owner(ch);
   }
   refilling = false;
@@ -448,11 +496,11 @@ static void refill_capacity(void)
 
 void character_periodic_sync(struct char_data *ch)
 {
-  event_handle_t handle;
+  struct event_runtime_handle handle;
+  game_tick_t remaining;
   long delay;
 
-  if (!initialized || !scheduled || event_backend_current() == EVENT_BACKEND_UNINITIALIZED ||
-      ch == NULL)
+  if (!initialized || !scheduled || ch == NULL)
     return;
   if (dispatching_owner == ch)
     return;
@@ -462,37 +510,42 @@ void character_periodic_sync(struct char_data *ch)
     return;
   }
   registry_add(ch);
-  if (ch->character_periodic_event_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_handle_is_none(ch->character_periodic_event_handle))
   {
     schedule_owner(ch);
     return;
   }
   delay = next_owner_delay(ch);
-  if (delay <= 0L || event_handle_time(ch->character_periodic_event_handle) <= delay)
+  if (delay <= 0L)
+    return;
+  remaining = 0U;
+  if (event_runtime_remaining(ch->character_periodic_event_handle, &remaining) ==
+          GAME_SCHEDULER_OK &&
+      remaining <= (game_tick_t)delay)
     return;
   handle = ch->character_periodic_event_handle;
-  ch->character_periodic_event_handle = EVENT_HANDLE_NONE;
+  ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
   if (scheduled_count > 0U)
     scheduled_count--;
-  (void)event_handle_cancel(handle);
+  (void)event_runtime_cancel(handle);
   schedule_owner(ch);
 }
 
 void character_periodic_forget(struct char_data *ch)
 {
-  event_handle_t handle;
+  struct event_runtime_handle handle;
 
   if (ch == NULL)
     return;
   if (dispatching_owner == ch)
     dispatching_owner_forgotten = true;
-  if (ch->character_periodic_event_handle != EVENT_HANDLE_NONE)
+  if (!event_runtime_handle_is_none(ch->character_periodic_event_handle))
   {
     handle = ch->character_periodic_event_handle;
-    ch->character_periodic_event_handle = EVENT_HANDLE_NONE;
+    ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
     if (scheduled_count > 0U)
       scheduled_count--;
-    (void)event_handle_cancel(handle);
+    (void)event_runtime_cancel(handle);
   }
   registry_remove(ch);
   refill_capacity();
@@ -547,16 +600,22 @@ enum domain_event_status character_periodic_register_handlers(struct domain_even
 void character_periodic_init(void)
 {
   struct char_data *ch;
+  bool native_ready;
+  bool requested;
 
   if (initialized)
     return;
 #ifdef LUMINARI_CUTEST
-  scheduled = test_selection_set ? test_scheduled_selection : configured_scheduled();
+  requested = test_selection_set ? test_scheduled_selection : configured_scheduled();
 #else
-  scheduled = configured_scheduled();
+  requested = configured_scheduled();
 #endif
+  native_ready = register_character_maintenance_type();
+  scheduled = requested && native_ready;
   initialized = true;
   shutting_down = false;
+  if (requested && !native_ready)
+    log("WARNING: native character-maintenance event type unavailable; using legacy heartbeat.");
   log("Character periodic scheduling: %s (owner limit %zu).",
       scheduled ? "scheduled" : "legacy heartbeat", admission_limit);
   if (!scheduled)
@@ -619,7 +678,7 @@ size_t character_periodic_registry_validate(void)
         !is_owner_eligible(ch))
       return owner_count + 1U;
     members++;
-    if (ch->character_periodic_event_handle != EVENT_HANDLE_NONE)
+    if (!event_runtime_handle_is_none(ch->character_periodic_event_handle))
       events++;
     if (members > owner_count)
       return members;
