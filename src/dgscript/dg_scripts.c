@@ -983,6 +983,12 @@ static bool schedule_trig_wait(struct trig_data *trig, void *go, int type, long 
 
   if (trig == NULL || !game_event_owner_is_valid(owner))
     return false;
+  dg_trigger_wait_cancel(trig);
+  if (GET_TRIG_WAIT_DATA(trig) != NULL)
+  {
+    log("SYSERR: unable to replace a DG wait while its prior event is dispatching.");
+    return false;
+  }
   when = MAX(when, 1L);
   CREATE(wait_event_obj, struct wait_event_data, 1);
   wait_event_obj->trigger = trig;
