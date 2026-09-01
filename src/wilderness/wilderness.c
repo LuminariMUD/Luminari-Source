@@ -987,6 +987,7 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   /* Here we will set the coordinates, build the descriptions, set the exits, sector type, etc. */
   world[room].coords[0] = x;
   world[room].coords[1] = y;
+  world[room].wilderness_coordinates_set = true;
 
   /* Get the enclosing regions. */
   regions = get_enclosing_regions(GET_ROOM_ZONE(room), x, y);

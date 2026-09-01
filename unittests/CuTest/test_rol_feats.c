@@ -129,6 +129,7 @@ static void end_rol_feat_fixture(struct rol_feat_fixture *fixture)
   end_test_char(&fixture->lead, &fixture->lead_descriptor);
   end_test_char(&fixture->second, &fixture->second_descriptor);
   event_free_all();
+  (void)event_test_select_backend(EVENT_BACKEND_UNINITIALIZED);
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;
   character_list = fixture->saved_character_list;

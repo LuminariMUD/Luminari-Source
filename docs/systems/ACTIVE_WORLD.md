@@ -94,7 +94,8 @@ Output defaults to 80 columns and never exceeds 120 columns.
 
 ## Rollback
 
-Only an executable built with `LUMINARI_ENABLE_EVENT_ROLLBACK` recognizes
+Only an executable built with `LUMINARI_ENABLE_EVENT_ROLLBACK`, or an isolated
+parity-test build using `LUMINARI_EVENT_ROLLBACK_TESTS`, recognizes
 `LUMINARI_ACTIVE_WORLD=legacy` and restores
 `mobile_activity_run_legacy_slice()` for a complete boot. The ordinary binary
 contains neither that selector nor the whole-mobile loop. Physical rollback

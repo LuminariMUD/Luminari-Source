@@ -286,6 +286,9 @@ void ai_events_get_ingress_stats(struct ai_event_ingress_stats *stats);
 #if defined(LUMINARI_CUTEST)
 void ai_event_test_reset_cleanup_count(void);
 int ai_event_test_cleanup_count(void);
+bool ai_service_test_start_waiting_worker(void);
+size_t ai_service_test_active_workers(void);
+void ai_service_test_reset_worker_state(void);
 #endif
 
 /* Async API Functions

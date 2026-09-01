@@ -457,31 +457,48 @@ static void cancel_owner_registry(void)
 
 void vessel_periodic_feature_changed(void)
 {
-  if (!initialized || !scheduled)
+  bool wants_scheduled;
+
+  if (!initialized)
     return;
-  if (CONFIG_VESSEL_SYSTEM)
+  if (!CONFIG_VESSEL_SYSTEM)
   {
-    if (!schedule_service_event())
-    {
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-      log("WARNING: unable to restore the vessel periodic service event; using the legacy "
-          "heartbeat.");
-#else
-      log("SYSERR: unable to restore the required native vessel periodic service event.");
-#endif
-      scheduled = false;
-      cancel_owner_registry();
-      rol_ship_periodic_shutdown();
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
-      rol_ship_periodic_init();
-#endif
-      return;
-    }
-    vessel_periodic_rebuild();
+    rol_ship_periodic_shutdown();
+    cancel_service_event();
+    cancel_owner_registry();
     return;
   }
-  cancel_service_event();
-  cancel_owner_registry();
+
+  wants_scheduled = configured_scheduled();
+  if (!wants_scheduled)
+  {
+    scheduled = false;
+    cancel_service_event();
+    cancel_owner_registry();
+    rol_ship_periodic_shutdown();
+    rol_ship_periodic_init();
+    return;
+  }
+
+  scheduled = true;
+  if (!schedule_service_event())
+  {
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+    log("WARNING: unable to restore the vessel periodic service event; using the legacy "
+        "heartbeat.");
+#else
+    log("SYSERR: unable to restore the required native vessel periodic service event.");
+#endif
+    scheduled = false;
+    cancel_owner_registry();
+    rol_ship_periodic_shutdown();
+    rol_ship_periodic_init();
+    return;
+  }
+
+  rol_ship_periodic_shutdown();
+  rol_ship_periodic_init();
+  vessel_periodic_rebuild();
 }
 
 void vessel_periodic_init(void)

@@ -227,6 +227,7 @@ static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd,
                                 fd_set *error_set, const struct timeval *timeout);
 #ifdef CIRCLE_UNIX
 static void reactor_signal_dispatch(int signal_number, void *context);
+static void preserve_shutdown_signal_handlers(void);
 #endif
 
 static struct in_addr *get_bind_addr(void);
@@ -1921,6 +1922,9 @@ void game_loop(socket_t local_mother_desc)
     PERF_PROF_EXIT(pr_main_loop_);
   }
 
+#ifdef CIRCLE_UNIX
+  preserve_shutdown_signal_handlers();
+#endif
   luminari_reactor_destroy(io_reactor);
   io_reactor = NULL;
 }
@@ -2430,6 +2434,7 @@ static bool runtime_service_needed(enum runtime_service_kind kind)
     return false;
 #endif
   case RUNTIME_SERVICE_ROL_SHIP:
+    return true;
   case RUNTIME_SERVICE_VESSEL:
 #if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     return CONFIG_VESSEL_SYSTEM && !vessel_periodic_events_enabled();
@@ -2821,6 +2826,7 @@ static bool runtime_services_register_types(void)
   config.max_events = 1U;
   config.max_events_per_owner = 1U;
   config.requires_owner = true;
+  config.cleanup_on_null_payload = true;
   status = event_runtime_register_type(&config, &persistence_step_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
@@ -2844,8 +2850,7 @@ static bool persistence_step_schedule(void)
   owner.kind = GAME_EVENT_OWNER_SERVICE;
   owner.runtime_id = RUNTIME_SERVICE_OWNER_BASE + RUNTIME_SERVICE_COUNT;
   owner.generation = 1U;
-  if (event_runtime_schedule_owned_after(persistence_step_event_type, owner, 1U,
-                                         &persistence_step_handle,
+  if (event_runtime_schedule_owned_after(persistence_step_event_type, owner, 1U, NULL,
                                          &persistence_step_handle) != GAME_SCHEDULER_OK)
   {
     runtime_service_schedule_failures++;
@@ -2982,6 +2987,20 @@ void runtime_services_reset_selection_for_test(void)
 
 bool runtime_services_init_for_test(void) { return runtime_services_init(); }
 
+bool runtime_service_named_needed_for_test(const char *name)
+{
+  size_t index;
+
+  if (name == NULL)
+    return false;
+  for (index = 0U; index < RUNTIME_SERVICE_COUNT; index++)
+  {
+    if (!strcmp(runtime_service_table[index].name, name))
+      return runtime_service_needed(runtime_service_table[index].kind);
+  }
+  return false;
+}
+
 bool runtime_services_start_empty_persistence_for_test(void)
 {
   if (!runtime_services_enabled())
@@ -3102,7 +3121,8 @@ void heartbeat(int heart_pulse)
   }
 
   /* Converted RoL ships retain their original 2.5-second movement cadence. */
-  if (!(heart_pulse % (PASSES_PER_SEC * 5 / 2)) && !vessel_periodic_events_enabled())
+  if (CONFIG_VESSEL_SYSTEM && !(heart_pulse % (PASSES_PER_SEC * 5 / 2)) &&
+      !vessel_periodic_events_enabled())
     rol_ship_activity();
 
   /* Autopilot vessel movement tick - every AUTOPILOT_TICK_INTERVAL pulses (0.5 sec) */
@@ -5089,6 +5109,7 @@ void close_socket(struct descriptor_data *d)
     {
       mudlog(CMP, LVL_IMMORT, TRUE, "Losing player: %s.",
              GET_NAME(d->character) ? GET_NAME(d->character) : "<null>");
+      character_periodic_forget(d->character);
       free_char(d->character);
     }
   }
@@ -5384,6 +5405,37 @@ static sigfunc *my_signal(int signo, sigfunc *func)
   return (oact.sa_handler);
 }
 #endif /* POSIX */
+
+static void preserve_shutdown_signal_handlers(void)
+{
+  my_signal(SIGINT, hupsig);
+  my_signal(SIGTERM, hupsig);
+}
+
+#ifdef LUMINARI_CUTEST
+bool comm_test_preserve_shutdown_signal_handlers(void)
+{
+  sigfunc *installed_int;
+  sigfunc *installed_term;
+  sigfunc *saved_int;
+  sigfunc *saved_term;
+
+  saved_int = my_signal(SIGINT, SIG_IGN);
+  if (saved_int == SIG_ERR)
+    return false;
+  saved_term = my_signal(SIGTERM, SIG_IGN);
+  if (saved_term == SIG_ERR)
+  {
+    my_signal(SIGINT, saved_int);
+    return false;
+  }
+
+  preserve_shutdown_signal_handlers();
+  installed_int = my_signal(SIGINT, saved_int);
+  installed_term = my_signal(SIGTERM, saved_term);
+  return installed_int == hupsig && installed_term == hupsig;
+}
+#endif
 
 static void signal_setup(void)
 {

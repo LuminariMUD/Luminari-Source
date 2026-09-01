@@ -268,6 +268,21 @@ void Test_primary_activity_camp_selector_defaults_managed_and_requires_explicit_
   CuAssertTrue(tc, !primary_activity_test_camp_value_is_managed("0"));
 }
 
+void Test_primary_activity_scheduler_registers_timer_when_camp_is_unmanaged(CuTest *tc)
+{
+  struct activity_test_fixture fixture;
+  struct primary_activity_definition definition;
+
+  primary_activity_test_select_camp(false);
+  activity_test_begin(tc, &fixture);
+  definition = activity_test_definition(&fixture);
+  CuAssertTrue(tc, activity_native_type_is_registered("activity.primary.step"));
+  CuAssertTrue(tc, activity_test_start(&fixture, &definition));
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+  activity_test_end(&fixture);
+  primary_activity_test_select_camp(true);
+}
+
 void Test_primary_activity_admission_and_command_capabilities_are_explicit(CuTest *tc)
 {
   struct activity_test_fixture fixture;

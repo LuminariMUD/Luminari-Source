@@ -23,7 +23,8 @@
 #### Tests
 
 - Repeated source contracts and a normal-binary symbol/string audit for one
-  wheel, runtime-only scheduler access, zero ordinary compatibility surface,
+  wheel, runtime-only scheduler access, zero ordinary functional rollback
+  surface (apart from the intentional empty `heartbeat()` ABI stub),
   demand-driven mobile work, and retired PubSub.
 - Extended the production-linked native profiling regression through schedule,
   callback recurrence, manual reschedule, direct cancellation, owner
@@ -649,7 +650,7 @@
 
 #### Tests
 
-- Added exact five/six-second owner-boundary, off-screen NPC, connected-player,
+- Added exact five- and six-second owner-boundary, off-screen NPC, connected-player,
   typed movement, independent rollback, registry, and readable-output coverage.
 
 ### Character-owned periodic gameplay

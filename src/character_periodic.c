@@ -147,7 +147,7 @@ static bool is_owner_eligible(const struct char_data *ch)
   if (ch == NULL || DEAD(ch))
     return false;
   if (IS_NPC(ch))
-    return npc_has_periodic_work(ch);
+    return npc_has_periodic_work(ch) || IS_PERFORMING(ch);
   return is_in_world(ch) || ch->desc != NULL || has_walk_state(ch) || IS_PERFORMING(ch);
 }
 
@@ -166,11 +166,23 @@ static unsigned long owner_cadence_phase(struct char_data *ch, long cadence)
   return (unsigned long)(spread % (uint64_t)cadence);
 }
 
-static bool cadence_due(struct char_data *ch, long cadence)
+static bool cadence_due(struct char_data *ch, long cadence, unsigned long earliest_due)
 {
+  unsigned long deadline;
+  unsigned long interval;
+  unsigned long phase;
+  unsigned long remainder;
+
   if (cadence <= 0)
     return false;
-  return pulse % (unsigned long)cadence == owner_cadence_phase(ch, cadence);
+  interval = (unsigned long)cadence;
+  phase = owner_cadence_phase(ch, cadence);
+  remainder = pulse % interval;
+  if (remainder >= phase)
+    deadline = pulse - (remainder - phase);
+  else
+    deadline = pulse - (interval - (phase - remainder));
+  return (long)(deadline - earliest_due) >= 0L;
 }
 
 static long cadence_delay(struct char_data *ch, long cadence)
@@ -251,7 +263,15 @@ static bool runtime_handle_matches(struct event_runtime_handle handle,
 
 static void borrowed_owner_cleanup(void *payload)
 {
-  (void)payload;
+  struct char_data *ch = payload;
+
+  if (ch == NULL || event_runtime_handle_is_none(ch->character_periodic_event_handle) ||
+      event_runtime_handle_is_live(ch->character_periodic_event_handle))
+    return;
+  ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+  ch->character_periodic_due_pulse = 0U;
+  if (scheduled_count > 0U)
+    scheduled_count--;
 }
 
 static bool register_character_maintenance_type(void)
@@ -328,41 +348,41 @@ static bool callback_owner_still_live(void)
   return !dispatching_owner_forgotten;
 }
 
-static bool dispatch_due_work(struct char_data *ch)
+static bool dispatch_due_work(struct char_data *ch, unsigned long earliest_due)
 {
   dispatching_owner = ch;
   dispatching_owner_forgotten = false;
-  if (has_walk_state(ch) && cadence_due(ch, CHARACTER_WALK_CADENCE))
+  if (has_walk_state(ch) && cadence_due(ch, CHARACTER_WALK_CADENCE, earliest_due))
   {
     walk_executions++;
     process_walkto_action(ch);
   }
   if (callback_owner_still_live() && ch->desc != NULL &&
-      cadence_due(ch, CHARACTER_PSP_CADENCE))
+      cadence_due(ch, CHARACTER_PSP_CADENCE, earliest_due))
   {
     psp_executions++;
     regen_psp_one(ch);
   }
   if (callback_owner_still_live() && is_in_world(ch) &&
-      cadence_due(ch, PULSE_LUMINARI))
+      cadence_due(ch, PULSE_LUMINARI, earliest_due))
   {
     luminari_executions++;
     process_character_environment_and_recovery(ch);
   }
   if (callback_owner_still_live() && IS_PERFORMING(ch) &&
-      cadence_due(ch, PULSE_VERSE_INTERVAL))
+      cadence_due(ch, PULSE_VERSE_INTERVAL, earliest_due))
   {
     bardic_executions++;
     advance_bardic_performance(ch);
   }
   if (callback_owner_still_live() && ch->desc != NULL && !IS_NPC(ch) &&
-      cadence_due(ch, PULSE_HINTS))
+      cadence_due(ch, PULSE_HINTS, earliest_due))
   {
     hint_executions++;
     show_hint_one(ch);
   }
   if (callback_owner_still_live() && is_in_world(ch) &&
-      cadence_due(ch, PULSE_VIOLENCE))
+      cadence_due(ch, PULSE_VIOLENCE, earliest_due))
   {
     d20_round_executions++;
     proc_d20_round_one(ch);
@@ -370,25 +390,25 @@ static bool dispatch_due_work(struct char_data *ch)
       character_periodic_forget(ch);
   }
   if (callback_owner_still_live() && is_in_world(ch) &&
-      cadence_due(ch, PULSE_VIOLENCE))
+      cadence_due(ch, PULSE_VIOLENCE, earliest_due))
   {
     damage_effect_executions++;
     update_damage_and_effects_over_time_one(ch);
   }
   if (callback_owner_still_live() && ch->desc != NULL && is_in_world(ch) &&
-      cadence_due(ch, PULSE_VIOLENCE))
+      cadence_due(ch, PULSE_VIOLENCE, earliest_due))
   {
     player_misc_executions++;
     update_player_misc_one(ch);
   }
   if (callback_owner_still_live() && (is_in_world(ch) || ch->desc != NULL) &&
-      cadence_due(ch, CHARACTER_DEVICE_CADENCE))
+      cadence_due(ch, CHARACTER_DEVICE_CADENCE, earliest_due))
   {
     device_executions++;
     check_device_one(ch);
   }
   if (callback_owner_still_live() && (is_in_world(ch) || ch->desc != NULL) &&
-      cadence_due(ch, CHARACTER_QUEST_CADENCE))
+      cadence_due(ch, CHARACTER_QUEST_CADENCE, earliest_due))
   {
     timed_quest_executions++;
     check_timed_quests_one(ch);
@@ -407,6 +427,7 @@ static struct game_event_result character_periodic_event(
     const struct game_event_context *context)
 {
   struct char_data *ch = context != NULL ? context->payload : NULL;
+  unsigned long earliest_due;
   long delay;
 
   if (ch == NULL)
@@ -417,6 +438,7 @@ static struct game_event_result character_periodic_event(
     if (runtime_handle_matches(ch->character_periodic_event_handle, context))
     {
       ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+      ch->character_periodic_due_pulse = 0U;
       if (scheduled_count > 0U)
         scheduled_count--;
     }
@@ -425,7 +447,8 @@ static struct game_event_result character_periodic_event(
     return game_event_result_complete();
   }
 
-  if (!dispatch_due_work(ch))
+  earliest_due = ch->character_periodic_due_pulse;
+  if (!dispatch_due_work(ch, earliest_due))
   {
     character_periodic_forget(ch);
     return game_event_result_complete();
@@ -435,6 +458,7 @@ static struct game_event_result character_periodic_event(
     if (runtime_handle_matches(ch->character_periodic_event_handle, context))
     {
       ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+      ch->character_periodic_due_pulse = 0U;
       if (scheduled_count > 0U)
         scheduled_count--;
     }
@@ -445,6 +469,7 @@ static struct game_event_result character_periodic_event(
   if (!runtime_handle_matches(ch->character_periodic_event_handle, context))
     return game_event_result_complete();
   delay = next_owner_delay(ch);
+  ch->character_periodic_due_pulse = delay > 0L ? pulse + (unsigned long)delay : 0U;
   return delay > 0L ? game_event_result_reschedule_after((game_tick_t)delay)
                     : game_event_result_complete();
 }
@@ -474,9 +499,11 @@ static bool schedule_owner(struct char_data *ch)
                                          &ch->character_periodic_event_handle) !=
       GAME_SCHEDULER_OK)
   {
+    ch->character_periodic_due_pulse = 0U;
     note_rejection();
     return false;
   }
+  ch->character_periodic_due_pulse = pulse + (unsigned long)delay;
   scheduled_count++;
   return true;
 }
@@ -529,6 +556,7 @@ void character_periodic_sync(struct char_data *ch)
     return;
   handle = ch->character_periodic_event_handle;
   ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+  ch->character_periodic_due_pulse = 0U;
   if (scheduled_count > 0U)
     scheduled_count--;
   (void)event_runtime_cancel(handle);
@@ -547,10 +575,13 @@ void character_periodic_forget(struct char_data *ch)
   {
     handle = ch->character_periodic_event_handle;
     ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+    ch->character_periodic_due_pulse = 0U;
     if (scheduled_count > 0U)
       scheduled_count--;
     (void)event_runtime_cancel(handle);
   }
+  else
+    ch->character_periodic_due_pulse = 0U;
   registry_remove(ch);
   refill_capacity();
 }

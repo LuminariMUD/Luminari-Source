@@ -501,6 +501,7 @@ set(SRC_C_FILES
     src/net/discord_bridge.c
     src/dgscript/dg_db_scripts.c
     src/dgscript/dg_event.c
+    src/dgscript/dg_event_rollback.h
     src/dgscript/dg_handler.c
     src/dgscript/dg_misc.c
     src/dgscript/dg_mobcmd.c

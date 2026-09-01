@@ -6090,6 +6090,7 @@ struct room_data
   uint64_t periodic_event_generation;                  /**< Periodic-owner incarnation. */
   zone_rnum zone;                                      /**< Room zone (for resetting) */
   int coords[2];                                       /**< Room coordinates (for wilderness) */
+  bool wilderness_coordinates_set;                     /**< Wilderness coordinates are explicit. */
   int sector_type;                                     /**< sector type (move/hide) */
   int minimum_level;                                   /**< Minimum entry level; <= 0 is open */
   int maximum_level;                                   /**< Maximum entry level; <= 0 is open */
@@ -7410,6 +7411,7 @@ struct char_data
   struct char_data *character_periodic_next; /**< Character periodic-owner registry link. */
   struct char_data *character_periodic_prev; /**< Character periodic-owner registry link. */
   struct event_runtime_handle character_periodic_event_handle; /**< Nearest maintenance deadline. */
+  unsigned long character_periodic_due_pulse;     /**< Intended periodic-event deadline. */
   bool character_periodic_registered;    /**< Character periodic registry membership. */
   struct char_data *point_update_next;    /**< Mud-hour player registry link. */
   struct char_data *point_update_prev;    /**< Mud-hour player registry link. */

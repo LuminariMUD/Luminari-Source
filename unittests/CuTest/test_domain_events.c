@@ -666,6 +666,7 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   mob_rnum saved_top_of_mobt;
   unsigned long saved_pulse;
   uint64_t callbacks_before;
+  struct event_runtime_handle cancelled_handle;
   long first_delay;
 
   saved_world = world;
@@ -711,6 +712,19 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   CuAssertTrue(tc, native_event_type_is_registered("mobile.autonomous.agenda"));
   CuAssertTrue(tc, event_runtime_handle_is_none(idle.active_world_event_handle));
   CuAssertTrue(tc, !event_runtime_handle_is_none(wanderer.active_world_event_handle));
+
+  cancelled_handle = wanderer.active_world_event_handle;
+  CuAssertIntEquals(tc, GAME_EVENT_CANCELLED, event_runtime_cancel(cancelled_handle));
+  CuAssertTrue(tc, !event_runtime_handle_is_live(cancelled_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(wanderer.active_world_event_handle));
+  CuAssertIntEquals(tc, ACTIVE_WORLD_MOBILE_DORMANT, wanderer.active_world_state);
+  CuAssertIntEquals(tc, 0,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  active_world_sync_mobile(&wanderer);
+  CuAssertIntEquals(tc, 1,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, event_queue_depth());
 
   callbacks_before = active_world_mobile_callbacks();
   first_delay = (long)native_event_remaining(tc, wanderer.active_world_event_handle);
@@ -1374,8 +1388,16 @@ void TestPeriodicOwnerAdmissionAndRollbackGatesAreIndependent(CuTest *tc)
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
   autoproc_registry_remove(&first);
-  autoproc_registry_remove(&second);
+  CuAssertIntEquals(tc, 1, event_queue_depth());
   first_script.owner = NULL;
+  pulse += PULSE_DG_SCRIPT;
+  event_process();
+  CuAssertTrue(tc, event_runtime_handle_is_none(first_script.random_event_handle));
+  CuAssertIntEquals(tc, 0, (int)periodic_dg_random_scheduled_count(OBJ_TRIGGER));
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  autoproc_registry_remove(&first);
+  autoproc_registry_remove(&second);
   second_script.owner = NULL;
   dg_random_registry_sync(&first_script);
   dg_random_registry_sync(&second_script);
@@ -1580,6 +1602,51 @@ void TestWildernessTrailIdentitySurvivesDynamicRoomReuse(CuTest *tc)
   CuAssertIntEquals(tc, 0, (int)movement_trail_registry_validate());
 
   movement_trail_registry_shutdown();
+}
+
+void TestWildernessTrailsUseRoomIdentityWithoutExplicitCoordinates(CuTest *tc)
+{
+  struct room_data rooms[2];
+  struct zone_data wilderness_zone;
+  struct zone_data *saved_zone_table = zone_table;
+  zone_rnum saved_top_of_zone_table = top_of_zone_table;
+  const struct trail_data_list *trails;
+  time_t now = time(NULL);
+
+  memset(rooms, 0, sizeof(rooms));
+  memset(&wilderness_zone, 0, sizeof(wilderness_zone));
+  wilderness_zone.number = 700;
+  SET_BIT_AR(wilderness_zone.zone_flags, ZONE_WILDERNESS);
+  zone_table = &wilderness_zone;
+  top_of_zone_table = 0;
+  rooms[0].number = 70001;
+  rooms[0].zone = 0;
+  rooms[1].number = 70002;
+  rooms[1].zone = 0;
+
+  movement_trail_registry_shutdown();
+  movement_trail_record_at_room(&rooms[0], "first room trail", "human", DIR_NONE, NORTH, now);
+  CuAssertPtrEquals(tc, NULL, movement_trails_at_room(&rooms[1]));
+  movement_trail_record_at_room(&rooms[1], "second room trail", "elf", DIR_NONE, SOUTH, now);
+  CuAssertIntEquals(tc, 2, (int)movement_trail_active_location_count());
+  CuAssertIntEquals(tc, 0, (int)movement_trail_registry_validate());
+
+  movement_trail_registry_shutdown();
+  rooms[0].wilderness_coordinates_set = true;
+  rooms[1].wilderness_coordinates_set = true;
+  rooms[0].coords[X_COORD] = rooms[1].coords[X_COORD] = 12;
+  rooms[0].coords[Y_COORD] = rooms[1].coords[Y_COORD] = -9;
+  movement_trail_record_at_room(&rooms[0], "shared coordinate trail", "dwarf", DIR_NONE, EAST,
+                                now);
+  trails = movement_trails_at_room(&rooms[1]);
+  CuAssertPtrNotNull(tc, trails);
+  CuAssertStrEquals(tc, "shared coordinate trail", trails->head->name);
+  CuAssertIntEquals(tc, 1, (int)movement_trail_active_location_count());
+  CuAssertIntEquals(tc, 0, (int)movement_trail_registry_validate());
+
+  movement_trail_registry_shutdown();
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
 }
 
 void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
@@ -2058,6 +2125,16 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
   pulse = saved_pulse;
 }
 
+void TestDeviceRecoverySkipsCharacterWithoutPlayerSpecials(CuTest *tc)
+{
+  struct char_data ch;
+
+  memset(&ch, 0, sizeof(ch));
+  CuAssertPtrEquals(tc, NULL, ch.player_specials);
+  check_device_one(&ch);
+  CuAssertPtrEquals(tc, NULL, ch.player_specials);
+}
+
 void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
 {
   struct char_data ch;
@@ -2110,6 +2187,15 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   CuAssertStrEquals(tc, "character.maintenance",
                     event_runtime_type_name(snapshot.event_type));
 
+  CuAssertIntEquals(tc, GAME_EVENT_CANCELLED,
+                    event_runtime_cancel(ch.character_periodic_event_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(ch.character_periodic_event_handle));
+  CuAssertIntEquals(tc, 0, (int)character_periodic_scheduled_count());
+  character_periodic_sync(&ch);
+  CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
+  CuAssertIntEquals(tc, 7,
+                    (int)native_event_remaining(tc, ch.character_periodic_event_handle));
+
   process_scheduler_pulses(7U);
   CuAssertIntEquals(tc, 0, specials.walkto_location);
   CuAssertIntEquals(tc, 1, (int)character_periodic_walk_executions());
@@ -2139,6 +2225,107 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   character_periodic_reset_for_test();
   event_free_all();
   character_list = saved_character_list;
+  pulse = saved_pulse;
+}
+
+void TestCharacterPeriodicLateCallbackRunsPassedDeadline(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data specials;
+  struct char_data *saved_character_list = character_list;
+  unsigned long saved_pulse = pulse;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&specials, 0, sizeof(specials));
+  clear_char(&ch);
+  ch.periodic_event_generation = 9001U;
+  ch.player_specials = &specials;
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  STATE(&descriptor) = CON_PLAYING;
+  SET_BIT_AR(PRF_FLAGS(&ch), PRF_NOHINT);
+  IN_ROOM(&ch) = NOWHERE;
+  specials.walkto_location = 103009;
+  character_list = NULL;
+
+  event_free_all();
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 700U;
+  event_init();
+  character_periodic_init();
+  character_periodic_sync(&ch);
+  CuAssertIntEquals(tc, 707, (int)ch.character_periodic_due_pulse);
+
+  pulse = 709U;
+  event_process();
+  CuAssertIntEquals(tc, 0, specials.walkto_location);
+  CuAssertIntEquals(tc, 1, (int)character_periodic_walk_executions());
+  CuAssertIntEquals(tc, 39,
+                    (int)native_event_remaining(tc, ch.character_periodic_event_handle));
+  CuAssertIntEquals(tc, 750, (int)ch.character_periodic_due_pulse);
+
+  character_periodic_forget(&ch);
+  character_periodic_reset_for_test();
+  event_free_all();
+  character_list = saved_character_list;
+  pulse = saved_pulse;
+}
+
+void TestCharacterPeriodicSchedulesPerformingNpcWithoutOtherWork(CuTest *tc)
+{
+  struct char_data npc;
+  struct room_data room;
+  struct char_data *saved_character_list = character_list;
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+  long delay;
+
+  memset(&room, 0, sizeof(room));
+  clear_char(&npc);
+  npc.periodic_event_generation = 9002U;
+  room.number = 1401;
+  world = &room;
+  top_of_world = 0;
+  npc.player_specials = &dummy_mob;
+  npc.player.short_descr = (char *)"performing periodic test mobile";
+  SET_BIT_AR(MOB_FLAGS(&npc), MOB_ISNPC);
+  IN_ROOM(&npc) = 0;
+  GET_HIT(&npc) = GET_REAL_MAX_HIT(&npc) = GET_MAX_HIT(&npc) = 100;
+  GET_MOVE(&npc) = GET_REAL_MAX_MOVE(&npc) = GET_MAX_MOVE(&npc) = 100;
+  GET_PSP(&npc) = GET_REAL_MAX_PSP(&npc) = GET_MAX_PSP(&npc) = 100;
+  IS_PERFORMING(&npc) = TRUE;
+  GET_PERFORMING(&npc) = PERFORMANCE_NONE;
+  GET_SECONDARY_PERFORMING(&npc) = PERFORMANCE_NONE;
+  room.people = &npc;
+  character_list = &npc;
+
+  event_free_all();
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = PULSE_VIOLENCE * 20U;
+  event_init();
+  character_periodic_init();
+  CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
+  delay = (long)native_event_remaining(tc, npc.character_periodic_event_handle);
+  CuAssertTrue(tc, delay > 0L && delay <= PULSE_VERSE_INTERVAL);
+
+  process_scheduler_pulses(PULSE_VERSE_INTERVAL);
+  CuAssertIntEquals(tc, 1, (int)character_periodic_bardic_executions());
+  CuAssertTrue(tc, !IS_PERFORMING(&npc));
+  CuAssertIntEquals(tc, 0, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 0, (int)character_periodic_scheduled_count());
+
+  character_periodic_reset_for_test();
+  event_free_all();
+  character_list = saved_character_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
   pulse = saved_pulse;
 }
 

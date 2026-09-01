@@ -1,7 +1,16 @@
 #ifndef DG_EVENT_ROLLBACK_H
 #define DG_EVENT_ROLLBACK_H
 
-#if !defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && !defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#ifndef DG_EVENT_ROLLBACK_ENABLED
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||             \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#define DG_EVENT_ROLLBACK_ENABLED 1
+#else
+#define DG_EVENT_ROLLBACK_ENABLED 0
+#endif
+#endif
+
+#if !DG_EVENT_ROLLBACK_ENABLED
 #error "The legacy timed-event facade is available only in rollback builds"
 #endif
 

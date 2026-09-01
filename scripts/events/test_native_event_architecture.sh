@@ -52,6 +52,13 @@ if grep -Eq 'EVENTFUNC|EVENT_BACKEND_LEGACY_QUEUE|event_schedule(_[[:alnum:]_]+)
     "$default_public_header"; then
   fail "the default public header exposes the rollback event facade"
 fi
+printf '#include "dgscript/dg_scripts.h"\n' |
+  "${CC:-cc}" -DLUMINARI_ENABLE_EVENT_ROLLBACK=0 -E -P \
+    -I"$project_root/src" -xc - >"$default_public_header"
+if grep -Eq 'EVENTFUNC|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_handle_(cancel|time|is_live|is_queued)' \
+    "$default_public_header"; then
+  fail "an explicit zero rollback definition exposes the DG rollback facade"
+fi
 
 "${CC:-cc}" -E -P -I"$project_root/src" \
   "$project_root/src/dgscript/dg_event.c" >"$default_dg_event"
@@ -134,8 +141,9 @@ for test_name in \
   Test_event_runtime_profiles_native_semantic_callbacks \
   Test_event_runtime_owner_cancel_invalidates_handle_and_cleans_once \
   TestActiveWorldDormantPopulationDoesNotCreateScheduledWork \
+  Test_primary_activity_scheduler_registers_timer_when_camp_is_unmanaged \
   Test_event_debug_registry_is_backend_neutral_filterable_and_width_bounded; do
-  grep -REq --include='*.c' "void $test_name[[:space:]]*\(" \
+  grep -REq --include='*.c' "void ${test_name}[[:space:]]*\(" \
     "$project_root/unittests/CuTest" ||
     fail "required production-linked regression '$test_name' is missing"
 done

@@ -1,5 +1,9 @@
 #include "conf.h"
 #include "sysdep.h"
+
+#include <stdlib.h>
+#include <string.h>
+
 #include "event_runtime.h"
 #include "perfmon.h"
 
@@ -10,6 +14,8 @@ static struct event_runtime_type_profile
   int perf_index;
 } *runtime_type_profiles;
 static size_t runtime_type_profile_capacity;
+
+static game_tick_t delay_until(game_tick_t deadline_tick);
 
 static struct event_runtime_type_profile *runtime_type_profile(
     game_event_type_id_t event_type)
@@ -41,8 +47,10 @@ static struct game_event_result event_runtime_dispatch(
                              finished_usec >= started_usec
                                  ? finished_usec - started_usec
                                  : 0U);
-    if (result.kind == GAME_EVENT_RESULT_RESCHEDULE_AT ||
-        result.kind == GAME_EVENT_RESULT_RESCHEDULE_AFTER)
+    if (result.kind == GAME_EVENT_RESULT_RESCHEDULE_AT)
+      PERF_note_event_rescheduled(profile->perf_index,
+                                  delay_until((game_tick_t)result.value));
+    else if (result.kind == GAME_EVENT_RESULT_RESCHEDULE_AFTER)
       PERF_note_event_rescheduled(profile->perf_index, result.value);
   }
   return result;

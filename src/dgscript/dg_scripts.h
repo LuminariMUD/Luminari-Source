@@ -16,7 +16,13 @@
 #define _DG_SCRIPTS_H_
 
 #include "event_runtime.h"
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||             \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#define DG_EVENT_ROLLBACK_ENABLED 1
+#else
+#define DG_EVENT_ROLLBACK_ENABLED 0
+#endif
+#if DG_EVENT_ROLLBACK_ENABLED
 #include "dg_event_rollback.h"
 #endif
 #include "utils.h" /* To make sure ACMD is defined */
@@ -172,7 +178,7 @@ struct trig_data
   int depth;                          /**< depth into nest ifs/whiles/etc  */
   int loops;                          /**< loop iteration counter          */
   struct event_runtime_handle wait_event_handle; /**< Native event that pauses the trigger. */
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if DG_EVENT_ROLLBACK_ENABLED
   event_handle_t wait_rollback_handle; /**< Temporary legacy-backend fallback. */
 #endif
   struct wait_event_data *wait_event_data; /**< payload used by room OLC */
@@ -215,6 +221,10 @@ struct wait_event_data
   struct trig_data *trigger;
   void *go;
   int type;
+  bool destroy_trigger_after_cleanup;
+#ifdef LUMINARI_CUTEST
+  bool free_trigger_on_dispatch;
+#endif
 };
 
 /* used for actor memory triggers */
@@ -416,6 +426,11 @@ size_t dg_random_registry_validate(int owner_type);
 bool dg_random_trigger_run_one(void *owner, int owner_type);
 #ifdef LUMINARI_CUTEST
 void dg_random_registry_reset_for_test(void);
+bool dg_wait_schedule_for_test(struct trig_data *trig, long when);
+bool dg_wait_schedule_inflight_free_for_test(struct trig_data *trig, long when);
+void dg_wait_reset_telemetry_for_test(void);
+uint64_t dg_wait_resume_count_for_test(void);
+uint64_t dg_wait_deferred_free_count_for_test(void);
 #endif
 void dg_time_registry_sync(struct script_data *script);
 void *dg_time_registry_resolve_owner(struct script_data *script);
@@ -438,6 +453,7 @@ void delete_variables(const char *charname);
 void update_wait_events(struct room_data *to, struct room_data *from);
 bool dg_wait_runtime_init(void);
 bool dg_trigger_wait_is_live(const struct trig_data *trig);
+bool dg_trigger_wait_is_dispatching(const struct trig_data *trig);
 long dg_trigger_wait_remaining(const struct trig_data *trig);
 void dg_trigger_wait_cancel(struct trig_data *trig);
 

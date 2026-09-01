@@ -251,6 +251,12 @@ static struct game_event_result affected_room_event(
     if (!room->affected_registered || room->affected_head == NULL ||
         event_runtime_handle_is_none(room->affected_event_handle))
     {
+      if (runtime_handle_matches(room->affected_event_handle, context))
+      {
+        room->affected_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+        if (room_scheduled_count > 0U)
+          room_scheduled_count--;
+      }
       refill_room_capacity();
       return game_event_result_complete();
     }
@@ -262,6 +268,12 @@ static struct game_event_result affected_room_event(
     if (!room->affected_registered || room->affected_head == NULL ||
         event_runtime_handle_is_none(room->affected_event_handle))
     {
+      if (runtime_handle_matches(room->affected_event_handle, context))
+      {
+        room->affected_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+        if (room_scheduled_count > 0U)
+          room_scheduled_count--;
+      }
       refill_room_capacity();
       return game_event_result_complete();
     }

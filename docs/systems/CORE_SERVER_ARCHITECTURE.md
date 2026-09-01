@@ -7,7 +7,11 @@ the classic CircleMUD/tbaMUD design. A private reactor waits for descriptor,
 signal, scheduler, or queued-action deadline readiness; gameplay remains on the
 main thread. Named scheduler services own normal cadence work. The ordinary
 binary contains no compatibility heartbeat or legacy timed-event backend;
-those remain only in an explicitly compiled rollback executable.
+those remain only in an explicitly compiled rollback executable. If native
+runtime-service admission fails, startup exits rather than falling back.
+Rollback builds use legacy runtime services only when
+`LUMINARI_RUNTIME_SERVICES=legacy` is explicitly selected; admission failure
+does not select them automatically.
 
 ## Main Server Components
 

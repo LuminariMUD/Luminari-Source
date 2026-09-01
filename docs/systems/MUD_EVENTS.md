@@ -437,7 +437,9 @@ may already have been released.
 - Change sVariables: [C.change_event_svariables()](../../src/mud_event.c#L1267)
   - Captures remaining time, creates new event with new sVariables, cancels old, reattaches with preserved time
 - Cancel a specific char event by ID: [C.event_cancel_specific()](../../src/mud_event.c#L947)
-  - Uses the payload's opaque handle and queued-state guard
+  - Delegates to `mud_event_cancel()`, which cancels the native
+    `runtime_handle` when present and consults `rollback_handle` only on the
+    separately compiled physical-legacy backend
 
 ### 3.9 Persistence and Reconstruction
 

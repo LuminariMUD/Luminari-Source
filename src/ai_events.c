@@ -202,9 +202,6 @@ static void run_ai_retry(struct ai_request_retry_event *data)
 
   if (data == NULL || data->prompt == NULL)
     return;
-  if (domain_entity_handle_is_none(data->player) ||
-      domain_entity_handle_is_none(data->npc))
-    return;
   player_valid = domain_entity_handle_is_none(data->player) ||
                  resolve_character(data->player) != NULL;
   npc_valid = domain_entity_handle_is_none(data->npc) ||

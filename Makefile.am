@@ -6,7 +6,7 @@ SUBDIRS = util
 
 # Additional compiler flags
 # Revert to project defaults: do NOT force global feature defines here.
-AM_CFLAGS = @CSTD_CFLAGS@ @MYFLAGS@
+AM_CFLAGS = @CSTD_CFLAGS@ @MYFLAGS@ @LIBEVENT_CFLAGS@
 
 
 # Main program
@@ -726,7 +726,6 @@ world_tool_support_files = \
 help_sync_sources = \
 	.agents/skills/help-sync/SKILL.md \
 	.agents/skills/help-sync/agents/openai.yaml \
-	docs/ongoing-projects/HELPFILE_SYNCHRONIZATION_DESIGN.md \
 	scripts/help-sync/catalog.py \
 	scripts/help-sync/endpoint.py \
 	scripts/help-sync/help_sync.py \
@@ -785,6 +784,7 @@ EXTRA_DIST = \
 	scripts/development/check_local_port_allocations.sh \
 	scripts/development/dev_create_test_character.sh \
 	scripts/development/dev_kohdee_login_smoke.sh \
+	src/dgscript/dg_event_rollback.h \
 	scripts/events/test_demand_driven_architecture.sh \
 	scripts/events/test_legacy_event_admission.sh \
 	scripts/events/test_native_event_architecture.sh \
@@ -985,7 +985,7 @@ test-event-admission:
 	./scripts/events/test_legacy_event_admission.sh
 
 test-native-event-architecture:
-	./scripts/events/test_native_event_architecture.sh
+	CC="$(CC)" ./scripts/events/test_native_event_architecture.sh
 
 test-pubsub-retirement:
 	./scripts/events/test_pubsub_retirement.sh

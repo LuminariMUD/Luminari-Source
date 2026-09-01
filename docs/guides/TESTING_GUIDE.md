@@ -61,6 +61,11 @@ LUMINARI_EVENT_BACKEND=scheduler LUMINARI_RUNTIME_SERVICES=legacy build-rollback
 LUMINARI_EVENT_BACKEND=legacy LUMINARI_RUNTIME_SERVICES=legacy build-rollback/bin/luminari -c
 ```
 
+The physical backend takes precedence: either command with
+`LUMINARI_EVENT_BACKEND=legacy` exercises the complete legacy heartbeat, even
+when `LUMINARI_RUNTIME_SERVICES=scheduled` is also present. Scheduled services
+require the scheduler backend.
+
 Autotools uses `./configure --enable-event-rollback`; the default is disabled.
 Runtime rollback selectors have no effect in an ordinary build. Selecting the
 physical legacy queue in a rollback build also selects the complete legacy

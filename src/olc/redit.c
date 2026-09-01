@@ -1219,6 +1219,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
     //    if((number <= WILD_Y_SIZE) &&
     //       (number >= -WILD_Y_SIZE)) {
     OLC_ROOM(d)->coords[1] = number;
+    OLC_ROOM(d)->wilderness_coordinates_set = true;
     break;
     //    } else {
     //      write_to_output(d, "Invalid y-coordinate, try again : ");

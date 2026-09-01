@@ -21,7 +21,8 @@ and
 
 The later rollback-quarantine tranche also removed this code from every normal
 binary. Physical sources remain for the external retention gate, but they are
-compiled only when `LUMINARI_ENABLE_EVENT_ROLLBACK` is explicitly enabled. See
+compiled only when `LUMINARI_ENABLE_EVENT_ROLLBACK` is explicitly enabled or
+when the isolated parity harness defines `LUMINARI_EVENT_ROLLBACK_TESTS`. See
 [`EVENT_DRIVEN_CORE_ROLLBACK_QUARANTINE.md`](EVENT_DRIVEN_CORE_ROLLBACK_QUARANTINE.md).
 
 ## 1. Scope and conclusion
@@ -406,7 +407,7 @@ git branch -r --contains HEAD
 git tag --contains HEAD
 gh release list
 gh pr list --head event-driven-core-refactor --state all
-gh api 'repos/LuminariMUD/Luminari-Source/deployments?sha=<full-sha>'
+gh api "repos/LuminariMUD/Luminari-Source/deployments?sha=$(git rev-parse HEAD)"
 git grep -n 'struct event \*' -- 'src/*.c' 'src/*.h' 'src/**/*.c' 'src/**/*.h'
 git grep -n 'struct event \*' -- 'src/*.c' 'src/*.h' 'src/**/*.c' 'src/**/*.h' \
   | grep -v '^src/reactor\.[ch]:' \
