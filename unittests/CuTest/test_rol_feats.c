@@ -126,8 +126,13 @@ static void end_test_char(struct char_data *ch, struct descriptor_data *descript
 
 static void end_rol_feat_fixture(struct rol_feat_fixture *fixture)
 {
+  int room_index;
+
   end_test_char(&fixture->lead, &fixture->lead_descriptor);
   end_test_char(&fixture->second, &fixture->second_descriptor);
+  for (room_index = 0; room_index < 2; room_index++)
+    while (fixture->rooms[room_index].affected_head != NULL)
+      rem_room_aff(fixture->rooms[room_index].affected_head);
   event_free_all();
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;
@@ -166,7 +171,7 @@ static bool rol_feat_file_contains(const char *relative_path, const char *needle
   return FALSE;
 }
 
-/* A camp only speeds recovery for someone actually settled into it. */
+/* A room camp speeds recovery for everyone settled there, but nowhere else. */
 void TestCampRecoveryRequiresRestingInCamp(CuTest *tc)
 {
   struct rol_feat_fixture fixture;
@@ -176,8 +181,13 @@ void TestCampRecoveryRequiresRestingInCamp(CuTest *tc)
   GET_POS(&fixture.lead) = POS_RESTING;
   CuAssertIntEquals(tc, 0, camp_recovery_bonus(&fixture.lead, 40));
 
-  test_camp_shelter_char(&fixture.lead);
+  test_camp_create_site(&fixture.lead);
+  CuAssertTrue(tc, ROOM_AFFECTED(0, RAFF_CAMP));
+  CuAssertTrue(tc, !affected_by_spell(&fixture.lead, SKILL_CAMP));
   CuAssertIntEquals(tc, 20, camp_recovery_bonus(&fixture.lead, 40));
+
+  GET_POS(&fixture.second) = POS_RESTING;
+  CuAssertIntEquals(tc, 20, camp_recovery_bonus(&fixture.second, 40));
 
   GET_POS(&fixture.lead) = POS_SLEEPING;
   CuAssertIntEquals(tc, 20, camp_recovery_bonus(&fixture.lead, 40));
@@ -191,6 +201,38 @@ void TestCampRecoveryRequiresRestingInCamp(CuTest *tc)
   GET_POS(&fixture.lead) = POS_STANDING;
   CuAssertIntEquals(tc, 0, camp_recovery_bonus(&fixture.lead, 40));
 
+  end_rol_feat_fixture(&fixture);
+}
+
+void TestCampRoomAffectExpiresAndClearsTheSite(CuTest *tc)
+{
+  struct rol_feat_fixture fixture;
+
+  begin_rol_feat_fixture(&fixture);
+  test_camp_create_site(&fixture.lead);
+  CuAssertTrue(tc, fixture.rooms[0].affected_head != NULL);
+  CuAssertIntEquals(tc, SKILL_CAMP, fixture.rooms[0].affected_head->spell);
+
+  fixture.rooms[0].affected_head->timer = 1;
+  CuAssertIntEquals(tc, 1, (int)affect_update_room_one(&fixture.rooms[0]));
+  CuAssertTrue(tc, !ROOM_AFFECTED(0, RAFF_CAMP));
+  CuAssertTrue(tc, fixture.rooms[0].affected_head == NULL);
+
+  end_rol_feat_fixture(&fixture);
+}
+
+void TestCampRejectsInvalidTerrainWithConsistentMessage(CuTest *tc)
+{
+  struct rol_feat_fixture fixture;
+
+  begin_rol_feat_fixture(&fixture);
+  fixture.rooms[0].sector_type = SECT_WATER_SWIM;
+  SET_FEAT(&fixture.lead, FEAT_ESTABLISH_CAMP, 1);
+
+  do_camp(&fixture.lead, "", 0, 0);
+
+  CuAssertTrue(tc, strstr(fixture.lead_descriptor.output, "You can't camp here!") != NULL);
+  CuAssertTrue(tc, !ROOM_AFFECTED(0, RAFF_CAMP));
   end_rol_feat_fixture(&fixture);
 }
 
@@ -226,6 +268,7 @@ void TestCampCommandUsesManagedActivityBeforeApplyingExistingBenefits(CuTest *tc
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.lead, &snapshot));
   CuAssertIntEquals(tc, PRIMARY_ACTIVITY_CAMP, snapshot.type);
   CuAssertIntEquals(tc, 0, (int)snapshot.completed_steps);
+  CuAssertTrue(tc, !ROOM_AFFECTED(0, RAFF_CAMP));
   CuAssertTrue(tc, !affected_by_spell(&fixture.lead, SKILL_CAMP));
   CuAssertTrue(tc, !affected_by_spell(&fixture.second, SKILL_CAMP));
 
@@ -244,8 +287,9 @@ void TestCampCommandUsesManagedActivityBeforeApplyingExistingBenefits(CuTest *tc
   pulse += 2 RL_SEC;
   event_process();
   CuAssertTrue(tc, !primary_activity_snapshot(&fixture.lead, &snapshot));
-  CuAssertTrue(tc, affected_by_spell(&fixture.lead, SKILL_CAMP));
-  CuAssertTrue(tc, affected_by_spell(&fixture.second, SKILL_CAMP));
+  CuAssertTrue(tc, ROOM_AFFECTED(0, RAFF_CAMP));
+  CuAssertTrue(tc, !affected_by_spell(&fixture.lead, SKILL_CAMP));
+  CuAssertTrue(tc, !affected_by_spell(&fixture.second, SKILL_CAMP));
   CuAssertIntEquals(tc, fixture.rooms[0].number, GET_LOADROOM(&fixture.lead));
   CuAssertIntEquals(tc, fixture.rooms[0].number, GET_LOADROOM(&fixture.second));
 
@@ -289,8 +333,9 @@ void TestCampCommandLegacySelectorPreservesImmediateRollback(CuTest *tc)
 
   do_camp(&fixture.lead, "", 0, 0);
   CuAssertTrue(tc, !primary_activity_snapshot(&fixture.lead, &snapshot));
-  CuAssertTrue(tc, affected_by_spell(&fixture.lead, SKILL_CAMP));
-  CuAssertTrue(tc, affected_by_spell(&fixture.second, SKILL_CAMP));
+  CuAssertTrue(tc, ROOM_AFFECTED(0, RAFF_CAMP));
+  CuAssertTrue(tc, !affected_by_spell(&fixture.lead, SKILL_CAMP));
+  CuAssertTrue(tc, !affected_by_spell(&fixture.second, SKILL_CAMP));
 
   primary_activity_test_select_camp(true);
   primary_activity_manager_shutdown();

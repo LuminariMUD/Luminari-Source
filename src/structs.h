@@ -296,8 +296,9 @@ typedef int32_t IDXTYPE; /**< Fixed-width type for virtual and real indexes. */
 #define RAFF_SACRED_SPACE (1 << 14)
 #define RAFF_KAPAK_ACID (1 << 15)
 #define RAFF_AIRY_WATER (1 << 16)
+#define RAFF_CAMP (1 << 17)
 /** The total number of Room Affections */
-#define NUM_RAFF 17
+#define NUM_RAFF 18
 
 /* Zone reset states: Used in zone_data.reset_state */
 #define ZONE_RESET_NORMAL 0 /**< Zone is operating normally */

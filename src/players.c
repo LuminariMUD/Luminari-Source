@@ -4900,6 +4900,9 @@ static void load_affects(FILE *fl, struct char_data *ch, int affect_file_version
         /* Equipment-derived artifact passives and bonuses are restored dynamically on equip */
         continue;
       }
+      /* Camps are room-owned; discard records saved by the earlier character-affect version. */
+      if (af.spell == SKILL_CAMP)
+        continue;
       if (rol_elemental_embodiment_affect_is_transient(af.spell))
         continue;
       affect_to_char(ch, &af);

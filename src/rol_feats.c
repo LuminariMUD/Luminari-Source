@@ -37,6 +37,7 @@
 #include "bardic_performance.h"
 #include "rol_feats.h"
 #include "activity_manager.h"
+#include "affected_owners.h"
 #include "domain_event_world.h"
 
 /* the contested check both ends of a tail make */
@@ -313,10 +314,10 @@ ACMD(do_calm)
 }
 
 /*****************************************************************************
- * establish camp - pitch a camp that shelters and restores a group
+ * establish camp - pitch a camp that shelters anyone in its room
  *
  * RoL let a camp act as a wilderness rent point.  LuminariMUD already saves
- * on quit, so a camp here speeds recovery for the group and becomes the
+ * on quit, so a camp here speeds recovery in its room and becomes the
  * campers' return point.
  ****************************************************************************/
 
@@ -360,84 +361,12 @@ static int camp_difficulty(struct char_data *ch)
   return dc;
 }
 
-/* recover the persistent 32-bit room vnum packed into the affect's two short fields */
-static room_vnum camp_affect_room(const struct affected_type *af)
+static bool camp_location_allowed(struct char_data *ch)
 {
-  uint32_t encoded_room = 0;
-
-  if (af == NULL)
-    return NOWHERE;
-
-  encoded_room = ((uint32_t)(uint16_t)af->specific << 16) | (uint16_t)af->modifier;
-  return (room_vnum)encoded_room;
-}
-
-/* extra hitpoint and movement recovery for anyone resting at their campsite */
-int camp_recovery_bonus(struct char_data *ch, int gain)
-{
-  struct affected_type *af = NULL;
-
-  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
-    return 0;
-
-  if (GET_POS(ch) < POS_SLEEPING || GET_POS(ch) > POS_SITTING)
-    return 0;
-
-  for (af = ch->affected; af; af = af->next)
-    if (af->spell == SKILL_CAMP && camp_affect_room(af) == GET_ROOM_VNUM(IN_ROOM(ch)))
-      return gain / 2;
-
-  return 0;
-}
-
-/* shelter one camper */
-static void camp_shelter_char(struct char_data *ch, struct char_data *tch)
-{
-  struct affected_type af;
-  uint32_t encoded_room = 0;
-
-  new_affect(&af);
-  af.spell = SKILL_CAMP;
-  af.duration = CAMP_DURATION;
-  encoded_room = (uint32_t)GET_ROOM_VNUM(IN_ROOM(tch));
-  af.modifier = (sh_int)(uint16_t)(encoded_room & UINT16_MAX);
-  af.specific = (sh_int)(uint16_t)(encoded_room >> 16);
-  affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
-
-  if (!IS_NPC(tch))
-    GET_LOADROOM(tch) = GET_ROOM_VNUM(IN_ROOM(tch));
-
-  if (tch != ch)
-    act("$n's camp is ready for you to settle into.", FALSE, ch, 0, tch, TO_VICT);
-}
-
-#ifdef LUMINARI_CUTEST
-void test_camp_shelter_char(struct char_data *ch)
-{
-  if (ch != NULL && VALID_ROOM_RNUM(IN_ROOM(ch)))
-    camp_shelter_char(ch, ch);
-}
-#endif
-
-ACMDCHECK(can_camp)
-{
-  ACMDCHECK_PREREQ_HASFEAT(FEAT_ESTABLISH_CAMP, "You do not know how to make camp.\r\n");
-  ACMDCHECK_TEMPFAIL_IF(ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS),
-                        "You need open ground to pitch a camp.\r\n");
-  return CAN_CMD;
-}
-
-struct camp_activity_context
-{
-  bool successful_check;
-};
-
-static bool camp_site_is_usable(struct char_data *ch)
-{
-  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) || FIGHTING(ch) != NULL ||
-      ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS) || affected_by_spell(ch, SKILL_CAMP) ||
-      AFF_FLAGGED(ch, AFF_FLYING))
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) ||
+      ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS) || AFF_FLAGGED(ch, AFF_FLYING))
     return false;
+
   switch (SECT(IN_ROOM(ch)))
   {
   case SECT_WATER_SWIM:
@@ -453,6 +382,71 @@ static bool camp_site_is_usable(struct char_data *ch)
   }
 }
 
+/* extra hitpoint and movement recovery for anyone resting in a camp room */
+int camp_recovery_bonus(struct char_data *ch, int gain)
+{
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return 0;
+
+  if (GET_POS(ch) < POS_SLEEPING || GET_POS(ch) > POS_SITTING)
+    return 0;
+
+  return ROOM_AFFECTED(IN_ROOM(ch), RAFF_CAMP) ? gain / 2 : 0;
+}
+
+static void camp_create_site(struct char_data *ch)
+{
+  struct raff_node *raff = NULL;
+  room_rnum room;
+
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) ||
+      ROOM_AFFECTED(IN_ROOM(ch), RAFF_CAMP))
+    return;
+
+  room = IN_ROOM(ch);
+  CREATE(raff, struct raff_node, 1);
+  raff->room = room;
+  raff->timer = CAMP_DURATION;
+  raff->affection = RAFF_CAMP;
+  raff->spell = SKILL_CAMP;
+  raff->next = raff_list;
+  raff_list = raff;
+  affected_room_owner_add(raff);
+  SET_BIT(ROOM_AFFECTIONS(room), RAFF_CAMP);
+}
+
+static void camp_set_return_point(struct char_data *ch, struct char_data *tch)
+{
+  if (tch != NULL && !IS_NPC(tch))
+    GET_LOADROOM(tch) = GET_ROOM_VNUM(IN_ROOM(ch));
+}
+
+#ifdef LUMINARI_CUTEST
+void test_camp_create_site(struct char_data *ch)
+{
+  if (ch != NULL && VALID_ROOM_RNUM(IN_ROOM(ch)))
+    camp_create_site(ch);
+}
+#endif
+
+ACMDCHECK(can_camp)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_ESTABLISH_CAMP, "You do not know how to make camp.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!camp_location_allowed(ch), "You can't camp here!\r\n");
+  return CAN_CMD;
+}
+
+struct camp_activity_context
+{
+  bool successful_check;
+};
+
+static bool camp_site_is_usable(struct char_data *ch)
+{
+  return camp_location_allowed(ch) && FIGHTING(ch) == NULL &&
+         !ROOM_AFFECTED(IN_ROOM(ch), RAFF_CAMP);
+}
+
 static void camp_apply_result(struct char_data *ch, bool successful_check)
 {
   struct char_data *tch = NULL;
@@ -465,8 +459,9 @@ static void camp_apply_result(struct char_data *ch, bool successful_check)
   }
   act("You clear a site, set your gear and get a fire going.", FALSE, ch, 0, 0, TO_CHAR);
   act("$n clears a site, sets $s gear and gets a fire going.", FALSE, ch, 0, 0, TO_ROOM);
-  send_to_char(ch, "Rest here and you will recover far more quickly.\r\n");
-  camp_shelter_char(ch, ch);
+  send_to_char(ch, "Anyone resting here will recover far more quickly.\r\n");
+  camp_create_site(ch);
+  camp_set_return_point(ch, ch);
   if (GROUP(ch))
   {
     simple_list(NULL);
@@ -474,7 +469,8 @@ static void camp_apply_result(struct char_data *ch, bool successful_check)
     {
       if (tch == ch || IN_ROOM(tch) != IN_ROOM(ch))
         continue;
-      camp_shelter_char(ch, tch);
+      camp_set_return_point(ch, tch);
+      act("$n's camp is ready for you to settle into.", FALSE, ch, 0, tch, TO_VICT);
     }
     simple_list(NULL);
   }
@@ -528,30 +524,9 @@ ACMD(do_camp)
     return;
   }
 
-  if (affected_by_spell(ch, SKILL_CAMP))
+  if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_CAMP))
   {
-    send_to_char(ch, "You are already camped.\r\n");
-    return;
-  }
-
-  switch (SECT(IN_ROOM(ch)))
-  {
-  case SECT_WATER_SWIM:
-  case SECT_WATER_NOSWIM:
-  case SECT_UNDERWATER:
-  case SECT_OCEAN:
-  case SECT_UD_WATER:
-  case SECT_UD_NOSWIM:
-  case SECT_FLYING:
-    send_to_char(ch, "You cannot pitch a camp here.\r\n");
-    return;
-  default:
-    break;
-  }
-
-  if (AFF_FLAGGED(ch, AFF_FLYING))
-  {
-    send_to_char(ch, "You will have to come down to the ground first.\r\n");
+    send_to_char(ch, "There is already a camp here.\r\n");
     return;
   }
 
