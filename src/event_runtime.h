@@ -19,6 +19,11 @@ enum game_scheduler_status event_runtime_register_type(
 enum game_scheduler_status event_runtime_seal_types(void);
 bool event_runtime_types_are_sealed(void);
 const char *event_runtime_type_name(game_event_type_id_t event_type);
+enum game_scheduler_status event_runtime_find_type(
+    const char *name, game_event_type_id_t *event_type);
+size_t event_runtime_event_count(void);
+enum game_scheduler_status event_runtime_type_live_count(
+    game_event_type_id_t event_type, size_t *live_count);
 
 enum game_scheduler_status event_runtime_schedule_at(
     game_event_type_id_t event_type, game_tick_t deadline_tick, void *payload,

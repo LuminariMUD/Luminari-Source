@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 default-native architecture and enforcement are complete; final runtime validation and audit pending
-**Document version:** 1.47
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 default-native architecture, enforcement, and final runtime validation are complete; final audit pending
+**Document version:** 1.48
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, zero default-build compatibility callers, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, native DG/MUD/AI jobs, default-disabled rollback quarantine, and executable whole-architecture enforcement are implemented; comprehensive runtime validation and the final adversarial audit remain, while physical rollback deletion stays subject to its external release gate
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, zero default-build compatibility callers, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, native DG/MUD/AI jobs, default-disabled rollback quarantine, executable whole-architecture enforcement, and comprehensive runtime validation are implemented; the final adversarial audit remains, while physical rollback deletion stays subject to its external release gate
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > is now private behind the native `event_runtime` boundary in every ordinary
@@ -2155,6 +2155,13 @@ Readiness audit, 2026-08-31:
   legacy backend enum in normal builds. Evidence and operator instructions are
   recorded in
   [`EVENT_DRIVEN_CORE_ROLLBACK_QUARANTINE.md`](EVENT_DRIVEN_CORE_ROLLBACK_QUARANTINE.md).
+- Final copied-world validation identified a diagnostic full-tree scan in the
+  dispatch hot path. Replacing it with constant-time depth counters reduced the
+  optimized native product from 27.03% to 2.70% of one CPU core, below the 3.33%
+  rollback-loop baseline under the same workload. About 42,000 live events
+  remained healthy through a real copyover, entity/script diagnostics, 1,052
+  tests, sanitizers, and strict Valgrind. Evidence is recorded in
+  [`EVENT_DRIVEN_CORE_FINAL_RUNTIME_VALIDATION.md`](EVENT_DRIVEN_CORE_FINAL_RUNTIME_VALIDATION.md).
 
 ## 24. Verification Strategy
 
@@ -2546,3 +2553,5 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.44 | 2026-09-01 | Registered all 232 usable table-driven MUD IDs as distinct native owner-required types on the normal scheduler path, with readable names such as `mud.004.lay_on_hands`. Migrated admission, recurrence, cancellation, duration and payload mutation, durable reconstruction, and external remaining-time consumers to native runtime handles; retained one localized adapter solely for physical legacy rollback. Entity-focused `eventdebug` now identifies ability cooldowns and other MUD timers by semantic type. |
 | 1.45 | 2026-09-01 | Migrated asynchronous AI response delivery and retry admission to native owner-required `ai.response.delivery` and `ai.request.retry` types. Added a bounded mutex-protected worker ingress with a nonblocking reactor wake pipe, generation-safe player/NPC handles, main-thread cache mutation and scheduler admission, exactly-once payload cleanup, worker joining across shutdown/copyover, and compact AI ingress telemetry in `eventdebug`; physical legacy rollback retains localized adapters only. |
 | 1.46 | 2026-09-01 | Quarantined the old timed-event queue, compatibility facade, heartbeat body, whole-mobile loop, physical rollback adapters, and subsystem selectors behind a default-disabled build option. Ordinary binaries now contain only the native scheduler path and fail startup closed; rollback builds remain available for the externally gated retention period, and parity tests use an explicit test-only definition. |
+| 1.47 | 2026-09-01 | Added executable whole-architecture enforcement for one physical wheel, runtime-only scheduler access, boot-sealed semantic types, zero normal-build compatibility surface, demand-driven work, and readable entity/script diagnostics. |
+| 1.48 | 2026-09-01 | Completed final runtime validation on the copied production world. Removed two full diagnostic traversals from every dispatch pass, restored native per-type profiles, and measured the corrected native product at 2.70% of one core versus 3.33% for rollback while about 42,000 events remained healthy through live entity/script inspection and real copyover. Normal, rollback, syntax, sanitizer, Valgrind, and 1,052-test gates pass; the final adversarial audit remains. |

@@ -7,6 +7,7 @@
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_event_rollback.h"
 #include "../../src/event_runtime.h"
+#include "../../src/perfmon.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -103,6 +104,75 @@ static game_event_type_id_t register_runtime_type(CuTest *tc, const char *name,
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     event_runtime_register_type(&config, &event_type));
   return event_type;
+}
+
+static const struct PERF_event_profile_snapshot *find_runtime_profile(
+    const struct PERF_event_profile_snapshot *profiles, size_t count,
+    const char *identity)
+{
+  size_t index;
+
+  for (index = 0U; index < count; index++)
+    if (!strcmp(profiles[index].identity, identity))
+      return &profiles[index];
+  return NULL;
+}
+
+void Test_event_runtime_profiles_native_semantic_callbacks(CuTest *tc)
+{
+  struct PERF_event_profile_snapshot profiles[32];
+  const struct PERF_event_profile_snapshot *profile;
+  struct game_scheduler_dispatch_report report;
+  struct event_runtime_handle handle;
+  struct runtime_payload *payload;
+  struct runtime_trace trace;
+  game_event_type_id_t event_type;
+  game_event_type_id_t found_type;
+  size_t profile_count;
+  size_t copied_profiles;
+  size_t live_count;
+  int cleanups;
+  unsigned long saved_pulse;
+
+  saved_pulse = pulse;
+  cleanups = 0;
+  memset(&trace, 0, sizeof(trace));
+  PERF_reset();
+  begin_runtime_test(tc, 40U);
+  event_type = register_runtime_type(tc, "test.native.profiled", false);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_seal_types());
+  payload = new_runtime_payload(&trace, 'P', 2, &cleanups);
+  CuAssertPtrNotNull(tc, payload);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_schedule_after(event_type, 1U, payload, &handle));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_find_type("test.native.profiled", &found_type));
+  CuAssertIntEquals(tc, (int)event_type, (int)found_type);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_type_live_count(event_type, &live_count));
+  CuAssertIntEquals(tc, 1, (int)live_count);
+  for (pulse = 41U; pulse <= 43U; pulse++)
+  {
+    memset(&report, 0, sizeof(report));
+    CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                      event_runtime_advance(NULL, &report));
+  }
+
+  memset(profiles, 0, sizeof(profiles));
+  profile_count = PERF_get_event_profiles(profiles, 32U);
+  copied_profiles = profile_count < 32U ? profile_count : 32U;
+  profile = find_runtime_profile(profiles, copied_profiles,
+                                 "test.native.profiled");
+  CuAssertPtrNotNull(tc, profile);
+  CuAssertIntEquals(tc, 2, (int)profile->calls);
+  CuAssertIntEquals(tc, 1, (int)profile->scheduled);
+  CuAssertIntEquals(tc, 1, (int)profile->rescheduled);
+  CuAssertIntEquals(tc, 1, cleanups);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_type_live_count(event_type, &live_count));
+  CuAssertIntEquals(tc, 0, (int)live_count);
+  event_free_all();
+  pulse = saved_pulse;
 }
 
 void Test_event_runtime_shares_one_sealed_wheel_with_compatibility_adapter(CuTest *tc)

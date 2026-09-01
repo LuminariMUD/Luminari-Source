@@ -1411,6 +1411,28 @@ const char *game_scheduler_type_name(const struct game_scheduler *scheduler,
   return scheduler->event_types[event_type - 1U].name;
 }
 
+game_tick_t game_scheduler_current_tick(const struct game_scheduler *scheduler)
+{
+  return scheduler != NULL ? scheduler->current_tick : 0U;
+}
+
+size_t game_scheduler_event_count(const struct game_scheduler *scheduler)
+{
+  return scheduler != NULL ? scheduler->event_count : 0U;
+}
+
+enum game_scheduler_status game_scheduler_type_live_count(
+    const struct game_scheduler *scheduler, game_event_type_id_t event_type,
+    size_t *live_count)
+{
+  if (scheduler == NULL || live_count == NULL)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  if (event_type == 0U || event_type > scheduler->event_type_count)
+    return GAME_SCHEDULER_INVALID_TYPE;
+  *live_count = scheduler->event_types[event_type - 1U].live_events;
+  return GAME_SCHEDULER_OK;
+}
+
 static enum game_scheduler_status schedule_normalized(struct game_scheduler *scheduler,
                                                       game_event_type_id_t event_type,
                                                       struct game_event_owner owner,

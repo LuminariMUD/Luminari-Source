@@ -99,10 +99,10 @@ grep -q 'enable_event_rollback=no' "$project_root/configure.ac" ||
 # Gameplay APIs describe intent. Pulse terminology is reserved for the physical
 # compatibility tick and perfmon's measurement of that tick.
 gameplay_pulse_definitions=$(
-  rg -n --glob '*.[ch]' \
-    '^[[:space:]]*(static[[:space:]]+)?[A-Za-z_][A-Za-z0-9_ *]*[[:space:]]+(pulse_[A-Za-z0-9_]+|[A-Za-z0-9_]+_pulse)[[:space:]]*\(' \
-    "$project_root/src" \
-    | rg -v '\b(capture_slow_pulse|PERF_log_pulse|PERF_prof_repr_pulse|event_process_compatibility_pulse)[[:space:]]*\(' \
+  find "$project_root/src" -type f \( -name '*.c' -o -name '*.h' \) -print0 |
+    xargs -0 grep -En -- \
+      '^[[:space:]]*(static[[:space:]]+)?[A-Za-z_][A-Za-z0-9_ *]*[[:space:]]+(pulse_[A-Za-z0-9_]+|[A-Za-z0-9_]+_pulse)[[:space:]]*\(' |
+    grep -Ev '\b(capture_slow_pulse|PERF_log_pulse|PERF_prof_repr_pulse|event_process_compatibility_pulse)[[:space:]]*\(' \
     || true
 )
 if [[ -n $gameplay_pulse_definitions ]]; then

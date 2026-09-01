@@ -17,17 +17,18 @@ fail()
 
 # The physical timing wheel is private to event_runtime. Gameplay code can
 # express only semantic type registration and opaque-handle operations.
-scheduler_api_pattern='game_scheduler_(create|shutdown|destroy|register_type|seal_types|types_are_sealed|type_name|schedule|cancel|reschedule|remaining|advance|next_deadline|inspect|get_stats)[[:alnum:]_]*[[:space:]]*\('
+scheduler_api_pattern='game_scheduler_(create|shutdown|destroy|register_type|seal_types|types_are_sealed|type_name|type_live_count|current_tick|event_count|schedule|cancel|reschedule|remaining|advance|next_deadline|inspect|get_stats)[[:alnum:]_]*[[:space:]]*\('
 direct_scheduler_users=$(
-  rg -n --glob '*.[ch]' "$scheduler_api_pattern" "$project_root/src" |
-    rg -v '/(game_scheduler|event_runtime)\.[ch]:' || true
+  find "$project_root/src" -type f \( -name '*.c' -o -name '*.h' \) -print0 |
+    xargs -0 grep -En -- "$scheduler_api_pattern" |
+    grep -Ev '/(game_scheduler|event_runtime)\.[ch]:' || true
 )
 if [[ -n $direct_scheduler_users ]]; then
   printf '%s\n' "$direct_scheduler_users" >&2
   fail "a production module bypasses the game-facing event runtime"
 fi
 
-rg -l --glob '*.c' 'struct game_scheduler \*' "$project_root/src" |
+grep -Rl --include='*.c' 'struct game_scheduler \*' "$project_root/src" |
   sed "s|^$project_root/||" | sort >"$actual"
 cat >"$expected" <<'EOF'
 src/event_runtime.c
@@ -61,6 +62,12 @@ if [[ $(grep -Eoc '^[[:space:]]*status = event_runtime_init\(&config\);' \
     "$default_dg_event") -ne 1 ]]; then
   fail "the default timed-event implementation does not own exactly one runtime"
 fi
+grep -Fq 'depth_before = event_runtime_event_count();' \
+  "$project_root/src/dgscript/dg_event.c" ||
+  fail "scheduler dispatch no longer samples queue depth in constant time"
+grep -Fq 'depth_after = event_runtime_event_count();' \
+  "$project_root/src/dgscript/dg_event.c" ||
+  fail "scheduler dispatch no longer records post-dispatch depth in constant time"
 
 # Native producers must retain stable, human-readable semantic identities.
 semantic_types=(
@@ -117,10 +124,12 @@ grep -Fq 'Payloads: redacted' "$project_root/src/event_debug.c" ||
 
 # These linked CuTests supply runtime evidence for the source constraints above.
 for test_name in \
+  Test_event_runtime_profiles_native_semantic_callbacks \
   Test_event_runtime_owner_cancel_invalidates_handle_and_cleans_once \
   TestActiveWorldDormantPopulationDoesNotCreateScheduledWork \
   Test_event_debug_registry_is_backend_neutral_filterable_and_width_bounded; do
-  rg -q "void $test_name[[:space:]]*\(" "$project_root/unittests/CuTest" ||
+  grep -REq --include='*.c' "void $test_name[[:space:]]*\(" \
+    "$project_root/unittests/CuTest" ||
     fail "required production-linked regression '$test_name' is missing"
 done
 

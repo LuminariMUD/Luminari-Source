@@ -2,6 +2,30 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native event runtime validation
+
+#### Changed
+
+- Replaced two full event/owner diagnostic traversals in every scheduler
+  dispatch pass with constant-time queue-depth reads; explicit diagnostics
+  retain the complete snapshots.
+- Added native semantic callback profiling so `eventdebug types` reports live
+  counts, schedules, callbacks, recurrences, and callback time for native work.
+- Kept exact semantic lookup and type counts constant-time with respect to the
+  number of live events, preserving useful diagnostics on large worlds.
+
+#### Tests
+
+- Loaded the copied production world with 762 zones, 91,735 rooms, 27,067
+  mobile prototypes, 22,637 object prototypes, and about 42,000 live events.
+- Measured the corrected optimized native product at 2.70% of one core versus
+  3.33% for the rollback loop under the same workload; ready, overdue, failure,
+  stale-owner, and lateness counters remained zero.
+- Verified live player/mobile/object/room and DG-script event filters plus a
+  real descriptor-preserving copyover.
+- Passed all 19 CTest targets and 1,052 CuTests, ASan plus UBSan, strict
+  child-tracing Valgrind, normal and rollback builds, and five syntax modes.
+
 ### Native event architecture enforcement
 
 #### Changed

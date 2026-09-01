@@ -528,6 +528,7 @@ size_t event_debug_render_profiles(char *buffer, size_t capacity, int width, siz
   size_t shown;
   size_t index;
   struct event_debug_filter filter;
+  game_event_type_id_t event_type;
   size_t live;
 
   limit = MIN(MAX(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
@@ -541,9 +542,15 @@ size_t event_debug_render_profiles(char *buffer, size_t capacity, int width, siz
   debug_output_line(&output, "Sorted by total callback time.");
   for (index = 0; index < shown; index++)
   {
-    memset(&filter, 0, sizeof(filter));
-    filter.type_equals = snapshots[index].identity;
-    live = event_debug_inspect(&filter, NULL, 0, NULL);
+    if (event_runtime_find_type(snapshots[index].identity, &event_type) !=
+            GAME_SCHEDULER_OK ||
+        event_runtime_type_live_count(event_type, &live) !=
+            GAME_SCHEDULER_OK)
+    {
+      memset(&filter, 0, sizeof(filter));
+      filter.type_equals = snapshots[index].identity;
+      live = event_debug_inspect(&filter, NULL, 0, NULL);
+    }
     debug_output_line(&output, "");
     debug_output_line(&output, "%s", snapshots[index].identity);
     debug_output_line(&output, "  live: %zu", live);

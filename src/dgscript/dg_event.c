@@ -1873,22 +1873,20 @@ enum game_scheduler_status event_process_scheduler(
     const struct game_scheduler_budget *budget,
     struct game_scheduler_dispatch_report *report)
 {
-  struct game_scheduler_stats before;
-  struct game_scheduler_stats after;
   enum game_scheduler_status status;
+  size_t depth_before;
+  size_t depth_after;
 
   if (report == NULL || active_backend != EVENT_BACKEND_GAME_SCHEDULER ||
       !event_runtime_is_initialized())
     return GAME_SCHEDULER_INVALID_ARGUMENT;
   memset(report, 0, sizeof(*report));
-  memset(&before, 0, sizeof(before));
-  event_runtime_get_stats(&before);
+  depth_before = event_runtime_event_count();
   status = event_runtime_advance(budget, report);
-  memset(&after, 0, sizeof(after));
-  event_runtime_get_stats(&after);
-  if (after.event_count > native_event_high_water)
-    native_event_high_water = after.event_count;
-  PERF_note_event_process((uint64_t)before.event_count, (uint64_t)after.event_count,
+  depth_after = event_runtime_event_count();
+  if (depth_after > native_event_high_water)
+    native_event_high_water = depth_after;
+  PERF_note_event_process((uint64_t)depth_before, (uint64_t)depth_after,
                           (uint64_t)report->callbacks, 0U);
   if (status != GAME_SCHEDULER_OK)
     log("SYSERR: Timing-wheel event dispatch failed with status %d.", status);
