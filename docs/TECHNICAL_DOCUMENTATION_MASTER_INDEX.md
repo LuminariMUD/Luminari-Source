@@ -27,6 +27,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[LUMINARI_OVERVIEW.md](guides/LUMINARI_OVERVIEW.md)** - What LuminariMUD is: the world, its systems, and what makes it distinct (written for players and newcomers to MUDs)
 - **[deployment.md](deployment.md)** - CI/CD, release, managed-service, and rollback boundaries
 - **[DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md)** - Complete setup and deployment instructions
+- **[EVENT_DRIVEN_CORE_RELEASE_GATE.md](deployment/EVENT_DRIVEN_CORE_RELEASE_GATE.md)** - Scheduler/libevent stable-release, rollback-observation, and PubSub backup/restore sign-off procedure
 - **[environments.md](environments.md)** - Development and production configuration boundaries
 - **[CONTRIBUTING.md](../CONTRIBUTING.md)** - How to contribute to the project
 - **[CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)** - Community guidelines and expectations
