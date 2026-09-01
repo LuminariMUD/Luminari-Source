@@ -62,6 +62,7 @@
 #include "domain_event_runtime.h"
 #include "point_update_periodic.h"
 #include "combat/combat_encounters.h"
+#include "combat/combat_reactions.h"
 #include "activity_manager.h"
 
 /* toggle for debug mode
@@ -124,6 +125,7 @@ struct attack_hit_type attack_damage_type_text[NUM_ATTACK_DAMAGE_TYPE_TEXT] = {
 
 /* local (file scope only) variables */
 static struct char_data *next_combat_list = NULL;
+static struct combat_reaction_queue *active_damage_reactions = NULL;
 #ifdef LUMINARI_CUTEST
 static int bard_warbeat_opening_attacks;
 
@@ -6734,7 +6736,34 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
 int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
            int attack_type)
 {
-  return damage_with_projectile(ch, victim, dam, w_type, dam_type, attack_type, NULL, NULL);
+  struct combat_reaction_queue reactions;
+  struct combat_reaction_damage reaction;
+  struct char_data *source;
+  struct char_data *target;
+  enum combat_reaction_dequeue_status status;
+  int result;
+
+  if (active_damage_reactions != NULL)
+  {
+    if (!combat_reaction_enqueue_damage(active_damage_reactions, ch, victim, dam, w_type, dam_type,
+                                        attack_type))
+      log("SYSERR: combat reaction damage queue reached its bounded capacity.");
+    return 0;
+  }
+
+  combat_reaction_queue_init(&reactions);
+  active_damage_reactions = &reactions;
+  result = damage_with_projectile(ch, victim, dam, w_type, dam_type, attack_type, NULL, NULL);
+  while ((status = combat_reaction_dequeue_damage(&reactions, &reaction, &source, &target)) !=
+         COMBAT_REACTION_DEQUEUE_EMPTY)
+  {
+    if (status == COMBAT_REACTION_DEQUEUE_STALE)
+      continue;
+    (void)damage_with_projectile(source, target, reaction.amount, reaction.ability,
+                                 reaction.damage_type, reaction.attack_type, NULL, NULL);
+  }
+  active_damage_reactions = NULL;
+  return result;
 }
 
 /* you are going to arrive here from an attack, or viewing mode

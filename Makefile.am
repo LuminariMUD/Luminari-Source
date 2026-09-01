@@ -104,6 +104,8 @@ luminari_SOURCES = \
 	src/combat/encounters.c \
 	src/combat/combat_encounters.c \
 	src/combat/combat_encounters.h \
+	src/combat/combat_reactions.c \
+	src/combat/combat_reactions.h \
 	src/character/evolutions.c \
 	src/character/feats.c \
 	src/character/talents.c \
