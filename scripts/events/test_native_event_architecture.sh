@@ -92,7 +92,7 @@ unsafe_rollback_guards=$(
         }
         inspect_directive()
       }
-    ' || true
+    '
 )
 if [[ -n $unsafe_rollback_guards ]]; then
   printf '%s\n' "$unsafe_rollback_guards" >&2
