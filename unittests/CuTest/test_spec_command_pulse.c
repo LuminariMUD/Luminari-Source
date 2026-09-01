@@ -1257,6 +1257,34 @@ void Test_spec_iedit_owns_and_transfers_special_abilities(CuTest *tc)
   free(oasis_source);
 }
 
+void Test_spec_compatibility_combat_phase_defaults_and_rotates_safely(CuTest *tc)
+{
+  char *source = NULL;
+  char *callback;
+  char *callback_end;
+  char *default_phase;
+  char *parse_phase;
+  char *bounded_write;
+  char *replace_phase;
+
+  CuAssertTrue(tc, spec_pulse_read_source("src/combat/fight.c", &source));
+  callback = strstr(source, "EVENTFUNC(event_combat_round)");
+  callback_end = callback != NULL ? strstr(callback, "void handle_cleave(") : NULL;
+  default_phase = spec_pulse_find_in_region(callback, callback_end, "phase = 1U;");
+  parse_phase = spec_pulse_find_in_region(callback, callback_end, "strtoul(");
+  bounded_write = spec_pulse_find_in_region(
+      callback, callback_end, "snprintf(next_phase_text, sizeof(next_phase_text)");
+  replace_phase = spec_pulse_find_in_region(
+      callback, callback_end, "pMudEvent->sVariables = strdup(next_phase_text);");
+
+  CuAssertTrue(tc, callback != NULL && callback_end != NULL && default_phase != NULL &&
+                       parse_phase != NULL && bounded_write != NULL && replace_phase != NULL &&
+                       default_phase < parse_phase && parse_phase < bounded_write &&
+                       bounded_write < replace_phase &&
+                       spec_pulse_find_in_region(callback, callback_end, "sprintf(") == NULL);
+  free(source);
+}
+
 void Test_spec_character_periodic_control_transfers_resync_owners(CuTest *tc)
 {
   const char *paths[] = {"src/act.wizard.c", "src/magic/spells.c", "src/character/evolutions.c"};

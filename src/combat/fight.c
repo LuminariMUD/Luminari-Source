@@ -16657,19 +16657,32 @@ EVENTFUNC(event_combat_round)
 {
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
+  char *phase_end;
+  char next_phase_text[2];
+  unsigned long parsed_phase;
   unsigned int phase;
+  unsigned int next_phase;
 
   if (event_obj == NULL)
     return 0;
   pMudEvent = event_obj;
   ch = pMudEvent->pStruct;
-  phase = pMudEvent->sVariables != NULL && is_number(pMudEvent->sVariables)
-              ? (unsigned int)atoi(pMudEvent->sVariables)
-              : 0U;
+  phase = 1U;
+  if (pMudEvent->sVariables != NULL)
+  {
+    errno = 0;
+    phase_end = NULL;
+    parsed_phase = strtoul(pMudEvent->sVariables, &phase_end, 10);
+    if (errno == 0 && phase_end != pMudEvent->sVariables && *phase_end == '\0' &&
+        parsed_phase >= 1U && parsed_phase <= 3U)
+      phase = (unsigned int)parsed_phase;
+  }
   if (!combat_run_compatibility_phase(ch, phase))
     return 0;
-  if (pMudEvent->sVariables != NULL)
-    sprintf(pMudEvent->sVariables, "%u", phase < 3U ? phase + 1U : 1U);
+  next_phase = phase < 3U ? phase + 1U : 1U;
+  snprintf(next_phase_text, sizeof(next_phase_text), "%u", next_phase);
+  free(pMudEvent->sVariables);
+  pMudEvent->sVariables = strdup(next_phase_text);
   return 2 RL_SEC; /* 6 second rounds, hack! */
 }
 

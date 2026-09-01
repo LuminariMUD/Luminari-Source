@@ -402,12 +402,17 @@ on five labeled rows bounded to the normal 80-column display.
 ### 5.1 Combat Encounter Scheduling
 
 Combat defaults to one scheduled `combat_encounter_round` event per live fight.
-The process-local encounter registry supplies a typed ID and generation, while
-each participant stores its own next deadline and current compatibility phase.
-The one shared callback runs due participants in deadline and insertion order
-through `combat_run_compatibility_phase()`, the same routine used by the old
+The process-local encounter registry supplies a typed ID and generation. By
+default, `LUMINARI_COMBAT_ROUNDS=semantic` runs each six-second round through
+`combat_run_semantic_round()` in descending initiative order, with Dexterity
+and stable runtime identity breaking ties.
+
+With `LUMINARI_COMBAT_ROUNDS=compatibility`, each participant instead stores
+its own next deadline and current compatibility phase. The shared callback
+runs due participants in deadline and insertion order through
+`combat_run_compatibility_phase()`, the same routine used by the old
 per-character event. Existing two-second phases, six-second rounds, action
-queues, attacks, reactions, and effects therefore retain their behavior.
+queues, attacks, reactions, and effects retain their compatibility behavior.
 
 Hostility creates, extends, or merges encounters. A join or merge during a
 callback is queued until the active participant iteration is safe to compact.
