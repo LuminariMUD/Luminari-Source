@@ -36,6 +36,7 @@
 
 struct combat_encounter_data;
 struct combat_encounter_participant;
+struct ready_action;
 
 /** Intended use of this macro is to allow external packages to work with a
  * variety of versions without modifications.  For instance, an IS_CORPSE()
@@ -7423,6 +7424,7 @@ struct char_data
   unsigned long active_world_resource_due; /**< Next consumed-resource recovery deadline. */
   struct event_runtime_handle active_world_event_handle; /**< Earliest autonomous-work deadline. */
   struct primary_activity *primary_activity; /**< One intentional timed activity. */
+  struct ready_action *ready_action; /**< Ephemeral entity-topic listener. */
   struct combat_encounter_data *combat_encounter; /**< Runtime fight-session owner. */
   struct combat_encounter_participant *combat_encounter_participant; /**< Membership node. */
   struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */

@@ -2,6 +2,27 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Scoped domain subscriptions and ready actions
+
+#### Added
+
+- Added bounded runtime subscriptions keyed by typed, generation-safe entity
+  topics, with independent indexed delivery, deterministic ordering, owner
+  teardown, one-shot support, capacity limits, and readable immortal views.
+- Added `ready <command> on entry [target]`, which listens directly to the
+  current room's entry topic and executes through the normal interpreter at
+  the next safe 100 ms event boundary.
+- Added `eventdebug subscriptions` with player, mobile, object, and room
+  filters. Room views include listeners attached to that room.
+
+#### Tests
+
+- Added adversarial coverage for independent subscribers, stale generations,
+  nested one-shots, cancellation during dispatch, capacity limits, owner
+  cleanup, target filtering, interpreter execution, and compact diagnostics.
+- Passed 1,060 production-linked CuTests, all 19 CTest targets, and Valgrind
+  with zero errors or definite, indirect, or possible leaks.
+
 ### Event-driven core final acceptance
 
 #### Added

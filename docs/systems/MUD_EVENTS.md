@@ -21,6 +21,8 @@ Core source files:
 - [src/domain_events.c](../../src/domain_events.c)
 - [src/domain_event_types.h](../../src/domain_event_types.h)
 - [src/domain_event_runtime.c](../../src/domain_event_runtime.c)
+- [src/ready_action.h](../../src/ready_action.h)
+- [src/ready_action.c](../../src/ready_action.c)
 - [src/event_debug.h](../../src/event_debug.h)
 - [src/event_debug.c](../../src/event_debug.c)
 - [src/combat/combat_encounters.h](../../src/combat/combat_encounters.h)
@@ -148,6 +150,40 @@ weather/time boundaries, usage recording, and persistence-cycle admission;
 they do not discover autonomous mobile work. `service.persistence_batch` is a
 separate one-owner worker that performs bounded incremental persistence and
 reschedules one tick later only while that cycle remains active.
+
+### 1.2 Scoped domain subscriptions
+
+Domain facts may carry a bounded list of typed topics. A topic combines the
+event type, a semantic role such as subject or destination, and a
+generation-safe entity handle. `domain_event_subscribe()` attaches a compiled
+callback to one exact topic, or to the explicit wildcard topic; publication
+uses hash indexes and never scans characters, rooms, objects, or the complete
+subscription list. Every matching listener receives the fact independently.
+
+Subscriptions are bounded globally, per owner, and per topic. Their opaque
+handles support direct cancellation, while the owner index removes every
+listener when an entity extracts. Cancellation from a callback takes effect
+immediately and defers cleanup until callback storage is no longer reachable.
+One-shot listeners detach before callback entry. New subscription admission is
+main-thread-only and occurs outside an active synchronous publication.
+
+`ready <command> on entry [target]` is the first gameplay consumer. While the
+action is armed, it owns one listener on the current room's `CharacterMoved`
+destination topic plus owner movement and death listeners. A matching arrival
+removes all three listeners and schedules `action.ready.execute` one pulse
+later, about 100 ms, at the next safe event boundary. It does not wait for a
+six-second combat round. That native event revalidates the character and room,
+then re-enters the normal command interpreter; an attack therefore joins the
+normal encounter and initiative rules. It does not preempt a command already
+accepted in the current reactor cycle. Movement, death, extraction, logout,
+explicit cancel, and shutdown clean the transient state without a ready-action
+loop or parallel feature registry.
+
+Immortals can inspect this state with `eventdebug subscriptions [limit]` or
+`eventdebug subscriptions <player|mobile|object|room> <target> [limit]`.
+Entity filtering includes subscriptions owned by the entity and subscriptions
+whose topic names it, so a room view shows actions listening to that room.
+Output observes the command's 80-column default and 120-column hard limit.
 
 ## 2. Native Runtime and Separately Built Rollback
 

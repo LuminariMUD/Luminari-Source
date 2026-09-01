@@ -14,10 +14,22 @@
 #include "mud_event.h"
 #include "periodic_owners.h"
 #include "point_update_periodic.h"
+#include "ready_action.h"
 #include "vessels/vessel_periodic.h"
 #include "wilderness/spatial_events.h"
 
 static struct domain_event_bus *runtime_bus;
+
+static void append_topic(struct domain_event_topic *topics, size_t *count,
+                         enum domain_event_topic_role role,
+                         struct domain_entity_handle entity)
+{
+  if (!domain_entity_handle_is_valid(entity) || *count >= DOMAIN_EVENT_MAX_PUBLICATION_TOPICS)
+    return;
+  topics[*count].role = role;
+  topics[*count].entity = entity;
+  (*count)++;
+}
 
 enum domain_event_status domain_event_runtime_init(void)
 {
@@ -37,6 +49,8 @@ enum domain_event_status domain_event_runtime_init(void)
     status = DOMAIN_EVENT_ALLOCATION_FAILED;
   if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
       !ai_events_runtime_init())
+    status = DOMAIN_EVENT_ALLOCATION_FAILED;
+  if (status == DOMAIN_EVENT_OK && !ready_action_runtime_init())
     status = DOMAIN_EVENT_ALLOCATION_FAILED;
   affected_owners_init();
   character_periodic_init();
@@ -75,6 +89,7 @@ enum domain_event_status domain_event_runtime_init(void)
     character_periodic_shutdown();
     point_update_periodic_shutdown();
     vessel_periodic_shutdown();
+    ready_action_runtime_shutdown();
     domain_event_bus_destroy(runtime_bus);
     domain_event_world_shutdown();
     runtime_bus = NULL;
@@ -99,6 +114,7 @@ enum domain_event_status domain_event_runtime_shutdown(void)
   status = domain_event_bus_destroy(runtime_bus);
   if (status == DOMAIN_EVENT_OK)
   {
+    ready_action_runtime_shutdown();
     domain_event_world_shutdown();
     runtime_bus = NULL;
   }
@@ -115,6 +131,8 @@ enum domain_event_status domain_event_runtime_character_moved(struct char_data *
                                                               room_rnum to_room, int direction)
 {
   struct domain_character_moved event;
+  struct domain_event_topic topics[3];
+  size_t topic_count = 0U;
 
   if (runtime_bus == NULL || ch == NULL)
     return DOMAIN_EVENT_NOT_FOUND;
@@ -122,7 +140,11 @@ enum domain_event_status domain_event_runtime_character_moved(struct char_data *
   event.from_room = domain_event_room_handle(from_room);
   event.to_room = domain_event_room_handle(to_room);
   event.direction = direction;
-  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_CHARACTER_MOVED, &event);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SUBJECT, event.character);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SOURCE, event.from_room);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_DESTINATION, event.to_room);
+  return DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_CHARACTER_MOVED, topics,
+                                     topic_count, &event);
 }
 
 enum domain_event_status domain_event_runtime_character_damaged(struct char_data *target,
@@ -130,6 +152,8 @@ enum domain_event_status domain_event_runtime_character_damaged(struct char_data
                                                                 int amount, int damage_type)
 {
   struct domain_character_damaged event;
+  struct domain_event_topic topics[2];
+  size_t topic_count = 0U;
 
   if (runtime_bus == NULL || target == NULL)
     return DOMAIN_EVENT_NOT_FOUND;
@@ -137,7 +161,10 @@ enum domain_event_status domain_event_runtime_character_damaged(struct char_data
   event.source = domain_event_character_handle(source);
   event.amount = amount;
   event.damage_type = damage_type;
-  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_CHARACTER_DAMAGED, &event);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SUBJECT, event.target);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SOURCE, event.source);
+  return DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_CHARACTER_DAMAGED, topics,
+                                     topic_count, &event);
 }
 
 enum domain_event_status domain_event_runtime_combat_state_changed(struct char_data *ch,
@@ -145,25 +172,35 @@ enum domain_event_status domain_event_runtime_combat_state_changed(struct char_d
                                                                    bool in_combat)
 {
   struct domain_combat_state_changed event;
+  struct domain_event_topic topics[2];
+  size_t topic_count = 0U;
 
   if (runtime_bus == NULL || ch == NULL)
     return DOMAIN_EVENT_NOT_FOUND;
   event.character = domain_event_character_handle(ch);
   event.opponent = domain_event_character_handle(opponent);
   event.in_combat = in_combat;
-  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_COMBAT_STATE_CHANGED, &event);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SUBJECT, event.character);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SOURCE, event.opponent);
+  return DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_COMBAT_STATE_CHANGED, topics,
+                                     topic_count, &event);
 }
 
 enum domain_event_status domain_event_runtime_character_died(struct char_data *ch,
                                                              struct char_data *killer)
 {
   struct domain_character_died event;
+  struct domain_event_topic topics[2];
+  size_t topic_count = 0U;
 
   if (runtime_bus == NULL || ch == NULL)
     return DOMAIN_EVENT_NOT_FOUND;
   event.character = domain_event_character_handle(ch);
   event.killer = domain_event_character_handle(killer);
-  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_CHARACTER_DIED, &event);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SUBJECT, event.character);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SOURCE, event.killer);
+  return DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_CHARACTER_DIED, topics,
+                                     topic_count, &event);
 }
 
 enum domain_event_status domain_event_runtime_character_extracted(struct char_data *ch,
@@ -172,15 +209,22 @@ enum domain_event_status domain_event_runtime_character_extracted(struct char_da
   struct domain_entity_extracted event;
   struct game_event_owner owner;
   enum domain_event_status status;
+  struct domain_event_topic topic;
   size_t cancelled;
 
   if (runtime_bus == NULL || ch == NULL)
     return DOMAIN_EVENT_NOT_FOUND;
   event.entity = domain_event_character_handle(ch);
   event.reason = reason;
-  status = DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_ENTITY_EXTRACTED, &event);
+  topic.role = DOMAIN_EVENT_TOPIC_SUBJECT;
+  topic.entity = event.entity;
+  status = DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_ENTITY_EXTRACTED, &topic,
+                                       domain_entity_handle_is_valid(event.entity) ? 1U : 0U,
+                                       &event);
   if (domain_entity_handle_is_valid(event.entity))
   {
+    cancelled = 0U;
+    (void)domain_event_unsubscribe_owner(runtime_bus, event.entity, &cancelled);
     owner = game_event_owner_none();
     owner.kind = GAME_EVENT_OWNER_CHARACTER;
     owner.runtime_id = event.entity.runtime_id;
@@ -196,11 +240,17 @@ enum domain_event_status domain_event_runtime_object_moved(struct obj_data *obj,
                                                            room_rnum to_room)
 {
   struct domain_object_moved event;
+  struct domain_event_topic topics[3];
+  size_t topic_count = 0U;
 
   if (runtime_bus == NULL || obj == NULL)
     return DOMAIN_EVENT_NOT_FOUND;
   event.object = domain_event_object_handle(obj);
   event.from_owner = domain_event_room_handle(from_room);
   event.to_owner = domain_event_room_handle(to_room);
-  return DOMAIN_EVENT_PUBLISH(runtime_bus, DOMAIN_EVENT_OBJECT_MOVED, &event);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SUBJECT, event.object);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SOURCE, event.from_owner);
+  append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_DESTINATION, event.to_owner);
+  return DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_OBJECT_MOVED, topics,
+                                     topic_count, &event);
 }

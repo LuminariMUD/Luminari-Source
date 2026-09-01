@@ -20,6 +20,8 @@
 #include "../../src/domain_event_runtime.h"
 #include "../../src/domain_event_world.h"
 #include "../../src/event_runtime.h"
+#include "../../src/event_debug.h"
+#include "../../src/ready_action.h"
 #include "../../src/magic/spells.h"
 #include "../../src/mob/mob_act.h"
 #include "../../src/mob/mob_known_spells.h"
@@ -84,6 +86,74 @@ struct destroy_fixture
 {
   enum domain_event_status status;
 };
+
+struct subscription_fixture
+{
+  int calls;
+  int cleanups;
+  bool publish_nested;
+  struct domain_event_topic topic;
+  struct test_payload payload;
+};
+
+struct subscription_cancellation_fixture
+{
+  struct domain_event_subscription_handle victim;
+  enum domain_event_status status;
+  int calls;
+};
+
+static void subscription_handler(const struct domain_event_context *context,
+                                 void *handler_context)
+{
+  struct subscription_fixture *fixture = handler_context;
+
+  fixture->calls++;
+  if (fixture->publish_nested)
+  {
+    fixture->publish_nested = false;
+    (void)DOMAIN_EVENT_PUBLISH_ROUTED(context->bus, context->type, &fixture->topic, 1U,
+                                      &fixture->payload);
+  }
+}
+
+static void subscription_cleanup(void *handler_context)
+{
+  struct subscription_fixture *fixture = handler_context;
+
+  fixture->cleanups++;
+}
+
+static void cancel_subscription_handler(const struct domain_event_context *context,
+                                        void *handler_context)
+{
+  struct subscription_cancellation_fixture *fixture = handler_context;
+
+  fixture->calls++;
+  fixture->status = domain_event_unsubscribe(context->bus, fixture->victim);
+}
+
+static struct domain_event_subscription_handle subscribe_test(
+    CuTest *tc, struct domain_event_bus *bus, struct domain_entity_handle owner,
+    struct domain_event_topic topic, const char *identity, unsigned int flags,
+    struct subscription_fixture *fixture)
+{
+  struct domain_event_subscription_config config;
+  struct domain_event_subscription_handle handle;
+
+  memset(&config, 0, sizeof(config));
+  config.type = TEST_EVENT_OUTER;
+  config.topic = topic;
+  config.owner = owner;
+  config.identity = identity;
+  config.flags = flags;
+  config.handler = subscription_handler;
+  config.handler_context = fixture;
+  config.cleanup = subscription_cleanup;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_subscribe(bus, &config, &handle));
+  CuAssertTrue(tc, !domain_event_subscription_handle_is_none(handle));
+  return handle;
+}
 
 static uint64_t test_usec_now(void *context)
 {
@@ -576,6 +646,325 @@ void TestDomainEventPayloadIsBorrowedAndUnchanged(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, DOMAIN_EVENT_PUBLISH(bus, TEST_EVENT_OUTER, &payload));
   CuAssertIntEquals(tc, 1234, payload.value);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
+}
+
+void TestDomainEventScopedSubscribersReceiveIndependentCopies(CuTest *tc)
+{
+  struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
+  struct domain_entity_handle first_owner = {DOMAIN_ENTITY_CHARACTER, 1U, 1U};
+  struct domain_entity_handle second_owner = {DOMAIN_ENTITY_CHARACTER, 2U, 1U};
+  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION,
+                                    {DOMAIN_ENTITY_ROOM, 50U, 7U}};
+  struct domain_event_topic other_room = {DOMAIN_EVENT_TOPIC_DESTINATION,
+                                          {DOMAIN_ENTITY_ROOM, 51U, 7U}};
+  struct domain_event_topic stale_room = {DOMAIN_EVENT_TOPIC_DESTINATION,
+                                          {DOMAIN_ENTITY_ROOM, 50U, 6U}};
+  struct subscription_fixture first = {0};
+  struct subscription_fixture second = {0};
+  struct subscription_fixture unrelated = {0};
+  struct subscription_fixture stale = {0};
+  struct test_payload payload = {1};
+  struct domain_event_bus_stats stats;
+
+  register_test_type(tc, bus, TEST_EVENT_OUTER, "Scoped");
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
+  (void)subscribe_test(tc, bus, first_owner, room, "first-ready", 0U, &first);
+  (void)subscribe_test(tc, bus, second_owner, room, "second-ready", 0U, &second);
+  (void)subscribe_test(tc, bus, first_owner, other_room, "other-room", 0U, &unrelated);
+  (void)subscribe_test(tc, bus, second_owner, stale_room, "stale-room", 0U, &stale);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH_ROUTED(bus, TEST_EVENT_OUTER, &room, 1U, &payload));
+  CuAssertIntEquals(tc, 1, first.calls);
+  CuAssertIntEquals(tc, 1, second.calls);
+  CuAssertIntEquals(tc, 0, unrelated.calls);
+  CuAssertIntEquals(tc, 0, stale.calls);
+  domain_event_bus_get_stats(bus, &stats);
+  CuAssertIntEquals(tc, 4, (int)stats.live_subscription_count);
+  CuAssertIntEquals(tc, 2, (int)stats.subscription_deliveries);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
+  CuAssertIntEquals(tc, 1, first.cleanups);
+  CuAssertIntEquals(tc, 1, second.cleanups);
+  CuAssertIntEquals(tc, 1, unrelated.cleanups);
+  CuAssertIntEquals(tc, 1, stale.cleanups);
+}
+
+void TestDomainEventOneShotDetachesBeforeNestedPublication(CuTest *tc)
+{
+  struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
+  struct domain_entity_handle owner = {DOMAIN_ENTITY_CHARACTER, 1U, 1U};
+  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION,
+                                    {DOMAIN_ENTITY_ROOM, 50U, 7U}};
+  struct subscription_fixture fixture = {0};
+  struct domain_event_bus_stats stats;
+
+  fixture.publish_nested = true;
+  fixture.topic = room;
+  register_test_type(tc, bus, TEST_EVENT_OUTER, "OneShot");
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
+  (void)subscribe_test(tc, bus, owner, room, "once", DOMAIN_EVENT_SUBSCRIPTION_ONCE,
+                       &fixture);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH_ROUTED(bus, TEST_EVENT_OUTER, &room, 1U,
+                                                &fixture.payload));
+  CuAssertIntEquals(tc, 1, fixture.calls);
+  CuAssertIntEquals(tc, 1, fixture.cleanups);
+  domain_event_bus_get_stats(bus, &stats);
+  CuAssertIntEquals(tc, 0, (int)stats.live_subscription_count);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
+  CuAssertIntEquals(tc, 1, fixture.cleanups);
+}
+
+void TestDomainEventOwnerCancellationUsesGenerationAndCleansOnce(CuTest *tc)
+{
+  struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
+  struct domain_entity_handle owner = {DOMAIN_ENTITY_CHARACTER, 1U, 8U};
+  struct domain_entity_handle replacement = {DOMAIN_ENTITY_CHARACTER, 1U, 9U};
+  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION,
+                                    {DOMAIN_ENTITY_ROOM, 50U, 7U}};
+  struct subscription_fixture old_fixture = {0};
+  struct subscription_fixture replacement_fixture = {0};
+  size_t cancelled = 0U;
+
+  register_test_type(tc, bus, TEST_EVENT_OUTER, "OwnerCancellation");
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
+  (void)subscribe_test(tc, bus, owner, room, "old-one", 0U, &old_fixture);
+  (void)subscribe_test(tc, bus, owner, room, "old-two", 0U, &old_fixture);
+  (void)subscribe_test(tc, bus, replacement, room, "replacement", 0U,
+                       &replacement_fixture);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_unsubscribe_owner(bus, owner, &cancelled));
+  CuAssertIntEquals(tc, 2, (int)cancelled);
+  CuAssertIntEquals(tc, 2, old_fixture.cleanups);
+  CuAssertIntEquals(tc, 0, replacement_fixture.cleanups);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
+  CuAssertIntEquals(tc, 2, old_fixture.cleanups);
+  CuAssertIntEquals(tc, 1, replacement_fixture.cleanups);
+}
+
+void TestDomainEventCancellationDuringDispatchSkipsCancelledListener(CuTest *tc)
+{
+  struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
+  struct domain_entity_handle owner = {DOMAIN_ENTITY_CHARACTER, 1U, 1U};
+  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION,
+                                    {DOMAIN_ENTITY_ROOM, 50U, 7U}};
+  struct subscription_fixture victim = {0};
+  struct subscription_cancellation_fixture canceller = {
+      {0U, 0U}, DOMAIN_EVENT_NOT_FOUND, 0};
+  struct domain_event_subscription_config config;
+  struct domain_event_subscription_handle canceller_handle;
+  struct test_payload payload = {1};
+
+  register_test_type(tc, bus, TEST_EVENT_OUTER, "DispatchCancellation");
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
+  canceller.victim = subscribe_test(tc, bus, owner, room, "victim", 0U, &victim);
+  memset(&config, 0, sizeof(config));
+  config.type = TEST_EVENT_OUTER;
+  config.topic = room;
+  config.owner = owner;
+  config.identity = "canceller";
+  config.priority = -10;
+  config.handler = cancel_subscription_handler;
+  config.handler_context = &canceller;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(bus, &config, &canceller_handle));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH_ROUTED(bus, TEST_EVENT_OUTER, &room, 1U,
+                                                &payload));
+  CuAssertIntEquals(tc, 1, canceller.calls);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, canceller.status);
+  CuAssertIntEquals(tc, 0, victim.calls);
+  CuAssertIntEquals(tc, 1, victim.cleanups);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
+  CuAssertIntEquals(tc, 1, victim.cleanups);
+}
+
+void TestDomainEventSubscriptionCapacityLimitsAreIndependent(CuTest *tc)
+{
+  struct domain_event_bus_config config;
+  struct domain_event_bus *bus;
+  enum domain_event_status status;
+  struct domain_entity_handle first_owner = {DOMAIN_ENTITY_CHARACTER, 1U, 1U};
+  struct domain_entity_handle second_owner = {DOMAIN_ENTITY_CHARACTER, 2U, 1U};
+  struct domain_event_topic first_room = {DOMAIN_EVENT_TOPIC_DESTINATION,
+                                          {DOMAIN_ENTITY_ROOM, 50U, 7U}};
+  struct domain_event_topic second_room = {DOMAIN_EVENT_TOPIC_DESTINATION,
+                                           {DOMAIN_ENTITY_ROOM, 51U, 7U}};
+  struct subscription_fixture fixtures[3] = {{0}};
+  struct domain_event_subscription_config subscription;
+  struct domain_event_subscription_handle handle;
+
+  memset(&config, 0, sizeof(config));
+  config.max_event_types = 4U;
+  config.max_handlers = 4U;
+  config.max_subscriptions = 2U;
+  config.max_subscriptions_per_owner = 1U;
+  config.max_subscriptions_per_topic = 1U;
+  config.max_depth = 4U;
+  config.max_causal_events = 16U;
+  bus = domain_event_bus_create(&config, &status);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, status);
+  CuAssertPtrNotNull(tc, bus);
+  register_test_type(tc, bus, TEST_EVENT_OUTER, "Capacity");
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
+  (void)subscribe_test(tc, bus, first_owner, first_room, "first", 0U, &fixtures[0]);
+
+  memset(&subscription, 0, sizeof(subscription));
+  subscription.type = TEST_EVENT_OUTER;
+  subscription.owner = first_owner;
+  subscription.topic = second_room;
+  subscription.identity = "owner-limit";
+  subscription.handler = subscription_handler;
+  subscription.handler_context = &fixtures[1];
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OWNER_CAPACITY_REACHED,
+                    domain_event_subscribe(bus, &subscription, &handle));
+
+  subscription.owner = second_owner;
+  subscription.topic = first_room;
+  subscription.identity = "topic-limit";
+  CuAssertIntEquals(tc, DOMAIN_EVENT_TOPIC_CAPACITY_REACHED,
+                    domain_event_subscribe(bus, &subscription, &handle));
+
+  subscription.topic = second_room;
+  subscription.identity = "second";
+  subscription.cleanup = subscription_cleanup;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_subscribe(bus, &subscription, &handle));
+  subscription.owner = (struct domain_entity_handle){DOMAIN_ENTITY_CHARACTER, 3U, 1U};
+  subscription.topic = (struct domain_event_topic){
+      DOMAIN_EVENT_TOPIC_DESTINATION, {DOMAIN_ENTITY_ROOM, 52U, 7U}};
+  subscription.identity = "global-limit";
+  subscription.handler_context = &fixtures[2];
+  CuAssertIntEquals(tc, DOMAIN_EVENT_SUBSCRIPTION_CAPACITY_REACHED,
+                    domain_event_subscribe(bus, &subscription, &handle));
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
+  CuAssertIntEquals(tc, 1, fixtures[0].cleanups);
+  CuAssertIntEquals(tc, 1, fixtures[1].cleanups);
+  CuAssertIntEquals(tc, 0, fixtures[2].cleanups);
+}
+
+static void verify_ready_action_filters_entry_then_runs_through_interpreter(CuTest *tc)
+{
+  struct room_data room;
+  struct room_data *saved_world = world;
+  struct char_data owner;
+  struct char_data entrant;
+  struct char_data stranger;
+  struct char_data *saved_characters = character_list;
+  struct player_special_data owner_specials;
+  struct player_special_data entrant_specials;
+  struct player_special_data stranger_specials;
+  room_rnum saved_top_of_world = top_of_world;
+  unsigned long saved_pulse = pulse;
+  struct domain_event_bus_stats stats;
+  bool created_command_list = false;
+  char debug_output[4096];
+
+  memset(&room, 0, sizeof(room));
+  memset(&owner_specials, 0, sizeof(owner_specials));
+  memset(&entrant_specials, 0, sizeof(entrant_specials));
+  memset(&stranger_specials, 0, sizeof(stranger_specials));
+  clear_char(&owner);
+  clear_char(&entrant);
+  clear_char(&stranger);
+  room.number = 100;
+  owner.player.name = (char *)"owner";
+  entrant.player.name = (char *)"entrant";
+  stranger.player.name = (char *)"stranger";
+  owner.player_specials = &owner_specials;
+  entrant.player_specials = &entrant_specials;
+  stranger.player_specials = &stranger_specials;
+  IN_ROOM(&owner) = 0;
+  IN_ROOM(&entrant) = 0;
+  IN_ROOM(&stranger) = 0;
+  GET_POS(&owner) = POS_STANDING;
+  GET_POS(&entrant) = POS_STANDING;
+  GET_POS(&stranger) = POS_STANDING;
+  owner.next = &entrant;
+  entrant.next = &stranger;
+  owner.next_in_room = &entrant;
+  entrant.next_in_room = &stranger;
+  room.people = &owner;
+  world = &room;
+  top_of_world = 0;
+  character_list = &owner;
+  pulse = 1000U;
+
+  event_free_all();
+  domain_event_world_shutdown();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_seal_types());
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  do_ready(&owner, "rest on entry entrant", 0, 0);
+  CuAssertPtrNotNull(tc, owner.ready_action);
+  domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
+  CuAssertIntEquals(tc, 3, (int)stats.live_subscription_count);
+  memset(debug_output, 0, sizeof(debug_output));
+  event_debug_render_subscriptions(debug_output, sizeof(debug_output), 80, NULL, 10U);
+  CuAssertPtrNotNull(tc, strstr(debug_output, "ready.entry"));
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&stranger, NOWHERE, 0, -1));
+  CuAssertPtrNotNull(tc, owner.ready_action);
+  CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&entrant, NOWHERE, 0, -1));
+  CuAssertPtrEquals(tc, NULL, owner.ready_action);
+  CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
+  pulse++;
+  event_process();
+  CuAssertIntEquals(tc, POS_RESTING, GET_POS(&owner));
+  domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
+  CuAssertIntEquals(tc, 0, (int)stats.live_subscription_count);
+
+  GET_POS(&owner) = POS_STANDING;
+  do_ready(&owner, "say movement-cancel on entry", 0, 0);
+  CuAssertPtrNotNull(tc, owner.ready_action);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&owner, 0, NOWHERE, -1));
+  CuAssertPtrEquals(tc, NULL, owner.ready_action);
+
+  do_ready(&owner, "say death-cancel on entry", 0, 0);
+  CuAssertPtrNotNull(tc, owner.ready_action);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_died(&owner, NULL));
+  CuAssertPtrEquals(tc, NULL, owner.ready_action);
+
+  do_ready(&owner, "say explicit-cancel on entry", 0, 0);
+  CuAssertPtrNotNull(tc, owner.ready_action);
+  do_ready(&owner, "cancel   ", 0, 0);
+  CuAssertPtrEquals(tc, NULL, owner.ready_action);
+
+  do_ready(&owner, "rest on entry entrant", 0, 0);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    domain_event_runtime_character_moved(&entrant, NOWHERE, 0, -1));
+  CuAssertPtrEquals(tc, NULL, owner.ready_action);
+  IN_ROOM(&owner) = NOWHERE;
+  pulse++;
+  event_process();
+  CuAssertIntEquals(tc, POS_STANDING, GET_POS(&owner));
+  IN_ROOM(&owner) = 0;
+
+  do_ready(&owner, "say shutdown-cleanup on entry", 0, 0);
+  CuAssertPtrNotNull(tc, owner.ready_action);
+
+  if (created_command_list)
+    free_command_list();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  CuAssertPtrEquals(tc, NULL, owner.ready_action);
+  event_free_all();
+  domain_event_world_shutdown();
+  pulse = saved_pulse;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  character_list = saved_characters;
 }
 
 void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
@@ -2866,4 +3255,9 @@ void TestWorldPhenomenonRoomPropagation(CuTest *tc)
   ProtocolDestroy(distant_desc.pProtocol);
   world = saved_world;
   top_of_world = saved_top_of_world;
+}
+
+void TestReadyActionFiltersEntryThenRunsThroughInterpreter(CuTest *tc)
+{
+  verify_ready_action_filters_entry_then_runs_through_interpreter(tc);
 }

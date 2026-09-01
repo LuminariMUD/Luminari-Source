@@ -1095,8 +1095,11 @@ and periodic queue are incompatible with typed in-process game notification.
 ### 20.2 Type and dispatch contract
 
 Each domain-event type is registered at boot with a stable symbolic identity,
-diagnostic name, payload type/size contract, and a fixed handler list. Runtime
-player data cannot create event types or install handlers.
+diagnostic name, payload type/size contract, and a fixed list of code callbacks.
+Runtime player data cannot create event types or supply executable callbacks.
+Features may create bounded runtime subscription records that bind one of those
+compiled callbacks to a typed entity topic. This is how short-lived gameplay
+state, such as a readied action, listens only while that state exists.
 
 Publication rules are:
 
@@ -1112,13 +1115,45 @@ Publication rules are:
 - Nested publication is depth-first and completes before the nested publish
   call returns. Exceeding either bound stops the causal chain with diagnostics
   rather than recursing without limit.
-- Registration is immutable after boot. Dispatch therefore never traverses a
-  handler list being modified by another handler.
+- Type, resolver, and static-handler registration is immutable after boot.
+  Dynamic subscription mutation is main-thread-only and dispatch-safe: removal
+  takes effect immediately for future delivery, while reclamation and cleanup
+  are deferred until no callback can still reference the record.
+- Subscription creation during publication returns `DOMAIN_EVENT_BUSY`; a
+  callback that needs a new listener schedules that state transition for after
+  the current synchronous causal chain.
 - Handlers perform no blocking database, network, or external-service work.
 
-The bus records publication and handler counts, maximum depth, rejected causal
-chains, total and maximum handler time, and slow-handler samples by event type
-and handler identity.
+Dynamic subscription rules are:
+
+- A topic is `(event type, semantic role, generation-aware entity handle)`.
+  Roles describe the handle's meaning in the event, such as subject, source,
+  destination, location, or owner; they are not player-authored strings.
+- Publication supplies a bounded set of exact topics. Lookup is indexed by the
+  complete topic and never scans rooms, characters, objects, or all active
+  subscriptions. A separately indexed wildcard topic supports deliberately
+  global observers.
+- Each subscription has a generation-safe opaque handle, an owning entity, a
+  diagnostic identity, deterministic priority and registration sequence, a
+  compiled callback, optional context cleanup, and optional one-shot behavior.
+- All matching subscribers receive the fact independently. Consuming or
+  removing one subscription never prevents another subscriber from receiving
+  its copy.
+- A one-shot is removed before its callback runs, so nested publication cannot
+  deliver it twice. Feature predicates that may reject a matching publication
+  use a persistent subscription and explicitly remove it only after the
+  predicate succeeds.
+- Owner extraction removes all subscriptions through an owner index before the
+  entity generation can be reused. Topic generation prevents a recycled room,
+  character, or object slot from inheriting stale listeners.
+- Subscription capacity, per-owner capacity, and per-topic capacity are
+  explicit and observable. Cleanup runs exactly once on cancellation, owner
+  extraction, one-shot delivery, or bus shutdown.
+
+The bus records publication, static-handler, and dynamic-delivery counts,
+maximum depth, rejected causal chains, total and maximum callback time,
+slow-callback samples, subscription capacity/high-water, and cancellation
+counts by event type and callback identity.
 
 ### 20.3 Decision hooks
 
@@ -2563,3 +2598,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.47 | 2026-09-01 | Added executable whole-architecture enforcement for one physical wheel, runtime-only scheduler access, boot-sealed semantic types, zero normal-build compatibility surface, demand-driven work, and readable entity/script diagnostics. |
 | 1.48 | 2026-09-01 | Completed final runtime validation on the copied production world. Removed two full diagnostic traversals from every dispatch pass, restored native per-type profiles, and measured the corrected native product at 2.70% of one core versus 3.33% for rollback while about 42,000 events remained healthy through live entity/script inspection and real copyover. Normal, rollback, syntax, sanitizer, Valgrind, and 1,052-test gates pass; the final adversarial audit remains. |
 | 1.49 | 2026-09-01 | Completed the final source/spec/runtime audit. Removed the rollback adapter identity from the ordinary binary, completed native per-type cancellation and manual-reschedule telemetry, reconciled permanent architecture and testing documentation, closed the review checklist, and published the final gameplay report and immortal test card. The native development implementation is accepted; physical rollback and archival PubSub deletion remain externally gated. |
+| 1.50 | 2026-09-01 | Added bounded, generation-safe runtime subscriptions keyed by typed entity topics, with exact indexed routing, independent delivery, deterministic ordering, owner-index lifecycle cancellation, one-shot support, capacity limits, and compact immortal diagnostics. Implemented `ready <command> on entry [target]` as the first dynamic consumer: it subscribes directly to the current room's `CharacterMoved` destination topic and schedules matched commands through the native timing wheel and normal interpreter without polling or a feature routing registry. |

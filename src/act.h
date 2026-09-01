@@ -33,6 +33,9 @@ int hands_available(struct char_data *ch);
 int get_speed(struct char_data *ch, sbyte to_display);
 bool is_locked_race(int race);
 
+/* from ready_action.c */
+ACMD_DECL(do_ready);
+
 /*****************************************************************************
  * Begin general helper defines for all act files
  * These encapsulate some standard "can do this" checks.

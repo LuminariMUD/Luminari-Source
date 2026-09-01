@@ -3330,6 +3330,7 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL},
     {"read", "rea", POS_RECLINING, do_read_board, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"ready", "ready", POS_RESTING, do_ready, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     // {"read", "rea", POS_RECLINING, do_look, 0, SCMD_READ, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     {"reforge", "reforge", POS_STANDING, do_reforge_new, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
