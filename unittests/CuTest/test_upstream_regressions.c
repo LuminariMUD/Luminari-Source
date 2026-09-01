@@ -187,6 +187,7 @@ void Test_existing_room_update_preserves_live_light_count(CuTest *tc)
   preserved_light = result == 0 && world[0].light == 7;
   preserved_occupants = world[0].people == &occupant && world[0].contents == &object;
 
+  free_room_strings(&world[0]);
   world = saved_world;
   top_of_world = saved_top_of_world;
   free(test_world);
