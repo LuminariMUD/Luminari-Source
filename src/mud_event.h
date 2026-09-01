@@ -16,7 +16,8 @@
 #include "event_runtime.h"
 #include "mud_event_callback.h"
 
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 #include "dgscript/dg_event_rollback.h"
 #endif
 
@@ -334,7 +335,8 @@ struct mud_event_list
 struct mud_event_data
 {
   struct event_runtime_handle runtime_handle; /***< Native timed-event identity. */
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   event_handle_t rollback_handle; /***< Temporary physical-legacy fallback. */
 #endif
   event_id iId;         /***< General ID reference */

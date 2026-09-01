@@ -729,7 +729,8 @@ enum domain_event_status primary_activity_manager_init(struct domain_event_bus *
   if (test_camp_selection)
     managed_camp = test_managed_camp;
 #endif
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   if (event_backend_current() != EVENT_BACKEND_GAME_SCHEDULER)
     managed_camp = false;
 #endif

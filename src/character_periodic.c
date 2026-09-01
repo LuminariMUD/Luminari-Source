@@ -57,7 +57,8 @@ static struct game_event_result character_periodic_event(
 
 static bool configured_scheduled(void)
 {
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   const char *value;
 
   value = getenv("LUMINARI_CHARACTER_EVENTS");
@@ -650,12 +651,14 @@ void character_periodic_init(void)
   initialized = true;
   shutting_down = false;
   if (requested && !native_ready)
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     log("WARNING: native character-maintenance event type unavailable; using legacy heartbeat.");
 #else
     log("SYSERR: native character-maintenance event type is unavailable.");
 #endif
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   log("Character periodic scheduling: %s (owner limit %zu).",
       scheduled ? "scheduled" : "legacy heartbeat", admission_limit);
 #else

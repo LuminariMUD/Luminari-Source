@@ -45,7 +45,8 @@ void npc_offensive_spells(struct char_data *ch);
 void npc_racial_behave(struct char_data *ch);
 bool mob_knows_assigned_spells(struct char_data *ch);
 
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 static struct char_data *mobile_activity_cursor;
 static size_t mobile_activity_nodes_remaining;
 static int legacy_mobile_activity_slices_remaining;
@@ -192,7 +193,8 @@ long mobile_activity_next_wander_delay(void)
   return rounds * (long)PULSE_MOBILE;
 }
 
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 static size_t count_mobile_activity_nodes(void)
 {
   struct char_data *ch;
@@ -750,7 +752,8 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
   return ch;
 }
 
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 void mobile_activity_run_legacy_cycle(void)
 {
   run_mobile_activity(character_list, (size_t)-1, NULL, MOBILE_WORK_LEGACY_ALL);
@@ -771,7 +774,8 @@ void mobile_activity_run_scheduled(struct char_data *ch, mobile_work_mask reason
 
 void mobile_activity_reset(void)
 {
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   mobile_activity_cursor = NULL;
   mobile_activity_nodes_remaining = 0;
   legacy_mobile_activity_slices_remaining = 0;
@@ -781,7 +785,8 @@ void mobile_activity_reset(void)
 
 void mobile_activity_forget_character(struct char_data *ch)
 {
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   if (ch == NULL || mobile_activity_cursor != ch)
     return;
 
@@ -795,7 +800,8 @@ void mobile_activity_forget_character(struct char_data *ch)
 #endif
 }
 
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 void mobile_activity_run_legacy_slice(int heart_pulse)
 {
   int cycle_pulse;

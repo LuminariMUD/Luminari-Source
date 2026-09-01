@@ -41,7 +41,8 @@ static struct game_event_result point_update_service_event(
 
 static bool configured_scheduled(void)
 {
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   const char *value;
 
 #ifdef LUMINARI_CUTEST
@@ -301,7 +302,8 @@ void point_update_periodic_init(void)
   shutting_down = false;
   dispatch_due = false;
   if (requested && !scheduled)
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     log("WARNING: native mud-hour point-update event type unavailable; using the legacy "
         "heartbeat.");
 #else
@@ -309,7 +311,8 @@ void point_update_periodic_init(void)
 #endif
   else if (scheduled && !schedule_service())
   {
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     log("WARNING: unable to schedule point-update service; using the legacy heartbeat.");
 #else
     log("SYSERR: unable to schedule required native point-update service.");
@@ -323,7 +326,8 @@ void point_update_periodic_init(void)
     for (obj = object_list; obj != NULL; obj = obj->next)
       point_update_object_sync(obj);
   }
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   log("Point-update scheduling: %s.",
       scheduled ? "scheduled (one service event)" : "legacy heartbeat");
 #else

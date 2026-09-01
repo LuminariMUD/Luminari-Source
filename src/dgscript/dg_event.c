@@ -29,7 +29,8 @@
 #include "perfmon.h"
 #include <limits.h> /* For LONG_MAX used in overflow checks */
 
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 #include "dg_event_internal.h"
 #include "dotenv.h"
 

@@ -56,7 +56,8 @@ static bool test_selection;
 
 static bool configured_enabled(void)
 {
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   const char *value;
 
   if (event_backend_current() != EVENT_BACKEND_GAME_SCHEDULER)
@@ -785,7 +786,8 @@ enum domain_event_status active_world_register_handlers(struct domain_event_bus 
     return DOMAIN_EVENT_BUSY;
   enabled = requested;
   initialized = true;
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   log("Active-world mobile scheduling: %s (explicit agenda limit %u).",
       enabled ? "demand driven" : "legacy heartbeat", (unsigned int)admission_limit);
 #else

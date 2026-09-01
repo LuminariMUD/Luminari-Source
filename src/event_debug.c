@@ -47,7 +47,8 @@ static const char *event_debug_mode(bool scheduled)
 {
   if (scheduled)
     return "scheduled";
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   return "rollback";
 #else
   return "unavailable";
@@ -194,7 +195,8 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
 {
   struct event_debug_output output;
   struct event_debug_stats event_stats;
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   struct PERF_event_summary perf_stats;
 #endif
   struct domain_event_bus_stats domain_stats;
@@ -207,7 +209,8 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
 
   debug_output_init(&output, buffer, capacity, width);
   event_debug_get_stats(&event_stats);
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   PERF_get_event_summary(&perf_stats);
 #endif
   debug_output_title(&output, "Event Debug Summary");
@@ -232,7 +235,8 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "  callbacks: %" PRIu64, service_stats.callbacks);
   debug_output_line(&output, "  schedule failures: %" PRIu64,
                     service_stats.schedule_failures);
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   debug_output_line(&output, "");
   debug_output_line(&output, "Compatibility adapter");
   debug_output_line(&output, "  process passes: %" PRIu64, perf_stats.process_calls);

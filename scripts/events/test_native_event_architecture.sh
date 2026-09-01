@@ -59,6 +59,16 @@ if grep -Eq 'EVENTFUNC|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_handl
     "$default_public_header"; then
   fail "an explicit zero rollback definition exposes the DG rollback facade"
 fi
+unsafe_rollback_guards=$(
+  grep -REn --include='*.c' --include='*.h' \
+    -e '^#if[[:space:]]+defined\(LUMINARI_ENABLE_EVENT_ROLLBACK\)[[:space:]]+\|\|' \
+    -e '^#if[[:space:]]+!defined\(LUMINARI_ENABLE_EVENT_ROLLBACK\)[[:space:]]+&&' \
+    "$project_root/src" || true
+)
+if [[ -n $unsafe_rollback_guards ]]; then
+  printf '%s\n' "$unsafe_rollback_guards" >&2
+  fail "rollback preprocessor guards must treat an explicit zero definition as disabled"
+fi
 
 "${CC:-cc}" -E -P -I"$project_root/src" \
   "$project_root/src/dgscript/dg_event.c" >"$default_dg_event"

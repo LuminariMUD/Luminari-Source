@@ -44,7 +44,8 @@ static void affected_room_schedule(struct room_data *room);
 
 static bool configured_scheduled(void)
 {
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   const char *value;
 
   value = getenv("LUMINARI_AFFECT_EVENTS");
@@ -528,12 +529,14 @@ void affected_owners_init(void)
   initialized = true;
   shutting_down = false;
   if (requested && !native_ready)
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     log("WARNING: native affected-owner event types unavailable; using legacy heartbeat.");
 #else
     log("SYSERR: native affected-owner event types are unavailable.");
 #endif
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   log("Affected-owner scheduling: %s (character limit %zu, room limit %zu).",
       scheduled ? "scheduled" : "legacy heartbeat", character_limit, room_limit);
 #else

@@ -75,7 +75,8 @@ extern struct mud_event_list mud_event_index[];
 static struct game_event_result mud_event_dispatch(
     const struct game_event_context *context);
 static void cleanup_mud_event_native(void *event_obj);
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 static void cleanup_mud_event_rollback(event_handle_t handle, void *event_obj);
 #endif
 
@@ -785,6 +786,7 @@ MUD_EVENT_CALLBACK(event_countdown)
 
         if (!location_found)
         {
+          world[eroom_rnum].wilderness_coordinates_set = false;
           log("SYSERR: No valid wilderness location for encounter room %d.", eroom_vnum);
           continue;
         }
@@ -931,7 +933,8 @@ bool mud_event_is_live(const struct mud_event_data *pMudEvent)
     return false;
   if (!event_runtime_handle_is_none(pMudEvent->runtime_handle))
     return event_runtime_handle_is_live(pMudEvent->runtime_handle);
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   return event_handle_is_live(pMudEvent->rollback_handle);
 #else
   return false;
@@ -951,7 +954,8 @@ long mud_event_remaining(const struct mud_event_data *pMudEvent)
       return 0;
     return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
   }
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   return event_handle_time(pMudEvent->rollback_handle);
 #else
   return 0;
@@ -964,7 +968,8 @@ void mud_event_cancel(struct mud_event_data *pMudEvent)
     return;
   if (!event_runtime_handle_is_none(pMudEvent->runtime_handle))
     (void)event_runtime_cancel(pMudEvent->runtime_handle);
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   else if (pMudEvent->rollback_handle != EVENT_HANDLE_NONE)
     (void)event_handle_cancel(pMudEvent->rollback_handle);
 #endif
@@ -1094,7 +1099,8 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
   }
   else
   {
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     pMudEvent->rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
         mud_event_index[pMudEvent->iId].func, pMudEvent, time,
         mud_event_index[pMudEvent->iId].event_name, cleanup_mud_event_rollback,
@@ -1104,7 +1110,8 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
 #endif
   }
   if (event_runtime_handle_is_none(pMudEvent->runtime_handle)
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
       && pMudEvent->rollback_handle == EVENT_HANDLE_NONE
 #endif
   )
@@ -1164,7 +1171,8 @@ struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sV
   pMudEvent->pStruct = pStruct;
   pMudEvent->sVariables = varString;
   pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   pMudEvent->rollback_handle = EVENT_HANDLE_NONE;
 #endif
   pMudEvent->owner = game_event_owner_none();
@@ -1292,7 +1300,8 @@ static void cleanup_mud_event_payload(void *event_obj)
 
   event_type = mud_event_index[pMudEvent->iId].iEvent_Type;
   pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   pMudEvent->rollback_handle = EVENT_HANDLE_NONE;
 #endif
   mud_event_detach_owner(pMudEvent);
@@ -1308,7 +1317,8 @@ static void cleanup_mud_event_native(void *event_obj)
   cleanup_mud_event_payload(event_obj);
 }
 
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 static void cleanup_mud_event_rollback(event_handle_t handle, void *event_obj)
 {
   (void)handle;

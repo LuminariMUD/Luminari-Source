@@ -120,7 +120,8 @@ static void trig_data_init(trig_data *this_data)
   this_data->arglist = NULL;
   this_data->depth = 0;
   this_data->wait_event_handle = EVENT_RUNTIME_HANDLE_NONE;
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   this_data->wait_rollback_handle = EVENT_HANDLE_NONE;
 #endif
   this_data->wait_event_data = NULL;

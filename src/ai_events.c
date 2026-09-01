@@ -13,7 +13,8 @@
 #include "domain_event_runtime.h"
 #include "domain_event_world.h"
 #include "dgscript/dg_event.h"
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 #include "dgscript/dg_event_rollback.h"
 #endif
 #include "event_runtime.h"
@@ -129,7 +130,8 @@ static void cleanup_ai_request_retry_event(void *event_obj)
 #endif
 }
 
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 static void cleanup_ai_response_rollback(event_handle_t handle, void *event_obj)
 {
   (void)handle;
@@ -235,7 +237,8 @@ static struct game_event_result ai_retry_dispatch(
   return game_event_result_complete();
 }
 
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 static EVENTFUNC(ai_response_rollback)
 {
   deliver_ai_response(event_obj);
@@ -442,7 +445,8 @@ static enum ai_ingress_admission schedule_ingress_item(struct ai_ingress_item *i
   struct event_runtime_handle runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
   struct game_event_owner owner;
   enum game_scheduler_status status;
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   event_handle_t rollback_handle;
 #endif
 
@@ -472,7 +476,8 @@ static enum ai_ingress_admission schedule_ingress_item(struct ai_ingress_item *i
                                                   data, &runtime_handle);
       return status == GAME_SCHEDULER_OK ? AI_INGRESS_ADMITTED : AI_INGRESS_FAILED;
     }
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
         ai_response_rollback, data, (long)item->delay, "ai.response.delivery",
         cleanup_ai_response_rollback, owner);
@@ -505,7 +510,8 @@ static enum ai_ingress_admission schedule_ingress_item(struct ai_ingress_item *i
                                                   data, &runtime_handle);
       return status == GAME_SCHEDULER_OK ? AI_INGRESS_ADMITTED : AI_INGRESS_FAILED;
     }
-#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
         ai_retry_rollback, data, (long)item->delay, "ai.request.retry",
         cleanup_ai_retry_rollback, owner);
