@@ -65,4 +65,42 @@ VALUES ('initiative-order', 'INITIATIVE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword)
 VALUES ('initiative-order', 'INITIATIVE-ORDER');
 
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('ready-action', 'READY READIED-ACTION
+
+Usage:
+  ready <command> on entry [target]
+  ready
+  ready cancel
+
+READY listens for someone entering your current room. With no target, the
+first other player or mobile to enter triggers the command. With a target,
+nonmatching arrivals are ignored and the action remains ready. The target
+filters the arrival; include any command target in the command itself.
+
+The command runs through the normal command interpreter at the next safe event
+boundary, about one tenth of a second later. A readied attack therefore starts
+or joins combat normally and does not wait for the next six-second combat
+round. It does not preempt a command already accepted in the current cycle.
+
+Moving, dying, logging out, or using READY CANCEL removes the action. READY by
+itself shows the currently prepared action. Readied actions do not survive a
+copyover or reboot.
+
+Examples:
+  ready say Welcome! on entry
+  ready kill guard on entry guard
+
+See also: COMBAT, INITIATIVE', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+
+DELETE FROM help_keywords
+WHERE UPPER(keyword) IN ('READY', 'READIED-ACTION')
+  AND help_tag <> 'ready-action';
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('ready-action', 'READY');
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('ready-action', 'READIED-ACTION');
+
 COMMIT;

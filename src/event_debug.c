@@ -8,6 +8,7 @@
 #include "interpreter.h"
 #include "modify.h"
 #include "domain_event_runtime.h"
+#include "domain_event_world.h"
 #include "domain_events.h"
 #include "event_debug.h"
 #include "event_runtime.h"
@@ -168,6 +169,8 @@ size_t event_debug_render_help(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "eventdebug state <state> [limit]");
   debug_output_line(&output, "eventdebug types [limit]");
   debug_output_line(&output, "eventdebug domain [type]");
+  debug_output_line(&output, "eventdebug subscriptions [limit]");
+  debug_output_line(&output, "eventdebug subscriptions <kind> <target> [limit]");
   debug_output_line(&output, "eventdebug help");
   debug_output_line(&output, "");
   debug_output_line(&output, "Owner kinds:");
@@ -467,8 +470,14 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "  sealed: %s", domain_stats.sealed ? "yes" : "no");
   debug_output_line(&output, "  types: %zu", domain_stats.registered_type_count);
   debug_output_line(&output, "  handlers: %zu", domain_stats.registered_handler_count);
+  debug_output_line(&output, "  subscriptions live/high: %zu/%zu",
+                    domain_stats.live_subscription_count,
+                    domain_stats.subscription_high_water);
   debug_output_line(&output, "  publications: %" PRIu64, domain_stats.publications);
   debug_output_line(&output, "  handler calls: %" PRIu64, domain_stats.handler_calls);
+  debug_output_line(&output, "  sub deliveries/cancels: %" PRIu64 "/%" PRIu64,
+                    domain_stats.subscription_deliveries,
+                    domain_stats.subscription_cancellations);
   debug_output_line(&output, "  rejected chains: %" PRIu64,
                     domain_stats.rejected_causal_chains);
   debug_output_line(&output, "  max depth: %u", domain_stats.maximum_depth);
@@ -607,6 +616,8 @@ size_t event_debug_render_domain(char *buffer, size_t capacity, int width,
   domain_event_bus_get_stats(bus, &bus_stats);
   debug_output_line(&output, "Types: %zu", bus_stats.registered_type_count);
   debug_output_line(&output, "Handlers: %zu", bus_stats.registered_handler_count);
+  debug_output_line(&output, "Subscriptions: %zu live / %zu high",
+                    bus_stats.live_subscription_count, bus_stats.subscription_high_water);
   debug_output_line(&output, "Publications: %" PRIu64, bus_stats.publications);
   debug_output_line(&output, "Rejected chains: %" PRIu64, bus_stats.rejected_causal_chains);
   memset(types, 0, sizeof(types));
@@ -625,6 +636,8 @@ size_t event_debug_render_domain(char *buffer, size_t capacity, int width,
     debug_output_line(&output, "  publications: %" PRIu64, types[type_index].publications);
     debug_output_line(&output, "  rejected: %" PRIu64, types[type_index].rejected_publications);
     debug_output_line(&output, "  handler calls: %" PRIu64, types[type_index].handler_calls);
+    debug_output_line(&output, "  live subscriptions: %zu",
+                      types[type_index].live_subscription_count);
     debug_output_line(&output, "  total usec: %" PRIu64, types[type_index].total_handler_usec);
     debug_output_line(&output, "  max usec: %" PRIu64, types[type_index].maximum_handler_usec);
     debug_output_line(&output, "  slow calls: %" PRIu64, types[type_index].slow_handler_calls);
@@ -654,6 +667,106 @@ size_t event_debug_render_domain(char *buffer, size_t capacity, int width,
   if (total_types > type_count)
     debug_output_line(&output, "%zu type(s) omitted by the safety bound.",
                       total_types - type_count);
+  return output.length;
+}
+
+static const char *domain_topic_role_name(enum domain_event_topic_role role)
+{
+  switch (role)
+  {
+  case DOMAIN_EVENT_TOPIC_ANY:
+    return "any";
+  case DOMAIN_EVENT_TOPIC_SUBJECT:
+    return "subject";
+  case DOMAIN_EVENT_TOPIC_SOURCE:
+    return "source";
+  case DOMAIN_EVENT_TOPIC_DESTINATION:
+    return "destination";
+  case DOMAIN_EVENT_TOPIC_LOCATION:
+    return "location";
+  case DOMAIN_EVENT_TOPIC_OWNER:
+    return "owner";
+  }
+  return "unknown";
+}
+
+static const char *domain_entity_kind_name(enum domain_entity_kind kind)
+{
+  static const char *const names[] = {
+      "none",      "world", "descriptor", "character", "room", "region",
+      "object",    "zone",  "encounter",  "vessel",    "service",
+  };
+
+  if (kind < DOMAIN_ENTITY_NONE || kind >= DOMAIN_ENTITY_KIND_COUNT)
+    return "unknown";
+  return names[kind];
+}
+
+size_t event_debug_render_subscriptions(char *buffer, size_t capacity, int width,
+                                        const struct domain_entity_handle *entity,
+                                        size_t limit)
+{
+  struct event_debug_output output;
+  struct domain_event_bus *bus = domain_event_runtime_bus();
+  struct domain_event_bus_stats bus_stats;
+  struct domain_event_subscription_stats subscriptions[EVENT_DEBUG_MAX_LIMIT];
+  struct domain_event_type_stats type_stats;
+  size_t matched;
+  size_t shown;
+  size_t index;
+
+  limit = MIN(MAX(limit, 1U), EVENT_DEBUG_MAX_LIMIT);
+  memset(subscriptions, 0, sizeof(subscriptions));
+  debug_output_init(&output, buffer, capacity, width);
+  debug_output_title(&output, "Domain Subscriptions");
+  if (bus == NULL)
+  {
+    debug_output_line(&output, "Domain event bus is offline.");
+    return output.length;
+  }
+  memset(&bus_stats, 0, sizeof(bus_stats));
+  domain_event_bus_get_stats(bus, &bus_stats);
+  debug_output_line(&output, "Live/high-water: %zu/%zu", bus_stats.live_subscription_count,
+                    bus_stats.subscription_high_water);
+  debug_output_line(&output, "Deliveries/cancellations: %" PRIu64 "/%" PRIu64,
+                    bus_stats.subscription_deliveries,
+                    bus_stats.subscription_cancellations);
+  if (entity != NULL && domain_entity_handle_is_valid(*entity))
+    matched = domain_event_inspect_entity_subscriptions(bus, *entity, subscriptions, limit);
+  else
+    matched = domain_event_inspect_subscriptions(bus, NULL, subscriptions, limit);
+  shown = MIN(matched, limit);
+  debug_output_line(&output, "Matched/showing: %zu/%zu", matched, shown);
+  for (index = 0U; index < shown; index++)
+  {
+    const char *type_name = "unknown";
+
+    memset(&type_stats, 0, sizeof(type_stats));
+    if (domain_event_get_type_stats(bus, subscriptions[index].type, &type_stats) ==
+        DOMAIN_EVENT_OK)
+      type_name = type_stats.name;
+    debug_output_line(&output, "");
+    debug_output_line(&output, "#%" PRIu64 " %s", subscriptions[index].handle.id,
+                      subscriptions[index].identity);
+    debug_output_line(&output, "  event: %s (0x%08" PRIx32 ")", type_name,
+                      subscriptions[index].type);
+    debug_output_line(&output, "  topic: %s %s %" PRIu64 ":%" PRIu64,
+                      domain_topic_role_name(subscriptions[index].topic.role),
+                      domain_entity_kind_name(subscriptions[index].topic.entity.kind),
+                      subscriptions[index].topic.entity.runtime_id,
+                      subscriptions[index].topic.entity.generation);
+    debug_output_line(&output, "  owner: %s %" PRIu64 ":%" PRIu64,
+                      domain_entity_kind_name(subscriptions[index].owner.kind),
+                      subscriptions[index].owner.runtime_id,
+                      subscriptions[index].owner.generation);
+    debug_output_line(&output, "  priority/calls: %d/%" PRIu64 "%s",
+                      subscriptions[index].priority, subscriptions[index].calls,
+                      (subscriptions[index].flags & DOMAIN_EVENT_SUBSCRIPTION_ONCE) != 0U
+                          ? " once"
+                          : "");
+  }
+  if (matched > shown)
+    debug_output_line(&output, "%zu more subscription(s) matched.", matched - shown);
   return output.length;
 }
 
@@ -695,7 +808,8 @@ static bool event_debug_parse_entity_kind(const char *name,
 static bool event_debug_select_entity(struct char_data *ch,
                                       enum event_debug_entity_kind kind,
                                       char *target,
-                                      struct event_debug_filter *filter)
+                                      struct event_debug_filter *filter,
+                                      struct domain_entity_handle *domain_entity)
 {
   struct char_data *character;
   struct obj_data *object;
@@ -706,6 +820,8 @@ static bool event_debug_select_entity(struct char_data *ch,
     return false;
   if (target == NULL)
     target = "";
+  if (domain_entity != NULL)
+    *domain_entity = domain_entity_handle_none();
   filter->owner_set = true;
   filter->owner = game_event_owner_none();
   switch (kind)
@@ -724,6 +840,8 @@ static bool event_debug_select_entity(struct char_data *ch,
     }
     filter->owner.kind = GAME_EVENT_OWNER_CHARACTER;
     filter->owner.runtime_id = (uint64_t)(uintptr_t)character;
+    if (domain_entity != NULL)
+      *domain_entity = domain_event_character_handle(character);
     break;
   case EVENT_DEBUG_ENTITY_OBJECT:
     if (*target == '\0' ||
@@ -734,6 +852,8 @@ static bool event_debug_select_entity(struct char_data *ch,
     }
     filter->owner.kind = GAME_EVENT_OWNER_OBJECT;
     filter->owner.runtime_id = (uint64_t)(uintptr_t)object;
+    if (domain_entity != NULL)
+      *domain_entity = domain_event_object_handle(object);
     break;
   case EVENT_DEBUG_ENTITY_ROOM:
     if (*target == '\0' || !strcasecmp(target, "here"))
@@ -751,6 +871,8 @@ static bool event_debug_select_entity(struct char_data *ch,
     }
     filter->owner.kind = GAME_EVENT_OWNER_ROOM;
     filter->owner.runtime_id = (uint64_t)(uint32_t)GET_ROOM_VNUM(room) + 1U;
+    if (domain_entity != NULL)
+      *domain_entity = domain_event_room_handle(room);
     break;
   }
   filter->owner.generation = 0U;
@@ -767,6 +889,7 @@ ACMD(do_eventdebug)
   char arg4[MAX_INPUT_LENGTH] = {'\0'};
   char buffer[MAX_STRING_LENGTH] = {'\0'};
   struct event_debug_filter filter;
+  struct domain_entity_handle domain_entity;
   enum event_debug_entity_kind entity_kind;
   enum game_event_owner_kind owner_kind;
   enum event_debug_state state;
@@ -854,7 +977,7 @@ ACMD(do_eventdebug)
                    EVENT_DEBUG_MAX_LIMIT);
       return;
     }
-    if (!event_debug_select_entity(ch, entity_kind, arg1, &filter))
+    if (!event_debug_select_entity(ch, entity_kind, arg1, &filter, NULL))
       return;
     event_debug_render_queue(buffer, sizeof(buffer), width, &filter, limit);
   }
@@ -869,7 +992,7 @@ ACMD(do_eventdebug)
                    EVENT_DEBUG_MAX_LIMIT);
       return;
     }
-    if (!event_debug_select_entity(ch, entity_kind, arg2, &filter))
+    if (!event_debug_select_entity(ch, entity_kind, arg2, &filter, NULL))
       return;
     filter.type_contains = "dg.";
     event_debug_render_queue(buffer, sizeof(buffer), width, &filter, limit);
@@ -931,6 +1054,38 @@ ACMD(do_eventdebug)
   }
   else if (!strcasecmp(action, "domain"))
     event_debug_render_domain(buffer, sizeof(buffer), width, arg1);
+  else if (!strcasecmp(action, "subscriptions") || !strcasecmp(action, "subs"))
+  {
+    domain_entity = domain_entity_handle_none();
+    if (*arg1 == '\0' || parse_uint64(arg1, &value))
+    {
+      limit = parse_limit(arg1, EVENT_DEBUG_DEFAULT_LIMIT);
+      if (limit == 0)
+      {
+        send_to_char(ch, "Usage: eventdebug subscriptions [1-%u]\r\n",
+                     EVENT_DEBUG_MAX_LIMIT);
+        return;
+      }
+      event_debug_render_subscriptions(buffer, sizeof(buffer), width, NULL, limit);
+    }
+    else
+    {
+      limit = parse_limit(arg3, EVENT_DEBUG_DEFAULT_LIMIT);
+      if (!event_debug_parse_entity_kind(arg1, &entity_kind) || *arg2 == '\0' ||
+          limit == 0)
+      {
+        send_to_char(ch, "Usage: eventdebug subscriptions <kind> <target>\r\n"
+                         "       [1-%u]\r\n"
+                         "Kinds: player mob object room\r\n",
+                     EVENT_DEBUG_MAX_LIMIT);
+        return;
+      }
+      if (!event_debug_select_entity(ch, entity_kind, arg2, &filter, &domain_entity))
+        return;
+      event_debug_render_subscriptions(buffer, sizeof(buffer), width, &domain_entity,
+                                       limit);
+    }
+  }
   else
   {
     event_debug_render_help(buffer, sizeof(buffer), width);

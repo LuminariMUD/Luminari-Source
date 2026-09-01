@@ -447,6 +447,7 @@ set(SRC_C_FILES
     src/obj/act.item.c
     src/combat/act.offensive.c
     src/act.other.c
+    src/ready_action.c
     src/act.social.c
     src/act.wizard.c
     src/actionqueues.c
