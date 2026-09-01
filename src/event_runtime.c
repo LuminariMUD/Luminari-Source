@@ -15,6 +15,10 @@ static struct event_runtime_type_profile
 } *runtime_type_profiles;
 static size_t runtime_type_profile_capacity;
 
+#if defined(LUMINARI_CUTEST)
+static size_t test_registrations_before_failure = SIZE_MAX;
+#endif
+
 static game_tick_t delay_until(game_tick_t deadline_tick);
 
 static struct event_runtime_type_profile *runtime_type_profile(
@@ -143,6 +147,9 @@ enum game_scheduler_status event_runtime_shutdown(void)
     free(runtime_type_profiles);
     runtime_type_profiles = NULL;
     runtime_type_profile_capacity = 0U;
+#if defined(LUMINARI_CUTEST)
+    test_registrations_before_failure = SIZE_MAX;
+#endif
   }
   return status;
 }
@@ -163,6 +170,10 @@ enum game_scheduler_status event_runtime_register_type(
     return GAME_SCHEDULER_INVALID_ARGUMENT;
   if (config == NULL || config->handler == NULL || event_type == NULL)
     return GAME_SCHEDULER_INVALID_ARGUMENT;
+#if defined(LUMINARI_CUTEST)
+  if (test_registrations_before_failure == 0U)
+    return GAME_SCHEDULER_ALLOCATION_FAILED;
+#endif
   registered_config = *config;
   registered_config.handler = event_runtime_dispatch;
   status = game_scheduler_register_type(runtime_scheduler, &registered_config,
@@ -182,7 +193,37 @@ enum game_scheduler_status event_runtime_register_type(
 #else
   profile->perf_index = PERF_register_event_callback(config->name);
 #endif
+#if defined(LUMINARI_CUTEST)
+  if (test_registrations_before_failure != SIZE_MAX)
+    test_registrations_before_failure--;
+#endif
   return GAME_SCHEDULER_OK;
+}
+
+enum game_scheduler_status event_runtime_registration_checkpoint(size_t *registered_type_count)
+{
+  struct game_scheduler_stats stats;
+
+  if (runtime_required() != GAME_SCHEDULER_OK || registered_type_count == NULL)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  game_scheduler_get_stats(runtime_scheduler, &stats);
+  *registered_type_count = stats.registered_type_count;
+  return GAME_SCHEDULER_OK;
+}
+
+enum game_scheduler_status event_runtime_rollback_type_registrations(size_t registered_type_count)
+{
+  enum game_scheduler_status status;
+
+  if (runtime_required() != GAME_SCHEDULER_OK ||
+      registered_type_count > runtime_type_profile_capacity)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  status = game_scheduler_rollback_type_registrations(runtime_scheduler, registered_type_count);
+  if (status == GAME_SCHEDULER_OK)
+    memset(&runtime_type_profiles[registered_type_count], 0,
+           (runtime_type_profile_capacity - registered_type_count) *
+               sizeof(*runtime_type_profiles));
+  return status;
 }
 
 enum game_scheduler_status event_runtime_seal_types(void)
@@ -477,3 +518,10 @@ void event_runtime_get_stats(struct game_scheduler_stats *stats)
 {
   game_scheduler_get_stats(runtime_scheduler, stats);
 }
+
+#if defined(LUMINARI_CUTEST)
+void event_runtime_test_fail_registration_after(size_t successful_registrations)
+{
+  test_registrations_before_failure = successful_registrations;
+}
+#endif

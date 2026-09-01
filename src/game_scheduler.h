@@ -256,6 +256,9 @@ enum game_scheduler_status game_scheduler_destroy(struct game_scheduler *schedul
 enum game_scheduler_status game_scheduler_register_type(struct game_scheduler *scheduler,
                                                         const struct game_event_type_config *config,
                                                         game_event_type_id_t *event_type);
+enum game_scheduler_status
+game_scheduler_rollback_type_registrations(struct game_scheduler *scheduler,
+                                           size_t registered_type_count);
 enum game_scheduler_status game_scheduler_seal_types(struct game_scheduler *scheduler);
 bool game_scheduler_types_are_sealed(const struct game_scheduler *scheduler);
 const char *game_scheduler_type_name(const struct game_scheduler *scheduler,

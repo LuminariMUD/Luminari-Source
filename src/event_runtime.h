@@ -16,6 +16,8 @@ bool event_runtime_is_initialized(void);
 
 enum game_scheduler_status event_runtime_register_type(
     const struct game_event_type_config *config, game_event_type_id_t *event_type);
+enum game_scheduler_status event_runtime_registration_checkpoint(size_t *registered_type_count);
+enum game_scheduler_status event_runtime_rollback_type_registrations(size_t registered_type_count);
 enum game_scheduler_status event_runtime_seal_types(void);
 bool event_runtime_types_are_sealed(void);
 const char *event_runtime_type_name(game_event_type_id_t event_type);
@@ -63,5 +65,9 @@ enum game_scheduler_status event_runtime_inspect_all(
     struct game_event_snapshot *snapshots, size_t snapshot_capacity,
     size_t *event_count);
 void event_runtime_get_stats(struct game_scheduler_stats *stats);
+
+#if defined(LUMINARI_CUTEST)
+void event_runtime_test_fail_registration_after(size_t successful_registrations);
+#endif
 
 #endif /* EVENT_RUNTIME_H */

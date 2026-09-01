@@ -21,23 +21,37 @@ static struct domain_event_bus *runtime_bus;
 
 enum domain_event_status domain_event_runtime_init(void)
 {
+  enum game_scheduler_status scheduler_status;
   enum domain_event_status status;
+  size_t event_type_checkpoint;
+  bool event_type_transaction;
 
   if (runtime_bus != NULL)
     return DOMAIN_EVENT_BUSY;
   runtime_bus = domain_event_bus_create(NULL, &status);
   if (runtime_bus == NULL)
     return status;
-  periodic_owners_init();
-  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
-      !dg_wait_runtime_init())
-    status = DOMAIN_EVENT_ALLOCATION_FAILED;
-  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
-      !mud_event_runtime_init())
-    status = DOMAIN_EVENT_ALLOCATION_FAILED;
-  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
-      !ai_events_runtime_init())
-    status = DOMAIN_EVENT_ALLOCATION_FAILED;
+  event_type_checkpoint = 0U;
+  event_type_transaction = false;
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    scheduler_status = event_runtime_registration_checkpoint(&event_type_checkpoint);
+    if (scheduler_status != GAME_SCHEDULER_OK)
+      status = DOMAIN_EVENT_ALLOCATION_FAILED;
+    else
+      event_type_transaction = true;
+  }
+  if (status == DOMAIN_EVENT_OK)
+    periodic_owners_init();
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    if (status == DOMAIN_EVENT_OK && !dg_wait_runtime_init())
+      status = DOMAIN_EVENT_ALLOCATION_FAILED;
+    if (status == DOMAIN_EVENT_OK && !mud_event_runtime_init())
+      status = DOMAIN_EVENT_ALLOCATION_FAILED;
+    if (status == DOMAIN_EVENT_OK && !ai_events_runtime_init())
+      status = DOMAIN_EVENT_ALLOCATION_FAILED;
+  }
   affected_owners_init();
   character_periodic_init();
   point_update_periodic_init();
@@ -76,6 +90,9 @@ enum domain_event_status domain_event_runtime_init(void)
     character_periodic_shutdown();
     point_update_periodic_shutdown();
     vessel_periodic_shutdown();
+    if (event_type_transaction &&
+        event_runtime_rollback_type_registrations(event_type_checkpoint) != GAME_SCHEDULER_OK)
+      log("SYSERR: Unable to roll back partial timed-event type registration.");
     domain_event_bus_destroy(runtime_bus);
     domain_event_world_shutdown();
     runtime_bus = NULL;

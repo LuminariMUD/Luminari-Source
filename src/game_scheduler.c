@@ -1390,6 +1390,31 @@ enum game_scheduler_status game_scheduler_register_type(struct game_scheduler *s
   return GAME_SCHEDULER_OK;
 }
 
+enum game_scheduler_status
+game_scheduler_rollback_type_registrations(struct game_scheduler *scheduler,
+                                           size_t registered_type_count)
+{
+  size_t event_type;
+
+  if (scheduler == NULL || registered_type_count > scheduler->event_type_count)
+    return GAME_SCHEDULER_INVALID_ARGUMENT;
+  if (scheduler->shutting_down)
+    return GAME_SCHEDULER_SHUTTING_DOWN;
+  if (scheduler->event_types_sealed)
+    return GAME_SCHEDULER_REGISTRATION_CLOSED;
+  for (event_type = registered_type_count; event_type < scheduler->event_type_count; event_type++)
+    if (scheduler->event_types[event_type].live_events > 0U)
+      return GAME_SCHEDULER_BUSY;
+
+  for (event_type = registered_type_count; event_type < scheduler->event_type_count; event_type++)
+  {
+    free(scheduler->event_types[event_type].name);
+    memset(&scheduler->event_types[event_type], 0, sizeof(scheduler->event_types[event_type]));
+  }
+  scheduler->event_type_count = registered_type_count;
+  return GAME_SCHEDULER_OK;
+}
+
 enum game_scheduler_status game_scheduler_seal_types(struct game_scheduler *scheduler)
 {
   if (scheduler == NULL)

@@ -612,6 +612,35 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   character_list = NULL;
 }
 
+void TestDomainEventRuntimeInitRollsBackPartialTimedEventTypes(CuTest *tc)
+{
+  struct game_scheduler_stats after_failure;
+  struct game_scheduler_stats before_failure;
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  active_world_reset_for_test();
+  active_world_select_for_test(true);
+  event_runtime_get_stats(&before_failure);
+
+  event_runtime_test_fail_registration_after(4U);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_ALLOCATION_FAILED, domain_event_runtime_init());
+  event_runtime_test_fail_registration_after(SIZE_MAX);
+  CuAssertPtrEquals(tc, NULL, domain_event_runtime_bus());
+  event_runtime_get_stats(&after_failure);
+  CuAssertIntEquals(tc, (int)before_failure.registered_type_count,
+                    (int)after_failure.registered_type_count);
+
+  active_world_reset_for_test();
+  active_world_select_for_test(true);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  active_world_reset_for_test();
+}
+
 static void active_world_prepare_character(struct char_data *ch, bool npc, room_rnum room)
 {
   clear_char(ch);

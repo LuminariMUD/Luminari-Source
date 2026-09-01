@@ -2446,7 +2446,12 @@ static bool runtime_service_needed(enum runtime_service_kind kind)
     return false;
 #endif
   case RUNTIME_SERVICE_ROL_SHIP:
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
+    defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     return true;
+#else
+    return false;
+#endif
   case RUNTIME_SERVICE_VESSEL:
 #if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
     defined(LUMINARI_EVENT_ROLLBACK_TESTS)
