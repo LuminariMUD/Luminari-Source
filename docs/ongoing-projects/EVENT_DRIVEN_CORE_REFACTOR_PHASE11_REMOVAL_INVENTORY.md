@@ -86,8 +86,15 @@ generation-safe `event_handle_t` values and payload destructors receive owned
 payloads. The internal header is included by the facade plus two low-level
 adapter tests; it is not a gameplay API.
 
-There are nine opaque compatibility-adapter scheduling calls across seven production
-files. Their exact burn-down inventory is enforced by
+There are six opaque compatibility-adapter scheduling calls across four
+production files:
+
+- two AI response/retry jobs in `src/ai_events.c`;
+- two named runtime-service/persistence jobs in `src/comm.c`;
+- one DG trigger wait in `src/dgscript/dg_scripts.c`; and
+- one MUD-event admission path in `src/mud_event.c`.
+
+Their exact burn-down inventory is enforced by
 `scripts/events/test_legacy_event_admission.sh`; additions fail the normal test
 suite. Those callers are compatible with a scheduler-only facade after the old
 queue is deleted, so raw-pointer migration is no longer a release-gate task.

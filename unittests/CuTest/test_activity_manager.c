@@ -10,6 +10,7 @@
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/domain_event_types.h"
 #include "../../src/domain_event_world.h"
+#include "../../src/event_runtime.h"
 #include "../../src/interpreter.h"
 #include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
@@ -85,6 +86,19 @@ struct activity_test_fixture
   bool terminal_transition_saw_activity;
   bool terminal_transition_cancelled_activity;
 };
+
+static bool activity_native_type_is_registered(const char *name)
+{
+  struct game_scheduler_stats stats;
+  game_event_type_id_t event_type;
+
+  event_runtime_get_stats(&stats);
+  for (event_type = 1U; event_type <= stats.registered_type_count; event_type++)
+    if (event_runtime_type_name(event_type) != NULL &&
+        !strcmp(event_runtime_type_name(event_type), name))
+      return true;
+  return false;
+}
 
 static bool activity_test_recheck(struct char_data *actor, void *target, void *context)
 {
@@ -186,6 +200,7 @@ static void activity_test_begin(CuTest *tc, struct activity_test_fixture *fixtur
                     domain_event_world_register_resolvers(fixture->bus));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     primary_activity_manager_init(fixture->bus));
+  CuAssertTrue(tc, activity_native_type_is_registered("activity.primary.step"));
   observer.handler_context = fixture;
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_register_handler(fixture->bus, &observer));

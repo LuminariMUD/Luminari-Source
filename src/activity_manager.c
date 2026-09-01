@@ -9,6 +9,7 @@
 #include "dgscript/dg_event.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
+#include "event_runtime.h"
 #include "interpreter.h"
 #include "utils.h"
 
@@ -18,7 +19,7 @@ struct activity_timer_payload
 {
   struct domain_entity_handle actor;
   uint64_t activity_id;
-  event_handle_t event_handle;
+  struct event_runtime_handle event_handle;
 };
 
 struct primary_activity
@@ -51,7 +52,7 @@ struct primary_activity
   primary_activity_ended ended;
   primary_activity_context_cleanup cleanup_context;
   void *context;
-  event_handle_t timer_handle;
+  struct event_runtime_handle timer_handle;
   bool timer_dispatching;
   bool combat_clock;
   bool paused_by_combat;
@@ -66,6 +67,7 @@ static uint64_t next_activity_id = 1U;
 static bool initialized;
 static bool shutting_down;
 static bool managed_camp = true;
+static game_event_type_id_t primary_activity_event_type;
 #ifdef LUMINARI_CUTEST
 static bool test_camp_selection;
 static bool test_managed_camp;
@@ -156,7 +158,7 @@ static void publish_transition(struct domain_entity_handle actor,
   (void)DOMAIN_EVENT_PUBLISH(activity_bus, DOMAIN_EVENT_ACTIVITY_TRANSITIONED, &event);
 }
 
-static void activity_timer_cleanup(event_handle_t handle, void *event_obj)
+static void activity_timer_cleanup(void *event_obj)
 {
   struct activity_timer_payload *payload;
   struct char_data *actor;
@@ -168,24 +170,39 @@ static void activity_timer_cleanup(event_handle_t handle, void *event_obj)
   actor = resolve_actor(payload->actor);
   activity = actor != NULL ? actor->primary_activity : NULL;
   if (activity != NULL && activity->id == payload->activity_id &&
-      activity->timer_handle == handle)
-    activity->timer_handle = EVENT_HANDLE_NONE;
+      event_runtime_handles_equal(activity->timer_handle, payload->event_handle))
+    activity->timer_handle = EVENT_RUNTIME_HANDLE_NONE;
   free(payload);
+}
+
+static bool runtime_handle_matches(struct event_runtime_handle handle,
+                                   const struct game_event_context *context)
+{
+  return context != NULL && handle.id == context->event_id;
+}
+
+static long activity_timer_remaining(struct event_runtime_handle handle)
+{
+  game_tick_t remaining;
+
+  if (event_runtime_remaining(handle, &remaining) != GAME_SCHEDULER_OK)
+    return 1L;
+  return remaining > (game_tick_t)LONG_MAX ? LONG_MAX : (long)remaining;
 }
 
 static void detach_timer(struct primary_activity *activity, bool preserve_delay)
 {
-  event_handle_t handle;
+  struct event_runtime_handle handle;
   long remaining;
 
-  if (activity == NULL || activity->timer_handle == EVENT_HANDLE_NONE)
+  if (activity == NULL || event_runtime_handle_is_none(activity->timer_handle))
     return;
   handle = activity->timer_handle;
-  remaining = event_handle_time(handle);
+  remaining = activity_timer_remaining(handle);
   if (preserve_delay)
     activity->remaining_delay = MAX(1L, remaining);
-  activity->timer_handle = EVENT_HANDLE_NONE;
-  (void)event_handle_cancel(handle);
+  activity->timer_handle = EVENT_RUNTIME_HANDLE_NONE;
+  (void)event_runtime_cancel(handle);
 }
 
 static void finish_activity(struct primary_activity *activity,
@@ -363,9 +380,9 @@ static bool delay_activity(struct primary_activity *activity, long delay, bool n
   {
     activity->delayed_combat_turns++;
   }
-  else if (activity->timer_handle != EVENT_HANDLE_NONE)
+  else if (!event_runtime_handle_is_none(activity->timer_handle))
   {
-    remaining = event_handle_time(activity->timer_handle);
+    remaining = activity_timer_remaining(activity->timer_handle);
     if (remaining > LONG_MAX - delay)
       remaining = LONG_MAX;
     else
@@ -451,15 +468,17 @@ static bool advance_activity(struct primary_activity *activity, bool recheck)
   return true;
 }
 
-static EVENTFUNC(primary_activity_timer)
+static struct game_event_result
+primary_activity_timer(const struct game_event_context *event_context)
 {
-  struct activity_timer_payload *payload = event_obj;
+  struct activity_timer_payload *payload =
+      event_context != NULL ? event_context->payload : NULL;
   struct char_data *actor;
   struct primary_activity *activity;
   long next_delay;
 
   if (payload == NULL)
-    return 0;
+    return game_event_result_complete();
   actor = resolve_actor(payload->actor);
   activity = actor != NULL ? actor->primary_activity : NULL;
   if (activity == NULL || activity->id != payload->activity_id ||
@@ -467,10 +486,11 @@ static EVENTFUNC(primary_activity_timer)
   {
     activity_stats.stale_callbacks++;
     event_note_stale_owner_outcome();
-    free(payload);
-    return 0;
+    return game_event_result_complete();
   }
-  activity->timer_handle = EVENT_HANDLE_NONE;
+  if (!runtime_handle_matches(activity->timer_handle, event_context))
+    return game_event_result_complete();
+  activity->timer_handle = EVENT_RUNTIME_HANDLE_NONE;
   activity->timer_dispatching = true;
   next_delay = activity->step_interval;
   if (!advance_activity(activity, true))
@@ -478,30 +498,56 @@ static EVENTFUNC(primary_activity_timer)
     activity = actor->primary_activity;
     if (activity != NULL && activity->id == payload->activity_id)
       activity->timer_dispatching = false;
-    free(payload);
-    return 0;
+    return game_event_result_complete();
   }
   activity = actor->primary_activity;
   if (activity != NULL && activity->id == payload->activity_id)
     activity->timer_dispatching = false;
   if (activity == NULL || activity->id != payload->activity_id ||
       activity->state != PRIMARY_ACTIVITY_STATE_ACTIVE || activity->combat_clock)
-  {
-    free(payload);
-    return 0;
-  }
+    return game_event_result_complete();
   activity->remaining_delay = next_delay;
   activity->timer_handle = payload->event_handle;
-  return next_delay;
+  return game_event_result_reschedule_after((game_tick_t)next_delay);
+}
+
+static bool register_primary_activity_event_type(void)
+{
+  struct game_event_type_config config;
+  const char *registered_name;
+  enum game_scheduler_status status;
+
+  if (!event_runtime_is_initialized())
+    return false;
+  registered_name = event_runtime_type_name(primary_activity_event_type);
+  if (registered_name != NULL && !strcmp(registered_name, "activity.primary.step"))
+    return true;
+  primary_activity_event_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = "activity.primary.step";
+  config.handler = primary_activity_timer;
+  config.cleanup = activity_timer_cleanup;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.max_events = 65536U;
+  config.max_events_per_owner = 1U;
+  config.requires_owner = true;
+  status = event_runtime_register_type(&config, &primary_activity_event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: unable to register native event type 'activity.primary.step' (status %d).",
+        status);
+    return false;
+  }
+  return true;
 }
 
 static bool schedule_timer(struct primary_activity *activity, long delay)
 {
   struct activity_timer_payload *payload;
   struct game_event_owner owner;
-  event_handle_t handle;
+  struct event_runtime_handle handle = EVENT_RUNTIME_HANDLE_NONE;
 
-  if (activity == NULL || activity->timer_handle != EVENT_HANDLE_NONE ||
+  if (activity == NULL || !event_runtime_handle_is_none(activity->timer_handle) ||
       activity->timer_dispatching ||
       activity->state != PRIMARY_ACTIVITY_STATE_ACTIVE)
     return false;
@@ -513,10 +559,9 @@ static bool schedule_timer(struct primary_activity *activity, long delay)
     return false;
   payload->actor = activity->actor;
   payload->activity_id = activity->id;
-  handle = event_schedule_owned_named_with_cleanup(
-      primary_activity_timer, payload, MAX(1L, delay), "primary_activity",
-      activity_timer_cleanup, owner);
-  if (handle == EVENT_HANDLE_NONE)
+  if (event_runtime_schedule_owned_after(primary_activity_event_type, owner,
+                                         (game_tick_t)MAX(1L, delay), payload,
+                                         &handle) != GAME_SCHEDULER_OK)
   {
     free(payload);
     return false;
@@ -674,6 +719,8 @@ enum domain_event_status primary_activity_manager_init(struct domain_event_bus *
   if (bus == NULL)
     return DOMAIN_EVENT_INVALID_ARGUMENT;
   if (initialized)
+    return DOMAIN_EVENT_BUSY;
+  if (!register_primary_activity_event_type())
     return DOMAIN_EVENT_BUSY;
   memset(&activity_stats, 0, sizeof(activity_stats));
   activity_bus = bus;
@@ -948,8 +995,8 @@ bool primary_activity_snapshot(const struct char_data *actor,
   snapshot->completed_steps = activity->completed_steps;
   snapshot->total_steps = activity->total_steps;
   snapshot->combat_clock = activity->combat_clock;
-  if (activity->timer_handle != EVENT_HANDLE_NONE)
-    snapshot->next_step_pulses = event_handle_time(activity->timer_handle);
+  if (!event_runtime_handle_is_none(activity->timer_handle))
+    snapshot->next_step_pulses = activity_timer_remaining(activity->timer_handle);
   else
     snapshot->next_step_pulses = activity->remaining_delay;
   return true;

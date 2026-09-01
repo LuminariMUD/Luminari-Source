@@ -706,16 +706,17 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   CuAssertIntEquals(tc, 1,
                     (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
   CuAssertIntEquals(tc, 1, event_queue_depth());
-  CuAssertTrue(tc, idle.active_world_event_handle == EVENT_HANDLE_NONE);
-  CuAssertTrue(tc, wanderer.active_world_event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, native_event_type_is_registered("mobile.autonomous.agenda"));
+  CuAssertTrue(tc, event_runtime_handle_is_none(idle.active_world_event_handle));
+  CuAssertTrue(tc, !event_runtime_handle_is_none(wanderer.active_world_event_handle));
 
   callbacks_before = active_world_mobile_callbacks();
-  first_delay = event_handle_time(wanderer.active_world_event_handle);
+  first_delay = (long)native_event_remaining(tc, wanderer.active_world_event_handle);
   CuAssertTrue(tc, first_delay > 0L);
   process_scheduler_pulses((unsigned long)first_delay);
   CuAssertIntEquals(tc, (int)(callbacks_before + 1U),
                     (int)active_world_mobile_callbacks());
-  CuAssertTrue(tc, wanderer.active_world_event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(wanderer.active_world_event_handle));
 
   FIGHTING(&wanderer) = &idle;
   active_world_sync_mobile(&wanderer);
@@ -808,11 +809,11 @@ void TestActiveWorldDormantPopulationDoesNotCreateScheduledWork(CuTest *tc)
                     (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   for (index = 0U; index < dormant_count; index++)
-    CuAssertTrue(tc, mobiles[index].active_world_event_handle == EVENT_HANDLE_NONE);
-  CuAssertTrue(tc, wanderer->active_world_event_handle != EVENT_HANDLE_NONE);
+    CuAssertTrue(tc, event_runtime_handle_is_none(mobiles[index].active_world_event_handle));
+  CuAssertTrue(tc, !event_runtime_handle_is_none(wanderer->active_world_event_handle));
 
   callbacks_before = active_world_mobile_callbacks();
-  first_delay = event_handle_time(wanderer->active_world_event_handle);
+  first_delay = (long)native_event_remaining(tc, wanderer->active_world_event_handle);
   CuAssertTrue(tc, first_delay > 0L);
   process_scheduler_pulses((unsigned long)first_delay);
   CuAssertIntEquals(tc, (int)(callbacks_before + 1U),
@@ -886,8 +887,8 @@ void TestActiveWorldDemandDrivenAdmissionAndLegacyGateAreExclusive(CuTest *tc)
                     (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 1, (int)active_world_mobile_admission_rejections());
   CuAssertIntEquals(tc, 1, event_queue_depth());
-  CuAssertTrue(tc, first.active_world_event_handle != EVENT_HANDLE_NONE);
-  CuAssertTrue(tc, second.active_world_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(first.active_world_event_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(second.active_world_event_handle));
   active_world_reset_telemetry();
   CuAssertIntEquals(tc, 0, (int)active_world_mobile_admission_rejections());
   CuAssertIntEquals(tc, 0, (int)active_world_mobile_callbacks());
@@ -970,14 +971,14 @@ void TestActiveWorldResourceRecoveryWakesAndRetiresOneOwner(CuTest *tc)
                     (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   CuAssertIntEquals(tc, 60 * PASSES_PER_SEC,
-                    (int)event_handle_time(mobile.active_world_event_handle));
+                    (int)native_event_remaining(tc, mobile.active_world_event_handle));
 
   mobile.mob_specials.last_known_slot_regen = time(0) - 60;
   FIGHTING(&mobile) = &opponent;
   process_scheduler_pulses(60U * PASSES_PER_SEC);
   CuAssertIntEquals(tc, 1, mobile.mob_specials.known_spell_slots[spellnum]);
   CuAssertIntEquals(tc, PULSE_MOBILE,
-                    (int)event_handle_time(mobile.active_world_event_handle));
+                    (int)native_event_remaining(tc, mobile.active_world_event_handle));
 
   FIGHTING(&mobile) = NULL;
   process_scheduler_pulses(PULSE_MOBILE);
@@ -996,7 +997,7 @@ void TestActiveWorldResourceRecoveryWakesAndRetiresOneOwner(CuTest *tc)
   CuAssertIntEquals(tc, 1,
                     (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
   CuAssertIntEquals(tc, 300 * PASSES_PER_SEC,
-                    (int)event_handle_time(mobile.active_world_event_handle));
+                    (int)native_event_remaining(tc, mobile.active_world_event_handle));
   mobile.mob_specials.last_slot_regen = time(0) - 300;
   process_scheduler_pulses(300U * PASSES_PER_SEC);
   CuAssertIntEquals(tc, 1, mobile.mob_specials.spell_slots[spell_circle]);

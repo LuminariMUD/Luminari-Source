@@ -10,6 +10,7 @@
 #include "domain_event_world.h"
 #include "dotenv.h"
 #include "dgscript/dg_event.h"
+#include "event_runtime.h"
 #include "mob/mob_act.h"
 
 #define ACTIVE_WORLD_MAX_MOBILES 65536U
@@ -45,6 +46,7 @@ static bool initialized;
 static bool enabled;
 static bool bootstrap_loading;
 static size_t admission_limit = ACTIVE_WORLD_MAX_MOBILES;
+static game_event_type_id_t mobile_agenda_event_type;
 
 #ifdef LUMINARI_CUTEST
 static bool test_selection_set;
@@ -269,13 +271,50 @@ static long next_mobile_delay(struct char_data *ch)
   return delay == LONG_MAX ? 0L : delay;
 }
 
-static void active_world_mobile_cleanup(event_handle_t handle, void *event_obj)
+static bool runtime_handle_matches(struct event_runtime_handle handle,
+                                   const struct game_event_context *context)
 {
-  (void)handle;
+  return context != NULL && handle.id == context->event_id;
+}
+
+static void active_world_mobile_cleanup(void *event_obj)
+{
   free(event_obj);
 }
 
-static EVENTFUNC(active_world_mobile_event);
+static struct game_event_result
+active_world_mobile_event(const struct game_event_context *context);
+
+static bool register_mobile_agenda_event_type(void)
+{
+  struct game_event_type_config config;
+  const char *registered_name;
+  enum game_scheduler_status status;
+
+  if (!event_runtime_is_initialized())
+    return false;
+  registered_name = event_runtime_type_name(mobile_agenda_event_type);
+  if (registered_name != NULL && !strcmp(registered_name, "mobile.autonomous.agenda"))
+    return true;
+  mobile_agenda_event_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = "mobile.autonomous.agenda";
+  config.handler = active_world_mobile_event;
+  config.cleanup = active_world_mobile_cleanup;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.max_events = ACTIVE_WORLD_MAX_MOBILES;
+  config.max_events_per_owner = 1U;
+  config.requires_owner = true;
+  status = event_runtime_register_type(&config, &mobile_agenda_event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: unable to register native event type 'mobile.autonomous.agenda' "
+        "(status %d).",
+        status);
+    return false;
+  }
+  return true;
+}
 
 static bool schedule_mobile(struct char_data *ch)
 {
@@ -295,12 +334,15 @@ static bool schedule_mobile(struct char_data *ch)
   payload->character.kind = DOMAIN_ENTITY_CHARACTER;
   payload->character.runtime_id = owner.runtime_id;
   payload->character.generation = owner.generation;
-  ch->active_world_event_handle = event_schedule_owned_named_with_terminal_cleanup(
-      active_world_mobile_event, payload, delay, "active_world_mobile_agenda",
-      active_world_mobile_cleanup, owner);
-  if (ch->active_world_event_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_schedule_owned_after(mobile_agenda_event_type, owner,
+                                         (game_tick_t)delay, payload,
+                                         &ch->active_world_event_handle) !=
+      GAME_SCHEDULER_OK)
+  {
     free(payload);
-  return ch->active_world_event_handle != EVENT_HANDLE_NONE;
+    return false;
+  }
+  return true;
 }
 
 static void note_admission_rejection(void)
@@ -324,12 +366,13 @@ static void retire_current_mobile(struct char_data *ch)
   ch->active_world_wander_due = 0U;
   ch->active_world_reaction_due = 0U;
   ch->active_world_resource_due = 0U;
-  ch->active_world_event_handle = EVENT_HANDLE_NONE;
+  ch->active_world_event_handle = EVENT_RUNTIME_HANDLE_NONE;
 }
 
-static EVENTFUNC(active_world_mobile_event)
+static struct game_event_result
+active_world_mobile_event(const struct game_event_context *context)
 {
-  struct active_world_event_payload *payload = event_obj;
+  struct active_world_event_payload *payload = context != NULL ? context->payload : NULL;
   struct active_world_registry_entry *entry;
   struct char_data *ch;
   mobile_work_mask due = MOBILE_WORK_NONE;
@@ -344,18 +387,20 @@ static EVENTFUNC(active_world_mobile_event)
     initial_snapshot_logged = true;
   }
   if (payload == NULL)
-    return 0;
+    return game_event_result_complete();
   entry = registry_find(payload->character);
   if (entry == NULL)
   {
     event_note_stale_owner_outcome();
-    return 0;
+    return game_event_result_complete();
   }
   ch = entry->character;
+  if (!runtime_handle_matches(ch->active_world_event_handle, context))
+    return game_event_result_complete();
   if (!mobile_is_live(ch) || ch->active_world_work_reasons == MOBILE_WORK_NONE)
   {
     retire_current_mobile(ch);
-    return 0;
+    return game_event_result_complete();
   }
 
   if (deadline_due(ch->active_world_reaction_due))
@@ -389,7 +434,7 @@ static EVENTFUNC(active_world_mobile_event)
     if (dispatching_mobile_forgotten)
     {
       dispatching_mobile = NULL;
-      return 0;
+      return game_event_result_complete();
     }
     active_world_sync_mobile(ch);
     dispatching_mobile = NULL;
@@ -398,9 +443,9 @@ static EVENTFUNC(active_world_mobile_event)
   if (!mobile_is_live(ch) || ch->active_world_work_reasons == MOBILE_WORK_NONE)
   {
     retire_current_mobile(ch);
-    return 0;
+    return game_event_result_complete();
   }
-  return next_mobile_delay(ch);
+  return game_event_result_reschedule_after((game_tick_t)next_mobile_delay(ch));
 }
 
 static unsigned long fixed_initial_deadline(struct char_data *ch)
@@ -445,7 +490,8 @@ static void refresh_deadlines(struct char_data *ch, mobile_work_mask old_reasons
 
 static void reschedule_mobile(struct char_data *ch)
 {
-  event_handle_t handle;
+  struct event_runtime_handle handle;
+  game_tick_t remaining;
   long delay;
 
   if (ch == dispatching_mobile)
@@ -453,14 +499,16 @@ static void reschedule_mobile(struct char_data *ch)
   delay = next_mobile_delay(ch);
   if (delay <= 0L)
     return;
-  if (ch->active_world_event_handle != EVENT_HANDLE_NONE &&
-      event_handle_time(ch->active_world_event_handle) == delay)
+  if (!event_runtime_handle_is_none(ch->active_world_event_handle) &&
+      event_runtime_remaining(ch->active_world_event_handle, &remaining) ==
+          GAME_SCHEDULER_OK &&
+      remaining == (game_tick_t)delay)
     return;
-  if (ch->active_world_event_handle != EVENT_HANDLE_NONE)
+  if (!event_runtime_handle_is_none(ch->active_world_event_handle))
   {
     handle = ch->active_world_event_handle;
-    ch->active_world_event_handle = EVENT_HANDLE_NONE;
-    (void)event_handle_cancel(handle);
+    ch->active_world_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+    (void)event_runtime_cancel(handle);
   }
   if (!schedule_mobile(ch))
   {
@@ -525,7 +573,7 @@ static void wake_mobile(struct char_data *ch, mobile_work_mask reason)
 
 void active_world_forget_character(struct char_data *ch)
 {
-  event_handle_t handle;
+  struct event_runtime_handle handle;
 
   if (ch == NULL)
     return;
@@ -539,12 +587,12 @@ void active_world_forget_character(struct char_data *ch)
   ch->active_world_wander_due = 0U;
   ch->active_world_reaction_due = 0U;
   ch->active_world_resource_due = 0U;
-  if (ch->active_world_event_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_handle_is_none(ch->active_world_event_handle))
     return;
   handle = ch->active_world_event_handle;
-  ch->active_world_event_handle = EVENT_HANDLE_NONE;
+  ch->active_world_event_handle = EVENT_RUNTIME_HANDLE_NONE;
   if (dispatching_mobile != ch)
-    (void)event_handle_cancel(handle);
+    (void)event_runtime_cancel(handle);
 }
 
 static struct room_data *resolve_room(struct domain_event_bus *bus,
@@ -702,10 +750,14 @@ enum domain_event_status active_world_register_handlers(struct domain_event_bus 
   };
   size_t index;
   enum domain_event_status status;
+  bool requested;
 
   if (bus == NULL || initialized)
     return DOMAIN_EVENT_INVALID_ARGUMENT;
-  enabled = configured_enabled();
+  requested = configured_enabled();
+  if (requested && !register_mobile_agenda_event_type())
+    return DOMAIN_EVENT_BUSY;
+  enabled = requested;
   initialized = true;
   log("Active-world mobile scheduling: %s (explicit agenda limit %u).",
       enabled ? "demand driven" : "legacy heartbeat", (unsigned int)admission_limit);

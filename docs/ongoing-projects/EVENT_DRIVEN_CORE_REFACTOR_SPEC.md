@@ -1,7 +1,7 @@
 # Event-Driven Core Refactor Specification
 
 **Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible implementation and final source audit are complete; irreversible removal gate pending
-**Document version:** 1.40
+**Document version:** 1.41
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
 **Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, the final adversarial source audit, the executable demand-driven architecture lock, and the current-SHA operator release-gate handoff are implemented; only the externally gated physical rollback removal remains
@@ -19,10 +19,11 @@
 > wall time to durable cooldowns, and rebuild fresh process-local timers, while
 > transient and boot-reconstructed work has an explicit policy.
 > Encounter rounds, primary activities, autonomous mobiles, affected owners,
-> character periodic work, object automatic procedures, and DG random triggers
-> now store generation-safe opaque event handles instead of public
-> compatibility-record pointers. Their timing, recurrence, teardown,
-> diagnostics, and rollback behavior are unchanged.
+> character periodic work, object automatic procedures, DG random triggers,
+> mud-hour work, and vessel agendas now schedule as distinct native semantic
+> types on the single process timing wheel. Their owner-local timing,
+> recurrence, teardown, and diagnostics remain unchanged. Six compatibility
+> schedules across four production files remain in the migration backlog.
 > Vessel owners, the vessel/point-update singleton services, DG waits, and MUD
 > events and one-shot AI jobs also use opaque handles. The compatibility
 > record, pointer API, and rollback queue declarations are private to the
@@ -2520,3 +2521,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.38 | 2026-09-01 | Migrated the one-per-character nearest-deadline maintenance agenda to native `character.maintenance`. Preserved owner-local walking, recovery, verse, hint, D20, device, and quest cadences plus off-screen NPC work; the legacy backend uses heartbeat rollback and 15 adapter schedules remain across 11 files. |
 | 1.39 | 2026-09-01 | Migrated object automatic procedures and DG mobile/object/room random triggers to native `object.automatic_procedure` and `dg.random_trigger` types. Preserved six- and thirteen-second recurrence, off-screen execution, authored DG `GLOBAL` semantics, lifecycle cancellation, admission bounds, and independent heartbeat rollback; 13 adapter schedules remain across 10 files. |
 | 1.40 | 2026-09-01 | Migrated the mud-hour point-update service, Greyhawk owner agendas, shared vessel service agenda, and fixed-RoL ship agendas to four native semantic types. Preserved due-owner registries, cadence alignment, extraction-safe mutation, feature rebuild, owner generation, capacity refill, and physical-backend heartbeat fallback; nine adapter schedules remain across seven files. |
+| 1.41 | 2026-09-01 | Migrated autonomous-mobile agendas, primary-activity wall-clock steps, and encounter-owned rounds to native `mobile.autonomous.agenda`, `activity.primary.step`, and `combat.encounter.round` types. Preserved owner-local recurrence, off-screen simulation, activity interruption and re-entry, encounter mutation/merge safety, and semantic six-second rounds without population discovery; six adapter schedules remain across four files. |

@@ -96,7 +96,7 @@ therefore cannot resolve to later events. Runtime shutdown invalidates every
 remaining handle and invokes each admitted payload's cleanup exactly once.
 
 The compatibility adapter registers one temporary `legacy_event` type in this
-same runtime. Its retained nine production schedules therefore coexist on the
+same runtime. Its retained six production schedules therefore coexist on the
 wheel with native types during migration, but the adapter no longer creates,
 owns, advances, inspects, or destroys a scheduler itself.
 
@@ -122,6 +122,14 @@ It does not discover owners from the general game loop. `vessel.greyhawk.agenda`
 and `vessel.rol.agenda` are concrete ship-owner events;
 `vessel.shared.agenda` owns only shared vessel-system work and aligned due
 reasons.
+
+`mobile.autonomous.agenda` exists only while one NPC has concrete autonomous
+work. Its callback resolves that owner, executes only due reason bits, and
+returns the next meaningful deadline. `activity.primary.step` advances one
+character's active wall-clock activity. `combat.encounter.round` advances one
+encounter and its already-indexed participants at the established semantic
+round boundary. None of these callbacks scans a general population to discover
+work.
 
 ## 2. Timed-Event Compatibility Facade
 
@@ -170,24 +178,25 @@ this form so its owner-list detachment and payload destruction do not depend on
 the public compatibility record.
 
 The old pointer API and queue declarations are private to the facade and two
-low-level parity tests. New production code must include `dg_event.h` and use
-only `event_schedule*()` plus handle operations. The private API remains solely
-to preserve the physical rollback backend until its external release gate
-closes.
+low-level parity tests. New production timing code must register a semantic
+type through `event_runtime` and use native handles. Compatibility scheduling
+is limited to the frozen migration inventory and remains solely to preserve the
+physical rollback backend until its external release gate closes.
 
-Compatibility owners still awaiting native semantic types include encounter
-round clocks, primary-activity timers, and autonomous mobiles. Character and
-room affected owners, nearest-deadline character maintenance, object automatic
-procedures, DG random triggers, mud-hour point updates, and vessel agendas now
-schedule directly through native types.
+Compatibility work still awaiting native semantic types is limited to AI
+response/retry jobs, named runtime-service and persistence work, DG trigger
+waits, and the MUD-event admission layer. Encounter rounds, primary activities,
+autonomous mobiles, character and room affected owners, nearest-deadline
+character maintenance, object automatic procedures, DG random triggers,
+mud-hour point updates, and vessel agendas now schedule directly through
+native types.
 They retain existing callback-relative recurrence and owner teardown behavior.
 This infrastructure migration does not alter combat, activity, affected,
 mobile, automatic-procedure, DG, or Establish Camp gameplay rules.
 
 Greyhawk vessels, fixed RoL ships, the global vessel service, and the mud-hour
-point-update service also store opaque handles. Singleton service callbacks use
-a borrowed handle-slot payload solely so cancellation cleanup can detach the
-current identity; they do not expose or own gameplay payload data.
+point-update service store native runtime handles. Singleton service callbacks
+do not expose or own gameplay payload data.
 
 DG script waits also store opaque handles. Their trigger-owned payload pointer
 exists only for room OLC owner relocation; normal completion and cancellation

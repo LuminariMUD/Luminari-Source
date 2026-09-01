@@ -13,10 +13,24 @@
 #include "../../src/combat/fight.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/domain_event_world.h"
+#include "../../src/event_runtime.h"
 
 #include <string.h>
 
 #define ENCOUNTER_TRACE_CAPACITY 64U
+
+static bool encounter_native_type_is_registered(const char *name)
+{
+  struct game_scheduler_stats stats;
+  game_event_type_id_t event_type;
+
+  event_runtime_get_stats(&stats);
+  for (event_type = 1U; event_type <= stats.registered_type_count; event_type++)
+    if (event_runtime_type_name(event_type) != NULL &&
+        !strcmp(event_runtime_type_name(event_type), name))
+      return true;
+  return false;
+}
 
 struct encounter_test_trace
 {
@@ -65,6 +79,8 @@ static unsigned long encounter_test_begin_mode(CuTest *tc, bool encounter_mode,
   combat_encounter_test_select(encounter_mode);
   combat_encounter_test_select_semantic(semantic_rounds);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, combat_encounter_runtime_init(NULL));
+  if (encounter_mode)
+    CuAssertTrue(tc, encounter_native_type_is_registered("combat.encounter.round"));
   if (trace != NULL)
   {
     memset(trace, 0, sizeof(*trace));

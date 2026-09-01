@@ -18,7 +18,7 @@ fail()
 }
 
 awk '
-  /^static EVENTFUNC\(active_world_mobile_event\)$/ { capture = 1 }
+  /^active_world_mobile_event\(const struct game_event_context \*context\)$/ { capture = 1 }
   capture { print }
   capture && /^static unsigned long fixed_initial_deadline/ { exit }
 ' "$active_world" >"$agenda_body"
@@ -57,7 +57,7 @@ if [[ $legacy_dispatch_count -ne 2 ]]; then
   fail "runtime/heartbeat legacy-mobile inventory changed (expected 2, found $legacy_dispatch_count)"
 fi
 
-grep -q '"active_world_mobile_agenda"' "$active_world" ||
-  fail "the concrete owner agenda event is missing"
+grep -q '"mobile.autonomous.agenda"' "$active_world" ||
+  fail "the native concrete-owner agenda type is missing"
 
 echo "demand-driven architecture test: PASS"

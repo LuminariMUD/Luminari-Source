@@ -2,6 +2,31 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native concrete-owner gameplay events
+
+#### Changed
+
+- Registered `mobile.autonomous.agenda`, `activity.primary.step`, and
+  `combat.encounter.round` as native owner-required event types.
+- Migrated autonomous-mobile deadlines, wall-clock primary-activity steps, and
+  encounter-owned combat rounds directly to native runtime handles,
+  cancellation, remaining-time queries, recurrence, and cleanup.
+- Preserved demand-driven off-screen mobile work, pause/resume and interruption
+  policy, encounter merge/mutation safety, and the six-second semantic combat
+  cadence. No callback discovers owners through a population scan.
+- Reduced the frozen compatibility inventory to six schedules across four
+  production files.
+
+#### Tests
+
+- Added semantic type-registration assertions and converted mobile deadline
+  tests to inspect native handles.
+- Retained recurrence, cancellation, capacity, activity re-entry, encounter
+  mutation/merge, dormant-population, and exact cadence coverage; all 1,050
+  tests pass.
+- Advanced the compatibility burn-down and demand-driven source gates to lock
+  the native concrete-owner architecture.
+
 ### Native mud-hour and vessel agendas
 
 #### Changed

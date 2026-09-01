@@ -11,6 +11,7 @@
 #include "domain_event_runtime.h"
 #include "domain_event_types.h"
 #include "domain_event_world.h"
+#include "event_runtime.h"
 
 #define COMBAT_ENCOUNTER_MAX_ACTIVE 32768U
 #define COMBAT_ENCOUNTER_PHASE_DELAY ((uint64_t)(2 RL_SEC))
@@ -51,7 +52,7 @@ struct combat_encounter_data
 {
   uint64_t id;
   uint64_t generation;
-  event_handle_t event_handle;
+  struct event_runtime_handle event_handle;
   struct combat_encounter_participant *participants;
   struct combat_encounter_participant *participants_tail;
   struct combat_encounter_participant *pending_additions;
@@ -98,6 +99,7 @@ static size_t scheduled_event_count;
 static uint64_t next_due_sequence = 1U;
 static struct combat_encounter_stats cumulative_stats;
 static struct domain_event_bus *encounter_bus;
+static game_event_type_id_t encounter_round_event_type;
 
 #ifdef LUMINARI_CUTEST
 static bool test_selection_set;
@@ -605,12 +607,14 @@ static struct combat_encounter_data *create_encounter(void)
   return encounter;
 }
 
-static event_handle_t create_round_event(struct combat_encounter_data *encounter, uint64_t delay);
+static struct event_runtime_handle
+create_round_event(struct combat_encounter_data *encounter, uint64_t delay);
 static void destroy_encounter(struct combat_encounter_data *encounter, bool dispatching);
 
 static bool ensure_round_event(struct combat_encounter_data *encounter)
 {
-  event_handle_t replacement;
+  enum game_scheduler_status status;
+  game_tick_t remaining;
   uint64_t delay;
 
   if (encounter == NULL || encounter->terminal || encounter->due_head == NULL)
@@ -623,21 +627,31 @@ static bool ensure_round_event(struct combat_encounter_data *encounter)
     delay = encounter->due_head->next_due > (uint64_t)pulse
                 ? encounter->due_head->next_due - (uint64_t)pulse
                 : 1U;
-  if (encounter->event_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_handle_is_none(encounter->event_handle))
   {
     encounter->event_handle = create_round_event(encounter, delay);
-    if (encounter->event_handle == EVENT_HANDLE_NONE)
+    if (event_runtime_handle_is_none(encounter->event_handle))
       return false;
     scheduled_event_count++;
     return true;
   }
-  if (encounter->resolving || event_handle_time(encounter->event_handle) <= (long)delay)
+  if (encounter->resolving)
     return true;
-  replacement = create_round_event(encounter, delay);
-  if (replacement == EVENT_HANDLE_NONE)
+  status = event_runtime_remaining(encounter->event_handle, &remaining);
+  if (status == GAME_SCHEDULER_OK && remaining <= delay)
     return true;
-  (void)event_handle_cancel(encounter->event_handle);
-  encounter->event_handle = replacement;
+  if (status == GAME_SCHEDULER_OK)
+  {
+    (void)event_runtime_reschedule_after(encounter->event_handle, (game_tick_t)delay);
+    return true;
+  }
+  encounter->event_handle = EVENT_RUNTIME_HANDLE_NONE;
+  if (scheduled_event_count > 0U)
+    scheduled_event_count--;
+  encounter->event_handle = create_round_event(encounter, delay);
+  if (event_runtime_handle_is_none(encounter->event_handle))
+    return false;
+  scheduled_event_count++;
   return true;
 }
 
@@ -674,11 +688,11 @@ static void destroy_encounter(struct combat_encounter_data *encounter, bool disp
 
   if (encounter == NULL)
     return;
-  if (encounter->event_handle != EVENT_HANDLE_NONE)
+  if (!event_runtime_handle_is_none(encounter->event_handle))
   {
     if (!dispatching)
-      (void)event_handle_cancel(encounter->event_handle);
-    encounter->event_handle = EVENT_HANDLE_NONE;
+      (void)event_runtime_cancel(encounter->event_handle);
+    encounter->event_handle = EVENT_RUNTIME_HANDLE_NONE;
     if (scheduled_event_count > 0U)
       scheduled_event_count--;
   }
@@ -780,10 +794,10 @@ static void merge_now(struct combat_encounter_data *survivor,
 
   if (survivor == NULL || absorbed == NULL || survivor == absorbed)
     return;
-  if (absorbed->event_handle != EVENT_HANDLE_NONE)
+  if (!event_runtime_handle_is_none(absorbed->event_handle))
   {
-    (void)event_handle_cancel(absorbed->event_handle);
-    absorbed->event_handle = EVENT_HANDLE_NONE;
+    (void)event_runtime_cancel(absorbed->event_handle);
+    absorbed->event_handle = EVENT_RUNTIME_HANDLE_NONE;
     if (scheduled_event_count > 0U)
       scheduled_event_count--;
   }
@@ -970,9 +984,10 @@ static bool run_semantic_round(struct combat_encounter_participant *participant)
                                    participant->perfect_tempo_was_hit);
 }
 
-EVENTFUNC(combat_encounter_round_event)
+static struct game_event_result
+combat_encounter_round_event(const struct game_event_context *context)
 {
-  struct combat_encounter_event_payload *payload = event_obj;
+  struct combat_encounter_event_payload *payload = context != NULL ? context->payload : NULL;
   struct combat_encounter_data *encounter;
   struct combat_encounter_participant *participant;
   bool completed;
@@ -981,15 +996,16 @@ EVENTFUNC(combat_encounter_round_event)
   uint64_t delay;
 
   if (payload == NULL)
-    return 0;
+    return game_event_result_complete();
   encounter = resolve_encounter(payload->id, payload->generation);
   if (encounter == NULL)
   {
     counter_increment(&cumulative_stats.stale_encounter_callbacks);
     event_note_stale_owner_outcome();
-    free(payload);
-    return 0;
+    return game_event_result_complete();
   }
+  if (encounter->event_handle.id != context->event_id)
+    return game_event_result_complete();
   counter_increment(&cumulative_stats.encounter_callbacks);
   encounter->resolving = true;
   if (semantic_rounds && encounter->due_head != NULL &&
@@ -1074,8 +1090,7 @@ EVENTFUNC(combat_encounter_round_event)
   if (encounter->terminal || encounter->due_head == NULL)
   {
     destroy_encounter(encounter, true);
-    free(payload);
-    return 0;
+    return game_event_result_complete();
   }
   if (semantic_rounds)
     delay = encounter->next_round_due > (uint64_t)pulse
@@ -1085,30 +1100,65 @@ EVENTFUNC(combat_encounter_round_event)
     delay = encounter->due_head->next_due > (uint64_t)pulse
                 ? encounter->due_head->next_due - (uint64_t)pulse
                 : 1U;
-  return delay > LONG_MAX ? LONG_MAX : (long)delay;
+  return game_event_result_reschedule_after(delay);
 }
 
-static event_handle_t create_round_event(struct combat_encounter_data *encounter, uint64_t delay)
+static void combat_encounter_event_cleanup(void *payload)
+{
+  free(payload);
+}
+
+static bool register_encounter_round_event_type(void)
+{
+  struct game_event_type_config config;
+  const char *registered_name;
+  enum game_scheduler_status status;
+
+  if (!event_runtime_is_initialized())
+    return false;
+  registered_name = event_runtime_type_name(encounter_round_event_type);
+  if (registered_name != NULL && !strcmp(registered_name, "combat.encounter.round"))
+    return true;
+  encounter_round_event_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = "combat.encounter.round";
+  config.handler = combat_encounter_round_event;
+  config.cleanup = combat_encounter_event_cleanup;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.max_events = COMBAT_ENCOUNTER_MAX_ACTIVE;
+  config.max_events_per_owner = 1U;
+  config.requires_owner = true;
+  status = event_runtime_register_type(&config, &encounter_round_event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: unable to register native event type 'combat.encounter.round' (status %d).",
+        status);
+    return false;
+  }
+  return true;
+}
+
+static struct event_runtime_handle
+create_round_event(struct combat_encounter_data *encounter, uint64_t delay)
 {
   struct combat_encounter_event_payload *payload;
   struct game_event_owner owner;
-  event_handle_t handle;
+  struct event_runtime_handle handle = EVENT_RUNTIME_HANDLE_NONE;
 
   payload = calloc(1U, sizeof(*payload));
   if (payload == NULL)
   {
     counter_increment(&cumulative_stats.admission_failures);
-    return EVENT_HANDLE_NONE;
+    return EVENT_RUNTIME_HANDLE_NONE;
   }
   payload->id = encounter->id;
   payload->generation = encounter->generation;
   owner.kind = GAME_EVENT_OWNER_ENCOUNTER;
   owner.runtime_id = encounter->id;
   owner.generation = encounter->generation;
-  handle = event_schedule_owned_named(combat_encounter_round_event, payload,
-                                      delay > LONG_MAX ? LONG_MAX : (long)delay,
-                                      "combat_encounter_round", owner);
-  if (handle == EVENT_HANDLE_NONE)
+  if (event_runtime_schedule_owned_after(encounter_round_event_type, owner,
+                                         (game_tick_t)delay, payload,
+                                         &handle) != GAME_SCHEDULER_OK)
   {
     free(payload);
     counter_increment(&cumulative_stats.admission_failures);
@@ -1413,6 +1463,8 @@ enum domain_event_status combat_encounter_runtime_init(struct domain_event_bus *
   shutting_down = false;
   encounter_mode = configured_encounter_mode();
   semantic_rounds = encounter_mode && configured_semantic_rounds();
+  if (encounter_mode && !register_encounter_round_event_type())
+    return DOMAIN_EVENT_BUSY;
   initialized = true;
   log("Combat round scheduling: %s.",
       !encounter_mode ? "legacy character events"

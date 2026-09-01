@@ -7420,7 +7420,7 @@ struct char_data
   unsigned long active_world_wander_due;  /**< Next randomized wander decision. */
   unsigned long active_world_reaction_due; /**< Next one-shot local reaction. */
   unsigned long active_world_resource_due; /**< Next consumed-resource recovery deadline. */
-  event_handle_t active_world_event_handle; /**< Earliest autonomous-work deadline. */
+  struct event_runtime_handle active_world_event_handle; /**< Earliest autonomous-work deadline. */
   struct primary_activity *primary_activity; /**< One intentional timed activity. */
   struct combat_encounter_data *combat_encounter; /**< Runtime fight-session owner. */
   struct combat_encounter_participant *combat_encounter_participant; /**< Membership node. */

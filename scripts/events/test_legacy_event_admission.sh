@@ -34,10 +34,7 @@ collect_counts()
 # burn-down list for already-migrated opaque handles, not an extension point.
 collect_counts '(^|[^[:alnum:]_])event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(' >"$actual"
 cat >"$expected" <<'EOF'
-src/active_world.c 1
-src/activity_manager.c 1
 src/ai_events.c 2
-src/combat/combat_encounters.c 1
 src/comm.c 2
 src/dgscript/dg_scripts.c 1
 src/mud_event.c 1
