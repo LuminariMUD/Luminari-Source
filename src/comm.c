@@ -547,6 +547,7 @@ int main(int argc, char **argv)
     log("Dev port set in utils.h to: %d.", CONFIG_DFLT_DEV_PORT);
   }
 
+  shutdown_ai_service();
   log("Clearing game world.");
   destroy_db();
 
@@ -568,7 +569,6 @@ int main(int argc, char **argv)
     free_strings(&config_info, OASIS_CFG); /* oasis_delete.c */
     free_ibt_lists();                      /* ibt.c */
     free_recent_players();                 /* act.informative.c */
-    shutdown_ai_service();                 /* ai_service.c */
     cleanup_lookup_table();                /* dg_scripts.c */
     free_list(world_events);               /* free up our global lists */
     free_list(global_lists);
@@ -1214,6 +1214,7 @@ void game_loop(socket_t local_mother_desc)
   struct descriptor_data *d = NULL, *next_d = NULL;
   int missed_pulses = 0, maxdesc = 0, aliased = 0;
   int i3_event_fd = -1;
+  int ai_event_fd = -1;
   int requested_missed_pulses = 0;
   int requested_heartbeats = 0;
   int replayed_heartbeats = 0;
@@ -1296,6 +1297,14 @@ void game_loop(socket_t local_mother_desc)
       FD_SET(i3_event_fd, &input_set);
       if (i3_event_fd > maxdesc)
         maxdesc = i3_event_fd;
+    }
+
+    ai_event_fd = ai_events_ingress_fd();
+    if (ai_event_fd >= 0)
+    {
+      FD_SET(ai_event_fd, &input_set);
+      if (ai_event_fd > maxdesc)
+        maxdesc = ai_event_fd;
     }
 
     if (terrain_api_is_running())
@@ -1541,6 +1550,10 @@ void game_loop(socket_t local_mother_desc)
 
     if (i3_event_fd >= 0 && FD_ISSET(i3_event_fd, &input_set))
       i3_process_events();
+
+    /* This is also called when the optional wake pipe is unavailable, so a
+     * queued completion can never depend on descriptor setup succeeding. */
+    ai_events_process_ingress();
 
     /* Process Discord bridge */
     if (discord_bridge)

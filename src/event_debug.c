@@ -14,6 +14,7 @@
 #include "combat/combat_encounters.h"
 #include "active_world.h"
 #include "activity_manager.h"
+#include "ai_service.h"
 #include "character_periodic.h"
 #include "dgscript/dg_scripts.h"
 #include "movement/movement_tracks.h"
@@ -185,6 +186,7 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   struct PERF_event_summary perf_stats;
   struct domain_event_bus_stats domain_stats;
   struct i3_ingress_stats ingress_stats;
+  struct ai_event_ingress_stats ai_ingress_stats;
   struct combat_encounter_stats encounter_stats;
   struct primary_activity_stats activity_stats;
   struct runtime_service_stats service_stats;
@@ -418,6 +420,22 @@ size_t event_debug_render_summary(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "  high-water: %" PRIu64, ingress_stats.high_water);
   debug_output_line(&output, "  rejected: %" PRIu64, ingress_stats.rejections);
   debug_output_line(&output, "  wake failures: %" PRIu64, ingress_stats.wake_failures);
+  memset(&ai_ingress_stats, 0, sizeof(ai_ingress_stats));
+  ai_events_get_ingress_stats(&ai_ingress_stats);
+  debug_output_line(&output, "");
+  debug_output_line(&output, "Worker ingress (AI)");
+  debug_output_line(&output, "  status: %s",
+                    ai_ingress_stats.available ? "online" : "offline");
+  debug_output_line(&output, "  depth: %zu/%zu", ai_ingress_stats.depth,
+                    ai_ingress_stats.capacity);
+  debug_output_line(&output, "  high-water: %" PRIu64,
+                    ai_ingress_stats.high_water);
+  debug_output_line(&output, "  accepted/processed: %" PRIu64 "/%" PRIu64,
+                    ai_ingress_stats.accepted, ai_ingress_stats.processed);
+  debug_output_line(&output, "  rejected: %" PRIu64, ai_ingress_stats.rejected);
+  debug_output_line(&output, "  wake/schedule failures: %" PRIu64 "/%" PRIu64,
+                    ai_ingress_stats.wake_failures,
+                    ai_ingress_stats.schedule_failures);
   debug_output_line(&output, "");
   bus = domain_event_runtime_bus();
   memset(&domain_stats, 0, sizeof(domain_stats));

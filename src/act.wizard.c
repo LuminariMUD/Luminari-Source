@@ -7112,6 +7112,11 @@ void perform_do_copyover()
   disconnect_from_mysql2();
   disconnect_from_mysql3();
 
+  /* Detached AI provider workers must finish before exec so they cannot write
+   * into a replaced scheduler or inherit stale process-owned state. */
+  shutdown_ai_service();
+  COPYOVER_DEBUG("copyover: AI workers and event ingress shut down for copyover");
+
   /* Stop worker ingress before detaching the main-thread reactor.  This joins
    * the I3 worker and closes its gateway socket and wake pipe before exec. */
   extern void i3_shutdown(void);
@@ -7210,6 +7215,7 @@ void perform_do_copyover()
   copyover_status = COPYOVER_NONE;
 
   /* Don't exit - try to keep the game running */
+  init_ai_service();
   log("Attempting to continue after copyover failure...");
   return;
 }

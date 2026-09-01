@@ -1,28 +1,6 @@
 /**
  * @file ai_events.c
- * @author Zusuk
- * @brief AI event system integration
- *
- * Handles event-driven AI responses with delays for more natural
- * conversation flow.
- *
- * COMPONENT INTERACTIONS:
- * - INTEGRATES WITH: mud_event.c event system
- * - CALLED BY: ai_service.c worker threads and async functions
- * - VALIDATES: Character pointers before response delivery
- * - CRITICAL FOR: Thread safety and async response handling
- *
- * THREAD SAFETY MODEL:
- * - Worker threads queue events via queue_ai_response()
- * - Main thread processes events via ai_response_event()
- * - Character validation prevents crashes from freed memory
- * - Events self-destruct if characters no longer exist
- *
- * EVENT TYPES:
- * 1. ai_response_event - Delivers AI responses to players
- * 2. ai_request_retry_event - Retries failed API requests
- *
- * Part of the LuminariMUD distribution.
+ * @brief Main-thread delivery and retry scheduling for asynchronous AI work.
  */
 
 #include "conf.h"
@@ -30,39 +8,81 @@
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
-#include "handler.h"
 #include "db.h"
 #include "ai_service.h"
+#include "domain_event_runtime.h"
+#include "domain_event_world.h"
 #include "dgscript/dg_event.h"
-#include "mud_event.h"
+#include "event_runtime.h"
 
-/* AI Response Event Data
- * Passed from worker threads to main thread via event system.
- * Character pointers may become invalid between creation and execution,
- * so validation is CRITICAL in the event handler.
- */
+#include <fcntl.h>
+#include <pthread.h>
+#include <unistd.h>
+
+#define AI_EVENT_INGRESS_CAPACITY 256U
+#define AI_EVENT_RESPONSE_DELAY 1U
+#define AI_EVENT_SERVICE_OWNER_ID UINT64_C(0x41490001)
+
+enum ai_ingress_kind
+{
+  AI_INGRESS_RESPONSE = 0,
+  AI_INGRESS_RETRY
+};
+
+enum ai_ingress_admission
+{
+  AI_INGRESS_ADMITTED = 0,
+  AI_INGRESS_DROPPED,
+  AI_INGRESS_FAILED
+};
+
 struct ai_response_event
 {
-  struct char_data *ch;  /* Player who initiated conversation */
-  struct char_data *npc; /* NPC providing response */
-  char *response;        /* AI-generated response text */
-  char *backend;         /* Which AI backend was used (OpenAI/Ollama/Cache/Fallback) */
-  bool from_cache;       /* Whether response came from cache */
+  struct domain_entity_handle player;
+  struct domain_entity_handle npc;
+  char *response;
+  char *backend;
+  char *cache_key;
+  bool from_cache;
 };
 
-/* AI Request Retry Event Data
- * Used for exponential backoff retry logic when API requests fail.
- * Retry events are chained - each failure creates a new retry event
- * with incremented retry_count until AI_MAX_RETRIES is reached.
- */
 struct ai_request_retry_event
 {
-  char *prompt;          /* Original prompt to retry */
-  int request_type;      /* AI_REQUEST_* constant */
-  int retry_count;       /* Current retry attempt number */
-  struct char_data *ch;  /* Optional: player character */
-  struct char_data *npc; /* Optional: NPC character */
+  char *prompt;
+  int request_type;
+  int retry_count;
+  struct domain_entity_handle player;
+  struct domain_entity_handle npc;
 };
+
+struct ai_ingress_item
+{
+  enum ai_ingress_kind kind;
+  void *payload;
+  game_tick_t delay;
+  struct ai_ingress_item *next;
+};
+
+static struct
+{
+  pthread_mutex_t mutex;
+  struct ai_ingress_item *head;
+  struct ai_ingress_item *tail;
+  size_t depth;
+  uint64_t high_water;
+  uint64_t accepted;
+  uint64_t processed;
+  uint64_t rejected;
+  uint64_t wake_failures;
+  uint64_t schedule_failures;
+  int read_fd;
+  int write_fd;
+  bool accepting;
+} ai_ingress = {PTHREAD_MUTEX_INITIALIZER, NULL, NULL, 0U, 0U, 0U, 0U, 0U, 0U,
+                0U, -1, -1, false};
+
+static game_event_type_id_t ai_response_type;
+static game_event_type_id_t ai_retry_type;
 
 #if defined(LUMINARI_CUTEST)
 static int ai_event_cleanup_count;
@@ -78,26 +98,25 @@ int ai_event_test_cleanup_count(void)
 }
 #endif
 
-static void cleanup_ai_response_event(event_handle_t handle, void *event_obj)
+static void cleanup_ai_response_event(void *event_obj)
 {
   struct ai_response_event *data = event_obj;
 
-  (void)handle;
   if (data == NULL)
     return;
   free(data->response);
   free(data->backend);
+  free(data->cache_key);
   free(data);
 #if defined(LUMINARI_CUTEST)
   ai_event_cleanup_count++;
 #endif
 }
 
-static void cleanup_ai_request_retry_event(event_handle_t handle, void *event_obj)
+static void cleanup_ai_request_retry_event(void *event_obj)
 {
   struct ai_request_retry_event *data = event_obj;
 
-  (void)handle;
   if (data == NULL)
     return;
   free(data->prompt);
@@ -107,421 +126,495 @@ static void cleanup_ai_request_retry_event(event_handle_t handle, void *event_ob
 #endif
 }
 
-/* Event function prototypes */
-EVENTFUNC(ai_response_event);
-EVENTFUNC(ai_request_retry_event);
-
-/**
- * AI Response Event Handler
- *
- * Delivers AI-generated responses to players after validation.
- * This runs in the MAIN THREAD after worker thread completes.
- *
- * CRITICAL VALIDATION STEPS:
- * 1. Verify event data exists and is complete
- * 2. Check both characters still exist in character_list
- * 3. Verify characters are in same room
- * 4. Only then deliver the response
- *
- * This extensive validation prevents crashes when characters
- * are freed during the async AI operation. Common scenarios:
- * - Player disconnects while waiting for response
- * - NPC is purged/killed during API call
- * - Characters move to different rooms
- *
- * Called by: MUD event system (event_process() in mud_event.c)
- * Returns: 0 (event completes and self-destructs)
- */
-EVENTFUNC(ai_response_event)
+static void cleanup_ai_response_rollback(event_handle_t handle, void *event_obj)
 {
-  struct ai_response_event *data = (struct ai_response_event *)event_obj;
+  (void)handle;
+  cleanup_ai_response_event(event_obj);
+}
+
+static void cleanup_ai_retry_rollback(event_handle_t handle, void *event_obj)
+{
+  (void)handle;
+  cleanup_ai_request_retry_event(event_obj);
+}
+
+static struct game_event_owner ai_service_owner(void)
+{
+  struct game_event_owner owner = game_event_owner_none();
+
+  owner.kind = GAME_EVENT_OWNER_SERVICE;
+  owner.runtime_id = AI_EVENT_SERVICE_OWNER_ID;
+  owner.generation = 1U;
+  return owner;
+}
+
+static struct game_event_owner ai_character_owner(struct domain_entity_handle handle)
+{
+  struct game_event_owner owner = game_event_owner_none();
+
+  if (!domain_entity_handle_is_valid(handle) || handle.kind != DOMAIN_ENTITY_CHARACTER)
+    return owner;
+  owner.kind = GAME_EVENT_OWNER_CHARACTER;
+  owner.runtime_id = handle.runtime_id;
+  owner.generation = handle.generation;
+  return owner;
+}
+
+static struct char_data *resolve_character(struct domain_entity_handle handle)
+{
+  if (!domain_entity_handle_is_valid(handle) || handle.kind != DOMAIN_ENTITY_CHARACTER)
+    return NULL;
+  return domain_event_resolve(domain_event_runtime_bus(), handle, DOMAIN_ENTITY_CHARACTER);
+}
+
+static void deliver_ai_response(struct ai_response_event *data)
+{
+  struct char_data *player;
+  struct char_data *npc;
   char buf[MAX_STRING_LENGTH];
 
-  AI_DEBUG("ai_response_event() triggered");
-
-  /* Validate data */
-  if (!data)
+  if (data == NULL || data->response == NULL)
+    return;
+  player = resolve_character(data->player);
+  npc = resolve_character(data->npc);
+  if (player == NULL || npc == NULL || IN_ROOM(player) == NOWHERE ||
+      IN_ROOM(player) != IN_ROOM(npc))
   {
-    AI_DEBUG("ERROR: NULL event data");
-    return 0;
+    event_note_stale_owner_outcome();
+    return;
   }
+  snprintf(buf, sizeof(buf), "$n tells you, '%s'", data->response);
+  act(buf, FALSE, npc, 0, player, TO_VICT);
+  log_ai_interaction(player, npc, data->response,
+                     data->backend != NULL ? data->backend : "unknown",
+                     data->from_cache);
+}
 
-  /* Check if characters still exist */
-  AI_DEBUG("Validating event data: ch=%p, npc=%p, response=%p", (void *)data->ch, (void *)data->npc,
-           (void *)data->response);
+static void run_ai_retry(struct ai_request_retry_event *data)
+{
+  bool player_valid;
+  bool npc_valid;
 
-  if (!data->ch || !data->npc || !data->response)
+  if (data == NULL || data->prompt == NULL)
+    return;
+  if (domain_entity_handle_is_none(data->player) ||
+      domain_entity_handle_is_none(data->npc))
+    return;
+  player_valid = domain_entity_handle_is_none(data->player) ||
+                 resolve_character(data->player) != NULL;
+  npc_valid = domain_entity_handle_is_none(data->npc) ||
+              resolve_character(data->npc) != NULL;
+  if (!player_valid || !npc_valid)
   {
-    AI_DEBUG("ERROR: Missing required data (ch=%s, npc=%s, response=%s)", data->ch ? "OK" : "NULL",
-             data->npc ? "OK" : "NULL", data->response ? "OK" : "NULL");
-    cleanup_ai_response_event(EVENT_HANDLE_NONE, data);
-    return 0;
+    event_note_stale_owner_outcome();
+    return;
   }
-
-  /* Validate characters are still in character list */
-  AI_DEBUG("Checking if characters still exist in game");
-  struct char_data *ch;
-  bool ch_found = FALSE, npc_found = FALSE;
-
-  for (ch = character_list; ch; ch = ch->next)
+  if (!ai_retry_request_async(data->prompt, data->request_type, data->retry_count,
+                              data->player, data->npc) &&
+      data->retry_count < AI_MAX_RETRIES)
   {
-    if (ch == data->ch)
-      ch_found = TRUE;
-    if (ch == data->npc)
-      npc_found = TRUE;
-    if (ch_found && npc_found)
-      break;
+    queue_ai_request_retry_for_entities(data->prompt, data->request_type,
+                                        data->retry_count + 1, data->player,
+                                        data->npc);
   }
+}
 
-  AI_DEBUG("Character validation: ch_found=%s, npc_found=%s", ch_found ? "YES" : "NO",
-           npc_found ? "YES" : "NO");
+static struct game_event_result ai_response_dispatch(
+    const struct game_event_context *context)
+{
+  deliver_ai_response(context != NULL ? context->payload : NULL);
+  return game_event_result_complete();
+}
 
-  if (!ch_found || !npc_found)
-  {
-    /* One or both characters have been freed */
-    AI_DEBUG("Characters no longer exist, cleaning up");
-    cleanup_ai_response_event(EVENT_HANDLE_NONE, data);
-    return 0;
-  }
+static struct game_event_result ai_retry_dispatch(
+    const struct game_event_context *context)
+{
+  run_ai_retry(context != NULL ? context->payload : NULL);
+  return game_event_result_complete();
+}
 
-  /* Verify both characters are still valid and in same room */
-  AI_DEBUG("Checking room locations: ch_room=%d, npc_room=%d", IN_ROOM(data->ch),
-           IN_ROOM(data->npc));
-
-  if (IN_ROOM(data->ch) == IN_ROOM(data->npc) && IN_ROOM(data->ch) != NOWHERE)
-  {
-    AI_DEBUG("Characters in same room, delivering response");
-    /* Send the AI response */
-    snprintf(buf, sizeof(buf), "$n tells you, '%s'", data->response);
-    act(buf, FALSE, data->npc, 0, data->ch, TO_VICT);
-
-    /* Log the interaction with backend info */
-    log_ai_interaction(data->ch, data->npc, data->response, data->backend, data->from_cache);
-    AI_DEBUG("Response delivered successfully");
-  }
-  else
-  {
-    AI_DEBUG("Characters not in same room or in NOWHERE, skipping response");
-  }
-
-  /* Cleanup */
-  AI_DEBUG("Cleaning up event data");
-  cleanup_ai_response_event(EVENT_HANDLE_NONE, data);
+static EVENTFUNC(ai_response_rollback)
+{
+  deliver_ai_response(event_obj);
   return 0;
 }
 
-/**
- * Queue an AI response with a delay
- *
- * Thread-safe function to queue AI responses for delivery.
- * Can be called from worker threads or main thread.
- *
- * Flow:
- * 1. Validate character pointers are currently valid
- * 2. Create event data structure with response
- * 3. Calculate realistic delay (currently minimal)
- * 4. Queue event for main thread processing
- *
- * Called by:
- * - ai_thread_worker() from worker threads
- * - ai_npc_dialogue_async() when cache hit (main thread)
- * - ai_request_retry_event() after successful retry
- *
- * Thread safety: Character validation here is a snapshot.
- * The event handler must re-validate before delivery.
- *
- * Delay: Currently 0 seconds for instant responses.
- * Can be adjusted based on response length for realism.
- */
-void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response,
-                       const char *backend, bool from_cache)
+static EVENTFUNC(ai_retry_rollback)
 {
-  struct ai_response_event *event_data;
-  struct char_data *temp;
-  int delay;
-  bool ch_valid = FALSE, npc_valid = FALSE;
-
-  AI_DEBUG("queue_ai_response() called: ch=%p, npc=%p, response_len=%zu, backend=%s, cached=%s",
-           (void *)ch, (void *)npc, response ? strlen(response) : 0, backend ? backend : "unknown",
-           from_cache ? "yes" : "no");
-
-  if (!ch || !npc || !response)
-  {
-    AI_DEBUG("ERROR: NULL parameters provided");
-    return;
-  }
-
-  /* Validate characters are in character list before creating event */
-  AI_DEBUG("Validating character pointers");
-  for (temp = character_list; temp; temp = temp->next)
-  {
-    if (temp == ch)
-      ch_valid = TRUE;
-    if (temp == npc)
-      npc_valid = TRUE;
-    if (ch_valid && npc_valid)
-      break;
-  }
-
-  AI_DEBUG("Validation result: ch_valid=%s, npc_valid=%s", ch_valid ? "YES" : "NO",
-           npc_valid ? "YES" : "NO");
-
-  if (!ch_valid || !npc_valid)
-  {
-    log("SYSERR: queue_ai_response called with invalid character pointers");
-    AI_DEBUG("ERROR: Invalid character pointers detected");
-    return;
-  }
-
-  /* Create event data */
-  AI_DEBUG("Creating AI response event data");
-  CREATE(event_data, struct ai_response_event, 1);
-  if (!event_data)
-  {
-    log("SYSERR: Failed to allocate memory for AI response event");
-    AI_DEBUG("ERROR: Failed to allocate event data structure");
-    return;
-  }
-  AI_DEBUG("Event data allocated at %p", (void *)event_data);
-
-  event_data->ch = ch;
-  event_data->npc = npc;
-  event_data->response = strdup(response);
-  if (!event_data->response)
-  {
-    log("SYSERR: Failed to allocate memory for AI response text");
-    AI_DEBUG("ERROR: strdup failed for response");
-    free(event_data);
-    return;
-  }
-  event_data->backend = backend ? strdup(backend) : strdup("unknown");
-  if (!event_data->backend)
-  {
-    log("SYSERR: Failed to allocate memory for AI backend name");
-    AI_DEBUG("ERROR: backend strdup failed");
-    cleanup_ai_response_event(EVENT_HANDLE_NONE, event_data);
-    return;
-  }
-  event_data->from_cache = from_cache;
-  AI_DEBUG("Response duplicated (length=%zu), backend=%s", strlen(event_data->response),
-           event_data->backend);
-
-  /* Calculate delay based on response length for realism */
-  /* Reduced delay for faster responses - only 1 second flat */
-  delay = 0; /* Minimal delay to prevent spam while keeping responses fast */
-
-  AI_DEBUG("Calculated delay: %d seconds (response_len=%zu)", delay, strlen(response));
-
-  /* Create the event */
-  AI_DEBUG("Creating event with %d second delay (%d pulses)", delay, delay * PASSES_PER_SEC);
-  if (event_schedule_with_cleanup(ai_response_event, event_data, delay * PASSES_PER_SEC,
-                                  cleanup_ai_response_event) == EVENT_HANDLE_NONE)
-  {
-    cleanup_ai_response_event(EVENT_HANDLE_NONE, event_data);
-    log("SYSERR: Failed to queue AI response event");
-    return;
-  }
-  AI_DEBUG("AI response event queued successfully");
-}
-
-/**
- * AI Request Retry Event Handler
- *
- * Implements exponential backoff retry logic for failed API requests.
- * This provides resilience against temporary API failures.
- *
- * Retry strategy:
- * - Initial attempt: No delay
- * - Retry 1: 1 second delay
- * - Retry 2: 2 seconds delay
- * - Retry 3: 4 seconds delay
- * - Maximum delay capped at 16 seconds
- *
- * Flow:
- * 1. Validate event data and optional character pointers
- * 2. Call ai_generate_response_async() for single attempt
- * 3. If successful, queue response via queue_ai_response()
- * 4. If failed and retries remain, caller creates new retry event
- *
- * Called by: MUD event system after retry delay
- * Interacts with: ai_service.c for API calls
- */
-EVENTFUNC(ai_request_retry_event)
-{
-  struct ai_request_retry_event *data = (struct ai_request_retry_event *)event_obj;
-  char *response;
-  struct char_data *temp;
-  bool ch_valid = FALSE, npc_valid = FALSE;
-
-  AI_DEBUG("ai_request_retry_event() triggered");
-
-  /* Validate data */
-  if (!data || !data->prompt)
-  {
-    AI_DEBUG("ERROR: Invalid event data (data=%p, prompt=%p)", (void *)data,
-             data ? (void *)data->prompt : NULL);
-    cleanup_ai_request_retry_event(EVENT_HANDLE_NONE, data);
-    return 0;
-  }
-
-  AI_DEBUG("Retry event: type=%d, retry_count=%d/%d", data->request_type, data->retry_count,
-           AI_MAX_RETRIES);
-
-  /* If characters were provided, validate they still exist */
-  if (data->ch || data->npc)
-  {
-    AI_DEBUG("Validating character pointers: ch=%p, npc=%p", (void *)data->ch, (void *)data->npc);
-
-    for (temp = character_list; temp; temp = temp->next)
-    {
-      if (temp == data->ch)
-        ch_valid = TRUE;
-      if (temp == data->npc)
-        npc_valid = TRUE;
-      if ((data->ch && ch_valid) && (data->npc && npc_valid))
-        break;
-    }
-
-    AI_DEBUG("Character validation: ch_valid=%s, npc_valid=%s",
-             data->ch ? (ch_valid ? "YES" : "NO") : "N/A",
-             data->npc ? (npc_valid ? "YES" : "NO") : "N/A");
-
-    /* If either character was freed, abort the retry */
-    if ((data->ch && !ch_valid) || (data->npc && !npc_valid))
-    {
-      AI_DEBUG("Characters no longer valid, aborting retry");
-      cleanup_ai_request_retry_event(EVENT_HANDLE_NONE, data);
-      return 0;
-    }
-  }
-
-  /* Make the API request (will internally retry if needed) */
-  AI_DEBUG("Making async API request");
-  response = ai_generate_response_async(data->prompt, data->request_type, data->retry_count);
-
-  if (response)
-  {
-    AI_DEBUG("Got response (length=%zu)", strlen(response));
-  }
-  else
-  {
-    AI_DEBUG("No response received");
-  }
-
-  /* If we have a response and valid characters, queue the response event */
-  if (response && data->ch && data->npc && ch_valid && npc_valid)
-  {
-    AI_DEBUG("Queueing response event");
-    /* Retry events don't track backend, so mark as unknown */
-    queue_ai_response(data->ch, data->npc, response, "Retry", FALSE);
-    free(response);
-  }
-  else
-  {
-    AI_DEBUG("Not queueing response: response=%s, ch=%s, npc=%s", response ? "YES" : "NO",
-             (data->ch && ch_valid) ? "VALID" : "INVALID",
-             (data->npc && npc_valid) ? "VALID" : "INVALID");
-  }
-
-  /* Cleanup */
-  AI_DEBUG("Cleaning up retry event data");
-  cleanup_ai_request_retry_event(EVENT_HANDLE_NONE, data);
+  run_ai_retry(event_obj);
   return 0;
 }
 
-/**
- * Queue an AI request with retry support
- *
- * Creates a retry event for failed AI requests with exponential backoff.
- * This is the entry point for the retry system.
- *
- * Called by:
- * - ai_npc_dialogue_async() when thread creation fails
- * - ai_request_retry_event() to chain retry attempts
- * - Future: Any async AI operation needing retry logic
- *
- * Delay calculation:
- * - retry_count 0: 0.1 seconds (immediate first attempt)
- * - retry_count n: 2^n seconds (exponential backoff)
- * - Maximum delay: 16 seconds
- *
- * The retry event will:
- * 1. Make one API attempt via ai_generate_response_async()
- * 2. Deliver response if successful
- * 3. Let caller handle further retries if needed
- *
- * Thread safety: Can be called from any thread
- */
+bool ai_events_runtime_init(void)
+{
+  struct game_event_type_config config;
+  enum game_scheduler_status status;
+
+  if (event_backend_current() != EVENT_BACKEND_GAME_SCHEDULER)
+    return true;
+  if (!event_runtime_is_initialized())
+    return false;
+  if (ai_response_type != 0U && ai_retry_type != 0U &&
+      event_runtime_type_name(ai_response_type) != NULL &&
+      event_runtime_type_name(ai_retry_type) != NULL &&
+      !strcmp(event_runtime_type_name(ai_response_type), "ai.response.delivery") &&
+      !strcmp(event_runtime_type_name(ai_retry_type), "ai.request.retry"))
+    return true;
+  if (event_runtime_types_are_sealed())
+    return false;
+
+  ai_response_type = 0U;
+  ai_retry_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = "ai.response.delivery";
+  config.handler = ai_response_dispatch;
+  config.cleanup = cleanup_ai_response_event;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.max_events = AI_EVENT_INGRESS_CAPACITY;
+  config.max_events_per_owner = 16U;
+  config.requires_owner = true;
+  status = event_runtime_register_type(&config, &ai_response_type);
+  if (status != GAME_SCHEDULER_OK)
+    return false;
+
+  config.name = "ai.request.retry";
+  config.handler = ai_retry_dispatch;
+  config.cleanup = cleanup_ai_request_retry_event;
+  config.max_events_per_owner = 4U;
+  status = event_runtime_register_type(&config, &ai_retry_type);
+  return status == GAME_SCHEDULER_OK;
+}
+
+static void set_nonblocking(int fd)
+{
+  int flags;
+
+  flags = fcntl(fd, F_GETFL, 0);
+  if (flags >= 0)
+    (void)fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+}
+
+bool ai_events_ingress_init(void)
+{
+  int signal_fds[2];
+
+  pthread_mutex_lock(&ai_ingress.mutex);
+  if (ai_ingress.accepting)
+  {
+    pthread_mutex_unlock(&ai_ingress.mutex);
+    return true;
+  }
+  ai_ingress.accepting = true;
+  if (ai_ingress.read_fd < 0 && pipe(signal_fds) == 0)
+  {
+    ai_ingress.read_fd = signal_fds[0];
+    ai_ingress.write_fd = signal_fds[1];
+    set_nonblocking(ai_ingress.read_fd);
+    set_nonblocking(ai_ingress.write_fd);
+  }
+  else if (ai_ingress.read_fd < 0)
+  {
+    ai_ingress.wake_failures++;
+    log("SYSERR: Unable to create the AI main-loop wake pipe: %s", strerror(errno));
+  }
+  pthread_mutex_unlock(&ai_ingress.mutex);
+  return true;
+}
+
+static void cleanup_ingress_item(struct ai_ingress_item *item)
+{
+  if (item == NULL)
+    return;
+  if (item->payload != NULL)
+  {
+    if (item->kind == AI_INGRESS_RESPONSE)
+      cleanup_ai_response_event(item->payload);
+    else
+      cleanup_ai_request_retry_event(item->payload);
+  }
+  free(item);
+}
+
+void ai_events_ingress_shutdown(void)
+{
+  struct ai_ingress_item *item;
+  struct ai_ingress_item *next;
+  int read_fd;
+  int write_fd;
+
+  pthread_mutex_lock(&ai_ingress.mutex);
+  ai_ingress.accepting = false;
+  item = ai_ingress.head;
+  ai_ingress.head = NULL;
+  ai_ingress.tail = NULL;
+  ai_ingress.depth = 0U;
+  read_fd = ai_ingress.read_fd;
+  write_fd = ai_ingress.write_fd;
+  ai_ingress.read_fd = -1;
+  ai_ingress.write_fd = -1;
+  pthread_mutex_unlock(&ai_ingress.mutex);
+
+  while (item != NULL)
+  {
+    next = item->next;
+    cleanup_ingress_item(item);
+    item = next;
+  }
+  if (read_fd >= 0)
+    close(read_fd);
+  if (write_fd >= 0)
+    close(write_fd);
+}
+
+int ai_events_ingress_fd(void)
+{
+  int fd;
+
+  pthread_mutex_lock(&ai_ingress.mutex);
+  fd = ai_ingress.read_fd;
+  pthread_mutex_unlock(&ai_ingress.mutex);
+  return fd;
+}
+
+static bool enqueue_ingress(enum ai_ingress_kind kind, void *payload,
+                            game_tick_t delay)
+{
+  struct ai_ingress_item *item;
+  unsigned char signal_byte = 1U;
+
+  item = calloc(1U, sizeof(*item));
+  if (item == NULL)
+    return false;
+  item->kind = kind;
+  item->payload = payload;
+  item->delay = MAX(delay, 1U);
+
+  pthread_mutex_lock(&ai_ingress.mutex);
+  if (!ai_ingress.accepting || ai_ingress.depth >= AI_EVENT_INGRESS_CAPACITY)
+  {
+    ai_ingress.rejected++;
+    pthread_mutex_unlock(&ai_ingress.mutex);
+    free(item);
+    return false;
+  }
+  if (ai_ingress.tail != NULL)
+    ai_ingress.tail->next = item;
+  else
+    ai_ingress.head = item;
+  ai_ingress.tail = item;
+  ai_ingress.depth++;
+  ai_ingress.accepted++;
+  if (ai_ingress.depth > ai_ingress.high_water)
+    ai_ingress.high_water = ai_ingress.depth;
+  if (ai_ingress.write_fd >= 0 &&
+      write(ai_ingress.write_fd, &signal_byte, sizeof(signal_byte)) < 0 &&
+      errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)
+    ai_ingress.wake_failures++;
+  pthread_mutex_unlock(&ai_ingress.mutex);
+  return true;
+}
+
+static struct ai_ingress_item *pop_ingress(void)
+{
+  struct ai_ingress_item *item;
+
+  pthread_mutex_lock(&ai_ingress.mutex);
+  item = ai_ingress.head;
+  if (item != NULL)
+  {
+    ai_ingress.head = item->next;
+    if (ai_ingress.head == NULL)
+      ai_ingress.tail = NULL;
+    item->next = NULL;
+    ai_ingress.depth--;
+    ai_ingress.processed++;
+  }
+  pthread_mutex_unlock(&ai_ingress.mutex);
+  return item;
+}
+
+static enum ai_ingress_admission schedule_ingress_item(struct ai_ingress_item *item)
+{
+  struct event_runtime_handle runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
+  struct game_event_owner owner;
+  enum game_scheduler_status status;
+  event_handle_t rollback_handle;
+
+  if (item == NULL)
+    return AI_INGRESS_FAILED;
+  if (item->kind == AI_INGRESS_RESPONSE)
+  {
+    struct ai_response_event *data = item->payload;
+
+    owner = ai_character_owner(data->player);
+    if (!game_event_owner_is_valid(owner))
+      return AI_INGRESS_FAILED;
+    if (data->cache_key != NULL && data->response != NULL)
+      ai_cache_response(data->cache_key, data->response);
+    if (domain_event_runtime_bus() != NULL &&
+        (resolve_character(data->player) == NULL ||
+         resolve_character(data->npc) == NULL))
+    {
+      event_note_stale_owner_outcome();
+      return AI_INGRESS_DROPPED;
+    }
+    if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER)
+    {
+      if (!ai_events_runtime_init())
+        return AI_INGRESS_FAILED;
+      status = event_runtime_schedule_owned_after(ai_response_type, owner, item->delay,
+                                                  data, &runtime_handle);
+      return status == GAME_SCHEDULER_OK ? AI_INGRESS_ADMITTED : AI_INGRESS_FAILED;
+    }
+    rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
+        ai_response_rollback, data, (long)item->delay, "ai.response.delivery",
+        cleanup_ai_response_rollback, owner);
+    return rollback_handle != EVENT_HANDLE_NONE ? AI_INGRESS_ADMITTED : AI_INGRESS_FAILED;
+  }
+  else
+  {
+    struct ai_request_retry_event *data = item->payload;
+
+    owner = ai_character_owner(data->player);
+    if (!game_event_owner_is_valid(owner))
+      owner = ai_service_owner();
+    if (domain_event_runtime_bus() != NULL &&
+        ((!domain_entity_handle_is_none(data->player) &&
+          resolve_character(data->player) == NULL) ||
+         (!domain_entity_handle_is_none(data->npc) &&
+          resolve_character(data->npc) == NULL)))
+    {
+      event_note_stale_owner_outcome();
+      return AI_INGRESS_DROPPED;
+    }
+    if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER)
+    {
+      if (!ai_events_runtime_init())
+        return AI_INGRESS_FAILED;
+      status = event_runtime_schedule_owned_after(ai_retry_type, owner, item->delay,
+                                                  data, &runtime_handle);
+      return status == GAME_SCHEDULER_OK ? AI_INGRESS_ADMITTED : AI_INGRESS_FAILED;
+    }
+    rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
+        ai_retry_rollback, data, (long)item->delay, "ai.request.retry",
+        cleanup_ai_retry_rollback, owner);
+    return rollback_handle != EVENT_HANDLE_NONE ? AI_INGRESS_ADMITTED : AI_INGRESS_FAILED;
+  }
+}
+
+void ai_events_process_ingress(void)
+{
+  struct ai_ingress_item *item;
+  unsigned char signal_buffer[64];
+  int read_fd;
+
+  read_fd = ai_events_ingress_fd();
+  if (read_fd >= 0)
+    while (read(read_fd, signal_buffer, sizeof(signal_buffer)) > 0)
+    {
+    }
+  while ((item = pop_ingress()) != NULL)
+  {
+    enum ai_ingress_admission admission = schedule_ingress_item(item);
+
+    if (admission == AI_INGRESS_ADMITTED)
+      item->payload = NULL;
+    else if (admission == AI_INGRESS_FAILED)
+    {
+      pthread_mutex_lock(&ai_ingress.mutex);
+      ai_ingress.schedule_failures++;
+      pthread_mutex_unlock(&ai_ingress.mutex);
+    }
+    cleanup_ingress_item(item);
+  }
+}
+
+void ai_events_get_ingress_stats(struct ai_event_ingress_stats *stats)
+{
+  if (stats == NULL)
+    return;
+  memset(stats, 0, sizeof(*stats));
+  pthread_mutex_lock(&ai_ingress.mutex);
+  stats->available = ai_ingress.accepting;
+  stats->depth = ai_ingress.depth;
+  stats->capacity = AI_EVENT_INGRESS_CAPACITY;
+  stats->high_water = ai_ingress.high_water;
+  stats->accepted = ai_ingress.accepted;
+  stats->processed = ai_ingress.processed;
+  stats->rejected = ai_ingress.rejected;
+  stats->wake_failures = ai_ingress.wake_failures;
+  stats->schedule_failures = ai_ingress.schedule_failures;
+  pthread_mutex_unlock(&ai_ingress.mutex);
+}
+
+void queue_ai_response_for_entities(struct domain_entity_handle player,
+                                    struct domain_entity_handle npc,
+                                    const char *response, const char *backend,
+                                    const char *cache_key, bool from_cache)
+{
+  struct ai_response_event *data;
+
+  if (!domain_entity_handle_is_valid(player) ||
+      !domain_entity_handle_is_valid(npc) || response == NULL)
+    return;
+  data = calloc(1U, sizeof(*data));
+  if (data == NULL)
+    return;
+  data->player = player;
+  data->npc = npc;
+  data->response = strdup(response);
+  data->backend = strdup(backend != NULL ? backend : "unknown");
+  data->cache_key = cache_key != NULL ? strdup(cache_key) : NULL;
+  data->from_cache = from_cache;
+  if (data->response == NULL || data->backend == NULL ||
+      (cache_key != NULL && data->cache_key == NULL) ||
+      !enqueue_ingress(AI_INGRESS_RESPONSE, data, AI_EVENT_RESPONSE_DELAY))
+    cleanup_ai_response_event(data);
+}
+
+void queue_ai_response(struct char_data *ch, struct char_data *npc,
+                       const char *response, const char *backend,
+                       bool from_cache)
+{
+  queue_ai_response_for_entities(domain_event_character_handle(ch),
+                                 domain_event_character_handle(npc), response,
+                                 backend, NULL, from_cache);
+}
+
+void queue_ai_request_retry_for_entities(const char *prompt, int request_type,
+                                         int retry_count,
+                                         struct domain_entity_handle player,
+                                         struct domain_entity_handle npc)
+{
+  struct ai_request_retry_event *data;
+  game_tick_t delay;
+
+  if (prompt == NULL)
+    return;
+  data = calloc(1U, sizeof(*data));
+  if (data == NULL)
+    return;
+  data->prompt = strdup(prompt);
+  data->request_type = request_type;
+  data->retry_count = retry_count;
+  data->player = player;
+  data->npc = npc;
+  delay = retry_count <= 0 ? PASSES_PER_SEC :
+          (game_tick_t)MIN(1 << MIN(retry_count, 4), 16) * PASSES_PER_SEC;
+  if (data->prompt == NULL || !enqueue_ingress(AI_INGRESS_RETRY, data, delay))
+    cleanup_ai_request_retry_event(data);
+}
+
 void queue_ai_request_retry(const char *prompt, int request_type, int retry_count,
                             struct char_data *ch, struct char_data *npc)
 {
-  struct ai_request_retry_event *event_data;
-  int delay;
+  struct domain_entity_handle player = domain_entity_handle_none();
+  struct domain_entity_handle mobile = domain_entity_handle_none();
 
-  AI_DEBUG("queue_ai_request_retry() called: type=%d, retry=%d, ch=%p, npc=%p", request_type,
-           retry_count, (void *)ch, (void *)npc);
-
-  if (!prompt)
-  {
-    AI_DEBUG("ERROR: NULL prompt provided");
-    return;
-  }
-
-  /* Create event data */
-  AI_DEBUG("Creating retry event data");
-  CREATE(event_data, struct ai_request_retry_event, 1);
-  if (!event_data)
-  {
-    log("SYSERR: Failed to allocate memory for AI request retry event");
-    AI_DEBUG("ERROR: Failed to allocate retry event structure");
-    return;
-  }
-
-  event_data->prompt = strdup(prompt);
-  if (!event_data->prompt)
-  {
-    log("SYSERR: Failed to allocate memory for AI prompt text");
-    AI_DEBUG("ERROR: strdup failed for prompt");
-    free(event_data);
-    return;
-  }
-
-  AI_DEBUG("Event data populated:");
-  AI_DEBUG("  Prompt: '%.50s%s'", event_data->prompt, strlen(event_data->prompt) > 50 ? "..." : "");
-  event_data->request_type = request_type;
-  AI_DEBUG("  Request type: %d", event_data->request_type);
-  event_data->retry_count = retry_count;
-  AI_DEBUG("  Retry count: %d", event_data->retry_count);
-  event_data->ch = ch;
-  event_data->npc = npc;
-  AI_DEBUG("  Characters: ch=%p, npc=%p", (void *)ch, (void *)npc);
-
-  /* Minimal initial delay to avoid blocking immediately */
-  if (retry_count == 0)
-  {
-    delay = 1; /* 0.1 seconds for first attempt */
-  }
-  else
-  {
-    /* Calculate exponential backoff delay for retries: 2^retry_count seconds */
-    delay = 1 << retry_count;
-  }
-  AI_DEBUG("Calculated delay: %d pulses (retry_count=%d)", delay, retry_count);
-
-  if (delay > 16)
-  {
-    delay = 16; /* Cap at 16 seconds */
-    AI_DEBUG("Delay capped at maximum 16 seconds");
-  }
-
-  /* Create the event */
-  AI_DEBUG("Creating retry event with %d second delay (%d pulses)", delay, delay * PASSES_PER_SEC);
-  if (event_schedule_with_cleanup(ai_request_retry_event, event_data, delay * PASSES_PER_SEC,
-                                  cleanup_ai_request_retry_event) == EVENT_HANDLE_NONE)
-  {
-    cleanup_ai_request_retry_event(EVENT_HANDLE_NONE, event_data);
-    log("SYSERR: Failed to queue AI request retry event");
-    return;
-  }
-  AI_DEBUG("AI request retry event queued successfully");
+  if (ch != NULL)
+    player = domain_event_character_handle(ch);
+  if (npc != NULL)
+    mobile = domain_event_character_handle(npc);
+  queue_ai_request_retry_for_entities(prompt, request_type, retry_count, player,
+                                      mobile);
 }

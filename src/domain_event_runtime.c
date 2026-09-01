@@ -2,6 +2,7 @@
 
 #include "active_world.h"
 #include "activity_manager.h"
+#include "ai_service.h"
 #include "affected_owners.h"
 #include "character_periodic.h"
 #include "combat/combat_encounters.h"
@@ -30,6 +31,9 @@ enum domain_event_status domain_event_runtime_init(void)
   (void)dg_wait_runtime_init();
   if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
       !mud_event_runtime_init())
+    status = DOMAIN_EVENT_ALLOCATION_FAILED;
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
+      !ai_events_runtime_init())
     status = DOMAIN_EVENT_ALLOCATION_FAILED;
   affected_owners_init();
   character_periodic_init();

@@ -86,10 +86,10 @@ generation-safe `event_handle_t` values and payload destructors receive owned
 payloads. The internal header is included by the facade plus two low-level
 adapter tests; it is not a gameplay API.
 
-There are four opaque compatibility-adapter scheduling calls across three
-production files:
+There are four physical-rollback compatibility-adapter scheduling calls across
+three production files:
 
-- two AI response/retry jobs in `src/ai_events.c`;
+- two AI response/retry fallbacks in `src/ai_events.c`;
 - one DG trigger-wait fallback used only by the physical legacy backend in
   `src/dgscript/dg_scripts.c`; and
 - one MUD-event fallback admission used only by the physical legacy backend in
@@ -103,6 +103,13 @@ The facade can be simplified or its callers moved to native event types in
 reviewable slices without reopening gameplay access to the old architecture.
 
 ### Completed migration history
+
+The native AI slice makes `ai.response.delivery` and `ai.request.retry`
+authoritative whenever the game scheduler is selected. Worker threads submit
+immutable owned payloads to a bounded wakeable inbox; only the main thread
+mutates the AI cache, resolves generation-safe entities, or admits timers. The
+two adapter calls counted above are reached only by the explicit physical
+legacy backend.
 
 The native DG-wait slice makes `dg.trigger.wait` authoritative whenever the
 game scheduler is selected. Its typed character, object, or room owner now

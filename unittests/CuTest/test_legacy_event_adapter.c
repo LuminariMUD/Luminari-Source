@@ -7,12 +7,14 @@
 #include "../../src/comm.h"
 #include "../../src/dgscript/dg_event_internal.h"
 #include "../../src/ai_service.h"
+#include "../../src/domain_event_world.h"
 #include "../../src/event_debug.h"
 #include "../../src/event_runtime.h"
 #include "../../src/perfmon.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #define EVENT_TRACE_CAPACITY 8
 
@@ -217,11 +219,32 @@ static void begin_backend_test(CuTest *tc, enum event_backend_kind backend,
   CuAssertIntEquals(tc, backend, event_backend_current());
 }
 
+struct ai_ingress_thread_test
+{
+  struct domain_entity_handle player;
+  struct domain_entity_handle npc;
+};
+
+static void *enqueue_ai_response_from_worker(void *context)
+{
+  struct ai_ingress_thread_test *test = context;
+
+  queue_ai_response_for_entities(test->player, test->npc, "test response",
+                                 "test backend", NULL, false);
+  return NULL;
+}
+
 static void verify_ai_event_shutdown_cleanup(CuTest *tc, enum event_backend_kind backend)
 {
+  struct ai_event_ingress_stats ingress_stats;
+  struct ai_ingress_thread_test thread_test;
+  struct event_debug_filter filter;
+  struct event_debug_snapshot snapshot;
   struct char_data player;
   struct char_data npc;
   struct char_data *saved_character_list;
+  pthread_t producer;
+  size_t returned_count;
   int queued_events;
 
   memset(&player, 0, sizeof(player));
@@ -231,13 +254,36 @@ static void verify_ai_event_shutdown_cleanup(CuTest *tc, enum event_backend_kind
   character_list = &player;
 
   begin_backend_test(tc, backend, 0U);
+  ai_events_ingress_shutdown();
+  CuAssertTrue(tc, ai_events_ingress_init());
   ai_event_test_reset_cleanup_count();
-  queue_ai_response(&player, &npc, "test response", "test backend", false);
+  thread_test.player = domain_event_character_handle(&player);
+  thread_test.npc = domain_event_character_handle(&npc);
+  CuAssertIntEquals(tc, 0,
+                    pthread_create(&producer, NULL, enqueue_ai_response_from_worker,
+                                   &thread_test));
+  CuAssertIntEquals(tc, 0, pthread_join(producer, NULL));
   queue_ai_request_retry("test prompt", AI_REQUEST_NPC_DIALOGUE, 0, NULL, NULL);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  memset(&ingress_stats, 0, sizeof(ingress_stats));
+  ai_events_get_ingress_stats(&ingress_stats);
+  CuAssertIntEquals(tc, 2, (int)ingress_stats.depth);
+  ai_events_process_ingress();
   queued_events = event_queue_depth();
+  memset(&filter, 0, sizeof(filter));
+  filter.type_equals = "ai.response.delivery";
+  CuAssertIntEquals(tc, 1,
+                    (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, GAME_EVENT_OWNER_CHARACTER, snapshot.owner.kind);
+  CuAssertTrue(tc, snapshot.owner.runtime_id == (uint64_t)(uintptr_t)&player);
+  filter.type_equals = "ai.request.retry";
+  CuAssertIntEquals(tc, 1,
+                    (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, GAME_EVENT_OWNER_SERVICE, snapshot.owner.kind);
   character_list = saved_character_list;
 
   event_free_all();
+  ai_events_ingress_shutdown();
   CuAssertIntEquals(tc, 2, queued_events);
   CuAssertIntEquals(tc, 2, ai_event_test_cleanup_count());
   CuAssertIntEquals(tc, 0, event_queue_depth());

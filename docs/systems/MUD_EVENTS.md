@@ -199,10 +199,11 @@ type through `event_runtime` and use native handles. Compatibility scheduling
 is limited to the frozen migration inventory and remains solely to preserve the
 physical rollback backend until its external release gate closes.
 
-Compatibility work still awaiting native semantic types is limited to the two
-AI response/retry jobs. Named runtime services, persistence batches, DG waits,
-and all MUD-event IDs are native on the normal scheduler path, with localized
-fallback calls retained only for physical legacy rollback. Encounter rounds, primary activities,
+AI response delivery and retry admission now use native `ai.response.delivery`
+and `ai.request.retry` types. Named runtime services, persistence batches, DG
+waits, all MUD-event IDs, and AI jobs are native on the normal scheduler path,
+with localized fallback calls retained only for physical legacy rollback.
+Encounter rounds, primary activities,
 autonomous mobiles, character and room affected owners, nearest-deadline
 character maintenance, object automatic procedures, DG random triggers,
 mud-hour point updates, and vessel agendas now schedule directly through
@@ -276,8 +277,8 @@ Useful views:
 
 - `eventdebug` shows backend, live/high-water counts, owner-kind counts,
   timing-wheel occupancy, ready/overdue work, lifecycle totals, admission
-  failures, stale-owner outcomes, bounded I3 worker ingress, and domain-bus
-  totals.
+  failures, stale-owner outcomes, bounded I3 and AI worker ingress, and
+  domain-bus totals.
 - `eventdebug queue [limit]` lists the earliest live compatibility and native
   scheduler events without duplicating compatibility-wrapper records.
 - `eventdebug id <id>` selects one diagnostic event ID.
@@ -291,6 +292,8 @@ Useful views:
 - `eventdebug scripts <player|mob|object|room> <target> [limit]` shows only
   `dg.` events owned by that entity, including native trigger waits and random
   trigger deadlines.
+- Player-owned AI delivery and retry timers appear under the selected player
+  as `ai.response.delivery` and `ai.request.retry`; payload text is redacted.
 - `eventdebug due <max-pulses> [limit]` and
   `eventdebug range <min> <max> [limit]` filter deadlines.
 - `eventdebug state <state> [limit]` filters queued, ready, running, or

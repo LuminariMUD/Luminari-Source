@@ -57,4 +57,5 @@ The production binary and all 1,051 production-linked CuTests passed locally on
 2026-09-01. Live-MUD validation was intentionally deferred because local test
 servers remain down at maintainer request.
 
-The next native migration slice owns the two AI response and retry jobs.
+The following native migration slice moved AI response and retry jobs to
+`ai.response.delivery` and `ai.request.retry`.

@@ -32,6 +32,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "ai_service.h"
+#include "domain_event_world.h"
 #include "dotenv.h"
 #include <curl/curl.h>
 #include <unistd.h>
@@ -56,12 +57,19 @@ struct ai_thread_request
 {
   char *prompt;          /* Sanitized prompt to send to API */
   char *cache_key;       /* Key for storing response in cache */
-  struct char_data *ch;  /* Player character (must validate) */
-  struct char_data *npc; /* NPC character (must validate) */
+  struct domain_entity_handle player;
+  struct domain_entity_handle npc;
   int request_type;      /* AI_REQUEST_* constant for logging */
+  int retry_count;
   pthread_t thread_id;   /* Thread ID for debugging */
   char backend[32];      /* Track which backend was used */
 };
+
+static pthread_mutex_t ai_worker_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t ai_worker_idle = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t ai_request_mutex = PTHREAD_MUTEX_INITIALIZER;
+static size_t ai_active_workers;
+static bool ai_accepting_workers;
 
 /* CURL Response Buffer */
 struct curl_response
@@ -81,6 +89,10 @@ static char *build_ollama_json_request(const char *prompt);
 static char *parse_ollama_json_response(const char *json_str);
 static bool warmup_ollama_model(void);
 static void *ai_thread_worker(void *arg);
+static bool start_ai_thread_request(const char *prompt, const char *cache_key,
+                                    int request_type, int retry_count,
+                                    struct domain_entity_handle player,
+                                    struct domain_entity_handle npc);
 static int json_escape_string(char *dest, size_t dest_size, const char *src);
 /* static void derive_key_from_seed(unsigned char *key); */
 
@@ -151,6 +163,9 @@ void init_ai_service(void)
   AI_DEBUG("AI state at start: initialized=%d, config=%p, limiter=%p, cache_size=%d",
            ai_state.initialized, (void *)ai_state.config, (void *)ai_state.limiter,
            ai_state.cache_size);
+
+  if (ai_state.initialized)
+    return;
 
   /* Initialize CURL globally */
   AI_DEBUG("Initializing CURL library with CURL_GLOBAL_ALL flags");
@@ -279,6 +294,10 @@ void init_ai_service(void)
   ai_state.ollama_available = warmup_ollama_model();
 
   ai_state.initialized = TRUE;
+  (void)ai_events_ingress_init();
+  pthread_mutex_lock(&ai_worker_mutex);
+  ai_accepting_workers = true;
+  pthread_mutex_unlock(&ai_worker_mutex);
   AI_DEBUG("AI Service initialization complete - initialized=%d", ai_state.initialized);
   log("AI Service provider status: %s; active provider: %s.", ai_service_health_name(),
       ai_service_active_provider());
@@ -292,6 +311,13 @@ void shutdown_ai_service(void)
   struct ai_cache_entry *entry, *next;
 
   AI_DEBUG("Starting AI service shutdown");
+
+  pthread_mutex_lock(&ai_worker_mutex);
+  ai_accepting_workers = false;
+  while (ai_active_workers > 0U)
+    pthread_cond_wait(&ai_worker_idle, &ai_worker_mutex);
+  pthread_mutex_unlock(&ai_worker_mutex);
+  ai_events_ingress_shutdown();
 
   if (!ai_state.initialized)
   {
@@ -1030,8 +1056,15 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
   char prompt[MAX_STRING_LENGTH];
   char cache_key[256];
   char *cached_response;
+  struct domain_entity_handle player_handle;
+  struct domain_entity_handle npc_handle;
 
   if (!npc || !ch || !input || !*input)
+    return;
+  player_handle = domain_event_character_handle(ch);
+  npc_handle = domain_event_character_handle(npc);
+  if (!domain_entity_handle_is_valid(player_handle) ||
+      !domain_entity_handle_is_valid(npc_handle))
     return;
 
   /* Build cache key - limit input length to prevent overflow */
@@ -1060,56 +1093,17 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
            "Player says: \"%s\"",
            GET_NAME(npc) ? GET_NAME(npc) : "someone", input);
 
-  /* Create thread request */
-  struct ai_thread_request *req;
-  CREATE(req, struct ai_thread_request, 1);
-  if (!req)
-  {
-    log("SYSERR: Failed to allocate thread request");
-    return;
-  }
-
-  req->prompt = strdup(prompt);
-  if (!req->prompt)
-  {
-    log("SYSERR: Failed to allocate prompt copy");
-    free(req);
-    return;
-  }
-
-  req->cache_key = strdup(cache_key);
-  if (!req->cache_key)
-  {
-    log("SYSERR: Failed to allocate cache key copy");
-    free(req->prompt);
-    free(req);
-    return;
-  }
-
-  req->ch = ch;
-  req->npc = npc;
-  req->request_type = AI_REQUEST_NPC_DIALOGUE;
-
-  /* Create detached thread to handle the request */
-  pthread_attr_t attr;
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-  if (pthread_create(&req->thread_id, &attr, ai_thread_worker, req) != 0)
+  if (!start_ai_thread_request(prompt, cache_key, AI_REQUEST_NPC_DIALOGUE, 0,
+                               player_handle, npc_handle))
   {
     log("SYSERR: Failed to create AI thread");
-    /* Fall back to event system */
-    free(req->prompt);
-    free(req->cache_key);
-    free(req);
-    queue_ai_request_retry(prompt, AI_REQUEST_NPC_DIALOGUE, 0, ch, npc);
+    queue_ai_request_retry_for_entities(prompt, AI_REQUEST_NPC_DIALOGUE, 0,
+                                        player_handle, npc_handle);
   }
   else
   {
     AI_DEBUG("Created thread for AI request");
   }
-
-  pthread_attr_destroy(&attr);
 }
 
 /**
@@ -2155,19 +2149,91 @@ char *ai_generate_response_async(const char *prompt, int request_type, int retry
   return response;
 }
 
+static void ai_worker_finished(void)
+{
+  pthread_mutex_lock(&ai_worker_mutex);
+  if (ai_active_workers > 0U)
+    ai_active_workers--;
+  if (ai_active_workers == 0U)
+    pthread_cond_broadcast(&ai_worker_idle);
+  pthread_mutex_unlock(&ai_worker_mutex);
+}
+
+static bool start_ai_thread_request(const char *prompt, const char *cache_key,
+                                    int request_type, int retry_count,
+                                    struct domain_entity_handle player,
+                                    struct domain_entity_handle npc)
+{
+  struct ai_thread_request *req;
+  pthread_attr_t attr;
+  int create_status;
+
+  if (prompt == NULL || !domain_entity_handle_is_valid(player) ||
+      !domain_entity_handle_is_valid(npc))
+    return false;
+  req = calloc(1U, sizeof(*req));
+  if (req == NULL)
+    return false;
+  req->prompt = strdup(prompt);
+  req->cache_key = cache_key != NULL ? strdup(cache_key) : NULL;
+  if (req->prompt == NULL || (cache_key != NULL && req->cache_key == NULL))
+  {
+    free(req->prompt);
+    free(req->cache_key);
+    free(req);
+    return false;
+  }
+  req->player = player;
+  req->npc = npc;
+  req->request_type = request_type;
+  req->retry_count = retry_count;
+
+  pthread_mutex_lock(&ai_worker_mutex);
+  if (!ai_accepting_workers)
+  {
+    pthread_mutex_unlock(&ai_worker_mutex);
+    free(req->prompt);
+    free(req->cache_key);
+    free(req);
+    return false;
+  }
+  ai_active_workers++;
+  pthread_mutex_unlock(&ai_worker_mutex);
+
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+  create_status = pthread_create(&req->thread_id, &attr, ai_thread_worker, req);
+  pthread_attr_destroy(&attr);
+  if (create_status == 0)
+    return true;
+
+  ai_worker_finished();
+  free(req->prompt);
+  free(req->cache_key);
+  free(req);
+  return false;
+}
+
+bool ai_retry_request_async(const char *prompt, int request_type, int retry_count,
+                            struct domain_entity_handle player,
+                            struct domain_entity_handle npc)
+{
+  return start_ai_thread_request(prompt, prompt, request_type, retry_count,
+                                 player, npc);
+}
+
 /**
  * Thread worker function for async API calls
  *
  * Runs in a detached pthread to make blocking API calls without
  * freezing the game. This function:
  * 1. Makes the blocking API request via make_api_request()
- * 2. Caches successful responses via ai_cache_response()
- * 3. Queues response for delivery via queue_ai_response()
+ * 2. Queues owned response/cache data through the main-thread ingress
+ * 3. Main-thread delivery resolves generation-safe character handles
  * 4. Cleans up all allocated memory
  *
- * IMPORTANT: This runs in a separate thread! Character pointers
- * may become invalid during execution. The event system in
- * ai_events.c handles validation before delivery.
+ * IMPORTANT: This runs in a separate thread. It never dereferences gameplay
+ * entities or admits timed events directly.
  *
  * Thread lifecycle: Created detached, self-destructs on completion
  */
@@ -2176,16 +2242,22 @@ static void *ai_thread_worker(void *arg)
   struct ai_thread_request *req = (struct ai_thread_request *)arg;
   char *response = NULL;
   char *ollama_response = NULL;
-  int max_retries = ai_state.config ? ai_state.config->max_retries : DEFAULT_AI_MAX_RETRIES;
+  int max_retries;
 
   AI_DEBUG("Thread worker started for request type %d", req->request_type);
+
+  /* The current AI helpers share configuration, rate-limit counters, and
+   * static JSON buffers. Serialize provider work until those are split into
+   * immutable per-request contexts. */
+  pthread_mutex_lock(&ai_request_mutex);
+  max_retries = ai_state.config ? ai_state.config->max_retries : DEFAULT_AI_MAX_RETRIES;
 
   /* Make the blocking API call in this thread */
   /* Track which backend ultimately provides the response */
   if (is_ai_enabled())
   {
     /* Try OpenAI first (with retries) */
-    int retry_count = 0;
+    int retry_count = MAX(req->retry_count, 0);
     while (retry_count < max_retries)
     {
       response = make_api_request_single(req->prompt);
@@ -2246,17 +2318,13 @@ static void *ai_thread_worker(void *arg)
     strcpy(req->backend, "Fallback");
     AI_DEBUG("Using generic fallback response");
   }
+  pthread_mutex_unlock(&ai_request_mutex);
 
   if (response)
   {
-    /* Cache the response */
-    if (req->cache_key)
-    {
-      ai_cache_response(req->cache_key, response);
-    }
-
-    /* Queue the response to be delivered in main thread */
-    queue_ai_response(req->ch, req->npc, response, req->backend, FALSE);
+    /* The main-thread ingress owns cache mutation and scheduler admission. */
+    queue_ai_response_for_entities(req->player, req->npc, response,
+                                   req->backend, req->cache_key, FALSE);
     free(response);
 
     AI_DEBUG("Thread worker completed successfully with backend: %s", req->backend);
@@ -2272,6 +2340,7 @@ static void *ai_thread_worker(void *arg)
   if (req->cache_key)
     free(req->cache_key);
   free(req);
+  ai_worker_finished();
 
   return NULL;
 }
