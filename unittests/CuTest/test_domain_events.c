@@ -25,6 +25,7 @@
 #include "../../src/olc/genwld.h"
 #include "../../src/vessels/vessel_periodic.h"
 #include "../../src/vessels/vessels.h"
+#include "../../src/wilderness/spatial_core.h"
 #include "../../src/wilderness/spatial_events.h"
 
 #include <pthread.h>
@@ -78,6 +79,46 @@ struct destroy_fixture
 {
   enum domain_event_status status;
 };
+
+static int test_spatial_calculate_intensity(struct spatial_context *context)
+{
+  context->distance_attenuation = 0.5f;
+  return SPATIAL_SUCCESS;
+}
+
+static int test_spatial_calculate_obstruction(struct spatial_context *context,
+                                              float *obstruction_factor)
+{
+  (void)context;
+  *obstruction_factor = 0.0f;
+  return SPATIAL_SUCCESS;
+}
+
+static int test_spatial_apply_modifiers(struct spatial_context *context, float *range_modifier,
+                                        float *clarity_modifier)
+{
+  (void)context;
+  *range_modifier = 1.0f;
+  *clarity_modifier = 1.0f;
+  return SPATIAL_SUCCESS;
+}
+
+static int test_spatial_generate_message(struct spatial_context *context, char *output,
+                                         size_t output_size)
+{
+  (void)context;
+  snprintf(output, output_size, "test spatial message");
+  return SPATIAL_SUCCESS;
+}
+
+static int test_spatial_modify_message(struct spatial_context *context, char *message,
+                                       size_t message_size)
+{
+  (void)context;
+  (void)message;
+  (void)message_size;
+  return SPATIAL_SUCCESS;
+}
 
 static uint64_t test_usec_now(void *context)
 {
@@ -539,12 +580,12 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   struct domain_event_bus_stats stats;
   struct char_data victim;
   struct char_data *saved_character_list;
+  int death_status;
 
   saved_character_list = character_list;
   clear_char(&victim);
   victim.player.name = "domain event death victim";
   victim.next = NULL;
-  character_list = &victim;
   domain_event_runtime_shutdown();
   active_world_reset_for_test();
   active_world_select_for_test(true);
@@ -554,8 +595,10 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   CuAssertIntEquals(tc, 9, (int)stats.registered_type_count);
   CuAssertIntEquals(tc, 13, (int)stats.registered_handler_count);
   CuAssertTrue(tc, stats.sealed);
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_runtime_character_died(&victim, NULL));
+  character_list = &victim;
+  death_status = domain_event_runtime_character_died(&victim, NULL);
+  character_list = saved_character_list;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, death_status);
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
   CuAssertIntEquals(tc, 1, (int)stats.publications);
   CuAssertIntEquals(tc, DOMAIN_EVENT_BUSY, domain_event_runtime_init());
@@ -563,7 +606,6 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, domain_event_runtime_bus());
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
   active_world_reset_for_test();
-  character_list = saved_character_list;
 }
 
 static void active_world_prepare_character(struct char_data *ch, bool npc, room_rnum room)
@@ -591,6 +633,7 @@ void TestActiveWorldSchedulesAutonomousMobilesWithoutPlayers(CuTest *tc)
   mob_rnum saved_top_of_mobt;
   unsigned long saved_pulse;
   uint64_t callbacks_before;
+  event_handle_t cancelled_handle;
 
   saved_world = world;
   saved_characters = character_list;
@@ -637,6 +680,20 @@ void TestActiveWorldSchedulesAutonomousMobilesWithoutPlayers(CuTest *tc)
   CuAssertIntEquals(tc, 2, event_queue_depth());
   CuAssertTrue(tc, nearby.active_world_event_handle != EVENT_HANDLE_NONE);
   CuAssertTrue(tc, distant.active_world_event_handle != EVENT_HANDLE_NONE);
+
+  cancelled_handle = nearby.active_world_event_handle;
+  CuAssertTrue(tc, event_handle_cancel(cancelled_handle));
+  CuAssertTrue(tc, !event_handle_is_live(cancelled_handle));
+  CuAssertTrue(tc, nearby.active_world_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, ACTIVE_WORLD_MOBILE_DORMANT, nearby.active_world_state);
+  CuAssertIntEquals(tc, 1,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+  active_world_sync_mobile(&nearby);
+  CuAssertIntEquals(tc, ACTIVE_WORLD_MOBILE_ACTIVE, nearby.active_world_state);
+  CuAssertIntEquals(tc, 2,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 2, event_queue_depth());
 
   callbacks_before = active_world_mobile_callbacks();
   pulse += PULSE_MOBILE;
@@ -826,6 +883,19 @@ void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)periodic_dg_random_scheduled_count(WLD_TRIGGER));
   CuAssertIntEquals(tc, 4, event_queue_depth());
 
+  CuAssertTrue(tc, event_handle_cancel(obj->autoproc_event_handle));
+  CuAssertTrue(tc, event_handle_cancel(object_script.random_event_handle));
+  CuAssertTrue(tc, obj->autoproc_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, object_script.random_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, 0, (int)periodic_autoproc_scheduled_count());
+  CuAssertIntEquals(tc, 0, (int)periodic_dg_random_scheduled_count(OBJ_TRIGGER));
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+  periodic_autoproc_sync(obj);
+  periodic_dg_random_sync(&object_script);
+  CuAssertIntEquals(tc, 1, (int)periodic_autoproc_scheduled_count());
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_scheduled_count(OBJ_TRIGGER));
+  CuAssertIntEquals(tc, 4, event_queue_depth());
+
   pulse += PULSE_DG_SCRIPT;
   event_process();
   CuAssertIntEquals(tc, 1, (int)periodic_autoproc_callbacks());
@@ -995,6 +1065,19 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   CuAssertTrue(tc, affected_owner_events_enabled());
   CuAssertIntEquals(tc, 1, (int)affected_character_scheduled_count());
   CuAssertIntEquals(tc, 1, (int)affected_room_owner_count());
+  CuAssertIntEquals(tc, 1, (int)affected_room_scheduled_count());
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+
+  CuAssertTrue(tc, event_handle_cancel(ch.affected_event_handle));
+  CuAssertTrue(tc, event_handle_cancel(room.affected_event_handle));
+  CuAssertTrue(tc, ch.affected_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, room.affected_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, 0, (int)affected_character_scheduled_count());
+  CuAssertIntEquals(tc, 0, (int)affected_room_scheduled_count());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  affected_owners_shutdown();
+  affected_owners_init();
+  CuAssertIntEquals(tc, 1, (int)affected_character_scheduled_count());
   CuAssertIntEquals(tc, 1, (int)affected_room_scheduled_count());
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
@@ -1425,6 +1508,13 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
 
   CuAssertTrue(tc, character_periodic_events_enabled());
   CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
+  CuAssertIntEquals(tc, 7, (int)event_handle_time(ch.character_periodic_event_handle));
+
+  CuAssertTrue(tc, event_handle_cancel(ch.character_periodic_event_handle));
+  CuAssertTrue(tc, ch.character_periodic_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, 0, (int)character_periodic_scheduled_count());
+  character_periodic_sync(&ch);
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
   CuAssertIntEquals(tc, 7, (int)event_handle_time(ch.character_periodic_event_handle));
 
@@ -2055,8 +2145,66 @@ void TestVesselPeriodicFallsBackWhenServiceCannotStart(CuTest *tc)
   CuAssertTrue(tc, !vessel_periodic_events_enabled());
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
+  CONFIG_VESSEL_SYSTEM = 0;
+  vessel_periodic_feature_changed();
+  CuAssertTrue(tc, !vessel_periodic_events_enabled());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  CONFIG_VESSEL_SYSTEM = 1;
+  vessel_periodic_feature_changed();
+  CuAssertTrue(tc, vessel_periodic_events_enabled());
+  CuAssertTrue(tc, event_queue_depth() >= 1);
+
   vessel_periodic_reset_for_test();
+  event_free_all();
   CONFIG_VESSEL_SYSTEM = saved_vessel_system;
+}
+
+void TestSpatialIntensityPreservesSourceStrengthAcrossObservers(CuTest *tc)
+{
+  struct stimulus_strategy stimulus;
+  struct los_strategy line_of_sight;
+  struct modifier_strategy modifiers;
+  struct spatial_system system;
+  struct spatial_context context;
+  char message[SPATIAL_MAX_MESSAGE_LENGTH];
+
+  memset(&stimulus, 0, sizeof(stimulus));
+  memset(&line_of_sight, 0, sizeof(line_of_sight));
+  memset(&modifiers, 0, sizeof(modifiers));
+  memset(&system, 0, sizeof(system));
+  memset(&context, 0, sizeof(context));
+  memset(message, 0, sizeof(message));
+
+  stimulus.base_range = 1000.0f;
+  stimulus.calculate_intensity = test_spatial_calculate_intensity;
+  stimulus.generate_base_message = test_spatial_generate_message;
+  line_of_sight.calculate_obstruction = test_spatial_calculate_obstruction;
+  modifiers.apply_environmental_modifiers = test_spatial_apply_modifiers;
+  modifiers.modify_message = test_spatial_modify_message;
+  system.system_name = "test spatial intensity";
+  system.stimulus = &stimulus;
+  system.line_of_sight = &line_of_sight;
+  system.modifiers = &modifiers;
+  system.enabled = true;
+  system.global_range_multiplier = 1.0f;
+  system.global_intensity_multiplier = 1.0f;
+  context.base_intensity = 2.0f;
+  context.processed_message = message;
+
+  spatial_shutdown_system();
+  CuAssertIntEquals(tc, SPATIAL_SUCCESS, spatial_init_system());
+  CuAssertIntEquals(tc, SPATIAL_SUCCESS, spatial_process_stimulus(&context, &system));
+  CuAssertDblEquals(tc, 2.0, context.base_intensity, 0.001);
+  CuAssertDblEquals(tc, 1.0, context.final_intensity, 0.001);
+
+  context.observer_x = 10;
+  CuAssertIntEquals(tc, SPATIAL_SUCCESS, spatial_process_stimulus(&context, &system));
+  CuAssertDblEquals(tc, 2.0, context.base_intensity, 0.001);
+  CuAssertDblEquals(tc, 1.0, context.final_intensity, 0.001);
+  spatial_shutdown_system();
 }
 
 void TestWorldPhenomenonRoomPropagation(CuTest *tc)

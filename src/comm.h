@@ -64,6 +64,9 @@ bool runtime_services_persistence_pending_for_test(void);
 void comm_wait_state_advance_for_test(struct char_data *ch, uint64_t now_tick);
 uint64_t comm_wait_state_deadline_usec_for_test(const struct char_data *ch,
                                                 uint64_t runtime_epoch_usec);
+#ifdef CIRCLE_UNIX
+bool comm_test_preserve_shutdown_signal_handlers(void);
+#endif
 #endif
 
 /* Act type settings and flags */

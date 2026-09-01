@@ -119,10 +119,29 @@ static long spread_delay(struct game_event_owner owner, long cadence, uint64_t s
   return (long)(spread % (uint64_t)cadence) + 1L;
 }
 
-static void borrowed_owner_cleanup(event_handle_t handle, void *event_obj)
+static void periodic_autoproc_cleanup(event_handle_t handle, void *event_obj)
 {
-  (void)handle;
-  (void)event_obj;
+  struct obj_data *obj = event_obj;
+
+  if (obj == NULL || obj->autoproc_event_handle != handle)
+    return;
+  obj->autoproc_event_handle = EVENT_HANDLE_NONE;
+  if (autoproc_count > 0U)
+    autoproc_count--;
+}
+
+static void periodic_dg_random_cleanup(event_handle_t handle, void *event_obj)
+{
+  struct script_data *script = event_obj;
+  int owner_type;
+
+  if (script == NULL || script->random_event_handle != handle)
+    return;
+  owner_type = script->owner_type;
+  script->random_event_handle = EVENT_HANDLE_NONE;
+  if (owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER &&
+      dg_random_counts[owner_type] > 0U)
+    dg_random_counts[owner_type]--;
 }
 
 static EVENTFUNC(periodic_autoproc_event)
@@ -190,7 +209,7 @@ void periodic_autoproc_sync(struct obj_data *obj)
     return;
   obj->autoproc_event_handle = event_schedule_owned_named_with_cleanup(
       periodic_autoproc_event, obj, spread_delay(owner, PULSE_MOBILE, UINT64_C(0xa17f0c)),
-      "periodic_autoproc", borrowed_owner_cleanup, owner);
+      "periodic_autoproc", periodic_autoproc_cleanup, owner);
   if (obj->autoproc_event_handle == EVENT_HANDLE_NONE)
   {
     autoproc_rejections++;
@@ -241,7 +260,7 @@ void periodic_dg_random_sync(struct script_data *script)
   script->random_event_handle = event_schedule_owned_named_with_cleanup(
       periodic_dg_random_event, script,
       spread_delay(owner, PULSE_DG_SCRIPT, UINT64_C(0xd672a9) + (uint64_t)owner_type),
-      "periodic_dg_random", borrowed_owner_cleanup, owner);
+      "periodic_dg_random", periodic_dg_random_cleanup, owner);
   if (script->random_event_handle == EVENT_HANDLE_NONE)
   {
     dg_random_rejections++;

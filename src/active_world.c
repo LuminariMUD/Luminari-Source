@@ -111,8 +111,13 @@ static struct game_event_owner mobile_owner(struct char_data *ch)
 
 static void active_world_mobile_cleanup(event_handle_t handle, void *event_obj)
 {
-  (void)handle;
-  (void)event_obj;
+  struct char_data *ch = event_obj;
+
+  if (ch == NULL || ch->active_world_event_handle != handle)
+    return;
+  ch->active_world_event_handle = EVENT_HANDLE_NONE;
+  registry_remove(ch);
+  set_state(ch, ACTIVE_WORLD_MOBILE_DORMANT);
 }
 
 static EVENTFUNC(active_world_mobile_event)

@@ -130,6 +130,11 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
    * prototype any longer.  They get added with strdup(). */
   if (OLC_OBJ(d))
   {
+    if (STATE(d) == CON_IEDIT)
+    {
+      free_obj_special_abilities(OLC_OBJ(d)->special_abilities);
+      OLC_OBJ(d)->special_abilities = NULL;
+    }
     free_object_strings(OLC_OBJ(d));
     free(OLC_OBJ(d));
   }
