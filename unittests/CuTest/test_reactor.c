@@ -1,5 +1,10 @@
 #include "CuTest.h"
 
+#include "../../src/conf.h"
+#include "../../src/sysdep.h"
+#include "../../src/structs.h"
+#include "../../src/utils.h"
+#include "../../src/comm.h"
 #include "../../src/reactor.h"
 
 #include <signal.h>
@@ -100,4 +105,13 @@ void Test_libevent_reactor_owns_registered_signals(CuTest *tc)
   luminari_reactor_destroy(reactor);
   close(sockets[0]);
   close(sockets[1]);
+}
+
+void Test_reactor_shutdown_preserves_terminating_signal_handlers(CuTest *tc)
+{
+#ifdef CIRCLE_UNIX
+  CuAssertTrue(tc, comm_test_preserve_shutdown_signal_handlers());
+#else
+  CuAssertTrue(tc, true);
+#endif
 }
