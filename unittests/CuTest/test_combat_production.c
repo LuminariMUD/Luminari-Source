@@ -13,7 +13,9 @@
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/combat/encounters.h"
 #include "../../src/combat/fight.h"
+#include "../../src/combat/combat_reactions.h"
 #include "../../src/combat/grapple.h"
+#include "../../src/domain_event_world.h"
 #include "../../src/lists.h"
 #include "../../src/mudlim.h"
 #include "../../src/net/protocol.h"
@@ -677,4 +679,55 @@ void Test_combat_spell_affect_lookup_uses_spell_identity(CuTest *tc)
   CuAssertPtrEquals(tc, &greater,
                     test_find_spell_affect(&victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION));
   CuAssertPtrEquals(tc, NULL, test_find_spell_affect(&victim, SPELL_MAGIC_MISSILE));
+}
+
+void Test_combat_reaction_queue_is_bounded_fifo_and_handle_safe(CuTest *tc)
+{
+  struct combat_reaction_queue queue;
+  struct combat_reaction_damage damage_packet;
+  struct char_data source;
+  struct char_data target;
+  struct char_data *resolved_source;
+  struct char_data *resolved_target;
+  size_t index;
+
+  clear_char(&source);
+  clear_char(&target);
+  combat_reaction_queue_init(&queue);
+
+  CuAssertTrue(tc, combat_reaction_enqueue_damage(&queue, &source, &target, 11, TYPE_HIT,
+                                                  DAM_SLICE, ATTACK_TYPE_PRIMARY));
+  CuAssertTrue(tc, combat_reaction_enqueue_damage(&queue, &target, &source, 7, SPELL_MAGIC_MISSILE,
+                                                  DAM_FORCE, ATTACK_TYPE_PRIMARY));
+  CuAssertIntEquals(tc, COMBAT_REACTION_DEQUEUE_READY,
+                    combat_reaction_dequeue_damage(&queue, &damage_packet, &resolved_source,
+                                                   &resolved_target));
+  CuAssertPtrEquals(tc, &source, resolved_source);
+  CuAssertPtrEquals(tc, &target, resolved_target);
+  CuAssertIntEquals(tc, 11, damage_packet.amount);
+  CuAssertIntEquals(tc, COMBAT_REACTION_DEQUEUE_READY,
+                    combat_reaction_dequeue_damage(&queue, &damage_packet, &resolved_source,
+                                                   &resolved_target));
+  CuAssertIntEquals(tc, 7, damage_packet.amount);
+
+  CuAssertTrue(tc, combat_reaction_enqueue_damage(&queue, &source, &target, 3, TYPE_HIT, DAM_SLICE,
+                                                  ATTACK_TYPE_PRIMARY));
+  domain_event_world_forget_character(&target);
+  CuAssertIntEquals(tc, COMBAT_REACTION_DEQUEUE_STALE,
+                    combat_reaction_dequeue_damage(&queue, &damage_packet, &resolved_source,
+                                                   &resolved_target));
+  CuAssertIntEquals(tc, 1, queue.stale);
+
+  combat_reaction_queue_init(&queue);
+  for (index = 0U; index < COMBAT_REACTION_CAPACITY; index++)
+    CuAssertTrue(tc, combat_reaction_enqueue_damage(&queue, &source, &target, 1, TYPE_HIT,
+                                                    DAM_SLICE, ATTACK_TYPE_PRIMARY));
+  CuAssertTrue(tc, !combat_reaction_enqueue_damage(&queue, &source, &target, 1, TYPE_HIT,
+                                                   DAM_SLICE, ATTACK_TYPE_PRIMARY));
+  CuAssertIntEquals(tc, COMBAT_REACTION_CAPACITY, queue.count);
+  CuAssertIntEquals(tc, COMBAT_REACTION_CAPACITY, queue.scheduled);
+  CuAssertIntEquals(tc, 1, queue.dropped);
+
+  domain_event_world_forget_character(&source);
+  domain_event_world_forget_character(&target);
 }
