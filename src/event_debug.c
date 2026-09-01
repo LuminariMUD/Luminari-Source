@@ -3,6 +3,8 @@
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
+#include "db.h"
+#include "handler.h"
 #include "interpreter.h"
 #include "modify.h"
 #include "domain_event_runtime.h"
@@ -21,6 +23,7 @@
 
 #include <errno.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdarg.h>
 
 #define EVENT_DEBUG_DEFAULT_WIDTH 80
@@ -141,6 +144,12 @@ size_t event_debug_render_help(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "eventdebug id <id>");
   debug_output_line(&output, "eventdebug type <text> [limit]");
   debug_output_line(&output, "eventdebug owner <kind> <id> [gen]");
+  debug_output_line(&output, "eventdebug player <name> [limit]");
+  debug_output_line(&output, "eventdebug mob <name> [limit]");
+  debug_output_line(&output, "eventdebug object <name> [limit]");
+  debug_output_line(&output, "eventdebug room <here|vnum> [limit]");
+  debug_output_line(&output, "eventdebug scripts <kind> <target>");
+  debug_output_line(&output, "  [limit]; kinds: player mob object room");
   debug_output_line(&output, "eventdebug due <max-pulses> [limit]");
   debug_output_line(&output, "eventdebug range <min> <max> [limit]");
   debug_output_line(&output, "eventdebug state <state> [limit]");
@@ -609,6 +618,99 @@ static void event_debug_page(struct char_data *ch, char *buffer)
     send_to_char(ch, "%s", buffer);
 }
 
+enum event_debug_entity_kind
+{
+  EVENT_DEBUG_ENTITY_PLAYER = 0,
+  EVENT_DEBUG_ENTITY_MOBILE,
+  EVENT_DEBUG_ENTITY_OBJECT,
+  EVENT_DEBUG_ENTITY_ROOM
+};
+
+static bool event_debug_parse_entity_kind(const char *name,
+                                          enum event_debug_entity_kind *kind)
+{
+  if (name == NULL || kind == NULL)
+    return false;
+  if (!strcasecmp(name, "player") || !strcasecmp(name, "character") ||
+      !strcasecmp(name, "char"))
+    *kind = EVENT_DEBUG_ENTITY_PLAYER;
+  else if (!strcasecmp(name, "mob") || !strcasecmp(name, "mobile"))
+    *kind = EVENT_DEBUG_ENTITY_MOBILE;
+  else if (!strcasecmp(name, "object") || !strcasecmp(name, "obj"))
+    *kind = EVENT_DEBUG_ENTITY_OBJECT;
+  else if (!strcasecmp(name, "room"))
+    *kind = EVENT_DEBUG_ENTITY_ROOM;
+  else
+    return false;
+  return true;
+}
+
+static bool event_debug_select_entity(struct char_data *ch,
+                                      enum event_debug_entity_kind kind,
+                                      char *target,
+                                      struct event_debug_filter *filter)
+{
+  struct char_data *character;
+  struct obj_data *object;
+  room_rnum room;
+  uint64_t vnum;
+
+  if (ch == NULL || filter == NULL)
+    return false;
+  filter->owner_set = true;
+  filter->owner = game_event_owner_none();
+  switch (kind)
+  {
+  case EVENT_DEBUG_ENTITY_PLAYER:
+  case EVENT_DEBUG_ENTITY_MOBILE:
+    if (target == NULL || *target == '\0' ||
+        (character = get_char_vis(ch, target, NULL, FIND_CHAR_WORLD)) == NULL ||
+        (kind == EVENT_DEBUG_ENTITY_PLAYER && IS_NPC(character)) ||
+        (kind == EVENT_DEBUG_ENTITY_MOBILE && !IS_NPC(character)))
+    {
+      send_to_char(ch, "No visible %s matches '%s'.\r\n",
+                   kind == EVENT_DEBUG_ENTITY_PLAYER ? "online player" : "mobile",
+                   target != NULL ? target : "");
+      return false;
+    }
+    filter->owner.kind = GAME_EVENT_OWNER_CHARACTER;
+    filter->owner.runtime_id = (uint64_t)(uintptr_t)character;
+    break;
+  case EVENT_DEBUG_ENTITY_OBJECT:
+    if (target == NULL || *target == '\0' ||
+        (object = get_obj_vis(ch, target, NULL)) == NULL)
+    {
+      send_to_char(ch, "No visible object matches '%s'.\r\n",
+                   target != NULL ? target : "");
+      return false;
+    }
+    filter->owner.kind = GAME_EVENT_OWNER_OBJECT;
+    filter->owner.runtime_id = (uint64_t)(uintptr_t)object;
+    break;
+  case EVENT_DEBUG_ENTITY_ROOM:
+    if (target == NULL || *target == '\0' || !strcasecmp(target, "here"))
+      room = IN_ROOM(ch);
+    else if (!parse_uint64(target, &vnum) || vnum > INT_MAX ||
+             (room = real_room((room_vnum)vnum)) == NOWHERE)
+    {
+      send_to_char(ch, "No room with vnum '%s' is loaded.\r\n",
+                   target != NULL ? target : "");
+      return false;
+    }
+    if (room == NOWHERE || room > top_of_world)
+    {
+      send_to_char(ch, "You are not in a loaded room.\r\n");
+      return false;
+    }
+    filter->owner.kind = GAME_EVENT_OWNER_ROOM;
+    filter->owner.runtime_id = (uint64_t)(uint32_t)GET_ROOM_VNUM(room) + 1U;
+    break;
+  }
+  filter->owner.generation = 0U;
+  filter->owner_generation_set = false;
+  return true;
+}
+
 ACMD(do_eventdebug)
 {
   char action[MAX_INPUT_LENGTH] = {'\0'};
@@ -618,6 +720,7 @@ ACMD(do_eventdebug)
   char arg4[MAX_INPUT_LENGTH] = {'\0'};
   char buffer[MAX_STRING_LENGTH] = {'\0'};
   struct event_debug_filter filter;
+  enum event_debug_entity_kind entity_kind;
   enum game_event_owner_kind owner_kind;
   enum event_debug_state state;
   uint64_t value;
@@ -694,6 +797,35 @@ ACMD(do_eventdebug)
     }
     event_debug_render_queue(buffer, sizeof(buffer), width, &filter,
                              EVENT_DEBUG_DEFAULT_LIMIT);
+  }
+  else if (event_debug_parse_entity_kind(action, &entity_kind))
+  {
+    limit = parse_limit(arg2, EVENT_DEBUG_DEFAULT_LIMIT);
+    if (limit == 0)
+    {
+      send_to_char(ch, "Usage: eventdebug %s <target> [1-%u]\r\n", action,
+                   EVENT_DEBUG_MAX_LIMIT);
+      return;
+    }
+    if (!event_debug_select_entity(ch, entity_kind, arg1, &filter))
+      return;
+    event_debug_render_queue(buffer, sizeof(buffer), width, &filter, limit);
+  }
+  else if (!strcasecmp(action, "scripts"))
+  {
+    limit = parse_limit(arg3, EVENT_DEBUG_DEFAULT_LIMIT);
+    if (!event_debug_parse_entity_kind(arg1, &entity_kind) || *arg2 == '\0' || limit == 0)
+    {
+      send_to_char(ch, "Usage: eventdebug scripts <kind> <target>\r\n"
+                       "       [1-%u]\r\n"
+                       "Kinds: player mob object room\r\n",
+                   EVENT_DEBUG_MAX_LIMIT);
+      return;
+    }
+    if (!event_debug_select_entity(ch, entity_kind, arg2, &filter))
+      return;
+    filter.type_contains = "dg.";
+    event_debug_render_queue(buffer, sizeof(buffer), width, &filter, limit);
   }
   else if (!strcasecmp(action, "due"))
   {

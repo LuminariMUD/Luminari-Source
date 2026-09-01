@@ -2,6 +2,28 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native DG waits and entity-focused diagnostics
+
+#### Changed
+
+- Registered DG script waits as the native owner-required
+  `dg.trigger.wait` type on the normal scheduler path, preserving authored wait
+  timing, trigger resumption, extraction, OLC replacement, and room reindexing.
+- Added `eventdebug` views for a visible player, mobile, object, or loaded room,
+  plus a `scripts` view that limits the selected entity to DG events.
+- Matched all generations for an entity's live runtime identity so one command
+  shows its events across independently versioned subsystems. Payloads remain
+  redacted and the existing 80/120-column output rules still apply.
+- Retained one owned DG-wait adapter only for the explicitly selected physical
+  legacy backend; the frozen compatibility inventory therefore remains four
+  schedules across three production files until rollback is quarantined.
+
+#### Tests
+
+- Added scheduler and legacy-backend DG wait execution, cancellation, owner,
+  semantic-type, and script-filter inspection coverage.
+- Extended compact help-output coverage for the entity and script forms.
+
 ### Native runtime services and persistence batches
 
 #### Changed

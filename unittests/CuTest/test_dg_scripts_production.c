@@ -151,9 +151,9 @@ void Test_dg_wait_resume_does_not_scan_global_owner_lists(CuTest *tc)
   callback_bounded = false;
   if (source_loaded)
   {
-    callback = strstr(source, "static EVENTFUNC(trig_wait_event)\n{");
+    callback = strstr(source, "static void resume_trig_wait");
     callback_end =
-        callback != NULL ? strstr(callback, "static void cleanup_trig_wait_event") : NULL;
+        callback != NULL ? strstr(callback, "static struct game_event_result trig_wait_event") : NULL;
     if (callback != NULL && callback_end != NULL)
     {
       saved_end = *callback_end;

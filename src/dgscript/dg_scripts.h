@@ -168,7 +168,8 @@ struct trig_data
   char *arglist;                      /**< argument list                   */
   int depth;                          /**< depth into nest ifs/whiles/etc  */
   int loops;                          /**< loop iteration counter          */
-  event_handle_t wait_event_handle;   /**< event that pauses the trigger */
+  struct event_runtime_handle wait_event_handle; /**< Native event that pauses the trigger. */
+  event_handle_t wait_rollback_handle; /**< Temporary legacy-backend fallback. */
   struct wait_event_data *wait_event_data; /**< payload used by room OLC */
   ubyte purged;                       /**< trigger is set to be purged     */
   struct trig_var_data *var_list;     /**< list of local vars for trigger  */
@@ -430,6 +431,10 @@ void free_proto_script(struct trig_proto_list **proto_script);
 void copy_proto_script(const struct trig_proto_list *source, struct trig_proto_list **destination);
 void delete_variables(const char *charname);
 void update_wait_events(struct room_data *to, struct room_data *from);
+bool dg_wait_runtime_init(void);
+bool dg_trigger_wait_is_live(const struct trig_data *trig);
+long dg_trigger_wait_remaining(const struct trig_data *trig);
+void dg_trigger_wait_cancel(struct trig_data *trig);
 
 /* from dg_comm.c */
 char *any_one_name(char *argument, char *first_arg);

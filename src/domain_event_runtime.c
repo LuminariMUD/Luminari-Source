@@ -8,6 +8,7 @@
 #include "domain_event_types.h"
 #include "domain_event_world.h"
 #include "dgscript/dg_event.h"
+#include "dgscript/dg_scripts.h"
 #include "periodic_owners.h"
 #include "point_update_periodic.h"
 #include "vessels/vessel_periodic.h"
@@ -25,6 +26,7 @@ enum domain_event_status domain_event_runtime_init(void)
   if (runtime_bus == NULL)
     return status;
   periodic_owners_init();
+  (void)dg_wait_runtime_init();
   affected_owners_init();
   character_periodic_init();
   point_update_periodic_init();

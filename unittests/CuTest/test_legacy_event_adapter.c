@@ -928,6 +928,7 @@ static void verify_event_debug_registry(CuTest *tc, enum event_backend_kind back
     event_debug_render_help(output, sizeof(output), widths[width_index]);
     assert_debug_output_width(tc, output, (size_t)widths[width_index]);
     CuAssertPtrNotNull(tc, strstr(output, "eventdebug range"));
+    CuAssertPtrNotNull(tc, strstr(output, "eventdebug scripts"));
     event_debug_render_summary(output, sizeof(output), widths[width_index]);
     assert_debug_output_width(tc, output, (size_t)widths[width_index]);
     CuAssertPtrNotNull(tc, strstr(output, "Live events by owner"));

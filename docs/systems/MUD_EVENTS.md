@@ -271,6 +271,14 @@ Useful views:
 - `eventdebug id <id>` selects one diagnostic event ID.
 - `eventdebug type <text> [limit]` filters callback identities.
 - `eventdebug owner <kind> <id> [generation]` filters typed owners.
+- `eventdebug player <name> [limit]`, `eventdebug mob <name> [limit]`, and
+  `eventdebug object <name> [limit]` select one visible live entity by its
+  familiar in-game name.
+- `eventdebug room <here|vnum> [limit]` selects the current room or a loaded
+  room by vnum.
+- `eventdebug scripts <player|mob|object|room> <target> [limit]` shows only
+  `dg.` events owned by that entity, including native trigger waits and random
+  trigger deadlines.
 - `eventdebug due <max-pulses> [limit]` and
   `eventdebug range <min> <max> [limit]` filter deadlines.
 - `eventdebug state <state> [limit]` filters queued, ready, running, or
@@ -289,6 +297,14 @@ events before owner memory is released, so it has no post-lookup stale-owner
 outcome. Typed consumers introduced in later phases must count failed
 generation-aware resolution with `event_note_stale_owner_outcome()` rather than
 silently folding it into completion.
+
+Entity views use the selected live runtime identity but do not require one
+specific owner generation. This is intentional: independently versioned event
+subsystems may assign different generation values to the same entity, and an
+immortal asking about that entity should see all of them. Player, mobile, and
+object lookup follows normal visibility rules; player lookup is online-only,
+and room lookup requires a currently loaded room. Diagnostic payloads remain
+redacted in every view.
 
 ## 3. MUD Event Layer
 

@@ -90,7 +90,8 @@ There are four opaque compatibility-adapter scheduling calls across three
 production files:
 
 - two AI response/retry jobs in `src/ai_events.c`;
-- one DG trigger wait in `src/dgscript/dg_scripts.c`; and
+- one DG trigger-wait fallback used only by the physical legacy backend in
+  `src/dgscript/dg_scripts.c`; and
 - one MUD-event admission path in `src/mud_event.c`.
 
 Their exact burn-down inventory is enforced by
@@ -101,6 +102,16 @@ The facade can be simplified or its callers moved to native event types in
 reviewable slices without reopening gameplay access to the old architecture.
 
 ### Completed migration history
+
+The native DG-wait slice makes `dg.trigger.wait` authoritative whenever the
+game scheduler is selected. Its typed character, object, or room owner now
+supports direct cancellation, remaining-time queries, and entity-focused
+diagnostics without scanning scripts or world populations. The explicit
+physical legacy backend retains the one adapter call counted above so rollback
+continues to execute authored waits; that call leaves with the rollback backend,
+not as a permanent gameplay API. Entity diagnostics can now select all events
+for a live player, mobile, object, or room and can further restrict the view to
+`dg.` script events.
 
 Phase 11a added the opaque-handle registry and API inside the facade, increasing
 the raw source count from 115 to 129 without adding an external caller. Phase

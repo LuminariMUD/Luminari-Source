@@ -65,6 +65,9 @@ after the subsequent character-maintenance, automatic-procedure, DG random-
 trigger, mud-hour, vessel, autonomous-mobile, primary-activity, and encounter
 migrations plus native named services and persistence batches. Thirty-eight
 gameplay/service semantic types now schedule directly on the native runtime.
+The subsequent DG-wait slice raises that total to 39 with native
+`dg.trigger.wait`; one localized adapter remains solely for physical legacy
+rollback, so the frozen compatibility-call count does not change in that slice.
 
 Remaining callbacks continue to migrate in behavior-preserving groups. Each
 must retain its cadence, owner lifecycle, cleanup, and recurrence policy while

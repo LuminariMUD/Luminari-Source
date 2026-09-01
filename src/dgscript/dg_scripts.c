@@ -29,6 +29,8 @@
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act.h"
 #include "modify.h"
+#include "domain_event_world.h"
+#include "event_runtime.h"
 #include "point_update_periodic.h"
 
 /* Enable this to debug DG script parameter corruption issues */
@@ -73,8 +75,12 @@ static struct cmdlist_element *find_case(struct trig_data *trig, struct cmdlist_
 static struct cmdlist_element *find_done(struct cmdlist_element *cl);
 static struct char_data *find_char_by_uid_in_lookup_table(long uid);
 static struct obj_data *find_obj_by_uid_in_lookup_table(long uid);
-static EVENTFUNC(trig_wait_event);
-static void cleanup_trig_wait_event(event_handle_t handle, void *event_obj);
+static struct game_event_result trig_wait_event(const struct game_event_context *context);
+static EVENTFUNC(trig_wait_rollback_event);
+static void cleanup_trig_wait_event(void *event_obj);
+static void cleanup_trig_wait_rollback_event(event_handle_t handle, void *event_obj);
+
+static game_event_type_id_t dg_wait_event_type;
 
 /* Return pointer to first occurrence of string ct in cs, or NULL if not
  * present.  Case insensitive. All of ct must be found in cs for it to be
@@ -812,38 +818,99 @@ void check_time_triggers(void)
   }
 }
 
-static EVENTFUNC(trig_wait_event)
+static struct game_event_owner dg_wait_owner(void *go, int type)
 {
-  struct wait_event_data *wait_event_obj = (struct wait_event_data *)event_obj;
+  struct domain_entity_handle entity = domain_entity_handle_none();
+  struct game_event_owner owner = game_event_owner_none();
+  room_rnum room;
+
+  if (go == NULL)
+    return owner;
+  switch (type)
+  {
+  case MOB_TRIGGER:
+    entity = domain_event_character_handle(go);
+    owner.kind = GAME_EVENT_OWNER_CHARACTER;
+    break;
+  case OBJ_TRIGGER:
+    entity = domain_event_object_handle(go);
+    owner.kind = GAME_EVENT_OWNER_OBJECT;
+    break;
+  case WLD_TRIGGER:
+    room = real_room(((struct room_data *)go)->number);
+    entity = domain_event_room_handle(room);
+    owner.kind = GAME_EVENT_OWNER_ROOM;
+    break;
+  default:
+    return game_event_owner_none();
+  }
+  if (!domain_entity_handle_is_valid(entity))
+    return game_event_owner_none();
+  owner.runtime_id = entity.runtime_id;
+  owner.generation = entity.generation;
+  return owner;
+}
+
+static void detach_trig_wait(struct wait_event_data *wait_event_obj)
+{
+  trig_data *trig;
+
+  if (wait_event_obj == NULL || (trig = wait_event_obj->trigger) == NULL ||
+      GET_TRIG_WAIT_DATA(trig) != wait_event_obj)
+    return;
+  GET_TRIG_WAIT_HANDLE(trig) = EVENT_RUNTIME_HANDLE_NONE;
+  trig->wait_rollback_handle = EVENT_HANDLE_NONE;
+  GET_TRIG_WAIT_DATA(trig) = NULL;
+}
+
+static void resume_trig_wait(struct wait_event_data *wait_event_obj)
+{
   trig_data *trig;
   void *go;
   int type;
 
+  if (wait_event_obj == NULL || wait_event_obj->trigger == NULL)
+    return;
   trig = wait_event_obj->trigger;
   go = wait_event_obj->go;
   type = wait_event_obj->type;
-
-  if (GET_TRIG_WAIT_DATA(trig) == wait_event_obj)
-  {
-    GET_TRIG_WAIT_HANDLE(trig) = EVENT_HANDLE_NONE;
-    GET_TRIG_WAIT_DATA(trig) = NULL;
-  }
-  free(wait_event_obj);
-
-  /* Owner teardown extracts attached scripts, and trigger extraction cancels
-   * GET_TRIG_WAIT_HANDLE. Reaching this callback therefore proves the owner remains
-   * valid without scanning every character, object, or room. */
+  detach_trig_wait(wait_event_obj);
 
   {
     struct script_call_args restart_args = {&go, trig, type, TRIG_RESTART};
     script_driver(&restart_args);
   }
+}
 
-  /* Do not reenqueue*/
+static struct game_event_result trig_wait_event(const struct game_event_context *context)
+{
+  struct wait_event_data *wait_event_obj = context != NULL ? context->payload : NULL;
+
+  /* Owner teardown extracts attached scripts, and trigger extraction cancels
+   * GET_TRIG_WAIT_HANDLE. Reaching this callback therefore proves the owner remains
+   * valid without scanning every character, object, or room. */
+  if (wait_event_obj != NULL && wait_event_obj->trigger != NULL &&
+      GET_TRIG_WAIT_DATA(wait_event_obj->trigger) == wait_event_obj &&
+      GET_TRIG_WAIT_HANDLE(wait_event_obj->trigger).id == context->event_id)
+    resume_trig_wait(wait_event_obj);
+  return game_event_result_complete();
+}
+
+static EVENTFUNC(trig_wait_rollback_event)
+{
+  resume_trig_wait(event_obj);
   return 0;
 }
 
-static void cleanup_trig_wait_event(event_handle_t handle, void *event_obj)
+static void cleanup_trig_wait_event(void *event_obj)
+{
+  struct wait_event_data *wait_event_obj = event_obj;
+
+  detach_trig_wait(wait_event_obj);
+  free(wait_event_obj);
+}
+
+static void cleanup_trig_wait_rollback_event(event_handle_t handle, void *event_obj)
 {
   struct wait_event_data *wait_event_obj = event_obj;
 
@@ -851,13 +918,72 @@ static void cleanup_trig_wait_event(event_handle_t handle, void *event_obj)
     return;
 
   if (wait_event_obj->trigger != NULL &&
-      GET_TRIG_WAIT_HANDLE(wait_event_obj->trigger) == handle)
-  {
-    GET_TRIG_WAIT_HANDLE(wait_event_obj->trigger) = EVENT_HANDLE_NONE;
-    GET_TRIG_WAIT_DATA(wait_event_obj->trigger) = NULL;
-  }
-
+      wait_event_obj->trigger->wait_rollback_handle == handle)
+    detach_trig_wait(wait_event_obj);
   free(wait_event_obj);
+}
+
+bool dg_wait_runtime_init(void)
+{
+  struct game_event_type_config config;
+  const char *registered_name;
+  enum game_scheduler_status status;
+
+  if (!event_runtime_is_initialized())
+    return false;
+  registered_name = event_runtime_type_name(dg_wait_event_type);
+  if (registered_name != NULL && !strcmp(registered_name, "dg.trigger.wait"))
+    return true;
+  dg_wait_event_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = "dg.trigger.wait";
+  config.handler = trig_wait_event;
+  config.cleanup = cleanup_trig_wait_event;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.requires_owner = true;
+  status = event_runtime_register_type(&config, &dg_wait_event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: unable to register native event type 'dg.trigger.wait' (status %d).",
+        status);
+    return false;
+  }
+  return true;
+}
+
+bool dg_trigger_wait_is_live(const struct trig_data *trig)
+{
+  if (trig == NULL)
+    return false;
+  if (!event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)))
+    return event_runtime_handle_is_live(GET_TRIG_WAIT_HANDLE(trig));
+  return event_handle_is_live(trig->wait_rollback_handle);
+}
+
+long dg_trigger_wait_remaining(const struct trig_data *trig)
+{
+  game_tick_t remaining;
+
+  if (trig == NULL)
+    return 0;
+  if (!event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)))
+  {
+    if (event_runtime_remaining(GET_TRIG_WAIT_HANDLE(trig), &remaining) !=
+        GAME_SCHEDULER_OK)
+      return 0;
+    return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
+  }
+  return event_handle_time(trig->wait_rollback_handle);
+}
+
+void dg_trigger_wait_cancel(struct trig_data *trig)
+{
+  if (trig == NULL)
+    return;
+  if (!event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)))
+    (void)event_runtime_cancel(GET_TRIG_WAIT_HANDLE(trig));
+  else if (trig->wait_rollback_handle != EVENT_HANDLE_NONE)
+    (void)event_handle_cancel(trig->wait_rollback_handle);
 }
 
 static void do_stat_trigger(struct char_data *ch, trig_data *trig)
@@ -978,10 +1104,10 @@ static void script_stat(char_data *ch, struct script_data *sc)
                  buf1, GET_TRIG_NARG(t),
                  ((GET_TRIG_ARG(t) && *GET_TRIG_ARG(t)) ? GET_TRIG_ARG(t) : "None"));
 
-    if (GET_TRIG_WAIT_HANDLE(t) != EVENT_HANDLE_NONE)
+    if (dg_trigger_wait_is_live(t))
     {
       send_to_char(ch, "    \tCWait:\tn %ld\tC, Current line: \tn%s\r\n",
-                   event_handle_time(GET_TRIG_WAIT_HANDLE(t)),
+                   dg_trigger_wait_remaining(t),
                    t->curr_state ? t->curr_state->cmd : "End of Script");
       send_to_char(ch, "  \tCVariables: \tn%s\r\n", GET_TRIG_VARS(t) ? "" : "None");
 
@@ -1898,6 +2024,8 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'}, *arg;
   struct wait_event_data *wait_event_obj;
+  struct game_event_owner owner;
+  enum game_scheduler_status status;
   long when = 0, hr = 0, min = 0, ntime = 0;
   char c = '\0';
 
@@ -1957,10 +2085,35 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
   wait_event_obj->go = go;
   wait_event_obj->type = type;
 
+  owner = dg_wait_owner(go, type);
+  if (!game_event_owner_is_valid(owner))
+  {
+    script_log("Trigger: %s, VNum %d. wait has no valid runtime owner.",
+               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
+    free(wait_event_obj);
+    return;
+  }
   GET_TRIG_WAIT_DATA(trig) = wait_event_obj;
-  GET_TRIG_WAIT_HANDLE(trig) =
-      event_schedule_with_cleanup(trig_wait_event, wait_event_obj, when, cleanup_trig_wait_event);
-  if (GET_TRIG_WAIT_HANDLE(trig) == EVENT_HANDLE_NONE)
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    if (!dg_wait_runtime_init())
+      status = GAME_SCHEDULER_REGISTRATION_CLOSED;
+    else
+      status = event_runtime_schedule_owned_after(dg_wait_event_type, owner,
+                                                  (game_tick_t)MAX(when, 1L),
+                                                  wait_event_obj,
+                                                  &GET_TRIG_WAIT_HANDLE(trig));
+    if (status != GAME_SCHEDULER_OK)
+      GET_TRIG_WAIT_HANDLE(trig) = EVENT_RUNTIME_HANDLE_NONE;
+  }
+  else
+  {
+    trig->wait_rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
+        trig_wait_rollback_event, wait_event_obj, when, "dg.trigger.wait.rollback",
+        cleanup_trig_wait_rollback_event, owner);
+  }
+  if (event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)) &&
+      trig->wait_rollback_handle == EVENT_HANDLE_NONE)
   {
     GET_TRIG_WAIT_DATA(trig) = NULL;
     free(wait_event_obj);
