@@ -797,3 +797,47 @@ void Test_combat_state_derives_attackers_from_live_characters(CuTest *tc)
   CuAssertIntEquals(tc, 0, combat_state_count_attackers(NULL));
   character_list = saved_character_list;
 }
+
+void Test_combat_state_validates_handles_before_reaction_continuation(CuTest *tc)
+{
+  struct char_data attacker;
+  struct char_data victim;
+  struct domain_entity_handle attacker_handle;
+  struct domain_entity_handle victim_handle;
+
+  clear_char(&attacker);
+  clear_char(&victim);
+  SET_BIT_AR(MOB_FLAGS(&attacker), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(&victim), MOB_ISNPC);
+  IN_ROOM(&attacker) = 5;
+  IN_ROOM(&victim) = 5;
+  GET_POS(&attacker) = POS_FIGHTING;
+  GET_POS(&victim) = POS_FIGHTING;
+  attacker_handle = domain_event_character_handle(&attacker);
+  victim_handle = domain_event_character_handle(&victim);
+
+  CuAssertTrue(tc, combat_state_attack_context_valid(attacker_handle, victim_handle, 5));
+  IN_ROOM(&victim) = 6;
+  CuAssertTrue(tc, !combat_state_attack_context_valid(attacker_handle, victim_handle, 5));
+  IN_ROOM(&victim) = 5;
+  domain_event_world_forget_character(&victim);
+  CuAssertTrue(tc, !combat_state_attack_context_valid(attacker_handle, victim_handle, 5));
+
+  domain_event_world_forget_character(&attacker);
+}
+
+void Test_compatibility_attack_numbers_map_to_one_phase(CuTest *tc)
+{
+  int attack_number;
+  int phase;
+
+  for (attack_number = 1; attack_number <= 15; attack_number++)
+  {
+    CuAssertTrue(tc, test_attack_number_runs_in_phase(attack_number, 0));
+    for (phase = 1; phase <= 3; phase++)
+      CuAssertIntEquals(tc, ((attack_number - 1) % 3) + 1 == phase,
+                        test_attack_number_runs_in_phase(attack_number, phase));
+  }
+  CuAssertTrue(tc, !test_attack_number_runs_in_phase(0, 1));
+  CuAssertTrue(tc, !test_attack_number_runs_in_phase(1, 4));
+}

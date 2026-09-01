@@ -142,6 +142,7 @@ void test_apply_group_sacred_vengeance(struct char_data *victim);
 bool test_life_shield_can_reflect(struct char_data *attacker, struct char_data *victim, int damage,
                                   int source);
 struct affected_type *test_find_spell_affect(struct char_data *ch, int spell);
+bool test_attack_number_runs_in_phase(int attack_number, int phase);
 #endif
 
 /* Global variables */
