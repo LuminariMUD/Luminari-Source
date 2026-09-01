@@ -2533,6 +2533,11 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     int num, j = 0;
 
     /* Get the data from the row structure. */
+    if (row[0] == NULL)
+    {
+      log("SYSERR: Saved-object row contained no serialized object data; skipping it.");
+      continue;
+    }
     serialized_obj = strdup(row[0]);
     /* Handle different query types */
     if (loading_house_data == 2)
@@ -2548,12 +2553,12 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
     else if (loading_house_data == 1)
     {
       /* House data with idnum column */
-      obj_db_idnum = atoi(row[1]);
+      obj_db_idnum = row[1] != NULL ? atoi(row[1]) : 0;
     }
     else
     {
       /* Player data with idnum column (normal case) */
-      obj_db_idnum = atoi(row[1]);
+      obj_db_idnum = row[1] != NULL ? atoi(row[1]) : 0;
     }
 
     /* Tokenize the serialized object data */
