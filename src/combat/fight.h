@@ -139,6 +139,9 @@ int test_get_bard_warbeat_opening_attacks(void);
 struct obj_data *test_get_wielded(struct char_data *ch, int attack_type);
 struct char_data *test_find_divine_sacrifice_defender(struct char_data *victim);
 void test_apply_group_sacred_vengeance(struct char_data *victim);
+bool test_life_shield_can_reflect(struct char_data *attacker, struct char_data *victim, int damage,
+                                  int source);
+struct affected_type *test_find_spell_affect(struct char_data *ch, int spell);
 #endif
 
 /* Global variables */

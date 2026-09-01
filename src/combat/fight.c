@@ -2456,8 +2456,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   struct char_data *k, *temp;
   struct affected_type af = {0}; /* Zero-initialize to prevent stack garbage */
 
-  domain_event_runtime_character_died(ch, killer);
-
   /* stop relevant fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
@@ -2535,6 +2533,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     death_cry(ch);
 
   GET_POS(ch) = POS_DEAD;
+  domain_event_runtime_character_died(ch, killer);
   /* end making ordinary commands work in scripts */
 
   /* make sure group gets credit for kill if ch involved in autoquest auto-quest */
@@ -2559,11 +2558,12 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   TENACIOUS_PLAGUE(ch) = 0;
   INCENDIARY(ch) = 0;
   CLOUDKILL(ch) = 0;
-  GET_MARK(killer) = NULL;
-  GET_MARK_ROUNDS(killer) = 0;
-  if (GET_STUDIED_TARGET(killer))
+  if (killer != NULL)
   {
-    GET_STUDIED_TARGET(killer) = NULL;
+    GET_MARK(killer) = NULL;
+    GET_MARK_ROUNDS(killer) = 0;
+    if (GET_STUDIED_TARGET(killer))
+      GET_STUDIED_TARGET(killer) = NULL;
   }
 
   /* final handling, primary difference between npc/pc death */
@@ -2609,7 +2609,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
       break;
     }
   }
-  else if (IN_ARENA(ch) || IN_ARENA(killer))
+  else if (IN_ARENA(ch) || (killer != NULL && IN_ARENA(killer)))
   {
     /* no corpse - arena */
 
@@ -2644,7 +2644,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   else
   { /* real DEATH! */
     /* create the corpse */
-    if (!IN_ARENA(ch) && !IN_ARENA(killer))
+    if (!IN_ARENA(ch) && (killer == NULL || !IN_ARENA(killer)))
       make_pc_corpse(ch);
 
     /* move the character out of the room */
@@ -2700,7 +2700,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
 
 void die(struct char_data *ch, struct char_data *killer)
 {
-  if (!killer)
+  if (ch == NULL)
     return;
 
   struct char_data *temp;
@@ -2721,7 +2721,7 @@ void die(struct char_data *ch, struct char_data *killer)
   else
   {
     // if not a newbie then bang that xp! - Bakarus
-    if (!IN_ARENA(ch) && !IN_ARENA(killer))
+    if (!IN_ARENA(ch) && (killer == NULL || !IN_ARENA(killer)))
     {
       /* we are storing lost xp for ressurect */
       GET_LOST_XP(ch) = gain_exp(ch, -penalty, GAIN_EXP_MODE_DEATH);
@@ -2772,7 +2772,7 @@ void die(struct char_data *ch, struct char_data *killer)
 
   /* Info-Kill mobs against player, print info about the death of this player by the mob to the world
    * TODO: add info channel for these guys */
-  if (IS_NPC(killer) && MOB_FLAGGED(killer, MOB_INFO_KILL_PLR))
+  if (killer != NULL && IS_NPC(killer) && MOB_FLAGGED(killer, MOB_INFO_KILL_PLR))
   {
     for (pt = descriptor_list; pt; pt = pt->next)
     {
@@ -2803,7 +2803,7 @@ void die(struct char_data *ch, struct char_data *killer)
 
   /* Info-Kill mobs, print info about the death of this mob to the world
    * TODO: add info channel for these guys */
-  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_INFO_KILL))
+  if (killer != NULL && IS_NPC(ch) && MOB_FLAGGED(ch, MOB_INFO_KILL))
   {
     for (pt = descriptor_list; pt; pt = pt->next)
     {
@@ -5953,6 +5953,26 @@ static struct char_data *find_divine_sacrifice_defender(struct char_data *victim
   return defender;
 }
 
+static bool life_shield_can_reflect(struct char_data *attacker, struct char_data *victim, int damage,
+                                    int source)
+{
+  return attacker != NULL && victim != NULL && attacker != victim && damage > 0 &&
+         source != SPELL_LIFE_SHIELD && IS_UNDEAD(attacker) &&
+         affected_by_spell(victim, SPELL_LIFE_SHIELD);
+}
+
+static struct affected_type *find_spell_affect(struct char_data *ch, int spell)
+{
+  struct affected_type *affect;
+
+  if (ch == NULL)
+    return NULL;
+  for (affect = ch->affected; affect != NULL; affect = affect->next)
+    if (affect->spell == spell)
+      return affect;
+  return NULL;
+}
+
 static void apply_group_sacred_vengeance(struct char_data *victim)
 {
   struct group_data *group;
@@ -6003,6 +6023,17 @@ struct char_data *test_find_divine_sacrifice_defender(struct char_data *victim)
 void test_apply_group_sacred_vengeance(struct char_data *victim)
 {
   apply_group_sacred_vengeance(victim);
+}
+
+bool test_life_shield_can_reflect(struct char_data *attacker, struct char_data *victim, int damage,
+                                  int source)
+{
+  return life_shield_can_reflect(attacker, victim, damage, source);
+}
+
+struct affected_type *test_find_spell_affect(struct char_data *ch, int spell)
+{
+  return find_spell_affect(ch, spell);
 }
 #endif
 
@@ -6329,10 +6360,15 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
 
       /* Transfer damage to paladin */
       GET_HIT(k) -= dam;
+      if (dam > 0)
+        (void)domain_event_runtime_character_damaged(k, ch, dam, dam_type);
       update_pos(k);
 
       /* Start 10 minute cooldown */
       attach_mud_event(new_mud_event(eDIVINE_SACRIFICE, k, NULL), 10 * 60 * PASSES_PER_SEC);
+
+      if (GET_POS(k) == POS_DEAD)
+        (void)dam_killed_vict(ch, k);
 
       /* Victim takes no damage */
       dam = 0;
@@ -6427,7 +6463,7 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   }
 
   // check for life shield spell
-  if (victim && ch != victim && IS_UNDEAD(ch) && affected_by_spell(victim, SPELL_LIFE_SHIELD))
+  if (life_shield_can_reflect(ch, victim, dam, w_type))
   {
     int threshold = get_char_affect_modifier(victim, SPELL_LIFE_SHIELD, APPLY_SPECIAL);
     int lifedam = 0;
@@ -14182,20 +14218,13 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       dam = 0;
       affect_from_char(victim, SPELL_HOSTILE_JUXTAPOSITION);
     }
-    else if (affected_by_spell(victim, SPELL_HOSTILE_JUXTAPOSITION))
+    else if (affected_by_spell(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION))
     {
       send_to_char(victim, "Your greater hostile juxtaposition defense is triggered.\r\n");
-      damage(victim, ch, dam, SPELL_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
+      damage(victim, ch, dam, SPELL_GREATER_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
       dam = 0;
-      for (af2 = victim->affected; af2; af2 = af2->next)
-      {
-        if (af2->location == SPELL_GREATER_HOSTILE_JUXTAPOSITION)
-        {
-          af2->modifier--;
-          break;
-        }
-      }
-      if (af2->modifier <= 0)
+      af2 = find_spell_affect(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
+      if (af2 != NULL && --af2->modifier <= 0)
         affect_from_char(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
     }
   }
