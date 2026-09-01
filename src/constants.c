@@ -898,7 +898,8 @@ const char *room_affections[] = {"Fogged",         "Darkened",
                                  "Holy",           "Unholy",
                                  "Obscuring-Mist", "Difficult-Terrain",
                                  "Sacred-Space",   "Kapak-Acid",
-                                 "Airy-Water",     "\n"};
+                                 "Airy-Water",     "Camp",
+                                 "\n"};
 CHECK_TABLE_SIZE(room_affections, NUM_RAFF + 1);
 
 /** Room flag descriptions. (ZONE_x)
