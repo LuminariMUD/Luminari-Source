@@ -1024,7 +1024,14 @@ void mud_event_detach_owner(struct mud_event_data *pMudEvent)
   case EVENT_DESC:
     d = (struct descriptor_data *)pMudEvent->pStruct;
     if (d != NULL)
+    {
       remove_from_list(pMudEvent, d->events);
+      if (d->events != NULL && d->events->iSize == 0)
+      {
+        free_list(d->events);
+        d->events = NULL;
+      }
+    }
     break;
   case EVENT_CHAR:
     ch = (struct char_data *)pMudEvent->pStruct;

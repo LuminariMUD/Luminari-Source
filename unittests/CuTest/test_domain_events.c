@@ -632,6 +632,7 @@ void TestActiveWorldSchedulesAutonomousMobilesWithoutPlayers(CuTest *tc)
   mob_rnum saved_top_of_mobt;
   unsigned long saved_pulse;
   uint64_t callbacks_before;
+  event_handle_t cancelled_handle;
 
   saved_world = world;
   saved_characters = character_list;
@@ -678,6 +679,20 @@ void TestActiveWorldSchedulesAutonomousMobilesWithoutPlayers(CuTest *tc)
   CuAssertIntEquals(tc, 2, event_queue_depth());
   CuAssertTrue(tc, nearby.active_world_event_handle != EVENT_HANDLE_NONE);
   CuAssertTrue(tc, distant.active_world_event_handle != EVENT_HANDLE_NONE);
+
+  cancelled_handle = nearby.active_world_event_handle;
+  CuAssertTrue(tc, event_handle_cancel(cancelled_handle));
+  CuAssertTrue(tc, !event_handle_is_live(cancelled_handle));
+  CuAssertTrue(tc, nearby.active_world_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, ACTIVE_WORLD_MOBILE_DORMANT, nearby.active_world_state);
+  CuAssertIntEquals(tc, 1,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+  active_world_sync_mobile(&nearby);
+  CuAssertIntEquals(tc, ACTIVE_WORLD_MOBILE_ACTIVE, nearby.active_world_state);
+  CuAssertIntEquals(tc, 2,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 2, event_queue_depth());
 
   callbacks_before = active_world_mobile_callbacks();
   pulse += PULSE_MOBILE;
@@ -867,6 +882,19 @@ void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)periodic_dg_random_scheduled_count(WLD_TRIGGER));
   CuAssertIntEquals(tc, 4, event_queue_depth());
 
+  CuAssertTrue(tc, event_handle_cancel(obj->autoproc_event_handle));
+  CuAssertTrue(tc, event_handle_cancel(object_script.random_event_handle));
+  CuAssertTrue(tc, obj->autoproc_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, object_script.random_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, 0, (int)periodic_autoproc_scheduled_count());
+  CuAssertIntEquals(tc, 0, (int)periodic_dg_random_scheduled_count(OBJ_TRIGGER));
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+  periodic_autoproc_sync(obj);
+  periodic_dg_random_sync(&object_script);
+  CuAssertIntEquals(tc, 1, (int)periodic_autoproc_scheduled_count());
+  CuAssertIntEquals(tc, 1, (int)periodic_dg_random_scheduled_count(OBJ_TRIGGER));
+  CuAssertIntEquals(tc, 4, event_queue_depth());
+
   pulse += PULSE_DG_SCRIPT;
   event_process();
   CuAssertIntEquals(tc, 1, (int)periodic_autoproc_callbacks());
@@ -1036,6 +1064,19 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   CuAssertTrue(tc, affected_owner_events_enabled());
   CuAssertIntEquals(tc, 1, (int)affected_character_scheduled_count());
   CuAssertIntEquals(tc, 1, (int)affected_room_owner_count());
+  CuAssertIntEquals(tc, 1, (int)affected_room_scheduled_count());
+  CuAssertIntEquals(tc, 2, event_queue_depth());
+
+  CuAssertTrue(tc, event_handle_cancel(ch.affected_event_handle));
+  CuAssertTrue(tc, event_handle_cancel(room.affected_event_handle));
+  CuAssertTrue(tc, ch.affected_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, room.affected_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, 0, (int)affected_character_scheduled_count());
+  CuAssertIntEquals(tc, 0, (int)affected_room_scheduled_count());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  affected_owners_shutdown();
+  affected_owners_init();
+  CuAssertIntEquals(tc, 1, (int)affected_character_scheduled_count());
   CuAssertIntEquals(tc, 1, (int)affected_room_scheduled_count());
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
@@ -1466,6 +1507,13 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
 
   CuAssertTrue(tc, character_periodic_events_enabled());
   CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
+  CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
+  CuAssertIntEquals(tc, 7, (int)event_handle_time(ch.character_periodic_event_handle));
+
+  CuAssertTrue(tc, event_handle_cancel(ch.character_periodic_event_handle));
+  CuAssertTrue(tc, ch.character_periodic_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, 0, (int)character_periodic_scheduled_count());
+  character_periodic_sync(&ch);
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
   CuAssertIntEquals(tc, 7, (int)event_handle_time(ch.character_periodic_event_handle));
 

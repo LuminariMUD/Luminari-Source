@@ -75,6 +75,11 @@ static struct char_data *find_char_by_uid_in_lookup_table(long uid);
 static struct obj_data *find_obj_by_uid_in_lookup_table(long uid);
 static EVENTFUNC(trig_wait_event);
 static void cleanup_trig_wait_event(event_handle_t handle, void *event_obj);
+#ifdef LUMINARI_CUTEST
+static EVENTFUNC(test_inflight_trigger_free_event);
+static uint64_t test_wait_resume_count;
+static uint64_t test_deferred_trigger_free_count;
+#endif
 
 /* Return pointer to first occurrence of string ct in cs, or NULL if not
  * present.  Case insensitive. All of ct must be found in cs for it to be
@@ -808,15 +813,24 @@ static EVENTFUNC(trig_wait_event)
   void *go;
   int type;
 
+  if (wait_event_obj == NULL)
+    return 0;
   trig = wait_event_obj->trigger;
+  if (trig == NULL)
+  {
+    free(wait_event_obj);
+    return 0;
+  }
   go = wait_event_obj->go;
   type = wait_event_obj->type;
 
-  if (GET_TRIG_WAIT_DATA(trig) == wait_event_obj)
+  if (GET_TRIG_WAIT_DATA(trig) != wait_event_obj)
   {
-    GET_TRIG_WAIT_HANDLE(trig) = EVENT_HANDLE_NONE;
-    GET_TRIG_WAIT_DATA(trig) = NULL;
+    free(wait_event_obj);
+    return 0;
   }
+  GET_TRIG_WAIT_HANDLE(trig) = EVENT_HANDLE_NONE;
+  GET_TRIG_WAIT_DATA(trig) = NULL;
   free(wait_event_obj);
 
   /* Owner teardown extracts attached scripts, and trigger extraction cancels
@@ -825,6 +839,9 @@ static EVENTFUNC(trig_wait_event)
 
   {
     struct script_call_args restart_args = {&go, trig, type, TRIG_RESTART};
+#ifdef LUMINARI_CUTEST
+    test_wait_resume_count++;
+#endif
     script_driver(&restart_args);
   }
 
@@ -835,19 +852,84 @@ static EVENTFUNC(trig_wait_event)
 static void cleanup_trig_wait_event(event_handle_t handle, void *event_obj)
 {
   struct wait_event_data *wait_event_obj = event_obj;
+  struct trig_data *trig;
+  bool destroy_trigger;
 
   if (wait_event_obj == NULL)
     return;
 
-  if (wait_event_obj->trigger != NULL &&
-      GET_TRIG_WAIT_HANDLE(wait_event_obj->trigger) == handle)
+  trig = wait_event_obj->trigger;
+  destroy_trigger = wait_event_obj->destroy_trigger_after_cleanup;
+  if (trig != NULL && GET_TRIG_WAIT_HANDLE(trig) == handle)
   {
-    GET_TRIG_WAIT_HANDLE(wait_event_obj->trigger) = EVENT_HANDLE_NONE;
-    GET_TRIG_WAIT_DATA(wait_event_obj->trigger) = NULL;
+    GET_TRIG_WAIT_HANDLE(trig) = EVENT_HANDLE_NONE;
+    GET_TRIG_WAIT_DATA(trig) = NULL;
   }
 
   free(wait_event_obj);
+  if (destroy_trigger && trig != NULL)
+  {
+#ifdef LUMINARI_CUTEST
+    test_deferred_trigger_free_count++;
+#endif
+    free_trigger(trig);
+  }
 }
+
+#ifdef LUMINARI_CUTEST
+static EVENTFUNC(test_inflight_trigger_free_event)
+{
+  struct wait_event_data *wait_event_obj = event_obj;
+
+  if (wait_event_obj != NULL)
+    free_trigger(wait_event_obj->trigger);
+  return 0;
+}
+
+static event_handle_t schedule_test_wait(struct trig_data *trig, long when,
+                                         EVENTFUNC(*callback))
+{
+  struct wait_event_data *wait_event_obj;
+
+  if (trig == NULL || callback == NULL)
+    return EVENT_HANDLE_NONE;
+  CREATE(wait_event_obj, struct wait_event_data, 1);
+  wait_event_obj->trigger = trig;
+  wait_event_obj->type = WLD_TRIGGER;
+  GET_TRIG_WAIT_DATA(trig) = wait_event_obj;
+  GET_TRIG_WAIT_HANDLE(trig) = event_schedule_named_with_cleanup(
+      callback, wait_event_obj, when, "dg_wait_test", cleanup_trig_wait_event);
+  if (GET_TRIG_WAIT_HANDLE(trig) == EVENT_HANDLE_NONE)
+  {
+    GET_TRIG_WAIT_DATA(trig) = NULL;
+    free(wait_event_obj);
+  }
+  return GET_TRIG_WAIT_HANDLE(trig);
+}
+
+event_handle_t dg_wait_schedule_for_test(struct trig_data *trig, long when)
+{
+  return schedule_test_wait(trig, when, trig_wait_event);
+}
+
+event_handle_t dg_wait_schedule_inflight_free_for_test(struct trig_data *trig, long when)
+{
+  return schedule_test_wait(trig, when, test_inflight_trigger_free_event);
+}
+
+void dg_wait_reset_telemetry_for_test(void)
+{
+  test_wait_resume_count = 0U;
+  test_deferred_trigger_free_count = 0U;
+}
+
+uint64_t dg_wait_resume_count_for_test(void) { return test_wait_resume_count; }
+
+uint64_t dg_wait_deferred_free_count_for_test(void)
+{
+  return test_deferred_trigger_free_count;
+}
+#endif
 
 static void do_stat_trigger(struct char_data *ch, trig_data *trig)
 {

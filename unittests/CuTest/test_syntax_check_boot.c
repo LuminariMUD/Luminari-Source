@@ -242,7 +242,8 @@ static void verify_mud_event_owner_generation(CuTest *tc, enum event_backend_kin
   CuAssertPtrNotNull(tc, descriptor.events);
   CuAssertIntEquals(tc, 1, descriptor.events->iSize);
   first_descriptor_generation = descriptor.event_owner_generation;
-  clear_descriptor_event_list(&descriptor);
+  first_event = (struct mud_event_data *)descriptor.events->pFirstItem->pContent;
+  CuAssertTrue(tc, event_handle_cancel(first_event->event_handle));
   CuAssertPtrEquals(tc, NULL, descriptor.events);
 
   memset(&descriptor, 0, sizeof(descriptor));
