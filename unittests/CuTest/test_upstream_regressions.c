@@ -80,6 +80,33 @@ static void reset_test_descriptor_output(struct descriptor_data *descriptor)
   descriptor->bufspace = SMALL_BUFSIZE - 1;
 }
 
+void Test_graceful_descriptor_close_drains_queued_output_with_deadline(CuTest *tc)
+{
+  struct descriptor_data descriptor;
+  uint64_t deadline;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  reset_test_descriptor_output(&descriptor);
+  STATE(&descriptor) = CON_CLOSE;
+  strlcpy(descriptor.output, "Quitting.\r\n", SMALL_BUFSIZE);
+  descriptor.bufptr = (int)strlen(descriptor.output);
+  descriptor.bufspace -= descriptor.bufptr;
+
+  CuAssertTrue(tc, !comm_close_due_for_test(&descriptor, UINT64_C(100)));
+  deadline = descriptor.close_output_deadline_usec;
+  CuAssertTrue(tc, deadline > UINT64_C(100));
+  CuAssertTrue(tc, !comm_close_due_for_test(&descriptor, deadline - 1));
+  CuAssertTrue(tc, comm_close_due_for_test(&descriptor, deadline));
+
+  descriptor.output[0] = '\0';
+  descriptor.bufptr = 0;
+  CuAssertTrue(tc, comm_close_due_for_test(&descriptor, UINT64_C(101)));
+
+  STATE(&descriptor) = CON_DISCONNECT;
+  strlcpy(descriptor.output, "discard", SMALL_BUFSIZE);
+  CuAssertTrue(tc, comm_close_due_for_test(&descriptor, UINT64_C(101)));
+}
+
 void Test_ban_records_are_bounded_and_reject_malformed_fields(CuTest *tc)
 {
   struct ban_list_element record;

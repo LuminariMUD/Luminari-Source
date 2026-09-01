@@ -143,6 +143,7 @@
 #define PERSISTENCE_PULSE_BUDGET_USEC 20000
 #define PERSISTENCE_HARD_LIMIT_USEC 50000
 #define PERSISTENCE_RETRY_PULSES PASSES_PER_SEC
+#define DESCRIPTOR_CLOSE_DRAIN_USEC UINT64_C(1000000)
 
 extern time_t motdmod;
 extern time_t newsmod;
@@ -201,6 +202,7 @@ static int new_descriptor(socket_t s);
 static int get_max_players(void);
 static int process_output(struct descriptor_data *t);
 static void retain_unsent_output(struct descriptor_data *t, const char *output, int result);
+static bool descriptor_close_due(struct descriptor_data *d, uint64_t now_usec);
 static int process_input(struct descriptor_data *t);
 static void timediff(struct timeval *diff, struct timeval *a, struct timeval *b);
 static void flush_queues(struct descriptor_data *d);
@@ -1551,6 +1553,18 @@ void game_loop(socket_t local_mother_desc)
       if (wait_deadline_usec - before_sleep_usec < heartbeat_timeout_usec)
         heartbeat_timeout_usec = wait_deadline_usec - before_sleep_usec;
     }
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (STATE(d) != CON_CLOSE || d->close_output_deadline_usec == 0)
+        continue;
+      if (d->close_output_deadline_usec <= before_sleep_usec)
+      {
+        heartbeat_timeout_usec = 0;
+        break;
+      }
+      if (d->close_output_deadline_usec - before_sleep_usec < heartbeat_timeout_usec)
+        heartbeat_timeout_usec = d->close_output_deadline_usec - before_sleep_usec;
+    }
     if (heartbeat_timeout_usec == UINT64_MAX)
       heartbeat_timeout_usec = UINT64_C(60000000);
     timeout.tv_sec = (time_t)(heartbeat_timeout_usec / UINT64_C(1000000));
@@ -1778,11 +1792,12 @@ void game_loop(socket_t local_mother_desc)
       }
     }
 
-    /* Kick out folks in the CON_CLOSE or CON_DISCONNECT state */
+    /* Hard disconnects close immediately. Graceful closes get one bounded
+     * opportunity to drain output queued after write readiness was sampled. */
     for (d = descriptor_list; d; d = next_d)
     {
       next_d = d->next;
-      if (STATE(d) == CON_CLOSE || STATE(d) == CON_DISCONNECT)
+      if (descriptor_close_due(d, now_usec))
         close_socket(d);
     }
 
@@ -4624,7 +4639,33 @@ static void retain_unsent_output(struct descriptor_data *t, const char *output, 
   }
 }
 
+static bool descriptor_close_due(struct descriptor_data *d, uint64_t now_usec)
+{
+  if (d == NULL)
+    return false;
+  if (STATE(d) == CON_DISCONNECT)
+    return true;
+  if (STATE(d) != CON_CLOSE)
+    return false;
+  if (d->output == NULL || *(d->output) == '\0')
+    return true;
+  if (d->close_output_deadline_usec == 0)
+  {
+    d->close_output_deadline_usec =
+        now_usec > UINT64_MAX - DESCRIPTOR_CLOSE_DRAIN_USEC
+            ? UINT64_MAX
+            : now_usec + DESCRIPTOR_CLOSE_DRAIN_USEC;
+    return false;
+  }
+  return now_usec >= d->close_output_deadline_usec;
+}
+
 #if defined(LUMINARI_CUTEST)
+bool comm_close_due_for_test(struct descriptor_data *d, uint64_t now_usec)
+{
+  return descriptor_close_due(d, now_usec);
+}
+
 void comm_test_retain_unsent_output(struct descriptor_data *t, const char *output, int result)
 {
   retain_unsent_output(t, output, result);

@@ -7526,6 +7526,7 @@ struct descriptor_data
   byte bad_pws;                      /**< number of bad pw attemps this login */
   byte idle_tics;                    /**< tics idle at password prompt		*/
   int connected;                     /**< mode of 'connectedness'		*/
+  uint64_t close_output_deadline_usec; /**< Bounded graceful-close drain deadline. */
   int desc_num;                      /**< unique num assigned to desc		*/
   uint64_t event_owner_generation;  /**< Connection-scoped event generation. */
   time_t login_time;                 /**< when the person connected		*/
