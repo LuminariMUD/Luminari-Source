@@ -28,6 +28,12 @@ absent. Normal dispatch does not contain a coordinator that walks
 Population traversal remains limited to final boot reconciliation, explicit
 staff validation, and boot-selected rollback code.
 
+The follow-up architecture lock adds direct regression evidence: 512 loaded
+dormant NPCs contribute no scheduled entries or callbacks, while one off-screen
+wanderer contributes one owner agenda. A source-policy test rejects global-list
+or whole-mobile dispatch from that agenda and confirms the legacy mobile cycle
+is gated behind explicit active-world rollback selection.
+
 ## 2. Gap Closed
 
 The audit found one real specification miss. NPC class spell slots and
@@ -111,14 +117,14 @@ retirement. Acceptance evidence:
 
 - the optimized production build passes with only the pre-existing suppressed
   `scanf` format warning in `src/players.c`;
-- authoritative `make test-all` passes 1,047 C tests, 504 world-tool tests with
+- authoritative `make test-all` passes 1,048 C tests, 504 world-tool tests with
   35 intentional corpus skips, 29 protocol tests, source-policy checks,
   process-memory checks, schema checks, and immutable install verification;
 - scheduler/libevent, scheduler/`select()`, legacy queue/libevent, and legacy
-  queue/`select()` each pass all 1,047 production-linked tests;
+  queue/`select()` each pass all 1,048 production-linked tests;
 - AddressSanitizer, UndefinedBehaviorSanitizer, and leak detection pass all
-  1,047 tests with syntax-child boot disabled as in CI;
-- strict child-tracing Valgrind passes all 1,047 tests with zero errors, zero
+  1,048 tests with syntax-child boot disabled as in CI;
+- strict child-tracing Valgrind passes all 1,048 tests with zero errors, zero
   definitely, indirectly, or possibly lost allocations, and only standard
   descriptors open;
 - the copied production world syntax boot passes with 762 zones, 91,735 rooms,

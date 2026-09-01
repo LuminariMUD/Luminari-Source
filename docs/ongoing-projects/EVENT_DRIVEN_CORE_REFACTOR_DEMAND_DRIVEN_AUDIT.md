@@ -112,3 +112,28 @@ All eight invariants hold in focused tests and the copied-world live run. The
 repository-wide four-mode matrix, authoritative `make test-all`, sanitizer,
 Valgrind, and copied-world syntax gates also pass without an architectural
 exception.
+
+## Executable Architecture Lock
+
+A 2026-09-01 follow-up audit confirmed that the normal source already matches
+the architecture above. The recurring `service.mobile_activity_rollback`
+callback is admitted only when the active-world subsystem is explicitly
+disabled; it is not a scheduler for a gameplay class. Normal autonomous work
+uses one `active_world_mobile_agenda` handle per owner with a non-empty reason
+mask and dispatches only reasons whose deadlines are due.
+
+Two regression layers now make this distinction durable:
+
+1. `TestActiveWorldDormantPopulationDoesNotCreateScheduledWork` loads 512
+   dormant sentinel NPCs and one off-screen wanderer. Queue depth remains one,
+   exactly one callback executes at the wanderer's deadline, and removing the
+   wander reason immediately leaves the queue empty.
+2. `scripts/events/test_demand_driven_architecture.sh` is part of `make test`.
+   It rejects global character/object list traversal, whole-mobile rollback
+   dispatch, or reason-blind execution from the normal agenda callback and
+   freezes the exclusive rollback gate in `runtime_service_needed()`.
+
+This lock does not make empty zones inactive. Wanderers, patrols, hunts,
+special procedures, resource recovery, and NPC conflicts continue off-screen
+because their owners retain concrete work. Loaded entities without a current
+responsibility remain dormant and cost no recurring callback.

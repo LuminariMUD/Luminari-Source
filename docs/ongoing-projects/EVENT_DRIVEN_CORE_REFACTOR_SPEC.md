@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
 **Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible implementation and final source audit are complete; irreversible removal gate pending
-**Document version:** 1.33
+**Document version:** 1.34
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, the final adversarial source audit, and the operator release-gate handoff are implemented; only the externally gated physical rollback removal remains
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, the final adversarial source audit, the executable demand-driven architecture lock, and the operator release-gate handoff are implemented; only the externally gated physical rollback removal remains
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > now stores legacy timed events through the Phase 2 compatibility facade. The
@@ -55,6 +55,12 @@
 > full resource pool retires the agenda. It also classified all 14 default
 > runtime services as bounded connected-owner, fixed/indexed global, or
 > singleton work; broad character/object/mobile scans are rollback-only.
+> A production-linked population test now fixes that distinction in executable
+> form: 512 loaded dormant NPCs add no queue entries or callbacks while one
+> off-screen wanderer owns exactly one agenda. A source-policy gate rejects
+> global-list traversal, whole-mobile dispatch, or reason-blind execution from
+> the normal mobile agenda callback. The whole-mobile cycle remains reachable
+> only through the explicit rollback selectors.
 > The current removal inventory proves raw event records are private, records
 > the remaining opaque-adapter burn-down surface, and links an operator runbook
 > for tagged deployment, fallback-use observation, PubSub inventory, protected
@@ -2496,3 +2502,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.31 | 2026-09-01 | Renamed gameplay pulse-oriented functions and object automatic-event vocabulary according to domain intent while preserving cadence, ordering, flags, and behavior. Whole-population entry points now advertise legacy rollback, and the admission policy rejects new gameplay pulse-named definitions outside an exact infrastructure allowlist. |
 | 1.32 | 2026-09-01 | Completed the final adversarial source audit, classified all default runtime services, corrected permanent architecture and CLI documentation, and closed the NPC spell-resource gap with consumption-triggered owner deadlines that retire at full capacity. Reversible implementation is complete; physical queue, heartbeat, select-driver, legacy-writer, and archival-schema removal remain prohibited until the stable-release and operator gate closes. |
 | 1.33 | 2026-09-01 | Refreshed the irreversible-removal inventory against the final audited source, replaced stale raw-pointer migration claims with the enforced zero-caller state, and published the operator gate runbook for release identity, fallback observation, health evidence, PubSub backup/restore rehearsal, and explicit approval. Authoritative GitHub evidence still shows no containing release or deployment, so physical removal remains prohibited. |
+| 1.34 | 2026-09-01 | Re-audited the autonomous-world implementation after architecture discussion and confirmed that the desired one-wheel, concrete-owner agenda model is already the normal path. Added an executable source-policy gate against global discovery or legacy dispatch from the mobile agenda and a 512-dormant-plus-one-wanderer production-linked test proving queue depth and callback work follow concrete responsibility rather than loaded population. |

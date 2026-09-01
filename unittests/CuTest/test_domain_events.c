@@ -726,6 +726,96 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   character_list = saved_characters;
 }
 
+void TestActiveWorldDormantPopulationDoesNotCreateScheduledWork(CuTest *tc)
+{
+  const size_t dormant_count = 512U;
+  struct room_data room;
+  struct char_data *mobiles;
+  struct char_data *wanderer;
+  struct room_data *saved_world = world;
+  struct char_data *saved_characters = character_list;
+  room_rnum saved_top_of_world = top_of_world;
+  mob_rnum saved_top_of_mobt = top_of_mobt;
+  unsigned long saved_pulse = pulse;
+  uint64_t callbacks_before;
+  long first_delay;
+  size_t index;
+
+  mobiles = calloc(dormant_count + 1U, sizeof(*mobiles));
+  CuAssertPtrNotNull(tc, mobiles);
+  memset(&room, 0, sizeof(room));
+  room.number = 100;
+  for (index = 0U; index <= dormant_count; index++)
+  {
+    active_world_prepare_character(&mobiles[index], true, 0);
+    mobiles[index].player_specials = &dummy_mob;
+    mobiles[index].player.short_descr =
+        index == dormant_count ? (char *)"scheduled wanderer" : (char *)"dormant sentinel";
+    if (index < dormant_count)
+      SET_BIT_AR(MOB_FLAGS(&mobiles[index]), MOB_SENTINEL);
+    if (index < dormant_count)
+    {
+      mobiles[index].next = &mobiles[index + 1U];
+      mobiles[index].next_in_room = &mobiles[index + 1U];
+    }
+  }
+  wanderer = &mobiles[dormant_count];
+  room.people = mobiles;
+  world = &room;
+  top_of_world = 0;
+  top_of_mobt = 0;
+  character_list = mobiles;
+
+  event_free_all();
+  active_world_reset_for_test();
+  active_world_select_for_test(true);
+  character_periodic_reset_for_test();
+  character_periodic_select_for_test(false);
+  point_update_periodic_reset_for_test();
+  point_update_periodic_select_for_test(false);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  pulse = 150U;
+  event_init();
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
+  active_world_begin_bootstrap();
+  active_world_end_bootstrap();
+
+  CuAssertIntEquals(tc, 1,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1,
+                    (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+  for (index = 0U; index < dormant_count; index++)
+    CuAssertTrue(tc, mobiles[index].active_world_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, wanderer->active_world_event_handle != EVENT_HANDLE_NONE);
+
+  callbacks_before = active_world_mobile_callbacks();
+  first_delay = event_handle_time(wanderer->active_world_event_handle);
+  CuAssertTrue(tc, first_delay > 0L);
+  process_scheduler_pulses((unsigned long)first_delay);
+  CuAssertIntEquals(tc, (int)(callbacks_before + 1U),
+                    (int)active_world_mobile_callbacks());
+  CuAssertIntEquals(tc, 1, event_queue_depth());
+
+  SET_BIT_AR(MOB_FLAGS(wanderer), MOB_SENTINEL);
+  active_world_sync_mobile(wanderer);
+  CuAssertIntEquals(tc, 0,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
+  event_free_all();
+  active_world_reset_for_test();
+  character_periodic_reset_for_test();
+  point_update_periodic_reset_for_test();
+  free(mobiles);
+  pulse = saved_pulse;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  top_of_mobt = saved_top_of_mobt;
+  character_list = saved_characters;
+}
+
 void TestActiveWorldDemandDrivenAdmissionAndLegacyGateAreExclusive(CuTest *tc)
 {
   struct room_data room;

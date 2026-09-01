@@ -781,6 +781,7 @@ EXTRA_DIST = \
 	scripts/development/check_local_port_allocations.sh \
 	scripts/development/dev_create_test_character.sh \
 	scripts/development/dev_kohdee_login_smoke.sh \
+	scripts/events/test_demand_driven_architecture.sh \
 	scripts/events/test_legacy_event_admission.sh \
 	scripts/events/test_pubsub_retirement.sh \
 	scripts/mariadb/setup_mariadb_sudoers.sh \
@@ -922,14 +923,16 @@ EXTRA_DIST = \
 # Run unit tests
 test: check test-help-sync test-autorun-supervision test-versioned-binary-install \
 	test-binary-name-static test-healthcheck \
-	test-background-help-entries test-event-admission test-pubsub-retirement test-vessel-tooling
+	test-background-help-entries test-demand-driven-architecture test-event-admission \
+	test-pubsub-retirement test-vessel-tooling
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
 .PHONY: check-world-docs rol-mob-calculator test-all test-world-tools test-help-sync \
 	test-help-sync-integration test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-binary-name-static test-healthcheck \
-	test-event-admission test-pubsub-retirement test-vessel-tooling
+	test-demand-driven-architecture test-event-admission test-pubsub-retirement \
+	test-vessel-tooling
 
 check-world-docs:
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check
@@ -966,6 +969,9 @@ test-character-rename-schema:
 
 test-background-help-entries:
 	./scripts/test_background_help_entries.sh
+
+test-demand-driven-architecture:
+	./scripts/events/test_demand_driven_architecture.sh
 
 test-event-admission:
 	./scripts/events/test_legacy_event_admission.sh
