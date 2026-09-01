@@ -436,6 +436,16 @@ that permits world-data ownership. Clean CI checkouts set
 exact baseline inventory contract reproducible without treating builder-owned
 world data as source-controlled content.
 
+The CMake and Autotools production-linked test entry points always set this
+fixture explicitly. They also run the event architecture contracts under
+`scripts/events/`: native one-wheel ownership and semantic registration,
+demand-driven mobile work, default-build rollback exclusion, and retired
+PubSub exclusion. Run the consolidated event check directly with:
+
+```sh
+scripts/events/test_native_event_architecture.sh
+```
+
 ## Coverage
 
 The GitHub Actions coverage job:

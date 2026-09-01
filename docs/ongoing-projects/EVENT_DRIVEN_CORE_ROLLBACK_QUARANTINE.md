@@ -81,6 +81,12 @@ agenda does not call whole-population dispatch and that the legacy cycle is
 guarded. Production artifact checks additionally reject legacy selector strings,
 queue symbols, compatibility schedule symbols, and whole-mobile loop symbols.
 
+`scripts/events/test_native_event_architecture.sh` additionally enforces one
+physical timing-wheel owner, zero direct scheduler bypasses, stable semantic
+registrations, sealed boot registration, entity/script diagnostics, and the
+presence of linked lifecycle, dormant-population, and width regressions. All
+event contracts run under both CTest and the authoritative `make test` path.
+
 The retained rollback build and parity tests are deliberately separate
 evidence. Their success proves emergency reversibility; it does not make their
 APIs acceptable for new gameplay code.

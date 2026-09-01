@@ -787,6 +787,7 @@ EXTRA_DIST = \
 	scripts/development/dev_kohdee_login_smoke.sh \
 	scripts/events/test_demand_driven_architecture.sh \
 	scripts/events/test_legacy_event_admission.sh \
+	scripts/events/test_native_event_architecture.sh \
 	scripts/events/test_pubsub_retirement.sh \
 	scripts/mariadb/setup_mariadb_sudoers.sh \
 	scripts/mariadb/start_mariadb.sh \
@@ -928,14 +929,17 @@ EXTRA_DIST = \
 test: check test-help-sync test-autorun-supervision test-versioned-binary-install \
 	test-binary-name-static test-healthcheck \
 	test-background-help-entries test-demand-driven-architecture test-event-admission \
-	test-pubsub-retirement test-vessel-tooling
-	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
+	test-native-event-architecture test-pubsub-retirement test-vessel-tooling
+	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" \
+		LUMINARI_TEST_SPEC_WORLD_ROOT="$(abs_top_srcdir)/unittests/CuTest/fixtures/spec_world_inventory" \
+		./cutest
 
 .PHONY: check-world-docs rol-mob-calculator test-all test-world-tools test-help-sync \
 	test-help-sync-integration test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-versioned-binary-install test-binary-name-static test-healthcheck \
-	test-demand-driven-architecture test-event-admission test-pubsub-retirement \
+	test-demand-driven-architecture test-event-admission test-native-event-architecture \
+	test-pubsub-retirement \
 	test-vessel-tooling
 
 check-world-docs:
@@ -979,6 +983,9 @@ test-demand-driven-architecture:
 
 test-event-admission:
 	./scripts/events/test_legacy_event_admission.sh
+
+test-native-event-architecture:
+	./scripts/events/test_native_event_architecture.sh
 
 test-pubsub-retirement:
 	./scripts/events/test_pubsub_retirement.sh

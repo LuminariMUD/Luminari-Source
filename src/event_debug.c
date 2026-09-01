@@ -160,7 +160,7 @@ size_t event_debug_render_help(char *buffer, size_t capacity, int width)
   debug_output_line(&output, "eventdebug mob <name> [limit]");
   debug_output_line(&output, "eventdebug object <name> [limit]");
   debug_output_line(&output, "eventdebug room <here|vnum> [limit]");
-  debug_output_line(&output, "eventdebug scripts <kind> <target>");
+  debug_output_line(&output, "eventdebug scripts <kind> <target> [limit]");
   debug_output_line(&output, "  [limit]; kinds: player mob object room");
   debug_output_line(&output, "eventdebug due <max-pulses> [limit]");
   debug_output_line(&output, "eventdebug range <min> <max> [limit]");

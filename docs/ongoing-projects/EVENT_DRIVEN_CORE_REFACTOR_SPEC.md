@@ -1,21 +1,21 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible implementation and final source audit are complete; irreversible removal gate pending
-**Document version:** 1.46
+**Status:** In progress - Phases 1 through 10 accepted; Phase 11 default-native architecture and enforcement are complete; final runtime validation and audit pending
+**Document version:** 1.47
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, the final adversarial source audit, the executable demand-driven architecture lock, and the current-SHA operator release-gate handoff are implemented; only the externally gated physical rollback removal remains
+**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, zero default-build compatibility callers, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, native DG/MUD/AI jobs, default-disabled rollback quarantine, and executable whole-architecture enforcement are implemented; comprehensive runtime validation and the final adversarial audit remain, while physical rollback deletion stays subject to its external release gate
 
 > This remains the controlling planning specification. The Phase 1 scheduler
-> now stores legacy timed events through the Phase 2 compatibility facade. The
-> scheduler deadlines now drive bounded reactor dispatch. Named service events
-> own the remaining cadence work in every ordinary build. The compatibility
+> is now private behind the native `event_runtime` boundary in every ordinary
+> build. Its deadlines drive bounded reactor dispatch, and named service events
+> own the remaining global cadence work. The compatibility
 > heartbeat, old queue, and population loops are excluded unless a separate
 > rollback executable is intentionally compiled. Generation-aware MUD-event
 > ownership and lifecycle cancellation form the accepted scheduler foundation.
 > A private `libevent` compatibility reactor now owns production readiness and
 > signals, with boot-time `select()` rollback. Gameplay timing ownership is
-> migrating, and encounter-owned six-second semantic combat is now accepted.
+> native, and encounter-owned six-second semantic combat is accepted.
 > Versioned player-event records now validate stable ownership, apply elapsed
 > wall time to durable cooldowns, and rebuild fresh process-local timers, while
 > transient and boot-reconstructed work has an explicit policy.
@@ -28,9 +28,9 @@
 > on the normal scheduler path and can be inspected together with every event
 > for a selected live entity. Their owner-local timing, recurrence, teardown,
 > and diagnostics remain unchanged. Four compatibility schedules across three
-> production files remain because physical legacy rollback still owns small
-> DG-wait, MUD-event, and AI adapter branches. None is used by the normal
-> scheduler path; all leave with physical rollback.
+> guarded source files remain only inside the separately compiled physical
+> rollback product for DG waits, MUD events, and AI jobs. They are absent from
+> the normal product and leave with physical rollback.
 > Vessel owners, the vessel/point-update singleton services, DG waits, MUD
 > events, and one-shot AI jobs use native runtime handles. The compatibility
 > record, pointer API, and rollback queue declarations are private to the

@@ -1329,8 +1329,28 @@ if (BUILD_TESTS)
 
     add_test(NAME production-cutest COMMAND cutest)
     set_tests_properties(production-cutest PROPERTIES
-        ENVIRONMENT "LUMINARI_TEST_ROOT=${CMAKE_CURRENT_SOURCE_DIR}"
+        ENVIRONMENT
+            "LUMINARI_TEST_ROOT=${CMAKE_CURRENT_SOURCE_DIR};LUMINARI_TEST_SPEC_WORLD_ROOT=${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest/fixtures/spec_world_inventory"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    add_test(NAME demand-driven-event-architecture
+        COMMAND bash
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_demand_driven_architecture.sh)
+    add_test(NAME legacy-event-admission
+        COMMAND bash
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_legacy_event_admission.sh)
+    add_test(NAME native-event-architecture
+        COMMAND bash
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_native_event_architecture.sh)
+    add_test(NAME event-pubsub-retirement
+        COMMAND bash
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/events/test_pubsub_retirement.sh)
+    set_tests_properties(
+        demand-driven-event-architecture
+        legacy-event-admission
+        native-event-architecture
+        event-pubsub-retirement
+        PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME world-tools
         COMMAND Python3::Interpreter -m unittest discover

@@ -2,6 +2,31 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native event architecture enforcement
+
+#### Changed
+
+- Added a default-build contract enforcing one physical timing wheel, private
+  scheduler ownership behind `event_runtime`, stable semantic event types,
+  boot-sealed registration, and complete rollback-facade absence from ordinary
+  preprocessing.
+- Registered all four event architecture contracts with CTest and retained
+  them in the authoritative Autotools `make test` path.
+- Made the production-linked named-SpecProc inventory deterministic by using
+  its tracked five-binding fixture instead of the locally installed ignored
+  development world.
+- Documented the optional result limit in `eventdebug scripts`; entity and
+  script diagnostics remain generation-wide, payload-redacted, 80-column by
+  default, and 120-column maximum.
+
+#### Tests
+
+- Added source enforcement for semantic registration, direct scheduler bypass,
+  physical scheduler ownership, one-wheel creation, rollback absence, and the
+  entity/script diagnostic surface.
+- All 1,051 production-linked CuTests and all four event architecture contracts
+  pass in the normal CMake test product.
+
 ### Native semantic MUD events
 
 #### Changed
