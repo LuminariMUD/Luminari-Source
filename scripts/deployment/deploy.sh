@@ -375,20 +375,26 @@ build_project() {
     print_msg "$GREEN" "Build complete!"
 }
 
+# Return success only when every runtime world index exists.
+world_indexes_ready() {
+    local world_type
+
+    for world_type in zon wld mob obj shp trg qst hlq; do
+        [[ -f "$PROJECT_ROOT/lib/world/$world_type/index" ]] || return 1
+    done
+    return 0
+}
+
 # Function to initialize minimal world data
 initialize_world_data() {
-    local world_ready=true
-    local world_type
+    local world_ready=false
 
     print_msg "$GREEN" "Initializing minimal world data..."
     print_msg "$YELLOW" "This step is REQUIRED - server will not start without world files!"
 
-    for world_type in zon wld mob obj shp trg qst hlq; do
-        if [[ ! -f "$PROJECT_ROOT/lib/world/$world_type/index" ]]; then
-            world_ready=false
-            break
-        fi
-    done
+    if world_indexes_ready; then
+        world_ready=true
+    fi
 
     # Check every required world index before treating the runtime as initialized.
     if [[ "$world_ready" != true ]] || [[ "$FORCE_INIT_WORLD" == true ]]; then
@@ -430,6 +436,11 @@ initialize_world_data() {
             print_msg "$RED" "ERROR: Minimal world data not found in $PROJECT_ROOT/lib/world/minimal/"
             print_msg "$RED" "Cannot initialize world without minimal world files!"
             exit 1
+        fi
+
+        if ! world_indexes_ready; then
+            print_msg "$RED" "ERROR: Minimal world initialization left required indexes missing!"
+            return 1
         fi
 
         print_msg "$GREEN" "World data initialization complete!"

@@ -922,6 +922,51 @@ EOF
   fi
 }
 
+test_world_initialization_verifies_indexes()
+{
+  local deploy_functions="$test_root/deploy-world-functions.sh"
+  local fixture="$test_root/deploy-world"
+  local world_type
+
+  mkdir -p "$fixture/lib/world/minimal"
+  sed -n '/^world_indexes_ready()/,/^}/p; /^initialize_world_data()/,/^}/p' \
+    "$project_root/scripts/deployment/deploy.sh" > "$deploy_functions"
+
+  for world_type in zon wld mob obj shp trg qst; do
+    touch "$fixture/lib/world/minimal/index.$world_type"
+  done
+
+  if (
+    PROJECT_ROOT="$fixture"
+    FORCE_INIT_WORLD=true
+    GREEN=
+    YELLOW=
+    RED=
+    print_msg() { :; }
+    source "$deploy_functions"
+    initialize_world_data
+  ); then
+    fail "world initialization accepted a missing destination index"
+  fi
+
+  touch "$fixture/lib/world/minimal/index.hlq"
+  (
+    PROJECT_ROOT="$fixture"
+    FORCE_INIT_WORLD=true
+    GREEN=
+    YELLOW=
+    RED=
+    print_msg() { :; }
+    source "$deploy_functions"
+    initialize_world_data
+  ) || fail "world initialization rejected a complete minimal index set"
+
+  for world_type in zon wld mob obj shp trg qst hlq; do
+    [[ -f "$fixture/lib/world/$world_type/index" ]] ||
+      fail "world initialization omitted the $world_type index"
+  done
+}
+
 test_compatibility_links
 test_planned_reboot_exit
 test_autorun_startup_and_locking
@@ -932,5 +977,6 @@ test_watchdog_stale_verified_supervisor
 test_watchdog_daemon_recovery
 test_copyover_identity_refresh
 test_systemd_unit_installation
+test_world_initialization_verifies_indexes
 
 echo "autorun supervision test: PASS"
