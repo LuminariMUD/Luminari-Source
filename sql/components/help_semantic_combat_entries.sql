@@ -40,4 +40,29 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('combat', 'COMBAT-P
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('combat', 'COMBAT-ROUNDS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('combat', 'FIGHTING');
 
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('initiative-order', 'INITIATIVE
+
+Usage:
+  initiative
+
+Initiative determines combat turn order. It is rolled as 1d20 plus Dexterity
+and other bonuses when a combatant enters an encounter.
+
+Use INITIATIVE while fighting to see the current encounter round, the time
+until the next round, and visible combatants in their scheduled turn order.
+Your own name is highlighted in green when color is enabled.
+
+See also: COMBAT, ACTIONS', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+
+DELETE FROM help_keywords
+WHERE UPPER(keyword) IN ('INITIATIVE', 'INITIATIVE-ORDER')
+  AND help_tag <> 'initiative-order';
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('initiative-order', 'INITIATIVE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('initiative-order', 'INITIATIVE-ORDER');
+
 COMMIT;

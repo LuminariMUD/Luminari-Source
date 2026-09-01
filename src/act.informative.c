@@ -31,6 +31,7 @@
 #include "character/race.h"
 #include "mob/mob_spellslots.h"
 #include "combat/fight.h"
+#include "combat/combat_encounters.h"
 #include "modify.h"
 #include "asciimap.h"
 #include "clan.h"
@@ -2021,6 +2022,63 @@ static void deliver_where_output(struct char_data *ch, struct where_output_buffe
 
   free(output->data);
 }
+
+#define INITIATIVE_DISPLAY_LIMIT 100U
+
+ACMD(do_initiative)
+{
+  struct combat_encounter_initiative_entry entries[INITIATIVE_DISPLAY_LIMIT];
+  struct combat_encounter_initiative_snapshot snapshot;
+  struct where_output_buffer output = {NULL, 0, 0, FALSE};
+  const char *name;
+  const char *suffix;
+  uint64_t seconds_until_round;
+  size_t index;
+  int name_width;
+  int screen_width;
+
+  if (!combat_encounter_get_initiative(ch, entries, INITIATIVE_DISPLAY_LIMIT, &snapshot))
+  {
+    send_to_char(ch, "You are not part of an active combat encounter.\r\n");
+    return;
+  }
+  if (!snapshot.semantic_rounds)
+  {
+    send_to_char(ch, "Initiative order is unavailable in compatibility combat.\r\n");
+    return;
+  }
+
+  screen_width = IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch);
+  if (screen_width < 40)
+    screen_width = 80;
+  screen_width = MIN(screen_width, 120);
+  seconds_until_round =
+      (snapshot.pulses_until_round + (uint64_t)PASSES_PER_SEC - 1U) /
+      (uint64_t)PASSES_PER_SEC;
+  append_where_output(&output, "Initiative - Round %llu\r\n",
+                      (unsigned long long)snapshot.round_number);
+  append_where_output(&output, "Next round in %llu second%s.\r\n\r\n",
+                      (unsigned long long)seconds_until_round,
+                      seconds_until_round == 1U ? "" : "s");
+  append_where_output(&output, " #  Roll  Combatant\r\n");
+  append_where_output(&output, "--  ----  ---------\r\n");
+  for (index = 0; index < snapshot.entry_count; index++)
+  {
+    name = PERS(entries[index].character, ch);
+    suffix = entries[index].character == ch ? " (you)" : "";
+    name_width = MAX(1, screen_width - 11 - (int)strlen(suffix));
+    append_where_output(&output, "%2zu. %4d  %s%.*s%s%s\r\n", index + 1U,
+                        entries[index].initiative,
+                        entries[index].character == ch ? CCGRN(ch, C_SPR) : "", name_width,
+                        name, entries[index].character == ch ? CCNRM(ch, C_SPR) : "", suffix);
+  }
+  if (snapshot.total_participants > snapshot.entry_count)
+    append_where_output(&output, "...and %zu more combatants.\r\n",
+                        snapshot.total_participants - snapshot.entry_count);
+  deliver_where_output(ch, &output);
+}
+
+#undef INITIATIVE_DISPLAY_LIMIT
 
 static void perform_immort_where(struct char_data *ch, const char *arg)
 {

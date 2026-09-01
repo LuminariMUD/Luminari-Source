@@ -248,6 +248,7 @@ ACMD_DECL(do_statcap);
 ACMD_DECL(do_help);
 ACMD_DECL(do_history);
 ACMD_DECL(do_inventory);
+ACMD_DECL(do_initiative);
 ACMD_DECL(do_levels);
 ACMD_DECL(do_scan);
 ACMD_DECL(do_score);

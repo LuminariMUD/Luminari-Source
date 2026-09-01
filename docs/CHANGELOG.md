@@ -4,6 +4,13 @@
 
 ### Event-driven core final acceptance
 
+#### Added
+
+- Added the player `initiative` command for a compact view of the current
+  encounter round, countdown, rolls, and scheduler turn order. The caller is
+  highlighted in green when color is enabled, and the `i` abbreviation remains
+  assigned to `inventory`.
+
 #### Changed
 
 - Completed the final source/spec/binary audit and accepted the native

@@ -1532,6 +1532,45 @@ void combat_encounter_get_stats(struct combat_encounter_stats *stats)
     stats->compatibility_mismatches++;
 }
 
+bool combat_encounter_get_initiative(
+    const struct char_data *viewer, struct combat_encounter_initiative_entry *entries,
+    size_t capacity, struct combat_encounter_initiative_snapshot *snapshot)
+{
+  struct combat_encounter_data *encounter;
+  struct combat_encounter_participant *participant;
+
+  if (snapshot == NULL)
+    return false;
+  memset(snapshot, 0, sizeof(*snapshot));
+  if (!initialized || viewer == NULL || viewer->combat_encounter == NULL ||
+      viewer->combat_encounter_participant == NULL)
+    return false;
+  encounter = merge_root(viewer->combat_encounter);
+  if (encounter == NULL || encounter->terminal)
+    return false;
+  snapshot->semantic_rounds = semantic_rounds;
+  if (!semantic_rounds)
+    return true;
+  snapshot->round_number = encounter->semantic_round + 1U;
+  snapshot->pulses_until_round = encounter->next_round_due > (uint64_t)pulse
+                                     ? encounter->next_round_due - (uint64_t)pulse
+                                     : 0U;
+  for (participant = encounter->due_head; participant != NULL;
+       participant = participant->due_next)
+  {
+    if (!participant->active || participant->departing || participant->character == NULL)
+      continue;
+    if (snapshot->entry_count < capacity && entries != NULL)
+    {
+      entries[snapshot->entry_count].character = participant->character;
+      entries[snapshot->entry_count].initiative = participant->initiative;
+      snapshot->entry_count++;
+    }
+    snapshot->total_participants++;
+  }
+  return true;
+}
+
 #ifdef LUMINARI_CUTEST
 void combat_encounter_test_select(bool selected_encounter_mode)
 {
