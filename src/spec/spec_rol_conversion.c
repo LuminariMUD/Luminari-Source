@@ -13,6 +13,7 @@
 #include "character/guild_services.h"
 #include "character/evolutions.h"
 #include "combat/fight.h"
+#include "combat/combat_state.h"
 #include "comm.h"
 #include "constants.h"
 #include "db.h"
@@ -3473,21 +3474,13 @@ static room_rnum rol_guild_guard_teleport_destination(struct char_data *victim)
 
 static void rol_guild_guard_stop_victim_combat(struct char_data *victim)
 {
-  struct char_data *fighter;
-  struct char_data *next;
-
   if (victim == NULL)
     return;
 
   if (FIGHTING(victim) != NULL)
     stop_fighting(victim);
 
-  for (fighter = combat_list; fighter != NULL; fighter = next)
-  {
-    next = fighter->next_fighting;
-    if (FIGHTING(fighter) == victim)
-      stop_fighting(fighter);
-  }
+  combat_state_stop_attackers(victim);
 }
 
 static int rol_guild_guard_protection(struct char_data *guard, struct char_data *victim)
@@ -6880,14 +6873,10 @@ static bool rol_banana_attacker_is_aggressive(struct char_data *attacker, struct
 static void rol_banana_stop_merciful_attackers(struct char_data *ch)
 {
   struct char_data *attacker;
-  struct char_data *next_attacker;
 
-  for (attacker = combat_list; attacker != NULL; attacker = next_attacker)
-  {
-    next_attacker = attacker->next_fighting;
+  for (attacker = character_list; attacker != NULL; attacker = attacker->next)
     if (FIGHTING(attacker) == ch && !rol_banana_attacker_is_aggressive(attacker, ch))
       stop_fighting(attacker);
-  }
 }
 
 static void rol_banana_apply_sleep(struct char_data *ch)

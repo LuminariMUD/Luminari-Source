@@ -11,6 +11,7 @@
 
 #include "act.h"
 #include "combat/fight.h"
+#include "combat/combat_state.h"
 #include "comm.h"
 #include "db.h"
 #include "dgscript/dg_scripts.h"
@@ -75,21 +76,13 @@ static bool rol_tarrasque_target_is_mortal(const struct char_data *target)
 
 static void rol_tarrasque_stop_attackers(struct char_data *victim)
 {
-  struct char_data *attacker;
-  struct char_data *next;
-
   if (victim == NULL)
     return;
 
   if (FIGHTING(victim) != NULL)
     stop_fighting(victim);
 
-  for (attacker = combat_list; attacker != NULL; attacker = next)
-  {
-    next = attacker->next_fighting;
-    if (FIGHTING(attacker) == victim)
-      stop_fighting(attacker);
-  }
+  combat_state_stop_attackers(victim);
 }
 
 static void rol_tarrasque_sudden_death(struct char_data *victim, struct char_data *killer)

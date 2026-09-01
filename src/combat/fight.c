@@ -66,6 +66,7 @@
 #include "combat/combat_damage.h"
 #include "combat/combat_death.h"
 #include "combat/combat_reactions.h"
+#include "combat/combat_state.h"
 #include "activity_manager.h"
 
 /* toggle for debug mode
@@ -81,9 +82,6 @@
 #define THE_PRISONER 113750
 #define DRACOLICH_PRISONER 113751
 #define CELESTIAL_LEVIATHAN 13700
-
-/* head of l-list of fighting chars */
-struct char_data *combat_list = NULL;
 
 // external functions
 bool save_char_pets(struct char_data *ch);
@@ -127,7 +125,6 @@ struct attack_hit_type attack_damage_type_text[NUM_ATTACK_DAMAGE_TYPE_TEXT] = {
 };
 
 /* local (file scope only) variables */
-static struct char_data *next_combat_list = NULL;
 static struct combat_reaction_queue *active_damage_reactions = NULL;
 #ifdef LUMINARI_CUTEST
 static int bard_warbeat_opening_attacks;
@@ -294,7 +291,6 @@ void guard_check(struct char_data *ch, struct char_data *vict)
 void perform_flee(struct char_data *ch)
 {
   int i, found = 0, fleeOptions[DIR_COUNT];
-  struct char_data *k, *temp;
 
   /* disqualifications? */
   if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_DAZED) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
@@ -388,13 +384,7 @@ void perform_flee(struct char_data *ch)
       /* fleer */
       if (FIGHTING(ch))
         stop_fighting(ch);
-      /* fighting fleer */
-      for (k = combat_list; k; k = temp)
-      {
-        temp = k->next_fighting;
-        if (FIGHTING(k) == ch)
-          stop_fighting(k);
-      }
+      combat_state_stop_attackers(ch);
     }
     else
     { // failure
@@ -1701,7 +1691,6 @@ void check_killer(struct char_data *ch, struct char_data *vict)
    FALSE - failed to engage in combat */
 bool set_fighting(struct char_data *ch, struct char_data *vict)
 {
-  struct char_data *current = NULL, *previous = NULL;
   int delay;
 
   if (ch == NULL || vict == NULL)
@@ -1742,37 +1731,6 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   }
 
   GET_INITIATIVE(ch) = roll_initiative(ch);
-
-  if (combat_list == NULL)
-  {
-    ch->next_fighting = combat_list;
-    combat_list = ch;
-  }
-  else
-  {
-    for (current = combat_list; current != NULL; current = current->next_fighting)
-    {
-      if ((GET_INITIATIVE(ch) > GET_INITIATIVE(current)) ||
-          ((GET_INITIATIVE(ch) == GET_INITIATIVE(current)) &&
-           (GET_DEX_BONUS(ch) < GET_DEX_BONUS(current))))
-      {
-        previous = current;
-        continue;
-      }
-      break;
-    }
-    if (previous == NULL)
-    {
-      /* First. */
-      ch->next_fighting = combat_list;
-      combat_list = ch;
-    }
-    else
-    {
-      ch->next_fighting = current;
-      previous->next_fighting = ch;
-    }
-  }
 
   if (AFF_FLAGGED(ch, AFF_SLEEP))
     affect_from_char(ch, SPELL_SLEEP);
@@ -1879,17 +1837,11 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   return TRUE;
 }
 
-/* remove a char from the list of fighting chars */
+/* End this character's encounter-owned combat state. */
 void stop_fighting(struct char_data *ch)
 {
-  struct char_data *temp = NULL;
   struct char_data *opponent = FIGHTING(ch);
 
-  if (ch == next_combat_list)
-    next_combat_list = ch->next_fighting;
-
-  REMOVE_FROM_LIST(ch, combat_list, next_fighting);
-  ch->next_fighting = NULL;
   FIGHTING(ch) = NULL;
   domain_event_runtime_combat_state_changed(ch, opponent, false);
   combat_encounter_leave(ch, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
@@ -2459,19 +2411,14 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
 static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
                                 enum combat_death_cause cause)
 {
-  struct char_data *k, *temp;
+  struct char_data *temp;
   struct affected_type af = {0}; /* Zero-initialize to prevent stack garbage */
 
   /* stop relevant fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
 
-  for (k = combat_list; k; k = temp)
-  {
-    temp = k->next_fighting;
-    if (FIGHTING(k) == ch)
-      stop_fighting(k);
-  }
+  combat_state_stop_attackers(ch);
 
   /* Clear all events immediately after stopping fighting to prevent race conditions
    * This must happen before any state changes to avoid combat events executing

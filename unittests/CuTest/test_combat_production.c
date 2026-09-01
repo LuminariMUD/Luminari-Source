@@ -16,6 +16,7 @@
 #include "../../src/combat/encounters.h"
 #include "../../src/combat/fight.h"
 #include "../../src/combat/combat_reactions.h"
+#include "../../src/combat/combat_state.h"
 #include "../../src/combat/grapple.h"
 #include "../../src/domain_event_world.h"
 #include "../../src/lists.h"
@@ -768,4 +769,31 @@ void Test_combat_death_rejects_missing_victim_without_losing_cause(CuTest *tc)
   CuAssertIntEquals(tc, COMBAT_DEATH_SCRIPT, result.cause);
   CuAssertTrue(tc, !domain_entity_handle_is_valid(result.victim));
   CuAssertTrue(tc, !domain_entity_handle_is_valid(result.killer));
+}
+
+void Test_combat_state_derives_attackers_from_live_characters(CuTest *tc)
+{
+  struct char_data victim;
+  struct char_data first;
+  struct char_data second;
+  struct char_data bystander;
+  struct char_data *saved_character_list;
+
+  clear_char(&victim);
+  clear_char(&first);
+  clear_char(&second);
+  clear_char(&bystander);
+  first.next = &second;
+  second.next = &bystander;
+  bystander.next = &victim;
+  FIGHTING(&first) = &victim;
+  FIGHTING(&second) = &victim;
+  FIGHTING(&bystander) = &first;
+
+  saved_character_list = character_list;
+  character_list = &first;
+  CuAssertIntEquals(tc, 2, combat_state_count_attackers(&victim));
+  CuAssertIntEquals(tc, 1, combat_state_count_attackers(&first));
+  CuAssertIntEquals(tc, 0, combat_state_count_attackers(NULL));
+  character_list = saved_character_list;
 }

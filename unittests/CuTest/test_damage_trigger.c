@@ -42,7 +42,6 @@ struct damage_trigger_fixture
   struct char_data *saved_mob_proto;
   struct index_data **saved_trig_index;
   struct trig_data *saved_trigger_list;
-  struct char_data *saved_combat_list;
   room_rnum saved_top_of_world;
   zone_rnum saved_top_of_zone_table;
   mob_rnum saved_top_of_mobt;
@@ -78,7 +77,6 @@ static bool damage_trigger_fixture_begin(struct damage_trigger_fixture *fixture)
   fixture->saved_trig_index = trig_index;
   fixture->saved_top_of_trigt = top_of_trigt;
   fixture->saved_trigger_list = trigger_list;
-  fixture->saved_combat_list = combat_list;
 
   fixture->room.number = 100;
   fixture->room.zone = 0;
@@ -146,9 +144,6 @@ static void damage_trigger_fixture_end(struct damage_trigger_fixture *fixture)
   clear_char_event_list(&fixture->victim);
   FIGHTING(&fixture->actor) = NULL;
   FIGHTING(&fixture->victim) = NULL;
-  fixture->actor.next_fighting = NULL;
-  fixture->victim.next_fighting = NULL;
-  combat_list = fixture->saved_combat_list;
   fixture->actor.last_attacker = NULL;
   fixture->victim.last_attacker = NULL;
   fixture->actor.next_in_room = NULL;

@@ -109,6 +109,8 @@ luminari_SOURCES = \
 	src/combat/combat_death.h \
 	src/combat/combat_reactions.c \
 	src/combat/combat_reactions.h \
+	src/combat/combat_state.c \
+	src/combat/combat_state.h \
 	src/character/evolutions.c \
 	src/character/feats.c \
 	src/character/talents.c \

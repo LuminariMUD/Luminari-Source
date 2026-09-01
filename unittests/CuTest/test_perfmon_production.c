@@ -351,7 +351,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   struct index_data *saved_mob_index;
   struct char_data *saved_mob_proto;
   struct char_data *saved_character_list;
-  struct char_data *saved_combat_list;
   struct char_data *first_target;
   struct char_data *second_target;
   struct char_data *observer;
@@ -380,7 +379,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   saved_mob_proto = mob_proto;
   saved_top_of_mobt = top_of_mobt;
   saved_character_list = character_list;
-  saved_combat_list = combat_list;
   world = &room;
   top_of_world = 0;
   zone_table = &zone;
@@ -389,7 +387,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   mob_proto = &mobile_prototype;
   top_of_mobt = 0;
   character_list = NULL;
-  combat_list = NULL;
 
   first_target = perfmon_test_mobile();
   second_target = perfmon_test_mobile();
@@ -403,7 +400,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   CASTING_TIME_MAX(observer) = 2;
   CASTING_SPELLNUM(observer) = 1;
   CASTING_TCH(observer) = second_target;
-  combat_list = observer;
 
   extract_char(first_target);
   extract_char(second_target);
@@ -415,7 +411,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   CuAssertPtrEquals(tc, NULL, GUARDING(observer));
   CuAssertPtrEquals(tc, NULL, HUNTING(observer));
   CuAssertPtrEquals(tc, NULL, FIGHTING(observer));
-  CuAssertPtrEquals(tc, NULL, combat_list);
   CuAssertIntEquals(tc, FALSE, IS_CASTING(observer));
   CuAssertIntEquals(tc, 0, CASTING_TIME(observer));
   CuAssertPtrEquals(tc, NULL, CASTING_TCH(observer));
@@ -430,7 +425,6 @@ void Test_pending_extraction_batch_clears_cross_character_references(CuTest *tc)
   mob_proto = saved_mob_proto;
   top_of_mobt = saved_top_of_mobt;
   character_list = saved_character_list;
-  combat_list = saved_combat_list;
 }
 
 void Test_perfmon_memory_sampling_populates_os_and_allocator_metrics(CuTest *tc)
