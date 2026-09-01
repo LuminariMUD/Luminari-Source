@@ -3072,7 +3072,7 @@ void Test_spec_rol_trahern_combat_profiles_preserve_quake_toss_and_engorge(CuTes
   struct spec_event_context context;
   bool actor_stopped;
   bool target_stopped;
-  struct char_data *saved_combat_list;
+  struct char_data *saved_character_list;
   int denominator;
   int destination;
   int previous_hit;
@@ -3117,10 +3117,10 @@ void Test_spec_rol_trahern_combat_profiles_preserve_quake_toss_and_engorge(CuTes
   context.actor = &fixture.actor;
   context.target = &fixture.target;
 
-  saved_combat_list = combat_list;
-  combat_list = &fixture.actor;
-  fixture.actor.next_fighting = &fixture.target;
-  fixture.target.next_fighting = saved_combat_list;
+  saved_character_list = character_list;
+  fixture.actor.next = &fixture.target;
+  fixture.target.next = saved_character_list;
+  character_list = &fixture.actor;
   FIGHTING(&fixture.actor) = &fixture.target;
   FIGHTING(&fixture.target) = &fixture.actor;
   previous_hit = GET_HIT(&fixture.target);
@@ -3135,7 +3135,9 @@ void Test_spec_rol_trahern_combat_profiles_preserve_quake_toss_and_engorge(CuTes
     stop_fighting(&fixture.actor);
   if (FIGHTING(&fixture.target) != NULL)
     stop_fighting(&fixture.target);
-  combat_list = saved_combat_list;
+  character_list = saved_character_list;
+  fixture.actor.next = NULL;
+  fixture.target.next = NULL;
   if (IN_ROOM(&fixture.target) != 0)
   {
     char_from_room(&fixture.target);
