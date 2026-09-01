@@ -700,44 +700,44 @@ static bool event_debug_select_entity(struct char_data *ch,
 
   if (ch == NULL || filter == NULL)
     return false;
+  if (target == NULL)
+    target = "";
   filter->owner_set = true;
   filter->owner = game_event_owner_none();
   switch (kind)
   {
   case EVENT_DEBUG_ENTITY_PLAYER:
   case EVENT_DEBUG_ENTITY_MOBILE:
-    if (target == NULL || *target == '\0' ||
+    if (*target == '\0' ||
         (character = get_char_vis(ch, target, NULL, FIND_CHAR_WORLD)) == NULL ||
         (kind == EVENT_DEBUG_ENTITY_PLAYER && IS_NPC(character)) ||
         (kind == EVENT_DEBUG_ENTITY_MOBILE && !IS_NPC(character)))
     {
       send_to_char(ch, "No visible %s matches '%s'.\r\n",
                    kind == EVENT_DEBUG_ENTITY_PLAYER ? "online player" : "mobile",
-                   target != NULL ? target : "");
+                   target);
       return false;
     }
     filter->owner.kind = GAME_EVENT_OWNER_CHARACTER;
     filter->owner.runtime_id = (uint64_t)(uintptr_t)character;
     break;
   case EVENT_DEBUG_ENTITY_OBJECT:
-    if (target == NULL || *target == '\0' ||
+    if (*target == '\0' ||
         (object = get_obj_vis(ch, target, NULL)) == NULL)
     {
-      send_to_char(ch, "No visible object matches '%s'.\r\n",
-                   target != NULL ? target : "");
+      send_to_char(ch, "No visible object matches '%s'.\r\n", target);
       return false;
     }
     filter->owner.kind = GAME_EVENT_OWNER_OBJECT;
     filter->owner.runtime_id = (uint64_t)(uintptr_t)object;
     break;
   case EVENT_DEBUG_ENTITY_ROOM:
-    if (target == NULL || *target == '\0' || !strcasecmp(target, "here"))
+    if (*target == '\0' || !strcasecmp(target, "here"))
       room = IN_ROOM(ch);
     else if (!parse_uint64(target, &vnum) || vnum > INT_MAX ||
              (room = real_room((room_vnum)vnum)) == NOWHERE)
     {
-      send_to_char(ch, "No room with vnum '%s' is loaded.\r\n",
-                   target != NULL ? target : "");
+      send_to_char(ch, "No room with vnum '%s' is loaded.\r\n", target);
       return false;
     }
     if (room == NOWHERE || room > top_of_world)
