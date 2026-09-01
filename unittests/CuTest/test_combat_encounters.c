@@ -14,6 +14,8 @@
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/domain_event_world.h"
 #include "../../src/event_runtime.h"
+#include "../../src/net/protocol.h"
+#include "../../src/screen.h"
 
 #include <string.h>
 
@@ -551,6 +553,11 @@ void Test_combat_semantic_round_batches_due_turns_in_initiative_order(CuTest *tc
 {
   struct char_data slower;
   struct char_data faster;
+  struct player_special_data slower_specials;
+  struct player_special_data faster_specials;
+  struct descriptor_data slower_descriptor;
+  struct combat_encounter_initiative_entry initiative_entries[2];
+  struct combat_encounter_initiative_snapshot initiative_snapshot;
   struct encounter_test_trace trace;
   struct combat_encounter_stats stats;
   unsigned long saved_pulse;
@@ -558,6 +565,19 @@ void Test_combat_semantic_round_batches_due_turns_in_initiative_order(CuTest *tc
 
   encounter_test_character(&slower, "slower combatant");
   encounter_test_character(&faster, "faster combatant");
+  memset(&slower_specials, 0, sizeof(slower_specials));
+  memset(&faster_specials, 0, sizeof(faster_specials));
+  memset(&slower_descriptor, 0, sizeof(slower_descriptor));
+  slower.player_specials = &slower_specials;
+  faster.player_specials = &faster_specials;
+  slower.desc = &slower_descriptor;
+  slower_descriptor.character = &slower;
+  slower_descriptor.output = slower_descriptor.small_outbuf;
+  slower_descriptor.bufspace = SMALL_BUFSIZE - 1;
+  slower_descriptor.pProtocol = ProtocolCreate();
+  GET_SCREEN_WIDTH(&slower) = 80;
+  GET_PAGE_LENGTH(&slower) = 24;
+  SET_BIT_AR(PRF_FLAGS(&slower), PRF_COLOR_1);
   GET_INITIATIVE(&slower) = 10;
   GET_INITIATIVE(&faster) = 20;
   saved_pulse = encounter_test_begin_semantic(tc, start_pulse, &trace);
@@ -567,6 +587,21 @@ void Test_combat_semantic_round_batches_due_turns_in_initiative_order(CuTest *tc
 
   CuAssertTrue(tc, combat_encounter_join(&slower, &faster, 2 RL_SEC));
   CuAssertTrue(tc, combat_encounter_join(&faster, &slower, 4 RL_SEC));
+  CuAssertTrue(tc, combat_encounter_get_initiative(
+                       &slower, initiative_entries, 2U, &initiative_snapshot));
+  CuAssertTrue(tc, initiative_snapshot.semantic_rounds);
+  CuAssertIntEquals(tc, 1, (int)initiative_snapshot.round_number);
+  CuAssertIntEquals(tc, 2, (int)initiative_snapshot.total_participants);
+  CuAssertIntEquals(tc, 2, (int)initiative_snapshot.entry_count);
+  CuAssertPtrEquals(tc, &faster, initiative_entries[0].character);
+  CuAssertIntEquals(tc, 20, initiative_entries[0].initiative);
+  CuAssertPtrEquals(tc, &slower, initiative_entries[1].character);
+  CuAssertIntEquals(tc, 10, initiative_entries[1].initiative);
+  do_initiative(&slower, "", 0, 0);
+  CuAssertPtrNotNull(tc, strstr(slower_descriptor.output, KGRN));
+  CuAssertPtrNotNull(tc, strstr(slower_descriptor.output, KNRM " (you)"));
+  ProtocolDestroy(slower_descriptor.pProtocol);
+  slower_descriptor.pProtocol = NULL;
   pulse = start_pulse + (5 RL_SEC);
   event_process();
   CuAssertIntEquals(tc, 0, (int)trace.count);

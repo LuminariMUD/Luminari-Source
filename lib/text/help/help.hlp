@@ -16982,7 +16982,7 @@ INFRAVISION SPELL-INFRAVISION
 INITIATIVE
 
 	c-----------------------------------------------------------------	n
-	c>Usage:           	W Automatic 	n
+	c>Usage:           	W initiative 	n
 	c>Prereqs:         	W Dex 13+ 	n
 	c>Duration:        	W N/A 	n
 	c>Target(s):       	W N/A 	n
@@ -16990,15 +16990,14 @@ INITIATIVE
 	c>Cooldown:        	W N/A 	n
 	c>Description:	n
 	n
-	nGeneral:  Initiative determines who gets the first strike in opening combat.
-	nIt is determined by a diceroll of 1d20 + Dexterity + Bonuses VS the same
-	nfor the opponent.
+	nGeneral: Initiative determines combat turn order. It is rolled as 1d20 plus
+	nDexterity and other bonuses when a combatant enters an encounter.
 	n
-	nIf you take the initiative skill, you will get a +8 bonus to your initiative
-	ncheck and if the opponent tries to get a drop on you and you win your check,
-	nyou'll get a bonus attack.
+	nUse INITIATIVE while fighting to see the current encounter round, the time
+	nuntil the next round, and all visible combatants in their scheduled turn
+	norder. Your own name is highlighted in green when color is enabled.
 	n
-	YSee also:	n SKILLS COMBAT
+	YSee also:	n COMBAT ACTIONS
 	n
 #0
 INNATE INNATES

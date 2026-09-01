@@ -2279,6 +2279,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"immlist", "imm", POS_DEAD, do_gen_ps, 0, SCMD_IMMLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"immtitle", "immtitle", POS_DEAD, do_immtitle, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"info", "info", POS_SLEEPING, do_gen_ps, 0, SCMD_INFO, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"initiative", "initiative", POS_DEAD, do_initiative, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL,
+     CMD_FEATURE_ACTIVITY_INFORMATION},
     /* The explicit artifact invocation channel.  Sorted after "info" so it
      * never shadows it. */
     {"invoke", "invoke", POS_RECLINING, do_artifact_invoke, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

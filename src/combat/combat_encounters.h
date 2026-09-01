@@ -57,6 +57,21 @@ struct combat_encounter_stats
   uint64_t departure_counts[COMBAT_ENCOUNTER_DEPARTURE_COUNT];
 };
 
+struct combat_encounter_initiative_entry
+{
+  struct char_data *character;
+  int initiative;
+};
+
+struct combat_encounter_initiative_snapshot
+{
+  uint64_t round_number;
+  uint64_t pulses_until_round;
+  size_t total_participants;
+  size_t entry_count;
+  bool semantic_rounds;
+};
+
 enum domain_event_status combat_encounter_runtime_init(struct domain_event_bus *bus);
 void combat_encounter_runtime_shutdown(void);
 bool combat_encounter_events_enabled(void);
@@ -69,6 +84,9 @@ void combat_encounter_leave(struct char_data *character,
 void combat_encounter_forget_character(struct char_data *character,
                                        enum combat_encounter_departure_reason reason);
 void combat_encounter_get_stats(struct combat_encounter_stats *stats);
+bool combat_encounter_get_initiative(
+    const struct char_data *viewer, struct combat_encounter_initiative_entry *entries,
+    size_t capacity, struct combat_encounter_initiative_snapshot *snapshot);
 bool combat_encounter_action_query(struct char_data *character, action_type action,
                                    bool *available);
 bool combat_encounter_action_consume(struct char_data *character, action_type action,
