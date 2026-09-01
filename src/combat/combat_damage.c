@@ -43,3 +43,12 @@ struct combat_damage_result combat_damage_result_queued(struct char_data *source
   result.status = COMBAT_DAMAGE_QUEUED;
   return result;
 }
+
+struct combat_damage_result combat_damage_result_rejected(struct char_data *source,
+                                                          struct char_data *target, int requested)
+{
+  struct combat_damage_result result = combat_damage_result_base(source, target, requested);
+
+  result.status = COMBAT_DAMAGE_REJECTED;
+  return result;
+}

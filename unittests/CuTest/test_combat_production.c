@@ -753,6 +753,8 @@ void Test_combat_damage_results_have_explicit_status(CuTest *tc)
   CuAssertIntEquals(tc, COMBAT_DAMAGE_TARGET_DIED, result.status);
   result = combat_damage_result_queued(&source, &target, 12);
   CuAssertIntEquals(tc, COMBAT_DAMAGE_QUEUED, result.status);
+  result = combat_damage_result_rejected(&source, &target, 12);
+  CuAssertIntEquals(tc, COMBAT_DAMAGE_REJECTED, result.status);
   result = combat_damage_result_from_legacy(NULL, &target, 12, 0);
   CuAssertIntEquals(tc, COMBAT_DAMAGE_REJECTED, result.status);
 

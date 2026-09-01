@@ -6728,7 +6728,10 @@ struct combat_damage_result combat_damage_apply(struct char_data *ch, struct cha
   {
     if (!combat_reaction_enqueue_damage(active_damage_reactions, ch, victim, dam, w_type, dam_type,
                                         attack_type))
+    {
       log("SYSERR: combat reaction damage queue rejected a damage packet.");
+      return combat_damage_result_rejected(ch, victim, dam);
+    }
     return combat_damage_result_queued(ch, victim, dam);
   }
 
