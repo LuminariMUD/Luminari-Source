@@ -12,6 +12,7 @@
 #include "../../src/character/perks.h"
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/combat/combat_damage.h"
+#include "../../src/combat/combat_death.h"
 #include "../../src/combat/encounters.h"
 #include "../../src/combat/fight.h"
 #include "../../src/combat/combat_reactions.h"
@@ -756,4 +757,15 @@ void Test_combat_damage_results_have_explicit_status(CuTest *tc)
 
   domain_event_world_forget_character(&source);
   domain_event_world_forget_character(&target);
+}
+
+void Test_combat_death_rejects_missing_victim_without_losing_cause(CuTest *tc)
+{
+  struct combat_death_result result;
+
+  result = combat_death_apply(NULL, NULL, COMBAT_DEATH_SCRIPT);
+  CuAssertTrue(tc, !result.processed);
+  CuAssertIntEquals(tc, COMBAT_DEATH_SCRIPT, result.cause);
+  CuAssertTrue(tc, !domain_entity_handle_is_valid(result.victim));
+  CuAssertTrue(tc, !domain_entity_handle_is_valid(result.killer));
 }

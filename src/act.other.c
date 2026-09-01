@@ -34,6 +34,7 @@
 #include "character/skill_lists.h"
 #include "character/class.h"
 #include "combat/fight.h"
+#include "combat/combat_death.h"
 #include "combat/projectiles.h"
 #include "comms/mail.h" /* for has_mail() */
 #include "obj/shop.h"
@@ -5503,7 +5504,7 @@ ACMD(do_quit)
   else if (GET_POS(ch) < POS_STUNNED)
   {
     send_to_char(ch, "You die before your time...\r\n");
-    die(ch, NULL);
+    (void)combat_death_apply(ch, NULL, COMBAT_DEATH_ATTRITION);
   }
   else if (should_prompt_quit_feedback(ch, subcmd))
   {
