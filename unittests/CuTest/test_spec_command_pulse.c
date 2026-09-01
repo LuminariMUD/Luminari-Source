@@ -371,6 +371,34 @@ static bool spec_pulse_read_source(const char *relative_path, char **text)
   return true;
 }
 
+static char *spec_pulse_find_in_region(char *begin, char *end, const char *marker)
+{
+  char *match;
+
+  if (begin == NULL || end == NULL || begin >= end)
+    return NULL;
+  match = strstr(begin, marker);
+  return match != NULL && match < end ? match : NULL;
+}
+
+static char *spec_pulse_find_block_end(char *begin, char *limit)
+{
+  char *cursor;
+  int depth = 0;
+
+  cursor = spec_pulse_find_in_region(begin, limit, "{");
+  if (cursor == NULL)
+    return NULL;
+  for (; cursor < limit; cursor++)
+  {
+    if (*cursor == '{')
+      depth++;
+    else if (*cursor == '}' && --depth == 0)
+      return cursor + 1;
+  }
+  return NULL;
+}
+
 void Test_spec_command_traverses_all_owners_in_order(CuTest *tc)
 {
   struct spec_pulse_fixture fixture;
@@ -925,25 +953,41 @@ void Test_spec_moving_rooms_ignores_no_specials(CuTest *tc)
 void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
 {
   char *source;
+  char *heartbeat;
+  char *heartbeat_end;
   char *moving_gate;
+  char *moving_end;
   char *moving_call;
   char *one_second_gate;
+  char *active_gate;
+  char *active_end;
   char *mobile_gate;
+  char *mobile_end;
   char *mobile_call;
   char *proc_call;
   char *autoproc_gate;
   char *avernus_call;
   char *dg_gate;
+  char *dg_end;
   char *dg_rollback;
   char *event_process_call;
   char *violence_gate;
+  char *violence_end;
   char *affected_gate;
+  char *affected_end;
   char *affect_call;
   char *d20_call;
   char *character_gate;
+  char *character_end;
   char *psp_call;
+  char *walk_gate;
+  char *walk_end;
   char *walk_call;
+  char *bard_gate;
+  char *bard_end;
   char *bard_call;
+  char *hint_gate;
+  char *hint_end;
   char *hint_call;
   bool source_loaded;
   bool moving_schedule_matches;
@@ -957,44 +1001,88 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
   character_rollback_matches = false;
   if (source_loaded)
   {
-    moving_gate = strstr(source, "if (!(heart_pulse % (PASSES_PER_SEC * 10)))");
-    moving_call = moving_gate != NULL ? strstr(moving_gate, "moving_rooms_update();") : NULL;
-    one_second_gate =
-        moving_gate != NULL ? strstr(moving_gate, "if (!(heart_pulse % PASSES_PER_SEC))") : NULL;
-    moving_schedule_matches = moving_gate != NULL && moving_call != NULL &&
-                              one_second_gate != NULL && moving_call < one_second_gate;
+    heartbeat = strstr(source, "void heartbeat(int heart_pulse)");
+    heartbeat_end = heartbeat != NULL ? strstr(heartbeat, "static void timediff(") : NULL;
 
-    mobile_call = strstr(source, "mobile_activity_pulse(heart_pulse);");
-    mobile_gate =
-        mobile_call != NULL ? strstr(mobile_call, "if (!(heart_pulse % PULSE_MOBILE))") : NULL;
-    proc_call = mobile_gate != NULL ? strstr(mobile_gate, "proc_update();") : NULL;
-    autoproc_gate = mobile_gate != NULL ? strstr(mobile_gate, "if (!periodic_autoproc_enabled())") : NULL;
-    avernus_call = mobile_gate != NULL ? strstr(mobile_gate, "rol_avernus_room_pulse();") : NULL;
-    event_process_call = strstr(source, "event_process_compatibility_pulse();");
-    dg_gate = event_process_call != NULL
-                  ? strstr(event_process_call, "if (!(heart_pulse % PULSE_DG_SCRIPT)")
-                  : NULL;
-    dg_rollback = dg_gate != NULL ? strstr(dg_gate, "!periodic_dg_random_enabled()") : NULL;
-    violence_gate =
-        mobile_gate != NULL ? strstr(mobile_gate, "if (!(heart_pulse % PULSE_VIOLENCE))") : NULL;
-    affected_gate =
-        violence_gate != NULL ? strstr(violence_gate, "if (!affected_owner_events_enabled())") : NULL;
-    affect_call = affected_gate != NULL ? strstr(affected_gate, "affect_update();") : NULL;
-    d20_call = violence_gate != NULL ? strstr(violence_gate, "proc_d20_round();") : NULL;
-    character_gate = strstr(source, "!character_periodic_events_enabled()");
-    psp_call = character_gate != NULL ? strstr(source, "regen_psp();") : NULL;
-    walk_call = psp_call != NULL ? strstr(psp_call, "process_walkto_actions();") : NULL;
-    bard_call = walk_call != NULL ? strstr(walk_call, "pulse_bardic_performance();") : NULL;
-    hint_call = bard_call != NULL ? strstr(bard_call, "show_hints();") : NULL;
-    character_rollback_matches = character_gate != NULL && psp_call != NULL &&
-                                 walk_call != NULL && bard_call != NULL && hint_call != NULL;
-    pulse_order_matches = mobile_call != NULL && mobile_gate != NULL && autoproc_gate != NULL &&
+    moving_gate = spec_pulse_find_in_region(
+        heartbeat, heartbeat_end, "if (!(heart_pulse % (PASSES_PER_SEC * 10)))");
+    moving_end = spec_pulse_find_block_end(moving_gate, heartbeat_end);
+    moving_call = spec_pulse_find_in_region(moving_gate, moving_end, "moving_rooms_update();");
+    one_second_gate = spec_pulse_find_in_region(
+        moving_end, heartbeat_end, "if (!(heart_pulse % PASSES_PER_SEC))");
+    moving_schedule_matches = moving_gate != NULL && moving_end != NULL && moving_call != NULL &&
+                              one_second_gate != NULL && moving_end < one_second_gate;
+
+    event_process_call = spec_pulse_find_in_region(
+        heartbeat, heartbeat_end, "event_process_compatibility_pulse();");
+    dg_gate = spec_pulse_find_in_region(event_process_call, heartbeat_end,
+                                        "if (!(heart_pulse % PULSE_DG_SCRIPT)");
+    dg_end = spec_pulse_find_block_end(dg_gate, heartbeat_end);
+    dg_rollback =
+        spec_pulse_find_in_region(dg_gate, dg_end, "!periodic_dg_random_enabled()");
+
+    active_gate =
+        spec_pulse_find_in_region(heartbeat, heartbeat_end, "if (!active_world_enabled())");
+    active_end = spec_pulse_find_block_end(active_gate, heartbeat_end);
+    mobile_call = spec_pulse_find_in_region(active_gate, active_end,
+                                            "mobile_activity_pulse(heart_pulse);");
+    mobile_gate = spec_pulse_find_in_region(active_end, heartbeat_end,
+                                            "if (!(heart_pulse % PULSE_MOBILE))");
+    mobile_end = spec_pulse_find_block_end(mobile_gate, heartbeat_end);
+    autoproc_gate = spec_pulse_find_in_region(mobile_gate, mobile_end,
+                                              "if (!periodic_autoproc_enabled())");
+    proc_call = spec_pulse_find_in_region(mobile_gate, mobile_end, "proc_update();");
+    avernus_call =
+        spec_pulse_find_in_region(mobile_gate, mobile_end, "rol_avernus_room_pulse();");
+    violence_gate = spec_pulse_find_in_region(
+        mobile_end, heartbeat_end, "if (!(heart_pulse % PULSE_VIOLENCE))");
+    violence_end = spec_pulse_find_block_end(violence_gate, heartbeat_end);
+    affected_gate = spec_pulse_find_in_region(
+        violence_gate, violence_end, "if (!affected_owner_events_enabled())");
+    affected_end = spec_pulse_find_block_end(affected_gate, violence_end);
+    affect_call = spec_pulse_find_in_region(affected_gate, affected_end, "affect_update();");
+    d20_call = spec_pulse_find_in_region(affected_end, violence_end, "proc_d20_round();");
+
+    character_gate = spec_pulse_find_in_region(
+        heartbeat, heartbeat_end,
+        "if (!(heart_pulse % (PASSES_PER_SEC * 5)) && !character_periodic_events_enabled())");
+    character_end = spec_pulse_find_block_end(character_gate, heartbeat_end);
+    psp_call = spec_pulse_find_in_region(character_gate, character_end, "regen_psp();");
+    walk_gate = spec_pulse_find_in_region(
+        character_end, heartbeat_end,
+        "if (!(heart_pulse % (int)(PASSES_PER_SEC * 0.75)) && "
+        "!character_periodic_events_enabled())");
+    walk_end = spec_pulse_find_in_region(
+        walk_gate, heartbeat_end, "if (!(heart_pulse % (PASSES_PER_SEC * 60)))");
+    walk_call =
+        spec_pulse_find_in_region(walk_gate, walk_end, "process_walkto_actions();");
+    bard_gate = spec_pulse_find_in_region(
+        walk_end, heartbeat_end,
+        "if (!(pulse % PULSE_VERSE_INTERVAL) && !character_periodic_events_enabled())");
+    bard_end = spec_pulse_find_block_end(bard_gate, heartbeat_end);
+    bard_call =
+        spec_pulse_find_in_region(bard_gate, bard_end, "pulse_bardic_performance();");
+    hint_gate = spec_pulse_find_in_region(
+        bard_end, heartbeat_end,
+        "if (!(pulse % PULSE_HINTS) && !character_periodic_events_enabled())");
+    hint_end = spec_pulse_find_block_end(hint_gate, heartbeat_end);
+    hint_call = spec_pulse_find_in_region(hint_gate, hint_end, "show_hints();");
+    character_rollback_matches =
+        character_gate != NULL && character_end != NULL && psp_call != NULL &&
+        walk_gate != NULL && walk_end != NULL && walk_call != NULL && bard_gate != NULL &&
+        bard_end != NULL && bard_call != NULL && hint_gate != NULL && hint_end != NULL &&
+        hint_call != NULL && psp_call < walk_call && walk_call < bard_call &&
+        bard_call < hint_call;
+
+    pulse_order_matches = heartbeat != NULL && heartbeat_end != NULL && mobile_call != NULL &&
+                          mobile_gate != NULL && mobile_end != NULL && autoproc_gate != NULL &&
                           proc_call != NULL && avernus_call != NULL && violence_gate != NULL &&
-                          affected_gate != NULL && affect_call != NULL && d20_call != NULL &&
-                          dg_gate != NULL && dg_rollback != NULL && mobile_call < proc_call &&
-                          autoproc_gate < proc_call && proc_call < avernus_call &&
-                          avernus_call < violence_gate && affected_gate < affect_call &&
-                          affect_call < d20_call;
+                          violence_end != NULL && affected_gate != NULL && affected_end != NULL &&
+                          affect_call != NULL && d20_call != NULL &&
+                          dg_gate != NULL && dg_end != NULL && dg_rollback != NULL &&
+                          mobile_call < proc_call && autoproc_gate < proc_call &&
+                          proc_call < avernus_call && avernus_call < violence_gate &&
+                          affected_gate < affect_call && affect_call < d20_call;
   }
   free(source);
 
@@ -1148,4 +1236,25 @@ void Test_spec_character_periodic_control_transfers_resync_owners(CuTest *tc)
     CuAssertTrue(tc, transfer != NULL && old_owner_sync != NULL && new_owner_sync != NULL);
     free(source);
   }
+}
+
+void Test_spec_descriptor_cleanup_forgets_character_periodic_before_free(CuTest *tc)
+{
+  char *source = NULL;
+  char *close_socket;
+  char *close_socket_end;
+  char *forget_call;
+  char *free_call;
+
+  CuAssertTrue(tc, spec_pulse_read_source("src/comm.c", &source));
+  close_socket = strstr(source, "void close_socket(struct descriptor_data *d)");
+  close_socket_end =
+      close_socket != NULL ? strstr(close_socket, "static void check_idle_passwords(void)") : NULL;
+  forget_call = spec_pulse_find_in_region(
+      close_socket, close_socket_end, "character_periodic_forget(d->character);");
+  free_call = spec_pulse_find_in_region(close_socket, close_socket_end, "free_char(d->character);");
+
+  CuAssertTrue(tc, close_socket != NULL && close_socket_end != NULL && forget_call != NULL &&
+                       free_call != NULL && forget_call < free_call);
+  free(source);
 }

@@ -15,7 +15,7 @@ apply help_bardic_instrument_entries.sql
 apply help_character_backgrounds.sql
 apply help_command_sweep_entries.sql
 apply help_dg_damage_trigger.sql
-apply help_gdb_binary_path.sql
+skip help_gdb_binary_path.sql
 apply help_intermud3_entries.sql
 apply help_necromancer_entries.sql
 apply help_oedit_values_armor_ac.sql

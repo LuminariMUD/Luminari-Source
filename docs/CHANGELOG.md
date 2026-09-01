@@ -101,7 +101,7 @@
 
 #### Tests
 
-- Added exact five/six-second owner-boundary, off-screen NPC, connected-player,
+- Added exact five- and six-second owner-boundary, off-screen NPC, connected-player,
   typed movement, independent rollback, registry, and readable-output coverage.
 
 ### Character-owned periodic gameplay

@@ -11835,6 +11835,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
   const char *to_char = NULL, *to_room = NULL;
   int isEffect = FALSE, is_eff_and_dam = FALSE, is_uneffect = FALSE;
   int temp_meta = 0, temp_class, damage_percent = 100, wind_speed = 5;
+  bool meteor_impact_published = false;
   zone_rnum zone;
 
   if (ch == NULL)
@@ -12294,7 +12295,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
           mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
 
         /* Add meteor swarm impact effects after damage is dealt */
-        if (spellnum == SPELL_METEOR_SWARM &&
+        if (spellnum == SPELL_METEOR_SWARM && !meteor_impact_published &&
             ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
         {
           publish_coordinate_phenomenon(
@@ -12303,6 +12304,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
               "hammers shatter the ground, sending waves of molten rock skyward",
               "earth-shaking detonations rivaling mountain avalanches as cosmic forces unleash "
               "devastating fury upon the mortal realm");
+          meteor_impact_published = true;
         }
 
         /* Add shockwave knockdown effect after damage is dealt */
