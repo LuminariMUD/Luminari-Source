@@ -2598,7 +2598,7 @@ void check_device_one(struct char_data *i)
     return;
 
   /* Artificer device recharge: Every 30 seconds recharge 1 use or reduce DC penalty */
-  if (CLASS_LEVEL(i, CLASS_ARTIFICER) > 0 && !FIGHTING(i) && i->player_specials != NULL &&
+  if (i->player_specials != NULL && CLASS_LEVEL(i, CLASS_ARTIFICER) > 0 && !FIGHTING(i) &&
       i->player_specials->saved.num_inventions > 0)
   {
     artificer_level = CLASS_LEVEL(i, CLASS_ARTIFICER);

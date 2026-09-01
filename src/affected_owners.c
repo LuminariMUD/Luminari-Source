@@ -113,10 +113,26 @@ static long next_room_delay(void)
   return luminari_delay < round_delay ? luminari_delay : round_delay;
 }
 
-static void borrowed_owner_cleanup(event_handle_t handle, void *event_obj)
+static void affected_character_cleanup(event_handle_t handle, void *event_obj)
 {
-  (void)handle;
-  (void)event_obj;
+  struct char_data *ch = event_obj;
+
+  if (ch == NULL || ch->affected_event_handle != handle)
+    return;
+  ch->affected_event_handle = EVENT_HANDLE_NONE;
+  if (character_scheduled_count > 0U)
+    character_scheduled_count--;
+}
+
+static void affected_room_cleanup(event_handle_t handle, void *event_obj)
+{
+  struct room_data *room = event_obj;
+
+  if (room == NULL || room->affected_event_handle != handle)
+    return;
+  room->affected_event_handle = EVENT_HANDLE_NONE;
+  if (room_scheduled_count > 0U)
+    room_scheduled_count--;
 }
 
 static void note_rejection(const char *kind, size_t limit)
@@ -236,7 +252,7 @@ void affected_character_owner_sync(struct char_data *ch)
     return;
   ch->affected_event_handle = event_schedule_owned_named_with_cleanup(
       affected_character_event, ch, next_round_delay(), "affected_character",
-      borrowed_owner_cleanup, owner);
+      affected_character_cleanup, owner);
   if (ch->affected_event_handle == EVENT_HANDLE_NONE)
   {
     note_rejection("character", character_limit);
@@ -275,7 +291,7 @@ static void affected_room_schedule(struct room_data *room)
   if (!game_event_owner_is_valid(owner))
     return;
   room->affected_event_handle = event_schedule_owned_named_with_cleanup(
-      affected_room_event, room, next_room_delay(), "affected_room", borrowed_owner_cleanup,
+      affected_room_event, room, next_room_delay(), "affected_room", affected_room_cleanup,
       owner);
   if (room->affected_event_handle == EVENT_HANDLE_NONE)
   {

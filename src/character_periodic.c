@@ -238,8 +238,13 @@ static long next_owner_delay(struct char_data *ch)
 
 static void borrowed_owner_cleanup(event_handle_t handle, void *event_obj)
 {
-  (void)handle;
-  (void)event_obj;
+  struct char_data *ch = event_obj;
+
+  if (ch == NULL || ch->character_periodic_event_handle != handle)
+    return;
+  ch->character_periodic_event_handle = EVENT_HANDLE_NONE;
+  if (scheduled_count > 0U)
+    scheduled_count--;
 }
 
 static void registry_add(struct char_data *ch)

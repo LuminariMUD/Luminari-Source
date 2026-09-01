@@ -17,9 +17,9 @@ The registry contains 232 usable MUD event types plus the null sentinel. Every
 usable type now receives one policy at boot, and a production-linked test walks
 the complete registry so a later enum addition cannot escape classification.
 
-| Class | Count | Current members and behavior |
+| Class | Count | Historical Phase 5 members and behavior |
 |-------|------:|------------------------------|
-| Persisted | 93 | The exact unique set previously emitted by the `Evnt` player-file writer. Remaining game pulses pause while the character is offline. |
+| Persisted | 93 | The exact unique set previously emitted by the `Evnt` player-file writer. In Phase 5, remaining game pulses paused while the character was offline; Phase 11h superseded this behavior. |
 | Reconstructable | 1 | `eENCOUNTER_REG_RESET`; region reset work is rebuilt from database-backed region reset data during world boot. |
 | Copyover-preserved only | 0 | No current timer has copyover-only durable semantics. Player timers use the persisted path for both copyover and full reboot. |
 | Transient | 138 | Combat rounds, casting and preparation, action waits, descriptor protocol work, DG waits, AI requests, room/object effects, and other live-instance work are discarded with their runtime owners. |
@@ -49,10 +49,11 @@ stable owner, duration, save time, payload bounds, and duplicates before making
 a new event. The active backend therefore assigns a fresh process-local event
 ID and the newly loaded character receives a fresh runtime owner generation.
 
-All 93 migrated types retain their previous offline rule: their countdown pauses
-while the character is not loaded. The timestamp is retained so a future
-per-type migration to elapsed wall time can be explicit and versioned; none is
-silently changed in this tranche.
+At Phase 5, all 93 migrated types retained their previous offline rule: their
+countdown paused while the character was not loaded. The timestamp was retained
+to make a later elapsed-wall-time migration explicit and versioned. Phase 11h
+subsequently completed that migration; its validation document is the current
+contract.
 
 The loader continues to accept legacy `Evnt` sections, but routes them through
 the same validation and admission path. Set

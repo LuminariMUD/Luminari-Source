@@ -363,6 +363,8 @@ void free_char(struct char_data *ch);
 const char *player_file_account_name(const struct char_data *ch);
 #ifdef LUMINARI_CUTEST
 bool apply_clone_owner_identity_for_test(struct char_data *mob, const char *owner_name);
+void load_legacy_events_for_test(FILE *fl, struct char_data *ch);
+bool skip_durable_event_section_for_test(FILE *fl);
 #endif
 void save_player_index(void);
 bool save_player_index_checked(void);

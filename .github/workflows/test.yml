@@ -312,7 +312,7 @@ jobs:
 
       - name: Run Valgrind on production-linked tests
         run: |
-          valgrind \
+          LUMINARI_TEST_ROOT="$PWD" valgrind \
             --leak-check=full \
             --show-leak-kinds=definite \
             --errors-for-leak-kinds=definite \

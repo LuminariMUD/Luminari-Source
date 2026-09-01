@@ -271,8 +271,24 @@ static long next_mobile_delay(struct char_data *ch)
 
 static void active_world_mobile_cleanup(event_handle_t handle, void *event_obj)
 {
-  (void)handle;
-  free(event_obj);
+  struct active_world_event_payload *payload = event_obj;
+  struct active_world_registry_entry *entry;
+  struct char_data *ch;
+
+  if (payload == NULL)
+    return;
+  entry = registry_find(payload->character);
+  if (entry != NULL)
+  {
+    ch = entry->character;
+    if (ch != NULL && ch->active_world_event_handle == handle)
+    {
+      ch->active_world_event_handle = EVENT_HANDLE_NONE;
+      registry_remove(ch);
+      set_state(ch, ACTIVE_WORLD_MOBILE_DORMANT);
+    }
+  }
+  free(payload);
 }
 
 static EVENTFUNC(active_world_mobile_event);

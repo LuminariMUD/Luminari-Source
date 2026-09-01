@@ -2810,7 +2810,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n",
                  (int)(event_handle_time(pMudEvent->event_handle) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSOULOFKNIGHTHOOD)))
-    send_to_char(ch, "Crown of Knighthood Cooldown  - Duration: %d seconds\r\n",
+    send_to_char(ch, "Soul of Knighthood Cooldown  - Duration: %d seconds\r\n",
                  (int)(event_handle_time(pMudEvent->event_handle) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCOSMICUNDERSTANDING)))
     send_to_char(ch, "Cosmic Understanding Cooldown  - Duration: %d seconds\r\n",

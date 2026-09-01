@@ -642,6 +642,7 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   mob_rnum saved_top_of_mobt;
   unsigned long saved_pulse;
   uint64_t callbacks_before;
+  event_handle_t cancelled_handle;
   long first_delay;
 
   saved_world = world;
@@ -686,6 +687,19 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   CuAssertIntEquals(tc, 1, event_queue_depth());
   CuAssertTrue(tc, idle.active_world_event_handle == EVENT_HANDLE_NONE);
   CuAssertTrue(tc, wanderer.active_world_event_handle != EVENT_HANDLE_NONE);
+
+  cancelled_handle = wanderer.active_world_event_handle;
+  CuAssertTrue(tc, event_handle_cancel(cancelled_handle));
+  CuAssertTrue(tc, !event_handle_is_live(cancelled_handle));
+  CuAssertTrue(tc, wanderer.active_world_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, ACTIVE_WORLD_MOBILE_DORMANT, wanderer.active_world_state);
+  CuAssertIntEquals(tc, 0,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  active_world_sync_mobile(&wanderer);
+  CuAssertIntEquals(tc, 1,
+                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, event_queue_depth());
 
   callbacks_before = active_world_mobile_callbacks();
   first_delay = event_handle_time(wanderer.active_world_event_handle);
@@ -1986,6 +2000,16 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
   pulse = saved_pulse;
 }
 
+void TestDeviceRecoverySkipsCharacterWithoutPlayerSpecials(CuTest *tc)
+{
+  struct char_data ch;
+
+  memset(&ch, 0, sizeof(ch));
+  CuAssertPtrEquals(tc, NULL, ch.player_specials);
+  check_device_one(&ch);
+  CuAssertPtrEquals(tc, NULL, ch.player_specials);
+}
+
 void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
 {
   struct char_data ch;
@@ -2020,6 +2044,13 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
   CuAssertIntEquals(tc, 7, (int)event_handle_time(ch.character_periodic_event_handle));
   CuAssertIntEquals(tc, 1, event_queue_depth());
+
+  CuAssertTrue(tc, event_handle_cancel(ch.character_periodic_event_handle));
+  CuAssertTrue(tc, ch.character_periodic_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, 0, (int)character_periodic_scheduled_count());
+  character_periodic_sync(&ch);
+  CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
+  CuAssertIntEquals(tc, 7, (int)event_handle_time(ch.character_periodic_event_handle));
 
   process_scheduler_pulses(7U);
   CuAssertIntEquals(tc, 0, specials.walkto_location);
