@@ -420,7 +420,7 @@ ACMD(do_db_init_system)
                  "The PubSub runtime is retired. Its database tables are deprecated and "
                  "are never initialized by the running game.\r\n");
     send_to_char(ch,
-                 "Restore missing legacy tables from sql/master_schema.sql only when "
+                 "Restore missing legacy tables from lib/pubsub_v3_schema.sql only when "
                  "recovering archived data.\r\n");
     return;
   }

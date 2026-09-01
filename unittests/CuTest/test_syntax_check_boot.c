@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/comm.h"
+#include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/mud_event.h"
 #include "../../src/perfmon.h"
@@ -623,4 +624,64 @@ void Test_mud_event_durable_restore_supports_both_timed_backends(CuTest *tc)
 {
   verify_mud_event_restore_rollback_backend(tc, EVENT_BACKEND_GAME_SCHEDULER);
   verify_mud_event_restore_rollback_backend(tc, EVENT_BACKEND_LEGACY_QUEUE);
+}
+
+void Test_legacy_event_loader_normalizes_payloads_by_policy(CuTest *tc)
+{
+  struct player_special_data specials;
+  struct mud_event_data *event;
+  struct char_data ch;
+  FILE *fixture;
+
+  fixture = tmpfile();
+  CuAssertPtrNotNull(tc, fixture);
+  if (fixture == NULL)
+    return;
+
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  initialize_persistence_test_character(&ch, &specials, 9191L);
+  fprintf(fixture, "%d 25 9\n%d 30 2\n-1\n", eTREATINJURY, eLAYONHANDS);
+  rewind(fixture);
+
+  load_legacy_events_for_test(fixture, &ch);
+  event = char_has_mud_event(&ch, eTREATINJURY);
+  CuAssertPtrNotNull(tc, event);
+  if (event != NULL)
+    CuAssertPtrEquals(tc, NULL, event->sVariables);
+  event = char_has_mud_event(&ch, eLAYONHANDS);
+  CuAssertPtrNotNull(tc, event);
+  if (event != NULL)
+    CuAssertStrEquals(tc, "uses:2", event->sVariables);
+
+  clear_char_event_list(&ch);
+  event_free_all();
+  fclose(fixture);
+}
+
+void Test_durable_event_section_skip_reports_terminator_state(CuTest *tc)
+{
+  char line[MAX_INPUT_LENGTH + 1];
+  FILE *fixture;
+
+  fixture = tmpfile();
+  CuAssertPtrNotNull(tc, fixture);
+  if (fixture == NULL)
+    return;
+  fputs("discarded record\n-1\nNext tag\n", fixture);
+  rewind(fixture);
+  CuAssertTrue(tc, skip_durable_event_section_for_test(fixture));
+  CuAssertTrue(tc, get_line(fixture, line));
+  CuAssertStrEquals(tc, "Next tag", line);
+  fclose(fixture);
+
+  fixture = tmpfile();
+  CuAssertPtrNotNull(tc, fixture);
+  if (fixture == NULL)
+    return;
+  fputs("discarded record\n", fixture);
+  rewind(fixture);
+  CuAssertTrue(tc, !skip_durable_event_section_for_test(fixture));
+  fclose(fixture);
 }

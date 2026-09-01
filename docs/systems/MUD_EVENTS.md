@@ -172,13 +172,13 @@ The MUD layer adds:
 
 - Allocate payload: [C.new_mud_event()](../../src/mud_event.c#L579)
   - Duplicates sVariables string if provided (ownership sits with the MUD event)
-- Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c#L437)
+- Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c)
   - Builds the owner's typed handle and calls `event_create_owned_named()` with
     the registry handler
   - Adds the struct event pointer to the owner's event list (ch->events, obj->events, room->events, region->events, or world_events)
   - Special memory handling:
-    - For EVENT_ROOM: copies the room VNUM into newly allocated memory and stores that pointer in pStruct; validates room existence; see attach switch case at [C.attach_mud_event()](../../src/mud_event.c#L437)
-    - For EVENT_REGION: same pattern for region VNUM; see [C.attach_mud_event()](../../src/mud_event.c#L437)
+    - For EVENT_ROOM: copies the room VNUM into newly allocated memory and stores that pointer in pStruct; validates room existence; see [C.attach_mud_event()](../../src/mud_event.c)
+    - For EVENT_REGION: same pattern for region VNUM; see [C.attach_mud_event()](../../src/mud_event.c)
   - Macro helper: [C.NEW_EVENT()](../../src/mud_event.h#L27) wraps allocation + attach
 
 ### 3.3 Owner Handles and Lifecycle
@@ -402,15 +402,22 @@ on five labeled rows bounded to the normal 80-column display.
 ### 5.1 Combat Encounter Scheduling
 
 Combat defaults to one scheduled `combat_encounter_round` event per live fight.
-The process-local encounter registry supplies a typed ID and generation.
-Semantic mode resolves one round every six seconds in initiative, Dexterity,
-and stable runtime-ID order. Each participant owns its standard, move, swift,
-reaction, bounded FIFO intent, and once-per-round state. One prevalidated intent
-may dispatch before automatic actions on that participant's turn.
+The process-local encounter registry supplies a typed ID and generation. By
+default, `LUMINARI_COMBAT_ROUNDS=semantic` runs each six-second round through
+`combat_run_semantic_round()` in descending initiative order, with Dexterity
+and stable runtime identity breaking ties. Each participant owns its standard,
+move, swift, reaction, bounded FIFO intent, and once-per-round state. One
+prevalidated intent may dispatch before automatic actions on that participant's
+turn.
 
-`LUMINARI_COMBAT_ROUNDS=compatibility` retains the encounter-owned three-phase
-rules, and `LUMINARI_COMBAT_EVENTS=legacy` is the deeper per-character event
-rollback. These modes are exclusive for the boot and never convert live fights.
+With `LUMINARI_COMBAT_ROUNDS=compatibility`, each participant instead stores
+its own next deadline and current compatibility phase. The shared callback
+runs due participants in deadline and insertion order through
+`combat_run_compatibility_phase()`, the same routine used by the old
+per-character event. Existing two-second phases, six-second rounds, action
+queues, attacks, reactions, and effects retain their compatibility behavior.
+`LUMINARI_COMBAT_EVENTS=legacy` is the deeper per-character event rollback.
+These modes are exclusive for the boot and never convert live fights.
 
 Hostility creates, extends, or merges encounters. A join or merge during a
 callback is queued until the active participant iteration is safe to compact.
