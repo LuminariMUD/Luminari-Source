@@ -213,7 +213,15 @@ static struct game_event_result periodic_dg_random_event(
   dg_random_callback_counts[owner_type]++;
   owner = dg_random_registry_resolve_owner(script);
   if (owner == NULL)
+  {
+    if (runtime_handle_matches(script->random_event_handle, context))
+    {
+      script->random_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+      if (dg_random_counts[owner_type] > 0U)
+        dg_random_counts[owner_type]--;
+    }
     return game_event_result_complete();
+  }
   if (dg_random_trigger_run_one(owner, owner_type))
     dg_random_execution_counts[owner_type]++;
   return game_event_result_reschedule_after(PULSE_DG_SCRIPT);

@@ -645,11 +645,12 @@ int save_rooms(zone_rnum rzone)
         }
       }
 
-      /* Save coordinates, used in wilderness code. */
-      fprintf(sf,
-              "C\n"
-              "%d %d\n",
-              room->coords[0], room->coords[1]);
+      /* Save coordinates only when the room has an explicit wilderness location. */
+      if (room->wilderness_coordinates_set)
+        fprintf(sf,
+                "C\n"
+                "%d %d\n",
+                room->coords[0], room->coords[1]);
 
       if (room->mover)
       {

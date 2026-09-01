@@ -1047,6 +1047,17 @@ void Test_runtime_services_are_native_owned_events_with_legacy_fallback(CuTest *
   pulse = saved_pulse;
 }
 
+void Test_runtime_services_keep_rol_ship_independent_of_vessel_feature(CuTest *tc)
+{
+  int saved_vessel_system = CONFIG_VESSEL_SYSTEM;
+
+  CONFIG_VESSEL_SYSTEM = 0;
+  CuAssertTrue(tc, runtime_service_named_needed_for_test("service.rol_ship_rollback"));
+  CuAssertTrue(tc, !runtime_service_named_needed_for_test("service.vessel_rollback"));
+  CuAssertTrue(tc, !runtime_service_named_needed_for_test("missing.service"));
+  CONFIG_VESSEL_SYSTEM = saved_vessel_system;
+}
+
 void Test_wait_state_consumes_monotonic_elapsed_ticks(CuTest *tc)
 {
   struct char_data ch;

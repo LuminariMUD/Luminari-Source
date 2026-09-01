@@ -58,8 +58,9 @@ one heartbeat burst.
 Scheduled automatic procedures admit at most 16,384 object owners. DG random
 triggers admit at most 32,768 owners combined across mobiles, objects, and
 rooms. Alongside 65,536 autonomous NPCs, 32,768 affected characters, and
-16,384 affected rooms, these high-cardinality consumers can admit 163,840
-owners beneath the 262,144-event compatibility queue ceiling. At least 98,304
+16,384 affected rooms, character-periodic work admits another 32,768 owners.
+These high-cardinality consumers can admit 196,608 owners beneath the
+262,144-event compatibility queue ceiling. At least 65,536
 slots therefore remain for combat, waits, activities, and service work when
 each subsystem is at its own ceiling. The queue's global limit remains the
 final admission boundary.

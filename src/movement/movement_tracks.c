@@ -89,7 +89,7 @@ static size_t movement_trail_location_bucket(enum movement_trail_location_kind k
 {
   uint32_t hash = movement_trail_hash_mix((uint32_t)kind + 1U);
 
-  if (kind == TRAIL_LOCATION_ROOM)
+  if (kind == TRAIL_LOCATION_ROOM || room_vnum != NOWHERE)
     hash ^= movement_trail_hash_mix((uint32_t)room_vnum);
   else
   {
@@ -109,6 +109,10 @@ static bool movement_trail_location_matches(const struct movement_trail_location
     return false;
   if (kind == TRAIL_LOCATION_ROOM)
     return location->room_vnum == room_vnum;
+  if (location->room_vnum != room_vnum)
+    return false;
+  if (room_vnum != NOWHERE)
+    return true;
   return location->zone_vnum == zone_vnum && location->x == x && location->y == y;
 }
 
@@ -134,6 +138,7 @@ movement_trail_location_for_room(const struct room_data *room, bool create)
   struct movement_trail_location **head;
   struct movement_trail_location *location;
   enum movement_trail_location_kind kind;
+  bool coordinates_set;
   room_vnum room_vnum;
   zone_vnum zone_vnum;
   int x;
@@ -143,10 +148,12 @@ movement_trail_location_for_room(const struct room_data *room, bool create)
     return NULL;
   kind = movement_trail_room_is_wilderness(room) ? TRAIL_LOCATION_WILDERNESS
                                                   : TRAIL_LOCATION_ROOM;
-  room_vnum = kind == TRAIL_LOCATION_ROOM ? room->number : NOWHERE;
+  coordinates_set = kind == TRAIL_LOCATION_WILDERNESS &&
+                    (IS_WILDERNESS_VNUM(room->number) || room->wilderness_coordinates_set);
+  room_vnum = kind == TRAIL_LOCATION_ROOM || !coordinates_set ? room->number : NOWHERE;
   zone_vnum = kind == TRAIL_LOCATION_WILDERNESS ? movement_trail_wilderness_zone(room) : NOWHERE;
-  x = kind == TRAIL_LOCATION_WILDERNESS ? room->coords[X_COORD] : 0;
-  y = kind == TRAIL_LOCATION_WILDERNESS ? room->coords[Y_COORD] : 0;
+  x = coordinates_set ? room->coords[X_COORD] : 0;
+  y = coordinates_set ? room->coords[Y_COORD] : 0;
   head = &movement_trail_location_buckets[
       movement_trail_location_bucket(kind, room_vnum, zone_vnum, x, y)];
   for (location = *head; location != NULL; location = location->next)
@@ -171,22 +178,26 @@ void movement_trail_registry_forget(room_vnum vnum)
 {
   struct movement_trail_location **link;
   struct movement_trail_location *location;
+  enum movement_trail_location_kind kind;
   size_t bucket;
 
   if (vnum == NOWHERE || IS_WILDERNESS_VNUM(vnum))
     return;
-  bucket = movement_trail_location_bucket(TRAIL_LOCATION_ROOM, vnum, NOWHERE, 0, 0);
-  for (link = &movement_trail_location_buckets[bucket]; (location = *link) != NULL;
-       link = &location->next)
+  for (kind = TRAIL_LOCATION_ROOM; kind <= TRAIL_LOCATION_WILDERNESS; kind++)
   {
-    if (!movement_trail_location_matches(location, TRAIL_LOCATION_ROOM, vnum, NOWHERE, 0, 0))
-      continue;
-    *link = location->next;
-    movement_trail_list_clear(&location->trails);
-    free(location);
-    if (movement_trail_location_count > 0U)
-      movement_trail_location_count--;
-    return;
+    bucket = movement_trail_location_bucket(kind, vnum, NOWHERE, 0, 0);
+    for (link = &movement_trail_location_buckets[bucket]; (location = *link) != NULL;
+         link = &location->next)
+    {
+      if (!movement_trail_location_matches(location, kind, vnum, NOWHERE, 0, 0))
+        continue;
+      *link = location->next;
+      movement_trail_list_clear(&location->trails);
+      free(location);
+      if (movement_trail_location_count > 0U)
+        movement_trail_location_count--;
+      return;
+    }
   }
 }
 

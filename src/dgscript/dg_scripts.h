@@ -209,6 +209,7 @@ struct wait_event_data
   struct trig_data *trigger;
   void *go;
   int type;
+  bool destroy_trigger_after_cleanup;
 };
 
 /* used for actor memory triggers */
@@ -410,6 +411,11 @@ size_t dg_random_registry_validate(int owner_type);
 bool dg_random_trigger_run_one(void *owner, int owner_type);
 #ifdef LUMINARI_CUTEST
 void dg_random_registry_reset_for_test(void);
+event_handle_t dg_wait_schedule_for_test(struct trig_data *trig, long when);
+event_handle_t dg_wait_schedule_inflight_free_for_test(struct trig_data *trig, long when);
+void dg_wait_reset_telemetry_for_test(void);
+uint64_t dg_wait_resume_count_for_test(void);
+uint64_t dg_wait_deferred_free_count_for_test(void);
 #endif
 void dg_time_registry_sync(struct script_data *script);
 void *dg_time_registry_resolve_owner(struct script_data *script);

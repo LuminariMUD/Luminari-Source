@@ -2327,7 +2327,10 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     {
     case 'C': /* Coordinates. */
       get_line(fl, line);
-      sscanf(line, "%d %d", world[room_nr].coords, world[room_nr].coords + 1);
+      if (sscanf(line, "%d %d", world[room_nr].coords, world[room_nr].coords + 1) == 2)
+        world[room_nr].wilderness_coordinates_set = true;
+      else
+        log("SYSERR: Invalid coordinates in room #%d: '%s'", virtual_nr, line);
       break;
     case 'D':
       setup_dir(fl, room_nr, atoi(line + 1));
