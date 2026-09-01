@@ -290,6 +290,51 @@ void Test_dg_replaced_wait_allows_trigger_destruction_before_dispatch(CuTest *tc
   pulse = saved_pulse;
 }
 
+static void verify_failed_replacement_preserves_wait(CuTest *tc, enum event_backend_kind backend)
+{
+  struct trig_data *trigger;
+  struct wait_event_data *wait_data;
+  struct event_runtime_handle runtime_handle;
+  event_handle_t rollback_handle;
+
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(backend));
+  event_init();
+  dg_wait_reset_telemetry_for_test();
+  CREATE(trigger, struct trig_data, 1);
+  trigger->name = strdup("failed wait replacement");
+  CuAssertPtrNotNull(tc, trigger->name);
+
+  CuAssertTrue(tc, dg_wait_schedule_for_test(trigger, 10L));
+  wait_data = GET_TRIG_WAIT_DATA(trigger);
+  runtime_handle = GET_TRIG_WAIT_HANDLE(trigger);
+  rollback_handle = trigger->wait_rollback_handle;
+  dg_wait_fail_next_schedule_for_test();
+  CuAssertTrue(tc, !dg_wait_schedule_for_test(trigger, 20L));
+
+  CuAssertPtrEquals(tc, wait_data, GET_TRIG_WAIT_DATA(trigger));
+  if (backend == EVENT_BACKEND_GAME_SCHEDULER)
+  {
+    CuAssertTrue(tc, event_runtime_handles_equal(runtime_handle, GET_TRIG_WAIT_HANDLE(trigger)));
+    CuAssertTrue(tc, event_runtime_handle_is_live(runtime_handle));
+  }
+  else
+  {
+    CuAssertTrue(tc, rollback_handle == trigger->wait_rollback_handle);
+    CuAssertTrue(tc, event_handle_is_live(rollback_handle));
+  }
+
+  dg_trigger_wait_cancel(trigger);
+  free_trigger(trigger);
+  event_free_all();
+}
+
+void Test_dg_failed_wait_replacement_preserves_existing_wait(CuTest *tc)
+{
+  verify_failed_replacement_preserves_wait(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  verify_failed_replacement_preserves_wait(tc, EVENT_BACKEND_GAME_SCHEDULER);
+}
+
 static void verify_inflight_trigger_free(CuTest *tc, enum event_backend_kind backend)
 {
   struct trig_data *trigger;

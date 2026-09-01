@@ -88,6 +88,7 @@ static game_event_type_id_t dg_wait_event_type;
 #ifdef LUMINARI_CUTEST
 static uint64_t test_wait_resume_count;
 static uint64_t test_deferred_trigger_free_count;
+static bool test_fail_next_wait_schedule;
 #endif
 
 /* Return pointer to first occurrence of string ct in cs, or NULL if not
@@ -989,12 +990,17 @@ static bool schedule_trig_wait(struct trig_data *trig, void *go, int type, long 
                                struct game_event_owner owner, bool free_trigger_on_dispatch)
 {
   struct wait_event_data *wait_event_obj;
+  struct event_runtime_handle new_runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
+#if DG_EVENT_ROLLBACK_ENABLED
+  event_handle_t new_rollback_handle = EVENT_HANDLE_NONE;
+#endif
   enum game_scheduler_status status;
+  bool replacing_wait;
 
   if (trig == NULL || !game_event_owner_is_valid(owner))
     return false;
-  dg_trigger_wait_cancel(trig);
-  if (GET_TRIG_WAIT_DATA(trig) != NULL)
+  replacing_wait = GET_TRIG_WAIT_DATA(trig) != NULL;
+  if (replacing_wait && dg_trigger_wait_is_dispatching(trig))
   {
     log("SYSERR: unable to replace a DG wait while its prior event is dispatching.");
     return false;
@@ -1009,40 +1015,67 @@ static bool schedule_trig_wait(struct trig_data *trig, void *go, int type, long 
 #else
   (void)free_trigger_on_dispatch;
 #endif
-  GET_TRIG_WAIT_DATA(trig) = wait_event_obj;
-  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER)
-  {
-    if (!dg_wait_runtime_init())
-      status = GAME_SCHEDULER_REGISTRATION_CLOSED;
-    else
-      status = event_runtime_schedule_owned_after(dg_wait_event_type, owner,
-                                                  (game_tick_t)when, wait_event_obj,
-                                                  &GET_TRIG_WAIT_HANDLE(trig));
-    if (status != GAME_SCHEDULER_OK)
-      GET_TRIG_WAIT_HANDLE(trig) = EVENT_RUNTIME_HANDLE_NONE;
-  }
+#ifdef LUMINARI_CUTEST
+  if (test_fail_next_wait_schedule)
+    test_fail_next_wait_schedule = false;
   else
+#endif
   {
+    if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER)
+    {
+      if (!dg_wait_runtime_init())
+        status = GAME_SCHEDULER_REGISTRATION_CLOSED;
+      else
+        status = event_runtime_schedule_owned_after(dg_wait_event_type, owner, (game_tick_t)when,
+                                                    wait_event_obj, &new_runtime_handle);
+      if (status != GAME_SCHEDULER_OK)
+        new_runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
+    }
+    else
 #if DG_EVENT_ROLLBACK_ENABLED
-    trig->wait_rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
-        trig_wait_rollback_event, wait_event_obj, when, "dg.trigger.wait.rollback",
-        cleanup_trig_wait_rollback_event, owner);
+    {
+      new_rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
+          trig_wait_rollback_event, wait_event_obj, when, "dg.trigger.wait.rollback",
+          cleanup_trig_wait_rollback_event, owner);
+    }
 #else
-    status = GAME_SCHEDULER_INVALID_ARGUMENT;
+    {
+      status = GAME_SCHEDULER_INVALID_ARGUMENT;
+    }
 #endif
   }
-  if (event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig))
+  if (event_runtime_handle_is_none(new_runtime_handle)
 #if DG_EVENT_ROLLBACK_ENABLED
-      &&
-      trig->wait_rollback_handle == EVENT_HANDLE_NONE)
+      && new_rollback_handle == EVENT_HANDLE_NONE)
 #else
   )
 #endif
   {
-    GET_TRIG_WAIT_DATA(trig) = NULL;
     free(wait_event_obj);
     return false;
   }
+
+  if (replacing_wait)
+  {
+    dg_trigger_wait_cancel(trig);
+    if (GET_TRIG_WAIT_DATA(trig) != NULL)
+    {
+      if (!event_runtime_handle_is_none(new_runtime_handle))
+        (void)event_runtime_cancel(new_runtime_handle);
+#if DG_EVENT_ROLLBACK_ENABLED
+      else if (new_rollback_handle != EVENT_HANDLE_NONE)
+        (void)event_handle_cancel(new_rollback_handle);
+#endif
+      log("SYSERR: unable to replace a DG wait because its prior event did not cancel.");
+      return false;
+    }
+  }
+
+  GET_TRIG_WAIT_DATA(trig) = wait_event_obj;
+  GET_TRIG_WAIT_HANDLE(trig) = new_runtime_handle;
+#if DG_EVENT_ROLLBACK_ENABLED
+  trig->wait_rollback_handle = new_rollback_handle;
+#endif
   return true;
 }
 
@@ -1161,10 +1194,16 @@ bool dg_wait_schedule_inflight_free_for_test(struct trig_data *trig, long when)
   return schedule_trig_wait(trig, NULL, WLD_TRIGGER, when, dg_wait_test_owner(), true);
 }
 
+void dg_wait_fail_next_schedule_for_test(void)
+{
+  test_fail_next_wait_schedule = true;
+}
+
 void dg_wait_reset_telemetry_for_test(void)
 {
   test_wait_resume_count = 0U;
   test_deferred_trigger_free_count = 0U;
+  test_fail_next_wait_schedule = false;
 }
 
 uint64_t dg_wait_resume_count_for_test(void)

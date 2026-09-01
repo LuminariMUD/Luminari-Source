@@ -428,6 +428,7 @@ bool dg_random_trigger_run_one(void *owner, int owner_type);
 void dg_random_registry_reset_for_test(void);
 bool dg_wait_schedule_for_test(struct trig_data *trig, long when);
 bool dg_wait_schedule_inflight_free_for_test(struct trig_data *trig, long when);
+void dg_wait_fail_next_schedule_for_test(void);
 void dg_wait_reset_telemetry_for_test(void);
 uint64_t dg_wait_resume_count_for_test(void);
 uint64_t dg_wait_deferred_free_count_for_test(void);
