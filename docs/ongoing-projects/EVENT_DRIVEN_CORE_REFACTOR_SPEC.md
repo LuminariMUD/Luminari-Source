@@ -1,7 +1,7 @@
 # Event-Driven Core Refactor Specification
 
 **Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible implementation and final source audit are complete; irreversible removal gate pending
-**Document version:** 1.38
+**Document version:** 1.39
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
 **Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, the final adversarial source audit, the executable demand-driven architecture lock, and the current-SHA operator release-gate handoff are implemented; only the externally gated physical rollback removal remains
@@ -2518,3 +2518,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.36 | 2026-09-01 | Established one process-owned native timed-event runtime, moved the DG compatibility facade onto that runtime, added boot-sealed semantic type registration and opaque native handles, and proved native plus compatibility events share one wheel with owner-safe lifecycle cleanup. |
 | 1.37 | 2026-09-01 | Migrated character-affect and room-affect owner deadlines from the compatibility adapter to distinct native semantic types. Preserved exact cadence, cancellation, capacity refill, and OLC/reindex behavior; queue depth now includes native work and the frozen adapter inventory is 16 schedules across 12 files. |
 | 1.38 | 2026-09-01 | Migrated the one-per-character nearest-deadline maintenance agenda to native `character.maintenance`. Preserved owner-local walking, recovery, verse, hint, D20, device, and quest cadences plus off-screen NPC work; the legacy backend uses heartbeat rollback and 15 adapter schedules remain across 11 files. |
+| 1.39 | 2026-09-01 | Migrated object automatic procedures and DG mobile/object/room random triggers to native `object.automatic_procedure` and `dg.random_trigger` types. Preserved six- and thirteen-second recurrence, off-screen execution, authored DG `GLOBAL` semantics, lifecycle cancellation, admission bounds, and independent heartbeat rollback; 13 adapter schedules remain across 10 files. |

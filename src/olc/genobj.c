@@ -90,7 +90,7 @@ static int update_all_objects(struct obj_data *refobj)
     obj->autoproc_next = NULL;
     obj->autoproc_prev = NULL;
     obj->autoproc_registered = false;
-    obj->autoproc_event_handle = EVENT_HANDLE_NONE;
+    obj->autoproc_event_handle = EVENT_RUNTIME_HANDLE_NONE;
     autoproc_registry_sync(obj);
     obj->point_update_next = swap.point_update_next;
     obj->point_update_prev = swap.point_update_prev;
@@ -558,7 +558,7 @@ int copy_object_main(struct obj_data *to, struct obj_data *from,
 {
   struct obj_data *autoproc_next;
   struct obj_data *autoproc_prev;
-  event_handle_t autoproc_event_handle;
+  struct event_runtime_handle autoproc_event_handle;
   struct obj_data *point_update_next;
   struct obj_data *point_update_prev;
   struct list_data *events;

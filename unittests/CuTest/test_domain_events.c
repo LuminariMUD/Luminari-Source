@@ -1206,6 +1206,8 @@ void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
   struct char_data *saved_characters = character_list;
   struct obj_data *obj;
   struct obj_data *saved_objects = object_list;
+  struct game_event_snapshot snapshot;
+  struct game_scheduler_stats scheduler_stats;
   struct script_data mobile_script;
   struct script_data object_script;
   struct script_data room_script;
@@ -1234,6 +1236,9 @@ void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
   pulse = 1000U;
   event_init();
   periodic_owners_init();
+  event_runtime_get_stats(&scheduler_stats);
+  CuAssertIntEquals(tc, 3, (int)scheduler_stats.registered_type_count);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_seal_types());
 
   obj = create_obj();
   IN_ROOM(obj) = 0;
@@ -1256,6 +1261,19 @@ void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)periodic_dg_random_scheduled_count(OBJ_TRIGGER));
   CuAssertIntEquals(tc, 1, (int)periodic_dg_random_scheduled_count(WLD_TRIGGER));
   CuAssertIntEquals(tc, 4, event_queue_depth());
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_inspect(obj->autoproc_event_handle, &snapshot));
+  CuAssertStrEquals(tc, "object.automatic_procedure",
+                    event_runtime_type_name(snapshot.event_type));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_inspect(mobile_script.random_event_handle, &snapshot));
+  CuAssertStrEquals(tc, "dg.random_trigger", event_runtime_type_name(snapshot.event_type));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_inspect(object_script.random_event_handle, &snapshot));
+  CuAssertStrEquals(tc, "dg.random_trigger", event_runtime_type_name(snapshot.event_type));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_inspect(room_script.random_event_handle, &snapshot));
+  CuAssertStrEquals(tc, "dg.random_trigger", event_runtime_type_name(snapshot.event_type));
 
   pulse += PULSE_DG_SCRIPT;
   event_process();
@@ -1277,10 +1295,10 @@ void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
   dg_random_registry_sync(&object_script);
   dg_random_registry_sync(&room_script);
   CuAssertIntEquals(tc, 0, event_queue_depth());
-  CuAssertTrue(tc, obj->autoproc_event_handle == EVENT_HANDLE_NONE);
-  CuAssertTrue(tc, mobile_script.random_event_handle == EVENT_HANDLE_NONE);
-  CuAssertTrue(tc, object_script.random_event_handle == EVENT_HANDLE_NONE);
-  CuAssertTrue(tc, room_script.random_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, event_runtime_handle_is_none(obj->autoproc_event_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(mobile_script.random_event_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(object_script.random_event_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(room_script.random_event_handle));
 
   SCRIPT(&mobile) = NULL;
   SCRIPT(obj) = NULL;
@@ -1353,8 +1371,8 @@ void TestPeriodicOwnerAdmissionAndRollbackGatesAreIndependent(CuTest *tc)
   dg_random_registry_reset_for_test();
 
   periodic_owners_reset_for_test();
-  periodic_owners_select_for_test(false, false);
-  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  periodic_owners_select_for_test(true, true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
   event_init();
   periodic_owners_init();
   SET_BIT_AR(GET_OBJ_EXTRA(&first), ITEM_AUTOPROC);

@@ -5991,7 +5991,7 @@ struct obj_data
   struct obj_data *autoproc_next;
   struct obj_data *autoproc_prev;
   bool autoproc_registered;
-  event_handle_t autoproc_event_handle;
+  struct event_runtime_handle autoproc_event_handle;
 
   /* Runtime-only mud-hour point-update registry links. */
   struct obj_data *point_update_next;

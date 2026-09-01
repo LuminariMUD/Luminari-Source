@@ -62,8 +62,8 @@ compatibility-adapter record is created for this producer.
 - The preceding native-affected-owners tranche is green in both remote Build &
   Test and Security workflows.
 
-## Next Slice
+## Following Slice
 
-Migrate object automatic procedures and DG mobile/object/room random-trigger
-owners as separate semantic native types while preserving their independent
-cadences and lifecycle registries.
+Object automatic procedures and DG mobile/object/room random-trigger owners
+subsequently migrated as separate semantic native types. Point-update and
+vessel owner/service events are the next native owner slice.

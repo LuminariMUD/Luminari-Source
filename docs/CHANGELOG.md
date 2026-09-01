@@ -2,6 +2,29 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native automatic-procedure and DG random-trigger owners
+
+#### Changed
+
+- Registered `object.automatic_procedure` and `dg.random_trigger` as distinct
+  native owner-required event types.
+- Migrated automatic-object and DG mobile/object/room random-trigger handles,
+  scheduling, recurrence, and lifecycle cancellation directly to the process
+  runtime while preserving their six- and thirteen-second cadences.
+- Preserved off-screen gameplay: automatic objects are never player-gated, DG
+  object triggers remain independent of player presence, and DG mobile/room
+  triggers retain their authored `GLOBAL` empty-zone rule.
+- Reduced the frozen compatibility inventory to 13 schedules across 10 files.
+  Each subsystem still falls back independently to its established heartbeat
+  path when the physical legacy timed backend is selected.
+
+#### Tests
+
+- Added sealed-registry and live-event inspection assertions for one automatic
+  object and DG mobile, object, and room owners.
+- Retained recurrence, execution, lifecycle cancellation, admission, and
+  independent rollback coverage; all 1,050 tests pass.
+
 ### Native character-maintenance agenda
 
 #### Changed

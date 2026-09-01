@@ -195,7 +195,7 @@ struct script_data
   bool random_registered;
   struct script_data *random_next;
   struct script_data *random_prev;
-  event_handle_t random_event_handle;
+  struct event_runtime_handle random_event_handle;
 
   /* Runtime-only time-trigger owner registry metadata. */
   bool time_registered;

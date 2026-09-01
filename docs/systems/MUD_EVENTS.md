@@ -96,7 +96,7 @@ therefore cannot resolve to later events. Runtime shutdown invalidates every
 remaining handle and invokes each admitted payload's cleanup exactly once.
 
 The compatibility adapter registers one temporary `legacy_event` type in this
-same runtime. Its retained 15 production schedules therefore coexist on the
+same runtime. Its retained 13 production schedules therefore coexist on the
 wheel with native types during migration, but the adapter no longer creates,
 owns, advances, inspects, or destroys a scheduler itself.
 
@@ -109,6 +109,12 @@ hold at most one event of its corresponding type.
 It dispatches only owner-local work whose established cadence is due, then
 reschedules to that owner's next concrete deadline or retires. It is not one
 event per sub-action and does not discover owners through a population scan.
+
+`object.automatic_procedure` gives each eligible automatic object one
+six-second deadline. `dg.random_trigger` gives each attached DG mobile, object,
+or room script one thirteen-second deadline. Their callbacks resolve only the
+scheduled owner; DG mobile and room execution still observes the authored
+`GLOBAL` empty-zone rule.
 
 ## 2. Timed-Event Compatibility Facade
 
@@ -162,13 +168,13 @@ only `event_schedule*()` plus handle operations. The private API remains solely
 to preserve the physical rollback backend until its external release gate
 closes.
 
-Production owners migrated to this API are encounter round clocks,
-primary-activity timers, autonomous mobiles, character and room affected
-owners, nearest-deadline character periodic owners, object automatic
-procedures, and DG random triggers. They retain existing callback-relative
-recurrence and owner teardown behavior. This infrastructure migration does not
-alter combat, activity, affected, mobile, automatic-procedure, DG, or Establish
-Camp gameplay rules.
+Compatibility owners still awaiting native semantic types include encounter
+round clocks, primary-activity timers, and autonomous mobiles. Character and
+room affected owners, nearest-deadline character maintenance, object automatic
+procedures, and DG random triggers now schedule directly through native types.
+They retain existing callback-relative recurrence and owner teardown behavior.
+This infrastructure migration does not alter combat, activity, affected,
+mobile, automatic-procedure, DG, or Establish Camp gameplay rules.
 
 Greyhawk vessels, fixed RoL ships, the global vessel service, and the mud-hour
 point-update service also store opaque handles. Singleton service callbacks use

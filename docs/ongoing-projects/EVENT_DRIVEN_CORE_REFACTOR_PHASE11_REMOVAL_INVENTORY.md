@@ -86,7 +86,7 @@ generation-safe `event_handle_t` values and payload destructors receive owned
 payloads. The internal header is included by the facade plus two low-level
 adapter tests; it is not a gameplay API.
 
-There are 15 opaque compatibility-adapter scheduling calls across 11 production
+There are 13 opaque compatibility-adapter scheduling calls across 10 production
 files. Their exact burn-down inventory is enforced by
 `scripts/events/test_legacy_event_admission.sh`; additions fail the normal test
 suite. Those callers are compatible with a scheduler-only facade after the old
@@ -214,6 +214,12 @@ maintenance agenda. It remains one owner event that selects only work due for
 that character; it does not create one timer per maintenance responsibility or
 scan the character population. Legacy-backend rollback uses the established
 character heartbeat.
+
+The following native slice migrated object automatic procedures and DG mobile,
+object, and room random triggers. `object.automatic_procedure` and
+`dg.random_trigger` are separate owner-required types with their established
+six- and thirteen-second recurrence. DG `GLOBAL` empty-zone semantics and both
+independent heartbeat rollback selectors remain unchanged.
 
 Phase 11o additionally freezes the concrete-owner agenda architecture in
 `scripts/events/test_demand_driven_architecture.sh`. A production-linked test
