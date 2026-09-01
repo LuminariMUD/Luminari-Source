@@ -737,7 +737,9 @@ MUD_EVENT_CALLBACK(event_countdown)
       {
         room_vnum eroom_vnum;
         room_rnum eroom_rnum = NOWHERE;
+        bool location_found = false;
         int x, y;
+        int ctr = 0;
 
         if (sscanf(*it, "%d", &eroom_vnum) != 1)
         {
@@ -763,7 +765,6 @@ MUD_EVENT_CALLBACK(event_countdown)
 
         /* Find a location in the region where this room will be placed,
              it can not be the same coords as a static room and noone should be at those coordinates. */
-        int ctr = 0;
         do
         {
           /* Generate the random point */
@@ -776,10 +777,17 @@ MUD_EVENT_CALLBACK(event_countdown)
             if (world[eroom_rnum].sector_type ==
                 get_modified_sector_type(GET_ROOM_ZONE(eroom_rnum), x, y))
             {
+              location_found = true;
               break;
             }
           }
         } while (++ctr < 128);
+
+        if (!location_found)
+        {
+          log("SYSERR: No valid wilderness location for encounter room %d.", eroom_vnum);
+          continue;
+        }
 
         /* Build the room. */
         /* assign_wilderness_room(eroom_rnum, x, y); */
