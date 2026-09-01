@@ -2049,7 +2049,20 @@ void TestVesselPeriodicFallsBackWhenServiceCannotStart(CuTest *tc)
   CuAssertTrue(tc, !vessel_periodic_events_enabled());
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
+  CONFIG_VESSEL_SYSTEM = 0;
+  vessel_periodic_feature_changed();
+  CuAssertTrue(tc, !vessel_periodic_events_enabled());
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  event_init();
+  CONFIG_VESSEL_SYSTEM = 1;
+  vessel_periodic_feature_changed();
+  CuAssertTrue(tc, vessel_periodic_events_enabled());
+  CuAssertTrue(tc, event_queue_depth() >= 1);
+
   vessel_periodic_reset_for_test();
+  event_free_all();
   CONFIG_VESSEL_SYSTEM = saved_vessel_system;
 }
 

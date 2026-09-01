@@ -2172,7 +2172,8 @@ void heartbeat(int heart_pulse)
   }
 
   /* Converted RoL ships retain their original 2.5-second movement cadence. */
-  if (!(heart_pulse % (PASSES_PER_SEC * 5 / 2)) && !vessel_periodic_events_enabled())
+  if (CONFIG_VESSEL_SYSTEM && !(heart_pulse % (PASSES_PER_SEC * 5 / 2)) &&
+      !vessel_periodic_events_enabled())
     rol_ship_activity();
 
   /* Autopilot vessel movement tick - every AUTOPILOT_TICK_INTERVAL pulses (0.5 sec) */

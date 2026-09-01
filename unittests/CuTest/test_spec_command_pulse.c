@@ -1191,6 +1191,9 @@ void Test_spec_vessel_owner_pulses_have_lifecycle_and_rollback_gates(CuTest *tc)
   if (sources_loaded)
   {
     CuAssertPtrNotNull(tc, strstr(comm_source, "!vessel_periodic_events_enabled()"));
+    CuAssertPtrNotNull(
+        tc, strstr(comm_source,
+                   "if (CONFIG_VESSEL_SYSTEM && !(heart_pulse % (PASSES_PER_SEC * 5 / 2))"));
     CuAssertPtrNotNull(tc, strstr(periodic_source, "LUMINARI_VESSEL_EVENTS"));
     CuAssertPtrNotNull(tc, strstr(periodic_source, "GAME_EVENT_OWNER_VESSEL"));
     CuAssertPtrNotNull(tc, strstr(periodic_source, "autopilot_tick_one(ship);"));
@@ -1210,6 +1213,48 @@ void Test_spec_vessel_owner_pulses_have_lifecycle_and_rollback_gates(CuTest *tc)
   free(edit_source);
   free(combat_source);
   CuAssertTrue(tc, sources_loaded);
+}
+
+void Test_spec_iedit_owns_and_transfers_special_abilities(CuTest *tc)
+{
+  char *oedit_source = NULL;
+  char *oasis_source = NULL;
+  char *commit;
+  char *commit_end;
+  char *old_list;
+  char *copy_call;
+  char *free_old;
+  char *release_draft;
+  char *setup;
+  char *setup_end;
+  char *deep_copy;
+  bool sources_loaded;
+
+  sources_loaded = spec_pulse_read_source("src/olc/oedit.c", &oedit_source) &&
+                   spec_pulse_read_source("src/olc/oasis.c", &oasis_source);
+  commit = sources_loaded ? strstr(oedit_source, "static void iedit_commit_existing(") : NULL;
+  commit_end = commit != NULL ? strstr(commit, "void iedit_setup_existing(") : NULL;
+  old_list = spec_pulse_find_in_region(
+      commit, commit_end, "old_special_abilities = live->special_abilities;");
+  copy_call = spec_pulse_find_in_region(commit, commit_end, "copy_object(live, edited);");
+  free_old = spec_pulse_find_in_region(
+      commit, commit_end, "free_obj_special_abilities(old_special_abilities);");
+  release_draft = spec_pulse_find_in_region(
+      commit, commit_end, "edited->special_abilities = NULL;");
+  setup = commit_end;
+  setup_end = setup != NULL ? strstr(setup, "ACMD(do_iedit)") : NULL;
+  deep_copy = spec_pulse_find_in_region(
+      setup, setup_end,
+      "obj->special_abilities = iedit_copy_special_abilities(real_num->special_abilities);");
+
+  CuAssertTrue(tc, sources_loaded && old_list != NULL && copy_call != NULL && free_old != NULL &&
+                       release_draft != NULL && old_list < copy_call && copy_call < free_old &&
+                       free_old < release_draft && deep_copy != NULL &&
+                       strstr(oasis_source, "if (STATE(d) == CON_IEDIT)") != NULL &&
+                       strstr(oasis_source,
+                              "free_obj_special_abilities(OLC_OBJ(d)->special_abilities);") != NULL);
+  free(oedit_source);
+  free(oasis_source);
 }
 
 void Test_spec_character_periodic_control_transfers_resync_owners(CuTest *tc)
