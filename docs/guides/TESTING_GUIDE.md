@@ -73,6 +73,10 @@ loop release candidate also requires a logged-in live test and a real copyover
 that verifies descriptor survival, service reconstruction, callback progress,
 handoff cleanup, and port closure.
 
+The complete native architecture acceptance matrix and compact immortal command
+card are maintained in
+[`EVENT_DRIVEN_CORE_ACCEPTANCE.md`](../testing/EVENT_DRIVEN_CORE_ACCEPTANCE.md).
+
 After `make test`, always run:
 
 ```sh

@@ -1,10 +1,10 @@
 # Event-Driven Core Refactor Specification
 
-**Status:** In progress - Phases 1 through 10 accepted; Phase 11 default-native architecture, enforcement, and final runtime validation are complete; final audit pending
-**Document version:** 1.48
+**Status:** Native development implementation accepted; physical rollback deletion remains subject to the external release gate
+**Document version:** 1.49
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
-**Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, zero default-build compatibility callers, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, native DG/MUD/AI jobs, default-disabled rollback quarantine, executable whole-architecture enforcement, and comprehensive runtime validation are implemented; the final adversarial audit remains, while physical rollback deletion stays subject to its external release gate
+**Implementation status:** Phases 1 through 10, observability, and the reversible Phase 11 development scope are complete. Native owner handles, named runtime services, elapsed offline cooldown recovery, zero default-build compatibility callers, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, native DG/MUD/AI jobs, default-disabled rollback quarantine, executable whole-architecture enforcement, comprehensive runtime validation, and the final adversarial audit are accepted. Physical rollback and archival-schema deletion stay subject to their external release gates.
 
 > This remains the controlling planning specification. The Phase 1 scheduler
 > is now private behind the native `event_runtime` boundary in every ordinary
@@ -2162,6 +2162,13 @@ Readiness audit, 2026-08-31:
   remained healthy through a real copyover, entity/script diagnostics, 1,052
   tests, sanitizers, and strict Valgrind. Evidence is recorded in
   [`EVENT_DRIVEN_CORE_FINAL_RUNTIME_VALIDATION.md`](EVENT_DRIVEN_CORE_FINAL_RUNTIME_VALIDATION.md).
+- The final source/spec/binary audit removed the rollback adapter identity from
+  ordinary runtime profiling, completed native per-type cancellation and manual
+  reschedule telemetry, and reconciled permanent system, ADR, testing, and
+  release documentation with the native-only normal binary. The accepted
+  architecture, runtime evidence, gameplay explanation, exclusions, and
+  immortal test card are published in
+  [`EVENT_DRIVEN_CORE_ACCEPTANCE.md`](../testing/EVENT_DRIVEN_CORE_ACCEPTANCE.md).
 
 ## 24. Verification Strategy
 
@@ -2464,8 +2471,8 @@ The complete refactor is accepted only when:
 
 Before accepting version 1.0 of this specification, reviewers should confirm:
 
-- [ ] Scope and non-goals are correct.
-- [ ] Current-state description matches the source.
+- [x] Scope and non-goals are correct.
+- [x] Current-state description matches the source.
 - [x] Time and lateness semantics are unambiguous for the standalone core.
 - [x] Wheel geometry and overflow behavior are accepted for Phase 1.
 - [x] Payload ownership and failed-admission behavior are explicit.
@@ -2555,3 +2562,4 @@ Before accepting version 1.0 of this specification, reviewers should confirm:
 | 1.46 | 2026-09-01 | Quarantined the old timed-event queue, compatibility facade, heartbeat body, whole-mobile loop, physical rollback adapters, and subsystem selectors behind a default-disabled build option. Ordinary binaries now contain only the native scheduler path and fail startup closed; rollback builds remain available for the externally gated retention period, and parity tests use an explicit test-only definition. |
 | 1.47 | 2026-09-01 | Added executable whole-architecture enforcement for one physical wheel, runtime-only scheduler access, boot-sealed semantic types, zero normal-build compatibility surface, demand-driven work, and readable entity/script diagnostics. |
 | 1.48 | 2026-09-01 | Completed final runtime validation on the copied production world. Removed two full diagnostic traversals from every dispatch pass, restored native per-type profiles, and measured the corrected native product at 2.70% of one core versus 3.33% for rollback while about 42,000 events remained healthy through live entity/script inspection and real copyover. Normal, rollback, syntax, sanitizer, Valgrind, and 1,052-test gates pass; the final adversarial audit remains. |
+| 1.49 | 2026-09-01 | Completed the final source/spec/runtime audit. Removed the rollback adapter identity from the ordinary binary, completed native per-type cancellation and manual-reschedule telemetry, reconciled permanent architecture and testing documentation, closed the review checklist, and published the final gameplay report and immortal test card. The native development implementation is accepted; physical rollback and archival PubSub deletion remain externally gated. |

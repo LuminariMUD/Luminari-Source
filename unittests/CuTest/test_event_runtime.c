@@ -128,9 +128,11 @@ void Test_event_runtime_profiles_native_semantic_callbacks(CuTest *tc)
   struct runtime_trace trace;
   game_event_type_id_t event_type;
   game_event_type_id_t found_type;
+  struct game_event_owner owner;
   size_t profile_count;
   size_t copied_profiles;
   size_t live_count;
+  size_t cancelled_count;
   int cleanups;
   unsigned long saved_pulse;
 
@@ -157,6 +159,25 @@ void Test_event_runtime_profiles_native_semantic_callbacks(CuTest *tc)
     CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                       event_runtime_advance(NULL, &report));
   }
+  payload = new_runtime_payload(&trace, 'C', 1, &cleanups);
+  CuAssertPtrNotNull(tc, payload);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_schedule_after(event_type, 5U, payload, &handle));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_reschedule_after(handle, 6U));
+  CuAssertIntEquals(tc, GAME_EVENT_CANCELLED, event_runtime_cancel(handle));
+  owner = game_event_owner_none();
+  owner.kind = GAME_EVENT_OWNER_CHARACTER;
+  owner.runtime_id = 99U;
+  owner.generation = 1U;
+  payload = new_runtime_payload(&trace, 'O', 1, &cleanups);
+  CuAssertPtrNotNull(tc, payload);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_schedule_owned_after(event_type, owner, 7U,
+                                                       payload, &handle));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_cancel_owner(owner, &cancelled_count));
+  CuAssertIntEquals(tc, 1, (int)cancelled_count);
 
   memset(profiles, 0, sizeof(profiles));
   profile_count = PERF_get_event_profiles(profiles, 32U);
@@ -165,9 +186,10 @@ void Test_event_runtime_profiles_native_semantic_callbacks(CuTest *tc)
                                  "test.native.profiled");
   CuAssertPtrNotNull(tc, profile);
   CuAssertIntEquals(tc, 2, (int)profile->calls);
-  CuAssertIntEquals(tc, 1, (int)profile->scheduled);
-  CuAssertIntEquals(tc, 1, (int)profile->rescheduled);
-  CuAssertIntEquals(tc, 1, cleanups);
+  CuAssertIntEquals(tc, 3, (int)profile->scheduled);
+  CuAssertIntEquals(tc, 2, (int)profile->rescheduled);
+  CuAssertIntEquals(tc, 2, (int)profile->cancelled);
+  CuAssertIntEquals(tc, 3, cleanups);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     event_runtime_type_live_count(event_type, &live_count));
   CuAssertIntEquals(tc, 0, (int)live_count);

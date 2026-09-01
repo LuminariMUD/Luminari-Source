@@ -81,7 +81,8 @@ explicit pending behavior, with no scheduler backlog, no overdue work, and lower
 cost than the compatibility loop on the same copied world.
 
 The corrected copied-world run retained about 39,000 real agendas, including
-about 37,000 off-screen wanderers, while settling at 2.6% of one core. The
+about 37,000 off-screen wanderers. Final controlled validation measured 2.70%
+of one core versus 3.33% for the optimized rollback loop. The
 timing wheel reported zero ready events, zero overdue pulses, and zero late
 callbacks. About 193,000 agenda callbacks averaged roughly 4 microseconds.
 
@@ -93,6 +94,8 @@ Output defaults to 80 columns and never exceeds 120 columns.
 
 ## Rollback
 
-`LUMINARI_ACTIVE_WORLD=legacy` restores `mobile_activity_run_legacy_slice()` for a complete
-boot. Scheduled and legacy paths are exclusive. The rollback remains until the
-Phase 11 stable-release gate permits physical removal.
+Only an executable built with `LUMINARI_ENABLE_EVENT_ROLLBACK` recognizes
+`LUMINARI_ACTIVE_WORLD=legacy` and restores
+`mobile_activity_run_legacy_slice()` for a complete boot. The ordinary binary
+contains neither that selector nor the whole-mobile loop. Physical rollback
+code remains until the stable-release gate permits removal.

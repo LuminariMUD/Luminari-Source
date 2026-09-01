@@ -84,9 +84,11 @@ copyover diagnostic and performance snapshots were written successfully.
 The temporary validation listener is stopped. Port 4103 remains intentionally
 down at the maintainer's request.
 
-## Remaining Work
+## Handoff
 
-Tranche 8 is the final adversarial source/spec/runtime audit and permanent
-maintainer documentation. Physical deletion of rollback code and archival
-PubSub schema remains outside this development acceptance until the external
-stable-release and operator approval gate is satisfied.
+The final adversarial source/spec/runtime audit and permanent maintainer
+documentation are complete in
+[`EVENT_DRIVEN_CORE_ACCEPTANCE.md`](../testing/EVENT_DRIVEN_CORE_ACCEPTANCE.md).
+Physical deletion of rollback code and archival PubSub schema remains outside
+this development acceptance until the external stable-release and operator
+approval gate is satisfied.

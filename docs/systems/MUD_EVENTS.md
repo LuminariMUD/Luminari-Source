@@ -1,11 +1,13 @@
 # LuminariMUD Event Systems
 
 This document explains the current timing infrastructure used by LuminariMUD.
-The public DG event API selects either the game scheduler or the retained legacy
-queue implementation at boot. On the normal scheduler path, the higher-level
-MUD event layer schedules each table entry as its own native semantic type. It
-supplies generation-aware owners, explicit persistence policy, and entity-scoped
-payload lists and queries without exposing scheduler records.
+The ordinary product has one process-owned native timing wheel and no runtime
+backend selector or public DG compatibility API. The higher-level MUD event
+layer schedules each table entry as its own native semantic type. It supplies
+generation-aware owners, explicit persistence policy, and entity-scoped payload
+lists and queries without exposing scheduler records. The old queue and facade
+exist only in an explicitly compiled rollback executable pending their external
+release gate.
 
 Core source files:
 - [src/event_runtime.h](../../src/event_runtime.h)
@@ -39,7 +41,7 @@ Key entry points (clickable declarations):
 - [C.event_runtime_cancel_owner()](../../src/event_runtime.c): cancel every event for one typed owner
 - [C.event_process_scheduler()](../../src/dgscript/dg_event.c): advance the one process-owned timing wheel
 - `MUD_EVENT_CALLBACK` in [src/mud_event_callback.h](../../src/mud_event_callback.h): callback ABI for table-driven MUD timers
-- [C.event_time()](../../src/dgscript/dg_event.c): remaining pulses until an event fires
+- [C.event_runtime_remaining()](../../src/event_runtime.c): remaining ticks for a native handle
 - [C.event_free_all()](../../src/dgscript/dg_event.c): bulk free all events (shutdown/reset)
 - [C.attach_mud_event()](../../src/mud_event.c#L437): attach a MUD event to an entity and queue it
 - [C.mud_event_detach_owner()](../../src/mud_event.c): detach an executing payload before its owner is extracted
@@ -58,11 +60,12 @@ Key entry points (clickable declarations):
   - Process-wide native scheduler ownership and typed scheduling API:
     [src/event_runtime.c](../../src/event_runtime.c) and
     [src/event_runtime.h](../../src/event_runtime.h)
-  - Compatibility facade and boot-time backend selection:
+  - Process lifecycle and reactor bridge:
     [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c) and
     [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
-  - Default hierarchical timing-wheel backend: [src/game_scheduler.c](../../src/game_scheduler.c) and [src/game_scheduler.h](../../src/game_scheduler.h)
-  - Boot-time rollback backend: the legacy ten-bucket queue retained inside `dg_event.c`
+  - Private hierarchical timing wheel: [src/game_scheduler.c](../../src/game_scheduler.c) and [src/game_scheduler.h](../../src/game_scheduler.h)
+  - Separately compiled rollback facade and ten-bucket queue, unavailable in
+    the ordinary executable
   - Higher-level MUD events with entity-scoped lists and safety/memory semantics: [src/mud_event.c](../../src/mud_event.c) and [src/mud_event.h](../../src/mud_event.h)
   - Table-driven registry: [src/mud_event_list.c](../../src/mud_event_list.c) binds event IDs to functions, types, messages, and feat metadata
 - Time model:
@@ -71,9 +74,8 @@ Key entry points (clickable declarations):
 
 Scheduler deadlines drive the reactor directly, with bounded event dispatch
 after descriptor input, commands, and output. Named service events own normal
-cadence work. The compatibility heartbeat runs only for explicit runtime-
-service rollback or to advance the legacy timed backend. Gameplay handlers
-remain on the main game thread.
+cadence work. Gameplay handlers remain on the main game thread. A compatibility
+heartbeat can run only in the separately compiled rollback executable.
 
 ### 1.1 Native timed-event runtime
 
@@ -95,10 +97,11 @@ never reused during one runtime generation. Completed or cancelled handles
 therefore cannot resolve to later events. Runtime shutdown invalidates every
 remaining handle and invokes each admitted payload's cleanup exactly once.
 
-The compatibility adapter registers one temporary `legacy_event` type in this
-same runtime. Its retained four production schedules therefore coexist on the
-wheel with native types during migration, but the adapter no longer creates,
-owns, advances, inspects, or destroys a scheduler itself.
+The ordinary runtime contains no compatibility adapter or `legacy_event` type.
+When the separate rollback executable selects its scheduler backend, four
+localized rollback adapters share this same runtime solely to preserve physical
+fallback for DG waits, MUD events, and AI jobs. They are absent from normal
+preprocessing and the normal binary.
 
 All 232 usable MUD event IDs register as native owner-required types. Names use
 the stable form `mud.<three-digit-id>.<readable-name>`, for example
@@ -146,7 +149,7 @@ they do not discover autonomous mobile work. `service.persistence_batch` is a
 separate one-owner worker that performs bounded incremental persistence and
 reschedules one tick later only while that cycle remains active.
 
-## 2. Native Runtime and Rollback Facade
+## 2. Native Runtime and Separately Built Rollback
 
 ### 2.1 Data Structures and Signatures
 
@@ -193,13 +196,13 @@ final opportunity to detach the handle from its owner and remains responsible
 for releasing its payload. Normal completion remains the event callback's
 payload responsibility and also invalidates the handle after it returns.
 
-`event_schedule_owned_named_with_terminal_cleanup()` extends that contract for
+`event_schedule_owned_named_with_terminal_cleanup()` extends that rollback
+contract for
 payloads whose destructor must run after normal completion as well as
 cancellation and shutdown. A positive callback return retains both payload and
 handle for recurrence. A terminal return invokes cleanup exactly once while the
-handle is still live, then invalidates the handle. The MUD-event layer uses
-this form so its owner-list detachment and payload destruction do not depend on
-the public compatibility record.
+handle is still live, then invalidates the handle. Only the MUD-event rollback
+branch uses this form; ordinary MUD events use native runtime cleanup directly.
 
 The old pointer API and queue declarations are private to the facade and two
 low-level parity tests. New production timing code must register a semantic
@@ -287,8 +290,9 @@ Useful views:
   timing-wheel occupancy, ready/overdue work, lifecycle totals, admission
   failures, stale-owner outcomes, bounded I3 and AI worker ingress, and
   domain-bus totals.
-- `eventdebug queue [limit]` lists the earliest live compatibility and native
-  scheduler events without duplicating compatibility-wrapper records.
+- `eventdebug queue [limit]` lists the earliest live native scheduler events.
+  A rollback executable also presents its selected physical backend through the
+  same view without duplicate wrapper records.
 - `eventdebug id <id>` selects one diagnostic event ID.
 - `eventdebug type <text> [limit]` filters callback identities.
 - `eventdebug owner <kind> <id> [generation]` filters typed owners.
@@ -352,9 +356,10 @@ The MUD layer adds:
   - Duplicates sVariables string if provided (ownership sits with the MUD event)
 - Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c#L437)
   - Builds the owner's typed handle and calls
-    `event_schedule_owned_named_with_terminal_cleanup()` with the registry
-    handler and private MUD destructor
-  - Stores the returned `event_handle_t` in the MUD payload
+    `event_runtime_schedule_owned_after()` with the per-ID semantic type
+  - Stores the returned `event_runtime_handle` in the MUD payload
+  - Uses the localized opaque rollback handle only in the separately compiled
+    physical-legacy branch
   - Adds the `mud_event_data` pointer to the owner's event list (`ch->events`,
     `obj->events`, `room->events`, `region->events`, or `world_events`)
   - Special memory handling:
@@ -507,13 +512,14 @@ Movement, combat-state, and extraction boundaries publish foundational facts
 to maintain autonomous NPC ownership. Combat mechanics remain the existing
 combat system and player commands still enter through the interpreter. The
 remaining cadence groups run as named scheduler services at their established
-intervals; subsystem selectors prevent old and new side-effect paths from
-running together.
+intervals. The ordinary build has one side-effect path; guarded selectors
+exist only in the separate rollback executable.
 
 In game-loop terms, the scheduler is the alarm clock for when an owner should
 work, while domain events are immediate facts that can wake relevant owners.
-Together they will replace broad scans; the typed bus alone does not remove a
-heartbeat scan.
+Together they replace broad gameplay scans. The typed bus alone would not
+remove polling; lifecycle-owned agendas and registries make due work
+proportional to concrete responsibility.
 
 ## 5. Typed Domain-Event Foundation
 
@@ -548,9 +554,9 @@ database tables remain in `sql/master_schema.sql` only to preserve existing
 production data; the game ignores them. Dropping those tables requires a
 separate reviewed migration and backup plan.
 
-This removal does not itself make gameplay event-driven. The typed bus reports
-facts synchronously, while the scheduler determines when due work runs. Phase 7
-uses those two pieces to replace broad heartbeat scans owner by owner. Affected
+This removal did not by itself make gameplay event-driven. The typed bus reports
+facts synchronously, while the scheduler determines when due work runs. The
+owner migrations use those two pieces to replace broad heartbeat scans. Affected
 character and room duration events are scheduler work and do not publish a
 domain fact merely to invoke expiry behavior; see
 [`AFFECTED_OWNER_EVENTS.md`](AFFECTED_OWNER_EVENTS.md).
@@ -757,7 +763,7 @@ manager counters.
 
 - Double-free during execution:
   - Handled by explicit dispatch/cancel-pending state in
-    [C.event_cancel()](../../src/dgscript/dg_event.c) and the backend terminal
+    [C.event_runtime_cancel()](../../src/event_runtime.c) and the terminal
     cleanup path
 - Free-then-use in Region/Room cleanup:
   - Prevented by resolving the owned VNUM key during detachment and freeing it only in terminal cleanup
@@ -790,6 +796,10 @@ manager counters.
   `LUMINARI_EVENT_BACKEND`, `LUMINARI_RUNTIME_SERVICES`, and the subsystem
   rollback selectors. Restart after changing them; live conversion is not
   supported.
+- The combat, combat-round, activity, affected-owner, periodic-owner,
+  point-update, vessel, active-world, and runtime-service selector notes below
+  apply only to that rollback executable. The ordinary binary contains the
+  native choices and does not recognize those selectors.
 - Combat-round selection:
   - Default: `LUMINARI_COMBAT_EVENTS=encounter`
   - Rollback: `LUMINARI_COMBAT_EVENTS=legacy`

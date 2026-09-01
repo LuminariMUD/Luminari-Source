@@ -2,6 +2,33 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Event-driven core final acceptance
+
+#### Changed
+
+- Completed the final source/spec/binary audit and accepted the native
+  development implementation while retaining physical rollback deletion behind
+  its external stable-release gate.
+- Removed the `legacy_event` adapter identity from ordinary runtime profiling;
+  the normal binary now contains no rollback adapter name, API, selector, queue,
+  heartbeat body/caller, or whole-mobile loop.
+- Completed native per-type performance telemetry for explicit cancellation,
+  owner cancellation, manual rescheduling, callback recurrence, and callback
+  time.
+- Reconciled the permanent event-system, active-world, core-server, ADR,
+  testing, and release-gate documentation with the native-only ordinary build.
+- Published the final gameplay architecture report and compact immortal test
+  card, including player, mobile, object, room, and DG-script event filters.
+
+#### Tests
+
+- Repeated source contracts and a normal-binary symbol/string audit for one
+  wheel, runtime-only scheduler access, zero ordinary compatibility surface,
+  demand-driven mobile work, and retired PubSub.
+- Extended the production-linked native profiling regression through schedule,
+  callback recurrence, manual reschedule, direct cancellation, owner
+  cancellation, and exactly-once cleanup.
+
 ### Native event runtime validation
 
 #### Changed

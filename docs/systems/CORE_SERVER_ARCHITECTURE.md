@@ -5,9 +5,9 @@
 LuminariMUD uses a single-threaded, event-driven server architecture based on
 the classic CircleMUD/tbaMUD design. A private reactor waits for descriptor,
 signal, scheduler, or queued-action deadline readiness; gameplay remains on the
-main thread. Named scheduler services own normal cadence work. A 100 ms
-compatibility heartbeat remains available only for explicit rollback and the
-legacy timed-event backend.
+main thread. Named scheduler services own normal cadence work. The ordinary
+binary contains no compatibility heartbeat or legacy timed-event backend;
+those remain only in an explicitly compiled rollback executable.
 
 ## Main Server Components
 
@@ -101,8 +101,8 @@ void game_loop(socket_t local_mother_desc)
         // 1. Handle no-connection sleep state
         // 2. Setup file descriptor sets
         // 3. Calculate timing for next iteration
-        // 4. Arm the nearest scheduler, queued-wait, or rollback deadline
-        // 5. Wait for readiness (libevent, with select rollback)
+        // 4. Arm the nearest scheduler or queued-wait deadline
+        // 5. Wait for readiness through libevent
         // 6. Accept new connections
         // 7. Handle exceptions and disconnections
         // 8. Process input from all descriptors
@@ -110,25 +110,23 @@ void game_loop(socket_t local_mother_desc)
         // 10. Process output to all descriptors
         // 11. Dispatch a bounded scheduler batch
         // 12. Drain deferred extraction at the explicit safe point
-        // 13. Run compatibility heartbeat only when rollback requires it
-        // 14. Performance monitoring
+        // 13. Performance monitoring
     }
 }
 ```
 
 **Timing System:**
 - **Runtime resolution:** monotonic 100 ms ticks, without a mandatory 100 ms wake
-- **Compatibility heartbeat:** `OPT_USEC` only for runtime-service or legacy-backend rollback
 - **Sleep mechanism:** reactor readiness plus the nearest scheduler or queued-wait deadline
-- **Timed work:** generation-aware owner events on the scheduler or legacy rollback queue
+- **Timed work:** generation-aware semantic owner events on one timing wheel
 - **Typed facts:** synchronous, bounded domain events from committed state changes
 
-The target architecture does not schedule every player command. Commands remain
-direct interpreter work. Timings, regeneration, automatic actions, combat,
-activities, AI, and active-world processing migrate to owner-scheduled work;
-typed domain facts wake only affected owners. Phases 7 through 11 remove broad
-discovery scans where ownership is available and isolate legitimate global
-maintenance as named work.
+The architecture does not schedule every player command. Commands remain direct
+interpreter work. Timings, regeneration, automatic actions, combat, activities,
+AI, and active-world processing use owner-scheduled work; typed domain facts
+wake only affected owners. Broad discovery scans are absent from normal
+dispatch where ownership is available, and legitimate global maintenance is a
+named service event.
 
 ## Network Architecture
 

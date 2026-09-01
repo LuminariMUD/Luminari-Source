@@ -534,9 +534,7 @@ bool mud_event_runtime_init(void)
   return true;
 }
 
-/* init_events() is the ideal function for starting global events. This
- * might be the case if you were to move the contents of heartbeat() into
- * the event system */
+/* Initialize MUD-event owner storage and the native per-ID type registry. */
 void init_events(void)
 {
   /* Allocate Event List */

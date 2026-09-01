@@ -63,6 +63,11 @@ eventdebug
 eventdebug queue 20
 eventdebug types 30
 eventdebug domain
+eventdebug player <online-player> 10
+eventdebug mob <visible-mobile> 10
+eventdebug object <visible-object> 10
+eventdebug room here 10
+eventdebug scripts mob <visible-mobile> 10
 perfmon entities
 ```
 

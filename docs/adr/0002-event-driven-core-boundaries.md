@@ -1,6 +1,6 @@
 # 2. Event-Driven Core Boundaries
 
-**Status:** Accepted
+**Status:** Accepted; amended 2026-09-01
 **Date:** 2026-08-30
 **Decision Makers:** LuminariMUD maintainers
 **Technical Story:** Event-Driven Core Refactor
@@ -17,11 +17,11 @@ correctness requirements.
 LuminariMUD uses four explicit boundaries:
 
 - The game scheduler owns delayed and recurring work for a typed,
-  generation-aware entity owner. Its default timing-wheel backend retains a
-  boot-time legacy queue rollback.
+  generation-aware entity owner. The ordinary product has one timing wheel;
+  the legacy queue is available only in a separately compiled rollback binary.
 - The private reactor owns descriptor and signal readiness and arms one wakeup
-  from the nearest real deadline. `libevent` is the production driver and
-  `select()` remains a boot-time rollback driver.
+  from the nearest real deadline. `libevent` is the ordinary product driver;
+  `select()` remains only in the separately compiled rollback binary.
 - The domain-event core synchronously reports typed facts after state changes.
   Its registry is sealed at boot, payloads are immutable and borrowed, entity
   references are resolved generation-aware handles, and nested causal chains
@@ -34,8 +34,9 @@ Activities, combat, regeneration, automatic actions, AI, and active-world work
 now use owner-scheduled callbacks and domain-event wakeups. Autonomous NPCs own
 an agenda only while concrete work exists; spent resources, active behavior,
 and bounded local facts add work, while completion and lifecycle teardown remove
-it. The compatibility heartbeat remains only behind explicit rollback selectors
-until the stable-release removal gate closes.
+it. The compatibility heartbeat and its selectors are absent from the ordinary
+binary and remain only in the rollback binary until the stable-release removal
+gate closes.
 
 ## Consequences
 
@@ -48,8 +49,8 @@ until the stable-release removal gate closes.
 
 ### Negative
 
-- Until the removal gate closes, the scheduler, typed bus, and isolated rollback
-  heartbeat coexist.
+- Until the removal gate closes, the repository retains an isolated rollback
+  build alongside the native product.
 - Each publisher and subscriber needs an owning-system audit to prevent dual
   side effects.
 - Hidden synchronous handler chains require strict diagnostics and causal

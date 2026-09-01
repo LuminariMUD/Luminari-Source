@@ -4,10 +4,11 @@ set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 default_dg_event=$(mktemp)
+default_event_runtime=$(mktemp)
 default_public_header=$(mktemp)
 actual=$(mktemp)
 expected=$(mktemp)
-trap 'rm -f "$default_dg_event" "$default_public_header" "$actual" "$expected"' EXIT
+trap 'rm -f "$default_dg_event" "$default_event_runtime" "$default_public_header" "$actual" "$expected"' EXIT
 
 fail()
 {
@@ -57,6 +58,12 @@ fi
 if grep -Eq 'EVENT_BACKEND_LEGACY_QUEUE|legacy_event|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(|event_create(_[[:alnum:]_]+)?[[:space:]]*\(|queue_(init|enq|deq|head|key|free)[[:space:]]*\(' \
     "$default_dg_event"; then
   fail "the default timed-event implementation still contains rollback architecture"
+fi
+"${CC:-cc}" -E -P -I"$project_root/src" \
+  "$project_root/src/event_runtime.c" >"$default_event_runtime"
+if grep -Eq 'legacy_event|EVENT_BACKEND_LEGACY_QUEUE|event_schedule(_[[:alnum:]_]+)?[[:space:]]*\(' \
+    "$default_event_runtime"; then
+  fail "the default game-facing runtime still contains rollback adapter identity"
 fi
 if [[ $(grep -Eoc '^[[:space:]]*status = event_runtime_init\(&config\);' \
     "$default_dg_event") -ne 1 ]]; then

@@ -69,6 +69,22 @@ static void note_scheduled(game_event_type_id_t event_type,
     PERF_note_event_scheduled(profile->perf_index, delay_ticks);
 }
 
+static int profile_index_for_handle(struct event_runtime_handle handle,
+                                    enum game_event_state *state)
+{
+  struct event_runtime_type_profile *profile;
+  struct game_event_snapshot snapshot;
+
+  if (handle.id == 0U || runtime_scheduler == NULL ||
+      game_scheduler_inspect(runtime_scheduler, handle.id, &snapshot) !=
+          GAME_SCHEDULER_OK ||
+      (profile = runtime_type_profile(snapshot.event_type)) == NULL)
+    return -1;
+  if (state != NULL)
+    *state = snapshot.state;
+  return profile->perf_index;
+}
+
 static game_tick_t delay_until(game_tick_t deadline_tick)
 {
   game_tick_t current_tick;
@@ -149,10 +165,14 @@ enum game_scheduler_status event_runtime_register_type(
   if (profile == NULL)
     return GAME_SCHEDULER_CAPACITY_REACHED;
   profile->handler = config->handler;
+#if defined(LUMINARI_ENABLE_EVENT_ROLLBACK) || defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   /* The rollback adapter records the concrete callback name itself. */
   profile->perf_index = !strcmp(config->name, "legacy_event")
                             ? -1
                             : PERF_register_event_callback(config->name);
+#else
+  profile->perf_index = PERF_register_event_callback(config->name);
+#endif
   return GAME_SCHEDULER_OK;
 }
 
@@ -293,33 +313,95 @@ enum game_scheduler_status event_runtime_schedule_owned_after(
 
 enum game_event_cancel_result event_runtime_cancel(struct event_runtime_handle handle)
 {
+  enum game_event_cancel_result result;
+  enum game_event_state state;
+  int profile_index;
+
   if (runtime_scheduler == NULL || handle.id == 0)
     return GAME_EVENT_CANCEL_NOT_FOUND;
-  return game_scheduler_cancel(runtime_scheduler, handle.id);
+  state = GAME_EVENT_STATE_FAILED;
+  profile_index = profile_index_for_handle(handle, &state);
+  result = game_scheduler_cancel(runtime_scheduler, handle.id);
+  if (profile_index >= 0 && state != GAME_EVENT_STATE_CANCEL_PENDING &&
+      (result == GAME_EVENT_CANCELLED || result == GAME_EVENT_CANCEL_PENDING))
+    PERF_note_event_cancelled(profile_index);
+  return result;
 }
 
 enum game_scheduler_status event_runtime_cancel_owner(struct game_event_owner owner,
                                                       size_t *cancelled_count)
 {
-  if (runtime_required() != GAME_SCHEDULER_OK)
+  struct game_event_snapshot local_snapshots[8];
+  struct game_event_snapshot *snapshots;
+  enum game_scheduler_status status;
+  size_t event_count;
+  size_t index;
+
+  if (runtime_required() != GAME_SCHEDULER_OK || cancelled_count == NULL)
     return GAME_SCHEDULER_INVALID_ARGUMENT;
-  return game_scheduler_cancel_owner(runtime_scheduler, owner, cancelled_count);
+  event_count = 0U;
+  snapshots = local_snapshots;
+  status = game_scheduler_inspect_owner(runtime_scheduler, owner, NULL, 0U,
+                                        &event_count);
+  if (status != GAME_SCHEDULER_OK)
+    return status;
+  if (event_count > sizeof(local_snapshots) / sizeof(local_snapshots[0]))
+  {
+    snapshots = calloc(event_count, sizeof(*snapshots));
+    if (snapshots == NULL)
+      return game_scheduler_cancel_owner(runtime_scheduler, owner,
+                                         cancelled_count);
+  }
+  status = game_scheduler_inspect_owner(runtime_scheduler, owner, snapshots,
+                                        event_count, &event_count);
+  if (status == GAME_SCHEDULER_OK)
+    status = game_scheduler_cancel_owner(runtime_scheduler, owner,
+                                         cancelled_count);
+  if (status == GAME_SCHEDULER_OK)
+  {
+    for (index = 0U; index < event_count; index++)
+    {
+      struct event_runtime_type_profile *profile;
+
+      profile = runtime_type_profile(snapshots[index].event_type);
+      if (profile != NULL && profile->perf_index >= 0 &&
+          snapshots[index].state != GAME_EVENT_STATE_CANCEL_PENDING)
+        PERF_note_event_cancelled(profile->perf_index);
+    }
+  }
+  if (snapshots != local_snapshots)
+    free(snapshots);
+  return status;
 }
 
 enum game_scheduler_status event_runtime_reschedule_at(struct event_runtime_handle handle,
                                                        game_tick_t deadline_tick)
 {
+  enum game_scheduler_status status;
+  int profile_index;
+
   if (runtime_required() != GAME_SCHEDULER_OK || handle.id == 0)
     return GAME_SCHEDULER_INVALID_ARGUMENT;
-  return game_scheduler_reschedule_at(runtime_scheduler, handle.id, deadline_tick);
+  profile_index = profile_index_for_handle(handle, NULL);
+  status = game_scheduler_reschedule_at(runtime_scheduler, handle.id, deadline_tick);
+  if (status == GAME_SCHEDULER_OK && profile_index >= 0)
+    PERF_note_event_rescheduled(profile_index, delay_until(deadline_tick));
+  return status;
 }
 
 enum game_scheduler_status event_runtime_reschedule_after(struct event_runtime_handle handle,
                                                           game_tick_t delay_ticks)
 {
+  enum game_scheduler_status status;
+  int profile_index;
+
   if (runtime_required() != GAME_SCHEDULER_OK || handle.id == 0)
     return GAME_SCHEDULER_INVALID_ARGUMENT;
-  return game_scheduler_reschedule_after(runtime_scheduler, handle.id, delay_ticks);
+  profile_index = profile_index_for_handle(handle, NULL);
+  status = game_scheduler_reschedule_after(runtime_scheduler, handle.id, delay_ticks);
+  if (status == GAME_SCHEDULER_OK && profile_index >= 0)
+    PERF_note_event_rescheduled(profile_index, delay_ticks);
+  return status;
 }
 
 enum game_scheduler_status event_runtime_remaining(struct event_runtime_handle handle,
