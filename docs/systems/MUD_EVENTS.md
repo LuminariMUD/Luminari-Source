@@ -121,13 +121,13 @@ The MUD layer adds:
 
 - Allocate payload: [C.new_mud_event()](../../src/mud_event.c#L579)
   - Duplicates sVariables string if provided (ownership sits with the MUD event)
-- Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c#L437)
+- Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c)
   - Builds the owner's typed handle and calls `event_create_owned_named()` with
     the registry handler
   - Adds the struct event pointer to the owner's event list (ch->events, obj->events, room->events, region->events, or world_events)
   - Special memory handling:
-    - For EVENT_ROOM: copies the room VNUM into newly allocated memory and stores that pointer in pStruct; validates room existence; see attach switch case at [C.attach_mud_event()](../../src/mud_event.c#L437)
-    - For EVENT_REGION: same pattern for region VNUM; see [C.attach_mud_event()](../../src/mud_event.c#L437)
+    - For EVENT_ROOM: copies the room VNUM into newly allocated memory and stores that pointer in pStruct; validates room existence; see [C.attach_mud_event()](../../src/mud_event.c)
+    - For EVENT_REGION: same pattern for region VNUM; see [C.attach_mud_event()](../../src/mud_event.c)
   - Macro helper: [C.NEW_EVENT()](../../src/mud_event.h#L27) wraps allocation + attach
 
 ### 3.3 Owner Handles and Lifecycle
@@ -378,9 +378,8 @@ cadence. Those migrations are later tranches built on this foundation.
   backend.
 - `perf event total` and the PERFMON CSV representation include lifecycle,
   delay-distribution, queue-depth, due-batch, and callback-duration aggregates.
-- The scheduler backend is still driven by the ten-Hz heartbeat. Phase 3 will
-  add the compatibility reactor; networking, descriptor polling, command
-  parsing, and interpreter behavior are unchanged in Phase 2.5.
+- The scheduler uses the integrated reactor. Networking, descriptor polling,
+  command parsing, and interpreter behavior remain unchanged.
 
 - World events:
   - Global list is created in [C.init_events()](../../src/mud_event.c#L66) and defined at [src/mud_event.c](../../src/mud_event.c#L58)

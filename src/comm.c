@@ -209,6 +209,7 @@ static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd,
                                 fd_set *error_set, const struct timeval *timeout);
 #ifdef CIRCLE_UNIX
 static void reactor_signal_dispatch(int signal_number, void *context);
+static void preserve_shutdown_signal_handlers(void);
 #endif
 
 static struct in_addr *get_bind_addr(void);
@@ -1710,6 +1711,9 @@ void game_loop(socket_t local_mother_desc)
     PERF_PROF_EXIT(pr_main_loop_);
   }
 
+#ifdef CIRCLE_UNIX
+  preserve_shutdown_signal_handlers();
+#endif
   luminari_reactor_destroy(io_reactor);
   io_reactor = NULL;
 }
@@ -4404,6 +4408,37 @@ static sigfunc *my_signal(int signo, sigfunc *func)
   return (oact.sa_handler);
 }
 #endif /* POSIX */
+
+static void preserve_shutdown_signal_handlers(void)
+{
+  my_signal(SIGINT, hupsig);
+  my_signal(SIGTERM, hupsig);
+}
+
+#ifdef LUMINARI_CUTEST
+bool comm_test_preserve_shutdown_signal_handlers(void)
+{
+  sigfunc *installed_int;
+  sigfunc *installed_term;
+  sigfunc *saved_int;
+  sigfunc *saved_term;
+
+  saved_int = my_signal(SIGINT, SIG_IGN);
+  if (saved_int == SIG_ERR)
+    return false;
+  saved_term = my_signal(SIGTERM, SIG_IGN);
+  if (saved_term == SIG_ERR)
+  {
+    my_signal(SIGINT, saved_int);
+    return false;
+  }
+
+  preserve_shutdown_signal_handlers();
+  installed_int = my_signal(SIGINT, saved_int);
+  installed_term = my_signal(SIGTERM, saved_term);
+  return installed_int == hupsig && installed_term == hupsig;
+}
+#endif
 
 static void signal_setup(void)
 {

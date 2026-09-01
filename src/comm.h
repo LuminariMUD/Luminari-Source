@@ -56,6 +56,9 @@ protocol_error_t set_msdp_plain_text_for_test(struct descriptor_data *d, variabl
                                               const char *value);
 void comm_test_retain_unsent_output(struct descriptor_data *d, const char *output, int result);
 int process_input_for_test(struct descriptor_data *d);
+#ifdef CIRCLE_UNIX
+bool comm_test_preserve_shutdown_signal_handlers(void);
+#endif
 #endif
 
 /* Act type settings and flags */

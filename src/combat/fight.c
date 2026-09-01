@@ -9118,6 +9118,7 @@ static int compute_hit_damage_with_projectile(struct char_data *ch, struct char_
           pMudEvent = new_mud_event(eCRIPPLING_CRITICAL, victim, "1");
           /* create and attach new event, apply the first effect */
           attach_mud_event(pMudEvent, 60 * PASSES_PER_SEC);
+          pMudEvent = char_has_mud_event(victim, eCRIPPLING_CRITICAL);
         }
 
         /* dummy check */

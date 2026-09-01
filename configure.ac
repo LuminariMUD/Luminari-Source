@@ -124,8 +124,11 @@ AC_CHECK_HEADERS(limits.h sys/time.h sys/select.h sys/types.h unistd.h)
 AC_CHECK_HEADERS(memory.h crypt.h assert.h arpa/telnet.h arpa/inet.h)
 AC_CHECK_HEADERS(sys/stat.h sys/socket.h sys/resource.h netinet/in.h netdb.h)
 AC_CHECK_HEADERS(signal.h sys/uio.h mcheck.h)
+luminari_saved_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $LIBEVENT_CFLAGS"
 AC_CHECK_HEADERS(event2/event.h, [],
   [AC_MSG_ERROR([libevent headers are required; install the libevent development package])])
+CPPFLAGS=$luminari_saved_CPPFLAGS
 
 dnl AC_UNSAFE_CRYPT removed - was a custom macro
 
