@@ -11,6 +11,7 @@
 #include "../../src/character/feats.h"
 #include "../../src/character/perks.h"
 #include "../../src/combat/assign_wpn_armor.h"
+#include "../../src/combat/combat_damage.h"
 #include "../../src/combat/encounters.h"
 #include "../../src/combat/fight.h"
 #include "../../src/combat/combat_reactions.h"
@@ -727,6 +728,31 @@ void Test_combat_reaction_queue_is_bounded_fifo_and_handle_safe(CuTest *tc)
   CuAssertIntEquals(tc, COMBAT_REACTION_CAPACITY, queue.count);
   CuAssertIntEquals(tc, COMBAT_REACTION_CAPACITY, queue.scheduled);
   CuAssertIntEquals(tc, 1, queue.dropped);
+
+  domain_event_world_forget_character(&source);
+  domain_event_world_forget_character(&target);
+}
+
+void Test_combat_damage_results_have_explicit_status(CuTest *tc)
+{
+  struct char_data source;
+  struct char_data target;
+  struct combat_damage_result result;
+
+  clear_char(&source);
+  clear_char(&target);
+
+  result = combat_damage_result_from_legacy(&source, &target, 12, 12);
+  CuAssertIntEquals(tc, COMBAT_DAMAGE_APPLIED, result.status);
+  CuAssertIntEquals(tc, 12, result.applied);
+  result = combat_damage_result_from_legacy(&source, &target, 12, 0);
+  CuAssertIntEquals(tc, COMBAT_DAMAGE_NO_EFFECT, result.status);
+  result = combat_damage_result_from_legacy(&source, &target, 12, -1);
+  CuAssertIntEquals(tc, COMBAT_DAMAGE_TARGET_DIED, result.status);
+  result = combat_damage_result_queued(&source, &target, 12);
+  CuAssertIntEquals(tc, COMBAT_DAMAGE_QUEUED, result.status);
+  result = combat_damage_result_from_legacy(NULL, &target, 12, 0);
+  CuAssertIntEquals(tc, COMBAT_DAMAGE_REJECTED, result.status);
 
   domain_event_world_forget_character(&source);
   domain_event_world_forget_character(&target);

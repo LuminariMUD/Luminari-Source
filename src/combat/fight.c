@@ -62,6 +62,7 @@
 #include "domain_event_runtime.h"
 #include "point_update_periodic.h"
 #include "combat/combat_encounters.h"
+#include "combat/combat_damage.h"
 #include "combat/combat_reactions.h"
 #include "activity_manager.h"
 
@@ -6733,8 +6734,8 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   return (dam);
 }
 
-int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
-           int attack_type)
+struct combat_damage_result combat_damage_apply(struct char_data *ch, struct char_data *victim,
+                                                int dam, int w_type, int dam_type, int attack_type)
 {
   struct combat_reaction_queue reactions;
   struct combat_reaction_damage reaction;
@@ -6747,8 +6748,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
   {
     if (!combat_reaction_enqueue_damage(active_damage_reactions, ch, victim, dam, w_type, dam_type,
                                         attack_type))
-      log("SYSERR: combat reaction damage queue reached its bounded capacity.");
-    return 0;
+      log("SYSERR: combat reaction damage queue rejected a damage packet.");
+    return combat_damage_result_queued(ch, victim, dam);
   }
 
   combat_reaction_queue_init(&reactions);
@@ -6763,7 +6764,13 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
                                  reaction.damage_type, reaction.attack_type, NULL, NULL);
   }
   active_damage_reactions = NULL;
-  return result;
+  return combat_damage_result_from_legacy(ch, victim, dam, result);
+}
+
+int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
+           int attack_type)
+{
+  return combat_damage_apply(ch, victim, dam, w_type, dam_type, attack_type).legacy_result;
 }
 
 /* you are going to arrive here from an attack, or viewing mode
