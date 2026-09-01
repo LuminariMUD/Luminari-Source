@@ -693,6 +693,7 @@ EVENTFUNC(event_countdown)
         /* assign_wilderness_room(eroom_rnum, x, y); */
         world[eroom_rnum].coords[0] = x;
         world[eroom_rnum].coords[1] = y;
+        world[eroom_rnum].wilderness_coordinates_set = true;
       }
       initialize_wilderness_lists();
       free_tokens(tokens); /* Free the tokenized list */

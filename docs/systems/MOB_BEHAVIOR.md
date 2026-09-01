@@ -149,29 +149,26 @@ does not walk the character population or create a recurring class scheduler.
    - Skip mobs with MOB_NO_AI flag
    - Skip stunned/paralyzed/dazed mobs
 
-2. **Special Procedures**
-   - Execute if MOB_SPEC flag is set
-   - If spec proc returns true, skip to next mob
+2. **Reason-gated recurring work**
+   - `SPEC_ACTIVITY` invokes the assigned special procedure; a consumed action
+     ends this NPC's current agenda callback
+   - `RESOURCE_RECOVERY`, `ECHO`, and `SCAVENGE` run only their named work
+   - `PATROL`, `HUNT`, and `WANDER` select only the requested movement behavior
+   - `POSTURE` returns an eligible sentinel to its default position
 
-3. **Combat Behaviors** (if fighting and level > NEWBIE_LEVEL)
-   - Companion calling (50% chance if appropriate)
-   - 25% chance: Racial behaviors
-   - 25% chance: Ability behaviors
-   - 25% chance: Assigned spells (if knows any)
-   - Remaining: Class behaviors or offensive spells
+3. **Reason-gated room reactions**
+   - `ROOM_REACTION` enables player-aware spellup, aggression, memory revenge,
+     and adjacent-room ranged attacks
+   - `COMBAT_REACTION` enables helper, guard, group-assist, and listen behavior
+   - One-shot lifecycle notifications add these reasons when room state changes
 
-4. **Non-Combat Behaviors**
-   - Companion calling (10% chance if appropriate)
-   - Spellup (6.25% chance for casters)
-   - Mobile echos
-   - Scavenging (10% chance if MOB_SCAVENGER)
-   - Aggression checks
-   - Memory revenge
-   - Helper/guard assistance
-   - Movement (paths, hunting, random)
+4. **Legacy rollback behavior**
+   - `MOBILE_WORK_LEGACY_ALL` retains the former population-cycle combat and
+     chance-driven behavior while the rollback path remains supported
 
-5. **Position Management**
-   - Return to default position if sentinel
+5. **Agenda retirement**
+   - The owner recomputes its remaining reasons after the callback and retires
+     when no recurring or reaction work remains
 
 ## Combat Behaviors
 

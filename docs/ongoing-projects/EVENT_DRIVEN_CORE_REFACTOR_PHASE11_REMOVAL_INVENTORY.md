@@ -337,7 +337,7 @@ git branch -r --contains HEAD
 git tag --contains HEAD
 gh release list
 gh pr list --head event-driven-core-refactor --state all
-gh api 'repos/LuminariMUD/Luminari-Source/deployments?sha=<full-sha>'
+gh api "repos/LuminariMUD/Luminari-Source/deployments?sha=$(git rev-parse HEAD)"
 git grep -n 'struct event \*' -- 'src/*.c' 'src/*.h' 'src/**/*.c' 'src/**/*.h'
 git grep -n 'struct event \*' -- 'src/*.c' 'src/*.h' 'src/**/*.c' 'src/**/*.h' \
   | grep -v '^src/reactor\.[ch]:' \
