@@ -631,3 +631,50 @@ void Test_lich_touch_self_heal_ignores_single_file_reach(CuTest *tc)
   CuAssertTrue(tc, succeeded);
   CuAssertTrue(tc, GET_HIT(&ch) > 10);
 }
+
+void Test_combat_reaction_guards_block_recursive_life_shield_damage(CuTest *tc)
+{
+  struct char_data attacker;
+  struct char_data victim;
+  struct affected_type life_shield;
+  struct player_special_data attacker_specials;
+  struct player_special_data victim_specials;
+
+  clear_char(&attacker);
+  clear_char(&victim);
+  memset(&attacker_specials, 0, sizeof(attacker_specials));
+  memset(&victim_specials, 0, sizeof(victim_specials));
+  attacker.player_specials = &attacker_specials;
+  victim.player_specials = &victim_specials;
+  new_affect(&life_shield);
+  life_shield.spell = SPELL_LIFE_SHIELD;
+  victim.affected = &life_shield;
+  SET_BIT_AR(MOB_FLAGS(&attacker), MOB_ISNPC);
+  attacker.player.race = RACE_TYPE_UNDEAD;
+
+  CuAssertTrue(tc, test_life_shield_can_reflect(&attacker, &victim, 10, TYPE_HIT));
+  CuAssertTrue(tc, !test_life_shield_can_reflect(&attacker, &victim, 0, TYPE_HIT));
+  CuAssertTrue(tc,
+               !test_life_shield_can_reflect(&attacker, &victim, 10, SPELL_LIFE_SHIELD));
+}
+
+void Test_combat_spell_affect_lookup_uses_spell_identity(CuTest *tc)
+{
+  struct char_data victim;
+  struct affected_type ordinary;
+  struct affected_type greater;
+
+  clear_char(&victim);
+  new_affect(&ordinary);
+  new_affect(&greater);
+  ordinary.spell = SPELL_HOSTILE_JUXTAPOSITION;
+  ordinary.location = APPLY_NONE;
+  ordinary.next = &greater;
+  greater.spell = SPELL_GREATER_HOSTILE_JUXTAPOSITION;
+  greater.location = APPLY_NONE;
+  victim.affected = &ordinary;
+
+  CuAssertPtrEquals(tc, &greater,
+                    test_find_spell_affect(&victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION));
+  CuAssertPtrEquals(tc, NULL, test_find_spell_affect(&victim, SPELL_MAGIC_MISSILE));
+}
