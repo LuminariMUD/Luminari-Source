@@ -5,7 +5,7 @@
 #include "comm.h"
 #include "db.h"
 #include "dotenv.h"
-#include "dgscript/dg_event.h"
+#include "event_runtime.h"
 #include "vessel_periodic.h"
 #include "vessels.h"
 #include "vessels_rol.h"
@@ -25,7 +25,9 @@ static bool refilling;
 static struct greyhawk_ship_data *owner_list;
 static struct greyhawk_ship_data *dispatching_owner;
 static bool dispatching_owner_forgotten;
-static event_handle_t service_event_handle;
+static struct event_runtime_handle service_event_handle;
+static game_event_type_id_t vessel_owner_event_type;
+static game_event_type_id_t vessel_service_event_type;
 static size_t owner_count;
 static size_t scheduled_count;
 static size_t admission_limit = VESSEL_PERIODIC_MAX_OWNERS;
@@ -50,6 +52,10 @@ static bool test_scheduled_selection;
 
 static void refill_capacity(void);
 static void cancel_owner_registry(void);
+static struct game_event_result vessel_owner_event(
+    const struct game_event_context *context);
+static struct game_event_result vessel_service_event(
+    const struct game_event_context *context);
 
 static bool configured_scheduled(void)
 {
@@ -162,23 +168,45 @@ static void note_rejection(void)
         (unsigned long long)admission_rejections);
 }
 
-static void vessel_owner_cleanup(event_handle_t handle, void *event_obj)
+static bool runtime_handle_matches(struct event_runtime_handle handle,
+                                   const struct game_event_context *context)
 {
-  struct greyhawk_ship_data *ship = event_obj;
-
-  if (ship != NULL && ship->periodic_event_handle == handle)
-  {
-    ship->periodic_event_handle = EVENT_HANDLE_NONE;
-    if (scheduled_count > 0U)
-      scheduled_count--;
-  }
+  return context != NULL && handle.id == context->event_id;
 }
 
-static void vessel_service_cleanup(event_handle_t handle, void *event_obj)
+static void borrowed_owner_cleanup(void *payload)
 {
-  (void)event_obj;
-  if (service_event_handle == handle)
-    service_event_handle = EVENT_HANDLE_NONE;
+  (void)payload;
+}
+
+static bool register_event_type(const char *name, game_event_handler handler,
+                                size_t max_events, game_event_type_id_t *event_type)
+{
+  struct game_event_type_config config;
+  const char *registered_name;
+  enum game_scheduler_status status;
+
+  if (!event_runtime_is_initialized() || event_type == NULL)
+    return false;
+  registered_name = event_runtime_type_name(*event_type);
+  if (registered_name != NULL && !strcmp(registered_name, name))
+    return true;
+  *event_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = name;
+  config.handler = handler;
+  config.cleanup = borrowed_owner_cleanup;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.max_events = max_events;
+  config.max_events_per_owner = 1U;
+  config.requires_owner = true;
+  status = event_runtime_register_type(&config, event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: unable to register native event type '%s' (status %d).", name, status);
+    return false;
+  }
+  return true;
 }
 
 static void prepare_tick(void)
@@ -206,22 +234,26 @@ static bool callback_owner_still_live(struct greyhawk_ship_data *ship)
   return !dispatching_owner_forgotten && owner_is_live(ship);
 }
 
-static EVENTFUNC(vessel_owner_event)
+static struct game_event_result vessel_owner_event(
+    const struct game_event_context *context)
 {
-  struct greyhawk_ship_data *ship = event_obj;
+  struct greyhawk_ship_data *ship = context != NULL ? context->payload : NULL;
   int departed_position;
 
   if (ship == NULL)
-    return 0;
+    return game_event_result_complete();
   callback_count++;
   if (!ship->periodic_registered || !owner_is_live(ship))
   {
-    ship->periodic_event_handle = EVENT_HANDLE_NONE;
-    if (scheduled_count > 0U)
-      scheduled_count--;
+    if (runtime_handle_matches(ship->periodic_event_handle, context))
+    {
+      ship->periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+      if (scheduled_count > 0U)
+        scheduled_count--;
+    }
     registry_remove(ship);
     refill_capacity();
-    return 0;
+    return game_event_result_complete();
   }
 
   prepare_tick();
@@ -260,20 +292,20 @@ static EVENTFUNC(vessel_owner_event)
   if (!callback_owner_still_live(ship))
   {
     dispatching_owner = NULL;
-    return 0;
+    return game_event_result_complete();
   }
   dispatching_owner = NULL;
-  return VESSEL_PERIODIC_FAST_CADENCE;
+  return game_event_result_reschedule_after(VESSEL_PERIODIC_FAST_CADENCE);
 }
 
-static EVENTFUNC(vessel_service_event)
+static struct game_event_result vessel_service_event(
+    const struct game_event_context *context)
 {
-  (void)event_obj;
-
   if (!initialized || !scheduled)
   {
-    service_event_handle = EVENT_HANDLE_NONE;
-    return 0;
+    if (runtime_handle_matches(service_event_handle, context))
+      service_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+    return game_event_result_complete();
   }
   service_callback_count++;
   prepare_tick();
@@ -285,35 +317,33 @@ static EVENTFUNC(vessel_service_event)
     if (pulse % (unsigned long)VESSEL_PERIODIC_SCHEDULE_CADENCE == 0U)
       vessel_merchant_tick();
   }
-  return VESSEL_PERIODIC_FAST_CADENCE;
+  return game_event_result_reschedule_after(VESSEL_PERIODIC_FAST_CADENCE);
 }
 
 static bool schedule_service_event(void)
 {
   struct game_event_owner owner;
 
-  if (service_event_handle != EVENT_HANDLE_NONE)
+  if (!event_runtime_handle_is_none(service_event_handle))
     return true;
-  if (!initialized || !scheduled || shutting_down ||
-      event_backend_current() == EVENT_BACKEND_UNINITIALIZED)
+  if (!initialized || !scheduled || shutting_down)
     return false;
   owner = service_owner();
-  service_event_handle = event_schedule_owned_named_with_cleanup(
-      vessel_service_event, &service_event_handle,
-      boundary_delay(VESSEL_PERIODIC_FAST_CADENCE), "vessel_service", vessel_service_cleanup,
-      owner);
-  return service_event_handle != EVENT_HANDLE_NONE;
+  return event_runtime_schedule_owned_after(
+             vessel_service_event_type, owner,
+             (game_tick_t)boundary_delay(VESSEL_PERIODIC_FAST_CADENCE), NULL,
+             &service_event_handle) == GAME_SCHEDULER_OK;
 }
 
 static void cancel_service_event(void)
 {
-  event_handle_t handle;
+  struct event_runtime_handle handle;
 
-  if (service_event_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_handle_is_none(service_event_handle))
     return;
   handle = service_event_handle;
-  service_event_handle = EVENT_HANDLE_NONE;
-  (void)event_handle_cancel(handle);
+  service_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+  (void)event_runtime_cancel(handle);
 }
 
 static bool schedule_owner(struct greyhawk_ship_data *ship)
@@ -321,8 +351,8 @@ static bool schedule_owner(struct greyhawk_ship_data *ship)
   struct game_event_owner owner;
 
   if (!initialized || !scheduled || shutting_down || ship == NULL ||
-      event_backend_current() == EVENT_BACKEND_UNINITIALIZED || !ship->periodic_registered ||
-      ship->periodic_event_handle != EVENT_HANDLE_NONE || !owner_is_live(ship))
+      !ship->periodic_registered ||
+      !event_runtime_handle_is_none(ship->periodic_event_handle) || !owner_is_live(ship))
     return false;
   if (scheduled_count >= admission_limit)
   {
@@ -332,10 +362,10 @@ static bool schedule_owner(struct greyhawk_ship_data *ship)
   owner = vessel_owner(ship);
   if (!game_event_owner_is_valid(owner))
     return false;
-  ship->periodic_event_handle = event_schedule_owned_named_with_cleanup(
-      vessel_owner_event, ship, boundary_delay(VESSEL_PERIODIC_FAST_CADENCE), "vessel_periodic",
-      vessel_owner_cleanup, owner);
-  if (ship->periodic_event_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_schedule_owned_after(
+          vessel_owner_event_type, owner,
+          (game_tick_t)boundary_delay(VESSEL_PERIODIC_FAST_CADENCE), ship,
+          &ship->periodic_event_handle) != GAME_SCHEDULER_OK)
   {
     note_rejection();
     return false;
@@ -355,7 +385,7 @@ static void refill_capacity(void)
   for (ship = owner_list; ship != NULL && scheduled_count < admission_limit;
        ship = ship->periodic_next)
   {
-    if (ship->periodic_event_handle == EVENT_HANDLE_NONE)
+    if (event_runtime_handle_is_none(ship->periodic_event_handle))
       schedule_owner(ship);
   }
   refilling = false;
@@ -363,8 +393,7 @@ static void refill_capacity(void)
 
 void vessel_periodic_sync(struct greyhawk_ship_data *ship)
 {
-  if (!initialized || !scheduled || event_backend_current() == EVENT_BACKEND_UNINITIALIZED ||
-      ship == NULL)
+  if (!initialized || !scheduled || ship == NULL)
     return;
   if (!owner_is_live(ship))
   {
@@ -372,25 +401,25 @@ void vessel_periodic_sync(struct greyhawk_ship_data *ship)
     return;
   }
   registry_add(ship);
-  if (ship->periodic_event_handle == EVENT_HANDLE_NONE)
+  if (event_runtime_handle_is_none(ship->periodic_event_handle))
     schedule_owner(ship);
 }
 
 void vessel_periodic_forget(struct greyhawk_ship_data *ship)
 {
-  event_handle_t handle;
+  struct event_runtime_handle handle;
 
   if (ship == NULL)
     return;
   if (dispatching_owner == ship)
     dispatching_owner_forgotten = true;
-  if (ship->periodic_event_handle != EVENT_HANDLE_NONE)
+  if (!event_runtime_handle_is_none(ship->periodic_event_handle))
   {
     handle = ship->periodic_event_handle;
-    ship->periodic_event_handle = EVENT_HANDLE_NONE;
+    ship->periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
     if (scheduled_count > 0U)
       scheduled_count--;
-    (void)event_handle_cancel(handle);
+    (void)event_runtime_cancel(handle);
   }
   registry_remove(ship);
   ship->periodic_generation = 0U;
@@ -447,18 +476,24 @@ void vessel_periodic_feature_changed(void)
 
 void vessel_periodic_init(void)
 {
+  bool native_ready;
+  bool requested;
+
   if (initialized)
     return;
-  scheduled = configured_scheduled();
+  requested = configured_scheduled();
+  native_ready = register_event_type("vessel.greyhawk.agenda", vessel_owner_event,
+                                     VESSEL_PERIODIC_MAX_OWNERS,
+                                     &vessel_owner_event_type) &&
+                 register_event_type("vessel.shared.agenda", vessel_service_event, 1U,
+                                     &vessel_service_event_type) &&
+                 rol_ship_periodic_register_event_type();
+  scheduled = requested && native_ready;
   initialized = true;
   shutting_down = false;
   prepared_pulse = ULONG_MAX;
-  if (scheduled && event_backend_current() == EVENT_BACKEND_UNINITIALIZED)
-  {
-    log("WARNING: vessel periodic scheduling requested before event initialization; using the "
-        "legacy heartbeat.");
-    scheduled = false;
-  }
+  if (requested && !native_ready)
+    log("WARNING: native vessel event types unavailable; using the legacy heartbeat.");
   if (scheduled && CONFIG_VESSEL_SYSTEM)
   {
     if (!schedule_service_event())
@@ -514,7 +549,7 @@ size_t vessel_periodic_registry_validate(void)
     members++;
     if (!ship->periodic_registered || !owner_is_live(ship))
       mismatches++;
-    if (ship->periodic_event_handle != EVENT_HANDLE_NONE)
+    if (!event_runtime_handle_is_none(ship->periodic_event_handle))
       events++;
     if (ship->periodic_next != NULL && ship->periodic_next->periodic_prev != ship)
       mismatches++;

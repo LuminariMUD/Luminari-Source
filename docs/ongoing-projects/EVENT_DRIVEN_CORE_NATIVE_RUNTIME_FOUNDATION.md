@@ -60,9 +60,9 @@ the two affected-owner schedules to native semantic types.
 `affected.character.duration` and `affected.room.duration` are now native
 owner-required types. Their owner-local callbacks preserve established affect
 expiry, room behavior, cancellation, capacity refill, and OLC/reindex behavior.
-The frozen compatibility inventory is now 13 schedules across 10 files after
-the subsequent character-maintenance, automatic-procedure, and DG random-
-trigger migrations.
+The frozen compatibility inventory is now nine schedules across seven files
+after the subsequent character-maintenance, automatic-procedure, DG random-
+trigger, mud-hour, and vessel migrations.
 
 Remaining callbacks continue to migrate in behavior-preserving groups. Each
 must retain its cadence, owner lifecycle, cleanup, and recurrence policy while

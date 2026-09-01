@@ -2,6 +2,30 @@
 
 ## [Unreleased] - August 30, 2026
 
+### Native mud-hour and vessel agendas
+
+#### Changed
+
+- Registered `world.mud_hour_update`, `vessel.greyhawk.agenda`,
+  `vessel.shared.agenda`, and `vessel.rol.agenda` as native owner-required
+  event types.
+- Migrated the mud-hour point-update service, Greyhawk ship owners, shared
+  vessel services, and fixed-RoL ships directly to native runtime handles,
+  cancellation, and recurrence.
+- Preserved the mud-hour due-owner registries, vessel boundary alignment,
+  feature enable/disable rebuild, callback-time cancellation, capacity refill,
+  fixed-RoL object lifecycle, and heartbeat fallback.
+- Reduced the frozen compatibility inventory to nine schedules across seven
+  production files.
+
+#### Tests
+
+- Added semantic registration and Greyhawk live-event inspection coverage,
+  plus physical legacy-backend fallback checks for point updates and vessels.
+- Retained due-owner selection, extraction-safe object decay, vessel recurrence,
+  feature toggling, generation renewal, and capacity-refill coverage; all 1,050
+  tests pass.
+
 ### Native automatic-procedure and DG random-trigger owners
 
 #### Changed

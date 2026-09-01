@@ -640,6 +640,19 @@ static game_tick_t native_event_remaining(CuTest *tc, struct event_runtime_handl
   return remaining;
 }
 
+static bool native_event_type_is_registered(const char *name)
+{
+  struct game_scheduler_stats stats;
+  game_event_type_id_t event_type;
+
+  event_runtime_get_stats(&stats);
+  for (event_type = 1U; event_type <= stats.registered_type_count; event_type++)
+    if (event_runtime_type_name(event_type) != NULL &&
+        !strcmp(event_runtime_type_name(event_type), name))
+      return true;
+  return false;
+}
+
 void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc)
 {
   struct room_data room;
@@ -2426,6 +2439,8 @@ void TestPointUpdateSchedulesOnlyDuePlayersAndObjects(CuTest *tc)
   point_update_periodic_init();
 
   CuAssertTrue(tc, point_update_events_enabled());
+  CuAssertTrue(tc, native_event_type_is_registered("world.mud_hour_update"));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_seal_types());
   CuAssertIntEquals(tc, 1, event_queue_depth());
   CuAssertIntEquals(tc, 1, (int)point_update_character_count());
   CuAssertIntEquals(tc, 1, (int)point_update_object_count());
@@ -2568,12 +2583,15 @@ void TestPointUpdateFallsBackWhenServiceCannotStart(CuTest *tc)
   event_free_all();
   point_update_periodic_reset_for_test();
   point_update_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
+  event_init();
   point_update_periodic_init();
 
   CuAssertTrue(tc, !point_update_events_enabled());
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   point_update_periodic_reset_for_test();
+  event_free_all();
 }
 
 void TestVesselPeriodicSchedulesLoadedOwnersAndKeepsLegacyExclusive(CuTest *tc)
@@ -2581,6 +2599,7 @@ void TestVesselPeriodicSchedulesLoadedOwnersAndKeepsLegacyExclusive(CuTest *tc)
   const int slot = GREYHAWK_MAXSHIPS - 1;
   struct greyhawk_ship_data saved_ship = greyhawk_ships[slot];
   struct greyhawk_ship_data *ship = &greyhawk_ships[slot];
+  struct game_event_snapshot snapshot;
   unsigned long saved_pulse = pulse;
   int saved_vessel_system = CONFIG_VESSEL_SYSTEM;
   uint64_t first_generation;
@@ -2598,6 +2617,10 @@ void TestVesselPeriodicSchedulesLoadedOwnersAndKeepsLegacyExclusive(CuTest *tc)
   pulse = 100U;
   event_init();
   vessel_periodic_init();
+  CuAssertTrue(tc, native_event_type_is_registered("vessel.greyhawk.agenda"));
+  CuAssertTrue(tc, native_event_type_is_registered("vessel.shared.agenda"));
+  CuAssertTrue(tc, native_event_type_is_registered("vessel.rol.agenda"));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_seal_types());
   vessel_periodic_sync(ship);
 
   CuAssertTrue(tc, vessel_periodic_events_enabled());
@@ -2605,6 +2628,10 @@ void TestVesselPeriodicSchedulesLoadedOwnersAndKeepsLegacyExclusive(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_scheduled_count());
   CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
   CuAssertTrue(tc, event_queue_depth() >= 2);
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    event_runtime_inspect(ship->periodic_event_handle, &snapshot));
+  CuAssertStrEquals(tc, "vessel.greyhawk.agenda",
+                    event_runtime_type_name(snapshot.event_type));
   first_generation = ship->periodic_generation;
 
   pulse += AUTOPILOT_TICK_INTERVAL;
@@ -2619,13 +2646,13 @@ void TestVesselPeriodicSchedulesLoadedOwnersAndKeepsLegacyExclusive(CuTest *tc)
   vessel_periodic_feature_changed();
   CuAssertIntEquals(tc, 0, (int)vessel_periodic_owner_count());
   CuAssertIntEquals(tc, 0, (int)vessel_periodic_scheduled_count());
-  CuAssertTrue(tc, ship->periodic_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, event_runtime_handle_is_none(ship->periodic_event_handle));
   CuAssertIntEquals(tc, 0, event_queue_depth());
   CONFIG_VESSEL_SYSTEM = 1;
   vessel_periodic_feature_changed();
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_scheduled_count());
-  CuAssertTrue(tc, ship->periodic_event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(ship->periodic_event_handle));
   CuAssertTrue(tc, event_queue_depth() >= 2);
   CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
 
@@ -2692,14 +2719,14 @@ void TestVesselPeriodicCapacityRefillsAfterOwnerCancellation(CuTest *tc)
   CuAssertIntEquals(tc, 2, (int)vessel_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_scheduled_count());
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_admission_rejections());
-  CuAssertTrue(tc, first->periodic_event_handle != EVENT_HANDLE_NONE);
-  CuAssertTrue(tc, second->periodic_event_handle == EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(first->periodic_event_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(second->periodic_event_handle));
   CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
 
   vessel_periodic_forget(first);
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)vessel_periodic_scheduled_count());
-  CuAssertTrue(tc, second->periodic_event_handle != EVENT_HANDLE_NONE);
+  CuAssertTrue(tc, !event_runtime_handle_is_none(second->periodic_event_handle));
   CuAssertIntEquals(tc, 0, (int)vessel_periodic_registry_validate());
 
   vessel_periodic_reset_for_test();
@@ -2718,12 +2745,15 @@ void TestVesselPeriodicFallsBackWhenServiceCannotStart(CuTest *tc)
   vessel_periodic_reset_for_test();
   CONFIG_VESSEL_SYSTEM = 1;
   vessel_periodic_select_for_test(true);
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
+  event_init();
   vessel_periodic_init();
 
   CuAssertTrue(tc, !vessel_periodic_events_enabled());
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   vessel_periodic_reset_for_test();
+  event_free_all();
   CONFIG_VESSEL_SYSTEM = saved_vessel_system;
 }
 

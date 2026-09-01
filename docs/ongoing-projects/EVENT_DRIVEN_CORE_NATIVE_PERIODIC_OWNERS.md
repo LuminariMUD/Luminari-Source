@@ -58,8 +58,9 @@ compatibility-adapter event is created for either producer.
 - The preceding character-maintenance commit is green in both remote Build &
   Test and Security workflows.
 
-## Next Slice
+## Following Slice
 
-Migrate point-update and vessel owner/service events to native semantic types,
-preserving their owner-local cadences, singleton responsibilities, and legacy
-heartbeat fallback.
+Point-update and vessel owner/service events subsequently migrated to native
+semantic types with their owner-local cadences, singleton responsibilities,
+and legacy heartbeat fallback intact. Autonomous-mobile, combat-encounter, and
+primary-activity owners are the next native owner slice.

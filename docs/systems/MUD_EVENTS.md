@@ -96,7 +96,7 @@ therefore cannot resolve to later events. Runtime shutdown invalidates every
 remaining handle and invokes each admitted payload's cleanup exactly once.
 
 The compatibility adapter registers one temporary `legacy_event` type in this
-same runtime. Its retained 13 production schedules therefore coexist on the
+same runtime. Its retained nine production schedules therefore coexist on the
 wheel with native types during migration, but the adapter no longer creates,
 owns, advances, inspects, or destroys a scheduler itself.
 
@@ -115,6 +115,13 @@ six-second deadline. `dg.random_trigger` gives each attached DG mobile, object,
 or room script one thirteen-second deadline. Their callbacks resolve only the
 scheduled owner; DG mobile and room execution still observes the authored
 `GLOBAL` empty-zone rule.
+
+`world.mud_hour_update` is the single world-clock boundary for global aging and
+the lifecycle-maintained registries of players and objects with mud-hour work.
+It does not discover owners from the general game loop. `vessel.greyhawk.agenda`
+and `vessel.rol.agenda` are concrete ship-owner events;
+`vessel.shared.agenda` owns only shared vessel-system work and aligned due
+reasons.
 
 ## 2. Timed-Event Compatibility Facade
 
@@ -171,7 +178,8 @@ closes.
 Compatibility owners still awaiting native semantic types include encounter
 round clocks, primary-activity timers, and autonomous mobiles. Character and
 room affected owners, nearest-deadline character maintenance, object automatic
-procedures, and DG random triggers now schedule directly through native types.
+procedures, DG random triggers, mud-hour point updates, and vessel agendas now
+schedule directly through native types.
 They retain existing callback-relative recurrence and owner teardown behavior.
 This infrastructure migration does not alter combat, activity, affected,
 mobile, automatic-procedure, DG, or Establish Camp gameplay rules.

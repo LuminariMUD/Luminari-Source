@@ -86,7 +86,7 @@ generation-safe `event_handle_t` values and payload destructors receive owned
 payloads. The internal header is included by the facade plus two low-level
 adapter tests; it is not a gameplay API.
 
-There are 13 opaque compatibility-adapter scheduling calls across 10 production
+There are nine opaque compatibility-adapter scheduling calls across seven production
 files. Their exact burn-down inventory is enforced by
 `scripts/events/test_legacy_event_admission.sh`; additions fail the normal test
 suite. Those callers are compatible with a scheduler-only facade after the old
@@ -220,6 +220,12 @@ object, and room random triggers. `object.automatic_procedure` and
 `dg.random_trigger` are separate owner-required types with their established
 six- and thirteen-second recurrence. DG `GLOBAL` empty-zone semantics and both
 independent heartbeat rollback selectors remain unchanged.
+
+The next slice migrated the singleton mud-hour point-update clock, Greyhawk
+owner agendas, shared vessel service agenda, and fixed-RoL ship agendas as
+`world.mud_hour_update`, `vessel.greyhawk.agenda`, `vessel.shared.agenda`, and
+`vessel.rol.agenda`. Their due-owner registries, boundary alignment, feature
+rebuild, extraction cancellation, and heartbeat rollback remain unchanged.
 
 Phase 11o additionally freezes the concrete-owner agenda architecture in
 `scripts/events/test_demand_driven_architecture.sh`. A production-linked test

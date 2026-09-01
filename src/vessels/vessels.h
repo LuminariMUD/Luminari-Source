@@ -1338,7 +1338,7 @@ struct greyhawk_ship_data
   short int speed, setspeed;    /* Current and target speed */
 
   /* Events */
-  event_handle_t periodic_event_handle;
+  struct event_runtime_handle periodic_event_handle;
   uint64_t periodic_generation;
   bool periodic_registered;
   struct greyhawk_ship_data *periodic_prev;

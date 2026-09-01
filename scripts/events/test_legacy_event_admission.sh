@@ -41,9 +41,6 @@ src/combat/combat_encounters.c 1
 src/comm.c 2
 src/dgscript/dg_scripts.c 1
 src/mud_event.c 1
-src/point_update_periodic.c 1
-src/vessels/vessel_periodic.c 2
-src/vessels/vessels_rol.c 1
 EOF
 
 if ! diff -u "$expected" "$actual"; then

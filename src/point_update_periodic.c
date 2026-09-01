@@ -5,9 +5,9 @@
 #include "comm.h"
 #include "db.h"
 #include "dotenv.h"
+#include "event_runtime.h"
 #include "mudlim.h"
 #include "dgscript/dg_scripts.h"
-#include "dgscript/dg_event.h"
 #include "point_update_periodic.h"
 
 #define POINT_UPDATE_CADENCE ((long)(SECS_PER_MUD_HOUR * PASSES_PER_SEC))
@@ -19,7 +19,8 @@ static bool shutting_down;
 static bool dispatch_due;
 static bool character_iteration_active;
 static bool object_iteration_active;
-static event_handle_t service_event_handle;
+static struct event_runtime_handle service_event_handle;
+static game_event_type_id_t point_update_event_type;
 static struct char_data *character_owners;
 static struct char_data *character_iteration_next;
 static struct obj_data *object_owners;
@@ -34,6 +35,9 @@ static uint64_t object_executions;
 static bool test_selection_set;
 static bool test_scheduled_selection;
 #endif
+
+static struct game_event_result point_update_service_event(
+    const struct game_event_context *context);
 
 static bool configured_scheduled(void)
 {
@@ -188,38 +192,58 @@ void point_update_object_spec_timer_set(struct obj_data *obj, int slot, int dura
   point_update_object_sync(obj);
 }
 
-static void service_cleanup(event_handle_t handle, void *event_obj)
+static bool register_point_update_event_type(void)
 {
-  (void)event_obj;
-  if (service_event_handle == handle)
-    service_event_handle = EVENT_HANDLE_NONE;
+  struct game_event_type_config config;
+  const char *registered_name;
+  enum game_scheduler_status status;
+
+  if (!event_runtime_is_initialized())
+    return false;
+  registered_name = event_runtime_type_name(point_update_event_type);
+  if (registered_name != NULL && !strcmp(registered_name, "world.mud_hour_update"))
+    return true;
+  point_update_event_type = 0U;
+  memset(&config, 0, sizeof(config));
+  config.name = "world.mud_hour_update";
+  config.handler = point_update_service_event;
+  config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
+  config.max_events = 1U;
+  config.max_events_per_owner = 1U;
+  config.requires_owner = true;
+  status = event_runtime_register_type(&config, &point_update_event_type);
+  if (status != GAME_SCHEDULER_OK)
+  {
+    log("SYSERR: unable to register native event type 'world.mud_hour_update' (status %d).",
+        status);
+    return false;
+  }
+  return true;
 }
 
-static EVENTFUNC(point_update_service_event)
+static struct game_event_result point_update_service_event(
+    const struct game_event_context *context)
 {
-  (void)event_obj;
-
   if (!initialized || !scheduled)
   {
-    service_event_handle = EVENT_HANDLE_NONE;
-    return 0;
+    if (context != NULL && service_event_handle.id == context->event_id)
+      service_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+    return game_event_result_complete();
   }
   service_callbacks++;
   dispatch_due = true;
-  return POINT_UPDATE_CADENCE;
+  return game_event_result_reschedule_after(POINT_UPDATE_CADENCE);
 }
 
 static bool schedule_service(void)
 {
-  if (service_event_handle != EVENT_HANDLE_NONE)
+  if (!event_runtime_handle_is_none(service_event_handle))
     return true;
-  if (!initialized || !scheduled || shutting_down ||
-      event_backend_current() == EVENT_BACKEND_UNINITIALIZED)
+  if (!initialized || !scheduled || shutting_down)
     return false;
-  service_event_handle = event_schedule_owned_named_with_cleanup(
-      point_update_service_event, &service_event_handle, boundary_delay(), "point_update_service",
-      service_cleanup, service_owner());
-  return service_event_handle != EVENT_HANDLE_NONE;
+  return event_runtime_schedule_owned_after(
+             point_update_event_type, service_owner(), (game_tick_t)boundary_delay(), NULL,
+             &service_event_handle) == GAME_SCHEDULER_OK;
 }
 
 bool point_update_periodic_dispatch_due(void)
@@ -263,14 +287,19 @@ void point_update_periodic_init(void)
 {
   struct char_data *ch;
   struct obj_data *obj;
+  bool requested;
 
   if (initialized)
     return;
-  scheduled = configured_scheduled();
+  requested = configured_scheduled();
+  scheduled = requested && register_point_update_event_type();
   initialized = true;
   shutting_down = false;
   dispatch_due = false;
-  if (scheduled && !schedule_service())
+  if (requested && !scheduled)
+    log("WARNING: native mud-hour point-update event type unavailable; using the legacy "
+        "heartbeat.");
+  else if (scheduled && !schedule_service())
   {
     log("WARNING: unable to schedule point-update service; using the legacy heartbeat.");
     scheduled = false;
@@ -292,16 +321,16 @@ void point_update_periodic_shutdown(void)
   struct char_data *next_ch;
   struct obj_data *obj;
   struct obj_data *next_obj;
-  event_handle_t handle;
+  struct event_runtime_handle handle;
 
   if (!initialized)
     return;
   shutting_down = true;
-  if (service_event_handle != EVENT_HANDLE_NONE)
+  if (!event_runtime_handle_is_none(service_event_handle))
   {
     handle = service_event_handle;
-    service_event_handle = EVENT_HANDLE_NONE;
-    (void)event_handle_cancel(handle);
+    service_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+    (void)event_runtime_cancel(handle);
   }
   for (ch = character_owners; ch != NULL; ch = next_ch)
   {
