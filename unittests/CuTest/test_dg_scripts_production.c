@@ -200,12 +200,14 @@ static void verify_stale_wait_replacement(CuTest *tc, enum event_backend_kind ba
     CuAssertTrue(tc, !event_runtime_handle_is_none(stale_runtime_handle));
     CuAssertTrue(tc, !event_runtime_handle_is_none(active_runtime_handle));
     CuAssertTrue(tc, !event_runtime_handles_equal(stale_runtime_handle, active_runtime_handle));
+    CuAssertTrue(tc, !event_runtime_handle_is_live(stale_runtime_handle));
   }
   else
   {
     CuAssertTrue(tc, stale_rollback_handle != EVENT_HANDLE_NONE);
     CuAssertTrue(tc, active_rollback_handle != EVENT_HANDLE_NONE);
     CuAssertTrue(tc, stale_rollback_handle != active_rollback_handle);
+    CuAssertTrue(tc, !event_handle_is_live(stale_rollback_handle));
   }
 
   pulse++;
@@ -216,8 +218,7 @@ static void verify_stale_wait_replacement(CuTest *tc, enum event_backend_kind ba
     CuAssertTrue(tc, !event_runtime_handle_is_live(stale_runtime_handle));
     CuAssertTrue(tc, event_runtime_handle_is_live(active_runtime_handle));
     CuAssertTrue(tc,
-                 event_runtime_handles_equal(GET_TRIG_WAIT_HANDLE(trigger),
-                                             active_runtime_handle));
+                 event_runtime_handles_equal(GET_TRIG_WAIT_HANDLE(trigger), active_runtime_handle));
   }
   else
   {
@@ -243,6 +244,49 @@ void Test_dg_stale_wait_replacement_cannot_resume_trigger(CuTest *tc)
   verify_stale_wait_replacement(tc, EVENT_BACKEND_LEGACY_QUEUE);
   pulse = 5000U;
   verify_stale_wait_replacement(tc, EVENT_BACKEND_GAME_SCHEDULER);
+  pulse = saved_pulse;
+}
+
+static void verify_replaced_wait_allows_trigger_destruction(CuTest *tc,
+                                                            enum event_backend_kind backend)
+{
+  struct trig_data *trigger;
+  struct event_runtime_handle stale_runtime_handle;
+  event_handle_t stale_rollback_handle;
+
+  event_free_all();
+  CuAssertIntEquals(tc, 1, event_test_select_backend(backend));
+  event_init();
+  dg_wait_reset_telemetry_for_test();
+  CREATE(trigger, struct trig_data, 1);
+  trigger->name = strdup("destroyed stale wait replacement");
+  CuAssertPtrNotNull(tc, trigger->name);
+
+  CuAssertTrue(tc, dg_wait_schedule_for_test(trigger, 1L));
+  stale_runtime_handle = GET_TRIG_WAIT_HANDLE(trigger);
+  stale_rollback_handle = trigger->wait_rollback_handle;
+  CuAssertTrue(tc, dg_wait_schedule_for_test(trigger, 10L));
+  if (backend == EVENT_BACKEND_GAME_SCHEDULER)
+    CuAssertTrue(tc, !event_runtime_handle_is_live(stale_runtime_handle));
+  else
+    CuAssertTrue(tc, !event_handle_is_live(stale_rollback_handle));
+
+  free_trigger(trigger);
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+  pulse += 10U;
+  event_process();
+  CuAssertIntEquals(tc, 0, (int)dg_wait_resume_count_for_test());
+  event_free_all();
+}
+
+void Test_dg_replaced_wait_allows_trigger_destruction_before_dispatch(CuTest *tc)
+{
+  unsigned long saved_pulse = pulse;
+
+  pulse = 5200U;
+  verify_replaced_wait_allows_trigger_destruction(tc, EVENT_BACKEND_LEGACY_QUEUE);
+  pulse = 5300U;
+  verify_replaced_wait_allows_trigger_destruction(tc, EVENT_BACKEND_GAME_SCHEDULER);
   pulse = saved_pulse;
 }
 
