@@ -651,7 +651,7 @@ void Test_player_live_entry_registers_loaded_timed_affects(CuTest *tc)
   affect.duration = 2;
   affect_to_char(&player, &affect);
 
-  saved_character_list = NULL;
+  saved_character_list = character_list;
   character_list = NULL;
   player.next = NULL;
   character_list = &player;
@@ -693,7 +693,7 @@ void Test_player_live_entry_registers_for_point_updates(CuTest *tc)
   player.player_specials = &dummy_mob;
   player.player.short_descr = (char *)"point update player";
 
-  saved_character_list = NULL;
+  saved_character_list = character_list;
   character_list = NULL;
   player.next = NULL;
   character_list = &player;
@@ -846,6 +846,7 @@ void Test_perfmon_copyover_snapshot_replaces_one_complete_file(CuTest *tc)
   static const char stale_marker[] = "stale snapshot marker\n";
   char snapshot_path[] = "/tmp/luminari-perfmon-snapshot-XXXXXX";
   char temp_path[sizeof(snapshot_path) + 4];
+  struct char_data *saved_character_list;
   ssize_t seed_written;
   int snapshot_fd;
   int write_result;
@@ -862,9 +863,11 @@ void Test_perfmon_copyover_snapshot_replaces_one_complete_file(CuTest *tc)
   close(snapshot_fd);
   CuAssertIntEquals(tc, (int)(sizeof(stale_marker) - 1), (int)seed_written);
 
+  saved_character_list = character_list;
   character_list = NULL;
   PERF_reset();
   write_result = PERF_write_copyover_snapshot(snapshot_path);
+  character_list = saved_character_list;
   snprintf(temp_path, sizeof(temp_path), "%s.tmp", snapshot_path);
   has_header = perfmon_file_contains(snapshot_path, "pre-copyover PERFMON snapshot");
   has_complete_footer = perfmon_file_contains(snapshot_path, "# snapshot_complete=1");

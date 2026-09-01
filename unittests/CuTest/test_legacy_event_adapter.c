@@ -708,12 +708,14 @@ void Test_legacy_event_source_workload_populates_private_telemetry(CuTest *tc)
       {"World Midnight Edict", 864000},
   };
   struct event *events[sizeof(workload) / sizeof(workload[0])];
+  struct char_data *saved_character_list;
   char report[32768];
   unsigned long saved_pulse;
   size_t index;
 
   saved_pulse = pulse;
   begin_backend_test(tc, EVENT_BACKEND_GAME_SCHEDULER, 400U);
+  saved_character_list = character_list;
   character_list = NULL;
   PERF_reset();
   memset(events, 0, sizeof(events));
@@ -755,6 +757,7 @@ void Test_legacy_event_source_workload_populates_private_telemetry(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(report, "# event_delay_pulses_gt_36000=1"));
 
   event_free_all();
+  character_list = saved_character_list;
   pulse = saved_pulse;
 }
 

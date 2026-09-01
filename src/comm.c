@@ -2726,6 +2726,7 @@ static bool runtime_services_register_types(void)
   config.max_events = 1U;
   config.max_events_per_owner = 1U;
   config.requires_owner = true;
+  config.cleanup_on_null_payload = true;
   status = event_runtime_register_type(&config, &persistence_step_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
@@ -2749,8 +2750,7 @@ static bool persistence_step_schedule(void)
   owner.kind = GAME_EVENT_OWNER_SERVICE;
   owner.runtime_id = RUNTIME_SERVICE_OWNER_BASE + RUNTIME_SERVICE_COUNT;
   owner.generation = 1U;
-  if (event_runtime_schedule_owned_after(persistence_step_event_type, owner, 1U,
-                                         &persistence_step_handle,
+  if (event_runtime_schedule_owned_after(persistence_step_event_type, owner, 1U, NULL,
                                          &persistence_step_handle) != GAME_SCHEDULER_OK)
   {
     runtime_service_schedule_failures++;

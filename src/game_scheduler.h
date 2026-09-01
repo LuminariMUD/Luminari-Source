@@ -132,7 +132,8 @@ typedef uint64_t (*game_scheduler_usec_source)(void *context);
 
 /*
  * The scheduler takes ownership of a non-NULL payload only after successful admission. Event
- * types that accept owned payloads must provide a cleanup function. Cleanup runs exactly once.
+ * types that accept owned payloads must provide a cleanup function. Cleanup runs exactly once at
+ * terminal finalization. Types that need a terminal hook without a payload opt in separately.
  */
 
 struct game_scheduler_config
@@ -155,6 +156,7 @@ struct game_event_type_config
   size_t max_events;
   size_t max_events_per_owner;
   bool requires_owner;
+  bool cleanup_on_null_payload;
 };
 
 struct game_scheduler_budget

@@ -191,12 +191,12 @@ is limited to the frozen migration inventory and remains solely to preserve the
 physical rollback backend until its external release gate closes.
 
 Compatibility work still awaiting native semantic types is limited to AI
-response/retry jobs, named runtime-service and persistence work, DG trigger
-waits, and the MUD-event admission layer. Encounter rounds, primary activities,
-autonomous mobiles, character and room affected owners, nearest-deadline
-character maintenance, object automatic procedures, DG random triggers,
-mud-hour point updates, and vessel agendas now schedule directly through
-native types.
+response/retry jobs, DG trigger waits, and the MUD-event admission layer.
+Encounter rounds, primary activities, autonomous mobiles, character and room
+affected owners, nearest-deadline character maintenance, object automatic
+procedures, DG random triggers, mud-hour point updates, vessel agendas, named
+runtime services, and persistence batches now schedule directly through native
+types.
 They retain existing callback-relative recurrence and owner teardown behavior.
 This infrastructure migration does not alter combat, activity, affected,
 mobile, automatic-procedure, DG, or Establish Camp gameplay rules.

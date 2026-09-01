@@ -666,7 +666,7 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   mob_rnum saved_top_of_mobt;
   unsigned long saved_pulse;
   uint64_t callbacks_before;
-  event_handle_t cancelled_handle;
+  struct event_runtime_handle cancelled_handle;
   long first_delay;
 
   saved_world = world;
@@ -714,9 +714,9 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   CuAssertTrue(tc, !event_runtime_handle_is_none(wanderer.active_world_event_handle));
 
   cancelled_handle = wanderer.active_world_event_handle;
-  CuAssertTrue(tc, event_handle_cancel(cancelled_handle));
-  CuAssertTrue(tc, !event_handle_is_live(cancelled_handle));
-  CuAssertTrue(tc, wanderer.active_world_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, GAME_EVENT_CANCELLED, event_runtime_cancel(cancelled_handle));
+  CuAssertTrue(tc, !event_runtime_handle_is_live(cancelled_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(wanderer.active_world_event_handle));
   CuAssertIntEquals(tc, ACTIVE_WORLD_MOBILE_DORMANT, wanderer.active_world_state);
   CuAssertIntEquals(tc, 0,
                     (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
@@ -1388,8 +1388,16 @@ void TestPeriodicOwnerAdmissionAndRollbackGatesAreIndependent(CuTest *tc)
   CuAssertIntEquals(tc, 2, event_queue_depth());
 
   autoproc_registry_remove(&first);
-  autoproc_registry_remove(&second);
+  CuAssertIntEquals(tc, 1, event_queue_depth());
   first_script.owner = NULL;
+  pulse += PULSE_DG_SCRIPT;
+  event_process();
+  CuAssertTrue(tc, event_runtime_handle_is_none(first_script.random_event_handle));
+  CuAssertIntEquals(tc, 0, (int)periodic_dg_random_scheduled_count(OBJ_TRIGGER));
+  CuAssertIntEquals(tc, 0, event_queue_depth());
+
+  autoproc_registry_remove(&first);
+  autoproc_registry_remove(&second);
   second_script.owner = NULL;
   dg_random_registry_sync(&first_script);
   dg_random_registry_sync(&second_script);
@@ -2179,12 +2187,14 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   CuAssertStrEquals(tc, "character.maintenance",
                     event_runtime_type_name(snapshot.event_type));
 
-  CuAssertTrue(tc, event_handle_cancel(ch.character_periodic_event_handle));
-  CuAssertTrue(tc, ch.character_periodic_event_handle == EVENT_HANDLE_NONE);
+  CuAssertIntEquals(tc, GAME_EVENT_CANCELLED,
+                    event_runtime_cancel(ch.character_periodic_event_handle));
+  CuAssertTrue(tc, event_runtime_handle_is_none(ch.character_periodic_event_handle));
   CuAssertIntEquals(tc, 0, (int)character_periodic_scheduled_count());
   character_periodic_sync(&ch);
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
-  CuAssertIntEquals(tc, 7, (int)event_handle_time(ch.character_periodic_event_handle));
+  CuAssertIntEquals(tc, 7,
+                    (int)native_event_remaining(tc, ch.character_periodic_event_handle));
 
   process_scheduler_pulses(7U);
   CuAssertIntEquals(tc, 0, specials.walkto_location);
@@ -2253,7 +2263,8 @@ void TestCharacterPeriodicLateCallbackRunsPassedDeadline(CuTest *tc)
   event_process();
   CuAssertIntEquals(tc, 0, specials.walkto_location);
   CuAssertIntEquals(tc, 1, (int)character_periodic_walk_executions());
-  CuAssertIntEquals(tc, 41, (int)event_handle_time(ch.character_periodic_event_handle));
+  CuAssertIntEquals(tc, 39,
+                    (int)native_event_remaining(tc, ch.character_periodic_event_handle));
   CuAssertIntEquals(tc, 750, (int)ch.character_periodic_due_pulse);
 
   character_periodic_forget(&ch);
@@ -2301,7 +2312,7 @@ void TestCharacterPeriodicSchedulesPerformingNpcWithoutOtherWork(CuTest *tc)
   character_periodic_init();
   CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
-  delay = event_handle_time(npc.character_periodic_event_handle);
+  delay = (long)native_event_remaining(tc, npc.character_periodic_event_handle);
   CuAssertTrue(tc, delay > 0L && delay <= PULSE_VERSE_INTERVAL);
 
   process_scheduler_pulses(PULSE_VERSE_INTERVAL);

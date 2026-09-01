@@ -259,7 +259,15 @@ static bool runtime_handle_matches(struct event_runtime_handle handle,
 
 static void borrowed_owner_cleanup(void *payload)
 {
-  (void)payload;
+  struct char_data *ch = payload;
+
+  if (ch == NULL || event_runtime_handle_is_none(ch->character_periodic_event_handle) ||
+      event_runtime_handle_is_live(ch->character_periodic_event_handle))
+    return;
+  ch->character_periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
+  ch->character_periodic_due_pulse = 0U;
+  if (scheduled_count > 0U)
+    scheduled_count--;
 }
 
 static bool register_character_maintenance_type(void)

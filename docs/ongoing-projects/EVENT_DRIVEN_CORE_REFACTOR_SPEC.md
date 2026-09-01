@@ -1,7 +1,7 @@
 # Event-Driven Core Refactor Specification
 
 **Status:** In progress - Phases 1 through 10 accepted; Phase 11 reversible implementation and final source audit are complete; irreversible removal gate pending
-**Document version:** 1.41
+**Document version:** 1.42
 **Started:** 2026-08-29
 **Last source review:** 2026-09-01
 **Implementation status:** Phases 1 through 10 and observability complete; Phase 11 owner handles, named runtime services, elapsed offline cooldown recovery, raw-event zero-caller enforcement, demand-driven autonomous agendas including exact NPC resource recovery, active DG/trail registries, constant-time domain owner resolution, gameplay intent naming, the final adversarial source audit, the executable demand-driven architecture lock, and the current-SHA operator release-gate handoff are implemented; only the externally gated physical rollback removal remains
