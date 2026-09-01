@@ -6397,9 +6397,14 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
         affected_by_spell(victim, PSIONIC_INERTIAL_ARMOR) ||
         affected_by_spell(victim, PSIONIC_ENERGY_RETORT))
     {
+      struct domain_entity_handle attacker_handle = domain_event_character_handle(ch);
+      struct domain_entity_handle victim_handle = domain_event_character_handle(victim);
+      room_rnum combat_room = IN_ROOM(ch);
       int retort_dam = get_energy_retort_bonus_damage(victim);
       int retort_type = IS_NPC(victim) ? DAM_FORCE : GET_PSIONIC_ENERGY_TYPE(victim);
       damage(victim, ch, retort_dam, PSIONIC_ENERGY_RETORT, retort_type, FALSE);
+      if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+        return dam;
     }
   }
 
@@ -6438,6 +6443,9 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   // check for life shield spell
   if (life_shield_can_reflect(ch, victim, dam, w_type))
   {
+    struct domain_entity_handle attacker_handle = domain_event_character_handle(ch);
+    struct domain_entity_handle victim_handle = domain_event_character_handle(victim);
+    room_rnum combat_room = IN_ROOM(ch);
     int threshold = get_char_affect_modifier(victim, SPELL_LIFE_SHIELD, APPLY_SPECIAL);
     int lifedam = 0;
     struct affected_type *af = NULL;
@@ -6452,7 +6460,6 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
       threshold = dam / 2;
     }
     lifedam = dam / 2;
-    damage(victim, ch, lifedam, SPELL_LIFE_SHIELD, DAM_HOLY, FALSE);
     for (af = victim->affected; af; af = af->next)
     {
       if (af->spell == SPELL_LIFE_SHIELD && af->location == APPLY_SPECIAL)
@@ -6469,6 +6476,9 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
     {
       affect_from_char(victim, SPELL_LIFE_SHIELD);
     }
+    damage(victim, ch, lifedam, SPELL_LIFE_SHIELD, DAM_HOLY, FALSE);
+    if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+      return dam;
   }
 
   /* xp gain for damage, limiting it more -zusuk */
@@ -12681,6 +12691,9 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              struct obj_data *projectile, bool *attack_context_invalidated,
                              enum projectile_disposition *projectile_disposition)
 {
+  struct domain_entity_handle attacker_handle = domain_event_character_handle(ch);
+  struct domain_entity_handle victim_handle = domain_event_character_handle(victim);
+  room_rnum combat_room = IN_ROOM(ch);
   struct affected_type af = {0}; /* for crippling strike */
   struct affected_type *af2;     // for hostile juxtaposition
   /* This is a bit of cruft from homeland code - It is used to activate a weapon 'special'
@@ -14214,24 +14227,26 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   // damage inflicting shields, like fire shield
   damage_shield_check(ch, victim, attack_type, dam, dam_type);
+  if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
+    return 0;
 
   if (dam > 0)
   {
     if (affected_by_spell(victim, SPELL_HOSTILE_JUXTAPOSITION))
     {
       send_to_char(victim, "Your hostile juxtaposition defense is triggered.\r\n");
+      affect_from_char(victim, SPELL_HOSTILE_JUXTAPOSITION);
       damage(victim, ch, dam, SPELL_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
       dam = 0;
-      affect_from_char(victim, SPELL_HOSTILE_JUXTAPOSITION);
     }
     else if (affected_by_spell(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION))
     {
       send_to_char(victim, "Your greater hostile juxtaposition defense is triggered.\r\n");
-      damage(victim, ch, dam, SPELL_GREATER_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
-      dam = 0;
       af2 = find_spell_affect(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
       if (af2 != NULL && --af2->modifier <= 0)
         affect_from_char(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
+      damage(victim, ch, dam, SPELL_GREATER_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
+      dam = 0;
     }
   }
 
@@ -15432,7 +15447,6 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 /* returns # of attacks and has mode functionality */
 #define ATTACK_CAP 3                       /* MAX # of main-hand BONUS attacks */
 #define MONK_CAP (ATTACK_CAP + 2)          /* monks main-hand bonus attack cap */
-#define NPC_ATTACK_CAP (MONK_CAPK_CAP + 2) /* high level NPC bonus attack cap */
 #define TWO_WPN_PNLTY -5                   /* improved two weapon fighting */
 #define GREAT_TWO_PNLY -10                 /* greater two weapon fighting */
 #define EPIC_TWO_PNLTY 0                   /* perfect two weapon fighting */
@@ -15460,6 +15474,15 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 #define PHASE_1 1
 #define PHASE_2 2
 #define PHASE_3 3
+
+static bool attack_number_runs_in_phase(int attack_number, int phase)
+{
+  if (phase == PHASE_0)
+    return true;
+  return attack_number > 0 && phase >= PHASE_1 && phase <= PHASE_3 &&
+         ((attack_number - 1) % 3) + 1 == phase;
+}
+
 int perform_attacks(struct char_data *ch, int mode, int phase)
 {
   int i = 0, penalty = 0, numAttacks = 0, bonus_mainhand_attacks = 0;
@@ -16262,13 +16285,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (phase == PHASE_0 ||
-              ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) ||
-                                      (numAttacks == 10) || (numAttacks == 13))) ||
-              ((phase == PHASE_2) && ((numAttacks == 2) || (numAttacks == 5) || (numAttacks == 8) ||
-                                      (numAttacks == 11) || (numAttacks == 14))) ||
-              ((phase == PHASE_1) && ((numAttacks == 3) || (numAttacks == 6) || (numAttacks == 9) ||
-                                      (numAttacks == 12) || (numAttacks == 15))))
+          if (attack_number_runs_in_phase(numAttacks, phase))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
                 ATTACK_TYPE_OFFHAND);
       }
@@ -16289,13 +16306,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (phase == PHASE_0 ||
-              ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) ||
-                                      (numAttacks == 10) || (numAttacks == 13))) ||
-              ((phase == PHASE_2) && ((numAttacks == 2) || (numAttacks == 5) || (numAttacks == 8) ||
-                                      (numAttacks == 11) || (numAttacks == 14))) ||
-              ((phase == PHASE_1) && ((numAttacks == 3) || (numAttacks == 6) || (numAttacks == 9) ||
-                                      (numAttacks == 12) || (numAttacks == 15))))
+          if (attack_number_runs_in_phase(numAttacks, phase))
 
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, GREAT_TWO_PNLY,
                 ATTACK_TYPE_OFFHAND);
@@ -16318,13 +16329,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       {
         if (valid_fight_cond(ch, FALSE))
-          if (phase == PHASE_0 ||
-              ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) ||
-                                      (numAttacks == 10) || (numAttacks == 13))) ||
-              ((phase == PHASE_2) && ((numAttacks == 2) || (numAttacks == 5) || (numAttacks == 8) ||
-                                      (numAttacks == 11) || (numAttacks == 14))) ||
-              ((phase == PHASE_1) && ((numAttacks == 3) || (numAttacks == 6) || (numAttacks == 9) ||
-                                      (numAttacks == 12) || (numAttacks == 15))))
+          if (attack_number_runs_in_phase(numAttacks, phase))
           {
             send_to_char(ch, "\tG[Wilderness Warrior TWF!]\tn\r\n");
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
@@ -16348,13 +16353,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       {
         if (valid_fight_cond(ch, FALSE))
-          if (phase == PHASE_0 ||
-              ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) ||
-                                      (numAttacks == 10) || (numAttacks == 13))) ||
-              ((phase == PHASE_2) && ((numAttacks == 2) || (numAttacks == 5) || (numAttacks == 8) ||
-                                      (numAttacks == 11) || (numAttacks == 14))) ||
-              ((phase == PHASE_1) && ((numAttacks == 3) || (numAttacks == 6) || (numAttacks == 9) ||
-                                      (numAttacks == 12) || (numAttacks == 15))))
+          if (attack_number_runs_in_phase(numAttacks, phase))
           {
             send_to_char(ch, "\tG[Greater WW TWF!]\tn\r\n");
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
@@ -16377,13 +16376,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (phase == PHASE_0 ||
-              ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) ||
-                                      (numAttacks == 10) || (numAttacks == 13))) ||
-              ((phase == PHASE_2) && ((numAttacks == 2) || (numAttacks == 5) || (numAttacks == 8) ||
-                                      (numAttacks == 11) || (numAttacks == 14))) ||
-              ((phase == PHASE_1) && ((numAttacks == 3) || (numAttacks == 6) || (numAttacks == 9) ||
-                                      (numAttacks == 12) || (numAttacks == 15))))
+          if (attack_number_runs_in_phase(numAttacks, phase))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLTY,
                 ATTACK_TYPE_OFFHAND);
       }
@@ -16400,6 +16393,12 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   }
   return numAttacks;
 }
+#ifdef LUMINARI_CUTEST
+bool test_attack_number_runs_in_phase(int attack_number, int phase)
+{
+  return attack_number_runs_in_phase(attack_number, phase);
+}
+#endif
 #undef ATTACK_CAP
 #undef MONK_CAP
 #undef TWO_WPN_PNLTY
@@ -16410,7 +16409,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
 #undef PHASE_1
 #undef PHASE_2
 #undef PHASE_3
-#undef NPC_ATTACK_CAP
 
 /* display condition of FIGHTING() target to ch */
 /* this is deprecated with the prompt changes */
