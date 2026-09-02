@@ -72,8 +72,7 @@ static bool configured_enabled(void)
   if (value == NULL || *value == '\0' || !strcasecmp(value, "active") ||
       !strcasecmp(value, "scheduler") || !strcasecmp(value, "event"))
     return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") ||
-      !strcasecmp(value, "off"))
+  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
     return false;
   log("WARNING: Unknown LUMINARI_ACTIVE_WORLD '%s'; using active scheduling.", value);
   return true;
@@ -307,8 +306,7 @@ static void active_world_mobile_cleanup(void *event_obj)
   free(payload);
 }
 
-static struct game_event_result
-active_world_mobile_event(const struct game_event_context *context);
+static struct game_event_result active_world_mobile_event(const struct game_event_context *context);
 
 static bool register_mobile_agenda_event_type(void)
 {
@@ -360,10 +358,9 @@ static bool schedule_mobile(struct char_data *ch)
   payload->character.runtime_id = owner.runtime_id;
   payload->character.generation = owner.generation;
   payload->event_handle = EVENT_RUNTIME_HANDLE_NONE;
-  if (event_runtime_schedule_owned_after(mobile_agenda_event_type, owner,
-                                         (game_tick_t)delay, payload,
-                                         &ch->active_world_event_handle) !=
-      GAME_SCHEDULER_OK)
+  if (event_runtime_schedule_owned_after(mobile_agenda_event_type, owner, (game_tick_t)delay,
+                                         payload,
+                                         &ch->active_world_event_handle) != GAME_SCHEDULER_OK)
   {
     free(payload);
     return false;
@@ -396,8 +393,7 @@ static void retire_current_mobile(struct char_data *ch)
   ch->active_world_event_handle = EVENT_RUNTIME_HANDLE_NONE;
 }
 
-static struct game_event_result
-active_world_mobile_event(const struct game_event_context *context)
+static struct game_event_result active_world_mobile_event(const struct game_event_context *context)
 {
   struct active_world_event_payload *payload = context != NULL ? context->payload : NULL;
   struct active_world_registry_entry *entry;
@@ -408,9 +404,9 @@ active_world_mobile_event(const struct game_event_context *context)
   {
     log("Active-world initial agendas: %zu; reasons spec=%zu echo=%zu scavenge=%zu patrol=%zu "
         "hunt=%zu wander=%zu posture=%zu room=%zu combat=%zu recovery=%zu.",
-        active_mobile_count, reason_counts[0], reason_counts[1], reason_counts[2],
-        reason_counts[3], reason_counts[4], reason_counts[5], reason_counts[6],
-        reason_counts[7], reason_counts[8], reason_counts[9]);
+        active_mobile_count, reason_counts[0], reason_counts[1], reason_counts[2], reason_counts[3],
+        reason_counts[4], reason_counts[5], reason_counts[6], reason_counts[7], reason_counts[8],
+        reason_counts[9]);
     initial_snapshot_logged = true;
   }
   if (payload == NULL)
@@ -497,13 +493,11 @@ static void refresh_deadlines(struct char_data *ch, mobile_work_mask old_reasons
     ch->active_world_fixed_due = 0U;
 
   if ((new_reasons & MOBILE_WORK_WANDER) && !(old_reasons & MOBILE_WORK_WANDER))
-    ch->active_world_wander_due =
-        pulse + (unsigned long)mobile_activity_next_wander_delay();
+    ch->active_world_wander_due = pulse + (unsigned long)mobile_activity_next_wander_delay();
   else if (!(new_reasons & MOBILE_WORK_WANDER))
     ch->active_world_wander_due = 0U;
 
-  if ((new_reasons & MOBILE_WORK_REACTION_MASK) &&
-      !(old_reasons & MOBILE_WORK_REACTION_MASK))
+  if ((new_reasons & MOBILE_WORK_REACTION_MASK) && !(old_reasons & MOBILE_WORK_REACTION_MASK))
     ch->active_world_reaction_due = pulse + 1U;
   else if (!(new_reasons & MOBILE_WORK_REACTION_MASK))
     ch->active_world_reaction_due = 0U;
@@ -527,8 +521,7 @@ static void reschedule_mobile(struct char_data *ch)
   if (delay <= 0L)
     return;
   if (!event_runtime_handle_is_none(ch->active_world_event_handle) &&
-      event_runtime_remaining(ch->active_world_event_handle, &remaining) ==
-          GAME_SCHEDULER_OK &&
+      event_runtime_remaining(ch->active_world_event_handle, &remaining) == GAME_SCHEDULER_OK &&
       remaining == (game_tick_t)delay)
     return;
   if (!event_runtime_handle_is_none(ch->active_world_event_handle))
@@ -735,8 +728,7 @@ static void handle_combat_state_changed(const struct domain_event_context *conte
   }
 }
 
-static void handle_object_moved(const struct domain_event_context *context,
-                                void *handler_context)
+static void handle_object_moved(const struct domain_event_context *context, void *handler_context)
 {
   const struct domain_object_moved *event = context->payload;
   struct room_data *room;
@@ -766,14 +758,13 @@ static void handle_entity_extracted(const struct domain_event_context *context,
 enum domain_event_status active_world_register_handlers(struct domain_event_bus *bus)
 {
   struct domain_event_handler_config handlers[] = {
-      {DOMAIN_EVENT_CHARACTER_MOVED, "active-world-character-moved", 100,
-       handle_character_moved, NULL},
+      {DOMAIN_EVENT_CHARACTER_MOVED, "active-world-character-moved", 100, handle_character_moved,
+       NULL},
       {DOMAIN_EVENT_COMBAT_STATE_CHANGED, "active-world-combat-state", 100,
        handle_combat_state_changed, NULL},
-      {DOMAIN_EVENT_OBJECT_MOVED, "active-world-object-moved", 100,
-       handle_object_moved, NULL},
-      {DOMAIN_EVENT_ENTITY_EXTRACTED, "active-world-entity-extracted", 100,
-       handle_entity_extracted, NULL},
+      {DOMAIN_EVENT_OBJECT_MOVED, "active-world-object-moved", 100, handle_object_moved, NULL},
+      {DOMAIN_EVENT_ENTITY_EXTRACTED, "active-world-entity-extracted", 100, handle_entity_extracted,
+       NULL},
   };
   size_t index;
   enum domain_event_status status;

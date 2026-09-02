@@ -169,25 +169,17 @@ static void show_detailed_database_info(struct char_data *ch, char *system)
   }
   else if (!str_cmp(system, "pubsub"))
   {
-    const char *pubsub_tables[] = {"pubsub_topics",
-                                   "pubsub_player_settings",
-                                   "pubsub_subscriptions",
-                                   "pubsub_messages",
-                                   "pubsub_message_metadata",
-                                   "pubsub_message_fields",
-                                   "pubsub_messages_v3",
-                                   "pubsub_message_metadata_v3",
-                                   "pubsub_message_fields_v3",
-                                   "pubsub_message_tags_v3",
-                                   "pubsub_message_stats_v3",
-                                   "pubsub_filters_v3"};
+    const char *pubsub_tables[] = {
+        "pubsub_topics",          "pubsub_player_settings",     "pubsub_subscriptions",
+        "pubsub_messages",        "pubsub_message_metadata",    "pubsub_message_fields",
+        "pubsub_messages_v3",     "pubsub_message_metadata_v3", "pubsub_message_fields_v3",
+        "pubsub_message_tags_v3", "pubsub_message_stats_v3",    "pubsub_filters_v3"};
     for (i = 0; (size_t)i < sizeof(pubsub_tables) / sizeof(pubsub_tables[0]); i++)
     {
       send_to_char(ch, "  - %s\r\n", pubsub_tables[i]);
     }
-    send_to_char(ch,
-                 "\r\nThese tables contain deprecated, preserved data. The PubSub runtime is "
-                 "retired and does not read, write, or initialize them.\r\n");
+    send_to_char(ch, "\r\nThese tables contain deprecated, preserved data. The PubSub runtime is "
+                     "retired and does not read, write, or initialize them.\r\n");
   }
   else
   {
@@ -416,12 +408,10 @@ ACMD(do_db_init_system)
 
   if (!str_cmp(arg, "pubsub"))
   {
-    send_to_char(ch,
-                 "The PubSub runtime is retired. Its database tables are deprecated and "
-                 "are never initialized by the running game.\r\n");
-    send_to_char(ch,
-                 "Restore missing legacy tables from lib/pubsub_v3_schema.sql only when "
-                 "recovering archived data.\r\n");
+    send_to_char(ch, "The PubSub runtime is retired. Its database tables are deprecated and "
+                     "are never initialized by the running game.\r\n");
+    send_to_char(ch, "Restore missing legacy tables from lib/pubsub_v3_schema.sql only when "
+                     "recovering archived data.\r\n");
     return;
   }
 

@@ -28,8 +28,7 @@ struct runtime_payload
   int *cleanup_count;
 };
 
-static struct game_event_result runtime_trace_handler(
-    const struct game_event_context *context)
+static struct game_event_result runtime_trace_handler(const struct game_event_context *context)
 {
   struct runtime_payload *payload;
 
@@ -88,8 +87,7 @@ static void begin_runtime_test(CuTest *tc, unsigned long start_pulse)
   CuAssertTrue(tc, event_runtime_is_initialized());
 }
 
-static game_event_type_id_t register_runtime_type(CuTest *tc, const char *name,
-                                                  bool requires_owner)
+static game_event_type_id_t register_runtime_type(CuTest *tc, const char *name, bool requires_owner)
 {
   struct game_event_type_config config;
   game_event_type_id_t event_type;
@@ -101,14 +99,13 @@ static game_event_type_id_t register_runtime_type(CuTest *tc, const char *name,
   config.lateness_policy = GAME_EVENT_LATENESS_RUN_ONCE;
   config.requires_owner = requires_owner;
   event_type = 0;
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    event_runtime_register_type(&config, &event_type));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_register_type(&config, &event_type));
   return event_type;
 }
 
-static const struct PERF_event_profile_snapshot *find_runtime_profile(
-    const struct PERF_event_profile_snapshot *profiles, size_t count,
-    const char *identity)
+static const struct PERF_event_profile_snapshot *
+find_runtime_profile(const struct PERF_event_profile_snapshot *profiles, size_t count,
+                     const char *identity)
 {
   size_t index;
 
@@ -150,21 +147,18 @@ void Test_event_runtime_profiles_native_semantic_callbacks(CuTest *tc)
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     event_runtime_find_type("test.native.profiled", &found_type));
   CuAssertIntEquals(tc, (int)event_type, (int)found_type);
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    event_runtime_type_live_count(event_type, &live_count));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_type_live_count(event_type, &live_count));
   CuAssertIntEquals(tc, 1, (int)live_count);
   for (pulse = 41U; pulse <= 43U; pulse++)
   {
     memset(&report, 0, sizeof(report));
-    CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                      event_runtime_advance(NULL, &report));
+    CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_advance(NULL, &report));
   }
   payload = new_runtime_payload(&trace, 'C', 1, &cleanups);
   CuAssertPtrNotNull(tc, payload);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     event_runtime_schedule_after(event_type, 5U, payload, &handle));
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    event_runtime_reschedule_after(handle, 6U));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_reschedule_after(handle, 6U));
   CuAssertIntEquals(tc, GAME_EVENT_CANCELLED, event_runtime_cancel(handle));
   owner = game_event_owner_none();
   owner.kind = GAME_EVENT_OWNER_CHARACTER;
@@ -173,25 +167,21 @@ void Test_event_runtime_profiles_native_semantic_callbacks(CuTest *tc)
   payload = new_runtime_payload(&trace, 'O', 1, &cleanups);
   CuAssertPtrNotNull(tc, payload);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    event_runtime_schedule_owned_after(event_type, owner, 7U,
-                                                       payload, &handle));
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    event_runtime_cancel_owner(owner, &cancelled_count));
+                    event_runtime_schedule_owned_after(event_type, owner, 7U, payload, &handle));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_cancel_owner(owner, &cancelled_count));
   CuAssertIntEquals(tc, 1, (int)cancelled_count);
 
   memset(profiles, 0, sizeof(profiles));
   profile_count = PERF_get_event_profiles(profiles, 32U);
   copied_profiles = profile_count < 32U ? profile_count : 32U;
-  profile = find_runtime_profile(profiles, copied_profiles,
-                                 "test.native.profiled");
+  profile = find_runtime_profile(profiles, copied_profiles, "test.native.profiled");
   CuAssertPtrNotNull(tc, profile);
   CuAssertIntEquals(tc, 2, (int)profile->calls);
   CuAssertIntEquals(tc, 3, (int)profile->scheduled);
   CuAssertIntEquals(tc, 2, (int)profile->rescheduled);
   CuAssertIntEquals(tc, 2, (int)profile->cancelled);
   CuAssertIntEquals(tc, 3, cleanups);
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    event_runtime_type_live_count(event_type, &live_count));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_type_live_count(event_type, &live_count));
   CuAssertIntEquals(tc, 0, (int)live_count);
   event_free_all();
   pulse = saved_pulse;
@@ -296,8 +286,7 @@ void Test_event_runtime_owner_cancel_invalidates_handle_and_cleans_once(CuTest *
                     event_runtime_schedule_owned_after(event_type, owner, 50U, payload, &handle));
   CuAssertTrue(tc, event_runtime_handle_is_live(handle));
   cancelled = 0;
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    event_runtime_cancel_owner(owner, &cancelled));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_runtime_cancel_owner(owner, &cancelled));
   CuAssertIntEquals(tc, 1, (int)cancelled);
   CuAssertIntEquals(tc, 1, cleanups);
   CuAssertTrue(tc, !event_runtime_handle_is_live(handle));

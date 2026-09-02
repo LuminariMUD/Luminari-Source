@@ -142,8 +142,7 @@ static struct primary_activity *find_activity_by_id(uint64_t id)
   return NULL;
 }
 
-static void publish_transition(struct domain_entity_handle actor,
-                               enum primary_activity_type type,
+static void publish_transition(struct domain_entity_handle actor, enum primary_activity_type type,
                                enum primary_activity_state previous_state,
                                enum primary_activity_state current_state)
 {
@@ -245,8 +244,7 @@ static void finish_activity(struct primary_activity *activity,
   free(activity);
 
   if (notify && actor != NULL && terminal_state == PRIMARY_ACTIVITY_STATE_CANCELLED)
-    send_to_char(actor, "You stop %s (%s).\r\n", name,
-                 primary_activity_end_reason_name(reason));
+    send_to_char(actor, "You stop %s (%s).\r\n", name, primary_activity_end_reason_name(reason));
   if (terminal_state == PRIMARY_ACTIVITY_STATE_COMPLETED && complete != NULL && actor != NULL)
     complete(actor, target, context);
   else if (terminal_state == PRIMARY_ACTIVITY_STATE_CANCELLED && ended != NULL && actor != NULL)
@@ -274,8 +272,7 @@ static bool activity_recheck_now(struct primary_activity *activity,
     finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED, reason, actor != NULL);
     return false;
   }
-  allowed = activity->recheck == NULL ||
-            activity->recheck(actor, target, activity->context);
+  allowed = activity->recheck == NULL || activity->recheck(actor, target, activity->context);
   if (actor->primary_activity != activity || actor->primary_activity->id != id ||
       activity->state != PRIMARY_ACTIVITY_STATE_ACTIVE)
     return false;
@@ -352,8 +349,8 @@ static bool resume_activity_internal(struct primary_activity *activity, bool not
     if (!schedule_timer(activity, delay))
     {
       activity->state = previous_state;
-      finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED,
-                      PRIMARY_ACTIVITY_END_INTERNAL, true);
+      finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED, PRIMARY_ACTIVITY_END_INTERNAL,
+                      true);
       return false;
     }
   }
@@ -390,8 +387,8 @@ static bool delay_activity(struct primary_activity *activity, long delay, bool n
     detach_timer(activity, false);
     if (!schedule_timer(activity, remaining))
     {
-      finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED,
-                      PRIMARY_ACTIVITY_END_INTERNAL, true);
+      finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED, PRIMARY_ACTIVITY_END_INTERNAL,
+                      true);
       return false;
     }
   }
@@ -443,8 +440,7 @@ static bool advance_activity(struct primary_activity *activity, bool recheck)
   void *target;
   uint64_t id;
 
-  if (recheck &&
-      !activity_recheck_now(activity, PRIMARY_ACTIVITY_END_RECHECK_FAILED))
+  if (recheck && !activity_recheck_now(activity, PRIMARY_ACTIVITY_END_RECHECK_FAILED))
     return false;
   actor = resolve_actor(activity->actor);
   target = resolve_target(activity->target);
@@ -461,8 +457,8 @@ static bool advance_activity(struct primary_activity *activity, bool recheck)
     return false;
   if (activity->completed_steps >= activity->total_steps)
   {
-    finish_activity(activity, PRIMARY_ACTIVITY_STATE_COMPLETED,
-                    PRIMARY_ACTIVITY_END_COMPLETED, false);
+    finish_activity(activity, PRIMARY_ACTIVITY_STATE_COMPLETED, PRIMARY_ACTIVITY_END_COMPLETED,
+                    false);
     return false;
   }
   return true;
@@ -471,8 +467,7 @@ static bool advance_activity(struct primary_activity *activity, bool recheck)
 static struct game_event_result
 primary_activity_timer(const struct game_event_context *event_context)
 {
-  struct activity_timer_payload *payload =
-      event_context != NULL ? event_context->payload : NULL;
+  struct activity_timer_payload *payload = event_context != NULL ? event_context->payload : NULL;
   struct char_data *actor;
   struct primary_activity *activity;
   long next_delay;
@@ -548,8 +543,7 @@ static bool schedule_timer(struct primary_activity *activity, long delay)
   struct event_runtime_handle handle = EVENT_RUNTIME_HANDLE_NONE;
 
   if (activity == NULL || !event_runtime_handle_is_none(activity->timer_handle) ||
-      activity->timer_dispatching ||
-      activity->state != PRIMARY_ACTIVITY_STATE_ACTIVE)
+      activity->timer_dispatching || activity->state != PRIMARY_ACTIVITY_STATE_ACTIVE)
     return false;
   owner = activity_owner(activity->actor);
   if (!game_event_owner_is_valid(owner))
@@ -604,8 +598,7 @@ static void handle_character_damaged(const struct domain_event_context *context,
     (void)apply_response(activity, activity->damage_response, PRIMARY_ACTIVITY_END_COMMAND, true);
 }
 
-static void handle_character_died(const struct domain_event_context *context,
-                                  void *handler_context)
+static void handle_character_died(const struct domain_event_context *context, void *handler_context)
 {
   const struct domain_character_died *event = context->payload;
   struct char_data *actor;
@@ -642,8 +635,8 @@ static void handle_entity_extracted(const struct domain_event_context *context,
     if (activity == NULL)
       continue;
     if (domain_entity_handle_equal(activity->actor, event->entity))
-      finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED,
-                      PRIMARY_ACTIVITY_END_EXTRACTED, false);
+      finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED, PRIMARY_ACTIVITY_END_EXTRACTED,
+                      false);
     else if (domain_entity_handle_equal(activity->target, event->entity))
       (void)apply_response(activity, activity->target_loss_response,
                            PRIMARY_ACTIVITY_END_TARGET_LOST, true);
@@ -682,8 +675,7 @@ static void handle_combat_state_changed(const struct domain_event_context *conte
     {
       uint64_t id = activity->id;
 
-      if (apply_response(activity, activity->combat_response,
-                         PRIMARY_ACTIVITY_END_COMMAND, true) &&
+      if (apply_response(activity, activity->combat_response, PRIMARY_ACTIVITY_END_COMMAND, true) &&
           actor->primary_activity == activity && actor->primary_activity->id == id)
         enter_combat_clock(activity);
     }
@@ -696,9 +688,9 @@ static void handle_combat_state_changed(const struct domain_event_context *conte
   {
     activity->combat_clock = false;
     if (!schedule_timer(activity, activity->remaining_delay > 0 ? activity->remaining_delay
-                                                               : activity->step_interval))
-      finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED,
-                      PRIMARY_ACTIVITY_END_INTERNAL, true);
+                                                                : activity->step_interval))
+      finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED, PRIMARY_ACTIVITY_END_INTERNAL,
+                      true);
   }
 }
 
@@ -709,8 +701,8 @@ enum domain_event_status primary_activity_manager_init(struct domain_event_bus *
       {DOMAIN_EVENT_CHARACTER_DAMAGED, "activity.damage", 100, handle_character_damaged, NULL},
       {DOMAIN_EVENT_CHARACTER_DIED, "activity.death", 100, handle_character_died, NULL},
       {DOMAIN_EVENT_ENTITY_EXTRACTED, "activity.extraction", 100, handle_entity_extracted, NULL},
-      {DOMAIN_EVENT_COMBAT_STATE_CHANGED, "activity.combat", 100,
-       handle_combat_state_changed, NULL},
+      {DOMAIN_EVENT_COMBAT_STATE_CHANGED, "activity.combat", 100, handle_combat_state_changed,
+       NULL},
   };
   const char *value;
   size_t index;
@@ -747,8 +739,7 @@ enum domain_event_status primary_activity_manager_init(struct domain_event_bus *
     }
   }
   initialized = true;
-  log("Primary activity manager initialized; camp mode: %s.",
-      managed_camp ? "managed" : "legacy");
+  log("Primary activity manager initialized; camp mode: %s.", managed_camp ? "managed" : "legacy");
   return DOMAIN_EVENT_OK;
 }
 
@@ -763,8 +754,8 @@ void primary_activity_manager_shutdown(void)
   }
   shutting_down = true;
   while ((activity = activity_head) != NULL)
-    finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED,
-                    PRIMARY_ACTIVITY_END_SHUTDOWN, false);
+    finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED, PRIMARY_ACTIVITY_END_SHUTDOWN,
+                    false);
   initialized = false;
   activity_bus = NULL;
   shutting_down = false;
@@ -859,8 +850,7 @@ bool primary_activity_start(struct char_data *actor, struct domain_entity_handle
   activity_stats.started++;
   if (activity->state == PRIMARY_ACTIVITY_STATE_PAUSED)
     activity_stats.paused++;
-  publish_transition(actor_handle, definition->type, PRIMARY_ACTIVITY_STATE_NONE,
-                     activity->state);
+  publish_transition(actor_handle, definition->type, PRIMARY_ACTIVITY_STATE_NONE, activity->state);
   return true;
 }
 
@@ -911,8 +901,7 @@ bool primary_activity_command_admit(struct char_data *actor, const char *command
   case PRIMARY_ACTIVITY_RESPONSE_IGNORE:
     return true;
   case PRIMARY_ACTIVITY_RESPONSE_CANCEL:
-    finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED,
-                    PRIMARY_ACTIVITY_END_COMMAND, true);
+    finish_activity(activity, PRIMARY_ACTIVITY_STATE_CANCELLED, PRIMARY_ACTIVITY_END_COMMAND, true);
     return true;
   case PRIMARY_ACTIVITY_RESPONSE_PAUSE:
     (void)pause_activity_internal(activity, true, false);
@@ -945,8 +934,7 @@ void primary_activity_on_semantic_turn(struct char_data *actor)
   if (!activity_recheck_now(activity, PRIMARY_ACTIVITY_END_RECHECK_FAILED))
     return;
   activity = actor->primary_activity;
-  if (activity == NULL ||
-      !consume_combat_actions(actor, activity->combat_actions_required))
+  if (activity == NULL || !consume_combat_actions(actor, activity->combat_actions_required))
     return;
   (void)advance_activity(activity, false);
 }
@@ -1132,8 +1120,7 @@ static void send_wrapped_field(struct char_data *ch, const char *label, const ch
   continuation[label_length] = '\0';
   strlcpy(copy, values, sizeof(copy));
   strlcpy(line, label, sizeof(line));
-  for (value = strtok_r(copy, ",", &save); value != NULL;
-       value = strtok_r(NULL, ",", &save))
+  for (value = strtok_r(copy, ",", &save); value != NULL; value = strtok_r(NULL, ",", &save))
   {
     size_t separator_length;
 
@@ -1189,8 +1176,7 @@ ACMD(do_activity)
     return;
   }
   percent = snapshot.total_steps > 0U
-                ? (unsigned int)((uint64_t)snapshot.completed_steps * 100U /
-                                 snapshot.total_steps)
+                ? (unsigned int)((uint64_t)snapshot.completed_steps * 100U / snapshot.total_steps)
                 : 0U;
   format_capabilities(snapshot.capabilities, capabilities, sizeof(capabilities));
   format_traits(snapshot.traits, traits, sizeof(traits));

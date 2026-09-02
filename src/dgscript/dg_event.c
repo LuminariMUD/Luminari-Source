@@ -316,8 +316,7 @@ static void legacy_scheduler_event_cleanup(void *payload)
   {
     if (event->event_obj != NULL &&
         (event->cleanup_on_completion ||
-         (event->cancel_requested &&
-          (event->cleanup != NULL || event->handle_cleanup != NULL))))
+         (event->cancel_requested && (event->cleanup != NULL || event->handle_cleanup != NULL))))
       cleanup_event_obj(event);
   }
   else if (event->event_obj != NULL)
@@ -555,8 +554,8 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
     }
     scheduler_handle = EVENT_RUNTIME_HANDLE_NONE;
     if (game_event_owner_is_none(owner))
-      scheduler_status = event_runtime_schedule_at(legacy_event_type, scheduler_deadline,
-                                                   new_event, &scheduler_handle);
+      scheduler_status = event_runtime_schedule_at(legacy_event_type, scheduler_deadline, new_event,
+                                                   &scheduler_handle);
     else
       scheduler_status = event_runtime_schedule_owned_at(
           legacy_event_type, owner, scheduler_deadline, new_event, &scheduler_handle);
@@ -602,16 +601,14 @@ static struct event *event_create_internal(EVENTFUNC(*func), void *event_obj, lo
 }
 
 struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
-                                              const char *profile_name,
-                                              event_cleanup_func cleanup)
+                                              const char *profile_name, event_cleanup_func cleanup)
 {
   return event_create_internal(func, event_obj, when, profile_name, cleanup, NULL, false,
                                game_event_owner_none());
 }
 
 struct event *event_create_owned_named(EVENTFUNC(*func), void *event_obj, long when,
-                                       const char *profile_name,
-                                       struct game_event_owner owner)
+                                       const char *profile_name, struct game_event_owner owner)
 {
   return event_create_internal(func, event_obj, when, profile_name, NULL, NULL, false, owner);
 }
@@ -642,16 +639,15 @@ event_handle_t event_schedule_named_with_cleanup(EVENTFUNC(*func), void *event_o
 }
 
 event_handle_t event_schedule_owned_named(EVENTFUNC(*func), void *event_obj, long when,
-                                          const char *profile_name,
-                                          struct game_event_owner owner)
+                                          const char *profile_name, struct game_event_owner owner)
 {
-  return event_schedule_owned_named_with_cleanup(func, event_obj, when, profile_name, NULL,
-                                                  owner);
+  return event_schedule_owned_named_with_cleanup(func, event_obj, when, profile_name, NULL, owner);
 }
 
-event_handle_t event_schedule_owned_named_with_cleanup(
-    EVENTFUNC(*func), void *event_obj, long when, const char *profile_name,
-    event_handle_cleanup_func cleanup, struct game_event_owner owner)
+event_handle_t event_schedule_owned_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
+                                                       const char *profile_name,
+                                                       event_handle_cleanup_func cleanup,
+                                                       struct game_event_owner owner)
 {
   struct event *event;
 
@@ -659,9 +655,10 @@ event_handle_t event_schedule_owned_named_with_cleanup(
   return event != NULL ? event->handle : EVENT_HANDLE_NONE;
 }
 
-event_handle_t event_schedule_owned_named_with_terminal_cleanup(
-    EVENTFUNC(*func), void *event_obj, long when, const char *profile_name,
-    event_handle_cleanup_func cleanup, struct game_event_owner owner)
+event_handle_t event_schedule_owned_named_with_terminal_cleanup(EVENTFUNC(*func), void *event_obj,
+                                                                long when, const char *profile_name,
+                                                                event_handle_cleanup_func cleanup,
+                                                                struct game_event_owner owner)
 {
   struct event *event;
 
@@ -762,8 +759,7 @@ size_t event_cancel_owner(struct game_event_owner owner)
   enum game_scheduler_status status;
   size_t cancelled;
 
-  if (!game_event_owner_is_valid(owner) ||
-      active_backend == EVENT_BACKEND_UNINITIALIZED)
+  if (!game_event_owner_is_valid(owner) || active_backend == EVENT_BACKEND_UNINITIALIZED)
     return 0U;
   if (active_backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
@@ -771,8 +767,8 @@ size_t event_cancel_owner(struct game_event_owner owner)
     status = event_runtime_cancel_owner(owner, &cancelled);
     if (status != GAME_SCHEDULER_OK)
     {
-      log("SYSERR: Unable to cancel events for owner kind %d (status %d).",
-          (int)owner.kind, (int)status);
+      log("SYSERR: Unable to cancel events for owner kind %d (status %d).", (int)owner.kind,
+          (int)status);
       return 0U;
     }
     return cancelled;
@@ -960,9 +956,8 @@ void event_process_compatibility_pulse(void)
     (void)event_process_backend(NULL, NULL);
 }
 
-enum game_scheduler_status event_process_scheduler(
-    const struct game_scheduler_budget *budget,
-    struct game_scheduler_dispatch_report *report)
+enum game_scheduler_status event_process_scheduler(const struct game_scheduler_budget *budget,
+                                                   struct game_scheduler_dispatch_report *report)
 {
   if (report == NULL)
     return GAME_SCHEDULER_INVALID_ARGUMENT;
@@ -1176,8 +1171,7 @@ int event_is_queued(struct event *event)
 
   if (event->backend == EVENT_BACKEND_GAME_SCHEDULER)
   {
-    if (!event_runtime_is_initialized() || event->scheduler_handle.id == 0 ||
-        event->dispatching)
+    if (!event_runtime_is_initialized() || event->scheduler_handle.id == 0 || event->dispatching)
       return 0;
     status = event_runtime_inspect(event->scheduler_handle, &snapshot);
     if (status != GAME_SCHEDULER_OK)
@@ -1511,8 +1505,8 @@ void event_note_stale_owner_outcome(void)
 const char *event_debug_owner_kind_name(enum game_event_owner_kind kind)
 {
   static const char *const names[GAME_EVENT_OWNER_KIND_COUNT] = {
-      "none",      "world",  "descriptor", "character", "room",    "region",
-      "object",    "zone",   "encounter",  "vessel",    "service",
+      "none",   "world", "descriptor", "character", "room",    "region",
+      "object", "zone",  "encounter",  "vessel",    "service",
   };
 
   if (kind < GAME_EVENT_OWNER_NONE || kind >= GAME_EVENT_OWNER_KIND_COUNT)
@@ -1601,9 +1595,8 @@ static void event_debug_snapshot_one(const struct event *event,
   long remaining;
 
   memset(snapshot, 0, sizeof(*snapshot));
-  snapshot->event_id = event->backend == EVENT_BACKEND_GAME_SCHEDULER
-                           ? event->scheduler_handle.id
-                           : event->debug_id;
+  snapshot->event_id =
+      event->backend == EVENT_BACKEND_GAME_SCHEDULER ? event->scheduler_handle.id : event->debug_id;
   snprintf(snapshot->type_name, sizeof(snapshot->type_name), "%s",
            PERF_event_callback_identity(event->profile_index));
   snapshot->backend = event->backend;
@@ -1612,10 +1605,8 @@ static void event_debug_snapshot_one(const struct event *event,
     snapshot->state = EVENT_DEBUG_CANCEL_PENDING;
   else if (event->dispatching)
     snapshot->state = EVENT_DEBUG_RUNNING;
-  else if (event->backend == EVENT_BACKEND_GAME_SCHEDULER &&
-           event_runtime_is_initialized() &&
-           event_runtime_inspect(event->scheduler_handle, &scheduler_snapshot) ==
-               GAME_SCHEDULER_OK)
+  else if (event->backend == EVENT_BACKEND_GAME_SCHEDULER && event_runtime_is_initialized() &&
+           event_runtime_inspect(event->scheduler_handle, &scheduler_snapshot) == GAME_SCHEDULER_OK)
     snapshot->state = scheduler_debug_state(scheduler_snapshot.state);
   else
     snapshot->state = EVENT_DEBUG_QUEUED;
@@ -1633,20 +1624,16 @@ static bool event_debug_filter_matches(const struct event_debug_filter *filter,
   if (filter->type_contains != NULL && *filter->type_contains != '\0' &&
       strcasestr(snapshot->type_name, filter->type_contains) == NULL)
     return false;
-  if (filter->type_equals != NULL &&
-      strcmp(snapshot->type_name, filter->type_equals) != 0)
+  if (filter->type_equals != NULL && strcmp(snapshot->type_name, filter->type_equals) != 0)
     return false;
   if (filter->owner_set &&
       (snapshot->owner.kind != filter->owner.kind ||
        snapshot->owner.runtime_id != filter->owner.runtime_id ||
-       (filter->owner_generation_set &&
-        snapshot->owner.generation != filter->owner.generation)))
+       (filter->owner_generation_set && snapshot->owner.generation != filter->owner.generation)))
     return false;
-  if (filter->minimum_remaining_set &&
-      snapshot->remaining_pulses < filter->minimum_remaining)
+  if (filter->minimum_remaining_set && snapshot->remaining_pulses < filter->minimum_remaining)
     return false;
-  if (filter->maximum_remaining_set &&
-      snapshot->remaining_pulses > filter->maximum_remaining)
+  if (filter->maximum_remaining_set && snapshot->remaining_pulses > filter->maximum_remaining)
     return false;
   if (filter->state_set && snapshot->state != filter->state)
     return false;
@@ -1709,8 +1696,8 @@ static void event_debug_snapshot_native(const struct game_event_snapshot *event,
 }
 
 size_t event_debug_inspect(const struct event_debug_filter *filter,
-                           struct event_debug_snapshot *snapshots,
-                           size_t snapshot_capacity, size_t *returned_count)
+                           struct event_debug_snapshot *snapshots, size_t snapshot_capacity,
+                           size_t *returned_count)
 {
   struct event_debug_snapshot candidate;
   struct game_event_snapshot *native_snapshots;
@@ -1742,8 +1729,8 @@ size_t event_debug_inspect(const struct event_debug_filter *filter,
     if (scheduler_stats.event_count > 0)
       native_snapshots = calloc(scheduler_stats.event_count, sizeof(*native_snapshots));
     if (native_snapshots != NULL &&
-        event_runtime_inspect_all(native_snapshots, scheduler_stats.event_count,
-                                  &native_count) == GAME_SCHEDULER_OK)
+        event_runtime_inspect_all(native_snapshots, scheduler_stats.event_count, &native_count) ==
+            GAME_SCHEDULER_OK)
     {
       for (index = 0; index < native_count; index++)
       {
@@ -1871,9 +1858,8 @@ void event_init(void)
   log("Event backend initialized: scheduler (rollback not compiled).");
 }
 
-enum game_scheduler_status event_process_scheduler(
-    const struct game_scheduler_budget *budget,
-    struct game_scheduler_dispatch_report *report)
+enum game_scheduler_status event_process_scheduler(const struct game_scheduler_budget *budget,
+                                                   struct game_scheduler_dispatch_report *report)
 {
   enum game_scheduler_status status;
   size_t depth_before;
@@ -1946,8 +1932,8 @@ void event_note_stale_owner_outcome(void)
 const char *event_debug_owner_kind_name(enum game_event_owner_kind kind)
 {
   static const char *const names[GAME_EVENT_OWNER_KIND_COUNT] = {
-      "none",      "world",  "descriptor", "character", "room",    "region",
-      "object",    "zone",   "encounter",  "vessel",    "service",
+      "none",   "world", "descriptor", "character", "room",    "region",
+      "object", "zone",  "encounter",  "vessel",    "service",
   };
 
   if (kind < GAME_EVENT_OWNER_NONE || kind >= GAME_EVENT_OWNER_KIND_COUNT)
@@ -2044,14 +2030,11 @@ static bool event_debug_filter_matches(const struct event_debug_filter *filter,
   if (filter->owner_set &&
       (snapshot->owner.kind != filter->owner.kind ||
        snapshot->owner.runtime_id != filter->owner.runtime_id ||
-       (filter->owner_generation_set &&
-        snapshot->owner.generation != filter->owner.generation)))
+       (filter->owner_generation_set && snapshot->owner.generation != filter->owner.generation)))
     return false;
-  if (filter->minimum_remaining_set &&
-      snapshot->remaining_pulses < filter->minimum_remaining)
+  if (filter->minimum_remaining_set && snapshot->remaining_pulses < filter->minimum_remaining)
     return false;
-  if (filter->maximum_remaining_set &&
-      snapshot->remaining_pulses > filter->maximum_remaining)
+  if (filter->maximum_remaining_set && snapshot->remaining_pulses > filter->maximum_remaining)
     return false;
   if (filter->state_set && snapshot->state != filter->state)
     return false;
@@ -2110,8 +2093,8 @@ static void event_debug_snapshot_native(const struct game_event_snapshot *event,
 }
 
 size_t event_debug_inspect(const struct event_debug_filter *filter,
-                           struct event_debug_snapshot *snapshots,
-                           size_t snapshot_capacity, size_t *returned_count)
+                           struct event_debug_snapshot *snapshots, size_t snapshot_capacity,
+                           size_t *returned_count)
 {
   struct game_scheduler_stats stats;
   struct game_event_snapshot *events;
@@ -2131,8 +2114,8 @@ size_t event_debug_inspect(const struct event_debug_filter *filter,
     event_runtime_get_stats(&stats);
     if (stats.event_count > 0U)
       events = calloc(stats.event_count, sizeof(*events));
-    if (events != NULL && event_runtime_inspect_all(events, stats.event_count, &event_count) ==
-                              GAME_SCHEDULER_OK)
+    if (events != NULL &&
+        event_runtime_inspect_all(events, stats.event_count, &event_count) == GAME_SCHEDULER_OK)
     {
       for (index = 0; index < event_count; index++)
       {
@@ -2191,8 +2174,8 @@ int event_test_free_all_call_count(void)
 
 int event_test_select_backend(enum event_backend_kind backend)
 {
-  return backend == EVENT_BACKEND_GAME_SCHEDULER &&
-         active_backend == EVENT_BACKEND_UNINITIALIZED && !event_runtime_is_initialized();
+  return backend == EVENT_BACKEND_GAME_SCHEDULER && active_backend == EVENT_BACKEND_UNINITIALIZED &&
+         !event_runtime_is_initialized();
 }
 #endif
 

@@ -265,9 +265,9 @@ const char *game_scheduler_type_name(const struct game_scheduler *scheduler,
                                      game_event_type_id_t event_type);
 game_tick_t game_scheduler_current_tick(const struct game_scheduler *scheduler);
 size_t game_scheduler_event_count(const struct game_scheduler *scheduler);
-enum game_scheduler_status game_scheduler_type_live_count(
-    const struct game_scheduler *scheduler, game_event_type_id_t event_type,
-    size_t *live_count);
+enum game_scheduler_status game_scheduler_type_live_count(const struct game_scheduler *scheduler,
+                                                          game_event_type_id_t event_type,
+                                                          size_t *live_count);
 
 enum game_scheduler_status game_scheduler_schedule_at(struct game_scheduler *scheduler,
                                                       game_event_type_id_t event_type,
@@ -277,14 +277,16 @@ enum game_scheduler_status game_scheduler_schedule_after(struct game_scheduler *
                                                          game_event_type_id_t event_type,
                                                          game_tick_t delay_ticks, void *payload,
                                                          game_event_id_t *event_id);
-enum game_scheduler_status game_scheduler_schedule_owned_at(
-    struct game_scheduler *scheduler, game_event_type_id_t event_type,
-    struct game_event_owner owner, game_tick_t deadline_tick, void *payload,
-    game_event_id_t *event_id);
-enum game_scheduler_status game_scheduler_schedule_owned_after(
-    struct game_scheduler *scheduler, game_event_type_id_t event_type,
-    struct game_event_owner owner, game_tick_t delay_ticks, void *payload,
-    game_event_id_t *event_id);
+enum game_scheduler_status
+game_scheduler_schedule_owned_at(struct game_scheduler *scheduler, game_event_type_id_t event_type,
+                                 struct game_event_owner owner, game_tick_t deadline_tick,
+                                 void *payload, game_event_id_t *event_id);
+enum game_scheduler_status game_scheduler_schedule_owned_after(struct game_scheduler *scheduler,
+                                                               game_event_type_id_t event_type,
+                                                               struct game_event_owner owner,
+                                                               game_tick_t delay_ticks,
+                                                               void *payload,
+                                                               game_event_id_t *event_id);
 enum game_event_cancel_result game_scheduler_cancel(struct game_scheduler *scheduler,
                                                     game_event_id_t event_id);
 enum game_scheduler_status game_scheduler_cancel_owner(struct game_scheduler *scheduler,
@@ -310,12 +312,15 @@ enum game_scheduler_status game_scheduler_next_deadline(const struct game_schedu
 enum game_scheduler_status game_scheduler_inspect(const struct game_scheduler *scheduler,
                                                   game_event_id_t event_id,
                                                   struct game_event_snapshot *snapshot);
-enum game_scheduler_status game_scheduler_inspect_owner(
-    const struct game_scheduler *scheduler, struct game_event_owner owner,
-    struct game_event_snapshot *snapshots, size_t snapshot_capacity, size_t *event_count);
-enum game_scheduler_status game_scheduler_inspect_all(
-    const struct game_scheduler *scheduler, struct game_event_snapshot *snapshots,
-    size_t snapshot_capacity, size_t *event_count);
+enum game_scheduler_status game_scheduler_inspect_owner(const struct game_scheduler *scheduler,
+                                                        struct game_event_owner owner,
+                                                        struct game_event_snapshot *snapshots,
+                                                        size_t snapshot_capacity,
+                                                        size_t *event_count);
+enum game_scheduler_status game_scheduler_inspect_all(const struct game_scheduler *scheduler,
+                                                      struct game_event_snapshot *snapshots,
+                                                      size_t snapshot_capacity,
+                                                      size_t *event_count);
 void game_scheduler_get_stats(const struct game_scheduler *scheduler,
                               struct game_scheduler_stats *stats);
 

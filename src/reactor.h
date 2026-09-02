@@ -43,13 +43,13 @@ enum luminari_io_driver luminari_reactor_driver(const struct luminari_reactor *r
 enum luminari_reactor_status luminari_reactor_begin_cycle(struct luminari_reactor *reactor);
 enum luminari_reactor_status luminari_reactor_watch(struct luminari_reactor *reactor, int fd,
                                                     unsigned int interests);
-enum luminari_reactor_status luminari_reactor_add_signal(
-    struct luminari_reactor *reactor, int signal_number,
-    luminari_reactor_signal_callback callback, void *context);
+enum luminari_reactor_status luminari_reactor_add_signal(struct luminari_reactor *reactor,
+                                                         int signal_number,
+                                                         luminari_reactor_signal_callback callback,
+                                                         void *context);
 enum luminari_reactor_status luminari_reactor_wait(struct luminari_reactor *reactor,
                                                    uint64_t timeout_usec);
-bool luminari_reactor_ready(const struct luminari_reactor *reactor, int fd,
-                            unsigned int interest);
+bool luminari_reactor_ready(const struct luminari_reactor *reactor, int fd, unsigned int interest);
 size_t luminari_reactor_watch_count(const struct luminari_reactor *reactor);
 
 #endif

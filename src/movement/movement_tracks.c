@@ -84,8 +84,7 @@ static uint32_t movement_trail_hash_mix(uint32_t value)
 }
 
 static size_t movement_trail_location_bucket(enum movement_trail_location_kind kind,
-                                             room_vnum room_vnum, zone_vnum zone_vnum, int x,
-                                             int y)
+                                             room_vnum room_vnum, zone_vnum zone_vnum, int x, int y)
 {
   uint32_t hash = movement_trail_hash_mix((uint32_t)kind + 1U);
 
@@ -102,8 +101,7 @@ static size_t movement_trail_location_bucket(enum movement_trail_location_kind k
 
 static bool movement_trail_location_matches(const struct movement_trail_location *location,
                                             enum movement_trail_location_kind kind,
-                                            room_vnum room_vnum, zone_vnum zone_vnum, int x,
-                                            int y)
+                                            room_vnum room_vnum, zone_vnum zone_vnum, int x, int y)
 {
   if (location->kind != kind)
     return false;
@@ -146,16 +144,15 @@ movement_trail_location_for_room(const struct room_data *room, bool create)
 
   if (room == NULL || room->number == NOWHERE)
     return NULL;
-  kind = movement_trail_room_is_wilderness(room) ? TRAIL_LOCATION_WILDERNESS
-                                                  : TRAIL_LOCATION_ROOM;
+  kind = movement_trail_room_is_wilderness(room) ? TRAIL_LOCATION_WILDERNESS : TRAIL_LOCATION_ROOM;
   coordinates_set = kind == TRAIL_LOCATION_WILDERNESS &&
                     (IS_WILDERNESS_VNUM(room->number) || room->wilderness_coordinates_set);
   room_vnum = kind == TRAIL_LOCATION_ROOM || !coordinates_set ? room->number : NOWHERE;
   zone_vnum = kind == TRAIL_LOCATION_WILDERNESS ? movement_trail_wilderness_zone(room) : NOWHERE;
   x = coordinates_set ? room->coords[X_COORD] : 0;
   y = coordinates_set ? room->coords[Y_COORD] : 0;
-  head = &movement_trail_location_buckets[
-      movement_trail_location_bucket(kind, room_vnum, zone_vnum, x, y)];
+  head = &movement_trail_location_buckets[movement_trail_location_bucket(kind, room_vnum, zone_vnum,
+                                                                         x, y)];
   for (location = *head; location != NULL; location = location->next)
     if (movement_trail_location_matches(location, kind, room_vnum, zone_vnum, x, y))
       return location;
@@ -224,10 +221,22 @@ void movement_trail_registry_shutdown(void)
   trail_last_cleanup_locations_visited = 0U;
 }
 
-size_t movement_trail_active_location_count(void) { return movement_trail_location_count; }
-uint64_t movement_trail_cleanup_runs(void) { return trail_cleanup_runs; }
-uint64_t movement_trail_locations_visited(void) { return trail_locations_visited; }
-uint64_t movement_trail_entries_removed(void) { return trail_entries_removed; }
+size_t movement_trail_active_location_count(void)
+{
+  return movement_trail_location_count;
+}
+uint64_t movement_trail_cleanup_runs(void)
+{
+  return trail_cleanup_runs;
+}
+uint64_t movement_trail_locations_visited(void)
+{
+  return trail_locations_visited;
+}
+uint64_t movement_trail_entries_removed(void)
+{
+  return trail_entries_removed;
+}
 size_t movement_trail_last_cleanup_locations_visited(void)
 {
   return trail_last_cleanup_locations_visited;
@@ -388,8 +397,8 @@ void movement_trail_record(struct trail_data_list *list, const char *name, const
   movement_trail_prepend(list, trail);
 }
 
-void movement_trail_record_at_room(const struct room_data *room, const char *name,
-                                   const char *race, int from, int to, time_t age)
+void movement_trail_record_at_room(const struct room_data *room, const char *name, const char *race,
+                                   int from, int to, time_t age)
 {
   struct movement_trail_location *location;
   struct trail_data *trail;

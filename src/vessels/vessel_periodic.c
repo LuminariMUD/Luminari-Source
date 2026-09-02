@@ -52,10 +52,8 @@ static bool test_scheduled_selection;
 
 static void refill_capacity(void);
 static void cancel_owner_registry(void);
-static struct game_event_result vessel_owner_event(
-    const struct game_event_context *context);
-static struct game_event_result vessel_service_event(
-    const struct game_event_context *context);
+static struct game_event_result vessel_owner_event(const struct game_event_context *context);
+static struct game_event_result vessel_service_event(const struct game_event_context *context);
 
 static bool configured_scheduled(void)
 {
@@ -73,8 +71,7 @@ static bool configured_scheduled(void)
   if (value == NULL || *value == '\0' || !strcasecmp(value, "scheduled") ||
       !strcasecmp(value, "active") || !strcasecmp(value, "event"))
     return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") ||
-      !strcasecmp(value, "off"))
+  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
     return false;
   log("WARNING: Unknown LUMINARI_VESSEL_EVENTS '%s'; using scheduled owner events.", value);
   return true;
@@ -184,8 +181,8 @@ static void borrowed_owner_cleanup(void *payload)
   (void)payload;
 }
 
-static bool register_event_type(const char *name, game_event_handler handler,
-                                size_t max_events, game_event_type_id_t *event_type)
+static bool register_event_type(const char *name, game_event_handler handler, size_t max_events,
+                                game_event_type_id_t *event_type)
 {
   struct game_event_type_config config;
   const char *registered_name;
@@ -239,8 +236,7 @@ static bool callback_owner_still_live(struct greyhawk_ship_data *ship)
   return !dispatching_owner_forgotten && owner_is_live(ship);
 }
 
-static struct game_event_result vessel_owner_event(
-    const struct game_event_context *context)
+static struct game_event_result vessel_owner_event(const struct game_event_context *context)
 {
   struct greyhawk_ship_data *ship = context != NULL ? context->payload : NULL;
   int departed_position;
@@ -303,8 +299,7 @@ static struct game_event_result vessel_owner_event(
   return game_event_result_reschedule_after(VESSEL_PERIODIC_FAST_CADENCE);
 }
 
-static struct game_event_result vessel_service_event(
-    const struct game_event_context *context)
+static struct game_event_result vessel_service_event(const struct game_event_context *context)
 {
   if (!initialized || !scheduled)
   {
@@ -355,8 +350,7 @@ static bool schedule_owner(struct greyhawk_ship_data *ship)
 {
   struct game_event_owner owner;
 
-  if (!initialized || !scheduled || shutting_down || ship == NULL ||
-      !ship->periodic_registered ||
+  if (!initialized || !scheduled || shutting_down || ship == NULL || !ship->periodic_registered ||
       !event_runtime_handle_is_none(ship->periodic_event_handle) || !owner_is_live(ship))
     return false;
   if (scheduled_count >= admission_limit)
@@ -367,10 +361,9 @@ static bool schedule_owner(struct greyhawk_ship_data *ship)
   owner = vessel_owner(ship);
   if (!game_event_owner_is_valid(owner))
     return false;
-  if (event_runtime_schedule_owned_after(
-          vessel_owner_event_type, owner,
-          (game_tick_t)boundary_delay(VESSEL_PERIODIC_FAST_CADENCE), ship,
-          &ship->periodic_event_handle) != GAME_SCHEDULER_OK)
+  if (event_runtime_schedule_owned_after(vessel_owner_event_type, owner,
+                                         (game_tick_t)boundary_delay(VESSEL_PERIODIC_FAST_CADENCE),
+                                         ship, &ship->periodic_event_handle) != GAME_SCHEDULER_OK)
   {
     note_rejection();
     return false;
@@ -512,8 +505,7 @@ void vessel_periodic_init(void)
     return;
   requested = configured_scheduled();
   native_ready = register_event_type("vessel.greyhawk.agenda", vessel_owner_event,
-                                     VESSEL_PERIODIC_MAX_OWNERS,
-                                     &vessel_owner_event_type) &&
+                                     VESSEL_PERIODIC_MAX_OWNERS, &vessel_owner_event_type) &&
                  register_event_type("vessel.shared.agenda", vessel_service_event, 1U,
                                      &vessel_service_event_type) &&
                  rol_ship_periodic_register_event_type();
@@ -548,8 +540,8 @@ void vessel_periodic_init(void)
   log("Vessel periodic scheduling: %s (owner limit %zu).",
       scheduled ? "scheduled" : "legacy heartbeat", admission_limit);
 #else
-  log("Vessel periodic scheduling: %s (owner limit %zu).",
-      scheduled ? "scheduled" : "unavailable", admission_limit);
+  log("Vessel periodic scheduling: %s (owner limit %zu).", scheduled ? "scheduled" : "unavailable",
+      admission_limit);
 #endif
 }
 
@@ -572,15 +564,42 @@ void vessel_periodic_shutdown(void)
   refilling = false;
 }
 
-bool vessel_periodic_events_enabled(void) { return initialized && scheduled; }
-size_t vessel_periodic_owner_count(void) { return owner_count; }
-size_t vessel_periodic_scheduled_count(void) { return scheduled_count; }
-uint64_t vessel_periodic_callbacks(void) { return callback_count; }
-uint64_t vessel_periodic_service_callbacks(void) { return service_callback_count; }
-uint64_t vessel_periodic_fast_executions(void) { return fast_executions; }
-uint64_t vessel_periodic_schedule_executions(void) { return schedule_executions; }
-uint64_t vessel_periodic_admission_rejections(void) { return admission_rejections; }
-size_t vessel_periodic_admission_limit(void) { return admission_limit; }
+bool vessel_periodic_events_enabled(void)
+{
+  return initialized && scheduled;
+}
+size_t vessel_periodic_owner_count(void)
+{
+  return owner_count;
+}
+size_t vessel_periodic_scheduled_count(void)
+{
+  return scheduled_count;
+}
+uint64_t vessel_periodic_callbacks(void)
+{
+  return callback_count;
+}
+uint64_t vessel_periodic_service_callbacks(void)
+{
+  return service_callback_count;
+}
+uint64_t vessel_periodic_fast_executions(void)
+{
+  return fast_executions;
+}
+uint64_t vessel_periodic_schedule_executions(void)
+{
+  return schedule_executions;
+}
+uint64_t vessel_periodic_admission_rejections(void)
+{
+  return admission_rejections;
+}
+size_t vessel_periodic_admission_limit(void)
+{
+  return admission_limit;
+}
 
 size_t vessel_periodic_registry_validate(void)
 {
@@ -622,7 +641,10 @@ void vessel_periodic_select_for_test(bool use_scheduled)
   test_scheduled_selection = use_scheduled;
 }
 
-void vessel_periodic_set_admission_limit_for_test(size_t limit) { admission_limit = limit; }
+void vessel_periodic_set_admission_limit_for_test(size_t limit)
+{
+  admission_limit = limit;
+}
 
 void vessel_periodic_reset_for_test(void)
 {

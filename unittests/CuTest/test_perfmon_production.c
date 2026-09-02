@@ -707,8 +707,7 @@ void Test_player_live_entry_registers_for_point_updates(CuTest *tc)
 
 void Test_world_cleanup_owns_stable_location_trail_registry(CuTest *tc)
 {
-  CuAssertTrue(tc,
-               perfmon_file_contains("src/db.c", "movement_trail_registry_shutdown();"));
+  CuAssertTrue(tc, perfmon_file_contains("src/db.c", "movement_trail_registry_shutdown();"));
   CuAssertTrue(tc, !perfmon_file_contains("src/structs.h", "trail_tracks"));
 }
 

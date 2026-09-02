@@ -160,10 +160,10 @@ int circle_shutdown = 0;                             /* clean shutdown */
 int circle_reboot = 0;                               /* reboot the game after a shutdown */
 static volatile sig_atomic_t shutdown_requested = 0; /* flag for signal-triggered shutdown */
 static volatile sig_atomic_t shutdown_signal = 0;
-int no_specials = 0;                                 /* Suppress ass. of special routines */
-int scheck = 0;                                      /* for syntax checking mode */
-FILE *logfile = NULL;                                /* Where to send the log messages. */
-unsigned long pulse = 0;                             /* number of pulses since game start */
+int no_specials = 0;     /* Suppress ass. of special routines */
+int scheck = 0;          /* for syntax checking mode */
+FILE *logfile = NULL;    /* Where to send the log messages. */
+unsigned long pulse = 0; /* number of pulses since game start */
 ush_int port;
 socket_t mother_desc;
 int next_tick = SECS_PER_MUD_HOUR; /* Tick countdown */
@@ -225,9 +225,9 @@ static void comm_wait_state_advance(struct char_data *ch, uint64_t now_tick);
 static uint64_t comm_wait_state_deadline_usec(const struct char_data *ch,
                                               uint64_t runtime_epoch_usec);
 static void monotonic_timeval(struct timeval *value);
-static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd,
-                                fd_set *input_set, fd_set *output_set,
-                                fd_set *error_set, const struct timeval *timeout);
+static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd, fd_set *input_set,
+                                fd_set *output_set, fd_set *error_set,
+                                const struct timeval *timeout);
 #ifdef CIRCLE_UNIX
 static void reactor_signal_dispatch(int signal_number, void *context);
 static void preserve_shutdown_signal_handlers(void);
@@ -1175,8 +1175,8 @@ static bool initialize_io_reactor(void)
   io_reactor = luminari_reactor_create(driver, &status);
   if (io_reactor == NULL)
   {
-    log("SYSERR: Unable to initialize %s I/O driver (status %d).",
-        luminari_io_driver_name(driver), status);
+    log("SYSERR: Unable to initialize %s I/O driver (status %d).", luminari_io_driver_name(driver),
+        status);
     return FALSE;
   }
   log("I/O driver initialized: %s (libevent %s).", luminari_io_driver_name(driver),
@@ -1184,9 +1184,9 @@ static bool initialize_io_reactor(void)
   return TRUE;
 }
 
-static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd,
-                                fd_set *input_set, fd_set *output_set,
-                                fd_set *error_set, const struct timeval *timeout)
+static int reactor_poll_fd_sets(struct luminari_reactor *reactor, int max_fd, fd_set *input_set,
+                                fd_set *output_set, fd_set *error_set,
+                                const struct timeval *timeout)
 {
   enum luminari_reactor_status status;
   uint64_t timeout_usec;
@@ -1307,8 +1307,8 @@ void game_loop(socket_t local_mother_desc)
   io_driver = luminari_reactor_driver(io_reactor);
 
   monotonic_timeval(&perf_start);
-  runtime_epoch_usec = (uint64_t)perf_start.tv_sec * UINT64_C(1000000) +
-                       (uint64_t)perf_start.tv_usec;
+  runtime_epoch_usec =
+      (uint64_t)perf_start.tv_sec * UINT64_C(1000000) + (uint64_t)perf_start.tv_usec;
   next_heartbeat_usec = runtime_epoch_usec + (uint64_t)OPT_USEC;
   scheduler_budget.max_callbacks = EVENT_SCHEDULER_CALLBACK_BUDGET;
   scheduler_budget.max_usec = EVENT_SCHEDULER_TIME_BUDGET_USEC;
@@ -1491,8 +1491,8 @@ void game_loop(socket_t local_mother_desc)
     /* The runtime tick is derived from monotonic elapsed time, independently
      * of whether the compatibility heartbeat is active. */
     monotonic_timeval(&before_sleep);
-    before_sleep_usec = (uint64_t)before_sleep.tv_sec * UINT64_C(1000000) +
-                        (uint64_t)before_sleep.tv_usec;
+    before_sleep_usec =
+        (uint64_t)before_sleep.tv_sec * UINT64_C(1000000) + (uint64_t)before_sleep.tv_usec;
     runtime_tick_value = before_sleep_usec >= runtime_epoch_usec
                              ? (before_sleep_usec - runtime_epoch_usec) / (uint64_t)OPT_USEC
                              : 0;
@@ -1505,11 +1505,11 @@ void game_loop(socket_t local_mother_desc)
 #else
     compatibility_tick_required = false;
 #endif
-    heartbeat_timeout_usec = compatibility_tick_required
-                                 ? (before_sleep_usec >= next_heartbeat_usec
-                                        ? 0
-                                        : next_heartbeat_usec - before_sleep_usec)
-                                 : UINT64_MAX;
+    heartbeat_timeout_usec =
+        compatibility_tick_required
+            ? (before_sleep_usec >= next_heartbeat_usec ? 0
+                                                        : next_heartbeat_usec - before_sleep_usec)
+            : UINT64_MAX;
     scheduler_timeout_usec = UINT64_MAX;
     scheduler_status = event_scheduler_next_deadline(&scheduler_deadline, &scheduler_has_deadline);
     if (scheduler_status != GAME_SCHEDULER_OK)
@@ -1522,8 +1522,8 @@ void game_loop(socket_t local_mother_desc)
       if (scheduler_deadline > (UINT64_MAX - runtime_epoch_usec) / (uint64_t)OPT_USEC)
         scheduler_deadline_usec = UINT64_MAX;
       else
-        scheduler_deadline_usec = runtime_epoch_usec +
-                                  (uint64_t)scheduler_deadline * (uint64_t)OPT_USEC;
+        scheduler_deadline_usec =
+            runtime_epoch_usec + (uint64_t)scheduler_deadline * (uint64_t)OPT_USEC;
       if (scheduler_deadline_usec <= before_sleep_usec)
       {
         scheduler_timeout_usec = 0;
@@ -1579,9 +1579,8 @@ void game_loop(socket_t local_mother_desc)
     }
     monotonic_timeval(&now);
     now_usec = (uint64_t)now.tv_sec * UINT64_C(1000000) + (uint64_t)now.tv_usec;
-    runtime_tick_value = now_usec >= runtime_epoch_usec
-                             ? (now_usec - runtime_epoch_usec) / (uint64_t)OPT_USEC
-                             : 0;
+    runtime_tick_value =
+        now_usec >= runtime_epoch_usec ? (now_usec - runtime_epoch_usec) / (uint64_t)OPT_USEC : 0;
     pulse = runtime_tick_value > ULONG_MAX ? ULONG_MAX : (unsigned long)runtime_tick_value;
     if (runtime_services_enabled() && runtime_tick_value > previous_runtime_tick_value)
       PERF_note_runtime_advance(runtime_tick_value,
@@ -1749,8 +1748,7 @@ void game_loop(socket_t local_mother_desc)
         }
       }
       else if (d->character && STATE(d) == CON_PLAYING && pending_actions(d->character) &&
-               !combat_encounter_semantic_manages(d->character) && !d->showstr_count &&
-               !d->str)
+               !combat_encounter_semantic_manages(d->character) && !d->showstr_count && !d->str)
       {
         d->has_prompt = TRUE;
         execute_next_action(d->character);
@@ -1814,90 +1812,91 @@ void game_loop(socket_t local_mother_desc)
       {
         next_heartbeat_usec += ((uint64_t)missed_pulses + 1U) * (uint64_t)OPT_USEC;
 
-      /* Run the current heartbeat and recover missed pulses within the bounded
+        /* Run the current heartbeat and recover missed pulses within the bounded
        * wall-clock budget below. */
-      requested_missed_pulses = missed_pulses;
-      requested_heartbeats = requested_missed_pulses + 1;
+        requested_missed_pulses = missed_pulses;
+        requested_heartbeats = requested_missed_pulses + 1;
 
-      if (requested_heartbeats <= 0)
-      {
-        log("SYSERR: **BAD** MISSED_PULSES NONPOSITIVE (%d), TIME GOING BACKWARDS!!",
-            requested_heartbeats);
-        requested_missed_pulses = 0;
-        requested_heartbeats = 1;
-      }
+        if (requested_heartbeats <= 0)
+        {
+          log("SYSERR: **BAD** MISSED_PULSES NONPOSITIVE (%d), TIME GOING BACKWARDS!!",
+              requested_heartbeats);
+          requested_missed_pulses = 0;
+          requested_heartbeats = 1;
+        }
 
-      /* Always run the current heartbeat, then replay missed heartbeats only while
+        /* Always run the current heartbeat, then replay missed heartbeats only while
        * the work fits inside one normal outer-loop time budget. Any remainder is
        * deliberately discarded rather than carried into a self-reinforcing loop;
        * logical timers advance only for heartbeats that actually run. */
-      replayed_heartbeats = 0;
-      catchup_budget_exhausted = 0;
-      heartbeat_tick = pulse >= (unsigned long)requested_missed_pulses
-                           ? pulse - (unsigned long)requested_missed_pulses - 1U
-                           : 0U;
-      heartbeat_replay_start_usec = PERF_monotonic_usec();
-      while (replayed_heartbeats < requested_heartbeats)
-      {
-        PERF_PROF_ENTER_SAMPLED(pr_heartbeat, "heartbeat");
-        pulse = ++heartbeat_tick;
-        heartbeat((int)pulse);
-        PERF_PROF_EXIT(pr_heartbeat);
-        replayed_heartbeats++;
-
-        if (replayed_heartbeats < requested_heartbeats)
+        replayed_heartbeats = 0;
+        catchup_budget_exhausted = 0;
+        heartbeat_tick = pulse >= (unsigned long)requested_missed_pulses
+                             ? pulse - (unsigned long)requested_missed_pulses - 1U
+                             : 0U;
+        heartbeat_replay_start_usec = PERF_monotonic_usec();
+        while (replayed_heartbeats < requested_heartbeats)
         {
-          heartbeat_replay_now_usec = PERF_monotonic_usec();
-          heartbeat_replay_elapsed_usec =
-              heartbeat_replay_now_usec >= heartbeat_replay_start_usec
-                  ? heartbeat_replay_now_usec - heartbeat_replay_start_usec
-                  : 0;
-          if (heartbeat_replay_elapsed_usec >= HEARTBEAT_CATCHUP_BUDGET_USEC)
+          PERF_PROF_ENTER_SAMPLED(pr_heartbeat, "heartbeat");
+          pulse = ++heartbeat_tick;
+          heartbeat((int)pulse);
+          PERF_PROF_EXIT(pr_heartbeat);
+          replayed_heartbeats++;
+
+          if (replayed_heartbeats < requested_heartbeats)
           {
-            catchup_budget_exhausted = 1;
-            break;
+            heartbeat_replay_now_usec = PERF_monotonic_usec();
+            heartbeat_replay_elapsed_usec =
+                heartbeat_replay_now_usec >= heartbeat_replay_start_usec
+                    ? heartbeat_replay_now_usec - heartbeat_replay_start_usec
+                    : 0;
+            if (heartbeat_replay_elapsed_usec >= HEARTBEAT_CATCHUP_BUDGET_USEC)
+            {
+              catchup_budget_exhausted = 1;
+              break;
+            }
           }
         }
-      }
-      pulse = runtime_tick_value > ULONG_MAX ? ULONG_MAX : (unsigned long)runtime_tick_value;
+        pulse = runtime_tick_value > ULONG_MAX ? ULONG_MAX : (unsigned long)runtime_tick_value;
 
-      replayed_missed_pulses = replayed_heartbeats - 1;
-      remaining_backlog = requested_missed_pulses - replayed_missed_pulses;
-      if (remaining_backlog < 0)
-        remaining_backlog = 0;
+        replayed_missed_pulses = replayed_heartbeats - 1;
+        remaining_backlog = requested_missed_pulses - replayed_missed_pulses;
+        if (remaining_backlog < 0)
+          remaining_backlog = 0;
 
-      if (requested_missed_pulses > 0)
-      {
-        PERF_note_catchup_pass((uint64_t)requested_missed_pulses, (uint64_t)replayed_missed_pulses,
-                               (uint64_t)remaining_backlog, catchup_budget_exhausted);
-
-        if (catchup_log_passes < UINT64_MAX)
-          catchup_log_passes++;
-        if (catchup_budget_exhausted && catchup_log_budget_exhausted < UINT64_MAX)
-          catchup_log_budget_exhausted++;
-        if ((uint64_t)requested_missed_pulses > catchup_log_max_requested)
-          catchup_log_max_requested = (uint64_t)requested_missed_pulses;
-        if ((uint64_t)remaining_backlog > catchup_log_max_remaining)
-          catchup_log_max_remaining = (uint64_t)remaining_backlog;
-
-        catchup_log_now = time(NULL);
-        if (last_catchup_log_time == 0 ||
-            catchup_log_now - last_catchup_log_time >= HEARTBEAT_CATCHUP_LOG_INTERVAL)
+        if (requested_missed_pulses > 0)
         {
-          log("PERFMON [CATCHUP]: window_passes=%llu budget_exhausted=%llu max_requested=%llu "
-              "max_remaining=%llu latest_requested=%d latest_replayed=%d latest_remaining=%d",
-              (unsigned long long)catchup_log_passes,
-              (unsigned long long)catchup_log_budget_exhausted,
-              (unsigned long long)catchup_log_max_requested,
-              (unsigned long long)catchup_log_max_remaining, requested_missed_pulses,
-              replayed_missed_pulses, remaining_backlog);
-          last_catchup_log_time = catchup_log_now;
-          catchup_log_passes = 0;
-          catchup_log_budget_exhausted = 0;
-          catchup_log_max_requested = 0;
-          catchup_log_max_remaining = 0;
+          PERF_note_catchup_pass((uint64_t)requested_missed_pulses,
+                                 (uint64_t)replayed_missed_pulses, (uint64_t)remaining_backlog,
+                                 catchup_budget_exhausted);
+
+          if (catchup_log_passes < UINT64_MAX)
+            catchup_log_passes++;
+          if (catchup_budget_exhausted && catchup_log_budget_exhausted < UINT64_MAX)
+            catchup_log_budget_exhausted++;
+          if ((uint64_t)requested_missed_pulses > catchup_log_max_requested)
+            catchup_log_max_requested = (uint64_t)requested_missed_pulses;
+          if ((uint64_t)remaining_backlog > catchup_log_max_remaining)
+            catchup_log_max_remaining = (uint64_t)remaining_backlog;
+
+          catchup_log_now = time(NULL);
+          if (last_catchup_log_time == 0 ||
+              catchup_log_now - last_catchup_log_time >= HEARTBEAT_CATCHUP_LOG_INTERVAL)
+          {
+            log("PERFMON [CATCHUP]: window_passes=%llu budget_exhausted=%llu max_requested=%llu "
+                "max_remaining=%llu latest_requested=%d latest_replayed=%d latest_remaining=%d",
+                (unsigned long long)catchup_log_passes,
+                (unsigned long long)catchup_log_budget_exhausted,
+                (unsigned long long)catchup_log_max_requested,
+                (unsigned long long)catchup_log_max_remaining, requested_missed_pulses,
+                replayed_missed_pulses, remaining_backlog);
+            last_catchup_log_time = catchup_log_now;
+            catchup_log_passes = 0;
+            catchup_log_budget_exhausted = 0;
+            catchup_log_max_requested = 0;
+            catchup_log_max_remaining = 0;
+          }
         }
-      }
       }
     }
 #endif
@@ -1955,8 +1954,7 @@ void game_loop(socket_t local_mother_desc)
 
 bool object_auto_proc_run_one(struct obj_data *obj)
 {
-  if (obj == NULL ||
-      (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0))
+  if (obj == NULL || (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0))
     return false;
   spec_gateway_object_automatic_activity(obj);
   return true;
@@ -2345,10 +2343,13 @@ struct runtime_service
 
 #define RUNTIME_SERVICE_OWNER_BASE UINT64_C(0x52530000)
 #define RUNTIME_SERVICE_ENTRY(kind_name, profile_name, cadence_ticks)                              \
-  {                                                                                                \
-    kind_name, profile_name, cadence_ticks, RUNTIME_SERVICE_OWNER_BASE + kind_name,                \
-        0U, EVENT_RUNTIME_HANDLE_NONE, 0                                                           \
-  }
+  {kind_name,                                                                                      \
+   profile_name,                                                                                   \
+   cadence_ticks,                                                                                  \
+   RUNTIME_SERVICE_OWNER_BASE + kind_name,                                                         \
+   0U,                                                                                             \
+   EVENT_RUNTIME_HANDLE_NONE,                                                                      \
+   0}
 
 static struct runtime_service runtime_service_table[] = {
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_DG_RANDOM, "service.dg_random", PULSE_DG_SCRIPT),
@@ -2370,23 +2371,20 @@ static struct runtime_service runtime_service_table[] = {
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUTOMATIC_PROCEDURES, "service.automatic_procedures",
                           PULSE_MOBILE),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CLOCK_AND_ROUND_ROLLBACK,
-                          "service.hunt_clock_round_rollback",
-                          PULSE_VIOLENCE),
+                          "service.hunt_clock_round_rollback", PULSE_VIOLENCE),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_LUMINARI, "service.luminari_rollback", PULSE_LUMINARI),
-    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_BARDIC, "service.bardic_rollback",
-                          PULSE_VERSE_INTERVAL),
+    RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_BARDIC, "service.bardic_rollback", PULSE_VERSE_INTERVAL),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HINTS, "service.hints_rollback", PULSE_HINTS),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_CHARACTER_SIX_SECOND,
                           "service.character_six_second_rollback", PASSES_PER_SEC * 6),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_AUCTION_AND_DEVICE_RECOVERY,
-                          "service.auction_device_recovery",
-                          PASSES_PER_SEC * 30),
+                          "service.auction_device_recovery", PASSES_PER_SEC * 30),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MINUTE_PERSISTENCE, "service.minute_persistence",
                           PASSES_PER_SEC * 60),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_HUNT_CREATION, "service.hunt_creation",
                           (60 * PASSES_PER_SEC) * 60 * 2),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MUD_HOUR, "service.mud_hour",
-                          SECS_PER_MUD_HOUR * PASSES_PER_SEC),
+                          SECS_PER_MUD_HOUR *PASSES_PER_SEC),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_MUD_DAY, "service.mud_day",
                           SECS_PER_MUD_HOUR * 24 * PASSES_PER_SEC),
     RUNTIME_SERVICE_ENTRY(RUNTIME_SERVICE_USAGE, "service.usage", PULSE_USAGE),
@@ -2428,8 +2426,7 @@ static bool runtime_services_configured_scheduled(void)
   if (value == NULL || *value == '\0' || !strcasecmp(value, "scheduled") ||
       !strcasecmp(value, "event") || !strcasecmp(value, "active"))
     return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") ||
-      !strcasecmp(value, "off"))
+  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
     return false;
   log("WARNING: Unknown LUMINARI_RUNTIME_SERVICES '%s'; using scheduled services.", value);
   return true;
@@ -2716,9 +2713,8 @@ static void runtime_service_dispatch(enum runtime_service_kind kind, unsigned lo
       if (now_tick >= runtime_service_next_crashsave_tick)
       {
         include_crash_and_houses = TRUE;
-        runtime_service_next_crashsave_tick = now_tick > ULONG_MAX - autosave_interval
-                                                  ? ULONG_MAX
-                                                  : now_tick + autosave_interval;
+        runtime_service_next_crashsave_tick =
+            now_tick > ULONG_MAX - autosave_interval ? ULONG_MAX : now_tick + autosave_interval;
       }
     }
     persistence_schedule_minute(include_crash_and_houses);
@@ -2781,8 +2777,7 @@ static void runtime_service_cleanup(void *event_obj)
     service->handle = EVENT_RUNTIME_HANDLE_NONE;
 }
 
-static struct game_event_result
-runtime_service_event(const struct game_event_context *context)
+static struct game_event_result runtime_service_event(const struct game_event_context *context)
 {
   struct runtime_service *service = context != NULL ? context->payload : NULL;
 
@@ -2792,8 +2787,7 @@ runtime_service_event(const struct game_event_context *context)
     return game_event_result_complete();
   service->callbacks++;
   runtime_service_dispatch(service->kind, pulse);
-  return game_event_result_reschedule_after(
-      (game_tick_t)runtime_service_boundary_delay(service));
+  return game_event_result_reschedule_after((game_tick_t)runtime_service_boundary_delay(service));
 }
 
 static bool runtime_service_schedule(struct runtime_service *service)
@@ -2802,10 +2796,9 @@ static bool runtime_service_schedule(struct runtime_service *service)
     return service != NULL;
   if (!runtime_service_needed(service->kind))
     return true;
-  if (event_runtime_schedule_owned_after(
-          service->event_type, runtime_service_owner(service),
-          (game_tick_t)runtime_service_boundary_delay(service), service,
-          &service->handle) != GAME_SCHEDULER_OK)
+  if (event_runtime_schedule_owned_after(service->event_type, runtime_service_owner(service),
+                                         (game_tick_t)runtime_service_boundary_delay(service),
+                                         service, &service->handle) != GAME_SCHEDULER_OK)
   {
     runtime_service_schedule_failures++;
     return false;
@@ -2819,8 +2812,7 @@ static void persistence_step_cleanup(void *event_obj)
   persistence_step_handle = EVENT_RUNTIME_HANDLE_NONE;
 }
 
-static struct game_event_result
-persistence_step_event(const struct game_event_context *context)
+static struct game_event_result persistence_step_event(const struct game_event_context *context)
 {
   if (context == NULL || persistence_step_handle.id != context->event_id ||
       !runtime_services_enabled() || !persistence_scheduler.active)
@@ -2863,8 +2855,7 @@ static bool runtime_services_register_types(void)
   }
 
   if (event_runtime_type_name(persistence_step_event_type) != NULL &&
-      !strcmp(event_runtime_type_name(persistence_step_event_type),
-              "service.persistence_batch"))
+      !strcmp(event_runtime_type_name(persistence_step_event_type), "service.persistence_batch"))
     return true;
   persistence_step_event_type = 0U;
   memset(&config, 0, sizeof(config));
@@ -3015,8 +3006,7 @@ void runtime_services_get_stats(struct runtime_service_stats *stats)
 static void runtime_services_safe_point(void)
 {
   if (!runtime_services_enabled() || !persistence_scheduler.active ||
-      !event_runtime_handle_is_none(persistence_step_handle) ||
-      persistence_fallback_tick == pulse)
+      !event_runtime_handle_is_none(persistence_step_handle) || persistence_fallback_tick == pulse)
     return;
   persistence_fallback_tick = pulse;
   if (!persistence_step_schedule())
@@ -3036,7 +3026,10 @@ void runtime_services_reset_selection_for_test(void)
   runtime_services_test_scheduled_selection = false;
 }
 
-bool runtime_services_init_for_test(void) { return runtime_services_init(); }
+bool runtime_services_init_for_test(void)
+{
+  return runtime_services_init();
+}
 
 bool runtime_service_named_needed_for_test(const char *name)
 {
@@ -4651,10 +4644,9 @@ static bool descriptor_close_due(struct descriptor_data *d, uint64_t now_usec)
     return true;
   if (d->close_output_deadline_usec == 0)
   {
-    d->close_output_deadline_usec =
-        now_usec > UINT64_MAX - DESCRIPTOR_CLOSE_DRAIN_USEC
-            ? UINT64_MAX
-            : now_usec + DESCRIPTOR_CLOSE_DRAIN_USEC;
+    d->close_output_deadline_usec = now_usec > UINT64_MAX - DESCRIPTOR_CLOSE_DRAIN_USEC
+                                        ? UINT64_MAX
+                                        : now_usec + DESCRIPTOR_CLOSE_DRAIN_USEC;
     return false;
   }
   return now_usec >= d->close_output_deadline_usec;

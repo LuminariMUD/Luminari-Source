@@ -594,9 +594,9 @@ void TestConvertedRolFeatHelpSourcesAreComplete(CuTest *tc)
 {
   static const char *flat_keywords[] = {"ACCOMPANY", "CALM PACIFY", "CAMP ESTABLISH-CAMP",
                                         "GARROTE STRANGLE", "SHADOW TAIL"};
-  static const char *database_tags[] = {"VALUES ('ACCOMPANY'", "VALUES ('CALM'", "VALUES ('CAMP'",
-                                        "VALUES ('ACTIVITY'", "VALUES ('GARROTE'",
-                                        "VALUES ('SHADOW'"};
+  static const char *database_tags[] = {"VALUES ('ACCOMPANY'", "VALUES ('CALM'",
+                                        "VALUES ('CAMP'",      "VALUES ('ACTIVITY'",
+                                        "VALUES ('GARROTE'",   "VALUES ('SHADOW'"};
   static const char *prerequisite_text[] = {"5 ranks of perform",
                                             "free at level 2",
                                             "charisma 19",

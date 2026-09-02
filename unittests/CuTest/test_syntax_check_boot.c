@@ -304,8 +304,7 @@ void Test_mud_event_inflight_owner_cancel_defers_payload_cleanup_on_both_backend
   CuAssertIntEquals(tc, 2, test_inflight_owner_cancel_payload_reads);
 }
 
-static void verify_mud_event_terminal_recurrence(CuTest *tc,
-                                                 enum event_backend_kind backend)
+static void verify_mud_event_terminal_recurrence(CuTest *tc, enum event_backend_kind backend)
 {
   struct mud_event_data *mud_event;
   struct obj_data object;
@@ -366,8 +365,7 @@ void Test_mud_event_native_types_are_entity_filterable(CuTest *tc)
   size_t returned_count;
 
   event_free_all();
-  CuAssertIntEquals(tc, 1,
-                    event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
+  CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_GAME_SCHEDULER));
   event_init();
   memset(&before, 0, sizeof(before));
   event_runtime_get_stats(&before);
@@ -387,9 +385,7 @@ void Test_mud_event_native_types_are_entity_filterable(CuTest *tc)
   filter.owner.kind = GAME_EVENT_OWNER_CHARACTER;
   filter.owner.runtime_id = (uint64_t)(uintptr_t)&character;
   filter.type_contains = "mud.";
-  CuAssertIntEquals(tc, 1,
-                    (int)event_debug_inspect(&filter, &snapshot, 1U,
-                                             &returned_count));
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
   CuAssertIntEquals(tc, 1, (int)returned_count);
   CuAssertStrEquals(tc, "mud.004.lay_on_hands", snapshot.type_name);
   CuAssertTrue(tc, snapshot.remaining_pulses == 25U);
@@ -598,8 +594,7 @@ void Test_mud_event_persistence_policy_classifies_entire_registry(CuTest *tc)
 }
 
 static void initialize_persistence_test_character(struct char_data *ch,
-                                                  struct player_special_data *specials,
-                                                  long idnum)
+                                                  struct player_special_data *specials, long idnum)
 {
   memset(ch, 0, sizeof(*ch));
   memset(specials, 0, sizeof(*specials));
@@ -649,8 +644,7 @@ void Test_mud_event_durable_restore_rehydrates_fresh_runtime_identity(CuTest *tc
   CuAssertPtrNotNull(tc, restored_event);
   CuAssertIntEquals(tc, 77, (int)mud_event_remaining(restored_event));
   CuAssertStrEquals(tc, "uses:2", restored_event->sVariables);
-  CuAssertTrue(tc,
-               !event_runtime_handles_equal(restored_event->runtime_handle, source_handle));
+  CuAssertTrue(tc, !event_runtime_handles_equal(restored_event->runtime_handle, source_handle));
   CuAssertTrue(tc, restored_event->owner.generation != source_generation);
   CuAssertTrue(tc, restored_event->owner.runtime_id == (uint64_t)(uintptr_t)&restored);
   CuAssertIntEquals(tc, MUD_EVENT_RESTORE_DUPLICATE,
@@ -704,8 +698,7 @@ void Test_mud_event_durable_restore_rejects_invalid_records(CuTest *tc)
                     mud_event_restore_character_record(&ch, &record, 1100));
 }
 
-static void verify_mud_event_restore_rollback_backend(CuTest *tc,
-                                                     enum event_backend_kind backend)
+static void verify_mud_event_restore_rollback_backend(CuTest *tc, enum event_backend_kind backend)
 {
   struct mud_event_durable_record record;
   struct player_special_data specials;

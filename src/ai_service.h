@@ -252,16 +252,13 @@ void queue_ai_request_retry(const char *prompt, int request_type,
                             int retry_count, /* Retry with backoff */
                             struct char_data *ch, struct char_data *npc);
 void queue_ai_response_for_entities(struct domain_entity_handle player,
-                                    struct domain_entity_handle npc,
-                                    const char *response, const char *backend,
-                                    const char *cache_key, bool from_cache);
-void queue_ai_request_retry_for_entities(const char *prompt, int request_type,
-                                         int retry_count,
+                                    struct domain_entity_handle npc, const char *response,
+                                    const char *backend, const char *cache_key, bool from_cache);
+void queue_ai_request_retry_for_entities(const char *prompt, int request_type, int retry_count,
                                          struct domain_entity_handle player,
                                          struct domain_entity_handle npc);
 bool ai_retry_request_async(const char *prompt, int request_type, int retry_count,
-                            struct domain_entity_handle player,
-                            struct domain_entity_handle npc);
+                            struct domain_entity_handle player, struct domain_entity_handle npc);
 
 struct ai_event_ingress_stats
 {

@@ -53,8 +53,7 @@ static bool test_scheduled_selection;
 #endif
 
 static void refill_capacity(void);
-static struct game_event_result character_periodic_event(
-    const struct game_event_context *context);
+static struct game_event_result character_periodic_event(const struct game_event_context *context);
 
 struct character_periodic_payload
 {
@@ -73,8 +72,7 @@ static bool configured_scheduled(void)
   if (value == NULL || *value == '\0' || !strcasecmp(value, "scheduled") ||
       !strcasecmp(value, "active") || !strcasecmp(value, "event"))
     return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") ||
-      !strcasecmp(value, "off"))
+  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
     return false;
   log("WARNING: Unknown LUMINARI_CHARACTER_EVENTS '%s'; using scheduled owner events.", value);
   return true;
@@ -131,9 +129,8 @@ static bool npc_has_periodic_work(const struct char_data *ch)
 
   if (ch == NULL || !IS_NPC(ch) || !is_in_world(ch))
     return false;
-  if (ch->affected != NULL || GET_HIT(ch) != GET_MAX_HIT(ch) ||
-      GET_MOVE(ch) != GET_MAX_MOVE(ch) || GET_PSP(ch) != GET_MAX_PSP(ch) ||
-      RIDING(ch) != NULL || RIDDEN_BY(ch) != NULL ||
+  if (ch->affected != NULL || GET_HIT(ch) != GET_MAX_HIT(ch) || GET_MOVE(ch) != GET_MAX_MOVE(ch) ||
+      GET_PSP(ch) != GET_MAX_PSP(ch) || RIDING(ch) != NULL || RIDDEN_BY(ch) != NULL ||
       (GET_POS(ch) == POS_FIGHTING && FIGHTING(ch) == NULL))
     return true;
   if (GET_NODAZE_COOLDOWN(ch) > 0 || ch->char_specials.terror_cooldown > 0 ||
@@ -141,8 +138,7 @@ static bool npc_has_periodic_work(const struct char_data *ch)
       ch->char_specials.frightful_presence_timer > 0 || ch->char_specials.swindle_cooldown > 0 ||
       ch->char_specials.entertain_cooldown > 0 || ch->char_specials.tribute_cooldown > 0 ||
       ch->char_specials.recently_slammed > 0 || ch->char_specials.recently_kicked > 0 ||
-      ch->char_specials.banishing_blade_procced_this_round ||
-      ch->sticky_bomb[0] != 0)
+      ch->char_specials.banishing_blade_procced_this_round || ch->sticky_bomb[0] != 0)
     return true;
   for (index = 0; index < NUM_ELDRITCH_BLAST_COOLDOWNS; index++)
     if (ch->char_specials.eldritch_blast_cooldowns[index] > 0)
@@ -357,8 +353,8 @@ static void note_rejection(void)
   admission_rejections++;
   if (admission_rejections == 1U ||
       admission_rejections % CHARACTER_PERIODIC_REJECTION_LOG_INTERVAL == 0U)
-    log("WARNING: character periodic owner limit reached (%zu); rejected=%llu.",
-        admission_limit, (unsigned long long)admission_rejections);
+    log("WARNING: character periodic owner limit reached (%zu); rejected=%llu.", admission_limit,
+        (unsigned long long)admission_rejections);
 }
 
 static bool callback_owner_still_live(void)
@@ -441,8 +437,7 @@ static bool dispatch_due_work(struct char_data *ch, unsigned long earliest_due)
   return is_owner_eligible(ch);
 }
 
-static struct game_event_result character_periodic_event(
-    const struct game_event_context *context)
+static struct game_event_result character_periodic_event(const struct game_event_context *context)
 {
   struct character_periodic_payload *payload = context != NULL ? context->payload : NULL;
   struct char_data *ch;
@@ -532,8 +527,7 @@ static bool schedule_owner(struct char_data *ch)
   payload->character = handle;
   if (event_runtime_schedule_owned_after(character_maintenance_event_type, owner,
                                          (game_tick_t)delay, payload,
-                                         &ch->character_periodic_event_handle) !=
-      GAME_SCHEDULER_OK)
+                                         &ch->character_periodic_event_handle) != GAME_SCHEDULER_OK)
   {
     free(payload);
     ch->character_periodic_due_pulse = 0U;
@@ -650,10 +644,9 @@ static void handle_character_damaged(const struct domain_event_context *context,
 enum domain_event_status character_periodic_register_handlers(struct domain_event_bus *bus)
 {
   struct domain_event_handler_config handlers[] = {
-      {DOMAIN_EVENT_CHARACTER_MOVED, "character-periodic-moved", 90,
-       handle_character_moved, NULL},
-      {DOMAIN_EVENT_CHARACTER_DAMAGED, "character-periodic-damaged", 90,
-       handle_character_damaged, NULL},
+      {DOMAIN_EVENT_CHARACTER_MOVED, "character-periodic-moved", 90, handle_character_moved, NULL},
+      {DOMAIN_EVENT_CHARACTER_DAMAGED, "character-periodic-damaged", 90, handle_character_damaged,
+       NULL},
   };
   size_t index;
   enum domain_event_status status;
@@ -731,22 +724,70 @@ void character_periodic_shutdown(void)
   refilling = false;
 }
 
-bool character_periodic_events_enabled(void) { return initialized && scheduled; }
-size_t character_periodic_owner_count(void) { return owner_count; }
-size_t character_periodic_scheduled_count(void) { return scheduled_count; }
-size_t character_periodic_admission_limit(void) { return admission_limit; }
-uint64_t character_periodic_admission_rejections(void) { return admission_rejections; }
-uint64_t character_periodic_callbacks(void) { return callback_count; }
-uint64_t character_periodic_walk_executions(void) { return walk_executions; }
-uint64_t character_periodic_psp_executions(void) { return psp_executions; }
-uint64_t character_periodic_bardic_executions(void) { return bardic_executions; }
-uint64_t character_periodic_hint_executions(void) { return hint_executions; }
-uint64_t character_periodic_luminari_executions(void) { return luminari_executions; }
-uint64_t character_periodic_damage_effect_executions(void) { return damage_effect_executions; }
-uint64_t character_periodic_player_misc_executions(void) { return player_misc_executions; }
-uint64_t character_periodic_d20_round_executions(void) { return d20_round_executions; }
-uint64_t character_periodic_device_executions(void) { return device_executions; }
-uint64_t character_periodic_timed_quest_executions(void) { return timed_quest_executions; }
+bool character_periodic_events_enabled(void)
+{
+  return initialized && scheduled;
+}
+size_t character_periodic_owner_count(void)
+{
+  return owner_count;
+}
+size_t character_periodic_scheduled_count(void)
+{
+  return scheduled_count;
+}
+size_t character_periodic_admission_limit(void)
+{
+  return admission_limit;
+}
+uint64_t character_periodic_admission_rejections(void)
+{
+  return admission_rejections;
+}
+uint64_t character_periodic_callbacks(void)
+{
+  return callback_count;
+}
+uint64_t character_periodic_walk_executions(void)
+{
+  return walk_executions;
+}
+uint64_t character_periodic_psp_executions(void)
+{
+  return psp_executions;
+}
+uint64_t character_periodic_bardic_executions(void)
+{
+  return bardic_executions;
+}
+uint64_t character_periodic_hint_executions(void)
+{
+  return hint_executions;
+}
+uint64_t character_periodic_luminari_executions(void)
+{
+  return luminari_executions;
+}
+uint64_t character_periodic_damage_effect_executions(void)
+{
+  return damage_effect_executions;
+}
+uint64_t character_periodic_player_misc_executions(void)
+{
+  return player_misc_executions;
+}
+uint64_t character_periodic_d20_round_executions(void)
+{
+  return d20_round_executions;
+}
+uint64_t character_periodic_device_executions(void)
+{
+  return device_executions;
+}
+uint64_t character_periodic_timed_quest_executions(void)
+{
+  return timed_quest_executions;
+}
 
 size_t character_periodic_registry_validate(void)
 {

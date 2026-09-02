@@ -41,8 +41,8 @@
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);
-static struct obj_special_ability *iedit_copy_special_abilities(
-    const struct obj_special_ability *source);
+static struct obj_special_ability *
+iedit_copy_special_abilities(const struct obj_special_ability *source);
 static void iedit_commit_existing(struct obj_data *live, struct obj_data *edited);
 static void oedit_disp_mob_recipient_menu(struct descriptor_data *d);
 static void oedit_setup_new(struct descriptor_data *d);
@@ -3984,8 +3984,8 @@ void oedit_string_cleanup(struct descriptor_data *d, int terminator __attribute_
 
 /* this is all iedit stuff */
 
-static struct obj_special_ability *iedit_copy_special_abilities(
-    const struct obj_special_ability *source)
+static struct obj_special_ability *
+iedit_copy_special_abilities(const struct obj_special_ability *source)
 {
   struct obj_special_ability *copy;
   struct obj_special_ability *head = NULL;

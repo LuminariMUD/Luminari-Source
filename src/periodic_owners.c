@@ -34,10 +34,8 @@ static bool test_autoproc_selection;
 static bool test_dg_random_selection;
 #endif
 
-static struct game_event_result periodic_autoproc_event(
-    const struct game_event_context *context);
-static struct game_event_result periodic_dg_random_event(
-    const struct game_event_context *context);
+static struct game_event_result periodic_autoproc_event(const struct game_event_context *context);
+static struct game_event_result periodic_dg_random_event(const struct game_event_context *context);
 
 static bool configured_scheduled(const char *name)
 {
@@ -51,8 +49,7 @@ static bool configured_scheduled(const char *name)
   if (value == NULL || *value == '\0' || !strcasecmp(value, "scheduled") ||
       !strcasecmp(value, "active") || !strcasecmp(value, "event"))
     return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") ||
-      !strcasecmp(value, "off"))
+  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
     return false;
   log("WARNING: Unknown %s '%s'; using scheduled owner events.", name, value);
   return true;
@@ -143,8 +140,8 @@ static void borrowed_owner_cleanup(void *payload)
   (void)payload;
 }
 
-static bool register_event_type(const char *name, game_event_handler handler,
-                                size_t max_events, game_event_type_id_t *event_type)
+static bool register_event_type(const char *name, game_event_handler handler, size_t max_events,
+                                game_event_type_id_t *event_type)
 {
   struct game_event_type_config config;
   const char *registered_name;
@@ -173,8 +170,7 @@ static bool register_event_type(const char *name, game_event_handler handler,
   return true;
 }
 
-static struct game_event_result periodic_autoproc_event(
-    const struct game_event_context *context)
+static struct game_event_result periodic_autoproc_event(const struct game_event_context *context)
 {
   struct obj_data *obj = context != NULL ? context->payload : NULL;
 
@@ -195,8 +191,7 @@ static struct game_event_result periodic_autoproc_event(
   return game_event_result_reschedule_after(PULSE_MOBILE);
 }
 
-static struct game_event_result periodic_dg_random_event(
-    const struct game_event_context *context)
+static struct game_event_result periodic_dg_random_event(const struct game_event_context *context)
 {
   struct script_data *script = context != NULL ? context->payload : NULL;
   void *owner;
@@ -243,8 +238,7 @@ void periodic_autoproc_sync(struct obj_data *obj)
   if (autoproc_count >= autoproc_limit)
   {
     autoproc_rejections++;
-    if (autoproc_rejections == 1U ||
-        autoproc_rejections % PERIODIC_REJECTION_LOG_INTERVAL == 0U)
+    if (autoproc_rejections == 1U || autoproc_rejections % PERIODIC_REJECTION_LOG_INTERVAL == 0U)
       log("WARNING: ITEM_AUTOPROC owner limit reached (%zu); rejected=%llu.", autoproc_limit,
           (unsigned long long)autoproc_rejections);
     return;
@@ -288,15 +282,14 @@ void periodic_dg_random_sync(struct script_data *script)
   owner_type = script->owner_type;
   if (owner_type < MOB_TRIGGER || owner_type > WLD_TRIGGER)
     return;
-  total = dg_random_counts[MOB_TRIGGER] + dg_random_counts[OBJ_TRIGGER] +
-          dg_random_counts[WLD_TRIGGER];
+  total =
+      dg_random_counts[MOB_TRIGGER] + dg_random_counts[OBJ_TRIGGER] + dg_random_counts[WLD_TRIGGER];
   if (total >= dg_random_limit)
   {
     dg_random_rejections++;
-    if (dg_random_rejections == 1U ||
-        dg_random_rejections % PERIODIC_REJECTION_LOG_INTERVAL == 0U)
-      log("WARNING: DG random-trigger owner limit reached (%zu); rejected=%llu.",
-          dg_random_limit, (unsigned long long)dg_random_rejections);
+    if (dg_random_rejections == 1U || dg_random_rejections % PERIODIC_REJECTION_LOG_INTERVAL == 0U)
+      log("WARNING: DG random-trigger owner limit reached (%zu); rejected=%llu.", dg_random_limit,
+          (unsigned long long)dg_random_rejections);
     return;
   }
   owner = script_owner(script);
@@ -324,8 +317,7 @@ void periodic_dg_random_forget(struct script_data *script)
   owner_type = script->owner_type;
   handle = script->random_event_handle;
   script->random_event_handle = EVENT_RUNTIME_HANDLE_NONE;
-  if (owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER &&
-      dg_random_counts[owner_type] > 0U)
+  if (owner_type >= MOB_TRIGGER && owner_type <= WLD_TRIGGER && dg_random_counts[owner_type] > 0U)
     dg_random_counts[owner_type]--;
   (void)event_runtime_cancel(handle);
 }
@@ -355,13 +347,10 @@ void periodic_owners_init(void)
     autoproc_requested = configured_scheduled("LUMINARI_AUTOPROC_EVENTS");
     dg_random_requested = configured_scheduled("LUMINARI_DG_RANDOM_EVENTS");
   }
-  autoproc_ready = register_event_type("object.automatic_procedure",
-                                       periodic_autoproc_event,
-                                       PERIODIC_AUTOPROC_MAX_OWNERS,
-                                       &autoproc_event_type);
+  autoproc_ready = register_event_type("object.automatic_procedure", periodic_autoproc_event,
+                                       PERIODIC_AUTOPROC_MAX_OWNERS, &autoproc_event_type);
   dg_random_ready = register_event_type("dg.random_trigger", periodic_dg_random_event,
-                                        PERIODIC_DG_RANDOM_MAX_OWNERS,
-                                        &dg_random_event_type);
+                                        PERIODIC_DG_RANDOM_MAX_OWNERS, &dg_random_event_type);
   autoproc_scheduled = autoproc_requested && autoproc_ready;
   dg_random_scheduled = dg_random_requested && dg_random_ready;
   initialized = true;

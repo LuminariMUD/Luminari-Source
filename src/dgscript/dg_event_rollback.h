@@ -2,7 +2,7 @@
 #define DG_EVENT_ROLLBACK_H
 
 #ifndef DG_EVENT_ROLLBACK_ENABLED
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||             \
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
     defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 #define DG_EVENT_ROLLBACK_ENABLED 1
 #else
@@ -32,18 +32,19 @@ event_handle_t event_schedule_named_with_cleanup(EVENTFUNC(*func), void *event_o
                                                  const char *profile_name,
                                                  event_handle_cleanup_func cleanup);
 event_handle_t event_schedule_owned_named(EVENTFUNC(*func), void *event_obj, long when,
-                                          const char *profile_name,
-                                          struct game_event_owner owner);
-event_handle_t event_schedule_owned_named_with_cleanup(
-    EVENTFUNC(*func), void *event_obj, long when, const char *profile_name,
-    event_handle_cleanup_func cleanup, struct game_event_owner owner);
-event_handle_t event_schedule_owned_named_with_terminal_cleanup(
-    EVENTFUNC(*func), void *event_obj, long when, const char *profile_name,
-    event_handle_cleanup_func cleanup, struct game_event_owner owner);
+                                          const char *profile_name, struct game_event_owner owner);
+event_handle_t event_schedule_owned_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
+                                                       const char *profile_name,
+                                                       event_handle_cleanup_func cleanup,
+                                                       struct game_event_owner owner);
+event_handle_t event_schedule_owned_named_with_terminal_cleanup(EVENTFUNC(*func), void *event_obj,
+                                                                long when, const char *profile_name,
+                                                                event_handle_cleanup_func cleanup,
+                                                                struct game_event_owner owner);
 
-#define event_schedule(func, event_obj, when)                                                       \
+#define event_schedule(func, event_obj, when)                                                      \
   event_schedule_named((func), (event_obj), (when), #func)
-#define event_schedule_with_cleanup(func, event_obj, when, cleanup)                                 \
+#define event_schedule_with_cleanup(func, event_obj, when, cleanup)                                \
   event_schedule_named_with_cleanup((func), (event_obj), (when), #func, (cleanup))
 
 bool event_handle_is_live(event_handle_t handle);

@@ -72,8 +72,7 @@ extern struct mud_event_list mud_event_index[];
 
 #define MUD_EVENT_SEMANTIC_NAME_SIZE 96U
 
-static struct game_event_result mud_event_dispatch(
-    const struct game_event_context *context);
+static struct game_event_result mud_event_dispatch(const struct game_event_context *context);
 static void cleanup_mud_event_native(void *event_obj);
 #if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
     defined(LUMINARI_EVENT_ROLLBACK_TESTS)
@@ -136,15 +135,15 @@ static void initialize_mud_event_persistence_policies(void)
   persistence_policies[eENCOUNTER_REG_RESET].storage_class = MUD_EVENT_RECONSTRUCTABLE;
   persistence_policies[eENCOUNTER_REG_RESET].offline_policy = MUD_EVENT_OFFLINE_RECONSTRUCT;
 
-#define PERSIST_CHARACTER_EVENT(event_id)                                                         \
-  do                                                                                              \
-  {                                                                                               \
-    persistence_policies[(event_id)].storage_class = MUD_EVENT_PERSISTED;                         \
+#define PERSIST_CHARACTER_EVENT(event_id)                                                          \
+  do                                                                                               \
+  {                                                                                                \
+    persistence_policies[(event_id)].storage_class = MUD_EVENT_PERSISTED;                          \
     persistence_policies[(event_id)].offline_policy = MUD_EVENT_OFFLINE_ELAPSE;                    \
-    persistence_policies[(event_id)].payload_policy =                                             \
-        mud_event_index[(event_id)].func == event_daily_use_cooldown ? MUD_EVENT_PAYLOAD_USES     \
-                                                                      : MUD_EVENT_PAYLOAD_NONE;   \
-    persistence_policies[(event_id)].schema_version = 2U;                                         \
+    persistence_policies[(event_id)].payload_policy =                                              \
+        mud_event_index[(event_id)].func == event_daily_use_cooldown ? MUD_EVENT_PAYLOAD_USES      \
+                                                                     : MUD_EVENT_PAYLOAD_NONE;     \
+    persistence_policies[(event_id)].schema_version = 2U;                                          \
   } while (0)
 
   PERSIST_CHARACTER_EVENT(eINVISIBLE_ROGUE);
@@ -310,8 +309,7 @@ bool mud_event_legacy_persistence_writer_enabled(void)
 }
 
 bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *pMudEvent,
-                                   int64_t saved_at_epoch,
-                                   struct mud_event_durable_record *record)
+                                   int64_t saved_at_epoch, struct mud_event_durable_record *record)
 {
   const struct mud_event_persistence_policy *policy;
   long remaining_ticks;
@@ -322,10 +320,8 @@ bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *
   policy = mud_event_persistence_policy(pMudEvent->iId);
   if (policy == NULL || policy->storage_class != MUD_EVENT_PERSISTED ||
       mud_event_index[pMudEvent->iId].iEvent_Type != EVENT_CHAR || pMudEvent->pStruct != ch ||
-      !mud_event_is_live(pMudEvent) ||
-      pMudEvent->owner.kind != GAME_EVENT_OWNER_CHARACTER ||
-      pMudEvent->owner.runtime_id != (uint64_t)(uintptr_t)ch ||
-      pMudEvent->owner.generation == 0 ||
+      !mud_event_is_live(pMudEvent) || pMudEvent->owner.kind != GAME_EVENT_OWNER_CHARACTER ||
+      pMudEvent->owner.runtime_id != (uint64_t)(uintptr_t)ch || pMudEvent->owner.generation == 0 ||
       pMudEvent->owner.generation != ch->event_owner_generation || GET_IDNUM(ch) <= 0)
     return false;
 
@@ -336,9 +332,8 @@ bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *
   uses = -1;
   if (policy->payload_policy == MUD_EVENT_PAYLOAD_USES)
   {
-    if (pMudEvent->sVariables == NULL ||
-        sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1 || uses <= 0 ||
-        uses > MUD_EVENT_MAX_PERSISTED_USES)
+    if (pMudEvent->sVariables == NULL || sscanf(pMudEvent->sVariables, "uses:%d", &uses) != 1 ||
+        uses <= 0 || uses > MUD_EVENT_MAX_PERSISTED_USES)
       return false;
   }
 
@@ -354,8 +349,7 @@ bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *
 
 enum mud_event_restore_status
 mud_event_restore_character_record(struct char_data *ch,
-                                   const struct mud_event_durable_record *record,
-                                   int64_t now_epoch)
+                                   const struct mud_event_durable_record *record, int64_t now_epoch)
 {
   const struct mud_event_persistence_policy *policy;
   struct mud_event_data *restored_event;
@@ -504,12 +498,10 @@ bool mud_event_runtime_init(void)
       event_runtime_type_name(mud_event_type_ids[ePROTOCOLS]) != NULL &&
       !strcmp(event_runtime_type_name(mud_event_type_ids[ePROTOCOLS]), expected))
   {
-    mud_event_semantic_name((event_id)(eMUD_EVENT_COUNT - 1), expected,
-                            sizeof(expected));
+    mud_event_semantic_name((event_id)(eMUD_EVENT_COUNT - 1), expected, sizeof(expected));
     return mud_event_type_ids[eMUD_EVENT_COUNT - 1] != 0U &&
            event_runtime_type_name(mud_event_type_ids[eMUD_EVENT_COUNT - 1]) != NULL &&
-           !strcmp(event_runtime_type_name(mud_event_type_ids[eMUD_EVENT_COUNT - 1]),
-                   expected);
+           !strcmp(event_runtime_type_name(mud_event_type_ids[eMUD_EVENT_COUNT - 1]), expected);
   }
   if (event_runtime_types_are_sealed())
     return false;
@@ -527,8 +519,8 @@ bool mud_event_runtime_init(void)
     status = event_runtime_register_type(&config, &mud_event_type_ids[id]);
     if (status != GAME_SCHEDULER_OK)
     {
-      log("SYSERR: unable to register native MUD event type %d '%s' (status %d).",
-          id, expected, status);
+      log("SYSERR: unable to register native MUD event type %d '%s' (status %d).", id, expected,
+          status);
       return false;
     }
   }
@@ -544,8 +536,7 @@ void init_events(void)
 
   initialize_mud_event_persistence_policies();
 
-  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER &&
-      !mud_event_runtime_init())
+  if (event_backend_current() == EVENT_BACKEND_GAME_SCHEDULER && !mud_event_runtime_init())
     log("SYSERR: Native MUD event types are unavailable during init_events().");
 
   /* Validate registry size vs enum last value to catch drift */
@@ -915,8 +906,7 @@ static uint64_t ensure_event_owner_generation(uint64_t *generation)
 }
 
 static struct game_event_owner make_mud_event_owner(enum game_event_owner_kind kind,
-                                                    uint64_t runtime_id,
-                                                    uint64_t *generation)
+                                                    uint64_t runtime_id, uint64_t *generation)
 {
   struct game_event_owner owner;
 
@@ -949,8 +939,7 @@ long mud_event_remaining(const struct mud_event_data *pMudEvent)
     return 0;
   if (!event_runtime_handle_is_none(pMudEvent->runtime_handle))
   {
-    if (event_runtime_remaining(pMudEvent->runtime_handle, &remaining) !=
-        GAME_SCHEDULER_OK)
+    if (event_runtime_remaining(pMudEvent->runtime_handle, &remaining) != GAME_SCHEDULER_OK)
       return 0;
     return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
   }
@@ -1003,8 +992,8 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
   switch (event_type)
   {
   case EVENT_WORLD:
-    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_WORLD, 1U,
-                                            &world_event_owner_generation);
+    pMudEvent->owner =
+        make_mud_event_owner(GAME_EVENT_OWNER_WORLD, 1U, &world_event_owner_generation);
     if (world_events == NULL)
       world_events = create_list();
     break;
@@ -1012,8 +1001,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     d = (struct descriptor_data *)pMudEvent->pStruct;
     if (d == NULL)
       goto admission_failed;
-    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_DESCRIPTOR,
-                                            (uint64_t)(uintptr_t)d,
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_DESCRIPTOR, (uint64_t)(uintptr_t)d,
                                             &d->event_owner_generation);
     if (d->events == NULL)
       d->events = create_list();
@@ -1022,8 +1010,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     ch = (struct char_data *)pMudEvent->pStruct;
     if (ch == NULL)
       goto admission_failed;
-    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_CHARACTER,
-                                            (uint64_t)(uintptr_t)ch,
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_CHARACTER, (uint64_t)(uintptr_t)ch,
                                             &ch->event_owner_generation);
     if (ch->events == NULL)
       ch->events = create_list();
@@ -1032,8 +1019,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     obj = (struct obj_data *)pMudEvent->pStruct;
     if (obj == NULL)
       goto admission_failed;
-    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_OBJECT,
-                                            (uint64_t)(uintptr_t)obj,
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_OBJECT, (uint64_t)(uintptr_t)obj,
                                             &obj->event_owner_generation);
     if (obj->events == NULL)
       obj->events = create_list();
@@ -1053,8 +1039,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     pMudEvent->pStruct = rvnum;
     copied_owner_key = true;
     room = &world[room_index];
-    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_ROOM,
-                                            (uint64_t)(uint32_t)*rvnum + 1U,
+    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_ROOM, (uint64_t)(uint32_t)*rvnum + 1U,
                                             &room->event_owner_generation);
     if (room->events == NULL)
       room->events = create_list();
@@ -1074,9 +1059,9 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     pMudEvent->pStruct = regvnum;
     copied_owner_key = true;
     region = &region_table[region_index];
-    pMudEvent->owner = make_mud_event_owner(GAME_EVENT_OWNER_REGION,
-                                            (uint64_t)(uint32_t)*regvnum + 1U,
-                                            &region->event_owner_generation);
+    pMudEvent->owner =
+        make_mud_event_owner(GAME_EVENT_OWNER_REGION, (uint64_t)(uint32_t)*regvnum + 1U,
+                             &region->event_owner_generation);
     if (region->events == NULL)
       region->events = create_list();
     break;
@@ -1091,9 +1076,9 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     if (!mud_event_runtime_init())
       status = GAME_SCHEDULER_REGISTRATION_CLOSED;
     else
-      status = event_runtime_schedule_owned_after(
-          mud_event_type_ids[pMudEvent->iId], pMudEvent->owner,
-          (game_tick_t)MAX(time, 1L), pMudEvent, &pMudEvent->runtime_handle);
+      status = event_runtime_schedule_owned_after(mud_event_type_ids[pMudEvent->iId],
+                                                  pMudEvent->owner, (game_tick_t)MAX(time, 1L),
+                                                  pMudEvent, &pMudEvent->runtime_handle);
     if (status != GAME_SCHEDULER_OK)
       pMudEvent->runtime_handle = EVENT_RUNTIME_HANDLE_NONE;
   }
@@ -1103,8 +1088,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
     defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     pMudEvent->rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
         mud_event_index[pMudEvent->iId].func, pMudEvent, time,
-        mud_event_index[pMudEvent->iId].event_name, cleanup_mud_event_rollback,
-        pMudEvent->owner);
+        mud_event_index[pMudEvent->iId].event_name, cleanup_mud_event_rollback, pMudEvent->owner);
 #else
     status = GAME_SCHEDULER_INVALID_ARGUMENT;
 #endif
@@ -1268,15 +1252,13 @@ void mud_event_detach_owner(struct mud_event_data *pMudEvent)
   }
 }
 
-static struct game_event_result mud_event_dispatch(
-    const struct game_event_context *context)
+static struct game_event_result mud_event_dispatch(const struct game_event_context *context)
 {
   struct mud_event_data *pMudEvent;
   long next_delay;
 
   pMudEvent = context != NULL ? context->payload : NULL;
-  if (pMudEvent == NULL || pMudEvent->iId <= eNULL ||
-      pMudEvent->iId >= eMUD_EVENT_COUNT ||
+  if (pMudEvent == NULL || pMudEvent->iId <= eNULL || pMudEvent->iId >= eMUD_EVENT_COUNT ||
       pMudEvent->runtime_handle.id != context->event_id ||
       mud_event_index[pMudEvent->iId].func == NULL)
     return game_event_result_complete();

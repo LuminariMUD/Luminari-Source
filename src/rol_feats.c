@@ -363,8 +363,8 @@ static int camp_difficulty(struct char_data *ch)
 
 static bool camp_location_allowed(struct char_data *ch)
 {
-  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) ||
-      ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS) || AFF_FLAGGED(ch, AFF_FLYING))
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_INDOORS) ||
+      AFF_FLAGGED(ch, AFF_FLYING))
     return false;
 
   switch (SECT(IN_ROOM(ch)))
@@ -399,8 +399,7 @@ static void camp_create_site(struct char_data *ch)
   struct raff_node *raff = NULL;
   room_rnum room;
 
-  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) ||
-      ROOM_AFFECTED(IN_ROOM(ch), RAFF_CAMP))
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) || ROOM_AFFECTED(IN_ROOM(ch), RAFF_CAMP))
     return;
 
   room = IN_ROOM(ch);
@@ -482,9 +481,8 @@ static bool camp_activity_recheck(struct char_data *ch, void *target, void *cont
   return camp_site_is_usable(ch) && target == &world[IN_ROOM(ch)];
 }
 
-static void camp_activity_progress(struct char_data *ch, void *target,
-                                   uint32_t completed_steps, uint32_t total_steps,
-                                   void *context)
+static void camp_activity_progress(struct char_data *ch, void *target, uint32_t completed_steps,
+                                   uint32_t total_steps, void *context)
 {
   (void)target;
   (void)total_steps;
@@ -554,10 +552,8 @@ ACMD(do_camp)
   definition.capabilities = PRIMARY_ACTIVITY_CAP_MOVEMENT | PRIMARY_ACTIVITY_CAP_HANDS |
                             PRIMARY_ACTIVITY_CAP_ATTENTION | PRIMARY_ACTIVITY_CAP_STANDARD |
                             PRIMARY_ACTIVITY_CAP_MOVE;
-  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY |
-                      PRIMARY_ACTIVITY_TRAIT_DISTRACTED |
-                      PRIMARY_ACTIVITY_TRAIT_HANDS_OCCUPIED |
-                      PRIMARY_ACTIVITY_TRAIT_OBVIOUS;
+  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY | PRIMARY_ACTIVITY_TRAIT_DISTRACTED |
+                      PRIMARY_ACTIVITY_TRAIT_HANDS_OCCUPIED | PRIMARY_ACTIVITY_TRAIT_OBVIOUS;
   definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
   definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
   definition.total_steps = 3U;

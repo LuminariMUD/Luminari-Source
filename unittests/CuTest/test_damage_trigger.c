@@ -459,8 +459,7 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   filter.owner.kind = GAME_EVENT_OWNER_CHARACTER;
   filter.owner.runtime_id = (uint64_t)(uintptr_t)&fixture.victim;
   filter.type_contains = "dg.";
-  CuAssertIntEquals(tc, 1,
-                    (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
   CuAssertIntEquals(tc, 1, (int)returned_count);
   CuAssertStrEquals(tc, "dg.trigger.wait", snapshot.type_name);
 
@@ -490,9 +489,8 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   damage_trigger_fixture_end(&fixture);
 
   CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
-  CuAssertTrue(tc,
-               damage_trigger_fixture_add(&fixture, "Cancelled wait", "u", 100,
-                                          "wait 100\nreturn 9"));
+  CuAssertTrue(
+      tc, damage_trigger_fixture_add(&fixture, "Cancelled wait", "u", 100, "wait 100\nreturn 9"));
   trigger = TRIGGERS(SCRIPT(&fixture.victim));
   CuAssertIntEquals(
       tc, 17,
@@ -506,22 +504,19 @@ void Test_damage_trigger_wait_result_is_synchronous(CuTest *tc)
   CuAssertIntEquals(tc, 1, event_test_select_backend(EVENT_BACKEND_LEGACY_QUEUE));
   event_init();
   CuAssertTrue(tc, damage_trigger_fixture_begin(&fixture));
-  CuAssertTrue(
-      tc, damage_trigger_fixture_add(&fixture, "Rollback wait", "u", 100,
-                                     "wait 1\nreturn 3"));
+  CuAssertTrue(tc,
+               damage_trigger_fixture_add(&fixture, "Rollback wait", "u", 100, "wait 1\nreturn 3"));
   trigger = TRIGGERS(SCRIPT(&fixture.victim));
   CuAssertIntEquals(
       tc, 17,
-      damage(&fixture.actor, &fixture.victim, 17, TYPE_HIT, DAM_BLUDGEON,
-             ATTACK_TYPE_PRIMARY));
+      damage(&fixture.actor, &fixture.victim, 17, TYPE_HIT, DAM_BLUDGEON, ATTACK_TYPE_PRIMARY));
   CuAssertTrue(tc, dg_trigger_wait_is_live(trigger));
   memset(&filter, 0, sizeof(filter));
   filter.owner_set = true;
   filter.owner.kind = GAME_EVENT_OWNER_CHARACTER;
   filter.owner.runtime_id = (uint64_t)(uintptr_t)&fixture.victim;
   filter.type_contains = "dg.";
-  CuAssertIntEquals(tc, 1,
-                    (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
   CuAssertIntEquals(tc, 1, (int)returned_count);
   CuAssertStrEquals(tc, "dg.trigger.wait.rollback", snapshot.type_name);
   wait_pulses = dg_trigger_wait_remaining(trigger);

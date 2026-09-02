@@ -114,7 +114,7 @@ struct domain_world_phenomenon
 
 enum domain_event_status domain_event_register_foundation_types(struct domain_event_bus *bus);
 
-#define DOMAIN_EVENT_PUBLISH(BUS, TYPE, PAYLOAD_PTR) \
+#define DOMAIN_EVENT_PUBLISH(BUS, TYPE, PAYLOAD_PTR)                                               \
   domain_event_publish((BUS), (TYPE), (PAYLOAD_PTR), sizeof(*(PAYLOAD_PTR)))
 
 #endif /* DOMAIN_EVENT_TYPES_H */

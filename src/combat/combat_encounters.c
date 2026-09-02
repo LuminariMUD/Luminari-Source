@@ -129,8 +129,7 @@ static bool configured_encounter_mode(void)
   if (value == NULL || *value == '\0' || !strcasecmp(value, "encounter") ||
       !strcasecmp(value, "scheduled") || !strcasecmp(value, "event"))
     return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "character") ||
-      !strcasecmp(value, "off"))
+  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "character") || !strcasecmp(value, "off"))
     return false;
   log("WARNING: Unknown LUMINARI_COMBAT_EVENTS '%s'; using encounter events.", value);
   return true;
@@ -210,8 +209,7 @@ static void release_encounter_slot(struct combat_encounter_data *encounter)
   struct combat_encounter_slot *slot;
   uint32_t index;
 
-  if (encounter == NULL || encounter->id == 0U ||
-      encounter->id > COMBAT_ENCOUNTER_MAX_ACTIVE)
+  if (encounter == NULL || encounter->id == 0U || encounter->id > COMBAT_ENCOUNTER_MAX_ACTIVE)
     return;
   index = (uint32_t)(encounter->id - 1U);
   slot = &encounter_slots[index];
@@ -315,8 +313,7 @@ static bool participant_due_before(const struct combat_encounter_participant *le
     return left->initiative > right->initiative;
   if (semantic_rounds && left->dexterity_tiebreak != right->dexterity_tiebreak)
     return left->dexterity_tiebreak > right->dexterity_tiebreak;
-  if (semantic_rounds &&
-      left->character_handle.runtime_id != right->character_handle.runtime_id)
+  if (semantic_rounds && left->character_handle.runtime_id != right->character_handle.runtime_id)
     return left->character_handle.runtime_id < right->character_handle.runtime_id;
   if (left->due_sequence != right->due_sequence)
     return left->due_sequence < right->due_sequence;
@@ -383,8 +380,7 @@ static void align_semantic_participants(struct combat_encounter_data *encounter,
 
   if (!semantic_rounds || encounter == NULL)
     return;
-  for (participant = encounter->participants; participant != NULL;
-       participant = participant->next)
+  for (participant = encounter->participants; participant != NULL; participant = participant->next)
   {
     if (!participant->active || participant->pending_activation ||
         participant->next_due >= next_round_due)
@@ -414,8 +410,7 @@ static uint64_t semantic_rounds_for_delay(long delay)
   uint64_t positive_delay;
 
   positive_delay = delay > 0L ? (uint64_t)delay : 1U;
-  return (positive_delay + COMBAT_ENCOUNTER_ROUND_DELAY - 1U) /
-         COMBAT_ENCOUNTER_ROUND_DELAY;
+  return (positive_delay + COMBAT_ENCOUNTER_ROUND_DELAY - 1U) / COMBAT_ENCOUNTER_ROUND_DELAY;
 }
 
 static struct combat_encounter_participant *semantic_participant(struct char_data *character)
@@ -437,8 +432,7 @@ static void import_semantic_state(struct combat_encounter_participant *participa
   uint64_t rounds;
   size_t index;
 
-  if (participant == NULL || participant->semantic_state_imported ||
-      participant->character == NULL)
+  if (participant == NULL || participant->semantic_state_imported || participant->character == NULL)
     return;
   participant->semantic_state_imported = true;
   for (index = 0U; index < NUM_ACTIONS; index++)
@@ -480,9 +474,8 @@ static void restore_semantic_action_events(struct combat_encounter_participant *
                 : remaining_rounds * COMBAT_ENCOUNTER_ROUND_DELAY;
     snprintf(duration_text, sizeof(duration_text), "%ld",
              delay > LONG_MAX ? LONG_MAX : (long)delay);
-    attach_mud_event(
-        new_mud_event(action_event_ids[index], participant->character, duration_text),
-        delay > LONG_MAX ? LONG_MAX : (long)delay);
+    attach_mud_event(new_mud_event(action_event_ids[index], participant->character, duration_text),
+                     delay > LONG_MAX ? LONG_MAX : (long)delay);
   }
 }
 
@@ -529,8 +522,8 @@ static void detach_participant(struct combat_encounter_data *encounter,
   free_participant(participant);
 }
 
-static struct combat_encounter_participant *add_participant(
-    struct combat_encounter_data *encounter, struct char_data *character)
+static struct combat_encounter_participant *add_participant(struct combat_encounter_data *encounter,
+                                                            struct char_data *character)
 {
   struct combat_encounter_participant *participant;
 
@@ -605,15 +598,13 @@ static struct combat_encounter_data *create_encounter(void)
   encounter->compatibility_phase = 1U;
   encounter->compatibility_round = 1U;
   encounter->semantic_round = 0U;
-  encounter->next_round_due = semantic_rounds
-                                  ? (uint64_t)pulse + COMBAT_ENCOUNTER_ROUND_DELAY
-                                  : 0U;
+  encounter->next_round_due = semantic_rounds ? (uint64_t)pulse + COMBAT_ENCOUNTER_ROUND_DELAY : 0U;
   counter_increment(&cumulative_stats.encounters_created);
   return encounter;
 }
 
-static struct event_runtime_handle
-create_round_event(struct combat_encounter_data *encounter, uint64_t delay);
+static struct event_runtime_handle create_round_event(struct combat_encounter_data *encounter,
+                                                      uint64_t delay);
 static void destroy_encounter(struct combat_encounter_data *encounter, bool dispatching);
 
 static bool ensure_round_event(struct combat_encounter_data *encounter)
@@ -664,8 +655,7 @@ static bool has_pending_hostility(const struct combat_encounter_data *encounter)
 {
   const struct combat_encounter_participant *participant;
 
-  for (participant = encounter->participants; participant != NULL;
-       participant = participant->next)
+  for (participant = encounter->participants; participant != NULL; participant = participant->next)
     if (participant->active && participant->character != NULL &&
         FIGHTING(participant->character) != NULL)
       return true;
@@ -750,8 +740,7 @@ static void detach_terminal_membership(struct char_data *character)
   character->combat_encounter = NULL;
   character->combat_encounter_participant = NULL;
   counter_increment(&cumulative_stats.participants_left);
-  counter_increment(
-      &cumulative_stats.departure_counts[COMBAT_ENCOUNTER_DEPARTURE_ADMINISTRATIVE]);
+  counter_increment(&cumulative_stats.departure_counts[COMBAT_ENCOUNTER_DEPARTURE_ADMINISTRATIVE]);
   if (!encounter->resolving)
     detach_participant(encounter, participant);
 }
@@ -957,19 +946,17 @@ static void prepare_semantic_round(struct combat_encounter_data *encounter)
 {
   struct combat_encounter_participant *participant;
 
-  for (participant = encounter->participants; participant != NULL;
-       participant = participant->next)
+  for (participant = encounter->participants; participant != NULL; participant = participant->next)
   {
-    if (!participant->active || participant->pending_activation ||
-        participant->character == NULL)
+    if (!participant->active || participant->pending_activation || participant->character == NULL)
       continue;
     if (encounter_bus != NULL &&
         domain_event_resolve(encounter_bus, participant->character_handle,
                              DOMAIN_ENTITY_CHARACTER) != participant->character)
       continue;
     participant->perfect_tempo_was_hit =
-        (participant->round_flags &
-         ((uint32_t)1U << COMBAT_ENCOUNTER_ROUND_PERFECT_TEMPO_HIT)) != 0U;
+        (participant->round_flags & ((uint32_t)1U << COMBAT_ENCOUNTER_ROUND_PERFECT_TEMPO_HIT)) !=
+        0U;
     participant->round_flags = 0U;
     participant->reactions_used = 0;
     GET_TOTAL_AOO(participant->character) = 0;
@@ -985,8 +972,7 @@ static bool run_semantic_round(struct combat_encounter_participant *participant)
   if (test_phase_callback != NULL)
     return test_phase_callback(participant->character, 0U, test_phase_context);
 #endif
-  return combat_run_semantic_round(participant->character,
-                                   participant->perfect_tempo_was_hit);
+  return combat_run_semantic_round(participant->character, participant->perfect_tempo_was_hit);
 }
 
 static struct game_event_result
@@ -1021,8 +1007,7 @@ combat_encounter_round_event(const struct game_event_context *context)
   }
   do
   {
-    while (encounter->due_head != NULL &&
-           encounter->due_head->next_due <= (uint64_t)pulse)
+    while (encounter->due_head != NULL && encounter->due_head->next_due <= (uint64_t)pulse)
     {
       participant = encounter->due_head;
       due_remove(encounter, participant);
@@ -1059,9 +1044,8 @@ combat_encounter_round_event(const struct game_event_context *context)
       {
         if (!semantic_rounds)
           participant->phase = participant->phase < 3U ? participant->phase + 1U : 1U;
-        participant->next_due =
-            (uint64_t)pulse +
-            (semantic_rounds ? COMBAT_ENCOUNTER_ROUND_DELAY : COMBAT_ENCOUNTER_PHASE_DELAY);
+        participant->next_due = (uint64_t)pulse + (semantic_rounds ? COMBAT_ENCOUNTER_ROUND_DELAY
+                                                                   : COMBAT_ENCOUNTER_PHASE_DELAY);
         participant->due_sequence = allocate_due_sequence();
         due_insert(encounter, participant);
       }
@@ -1084,9 +1068,8 @@ combat_encounter_round_event(const struct game_event_context *context)
   }
   else if (!semantic_rounds)
   {
-    encounter->compatibility_phase = encounter->compatibility_phase < 3U
-                                         ? encounter->compatibility_phase + 1U
-                                         : 1U;
+    encounter->compatibility_phase =
+        encounter->compatibility_phase < 3U ? encounter->compatibility_phase + 1U : 1U;
     if (encounter->compatibility_phase == 1U)
       counter_increment(&encounter->compatibility_round);
   }
@@ -1143,8 +1126,8 @@ static bool register_encounter_round_event_type(void)
   return true;
 }
 
-static struct event_runtime_handle
-create_round_event(struct combat_encounter_data *encounter, uint64_t delay)
+static struct event_runtime_handle create_round_event(struct combat_encounter_data *encounter,
+                                                      uint64_t delay)
 {
   struct combat_encounter_event_payload *payload;
   struct game_event_owner owner;
@@ -1161,9 +1144,8 @@ create_round_event(struct combat_encounter_data *encounter, uint64_t delay)
   owner.kind = GAME_EVENT_OWNER_ENCOUNTER;
   owner.runtime_id = encounter->id;
   owner.generation = encounter->generation;
-  if (event_runtime_schedule_owned_after(encounter_round_event_type, owner,
-                                         (game_tick_t)delay, payload,
-                                         &handle) != GAME_SCHEDULER_OK)
+  if (event_runtime_schedule_owned_after(encounter_round_event_type, owner, (game_tick_t)delay,
+                                         payload, &handle) != GAME_SCHEDULER_OK)
   {
     free(payload);
     counter_increment(&cumulative_stats.admission_failures);
@@ -1237,8 +1219,7 @@ void combat_encounter_leave(struct char_data *character,
     return;
   participant = character->combat_encounter_participant;
   encounter = participant->encounter;
-  if (reason != COMBAT_ENCOUNTER_DEPARTURE_DIED &&
-      reason != COMBAT_ENCOUNTER_DEPARTURE_EXTRACTED)
+  if (reason != COMBAT_ENCOUNTER_DEPARTURE_DIED && reason != COMBAT_ENCOUNTER_DEPARTURE_EXTRACTED)
     restore_semantic_action_events(participant);
   participant->active = false;
   participant->pending_activation = false;
@@ -1247,8 +1228,7 @@ void combat_encounter_leave(struct char_data *character,
   character->combat_encounter = NULL;
   character->combat_encounter_participant = NULL;
   counter_increment(&cumulative_stats.participants_left);
-  if (reason >= COMBAT_ENCOUNTER_DEPARTURE_STOPPED &&
-      reason < COMBAT_ENCOUNTER_DEPARTURE_COUNT)
+  if (reason >= COMBAT_ENCOUNTER_DEPARTURE_STOPPED && reason < COMBAT_ENCOUNTER_DEPARTURE_COUNT)
     counter_increment(&cumulative_stats.departure_counts[reason]);
   if (!encounter->resolving)
     detach_participant(encounter, participant);
@@ -1277,8 +1257,7 @@ bool combat_encounter_semantic_manages(const struct char_data *character)
          (participant->active || participant->pending_activation);
 }
 
-bool combat_encounter_action_query(struct char_data *character, action_type action,
-                                   bool *available)
+bool combat_encounter_action_query(struct char_data *character, action_type action, bool *available)
 {
   struct combat_encounter_participant *participant;
 
@@ -1289,8 +1268,7 @@ bool combat_encounter_action_query(struct char_data *character, action_type acti
   return true;
 }
 
-bool combat_encounter_action_consume(struct char_data *character, action_type action,
-                                     int duration)
+bool combat_encounter_action_consume(struct char_data *character, action_type action, int duration)
 {
   struct combat_encounter_participant *participant;
   uint64_t ready_turn;
@@ -1334,8 +1312,7 @@ bool combat_encounter_reaction_try_use(struct char_data *character, unsigned int
     return false;
   if (managed != NULL)
     *managed = true;
-  if (participant->reactions_used >= 0 &&
-      (unsigned int)participant->reactions_used >= limit)
+  if (participant->reactions_used >= 0 && (unsigned int)participant->reactions_used >= limit)
     return false;
   participant->reactions_used++;
   GET_TOTAL_AOO(character) = participant->reactions_used;
@@ -1400,8 +1377,7 @@ static void handle_character_moved(const struct domain_event_context *context,
     combat_encounter_leave(character, COMBAT_ENCOUNTER_DEPARTURE_MOVED);
 }
 
-static void handle_character_died(const struct domain_event_context *context,
-                                  void *handler_context)
+static void handle_character_died(const struct domain_event_context *context, void *handler_context)
 {
   const struct domain_character_died *event = context->payload;
   struct char_data *character;
@@ -1437,10 +1413,10 @@ static void handle_entity_extracted(const struct domain_event_context *context,
 enum domain_event_status combat_encounter_runtime_init(struct domain_event_bus *bus)
 {
   static const struct domain_event_handler_config handlers[] = {
-      {DOMAIN_EVENT_CHARACTER_MOVED, "combat-encounter-character-moved", 20,
-       handle_character_moved, NULL},
-      {DOMAIN_EVENT_CHARACTER_DIED, "combat-encounter-character-died", 20,
-       handle_character_died, NULL},
+      {DOMAIN_EVENT_CHARACTER_MOVED, "combat-encounter-character-moved", 20, handle_character_moved,
+       NULL},
+      {DOMAIN_EVENT_CHARACTER_DIED, "combat-encounter-character-died", 20, handle_character_died,
+       NULL},
       {DOMAIN_EVENT_ENTITY_EXTRACTED, "combat-encounter-entity-extracted", 20,
        handle_entity_extracted, NULL},
   };
@@ -1454,9 +1430,8 @@ enum domain_event_status combat_encounter_runtime_init(struct domain_event_bus *
   for (index = 0; index < COMBAT_ENCOUNTER_MAX_ACTIVE; index++)
   {
     encounter_slots[index].generation = 1U;
-    encounter_slots[index].next_free = index + 1U < COMBAT_ENCOUNTER_MAX_ACTIVE
-                                           ? (uint32_t)(index + 1U)
-                                           : UINT32_MAX;
+    encounter_slots[index].next_free =
+        index + 1U < COMBAT_ENCOUNTER_MAX_ACTIVE ? (uint32_t)(index + 1U) : UINT32_MAX;
   }
   free_slot_head = 0U;
   encounter_registry = NULL;
@@ -1471,10 +1446,10 @@ enum domain_event_status combat_encounter_runtime_init(struct domain_event_bus *
   if (encounter_mode && !register_encounter_round_event_type())
     return DOMAIN_EVENT_BUSY;
   initialized = true;
-  log("Combat round scheduling: %s.",
-      !encounter_mode ? "legacy character events"
-                      : semantic_rounds ? "encounter-owned six-second semantic rounds"
-                                        : "encounter-owned compatibility phases");
+  log("Combat round scheduling: %s.", !encounter_mode ? "legacy character events"
+                                      : semantic_rounds
+                                          ? "encounter-owned six-second semantic rounds"
+                                          : "encounter-owned compatibility phases");
   if (!encounter_mode || bus == NULL)
     return DOMAIN_EVENT_OK;
   for (index = 0; index < sizeof(handlers) / sizeof(handlers[0]); index++)
@@ -1532,9 +1507,10 @@ void combat_encounter_get_stats(struct combat_encounter_stats *stats)
     stats->compatibility_mismatches++;
 }
 
-bool combat_encounter_get_initiative(
-    const struct char_data *viewer, struct combat_encounter_initiative_entry *entries,
-    size_t capacity, struct combat_encounter_initiative_snapshot *snapshot)
+bool combat_encounter_get_initiative(const struct char_data *viewer,
+                                     struct combat_encounter_initiative_entry *entries,
+                                     size_t capacity,
+                                     struct combat_encounter_initiative_snapshot *snapshot)
 {
   struct combat_encounter_data *encounter;
   struct combat_encounter_participant *participant;
@@ -1555,8 +1531,7 @@ bool combat_encounter_get_initiative(
   snapshot->pulses_until_round = encounter->next_round_due > (uint64_t)pulse
                                      ? encounter->next_round_due - (uint64_t)pulse
                                      : 0U;
-  for (participant = encounter->due_head; participant != NULL;
-       participant = participant->due_next)
+  for (participant = encounter->due_head; participant != NULL; participant = participant->due_next)
   {
     if (!participant->active || participant->departing || participant->character == NULL)
       continue;

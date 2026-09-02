@@ -84,13 +84,13 @@ void combat_encounter_leave(struct char_data *character,
 void combat_encounter_forget_character(struct char_data *character,
                                        enum combat_encounter_departure_reason reason);
 void combat_encounter_get_stats(struct combat_encounter_stats *stats);
-bool combat_encounter_get_initiative(
-    const struct char_data *viewer, struct combat_encounter_initiative_entry *entries,
-    size_t capacity, struct combat_encounter_initiative_snapshot *snapshot);
+bool combat_encounter_get_initiative(const struct char_data *viewer,
+                                     struct combat_encounter_initiative_entry *entries,
+                                     size_t capacity,
+                                     struct combat_encounter_initiative_snapshot *snapshot);
 bool combat_encounter_action_query(struct char_data *character, action_type action,
                                    bool *available);
-bool combat_encounter_action_consume(struct char_data *character, action_type action,
-                                     int duration);
+bool combat_encounter_action_consume(struct char_data *character, action_type action, int duration);
 bool combat_encounter_intent_claim(struct char_data *character);
 bool combat_encounter_reaction_try_use(struct char_data *character, unsigned int limit,
                                        bool *managed);

@@ -339,11 +339,11 @@ struct mud_event_data
     defined(LUMINARI_EVENT_ROLLBACK_TESTS)
   event_handle_t rollback_handle; /***< Temporary physical-legacy fallback. */
 #endif
-  event_id iId;         /***< General ID reference */
-  void *pStruct;        /***< Pointer to NULL, Descriptor, Character .... */
-  char *sVariables;     /***< String variable */
+  event_id iId;                  /***< General ID reference */
+  void *pStruct;                 /***< Pointer to NULL, Descriptor, Character .... */
+  char *sVariables;              /***< String variable */
   struct game_event_owner owner; /***< Stable scheduler owner handle. */
-  bool owner_detached;  /***< Owner list was detached before deferred cleanup. */
+  bool owner_detached;           /***< Owner list was detached before deferred cleanup. */
 };
 
 struct mud_event_persistence_policy
@@ -377,12 +377,9 @@ const char *mud_event_storage_class_name(enum mud_event_storage_class storage_cl
 const char *mud_event_restore_status_name(enum mud_event_restore_status status);
 bool mud_event_legacy_persistence_writer_enabled(void);
 bool mud_event_make_durable_record(struct char_data *ch, struct mud_event_data *pMudEvent,
-                                   int64_t saved_at_epoch,
-                                   struct mud_event_durable_record *record);
-enum mud_event_restore_status
-mud_event_restore_character_record(struct char_data *ch,
-                                   const struct mud_event_durable_record *record,
-                                   int64_t now_epoch);
+                                   int64_t saved_at_epoch, struct mud_event_durable_record *record);
+enum mud_event_restore_status mud_event_restore_character_record(
+    struct char_data *ch, const struct mud_event_durable_record *record, int64_t now_epoch);
 struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sVariables);
 void attach_mud_event(struct mud_event_data *pMudEvent, long time);
 bool mud_event_is_live(const struct mud_event_data *pMudEvent);

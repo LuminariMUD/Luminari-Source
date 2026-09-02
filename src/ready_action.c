@@ -112,8 +112,7 @@ static void ready_execution_cleanup(void *payload)
   free(payload);
 }
 
-static struct game_event_result
-ready_execution_callback(const struct game_event_context *context)
+static struct game_event_result ready_execution_callback(const struct game_event_context *context)
 {
   struct ready_execution *execution = context != NULL ? context->payload : NULL;
   struct domain_event_bus *bus = domain_event_runtime_bus();
@@ -152,8 +151,7 @@ bool ready_action_runtime_init(void)
   status = event_runtime_register_type(&config, &ready_execution_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'action.ready.execute' (status %d).",
-        status);
+    log("SYSERR: unable to register native event type 'action.ready.execute' (status %d).", status);
     return false;
   }
   return true;
@@ -173,8 +171,7 @@ static bool target_matches(const struct ready_action *action, struct char_data *
   return isname(action->target, entrant->player.name) != 0;
 }
 
-static void ready_entry_handler(const struct domain_event_context *context,
-                                void *handler_context)
+static void ready_entry_handler(const struct domain_event_context *context, void *handler_context)
 {
   const struct domain_character_moved *moved = context->payload;
   struct ready_action *action = handler_context;
@@ -187,8 +184,7 @@ static void ready_entry_handler(const struct domain_event_context *context,
   owner = resolve_character(context->bus, action->owner);
   entrant = resolve_character(context->bus, moved->character);
   if (owner == NULL || owner->ready_action != action || entrant == NULL || entrant == owner ||
-      !domain_entity_handle_equal(moved->to_room, action->room) ||
-      !target_matches(action, entrant))
+      !domain_entity_handle_equal(moved->to_room, action->room) || !target_matches(action, entrant))
     return;
   execution = calloc(1U, sizeof(*execution));
   if (execution == NULL)
@@ -202,8 +198,8 @@ static void ready_entry_handler(const struct domain_event_context *context,
   snprintf(execution->command, sizeof(execution->command), "%s", action->command);
   event_owner = ready_owner(action->owner);
   event_handle = EVENT_RUNTIME_HANDLE_NONE;
-  if (event_runtime_schedule_owned_after(ready_execution_event_type, event_owner, 1U,
-                                         execution, &event_handle) != GAME_SCHEDULER_OK)
+  if (event_runtime_schedule_owned_after(ready_execution_event_type, event_owner, 1U, execution,
+                                         &event_handle) != GAME_SCHEDULER_OK)
   {
     free(execution);
     send_to_char(owner, "Your readied action could not be triggered.\r\n");
@@ -225,8 +221,7 @@ static void ready_movement_handler(const struct domain_event_context *context,
     cancel_action(action, true);
 }
 
-static void ready_death_handler(const struct domain_event_context *context,
-                                void *handler_context)
+static void ready_death_handler(const struct domain_event_context *context, void *handler_context)
 {
   const struct domain_character_died *died = context->payload;
   struct ready_action *action = handler_context;
@@ -399,8 +394,7 @@ ACMD(do_ready)
     return;
   }
   if (action->target != NULL)
-    send_to_char(ch, "You ready '%s' for when %s enters.\r\n", action->command,
-                 action->target);
+    send_to_char(ch, "You ready '%s' for when %s enters.\r\n", action->command, action->target);
   else
     send_to_char(ch, "You ready '%s' for the next arrival.\r\n", action->command);
 }

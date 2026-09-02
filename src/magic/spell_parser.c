@@ -6648,8 +6648,8 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   /* converted Realms of Luminari skills, driven by feats */
   skillo(SKILL_SHADOW, "shadow", ACTIVE_SKILL);
   skillo(SKILL_CALM, "calm", ACTIVE_SKILL);
-  spello(SKILL_CAMP, "establish camp", 0, 0, 0, 0, 0, 0, 0,
-         "The camp has weathered away.", 0, 0, ACTIVE_SKILL, FALSE);
+  spello(SKILL_CAMP, "establish camp", 0, 0, 0, 0, 0, 0, 0, "The camp has weathered away.", 0, 0,
+         ACTIVE_SKILL, FALSE);
   skillo(SKILL_GARROTE, "garrote", ACTIVE_SKILL);
   skillo(SKILL_ACCOMPANY, "accompany", ACTIVE_SKILL);
 

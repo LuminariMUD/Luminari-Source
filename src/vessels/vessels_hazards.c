@@ -776,12 +776,11 @@ void vessel_encounter_tick_one(struct greyhawk_ship_data *ship)
     return;
 
   ship_room = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
-  if (vessel_encounter_room_is_claimed(ship_room, encounter_claimed_rooms,
-                                       encounter_claimed_count))
+  if (vessel_encounter_room_is_claimed(ship_room, encounter_claimed_rooms, encounter_claimed_count))
     return;
 
-  region_index = vessel_encounter_cached_room_index(ship_room, encounter_region_rooms,
-                                                     encounter_region_count);
+  region_index =
+      vessel_encounter_cached_room_index(ship_room, encounter_region_rooms, encounter_region_count);
   if (region_index >= 0)
   {
     in_region = encounter_region_found[region_index];
@@ -836,7 +835,7 @@ void vessel_encounter_tick_one(struct greyhawk_ship_data *ship)
     }
 
     recipient_count = vessel_broadcast_encounter(ship_room, ship, definition->warn_message,
-                                                  definition->arrive_message, definition->name);
+                                                 definition->arrive_message, definition->name);
     log("Info: Shared encounter '%s' in room %d from ship %d notified %d vessels in region %d",
         definition->name[0] ? definition->name : "?", ship_room, ship->shipnum, recipient_count,
         region_vnum);

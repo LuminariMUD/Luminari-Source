@@ -968,10 +968,10 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
     mobile_gate =
         mobile_call != NULL ? strstr(mobile_call, "if (!(heart_pulse % PULSE_MOBILE))") : NULL;
     proc_call = mobile_gate != NULL ? strstr(mobile_gate, "proc_update();") : NULL;
-    autoproc_gate = mobile_gate != NULL ? strstr(mobile_gate, "if (!periodic_autoproc_enabled())") : NULL;
-    avernus_call = mobile_gate != NULL
-                       ? strstr(mobile_gate, "rol_avernus_process_garden_activity();")
-                       : NULL;
+    autoproc_gate =
+        mobile_gate != NULL ? strstr(mobile_gate, "if (!periodic_autoproc_enabled())") : NULL;
+    avernus_call =
+        mobile_gate != NULL ? strstr(mobile_gate, "rol_avernus_process_garden_activity();") : NULL;
     event_process_call = strstr(source, "event_process_compatibility_pulse();");
     dg_gate = event_process_call != NULL
                   ? strstr(event_process_call, "if (!(heart_pulse % PULSE_DG_SCRIPT)")
@@ -979,25 +979,24 @@ void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
     dg_rollback = dg_gate != NULL ? strstr(dg_gate, "!periodic_dg_random_enabled()") : NULL;
     violence_gate =
         mobile_gate != NULL ? strstr(mobile_gate, "if (!(heart_pulse % PULSE_VIOLENCE))") : NULL;
-    affected_gate =
-        violence_gate != NULL ? strstr(violence_gate, "if (!affected_owner_events_enabled())") : NULL;
+    affected_gate = violence_gate != NULL
+                        ? strstr(violence_gate, "if (!affected_owner_events_enabled())")
+                        : NULL;
     affect_call = affected_gate != NULL ? strstr(affected_gate, "affect_update();") : NULL;
     d20_call = violence_gate != NULL ? strstr(violence_gate, "proc_d20_round();") : NULL;
     character_gate = strstr(source, "!character_periodic_events_enabled()");
     psp_call = character_gate != NULL ? strstr(source, "regen_psp();") : NULL;
     walk_call = psp_call != NULL ? strstr(psp_call, "process_walkto_actions();") : NULL;
-    bard_call =
-        walk_call != NULL ? strstr(walk_call, "advance_legacy_bardic_performers();") : NULL;
+    bard_call = walk_call != NULL ? strstr(walk_call, "advance_legacy_bardic_performers();") : NULL;
     hint_call = bard_call != NULL ? strstr(bard_call, "show_hints();") : NULL;
-    character_rollback_matches = character_gate != NULL && psp_call != NULL &&
-                                 walk_call != NULL && bard_call != NULL && hint_call != NULL;
-    pulse_order_matches = mobile_call != NULL && mobile_gate != NULL && autoproc_gate != NULL &&
-                          proc_call != NULL && avernus_call != NULL && violence_gate != NULL &&
-                          affected_gate != NULL && affect_call != NULL && d20_call != NULL &&
-                          dg_gate != NULL && dg_rollback != NULL && mobile_call < proc_call &&
-                          autoproc_gate < proc_call && proc_call < avernus_call &&
-                          avernus_call < violence_gate && affected_gate < affect_call &&
-                          affect_call < d20_call;
+    character_rollback_matches = character_gate != NULL && psp_call != NULL && walk_call != NULL &&
+                                 bard_call != NULL && hint_call != NULL;
+    pulse_order_matches =
+        mobile_call != NULL && mobile_gate != NULL && autoproc_gate != NULL && proc_call != NULL &&
+        avernus_call != NULL && violence_gate != NULL && affected_gate != NULL &&
+        affect_call != NULL && d20_call != NULL && dg_gate != NULL && dg_rollback != NULL &&
+        mobile_call < proc_call && autoproc_gate < proc_call && proc_call < avernus_call &&
+        avernus_call < violence_gate && affected_gate < affect_call && affect_call < d20_call;
   }
   free(source);
 
@@ -1047,8 +1046,9 @@ void Test_spec_mixed_owner_pulses_have_independent_rollback_gates(CuTest *tc)
                         : NULL;
     affected_term =
         luminari_gate != NULL ? strstr(luminari_gate, "!affected_owner_events_enabled()") : NULL;
-    character_term =
-        luminari_gate != NULL ? strstr(luminari_gate, "!character_periodic_events_enabled()") : NULL;
+    character_term = luminari_gate != NULL
+                         ? strstr(luminari_gate, "!character_periodic_events_enabled()")
+                         : NULL;
     round_gate = strstr(comm_source, "if (!(heart_pulse % (6 * PASSES_PER_SEC)) &&");
     round_character_term =
         round_gate != NULL ? strstr(round_gate, "!character_periodic_events_enabled()") : NULL;
@@ -1071,11 +1071,11 @@ void Test_spec_mixed_owner_pulses_have_independent_rollback_gates(CuTest *tc)
     wrapper_contract = room_legacy_gate != NULL && room_legacy_loop != NULL &&
                        character_legacy_gate != NULL && character_legacy_loop != NULL;
 
-    movement_contract = strstr(runtime_source, "character_periodic_register_handlers(runtime_bus)") !=
-                            NULL &&
-                        strstr(periodic_source, "DOMAIN_EVENT_CHARACTER_MOVED") != NULL &&
-                        strstr(periodic_source, "character_periodic_sync(ch);") != NULL &&
-                        strstr(handler_source, "domain_event_runtime_character_moved(") != NULL;
+    movement_contract =
+        strstr(runtime_source, "character_periodic_register_handlers(runtime_bus)") != NULL &&
+        strstr(periodic_source, "DOMAIN_EVENT_CHARACTER_MOVED") != NULL &&
+        strstr(periodic_source, "character_periodic_sync(ch);") != NULL &&
+        strstr(handler_source, "domain_event_runtime_character_moved(") != NULL;
   }
 
   free(comm_source);

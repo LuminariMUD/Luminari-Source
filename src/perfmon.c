@@ -50,10 +50,10 @@ static const char *PERF_event_mode_name(bool scheduled)
  * CONSTANTS
  * ======================================================================== */
 
-#define MAX_PROF_SECTIONS 2000        /* Maximum number of profiling sections */
-#define USEC_PER_SEC 1000000          /* Microseconds per second */
-#define PROF_SAMPLE_CAPACITY 16384    /* Per-section rolling percentile window */
-#define EVENT_PROFILE_CAPACITY 512    /* Fixed callback identity registry */
+#define MAX_PROF_SECTIONS 2000     /* Maximum number of profiling sections */
+#define USEC_PER_SEC 1000000       /* Microseconds per second */
+#define PROF_SAMPLE_CAPACITY 16384 /* Per-section rolling percentile window */
+#define EVENT_PROFILE_CAPACITY 512 /* Fixed callback identity registry */
 #define EVENT_PROFILE_NAME_SIZE PERF_EVENT_IDENTITY_SIZE
 #define EVENT_PROFILE_REPORT_LIMIT 16 /* Maximum callback rows per report */
 #define EVENT_SAMPLE_CAPACITY 1024    /* Per-callback rolling latency window */
@@ -1427,8 +1427,8 @@ void PERF_get_event_summary(struct PERF_event_summary *summary)
   summary->process_calls = total_event_process_stats.calls;
   summary->callbacks = total_event_process_stats.callbacks_processed;
   summary->current_depth = total_event_process_stats.latest_depth;
-  summary->high_water_depth = MAX(total_event_process_stats.max_depth_before,
-                                  total_event_process_stats.max_depth_after);
+  summary->high_water_depth =
+      MAX(total_event_process_stats.max_depth_before, total_event_process_stats.max_depth_after);
   summary->maximum_batch = total_event_process_stats.max_callbacks_per_call;
   summary->scheduled = total_event_lifecycle_stats.scheduled;
   summary->cancelled = total_event_lifecycle_stats.cancelled;
@@ -2637,35 +2637,30 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
         snprintf(out_buf + written, n - written,
                  "Autoproc owners: mode=%s members=%zu scheduled=%zu limit=%zu rejected=%" PRIu64
                  " callbacks=%" PRIu64 " validation_mismatch=%zu\n\r",
-                 PERF_event_mode_name(periodic_autoproc_enabled()),
-                 autoproc_registry_count(), periodic_autoproc_scheduled_count(),
-                 periodic_autoproc_admission_limit(), periodic_autoproc_admission_rejections(),
-                 periodic_autoproc_callbacks(), autoproc_registry_validate()),
+                 PERF_event_mode_name(periodic_autoproc_enabled()), autoproc_registry_count(),
+                 periodic_autoproc_scheduled_count(), periodic_autoproc_admission_limit(),
+                 periodic_autoproc_admission_rejections(), periodic_autoproc_callbacks(),
+                 autoproc_registry_validate()),
         n - written);
   if (!csv && written < n - 1)
     written += bounded_format_length(
-        snprintf(out_buf + written, n - written,
-                 "DG random owners: mode=%s mob=%zu/%zu/%zu obj=%zu/%zu/%zu "
-                 "room=%zu/%zu/%zu (members/scheduled/mismatch) limit=%zu rejected=%" PRIu64
-                 " callbacks=%" PRIu64 "/%" PRIu64 "/%" PRIu64
-                 " executions=%" PRIu64 "/%" PRIu64 "/%" PRIu64 "\n\r",
-                 PERF_event_mode_name(periodic_dg_random_enabled()),
-                 dg_random_registry_count(MOB_TRIGGER),
-                 periodic_dg_random_scheduled_count(MOB_TRIGGER),
-                 dg_random_registry_validate(MOB_TRIGGER),
-                 dg_random_registry_count(OBJ_TRIGGER),
-                 periodic_dg_random_scheduled_count(OBJ_TRIGGER),
-                 dg_random_registry_validate(OBJ_TRIGGER),
-                 dg_random_registry_count(WLD_TRIGGER),
-                 periodic_dg_random_scheduled_count(WLD_TRIGGER),
-                 dg_random_registry_validate(WLD_TRIGGER), periodic_dg_random_admission_limit(),
-                 periodic_dg_random_admission_rejections(),
-                 periodic_dg_random_callbacks(MOB_TRIGGER),
-                 periodic_dg_random_callbacks(OBJ_TRIGGER),
-                 periodic_dg_random_callbacks(WLD_TRIGGER),
-                 periodic_dg_random_executions(MOB_TRIGGER),
-                 periodic_dg_random_executions(OBJ_TRIGGER),
-                 periodic_dg_random_executions(WLD_TRIGGER)),
+        snprintf(
+            out_buf + written, n - written,
+            "DG random owners: mode=%s mob=%zu/%zu/%zu obj=%zu/%zu/%zu "
+            "room=%zu/%zu/%zu (members/scheduled/mismatch) limit=%zu rejected=%" PRIu64
+            " callbacks=%" PRIu64 "/%" PRIu64 "/%" PRIu64 " executions=%" PRIu64 "/%" PRIu64
+            "/%" PRIu64 "\n\r",
+            PERF_event_mode_name(periodic_dg_random_enabled()),
+            dg_random_registry_count(MOB_TRIGGER), periodic_dg_random_scheduled_count(MOB_TRIGGER),
+            dg_random_registry_validate(MOB_TRIGGER), dg_random_registry_count(OBJ_TRIGGER),
+            periodic_dg_random_scheduled_count(OBJ_TRIGGER),
+            dg_random_registry_validate(OBJ_TRIGGER), dg_random_registry_count(WLD_TRIGGER),
+            periodic_dg_random_scheduled_count(WLD_TRIGGER),
+            dg_random_registry_validate(WLD_TRIGGER), periodic_dg_random_admission_limit(),
+            periodic_dg_random_admission_rejections(), periodic_dg_random_callbacks(MOB_TRIGGER),
+            periodic_dg_random_callbacks(OBJ_TRIGGER), periodic_dg_random_callbacks(WLD_TRIGGER),
+            periodic_dg_random_executions(MOB_TRIGGER), periodic_dg_random_executions(OBJ_TRIGGER),
+            periodic_dg_random_executions(WLD_TRIGGER)),
         n - written);
   if (!csv && written < n - 1)
     written += bounded_format_length(
@@ -2677,41 +2672,38 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  "  char work: callbacks=%" PRIu64 " affects=%" PRIu64 "\n\r"
                  "  room work: callbacks=%" PRIu64 " affects=%" PRIu64 "\n\r"
                  "  room behavior: runs=%" PRIu64 " affects=%" PRIu64 "\n\r",
-                 PERF_event_mode_name(affected_owner_events_enabled()),
-                 affected_registry_count(), affected_character_scheduled_count(),
-                 affected_registry_validate(), affected_room_owner_count(),
-                 affected_room_scheduled_count(), affected_room_registry_validate(),
-                 affected_character_admission_limit(), affected_room_admission_limit(),
-                 affected_owner_admission_rejections(), affected_character_callbacks(),
-                 affected_character_nodes_processed(), affected_room_callbacks(),
-                 affected_room_nodes_processed(), affected_room_behavior_executions(),
-                 affected_room_behavior_nodes_processed()),
+                 PERF_event_mode_name(affected_owner_events_enabled()), affected_registry_count(),
+                 affected_character_scheduled_count(), affected_registry_validate(),
+                 affected_room_owner_count(), affected_room_scheduled_count(),
+                 affected_room_registry_validate(), affected_character_admission_limit(),
+                 affected_room_admission_limit(), affected_owner_admission_rejections(),
+                 affected_character_callbacks(), affected_character_nodes_processed(),
+                 affected_room_callbacks(), affected_room_nodes_processed(),
+                 affected_room_behavior_executions(), affected_room_behavior_nodes_processed()),
         n - written);
   if (!csv && written < n - 1)
     written += bounded_format_length(
-        snprintf(out_buf + written, n - written,
-                 "Character owners: %s\n\r"
-                 "  registry: members=%zu scheduled=%zu\n\r"
-                 "  validation: mismatch=%zu\n\r"
-                 "  capacity: limit=%zu rejected=%" PRIu64 "\n\r"
-                 "  callbacks: owners=%" PRIu64 "\n\r"
-                 "  work: walk=%" PRIu64 " psp=%" PRIu64 "\n\r"
-                 "  work: luminari=%" PRIu64 " damage=%" PRIu64 "\n\r"
-                 "  work: player-misc=%" PRIu64 "\n\r"
-                 "  work: d20=%" PRIu64 " devices=%" PRIu64 " quests=%" PRIu64 "\n\r"
-                 "  work: bard=%" PRIu64 " hints=%" PRIu64 "\n\r",
-                 PERF_event_mode_name(character_periodic_events_enabled()),
-                 character_periodic_owner_count(), character_periodic_scheduled_count(),
-                 character_periodic_registry_validate(), character_periodic_admission_limit(),
-                 character_periodic_admission_rejections(), character_periodic_callbacks(),
-                 character_periodic_walk_executions(), character_periodic_psp_executions(),
-                 character_periodic_luminari_executions(),
-                 character_periodic_damage_effect_executions(),
-                 character_periodic_player_misc_executions(),
-                 character_periodic_d20_round_executions(),
-                 character_periodic_device_executions(),
-                 character_periodic_timed_quest_executions(),
-                 character_periodic_bardic_executions(), character_periodic_hint_executions()),
+        snprintf(
+            out_buf + written, n - written,
+            "Character owners: %s\n\r"
+            "  registry: members=%zu scheduled=%zu\n\r"
+            "  validation: mismatch=%zu\n\r"
+            "  capacity: limit=%zu rejected=%" PRIu64 "\n\r"
+            "  callbacks: owners=%" PRIu64 "\n\r"
+            "  work: walk=%" PRIu64 " psp=%" PRIu64 "\n\r"
+            "  work: luminari=%" PRIu64 " damage=%" PRIu64 "\n\r"
+            "  work: player-misc=%" PRIu64 "\n\r"
+            "  work: d20=%" PRIu64 " devices=%" PRIu64 " quests=%" PRIu64 "\n\r"
+            "  work: bard=%" PRIu64 " hints=%" PRIu64 "\n\r",
+            PERF_event_mode_name(character_periodic_events_enabled()),
+            character_periodic_owner_count(), character_periodic_scheduled_count(),
+            character_periodic_registry_validate(), character_periodic_admission_limit(),
+            character_periodic_admission_rejections(), character_periodic_callbacks(),
+            character_periodic_walk_executions(), character_periodic_psp_executions(),
+            character_periodic_luminari_executions(), character_periodic_damage_effect_executions(),
+            character_periodic_player_misc_executions(), character_periodic_d20_round_executions(),
+            character_periodic_device_executions(), character_periodic_timed_quest_executions(),
+            character_periodic_bardic_executions(), character_periodic_hint_executions()),
         n - written);
   if (!csv && written < n - 1)
     written += bounded_format_length(
@@ -2772,8 +2764,7 @@ size_t PERF_entities_repr(char *out_buf, size_t n, int csv)
                  active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION),
                  active_world_mobile_reason_count(MOBILE_WORK_COMBAT_REACTION),
                  active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY),
-                 active_world_mobile_admission_limit(),
-                 active_world_mobile_admission_rejections(),
+                 active_world_mobile_admission_limit(), active_world_mobile_admission_rejections(),
                  active_world_mobile_callbacks()),
         n - written);
   return written;

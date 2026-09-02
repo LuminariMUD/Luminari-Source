@@ -152,10 +152,9 @@ void Test_i3_reconnect_backoff_is_bounded(CuTest *tc)
 
 void Test_i3_ingress_stats_report_depth_high_water_and_rejections(CuTest *tc)
 {
-  static const char *notification =
-      "{\"jsonrpc\":\"2.0\",\"method\":\"tell_received\",\"params\":{"
-      "\"from_user\":\"Tester\",\"from_mud\":\"Elsewhere\","
-      "\"to_user\":\"Nobody\",\"message\":\"hello\"}}";
+  static const char *notification = "{\"jsonrpc\":\"2.0\",\"method\":\"tell_received\",\"params\":{"
+                                    "\"from_user\":\"Tester\",\"from_mud\":\"Elsewhere\","
+                                    "\"to_user\":\"Nobody\",\"message\":\"hello\"}}";
   struct i3_ingress_stats stats;
 
   i3_get_ingress_stats(&stats);

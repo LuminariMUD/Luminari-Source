@@ -87,8 +87,7 @@ void Test_command_dispatch_lookup(CuTest *tc)
   CuAssertTrue(tc, help_command >= 0);
   CuAssertTrue(tc, look_command != help_command);
   CuAssertTrue(tc, eventdebug_command >= 0);
-  CuAssertIntEquals(tc, LVL_IMMORT,
-                    complete_cmd_info[eventdebug_command].minimum_level);
+  CuAssertIntEquals(tc, LVL_IMMORT, complete_cmd_info[eventdebug_command].minimum_level);
   CuAssertTrue(tc, inventory_command >= 0);
   CuAssertTrue(tc, initiative_command >= 0);
   CuAssertTrue(tc, inventory_command < initiative_command);
@@ -341,10 +340,9 @@ void Test_vessel_commands_are_registered_for_runtime_gating(CuTest *tc)
 
 void Test_activity_command_metadata_keeps_status_and_communication_responsive(CuTest *tc)
 {
-  static const char *information[] = {"abilities", "cooldowns", "craftscore", "exits",
-                                      "feats", "resistances", "spelllist", "time",
-                                      "tnl", "weather", "where", "wearapplies",
-                                      "wearlocations"};
+  static const char *information[] = {
+      "abilities", "cooldowns", "craftscore", "exits", "feats",       "resistances",  "spelllist",
+      "time",      "tnl",       "weather",    "where", "wearapplies", "wearlocations"};
   static const char *speech[] = {"'", "ct", "emote", "grats", "greport", "say", "tell"};
   bool created_command_list = false;
   size_t index;
@@ -359,20 +357,17 @@ void Test_activity_command_metadata_keeps_status_and_communication_responsive(Cu
   {
     command = find_command(information[index]);
     CuAssertTrue(tc, command >= 0);
-    CuAssertTrue(tc, complete_cmd_info[command].feature_flags &
-                         CMD_FEATURE_ACTIVITY_INFORMATION);
+    CuAssertTrue(tc, complete_cmd_info[command].feature_flags & CMD_FEATURE_ACTIVITY_INFORMATION);
   }
   for (index = 0U; index < sizeof(speech) / sizeof(speech[0]); index++)
   {
     command = find_command(speech[index]);
     CuAssertTrue(tc, command >= 0);
-    CuAssertTrue(tc, complete_cmd_info[command].feature_flags &
-                         CMD_FEATURE_ACTIVITY_SPEECH);
+    CuAssertTrue(tc, complete_cmd_info[command].feature_flags & CMD_FEATURE_ACTIVITY_SPEECH);
   }
   command = find_command("activity");
   CuAssertTrue(tc, command >= 0);
-  CuAssertTrue(tc, complete_cmd_info[command].feature_flags &
-                       CMD_FEATURE_ACTIVITY_CONTROL);
+  CuAssertTrue(tc, complete_cmd_info[command].feature_flags & CMD_FEATURE_ACTIVITY_CONTROL);
 
   if (created_command_list)
     free_command_list();

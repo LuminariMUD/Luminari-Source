@@ -97,8 +97,7 @@ static game_event_type_id_t rol_ship_event_type;
 static uint64_t rol_next_generation = 1U;
 static uint64_t rol_periodic_callback_count;
 
-static struct game_event_result rol_ship_owner_event(
-    const struct game_event_context *context);
+static struct game_event_result rol_ship_owner_event(const struct game_event_context *context);
 
 static int rol_ship_count(void)
 {
@@ -141,27 +140,23 @@ bool rol_ship_periodic_register_event_type(void)
   status = event_runtime_register_type(&config, &rol_ship_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'vessel.rol.agenda' (status %d).",
-        status);
+    log("SYSERR: unable to register native event type 'vessel.rol.agenda' (status %d).", status);
     return false;
   }
   return true;
 }
 
-static struct game_event_result rol_ship_owner_event(
-    const struct game_event_context *context)
+static struct game_event_result rol_ship_owner_event(const struct game_event_context *context)
 {
   struct rol_ship_state *state = context != NULL ? context->payload : NULL;
   int ship_index;
 
-  if (state == NULL || state < rol_ship_states ||
-      state >= rol_ship_states + rol_ship_count())
+  if (state == NULL || state < rol_ship_states || state >= rol_ship_states + rol_ship_count())
     return game_event_result_complete();
   ship_index = (int)(state - rol_ship_states);
   rol_periodic_callback_count++;
-  if (!rol_periodic_initialized || !CONFIG_VESSEL_SYSTEM ||
-      !vessel_periodic_events_enabled() || state->hull == NULL || IN_ROOM(state->hull) == NOWHERE ||
-      IN_ROOM(state->hull) > top_of_world)
+  if (!rol_periodic_initialized || !CONFIG_VESSEL_SYSTEM || !vessel_periodic_events_enabled() ||
+      state->hull == NULL || IN_ROOM(state->hull) == NOWHERE || IN_ROOM(state->hull) > top_of_world)
   {
     if (context != NULL && state->periodic_event_handle.id == context->event_id)
       state->periodic_event_handle = EVENT_RUNTIME_HANDLE_NONE;
@@ -176,13 +171,12 @@ static void rol_ship_schedule(int ship_index)
   struct game_event_owner owner = game_event_owner_none();
   struct rol_ship_state *state;
 
-  if (!rol_periodic_initialized || !CONFIG_VESSEL_SYSTEM ||
-      !vessel_periodic_events_enabled() || ship_index < 0 || ship_index >= rol_ship_count())
+  if (!rol_periodic_initialized || !CONFIG_VESSEL_SYSTEM || !vessel_periodic_events_enabled() ||
+      ship_index < 0 || ship_index >= rol_ship_count())
     return;
   state = &rol_ship_states[ship_index];
   if (state->hull == NULL || !event_runtime_handle_is_none(state->periodic_event_handle) ||
-      IN_ROOM(state->hull) == NOWHERE ||
-      IN_ROOM(state->hull) > top_of_world)
+      IN_ROOM(state->hull) == NOWHERE || IN_ROOM(state->hull) > top_of_world)
     return;
   if (state->periodic_generation == 0U)
   {
@@ -197,9 +191,9 @@ static void rol_ship_schedule(int ship_index)
   owner.kind = GAME_EVENT_OWNER_VESSEL;
   owner.runtime_id = 0x524f4c00U + (uint64_t)ship_index + 1U;
   owner.generation = state->periodic_generation;
-  (void)event_runtime_schedule_owned_after(
-      rol_ship_event_type, owner, (game_tick_t)rol_ship_boundary_delay(), state,
-      &state->periodic_event_handle);
+  (void)event_runtime_schedule_owned_after(rol_ship_event_type, owner,
+                                           (game_tick_t)rol_ship_boundary_delay(), state,
+                                           &state->periodic_event_handle);
 }
 
 static void rol_ship_cancel(int ship_index)
@@ -273,7 +267,8 @@ static struct obj_data *rol_ship_find_hull(int ship_index)
   struct rol_ship_state *state;
 
   state = &rol_ship_states[ship_index];
-  if (state->hull != NULL && IN_ROOM(state->hull) != NOWHERE && IN_ROOM(state->hull) <= top_of_world)
+  if (state->hull != NULL && IN_ROOM(state->hull) != NOWHERE &&
+      IN_ROOM(state->hull) <= top_of_world)
     return state->hull;
   return NULL;
 }
@@ -1150,7 +1145,10 @@ size_t rol_ship_periodic_validate(void)
   return mismatches;
 }
 
-uint64_t rol_ship_periodic_callbacks(void) { return rol_periodic_callback_count; }
+uint64_t rol_ship_periodic_callbacks(void)
+{
+  return rol_periodic_callback_count;
+}
 
 static void rol_ship_call_helpers(struct char_data *navigator, int ship_index)
 {

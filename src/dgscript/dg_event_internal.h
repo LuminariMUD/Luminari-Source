@@ -52,11 +52,9 @@ struct q_element
 struct event *event_create_named(EVENTFUNC(*func), void *event_obj, long when,
                                  const char *profile_name);
 struct event *event_create_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
-                                              const char *profile_name,
-                                              event_cleanup_func cleanup);
+                                              const char *profile_name, event_cleanup_func cleanup);
 struct event *event_create_owned_named(EVENTFUNC(*func), void *event_obj, long when,
-                                       const char *profile_name,
-                                       struct game_event_owner owner);
+                                       const char *profile_name, struct game_event_owner owner);
 struct event *event_create_owned_named_with_cleanup(EVENTFUNC(*func), void *event_obj, long when,
                                                     const char *profile_name,
                                                     event_cleanup_func cleanup,

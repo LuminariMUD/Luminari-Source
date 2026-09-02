@@ -121,15 +121,13 @@ static void activity_test_observe_transition(const struct domain_event_context *
       event->current_state != PRIMARY_ACTIVITY_STATE_CANCELLED)
     return;
   fixture->terminal_transition_calls++;
-  fixture->terminal_transition_saw_activity =
-      primary_activity_snapshot(&fixture->actor, &snapshot);
+  fixture->terminal_transition_saw_activity = primary_activity_snapshot(&fixture->actor, &snapshot);
   fixture->terminal_transition_cancelled_activity =
       primary_activity_cancel(&fixture->actor, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false);
 }
 
-static void activity_test_progress(struct char_data *actor, void *target,
-                                   uint32_t completed_steps, uint32_t total_steps,
-                                   void *context)
+static void activity_test_progress(struct char_data *actor, void *target, uint32_t completed_steps,
+                                   uint32_t total_steps, void *context)
 {
   struct activity_test_context *trace = context;
 
@@ -151,8 +149,8 @@ static void activity_test_complete(struct char_data *actor, void *target, void *
   trace->completion_calls++;
 }
 
-static void activity_test_ended(struct char_data *actor,
-                                enum primary_activity_end_reason reason, void *context)
+static void activity_test_ended(struct char_data *actor, enum primary_activity_end_reason reason,
+                                void *context)
 {
   struct activity_test_context *trace = context;
 
@@ -163,9 +161,9 @@ static void activity_test_ended(struct char_data *actor,
 
 static void activity_test_begin(CuTest *tc, struct activity_test_fixture *fixture)
 {
-  struct domain_event_handler_config observer = {
-      DOMAIN_EVENT_ACTIVITY_TRANSITIONED, "test.activity.transition", -100,
-      activity_test_observe_transition, NULL};
+  struct domain_event_handler_config observer = {DOMAIN_EVENT_ACTIVITY_TRANSITIONED,
+                                                 "test.activity.transition", -100,
+                                                 activity_test_observe_transition, NULL};
   enum domain_event_status status;
 
   memset(fixture, 0, sizeof(*fixture));
@@ -194,16 +192,12 @@ static void activity_test_begin(CuTest *tc, struct activity_test_fixture *fixtur
   fixture->bus = domain_event_bus_create(NULL, &status);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, status);
   CuAssertPtrNotNull(tc, fixture->bus);
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_register_foundation_types(fixture->bus));
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_world_register_resolvers(fixture->bus));
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    primary_activity_manager_init(fixture->bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_register_foundation_types(fixture->bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_world_register_resolvers(fixture->bus));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, primary_activity_manager_init(fixture->bus));
   CuAssertTrue(tc, activity_native_type_is_registered("activity.primary.step"));
   observer.handler_context = fixture;
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_register_handler(fixture->bus, &observer));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_register_handler(fixture->bus, &observer));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(fixture->bus));
 }
 
@@ -226,11 +220,9 @@ activity_test_definition(struct activity_test_fixture *fixture)
   memset(&definition, 0, sizeof(definition));
   definition.type = PRIMARY_ACTIVITY_TEST;
   definition.display_name = "testing an activity";
-  definition.capabilities = PRIMARY_ACTIVITY_CAP_MOVEMENT |
-                            PRIMARY_ACTIVITY_CAP_ATTENTION |
+  definition.capabilities = PRIMARY_ACTIVITY_CAP_MOVEMENT | PRIMARY_ACTIVITY_CAP_ATTENTION |
                             PRIMARY_ACTIVITY_CAP_STANDARD;
-  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY |
-                      PRIMARY_ACTIVITY_TRAIT_DISTRACTED;
+  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY | PRIMARY_ACTIVITY_TRAIT_DISTRACTED;
   definition.progress_model = PRIMARY_ACTIVITY_PROGRESS_PROGRESSIVE;
   definition.progress_owner = PRIMARY_ACTIVITY_PROGRESS_CHARACTER;
   definition.total_steps = 2U;
@@ -253,12 +245,11 @@ activity_test_definition(struct activity_test_fixture *fixture)
 static bool activity_test_start(struct activity_test_fixture *fixture,
                                 const struct primary_activity_definition *definition)
 {
-  return primary_activity_start(&fixture->actor,
-                                domain_event_character_handle(&fixture->target), definition);
+  return primary_activity_start(&fixture->actor, domain_event_character_handle(&fixture->target),
+                                definition);
 }
 
-void Test_primary_activity_camp_selector_defaults_managed_and_requires_explicit_rollback(
-    CuTest *tc)
+void Test_primary_activity_camp_selector_defaults_managed_and_requires_explicit_rollback(CuTest *tc)
 {
   CuAssertTrue(tc, primary_activity_test_camp_value_is_managed(NULL));
   CuAssertTrue(tc, primary_activity_test_camp_value_is_managed(""));
@@ -294,16 +285,16 @@ void Test_primary_activity_admission_and_command_capabilities_are_explicit(CuTes
   definition = activity_test_definition(&fixture);
   CuAssertTrue(tc, activity_test_start(&fixture, &definition));
   CuAssertTrue(tc, !activity_test_start(&fixture, &definition));
-  CuAssertTrue(tc, primary_activity_command_admit(
-                       &fixture.actor, "look", PRIMARY_ACTIVITY_CAP_ATTENTION, true, false));
+  CuAssertTrue(tc, primary_activity_command_admit(&fixture.actor, "look",
+                                                  PRIMARY_ACTIVITY_CAP_ATTENTION, true, false));
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.actor, &snapshot));
-  CuAssertTrue(tc, primary_activity_command_admit(
-                       &fixture.actor, "say", PRIMARY_ACTIVITY_CAP_SPEECH, false, false));
-  CuAssertTrue(tc, !primary_activity_command_admit(
-                        &fixture.actor, "cast", PRIMARY_ACTIVITY_CAP_ATTENTION, false, false));
+  CuAssertTrue(tc, primary_activity_command_admit(&fixture.actor, "say",
+                                                  PRIMARY_ACTIVITY_CAP_SPEECH, false, false));
+  CuAssertTrue(tc, !primary_activity_command_admit(&fixture.actor, "cast",
+                                                   PRIMARY_ACTIVITY_CAP_ATTENTION, false, false));
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.actor, &snapshot));
-  CuAssertTrue(tc, primary_activity_command_admit(
-                       &fixture.actor, "north", PRIMARY_ACTIVITY_CAP_MOVEMENT, false, false));
+  CuAssertTrue(tc, primary_activity_command_admit(&fixture.actor, "north",
+                                                  PRIMARY_ACTIVITY_CAP_MOVEMENT, false, false));
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.actor, &snapshot));
   memset(&moved, 0, sizeof(moved));
   moved.character = domain_event_character_handle(&fixture.actor);
@@ -313,9 +304,8 @@ void Test_primary_activity_admission_and_command_capabilities_are_explicit(CuTes
   moved.to_room.kind = DOMAIN_ENTITY_ROOM;
   moved.to_room.runtime_id = 11U;
   moved.to_room.generation = 1U;
-  CuAssertIntEquals(
-      tc, DOMAIN_EVENT_OK,
-      DOMAIN_EVENT_PUBLISH(fixture.bus, DOMAIN_EVENT_CHARACTER_MOVED, &moved));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
+                    DOMAIN_EVENT_PUBLISH(fixture.bus, DOMAIN_EVENT_CHARACTER_MOVED, &moved));
   CuAssertTrue(tc, !primary_activity_snapshot(&fixture.actor, &snapshot));
   CuAssertIntEquals(tc, 1, (int)fixture.context.ended_calls);
   CuAssertIntEquals(tc, 0, event_queue_depth());
@@ -478,8 +468,8 @@ void Test_primary_activity_start_in_combat_honors_declared_policy(CuTest *tc)
   CuAssertTrue(tc, primary_activity_snapshot(&fixture.actor, &snapshot));
   CuAssertIntEquals(tc, PRIMARY_ACTIVITY_STATE_PAUSED, snapshot.state);
   CuAssertIntEquals(tc, 0, event_queue_depth());
-  CuAssertTrue(tc, primary_activity_cancel(&fixture.actor,
-                                           PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false));
+  CuAssertTrue(
+      tc, primary_activity_cancel(&fixture.actor, PRIMARY_ACTIVITY_END_PLAYER_CANCELLED, false));
 
   definition.combat_response = PRIMARY_ACTIVITY_RESPONSE_DELAY;
   definition.total_steps = 1U;
@@ -532,16 +522,13 @@ void Test_activity_status_wraps_for_default_mud_width(CuTest *tc)
 
   activity_test_begin(tc, &fixture);
   definition = activity_test_definition(&fixture);
-  definition.capabilities = PRIMARY_ACTIVITY_CAP_MOVEMENT | PRIMARY_ACTIVITY_CAP_HANDS |
-                            PRIMARY_ACTIVITY_CAP_ATTENTION | PRIMARY_ACTIVITY_CAP_VISION |
-                            PRIMARY_ACTIVITY_CAP_SPEECH | PRIMARY_ACTIVITY_CAP_STANDARD |
-                            PRIMARY_ACTIVITY_CAP_MOVE | PRIMARY_ACTIVITY_CAP_SWIFT |
-                            PRIMARY_ACTIVITY_CAP_IMMEDIATE;
-  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY |
-                      PRIMARY_ACTIVITY_TRAIT_DISTRACTED |
+  definition.capabilities =
+      PRIMARY_ACTIVITY_CAP_MOVEMENT | PRIMARY_ACTIVITY_CAP_HANDS | PRIMARY_ACTIVITY_CAP_ATTENTION |
+      PRIMARY_ACTIVITY_CAP_VISION | PRIMARY_ACTIVITY_CAP_SPEECH | PRIMARY_ACTIVITY_CAP_STANDARD |
+      PRIMARY_ACTIVITY_CAP_MOVE | PRIMARY_ACTIVITY_CAP_SWIFT | PRIMARY_ACTIVITY_CAP_IMMEDIATE;
+  definition.traits = PRIMARY_ACTIVITY_TRAIT_STATIONARY | PRIMARY_ACTIVITY_TRAIT_DISTRACTED |
                       PRIMARY_ACTIVITY_TRAIT_HANDS_OCCUPIED |
-                      PRIMARY_ACTIVITY_TRAIT_FINE_MANIPULATION |
-                      PRIMARY_ACTIVITY_TRAIT_OBVIOUS;
+                      PRIMARY_ACTIVITY_TRAIT_FINE_MANIPULATION | PRIMARY_ACTIVITY_TRAIT_OBVIOUS;
   CuAssertTrue(tc, activity_test_start(&fixture, &definition));
   do_activity(&fixture.actor, "", 0, 0);
 

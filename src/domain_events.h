@@ -108,8 +108,7 @@ struct domain_event_context
 
 typedef void (*domain_event_handler)(const struct domain_event_context *context,
                                      void *handler_context);
-typedef void *(*domain_entity_resolver)(struct domain_entity_handle handle,
-                                       void *resolver_context);
+typedef void *(*domain_entity_resolver)(struct domain_entity_handle handle, void *resolver_context);
 typedef uint64_t (*domain_event_usec_source)(void *clock_context);
 typedef void (*domain_event_subscription_cleanup)(void *subscription_context);
 
@@ -226,29 +225,33 @@ bool domain_entity_handle_equal(struct domain_entity_handle left,
 struct domain_event_bus *domain_event_bus_create(const struct domain_event_bus_config *config,
                                                  enum domain_event_status *status);
 enum domain_event_status domain_event_bus_destroy(struct domain_event_bus *bus);
-enum domain_event_status domain_event_register_type(
-    struct domain_event_bus *bus, const struct domain_event_type_config *config);
-enum domain_event_status domain_event_register_handler(
-    struct domain_event_bus *bus, const struct domain_event_handler_config *config);
+enum domain_event_status domain_event_register_type(struct domain_event_bus *bus,
+                                                    const struct domain_event_type_config *config);
+enum domain_event_status
+domain_event_register_handler(struct domain_event_bus *bus,
+                              const struct domain_event_handler_config *config);
 enum domain_event_status domain_event_register_resolver(struct domain_event_bus *bus,
                                                         enum domain_entity_kind kind,
                                                         domain_entity_resolver resolver,
                                                         void *resolver_context);
 enum domain_event_status domain_event_seal(struct domain_event_bus *bus);
 enum domain_event_status domain_event_publish(struct domain_event_bus *bus,
-                                              domain_event_type_id_t type,
-                                              const void *payload, size_t payload_size);
-enum domain_event_status domain_event_publish_routed(
-    struct domain_event_bus *bus, domain_event_type_id_t type,
-    const struct domain_event_topic *topics, size_t topic_count,
-    const void *payload, size_t payload_size);
-enum domain_event_status domain_event_subscribe(
-    struct domain_event_bus *bus, const struct domain_event_subscription_config *config,
-    struct domain_event_subscription_handle *handle);
-enum domain_event_status domain_event_unsubscribe(
-    struct domain_event_bus *bus, struct domain_event_subscription_handle handle);
-enum domain_event_status domain_event_unsubscribe_owner(
-    struct domain_event_bus *bus, struct domain_entity_handle owner, size_t *cancelled_count);
+                                              domain_event_type_id_t type, const void *payload,
+                                              size_t payload_size);
+enum domain_event_status domain_event_publish_routed(struct domain_event_bus *bus,
+                                                     domain_event_type_id_t type,
+                                                     const struct domain_event_topic *topics,
+                                                     size_t topic_count, const void *payload,
+                                                     size_t payload_size);
+enum domain_event_status
+domain_event_subscribe(struct domain_event_bus *bus,
+                       const struct domain_event_subscription_config *config,
+                       struct domain_event_subscription_handle *handle);
+enum domain_event_status domain_event_unsubscribe(struct domain_event_bus *bus,
+                                                  struct domain_event_subscription_handle handle);
+enum domain_event_status domain_event_unsubscribe_owner(struct domain_event_bus *bus,
+                                                        struct domain_entity_handle owner,
+                                                        size_t *cancelled_count);
 
 void *domain_event_resolve(struct domain_event_bus *bus, struct domain_entity_handle handle,
                            enum domain_entity_kind expected_kind);
@@ -257,9 +260,10 @@ void domain_event_bus_get_stats(const struct domain_event_bus *bus,
 enum domain_event_status domain_event_get_type_stats(const struct domain_event_bus *bus,
                                                      domain_event_type_id_t type,
                                                      struct domain_event_type_stats *stats);
-enum domain_event_status domain_event_get_handler_stats(
-    const struct domain_event_bus *bus, domain_event_type_id_t type, const char *identity,
-    struct domain_event_handler_stats *stats);
+enum domain_event_status domain_event_get_handler_stats(const struct domain_event_bus *bus,
+                                                        domain_event_type_id_t type,
+                                                        const char *identity,
+                                                        struct domain_event_handler_stats *stats);
 size_t domain_event_inspect_types(const struct domain_event_bus *bus,
                                   struct domain_event_type_stats *snapshots,
                                   size_t snapshot_capacity);
@@ -267,30 +271,29 @@ size_t domain_event_inspect_handlers(const struct domain_event_bus *bus,
                                      domain_event_type_id_t type,
                                      struct domain_event_handler_stats *snapshots,
                                      size_t snapshot_capacity);
-size_t domain_event_inspect_subscriptions(
-    const struct domain_event_bus *bus,
-    const struct domain_event_subscription_stats *filter,
-    struct domain_event_subscription_stats *snapshots, size_t snapshot_capacity);
-size_t domain_event_inspect_entity_subscriptions(
-    const struct domain_event_bus *bus, struct domain_entity_handle entity,
-    struct domain_event_subscription_stats *snapshots, size_t snapshot_capacity);
+size_t domain_event_inspect_subscriptions(const struct domain_event_bus *bus,
+                                          const struct domain_event_subscription_stats *filter,
+                                          struct domain_event_subscription_stats *snapshots,
+                                          size_t snapshot_capacity);
+size_t domain_event_inspect_entity_subscriptions(const struct domain_event_bus *bus,
+                                                 struct domain_entity_handle entity,
+                                                 struct domain_event_subscription_stats *snapshots,
+                                                 size_t snapshot_capacity);
 const char *domain_event_status_name(enum domain_event_status status);
 
-static inline struct domain_event_subscription_handle
-domain_event_subscription_handle_none(void)
+static inline struct domain_event_subscription_handle domain_event_subscription_handle_none(void)
 {
   struct domain_event_subscription_handle handle = {0, 0};
   return handle;
 }
 
-static inline bool domain_event_subscription_handle_is_none(
-    struct domain_event_subscription_handle handle)
+static inline bool
+domain_event_subscription_handle_is_none(struct domain_event_subscription_handle handle)
 {
   return handle.id == 0 && handle.generation == 0;
 }
 
-#define DOMAIN_EVENT_PUBLISH_ROUTED(bus, type, topics, topic_count, payload)              \
-  domain_event_publish_routed((bus), (type), (topics), (topic_count), (payload),          \
-                              sizeof(*(payload)))
+#define DOMAIN_EVENT_PUBLISH_ROUTED(bus, type, topics, topic_count, payload)                       \
+  domain_event_publish_routed((bus), (type), (topics), (topic_count), (payload), sizeof(*(payload)))
 
 #endif /* DOMAIN_EVENTS_H */

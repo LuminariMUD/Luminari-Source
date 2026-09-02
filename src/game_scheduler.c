@@ -493,8 +493,7 @@ static size_t owner_type_event_count(const struct game_event_owner_entry *entry,
   size_t count;
 
   count = 0;
-  for (event = entry != NULL ? entry->events_head : NULL; event != NULL;
-       event = event->owner_next)
+  for (event = entry != NULL ? entry->events_head : NULL; event != NULL; event = event->owner_next)
   {
     if (event->event_type == event_type)
       count++;
@@ -1448,9 +1447,9 @@ size_t game_scheduler_event_count(const struct game_scheduler *scheduler)
   return scheduler != NULL ? scheduler->event_count : 0U;
 }
 
-enum game_scheduler_status game_scheduler_type_live_count(
-    const struct game_scheduler *scheduler, game_event_type_id_t event_type,
-    size_t *live_count)
+enum game_scheduler_status game_scheduler_type_live_count(const struct game_scheduler *scheduler,
+                                                          game_event_type_id_t event_type,
+                                                          size_t *live_count)
 {
   if (scheduler == NULL || live_count == NULL)
     return GAME_SCHEDULER_INVALID_ARGUMENT;
@@ -1563,9 +1562,8 @@ static enum game_scheduler_status schedule_normalized(struct game_scheduler *sch
       owner_entry_insert(scheduler, owner_entry);
     owner_event_insert(owner_entry, event);
   }
-  event->cleanup_pending =
-      (payload != NULL || registered_type->cleanup_on_null_payload) &&
-      registered_type->cleanup != NULL;
+  event->cleanup_pending = (payload != NULL || registered_type->cleanup_on_null_payload) &&
+                           registered_type->cleanup != NULL;
   scheduler->event_count++;
   registered_type->live_events++;
   scheduler->total_scheduled++;
@@ -1611,10 +1609,10 @@ enum game_scheduler_status game_scheduler_schedule_after(struct game_scheduler *
                              event_id);
 }
 
-enum game_scheduler_status game_scheduler_schedule_owned_at(
-    struct game_scheduler *scheduler, game_event_type_id_t event_type,
-    struct game_event_owner owner, game_tick_t deadline_tick, void *payload,
-    game_event_id_t *event_id)
+enum game_scheduler_status
+game_scheduler_schedule_owned_at(struct game_scheduler *scheduler, game_event_type_id_t event_type,
+                                 struct game_event_owner owner, game_tick_t deadline_tick,
+                                 void *payload, game_event_id_t *event_id)
 {
   enum game_scheduler_status status;
   game_tick_t normalized;
@@ -1629,10 +1627,12 @@ enum game_scheduler_status game_scheduler_schedule_owned_at(
   return schedule_normalized(scheduler, event_type, owner, normalized, payload, event_id);
 }
 
-enum game_scheduler_status game_scheduler_schedule_owned_after(
-    struct game_scheduler *scheduler, game_event_type_id_t event_type,
-    struct game_event_owner owner, game_tick_t delay_ticks, void *payload,
-    game_event_id_t *event_id)
+enum game_scheduler_status game_scheduler_schedule_owned_after(struct game_scheduler *scheduler,
+                                                               game_event_type_id_t event_type,
+                                                               struct game_event_owner owner,
+                                                               game_tick_t delay_ticks,
+                                                               void *payload,
+                                                               game_event_id_t *event_id)
 {
   enum game_scheduler_status status;
   game_tick_t deadline_tick;
@@ -1885,16 +1885,17 @@ enum game_scheduler_status game_scheduler_inspect(const struct game_scheduler *s
   return GAME_SCHEDULER_OK;
 }
 
-enum game_scheduler_status game_scheduler_inspect_owner(
-    const struct game_scheduler *scheduler, struct game_event_owner owner,
-    struct game_event_snapshot *snapshots, size_t snapshot_capacity, size_t *event_count)
+enum game_scheduler_status game_scheduler_inspect_owner(const struct game_scheduler *scheduler,
+                                                        struct game_event_owner owner,
+                                                        struct game_event_snapshot *snapshots,
+                                                        size_t snapshot_capacity,
+                                                        size_t *event_count)
 {
   struct game_event_owner_entry *entry;
   struct game_event *event;
   size_t index;
 
-  if (scheduler == NULL || event_count == NULL ||
-      (snapshot_capacity > 0 && snapshots == NULL))
+  if (scheduler == NULL || event_count == NULL || (snapshot_capacity > 0 && snapshots == NULL))
     return GAME_SCHEDULER_INVALID_ARGUMENT;
   *event_count = 0;
   if (!game_event_owner_is_valid(owner))
@@ -1926,22 +1927,20 @@ enum game_scheduler_status game_scheduler_inspect_owner(
   return GAME_SCHEDULER_OK;
 }
 
-enum game_scheduler_status game_scheduler_inspect_all(
-    const struct game_scheduler *scheduler, struct game_event_snapshot *snapshots,
-    size_t snapshot_capacity, size_t *event_count)
+enum game_scheduler_status game_scheduler_inspect_all(const struct game_scheduler *scheduler,
+                                                      struct game_event_snapshot *snapshots,
+                                                      size_t snapshot_capacity, size_t *event_count)
 {
   struct game_event *event;
   size_t bucket;
   size_t index;
 
-  if (scheduler == NULL || event_count == NULL ||
-      (snapshot_capacity > 0 && snapshots == NULL))
+  if (scheduler == NULL || event_count == NULL || (snapshot_capacity > 0 && snapshots == NULL))
     return GAME_SCHEDULER_INVALID_ARGUMENT;
   index = 0;
   for (bucket = 0; bucket < scheduler->registry_bucket_count; bucket++)
   {
-    for (event = scheduler->registry_buckets[bucket]; event != NULL;
-         event = event->registry_next)
+    for (event = scheduler->registry_buckets[bucket]; event != NULL; event = event->registry_next)
     {
       if (index < snapshot_capacity)
       {
@@ -1987,8 +1986,7 @@ void game_scheduler_get_stats(const struct game_scheduler *scheduler,
   {
     for (slot = 0; slot < GAME_SCHEDULER_WHEEL_SLOTS; slot++)
     {
-      for (event = scheduler->wheel_head[level][slot]; event != NULL;
-           event = event->wheel_next)
+      for (event = scheduler->wheel_head[level][slot]; event != NULL; event = event->wheel_next)
         stats->wheel_level_counts[level]++;
     }
   }
@@ -2018,8 +2016,7 @@ void game_scheduler_get_stats(const struct game_scheduler *scheduler,
   stats->total_type_capacity_rejections = scheduler->total_type_capacity_rejections;
   stats->total_invalid_owner_rejections = scheduler->total_invalid_owner_rejections;
   stats->total_owner_capacity_rejections = scheduler->total_owner_capacity_rejections;
-  stats->total_owner_type_capacity_rejections =
-      scheduler->total_owner_type_capacity_rejections;
+  stats->total_owner_type_capacity_rejections = scheduler->total_owner_type_capacity_rejections;
   stats->total_ticks_advanced = scheduler->total_ticks_advanced;
   stats->total_cascade_slots = scheduler->total_cascade_slots;
   stats->total_cascaded_events = scheduler->total_cascaded_events;

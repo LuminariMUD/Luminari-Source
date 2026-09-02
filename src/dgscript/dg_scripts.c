@@ -1100,8 +1100,7 @@ bool dg_wait_runtime_init(void)
   status = event_runtime_register_type(&config, &dg_wait_event_type);
   if (status != GAME_SCHEDULER_OK)
   {
-    log("SYSERR: unable to register native event type 'dg.trigger.wait' (status %d).",
-        status);
+    log("SYSERR: unable to register native event type 'dg.trigger.wait' (status %d).", status);
     return false;
   }
   return true;
@@ -1149,8 +1148,7 @@ long dg_trigger_wait_remaining(const struct trig_data *trig)
     return 0;
   if (!event_runtime_handle_is_none(GET_TRIG_WAIT_HANDLE(trig)))
   {
-    if (event_runtime_remaining(GET_TRIG_WAIT_HANDLE(trig), &remaining) !=
-        GAME_SCHEDULER_OK)
+    if (event_runtime_remaining(GET_TRIG_WAIT_HANDLE(trig), &remaining) != GAME_SCHEDULER_OK)
       return 0;
     return remaining > LONG_MAX ? LONG_MAX : (long)remaining;
   }
@@ -2312,8 +2310,8 @@ static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in
   owner = dg_wait_owner(go, type);
   if (!game_event_owner_is_valid(owner))
   {
-    script_log("Trigger: %s, VNum %d. wait has no valid runtime owner.",
-               GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig));
+    script_log("Trigger: %s, VNum %d. wait has no valid runtime owner.", GET_TRIG_NAME(trig),
+               GET_TRIG_VNUM(trig));
     return;
   }
   if (!schedule_trig_wait(trig, go, type, when, owner, false))

@@ -75,8 +75,8 @@ void movement_trail_record(struct trail_data_list *list, const char *name, const
  * vnum and coordinates because dynamic wilderness room vnums are recyclable
  * allocator slots rather than place identities.
  */
-void movement_trail_record_at_room(const struct room_data *room, const char *name,
-                                   const char *race, int from, int to, time_t age);
+void movement_trail_record_at_room(const struct room_data *room, const char *name, const char *race,
+                                   int from, int to, time_t age);
 const struct trail_data_list *movement_trails_at_room(const struct room_data *room);
 
 typedef bool (*movement_trail_visitor)(struct trail_data *trail, void *context);

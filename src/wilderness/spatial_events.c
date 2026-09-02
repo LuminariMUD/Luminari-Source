@@ -72,8 +72,7 @@ static void deliver_through_rooms(struct domain_event_bus *bus,
           (!pass_closed_doors && EXIT_FLAGGED(exit, EX_CLOSED)))
         continue;
       next_room = exit->to_room;
-      if (room_already_visited(rooms, count, next_room) ||
-          count >= SPATIAL_EVENT_MAX_VISITED_ROOMS)
+      if (room_already_visited(rooms, count, next_room) || count >= SPATIAL_EVENT_MAX_VISITED_ROOMS)
         continue;
       rooms[count] = next_room;
       distances[count++] = (unsigned char)(distance + 1U);
@@ -116,8 +115,8 @@ static void handle_world_phenomenon(const struct domain_event_context *context,
 enum domain_event_status spatial_event_register_handlers(struct domain_event_bus *bus)
 {
   const struct domain_event_handler_config handler = {DOMAIN_EVENT_WORLD_PHENOMENON,
-                                                       "wilderness.spatial_delivery", 0,
-                                                       handle_world_phenomenon, NULL};
+                                                      "wilderness.spatial_delivery", 0,
+                                                      handle_world_phenomenon, NULL};
 
   return domain_event_register_handler(bus, &handler);
 }

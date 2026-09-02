@@ -234,7 +234,6 @@ struct spatial_system
   int total_processed;
   int successful_transmissions;
   float avg_processing_time_ms;
-
 };
 
 /* Core Processing Functions */

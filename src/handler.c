@@ -158,7 +158,10 @@ void affected_registry_iteration_end(void)
   affected_character_owner_refill();
 }
 
-bool affected_registry_iteration_in_progress(void) { return affected_iteration_active; }
+bool affected_registry_iteration_in_progress(void)
+{
+  return affected_iteration_active;
+}
 
 size_t affected_registry_count(void)
 {

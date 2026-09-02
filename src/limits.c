@@ -73,8 +73,7 @@ static void elapse_fight_to_death_cooldown(struct char_data *ch, int64_t elapsed
     send_to_char(ch, "You can now fight to the death again.\r\n");
 }
 
-static void elapse_full_refresh(int *timer, int *uses, int maximum_uses,
-                                int64_t elapsed_ticks)
+static void elapse_full_refresh(int *timer, int *uses, int maximum_uses, int64_t elapsed_ticks)
 {
   if (timer == NULL || uses == NULL || *timer <= 0 || elapsed_ticks <= 0)
     return;
@@ -87,8 +86,7 @@ static void elapse_full_refresh(int *timer, int *uses, int maximum_uses,
   *uses = MAX(0, maximum_uses);
 }
 
-static void elapse_staggered_countup(int *uses, int *progress, int interval,
-                                     int64_t elapsed_ticks)
+static void elapse_staggered_countup(int *uses, int *progress, int interval, int64_t elapsed_ticks)
 {
   int64_t recovered;
   int64_t total_progress;
@@ -173,29 +171,28 @@ void reconcile_player_offline_cooldowns(struct char_data *ch, int64_t saved_at_e
   elapse_cooldown_counter(&CALL_EIDOLON_COOLDOWN(ch), elapsed_ticks);
   elapse_cooldown_counter(&GET_KAPAK_SALIVA_HEALING_COOLDOWN(ch), elapsed_ticks);
 
-  elapse_staggered_countup(&GET_BONUS_DOMAIN_SLOTS_USED(ch),
-                           &GET_BONUS_DOMAIN_REGEN_TIMER(ch), BONUS_SLOT_REGEN_TICKS,
-                           elapsed_ticks);
+  elapse_staggered_countup(&GET_BONUS_DOMAIN_SLOTS_USED(ch), &GET_BONUS_DOMAIN_REGEN_TIMER(ch),
+                           BONUS_SLOT_REGEN_TICKS, elapsed_ticks);
   elapse_staggered_countup(&GET_BONUS_SLOTS_USED(ch), &GET_BONUS_SLOTS_REGEN_TIMER(ch),
                            BONUS_SLOT_REGEN_TICKS, elapsed_ticks);
   elapse_staggered_countdown(&ch->player_specials->saved.moon_bonus_spells_used,
                              &ch->player_specials->saved.moon_bonus_regen_timer,
                              MOON_BONUS_REGEN_TICKS, elapsed_ticks);
 
-  elapse_full_refresh(&EFREETI_MAGIC_TIMER(ch), &EFREETI_MAGIC_USES(ch),
-                      EFREETI_MAGIC_USES_PER_DAY, elapsed_ticks);
-  elapse_full_refresh(&DRAGON_MAGIC_TIMER(ch), &DRAGON_MAGIC_USES(ch),
-                      DRAGON_MAGIC_USES_PER_DAY, elapsed_ticks);
-  elapse_full_refresh(&PIXIE_DUST_TIMER(ch), &PIXIE_DUST_USES(ch),
-                      PIXIE_DUST_USES_PER_DAY(ch), elapsed_ticks);
+  elapse_full_refresh(&EFREETI_MAGIC_TIMER(ch), &EFREETI_MAGIC_USES(ch), EFREETI_MAGIC_USES_PER_DAY,
+                      elapsed_ticks);
+  elapse_full_refresh(&DRAGON_MAGIC_TIMER(ch), &DRAGON_MAGIC_USES(ch), DRAGON_MAGIC_USES_PER_DAY,
+                      elapsed_ticks);
+  elapse_full_refresh(&PIXIE_DUST_TIMER(ch), &PIXIE_DUST_USES(ch), PIXIE_DUST_USES_PER_DAY(ch),
+                      elapsed_ticks);
   elapse_full_refresh(&LAUGHING_TOUCH_TIMER(ch), &LAUGHING_TOUCH_USES(ch),
                       LAUGHING_TOUCH_USES_PER_DAY(ch), elapsed_ticks);
   elapse_full_refresh(&FLEETING_GLANCE_TIMER(ch), &FLEETING_GLANCE_USES(ch),
                       FLEETING_GLANCE_USES_PER_DAY, elapsed_ticks);
   elapse_full_refresh(&FEY_SHADOW_WALK_TIMER(ch), &FEY_SHADOW_WALK_USES(ch),
                       FEY_SHADOW_WALK_USES_PER_DAY, elapsed_ticks);
-  elapse_full_refresh(&GRAVE_TOUCH_TIMER(ch), &GRAVE_TOUCH_USES(ch),
-                      GRAVE_TOUCH_USES_PER_DAY(ch), elapsed_ticks);
+  elapse_full_refresh(&GRAVE_TOUCH_TIMER(ch), &GRAVE_TOUCH_USES(ch), GRAVE_TOUCH_USES_PER_DAY(ch),
+                      elapsed_ticks);
   elapse_full_refresh(&GRASP_OF_THE_DEAD_TIMER(ch), &GRASP_OF_THE_DEAD_USES(ch),
                       GRASP_OF_THE_DEAD_USES_PER_DAY(ch), elapsed_ticks);
   elapse_full_refresh(&INCORPOREAL_FORM_TIMER(ch), &INCORPOREAL_FORM_USES(ch),
@@ -2175,8 +2172,7 @@ void update_player_misc_one(struct char_data *ch)
     GET_SETCLOAK_TIMER(ch)--;
     if (GET_SETCLOAK_TIMER(ch) == 0)
     {
-      send_to_char(ch,
-                   "You can now set your vampire cloak bonuses again. (setcloak command)\r\n");
+      send_to_char(ch, "You can now set your vampire cloak bonuses again. (setcloak command)\r\n");
     }
   }
 
@@ -2315,8 +2311,8 @@ void proc_d20_round_one(struct char_data *i)
     return;
 
   /* Cowering: 10% chance per round to be too afraid to act */
-  if (!combat_encounter_semantic_manages(i) && FIGHTING(i) &&
-      AFF2_FLAGGED(i, AFF2_COWERING) && rand_number(1, 100) <= 10)
+  if (!combat_encounter_semantic_manages(i) && FIGHTING(i) && AFF2_FLAGGED(i, AFF2_COWERING) &&
+      rand_number(1, 100) <= 10)
   {
     send_to_char(i, "\tRYou are too afraid to act!\tn\r\n");
     act("$n cowers in fear, unable to act!", FALSE, i, 0, 0, TO_ROOM);
@@ -3092,8 +3088,7 @@ void update_damage_and_effects_over_time_one(struct char_data *ch)
     {
       if (IS_SET_AR(affects->bitvector, AFF_BLEED))
       {
-        dam =
-            damage(ch, ch, affects->modifier, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
+        dam = damage(ch, ch, affects->modifier, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
 
         if (dam <= 0)
         { /* they died */
@@ -3134,8 +3129,7 @@ void update_damage_and_effects_over_time_one(struct char_data *ch)
     {
       if (affects->spell == AFFECT_CAUSTIC_BLOOD_DAMAGE)
       {
-        dam =
-            damage(ch, ch, dice(affects->modifier, 6), AFFECT_CAUSTIC_BLOOD_DAMAGE, DAM_ACID, 0);
+        dam = damage(ch, ch, dice(affects->modifier, 6), AFFECT_CAUSTIC_BLOOD_DAMAGE, DAM_ACID, 0);
 
         if (dam <= 0)
         { /* they died */
@@ -3151,8 +3145,8 @@ void update_damage_and_effects_over_time_one(struct char_data *ch)
     {
       if (affects->spell == BOMB_AFFECT_BONESHARD)
       {
-        act("You suffer in pain as shards of bone embed themselves in your flesh.", FALSE, ch, 0,
-            0, TO_CHAR);
+        act("You suffer in pain as shards of bone embed themselves in your flesh.", FALSE, ch, 0, 0,
+            TO_CHAR);
         act("$n suffers in pain as shards of bone embed themselves in $s flesh.", FALSE, ch, 0, 0,
             TO_ROOM);
         dam = damage(ch, ch, dice(1, 4), SKILL_BOMB_TOSS, DAM_PUNCTURE, SKILL_BOMB_TOSS);
@@ -3227,8 +3221,7 @@ void update_damage_and_effects_over_time_one(struct char_data *ch)
   // paladin fast healing mercy effect
   if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING) && GET_HIT(ch) < GET_MAX_HIT(ch))
   {
-    GET_HIT(ch) +=
-        get_char_affect_modifier(ch, PALADIN_MERCY_INJURED_FAST_HEALING, APPLY_SPECIAL);
+    GET_HIT(ch) += get_char_affect_modifier(ch, PALADIN_MERCY_INJURED_FAST_HEALING, APPLY_SPECIAL);
     if (GET_HIT(ch) > GET_MAX_HIT(ch))
       GET_HIT(ch)--;
   }

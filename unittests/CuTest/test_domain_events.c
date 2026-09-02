@@ -103,8 +103,7 @@ struct subscription_cancellation_fixture
   int calls;
 };
 
-static void subscription_handler(const struct domain_event_context *context,
-                                 void *handler_context)
+static void subscription_handler(const struct domain_event_context *context, void *handler_context)
 {
   struct subscription_fixture *fixture = handler_context;
 
@@ -133,10 +132,10 @@ static void cancel_subscription_handler(const struct domain_event_context *conte
   fixture->status = domain_event_unsubscribe(context->bus, fixture->victim);
 }
 
-static struct domain_event_subscription_handle subscribe_test(
-    CuTest *tc, struct domain_event_bus *bus, struct domain_entity_handle owner,
-    struct domain_event_topic topic, const char *identity, unsigned int flags,
-    struct subscription_fixture *fixture)
+static struct domain_event_subscription_handle
+subscribe_test(CuTest *tc, struct domain_event_bus *bus, struct domain_entity_handle owner,
+               struct domain_event_topic topic, const char *identity, unsigned int flags,
+               struct subscription_fixture *fixture)
 {
   struct domain_event_subscription_config config;
   struct domain_event_subscription_handle handle;
@@ -163,8 +162,8 @@ static uint64_t test_usec_now(void *context)
 }
 
 static struct domain_event_bus *create_bus(CuTest *tc, uint32_t max_depth,
-                                           uint32_t max_causal_events,
-                                           struct test_clock *clock, uint64_t slow_usec)
+                                           uint32_t max_causal_events, struct test_clock *clock,
+                                           uint64_t slow_usec)
 {
   struct domain_event_bus_config config;
   struct domain_event_bus *bus;
@@ -207,15 +206,15 @@ static void record_handler(const struct domain_event_context *context, void *han
   if (fixture->clock != NULL)
     fixture->clock->usec += fixture->advance_usec;
   if (fixture->nested_type != 0)
-    fixture->nested_status = DOMAIN_EVENT_PUBLISH(context->bus, fixture->nested_type,
-                                                  &fixture->nested_payload);
+    fixture->nested_status =
+        DOMAIN_EVENT_PUBLISH(context->bus, fixture->nested_type, &fixture->nested_payload);
   if (fixture->order != NULL && fixture->after != 0)
     fixture->order[(*fixture->order_count)++] = fixture->after;
 }
 
-static void register_handler(CuTest *tc, struct domain_event_bus *bus,
-                             domain_event_type_id_t type, const char *identity, int priority,
-                             domain_event_handler handler, void *context)
+static void register_handler(CuTest *tc, struct domain_event_bus *bus, domain_event_type_id_t type,
+                             const char *identity, int priority, domain_event_handler handler,
+                             void *context)
 {
   struct domain_event_handler_config config;
 
@@ -231,8 +230,8 @@ static void recursive_handler(const struct domain_event_context *context, void *
 {
   enum domain_event_status *last_status = handler_context;
 
-  *last_status = domain_event_publish(context->bus, context->type, context->payload,
-                                      context->payload_size);
+  *last_status =
+      domain_event_publish(context->bus, context->type, context->payload, context->payload_size);
 }
 
 static void *fake_entity_resolver(struct domain_entity_handle handle, void *resolver_context)
@@ -302,19 +301,18 @@ void TestDomainEventRegistryContracts(CuTest *tc)
 {
   struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
   struct domain_event_type_config duplicate = {TEST_EVENT_OUTER, "OtherName",
-                                                sizeof(struct test_payload)};
+                                               sizeof(struct test_payload)};
   struct domain_event_handler_config invalid_handler = {TEST_EVENT_INNER, "missing", 0,
-                                                         record_handler, NULL};
+                                                        record_handler, NULL};
   struct handler_fixture handler_fixture = {0};
-  struct domain_event_handler_config handler = {TEST_EVENT_OUTER, "observer", 0,
-                                                 record_handler, &handler_fixture};
+  struct domain_event_handler_config handler = {TEST_EVENT_OUTER, "observer", 0, record_handler,
+                                                &handler_fixture};
   struct resolver_fixture resolver = {{1U, 1U, 0, true}, 0, 0};
   struct test_payload payload = {42};
   struct domain_event_bus_stats stats;
 
   register_test_type(tc, bus, TEST_EVENT_OUTER, "TestOuter");
-  CuAssertIntEquals(tc, DOMAIN_EVENT_DUPLICATE_TYPE,
-                    domain_event_register_type(bus, &duplicate));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_DUPLICATE_TYPE, domain_event_register_type(bus, &duplicate));
   CuAssertIntEquals(tc, DOMAIN_EVENT_UNKNOWN_TYPE,
                     domain_event_register_handler(bus, &invalid_handler));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_register_handler(bus, &handler));
@@ -329,12 +327,10 @@ void TestDomainEventRegistryContracts(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_REGISTRY_NOT_SEALED,
                     DOMAIN_EVENT_PUBLISH(bus, TEST_EVENT_OUTER, &payload));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
-  CuAssertIntEquals(tc, DOMAIN_EVENT_REGISTRY_SEALED,
-                    domain_event_register_type(bus, &duplicate));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_REGISTRY_SEALED, domain_event_register_type(bus, &duplicate));
   CuAssertIntEquals(tc, DOMAIN_EVENT_PAYLOAD_SIZE_MISMATCH,
                     domain_event_publish(bus, TEST_EVENT_OUTER, &payload, sizeof(payload) - 1U));
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    DOMAIN_EVENT_PUBLISH(bus, TEST_EVENT_OUTER, &payload));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, DOMAIN_EVENT_PUBLISH(bus, TEST_EVENT_OUTER, &payload));
   domain_event_bus_get_stats(bus, &stats);
   CuAssertIntEquals(tc, 1, (int)stats.registered_type_count);
   CuAssertIntEquals(tc, 1, (int)stats.publications);
@@ -395,8 +391,7 @@ void TestDomainEventFoundationContracts(CuTest *tc)
   domain_event_bus_get_stats(bus, &bus_stats);
   CuAssertIntEquals(tc, 9, (int)bus_stats.registered_type_count);
   CuAssertStrEquals(tc, "ActivityTransitioned", stats.name);
-  CuAssertIntEquals(tc, (int)sizeof(struct domain_activity_transitioned),
-                    (int)stats.payload_size);
+  CuAssertIntEquals(tc, (int)sizeof(struct domain_activity_transitioned), (int)stats.payload_size);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_get_type_stats(bus, DOMAIN_EVENT_WORLD_PHENOMENON, &stats));
   CuAssertStrEquals(tc, "WorldPhenomenon", stats.name);
@@ -408,7 +403,7 @@ void TestDomainEventRegistryCapacity(CuTest *tc)
 {
   struct domain_event_bus_config bus_config;
   struct domain_event_type_config second_type = {TEST_EVENT_INNER, "Second",
-                                                  sizeof(struct test_payload)};
+                                                 sizeof(struct test_payload)};
   struct domain_event_handler_config second_handler;
   struct handler_fixture fixture = {0};
   struct domain_event_bus *bus;
@@ -439,8 +434,8 @@ void TestDomainEventHandlerOrderAndNestedDepthFirst(CuTest *tc)
   struct domain_event_bus *bus = create_bus(tc, 8U, 32U, NULL, 100U);
   int order[8] = {0};
   size_t count = 0;
-  struct handler_fixture outer_first = {order, &count, 1, 4, TEST_EVENT_INNER, {0},
-                                        DOMAIN_EVENT_OK, NULL, 0};
+  struct handler_fixture outer_first = {order, &count,          1,    4, TEST_EVENT_INNER,
+                                        {0},   DOMAIN_EVENT_OK, NULL, 0};
   struct handler_fixture outer_second = {order, &count, 5, 0, 0, {0}, DOMAIN_EVENT_OK, NULL, 0};
   struct handler_fixture inner_first = {order, &count, 2, 0, 0, {0}, DOMAIN_EVENT_OK, NULL, 0};
   struct handler_fixture inner_second = {order, &count, 3, 0, 0, {0}, DOMAIN_EVENT_OK, NULL, 0};
@@ -472,8 +467,7 @@ void TestDomainEventNestingLimitFailsClosed(CuTest *tc)
   enum domain_event_status nested_status = DOMAIN_EVENT_OK;
 
   register_test_type(tc, bus, TEST_EVENT_OUTER, "Recursive");
-  register_handler(tc, bus, TEST_EVENT_OUTER, "recursive", 0, recursive_handler,
-                   &nested_status);
+  register_handler(tc, bus, TEST_EVENT_OUTER, "recursive", 0, recursive_handler, &nested_status);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
   CuAssertIntEquals(tc, DOMAIN_EVENT_NESTING_LIMIT_REACHED,
                     DOMAIN_EVENT_PUBLISH(bus, TEST_EVENT_OUTER, &payload));
@@ -495,8 +489,7 @@ void TestDomainEventCausalCountLimitFailsClosed(CuTest *tc)
   enum domain_event_status nested_status = DOMAIN_EVENT_OK;
 
   register_test_type(tc, bus, TEST_EVENT_OUTER, "Recursive");
-  register_handler(tc, bus, TEST_EVENT_OUTER, "recursive", 0, recursive_handler,
-                   &nested_status);
+  register_handler(tc, bus, TEST_EVENT_OUTER, "recursive", 0, recursive_handler, &nested_status);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
   CuAssertIntEquals(tc, DOMAIN_EVENT_CAUSAL_LIMIT_REACHED,
                     DOMAIN_EVENT_PUBLISH(bus, TEST_EVENT_OUTER, &payload));
@@ -514,13 +507,13 @@ void TestDomainEventExtractionMakesLaterResolutionStale(CuTest *tc)
   struct domain_entity_extracted payload = {{DOMAIN_ENTITY_CHARACTER, 77U, 9U}, 0U};
 
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_register_foundation_types(bus));
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_register_resolver(bus, DOMAIN_ENTITY_CHARACTER,
-                                                   fake_entity_resolver, &fixture));
-  register_handler(tc, bus, DOMAIN_EVENT_ENTITY_EXTRACTED, "extract", 0,
-                   extract_entity_handler, &fixture);
-  register_handler(tc, bus, DOMAIN_EVENT_ENTITY_EXTRACTED, "observe", 10,
-                   observe_extracted_handler, &fixture);
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      domain_event_register_resolver(bus, DOMAIN_ENTITY_CHARACTER, fake_entity_resolver, &fixture));
+  register_handler(tc, bus, DOMAIN_EVENT_ENTITY_EXTRACTED, "extract", 0, extract_entity_handler,
+                   &fixture);
+  register_handler(tc, bus, DOMAIN_EVENT_ENTITY_EXTRACTED, "observe", 10, observe_extracted_handler,
+                   &fixture);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     DOMAIN_EVENT_PUBLISH(bus, DOMAIN_EVENT_ENTITY_EXTRACTED, &payload));
@@ -538,12 +531,11 @@ void TestDomainEventGenerationReuseRejectsStaleHandle(CuTest *tc)
   struct domain_entity_handle current = {DOMAIN_ENTITY_CHARACTER, 77U, 10U};
 
   register_test_type(tc, bus, TEST_EVENT_OUTER, "TestOuter");
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_register_resolver(bus, DOMAIN_ENTITY_CHARACTER,
-                                                   fake_entity_resolver, &fixture));
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      domain_event_register_resolver(bus, DOMAIN_ENTITY_CHARACTER, fake_entity_resolver, &fixture));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
-  CuAssertPtrEquals(tc, NULL,
-                    domain_event_resolve(bus, stale, DOMAIN_ENTITY_CHARACTER));
+  CuAssertPtrEquals(tc, NULL, domain_event_resolve(bus, stale, DOMAIN_ENTITY_CHARACTER));
   CuAssertPtrEquals(tc, &fixture.entity,
                     domain_event_resolve(bus, current, DOMAIN_ENTITY_CHARACTER));
   CuAssertPtrEquals(tc, NULL, domain_event_resolve(bus, current, DOMAIN_ENTITY_OBJECT));
@@ -573,15 +565,12 @@ void TestDomainWorldHandlesResolveWithoutPopulationScans(CuTest *tc)
   object_handle = domain_event_object_handle(&object);
   CuAssertPtrEquals(tc, &character,
                     domain_event_resolve(bus, character_handle, DOMAIN_ENTITY_CHARACTER));
-  CuAssertPtrEquals(tc, &object,
-                    domain_event_resolve(bus, object_handle, DOMAIN_ENTITY_OBJECT));
+  CuAssertPtrEquals(tc, &object, domain_event_resolve(bus, object_handle, DOMAIN_ENTITY_OBJECT));
 
   domain_event_world_forget_character(&character);
   domain_event_world_forget_object(&object);
-  CuAssertPtrEquals(tc, NULL,
-                    domain_event_resolve(bus, character_handle, DOMAIN_ENTITY_CHARACTER));
-  CuAssertPtrEquals(tc, NULL,
-                    domain_event_resolve(bus, object_handle, DOMAIN_ENTITY_OBJECT));
+  CuAssertPtrEquals(tc, NULL, domain_event_resolve(bus, character_handle, DOMAIN_ENTITY_CHARACTER));
+  CuAssertPtrEquals(tc, NULL, domain_event_resolve(bus, object_handle, DOMAIN_ENTITY_OBJECT));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_bus_destroy(bus));
   domain_event_world_shutdown();
   character_list = saved_characters;
@@ -602,9 +591,9 @@ void TestDomainEventSlowHandlerDiagnostics(CuTest *tc)
   register_handler(tc, bus, TEST_EVENT_OUTER, "slow-handler", 7, record_handler, &fixture);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, DOMAIN_EVENT_PUBLISH(bus, TEST_EVENT_OUTER, &payload));
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_get_handler_stats(bus, TEST_EVENT_OUTER, "slow-handler",
-                                                   &handler_stats));
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      domain_event_get_handler_stats(bus, TEST_EVENT_OUTER, "slow-handler", &handler_stats));
   domain_event_get_type_stats(bus, TEST_EVENT_OUTER, &type_stats);
   domain_event_bus_get_stats(bus, &bus_stats);
   CuAssertIntEquals(tc, 25, (int)handler_stats.total_usec);
@@ -653,8 +642,7 @@ void TestDomainEventScopedSubscribersReceiveIndependentCopies(CuTest *tc)
   struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
   struct domain_entity_handle first_owner = {DOMAIN_ENTITY_CHARACTER, 1U, 1U};
   struct domain_entity_handle second_owner = {DOMAIN_ENTITY_CHARACTER, 2U, 1U};
-  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION,
-                                    {DOMAIN_ENTITY_ROOM, 50U, 7U}};
+  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION, {DOMAIN_ENTITY_ROOM, 50U, 7U}};
   struct domain_event_topic other_room = {DOMAIN_EVENT_TOPIC_DESTINATION,
                                           {DOMAIN_ENTITY_ROOM, 51U, 7U}};
   struct domain_event_topic stale_room = {DOMAIN_EVENT_TOPIC_DESTINATION,
@@ -692,8 +680,7 @@ void TestDomainEventOneShotDetachesBeforeNestedPublication(CuTest *tc)
 {
   struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
   struct domain_entity_handle owner = {DOMAIN_ENTITY_CHARACTER, 1U, 1U};
-  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION,
-                                    {DOMAIN_ENTITY_ROOM, 50U, 7U}};
+  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION, {DOMAIN_ENTITY_ROOM, 50U, 7U}};
   struct subscription_fixture fixture = {0};
   struct domain_event_bus_stats stats;
 
@@ -701,11 +688,10 @@ void TestDomainEventOneShotDetachesBeforeNestedPublication(CuTest *tc)
   fixture.topic = room;
   register_test_type(tc, bus, TEST_EVENT_OUTER, "OneShot");
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
-  (void)subscribe_test(tc, bus, owner, room, "once", DOMAIN_EVENT_SUBSCRIPTION_ONCE,
-                       &fixture);
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    DOMAIN_EVENT_PUBLISH_ROUTED(bus, TEST_EVENT_OUTER, &room, 1U,
-                                                &fixture.payload));
+  (void)subscribe_test(tc, bus, owner, room, "once", DOMAIN_EVENT_SUBSCRIPTION_ONCE, &fixture);
+  CuAssertIntEquals(
+      tc, DOMAIN_EVENT_OK,
+      DOMAIN_EVENT_PUBLISH_ROUTED(bus, TEST_EVENT_OUTER, &room, 1U, &fixture.payload));
   CuAssertIntEquals(tc, 1, fixture.calls);
   CuAssertIntEquals(tc, 1, fixture.cleanups);
   domain_event_bus_get_stats(bus, &stats);
@@ -719,8 +705,7 @@ void TestDomainEventOwnerCancellationUsesGenerationAndCleansOnce(CuTest *tc)
   struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
   struct domain_entity_handle owner = {DOMAIN_ENTITY_CHARACTER, 1U, 8U};
   struct domain_entity_handle replacement = {DOMAIN_ENTITY_CHARACTER, 1U, 9U};
-  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION,
-                                    {DOMAIN_ENTITY_ROOM, 50U, 7U}};
+  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION, {DOMAIN_ENTITY_ROOM, 50U, 7U}};
   struct subscription_fixture old_fixture = {0};
   struct subscription_fixture replacement_fixture = {0};
   size_t cancelled = 0U;
@@ -729,10 +714,8 @@ void TestDomainEventOwnerCancellationUsesGenerationAndCleansOnce(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_seal(bus));
   (void)subscribe_test(tc, bus, owner, room, "old-one", 0U, &old_fixture);
   (void)subscribe_test(tc, bus, owner, room, "old-two", 0U, &old_fixture);
-  (void)subscribe_test(tc, bus, replacement, room, "replacement", 0U,
-                       &replacement_fixture);
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_unsubscribe_owner(bus, owner, &cancelled));
+  (void)subscribe_test(tc, bus, replacement, room, "replacement", 0U, &replacement_fixture);
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_unsubscribe_owner(bus, owner, &cancelled));
   CuAssertIntEquals(tc, 2, (int)cancelled);
   CuAssertIntEquals(tc, 2, old_fixture.cleanups);
   CuAssertIntEquals(tc, 0, replacement_fixture.cleanups);
@@ -745,11 +728,9 @@ void TestDomainEventCancellationDuringDispatchSkipsCancelledListener(CuTest *tc)
 {
   struct domain_event_bus *bus = create_bus(tc, 4U, 16U, NULL, 100U);
   struct domain_entity_handle owner = {DOMAIN_ENTITY_CHARACTER, 1U, 1U};
-  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION,
-                                    {DOMAIN_ENTITY_ROOM, 50U, 7U}};
+  struct domain_event_topic room = {DOMAIN_EVENT_TOPIC_DESTINATION, {DOMAIN_ENTITY_ROOM, 50U, 7U}};
   struct subscription_fixture victim = {0};
-  struct subscription_cancellation_fixture canceller = {
-      {0U, 0U}, DOMAIN_EVENT_NOT_FOUND, 0};
+  struct subscription_cancellation_fixture canceller = {{0U, 0U}, DOMAIN_EVENT_NOT_FOUND, 0};
   struct domain_event_subscription_config config;
   struct domain_event_subscription_handle canceller_handle;
   struct test_payload payload = {1};
@@ -765,11 +746,9 @@ void TestDomainEventCancellationDuringDispatchSkipsCancelledListener(CuTest *tc)
   config.priority = -10;
   config.handler = cancel_subscription_handler;
   config.handler_context = &canceller;
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_subscribe(bus, &config, &canceller_handle));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_subscribe(bus, &config, &canceller_handle));
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    DOMAIN_EVENT_PUBLISH_ROUTED(bus, TEST_EVENT_OUTER, &room, 1U,
-                                                &payload));
+                    DOMAIN_EVENT_PUBLISH_ROUTED(bus, TEST_EVENT_OUTER, &room, 1U, &payload));
   CuAssertIntEquals(tc, 1, canceller.calls);
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, canceller.status);
   CuAssertIntEquals(tc, 0, victim.calls);
@@ -827,11 +806,10 @@ void TestDomainEventSubscriptionCapacityLimitsAreIndependent(CuTest *tc)
   subscription.topic = second_room;
   subscription.identity = "second";
   subscription.cleanup = subscription_cleanup;
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_subscribe(bus, &subscription, &handle));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_subscribe(bus, &subscription, &handle));
   subscription.owner = (struct domain_entity_handle){DOMAIN_ENTITY_CHARACTER, 3U, 1U};
-  subscription.topic = (struct domain_event_topic){
-      DOMAIN_EVENT_TOPIC_DESTINATION, {DOMAIN_ENTITY_ROOM, 52U, 7U}};
+  subscription.topic =
+      (struct domain_event_topic){DOMAIN_EVENT_TOPIC_DESTINATION, {DOMAIN_ENTITY_ROOM, 52U, 7U}};
   subscription.identity = "global-limit";
   subscription.handler_context = &fixtures[2];
   CuAssertIntEquals(tc, DOMAIN_EVENT_SUBSCRIPTION_CAPACITY_REACHED,
@@ -933,8 +911,7 @@ static void verify_ready_action_filters_entry_then_runs_through_interpreter(CuTe
 
   do_ready(&owner, "say death-cancel on entry", 0, 0);
   CuAssertPtrNotNull(tc, owner.ready_action);
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_runtime_character_died(&owner, NULL));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_character_died(&owner, NULL));
   CuAssertPtrEquals(tc, NULL, owner.ready_action);
 
   do_ready(&owner, "say explicit-cancel on entry", 0, 0);
@@ -988,8 +965,7 @@ void TestDomainEventProductionRuntimeLifecycle(CuTest *tc)
   CuAssertIntEquals(tc, 9, (int)stats.registered_type_count);
   CuAssertIntEquals(tc, 15, (int)stats.registered_handler_count);
   CuAssertTrue(tc, stats.sealed);
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_runtime_character_died(&victim, NULL));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_character_died(&victim, NULL));
   domain_event_bus_get_stats(domain_event_runtime_bus(), &stats);
   CuAssertIntEquals(tc, 1, (int)stats.publications);
   CuAssertIntEquals(tc, DOMAIN_EVENT_BUSY, domain_event_runtime_init());
@@ -1122,10 +1098,8 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   active_world_begin_bootstrap();
   active_world_end_bootstrap();
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   CuAssertTrue(tc, native_event_type_is_registered("mobile.autonomous.agenda"));
   CuAssertTrue(tc, event_runtime_handle_is_none(idle.active_world_event_handle));
@@ -1136,39 +1110,32 @@ void TestActiveWorldSchedulesOnlyConcreteAutonomousWorkWithoutPlayers(CuTest *tc
   CuAssertTrue(tc, !event_runtime_handle_is_live(cancelled_handle));
   CuAssertTrue(tc, event_runtime_handle_is_none(wanderer.active_world_event_handle));
   CuAssertIntEquals(tc, ACTIVE_WORLD_MOBILE_DORMANT, wanderer.active_world_state);
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 0, event_queue_depth());
   active_world_sync_mobile(&wanderer);
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 1, event_queue_depth());
 
   callbacks_before = active_world_mobile_callbacks();
   first_delay = (long)native_event_remaining(tc, wanderer.active_world_event_handle);
   CuAssertTrue(tc, first_delay > 0L);
   process_scheduler_pulses((unsigned long)first_delay);
-  CuAssertIntEquals(tc, (int)(callbacks_before + 1U),
-                    (int)active_world_mobile_callbacks());
+  CuAssertIntEquals(tc, (int)(callbacks_before + 1U), (int)active_world_mobile_callbacks());
   CuAssertTrue(tc, !event_runtime_handle_is_none(wanderer.active_world_event_handle));
 
   FIGHTING(&wanderer) = &idle;
   active_world_sync_mobile(&wanderer);
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 0, event_queue_depth());
   FIGHTING(&wanderer) = NULL;
   active_world_sync_mobile(&wanderer);
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
   CuAssertIntEquals(tc, 1, event_queue_depth());
 
   SET_BIT_AR(MOB_FLAGS(&wanderer), MOB_SENTINEL);
   active_world_sync_mobile(&wanderer);
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
@@ -1237,10 +1204,8 @@ void TestActiveWorldDormantPopulationDoesNotCreateScheduledWork(CuTest *tc)
   active_world_begin_bootstrap();
   active_world_end_bootstrap();
 
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   for (index = 0U; index < dormant_count; index++)
     CuAssertTrue(tc, event_runtime_handle_is_none(mobiles[index].active_world_event_handle));
@@ -1250,14 +1215,12 @@ void TestActiveWorldDormantPopulationDoesNotCreateScheduledWork(CuTest *tc)
   first_delay = (long)native_event_remaining(tc, wanderer->active_world_event_handle);
   CuAssertTrue(tc, first_delay > 0L);
   process_scheduler_pulses((unsigned long)first_delay);
-  CuAssertIntEquals(tc, (int)(callbacks_before + 1U),
-                    (int)active_world_mobile_callbacks());
+  CuAssertIntEquals(tc, (int)(callbacks_before + 1U), (int)active_world_mobile_callbacks());
   CuAssertIntEquals(tc, 1, event_queue_depth());
 
   SET_BIT_AR(MOB_FLAGS(wanderer), MOB_SENTINEL);
   active_world_sync_mobile(wanderer);
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
@@ -1317,8 +1280,7 @@ void TestActiveWorldDemandDrivenAdmissionAndLegacyGateAreExclusive(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   active_world_begin_bootstrap();
   active_world_end_bootstrap();
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 1, (int)active_world_mobile_admission_rejections());
   CuAssertIntEquals(tc, 1, event_queue_depth());
   CuAssertTrue(tc, !event_runtime_handle_is_none(first.active_world_event_handle));
@@ -1338,8 +1300,7 @@ void TestActiveWorldDemandDrivenAdmissionAndLegacyGateAreExclusive(CuTest *tc)
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   CuAssertTrue(tc, !active_world_enabled());
   CuAssertIntEquals(tc, 0, event_queue_depth());
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
   event_free_all();
   active_world_reset_for_test();
@@ -1401,8 +1362,7 @@ void TestActiveWorldResourceRecoveryWakesAndRetiresOneOwner(CuTest *tc)
 
   consume_known_spell_slot(&mobile, spellnum);
   CuAssertIntEquals(tc, 1, mobile.mob_specials.known_spell_slots[spellnum]);
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   CuAssertIntEquals(tc, 60 * PASSES_PER_SEC,
                     (int)native_event_remaining(tc, mobile.active_world_event_handle));
@@ -1417,8 +1377,7 @@ void TestActiveWorldResourceRecoveryWakesAndRetiresOneOwner(CuTest *tc)
   FIGHTING(&mobile) = NULL;
   process_scheduler_pulses(PULSE_MOBILE);
   CuAssertIntEquals(tc, 2, mobile.mob_specials.known_spell_slots[spellnum]);
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   GET_CLASS(&mobile) = CLASS_WIZARD;
@@ -1428,15 +1387,13 @@ void TestActiveWorldResourceRecoveryWakesAndRetiresOneOwner(CuTest *tc)
   mobile.mob_specials.spell_slots[spell_circle] = 1;
   consume_spell_slot(&mobile, spellnum);
   CuAssertIntEquals(tc, 0, mobile.mob_specials.spell_slots[spell_circle]);
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
   CuAssertIntEquals(tc, 300 * PASSES_PER_SEC,
                     (int)native_event_remaining(tc, mobile.active_world_event_handle));
   mobile.mob_specials.last_slot_regen = time(0) - 300;
   process_scheduler_pulses(300U * PASSES_PER_SEC);
   CuAssertIntEquals(tc, 1, mobile.mob_specials.spell_slots[spell_circle]);
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_RESOURCE_RECOVERY));
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
@@ -1512,52 +1469,41 @@ void TestActiveWorldReactionsAndScavengingAreDemandDriven(CuTest *tc)
   pulse = 300U;
   event_init();
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   active_world_begin_bootstrap();
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_runtime_character_moved(&player, NOWHERE, 0, -1));
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION));
   CuAssertIntEquals(tc, 0, event_queue_depth());
   active_world_end_bootstrap();
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_runtime_character_moved(&player, NOWHERE, 0, -1));
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   process_scheduler_pulses(1U);
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
                     domain_event_runtime_character_moved(&scavenger, 0, 0, -1));
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_ROOM_REACTION));
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   room.contents = &object;
   IN_ROOM(&object) = 0;
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_runtime_object_moved(&object, NOWHERE, 0));
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_SCAVENGE));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_object_moved(&object, NOWHERE, 0));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_SCAVENGE));
   CuAssertIntEquals(tc, 1, event_queue_depth());
   room.contents = NULL;
   IN_ROOM(&object) = NOWHERE;
-  CuAssertIntEquals(tc, DOMAIN_EVENT_OK,
-                    domain_event_runtime_object_moved(&object, 0, NOWHERE));
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_SCAVENGE));
+  CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_object_moved(&object, 0, NOWHERE));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_reason_count(MOBILE_WORK_SCAVENGE));
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
@@ -1610,8 +1556,7 @@ void TestIdleNpcPeriodicWorkIsSeparateFromAutonomousAgenda(CuTest *tc)
   event_init();
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_init());
   CuAssertIntEquals(tc, 0, (int)character_periodic_owner_count());
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
   GET_HIT(&mobile) = 50;
@@ -1619,8 +1564,7 @@ void TestIdleNpcPeriodicWorkIsSeparateFromAutonomousAgenda(CuTest *tc)
                     domain_event_runtime_character_damaged(&mobile, NULL, 50, 0));
   CuAssertIntEquals(tc, 1, (int)character_periodic_owner_count());
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
-  CuAssertIntEquals(tc, 0,
-                    (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
+  CuAssertIntEquals(tc, 0, (int)active_world_mobile_count(ACTIVE_WORLD_MOBILE_ACTIVE));
 
   GET_HIT(&mobile) = GET_MAX_HIT(&mobile);
   character_periodic_sync(&mobile);
@@ -1630,8 +1574,7 @@ void TestIdleNpcPeriodicWorkIsSeparateFromAutonomousAgenda(CuTest *tc)
   REMOVE_BIT_AR(MOB_FLAGS(&mobile), MOB_SENTINEL);
   active_world_sync_mobile(&mobile);
   CuAssertIntEquals(tc, 0, (int)character_periodic_owner_count());
-  CuAssertIntEquals(tc, 1,
-                    (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
+  CuAssertIntEquals(tc, 1, (int)active_world_mobile_reason_count(MOBILE_WORK_WANDER));
   CuAssertIntEquals(tc, 1, event_queue_depth());
 
   CuAssertIntEquals(tc, DOMAIN_EVENT_OK, domain_event_runtime_shutdown());
@@ -1711,8 +1654,7 @@ void TestPeriodicOwnersScheduleEveryEligibleOwnerAndCancelLifecycle(CuTest *tc)
   CuAssertIntEquals(tc, 4, event_queue_depth());
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     event_runtime_inspect(obj->autoproc_event_handle, &snapshot));
-  CuAssertStrEquals(tc, "object.automatic_procedure",
-                    event_runtime_type_name(snapshot.event_type));
+  CuAssertStrEquals(tc, "object.automatic_procedure", event_runtime_type_name(snapshot.event_type));
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     event_runtime_inspect(mobile_script.random_event_handle, &snapshot));
   CuAssertStrEquals(tc, "dg.random_trigger", event_runtime_type_name(snapshot.event_type));
@@ -1998,8 +1940,7 @@ void TestWildernessTrailIdentitySurvivesDynamicRoomReuse(CuTest *tc)
   dynamic_slot.coords[Y_COORD] = -42;
 
   movement_trail_registry_shutdown();
-  movement_trail_record_at_room(&dynamic_slot, "wilderness walker", "human", DIR_NONE, EAST,
-                                now);
+  movement_trail_record_at_room(&dynamic_slot, "wilderness walker", "human", DIR_NONE, EAST, now);
   CuAssertIntEquals(tc, 1, (int)movement_trail_active_location_count());
   trails = movement_trails_at_room(&dynamic_slot);
   CuAssertPtrNotNull(tc, trails);
@@ -2054,8 +1995,7 @@ void TestWildernessTrailsUseRoomIdentityWithoutExplicitCoordinates(CuTest *tc)
   rooms[1].wilderness_coordinates_set = true;
   rooms[0].coords[X_COORD] = rooms[1].coords[X_COORD] = 12;
   rooms[0].coords[Y_COORD] = rooms[1].coords[Y_COORD] = -9;
-  movement_trail_record_at_room(&rooms[0], "shared coordinate trail", "dwarf", DIR_NONE, EAST,
-                                now);
+  movement_trail_record_at_room(&rooms[0], "shared coordinate trail", "dwarf", DIR_NONE, EAST, now);
   trails = movement_trails_at_room(&rooms[1]);
   CuAssertPtrNotNull(tc, trails);
   CuAssertStrEquals(tc, "shared coordinate trail", trails->head->name);
@@ -2143,8 +2083,7 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     event_runtime_inspect_owner(owner, &snapshot, 1U, &event_count));
   CuAssertIntEquals(tc, 1, (int)event_count);
-  CuAssertStrEquals(tc, "affected.room.duration",
-                    event_runtime_type_name(snapshot.event_type));
+  CuAssertStrEquals(tc, "affected.room.duration", event_runtime_type_name(snapshot.event_type));
 
   pulse += PULSE_LUMINARI;
   event_process();
@@ -2167,8 +2106,7 @@ void TestAffectedOwnersExpireCharacterAndRoomStateOnRoundBoundaries(CuTest *tc)
   CuAssertIntEquals(tc, 2, (int)affected_room_behavior_nodes_processed());
   CuAssertIntEquals(tc, 1, raff->timer);
 
-  pulse += PULSE_VIOLENCE -
-           (PULSE_LUMINARI - (PULSE_VIOLENCE - PULSE_LUMINARI));
+  pulse += PULSE_VIOLENCE - (PULSE_LUMINARI - (PULSE_VIOLENCE - PULSE_LUMINARI));
   event_process();
   CuAssertPtrEquals(tc, NULL, ch.affected);
   CuAssertPtrEquals(tc, NULL, raff_list);
@@ -2491,8 +2429,8 @@ void TestAffectedRoomOwnersSurviveRoomOLCAndWorldReindex(CuTest *tc)
   edited.room_affections = 0L;
   CuAssertIntEquals(tc, TRUE, copy_room(&original[1], &edited));
   CuAssertPtrEquals(tc, raff, original[1].affected_head);
-  CuAssertTrue(tc, event_runtime_handles_equal(saved_event_handle,
-                                              original[1].affected_event_handle));
+  CuAssertTrue(tc,
+               event_runtime_handles_equal(saved_event_handle, original[1].affected_event_handle));
   CuAssertTrue(tc, ROOM_AFFECTED(1, RAFF_FOG));
 
   affected_room_owners_prepare_world_reindex();
@@ -2604,8 +2542,7 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     event_runtime_inspect_owner(owner, &snapshot, 1U, &event_count));
   CuAssertIntEquals(tc, 1, (int)event_count);
-  CuAssertStrEquals(tc, "character.maintenance",
-                    event_runtime_type_name(snapshot.event_type));
+  CuAssertStrEquals(tc, "character.maintenance", event_runtime_type_name(snapshot.event_type));
 
   CuAssertIntEquals(tc, GAME_EVENT_CANCELLED,
                     event_runtime_cancel(ch.character_periodic_event_handle));
@@ -2613,14 +2550,12 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   CuAssertIntEquals(tc, 0, (int)character_periodic_scheduled_count());
   character_periodic_sync(&ch);
   CuAssertIntEquals(tc, 1, (int)character_periodic_scheduled_count());
-  CuAssertIntEquals(tc, 7,
-                    (int)native_event_remaining(tc, ch.character_periodic_event_handle));
+  CuAssertIntEquals(tc, 7, (int)native_event_remaining(tc, ch.character_periodic_event_handle));
 
   process_scheduler_pulses(7U);
   CuAssertIntEquals(tc, 0, specials.walkto_location);
   CuAssertIntEquals(tc, 1, (int)character_periodic_walk_executions());
-  CuAssertIntEquals(tc, 43,
-                    (int)native_event_remaining(tc, ch.character_periodic_event_handle));
+  CuAssertIntEquals(tc, 43, (int)native_event_remaining(tc, ch.character_periodic_event_handle));
 
   process_scheduler_pulses(43U);
   CuAssertIntEquals(tc, 1, (int)character_periodic_psp_executions());
@@ -2629,8 +2564,7 @@ void TestCharacterPeriodicOwnerUsesNearestGameplayDeadlines(CuTest *tc)
   GET_PERFORMING(&ch) = PERFORMANCE_NONE;
   GET_SECONDARY_PERFORMING(&ch) = PERFORMANCE_NONE;
   character_periodic_sync(&ch);
-  CuAssertIntEquals(tc, 20,
-                    (int)native_event_remaining(tc, ch.character_periodic_event_handle));
+  CuAssertIntEquals(tc, 20, (int)native_event_remaining(tc, ch.character_periodic_event_handle));
 
   process_scheduler_pulses(20U);
   CuAssertIntEquals(tc, 1, (int)character_periodic_bardic_executions());
@@ -2683,8 +2617,7 @@ void TestCharacterPeriodicLateCallbackRunsPassedDeadline(CuTest *tc)
   event_process();
   CuAssertIntEquals(tc, 0, specials.walkto_location);
   CuAssertIntEquals(tc, 1, (int)character_periodic_walk_executions());
-  CuAssertIntEquals(tc, 39,
-                    (int)native_event_remaining(tc, ch.character_periodic_event_handle));
+  CuAssertIntEquals(tc, 39, (int)native_event_remaining(tc, ch.character_periodic_event_handle));
   CuAssertIntEquals(tc, 750, (int)ch.character_periodic_due_pulse);
 
   character_periodic_forget(&ch);
@@ -3296,8 +3229,7 @@ void TestVesselPeriodicSchedulesLoadedOwnersAndKeepsLegacyExclusive(CuTest *tc)
   CuAssertTrue(tc, event_queue_depth() >= 2);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     event_runtime_inspect(ship->periodic_event_handle, &snapshot));
-  CuAssertStrEquals(tc, "vessel.greyhawk.agenda",
-                    event_runtime_type_name(snapshot.event_type));
+  CuAssertStrEquals(tc, "vessel.greyhawk.agenda", event_runtime_type_name(snapshot.event_type));
   first_generation = ship->periodic_generation;
 
   pulse += AUTOPILOT_TICK_INTERVAL;

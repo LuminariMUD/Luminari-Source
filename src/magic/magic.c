@@ -69,8 +69,8 @@ static void publish_coordinate_phenomenon(int source_x, int source_y, int source
   phenomenon.audio_frequency = DOMAIN_WORLD_AUDIO_LOW;
   phenomenon.visual_description = visual_description;
   phenomenon.audio_description = audio_description;
-  status = DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(), DOMAIN_EVENT_WORLD_PHENOMENON,
-                                &phenomenon);
+  status =
+      DOMAIN_EVENT_PUBLISH(domain_event_runtime_bus(), DOMAIN_EVENT_WORLD_PHENOMENON, &phenomenon);
   if (status != DOMAIN_EVENT_OK)
     log("SYSERR: Unable to publish wilderness phenomenon: %s", domain_event_status_name(status));
 }

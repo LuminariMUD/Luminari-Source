@@ -54,8 +54,7 @@ static bool configured_scheduled(void)
   if (value == NULL || *value == '\0' || !strcasecmp(value, "scheduled") ||
       !strcasecmp(value, "active") || !strcasecmp(value, "event"))
     return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") ||
-      !strcasecmp(value, "off"))
+  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
     return false;
   log("WARNING: Unknown LUMINARI_AFFECT_EVENTS '%s'; using scheduled owner events.", value);
   return true;
@@ -112,9 +111,8 @@ static long next_round_delay(void)
 static long next_room_delay(void)
 {
   unsigned long luminari_remainder = pulse % PULSE_LUMINARI;
-  long luminari_delay = luminari_remainder == 0U
-                            ? PULSE_LUMINARI
-                            : (long)(PULSE_LUMINARI - luminari_remainder);
+  long luminari_delay =
+      luminari_remainder == 0U ? PULSE_LUMINARI : (long)(PULSE_LUMINARI - luminari_remainder);
   long round_delay = next_round_delay();
 
   return luminari_delay < round_delay ? luminari_delay : round_delay;
@@ -131,8 +129,8 @@ static void borrowed_owner_cleanup(void *payload)
   (void)payload;
 }
 
-static bool register_event_type(const char *name, game_event_handler handler,
-                                size_t max_events, game_event_type_id_t *event_type)
+static bool register_event_type(const char *name, game_event_handler handler, size_t max_events,
+                                game_event_type_id_t *event_type)
 {
   struct game_event_type_config config;
   const char *registered_name;
@@ -164,8 +162,7 @@ static bool register_event_type(const char *name, game_event_handler handler,
 static void note_rejection(const char *kind, size_t limit)
 {
   admission_rejections++;
-  if (admission_rejections == 1U ||
-      admission_rejections % AFFECTED_REJECTION_LOG_INTERVAL == 0U)
+  if (admission_rejections == 1U || admission_rejections % AFFECTED_REJECTION_LOG_INTERVAL == 0U)
     log("WARNING: affected %s owner limit reached (%zu); rejected=%llu.", kind, limit,
         (unsigned long long)admission_rejections);
 }
@@ -180,8 +177,8 @@ void affected_character_owner_refill(void)
   if (affected_registry_iteration_in_progress())
     return;
   refilling = true;
-  for (ch = affected_registry_iteration_begin(); ch != NULL &&
-                                                  character_scheduled_count < character_limit;
+  for (ch = affected_registry_iteration_begin();
+       ch != NULL && character_scheduled_count < character_limit;
        ch = affected_registry_iteration_next())
     affected_character_owner_sync(ch);
   affected_registry_iteration_end();
@@ -196,14 +193,13 @@ static void refill_room_capacity(void)
       room_scheduled_count >= room_limit)
     return;
   refilling = true;
-  for (room = affected_room_list;
-       room != NULL && room_scheduled_count < room_limit; room = room->affected_next)
+  for (room = affected_room_list; room != NULL && room_scheduled_count < room_limit;
+       room = room->affected_next)
     affected_room_schedule(room);
   refilling = false;
 }
 
-static struct game_event_result affected_character_event(
-    const struct game_event_context *context)
+static struct game_event_result affected_character_event(const struct game_event_context *context)
 {
   struct char_data *ch = context != NULL ? context->payload : NULL;
 
@@ -227,8 +223,7 @@ static struct game_event_result affected_character_event(
   return game_event_result_reschedule_after(PULSE_VIOLENCE);
 }
 
-static struct game_event_result affected_room_event(
-    const struct game_event_context *context)
+static struct game_event_result affected_room_event(const struct game_event_context *context)
 {
   struct room_data *room = context != NULL ? context->payload : NULL;
 
@@ -395,8 +390,7 @@ void affected_room_owner_remove(struct raff_node *raff)
 {
   struct room_data *room;
 
-  if (raff == NULL || !raff->room_registered || raff->room == NOWHERE ||
-      raff->room > top_of_world)
+  if (raff == NULL || !raff->room_registered || raff->room == NOWHERE || raff->room > top_of_world)
     return;
   room = &world[raff->room];
   if (raff->room_prev != NULL)
@@ -519,12 +513,12 @@ void affected_owners_init(void)
 #else
   requested = configured_scheduled();
 #endif
-  native_ready = event_runtime_is_initialized() &&
-                 register_event_type("affected.character.duration", affected_character_event,
-                                     AFFECTED_CHARACTER_MAX_OWNERS,
-                                     &affected_character_event_type) &&
-                 register_event_type("affected.room.duration", affected_room_event,
-                                     AFFECTED_ROOM_MAX_OWNERS, &affected_room_event_type);
+  native_ready =
+      event_runtime_is_initialized() &&
+      register_event_type("affected.character.duration", affected_character_event,
+                          AFFECTED_CHARACTER_MAX_OWNERS, &affected_character_event_type) &&
+      register_event_type("affected.room.duration", affected_room_event, AFFECTED_ROOM_MAX_OWNERS,
+                          &affected_room_event_type);
   scheduled = requested && native_ready;
   initialized = true;
   shutting_down = false;
@@ -580,18 +574,54 @@ bool affected_owner_events_enabled(void)
   return initialized && scheduled;
 }
 
-size_t affected_character_scheduled_count(void) { return character_scheduled_count; }
-size_t affected_room_owner_count(void) { return room_owner_count; }
-size_t affected_room_scheduled_count(void) { return room_scheduled_count; }
-size_t affected_character_admission_limit(void) { return character_limit; }
-size_t affected_room_admission_limit(void) { return room_limit; }
-uint64_t affected_owner_admission_rejections(void) { return admission_rejections; }
-uint64_t affected_character_callbacks(void) { return character_callback_count; }
-uint64_t affected_room_callbacks(void) { return room_callback_count; }
-uint64_t affected_character_nodes_processed(void) { return character_nodes_processed; }
-uint64_t affected_room_nodes_processed(void) { return room_nodes_processed; }
-uint64_t affected_room_behavior_executions(void) { return room_behavior_executions; }
-uint64_t affected_room_behavior_nodes_processed(void) { return room_behavior_nodes_processed; }
+size_t affected_character_scheduled_count(void)
+{
+  return character_scheduled_count;
+}
+size_t affected_room_owner_count(void)
+{
+  return room_owner_count;
+}
+size_t affected_room_scheduled_count(void)
+{
+  return room_scheduled_count;
+}
+size_t affected_character_admission_limit(void)
+{
+  return character_limit;
+}
+size_t affected_room_admission_limit(void)
+{
+  return room_limit;
+}
+uint64_t affected_owner_admission_rejections(void)
+{
+  return admission_rejections;
+}
+uint64_t affected_character_callbacks(void)
+{
+  return character_callback_count;
+}
+uint64_t affected_room_callbacks(void)
+{
+  return room_callback_count;
+}
+uint64_t affected_character_nodes_processed(void)
+{
+  return character_nodes_processed;
+}
+uint64_t affected_room_nodes_processed(void)
+{
+  return room_nodes_processed;
+}
+uint64_t affected_room_behavior_executions(void)
+{
+  return room_behavior_executions;
+}
+uint64_t affected_room_behavior_nodes_processed(void)
+{
+  return room_behavior_nodes_processed;
+}
 
 static bool room_is_in_current_world(const struct room_data *room)
 {

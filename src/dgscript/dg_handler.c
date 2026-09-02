@@ -607,7 +607,7 @@ void extract_script(struct script_data **script)
   if (sc->owner_type == OBJ_TRIGGER)
     point_update_object_sync(sc->owner);
 
-  /* zusuk disabled this debug 10/15/2017 */
+    /* zusuk disabled this debug 10/15/2017 */
 #if 0 /* debugging */
   {
     struct char_data *i = character_list;

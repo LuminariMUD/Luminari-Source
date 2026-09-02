@@ -42,7 +42,7 @@
 #include "olc/genolc.h"
 #include "olc/genobj.h" /* for free_object_strings */
 #include "olc/genwld.h"
-#include "config.h"     /* for the default config values. */
+#include "config.h" /* for the default config values. */
 #include "combat/fight.h"
 #include "combat/projectiles.h"
 #include "combat/traps.h"

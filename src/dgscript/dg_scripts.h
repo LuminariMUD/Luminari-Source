@@ -16,7 +16,7 @@
 #define _DG_SCRIPTS_H_
 
 #include "event_runtime.h"
-#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||             \
+#if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
     defined(LUMINARI_EVENT_ROLLBACK_TESTS)
 #define DG_EVENT_ROLLBACK_ENABLED 1
 #else
@@ -166,24 +166,24 @@ struct wait_event_data;
 /** structure for triggers */
 struct trig_data
 {
-  IDXTYPE nr;                         /**< trigger's rnum                  */
-  byte attach_type;                   /**< mob/obj/wld intentions          */
-  byte data_type;                     /**< type of game_data for trig      */
-  char *name;                         /**< name of trigger                 */
-  long trigger_type;                  /**< type of trigger (for bitvector) */
-  struct cmdlist_element *cmdlist;    /**< top of command list             */
-  struct cmdlist_element *curr_state; /**< ptr to current line of trigger  */
-  int narg;                           /**< numerical argument              */
-  char *arglist;                      /**< argument list                   */
-  int depth;                          /**< depth into nest ifs/whiles/etc  */
-  int loops;                          /**< loop iteration counter          */
+  IDXTYPE nr;                                    /**< trigger's rnum                  */
+  byte attach_type;                              /**< mob/obj/wld intentions          */
+  byte data_type;                                /**< type of game_data for trig      */
+  char *name;                                    /**< name of trigger                 */
+  long trigger_type;                             /**< type of trigger (for bitvector) */
+  struct cmdlist_element *cmdlist;               /**< top of command list             */
+  struct cmdlist_element *curr_state;            /**< ptr to current line of trigger  */
+  int narg;                                      /**< numerical argument              */
+  char *arglist;                                 /**< argument list                   */
+  int depth;                                     /**< depth into nest ifs/whiles/etc  */
+  int loops;                                     /**< loop iteration counter          */
   struct event_runtime_handle wait_event_handle; /**< Native event that pauses the trigger. */
 #if DG_EVENT_ROLLBACK_ENABLED
   event_handle_t wait_rollback_handle; /**< Temporary legacy-backend fallback. */
 #endif
   struct wait_event_data *wait_event_data; /**< payload used by room OLC */
-  ubyte purged;                       /**< trigger is set to be purged     */
-  struct trig_var_data *var_list;     /**< list of local vars for trigger  */
+  ubyte purged;                            /**< trigger is set to be purged     */
+  struct trig_var_data *var_list;          /**< list of local vars for trigger  */
 
   struct trig_data *next;
   struct trig_data *next_in_world; /**< next in the global trigger list */

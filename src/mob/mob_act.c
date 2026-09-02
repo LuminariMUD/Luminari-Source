@@ -78,8 +78,7 @@ static bool mobile_has_activity_spec(const struct char_data *ch)
     return false;
   definition = spec_registry_find_by_handler(handler);
   return definition == NULL ||
-         spec_definition_supports_event(definition, SPEC_OWNER_MOBILE,
-                                        SPEC_EVENT_MOBILE_ACTIVITY);
+         spec_definition_supports_event(definition, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY);
 }
 
 static bool mobile_has_scavenge_work(struct char_data *ch)
@@ -97,10 +96,9 @@ static bool mobile_has_scavenge_work(struct char_data *ch)
 
 static bool mobile_resource_recovery_blocked(const struct char_data *ch)
 {
-  return FIGHTING(ch) != NULL || !AWAKE(ch) || IS_CASTING(ch) ||
-         AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
-         AFF_FLAGGED(ch, AFF_DAZED) || char_has_mud_event((struct char_data *)ch, eSTUNNED) ||
-         AFF_FLAGGED(ch, AFF_NAUSEATED);
+  return FIGHTING(ch) != NULL || !AWAKE(ch) || IS_CASTING(ch) || AFF_FLAGGED(ch, AFF_STUN) ||
+         AFF_FLAGGED(ch, AFF_PARALYZED) || AFF_FLAGGED(ch, AFF_DAZED) ||
+         char_has_mud_event((struct char_data *)ch, eSTUNNED) || AFF_FLAGGED(ch, AFF_NAUSEATED);
 }
 
 static bool mobile_has_resource_recovery_work(const struct char_data *ch)
@@ -114,9 +112,9 @@ mobile_work_mask mobile_activity_room_reaction_reasons(const struct char_data *c
     return MOBILE_WORK_NONE;
   if (MOB_FLAGGED(ch, MOB_AGGRESSIVE) || MOB_FLAGGED(ch, MOB_ROL_AGGR_RACE_EVIL) ||
       MOB_FLAGGED(ch, MOB_ROL_AGGR_RACE_GOOD) || MOB_FLAGGED(ch, MOB_AGGR_EVIL) ||
-      MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) || MOB_FLAGGED(ch, MOB_AGGR_GOOD) ||
-      MEMORY(ch) != NULL || MOB_FLAGGED(ch, MOB_ROL_ARCHER) || IS_NPC_CASTER(ch) ||
-      IS_PSIONIC(ch) || mob_has_known_spells((struct char_data *)ch))
+      MOB_FLAGGED(ch, MOB_AGGR_NEUTRAL) || MOB_FLAGGED(ch, MOB_AGGR_GOOD) || MEMORY(ch) != NULL ||
+      MOB_FLAGGED(ch, MOB_ROL_ARCHER) || IS_NPC_CASTER(ch) || IS_PSIONIC(ch) ||
+      mob_has_known_spells((struct char_data *)ch))
     return MOBILE_WORK_ROOM_REACTION;
   return MOBILE_WORK_NONE;
 }
@@ -151,11 +149,11 @@ mobile_work_mask mobile_activity_recurring_reasons(struct char_data *ch)
     reasons |= MOBILE_WORK_PATROL;
   if (MOB_FLAGGED(ch, MOB_HUNTER) && HUNTING(ch) != NULL)
     reasons |= MOBILE_WORK_HUNT;
-  if (!MOB_FLAGGED(ch, MOB_SENTINEL) && GET_POS(ch) == POS_STANDING &&
-      ch->master == NULL && !vessel_npc_is_on_pilot_duty(ch))
+  if (!MOB_FLAGGED(ch, MOB_SENTINEL) && GET_POS(ch) == POS_STANDING && ch->master == NULL &&
+      !vessel_npc_is_on_pilot_duty(ch))
     reasons |= MOBILE_WORK_WANDER;
-  if (MOB_FLAGGED(ch, MOB_SENTINEL) &&
-      GET_MOB_LOADROOM(ch) == IN_ROOM(ch) && GET_POS(ch) != GET_DEFAULT_POS(ch))
+  if (MOB_FLAGGED(ch, MOB_SENTINEL) && GET_MOB_LOADROOM(ch) == IN_ROOM(ch) &&
+      GET_POS(ch) != GET_DEFAULT_POS(ch))
     reasons |= MOBILE_WORK_POSTURE;
   return reasons;
 }
@@ -456,8 +454,8 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     found = FALSE;
     /* loop through room, check if each person is in memory */
     room_people = world[IN_ROOM(ch)].people;
-    for (vict = (requested_work & MOBILE_WORK_ROOM_REACTION) ? room_people : NULL;
-         vict && !found; vict = vict->next_in_room)
+    for (vict = (requested_work & MOBILE_WORK_ROOM_REACTION) ? room_people : NULL; vict && !found;
+         vict = vict->next_in_room)
     {
       /* this function cross-references memory-list with vict */
       if (!is_in_memory(ch, vict))
@@ -569,8 +567,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
       continue;
 
     /* hunt a victim, if applicable */
-    if ((requested_work & MOBILE_WORK_HUNT) && MOB_FLAGGED(ch, MOB_HUNTER) &&
-        HUNTING(ch) != NULL)
+    if ((requested_work & MOBILE_WORK_HUNT) && MOB_FLAGGED(ch, MOB_HUNTER) && HUNTING(ch) != NULL)
       hunt_victim(ch);
 
     /* RoL archers fire one room away when their converted equipment provides
@@ -609,8 +606,8 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
     /* Converted archers with a throwable anchor, but no usable launcher,
      * use the same one-adjacent-room targeting contract as launcher archers. */
     if ((requested_work & MOBILE_WORK_ROOM_REACTION) && MOB_FLAGGED(ch, MOB_ROL_ARCHER) &&
-        !FIGHTING(ch) && !ch->master &&
-        !can_fire_ammo(ch, TRUE) && (obj = find_equipped_throwable(ch, &where)) != NULL &&
+        !FIGHTING(ch) && !ch->master && !can_fire_ammo(ch, TRUE) &&
+        (obj = find_equipped_throwable(ch, &where)) != NULL &&
         set_thrown_projectile_mode(ch, GET_OBJ_VNUM(obj), where))
     {
       found = FALSE;
@@ -699,8 +696,7 @@ static struct char_data *run_mobile_activity(struct char_data *start, size_t nod
 
     /* return mobile to preferred (default) position if necessary */
     if ((requested_work & MOBILE_WORK_POSTURE) && GET_POS(ch) != GET_DEFAULT_POS(ch) &&
-        MOB_FLAGGED(ch, MOB_SENTINEL) &&
-        GET_MOB_LOADROOM(ch) == IN_ROOM(ch))
+        MOB_FLAGGED(ch, MOB_SENTINEL) && GET_MOB_LOADROOM(ch) == IN_ROOM(ch))
     {
       if (GET_DEFAULT_POS(ch) == POS_SITTING)
       {
@@ -831,9 +827,9 @@ void mobile_activity_run_legacy_slice(int heart_pulse)
     {
       nodes_visited = 0;
       mobile_activity_cursor_running = true;
-      mobile_activity_cursor = run_mobile_activity(
-          mobile_activity_cursor, node_budget - total_nodes_visited, &nodes_visited,
-          MOBILE_WORK_LEGACY_ALL);
+      mobile_activity_cursor =
+          run_mobile_activity(mobile_activity_cursor, node_budget - total_nodes_visited,
+                              &nodes_visited, MOBILE_WORK_LEGACY_ALL);
       mobile_activity_cursor_running = false;
       total_nodes_visited += nodes_visited;
     } while (mobile_activity_cursor != NULL && nodes_visited > 0 &&

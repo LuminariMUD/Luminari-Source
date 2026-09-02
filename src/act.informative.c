@@ -2053,8 +2053,7 @@ ACMD(do_initiative)
     screen_width = 80;
   screen_width = MIN(screen_width, 120);
   seconds_until_round =
-      (snapshot.pulses_until_round + (uint64_t)PASSES_PER_SEC - 1U) /
-      (uint64_t)PASSES_PER_SEC;
+      (snapshot.pulses_until_round + (uint64_t)PASSES_PER_SEC - 1U) / (uint64_t)PASSES_PER_SEC;
   append_where_output(&output, "Initiative - Round %llu\r\n",
                       (unsigned long long)snapshot.round_number);
   append_where_output(&output, "Next round in %llu second%s.\r\n\r\n",
@@ -2067,10 +2066,9 @@ ACMD(do_initiative)
     name = PERS(entries[index].character, ch);
     suffix = entries[index].character == ch ? " (you)" : "";
     name_width = MAX(1, screen_width - 11 - (int)strlen(suffix));
-    append_where_output(&output, "%2zu. %4d  %s%.*s%s%s\r\n", index + 1U,
-                        entries[index].initiative,
-                        entries[index].character == ch ? CCGRN(ch, C_SPR) : "", name_width,
-                        name, entries[index].character == ch ? CCNRM(ch, C_SPR) : "", suffix);
+    append_where_output(&output, "%2zu. %4d  %s%.*s%s%s\r\n", index + 1U, entries[index].initiative,
+                        entries[index].character == ch ? CCGRN(ch, C_SPR) : "", name_width, name,
+                        entries[index].character == ch ? CCNRM(ch, C_SPR) : "", suffix);
   }
   if (snapshot.total_participants > snapshot.entry_count)
     append_where_output(&output, "...and %zu more combatants.\r\n",

@@ -473,9 +473,8 @@ void vessel_upkeep_tick_one(struct greyhawk_ship_data *ship)
   if (ship->turnrate > 1)
     ship->turnrate--;
 
-  VSSL_DEBUG("Ship %d wear tick: armor %d/%d/%d/%d sail %d rudder %d", ship->shipnum,
-             ship->farmor, ship->rarmor, ship->parmor, ship->sarmor, ship->mainsail,
-             ship->turnrate);
+  VSSL_DEBUG("Ship %d wear tick: armor %d/%d/%d/%d sail %d rudder %d", ship->shipnum, ship->farmor,
+             ship->rarmor, ship->parmor, ship->sarmor, ship->mainsail, ship->turnrate);
 }
 
 void vessel_upkeep_tick(void)

@@ -89,8 +89,7 @@ static void test_null_payload_cleanup(void *payload)
     null_payload_cleanups++;
 }
 
-static struct game_event_result
-test_null_payload_handler(const struct game_event_context *context)
+static struct game_event_result test_null_payload_handler(const struct game_event_context *context)
 {
   (void)context;
   return game_event_result_complete();
@@ -142,8 +141,8 @@ static struct game_event_result test_event_handler(const struct game_event_conte
     game_scheduler_shutdown(context->scheduler);
     return game_event_result_complete();
   case TEST_EVENT_CANCEL_OWNER:
-    schedule_status =
-        game_scheduler_cancel_owner(context->scheduler, payload->owner, payload->owner_cancel_count);
+    schedule_status = game_scheduler_cancel_owner(context->scheduler, payload->owner,
+                                                  payload->owner_cancel_count);
     if (payload->schedule_status != NULL)
       *payload->schedule_status = schedule_status;
     return game_event_result_reschedule_after(payload->delay_ticks);
@@ -301,8 +300,7 @@ void Test_game_scheduler_runs_cleanup_for_null_payloads(CuTest *tc)
 
   status = game_scheduler_schedule_after(scheduler, event_type, 1U, NULL, &event_id);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, status);
-  CuAssertIntEquals(tc, GAME_EVENT_CANCELLED,
-                    game_scheduler_cancel(scheduler, event_id));
+  CuAssertIntEquals(tc, GAME_EVENT_CANCELLED, game_scheduler_cancel(scheduler, event_id));
   CuAssertIntEquals(tc, 2, null_payload_cleanups);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
   CuAssertIntEquals(tc, 2, null_payload_cleanups);
@@ -1082,20 +1080,21 @@ void Test_game_scheduler_owner_contract_validates_limits_and_inspection(CuTest *
   free(payload);
 
   payload = create_test_payload(tc, NULL, &cleanups);
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    game_scheduler_schedule_owned_after(scheduler, limited_type, owner, 10U,
-                                                        payload, &event_id));
+  CuAssertIntEquals(
+      tc, GAME_SCHEDULER_OK,
+      game_scheduler_schedule_owned_after(scheduler, limited_type, owner, 10U, payload, &event_id));
   payload = create_test_payload(tc, NULL, &cleanups);
-  status = game_scheduler_schedule_owned_after(scheduler, limited_type, owner, 10U, payload,
-                                               &event_id);
+  status =
+      game_scheduler_schedule_owned_after(scheduler, limited_type, owner, 10U, payload, &event_id);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OWNER_TYPE_CAPACITY_REACHED, status);
   free(payload);
   payload = create_test_payload(tc, NULL, &cleanups);
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    game_scheduler_schedule_owned_after(scheduler, other_type, owner, 20U, payload,
-                                                        &event_id));
+  CuAssertIntEquals(
+      tc, GAME_SCHEDULER_OK,
+      game_scheduler_schedule_owned_after(scheduler, other_type, owner, 20U, payload, &event_id));
   payload = create_test_payload(tc, NULL, &cleanups);
-  status = game_scheduler_schedule_owned_after(scheduler, other_type, owner, 30U, payload, &event_id);
+  status =
+      game_scheduler_schedule_owned_after(scheduler, other_type, owner, 30U, payload, &event_id);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OWNER_CAPACITY_REACHED, status);
   free(payload);
 
@@ -1358,8 +1357,8 @@ void Test_game_scheduler_reports_threshold_cascade_and_large_advance_work(CuTest
   calls = 0;
   cleanups = 0;
   scheduler = create_test_scheduler(tc, &clock, 4U, false);
-  event_type = register_test_type(tc, scheduler, "structural-work",
-                                  GAME_EVENT_LATENESS_RUN_ONCE, 0U, 0U);
+  event_type =
+      register_test_type(tc, scheduler, "structural-work", GAME_EVENT_LATENESS_RUN_ONCE, 0U, 0U);
   payload = create_test_payload(tc, &calls, &cleanups);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
                     game_scheduler_schedule_at(scheduler, event_type, 64U, payload, &event_id));
@@ -1375,11 +1374,10 @@ void Test_game_scheduler_reports_threshold_cascade_and_large_advance_work(CuTest
   CuAssertIntEquals(tc, 1, calls);
 
   payload = create_test_payload(tc, &calls, &cleanups);
-  CuAssertIntEquals(
-      tc, GAME_SCHEDULER_OK,
-      game_scheduler_schedule_after(scheduler, event_type,
-                                    GAME_SCHEDULER_LARGE_ADVANCE_TICKS + 100U,
-                                    payload, &event_id));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
+                    game_scheduler_schedule_after(scheduler, event_type,
+                                                  GAME_SCHEDULER_LARGE_ADVANCE_TICKS + 100U,
+                                                  payload, &event_id));
   clock.tick += GAME_SCHEDULER_LARGE_ADVANCE_TICKS + 1U;
   report = advance_scheduler(tc, scheduler, NULL);
   CuAssertTrue(tc, report.used_large_advance);
@@ -1387,21 +1385,19 @@ void Test_game_scheduler_reports_threshold_cascade_and_large_advance_work(CuTest
   CuAssertIntEquals(tc, 1, (int)report.events_remaining);
 
   game_scheduler_get_stats(scheduler, &stats);
-  CuAssertTrue(tc, stats.total_ticks_advanced ==
-                      GAME_SCHEDULER_LARGE_ADVANCE_TICKS * 2U + 1U);
+  CuAssertTrue(tc, stats.total_ticks_advanced == GAME_SCHEDULER_LARGE_ADVANCE_TICKS * 2U + 1U);
   CuAssertTrue(tc, stats.total_large_advances == 1U);
   CuAssertTrue(tc, stats.total_large_advance_events == 1U);
   CuAssertTrue(tc, stats.largest_cascade > 0U);
   if (getenv("LUMINARI_PHASE4_REPORT") != NULL)
     fprintf(stderr,
-            "PHASE4 threshold_ticks=%" PRIu64 " cascade_slots=%" PRIu64
-            " cascaded_events=%" PRIu64 " large_jump_ticks=%" PRIu64
-            " large_reclassified=%" PRIu64 " largest_cascade=%" PRIu64 "\n",
-            GAME_SCHEDULER_LARGE_ADVANCE_TICKS, threshold_cascade_slots,
-            threshold_cascaded_events, GAME_SCHEDULER_LARGE_ADVANCE_TICKS + 1U,
-            report.large_advance_events, stats.largest_cascade);
-  CuAssertIntEquals(tc, GAME_EVENT_CANCELLED,
-                    game_scheduler_cancel(scheduler, event_id));
+            "PHASE4 threshold_ticks=%" PRIu64 " cascade_slots=%" PRIu64 " cascaded_events=%" PRIu64
+            " large_jump_ticks=%" PRIu64 " large_reclassified=%" PRIu64 " largest_cascade=%" PRIu64
+            "\n",
+            GAME_SCHEDULER_LARGE_ADVANCE_TICKS, threshold_cascade_slots, threshold_cascaded_events,
+            GAME_SCHEDULER_LARGE_ADVANCE_TICKS + 1U, report.large_advance_events,
+            stats.largest_cascade);
+  CuAssertIntEquals(tc, GAME_EVENT_CANCELLED, game_scheduler_cancel(scheduler, event_id));
   CuAssertIntEquals(tc, 2, cleanups);
   CuAssertIntEquals(tc, GAME_SCHEDULER_OK, game_scheduler_destroy(scheduler));
 }
@@ -1428,17 +1424,17 @@ void Test_game_scheduler_long_soak_churn_and_due_storm_remain_bounded(CuTest *tc
   calls = 0;
   cleanups = 0;
   scheduler = create_test_scheduler(tc, &clock, 512U, false);
-  event_type = register_test_type(tc, scheduler, "soak-storm",
-                                  GAME_EVENT_LATENESS_RUN_ONCE, 0U, 0U);
+  event_type =
+      register_test_type(tc, scheduler, "soak-storm", GAME_EVENT_LATENESS_RUN_ONCE, 0U, 0U);
 
   for (round = 0; round < 100; round++)
   {
     for (index = 0; index < 64; index++)
     {
       payload = create_test_payload(tc, &calls, &cleanups);
-      CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                        game_scheduler_schedule_after(scheduler, event_type, 1U, payload,
-                                                      &event_ids[index]));
+      CuAssertIntEquals(
+          tc, GAME_SCHEDULER_OK,
+          game_scheduler_schedule_after(scheduler, event_type, 1U, payload, &event_ids[index]));
       if ((index % 2) == 0)
         CuAssertIntEquals(tc, GAME_EVENT_CANCELLED,
                           game_scheduler_cancel(scheduler, event_ids[index]));
@@ -1455,9 +1451,9 @@ void Test_game_scheduler_long_soak_churn_and_due_storm_remain_bounded(CuTest *tc
   for (index = 0; index < 512; index++)
   {
     payload = create_test_payload(tc, &calls, &cleanups);
-    CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                      game_scheduler_schedule_after(scheduler, event_type, 1U, payload,
-                                                    &event_ids[index]));
+    CuAssertIntEquals(
+        tc, GAME_SCHEDULER_OK,
+        game_scheduler_schedule_after(scheduler, event_type, 1U, payload, &event_ids[index]));
   }
   clock.tick++;
   ready_turns = 0;

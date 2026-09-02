@@ -124,8 +124,7 @@ static uint64_t entity_hash(struct domain_entity_handle entity)
 {
   uint64_t value = entity.runtime_id;
 
-  value ^= entity.generation + UINT64_C(0x9e3779b97f4a7c15) + (value << 6U) +
-           (value >> 2U);
+  value ^= entity.generation + UINT64_C(0x9e3779b97f4a7c15) + (value << 6U) + (value >> 2U);
   value ^= (uint64_t)entity.kind * UINT64_C(0x517cc1b727220a95);
   return mix_u64(value);
 }
@@ -292,8 +291,9 @@ static void reclaim_retired_subscriptions(struct domain_event_bus *bus)
   }
 }
 
-static struct domain_event_subscription_entry *find_subscription(
-    const struct domain_event_bus *bus, struct domain_event_subscription_handle handle)
+static struct domain_event_subscription_entry *
+find_subscription(const struct domain_event_bus *bus,
+                  struct domain_event_subscription_handle handle)
 {
   struct domain_event_subscription_entry *subscription;
   size_t bucket;
@@ -348,8 +348,7 @@ static void unlink_subscription(struct domain_event_bus *bus,
     bus->subscriptions_tail = subscription->all_prev;
   subscription->active = false;
   bus->subscription_count--;
-  bus->subscription_cancellations =
-      saturating_add(bus->subscription_cancellations, 1U);
+  bus->subscription_cancellations = saturating_add(bus->subscription_cancellations, 1U);
 
   if (bus->dispatch_depth != 0)
   {
@@ -379,8 +378,7 @@ bool domain_entity_handle_is_valid(struct domain_entity_handle handle)
          handle.runtime_id != 0 && handle.generation != 0;
 }
 
-bool domain_entity_handle_equal(struct domain_entity_handle left,
-                                struct domain_entity_handle right)
+bool domain_entity_handle_equal(struct domain_entity_handle left, struct domain_entity_handle right)
 {
   return left.kind == right.kind && left.runtime_id == right.runtime_id &&
          left.generation == right.generation;
@@ -420,8 +418,7 @@ struct domain_event_bus *domain_event_bus_create(const struct domain_event_bus_c
     effective.slow_handler_usec = DOMAIN_EVENT_DEFAULT_SLOW_HANDLER_USEC;
   if (effective.monotonic_usec_now == NULL)
     effective.monotonic_usec_now = default_monotonic_usec;
-  if (effective.max_event_types > SIZE_MAX / 2U ||
-      effective.max_subscriptions > SIZE_MAX / 2U ||
+  if (effective.max_event_types > SIZE_MAX / 2U || effective.max_subscriptions > SIZE_MAX / 2U ||
       effective.max_subscriptions_per_owner > effective.max_subscriptions ||
       effective.max_subscriptions_per_topic > effective.max_subscriptions)
   {
@@ -442,8 +439,7 @@ struct domain_event_bus *domain_event_bus_create(const struct domain_event_bus_c
     goto allocation_failed;
   bus->types = calloc(effective.max_event_types, sizeof(*bus->types));
   bus->type_buckets = calloc(bucket_target, sizeof(*bus->type_buckets));
-  bus->subscription_bucket_count =
-      next_power_of_two(effective.max_subscriptions * 2U);
+  bus->subscription_bucket_count = next_power_of_two(effective.max_subscriptions * 2U);
   if (bus->subscription_bucket_count == 0)
     goto allocation_failed;
   bus->subscription_topic_buckets =
@@ -452,10 +448,8 @@ struct domain_event_bus *domain_event_bus_create(const struct domain_event_bus_c
       calloc(bus->subscription_bucket_count, sizeof(*bus->subscription_owner_buckets));
   bus->subscription_handle_buckets =
       calloc(bus->subscription_bucket_count, sizeof(*bus->subscription_handle_buckets));
-  if (bus->types == NULL || bus->type_buckets == NULL ||
-      bus->subscription_topic_buckets == NULL ||
-      bus->subscription_owner_buckets == NULL ||
-      bus->subscription_handle_buckets == NULL)
+  if (bus->types == NULL || bus->type_buckets == NULL || bus->subscription_topic_buckets == NULL ||
+      bus->subscription_owner_buckets == NULL || bus->subscription_handle_buckets == NULL)
     goto allocation_failed;
   bus->max_event_types = effective.max_event_types;
   bus->max_handlers = effective.max_handlers;
@@ -528,8 +522,8 @@ enum domain_event_status domain_event_bus_destroy(struct domain_event_bus *bus)
   return DOMAIN_EVENT_OK;
 }
 
-enum domain_event_status domain_event_register_type(
-    struct domain_event_bus *bus, const struct domain_event_type_config *config)
+enum domain_event_status domain_event_register_type(struct domain_event_bus *bus,
+                                                    const struct domain_event_type_config *config)
 {
   struct domain_event_type_entry *entry;
   size_t bucket;
@@ -564,8 +558,9 @@ enum domain_event_status domain_event_register_type(
   return DOMAIN_EVENT_OK;
 }
 
-enum domain_event_status domain_event_register_handler(
-    struct domain_event_bus *bus, const struct domain_event_handler_config *config)
+enum domain_event_status
+domain_event_register_handler(struct domain_event_bus *bus,
+                              const struct domain_event_handler_config *config)
 {
   struct domain_event_type_entry *type;
   struct domain_event_handler_entry **cursor;
@@ -602,10 +597,9 @@ enum domain_event_status domain_event_register_handler(
   handler->handler = config->handler;
   handler->handler_context = config->handler_context;
   cursor = &type->handlers;
-  while (*cursor != NULL &&
-         ((*cursor)->priority < handler->priority ||
-          ((*cursor)->priority == handler->priority &&
-           (*cursor)->registration_sequence < handler->registration_sequence)))
+  while (*cursor != NULL && ((*cursor)->priority < handler->priority ||
+                             ((*cursor)->priority == handler->priority &&
+                              (*cursor)->registration_sequence < handler->registration_sequence)))
     cursor = &(*cursor)->next;
   handler->next = *cursor;
   *cursor = handler;
@@ -645,9 +639,10 @@ enum domain_event_status domain_event_seal(struct domain_event_bus *bus)
   return DOMAIN_EVENT_OK;
 }
 
-enum domain_event_status domain_event_subscribe(
-    struct domain_event_bus *bus, const struct domain_event_subscription_config *config,
-    struct domain_event_subscription_handle *handle)
+enum domain_event_status
+domain_event_subscribe(struct domain_event_bus *bus,
+                       const struct domain_event_subscription_config *config,
+                       struct domain_event_subscription_handle *handle)
 {
   struct domain_event_subscription_entry *subscription;
   struct domain_event_subscription_entry **cursor;
@@ -670,8 +665,7 @@ enum domain_event_status domain_event_subscribe(
     return DOMAIN_EVENT_BUSY;
   if (find_type(bus, config->type) == NULL)
     return DOMAIN_EVENT_UNKNOWN_TYPE;
-  if (bus->subscription_count >= bus->max_subscriptions ||
-      bus->next_subscription_id == UINT64_MAX)
+  if (bus->subscription_count >= bus->max_subscriptions || bus->next_subscription_id == UINT64_MAX)
     return DOMAIN_EVENT_SUBSCRIPTION_CAPACITY_REACHED;
 
   bucket = subscription_owner_bucket(bus, config->owner);
@@ -741,8 +735,8 @@ enum domain_event_status domain_event_subscribe(
   return DOMAIN_EVENT_OK;
 }
 
-enum domain_event_status domain_event_unsubscribe(
-    struct domain_event_bus *bus, struct domain_event_subscription_handle handle)
+enum domain_event_status domain_event_unsubscribe(struct domain_event_bus *bus,
+                                                  struct domain_event_subscription_handle handle)
 {
   struct domain_event_subscription_entry *subscription;
 
@@ -758,8 +752,9 @@ enum domain_event_status domain_event_unsubscribe(
   return DOMAIN_EVENT_OK;
 }
 
-enum domain_event_status domain_event_unsubscribe_owner(
-    struct domain_event_bus *bus, struct domain_entity_handle owner, size_t *cancelled_count)
+enum domain_event_status domain_event_unsubscribe_owner(struct domain_event_bus *bus,
+                                                        struct domain_entity_handle owner,
+                                                        size_t *cancelled_count)
 {
   struct domain_event_subscription_entry *subscription;
   size_t cancelled = 0U;
@@ -838,16 +833,17 @@ static void deliver_subscriptions(struct domain_event_bus *bus,
 }
 
 enum domain_event_status domain_event_publish(struct domain_event_bus *bus,
-                                              domain_event_type_id_t type_id,
-                                              const void *payload, size_t payload_size)
+                                              domain_event_type_id_t type_id, const void *payload,
+                                              size_t payload_size)
 {
   return domain_event_publish_routed(bus, type_id, NULL, 0U, payload, payload_size);
 }
 
-enum domain_event_status domain_event_publish_routed(
-    struct domain_event_bus *bus, domain_event_type_id_t type_id,
-    const struct domain_event_topic *topics, size_t topic_count,
-    const void *payload, size_t payload_size)
+enum domain_event_status domain_event_publish_routed(struct domain_event_bus *bus,
+                                                     domain_event_type_id_t type_id,
+                                                     const struct domain_event_topic *topics,
+                                                     size_t topic_count, const void *payload,
+                                                     size_t payload_size)
 {
   struct domain_event_type_entry *type;
   struct domain_event_handler_entry *handler;
@@ -873,8 +869,7 @@ enum domain_event_status domain_event_publish_routed(
   {
     size_t previous;
 
-    if (topics[topic_index].role == DOMAIN_EVENT_TOPIC_ANY ||
-        !topic_is_valid(topics[topic_index]))
+    if (topics[topic_index].role == DOMAIN_EVENT_TOPIC_ANY || !topic_is_valid(topics[topic_index]))
       return DOMAIN_EVENT_INVALID_ARGUMENT;
     for (previous = 0U; previous < topic_index; previous++)
       if (topic_equal(topics[topic_index], topics[previous]))
@@ -945,8 +940,7 @@ enum domain_event_status domain_event_publish_routed(
     wildcard.entity = domain_entity_handle_none();
     deliver_subscriptions(bus, type, &context, wildcard);
   }
-  for (topic_index = 0U;
-       topic_index < topic_count && bus->causal_failure == DOMAIN_EVENT_OK;
+  for (topic_index = 0U; topic_index < topic_count && bus->causal_failure == DOMAIN_EVENT_OK;
        topic_index++)
     deliver_subscriptions(bus, type, &context, topics[topic_index]);
   bus->dispatch_depth--;
@@ -1032,9 +1026,10 @@ enum domain_event_status domain_event_get_type_stats(const struct domain_event_b
   return DOMAIN_EVENT_OK;
 }
 
-enum domain_event_status domain_event_get_handler_stats(
-    const struct domain_event_bus *bus, domain_event_type_id_t type_id, const char *identity,
-    struct domain_event_handler_stats *stats)
+enum domain_event_status domain_event_get_handler_stats(const struct domain_event_bus *bus,
+                                                        domain_event_type_id_t type_id,
+                                                        const char *identity,
+                                                        struct domain_event_handler_stats *stats)
 {
   struct domain_event_type_entry *type;
   struct domain_event_handler_entry *handler;
@@ -1110,10 +1105,10 @@ size_t domain_event_inspect_handlers(const struct domain_event_bus *bus,
   return index;
 }
 
-size_t domain_event_inspect_subscriptions(
-    const struct domain_event_bus *bus,
-    const struct domain_event_subscription_stats *filter,
-    struct domain_event_subscription_stats *snapshots, size_t snapshot_capacity)
+size_t domain_event_inspect_subscriptions(const struct domain_event_bus *bus,
+                                          const struct domain_event_subscription_stats *filter,
+                                          struct domain_event_subscription_stats *snapshots,
+                                          size_t snapshot_capacity)
 {
   struct domain_event_subscription_entry *subscription;
   size_t count = 0U;
@@ -1162,9 +1157,10 @@ size_t domain_event_inspect_subscriptions(
   return count;
 }
 
-size_t domain_event_inspect_entity_subscriptions(
-    const struct domain_event_bus *bus, struct domain_entity_handle entity,
-    struct domain_event_subscription_stats *snapshots, size_t snapshot_capacity)
+size_t domain_event_inspect_entity_subscriptions(const struct domain_event_bus *bus,
+                                                 struct domain_entity_handle entity,
+                                                 struct domain_event_subscription_stats *snapshots,
+                                                 size_t snapshot_capacity)
 {
   struct domain_event_subscription_entry *subscription;
   size_t count = 0U;

@@ -757,8 +757,8 @@ void vessel_combat_tick_one(struct greyhawk_ship_data *ship)
       ship->slot[s].timer--;
       if (ship->slot[s].timer == 0 && ship->slot[s].type == 1)
       {
-        send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RELOAD,
-                               VESSEL_COMBAT_MESSAGE_COOLDOWN, "%s is reloaded and ready.",
+        send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RELOAD, VESSEL_COMBAT_MESSAGE_COOLDOWN,
+                               "%s is reloaded and ready.",
                                ship->slot[s].desc[0] ? ship->slot[s].desc : "A weapon");
       }
     }

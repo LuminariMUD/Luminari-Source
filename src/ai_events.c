@@ -82,8 +82,7 @@ static struct
   int read_fd;
   int write_fd;
   bool accepting;
-} ai_ingress = {PTHREAD_MUTEX_INITIALIZER, NULL, NULL, 0U, 0U, 0U, 0U, 0U, 0U,
-                0U, -1, -1, false};
+} ai_ingress = {PTHREAD_MUTEX_INITIALIZER, NULL, NULL, 0U, 0U, 0U, 0U, 0U, 0U, 0U, -1, -1, false};
 
 static game_event_type_id_t ai_response_type;
 static game_event_type_id_t ai_retry_type;
@@ -192,8 +191,7 @@ static void deliver_ai_response(struct ai_response_event *data)
   }
   snprintf(buf, sizeof(buf), "$n tells you, '%s'", data->response);
   act(buf, FALSE, npc, 0, player, TO_VICT);
-  log_ai_interaction(player, npc, data->response,
-                     data->backend != NULL ? data->backend : "unknown",
+  log_ai_interaction(player, npc, data->response, data->backend != NULL ? data->backend : "unknown",
                      data->from_cache);
 }
 
@@ -204,34 +202,30 @@ static void run_ai_retry(struct ai_request_retry_event *data)
 
   if (data == NULL || data->prompt == NULL)
     return;
-  player_valid = domain_entity_handle_is_none(data->player) ||
-                 resolve_character(data->player) != NULL;
-  npc_valid = domain_entity_handle_is_none(data->npc) ||
-              resolve_character(data->npc) != NULL;
+  player_valid =
+      domain_entity_handle_is_none(data->player) || resolve_character(data->player) != NULL;
+  npc_valid = domain_entity_handle_is_none(data->npc) || resolve_character(data->npc) != NULL;
   if (!player_valid || !npc_valid)
   {
     event_note_stale_owner_outcome();
     return;
   }
-  if (!ai_retry_request_async(data->prompt, data->request_type, data->retry_count,
-                              data->player, data->npc) &&
+  if (!ai_retry_request_async(data->prompt, data->request_type, data->retry_count, data->player,
+                              data->npc) &&
       data->retry_count < AI_MAX_RETRIES)
   {
-    queue_ai_request_retry_for_entities(data->prompt, data->request_type,
-                                        data->retry_count + 1, data->player,
-                                        data->npc);
+    queue_ai_request_retry_for_entities(data->prompt, data->request_type, data->retry_count + 1,
+                                        data->player, data->npc);
   }
 }
 
-static struct game_event_result ai_response_dispatch(
-    const struct game_event_context *context)
+static struct game_event_result ai_response_dispatch(const struct game_event_context *context)
 {
   deliver_ai_response(context != NULL ? context->payload : NULL);
   return game_event_result_complete();
 }
 
-static struct game_event_result ai_retry_dispatch(
-    const struct game_event_context *context)
+static struct game_event_result ai_retry_dispatch(const struct game_event_context *context)
 {
   run_ai_retry(context != NULL ? context->payload : NULL);
   return game_event_result_complete();
@@ -383,8 +377,7 @@ int ai_events_ingress_fd(void)
   return fd;
 }
 
-static bool enqueue_ingress(enum ai_ingress_kind kind, void *payload,
-                            game_tick_t delay)
+static bool enqueue_ingress(enum ai_ingress_kind kind, void *payload, game_tick_t delay)
 {
   struct ai_ingress_item *item;
   unsigned char signal_byte = 1U;
@@ -414,8 +407,8 @@ static bool enqueue_ingress(enum ai_ingress_kind kind, void *payload,
   if (ai_ingress.depth > ai_ingress.high_water)
     ai_ingress.high_water = ai_ingress.depth;
   if (ai_ingress.write_fd >= 0 &&
-      write(ai_ingress.write_fd, &signal_byte, sizeof(signal_byte)) < 0 &&
-      errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)
+      write(ai_ingress.write_fd, &signal_byte, sizeof(signal_byte)) < 0 && errno != EAGAIN &&
+      errno != EWOULDBLOCK && errno != EINTR)
     ai_ingress.wake_failures++;
   pthread_mutex_unlock(&ai_ingress.mutex);
   return true;
@@ -462,8 +455,7 @@ static enum ai_ingress_admission schedule_ingress_item(struct ai_ingress_item *i
     if (data->cache_key != NULL && data->response != NULL)
       ai_cache_response(data->cache_key, data->response);
     if (domain_event_runtime_bus() != NULL &&
-        (resolve_character(data->player) == NULL ||
-         resolve_character(data->npc) == NULL))
+        (resolve_character(data->player) == NULL || resolve_character(data->npc) == NULL))
     {
       event_note_stale_owner_outcome();
       return AI_INGRESS_DROPPED;
@@ -472,8 +464,8 @@ static enum ai_ingress_admission schedule_ingress_item(struct ai_ingress_item *i
     {
       if (!ai_events_runtime_init())
         return AI_INGRESS_FAILED;
-      status = event_runtime_schedule_owned_after(ai_response_type, owner, item->delay,
-                                                  data, &runtime_handle);
+      status = event_runtime_schedule_owned_after(ai_response_type, owner, item->delay, data,
+                                                  &runtime_handle);
       return status == GAME_SCHEDULER_OK ? AI_INGRESS_ADMITTED : AI_INGRESS_FAILED;
     }
 #if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
@@ -494,10 +486,8 @@ static enum ai_ingress_admission schedule_ingress_item(struct ai_ingress_item *i
     if (!game_event_owner_is_valid(owner))
       owner = ai_service_owner();
     if (domain_event_runtime_bus() != NULL &&
-        ((!domain_entity_handle_is_none(data->player) &&
-          resolve_character(data->player) == NULL) ||
-         (!domain_entity_handle_is_none(data->npc) &&
-          resolve_character(data->npc) == NULL)))
+        ((!domain_entity_handle_is_none(data->player) && resolve_character(data->player) == NULL) ||
+         (!domain_entity_handle_is_none(data->npc) && resolve_character(data->npc) == NULL)))
     {
       event_note_stale_owner_outcome();
       return AI_INGRESS_DROPPED;
@@ -506,15 +496,15 @@ static enum ai_ingress_admission schedule_ingress_item(struct ai_ingress_item *i
     {
       if (!ai_events_runtime_init())
         return AI_INGRESS_FAILED;
-      status = event_runtime_schedule_owned_after(ai_retry_type, owner, item->delay,
-                                                  data, &runtime_handle);
+      status = event_runtime_schedule_owned_after(ai_retry_type, owner, item->delay, data,
+                                                  &runtime_handle);
       return status == GAME_SCHEDULER_OK ? AI_INGRESS_ADMITTED : AI_INGRESS_FAILED;
     }
 #if (defined(LUMINARI_ENABLE_EVENT_ROLLBACK) && LUMINARI_ENABLE_EVENT_ROLLBACK) ||                 \
     defined(LUMINARI_EVENT_ROLLBACK_TESTS)
     rollback_handle = event_schedule_owned_named_with_terminal_cleanup(
-        ai_retry_rollback, data, (long)item->delay, "ai.request.retry",
-        cleanup_ai_retry_rollback, owner);
+        ai_retry_rollback, data, (long)item->delay, "ai.request.retry", cleanup_ai_retry_rollback,
+        owner);
     return rollback_handle != EVENT_HANDLE_NONE ? AI_INGRESS_ADMITTED : AI_INGRESS_FAILED;
 #else
     return AI_INGRESS_FAILED;
@@ -568,14 +558,13 @@ void ai_events_get_ingress_stats(struct ai_event_ingress_stats *stats)
 }
 
 void queue_ai_response_for_entities(struct domain_entity_handle player,
-                                    struct domain_entity_handle npc,
-                                    const char *response, const char *backend,
-                                    const char *cache_key, bool from_cache)
+                                    struct domain_entity_handle npc, const char *response,
+                                    const char *backend, const char *cache_key, bool from_cache)
 {
   struct ai_response_event *data;
 
-  if (!domain_entity_handle_is_valid(player) ||
-      !domain_entity_handle_is_valid(npc) || response == NULL)
+  if (!domain_entity_handle_is_valid(player) || !domain_entity_handle_is_valid(npc) ||
+      response == NULL)
     return;
   data = calloc(1U, sizeof(*data));
   if (data == NULL)
@@ -592,17 +581,15 @@ void queue_ai_response_for_entities(struct domain_entity_handle player,
     cleanup_ai_response_event(data);
 }
 
-void queue_ai_response(struct char_data *ch, struct char_data *npc,
-                       const char *response, const char *backend,
-                       bool from_cache)
+void queue_ai_response(struct char_data *ch, struct char_data *npc, const char *response,
+                       const char *backend, bool from_cache)
 {
   queue_ai_response_for_entities(domain_event_character_handle(ch),
-                                 domain_event_character_handle(npc), response,
-                                 backend, NULL, from_cache);
+                                 domain_event_character_handle(npc), response, backend, NULL,
+                                 from_cache);
 }
 
-void queue_ai_request_retry_for_entities(const char *prompt, int request_type,
-                                         int retry_count,
+void queue_ai_request_retry_for_entities(const char *prompt, int request_type, int retry_count,
                                          struct domain_entity_handle player,
                                          struct domain_entity_handle npc)
 {
@@ -619,8 +606,8 @@ void queue_ai_request_retry_for_entities(const char *prompt, int request_type,
   data->retry_count = retry_count;
   data->player = player;
   data->npc = npc;
-  delay = retry_count <= 0 ? PASSES_PER_SEC :
-          (game_tick_t)MIN(1 << MIN(retry_count, 4), 16) * PASSES_PER_SEC;
+  delay = retry_count <= 0 ? PASSES_PER_SEC
+                           : (game_tick_t)MIN(1 << MIN(retry_count, 4), 16) * PASSES_PER_SEC;
   if (data->prompt == NULL || !enqueue_ingress(AI_INGRESS_RETRY, data, delay))
     cleanup_ai_request_retry_event(data);
 }
@@ -635,6 +622,5 @@ void queue_ai_request_retry(const char *prompt, int request_type, int retry_coun
     player = domain_event_character_handle(ch);
   if (npc != NULL)
     mobile = domain_event_character_handle(npc);
-  queue_ai_request_retry_for_entities(prompt, request_type, retry_count, player,
-                                      mobile);
+  queue_ai_request_retry_for_entities(prompt, request_type, retry_count, player, mobile);
 }

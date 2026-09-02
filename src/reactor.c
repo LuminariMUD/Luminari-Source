@@ -198,9 +198,10 @@ static void libevent_signal_ready(evutil_socket_t signal_number, short events, v
   }
 }
 
-enum luminari_reactor_status luminari_reactor_add_signal(
-    struct luminari_reactor *reactor, int signal_number,
-    luminari_reactor_signal_callback callback, void *context)
+enum luminari_reactor_status luminari_reactor_add_signal(struct luminari_reactor *reactor,
+                                                         int signal_number,
+                                                         luminari_reactor_signal_callback callback,
+                                                         void *context)
 {
   struct reactor_signal *signal_watch;
   size_t index;
@@ -447,8 +448,7 @@ enum luminari_reactor_status luminari_reactor_wait(struct luminari_reactor *reac
   return status;
 }
 
-bool luminari_reactor_ready(const struct luminari_reactor *reactor, int fd,
-                            unsigned int interest)
+bool luminari_reactor_ready(const struct luminari_reactor *reactor, int fd, unsigned int interest)
 {
   size_t index;
 

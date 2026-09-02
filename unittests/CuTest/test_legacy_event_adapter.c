@@ -229,8 +229,8 @@ static void *enqueue_ai_response_from_worker(void *context)
 {
   struct ai_ingress_thread_test *test = context;
 
-  queue_ai_response_for_entities(test->player, test->npc, "test response",
-                                 "test backend", NULL, false);
+  queue_ai_response_for_entities(test->player, test->npc, "test response", "test backend", NULL,
+                                 false);
   return NULL;
 }
 
@@ -260,8 +260,7 @@ static void verify_ai_event_shutdown_cleanup(CuTest *tc, enum event_backend_kind
   thread_test.player = domain_event_character_handle(&player);
   thread_test.npc = domain_event_character_handle(&npc);
   CuAssertIntEquals(tc, 0,
-                    pthread_create(&producer, NULL, enqueue_ai_response_from_worker,
-                                   &thread_test));
+                    pthread_create(&producer, NULL, enqueue_ai_response_from_worker, &thread_test));
   CuAssertIntEquals(tc, 0, pthread_join(producer, NULL));
   queue_ai_request_retry("test prompt", AI_REQUEST_NPC_DIALOGUE, 0, NULL, NULL);
   CuAssertIntEquals(tc, 0, event_queue_depth());
@@ -272,13 +271,11 @@ static void verify_ai_event_shutdown_cleanup(CuTest *tc, enum event_backend_kind
   queued_events = event_queue_depth();
   memset(&filter, 0, sizeof(filter));
   filter.type_equals = "ai.response.delivery";
-  CuAssertIntEquals(tc, 1,
-                    (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
   CuAssertIntEquals(tc, GAME_EVENT_OWNER_CHARACTER, snapshot.owner.kind);
   CuAssertTrue(tc, snapshot.owner.runtime_id == (uint64_t)(uintptr_t)&player);
   filter.type_equals = "ai.request.retry";
-  CuAssertIntEquals(tc, 1,
-                    (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
   CuAssertIntEquals(tc, GAME_EVENT_OWNER_SERVICE, snapshot.owner.kind);
   character_list = saved_character_list;
 
@@ -503,9 +500,9 @@ static void verify_owner_cancel(CuTest *tc, enum event_backend_kind backend)
       workload_callback, &first_trace, 20, "owner-cancel-first", traced_handle_cleanup, owner);
   second = event_schedule_owned_named_with_cleanup(
       workload_callback, &second_trace, 30, "owner-cancel-second", traced_handle_cleanup, owner);
-  other = event_schedule_owned_named_with_cleanup(
-      workload_callback, &other_trace, 40, "owner-cancel-other", traced_handle_cleanup,
-      other_owner);
+  other = event_schedule_owned_named_with_cleanup(workload_callback, &other_trace, 40,
+                                                  "owner-cancel-other", traced_handle_cleanup,
+                                                  other_owner);
 
   CuAssertTrue(tc, first != EVENT_HANDLE_NONE);
   CuAssertTrue(tc, second != EVENT_HANDLE_NONE);
@@ -551,7 +548,7 @@ static void verify_opaque_handle_lifecycle(CuTest *tc, enum event_backend_kind b
   begin_backend_test(tc, backend, 250U);
 
   cancelled = event_schedule_named_with_cleanup(workload_callback, &cleanup_trace, 10,
-                                                 "opaque-cancel", traced_handle_cleanup);
+                                                "opaque-cancel", traced_handle_cleanup);
   CuAssertTrue(tc, cancelled != EVENT_HANDLE_NONE);
   CuAssertTrue(tc, event_handle_is_live(cancelled));
   CuAssertTrue(tc, event_handle_is_queued(cancelled));
@@ -602,9 +599,9 @@ static void verify_opaque_handle_lifecycle(CuTest *tc, enum event_backend_kind b
   self_cancel->handle = EVENT_HANDLE_NONE;
   self_cancel->runs = &self_cancel_runs;
   self_cancel->cleanup_trace = &self_cancel_trace;
-  self_cancelled = event_schedule_named_with_cleanup(
-      handle_self_cancel_callback, self_cancel, 1, "opaque-self-cancel",
-      self_cancel_handle_cleanup);
+  self_cancelled =
+      event_schedule_named_with_cleanup(handle_self_cancel_callback, self_cancel, 1,
+                                        "opaque-self-cancel", self_cancel_handle_cleanup);
   CuAssertTrue(tc, self_cancelled != EVENT_HANDLE_NONE);
   self_cancel->handle = self_cancelled;
   pulse = 252U;
@@ -619,8 +616,8 @@ static void verify_opaque_handle_lifecycle(CuTest *tc, enum event_backend_kind b
   CuAssertTrue(tc, !event_handle_is_live(self_cancelled));
   CuAssertIntEquals(tc, 0, event_queue_depth());
 
-  shutdown_handle = event_schedule_named_with_cleanup(
-      workload_callback, &shutdown_trace, 10, "opaque-shutdown", traced_handle_cleanup);
+  shutdown_handle = event_schedule_named_with_cleanup(workload_callback, &shutdown_trace, 10,
+                                                      "opaque-shutdown", traced_handle_cleanup);
   CuAssertTrue(tc, shutdown_handle != EVENT_HANDLE_NONE);
   event_free_all();
   CuAssertIntEquals(tc, 1, shutdown_trace.calls);
@@ -640,9 +637,11 @@ void Test_event_opaque_handles_are_generation_safe_on_both_backends(CuTest *tc)
   pulse = saved_pulse;
 }
 
-static event_handle_t schedule_terminal_cleanup_test_event(
-    CuTest *tc, struct handle_cleanup_trace *trace, int runs, long recurrence_delay,
-    long initial_delay, const char *profile_name)
+static event_handle_t schedule_terminal_cleanup_test_event(CuTest *tc,
+                                                           struct handle_cleanup_trace *trace,
+                                                           int runs, long recurrence_delay,
+                                                           long initial_delay,
+                                                           const char *profile_name)
 {
   struct terminal_cleanup_payload *payload;
   event_handle_t handle;
@@ -654,8 +653,8 @@ static event_handle_t schedule_terminal_cleanup_test_event(
   payload->runs_remaining = runs;
   payload->recurrence_delay = recurrence_delay;
   handle = event_schedule_owned_named_with_terminal_cleanup(
-      terminal_cleanup_callback, payload, initial_delay, profile_name,
-      terminal_handle_cleanup, game_event_owner_none());
+      terminal_cleanup_callback, payload, initial_delay, profile_name, terminal_handle_cleanup,
+      game_event_owner_none());
   CuAssertTrue(tc, handle != EVENT_HANDLE_NONE);
   payload->handle = handle;
   return handle;
@@ -675,8 +674,8 @@ static void verify_terminal_cleanup_lifecycle(CuTest *tc, enum event_backend_kin
   memset(&shutdown_trace, 0, sizeof(shutdown_trace));
   begin_backend_test(tc, backend, 275U);
 
-  completed = schedule_terminal_cleanup_test_event(
-      tc, &completion_trace, 2, 2, 1, "terminal-cleanup-completion");
+  completed = schedule_terminal_cleanup_test_event(tc, &completion_trace, 2, 2, 1,
+                                                   "terminal-cleanup-completion");
   pulse = 276U;
   event_process();
   CuAssertIntEquals(tc, 0, completion_trace.calls);
@@ -688,16 +687,16 @@ static void verify_terminal_cleanup_lifecycle(CuTest *tc, enum event_backend_kin
   CuAssertTrue(tc, completion_trace.live_during_cleanup);
   CuAssertTrue(tc, !event_handle_is_live(completed));
 
-  cancelled = schedule_terminal_cleanup_test_event(
-      tc, &cancellation_trace, 1, 0, 10, "terminal-cleanup-cancellation");
+  cancelled = schedule_terminal_cleanup_test_event(tc, &cancellation_trace, 1, 0, 10,
+                                                   "terminal-cleanup-cancellation");
   CuAssertTrue(tc, event_handle_cancel(cancelled));
   CuAssertIntEquals(tc, 1, cancellation_trace.calls);
   CuAssertTrue(tc, cancellation_trace.seen_handle == cancelled);
   CuAssertTrue(tc, cancellation_trace.live_during_cleanup);
   CuAssertTrue(tc, !event_handle_is_live(cancelled));
 
-  shutdown = schedule_terminal_cleanup_test_event(
-      tc, &shutdown_trace, 1, 0, 10, "terminal-cleanup-shutdown");
+  shutdown = schedule_terminal_cleanup_test_event(tc, &shutdown_trace, 1, 0, 10,
+                                                  "terminal-cleanup-shutdown");
   event_free_all();
   CuAssertIntEquals(tc, 1, shutdown_trace.calls);
   CuAssertTrue(tc, shutdown_trace.seen_handle == shutdown);
@@ -795,14 +794,10 @@ void Test_legacy_event_rejects_recursive_dispatch_on_both_backends(CuTest *tc)
 void Test_legacy_event_source_workload_populates_private_telemetry(CuTest *tc)
 {
   static const struct workload_case workload[] = {
-      {"World Quest Completion", 1},
-      {"World Falling", 5},
-      {"Spell Preparation", 10},
-      {"Cooldown Expiry", 20},
-      {"DG Wait Resume", 600},
-      {"AI Combat Round", 3000},
-      {"Resource Regeneration", 14400},
-      {"World Midnight Edict", 864000},
+      {"World Quest Completion", 1},    {"World Falling", 5},
+      {"Spell Preparation", 10},        {"Cooldown Expiry", 20},
+      {"DG Wait Resume", 600},          {"AI Combat Round", 3000},
+      {"Resource Regeneration", 14400}, {"World Midnight Edict", 864000},
   };
   struct event *events[sizeof(workload) / sizeof(workload[0])];
   struct char_data *saved_character_list;
@@ -878,28 +873,23 @@ void Test_legacy_event_scheduler_bridge_yields_without_dual_dispatch(CuTest *tc)
   {
     payload = new_trace_payload(&trace, (char)('A' + index), 1, 0);
     CuAssertPtrNotNull(tc, payload);
-    CuAssertPtrNotNull(tc,
-                       event_create_named(event_trace_callback, payload, 1, "bridge-storm"));
+    CuAssertPtrNotNull(tc, event_create_named(event_trace_callback, payload, 1, "bridge-storm"));
   }
 
   pulse = 501U;
   event_process_compatibility_pulse();
   CuAssertIntEquals(tc, 0, trace.count);
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    event_scheduler_next_deadline(&deadline, &has_deadline));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_scheduler_next_deadline(&deadline, &has_deadline));
   CuAssertTrue(tc, has_deadline);
   CuAssertTrue(tc, deadline == 501U);
 
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    event_process_scheduler(&budget, &report));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_process_scheduler(&budget, &report));
   CuAssertIntEquals(tc, 1, trace.count);
   CuAssertIntEquals(tc, 2, (int)report.ready_remaining);
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    event_process_scheduler(&budget, &report));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_process_scheduler(&budget, &report));
   CuAssertIntEquals(tc, 2, trace.count);
   CuAssertIntEquals(tc, 1, (int)report.ready_remaining);
-  CuAssertIntEquals(tc, GAME_SCHEDULER_OK,
-                    event_process_scheduler(&budget, &report));
+  CuAssertIntEquals(tc, GAME_SCHEDULER_OK, event_process_scheduler(&budget, &report));
   CuAssertIntEquals(tc, 3, trace.count);
   CuAssertIntEquals(tc, 0, (int)report.ready_remaining);
   CuAssertIntEquals(tc, 501, (int)pulse);
@@ -963,8 +953,7 @@ static void verify_event_debug_registry(CuTest *tc, enum event_backend_kind back
   CuAssertTrue(tc, stats.stale_owner_outcomes == 0U);
   CuAssertIntEquals(tc, 1, (int)stats.owner_event_counts[GAME_EVENT_OWNER_NONE]);
   CuAssertIntEquals(tc, 1, (int)stats.owner_event_counts[GAME_EVENT_OWNER_SERVICE]);
-  CuAssertIntEquals(tc, backend == EVENT_BACKEND_GAME_SCHEDULER,
-                    stats.scheduler_stats_available);
+  CuAssertIntEquals(tc, backend == EVENT_BACKEND_GAME_SCHEDULER, stats.scheduler_stats_available);
 
   memset(&filter, 0, sizeof(filter));
   matched = event_debug_inspect(&filter, snapshots, 2U, &returned);
@@ -1096,8 +1085,7 @@ static void verify_runtime_service_registry(CuTest *tc, enum event_backend_kind 
   CuAssertIntEquals(tc, (int)stats.live_services, event_queue_depth());
   memset(&filter, 0, sizeof(filter));
   filter.type_equals = "service.one_second";
-  CuAssertIntEquals(tc, 1,
-                    (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
   CuAssertIntEquals(tc, 1, (int)returned_count);
   CuAssertIntEquals(tc, GAME_EVENT_OWNER_SERVICE, snapshot.owner.kind);
 
@@ -1106,8 +1094,7 @@ static void verify_runtime_service_registry(CuTest *tc, enum event_backend_kind 
   event_runtime_get_stats(&scheduler_stats);
   CuAssertIntEquals(tc, (int)stats.live_services + 1, (int)scheduler_stats.event_count);
   filter.type_equals = "service.persistence_batch";
-  CuAssertIntEquals(tc, 1,
-                    (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(&filter, &snapshot, 1U, &returned_count));
   pulse = start_pulse + 1U;
   event_process();
   CuAssertTrue(tc, !runtime_services_persistence_pending_for_test());

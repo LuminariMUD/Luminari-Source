@@ -36,8 +36,8 @@ static bool test_selection_set;
 static bool test_scheduled_selection;
 #endif
 
-static struct game_event_result point_update_service_event(
-    const struct game_event_context *context);
+static struct game_event_result
+point_update_service_event(const struct game_event_context *context);
 
 static bool configured_scheduled(void)
 {
@@ -55,8 +55,7 @@ static bool configured_scheduled(void)
   if (value == NULL || *value == '\0' || !strcasecmp(value, "scheduled") ||
       !strcasecmp(value, "active") || !strcasecmp(value, "event"))
     return true;
-  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") ||
-      !strcasecmp(value, "off"))
+  if (!strcasecmp(value, "legacy") || !strcasecmp(value, "heartbeat") || !strcasecmp(value, "off"))
     return false;
   log("WARNING: Unknown LUMINARI_POINT_UPDATE_EVENTS '%s'; using scheduled events.", value);
   return true;
@@ -175,7 +174,10 @@ void point_update_character_sync(struct char_data *ch)
     character_remove(ch);
 }
 
-void point_update_character_forget(struct char_data *ch) { character_remove(ch); }
+void point_update_character_forget(struct char_data *ch)
+{
+  character_remove(ch);
+}
 
 void point_update_object_sync(struct obj_data *obj)
 {
@@ -187,7 +189,10 @@ void point_update_object_sync(struct obj_data *obj)
     object_remove(obj);
 }
 
-void point_update_object_forget(struct obj_data *obj) { object_remove(obj); }
+void point_update_object_forget(struct obj_data *obj)
+{
+  object_remove(obj);
+}
 
 void point_update_object_spec_timer_set(struct obj_data *obj, int slot, int duration)
 {
@@ -226,8 +231,7 @@ static bool register_point_update_event_type(void)
   return true;
 }
 
-static struct game_event_result point_update_service_event(
-    const struct game_event_context *context)
+static struct game_event_result point_update_service_event(const struct game_event_context *context)
 {
   if (!initialized || !scheduled)
   {
@@ -246,9 +250,9 @@ static bool schedule_service(void)
     return true;
   if (!initialized || !scheduled || shutting_down)
     return false;
-  return event_runtime_schedule_owned_after(
-             point_update_event_type, service_owner(), (game_tick_t)boundary_delay(), NULL,
-             &service_event_handle) == GAME_SCHEDULER_OK;
+  return event_runtime_schedule_owned_after(point_update_event_type, service_owner(),
+                                            (game_tick_t)boundary_delay(), NULL,
+                                            &service_event_handle) == GAME_SCHEDULER_OK;
 }
 
 bool point_update_periodic_dispatch_due(void)
@@ -331,8 +335,7 @@ void point_update_periodic_init(void)
   log("Point-update scheduling: %s.",
       scheduled ? "scheduled (one service event)" : "legacy heartbeat");
 #else
-  log("Point-update scheduling: %s.",
-      scheduled ? "scheduled (one service event)" : "unavailable");
+  log("Point-update scheduling: %s.", scheduled ? "scheduled (one service event)" : "unavailable");
 #endif
 }
 
@@ -377,13 +380,34 @@ void point_update_periodic_shutdown(void)
   dispatch_due = false;
 }
 
-bool point_update_events_enabled(void) { return initialized && scheduled; }
-size_t point_update_character_count(void) { return character_count; }
-size_t point_update_object_count(void) { return object_count; }
-uint64_t point_update_service_callbacks(void) { return service_callbacks; }
-uint64_t point_update_dispatches(void) { return dispatches; }
-uint64_t point_update_character_executions(void) { return character_executions; }
-uint64_t point_update_object_executions(void) { return object_executions; }
+bool point_update_events_enabled(void)
+{
+  return initialized && scheduled;
+}
+size_t point_update_character_count(void)
+{
+  return character_count;
+}
+size_t point_update_object_count(void)
+{
+  return object_count;
+}
+uint64_t point_update_service_callbacks(void)
+{
+  return service_callbacks;
+}
+uint64_t point_update_dispatches(void)
+{
+  return dispatches;
+}
+uint64_t point_update_character_executions(void)
+{
+  return character_executions;
+}
+uint64_t point_update_object_executions(void)
+{
+  return object_executions;
+}
 
 size_t point_update_character_registry_validate(void)
 {
@@ -401,9 +425,9 @@ size_t point_update_character_registry_validate(void)
     if (members > character_count)
       return members;
   }
-  return members == character_count ? 0U :
-                                      (members > character_count ? members - character_count
-                                                                 : character_count - members);
+  return members == character_count
+             ? 0U
+             : (members > character_count ? members - character_count : character_count - members);
 }
 
 size_t point_update_object_registry_validate(void)
@@ -422,9 +446,9 @@ size_t point_update_object_registry_validate(void)
     if (members > object_count)
       return members;
   }
-  return members == object_count ? 0U :
-                                   (members > object_count ? members - object_count
-                                                           : object_count - members);
+  return members == object_count
+             ? 0U
+             : (members > object_count ? members - object_count : object_count - members);
 }
 
 void point_update_periodic_reset_telemetry(void)

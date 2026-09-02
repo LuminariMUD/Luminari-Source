@@ -58,14 +58,14 @@ struct ai_service_state ai_state = {0};
  */
 struct ai_thread_request
 {
-  char *prompt;          /* Sanitized prompt to send to API */
-  char *cache_key;       /* Key for storing response in cache */
+  char *prompt;    /* Sanitized prompt to send to API */
+  char *cache_key; /* Key for storing response in cache */
   struct domain_entity_handle player;
   struct domain_entity_handle npc;
-  int request_type;      /* AI_REQUEST_* constant for logging */
+  int request_type; /* AI_REQUEST_* constant for logging */
   int retry_count;
-  pthread_t thread_id;   /* Thread ID for debugging */
-  char backend[32];      /* Track which backend was used */
+  pthread_t thread_id; /* Thread ID for debugging */
+  char backend[32];    /* Track which backend was used */
 };
 
 static pthread_mutex_t ai_worker_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -93,9 +93,8 @@ static char *build_ollama_json_request(const char *prompt);
 static char *parse_ollama_json_response(const char *json_str);
 static bool warmup_ollama_model(void);
 static void *ai_thread_worker(void *arg);
-static bool start_ai_thread_request(const char *prompt, const char *cache_key,
-                                    int request_type, int retry_count,
-                                    struct domain_entity_handle player,
+static bool start_ai_thread_request(const char *prompt, const char *cache_key, int request_type,
+                                    int retry_count, struct domain_entity_handle player,
                                     struct domain_entity_handle npc);
 static int json_escape_string(char *dest, size_t dest_size, const char *src);
 /* static void derive_key_from_seed(unsigned char *key); */
@@ -1150,8 +1149,7 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
     return;
   player_handle = domain_event_character_handle(ch);
   npc_handle = domain_event_character_handle(npc);
-  if (!domain_entity_handle_is_valid(player_handle) ||
-      !domain_entity_handle_is_valid(npc_handle))
+  if (!domain_entity_handle_is_valid(player_handle) || !domain_entity_handle_is_valid(npc_handle))
     return;
 
   /* Build cache key - limit input length to prevent overflow */
@@ -1180,12 +1178,12 @@ void ai_npc_dialogue_async(struct char_data *npc, struct char_data *ch, const ch
            "Player says: \"%s\"",
            GET_NAME(npc) ? GET_NAME(npc) : "someone", input);
 
-  if (!start_ai_thread_request(prompt, cache_key, AI_REQUEST_NPC_DIALOGUE, 0,
-                               player_handle, npc_handle))
+  if (!start_ai_thread_request(prompt, cache_key, AI_REQUEST_NPC_DIALOGUE, 0, player_handle,
+                               npc_handle))
   {
     log("SYSERR: Failed to create AI thread");
-    queue_ai_request_retry_for_entities(prompt, AI_REQUEST_NPC_DIALOGUE, 0,
-                                        player_handle, npc_handle);
+    queue_ai_request_retry_for_entities(prompt, AI_REQUEST_NPC_DIALOGUE, 0, player_handle,
+                                        npc_handle);
   }
   else
   {
@@ -2314,9 +2312,8 @@ void ai_service_test_reset_worker_state(void)
 }
 #endif
 
-static bool start_ai_thread_request(const char *prompt, const char *cache_key,
-                                    int request_type, int retry_count,
-                                    struct domain_entity_handle player,
+static bool start_ai_thread_request(const char *prompt, const char *cache_key, int request_type,
+                                    int retry_count, struct domain_entity_handle player,
                                     struct domain_entity_handle npc)
 {
   struct ai_thread_request *req;
@@ -2370,11 +2367,9 @@ static bool start_ai_thread_request(const char *prompt, const char *cache_key,
 }
 
 bool ai_retry_request_async(const char *prompt, int request_type, int retry_count,
-                            struct domain_entity_handle player,
-                            struct domain_entity_handle npc)
+                            struct domain_entity_handle player, struct domain_entity_handle npc)
 {
-  return start_ai_thread_request(prompt, prompt, request_type, retry_count,
-                                 player, npc);
+  return start_ai_thread_request(prompt, prompt, request_type, retry_count, player, npc);
 }
 
 /**
@@ -2479,8 +2474,8 @@ static void *ai_thread_worker(void *arg)
   if (response && !ai_shutdown_is_requested())
   {
     /* The main-thread ingress owns cache mutation and scheduler admission. */
-    queue_ai_response_for_entities(req->player, req->npc, response,
-                                   req->backend, req->cache_key, FALSE);
+    queue_ai_response_for_entities(req->player, req->npc, response, req->backend, req->cache_key,
+                                   FALSE);
     free(response);
 
     AI_DEBUG("Thread worker completed successfully with backend: %s", req->backend);

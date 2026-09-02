@@ -67,8 +67,7 @@ static void encounter_test_character(struct char_data *character, const char *na
 }
 
 static unsigned long encounter_test_begin_mode(CuTest *tc, bool encounter_mode,
-                                               bool semantic_rounds,
-                                               unsigned long start_pulse,
+                                               bool semantic_rounds, unsigned long start_pulse,
                                                struct encounter_test_trace *trace)
 {
   unsigned long saved_pulse = pulse;
@@ -111,8 +110,8 @@ static void encounter_test_end(unsigned long saved_pulse)
   pulse = saved_pulse;
 }
 
-static bool encounter_test_record_phase(struct char_data *character,
-                                        unsigned int phase, void *context)
+static bool encounter_test_record_phase(struct char_data *character, unsigned int phase,
+                                        void *context)
 {
   struct encounter_test_trace *trace = context;
 
@@ -130,8 +129,8 @@ static bool encounter_test_record_phase(struct char_data *character,
   if (trace->join_during_callback)
   {
     FIGHTING(trace->mutation_character) = trace->mutation_opponent;
-    trace->mutation_succeeded = combat_encounter_join(
-        trace->mutation_character, trace->mutation_opponent, 1L);
+    trace->mutation_succeeded =
+        combat_encounter_join(trace->mutation_character, trace->mutation_opponent, 1L);
   }
   if (trace->vanish_during_callback)
   {
@@ -145,14 +144,14 @@ static bool encounter_test_record_phase(struct char_data *character,
   if (trace->rejoin_after_vanish)
   {
     FIGHTING(trace->mutation_character) = trace->mutation_opponent;
-    trace->mutation_succeeded = combat_encounter_join(
-        trace->mutation_character, trace->mutation_opponent, 1 RL_SEC);
+    trace->mutation_succeeded =
+        combat_encounter_join(trace->mutation_character, trace->mutation_opponent, 1 RL_SEC);
   }
   return true;
 }
 
-static bool encounter_test_round_boundary_state(struct char_data *character,
-                                                unsigned int phase, void *context)
+static bool encounter_test_round_boundary_state(struct char_data *character, unsigned int phase,
+                                                void *context)
 {
   struct semantic_boundary_trace *trace = context;
   bool managed;
@@ -161,14 +160,13 @@ static bool encounter_test_round_boundary_state(struct char_data *character,
   (void)phase;
   if (character == trace->first)
   {
-    combat_encounter_round_flag_mark(
-        trace->second, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED);
+    combat_encounter_round_flag_mark(trace->second, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED);
     combat_encounter_reaction_try_use(trace->second, 1U, &managed);
   }
   else if (character == trace->second)
   {
-    combat_encounter_round_flag_query(
-        trace->second, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED, &used);
+    combat_encounter_round_flag_query(trace->second, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED,
+                                      &used);
     trace->second_flag_survived = used;
     trace->second_reaction_remained_spent =
         !combat_encounter_reaction_try_use(trace->second, 1U, &managed) && managed;
@@ -427,8 +425,7 @@ void Test_combat_encounter_reuses_ids_with_a_new_generation(CuTest *tc)
   combat_encounter_test_set_phase_callback(encounter_test_record_phase, &trace);
   FIGHTING(&first) = &second;
   CuAssertTrue(tc, combat_encounter_join(&first, &second, 1 RL_SEC));
-  CuAssertIntEquals(tc, 1,
-                    (int)event_debug_inspect(NULL, &first_snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(NULL, &first_snapshot, 1U, &returned_count));
   CuAssertIntEquals(tc, 1, (int)returned_count);
   CuAssertIntEquals(tc, GAME_EVENT_OWNER_ENCOUNTER, first_snapshot.owner.kind);
   encounter_test_leave(&first, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
@@ -437,8 +434,7 @@ void Test_combat_encounter_reuses_ids_with_a_new_generation(CuTest *tc)
 
   FIGHTING(&third) = &fourth;
   CuAssertTrue(tc, combat_encounter_join(&third, &fourth, 1 RL_SEC));
-  CuAssertIntEquals(tc, 1,
-                    (int)event_debug_inspect(NULL, &second_snapshot, 1U, &returned_count));
+  CuAssertIntEquals(tc, 1, (int)event_debug_inspect(NULL, &second_snapshot, 1U, &returned_count));
   CuAssertIntEquals(tc, 1, (int)returned_count);
   CuAssertIntEquals(tc, GAME_EVENT_OWNER_ENCOUNTER, second_snapshot.owner.kind);
   CuAssertTrue(tc, first_snapshot.owner.runtime_id == second_snapshot.owner.runtime_id);
@@ -503,8 +499,8 @@ void Test_combat_encounter_tracks_departures_and_cancels_once(CuTest *tc)
   saved_pulse = encounter_test_begin(tc, true, 6000U, &trace);
   combat_encounter_test_set_phase_callback(encounter_test_record_phase, &trace);
 
-  for (reason = COMBAT_ENCOUNTER_DEPARTURE_STOPPED;
-       reason < COMBAT_ENCOUNTER_DEPARTURE_COUNT; reason++)
+  for (reason = COMBAT_ENCOUNTER_DEPARTURE_STOPPED; reason < COMBAT_ENCOUNTER_DEPARTURE_COUNT;
+       reason++)
   {
     FIGHTING(&first) = &second;
     FIGHTING(&second) = &first;
@@ -516,13 +512,11 @@ void Test_combat_encounter_tracks_departures_and_cancels_once(CuTest *tc)
     CuAssertIntEquals(tc, 0, event_queue_depth());
   }
   combat_encounter_get_stats(&stats);
-  for (reason = COMBAT_ENCOUNTER_DEPARTURE_STOPPED;
-       reason < COMBAT_ENCOUNTER_DEPARTURE_COUNT; reason++)
+  for (reason = COMBAT_ENCOUNTER_DEPARTURE_STOPPED; reason < COMBAT_ENCOUNTER_DEPARTURE_COUNT;
+       reason++)
     CuAssertIntEquals(tc, 2, (int)stats.departure_counts[reason]);
-  CuAssertIntEquals(tc, COMBAT_ENCOUNTER_DEPARTURE_COUNT,
-                    (int)stats.encounters_created);
-  CuAssertIntEquals(tc, COMBAT_ENCOUNTER_DEPARTURE_COUNT,
-                    (int)stats.encounters_ended);
+  CuAssertIntEquals(tc, COMBAT_ENCOUNTER_DEPARTURE_COUNT, (int)stats.encounters_created);
+  CuAssertIntEquals(tc, COMBAT_ENCOUNTER_DEPARTURE_COUNT, (int)stats.encounters_ended);
   encounter_test_end(saved_pulse);
 }
 
@@ -587,8 +581,8 @@ void Test_combat_semantic_round_batches_due_turns_in_initiative_order(CuTest *tc
 
   CuAssertTrue(tc, combat_encounter_join(&slower, &faster, 2 RL_SEC));
   CuAssertTrue(tc, combat_encounter_join(&faster, &slower, 4 RL_SEC));
-  CuAssertTrue(tc, combat_encounter_get_initiative(
-                       &slower, initiative_entries, 2U, &initiative_snapshot));
+  CuAssertTrue(
+      tc, combat_encounter_get_initiative(&slower, initiative_entries, 2U, &initiative_snapshot));
   CuAssertTrue(tc, initiative_snapshot.semantic_rounds);
   CuAssertIntEquals(tc, 1, (int)initiative_snapshot.round_number);
   CuAssertIntEquals(tc, 2, (int)initiative_snapshot.total_participants);
@@ -815,8 +809,8 @@ void Test_combat_semantic_round_resets_participant_round_flags(CuTest *tc)
   combat_encounter_test_set_phase_callback(encounter_test_record_phase, &trace);
   FIGHTING(&first) = &second;
   CuAssertTrue(tc, combat_encounter_join(&first, &second, 1 RL_SEC));
-  CuAssertTrue(tc, combat_encounter_round_flag_mark(
-                       &first, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED));
+  CuAssertTrue(
+      tc, combat_encounter_round_flag_mark(&first, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED));
   CuAssertTrue(tc, combat_encounter_round_flag_query(
                        &first, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED, &used));
   CuAssertTrue(tc, used);

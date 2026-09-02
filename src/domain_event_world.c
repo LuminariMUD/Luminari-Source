@@ -15,8 +15,7 @@ struct domain_world_registry_entry
 static uint64_t next_room_generation = 1U;
 static uint64_t next_character_generation = 1U;
 static uint64_t next_object_generation = 1U;
-static struct domain_world_registry_entry
-    *character_registry[DOMAIN_WORLD_REGISTRY_BUCKETS];
+static struct domain_world_registry_entry *character_registry[DOMAIN_WORLD_REGISTRY_BUCKETS];
 static struct domain_world_registry_entry *object_registry[DOMAIN_WORLD_REGISTRY_BUCKETS];
 
 static size_t registry_bucket(uint64_t runtime_id)
@@ -27,8 +26,8 @@ static size_t registry_bucket(uint64_t runtime_id)
   return (size_t)runtime_id & (DOMAIN_WORLD_REGISTRY_BUCKETS - 1U);
 }
 
-static bool registry_register(struct domain_world_registry_entry **registry,
-                              uint64_t runtime_id, uint64_t generation, void *entity)
+static bool registry_register(struct domain_world_registry_entry **registry, uint64_t runtime_id,
+                              uint64_t generation, void *entity)
 {
   struct domain_world_registry_entry *entry;
   size_t bucket;
@@ -53,8 +52,8 @@ static bool registry_register(struct domain_world_registry_entry **registry,
   return true;
 }
 
-static void *registry_resolve(struct domain_world_registry_entry **registry,
-                              uint64_t runtime_id, uint64_t generation)
+static void *registry_resolve(struct domain_world_registry_entry **registry, uint64_t runtime_id,
+                              uint64_t generation)
 {
   struct domain_world_registry_entry *entry;
 
@@ -181,8 +180,8 @@ struct domain_entity_handle domain_event_character_handle(struct char_data *ch)
       return handle;
     ch->domain_event_generation = next_character_generation++;
   }
-  if (!registry_register(character_registry, (uint64_t)(uintptr_t)ch,
-                         ch->domain_event_generation, ch))
+  if (!registry_register(character_registry, (uint64_t)(uintptr_t)ch, ch->domain_event_generation,
+                         ch))
     return handle;
   handle.kind = DOMAIN_ENTITY_CHARACTER;
   handle.runtime_id = (uint64_t)(uintptr_t)ch;
@@ -220,8 +219,8 @@ struct domain_entity_handle domain_event_object_handle(struct obj_data *obj)
       return handle;
     obj->event_owner_generation = next_object_generation++;
   }
-  if (!registry_register(object_registry, (uint64_t)(uintptr_t)obj,
-                         obj->event_owner_generation, obj))
+  if (!registry_register(object_registry, (uint64_t)(uintptr_t)obj, obj->event_owner_generation,
+                         obj))
     return handle;
   handle.kind = DOMAIN_ENTITY_OBJECT;
   handle.runtime_id = (uint64_t)(uintptr_t)obj;

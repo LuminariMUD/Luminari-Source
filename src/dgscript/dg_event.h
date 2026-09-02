@@ -23,9 +23,8 @@ enum event_backend_kind
 
 /* Process-owned native timed-event lifecycle. */
 void event_init(void);
-enum game_scheduler_status event_process_scheduler(
-    const struct game_scheduler_budget *budget,
-    struct game_scheduler_dispatch_report *report);
+enum game_scheduler_status event_process_scheduler(const struct game_scheduler_budget *budget,
+                                                   struct game_scheduler_dispatch_report *report);
 enum game_scheduler_status event_scheduler_next_deadline(game_tick_t *deadline_tick,
                                                          bool *has_deadline);
 void event_free_all(void);
@@ -87,8 +86,8 @@ struct event_debug_stats
 void event_note_stale_owner_outcome(void);
 void event_debug_get_stats(struct event_debug_stats *stats);
 size_t event_debug_inspect(const struct event_debug_filter *filter,
-                           struct event_debug_snapshot *snapshots,
-                           size_t snapshot_capacity, size_t *returned_count);
+                           struct event_debug_snapshot *snapshots, size_t snapshot_capacity,
+                           size_t *returned_count);
 const char *event_debug_state_name(enum event_debug_state state);
 const char *event_debug_owner_kind_name(enum game_event_owner_kind kind);
 bool event_debug_parse_owner_kind(const char *name, enum game_event_owner_kind *kind);
