@@ -3472,6 +3472,7 @@ static room_rnum rol_guild_guard_teleport_destination(struct char_data *victim)
   return selected;
 }
 
+/* End all combat involving a character the guild guard has intervened for. */
 static void rol_guild_guard_stop_victim_combat(struct char_data *victim)
 {
   if (victim == NULL)
@@ -3886,9 +3887,7 @@ static void rol_lich_energy_drain_stun(struct char_data *victim)
     return;
   }
 
-  remaining = mud_event_is_live(stun_event)
-                  ? mud_event_remaining(stun_event)
-                  : 0;
+  remaining = mud_event_is_live(stun_event) ? mud_event_remaining(stun_event) : 0;
   duration = rol_lich_energy_drain_stun_duration(remaining);
   change_event_duration(victim, eSTUNNED, duration);
 }
@@ -6870,6 +6869,7 @@ static bool rol_banana_attacker_is_aggressive(struct char_data *attacker, struct
          (MOB_FLAGGED(attacker, MOB_AGGR_GOOD) && IS_GOOD(victim));
 }
 
+/* Stop the aggressive mobs attacking ch when the banana grants mercy. */
 static void rol_banana_stop_merciful_attackers(struct char_data *ch)
 {
   struct char_data *attacker;
@@ -8580,8 +8580,7 @@ static void rol_torin_restore_prototype(struct obj_data *obj)
     affect_total(wearer);
 }
 
-static int rol_torin_general_enforce_owner(struct spec_event_context *context,
-                                           struct obj_data *obj)
+static int rol_torin_general_enforce_owner(struct spec_event_context *context, struct obj_data *obj)
 {
   struct char_data *owner;
 

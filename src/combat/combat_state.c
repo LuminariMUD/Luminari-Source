@@ -4,6 +4,8 @@
 #include "db.h"
 #include "domain_event_world.h"
 
+/* Count the characters currently fighting this victim.
+ * Walks the live character list; there is no separate fighting roster. */
 size_t combat_state_count_attackers(const struct char_data *victim)
 {
   const struct char_data *attacker;
@@ -17,6 +19,9 @@ size_t combat_state_count_attackers(const struct char_data *victim)
   return count;
 }
 
+/* Stop every character currently fighting this victim.
+ * The successor is captured before stop_fighting() so the walk survives the
+ * combat-state changes it triggers. */
 void combat_state_stop_attackers(struct char_data *victim)
 {
   struct char_data *attacker;
@@ -32,6 +37,9 @@ void combat_state_stop_attackers(struct char_data *victim)
   }
 }
 
+/* Report whether an attack may continue after a callback ran.
+ * Both handles must still resolve, both participants must remain in the room
+ * the attack started in, alive, and not already queued for extraction. */
 bool combat_state_attack_context_valid(struct domain_entity_handle attacker_handle,
                                        struct domain_entity_handle victim_handle,
                                        room_rnum expected_room)

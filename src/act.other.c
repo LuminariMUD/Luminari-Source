@@ -5492,6 +5492,9 @@ void perform_player_quit(struct char_data *ch)
   extract_char(ch); /* Char is saved before extracting. */
 }
 
+/* Leave the game.  A character who quits while incapacitated (below
+ * POS_STUNNED) dies instead, resolved as an attrition death since there is no
+ * killer to credit. */
 ACMD(do_quit)
 {
   if (IS_NPC(ch) || !ch->desc)

@@ -3405,6 +3405,8 @@ static void rol_monster_area_damage(struct char_data *ch, enum rol_monster_comba
   }
 }
 
+/* Take a monster's victim fully out of combat.
+ * Stops the victim's own attack and every character currently fighting it. */
 static void rol_monster_stop_combat(struct char_data *victim)
 {
   if (FIGHTING(victim) != NULL)

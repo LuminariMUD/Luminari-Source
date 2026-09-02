@@ -659,8 +659,7 @@ void Test_combat_reaction_guards_block_recursive_life_shield_damage(CuTest *tc)
 
   CuAssertTrue(tc, test_life_shield_can_reflect(&attacker, &victim, 10, TYPE_HIT));
   CuAssertTrue(tc, !test_life_shield_can_reflect(&attacker, &victim, 0, TYPE_HIT));
-  CuAssertTrue(tc,
-               !test_life_shield_can_reflect(&attacker, &victim, 10, SPELL_LIFE_SHIELD));
+  CuAssertTrue(tc, !test_life_shield_can_reflect(&attacker, &victim, 10, SPELL_LIFE_SHIELD));
 }
 
 void Test_combat_spell_affect_lookup_uses_spell_identity(CuTest *tc)
@@ -698,38 +697,72 @@ void Test_combat_reaction_queue_is_bounded_fifo_and_handle_safe(CuTest *tc)
   clear_char(&target);
   combat_reaction_queue_init(&queue);
 
-  CuAssertTrue(tc, combat_reaction_enqueue_damage(&queue, &source, &target, 11, TYPE_HIT,
-                                                  DAM_SLICE, ATTACK_TYPE_PRIMARY));
+  CuAssertTrue(tc, combat_reaction_enqueue_damage(&queue, &source, &target, 11, TYPE_HIT, DAM_SLICE,
+                                                  ATTACK_TYPE_PRIMARY));
   CuAssertTrue(tc, combat_reaction_enqueue_damage(&queue, &target, &source, 7, SPELL_MAGIC_MISSILE,
                                                   DAM_FORCE, ATTACK_TYPE_PRIMARY));
-  CuAssertIntEquals(tc, COMBAT_REACTION_DEQUEUE_READY,
-                    combat_reaction_dequeue_damage(&queue, &damage_packet, &resolved_source,
-                                                   &resolved_target));
+  CuAssertIntEquals(
+      tc, COMBAT_REACTION_DEQUEUE_READY,
+      combat_reaction_dequeue_damage(&queue, &damage_packet, &resolved_source, &resolved_target));
   CuAssertPtrEquals(tc, &source, resolved_source);
   CuAssertPtrEquals(tc, &target, resolved_target);
   CuAssertIntEquals(tc, 11, damage_packet.amount);
-  CuAssertIntEquals(tc, COMBAT_REACTION_DEQUEUE_READY,
-                    combat_reaction_dequeue_damage(&queue, &damage_packet, &resolved_source,
-                                                   &resolved_target));
+  CuAssertIntEquals(
+      tc, COMBAT_REACTION_DEQUEUE_READY,
+      combat_reaction_dequeue_damage(&queue, &damage_packet, &resolved_source, &resolved_target));
   CuAssertIntEquals(tc, 7, damage_packet.amount);
 
   CuAssertTrue(tc, combat_reaction_enqueue_damage(&queue, &source, &target, 3, TYPE_HIT, DAM_SLICE,
                                                   ATTACK_TYPE_PRIMARY));
   domain_event_world_forget_character(&target);
-  CuAssertIntEquals(tc, COMBAT_REACTION_DEQUEUE_STALE,
-                    combat_reaction_dequeue_damage(&queue, &damage_packet, &resolved_source,
-                                                   &resolved_target));
+  CuAssertIntEquals(
+      tc, COMBAT_REACTION_DEQUEUE_STALE,
+      combat_reaction_dequeue_damage(&queue, &damage_packet, &resolved_source, &resolved_target));
   CuAssertIntEquals(tc, 1, queue.stale);
 
   combat_reaction_queue_init(&queue);
   for (index = 0U; index < COMBAT_REACTION_CAPACITY; index++)
     CuAssertTrue(tc, combat_reaction_enqueue_damage(&queue, &source, &target, 1, TYPE_HIT,
                                                     DAM_SLICE, ATTACK_TYPE_PRIMARY));
-  CuAssertTrue(tc, !combat_reaction_enqueue_damage(&queue, &source, &target, 1, TYPE_HIT,
-                                                   DAM_SLICE, ATTACK_TYPE_PRIMARY));
+  CuAssertTrue(tc, !combat_reaction_enqueue_damage(&queue, &source, &target, 1, TYPE_HIT, DAM_SLICE,
+                                                   ATTACK_TYPE_PRIMARY));
   CuAssertIntEquals(tc, COMBAT_REACTION_CAPACITY, queue.count);
   CuAssertIntEquals(tc, COMBAT_REACTION_CAPACITY, queue.scheduled);
   CuAssertIntEquals(tc, 1, queue.dropped);
+
+  domain_event_world_forget_character(&source);
+  domain_event_world_forget_character(&target);
+}
+
+void Test_combat_reaction_enqueue_rejects_unusable_packets(CuTest *tc)
+{
+  struct combat_reaction_queue queue;
+  struct char_data source;
+  struct char_data target;
+
+  clear_char(&source);
+  clear_char(&target);
+  combat_reaction_queue_init(&queue);
+
+  /* A packet with a missing participant or negative damage is refused outright:
+     it is neither scheduled nor charged against the safety bound, so it cannot
+     be mistaken for a dropped reaction. */
+  CuAssertTrue(tc, !combat_reaction_enqueue_damage(&queue, NULL, &target, 5, TYPE_HIT, DAM_SLICE,
+                                                   ATTACK_TYPE_PRIMARY));
+  CuAssertTrue(tc, !combat_reaction_enqueue_damage(&queue, &source, NULL, 5, TYPE_HIT, DAM_SLICE,
+                                                   ATTACK_TYPE_PRIMARY));
+  CuAssertTrue(tc, !combat_reaction_enqueue_damage(&queue, &source, &target, -1, TYPE_HIT,
+                                                   DAM_SLICE, ATTACK_TYPE_PRIMARY));
+  CuAssertIntEquals(tc, 0, queue.count);
+  CuAssertIntEquals(tc, 0, queue.scheduled);
+  CuAssertIntEquals(tc, 0, queue.dropped);
+  CuAssertIntEquals(tc, 0, queue.stale);
+
+  /* Zero damage is a legitimate packet and still occupies a slot. */
+  CuAssertTrue(tc, combat_reaction_enqueue_damage(&queue, &source, &target, 0, TYPE_HIT, DAM_SLICE,
+                                                  ATTACK_TYPE_PRIMARY));
+  CuAssertIntEquals(tc, 1, queue.count);
+  CuAssertIntEquals(tc, 1, queue.scheduled);
 
   domain_event_world_forget_character(&source);
   domain_event_world_forget_character(&target);

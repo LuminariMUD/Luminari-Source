@@ -2408,11 +2408,16 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
  * restoring corpse creation upon creation of a good corpse
  * saving solution so we do not have to worry about copyover
  * or crashes deleting all of the PC's gear */
+/* Perform the mechanical death of a character with an explicit cause.
+ * Publishes the death event, stops all combat involving the victim, then runs
+ * the corpse, script and respawn path. The killer may be NULL. */
 static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
                                 enum combat_death_cause cause)
 {
   struct char_data *temp;
   struct affected_type af = {0}; /* Zero-initialize to prevent stack garbage */
+
+  domain_event_runtime_character_died_with_cause(ch, killer, (uint32_t)cause);
 
   /* stop relevant fighting */
   if (FIGHTING(ch))
@@ -2486,7 +2491,6 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
     death_cry(ch);
 
   GET_POS(ch) = POS_DEAD;
-  domain_event_runtime_character_died_with_cause(ch, killer, (uint32_t)cause);
   /* end making ordinary commands work in scripts */
 
   /* make sure group gets credit for kill if ch involved in autoquest auto-quest */
@@ -2648,15 +2652,20 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
   }
 }
 
+/* Legacy raw_kill entry point kept for existing call sites.
+ * Infers the death cause from the killer: a known killer means combat, a NULL
+ * killer leaves the cause unspecified. */
 void raw_kill(struct char_data *ch, struct char_data *killer)
 {
-  raw_kill_with_cause(ch, killer,
-                      killer != NULL ? COMBAT_DEATH_COMBAT : COMBAT_DEATH_UNSPECIFIED);
+  raw_kill_with_cause(ch, killer, killer != NULL ? COMBAT_DEATH_COMBAT : COMBAT_DEATH_UNSPECIFIED);
 }
 
 /* called after striking the mortal blow to ch */
 #define XP_LOSS_FACTOR 5 /*20%*/
 
+/* Kill a character and report the outcome with its cause.
+ * Handles the experience penalty, corpse and cleanup path, then hands off to
+ * raw_kill; a NULL victim is reported as unprocessed rather than crashing. */
 struct combat_death_result combat_death_apply(struct char_data *ch, struct char_data *killer,
                                               enum combat_death_cause cause)
 {
@@ -2838,6 +2847,9 @@ struct combat_death_result combat_death_apply(struct char_data *ch, struct char_
   return result;
 }
 
+/* Legacy die() entry point kept for existing call sites.
+ * Infers the death cause from the killer and discards the structured result;
+ * callers that need the cause or the outcome should use combat_death_apply. */
 void die(struct char_data *ch, struct char_data *killer)
 {
   (void)combat_death_apply(ch, killer,
@@ -5901,6 +5913,9 @@ bool activate_rol_delayed_hunter(struct char_data *victim, int damage)
   return true;
 }
 
+/* Find a group member able to absorb the victim's damage via Divine Sacrifice.
+ * Returns the first non-NPC ally in the same room who has the ability and is
+ * not already on cooldown, or NULL when nobody qualifies. */
 static struct char_data *find_divine_sacrifice_defender(struct char_data *victim)
 {
   struct group_data *group;
@@ -5926,14 +5941,17 @@ static struct char_data *find_divine_sacrifice_defender(struct char_data *victim
   return defender;
 }
 
-static bool life_shield_can_reflect(struct char_data *attacker, struct char_data *victim, int damage,
-                                    int source)
+static bool life_shield_can_reflect(struct char_data *attacker, struct char_data *victim,
+                                    int damage, int source)
 {
   return attacker != NULL && victim != NULL && attacker != victim && damage > 0 &&
          source != SPELL_LIFE_SHIELD && IS_UNDEAD(attacker) &&
          affected_by_spell(victim, SPELL_LIFE_SHIELD);
 }
 
+/* Return the affect on ch produced by the given spell, or NULL if absent.
+ * Matches on affect->spell; do not match on affect->location, which holds an
+ * apply type rather than a spell number. */
 static struct affected_type *find_spell_affect(struct char_data *ch, int spell)
 {
   struct affected_type *affect;
@@ -5993,6 +6011,7 @@ struct char_data *test_find_divine_sacrifice_defender(struct char_data *victim)
   return find_divine_sacrifice_defender(victim);
 }
 
+/* Unit-test shim exposing apply_group_sacred_vengeance(). */
 void test_apply_group_sacred_vengeance(struct char_data *victim)
 {
   apply_group_sacred_vengeance(victim);
@@ -6050,14 +6069,12 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
         victim, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED, &semantic_used);
 
     if ((semantic_managed && !semantic_used) ||
-        (!semantic_managed &&
-         !char_has_mud_event(victim, eDEFLECTIVE_SCREEN_HIT_THIS_ROUND)))
+        (!semantic_managed && !char_has_mud_event(victim, eDEFLECTIVE_SCREEN_HIT_THIS_ROUND)))
     {
       int dr = get_deflective_screen_first_hit_dr(victim);
       dam = MAX(0, dam - dr);
       if (semantic_managed)
-        combat_encounter_round_flag_mark(
-            victim, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED);
+        combat_encounter_round_flag_mark(victim, COMBAT_ENCOUNTER_ROUND_DEFLECTIVE_SCREEN_USED);
       else
         attach_mud_event(new_mud_event(eDEFLECTIVE_SCREEN_HIT_THIS_ROUND, victim, NULL),
                          10 * PASSES_PER_SEC);
@@ -6411,8 +6428,7 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   /* Perfect Tempo perk: Track that this character was hit this round */
   if (dam > 0 && !IS_NPC(victim) && has_bard_perfect_tempo(victim))
   {
-    if (!combat_encounter_round_flag_mark(victim,
-                                          COMBAT_ENCOUNTER_ROUND_PERFECT_TEMPO_HIT) &&
+    if (!combat_encounter_round_flag_mark(victim, COMBAT_ENCOUNTER_ROUND_PERFECT_TEMPO_HIT) &&
         !char_has_mud_event(victim, ePERFECT_TEMPO_HIT_THIS_ROUND))
     {
       /* Attach event to track that they were hit this round (lasts 1 round) */
@@ -6714,6 +6730,10 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   return (dam);
 }
 
+/* Apply damage and drain any reactive damage it provokes.
+ * The outermost call owns a bounded FIFO queue; damage raised by reactive
+ * defenses while that queue is active is scheduled onto it and reported as
+ * queued, so reaction chains stay iterative and bounded instead of recursive. */
 struct combat_damage_result combat_damage_apply(struct char_data *ch, struct char_data *victim,
                                                 int dam, int w_type, int dam_type, int attack_type)
 {
@@ -6726,10 +6746,16 @@ struct combat_damage_result combat_damage_apply(struct char_data *ch, struct cha
 
   if (active_damage_reactions != NULL)
   {
+    size_t dropped_before = active_damage_reactions->dropped;
+
     if (!combat_reaction_enqueue_damage(active_damage_reactions, ch, victim, dam, w_type, dam_type,
                                         attack_type))
     {
-      log("SYSERR: combat reaction damage queue rejected a damage packet.");
+      /* Only the safety bound is worth a log line; packets refused because a
+       * participant was already extracted are counted as stale, not reported. */
+      if (active_damage_reactions->dropped != dropped_before)
+        log("SYSERR: combat reaction damage queue exceeded its safety bound, dropping %d damage.",
+            dam);
       return combat_damage_result_rejected(ch, victim, dam);
     }
     return combat_damage_result_queued(ch, victim, dam);
@@ -6750,6 +6776,10 @@ struct combat_damage_result combat_damage_apply(struct char_data *ch, struct cha
   return combat_damage_result_from_legacy(ch, victim, dam, result);
 }
 
+/* Legacy damage() entry point kept for existing call sites.
+ * Applies damage through combat_damage_apply and returns only the legacy int:
+ * negative if the victim died, zero for no effect (including damage deferred
+ * onto an active reaction queue), otherwise the amount applied. */
 int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
            int attack_type)
 {
@@ -12122,8 +12152,7 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
   if (!IS_NPC(ch))
     max_aoo += get_perk_aoo_bonus(ch);
 
-  if (combat_encounter_reaction_try_use(ch, (unsigned int)MAX(0, max_aoo),
-                                        &reaction_managed))
+  if (combat_encounter_reaction_try_use(ch, (unsigned int)MAX(0, max_aoo), &reaction_managed))
     return hit(ch, victim, TYPE_ATTACK_OF_OPPORTUNITY, DAM_RESERVED_DBC, penalty, FALSE);
   if (reaction_managed)
     return 0;
@@ -15448,11 +15477,11 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 }
 
 /* returns # of attacks and has mode functionality */
-#define ATTACK_CAP 3                       /* MAX # of main-hand BONUS attacks */
-#define MONK_CAP (ATTACK_CAP + 2)          /* monks main-hand bonus attack cap */
-#define TWO_WPN_PNLTY -5                   /* improved two weapon fighting */
-#define GREAT_TWO_PNLY -10                 /* greater two weapon fighting */
-#define EPIC_TWO_PNLTY 0                   /* perfect two weapon fighting */
+#define ATTACK_CAP 3              /* MAX # of main-hand BONUS attacks */
+#define MONK_CAP (ATTACK_CAP + 2) /* monks main-hand bonus attack cap */
+#define TWO_WPN_PNLTY -5          /* improved two weapon fighting */
+#define GREAT_TWO_PNLY -10        /* greater two weapon fighting */
+#define EPIC_TWO_PNLTY 0          /* perfect two weapon fighting */
 /* mode functionality */
 #define NORMAL_ATTACK_ROUTINE 0     /*mode = 0  normal attack routine*/
 #define RETURN_NUM_ATTACKS 1        /*mode = 1  return # of attacks, nothing else*/
@@ -15478,6 +15507,9 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 #define PHASE_2 2
 #define PHASE_3 3
 
+/* Report whether a 1-based attack number belongs to the given attack phase.
+ * PHASE_0 runs the whole routine at once; otherwise attacks round-robin across
+ * phases 1..3, so attack N runs in phase ((N - 1) % 3) + 1. */
 static bool attack_number_runs_in_phase(int attack_number, int phase)
 {
   if (phase == PHASE_0)
@@ -15486,6 +15518,11 @@ static bool attack_number_runs_in_phase(int attack_number, int phase)
          ((attack_number - 1) % 3) + 1 == phase;
 }
 
+/* Run a character's attack routine for one attack phase.
+ * mode selects the normal routine or one of the display modes; phase is
+ * PHASE_0 for the whole round at once, or 1..3 for the round-robin split
+ * decided by attack_number_runs_in_phase(). Returns the number of attacks
+ * performed, or in display mode the number that would be. */
 int perform_attacks(struct char_data *ch, int mode, int phase)
 {
   int i = 0, penalty = 0, numAttacks = 0, bonus_mainhand_attacks = 0;
@@ -16649,8 +16686,7 @@ bool combat_run_semantic_round(struct char_data *ch, bool was_hit)
     USE_SWIFT_ACTION(ch);
   }
 
-  if (!IS_NPC(ch) && has_bard_perfect_tempo(ch) && !is_affected_by_perfect_tempo(ch) &&
-      !was_hit)
+  if (!IS_NPC(ch) && has_bard_perfect_tempo(ch) && !is_affected_by_perfect_tempo(ch) && !was_hit)
   {
     new_affect(&af);
     af.spell = AFFECT_BARD_PERFECT_TEMPO;
@@ -16660,8 +16696,7 @@ bool combat_run_semantic_round(struct char_data *ch, bool was_hit)
     affect_to_char(ch, &af);
     send_to_char(ch,
                  "\tY[PERFECT TEMPO]\tn You flow perfectly with the combat, ready to strike!\r\n");
-    act("\tY[PERFECT TEMPO]\tn $n flows perfectly with the combat!", FALSE, ch, 0, 0,
-        TO_ROOM);
+    act("\tY[PERFECT TEMPO]\tn $n flows perfectly with the combat!", FALSE, ch, 0, 0, TO_ROOM);
   }
 
   {

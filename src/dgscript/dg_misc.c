@@ -316,6 +316,9 @@ int valid_dg_target(struct char_data *ch, int bitvector)
     return FALSE; /* The rest are gods with nohassle on... */
 }
 
+/* Apply raw damage to a character from a DG script.
+ * A lethal result is resolved through combat_death_apply with the SCRIPT
+ * cause, since a script death has no killer character to attribute. */
 void script_damage(struct char_data *vict, int dam)
 {
   /* Don't damage dead characters */

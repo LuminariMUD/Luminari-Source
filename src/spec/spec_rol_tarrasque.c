@@ -74,6 +74,7 @@ static bool rol_tarrasque_target_is_mortal(const struct char_data *target)
   return target != NULL && (!IS_NPC(target) || IS_PET(target)) && GET_LEVEL(target) < LVL_IMMORT;
 }
 
+/* End all combat involving one of the tarrasque's victims. */
 static void rol_tarrasque_stop_attackers(struct char_data *victim)
 {
   if (victim == NULL)

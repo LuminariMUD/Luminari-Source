@@ -11,6 +11,10 @@
 #include "combat/fight.h"
 #include "spec/spec_combat.h"
 
+/* Damage the actor's current opponent and report the outcome to spec procs.
+ * Routes through combat_damage_apply and maps the structured damage result
+ * onto the spec-facing status so callers can tell applied, deferred, and
+ * fatal damage apart. */
 struct spec_damage_result spec_damage_current_target(struct char_data *actor,
                                                      struct char_data *target, int amount,
                                                      int attack_type, int damage_type,
