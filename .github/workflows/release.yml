@@ -29,7 +29,12 @@ jobs:
             libmariadb-dev \
             libmariadb-dev-compat \
             zlib1g-dev \
-            liblzma-dev
+            liblzma-dev \
+            libevent-dev \
+            libgd-dev \
+            libcurl4-openssl-dev \
+            libjson-c-dev \
+            libssl-dev
 
       - name: Copy configuration headers
         run: |
