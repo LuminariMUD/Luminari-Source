@@ -48,7 +48,6 @@
 #include "affected_owners.h"
 #include "domain_event_runtime.h"
 #include "combat/combat_encounters.h"
-#include "combat/combat_state.h"
 #include "vessels/vessels_rol.h"
 
 /* local file scope variables */
@@ -220,6 +219,7 @@ static bool character_is_pending_extraction(const struct char_data *ch)
 static void prepare_pending_extraction_references(void)
 {
   struct char_data *ch;
+  struct char_data *next_ch;
 
   for (ch = character_list; ch; ch = ch->next)
   {
@@ -235,6 +235,11 @@ static void prepare_pending_extraction_references(void)
       HUNTING(ch) = NULL;
     if (character_is_pending_extraction(CASTING_TCH(ch)))
       resetCastingData(ch);
+  }
+
+  for (ch = combat_list; ch; ch = next_ch)
+  {
+    next_ch = ch->next_fighting;
     if (character_is_pending_extraction(FIGHTING(ch)))
       stop_fighting(ch);
   }
@@ -3245,7 +3250,14 @@ void extract_char_final(struct char_data *ch)
   clear_projectile_mode(ch);
 
   if (!extraction_batch_active)
-    combat_state_stop_attackers(ch);
+  {
+    for (k = combat_list; k; k = temp)
+    {
+      temp = k->next_fighting;
+      if (FIGHTING(k) == ch)
+        stop_fighting(k);
+    }
+  }
 
   /* Clear the action queue */
   clear_action_queue(GET_QUEUE(ch));

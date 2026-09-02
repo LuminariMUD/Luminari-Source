@@ -21,7 +21,6 @@
 #include "magic/spells.h"
 #include "constants.h"
 #include "combat/fight.h"
-#include "combat/combat_death.h"
 #include "mudlim.h"
 
 /* copied from spell_parser.c: */
@@ -340,6 +339,6 @@ void script_damage(struct char_data *vict, int dam)
     if (!IS_NPC(vict))
       mudlog(BRF, 0, TRUE, "%s killed by script at %s", GET_NAME(vict),
              IN_ROOM(vict) == NOWHERE ? "NOWHERE" : world[IN_ROOM(vict)].name);
-    (void)combat_death_apply(vict, NULL, COMBAT_DEATH_SCRIPT);
+    die(vict, NULL);
   }
 }

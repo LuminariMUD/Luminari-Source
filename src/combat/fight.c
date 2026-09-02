@@ -60,13 +60,8 @@
 #include "perfmon.h"
 #include "rol_feats.h"
 #include "domain_event_runtime.h"
-#include "domain_event_world.h"
 #include "point_update_periodic.h"
 #include "combat/combat_encounters.h"
-#include "combat/combat_damage.h"
-#include "combat/combat_death.h"
-#include "combat/combat_reactions.h"
-#include "combat/combat_state.h"
 #include "activity_manager.h"
 
 /* toggle for debug mode
@@ -82,6 +77,9 @@
 #define THE_PRISONER 113750
 #define DRACOLICH_PRISONER 113751
 #define CELESTIAL_LEVIATHAN 13700
+
+/* head of l-list of fighting chars */
+struct char_data *combat_list = NULL;
 
 // external functions
 bool save_char_pets(struct char_data *ch);
@@ -125,7 +123,7 @@ struct attack_hit_type attack_damage_type_text[NUM_ATTACK_DAMAGE_TYPE_TEXT] = {
 };
 
 /* local (file scope only) variables */
-static struct combat_reaction_queue *active_damage_reactions = NULL;
+static struct char_data *next_combat_list = NULL;
 #ifdef LUMINARI_CUTEST
 static int bard_warbeat_opening_attacks;
 
@@ -291,6 +289,7 @@ void guard_check(struct char_data *ch, struct char_data *vict)
 void perform_flee(struct char_data *ch)
 {
   int i, found = 0, fleeOptions[DIR_COUNT];
+  struct char_data *k, *temp;
 
   /* disqualifications? */
   if (AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_DAZED) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
@@ -384,7 +383,13 @@ void perform_flee(struct char_data *ch)
       /* fleer */
       if (FIGHTING(ch))
         stop_fighting(ch);
-      combat_state_stop_attackers(ch);
+      /* fighting fleer */
+      for (k = combat_list; k; k = temp)
+      {
+        temp = k->next_fighting;
+        if (FIGHTING(k) == ch)
+          stop_fighting(k);
+      }
     }
     else
     { // failure
@@ -1691,6 +1696,7 @@ void check_killer(struct char_data *ch, struct char_data *vict)
    FALSE - failed to engage in combat */
 bool set_fighting(struct char_data *ch, struct char_data *vict)
 {
+  struct char_data *current = NULL, *previous = NULL;
   int delay;
 
   if (ch == NULL || vict == NULL)
@@ -1731,6 +1737,37 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   }
 
   GET_INITIATIVE(ch) = roll_initiative(ch);
+
+  if (combat_list == NULL)
+  {
+    ch->next_fighting = combat_list;
+    combat_list = ch;
+  }
+  else
+  {
+    for (current = combat_list; current != NULL; current = current->next_fighting)
+    {
+      if ((GET_INITIATIVE(ch) > GET_INITIATIVE(current)) ||
+          ((GET_INITIATIVE(ch) == GET_INITIATIVE(current)) &&
+           (GET_DEX_BONUS(ch) < GET_DEX_BONUS(current))))
+      {
+        previous = current;
+        continue;
+      }
+      break;
+    }
+    if (previous == NULL)
+    {
+      /* First. */
+      ch->next_fighting = combat_list;
+      combat_list = ch;
+    }
+    else
+    {
+      ch->next_fighting = current;
+      previous->next_fighting = ch;
+    }
+  }
 
   if (AFF_FLAGGED(ch, AFF_SLEEP))
     affect_from_char(ch, SPELL_SLEEP);
@@ -1837,11 +1874,17 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   return TRUE;
 }
 
-/* End this character's encounter-owned combat state. */
+/* remove a char from the list of fighting chars */
 void stop_fighting(struct char_data *ch)
 {
+  struct char_data *temp = NULL;
   struct char_data *opponent = FIGHTING(ch);
 
+  if (ch == next_combat_list)
+    next_combat_list = ch->next_fighting;
+
+  REMOVE_FROM_LIST(ch, combat_list, next_fighting);
+  ch->next_fighting = NULL;
   FIGHTING(ch) = NULL;
   domain_event_runtime_combat_state_changed(ch, opponent, false);
   combat_encounter_leave(ch, COMBAT_ENCOUNTER_DEPARTURE_STOPPED);
@@ -2408,17 +2451,23 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
  * restoring corpse creation upon creation of a good corpse
  * saving solution so we do not have to worry about copyover
  * or crashes deleting all of the PC's gear */
-static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
-                                enum combat_death_cause cause)
+void raw_kill(struct char_data *ch, struct char_data *killer)
 {
-  struct char_data *temp;
+  struct char_data *k, *temp;
   struct affected_type af = {0}; /* Zero-initialize to prevent stack garbage */
+
+  domain_event_runtime_character_died(ch, killer);
 
   /* stop relevant fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
 
-  combat_state_stop_attackers(ch);
+  for (k = combat_list; k; k = temp)
+  {
+    temp = k->next_fighting;
+    if (FIGHTING(k) == ch)
+      stop_fighting(k);
+  }
 
   /* Clear all events immediately after stopping fighting to prevent race conditions
    * This must happen before any state changes to avoid combat events executing
@@ -2486,7 +2535,6 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
     death_cry(ch);
 
   GET_POS(ch) = POS_DEAD;
-  domain_event_runtime_character_died_with_cause(ch, killer, (uint32_t)cause);
   /* end making ordinary commands work in scripts */
 
   /* make sure group gets credit for kill if ch involved in autoquest auto-quest */
@@ -2511,12 +2559,11 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
   TENACIOUS_PLAGUE(ch) = 0;
   INCENDIARY(ch) = 0;
   CLOUDKILL(ch) = 0;
-  if (killer != NULL)
+  GET_MARK(killer) = NULL;
+  GET_MARK_ROUNDS(killer) = 0;
+  if (GET_STUDIED_TARGET(killer))
   {
-    GET_MARK(killer) = NULL;
-    GET_MARK_ROUNDS(killer) = 0;
-    if (GET_STUDIED_TARGET(killer))
-      GET_STUDIED_TARGET(killer) = NULL;
+    GET_STUDIED_TARGET(killer) = NULL;
   }
 
   /* final handling, primary difference between npc/pc death */
@@ -2562,7 +2609,7 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
       break;
     }
   }
-  else if (IN_ARENA(ch) || (killer != NULL && IN_ARENA(killer)))
+  else if (IN_ARENA(ch) || IN_ARENA(killer))
   {
     /* no corpse - arena */
 
@@ -2597,7 +2644,7 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
   else
   { /* real DEATH! */
     /* create the corpse */
-    if (!IN_ARENA(ch) && (killer == NULL || !IN_ARENA(killer)))
+    if (!IN_ARENA(ch) && !IN_ARENA(killer))
       make_pc_corpse(ch);
 
     /* move the character out of the room */
@@ -2648,25 +2695,13 @@ static void raw_kill_with_cause(struct char_data *ch, struct char_data *killer,
   }
 }
 
-void raw_kill(struct char_data *ch, struct char_data *killer)
-{
-  raw_kill_with_cause(ch, killer,
-                      killer != NULL ? COMBAT_DEATH_COMBAT : COMBAT_DEATH_UNSPECIFIED);
-}
-
 /* called after striking the mortal blow to ch */
 #define XP_LOSS_FACTOR 5 /*20%*/
 
-struct combat_death_result combat_death_apply(struct char_data *ch, struct char_data *killer,
-                                              enum combat_death_cause cause)
+void die(struct char_data *ch, struct char_data *killer)
 {
-  struct combat_death_result result = {0};
-
-  result.victim = domain_event_character_handle(ch);
-  result.killer = domain_event_character_handle(killer);
-  result.cause = cause;
-  if (ch == NULL)
-    return result;
+  if (!killer)
+    return;
 
   struct char_data *temp;
   struct descriptor_data *pt;
@@ -2686,7 +2721,7 @@ struct combat_death_result combat_death_apply(struct char_data *ch, struct char_
   else
   {
     // if not a newbie then bang that xp! - Bakarus
-    if (!IN_ARENA(ch) && (killer == NULL || !IN_ARENA(killer)))
+    if (!IN_ARENA(ch) && !IN_ARENA(killer))
     {
       /* we are storing lost xp for ressurect */
       GET_LOST_XP(ch) = gain_exp(ch, -penalty, GAIN_EXP_MODE_DEATH);
@@ -2737,7 +2772,7 @@ struct combat_death_result combat_death_apply(struct char_data *ch, struct char_
 
   /* Info-Kill mobs against player, print info about the death of this player by the mob to the world
    * TODO: add info channel for these guys */
-  if (killer != NULL && IS_NPC(killer) && MOB_FLAGGED(killer, MOB_INFO_KILL_PLR))
+  if (IS_NPC(killer) && MOB_FLAGGED(killer, MOB_INFO_KILL_PLR))
   {
     for (pt = descriptor_list; pt; pt = pt->next)
     {
@@ -2768,7 +2803,7 @@ struct combat_death_result combat_death_apply(struct char_data *ch, struct char_
 
   /* Info-Kill mobs, print info about the death of this mob to the world
    * TODO: add info channel for these guys */
-  if (killer != NULL && IS_NPC(ch) && MOB_FLAGGED(ch, MOB_INFO_KILL))
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_INFO_KILL))
   {
     for (pt = descriptor_list; pt; pt = pt->next)
     {
@@ -2833,15 +2868,7 @@ struct combat_death_result combat_death_apply(struct char_data *ch, struct char_
     /* The flag/state for this is set implicitly by the cleave logic */
   }
 
-  raw_kill_with_cause(ch, killer, cause);
-  result.processed = true;
-  return result;
-}
-
-void die(struct char_data *ch, struct char_data *killer)
-{
-  (void)combat_death_apply(ch, killer,
-                           killer != NULL ? COMBAT_DEATH_COMBAT : COMBAT_DEATH_UNSPECIFIED);
+  raw_kill(ch, killer);
 }
 
 /* called for splitting xp in a group (engine) */
@@ -5926,26 +5953,6 @@ static struct char_data *find_divine_sacrifice_defender(struct char_data *victim
   return defender;
 }
 
-static bool life_shield_can_reflect(struct char_data *attacker, struct char_data *victim, int damage,
-                                    int source)
-{
-  return attacker != NULL && victim != NULL && attacker != victim && damage > 0 &&
-         source != SPELL_LIFE_SHIELD && IS_UNDEAD(attacker) &&
-         affected_by_spell(victim, SPELL_LIFE_SHIELD);
-}
-
-static struct affected_type *find_spell_affect(struct char_data *ch, int spell)
-{
-  struct affected_type *affect;
-
-  if (ch == NULL)
-    return NULL;
-  for (affect = ch->affected; affect != NULL; affect = affect->next)
-    if (affect->spell == spell)
-      return affect;
-  return NULL;
-}
-
 static void apply_group_sacred_vengeance(struct char_data *victim)
 {
   struct group_data *group;
@@ -5996,17 +6003,6 @@ struct char_data *test_find_divine_sacrifice_defender(struct char_data *victim)
 void test_apply_group_sacred_vengeance(struct char_data *victim)
 {
   apply_group_sacred_vengeance(victim);
-}
-
-bool test_life_shield_can_reflect(struct char_data *attacker, struct char_data *victim, int damage,
-                                  int source)
-{
-  return life_shield_can_reflect(attacker, victim, damage, source);
-}
-
-struct affected_type *test_find_spell_affect(struct char_data *ch, int spell)
-{
-  return find_spell_affect(ch, spell);
 }
 #endif
 
@@ -6333,15 +6329,10 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
 
       /* Transfer damage to paladin */
       GET_HIT(k) -= dam;
-      if (dam > 0)
-        (void)domain_event_runtime_character_damaged(k, ch, dam, dam_type);
       update_pos(k);
 
       /* Start 10 minute cooldown */
       attach_mud_event(new_mud_event(eDIVINE_SACRIFICE, k, NULL), 10 * 60 * PASSES_PER_SEC);
-
-      if (GET_POS(k) == POS_DEAD)
-        (void)dam_killed_vict(ch, k);
 
       /* Victim takes no damage */
       dam = 0;
@@ -6397,14 +6388,9 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
         affected_by_spell(victim, PSIONIC_INERTIAL_ARMOR) ||
         affected_by_spell(victim, PSIONIC_ENERGY_RETORT))
     {
-      struct domain_entity_handle attacker_handle = domain_event_character_handle(ch);
-      struct domain_entity_handle victim_handle = domain_event_character_handle(victim);
-      room_rnum combat_room = IN_ROOM(ch);
       int retort_dam = get_energy_retort_bonus_damage(victim);
       int retort_type = IS_NPC(victim) ? DAM_FORCE : GET_PSIONIC_ENERGY_TYPE(victim);
       damage(victim, ch, retort_dam, PSIONIC_ENERGY_RETORT, retort_type, FALSE);
-      if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
-        return dam;
     }
   }
 
@@ -6441,11 +6427,8 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   }
 
   // check for life shield spell
-  if (life_shield_can_reflect(ch, victim, dam, w_type))
+  if (victim && ch != victim && IS_UNDEAD(ch) && affected_by_spell(victim, SPELL_LIFE_SHIELD))
   {
-    struct domain_entity_handle attacker_handle = domain_event_character_handle(ch);
-    struct domain_entity_handle victim_handle = domain_event_character_handle(victim);
-    room_rnum combat_room = IN_ROOM(ch);
     int threshold = get_char_affect_modifier(victim, SPELL_LIFE_SHIELD, APPLY_SPECIAL);
     int lifedam = 0;
     struct affected_type *af = NULL;
@@ -6460,6 +6443,7 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
       threshold = dam / 2;
     }
     lifedam = dam / 2;
+    damage(victim, ch, lifedam, SPELL_LIFE_SHIELD, DAM_HOLY, FALSE);
     for (af = victim->affected; af; af = af->next)
     {
       if (af->spell == SPELL_LIFE_SHIELD && af->location == APPLY_SPECIAL)
@@ -6476,9 +6460,6 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
     {
       affect_from_char(victim, SPELL_LIFE_SHIELD);
     }
-    damage(victim, ch, lifedam, SPELL_LIFE_SHIELD, DAM_HOLY, FALSE);
-    if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
-      return dam;
   }
 
   /* xp gain for damage, limiting it more -zusuk */
@@ -6714,46 +6695,10 @@ static int damage_with_projectile(struct char_data *ch, struct char_data *victim
   return (dam);
 }
 
-struct combat_damage_result combat_damage_apply(struct char_data *ch, struct char_data *victim,
-                                                int dam, int w_type, int dam_type, int attack_type)
-{
-  struct combat_reaction_queue reactions;
-  struct combat_reaction_damage reaction;
-  struct char_data *source;
-  struct char_data *target;
-  enum combat_reaction_dequeue_status status;
-  int result;
-
-  if (active_damage_reactions != NULL)
-  {
-    if (!combat_reaction_enqueue_damage(active_damage_reactions, ch, victim, dam, w_type, dam_type,
-                                        attack_type))
-    {
-      log("SYSERR: combat reaction damage queue rejected a damage packet.");
-      return combat_damage_result_rejected(ch, victim, dam);
-    }
-    return combat_damage_result_queued(ch, victim, dam);
-  }
-
-  combat_reaction_queue_init(&reactions);
-  active_damage_reactions = &reactions;
-  result = damage_with_projectile(ch, victim, dam, w_type, dam_type, attack_type, NULL, NULL);
-  while ((status = combat_reaction_dequeue_damage(&reactions, &reaction, &source, &target)) !=
-         COMBAT_REACTION_DEQUEUE_EMPTY)
-  {
-    if (status == COMBAT_REACTION_DEQUEUE_STALE)
-      continue;
-    (void)damage_with_projectile(source, target, reaction.amount, reaction.ability,
-                                 reaction.damage_type, reaction.attack_type, NULL, NULL);
-  }
-  active_damage_reactions = NULL;
-  return combat_damage_result_from_legacy(ch, victim, dam, result);
-}
-
 int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, int dam_type,
            int attack_type)
 {
-  return combat_damage_apply(ch, victim, dam, w_type, dam_type, attack_type).legacy_result;
+  return damage_with_projectile(ch, victim, dam, w_type, dam_type, attack_type, NULL, NULL);
 }
 
 /* you are going to arrive here from an attack, or viewing mode
@@ -12694,9 +12639,6 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              struct obj_data *projectile, bool *attack_context_invalidated,
                              enum projectile_disposition *projectile_disposition)
 {
-  struct domain_entity_handle attacker_handle = domain_event_character_handle(ch);
-  struct domain_entity_handle victim_handle = domain_event_character_handle(victim);
-  room_rnum combat_room = IN_ROOM(ch);
   struct affected_type af = {0}; /* for crippling strike */
   struct affected_type *af2;     // for hostile juxtaposition
   /* This is a bit of cruft from homeland code - It is used to activate a weapon 'special'
@@ -14230,26 +14172,31 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   // damage inflicting shields, like fire shield
   damage_shield_check(ch, victim, attack_type, dam, dam_type);
-  if (!combat_state_attack_context_valid(attacker_handle, victim_handle, combat_room))
-    return 0;
 
   if (dam > 0)
   {
     if (affected_by_spell(victim, SPELL_HOSTILE_JUXTAPOSITION))
     {
       send_to_char(victim, "Your hostile juxtaposition defense is triggered.\r\n");
-      affect_from_char(victim, SPELL_HOSTILE_JUXTAPOSITION);
       damage(victim, ch, dam, SPELL_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
       dam = 0;
+      affect_from_char(victim, SPELL_HOSTILE_JUXTAPOSITION);
     }
-    else if (affected_by_spell(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION))
+    else if (affected_by_spell(victim, SPELL_HOSTILE_JUXTAPOSITION))
     {
       send_to_char(victim, "Your greater hostile juxtaposition defense is triggered.\r\n");
-      af2 = find_spell_affect(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
-      if (af2 != NULL && --af2->modifier <= 0)
-        affect_from_char(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
-      damage(victim, ch, dam, SPELL_GREATER_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
+      damage(victim, ch, dam, SPELL_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
       dam = 0;
+      for (af2 = victim->affected; af2; af2 = af2->next)
+      {
+        if (af2->location == SPELL_GREATER_HOSTILE_JUXTAPOSITION)
+        {
+          af2->modifier--;
+          break;
+        }
+      }
+      if (af2->modifier <= 0)
+        affect_from_char(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
     }
   }
 
@@ -15450,6 +15397,7 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 /* returns # of attacks and has mode functionality */
 #define ATTACK_CAP 3                       /* MAX # of main-hand BONUS attacks */
 #define MONK_CAP (ATTACK_CAP + 2)          /* monks main-hand bonus attack cap */
+#define NPC_ATTACK_CAP (MONK_CAPK_CAP + 2) /* high level NPC bonus attack cap */
 #define TWO_WPN_PNLTY -5                   /* improved two weapon fighting */
 #define GREAT_TWO_PNLY -10                 /* greater two weapon fighting */
 #define EPIC_TWO_PNLTY 0                   /* perfect two weapon fighting */
@@ -15477,15 +15425,6 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 #define PHASE_1 1
 #define PHASE_2 2
 #define PHASE_3 3
-
-static bool attack_number_runs_in_phase(int attack_number, int phase)
-{
-  if (phase == PHASE_0)
-    return true;
-  return attack_number > 0 && phase >= PHASE_1 && phase <= PHASE_3 &&
-         ((attack_number - 1) % 3) + 1 == phase;
-}
-
 int perform_attacks(struct char_data *ch, int mode, int phase)
 {
   int i = 0, penalty = 0, numAttacks = 0, bonus_mainhand_attacks = 0;
@@ -16288,7 +16227,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (phase == PHASE_0 ||
+              ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) ||
+                                      (numAttacks == 10) || (numAttacks == 13))) ||
+              ((phase == PHASE_2) && ((numAttacks == 2) || (numAttacks == 5) || (numAttacks == 8) ||
+                                      (numAttacks == 11) || (numAttacks == 14))) ||
+              ((phase == PHASE_1) && ((numAttacks == 3) || (numAttacks == 6) || (numAttacks == 9) ||
+                                      (numAttacks == 12) || (numAttacks == 15))))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
                 ATTACK_TYPE_OFFHAND);
       }
@@ -16309,7 +16254,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (phase == PHASE_0 ||
+              ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) ||
+                                      (numAttacks == 10) || (numAttacks == 13))) ||
+              ((phase == PHASE_2) && ((numAttacks == 2) || (numAttacks == 5) || (numAttacks == 8) ||
+                                      (numAttacks == 11) || (numAttacks == 14))) ||
+              ((phase == PHASE_1) && ((numAttacks == 3) || (numAttacks == 6) || (numAttacks == 9) ||
+                                      (numAttacks == 12) || (numAttacks == 15))))
 
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, GREAT_TWO_PNLY,
                 ATTACK_TYPE_OFFHAND);
@@ -16332,7 +16283,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       {
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (phase == PHASE_0 ||
+              ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) ||
+                                      (numAttacks == 10) || (numAttacks == 13))) ||
+              ((phase == PHASE_2) && ((numAttacks == 2) || (numAttacks == 5) || (numAttacks == 8) ||
+                                      (numAttacks == 11) || (numAttacks == 14))) ||
+              ((phase == PHASE_1) && ((numAttacks == 3) || (numAttacks == 6) || (numAttacks == 9) ||
+                                      (numAttacks == 12) || (numAttacks == 15))))
           {
             send_to_char(ch, "\tG[Wilderness Warrior TWF!]\tn\r\n");
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
@@ -16356,7 +16313,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       {
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (phase == PHASE_0 ||
+              ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) ||
+                                      (numAttacks == 10) || (numAttacks == 13))) ||
+              ((phase == PHASE_2) && ((numAttacks == 2) || (numAttacks == 5) || (numAttacks == 8) ||
+                                      (numAttacks == 11) || (numAttacks == 14))) ||
+              ((phase == PHASE_1) && ((numAttacks == 3) || (numAttacks == 6) || (numAttacks == 9) ||
+                                      (numAttacks == 12) || (numAttacks == 15))))
           {
             send_to_char(ch, "\tG[Greater WW TWF!]\tn\r\n");
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, TWO_WPN_PNLTY,
@@ -16379,7 +16342,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         if (valid_fight_cond(ch, FALSE))
-          if (attack_number_runs_in_phase(numAttacks, phase))
+          if (phase == PHASE_0 ||
+              ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) ||
+                                      (numAttacks == 10) || (numAttacks == 13))) ||
+              ((phase == PHASE_2) && ((numAttacks == 2) || (numAttacks == 5) || (numAttacks == 8) ||
+                                      (numAttacks == 11) || (numAttacks == 14))) ||
+              ((phase == PHASE_1) && ((numAttacks == 3) || (numAttacks == 6) || (numAttacks == 9) ||
+                                      (numAttacks == 12) || (numAttacks == 15))))
             hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, EPIC_TWO_PNLTY,
                 ATTACK_TYPE_OFFHAND);
       }
@@ -16396,12 +16365,6 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   }
   return numAttacks;
 }
-#ifdef LUMINARI_CUTEST
-bool test_attack_number_runs_in_phase(int attack_number, int phase)
-{
-  return attack_number_runs_in_phase(attack_number, phase);
-}
-#endif
 #undef ATTACK_CAP
 #undef MONK_CAP
 #undef TWO_WPN_PNLTY
@@ -16412,6 +16375,7 @@ bool test_attack_number_runs_in_phase(int attack_number, int phase)
 #undef PHASE_1
 #undef PHASE_2
 #undef PHASE_3
+#undef NPC_ATTACK_CAP
 
 /* display condition of FIGHTING() target to ch */
 /* this is deprecated with the prompt changes */

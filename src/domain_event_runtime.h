@@ -18,9 +18,6 @@ enum domain_event_status domain_event_runtime_combat_state_changed(struct char_d
                                                                    bool in_combat);
 enum domain_event_status domain_event_runtime_character_died(struct char_data *ch,
                                                              struct char_data *killer);
-enum domain_event_status domain_event_runtime_character_died_with_cause(struct char_data *ch,
-                                                                        struct char_data *killer,
-                                                                        uint32_t cause);
 enum domain_event_status domain_event_runtime_character_extracted(struct char_data *ch,
                                                                   uint32_t reason);
 enum domain_event_status domain_event_runtime_object_moved(struct obj_data *obj,

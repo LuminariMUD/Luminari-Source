@@ -10,7 +10,6 @@
 #include "utils.h"
 
 #include "combat/fight.h"
-#include "combat/combat_state.h"
 #include "act.h"
 #include "comm.h"
 #include "db.h"
@@ -3407,9 +3406,17 @@ static void rol_monster_area_damage(struct char_data *ch, enum rol_monster_comba
 
 static void rol_monster_stop_combat(struct char_data *victim)
 {
+  struct char_data *fighter;
+  struct char_data *next;
+
   if (FIGHTING(victim) != NULL)
     stop_fighting(victim);
-  combat_state_stop_attackers(victim);
+  for (fighter = combat_list; fighter != NULL; fighter = next)
+  {
+    next = fighter->next_fighting;
+    if (FIGHTING(fighter) == victim)
+      stop_fighting(fighter);
+  }
 }
 
 static void rol_monster_air_boss(struct char_data *ch)

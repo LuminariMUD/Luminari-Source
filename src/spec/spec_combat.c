@@ -7,7 +7,6 @@
 #include "sysdep.h"
 
 #include "structs.h"
-#include "combat/combat_damage.h"
 #include "combat/fight.h"
 #include "spec/spec_combat.h"
 
@@ -16,7 +15,6 @@ struct spec_damage_result spec_damage_current_target(struct char_data *actor,
                                                      int attack_type, int damage_type,
                                                      int dualwield)
 {
-  struct combat_damage_result damage_result;
   struct spec_damage_result result = {SPEC_DAMAGE_INVALID_CONTEXT, SPEC_CONTEXT_MISSING_CONTEXT, 0};
 
   result.context_result = spec_context_validate_combat_target(actor, target, true);
@@ -28,17 +26,13 @@ struct spec_damage_result spec_damage_current_target(struct char_data *actor,
     return result;
   }
 
-  damage_result = combat_damage_apply(actor, target, amount, attack_type, damage_type, dualwield);
-  result.legacy_result = damage_result.legacy_result;
-  if (damage_result.status == COMBAT_DAMAGE_TARGET_DIED)
+  result.legacy_result = damage(actor, target, amount, attack_type, damage_type, dualwield);
+  if (result.legacy_result < 0)
     result.status = SPEC_DAMAGE_TARGET_INVALIDATED;
-  else if (damage_result.status == COMBAT_DAMAGE_NO_EFFECT ||
-           damage_result.status == COMBAT_DAMAGE_QUEUED)
+  else if (result.legacy_result == 0)
     result.status = SPEC_DAMAGE_NO_EFFECT;
-  else if (damage_result.status == COMBAT_DAMAGE_APPLIED)
-    result.status = SPEC_DAMAGE_APPLIED;
   else
-    result.status = SPEC_DAMAGE_INVALID_CONTEXT;
+    result.status = SPEC_DAMAGE_APPLIED;
 
   return result;
 }

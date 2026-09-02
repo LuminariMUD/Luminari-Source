@@ -55,7 +55,6 @@ struct domain_character_died
 {
   struct domain_entity_handle character;
   struct domain_entity_handle killer;
-  uint32_t cause;
 };
 
 struct domain_entity_extracted

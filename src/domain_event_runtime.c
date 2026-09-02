@@ -207,13 +207,6 @@ enum domain_event_status domain_event_runtime_combat_state_changed(struct char_d
 enum domain_event_status domain_event_runtime_character_died(struct char_data *ch,
                                                              struct char_data *killer)
 {
-  return domain_event_runtime_character_died_with_cause(ch, killer, 0U);
-}
-
-enum domain_event_status domain_event_runtime_character_died_with_cause(struct char_data *ch,
-                                                                        struct char_data *killer,
-                                                                        uint32_t cause)
-{
   struct domain_character_died event;
   struct domain_event_topic topics[2];
   size_t topic_count = 0U;
@@ -222,7 +215,6 @@ enum domain_event_status domain_event_runtime_character_died_with_cause(struct c
     return DOMAIN_EVENT_NOT_FOUND;
   event.character = domain_event_character_handle(ch);
   event.killer = domain_event_character_handle(killer);
-  event.cause = cause;
   append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SUBJECT, event.character);
   append_topic(topics, &topic_count, DOMAIN_EVENT_TOPIC_SOURCE, event.killer);
   return DOMAIN_EVENT_PUBLISH_ROUTED(runtime_bus, DOMAIN_EVENT_CHARACTER_DIED, topics,
