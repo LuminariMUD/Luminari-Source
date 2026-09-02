@@ -34,8 +34,17 @@ for command_name in expect nc awk; do
 done
 
 set +x
+override_game_master_account_set=${GAME_MASTER_ACCOUNT+x}
+override_game_master_account=${GAME_MASTER_ACCOUNT-}
+override_game_master_password_set=${GAME_MASTER_ACCOUNT_PASSWORD+x}
+override_game_master_password=${GAME_MASTER_ACCOUNT_PASSWORD-}
+override_dev_password_set=${DEV_MUD_ACCOUNT_PASSWORD+x}
+override_dev_password=${DEV_MUD_ACCOUNT_PASSWORD-}
 # shellcheck disable=SC1091
 . "$repo_root/lib/.env"
+[[ -z "$override_game_master_account_set" ]] || GAME_MASTER_ACCOUNT=$override_game_master_account
+[[ -z "$override_game_master_password_set" ]] || GAME_MASTER_ACCOUNT_PASSWORD=$override_game_master_password
+[[ -z "$override_dev_password_set" ]] || DEV_MUD_ACCOUNT_PASSWORD=$override_dev_password
 
 [[ "${APP_ENV:-}" == "development" ]] ||
   fail "refusing to run because APP_ENV is not development"
@@ -97,7 +106,7 @@ set character_name $env(MUD_CREATE_CHARACTER)
 spawn -noecho nc 127.0.0.1 $env(MUD_CREATE_PORT)
 
 expect {
-  -re {What is your account name} {}
+  -re {(What is your account name|Enter your character name)} {}
   timeout { fail "account prompt timeout" }
   eof { fail "connection closed at account prompt" }
 }

@@ -179,8 +179,23 @@ flock -w 180 9 ||
   fail "timed out waiting for another local character session to finish"
 
 set +x
+override_game_master_account_set=${GAME_MASTER_ACCOUNT+x}
+override_game_master_account=${GAME_MASTER_ACCOUNT-}
+override_game_master_password_set=${GAME_MASTER_ACCOUNT_PASSWORD+x}
+override_game_master_password=${GAME_MASTER_ACCOUNT_PASSWORD-}
+override_dev_account_set=${DEV_MUD_ACCOUNT+x}
+override_dev_account=${DEV_MUD_ACCOUNT-}
+override_dev_password_set=${DEV_MUD_ACCOUNT_PASSWORD+x}
+override_dev_password=${DEV_MUD_ACCOUNT_PASSWORD-}
+override_dev_character_set=${DEV_MUD_CHARACTER+x}
+override_dev_character=${DEV_MUD_CHARACTER-}
 # shellcheck disable=SC1091
 . "$repo_root/lib/.env"
+[[ -z "$override_game_master_account_set" ]] || GAME_MASTER_ACCOUNT=$override_game_master_account
+[[ -z "$override_game_master_password_set" ]] || GAME_MASTER_ACCOUNT_PASSWORD=$override_game_master_password
+[[ -z "$override_dev_account_set" ]] || DEV_MUD_ACCOUNT=$override_dev_account
+[[ -z "$override_dev_password_set" ]] || DEV_MUD_ACCOUNT_PASSWORD=$override_dev_password
+[[ -z "$override_dev_character_set" ]] || DEV_MUD_CHARACTER=$override_dev_character
 
 [[ "${APP_ENV:-}" == "development" ]] ||
   fail "refusing to run because APP_ENV is not development"
@@ -1756,7 +1771,7 @@ proc open_secondary_character {requested_character} {
   set secondary_session $spawn_id
 
   expect {
-    -re {What is your account name} {}
+    -re {(What is your account name|Enter your character name)} {}
     timeout { fail "timed out waiting for the secondary account prompt" }
     eof { fail "secondary connection closed before the account prompt" }
   }
@@ -2143,7 +2158,7 @@ if {$mode eq "vessel-msdp-check"} {
 }
 
 expect {
-  -re {What is your account name} {}
+  -re {(What is your account name|Enter your character name)} {}
   timeout { fail "timed out waiting for the account prompt" }
   eof { fail "connection closed before the account prompt" }
 }
