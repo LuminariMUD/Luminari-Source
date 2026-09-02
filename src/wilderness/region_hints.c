@@ -530,49 +530,51 @@ char *combine_base_with_hints(char *base_desc, struct region_hint *hints,
                               struct description_context *context)
 {
   char *combined = NULL;
-  struct region_hint *current = hints;
-  int total_len = 0;
-  int base_len = base_desc ? strlen(base_desc) : 0;
+  struct region_hint *current = NULL;
+  size_t base_len = base_desc != NULL ? strlen(base_desc) : 0;
+  size_t total_len;
+  size_t used;
 
-  /* Calculate total length needed */
-  total_len = base_len + 100; /* Base + some buffer */
-  while (current)
-  {
-    if (current->hint_text)
-    {
-      total_len += strlen(current->hint_text) + 10; /* hint + spacing */
-    }
-    current = current->next;
-  }
+  /* Reserve the base text, one separator plus the text for each hint, and the
+     terminator. The sizing is exact and done in size_t: the previous int
+     arithmetic with fixed slack could in principle wrap on a long hint chain,
+     and the unbounded strcpy/strcat below it gave no second line of defence. */
+  total_len = base_len + 1;
+  for (current = hints; current != NULL; current = current->next)
+    if (current->hint_text != NULL)
+      total_len += strlen(current->hint_text) + 1;
 
   combined = malloc(total_len);
-  if (!combined)
+  if (combined == NULL)
     return NULL;
 
-  /* Start with base description */
-  if (base_desc)
-  {
-    strcpy(combined, base_desc);
-  }
-  else
-  {
-    strcpy(combined, "");
-  }
+  if (base_len > 0)
+    memcpy(combined, base_desc, base_len);
+  used = base_len;
+  combined[used] = '\0';
 
-  /* Add hints */
-  current = hints;
-  while (current)
+  for (current = hints; current != NULL; current = current->next)
   {
-    if (current->hint_text && strlen(current->hint_text) > 0)
-    {
-      /* Add some connecting text and the hint */
-      strcat(combined, " ");
-      strcat(combined, current->hint_text);
+    size_t hint_len;
 
-      /* Log hint usage for analytics */
-      log_hint_usage(current->id, context->room, context->ch, context);
-    }
-    current = current->next;
+    if (current->hint_text == NULL)
+      continue;
+    hint_len = strlen(current->hint_text);
+    if (hint_len == 0)
+      continue;
+
+    /* Bounded by construction, but checked so the write stays provably inside
+       the allocation even if the list is mutated between sizing and filling. */
+    if (used + hint_len + 1 >= total_len)
+      break;
+
+    combined[used++] = ' ';
+    memcpy(combined + used, current->hint_text, hint_len);
+    used += hint_len;
+    combined[used] = '\0';
+
+    /* Log hint usage for analytics */
+    log_hint_usage(current->id, context->room, context->ch, context);
   }
 
   return combined;

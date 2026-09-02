@@ -29,20 +29,21 @@
 #include "active_world.h"
 
 /* Local file scope functions. */
-static void mob_log(char_data *mob, const char *format, ...);
+static void mob_log(char_data *mob, const char *format, ...) __attribute__((format(printf, 2, 3)));
 
 /* attaches mob's name and vnum to msg and sends it to script_log */
 static void mob_log(char_data *mob, const char *format, ...)
 {
   va_list args;
-  char output[MAX_STRING_LENGTH] = {'\0'};
+  char message[MAX_STRING_LENGTH] = {'\0'};
 
-  snprintf(output, sizeof(output), "Mob (%s, VNum %d):: %s", GET_SHORT(mob), GET_MOB_VNUM(mob),
-           format);
-
+  /* See obj_log(): expand the caller's format first so the mob's short
+     description is logged as data rather than as format directives. */
   va_start(args, format);
-  script_vlog(output, args);
+  vsnprintf(message, sizeof(message), format, args);
   va_end(args);
+
+  script_log("Mob (%s, VNum %d):: %s", GET_SHORT(mob), GET_MOB_VNUM(mob), message);
 }
 
 /* Macro to determine if a mob is permitted to use these commands. */

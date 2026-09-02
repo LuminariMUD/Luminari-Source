@@ -38,7 +38,7 @@ struct wld_command_info
   int subcmd;
 };
 
-void wld_log(room_data *room, const char *format, ...);
+void wld_log(room_data *room, const char *format, ...) __attribute__((format(printf, 2, 3)));
 void act_to_room(char *str, room_data *room);
 WCMD(do_wasound);
 WCMD(do_wecho);
@@ -60,13 +60,15 @@ WCMD(do_wlog);
 void wld_log(room_data *room, const char *format, ...)
 {
   va_list args;
-  char output[MAX_STRING_LENGTH] = {'\0'};
+  char message[MAX_STRING_LENGTH] = {'\0'};
 
-  snprintf(output, sizeof(output), "Room %d :: %s", room->number, format);
-
+  /* See obj_log(): expand the caller's format against its own arguments before
+     attaching the prefix, so the message is never re-parsed as a format. */
   va_start(args, format);
-  script_vlog(output, args);
+  vsnprintf(message, sizeof(message), format, args);
   va_end(args);
+
+  script_log("Room %d :: %s", room->number, message);
 }
 
 /* sends str to room */

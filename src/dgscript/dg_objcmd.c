@@ -27,7 +27,7 @@
   void(name)(obj_data * obj __attribute__((unused)), char *argument __attribute__((unused)),       \
              int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
-static void obj_log(obj_data *obj, const char *format, ...);
+static void obj_log(obj_data *obj, const char *format, ...) __attribute__((format(printf, 2, 3)));
 static room_rnum find_obj_target_room(obj_data *obj, char *rawroomstr);
 static OCMD(do_oecho);
 static OCMD(do_ogecho);
@@ -63,14 +63,17 @@ struct obj_command_info
 static void obj_log(obj_data *obj, const char *format, ...)
 {
   va_list args;
-  char output[MAX_STRING_LENGTH] = {'\0'};
+  char message[MAX_STRING_LENGTH] = {'\0'};
 
-  snprintf(output, sizeof(output), "Obj (%s, VNum %d):: %s", obj->short_description,
-           GET_OBJ_VNUM(obj), format);
-
+  /* Expand the caller's format against its own arguments first, then attach
+     the prefix as data. Splicing the prefix into the format string made the
+     object's short description - which a builder controls - act as format
+     directives consuming arguments that were never passed. */
   va_start(args, format);
-  script_vlog(output, args);
+  vsnprintf(message, sizeof(message), format, args);
   va_end(args);
+
+  script_log("Obj (%s, VNum %d):: %s", obj->short_description, GET_OBJ_VNUM(obj), message);
 }
 
 /* returns the real room number that the object or object's carrier is in */
